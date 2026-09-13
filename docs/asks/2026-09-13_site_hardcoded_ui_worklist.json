@@ -1,0 +1,4385 @@
+{
+ "generated": "scrape of app/ + components/ .tsx for user-visible English not wrapped in t()",
+ "files": 69,
+ "total": 848,
+ "hits": {
+  "app/SoI-2525/page.tsx": [
+   {
+    "line": 613,
+    "kind": "aria-label",
+    "s": "Remove the selected project"
+   },
+   {
+    "line": 635,
+    "kind": "title",
+    "s": "R&D budget scenario (sets the funding line)"
+   },
+   {
+    "line": 676,
+    "kind": "text",
+    "s": "· time is money — cost shown in"
+   },
+   {
+    "line": 718,
+    "kind": "title",
+    "s": "Budget by SBU / Alpha Group — incl. unfunded"
+   },
+   {
+    "line": 721,
+    "kind": "title",
+    "s": "Working-stack row layout"
+   },
+   {
+    "line": 754,
+    "kind": "text",
+    "s": "✕ all projects"
+   },
+   {
+    "line": 780,
+    "kind": "title",
+    "s": "Drill to projects"
+   },
+   {
+    "line": 802,
+    "kind": "text",
+    "s": "P-wt Rev"
+   },
+   {
+    "line": 836,
+    "kind": "title",
+    "s": "Drag to reprioritize"
+   },
+   {
+    "line": 841,
+    "kind": "title",
+    "s": "Move up"
+   },
+   {
+    "line": 842,
+    "kind": "title",
+    "s": "Move down"
+   },
+   {
+    "line": 879,
+    "kind": "text",
+    "s": "P-wt Rev"
+   },
+   {
+    "line": 909,
+    "kind": "text",
+    "s": "Std cost"
+   },
+   {
+    "line": 923,
+    "kind": "text",
+    "s": "Prod cost →"
+   },
+   {
+    "line": 1032,
+    "kind": "aria-label",
+    "s": "Confirm project removal"
+   },
+   {
+    "line": 1035,
+    "kind": "text",
+    "s": "Remove this project?"
+   },
+   {
+    "line": 1042,
+    "kind": "text",
+    "s": "· project ids are never reused, so nothing can inherit them"
+   },
+   {
+    "line": 1043,
+    "kind": "text",
+    "s": "appears immediately after"
+   },
+   {
+    "line": 1049,
+    "kind": "text",
+    "s": "Remove project"
+   },
+   {
+    "line": 1126,
+    "kind": "title",
+    "s": "Drag to reprioritize"
+   },
+   {
+    "line": 1147,
+    "kind": "title",
+    "s": "Move up"
+   },
+   {
+    "line": 1148,
+    "kind": "title",
+    "s": "Move down"
+   },
+   {
+    "line": 1263,
+    "kind": "aria-label",
+    "s": "Generative CONOPS wireframe"
+   },
+   {
+    "line": 1311,
+    "kind": "aria-label",
+    "s": "View mode"
+   },
+   {
+    "line": 1315,
+    "kind": "aria-label",
+    "s": "CAGR horizon"
+   },
+   {
+    "line": 1377,
+    "kind": "aria-label",
+    "s": "Dismiss"
+   },
+   {
+    "line": 1544,
+    "kind": "text",
+    "s": "Price Performance · Competition"
+   },
+   {
+    "line": 1554,
+    "kind": "aria-label",
+    "s": "Save competitor positions"
+   },
+   {
+    "line": 1560,
+    "kind": "aria-label",
+    "s": "Edit competitor positions"
+   },
+   {
+    "line": 1643,
+    "kind": "text",
+    "s": "Drag a marker (or use ← →) — your own position is computed from the competitive "
+   },
+   {
+    "line": 1885,
+    "kind": "aria-label",
+    "s": "Value creation and capture waterfall vs the next best alternative"
+   },
+   {
+    "line": 2016,
+    "kind": "title",
+    "s": "Remove"
+   },
+   {
+    "line": 2089,
+    "kind": "text",
+    "s": "Revenue · 10 yr · stackable (project → Alpha Grp → SBU → BU)"
+   },
+   {
+    "line": 2114,
+    "kind": "text",
+    "s": "at-risk upside"
+   },
+   {
+    "line": 2122,
+    "kind": "text",
+    "s": "Full Rev"
+   },
+   {
+    "line": 2138,
+    "kind": "text",
+    "s": "Project Financials Overview · 10-yr (Revenue · Margin · R&D)"
+   },
+   {
+    "line": 2141,
+    "kind": "title",
+    "s": "Edit financials — opens S10, the single source of truth, with its source panel e"
+   },
+   {
+    "line": 2141,
+    "kind": "aria-label",
+    "s": "Edit financials"
+   },
+   {
+    "line": 2173,
+    "kind": "text",
+    "s": "Risk-weighted revenue"
+   },
+   {
+    "line": 2427,
+    "kind": "title",
+    "s": "Edit financials — opens the Revenue Plan source editor"
+   },
+   {
+    "line": 2427,
+    "kind": "aria-label",
+    "s": "Edit financials"
+   },
+   {
+    "line": 2515,
+    "kind": "aria-label",
+    "s": "New member role"
+   },
+   {
+    "line": 2676,
+    "kind": "aria-label",
+    "s": "R-Core Project Template"
+   },
+   {
+    "line": 2724,
+    "kind": "text",
+    "s": "Author the best-in-class"
+   },
+   {
+    "line": 2724,
+    "kind": "text",
+    "s": "value proposition. On submit, an"
+   },
+   {
+    "line": 2724,
+    "kind": "text",
+    "s": "is minted so improvement ideas surface via the HI⇄AI toggle. It&apos;s how Innov"
+   },
+   {
+    "line": 2726,
+    "kind": "text",
+    "s": "Project name"
+   },
+   {
+    "line": 2727,
+    "kind": "placeholder",
+    "s": "e.g. Next-Gen ISR Sensor"
+   },
+   {
+    "line": 2729,
+    "kind": "text",
+    "s": "Master value proposition"
+   },
+   {
+    "line": 2731,
+    "kind": "placeholder",
+    "s": "For [customer] who [need], [product] is a [category] that [key benefit / quantif"
+   },
+   {
+    "line": 2733,
+    "kind": "text",
+    "s": "Next Best Alternative (NBA)"
+   },
+   {
+    "line": 2735,
+    "kind": "placeholder",
+    "s": "The current competitive alternative or As-Is solution the customer uses today — "
+   },
+   {
+    "line": 2736,
+    "kind": "text",
+    "s": "Understand customer needs"
+   },
+   {
+    "line": 2736,
+    "kind": "text",
+    "s": "versus the Next Best Alternative"
+   },
+   {
+    "line": 2736,
+    "kind": "text",
+    "s": "— the As-Is / competitive option the value prop must out-perform."
+   },
+   {
+    "line": 2744,
+    "kind": "text",
+    "s": "Per-segment value props"
+   },
+   {
+    "line": 2745,
+    "kind": "text",
+    "s": "+ Add segment"
+   },
+   {
+    "line": 2748,
+    "kind": "text",
+    "s": "Add a value prop per needs-based segment (e.g. by mission, buyer, or use case) —"
+   },
+   {
+    "line": 2753,
+    "kind": "placeholder",
+    "s": "Segment (from library or new)"
+   },
+   {
+    "line": 2754,
+    "kind": "placeholder",
+    "s": "Value prop for this segment"
+   },
+   {
+    "line": 2758,
+    "kind": "title",
+    "s": "Remove"
+   },
+   {
+    "line": 2768,
+    "kind": "text",
+    "s": "Customer Pain Points and the Customer Problem Statement are early-Concept (G1) M"
+   },
+   {
+    "line": 2768,
+    "kind": "text",
+    "s": "separate recommended workflow"
+   },
+   {
+    "line": 2768,
+    "kind": "text",
+    "s": ", not required to submit a value proposition here."
+   },
+   {
+    "line": 2773,
+    "kind": "text",
+    "s": "Create project"
+   },
+   {
+    "line": 2775,
+    "kind": "text",
+    "s": "Name + master value proposition + Next Best Alternative required."
+   },
+   {
+    "line": 2876,
+    "kind": "text",
+    "s": "Not funded"
+   },
+   {
+    "line": 2892,
+    "kind": "text",
+    "s": "P-wt rev"
+   },
+   {
+    "line": 2893,
+    "kind": "title",
+    "s": "Live burn — NRE spread across the program schedule"
+   },
+   {
+    "line": 2950,
+    "kind": "text",
+    "s": "a project sits in one bucket, set by the funding line"
+   },
+   {
+    "line": 3007,
+    "kind": "title",
+    "s": "Live burn of the funded projects at this node"
+   },
+   {
+    "line": 3025,
+    "kind": "text",
+    "s": "Not funded"
+   },
+   {
+    "line": 3027,
+    "kind": "title",
+    "s": "Unfunded NPV at risk (below the funding line)"
+   },
+   {
+    "line": 3028,
+    "kind": "title",
+    "s": "Value density — NPV $M per R&amp;D $M"
+   },
+   {
+    "line": 3029,
+    "kind": "text",
+    "s": "P-wt Rev"
+   },
+   {
+    "line": 3066,
+    "kind": "title",
+    "s": "Cost per served buyer-segment"
+   },
+   {
+    "line": 3077,
+    "kind": "text",
+    "s": "Funded vs not-funded is set by the global funding line (Σ R&amp;D ≤ available). "
+   },
+   {
+    "line": 3173,
+    "kind": "text",
+    "s": "Value proposition"
+   },
+   {
+    "line": 3178,
+    "kind": "title",
+    "s": "Toggle the best-in-class human (HI) version vs the AI-generated rendition"
+   },
+   {
+    "line": 3189,
+    "kind": "text",
+    "s": "AI rendition · authored to spark improvement of the human version"
+   },
+   {
+    "line": 3193,
+    "kind": "text",
+    "s": "Next Best Alternative"
+   },
+   {
+    "line": 3213,
+    "kind": "text",
+    "s": "Exploring — S8 is where the value proposition is saved."
+   },
+   {
+    "line": 3214,
+    "kind": "title",
+    "s": "Open S8 with the value-proposition editor expanded"
+   },
+   {
+    "line": 3216,
+    "kind": "text",
+    "s": "Edit on S8"
+   },
+   {
+    "line": 3231,
+    "kind": "text",
+    "s": "Recommended: add per-needs-based-segment value props to sharpen BD/Sales targeti"
+   },
+   {
+    "line": 3240,
+    "kind": "title",
+    "s": "Expandable executive slide (2-screen swipe overview)"
+   },
+   {
+    "line": 3241,
+    "kind": "text",
+    "s": "▤ Exec slide"
+   },
+   {
+    "line": 3251,
+    "kind": "text",
+    "s": "Gate approval:"
+   },
+   {
+    "line": 3256,
+    "kind": "text",
+    "s": "Request changes"
+   },
+   {
+    "line": 3293,
+    "kind": "text",
+    "s": "These three are totals of the S10 grid — change them there and every surface fol"
+   },
+   {
+    "line": 3314,
+    "kind": "text",
+    "s": "Tech Risk"
+   },
+   {
+    "line": 3315,
+    "kind": "text",
+    "s": "Comm Risk"
+   },
+   {
+    "line": 3353,
+    "kind": "text",
+    "s": "Risk register:"
+   },
+   {
+    "line": 3369,
+    "kind": "title",
+    "s": "Strategic Initiative"
+   },
+   {
+    "line": 3370,
+    "kind": "title",
+    "s": "Value Ladder position"
+   },
+   {
+    "line": 3371,
+    "kind": "title",
+    "s": "Value Ladder impact"
+   },
+   {
+    "line": 3372,
+    "kind": "title",
+    "s": "Competitive position"
+   },
+   {
+    "line": 3373,
+    "kind": "title",
+    "s": "Target market"
+   },
+   {
+    "line": 3385,
+    "kind": "text",
+    "s": "Payback &amp; IRR are model estimates · NPV discounted ~5%/yr over 10 yr · margi"
+   },
+   {
+    "line": 3395,
+    "kind": "text",
+    "s": "Product Mgr"
+   },
+   {
+    "line": 3396,
+    "kind": "text",
+    "s": "Project Eng"
+   },
+   {
+    "line": 3483,
+    "kind": "text",
+    "s": "1st Rev"
+   },
+   {
+    "line": 3503,
+    "kind": "aria-label",
+    "s": "Executive slide — overview and detail"
+   },
+   {
+    "line": 3508,
+    "kind": "aria-label",
+    "s": "① Overview"
+   },
+   {
+    "line": 3512,
+    "kind": "text",
+    "s": "Project Overview"
+   },
+   {
+    "line": 3524,
+    "kind": "text",
+    "s": "Strategy · Value Proposition"
+   },
+   {
+    "line": 3536,
+    "kind": "text",
+    "s": "Market Opportunity"
+   },
+   {
+    "line": 3549,
+    "kind": "text",
+    "s": "Portfolio Positioning"
+   },
+   {
+    "line": 3551,
+    "kind": "text",
+    "s": "Gross margin"
+   },
+   {
+    "line": 3552,
+    "kind": "text",
+    "s": "Rev captured"
+   },
+   {
+    "line": 3553,
+    "kind": "text",
+    "s": "10-Yr revenue"
+   },
+   {
+    "line": 3572,
+    "kind": "aria-label",
+    "s": "② Detail"
+   },
+   {
+    "line": 3585,
+    "kind": "text",
+    "s": "Depends on"
+   },
+   {
+    "line": 3585,
+    "kind": "text",
+    "s": "· relied on by"
+   },
+   {
+    "line": 3588,
+    "kind": "text",
+    "s": "· ⚠ on the critical path"
+   },
+   {
+    "line": 3596,
+    "kind": "text",
+    "s": "Critical Issues &amp; Risks"
+   },
+   {
+    "line": 3598,
+    "kind": "text",
+    "s": "No risks logged — raise one in the Risk Register below."
+   },
+   {
+    "line": 3618,
+    "kind": "text",
+    "s": "Cost · R&amp;D Actuals vs Forecast"
+   },
+   {
+    "line": 3638,
+    "kind": "aria-label",
+    "s": "③ BD Pipeline"
+   },
+   {
+    "line": 3642,
+    "kind": "text",
+    "s": "Add per-needs-segment value props (in the value-prop creator) to build the BD pi"
+   },
+   {
+    "line": 3703,
+    "kind": "text",
+    "s": "Time engine · remaining to launch"
+   },
+   {
+    "line": 3729,
+    "kind": "text",
+    "s": "Cost of time"
+   },
+   {
+    "line": 3730,
+    "kind": "text",
+    "s": "1st revenue"
+   },
+   {
+    "line": 3750,
+    "kind": "text",
+    "s": "Say / Do ratio"
+   },
+   {
+    "line": 3750,
+    "kind": "text",
+    "s": "planned ÷ delivered · &gt;1.0 beats plan"
+   },
+   {
+    "line": 3938,
+    "kind": "title",
+    "s": "Tap to cycle: pending → signed → blocked"
+   },
+   {
+    "line": 4021,
+    "kind": "text",
+    "s": "611.8x0.0 (fine, it has no width property),"
+   },
+   {
+    "line": 4021,
+    "kind": "text",
+    "s": "fine, and every"
+   },
+   {
+    "line": 4128,
+    "kind": "aria-label",
+    "s": "User story detail level"
+   },
+   {
+    "line": 4188,
+    "kind": "text",
+    "s": "⤢ expand for detail and the traceability matrix"
+   },
+   {
+    "line": 4673,
+    "kind": "text",
+    "s": "S10 · Financials by Year"
+   },
+   {
+    "line": 4687,
+    "kind": "title",
+    "s": "Technical Financials"
+   },
+   {
+    "line": 4724,
+    "kind": "title",
+    "s": "Current-year R&D ask, $K"
+   },
+   {
+    "line": 4733,
+    "kind": "title",
+    "s": "Commercial Financials"
+   },
+   {
+    "line": 4852,
+    "kind": "aria-label",
+    "s": "Seed value"
+   },
+   {
+    "line": 4857,
+    "kind": "aria-label",
+    "s": "Growth rate percent per year"
+   },
+   {
+    "line": 4859,
+    "kind": "title",
+    "s": "Negative rates are expected here — Do-Nothing and Declining erode."
+   },
+   {
+    "line": 4864,
+    "kind": "text",
+    "s": "one-shot fill — editing a year afterwards recomputes nothing"
+   },
+   {
+    "line": 4875,
+    "kind": "text",
+    "s": "↺ Undo fill"
+   },
+   {
+    "line": 5419,
+    "kind": "text",
+    "s": "◈ Live from the project record"
+   },
+   {
+    "line": 5460,
+    "kind": "placeholder",
+    "s": "…or paste an image URL (BYOK / provider)"
+   },
+   {
+    "line": 5465,
+    "kind": "text",
+    "s": "Image library — each stamped Project · Date · Time · Name. Tap to use · ✕ to del"
+   },
+   {
+    "line": 5478,
+    "kind": "aria-label",
+    "s": "Delete image"
+   },
+   {
+    "line": 5478,
+    "kind": "title",
+    "s": "Delete from library"
+   },
+   {
+    "line": 5483,
+    "kind": "text",
+    "s": "Library empty — upload here or in the Light Codex tool."
+   },
+   {
+    "line": 5500,
+    "kind": "placeholder",
+    "s": "Add a point"
+   },
+   {
+    "line": 5500,
+    "kind": "aria-label",
+    "s": "Remove"
+   },
+   {
+    "line": 5501,
+    "kind": "text",
+    "s": "+ Add point"
+   },
+   {
+    "line": 5515,
+    "kind": "aria-label",
+    "s": "Remove row"
+   },
+   {
+    "line": 5516,
+    "kind": "text",
+    "s": "+ Add row"
+   },
+   {
+    "line": 5734,
+    "kind": "text",
+    "s": "; return rec[m.k] ?"
+   },
+   {
+    "line": 5776,
+    "kind": "text",
+    "s": "No gate review scheduled"
+   },
+   {
+    "line": 5885,
+    "kind": "title",
+    "s": "Key Value Proposition"
+   },
+   {
+    "line": 5897,
+    "kind": "title",
+    "s": "Market Opportunity · Pipeline"
+   },
+   {
+    "line": 5907,
+    "kind": "title",
+    "s": "Portfolio Positioning"
+   },
+   {
+    "line": 5912,
+    "kind": "title",
+    "s": "Product Strategy"
+   },
+   {
+    "line": 5918,
+    "kind": "title",
+    "s": "Differentiators · From The Value Prop"
+   },
+   {
+    "line": 5924,
+    "kind": "title",
+    "s": "Recommendation · Ask For The Gate"
+   },
+   {
+    "line": 5927,
+    "kind": "title",
+    "s": "Dependencies · Timeline Risk"
+   },
+   {
+    "line": 5930,
+    "kind": "title",
+    "s": "Roadmap + Schedule · Current Year + 2"
+   },
+   {
+    "line": 5941,
+    "kind": "title",
+    "s": "Return Profile"
+   },
+   {
+    "line": 5944,
+    "kind": "title",
+    "s": "Upside Spending Accelerator Lever"
+   },
+   {
+    "line": 5952,
+    "kind": "title",
+    "s": "Roadmap Snapshot"
+   },
+   {
+    "line": 5955,
+    "kind": "title",
+    "s": "Top Risks + Dependencies"
+   },
+   {
+    "line": 5958,
+    "kind": "title",
+    "s": "Stage / Status"
+   },
+   {
+    "line": 5967,
+    "kind": "title",
+    "s": "Return Profile · Revenue + Margin by Year"
+   },
+   {
+    "line": 5970,
+    "kind": "title",
+    "s": "Cash Flow · R&D/NRE Out vs Revenue + Margin"
+   },
+   {
+    "line": 5973,
+    "kind": "title",
+    "s": "Financial Comments · Assumptions"
+   },
+   {
+    "line": 6003,
+    "kind": "title",
+    "s": "Primary Customer Value Proposition"
+   },
+   {
+    "line": 6006,
+    "kind": "title",
+    "s": "Value · Creation + Capture"
+   },
+   {
+    "line": 6009,
+    "kind": "title",
+    "s": "Value Equation"
+   },
+   {
+    "line": 6012,
+    "kind": "title",
+    "s": "Key Customer Benefits"
+   },
+   {
+    "line": 6015,
+    "kind": "title",
+    "s": "Key Technical Features"
+   },
+   {
+    "line": 6027,
+    "kind": "title",
+    "s": "R&D Spend"
+   },
+   {
+    "line": 6030,
+    "kind": "title",
+    "s": "R&D Revenues"
+   },
+   {
+    "line": 6039,
+    "kind": "title",
+    "s": "Early Validation · UXD Voice Of Customer"
+   },
+   {
+    "line": 6042,
+    "kind": "title",
+    "s": "Planned Experiments"
+   },
+   {
+    "line": 6045,
+    "kind": "title",
+    "s": "Comments"
+   },
+   {
+    "line": 6064,
+    "kind": "title",
+    "s": "Gate Review History"
+   },
+   {
+    "line": 6075,
+    "kind": "text",
+    "s": "Business case"
+   },
+   {
+    "line": 6112,
+    "kind": "text",
+    "s": "red = changed vs the prior recorded gate"
+   },
+   {
+    "line": 6119,
+    "kind": "title",
+    "s": "PRB Reviews + Approvals"
+   },
+   {
+    "line": 6138,
+    "kind": "text",
+    "s": "This project has not cleared a gate yet."
+   },
+   {
+    "line": 6255,
+    "kind": "text",
+    "s": "Nothing authored on this slide yet — tap Edit to add content."
+   },
+   {
+    "line": 6266,
+    "kind": "text",
+    "s": "Reference Links:"
+   },
+   {
+    "line": 6291,
+    "kind": "text",
+    "s": "Decision requested"
+   },
+   {
+    "line": 6312,
+    "kind": "aria-label",
+    "s": "Zoom slide"
+   },
+   {
+    "line": 6313,
+    "kind": "aria-label",
+    "s": "Zoom out"
+   },
+   {
+    "line": 6315,
+    "kind": "aria-label",
+    "s": "Zoom in"
+   },
+   {
+    "line": 6339,
+    "kind": "aria-label",
+    "s": "Export the deck as a PDF"
+   },
+   {
+    "line": 6339,
+    "kind": "title",
+    "s": "Export all pages as a PDF — choose Light or Original."
+   },
+   {
+    "line": 6342,
+    "kind": "aria-label",
+    "s": "PDF export options"
+   },
+   {
+    "line": 6382,
+    "kind": "aria-label",
+    "s": "Previous slide"
+   },
+   {
+    "line": 6383,
+    "kind": "aria-label",
+    "s": "Next slide"
+   },
+   {
+    "line": 6437,
+    "kind": "aria-label",
+    "s": "Close"
+   },
+   {
+    "line": 6471,
+    "kind": "title",
+    "s": "Cycle gate feedback: not-started → drafted → submitted → approved"
+   },
+   {
+    "line": 6498,
+    "kind": "text",
+    "s": "◈ Edit source record"
+   },
+   {
+    "line": 6498,
+    "kind": "text",
+    "s": "— S8 owns the value proposition; S1 and S6 render it"
+   },
+   {
+    "line": 6512,
+    "kind": "text",
+    "s": "Primary customer value proposition"
+   },
+   {
+    "line": 6512,
+    "kind": "text",
+    "s": "— the one sentence S1, S6 and the dog-tag all render"
+   },
+   {
+    "line": 6518,
+    "kind": "text",
+    "s": "Next Best Alternative"
+   },
+   {
+    "line": 6518,
+    "kind": "text",
+    "s": "— the As-Is option this must out-perform"
+   },
+   {
+    "line": 6519,
+    "kind": "title",
+    "s": "Next Best Alternative"
+   },
+   {
+    "line": 6541,
+    "kind": "text",
+    "s": "— our share of the value created; the rest is the customer&apos;s"
+   },
+   {
+    "line": 6544,
+    "kind": "title",
+    "s": "Value capture percent"
+   },
+   {
+    "line": 6553,
+    "kind": "text",
+    "s": "Save drivers"
+   },
+   {
+    "line": 6571,
+    "kind": "text",
+    "s": "· Σ from the grid"
+   },
+   {
+    "line": 6573,
+    "kind": "title",
+    "s": "Derived from the S10 grid above — edit the years, not this total."
+   },
+   {
+    "line": 6596,
+    "kind": "text",
+    "s": "— one edit updates every surface (no duplicate sources)"
+   },
+   {
+    "line": 6652,
+    "kind": "title",
+    "s": "Set by the PdM/PgM after talking to the SBU or BU Director or VP. Derived from n"
+   },
+   {
+    "line": 6747,
+    "kind": "placeholder",
+    "s": "Comment for this version…"
+   },
+   {
+    "line": 6749,
+    "kind": "text",
+    "s": "Save version"
+   },
+   {
+    "line": 6752,
+    "kind": "text",
+    "s": "No versions yet — save one, or approve the slide, to start the history."
+   },
+   {
+    "line": 6789,
+    "kind": "text",
+    "s": "▲ Substantial change (≥10%) — critical parties (Engineering · Commercial · Busin"
+   },
+   {
+    "line": 6791,
+    "kind": "text",
+    "s": "웃 Lead approve"
+   },
+   {
+    "line": 6877,
+    "kind": "text",
+    "s": "new Set"
+   },
+   {
+    "line": 6971,
+    "kind": "text",
+    "s": "Gate governance for"
+   },
+   {
+    "line": 6974,
+    "kind": "aria-label",
+    "s": "Gate governance project"
+   },
+   {
+    "line": 6990,
+    "kind": "text",
+    "s": "Last completed gate"
+   },
+   {
+    "line": 6997,
+    "kind": "text",
+    "s": "Gate readiness · % requirements satisfied"
+   },
+   {
+    "line": 6997,
+    "kind": "text",
+    "s": "· G1 → G7 one line"
+   },
+   {
+    "line": 7030,
+    "kind": "text",
+    "s": "Gate Review Slides · S1 – S18"
+   },
+   {
+    "line": 7038,
+    "kind": "text",
+    "s": "Review deliverable"
+   },
+   {
+    "line": 7055,
+    "kind": "title",
+    "s": "Expand into actual detail"
+   },
+   {
+    "line": 7111,
+    "kind": "text",
+    "s": "satisfied (gate complete)"
+   },
+   {
+    "line": 7112,
+    "kind": "text",
+    "s": "in work (next gate)"
+   },
+   {
+    "line": 7113,
+    "kind": "text",
+    "s": "required (future gate)"
+   },
+   {
+    "line": 7114,
+    "kind": "text",
+    "s": "first required at this gate"
+   },
+   {
+    "line": 7255,
+    "kind": "text",
+    "s": "Admin · Master Business Setup"
+   },
+   {
+    "line": 7258,
+    "kind": "text",
+    "s": "Business Setup — Admin Unlock"
+   },
+   {
+    "line": 7259,
+    "kind": "text",
+    "s": "Enter the admin code to set up the master hierarchy: BU · SBU · Alpha Group · Al"
+   },
+   {
+    "line": 7262,
+    "kind": "placeholder",
+    "s": "Admin code"
+   },
+   {
+    "line": 7263,
+    "kind": "text",
+    "s": "Incorrect code."
+   },
+   {
+    "line": 7264,
+    "kind": "text",
+    "s": "Unlock Business Setup"
+   },
+   {
+    "line": 7298,
+    "kind": "text",
+    "s": "Master Business Setup · Admin"
+   },
+   {
+    "line": 7299,
+    "kind": "text",
+    "s": "Company Name — top of hierarchy · drives the header brand"
+   },
+   {
+    "line": 7301,
+    "kind": "aria-label",
+    "s": "Company name"
+   },
+   {
+    "line": 7305,
+    "kind": "text",
+    "s": "Σ Base Rev"
+   },
+   {
+    "line": 7306,
+    "kind": "text",
+    "s": "Reset to seed"
+   },
+   {
+    "line": 7314,
+    "kind": "text",
+    "s": "R&D Budget Scenarios"
+   },
+   {
+    "line": 7339,
+    "kind": "text",
+    "s": "SBU budgets are weighted by each SBU&apos;s NRE demand and sum to the scenario t"
+   },
+   {
+    "line": 7352,
+    "kind": "text",
+    "s": "Project Category Colours"
+   },
+   {
+    "line": 7352,
+    "kind": "text",
+    "s": "— the dog-tag body fill; the border stays the Strategic Pillar"
+   },
+   {
+    "line": 7354,
+    "kind": "text",
+    "s": "↺ Reset all"
+   },
+   {
+    "line": 7376,
+    "kind": "title",
+    "s": "Reset to default"
+   },
+   {
+    "line": 7385,
+    "kind": "title",
+    "s": "Reset to default"
+   },
+   {
+    "line": 7388,
+    "kind": "title",
+    "s": "Measured WCAG contrast of the tag's own metric text over this fill"
+   },
+   {
+    "line": 7394,
+    "kind": "text",
+    "s": "Body fill = project category · border = Strategic Pillar. Contrast is measured l"
+   },
+   {
+    "line": 7401,
+    "kind": "text",
+    "s": "Strategic Pillars"
+   },
+   {
+    "line": 7402,
+    "kind": "text",
+    "s": "+ Add pillar"
+   },
+   {
+    "line": 7409,
+    "kind": "placeholder",
+    "s": "one-line description"
+   },
+   {
+    "line": 7411,
+    "kind": "title",
+    "s": "Strategic pillar color — the InnovationTag highlight"
+   },
+   {
+    "line": 7415,
+    "kind": "title",
+    "s": "Reset to Trinity default"
+   },
+   {
+    "line": 7417,
+    "kind": "title",
+    "s": "Delete"
+   },
+   {
+    "line": 7421,
+    "kind": "text",
+    "s": "Renaming a pillar updates the edit-project + Submit-New-Idea dropdowns. Existing"
+   },
+   {
+    "line": 7434,
+    "kind": "placeholder",
+    "s": "buyer need"
+   },
+   {
+    "line": 7435,
+    "kind": "title",
+    "s": "Delete"
+   },
+   {
+    "line": 7451,
+    "kind": "placeholder",
+    "s": "term"
+   },
+   {
+    "line": 7452,
+    "kind": "placeholder",
+    "s": "definition"
+   },
+   {
+    "line": 7453,
+    "kind": "title",
+    "s": "Delete"
+   },
+   {
+    "line": 7461,
+    "kind": "text",
+    "s": "Prioritization Module Name"
+   },
+   {
+    "line": 7461,
+    "kind": "text",
+    "s": "— the tab, page title &amp; section header"
+   },
+   {
+    "line": 7469,
+    "kind": "placeholder",
+    "s": "Custom name"
+   },
+   {
+    "line": 7471,
+    "kind": "text",
+    "s": "Portfolio Prioritization"
+   },
+   {
+    "line": 7471,
+    "kind": "text",
+    "s": ". Renaming here relabels the module across the tool (tab · title · section heade"
+   },
+   {
+    "line": 7476,
+    "kind": "text",
+    "s": "Project Summary Highlights"
+   },
+   {
+    "line": 7476,
+    "kind": "text",
+    "s": "— dog-tag middle metrics (SBU left · name top · launch date right are fixed)"
+   },
+   {
+    "line": 7486,
+    "kind": "text",
+    "s": "Toggle which key metrics appear on each project&apos;s dog-tag summary. Default:"
+   },
+   {
+    "line": 7491,
+    "kind": "text",
+    "s": "Review Board"
+   },
+   {
+    "line": 7491,
+    "kind": "text",
+    "s": "— gives per-slide gate feedback across G1–G7"
+   },
+   {
+    "line": 7499,
+    "kind": "placeholder",
+    "s": "Custom"
+   },
+   {
+    "line": 7528,
+    "kind": "text",
+    "s": "Base Rev $M"
+   },
+   {
+    "line": 7529,
+    "kind": "text",
+    "s": "Base Mgn $M"
+   },
+   {
+    "line": 7539,
+    "kind": "placeholder",
+    "s": "Full description"
+   },
+   {
+    "line": 7551,
+    "kind": "title",
+    "s": "Delete"
+   },
+   {
+    "line": 7557,
+    "kind": "text",
+    "s": "Master data persists in this browser. Codes: BU 2-letter · SBU 3-letter · Alpha "
+   },
+   {
+    "line": 7571,
+    "kind": "title",
+    "s": "Risk-prediction market"
+   },
+   {
+    "line": 7575,
+    "kind": "text",
+    "s": "Anyone may submit a risk prediction; rewards accrue to predictions that prove co"
+   },
+   {
+    "line": 7578,
+    "kind": "title",
+    "s": "Project Upside pool"
+   },
+   {
+    "line": 7582,
+    "kind": "text",
+    "s": "Baseline locked at G2 by an approver outside the team."
+   },
+   {
+    "line": 7585,
+    "kind": "title",
+    "s": "Intelligence load · AI · SI · HI"
+   },
+   {
+    "line": 7595,
+    "kind": "text",
+    "s": "⚠ Burnout guard active — upside withheld pending review."
+   },
+   {
+    "line": 7774,
+    "kind": "text",
+    "s": "Growth Model · Do-Nothing Scenario with Portfolio NPIs"
+   },
+   {
+    "line": 7891,
+    "kind": "aria-label",
+    "s": "Dismiss"
+   },
+   {
+    "line": 7901,
+    "kind": "text",
+    "s": "no projects in scope"
+   },
+   {
+    "line": 7959,
+    "kind": "text",
+    "s": "Base Rev"
+   },
+   {
+    "line": 7966,
+    "kind": "text",
+    "s": "= Incr Rev"
+   },
+   {
+    "line": 7967,
+    "kind": "text",
+    "s": "Incr Mgn"
+   },
+   {
+    "line": 7968,
+    "kind": "text",
+    "s": "Total Rev"
+   },
+   {
+    "line": 8013,
+    "kind": "aria-label",
+    "s": "Custom days"
+   },
+   {
+    "line": 8098,
+    "kind": "title",
+    "s": "Financial Map · R&D Spend vs Risk-Weighted Revenue"
+   },
+   {
+    "line": 8106,
+    "kind": "text",
+    "s": "bubble size = NPV · color = dev-type · top-left = high return / low cost"
+   },
+   {
+    "line": 8228,
+    "kind": "text",
+    "s": "Open full Project details →"
+   },
+   {
+    "line": 8278,
+    "kind": "text",
+    "s": "Pipeline by Gate"
+   },
+   {
+    "line": 8278,
+    "kind": "text",
+    "s": "Unofficial Framework"
+   },
+   {
+    "line": 8279,
+    "kind": "title",
+    "s": "Minimize"
+   },
+   {
+    "line": 8289,
+    "kind": "text",
+    "s": "Pipeline by Gate"
+   },
+   {
+    "line": 8291,
+    "kind": "text",
+    "s": "Unofficial Framework"
+   },
+   {
+    "line": 8292,
+    "kind": "title",
+    "s": "Maximize"
+   },
+   {
+    "line": 8354,
+    "kind": "title",
+    "s": "ROI Visuals"
+   },
+   {
+    "line": 8375,
+    "kind": "text",
+    "s": "NRE spend by Business Unit · right count = # projects."
+   },
+   {
+    "line": 8378,
+    "kind": "aria-label",
+    "s": "Portfolio cash flow"
+   },
+   {
+    "line": 8389,
+    "kind": "text",
+    "s": "Cumulative cash"
+   },
+   {
+    "line": 8418,
+    "kind": "title",
+    "s": "Allocation & upside · by BU"
+   },
+   {
+    "line": 8473,
+    "kind": "title",
+    "s": "Rollup · Company → BU → SBU → Product Group"
+   },
+   {
+    "line": 8479,
+    "kind": "text",
+    "s": "Base rev"
+   },
+   {
+    "line": 8533,
+    "kind": "text",
+    "s": "Base revenue anchors the do-nothing growth model per SBU. BU = Σ its SBUs · Comp"
+   },
+   {
+    "line": 8556,
+    "kind": "title",
+    "s": "Intelligence Load · AI · SI · HI"
+   },
+   {
+    "line": 8558,
+    "kind": "text",
+    "s": "Group by"
+   },
+   {
+    "line": 8582,
+    "kind": "text",
+    "s": "Pillar-specific categories by default; switch to BU / SBU / Alpha Group / Projec"
+   },
+   {
+    "line": 8647,
+    "kind": "title",
+    "s": "Dependencies · Summary + Constellation"
+   },
+   {
+    "line": 8650,
+    "kind": "text",
+    "s": "Bubble size"
+   },
+   {
+    "line": 8664,
+    "kind": "text",
+    "s": "Reset layout"
+   },
+   {
+    "line": 8665,
+    "kind": "text",
+    "s": "Force-directed · drag nodes · wheel-zoom · drag background to pan"
+   },
+   {
+    "line": 8708,
+    "kind": "text",
+    "s": "· arrows point down · ·N↓ = dependents"
+   },
+   {
+    "line": 8710,
+    "kind": "text",
+    "s": "above line"
+   },
+   {
+    "line": 8711,
+    "kind": "text",
+    "s": "below line"
+   },
+   {
+    "line": 8715,
+    "kind": "text",
+    "s": "thicker ring = more segments served"
+   },
+   {
+    "line": 8743,
+    "kind": "text",
+    "s": "Arrow A→B: B&apos;s risk affects A. NPV-with-deps rolls the NPV a project leans "
+   },
+   {
+    "line": 8797,
+    "kind": "text",
+    "s": "Risk Register · eXeL AI feedback session"
+   },
+   {
+    "line": 8800,
+    "kind": "text",
+    "s": "Anyone identifies a risk; the team gives internal feedback by concurring (poll) "
+   },
+   {
+    "line": 8806,
+    "kind": "placeholder",
+    "s": "Describe a risk anyone should know about…"
+   },
+   {
+    "line": 8819,
+    "kind": "text",
+    "s": "+ Identify risk"
+   },
+   {
+    "line": 8851,
+    "kind": "title",
+    "s": "Feedback: I concur this is a risk"
+   }
+  ],
+  "app/api/page.tsx": [
+   {
+    "line": 303,
+    "kind": "text",
+    "s": "Where Shared Intention moves at the Speed of Thought"
+   },
+   {
+    "line": 313,
+    "kind": "text",
+    "s": "Governance Engine API"
+   },
+   {
+    "line": 337,
+    "kind": "text",
+    "s": "Use Cases"
+   },
+   {
+    "line": 361,
+    "kind": "text",
+    "s": "View code example"
+   },
+   {
+    "line": 390,
+    "kind": "text",
+    "s": "Use Cases"
+   },
+   {
+    "line": 415,
+    "kind": "text",
+    "s": "View code example"
+   }
+  ],
+  "app/crs/page.tsx": [
+   {
+    "line": 96,
+    "kind": "text",
+    "s": "CRS Design Traceability Matrix"
+   },
+   {
+    "line": 169,
+    "kind": "text",
+    "s": "User Story"
+   },
+   {
+    "line": 171,
+    "kind": "text",
+    "s": "Design Review # (timestamp)"
+   },
+   {
+    "line": 202,
+    "kind": "text",
+    "s": "[], b.rows as unknown as Record"
+   },
+   {
+    "line": 205,
+    "kind": "text",
+    "s": "Before and After are the same version — choose two different versions to see cha"
+   }
+  ],
+  "app/dashboard/page.tsx": [
+   {
+    "line": 1262,
+    "kind": "placeholder",
+    "s": "e.g., Q1 Strategy Feedback"
+   },
+   {
+    "line": 1272,
+    "kind": "placeholder",
+    "s": "What outcome do you want from this session?"
+   }
+  ],
+  "app/divinity-guide/arx/item-view.tsx": [
+   {
+    "line": 371,
+    "kind": "text",
+    "s": "Loading item..."
+   },
+   {
+    "line": 602,
+    "kind": "placeholder",
+    "s": "Full name"
+   },
+   {
+    "line": 607,
+    "kind": "placeholder",
+    "s": "email@example.com"
+   },
+   {
+    "line": 609,
+    "kind": "text",
+    "s": "Used as your ownership identifier"
+   },
+   {
+    "line": 613,
+    "kind": "placeholder",
+    "s": "Leave empty if gift"
+   },
+   {
+    "line": 618,
+    "kind": "placeholder",
+    "s": "Condition notes, provenance details..."
+   },
+   {
+    "line": 682,
+    "kind": "text",
+    "s": "Powered by eXeL AI &middot; ARX Physically Backed Tokens"
+   }
+  ],
+  "app/divinity-guide/arx/page.tsx": [
+   {
+    "line": 605,
+    "kind": "title",
+    "s": "Expand panel"
+   },
+   {
+    "line": 616,
+    "kind": "title",
+    "s": "Back to flowers"
+   },
+   {
+    "line": 662,
+    "kind": "placeholder",
+    "s": "Original artwork, signed book, collectible..."
+   },
+   {
+    "line": 722,
+    "kind": "placeholder",
+    "s": "Quote, stamp, or other unique mark"
+   },
+   {
+    "line": 735,
+    "kind": "placeholder",
+    "s": "Distinguishing details about this item"
+   },
+   {
+    "line": 750,
+    "kind": "placeholder",
+    "s": "email@example.com"
+   },
+   {
+    "line": 1005,
+    "kind": "title",
+    "s": "Scan NFC chip"
+   },
+   {
+    "line": 1019,
+    "kind": "placeholder",
+    "s": "Search by item name..."
+   },
+   {
+    "line": 1034,
+    "kind": "text",
+    "s": "No items found"
+   },
+   {
+    "line": 1141,
+    "kind": "placeholder",
+    "s": "e.g. 123456789"
+   }
+  ],
+  "app/divinity-guide/page.tsx": [
+   {
+    "line": 70,
+    "kind": "text",
+    "s": "import(\"@/lib/divinity-pages-es.json\") as Promise"
+   },
+   {
+    "line": 71,
+    "kind": "text",
+    "s": "import(\"@/lib/divinity-pages-uk.json\") as Promise"
+   },
+   {
+    "line": 72,
+    "kind": "text",
+    "s": "import(\"@/lib/divinity-pages-ru.json\") as Promise"
+   },
+   {
+    "line": 73,
+    "kind": "text",
+    "s": "import(\"@/lib/divinity-pages-zh.json\") as Promise"
+   },
+   {
+    "line": 74,
+    "kind": "text",
+    "s": "import(\"@/lib/divinity-pages-fa.json\") as Promise"
+   },
+   {
+    "line": 75,
+    "kind": "text",
+    "s": "import(\"@/lib/divinity-pages-he.json\") as Promise"
+   },
+   {
+    "line": 76,
+    "kind": "text",
+    "s": "import(\"@/lib/divinity-pages-pt.json\") as Promise"
+   },
+   {
+    "line": 77,
+    "kind": "text",
+    "s": "import(\"@/lib/divinity-pages-km.json\") as Promise"
+   },
+   {
+    "line": 78,
+    "kind": "text",
+    "s": "import(\"@/lib/divinity-pages-ne.json\") as Promise"
+   },
+   {
+    "line": 79,
+    "kind": "text",
+    "s": "import(\"@/lib/divinity-pages-th.json\") as Promise"
+   },
+   {
+    "line": 80,
+    "kind": "text",
+    "s": "import(\"@/lib/divinity-pages-fr.json\") as Promise"
+   },
+   {
+    "line": 934,
+    "kind": "text",
+    "s": "(pages as Array"
+   },
+   {
+    "line": 977,
+    "kind": "title",
+    "s": "Side-by-side bilingual reader"
+   },
+   {
+    "line": 1164,
+    "kind": "text",
+    "s": "(pages as Array"
+   },
+   {
+    "line": 1196,
+    "kind": "title",
+    "s": "Side-by-side bilingual reader"
+   },
+   {
+    "line": 1737,
+    "kind": "text",
+    "s": "Your contribution converted to a full Human Intelligence token."
+   },
+   {
+    "line": 1753,
+    "kind": "aria-label",
+    "s": "Close"
+   },
+   {
+    "line": 1908,
+    "kind": "title",
+    "s": "Share Divinity Guide QR"
+   },
+   {
+    "line": 2399,
+    "kind": "title",
+    "s": "Download the stretched emblem as a 1024×1024 PNG"
+   },
+   {
+    "line": 2407,
+    "kind": "title",
+    "s": "Inscribe the cipher"
+   },
+   {
+    "line": 2415,
+    "kind": "title",
+    "s": "Return to origin"
+   },
+   {
+    "line": 2423,
+    "kind": "title",
+    "s": "Close the loom"
+   },
+   {
+    "line": 2513,
+    "kind": "text",
+    "s": "— touch a phrase on the emblem to awaken it —"
+   }
+  ],
+  "app/divinity-guide/sumerian-keys/[keyId]/page.tsx": [
+   {
+    "line": 74,
+    "kind": "text",
+    "s": "Sumerian context"
+   },
+   {
+    "line": 187,
+    "kind": "text",
+    "s": "Awarded tablet · sealed until unlocked"
+   }
+  ],
+  "app/divinity-guide-trinity/page.tsx": [
+   {
+    "line": 43,
+    "kind": "text",
+    "s": "/ Divinity Guide / Trinity"
+   }
+  ],
+  "app/sim/page.tsx": [
+   {
+    "line": 82,
+    "kind": "text",
+    "s": "· Live rankings propagate across all three views"
+   },
+   {
+    "line": 111,
+    "kind": "title",
+    "s": "SIM Moderator"
+   },
+   {
+    "line": 127,
+    "kind": "title",
+    "s": "SIM User 1"
+   }
+  ],
+  "app/soi-session/page.tsx": [
+   {
+    "line": 153,
+    "kind": "text",
+    "s": "= new Set"
+   },
+   {
+    "line": 952,
+    "kind": "text",
+    "s": "exactly three"
+   },
+   {
+    "line": 1053,
+    "kind": "text",
+    "s": "This device would not keep a copy of the pod, so closing this page would lose it"
+   },
+   {
+    "line": 1056,
+    "kind": "text",
+    "s": "Come back to a pod"
+   },
+   {
+    "line": 1092,
+    "kind": "text",
+    "s": "· settles at"
+   },
+   {
+    "line": 1094,
+    "kind": "text",
+    "s": "Enter the planned hours. All three accept the plan before the clock starts."
+   },
+   {
+    "line": 1097,
+    "kind": "text",
+    "s": "Why these four, and every place"
+   },
+   {
+    "line": 1169,
+    "kind": "text",
+    "s": "Measurable outcome"
+   },
+   {
+    "line": 1199,
+    "kind": "text",
+    "s": "○ this phone only — live sync when the connection returns"
+   },
+   {
+    "line": 1216,
+    "kind": "text",
+    "s": "accepted by all three"
+   },
+   {
+    "line": 1285,
+    "kind": "text",
+    "s": "Recommendations for the lead"
+   },
+   {
+    "line": 1343,
+    "kind": "text",
+    "s": "Measurable outcome:"
+   },
+   {
+    "line": 1344,
+    "kind": "text",
+    "s": "· the clock is the evidence, and only clocked time can settle."
+   },
+   {
+    "line": 1410,
+    "kind": "text",
+    "s": "on-device transcription · no upload"
+   },
+   {
+    "line": 1431,
+    "kind": "text",
+    "s": "— all three, before the hours are witnessed"
+   },
+   {
+    "line": 1462,
+    "kind": "text",
+    "s": "No session was clocked, so the hours below are claims this device cannot vouch f"
+   },
+   {
+    "line": 1528,
+    "kind": "text",
+    "s": "— 웃 = M × T (Multiple × Time), currency-free at mint"
+   },
+   {
+    "line": 1548,
+    "kind": "text",
+    "s": "Settles at"
+   },
+   {
+    "line": 1565,
+    "kind": "text",
+    "s": "the vintage and the current rate are the same."
+   },
+   {
+    "line": 1566,
+    "kind": "text",
+    "s": "rate is the greater of the two, from the same place&rsquo;s published rates — a "
+   },
+   {
+    "line": 1569,
+    "kind": "text",
+    "s": "D9 — at settlement the payout takes the greater of the rate stamped at earning a"
+   },
+   {
+    "line": 1572,
+    "kind": "text",
+    "s": "Source: the platform&rsquo;s own settlement table."
+   },
+   {
+    "line": 1606,
+    "kind": "text",
+    "s": "— ◬ read against the estimate locked before the work"
+   },
+   {
+    "line": 1608,
+    "kind": "text",
+    "s": "No estimate was locked before this pod opened, so there is no ◬ to read. The hou"
+   },
+   {
+    "line": 1613,
+    "kind": "text",
+    "s": "Locked at"
+   },
+   {
+    "line": 1631,
+    "kind": "text",
+    "s": "What did this outcome become?"
+   },
+   {
+    "line": 1650,
+    "kind": "text",
+    "s": "· the platform clocked"
+   },
+   {
+    "line": 1673,
+    "kind": "text",
+    "s": "Every member self-audits their hours, and both others must witness each claim, b"
+   },
+   {
+    "line": 1699,
+    "kind": "text",
+    "s": "held separately — recognition, not wages"
+   },
+   {
+    "line": 1700,
+    "kind": "text",
+    "s": ", never for the hours — those settle as 웃"
+   },
+   {
+    "line": 1712,
+    "kind": "text",
+    "s": "— D9 per person: each settles at the greater of the rate stamped at earning and "
+   },
+   {
+    "line": 1725,
+    "kind": "text",
+    "s": "The receipt"
+   },
+   {
+    "line": 1725,
+    "kind": "text",
+    "s": "— one ledger record, read four ways"
+   },
+   {
+    "line": 1744,
+    "kind": "text",
+    "s": "— three paragraphs, about 333 words: Results · What changed · What next"
+   },
+   {
+    "line": 1790,
+    "kind": "text",
+    "s": "New pod"
+   },
+   {
+    "line": 1825,
+    "kind": "text",
+    "s": "Recursive Coordination for Human Continuity"
+   }
+  ],
+  "app/vision-2525/MoT/page.tsx": [
+   {
+    "line": 43,
+    "kind": "title",
+    "s": "Back to the full document"
+   },
+   {
+    "line": 61,
+    "kind": "title",
+    "s": "An extract of one section. The full document is the source of truth."
+   },
+   {
+    "line": 74,
+    "kind": "text",
+    "s": "Full document"
+   },
+   {
+    "line": 91,
+    "kind": "title",
+    "s": "Open full screen"
+   },
+   {
+    "line": 103,
+    "kind": "title",
+    "s": "The Author — Master of Thought"
+   }
+  ],
+  "app/vision-2525/page.tsx": [
+   {
+    "line": 113,
+    "kind": "text",
+    "s": "Innovate at the Speed of Thought"
+   },
+   {
+    "line": 123,
+    "kind": "text",
+    "s": "Humanity&apos;s Coordination Framework"
+   },
+   {
+    "line": 125,
+    "kind": "text",
+    "s": "Preparing AI to serve humanity — coordinate, amplify, and advance civilization w"
+   },
+   {
+    "line": 151,
+    "kind": "text",
+    "s": "Humanity Decides"
+   },
+   {
+    "line": 152,
+    "kind": "text",
+    "s": "Technology assists —"
+   },
+   {
+    "line": 152,
+    "kind": "text",
+    "s": "trust must be proven"
+   },
+   {
+    "line": 152,
+    "kind": "text",
+    "s": ". Nothing scales until it earns its place through evidence."
+   },
+   {
+    "line": 170,
+    "kind": "text",
+    "s": "The Trinity of Intelligences"
+   },
+   {
+    "line": 171,
+    "kind": "text",
+    "s": "United for humanity · guided by wisdom · driven by purpose."
+   },
+   {
+    "line": 196,
+    "kind": "text",
+    "s": "A Continuous Cycle of Trusted Progress"
+   },
+   {
+    "line": 218,
+    "kind": "text",
+    "s": "One Framework · Many Capabilities"
+   },
+   {
+    "line": 219,
+    "kind": "text",
+    "s": "Every capability is live — follow any panel straight into the working system."
+   },
+   {
+    "line": 267,
+    "kind": "text",
+    "s": "The white paper &middot; open to everyone"
+   },
+   {
+    "line": 277,
+    "kind": "text",
+    "s": "No login"
+   },
+   {
+    "line": 278,
+    "kind": "text",
+    "s": "No account"
+   },
+   {
+    "line": 279,
+    "kind": "text",
+    "s": "Reads offline"
+   },
+   {
+    "line": 280,
+    "kind": "text",
+    "s": "Open it &rarr;"
+   },
+   {
+    "line": 309,
+    "kind": "text",
+    "s": "The Worlds of"
+   },
+   {
+    "line": 310,
+    "kind": "text",
+    "s": "One civilization · one framework · limitless possibilities."
+   },
+   {
+    "line": 329,
+    "kind": "text",
+    "s": "Our Mission"
+   },
+   {
+    "line": 336,
+    "kind": "text",
+    "s": "Building a future worth inheriting —"
+   },
+   {
+    "line": 345,
+    "kind": "text",
+    "s": "Where Shared Intention moves at the Speed of Thought"
+   }
+  ],
+  "components/architect-2525/architect-celestial.tsx": [
+   {
+    "line": 243,
+    "kind": "text",
+    "s": "Math.PI) dAng -= 2 * Math.PI; else if (dAng"
+   },
+   {
+    "line": 357,
+    "kind": "title",
+    "s": "Cycle planet size: True Scale (vs Sun) → Proportional (vs planets) → Thematic (a"
+   },
+   {
+    "line": 378,
+    "kind": "title",
+    "s": "Left map tools · •••"
+   },
+   {
+    "line": 378,
+    "kind": "aria-label",
+    "s": "Left map menu"
+   },
+   {
+    "line": 382,
+    "kind": "title",
+    "s": "Right map tools · •••"
+   },
+   {
+    "line": 382,
+    "kind": "aria-label",
+    "s": "Right map menu"
+   },
+   {
+    "line": 386,
+    "kind": "title",
+    "s": "Bottom map tools · •••"
+   },
+   {
+    "line": 386,
+    "kind": "aria-label",
+    "s": "Bottom map menu"
+   },
+   {
+    "line": 391,
+    "kind": "text",
+    "s": "Left map tools"
+   },
+   {
+    "line": 392,
+    "kind": "text",
+    "s": "Right map tools"
+   },
+   {
+    "line": 393,
+    "kind": "text",
+    "s": "Bottom map tools"
+   },
+   {
+    "line": 530,
+    "kind": "title",
+    "s": "Play the selected planet around its orbit (0→3600)"
+   },
+   {
+    "line": 544,
+    "kind": "text",
+    "s": "Full orbit reference ·"
+   },
+   {
+    "line": 552,
+    "kind": "title",
+    "s": "Units of Measure & Base-3600 detail"
+   },
+   {
+    "line": 560,
+    "kind": "text",
+    "s": "Orbit pos"
+   },
+   {
+    "line": 584,
+    "kind": "title",
+    "s": "Schematic spread ↔ REAL Kepler positions for the date (JPL J2000 ephemeris)"
+   }
+  ],
+  "components/architect-2525/architect-design-workspace.tsx": [
+   {
+    "line": 98,
+    "kind": "title",
+    "s": "Minimize"
+   },
+   {
+    "line": 98,
+    "kind": "aria-label",
+    "s": "Minimize"
+   },
+   {
+    "line": 120,
+    "kind": "title",
+    "s": "Maximize to full screen"
+   },
+   {
+    "line": 120,
+    "kind": "aria-label",
+    "s": "Maximize"
+   },
+   {
+    "line": 151,
+    "kind": "title",
+    "s": "Vision Tree"
+   },
+   {
+    "line": 152,
+    "kind": "title",
+    "s": "Alvar — guardian of the Vision Tree"
+   },
+   {
+    "line": 155,
+    "kind": "text",
+    "s": "Vision Tree"
+   },
+   {
+    "line": 156,
+    "kind": "text",
+    "s": "Hierarchy renders here (C2+)."
+   },
+   {
+    "line": 165,
+    "kind": "title",
+    "s": "Active Elements"
+   },
+   {
+    "line": 175,
+    "kind": "title",
+    "s": "Planning · Scheduling · Cost"
+   },
+   {
+    "line": 178,
+    "kind": "title",
+    "s": "Approvals · Codes"
+   }
+  ],
+  "components/architect-2525/architect-design.tsx": [
+   {
+    "line": 238,
+    "kind": "title",
+    "s": "Design settings"
+   },
+   {
+    "line": 238,
+    "kind": "aria-label",
+    "s": "Design settings"
+   },
+   {
+    "line": 262,
+    "kind": "text",
+    "s": "Design Settings"
+   },
+   {
+    "line": 276,
+    "kind": "text",
+    "s": "Air Flow"
+   },
+   {
+    "line": 284,
+    "kind": "text",
+    "s": "Outlets in walk"
+   },
+   {
+    "line": 288,
+    "kind": "text",
+    "s": "Wiring to outlets"
+   },
+   {
+    "line": 294,
+    "kind": "text",
+    "s": "Water Source"
+   },
+   {
+    "line": 301,
+    "kind": "text",
+    "s": "Enter a room (⏎) to see these runs drawn in 2D + 3D with total pipe/wire length."
+   },
+   {
+    "line": 308,
+    "kind": "text",
+    "s": "· shown on map"
+   },
+   {
+    "line": 355,
+    "kind": "title",
+    "s": "Tiny Home"
+   },
+   {
+    "line": 364,
+    "kind": "title",
+    "s": "Drag to move this panel"
+   }
+  ],
+  "components/architect-2525/architect-estimate.tsx": [
+   {
+    "line": 50,
+    "kind": "text",
+    "s": "every decision narrows the cone · AACE Class 5 → 1"
+   },
+   {
+    "line": 65,
+    "kind": "text",
+    "s": "STAGE GATES · advance as decisions are made"
+   },
+   {
+    "line": 84,
+    "kind": "text",
+    "s": "CONE OF UNCERTAINTY · cost vs decisions"
+   },
+   {
+    "line": 94,
+    "kind": "text",
+    "s": "Moving-average estimate (dashed) + narrowing ± band. Marker = current gate. As t"
+   },
+   {
+    "line": 101,
+    "kind": "text",
+    "s": "Decision required:"
+   },
+   {
+    "line": 102,
+    "kind": "text",
+    "s": "Responsible authority:"
+   },
+   {
+    "line": 106,
+    "kind": "text",
+    "s": "🕒 Replay available"
+   }
+  ],
+  "components/architect-2525/architect-forecast.tsx": [
+   {
+    "line": 52,
+    "kind": "text",
+    "s": "TIMELINE · trade sequencing (MEP rough-in runs parallel)"
+   },
+   {
+    "line": 74,
+    "kind": "text",
+    "s": "MONTHLY FORECAST · cost draw per month"
+   },
+   {
+    "line": 85,
+    "kind": "text",
+    "s": "Deterministic schedule from the estimate engine → replayable. Change crew or sta"
+   }
+  ],
+  "components/architect-2525/architect-framing.tsx": [
+   {
+    "line": 123,
+    "kind": "text",
+    "s": "🤖 = robot-automatable placement"
+   }
+  ],
+  "components/architect-2525/architect-panels.tsx": [
+   {
+    "line": 26,
+    "kind": "text",
+    "s": "· each pass = an intelligence cycle"
+   },
+   {
+    "line": 62,
+    "kind": "text",
+    "s": "Anyone can view, walk, and comment. Comments become candidate deltas the homeown"
+   },
+   {
+    "line": 64,
+    "kind": "placeholder",
+    "s": "Add a comment…"
+   },
+   {
+    "line": 96,
+    "kind": "text",
+    "s": "Guidance only — NOT certified plan approval (ARC-09)."
+   }
+  ],
+  "components/architect-2525/architect-panels2.tsx": [
+   {
+    "line": 36,
+    "kind": "text",
+    "s": "Deterministic (U-WF-08) → replayable. Feeds the qualification report + SSSES."
+   },
+   {
+    "line": 52,
+    "kind": "text",
+    "s": "Time donated → $/min + Trinity tokens + recognition."
+   },
+   {
+    "line": 60,
+    "kind": "text",
+    "s": "south glazing raises cooling load."
+   },
+   {
+    "line": 93,
+    "kind": "text",
+    "s": "· every decision recorded"
+   },
+   {
+    "line": 102,
+    "kind": "text",
+    "s": "Knowledge Graph"
+   }
+  ],
+  "components/architect-2525/architect-projects.tsx": [
+   {
+    "line": 81,
+    "kind": "title",
+    "s": "Saved designs — save · load · export .arch2525"
+   },
+   {
+    "line": 111,
+    "kind": "text",
+    "s": "＋ New Design"
+   },
+   {
+    "line": 113,
+    "kind": "placeholder",
+    "s": "Design name…"
+   },
+   {
+    "line": 130,
+    "kind": "title",
+    "s": "Load this design"
+   },
+   {
+    "line": 131,
+    "kind": "title",
+    "s": "Download .arch2525"
+   },
+   {
+    "line": 132,
+    "kind": "title",
+    "s": "Delete"
+   }
+  ],
+  "components/architect-2525/architect-skysun.tsx": [
+   {
+    "line": 372,
+    "kind": "title",
+    "s": "Use this device's GPS (asks permission; turn on Location Services)"
+   },
+   {
+    "line": 376,
+    "kind": "text",
+    "s": "or type →"
+   },
+   {
+    "line": 385,
+    "kind": "text",
+    "s": "Couldn&rsquo;t read that — try MGRS (14R PU 20805 50823), UTM (14 620805E 335082"
+   },
+   {
+    "line": 397,
+    "kind": "title",
+    "s": "Snap date + hour to the current local sky"
+   },
+   {
+    "line": 418,
+    "kind": "text",
+    "s": "4-corner lot (~30 m) — shared reference frame for structure · sun · moon · terra"
+   },
+   {
+    "line": 425,
+    "kind": "text",
+    "s": "☀ Polar day — sun never sets"
+   },
+   {
+    "line": 426,
+    "kind": "text",
+    "s": "☾ Polar night — sun never rises"
+   },
+   {
+    "line": 438,
+    "kind": "text",
+    "s": "Best light:"
+   },
+   {
+    "line": 438,
+    "kind": "text",
+    "s": "— primary living windows."
+   },
+   {
+    "line": 439,
+    "kind": "text",
+    "s": "— shade/minimize glare."
+   },
+   {
+    "line": 452,
+    "kind": "text",
+    "s": "frames the"
+   },
+   {
+    "line": 454,
+    "kind": "text",
+    "s": "; its natural moon-anniversary is"
+   },
+   {
+    "line": 459,
+    "kind": "text",
+    "s": "never above horizon this date"
+   },
+   {
+    "line": 461,
+    "kind": "text",
+    "s": "never above horizon this date"
+   },
+   {
+    "line": 462,
+    "kind": "text",
+    "s": "Pick your anniversary / a season on the calendar → this is the moment the sky fr"
+   },
+   {
+    "line": 470,
+    "kind": "text",
+    "s": "the Sun never frames this facing"
+   },
+   {
+    "line": 475,
+    "kind": "text",
+    "s": "the Moon never frames this facing this year"
+   }
+  ],
+  "components/architect-2525/architect-soi.tsx": [
+   {
+    "line": 35,
+    "kind": "text",
+    "s": "encourage intelligence growth · reimagine innovation incentives"
+   },
+   {
+    "line": 81,
+    "kind": "text",
+    "s": "· portable identity of service"
+   },
+   {
+    "line": 85,
+    "kind": "text",
+    "s": "Time Capital"
+   },
+   {
+    "line": 85,
+    "kind": "text",
+    "s": "· Learning pts"
+   }
+  ],
+  "components/architect-2525/bim-io.tsx": [
+   {
+    "line": 71,
+    "kind": "title",
+    "s": "Upload someone else's design — a BIM/IFC model OR an Architect-2525 (.arch2525) "
+   },
+   {
+    "line": 77,
+    "kind": "title",
+    "s": "HI recommend — standard, code-normative build (foundation · structure · envelope"
+   },
+   {
+    "line": 79,
+    "kind": "title",
+    "s": "AI recommend — vision-driven build tuned to your Style (adds interior · exterior"
+   },
+   {
+    "line": 80,
+    "kind": "title",
+    "s": "Design saved-files back up to the cloud (survives cache-clear, reloads on this a"
+   },
+   {
+    "line": 87,
+    "kind": "text",
+    "s": "human review required"
+   },
+   {
+    "line": 104,
+    "kind": "text",
+    "s": "— assign to a system (not discarded)"
+   },
+   {
+    "line": 111,
+    "kind": "text",
+    "s": "Assign to…"
+   }
+  ],
+  "components/architect-2525/building-program.tsx": [
+   {
+    "line": 39,
+    "kind": "text",
+    "s": "Building Program"
+   },
+   {
+    "line": 52,
+    "kind": "text",
+    "s": "Room volume"
+   },
+   {
+    "line": 74,
+    "kind": "text",
+    "s": "Square feet"
+   },
+   {
+    "line": 108,
+    "kind": "text",
+    "s": "Rough takeoff so a plumber can estimate — verify against local code."
+   }
+  ],
+  "components/architect-2525/codes-panel.tsx": [
+   {
+    "line": 24,
+    "kind": "text",
+    "s": "Design to standards"
+   },
+   {
+    "line": 24,
+    "kind": "text",
+    "s": "· choose one or more"
+   },
+   {
+    "line": 39,
+    "kind": "text",
+    "s": "No standard selected — pick a jurisdiction/standard to see its headline requirem"
+   }
+  ],
+  "components/architect-2525/command-ux1.tsx": [
+   {
+    "line": 188,
+    "kind": "title",
+    "s": "Back to Vision 2525"
+   },
+   {
+    "line": 195,
+    "kind": "text",
+    "s": "Building Lifecycle Coordination · Vision 2525"
+   },
+   {
+    "line": 198,
+    "kind": "title",
+    "s": "Search (⌘K)"
+   },
+   {
+    "line": 199,
+    "kind": "title",
+    "s": "Replay (universal)"
+   },
+   {
+    "line": 203,
+    "kind": "title",
+    "s": "Notifications"
+   },
+   {
+    "line": 209,
+    "kind": "title",
+    "s": "Settings"
+   },
+   {
+    "line": 256,
+    "kind": "text",
+    "s": "Stage Gate"
+   },
+   {
+    "line": 261,
+    "kind": "text",
+    "s": "Human Authority"
+   },
+   {
+    "line": 305,
+    "kind": "title",
+    "s": "Design Files"
+   },
+   {
+    "line": 322,
+    "kind": "text",
+    "s": "· V2525-000842 · Custom Residence"
+   },
+   {
+    "line": 341,
+    "kind": "title",
+    "s": "Knowledge Graph"
+   },
+   {
+    "line": 346,
+    "kind": "title",
+    "s": "System of Intelligence · Tri-Coin"
+   },
+   {
+    "line": 385,
+    "kind": "text",
+    "s": "· Learning points"
+   },
+   {
+    "line": 433,
+    "kind": "text",
+    "s": "Coming soon"
+   },
+   {
+    "line": 442,
+    "kind": "title",
+    "s": "Advanced"
+   },
+   {
+    "line": 458,
+    "kind": "text",
+    "s": "◬ · ♡ · 웃 — Where Shared Intention moves at the Speed of Thought"
+   }
+  ],
+  "components/architect-2525/compass-2525.tsx": [
+   {
+    "line": 18,
+    "kind": "title",
+    "s": "Snap north-up"
+   },
+   {
+    "line": 20,
+    "kind": "aria-label",
+    "s": "Compass"
+   }
+  ],
+  "components/architect-2525/earth-moon-box.tsx": [
+   {
+    "line": 89,
+    "kind": "title",
+    "s": "Toggle sidereal (true orbit, 27.3 d) / synodic (phase cycle, 29.5 d)"
+   }
+  ],
+  "components/architect-2525/house-schematic.tsx": [
+   {
+    "line": 13,
+    "kind": "text",
+    "s": "[p.id, p.color])) as Record"
+   },
+   {
+    "line": 34,
+    "kind": "aria-label",
+    "s": "House cross-section assembling from chosen components"
+   }
+  ],
+  "components/architect-2525/house-spec.tsx": [
+   {
+    "line": 30,
+    "kind": "text",
+    "s": "Wireframe your house"
+   },
+   {
+    "line": 31,
+    "kind": "text",
+    "s": "Select a component in the Layer Tree, then"
+   },
+   {
+    "line": 31,
+    "kind": "text",
+    "s": "in the Context panel — or"
+   },
+   {
+    "line": 31,
+    "kind": "text",
+    "s": "below. The cross-section fills in as you go."
+   },
+   {
+    "line": 100,
+    "kind": "text",
+    "s": "Project rollup"
+   },
+   {
+    "line": 104,
+    "kind": "text",
+    "s": "Cost band"
+   },
+   {
+    "line": 130,
+    "kind": "text",
+    "s": "Parallel install timeline"
+   },
+   {
+    "line": 131,
+    "kind": "text",
+    "s": "· critical path"
+   },
+   {
+    "line": 132,
+    "kind": "text",
+    "s": "vs sequential"
+   }
+  ],
+  "components/architect-2525/layer-inspector.tsx": [
+   {
+    "line": 38,
+    "kind": "text",
+    "s": "Unknown layer."
+   },
+   {
+    "line": 132,
+    "kind": "text",
+    "s": "Asset Intelligence"
+   },
+   {
+    "line": 142,
+    "kind": "text",
+    "s": "Human Authority advances the Digital-Twin status (Designed → … → Operational). E"
+   },
+   {
+    "line": 158,
+    "kind": "text",
+    "s": "Responsible authority"
+   },
+   {
+    "line": 166,
+    "kind": "text",
+    "s": "decision → tighter estimate"
+   },
+   {
+    "line": 202,
+    "kind": "text",
+    "s": "Trinity ledgers"
+   },
+   {
+    "line": 222,
+    "kind": "text",
+    "s": "Premium upgrade (+R / +25% cost)"
+   }
+  ],
+  "components/architect-2525/layer-tree.tsx": [
+   {
+    "line": 65,
+    "kind": "text",
+    "s": "| null, forceOpen: null as Set"
+   },
+   {
+    "line": 66,
+    "kind": "text",
+    "s": "(), open = new Set"
+   },
+   {
+    "line": 124,
+    "kind": "title",
+    "s": "On the house"
+   },
+   {
+    "line": 134,
+    "kind": "title",
+    "s": "Layer settings (open Context)"
+   },
+   {
+    "line": 143,
+    "kind": "text",
+    "s": "Isolate — hide all other layers"
+   },
+   {
+    "line": 144,
+    "kind": "text",
+    "s": "Reveal all"
+   },
+   {
+    "line": 159,
+    "kind": "text",
+    "s": "— its systems · ← Back to house for all"
+   },
+   {
+    "line": 187,
+    "kind": "text",
+    "s": "Target market"
+   },
+   {
+    "line": 201,
+    "kind": "placeholder",
+    "s": "Search layers…"
+   }
+  ],
+  "components/architect-2525/metric-strip.tsx": [
+   {
+    "line": 72,
+    "kind": "title",
+    "s": "Building Program — bedrooms · baths · sqft · electric · plumbing"
+   }
+  ],
+  "components/architect-2525/mini-globe.tsx": [
+   {
+    "line": 84,
+    "kind": "text",
+    "s": "EARTH · drag L/R · no zoom"
+   }
+  ],
+  "components/architect-2525/mini-panel.tsx": [
+   {
+    "line": 65,
+    "kind": "title",
+    "s": "Minimize"
+   },
+   {
+    "line": 65,
+    "kind": "aria-label",
+    "s": "Minimize"
+   },
+   {
+    "line": 75,
+    "kind": "title",
+    "s": "Dock back"
+   },
+   {
+    "line": 76,
+    "kind": "title",
+    "s": "Maximize"
+   },
+   {
+    "line": 77,
+    "kind": "title",
+    "s": "Collapse"
+   },
+   {
+    "line": 101,
+    "kind": "title",
+    "s": "Drag to resize"
+   }
+  ],
+  "components/architect-2525/right-panel.tsx": [
+   {
+    "line": 31,
+    "kind": "text",
+    "s": "Active Elements"
+   },
+   {
+    "line": 44,
+    "kind": "title",
+    "s": "Remove from house"
+   },
+   {
+    "line": 55,
+    "kind": "text",
+    "s": "Selected Element"
+   }
+  ],
+  "components/architect-2525/room-designer.tsx": [
+   {
+    "line": 409,
+    "kind": "title",
+    "s": "Reset zoom (scroll or pinch to zoom the plan)"
+   },
+   {
+    "line": 604,
+    "kind": "text",
+    "s": "L-drag pan · R-drag rotate/tilt · pinch/scroll zoom · 2-finger twist/tilt"
+   },
+   {
+    "line": 630,
+    "kind": "title",
+    "s": "Rotate plan left"
+   },
+   {
+    "line": 631,
+    "kind": "title",
+    "s": "Rotate plan right"
+   },
+   {
+    "line": 634,
+    "kind": "title",
+    "s": "Reset view"
+   },
+   {
+    "line": 637,
+    "kind": "title",
+    "s": "Mirror left↔right"
+   },
+   {
+    "line": 638,
+    "kind": "title",
+    "s": "Mirror top↔bottom"
+   },
+   {
+    "line": 673,
+    "kind": "text",
+    "s": "10′×10′ · tap a tool, tap the floor"
+   },
+   {
+    "line": 682,
+    "kind": "title",
+    "s": "How this designer works"
+   },
+   {
+    "line": 686,
+    "kind": "text",
+    "s": "How to design this room"
+   },
+   {
+    "line": 688,
+    "kind": "text",
+    "s": "tap a palette item (grouped by system) then tap the floor, or drag it onto the 2"
+   },
+   {
+    "line": 689,
+    "kind": "text",
+    "s": "drag on the plan, or select an item and use the ↑↓←→"
+   },
+   {
+    "line": 689,
+    "kind": "text",
+    "s": "nudge pad"
+   },
+   {
+    "line": 689,
+    "kind": "text",
+    "s": "— tap the step to switch 1&quot; / 6&quot; / 1&apos;. Items can never leave the "
+   },
+   {
+    "line": 690,
+    "kind": "text",
+    "s": "to cycle standard sizes (beds, doors, windows), or tap a cyan"
+   },
+   {
+    "line": 690,
+    "kind": "text",
+    "s": "on the plan (R.O. cycles size, O.C. nudges along the wall)."
+   },
+   {
+    "line": 691,
+    "kind": "text",
+    "s": "slide along their wall; pick standard sizes/heights from Size."
+   },
+   {
+    "line": 692,
+    "kind": "text",
+    "s": "outlets show on the walls at 1.5&apos; AFF; water/sewer/wire/duct runs draw in 2"
+   },
+   {
+    "line": 693,
+    "kind": "text",
+    "s": "Bill of Materials"
+   },
+   {
+    "line": 693,
+    "kind": "text",
+    "s": "lists purchasable, quotable quantities (pipe/wire/duct ft, outlets, fixtures)."
+   },
+   {
+    "line": 694,
+    "kind": "text",
+    "s": "two panes, each 2D or 3D at its own angle — left-drag pan · right-drag rotate/ti"
+   },
+   {
+    "line": 799,
+    "kind": "title",
+    "s": "Move up (N)"
+   },
+   {
+    "line": 800,
+    "kind": "title",
+    "s": "Move down (S)"
+   },
+   {
+    "line": 801,
+    "kind": "title",
+    "s": "Move left (W)"
+   },
+   {
+    "line": 802,
+    "kind": "title",
+    "s": "Move right (E)"
+   },
+   {
+    "line": 806,
+    "kind": "text",
+    "s": "· drag or nudge to move"
+   },
+   {
+    "line": 821,
+    "kind": "text",
+    "s": "Bill of Materials · quote"
+   },
+   {
+    "line": 843,
+    "kind": "text",
+    "s": "▶ Guided demo — what’s possible"
+   },
+   {
+    "line": 867,
+    "kind": "text",
+    "s": "Structural shell shown"
+   }
+  ],
+  "components/architect-2525/sky-celestial-embed.tsx": [
+   {
+    "line": 16,
+    "kind": "title",
+    "s": "Celestial-2525 · master design"
+   }
+  ],
+  "components/architect-2525/tiny-floorplan.tsx": [
+   {
+    "line": 115,
+    "kind": "text",
+    "s": "L-drag pan · R-drag rotate · pinch zoom"
+   }
+  ],
+  "components/atlantis-accord-viewer.tsx": [
+   {
+    "line": 75,
+    "kind": "aria-label",
+    "s": "Livelihood home"
+   },
+   {
+    "line": 96,
+    "kind": "aria-label",
+    "s": "Seed of Life"
+   },
+   {
+    "line": 428,
+    "kind": "title",
+    "s": "Download sealed package — Clearance: Level 1, random 4-digit code"
+   },
+   {
+    "line": 429,
+    "kind": "aria-label",
+    "s": "Download sealed package"
+   },
+   {
+    "line": 435,
+    "kind": "text",
+    "s": "The Atlantis Accords"
+   },
+   {
+    "line": 447,
+    "kind": "title",
+    "s": "Scan / share the website QR"
+   },
+   {
+    "line": 448,
+    "kind": "aria-label",
+    "s": "Website QR code"
+   },
+   {
+    "line": 509,
+    "kind": "aria-label",
+    "s": "Close"
+   },
+   {
+    "line": 707,
+    "kind": "aria-label",
+    "s": "Previous"
+   },
+   {
+    "line": 740,
+    "kind": "text",
+    "s": "Shareable Package"
+   },
+   {
+    "line": 741,
+    "kind": "aria-label",
+    "s": "Close"
+   },
+   {
+    "line": 751,
+    "kind": "placeholder",
+    "s": "eXeL AI"
+   },
+   {
+    "line": 758,
+    "kind": "text",
+    "s": "Clearance Levels"
+   },
+   {
+    "line": 779,
+    "kind": "text",
+    "s": "seal strength"
+   },
+   {
+    "line": 809,
+    "kind": "text",
+    "s": "Choose how to share:"
+   },
+   {
+    "line": 812,
+    "kind": "title",
+    "s": "Self-contained .html — opens directly on Android, Edge & computers"
+   },
+   {
+    "line": 819,
+    "kind": "title",
+    "s": "Universal link — opens on any device, including iPhone & iPad"
+   },
+   {
+    "line": 824,
+    "kind": "text",
+    "s": "Any device · iPhone"
+   },
+   {
+    "line": 851,
+    "kind": "title",
+    "s": "Copy link"
+   },
+   {
+    "line": 857,
+    "kind": "text",
+    "s": "any device — including iPhone &amp; iPad"
+   },
+   {
+    "line": 857,
+    "kind": "text",
+    "s": ". Only the encrypted message is stored (never the 4-digit code). It"
+   },
+   {
+    "line": 857,
+    "kind": "text",
+    "s": "opens once"
+   },
+   {
+    "line": 863,
+    "kind": "text",
+    "s": "seals after it is closed"
+   },
+   {
+    "line": 896,
+    "kind": "text",
+    "s": "Scan to open The Atlantis Accords"
+   },
+   {
+    "line": 900,
+    "kind": "aria-label",
+    "s": "Exit full screen QR"
+   },
+   {
+    "line": 908,
+    "kind": "text",
+    "s": "The Atlantis Accords"
+   },
+   {
+    "line": 912,
+    "kind": "title",
+    "s": "Full screen QR"
+   },
+   {
+    "line": 913,
+    "kind": "aria-label",
+    "s": "Full screen QR"
+   },
+   {
+    "line": 918,
+    "kind": "aria-label",
+    "s": "Close"
+   },
+   {
+    "line": 926,
+    "kind": "text",
+    "s": "Scan to open The Atlantis Accords"
+   },
+   {
+    "line": 931,
+    "kind": "title",
+    "s": "Copy link"
+   },
+   {
+    "line": 932,
+    "kind": "aria-label",
+    "s": "Copy Atlantis Accords link"
+   }
+  ],
+  "components/celestial-2525/celestial-reader.tsx": [
+   {
+    "line": 105,
+    "kind": "text",
+    "s": "Minimize the reading area"
+   }
+  ],
+  "components/cube-dev-sim.tsx": [
+   {
+    "line": 330,
+    "kind": "title",
+    "s": "Pop out & rotate"
+   },
+   {
+    "line": 341,
+    "kind": "title",
+    "s": "Explode / assemble the blocks"
+   },
+   {
+    "line": 350,
+    "kind": "text",
+    "s": "Drag to rotate · pinch/scroll to zoom · Explode separates the blocks."
+   },
+   {
+    "line": 362,
+    "kind": "text",
+    "s": "— drag to rotate · pinch/scroll to zoom"
+   }
+  ],
+  "components/encrypted-messaging-composer.tsx": [
+   {
+    "line": 81,
+    "kind": "text",
+    "s": "Encoded Messaging"
+   },
+   {
+    "line": 82,
+    "kind": "text",
+    "s": "Compose · Encode · Send — 4-digit sealed HTML"
+   },
+   {
+    "line": 87,
+    "kind": "aria-label",
+    "s": "Close"
+   },
+   {
+    "line": 93,
+    "kind": "text",
+    "s": "Clearance level"
+   },
+   {
+    "line": 119,
+    "kind": "text",
+    "s": "Message type"
+   },
+   {
+    "line": 136,
+    "kind": "placeholder",
+    "s": "Sealed Message"
+   },
+   {
+    "line": 161,
+    "kind": "placeholder",
+    "s": "Anonymous"
+   },
+   {
+    "line": 178,
+    "kind": "title",
+    "s": "Randomize"
+   },
+   {
+    "line": 201,
+    "kind": "text",
+    "s": "Enter a 4-digit PIN (or press ⟳ to randomize)."
+   },
+   {
+    "line": 216,
+    "kind": "text",
+    "s": "🔑 Give your recipient PIN"
+   },
+   {
+    "line": 216,
+    "kind": "text",
+    "s": "a different way"
+   }
+  ],
+  "components/error-boundary.tsx": [
+   {
+    "line": 40,
+    "kind": "text",
+    "s": "Something went wrong"
+   }
+  ],
+  "components/experiences/experiences-landing.tsx": [
+   {
+    "line": 110,
+    "kind": "title",
+    "s": "Download PDF — Resume.Digital_A.Seguin_2026"
+   }
+  ],
+  "components/experiences/experiences-portfolio.tsx": [
+   {
+    "line": 338,
+    "kind": "aria-label",
+    "s": "Toggle details"
+   },
+   {
+    "line": 357,
+    "kind": "aria-label",
+    "s": "Close"
+   },
+   {
+    "line": 431,
+    "kind": "aria-label",
+    "s": "Email explore@eXeL-AI.com"
+   },
+   {
+    "line": 432,
+    "kind": "title",
+    "s": "explore@eXeL-AI.com"
+   }
+  ],
+  "components/experiences/lang-select.tsx": [
+   {
+    "line": 30,
+    "kind": "aria-label",
+    "s": "Language"
+   },
+   {
+    "line": 31,
+    "kind": "title",
+    "s": "Language"
+   }
+  ],
+  "components/feedback-widget.tsx": [
+   {
+    "line": 252,
+    "kind": "title",
+    "s": "Snip a region of the screen (built-in)"
+   },
+   {
+    "line": 262,
+    "kind": "title",
+    "s": "Upload a screenshot image"
+   }
+  ],
+  "components/flower-of-life/bilingual-reader.tsx": [
+   {
+    "line": 402,
+    "kind": "text",
+    "s": "(primaryPages as Array"
+   },
+   {
+    "line": 407,
+    "kind": "text",
+    "s": "(mirrorPages as Array"
+   },
+   {
+    "line": 514,
+    "kind": "text",
+    "s": "Highlight Color"
+   }
+  ],
+  "components/flower-of-life/flower-visualization.tsx": [
+   {
+    "line": 294,
+    "kind": "text",
+    "s": "Theme Analysis"
+   },
+   {
+    "line": 303,
+    "kind": "text",
+    "s": "Live results only — sample data is never shown for real sessions."
+   }
+  ],
+  "components/flower-of-life/rotary-knob.tsx": [
+   {
+    "line": 75,
+    "kind": "aria-label",
+    "s": "Previous level"
+   },
+   {
+    "line": 186,
+    "kind": "aria-label",
+    "s": "Next level"
+   }
+  ],
+  "components/join-flow.tsx": [
+   {
+    "line": 550,
+    "kind": "text",
+    "s": "You&apos;re in the session"
+   },
+   {
+    "line": 561,
+    "kind": "text",
+    "s": "in session"
+   },
+   {
+    "line": 581,
+    "kind": "text",
+    "s": "Polling is live!"
+   },
+   {
+    "line": 582,
+    "kind": "text",
+    "s": "Taking you to the question…"
+   }
+  ],
+  "components/language-lexicon.tsx": [
+   {
+    "line": 633,
+    "kind": "placeholder",
+    "s": "Afrikaans"
+   },
+   {
+    "line": 644,
+    "kind": "placeholder",
+    "s": "Afrikaans"
+   },
+   {
+    "line": 744,
+    "kind": "title",
+    "s": "Approve"
+   },
+   {
+    "line": 753,
+    "kind": "title",
+    "s": "Reject"
+   }
+  ],
+  "components/light-codex-cube.tsx": [
+   {
+    "line": 155,
+    "kind": "text",
+    "s": "Light Codex"
+   },
+   {
+    "line": 315,
+    "kind": "text",
+    "s": "Light Codex"
+   }
+  ],
+  "components/master-of-thought.tsx": [
+   {
+    "line": 173,
+    "kind": "aria-label",
+    "s": "Master of Thought — Eagle emblem with Sumerian cuneiform"
+   }
+  ],
+  "components/moderator-settings.tsx": [
+   {
+    "line": 329,
+    "kind": "text",
+    "s": "Used when Create Doc drafts a document and when a pod writes its closing summary"
+   },
+   {
+    "line": 340,
+    "kind": "text",
+    "s": "No AI key is set on this site yet, so drafting and summaries fall back to the bu"
+   },
+   {
+    "line": 539,
+    "kind": "text",
+    "s": "Humanity&apos;s Coordination Framework"
+   }
+  ],
+  "components/security-2525/asset-icons.tsx": [
+   {
+    "line": 119,
+    "kind": "text",
+    "s": "= new Set"
+   }
+  ],
+  "components/security-2525/command-ux1.tsx": [
+   {
+    "line": 299,
+    "kind": "title",
+    "s": "Settings — global (all tabs)"
+   },
+   {
+    "line": 346,
+    "kind": "aria-label",
+    "s": "FPS over time"
+   },
+   {
+    "line": 420,
+    "kind": "title",
+    "s": "Collapse — show only critical info"
+   },
+   {
+    "line": 421,
+    "kind": "title",
+    "s": "Threat Summary"
+   },
+   {
+    "line": 432,
+    "kind": "title",
+    "s": "Threat Composition"
+   },
+   {
+    "line": 440,
+    "kind": "title",
+    "s": "Sensor Fusion Status"
+   },
+   {
+    "line": 443,
+    "kind": "title",
+    "s": "Environmental Conditions"
+   },
+   {
+    "line": 470,
+    "kind": "title",
+    "s": "Expand left panel"
+   },
+   {
+    "line": 497,
+    "kind": "text",
+    "s": "live fusion view — wiring pending"
+   },
+   {
+    "line": 508,
+    "kind": "text",
+    "s": "Threat Summary"
+   },
+   {
+    "line": 517,
+    "kind": "text",
+    "s": "Kill Chain"
+   },
+   {
+    "line": 565,
+    "kind": "title",
+    "s": "Collapse — show only critical info"
+   },
+   {
+    "line": 566,
+    "kind": "title",
+    "s": "Kill Chain Status"
+   },
+   {
+    "line": 579,
+    "kind": "title",
+    "s": "Threat Distribution"
+   },
+   {
+    "line": 590,
+    "kind": "title",
+    "s": "Risk + Effect Assessment"
+   },
+   {
+    "line": 599,
+    "kind": "title",
+    "s": "Expand right panel"
+   },
+   {
+    "line": 609,
+    "kind": "title",
+    "s": "Collapse — show only critical info"
+   },
+   {
+    "line": 611,
+    "kind": "title",
+    "s": "AI Recommendation"
+   },
+   {
+    "line": 628,
+    "kind": "text",
+    "s": "Recommended Weapons"
+   },
+   {
+    "line": 635,
+    "kind": "title",
+    "s": "Engagement Priority"
+   },
+   {
+    "line": 645,
+    "kind": "title",
+    "s": "Decision Support"
+   },
+   {
+    "line": 656,
+    "kind": "title",
+    "s": "Expand bottom panels"
+   }
+  ],
+  "components/security-2525/fps-meter.tsx": [
+   {
+    "line": 36,
+    "kind": "aria-label",
+    "s": "Frames per second"
+   }
+  ],
+  "components/security-2525/mission-planning.tsx": [
+   {
+    "line": 800,
+    "kind": "aria-label",
+    "s": "Wireframe globe — orbit camera; scroll/pinch to zoom, right-drag to angle the vi"
+   },
+   {
+    "line": 825,
+    "kind": "text",
+    "s": "Math.PI) dAng -= 2 * Math.PI; else if (dAng"
+   },
+   {
+    "line": 1054,
+    "kind": "aria-label",
+    "s": "World context map — country + US state borders (Natural Earth 50m); scroll to zo"
+   },
+   {
+    "line": 1318,
+    "kind": "title",
+    "s": "Enter the tactical Area of Operations (zoom to detail)"
+   },
+   {
+    "line": 1337,
+    "kind": "title",
+    "s": "Minimize — back to standard screen"
+   },
+   {
+    "line": 1337,
+    "kind": "aria-label",
+    "s": "Minimize"
+   },
+   {
+    "line": 1822,
+    "kind": "text",
+    "s": "Math.PI) dAng -= 2 * Math.PI; else if (dAng"
+   },
+   {
+    "line": 2138,
+    "kind": "title",
+    "s": "Zoom out to Earth / world view"
+   },
+   {
+    "line": 2156,
+    "kind": "title",
+    "s": "Reset tracks to their start positions"
+   },
+   {
+    "line": 2183,
+    "kind": "aria-label",
+    "s": "Dome toggle"
+   },
+   {
+    "line": 2198,
+    "kind": "text",
+    "s": "Line thickness"
+   },
+   {
+    "line": 2214,
+    "kind": "title",
+    "s": "Map & VOXEL settings"
+   },
+   {
+    "line": 2225,
+    "kind": "title",
+    "s": "Hide this window"
+   },
+   {
+    "line": 2245,
+    "kind": "title",
+    "s": "Coordinate (tap to decode MGRS · LLV-DMS · UCRS-2525)"
+   },
+   {
+    "line": 2750,
+    "kind": "title",
+    "s": "Drag label"
+   },
+   {
+    "line": 2762,
+    "kind": "title",
+    "s": "Close hook"
+   },
+   {
+    "line": 3007,
+    "kind": "title",
+    "s": "Drag · tap = cube-centre coordinate + AGL"
+   },
+   {
+    "line": 3057,
+    "kind": "title",
+    "s": "TARGET — cube centre coordinate"
+   },
+   {
+    "line": 3520,
+    "kind": "text",
+    "s": "· right-drag ↕ · 2D to place"
+   },
+   {
+    "line": 3526,
+    "kind": "title",
+    "s": "Tilt slider"
+   },
+   {
+    "line": 3534,
+    "kind": "title",
+    "s": "Close"
+   },
+   {
+    "line": 3790,
+    "kind": "title",
+    "s": "Close"
+   },
+   {
+    "line": 3841,
+    "kind": "text",
+    "s": "Zone = one vertical level · Z0 = surface, Z1–Z7 = altitude bands"
+   },
+   {
+    "line": 3862,
+    "kind": "aria-label",
+    "s": "Compass"
+   },
+   {
+    "line": 3894,
+    "kind": "text",
+    "s": "Coordinate packet"
+   },
+   {
+    "line": 3917,
+    "kind": "text",
+    "s": "Same DEM tile that draws contours (1 fetch). MGRS: 6°-zone · 8°-band · 100 km sq"
+   },
+   {
+    "line": 4094,
+    "kind": "title",
+    "s": "Hide placement menu"
+   },
+   {
+    "line": 4163,
+    "kind": "text",
+    "s": "Reality Mode · placed objects"
+   },
+   {
+    "line": 4280,
+    "kind": "text",
+    "s": "Reality mode"
+   },
+   {
+    "line": 4326,
+    "kind": "text",
+    "s": "Angle unit"
+   },
+   {
+    "line": 4336,
+    "kind": "text",
+    "s": "PTL disabled on-the-move (slew-to-cue only)"
+   },
+   {
+    "line": 4403,
+    "kind": "text",
+    "s": "Nudge step"
+   },
+   {
+    "line": 4467,
+    "kind": "title",
+    "s": "Hide deployed-asset list"
+   },
+   {
+    "line": 4470,
+    "kind": "text",
+    "s": "Nothing placed yet — arm an asset or support object, then tap a map."
+   },
+   {
+    "line": 4481,
+    "kind": "title",
+    "s": "Remove"
+   },
+   {
+    "line": 4492,
+    "kind": "title",
+    "s": "Remove"
+   },
+   {
+    "line": 4505,
+    "kind": "title",
+    "s": "Copy plan summary to clipboard (share)"
+   },
+   {
+    "line": 4507,
+    "kind": "title",
+    "s": "Send the plan to a commander for approval"
+   },
+   {
+    "line": 4576,
+    "kind": "title",
+    "s": "Hide transect"
+   },
+   {
+    "line": 4643,
+    "kind": "text",
+    "s": "(new Set"
+   },
+   {
+    "line": 4719,
+    "kind": "text",
+    "s": "new Set"
+   },
+   {
+    "line": 5237,
+    "kind": "title",
+    "s": "Select area of operations / mission"
+   },
+   {
+    "line": 5257,
+    "kind": "title",
+    "s": "Select mission"
+   },
+   {
+    "line": 5260,
+    "kind": "title",
+    "s": "Hide (moves to HIDDEN at bottom — delete from there)"
+   },
+   {
+    "line": 5270,
+    "kind": "title",
+    "s": "Hide (moves to HIDDEN at bottom — delete from there)"
+   },
+   {
+    "line": 5279,
+    "kind": "text",
+    "s": "＋ NEW MISSION (at current view)"
+   },
+   {
+    "line": 5288,
+    "kind": "title",
+    "s": "Restore (show on map + list)"
+   },
+   {
+    "line": 5289,
+    "kind": "title",
+    "s": "Delete permanently (remove from map + list)"
+   },
+   {
+    "line": 5301,
+    "kind": "title",
+    "s": "ULT — Unit Line-up Table (setup: units · COMM · LINK)"
+   },
+   {
+    "line": 5307,
+    "kind": "text",
+    "s": "ULT · Unit Line-up (SETUP)"
+   },
+   {
+    "line": 5332,
+    "kind": "title",
+    "s": "Delete row"
+   },
+   {
+    "line": 5340,
+    "kind": "text",
+    "s": "Starts at 001–008; add units as you build. Evidence / replay only."
+   },
+   {
+    "line": 5346,
+    "kind": "title",
+    "s": "Draw AO polygon — tap the map to add vertices"
+   },
+   {
+    "line": 5350,
+    "kind": "title",
+    "s": "Undo last vertex"
+   },
+   {
+    "line": 5351,
+    "kind": "title",
+    "s": "Save AO (≥3 vertices)"
+   },
+   {
+    "line": 5352,
+    "kind": "title",
+    "s": "Cancel"
+   },
+   {
+    "line": 5359,
+    "kind": "title",
+    "s": "Delete drawn AO"
+   },
+   {
+    "line": 5378,
+    "kind": "text",
+    "s": "Mission Planning Settings"
+   },
+   {
+    "line": 5379,
+    "kind": "title",
+    "s": "Close settings"
+   },
+   {
+    "line": 5407,
+    "kind": "text",
+    "s": "Map layers"
+   },
+   {
+    "line": 5409,
+    "kind": "title",
+    "s": "Green land / blue ocean base"
+   },
+   {
+    "line": 5417,
+    "kind": "text",
+    "s": "Coordinate format"
+   },
+   {
+    "line": 5447,
+    "kind": "text",
+    "s": "Elevation profiles"
+   },
+   {
+    "line": 5454,
+    "kind": "text",
+    "s": "Elevation contours"
+   },
+   {
+    "line": 5531,
+    "kind": "text",
+    "s": "Label major"
+   },
+   {
+    "line": 5543,
+    "kind": "text",
+    "s": "REAL GEBCO 2020 DEM (land + ocean floor) where a tile covers the view; synthetic"
+   },
+   {
+    "line": 5547,
+    "kind": "text",
+    "s": "Weapon range rings"
+   },
+   {
+    "line": 5561,
+    "kind": "text",
+    "s": "Map engine"
+   },
+   {
+    "line": 5567,
+    "kind": "title",
+    "s": "Alpha — shipped square map"
+   },
+   {
+    "line": 5569,
+    "kind": "title",
+    "s": "Beta — World Disc + prefetch"
+   },
+   {
+    "line": 5582,
+    "kind": "text",
+    "s": "β prefetches zoom-in/out DEM tiles so the next zoom is instant. Safe to toggle l"
+   },
+   {
+    "line": 5586,
+    "kind": "text",
+    "s": "3D Elevation Mode"
+   },
+   {
+    "line": 5594,
+    "kind": "text",
+    "s": "Symbology standard"
+   },
+   {
+    "line": 5603,
+    "kind": "text",
+    "s": "Icon size"
+   },
+   {
+    "line": 5640,
+    "kind": "text",
+    "s": "Max altitude (ft)"
+   },
+   {
+    "line": 5652,
+    "kind": "text",
+    "s": "3D Voxel·Cube cell"
+   },
+   {
+    "line": 5682,
+    "kind": "text",
+    "s": "Highlight colour"
+   },
+   {
+    "line": 5690,
+    "kind": "text",
+    "s": "Tilt to 3D on any pane (2D/3D toggle) — reuses the same fetched tile, zero extra"
+   },
+   {
+    "line": 5717,
+    "kind": "title",
+    "s": "Show ASSET / SUPPORT menu"
+   },
+   {
+    "line": 5771,
+    "kind": "text",
+    "s": "⠿ Drag Mini-Map"
+   },
+   {
+    "line": 5774,
+    "kind": "title",
+    "s": "Dock back to bottom-right of the map"
+   },
+   {
+    "line": 5777,
+    "kind": "title",
+    "s": "Mini map fullscreen (below menu)"
+   },
+   {
+    "line": 5779,
+    "kind": "title",
+    "s": "Minimize mini map"
+   },
+   {
+    "line": 5807,
+    "kind": "title",
+    "s": "Drag to resize"
+   },
+   {
+    "line": 5818,
+    "kind": "title",
+    "s": "Show mini-map"
+   },
+   {
+    "line": 5842,
+    "kind": "title",
+    "s": "Show deployed-asset list"
+   },
+   {
+    "line": 5857,
+    "kind": "title",
+    "s": "Show elevation profile / transect"
+   }
+  ],
+  "components/security-2525/spectrum-picker.tsx": [
+   {
+    "line": 30,
+    "kind": "title",
+    "s": "Edit — custom colour"
+   }
+  ],
+  "components/seed-coin.tsx": [
+   {
+    "line": 100,
+    "kind": "aria-label",
+    "s": "Alvar face — tap to flip back to the Seed of Life"
+   }
+  ],
+  "components/soi-project-crs.tsx": [
+   {
+    "line": 129,
+    "kind": "text",
+    "s": "Project CRS — Design Traceability Matrix"
+   },
+   {
+    "line": 134,
+    "kind": "text",
+    "s": "Every version is kept (R-CORE replay) — never just the last few."
+   },
+   {
+    "line": 192,
+    "kind": "text",
+    "s": "User Story (value prop)"
+   },
+   {
+    "line": 194,
+    "kind": "text",
+    "s": "Design Review # (timestamp)"
+   },
+   {
+    "line": 220,
+    "kind": "text",
+    "s": "[], b.rows as unknown as Record"
+   },
+   {
+    "line": 223,
+    "kind": "text",
+    "s": "Before and After are the same version — choose two different versions to see cha"
+   }
+  ],
+  "components/soi-slide-compare.tsx": [
+   {
+    "line": 61,
+    "kind": "text",
+    "s": "This slide has fewer than two saved versions — nothing to compare yet."
+   },
+   {
+    "line": 98,
+    "kind": "text",
+    "s": "Compare slide versions"
+   },
+   {
+    "line": 114,
+    "kind": "text",
+    "s": "Before and After are the same version — pick two different versions."
+   },
+   {
+    "line": 116,
+    "kind": "text",
+    "s": "No differences between these two versions."
+   }
+  ],
+  "components/stripe-payment.tsx": [
+   {
+    "line": 74,
+    "kind": "text",
+    "s": "Session Payment"
+   },
+   {
+    "line": 449,
+    "kind": "text",
+    "s": "Pricing Tier"
+   }
+  ],
+  "components/vision-2525-launcher.tsx": [
+   {
+    "line": 41,
+    "kind": "title",
+    "s": "One Civilization • One Framework • Limitless Possibilities • Humanity's Future"
+   }
+  ],
+  "components/workspace-select.tsx": [
+   {
+    "line": 73,
+    "kind": "aria-label",
+    "s": "Close"
+   },
+   {
+    "line": 81,
+    "kind": "text",
+    "s": "Polling is open. Innovation needs its own key — tap the lock to enter it."
+   },
+   {
+    "line": 88,
+    "kind": "aria-label",
+    "s": "Polling is unlocked"
+   },
+   {
+    "line": 90,
+    "kind": "text",
+    "s": "Run live or static sessions. Responses become AI-generated themes the team votes"
+   },
+   {
+    "line": 92,
+    "kind": "text",
+    "s": "Open Polling"
+   },
+   {
+    "line": 109,
+    "kind": "text",
+    "s": "Gate progression G1–G7, stack prioritization, and the dependency constellation a"
+   },
+   {
+    "line": 130,
+    "kind": "text",
+    "s": "Open SoI-2525"
+   },
+   {
+    "line": 137,
+    "kind": "text",
+    "s": "Solution Brainstorm"
+   },
+   {
+    "line": 140,
+    "kind": "aria-label",
+    "s": "Solution Brainstorm is not available yet"
+   },
+   {
+    "line": 144,
+    "kind": "text",
+    "s": "Explore · Diverge · Converge — reserved for eXeL AI."
+   }
+  ]
+ }
+}
