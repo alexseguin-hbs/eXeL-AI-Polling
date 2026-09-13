@@ -11,7 +11,7 @@ const T: Record<string, string> = {
   "soi.pod.seat.waiting": "dołączono: czekamy, aż lider przydzieli ci miejsce",
   "soi.pod.seat.full": "W tym podzie są już trzy osoby. Poproś lidera o otwarcie kolejnego.",
   "soi.pod.seat.you": "ty",
-  "soi.pod.phase.compose": "Streszczenie",
+  "soi.pod.phase.compose": "Brief",
   "soi.pod.phase.invite": "Zaproszenie",
   "soi.pod.phase.sync": "Start",
   "soi.pod.phase.active": "Praca",

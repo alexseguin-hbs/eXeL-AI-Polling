@@ -44,7 +44,7 @@ const T: Record<string, string> = {
   "soi.pod.receipt.settles": "Vypořádání",
   "soi.pod.receipt.synthesis": "syntéza níže",
   "soi.pod.strip.no_intent": "(zatím bez záměru)",
-  "soi.pod.strip.stop": "Zastavit",
+  "soi.pod.strip.stop": "Stop",
   "soi.landing.language": "Jazyk",
   "soi.landing.title": "Relace",
   "soi.landing.tagline": "Rekurzivní koordinace pro kontinuitu lidstva.",

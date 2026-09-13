@@ -11,7 +11,7 @@ const T: Record<string, string> = {
   "soi.pod.seat.waiting": "alăturat: așteptăm ca liderul să-ți dea un loc",
   "soi.pod.seat.full": "Acest pod are deja trei. Roagă liderul să deschidă altul.",
   "soi.pod.seat.you": "tu",
-  "soi.pod.phase.compose": "Rezumat",
+  "soi.pod.phase.compose": "Brief",
   "soi.pod.phase.invite": "Invitație",
   "soi.pod.phase.sync": "Start",
   "soi.pod.phase.active": "Lucru",

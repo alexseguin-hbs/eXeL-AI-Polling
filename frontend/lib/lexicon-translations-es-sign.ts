@@ -257,7 +257,7 @@ export const ES_SIGN: Record<string, string> = {
   "soi.pod.seat.waiting": "unido: esperando a que el líder te asigne asiento",
   "soi.pod.seat.full": "Este pod ya tiene tres. Pide al líder que abra otro.",
   "soi.pod.seat.you": "tú",
-  "soi.pod.phase.compose": "Encuadre",
+  "soi.pod.phase.compose": "Brief",
   "soi.pod.phase.invite": "Invitar",
   "soi.pod.phase.sync": "Inicio",
   "soi.pod.phase.active": "Trabajo",

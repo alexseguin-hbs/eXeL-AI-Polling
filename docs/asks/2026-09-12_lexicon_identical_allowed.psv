@@ -1,9 +1,319 @@
 Scope|Key|Reason
+*|soi.qis.spine|a formula: R | GP | OI | QRD → ERD → QIS → ΔQIS — symbols, not words
+*|soi.qis.equation|a formula: QIS = (R + GP + OI + ERD) ÷ 4 · growth = ΔQIS — 19 languages translated "growth"; the rest kept the formula
+*|innovation.gate.eyebrow|names only: Vision • 2525 · Harmattan AI
+*|innovation.dogtag.load|glyph string AI·SI·HI
+*|innovation.dep.load|glyph string AI·SI·HI
+*|soi.tricoin|a product name: Tri-Coin
+*|innovation.alloc.perMin|a unit: $/min
+fr|innovation.header.title|System of Innovation is the product's name in the French app too
+pt|innovation.role.editor|Editor is the Portuguese word
+cs|innovation.role.editor|Editor is the Czech word
+id|cube10.sim.tier_manual|Manual is the Indonesian word
+ms|cube10.sim.tier_manual|Manual is the Malay word
+tr|innovation.notes.risk|Risk is the Turkish word
+sv|innovation.veq.colDriver|Differentiator is used as-is in Swedish business language
+da|cube10.sim.ssses_stability|Stab is an abbreviation shown as a column head
+da|cube10.sim.ssses_efficiency|Eff is an abbreviation shown as a column head
+*|cube7.ranking.rank_label|a formula, glyph or format token
+*|cube8.payment.google_pay|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+*|cube8.payment.apple_pay|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+*|sdk.api_key.title|a formula, glyph or format token
+*|cube10.sim.rank_number|a formula, glyph or format token
+*|celestial.product|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+*|experiences.name|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+*|experiences.card.resume2.badge|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+*|experiences.card.ind1.title|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+*|experiences.card.ip2.title|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+*|experiences.card.vid2.title|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+*|experiences.card.vig4.title|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+vi|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube1.settings.cost_total|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|shared.sim.volume|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|shared.nav.participants|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|shared.atlantis.sections|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|shared.atlantis.signature|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|shared.atlantis.role_innovation|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube1.session.participants|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube1.session.question_prefix|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube1.moderator.configuration|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube1.moderator.type_label|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube1.timer.minutes|a standard abbreviation identical in this language
+fr|cube7.ranking.votes|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube8.tokens.heart_total|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube8.tokens.unity_total|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube8.tokens.human_total|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube9.ranking_summary.participants|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|soi.sign.pages|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|soi.sign.mark.sig|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|soi.sign.mark.date|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|soi.sign.add_date|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|soi.sign.page|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|soi.sign.signatures|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|soi.codex.message|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|soi.doc.col.date|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|soi.nose.solution.k|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube10.sim.title|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube10.sim.ssses_stability|a standard abbreviation identical in this language
+fr|cube10.sim.ssses_efficiency|a standard abbreviation identical in this language
+fr|cube10.sim.original|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|cube12.arx.description_label|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|celestial.body.mars|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|celestial.body.jupiter|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|celestial.body.uranus|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|celestial.body.neptune|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|experiences.tag.portfolio|this language spells the word exactly as English (reviewed 2026-09-13)
+fr|experiences.sec.edtech.eyebrow|this language spells the word exactly as English (reviewed 2026-09-13)
+es|shared.tokens.heart|this language spells the word exactly as English (reviewed 2026-09-13)
+es|shared.tokens.unity|this language spells the word exactly as English (reviewed 2026-09-13)
+es|shared.tokens.human|this language spells the word exactly as English (reviewed 2026-09-13)
+es|cube1.settings.cost_total|this language spells the word exactly as English (reviewed 2026-09-13)
+es|cube1.timer.minutes|a standard abbreviation identical in this language
+es|cube8.tokens.heart_total|this language spells the word exactly as English (reviewed 2026-09-13)
+es|cube8.tokens.unity_total|this language spells the word exactly as English (reviewed 2026-09-13)
+es|cube8.tokens.human_total|this language spells the word exactly as English (reviewed 2026-09-13)
+es|cube10.sim.original|this language spells the word exactly as English (reviewed 2026-09-13)
+es|celestial.body.venus|this language spells the word exactly as English (reviewed 2026-09-13)
+es|experiences.sec.industrial.eyebrow|this language spells the word exactly as English (reviewed 2026-09-13)
+es|experiences.sec.edtech.eyebrow|this language spells the word exactly as English (reviewed 2026-09-13)
+de|shared.feedback.fab|this language spells the word exactly as English (reviewed 2026-09-13)
+de|shared.landing.hero_title_primary|this language spells the word exactly as English (reviewed 2026-09-13)
+de|shared.atlantis.role_innovation|this language spells the word exactly as English (reviewed 2026-09-13)
+de|cube1.session.step_feedback|this language spells the word exactly as English (reviewed 2026-09-13)
+de|cube1.moderator.dashboard_title|this language spells the word exactly as English (reviewed 2026-09-13)
+de|cube1.moderator.mode_live|this language spells the word exactly as English (reviewed 2026-09-13)
+de|cube4.presence.online|this language spells the word exactly as English (reviewed 2026-09-13)
+de|cube4.presence.offline|this language spells the word exactly as English (reviewed 2026-09-13)
+de|api.flower.governance|this language spells the word exactly as English (reviewed 2026-09-13)
+de|cube10.sim.title|this language spells the word exactly as English (reviewed 2026-09-13)
+de|cube10.sim.original|this language spells the word exactly as English (reviewed 2026-09-13)
+de|cube10.sim.split_moderator|this language spells the word exactly as English (reviewed 2026-09-13)
+de|celestial.body.venus|this language spells the word exactly as English (reviewed 2026-09-13)
+de|celestial.body.mars|this language spells the word exactly as English (reviewed 2026-09-13)
+de|celestial.body.jupiter|this language spells the word exactly as English (reviewed 2026-09-13)
+de|celestial.body.saturn|this language spells the word exactly as English (reviewed 2026-09-13)
+de|celestial.body.uranus|this language spells the word exactly as English (reviewed 2026-09-13)
+de|celestial.body.pluto|this language spells the word exactly as English (reviewed 2026-09-13)
+de|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+de|experiences.tag.portfolio|this language spells the word exactly as English (reviewed 2026-09-13)
+de|experiences.sec.edtech.eyebrow|this language spells the word exactly as English (reviewed 2026-09-13)
+de|experiences.card.vig8.title|this language spells the word exactly as English (reviewed 2026-09-13)
+it|shared.feedback.fab|this language spells the word exactly as English (reviewed 2026-09-13)
+it|shared.landing.hero_title_primary|this language spells the word exactly as English (reviewed 2026-09-13)
+it|shared.sim.volume|this language spells the word exactly as English (reviewed 2026-09-13)
+it|cube1.session.step_feedback|this language spells the word exactly as English (reviewed 2026-09-13)
+it|cube1.timer.minutes|a standard abbreviation identical in this language
+it|cube1.moderator.mode_live|this language spells the word exactly as English (reviewed 2026-09-13)
+it|cube4.presence.online|this language spells the word exactly as English (reviewed 2026-09-13)
+it|cube4.presence.offline|this language spells the word exactly as English (reviewed 2026-09-13)
+it|api.flower.governance|this language spells the word exactly as English (reviewed 2026-09-13)
+it|soi.sign.saved.file|this language spells the word exactly as English (reviewed 2026-09-13)
+it|soi.sign.send.email|this language spells the word exactly as English (reviewed 2026-09-13)
+it|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+it|experiences.tag.portfolio|this language spells the word exactly as English (reviewed 2026-09-13)
+it|experiences.sec.edtech.eyebrow|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|shared.tokens.heart|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|shared.tokens.unity|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|shared.tokens.human|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|shared.feedback.fab|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|cube1.settings.cost_total|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|shared.sim.volume|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|cube1.session.step_feedback|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|cube1.timer.minutes|a standard abbreviation identical in this language
+pt|cube4.presence.online|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|cube4.presence.offline|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|cube8.tokens.heart_total|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|cube8.tokens.unity_total|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|cube8.tokens.human_total|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|soi.sign.send.email|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|soi.doc.f.principal|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|soi.doc.col.principal|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|cube10.sim.original|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|experiences.sec.industrial.eyebrow|this language spells the word exactly as English (reviewed 2026-09-13)
+pt|experiences.sec.edtech.eyebrow|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|shared.tokens.heart|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|shared.tokens.unity|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|shared.tokens.human|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|shared.feedback.fab|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|shared.sim.volume|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|cube1.session.step_feedback|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|cube1.moderator.dashboard_title|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|cube1.moderator.type_label|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|cube1.timer.minutes|a standard abbreviation identical in this language
+nl|cube1.moderator.mode_live|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|cube4.presence.online|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|cube4.presence.offline|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|cube7.ranking.score|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|cube8.dispute.status_open|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|api.flower.governance|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|cube10.sim.status_open|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|soi.sign.send.email|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|cube10.sim.split_moderator|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|celestial.body.venus|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|celestial.body.mars|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|celestial.body.jupiter|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|celestial.body.uranus|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|celestial.body.pluto|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|experiences.tag.portfolio|this language spells the word exactly as English (reviewed 2026-09-13)
+nl|experiences.sec.edtech.eyebrow|this language spells the word exactly as English (reviewed 2026-09-13)
+ru|experiences.sec.edtech.eyebrow|this language spells the word exactly as English (reviewed 2026-09-13)
+id|cube1.settings.cost_total|this language spells the word exactly as English (reviewed 2026-09-13)
+id|shared.sim.volume|this language spells the word exactly as English (reviewed 2026-09-13)
+id|cube8.tokens.heart_total|this language spells the word exactly as English (reviewed 2026-09-13)
+id|cube8.tokens.unity_total|this language spells the word exactly as English (reviewed 2026-09-13)
+id|cube8.tokens.human_total|this language spells the word exactly as English (reviewed 2026-09-13)
+id|cube10.sim.split_moderator|this language spells the word exactly as English (reviewed 2026-09-13)
+id|celestial.body.venus|this language spells the word exactly as English (reviewed 2026-09-13)
+id|celestial.body.mars|this language spells the word exactly as English (reviewed 2026-09-13)
+id|celestial.body.uranus|this language spells the word exactly as English (reviewed 2026-09-13)
+id|celestial.body.pluto|this language spells the word exactly as English (reviewed 2026-09-13)
+id|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+id|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+ms|cube8.pricing.minimum_note|a standard abbreviation identical in this language
+ms|cube10.sim.split_moderator|this language spells the word exactly as English (reviewed 2026-09-13)
+ms|celestial.body.uranus|this language spells the word exactly as English (reviewed 2026-09-13)
+ms|celestial.body.pluto|this language spells the word exactly as English (reviewed 2026-09-13)
+ms|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+ms|experiences.tag.portfolio|this language spells the word exactly as English (reviewed 2026-09-13)
+ms|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+tl|cube1.moderator.dashboard_title|this language spells the word exactly as English (reviewed 2026-09-13)
+tl|cube1.moderator.mode_live|this language spells the word exactly as English (reviewed 2026-09-13)
+tl|cube8.pricing.minimum_note|a standard abbreviation identical in this language
+tl|soi.sign.diag.build|this language spells the word exactly as English (reviewed 2026-09-13)
+tl|cube10.sim.split_moderator|this language spells the word exactly as English (reviewed 2026-09-13)
+tl|celestial.body.venus|this language spells the word exactly as English (reviewed 2026-09-13)
+tl|celestial.body.mars|this language spells the word exactly as English (reviewed 2026-09-13)
+tl|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+tl|experiences.tag.portfolio|this language spells the word exactly as English (reviewed 2026-09-13)
+tl|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+tr|celestial.body.mars|this language spells the word exactly as English (reviewed 2026-09-13)
+tr|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+pl|cube1.session.ranking|this language spells the word exactly as English (reviewed 2026-09-13)
+pl|cube1.session.step_ranking|this language spells the word exactly as English (reviewed 2026-09-13)
+pl|cube1.timer.minutes|a standard abbreviation identical in this language
+pl|cube10.sim.status_ranking|this language spells the word exactly as English (reviewed 2026-09-13)
 pl|soi.pod.phase.sync|this language spells the word exactly as English (reviewed 2026-09-13)
 pl|soi.pod.strip.stop|this language spells the word exactly as English (reviewed 2026-09-13)
+pl|soi.sign.ai.auto|this language spells the word exactly as English (reviewed 2026-09-13)
+pl|soi.sign.send.email|this language spells the word exactly as English (reviewed 2026-09-13)
+pl|cube10.sim.split_moderator|this language spells the word exactly as English (reviewed 2026-09-13)
+pl|celestial.body.mars|this language spells the word exactly as English (reviewed 2026-09-13)
+pl|celestial.body.saturn|this language spells the word exactly as English (reviewed 2026-09-13)
+pl|experiences.tag.portfolio|this language spells the word exactly as English (reviewed 2026-09-13)
+pl|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+uk|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+ro|shared.feedback.fab|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|cube1.settings.cost_total|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|cube1.session.step_feedback|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|cube1.timer.minutes|a standard abbreviation identical in this language
+ro|cube1.timer.seconds|a standard abbreviation identical in this language
+ro|cube1.moderator.mode_static|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|cube8.tokens.heart_total|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|cube8.tokens.unity_total|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|cube8.tokens.human_total|this language spells the word exactly as English (reviewed 2026-09-13)
 ro|soi.pod.phase.sync|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|soi.sign.mark.text|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|soi.sign.add_text|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|soi.sign.text_default|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|soi.sign.diag.build|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|soi.sign.send.email|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|soi.doc.field.body|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|soi.doc.f.principal|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|soi.doc.col.principal|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|cube10.sim.original|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|cube10.sim.split_moderator|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|celestial.body.venus|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|celestial.body.jupiter|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|celestial.body.saturn|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|celestial.body.uranus|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|celestial.body.pluto|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|experiences.sec.industrial.eyebrow|this language spells the word exactly as English (reviewed 2026-09-13)
+ro|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+el|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+el|experiences.card.vid1.title|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+cs|cube1.timer.minutes|a standard abbreviation identical in this language
 cs|soi.pod.phase.sync|this language spells the word exactly as English (reviewed 2026-09-13)
+cs|soi.sign.mark.text|this language spells the word exactly as English (reviewed 2026-09-13)
+cs|soi.sign.add_text|this language spells the word exactly as English (reviewed 2026-09-13)
+cs|soi.sign.text_default|this language spells the word exactly as English (reviewed 2026-09-13)
+cs|soi.sign.send.email|this language spells the word exactly as English (reviewed 2026-09-13)
+cs|soi.doc.field.body|this language spells the word exactly as English (reviewed 2026-09-13)
+cs|celestial.body.mars|this language spells the word exactly as English (reviewed 2026-09-13)
+cs|celestial.body.jupiter|this language spells the word exactly as English (reviewed 2026-09-13)
+cs|celestial.body.saturn|this language spells the word exactly as English (reviewed 2026-09-13)
+cs|celestial.body.pluto|this language spells the word exactly as English (reviewed 2026-09-13)
+cs|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+cs|experiences.tag.portfolio|this language spells the word exactly as English (reviewed 2026-09-13)
+cs|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+sv|shared.atlantis.role_innovation|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|cube1.timer.minutes|a standard abbreviation identical in this language
 sv|soi.pod.phase.sync|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|soi.landing.title|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|soi.sign.mark.text|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|soi.sign.add_text|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|soi.sign.text_default|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|soi.sign.ai.auto|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|soi.doc.field.body|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|cube10.sim.original|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|cube10.sim.split_moderator|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|celestial.body.venus|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|celestial.body.mars|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|celestial.body.jupiter|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|celestial.body.uranus|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|celestial.body.pluto|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+sv|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+sv|experiences.card.writeup1.badge|this language spells the word exactly as English (reviewed 2026-09-13)
+da|shared.atlantis.role_innovation|this language spells the word exactly as English (reviewed 2026-09-13)
+da|cube1.moderator.type_label|this language spells the word exactly as English (reviewed 2026-09-13)
+da|cube1.timer.minutes|a standard abbreviation identical in this language
 da|soi.pod.phase.sync|this language spells the word exactly as English (reviewed 2026-09-13)
 da|soi.pod.strip.stop|this language spells the word exactly as English (reviewed 2026-09-13)
+da|soi.landing.title|this language spells the word exactly as English (reviewed 2026-09-13)
+da|soi.sign.ai.auto|this language spells the word exactly as English (reviewed 2026-09-13)
+da|soi.sign.send.email|this language spells the word exactly as English (reviewed 2026-09-13)
+da|cube10.sim.original|this language spells the word exactly as English (reviewed 2026-09-13)
+da|cube10.sim.split_moderator|this language spells the word exactly as English (reviewed 2026-09-13)
+da|celestial.body.venus|this language spells the word exactly as English (reviewed 2026-09-13)
+da|celestial.body.mars|this language spells the word exactly as English (reviewed 2026-09-13)
+da|celestial.body.jupiter|this language spells the word exactly as English (reviewed 2026-09-13)
+da|celestial.body.saturn|this language spells the word exactly as English (reviewed 2026-09-13)
+da|celestial.body.uranus|this language spells the word exactly as English (reviewed 2026-09-13)
+da|celestial.body.pluto|this language spells the word exactly as English (reviewed 2026-09-13)
+da|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+da|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+fi|cube1.timer.minutes|a standard abbreviation identical in this language
+fi|celestial.body.venus|this language spells the word exactly as English (reviewed 2026-09-13)
+fi|celestial.body.mars|this language spells the word exactly as English (reviewed 2026-09-13)
+fi|celestial.body.jupiter|this language spells the word exactly as English (reviewed 2026-09-13)
+fi|celestial.body.uranus|this language spells the word exactly as English (reviewed 2026-09-13)
+fi|celestial.body.pluto|this language spells the word exactly as English (reviewed 2026-09-13)
+fi|experiences.tag.portfolio|this language spells the word exactly as English (reviewed 2026-09-13)
+fi|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+no|cube1.moderator.type_label|this language spells the word exactly as English (reviewed 2026-09-13)
+no|cube1.timer.minutes|a standard abbreviation identical in this language
 no|soi.pod.phase.sync|this language spells the word exactly as English (reviewed 2026-09-13)
+no|soi.sign.ai.auto|this language spells the word exactly as English (reviewed 2026-09-13)
+no|cube10.sim.original|this language spells the word exactly as English (reviewed 2026-09-13)
+no|cube10.sim.split_moderator|this language spells the word exactly as English (reviewed 2026-09-13)
+no|celestial.body.venus|this language spells the word exactly as English (reviewed 2026-09-13)
+no|celestial.body.mars|this language spells the word exactly as English (reviewed 2026-09-13)
+no|celestial.body.jupiter|this language spells the word exactly as English (reviewed 2026-09-13)
+no|celestial.body.saturn|this language spells the word exactly as English (reviewed 2026-09-13)
+no|celestial.body.uranus|this language spells the word exactly as English (reviewed 2026-09-13)
+no|celestial.body.pluto|this language spells the word exactly as English (reviewed 2026-09-13)
+no|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+he|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+sw|celestial.body.uranus|this language spells the word exactly as English (reviewed 2026-09-13)
+sw|celestial.body.neptune|this language spells the word exactly as English (reviewed 2026-09-13)
+sw|celestial.body.pluto|this language spells the word exactly as English (reviewed 2026-09-13)
+sw|vision.view.voxel|this language spells the word exactly as English (reviewed 2026-09-13)
+sw|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+sw|experiences.card.vid1.title|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+ne|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
+*|experiences.sec.edtech.eyebrow|a brand eyebrow (EdTech · eXeL AI) — kept in every language
+no|cube9.pixelated.send_sms|Norwegian renders this with the same shared words (Send via SMS)

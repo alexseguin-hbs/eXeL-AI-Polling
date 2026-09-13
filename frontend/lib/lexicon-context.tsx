@@ -23,6 +23,7 @@ import { SOI_R228_TRANSLATIONS } from "@/lib/lexicon-translations-soi-r228";
 import { SIGN_TRANSLATIONS } from "@/lib/lexicon-translations-sign";
 import { ES_SIGN } from "@/lib/lexicon-translations-es-sign";
 import { loadSignLocale } from "@/lib/i18n-sign";
+import { loadAppLocale } from "@/lib/i18n-app";
 import { PINYIN_MAP } from "@/lib/pinyin-data";
 import { ROMANIZATION_KM_MAP } from "@/lib/romanization-km-data";
 import { hasRomanization } from "@/lib/romanization-config";
@@ -122,9 +123,11 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
   // merged UNDER the reader's own localStorage edits (those keep priority) — operator 2026-09-09: every UX string in 33 languages
   const signLoaded = useRef<Set<string>>(new Set());
   useEffect(() => {
-    const code = activeLocale; if (code === "en" || code === "es" || signLoaded.current.has(code)) return;
+    const code = activeLocale; if (code === "en" || signLoaded.current.has(code)) return;   // es has an app file too
     let live = true;
-    void loadSignLocale(code).then((strings) => {
+    // both lazy stores: the Sign Doc / Session UX file and the app-wide gap fill (operator 2026-09-12), merged in that order
+    void Promise.all([loadSignLocale(code), loadAppLocale(code)]).then(([sign, app]) => {
+      const strings = sign || app ? { ...(sign ?? {}), ...(app ?? {}) } : null;
       if (!live || !strings) return;
       signLoaded.current.add(code);
       let edits: Record<string, string> = {};
