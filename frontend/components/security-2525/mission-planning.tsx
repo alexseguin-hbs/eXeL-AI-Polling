@@ -32,6 +32,7 @@ import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
 import { isAerialAsset } from "@/lib/asset-kinematics";
+import { useLexicon } from "@/lib/lexicon-context";
 import { latLonToMgrs, latLonToUtm, utmKmGrid, chooseGridStep, mgrsToLatLon, dmsToLatLon, gzdBoundaries, gzdOf, BANDS } from "@/components/security-2525/mgrs";
 import { getFpsCap, capInterval } from "@/components/security-2525/fps-governor";
 import {
@@ -633,6 +634,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onEn
   onFrameCell?: (latS: number, latN: number, lonW: number, lonE: number) => void;
   coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; showZones: boolean; hiddenKeys?: Set<string>;
 }) {
+  const { t } = useLexicon();
   // Double-click a specific AO marker = EXPLICIT selection → smooth-scroll into THAT AO (real OSM/DEM).
   const nearestAo = (lat: number, lon: number) => {
     let best = "", bd = Infinity;
@@ -797,7 +799,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onEn
     <div className="relative h-full w-full">
     <svg ref={gsvg} viewBox="0 0 340 340" preserveAspectRatio="xMidYMid meet"
       className="block h-full w-full touch-none select-none" role="img"
-      aria-label="Wireframe globe — orbit camera; scroll/pinch to zoom, right-drag to angle the view, drag to pan"
+      aria-label={t("sec.mp.globe_aria")}
       style={{ cursor: drag.current ? "grabbing" : "crosshair" }}
       onContextMenu={(e) => e.preventDefault()}
       onPointerDown={(e) => {
@@ -957,6 +959,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onEn
 }
 
 function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, onEnterPoint, placed = [], placedSupport = [], label, onMinimize, coordFmt, hiddenKeys }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; onEnterCoord?: (latS: number, latN: number, lonW: number, lonE: number, code: string) => void; onEnterPoint?: (lat: number, lon: number) => void; placed?: Placed[]; placedSupport?: PlacedSupport[]; label?: string; onMinimize?: () => void; coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; hiddenKeys?: Set<string> }) {
+  const { t } = useLexicon();
   const [data, setData] = useState<BorderData | null>(borderCache);
   const [mode, setMode] = useState<"globe" | "flat">("globe");
   const [showZones, setShowZones] = useState(false); // MGRS/LLV-DMS grid-zone training overlay (globe + flat)
@@ -1051,7 +1054,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, onEnterPoint, pl
         <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid slice"
           className="block h-full w-full touch-none" role="img"
           style={{ cursor: flatDrag.current ? "grabbing" : "grab" }}
-          aria-label="World context map — country + US state borders (Natural Earth 50m); scroll to zoom, drag to pan"
+          aria-label={t("sec.mp.world_map_aria")}
           onContextMenu={(e) => e.preventDefault()}
           onPointerDown={(e) => {
             if (e.pointerType === "touch") {
@@ -1315,7 +1318,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, onEnterPoint, pl
       )}
       <div className="absolute right-2 top-2 z-10 flex items-center gap-1">
         {onEnterAo && (
-          <button onClick={() => onEnterAo(aoKey)} title="Enter the tactical Area of Operations (zoom to detail)"
+          <button onClick={() => onEnterAo(aoKey)} title={t("sec.mp.enter_ao")}
             className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.gold, color: C.gold, background: "#0a0f16cc" }}>
             {AOS.find((a) => a.key === aoKey)?.name.split(" · ")[0] ?? "AO"} ▶
           </button>
@@ -1334,7 +1337,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, onEnterPoint, pl
         {/* order law: LOCATION · 3D/2D · MINIMIZE (last, upper-right). Full-screen → STANDARD
             icon-only minimize control (traditional window-control glyph, no label). */}
         {onMinimize && (
-          <button onClick={onMinimize} title="Minimize — back to standard screen" aria-label="Minimize"
+          <button onClick={onMinimize} title={t("sec.mp.minimize_standard")} aria-label={t("sec.mp.minimize")}
             className="flex items-center justify-center rounded border p-1" style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16cc" }}>
             <Minimize2 className="h-3.5 w-3.5" />
           </button>
@@ -1587,6 +1590,7 @@ function AoMapPane(p: PaneProps) {
     entryGrid = false, onClearEntryGrid,
     drawingAo, aoDraft, onAoVertex, drawnAo, playing = false, onTogglePlay, onResetTracks,
   } = p;
+  const { t } = useLexicon();
 
   const clipId = "land" + useId().replace(/[^a-zA-Z0-9]/g, ""); // per-pane land clip (roads must not render in water)
   const [cursorLL, setCursorLL] = useState<{ lat: number; lon: number } | null>(null);
@@ -2135,7 +2139,7 @@ function AoMapPane(p: PaneProps) {
         <div className="flex items-center gap-1.5 text-[9px] [&>*]:shrink-0" style={{ color: C.dim }}>
           {/* order law: LOCATION (EARTH) · 2D/3D · RESET · MINIMIZE last (upper-right) */}
           {onWorld && (
-            <button onClick={onWorld} title="Zoom out to Earth / world view" className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.gold, color: C.gold }}>🌍 EARTH</button>
+            <button onClick={onWorld} title={t("sec.mp.zoom_earth")} className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.gold, color: C.gold }}>🌍 EARTH</button>
           )}
           {/* 2D (top-down) ⇄ 3D (perspective terrain) — on every map, same format */}
           <div className="flex overflow-hidden rounded border font-semibold" style={{ borderColor: C.border }}>
@@ -2153,7 +2157,7 @@ function AoMapPane(p: PaneProps) {
                 {playing ? "❚❚ TRACKS" : "▶ TRACKS"}
               </button>
               {onResetTracks && (
-                <button onClick={onResetTracks} title="Reset tracks to their start positions"
+                <button onClick={onResetTracks} title={t("sec.mp.reset_tracks")}
                   className="flex items-center rounded border px-1 py-0.5" style={{ borderColor: C.border, color: C.dim }}><RotateCcw className="h-3 w-3" /></button>
               )}
             </>
@@ -2180,7 +2184,7 @@ function AoMapPane(p: PaneProps) {
               <button onClick={() => setDomeOn((o) => { const n = !o; setDomeSettingsOpen(n); return n; })}
                 title={domeOn ? "Sky dome ON — click to hide (and its GRID/HEX + thickness settings)" : "Turn ON the UCRS-2525 sky dome + settings (GRID/HEX, line thickness)"}
                 className="flex items-center rounded border px-1.5 py-0.5" style={{ borderColor: domeOn ? C.cyan : C.border, color: domeOn ? C.cyan : C.dim }}>
-                <svg width="12" height="12" viewBox="0 0 12 12" aria-label="Dome toggle">
+                <svg width="12" height="12" viewBox="0 0 12 12" aria-label={t("sec.mp.dome_toggle")}>
                   <path d="M1 9.5 A 5 4.6 0 0 1 11 9.5" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                   <line x1="1" y1="9.5" x2="11" y2="9.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                   <path d="M3.4 9.5 A 2.6 3.4 0 0 1 8.6 9.5" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.6" />
@@ -2195,7 +2199,7 @@ function AoMapPane(p: PaneProps) {
                         style={{ borderColor: domeMode === d ? C.cyan : C.border, color: domeMode === d ? C.cyan : C.dim }}>{d}</button>
                     ))}
                   </div>
-                  <div className="mb-0.5 flex items-center justify-between text-[8px]" style={{ color: C.dim }}><span>Line thickness</span><span style={{ color: C.cyan }}>{domeThick.toFixed(1)}px</span></div>
+                  <div className="mb-0.5 flex items-center justify-between text-[8px]" style={{ color: C.dim }}><span>{t("sec.mp.line_thickness")}</span><span style={{ color: C.cyan }}>{domeThick.toFixed(1)}px</span></div>
                   <input type="range" min={0.6} max={4} step={0.2} value={domeThick} onChange={(e) => setDomeThick(parseFloat(e.target.value))} className="w-full" style={{ accentColor: C.cyan }} />
                 </div>
               )}
@@ -2211,7 +2215,7 @@ function AoMapPane(p: PaneProps) {
           {/* HI 1.3.2: map-local settings gear (icon only, right of RESET) — opens all map
               + VOXEL settings, decoupled from the crowded top navigation. */}
           {onOpenSettings && (
-            <button onClick={onOpenSettings} title="Map & VOXEL settings"
+            <button onClick={onOpenSettings} title={t("sec.mp.map_voxel_settings")}
               className="flex items-center rounded border px-1 py-0.5 font-semibold"
               style={{ borderColor: settingsOpen ? C.cyan : C.border, color: settingsOpen ? C.cyan : C.dim }}>
               <Settings className="h-3 w-3" />
@@ -2222,7 +2226,7 @@ function AoMapPane(p: PaneProps) {
             className="flex items-center justify-center rounded border p-1 font-semibold" style={{ borderColor: maximized ? C.cyan : C.border, color: maximized ? C.cyan : C.dim }}>
             {maximized ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3 w-3" />}
           </button>
-          {onHidePane && <Dots3 horizontal onClick={onHidePane} title="Hide this window" />}
+          {onHidePane && <Dots3 horizontal onClick={onHidePane} title={t("sec.mp.hide_window")} />}
         </div>
       </div>
       {/* R-CORE lane strip + COORDINATE toggle. Opening the coordinate packet lights ONLY the
@@ -2242,7 +2246,7 @@ function AoMapPane(p: PaneProps) {
             The label IS the coordinate (no "COORDINATE" word). Tap to open the decode packet; when
             open the other lanes grey and UCRS stays gold, binding coordinates to UCRS-2525. */}
         <button onClick={() => setShowDecode((v) => !v)}
-          title="Coordinate (tap to decode MGRS · LLV-DMS · UCRS-2525)"
+          title={t("sec.mp.coord_decode")}
           className="ml-auto flex items-center gap-1 rounded px-1 text-[7px] font-bold font-mono transition-colors"
           style={{ color: showDecode ? C.gold : C.cyan, background: showDecode ? `${C.gold}22` : `${C.cyan}12`, border: `1px solid ${showDecode ? C.gold : C.border}` }}>
           {fmt.coordAt(view.lat, view.lon)} {showDecode ? <Unlock className="h-2.5 w-2.5" /> : <Lock className="h-2.5 w-2.5" />}
@@ -2747,7 +2751,7 @@ function AoMapPane(p: PaneProps) {
                     transformOrigin: "0% 100%" }}>
                   <div className="flex items-center justify-between gap-1 px-1.5 py-0.5 font-bold" style={{ color: C.gold, borderBottom: `1px solid ${C.gold}44` }}>
                     {/* ⠿ 2×3 drag handle (same as the mini-map) — move THIS label further away */}
-                    <span className="cursor-move select-none" style={{ color: C.dim }} title="Drag label"
+                    <span className="cursor-move select-none" style={{ color: C.dim }} title={t("sec.mp.drag_label")}
                       onPointerDown={(e) => {
                         // HI 1.3.3 drag FIX: document-scoped listeners added on press, removed on
                         // release — drags ONLY while held (setPointerCapture was lost on React
@@ -2759,7 +2763,7 @@ function AoMapPane(p: PaneProps) {
                         document.addEventListener("pointermove", move); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up); // pointercancel cleanup (touch freeze fix)
                       }}>⠿</span>
                     <span>⌖ {ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
-                    <button onClick={closeThis} title="Close hook" className="leading-none" style={{ color: C.dim }}>✕</button>
+                    <button onClick={closeThis} title={t("sec.mp.close_hook")} className="leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
                   {row(coordFmt === "dms" ? "DMS" : coordFmt === "ucrs" ? "UCRS" : coordFmt === "utm" ? "UTM" : "MGRS", fmt.coordAt(u.lat, u.lon))}
                   {/* HI 1.3.2: bearing/speed only for MOVING assets — stationary assets +
@@ -3004,7 +3008,7 @@ function AoMapPane(p: PaneProps) {
                           /* offset applied AFTER the billboard rotation → screen-vertical, so at high
                              tilt the AGL chip still lands at the BASE of the shield (never over the icon) */
                           transform: `translate(-50%,-50%) translateZ(${markerZ}px)${bb} translate(${off.x}px,${off.y}px)` }}>
-                          <button title="Drag · tap = cube-centre coordinate + AGL"
+                          <button title={t("sec.mp.drag_agl")}
                             onPointerDown={(e) => {
                               e.stopPropagation(); e.preventDefault();
                               const sx = e.clientX, sy = e.clientY, ox = off.x, oy = off.y; let moved = false;
@@ -3054,7 +3058,7 @@ function AoMapPane(p: PaneProps) {
                         instead (3-D column-reading, not a firing target). */}
                     {!isLattice && (
                     <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: col.lat, lon: col.lon }); }}
-                      title="TARGET — cube centre coordinate"
+                      title={t("sec.mp.target_cube_centre")}
                       onMouseEnter={() => setCornerHover({ key: col.key, ci: -1 })} /* FX-02 (HI): hover the asset cube CENTRE-top → show its coordinate */
                       onMouseLeave={() => setCornerHover((h) => (h && h.key === col.key && h.ci === -1 ? null : h))}
                       className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -3517,13 +3521,13 @@ function AoMapPane(p: PaneProps) {
             {is3d && (
               <div className="absolute left-1/2 top-2 z-20 flex -translate-x-1/2 items-center rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", pointerEvents: "auto" }}>
                 <span style={{ color: C.gold }}>TILT {Math.round(pitch ?? 55)}°</span>
-                <span style={{ color: C.dim }}> · right-drag ↕ · 2D to place</span>
+                <span style={{ color: C.dim }}> {t("sec.mp.tilt_hint")}</span>
               </div>
             )}
             {/* FX-54 (operator, IMG_7196): the 📱 tilt-slider toggle sits in the UPPER-RIGHT of the
                 map (its slider popover already opens at right-2 top-9, directly beneath it). */}
             {is3d && (
-              <button onClick={() => setTiltSlider((s) => !s)} title="Tilt slider" data-tiltphone
+              <button onClick={() => setTiltSlider((s) => !s)} title={t("sec.mp.tilt_slider")} data-tiltphone
                 className="absolute right-2 top-2 z-30 rounded" style={{ fontSize: 18, lineHeight: 1, background: "#0a0f16cc", padding: "1px 3px", pointerEvents: "auto" }}>📱</button>
             )}
             {/* FX-45 (HI 1.3.3): tilt slider — 11° left, 88° right, ✕ to close */}
@@ -3531,7 +3535,7 @@ function AoMapPane(p: PaneProps) {
               <div className="absolute right-2 top-9 z-30 rounded border px-2 py-1" style={{ background: "#0a0f16ee", borderColor: C.cyan, width: 190 }}>
                 <div className="mb-0.5 flex items-center justify-between font-mono text-[7px] font-bold" style={{ color: C.cyan }}>
                   <span>TILT {Math.round(pitch ?? 55)}°</span>
-                  <button onClick={() => setTiltSlider(false)} title="Close" style={{ color: C.dim, fontSize: 11, lineHeight: 1 }}>✕</button>
+                  <button onClick={() => setTiltSlider(false)} title={t("sec.mp.close")} style={{ color: C.dim, fontSize: 11, lineHeight: 1 }}>✕</button>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="font-mono text-[7px]" style={{ color: C.dim }}>11°</span>
@@ -3787,7 +3791,7 @@ function AoMapPane(p: PaneProps) {
                         const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); };
                         document.addEventListener("pointermove", move); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
                       }}>⠿ 3D VOXEL·CUBE · BASE</span>
-                    <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(null); }} title="Close" className="px-1 text-[11px] leading-none" style={{ color: C.dim }}>✕</button>
+                    <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(null); }} title={t("sec.mp.close")} className="px-1 text-[11px] leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
                   {/* HI 1.3.3: show ONLY the Settings-selected coordinate frame (not all three);
                       the CELL address matches the same frame. */}
@@ -3838,7 +3842,7 @@ function AoMapPane(p: PaneProps) {
                         style={{ borderColor: paneUnit === u ? C.cyan : C.border, color: paneUnit === u ? C.cyan : C.dim }}>{u}</button>
                     ))}
                   </div>
-                  <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Zone = one vertical level · Z0 = surface, Z1–Z7 = altitude bands</div>
+                  <div className="mt-1 text-[7px]" style={{ color: C.dim }}>{t("sec.mp.zone_legend")}</div>
                 </div>
               );
             })()}
@@ -3859,7 +3863,7 @@ function AoMapPane(p: PaneProps) {
               }}
               title={Math.abs(view.bearing) < 1e-4 && bearingMemo.current != null ? "Restore previous heading" : "Snap north-up"}
               className="absolute left-2 top-2 z-20 rounded-full" style={{ background: "#0a0f16cc" }}>
-              <svg width="42" height="42" viewBox="-23 -23 46 46" aria-label="Compass">
+              <svg width="42" height="42" viewBox="-23 -23 46 46" aria-label={t("sec.mp.compass")}>
                 <circle r="21" fill="none" stroke={C.border} strokeWidth="1" />
                 <g transform={`rotate(${(view.bearing * 180 / Math.PI).toFixed(1)})`}>
                   <path d="M0 -18 L4.5 -4 L0 -7 L-4.5 -4 Z" fill={C.red} />
@@ -3891,7 +3895,7 @@ function AoMapPane(p: PaneProps) {
               const row = (k: string, val: string, c: string) => <div className="flex justify-between gap-2"><span style={{ color: C.dim }}>{k}</span><span className="font-mono" style={{ color: c }}>{val}</span></div>;
               return (
                 <div className="absolute right-2 top-8 z-30 w-56 rounded-lg border p-2 text-[8px] shadow-2xl" style={{ background: C.panel, borderColor: C.cyan }}>
-                  <div className="mb-1 flex items-center justify-between"><span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: C.cyan }}>Coordinate packet</span><button onClick={() => setShowDecode(false)} style={{ color: C.dim }}>✕</button></div>
+                  <div className="mb-1 flex items-center justify-between"><span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: C.cyan }}>{t("sec.mp.coord_packet")}</span><button onClick={() => setShowDecode(false)} style={{ color: C.dim }}>✕</button></div>
                   <div className="mb-1 font-semibold" style={{ color: C.gold }}>MGRS · {latLonToMgrs(p.lat, p.lon, digits)}</div>
                   {row("Zone · lat-band", mp[0], C.text)}
                   {row("100 km square", mp[1], C.text)}
@@ -3914,7 +3918,7 @@ function AoMapPane(p: PaneProps) {
                         style={{ borderColor: coordFmt === fk ? C.gold : C.border, color: coordFmt === fk ? C.gold : C.dim, background: coordFmt === fk ? `${C.gold}18` : "transparent" }}>{lb}</button>
                     ))}
                   </div>
-                  <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Same DEM tile that draws contours (1 fetch). MGRS: 6°-zone · 8°-band · 100 km square · E/N.</div>
+                  <div className="mt-1 text-[7px]" style={{ color: C.dim }}>{t("sec.mp.dem_tile_note")}</div>
                 </div>
               );
             })()}
@@ -4082,6 +4086,7 @@ function PlacementRail(r: RailProps) {
     hoverAsset, setHoverAsset, openGroups, setOpenGroups, reality, setReality,
     onUndoLastPlacement, clearAo, routeMode, onHide,
   } = r;
+  const { t } = useLexicon();
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex items-center gap-1 border-b p-1.5" style={{ borderColor: C.border }}>
@@ -4091,7 +4096,7 @@ function PlacementRail(r: RailProps) {
               style={{ background: tab === t ? "#152238" : "transparent", color: tab === t ? C.cyan : C.dim }}>{lb}</button>
           ))}
         </div>
-        <Dots3 onClick={onHide} title="Hide placement menu" />
+        <Dots3 onClick={onHide} title={t("sec.mp.hide_placement_menu")} />
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
         <div className="mb-2 text-[9px]" style={{ color: C.dim }}>DRAG ONTO MAP · OR TAP THEN TAP MAP</div>
@@ -4160,7 +4165,7 @@ function PlacementRail(r: RailProps) {
         )}
 
         <div className="mt-3">
-          <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Reality Mode · placed objects</div>
+          <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{t("sec.mp.reality_mode_placed")}</div>
           <select value={reality} onChange={(e) => setReality(e.target.value as RealityMode)}
             className="w-full rounded border bg-transparent px-2 py-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>
             {REALITY_MODES.map((m) => <option key={m} value={m} style={{ background: C.panel }}>{m}</option>)}
@@ -4212,6 +4217,7 @@ function ItemInspector(p: InspectorProps) {
   const { selected, selectedObj, fmt, coordFmt, digits, nudgeM, setNudgeM, coordText, setCoordText,
     onSetAff, onSetPlacedReality, onUpdAsset, onSetTL, onNudge, onSetCoord, onRemoveSelected,
     terrainAtSel, reality, planStatus } = p;
+  const { t } = useLexicon();
   const [covColorOpen, setCovColorOpen] = useState(false); // reveal the standard TrinityColorPicker for coverage colour
   if (!selectedObj || !selected) return null;
   return (
@@ -4277,7 +4283,7 @@ function ItemInspector(p: InspectorProps) {
             })()}
             {selected.kind === "support" && (
               <>
-                <div className="mb-1 text-[9px]" style={{ color: C.dim }}>Reality mode</div>
+                <div className="mb-1 text-[9px]" style={{ color: C.dim }}>{t("sec.mp.reality_mode")}</div>
                 <select value={(selectedObj as PlacedSupport).reality} onChange={(e) => onSetPlacedReality(selected.id, e.target.value as RealityMode)}
                   className="mb-2 w-full rounded border bg-transparent px-2 py-1 text-[9px]" style={{ borderColor: C.border, color: C.text }}>
                   {REALITY_MODES.map((m) => <option key={m} value={m} style={{ background: C.panel }}>{m}</option>)}
@@ -4323,7 +4329,7 @@ function ItemInspector(p: InspectorProps) {
                     </div>
                   )}
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="text-[9px]" style={{ color: C.dim }}>Angle unit</span>
+                    <span className="text-[9px]" style={{ color: C.dim }}>{t("sec.mp.angle_unit")}</span>
                     <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
                       {unitOpts.map((un) => (
                         <button key={un} onClick={() => onUpdAsset(a.id, { unit: un })} className="px-1.5 py-0.5"
@@ -4333,7 +4339,7 @@ function ItemInspector(p: InspectorProps) {
                   </div>
                   {a.fov && tlRow("fov", "SENSOR / RADAR FOV", a.fov, "#a78bfa")}
                   {a.asset === "avenger" && a.mobile
-                    ? <div className="mb-1.5 rounded border p-1 text-[8px]" style={{ borderColor: `${C.amber}55`, color: C.amber }}>PTL disabled on-the-move (slew-to-cue only)</div>
+                    ? <div className="mb-1.5 rounded border p-1 text-[8px]" style={{ borderColor: `${C.amber}55`, color: C.amber }}>{t("sec.mp.ptl_disabled")}</div>
                     : a.tls && tlRow("p", "PTL / 1TL — points", a.tls.p, C.gold)}
                   {a.tls && tlRow("s", "2TL — secondary", a.tls.s, C.amber)}
                   {a.tls && tlRow("t", "3TL — tertiary", a.tls.t, C.cyan)}
@@ -4400,7 +4406,7 @@ function ItemInspector(p: InspectorProps) {
               );
             })()}
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-[9px]" style={{ color: C.dim }}>Nudge step</span>
+              <span className="text-[9px]" style={{ color: C.dim }}>{t("sec.mp.nudge_step")}</span>
               <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
                 {([[1, "1 m"], [10, "10 m"], [100, "100 m"], [1000, "1 km"]] as const).map(([mv, lb]) => (
                   <button key={mv} onClick={() => setNudgeM(mv)} className="px-1.5 py-0.5"
@@ -4455,6 +4461,7 @@ interface ActiveItemsProps {
   onSubmit: () => void; onApprove: () => void; onChanges: () => void; onShare: () => void; shareMsg: string;
 }
 function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverAsset, setHoverAsset, onHide, onDelete, inspector, planStatus, onSubmit, onApprove, onChanges, onShare, shareMsg }: ActiveItemsProps) {
+  const { t } = useLexicon();
   const total = placed.length + placedSupport.length;
   const statusColor = planStatus === "approved" ? C.green : planStatus === "pending" ? C.amber : planStatus === "changes" ? C.red : C.dim;
   return (
@@ -4464,10 +4471,10 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
           Active items <span style={{ color: C.dim }}>— {total}</span>
           {placed.some((u) => u.moving) && <span style={{ color: C.green }}> · {placed.filter((u) => u.moving).length} moving</span>}
         </span>
-        {onHide && <Dots3 onClick={onHide} title="Hide deployed-asset list" />}
+        {onHide && <Dots3 onClick={onHide} title={t("sec.mp.hide_asset_list")} />}
       </div>
       <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-1.5">
-        {total === 0 && <div className="px-1 py-2 text-[9px]" style={{ color: C.dim }}>Nothing placed yet — arm an asset or support object, then tap a map.</div>}
+        {total === 0 && <div className="px-1 py-2 text-[9px]" style={{ color: C.dim }}>{t("sec.mp.nothing_placed")}</div>}
         {placed.map((u) => (
           <div key={`a${u.id}`}
             onMouseEnter={() => setHoverAsset(u.asset)}
@@ -4478,7 +4485,7 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
               <span style={{ color: u.aff === "hostile" ? C.red : C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
               <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
             </button>
-            <button onClick={(e) => { e.stopPropagation(); onDelete("asset", u.id); }} title="Remove" className="shrink-0 p-0.5 hover:opacity-100 opacity-60"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
+            <button onClick={(e) => { e.stopPropagation(); onDelete("asset", u.id); }} title={t("sec.mp.remove")} className="shrink-0 p-0.5 hover:opacity-100 opacity-60"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
           </div>
         ))}
         {placedSupport.map((u) => (
@@ -4489,7 +4496,7 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
               <span className="truncate" style={{ color: u.aff === "hostile" ? C.red : u.def.color }}>{u.def.term}{u.path ? ` (${u.path.length}pt)` : ""}</span>
               <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
             </button>
-            <button onClick={(e) => { e.stopPropagation(); onDelete("support", u.id); }} title="Remove" className="shrink-0 p-0.5 hover:opacity-100 opacity-60"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
+            <button onClick={(e) => { e.stopPropagation(); onDelete("support", u.id); }} title={t("sec.mp.remove")} className="shrink-0 p-0.5 hover:opacity-100 opacity-60"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
           </div>
         ))}
       </div>
@@ -4502,9 +4509,9 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
           <span className="rounded px-1 text-[8px] font-bold uppercase" style={{ color: statusColor, background: `${statusColor}18` }}>{planStatus}</span>
         </div>
         <div className="flex gap-1">
-          <button onClick={onShare} disabled={total === 0} title="Copy plan summary to clipboard (share)"
+          <button onClick={onShare} disabled={total === 0} title={t("sec.mp.copy_plan")}
             className="flex-1 rounded border px-1 py-1 text-[8px] font-semibold" style={{ borderColor: C.border, color: total ? C.cyan : C.dim, opacity: total ? 1 : 0.5 }}>SHARE</button>
-          <button onClick={onSubmit} disabled={total === 0 || planStatus === "pending"} title="Send the plan to a commander for approval"
+          <button onClick={onSubmit} disabled={total === 0 || planStatus === "pending"} title={t("sec.mp.submit_plan")}
             className="flex-1 rounded border px-1 py-1 text-[8px] font-semibold" style={{ borderColor: C.amber, color: total && planStatus !== "pending" ? C.amber : C.dim, opacity: total && planStatus !== "pending" ? 1 : 0.5 }}>SUBMIT ▶</button>
         </div>
         {planStatus === "pending" && (
@@ -4532,6 +4539,7 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
 // voxel altitude-band gridlines. Same DEM sampler as the map → zero extra fetch. Plan mode only.
 interface TransectPanelProps { view: ViewState; dem: Dem | null; placed: Placed[]; onHide?: () => void }
 function TransectPanel({ view, dem, placed, onHide }: TransectPanelProps) {
+  const { t } = useLexicon();
   const [bearing, setBearing] = useState(90); // 90 = E–W cut (default), 0 = N–S
   const sampler = useMemo(() => (dem ? makeDemSampler(dem) : terrainMSL), [dem]);
   const objects: AltObject[] = useMemo(
@@ -4573,7 +4581,7 @@ function TransectPanel({ view, dem, placed, onHide }: TransectPanelProps) {
                 style={{ background: bearing === b ? "#152238" : "transparent", color: bearing === b ? C.cyan : C.dim }}>{lb}</button>
             ))}
           </div>
-          {onHide && <Dots3 onClick={onHide} title="Hide transect" />}
+          {onHide && <Dots3 onClick={onHide} title={t("sec.mp.hide_transect")} />}
         </div>
       </div>
       <div className="flex gap-1.5 p-1.5">
@@ -4624,6 +4632,7 @@ function TransectPanel({ view, dem, placed, onHide }: TransectPanelProps) {
 // (settings popover, fpsCap, SPEED-TEST section streaming) does NOT re-render the mounted map.
 // Props are referentially stable (iconStyle; onMaxChange = a useState setter) → memo holds.
 function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle; onMaxChange?: (max: boolean) => void }) {
+  const { t } = useLexicon();
   const [aoKey, setAoKey] = useState("capitol");
   const [gridOn, setGridOn] = useState(true);
   const [gridStepM, setGridStepM] = useState<number>(0);
@@ -5234,7 +5243,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
         </div>
         {/* AO / MISSION dropdown — grouped by state; declutters the old scroll row */}
         <div className="relative flex-1">
-          <button onClick={() => setAoMenuOpen((v) => !v)} title="Select area of operations / mission"
+          <button onClick={() => setAoMenuOpen((v) => !v)} title={t("sec.mp.select_ao_mission")}
             className="mx-auto flex items-center gap-1 rounded border px-2 py-1 text-[10px] font-semibold tracking-wide"
             style={{ borderColor: aoMenuOpen ? C.cyan : C.border, color: C.cyan }}>
             <MapPin className="h-3 w-3" /> {ao.name.split(" · ")[0]} <ChevronRight className={`h-3 w-3 transition-transform ${aoMenuOpen ? "rotate-90" : ""}`} style={{ color: C.dim }} />
@@ -5254,10 +5263,10 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                         <div key={a.key} className="flex items-center gap-1 rounded pr-1 hover:bg-white/5" style={{ background: a.key === aoKey ? "#152238" : "transparent" }}>
                           {custom ? (
                             <>
-                              <button onClick={() => { setAoKey(a.key); setAoMenuOpen(false); }} title="Select mission" className="shrink-0 pl-2"><MapPin className="h-3 w-3" style={{ color: a.key === aoKey ? C.cyan : C.dim }} /></button>
+                              <button onClick={() => { setAoKey(a.key); setAoMenuOpen(false); }} title={t("sec.mp.select_mission")} className="shrink-0 pl-2"><MapPin className="h-3 w-3" style={{ color: a.key === aoKey ? C.cyan : C.dim }} /></button>
                               <input value={a.name.split(" · ")[0]} onChange={(e) => renameMission(a.key, e.target.value)} onClick={(e) => e.stopPropagation()}
                                 className="min-w-0 flex-1 bg-transparent px-1 py-1 text-[10px] font-semibold outline-none" style={{ color: a.key === aoKey ? C.cyan : C.text }} />
-                              <button onClick={(e) => { e.stopPropagation(); toggleAoHidden(a.key); }} title="Hide (moves to HIDDEN at bottom — delete from there)" className="shrink-0 p-0.5"><EyeOff className="h-3 w-3" style={{ color: C.dim }} /></button>
+                              <button onClick={(e) => { e.stopPropagation(); toggleAoHidden(a.key); }} title={t("sec.mp.hide_to_hidden")} className="shrink-0 p-0.5"><EyeOff className="h-3 w-3" style={{ color: C.dim }} /></button>
                             </>
                           ) : (
                             <>
@@ -5267,7 +5276,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                                 <MapPin className="h-3 w-3 shrink-0" style={{ color: a.key === aoKey ? C.cyan : C.dim }} />
                                 <span className="truncate">{a.name.split(" · ")[0]}</span>
                               </button>
-                              <button onClick={(e) => { e.stopPropagation(); toggleAoHidden(a.key); }} title="Hide (moves to HIDDEN at bottom — delete from there)" className="shrink-0 p-0.5"><EyeOff className="h-3 w-3" style={{ color: C.dim }} /></button>
+                              <button onClick={(e) => { e.stopPropagation(); toggleAoHidden(a.key); }} title={t("sec.mp.hide_to_hidden")} className="shrink-0 p-0.5"><EyeOff className="h-3 w-3" style={{ color: C.dim }} /></button>
                             </>
                           )}
                         </div>
@@ -5276,7 +5285,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                   </div>
                 );
               })}
-              <button onClick={createMission} className="mt-1 w-full rounded border px-2 py-1 text-left text-[10px] font-bold" style={{ borderColor: C.green, color: C.green }}>＋ NEW MISSION (at current view)</button>
+              <button onClick={createMission} className="mt-1 w-full rounded border px-2 py-1 text-left text-[10px] font-bold" style={{ borderColor: C.green, color: C.green }}>{t("sec.mp.new_mission")}</button>
               {aoHidden.size > 0 && (
                 <div className="mt-1 border-t pt-1" style={{ borderColor: C.border }}>
                   <button onClick={() => setShowHiddenAos((v) => !v)} className="w-full px-2 py-0.5 text-left text-[8px] font-bold uppercase tracking-wider" style={{ color: C.dim }}>
@@ -5285,8 +5294,8 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                   {showHiddenAos && allAos.filter((a) => aoHidden.has(a.key)).map((a) => (
                     <div key={a.key} className="flex items-center gap-1 rounded pr-1 opacity-70 hover:bg-white/5">
                       <span className="min-w-0 flex-1 truncate px-2 py-1 text-[10px]" style={{ color: C.dim }}>{a.name.split(" · ")[0]}</span>
-                      <button onClick={() => toggleAoHidden(a.key)} title="Restore (show on map + list)" className="shrink-0 p-0.5"><Eye className="h-3 w-3" style={{ color: C.green }} /></button>
-                      <button onClick={() => removeAo(a.key)} title="Delete permanently (remove from map + list)" className="shrink-0 p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
+                      <button onClick={() => toggleAoHidden(a.key)} title={t("sec.mp.restore")} className="shrink-0 p-0.5"><Eye className="h-3 w-3" style={{ color: C.green }} /></button>
+                      <button onClick={() => removeAo(a.key)} title={t("sec.mp.delete_permanently")} className="shrink-0 p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
                     </div>
                   ))}
                 </div>
@@ -5298,13 +5307,13 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
           {/* HI 1.3.2: removed the top-bar coordinate readout (repetitive — the in-map
               readout already shows it) and the LAYERS panel (repetitive with Settings). */}
           {/* ULT · Unit Line-up Table — the COMM/LINK setup layer (who's in the fight) */}
-          <button onClick={() => setShowUlt((v) => !v)} title="ULT — Unit Line-up Table (setup: units · COMM · LINK)"
+          <button onClick={() => setShowUlt((v) => !v)} title={t("sec.mp.ult_title")}
             className="rounded border px-1.5 py-1 text-[10px] font-semibold"
             style={{ borderColor: showUlt ? C.cyan : C.border, color: showUlt ? C.cyan : C.dim }}>ULT</button>
           {showUlt && (
             <div className="absolute right-0 top-9 z-50 max-h-[70vh] w-[min(96vw,760px)] overflow-auto rounded-lg border shadow-2xl" style={{ background: C.panel, borderColor: C.cyan }}>
               <div className="sticky top-0 flex items-center justify-between border-b px-2 py-1" style={{ background: C.panel, borderColor: C.border }}>
-                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>ULT · Unit Line-up (SETUP) <span style={{ color: C.dim }}>— {ultRows.length} nodes</span></span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>{t("sec.mp.ult_setup")} <span style={{ color: C.dim }}>— {ultRows.length} nodes</span></span>
                 <button onClick={() => setShowUlt(false)} className="text-[10px] font-semibold" style={{ color: C.dim }}>✕</button>
               </div>
               <table className="w-full border-collapse text-[8px]">
@@ -5329,7 +5338,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                         <td className="border-b" style={{ borderColor: C.border }}>{cell(String(u.vehicles), (v) => updUlt(i, { vehicles: parseInt(v) || 0 }), C.text, true)}</td>
                         <td className="border-b" style={{ borderColor: C.border }}>{cell(u.equipment, (v) => updUlt(i, { equipment: v }), C.dim)}</td>
                         <td className="border-b" style={{ borderColor: C.border }}>{cell(u.notes, (v) => updUlt(i, { notes: v }), C.dim)}</td>
-                        <td className="border-b text-center" style={{ borderColor: C.border }}><button onClick={() => delUltRow(i)} title="Delete row" className="px-1 font-bold" style={{ color: C.red }}>✕</button></td>
+                        <td className="border-b text-center" style={{ borderColor: C.border }}><button onClick={() => delUltRow(i)} title={t("sec.mp.delete_row")} className="px-1 font-bold" style={{ color: C.red }}>✕</button></td>
                       </tr>
                     );
                   })}
@@ -5337,26 +5346,26 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
               </table>
               <div className="flex items-center justify-between px-2 py-1">
                 <button onClick={addUltRow} className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.green, color: C.green }}>＋ ADD ROW</button>
-                <span className="text-[8px]" style={{ color: C.dim }}>Starts at 001–008; add units as you build. Evidence / replay only.</span>
+                <span className="text-[8px]" style={{ color: C.dim }}>{t("sec.mp.ult_hint")}</span>
               </div>
             </div>
           )}
           {/* AO / AOR draw — tap map to add vertices; save; then set AOR buffer 10–100 km */}
           <div className="flex items-center gap-1">
-            <button onClick={() => { setDrawingAo((v) => !v); setAoDraft([]); }} title="Draw AO polygon — tap the map to add vertices"
+            <button onClick={() => { setDrawingAo((v) => !v); setAoDraft([]); }} title={t("sec.mp.draw_ao")}
               className="rounded border px-1.5 py-1 text-[10px] font-semibold" style={{ borderColor: drawingAo ? C.cyan : C.border, color: drawingAo ? C.cyan : C.dim }}>✎ AO</button>
             {drawingAo && (<>
               <span className="font-mono text-[9px]" style={{ color: C.dim }}>{aoDraft.length}</span>
-              <button onClick={() => setAoDraft((d) => d.slice(0, -1))} title="Undo last vertex" className="rounded border px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>↶</button>
-              <button onClick={saveDrawnAo} disabled={aoDraft.length < 3} title="Save AO (≥3 vertices)" className="rounded border px-1 py-0.5 text-[9px] font-bold" style={{ borderColor: aoDraft.length >= 3 ? C.green : C.border, color: aoDraft.length >= 3 ? C.green : C.border }}>✓</button>
-              <button onClick={() => { setDrawingAo(false); setAoDraft([]); }} title="Cancel" className="rounded border px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.red }}>✕</button>
+              <button onClick={() => setAoDraft((d) => d.slice(0, -1))} title={t("sec.mp.undo_vertex")} className="rounded border px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>↶</button>
+              <button onClick={saveDrawnAo} disabled={aoDraft.length < 3} title={t("sec.mp.save_ao")} className="rounded border px-1 py-0.5 text-[9px] font-bold" style={{ borderColor: aoDraft.length >= 3 ? C.green : C.border, color: aoDraft.length >= 3 ? C.green : C.border }}>✓</button>
+              <button onClick={() => { setDrawingAo(false); setAoDraft([]); }} title={t("sec.mp.cancel")} className="rounded border px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.red }}>✕</button>
             </>)}
             {!drawingAo && drawnAos[aoKey] && (<>
               <span className="text-[9px] font-semibold" style={{ color: C.amber }}>AOR</span>
               <input type="number" min={10} max={100} step={5} value={drawnAos[aoKey].aorKm} onChange={(e) => setAorKm(parseInt(e.target.value) || 10)}
                 className="w-11 rounded border bg-transparent px-1 py-0.5 text-[9px] font-mono" style={{ borderColor: C.border, color: C.text }} />
               <span className="text-[9px]" style={{ color: C.dim }}>km</span>
-              <button onClick={deleteDrawnAo} title="Delete drawn AO" className="p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
+              <button onClick={deleteDrawnAo} title={t("sec.mp.delete_ao")} className="p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
             </>)}
           </div>
           <button onClick={() => setMiniOpen((m) => !m)} title={miniOpen ? "Hide mini-map" : "Show mini-map"}
@@ -5375,8 +5384,8 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
             {/* HI 1.3.3: explicit ✕ close — on phone the gear icon can scroll off-screen, so
                 the panel must be closable from within. */}
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Mission Planning Settings</span>
-              <button onClick={() => setShowSettings(false)} title="Close settings" className="text-[13px] leading-none" style={{ color: C.dim }}>✕</button>
+              <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>{t("sec.mp.settings_title")}</span>
+              <button onClick={() => setShowSettings(false)} title={t("sec.mp.close_settings")} className="text-[13px] leading-none" style={{ color: C.dim }}>✕</button>
             </div>
             <div className="mb-2">
               <div className="mb-1 flex items-center justify-between">
@@ -5404,9 +5413,9 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
               )}
             </div>
             <div className="mb-2 flex items-center justify-between gap-2">
-              <span className="text-[10px]" style={{ color: C.text }}>Map layers</span>
+              <span className="text-[10px]" style={{ color: C.text }}>{t("sec.mp.map_layers")}</span>
               <div className="flex gap-1">
-                <button onClick={() => setTerrainOn(!terrainOn)} title="Green land / blue ocean base" className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+                <button onClick={() => setTerrainOn(!terrainOn)} title={t("sec.mp.land_sea_base")} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
                   style={{ borderColor: terrainOn ? "#22c55e" : C.border, color: terrainOn ? "#22c55e" : C.dim }}>LAND/SEA</button>
                 <button onClick={() => setRoadsOn(!roadsOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
                   style={{ borderColor: roadsOn ? "#cbd5e1" : C.border, color: roadsOn ? "#e5e7eb" : C.dim }}>ROADS</button>
@@ -5414,7 +5423,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                   style={{ borderColor: waterOn ? "#38bdf8" : C.border, color: waterOn ? "#38bdf8" : C.dim }}>WATER</button>
               </div>
             </div>
-            <div className="mb-1 text-[10px]" style={{ color: C.text }}>Coordinate format</div>
+            <div className="mb-1 text-[10px]" style={{ color: C.text }}>{t("sec.mp.coordinate_format")}</div>
             <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
               {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["utm", "UTM"], ["ucrs", "UCRS-2525"]] as const).map(([f, label]) => (
                 <button key={f} onClick={() => setCoordFmt(f)} className="flex-1 px-2 py-1"
@@ -5444,14 +5453,14 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
               </div>
             </div>
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-[10px]" style={{ color: C.text }}>Elevation profiles</span>
+              <span className="text-[10px]" style={{ color: C.text }}>{t("sec.mp.elevation_profiles")}</span>
               <button onClick={() => setElevOn(!elevOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
                 style={{ borderColor: elevOn ? C.gold : C.border, color: elevOn ? C.gold : C.dim }}>{elevOn ? "ON" : "OFF"}</button>
             </div>
 
             {/* Layers → Terrain & Visualization — Elevation Contours */}
             <div className="mb-1 mt-2 flex items-center justify-between border-t pt-2" style={{ borderColor: C.border }}>
-              <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Elevation contours</span>
+              <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>{t("sec.mp.elevation_contours")}</span>
               <button onClick={() => setContourCfg((c) => ({ ...c, enable: !c.enable }))} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
                 style={{ borderColor: contourCfg.enable ? C.green : C.border, color: contourCfg.enable ? C.green : C.dim }}>{contourCfg.enable ? "ON" : "OFF"}</button>
             </div>
@@ -5528,7 +5537,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[9px]" style={{ color: C.dim }}>Label major</span>
+                  <span className="text-[9px]" style={{ color: C.dim }}>{t("sec.mp.label_major")}</span>
                   <button onClick={() => setContourCfg((c) => ({ ...c, labelMajor: !c.labelMajor }))} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
                     style={{ borderColor: contourCfg.labelMajor ? C.gold : C.border, color: contourCfg.labelMajor ? C.gold : C.dim }}>{contourCfg.labelMajor ? "ON" : "OFF"}</button>
                 </div>
@@ -5540,11 +5549,11 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                   <span className="text-[9px]" style={{ color: C.dim }}>Vert. exag. {contourCfg.vExag}×</span>
                   <input type="range" min={1} max={5} value={contourCfg.vExag} onChange={(e) => setContourCfg((c) => ({ ...c, vExag: parseInt(e.target.value) }))} className="w-20" />
                 </div>
-                <div className="text-[7px]" style={{ color: C.dim }}>REAL GEBCO 2020 DEM (land + ocean floor) where a tile covers the view; synthetic fallback elsewhere · raise MSL to reveal sub-sea (bathymetry) contours</div>
+                <div className="text-[7px]" style={{ color: C.dim }}>{t("sec.mp.gebco_note")}</div>
               </div>
             )}
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-[10px]" style={{ color: C.text }}>Weapon range rings</span>
+              <span className="text-[10px]" style={{ color: C.text }}>{t("sec.mp.weapon_range_rings")}</span>
               <button onClick={() => setRangeOn(!rangeOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
                 style={{ borderColor: rangeOn ? C.cyan : C.border, color: rangeOn ? C.cyan : C.dim }}>{rangeOn ? "ON" : "OFF"}</button>
             </div>
@@ -5558,15 +5567,15 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
             {/* Map engine A/B — CURRENT (shipped) vs β + Seed-of-Life 6 (prefetch pull-as-you-need).
                 FX-20 (P1.3): "6-FACE" wording removed — the 6-circle Seed of Life IS the icon. */}
             <div className="mt-2 border-t pt-2" style={{ borderColor: C.border }}>
-              <div className="mb-1 text-[10px]" style={{ color: C.text }}>Map engine <span className="text-[8px]" style={{ color: C.dim }}>(A/B test)</span></div>
+              <div className="mb-1 text-[10px]" style={{ color: C.text }}>{t("sec.mp.map_engine")} <span className="text-[8px]" style={{ color: C.dim }}>(A/B test)</span></div>
               <div className="flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
                 {(["current", "beta"] as const).map((m) => (
                   <button key={m} onClick={() => setMapEngine(m)} className="flex-1 px-2 py-1"
                     style={{ background: mapEngine === m ? "#152238" : "transparent", color: mapEngine === m ? C.cyan : C.dim }}>
                     {m === "current" ? (
-                      <span className="inline-flex items-center justify-center gap-1" title="Alpha — shipped square map">α</span>
+                      <span className="inline-flex items-center justify-center gap-1" title={t("sec.mp.engine_alpha")}>α</span>
                     ) : (
-                      <span className="inline-flex items-center justify-center gap-1" title="Beta — World Disc + prefetch">
+                      <span className="inline-flex items-center justify-center gap-1" title={t("sec.mp.engine_beta")}>
                         β
                         <svg width="12" height="12" viewBox="-10 -10 20 20" aria-hidden>
                           {[0, 60, 120, 180, 240, 300].map((a) => (
@@ -5579,11 +5588,11 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                   </button>
                 ))}
               </div>
-              <div className="mt-1 text-[7px]" style={{ color: C.dim }}>β prefetches zoom-in/out DEM tiles so the next zoom is instant. Safe to toggle live.</div>
+              <div className="mt-1 text-[7px]" style={{ color: C.dim }}>{t("sec.mp.beta_note")}</div>
             </div>
             {/* 3D Elevation Mode — view angle (FAAD/AMDWS altitude-angle) + symbology standard */}
             <div className="mt-2 border-t pt-2" style={{ borderColor: C.border }}>
-              <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>3D Elevation Mode</div>
+              <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>{t("sec.mp.elevation_mode_3d")}</div>
               <div className="mb-1 flex items-center justify-between">
                 {/* FX-22: 3-decimal in MGRS/DMS; base-3600 A.B (UCRS-deg.min) in UCRS-2525 */}
                 <span className="text-[9px]" style={{ color: C.dim }}>View angle {coordFmt === "ucrs"
@@ -5591,7 +5600,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                   : `${pitch.toFixed(3)}°`}</span>
                 <input type="range" min={11} max={88} value={Math.round(pitch)} onChange={(e) => setPitch(parseInt(e.target.value))} className="w-24" />
               </div>
-              <div className="mb-1 text-[9px]" style={{ color: C.text }}>Symbology standard</div>
+              <div className="mb-1 text-[9px]" style={{ color: C.text }}>{t("sec.mp.symbology_standard")}</div>
               <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
                 {([["mil", "MIL-STD-2525"], ["exel", "eXeL-STD-2525"], ["hybrid", "HYBRID"]] as const).map(([m, label]) => (
                   <button key={m} onClick={() => setSymbologyMode(m)} className="flex-1 px-1 py-1"
@@ -5600,7 +5609,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
               </div>
               {/* P2: icon visibility — S = current, L = 3× (billboarded upright in 3D) */}
               <div className="mt-1.5 mb-1 flex items-center justify-between">
-                <span className="text-[9px]" style={{ color: C.text }}>Icon size</span>
+                <span className="text-[9px]" style={{ color: C.text }}>{t("sec.mp.icon_size")}</span>
                 <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
                   {([["s", "SMALL"], ["m", "MEDIUM"], ["l", "LARGE"]] as const).map(([k, label]) => (
                     <button key={k} onClick={() => setIconSize(k)} className="px-1.5 py-0.5"
@@ -5637,7 +5646,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
               </div>
               {/* FX-09b: max altitude — AUTO (10k ft) or user-fixed via data entry */}
               <div className="mt-1.5 mb-1 flex items-center justify-between">
-                <span className="text-[9px]" style={{ color: C.text }}>Max altitude (ft)</span>
+                <span className="text-[9px]" style={{ color: C.text }}>{t("sec.mp.max_altitude_ft")}</span>
                 <div className="flex items-center gap-1">
                   <button onClick={() => setMaxAltFt(null)} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
                     style={{ borderColor: maxAltFt == null ? C.green : C.border, color: maxAltFt == null ? C.green : C.dim }}>AUTO</button>
@@ -5649,7 +5658,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                   (3×3 group = 1/9 of screen area, centred), default. Fixed sizes snap to
                   real metres. Edge width of the 3×3 group is shown live below. */}
               <div className="mt-1 mb-1 flex items-center justify-between gap-1">
-                <span className="text-[9px]" style={{ color: C.text }}>3D Voxel·Cube cell</span>
+                <span className="text-[9px]" style={{ color: C.text }}>{t("sec.mp.voxel_cube_cell")}</span>
                 <div className="flex items-center gap-1">
                   <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
                     {([[0, "AUTO"], [10, "10 m"], [100, "100 m"], [1000, "1 km"]] as const).map(([v, label]) => (
@@ -5679,7 +5688,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                   the ALTITUDE BAR only (grey line there), adjustable in place. */}
               {/* FX-07 (HI 1.3.2): colour of the primary highlighted voxel (rest dim). */}
               <div className="mt-1 mb-1 flex items-center justify-between">
-                <span className="text-[9px]" style={{ color: C.text }}>Highlight colour</span>
+                <span className="text-[9px]" style={{ color: C.text }}>{t("sec.mp.highlight_colour")}</span>
                 <div className="flex items-center gap-1">
                   {([TRINITY_COLORS.evolution, TRINITY_COLORS.intelligence, TRINITY_COLORS.temporal, TRINITY_COLORS.ooda, TRINITY_COLORS.family] as const).map((cc) => (
                     <button key={cc} onClick={() => setVoxelHiColor(cc)} title={cc}
@@ -5687,7 +5696,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                   ))}
                 </div>
               </div>
-              <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Tilt to 3D on any pane (2D/3D toggle) — reuses the same fetched tile, zero extra network. Lattice cubes default to 3×3×3; grey line traces to the voxel limit.</div>
+              <div className="mt-1 text-[7px]" style={{ color: C.dim }}>{t("sec.mp.tilt_3d_note")}</div>
             </div>
           </div>
         )}
@@ -5714,7 +5723,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
           {/* TRACK controls live with the selected asset in the RIGHT rail (ItemInspector) */}
           </div>
         ) : (
-          <button onClick={() => setRailOpen(true)} title="Show ASSET / SUPPORT menu"
+          <button onClick={() => setRailOpen(true)} title={t("sec.mp.show_asset_menu")}
             className="flex shrink-0 items-center justify-center gap-2 rounded-lg border px-1.5 py-1 landscape:flex-col landscape:self-start landscape:py-2 portrait:w-full portrait:flex-row"
             style={{ background: C.panel, borderColor: C.border }}>
             <span className="flex flex-col items-center gap-[3px]">{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}</span>
@@ -5768,15 +5777,15 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                 className="flex shrink-0 cursor-move touch-none select-none items-center justify-between border-b px-2 py-0.5"
                 style={{ background: "#0c1420", borderColor: C.cyan }}>
                 {/* FX-07: drag dots CENTERED in the banner */}
-                <span className="flex-1 text-center text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>⠿ Drag Mini-Map</span>
+                <span className="flex-1 text-center text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>{t("sec.mp.drag_minimap")}</span>
                 <div className="flex items-center gap-1">
                   {miniPos && (
-                    <button onClick={() => setMiniPos(null)} onPointerDown={(e) => e.stopPropagation()} title="Dock back to bottom-right of the map"
+                    <button onClick={() => setMiniPos(null)} onPointerDown={(e) => e.stopPropagation()} title={t("sec.mp.dock_minimap")}
                       className="rounded border px-1 text-[8px] font-bold" style={{ borderColor: C.border, color: C.dim }}>⌂</button>
                   )}
-                  <button onClick={() => setFsPane("mini")} onPointerDown={(e) => e.stopPropagation()} title="Mini map fullscreen (below menu)"
+                  <button onClick={() => setFsPane("mini")} onPointerDown={(e) => e.stopPropagation()} title={t("sec.mp.minimap_fullscreen")}
                     className="rounded border p-0.5" style={{ borderColor: C.border, color: C.dim }}><Maximize2 className="h-2.5 w-2.5" /></button>
-                  <button onClick={() => setMiniOpen(false)} onPointerDown={(e) => e.stopPropagation()} title="Minimize mini map"
+                  <button onClick={() => setMiniOpen(false)} onPointerDown={(e) => e.stopPropagation()} title={t("sec.mp.minimize_minimap")}
                     className="rounded border px-1 text-[8px] font-bold" style={{ borderColor: C.border, color: C.dim }}>▾</button>
                 </div>
               </div>
@@ -5804,7 +5813,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
               <div onPointerDown={onMiniEdgeDown("b")} onPointerMove={onMiniEdgeMove} onPointerUp={onMiniEdgeUp} onPointerCancel={onMiniEdgeUp}
                 className="absolute inset-x-0 bottom-0 z-10 h-1.5 cursor-ns-resize touch-none" />
               <div onPointerDown={onMiniEdgeDown("br")} onPointerMove={onMiniEdgeMove} onPointerUp={onMiniEdgeUp} onPointerCancel={onMiniEdgeUp}
-                title="Drag to resize" className="absolute bottom-0 right-0 z-20 flex h-4 w-4 cursor-nwse-resize touch-none items-end justify-end pb-0.5 pr-0.5"
+                title={t("sec.mp.drag_resize")} className="absolute bottom-0 right-0 z-20 flex h-4 w-4 cursor-nwse-resize touch-none items-end justify-end pb-0.5 pr-0.5"
                 style={{ color: C.cyan }}>◢</div>
               {/* FX-07: the other three corners resize too */}
               <div onPointerDown={onMiniEdgeDown("bl")} onPointerMove={onMiniEdgeMove} onPointerUp={onMiniEdgeUp} onPointerCancel={onMiniEdgeUp}
@@ -5815,7 +5824,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                 className="absolute left-0 top-0 z-20 h-4 w-4 cursor-nwse-resize touch-none" />
             </div>
           ) : (
-            <button onClick={() => setMiniOpen(true)} title="Show mini-map"
+            <button onClick={() => setMiniOpen(true)} title={t("sec.mp.show_minimap")}
               className="absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-md border px-2 py-1 text-[9px] font-semibold shadow-lg"
               style={{ borderColor: C.border, color: C.dim, background: "#0a0f16dd" }}>
               ▾ MINI MAP
@@ -5839,7 +5848,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
               onChanges={() => setPlanStatus("changes")} onShare={sharePlan} shareMsg={shareMsg} />
           </div>
         ) : (
-          <button onClick={() => setRightOpen(true)} title="Show deployed-asset list"
+          <button onClick={() => setRightOpen(true)} title={t("sec.mp.show_asset_list")}
             className="flex shrink-0 items-center justify-center gap-2 rounded-lg border px-1.5 py-1 landscape:flex-col landscape:self-start landscape:py-2 portrait:w-full portrait:flex-row"
             style={{ background: C.panel, borderColor: C.border }}>
             <span className="flex flex-col items-center gap-[3px]">{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}</span>
@@ -5854,7 +5863,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
           <TransectPanel view={viewA} dem={dem} placed={placed} onHide={() => setShowTransect(false)} />
         </div>
       ) : (
-        <button onClick={() => setShowTransect(true)} title="Show elevation profile / transect"
+        <button onClick={() => setShowTransect(true)} title={t("sec.mp.show_transect")}
           className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border px-2 py-1 text-[8px] font-semibold"
           style={{ background: C.panel, borderColor: C.border, color: C.dim }}>
           ▴ ELEVATION PROFILE · TRANSECT

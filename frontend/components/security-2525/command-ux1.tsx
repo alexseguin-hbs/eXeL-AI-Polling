@@ -24,6 +24,7 @@ import {
   AssetIcon, ASSET_ORDER, ASSET_LABELS, type IconStyle,
 } from "@/components/security-2525/asset-icons";
 import { MissionPlanning } from "@/components/security-2525/mission-planning";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = {
   bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
@@ -191,6 +192,7 @@ function Bar({ label, pct }: { label: string; pct: number }) {
 }
 
 export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: string } = {}) {
+  const { t } = useLexicon();
   const { setVisionView, exitSimulationMode, simulationMode } = useEasterEgg();
   const directLink = !simulationMode;
   const [iconStyle, setIconStyle] = useState<IconStyle>("mil");
@@ -296,7 +298,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
           <span className="whitespace-nowrap text-[10px]" style={{ color: C.green }}>LINK: SECURE</span>
           {/* Main-menu SETTINGS (global, all tabs) — gear opens a popover; not on the map */}
           <div className="relative">
-            <button onClick={() => setMenuOpen((o) => !o)} className="p-1.5 rounded hover:bg-white/5" title="Settings — global (all tabs)">
+            <button onClick={() => setMenuOpen((o) => !o)} className="p-1.5 rounded hover:bg-white/5" title={t("sec.cmd.settings_global")}>
               <Gauge className="h-4 w-4" style={{ color: menuOpen ? C.cyan : C.dim }} />
             </button>
             {/* FX-33b: live FPS pill tucks directly UNDER the gauge on ROW ONE — pulled up so it never spills onto the
@@ -343,7 +345,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
                         const title = sweepCap === 0 ? "MAX (uncapped)" : `Cap ${sweepCap} fps`;
                         const midY = (padT + H - padB) / 2;
                         return (
-                          <svg viewBox={`0 0 ${W} ${H}`} data-sweepcap={sweepCap} className="mt-1 w-full" style={{ background: "#070b12", borderRadius: 4 }} aria-label="FPS over time">
+                          <svg viewBox={`0 0 ${W} ${H}`} data-sweepcap={sweepCap} className="mt-1 w-full" style={{ background: "#070b12", borderRadius: 4 }} aria-label={t("sec.cmd.fps_over_time")}>
                             <text x={W / 2} y={9} textAnchor="middle" fontSize="7" fill="#ffd400" fontFamily="monospace" fontWeight="bold">{title}</text>
                             <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke={C.border} strokeWidth="0.5" />
                             <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke={C.border} strokeWidth="0.5" />
@@ -417,8 +419,8 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
         {/* LEFT */}
         {leftOpen ? (
         <div className="space-y-3">
-          <div className="flex justify-end"><Toggle3 onClick={() => setLeftOpen(false)} title="Collapse — show only critical info" /></div>
-          <Panel title="Threat Summary">
+          <div className="flex justify-end"><Toggle3 onClick={() => setLeftOpen(false)} title={t("sec.cmd.collapse_critical")} /></div>
+          <Panel title={t("sec.cmd.threat_summary")}>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold" style={{ color: C.text }}>23</span>
               <span className="text-[10px]" style={{ color: C.dim }}>TOTAL THREATS</span>
@@ -429,7 +431,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
               <span style={{ color: C.green }}>3 LOW</span>
             </div>
           </Panel>
-          <Panel title="Threat Composition">
+          <Panel title={t("sec.cmd.threat_composition")}>
             {COMPOSITION.map((c) => (
               <div key={c.k} className="flex items-center justify-between py-0.5">
                 <span className="text-[11px]" style={{ color: c.c }}>{c.k}</span>
@@ -437,10 +439,10 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
               </div>
             ))}
           </Panel>
-          <Panel title="Sensor Fusion Status">
+          <Panel title={t("sec.cmd.sensor_fusion_status")}>
             {FUSION.map(([l, p]) => <Bar key={l} label={l} pct={p} />)}
           </Panel>
-          <Panel title="Environmental Conditions">
+          <Panel title={t("sec.cmd.environmental_conditions")}>
             <div className="grid grid-cols-2 gap-1 text-[10px]" style={{ color: C.dim }}>
               <span>Wind 12 kts</span><span>Temp 18°C</span>
               <span>Vis 8 km</span><span>Rain 10%</span>
@@ -467,7 +469,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
         </div>
         ) : (
           <div className="flex flex-col items-center gap-3 pt-1">
-            <Toggle3 onClick={() => setLeftOpen(true)} title="Expand left panel" />
+            <Toggle3 onClick={() => setLeftOpen(true)} title={t("sec.cmd.expand_left_panel")} />
             <LeftRailChips />
           </div>
         )}
@@ -494,7 +496,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
             <div className="text-center z-10">
               <div className="mx-auto mb-3 h-24 w-24 rounded-full border-2" style={{ borderColor: `${C.cyan}55`, boxShadow: `0 0 40px ${C.cyan}33` }} />
               <p className="text-[11px]" style={{ color: C.dim }}>AIR · SEA · LAND · SPACE · CYBER · EW</p>
-              <p className="mt-1 text-[10px]" style={{ color: C.dim }}>live fusion view — wiring pending</p>
+              <p className="mt-1 text-[10px]" style={{ color: C.dim }}>{t("sec.cmd.live_fusion_pending")}</p>
             </div>
             {/* full-screen keeps the critical-info messaging — rails + bottom strip overlay the map */}
             {mapMax && (
@@ -505,7 +507,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
                   {fsDetail && (
                     <div className="mt-2 w-60 space-y-2 pb-1">
                       <div>
-                        <div className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Threat Summary</div>
+                        <div className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{t("sec.cmd.threat_summary")}</div>
                         <div className="flex items-baseline gap-2">
                           <span className="text-xl font-bold" style={{ color: C.text }}>23</span>
                           <span className="text-[10px]" style={{ color: C.red }}>14 HIGH</span>
@@ -514,7 +516,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
                         </div>
                       </div>
                       <div>
-                        <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Kill Chain</div>
+                        <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{t("sec.cmd.kill_chain")}</div>
                         <div className="flex flex-wrap gap-1">
                           {KILL_CHAIN.map(([stage, st]) => (
                             <span key={stage} className="rounded px-1.5 py-0.5 text-[8px]"
@@ -562,8 +564,8 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
         {/* RIGHT */}
         {rightOpen ? (
         <div className="space-y-3">
-          <div className="flex justify-start"><Toggle3 onClick={() => setRightOpen(false)} title="Collapse — show only critical info" /></div>
-          <Panel title="Kill Chain Status" accent={C.cyan}>
+          <div className="flex justify-start"><Toggle3 onClick={() => setRightOpen(false)} title={t("sec.cmd.collapse_critical")} /></div>
+          <Panel title={t("sec.cmd.kill_chain_status")} accent={C.cyan}>
             <div className="flex flex-wrap gap-1">
               {KILL_CHAIN.map(([stage, st]) => (
                 <span key={stage} className="rounded px-1.5 py-0.5 text-[9px]"
@@ -576,7 +578,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
               ))}
             </div>
           </Panel>
-          <Panel title="Threat Distribution">
+          <Panel title={t("sec.cmd.threat_distribution")}>
             {DISTRIBUTION.map(([l, p, c]) => (
               <div key={l as string} className="flex items-center gap-2 mb-1.5">
                 <span className="w-20 text-[10px]" style={{ color: C.dim }}>{l}</span>
@@ -587,7 +589,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
               </div>
             ))}
           </Panel>
-          <Panel title="Risk + Effect Assessment">
+          <Panel title={t("sec.cmd.risk_effect_assessment")}>
             <div className="flex justify-between">
               <div><div className="text-[9px]" style={{ color: C.dim }}>RISK</div><div className="text-lg font-bold" style={{ color: C.green }}>15%</div></div>
               <div><div className="text-[9px]" style={{ color: C.dim }}>EFFECT</div><div className="text-lg font-bold" style={{ color: C.amber }}>85%</div></div>
@@ -596,7 +598,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
         </div>
         ) : (
           <div className="flex flex-col items-center gap-3 pt-1">
-            <Toggle3 onClick={() => setRightOpen(true)} title="Expand right panel" />
+            <Toggle3 onClick={() => setRightOpen(true)} title={t("sec.cmd.expand_right_panel")} />
             <RightRailChips />
           </div>
         )}
@@ -606,9 +608,9 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
       {bottomOpen ? (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 px-3 pb-3">
         <div className="md:col-span-3 -mb-2 flex justify-center">
-          <Toggle3 horizontal onClick={() => setBottomOpen(false)} title="Collapse — show only critical info" />
+          <Toggle3 horizontal onClick={() => setBottomOpen(false)} title={t("sec.cmd.collapse_critical")} />
         </div>
-        <Panel title="AI Recommendation" accent={C.cyan}>
+        <Panel title={t("sec.cmd.ai_recommendation")} accent={C.cyan}>
           <div className="flex items-start gap-2">
             <Cpu className="h-5 w-5 mt-0.5" style={{ color: C.cyan }} />
             <div>
@@ -625,14 +627,14 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
             </div>
           </div>
           <div className="mt-3">
-            <div className="mb-1 text-[9px] uppercase tracking-wider" style={{ color: C.dim }}>Recommended Weapons</div>
+            <div className="mb-1 text-[9px] uppercase tracking-wider" style={{ color: C.dim }}>{t("sec.cmd.recommended_weapons")}</div>
             {WEAPONS.map((w, i) => (
               <div key={w} className="text-[10px] py-0.5" style={{ color: C.dim }}>{i + 1}. {w}</div>
             ))}
           </div>
         </Panel>
 
-        <Panel title="Engagement Priority">
+        <Panel title={t("sec.cmd.engagement_priority")}>
           {PRIORITY.map(([r, name, lvl, c]) => (
             <div key={r as string} className="flex items-center gap-2 py-1 border-b" style={{ borderColor: C.border }}>
               <span className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold" style={{ background: `${c as string}22`, color: c as string }}>{r}</span>
@@ -642,7 +644,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
           ))}
         </Panel>
 
-        <Panel title="Decision Support">
+        <Panel title={t("sec.cmd.decision_support")}>
           {[["APPROVE PLAN", C.green], ["REVISE PLAN", C.dim], ["SIMULATE OUTCOME", C.cyan], ["REQUEST HUMAN REVIEW", C.amber], ["ABORT MISSION", C.red]].map(([label, c]) => (
             <button key={label as string} className="mb-1.5 w-full rounded border px-3 py-2 text-left text-[11px] font-semibold tracking-wide transition-colors hover:bg-white/5"
               style={{ borderColor: `${c as string}44`, color: c as string }}>
@@ -653,7 +655,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
       </div>
       ) : (
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 px-3 pb-3">
-          <Toggle3 horizontal onClick={() => setBottomOpen(true)} title="Expand bottom panels" />
+          <Toggle3 horizontal onClick={() => setBottomOpen(true)} title={t("sec.cmd.expand_bottom_panels")} />
           <CriticalStrip />
         </div>
       )}
