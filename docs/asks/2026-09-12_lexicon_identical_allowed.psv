@@ -325,3 +325,15 @@ no|cube9.pixelated.send_sms|Norwegian renders this with the same shared words (S
 fr|arch.cmd.notifications|French cognate: Notifications is identical in French
 *|misc2.trinity.divinity_guide_trinity|breadcrumb of proper-noun route tokens: Divinity Guide / Trinity
 *|sec.mp.engine_beta|engine-variant label of proper-noun/technical tokens: Beta · World Disc · prefetch
+*|soi2525.pwt_rev|probability-weighted revenue column header (abbrev)
+*|soi2525.pwt_rev_lower|probability-weighted revenue column header (abbrev)
+*|soi2525.sigma_base_rev|financial table header: Σ + Base Rev (abbrev)
+*|soi2525.intelligence_load_by_category_title|title dominated by AI · SI · HI trinity tokens
+*|soi2525.incr_rev|waterfall column header: Incremental Revenue (abbrev)
+*|soi2525.incr_mgn|waterfall column header: Incremental Margin (abbrev)
+*|soi2525.base_rev_m|column header: Base Revenue $M (abbrev)
+*|soi2525.base_rev_col|column header: Base rev (abbrev)
+*|soi2525.base_rev|column header: Base Rev (abbrev)
+*|soi2525.base_mgn_m|column header: Base Margin $M (abbrev)
+*|soi2525.slide_detail|numbered label ② + Detail (cognate in several langs)
+*|soi2525.term|the word term — a cognate shared by several languages
