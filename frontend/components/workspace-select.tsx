@@ -14,6 +14,7 @@
  * session flag the route reads (SS_KEY) so /innovation opens directly without a second prompt.
  */
 import { useRef, useState } from "react";
+import { useLexicon } from "@/lib/lexicon-context";
 
 // Must match the /innovation route gate (app/innovation/page.tsx: CODE + SS_KEY) — one key, one unlock.
 const INNOVATION_CODE = "369963";
@@ -28,6 +29,7 @@ const LockIcon = () => (
 );
 
 export function WorkspaceSelect({ onClose }: { onClose?: () => void }) {
+  const { t } = useLexicon();
   const [innoState, setInnoState] = useState<"locked" | "open">("locked");
   const [panelOpen, setPanelOpen] = useState(false);
   const [keyVal, setKeyVal] = useState("");
@@ -70,7 +72,7 @@ export function WorkspaceSelect({ onClose }: { onClose?: () => void }) {
             <path d="M12 20s-7-4.6-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6C19 15.4 12 20 12 20z" />
           </svg>
           {onClose && (
-            <button className="wsel-x" type="button" aria-label="Close" onClick={onClose}>✕</button>
+            <button className="wsel-x" type="button" aria-label={t("workspace.close")} onClick={onClose}>✕</button>
           )}
         </div>
       </header>
@@ -78,18 +80,18 @@ export function WorkspaceSelect({ onClose }: { onClose?: () => void }) {
       <main className="wsel-main">
         <p className="wsel-eyebrow">SESSION FACILITATOR ACCESS</p>
         <h1 className="wsel-h1">Choose a workspace</h1>
-        <p className="wsel-lede">Polling is open. Innovation needs its own key — tap the lock to enter it.</p>
+        <p className="wsel-lede">{t("workspace.lede")}</p>
 
         <ul className="wsel-modules">
           {/* 1. POLLING — open */}
           <li className="wsel-module" data-state="open">
             <div className="wsel-module-head">
               <h2 className="wsel-module-name">Polling</h2>
-              <button className="wsel-lock" type="button" aria-label="Polling is unlocked" disabled><LockIcon /></button>
+              <button className="wsel-lock" type="button" aria-label={t("workspace.polling_unlocked")} disabled><LockIcon /></button>
             </div>
-            <p className="wsel-module-desc">Run live or static sessions. Responses become AI-generated themes the team votes on.</p>
+            <p className="wsel-module-desc">{t("workspace.polling_desc")}</p>
             <span className="wsel-module-status">UNLOCKED</span>
-            <a className="wsel-enter" href="/dashboard/">Open Polling</a>
+            <a className="wsel-enter" href="/dashboard/">{t("workspace.open_polling")}</a>
           </li>
 
           {/* 2. INNOVATION — locked, inline key unlock */}
@@ -106,7 +108,7 @@ export function WorkspaceSelect({ onClose }: { onClose?: () => void }) {
                 onAnimationEnd={() => setShakeInno(false)}
               ><LockIcon /></button>
             </div>
-            <p className="wsel-module-desc">Gate progression G1–G7, stack prioritization, and the dependency constellation across the portfolio.</p>
+            <p className="wsel-module-desc">{t("workspace.innovation_desc")}</p>
             <span className="wsel-module-status">{innoState === "open" ? "UNLOCKED" : "LOCKED — KEY REQUIRED"}</span>
 
             {innoState !== "open" && panelOpen && (
@@ -127,21 +129,21 @@ export function WorkspaceSelect({ onClose }: { onClose?: () => void }) {
             )}
 
             {innoState === "open" && (
-              <a className="wsel-enter" href="/SoI-2525/">Open SoI-2525</a>
+              <a className="wsel-enter" href="/SoI-2525/">{t("workspace.open_soi2525")}</a>
             )}
           </li>
 
           {/* 3. SEALED — reserved */}
           <li className="wsel-module" data-state="sealed">
             <div className="wsel-module-head">
-              <h2 className="wsel-module-name">Solution Brainstorm</h2>
+              <h2 className="wsel-module-name">{t("workspace.solution_brainstorm")}</h2>
               <button
                 className={`wsel-lock${shakeSealed ? " wsel-shake" : ""}`}
-                type="button" aria-label="Solution Brainstorm is not available yet"
+                type="button" aria-label={t("workspace.brainstorm_unavailable")}
                 onClick={sealedNudge} onAnimationEnd={() => setShakeSealed(false)}
               ><LockIcon /></button>
             </div>
-            <p className="wsel-module-desc">Explore · Diverge · Converge — reserved for eXeL AI.</p>
+            <p className="wsel-module-desc">{t("workspace.brainstorm_desc")}</p>
             <span className="wsel-module-status">NO KEY ISSUED</span>
           </li>
         </ul>

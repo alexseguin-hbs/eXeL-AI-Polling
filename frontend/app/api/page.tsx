@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { useTheme } from "@/lib/theme-context";
+import { useLexicon } from "@/lib/lexicon-context";
 import { ApiFlower } from "@/components/api-flower";
 import { SDK_DEMO_DATA } from "@/lib/sdk-demos";
 
@@ -207,6 +208,7 @@ const ALL_FUNCTIONS = [
 
 export default function ApiPage() {
   const { currentTheme } = useTheme();
+  const { t } = useLexicon();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [flowerLevel, setFlowerLevel] = useState<3 | 6 | 9>(3);
   const detailRef = useRef<HTMLDivElement>(null);
@@ -300,7 +302,7 @@ export default function ApiPage() {
             <br />
             <p className="text-[9px] text-muted-foreground/40">◬ A.I. · ♡ S.I. · 웃 H.I.</p>
             <br />
-            <p className="text-[9px] text-muted-foreground/40 italic">Where Shared Intention moves at the Speed of Thought</p>
+            <p className="text-[9px] text-muted-foreground/40 italic">{t("api.speed_of_thought_tagline")}</p>
           </div>
         </div>
 
@@ -310,7 +312,7 @@ export default function ApiPage() {
             <div className="flex items-center justify-center h-full w-full">
               <div className="text-center space-y-4 max-w-lg px-4">
                 <div className="text-4xl">◬</div>
-                <h1 className="text-2xl font-bold">Governance Engine API</h1>
+                <h1 className="text-2xl font-bold">{t("api.governance_engine_api")}</h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   9 SDK functions and 3 core APIs that power governance at the speed of thought.
                   Select a function on the flower to explore its documentation, use cases, and live examples.
@@ -334,7 +336,7 @@ export default function ApiPage() {
 
               {/* 3 NOSE Demos */}
               <div className="space-y-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Use Cases</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("api.use_cases")}</p>
                 {selectedCore.demos.map((demo, i) => (
                   <details key={i} className="rounded-xl border bg-card overflow-hidden">
                     <summary className="px-5 py-3 cursor-pointer hover:bg-accent/30 text-sm font-medium">
@@ -358,7 +360,7 @@ export default function ApiPage() {
                         <p className="text-xs text-foreground/60 italic">{demo.evidence}</p>
                       </div>
                       <details className="mt-1">
-                        <summary className="text-xs cursor-pointer hover:underline" style={{ color: currentTheme.swatch }}>View code example</summary>
+                        <summary className="text-xs cursor-pointer hover:underline" style={{ color: currentTheme.swatch }}>{t("api.view_code_example")}</summary>
                         <pre className="mt-2 text-xs bg-muted/50 rounded-lg p-3 font-mono text-muted-foreground overflow-x-auto">{demo.solution}</pre>
                         {demo.liveDemo && (
                           <Link href={demo.liveDemo} className="mt-2 inline-flex items-center gap-1 text-xs hover:underline" style={{ color: currentTheme.swatch }}>
@@ -387,7 +389,7 @@ export default function ApiPage() {
 
               {/* 3 NOSE Demos */}
               <div className="space-y-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Use Cases</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("api.use_cases")}</p>
                 {selectedSdk.demos.map((demo, i) => (
                   <details key={i} className="rounded-xl border bg-card overflow-hidden" open={i === 0}>
                     <summary className="px-5 py-3 cursor-pointer hover:bg-accent/30 flex items-center gap-2">
@@ -412,7 +414,7 @@ export default function ApiPage() {
                         <p className="text-xs text-foreground/60 italic">{demo.evidence}</p>
                       </div>
                       <details className="mt-1">
-                        <summary className="text-xs cursor-pointer hover:underline" style={{ color: currentTheme.swatch }}>View code example</summary>
+                        <summary className="text-xs cursor-pointer hover:underline" style={{ color: currentTheme.swatch }}>{t("api.view_code_example")}</summary>
                         <pre className="mt-2 text-xs bg-muted/50 rounded-lg p-3 font-mono text-muted-foreground overflow-x-auto">{demo.solution}</pre>
                         {demo.liveDemo && (
                           <Link href={demo.liveDemo} className="mt-2 inline-flex items-center gap-1 text-xs hover:underline" style={{ color: currentTheme.swatch }}>

@@ -949,7 +949,7 @@ export default function SoISessionPage() {
             </form>
             <details className="mb-4 rounded-md border border-border bg-muted/30 p-2 text-xs text-muted-foreground" data-testid="details-why-three"><summary className="cursor-pointer">{t("soi.pod.ui.why_three")}</summary>
             <p className="mt-2">
-              A pod is <span className="font-medium text-foreground">exactly three</span> — one lead + two invited. Three is the minimum that lets two people witness a third, so no one settles their own hours.
+              A pod is <span className="font-medium text-foreground">{t("soi.pod.ui.exactly_three")}</span> — one lead + two invited. Three is the minimum that lets two people witness a third, so no one settles their own hours.
             </p>
             </details>
             <div className="mb-1 flex items-baseline justify-between gap-2">
@@ -1050,10 +1050,10 @@ export default function SoISessionPage() {
             </div>
 
             {resumed && <p className="mb-3 rounded-md border border-primary/40 bg-primary/5 p-2 text-xs text-primary" data-testid="pod-resumed">{resumed}</p>}
-            {saveFailed && <p className="mb-3 rounded-md border border-amber-500/50 bg-amber-500/5 p-2 text-xs text-amber-500" data-testid="pod-save-failed">This device would not keep a copy of the pod, so closing this page would lose it. Finish here, or free some space and reopen.</p>}
+            {saveFailed && <p className="mb-3 rounded-md border border-amber-500/50 bg-amber-500/5 p-2 text-xs text-amber-500" data-testid="pod-save-failed">{t("soi.pod.save_failed_device_warning")}</p>}
             {recentPods().length > 0 && (
               <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-recent">
-                <div className="font-medium">Come back to a pod</div>
+                <div className="font-medium">{t("soi.pod.ui.come_back_to_pod")}</div>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {recentPods().map((r) => (
                     <button key={r.code} type="button" onClick={() => { setPodCode(r.code); restored.current = false; }} data-testid={`resume-${r.code}`}
@@ -1089,12 +1089,12 @@ export default function SoISessionPage() {
                 {(parseFloat(baselineHrs) || 0) > 0
                   ? <><span className="font-medium text-foreground">{parseFloat(baselineHrs)} h × {bandM} = 웃 {mint(parseFloat(baselineHrs) || 0, bandM).toFixed(3)}</span>
                       {region && region.rate !== null
-                        ? <> · settles at <span className="font-medium text-foreground">{formatLocal(settleInRegion(mint(parseFloat(baselineHrs) || 0, bandM), region)!, region.currency)}</span> in {region.name}<UsdBeside amount={settleInRegion(mint(parseFloat(baselineHrs) || 0, bandM), region)} currency={region.currency} yug={mint(parseFloat(baselineHrs) || 0, bandM)} place={region} testid="anchor-usd" /></>
+                        ? <> · {t("soi.pod.ui.settles_at_lc")} <span className="font-medium text-foreground">{formatLocal(settleInRegion(mint(parseFloat(baselineHrs) || 0, bandM), region)!, region.currency)}</span> in {region.name}<UsdBeside amount={settleInRegion(mint(parseFloat(baselineHrs) || 0, bandM), region)} currency={region.currency} yug={mint(parseFloat(baselineHrs) || 0, bandM)} place={region} testid="anchor-usd" /></>
                         : <> · {region ? region.name : "this place"} has no published rate yet, so no figure is shown</>}</>
-                  : <span className="text-muted-foreground">Enter the planned hours. All three accept the plan before the clock starts.</span>}
+                  : <span className="text-muted-foreground">{t("soi.pod.ui.enter_planned_hours")}</span>}
               </p>
               <details className="mt-2">
-                <summary className="cursor-pointer text-xs text-muted-foreground">Why these four, and every place</summary>
+                <summary className="cursor-pointer text-xs text-muted-foreground">{t("soi.pod.ui.why_these_four")}</summary>
                 <p className="mt-2 text-xs text-muted-foreground">
                   웃 = M × T: the same hour mints the same 웃 everywhere; the place decides only what a 웃 settles as, in its own
                   currency, at the rate stamped when the work is done. The plan is locked and hashed when the pod opens, signed by
@@ -1166,7 +1166,7 @@ export default function SoISessionPage() {
             <div className="mb-4 rounded-lg border border-border bg-background p-4 text-sm">
               <div className="font-medium">Intent</div>
               <p className="mb-2 text-muted-foreground">{intent}</p>
-              <div className="font-medium">Measurable outcome</div>
+              <div className="font-medium">{t("soi.pod.ui.measurable_outcome")}</div>
               <p className="text-muted-foreground">{outcome}</p>
             </div>
 
@@ -1196,7 +1196,7 @@ export default function SoISessionPage() {
               <div className="text-[11px] text-muted-foreground">
                 {connected
                   ? <span className="text-cyan-400">● live</span>
-                  : <span>○ this phone only — live sync when the connection returns</span>}
+                  : <span>○ {t("soi.pod.ui.this_phone_only_sync")}</span>}
                 {connected && liveCount > 1 ? ` · ${liveCount} in the pod` : ""}
                 {isJoiner
                   ? (mySeat > 0 ? ` · you are seat ${mySeat + 1}` : connected ? ` · ${t("soi.pod.seat.waiting")}` : " · you joined by code")
@@ -1213,7 +1213,7 @@ export default function SoISessionPage() {
               <div className="mb-2 text-xs text-muted-foreground">{t("soi.pod.ui.trio_hint")}</div>
               <details className="mb-3 text-xs text-muted-foreground" data-testid="details-trio"><summary className="cursor-pointer">{t("soi.pod.guide.details")}</summary>
               <div className="mt-2">
-                The lead is set. The other two join by scanning; on join their email imports from their login and they enter their name. Each approves the intent, the outcome and the plan — {parseFloat(baselineHrs) || 0} h at {bandM}× — or comments a recommended change (to the lead). The pod proceeds only when <strong>accepted by all three</strong>.
+                The lead is set. The other two join by scanning; on join their email imports from their login and they enter their name. Each approves the intent, the outcome and the plan — {parseFloat(baselineHrs) || 0} h at {bandM}× — or comments a recommended change (to the lead). The pod proceeds only when <strong>{t("soi.pod.ui.accepted_by_all_three")}</strong>.
               </div>
               </details>
               <div className="grid gap-3">
@@ -1282,7 +1282,7 @@ export default function SoISessionPage() {
               </div>
               {recommendations.length > 0 && (
                 <div className="mt-3 rounded-md border border-cyan-400/40 bg-cyan-400/5 p-2 text-xs">
-                  <div className="mb-1 font-medium text-cyan-400">Recommendations for the lead</div>
+                  <div className="mb-1 font-medium text-cyan-400">{t("soi.pod.ui.recommendations_for_lead")}</div>
                   <ul className="list-disc pl-4 text-muted-foreground">
                     {recommendations.map((m, i) => <li key={i}><strong>{m.name || m.role}:</strong> {m.recommend}</li>)}
                   </ul>
@@ -1340,8 +1340,8 @@ export default function SoISessionPage() {
               </div>
               {/* The brief stays on screen while the work happens — a late third must never work blind (Sofia, wave 3). */}
               <p className="mt-1 text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent || "—"}</p>
-              <p className="text-muted-foreground"><span className="font-medium text-foreground">Measurable outcome:</span> {outcome || "—"}</p>
-              <p className="text-muted-foreground">Plan: <span className="font-medium text-foreground">{lock ? `${fmtH(lock.hours)} h at ${lock.m}× = 웃 ${lock.yug.toFixed(3)}` : "—"}</span> · the clock is the evidence, and only clocked time can settle.</p>
+              <p className="text-muted-foreground"><span className="font-medium text-foreground">{t("soi.pod.ui.measurable_outcome_colon")}</span> {outcome || "—"}</p>
+              <p className="text-muted-foreground">Plan: <span className="font-medium text-foreground">{lock ? `${fmtH(lock.hours)} h at ${lock.m}× = 웃 ${lock.yug.toFixed(3)}` : "—"}</span> · {t("soi.pod.ui.clock_is_evidence")}</p>
               {span.segments.length > 0 && (
                 <ul className="mt-2 space-y-0.5 font-mono text-xs text-muted-foreground" data-testid="pod-segments">
                   {span.segments.map((g, k) => (
@@ -1407,7 +1407,7 @@ export default function SoISessionPage() {
                       </span>
                     )}
                     {voice.listening && (
-                      <span className="text-[11px] text-muted-foreground">on-device transcription · no upload</span>
+                      <span className="text-[11px] text-muted-foreground">{t("soi.pod.ui.on_device_no_upload")}</span>
                     )}
                   </div>
                 )}
@@ -1428,7 +1428,7 @@ export default function SoISessionPage() {
             {/* OUTCOMES BY ALL THREE (operator 2026-09-11): after the clock stops, each member records what the work
                 produced, own seat only. The shared record above is the pod's summary; these are the three voices. */}
             <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-outcomes">
-              <div className="font-medium">{t("soi.pod.ui.each_records")} <span className="text-xs font-normal text-muted-foreground">— all three, before the hours are witnessed</span></div>
+              <div className="font-medium">{t("soi.pod.ui.each_records")} <span className="text-xs font-normal text-muted-foreground">{t("soi.pod.ui.all_three_before_witnessed")}</span></div>
               <div className="mt-2 grid gap-2">
                 {members.map((m, i) => (
                   <div key={i} className="flex flex-wrap items-center gap-2">
@@ -1459,7 +1459,7 @@ export default function SoISessionPage() {
             <div className="mb-3 rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-3 text-sm" data-testid="pod-measured">
               {span.startedAt !== null
                 ? <><span className="font-medium text-cyan-500">The platform witnessed this pod for {hhmmss(span.ms)}</span><span className="text-muted-foreground"> — {fmtH(measuredHours)} h. A claim above that is counted at the witnessed figure.</span></>
-                : <span className="text-amber-500">No session was clocked, so the hours below are claims this device cannot vouch for. They settle only on the pod&apos;s witness.</span>}
+                : <span className="text-amber-500">{t("soi.pod.ui.no_session_clocked")}</span>}
             </div>
             {/* the eight-step evidence chain, with progress — folded: an explanation, not an action (operator 2026-09-12) */}
             <details className="mb-4 rounded-lg border border-border p-3" data-testid="details-evidence"><summary className="cursor-pointer text-xs text-muted-foreground">{t("soi.pod.guide.details")} — the evidence chain</summary>
@@ -1525,7 +1525,7 @@ export default function SoISessionPage() {
             {/* unit.multiples — the band is published, and it is the route to the ceiling rather than the country a person
                 lives in. unit.guard: bands are published in advance and change prospectively only. */}
             <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-band">
-              <div className="font-medium">Multiple <span className="text-xs font-normal text-muted-foreground">— 웃 = M × T (Multiple × Time), currency-free at mint</span></div>
+              <div className="font-medium">Multiple <span className="text-xs font-normal text-muted-foreground">{t("soi.pod.ui.mult_time_currency_free")}</span></div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 {/* M IS NOT A DIAL AT SETTLEMENT (operator 2026-09-11): it was accepted by the trio before the clock and locked
                     with the plan. unit.guard: published in advance, never retroactively reclassified. */}
@@ -1545,7 +1545,7 @@ export default function SoISessionPage() {
               <details className="mt-2" data-testid="details-settle"><summary className="cursor-pointer text-xs text-muted-foreground">{t("soi.pod.guide.details")} — how this settles</summary>
               <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-settle">
                 {region && settlesTo !== null ? (
-                  <>Settles at <span className="font-medium text-foreground">{formatLocal(settlesTo, region.currency)}</span><UsdBeside amount={settlesTo} currency={region.currency} yug={stand.payableThisYear} place={region} testid="pod-settle-usd" />{" "}
+                  <>{t("soi.pod.ui.settles_at_uc")} <span className="font-medium text-foreground">{formatLocal(settlesTo, region.currency)}</span><UsdBeside amount={settlesTo} currency={region.currency} yug={stand.payableThisYear} place={region} testid="pod-settle-usd" />{" "}
                     — 웃 × {region.rate} {region.currency} an hour in {region.name}. A full ceiling year is{" "}
                     <span className="font-medium text-foreground">{formatLocal(ceilingSettlesTo!, region.currency)}</span>, and
                     that figure IS the ceiling settled at the local rate, not a fraction of it.{" "}
@@ -1562,14 +1562,14 @@ export default function SoISessionPage() {
                 {vintage && d9.which !== "none" && d9.amount !== null && d9.currency ? (
                   <>D9 — pays <span className="font-medium text-foreground">{formatLocal(d9.amount, d9.currency)}</span> at {d9.rate} {d9.currency} an hour:{" "}
                     {d9.which === "relocated" ? <>a relocation election onto {podJuris?.name}&rsquo;s schedule at its current rate — never a cross-currency maximum.</>
-                     : d9.which === "equal" ? <>the vintage and the current rate are the same.</>
-                     : <>the <span className="font-medium text-foreground">{d9.which}</span> rate is the greater of the two, from the same place&rsquo;s published rates — a floor, never a ceiling.</>}
+                     : d9.which === "equal" ? <>{t("soi.pod.ui.vintage_equal_rate")}</>
+                     : <>the <span className="font-medium text-foreground">{d9.which}</span> {t("soi.pod.ui.rate_greater_floor")}</>}
                     {" "}A settlement figure moves only because a statutory wage moved.</>
                 ) : (
-                  <>D9 — at settlement the payout takes the greater of the rate stamped at earning and the rate current then, from the same place&rsquo;s published rates; a contributor who relocates keeps the earning vintage unless they elect the new schedule.</>
+                  <>{t("soi.pod.ui.d9_greater_default")}</>
                 )}
                 {podJuris && OPEN_DECISION[podJuris.tier] ? <> <span className="opacity-80" data-testid="pod-open-decision">{OPEN_DECISION[podJuris.tier]}</span></> : null}
-                {podJuris?.source === "hi_rates.py" ? <> <span className="opacity-80">Source: the platform&rsquo;s own settlement table.</span></> : null}
+                {podJuris?.source === "hi_rates.py" ? <> <span className="opacity-80">{t("soi.pod.ui.source_settlement_table")}</span></> : null}
               </p>
               </details>
               {/* EACH CONTRIBUTOR AT THEIR OWN FLOOR (unit.regional). The 웃 are identical for identical work; only the
@@ -1603,14 +1603,14 @@ export default function SoISessionPage() {
                 automatically better; cheaper is not automatically better; and more AI is certainly not automatically better."
                 A negative delta is shown, never hidden: the hypothesis is allowed to fail honestly. */}
             <div className="mb-4 rounded-lg border border-cyan-500/30 bg-cyan-500/5 p-3" data-testid="pod-accel">
-              <div className="mb-2 text-sm font-medium text-cyan-500">{t("soi.pod.ui.accelerator")} <span className="text-xs font-normal text-muted-foreground">— ◬ read against the estimate locked before the work</span></div>
+              <div className="mb-2 text-sm font-medium text-cyan-500">{t("soi.pod.ui.accelerator")} <span className="text-xs font-normal text-muted-foreground">{t("soi.pod.ui.accel_read_against_estimate")}</span></div>
               {!lock ? (
-                <p className="text-xs text-muted-foreground" data-testid="accel-nolock">No estimate was locked before this pod opened, so there is no ◬ to read. The hours still settle.</p>
+                <p className="text-xs text-muted-foreground" data-testid="accel-nolock">{t("soi.pod.ui.no_estimate_locked")}</p>
               ) : (() => {
                 const a = accelerate(lock, witnessedHours, conds);
                 return (
                   <>
-                    <p className="text-xs text-muted-foreground">Locked at <span className="font-medium text-foreground">{fmtH(lock.hours)} h</span> by <span className="font-medium text-foreground">{lock.signedBy}</span>. Witnessed: <span className="font-medium text-foreground">{fmtH(witnessedHours)} h</span>.</p>
+                    <p className="text-xs text-muted-foreground">{t("soi.pod.ui.locked_at")} <span className="font-medium text-foreground">{fmtH(lock.hours)} h</span> by <span className="font-medium text-foreground">{lock.signedBy}</span>. Witnessed: <span className="font-medium text-foreground">{fmtH(witnessedHours)} h</span>.</p>
                     <p className={`mt-1 text-sm font-medium ${a.delta > 0 ? "text-cyan-500" : "text-amber-500"}`} data-testid="accel-delta">{a.delta > 0 ? `${fmtH(a.delta)} h earlier than the estimate` : a.delta < 0 ? `${fmtH(Math.abs(a.delta))} h longer than the estimate — recorded, not hidden` : "exactly the estimate"}</p>
                     <div className="mt-2 grid gap-1">
                       {CONDITION_IDS.map((k) => (
@@ -1628,7 +1628,7 @@ export default function SoISessionPage() {
 
             {/* D12 · the clockless ladder — the ONLY source of ♡ in a pod that settles 웃 (unit.aitoken). */}
             <div className="mb-3 rounded-md border border-border p-3 text-sm" data-testid="pod-rung">
-              <div className="mb-1 font-medium text-foreground">What did this outcome become?</div>
+              <div className="mb-1 font-medium text-foreground">{t("soi.pod.ui.what_did_outcome_become")}</div>
               <p className="mb-2 text-xs text-muted-foreground">
                 ♡ is not time. The minutes here already settle as 웃, and a minute is counted as one or the other, never both.
                 ♡ answers a question no clock can: whether the outcome was taken up. It may honestly be none.
@@ -1647,7 +1647,7 @@ export default function SoISessionPage() {
             </div>
 
             <div className="mb-3 rounded-md border border-border p-3 text-sm">
-              <span className="font-medium text-foreground">{fmtH(witnessedHours)} witnessed hours <span className="font-mono text-xs text-muted-foreground">· hours {fmtABC(witnessedHours)}</span></span>{" "}<span className="text-xs text-muted-foreground" data-testid="pod-mot">· the platform clocked <span className="font-mono">{fmtABC(measuredHours)}</span> ({hhmmss(span.ms)})</span>
+              <span className="font-medium text-foreground">{fmtH(witnessedHours)} witnessed hours <span className="font-mono text-xs text-muted-foreground">· hours {fmtABC(witnessedHours)}</span></span>{" "}<span className="text-xs text-muted-foreground" data-testid="pod-mot">· {t("soi.pod.ui.the_platform_clocked")} <span className="font-mono">{fmtABC(measuredHours)}</span> ({hhmmss(span.ms)})</span>
               <span className="text-muted-foreground"> → {totalYugYok.toFixed(3)} &#50883; would settle (웃 = M × T, M={M}), each capped at 9,999/yr with rollforward. Only witnessed hours count.</span>
             </div>
 
@@ -1670,7 +1670,7 @@ export default function SoISessionPage() {
               {t("soi.pod.ui.settle")}
             </button>
             {(!allWitnessed || !allSelfAudited) && (
-              <p className="mt-2 text-xs text-muted-foreground">Every member self-audits their hours, and both others must witness each claim, before settlement.</p>
+              <p className="mt-2 text-xs text-muted-foreground">{t("soi.pod.ui.self_audit_witness_before_settle")}</p>
             )}
           </>
         )}
@@ -1696,8 +1696,8 @@ export default function SoISessionPage() {
                 )}
                 <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {members.map((m, i) => `${firstOf(m.name) || m.role}${isWitnessed(i) ? " ✓" : " ✗"}`).join(" · ")}</li>
                 <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {stand.earned.toFixed(3)} <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.earned)}</span> earned at {M}× · <span className="font-medium text-foreground">{stand.payableThisYear.toFixed(3)} payable this year</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.payableThisYear)}</span>{stand.carried > 0 ? <> · {stand.carried.toFixed(3)} carried to next year <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.carried)}</span></> : null}</li>
-                <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · {t("soi.pod.ui.r_drawn")}</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.floor)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{(Number(stand.earned.toFixed(3)) - Number(tranches.floor.toFixed(3))).toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.escrow)}</span> held at {M}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.accelEscrow)}</span> held separately — recognition, not wages</> : null}</li>
-                <li data-testid="receipt-hearts"><span className="font-medium text-foreground">5 · ♡</span> <span className="font-medium text-foreground" data-testid="hearts-total">{hearts}</span> — {rung === "none" ? "the outcome has not been taken up yet, so none is awarded" : RUNG_LABEL[rung].split(" — ")[0].toLowerCase() + ", awarded for what the outcome became"}{totalYugYok > 0 ? <>, never for the hours — those settle as 웃</> : null}</li>
+                <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · {t("soi.pod.ui.r_drawn")}</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.floor)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{(Number(stand.earned.toFixed(3)) - Number(tranches.floor.toFixed(3))).toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.escrow)}</span> held at {M}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.accelEscrow)}</span> {t("soi.pod.ui.held_separately_recognition")}</> : null}</li>
+                <li data-testid="receipt-hearts"><span className="font-medium text-foreground">5 · ♡</span> <span className="font-medium text-foreground" data-testid="hearts-total">{hearts}</span> — {rung === "none" ? "the outcome has not been taken up yet, so none is awarded" : RUNG_LABEL[rung].split(" — ")[0].toLowerCase() + ", awarded for what the outcome became"}{totalYugYok > 0 ? <>, {t("soi.pod.ui.never_for_hours_settle_yug")}</> : null}</li>
                 <li data-testid="receipt-outcomes"><span className="font-medium text-foreground">5a · {t("soi.pod.ui.r_outcomes")}</span>{" "}
                   {members.map((m, i) => <span key={i} data-testid={`receipt-outcome-${i}`}>{i > 0 ? " · " : ""}<span className="font-medium text-foreground">{firstOf(m.name) || m.role}:</span> {m.outcome.trim() || "—"}</span>)}
                 </li>
@@ -1709,7 +1709,7 @@ export default function SoISessionPage() {
                     const d9m = settleD9(Math.min(own, YUG_CEILING), v ? { rate: v.rate, currency: v.currency } : null, j);   // ceiling per natural person; D9 with THIS person's vintage
                     return <span key={i} data-testid={`receipt-member-${i}`}>{i > 0 ? " · " : ""}{firstOf(m.name) || m.role} {fmtH(v ? v.hours : claimOf(i).hours)} h → 웃 {own.toFixed(3)}{j ? <> → {d9m.amount !== null && d9m.currency ? formatLocal(d9m.amount, d9m.currency) : "no rate published"}<UsdBeside amount={d9m.amount} currency={d9m.currency} yug={Math.min(own, YUG_CEILING)} place={j} testid={`receipt-usd-${i}`} /> ({j.name}{electedOwn(i) ? "" : ", inherited"}{v && d9m.which !== "none" ? `, ${d9m.which} rate` : ""}{m.gps ? <span className="font-mono" data-testid={`receipt-gps-${i}`}>; {fmtGps(m.gps, t("soi.pod.ui.gps_location"))}, a supplement to the elected place</span> : null})</> : null}</span>;
                   })}
-                  {memberVintages.length ? <> — D9 per person: each settles at the greater of the rate stamped at earning and the rate current now, from their own jurisdiction; a settlement figure moves only because a statutory wage moved.</> : null}
+                  {memberVintages.length ? <> {t("soi.pod.ui.d9_per_person_greater")}</> : null}
                 </li>
                 {vintage ? (
                   <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · {t("soi.pod.ui.r_stamped")}</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{fmtH(vintage.hours)} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)} <span className="font-mono">{fmtABC(vintage.yug)}</span></span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
@@ -1722,7 +1722,7 @@ export default function SoISessionPage() {
 
             {/* TOK-26 — one record, four artefacts */}
             <div className="rounded-lg border border-border p-4">
-              <div className="mb-2 text-sm font-medium">The receipt <span className="text-xs font-normal text-muted-foreground">— one ledger record, read four ways</span></div>
+              <div className="mb-2 text-sm font-medium">{t("soi.pod.ui.the_receipt")} <span className="text-xs font-normal text-muted-foreground">{t("soi.pod.ui.one_ledger_four_ways")}</span></div>
               <dl className="space-y-2 text-xs">
                 {([
                   ["Transcript", receipt.transcript],
@@ -1741,7 +1741,7 @@ export default function SoISessionPage() {
             {/* the 333-word (3 × 111) synthesis, in the operator's three sections */}
             <div className="rounded-lg border border-border p-4">
               <div className="mb-2 flex items-baseline justify-between gap-2">
-                <div className="text-sm font-medium">Synthesis <span className="text-xs font-normal text-muted-foreground">— three paragraphs, about 333 words: Results · What changed · What next</span></div>
+                <div className="text-sm font-medium">Synthesis <span className="text-xs font-normal text-muted-foreground">{t("soi.pod.ui.synth_three_paragraphs")}</span></div>
                 <span className="font-mono text-[11px] text-muted-foreground">
                   {wordCount(shownSynthesis.results) + wordCount(shownSynthesis.changed) + wordCount(shownSynthesis.next)} words
                 </span>
@@ -1787,7 +1787,7 @@ export default function SoISessionPage() {
               year, and the next, so the record becomes lifelong stability rather than a single windfall. ◬ comes only from the estimate
               locked before the work. The same hour mints the same 웃 in Lagos and in Austin — only what it settles as is local.
             </p>
-            <button onClick={reset} className="rounded-md border border-border px-4 py-2 text-sm">New pod</button>
+            <button onClick={reset} className="rounded-md border border-border px-4 py-2 text-sm">{t("soi.pod.ui.new_pod")}</button>
           </div>
         )}
       </section>
@@ -1822,7 +1822,7 @@ export default function SoISessionPage() {
           <>
             <div className="mt-3 mb-4 flex items-center justify-between">
               <p className="text-xs text-muted-foreground">
-                A first change-request spec list derived from <em>Recursive Coordination for Human Continuity</em>.
+                A first change-request spec list derived from <em>{t("soi.pod.ui.white_paper_title")}</em>.
               </p>
               <Link href={WHITE_PAPER} target="_blank" className="whitespace-nowrap text-xs text-primary underline">Read ↗</Link>
             </div>

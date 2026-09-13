@@ -79,7 +79,7 @@ function SimSplitScreen() {
         </Button>
         <div className="flex items-center gap-3 text-muted-foreground">
           <span className="font-mono">code={sessionCode}</span>
-          <span>· Live rankings propagate across all three views</span>
+          <span>· {t("sim.live_rankings_propagate")}</span>
         </div>
       </div>
 
@@ -108,7 +108,7 @@ function SimSplitScreen() {
             </span>
           </div>
           <iframe
-            title="SIM Moderator"
+            title={t("sim.iframe_moderator")}
             src={modUrl}
             className="h-full w-full flex-1 border-0"
             sandbox="allow-scripts allow-forms allow-same-origin allow-popups"
@@ -124,7 +124,7 @@ function SimSplitScreen() {
             </span>
           </div>
           <iframe
-            title="SIM User 1"
+            title={t("sim.iframe_user1")}
             src={userUrl}
             className="h-full w-full flex-1 border-0"
             sandbox="allow-scripts allow-forms allow-same-origin allow-popups"

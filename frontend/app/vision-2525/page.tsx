@@ -18,6 +18,7 @@ import { Vision2525Mark } from "@/components/vision-2525-mark";
 import { Navbar } from "@/components/navbar";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
 import { DEFAULT_SOI } from "@/lib/soi-framework";
+import { useLexicon } from "@/lib/lexicon-context";
 import {
   Rocket, Play, ShieldCheck, Award, Users, BookOpen, TrendingUp,
   Brain, Globe, GraduationCap, Scale, Heart, Handshake, Sprout, Compass,
@@ -75,6 +76,7 @@ function SectionLabel({ children, color = CYAN }: { children: React.ReactNode; c
 }
 
 export default function Vision2525Page() {
+  const { t } = useLexicon();
   return (
     <div className="flex min-h-[100dvh] flex-col text-slate-100" style={{ background: "#050912" }}>
       <Navbar />
@@ -110,7 +112,7 @@ export default function Vision2525Page() {
         <section className="flex flex-col items-center gap-5 pt-10 text-center sm:pt-16">
           <SeedOfLifeLogo size={64} accentColor={CYAN} className="opacity-90" />
           <h1 className="font-serif text-3xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl" style={{ textWrap: "balance" }}>
-            <span style={{ color: GOLD }}>Innovate at the Speed of Thought</span>
+            <span style={{ color: GOLD }}>{t("vision2525.hero_title")}</span>
             <sup className="ml-1 align-super text-xs text-slate-400">™</sup>
           </h1>
           <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm uppercase tracking-[0.35em] text-slate-300 sm:text-base">
@@ -120,9 +122,9 @@ export default function Vision2525Page() {
             <p className="text-sm font-semibold tracking-wide sm:text-base">
               <span style={{ color: CYAN }}><Vision2525Mark accentColor={CYAN} />Vision 2525</span>
               <span className="mx-2 text-slate-600">|</span>
-              <span className="text-slate-200">Humanity&apos;s Coordination Framework</span>
+              <span className="text-slate-200">{t("vision2525.humanity_coordination_framework")}</span>
             </p>
-            <p className="max-w-xl text-sm text-slate-400">Preparing AI to serve humanity — coordinate, amplify, and advance civilization while preserving the dignity of every person.</p>
+            <p className="max-w-xl text-sm text-slate-400">{t("vision2525.hero_subtitle")}</p>
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
             {/* Operator (2026-08-28, with the live hero screenshot): the hero carries the
@@ -148,8 +150,8 @@ export default function Vision2525Page() {
             <ArrowRight className="h-3.5 w-3.5 text-slate-600" />
             <span style={{ color: CYAN }}>Reality</span>
           </div>
-          <h2 className="mt-3 font-serif text-2xl font-bold sm:text-3xl" style={{ color: GOLD }}>Humanity Decides</h2>
-          <p className="mt-2 text-sm text-slate-300 sm:text-base">Technology assists — <span className="font-semibold text-slate-100">trust must be proven</span>. Nothing scales until it earns its place through evidence.</p>
+          <h2 className="mt-3 font-serif text-2xl font-bold sm:text-3xl" style={{ color: GOLD }}>{t("vision2525.humanity_decides")}</h2>
+          <p className="mt-2 text-sm text-slate-300 sm:text-base">{t("vision2525.technology_assists")} <span className="font-semibold text-slate-100">{t("vision2525.trust_must_be_proven")}</span>{t("vision2525.nothing_scales_evidence")}</p>
           {/* Operator (2026-08-28): "I like this phrase; can we place in Vision-2525 landing?"
               The Master of Thought line sits beneath the doctrine it leads into. */}
           <blockquote className="mx-auto mt-6 max-w-2xl border-l-2 pl-4 text-left sm:pl-5" style={{ borderColor: CYAN }}>
@@ -167,8 +169,8 @@ export default function Vision2525Page() {
         {/* ── TRINITY OF INTELLIGENCES ─────────────────────────────────────── */}
         <section className="mt-16">
           <div className="mb-6 text-center">
-            <SectionLabel>The Trinity of Intelligences</SectionLabel>
-            <p className="mt-2 text-sm text-slate-400">United for humanity · guided by wisdom · driven by purpose.</p>
+            <SectionLabel>{t("vision2525.trinity_of_intelligences")}</SectionLabel>
+            <p className="mt-2 text-sm text-slate-400">{t("vision2525.trinity_tagline")}</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             {DEFAULT_SOI.coins.map((c) => {
@@ -193,7 +195,7 @@ export default function Vision2525Page() {
         {/* ── TRUSTED PROGRESS CYCLE (7 gates) ─────────────────────────────── */}
         <section className="mt-16">
           <div className="mb-6 text-center">
-            <SectionLabel color={GOLD}>A Continuous Cycle of Trusted Progress</SectionLabel>
+            <SectionLabel color={GOLD}>{t("vision2525.trusted_progress_cycle")}</SectionLabel>
             <p className="mt-2 text-sm text-slate-400">Observe · Learn · Adapt · Scale</p>
           </div>
           <ol className="flex flex-wrap items-stretch justify-center gap-2 sm:gap-3">
@@ -215,8 +217,8 @@ export default function Vision2525Page() {
         {/* ── CAPABILITY PANELS (live links) ───────────────────────────────── */}
         <section className="mt-16">
           <div className="mb-6 text-center">
-            <SectionLabel>One Framework · Many Capabilities</SectionLabel>
-            <p className="mt-2 text-sm text-slate-400">Every capability is live — follow any panel straight into the working system.</p>
+            <SectionLabel>{t("vision2525.one_framework_many_capabilities")}</SectionLabel>
+            <p className="mt-2 text-sm text-slate-400">{t("vision2525.capabilities_tagline")}</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PANELS.map((p) => {
@@ -264,7 +266,7 @@ export default function Vision2525Page() {
             className="block rounded-2xl border p-6 transition-colors hover:border-amber-300 sm:p-8"
             style={{ borderColor: "rgba(232,182,76,0.35)", background: "rgba(232,182,76,0.05)" }}
           >
-            <SectionLabel color={GOLD}>The white paper &middot; open to everyone</SectionLabel>
+            <SectionLabel color={GOLD}>{t("vision2525.white_paper_open_to_everyone")}</SectionLabel>
             <h2 className="mt-3 font-serif text-2xl font-bold leading-tight sm:text-3xl" style={{ color: GOLD }}>
               Recursive Coordination for Human Continuity
             </h2>
@@ -274,10 +276,10 @@ export default function Vision2525Page() {
               after the Flower of Life, replayed release by release, with every earlier version still readable.
             </p>
             <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-[0.2em] text-slate-400">
-              <span>No login</span><span style={{ color: CYAN }}>&middot;</span>
-              <span>No account</span><span style={{ color: CYAN }}>&middot;</span>
-              <span>Reads offline</span><span style={{ color: CYAN }}>&middot;</span>
-              <span style={{ color: GOLD }}>Open it &rarr;</span>
+              <span>{t("vision2525.no_login")}</span><span style={{ color: CYAN }}>&middot;</span>
+              <span>{t("vision2525.no_account")}</span><span style={{ color: CYAN }}>&middot;</span>
+              <span>{t("vision2525.reads_offline")}</span><span style={{ color: CYAN }}>&middot;</span>
+              <span style={{ color: GOLD }}>{t("vision2525.open_it")}</span>
             </p>
           </a>
 
@@ -306,8 +308,8 @@ export default function Vision2525Page() {
         {/* ── WORLDS (inter-site nav) ──────────────────────────────────────── */}
         <section id="worlds" className="mt-16 scroll-mt-20">
           <div className="mb-6 text-center">
-            <SectionLabel color={VIOLET}>The Worlds of <Vision2525Mark accentColor={VIOLET} />Vision 2525</SectionLabel>
-            <p className="mt-2 text-sm text-slate-400">One civilization · one framework · limitless possibilities.</p>
+            <SectionLabel color={VIOLET}>{t("vision2525.the_worlds_of")} <Vision2525Mark accentColor={VIOLET} />Vision 2525</SectionLabel>
+            <p className="mt-2 text-sm text-slate-400">{t("vision2525.worlds_tagline")}</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {WORLDS.map((w) => (
@@ -326,14 +328,14 @@ export default function Vision2525Page() {
 
         {/* ── MISSION + MANIFESTO ──────────────────────────────────────────── */}
         <section className="mt-16 text-center">
-          <SectionLabel>Our Mission</SectionLabel>
+          <SectionLabel>{t("vision2525.our_mission")}</SectionLabel>
           <div className="mx-auto mt-4 flex max-w-3xl flex-wrap items-center justify-center gap-2">
             {MISSION.map((m) => (
               <span key={m} className="rounded-full border border-slate-700 bg-slate-900/40 px-3 py-1 text-xs font-medium text-slate-200">{m}</span>
             ))}
           </div>
           <p className="mx-auto mt-10 max-w-2xl font-serif text-xl font-semibold sm:text-2xl" style={{ textWrap: "balance" }}>
-            <span className="text-slate-300">Building a future worth inheriting —</span>{" "}
+            <span className="text-slate-300">{t("vision2525.building_future_inheriting")}</span>{" "}
             <span style={{ color: CYAN }}>Together. Now. Worldwide.</span>
           </p>
           <p className="mx-auto mt-6 max-w-2xl rounded-xl border border-slate-800 bg-slate-900/30 px-4 py-3 text-sm italic text-slate-400">
@@ -342,7 +344,7 @@ export default function Vision2525Page() {
           <div className="mt-8 flex items-center justify-center gap-2 text-lg text-slate-500">
             <span style={{ color: CYAN }}>◬</span><span style={{ color: SUNSET }}>♡</span><span style={{ color: VIOLET }}>웃</span>
           </div>
-          <p className="mt-2 text-[11px] uppercase tracking-[0.3em] text-slate-600">Where Shared Intention moves at the Speed of Thought</p>
+          <p className="mt-2 text-[11px] uppercase tracking-[0.3em] text-slate-600">{t("vision2525.shared_intention_speed_of_thought")}</p>
         </section>
       </main>
     </div>

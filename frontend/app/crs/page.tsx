@@ -10,6 +10,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CRS_MATRIX, type CrsEntry } from "@/lib/crs-matrix-data";
 import { diffCollection, diffText, sideBySide, escHtml } from "@/lib/version-diff";
+import { useLexicon } from "@/lib/lexicon-context";
 
 type Version = { id: string; label: string; ts: string; rows: CrsEntry[] };
 const STORE = "v2525.crs.versions";
@@ -41,6 +42,7 @@ function loadVersions(): Version[] {
 }
 
 export default function CrsMatrixPage() {
+  const { t } = useLexicon();
   const baseline: Version = useMemo(
     () => ({ id: "base", label: "Original (Design Matrix)", ts: "2026.02.14", rows: CRS_MATRIX }),
     [],
@@ -93,7 +95,7 @@ export default function CrsMatrixPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-6 text-zinc-200">
       <header className="mb-5">
-        <h1 className="text-xl font-semibold text-cyan-300">CRS Design Traceability Matrix</h1>
+        <h1 className="text-xl font-semibold text-cyan-300">{t("crs.matrix_title")}</h1>
         <p className="mt-1 text-sm text-zinc-400">
           The backbone traceability record — 35 CRS specifications across 10 cubes. Edit a spec&rsquo;s Design
           Review timestamp, save a version, then compare any two versions: changes read field by field, removed

@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { type Project, briefOf, GATE_STAGE, GATE_REVIEW, confidenceOf, type Gate } from "@/lib/innovation-data";
 import { diffCollection, diffText, sideBySide, escHtml } from "@/lib/version-diff";
+import { useLexicon } from "@/lib/lexicon-context";
 
 // One traceability row, in the canonical CRS Design-Matrix format.
 type CrsRow = {
@@ -74,6 +75,7 @@ function loadVersions(): Version[] {
 }
 
 export function SoiProjectCrs({ projects }: { projects: Project[] }) {
+  const { t } = useLexicon();
   const baseRows = useMemo(() => projects.map(projectToCrs), [projects]);
   const baseline: Version = useMemo(
     () => ({ id: "base", label: "Original (from the project record)", ts: "—", rows: baseRows }),
@@ -126,12 +128,12 @@ export function SoiProjectCrs({ projects }: { projects: Project[] }) {
   return (
     <div className="text-zinc-200">
       <header className="mb-4">
-        <h2 className="text-lg font-semibold text-cyan-300">Project CRS — Design Traceability Matrix</h2>
+        <h2 className="text-lg font-semibold text-cyan-300">{t("soiCrs.header_title")}</h2>
         <p className="mt-1 text-sm text-zinc-400">
           Every SoI-2525 project as a traceability row in the same Design-Matrix format the polling tool uses.
           Edit a project&rsquo;s Design Review timestamp, save a version, then compare any two: changes read field
           by field, removed in red and added in green, by the same engine that versions the living document.
-          <span className="text-zinc-500"> Every version is kept (R-CORE replay) — never just the last few.</span>
+          <span className="text-zinc-500"> {t("soiCrs.every_version_kept")}</span>
         </p>
       </header>
 
@@ -179,6 +181,7 @@ export function SoiProjectCrs({ projects }: { projects: Project[] }) {
 }
 
 function EditView({ groups, rows, onEdit }: { groups: string[]; rows: CrsRow[]; onEdit: (crs: string, v: string) => void }) {
+  const { t } = useLexicon();
   return (
     <div className="space-y-6">
       {groups.map((group) => (
@@ -189,9 +192,9 @@ function EditView({ groups, rows, onEdit }: { groups: string[]; rows: CrsRow[]; 
               <thead className="bg-zinc-900/60 text-zinc-400">
                 <tr>
                   <th className="px-2 py-1.5">Project</th>
-                  <th className="px-2 py-1.5">User Story (value prop)</th>
+                  <th className="px-2 py-1.5">{t("soiCrs.col_user_story")}</th>
                   <th className="px-2 py-1.5">Output #</th>
-                  <th className="px-2 py-1.5">Design Review # (timestamp)</th>
+                  <th className="px-2 py-1.5">{t("soiCrs.col_design_review")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -217,10 +220,11 @@ function EditView({ groups, rows, onEdit }: { groups: string[]; rows: CrsRow[]; 
 }
 
 function CompareView({ a, b }: { a: Version; b: Version }) {
+  const { t } = useLexicon();
   const rows = diffCollection(a.rows as unknown as Record<string, string>[], b.rows as unknown as Record<string, string>[], "crs");
   const changed = rows.filter((r) => r.kind !== "carried");
   if (a.id === b.id)
-    return <p className="text-sm italic text-zinc-500">Before and After are the same version — choose two different versions to see changes.</p>;
+    return <p className="text-sm italic text-zinc-500">{t("soiCrs.same_version_notice")}</p>;
   if (!changed.length) return <p className="text-sm italic text-zinc-500">No changes between {a.label} and {b.label}.</p>;
 
   return (

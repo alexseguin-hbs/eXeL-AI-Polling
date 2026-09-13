@@ -547,7 +547,7 @@ export function JoinFlow() {
                 <Radio className="h-8 w-8 text-primary animate-pulse" />
               </div>
               <div className="space-y-1">
-                <p className="font-semibold text-foreground">You&apos;re in the session</p>
+                <p className="font-semibold text-foreground">{t("join.youre_in_session")}</p>
                 <p className="text-sm text-muted-foreground">
                   Waiting for the moderator to start polling…
                 </p>
@@ -558,7 +558,7 @@ export function JoinFlow() {
                 <span className="text-sm font-semibold text-primary tabular-nums">
                   {participantCount}
                 </span>
-                <span className="text-xs text-muted-foreground">in session</span>
+                <span className="text-xs text-muted-foreground">{t("join.in_session")}</span>
               </div>
               <div className="flex gap-1.5">
                 {[0, 1, 2].map((i) => (
@@ -578,8 +578,8 @@ export function JoinFlow() {
               <div className="rounded-full bg-green-500/10 p-4">
                 <Zap className="h-8 w-8 text-green-400" />
               </div>
-              <p className="font-semibold text-foreground">Polling is live!</p>
-              <p className="text-sm text-muted-foreground">Taking you to the question…</p>
+              <p className="font-semibold text-foreground">{t("join.polling_is_live")}</p>
+              <p className="text-sm text-muted-foreground">{t("join.taking_you_to_question")}</p>
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </CardContent>
           )}
