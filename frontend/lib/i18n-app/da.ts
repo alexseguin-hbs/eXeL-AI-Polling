@@ -288,5 +288,6 @@ const T: Record<string, string> = {
   "experiences.tag.portfolio": "Portefølje",
   "experiences.download": "Hent",
   "experiences.card.resume1.badge": "Forsvar • Systemer",
+  "cube9.pixelated.send_sms": "Send som SMS",
 };
 export default T;

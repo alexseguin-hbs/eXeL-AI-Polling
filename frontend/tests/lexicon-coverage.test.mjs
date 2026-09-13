@@ -1,7 +1,7 @@
 // lexicon-coverage — THE CLASS GATE over ALL master keys (operator 2026-09-12: "translate UI/UX to standard 33 languages"):
 // for every non-English language, every key in lib/lexicon-data.ts has a non-empty value after the app's own merge
-// (seeded → r228 → sign → ES_SIGN → lazy i18n-sign → lazy i18n-app), placeholders match the English, and at most 10 % of
-// the values equal the English (the sign gate's own threshold). Keys added after the last fill go in AFTER_FILL — listed,
+// (seeded → r228 → sign → ES_SIGN → lazy i18n-sign → lazy i18n-app), placeholders match the English, and NO value equals
+// the English default unless it is KEEP-trivial or on the reviewed allow-list (operator 2026-09-13: no placeholders). Keys added after the last fill go in AFTER_FILL — listed,
 // never silent — until the next fill. Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/lexicon-coverage.test.mjs
 import fs from 'node:fs'; import path from 'node:path';
 const L = await import('../lib/lexicon-data.ts');
@@ -28,7 +28,10 @@ for (const code of codes) {
   ok(missing.length === 0, `${code}: every master key has a value (missing ${missing.length}: ${missing.slice(0, 4).join(', ')})`);
   const badPh = keys.filter((k) => m[k] && ph(en[k].englishDefault) !== ph(m[k]));
   ok(badPh.length === 0, `${code}: placeholders kept (${badPh.length} differ: ${badPh.slice(0, 3).join(', ')})`);
+  // NO PLACEHOLDERS (operator 2026-09-13: "dont use place holders translate"): a value may equal the English default
+  // ONLY when it is KEEP-trivial (a URL, number, symbol or all-caps token) or on the reviewed allow-list. Every other
+  // real word must be translated — zero tolerance, not the old 10 % slack.
   const same = keys.filter((k) => m[k] && m[k] === en[k].englishDefault && !KEEP.test(en[k].englishDefault) && !allowedIdentical(code, k));
-  ok(same.length <= keys.length * 0.10, `${code}: at most 10 % identical to English (${same.length} of ${keys.length})`);
+  ok(same.length === 0, `${code}: no untranslated English left outside the allow-list (${same.length}: ${same.slice(0, 6).join(", ")})`);
 }
 console.log(`lexicon-coverage: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
