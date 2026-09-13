@@ -30,3 +30,12 @@
 
 ## Provenance
 Received 2026-09-13. Persisted before any code (PERSIST FIRST, AAR 2026-08-28).
+
+## Clarification (2026-09-13, after the revert)
+
+> if only only Ux language lexicons, yes we need to be in all 33 languages for all UX
+
+The distinction, corrected: **"only updating Innovation Pod" applies to FEATURES / behaviour / new UI** — do not build
+into other apps. **UX language lexicons are different: ALL UX must be in all 33 languages** across the whole app. So the
+whole-app translation pass I reverted was actually wanted. Restoring it (undo commit ba819d4); the global lexicon-coverage
+gate and the per-language i18n-app store come back. My earlier revert was the miss.
