@@ -610,7 +610,7 @@ function Board() {
                 approved gate history, membership and audit, so it asks first and NAMES what goes. */}
             <button onClick={() => setConfirmRemove(selId)} disabled={!selId}
               title={sel ? `Remove ${sel.name} from the portfolio` : "Select a project first"}
-              aria-label="Remove the selected project"
+              aria-label={t("soi2525.remove_selected_project")}
               className="inline-flex items-center gap-1.5 rounded-md border border-rose-500/40 px-2.5 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40">
               <Trash2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />Remove
             </button>
@@ -632,7 +632,7 @@ function Board() {
             <div className="text-[11px] text-slate-500">{stackName}</div>
           </div>
           <label className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-slate-500">{t("innovation.scenario.label")}
-            <select value={scenario} onChange={(e) => setScenario(e.target.value as BudgetScenario)} title="R&D budget scenario (sets the funding line)"
+            <select value={scenario} onChange={(e) => setScenario(e.target.value as BudgetScenario)} title={t("soi2525.rd_budget_scenario")}
               className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] normal-case tracking-normal text-slate-100 outline-none focus:border-cyan-500">
               {scenarios.map((s) => <option key={s.key} value={s.key}>{s.label} · ${s.m}M</option>)}
             </select>
@@ -673,7 +673,7 @@ function Board() {
       </div>
       <p className="border-b border-slate-800 bg-[#0c1219] px-5 pb-2 text-[11px] text-slate-400">
         <span className="hidden sm:inline">{t(`innovation.persona.${persona}.lens`)} · </span>
-        Re-optimizing <b className="text-cyan-300">{cadence === "Q" ? "quarterly" : cadence === "M" ? "monthly" : cadence === "W" ? "weekly" : "daily"}</b> · time is money — cost shown in <b className="text-cyan-300">$/{CADENCE_UNIT[cadence].short}</b> on each project · AI + HI now, SI polling next.
+        Re-optimizing <b className="text-cyan-300">{cadence === "Q" ? "quarterly" : cadence === "M" ? "monthly" : cadence === "W" ? "weekly" : "daily"}</b> {t("soi2525.time_is_money")} <b className="text-cyan-300">$/{CADENCE_UNIT[cadence].short}</b> on each project · AI + HI now, SI polling next.
       </p>
 
       {/* View tabs — Portfolio (Rack/Stack/Risk/Growth) ⟷ Dashboards (ROI Visuals) */}
@@ -715,10 +715,10 @@ function Board() {
                 aria-label={portfolioMax ? t("innovation.max.restore") : t("innovation.max.expand")}
                 title={portfolioMax ? t("innovation.max.restore") : t("innovation.max.expand")}
                 className="rounded-md border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300 hover:bg-slate-800">{portfolioMax ? "⤡" : "⤢"}</button>
-              <button onClick={() => setBudgetOpen(true)} title="Budget by SBU / Alpha Group — incl. unfunded"
+              <button onClick={() => setBudgetOpen(true)} title={t("soi2525.budget_by_sbu")}
                 className="rounded-md border border-emerald-500/40 px-2 py-0.5 text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/10">{t("innovation.stack.budget")}</button>
               {stackLevel === "product" && (
-                <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]" title="Working-stack row layout">
+                <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]" title={t("soi2525.working_stack_layout")}>
                   {([["table", "▤ Table"], ["cards", "▦ Cards"]] as const).map(([m, lbl]) => (
                     <button key={m} onClick={() => setRowMode(m)}
                       className={`px-2 py-0.5 ${rowMode === m ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
@@ -751,7 +751,7 @@ function Board() {
                   </button>
                 </span>
               ))}
-              <button onClick={() => { setDrill(null); }} className="ml-2 rounded border border-slate-700 px-1.5 text-slate-400 hover:bg-slate-800">✕ all projects</button>
+              <button onClick={() => { setDrill(null); }} className="ml-2 rounded border border-slate-700 px-1.5 text-slate-400 hover:bg-slate-800">{t("soi2525.clear_all_projects")}</button>
             </div>
           )}
 
@@ -777,7 +777,7 @@ function Board() {
                 rowNo += 1; cum += g.nreK;
                 return (
                   <tr key={`${side}-${g.key}`} onClick={() => { setDrill({ level: stackLevel, value: g.key }); setStackLevel("product"); }}
-                    className={`cursor-pointer border-b border-slate-900 hover:bg-cyan-500/10 hover:ring-1 hover:ring-inset hover:ring-cyan-500/30 ${side === "funded" ? "" : "opacity-70"}`} title="Drill to projects">
+                    className={`cursor-pointer border-b border-slate-900 hover:bg-cyan-500/10 hover:ring-1 hover:ring-inset hover:ring-cyan-500/30 ${side === "funded" ? "" : "opacity-70"}`} title={t("soi2525.drill_to_projects")}>
                     <td className="px-2 py-2 tabular-nums text-slate-400">{rowNo}</td>
                     <td className="px-2 py-2 font-medium" style={{ borderLeft: `3px solid ${BU_COLOR[buOfCode[g.key]] ?? "#334155"}` }}>{g.key}</td>
                     <td className="px-2 py-2 text-center tabular-nums text-slate-400">{g.count}</td>
@@ -799,7 +799,7 @@ function Board() {
                       <th className="px-2 py-2 text-left">{HIER_LEVELS.find((h) => h.key === stackLevel)?.label}</th>
                       <th className="px-2 py-2 text-center"># Proj</th>
                       <th className="px-2 py-2 text-right">NRE</th>
-                      <th className="px-2 py-2 text-right">P-wt Rev</th>
+                      <th className="px-2 py-2 text-right">{t("soi2525.pwt_rev")}</th>
                       <th className="px-2 py-2 text-right">NPV</th>
                       <th className="px-2 py-2 text-right">Cum</th>
                     </tr>
@@ -833,13 +833,13 @@ function Board() {
                           {i === st.lineIndex && <FundingDivider availK={avail} />}
                           <div data-stack-row={i} onClick={() => selectProject(p.id)}
                             className={`flex items-center gap-2 rounded-lg ${dragIdx === i ? "opacity-40" : ""} ${!r.funded ? "opacity-70" : ""} ${overIdx === i && dragIdx !== i ? "ring-1 ring-cyan-400" : selId === p.id ? "ring-1 ring-cyan-500/60" : ""}`}>
-                            {canDrag && <span onPointerDown={startRowDrag(i)} style={{ touchAction: "none" }} title="Drag to reprioritize" className="cursor-grab px-0.5 text-slate-600 active:cursor-grabbing">⠿</span>}
+                            {canDrag && <span onPointerDown={startRowDrag(i)} style={{ touchAction: "none" }} title={t("soi2525.drag_to_reprioritize")} className="cursor-grab px-0.5 text-slate-600 active:cursor-grabbing">⠿</span>}
                             <span className="w-5 shrink-0 text-center text-[11px] tabular-nums text-slate-500">{i + 1}</span>
                             <div className="min-w-0 flex-1"><DogTag p={p} /></div>
                             {canDrag && (
                               <span className="flex flex-col">
-                                <button onClick={(e) => { e.stopPropagation(); move(i, -1); }} disabled={i === 0} title="Move up" className="inline-flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-20">▲</button>
-                                <button onClick={(e) => { e.stopPropagation(); move(i, 1); }} disabled={last} title="Move down" className="inline-flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-20">▼</button>
+                                <button onClick={(e) => { e.stopPropagation(); move(i, -1); }} disabled={i === 0} title={t("soi2525.move_up")} className="inline-flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-20">▲</button>
+                                <button onClick={(e) => { e.stopPropagation(); move(i, 1); }} disabled={last} title={t("soi2525.move_down")} className="inline-flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-20">▼</button>
                               </span>
                             )}
                           </div>
@@ -876,7 +876,7 @@ function Board() {
                       <th className={`px-2 py-2 text-center ${th}`}>Gate</th>
                       <th className={`px-2 py-2 text-center ${th}`}>Conf</th>
                       <th className={`px-2 py-2 text-right ${th}`}>NRE</th>
-                      <th className={`px-2 py-2 text-right ${th}`}>P-wt Rev</th>
+                      <th className={`px-2 py-2 text-right ${th}`}>{t("soi2525.pwt_rev")}</th>
                       <th className={`px-2 py-2 text-right ${th}`}>NPV</th>
                       <th className={`px-2 py-2 text-right ${th}`}>Cum</th>
                       <th className={`px-2 py-2 ${th}`}></th>
@@ -906,7 +906,7 @@ function Board() {
                     <th className="px-2 py-2 text-right">Material</th>
                     <th className="px-2 py-2 text-right">Machining</th>
                     <th className="px-2 py-2 text-right">Other</th>
-                    <th className="px-2 py-2 text-right">Std cost</th>
+                    <th className="px-2 py-2 text-right">{t("soi2525.std_cost")}</th>
                     <th className="px-2 py-2 text-right">Extended</th>
                   </tr>
                 </thead>
@@ -920,7 +920,7 @@ function Board() {
                         <tr onClick={() => toggleBom(p.id)} title={open ? "Collapse BOM build" : "Expand BOM build"} className={`cursor-pointer border-b border-slate-800 bg-slate-900/40 ${open ? "ring-1 ring-inset ring-cyan-500/30" : ""}`}>
                           <td className="px-2 py-1.5 font-mono font-semibold text-cyan-300"><span className="mr-1 text-slate-500">{open ? "▾" : "▸"}</span>{hierOf(p).product}</td>
                           <td className="px-2 py-1.5 text-slate-300" colSpan={6}>{p.name} <span className="text-[10px] text-slate-500">· Material {hierOf(p).material} · {hierOf(p).pgroup} · {lines.length} lines{open ? "" : " · tap to expand BOM"}</span></td>
-                          <td className="px-2 py-1.5 text-right text-[10px] uppercase tracking-wider text-slate-500">Prod cost →</td>
+                          <td className="px-2 py-1.5 text-right text-[10px] uppercase tracking-wider text-slate-500">{t("soi2525.prod_cost")}</td>
                           <td className="px-2 py-1.5 text-right tabular-nums font-semibold text-emerald-400">${Math.round(productionCost(p)).toLocaleString()}</td>
                         </tr>
                         {open && lines.map((l) => (
@@ -1029,24 +1029,24 @@ function Board() {
         const vers = (readVersions()[v.id] ?? []).length;
         const mem = (members[v.id] ?? []).length;
         return (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label="Confirm project removal"
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label={t("soi2525.confirm_project_removal")}
                onClick={() => setConfirmRemove(null)}>
             <div className="w-full max-w-md rounded-lg border border-rose-500/40 bg-[#0e141b] p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              <h2 className="text-sm font-semibold text-rose-300">Remove this project?</h2>
+              <h2 className="text-sm font-semibold text-rose-300">{t("soi2525.remove_this_project")}</h2>
               <p className="mt-2 text-[13px] text-slate-200"><strong>{v.name}</strong> <span className="text-slate-400">({v.id})</span></p>
               <p className="mt-1 text-[12px] text-slate-400">
                 {GATE_STAGE[v.gate]} ({v.gate}) · R&amp;D {k(v.nreK)} · it leaves the Rack &amp; Stack and every rollup immediately.
               </p>
               <ul className="mt-3 space-y-0.5 text-[11px] text-slate-400">
                 <li>· {cells} slide-field cell{cells === 1 ? "" : "s"}, {vers} version{vers === 1 ? "" : "s"} and {mem} member record{mem === 1 ? "" : "s"} stay keyed to {v.id}</li>
-                <li>· project ids are never reused, so nothing can inherit them</li>
-                <li>· one-step <strong>Undo</strong> appears immediately after</li>
+                <li>{t("soi2525.project_ids_never_reused")}</li>
+                <li>· one-step <strong>Undo</strong> {t("soi2525.appears_immediately_after")}</li>
               </ul>
               <div className="mt-4 flex justify-end gap-2">
                 <button onClick={() => setConfirmRemove(null)}
                   className="rounded border border-slate-600 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">Cancel</button>
                 <button onClick={() => { removeIdea(v.id); setConfirmRemove(null); }}
-                  className="rounded bg-rose-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-400">Remove project</button>
+                  className="rounded bg-rose-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-400">{t("soi2525.remove_project")}</button>
               </div>
             </div>
           </div>
@@ -1114,6 +1114,7 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
   selId: string; onSelect: (id: string) => void; onUp?: () => void; onDown?: () => void; last: boolean; avail: number;
   dragging: boolean; over?: boolean; onGripDown?: (e: React.PointerEvent) => void; canDrag?: boolean;
 }) {
+  const { t } = useLexicon();
   const { p, cumK, funded } = r;
   return (
     <>
@@ -1123,7 +1124,7 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
         data-stack-row={i}
         className={`cursor-pointer border-b border-slate-900 ${over ? "border-t-2 border-t-cyan-400" : ""} ${selId === p.id ? "bg-cyan-500/10" : "hover:bg-slate-800/40"} ${funded ? "" : "opacity-70"} ${dragging ? "opacity-40" : ""}`}
       >
-        <td className="w-6 text-center align-middle text-slate-600 select-none">{canDrag ? <span onPointerDown={onGripDown} style={{ touchAction: "none" }} title="Drag to reprioritize" className="inline-block cursor-grab px-1 py-2 active:cursor-grabbing">⠿</span> : ""}</td>
+        <td className="w-6 text-center align-middle text-slate-600 select-none">{canDrag ? <span onPointerDown={onGripDown} style={{ touchAction: "none" }} title={t("soi2525.drag_to_reprioritize")} className="inline-block cursor-grab px-1 py-2 active:cursor-grabbing">⠿</span> : ""}</td>
         <td className="px-2 py-2 tabular-nums text-slate-400">{i + 1}</td>
         <td className="px-2 py-2">
           <div className="flex items-center gap-2">
@@ -1144,8 +1145,8 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
         <td className="px-2 py-2 text-right tabular-nums text-slate-400">{k(cumK)}</td>
         <td className="px-2 py-2 text-right whitespace-nowrap">
           {canDrag ? (<span className="inline-flex gap-0.5">
-            <button onClick={(e) => { e.stopPropagation(); onUp?.(); }} disabled={i === 0} title="Move up" className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-20">▲</button>
-            <button onClick={(e) => { e.stopPropagation(); onDown?.(); }} disabled={last} title="Move down" className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-20">▼</button>
+            <button onClick={(e) => { e.stopPropagation(); onUp?.(); }} disabled={i === 0} title={t("soi2525.move_up")} className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-20">▲</button>
+            <button onClick={(e) => { e.stopPropagation(); onDown?.(); }} disabled={last} title={t("soi2525.move_down")} className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-20">▼</button>
           </span>) : <span className="text-slate-700 text-[10px]">·</span>}
         </td>
       </tr>
@@ -1242,6 +1243,7 @@ function GateTimeline({ p }: { p: Project }) {
 // generative, not chatgpt images"). Deterministic: a string-seeded PRNG places system boxes, actor nodes and
 // arrowed connectors inside a system envelope — same step text → same wireframe. Pure SVG, no external assets.
 function ConopsWireframe({ seed }: { seed: string }) {
+  const { t } = useLexicon();
   let h = 2166136261;
   for (let i = 0; i < seed.length; i++) { h = Math.imul(h ^ seed.charCodeAt(i), 16777619); }
   const rand = () => { h += 0x6d2b79f5; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -1260,7 +1262,7 @@ function ConopsWireframe({ seed }: { seed: string }) {
   });
   const cxy = (nd: Node) => [nd.x + nd.w / 2, nd.y + nd.h / 2] as const;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Generative CONOPS wireframe">
+    <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full" preserveAspectRatio="xMidYMid slice" role="img" aria-label={t("soi2525.generative_conops_wireframe")}>
       <defs><marker id={`ar-${Math.floor(h % 100000)}`} markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#38bdf8" opacity="0.7" /></marker></defs>
       <rect x={3} y={3} width={W - 6} height={H - 6} rx={4} fill="none" stroke="rgba(56,189,248,.18)" strokeWidth="0.8" strokeDasharray="3 3" />
       {nodes.slice(1).map((nd, i) => { const [x1, y1] = cxy(nodes[i]); const [x2, y2] = cxy(nd); return (
@@ -1281,6 +1283,7 @@ function ConopsWireframe({ seed }: { seed: string }) {
 // CASH FLOW (Σ margin − R&D) is a line. The horizon toggle renders horizon+1 year columns so a CAGR measured
 // over `horizon` years spans `horizon+1` points on the chart (3-Yr→4 · 5-Yr→6 · 10-Yr→11).
 function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
+  const { t } = useLexicon();
   const [horizon, setHorizon] = useState(3);
   const [view, setView] = useState<"chart" | "table">("chart");
   const [pin, setPin] = useState<number | null>(null); // F3 — tap a year → pin its exact figures
@@ -1308,11 +1311,11 @@ function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
           {legend.map((s) => <span key={s.label} className="flex items-center gap-1 text-[10px] text-slate-400"><span data-ink className="inline-block h-2 w-2 rounded-sm" style={{ background: s.color }} />{s.label}</span>)}
         </div>
         <div className="flex items-center gap-1">
-          <div className="flex overflow-hidden rounded border border-slate-700 text-[9px]" role="group" aria-label="View mode">
+          <div className="flex overflow-hidden rounded border border-slate-700 text-[9px]" role="group" aria-label={t("soi2525.view_mode")}>
             {(["chart", "table"] as const).map((v) => <button key={v} onClick={() => setView(v)} aria-pressed={view === v}
               className={`px-1.5 py-0.5 capitalize ${view === v ? "bg-cyan-500 font-semibold text-[#06202a]" : "text-slate-400 hover:bg-slate-800"}`}>{v}</button>)}
           </div>
-          <div className="flex overflow-hidden rounded border border-slate-700 text-[9px]" role="group" aria-label="CAGR horizon">
+          <div className="flex overflow-hidden rounded border border-slate-700 text-[9px]" role="group" aria-label={t("soi2525.cagr_horizon")}>
             {[3, 5, 10].map((h) => <button key={h} onClick={() => setHorizon(h)} aria-pressed={horizon === h}
               className={`px-1.5 py-0.5 ${horizon === h ? "bg-cyan-500 font-semibold text-[#06202a]" : "text-slate-400 hover:bg-slate-800"}`}>{h}-Yr</button>)}
           </div>
@@ -1374,7 +1377,7 @@ function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
           <span className="text-amber-300">Mgn <b className="tabular-nums">${fo[pin].marginM.toFixed(1)}M</b></span>
           <span className="text-rose-300">R&D <b className="tabular-nums">${(fo[pin].rdK / 1000).toFixed(1)}M</b></span>
           <span className="text-sky-300">Cash <b className="tabular-nums">${cash[pin].toFixed(1)}M</b></span>
-          <button onClick={() => setPin(null)} className="ml-auto rounded px-1 leading-none text-slate-400 hover:text-cyan-300" aria-label="Dismiss">✕</button>
+          <button onClick={() => setPin(null)} className="ml-auto rounded px-1 leading-none text-slate-400 hover:text-cyan-300" aria-label={t("soi2525.dismiss")}>✕</button>
         </div>
       )}
     </div>
@@ -1456,6 +1459,7 @@ function VsNba({ tone }: { tone: "pos" | "neutral" | "neg" }) {
 function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
   p: Project; ours: number; oursLabel: string; onSave?: (c: WtpMarker[]) => void; compact?: boolean; fill?: boolean;
 }) {
+  const { t } = useLexicon();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<WtpMarker[]>([]);
   const barRef = useRef<HTMLDivElement | null>(null);
@@ -1541,7 +1545,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
             uppercase label; leaving this in muted sentence case made the third row look like a leftover.
             `fill` is the slide-only mode, so the editor and the deep-dive card are untouched. */}
         <div className={fill ? "font-semibold uppercase tracking-[0.12em] text-emerald-300" : `text-slate-400 ${compact ? "text-[9px]" : "text-[10px]"}`}
-             style={fill ? { fontSize: "0.75cqw" } : undefined}>Price Performance · Competition</div>
+             style={fill ? { fontSize: "0.75cqw" } : undefined}>{t("soi2525.price_performance_competition")}</div>
         {onSave && (editing ? (
           <div className="flex items-center gap-1">
             <button onClick={addOne} disabled={!nextCompetitorLabel(draft)}
@@ -1551,13 +1555,13 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
               className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-slate-200">Cancel</button>
             {/* THE DISK, NOT A PIN (operator: "Use Save icon (Standard disk). Never use a pin"). Same lucide
                 `Save` already used by Architect-2525's design library — one save glyph across the tool. */}
-            <button onClick={commit} aria-label="Save competitor positions"
+            <button onClick={commit} aria-label={t("soi2525.save_competitor_positions")}
               className="flex items-center gap-1 rounded border border-cyan-500/40 bg-cyan-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-300 hover:bg-cyan-500/20">
               <Save className="h-3 w-3" aria-hidden /> Save
             </button>
           </div>
         ) : (
-          <button onClick={startEdit} aria-label="Edit competitor positions"
+          <button onClick={startEdit} aria-label={t("soi2525.edit_competitor_positions")}
             className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">✎ Edit</button>
         ))}
       </div>
@@ -1640,7 +1644,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
         <span className="absolute bottom-0.5 left-2 text-[7px] uppercase text-slate-600">Low</span>
         <span className="absolute bottom-0.5 right-2 text-[7px] uppercase text-slate-600">High</span>
       </div>
-      {editing && <div className="mt-0.5 text-[9px] text-slate-500">Drag a marker (or use ← →) — your own position is computed from the competitive index and cannot be moved.</div>}
+      {editing && <div className="mt-0.5 text-[9px] text-slate-500">{t("soi2525.drag_marker_hint")}</div>}
     </div>
   );
 }
@@ -1882,7 +1886,7 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   const chart = (
     <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className={big ? "min-h-0 w-full flex-1" : "w-full"} preserveAspectRatio="xMidYMid meet"
          style={big ? undefined : { height: "auto" }}
-         role="img" aria-label="Value creation and capture waterfall vs the next best alternative">
+         role="img" aria-label={t("soi2525.value_waterfall_vs_nba")}>
       {/* W-20 · 3D SHADED BARS (operator: "Make bars futuristic; 3D shaded like attached", with their own
           Excel reference). Excel's "3-D bevel" is, in substance, a VERTICAL GRADIENT plus a lighter cap at
           the top and a darker foot — so that is exactly what this draws: static SVG defs, two extra rects
@@ -2013,7 +2017,7 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
               : <span className="flex w-20 justify-center"><ImportanceBars n={bars} /></span>}
             <span className="w-10 text-center"><VsNba tone={tone} /></span>
             {editable
-              ? <button onClick={() => onChange?.(rows.filter((_, j) => j !== i))} className="w-5 rounded text-rose-400 hover:bg-rose-500/10" title="Remove">✕</button>
+              ? <button onClick={() => onChange?.(rows.filter((_, j) => j !== i))} className="w-5 rounded text-rose-400 hover:bg-rose-500/10" title={t("soi2525.remove")}>✕</button>
               : <span className="w-5" />}
           </div>
         );
@@ -2073,6 +2077,7 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
 // Full × tech×commercial success prob (pSuccess). In Full mode the bar stacks Risk-Weighted (solid) + the at-risk
 // upside (light) up to Full; in Risk-Weighted mode only the solid base shows.
 function ProjectRevChart({ p }: { p: Project }) {
+  const { t } = useLexicon();
   const [mode, setMode] = useState<"risk" | "full">("full");
   const rows = projectRevSeries(p, { years: 10, funded: true });
   const pw = pSuccess(p);
@@ -2086,7 +2091,7 @@ function ProjectRevChart({ p }: { p: Project }) {
   return (
     <div className="mt-3 border-t border-slate-800 pt-3">
       <div className="flex items-center justify-between gap-2">
-        <div className="text-[10px] uppercase tracking-wider text-slate-500">Revenue · 10 yr · stackable (project → Alpha Grp → SBU → BU)</div>
+        <div className="text-[10px] uppercase tracking-wider text-slate-500">{t("soi2525.revenue_10yr_stackable")}</div>
         <div className="flex overflow-hidden rounded-md border border-slate-700 text-[10px]">
           {([["risk", "Risk-Weighted"], ["full", "Full Revenue"]] as const).map(([m, lbl]) => (
             <button key={m} onClick={() => setMode(m)} aria-pressed={mode === m}
@@ -2111,7 +2116,7 @@ function ProjectRevChart({ p }: { p: Project }) {
       </svg>
       <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-slate-500">
         <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399" }} />Risk-weighted (tech×comm {Math.round(pw * 100)}%)</span>
-        {mode === "full" && <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#fbbf24" }} />at-risk upside</span>}
+        {mode === "full" && <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#fbbf24" }} />{t("soi2525.at_risk_upside")}</span>}
         <span className="ml-auto text-slate-400">RW {usd(totRw)} · Full {usd(totFull)}</span>
       </div>
       {/* H42 — $/min (91-day MoT spread): risk-weighted vs full revenue · cost (NRE) · margin. */}
@@ -2119,7 +2124,7 @@ function ProjectRevChart({ p }: { p: Project }) {
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-slate-500">
           <span className="font-semibold tracking-wider text-cyan-400">$/min</span>
           <span>RW Rev <b className="tabular-nums text-emerald-300">{fmt(m.revRwPerMin)}</b></span>
-          <span>Full Rev <b className="tabular-nums text-emerald-300/80">{fmt(m.revFullPerMin)}</b></span>
+          <span>{t("soi2525.full_rev")} <b className="tabular-nums text-emerald-300/80">{fmt(m.revFullPerMin)}</b></span>
           <span>Cost <b className="tabular-nums text-rose-300">{fmt(m.costPerMin)}</b></span>
           <span>Margin <b className="tabular-nums text-amber-300">{fmt(m.marginPerMin)}</b></span>
         </div>
@@ -2130,15 +2135,16 @@ function ProjectRevChart({ p }: { p: Project }) {
 
 // Project Financials Overview (FLIR §2.3) — read-only yearly Revenue / Margin / R&D + Totals.
 function FinancialsOverviewTable({ p, onEdit }: { p: Project; onEdit?: () => void }) {
+  const { t } = useLexicon();
   const rows = financialsOverview(p, { years: 10, funded: true });
   const tot = rows.reduce((a, r) => ({ revM: a.revM + r.revM, marginM: a.marginM + r.marginM, rdK: a.rdK + r.rdK }), { revM: 0, marginM: 0, rdK: 0 });
   return (
     <div className="mt-3 border-t border-slate-800 pt-3">
       <div className="flex items-center justify-between gap-2">
-        <div className="text-[10px] uppercase tracking-wider text-slate-500">Project Financials Overview · 10-yr (Revenue · Margin · R&D)</div>
+        <div className="text-[10px] uppercase tracking-wider text-slate-500">{t("soi2525.project_financials_overview")}</div>
         {/* F2 — one-tap financial edit access from the Financials Overview header (opens the shared source editor). */}
         {onEdit && (
-          <button onClick={onEdit} title="Edit financials — opens S10, the single source of truth, with its source panel expanded" aria-label="Edit financials"
+          <button onClick={onEdit} title={t("soi2525.edit_financials_s10")} aria-label={t("soi2525.edit_financials")}
             className="shrink-0 rounded border border-cyan-500/40 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-300 hover:bg-cyan-500/10">✎ Financials</button>
         )}
       </div>
@@ -2165,12 +2171,13 @@ function FinancialsOverviewTable({ p, onEdit }: { p: Project; onEdit?: () => voi
 // Risk-weighted revenue split — green (probability-weighted REV) + orange (at-risk upside),
 // the exact Growth-Model color scheme (grey/green/orange) applied at the project level.
 function RiskWeightedBar({ p }: { p: Project }) {
+  const { t } = useLexicon();
   const inc = incrementalRevM(p), wt = weightedRevM(p), up = Math.max(0, inc - wt);
   const wPct = inc > 0 ? (wt / inc) * 100 : 0;
   return (
     <div className="mt-3">
       <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-slate-500">
-        <span>Risk-weighted revenue</span><span className="text-slate-400 tabular-nums">{usd(inc)} incremental</span>
+        <span>{t("soi2525.risk_weighted_revenue")}</span><span className="text-slate-400 tabular-nums">{usd(inc)} incremental</span>
       </div>
       <div className="mt-1 flex h-4 overflow-hidden rounded bg-[#0b0f14]">
         <span className="bg-[#34d399]" style={{ width: `${wPct}%` }} title={`Probability-weighted ${usd(wt)}`} />
@@ -2424,7 +2431,7 @@ function DogTag({ p, onEditFinancials, showType, slide }: {
           </button>}
           {/* F2 — one-tap financial edit access from the dog tag (opens the shared Rev-Plan source editor). */}
           {onEditFinancials && (
-            <button onClick={onEditFinancials} title="Edit financials — opens the Revenue Plan source editor" aria-label="Edit financials"
+            <button onClick={onEditFinancials} title={t("soi2525.edit_financials_revenue_plan")} aria-label={t("soi2525.edit_financials")}
               className="rounded border border-cyan-500/40 px-1 text-[8px] font-semibold uppercase tracking-wider text-cyan-300 hover:bg-cyan-500/10">✎ Financials</button>
           )}
         </div>
@@ -2512,7 +2519,7 @@ function TeamRoles({ projectId, members, me, onChange }: { projectId: string; me
       {canManage ? (
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <input value={newRef} onChange={(e) => setNewRef(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addMember()} placeholder={t("innovation.team.refPlaceholder")} aria-label={t("innovation.team.add")} className={`${sel} min-w-0 flex-1`} />
-          <select value={newRole} aria-label="New member role" onChange={(e) => setNewRole(e.target.value as ProjectRole)} className={sel}>
+          <select value={newRole} aria-label={t("soi2525.new_member_role")} onChange={(e) => setNewRole(e.target.value as ProjectRole)} className={sel}>
             {PROJECT_ROLES.map((r) => <option key={r} value={r}>{t(`innovation.role.${r}`)}</option>)}
           </select>
           <button onClick={addMember} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/20">＋ {t("innovation.team.add")}</button>
@@ -2673,7 +2680,7 @@ function TemplateModal({ onClose }: { onClose: () => void }) {
   const { t } = useLexicon();
   const closeRef = useModalDismiss(onClose);
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label="R-Core Project Template">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label={t("soi2525.rcore_project_template")}>
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col rounded-xl border border-slate-800 bg-[#0e141b]" onClick={(e) => e.stopPropagation()}>
         <div className="flex shrink-0 items-center justify-between border-b border-slate-800 px-4 py-2.5">
           <h2 className="text-sm font-semibold text-slate-100">{t("innovation.header.template")}</h2>
@@ -2721,19 +2728,19 @@ function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; val
           <h2 className="text-sm font-semibold">{t("innovation.newidea.title")} <span className="ml-1 rounded bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-violet-300">웃 HI</span></h2>
           <button ref={closeRef} onClick={onClose} aria-label={t("innovation.template.close")} title={t("innovation.template.close")} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">✕</button>
         </div>
-        <p className="mt-1 text-[11px] text-slate-500">Author the best-in-class <b className="text-slate-300">human (HI)</b> value proposition. On submit, an <b className="text-cyan-300">AI (◬) rendition</b> is minted so improvement ideas surface via the HI⇄AI toggle. It&apos;s how Innovation, Business, and BD/Sales align from day one.</p>
+        <p className="mt-1 text-[11px] text-slate-500">{t("soi2525.newidea_author_best_in_class")} <b className="text-slate-300">human (HI)</b> {t("soi2525.newidea_value_prop_on_submit")} <b className="text-cyan-300">AI (◬) rendition</b> {t("soi2525.newidea_minted_surface")}</p>
 
-        <label className="mt-4 block text-[11px] uppercase tracking-wider text-slate-400">Project name</label>
-        <input value={name} autoFocus onChange={(e) => setName(e.target.value)} placeholder="e.g. Next-Gen ISR Sensor" className={`mt-1 ${inp}`} />
+        <label className="mt-4 block text-[11px] uppercase tracking-wider text-slate-400">{t("soi2525.project_name")}</label>
+        <input value={name} autoFocus onChange={(e) => setName(e.target.value)} placeholder={t("soi2525.project_name_placeholder")} className={`mt-1 ${inp}`} />
 
-        <label className="mt-3 block text-[11px] uppercase tracking-wider text-slate-400">Master value proposition <span className="text-rose-400">· required · HI</span></label>
+        <label className="mt-3 block text-[11px] uppercase tracking-wider text-slate-400">{t("soi2525.master_value_proposition")} <span className="text-rose-400">· required · HI</span></label>
         <textarea value={valueProp} onChange={(e) => setValueProp(e.target.value)} rows={3}
-          placeholder="For [customer] who [need], [product] is a [category] that [key benefit / quantified value]." className={`mt-1 resize-y ${inp}`} />
+          placeholder={t("soi2525.master_value_prop_placeholder")} className={`mt-1 resize-y ${inp}`} />
 
-        <label className="mt-3 block text-[11px] uppercase tracking-wider text-slate-400">Next Best Alternative (NBA) <span className="text-rose-400">· required</span></label>
+        <label className="mt-3 block text-[11px] uppercase tracking-wider text-slate-400">{t("soi2525.next_best_alternative_nba")} <span className="text-rose-400">· required</span></label>
         <textarea value={nba} onChange={(e) => setNba(e.target.value)} rows={2}
-          placeholder="The current competitive alternative or As-Is solution the customer uses today — what we must beat." className={`mt-1 resize-y ${inp}`} />
-        <p className="mt-1 text-[10px] text-slate-500">Understand customer needs <em>versus the Next Best Alternative</em> — the As-Is / competitive option the value prop must out-perform.</p>
+          placeholder={t("soi2525.nba_placeholder")} className={`mt-1 resize-y ${inp}`} />
+        <p className="mt-1 text-[10px] text-slate-500">{t("soi2525.understand_customer_needs")} <em>{t("soi2525.versus_the_nba")}</em> {t("soi2525.as_is_competitive_option")}</p>
 
         {/* Value Equation — the primary authoring path: score each differentiator vs the NBA, then generate. */}
         <div className="mt-3">
@@ -2741,21 +2748,21 @@ function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; val
         </div>
 
         <div className="mt-3 flex items-center justify-between">
-          <label className="text-[11px] uppercase tracking-wider text-slate-400">Per-segment value props <span className="text-slate-500">· recommended</span></label>
-          <button onClick={() => setSegments((s) => [...s, { segment: "", prop: "" }])} className="rounded bg-cyan-500/90 px-2 py-0.5 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">+ Add segment</button>
+          <label className="text-[11px] uppercase tracking-wider text-slate-400">{t("soi2525.per_segment_value_props")} <span className="text-slate-500">· recommended</span></label>
+          <button onClick={() => setSegments((s) => [...s, { segment: "", prop: "" }])} className="rounded bg-cyan-500/90 px-2 py-0.5 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">{t("soi2525.add_segment")}</button>
         </div>
         <div className="mt-1.5 space-y-1.5">
-          {segments.length === 0 && <p className="text-[11px] text-slate-600">Add a value prop per needs-based segment (e.g. by mission, buyer, or use case) — recommended for stronger BD/Sales targeting.</p>}
+          {segments.length === 0 && <p className="text-[11px] text-slate-600">{t("soi2525.add_value_prop_per_segment")}</p>}
           <datalist id="seg-library">{segLib.map((sg) => <option key={sg} value={sg} />)}</datalist>
           {segments.map((s, i) => (
             <div key={i} className="rounded-lg border border-slate-800 p-1.5">
               <div className="flex gap-1.5">
-                <input list="seg-library" value={s.segment} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, segment: e.target.value } : x))} placeholder="Segment (from library or new)" className={`w-40 shrink-0 ${inp} py-1.5 text-xs`} />
-                <input value={s.prop} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, prop: e.target.value } : x))} placeholder="Value prop for this segment" className={`flex-1 ${inp} py-1.5 text-xs`} />
+                <input list="seg-library" value={s.segment} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, segment: e.target.value } : x))} placeholder={t("soi2525.segment_from_library")} className={`w-40 shrink-0 ${inp} py-1.5 text-xs`} />
+                <input value={s.prop} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, prop: e.target.value } : x))} placeholder={t("soi2525.value_prop_for_segment")} className={`flex-1 ${inp} py-1.5 text-xs`} />
                 <select value={s.confidence ?? ""} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, confidence: (e.target.value ? Number(e.target.value) : undefined) as SegmentValueProp["confidence"] } : x))} title={t("innovation.seg.confidence")} className={`w-14 shrink-0 ${inp} py-1.5 text-xs`}>
                   <option value="">c?</option>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>c{n}</option>)}
                 </select>
-                <button onClick={() => setSegments((a) => a.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Remove">✕</button>
+                <button onClick={() => setSegments((a) => a.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title={t("soi2525.remove")}>✕</button>
               </div>
               <div className="mt-1 flex gap-1.5">
                 <input value={s.pain ?? ""} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, pain: e.target.value } : x))} placeholder={t("innovation.seg.pain")} className={`flex-1 ${inp} py-1 text-[11px]`} />
@@ -2765,14 +2772,14 @@ function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; val
           ))}
         </div>
 
-        <p className="mt-3 rounded-lg border border-slate-800 bg-[#0b0f14] px-3 py-2 text-[10px] leading-snug text-slate-500">Customer Pain Points and the Customer Problem Statement are early-Concept (G1) Market-Needs deliverables — a <b className="text-slate-400">separate recommended workflow</b>, not required to submit a value proposition here.</p>
+        <p className="mt-3 rounded-lg border border-slate-800 bg-[#0b0f14] px-3 py-2 text-[10px] leading-snug text-slate-500">{t("soi2525.customer_pain_points_g1")} <b className="text-slate-400">{t("soi2525.separate_recommended_workflow")}</b>{t("soi2525.not_required_to_submit")}</p>
 
         <div className="mt-5 flex items-center justify-end gap-2">
           <button onClick={onClose} className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">Cancel</button>
           <button onClick={() => canCreate && onCreate({ name, valueProp, nba, segments, drivers })} disabled={!canCreate}
-            className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-40">Create project</button>
+            className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-40">{t("soi2525.create_project")}</button>
         </div>
-        {!canCreate && <p className="mt-1.5 text-right text-[10px] text-slate-500">Name + master value proposition + Next Best Alternative required.</p>}
+        {!canCreate && <p className="mt-1.5 text-right text-[10px] text-slate-500">{t("soi2525.create_project_required")}</p>}
       </div>
     </div>
   );
@@ -2873,7 +2880,7 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
         <div className="flex flex-wrap gap-x-6 gap-y-1 px-4 py-2 text-[11px] text-slate-400 border-b border-slate-800">
           <span>Total R&amp;D spend <b className="tabular-nums text-slate-200">{k(tot.spendK)}</b></span>
           <span>Funded <b className="tabular-nums text-emerald-400">{k(tot.fundedK)}</b> · {tot.funded}/{tot.n}</span>
-          <span>Not funded <b className="tabular-nums text-rose-400">{k(tot.unfundedK)}</b> · {tot.n - tot.funded}</span>
+          <span>{t("soi2525.not_funded")} <b className="tabular-nums text-rose-400">{k(tot.unfundedK)}</b> · {tot.n - tot.funded}</span>
           <span>{t("innovation.budget.riskAdjSpend")} <b className="tabular-nums text-amber-300">{k(tot.riskAdjK)}</b></span>
         </div>
         {/* Real-time decision core — funding buckets at the selected level: each node × {funded, unfunded}.
@@ -2889,8 +2896,8 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
               <div className="mt-1 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
                 <span className="text-slate-500">NRE</span><span className="text-right tabular-nums text-slate-200">{k(a.nreK)}</span>
                 <span className="text-slate-500">NPV</span><span className={`text-right tabular-nums ${a.npvM >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{usd(a.npvM)}</span>
-                <span className="text-slate-500">P-wt rev</span><span className="text-right tabular-nums text-slate-300">{usd(a.pwRevM)}</span>
-                <span className="text-slate-500" title="Live burn — NRE spread across the program schedule">$/{CADENCE_UNIT[cadence].short}</span><span className="text-right tabular-nums text-amber-300">{fmtPerCadence(a.perMinUsd, cadence)}</span>
+                <span className="text-slate-500">{t("soi2525.pwt_rev_lower")}</span><span className="text-right tabular-nums text-slate-300">{usd(a.pwRevM)}</span>
+                <span className="text-slate-500" title={t("soi2525.live_burn_nre_schedule")}>$/{CADENCE_UNIT[cadence].short}</span><span className="text-right tabular-nums text-amber-300">{fmtPerCadence(a.perMinUsd, cadence)}</span>
               </div>
             </div>
           );
@@ -2947,7 +2954,7 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
             <div className="border-b border-slate-800 px-4 py-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-[10px] uppercase tracking-wider text-slate-500">Funding buckets · {levelLabel} · above the line = FUNDED · below = NOT FUNDED · live $/{CADENCE_UNIT[cadence].short} burn</span>
-                <span className="text-[10px] text-slate-500">a project sits in one bucket, set by the funding line</span>
+                <span className="text-[10px] text-slate-500">{t("soi2525.project_sits_one_bucket")}</span>
               </div>
               {/* Funded cards above the line, unfunded below — one reusable divider (R-Core) carries the
                   symmetric ▲ Above · Funded / ▼ Below · Not funded labels, identical to the rack. */}
@@ -3004,7 +3011,7 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
                         {head.kind === "over"
                           ? (<><span className="text-rose-400">{t("innovation.alloc.over")}</span><span className="text-right tabular-nums text-rose-300">{k(head.k)}</span></>)
                           : (<><span className="text-cyan-400">◆ {t("innovation.alloc.upside")}</span><span className="text-right tabular-nums text-cyan-300">{k(head.k)}</span></>)}
-                        <span className="text-slate-500" title="Live burn of the funded projects at this node">$/{CADENCE_UNIT[cadence].short}</span><span className="text-right tabular-nums text-amber-300">{fmtPerCadence(n.perMinUsd, cadence)}</span>
+                        <span className="text-slate-500" title={t("soi2525.live_burn_funded_node")}>$/{CADENCE_UNIT[cadence].short}</span><span className="text-right tabular-nums text-amber-300">{fmtPerCadence(n.perMinUsd, cadence)}</span>
                       </div>
                     </div>
                   );
@@ -3022,11 +3029,11 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
                 <th className="px-2 py-2 text-center">Projects</th>
                 <th className="px-2 py-2 text-right">Spend (R&amp;D)</th>
                 <th className="px-2 py-2 text-right">Funded</th>
-                <th className="px-2 py-2 text-right">Not funded</th>
+                <th className="px-2 py-2 text-right">{t("soi2525.not_funded")}</th>
                 <th className="px-2 py-2 text-right">NPV</th>
-                <th className="px-2 py-2 text-right" title="Unfunded NPV at risk (below the funding line)">@Risk</th>
-                <th className="px-2 py-2 text-right" title="Value density — NPV $M per R&amp;D $M">Val/$</th>
-                <th className="px-2 py-2 text-right">P-wt Rev</th>
+                <th className="px-2 py-2 text-right" title={t("soi2525.unfunded_npv_at_risk")}>@Risk</th>
+                <th className="px-2 py-2 text-right" title={t("soi2525.value_density_npv_rd")}>Val/$</th>
+                <th className="px-2 py-2 text-right">{t("soi2525.pwt_rev")}</th>
               </tr>
             </thead>
             <tbody>
@@ -3063,7 +3070,7 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
                           <td className="px-2 py-1 text-right text-[10px] uppercase tracking-wider" colSpan={2}><span className={isFunded ? "text-emerald-400" : "text-rose-400"}>{isFunded ? "funded" : "not funded"}</span></td>
                           <td className="px-2 py-1 text-right tabular-nums text-slate-300">{usd(npvM(p))}</td>
                           <td className="px-2 py-1 text-right tabular-nums text-rose-400/70">{isFunded ? "" : usd(npvM(p))}</td>
-                          <td className="px-2 py-1 text-right tabular-nums text-amber-300/70" title="Cost per served buyer-segment">{k(costPerServedBuyerOf(p, Math.max(1, p.segmentValueProps?.length ?? 1)) / 1000)}</td>
+                          <td className="px-2 py-1 text-right tabular-nums text-amber-300/70" title={t("soi2525.cost_per_served_buyer")}>{k(costPerServedBuyerOf(p, Math.max(1, p.segmentValueProps?.length ?? 1)) / 1000)}</td>
                           <td className="px-2 py-1 text-right tabular-nums text-slate-400">{usd(weightedRevM(p))}</td>
                         </tr>
                       );
@@ -3074,7 +3081,7 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
             </tbody>
           </table>
         </div>
-        <p className="px-4 py-2 text-[10px] text-slate-500 border-t border-slate-800">Funded vs not-funded is set by the global funding line (Σ R&amp;D ≤ available). Balance budgets by reprioritizing the stack — unfunded projects fall below the line.</p>
+        <p className="px-4 py-2 text-[10px] text-slate-500 border-t border-slate-800">{t("soi2525.funded_vs_notfunded_note")}</p>
       </div>
     </div>
   );
@@ -3170,12 +3177,12 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
           and per-needs-segment props (recommended). AI rendition is minted at submission. */}
       <div className={veqMax ? "fixed inset-0 z-[55] overflow-y-auto bg-[#0b0f14] p-4 sm:p-6" : "mb-3 rounded-lg border border-cyan-500/20 bg-[#0b0f14] p-3"}>
         <div className="flex items-center justify-between gap-2">
-          <div className="text-[10px] uppercase tracking-wider text-cyan-400">Value proposition</div>
+          <div className="text-[10px] uppercase tracking-wider text-cyan-400">{t("soi2525.value_proposition")}</div>
           <div className="flex items-center gap-2">
           {/* G1b — full-screen / minimize the whole Value Proposition card (Celestial-2525-style) */}
           <button onClick={() => setVeqMax((v) => !v)} title={veqMax ? "Minimize" : "Full screen"} aria-label={veqMax ? "Minimize value proposition" : "Full screen value proposition"}
             className="rounded border border-slate-700 px-1.5 py-0.5 text-[13px] leading-none text-slate-300 hover:bg-slate-800">{veqMax ? "⤡" : "⤢"}</button>
-          <div className="flex overflow-hidden rounded-md border border-slate-700 text-[10px]" title="Toggle the best-in-class human (HI) version vs the AI-generated rendition">
+          <div className="flex overflow-hidden rounded-md border border-slate-700 text-[10px]" title={t("soi2525.toggle_hi_ai_version")}>
             {(["HI", "AI"] as const).map((v) => (
               <button key={v} onClick={() => setVpView(v)}
                 className={`px-2 py-0.5 font-semibold ${vpView === v ? (v === "HI" ? "bg-violet-500 text-white" : "bg-cyan-500 text-[#06202a]") : "text-slate-400 hover:bg-slate-800"}`}>
@@ -3186,11 +3193,11 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
           </div>
         </div>
         <p className="mt-1 text-[12px] leading-snug text-slate-200">{vpView === "AI" ? aiValuePropOf(p) : valuePropOf(p)}</p>
-        {vpView === "AI" && <p className="mt-1 text-[9px] uppercase tracking-wider text-cyan-500/70">AI rendition · authored to spark improvement of the human version</p>}
+        {vpView === "AI" && <p className="mt-1 text-[9px] uppercase tracking-wider text-cyan-500/70">{t("soi2525.ai_rendition_note")}</p>}
         {/* Next Best Alternative — the current competitive alternative / As-Is solution to beat */}
         <div className="mt-2 flex items-center justify-between gap-2 rounded border border-amber-500/20 bg-amber-500/[0.04] px-2 py-1.5">
           <div>
-            <span className="text-[9px] uppercase tracking-wider text-amber-400/90">Next Best Alternative</span>
+            <span className="text-[9px] uppercase tracking-wider text-amber-400/90">{t("soi2525.next_best_alternative")}</span>
             <p className="text-[11px] leading-snug text-slate-300">{nbaOf(p)}</p>
           </div>
           <span className="shrink-0 rounded border border-amber-500/40 px-2 py-0.5 text-[10px] font-medium text-amber-300">◇ {t("innovation.veq.title")}</span>
@@ -3210,10 +3217,10 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
             drivers={veqDrivers} onChange={setVeqDrivers} nbaLabel={nbaOf(p)} addressableRevM={incrementalRevM(p)}
           />
           <div className="mt-1.5 flex items-center justify-between gap-2">
-            <span className="text-[9px] text-slate-500">Exploring — S8 is where the value proposition is saved.</span>
-            <button onClick={() => setVpDeck(true)} title="Open S8 with the value-proposition editor expanded"
+            <span className="text-[9px] text-slate-500">{t("soi2525.exploring_s8_saved")}</span>
+            <button onClick={() => setVpDeck(true)} title={t("soi2525.open_s8_valueprop_editor")}
               className="rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300 hover:bg-emerald-500/20">
-              <span aria-hidden>◈</span> Edit on S8 <span aria-hidden>→</span>
+              <span aria-hidden>◈</span> {t("soi2525.edit_on_s8")} <span aria-hidden>→</span>
             </button>
           </div>
         </div>
@@ -3228,7 +3235,7 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
             ))}
           </ul>
         ) : (
-          <p className="mt-1.5 text-[10px] text-slate-500">Recommended: add per-needs-based-segment value props to sharpen BD/Sales targeting.</p>
+          <p className="mt-1.5 text-[10px] text-slate-500">{t("soi2525.recommend_segment_valueprops")}</p>
         )}
       </div>
       <div className="flex items-start justify-between">
@@ -3237,8 +3244,8 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
           <div className="text-[11px] text-slate-500">{p.division} · {p.manager} · {GATE_STAGE[p.gate]} ({p.gate}) · 1st rev {p.firstRevenue}</div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowExec((s) => !s)} title="Expandable executive slide (2-screen swipe overview)"
-            className={`rounded border px-2 py-0.5 text-[11px] ${showExec ? "border-cyan-500 bg-cyan-500/10 text-cyan-300" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>▤ Exec slide</button>
+          <button onClick={() => setShowExec((s) => !s)} title={t("soi2525.expandable_exec_slide")}
+            className={`rounded border px-2 py-0.5 text-[11px] ${showExec ? "border-cyan-500 bg-cyan-500/10 text-cyan-300" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>{t("soi2525.exec_slide")}</button>
           <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-mono text-amber-300">±{Math.round(band * 100)}% band</span>
           {/* Maximize/restore moved to the upper-right of the dog-tag row (operator). */}
         </div>
@@ -3248,12 +3255,12 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
       <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
         <button onClick={() => setEditing((e) => !e)} className={`rounded border px-2 py-0.5 ${editing ? "border-cyan-500 text-cyan-300 bg-cyan-500/10" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>{editing ? "✕ Cancel" : "✎ Edit"}</button>
         {editing && <button onClick={saveEdit} className="inline-flex items-center gap-1 rounded bg-cyan-500 px-2 py-0.5 font-semibold text-[#06202a] hover:bg-cyan-400"><Save className="h-3 w-3" aria-hidden /> Save</button>}
-        <span className="ml-auto text-[10px] uppercase tracking-wider text-slate-500">Gate approval:</span>
+        <span className="ml-auto text-[10px] uppercase tracking-wider text-slate-500">{t("soi2525.gate_approval")}</span>
         {([["◬", "AI"], ["♡", "SI"], ["웃", "HI"]] as const).map(([g, by]) => (
           <button key={by} onClick={() => onApprove("approve", `${g} ${by}`)} title={`Approve as ${by}`}
             className="rounded border border-emerald-600/40 px-1.5 py-0.5 text-emerald-300 hover:bg-emerald-500/10">{g} approve</button>
         ))}
-        <button onClick={() => onApprove("reject", "you")} className="rounded border border-rose-600/40 px-1.5 py-0.5 text-rose-300 hover:bg-rose-500/10">Request changes</button>
+        <button onClick={() => onApprove("reject", "you")} className="rounded border border-rose-600/40 px-1.5 py-0.5 text-rose-300 hover:bg-rose-500/10">{t("soi2525.request_changes")}</button>
       </div>
 
       {/* Expandable executive slide — 2-screen swipe overview (AMTS best-in-class one-pager) */}
@@ -3290,7 +3297,7 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
                   className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-300 hover:bg-cyan-500/20">
                   ✎ {SOURCE_LABEL.S10}
                 </button>
-                <span className="ml-2">These three are totals of the S10 grid — change them there and every surface follows.</span>
+                <span className="ml-2">{t("soi2525.three_totals_s10_grid")}</span>
               </label>
             </>);
           })()}
@@ -3311,8 +3318,8 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
                 : <span className="mt-0.5 block text-[9px] text-amber-400/90">S10 forecasts {r.filled} of the {r.need} years {GATE_STAGE[g]} needs — missing {r.missing.map((y) => yearLabel(y)).join(", ")}.</span>;
             })()}
           </label>
-          <label>Tech Risk<select value={dv("tech")} onChange={(e) => setD("tech", e.target.value as Project["tech"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
-          <label>Comm Risk<select value={dv("comm")} onChange={(e) => setD("comm", e.target.value as Project["comm"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
+          <label>{t("soi2525.tech_risk")}<select value={dv("tech")} onChange={(e) => setD("tech", e.target.value as Project["tech"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
+          <label>{t("soi2525.comm_risk")}<select value={dv("comm")} onChange={(e) => setD("comm", e.target.value as Project["comm"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
           {/* Master-data dropdowns — options come from Business Setup (BU/SBU/Alpha…) + pillars */}
           <label className="col-span-2 sm:col-span-3">Strategic Pillar
             <select value={dv("initiative") ?? metaOf(p).initiative} onChange={(e) => setD("initiative", e.target.value)} className={`mt-0.5 block w-full ${editStyle}`}>
@@ -3350,7 +3357,7 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
       </div>
       {/* Live crowd-sourced risk rollup for this project */}
       <div className="mt-2 flex items-center gap-2 text-[11px]">
-        <span className="text-slate-500">Risk register:</span>
+        <span className="text-slate-500">{t("soi2525.risk_register_label")}</span>
         <span className="text-slate-300">{roll.count} risk{roll.count === 1 ? "" : "s"}</span>
         <span className="text-slate-600">·</span>
         <span className={roll.open ? "text-rose-300" : "text-emerald-300"}>{roll.open} open</span>
@@ -3366,11 +3373,11 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
       </div>
       {/* Meta Data (FLIR §2.1 / IMG_7843): Strategic Initiative · Value Ladder · Target Market · Competitive */}
       <div className="mt-3 flex flex-wrap gap-1.5 text-[10px]">
-        <span className="rounded border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-cyan-300" title="Strategic Initiative">◎ {meta.initiative}</span>
-        <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title="Value Ladder position">▦ {meta.valueLadder}</span>
-        <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title="Value Ladder impact">↗ {meta.valueImpact}</span>
-        <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title="Competitive position">⚑ {meta.competitive}</span>
-        <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title="Target market">◈ {meta.targetMarket}</span>
+        <span className="rounded border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-cyan-300" title={t("soi2525.strategic_initiative")}>◎ {meta.initiative}</span>
+        <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title={t("soi2525.value_ladder_position")}>▦ {meta.valueLadder}</span>
+        <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title={t("soi2525.value_ladder_impact")}>↗ {meta.valueImpact}</span>
+        <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title={t("soi2525.competitive_position")}>⚑ {meta.competitive}</span>
+        <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title={t("soi2525.target_market")}>◈ {meta.targetMarket}</span>
       </div>
       {/* Project Metrics — full FLIR card set (§2.4 / IMG_7843) + Quantity & COGS */}
       <div className="mt-3 text-[10px] uppercase tracking-wider text-slate-500">Project Metrics · {metrics.length}-metric set</div>
@@ -3382,7 +3389,7 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
           </div>
         ))}
       </div>
-      <p className="mt-1 text-[10px] text-slate-500">Payback &amp; IRR are model estimates · NPV discounted ~5%/yr over 10 yr · margins post-overhead — confirm with Finance before gate sign-off.</p>
+      <p className="mt-1 text-[10px] text-slate-500">{t("soi2525.payback_irr_estimates")}</p>
       {/* Risk-weighted revenue — green (probability-weighted) + orange (at-risk upside) per deck */}
       <RiskWeightedBar p={p} />
       {/* Per-project financial projection — aging line decline + new-product ramp (operator methodology) */}
@@ -3392,8 +3399,8 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
       {/* AMTS Product-Management-Summary exec fields — Functional Leads · COGS/MSRP/Margin · Customer */}
       <div className="mt-3 border-t border-slate-800 pt-3 text-[11px]">
         <div className="grid grid-cols-3 gap-1.5">
-          <div><div className="text-[10px] uppercase tracking-wider text-slate-500">Product Mgr</div><div className="text-slate-200">{ex.productMgr}</div></div>
-          <div><div className="text-[10px] uppercase tracking-wider text-slate-500">Project Eng</div><div className="text-slate-200">{ex.projectEng}</div></div>
+          <div><div className="text-[10px] uppercase tracking-wider text-slate-500">{t("soi2525.product_mgr")}</div><div className="text-slate-200">{ex.productMgr}</div></div>
+          <div><div className="text-[10px] uppercase tracking-wider text-slate-500">{t("soi2525.project_eng")}</div><div className="text-slate-200">{ex.projectEng}</div></div>
           <div><div className="text-[10px] uppercase tracking-wider text-slate-500">BD / Sales</div><div className="text-slate-200">{ex.bdLead}</div></div>
         </div>
         <div className="mt-2 grid grid-cols-4 gap-2">
@@ -3480,7 +3487,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
           <div className="mt-1 text-[11px] text-slate-500">{h.bu} › {h.sbu} › {h.pgroup} · {ex.customer} · {GATE_STAGE[p.gate]} ({p.gate})</div>
         </div>
         <div className="flex items-start gap-4 text-right">
-          <div><div className="text-[9px] uppercase tracking-wider text-slate-500">1st Rev</div><div className="text-xs font-mono text-slate-200">{p.firstRevenue}</div></div>
+          <div><div className="text-[9px] uppercase tracking-wider text-slate-500">{t("soi2525.first_rev")}</div><div className="text-xs font-mono text-slate-200">{p.firstRevenue}</div></div>
           <div><div className="text-[9px] uppercase tracking-wider text-slate-500">3-Yr NPV</div><div className="text-xs font-mono text-emerald-400">{usd(fm.npvM)}</div></div>
           <div><div className="text-[9px] uppercase tracking-wider text-slate-500">IRR</div><div className="text-xs font-mono text-slate-200">{fm.irrPct}%</div></div>
           <button onClick={() => setCustReady((v) => !v)} title={t("innovation.exec.internalHidden")}
@@ -3500,16 +3507,16 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
 
       {/* Two-screen swipe carousel — touch swipe + ← → keyboard (a11y), ARIA carousel semantics */}
       <div className="mt-3 overflow-hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
-        role="group" aria-roledescription="carousel" aria-label="Executive slide — overview and detail"
+        role="group" aria-roledescription="carousel" aria-label={t("soi2525.exec_slide_carousel")}
         tabIndex={0}
         onKeyDown={(e) => { if (e.key === "ArrowRight") { go(screen + 1); e.preventDefault(); } else if (e.key === "ArrowLeft") { go(screen - 1); e.preventDefault(); } }}>
         <div className="flex transition-transform duration-300 ease-out" style={{ width: "300%", transform: `translateX(-${screen * (100 / 3)}%)` }}>
           {/* ── Screen ① OVERVIEW ─────────────────────────────────────────────── */}
-          <div className="w-1/3 shrink-0 pr-1.5" role="group" aria-roledescription="slide" aria-label="① Overview" aria-hidden={screen !== 0}>
+          <div className="w-1/3 shrink-0 pr-1.5" role="group" aria-roledescription="slide" aria-label={t("soi2525.slide_overview")} aria-hidden={screen !== 0}>
             <div className="grid gap-3 sm:grid-cols-2">
               {/* Project Overview — the two-bullet summary (the flagship "two bullet") */}
               <div className="space-y-1.5">
-                <SectionTitle>Project Overview</SectionTitle>
+                <SectionTitle>{t("soi2525.project_overview")}</SectionTitle>
                 <ul className="space-y-2">
                   {bullets.map((b, i) => (
                     <li key={i} className="flex gap-2 text-[12px] leading-snug text-slate-200">
@@ -3521,7 +3528,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
               </div>
               {/* Product Strategy / Value Proposition */}
               <div className="space-y-1.5">
-                <SectionTitle>Strategy · Value Proposition</SectionTitle>
+                <SectionTitle>{t("soi2525.strategy_value_proposition")}</SectionTitle>
                 <div className="flex flex-wrap gap-1.5 text-[10px]">
                   <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300">▦ {m.valueLadder}</span>
                   <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300">↗ {m.valueImpact}</span>
@@ -3533,7 +3540,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
               </div>
               {/* Market Opportunity — customer + franchise pursuits */}
               <div className="space-y-1.5">
-                <SectionTitle>Market Opportunity</SectionTitle>
+                <SectionTitle>{t("soi2525.market_opportunity")}</SectionTitle>
                 <div className="text-[11px] text-slate-400">Customer / PoR · <span className="text-cyan-300">{ex.customer}</span> · target {m.targetMarket}</div>
                 <ul className="space-y-0.5">
                   {ex.pursuits.map((pu) => (
@@ -3546,11 +3553,11 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
               </div>
               {/* Portfolio Positioning — margin + risk-weighted capture */}
               <div className="space-y-1.5">
-                <SectionTitle>Portfolio Positioning</SectionTitle>
+                <SectionTitle>{t("soi2525.portfolio_positioning")}</SectionTitle>
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">Gross margin</div><div className="font-mono tabular-nums text-emerald-400">{ex.marginPct}%</div></div>
-                  <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">Rev captured</div><div className="font-mono tabular-nums text-slate-200">{captured}%</div></div>
-                  <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">10-Yr revenue</div><div className="font-mono tabular-nums text-slate-200">{usd(fm.rev10yM)}</div></div>
+                  <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">{t("soi2525.gross_margin")}</div><div className="font-mono tabular-nums text-emerald-400">{ex.marginPct}%</div></div>
+                  <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">{t("soi2525.rev_captured")}</div><div className="font-mono tabular-nums text-slate-200">{captured}%</div></div>
+                  <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">{t("soi2525.ten_yr_revenue")}</div><div className="font-mono tabular-nums text-slate-200">{usd(fm.rev10yM)}</div></div>
                   <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">Payback</div><div className="font-mono tabular-nums text-slate-200">{payb(fm.paybackYears)}</div></div>
                 </div>
               </div>
@@ -3569,7 +3576,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
           </div>
 
           {/* ── Screen ② DETAIL ───────────────────────────────────────────────── */}
-          <div className="w-1/3 shrink-0 px-1.5" role="group" aria-roledescription="slide" aria-label="② Detail" aria-hidden={screen !== 1}>
+          <div className="w-1/3 shrink-0 px-1.5" role="group" aria-roledescription="slide" aria-label={t("soi2525.slide_detail")} aria-hidden={screen !== 1}>
             <div className="grid gap-3 sm:grid-cols-2">
               {/* Objectives — near-term + beyond, from outcomes */}
               <div className="space-y-1.5">
@@ -3582,10 +3589,10 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
               {/* Dependencies — intra-BU + declared/acknowledged counts */}
               <div className="space-y-1.5">
                 <SectionTitle>Dependencies</SectionTitle>
-                <div className="text-[11px] text-slate-400">Depends on <span className="text-slate-200">{deps.length}</span> · relied on by <span className="text-slate-200">{dependents.length}</span></div>
+                <div className="text-[11px] text-slate-400">{t("soi2525.depends_on")} <span className="text-slate-200">{deps.length}</span> {t("soi2525.relied_on_by")} <span className="text-slate-200">{dependents.length}</span></div>
                 <ul className="space-y-0.5">
                   {ex.intraDeps.map((d) => <li key={d} className="text-[11px] leading-snug text-slate-300">· {d}</li>)}
-                  {deps.some((e) => e.critical) && <li className="text-[11px] text-rose-300">· ⚠ on the critical path</li>}
+                  {deps.some((e) => e.critical) && <li className="text-[11px] text-rose-300">{t("soi2525.on_critical_path")}</li>}
                 </ul>
               </div>
               {/* Critical Issues & Risks — internal; hidden in customer-ready (external) mode */}
@@ -3593,9 +3600,9 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
                 <div className="sm:col-span-2 rounded-lg border border-slate-800 bg-[#0b0f14] p-2 text-[10px] text-slate-500">{t("innovation.exec.internalHidden")}</div>
               ) : (<>
               <div className="space-y-1.5">
-                <SectionTitle>Critical Issues &amp; Risks</SectionTitle>
+                <SectionTitle>{t("soi2525.critical_issues_risks")}</SectionTitle>
                 {myRisks.length === 0 ? (
-                  <p className="text-[11px] text-slate-500">No risks logged — raise one in the Risk Register below.</p>
+                  <p className="text-[11px] text-slate-500">{t("soi2525.no_risks_logged")}</p>
                 ) : (
                   <ul className="space-y-1">
                     {myRisks.slice(0, 4).map((r) => {
@@ -3615,7 +3622,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
               </div>
               {/* Project Cost — R&D actuals vs forecast (mini bar series) */}
               <div className="space-y-1.5">
-                <SectionTitle>Cost · R&amp;D Actuals vs Forecast</SectionTitle>
+                <SectionTitle>{t("soi2525.cost_rd_actuals_forecast")}</SectionTitle>
                 <div className="flex items-end gap-1" style={{ height: 56 }}>
                   {fin.map((f, i) => (
                     <div key={f.year} className="flex flex-1 flex-col items-center justify-end gap-0.5">
@@ -3635,7 +3642,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
           </div>
 
           {/* ── Screen ③ BD PIPELINE (Slice 6) — per-segment customer-facing claims vs the NBA ─────── */}
-          <div className="w-1/3 shrink-0 pl-1.5" role="group" aria-roledescription="slide" aria-label="③ BD Pipeline" aria-hidden={screen !== 2}>
+          <div className="w-1/3 shrink-0 pl-1.5" role="group" aria-roledescription="slide" aria-label={t("soi2525.slide_bd_pipeline")} aria-hidden={screen !== 2}>
             <div className="space-y-2">
               <SectionTitle>{t("innovation.exec.pipeline")} · {t("innovation.exec.claim")} vs NBA</SectionTitle>
               {(p.segmentValueProps?.length ?? 0) === 0 ? (
@@ -3685,6 +3692,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
 // Time engine (CRS-85→88): start date → schedule → month/week/day/hour/min, with ± bands
 // that tighten by gate and widen with the commercial+technical risk profile.
 function TimeEngine({ p }: { p: Project }) {
+  const { t } = useLexicon();
   const [startISO, setStartISO] = useState("2026-01-05");
   const [unit, setUnit] = useState<TimeUnit>("month");
   const r = timeReadout(p, startISO, unit);
@@ -3700,7 +3708,7 @@ function TimeEngine({ p }: { p: Project }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Time engine · remaining to launch</h3>
+        <h3 className="text-sm font-semibold">{t("soi2525.time_engine_remaining")}</h3>
         <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-mono text-amber-300">±{band}% @ {p.gate}</span>
       </div>
 
@@ -3726,8 +3734,8 @@ function TimeEngine({ p }: { p: Project }) {
       </div>
 
       <div className="mt-2 flex justify-between text-[11px] text-slate-500">
-        <span>Cost of time <b className="text-cyan-300">{fmtRate(costPerUnit)}/{RATE_WORD[unit]}</b></span>
-        <span>1st revenue <b className="text-slate-300">{r.firstRevenueISO}</b> (derived)</span>
+        <span>{t("soi2525.cost_of_time")} <b className="text-cyan-300">{fmtRate(costPerUnit)}/{RATE_WORD[unit]}</b></span>
+        <span>{t("soi2525.first_revenue")} <b className="text-slate-300">{r.firstRevenueISO}</b> (derived)</span>
       </div>
       {/* Risk-adjusted cost · schedule · upside — all move with the tech × commercial risk */}
       <div className="mt-2 rounded-lg border border-amber-500/20 bg-[#0b0f14] p-2.5">
@@ -3747,7 +3755,7 @@ function TimeEngine({ p }: { p: Project }) {
       {/* Say / Do ratio — planned vs delivered on Time · Schedule · Budget (binds to actuals at Launch) */}
       <div className="mt-3 border-t border-slate-800 pt-2">
         <div className="flex items-center justify-between text-[11px] text-slate-400">
-          <span>Say / Do ratio</span><span className="text-[10px] text-slate-600">planned ÷ delivered · &gt;1.0 beats plan</span>
+          <span>{t("soi2525.say_do_ratio")}</span><span className="text-[10px] text-slate-600">{t("soi2525.planned_delivered_beats_plan")}</span>
         </div>
         <div className="mt-1 grid grid-cols-3 gap-2">
           {([["Time", sd.time], ["Schedule", sd.schedule], ["Budget", sd.budget]] as const).map(([lbl, v]) => (
@@ -3935,7 +3943,7 @@ function GateCube({ p, onEditSource }: { p: Project; onEditSource?: (patch: Part
             const st = soState(lens);
             const cls = st === "green" ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300" : st === "red" ? "border-rose-500/50 bg-rose-500/10 text-rose-300" : "border-slate-700 text-slate-400 hover:bg-slate-800";
             return (
-              <button key={lens} onClick={() => cycleSo(lens)} title="Tap to cycle: pending → signed → blocked"
+              <button key={lens} onClick={() => cycleSo(lens)} title={t("soi2525.tap_to_cycle_signoff")}
                 aria-label={`${label} sign-off: ${st === "green" ? "signed" : st === "red" ? "blocked" : "pending"} — tap to cycle`}
                 className={`rounded border px-2 py-0.5 text-[11px] font-medium ${cls}`}>
                 {st === "green" ? "✓ " : st === "red" ? "✕ " : "○ "}{label}
@@ -4118,6 +4126,7 @@ const STORY_LEVELS = [
 ] as const;
 
 function StorySpecs({ cols, rows, trace, big }: { cols: string[]; rows: string[][]; trace: string[][]; big?: boolean }) {
+  const { t } = useLexicon();
   const max = React.useContext(ChartMaxCtx);
   const [level, setLevel] = useState<"L1" | "L2" | "L3">("L1");
   const dot = (c: string) => (STORY_MATURITY as readonly string[]).includes(c);
@@ -4125,7 +4134,7 @@ function StorySpecs({ cols, rows, trace, big }: { cols: string[]; rows: string[]
   const micro = big ? { fontSize: TS.micro } : undefined;
 
   const tabs = (
-    <div className="mb-1 flex shrink-0 flex-wrap gap-1" role="tablist" aria-label="User story detail level">
+    <div className="mb-1 flex shrink-0 flex-wrap gap-1" role="tablist" aria-label={t("soi2525.user_story_detail_level")}>
       {STORY_LEVELS.map((l) => (
         <button key={l.key} type="button" role="tab" aria-selected={level === l.key} onClick={() => setLevel(l.key)}
           className={`rounded border px-1.5 py-0.5 ${level === l.key ? "border-cyan-500 bg-cyan-500/15 text-cyan-200" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
@@ -4185,7 +4194,7 @@ function StorySpecs({ cols, rows, trace, big }: { cols: string[]; rows: string[]
     <div className={max ? "flex min-h-0 w-full flex-1 flex-col" : "overflow-hidden"}>
       {tabs}
       {level === "L1" ? L1 : level === "L2" ? L2 : L3}
-      {!max && level !== "L3" && <div className="px-2 pt-1 italic text-slate-500" style={micro}>⤢ expand for detail and the traceability matrix</div>}
+      {!max && level !== "L3" && <div className="px-2 pt-1 italic text-slate-500" style={micro}>{t("soi2525.expand_for_detail_matrix")}</div>}
     </div>
   );
 }
@@ -4564,6 +4573,7 @@ function FinBanner({ tone, title, sub, summary, open, onToggle }: {
 function S10FinEditor({ p, baseYear, onEdit }: {
   p: Project; baseYear: number; onEdit: (patch: Partial<Project>, changes: string[]) => void;
 }) {
+  const { t } = useLexicon();
   const fin = finOf(p, baseYear);
   const n = visibleYearCount(p.gate);
   const ys = fin.years.slice(0, n);
@@ -4670,7 +4680,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
   return (
     <div className="col-span-2 rounded border border-cyan-500/20 bg-[#0b0f14] p-2 sm:col-span-3">
       <div className="mb-1 flex flex-wrap items-baseline gap-x-2 text-[10px]">
-        <span className="font-semibold uppercase tracking-wider text-cyan-300">S10 · Financials by Year</span>
+        <span className="font-semibold uppercase tracking-wider text-cyan-300">{t("soi2525.s10_financials_by_year")}</span>
         <span className="text-slate-500">{GATE_STAGE[p.gate]} ({p.gate}) shows {n} of {fin.years.length} calendar years — demoting hides years, never deletes them.</span>
         {/* The gate ladder, measured rather than described: Concept current+3, Plan current+5, Develop +10. */}
         {(() => {
@@ -4684,7 +4694,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
         })()}
       </div>
       {/* ── TECHNICAL FINANCIALS · R&D · NRE ─────────────────────────────────────────────── */}
-      <FinBanner tone="tech" title="Technical Financials" sub="R&D · NRE"
+      <FinBanner tone="tech" title={t("soi2525.technical_financials")} sub="R&D · NRE"
         summary={`${finFmtK(techTotalK)} total`} open={finOpen.tech}
         onToggle={() => setFinOpen((o) => ({ ...o, tech: !o.tech }))} />
       {finOpen.tech && (<>
@@ -4721,7 +4731,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
           technical section the moment these banners existed. */}
       <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
         <label className="flex items-center gap-1">{yearLabel(ys[0]?.year ?? baseYear)} R&amp;D Spend Request
-          <span className="w-20"><FinCell value={fin.spendRequestK} title="Current-year R&D ask, $K" onCommit={(v) => setFin({ spendRequestK: v }, `spend request -> ${v}`)} /></span>
+          <span className="w-20"><FinCell value={fin.spendRequestK} title={t("soi2525.current_year_rd_ask")} onCommit={(v) => setFin({ spendRequestK: v }, `spend request -> ${v}`)} /></span>
         </label>
         {/* W-11 · "Technical Confidence 50%" REMOVED. Verified before deleting: `techConfPct` fed NOTHING —
             not NPV, not pSuccess, not gate scoring — so nothing downstream freezes at a stale value. The
@@ -4730,7 +4740,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
       </>)}
 
       {/* ── COMMERCIAL FINANCIALS · COGS · REV · MGN ──────────────────────────────────────── */}
-      <FinBanner tone="comm" title="Commercial Financials" sub="COGS · REV · MGN"
+      <FinBanner tone="comm" title={t("soi2525.commercial_financials")} sub="COGS · REV · MGN"
         summary={`${finFmtK(commRevK)} incremental`} open={finOpen.comm}
         onToggle={() => setFinOpen((o) => ({ ...o, comm: !o.comm }))} />
       {finOpen.comm && (<>
@@ -4849,19 +4859,19 @@ function S10FinEditor({ p, baseYear, onEdit }: {
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-slate-300">
             <b className="text-amber-300">Fill {fill.label}</b>
             <label className="flex items-center gap-1">seed
-              <input type="text" inputMode="decimal" defaultValue={String(fill.seed)} aria-label="Seed value"
+              <input type="text" inputMode="decimal" defaultValue={String(fill.seed)} aria-label={t("soi2525.seed_value")}
                 onChange={(e) => setFill({ ...fill, seed: Number(e.target.value.replace(/[$,\s]/g, "")) || 0 })}
                 className="w-16 rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-right tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
             </label>
             <label className="flex items-center gap-1">growth %/yr
-              <input type="text" inputMode="decimal" value={fill.rate} aria-label="Growth rate percent per year"
+              <input type="text" inputMode="decimal" value={fill.rate} aria-label={t("soi2525.growth_rate_pct")}
                 onChange={(e) => setFill({ ...fill, rate: e.target.value })}
-                title="Negative rates are expected here — Do-Nothing and Declining erode."
+                title={t("soi2525.negative_rates_expected")}
                 className="w-16 rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-right tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
             </label>
             <button onClick={applyFill} className="rounded border border-amber-500/60 bg-amber-500/15 px-2 py-0.5 font-semibold text-amber-200 hover:bg-amber-500/25">Apply 11 years</button>
             <button onClick={() => setFill(null)} className="rounded border border-slate-700 px-2 py-0.5 text-slate-400 hover:bg-slate-800">Cancel</button>
-            <span className="text-slate-500">one-shot fill — editing a year afterwards recomputes nothing</span>
+            <span className="text-slate-500">{t("soi2525.one_shot_fill_note")}</span>
           </div>
           <div className="mt-1 flex flex-wrap gap-1 font-mono text-[10px] tabular-nums text-amber-200/90">
             {preview.map((v, i) => <span key={i} className="rounded bg-black/30 px-1">{yearLabel(fin.years[i]?.year ?? 0)}: {v.toLocaleString()}</span>)}
@@ -4872,7 +4882,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
         <div className="mt-1.5 flex items-center gap-2 text-[10px] text-slate-400">
           <span>Filled <b className="text-slate-200">{undo.what}</b>.</span>
           <button onClick={() => { commit(undo.plan, `undo fill · ${undo.what}`); setUndo(null); }}
-            className="rounded border border-slate-700 px-2 py-0.5 text-slate-300 hover:bg-slate-800">↺ Undo fill</button>
+            className="rounded border border-slate-700 px-2 py-0.5 text-slate-300 hover:bg-slate-800">{t("soi2525.undo_fill")}</button>
         </div>
       )}
       {/* W-11 · "Commercial Confidence 10%" REMOVED, and the strip with it — it held nothing else.
@@ -5416,7 +5426,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         <tbody>{rows.map((r, ri) => <tr key={ri} className="border-b border-slate-900">{r.map((c, ci) => <td key={ci} className="px-2 py-1 tabular-nums text-emerald-300">{c}</td>)}</tr>)}</tbody></table></div>;
     }
     // chart → live financial mini-chart from the project record (import project financials); maximizable
-    if (f.kind === "chart") return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] p-2"><div className="mb-1 text-[10px] text-emerald-300/80">◈ Live from the project record</div><ChartFrame label={f.name}><MiniFinChart kind={spec.code} /></ChartFrame></div>;
+    if (f.kind === "chart") return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] p-2"><div className="mb-1 text-[10px] text-emerald-300/80">{t("soi2525.live_from_project_record")}</div><ChartFrame label={f.name}><MiniFinChart kind={spec.code} /></ChartFrame></div>;
     return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] px-3 py-2 text-[12px] text-emerald-300/90">◈ Live from the project record — {f.name} is derived, not typed.</div>;
   }
   // Attach/image editor (operator: "Customer CONOPS" + Light-Codex shared library). Three ways to set the image:
@@ -5457,12 +5467,12 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <button onClick={() => setLibOpen((v) => !v)} className="rounded border border-violet-500/40 bg-violet-500/10 px-2 py-1 text-[11px] text-violet-200 hover:bg-violet-500/20">◫ Library</button>
           {s && <button onClick={() => setActive(spec.code, f.id, "")} className="rounded border border-slate-700 px-2 py-1 text-[11px] text-slate-500 hover:border-rose-500/50 hover:text-rose-300">Clear</button>}
         </div>
-        <input type="url" inputMode="url" defaultValue={/^https?:\/\//i.test(s) ? s : ""} placeholder="…or paste an image URL (BYOK / provider)"
+        <input type="url" inputMode="url" defaultValue={/^https?:\/\//i.test(s) ? s : ""} placeholder={t("soi2525.paste_image_url")}
           onBlur={(e) => { const u = e.target.value.trim(); if (u && u !== s) { const { date, time } = nowStamp(); setActive(spec.code, f.id, u); addToImageLibrary(f.name, u, { project: `${p.id} ${p.name}`, date, time, who: p.manager || "operator" }); } }}
           className={`${inputCls} text-[12px]`} />
         {libOpen && (
           <div className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2">
-            <div className="mb-1.5 text-[10px] text-slate-500">Image library — each stamped Project · Date · Time · Name. Tap to use · ✕ to delete.</div>
+            <div className="mb-1.5 text-[10px] text-slate-500">{t("soi2525.image_library_note")}</div>
             {lib.length ? (
               <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
                 {lib.map((im, i) => (
@@ -5475,12 +5485,12 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                         <div className="truncate">{[im.date, im.time].filter(Boolean).join(" ")}{im.who ? ` · ${im.who}` : ""}</div>
                       </div>
                     </button>
-                    <button onClick={() => setLib(removeFromImageLibrary(im.src))} aria-label="Delete image" title="Delete from library"
+                    <button onClick={() => setLib(removeFromImageLibrary(im.src))} aria-label={t("soi2525.delete_image")} title={t("soi2525.delete_from_library")}
                       className="absolute right-0.5 top-0.5 rounded bg-[#0b0f14]/85 px-1 text-[10px] text-rose-300 hover:bg-rose-500/20">✕</button>
                   </div>
                 ))}
               </div>
-            ) : <div className="text-[10px] italic text-slate-600">Library empty — upload here or in the Light Codex tool.</div>}
+            ) : <div className="text-[10px] italic text-slate-600">{t("soi2525.library_empty")}</div>}
           </div>
         )}
       </div>
@@ -5497,8 +5507,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       <label key={m.k} className="rounded-lg border border-slate-700 bg-[#0e141b] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div><input className="w-full bg-transparent text-[14px] font-semibold text-slate-100 outline-none" value={rec[m.k] || ""} placeholder="—" onChange={(e) => setActive(spec.code, f.id, { ...rec, [m.k]: e.target.value })} /></label>
     ))}</div>; }
     if (f.kind === "list") { const rows = ((v as string[])?.length ? (v as string[]) : [""]); return <div className="space-y-1.5">{rows.map((r, i) => (
-      <div key={i} className="flex items-center gap-1.5">{f.ordered && <span className="w-4 shrink-0 text-right text-[10px] text-slate-500">{i + 1}</span>}<input className={inputCls} value={r} placeholder="Add a point" onChange={(e) => { const nr = [...rows]; nr[i] = e.target.value; setActive(spec.code, f.id, nr); }} /><button onClick={() => { const nr = rows.filter((_, j) => j !== i); setActive(spec.code, f.id, nr.length ? nr : [""]); }} className="shrink-0 rounded border border-slate-700 px-2 text-slate-500 hover:border-rose-500/50 hover:text-rose-300" aria-label="Remove">×</button></div>
-    ))}<button onClick={() => setActive(spec.code, f.id, [...rows, ""])} className="rounded border border-dashed border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">+ Add point</button></div>; }
+      <div key={i} className="flex items-center gap-1.5">{f.ordered && <span className="w-4 shrink-0 text-right text-[10px] text-slate-500">{i + 1}</span>}<input className={inputCls} value={r} placeholder={t("soi2525.add_a_point")} onChange={(e) => { const nr = [...rows]; nr[i] = e.target.value; setActive(spec.code, f.id, nr); }} /><button onClick={() => { const nr = rows.filter((_, j) => j !== i); setActive(spec.code, f.id, nr.length ? nr : [""]); }} className="shrink-0 rounded border border-slate-700 px-2 text-slate-500 hover:border-rose-500/50 hover:text-rose-300" aria-label={t("soi2525.remove")}>×</button></div>
+    ))}<button onClick={() => setActive(spec.code, f.id, [...rows, ""])} className="rounded border border-dashed border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">{t("soi2525.add_point")}</button></div>; }
     if (f.kind === "table") { const cols = f.cols ?? []; const rows = ((v as string[][])?.length ? (v as string[][]) : [cols.map(() => "")]); return <div className="overflow-x-auto"><table className="w-full min-w-[420px] text-[12px]"><thead><tr>{cols.map((c) => <th key={c} className="px-1 pb-1 text-left text-[12px] font-semibold uppercase tracking-wide text-slate-400">{c}</th>)}<th /></tr></thead><tbody>{rows.map((r, ri) => (
       <tr key={ri}>{cols.map((c, ci) => <td key={ci} className="px-0.5 pb-1">{c === "Team"
         // RECONCILIATION (23b): the operator's S9 schema has EIGHT columns and none of them is Team, so the
@@ -5512,8 +5522,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               // deleting row 3 of 6 leaves 001,002,004,005,006 and the next added row collides on 006.
               if (idc >= 0) nr.forEach((rr, k) => { rr[idc] = storyReqId(p.id, (tc >= 0 ? rr[tc] : "") || "SRS", k + 1); });
               setActive(spec.code, f.id, nr); }} />
-        : <input className="w-full rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" value={r[ci] || ""} placeholder={c} onChange={(e) => { const nr = rows.map((x) => [...x]); nr[ri][ci] = e.target.value; setActive(spec.code, f.id, nr); }} />}</td>)}<td className="pb-1"><button onClick={() => { const nr = rows.filter((_, j) => j !== ri); setActive(spec.code, f.id, nr.length ? nr : [cols.map(() => "")]); }} className="rounded border border-slate-700 px-1.5 text-slate-500 hover:border-rose-500/50 hover:text-rose-300" aria-label="Remove row">×</button></td></tr>
-    ))}</tbody></table><button onClick={() => setActive(spec.code, f.id, [...rows, cols.map(() => "")])} className="mt-1 rounded border border-dashed border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">+ Add row</button></div>; }
+        : <input className="w-full rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" value={r[ci] || ""} placeholder={c} onChange={(e) => { const nr = rows.map((x) => [...x]); nr[ri][ci] = e.target.value; setActive(spec.code, f.id, nr); }} />}</td>)}<td className="pb-1"><button onClick={() => { const nr = rows.filter((_, j) => j !== ri); setActive(spec.code, f.id, nr.length ? nr : [cols.map(() => "")]); }} className="rounded border border-slate-700 px-1.5 text-slate-500 hover:border-rose-500/50 hover:text-rose-300" aria-label={t("soi2525.remove_row")}>×</button></td></tr>
+    ))}</tbody></table><button onClick={() => setActive(spec.code, f.id, [...rows, cols.map(() => "")])} className="mt-1 rounded border border-dashed border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">{t("soi2525.add_row")}</button></div>; }
     return null;
   }
 
@@ -5773,7 +5783,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                         </div>
                       )) : (
                         <div className="flex flex-1 items-center rounded border border-dashed border-slate-800 px-[0.5cqw] italic text-slate-600"
-                          style={big ? { fontSize: TS.micro } : undefined}>No gate review scheduled</div>
+                          style={big ? { fontSize: TS.micro } : undefined}>{t("soi2525.no_gate_review_scheduled")}</div>
                       )}
                     </div>
                   </div>
@@ -5882,7 +5892,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               clip waiting for the right project, and four of them found it (PRJ-02/05/07/24, up to +15px).
               `shrink-0` alone is the correct rule: the tag is constant, the value-prop prose beneath it is the
               flexible child, and `content-stretch` hands the remainder there. No field dropped, no type shrunk. */}
-          <AmtsPanel title="Key Value Proposition" icon="♡">
+          <AmtsPanel title={t("soi2525.key_value_proposition")} icon="♡">
             <div className="shrink-0"><DogTag p={p} showType slide /></div>
             {leanFieldsOf("valueprop", "oneline")}
           </AmtsPanel>
@@ -5894,7 +5904,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               waterfall two columns over already prints all three — VALUE CREATION and VALUE PRICE RANGE as
               its own axis captions, and `Price · Value Capture @ N%` as its last bar — from the SAME
               producers (`valueSplit` / `captureOf`). This was a duplicate reading, not a second one. */}
-          <AmtsPanel title="Market Opportunity · Pipeline" icon="◎">
+          <AmtsPanel title={t("soi2525.market_opportunity_pipeline")} icon="◎">
             {leanFieldsOf("segment", "market")}
           </AmtsPanel>
           {/* ⚠ THE TAG IS NOT NESTED HERE ANY MORE, AND THE TITLE FOLLOWED IT. This panel read "Product
@@ -5904,30 +5914,30 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               top-level panel the tag forced an implicit `auto` row, auto-placement made it column 3's only
               full row, and the S1×33 gate measured the chart's slot at aspect 5.248 — a letterbox sliver —
               while the value-prop panel overflowed by 34px. Wherever it lives, it lives INSIDE a panel. */}
-          <AmtsPanel taller title="Portfolio Positioning" icon="◈">
+          <AmtsPanel taller title={t("soi2525.portfolio_positioning")} icon="◈">
             {fieldsOf("vpchart")}
           </AmtsPanel>
           {/* Operator: "we can have inputs in S1 for product strategy" — an AUTHORED list, seeded from
               the project's own model so no project ships an empty box. */}
-          <AmtsPanel title="Product Strategy" icon="◧">
+          <AmtsPanel title={t("soi2525.product_strategy")} icon="◧">
             {leanFieldsOf("strategy")}
           </AmtsPanel>
           {/* Operator: "Differentiators populate from value prop (bars from 8), but in text format".
               Same producer as S8's table (`valuePropRows`), sentences instead of columns, largest first,
               and the count it withheld stated out loud. */}
-          <AmtsPanel title="Differentiators · From The Value Prop" icon="▪">
+          <AmtsPanel title={t("soi2525.differentiators_from_valueprop")} icon="▪">
             {leanFieldsOf("vpdiffs")}
           </AmtsPanel>
           {/* Operator: "does another project success impact our ability to meet our timelines". Both
               directions, critical-path and unacknowledged edges flagged, and an explicit sentence when a
               project genuinely has none (Enki, 12-AsM — an empty panel is a gate failure). */}
-          <AmtsPanel title="Recommendation · Ask For The Gate" icon="⚑">
+          <AmtsPanel title={t("soi2525.recommendation_ask_gate")} icon="⚑">
             {fieldsOf("ask")}
           </AmtsPanel>
-          <AmtsPanel title="Dependencies · Timeline Risk" icon="⇄">
+          <AmtsPanel title={t("soi2525.dependencies_timeline_risk")} icon="⇄">
             {leanFieldsOf("deps")}
           </AmtsPanel>
-          <AmtsPanel full title="Roadmap + Schedule · Current Year + 2" icon={<MarkCalendar />}>
+          <AmtsPanel full title={t("soi2525.roadmap_schedule_cy2")} icon={<MarkCalendar />}>
             {fieldsOf("schedule")}
           </AmtsPanel>
         </>
@@ -5938,10 +5948,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // rather than sitting above the grid — same GateTimeline, same live source link.
       S2: () => (
         <>
-          <AmtsPanel title="Return Profile" icon="▤">
+          <AmtsPanel title={t("soi2525.return_profile")} icon="▤">
             {fieldsOf("profile")}
           </AmtsPanel>
-          <AmtsPanel title="Upside Spending Accelerator Lever" icon="⚡">
+          <AmtsPanel title={t("soi2525.upside_spending_accelerator")} icon="⚡">
             {fieldsOf("accel")}
           </AmtsPanel>
           <AmtsPanel wide title={`Program Timeline · MoT Gate Schedule · ✎ ${SOURCE_LABEL.S10}`} icon={<MarkCalendar />}>
@@ -5949,13 +5959,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             {/* Program start lives in the S10 source panel beside the money it schedules. */}
             <SourceLink source="Program start (source record)" target="S10" />
           </AmtsPanel>
-          <AmtsPanel title="Roadmap Snapshot" icon="◈">
+          <AmtsPanel title={t("soi2525.roadmap_snapshot")} icon="◈">
             {fieldsOf("roadmap")}
           </AmtsPanel>
-          <AmtsPanel title="Top Risks + Dependencies" icon="⚠">
+          <AmtsPanel title={t("soi2525.top_risks_dependencies")} icon="⚠">
             {fieldsOf("toprisks")}
           </AmtsPanel>
-          <AmtsPanel wide title="Stage / Status" icon="◉">
+          <AmtsPanel wide title={t("soi2525.stage_status")} icon="◉">
             {fieldsOf("status")}
           </AmtsPanel>
         </>
@@ -5964,13 +5974,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // number here is LINKED to the one financial record, so the panel only arranges — it never re-derives.
       S3: () => (
         <>
-          <AmtsPanel title="Return Profile · Revenue + Margin by Year" icon="▤">
+          <AmtsPanel title={t("soi2525.return_profile_revenue_margin_by_year")} icon="▤">
             {fieldsOf("profile", "revtable")}
           </AmtsPanel>
-          <AmtsPanel title="Cash Flow · R&D/NRE Out vs Revenue + Margin" icon="◈">
+          <AmtsPanel title={t("soi2525.cash_flow_rd_nre_out_vs_revenue_margin")} icon="◈">
             {fieldsOf("rdchart")}
           </AmtsPanel>
-          <AmtsPanel wide title="Financial Comments · Assumptions" icon="✎">
+          <AmtsPanel wide title={t("soi2525.financial_comments_assumptions")} icon="✎">
             {fieldsOf("fincomment")}
           </AmtsPanel>
         </>
@@ -6000,19 +6010,19 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               a constant of 1.51 and failed the build. That is the lock earning its keep on its first real
               layout change — the screen self-corrects from a live measurement, so nothing would have looked
               wrong until the operator opened the exported PDF. `SLIDE_SLOT_ASPECT` is re-measured below. */}
-          <AmtsPanel title="Primary Customer Value Proposition" icon="♡">
+          <AmtsPanel title={t("soi2525.primary_customer_value_proposition")} icon="♡">
             {leanFieldsOf("vprop", "nba", "wtp")}
           </AmtsPanel>
-          <AmtsPanel tall title="Value · Creation + Capture" icon="◈">
+          <AmtsPanel tall title={t("soi2525.value_creation_capture")} icon="◈">
             {fieldsOf("valuechart")}
           </AmtsPanel>
-          <AmtsPanel title="Value Equation" icon="▪">
+          <AmtsPanel title={t("soi2525.value_equation")} icon="▪">
             {fieldsOf("diffs")}
           </AmtsPanel>
-          <AmtsPanel title="Key Customer Benefits" icon="◆">
+          <AmtsPanel title={t("soi2525.key_customer_benefits")} icon="◆">
             {fieldsOf("benefits")}
           </AmtsPanel>
-          <AmtsPanel title="Key Technical Features" icon="▪">
+          <AmtsPanel title={t("soi2525.key_technical_features")} icon="▪">
             {fieldsOf("features")}
           </AmtsPanel>
         </>
@@ -6024,10 +6034,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // squeezing eleven columns onto a slide that only needs four.
       S10: () => (
         <>
-          <AmtsPanel wide title="R&D Spend" icon={<MarkSpend />} required={sp.stage}>
+          <AmtsPanel wide title={t("soi2525.rd_spend")} icon={<MarkSpend />} required={sp.stage}>
             <S10SpendTable p={p} baseYear={baseYear} />
           </AmtsPanel>
-          <AmtsPanel wide title="R&D Revenues" icon={<MarkRevenue />} required={sp.stage}>
+          <AmtsPanel wide title={t("soi2525.rd_revenues")} icon={<MarkRevenue />} required={sp.stage}>
             <S10RevenueTable p={p} baseYear={baseYear} />
           </AmtsPanel>
         </>
@@ -6036,13 +6046,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // column is the decision the board reads first, so the VOC table leads.
       S11: () => (
         <>
-          <AmtsPanel title="Early Validation · UXD Voice Of Customer" icon="◉">
+          <AmtsPanel title={t("soi2525.early_validation_uxd_voc")} icon="◉">
             {fieldsOf("voc")}
           </AmtsPanel>
-          <AmtsPanel title="Planned Experiments" icon="⚗">
+          <AmtsPanel title={t("soi2525.planned_experiments")} icon="⚗">
             {fieldsOf("exp")}
           </AmtsPanel>
-          <AmtsPanel wide title="Comments" icon="✎">
+          <AmtsPanel wide title={t("soi2525.comments")} icon="✎">
             {fieldsOf("comments")}
           </AmtsPanel>
         </>
@@ -6061,7 +6071,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         let rail = "";
         return (
           <>
-            <AmtsPanel title="Gate Review History" icon="◫">
+            <AmtsPanel title={t("soi2525.gate_review_history")} icon="◫">
               {/* ⚠ NO SCROLL CONTAINER. This was `overflow-auto` and it hid the defect from my own gate:
                   slide-shots reported "overflow 0 · box-void 0px" and I reported that as proof it fit, when
                   a scroll container ABSORBS overflow — it goes green precisely when content does NOT fit.
@@ -6072,7 +6082,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               <div className="min-h-0 flex-1">
                 <table className="w-full border-collapse" style={{ fontSize: TS.micro }}>
                   <thead><tr>
-                    <th className="sticky left-0 z-10 bg-[#0e141b] px-1 py-0.5 text-left text-slate-400">Business case</th>
+                    <th className="sticky left-0 z-10 bg-[#0e141b] px-1 py-0.5 text-left text-slate-400">{t("soi2525.business_case")}</th>
                     {GATE_HISTORY_COLS.map((c) => (
                       // ◆ marks a gate S16 · Say/Do names as its Reference Stage. Those columns are not
                       // decoration here — they ARE the Target S16 divides its Actual by.
@@ -6109,14 +6119,14 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               {/* COVERAGE, SAID OUT LOUD. A sparse matrix must never read as a complete one. */}
               <div className="mt-1 flex flex-wrap gap-x-3 text-[9px] text-slate-500">
                 <span>{hist.recordedGates} of {GATE_HISTORY_COLS.length} gates carry a recorded review</span>
-                <span className="text-rose-400/80">red = changed vs the prior recorded gate</span>
+                <span className="text-rose-400/80">{t("soi2525.red_changed_vs_prior_gate")}</span>
                 {hist.gaps.length ? <span>no source yet: {hist.gaps.join(" · ")}</span> : null}
                 <span className="text-cyan-300/80">
                   ◆ = S16 · Say/Do reference stage — {SAYDO_REFERENCE_GATES.map((r) => `${GATE_STAGE[r.gate]}: ${r.measures}`).join(" · ")}
                 </span>
               </div>
             </AmtsPanel>
-            <AmtsPanel title="PRB Reviews + Approvals" icon="◨">
+            <AmtsPanel title={t("soi2525.prb_reviews_approvals")} icon="◨">
               <div className="grid min-h-0 flex-1 grid-cols-2 gap-2">
                 {[ap.prior, ap.current].map((pan, pi) => (
                   <div key={pi} className="min-w-0">
@@ -6135,7 +6145,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                           </tr>
                         ))}</tbody>
                       </table>
-                    ) : <div className="text-[10px] text-slate-600">This project has not cleared a gate yet.</div>}
+                    ) : <div className="text-[10px] text-slate-600">{t("soi2525.no_gate_cleared_yet")}</div>}
                     {/* MEASURED, not implied: nine rows always render, so "looks full" proves nothing. */}
                     <div className="mt-0.5 text-[9px] text-slate-500">{pan.satisfied} of 3 required functions signed</div>
                     {pan.concerns.length ? (
@@ -6252,7 +6262,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                   ...(BODY_COLS[sp.code] ? { gridTemplateColumns: BODY_COLS[sp.code] } : {}),
                   ...(BODY_GAP[sp.code] ? { gap: BODY_GAP[sp.code] } : {}) }}>
                 {panel ? panel() : sp.fields.map((f) => <PresentField key={f.id} sp={sp} f={f} big />)}
-                {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
+                {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>{t("soi2525.nothing_authored_slide")}</p>}
               </div>
             </div>
             {/* B2 · footer — page # (left) · progress · reference links (right) · PRINT provenance (print only) */}
@@ -6263,7 +6273,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               </div>
               {/* Provenance — a board artifact with no provenance is orphaned within a week (operator #17). */}
               <span className="slide-printonly hidden truncate">{p.id} · {p.gate} · {scenarioLabel} · p{i + 2}/{SLIDE_SCHEMA.length + 1} · {exportDate}</span>
-              <span className="truncate">Reference Links: <span className="text-slate-400">{sp.source}</span></span>
+              <span className="truncate">{t("soi2525.reference_links")} <span className="text-slate-400">{sp.source}</span></span>
             </div>
           </div>
         </div>
@@ -6288,7 +6298,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             ))}
           </div>
           <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/[0.06] px-[1.4cqw] py-[1cqh]">
-            <div className="uppercase tracking-[0.14em] text-cyan-300" style={{ fontSize: TS.micro }}>Decision requested</div>
+            <div className="uppercase tracking-[0.14em] text-cyan-300" style={{ fontSize: TS.micro }}>{t("soi2525.decision_requested")}</div>
             <p className="m-0 mt-[0.5cqh] text-slate-100" style={{ fontSize: TS.lead }}>{decisionAsk}</p>
           </div>
           <div className="font-mono text-slate-500" style={{ fontSize: TS.micro }}>{p.id} · {p.gate} · {scenarioLabel} · p1/{SLIDE_SCHEMA.length + 1} · {exportDate}</div>
@@ -6309,10 +6319,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         <div ref={chromeRef} className="slide-noprint flex shrink-0 flex-wrap items-center justify-end gap-2 p-2"
           style={vvPin ? { transform: `translate(${vvPin.x}px, ${vvPin.y}px) scale(${1 / vvPin.s})`, transformOrigin: "top left", width: vvPin.w * vvPin.s } : undefined}>
           {/* zoom (esp. portrait) */}
-          <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label="Zoom slide">
-            <button onClick={() => setZoom((z) => Math.max(ZOOM_MIN, +(z - 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom out">－</button>
+          <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label={t("soi2525.zoom_slide")}>
+            <button onClick={() => setZoom((z) => Math.max(ZOOM_MIN, +(z - 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label={t("soi2525.zoom_out")}>－</button>
             <span className="px-1 py-1.5 tabular-nums text-slate-400">{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom((z) => Math.min(ZOOM_MAX, +(z + 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom in">＋</button>
+            <button onClick={() => setZoom((z) => Math.min(ZOOM_MAX, +(z + 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label={t("soi2525.zoom_in")}>＋</button>
           </div>
           <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label={t("innovation.present.src")}>
             {([["set", t("innovation.present.src.set")], ["hi", `웃 ${t("innovation.slides.hi")}`], ["ai", `◬ ${t("innovation.slides.ai")}`]] as const).map(([k, lbl]) => (
@@ -6336,10 +6346,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               still verified — same Sheet, same stack, same [data-ink] colour preservation. */}
           <div className="relative">
             <button onClick={() => setExportOpen((v) => !v)} aria-haspopup="menu" aria-expanded={exportOpen}
-              aria-label="Export the deck as a PDF" title="Export all pages as a PDF — choose Light or Original."
+              aria-label={t("soi2525.export_deck_pdf_aria")} title={t("soi2525.export_all_pages_pdf_title")}
               className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20">⎙ Export PDF</button>
             {exportOpen && (
-              <div role="menu" aria-label="PDF export options"
+              <div role="menu" aria-label={t("soi2525.pdf_export_options")}
                 className="absolute right-0 top-full z-[3] mt-1 w-60 overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14] shadow-2xl">
                 {([["friendly", "Light", "White page, dark text. Charts, legends and the value prop keep their own colours."],
                    ["original", "Original", "Exactly as it looks on screen — dark sheet. Turn ON “Background graphics” in the print dialog."]] as const).map(([mode, label, tip]) => (
@@ -6379,8 +6389,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               to read the left column turned the page instead. Paging stays fully available while zoomed via
               the ‹ › buttons in the footer and the ArrowLeft/ArrowRight keys. */}
           {zoom <= 1 && <>
-            <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[2] w-[10%] cursor-w-resize bg-transparent" />
-            <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[2] w-[10%] cursor-e-resize bg-transparent" />
+            <button aria-label={t("soi2525.previous_slide")} onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[2] w-[10%] cursor-w-resize bg-transparent" />
+            <button aria-label={t("soi2525.next_slide")} onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[2] w-[10%] cursor-e-resize bg-transparent" />
           </>}
           {/* THE PAN VIEWPORT. `mx-auto` on the footprint below — NOT `justify-center` here — is deliberate:
               a centred flex item that is wider than its scroll container overflows on BOTH sides and its left
@@ -6434,7 +6444,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <div className="flex items-center gap-2">
             <span className="hidden sm:inline text-[10px] text-slate-500 tabular-nums">{deckPct}% authored</span>
             <button onClick={() => setPresent((v) => !v)} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 text-[11px] font-semibold text-cyan-300 hover:bg-cyan-500/20">{present ? "✎ Edit" : "▶ Present"}</button>
-            <button onClick={onClose} aria-label="Close" className="rounded border border-slate-700 px-2 py-0.5 text-slate-400 hover:bg-slate-800">✕</button>
+            <button onClick={onClose} aria-label={t("soi2525.close")} className="rounded border border-slate-700 px-2 py-0.5 text-slate-400 hover:bg-slate-800">✕</button>
           </div>
         </div>
 
@@ -6468,7 +6478,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 <h3 className="text-base font-semibold leading-tight text-slate-100">{slideDef(spec.code)?.name ?? spec.code}</h3>
                 <div className="text-[11px] text-slate-500">Source: {spec.source}{spec.supplemental ? ` · supplemental: ${spec.supplemental.join(", ")}` : ""}</div>
               </div>
-              <button onClick={cycleStatus} title="Cycle gate feedback: not-started → drafted → submitted → approved"
+              <button onClick={cycleStatus} title={t("soi2525.cycle_gate_feedback")}
                 className={`shrink-0 rounded border px-2 py-0.5 text-[11px] font-mono ${SLIDE_PILL[st]}`}>{SLIDE_TXT[st]}</button>
             </div>
 
@@ -6495,7 +6505,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             {onEditSource && spec.code === "S8" && panelExists("S8") && (
               <div className="mt-2 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.03]">
                 <button onClick={() => setSrcOpen((v) => !v)} className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/5">
-                  <span>{srcOpen ? "▾" : "▸"}</span>◈ Edit source record <span className="font-normal text-slate-500">— S8 owns the value proposition; S1 and S6 render it</span>
+                  <span>{srcOpen ? "▾" : "▸"}</span>{t("soi2525.edit_source_record")} <span className="font-normal text-slate-500">{t("soi2525.s8_owns_vp_note")}</span>
                 </button>
                 {srcOpen && (
                   <div className="space-y-2 px-3 pb-3">
@@ -6509,14 +6519,14 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                         the caret 1→2→3 with no remount. So the caret bug was a CLICK-TARGET bug all along.
                         `htmlFor`/`id` keeps the label association (and the a11y name) without the wrapper. */}
                     <div className="flex flex-col gap-0.5 text-[10px] text-slate-400">
-                      <label htmlFor="s8-vprop">Primary customer value proposition <span className="text-slate-600">— the one sentence S1, S6 and the dog-tag all render</span></label>
+                      <label htmlFor="s8-vprop">{t("soi2525.primary_customer_vp_label")} <span className="text-slate-600">{t("soi2525.one_sentence_note")}</span></label>
                       <textarea id="s8-vprop" defaultValue={valuePropOf(p)} rows={3} key={`vprop:${valuePropOf(p)}`}
                         onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== valuePropOf(p)) onEditSource({ valueProp: v, valuePropSource: "HI" }, ["value proposition edited on S8"]); }}
                         className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] leading-snug text-slate-100 outline-none focus:border-cyan-500" />
                     </div>
                     <div className="flex flex-col gap-0.5 text-[10px] text-slate-400">
-                      <label htmlFor="s8-nba">Next Best Alternative <span className="text-slate-600">— the As-Is option this must out-perform</span></label>
-                      <TextCell value={nbaOf(p)} title="Next Best Alternative"
+                      <label htmlFor="s8-nba">{t("soi2525.next_best_alternative_label")} <span className="text-slate-600">{t("soi2525.as_is_option_note")}</span></label>
+                      <TextCell value={nbaOf(p)} title={t("soi2525.next_best_alternative")}
                         onCommit={(raw) => { const v = raw.trim(); if (v && v !== nbaOf(p)) onEditSource({ nextBestAlternative: v }, [`NBA → ${v}`]); }}
                         className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" />
                     </div>
@@ -6538,10 +6548,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                         Blank CLEARS back to the 33% default rather than committing a zero. */}
                     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800 bg-[#0b0f14] px-2 py-1.5">
                       <label htmlFor="s8-capture" className="text-[10px] text-slate-400">Value capture %
-                        <span className="ml-1 text-slate-600">— our share of the value created; the rest is the customer&apos;s</span></label>
+                        <span className="ml-1 text-slate-600">{t("soi2525.our_share_value_note")}</span></label>
                       <span className="flex items-center gap-1">
                         <FinCell value={typeof p.capturePct === "number" ? p.capturePct : null} keySeed="s8-capture"
-                          title="Value capture percent" placeholder={String(captureOf(p))}
+                          title={t("soi2525.value_capture_percent")} placeholder={String(captureOf(p))}
                           onCommit={(v) => onEditSource({ capturePct: Math.max(0, Math.min(100, v)) }, [`value capture → ${Math.max(0, Math.min(100, v))}%`])}
                           onClear={() => onEditSource({ capturePct: null }, ["value capture → default"])}
                           className="w-14 rounded border border-slate-700 bg-[#0e141b] px-1 py-1 text-right text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
@@ -6550,7 +6560,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                     </div>
                     <div className="flex justify-end">
                       <button onClick={() => onEditSource({ valueDrivers: s8Drivers }, [`value drivers: ${s8Drivers.length} vs NBA`])}
-                        className="inline-flex items-center gap-1 rounded-md bg-cyan-500 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400"><Save className="h-3 w-3" aria-hidden /> Save drivers</button>
+                        className="inline-flex items-center gap-1 rounded-md bg-cyan-500 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400"><Save className="h-3 w-3" aria-hidden /> {t("soi2525.save_drivers")}</button>
                     </div>
                   </div>
                 )}
@@ -6568,9 +6578,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 const cur = (p[key] ?? (key === "upsideAccelK" ? upsideAccelOf(p).accelK : 0)) as number;
                 const derived = gridOwns && DERIVED_BY_GRID.includes(key);
                 return (
-                <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">{label}{derived && <span className="text-emerald-400/80"> · Σ from the grid</span>}
+                <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">{label}{derived && <span className="text-emerald-400/80"> {t("soi2525.sigma_from_grid")}</span>}
                   {derived ? (
-                    <div className="flex items-center gap-1" title="Derived from the S10 grid above — edit the years, not this total.">
+                    <div className="flex items-center gap-1" title={t("soi2525.derived_from_s10_grid")}>
                       <output className="w-full rounded border border-emerald-500/25 bg-[#0e141b]/60 px-1.5 py-1 text-[12px] tabular-nums text-emerald-300">{cur.toLocaleString()}</output><span className="text-slate-600">{suffix}</span>
                     </div>
                   ) : (
@@ -6593,7 +6603,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                       the failure the operator named as critical. No toggle, no arrow, no way to hide it.
                       S8 keeps its collapse: it still has authored fields of its own underneath. */}
                   <div className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[11px] font-medium text-emerald-300">
-                    ◈ Financial record <span className="font-normal text-slate-500">— one edit updates every surface (no duplicate sources)</span>
+                    ◈ Financial record <span className="font-normal text-slate-500">{t("soi2525.one_edit_updates_note")}</span>
                   </div>
                   {(
                     <div className="grid grid-cols-2 gap-2 px-3 pb-3 sm:grid-cols-3">
@@ -6649,7 +6659,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                         <select value={bizConfOf(p) ?? ""}
                           onChange={(e) => onEditSource({ bizConfPct: e.target.value === "" ? null : +e.target.value } as Partial<Project>,
                                                         [`Business Confidence → ${e.target.value === "" ? "—" : `${e.target.value}%`}`])}
-                          title="Set by the PdM/PgM after talking to the SBU or BU Director or VP. Derived from nothing — this is a judgement, not a calculation."
+                          title={t("soi2525.biz_conf_tooltip")}
                           className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] tabular-nums text-slate-100 outline-none focus:border-cyan-500">
                           <option value="">—</option>
                           {BIZ_CONF_LADDER.map((r) => <option key={r} value={r}>{r}%</option>)}
@@ -6744,12 +6754,12 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               <div className="flex flex-wrap items-center gap-2 px-3 py-2">
                 <button onClick={() => { setShowReplay((v) => !v); setVIdx(Math.max(0, slideVersions.length - 1)); }}
                   className="rounded border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 hover:bg-slate-800"><MarkClock /> {showReplay ? "Hide" : "History / Replay"} <span className="tabular-nums text-slate-500">({slideVersions.length})</span></button>
-                <input id="ver-comment" placeholder="Comment for this version…" className="min-w-0 flex-1 rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-cyan-500" />
+                <input id="ver-comment" placeholder={t("soi2525.comment_for_version")} className="min-w-0 flex-1 rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-cyan-500" />
                 <button onClick={() => { const el = document.getElementById("ver-comment") as HTMLInputElement | null; const c = (el?.value || "").trim() || "Working update saved."; const sub = captureVersion("submitted", c, p.manager); if (el) el.value = ""; setShowReplay(true); setVIdx(slideVersions.length); if (sub) alert("Substantial change (≥10%) — this version needs Lead approval before it becomes the baseline."); }}
-                  className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/20"><Save className="h-3 w-3" aria-hidden /> Save version</button>
+                  className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/20"><Save className="h-3 w-3" aria-hidden /> {t("soi2525.save_version")}</button>
               </div>
               {showReplay && (slideVersions.length === 0 ? (
-                <div className="px-3 pb-3 text-[11px] italic text-slate-500">No versions yet — save one, or approve the slide, to start the history.</div>
+                <div className="px-3 pb-3 text-[11px] italic text-slate-500">{t("soi2525.no_versions_yet")}</div>
               ) : (() => {
                 const sel = slideVersions[Math.min(vIdx, slideVersions.length - 1)];
                 const pts = slideVersionTimeline(slideVersions);
@@ -6786,9 +6796,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                     </div>
                     {sel.substantial && sel.status !== "approved" && (
                       <div className="mt-2 flex flex-wrap items-center gap-2 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-200">
-                        <span>▲ Substantial change (≥10%) — critical parties (Engineering · Commercial · Business) notified; Lead approval required.</span>
+                        <span>{t("soi2525.substantial_change_notice")}</span>
                         <button onClick={() => { captureVersion("approved", "Lead approved substantial change; baseline updated.", "웃 HI (Lead)"); setVIdx(slideVersions.length); }}
-                          className="rounded border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 font-medium text-emerald-200 hover:bg-emerald-500/25">웃 Lead approve</button>
+                          className="rounded border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 font-medium text-emerald-200 hover:bg-emerald-500/25">{t("soi2525.lead_approve")}</button>
                       </div>
                     )}
                   </div>
@@ -6968,10 +6978,10 @@ function GateRequirementsView({ projects, allProjects, hierFilter, onScope, sel,
       {/* Project selector + context — scoped by the ONE standard BU · SBU · Alpha Group ScopeFilter, so the
           dropdown lists only the projects in the operator's scope instead of every project in the company. */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="text-sm text-slate-400">Gate governance for</div>
+        <div className="text-sm text-slate-400">{t("soi2525.gate_governance_for")}</div>
         <ScopeFilter projects={allProjects} sel={hierFilter} onChange={onScope} />
         <select
-          value={sel.id} onChange={(e) => onSelect(e.target.value)} aria-label="Gate governance project"
+          value={sel.id} onChange={(e) => onSelect(e.target.value)} aria-label={t("soi2525.gate_governance_project")}
           className="rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-1.5 text-sm text-slate-100 outline-none focus:border-cyan-500"
         >
           {/* W-17 · THE LABEL NAMES THE LEVEL YOU JUST DRILLED PAST (operator: "If single BU is highlighted,
@@ -6987,14 +6997,14 @@ function GateRequirementsView({ projects, allProjects, hierFilter, onScope, sel,
         <span data-gate-scope-count className="text-[11px] tabular-nums text-slate-500">
           {projects.length} of {allProjects.length} in scope
         </span>
-        <span className="text-[11px] text-slate-500">Last completed gate <span className="font-mono text-slate-300">{sel.gate}</span> → stage <span className="text-slate-300">{GATE_STAGE[sel.gate]}</span></span>
+        <span className="text-[11px] text-slate-500">{t("soi2525.last_completed_gate")} <span className="font-mono text-slate-300">{sel.gate}</span> → stage <span className="text-slate-300">{GATE_STAGE[sel.gate]}</span></span>
         <button onClick={() => setDeck({ open: true })}
           className="ml-auto rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20">▶ {t("innovation.slides.open")}</button>
       </div>
 
       {/* §3.5 Gate readiness rollup — % satisfied · Ready/Not · blocking count · band */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
-        <h2 className="text-sm font-semibold">Gate readiness · % requirements satisfied <span className="text-[11px] text-slate-500">· G1 → G7 one line</span></h2>
+        <h2 className="text-sm font-semibold">{t("soi2525.gate_readiness")} <span className="text-[11px] text-slate-500">{t("soi2525.g1_g7_one_line")}</span></h2>
         {/* G1–G7 on a single line (deck parity — Robust Stage-Gate) — horizontal scroll on narrow screens. */}
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
           {readiness.map((r, i) => {
@@ -7027,7 +7037,7 @@ function GateRequirementsView({ projects, allProjects, hierFilter, onScope, sel,
       {/* §3.1 Requirements × gates matrix — rows = requirements, columns = G1–G7 */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
-          <h2 className="text-sm font-semibold">Gate Review Slides · S1 – S18</h2>
+          <h2 className="text-sm font-semibold">{t("soi2525.gate_review_slides")}</h2>
           <div className="text-[10px] text-slate-500">Each slide is reviewed at its gate — set your {board} gate feedback per slide.</div>
         </div>
         <div className="overflow-x-auto">
@@ -7035,7 +7045,7 @@ function GateRequirementsView({ projects, allProjects, hierFilter, onScope, sel,
             <thead>
               <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-500">
                 <th className="px-3 py-2 text-left font-medium">Slide</th>
-                <th className="px-2 py-2 text-left font-medium">Review deliverable</th>
+                <th className="px-2 py-2 text-left font-medium">{t("soi2525.review_deliverable")}</th>
                 <th className="px-2 py-2 text-center font-medium">Band</th>
                 {GATES.map((g) => <th key={g} className="px-1.5 py-2 text-center font-mono font-medium">{g}</th>)}
                 <th className="px-2 py-2 text-right font-medium">Status</th>
@@ -7052,7 +7062,7 @@ function GateRequirementsView({ projects, allProjects, hierFilter, onScope, sel,
                   <React.Fragment key={req.id}>
                   <tr onClick={() => toggle(req.id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(req.id); } }}
                     role="button" tabIndex={0} aria-expanded={isOpen} aria-label={`${slideDef(req.id)?.name ?? dispReqId(req.id)} — expand detail`}
-                    className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/30 focus:bg-slate-800/40 focus:outline-none ${isOpen ? "bg-slate-800/40" : ""}`} title="Expand into actual detail">
+                    className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/30 focus:bg-slate-800/40 focus:outline-none ${isOpen ? "bg-slate-800/40" : ""}`} title={t("soi2525.expand_actual_detail")}>
                     <td className={`px-3 py-1.5 font-mono text-[11px] ${REQ_TYPE_CHIP[req.type]}`}><span className="mr-1 text-slate-500">{isOpen ? "▾" : "▸"}</span>{dispReqId(req.id)}</td>
                     <td className="px-2 py-1.5">
                       {(() => { const d = slideDef(req.id); return (
@@ -7108,10 +7118,10 @@ function GateRequirementsView({ projects, allProjects, hierFilter, onScope, sel,
           </table>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 px-4 py-2 text-[10px] text-slate-500 border-t border-slate-800">
-          <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-emerald-400" />satisfied (gate complete)</span>
-          <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-amber-400" />in work (next gate)</span>
-          <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-slate-600" />required (future gate)</span>
-          <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-slate-600 ring-1 ring-cyan-500/40" />first required at this gate</span>
+          <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-emerald-400" />{t("soi2525.legend_satisfied")}</span>
+          <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-amber-400" />{t("soi2525.legend_in_work")}</span>
+          <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-slate-600" />{t("soi2525.legend_required")}</span>
+          <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-slate-600 ring-1 ring-cyan-500/40" />{t("soi2525.legend_first_required")}</span>
         </div>
       </section>
     </div>
@@ -7252,16 +7262,16 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
     return (
       <div className="mx-auto max-w-sm rounded-2xl border border-amber-500/30 bg-[#111820] p-6">
         <div className="flex items-start justify-between gap-2">
-          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-amber-400">Admin · Master Business Setup</div>
+          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-amber-400">{t("soi2525.admin_master_business_setup")}</div>
           {onClose && <button onClick={onClose} aria-label={t("innovation.setup.close")} title={t("innovation.setup.close")} className="shrink-0 rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400 hover:bg-slate-800">✕ {t("innovation.setup.close")}</button>}
         </div>
-        <h2 className="mt-1 text-lg font-semibold">Business Setup — Admin Unlock</h2>
-        <p className="mt-2 text-sm text-slate-400">Enter the admin code to set up the master hierarchy: BU · SBU · Alpha Group · Alpha Code · Product · Material.</p>
+        <h2 className="mt-1 text-lg font-semibold">{t("soi2525.business_setup_admin_unlock")}</h2>
+        <p className="mt-2 text-sm text-slate-400">{t("soi2525.enter_admin_code_hierarchy")}</p>
         <input type="password" inputMode="numeric" value={pw} autoFocus
           onChange={(e) => { setPw(e.target.value); setErr(false); }} onKeyDown={(e) => e.key === "Enter" && unlock()}
-          placeholder="Admin code" className="mt-4 w-full rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-2.5 text-center tracking-[0.4em] font-mono text-lg outline-none focus:border-amber-500" />
-        {err && <p className="mt-2 text-sm text-rose-400">Incorrect code.</p>}
-        <button onClick={unlock} className="mt-4 w-full rounded-lg bg-amber-500 px-4 py-2.5 font-semibold text-[#06202a] hover:bg-amber-400">Unlock Business Setup</button>
+          placeholder={t("soi2525.admin_code_placeholder")} className="mt-4 w-full rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-2.5 text-center tracking-[0.4em] font-mono text-lg outline-none focus:border-amber-500" />
+        {err && <p className="mt-2 text-sm text-rose-400">{t("soi2525.incorrect_code")}</p>}
+        <button onClick={unlock} className="mt-4 w-full rounded-lg bg-amber-500 px-4 py-2.5 font-semibold text-[#06202a] hover:bg-amber-400">{t("soi2525.unlock_business_setup")}</button>
       </div>
     );
   }
@@ -7295,15 +7305,15 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <div>
-          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-amber-400">Master Business Setup · Admin</div>
-          <label className="mt-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Company Name — top of hierarchy · drives the header brand</label>
+          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-amber-400">{t("soi2525.master_business_setup_admin")}</div>
+          <label className="mt-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">{t("soi2525.company_name_label")}</label>
           <input value={setup.company} onChange={(e) => persistCompany(e.target.value)} placeholder={DEFAULT_COMPANY_NAME}
-            aria-label="Company name"
+            aria-label={t("soi2525.company_name_aria")}
             className="mt-0.5 rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-lg font-semibold text-slate-100 outline-none focus:border-cyan-500" />
         </div>
         <div className="ml-auto flex items-center gap-2 text-[11px]">
-          <span className="text-slate-500">Σ Base Rev <b className="text-emerald-300">${Math.round(totalBaseRev)}M</b></span>
-          <button onClick={resetSeed} className="rounded border border-slate-700 px-2 py-1 text-slate-300 hover:bg-slate-800">Reset to seed</button>
+          <span className="text-slate-500">{t("soi2525.sigma_base_rev")} <b className="text-emerald-300">${Math.round(totalBaseRev)}M</b></span>
+          <button onClick={resetSeed} className="rounded border border-slate-700 px-2 py-1 text-slate-300 hover:bg-slate-800">{t("soi2525.reset_to_seed")}</button>
           <button onClick={() => { ssDel(ADMIN_KEY); setAdmin(false); }} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">Lock</button>
           {onClose && <button onClick={onClose} aria-label={t("innovation.setup.close")} title={t("innovation.setup.close")} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 font-medium text-cyan-300 hover:bg-cyan-500/20">✕ {t("innovation.setup.close")}</button>}
         </div>
@@ -7311,7 +7321,7 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
 
       {/* R&D budget scenarios — editable NAME + $M (operator); drives the portfolio dropdown + funding line */}
       <div className="rounded-lg border border-slate-800 bg-[#0b0f14] p-3">
-        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-cyan-400">R&D Budget Scenarios</div>
+        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-cyan-400">{t("soi2525.rd_budget_scenarios")}</div>
         <div className="flex flex-wrap gap-3">
           {scenarios.map((s, i) => (
             <div key={s.key} className="flex items-center gap-1.5 rounded border border-slate-700 px-2 py-1.5">
@@ -7336,7 +7346,7 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
               ))}
             </div>
           ))}
-          <p className="text-[10px] text-slate-500">SBU budgets are weighted by each SBU&apos;s NRE demand and sum to the scenario total. Per-node editable overrides land next.</p>
+          <p className="text-[10px] text-slate-500">{t("soi2525.sbu_budgets_weighted_note")}</p>
         </div>
       </div>
 
@@ -7349,9 +7359,9 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
           make the board sheet unreadable would undo the whole point of that lock. */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Project Category Colours <span className="text-[11px] text-slate-500">— the dog-tag body fill; the border stays the Strategic Pillar</span></h2>
+          <h2 className="text-sm font-semibold">{t("soi2525.project_category_colours")} <span className="text-[11px] text-slate-500">{t("soi2525.dog_tag_body_fill_note")}</span></h2>
           {Object.keys(devTypeStyles).length > 0 && (
-            <button onClick={() => persistDevTypeStyles({})} className="rounded border border-slate-700 px-2.5 py-1 text-[11px] text-slate-300 hover:bg-slate-800">↺ Reset all</button>
+            <button onClick={() => persistDevTypeStyles({})} className="rounded border border-slate-700 px-2.5 py-1 text-[11px] text-slate-300 hover:bg-slate-800">↺ {t("soi2525.reset_all")}</button>
           )}
         </div>
         <div className="mt-2 space-y-1.5">
@@ -7373,7 +7383,7 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                   <input type="color" value={color} aria-label={`Colour for ${DEV_TYPE[k].label}`}
                     onChange={(e) => set({ color: e.target.value })}
                     className="h-6 w-8 cursor-pointer rounded border border-slate-700 bg-transparent p-0" />
-                  {devTypeStyles[k]?.color && <button onClick={() => set({ color: undefined })} title="Reset to default" aria-label={`Reset colour for ${DEV_TYPE[k].label}`} className="text-slate-500 hover:text-cyan-300">↺</button>}
+                  {devTypeStyles[k]?.color && <button onClick={() => set({ color: undefined })} title={t("soi2525.reset_to_default")} aria-label={`Reset colour for ${DEV_TYPE[k].label}`} className="text-slate-500 hover:text-cyan-300">↺</button>}
                 </label>
                 <label className="flex items-center gap-1 text-[10px] text-slate-500">
                   Mask
@@ -7382,43 +7392,43 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                     onChange={(e) => set({ mask: Number(e.target.value) })}
                     className="h-1.5 w-24 cursor-pointer accent-cyan-400" />
                   <span className="w-8 tabular-nums text-slate-400">{Math.round((mask / 255) * 100)}%</span>
-                  {devTypeStyles[k]?.mask !== undefined && <button onClick={() => set({ mask: undefined })} title="Reset to default" aria-label={`Reset fill for ${DEV_TYPE[k].label}`} className="text-slate-500 hover:text-cyan-300">↺</button>}
+                  {devTypeStyles[k]?.mask !== undefined && <button onClick={() => set({ mask: undefined })} title={t("soi2525.reset_to_default")} aria-label={`Reset fill for ${DEV_TYPE[k].label}`} className="text-slate-500 hover:text-cyan-300">↺</button>}
                 </label>
                 <span data-devtype-contrast className={`rounded px-1.5 py-0.5 text-[10px] tabular-nums ${readable ? "text-emerald-300" : "bg-rose-500/15 font-semibold text-rose-300"}`}
-                  title="Measured WCAG contrast of the tag's own metric text over this fill">
+                  title={t("soi2525.measured_wcag_contrast_tooltip")}>
                   {readable ? `${cLabel.toFixed(1)}:1 ✓` : `${cLabel.toFixed(1)}:1 — under AA, text will be hard to read`}
                 </span>
               </div>
             );
           })}
-          <p className="text-[10px] text-slate-500">Body fill = project category · border = Strategic Pillar. Contrast is measured live against the tag&apos;s own metric text; anything under 4.5:1 is flagged in red.</p>
+          <p className="text-[10px] text-slate-500">{t("soi2525.body_fill_contrast_note")}</p>
         </div>
       </section>
 
       {/* Strategic pillars editor — the four (or more) pillars every project maps onto */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Strategic Pillars <span className="text-[11px] text-slate-500">({pillars.length}) — drive the project pillar dropdown</span></h2>
-          <button onClick={() => persistPillars([...pillars, { name: `Pillar ${pillars.length + 1}`, desc: "" }])} className="rounded bg-cyan-500/90 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">+ Add pillar</button>
+          <h2 className="text-sm font-semibold">{t("soi2525.strategic_pillars")} <span className="text-[11px] text-slate-500">({pillars.length}) — drive the project pillar dropdown</span></h2>
+          <button onClick={() => persistPillars([...pillars, { name: `Pillar ${pillars.length + 1}`, desc: "" }])} className="rounded bg-cyan-500/90 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">{t("soi2525.add_pillar")}</button>
         </div>
         <div className="mt-2 space-y-1.5">
           {pillars.map((pl, i) => (
             <div key={i} className="flex flex-wrap items-center gap-2">
               <span className="flex h-6 w-8 items-center justify-center rounded text-[10px] font-mono" style={{ background: `${pillarColorOf(pl.name, pillars)}22`, color: pillarColorOf(pl.name, pillars) }}>P{i + 1}</span>
               <input value={pl.name} onChange={(e) => persistPillars(pillars.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} className={`w-56 ${inp}`} />
-              <input value={pl.desc} onChange={(e) => persistPillars(pillars.map((x, j) => j === i ? { ...x, desc: e.target.value } : x))} placeholder="one-line description" className={`flex-1 min-w-[200px] ${inp}`} />
+              <input value={pl.desc} onChange={(e) => persistPillars(pillars.map((x, j) => j === i ? { ...x, desc: e.target.value } : x))} placeholder={t("soi2525.one_line_description")} className={`flex-1 min-w-[200px] ${inp}`} />
               {/* Pillar color — the InnovationTag highlight. Trinity defaults; custom picker (same method as Settings' custom color). */}
-              <label className="flex items-center gap-1 text-[10px] text-slate-500" title="Strategic pillar color — the InnovationTag highlight">
+              <label className="flex items-center gap-1 text-[10px] text-slate-500" title={t("soi2525.strategic_pillar_color_tooltip")}>
                 <input type="color" value={pl.color ?? pillarColorOf(pl.name, pillars)} aria-label={`Color for ${pl.name}`}
                   onChange={(e) => persistPillars(pillars.map((x, j) => j === i ? { ...x, color: e.target.value } : x))}
                   className="h-6 w-8 cursor-pointer rounded border border-slate-700 bg-transparent p-0" />
-                {pl.color && <button onClick={() => persistPillars(pillars.map((x, j) => j === i ? { ...x, color: undefined } : x))} title="Reset to Trinity default" aria-label={`Reset color for ${pl.name}`} className="text-slate-500 hover:text-cyan-300">↺</button>}
+                {pl.color && <button onClick={() => persistPillars(pillars.map((x, j) => j === i ? { ...x, color: undefined } : x))} title={t("soi2525.reset_to_trinity_default")} aria-label={`Reset color for ${pl.name}`} className="text-slate-500 hover:text-cyan-300">↺</button>}
               </label>
-              <button onClick={() => persistPillars(pillars.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Delete">✕</button>
+              <button onClick={() => persistPillars(pillars.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title={t("soi2525.delete")}>✕</button>
             </div>
           ))}
         </div>
-        <p className="mt-2 text-[10px] text-slate-500">Renaming a pillar updates the edit-project + Submit-New-Idea dropdowns. Existing projects keep their stored pillar until re-selected.</p>
+        <p className="mt-2 text-[10px] text-slate-500">{t("soi2525.pillar_rename_note")}</p>
       </section>
 
       {/* Segment library (Slice 7) — reusable buyer-need taxonomy for authoring per-segment value props */}
@@ -7431,8 +7441,8 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
         <div className="mt-2 flex flex-wrap gap-1.5">
           {segLib.map((sg, i) => (
             <div key={i} className="flex items-center gap-1 rounded-lg border border-slate-800 px-1.5 py-1">
-              <input value={sg} onChange={(e) => persistSegLib(segLib.map((x, j) => j === i ? e.target.value : x))} placeholder="buyer need" className={`w-40 ${inp} py-1 text-xs`} />
-              <button onClick={() => persistSegLib(segLib.filter((_, j) => j !== i))} className="rounded px-1 text-rose-400 hover:bg-rose-500/10" title="Delete">✕</button>
+              <input value={sg} onChange={(e) => persistSegLib(segLib.map((x, j) => j === i ? e.target.value : x))} placeholder={t("soi2525.buyer_need")} className={`w-40 ${inp} py-1 text-xs`} />
+              <button onClick={() => persistSegLib(segLib.filter((_, j) => j !== i))} className="rounded px-1 text-rose-400 hover:bg-rose-500/10" title={t("soi2525.delete")}>✕</button>
             </div>
           ))}
         </div>
@@ -7448,9 +7458,9 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
         <div className="mt-2 space-y-1.5">
           {glossary.map(([term, def], i) => (
             <div key={i} className="flex flex-wrap items-center gap-2">
-              <input value={term} onChange={(e) => persistGlossary(glossary.map((x, j) => j === i ? [e.target.value, x[1]] : x))} placeholder="term" className={`w-40 ${inp}`} />
-              <input value={def} onChange={(e) => persistGlossary(glossary.map((x, j) => j === i ? [x[0], e.target.value] : x))} placeholder="definition" className={`flex-1 min-w-[220px] ${inp}`} />
-              <button onClick={() => persistGlossary(glossary.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Delete">✕</button>
+              <input value={term} onChange={(e) => persistGlossary(glossary.map((x, j) => j === i ? [e.target.value, x[1]] : x))} placeholder={t("soi2525.term")} className={`w-40 ${inp}`} />
+              <input value={def} onChange={(e) => persistGlossary(glossary.map((x, j) => j === i ? [x[0], e.target.value] : x))} placeholder={t("soi2525.definition")} className={`flex-1 min-w-[220px] ${inp}`} />
+              <button onClick={() => persistGlossary(glossary.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title={t("soi2525.delete")}>✕</button>
             </div>
           ))}
         </div>
@@ -7458,7 +7468,7 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
 
       {/* Module name — label for the prioritize-and-fund workflow (formerly "Rack & Stack") */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
-        <h2 className="text-sm font-semibold">Prioritization Module Name <span className="text-[11px] text-slate-500">— the tab, page title &amp; section header</span></h2>
+        <h2 className="text-sm font-semibold">{t("soi2525.prioritization_module_name")} <span className="text-[11px] text-slate-500">{t("soi2525.prioritization_module_name_hint")}</span></h2>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {STACK_NAME_PRESETS.map((n) => (
             <button key={n} onClick={() => persistStackName(n)}
@@ -7466,14 +7476,14 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
           ))}
           <span className="text-[11px] text-slate-500">or</span>
           <input value={stackName} onChange={(e) => persistStackName(e.target.value)} maxLength={32}
-            placeholder="Custom name" className={`w-44 ${inp}`} />
+            placeholder={t("soi2525.custom_name")} className={`w-44 ${inp}`} />
         </div>
-        <p className="mt-2 text-[10px] text-slate-500">Default <b className="text-cyan-300">Portfolio Prioritization</b>. Renaming here relabels the module across the tool (tab · title · section header).</p>
+        <p className="mt-2 text-[10px] text-slate-500">Default <b className="text-cyan-300">{t("soi2525.portfolio_prioritization")}</b>{t("soi2525.portfolio_prioritization_rename_note")}</p>
       </section>
 
       {/* Dog-tag highlights — which metrics show on each project's summary card */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
-        <h2 className="text-sm font-semibold">Project Summary Highlights <span className="text-[11px] text-slate-500">— dog-tag middle metrics (SBU left · name top · launch date right are fixed)</span></h2>
+        <h2 className="text-sm font-semibold">{t("soi2525.project_summary_highlights")} <span className="text-[11px] text-slate-500">{t("soi2525.project_summary_highlights_hint")}</span></h2>
         <div className="mt-2 flex flex-wrap gap-2">
           {DOGTAG_METRICS.map((m) => {
             const on = dogtag.includes(m.key);
@@ -7483,12 +7493,12 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
             );
           })}
         </div>
-        <p className="mt-2 text-[10px] text-slate-500">Toggle which key metrics appear on each project&apos;s dog-tag summary. Default: Remaining FY Spend · NPV · Cur-Yr Revenue.</p>
+        <p className="mt-2 text-[10px] text-slate-500">{t("soi2525.dogtag_highlights_note")}</p>
       </section>
 
       {/* Review board — the body that gives per-slide gate feedback (default IRB) */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
-        <h2 className="text-sm font-semibold">Review Board <span className="text-[11px] text-slate-500">— gives per-slide gate feedback across G1–G7</span></h2>
+        <h2 className="text-sm font-semibold">{t("soi2525.review_board")} <span className="text-[11px] text-slate-500">{t("soi2525.review_board_hint")}</span></h2>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {REVIEW_BOARD_PRESETS.map((b) => (
             <button key={b} onClick={() => persistBoard(b)}
@@ -7496,7 +7506,7 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
           ))}
           <span className="text-[11px] text-slate-500">or</span>
           <input value={board} onChange={(e) => persistBoard(e.target.value.toUpperCase())} maxLength={8}
-            placeholder="Custom" className={`w-28 text-center uppercase ${inp}`} />
+            placeholder={t("soi2525.custom")} className={`w-28 text-center uppercase ${inp}`} />
         </div>
         <p className="mt-2 text-[10px] text-slate-500">Active: <b className="text-cyan-300">{board}</b> ({boardFull(board)}). Selecting one here relabels the gate-feedback attribution everywhere in the tool. Default is IRB (Innovation Review Board).</p>
       </section>
@@ -7525,8 +7535,8 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                 <th className="px-2 py-2 text-left">Label</th>
                 <th className="px-2 py-2 text-left">Description</th>
                 {parentTier && <th className="px-2 py-2 text-left">{BIZ_TIERS.find((t) => t.key === parentTier)!.label}</th>}
-                {finTier && <th className="px-2 py-2 text-right">Base Rev $M</th>}
-                {finTier && <th className="px-2 py-2 text-right">Base Mgn $M</th>}
+                {finTier && <th className="px-2 py-2 text-right">{t("soi2525.base_rev_m")}</th>}
+                {finTier && <th className="px-2 py-2 text-right">{t("soi2525.base_mgn_m")}</th>}
                 {finTier && <th className="px-2 py-2 text-right">Growth %</th>}
                 <th className="px-2 py-2 text-right">·</th>
               </tr>
@@ -7536,7 +7546,7 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                 <tr key={i} className="border-b border-slate-900">
                   <td className="py-1.5 pl-2 pr-3" style={{ borderLeft: `3px solid ${rowColor(r)}` }}><input value={r.code} onChange={(e) => updateRow(i, { code: e.target.value })} className={`w-24 font-mono ${inp}`} title={`BU ${buCodeOf(tier, r.code)}`} /></td>
                   <td className="px-2 py-1.5"><input value={r.label} onChange={(e) => updateRow(i, { label: e.target.value })} className={`w-full ${inp}`} /></td>
-                  <td className="px-2 py-1.5"><input value={r.desc ?? ""} onChange={(e) => updateRow(i, { desc: e.target.value })} placeholder="Full description" className={`w-full min-w-[180px] ${inp}`} /></td>
+                  <td className="px-2 py-1.5"><input value={r.desc ?? ""} onChange={(e) => updateRow(i, { desc: e.target.value })} placeholder={t("soi2525.full_description")} className={`w-full min-w-[180px] ${inp}`} /></td>
                   {parentTier && (
                     <td className="px-2 py-1.5">
                       <select value={r.parent ?? ""} onChange={(e) => updateRow(i, { parent: e.target.value })} className={inp}>
@@ -7548,19 +7558,20 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                   {finTier && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.revM ?? 0)} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && updateRow(i, { revM: +e.target.value })} className={`w-16 text-right tabular-nums ${inp}`} /></td>}
                   {finTier && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.marginM ?? 0)} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && updateRow(i, { marginM: +e.target.value })} className={`w-16 text-right tabular-nums ${inp}`} /></td>}
                   {finTier && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.growthPct ?? 0)} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && updateRow(i, { growthPct: +e.target.value })} className={`w-14 text-right tabular-nums ${inp}`} /></td>}
-                  <td className="px-2 py-1.5 text-right"><button onClick={() => delRow(i)} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Delete">✕</button></td>
+                  <td className="px-2 py-1.5 text-right"><button onClick={() => delRow(i)} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title={t("soi2525.delete")}>✕</button></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="px-4 py-2 text-[10px] text-slate-500 border-t border-slate-800">Master data persists in this browser. Codes: BU 2-letter · SBU 3-letter · Alpha Group alphanumeric · Alpha Code 4-char · Product 7xxxx · Material 7xxxx-yyy. Base Rev · Base Mgn · Growth % (current-year figures) seed the Growth Model down to the Alpha Code tier — Base Rev is the grey jump-off the New/Incremental stacks build on; each BU carries a Trinity color its children inherit (left bar).</p>
+        <p className="px-4 py-2 text-[10px] text-slate-500 border-t border-slate-800">{t("soi2525.master_data_persist_note")}</p>
       </section>
     </div>
   );
 }
 
 function Differentiators({ p, cadence = "M" }: { p: Project; cadence?: Cadence }) {
+  const { t } = useLexicon();
   const monthsEarly = 1.0;
   const programValueM = weightedRevM(p) * 0.35;
   const upsidePoolM = programValueM * 0.111 * monthsEarly;  // CRS-91 ~11.1%/month early
@@ -7568,21 +7579,21 @@ function Differentiators({ p, cadence = "M" }: { p: Project; cadence?: Cadence }
   return (
     <div className="space-y-4">
       {/* Risk market */}
-      <Card title="Risk-prediction market" tag="Poll to de-risk">
+      <Card title={t("soi2525.risk_prediction_market")} tag="Poll to de-risk">
         <Row l="Open predictions" v={`${p.predictions}`} />
         <Row l="Mitigated payout" v="= materialized" good />
         <Row l="Roles enforced" v="predictor ≠ actioner ≠ resolver" />
-        <p className="mt-1 text-[11px] text-slate-500">Anyone may submit a risk prediction; rewards accrue to predictions that prove correct and get actioned.</p>
+        <p className="mt-1 text-[11px] text-slate-500">{t("soi2525.risk_prediction_note")}</p>
       </Card>
       {/* Upside pool + $/min */}
-      <Card title="Project Upside pool" tag="Time = money">
+      <Card title={t("soi2525.project_upside_pool")} tag="Time = money">
         <Row l="Pool @ 1 mo early" v={usd(upsidePoolM)} good />
         <Row l="Cost of time" v={fmtPerCadence(costPerMinuteOf(p), cadence)} />
         <Row l="Critical-path" v={p.criticalPath ? "multiplier ×" : "base rate"} tone={p.criticalPath ? "good" : undefined} />
-        <p className="mt-1 text-[11px] text-slate-500">Baseline locked at G2 by an approver outside the team.</p>
+        <p className="mt-1 text-[11px] text-slate-500">{t("soi2525.baseline_locked_g2_note")}</p>
       </Card>
       {/* Intelligence load */}
-      <Card title="Intelligence load · AI · SI · HI" tag="Burnout guard">
+      <Card title={t("soi2525.intelligence_load_ai_si_hi")} tag="Burnout guard">
         <div className="mt-1 flex h-3 overflow-hidden rounded-full">
           <span className="bg-cyan-500" style={{ width: `${p.ai * 100}%` }} title="AI" />
           <span className="bg-amber-400" style={{ width: `${p.si * 100}%` }} title="SI" />
@@ -7592,7 +7603,7 @@ function Differentiators({ p, cadence = "M" }: { p: Project; cadence?: Cadence }
           <span>AI {Math.round(p.ai * 100)}%</span><span>SI {Math.round(p.si * 100)}%</span><span>HI {Math.round(p.hi * 100)}%</span>
         </div>
         <Row l="Human load" v={`${Math.round(p.humanLoad * 100)}%`} tone={guard ? "bad" : "ok"} />
-        {guard && <p className="mt-1 text-[11px] text-rose-400">⚠ Burnout guard active — upside withheld pending review.</p>}
+        {guard && <p className="mt-1 text-[11px] text-rose-400">⚠ {t("soi2525.burnout_guard_active")}</p>}
       </Card>
     </div>
   );
@@ -7602,6 +7613,7 @@ function Differentiators({ p, cadence = "M" }: { p: Project; cadence?: Cadence }
 // # Years (1/3/10), Targeted Growth Rate, YoY Do-Nothing decline, Show/Hide baseline, Step 1/2/3 components.
 // (Gate cadence lives on the per-project gate overview, not here.)
 function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onScope }: { funded: Project[]; cadence?: Cadence; hierFilter: HierSel; allProjects: Project[]; onScope: (s: HierSel) => void }) {
+  const { t } = useLexicon();
   const [years, setYears] = useState(3);
   const vpGM = useViewport(); // G-refine — keep the selector row on ONE line (compact) on a portrait phone
   const [growthPct, setGrowthPct] = useState("3.8");
@@ -7771,7 +7783,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold">Growth Model · Do-Nothing Scenario with Portfolio NPIs</h3>
+        <h3 className="text-sm font-semibold">{t("soi2525.growth_model_do_nothing_title")}</h3>
         <span className="text-[11px] text-slate-500">Target CAGR ~{cagr}% · Margin ${Math.round(scopeMargin)}M · {scoped.length} project{scoped.length === 1 ? "" : "s"}</span>
       </div>
 
@@ -7888,7 +7900,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
             {pin.kind === "target"
               ? <span className="text-slate-200">Target {metric === "mgn" ? "Margin" : "Rev"} <b className="tabular-nums text-cyan-100">${Math.round(targetLine[i]).toLocaleString()}M</b> · growth {growthPct}%/yr</span>
               : <span className="text-slate-200">{baselineShown ? <>Full <b className="tabular-nums text-cyan-100">${barLabel.toLocaleString()}M</b> · {BAND[band].label} <b className="tabular-nums text-slate-100">${Math.round(net).toLocaleString()}M</b></> : <><span>{BAND[band].label}</span> <b className="tabular-nums text-cyan-100">${Math.round(net).toLocaleString()}M</b></>}{showTarget ? <> · vs Target ${Math.round(targetLine[i]).toLocaleString()}M</> : null}</span>}
-            <button onClick={() => setPin(null)} className="ml-auto rounded px-1 text-[12px] leading-none text-slate-400 hover:text-cyan-300" aria-label="Dismiss">✕</button>
+            <button onClick={() => setPin(null)} className="ml-auto rounded px-1 text-[12px] leading-none text-slate-400 hover:text-cyan-300" aria-label={t("soi2525.dismiss")}>✕</button>
           </div>
         );
       })()}
@@ -7898,7 +7910,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         <span className="font-semibold uppercase tracking-wider text-slate-500">{segLabel}</span>
         {segments.length ? segments.map((g) => (
           <span key={g.code} className="inline-flex items-center gap-1"><i className="inline-block h-2 w-2 rounded-sm" style={{ background: g.color }} /><span className="font-mono">{g.code}</span></span>
-        )) : <span className="italic text-slate-600">no projects in scope</span>}
+        )) : <span className="italic text-slate-600">{t("soi2525.no_projects_in_scope")}</span>}
       </div>
 
       {/* VIEW banner (operator) — scrollable left→right: Incremental · Step 1 · Step 2 · Step 3. Default
@@ -7956,16 +7968,16 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
             <table className="w-full text-[11px] tabular-nums">
               <thead><tr className="text-slate-500">
                 <th className="px-3 py-1 text-left font-medium">{segName}</th>
-                {baselineShown && <th className="px-2 py-1 text-right font-medium text-slate-400">Base Rev</th>}
+                {baselineShown && <th className="px-2 py-1 text-right font-medium text-slate-400">{t("soi2525.base_rev")}</th>}
                 <th className="px-2 py-1 text-right font-medium text-emerald-300">Step 1 New</th>
                 <th className="px-2 py-1 text-right font-medium text-rose-300">− Step 2 Decline</th>
                 <th className="px-2 py-1 text-right font-medium text-violet-300">+ Step 3 EOL</th>
                 {/* ORDER, per the operator: = Incr Rev · Incr Mgn · Total Rev. The two INCREMENTAL figures
                     now sit together — they are the same story in dollars and margin — and the SUM lands
                     last, where a total belongs. */}
-                <th className="px-2 py-1 text-right font-medium text-amber-300">= Incr Rev</th>
-                <th className="px-2 py-1 text-right font-medium text-amber-200">Incr Mgn</th>
-                {baselineShown && <th className="px-3 py-1 text-right font-medium text-slate-300">Total Rev</th>}
+                <th className="px-2 py-1 text-right font-medium text-amber-300">{t("soi2525.incr_rev")}</th>
+                <th className="px-2 py-1 text-right font-medium text-amber-200">{t("soi2525.incr_mgn")}</th>
+                {baselineShown && <th className="px-3 py-1 text-right font-medium text-slate-300">{t("soi2525.total_rev")}</th>}
               </tr></thead>
               <tbody>
                 {rowsBk.map((r) => (
@@ -8010,7 +8022,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
               {SPREAD_BASES.map((b) => <button key={b.key} onClick={() => setSpreadKey(b.key)} aria-pressed={spreadKey === b.key} className={`px-1.5 py-0.5 ${spreadKey === b.key ? "bg-cyan-500 font-semibold text-[#06202a]" : "hover:bg-slate-800"}`}>{b.days}d</button>)}
               <button onClick={() => setSpreadKey("custom")} aria-pressed={spreadKey === "custom"} className={`px-1.5 py-0.5 ${spreadKey === "custom" ? "bg-cyan-500 font-semibold text-[#06202a]" : "hover:bg-slate-800"}`}>custom</button>
             </div>
-            {spreadKey === "custom" && <input type="text" inputMode="numeric" value={spreadCustom} onChange={(e) => /^\d*$/.test(e.target.value) && setSpreadCustom(e.target.value)} className={`w-14 ${selStyle} tabular-nums`} aria-label="Custom days" />}
+            {spreadKey === "custom" && <input type="text" inputMode="numeric" value={spreadCustom} onChange={(e) => /^\d*$/.test(e.target.value) && setSpreadCustom(e.target.value)} className={`w-14 ${selStyle} tabular-nums`} aria-label={t("soi2525.custom_days")} />}
             <span>Cost <b className="text-rose-300 tabular-nums">{perMin(costUsd)}</b></span>
             <span>Rev <b className="text-emerald-300 tabular-nums">{perMin(revUsd)}</b></span>
             <span>Margin <b className="text-amber-300 tabular-nums">{perMin(marginUsd)}</b></span>
@@ -8083,6 +8095,7 @@ function DashCard({ title, tag, children }: { title: string; tag?: string; child
 // Financial Map — R&D Spend (cost) vs Risk-Weighted Revenue per project, with an Upside toggle.
 // The 3rd-most-important view (Financial): where each project sits on cost-vs-return.
 function FinancialMap({ projects, onSelect }: { projects: Project[]; onSelect: (id: string) => void }) {
+  const { t } = useLexicon();
   const [mode, setMode] = useState<"rw" | "upside">("rw");
   const [hover, setHover] = useState<string | null>(null);
   const W = 720, H = 300, L = 46, B = 34, T = 16, R = 16;
@@ -8095,7 +8108,7 @@ function FinancialMap({ projects, onSelect }: { projects: Project[]; onSelect: (
   const rOf = (p: Project) => Math.max(4, Math.min(20, Math.sqrt(Math.max(1, npvM(p))) * 2));
   const usdM = (v: number) => `$${v.toFixed(0)}M`;
   return (
-    <DashCard title="Financial Map · R&D Spend vs Risk-Weighted Revenue" tag="Financial ★">
+    <DashCard title={t("soi2525.financial_map_title")} tag="Financial ★">
       <div className="mb-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
         <div className="flex overflow-hidden rounded-md border border-slate-700">
           {([["rw", "Risk-weighted"], ["upside", "Upside (unweighted)"]] as const).map(([m, lbl]) => (
@@ -8103,7 +8116,7 @@ function FinancialMap({ projects, onSelect }: { projects: Project[]; onSelect: (
               className={`px-2.5 py-1 ${mode === m ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
           ))}
         </div>
-        <span className="text-[10px] text-slate-500">bubble size = NPV · color = dev-type · top-left = high return / low cost</span>
+        <span className="text-[10px] text-slate-500">{t("soi2525.bubble_size_npv_note")}</span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet" style={{ height: "auto" }}>
         {/* sweet-spot shading (low cost, high return) */}
@@ -8225,7 +8238,7 @@ function PipelineByGate({ projects, funded, showUnfunded, onShowUnfunded, onSele
       {maxed && pickedP && (
         <div className="mt-3 rounded-lg border border-cyan-500/30 bg-[#0b0f14] p-3">
           <DogTag p={pickedP} />
-          <button onClick={() => onSelect(pickedP.id)} className="mt-2 rounded-md bg-cyan-500 px-3 py-1.5 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">Open full Project details →</button>
+          <button onClick={() => onSelect(pickedP.id)} className="mt-2 rounded-md bg-cyan-500 px-3 py-1.5 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">{t("soi2525.open_full_project_details")}</button>
         </div>
       )}
 
@@ -8275,8 +8288,8 @@ function PipelineByGate({ projects, funded, showUnfunded, onShowUnfunded, onSele
       <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6">
         <div className="mx-auto max-w-5xl rounded-xl border border-slate-800 bg-[#0e141b] p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold">Pipeline by Gate <span className="ml-1 rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">Unofficial Framework</span></h3>
-            <button onClick={() => setMaxed(false)} title="Minimize" className="rounded border border-slate-700 px-2 py-0.5 text-[13px] leading-none text-slate-300 hover:bg-slate-800">⤡ Minimize</button>
+            <h3 className="text-sm font-semibold">{t("soi2525.pipeline_by_gate")} <span className="ml-1 rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">{t("soi2525.unofficial_framework")}</span></h3>
+            <button onClick={() => setMaxed(false)} title={t("soi2525.minimize")} className="rounded border border-slate-700 px-2 py-0.5 text-[13px] leading-none text-slate-300 hover:bg-slate-800">⤡ Minimize</button>
           </div>
           {body}
         </div>
@@ -8286,10 +8299,10 @@ function PipelineByGate({ projects, funded, showUnfunded, onShowUnfunded, onSele
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold">Pipeline by Gate</h3>
+        <h3 className="text-sm font-semibold">{t("soi2525.pipeline_by_gate")}</h3>
         <div className="flex items-center gap-2">
-          <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">Unofficial Framework</span>
-          <button onClick={() => setMaxed(true)} title="Maximize" className="rounded border border-slate-700 px-1.5 py-0.5 text-[13px] leading-none text-slate-300 hover:bg-slate-800">⤢</button>
+          <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">{t("soi2525.unofficial_framework")}</span>
+          <button onClick={() => setMaxed(true)} title={t("soi2525.maximize")} className="rounded border border-slate-700 px-1.5 py-0.5 text-[13px] leading-none text-slate-300 hover:bg-slate-800">⤢</button>
         </div>
       </div>
       {body}
@@ -8303,6 +8316,7 @@ function PipelineByGate({ projects, funded, showUnfunded, onShowUnfunded, onSele
 // same engine (financialMetrics / roiSummary / financialsOverview) so numbers never diverge from the deck.
 function RoiVisuals({ projects, funded, showUnfunded, onShowUnfunded, onSelect, allProjects, hierFilter, onScope }: { projects: Project[]; funded: Project[]; showUnfunded: boolean; onShowUnfunded: (v: boolean) => void; onSelect: (id: string) => void;
   allProjects: Project[]; hierFilter: HierSel; onScope: (s: HierSel) => void }) {
+  const { t } = useLexicon();
   const [view, setView] = useState<"pipeline" | "metrics" | "spend" | "cash">("pipeline");
   const kM = k;
   const roi = roiSummary(funded);
@@ -8351,7 +8365,7 @@ function RoiVisuals({ projects, funded, showUnfunded, onShowUnfunded, onSelect, 
   const span = maxV - minV || 1, pw = (W - L) / YRS;
   const y = (v: number) => T + (H - B - T) * (1 - (v - minV) / span);
   return (
-    <DashCard title="ROI Visuals" tag="Portfolio">
+    <DashCard title={t("soi2525.roi_visuals")} tag="Portfolio">
       {/* X-2a · SCOPE SITS BEFORE THE FOUR-WAY SELECTOR (operator, with both screenshots: "Scope addition in
           ROI Chart before 4 toggle selector, matching Image 1"). This is the THIRD mount of the one standard
           `ScopeFilter` — the same control, same props shape, as Portfolio (`:664`) and Gate Requirements
@@ -8372,10 +8386,10 @@ function RoiVisuals({ projects, funded, showUnfunded, onShowUnfunded, onSelect, 
           {tiles.map((m) => <StatTile key={m.label} label={m.label} value={m.value} sub={m.sub} tone={m.tone} />)}
         </div>
       )}
-      {view === "spend" && (<><HBars rows={byBU.map((s) => ({ name: s.name, value: s.spendK, sub: `${s.count}` }))} fmt={kM} /><p className="mt-2 text-[10px] text-slate-500">NRE spend by Business Unit · right count = # projects.</p></>)}
+      {view === "spend" && (<><HBars rows={byBU.map((s) => ({ name: s.name, value: s.spendK, sub: `${s.count}` }))} fmt={kM} /><p className="mt-2 text-[10px] text-slate-500">{t("soi2525.nre_spend_by_bu_note")}</p></>)}
       {view === "cash" && (
         <div className="overflow-x-auto">
-          <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 360, height: "auto" }} role="img" aria-label="Portfolio cash flow">
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 360, height: "auto" }} role="img" aria-label={t("soi2525.portfolio_cash_flow")}>
             <line x1={L} y1={y(0)} x2={W} y2={y(0)} stroke="rgba(148,163,184,.35)" />
             {cash.map((c, i) => { const bx = L + i * pw + pw * 0.2, bw = pw * 0.28;
               return <g key={c.year}>
@@ -8386,7 +8400,7 @@ function RoiVisuals({ projects, funded, showUnfunded, onShowUnfunded, onSelect, 
             <polyline fill="none" stroke="#38bdf8" strokeWidth={1.8} points={cash.map((c, i) => `${L + i * pw + pw * 0.5},${y(c.cum)}`).join(" ")} />
             {cash.map((c, i) => <circle key={c.year} cx={L + i * pw + pw * 0.5} cy={y(c.cum)} r={2.2} fill="#38bdf8" />)}
           </svg>
-          <p className="mt-1 flex flex-wrap gap-x-3 text-[10px] text-slate-500"><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#34d399]" />Margin</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#f87171]" />R&D/NRE</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#38bdf8]" />Cumulative cash</span><span className="ml-auto tabular-nums text-slate-400">Yr-10 cash {usd(cash[YRS - 1]?.cum ?? 0)}</span></p>
+          <p className="mt-1 flex flex-wrap gap-x-3 text-[10px] text-slate-500"><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#34d399]" />Margin</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#f87171]" />R&D/NRE</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#38bdf8]" />{t("soi2525.cumulative_cash")}</span><span className="ml-auto tabular-nums text-slate-400">Yr-10 cash {usd(cash[YRS - 1]?.cum ?? 0)}</span></p>
         </div>
       )}
     </DashCard>
@@ -8415,7 +8429,7 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
     <div className="space-y-4">
       {/* Allocation & UPSIDE per BU — always-on metric: budget → allocated → unallocated (upside) + $/min.
           The full editable per-node view (SBU / Alpha Group too) is in the Budget popup. */}
-      <DashCard title="Allocation & upside · by BU" tag="Spend">
+      <DashCard title={t("soi2525.allocation_upside_by_bu")} tag="Spend">
         <div className="grid gap-2 sm:grid-cols-3">
           {buAlloc.map((n) => {
             // W-8 · THREE FIGURES, AND THE THIRD IS WHICHEVER ONE IS REAL (operator, with a phone
@@ -8470,13 +8484,13 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
       <FinancialMap projects={projects} onSelect={onSelect} />
 
       {/* Company → BU → SBU → Product Group rollup (base revenue · spend · NPV) */}
-      <DashCard title="Rollup · Company → BU → SBU → Product Group" tag="Company">
+      <DashCard title={t("soi2525.rollup_company_bu_sbu_pg")} tag="Company">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
                 <th className="px-2 py-1.5 text-left">Node</th>
-                <th className="px-2 py-1.5 text-right">Base rev</th>
+                <th className="px-2 py-1.5 text-right">{t("soi2525.base_rev_col")}</th>
                 <th className="px-2 py-1.5 text-right">NRE spend</th>
                 <th className="px-2 py-1.5 text-right">NPV</th>
                 <th className="px-2 py-1.5 text-right">Projects</th>
@@ -8530,7 +8544,7 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-[10px] text-slate-500">Base revenue anchors the do-nothing growth model per SBU. BU = Σ its SBUs · Company = Σ all BUs (700M).</p>
+        <p className="mt-2 text-[10px] text-slate-500">{t("soi2525.base_revenue_anchors_note")}</p>
       </DashCard>
 
       {/* G6's ROI Visuals — selector-driven Pipeline · Metrics · Spend · Cash Flow — MOVED UP to second
@@ -8548,14 +8562,15 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
 // Intelligence Load (AI · SI · HI) by strategic pillar (new pillar categories) — also viewable
 // per BU / SBU / Alpha Group / Project. AI cyan · SI amber · HI violet; humanLoad burnout flag.
 function IntelligenceLoadPanel({ projects }: { projects: Project[] }) {
+  const { t } = useLexicon();
   const [group, setGroup] = useState<"pillar" | "bu" | "sbu" | "pgroup" | "project">("pillar");
   const keyFn = (p: Project) => group === "pillar" ? metaOf(p).initiative : group === "project" ? p.name : hierOf(p)[group as HierKey];
   const rows = intelligenceLoad(projects, keyFn);
   const GROUPS = [["pillar", "Strategic Pillar"], ["bu", "BU"], ["sbu", "SBU"], ["pgroup", "Alpha Group"], ["project", "Project"]] as const;
   return (
-    <DashCard title="Intelligence Load · AI · SI · HI" tag="by category">
+    <DashCard title={t("soi2525.intelligence_load_by_category_title")} tag="by category">
       <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
-        <span className="text-[10px] uppercase tracking-wider text-slate-500">Group by</span>
+        <span className="text-[10px] uppercase tracking-wider text-slate-500">{t("soi2525.group_by")}</span>
         <div className="flex flex-wrap overflow-hidden rounded-md border border-slate-700">
           {GROUPS.map(([g, lbl]) => (
             <button key={g} onClick={() => setGroup(g)}
@@ -8579,7 +8594,7 @@ function IntelligenceLoadPanel({ projects }: { projects: Project[] }) {
           </div>
         ))}
       </div>
-      <p className="mt-2 text-[10px] text-slate-500">Pillar-specific categories by default; switch to BU / SBU / Alpha Group / Project. Mix is the mean across the group; ⚠ flags mean human load &gt; 70%.</p>
+      <p className="mt-2 text-[10px] text-slate-500">{t("soi2525.pillar_specific_categories_note")}</p>
     </DashCard>
   );
 }
@@ -8644,10 +8659,10 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
   const onUp = () => { dragRef.current = { id: null, pan: false }; };
   const onWheel = (e: React.WheelEvent) => { setView((v) => ({ ...v, s: Math.max(0.5, Math.min(3, v.s * (e.deltaY < 0 ? 1.1 : 0.9))) })); };
   return (
-    <DashCard title="Dependencies · Summary + Constellation" tag="Cross-project">
+    <DashCard title={t("soi2525.dependencies_summary_constellation")} tag="Cross-project">
       {/* Bubble-size selector (deck: NPV · Year-1 · 3-Year · 10-Year) */}
       <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
-        <span className="text-[10px] uppercase tracking-wider text-slate-500">Bubble size</span>
+        <span className="text-[10px] uppercase tracking-wider text-slate-500">{t("soi2525.bubble_size")}</span>
         <div className="flex overflow-hidden rounded-md border border-slate-700">
           {(["npv", "y1", "y3", "y10"] as const).map((m) => (
             <button key={m} onClick={() => setSizeMode(m)}
@@ -8661,8 +8676,8 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
               className={`px-2 py-1 ${colorMode === m ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{m === "division" ? "Division" : t(`innovation.dep.${m}`)}</button>
           ))}
         </div>
-        <button onClick={() => { setDrag({}); setView({ s: 1, tx: 0, ty: 0 }); }} className="rounded border border-slate-700 px-2 py-1 text-[10px] text-slate-400 hover:bg-slate-800">Reset layout</button>
-        <span className="ml-auto text-[10px] text-slate-500">Force-directed · drag nodes · wheel-zoom · drag background to pan</span>
+        <button onClick={() => { setDrag({}); setView({ s: 1, tx: 0, ty: 0 }); }} className="rounded border border-slate-700 px-2 py-1 text-[10px] text-slate-400 hover:bg-slate-800">{t("soi2525.reset_layout")}</button>
+        <span className="ml-auto text-[10px] text-slate-500">{t("soi2525.force_directed_note")}</span>
       </div>
       {/* Constellation graph — deterministic force layout with drag / zoom / pan */}
       <ChartFrame label="Dependency Constellations">
@@ -8705,14 +8720,14 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
       </div>
       </ChartFrame>
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
-        <span className="text-slate-400"><b>#1 = most-depended-upon (bottom)</b> · arrows point down · ·N↓ = dependents</span>
+        <span className="text-slate-400"><b>#1 = most-depended-upon (bottom)</b> {t("soi2525.arrows_point_down_note")}</span>
         <span>bubble ∝ NPV</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-full ring-2 ring-emerald-400" />above line</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-full ring-2 ring-rose-400" />below line</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-full ring-2 ring-emerald-400" />{t("soi2525.above_line")}</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-full ring-2 ring-rose-400" />{t("soi2525.below_line")}</span>
         <span><span className="mr-1 text-rose-400">──</span>critical</span>
         <span><span className="mr-1 text-slate-500">– –</span>unacknowledged</span>
         <span><i className="mr-1 inline-block h-2 w-2 rounded-full ring-2 ring-amber-400" />{t("innovation.dep.haloNote")}</span>
-        <span>thicker ring = more segments served</span>
+        <span>{t("soi2525.thicker_ring_note")}</span>
         {(["MS", "DS", "AP"] as const).map((b) => <span key={b}><i className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: BU_COLOR[b] }} />{b}</span>)}
       </div>
       {/* Summary table (§4.2) */}
@@ -8740,7 +8755,7 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
           </tbody>
         </table>
       </div>
-      <p className="mt-2 text-[10px] text-slate-500">Arrow A→B: B&apos;s risk affects A. NPV-with-deps rolls the NPV a project leans on into its own — a below-line dependency drags an above-line project.</p>
+      <p className="mt-2 text-[10px] text-slate-500">{t("soi2525.arrow_a_b_deps_note")}</p>
     </DashCard>
   );
 }
@@ -8761,6 +8776,7 @@ const statusColor: Record<RiskStatus, string> = {
 // listing every project's risks; sitting under one project it is scoped to THAT project — the dropdown had
 // exactly one possible value and the PROJECT column repeated the heading on every row.
 function RiskRegister({ risks, setRisks, p }: { risks: Risk[]; setRisks: (r: Risk[]) => void; p: Project }) {
+  const { t } = useLexicon();
   const [title, setTitle] = useState("");
   const [cat, setCat] = useState<RiskCategory>("technical");
   const [sev, setSev] = useState(3);
@@ -8794,16 +8810,16 @@ function RiskRegister({ risks, setRisks, p }: { risks: Risk[]; setRisks: (r: Ris
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold">Risk Register · eXeL AI feedback session <span className="font-normal text-slate-500">· {p.name}</span></h2>
+        <h2 className="text-sm font-semibold">{t("soi2525.risk_register_feedback_session")} <span className="font-normal text-slate-500">· {p.name}</span></h2>
         <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">Identify · Concur · De-risk</span>
       </div>
-      <p className="mt-1 text-[11px] text-slate-500">Anyone identifies a risk; the team gives internal feedback by concurring (poll) — priority = severity × likelihood × status × concurrence. Actioned + correct predictions earn ♡ / 웃 / ◬ rewards.</p>
+      <p className="mt-1 text-[11px] text-slate-500">{t("soi2525.anyone_identifies_risk_note")}</p>
 
       {/* Add-a-risk form — anyone can document */}
       <div className="mt-3 flex flex-wrap items-end gap-2 text-[11px] text-slate-400">
         <label className="flex-1 min-w-[180px]">Risk
           <input value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()}
-            placeholder="Describe a risk anyone should know about…" className={`mt-0.5 block w-full ${sel}`} />
+            placeholder={t("soi2525.describe_a_risk_placeholder")} className={`mt-0.5 block w-full ${sel}`} />
         </label>
         <label>Type
           <select value={cat} onChange={(e) => setCat(e.target.value as RiskCategory)} className={`ml-1.5 ${sel}`}>
@@ -8816,7 +8832,7 @@ function RiskRegister({ risks, setRisks, p }: { risks: Risk[]; setRisks: (r: Ris
         <label>Like
           <select value={like} onChange={(e) => setLike(+e.target.value)} className={`ml-1.5 ${sel}`}>{[1, 2, 3, 4, 5].map((n) => <option key={n}>{n}</option>)}</select>
         </label>
-        <button onClick={add} disabled={!title.trim()} className="rounded-md bg-cyan-500 px-3 py-1.5 font-semibold text-[#06202a] hover:bg-cyan-400 disabled:opacity-30">+ Identify risk</button>
+        <button onClick={add} disabled={!title.trim()} className="rounded-md bg-cyan-500 px-3 py-1.5 font-semibold text-[#06202a] hover:bg-cyan-400 disabled:opacity-30">{t("soi2525.identify_risk")}</button>
       </div>
 
       {/* Ranked risk list */}
@@ -8848,7 +8864,7 @@ function RiskRegister({ risks, setRisks, p }: { risks: Risk[]; setRisks: (r: Ris
                 <td className="px-2 py-1.5 text-right tabular-nums font-semibold text-slate-200">{Math.round(riskPriority(r))}</td>
                 <td className="px-2 py-1.5 text-center tabular-nums text-slate-300">{r.votes}</td>
                 <td className="px-2 py-1.5 text-right">
-                  <button onClick={(e) => { e.stopPropagation(); upvote(r.id); }} className="rounded border border-slate-700 px-1.5 py-0.5 text-[11px] text-cyan-300 hover:bg-cyan-500/10" title="Feedback: I concur this is a risk">▲ concur</button>
+                  <button onClick={(e) => { e.stopPropagation(); upvote(r.id); }} className="rounded border border-slate-700 px-1.5 py-0.5 text-[11px] text-cyan-300 hover:bg-cyan-500/10" title={t("soi2525.feedback_i_concur_risk")}>▲ concur</button>
                 </td>
               </tr>
             ))}
