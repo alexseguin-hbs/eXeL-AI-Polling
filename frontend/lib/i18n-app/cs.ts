@@ -1004,5 +1004,13 @@ const T: Record<string, string> = {
   "soi2525.describe_a_risk_placeholder": "Popište riziko, o kterém by měl každý vědět…",
   "soi2525.identify_risk": "+ Identifikovat riziko",
   "soi2525.feedback_i_concur_risk": "Zpětná vazba: Souhlasím, že jde o riziko",
+  "crs.user_story": "Uživatelský příběh",
+  "crs.compare_same_version": "Verze Před a Po jsou stejné — vyberte dvě různé verze, abyste viděli změny.",
+  "divinity.bilingual_reader_title": "Dvojjazyčná čtečka vedle sebe",
+  "settings.ai_key_usage_note": "Použije se, když Create Doc vytvoří koncept dokumentu a když skupina napíše svůj závěrečný souhrn. Vše, co napíše AI, se zobrazuje jako napsané AI.",
+  "settings.no_ai_key_fallback": "Na tomto webu zatím není nastaven žádný klíč AI, takže tvorba konceptů a souhrny používají zabudovaný text.",
+  "arch.cmd.learning_points": "· Body učení",
+  "atlantis.icon_livelihood_home": "Domov obživy",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

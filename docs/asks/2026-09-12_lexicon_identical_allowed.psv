@@ -337,3 +337,5 @@ fr|arch.cmd.notifications|French cognate: Notifications is identical in French
 *|soi2525.base_mgn_m|column header: Base Margin $M (abbrev)
 *|soi2525.slide_detail|numbered label ② + Detail (cognate in several langs)
 *|soi2525.term|the word term — a cognate shared by several languages
+*|atlantis.icon_seed_of_life|proper name of the Seed of Life sacred-geometry symbol (kept across the app)
+de|crs.user_story|German software teams use the English term "User Story"

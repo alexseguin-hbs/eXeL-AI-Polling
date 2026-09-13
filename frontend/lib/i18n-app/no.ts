@@ -1010,5 +1010,13 @@ const T: Record<string, string> = {
   "soi2525.pwt_rev": "P-wt Rev",
   "soi2525.pwt_rev_lower": "P-wt rev",
   "soi2525.term": "term",
+  "crs.user_story": "Brukerhistorie",
+  "crs.compare_same_version": "Før og Etter er samme versjon — velg to forskjellige versjoner for å se endringer.",
+  "divinity.bilingual_reader_title": "Tospråklig leser side ved side",
+  "settings.ai_key_usage_note": "Brukes når Create Doc utarbeider et dokument og når en gruppe skriver sitt avsluttende sammendrag. Alt en AI skriver, vises som AI-skrevet.",
+  "settings.no_ai_key_fallback": "Ingen AI-nøkkel er angitt på dette nettstedet ennå, så utkast og sammendrag faller tilbake til den innebygde teksten.",
+  "arch.cmd.learning_points": "· Læringspunkter",
+  "atlantis.icon_livelihood_home": "Levebrødshjem",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

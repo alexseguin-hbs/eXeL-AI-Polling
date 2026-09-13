@@ -1003,5 +1003,13 @@ const T: Record<string, string> = {
   "soi2525.feedback_i_concur_risk": "Feedback: Ich stimme zu, dass dies ein Risiko ist",
   "soi2525.review_board": "Prüfgremium",
   "soi2525.slide_detail": "② Detail",
+  "crs.compare_same_version": "Vorher und Nachher sind dieselbe Version — wähle zwei verschiedene Versionen, um Änderungen zu sehen.",
+  "divinity.bilingual_reader_title": "Zweisprachiger Nebeneinander-Leser",
+  "settings.ai_key_usage_note": "Wird verwendet, wenn Create Doc ein Dokument entwirft und wenn ein Pod seine Abschlusszusammenfassung schreibt. Alles, was eine AI schreibt, wird als AI-geschrieben gekennzeichnet.",
+  "settings.no_ai_key_fallback": "Auf dieser Website ist noch kein AI-Schlüssel festgelegt, daher greifen Entwürfe und Zusammenfassungen auf den integrierten Text zurück.",
+  "arch.cmd.learning_points": "· Lernpunkte",
+  "atlantis.icon_livelihood_home": "Zuhause des Lebensunterhalts",
+  "crs.user_story": "User Story",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

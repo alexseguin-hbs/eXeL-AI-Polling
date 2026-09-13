@@ -1000,5 +1000,13 @@ const T: Record<string, string> = {
   "soi2525.describe_a_risk_placeholder": "किसी ऐसे जोखिम का वर्णन करें जिसके बारे में सभी को पता होना चाहिए…",
   "soi2525.identify_risk": "+ जोखिम पहचानें",
   "soi2525.feedback_i_concur_risk": "फीडबैक: मैं सहमत हूँ कि यह एक जोखिम है",
+  "crs.user_story": "उपयोगकर्ता कहानी",
+  "crs.compare_same_version": "पहले और बाद वाला संस्करण एक ही है — बदलाव देखने के लिए दो अलग-अलग संस्करण चुनें।",
+  "divinity.bilingual_reader_title": "साथ-साथ द्विभाषी रीडर",
+  "settings.ai_key_usage_note": "इसका उपयोग तब होता है जब Create Doc किसी दस्तावेज़ का मसौदा तैयार करता है और जब कोई पॉड अपना समापन सारांश लिखता है। AI जो कुछ भी लिखता है उसे AI-लिखित के रूप में दिखाया जाता है।",
+  "settings.no_ai_key_fallback": "इस साइट पर अभी तक कोई AI कुंजी सेट नहीं है, इसलिए मसौदा तैयार करना और सारांश अंतर्निहित पाठ पर वापस आ जाते हैं।",
+  "arch.cmd.learning_points": "· सीखने के बिंदु",
+  "atlantis.icon_livelihood_home": "आजीविका का घर",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

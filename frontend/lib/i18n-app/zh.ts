@@ -1004,5 +1004,13 @@ const T: Record<string, string> = {
   "soi2525.describe_a_risk_placeholder": "描述一个人人都应知晓的风险…",
   "soi2525.identify_risk": "+ 识别风险",
   "soi2525.feedback_i_concur_risk": "反馈：我赞同这是一项风险",
+  "crs.user_story": "用户故事",
+  "crs.compare_same_version": "“之前”和“之后”是同一版本 — 请选择两个不同的版本以查看更改。",
+  "divinity.bilingual_reader_title": "并排双语阅读器",
+  "settings.ai_key_usage_note": "在 Create Doc 起草文档时以及在某个协作组撰写其结束总结时使用。AI 撰写的任何内容都会标示为 AI 撰写。",
+  "settings.no_ai_key_fallback": "此站点尚未设置 AI 密钥，因此起草和总结将回退到内置文本。",
+  "arch.cmd.learning_points": "· 学习要点",
+  "atlantis.icon_livelihood_home": "生计之家",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

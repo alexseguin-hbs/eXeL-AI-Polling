@@ -1018,5 +1018,13 @@ const T: Record<string, string> = {
   "soi2525.pwt_rev": "P-wt Rev",
   "soi2525.pwt_rev_lower": "P-wt rev",
   "soi2525.slide_detail": "② Detail",
+  "crs.user_story": "Cerita Pengguna",
+  "crs.compare_same_version": "Sebelum dan Sesudah adalah versi yang sama — pilih dua versi berbeda untuk melihat perubahan.",
+  "divinity.bilingual_reader_title": "Pembaca dwibahasa berdampingan",
+  "settings.ai_key_usage_note": "Digunakan saat Create Doc menyusun dokumen dan saat pod menulis ringkasan penutupnya. Apa pun yang ditulis AI ditampilkan sebagai ditulis oleh AI.",
+  "settings.no_ai_key_fallback": "Belum ada kunci AI yang diatur di situs ini, jadi penyusunan dan ringkasan beralih ke teks bawaan.",
+  "arch.cmd.learning_points": "· Poin pembelajaran",
+  "atlantis.icon_livelihood_home": "Rumah penghidupan",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

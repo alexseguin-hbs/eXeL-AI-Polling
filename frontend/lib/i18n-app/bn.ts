@@ -1003,5 +1003,13 @@ const T: Record<string, string> = {
   "soi2525.incr_mgn": "Incr Mgn",
   "soi2525.base_rev_col": "Base rev",
   "soi2525.intelligence_load_by_category_title": "Intelligence Load · AI · SI · HI",
+  "crs.user_story": "ব্যবহারকারীর গল্প",
+  "crs.compare_same_version": "আগে ও পরে একই সংস্করণ — পরিবর্তনগুলি দেখতে দুটি ভিন্ন সংস্করণ বেছে নিন।",
+  "divinity.bilingual_reader_title": "পাশাপাশি দ্বিভাষিক রিডার",
+  "settings.ai_key_usage_note": "Create Doc যখন কোনো নথির খসড়া তৈরি করে এবং কোনো পড যখন তার সমাপনী সারসংক্ষেপ লেখে তখন এটি ব্যবহৃত হয়। AI যা কিছু লেখে তা AI-লিখিত হিসেবে দেখানো হয়।",
+  "settings.no_ai_key_fallback": "এই সাইটে এখনও কোনো AI কী সেট করা হয়নি, তাই খসড়া তৈরি ও সারসংক্ষেপ অন্তর্নির্মিত টেক্সটে ফিরে যায়।",
+  "arch.cmd.learning_points": "· শেখার বিষয়",
+  "atlantis.icon_livelihood_home": "জীবিকার আবাস",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

@@ -1150,5 +1150,13 @@ const T: Record<string, string> = {
   "soi2525.feedback_i_concur_risk": "Tugon: Sumasang-ayon ako na ito ay isang panganib",
   "soi2525.pwt_rev": "P-wt Rev",
   "soi2525.pwt_rev_lower": "P-wt rev",
+  "crs.user_story": "Kuwento ng Gumagamit",
+  "crs.compare_same_version": "Ang Dati at Pagkatapos ay parehong bersyon — pumili ng dalawang magkaibang bersyon upang makita ang mga pagbabago.",
+  "divinity.bilingual_reader_title": "Magkatabing bilingguwal na tagabasa",
+  "settings.ai_key_usage_note": "Ginagamit kapag ang Create Doc ay nagbabalangkas ng dokumento at kapag ang pod ay sumusulat ng panghuling buod nito. Anumang isinulat ng AI ay ipinapakita bilang isinulat ng AI.",
+  "settings.no_ai_key_fallback": "Wala pang AI key na naka-set sa site na ito, kaya ang pagbabalangkas at mga buod ay babalik sa built-in na teksto.",
+  "arch.cmd.learning_points": "· Mga puntos ng pagkatuto",
+  "atlantis.icon_livelihood_home": "Tahanan ng kabuhayan",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

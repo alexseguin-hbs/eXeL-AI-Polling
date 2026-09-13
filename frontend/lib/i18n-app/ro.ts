@@ -1005,5 +1005,13 @@ const T: Record<string, string> = {
   "soi2525.feedback_i_concur_risk": "Feedback: sunt de acord că este un risc",
   "soi2525.pwt_rev": "P-wt Rev",
   "soi2525.pwt_rev_lower": "P-wt rev",
+  "crs.user_story": "Poveste de utilizator",
+  "crs.compare_same_version": "Înainte și După sunt aceeași versiune — alege două versiuni diferite pentru a vedea modificările.",
+  "divinity.bilingual_reader_title": "Cititor bilingv alăturat",
+  "settings.ai_key_usage_note": "Utilizat când Create Doc redactează un document și când un pod își scrie rezumatul final. Tot ceea ce scrie o AI este afișat ca fiind scris de AI.",
+  "settings.no_ai_key_fallback": "Pe acest site nu este setată încă nicio cheie AI, așa că redactarea și rezumatele revin la textul încorporat.",
+  "arch.cmd.learning_points": "· Puncte de învățare",
+  "atlantis.icon_livelihood_home": "Casa mijloacelor de trai",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

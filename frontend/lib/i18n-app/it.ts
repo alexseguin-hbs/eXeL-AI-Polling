@@ -1003,5 +1003,13 @@ const T: Record<string, string> = {
   "soi2525.identify_risk": "+ Identifica rischio",
   "soi2525.feedback_i_concur_risk": "Feedback: confermo che questo è un rischio",
   "soi2525.business_case": "Caso aziendale",
+  "crs.user_story": "Storia utente",
+  "crs.compare_same_version": "Prima e Dopo sono la stessa versione — scegli due versioni diverse per vedere le modifiche.",
+  "divinity.bilingual_reader_title": "Lettore bilingue affiancato",
+  "settings.ai_key_usage_note": "Usato quando Create Doc redige un documento e quando un pod scrive il suo riepilogo di chiusura. Tutto ciò che scrive un'AI è mostrato come scritto dall'AI.",
+  "settings.no_ai_key_fallback": "Nessuna chiave AI è ancora impostata su questo sito, quindi la stesura e i riepiloghi ricorrono al testo integrato.",
+  "arch.cmd.learning_points": "· Punti di apprendimento",
+  "atlantis.icon_livelihood_home": "Casa di sostentamento",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

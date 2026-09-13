@@ -1008,5 +1008,13 @@ const T: Record<string, string> = {
   "soi2525.incr_mgn": "Incr Mgn",
   "soi2525.base_rev_col": "Base rev",
   "soi2525.intelligence_load_by_category_title": "Intelligence Load · AI · SI · HI",
+  "crs.user_story": "เรื่องราวของผู้ใช้",
+  "crs.compare_same_version": "เวอร์ชันก่อนและหลังเป็นเวอร์ชันเดียวกัน — เลือกสองเวอร์ชันที่แตกต่างกันเพื่อดูการเปลี่ยนแปลง",
+  "divinity.bilingual_reader_title": "โปรแกรมอ่านสองภาษาแบบเทียบเคียง",
+  "settings.ai_key_usage_note": "ใช้เมื่อ Create Doc ร่างเอกสารและเมื่อพ็อดเขียนบทสรุปปิดท้าย สิ่งใดก็ตามที่ AI เขียนจะแสดงว่าเขียนโดย AI",
+  "settings.no_ai_key_fallback": "ยังไม่มีการตั้งค่าคีย์ AI บนไซต์นี้ ดังนั้นการร่างและการสรุปจะย้อนกลับไปใช้ข้อความที่มีอยู่ในตัว",
+  "arch.cmd.learning_points": "· ประเด็นการเรียนรู้",
+  "atlantis.icon_livelihood_home": "บ้านแห่งการดำรงชีพ",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

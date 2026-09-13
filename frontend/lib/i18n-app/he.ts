@@ -1002,5 +1002,13 @@ const T: Record<string, string> = {
   "soi2525.feedback_i_concur_risk": "משוב: אני מסכים שזה סיכון",
   "soi2525.pwt_rev": "P-wt Rev",
   "soi2525.pwt_rev_lower": "P-wt rev",
+  "crs.user_story": "סיפור משתמש",
+  "crs.compare_same_version": "לפני ואחרי הם אותה גרסה — בחרו שתי גרסאות שונות כדי לראות שינויים.",
+  "divinity.bilingual_reader_title": "קורא דו-לשוני זה לצד זה",
+  "settings.ai_key_usage_note": "בשימוש כאשר Create Doc מנסח מסמך וכאשר קבוצה כותבת את סיכום הסיום שלה. כל דבר שכתב AI מוצג ככתוב בידי AI.",
+  "settings.no_ai_key_fallback": "עדיין לא הוגדר מפתח AI באתר זה, ולכן הניסוח והסיכומים חוזרים לטקסט המובנה.",
+  "arch.cmd.learning_points": "· נקודות למידה",
+  "atlantis.icon_livelihood_home": "בית פרנסה",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

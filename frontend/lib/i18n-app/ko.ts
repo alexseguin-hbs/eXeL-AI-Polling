@@ -1003,5 +1003,13 @@ const T: Record<string, string> = {
   "soi2525.describe_a_risk_placeholder": "모두가 알아야 할 리스크를 설명하세요…",
   "soi2525.identify_risk": "+ 리스크 식별",
   "soi2525.feedback_i_concur_risk": "피드백: 이것이 리스크라는 데 동의합니다",
+  "crs.user_story": "사용자 스토리",
+  "crs.compare_same_version": "이전과 이후가 동일한 버전입니다 — 변경 사항을 보려면 서로 다른 두 버전을 선택하세요.",
+  "divinity.bilingual_reader_title": "좌우 대역 리더",
+  "settings.ai_key_usage_note": "Create Doc가 문서를 초안 작성할 때와 포드가 마무리 요약을 작성할 때 사용됩니다. AI가 작성한 내용은 모두 AI 작성으로 표시됩니다.",
+  "settings.no_ai_key_fallback": "이 사이트에는 아직 AI 키가 설정되지 않아 초안 작성과 요약은 기본 제공 텍스트로 대체됩니다.",
+  "arch.cmd.learning_points": "· 학습 포인트",
+  "atlantis.icon_livelihood_home": "생계 터전",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

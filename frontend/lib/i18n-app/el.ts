@@ -1014,5 +1014,13 @@ const T: Record<string, string> = {
   "soi2525.feedback_i_concur_risk": "Σχόλια: συμφωνώ ότι αυτό είναι κίνδυνος",
   "soi2525.pwt_rev": "P-wt Rev",
   "soi2525.pwt_rev_lower": "P-wt rev",
+  "crs.user_story": "Ιστορία χρήστη",
+  "crs.compare_same_version": "Το Πριν και το Μετά είναι η ίδια έκδοση — επιλέξτε δύο διαφορετικές εκδόσεις για να δείτε τις αλλαγές.",
+  "divinity.bilingual_reader_title": "Δίγλωσσος αναγνώστης δίπλα-δίπλα",
+  "settings.ai_key_usage_note": "Χρησιμοποιείται όταν το Create Doc συντάσσει ένα έγγραφο και όταν ένα pod γράφει την τελική του περίληψη. Οτιδήποτε γράφει μια AI εμφανίζεται ως γραμμένο από AI.",
+  "settings.no_ai_key_fallback": "Δεν έχει οριστεί ακόμη κλειδί AI σε αυτόν τον ιστότοπο, επομένως η σύνταξη και οι περιλήψεις επιστρέφουν στο ενσωματωμένο κείμενο.",
+  "arch.cmd.learning_points": "· Σημεία μάθησης",
+  "atlantis.icon_livelihood_home": "Σπίτι βιοπορισμού",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

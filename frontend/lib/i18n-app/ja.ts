@@ -1005,5 +1005,13 @@ const T: Record<string, string> = {
   "soi2525.describe_a_risk_placeholder": "皆が知っておくべきリスクを記述…",
   "soi2525.identify_risk": "+ リスクを特定",
   "soi2525.feedback_i_concur_risk": "フィードバック: これはリスクだと同意します",
+  "crs.user_story": "ユーザーストーリー",
+  "crs.compare_same_version": "変更前と変更後が同じバージョンです — 変更を確認するには異なる2つのバージョンを選択してください。",
+  "divinity.bilingual_reader_title": "左右対訳リーダー",
+  "settings.ai_key_usage_note": "Create Doc が文書を下書きするとき、およびポッドが最終まとめを作成するときに使用されます。AI が作成した内容はすべて AI 作成として表示されます。",
+  "settings.no_ai_key_fallback": "このサイトにはまだ AI キーが設定されていないため、下書きとまとめは組み込みテキストにフォールバックします。",
+  "arch.cmd.learning_points": "· 学習ポイント",
+  "atlantis.icon_livelihood_home": "生活の拠点",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

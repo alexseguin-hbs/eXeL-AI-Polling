@@ -1001,5 +1001,13 @@ const T: Record<string, string> = {
   "soi2525.feedback_i_concur_risk": "Geri bildirim: Bunun bir risk olduğuna katılıyorum",
   "soi2525.pwt_rev": "P-wt Rev",
   "soi2525.pwt_rev_lower": "P-wt rev",
+  "crs.user_story": "Kullanıcı Hikayesi",
+  "crs.compare_same_version": "Önce ve Sonra aynı sürüm — değişiklikleri görmek için iki farklı sürüm seçin.",
+  "divinity.bilingual_reader_title": "Yan yana iki dilli okuyucu",
+  "settings.ai_key_usage_note": "Create Doc bir belge taslağı hazırladığında ve bir pod kapanış özetini yazdığında kullanılır. Bir AI'nın yazdığı her şey AI tarafından yazılmış olarak gösterilir.",
+  "settings.no_ai_key_fallback": "Bu sitede henüz bir AI anahtarı ayarlanmadı, bu nedenle taslak oluşturma ve özetler yerleşik metne geri döner.",
+  "arch.cmd.learning_points": "· Öğrenme noktaları",
+  "atlantis.icon_livelihood_home": "Geçim kaynağı evi",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

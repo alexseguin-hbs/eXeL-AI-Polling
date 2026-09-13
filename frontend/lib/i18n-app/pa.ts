@@ -1010,5 +1010,13 @@ const T: Record<string, string> = {
   "soi2525.incr_mgn": "Incr Mgn",
   "soi2525.base_rev_col": "Base rev",
   "soi2525.intelligence_load_by_category_title": "Intelligence Load · AI · SI · HI",
+  "crs.user_story": "ਵਰਤੋਂਕਾਰ ਕਹਾਣੀ",
+  "crs.compare_same_version": "ਪਹਿਲਾਂ ਅਤੇ ਬਾਅਦ ਵਾਲਾ ਵਰਜਨ ਇੱਕੋ ਹੈ — ਤਬਦੀਲੀਆਂ ਵੇਖਣ ਲਈ ਦੋ ਵੱਖਰੇ ਵਰਜਨ ਚੁਣੋ।",
+  "divinity.bilingual_reader_title": "ਨਾਲੋ-ਨਾਲ ਦੋਭਾਸ਼ੀ ਰੀਡਰ",
+  "settings.ai_key_usage_note": "ਇਹ ਉਦੋਂ ਵਰਤਿਆ ਜਾਂਦਾ ਹੈ ਜਦੋਂ Create Doc ਕੋਈ ਦਸਤਾਵੇਜ਼ ਦਾ ਖਰੜਾ ਤਿਆਰ ਕਰਦਾ ਹੈ ਅਤੇ ਜਦੋਂ ਕੋਈ ਪੌਡ ਆਪਣਾ ਸਮਾਪਤੀ ਸਾਰ ਲਿਖਦਾ ਹੈ। AI ਜੋ ਵੀ ਲਿਖਦਾ ਹੈ ਉਹ AI-ਲਿਖਤ ਵਜੋਂ ਦਿਖਾਇਆ ਜਾਂਦਾ ਹੈ।",
+  "settings.no_ai_key_fallback": "ਇਸ ਸਾਈਟ 'ਤੇ ਹਾਲੇ ਤੱਕ ਕੋਈ AI ਕੁੰਜੀ ਸੈੱਟ ਨਹੀਂ ਕੀਤੀ ਗਈ, ਇਸ ਲਈ ਖਰੜਾ ਤਿਆਰ ਕਰਨਾ ਅਤੇ ਸਾਰ ਬਿਲਟ-ਇਨ ਟੈਕਸਟ 'ਤੇ ਵਾਪਸ ਆ ਜਾਂਦੇ ਹਨ।",
+  "arch.cmd.learning_points": "· ਸਿੱਖਣ ਦੇ ਨੁਕਤੇ",
+  "atlantis.icon_livelihood_home": "ਰੋਜ਼ੀ-ਰੋਟੀ ਦਾ ਘਰ",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

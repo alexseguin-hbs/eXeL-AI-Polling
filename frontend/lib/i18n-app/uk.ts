@@ -1003,5 +1003,13 @@ const T: Record<string, string> = {
   "soi2525.feedback_i_concur_risk": "Відгук: погоджуюся, що це ризик",
   "soi2525.pwt_rev": "P-wt Rev",
   "soi2525.pwt_rev_lower": "P-wt rev",
+  "crs.user_story": "Історія користувача",
+  "crs.compare_same_version": "«До» і «Після» — це та сама версія — виберіть дві різні версії, щоб побачити зміни.",
+  "divinity.bilingual_reader_title": "Двомовна читалка поруч",
+  "settings.ai_key_usage_note": "Використовується, коли Create Doc створює чернетку документа та коли под пише свій підсумок. Усе, що пише AI, позначається як написане AI.",
+  "settings.no_ai_key_fallback": "На цьому сайті ще не встановлено ключ AI, тому чернетки та підсумки повертаються до вбудованого тексту.",
+  "arch.cmd.learning_points": "· Навчальні моменти",
+  "atlantis.icon_livelihood_home": "Домівка засобів до існування",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

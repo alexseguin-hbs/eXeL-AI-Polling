@@ -1013,5 +1013,13 @@ const T: Record<string, string> = {
   "soi2525.describe_a_risk_placeholder": "Beskriv en risk som alla bör känna till…",
   "soi2525.identify_risk": "+ Identifiera risk",
   "soi2525.feedback_i_concur_risk": "Feedback: Jag instämmer i att detta är en risk",
+  "crs.user_story": "Användarberättelse",
+  "crs.compare_same_version": "Före och Efter är samma version — välj två olika versioner för att se ändringar.",
+  "divinity.bilingual_reader_title": "Tvåspråkig läsare sida vid sida",
+  "settings.ai_key_usage_note": "Används när Create Doc utformar ett dokument och när en grupp skriver sin avslutande sammanfattning. Allt som en AI skriver visas som AI-skrivet.",
+  "settings.no_ai_key_fallback": "Ingen AI-nyckel är ännu inställd på den här webbplatsen, så utkast och sammanfattningar återgår till den inbyggda texten.",
+  "arch.cmd.learning_points": "· Lärdomar",
+  "atlantis.icon_livelihood_home": "Försörjningshem",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

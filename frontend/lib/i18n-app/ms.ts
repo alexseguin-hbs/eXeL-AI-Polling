@@ -1002,5 +1002,13 @@ const T: Record<string, string> = {
   "soi2525.feedback_i_concur_risk": "Maklum balas: Saya bersetuju ini ialah risiko",
   "soi2525.pwt_rev": "P-wt Rev",
   "soi2525.pwt_rev_lower": "P-wt rev",
+  "crs.user_story": "Kisah Pengguna",
+  "crs.compare_same_version": "Sebelum dan Selepas adalah versi yang sama — pilih dua versi berbeza untuk melihat perubahan.",
+  "divinity.bilingual_reader_title": "Pembaca dwibahasa bersebelahan",
+  "settings.ai_key_usage_note": "Digunakan apabila Create Doc merangka dokumen dan apabila pod menulis ringkasan penutupnya. Apa sahaja yang ditulis AI dipaparkan sebagai ditulis oleh AI.",
+  "settings.no_ai_key_fallback": "Belum ada kunci AI ditetapkan di tapak ini, jadi rangka dan ringkasan beralih kepada teks terbina dalam.",
+  "arch.cmd.learning_points": "· Mata pembelajaran",
+  "atlantis.icon_livelihood_home": "Rumah mata pencarian",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

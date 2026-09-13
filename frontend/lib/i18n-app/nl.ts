@@ -1008,5 +1008,13 @@ const T: Record<string, string> = {
   "soi2525.admin_master_business_setup": "Beheer · Hoofdbedrijfsinstelling",
   "soi2525.slide_detail": "② Detail",
   "soi2525.term": "term",
+  "crs.user_story": "Gebruikersverhaal",
+  "crs.compare_same_version": "Voor en Na zijn dezelfde versie — kies twee verschillende versies om wijzigingen te zien.",
+  "divinity.bilingual_reader_title": "Tweetalige lezer naast elkaar",
+  "settings.ai_key_usage_note": "Gebruikt wanneer Create Doc een document opstelt en wanneer een pod zijn afsluitende samenvatting schrijft. Alles wat een AI schrijft, wordt weergegeven als AI-geschreven.",
+  "settings.no_ai_key_fallback": "Er is nog geen AI-sleutel ingesteld op deze site, dus het opstellen en samenvatten valt terug op de ingebouwde tekst.",
+  "arch.cmd.learning_points": "· Leerpunten",
+  "atlantis.icon_livelihood_home": "Levensonderhoudshuis",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

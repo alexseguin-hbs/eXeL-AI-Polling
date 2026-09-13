@@ -1005,5 +1005,13 @@ const T: Record<string, string> = {
   "soi2525.describe_a_risk_placeholder": "Kuvaile riski, joka kaikkien tulisi tietää…",
   "soi2525.identify_risk": "+ Tunnista riski",
   "soi2525.feedback_i_concur_risk": "Palaute: Olen samaa mieltä, että tämä on riski",
+  "crs.user_story": "Käyttäjätarina",
+  "crs.compare_same_version": "Ennen ja Jälkeen ovat sama versio — valitse kaksi eri versiota nähdäksesi muutokset.",
+  "divinity.bilingual_reader_title": "Rinnakkainen kaksikielinen lukija",
+  "settings.ai_key_usage_note": "Käytetään, kun Create Doc luonnostelee asiakirjan ja kun ryhmä kirjoittaa loppuyhteenvetonsa. Kaikki, mitä AI kirjoittaa, näytetään AI:n kirjoittamana.",
+  "settings.no_ai_key_fallback": "Tälle sivustolle ei ole vielä asetettu AI-avainta, joten luonnostelu ja yhteenvedot käyttävät sisäänrakennettua tekstiä.",
+  "arch.cmd.learning_points": "· Oppimispisteet",
+  "atlantis.icon_livelihood_home": "Toimeentulokoti",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

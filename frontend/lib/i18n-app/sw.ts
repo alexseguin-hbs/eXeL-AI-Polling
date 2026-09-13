@@ -1007,5 +1007,13 @@ const T: Record<string, string> = {
   "soi2525.feedback_i_concur_risk": "Maoni: Ninakubaliana kuwa hii ni hatari",
   "soi2525.pwt_rev": "P-wt Rev",
   "soi2525.pwt_rev_lower": "P-wt rev",
+  "crs.user_story": "Hadithi ya Mtumiaji",
+  "crs.compare_same_version": "Kabla na Baada ni toleo lile lile — chagua matoleo mawili tofauti ili kuona mabadiliko.",
+  "divinity.bilingual_reader_title": "Msomaji wa lugha mbili ubavu kwa ubavu",
+  "settings.ai_key_usage_note": "Hutumika wakati Create Doc inapotengeneza rasimu ya hati na wakati kikundi kinapoandika muhtasari wake wa kufunga. Chochote ambacho AI huandika huonyeshwa kama kilichoandikwa na AI.",
+  "settings.no_ai_key_fallback": "Hakuna ufunguo wa AI uliowekwa kwenye tovuti hii bado, kwa hivyo uandishi wa rasimu na muhtasari hurejea kwenye maandishi yaliyojengwa ndani.",
+  "arch.cmd.learning_points": "· Mambo ya kujifunza",
+  "atlantis.icon_livelihood_home": "Nyumba ya riziki",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

@@ -999,5 +999,13 @@ const T: Record<string, string> = {
   "soi2525.describe_a_risk_placeholder": "صف مخاطرة يجب أن يعرفها الجميع…",
   "soi2525.identify_risk": "+ تحديد مخاطرة",
   "soi2525.feedback_i_concur_risk": "ملاحظة: أوافق على أن هذه مخاطرة",
+  "crs.user_story": "قصة المستخدم",
+  "crs.compare_same_version": "النسخة قبل وبعد متطابقة — اختر نسختين مختلفتين لعرض التغييرات.",
+  "divinity.bilingual_reader_title": "قارئ ثنائي اللغة جنبًا إلى جنب",
+  "settings.ai_key_usage_note": "يُستخدم عندما يصوغ Create Doc مسودة مستند وعندما تكتب المجموعة ملخصها الختامي. أي شيء يكتبه AI يُعرض على أنه مكتوب بواسطة AI.",
+  "settings.no_ai_key_fallback": "لم يتم تعيين مفتاح AI على هذا الموقع بعد، لذا تعود الصياغة والملخصات إلى النص المدمج.",
+  "arch.cmd.learning_points": "· نقاط التعلّم",
+  "atlantis.icon_livelihood_home": "مقر المعيشة",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

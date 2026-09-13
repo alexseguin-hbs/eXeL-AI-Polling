@@ -1002,5 +1002,13 @@ const T: Record<string, string> = {
   "soi2525.describe_a_risk_placeholder": "Опишите риск, о котором должны знать все…",
   "soi2525.identify_risk": "+ Выявить риск",
   "soi2525.feedback_i_concur_risk": "Отзыв: согласен, что это риск",
+  "crs.user_story": "Пользовательская история",
+  "crs.compare_same_version": "«До» и «После» — это одна и та же версия — выберите две разные версии, чтобы увидеть изменения.",
+  "divinity.bilingual_reader_title": "Двуязычный параллельный читатель",
+  "settings.ai_key_usage_note": "Используется, когда Create Doc составляет документ и когда под пишет своё заключительное резюме. Всё, что пишет AI, отображается как написанное AI.",
+  "settings.no_ai_key_fallback": "Ключ AI на этом сайте ещё не задан, поэтому составление и резюме используют встроенный текст.",
+  "arch.cmd.learning_points": "· Учебные пункты",
+  "atlantis.icon_livelihood_home": "Дом средств к существованию",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

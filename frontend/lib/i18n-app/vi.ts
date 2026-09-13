@@ -1006,5 +1006,13 @@ const T: Record<string, string> = {
   "soi2525.incr_mgn": "Incr Mgn",
   "soi2525.base_rev_col": "Base rev",
   "soi2525.intelligence_load_by_category_title": "Intelligence Load · AI · SI · HI",
+  "crs.user_story": "Câu chuyện người dùng",
+  "crs.compare_same_version": "Phiên bản Trước và Sau giống nhau — hãy chọn hai phiên bản khác nhau để xem thay đổi.",
+  "divinity.bilingual_reader_title": "Trình đọc song ngữ cạnh nhau",
+  "settings.ai_key_usage_note": "Được dùng khi Create Doc soạn thảo tài liệu và khi một pod viết bản tóm tắt kết thúc của nó. Bất kỳ nội dung nào do AI viết đều được hiển thị là do AI viết.",
+  "settings.no_ai_key_fallback": "Trang web này chưa thiết lập khóa AI, vì vậy việc soạn thảo và tóm tắt sẽ quay về sử dụng văn bản tích hợp sẵn.",
+  "arch.cmd.learning_points": "· Điểm học tập",
+  "atlantis.icon_livelihood_home": "Nơi sinh kế",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;

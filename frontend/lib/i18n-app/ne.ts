@@ -1003,5 +1003,13 @@ const T: Record<string, string> = {
   "soi2525.feedback_i_concur_risk": "प्रतिक्रिया: म यो जोखिम हो भन्ने कुरामा सहमत छु",
   "soi2525.pwt_rev": "P-wt Rev",
   "soi2525.pwt_rev_lower": "P-wt rev",
+  "crs.user_story": "प्रयोगकर्ता कथा",
+  "crs.compare_same_version": "पहिले र पछि उही संस्करण हुन् — परिवर्तनहरू हेर्न दुई फरक संस्करणहरू छान्नुहोस्।",
+  "divinity.bilingual_reader_title": "छेउछाउ द्विभाषिक पाठक",
+  "settings.ai_key_usage_note": "Create Doc ले कागजात मस्यौदा गर्दा र समूहले आफ्नो समापन सारांश लेख्दा प्रयोग हुन्छ। AI ले लेखेको जुनसुकै कुरा AI द्वारा लेखिएको रूपमा देखाइन्छ।",
+  "settings.no_ai_key_fallback": "यस साइटमा अहिलेसम्म कुनै AI कुञ्जी सेट गरिएको छैन, त्यसैले मस्यौदा र सारांशहरू निर्मित पाठमा फर्कन्छन्।",
+  "arch.cmd.learning_points": "· सिकाइका बुँदाहरू",
+  "atlantis.icon_livelihood_home": "जीविकोपार्जन घर",
+  "atlantis.icon_seed_of_life": "Seed of Life",
 };
 export default T;
