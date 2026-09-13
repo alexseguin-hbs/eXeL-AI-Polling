@@ -9,6 +9,7 @@
  * Gated behind an access code (369963) until fully tested — the "UNLOCK" tab.
  */
 import ReactDOM from "react-dom";
+import { Vision2525Mark } from "@/components/vision-2525-mark";
 import React, { useMemo, useState, useEffect, useRef, useCallback, useId, Fragment } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
@@ -594,7 +595,7 @@ function Board() {
       <header className="border-b border-slate-800 px-5 py-4 flex flex-col gap-3">
         {/* Row 1: eyebrow (left) lines up with Template + New Idea tabs (right) — operator alignment */}
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · {companyName}</div>
+          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400"><Vision2525Mark accentColor="#22d3ee" />Vision • 2525 · {companyName}</div>
           <div className="flex items-center gap-2">
             <button onClick={() => setTemplateOpen(true)}
               className="inline-flex items-center gap-1.5 rounded-md border border-cyan-500/40 px-2.5 py-1.5 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10">

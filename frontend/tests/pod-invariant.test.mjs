@@ -864,4 +864,9 @@ ok(/englishDefault: "GPS Location"/.test(lex2) && /englishDefault: "Signal Locat
    'the operator\'s two terms, verbatim: GPS Location (the phone\'s fix) and Signal Location (of IP Address) (the suggestion)');
 ok(/fmtGps\(m\.gps, t\("soi\.pod\.ui\.gps_location"\)\)/.test(page), 'the fix is labelled with the term wherever it prints');
 
+// SEED MARK BEFORE VISION 2525 (operator 2026-09-13)
+const v25mark = read('../components/vision-2525-mark.tsx');
+ok(/aria-hidden="true"/.test(v25mark) && /<SeedOfLifeLogo /.test(v25mark), 'Vision2525Mark renders the Seed-of-Life SVG, aria-hidden — a symbol, not a counted word');
+ok(/<Vision2525Mark \/>Vision . 2525/.test(page), 'the pod Vision 2525 wordmark is preceded by the Seed mark');
+
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

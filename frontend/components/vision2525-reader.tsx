@@ -30,6 +30,7 @@
  * Rendered at /vision-2525/white-paper. No login. No account. Static and public.
  */
 import { useEffect } from "react";
+import { Vision2525Mark } from "@/components/vision-2525-mark";
 
 const PAPER = "/whitepaper/vision-2525.html";
 
@@ -75,7 +76,7 @@ export function Vision2525Reader() {
       {/* Seen only if JavaScript is off or the redirect is slow. It is a real
           link rather than a spinner, so the document is reachable either way. */}
       <p style={{ fontSize: 14, textAlign: "center", margin: 0 }}>
-        Opening <strong style={{ color: "#e8b64c" }}>Vision • 2525</strong> —{" "}
+        Opening <strong style={{ color: "#e8b64c" }}><Vision2525Mark accentColor="#e8b64c" />Vision • 2525</strong> —{" "}
         <a href={PAPER} style={{ color: "#22d3ee" }}>
           continue to the document
         </a>

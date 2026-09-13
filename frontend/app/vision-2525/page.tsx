@@ -14,6 +14,7 @@
  * i18n: copy is held in data arrays so the standing lexicon-admin follow-up can wire t() in one pass.
  */
 import Link from "next/link";
+import { Vision2525Mark } from "@/components/vision-2525-mark";
 import { Navbar } from "@/components/navbar";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
 import { DEFAULT_SOI } from "@/lib/soi-framework";
@@ -117,7 +118,7 @@ export default function Vision2525Page() {
           </p>
           <div className="mt-1 flex flex-col items-center gap-1">
             <p className="text-sm font-semibold tracking-wide sm:text-base">
-              <span style={{ color: CYAN }}>Vision 2525</span>
+              <span style={{ color: CYAN }}><Vision2525Mark accentColor={CYAN} />Vision 2525</span>
               <span className="mx-2 text-slate-600">|</span>
               <span className="text-slate-200">Humanity&apos;s Coordination Framework</span>
             </p>
@@ -305,7 +306,7 @@ export default function Vision2525Page() {
         {/* ── WORLDS (inter-site nav) ──────────────────────────────────────── */}
         <section id="worlds" className="mt-16 scroll-mt-20">
           <div className="mb-6 text-center">
-            <SectionLabel color={VIOLET}>The Worlds of Vision 2525</SectionLabel>
+            <SectionLabel color={VIOLET}>The Worlds of <Vision2525Mark accentColor={VIOLET} />Vision 2525</SectionLabel>
             <p className="mt-2 text-sm text-slate-400">One civilization · one framework · limitless possibilities.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

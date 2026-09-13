@@ -32,6 +32,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Vision2525Mark } from "@/components/vision-2525-mark";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { SeedMembership } from "@/components/seed-membership";
@@ -1814,7 +1815,7 @@ export default function SoISessionPage() {
           className="flex w-full items-center justify-between text-left"
           aria-expanded={showCrs}
         >
-          <span className="text-lg font-semibold">CRS list — from Vision • 2525 <span className="ml-1 text-xs font-normal text-muted-foreground">demo</span></span>
+          <span className="text-lg font-semibold">CRS list — from <Vision2525Mark />Vision • 2525 <span className="ml-1 text-xs font-normal text-muted-foreground">demo</span></span>
           <span className="text-sm text-muted-foreground">{showCrs ? "hide ▲" : "show ▼"}</span>
         </button>
         {showCrs && (
