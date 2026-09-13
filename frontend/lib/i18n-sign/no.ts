@@ -11,7 +11,7 @@ const T: Record<string, string> = {
   "soi.pod.seat.waiting": "med – venter på at lederen gir deg en plass",
   "soi.pod.seat.full": "Denne poden har allerede tre. Be lederen åpne en ny.",
   "soi.pod.seat.you": "deg",
-  "soi.pod.phase.compose": "Brief",
+  "soi.pod.phase.compose": "Oppdrag",
   "soi.pod.phase.invite": "Inviter",
   "soi.pod.phase.sync": "Start",
   "soi.pod.phase.active": "Arbeid",
