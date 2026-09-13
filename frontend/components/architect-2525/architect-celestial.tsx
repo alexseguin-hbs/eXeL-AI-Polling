@@ -24,6 +24,7 @@ import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { TexturedGlobe } from "./textured-globe";
 import { PRIORITY_CONSTELLATIONS, starfield, raDecToDisc, ZODIAC, ZODIAC_ORIGIN } from "@/lib/constellations";
 import { dateToJD, trueAnomaly, HAS_EPHEMERIS } from "@/lib/ephemeris";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const SUN_X = 122, SUN_Y = 56, DEG = Math.PI / 180;
@@ -70,6 +71,7 @@ export function ArchitectCelestial({
   onSelect?: (id: string) => void;                            // fires when the USER clicks a planet on the map → parent opens that body's text
 } = {}) {
   // Default location: Pfield · Pflugerville, TX (shared with the Sky Dome / view-from-location).
+  const { t } = useLexicon();
   const setYear = useMemo(() => onYear ?? (() => {}), [onYear]);
   const setDoy = useMemo(() => onDoy ?? (() => {}), [onDoy]);
   const [hu, setHu] = useState(0);
@@ -354,7 +356,7 @@ export function ArchitectCelestial({
         <div className="mb-1 flex items-center justify-between gap-1 text-[9px]">
           <span className="font-bold tracking-wider" style={{ color: C.violet }}>BASE-3600 CELESTIAL MAP</span>
           <div className="flex items-center gap-1">
-            <button data-size-cycle data-size-mode={sizeMode} onClick={cycleSize} title="Cycle planet size: True Scale (vs Sun) → Proportional (vs planets) → Thematic (all similar, ~50% spread)"
+            <button data-size-cycle data-size-mode={sizeMode} onClick={cycleSize} title={t("arch.celestial.cycleSizeTitle")}
               className="rounded border px-1.5 py-0.5 text-[8px] uppercase tracking-wider" style={{ borderColor: C.border, color: C.gold }}>{SIZE_LABEL[sizeMode]}</button>
             <button data-cel-max onClick={() => setMax((v) => !v)} title={max ? "Minimize" : "Expand map"} aria-label={max ? "Minimize" : "Maximize"}
               className="flex items-center justify-center rounded border p-1" style={{ borderColor: max ? C.cyan : C.border, color: max ? C.cyan : C.dim }}>
@@ -375,22 +377,22 @@ export function ArchitectCelestial({
             hooks preserved for the SPIRAL locks (#A56/#A57/#A58). Controls migrate into these panels next (#16). */}
         {!minimal && <><div data-cel-toolbar className="mb-1 flex items-center gap-2 text-[8px]" style={{ color: C.dim }}>
           <span className="shrink-0 font-bold tracking-wider">MAP TOOLS</span>
-          <button data-map-exp-left-btn onClick={() => setExpL((v) => !v)} title="Left map tools · •••" aria-label="Left map menu"
+          <button data-map-exp-left-btn onClick={() => setExpL((v) => !v)} title={t("arch.celestial.leftMapToolsDots")} aria-label={t("arch.celestial.leftMapMenu")}
             className="flex flex-row items-center gap-[3px] rounded border px-1.5 py-1 hover:bg-white/5" style={{ borderColor: expL ? C.cyan : C.border }}>
             <span className="mr-0.5 font-bold" style={{ color: expL ? C.cyan : C.dim }}>L</span>{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
           </button>
-          <button data-map-exp-right-btn onClick={() => setExpR((v) => !v)} title="Right map tools · •••" aria-label="Right map menu"
+          <button data-map-exp-right-btn onClick={() => setExpR((v) => !v)} title={t("arch.celestial.rightMapToolsDots")} aria-label={t("arch.celestial.rightMapMenu")}
             className="flex flex-row items-center gap-[3px] rounded border px-1.5 py-1 hover:bg-white/5" style={{ borderColor: expR ? C.cyan : C.border }}>
             <span className="mr-0.5 font-bold" style={{ color: expR ? C.cyan : C.dim }}>R</span>{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
           </button>
-          <button data-map-exp-bottom-btn onClick={() => setExpB((v) => !v)} title="Bottom map tools · •••" aria-label="Bottom map menu"
+          <button data-map-exp-bottom-btn onClick={() => setExpB((v) => !v)} title={t("arch.celestial.bottomMapToolsDots")} aria-label={t("arch.celestial.bottomMapMenu")}
             className="flex flex-row items-center gap-[3px] rounded border px-1.5 py-1 hover:bg-white/5" style={{ borderColor: expB ? C.cyan : C.border }}>
             <span className="mr-0.5 font-bold" style={{ color: expB ? C.cyan : C.dim }}>B</span>{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
           </button>
         </div>
-        {expL && <div data-map-exp-left className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Left map tools <span style={{ color: C.cyan }}>•••</span></div>}
-        {expR && <div data-map-exp-right className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Right map tools <span style={{ color: C.cyan }}>•••</span></div>}
-        {expB && <div data-map-exp-bottom className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Bottom map tools <span style={{ color: C.cyan }}>•••</span></div>}
+        {expL && <div data-map-exp-left className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>{t("arch.celestial.leftMapTools")} <span style={{ color: C.cyan }}>•••</span></div>}
+        {expR && <div data-map-exp-right className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>{t("arch.celestial.rightMapTools")} <span style={{ color: C.cyan }}>•••</span></div>}
+        {expB && <div data-map-exp-bottom className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>{t("arch.celestial.bottomMapTools")} <span style={{ color: C.cyan }}>•••</span></div>}
         </>}
         <div className={max ? "relative min-h-0 flex-1" : "relative"}>
         {/* PHASE CLOCK — the only top-right map overlay (top-down toggle). */}
@@ -527,7 +529,7 @@ export function ArchitectCelestial({
         </label>
         {/* DATE + ORBIT PLAY — play sweeps the SELECTED planet 0→3600 around its orbit; 1×/2×/3× speed (3× = current). */}
         <div className="mt-1 flex flex-wrap items-center gap-2 text-[9px]" style={{ color: C.dim }}>
-          <button data-cel-play onClick={() => setOrbitPlaying((p) => !p)} title="Play the selected planet around its orbit (0→3600)" className="flex items-center gap-1 rounded border px-2 py-0.5 font-semibold"
+          <button data-cel-play onClick={() => setOrbitPlaying((p) => !p)} title={t("arch.celestial.playOrbitTitle")} className="flex items-center gap-1 rounded border px-2 py-0.5 font-semibold"
             style={{ borderColor: orbitPlaying ? C.gold : C.border, color: orbitPlaying ? C.gold : C.dim }}>
             {orbitPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}{orbitPlaying ? "pause" : "orbit"}
           </button>
@@ -541,7 +543,7 @@ export function ArchitectCelestial({
           <span data-cel-clock>{monthDay} · <span style={{ color: C.cyan }}>{fmtClock(hour, clockFmt)} {tz.label}</span></span>
           <span>◉ Pfield · Pflugerville TX</span>
         </div>
-        <div className="text-[8px]" style={{ color: C.dim }}>Full orbit reference · <span style={{ color: C.gold }}>{FULL_ORBIT}</span> (SA.EA..HU)</div>
+        <div className="text-[8px]" style={{ color: C.dim }}>{t("arch.celestial.fullOrbitReference")} <span style={{ color: C.gold }}>{FULL_ORBIT}</span> (SA.EA..HU)</div>
       </div>
 
       {/* SELECTED BODY — MINIMAL readout on-screen; the Base-3600 detail + Units of Measure live behind ⚙.
@@ -549,7 +551,7 @@ export function ArchitectCelestial({
       <div data-ucrs-readout className={`space-y-1 rounded-lg border p-3 text-[10px] ${max ? "hidden" : ""}`} style={{ borderColor: sel.p.color, background: C.panel }}>
         <div className="flex items-center justify-between">
           <span className="text-[12px] font-bold" style={{ color: sel.p.color }}>◉ {sel.p.name}</span>
-          <button data-cel-detail onClick={() => setShowDetail((v) => !v)} className="rounded border px-1.5 py-0.5 text-[8px]" style={{ borderColor: C.border, color: showDetail ? C.violet : C.dim }} title="Units of Measure & Base-3600 detail">⚙ {showDetail ? "less" : "units · detail"}</button>
+          <button data-cel-detail onClick={() => setShowDetail((v) => !v)} className="rounded border px-1.5 py-0.5 text-[8px]" style={{ borderColor: C.border, color: showDetail ? C.violet : C.dim }} title={t("arch.celestial.unitsDetailTitle")}>⚙ {showDetail ? "less" : "units · detail"}</button>
         </div>
         {/* minimal: UCRS coord · distance (in chosen UoM) · orbit position · rotation */}
         <div data-ucrs-coord className="rounded border px-1.5 py-0.5 text-[10px]" style={{ borderColor: C.border, fontFamily: "monospace", color: C.gold }}>
@@ -557,7 +559,7 @@ export function ArchitectCelestial({
         </div>
         <div style={{ fontFamily: "monospace" }}>
           <div><span style={{ color: C.dim }}>Distance</span> <span data-ucrs-dist className="tabular-nums" style={{ color: C.cyan }}>{fmtDist(rd.sr, distUnit)}</span></div>
-          <div><span style={{ color: C.dim }}>Orbit pos</span> <span className="tabular-nums" style={{ color: C.text }}>{Math.round(sel.effHu)}/3600</span> <span style={{ color: C.dim }}>· ⟳ {fmtRotation(sel.p.rotDays)}</span></div>
+          <div><span style={{ color: C.dim }}>{t("arch.celestial.orbitPos")}</span> <span className="tabular-nums" style={{ color: C.text }}>{Math.round(sel.effHu)}/3600</span> <span style={{ color: C.dim }}>· ⟳ {fmtRotation(sel.p.rotDays)}</span></div>
         </div>
         {/* ⚙ UNITS & DETAIL — collapsed by default */}
         {showDetail && (
@@ -581,7 +583,7 @@ export function ArchitectCelestial({
             </label>
             <div className="flex flex-wrap items-center gap-1">
               <span className="w-12 shrink-0" style={{ color: C.dim }}>Position</span>
-              <button data-cel-accurate={accurate ? "1" : "0"} onClick={() => setAccurate((v) => !v)} title="Schematic spread ↔ REAL Kepler positions for the date (JPL J2000 ephemeris)"
+              <button data-cel-accurate={accurate ? "1" : "0"} onClick={() => setAccurate((v) => !v)} title={t("arch.celestial.accurateTitle")}
                 className="rounded border px-1.5 py-0.5 text-[9px] font-bold" style={{ borderColor: accurate ? C.green : C.border, color: accurate ? C.green : C.dim, background: accurate ? "#152238" : "transparent" }}>{accurate ? "● accurate (real)" : "○ schematic"}</button>
             </div>
             <div className="border-t pt-1" style={{ borderColor: C.border, fontFamily: "monospace" }}>

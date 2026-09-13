@@ -14,6 +14,7 @@ import { assetIntel, assetRValue } from "@/lib/architect-assets";
 import { assetTotalDays, DIGITAL_TWIN_PHASES } from "@/lib/vision2525/asset";
 import { GATES, LAST_GATE, checkpointForGate, bandFor, AACE, classForGate, advanceGate, retreatGate } from "@/lib/architect-estimate";
 import { type LayerState } from "./use-layer-state";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { border: "#1e2b3a", panel2: "#0c1420", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400", red: "#ef4444" };
 const fmtUsd = (n: number) => "$" + Math.round(n).toLocaleString();
@@ -27,6 +28,7 @@ const SCOPE_LINK: Record<string, string> = {
 };
 
 export function LayerInspector({ selectedId, state, homeType = "full" }: { selectedId?: string | null; state?: LayerState; homeType?: HomeType }) {
+  const { t } = useLexicon();
   if (!selectedId) {
     return (
       <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>
@@ -35,7 +37,7 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
     );
   }
   const found = findLayer(selectedId);
-  if (!found) return <div className="text-[10px]" style={{ color: C.dim }}>Unknown layer.</div>;
+  if (!found) return <div className="text-[10px]" style={{ color: C.dim }}>{t("arch.inspector.unknownLayer")}</div>;
   const { node, scope, path } = found;
   const color = SCOPE_COLOR[scope.id] ?? C.text;
   // Honor the Tiny Home filter so "Contains" matches what the tree offers (R3).
@@ -129,7 +131,7 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
       {asset && state && (
         <div data-arch-asset data-asset-id={asset.id} className="flex flex-col gap-2 rounded border p-2" style={{ borderColor: C.border, background: C.panel2 }}>
           <div className="flex items-center justify-between text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
-            <span>Asset Intelligence</span>
+            <span>{t("arch.inspector.assetIntelligence")}</span>
             <span style={{ color: C.dim }}>AACE {asset.status.aaceClass} · {asset.status.confidence}% conf</span>
           </div>
 
@@ -139,7 +141,7 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
             <span className="flex-1 rounded py-1 text-center text-[9px] font-semibold uppercase" style={{ background: "#152238", color: C.violet }}>{asset.status.phase}</span>
             <button data-asset-status-next onClick={() => stepPhase(1)} className="rounded border p-0.5 hover:bg-white/10" style={{ borderColor: C.border }}><ChevronRight className="h-3 w-3" style={{ color: C.cyan }} /></button>
           </div>
-          <div className="text-[8px]" style={{ color: C.dim }}>Human Authority advances the Digital-Twin status (Designed → … → Operational). Every step is logged to Replay.</div>
+          <div className="text-[8px]" style={{ color: C.dim }}>{t("arch.inspector.humanAuthorityAdvances")}</div>
 
           {/* HUMAN AUTHORITY · QUALIFICATION GATE (Inc 4) — who must sign off at the current stage gate, and the
               estimate cone (AACE band on installed cost) that TIGHTENS as gates advance. Reuses architect-estimate. */}
@@ -155,7 +157,7 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
                   <span style={{ color: C.dim }}>AACE {cls} · {AACE[cls].label}</span>
                 </div>
                 <Row k="Required decision" v={cp.decision} c={C.text} />
-                <div data-asset-authority-who className="flex items-center justify-between gap-2"><span style={{ color: C.dim }}>Responsible authority</span><span style={{ color: C.violet }}>{cp.authority}</span></div>
+                <div data-asset-authority-who className="flex items-center justify-between gap-2"><span style={{ color: C.dim }}>{t("arch.inspector.responsibleAuthority")}</span><span style={{ color: C.violet }}>{cp.authority}</span></div>
                 <Row k="Evidence" v={cp.evidence} c={C.dim} />
                 <Row k="Estimate cone (installed)" v={`${fmtUsd(band.lo)} – ${fmtUsd(band.hi)} · ±${Math.round(band.pct * 100)}%`} c={C.gold} />
                 {anyPending && <div className="text-[8px]" style={{ color: C.gold }}>⚠ Qualification pending — {cp.authority} sign-off required before this asset is qualified.</div>}
@@ -163,7 +165,7 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
                   <div className="flex items-center gap-1.5">
                     <button data-authority-retreat onClick={() => state.setGate(retreatGate(gate))} disabled={gate === 0}
                       className="rounded border px-1.5 py-0.5 text-[9px] hover:bg-white/10" style={{ borderColor: C.border, color: gate === 0 ? C.dim : C.text }}>◀ back</button>
-                    <span className="flex-1 text-center text-[8px]" style={{ color: C.dim }}>decision → tighter estimate</span>
+                    <span className="flex-1 text-center text-[8px]" style={{ color: C.dim }}>{t("arch.inspector.decisionTighterEstimate")}</span>
                     <button data-authority-advance onClick={() => state.setGate(advanceGate(gate))} disabled={gate === LAST_GATE}
                       className="rounded border px-1.5 py-0.5 text-[9px] font-bold hover:bg-white/10" style={{ borderColor: C.gold, color: gate === LAST_GATE ? C.dim : C.gold }}>advance ▶</button>
                   </div>
@@ -199,7 +201,7 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
             <Row k="MoT (minutes)" v={`${asset.economy.mot} min`} c={C.violet} />
             {/* Trinity = three distinct ledgers (◬ AI · ♡ spiritual · 웃 human), never collapsed to one (MoT #2). */}
             <div data-asset-trinity className="flex items-center justify-between gap-2">
-              <span style={{ color: C.dim }}>Trinity ledgers</span>
+              <span style={{ color: C.dim }}>{t("arch.inspector.trinityLedgers")}</span>
               <span className="tabular-nums" style={{ color: C.violet }}>
                 <span data-trinity-ai>◬ {asset.economy.trinity.ai}</span>{" · "}
                 <span data-trinity-spiritual>♡ {asset.economy.trinity.spiritual}</span>{" · "}
@@ -219,7 +221,7 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
                 className="w-16 rounded border bg-transparent px-1 py-0.5 text-right tabular-nums" style={{ borderColor: C.border, color: C.text }} />
             </label>
             <label className="flex items-center justify-between gap-2 text-[9px]" style={{ color: C.text }}>
-              <span>Premium upgrade (+R / +25% cost)</span>
+              <span>{t("arch.inspector.premiumUpgrade")}</span>
               <button data-asset-upgrade onClick={() => state.setAssetOverride(node.id, { upgraded: !ov.upgraded })}
                 className="rounded border px-1.5 py-0.5 text-[9px] font-semibold" style={{ borderColor: ov.upgraded ? C.green : C.border, color: ov.upgraded ? C.green : C.dim }}>
                 {ov.upgraded ? "On" : "Off"}

@@ -8,6 +8,7 @@
  * before advancing. Driven by lib/architect-estimate.ts (pure, AACE-grounded). Self-contained SVG chart.
  */
 import { useState } from "react";
+import { useLexicon } from "@/lib/lexicon-context";
 import {
   DEFAULT_SECTIONS, GATES, LAST_GATE, rollupProject, bandPctForGate,
   advanceGate, retreatGate, checkpointForGate, confidenceForGate, type Rag,
@@ -28,6 +29,7 @@ function Tile({ label, value, sub, color }: { label: string; value: string; sub?
 }
 
 export function ArchitectEstimate() {
+  const { t } = useLexicon();
   const [gate, setGate] = useState(3);
   const sections = DEFAULT_SECTIONS;
   const roll = rollupProject(sections, gate);
@@ -47,7 +49,7 @@ export function ArchitectEstimate() {
     <div data-arch-estimate className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-1">
         <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>DECISIONS → TIGHTER ESTIMATES · QUALIFICATION ENGINE</div>
-        <div className="text-[9px]" style={{ color: C.dim }}>every decision narrows the cone · AACE Class 5 → 1</div>
+        <div className="text-[9px]" style={{ color: C.dim }}>{t("arch.estimate.narrowsCone")}</div>
       </div>
 
       {/* Rollup — the tightening numbers */}
@@ -62,7 +64,7 @@ export function ArchitectEstimate() {
       {/* Gate ladder — advance a gate → the estimate tightens */}
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         <div className="mb-1 flex items-center justify-between">
-          <span className="text-[9px] font-bold tracking-wider" style={{ color: C.violet }}>STAGE GATES · advance as decisions are made</span>
+          <span className="text-[9px] font-bold tracking-wider" style={{ color: C.violet }}>{t("arch.estimate.stageGates")}</span>
           <div className="flex gap-1">
             <button data-est-back onClick={() => setGate(retreatGate(gate))} disabled={gate === 0} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: gate === 0 ? C.dim : C.text }}>◀ back</button>
             <button data-est-advance onClick={() => setGate(advanceGate(gate))} disabled={gate === LAST_GATE} className="rounded border px-2 py-0.5 text-[10px] font-bold" style={{ borderColor: C.gold, color: gate === LAST_GATE ? C.dim : C.gold }}>advance ▶</button>
@@ -81,7 +83,7 @@ export function ArchitectEstimate() {
       <div className="grid gap-3 lg:grid-cols-[1fr_280px]">
         {/* CONE OF UNCERTAINTY — cost band narrowing as gates advance */}
         <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
-          <div className="mb-1 text-[9px] font-bold tracking-wider" style={{ color: C.violet }}>CONE OF UNCERTAINTY · cost vs decisions</div>
+          <div className="mb-1 text-[9px] font-bold tracking-wider" style={{ color: C.violet }}>{t("arch.estimate.coneOfUncertainty")}</div>
           <svg data-arch-cone viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full rounded" style={{ background: "#05070d", aspectRatio: "2.2 / 1" }}>
             {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={6} y1={6 + f * 88} x2={96} y2={6 + f * 88} stroke="#141d29" strokeWidth="0.3" />)}
             <polygon points={conePoly} fill={`${C.gold}22`} stroke={C.gold} strokeWidth="0.4" opacity="0.9" />
@@ -91,19 +93,19 @@ export function ArchitectEstimate() {
             <text x={6} y={99} fontSize="3" fill={C.dim} style={{ fontFamily: "monospace" }}>G0</text>
             <text x={90} y={99} fontSize="3" fill={C.dim} style={{ fontFamily: "monospace" }}>G13</text>
           </svg>
-          <div className="mt-0.5 text-[8px]" style={{ color: C.dim }}>Moving-average estimate (dashed) + narrowing ± band. Marker = current gate. As the homeowner decides, the cone closes toward a firm bid.</div>
+          <div className="mt-0.5 text-[8px]" style={{ color: C.dim }}>{t("arch.estimate.coneCaption")}</div>
         </div>
 
         {/* HUMAN AUTHORITY CHECKPOINT — who must decide before advancing */}
         <div data-arch-checkpoint className="space-y-1 rounded-lg border p-2 text-[10px]" style={{ borderColor: C.violet, background: C.panel }}>
           <div className="text-[9px] font-bold tracking-wider" style={{ color: C.violet }}>HUMAN AUTHORITY CHECKPOINT</div>
           <div><span style={{ color: C.dim }}>Gate:</span> <span style={{ color: C.gold }}>{GATES[gate]}</span></div>
-          <div><span style={{ color: C.dim }}>Decision required:</span> <span style={{ color: C.text }}>{cp.decision}</span></div>
-          <div><span style={{ color: C.dim }}>Responsible authority:</span> <span style={{ color: C.cyan }}>{cp.authority}</span></div>
+          <div><span style={{ color: C.dim }}>{t("arch.estimate.decisionRequired")}</span> <span style={{ color: C.text }}>{cp.decision}</span></div>
+          <div><span style={{ color: C.dim }}>{t("arch.estimate.responsibleAuthority")}</span> <span style={{ color: C.cyan }}>{cp.authority}</span></div>
           <div><span style={{ color: C.dim }}>Evidence:</span> <span style={{ color: C.text }}>{cp.evidence}</span></div>
           <div className="flex items-center justify-between border-t pt-1" style={{ borderColor: C.border }}>
             <span><span style={{ color: C.dim }}>Confidence:</span> <span style={{ color: C.green }}>{confidenceForGate(gate)}%</span></span>
-            <span style={{ color: C.dim }}>🕒 Replay available</span>
+            <span style={{ color: C.dim }}>{t("arch.estimate.replayAvailable")}</span>
           </div>
         </div>
       </div>

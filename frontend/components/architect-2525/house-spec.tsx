@@ -7,6 +7,7 @@
  * install time (overlapping phases) is shown alongside the naive sequential total.
  */
 import { X, Home, Layers } from "lucide-react";
+import { useLexicon } from "@/lib/lexicon-context";
 import { houseEstimate, houseSchedule, componentEstimate } from "@/lib/architect-house";
 import { projectRollup, styleEquivalence } from "@/lib/architect-project";
 import { findLayer, type LayerNode, type HomeType } from "@/lib/architect-layers";
@@ -18,6 +19,7 @@ const C = { border: "#1e2b3a", panel: "#111826", text: "#c8d6e5", dim: "#5f7186"
 const fmtUsd = (n: number) => "$" + Math.round(n).toLocaleString();
 
 export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLoadArchitect }: { state: LayerState; homeType?: HomeType; selectedId?: string | null; onSelect?: (id: string) => void; onLoadArchitect?: (file: import("@/lib/architect-project-file").ArchitectProjectFile) => void }) {
+  const { t } = useLexicon();
   const ids = Array.from(state.spec);
   const est = houseEstimate(ids);
 
@@ -27,8 +29,8 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLo
         <div className="flex flex-wrap items-center gap-4">
           <HouseSchematic state={state} selectedId={selectedId} onSelect={onSelect} />
           <div className="flex-1">
-            <span className="flex items-center gap-1.5 font-semibold" style={{ color: C.violet }}><Home className="h-4 w-4" /> Wireframe your house</span>
-            <div className="mt-1">Select a component in the Layer Tree, then <span style={{ color: C.text }}>Add&nbsp;to&nbsp;house</span> in the Context panel — or <span style={{ color: C.text }}>Import BIM</span> below. The cross-section fills in as you go.</div>
+            <span className="flex items-center gap-1.5 font-semibold" style={{ color: C.violet }}><Home className="h-4 w-4" /> {t("arch.housespec.wireframe_your_house")}</span>
+            <div className="mt-1">{t("arch.housespec.select_component_layer_tree")} <span style={{ color: C.text }}>Add&nbsp;to&nbsp;house</span> {t("arch.housespec.in_context_panel")} <span style={{ color: C.text }}>Import BIM</span> {t("arch.housespec.cross_section_fills")}</div>
           </div>
         </div>
         <BimIO state={state} homeType={homeType} onLoadArchitect={onLoadArchitect} />
@@ -97,11 +99,11 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLo
           <div data-arch-project-rollup data-gate-seq={roll.gate.sequence} data-ssses-score={roll.ssses.score}
             data-rollup-cost={roll.costUsd} data-rollup-scale={roll.scale}
             className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded border px-2 py-1" style={{ borderColor: C.border, background: C.panel }}>
-            <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.violet }}>Project rollup</span>
+            <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.violet }}>{t("arch.housespec.project_rollup")}</span>
             <span style={{ color: C.dim }}>Scale <span className="tabular-nums" style={{ color: C.text }}>×{roll.scale}</span></span>
             <span style={{ color: C.dim }}>AACE <span style={{ color: C.text }}>Class&nbsp;{roll.aaceClass} · {roll.aaceLabel}</span></span>
             <span style={{ color: C.dim }}>Confidence <span className="tabular-nums" style={{ color: C.cyan }}>{roll.confidencePct}%</span></span>
-            <span style={{ color: C.dim }}>Cost band <span className="tabular-nums" style={{ color: C.gold }}>{fmtUsd(roll.costBand.lo)}–{fmtUsd(roll.costBand.hi)}</span> <span className="tabular-nums">±{Math.round(roll.costBand.pct * 100)}%</span></span>
+            <span style={{ color: C.dim }}>{t("arch.housespec.cost_band")} <span className="tabular-nums" style={{ color: C.gold }}>{fmtUsd(roll.costBand.lo)}–{fmtUsd(roll.costBand.hi)}</span> <span className="tabular-nums">±{Math.round(roll.costBand.pct * 100)}%</span></span>
             <span style={{ color: C.dim }} title={`Framework ${roll.gate.frameworkId}`}>Gate <span style={{ color: C.text }}>{roll.gate.gateId}</span> <span className="uppercase" style={{ color: C.cyan }}>{roll.gate.status.replace("_", " ")}</span></span>
             <span style={{ color: C.dim }}>SSSES <span className="tabular-nums" style={{ color: ss }}>{roll.ssses.score}</span> <span className="uppercase" style={{ color: ss }}>{roll.ssses.status.replace("_", " ")}</span></span>
           </div>
@@ -127,9 +129,9 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLo
       {/* PARALLEL INSTALL TIMELINE — phase bars on a shared day-axis; overlaps show parallel install (R5). */}
       <div data-arch-timeline className="flex flex-col gap-1 rounded border p-2" style={{ borderColor: C.border }}>
         <div className="flex items-center gap-2 text-[9px] uppercase tracking-wider" style={{ color: C.dim }}>
-          <span style={{ color: C.cyan }}>Parallel install timeline</span>
-          <span>· critical path <span className="tabular-nums" style={{ color: C.green }}>{sched.totalDays} days</span></span>
-          {sched.savedDays > 0 && <span>· saves <span className="tabular-nums" style={{ color: C.gold }}>{sched.savedDays} days</span> vs sequential</span>}
+          <span style={{ color: C.cyan }}>{t("arch.housespec.parallel_install_timeline")}</span>
+          <span>{t("arch.housespec.critical_path")} <span className="tabular-nums" style={{ color: C.green }}>{sched.totalDays} days</span></span>
+          {sched.savedDays > 0 && <span>· saves <span className="tabular-nums" style={{ color: C.gold }}>{sched.savedDays} days</span> {t("arch.housespec.vs_sequential")}</span>}
         </div>
         <div className="relative" style={{ height: sched.phases.length * 18 + 4 }}>
           {sched.phases.map((p, i) => (

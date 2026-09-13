@@ -16,6 +16,7 @@ import { useViewport } from "@/lib/use-viewport";
 import { createPortal } from "react-dom";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { AlvarMark } from "./alvar-mark";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc" };
 
@@ -85,6 +86,7 @@ function Rail({ side, title, open, setOpen, children, titleIcon }: {
 function BottomPanel({ id, title, accent, open, setOpen, children }: {
   id: string; title: string; accent: string; open: boolean; setOpen: (b: boolean) => void; children: ReactNode;
 }) {
+  const { t } = useLexicon();
   const [max, setMax] = useState(false);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -95,7 +97,7 @@ function BottomPanel({ id, title, accent, open, setOpen, children }: {
         style={{ background: "#05070d", borderColor: C.cyan }}>
         <div className="flex shrink-0 items-center justify-between border-b px-3 py-2" style={{ borderColor: C.cyan }}>
           <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{title}</span>
-          <button data-bpanel-max={id} onClick={() => setMax(false)} title="Minimize" aria-label="Minimize"
+          <button data-bpanel-max={id} onClick={() => setMax(false)} title={t("arch.workspace.minimize")} aria-label={t("arch.workspace.minimize")}
             className="flex items-center gap-1 rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.cyan, color: C.cyan }}>
             <Minimize2 className="h-3 w-3" /> Minimize
           </button>
@@ -117,7 +119,7 @@ function BottomPanel({ id, title, accent, open, setOpen, children }: {
         <span className="pl-6 text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{title}</span>
         {/* Maximize is only offered once the panel is EXPANDED — you can't full-screen a collapsed panel (operator). */}
         {open && (
-          <button data-bpanel-max={id} onClick={() => { setMax(true); setOpen(true); }} title="Maximize to full screen" aria-label="Maximize"
+          <button data-bpanel-max={id} onClick={() => { setMax(true); setOpen(true); }} title={t("arch.workspace.maximizeFull")} aria-label={t("arch.workspace.maximize")}
             className="absolute right-3 rounded p-1 hover:bg-white/10"><Maximize2 className="h-3 w-3" style={{ color: C.dim }} /></button>
         )}
       </div>
@@ -129,6 +131,7 @@ function BottomPanel({ id, title, accent, open, setOpen, children }: {
 export function DesignWorkspace({ leftRail, rightRail, bottomPanel, bottomPanel2, children, selectedId, metricStrip }: {
   leftRail?: ReactNode; rightRail?: ReactNode; bottomPanel?: ReactNode; bottomPanel2?: ReactNode; children: ReactNode; selectedId?: string | null; metricStrip?: ReactNode;
 }) {
+  const { t } = useLexicon();
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(false); // Context opens on selection (C5); collapsed keeps the engine wide
   const [b1Open, setB1Open] = useState(true);        // B1 Planning·Scheduling·Cost — open by default
@@ -148,12 +151,12 @@ export function DesignWorkspace({ leftRail, rightRail, bottomPanel, bottomPanel2
           drop BELOW the tree on some desktop windows (the reported "tree above the design window" bug).
           F6: data-orientation / data-vpclass stamp the shared viewport contract for CSS + parity. */}
       <div data-arch-design-ws data-orientation={vp.orientation} data-vpclass={vp.aspectClass} className="flex flex-col gap-2 md:flex-row md:items-stretch">
-      <Rail side="left" title="Vision Tree" open={leftOpen} setOpen={setLeftOpen}
-        titleIcon={<AlvarMark color={C.cyan} size={16} title="Alvar — guardian of the Vision Tree" />}>
+      <Rail side="left" title={t("arch.workspace.visionTree")} open={leftOpen} setOpen={setLeftOpen}
+        titleIcon={<AlvarMark color={C.cyan} size={16} title={t("arch.workspace.alvarGuardian")} />}>
         {leftRail ?? (
           <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>
-            <span className="font-semibold" style={{ color: C.violet }}>Vision Tree</span> — the physical Digital Twin.
-            <div className="mt-1">Hierarchy renders here (C2+).</div>
+            <span className="font-semibold" style={{ color: C.violet }}>{t("arch.workspace.visionTree")}</span> — the physical Digital Twin.
+            <div className="mt-1">{t("arch.workspace.hierarchyRenders")}</div>
           </div>
         )}
       </Rail>
@@ -162,7 +165,7 @@ export function DesignWorkspace({ leftRail, rightRail, bottomPanel, bottomPanel2
         {/* F4 — when the Active Items rail is collapsed, the key housing metrics ride ONTO the map. */}
         {!rightOpen && metricStrip}
       </div>
-      <Rail side="right" title="Active Elements" open={rightOpen} setOpen={setRightOpen}>
+      <Rail side="right" title={t("arch.workspace.activeElements")} open={rightOpen} setOpen={setRightOpen}>
         {rightRail ?? (
           <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>
             Select a layer to inspect its properties, Level&nbsp;3 Cubes, and linked records (C5).
@@ -172,10 +175,10 @@ export function DesignWorkspace({ leftRail, rightRail, bottomPanel, bottomPanel2
     </div>
       {/* BOTTOM B1 / B2 — two stacked expandables, each collapsing to a centered ••• (Security parity). */}
       {bottomPanel && (
-        <BottomPanel id="b1" title="Planning · Scheduling · Cost" accent={C.violet} open={b1Open} setOpen={setB1Open}>{bottomPanel}</BottomPanel>
+        <BottomPanel id="b1" title={t("arch.workspace.planningSchedulingCost")} accent={C.violet} open={b1Open} setOpen={setB1Open}>{bottomPanel}</BottomPanel>
       )}
       {bottomPanel2 && (
-        <BottomPanel id="b2" title="Approvals · Codes" accent={C.cyan} open={b2Open} setOpen={setB2Open}>{bottomPanel2}</BottomPanel>
+        <BottomPanel id="b2" title={t("arch.workspace.approvalsCodes")} accent={C.cyan} open={b2Open} setOpen={setB2Open}>{bottomPanel2}</BottomPanel>
       )}
     </div>
   );

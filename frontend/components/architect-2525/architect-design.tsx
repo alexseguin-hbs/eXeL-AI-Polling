@@ -20,6 +20,7 @@ import type { PlacedObject } from "@/lib/room-objects";
 import { Frame, Wind, Zap, Droplets, Settings } from "lucide-react"; // our own iconology (no emojis) for Design Settings
 import { sanitizeRoomLayout } from "@/lib/architect-guard";
 import { cloudEnabled, saveRoomLayout, loadRoomLayout } from "@/lib/architect-saved-files";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = {
   panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186",
@@ -45,6 +46,7 @@ const iso = (x: number, y: number, z: number): Pt => {
 export interface DesignMetrics { walls: number; linearFt: number; studs: number; openings: number; }
 
 export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, program, selectedId, onFocusRoom, onRoomLayoutChange, importLayout }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void; homeType?: HomeType; program?: RoomProgram; selectedId?: string | null; onFocusRoom?: (room: { k: string; label: string } | null) => void; onRoomLayoutChange?: (rooms: RoomCell[]) => void; importLayout?: RoomCell[] | null }) {
+  const { t } = useLexicon();
   const selectedLabel = selectedId ? (findLayer(selectedId)?.node.label ?? null) : null;
   const svgRef = useRef<SVGSVGElement>(null);
   const [dragOver, setDragOver] = useState(false);   // drag-drop a Vision-Tree item onto the building
@@ -235,7 +237,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                 </div>
                 {/* ⚙ DESIGN SETTINGS — Studs·Beams·Ducts·Electric·Plumbing moved OFF the toolbar into a grouped
                     panel (operator IMG_7486/7488, Mission-Planning parity). Toolbar stays 2D/3D/Voxel + gear. */}
-                <button data-arch-design-settings-btn onClick={() => setSettingsOpen((v) => !v)} title="Design settings" aria-label="Design settings"
+                <button data-arch-design-settings-btn onClick={() => setSettingsOpen((v) => !v)} title={t("arch.design.settingsBtn")} aria-label={t("arch.design.settingsBtn")}
                   className="flex items-center rounded border px-1.5 py-1" style={{ borderColor: settingsOpen ? C.cyan : C.border, color: settingsOpen ? C.cyan : C.dim }}><Settings className="h-3 w-3" /></button>
               </>
             ) : (
@@ -259,7 +261,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
           <div data-arch-design-settings className="absolute right-2 top-9 z-30 w-60 rounded-lg border p-2 text-[10px] shadow-2xl"
             style={{ borderColor: C.cyan, background: "#0a0f16f7" }}>
             <div className="mb-1 flex items-center justify-between">
-              <span className="font-bold uppercase tracking-wider" style={{ color: C.cyan }}>Design Settings</span>
+              <span className="font-bold uppercase tracking-wider" style={{ color: C.cyan }}>{t("arch.design.settingsTitle")}</span>
               <button onClick={() => setSettingsOpen(false)} className="rounded px-1 hover:bg-white/10" style={{ color: C.dim }}>✕</button>
             </div>
             {/* STRUCTURAL */}
@@ -273,7 +275,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
               <button data-arch-beam onClick={cycleBeam} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>{BEAM_SIZES[beamIdx]}</button>
             </div>
             {/* AIR FLOW */}
-            <div className="mb-0.5 mt-1.5 flex items-center gap-1 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}><Wind className="h-2.5 w-2.5" /> Air Flow</div>
+            <div className="mb-0.5 mt-1.5 flex items-center gap-1 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}><Wind className="h-2.5 w-2.5" /> {t("arch.design.airFlow")}</div>
             <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
               <span>Ducts (aerial)</span>
               <button data-arch-hvac onClick={toggleHvac} className="rounded border px-2 py-0.5" style={{ borderColor: hvac ? "#38bdf8" : C.border, color: hvac ? "#38bdf8" : C.dim }}>{hvac ? "ON" : "OFF"}</button>
@@ -281,31 +283,31 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             {/* ELECTRIC — outlets in walk + wiring-to-outlets (drawn in the room 2D/3D with wire ft · circuits · amps) */}
             <div className="mb-0.5 mt-1.5 flex items-center gap-1 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}><Zap className="h-2.5 w-2.5" /> Electric</div>
             <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
-              <span>Outlets in walk</span>
+              <span>{t("arch.design.outletsInWalk")}</span>
               <button data-arch-sockets onClick={toggleSockets} className="rounded border px-2 py-0.5" style={{ borderColor: showSockets ? C.gold : C.border, color: showSockets ? C.gold : C.dim }}>{showSockets ? "ON" : "OFF"}</button>
             </div>
             <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
-              <span>Wiring to outlets</span>
+              <span>{t("arch.design.wiringToOutlets")}</span>
               <button data-arch-wiring onClick={toggleWiring} className="rounded border px-2 py-0.5" style={{ borderColor: showWiring ? C.gold : C.border, color: showWiring ? C.gold : C.dim }}>{showWiring ? "ON" : "OFF"}</button>
             </div>
             {/* PLUMBING — Water Source + Sewer, each show/no-show; runs + total pipe length show in the room view */}
             <div className="mb-0.5 mt-1.5 flex items-center gap-1 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}><Droplets className="h-2.5 w-2.5" /> Plumbing</div>
             <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
-              <span>Water Source</span>
+              <span>{t("arch.design.waterSource")}</span>
               <button data-arch-water onClick={toggleWater} className="rounded border px-2 py-0.5" style={{ borderColor: showWater ? C.cyan : C.border, color: showWater ? C.cyan : C.dim }}>{showWater ? "ON" : "OFF"}</button>
             </div>
             <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
               <span>Sewer</span>
               <button data-arch-sewer onClick={toggleSewer} className="rounded border px-2 py-0.5" style={{ borderColor: showSewer ? "#22c55e" : C.border, color: showSewer ? "#22c55e" : C.dim }}>{showSewer ? "ON" : "OFF"}</button>
             </div>
-            <div className="mt-1 text-[8px] leading-tight" style={{ color: C.dim }}>Enter a room (⏎) to see these runs drawn in 2D + 3D with total pipe/wire length.</div>
+            <div className="mt-1 text-[8px] leading-tight" style={{ color: C.dim }}>{t("arch.design.runsHint")}</div>
           </div>
         )}
         {/* F3 — clicking an Active Element / Vision-Tree row reflects it ON the map (2D or 3D voxel). */}
         {selectedLabel && (
           <div data-arch-selected-onmap className="pointer-events-none absolute left-1/2 top-9 z-20 -translate-x-1/2 animate-pulse rounded-full border px-3 py-1 text-[10px] font-semibold shadow-lg"
             style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16ee" }}>
-            ◎ {selectedLabel} <span style={{ color: C.dim }}>· shown on map</span>
+            ◎ {selectedLabel} <span style={{ color: C.dim }}>{t("arch.design.shownOnMap")}</span>
           </div>
         )}
         {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} /> : designable && focusRoom ? (
@@ -352,7 +354,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             {/* persistent 3D MINI-MAP (operator: "adjustable like Mission Planning") — the MiniPanel cube:
                 ⠿ drag · ◢ resize · ▾ collapse-to-tab · ⛶ maximize (portal). Same roomLayout + selection. */}
             <div data-arch-minimap className="absolute bottom-2 right-2 z-10">
-              <MiniPanel title="3D · MODEL" subtitle="Tiny Home" lanes={false} defaultW={196} defaultH={208} minW={140} minH={150}
+              <MiniPanel title="3D · MODEL" subtitle={t("arch.design.tinyHome")} lanes={false} defaultW={196} defaultH={208} minW={140} minH={150}
                 render={(s) => <VoxelHouse homeType={homeType} program={program} height={s} compact layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} />} />
             </div>
             {/* HOUSE level — move the selected room (D-pad) + ⏎ Enter to optimize it only */}
@@ -361,7 +363,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                 style={{ borderColor: C.cyan, background: "#0a0f16ee", transform: `translate(${movePos.x}px, ${movePos.y}px)` }}>
                 {/* draggable header (⠿ grip) — reposition the panel off the rooms (operator IMG_7484) */}
                 <div data-arch-roommove-grip onPointerDown={moveGripDown} onPointerMove={moveGripMove} onPointerUp={moveGripUp} onPointerCancel={moveGripUp}
-                  className="mb-0.5 flex w-full cursor-grab touch-none items-center gap-1 active:cursor-grabbing" title="Drag to move this panel">
+                  className="mb-0.5 flex w-full cursor-grab touch-none items-center gap-1 active:cursor-grabbing" title={t("arch.design.dragToMovePanel")}>
                   <span className="tracking-tighter" style={{ color: C.dim, fontSize: 9 }}>⠿</span>
                   <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Room · move / design</span>
                 </div>

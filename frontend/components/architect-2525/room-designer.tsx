@@ -406,7 +406,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
       <Compass2525 bearing={(bear * Math.PI) / 180} onNorth={() => setBear(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
       {/* FX-60 — 2D zoom readout + reset (scroll / pinch to zoom the plan; tap to reset to 1×). Interactive pane only. */}
       {interactive && zoom2d > 1 && (
-        <button data-arch-2d-zoomreset onClick={resetZoom2d} title="Reset zoom (scroll or pinch to zoom the plan)"
+        <button data-arch-2d-zoomreset onClick={resetZoom2d} title={t("arch.room.resetZoom")}
           className="absolute bottom-1.5 right-1.5 z-10 rounded border px-1.5 py-0.5 text-[9px] font-semibold"
           style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16cc" }}>{zoom2d.toFixed(1)}× ⟲</button>
       )}
@@ -601,7 +601,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           className="absolute right-1.5 top-1.5 z-10 rounded border p-0.5" style={{ borderColor: linkView ? C.cyan : C.border, color: linkView ? C.cyan : C.dim, background: "#0a0f16cc" }}>
           {linkView ? <Link2 className="h-3 w-3" /> : <Link2Off className="h-3 w-3" />}
         </button>
-        <div className="pointer-events-none absolute bottom-1 left-1.5 text-[7px]" style={{ color: C.dim }}>L-drag pan · R-drag rotate/tilt · pinch/scroll zoom · 2-finger twist/tilt</div>
+        <div className="pointer-events-none absolute bottom-1 left-1.5 text-[7px]" style={{ color: C.dim }}>{t("arch.room.navHint3d")}</div>
       </div>
     );
   };
@@ -627,15 +627,15 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
       {/* S8 — view-specific control (2D = rotate plan · 3D = reset camera) */}
       {view === "2D" ? (
         <>
-          <button onClick={() => rot(-15)} title="Rotate plan left" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCcw className="h-3 w-3" /></button>
-          <button onClick={() => rot(15)} title="Rotate plan right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /></button>
+          <button onClick={() => rot(-15)} title={t("arch.room.rotatePlanLeft")} className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCcw className="h-3 w-3" /></button>
+          <button onClick={() => rot(15)} title={t("arch.room.rotatePlanRight")} className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /></button>
         </>
       ) : (
-        <button onClick={onReset} title="Reset view" className="shrink-0 rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.dim }}>{t("vision.ctrl.reset")}</button>
+        <button onClick={onReset} title={t("arch.room.resetView")} className="shrink-0 rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.dim }}>{t("vision.ctrl.reset")}</button>
       )}
       {/* S8 — MIRROR is a DATA op (affects 2D + 3D from one source), so it's shown in BOTH view modes on every pane */}
-      <button onClick={() => commit(mirrorObjects(objects, "h"))} title="Mirror left↔right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Columns2 className="h-3 w-3" /></button>
-      <button onClick={() => commit(mirrorObjects(objects, "v"))} title="Mirror top↔bottom" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Rows2 className="h-3 w-3" /></button>
+      <button onClick={() => commit(mirrorObjects(objects, "h"))} title={t("arch.room.mirrorHorizontal")} className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Columns2 className="h-3 w-3" /></button>
+      <button onClick={() => commit(mirrorObjects(objects, "v"))} title={t("arch.room.mirrorVertical")} className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Rows2 className="h-3 w-3" /></button>
       <span className="shrink-0 font-semibold" style={{ color: C.dim }}>{t("vision.rcore")}</span>
       {RCORE_LANES.map((l) => <span key={l.key} title={l.def} className="shrink-0 rounded px-1 font-semibold" style={{ color: l.color }}>{l.label}</span>)}
     </div>
@@ -670,7 +670,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
       <div className="flex items-center gap-2">
         <button data-arch-roomdesign-back onClick={onBack} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← {t("vision.nav.backToHouse")}</button>
         <span className="text-[11px] font-bold" style={{ color: C.gold }}>{room.k} · {room.label}</span>
-        <span className="text-[9px]" style={{ color: C.dim }}>10′×10′ · tap a tool, tap the floor</span>
+        <span className="text-[9px]" style={{ color: C.dim }}>10′×10′ · {t("arch.room.tapAToolHint")}</span>
         {/* UNDO — reverse the last placement/move/edit (operator: "undo button for ensuring multiple items are unplaced") */}
         <button data-arch-roomdesign-undo onClick={undo} disabled={history.length === 0}
           className="ml-auto flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold disabled:opacity-40"
@@ -679,19 +679,19 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           <Undo2 className="h-3 w-3" /> {t("vision.ctrl.undo")}{history.length ? ` ${history.length}` : ""}
         </button>
         {/* FIX-C — explanations for the non-simple areas (operator: intuitive + get explanations) */}
-        <button data-arch-help onClick={() => setHelpOpen((h) => !h)} className="rounded-full border px-1.5 text-[10px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }} title="How this designer works">?</button>
+        <button data-arch-help onClick={() => setHelpOpen((h) => !h)} className="rounded-full border px-1.5 text-[10px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }} title={t("arch.room.helpTitle")}>?</button>
       </div>
       {helpOpen && (
         <div data-arch-help-panel className="rounded border p-2 text-[10px] leading-relaxed" style={{ borderColor: C.cyan, background: "#070b12", color: C.text }}>
-          <div className="mb-1 font-bold" style={{ color: C.cyan }}>How to design this room</div>
+          <div className="mb-1 font-bold" style={{ color: C.cyan }}>{t("arch.room.helpHeading")}</div>
           <ul className="ml-3 list-disc space-y-0.5" style={{ color: C.dim }}>
-            <li><span style={{ color: C.text }}>Place:</span> tap a palette item (grouped by system) then tap the floor, or drag it onto the 2D plan.</li>
-            <li><span style={{ color: C.text }}>Move:</span> drag on the plan, or select an item and use the ↑↓←→ <span style={{ color: C.text }}>nudge pad</span> — tap the step to switch 1&quot; / 6&quot; / 1&apos;. Items can never leave the room.</li>
-            <li><span style={{ color: C.text }}>Resize:</span> tap <span style={{ color: C.violet }}>Size</span> to cycle standard sizes (beds, doors, windows), or tap a cyan <span style={{ color: C.cyan }}>dimension ✎</span> on the plan (R.O. cycles size, O.C. nudges along the wall).</li>
-            <li><span style={{ color: C.text }}>Doors &amp; windows</span> slide along their wall; pick standard sizes/heights from Size.</li>
-            <li><span style={{ color: C.text }}>Systems:</span> outlets show on the walls at 1.5&apos; AFF; water/sewer/wire/duct runs draw in 2D + 3D with total lengths.</li>
-            <li><span style={{ color: C.text }}>Bill of Materials</span> lists purchasable, quotable quantities (pipe/wire/duct ft, outlets, fixtures).</li>
-            <li><span style={{ color: C.text }}>Views:</span> two panes, each 2D or 3D at its own angle — left-drag pan · right-drag rotate/tilt · pinch/scroll zoom (same feel as Mission-Planning).</li>
+            <li><span style={{ color: C.text }}>Place:</span> {t("arch.room.helpPlace")}</li>
+            <li><span style={{ color: C.text }}>Move:</span> {t("arch.room.helpMove1")} <span style={{ color: C.text }}>{t("arch.room.helpNudgePad")}</span> {t("arch.room.helpMoveStep")}</li>
+            <li><span style={{ color: C.text }}>Resize:</span> tap <span style={{ color: C.violet }}>Size</span> {t("arch.room.helpResize1")} <span style={{ color: C.cyan }}>dimension ✎</span> {t("arch.room.helpResize2")}</li>
+            <li><span style={{ color: C.text }}>Doors &amp; windows</span> {t("arch.room.helpDoors")}</li>
+            <li><span style={{ color: C.text }}>Systems:</span> {t("arch.room.helpSystems")}</li>
+            <li><span style={{ color: C.text }}>{t("arch.room.helpBomLabel")}</span> {t("arch.room.helpBom")}</li>
+            <li><span style={{ color: C.text }}>Views:</span> {t("arch.room.helpViews")}</li>
           </ul>
         </div>
       )}
@@ -796,14 +796,14 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                 <span data-arch-nudge className="flex items-center gap-0.5 rounded border px-1 py-0.5" style={{ borderColor: C.border }} title={`Nudge the selected item by the chosen step; tap the step to change 1" / 6" / 1'`}>
                   <button data-arch-nudge-step onClick={() => setNudgeIx((i) => (i + 1) % NUDGE_STEPS_FT.length)} className="rounded px-1 text-[9px] font-bold tabular-nums" style={{ color: C.gold }}>{NUDGE_STEPS_FT[nudgeIx].label}</button>
                   {(() => { const step = NUDGE_STEPS_FT[nudgeIx].ft; return (<>
-                    <button data-arch-nudge-up onClick={() => commit(nudgeObject(objects, sel.id, 0, -step))} title="Move up (N)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowUp className="h-3 w-3" /></button>
-                    <button data-arch-nudge-down onClick={() => commit(nudgeObject(objects, sel.id, 0, step))} title="Move down (S)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowDown className="h-3 w-3" /></button>
-                    <button data-arch-nudge-left onClick={() => commit(nudgeObject(objects, sel.id, -step, 0))} title="Move left (W)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowLeft className="h-3 w-3" /></button>
-                    <button data-arch-nudge-right onClick={() => commit(nudgeObject(objects, sel.id, step, 0))} title="Move right (E)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowRight className="h-3 w-3" /></button>
+                    <button data-arch-nudge-up onClick={() => commit(nudgeObject(objects, sel.id, 0, -step))} title={t("arch.room.moveUp")} className="rounded p-0.5" style={{ color: C.cyan }}><ArrowUp className="h-3 w-3" /></button>
+                    <button data-arch-nudge-down onClick={() => commit(nudgeObject(objects, sel.id, 0, step))} title={t("arch.room.moveDown")} className="rounded p-0.5" style={{ color: C.cyan }}><ArrowDown className="h-3 w-3" /></button>
+                    <button data-arch-nudge-left onClick={() => commit(nudgeObject(objects, sel.id, -step, 0))} title={t("arch.room.moveLeft")} className="rounded p-0.5" style={{ color: C.cyan }}><ArrowLeft className="h-3 w-3" /></button>
+                    <button data-arch-nudge-right onClick={() => commit(nudgeObject(objects, sel.id, step, 0))} title={t("arch.room.moveRight")} className="rounded p-0.5" style={{ color: C.cyan }}><ArrowRight className="h-3 w-3" /></button>
                   </>); })()}
                 </span>
                 <button data-arch-roomobj-deselect onClick={() => setSelId(null)} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.dim }}>Done</button>
-                <span style={{ color: C.dim }}>· drag or nudge to move</span>
+                <span style={{ color: C.dim }}>· {t("arch.room.dragOrNudge")}</span>
               </div>
             );
           })()}
@@ -818,7 +818,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           <div data-arch-bom className="rounded border" style={{ borderColor: C.border, background: "#070b12" }}>
             <button data-arch-bom-toggle onClick={() => setBomOpen((o) => !o)}
               className="flex w-full items-center justify-between px-2 py-1 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>
-              <span>Bill of Materials · quote</span>
+              <span>{t("arch.room.bomQuote")}</span>
               <span className="flex items-center gap-1"><span style={{ color: C.cyan }}>{bom.totalLineItems} items</span><span>{bomOpen ? "▾" : "▸"}</span></span>
             </button>
             {bomOpen && (
@@ -840,7 +840,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
       <div data-arch-playtest className="rounded border" style={{ borderColor: C.border, background: "#070b12" }}>
         <button data-arch-playtest-toggle onClick={() => { setDemoOpen((o) => !o); setDemoStep(0); }}
           className="flex w-full items-center justify-between px-2 py-1 text-[10px] font-semibold" style={{ color: C.cyan }}>
-          <span>▶ Guided demo — what’s possible</span>
+          <span>▶ {t("arch.room.guidedDemo")}</span>
           <span style={{ color: C.dim }}>{demoOpen ? "▾" : "▸"}</span>
         </button>
         {demoOpen && (() => {
@@ -864,7 +864,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                 {f.toggles.sewer && <span style={{ color: MEP_COL.sewer }}>Sewer {T.sewerFt} ft</span>}
                 {f.toggles.electric && <span style={{ color: MEP_COL.wiring }}>Wire {T.wireFt} ft · {T.circuits} circ · {T.amps}A</span>}
                 {f.toggles.hvac && <span style={{ color: MEP_COL.duct }}>Duct {T.ductFt} ft</span>}
-                {f.toggles.structural && <span style={{ color: "#8899aa" }}>Structural shell shown</span>}
+                {f.toggles.structural && <span style={{ color: "#8899aa" }}>{t("arch.room.structuralShell")}</span>}
               </div>
               <div className="mt-1.5 flex items-center gap-1.5">
                 <button data-arch-playtest-prev onClick={() => setDemoStep(Math.max(0, i - 1))} disabled={i === 0}

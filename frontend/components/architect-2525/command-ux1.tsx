@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Expander as CoreExpander } from "@/components/2525-core/expander";
 import { useEasterEgg } from "@/lib/easter-egg-context";
+import { useLexicon } from "@/lib/lexicon-context";
 import { FpsMeter } from "@/components/security-2525/fps-meter";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
@@ -126,6 +127,7 @@ const Expander = ({ cyan, ...p }: { id: string; title: string; sub?: string; def
 
 export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: string } = {}) {
   const { setVisionView, exitSimulationMode, simulationMode } = useEasterEgg();
+  const { t } = useLexicon();
   const router = useRouter();
   const directLink = !simulationMode;
   const [initTab, initSub] = resolveTab(initialTab);
@@ -185,28 +187,28 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         {/* TOP BAR */}
         <div className="flex items-center gap-2 border-b px-3 py-2" style={{ borderColor: C.border }}>
           <div className="flex shrink-0 items-center gap-2">
-            <button onClick={goHome} className="p-1 rounded hover:bg-white/5" title="Back to Vision 2525">
+            <button onClick={goHome} className="p-1 rounded hover:bg-white/5" title={t("arch.cmd.back_to_vision")}>
               <ArrowLeft className="h-4 w-4" style={{ color: C.dim }} />
             </button>
             <ExelWordmark exelStyle={{ color: C.cyan }} aiClass="font-light" aiStyle={{ color: C.dim }} />
           </div>
           <div className="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto">
             <span className="shrink-0 whitespace-nowrap text-[11px] font-bold tracking-widest" style={{ color: C.violet }}>Architect-2525</span>
-            <span className="shrink-0 whitespace-nowrap text-[9px]" style={{ color: C.dim }}>Building Lifecycle Coordination · Vision 2525</span>
+            <span className="shrink-0 whitespace-nowrap text-[9px]" style={{ color: C.dim }}>{t("arch.cmd.subtitle")}</span>
             {/* persistent header: global search + replay controls (universal) + notifications */}
             <div className="ml-auto flex shrink-0 items-center gap-1">
-              <button title="Search (⌘K)" className="rounded p-1 hover:bg-white/5"><Search className="h-3.5 w-3.5" style={{ color: C.dim }} /></button>
-              <div className="flex items-center gap-0.5 rounded border px-1 py-0.5" style={{ borderColor: C.border }} title="Replay (universal)">
+              <button title={t("arch.cmd.search")} className="rounded p-1 hover:bg-white/5"><Search className="h-3.5 w-3.5" style={{ color: C.dim }} /></button>
+              <div className="flex items-center gap-0.5 rounded border px-1 py-0.5" style={{ borderColor: C.border }} title={t("arch.cmd.replay_universal")}>
                 <Play className="h-3 w-3" style={{ color: C.cyan }} />
                 <span className="text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>REPLAY</span>
               </div>
-              <button title="Notifications" className="rounded p-1 hover:bg-white/5"><Bell className="h-3.5 w-3.5" style={{ color: C.dim }} /></button>
+              <button title={t("arch.cmd.notifications")} className="rounded p-1 hover:bg-white/5"><Bell className="h-3.5 w-3.5" style={{ color: C.dim }} /></button>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <span className="whitespace-nowrap text-[10px]" style={{ color: C.green }}>LINK: SECURE</span>
             <div className="relative">
-              <button onClick={() => setMenuOpen((o) => !o)} className="p-1.5 rounded hover:bg-white/5" title="Settings">
+              <button onClick={() => setMenuOpen((o) => !o)} className="p-1.5 rounded hover:bg-white/5" title={t("arch.cmd.settings")}>
                 <Gauge className="h-4 w-4" style={{ color: menuOpen ? C.violet : C.dim }} />
               </button>
               <div className="pointer-events-none absolute left-1/2 top-full z-[93] -translate-x-1/2 -translate-y-1/2"><FpsMeter show={showFps} /></div>
@@ -253,12 +255,12 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         {activeTab !== "Design" && (
         <div data-arch-ribbon className="flex items-center gap-x-4 gap-y-0.5 overflow-x-auto border-b px-4 py-1 text-[9px] whitespace-nowrap" style={{ borderColor: C.border }}>
           <span style={{ color: C.dim }}>PROJECT <span style={{ color: C.text }}>V2525-000842</span></span>
-          <span style={{ color: C.dim }}>Stage Gate <span style={{ color: C.gold }}>G6</span></span>
+          <span style={{ color: C.dim }}>{t("arch.cmd.stage_gate")} <span style={{ color: C.gold }}>G6</span></span>
           <span style={{ color: C.dim }}>Iteration <span style={{ color: C.cyan }}>{iteration} / 33</span></span>
           <span style={{ color: C.dim }}>SSSES <span style={{ color: C.green }}>—</span></span>
           <span style={{ color: C.dim }}>SPIRAL <span style={{ color: C.green }}>green</span></span>
           <span style={{ color: C.dim }}>R-CORE <span style={{ color: C.cyan }}>SYNC</span></span>
-          <span style={{ color: C.dim }}>Human Authority <span style={{ color: C.violet }}>Homeowner</span></span>
+          <span style={{ color: C.dim }}>{t("arch.cmd.human_authority")} <span style={{ color: C.violet }}>Homeowner</span></span>
           <span style={{ color: C.dim }}>Replay <span style={{ color: C.green }}>ready</span></span>
         </div>
         )}
@@ -302,7 +304,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
                 }} />
               {/* Design Files — save/upload the full .arch2525 project (all elements) + saved-designs library (like MP missions) */}
               <div className="mt-2">
-                <Expander id="projectfiles" title="Design Files" sub="save · upload · .arch2525" cyan>
+                <Expander id="projectfiles" title={t("arch.cmd.design_files")} sub="save · upload · .arch2525" cyan>
                   <ArchitectProjects buildFile={buildProjectFile} onLoad={loadProjectFile} />
                 </Expander>
               </div>
@@ -319,7 +321,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         {activeTab === "Overview" ? (
           <div className="space-y-3">
             <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>
-              OBSERVABILITY · PROJECT HEALTH <span style={{ color: C.dim }}>· V2525-000842 · Custom Residence</span>
+              OBSERVABILITY · PROJECT HEALTH <span style={{ color: C.dim }}>{t("arch.cmd.project_residence")}</span>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
               <Tile label="Iteration" value={`${iteration} / 33`} sub="20–33 loop" color={C.cyan} />
@@ -338,12 +340,12 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
                 <Tile key={p} label={p} value="—" sub="pending" color={C.dim} />
               ))}
             </div>
-            <Expander id="kg" title="Knowledge Graph" sub="every project improves the next">
+            <Expander id="kg" title={t("arch.cmd.knowledge_graph")} sub="every project improves the next">
               <div className="rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel, color: C.dim }}>
                 Foundation → Concrete → Climate → Drainage → Best Practices → Future Recommendations.
               </div>
             </Expander>
-            <Expander id="soi" title="System of Intelligence · Tri-Coin" sub="incentive framework — tap to expand">
+            <Expander id="soi" title={t("arch.cmd.system_of_intelligence")} sub="incentive framework — tap to expand">
               <ArchitectSoI econ={econ} />
             </Expander>
           </div>
@@ -430,7 +432,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         ) : (
           <div className="flex min-h-[55vh] flex-col items-center justify-center gap-2 text-center">
             <span className="text-sm font-semibold tracking-wide" style={{ color: C.violet }}>{activeTab}{SUBNAV[activeTab] ? ` · ${sub(activeTab)}` : ""}</span>
-            <span className="text-xs" style={{ color: C.dim }}>Coming soon</span>
+            <span className="text-xs" style={{ color: C.dim }}>{t("arch.cmd.coming_soon")}</span>
           </div>
         )}
         </div>
@@ -439,7 +441,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             shows, incl. Design→Model); reuses the Security-2525 "•••" method. Hidden on the More tab (which IS advanced). */}
         {activeTab !== "More" && (
           <div className="mt-3" data-adv-tab={activeTab}>
-            <Expander id={`adv.${activeTab}`} title="Advanced" sub={activeTab} dots cyan>
+            <Expander id={`adv.${activeTab}`} title={t("arch.cmd.advanced")} sub={activeTab} dots cyan>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {(ADV_MENU[activeTab] ?? []).map(([g, items]) => (
                   <div key={g} data-adv-group className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
@@ -455,7 +457,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
 
       {/* FOOTER */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
-        <span>◬ · ♡ · 웃 — Where Shared Intention moves at the Speed of Thought</span>
+        <span>{t("arch.cmd.tagline")}</span>
         <span>ARCHITECT-2525 · {EXEL_VERSION} · {GIT_SHA.slice(0, 7)}</span>
       </div>
     </div>

@@ -12,6 +12,7 @@ import { exportBIM, importBIM, physicalSystems } from "@/lib/architect-bim";
 import { recommendPlacement, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
 import { isSealed, unsealProject, parseProject, ARCH_FILE_EXT, type ArchitectProjectFile } from "@/lib/architect-project-file";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { border: "#1e2b3a", panel2: "#0c1420", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const nowMs = () => { try { return Date.now(); } catch { return 0; } };
@@ -25,6 +26,7 @@ const CLOUD_COLOR: Record<string, string> = { idle: "#5f7186", saving: "#19c8cf"
 
 export function BimIO({ state, homeType, onLoadArchitect }: { state: LayerState; homeType: HomeType; onLoadArchitect?: (file: ArchitectProjectFile) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const { t } = useLexicon();
   const { unclassified, bimManifest: manifest } = state;
 
   const generate = () => {
@@ -68,23 +70,23 @@ export function BimIO({ state, homeType, onLoadArchitect }: { state: LayerState;
           <Download className="h-3 w-3" /> Generate BIM-compatible model
         </button>
         <button data-bim-import onClick={() => fileRef.current?.click()} className={btn} style={{ borderColor: C.border, color: C.text }}
-          title="Upload someone else's design — a BIM/IFC model OR an Architect-2525 (.arch2525) design (sealed files unlock only in-system)">
+          title={t("arch.bim.importTitle")}>
           <Upload className="h-3 w-3" /> Import BIM / .{ARCH_FILE_EXT}
         </button>
         <input ref={fileRef} data-bim-file type="file" accept={`application/json,.json,.ifcjson,.${ARCH_FILE_EXT}`} onChange={onFile} className="hidden" />
         {/* HI / AI recommend placement — one-tap starter builds (operator: HI standard-placement · AI vision-driven). */}
         <button data-recommend="hi" onClick={() => { const ids = recommendPlacement("hi", homeType, state.globalParams.style); state.addSpecIds(ids); state.logReplay("recommend.hi", `HI standard build · +${ids.length} components`); }}
-          className={btn} style={{ borderColor: C.cyan, color: C.cyan }} title="HI recommend — standard, code-normative build (foundation · structure · envelope · MEP)">웃 HI · Standard</button>
+          className={btn} style={{ borderColor: C.cyan, color: C.cyan }} title={t("arch.bim.hiRecommendTitle")}>웃 HI · Standard</button>
         <button data-recommend="ai" onClick={() => { const ids = recommendPlacement("ai", homeType, state.globalParams.style); state.addSpecIds(ids); state.logReplay("recommend.ai", `AI ${state.globalParams.style ?? "standard"} vision build · +${ids.length} components`); }}
-          className={btn} style={{ borderColor: C.violet, color: C.violet }} title="AI recommend — vision-driven build tuned to your Style (adds interior · exterior · smart systems)">◬ AI · Vision</button>
-        <span data-arch-cloud-status={state.cloudStatus} title="Design saved-files back up to the cloud (survives cache-clear, reloads on this account)"
+          className={btn} style={{ borderColor: C.violet, color: C.violet }} title={t("arch.bim.aiRecommendTitle")}>◬ AI · Vision</button>
+        <span data-arch-cloud-status={state.cloudStatus} title={t("arch.bim.cloudBackupTitle")}
           className="ml-auto flex items-center gap-1 text-[8px] font-semibold uppercase tracking-wider">
           <span className="h-1.5 w-1.5 rounded-full" style={{ background: CLOUD_COLOR[state.cloudStatus] }} />
           <span style={{ color: CLOUD_COLOR[state.cloudStatus] }}>{CLOUD_LABEL[state.cloudStatus]}</span>
         </span>
       </div>
       <div className="text-[8px] leading-tight" style={{ color: C.dim }}>
-        Preliminary structured model · not for construction · states assumptions &amp; gaps · <span style={{ color: C.gold }}>human review required</span> before professional use.
+        Preliminary structured model · not for construction · states assumptions &amp; gaps · <span style={{ color: C.gold }}>{t("arch.bim.humanReviewRequired")}</span> before professional use.
       </div>
       {manifest && (
         <div data-bim-manifest className="text-[8px]" style={{ color: C.dim }}>
@@ -101,14 +103,14 @@ export function BimIO({ state, homeType, onLoadArchitect }: { state: LayerState;
       {unclassified.length > 0 && (
         <div data-bim-unclassified className="flex flex-col gap-1 rounded border p-1" style={{ borderColor: C.border, background: C.panel2 }}>
           <div className="flex items-center gap-1 text-[9px] font-semibold" style={{ color: C.gold }}>
-            <FileWarning className="h-3 w-3" /> Unclassified imports · {unclassified.length} <span className="font-normal" style={{ color: C.dim }}>— assign to a system (not discarded)</span>
+            <FileWarning className="h-3 w-3" /> Unclassified imports · {unclassified.length} <span className="font-normal" style={{ color: C.dim }}>{t("arch.bim.assignNotDiscarded")}</span>
           </div>
           {unclassified.slice(0, 12).map((o) => (
             <div key={o.extId} data-unclassified-item={o.extId} className="flex items-center gap-1 text-[9px]">
               <span className="min-w-0 flex-1 truncate" style={{ color: C.text }}>{o.ifcClass} · {o.material || o.extId}</span>
               <select data-unclassified-assign defaultValue="" onChange={(e) => e.target.value && state.resolveUnclassified(o.extId, e.target.value)}
                 className="rounded border bg-transparent px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.text }}>
-                <option value="">Assign to…</option>
+                <option value="">{t("arch.bim.assignTo")}</option>
                 {physicalSystems().map((s) => <option key={s.id} value={s.id} style={{ background: C.panel2 }}>{s.label}</option>)}
               </select>
             </div>

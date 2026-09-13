@@ -78,7 +78,7 @@ export function ArchitectProjects({ buildFile, onLoad }: {
     <div ref={wrapRef} data-arch-projects className="relative flex flex-col gap-1 text-[11px]" style={{ color: C.text }}>
       {/* Collapsed pill (Security AO/MISSION declutter) + an ⓘ best-practices explainer (operator FX-55). */}
       <div className="flex items-center gap-1">
-        <button data-arch-proj-menu onClick={() => { setOpen((v) => !v); setShowHelp(false); }} title="Saved designs — save · load · export .arch2525"
+        <button data-arch-proj-menu onClick={() => { setOpen((v) => !v); setShowHelp(false); }} title={t("arch.projects.menu.title")}
           className="flex items-center gap-1.5 rounded border px-2 py-1 text-[10px] font-semibold tracking-wide"
           style={{ borderColor: open ? C.cyan : C.border, color: C.cyan }}>
           <FolderOpen className="h-3 w-3" /> Saved Designs · {lib.length}
@@ -108,9 +108,9 @@ export function ArchitectProjects({ buildFile, onLoad }: {
         <div data-arch-proj-panel className="absolute left-0 top-8 z-50 flex max-h-[70vh] w-72 max-w-[calc(100vw-2rem)] flex-col gap-2 overflow-y-auto rounded-lg border p-2 shadow-2xl"
           style={{ background: C.panel, borderColor: C.cyan }}>
           {/* ＋ New Design — mirrors Security's "＋ NEW MISSION" row at the head of the menu */}
-          <div className="text-[8px] font-bold uppercase tracking-wider" style={{ color: C.gold }}>＋ New Design</div>
+          <div className="text-[8px] font-bold uppercase tracking-wider" style={{ color: C.gold }}>{t("arch.projects.new.heading")}</div>
           <div className="flex flex-wrap items-center gap-1.5">
-            <input data-arch-proj-name value={name} onChange={(e) => setName(e.target.value)} placeholder="Design name…"
+            <input data-arch-proj-name value={name} onChange={(e) => setName(e.target.value)} placeholder={t("arch.projects.name.placeholder")}
               className="min-w-0 flex-1 rounded border bg-transparent px-2 py-1" style={{ borderColor: C.border, color: C.text, fontSize: 16 }} />
             <button data-arch-proj-save onClick={saveNamed} className={btn} style={{ borderColor: C.cyan, color: C.cyan }}><Save className="h-3 w-3" /> Save</button>
             <button data-arch-proj-export onClick={exportCurrent} className={btn} style={{ borderColor: C.violet, color: C.violet }}><Download className="h-3 w-3" /> .{ARCH_FILE_EXT}</button>
@@ -127,9 +127,9 @@ export function ArchitectProjects({ buildFile, onLoad }: {
               {lib.map((e) => (
                 <div key={e.name} data-arch-proj-row={e.name} className="flex items-center gap-1 rounded border px-2 py-1" style={{ borderColor: C.border, background: "#0a1018" }}>
                   <span className="min-w-0 flex-1 truncate font-semibold" style={{ color: C.text }}>{e.name}</span>
-                  <button data-arch-proj-load={e.name} onClick={() => { onLoad(e.file); note(`Loaded “${e.name}”`); }} title="Load this design" className="rounded border p-1" style={{ borderColor: C.cyan, color: C.cyan }}><FolderOpen className="h-3 w-3" /></button>
-                  <button data-arch-proj-dl={e.name} onClick={() => download(e.file)} title="Download .arch2525" className="rounded border p-1" style={{ borderColor: C.border, color: C.violet }}><Download className="h-3 w-3" /></button>
-                  <button data-arch-proj-del={e.name} onClick={() => remove(e.name)} title="Delete" className="rounded border p-1" style={{ borderColor: C.border, color: C.red }}><Trash2 className="h-3 w-3" /></button>
+                  <button data-arch-proj-load={e.name} onClick={() => { onLoad(e.file); note(`Loaded “${e.name}”`); }} title={t("arch.projects.load.title")} className="rounded border p-1" style={{ borderColor: C.cyan, color: C.cyan }}><FolderOpen className="h-3 w-3" /></button>
+                  <button data-arch-proj-dl={e.name} onClick={() => download(e.file)} title={t("arch.projects.download.title")} className="rounded border p-1" style={{ borderColor: C.border, color: C.violet }}><Download className="h-3 w-3" /></button>
+                  <button data-arch-proj-del={e.name} onClick={() => remove(e.name)} title={t("arch.projects.delete.title")} className="rounded border p-1" style={{ borderColor: C.border, color: C.red }}><Trash2 className="h-3 w-3" /></button>
                 </div>
               ))}
             </div>

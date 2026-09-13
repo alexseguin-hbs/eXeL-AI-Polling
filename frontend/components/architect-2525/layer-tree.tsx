@@ -16,6 +16,7 @@ import { paletteForRoom, groupPalette, OBJECT_SPEC } from "@/lib/room-objects";
 import { OBJECT_ICON } from "./object-icons";
 import { componentEstimate } from "@/lib/architect-house";
 import { type LayerState } from "./use-layer-state";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const kUsd = (n: number) => (n >= 1000 ? `$${Math.round(n / 1000)}k` : `$${n}`);
 
@@ -41,6 +42,7 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
   homeType?: HomeType; onHomeType?: (t: HomeType) => void;
   focusRoom?: { k: string; label: string } | null;  // context-scope: when a room is entered, narrow the physical tree
 }) {
+  const { t } = useLexicon();
   const { hidden, locked, toggleHidden, toggleLocked, isolate: isolateNode, revealAll } = state;
   const roomKey = focusRoom?.k ?? null;
   const tinyOK = (id: string, scopeId: string) => isVisibleForType(id, scopeId, homeType);
@@ -121,7 +123,7 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
           {(() => { const meta = focusRoom && depth === 1 && scopeId === "physical" ? SYSTEM_META[node.id] : undefined;
             return meta ? <meta.Icon className="h-3 w-3 shrink-0" style={{ color: meta.color }} /> : null; })()}
           <span className="min-w-0 flex-1 truncate" style={essentialIds?.has(node.id) ? { fontWeight: 700, color: C.gold } : undefined}>{node.label}</span>
-          {state.spec.has(node.id) && <span data-layer-inhouse title="On the house" className="shrink-0 h-1.5 w-1.5 rounded-full" style={{ background: C.green }} />}
+          {state.spec.has(node.id) && <span data-layer-inhouse title={t("arch.layertree.onTheHouse")} className="shrink-0 h-1.5 w-1.5 rounded-full" style={{ background: C.green }} />}
           {hasKids && <span className="shrink-0 text-[8px] group-hover:hidden" style={{ color: C.dim }}>·{visCount(kids)}</span>}
           {/* Per-item STARTING COST · install time — every buildable leaf carries an estimate (operator ask). */}
           {!hasKids && !node.level3 && (() => { const e = componentEstimate(node.id); return e ? (
@@ -131,7 +133,7 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
           <span className={`shrink-0 items-center gap-0 ${selected || isHidden || isLocked ? "flex" : "hidden group-hover:flex"}`}>
             <IconBtn hook="visibility" title={isHidden ? "Show layer" : "Hide layer"} on={() => toggleHidden(node.id)} active={isHidden} activeColor={C.dim} Icon={Eye} IconOff={EyeOff} />
             <IconBtn hook="lock" title={isLocked ? "Unlock layer" : "Lock layer"} on={() => toggleLocked(node.id)} active={isLocked} activeColor={C.gold} Icon={Unlock} IconOff={Lock} />
-            <IconBtn hook="settings" title="Layer settings (open Context)" on={() => onSelect?.(node.id)} active={selected} activeColor={C.cyan} Icon={Settings} />
+            <IconBtn hook="settings" title={t("arch.layertree.layerSettingsOpenContext")} on={() => onSelect?.(node.id)} active={selected} activeColor={C.cyan} Icon={Settings} />
             <button data-layer-ctl="menu" title="More" onClick={(e) => { stop(e); setMenuId((m) => (m === node.id ? null : node.id)); }}
               className="shrink-0 rounded p-0.5 hover:bg-white/10" style={{ opacity: menuId === node.id ? 1 : 0.45 }}>
               <MoreHorizontal className="h-3 w-3" style={{ color: menuId === node.id ? C.cyan : C.dim }} />
@@ -140,8 +142,8 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
         </div>
         {menuId === node.id && (
           <div data-layer-menu={node.id} className="ml-6 mb-1 flex flex-col rounded border text-[9px]" style={{ borderColor: C.border, background: "#0c1420" }}>
-            <button className="px-2 py-1 text-left hover:bg-white/5" style={{ color: C.text }} onClick={(e) => { stop(e); isolate(node); }}>Isolate — hide all other layers</button>
-            <button className="px-2 py-1 text-left hover:bg-white/5" style={{ color: C.text }} onClick={(e) => { stop(e); revealAll(); setMenuId(null); }}>Reveal all</button>
+            <button className="px-2 py-1 text-left hover:bg-white/5" style={{ color: C.text }} onClick={(e) => { stop(e); isolate(node); }}>{t("arch.layertree.isolateHideOthers")}</button>
+            <button className="px-2 py-1 text-left hover:bg-white/5" style={{ color: C.text }} onClick={(e) => { stop(e); revealAll(); setMenuId(null); }}>{t("arch.layertree.revealAll")}</button>
           </div>
         )}
         {open && kids.map((c) => renderNode(c, depth + 1, scopeId))}
@@ -156,7 +158,7 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
         <div data-arch-tree-focus className="mb-1 flex items-center gap-1.5 rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.gold, background: "#0c1420" }}>
           <DoorOpen className="h-3 w-3 shrink-0" style={{ color: C.gold }} />
           <span className="font-bold" style={{ color: C.gold }}>{focusRoom.k} · {focusRoom.label}</span>
-          <span className="min-w-0 flex-1 truncate" style={{ color: C.dim }}>— its systems · ← Back to house for all</span>
+          <span className="min-w-0 flex-1 truncate" style={{ color: C.dim }}>{t("arch.layertree.itsSystemsBack")}</span>
         </div>
       )}
       {/* FURNITURE — when a room is entered, list ITS furniture with the SAME mini icons as the room designer palette
@@ -184,7 +186,7 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
       )}
       {/* TARGET MARKET — Tiny Home & Home are the two markets. Tiny Home limits systems + decisions (R3/R8). */}
       <div data-layer-hometype className="mb-1 rounded border p-1" style={{ borderColor: C.border }}>
-        <div className="mb-1 px-1 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Target market</div>
+        <div className="mb-1 px-1 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{t("arch.layertree.targetMarket")}</div>
         <div className="grid grid-cols-2 gap-1">
           {HOME_TYPES.map((h) => (
             <button key={h.id} data-hometype={h.id} data-hometype-locked={h.locked ? "1" : undefined}
@@ -198,7 +200,7 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
         </div>
         <div className="mt-1 px-1 text-[8px] leading-tight" style={{ color: C.dim }}>{HOME_TYPES.find((h) => h.id === homeType)?.note}</div>
       </div>
-      <input data-layer-search value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search layers…"
+      <input data-layer-search value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("arch.layertree.searchLayers")}
         className="mb-1 w-full rounded border bg-transparent px-2 py-1 text-[10px]"
         style={{ borderColor: C.border, color: C.text }} />
       {LAYER_TREE.map((scope) => {

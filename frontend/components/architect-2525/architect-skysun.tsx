@@ -16,6 +16,7 @@ import { geocentricEcl, dateToJD } from "@/lib/ephemeris";
 import { PRIORITY_CONSTELLATIONS, ZODIAC } from "@/lib/constellations";
 import { latLonToUtm, latLonToMgrs, utmToLatLon, mgrsToLatLon, latBand } from "@/components/security-2525/mgrs";
 import { fmtLLV, fmtUcrsDms } from "@/lib/voxel-grid";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const RAD = Math.PI / 180;
@@ -207,6 +208,7 @@ function WorldPlacement({ lat, lon, onPick }: { lat: number; lon: number; onPick
 // forceView: when the Design engine's SKY tab drives this component, pin the sub-view (celestial map) and hide the
 // internal Sky-Dome/Solar-System toggle. When absent (SITE tab), the internal toggle stays — SPIRAL asserts drive it.
 export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } = {}) {
+  const { t } = useLexicon();
   const [lat, setLat] = useState(30.44);   // default: Pfield · Pflugerville, TX (soccer complex)
   const [lon, setLon] = useState(-97.62);
   const [doy, setDoy] = useState(172);     // SSR seed (~summer solstice); replaced by TODAY on mount
@@ -369,11 +371,11 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
         {/* GPS — CHOOSE: (1) this device's own GPS hardware (phone/computer), or (2) type coordinates in ANY format.
             Either moves the lot AND snaps the sky to the current time there (moon · planets · stars overhead now). */}
         <div data-arch-gps className="mt-1 flex flex-wrap items-center gap-1 text-[10px]">
-          <button data-arch-gps-locate onClick={locate} disabled={locState === "locating"} title="Use this device's GPS (asks permission; turn on Location Services)"
+          <button data-arch-gps-locate onClick={locate} disabled={locState === "locating"} title={t("arch.skysun.gpsLocateTitle")}
             className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.violet, color: C.violet, background: "#1a1030", opacity: locState === "locating" ? 0.6 : 1 }}>
             {locState === "locating" ? "📍 Locating…" : "📍 Use my GPS"}
           </button>
-          <span className="text-[8px]" style={{ color: C.dim }}>or type →</span>
+          <span className="text-[8px]" style={{ color: C.dim }}>{t("arch.skysun.orType")}</span>
           <input data-arch-gps-input value={gps} onChange={(e) => { setGps(e.target.value); setGpsErr(false); }}
             onKeyDown={(e) => { if (e.key === "Enter") applyGps(gps); }}
             placeholder="MGRS · UTM · LLV-DMS · 31.44,-97.74 · 31°26′N 97°44′W"
@@ -382,7 +384,7 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
         </div>
         {locState !== "idle" && locState !== "ok" && <div data-arch-gps-locmsg className="text-[8px]" style={{ color: locState === "locating" ? C.dim : "#f59e0b" }}>{LOC_MSG[locState]}</div>}
         {locState === "ok" && locAcc != null && <div className="text-[8px]" style={{ color: C.green }}>📍 Device GPS locked · ±{locAcc} m · sky synced to now.</div>}
-        {gpsErr && locState !== "denied" && locState !== "unavailable" && locState !== "timeout" && locState !== "unsupported" && <div className="text-[8px]" style={{ color: "#ef4444" }}>Couldn&rsquo;t read that — try MGRS (14R PU 20805 50823), UTM (14 620805E 3350823N), LLV-DMS, or &ldquo;lat, lon&rdquo;.</div>}
+        {gpsErr && locState !== "denied" && locState !== "unavailable" && locState !== "timeout" && locState !== "unsupported" && <div className="text-[8px]" style={{ color: "#ef4444" }}>{t("arch.skysun.gpsError")}</div>}
         <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
           <label className="flex items-center justify-between gap-1" style={{ color: C.text }}>Lat<input type="number" value={lat} step={0.5} onChange={(e) => setLat(parseFloat(e.target.value) || 0)} className="w-20 rounded border bg-transparent px-1 text-right" style={{ borderColor: C.border }} /></label>
           <label className="flex items-center justify-between gap-1" style={{ color: C.text }}>Lon<input type="number" value={lon} step={0.5} onChange={(e) => setLon(parseFloat(e.target.value) || 0)} className="w-20 rounded border bg-transparent px-1 text-right" style={{ borderColor: C.border }} /></label>
@@ -394,7 +396,7 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
           {([["Winter Solstice", SEASON_DOY.winterSolstice], ["Spring Equinox", SEASON_DOY.springEquinox], ["Summer Solstice", SEASON_DOY.summerSolstice], ["Fall Equinox", SEASON_DOY.fallEquinox]] as const).map(([lab, d]) => (
             <button key={lab} data-preset onClick={() => setDoy(d)} className="rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: doy === d ? C.gold : C.dim, background: doy === d ? "#241a06" : "transparent" }}>{lab}</button>
           ))}
-          <button data-preset onClick={() => syncNow(lon)} title="Snap date + hour to the current local sky" className="rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>Now</button>
+          <button data-preset onClick={() => syncNow(lon)} title={t("arch.skysun.nowTitle")} className="rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>Now</button>
         </div>
         {/* WORLD PLACEMENT — click the map to place the property; its lat/lon is the single coordinate
             source feeding the sun + moon above (and, later, structure + terrain). */}
@@ -415,15 +417,15 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
               <span key={c.k} data-lot-corner style={{ color: C.dim }}><span style={{ color: C.gold }}>◱ {c.k}</span> {c.la.toFixed(5)}, {c.lo.toFixed(5)}</span>
             ))}
           </div>
-          <div className="mt-0.5 text-[8px]" style={{ color: C.dim }}>4-corner lot (~30 m) — shared reference frame for structure · sun · moon · terrain.</div>
+          <div className="mt-0.5 text-[8px]" style={{ color: C.dim }}>{t("arch.skysun.fourCornerLot")}</div>
         </div>
       </div>
       <div className="space-y-2 rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel }}>
         <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>WINDOW OPTIMIZATION</div>
         {/* sunrise / sunset for the placed lot on the selected date — the homeowner's daylight window */}
         <div data-arch-riseset className="text-[10px]" style={{ color: C.text }}>
-          {riseSet.polarDay ? <span style={{ color: C.gold }}>☀ Polar day — sun never sets</span>
-            : riseSet.polarNight ? <span style={{ color: C.dim }}>☾ Polar night — sun never rises</span>
+          {riseSet.polarDay ? <span style={{ color: C.gold }}>{t("arch.skysun.polarDay")}</span>
+            : riseSet.polarNight ? <span style={{ color: C.dim }}>{t("arch.skysun.polarNight")}</span>
             : <><span style={{ color: C.gold }}>↑ {fmtHM(riseSet.rise)}</span> · <span style={{ color: "#7dd3fc" }}>↓ {fmtHM(riseSet.set)}</span> <span style={{ color: C.dim }}>sunrise · sunset</span></>}
         </div>
         <div className="text-[9px]" style={{ color: C.dim }}>Seasonal solar-gain by facing ({monthDay}):</div>
@@ -435,8 +437,8 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
           </div>
         ))}
         <div className="border-t pt-1 text-[10px]" style={{ borderColor: C.border }}>
-          <div><span style={{ color: C.green }}>Best light:</span> <span style={{ color: C.text }}>{best.k}-facing</span> — primary living windows.</div>
-          <div><span style={{ color: C.gold }}>Manage:</span> <span style={{ color: C.text }}>{worst.k === "N" ? "N (low gain)" : worst.k}</span> — shade/minimize glare.</div>
+          <div><span style={{ color: C.green }}>{t("arch.skysun.bestLight")}</span> <span style={{ color: C.text }}>{best.k}-facing</span> {t("arch.skysun.primaryLivingWindows")}</div>
+          <div><span style={{ color: C.gold }}>Manage:</span> <span style={{ color: C.text }}>{worst.k === "N" ? "N (low gain)" : worst.k}</span> {t("arch.skysun.shadeGlare")}</div>
           {/* ALIGN A HOUSE FACE / WINDOW — set its azimuth, see which special-date sunrise/sunset it frames */}
           <div className="mt-1 flex items-center gap-2 text-[9px]" style={{ color: C.dim }}>Window face
             <input data-arch-facing type="range" min={0} max={359} value={facingAz} onChange={(e) => setFacingAz(+e.target.value)} className="flex-1" style={{ accentColor: C.cyan, height: 4 }} />
@@ -449,17 +451,17 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
           {/* WINDOW STORY — one plain-language sentence for the heart (synthesis of the numbers below) */}
           <div data-arch-window-story className="mt-1 text-[10px]" style={{ color: C.text }}>
             ✧ Your <span style={{ color: C.violet }}>{cardOf(facingAz)}</span> window
-            {aligned ? <> frames the <span style={{ color: C.gold }}>{nearestAlign.label}</span></> : nearestAlign ? <> is <span style={{ color: C.gold }}>{nearestAlign.diff.toFixed(0)}°</span> from framing the {nearestAlign.label}</> : <> faces {cardOf(facingAz)}</>}
+            {aligned ? <> {t("arch.skysun.framesThe")} <span style={{ color: C.gold }}>{nearestAlign.label}</span></> : nearestAlign ? <> is <span style={{ color: C.gold }}>{nearestAlign.diff.toFixed(0)}°</span> from framing the {nearestAlign.label}</> : <> faces {cardOf(facingAz)}</>}
             {moonOver ? <>; on {monthDay} the Moon passes it at <span style={{ color: "#e5e7eb" }}>{fmtHM(moonOver.hour)}</span></> : null}
-            {bestMoon ? <>; its natural moon-anniversary is <span style={{ color: "#e5e7eb" }}>{mdLabel(bestMoon.doy)}</span></> : null}.
+            {bestMoon ? <>{t("arch.skysun.moonAnniversary")} <span style={{ color: "#e5e7eb" }}>{mdLabel(bestMoon.doy)}</span></> : null}.
           </div>
           {/* THE MISSION — on THIS date, when do the Sun + Moon cross this window (time · elevation · phase)? */}
           <div data-arch-window-transit className="mt-1 rounded px-1 py-0.5 text-[9px]" style={{ background: "#0c1420", color: C.dim }}>
             <div><span style={{ color: C.gold }}>☀ Sun</span> over your {cardOf(facingAz)} window:{" "}
-              {sunOver ? <span style={{ color: C.text }}>{fmtHM(sunOver.hour)} · el {sunOver.el.toFixed(0)}° · <span style={{ color: sunOver.diff <= 5 ? C.green : C.dim }}>{framesWord(sunOver.diff)} (Δ{sunOver.diff.toFixed(0)}°)</span></span> : <span>never above horizon this date</span>}</div>
+              {sunOver ? <span style={{ color: C.text }}>{fmtHM(sunOver.hour)} · el {sunOver.el.toFixed(0)}° · <span style={{ color: sunOver.diff <= 5 ? C.green : C.dim }}>{framesWord(sunOver.diff)} (Δ{sunOver.diff.toFixed(0)}°)</span></span> : <span>{t("arch.skysun.neverAboveHorizon")}</span>}</div>
             <div><span style={{ color: "#e5e7eb" }}>☾ Moon</span> over your {cardOf(facingAz)} window:{" "}
-              {moonOver && moonOverPhase ? <span style={{ color: C.text }}>{fmtHM(moonOver.hour)} · el {moonOver.el.toFixed(0)}° · {moonOverPhase.phase} {(moonOverPhase.illum * 100).toFixed(0)}% · <span style={{ color: moonOver.diff <= 5 ? C.green : C.dim }}>{framesWord(moonOver.diff)} (Δ{moonOver.diff.toFixed(0)}°)</span></span> : <span>never above horizon this date</span>}</div>
-            <div className="text-[8px]" style={{ color: C.dim }}>Pick your anniversary / a season on the calendar → this is the moment the sky frames your opening.</div>
+              {moonOver && moonOverPhase ? <span style={{ color: C.text }}>{fmtHM(moonOver.hour)} · el {moonOver.el.toFixed(0)}° · {moonOverPhase.phase} {(moonOverPhase.illum * 100).toFixed(0)}% · <span style={{ color: moonOver.diff <= 5 ? C.green : C.dim }}>{framesWord(moonOver.diff)} (Δ{moonOver.diff.toFixed(0)}°)</span></span> : <span>{t("arch.skysun.neverAboveHorizon")}</span>}</div>
+            <div className="text-[8px]" style={{ color: C.dim }}>{t("arch.skysun.pickAnniversary")}</div>
           </div>
           {/* REVERSE — the natural anniversary: which date of the year best frames THIS window (+ jump the calendar there) */}
           <div data-arch-best-date className="mt-1 rounded px-1 py-0.5 text-[9px]" style={{ background: "#0c1420", color: C.dim }}>
@@ -467,12 +469,12 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
             <div className="flex items-center gap-1">
               <span style={{ color: C.gold }}>☀</span>
               {bestSun ? <><span style={{ color: C.text }}>{mdLabel(bestSun.doy)} · {fmtHM(bestSun.hour)} · el {bestSun.el.toFixed(0)}° · {framesWord(bestSun.diff)} (Δ{bestSun.diff.toFixed(0)}°)</span>
-                <button data-arch-best-jump onClick={() => setDoy(bestSun.doy)} className="rounded px-1" style={{ border: `1px solid ${C.border}`, color: C.cyan }}>go</button></> : <span>the Sun never frames this facing</span>}
+                <button data-arch-best-jump onClick={() => setDoy(bestSun.doy)} className="rounded px-1" style={{ border: `1px solid ${C.border}`, color: C.cyan }}>go</button></> : <span>{t("arch.skysun.sunNeverFrames")}</span>}
             </div>
             <div className="flex items-center gap-1">
               <span style={{ color: "#e5e7eb" }}>☾</span>
               {bestMoon && bestMoonPhase ? <><span style={{ color: C.text }}>{mdLabel(bestMoon.doy)} · {fmtHM(bestMoon.hour)} · el {bestMoon.el.toFixed(0)}° · {bestMoonPhase.phase} · {framesWord(bestMoon.diff)} (Δ{bestMoon.diff.toFixed(0)}°)</span>
-                <button data-arch-best-jump onClick={() => setDoy(bestMoon.doy)} className="rounded px-1" style={{ border: `1px solid ${C.border}`, color: C.cyan }}>go</button></> : <span>the Moon never frames this facing this year</span>}
+                <button data-arch-best-jump onClick={() => setDoy(bestMoon.doy)} className="rounded px-1" style={{ border: `1px solid ${C.border}`, color: C.cyan }}>go</button></> : <span>{t("arch.skysun.moonNeverFrames")}</span>}
             </div>
           </div>
           <div className="mt-1"><span style={{ color: "#e5e7eb" }}>☾ Moon:</span> <span style={{ color: C.text }}>{moon.phase}</span> · {(moon.illum * 100).toFixed(0)}% lit · {moon.el > 0 ? `el ${moon.el.toFixed(0)}°` : "below horizon"}</div>
