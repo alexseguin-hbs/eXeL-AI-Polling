@@ -317,3 +317,8 @@ sw|experiences.card.vid1.title|a proper noun (person, brand, product, title or I
 ne|experiences.sec.edtech.eyebrow|a proper noun (person, brand, product, title or ID) — kept per operator 2026-09-13
 *|experiences.sec.edtech.eyebrow|a brand eyebrow (EdTech · eXeL AI) — kept in every language
 no|cube9.pixelated.send_sms|Norwegian renders this with the same shared words (Send via SMS)
+*|atlantis.sender_placeholder
+*|divinityArx.item_buyer_contact_ph
+*|atlantis.accords_title|a proper-noun document title: The Atlantis Accords
+*|visionMot.master_of_thought|a persona/role name: Master of Thought (MoT)
+*|experiences.email_contact|dominated by the email address explore@eXeL-AI.com
