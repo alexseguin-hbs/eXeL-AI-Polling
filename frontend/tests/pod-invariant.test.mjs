@@ -7,6 +7,7 @@
 // no clock and minted from a hand-typed number — it minted for time CLAIMED. This file reads the shipped source and the
 // shipped behaviour so that guarantee cannot be refactored away, the way the Sign Doc invariant is held.
 import fs from 'fs';
+import { DEFAULT_ENGLISH_TRANSLATIONS } from '../lib/lexicon-data.ts';
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 const read = (p) => fs.readFileSync(new URL(p, import.meta.url), 'utf8');
 
@@ -419,8 +420,11 @@ if (ABC.format) {
 
   // MoT IS THE CLOCK. This label used to sit on witnessedHours — the sum of HAND-TYPED claims — while unit.ceiling
   // defines MoT as the separate record: "Actual time is recorded separately, minute by minute, by Measurement of Time".
-  ok(/the platform clocked <span className="font-mono">\{fmtABC\(measuredHours\)\}<\/span>/.test(page),
-     'the platform clock reads the MEASURED span, not the typed claim (named for the person as "the platform", not "MoT")');
+  // The label is keyed (soi.pod.ui.the_platform_clocked) for translation; the invariant now checks the key binds the
+  // MEASURED span and its English reads "the platform" (not "MoT") — the meaning is defended, not the raw literal.
+  const platClockEn = DEFAULT_ENGLISH_TRANSLATIONS['soi.pod.ui.the_platform_clocked']?.englishDefault ?? '';
+  ok(/\{t\("soi\.pod\.ui\.the_platform_clocked"\)\} <span className="font-mono">\{fmtABC\(measuredHours\)\}<\/span>/.test(page) && /platform/i.test(platClockEn) && !/\bMoT\b/.test(platClockEn),
+     'the platform clock reads the MEASURED span, not the typed claim (label keyed soi.pod.ui.the_platform_clocked = "the platform clocked", named "the platform", not "MoT")');
   ok(!/MoT \{fmtABC\(witnessedHours\)\}/.test(page), 'and the old label on the typed claim is gone');
 } else ok(false, 'lib/abc-3600.ts could not be imported');
 
