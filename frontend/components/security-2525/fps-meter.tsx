@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useLexicon } from "@/lib/lexicon-context";
 
 /**
  * Global FPS meter — counts animation frames and reports ~2×/second.
@@ -8,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
  * SENSORS, …). Colour-coded: green ≥50, amber ≥30, red below. Not on the map.
  */
 export function FpsMeter({ show }: { show: boolean }) {
+  const { t } = useLexicon();
   const [fps, setFps] = useState(0);
   const raf = useRef<number | null>(null);
   useEffect(() => {
@@ -33,7 +35,7 @@ export function FpsMeter({ show }: { show: boolean }) {
   // tabs. Mounted inline next to LINK: SECURE / the gear.
   return (
     <span className="pointer-events-none inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums leading-none"
-      style={{ background: "#0a0e14ee", borderColor: "#1e2b3a" }} aria-label="Frames per second">
+      style={{ background: "#0a0e14ee", borderColor: "#1e2b3a" }} aria-label={t("sec.small.fps_meter.frames_per_second")}>
       <span style={{ color: col }}>{fps}</span><span style={{ color: "#5f7186" }}>FPS</span>
     </span>
   );

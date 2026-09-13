@@ -10,6 +10,7 @@
  * Active-Elements click. Empty Selected shows a quiet prompt until something is picked.
  */
 import { Trash2, Boxes } from "lucide-react";
+import { useLexicon } from "@/lib/lexicon-context";
 import { findLayer, type HomeType } from "@/lib/architect-layers";
 import { LayerInspector } from "./layer-inspector";
 import { type LayerState } from "./use-layer-state";
@@ -19,6 +20,7 @@ const C = { border: "#1e2b3a", panel2: "#0c1420", text: "#c8d6e5", dim: "#5f7186
 export function RightPanel({ selectedId, onSelect, state, homeType = "full" }: {
   selectedId?: string | null; onSelect?: (id: string) => void; state?: LayerState; homeType?: HomeType;
 }) {
+  const { t } = useLexicon();
   const active = state ? Array.from(state.spec) : [];
   return (
     <div data-arch-right-panel className="flex flex-col gap-2">
@@ -28,7 +30,7 @@ export function RightPanel({ selectedId, onSelect, state, homeType = "full" }: {
       {/* TOP ~⅓ — ACTIVE ELEMENTS: the in-house components; click one to make it the Selected Element. */}
       <div data-arch-active-elements className="rounded-lg border" style={{ borderColor: C.border }}>
         <div className="flex items-center gap-1 border-b px-2 py-1 text-[9px] font-semibold uppercase tracking-wider" style={{ borderColor: C.border, color: C.cyan }}>
-          <Boxes className="h-3 w-3" /> Active Elements <span style={{ color: C.dim }}>— {active.length}</span>
+          <Boxes className="h-3 w-3" /> {t("arch.right_compass.right_panel.active_elements")} <span style={{ color: C.dim }}>— {active.length}</span>
         </div>
         <div className="flex max-h-[28vh] flex-col gap-0.5 overflow-y-auto p-1">
           {active.length === 0 ? (
@@ -41,7 +43,7 @@ export function RightPanel({ selectedId, onSelect, state, homeType = "full" }: {
               <div key={id} className="group flex items-center gap-1 rounded px-1 py-0.5 hover:bg-white/5" style={{ background: sel ? "#221833" : "transparent" }}>
                 <button data-active-el={id} onClick={() => onSelect?.(id)} className="min-w-0 flex-1 truncate text-left text-[10px]" style={{ color: sel ? C.violet : C.text }}>{label}</button>
                 {state && (
-                  <button data-active-remove={id} title="Remove from house" onClick={(e) => { e.stopPropagation(); state.toggleSpec(id); }}
+                  <button data-active-remove={id} title={t("arch.right_compass.right_panel.remove_from_house")} onClick={(e) => { e.stopPropagation(); state.toggleSpec(id); }}
                     className="shrink-0 rounded p-0.5 opacity-0 hover:bg-white/10 group-hover:opacity-100"><Trash2 className="h-3 w-3" style={{ color: C.dim }} /></button>
                 )}
               </div>
@@ -52,7 +54,7 @@ export function RightPanel({ selectedId, onSelect, state, homeType = "full" }: {
 
       {/* BOTTOM ~⅔ — SELECTED ELEMENT: the deep detail (LayerInspector), null-prompt until picked. */}
       <div data-arch-selected-element className="rounded-lg border" style={{ borderColor: C.border }}>
-        <div className="border-b px-2 py-1 text-[9px] font-semibold uppercase tracking-wider" style={{ borderColor: C.border, color: C.violet }}>Selected Element</div>
+        <div className="border-b px-2 py-1 text-[9px] font-semibold uppercase tracking-wider" style={{ borderColor: C.border, color: C.violet }}>{t("arch.right_compass.right_panel.selected_element")}</div>
         <div className="max-h-[56vh] overflow-y-auto p-2">
           <LayerInspector selectedId={selectedId} state={state} homeType={homeType} />
         </div>

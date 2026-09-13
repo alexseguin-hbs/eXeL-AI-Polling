@@ -9,6 +9,7 @@
 
 import { SoITrinity } from "@/components/soi-trinity";
 import { useTheme } from "@/lib/theme-context";
+import { useLexicon } from "@/lib/lexicon-context";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import Link from "next/link";
 
@@ -34,13 +35,14 @@ const EXAMPLES: {
 
 export default function DivinityGuideTrinityPage() {
   const { currentTheme } = useTheme();
+  const { t } = useLexicon();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="flex items-center justify-between px-6 py-4 border-b">
         <Link href="/divinity-guide" className="flex items-center gap-2 hover:opacity-80">
           <ExelWordmark exelClass="text-sm font-bold" aiClass="text-sm font-light" exelStyle={{ color: currentTheme.swatch }} aiStyle={{ color: currentTheme.swatch, opacity: 0.7 }} />
-          <span className="text-xs text-muted-foreground ml-2">/ Divinity Guide / Trinity</span>
+          <span className="text-xs text-muted-foreground ml-2">{t("misc2.trinity.divinity_guide_trinity")}</span>
         </Link>
         <Link href="/" className="text-xs text-muted-foreground hover:text-primary">Home</Link>
       </div>

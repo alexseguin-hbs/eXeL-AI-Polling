@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SeedOfLifeLogo } from "./seed-of-life-logo";
+import { useLexicon } from "@/lib/lexicon-context";
 
 /**
  * SeedCoin — a two-sided Seed token you can flip.
@@ -33,6 +34,7 @@ export interface SeedCoinProps {
 }
 
 export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip }: SeedCoinProps) {
+  const { t } = useLexicon();
   const [flipped, setFlipped] = useState(defaultFlipped);
   const toggle = () => {
     const next = !flipped;
@@ -97,7 +99,7 @@ export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip
                 marks). Tapping the Alvar face flips the coin back to the Seed of
                 Life; it does NOT navigate to the White Paper (operator). */}
             <div
-              aria-label="Alvar face — tap to flip back to the Seed of Life"
+              aria-label={t("misc.seed_coin.alvar_face")}
               style={{
                 position: "absolute", inset: 0, display: "grid", placeItems: "center",
               }}

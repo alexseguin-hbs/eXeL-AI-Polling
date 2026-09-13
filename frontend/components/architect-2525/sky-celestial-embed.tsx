@@ -8,12 +8,15 @@
  * ships standalone (flower selector · dual-language reader · BASE-3600 celestial map). One master, one
  * source of truth — any celestial iteration lands there and flows to the Architect Sky tab for free.
  */
+import { useLexicon } from "@/lib/lexicon-context";
+
 export function SkyCelestialEmbed() {
+  const { t } = useLexicon();
   return (
     <div data-sky-celestial-embed className="w-full overflow-hidden rounded-lg border" style={{ borderColor: "#1e2b3a", height: "78vh" }}>
       <iframe
         src="/main/Celestial-2525/"
-        title="Celestial-2525 · master design"
+        title={t("arch.tiny.sky_celestial.celestial_2525_master_design")}
         loading="lazy"
         className="h-full w-full border-0"
         // sandbox kept permissive for same-origin interactivity (drag/zoom, selection, dual-language);

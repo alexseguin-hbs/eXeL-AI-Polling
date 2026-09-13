@@ -13,10 +13,12 @@ import { LayoutGrid, Bath, Ruler, Square, DoorOpen, Plug, SlidersHorizontal } fr
 import { programMetrics } from "@/lib/room-program";
 import { BuildingProgram } from "./building-program";
 import { type LayerState } from "./use-layer-state";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { border: "#1e2b3a", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 
 export function MetricStrip({ state, overlay = false, homeType = "full" }: { state: LayerState; overlay?: boolean; homeType?: "full" | "tiny" | "multifamily" | "commercial" }) {
+  const { t } = useLexicon();
   const m = useMemo(() => programMetrics(state.globalParams, state.program, homeType), [state.globalParams, state.program, homeType]);
   // 3-state view (operator feedback FX-54): tap ••• to cycle  icons+number → icons+number+words → ••• only.
   // "dots" is the minimal footprint so the rail never covers critical UX.
@@ -69,7 +71,7 @@ export function MetricStrip({ state, overlay = false, homeType = "full" }: { sta
       {/* Building Program TOGGLE — under the existing metric info (operator IMG_7545). Only when expanded. */}
       {expanded && (
         <>
-          <button data-arch-program-toggle onClick={() => setShowProgram((v) => !v)} title="Building Program — bedrooms · baths · sqft · electric · plumbing"
+          <button data-arch-program-toggle onClick={() => setShowProgram((v) => !v)} title={t("arch.tiny.metric_strip.building_program_bedrooms_baths_sqft_electric_plumbing")}
             className="mt-0.5 flex items-center gap-1.5 rounded border px-1 py-0.5 text-[9px] font-semibold hover:bg-white/10" style={{ borderColor: C.border, color: showProgram ? C.cyan : C.dim }}>
             <SlidersHorizontal className="h-3 w-3 shrink-0" /> Program {showProgram ? "▾" : "▸"}
           </button>

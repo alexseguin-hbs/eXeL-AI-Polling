@@ -12,12 +12,14 @@ import { useEffect, useState } from "react";
 import type { EconomyResult } from "./architect-economy";
 import { fmtUsd } from "./architect-economy";
 import { loadSoI, saveSoI, publishSoI, subscribeSoI, type SoiFramework } from "@/lib/soi-framework";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", red: "#ef4444" };
 // SoI Tri-Coin colours (operator spec): ♡ heart / S.I. = sunset yellow · ◬ / A.I. = eXeL AI cyan · 웃 human / H.I. = 13-Trinity violet
 const COIN_C: Record<string, string> = { SI: C.gold, HI: C.violet, AI: C.cyan };
 
 export function ArchitectSoI({ econ }: { econ: EconomyResult }) {
+  const { t } = useLexicon();
   const [soi, setSoi] = useState<SoiFramework>(() => loadSoI());
   const [editing, setEditing] = useState(false);
   const [published, setPublished] = useState(false);
@@ -32,7 +34,7 @@ export function ArchitectSoI({ econ }: { econ: EconomyResult }) {
       <div className="flex flex-wrap items-baseline justify-between gap-1">
         <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>SYSTEM OF INTELLIGENCE · TRI-COIN INCENTIVE FRAMEWORK</div>
         <div className="flex items-center gap-2">
-          <span className="text-[9px]" style={{ color: C.dim }}>encourage intelligence growth · reimagine innovation incentives</span>
+          <span className="text-[9px]" style={{ color: C.dim }}>{t("arch.soi.encourage_intelligence_growth_reimagine_innovation_incentives")}</span>
           <button data-soi-edit onClick={() => setEditing((e) => !e)} className="rounded border px-2 py-0.5 text-[9px]" style={{ borderColor: C.border, color: editing ? C.gold : C.dim }}>{editing ? "done" : "edit"}</button>
           <button data-soi-publish onClick={doPublish} className="rounded border px-2 py-0.5 text-[9px] font-bold" style={{ borderColor: C.violet, color: published ? C.green : C.violet }}>{published ? "published ✓" : "publish → /main"}</button>
         </div>
@@ -78,11 +80,11 @@ export function ArchitectSoI({ econ }: { econ: EconomyResult }) {
         </div>
         {/* contribution reputation (live) */}
         <div className="space-y-1 rounded-lg border p-2" style={{ borderColor: C.border, background: "#0c1420" }}>
-          <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>CONTRIBUTION REPUTATION <span style={{ color: C.dim }}>· portable identity of service</span></div>
+          <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>CONTRIBUTION REPUTATION <span style={{ color: C.dim }}>{t("arch.soi.portable_identity_of_service")}</span></div>
           <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.gold }}>♡</span><span style={{ color: C.dim }}>presence — how you show up ({econ.trinity.heart})</span></div>
           <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.violet }}>웃</span><span style={{ color: C.dim }}>skill — professional value ({fmtUsd(econ.trinity.human)})</span></div>
           <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.cyan }}>◬</span><span style={{ color: C.dim }}>scalability — leverage created ({econ.trinity.unity})</span></div>
-          <div className="border-t pt-1 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>Time Capital <span style={{ color: C.gold }}>{fmtUsd(econ.timeCapitalUsd)}</span> · Learning pts <span style={{ color: C.violet }}>{econ.learningPoints}</span>.</div>
+          <div className="border-t pt-1 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>{t("arch.soi.time_capital")} <span style={{ color: C.gold }}>{fmtUsd(econ.timeCapitalUsd)}</span> {t("arch.soi.learning_pts")} <span style={{ color: C.violet }}>{econ.learningPoints}</span>.</div>
         </div>
       </div>
 

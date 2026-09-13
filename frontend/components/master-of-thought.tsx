@@ -15,6 +15,7 @@
  */
 
 import { useId } from "react";
+import { useLexicon } from "@/lib/lexicon-context";
 
 export interface CuneiformArc {
   label: string;
@@ -128,6 +129,7 @@ export function MasterOfThought({
   center,
   verticalStretch,
 }: MasterOfThoughtProps) {
+  const { t } = useLexicon();
   const uid = useId().replace(/:/g, "");
   const tintId = `${uid}-tint`;
   // When emblem is white (initial state), cuneiform stays gold for readability
@@ -170,7 +172,7 @@ export function MasterOfThought({
       height={size}
       className={className}
       role="img"
-      aria-label="Master of Thought — Eagle emblem with Sumerian cuneiform"
+      aria-label={t("misc.master_of_thought.aria")}
     >
       <defs>
         {color && (

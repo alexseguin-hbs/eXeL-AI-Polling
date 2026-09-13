@@ -22,6 +22,7 @@ import {
 import { generateSampleSessionData } from "@/lib/sample-session-data";
 import { adaptLiveThemes, type LiveThemeRow } from "@/lib/adapt-live-themes";
 import { api } from "@/lib/api";
+import { useLexicon } from "@/lib/lexicon-context";
 import type { Theme01Label, ThemeInfo, SessionThemeData } from "@/lib/types";
 import "@/components/flower-of-life/flower-animations.css";
 
@@ -87,6 +88,7 @@ export function FlowerVisualization({
   isPaidTier = false,
   sessionShortCode,
 }: FlowerVisualizationProps) {
+  const { t } = useLexicon();
   const isDemo = !!sessionShortCode && DEMO_SHOWCASE_CODES.has(sessionShortCode.toUpperCase());
   const [liveData, setLiveData] = useState<SessionThemeData | null>(null);
   const [liveStatus, setLiveStatus] = useState<"loading" | "empty" | "ready">(isDemo ? "ready" : "loading");
@@ -291,7 +293,7 @@ export function FlowerVisualization({
     return (
       <Card className="mt-6">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Theme Analysis</CardTitle>
+          <CardTitle className="text-base">{t("flower.flower_visualization.theme_analysis")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center gap-2 py-12 text-center text-muted-foreground">
@@ -300,7 +302,7 @@ export function FlowerVisualization({
                 ? "Loading live themes…"
                 : "Themes will appear here once responses are analyzed — Theme 01 (Risk · Supporting · Neutral), then 3 / 6 / 9 sub-themes."}
             </p>
-            <p className="text-xs opacity-70">Live results only — sample data is never shown for real sessions.</p>
+            <p className="text-xs opacity-70">{t("flower.flower_visualization.live_results_only")}</p>
           </div>
         </CardContent>
       </Card>

@@ -10,10 +10,12 @@
  *  - ReplayPanel   — replay cards + Knowledge-Graph teaser (ARC-21/20).
  */
 import { useState } from "react";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b" };
 
 export function SimulatePanel() {
+  const { t } = useLexicon();
   const sims = [
     { k: "Structural", r: "PASS · deflection L/480" }, { k: "Wind", r: "PASS · 130 mph" }, { k: "Flood", r: "REVIEW · +0.3 m grade" },
     { k: "Fire", r: "PASS · 2 hr sep" }, { k: "Earthquake", r: "PASS · Sd 0.4g" }, { k: "Thermal", r: "PASS · R-30 env" },
@@ -33,13 +35,14 @@ export function SimulatePanel() {
       <div className="rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel }}>
         <div className="font-bold" style={{ color: C.cyan }}>{sims[sel].k}</div>
         <div style={{ color: sims[sel].r.startsWith("REVIEW") ? C.amber : C.green }}>{sims[sel].r}</div>
-        <div className="mt-1 text-[9px]" style={{ color: C.dim }}>Deterministic (U-WF-08) → replayable. Feeds the qualification report + SSSES.</div>
+        <div className="mt-1 text-[9px]" style={{ color: C.dim }}>{t("arch.panels2.sim_deterministic_note")}</div>
       </div>
     </div>
   );
 }
 
 export function ReviewPanel() {
+  const { t } = useLexicon();
   const experts = [{ n: "Maria L.", role: "Architect", v: "approve" }, { n: "K. Osei", role: "Structural", v: "approve" }, { n: "R. Diaz", role: "MEP", v: "revise" }, { n: "S. Park", role: "Sustainability", v: "approve" }];
   const agents = [{ n: "Structural AI", v: "approve", c: 0.94 }, { n: "Energy AI", v: "approve", c: 0.88 }, { n: "Cost Analyst AI", v: "revise", c: 0.72 }, { n: "Safety AI", v: "approve", c: 0.91 }];
   return (
@@ -49,7 +52,7 @@ export function ReviewPanel() {
         {experts.map((e) => (
           <div key={e.n} data-expert className="flex items-center justify-between text-[11px]"><span style={{ color: C.text }}>{e.n} <span style={{ color: C.dim }}>· {e.role}</span></span><span style={{ color: e.v === "approve" ? C.green : C.amber }}>{e.v}</span></div>
         ))}
-        <div className="border-t pt-1 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>Time donated → $/min + Trinity tokens + recognition.</div>
+        <div className="border-t pt-1 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>{t("arch.panels2.time_donated_note")}</div>
       </div>
       <div className="space-y-1 rounded-lg border p-3" style={{ borderColor: C.border, background: C.panel }}>
         <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>MULTI-AGENT AI · votes + explainability</div>
@@ -57,7 +60,7 @@ export function ReviewPanel() {
           <div key={a.n} className="flex items-center justify-between text-[11px]"><span style={{ color: C.text }}>{a.n}</span><span style={{ color: a.v === "approve" ? C.green : C.amber }}>{a.v} · {(a.c * 100).toFixed(0)}%</span></div>
         ))}
         <div className="mt-1 rounded border p-2 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
-          <span style={{ color: C.cyan }}>Why:</span> south glazing raises cooling load. <span style={{ color: C.cyan }}>Alt:</span> 0.5 m overhang. <span style={{ color: C.cyan }}>Risk:</span> low. <span style={{ color: C.cyan }}>Confidence:</span> 0.72.
+          <span style={{ color: C.cyan }}>Why:</span> {t("arch.panels2.why_south_glazing")} <span style={{ color: C.cyan }}>Alt:</span> 0.5 m overhang. <span style={{ color: C.cyan }}>Risk:</span> low. <span style={{ color: C.cyan }}>Confidence:</span> 0.72.
         </div>
       </div>
     </div>
@@ -83,6 +86,7 @@ export function TwinPanel() {
 }
 
 export function ReplayPanel() {
+  const { t } = useLexicon();
   const cards = [
     { t: "2025-05-15 14:32", who: "Homeowner", why: "Approve iteration 33", d: "iter 32 → 33", hash: "a7f3c9e2" },
     { t: "2025-05-14 09:11", who: "Architect · Maria L.", why: "Rotate great-room 8°", d: "az 172 → 180", hash: "3b91d0aa" },
@@ -90,7 +94,7 @@ export function ReplayPanel() {
   ];
   return (
     <div className="space-y-3">
-      <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>REPLAY ENGINE <span style={{ color: C.dim }}>· every decision recorded</span></div>
+      <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>REPLAY ENGINE <span style={{ color: C.dim }}>{t("arch.panels2.every_decision_recorded")}</span></div>
       {cards.map((c) => (
         <div key={c.hash} data-replay className="rounded-lg border p-2 text-[10px]" style={{ borderColor: C.border, background: C.panel }}>
           <div className="flex items-center justify-between"><span style={{ color: C.cyan }}>{c.who}</span><span style={{ color: C.dim }}>{c.t}</span></div>
@@ -99,7 +103,7 @@ export function ReplayPanel() {
         </div>
       ))}
       <div className="rounded-lg border p-2 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>
-        <span style={{ color: C.violet }}>Knowledge Graph</span> — each project improves the next (reusable design learning).
+        <span style={{ color: C.violet }}>{t("arch.panels2.knowledge_graph")}</span> — each project improves the next (reusable design learning).
       </div>
     </div>
   );

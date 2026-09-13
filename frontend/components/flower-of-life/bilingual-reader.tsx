@@ -13,6 +13,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { pinyin } from "pinyin-pro";
 import type divinityPages from "@/lib/divinity-pages.json";
 import type { DivinityLang } from "@/lib/divinity-languages";
+import { useLexicon } from "@/lib/lexicon-context";
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -372,6 +373,7 @@ export default function BilingualReader({
   reflectionLabel = "Reflection", mirrorReflectionLabel = "Reflection",
   availableLanguages,
 }: BilingualReaderProps) {
+  const { t } = useLexicon();
   const [activeSentence, setActiveSentence] = useState<string | null>(null);
   const [hover, setHover] = useState<HoverState | null>(null);
   const [showPinyin, setShowPinyin] = useState(false);
@@ -511,7 +513,7 @@ export default function BilingualReader({
 
           {showPalette && (
             <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-10 rounded-xl border bg-card shadow-2xl p-4 animate-in fade-in slide-in-from-top-2 duration-200 min-w-[280px]">
-              <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider mb-3 text-center">Highlight Color</p>
+              <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider mb-3 text-center">{t("flower.bilingual_reader.highlight_color")}</p>
               <div className="grid grid-cols-3 gap-2">
                 {HIGHLIGHT_PRESETS.map(preset => {
                   const isActive = highlightPreset.id === preset.id;

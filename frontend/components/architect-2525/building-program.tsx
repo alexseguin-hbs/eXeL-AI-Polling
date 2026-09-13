@@ -10,6 +10,7 @@
  */
 import { useMemo, useState } from "react";
 import { Bed, Bath, Ruler, Zap, Droplets, ChevronRight, ChefHat } from "lucide-react";
+import { useLexicon } from "@/lib/lexicon-context";
 import { programMetrics } from "@/lib/room-program";
 import { type LayerState } from "./use-layer-state";
 
@@ -26,6 +27,7 @@ function Stepper({ v, min, max, on }: { v: number; min: number; max: number; on:
 }
 
 export function BuildingProgram({ state, homeType = "full" }: { state: LayerState; homeType?: "full" | "tiny" | "multifamily" | "commercial" }) {
+  const { t } = useLexicon();
   const m = useMemo(() => programMetrics(state.globalParams, state.program, homeType), [state.globalParams, state.program, homeType]);
   const [open, setOpen] = useState<Record<string, boolean>>({ bedrooms: true });
   const tog = (k: string) => setOpen((o) => ({ ...o, [k]: !o[k] }));
@@ -36,7 +38,7 @@ export function BuildingProgram({ state, homeType = "full" }: { state: LayerStat
 
   return (
     <div data-arch-building-program className="rounded-lg border" style={{ borderColor: C.border }}>
-      <div className="border-b px-2 py-1 text-[9px] font-semibold uppercase tracking-wider" style={{ borderColor: C.border, color: C.cyan }}>Building Program</div>
+      <div className="border-b px-2 py-1 text-[9px] font-semibold uppercase tracking-wider" style={{ borderColor: C.border, color: C.cyan }}>{t("arch.program.building_program")}</div>
       <div className="flex flex-col text-[10px]">
 
         {/* 🛏 Bedrooms — editable; expand → sqft/room + volume (cooling) */}
@@ -49,7 +51,7 @@ export function BuildingProgram({ state, homeType = "full" }: { state: LayerStat
           {open.bedrooms && (
             <div className="mt-1 flex flex-col gap-0.5 pl-5">
               <Sub k="Sq ft / room" v={`${m.perBedroomSqft.toLocaleString()} ft²`} c={C.text} />
-              <div data-program-bedvol className="flex items-center justify-between gap-2"><span style={{ color: C.dim }}>Room volume</span><span className="tabular-nums" style={{ color: C.cyan }}>{m.bedroomVolumeFt3.toLocaleString()} ft³ <span style={{ color: C.dim }}>· cooling</span></span></div>
+              <div data-program-bedvol className="flex items-center justify-between gap-2"><span style={{ color: C.dim }}>{t("arch.program.room_volume")}</span><span className="tabular-nums" style={{ color: C.cyan }}>{m.bedroomVolumeFt3.toLocaleString()} ft³ <span style={{ color: C.dim }}>· cooling</span></span></div>
             </div>
           )}
         </div>
@@ -71,7 +73,7 @@ export function BuildingProgram({ state, homeType = "full" }: { state: LayerStat
         {/* 📏 Square feet — gross · usable (read-only, from params) */}
         <div data-program-row="sqft" className="flex items-center gap-2 border-b px-2 py-1" style={{ borderColor: C.border }}>
           <Ruler className="h-3.5 w-3.5 shrink-0" style={{ color: C.violet }} />
-          <span className="flex-1">Square feet</span>
+          <span className="flex-1">{t("arch.program.square_feet")}</span>
           <span className="tabular-nums" style={{ color: C.text }}>{m.grossSqft.toLocaleString()} <span style={{ color: C.dim }}>gross · {m.usableSqft.toLocaleString()} usable</span></span>
         </div>
 
@@ -105,7 +107,7 @@ export function BuildingProgram({ state, homeType = "full" }: { state: LayerStat
               <Sub k="Water supply pipe" v={m.plumbing.waterPipeIn} c={C.cyan} />
               <Sub k="Sewer / drain pipe" v={m.plumbing.sewerPipeIn} c={C.cyan} />
               <Sub k="Valves · fittings" v={`${m.plumbing.valves} · ${m.plumbing.fittings}`} />
-              <div className="text-[8px]" style={{ color: C.dim }}>Rough takeoff so a plumber can estimate — verify against local code.</div>
+              <div className="text-[8px]" style={{ color: C.dim }}>{t("arch.program.rough_takeoff")}</div>
             </div>
           )}
         </div>

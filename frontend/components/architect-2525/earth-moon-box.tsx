@@ -8,6 +8,7 @@
  * true illuminated fraction. Deterministic from the date → replayable, and consistent with the Sky Dome.
  */
 import { useMemo } from "react";
+import { useLexicon } from "@/lib/lexicon-context";
 import { MOON, PLANETS } from "@/lib/ucrs-2525";
 import { moonState } from "@/lib/astro-moon";
 import { PRIORITY_CONSTELLATIONS, starfield } from "@/lib/constellations";
@@ -19,6 +20,7 @@ export function EarthMoonBox({ lat = 30.44, lon = -97.62, year = 2025, doy = 172
   lat?: number; lon?: number; year?: number; doy?: number; hour?: number; size?: number; color?: string; bare?: boolean; playT?: number;
   moonPlayT?: number; moonPeriodDays?: number; moonPlaying?: boolean; onMoonPlay?: () => void; moonMode?: "sidereal" | "synodic"; onMoonMode?: () => void;
 }) {
+  const { t } = useLexicon();
   const m = moonState(year, doy, hour);
   const cx = size / 2, cy = size / 2;
   // orbit radius tracks real distance (363k perigee → 405k apogee) mapped into the box
@@ -86,7 +88,7 @@ export function EarthMoonBox({ lat = 30.44, lon = -97.62, year = 2025, doy = 172
         <div className="absolute bottom-0.5 right-0.5 z-10 flex items-center gap-0.5" data-moon-play>
           <button onClick={onMoonPlay} title={moonPlaying ? "Stop Moon orbit" : "Play one Moon orbit around Earth"}
             className="rounded border px-1 py-0.5 text-[7px] font-bold" style={{ borderColor: moonPlaying ? "#19c8cf" : "#2a3340", color: moonPlaying ? "#19c8cf" : "#9aa7b8", background: "rgba(6,10,16,0.85)" }}>{moonPlaying ? "⏸" : "▶"} ☾</button>
-          <button onClick={onMoonMode} title="Toggle sidereal (true orbit, 27.3 d) / synodic (phase cycle, 29.5 d)"
+          <button onClick={onMoonMode} title={t("arch.schem_misc.earth_moon_box.toggle_sidereal_synodic")}
             className="rounded border px-1 py-0.5 text-[7px] tabular-nums" style={{ borderColor: "#2a3340", color: "#5f7186", background: "rgba(6,10,16,0.85)" }}>{moonMode === "sidereal" ? "27.3d" : "29.5d"}</button>
         </div>
       )}

@@ -9,11 +9,13 @@
  */
 import { useMemo, useState } from "react";
 import { generateFraming, cutList, cutListCsv, fmtHrs, fmtUsd, type MemberType } from "@/lib/architect-framing";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b" };
 const TYPE_COLOR: Record<MemberType, string> = { stud: "#c084fc", plate: "#19c8cf", topplate: "#19c8cf", joist: "#22c55e", rafter: "#f59e0b", header: "#ef4444", beam: "#ffd400", column: "#94a3b8" };
 
 export function ArchitectFraming() {
+  const { t } = useLexicon();
   const [W, setW] = useState(24);
   const [L, setL] = useState(40);
   const [H, setH] = useState(9);
@@ -120,7 +122,7 @@ export function ArchitectFraming() {
       <div className="rounded-lg border" style={{ borderColor: C.border, background: C.panel }}>
         <div className="flex items-center justify-between border-b px-3 py-1.5" style={{ borderColor: C.border }}>
           <span className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>BUILD SEQUENCE · PRINTABLE INSTRUCTIONS</span>
-          <span className="text-[8px]" style={{ color: C.dim }}>🤖 = robot-automatable placement</span>
+          <span className="text-[8px]" style={{ color: C.dim }}>{t("arch.schem_misc.architect_framing.robot_automatable_placement")}</span>
         </div>
         <div className="max-h-72 space-y-2 overflow-y-auto p-3">
           {plan.sequence.map((step, si) => (

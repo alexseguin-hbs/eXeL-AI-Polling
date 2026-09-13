@@ -12,6 +12,7 @@ import { TINY_ROOM_LAYOUT, ROOM_FT, TINY_GRID, type RoomCell } from "@/lib/room-
 import { projectPlaced, OBJECT_SPEC, type PlacedObject } from "@/lib/room-objects";
 import { useRCoreGestures } from "./use-rcore-gestures";
 import { Compass2525 } from "./compass-2525";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { bg: "#070b12", grid: "#13202f", wall: "#c084fc", door: "#ffd400", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", gold: "#ffd400", border: "#1e2b3a" };
 
@@ -55,6 +56,7 @@ function placedContents(objects: PlacedObject[], rx: number, ry: number, rw: num
 export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom, showFurniture = true }: {
   layout?: RoomCell[]; selectedRoomId?: string | null; onSelectRoom?: (id: string) => void; showFurniture?: boolean;
 }) {
+  const { t } = useLexicon();
   const x = (col: number) => PAD + col * U;
   const y = (row: number) => PAD + row * U;
   // R-Core interaction (Mission-Planning parity): LEFT-drag pan · RIGHT-drag rotate · pinch/scroll zoom. Flat
@@ -112,7 +114,7 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
         <button data-arch-floorplan-reset onClick={reset} className="absolute bottom-1 left-1 rounded border px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider"
           style={{ borderColor: C.border, color: C.dim, background: "#0a0f16cc" }}>⤢ north</button>
       )}
-      <div className="pointer-events-none absolute right-1 top-1 text-[8px]" style={{ color: C.dim }}>L-drag pan · R-drag rotate · pinch zoom</div>
+      <div className="pointer-events-none absolute right-1 top-1 text-[8px]" style={{ color: C.dim }}>{t("arch.tiny.tiny_floorplan.l_drag_pan_r_drag_rotate_pinch_zoom")}</div>
     </div>
   );
 }

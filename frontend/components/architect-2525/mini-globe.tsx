@@ -9,6 +9,7 @@
  * wheel/pinch). Front hemisphere only. Self-contained SVG.
  */
 import { useEffect, useId, useRef, useState } from "react";
+import { useLexicon } from "@/lib/lexicon-context";
 
 interface BorderData { countries: [number, number][][]; usStates: [number, number][][] }
 let MG_BORDERS: BorderData | null = null;
@@ -42,6 +43,7 @@ function ringLine(ring: [number, number][], lon0: number, lat0: number, roll: nu
 }
 
 export function MiniGlobe({ lat = 30.44, lon = -97.62, size = 92, color = "#ffd400", spinDeg = 0 }: { lat?: number; lon?: number; size?: number; color?: string; spinDeg?: number }) {
+  const { t } = useLexicon();
   const [borders, setBorders] = useState<BorderData | null>(MG_BORDERS);
   const [rot, setRot] = useState({ lon: -lon, lat: 16, roll: 0 });
   const drag = useRef<{ x: number; y: number; btn: number } | null>(null);
@@ -81,7 +83,7 @@ export function MiniGlobe({ lat = 30.44, lon = -97.62, size = 92, color = "#ffd4
         <circle cx={CX} cy={CY} r={R} fill="none" stroke="#233043" strokeWidth="0.5" />
         {loc.front && <><circle cx={loc.x} cy={loc.y} r="1.8" fill="none" stroke={color} strokeWidth="0.6" /><circle cx={loc.x} cy={loc.y} r="0.9" fill={color} /></>}
       </svg>
-      <span className="text-[8px]" style={{ color: "#5f7186", fontFamily: "monospace" }}>EARTH · drag L/R · no zoom</span>
+      <span className="text-[8px]" style={{ color: "#5f7186", fontFamily: "monospace" }}>{t("arch.tiny.mini_globe.earth_drag_l_r_no_zoom")}</span>
     </div>
   );
 }

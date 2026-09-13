@@ -1,5 +1,6 @@
 "use client";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
+import { useLexicon } from "@/lib/lexicon-context";
 
 // The canonical SoI Trinity spectrum (Infrared → ROYGBIV → Ultraviolet → White),
 // single source of truth reused by /main. 13 stops.
@@ -18,6 +19,7 @@ export const SPECTRUM_13: readonly string[] = [
 export function SpectrumPicker({ value, onChange, ariaLabel = "colour" }: {
   value: string; onChange: (hex: string) => void; ariaLabel?: string;
 }) {
+  const { t } = useLexicon();
   const sel = value.toLowerCase();
   return (
     <div className="flex items-center gap-1 overflow-x-auto pb-0.5" role="group" aria-label={ariaLabel}>
@@ -27,7 +29,7 @@ export function SpectrumPicker({ value, onChange, ariaLabel = "colour" }: {
           style={{ background: c, borderColor: sel === c.toLowerCase() ? "#c8d6e5" : "transparent" }} />
       ))}
       {/* EDIT — custom colour, always the farthest-right option */}
-      <label className="flex shrink-0 cursor-pointer items-center" title="Edit — custom colour">
+      <label className="flex shrink-0 cursor-pointer items-center" title={t("sec.small.spectrum_picker.edit_custom_colour")}>
         <input type="color" value={value} onChange={(e) => onChange(e.target.value)}
           className="h-4 w-6 rounded border-0 bg-transparent p-0" aria-label={`${ariaLabel} custom`} />
       </label>

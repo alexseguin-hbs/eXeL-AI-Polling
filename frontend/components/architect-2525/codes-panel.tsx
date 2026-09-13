@@ -11,17 +11,19 @@
 import { Check, ShieldCheck } from "lucide-react";
 import { STANDARDS, requirementsFor, CODES_DISCLAIMER, type StandardScope } from "@/lib/building-codes";
 import { type LayerState } from "./use-layer-state";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400" };
 const SCOPE_COLOR: Record<StandardScope, string> = { usa: C.cyan, texas: C.gold, tiny: C.green, sustainable: C.violet };
 
 export function CodesPanel({ state }: { state?: LayerState }) {
+  const { t } = useLexicon();
   const chosen = state?.codes ?? new Set<string>();
   const reqs = requirementsFor(Array.from(chosen));
   return (
     <div data-arch-codes className="flex flex-col gap-2 text-[10px]">
       <div className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
-        <ShieldCheck className="h-3 w-3" /> Design to standards <span style={{ color: C.dim }}>· choose one or more</span>
+        <ShieldCheck className="h-3 w-3" /> {t("arch.fc_codes.codes.design_to_standards")} <span style={{ color: C.dim }}>{t("arch.fc_codes.codes.choose_one_or_more")}</span>
       </div>
       <div className="flex flex-wrap gap-1.5">
         {STANDARDS.map((s) => {
@@ -36,7 +38,7 @@ export function CodesPanel({ state }: { state?: LayerState }) {
         })}
       </div>
       {reqs.length === 0 ? (
-        <div className="text-[9px]" style={{ color: C.dim }}>No standard selected — pick a jurisdiction/standard to see its headline requirements.</div>
+        <div className="text-[9px]" style={{ color: C.dim }}>{t("arch.fc_codes.codes.no_standard_selected")}</div>
       ) : (
         <div className="grid gap-2 sm:grid-cols-2">
           {reqs.map((s) => {

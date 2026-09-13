@@ -10,12 +10,14 @@
  */
 import { useState } from "react";
 import { DEFAULT_SECTIONS, scheduleSections, monthlyForecast } from "@/lib/architect-estimate";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const fmtUsd = (n: number) => `$${Math.round(n).toLocaleString()}`;
 const TRADE_C = ["#19c8cf", "#c084fc", "#ffd400", "#22c55e", "#f59e0b", "#38bdf8"];
 
 export function ArchitectForecast() {
+  const { t } = useLexicon();
   const [crew, setCrew] = useState(8);
   const [start, setStart] = useState("2026-03-01");
   const scheduled = scheduleSections(DEFAULT_SECTIONS, crew);
@@ -49,7 +51,7 @@ export function ArchitectForecast() {
 
       {/* GANTT — trade sequencing across months */}
       <div className="overflow-x-auto rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
-        <div className="mb-1 text-[9px] font-bold tracking-wider" style={{ color: C.violet }}>TIMELINE · trade sequencing (MEP rough-in runs parallel)</div>
+        <div className="mb-1 text-[9px] font-bold tracking-wider" style={{ color: C.violet }}>{t("arch.fc_codes.forecast.timeline_trade_sequencing")}</div>
         <div style={{ minWidth: Math.max(360, months * 46) }}>
           {/* month header */}
           <div className="mb-1 flex gap-0.5 pl-24 text-[7px]" style={{ color: C.dim }}>
@@ -71,7 +73,7 @@ export function ArchitectForecast() {
 
       {/* MONTHLY FORECAST — cost per month */}
       <div className="overflow-x-auto rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
-        <div className="mb-1 text-[9px] font-bold tracking-wider" style={{ color: C.violet }}>MONTHLY FORECAST · cost draw per month</div>
+        <div className="mb-1 text-[9px] font-bold tracking-wider" style={{ color: C.violet }}>{t("arch.fc_codes.forecast.monthly_forecast_cost_draw")}</div>
         <div className="flex items-end gap-1" style={{ height: 90, minWidth: Math.max(360, months * 46) }}>
           {perMonth.map((m, i) => (
             <div key={i} data-forecast-month className="flex flex-1 flex-col items-center justify-end gap-0.5" title={`${moLabel(i)} · ${fmtUsd(m.cost)} · ${Math.round(m.hours)} hrs`}>
@@ -82,7 +84,7 @@ export function ArchitectForecast() {
           ))}
         </div>
       </div>
-      <div className="text-[8px]" style={{ color: C.dim }}>Deterministic schedule from the estimate engine → replayable. Change crew or start to re-forecast.</div>
+      <div className="text-[8px]" style={{ color: C.dim }}>{t("arch.fc_codes.forecast.deterministic_schedule")}</div>
     </div>
   );
 }

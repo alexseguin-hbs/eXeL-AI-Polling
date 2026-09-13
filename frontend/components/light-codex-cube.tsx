@@ -152,7 +152,7 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
         <div className="flex items-center gap-3">
           <div className="rounded-md border border-border p-2 text-primary"><ScanLine className="h-4 w-4" /></div>
           <div>
-            <h2 className="text-lg font-semibold">Light Codex</h2>
+            <h2 className="text-lg font-semibold">{t("misc.light_codex_cube.light_codex")}</h2>
             <p className="text-[11px] text-muted-foreground">{t("soi.codex.subtitle")}</p>
           </div>
         </div>
@@ -312,7 +312,7 @@ export function LightCodexSettingsRow() {
       >
         <div className="flex items-center gap-3">
           <ScanLine className="h-5 w-5 shrink-0 text-primary" />
-          <div className="text-sm font-semibold text-foreground">Light Codex</div>
+          <div className="text-sm font-semibold text-foreground">{t("misc.light_codex_cube.light_codex")}</div>
         </div>
         <span className="text-xs text-muted-foreground">{t("soi.codex.unlocked")}</span>
       </button>

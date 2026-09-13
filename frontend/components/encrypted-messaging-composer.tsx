@@ -21,6 +21,7 @@ import {
   MAX_CLEARANCE,
 } from "@/lib/atlantis-package";
 import { buildMessageSeal, type MessageType } from "@/lib/encrypted-message";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const ACCENT = "#eab308";
 
@@ -31,6 +32,7 @@ const TYPES: { id: MessageType; label: string; hint: string }[] = [
 ];
 
 export function EncryptedMessagingComposer() {
+  const { t } = useLexicon();
   const router = useRouter();
   const [type, setType] = useState<MessageType>("plain");
   const [title, setTitle] = useState("");
@@ -78,19 +80,19 @@ export function EncryptedMessagingComposer() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold" style={{ color: ACCENT }}>Encoded Messaging</h1>
-            <p className="text-xs text-slate-500">Compose · Encode · Send — 4-digit sealed HTML</p>
+            <h1 className="text-xl font-bold" style={{ color: ACCENT }}>{t("emsg.encoded_messaging")}</h1>
+            <p className="text-xs text-slate-500">{t("emsg.compose_encode_send")}</p>
           </div>
           <button
             onClick={() => router.push("/")}
             className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-400 hover:bg-slate-800"
-            aria-label="Close"
+            aria-label={t("emsg.close")}
           >✕</button>
         </div>
 
         {/* Clearance level — 7 Seed-of-Life colors (Level 1 RED → Level 7 VIOLET) */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Clearance level</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("emsg.clearance_level")}</span>
           <div className="flex gap-2">
             {Array.from({ length: MAX_CLEARANCE }, (_, i) => i + 1).map((lv) => {
               const c = CLEARANCE_COLORS[lv];
@@ -116,7 +118,7 @@ export function EncryptedMessagingComposer() {
 
         {/* Message type */}
         <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Message type</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("emsg.message_type")}</span>
           <select
             value={type}
             onChange={(e) => setType(e.target.value as MessageType)}
@@ -133,7 +135,7 @@ export function EncryptedMessagingComposer() {
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Sealed Message"
+            placeholder={t("emsg.sealed_message")}
             maxLength={80}
             className="rounded-lg border border-slate-700 bg-[#11151c] px-3 py-2 text-sm outline-none focus:border-amber-500"
           />
@@ -158,7 +160,7 @@ export function EncryptedMessagingComposer() {
             <input
               value={sender}
               onChange={(e) => setSender(e.target.value)}
-              placeholder="Anonymous"
+              placeholder={t("emsg.anonymous")}
               maxLength={48}
               className="rounded-lg border border-slate-700 bg-[#11151c] px-3 py-2 text-sm outline-none focus:border-amber-500"
             />
@@ -175,7 +177,7 @@ export function EncryptedMessagingComposer() {
               <button
                 onClick={() => setPin(generateSealCode(SEAL_STRENGTHS[0]))}
                 className="shrink-0 rounded-lg border border-slate-700 px-3 text-xs text-slate-400 hover:bg-slate-800"
-                title="Randomize"
+                title={t("emsg.randomize")}
               >⟳</button>
             </div>
           </label>
@@ -198,7 +200,7 @@ export function EncryptedMessagingComposer() {
         </div>
 
         {!validPin && body.trim().length > 0 && (
-          <p className="text-xs text-amber-400">Enter a 4-digit PIN (or press ⟳ to randomize).</p>
+          <p className="text-xs text-amber-400">{t("emsg.enter_4_digit_pin")}</p>
         )}
         {err && <p className="text-xs text-red-400">Couldn’t seal: {err}</p>}
 
@@ -213,7 +215,7 @@ export function EncryptedMessagingComposer() {
 
         {/* Share reminder */}
         <div className="mt-auto rounded-lg border border-amber-900/40 bg-amber-950/20 p-3 text-xs leading-relaxed text-slate-400">
-          <span className="text-amber-300">🔑 Give your recipient PIN <b>{pin || "····"}</b> a different way</span> than the file or
+          <span className="text-amber-300">{t("emsg.give_your_recipient_pin")} <b>{pin || "····"}</b> {t("emsg.a_different_way")}</span> than the file or
           link — a text, a call, in person. The PIN is never stored anywhere; without it the message stays sealed.
           <br />
           <span className="text-slate-500">

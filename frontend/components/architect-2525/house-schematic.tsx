@@ -8,6 +8,7 @@
  */
 import { houseEstimate, specLeafIds, componentEstimate, PHASES, type Phase } from "@/lib/architect-house";
 import { type LayerState } from "./use-layer-state";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { border: "#1e2b3a", dim: "#5f7186", text: "#c8d6e5" };
 const COLOR: Record<Phase, string> = Object.fromEntries(PHASES.map((p) => [p.id, p.color])) as Record<Phase, string>;
@@ -15,6 +16,7 @@ const COLOR: Record<Phase, string> = Object.fromEntries(PHASES.map((p) => [p.id,
 // Inc 3 — the schematic is a "model": clicking a phase selects a component of it (model→tree→panel), and
 // the phase owning the selected asset is highlighted (tree→model).
 export function HouseSchematic({ state, selectedId, onSelect }: { state: LayerState; selectedId?: string | null; onSelect?: (id: string) => void }) {
+  const { t } = useLexicon();
   const est = houseEstimate(Array.from(state.spec));
   const present = new Set<Phase>(est.byPhase.map((p) => p.phase));
   const specLeaves = specLeafIds(Array.from(state.spec));
@@ -31,7 +33,7 @@ export function HouseSchematic({ state, selectedId, onSelect }: { state: LayerSt
 
   return (
     <div className="flex flex-col gap-1">
-    <svg data-arch-schematic viewBox="0 0 120 96" className="w-full" style={{ maxWidth: 200, height: "auto" }} role="img" aria-label="House cross-section assembling from chosen components">
+    <svg data-arch-schematic viewBox="0 0 120 96" className="w-full" style={{ maxWidth: 200, height: "auto" }} role="img" aria-label={t("arch.schem_misc.house_schematic.house_cross_section_assembling_from_chosen_components")}>
       {/* SITE — ground line */}
       <line x1="4" y1="84" x2="116" y2="84" stroke={stroke("site")} strokeWidth={on("site") ? 1.4 : sw} strokeDasharray={dash("site")} />
       {on("site") && <rect x="4" y="84" width="112" height="4" fill={fill("site", 0.5)} />}

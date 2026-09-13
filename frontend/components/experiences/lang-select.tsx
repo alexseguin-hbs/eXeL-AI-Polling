@@ -11,7 +11,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 const PINNED = ["en", "fr"];
 
 export function LangSelect() {
-  const { activeLocale, setActiveLocale, languages } = useLexicon();
+  const { activeLocale, setActiveLocale, languages, t } = useLexicon();
   const [open, setOpen] = useState(false);
 
   const approved = languages.filter((l) => l.status === "approved");
@@ -27,8 +27,8 @@ export function LangSelect() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        aria-label="Language"
-        title="Language"
+        aria-label={t("misc2.lang_select.language")}
+        title={t("misc2.lang_select.language")}
         className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-muted-foreground transition hover:text-foreground"
       >
         <Globe className="h-4 w-4" />

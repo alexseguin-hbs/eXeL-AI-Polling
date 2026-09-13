@@ -10,10 +10,12 @@
  */
 import { useRouter } from "next/navigation";
 import { useEasterEgg } from "@/lib/easter-egg-context";
+import { useLexicon } from "@/lib/lexicon-context";
 import { CubeLauncher, type CubeDomain } from "@/components/cube-launcher";
 
 export function Vision2525Launcher() {
   const { setVisionView, exitSimulationMode } = useEasterEgg();
+  const { t } = useLexicon();
   const router = useRouter();
 
   const domains: CubeDomain[] = [
@@ -38,7 +40,7 @@ export function Vision2525Launcher() {
   return (
     <CubeLauncher
       title="VISION • 2525"
-      subtitle="One Civilization • One Framework • Limitless Possibilities • Humanity's Future"
+      subtitle={t("misc.vision_2525_launcher.subtitle")}
       footer="◬ · ♡ · 웃  —  Where Shared Intention moves at the Speed of Thought"
       domains={domains}
       onExit={exitSimulationMode}

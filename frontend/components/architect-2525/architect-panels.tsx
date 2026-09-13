@@ -10,6 +10,7 @@
  *  - QualifyPanel  — automated checks + stage gates G0–G13 + on-chain approval record (ARC-24).
  */
 import { useState } from "react";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", red: "#ef4444" };
 
@@ -18,12 +19,13 @@ function HouseGlyph({ color, o = 1 }: { color: string; o?: number }) {
 }
 
 export function IteratePanel() {
+  const { t } = useLexicon();
   const [sel, setSel] = useState(33);
   const iters = Array.from({ length: 14 }, (_, i) => 20 + i);
   const artifacts = ["Replay Package", "Qualification Report", "Delta Changes", "Time Ledger (MoT + $/min)", "Token Ledger (◬ ♡ 웃)", "Digital-Twin Snapshot"];
   return (
     <div className="space-y-3">
-      <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>11–33 ITERATION ENGINE <span style={{ color: C.dim }}>· each pass = an intelligence cycle</span></div>
+      <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>11–33 ITERATION ENGINE <span style={{ color: C.dim }}>{t("arch.panels.each_pass_intelligence_cycle")}</span></div>
       <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
         {iters.map((n) => (
           <button key={n} data-iter={n} onClick={() => setSel(n)} className="rounded-lg border p-1.5 text-left"
@@ -44,6 +46,7 @@ export function IteratePanel() {
 }
 
 export function SharePanel() {
+  const { t } = useLexicon();
   const [comments, setComments] = useState<{ who: string; text: string; delta: boolean }[]>([
     { who: "Architect · Maria L.", text: "Rotate great-room 8° for winter sun.", delta: true },
     { who: "Neighbor", text: "Love the porch depth.", delta: false },
@@ -59,9 +62,9 @@ export function SharePanel() {
         <div className="flex items-center gap-2 rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.border }}>
           <span style={{ color: C.dim }}>link</span><span className="truncate" style={{ color: C.cyan }}>exel.ai/architect/V2525-000842</span>
         </div>
-        <div className="text-[9px]" style={{ color: C.dim }}>Anyone can view, walk, and comment. Comments become candidate deltas the homeowner consolidates via eXeL polling.</div>
+        <div className="text-[9px]" style={{ color: C.dim }}>{t("arch.panels.anyone_view_walk_comment")}</div>
         <div className="flex gap-1">
-          <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder="Add a comment…" className="flex-1 rounded border bg-transparent px-2 py-1 text-[11px]" style={{ borderColor: C.border, color: C.text }} />
+          <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder={t("arch.panels.add_comment_placeholder")} className="flex-1 rounded border bg-transparent px-2 py-1 text-[11px]" style={{ borderColor: C.border, color: C.text }} />
           <button onClick={add} className="rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.border, color: C.violet }}>post</button>
         </div>
       </div>
@@ -83,6 +86,7 @@ export function SharePanel() {
 }
 
 export function QualifyPanel() {
+  const { t } = useLexicon();
   const checks = ["Structural", "Electrical", "Energy Efficiency", "Safety", "Code Compliance", "Budget Alignment", "Environmental Impact"];
   const gates = ["G0 Vision", "G1 Req", "G2 Site", "G3 Concept", "G4 Struct", "G5 Cost", "G6 Permit", "G7 Build-Ready", "G8 Construct", "G9 Inspect", "G10 Occupy", "G11 Maintain", "G12 Renovate", "G13 Replay"];
   const current = 6;
@@ -93,7 +97,7 @@ export function QualifyPanel() {
         <div className="grid grid-cols-2 gap-1">
           {checks.map((k) => <div key={k} className="flex items-center gap-1 rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}><span style={{ color: C.green }}>✓</span>{k}</div>)}
         </div>
-        <div className="text-[9px]" style={{ color: C.dim }}>Guidance only — NOT certified plan approval (ARC-09).</div>
+        <div className="text-[9px]" style={{ color: C.dim }}>{t("arch.panels.guidance_only_not_certified")}</div>
       </div>
       <div className="space-y-2 rounded-lg border p-3" style={{ borderColor: C.border, background: C.panel }}>
         <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>STAGE GATES · G0–G13</div>

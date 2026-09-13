@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useRef, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useLexicon } from "@/lib/lexicon-context";
 
 interface RotaryKnobProps {
   level: 3 | 6 | 9;
@@ -26,6 +27,7 @@ export const RotaryKnob = memo(function RotaryKnob({
   disabled,
   accentColor = "#00E5CC",
 }: RotaryKnobProps) {
+  const { t } = useLexicon();
   const size = 80;
   const center = size / 2;
   const outerR = 34;
@@ -72,7 +74,7 @@ export const RotaryKnob = memo(function RotaryKnob({
           onClick={() => handleStep(-1)}
           disabled={disabled || currentIndex === 0}
           className="rounded-full p-1 transition-colors hover:bg-accent/50 disabled:opacity-30 disabled:cursor-default"
-          aria-label="Previous level"
+          aria-label={t("flower.rotary_knob.previous_level")}
         >
           <ChevronLeft className="h-4 w-4" style={{ color: accentColor }} />
         </button>
@@ -183,7 +185,7 @@ export const RotaryKnob = memo(function RotaryKnob({
           onClick={() => handleStep(1)}
           disabled={disabled || currentIndex === LEVELS.length - 1}
           className="rounded-full p-1 transition-colors hover:bg-accent/50 disabled:opacity-30 disabled:cursor-default"
-          aria-label="Next level"
+          aria-label={t("flower.rotary_knob.next_level")}
         >
           <ChevronRight className="h-4 w-4" style={{ color: accentColor }} />
         </button>

@@ -12,6 +12,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { panel: "#0c1420", border: "#1e2b3a", dim: "#5f7186", cyan: "#19c8cf", text: "#c8d6e5" };
 
@@ -20,6 +21,7 @@ export function MiniPanel({ title, subtitle, coord, rotation, lanes = true, defa
   defaultW?: number; defaultH?: number; minW?: number; minH?: number;
   render: (contentSize: number) => ReactNode;
 }) {
+  const { t } = useLexicon();
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null); // null = docked bottom-right of the map
   const [size, setSize] = useState({ w: defaultW, h: defaultH });
   const [open, setOpen] = useState(true);
@@ -62,7 +64,7 @@ export function MiniPanel({ title, subtitle, coord, rotation, lanes = true, defa
            (operator IMG_7347/7348: planet expand mode + minimize button same as the map's). */
         <div className="mb-1 flex shrink-0 items-center justify-between gap-1 border-b px-1.5 py-1 text-[9px]" style={{ background: "#0c1420", borderColor: C.cyan }}>
           <span className="truncate font-bold tracking-wider" style={{ color: C.cyan }}>{title}{subtitle ? <span style={{ color: C.dim }}> · {subtitle}</span> : null}</span>
-          <button data-mini-panel-max onClick={() => setMax(false)} title="Minimize" aria-label="Minimize"
+          <button data-mini-panel-max onClick={() => setMax(false)} title={t("arch.minipanel.minimize")} aria-label={t("arch.minipanel.minimize")}
             className="flex items-center justify-center rounded border p-1" style={{ borderColor: C.cyan, color: C.cyan }}><Minimize2 className="h-3 w-3" /></button>
         </div>
       ) : (
@@ -72,9 +74,9 @@ export function MiniPanel({ title, subtitle, coord, rotation, lanes = true, defa
             className="flex shrink-0 cursor-move touch-none select-none items-center justify-between border-b px-1.5 py-0.5" style={{ background: "#0c1420", borderColor: C.cyan }}>
             <span className="flex-1 truncate text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>⠿ Drag {title}</span>
             <div className="flex items-center gap-0.5">
-              {pos && <button onClick={() => setPos(null)} onPointerDown={(e) => e.stopPropagation()} title="Dock back" className="rounded border px-1 text-[8px] font-bold" style={{ borderColor: C.border, color: C.dim }}>⌂</button>}
-              <button data-mini-panel-max onClick={() => setMax(true)} onPointerDown={(e) => e.stopPropagation()} title="Maximize" className="rounded border p-0.5" style={{ borderColor: C.border, color: C.dim }}><Maximize2 className="h-2.5 w-2.5" /></button>
-              <button onClick={() => setOpen(false)} onPointerDown={(e) => e.stopPropagation()} title="Collapse" className="rounded border px-1 text-[8px] font-bold" style={{ borderColor: C.border, color: C.dim }}>▾</button>
+              {pos && <button onClick={() => setPos(null)} onPointerDown={(e) => e.stopPropagation()} title={t("arch.minipanel.dock_back")} className="rounded border px-1 text-[8px] font-bold" style={{ borderColor: C.border, color: C.dim }}>⌂</button>}
+              <button data-mini-panel-max onClick={() => setMax(true)} onPointerDown={(e) => e.stopPropagation()} title={t("arch.minipanel.maximize")} className="rounded border p-0.5" style={{ borderColor: C.border, color: C.dim }}><Maximize2 className="h-2.5 w-2.5" /></button>
+              <button onClick={() => setOpen(false)} onPointerDown={(e) => e.stopPropagation()} title={t("arch.minipanel.collapse")} className="rounded border px-1 text-[8px] font-bold" style={{ borderColor: C.border, color: C.dim }}>▾</button>
             </div>
           </div>
           {/* title · subtitle */}
@@ -98,7 +100,7 @@ export function MiniPanel({ title, subtitle, coord, rotation, lanes = true, defa
       {coord && <div className="shrink-0 truncate px-1.5 pb-0.5 text-[7px]" style={{ color: C.dim, fontFamily: "monospace" }}>{coord} 🔒</div>}
       {/* resize handle ◢ */}
       {!max && <div data-mini-panel-resize onPointerDown={rezDown} onPointerMove={rezMove} onPointerUp={rezUp} onPointerCancel={rezUp}
-        title="Drag to resize" className="absolute bottom-0 right-0 z-10 flex h-4 w-4 cursor-nwse-resize touch-none items-end justify-end pb-0.5 pr-0.5" style={{ color: C.cyan }}>◢</div>}
+        title={t("arch.minipanel.drag_to_resize")} className="absolute bottom-0 right-0 z-10 flex h-4 w-4 cursor-nwse-resize touch-none items-end justify-end pb-0.5 pr-0.5" style={{ color: C.cyan }}>◢</div>}
     </div>
   );
   // Maximized → portal to <body> so it covers the ENTIRE viewport (over the app nav), like the map maximize.

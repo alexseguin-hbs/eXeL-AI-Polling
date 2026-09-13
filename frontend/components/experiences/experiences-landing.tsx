@@ -107,7 +107,7 @@ export function ExperiencesLanding({ basePath }: { basePath: string }) {
           <a
             href={RESUME_PDF}
             download="Resume.Digital_A.Seguin_2026.pdf"
-            title="Download PDF — Resume.Digital_A.Seguin_2026"
+            title={t("misc2.experiences_landing.download_pdf")}
             className="text-inherit transition hover:text-primary"
           >
             <Download className="exp-noprint mr-1 inline h-3.5 w-3.5 align-text-bottom" />

@@ -102,7 +102,7 @@ export function CelestialReader() {
               {/* centre intersection node — tap to MINIMIZE the reading area (closes all circles). */}
               <circle data-cel-min cx="100" cy="84" r="7" fill="transparent" stroke="#e8eef7" strokeWidth="1" opacity={openGroup ? 0.9 : 0.4}
                 onClick={(e) => { e.stopPropagation(); setOpenGroup(null); }} style={{ cursor: "pointer" }}>
-                <title>Minimize the reading area</title>
+                <title>{t("misc.celestial_reader.minimize")}</title>
               </circle>
             </svg>
             {openGroup && (

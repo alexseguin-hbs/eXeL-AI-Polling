@@ -7,17 +7,19 @@
  * (operator: "reuse same compass as Mission Planning"). Bearing is in RADIANS.
  */
 import type { CSSProperties } from "react";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { border: "#1e2b3a", dim: "#5f7186", red: "#f87171", cyan: "#19c8cf" };
 
 export function Compass2525({ bearing, onNorth, size = 34, className, style }: {
   bearing: number; onNorth?: () => void; size?: number; className?: string; style?: CSSProperties;
 }) {
+  const { t } = useLexicon();
   const deg = ((-bearing * 180) / Math.PI % 360 + 360) % 360;
   return (
-    <button type="button" data-arch-compass onClick={onNorth} title="Snap north-up"
+    <button type="button" data-arch-compass onClick={onNorth} title={t("arch.right_compass.compass.snap_north_up")}
       className={className} style={{ background: "#0a0f16cc", borderRadius: 9999, lineHeight: 0, ...style }}>
-      <svg width={size} height={size} viewBox="-23 -23 46 46" aria-label="Compass">
+      <svg width={size} height={size} viewBox="-23 -23 46 46" aria-label={t("arch.right_compass.compass.compass")}>
         <circle r="21" fill="none" stroke={C.border} strokeWidth="1" />
         <g transform={`rotate(${(bearing * 180 / Math.PI).toFixed(1)})`}>
           <path d="M0 -18 L4.5 -4 L0 -7 L-4.5 -4 Z" fill={C.red} />
