@@ -9,6 +9,7 @@
 // the left, current on the right; removed red, added green. Self-contained (props-in).
 
 import { useMemo, useState } from "react";
+import { useLexicon } from "@/lib/lexicon-context";
 import type { SlideVersion, SlideFieldValue } from "@/lib/innovation-data";
 import { diffMaps, diffText, sideBySide, escHtml, type KeyChange } from "@/lib/version-diff";
 
@@ -53,12 +54,13 @@ function versionMap(v: SlideVersion): Record<string, string> {
 const label = (v: SlideVersion) => `${v.ts?.slice(0, 10) || "—"} · ${v.status || "draft"}${v.by ? " · " + v.by : ""}`;
 
 export function SoiSlideCompare({ versions }: { versions: SlideVersion[] }) {
+  const { t } = useLexicon();
   const ordered = useMemo(() => [...versions].sort((a, b) => (a.ts || "").localeCompare(b.ts || "")), [versions]);
   const [aIdx, setAIdx] = useState(0); // historical (left)
   const [bIdx, setBIdx] = useState(Math.max(0, ordered.length - 1)); // current (right)
 
   if (ordered.length < 2)
-    return <p className="text-xs italic text-zinc-500">This slide has fewer than two saved versions — nothing to compare yet.</p>;
+    return <p className="text-xs italic text-zinc-500">{t("soiSlide.fewer_than_two_versions")}</p>;
 
   const a = ordered[Math.min(aIdx, ordered.length - 1)];
   const b = ordered[Math.min(bIdx, ordered.length - 1)];
@@ -95,15 +97,15 @@ export function SoiSlideCompare({ versions }: { versions: SlideVersion[] }) {
   return (
     <div className="rounded border border-zinc-800 text-xs">
       <div className="flex flex-wrap items-center gap-3 border-b border-zinc-800 bg-zinc-900/50 px-3 py-2">
-        <span className="font-semibold text-cyan-300">Compare slide versions</span>
+        <span className="font-semibold text-cyan-300">{t("soiSlide.compare_slide_versions")}</span>
         <label className="flex items-center gap-1">
-          Before
+          {t("soiSlide.before")}
           <select value={aIdx} onChange={(e) => setAIdx(+e.target.value)} className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1">
             {ordered.map((v, i) => (<option key={v.id} value={i}>{label(v)}</option>))}
           </select>
         </label>
         <label className="flex items-center gap-1">
-          After
+          {t("soiSlide.after")}
           <select value={bIdx} onChange={(e) => setBIdx(+e.target.value)} className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1">
             {ordered.map((v, i) => (<option key={v.id} value={i}>{label(v)}</option>))}
           </select>
@@ -111,21 +113,21 @@ export function SoiSlideCompare({ versions }: { versions: SlideVersion[] }) {
       </div>
 
       {a.id === b.id ? (
-        <p className="px-3 py-3 italic text-zinc-500">Before and After are the same version — pick two different versions.</p>
+        <p className="px-3 py-3 italic text-zinc-500">{t("soiSlide.same_version_pick_two")}</p>
       ) : nothing ? (
-        <p className="px-3 py-3 italic text-zinc-500">No differences between these two versions.</p>
+        <p className="px-3 py-3 italic text-zinc-500">{t("soiSlide.no_differences")}</p>
       ) : (
         <div className="px-3 py-2">
           {/* impact badge + What changed? line */}
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <span className={"rounded border px-2 py-0.5 font-medium " + (meaning.length ? TYPE_STYLE.Meaning : counts.Visual ? TYPE_STYLE.Visual : counts.Data ? TYPE_STYLE.Data : TYPE_STYLE.Text)}>{impact}</span>
-            <span className="text-zinc-400">What changed? {whatChanged}</span>
+            <span className="text-zinc-400">{t("soiSlide.what_changed")} {whatChanged}</span>
           </div>
 
           {/* Meaning (status/gate) — first-class */}
           {meaning.map((m) => (
             <div key={m.field} className="mb-2 flex flex-wrap items-center gap-2 rounded border border-violet-600/40 bg-violet-500/10 px-2 py-1 text-violet-200">
-              <span className="rounded bg-violet-500/20 px-1.5 py-0.5">Meaning</span>
+              <span className="rounded bg-violet-500/20 px-1.5 py-0.5">{t("soiSlide.meaning")}</span>
               <span className="font-mono">{m.field}</span>
               <span>{m.from} → {m.to}</span>
             </div>

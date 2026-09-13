@@ -368,7 +368,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
       <div className="flex items-center justify-center py-20">
         <div className="text-center space-y-3">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-muted-foreground">Loading item...</p>
+          <p className="text-sm text-muted-foreground">{t("divinityArx.item_loading")}</p>
         </div>
       </div>
     );
@@ -599,23 +599,23 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
         <div className="space-y-3">
           <div>
             <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.new_owner_name")} *</label>
-            <input value={buyerName} onChange={(e) => setBuyerName(e.target.value)} placeholder="Full name" maxLength={255}
+            <input value={buyerName} onChange={(e) => setBuyerName(e.target.value)} placeholder={t("divinityArx.item_buyer_name_ph")} maxLength={255}
               className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors" />
           </div>
           <div>
             <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.contact_label")}</label>
-            <input value={buyerContact} onChange={(e) => setBuyerContact(e.target.value)} placeholder="email@example.com" maxLength={255}
+            <input value={buyerContact} onChange={(e) => setBuyerContact(e.target.value)} placeholder={t("divinityArx.item_buyer_contact_ph")} maxLength={255}
               className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors" />
-            <p className="text-[10px] text-muted-foreground mt-1">Used as your ownership identifier</p>
+            <p className="text-[10px] text-muted-foreground mt-1">{t("divinityArx.item_ownership_identifier_note")}</p>
           </div>
           <div>
             <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.purchase_price")}</label>
-            <input type="number" step="0.01" min="0" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} placeholder="Leave empty if gift"
+            <input type="number" step="0.01" min="0" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} placeholder={t("divinityArx.item_sale_price_ph")}
               className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors" />
           </div>
           <div>
             <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.identifiers_label")}</label>
-            <input value={buyerNotes} onChange={(e) => setBuyerNotes(e.target.value)} placeholder="Condition notes, provenance details..." maxLength={500}
+            <input value={buyerNotes} onChange={(e) => setBuyerNotes(e.target.value)} placeholder={t("divinityArx.item_buyer_notes_ph")} maxLength={500}
               className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors" />
             <p className="text-[10px] text-muted-foreground mt-1">{t("cube12.arx.description_hint")}</p>
           </div>
@@ -679,7 +679,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
       </div>
 
       <div className="text-center pb-6">
-        <p className="text-[9px] text-muted-foreground/40">Powered by eXeL AI &middot; ARX Physically Backed Tokens</p>
+        <p className="text-[9px] text-muted-foreground/40">{t("divinityArx.item_powered_by_footer")}</p>
       </div>
     </div>
   );

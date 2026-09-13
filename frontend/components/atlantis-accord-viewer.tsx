@@ -425,14 +425,14 @@ function FullscreenViewer({
           {/* Scroll icon — download a shareable, 4-digit-gated offline package */}
           <button
             onClick={handleQuickPackage}
-            title="Download sealed package — Clearance: Level 1, random 4-digit code"
-            aria-label="Download sealed package"
+            title={t("atlantis.dl_pkg_title")}
+            aria-label={t("atlantis.dl_pkg_aria")}
             className="rounded-md border border-border p-2 text-primary hover:bg-accent/50 transition-colors"
           >
             <ScrollText className="h-4 w-4" />
           </button>
           <div>
-            <h2 className="text-lg font-semibold">The Atlantis Accords</h2>
+            <h2 className="text-lg font-semibold">{t("atlantis.accords_title")}</h2>
             <p className="text-[11px] text-muted-foreground">
               {t("shared.atlantis.tagline")}
             </p>
@@ -444,8 +444,8 @@ function FullscreenViewer({
           <button
             onClick={() => setShowQr(true)}
             className="p-2 rounded-md hover:bg-accent/50 transition-colors"
-            title="Scan / share the website QR"
-            aria-label="Website QR code"
+            title={t("atlantis.qr_scan_share_title")}
+            aria-label={t("atlantis.qr_website_aria")}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="text-primary">
               <rect x="1" y="1" width="6" height="6" rx="1" strokeWidth="0" />
@@ -506,7 +506,7 @@ function FullscreenViewer({
               </>
             )}
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close">
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label={t("atlantis.close")}>
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -704,7 +704,7 @@ function FullscreenViewer({
             <button
               onClick={goPrev}
               disabled={activeIdx === 0}
-              aria-label="Previous"
+              aria-label={t("atlantis.previous")}
               className="w-12 h-12 rounded-full border flex items-center justify-center text-lg hover:bg-accent/30 disabled:opacity-15 transition-all"
               style={{ borderColor: activeIdx > 0 ? color.stroke : undefined }}
             >
@@ -737,8 +737,8 @@ function FullscreenViewer({
           <div className="w-full max-w-md rounded-xl border border-border bg-background p-5 shadow-2xl"
                onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-base font-semibold">Shareable Package</h3>
-              <button onClick={() => setPkgOpen(false)} aria-label="Close"><X className="h-4 w-4 text-muted-foreground" /></button>
+              <h3 className="text-base font-semibold">{t("atlantis.shareable_package")}</h3>
+              <button onClick={() => setPkgOpen(false)} aria-label={t("atlantis.close")}><X className="h-4 w-4 text-muted-foreground" /></button>
             </div>
 
             {pkgCode === null ? (
@@ -748,14 +748,14 @@ function FullscreenViewer({
                 <input
                   value={pkgSender}
                   onChange={(e) => setPkgSender(e.target.value)}
-                  placeholder="eXeL AI"
+                  placeholder={t("atlantis.sender_placeholder")}
                   className="mb-3 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                 />
                 {unlocked ? (
                   <>
                     {/* ── Unlocked feature: Clearance Levels (1–7) ── */}
                     <p className="mb-2 text-xs text-muted-foreground">
-                      <b>Clearance Levels</b> — pick how many Seed-of-Life circles the seal shows. Only the unlocked content is written into the file.
+                      <b>{t("atlantis.clearance_levels")}</b> — pick how many Seed-of-Life circles the seal shows. Only the unlocked content is written into the file.
                     </p>
                     <div className="mb-4 grid grid-cols-7 gap-1.5">
                       {Array.from({ length: MAX_CLEARANCE }, (_, i) => i + 1).map((lvl) => {
@@ -776,7 +776,7 @@ function FullscreenViewer({
                       Clearance: Level {pkgClearance} — {pkgClearance} of {MAX_CLEARANCE} circles
                     </p>
                     <p className="mb-2 text-xs text-muted-foreground">
-                      Select a <b>seal strength</b> — how hard the code is to break.
+                      Select a <b>{t("atlantis.seal_strength")}</b> — how hard the code is to break.
                     </p>
                     <div className="mb-2 grid grid-cols-3 gap-1.5">
                       {SEAL_STRENGTHS.map((s, i) => {
@@ -806,22 +806,22 @@ function FullscreenViewer({
                     Sealed at <b style={{ color: CLEARANCE_COLORS[1] }}>Clearance: Level 1</b> with a random 4-digit code you share separately.
                   </p>
                 )}
-                <p className="mb-2 text-xs text-muted-foreground">Choose how to share:</p>
+                <p className="mb-2 text-xs text-muted-foreground">{t("atlantis.choose_how_share")}</p>
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={() => generatePackage(pkgClearance, "file")} disabled={pkgBusy}
-                    title="Self-contained .html — opens directly on Android, Edge & computers"
+                    title={t("atlantis.share_file_title")}
                     className="flex flex-col items-center justify-center gap-1 rounded-lg border border-border px-3 py-3 text-sm font-semibold hover:bg-accent/50 disabled:opacity-50">
                     <Download className="h-5 w-5 text-primary" />
                     <span>{pkgBusy ? "Sealing…" : "Download File"}</span>
                     <span className="text-[9px] font-normal text-muted-foreground">Android · Edge · Computer</span>
                   </button>
                   <button onClick={() => generatePackage(pkgClearance, "link")} disabled={pkgBusy}
-                    title="Universal link — opens on any device, including iPhone & iPad"
+                    title={t("atlantis.share_link_title")}
                     className="flex flex-col items-center justify-center gap-1 rounded-lg border px-3 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
                     style={{ background: CLEARANCE_COLORS[pkgClearance], borderColor: CLEARANCE_COLORS[pkgClearance] }}>
                     <Link2 className="h-5 w-5" />
                     <span>{pkgBusy ? "Sealing…" : "Copy Link"}</span>
-                    <span className="text-[9px] font-normal opacity-90">Any device · iPhone</span>
+                    <span className="text-[9px] font-normal opacity-90">{t("atlantis.any_device_iphone")}</span>
                   </button>
                 </div>
                 <p className="mt-3 text-[10px] leading-snug text-muted-foreground/70">
@@ -848,19 +848,19 @@ function FullscreenViewer({
                         className="flex-1 min-w-0 rounded-md border border-border bg-background px-2 py-1.5 text-[10px] text-muted-foreground" />
                       <button
                         onClick={async () => { try { await navigator.clipboard.writeText(pkgLink); setLinkCopied(true); } catch { /* blocked */ } }}
-                        title="Copy link"
+                        title={t("atlantis.copy_link")}
                         className="flex items-center gap-1 rounded-md border border-border px-2 text-xs hover:bg-accent/50">
                         {linkCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
                       </button>
                     </div>
                     <p className="mb-4 text-[10px] leading-snug text-muted-foreground/80">
-                      Opens on <b>any device — including iPhone &amp; iPad</b>. Only the encrypted message is stored (never the 4-digit code). It <b>opens once</b>, then the link seals itself. The recipient taps the link, then enters the code.
+                      Opens on <b>{t("atlantis.opens_any_device")}</b>{t("atlantis.encrypted_stored_note")} <b>{t("atlantis.opens_once")}</b>, then the link seals itself. The recipient taps the link, then enters the code.
                     </p>
                   </>
                 ) : (
                   <>
                     <p className="mb-3 text-[11px] text-muted-foreground">
-                      The reader enters this code to open. The copy <b>seals after it is closed</b> and cannot be reopened — send a fresh copy to share again.
+                      The reader enters this code to open. The copy <b>{t("atlantis.seals_after_closed")}</b> and cannot be reopened — send a fresh copy to share again.
                     </p>
                     <p className="mb-4 text-[10px] leading-snug text-muted-foreground/70">
                       This document is sealed under the Atlantis Accords. Access is granted to the intended recipient alone, by the key entrusted to them.
@@ -893,11 +893,11 @@ function FullscreenViewer({
                   style={{ width: "min(86vw, 72vh)", height: "min(86vw, 72vh)" }}
                 />
               </div>
-              <p className="text-sm text-white/90">Scan to open The Atlantis Accords</p>
+              <p className="text-sm text-white/90">{t("atlantis.scan_to_open")}</p>
               <button
                 onClick={() => setQrMax(false)}
                 className="flex items-center gap-2 rounded-lg border border-white/30 px-4 py-2 text-sm text-white hover:bg-white/10"
-                aria-label="Exit full screen QR"
+                aria-label={t("atlantis.exit_fullscreen_qr")}
               >
                 <Minimize2 className="h-4 w-4" /> Exit full screen
               </button>
@@ -905,17 +905,17 @@ function FullscreenViewer({
           ) : (
             <div className="w-full max-w-xs rounded-xl border border-border bg-background p-5 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-base font-semibold">The Atlantis Accords</h3>
+                <h3 className="text-base font-semibold">{t("atlantis.accords_title")}</h3>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setQrMax(true)}
-                    title="Full screen QR"
-                    aria-label="Full screen QR"
+                    title={t("atlantis.fullscreen_qr")}
+                    aria-label={t("atlantis.fullscreen_qr")}
                     className="rounded-md p-1 hover:bg-accent/50"
                   >
                     <Maximize2 className="h-4 w-4 text-muted-foreground" />
                   </button>
-                  <button onClick={closeQr} aria-label="Close" className="rounded-md p-1 hover:bg-accent/50">
+                  <button onClick={closeQr} aria-label={t("atlantis.close")} className="rounded-md p-1 hover:bg-accent/50">
                     <X className="h-4 w-4 text-muted-foreground" />
                   </button>
                 </div>
@@ -923,13 +923,13 @@ function FullscreenViewer({
               <div className="mx-auto mb-3 w-fit rounded-2xl bg-white p-4 shadow-inner">
                 <QRCodeSVG value={ATLANTIS_PAGE_URL} size={220} level="Q" fgColor="#000000" bgColor="#ffffff" className="rounded-lg" />
               </div>
-              <p className="text-xs text-muted-foreground">Scan to open The Atlantis Accords</p>
+              <p className="text-xs text-muted-foreground">{t("atlantis.scan_to_open")}</p>
               <div className="mt-2 flex items-center justify-center gap-2">
                 <span className="break-all text-[10px] text-muted-foreground/60">{ATLANTIS_PAGE_URL}</span>
                 <button
                   onClick={copyAtlantisUrl}
-                  title="Copy link"
-                  aria-label="Copy Atlantis Accords link"
+                  title={t("atlantis.copy_link")}
+                  aria-label={t("atlantis.copy_accords_link_aria")}
                   className="shrink-0 rounded-md border border-border p-1.5 hover:bg-accent/50"
                 >
                   {qrCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}

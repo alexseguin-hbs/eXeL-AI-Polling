@@ -741,7 +741,7 @@ function PendingApprovalsView({
                   size="sm"
                   className="h-7 w-7 p-0 text-green-400 hover:text-green-300 hover:bg-green-500/10"
                   onClick={() => approveLanguage(lang.code, userEmail)}
-                  title="Approve"
+                  title={t("lexiconUi.approve")}
                 >
                   <Check className="h-4 w-4" />
                 </Button>
@@ -750,7 +750,7 @@ function PendingApprovalsView({
                   size="sm"
                   className="h-7 w-7 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                   onClick={() => rejectLanguage(lang.code)}
-                  title="Reject"
+                  title={t("lexiconUi.reject")}
                 >
                   <X className="h-4 w-4" />
                 </Button>

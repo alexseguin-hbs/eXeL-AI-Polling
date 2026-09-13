@@ -536,7 +536,7 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
                   <Sparkles className="h-5 w-5 shrink-0 text-primary" />
                   <div>
                     <div className="text-sm font-semibold text-foreground">Vision &bull; 2525</div>
-                    <div className="text-xs text-muted-foreground">Humanity&apos;s Coordination Framework</div>
+                    <div className="text-xs text-muted-foreground">{t("settings.humanitys_coordination_framework")}</div>
                   </div>
                 </div>
                 <span className="text-xs text-muted-foreground">→</span>

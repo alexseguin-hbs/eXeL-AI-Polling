@@ -45,6 +45,7 @@ export function ModeratorCheckout({
   onSuccess,
   onCancel,
 }: PaymentProps) {
+  const { t } = useLexicon();
   const [amount, setAmount] = useState(MODERATOR_MIN_FEE_CENTS);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -71,7 +72,7 @@ export function ModeratorCheckout({
 
   return (
     <div className="space-y-4 p-4 rounded-lg border border-border bg-card">
-      <h3 className="font-semibold text-lg">Session Payment</h3>
+      <h3 className="font-semibold text-lg">{t("stripe.session_payment")}</h3>
       <p className="text-sm text-muted-foreground">
         Minimum $11.11 USD to create this session. Your participants join free.
       </p>
@@ -420,6 +421,7 @@ export function PricingTierSelector({
   feeAmountCents,
   onFeeChange,
 }: PricingTierSelectorProps) {
+  const { t } = useLexicon();
   const tiers = [
     {
       id: "free" as const,
@@ -446,7 +448,7 @@ export function PricingTierSelector({
 
   return (
     <div className="space-y-3">
-      <label className="text-sm font-medium">Pricing Tier</label>
+      <label className="text-sm font-medium">{t("stripe.pricing_tier")}</label>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {tiers.map((tier) => (
           <button

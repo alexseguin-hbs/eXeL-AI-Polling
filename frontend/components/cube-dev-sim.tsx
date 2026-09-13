@@ -327,7 +327,7 @@ export function CubeDevSim() {
             <div className="flex justify-center">
               <div className="relative mx-auto w-fit" data-sim-voxel={sel ?? ""}>
                 <CubeVoxel3D lit={litCells} blockOf={blockOf} nSections={nSections} codes={sectionCodes} exploded={exploded} px={200} />
-                <button onClick={() => setVoxelMax(true)} title="Pop out & rotate"
+                <button onClick={() => setVoxelMax(true)} title={t("cubeDevSim.pop_out_rotate")}
                   className="absolute right-1 top-1 rounded border bg-background/80 p-1 text-muted-foreground backdrop-blur hover:text-primary">
                   <Maximize2 className="h-3.5 w-3.5" />
                 </button>
@@ -338,7 +338,7 @@ export function CubeDevSim() {
             <div className="mt-3 text-center">
               <div className="text-sm font-semibold">Cube {contract.cube_id} · {contract.name}</div>
               <div className="mt-2 flex flex-wrap items-center justify-center gap-1">
-                <button onClick={() => setExploded((e) => !e)} title="Explode / assemble the blocks"
+                <button onClick={() => setExploded((e) => !e)} title={t("cubeDevSim.explode_assemble_blocks")}
                   className={`rounded border px-2 py-0.5 text-[11px] transition ${exploded ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
                   style={exploded ? { background: HI, borderColor: HI } : undefined}>Explode</button>
               </div>
@@ -347,7 +347,7 @@ export function CubeDevSim() {
                 <b style={{ color: SI }}>{activeSection?.code ?? activeSection?.key}</b>
                 {activeSection?.functions?.[0] ? <> <span className="font-mono">{activeSection.functions[0]}</span></> : null} — {litCells.size} cubes ON.
               </p>
-              <p className="mt-1 text-[10px] text-muted-foreground/70">Drag to rotate · pinch/scroll to zoom · Explode separates the blocks.</p>
+              <p className="mt-1 text-[10px] text-muted-foreground/70">{t("cubeDevSim.drag_rotate_zoom_explode")}</p>
             </div>
           </div>
 
@@ -359,7 +359,7 @@ export function CubeDevSim() {
                 <button onClick={() => setExploded((e) => !e)}
                   className={`rounded border px-2 py-0.5 text-[11px] ${exploded ? "text-black" : "text-muted-foreground"}`}
                   style={exploded ? { background: HI, borderColor: HI } : undefined}>Explode</button>
-                <span className="text-[11px] text-muted-foreground">— drag to rotate · pinch/scroll to zoom</span>
+                <span className="text-[11px] text-muted-foreground">{t("cubeDevSim.drag_rotate_zoom")}</span>
                 <button onClick={() => setVoxelMax(false)} className="ml-auto rounded border px-2 py-1 text-xs">
                   <X className="mr-1 inline h-3 w-3" />Exit</button>
               </div>

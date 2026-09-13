@@ -249,7 +249,7 @@ export function FeedbackWidget({
                   size="sm"
                   className="h-8 px-2 text-xs"
                   onClick={snip}
-                  title="Snip a region of the screen (built-in)"
+                  title={t("feedback.snip_region_hint")}
                 >
                   <Scissors className="h-3.5 w-3.5 mr-1" />
                   Snip
@@ -259,7 +259,7 @@ export function FeedbackWidget({
                   size="sm"
                   className="h-8 px-2 text-xs"
                   onClick={captureScreenshot}
-                  title="Upload a screenshot image"
+                  title={t("feedback.upload_screenshot_hint")}
                 >
                   <Camera className="h-3.5 w-3.5 mr-1" />
                   Upload

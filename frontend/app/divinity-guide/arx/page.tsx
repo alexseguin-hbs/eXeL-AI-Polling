@@ -602,7 +602,7 @@ function ArxPageInner() {
                 {panelMode === "split" ? (
                   <button
                     onClick={() => setPanelMode("full")}
-                    title="Expand panel"
+                    title={t("divinityArx.expand_panel")}
                     className="p-1.5 rounded-lg border bg-card hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -613,7 +613,7 @@ function ArxPageInner() {
                 ) : (
                   <button
                     onClick={() => setPanelMode("split")}
-                    title="Back to flowers"
+                    title={t("divinityArx.back_to_flowers")}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-card hover:bg-accent text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -659,7 +659,7 @@ function ArxPageInner() {
                     <input
                       value={regName}
                       onChange={(e) => setRegName(e.target.value)}
-                      placeholder="Original artwork, signed book, collectible..."
+                      placeholder={t("divinityArx.item_name_placeholder")}
                       maxLength={500}
                       className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                     />
@@ -719,7 +719,7 @@ function ArxPageInner() {
                       <input
                         value={regIdentifiers}
                         onChange={(e) => setRegIdentifiers(e.target.value)}
-                        placeholder="Quote, stamp, or other unique mark"
+                        placeholder={t("divinityArx.identifiers_placeholder")}
                         maxLength={500}
                         className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                       />
@@ -732,7 +732,7 @@ function ArxPageInner() {
                     <input
                       value={regMarker}
                       onChange={(e) => setRegMarker(e.target.value)}
-                      placeholder="Distinguishing details about this item"
+                      placeholder={t("divinityArx.description_placeholder")}
                       maxLength={500}
                       className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                     />
@@ -1002,7 +1002,7 @@ function ArxPageInner() {
                       }
                     }}
                     className="px-4 py-2.5 border border-green-500/30 rounded-lg text-green-600 hover:bg-green-500/5 transition-colors"
-                    title="Scan NFC chip"
+                    title={t("divinityArx.scan_nfc_chip")}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/>
@@ -1016,7 +1016,7 @@ function ArxPageInner() {
                     <input
                       value={browseSearch}
                       onChange={(e) => setBrowseSearch(e.target.value)}
-                      placeholder="Search by item name..."
+                      placeholder={t("divinityArx.search_by_item_name")}
                       className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm focus:border-green-500 focus:outline-none transition-colors"
                       onKeyDown={(e) => { if (e.key === "Enter") handleBrowse(); }}
                     />
@@ -1031,7 +1031,7 @@ function ArxPageInner() {
                   {showBrowse && (
                     <div className="mt-3 space-y-1.5 max-h-[300px] overflow-y-auto">
                       {browseItems.length === 0 ? (
-                        <p className="text-xs text-muted-foreground text-center py-4">No items found</p>
+                        <p className="text-xs text-muted-foreground text-center py-4">{t("divinityArx.no_items_found")}</p>
                       ) : browseItems.map((bi) => (
                         <button
                           key={bi.token_id}

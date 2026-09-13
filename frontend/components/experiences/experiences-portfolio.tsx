@@ -335,7 +335,7 @@ function Card({ item }: { item: Item }) {
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          aria-label="Toggle details"
+          aria-label={t("experiences.toggle_details")}
           className="shrink-0 rounded-md p-1 text-muted-foreground transition hover:text-primary"
         >
           <ChevronDown className={`h-5 w-5 transition-transform ${open ? "rotate-180" : ""}`} />
@@ -354,7 +354,7 @@ function Card({ item }: { item: Item }) {
         <button
           type="button"
           onClick={() => setZoom(false)}
-          aria-label="Close"
+          aria-label={t("experiences.close")}
           className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
         >
           <X className="h-5 w-5" />
@@ -428,7 +428,7 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
             <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-primary/70">{t("experiences.work.eyebrow")}</p>
             <a
               href="mailto:explore@eXeL-AI.com"
-              aria-label="Email explore@eXeL-AI.com"
+              aria-label={t("experiences.email_contact")}
               title="explore@eXeL-AI.com"
               className="inline-flex items-center text-[11px] leading-none text-primary/70 transition hover:text-primary"
             >

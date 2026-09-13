@@ -1734,7 +1734,7 @@ function DivinityGuidePage() {
           <div className="rounded-xl border bg-card shadow-2xl px-6 py-4 text-center">
             <p className="text-2xl">웃</p>
             <p className="text-sm font-semibold text-primary">{t("cube8.donate.received")}</p>
-            <p className="text-xs text-muted-foreground">Your contribution converted to a full Human Intelligence token.</p>
+            <p className="text-xs text-muted-foreground">{t("divinity.reward_hi_token_full")}</p>
           </div>
         </div>
       )}
@@ -1750,7 +1750,7 @@ function DivinityGuidePage() {
             <button
               onClick={() => setShowDonationPrompt(false)}
               className="absolute top-3 right-4 text-muted-foreground hover:text-foreground text-xl leading-none"
-              aria-label="Close"
+              aria-label={t("divinity.close")}
             >
               &times;
             </button>
@@ -1905,7 +1905,7 @@ function DivinityGuidePage() {
               <button
                 onClick={() => setShowDivinityQR(true)}
                 className="p-1 rounded hover:bg-accent transition-colors"
-                title="Share Divinity Guide QR"
+                title={t("divinity.share_qr_title")}
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="text-muted-foreground hover:text-primary">
                   <rect x="1" y="1" width="6" height="6" rx="1" strokeWidth="0" />
@@ -2396,7 +2396,7 @@ function DivinityGuidePage() {
             <div className="flex gap-1 flex-wrap justify-end">
               <button
                 onClick={downloadStretchedPng}
-                title="Download the stretched emblem as a 1024×1024 PNG"
+                title={t("divinity.loom_download_png")}
                 className="px-2 py-1 text-[9px] tracking-wider rounded border transition-all"
                 style={{ borderColor: "rgba(196, 132, 252, 0.5)", color: "#c084fc" }}
               >
@@ -2404,7 +2404,7 @@ function DivinityGuidePage() {
               </button>
               <button
                 onClick={openSaveCode}
-                title="Inscribe the cipher"
+                title={t("divinity.loom_inscribe_cipher")}
                 className="px-2 py-1 text-[9px] tracking-wider rounded border transition-all"
                 style={{ borderColor: "rgba(0, 255, 136, 0.4)", color: "#00ff88" }}
               >
@@ -2412,7 +2412,7 @@ function DivinityGuidePage() {
               </button>
               <button
                 onClick={resetEditArcs}
-                title="Return to origin"
+                title={t("divinity.loom_return_origin")}
                 className="px-2 py-1 text-[9px] tracking-wider rounded border transition-all"
                 style={{ borderColor: "rgba(0, 220, 255, 0.3)", color: "#00dcff" }}
               >
@@ -2420,7 +2420,7 @@ function DivinityGuidePage() {
               </button>
               <button
                 onClick={() => { setEditMode(false); setSelectedArcIndex(null); }}
-                title="Close the loom"
+                title={t("divinity.loom_close")}
                 className="w-7 h-7 text-sm rounded border transition-all"
                 style={{ borderColor: "rgba(0, 220, 255, 0.3)", color: "#00dcff" }}
               >
@@ -2510,7 +2510,7 @@ function DivinityGuidePage() {
                   color: "#c8f0ff",
                 }}
               >
-                <option value="">— touch a phrase on the emblem to awaken it —</option>
+                <option value="">{t("divinity.loom_arc_select_placeholder")}</option>
                 {editOuterArcs.map((a, i) => (
                   <option key={i} value={i}>{i + 1}. {a.label}</option>
                 ))}

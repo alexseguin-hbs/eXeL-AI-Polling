@@ -17,12 +17,14 @@
 
 import Link from "next/link";
 import { Download, ExternalLink, ArrowLeft, BookOpen } from "lucide-react";
+import { useLexicon } from "@/lib/lexicon-context";
 
 const FILE = "/whitepaper/mot-author.html";
 const GOLD = "#e8b64c";
 const CYAN = "#22d3ee";
 
 export default function MoTPage() {
+  const { t } = useLexicon();
   return (
     /* Same footer arithmetic as the white-paper reader: the shared layout appends the
        Feedback / SECURITY-2525 / eXeL AI row BELOW this page, so claiming the whole
@@ -40,7 +42,7 @@ export default function MoTPage() {
       >
         <Link
           href="/vision-2525/white-paper/"
-          title="Back to the full document"
+          title={t("visionMot.back_to_full_document")}
           className="rounded-full border p-1.5 text-slate-300 transition-colors hover:text-cyan-300"
           style={{ borderColor: "rgba(148,163,184,0.35)" }}
         >
@@ -49,20 +51,20 @@ export default function MoTPage() {
 
         <div className="min-w-0 flex-1">
           <p className="truncate font-serif text-base font-bold leading-tight sm:text-lg" style={{ color: GOLD }}>
-            The Author <span style={{ color: CYAN }}>&middot;</span> Master of Thought
+            {t("visionMot.author_title")} <span style={{ color: CYAN }}>&middot;</span> {t("visionMot.master_of_thought")}
           </p>
           <p className="truncate text-[11px] leading-tight text-slate-400 sm:text-xs">
-            One name. One responsibility. One practice you can begin today.
+            {t("visionMot.subtitle")}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <span
-            title="An extract of one section. The full document is the source of truth."
+            title={t("visionMot.extract_tooltip")}
             className="hidden shrink-0 rounded-full border px-2.5 py-1 font-mono text-[11px] leading-none sm:inline-block"
             style={{ borderColor: "rgba(34,211,238,0.4)", color: CYAN }}
           >
-            extract
+            {t("visionMot.extract_badge")}
           </span>
 
           <Link
@@ -71,7 +73,7 @@ export default function MoTPage() {
             style={{ borderColor: "rgba(148,163,184,0.35)" }}
           >
             <BookOpen className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Full document</span>
+            <span className="hidden sm:inline">{t("visionMot.full_document")}</span>
           </Link>
 
           <a
@@ -81,14 +83,14 @@ export default function MoTPage() {
             style={{ background: GOLD }}
           >
             <Download className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Download</span>
+            <span className="hidden sm:inline">{t("visionMot.download")}</span>
           </a>
 
           <a
             href={FILE}
             target="_blank"
             rel="noreferrer"
-            title="Open full screen"
+            title={t("visionMot.open_full_screen")}
             className="rounded-full border p-1.5 text-slate-300 transition-colors hover:text-cyan-300"
             style={{ borderColor: "rgba(148,163,184,0.35)" }}
           >
@@ -100,7 +102,7 @@ export default function MoTPage() {
       {/* The real file, not a re-implementation — same bytes that download. */}
       <iframe
         src={FILE}
-        title="The Author — Master of Thought"
+        title={t("visionMot.iframe_title")}
         className="min-h-0 w-full flex-1 border-0"
       />
     </div>
