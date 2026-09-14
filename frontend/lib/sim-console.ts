@@ -130,6 +130,108 @@ export function generateSimResponses(question: string, count: number, seed = "si
   return out;
 }
 
+// ── Grounded theming (self-contained mode) ──────────────────────────────────
+// The mock /ai/run + /themes handlers group the injected responses into the same
+// Theme01 (Risk/Support/Neutral) × Theme02 (3/6/9) hierarchy the REAL Cube-6
+// pipeline produces, with per-theme 33/111/333 summaries derived from the member
+// responses. Pure + deterministic so a run replays byte-identically.
+
+/** Signal phrases per stance (subset of the clause banks) for a light keyword classifier. */
+const STANCE_SIGNALS: Record<Stance, string[]> = {
+  risk: ["danger", "risk", "misuse", "bias", "fail", "erode", "lag", "opaque", "weapon", "manipulation", "outrunning", "displaced"],
+  support: ["upside", "benefit", "efficien", "transparen", "amplif", "adoption", "underserved", "shared benefit", "free people", "many more voices"],
+  neutral: ["depends", "mixed", "trade-off", "context", "pilot", "more data", "reasonable people", "credible arguments", "framing", "incremental"],
+};
+
+/** Classify a response's stance from its text; hash-buckets unknown text so grouping never empties. */
+export function classifyStance(text: string): Stance {
+  const t = (text || "").toLowerCase();
+  const score: Record<Stance, number> = { risk: 0, support: 0, neutral: 0 };
+  (Object.keys(STANCE_SIGNALS) as Stance[]).forEach((s) => {
+    for (const sig of STANCE_SIGNALS[s]) if (t.includes(sig)) score[s]++;
+  });
+  const best = (Object.keys(score) as Stance[]).reduce((a, b) => (score[b] > score[a] ? b : a), "risk");
+  if (score[best] > 0) return best;
+  const order: Stance[] = ["risk", "support", "neutral"]; // hash fallback keeps the split non-empty
+  return order[hashSeed(t) % 3];
+}
+
+const STANCE_ORDER: Stance[] = ["risk", "support", "neutral"];
+const STANCE_TO_CATEGORY: Record<Stance, "risk" | "support" | "neutral"> = { risk: "risk", support: "support", neutral: "neutral" };
+// Canonical Theme01 labels (mirror lib/adapt-live-themes.ts CATEGORY_TO_LABEL so the flower renders them).
+const STANCE_PARENT_LABEL: Record<Stance, string> = { risk: "Risk & Concerns", support: "Supporting Comments", neutral: "Neutral Comments" };
+
+function words(s: string): string[] { return String(s).trim().split(/\s+/).filter(Boolean); }
+function clampWords(s: string, n: number): string { const w = words(s); return w.length <= n ? s : w.slice(0, n).join(" "); }
+
+/** Grounded tier summary: round-robin the members' sentences up to `target` words, then clamp. */
+function tierSummary(memberTexts: string[], target: number): string {
+  const sentences: string[] = [];
+  for (const t of memberTexts) for (const sent of String(t).split(/(?<=[.!?])\s+/)) { const s = sent.trim(); if (s) sentences.push(s); }
+  if (sentences.length === 0) return "";
+  let out = ""; let i = 0; const guard = sentences.length * 4;
+  while (words(out).length < target && i < guard) { out += (out ? " " : "") + sentences[i % sentences.length]; i++; }
+  return clampWords(out, target);
+}
+
+function titleCase(s: string): string { return s.replace(/\b\w/g, (c) => c.toUpperCase()); }
+/** A content-grounded sub-theme label from a clause bank entry. */
+function subLabel(stance: Stance, idx: number): string {
+  const clause = CLAUSES[stance][idx % CLAUSES[stance].length];
+  return titleCase(words(clause).slice(0, 4).join(" ")).replace(/[",.]/g, "");
+}
+
+/** One enriched theme row (matches lib/adapt-live-themes.ts LiveThemeRow / backend ThemeRead). */
+export interface SimThemeRow {
+  id: string;
+  label: string;
+  summary: string;            // 33-word tier
+  summary_111: string;
+  summary_333: string;
+  confidence: number;         // 0-100
+  response_count: number;
+  theme01_category: "risk" | "support" | "neutral" | null;
+  theme_level: string | null; // "3" | "6" | "9" | null(parent)
+  parent_theme_id: string | null;
+}
+
+/**
+ * Build the Theme01 × Theme02 (3/6/9) row set from injected responses, grounded in their text.
+ * Same responses → identical rows. Plugs straight into adaptLiveThemes(sessionId, rows).
+ */
+export function buildSimThemeRows(responses: { id?: string; raw_text: string }[], seed = "sim"): SimThemeRow[] {
+  const byStance: Record<Stance, string[]> = { risk: [], support: [], neutral: [] };
+  for (const r of responses || []) byStance[classifyStance(r.raw_text)].push(r.raw_text);
+  const rows: SimThemeRow[] = [];
+  for (const stance of STANCE_ORDER) {
+    const members = byStance[stance];
+    if (members.length === 0) continue;
+    const cat = STANCE_TO_CATEGORY[stance];
+    const parentId = `th-${stance}`;
+    const conf = (n: number, salt: string) => Math.min(97, 62 + n * 2 + (hashSeed(`${seed}:${salt}`) % 8));
+    rows.push({
+      id: parentId, label: STANCE_PARENT_LABEL[stance],
+      summary: tierSummary(members, 33), summary_111: tierSummary(members, 111), summary_333: tierSummary(members, 333),
+      confidence: conf(members.length, parentId), response_count: members.length, theme01_category: cat,
+      theme_level: null, parent_theme_id: null,
+    });
+    for (const level of [3, 6, 9]) {
+      // Partition members into `level` deterministic buckets (stable by hash).
+      const buckets: string[][] = Array.from({ length: level }, () => []);
+      members.forEach((m, i) => buckets[(hashSeed(`${seed}:${stance}:${level}:${i}`) % level)].push(m));
+      buckets.forEach((bucket, b) => {
+        rows.push({
+          id: `${parentId}-l${level}-${b}`, label: subLabel(stance, b),
+          summary: tierSummary(bucket, 33), summary_111: tierSummary(bucket, 111), summary_333: tierSummary(bucket, 333),
+          confidence: conf(bucket.length, `${parentId}:${level}:${b}`), response_count: bucket.length,
+          theme01_category: cat, theme_level: String(level), parent_theme_id: parentId,
+        });
+      });
+    }
+  }
+  return rows;
+}
+
 /**
  * Simulate a ranking round: `voters` deterministic ballots over `themeIds`. Each voter has a
  * seeded preference permutation (a light bias toward the given order) so the aggregate has real

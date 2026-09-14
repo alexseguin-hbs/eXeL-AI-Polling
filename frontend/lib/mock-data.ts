@@ -9,6 +9,7 @@ import { SPIRAL_TEST_WAVES } from "./sim-data/spiral-test-100-users";
 import { supabase } from "@/lib/supabase";
 import { orderedPartition as _orderedPartition } from "./sim-sections";
 import { SIM_LIVE_SOURCE } from "./sim-live-source";
+import { buildSimThemeRows } from "./sim-console";
 
 // ── Test Moderator ──────────────────────────────────────────────
 export const MOCK_MODERATOR_ID = "google-oauth2|mock-moderator-001";
@@ -823,6 +824,10 @@ function _mockHash(seed: string): string {
 // deploy has no backend). In-memory (per tab session); the real backend persists to
 // the Ranking table when NEXT_PUBLIC_MOCK_MODE=false.
 const _rankingBallots = new Map<string, string[][]>();
+// WS-G self-contained theming: /ai/run builds grounded Theme01×Theme02 rows from the injected
+// responses; /ai/status reports completed; /themes serves the cached rows. Real Cube-6 does this
+// server-side when NEXT_PUBLIC_MOCK_MODE=false. Deterministic so a console run replays identically.
+const _simThemes = new Map<string, ReturnType<typeof buildSimThemeRows>>();
 /** Deterministic Borda: position 0 earns (n-1) points; ties break by theme_id. Mirrors
  *  the backend _borda_scores + seeded tiebreak so the demo's ranked order is stable. */
 function _bordaAggregate(ballots: string[][]): { rankings: { theme_id: string; rank: number; score: number }[]; participant_count: number } {
@@ -1323,6 +1328,36 @@ export async function handleMockRequest<T>(
   // Without this the participant vote submit (theme-ranking-dnd POST) 404s under
   // MOCK_MODE and the whole vote flow stalls. Living re-vote is supported: a repeat
   // POST from the same tab replaces that voter's last ballot (adjust-your-vote).
+  // ── Cube 6 AI theming (self-contained) ─────────────────────────────────────
+  // POST /sessions/{id}/ai/run — group the injected responses into Theme01×Theme02.
+  const aiRunMatch = path.match(/^\/sessions\/([0-9a-f-]{36})\/ai\/run$/);
+  if (method === "POST" && aiRunMatch) {
+    const sid = aiRunMatch[1];
+    const resp = (mockResponses[sid] ?? []).map((r) => ({ id: r.id, raw_text: r.clean_text }));
+    const rows = buildSimThemeRows(resp, sid);
+    _simThemes.set(sid, rows);
+    return { session_id: sid, status: "completed", response_count: resp.length, theme_count: rows.length, mock: true } as T;
+  }
+  // GET /sessions/{id}/ai/status — completed once /ai/run has cached rows (else pending).
+  const aiStatusMatch = path.match(/^\/sessions\/([0-9a-f-]{36})\/ai\/status$/);
+  if (method === "GET" && aiStatusMatch) {
+    const sid = aiStatusMatch[1];
+    const done = _simThemes.has(sid);
+    return { session_id: sid, status: done ? "completed" : "pending", progress: done ? 100 : 0, mock: true } as T;
+  }
+  // GET /sessions/{id}/themes — the enriched LiveThemeRow[] (33/111/333 tiers) Cube-6 produces.
+  const themesMatch = path.match(/^\/sessions\/([0-9a-f-]{36})\/themes$/);
+  if (method === "GET" && themesMatch) {
+    const sid = themesMatch[1];
+    let rows = _simThemes.get(sid);
+    if (!rows) { // theme on demand so a direct /themes GET after injection still works
+      const resp = (mockResponses[sid] ?? []).map((r) => ({ id: r.id, raw_text: r.clean_text }));
+      rows = buildSimThemeRows(resp, sid);
+      if (resp.length) _simThemes.set(sid, rows);
+    }
+    return (rows ?? []) as T;
+  }
+
   const rankMatch = path.match(/^\/sessions\/([0-9a-f-]{36})\/rankings(\/progress|\/aggregate)?$/);
   if (rankMatch) {
     const sid = rankMatch[1];

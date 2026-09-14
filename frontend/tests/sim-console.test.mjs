@@ -5,7 +5,8 @@
 // 100-400 word band, a realistic stance spread, and valid permutation ballots. Without this gate the
 // console could silently drift to short/empty responses or degenerate ballots and no one would know.
 //   node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/sim-console.test.mjs
-const { generateSimResponses, simulateBallots, mulberry32, hashSeed } = await import('../lib/sim-console.ts');
+const { generateSimResponses, simulateBallots, mulberry32, hashSeed, classifyStance, buildSimThemeRows } = await import('../lib/sim-console.ts');
+const { adaptLiveThemes, THEME01_LABELS } = await import('../lib/adapt-live-themes.ts');
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 const wc = (s) => s.trim().split(/\s+/).length;
 
@@ -45,6 +46,35 @@ const ballotsB = simulateBallots(themes, 25, 'b1');
 ok(JSON.stringify(ballots) === JSON.stringify(ballotsB), 'ballots are deterministic for a fixed seed');
 const ballotsC = simulateBallots(themes, 25, 'b2');
 ok(JSON.stringify(ballots) !== JSON.stringify(ballotsC), 'a different seed yields different ballots');
+
+// --- stance classifier: the generated text classifies to its own stance ---
+const clsSet = generateSimResponses(Q, 60, 'cls');
+const agree = clsSet.filter((r) => classifyStance(r.raw_text) === r.stance).length;
+ok(agree / clsSet.length >= 0.85, `classifier recovers the generated stance ≥85% (got ${Math.round(100 * agree / clsSet.length)}%)`);
+ok(['risk', 'support', 'neutral'].includes(classifyStance('')), 'empty text still classifies (hash fallback, never throws)');
+
+// --- theming: grounded Theme01×Theme02 rows plug into adaptLiveThemes ---
+const themeInput = generateSimResponses(Q, 120, 'thm').map((r) => ({ id: r.id, raw_text: r.raw_text }));
+const rows = buildSimThemeRows(themeInput, 'thm');
+const parents = rows.filter((r) => r.theme_level == null);
+ok(parents.length >= 1 && parents.length <= 3, `1-3 Theme01 parents (got ${parents.length})`);
+ok(rows.filter((r) => r.theme_level == null).every((p) => p.summary && p.summary_111 && p.summary_333), 'every parent has 33/111/333 tiers');
+const wc333 = (s) => s.trim().split(/\s+/).length;
+ok(parents.every((p) => wc333(p.summary) <= 33 && wc333(p.summary_111) <= 111 && wc333(p.summary_333) <= 333), 'tier word budgets respected (≤33/≤111/≤333)');
+ok(parents.every((p) => wc333(p.summary_333) >= wc333(p.summary_111) && wc333(p.summary_111) >= wc333(p.summary)), '333 ≥ 111 ≥ 33 word counts');
+// each present parent has a full 3/6/9 Theme02 fan-out
+for (const p of parents) {
+  for (const lvl of ['3', '6', '9']) {
+    const kids = rows.filter((r) => r.parent_theme_id === p.id && r.theme_level === lvl);
+    ok(kids.length === Number(lvl), `${p.id}: ${lvl} sub-themes at level ${lvl} (got ${kids.length})`);
+  }
+}
+// deterministic
+ok(JSON.stringify(rows) === JSON.stringify(buildSimThemeRows(themeInput, 'thm')), 'theme rows are deterministic');
+// plugs into the live-theme adapter → real SessionThemeData
+const data = adaptLiveThemes('sess-thm', rows);
+ok(data.totalResponses === themeInput.length, `adapted totalResponses = injected count (${data.totalResponses} vs ${themeInput.length})`);
+ok(THEME01_LABELS.some((l) => data.theme2[l].level9.some((t) => !t.isEmpty)), 'adapted level9 has real sub-themes');
 
 // --- RNG primitives are stable ---
 ok(typeof hashSeed('x') === 'number' && hashSeed('x') === hashSeed('x'), 'hashSeed is stable');
