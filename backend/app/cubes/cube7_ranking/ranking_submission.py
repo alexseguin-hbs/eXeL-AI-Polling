@@ -44,6 +44,7 @@ async def submit_user_ranking(
     theme2_voting_level: str = "theme2_3",
     session_short_code: str | None = None,
     theme01_category: str | None = None,
+    allow_revote: bool = False,
 ) -> Ranking:
     """CRS-11.02: Validate theme IDs, store ranking, broadcast progress.
 
@@ -52,6 +53,14 @@ async def submit_user_ranking(
     that category. This is the Step 4 "solo ranking" gate — moderator
     picks one Theme 01 category + one level (3/6/9) before the ranking
     round opens, and participants only see themes from that slice.
+
+    LIVING VOTE (operator 2026-09-14 "we need entire voting functionality
+    working!" — live priorities that re-aggregate): when `allow_revote` is
+    True and the participant already has a ballot for this open (session,
+    cycle), the existing ballot is REPLACED in place (new order + timestamp)
+    instead of being rejected — the count stays stable and the aggregate
+    reflects the latest preference. With `allow_revote` False (the default),
+    a second submission still raises, preserving one-ballot-per-cycle callers.
     """
     level_num = theme2_voting_level.replace("theme2_", "")
 
@@ -116,9 +125,9 @@ async def submit_user_ranking(
             f"Expected {len(valid_ids)} themes at level {level_num}."
         )
 
-    # 2. Check duplicate submission
+    # 2. Duplicate / living re-vote. One ballot per (session, cycle, participant).
     existing = await db.execute(
-        select(Ranking.id).where(
+        select(Ranking).where(
             and_(
                 Ranking.session_id == session_id,
                 Ranking.cycle_id == cycle_id,
@@ -126,23 +135,31 @@ async def submit_user_ranking(
             )
         )
     )
-    if existing.scalar_one_or_none() is not None:
-        raise ValueError(
-            f"Participant {participant_id} already submitted ranking for "
-            f"session {session_id} cycle {cycle_id}"
+    prior = existing.scalar_one_or_none()
+    if prior is not None:
+        if not allow_revote:
+            raise ValueError(
+                f"Participant {participant_id} already submitted ranking for "
+                f"session {session_id} cycle {cycle_id}"
+            )
+        # Living re-vote: replace the ballot in place (order + timestamp); count unchanged.
+        prior.ranked_theme_ids = [str(tid) for tid in ranked_theme_ids]
+        prior.submitted_at = datetime.now(timezone.utc)
+        await db.flush()
+        await db.refresh(prior)
+        ranking = prior
+    else:
+        # 3. Store new ranking
+        ranking = Ranking(
+            session_id=session_id,
+            cycle_id=cycle_id,
+            participant_id=participant_id,
+            ranked_theme_ids=[str(tid) for tid in ranked_theme_ids],
+            submitted_at=datetime.now(timezone.utc),
         )
-
-    # 3. Store ranking
-    ranking = Ranking(
-        session_id=session_id,
-        cycle_id=cycle_id,
-        participant_id=participant_id,
-        ranked_theme_ids=[str(tid) for tid in ranked_theme_ids],
-        submitted_at=datetime.now(timezone.utc),
-    )
-    db.add(ranking)
-    await db.flush()
-    await db.refresh(ranking)
+        db.add(ranking)
+        await db.flush()
+        await db.refresh(ranking)
 
     # 4. Broadcast submission progress (CRS-16: live ranking updates)
     if session_short_code:

@@ -95,9 +95,13 @@ async def submit_ranking(
             session_id=session_id,
             participant_id=participant.id,
             ranked_theme_ids=payload.ranked_theme_ids,
+            # LIVING VOTE: bind to the session's current cycle (not a hardcoded 1) and allow a
+            # participant to adjust their ballot while the cycle is open (status gate above).
+            cycle_id=getattr(session, "current_cycle", 1) or 1,
             theme2_voting_level=getattr(session, "theme2_voting_level", "theme2_3"),
             session_short_code=session.short_code,
             theme01_category=getattr(session, "theme01_category", None),
+            allow_revote=True,
         )
         await db.commit()
         return ranking
