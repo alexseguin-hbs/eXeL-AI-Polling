@@ -14,6 +14,7 @@ import { ThemeCircle } from "./theme-circle";
 import { RotaryKnob } from "./rotary-knob";
 import { ResponseDrawer } from "./response-drawer";
 import { RankedThemes } from "./ranked-themes";
+import { PollingRevisionHistory } from "@/components/polling-revision-history";
 import {
   getTheme1Positions,
   getHubPosition,
@@ -96,6 +97,8 @@ export function FlowerVisualization({
   // Live Cube-7 aggregated priority order (Theme01 labels), from GET /sessions/{id}/rankings.
   // Undefined until a ranking round has ballots → RankedThemes falls back to count order.
   const [rankOrder, setRankOrder] = useState<string[] | undefined>(undefined);
+  // Full ranked rows (label + rank + score) for the revision-history snapshot.
+  const [rankRows, setRankRows] = useState<{ label: string; rank: number; score: number }[]>([]);
 
   // Real sessions: fetch Cube 6 Theme 01 (Risk/Supporting/Neutral) + Theme 02
   // (3/6/9) from the backend and adapt into the visual's shape. Falls back to a
@@ -117,10 +120,11 @@ export function FlowerVisualization({
         }
         // Live Cube-7 priority order: map ranked theme_ids → labels via the same rows.
         try {
-          const agg = await api.get<{ rankings?: { theme_id: string }[] }>(`/sessions/${sessionId}/rankings`);
+          const agg = await api.get<{ rankings?: { theme_id: string; rank: number; score: number }[] }>(`/sessions/${sessionId}/rankings`);
           if (!cancelled && agg?.rankings?.length) {
             const idToLabel = new Map((rows || []).map((r) => [r.id, r.label] as const));
             setRankOrder(agg.rankings.map((r) => idToLabel.get(r.theme_id) ?? r.theme_id));
+            setRankRows(agg.rankings.map((r) => ({ label: idToLabel.get(r.theme_id) ?? r.theme_id, rank: r.rank, score: r.score })));
           }
         } catch { /* no ranking round yet — RankedThemes ranks by count */ }
       } catch {
@@ -507,6 +511,16 @@ export function FlowerVisualization({
             accentColor={selectedTheme1Color?.stroke ?? "#00E5CC"}
             order={state.view === "theme2" ? undefined : rankOrder}
           />
+
+          {/* WS-D: append-only revision history of the themed + ranked results (real sessions). */}
+          {!isDemo && (
+            <PollingRevisionHistory
+              sessionId={sessionId}
+              data={data}
+              ranking={rankRows}
+              accentColor={selectedTheme1Color?.stroke ?? "#00E5CC"}
+            />
+          )}
 
           {/* Response Drawer */}
           {state.selectedTheme2 && selectedTheme2Info && (
