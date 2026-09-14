@@ -170,6 +170,11 @@ export interface ThemeInfo {
   count: number;
   avgConfidence: number;
   summary33: string;
+  /** Per-theme tiered descriptions (operator 2026-09-14: "all three tiers per theme").
+   *  33 is free; 111/333 are the richer paid tiers (same gate as the response drawer).
+   *  Optional so existing rows/tests stay valid; the UI falls back to summary33. */
+  summary111?: string;
+  summary333?: string;
   /** Padded placeholder slot (no responses yet). Flower-of-Life dims + greys these. */
   isEmpty?: boolean;
 }

@@ -10,6 +10,9 @@ export interface LiveThemeRow {
   id: string;
   label: string;
   summary: string;
+  /** Richer per-theme tiers from ThemeRead (theme_summary_111/333); 33 == summary. */
+  summary_111?: string | null;
+  summary_333?: string | null;
   confidence: number; // 0-1 or 0-100 — normalized below
   response_count: number;
   /** risk | support | neutral (maps to the 3 Theme01 buckets). */
@@ -41,7 +44,15 @@ function toInfo(row: LiveThemeRow): ThemeInfo {
   const label = (row.label || "").trim();
   const count = row.response_count ?? 0;
   const isEmpty = label === "" || count <= 0;
-  return { label, count, avgConfidence: pct(row.confidence), summary33: row.summary || "", isEmpty };
+  return {
+    label,
+    count,
+    avgConfidence: pct(row.confidence),
+    summary33: row.summary || "",
+    summary111: row.summary_111 || undefined,
+    summary333: row.summary_333 || undefined,
+    isEmpty,
+  };
 }
 
 /** Pad/trim a Theme02 level array to exactly n slots (Flower-of-Life geometry

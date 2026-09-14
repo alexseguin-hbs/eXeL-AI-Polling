@@ -234,6 +234,31 @@ function truncateToWords(text: string, wordCount: number): string {
   return words.slice(0, wordCount).join(" ") + "...";
 }
 
+/** Per-theme tiered description body (operator 2026-09-14: "all three tiers per theme").
+ *  Grounded in the theme's own responses: accumulate up to `n` words from the members'
+ *  text, stopping early so a 2,500-response bucket stays cheap. Prefixed with `base`
+ *  (the crafted one-liner) so the 111/333 tiers read as an aggregate, not a raw dump. */
+function tierBody(rs: ThemedResponse[], n: number): string {
+  const words: string[] = [];
+  for (const r of rs) {
+    for (const w of (r.summary333 || r.rawText || "").split(/\s+/)) {
+      if (!w) continue;
+      words.push(w);
+      if (words.length >= n) return words.join(" ");
+    }
+  }
+  return words.join(" ");
+}
+function tiersFor(base: string, rs: ThemedResponse[]): { summary33: string; summary111: string; summary333: string } {
+  const b111 = tierBody(rs, 92);
+  const b333 = tierBody(rs, 314);
+  return {
+    summary33: base,
+    summary111: b111 ? `${base} Representative voices: ${b111}` : base,
+    summary333: b333 ? `${base} Representative voices: ${b333}` : base,
+  };
+}
+
 // ── Main generator ───────────────────────────────────────────────
 
 const DISTRIBUTION: { label: Theme01Label; count: number }[] = [
@@ -297,7 +322,10 @@ export function generateSampleSessionData(
       label,
       count: group.length,
       avgConfidence: Math.round(avgConf),
-      summary33: `Aggregate view of ${group.length} responses classified under ${label} with ${Math.round(avgConf)}% average confidence across all sub-themes in the session.`,
+      ...tiersFor(
+        `Aggregate view of ${group.length} responses classified under ${label} with ${Math.round(avgConf)}% average confidence across all sub-themes in the session.`,
+        group,
+      ),
     };
 
     const hierarchy = HIERARCHY_MAP[label];
@@ -313,7 +341,10 @@ export function generateSampleSessionData(
           label: t,
           count: matching.length,
           avgConfidence: Math.round(avg),
-          summary33: `${matching.length} responses about ${t.toLowerCase()} with ${Math.round(avg)}% average confidence in this sub-theme classification.`,
+          ...tiersFor(
+            `${matching.length} responses about ${t.toLowerCase()} with ${Math.round(avg)}% average confidence in this sub-theme classification.`,
+            matching,
+          ),
         };
       });
 
