@@ -1009,5 +1009,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Prioridades classificadas",
   "pollui.desc_length": "Comprimento da descrição (palavras)",
   "pollui.tier_locked": "O detalhe de 111 e 333 palavras é de um plano pago",
+  "pollui.adjust_ranking": "Ajustar a minha classificação",
+  "pollui.ranking_updated": "Classificação atualizada",
+  "pollui.see_results": "Concluído — ver resultados",
+  "cube1.moderator.reopen_polling": "Reabrir a votação (próxima ronda)",
+  "cube1.dashboard.toast_reopened": "Votação reaberta para uma nova ronda",
 };
 export default T;

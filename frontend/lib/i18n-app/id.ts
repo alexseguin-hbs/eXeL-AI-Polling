@@ -1029,5 +1029,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Prioritas berperingkat",
   "pollui.desc_length": "Panjang deskripsi (kata)",
   "pollui.tier_locked": "Detail 111 dan 333 kata merupakan tingkat berbayar",
+  "pollui.adjust_ranking": "Ubah peringkat saya",
+  "pollui.ranking_updated": "Peringkat diperbarui",
+  "pollui.see_results": "Selesai — lihat hasil",
+  "cube1.moderator.reopen_polling": "Buka kembali polling (putaran berikutnya)",
+  "cube1.dashboard.toast_reopened": "Polling dibuka kembali untuk putaran baru",
 };
 export default T;

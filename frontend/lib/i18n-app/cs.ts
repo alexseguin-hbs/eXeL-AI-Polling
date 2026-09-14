@@ -1015,5 +1015,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Seřazené priority",
   "pollui.desc_length": "Délka popisu (slova)",
   "pollui.tier_locked": "Podrobnosti o 111 a 333 slovech jsou součástí placené úrovně",
+  "pollui.adjust_ranking": "Upravit mé pořadí",
+  "pollui.ranking_updated": "Pořadí aktualizováno",
+  "pollui.see_results": "Hotovo — zobrazit výsledky",
+  "cube1.moderator.reopen_polling": "Znovu otevřít hlasování (další kolo)",
+  "cube1.dashboard.toast_reopened": "Hlasování znovu otevřeno pro nové kolo",
 };
 export default T;

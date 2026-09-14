@@ -1019,5 +1019,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "ลำดับความสำคัญที่จัดอันดับแล้ว",
   "pollui.desc_length": "ความยาวคำอธิบาย (คำ)",
   "pollui.tier_locked": "รายละเอียดแบบ 111 และ 333 คำเป็นระดับแบบชำระเงิน",
+  "pollui.adjust_ranking": "ปรับลำดับของฉัน",
+  "pollui.ranking_updated": "อัปเดตลำดับแล้ว",
+  "pollui.see_results": "เสร็จสิ้น — ดูผลลัพธ์",
+  "cube1.moderator.reopen_polling": "เปิดการโหวตอีกครั้ง (รอบถัดไป)",
+  "cube1.dashboard.toast_reopened": "เปิดการโหวตอีกครั้งสำหรับรอบใหม่แล้ว",
 };
 export default T;

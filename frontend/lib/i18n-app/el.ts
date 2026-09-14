@@ -1025,5 +1025,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Κατατεταγμένες προτεραιότητες",
   "pollui.desc_length": "Μήκος περιγραφής (λέξεις)",
   "pollui.tier_locked": "Οι λεπτομέρειες 111 και 333 λέξεων ανήκουν σε επίπεδο επί πληρωμή",
+  "pollui.adjust_ranking": "Προσαρμογή της κατάταξής μου",
+  "pollui.ranking_updated": "Η κατάταξη ενημερώθηκε",
+  "pollui.see_results": "Τέλος — δείτε τα αποτελέσματα",
+  "cube1.moderator.reopen_polling": "Επανέναρξη ψηφοφορίας (επόμενος γύρος)",
+  "cube1.dashboard.toast_reopened": "Η ψηφοφορία άνοιξε ξανά για νέο γύρο",
 };
 export default T;

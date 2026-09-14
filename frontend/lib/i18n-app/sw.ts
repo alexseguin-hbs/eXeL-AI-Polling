@@ -1018,5 +1018,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Vipaumbele vilivyopangwa",
   "pollui.desc_length": "Urefu wa maelezo (maneno)",
   "pollui.tier_locked": "Maelezo ya maneno 111 na 333 ni kiwango cha kulipia",
+  "pollui.adjust_ranking": "Rekebisha mpangilio wangu",
+  "pollui.ranking_updated": "Mpangilio umesasishwa",
+  "pollui.see_results": "Imekamilika — tazama matokeo",
+  "cube1.moderator.reopen_polling": "Fungua tena kura (raundi inayofuata)",
+  "cube1.dashboard.toast_reopened": "Kura imefunguliwa tena kwa raundi mpya",
 };
 export default T;

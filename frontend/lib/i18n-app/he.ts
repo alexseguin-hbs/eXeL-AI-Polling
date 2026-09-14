@@ -1013,5 +1013,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "סדרי עדיפויות מדורגים",
   "pollui.desc_length": "אורך התיאור (מילים)",
   "pollui.tier_locked": "הפירוט של 111 ו־333 מילים זמין ברמה בתשלום בלבד",
+  "pollui.adjust_ranking": "לעדכן את הדירוג שלי",
+  "pollui.ranking_updated": "הדירוג עודכן",
+  "pollui.see_results": "סיימתי — לתוצאות",
+  "cube1.moderator.reopen_polling": "פתיחת הסקר מחדש (סבב הבא)",
+  "cube1.dashboard.toast_reopened": "הסקר נפתח מחדש לסבב חדש",
 };
 export default T;

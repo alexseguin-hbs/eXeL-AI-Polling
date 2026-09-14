@@ -1014,5 +1014,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "순위별 우선순위",
   "pollui.desc_length": "설명 길이(단어 수)",
   "pollui.tier_locked": "111단어 및 333단어 상세 설명은 유료 등급입니다",
+  "pollui.adjust_ranking": "내 순위 조정",
+  "pollui.ranking_updated": "순위가 업데이트되었습니다",
+  "pollui.see_results": "완료 — 결과 보기",
+  "cube1.moderator.reopen_polling": "투표 다시 열기 (다음 라운드)",
+  "cube1.dashboard.toast_reopened": "새 라운드를 위해 투표가 다시 열렸습니다",
 };
 export default T;

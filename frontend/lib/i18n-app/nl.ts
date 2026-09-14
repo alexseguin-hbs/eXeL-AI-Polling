@@ -1019,5 +1019,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Gerangschikte prioriteiten",
   "pollui.desc_length": "Lengte van de beschrijving (woorden)",
   "pollui.tier_locked": "De details van 111 en 333 woorden zijn een betaald niveau",
+  "pollui.adjust_ranking": "Mijn rangschikking aanpassen",
+  "pollui.ranking_updated": "Rangschikking bijgewerkt",
+  "pollui.see_results": "Klaar — bekijk de resultaten",
+  "cube1.moderator.reopen_polling": "Peiling heropenen (volgende ronde)",
+  "cube1.dashboard.toast_reopened": "Peiling heropend voor een nieuwe ronde",
 };
 export default T;

@@ -1013,5 +1013,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Keutamaan mengikut kedudukan",
   "pollui.desc_length": "Panjang penerangan (perkataan)",
   "pollui.tier_locked": "Perincian 111 dan 333 perkataan ialah peringkat berbayar",
+  "pollui.adjust_ranking": "Ubah kedudukan saya",
+  "pollui.ranking_updated": "Kedudukan dikemas kini",
+  "pollui.see_results": "Selesai — lihat keputusan",
+  "cube1.moderator.reopen_polling": "Buka semula pengundian (pusingan seterusnya)",
+  "cube1.dashboard.toast_reopened": "Pengundian dibuka semula untuk pusingan baharu",
 };
 export default T;

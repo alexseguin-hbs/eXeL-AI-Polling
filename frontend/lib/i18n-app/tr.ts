@@ -1012,5 +1012,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Sıralanmış öncelikler",
   "pollui.desc_length": "Açıklama uzunluğu (kelime)",
   "pollui.tier_locked": "111 ve 333 kelimelik ayrıntı ücretli bir katmandır",
+  "pollui.adjust_ranking": "Sıralamamı düzenle",
+  "pollui.ranking_updated": "Sıralama güncellendi",
+  "pollui.see_results": "Bitti — sonuçları gör",
+  "cube1.moderator.reopen_polling": "Oylamayı yeniden aç (sonraki tur)",
+  "cube1.dashboard.toast_reopened": "Oylama yeni bir tur için yeniden açıldı",
 };
 export default T;

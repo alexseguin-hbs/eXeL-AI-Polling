@@ -1021,5 +1021,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "ਦਰਜਾਬੰਦ ਤਰਜੀਹਾਂ",
   "pollui.desc_length": "ਵੇਰਵੇ ਦੀ ਲੰਬਾਈ (ਸ਼ਬਦ)",
   "pollui.tier_locked": "111 ਅਤੇ 333 ਸ਼ਬਦਾਂ ਦਾ ਵੇਰਵਾ ਭੁਗਤਾਨ ਵਾਲੇ ਪੱਧਰ ਵਿੱਚ ਹੈ",
+  "pollui.adjust_ranking": "ਮੇਰੀ ਰੈਂਕਿੰਗ ਬਦਲੋ",
+  "pollui.ranking_updated": "ਰੈਂਕਿੰਗ ਅੱਪਡੇਟ ਹੋ ਗਈ",
+  "pollui.see_results": "ਹੋ ਗਿਆ — ਨਤੀਜੇ ਵੇਖੋ",
+  "cube1.moderator.reopen_polling": "ਪੋਲਿੰਗ ਮੁੜ ਖੋਲ੍ਹੋ (ਅਗਲਾ ਦੌਰ)",
+  "cube1.dashboard.toast_reopened": "ਨਵੇਂ ਦੌਰ ਲਈ ਪੋਲਿੰਗ ਮੁੜ ਖੁੱਲ੍ਹ ਗਈ",
 };
 export default T;

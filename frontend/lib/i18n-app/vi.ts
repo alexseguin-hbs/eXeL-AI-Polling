@@ -1017,5 +1017,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Ưu tiên đã xếp hạng",
   "pollui.desc_length": "Độ dài mô tả (số từ)",
   "pollui.tier_locked": "Mô tả chi tiết 111 và 333 từ thuộc gói trả phí",
+  "pollui.adjust_ranking": "Điều chỉnh xếp hạng của tôi",
+  "pollui.ranking_updated": "Đã cập nhật xếp hạng",
+  "pollui.see_results": "Xong — xem kết quả",
+  "cube1.moderator.reopen_polling": "Mở lại bình chọn (vòng tiếp theo)",
+  "cube1.dashboard.toast_reopened": "Bình chọn đã được mở lại cho vòng mới",
 };
 export default T;

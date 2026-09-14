@@ -1016,5 +1016,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Priorități clasate",
   "pollui.desc_length": "Lungimea descrierii (cuvinte)",
   "pollui.tier_locked": "Detaliile de 111 și 333 de cuvinte fac parte dintr-un nivel plătit",
+  "pollui.adjust_ranking": "Ajustează clasamentul meu",
+  "pollui.ranking_updated": "Clasament actualizat",
+  "pollui.see_results": "Gata — vezi rezultatele",
+  "cube1.moderator.reopen_polling": "Redeschide votul (runda următoare)",
+  "cube1.dashboard.toast_reopened": "Votul a fost redeschis pentru o nouă rundă",
 };
 export default T;

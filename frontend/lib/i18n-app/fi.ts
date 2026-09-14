@@ -1016,5 +1016,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Järjestetyt prioriteetit",
   "pollui.desc_length": "Kuvauksen pituus (sanaa)",
   "pollui.tier_locked": "111 ja 333 sanan tarkemmat kuvaukset kuuluvat maksulliseen tasoon",
+  "pollui.adjust_ranking": "Muokkaa järjestystäni",
+  "pollui.ranking_updated": "Järjestys päivitetty",
+  "pollui.see_results": "Valmis — näytä tulokset",
+  "cube1.moderator.reopen_polling": "Avaa äänestys uudelleen (seuraava kierros)",
+  "cube1.dashboard.toast_reopened": "Äänestys avattu uudelleen uutta kierrosta varten",
 };
 export default T;

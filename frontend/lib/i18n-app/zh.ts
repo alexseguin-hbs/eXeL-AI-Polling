@@ -1015,5 +1015,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "优先级排名",
   "pollui.desc_length": "描述长度（字数）",
   "pollui.tier_locked": "111 字和 333 字的详细描述为付费等级",
+  "pollui.adjust_ranking": "调整我的排序",
+  "pollui.ranking_updated": "排序已更新",
+  "pollui.see_results": "完成 — 查看结果",
+  "cube1.moderator.reopen_polling": "重新开启投票（下一轮）",
+  "cube1.dashboard.toast_reopened": "投票已重新开启，进入新一轮",
 };
 export default T;

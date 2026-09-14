@@ -1013,5 +1013,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Ранжированные приоритеты",
   "pollui.desc_length": "Длина описания (слов)",
   "pollui.tier_locked": "Подробности на 111 и 333 слова доступны только в платном тарифе",
+  "pollui.adjust_ranking": "Изменить мой рейтинг",
+  "pollui.ranking_updated": "Рейтинг обновлён",
+  "pollui.see_results": "Готово — к результатам",
+  "cube1.moderator.reopen_polling": "Открыть голосование заново (следующий раунд)",
+  "cube1.dashboard.toast_reopened": "Голосование открыто заново для нового раунда",
 };
 export default T;

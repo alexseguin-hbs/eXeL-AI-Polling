@@ -1016,5 +1016,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "優先順位ランキング",
   "pollui.desc_length": "説明の長さ（語数）",
   "pollui.tier_locked": "111語および333語の詳細説明は有料プランです",
+  "pollui.adjust_ranking": "順位を調整する",
+  "pollui.ranking_updated": "順位を更新しました",
+  "pollui.see_results": "完了 — 結果を見る",
+  "cube1.moderator.reopen_polling": "投票を再開する（次のラウンド）",
+  "cube1.dashboard.toast_reopened": "新しいラウンドに向けて投票を再開しました",
 };
 export default T;

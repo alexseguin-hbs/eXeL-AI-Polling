@@ -1161,5 +1161,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Mga prayoridad na niraranggo",
   "pollui.desc_length": "Haba ng paglalarawan (mga salita)",
   "pollui.tier_locked": "Ang detalyeng 111 at 333 salita ay bayad na antas",
+  "pollui.adjust_ranking": "Baguhin ang aking ranking",
+  "pollui.ranking_updated": "Na-update ang ranking",
+  "pollui.see_results": "Tapos na — tingnan ang mga resulta",
+  "cube1.moderator.reopen_polling": "Buksan muli ang botohan (susunod na round)",
+  "cube1.dashboard.toast_reopened": "Muling binuksan ang botohan para sa bagong round",
 };
 export default T;

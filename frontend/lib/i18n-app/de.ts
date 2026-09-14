@@ -1014,5 +1014,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Priorisierte Themen",
   "pollui.desc_length": "Beschreibungslänge (Wörter)",
   "pollui.tier_locked": "Die Detailstufen mit 111 und 333 Wörtern sind kostenpflichtig",
+  "pollui.adjust_ranking": "Meine Reihenfolge anpassen",
+  "pollui.ranking_updated": "Reihenfolge aktualisiert",
+  "pollui.see_results": "Fertig — Ergebnisse ansehen",
+  "cube1.moderator.reopen_polling": "Umfrage erneut öffnen (nächste Runde)",
+  "cube1.dashboard.toast_reopened": "Umfrage für eine neue Runde erneut geöffnet",
 };
 export default T;

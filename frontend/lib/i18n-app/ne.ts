@@ -1014,5 +1014,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "क्रमबद्ध प्राथमिकताहरू",
   "pollui.desc_length": "विवरणको लम्बाइ (शब्द)",
   "pollui.tier_locked": "111 र 333 शब्दको विवरण सशुल्क तहमा उपलब्ध छ",
+  "pollui.adjust_ranking": "मेरो क्रम मिलाउनुहोस्",
+  "pollui.ranking_updated": "क्रम अद्यावधिक भयो",
+  "pollui.see_results": "सकियो — नतिजा हेर्नुहोस्",
+  "cube1.moderator.reopen_polling": "मतदान पुनः खोल्नुहोस् (अर्को चरण)",
+  "cube1.dashboard.toast_reopened": "नयाँ चरणका लागि मतदान पुनः खुल्यो",
 };
 export default T;

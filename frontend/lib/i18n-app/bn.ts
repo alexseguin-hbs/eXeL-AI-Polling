@@ -1014,5 +1014,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "ক্রমানুসারে অগ্রাধিকার",
   "pollui.desc_length": "বিবরণের দৈর্ঘ্য (শব্দ)",
   "pollui.tier_locked": "111 ও 333 শব্দের বিস্তারিত বিবরণ একটি পেইড স্তর",
+  "pollui.adjust_ranking": "আমার র‍্যাঙ্কিং পরিবর্তন করুন",
+  "pollui.ranking_updated": "র‍্যাঙ্কিং হালনাগাদ হয়েছে",
+  "pollui.see_results": "সম্পন্ন — ফলাফল দেখুন",
+  "cube1.moderator.reopen_polling": "পোলিং আবার খুলুন (পরবর্তী রাউন্ড)",
+  "cube1.dashboard.toast_reopened": "নতুন রাউন্ডের জন্য পোলিং আবার খোলা হয়েছে",
 };
 export default T;

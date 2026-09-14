@@ -1010,5 +1010,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "الأولويات المرتّبة",
   "pollui.desc_length": "طول الوصف (بالكلمات)",
   "pollui.tier_locked": "التفاصيل بـ 111 و 333 كلمة متاحة في المستوى المدفوع فقط",
+  "pollui.adjust_ranking": "تعديل ترتيبي",
+  "pollui.ranking_updated": "تم تحديث الترتيب",
+  "pollui.see_results": "تم — عرض النتائج",
+  "cube1.moderator.reopen_polling": "إعادة فتح الاستطلاع (الجولة التالية)",
+  "cube1.dashboard.toast_reopened": "أُعيد فتح الاستطلاع لجولة جديدة",
 };
 export default T;

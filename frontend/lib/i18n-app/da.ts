@@ -1031,5 +1031,10 @@ const T: Record<string, string> = {
   "pollui.ranked_themes": "Rangerede prioriteter",
   "pollui.desc_length": "Beskrivelsens længde (ord)",
   "pollui.tier_locked": "Detaljer på 111 og 333 ord er et betalt niveau",
+  "pollui.adjust_ranking": "Justér min rangering",
+  "pollui.ranking_updated": "Rangering opdateret",
+  "pollui.see_results": "Færdig — se resultater",
+  "cube1.moderator.reopen_polling": "Genåbn afstemningen (næste runde)",
+  "cube1.dashboard.toast_reopened": "Afstemningen er genåbnet til en ny runde",
 };
 export default T;
