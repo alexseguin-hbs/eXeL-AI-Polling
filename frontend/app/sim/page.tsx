@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useLexicon } from "@/lib/lexicon-context";
 import { CubeDevSim } from "@/components/cube-dev-sim";
+import { SimAdminConsole } from "@/components/sim-admin-console";
 
 // SIM is easter-egg + password gated. The gate lives in React context (in-memory
 // only). If the user navigates here without unlocking on `/` first, we bounce
@@ -34,7 +35,8 @@ function SimSplitScreen() {
   }, [gated, router]);
 
   const [origin, setOrigin] = useState<string>("");
-  const [view, setView] = useState<"dev" | "split">("dev");
+  const [view, setView] = useState<"dev" | "split" | "admin">("dev");
+  const isAdmin = cube10Access === "admin";
   useEffect(() => {
     if (typeof window !== "undefined") setOrigin(window.location.origin);
   }, []);
@@ -91,7 +93,14 @@ function SimSplitScreen() {
         <Button variant={view === "split" ? "default" : "outline"} size="sm" onClick={() => setView("split")}>
           Session Demo
         </Button>
+        {isAdmin && (
+          <Button variant={view === "admin" ? "default" : "outline"} size="sm" onClick={() => setView("admin")}>
+            Admin Console
+          </Button>
+        )}
       </div>
+
+      {view === "admin" && isAdmin && <SimAdminConsole />}
 
       {view === "dev" && <CubeDevSim />}
 
