@@ -746,15 +746,18 @@ export function hydrateSessionFromKV(
 
 // ── Cube Simulation mock fixtures ───────────────────────────────────────────
 const _SIM_CUBES: Record<number, { name: string; io: { inputs: string[]; functions: string[]; outputs: string[] } }> = {
-  1: { name: "Session", io: { inputs: ["config", "moderator_id", "capacity"], functions: ["create_session", "generate_qr", "transition_state"], outputs: ["short_code", "qr_png", "session_id"] } },
-  2: { name: "Text Submission", io: { inputs: ["raw_text", "session_id", "participant", "language", "max_length"], functions: ["validate_and_fit", "detect_pii", "scrub_pii", "compute_response_hash"], outputs: ["clean_text", "pii_found", "response_hash", "replay_hash"] } },
-  3: { name: "Voice", io: { inputs: ["audio", "language", "provider"], functions: ["transcribe", "failover", "to_text_pipeline"], outputs: ["transcript", "confidence", "provider_used"] } },
-  4: { name: "Collector", io: { inputs: ["response", "session_id", "participant"], functions: ["aggregate", "track_presence", "persist"], outputs: ["response_count", "presence", "stored"] } },
-  5: { name: "Gateway", io: { inputs: ["session_id", "active_minutes", "action"], functions: ["calculate_tokens", "orchestrate_pipeline", "mot_cost_chart"], outputs: ["heart", "human", "unity", "dollars_per_min"] } },
-  6: { name: "AI Theming", io: { inputs: ["responses", "provider", "sample"], functions: ["embed", "cluster", "summarize", "assign_theme"], outputs: ["theme01", "theme02", "summaries", "replay_hash"] } },
-  7: { name: "Ranking", io: { inputs: ["ranked_ids", "votes", "level"], functions: ["borda", "anti_sybil", "aggregate"], outputs: ["ranking", "confidence", "winner"] } },
-  8: { name: "Tokens", io: { inputs: ["amount", "jurisdiction", "action"], functions: ["dollars_to_hi", "mint", "transition_lifecycle"], outputs: ["hi_tokens", "ledger_entry", "lifecycle_state"] } },
-  9: { name: "Reports", io: { inputs: ["session_id", "tier", "format"], functions: ["build_csv", "compute_export_hash", "distribute"], outputs: ["csv", "export_hash", "recipients"] } },
+  // functions[] are the REAL baked source keys (lib/sim-live-source.ts) so every SIM block
+  // resolves to actual eXeL AI code, in foundational order, one function per default block
+  // (default_sections === functions.length). inputs/outputs stay conceptual.
+  1: { name: "Session", io: { inputs: ["config", "moderator_id", "capacity"], functions: ["create_session", "_generate_unique_short_code", "generate_qr_png", "join_session", "_compute_replay_hash", "transition_session"], outputs: ["short_code", "qr_png", "session_id"] } },
+  2: { name: "Text Submission", io: { inputs: ["raw_text", "session_id", "participant", "language", "max_length"], functions: ["validate_text_input", "validate_and_fit_text_input", "detect_pii", "detect_language", "scrub_pii", "anonymize_response", "compute_response_hash", "store_response"], outputs: ["clean_text", "pii_found", "response_hash", "replay_hash"] } },
+  3: { name: "Voice", io: { inputs: ["audio", "language", "provider"], functions: ["submit_voice_response", "store_voice_response", "transcribe_audio", "handle_realtime_transcription", "select_stt_provider", "get_stt_provider_safe", "run_text_pipeline"], outputs: ["transcript", "confidence", "provider_used"] } },
+  4: { name: "Collector", io: { inputs: ["response", "session_id", "participant"], functions: ["get_collected_responses", "get_response_count", "get_session_presence", "update_presence", "create_desired_outcome", "record_confirmation", "analyze_session", "synthesize_analysis"], outputs: ["response_count", "presence", "stored"] } },
+  5: { name: "Gateway", io: { inputs: ["session_id", "active_minutes", "action"], functions: ["calculate_tokens", "start_time_tracking", "trigger_ai_pipeline", "orchestrate_post_polling", "mot_cost_control_chart", "dollars_per_min", "session_profit"], outputs: ["heart", "human", "unity", "dollars_per_min"] } },
+  6: { name: "AI Theming", io: { inputs: ["responses", "provider", "sample"], functions: ["run_pipeline", "run_ai_theming", "sample_response_summaries", "select_centroid_representatives", "generate_summary_tiers", "truncate_to_words", "_assign_themes_llm"], outputs: ["theme01", "theme02", "summaries", "replay_hash"] } },
+  7: { name: "Ranking", io: { inputs: ["ranked_ids", "votes", "level"], functions: ["aggregate_rankings", "submit_ranking", "detect_voting_anomalies", "_apply_influence_cap", "_weighted_borda_scores", "_borda_scores", "_seeded_tiebreak_key", "_compute_replay_hash"], outputs: ["ranking", "confidence", "winner"] } },
+  8: { name: "Tokens", io: { inputs: ["amount", "jurisdiction", "action"], functions: ["hours_to_hi_tokens", "resolve_human_rate", "create_ledger_entry", "dispatch_token_award", "transition_lifecycle_state", "reverse_entry", "create_token_dispute"], outputs: ["hi_tokens", "ledger_entry", "lifecycle_state"] } },
+  9: { name: "Reports", io: { inputs: ["session_id", "tier", "format"], functions: ["export_session_csv", "export_csv", "compute_export_hash", "verify_export_hash", "_apply_tier_filter", "_tier_at_least", "distribute_results", "announce_reward_winner"], outputs: ["csv", "export_hash", "recipients"] } },
 };
 const _SIM_SECTIONS: Record<string, string> = { A: "Clean & fit", B: "Find private info", C: "Hide it", D: "Fingerprint" };
 const _SIM_SECTION_KEYS = ["A", "B", "C", "D"] as const;
