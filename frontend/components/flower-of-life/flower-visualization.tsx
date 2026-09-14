@@ -93,6 +93,9 @@ export function FlowerVisualization({
   const isDemo = !!sessionShortCode && DEMO_SHOWCASE_CODES.has(sessionShortCode.toUpperCase());
   const [liveData, setLiveData] = useState<SessionThemeData | null>(null);
   const [liveStatus, setLiveStatus] = useState<"loading" | "empty" | "ready">(isDemo ? "ready" : "loading");
+  // Live Cube-7 aggregated priority order (Theme01 labels), from GET /sessions/{id}/rankings.
+  // Undefined until a ranking round has ballots → RankedThemes falls back to count order.
+  const [rankOrder, setRankOrder] = useState<string[] | undefined>(undefined);
 
   // Real sessions: fetch Cube 6 Theme 01 (Risk/Supporting/Neutral) + Theme 02
   // (3/6/9) from the backend and adapt into the visual's shape. Falls back to a
@@ -112,6 +115,14 @@ export function FlowerVisualization({
         } else {
           setLiveStatus("empty");
         }
+        // Live Cube-7 priority order: map ranked theme_ids → labels via the same rows.
+        try {
+          const agg = await api.get<{ rankings?: { theme_id: string }[] }>(`/sessions/${sessionId}/rankings`);
+          if (!cancelled && agg?.rankings?.length) {
+            const idToLabel = new Map((rows || []).map((r) => [r.id, r.label] as const));
+            setRankOrder(agg.rankings.map((r) => idToLabel.get(r.theme_id) ?? r.theme_id));
+          }
+        } catch { /* no ranking round yet — RankedThemes ranks by count */ }
       } catch {
         if (!cancelled) setLiveStatus("empty");
       }
@@ -494,6 +505,7 @@ export function FlowerVisualization({
             themes={state.view === "theme2" ? currentTheme2Themes : THEME1_LABELS.map((l) => data.theme1[l])}
             isPaidTier={isPaidTier}
             accentColor={selectedTheme1Color?.stroke ?? "#00E5CC"}
+            order={state.view === "theme2" ? undefined : rankOrder}
           />
 
           {/* Response Drawer */}
