@@ -26,6 +26,18 @@ VALID_RANKING_METHODS = {"borda_count", "quadratic_borda"}
 VALID_SIM_MODES = {"playback", "live", "dual_view"}
 VALID_SIM_ROLES = {"moderator", "user1", "user2"}
 
+
+async def _resolve_cycle(db: AsyncSession, session_id: uuid.UUID, cycle_id: int | None) -> int:
+    """Default a cycle read to the session's current_cycle (living vote); explicit wins."""
+    if cycle_id is not None:
+        return cycle_id
+    from app.models.session import Session
+    from sqlalchemy import select
+    row = await db.execute(select(Session.current_cycle).where(Session.id == session_id))
+    cur = row.scalar_one_or_none()
+    return int(cur or 1)
+
+
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.dependencies import get_db
 from app.core.permissions import require_role
@@ -117,7 +129,7 @@ async def submit_ranking(
 @router.get("/rankings", response_model=list[AggregatedRankingRead])
 async def get_rankings(
     session_id: uuid.UUID,
-    cycle_id: int = 1,
+    cycle_id: int | None = None,
     sort_order: str = Query("desc", description="Sort order: 'asc' or 'desc'"),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
@@ -129,6 +141,7 @@ async def get_rankings(
             status_code=400,
             detail=f"Invalid sort_order '{sort_order}'. Must be one of: {sorted(VALID_SORT_ORDERS)}",
         )
+    cycle_id = await _resolve_cycle(db, session_id, cycle_id)
     rankings = await service.get_live_rankings(db, session_id, cycle_id)
     validated = [AggregatedRankingRead.model_validate(r) for r in rankings]
     if sort_order == "asc":
@@ -176,6 +189,7 @@ async def trigger_aggregation(
             session_id=session_id,
             session_short_code=session.short_code,
             seed=seed or session.seed,
+            cycle_id=int(getattr(session, "current_cycle", 1) or 1),
         )
         return result
     except ValueError as e:
@@ -335,11 +349,12 @@ async def verify_ranking_replay(
 @router.get("/rankings/progress")
 async def get_progress(
     session_id: uuid.UUID,
-    cycle_id: int = 1,
+    cycle_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
-    """CRS-16: Get ranking submission progress (moderator only)."""
+    """CRS-16: Get ranking submission progress (moderator only). Defaults to the open cycle."""
+    cycle_id = await _resolve_cycle(db, session_id, cycle_id)
     return await service.get_ranking_progress(db, session_id, cycle_id)
 
 

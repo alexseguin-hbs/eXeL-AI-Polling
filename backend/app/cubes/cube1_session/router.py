@@ -341,6 +341,20 @@ async def start_ranking(
     return await _transition_and_return(db, session_id, "ranking", user)
 
 
+@router.post("/{session_id}/reopen", response_model=SessionRead)
+async def reopen_polling(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """LIVING VOTE: re-open a ranking round into the NEXT cycle (ranking → polling).
+
+    Uses the existing state-machine back-edge; transition_session advances
+    current_cycle (bounded by max_cycles) so the new round's ballots are isolated.
+    """
+    return await _transition_and_return(db, session_id, "polling", user)
+
+
 @router.post("/{session_id}/close", response_model=SessionRead)
 async def close_session(
     session_id: uuid.UUID,

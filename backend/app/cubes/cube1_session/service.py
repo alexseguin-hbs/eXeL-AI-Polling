@@ -462,6 +462,18 @@ async def transition_session(
         # Compute ends_at for static polls when transitioning to polling
         if session.polling_mode_type == "static_poll" and session.static_poll_duration_days:
             session.ends_at = now + timedelta(days=session.static_poll_duration_days)
+        # LIVING VOTE (operator 2026-09-14): re-opening a ranking round starts a NEW cycle so
+        # ballots are keyed per round (unique session+cycle+participant) — never re-used or
+        # double-counted. Bounded by max_cycles; a bounded refusal is a SessionStateError.
+        if old_status == "ranking":
+            current = int(getattr(session, "current_cycle", 1) or 1)
+            limit = int(getattr(session, "max_cycles", 1) or 1)
+            if current >= limit:
+                raise SessionStateError(
+                    session.status,
+                    f"re-open polling (cycle {current} of {limit} already used; raise max_cycles)",
+                )
+            session.current_cycle = current + 1
     elif new_status == "closed":
         session.closed_at = now
         # G3 fix: compute replay hash for determinism verification
@@ -492,7 +504,7 @@ async def transition_session(
         actor_role=actor_role,
         action_type=f"session.transition.{old_status}_to_{new_status}",
         before_state={"status": old_status},
-        after_state={"status": new_status},
+        after_state={"status": new_status, "current_cycle": getattr(session, "current_cycle", 1)},
     )
 
     await db.commit()

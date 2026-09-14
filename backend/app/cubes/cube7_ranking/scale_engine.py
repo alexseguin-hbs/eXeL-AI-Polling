@@ -176,10 +176,11 @@ class SupabaseVoteAccumulator:
     Supabase Realtime + Python memory handles all scale requirements.
     """
 
-    def __init__(self, session_id: str, n_themes: int, seed: str):
+    def __init__(self, session_id: str, n_themes: int, seed: str, cycle_id: int = 1):
         self.session_id = session_id
         self.n_themes = n_themes
         self.seed = seed
+        self.cycle_id = cycle_id
         # In-memory accumulator (primary) — Supabase for persistence
         self._accumulator = BordaAccumulator(n_themes=n_themes, seed=seed)
         self._pending_writes: list[dict] = []
@@ -190,8 +191,9 @@ class SupabaseVoteAccumulator:
         self._accumulator.add_vote(ranked_theme_ids, participant_id, weight)
         self._pending_writes.append({
             "session_id": self.session_id,
+            "cycle_id": self.cycle_id,
             "participant_id": participant_id,
-            "ranked_theme_ids": ranked_theme_ids,
+            "ranked_theme_ids": [str(t) for t in ranked_theme_ids],
         })
 
     async def flush_to_db(self, db) -> int:
@@ -205,7 +207,21 @@ class SupabaseVoteAccumulator:
         batch = self._pending_writes[:self._batch_size]
         self._pending_writes = self._pending_writes[self._batch_size:]
 
-        # Batch insert would go here via db.execute(insert(...).values(batch))
+        # LIVING VOTE persistence: one batched UPSERT into user_rankings. A participant's
+        # latest ballot in the open cycle wins (unique session+cycle+participant), matching
+        # submit_user_ranking's allow_revote semantics — never a duplicate, never a loss.
+        from datetime import datetime, timezone
+        from sqlalchemy.dialects.postgresql import insert as pg_insert
+        from app.models.ranking import Ranking
+
+        now = datetime.now(timezone.utc)
+        rows = [{**row, "submitted_at": now} for row in batch]
+        stmt = pg_insert(Ranking).values(rows)
+        stmt = stmt.on_conflict_do_update(
+            constraint="uq_ranking_session_cycle_participant",
+            set_={"ranked_theme_ids": stmt.excluded.ranked_theme_ids, "submitted_at": stmt.excluded.submitted_at},
+        )
+        await db.execute(stmt)
         count = len(batch)
         logger.info(
             "cube7.scale.batch_flushed",
