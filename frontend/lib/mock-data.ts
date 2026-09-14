@@ -818,6 +818,25 @@ function _mockHash(seed: string): string {
   return out.join("");
 }
 
+// ── Cube 7 Ranking (mock) ────────────────────────────────────────────────────
+// Ballots recorded per session so the vote flow works under MOCK_MODE (the default
+// deploy has no backend). In-memory (per tab session); the real backend persists to
+// the Ranking table when NEXT_PUBLIC_MOCK_MODE=false.
+const _rankingBallots = new Map<string, string[][]>();
+/** Deterministic Borda: position 0 earns (n-1) points; ties break by theme_id. Mirrors
+ *  the backend _borda_scores + seeded tiebreak so the demo's ranked order is stable. */
+function _bordaAggregate(ballots: string[][]): { rankings: { theme_id: string; rank: number; score: number }[]; participant_count: number } {
+  const score = new Map<string, number>();
+  for (const b of ballots) {
+    const n = b.length;
+    b.forEach((id, i) => score.set(id, (score.get(id) ?? 0) + (n - 1 - i)));
+  }
+  const rankings = Array.from(score.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([theme_id, s], i) => ({ theme_id, rank: i + 1, score: s }));
+  return { rankings, participant_count: ballots.length };
+}
+
 function handleSimMock(method: string, rawPath: string, body?: unknown): unknown {
   const [path, query] = rawPath.split("?");
   const qs = new URLSearchParams(query || "");
@@ -1298,6 +1317,40 @@ export async function handleMockRequest<T>(
       items: localItems,
       total: localItems.length,
     } as T;
+  }
+
+  // ── Cube 7 Ranking (mock): record ballots + deterministic Borda aggregate ──
+  // Without this the participant vote submit (theme-ranking-dnd POST) 404s under
+  // MOCK_MODE and the whole vote flow stalls. Living re-vote is supported: a repeat
+  // POST from the same tab replaces that voter's last ballot (adjust-your-vote).
+  const rankMatch = path.match(/^\/sessions\/([0-9a-f-]{36})\/rankings(\/progress|\/aggregate)?$/);
+  if (rankMatch) {
+    const sid = rankMatch[1];
+    const sub = rankMatch[2] || "";
+    const ballots = _rankingBallots.get(sid) ?? [];
+    if (method === "POST" && sub === "") {
+      const b = (body as { ranked_theme_ids?: string[]; replace_last?: boolean } | undefined) || {};
+      const ids = Array.isArray(b.ranked_theme_ids) ? b.ranked_theme_ids : [];
+      if (ids.length === 0) return { __status: 400 } as T;
+      if (b.replace_last && ballots.length) ballots[ballots.length - 1] = ids; // living re-vote
+      else ballots.push(ids);
+      _rankingBallots.set(sid, ballots);
+      return { status: "recorded", session_id: sid, submissions: ballots.length, cycle_id: 1 } as T;
+    }
+    if (method === "GET" && sub === "/progress") {
+      return { session_id: sid, submissions: ballots.length } as T;
+    }
+    if ((method === "GET" && sub === "") || (method === "POST" && sub === "/aggregate")) {
+      const agg = _bordaAggregate(ballots);
+      return {
+        session_id: sid,
+        participant_count: agg.participant_count,
+        ranking_method: "borda_count",
+        rankings: agg.rankings,
+        winner: agg.rankings[0]?.theme_id ?? null,
+        replay_hash: _mockHash(`rank:${sid}:${ballots.length}`),
+      } as T;
+    }
   }
 
   // State transitions: start, open, poll, rank, close, archive
