@@ -1011,5 +1011,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· 학습 포인트",
   "atlantis.icon_livelihood_home": "생계 터전",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "순위별 우선순위",
+  "pollui.desc_length": "설명 길이(단어 수)",
+  "pollui.tier_locked": "111단어 및 333단어 상세 설명은 유료 등급입니다",
 };
 export default T;

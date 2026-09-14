@@ -1010,5 +1010,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· נקודות למידה",
   "atlantis.icon_livelihood_home": "בית פרנסה",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "סדרי עדיפויות מדורגים",
+  "pollui.desc_length": "אורך התיאור (מילים)",
+  "pollui.tier_locked": "הפירוט של 111 ו־333 מילים זמין ברמה בתשלום בלבד",
 };
 export default T;

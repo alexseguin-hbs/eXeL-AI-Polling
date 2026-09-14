@@ -1009,5 +1009,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· Öğrenme noktaları",
   "atlantis.icon_livelihood_home": "Geçim kaynağı evi",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "Sıralanmış öncelikler",
+  "pollui.desc_length": "Açıklama uzunluğu (kelime)",
+  "pollui.tier_locked": "111 ve 333 kelimelik ayrıntı ücretli bir katmandır",
 };
 export default T;

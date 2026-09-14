@@ -1013,5 +1013,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· 学習ポイント",
   "atlantis.icon_livelihood_home": "生活の拠点",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "優先順位ランキング",
+  "pollui.desc_length": "説明の長さ（語数）",
+  "pollui.tier_locked": "111語および333語の詳細説明は有料プランです",
 };
 export default T;

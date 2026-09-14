@@ -1011,5 +1011,8 @@ const T: Record<string, string> = {
   "atlantis.icon_livelihood_home": "Zuhause des Lebensunterhalts",
   "crs.user_story": "User Story",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "Priorisierte Themen",
+  "pollui.desc_length": "Beschreibungslänge (Wörter)",
+  "pollui.tier_locked": "Die Detailstufen mit 111 und 333 Wörtern sind kostenpflichtig",
 };
 export default T;

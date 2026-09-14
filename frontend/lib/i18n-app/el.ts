@@ -1022,5 +1022,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· Σημεία μάθησης",
   "atlantis.icon_livelihood_home": "Σπίτι βιοπορισμού",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "Κατατεταγμένες προτεραιότητες",
+  "pollui.desc_length": "Μήκος περιγραφής (λέξεις)",
+  "pollui.tier_locked": "Οι λεπτομέρειες 111 και 333 λέξεων ανήκουν σε επίπεδο επί πληρωμή",
 };
 export default T;

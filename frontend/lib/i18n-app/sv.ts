@@ -1021,5 +1021,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· Lärdomar",
   "atlantis.icon_livelihood_home": "Försörjningshem",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "Rangordnade prioriteringar",
+  "pollui.desc_length": "Beskrivningens längd (ord)",
+  "pollui.tier_locked": "Detaljer på 111 och 333 ord ingår i en betald nivå",
 };
 export default T;

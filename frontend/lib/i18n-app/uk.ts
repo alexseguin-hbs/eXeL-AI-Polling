@@ -1011,5 +1011,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· Навчальні моменти",
   "atlantis.icon_livelihood_home": "Домівка засобів до існування",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "Ранжовані пріоритети",
+  "pollui.desc_length": "Довжина опису (слів)",
+  "pollui.tier_locked": "Деталі на 111 і 333 слова доступні лише в платному тарифі",
 };
 export default T;

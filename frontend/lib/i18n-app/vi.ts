@@ -1014,5 +1014,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· Điểm học tập",
   "atlantis.icon_livelihood_home": "Nơi sinh kế",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "Ưu tiên đã xếp hạng",
+  "pollui.desc_length": "Độ dài mô tả (số từ)",
+  "pollui.tier_locked": "Mô tả chi tiết 111 và 333 từ thuộc gói trả phí",
 };
 export default T;

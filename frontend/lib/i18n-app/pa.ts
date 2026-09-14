@@ -1018,5 +1018,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· ਸਿੱਖਣ ਦੇ ਨੁਕਤੇ",
   "atlantis.icon_livelihood_home": "ਰੋਜ਼ੀ-ਰੋਟੀ ਦਾ ਘਰ",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "ਦਰਜਾਬੰਦ ਤਰਜੀਹਾਂ",
+  "pollui.desc_length": "ਵੇਰਵੇ ਦੀ ਲੰਬਾਈ (ਸ਼ਬਦ)",
+  "pollui.tier_locked": "111 ਅਤੇ 333 ਸ਼ਬਦਾਂ ਦਾ ਵੇਰਵਾ ਭੁਗਤਾਨ ਵਾਲੇ ਪੱਧਰ ਵਿੱਚ ਹੈ",
 };
 export default T;

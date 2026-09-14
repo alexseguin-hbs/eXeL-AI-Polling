@@ -1008,5 +1008,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· सीखने के बिंदु",
   "atlantis.icon_livelihood_home": "आजीविका का घर",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "क्रमबद्ध प्राथमिकताएँ",
+  "pollui.desc_length": "विवरण की लंबाई (शब्द)",
+  "pollui.tier_locked": "111 और 333 शब्दों का विवरण सशुल्क स्तर में उपलब्ध है",
 };
 export default T;

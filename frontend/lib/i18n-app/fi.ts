@@ -1013,5 +1013,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· Oppimispisteet",
   "atlantis.icon_livelihood_home": "Toimeentulokoti",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "Järjestetyt prioriteetit",
+  "pollui.desc_length": "Kuvauksen pituus (sanaa)",
+  "pollui.tier_locked": "111 ja 333 sanan tarkemmat kuvaukset kuuluvat maksulliseen tasoon",
 };
 export default T;

@@ -1012,5 +1012,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· Body učení",
   "atlantis.icon_livelihood_home": "Domov obživy",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "Seřazené priority",
+  "pollui.desc_length": "Délka popisu (slova)",
+  "pollui.tier_locked": "Podrobnosti o 111 a 333 slovech jsou součástí placené úrovně",
 };
 export default T;

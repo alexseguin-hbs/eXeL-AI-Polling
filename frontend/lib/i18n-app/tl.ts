@@ -1158,5 +1158,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· Mga puntos ng pagkatuto",
   "atlantis.icon_livelihood_home": "Tahanan ng kabuhayan",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "Mga prayoridad na niraranggo",
+  "pollui.desc_length": "Haba ng paglalarawan (mga salita)",
+  "pollui.tier_locked": "Ang detalyeng 111 at 333 salita ay bayad na antas",
 };
 export default T;

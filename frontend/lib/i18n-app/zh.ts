@@ -1012,5 +1012,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· 学习要点",
   "atlantis.icon_livelihood_home": "生计之家",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "优先级排名",
+  "pollui.desc_length": "描述长度（字数）",
+  "pollui.tier_locked": "111 字和 333 字的详细描述为付费等级",
 };
 export default T;

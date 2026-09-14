@@ -1015,5 +1015,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· Mambo ya kujifunza",
   "atlantis.icon_livelihood_home": "Nyumba ya riziki",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "Vipaumbele vilivyopangwa",
+  "pollui.desc_length": "Urefu wa maelezo (maneno)",
+  "pollui.tier_locked": "Maelezo ya maneno 111 na 333 ni kiwango cha kulipia",
 };
 export default T;

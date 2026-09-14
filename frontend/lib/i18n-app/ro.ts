@@ -1013,5 +1013,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· Puncte de învățare",
   "atlantis.icon_livelihood_home": "Casa mijloacelor de trai",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "Priorități clasate",
+  "pollui.desc_length": "Lungimea descrierii (cuvinte)",
+  "pollui.tier_locked": "Detaliile de 111 și 333 de cuvinte fac parte dintr-un nivel plătit",
 };
 export default T;

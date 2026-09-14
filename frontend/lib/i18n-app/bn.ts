@@ -1011,5 +1011,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· শেখার বিষয়",
   "atlantis.icon_livelihood_home": "জীবিকার আবাস",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "ক্রমানুসারে অগ্রাধিকার",
+  "pollui.desc_length": "বিবরণের দৈর্ঘ্য (শব্দ)",
+  "pollui.tier_locked": "111 ও 333 শব্দের বিস্তারিত বিবরণ একটি পেইড স্তর",
 };
 export default T;

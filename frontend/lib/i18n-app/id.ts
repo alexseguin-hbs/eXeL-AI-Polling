@@ -1026,5 +1026,8 @@ const T: Record<string, string> = {
   "arch.cmd.learning_points": "· Poin pembelajaran",
   "atlantis.icon_livelihood_home": "Rumah penghidupan",
   "atlantis.icon_seed_of_life": "Seed of Life",
+  "pollui.ranked_themes": "Prioritas berperingkat",
+  "pollui.desc_length": "Panjang deskripsi (kata)",
+  "pollui.tier_locked": "Detail 111 dan 333 kata merupakan tingkat berbayar",
 };
 export default T;
