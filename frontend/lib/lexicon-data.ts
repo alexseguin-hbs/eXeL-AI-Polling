@@ -2796,7 +2796,14 @@ const siteUxB7: TranslationEntry[] = [
   { key: "settings.no_ai_key_fallback", englishDefault: "No AI key is set on this site yet, so drafting and summaries fall back to the built-in text.", context: "auto: components/moderator-settings.tsx:340", cubeId: 0 },
 ];
 
+const pollUi: TranslationEntry[] = [
+  { key: "pollui.ranked_themes", englishDefault: "Ranked priorities", context: "Results: heading of the default ranked-themes panel", cubeId: 7 },
+  { key: "pollui.desc_length", englishDefault: "Description length (words)", context: "Results: aria-label for the 33/111/333 per-theme description tier toggle", cubeId: 9 },
+  { key: "pollui.tier_locked", englishDefault: "111 & 333-word detail is a paid tier", context: "Results: note shown to free viewers on the 111/333 description tiers", cubeId: 9 },
+];
+
 export const CUBE_GROUPS: CubeGroup[] = [
+  { cubeId: 77, label: "Polling results UI (2026-09-14)", keys: pollUi },
   { cubeId: 76, label: "Site UX — batch 7 residual (2026-09-13)", keys: siteUxB7 },
   { cubeId: 75, label: "Site UX — batch 6 SoI-2525 (2026-09-13)", keys: siteUxB6 },
   { cubeId: 74, label: "Site UX — batch 5 security-2525 (2026-09-13)", keys: siteUxB5 },

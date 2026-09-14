@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeCircle } from "./theme-circle";
 import { RotaryKnob } from "./rotary-knob";
 import { ResponseDrawer } from "./response-drawer";
+import { RankedThemes } from "./ranked-themes";
 import {
   getTheme1Positions,
   getHubPosition,
@@ -485,6 +486,15 @@ export function FlowerVisualization({
               />
             </div>
           )}
+
+          {/* Default ranked-priorities panel with per-theme 33/111/333 descriptions.
+              Theme2 view ranks the current level's sub-themes; Theme1 view ranks the
+              three categories. Ranks by count until a live Cube-7 order is wired in. */}
+          <RankedThemes
+            themes={state.view === "theme2" ? currentTheme2Themes : THEME1_LABELS.map((l) => data.theme1[l])}
+            isPaidTier={isPaidTier}
+            accentColor={selectedTheme1Color?.stroke ?? "#00E5CC"}
+          />
 
           {/* Response Drawer */}
           {state.selectedTheme2 && selectedTheme2Info && (
