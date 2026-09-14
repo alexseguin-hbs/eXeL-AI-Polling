@@ -492,8 +492,8 @@ function SessionDetail({
         ends_at: updated.ends_at,
       }).catch(() => {});
 
-      // When polling starts, broadcast session_update so participants auto-advance
-      if (action === "poll") {
+      // When polling starts (or a round is re-opened), broadcast session_update so participants auto-advance
+      if (action === "poll" || action === "reopen") {
         broadcast("session_update", {
           status: "polling",
           sessionCode: session.short_code,
@@ -505,6 +505,7 @@ function SessionDetail({
         open: t("cube1.dashboard.toast_session_opened_short"),
         poll: t("cube1.dashboard.toast_polling_started"),
         rank: t("cube1.dashboard.toast_ranking_started"),
+        reopen: t("cube1.dashboard.toast_reopened"),
         close: t("cube1.dashboard.toast_session_closed"),
         archive: t("cube1.dashboard.toast_session_archived"),
       };
@@ -581,6 +582,18 @@ function SessionDetail({
                 disabled={!!actionLoading}
               >
                 {t("cube1.moderator.start_ranking")}
+              </Button>
+            )}
+            {/* LIVING VOTE: re-open the ranking round into the next cycle (bounded by max_cycles) */}
+            {session.status === "ranking" && isLiveInteractive &&
+              (Number(session.current_cycle) || 1) < (Number(session.max_cycles) || 1) && (
+              <Button
+                variant="outline"
+                onClick={() => handleTransition("reopen")}
+                disabled={!!actionLoading}
+                title={`${t("cube1.moderator.reopen_polling")} · ${Number(session.current_cycle) || 1}/${Number(session.max_cycles) || 1}`}
+              >
+                {t("cube1.moderator.reopen_polling")}
               </Button>
             )}
             {/* Cube 6: Theme pipeline status indicator */}

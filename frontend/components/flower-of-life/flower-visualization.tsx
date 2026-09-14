@@ -15,6 +15,7 @@ import { RotaryKnob } from "./rotary-knob";
 import { ResponseDrawer } from "./response-drawer";
 import { RankedThemes } from "./ranked-themes";
 import { PollingRevisionHistory } from "@/components/polling-revision-history";
+import { normalizeRankings } from "@/lib/ranking-shape";
 import {
   getTheme1Positions,
   getHubPosition,
@@ -120,11 +121,12 @@ export function FlowerVisualization({
         }
         // Live Cube-7 priority order: map ranked theme_ids → labels via the same rows.
         try {
-          const agg = await api.get<{ rankings?: { theme_id: string; rank: number; score: number }[] }>(`/sessions/${sessionId}/rankings`);
-          if (!cancelled && agg?.rankings?.length) {
+          // One shape for live (bare list, rank_position) and mock (object, rank) — lib/ranking-shape.ts.
+          const ranked = normalizeRankings(await api.get<unknown>(`/sessions/${sessionId}/rankings`));
+          if (!cancelled && ranked.length) {
             const idToLabel = new Map((rows || []).map((r) => [r.id, r.label] as const));
-            setRankOrder(agg.rankings.map((r) => idToLabel.get(r.theme_id) ?? r.theme_id));
-            setRankRows(agg.rankings.map((r) => ({ label: idToLabel.get(r.theme_id) ?? r.theme_id, rank: r.rank, score: r.score })));
+            setRankOrder(ranked.map((r) => idToLabel.get(r.theme_id) ?? r.theme_id));
+            setRankRows(ranked.map((r) => ({ label: idToLabel.get(r.theme_id) ?? r.theme_id, rank: r.rank, score: r.score })));
           }
         } catch { /* no ranking round yet — RankedThemes ranks by count */ }
       } catch {

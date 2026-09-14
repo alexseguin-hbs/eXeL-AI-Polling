@@ -174,6 +174,9 @@ export function ThemeRankingDnD({
   const [orderedThemes, setOrderedThemes] = useState<SimTheme[]>(themes);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  // LIVING VOTE (real sessions): after a submit the participant can adjust and re-submit;
+  // the re-submit REPLACES their ballot (backend allow_revote / mock replace_last).
+  const [everSubmitted, setEverSubmitted] = useState(false);
   const [hasDragged, setHasDragged] = useState(false);
   const [defaultAccepted, setDefaultAccepted] = useState(false);
   const { t } = useLexicon();
@@ -217,6 +220,7 @@ export function ThemeRankingDnD({
   );
 
   const handleSubmit = useCallback(async () => {
+    const isRevote = everSubmitted;
     setSubmitted(true);
     // CRS-11/12: post the ranked order to Cube 7's live aggregation engine (real sessions only;
     // the SIM demo has no sessionId → it just advances). Auth resolves the participant server-side.
@@ -224,7 +228,12 @@ export function ThemeRankingDnD({
       try {
         await api.post(`/sessions/${sessionId}/rankings`, {
           ranked_theme_ids: orderedThemes.map((th) => th.id),
+          replace_last: isRevote, // living re-vote: replace, never double-count
         });
+        setEverSubmitted(true);
+        if (isRevote) { toast({ title: t("pollui.ranking_updated") }); return; }
+        // Real session: stay on the ballot so it can be adjusted; "Done" advances.
+        return;
       } catch (err) {
         // C7-5: a failed ranking POST must NOT silently advance — surface it and
         // let the participant retry, so their vote actually reaches the aggregator.
@@ -243,7 +252,9 @@ export function ThemeRankingDnD({
     setTimeout(() => {
       onComplete();
     }, 1500);
-  }, [onComplete, sessionId, orderedThemes, t]);
+  }, [onComplete, sessionId, orderedThemes, t, everSubmitted]);
+
+  const handleAdjust = useCallback(() => { setSubmitted(false); setHasDragged(true); }, []);
 
   const activeTheme = activeId
     ? orderedThemes.find((th) => th.id === activeId)
@@ -334,6 +345,12 @@ export function ThemeRankingDnD({
             <p className="text-sm text-green-400 font-medium">
               {t("cube10.sim.rankings_submitted")}
             </p>
+            {sessionId && (
+              <div className="flex flex-wrap justify-center gap-2 pt-1">
+                <Button variant="outline" size="sm" onClick={handleAdjust}>{t("pollui.adjust_ranking")}</Button>
+                <Button size="sm" onClick={onComplete}>{t("pollui.see_results")}</Button>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

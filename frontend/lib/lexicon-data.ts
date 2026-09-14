@@ -2800,6 +2800,11 @@ const pollUi: TranslationEntry[] = [
   { key: "pollui.ranked_themes", englishDefault: "Ranked priorities", context: "Results: heading of the default ranked-themes panel", cubeId: 7 },
   { key: "pollui.desc_length", englishDefault: "Description length (words)", context: "Results: aria-label for the 33/111/333 per-theme description tier toggle", cubeId: 9 },
   { key: "pollui.tier_locked", englishDefault: "111 & 333-word detail is a paid tier", context: "Results: note shown to free viewers on the 111/333 description tiers", cubeId: 9 },
+  { key: "pollui.adjust_ranking", englishDefault: "Adjust my ranking", context: "Ranking stage: button to re-open your submitted ballot and re-order it (living vote)", cubeId: 7 },
+  { key: "pollui.ranking_updated", englishDefault: "Ranking updated", context: "Ranking stage: toast after a re-submitted (adjusted) ballot replaced the previous one", cubeId: 7 },
+  { key: "pollui.see_results", englishDefault: "Done — see results", context: "Ranking stage: button that leaves the ballot and opens the results", cubeId: 7 },
+  { key: "cube1.moderator.reopen_polling", englishDefault: "Re-open polling (next round)", context: "Moderator dashboard: button that re-opens a ranking round into the next cycle", cubeId: 1 },
+  { key: "cube1.dashboard.toast_reopened", englishDefault: "Polling re-opened for a new round", context: "Moderator dashboard: toast after a round is re-opened", cubeId: 1 },
 ];
 
 export const CUBE_GROUPS: CubeGroup[] = [

@@ -1070,7 +1070,7 @@ export async function handleMockRequest<T>(
       description: (payload?.description as string) || null,
       anonymity_mode: "identified",
       cycle_mode: ((payload?.cycle_mode as string) || "single") as Session["cycle_mode"],
-      max_cycles: 1,
+      max_cycles: Math.max(1, Number(payload?.max_cycles) || 3), // demo: 3 rounds so re-open is showable
       current_cycle: 1,
       ranking_mode: "auto",
       language: "en",
@@ -1362,35 +1362,45 @@ export async function handleMockRequest<T>(
   if (rankMatch) {
     const sid = rankMatch[1];
     const sub = rankMatch[2] || "";
-    const ballots = _rankingBallots.get(sid) ?? [];
+    // LIVING VOTE: ballots are keyed per (session, cycle) — a re-opened round starts clean.
+    const cycle = Number(findSessionById(sid)?.current_cycle) || 1;
+    const key = `${sid}:${cycle}`;
+    const ballots = _rankingBallots.get(key) ?? [];
     if (method === "POST" && sub === "") {
       const b = (body as { ranked_theme_ids?: string[]; replace_last?: boolean } | undefined) || {};
       const ids = Array.isArray(b.ranked_theme_ids) ? b.ranked_theme_ids : [];
-      if (ids.length === 0) return { __status: 400 } as T;
+      if (ids.length === 0) return { __status: 400, detail: "Empty ballot" } as T;
       if (b.replace_last && ballots.length) ballots[ballots.length - 1] = ids; // living re-vote
       else ballots.push(ids);
-      _rankingBallots.set(sid, ballots);
-      return { status: "recorded", session_id: sid, submissions: ballots.length, cycle_id: 1 } as T;
+      _rankingBallots.set(key, ballots);
+      return { status: "recorded", session_id: sid, submissions: ballots.length, cycle_id: cycle } as T;
     }
     if (method === "GET" && sub === "/progress") {
-      return { session_id: sid, submissions: ballots.length } as T;
+      return { session_id: sid, submissions: ballots.length, cycle_id: cycle } as T;
     }
-    if ((method === "GET" && sub === "") || (method === "POST" && sub === "/aggregate")) {
-      const agg = _bordaAggregate(ballots);
+    const agg = _bordaAggregate(ballots);
+    if (method === "GET" && sub === "") {
+      // Mirrors the REAL endpoint: a bare list[AggregatedRankingRead] (rank_position, vote_count).
+      return agg.rankings.map((r) => ({
+        theme_id: r.theme_id, rank_position: r.rank, score: r.score, vote_count: agg.participant_count, cycle_id: cycle,
+      })) as T;
+    }
+    if (method === "POST" && sub === "/aggregate") {
       return {
         session_id: sid,
+        cycle_id: cycle,
         participant_count: agg.participant_count,
         ranking_method: "borda_count",
         rankings: agg.rankings,
         winner: agg.rankings[0]?.theme_id ?? null,
-        replay_hash: _mockHash(`rank:${sid}:${ballots.length}`),
+        replay_hash: _mockHash(`rank:${sid}:${cycle}:${ballots.length}`),
       } as T;
     }
   }
 
   // State transitions: start, open, poll, rank, close, archive
   const transitionMatch = path.match(
-    /^\/sessions\/([0-9a-f-]{36})\/(start|open|poll|rank|close|archive)$/
+    /^\/sessions\/([0-9a-f-]{36})\/(start|open|poll|rank|reopen|close|archive)$/
   );
   if (method === "POST" && transitionMatch) {
     const session = findSessionById(transitionMatch[1]);
@@ -1400,9 +1410,18 @@ export async function handleMockRequest<T>(
       open: "open",
       poll: "polling",
       rank: "ranking",
+      reopen: "polling",
       close: "closed",
       archive: "archived",
     };
+    // LIVING VOTE: re-open a ranking round into the NEXT cycle (mirrors the backend back-edge,
+    // bounded by max_cycles). Refusals surface as real API errors via {__status}.
+    if (transitionMatch[2] === "reopen") {
+      if (session.status !== "ranking") return { __status: 400, detail: `Session is in '${session.status}' — only a ranking round can be re-opened` } as T;
+      const cur = Number(session.current_cycle) || 1, max = Number(session.max_cycles) || 1;
+      if (cur >= max) return { __status: 400, detail: `Cycle ${cur} of ${max} already used — raise max_cycles to re-open` } as T;
+      session.current_cycle = cur + 1;
+    }
     session.status = stateMap[transitionMatch[2]] as Session["status"];
     session.updated_at = new Date().toISOString();
     if (transitionMatch[2] === "open" || transitionMatch[2] === "start") {

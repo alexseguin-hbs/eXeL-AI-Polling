@@ -62,6 +62,11 @@ async function request<T>(
     if (result === null) {
       throw new ApiClientError(404, "Session not found. Check the code and try again.");
     }
+    // A mock refusal ({__status, detail}) surfaces like the real API — never a fake success.
+    const refused = result as unknown as { __status?: number; detail?: string };
+    if (refused && typeof refused === "object" && typeof refused.__status === "number" && refused.__status >= 400) {
+      throw new ApiClientError(refused.__status, refused.detail || "Request refused");
+    }
     return result;
   }
 

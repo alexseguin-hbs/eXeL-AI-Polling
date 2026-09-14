@@ -8,6 +8,7 @@
 import { api } from "./api";
 import { generateSimResponses, simulateBallots } from "./sim-console";
 import { adaptLiveThemes, THEME01_LABELS, type LiveThemeRow } from "./adapt-live-themes";
+import { normalizeRankings, rankingWinner, rankingReplayHash } from "./ranking-shape";
 import type { Session, Question, SessionThemeData } from "./types";
 
 /** Same rule as lib/api.ts — self-contained unless the operator points at a real backend. */
@@ -107,16 +108,14 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   if (parentIds.length >= 2) {
     const ballots = simulateBallots(parentIds, voters, seed);
     for (const b of ballots) await api.post(`/sessions/${sessionId}/rankings`, { ranked_theme_ids: b }).catch(() => null);
-    const agg = await api.post<{
-      rankings?: { theme_id: string; rank: number; score: number }[]; winner?: string | null; replay_hash?: string | null;
-    }>(`/sessions/${sessionId}/rankings/aggregate`, {}).catch(() => null)
-      ?? await api.get<{
-        rankings?: { theme_id: string; rank: number; score: number }[]; winner?: string | null; replay_hash?: string | null;
-      }>(`/sessions/${sessionId}/rankings`).catch(() => null);
+    // Aggregate (object) or the live read (bare list) — one shape via lib/ranking-shape.ts.
+    let agg: unknown = await api.post<unknown>(`/sessions/${sessionId}/rankings/aggregate`, {}).catch(() => null);
+    let rowsRanked = normalizeRankings(agg);
+    if (!rowsRanked.length) { agg = await api.get<unknown>(`/sessions/${sessionId}/rankings`).catch(() => null); rowsRanked = normalizeRankings(agg); }
     const labelOf = (id: string) => rows.find((r) => r.id === id)?.label ?? id;
-    ranking = (agg?.rankings ?? []).map((r) => ({ theme_id: r.theme_id, label: labelOf(r.theme_id), rank: r.rank, score: r.score }));
-    winner = agg?.winner ?? ranking[0]?.theme_id ?? null;
-    replayHash = agg?.replay_hash ?? null;
+    ranking = rowsRanked.map((r) => ({ theme_id: r.theme_id, label: labelOf(r.theme_id), rank: r.rank, score: r.score }));
+    winner = rankingWinner(agg, rowsRanked);
+    replayHash = rankingReplayHash(agg);
   }
 
   progress(1, "Complete");

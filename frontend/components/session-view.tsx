@@ -38,7 +38,7 @@ import { useTheme } from "@/lib/theme-context";
 import type { Session, Question, SimTheme } from "@/lib/types";
 import { useRealtimeStatus } from "@/lib/use-realtime-status";
 import { useSessionBroadcast, type SessionBroadcastPayload } from "@/lib/use-session-broadcast";
-import { STATUS_ORDER, statusRank } from "@/lib/session-utils";
+import { STATUS_ORDER, statusRank, statusAdvances } from "@/lib/session-utils";
 import { supabase } from "@/lib/supabase";
 import { ThemeRankingDnD } from "@/components/theme-ranking-dnd";
 import { ThemeResultsChart } from "@/components/theme-results-chart";
@@ -640,9 +640,10 @@ export function SessionView() {
           }
         }
 
-        // Local API — only apply if it advances status forward
+        // Local API — only apply if it advances status forward (a re-opened round with a
+        // higher current_cycle counts as forward — lib/session-utils statusAdvances).
         const data = await api.get<Session>(`/sessions/${sessionId}`);
-        if (statusRank(data.status) > statusRank(sessionStatus)) {
+        if (statusAdvances({ status: sessionStatus, current_cycle: session?.current_cycle }, data)) {
           setSession(data);
         }
       } catch {
