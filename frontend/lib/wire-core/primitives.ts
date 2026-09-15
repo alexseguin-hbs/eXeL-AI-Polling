@@ -22,7 +22,7 @@ export function dirOf(azRad: number, elRad: number): Vec3 {
   const c = Math.cos(elRad);
   return [Math.sin(azRad) * c, Math.cos(azRad) * c, Math.sin(elRad)];
 }
-export const addV = (p: Vec3, d: Vec3, k = 1): Vec3 => [p[0] + d[0] * k, p[1] + d[1] * k, p[2] + d[2] * k];
+const addV = (p: Vec3, d: Vec3, k = 1): Vec3 => [p[0] + d[0] * k, p[1] + d[1] * k, p[2] + d[2] * k];
 
 /** A closed ring of points at one height. */
 export function ring(b: WireBuilder, pts: EN[], u: number): void {

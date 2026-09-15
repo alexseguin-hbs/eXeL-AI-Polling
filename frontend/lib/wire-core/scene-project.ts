@@ -46,9 +46,6 @@ export function sceneProject(v: Vec3, cam: SceneCam): Projected {
   return { x, y, depth: z2, behind: false };
 }
 
-/** The CSS transform the ground layers must use for SVG and CSS to coincide. */
-export const cssTransform = (cam: SceneCam): string =>
-  `perspective(${cam.perspective ?? 780}px) rotateX(${cam.pitchDeg}deg) scale(${cam.scale ?? 1.2})`;
 
 /**
  * FIT THE WORLD TO THE PANE. A wireframe stranded in a corner of a black rectangle is a picture nobody can

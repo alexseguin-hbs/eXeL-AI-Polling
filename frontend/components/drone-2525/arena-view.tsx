@@ -4,7 +4,8 @@
 // screen (U-WF-09: a cap is never silent). R-CORE interaction: drag rotates and tilts, wheel zooms — the same
 // model every other 2525 surface speaks (lib/rcore-gestures.ts).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { buildArena, type DomainSource } from "@/lib/drone-2525/arena-model";
+import { type DomainSource } from "@/lib/drone-2525/arena-model";
+import { worldAt } from "@/lib/drone-2525/world";
 import { selectLod } from "@/lib/wire-core/wire-model";
 import { motSpec, motLabel, type MotLevel } from "@/lib/wire-core/mot-ladder";
 import { resolveHal, type HalChoice } from "@/lib/wire-core/hal";
@@ -21,19 +22,33 @@ import { WireSvg } from "./wire-svg";
 
 /** What a layer drawn on top of the arena is given — the same world and the same camera, never a copy. */
 export interface ArenaCtx {
-  model: ReturnType<typeof buildArena>["model"];
-  doors: ReturnType<typeof buildArena>["doors"];
-  ground: ReturnType<typeof buildArena>["ground"];
+  model: ReturnType<typeof worldAt>["model"];
+  doors: ReturnType<typeof worldAt>["doors"];
+  ground: ReturnType<typeof worldAt>["ground"];
   cam: { pw: number; ph: number; pitchDeg: number; bearingRad: number; pxPerM: number; originX?: number; originY?: number };
   stroke: (w: number) => number;
 }
 
-export function ArenaView({ source, level = "1.1", hal = "auto", overlay, hudRight, hudLeft }: {
+/**
+ * A stroke-width scaler that is the SAME FUNCTION every render. It was written inline as `fw={(w) => w}`,
+ * which gave it a new identity sixty times a second — and it is a dependency of WireSvg's projection memo,
+ * so the memo never hit once and the full projection over every edge in the model re-ran every frame. A
+ * one-line lambda was costing more than everything it was passed to.
+ */
+const SAME_WIDTH = (w: number) => w;
+
+export function ArenaView({ source, level = "1.1", hal = "auto", reserve = 0, overlay, hudRight, hudLeft }: {
   source: DomainSource;
   /** The rung being ASKED for, 1.1 … 5.5. Calibration may go below it and never above it. */
   level?: MotLevel;
   /** Which machine this is, or "auto" to let it decide from its own measured frame rate. */
   hal?: HalChoice;
+  /**
+   * Segments already spoken for by something drawn on top — the aircraft. ONE BUDGET, TWO CONSUMERS: in an
+   * engagement the aircraft are the world, so they take their share first and the Capitol block gets what
+   * is left. At a poor rung that means the block thins rather than the aircraft vanishing.
+   */
+  reserve?: number;
   /** Drawn in the arena's own camera, above the world and below the HUD. */
   overlay?: (ctx: ArenaCtx) => React.ReactNode;
   hudRight?: React.ReactNode;
@@ -66,13 +81,15 @@ export function ArenaView({ source, level = "1.1", hal = "auto", overlay, hudRig
   }, [level]);
 
   // The model is built once per curve budget — a tier changes what is DRAWN, never what is true.
-  const { model, doors, ground } = useMemo(() => buildArena(source, { ngonSides: spec.ngonSides, contourStepM: 2, stamp: versionStamp() }), [source, spec.ngonSides]);
+  const { model, doors, ground } = useMemo(() => worldAt(source, spec.ngonSides, versionStamp()), [source, spec.ngonSides]);
   const hash = useMemo(() => canonicalHash(model), [model]);
-  const lod = useMemo(() => selectLod(model, spec.maxLod, spec.segments), [model, spec.maxLod, spec.segments]);
+  const worldBudget = Math.max(0, spec.segments - reserve);
+  const lod = useMemo(() => selectLod(model, spec.maxLod, worldBudget), [model, spec.maxLod, worldBudget]);
 
   // Measure our own draw time and let the ladder decide — after the sensor's reserve is taken out.
+  // Stamped in place rather than through an effect with no dependency array, which re-ran every render.
   const t0 = useRef(0);
-  useEffect(() => { t0.current = typeof performance !== "undefined" ? performance.now() : 0; });
+  t0.current = typeof performance !== "undefined" ? performance.now() : t0.current;
   useEffect(() => {
     if (typeof performance === "undefined") return;
     const ms = performance.now() - t0.current;
@@ -127,7 +144,7 @@ export function ArenaView({ source, level = "1.1", hal = "auto", overlay, hudRig
       <span style={hud}>{t("drone.hud.arena")}</span>
       {hudLeft}
       <span style={{ ...hud, color: semanticHex("mount") }} data-drone-fidelity>
-        {motLabel(spec)} · {lod.kept} drawn{lod.dropped ? `, ${lod.dropped} dropped` : ""}
+        {motLabel(spec)} · {lod.kept} drawn{lod.dropped ? `, ${lod.dropped} dropped` : ""}{reserve ? ` · ${reserve} to the aircraft` : ""}
       </span>
     </div>
   );
@@ -151,10 +168,10 @@ export function ArenaView({ source, level = "1.1", hal = "auto", overlay, hudRig
   const world = (
     <div ref={box} data-drone-arena style={{ position: "relative", width: "100%", height: narrow ? "min(52vh, 66vw)" : "min(62vh, max(300px, 80vw))", background: VECTOR_LAW.ground, overflow: "hidden", touchAction: "none" }}
          onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
-      <WireSvg model={model} cam={cam} maxLod={spec.maxLod} segmentBudget={spec.segments} bloom={spec.bloom} fw={(w) => w} />
+      <WireSvg model={model} cam={cam} maxLod={spec.maxLod} segmentBudget={worldBudget} bloom={spec.bloom} fw={SAME_WIDTH} />
       {overlay ? (
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-          {overlay({ model, doors, ground, cam, stroke: (w) => w })}
+          {overlay({ model, doors, ground, cam, stroke: SAME_WIDTH })}
         </div>
       ) : null}
       {/* HUD — drawn in the same stroke language, at the same weight, as the world (the vector law) */}

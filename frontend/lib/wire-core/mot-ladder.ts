@@ -105,7 +105,6 @@ export function motStep(level: MotLevel, delta: number): MotLevel {
 }
 export const motAtMost = (level: MotLevel, cap: MotLevel): MotLevel =>
   motIndex(level) > motIndex(cap) ? cap : level;
-export const motCompare = (a: MotLevel, b: MotLevel): number => motIndex(a) - motIndex(b);
 
 /** One line for a HUD: the rung, its band, and what it is asking for. Never silent (U-WF-09). */
 export const motLabel = (s: MotSpec): string =>

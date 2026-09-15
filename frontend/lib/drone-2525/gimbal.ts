@@ -40,8 +40,8 @@ export interface GimbalSpec {
 /** Where it is pointing right now, and where it has been told to point. */
 export interface GimbalState { az: number; el: number; cmdAz: number; cmdEl: number }
 
-export const DEG = Math.PI / 180;
-export const clampDeg = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
+const DEG = Math.PI / 180;
+const clampDeg = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
 
 /** Shortest signed turn from a to b, in degrees, over the -180..180 wrap. */
 export function shortestTurn(a: number, b: number): number {
@@ -70,6 +70,10 @@ export function command(s: GimbalState, spec: GimbalSpec, az: number, el: number
 export function slew(s: GimbalState, spec: GimbalSpec, dt: number): GimbalState {
   const step = Math.max(0, spec.slewDegPerSec * Math.max(0, dt));
   const dA = shortestTurn(s.az, s.cmdAz), dE = s.cmdEl - s.el;
+  // A GIMBAL THAT HAS ARRIVED RETURNS THE SAME OBJECT. Returning a fresh one every frame made every memo
+  // keyed on the gimbal recompute while nothing was moving — including the frame test over every live
+  // target. Identity is the signal React reads; handing it a new object is telling it something changed.
+  if (dA === 0 && dE === 0) return s;
   const move = (d: number) => (Math.abs(d) <= step ? d : Math.sign(d) * step);
   return { ...s, az: normAz(s.az + move(dA)), el: s.el + move(dE) };
 }

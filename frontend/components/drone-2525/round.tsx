@@ -9,6 +9,7 @@
 // arena's OWN camera — there is no second projection and no second world.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
+import { MONO, btn } from "./ui";
 import { semanticHex } from "@/lib/wire-core/palette";
 import { VECTOR_LAW, strokeProps } from "@/lib/wire-core/vector-law";
 import { sceneProject } from "@/lib/wire-core/scene-project";
@@ -21,7 +22,7 @@ import {
 import { lineOfSight, losReason, type Prism } from "@/lib/drone-2525/los";
 import { buildSchedule, targetsAt, roundLengthMs, targetRole, type TargetView } from "@/lib/drone-2525/targets";
 import { initGame, capture, shoot, endRound, score, transcript, type GameState } from "@/lib/drone-2525/game";
-import { buildArena } from "@/lib/drone-2525/arena-model";
+import { worldAt } from "@/lib/drone-2525/world";
 import {
   initFlight, stepFlight, canTransition, flightLine, airspeedOf, minutesLeft, stallSpeedMs,
   takeoffInput, LOITER_AGL_M, type FlightState,
@@ -34,6 +35,15 @@ import { initSi, openCall, recogniseAdopted, openCallOf, tally } from "@/lib/dro
 import { initLink, seatUrl, seatFromParams, linkLine, linkUp, type Seat } from "@/lib/drone-2525/link";
 import { useDroneLink } from "@/lib/drone-2525/use-drone-link";
 import { CrewSeatPanel } from "./crew-seat-panel";
+import { initSwarm, stepSwarm, planSwarmDraw, swarmLine, aliveCount, SWARM_N } from "@/lib/drone-2525/swarm";
+import { GLYPH_COST } from "@/lib/drone-2525/airframe-glyph";
+import { motSpec } from "@/lib/wire-core/mot-ladder";
+import { useRoundClock, GAME_TICK_MS } from "@/lib/drone-2525/use-round-clock";
+import { SwarmLayer } from "./swarm-layer";
+import { ApprovalBanner } from "./approval-banner";
+import { RoundStatus } from "./round-status";
+import { RoundOverlay } from "./round-overlay";
+import { Stick } from "./stick";
 import { SiPanel } from "./si-panel";
 import { ArenaView, type ArenaCtx } from "./arena-view";
 import type { MotLevel } from "@/lib/wire-core/mot-ladder";
@@ -46,8 +56,6 @@ const BATTERY = DRONE_DOMAIN.battery as unknown as Parameters<typeof stepFlight>
 const FLYING = (m: RoundMode) => m === "drone" || m === "multi";
 /** Who is watching. A machine's shot is held until this person says otherwise, by name. */
 const WATCH = "the watch officer";
-/** How often the game clock is published to React. The gimbal still slews every frame. */
-const GAME_TICK_MS = 100;
 const TSPEC = {
   seed: Number(DRONE_DOMAIN.targets.seed), upMs: Number(DRONE_DOMAIN.targets.upMs),
   downMs: Number(DRONE_DOMAIN.targets.downMs), concurrent: Number(DRONE_DOMAIN.targets.concurrent),
@@ -76,11 +84,17 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   const [approval, setApproval] = useState(initApproval);
   const [askedFor, setAskedFor] = useState<string | null>(null);
   const stick = useRef({ fwd: 0, lat: 0, climb: 0, yaw: 0 });
-  const [climbing, setClimbing] = useState(false);
   const [si, setSi] = useState(initSi);
+  // FORTY-TWO AIRCRAFT, 21 v 21. Held in a ref, not in state: the columns are written in place by the tick,
+  // and putting them in state would mean React comparing forty-two aircraft sixty times a second to learn
+  // what the tick already knows. A counter published on the game clock is what the screen actually needs.
+  const swarm = useRef(initSwarm(Number(DRONE_DOMAIN.targets.seed)));
 
   const crew = mode === "multi" ? CREWS[crewId] : CREWS.two_hi;
   const flying = FLYING(mode);
+  /** The engagement runs in the flying modes: an aircraft on its own over an empty lawn is not one. */
+  const engagement = flying;
+
 
   // LINK-2525: the SAME gimbal record, bolted to a different thing. Nothing about its behaviour changes.
   const mount = useMemo(
@@ -90,8 +104,6 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
 
   const [gim, setGim] = useState<GimbalState>(() => initGimbal(mount));
   const [game, setGame] = useState<GameState>(() => initGame(0));
-  const [tMs, setTMs] = useState(0);
-  const tMsRef = useRef(0);
   // WHICH SEAT THIS DEVICE HOLDS. A link opened on the second person's phone puts them straight into the
   // other seat; a device that arrived on its own holds both, which is practice rather than a crew, and the
   // panel says which of the two is happening.
@@ -99,17 +111,27 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   const [crewCode, setCrewCode] = useState(() => joined?.code ?? "");
   const [mySeat, setMySeat] = useState<Seat | null>(() => joined?.seat ?? null);
   const twoDevice = Boolean(crewCode && mySeat);
-  const link = useDroneLink(mySeat ?? "pilot", crewCode, tMs, twoDevice);
   const iFly = !twoDevice || mySeat === "pilot";
   const iAim = !twoDevice || mySeat === "targeteer";
   const [running, setRunning] = useState(false);
+
+  // The clocks, the flying and the swarm tick — one hook, because they are one concern and the round was
+  // 500 lines with them inlined, against this repository's own 300-line rule.
+  const { tMs, tMsRef, swarmTick, climbing, setClimbing, resetClock } = useRoundClock({
+    running, flying, iFly, pilotIsMachine: crew.pilot === "AI", engagement,
+    spec: SPEC, airframe: AIRFRAME, battery: BATTERY, swarm, stick, setGim, setFlight,
+  }, flight);
+
+  // The crew link reads the game clock for its own timestamps, so it is created after it.
+  const link = useDroneLink(mySeat ?? "pilot", crewCode, tMs, twoDevice);
+  const { say } = link;
   const [note, setNote] = useState<string>("");
 
   // ONE WORLD. The door positions and the terrain come from the footprints, not from the curve budget, so
   // this build agrees with whatever the renderer chose to paint at the current tier — and the HAL gate holds
   // it to that, asserting 14 doors at every tier. Nothing here is a second source of truth.
   const world = useMemo(() => {
-    const a = buildArena(DRONE_DOMAIN, { ngonSides: 13, contourStepM: 2, stamp: "game" });
+    const a = worldAt(DRONE_DOMAIN, 13, "game");
     return { doors: a.doors, ground: a.ground, hash: canonicalHash(a.model) };
   }, []);
   const prisms = useMemo<Prism[]>(() => {
@@ -122,7 +144,13 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   const schedule = useMemo(() => buildSchedule(world.doors, TSPEC), [world]);
   const roundMs = useMemo(() => roundLengthMs(schedule), [schedule]);
   const views = useMemo(() => targetsAt(world.doors, schedule, game.tags, tMs), [world, schedule, game.tags, tMs]);
-  const eye = useMemo(() => eyeOf(mount, world.ground), [world, mount]);
+  // THE EYE, QUANTISED. `mount` is rebuilt every frame from the flight state, so keying the eye on the
+  // object identity made every downstream memo — including the hundred-sample sight line — recompute sixty
+  // times a second while flying. The audit caught the Efficiency claim being false for exactly this reason.
+  // A camera that moved less than a decimetre has not moved for any purpose the sight line cares about.
+  const eyeKey = `${Math.round(mount.at[0] * 10)}:${Math.round(mount.at[1] * 10)}:${Math.round(mount.heightM * 10)}`;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const eye = useMemo(() => eyeOf(mount, world.ground), [world, eyeKey]);
 
   // The target the sensor is actually looking at: up (or already captured) and inside the cone.
   const framed: TargetView | null = useMemo(() => {
@@ -151,26 +179,6 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
 
   // The clock. Deterministic where it matters: every event records the tMs it happened at, so a replay
   // reconstructs the round from the log rather than from wall time.
-  // TWO CLOCKS, DELIBERATELY. The gimbal slews every frame, because a camera that steps ten times a second
-  // looks broken. Everything else — target states, the score, the tally, every HUD number — reads the GAME
-  // clock, and nothing in that list is worth sixty React renders a second. Measured on the built site,
-  // splitting them cut renders in this component by about six times and changed nothing a person can see.
-  useEffect(() => {
-    if (!running) return;
-    let raf = 0, last = performance.now(), published = tMsRef.current;
-    const tick = (now: number) => {
-      const dt = Math.min(0.1, (now - last) / 1000); last = now;
-      tMsRef.current += dt * 1000;
-      setGim((g) => slew(g, SPEC, dt));                       // smooth, every frame
-      if (tMsRef.current - published >= GAME_TICK_MS) {       // coarse, ten times a second
-        published = tMsRef.current;
-        setTMs(tMsRef.current);
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [running]);
 
   useEffect(() => {
     if (running && roundMs > 0 && tMs > roundMs) { setRunning(false); setGame((g) => endRound(g, tMs)); }
@@ -178,43 +186,6 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
 
   // FLIGHT. A person flies with the sticks; a machine flies a declared pattern. Either way the airframe
   // obeys the same physics, so what a pilot learns watching the machine is true when they take over.
-  // ONLY THE SEAT THAT FLIES SIMULATES FLIGHT. The two-device run found this the hard way: the targeteer's
-  // phone was running its own copy of the physics with its own (empty) sticks while also applying what the
-  // pilot sent, so the two fought and the screens disagreed about the height. A device that does not hold
-  // the pilot's seat now advances nothing; it shows what the pilot tells it.
-  const climbingRef = useRef(false);
-  useEffect(() => { climbingRef.current = climbing; }, [climbing]);
-  useEffect(() => {
-    if (!running || !flying || !iFly) return;
-    let raf = 0, last = performance.now();
-    const tick = (now: number) => {
-      const dt = Math.min(0.1, (now - last) / 1000); last = now;
-      if (crew.pilot === "AI") {
-        const p = autoPilot(tMsRef.current / 1000);
-        setFlight((f) => ({ ...f, e: p.e, n: p.n, aglM: p.aglM, headingDeg: p.headingDeg, mode: "wing", refused: "" }));
-      } else {
-        const k = stick.current;
-        setFlight((f) => {
-          // A take-off is a commanded climb through the same physics as a stick, not a teleport: the
-          // aircraft really flies up, spends the energy, and eases off as it reaches its loiter height.
-          // Whether it is still climbing is read from a ref, not from a dependency — listing `climbing`
-          // tore this loop down and rebuilt it mid-climb, which is why the aircraft used to stall at 8 m.
-          const lift = climbingRef.current ? takeoffInput(f) : null;
-          return stepFlight(AIRFRAME, BATTERY, f,
-            { climb: lift && !lift.done ? lift.climb : k.climb, forward: k.fwd, lateral: k.lat, yaw: k.yaw }, dt);
-        });
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [running, flying, crew.pilot, iFly]);
-
-  // The climb ends when the aircraft has arrived, judged from the height it actually reached — not decided
-  // inside another component's state updater, where React is free to run it more than once.
-  useEffect(() => {
-    if (climbing && flight.aglM >= LOITER_AGL_M - 1) setClimbing(false);
-  }, [climbing, flight.aglM]);
 
   /**
    * "Next door" hands the targeteer a door they can ACTUALLY reach, not merely the closest one.
@@ -260,8 +231,11 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   // animation frame, so the interval was torn down and rebuilt sixty times a second and could never reach
   // its 2.6-second tick. The machine sat silent and the approval gate never got a chance to be tested —
   // which the walkthrough capture found, and no unit test would have.
+  // Written in place rather than replaced: this ran on every render and allocated a six-field object each
+  // time, sixty times a second, to hand the interval below values it reads at most once every 2.6 seconds.
   const live = useRef({ eye, gim, views, world, prisms, t });
-  useEffect(() => { live.current = { eye, gim, views, world, prisms, t }; });
+  live.current.eye = eye; live.current.gim = gim; live.current.views = views;
+  live.current.world = world; live.current.prisms = prisms; live.current.t = t;
 
   useEffect(() => {
     if (!running || crew.targeteer !== "AI") return;
@@ -325,9 +299,9 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   }, [tMs, framed, los, gim, crew, approval, askedFor, t]);
 
   const reset = useCallback(() => {
-    setGame(initGame(0)); setTMs(0); setRunning(false); setNote("");
+    setGame(initGame(0)); resetClock(); setRunning(false); setNote("");
     setGim(initGimbal(mount));
-  }, [mount]);
+  }, [mount, resetClock]);
   // Moving to another turret re-homes the gimbal and NOTHING else: a score already earned survives the
   // walk across the lawn, which is the "a completed action is never lost" rule applied to the seat change.
   useEffect(() => { setGim(initGimbal(mounts[mountIdx])); }, [mountIdx, mounts]);
@@ -335,17 +309,29 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   useEffect(() => { reset(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [mode]);
 
   // Each seat says only what it controls, a few times a second. The pure gate refuses anything else.
-  const lastSay = useRef(0);
+  // ONE INTERVAL, NOT A PER-FRAME EFFECT. Listing `flight`, `gim` and `framed` as dependencies meant React
+  // tore this down and rebuilt it every frame to do nothing for fifty-nine of every sixty.
+  //
+  // The dependency is `link.say`, NOT `link`. The hook returns a fresh object every render, so depending on
+  // the object destroyed this interval every hundred milliseconds — faster than its own period, so it never
+  // fired once and the two devices went silent. `say` itself is stable. The two-device gate caught it; the
+  // lesson is that an interval whose owner is rebuilt faster than its period is not an interval.
+  const sending = useRef({ flight, gim, framed, mySeat });
+  sending.current.flight = flight; sending.current.gim = gim;
+  sending.current.framed = framed; sending.current.mySeat = mySeat;
   useEffect(() => {
     if (!twoDevice || !running) return;
-    if (tMs - lastSay.current < 220) return;
-    lastSay.current = tMs;
-    if (mySeat === "pilot") {
-      link.say({ kind: "flight", flight: { e: flight.e, n: flight.n, aglM: flight.aglM, ve: flight.ve, vn: flight.vn, vu: flight.vu, headingDeg: flight.headingDeg, mode: flight.mode, energy: flight.energy } });
-    } else {
-      link.say({ kind: "gimbal", az: gim.az, el: gim.el, doorId: framed?.door.id ?? null });
-    }
-  }, [twoDevice, running, tMs, mySeat, flight, gim.az, gim.el, framed, link]);
+    const id = window.setInterval(() => {
+      const c = sending.current;
+      if (c.mySeat === "pilot") {
+        const f = c.flight;
+        say({ kind: "flight", flight: { e: f.e, n: f.n, aglM: f.aglM, ve: f.ve, vn: f.vn, vu: f.vu, headingDeg: f.headingDeg, mode: f.mode, energy: f.energy } });
+      } else {
+        say({ kind: "gimbal", az: c.gim.az, el: c.gim.el, doorId: c.framed?.door.id ?? null });
+      }
+    }, 220);
+    return () => window.clearInterval(id);
+  }, [twoDevice, running, say]);
 
   // What the other seat says is applied here, and only here.
   useEffect(() => {
@@ -360,41 +346,22 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
     }
   }, [twoDevice, mySeat, link.state.theirFlight, link.state.theirGimbal]);
 
-  const s = score(game);
-  const hudFont = { fontFamily: "ui-monospace, monospace", fontSize: "clamp(9px, 2.4vw, 11px)", letterSpacing: "0.06em" };
-  const btn = (on: boolean, hex: string, enabled = true) => ({
-    background: "transparent", border: `1px solid ${on ? hex : "#2a2a2a"}`, color: enabled ? (on ? hex : "#8a8a8a") : "#4a4a4a",
-    padding: "7px clamp(9px, 2.4vw, 14px)", ...hudFont, textTransform: "uppercase" as const,
-    cursor: enabled ? "pointer" : "not-allowed", borderRadius: 2, minHeight: 34,
-  });
+  // The swarm's share of the rung's budget, and which silhouette each aircraft gets. Recomputed on the
+  // game clock: forty-two distances do not need re-sorting sixty times a second.
+  const swarmPlan = useMemo(() => {
+    if (!engagement) return null;
+    const spec = motSpec(level);
+    const share = Math.min(Math.floor(spec.segments * 0.45), GLYPH_COST.near * SWARM_N);
+    return planSwarmDraw(swarm.current, mount.at[0], mount.at[1], share);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [engagement, level, swarmTick, mount.at[0], mount.at[1]]);
 
-  // The overlay: targets, the sensor cone, and the sight line — drawn in the arena's camera, edges only.
-  const overlay = useCallback((ctx: ArenaCtx) => {
-    const p = (v: [number, number, number]) => sceneProject(v, ctx.cam);
-    const marks: React.ReactNode[] = [];
-    for (const v of views) {
-      const q = p(v.door.at);
-      if (q.behind) continue;                                  // dropped, never clamped
-      const role = targetRole(v.phase);
-      const r = v.phase === "up" ? 7 + 5 * (1 - v.progress) : 5;
-      const hex = semanticHex(role);
-      // A target is a diamond of four segments — a closed ring, no fill (the vector law).
-      const d = `M${q.x} ${q.y - r}L${q.x + r} ${q.y}L${q.x} ${q.y + r}L${q.x - r} ${q.y}Z`;
-      marks.push(<path key={v.door.id} d={d} {...strokeProps(hex, VECTOR_LAW.stroke.normal)} />);
-    }
-    if (framed) {
-      const a = p(eye), b = p(framed.door.at);
-      if (!a.behind && !b.behind) {
-        const hex = semanticHex(los && !los.clear ? "blocked" : "ray");
-        marks.push(<path key="sight" d={`M${a.x} ${a.y}L${b.x} ${b.y}`} {...strokeProps(hex, VECTOR_LAW.stroke.hairline)} />);
-      }
-    }
-    return (
-      <svg width={ctx.cam.pw} height={ctx.cam.ph} viewBox={`0 0 ${ctx.cam.pw} ${ctx.cam.ph}`} style={{ display: "block" }} aria-hidden>
-        {marks}
-      </svg>
-    );
-  }, [views, eye, framed, los]);
+  const s = score(game);
+
+  // Everything drawn on top of the world, in the world's own camera.
+  const overlay = useCallback((ctx: ArenaCtx) => (
+    <RoundOverlay ctx={ctx} views={views} eye={eye} framed={framed} los={los} swarm={swarm.current} swarmPlan={swarmPlan} />
+  ), [views, eye, framed, los, swarmPlan]);
 
   return (
     <div data-drone-game>
@@ -402,33 +369,29 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
         source={DRONE_DOMAIN}
         level={level}
         hal={hal}
+        reserve={swarmPlan?.cost ?? 0}
         overlay={overlay}
-        hudLeft={<span style={{ ...hudFont, color: semanticHex("mount") }} data-drone-aim>{aimReadout(gim, los?.rangeM)}</span>}
+        hudLeft={
+          <>
+            <span style={{ ...MONO, color: semanticHex("mount") }} data-drone-aim>{aimReadout(gim, los?.rangeM)}</span>
+            {engagement && swarmPlan ? (
+              <span style={{ ...MONO, color: semanticHex("ray") }} data-drone-swarm-line>{swarmLine(swarm.current, swarmPlan)}</span>
+            ) : null}
+          </>
+        }
         hudRight={
-          <span style={{ ...hudFont, color: semanticHex("tagged") }} data-drone-score>
+          <span style={{ ...MONO, color: semanticHex("tagged") }} data-drone-score>
             {t("drone.game.tagged")} {s.tagged}/{world.doors.length} · {t("drone.game.captured")} {s.captured}
           </span>
         }
       />
 
-      {/* THE QUESTION. When a machine wants to shoot, this is the only thing that matters on the screen,
-          so it is the first thing under the arena and it is impossible to miss. Nothing fires behind it. */}
       {approval.pending ? (
-        <div data-drone-approval style={{ border: `2px solid ${semanticHex("pending")}`, padding: 12, margin: "10px 0" }}>
-          <div style={{ ...hudFont, color: semanticHex("pending"), marginBottom: 8, fontSize: "clamp(11px, 3vw, 13px)" }}>
-            {approvalPrompt(approval.pending)}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button data-drone-approve onClick={() => decide("approved")} style={btn(true, semanticHex("tree"))}>{t("drone.crew.approve")}</button>
-            <button data-drone-hold onClick={() => decide("held")} style={btn(true, semanticHex("ray"))}>{t("drone.crew.hold")}</button>
-          </div>
-          {si.on && openCallOf(si, tMs) ? (
-            <div data-si-advice style={{ ...hudFont, color: semanticHex("tagged"), marginTop: 8 }}>
-              {t("si.advice")} {tally(si, openCallOf(si, tMs)!, tMs).line}
-            </div>
-          ) : null}
-          <div style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.6, marginTop: 6 }}>{t("drone.crew.gate_note")}</div>
-        </div>
+        <ApprovalBanner
+          pending={approval.pending}
+          advice={si.on && openCallOf(si, tMs) ? tally(si, openCallOf(si, tMs)!, tMs).line : null}
+          onDecide={decide}
+        />
       ) : null}
 
       {/* Controls — one thumb, 34px touch targets, wrapping at phone width */}
@@ -437,36 +400,36 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
           const next = !running;
           setRunning(next);
           if (next && flying && crew.pilot === "HI" && iFly && flight.aglM < 2) setClimbing(true);
-        }} style={btn(running, semanticHex("tree"))}>
+        }} style={btn({ on: running, hex: semanticHex("tree") })}>
           {running ? t("drone.game.pause") : t("drone.game.start")}
         </button>
-        {iAim ? <button data-drone-next onClick={nextTarget} style={btn(false, semanticHex("door"))}>{t("drone.game.next_target")}</button> : null}
+        {iAim ? <button data-drone-next onClick={nextTarget} style={btn({ hex: semanticHex("door") })}>{t("drone.game.next_target")}</button> : null}
         {iAim ? (
-          <button data-drone-capture onClick={doCapture} disabled={!framed} style={btn(false, semanticHex("frustum"), Boolean(framed))}>
+          <button data-drone-capture onClick={doCapture} disabled={!framed} style={btn({ hex: semanticHex("frustum"), enabled: Boolean(framed) })}>
             {t("drone.game.capture")}
           </button>
         ) : null}
         {iAim ? (
-          <button data-drone-shoot onClick={doShoot} disabled={!framed} style={btn(false, semanticHex("ray"), Boolean(framed))}>
+          <button data-drone-shoot onClick={doShoot} disabled={!framed} style={btn({ hex: semanticHex("ray"), enabled: Boolean(framed) })}>
             {t("drone.game.shoot")}
           </button>
         ) : null}
-        <button data-drone-reset onClick={reset} style={btn(false, semanticHex("contour"))}>{t("drone.game.reset")}</button>
+        <button data-drone-reset onClick={reset} style={btn({ hex: semanticHex("contour") })}>{t("drone.game.reset")}</button>
         {flying && crew.pilot === "HI" && iFly ? (
           <button data-drone-takeoff onClick={() => { if (flight.aglM < 2) { setClimbing(true); setRunning(true); } else { setClimbing(false); stick.current.climb = -1; setTimeout(() => { stick.current.climb = 0; }, 3000); } }}
-                  style={btn(climbing, semanticHex("tree"))}>
+                  style={btn({ on: climbing, hex: semanticHex("tree") })}>
             {flight.aglM < 2 ? t("drone.fly.takeoff") : t("drone.fly.land")}
           </button>
         ) : null}
         {flying && crew.pilot === "HI" && iFly ? (
           <button data-drone-wing onClick={() => setFlight((f) => stepFlight(AIRFRAME, BATTERY, f, { climb: 0, forward: 1, lateral: 0, yaw: 0, toggleMode: true }, 0.016))}
-                  style={btn(flight.mode === "wing", semanticHex("frustum"))}>
+                  style={btn({ on: flight.mode === "wing", hex: semanticHex("frustum") })}>
             {flight.mode === "wing" ? t("drone.fly.to_quad") : t("drone.fly.to_wing")}
           </button>
         ) : null}
         {mode === "multi" ? (
           <select data-drone-crew value={crewId} onChange={(e) => setCrewId(e.target.value as CrewId)}
-                  style={{ ...btn(true, semanticHex("pending")), minWidth: 130 }}>
+                  style={{ ...btn({ on: true, hex: semanticHex("pending") }), minWidth: 130 }}>
             <option value="hi_pilot">{t("drone.crew.hi_pilot")}</option>
             <option value="ai_pilot">{t("drone.crew.ai_pilot")}</option>
             <option value="both_ai">{t("drone.crew.both_ai")}</option>
@@ -474,13 +437,13 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
         ) : null}
         <div style={{ display: "flex", gap: 6, marginLeft: "auto", alignItems: "center" }}>
           {flying ? (
-            <span data-drone-flight style={{ ...hudFont, color: semanticHex("mount") }}>
+            <span data-drone-flight style={{ ...MONO, color: semanticHex("mount") }}>
               {flightLine(AIRFRAME, BATTERY, flight)}{flight.refused ? ` · ${flight.refused}` : ""}
             </span>
           ) : null}
-          {flying ? null : <span style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.6 }}>{t("drone.game.turret")}</span>}
+          {flying ? null : <span style={{ ...MONO, color: semanticHex("hud"), opacity: 0.6 }}>{t("drone.game.turret")}</span>}
           {flying ? null : mounts.map((m, i) => (
-            <button key={m.id} data-drone-mount={m.id} onClick={() => setMountIdx(i)} style={btn(i === mountIdx, semanticHex("mount"))}>
+            <button key={m.id} data-drone-mount={m.id} onClick={() => setMountIdx(i)} style={btn({ on: i === mountIdx, hex: semanticHex("mount") })}>
               {m.id.replace("t-", "")}
             </button>
           ))}
@@ -494,7 +457,7 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
         <div data-drone-sticks style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "8px 0" }}>
           <Stick label={t("drone.fly.body")} onMove={(x, y) => { stick.current.lat = x; stick.current.fwd = -y; }} hex={semanticHex("mount")} />
           <Stick label={t("drone.fly.head")} onMove={(x, y) => { stick.current.yaw = x; stick.current.climb = -y; }} hex={semanticHex("frustum")} />
-          <div style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.6, alignSelf: "center", maxWidth: 260, lineHeight: 1.6 }}>
+          <div style={{ ...MONO, color: semanticHex("hud"), opacity: 0.6, alignSelf: "center", maxWidth: 260, lineHeight: 1.6 }}>
             {t("drone.fly.help")}
           </div>
         </div>
@@ -511,57 +474,11 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
 
       <SiPanel si={si} setSi={setSi} nowMs={tMs} />
 
-      {/* What just happened, in words — never a silent press */}
-      <div style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.8, minHeight: 18 }} data-drone-note>
-        {note || (framed ? framed.door.label : t("drone.game.no_target"))}
-      </div>
-      <div data-drone-crewline style={{ ...hudFont, color: semanticHex("pending"), opacity: 0.85, marginTop: 4 }}>
-        {t("drone.crew.seats")} {crew.pilot === "HI" ? t("drone.crew.person") : t("drone.crew.machine")} {t("drone.crew.flies")} · {crew.targeteer === "HI" ? t("drone.crew.person") : t("drone.crew.machine")} {t("drone.crew.aims")}
-        {shotNeedsApproval(crew) ? ` · ${t("drone.crew.gate_on")}` : ""}
-        {approval.decisions.length ? ` · ${approval.approved} ${t("drone.crew.approved")}, ${approval.held} ${t("drone.crew.held")}` : ""}
-      </div>
-      <div style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.5, marginTop: 4 }}>
-        {t("drone.game.accuracy")} {(s.accuracy * 100).toFixed(0)}% · {t("drone.game.clock")} {(tMs / 1000).toFixed(0)}s / {(roundMs / 1000).toFixed(0)}s
-      </div>
+      <RoundStatus
+        note={note || (framed ? framed.door.label : t("drone.game.no_target"))}
+        crew={crew} approval={approval} game={game} tMs={tMs} roundMs={roundMs}
+      />
 
-      {/* The round's own working — the log the score rests on */}
-      {game.events.length > 1 ? (
-        <details style={{ marginTop: 10 }}>
-          <summary style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.7, cursor: "pointer" }}>{t("drone.game.log")}</summary>
-          <pre style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.65, whiteSpace: "pre-wrap", margin: "6px 0 0" }}>
-            {transcript(game).slice(-12).join("\n")}
-          </pre>
-        </details>
-      ) : null}
-
-    </div>
-  );
-}
-
-/** One thumb stick. Pure input: it reports a normalised vector and owns no game state. */
-function Stick({ label, onMove, hex }: { label: string; onMove: (x: number, y: number) => void; hex: string }) {
-  const box = useRef<HTMLDivElement>(null);
-  const [knob, setKnob] = useState({ x: 0, y: 0 });
-  const set = (e: React.PointerEvent) => {
-    const r = box.current?.getBoundingClientRect(); if (!r) return;
-    const x = (e.clientX - r.left - r.width / 2) / (r.width / 2);
-    const y = (e.clientY - r.top - r.height / 2) / (r.height / 2);
-    const m = Math.max(1, Math.hypot(x, y));
-    const nx = x / m, ny = y / m;
-    setKnob({ x: nx, y: ny }); onMove(nx, ny);
-  };
-  const clear = () => { setKnob({ x: 0, y: 0 }); onMove(0, 0); };
-  return (
-    <div style={{ textAlign: "center" }}>
-      <div ref={box} data-drone-stick={label}
-           onPointerDown={(e) => { (e.target as Element).setPointerCapture?.(e.pointerId); set(e); }}
-           onPointerMove={(e) => { if (e.buttons || e.pointerType === "touch") set(e); }}
-           onPointerUp={clear} onPointerCancel={clear}
-           style={{ width: 92, height: 92, border: `1px solid ${hex}`, borderRadius: "50%", position: "relative", touchAction: "none", cursor: "grab" }}>
-        <div style={{ position: "absolute", width: 26, height: 26, border: `1px solid ${hex}`, borderRadius: "50%",
-                      left: 33 + knob.x * 26, top: 33 + knob.y * 26, pointerEvents: "none" }} />
-      </div>
-      <div style={{ fontFamily: "ui-monospace, monospace", fontSize: 10, color: hex, opacity: 0.8, marginTop: 4, letterSpacing: "0.08em" }}>{label}</div>
     </div>
   );
 }

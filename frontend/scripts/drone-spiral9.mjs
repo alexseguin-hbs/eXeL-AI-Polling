@@ -17,8 +17,9 @@
  *      assertion at each end rather than a claim.
  */
 import { execFileSync } from "node:child_process";
-import { writeFileSync, mkdirSync } from "node:fs";
-import { join, resolve } from "node:path";
+import fs from "node:fs";
+import { writeFileSync, mkdirSync, readdirSync, statSync } from "node:fs";
+import path, { join, resolve } from "node:path";
 import { createHash } from "node:crypto";
 
 const ROOT = resolve(new URL("..", import.meta.url).pathname);
@@ -29,6 +30,7 @@ const GATES = [
   "test:mot-ladder", "test:self-cal", "test:drone-arena", "test:drone-hal", "test:vector-law",
   "test:drone-crs", "test:drone-i18n", "test:drone-gimbal", "test:drone-flight", "test:si-pod",
   "test:drone-link", "test:wire-core", "test:wire-export",
+  "test:drone-swarm", "test:drone-authority", "test:arena-frame",
 ];
 
 const sha = (s) => createHash("sha256").update(s).digest("hex").slice(0, 16);
@@ -132,39 +134,141 @@ async function spiral() {
   return checks;
 }
 
-/** SSSES, scored from the evidence in this run — never a number somebody liked. */
+// ═══ SSSES, MEASURED ════════════════════════════════════════════════════════════════════════════════
+//
+// The previous version of this function scored three of five pillars from things that were not
+// measurements: Succinctness was the literal `85`, Efficiency reused Scalability's boolean, and Scalability
+// was the PRESENCE of a file rather than the size of the gain. Two of the sentences it printed were also
+// false — it claimed a duplicate code generator had been deleted while one sat in crew-seat-panel.tsx, and
+// claimed a sight line was no longer re-marched per frame when in the flying modes it was.
+//
+// A score that cannot fall is not a score. Every pillar below reads evidence produced in this run, and the
+// numbers are free to be disappointing.
+
+
+/** Count the checks belonging to the gates that actually test a pillar, rather than all thirteen. */
+const checksOf = (runs, names) =>
+  runs.filter((g) => names.includes(g.name)).reduce((n, g) => n + (g.passed ?? 0), 0);
+const allOk = (runs, names) => runs.filter((g) => names.includes(g.name)).every((g) => g.ok && g.failed === 0);
+
+/** Walk the domain's own source, so Succinctness is a reading and not an opinion. */
+function readSource() {
+  const roots = ["lib/drone-2525", "lib/wire-core", "components/drone-2525"].map((r) => path.join(ROOT, r));
+  const files = [];
+  for (const r of roots) {
+    for (const f of readdirSync(r)) {
+      if (!/\.(ts|tsx)$/.test(f) || f.endsWith(".gen.ts")) continue;
+      const p = path.join(r, f);
+      if (statSync(p).isFile()) files.push({ p, rel: path.relative(ROOT, p), text: fs.readFileSync(p, "utf8") });
+    }
+  }
+  return files;
+}
+
+/**
+ * Three things that can be counted and that all mean the same thing: is this surface getting harder to
+ * change? Duplicated helpers, exports nothing imports, and functions past the repository's own 300-line rule.
+ */
+function succinctness(files) {
+  const all = files.map((f) => f.text).join("\n");
+  const code = (t) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
+
+  // Duplicate helper DEFINITIONS: the same local helper defined in more than one component.
+  const dupes = [];
+  for (const name of ["const mono =", "const hud =", "const btn =", "const hudFont =", "const codeFrom ="]) {
+    const n = files.filter((f) => code(f.text).includes(name)).length;
+    if (n > 1) dupes.push(`${name.replace("const ", "").replace(" =", "")}×${n}`);
+  }
+
+  // Exports nothing outside their own file imports. Types are excluded: a type nobody imports costs nothing
+  // at runtime and is often the honest shape of a returned value.
+  const dead = [];
+  for (const f of files) {
+    for (const m of code(f.text).matchAll(/^export (?:const|function) ([A-Za-z_][A-Za-z0-9_]*)/gm)) {
+      const name = m[1];
+      const used = files.some((o) => o !== f && new RegExp(`\\b${name}\\b`).test(o.text))
+        || all.includes(`from "@/lib/${path.basename(f.rel, path.extname(f.rel))}"`) === false && false;
+      const inTests = fs.existsSync(path.join(ROOT, "tests")) &&
+        readdirSync(path.join(ROOT, "tests")).some((t) => t.endsWith(".mjs") &&
+          new RegExp(`\\b${name}\\b`).test(fs.readFileSync(path.join(ROOT, "tests", t), "utf8")));
+      const inScripts = readdirSync(path.join(ROOT, "scripts")).some((t) => t.endsWith(".mjs") &&
+        new RegExp(`\\b${name}\\b`).test(fs.readFileSync(path.join(ROOT, "scripts", t), "utf8")));
+      if (!used && !inTests && !inScripts) dead.push(`${path.basename(f.rel)}:${name}`);
+    }
+  }
+
+  // The longest function, against CLAUDE.md's 300-line rule.
+  let longest = { name: "", lines: 0, file: "" };
+  for (const f of files) {
+    const lines = f.text.split("\n");
+    for (let i = 0; i < lines.length; i++) {
+      const m = /^export (?:default )?function ([A-Za-z_][A-Za-z0-9_]*)/.exec(lines[i]);
+      if (!m) continue;
+      let depth = 0, end = i;
+      for (let j = i; j < lines.length; j++) {
+        depth += (lines[j].match(/\{/g) ?? []).length - (lines[j].match(/\}/g) ?? []).length;
+        if (j > i && depth <= 0) { end = j; break; }
+      }
+      if (end - i > longest.lines) longest = { name: m[1], lines: end - i, file: path.basename(f.rel) };
+    }
+  }
+
+  // 100, less what each kind of drift costs. Duplicated helpers are the most expensive because they are the
+  // ones that make a fix have to be applied four times and get applied three.
+  const score = Math.max(0, Math.min(100,
+    100 - dupes.length * 8 - Math.min(20, dead.length * 2) - (longest.lines > 300 ? Math.min(25, Math.round((longest.lines - 300) / 12)) : 0)));
+  const why = `${dupes.length ? `${dupes.length} helper(s) defined in more than one file (${dupes.join(", ")}); ` : "no helper is defined twice; "}` +
+    `${dead.length} export(s) nothing imports; longest function ${longest.name} at ${longest.lines} lines against the 300 rule.`;
+  return { score, why, dupes, dead: dead.length, longest };
+}
+
 function ssses(gateRuns, drift, spiralChecks, perf) {
+  const runs = gateRuns[0];
   const allGreen = gateRuns.every((r) => r.every((g) => g.ok && g.failed === 0));
-  const totalChecks = gateRuns[0].reduce((n, g) => n + (g.passed ?? 0), 0);
   const stable = drift.length === 0;
   const spiralOk = spiralChecks.every((c) => c.ok);
-  const pillars = {
-    Security: {
-      score: allGreen ? 100 : 0,
-      why: "A machine-aimed shot needs a named human approval, a seat may only send what it controls, and a key group cannot out-vote a person — each gated.",
-    },
-    Stability: {
-      score: stable && allGreen ? 100 : stable ? 70 : 40,
-      why: stable ? `Nine runs agree byte for byte on every reproducible artefact.` : `Artefacts drifted across runs: ${drift.join(", ")}.`,
-    },
-    Scalability: {
-      score: perf ? 90 : 70,
-      why: perf
-        ? `The heaviest case gained ${perf.gain} fps on a processor slowed ten times. The ladder still draws every door at its poorest rung.`
-        : "Measured on a desktop only; no throttled figure in this run.",
-    },
-    Efficiency: {
-      score: perf ? 90 : 75,
-      why: "The game clock publishes ten times a second while the gimbal still slews every frame, and a sight line is no longer re-marched for a door that has not moved.",
-    },
-    Succinctness: {
-      score: 85,
-      why: "Two things built this session were deleted because the repository already had them: a fourth code generator and a fourth value on a three-rung ladder. One component serves all four modes.",
-    },
+
+  // SECURITY — from the gates that actually test authority, not from all thirteen.
+  const secGates = ["test:drone-flight", "test:drone-link", "test:si-pod", "test:drone-authority"];
+  const secChecks = checksOf(runs, secGates);
+  const secGreen = allOk(runs, secGates);
+  const security = {
+    score: secGreen ? Math.min(100, 60 + Math.round(secChecks / 10)) : 0,
+    why: secGreen
+      ? `${secChecks} checks on authority alone: a machine shot needs a named human at all five levels, a seat may only send what it controls, and a key group cannot out-vote a person.`
+      : "an authority gate is failing.",
   };
+
+  // STABILITY — nine runs, byte-identical artefacts. This pillar was always honest; it is unchanged.
+  const stability = {
+    score: stable && allGreen ? 100 : stable ? 70 : 40,
+    why: stable ? `nine runs agree byte for byte on all ${Object.keys(ARTEFACT_KEYS).length || ""} reproducible artefacts.` : `artefacts drifted: ${drift.join(", ")}.`,
+  };
+
+  // SCALABILITY — the measured frame rate against the 30 Hz reference, WITH the engagement in the air.
+  const scal = perf
+    ? { score: Math.max(0, Math.min(100, Math.round((perf.after / 30) * 100))), why: `${perf.after} fps at the heaviest case on a processor slowed ${perf.throttle} times, against the 30 Hz reference the operator set — ${perf.aircraft ?? 42} aircraft in the air.` }
+    : { score: 0, why: "no measurement in this run: scripts/drone-perf.mjs was not run." };
+
+  // EFFICIENCY — measured, from the counters the perf harness emits.
+  const eff = perf
+    ? {
+        score: Math.max(0, Math.min(100,
+          Math.round(Math.min(1, perf.after / 30) * 55) + (perf.memoHit === true ? 25 : 0) + (perf.domNodes != null && perf.domNodes < 260 ? 20 : 0))),
+        why: `${perf.memoHit === true ? "the projection memo holds between frames" : perf.memoHit === false ? "THE PROJECTION MEMO IS NOT HOLDING" : "the memo was not measured in this run"}; ${perf.domNodes} nodes for the whole engagement; heap ${perf.heapMB} MB.`,
+      }
+    : { score: 0, why: "no measurement in this run." };
+
+  // SUCCINCTNESS — counted from the source, in this run.
+  const suc = succinctness(readSource());
+
+  const pillars = { Security: security, Stability: stability, Scalability: scal, Efficiency: eff, Succinctness: suc };
   const avg = Math.round(Object.values(pillars).reduce((n, p) => n + p.score, 0) / 5);
-  return { pillars, avg, totalChecks, allGreen, spiralOk };
+  return { pillars, avg, totalChecks: runs.reduce((n, g) => n + (g.passed ?? 0), 0), allGreen, spiralOk };
 }
+
+/** Named so Stability can say how many artefacts it compared without hardcoding the number. */
+let ARTEFACT_KEYS = {};
 
 (async () => {
   mkdirSync(DEST, { recursive: true });
@@ -183,6 +287,7 @@ function ssses(gateRuns, drift, spiralChecks, perf) {
   }
 
   // Did anything reproducible change between runs? Name it if so.
+  ARTEFACT_KEYS = arts[0];
   const drift = Object.keys(arts[0]).filter((k) => arts.some((a) => JSON.stringify(a[k]) !== JSON.stringify(arts[0][k])));
   console.log(`\n  artefacts across ${N} runs: ${drift.length ? `DRIFTED — ${drift.join(", ")}` : "identical, every one"}`);
   for (const [k, v] of Object.entries(arts[0])) console.log(`    ${k.padEnd(14)} ${v}`);
@@ -195,9 +300,21 @@ function ssses(gateRuns, drift, spiralChecks, perf) {
   try {
     const before = JSON.parse(await import("node:fs").then((m) => m.readFileSync(join(DEST, "before.json"), "utf8")));
     const after = JSON.parse(await import("node:fs").then((m) => m.readFileSync(join(DEST, "after.json"), "utf8")));
-    const b = before.runs.find((r) => r.label.includes("5.5")), a = after.runs.find((r) => r.label.includes("5.5"));
-    if (b && a) perf = { before: b.fps, after: a.fps, gain: +(a.fps - b.fps).toFixed(1), throttle: after.cpuThrottle };
-  } catch { /* no perf pair in this run */ }
+    // The pass mark is the 42-aircraft case; fall back to the old heaviest only if it is absent.
+    const pick = (j) => j.runs.find((r) => r.label.includes("42 aircraft 2.3")) ?? j.runs.find((r) => r.label.includes("5.5"));
+    const b = pick(before), a = pick(after);
+    const head = (() => { try { return execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim(); } catch { return null; } })();
+    // A MEASUREMENT OLDER THAN THE CODE IS NOT A MEASUREMENT. The previous scorer trusted two checked-in
+    // files that no gate ever regenerated, so a pillar could report a gain from a commit long gone.
+    if (head && after.commit && after.commit !== head) {
+      console.error(`  perf/after.json was measured at ${after.commit}, this is ${head} — refusing to score from it`);
+      throw new Error("stale perf");
+    }
+    if (b && a) perf = {
+      before: b.fps, after: a.fps, gain: +(a.fps - b.fps).toFixed(1), throttle: after.cpuThrottle ?? 1,
+      domNodes: a.domNodes, heapMB: a.heapMB, memoHit: a.memoHit ?? null, aircraft: a.aircraft ?? null,
+    };
+  } catch { perf = null; }
 
   const s = ssses(gateRuns, drift, sp, perf);
   console.log(`\n  SSSES`);

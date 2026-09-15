@@ -18,6 +18,7 @@ import { ArrowLeft } from "lucide-react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { versionStamp } from "@/lib/2525-core/version-stamp";
 import { semanticHex } from "@/lib/wire-core/palette";
+import { MONO, btn } from "./ui";
 import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
 import { MOT_LEVELS, motSpec, type MotLevel } from "@/lib/wire-core/mot-ladder";
 import { HAL_ORDER, HAL_PROFILES, type HalChoice } from "@/lib/wire-core/hal";
@@ -40,20 +41,12 @@ export function DroneCommandUX1() {
   const label = semanticHex("hud");
   const dim = { color: label, opacity: 0.55 };
 
-  // Mobile-first: the controls shrink with the viewport so four modes and four detail steps still fit on a
-  // phone without pushing the arena itself below the fold.
-  const btn = (on: boolean, hex: string) => ({
-    background: "transparent", border: `1px solid ${on ? hex : "#2a2a2a"}`, color: on ? hex : "#6b6b6b",
-    padding: "5px clamp(7px, 2vw, 12px)", fontFamily: "ui-monospace, monospace",
-    fontSize: "clamp(9px, 2.4vw, 11px)", letterSpacing: "0.06em",
-    textTransform: "uppercase" as const, cursor: "pointer", borderRadius: 2,
-  });
 
   return (
     <div data-drone-ux1 style={{ minHeight: "100vh", background: VECTOR_LAW.ground, color: label, fontFamily: "ui-monospace, monospace" }}>
       {/* Top bar — strokes, not chrome */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", padding: "10px 14px", borderBottom: `1px solid ${semanticHex("contour")}` }}>
-        <button onClick={() => router.push("/")} aria-label={t("drone.back")} style={{ ...btn(false, label), display: "flex", alignItems: "center", gap: 6 }}>
+        <button onClick={() => router.push("/")} aria-label={t("drone.back")} style={{ ...btn({ hex: label }), display: "flex", alignItems: "center", gap: 6 }}>
           <ArrowLeft size={13} /> {t("drone.back")}
         </button>
         <span style={{ fontSize: 13, letterSpacing: "0.18em", color: semanticHex("mount") }}>DRONE · 2525</span>
@@ -70,7 +63,7 @@ export function DroneCommandUX1() {
           const on = live && mode === m.id;
           return (
             <button key={m.id} data-drone-mode={m.id} disabled={!live} onClick={() => live && setMode(m.id)}
-                    style={{ ...btn(on, semanticHex("door")), cursor: live ? "pointer" : "not-allowed", opacity: live ? 1 : 0.45 }}>
+                    style={{ ...btn({ on, hex: semanticHex("door"), enabled: live }), opacity: live ? 1 : 0.45 }}>
               {t(`drone.mode.${m.id}`)}
             </button>
           );
@@ -79,7 +72,7 @@ export function DroneCommandUX1() {
           {/* THE LADDER — 5 compute bands × 5 resolution steps. 1.1 is the arcade rung and the fastest. */}
           <span style={{ ...dim, fontSize: 10 }}>{t("drone.mot")}</span>
           <select data-drone-mot value={level} onChange={(e) => setLevel(e.target.value as MotLevel)}
-                  style={{ ...btn(true, semanticHex("mount")), minWidth: 116 }}>
+                  style={{ ...btn({ on: true, hex: semanticHex("mount") }), minWidth: 116 }}>
             {MOT_LEVELS.map((l) => {
               const s = motSpec(l);
               return <option key={l} value={l}>{`${l} ${s.bandName} · ${s.sensors.length}s`}</option>;
@@ -87,7 +80,7 @@ export function DroneCommandUX1() {
           </select>
           <span style={{ ...dim, fontSize: 10 }}>{t("drone.hal")}</span>
           <select data-drone-hal value={hal} onChange={(e) => setHal(e.target.value as HalChoice)}
-                  style={{ ...btn(true, semanticHex("frustum")), minWidth: 104 }}>
+                  style={{ ...btn({ on: true, hex: semanticHex("frustum") }), minWidth: 104 }}>
             <option value="auto">{t("drone.hal_auto")}</option>
             {HAL_ORDER.map((h) => <option key={h} value={h}>{HAL_PROFILES[h].label}</option>)}
           </select>

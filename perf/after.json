@@ -1,51 +1,78 @@
 {
   "windowMs": 6000,
   "cpuThrottle": 10,
+  "commit": "4ad4e0f",
+  "at": "2026-09-15T23:00:11.897Z",
   "runs": [
     {
       "label": "idle 1.1",
-      "fps": 60,
-      "frames": 361,
-      "domNodes": 165,
+      "fps": 49.9,
+      "frames": 300,
+      "domNodes": 178,
       "svgPaths": 22,
-      "heapMB": 19.4,
-      "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped"
+      "heapMB": 17.9,
+      "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+      "memoHit": true
     },
     {
       "label": "turrets running 1.1",
-      "fps": 59.8,
+      "fps": 59.6,
       "frames": 359,
-      "domNodes": 160,
+      "domNodes": 167,
       "svgPaths": 23,
-      "heapMB": 24.3,
-      "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped"
+      "heapMB": 24.4,
+      "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+      "memoHit": true
     },
     {
       "label": "turrets running 5.5",
-      "fps": 55.9,
-      "frames": 336,
-      "domNodes": 194,
+      "fps": 60,
+      "frames": 361,
+      "domNodes": 204,
       "svgPaths": 48,
-      "heapMB": 24,
-      "hud": "MoT 5.5 FULL · 4000 seg · EO·IR·ACOUSTIC·MAG·CHEM · cnn 50ms · 1553 drawn"
+      "heapMB": 25.2,
+      "hud": "MoT 5.5 FULL · 4000 seg · EO·IR·ACOUSTIC·MAG·CHEM · cnn 50ms · 1553 drawn",
+      "memoHit": true
     },
     {
       "label": "drone flying 1.1",
-      "fps": 59,
-      "frames": 354,
-      "domNodes": 179,
-      "svgPaths": 23,
-      "heapMB": 30.5,
-      "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped"
+      "fps": 56.4,
+      "frames": 339,
+      "domNodes": 193,
+      "svgPaths": 29,
+      "heapMB": 23,
+      "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
+      "memoHit": true
     },
     {
       "label": "mixed crew 1.1",
-      "fps": 59.6,
-      "frames": 358,
-      "domNodes": 191,
-      "svgPaths": 23,
-      "heapMB": 43.2,
-      "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped"
+      "fps": 53.2,
+      "frames": 320,
+      "domNodes": 194,
+      "svgPaths": 29,
+      "heapMB": 29.4,
+      "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
+      "memoHit": true
+    },
+    {
+      "label": "42 aircraft 2.3",
+      "fps": 51.4,
+      "frames": 309,
+      "domNodes": 205,
+      "svgPaths": 50,
+      "heapMB": 45.6,
+      "hud": "MoT 2.2 FIELD · 1210 seg · EO·IR · cnn 16ms · 537 drawn, 864 dropped · 612 to the aircraft",
+      "memoHit": true
+    },
+    {
+      "label": "42 aircraft 5.5",
+      "fps": 60.2,
+      "frames": 362,
+      "domNodes": 187,
+      "svgPaths": 47,
+      "heapMB": 18.5,
+      "hud": "MoT 5.5 FULL · 4000 seg · EO·IR·ACOUSTIC·MAG·CHEM · cnn 50ms · 1553 drawn",
+      "memoHit": true
     }
   ]
 }

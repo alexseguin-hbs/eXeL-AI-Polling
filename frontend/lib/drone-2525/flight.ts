@@ -86,7 +86,6 @@ export interface FlightInput {
 }
 
 export const airspeedOf = (s: FlightState): number => Math.hypot(s.ve, s.vn);
-export const groundSpeedOf = airspeedOf;
 
 /** Watts being drawn right now: the rotors carry whatever the wing does not. */
 export function powerW(a: Airframe, s: FlightState): number {

@@ -7,8 +7,7 @@ import { TRINITY_COLORS } from "@/lib/trinity-palette";
 
 export { TRINITY_COLORS };
 export type ColorRole = keyof typeof TRINITY_COLORS;
-export const ROLE_KEYS = Object.keys(TRINITY_COLORS) as ColorRole[];
-export const hexOf = (role: ColorRole): string => TRINITY_COLORS[role];
+const ROLE_KEYS = Object.keys(TRINITY_COLORS) as ColorRole[];
 
 /** Every hex the 13 permit, lowercased — the whitelist the gate and the validator both read. */
 export const ALLOWED_HEX: ReadonlySet<string> = new Set(ROLE_KEYS.map((k) => TRINITY_COLORS[k].toLowerCase()));
