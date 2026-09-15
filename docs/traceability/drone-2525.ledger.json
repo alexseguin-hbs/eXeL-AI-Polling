@@ -1,10 +1,35 @@
 {
-  "section": "Drone-2525",
-  "route": "/main/Drone-2525",
-  "note": "Append-only Vision 2525 traceability for the Drone-2525 Domain Play. rev monotonic; append, never edit. Version 00.00 · revision 0.001 opens the record (operator 2026-09-15).",
-  "entries": [
-    { "rev": 1, "date": "2026-09-15", "kind": "ask", "text": "Drone-2525 1st Pass — Security Turrets and Security Capital (stationary pop-up targets), 2 HI-operated drone, and mixed HI/AI pilot+targeteer with HI approving every shot; an edge-wireframe city block around the Texas Capitol lawn built on Security-2525 Mission Planning; tag each door by capturing a picture and shooting it; 13 trinity colours only; fixed-wing VTOL; one gimbal design shared by turret and airframe; wireframes that feed Unreal and Unity through a one-step conversion built from scratch. Persisted verbatim, sha256 0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2.", "commit": "7b0b790" },
-    { "rev": 2, "date": "2026-09-15", "kind": "decision", "text": "Five decisions taken with the operator: (1) the 13 are the SPECTRUM palette lib/trinity-palette.ts, not the iconology set, and the drone surface may draw no other hex; (2) the Capitol block is hand-authored now, badged confidence-low, with a checked-in offline builder the operator runs for the real OSM buildings/trees/roads and a fine DEM; (3) stationary first — Turrets and Capital ship as Pass 1 with the WireModel and exporter, drone flight and two-device pilot/targeteer as Pass 1b, AI roles and the HI approval gate as Pass 1c; (4) numbering starts at Version 00.00 revision 0.001 and every later edition appends, never edits; (5) the vector law lives in lib/wire-core and every 2525 domain surface inherits it — the polling app's chrome is NOT repainted without a further instruction.", "commit": "" },
-    { "rev": 3, "date": "2026-09-15", "kind": "decision", "text": "Wireframe means vector-display drawing (operator's references: Star Wars arcade 1983, Battlezone) — black ground, lines only, no fill or shading, one saturated stroke colour per object from the 13, depth from perspective and overlap rather than brightness, HUD drawn in the same stroke language at the same weight, curves as n-gons so a curve's cost is declared. Sensor CAPTURE stores an extracted EDGE SET as a WireModel group, never a photograph, behind one interface with two implementations (rendered-view extraction now, camera + CNN later). Resolution and frame rate rise only with measured spare compute after the Edge sensor's CNN reserve is subtracted; the tier changes what is drawn, never what is true — the model hash is identical across all tiers — and the tier is always visible, never silent.", "commit": "" }
-  ]
+ "section": "Drone-2525",
+ "route": "/main/Drone-2525",
+ "note": "Append-only Vision 2525 traceability for the Drone-2525 Domain Play. rev monotonic; append, never edit. Version 00.00 · revision 0.001 opens the record (operator 2026-09-15).",
+ "entries": [
+  {
+   "rev": 1,
+   "date": "2026-09-15",
+   "kind": "ask",
+   "text": "Drone-2525 1st Pass — Security Turrets and Security Capital (stationary pop-up targets), 2 HI-operated drone, and mixed HI/AI pilot+targeteer with HI approving every shot; an edge-wireframe city block around the Texas Capitol lawn built on Security-2525 Mission Planning; tag each door by capturing a picture and shooting it; 13 trinity colours only; fixed-wing VTOL; one gimbal design shared by turret and airframe; wireframes that feed Unreal and Unity through a one-step conversion built from scratch. Persisted verbatim, sha256 0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2.",
+   "commit": "7b0b790"
+  },
+  {
+   "rev": 2,
+   "date": "2026-09-15",
+   "kind": "decision",
+   "text": "Five decisions taken with the operator: (1) the 13 are the SPECTRUM palette lib/trinity-palette.ts, not the iconology set, and the drone surface may draw no other hex; (2) the Capitol block is hand-authored now, badged confidence-low, with a checked-in offline builder the operator runs for the real OSM buildings/trees/roads and a fine DEM; (3) stationary first — Turrets and Capital ship as Pass 1 with the WireModel and exporter, drone flight and two-device pilot/targeteer as Pass 1b, AI roles and the HI approval gate as Pass 1c; (4) numbering starts at Version 00.00 revision 0.001 and every later edition appends, never edits; (5) the vector law lives in lib/wire-core and every 2525 domain surface inherits it — the polling app's chrome is NOT repainted without a further instruction.",
+   "commit": ""
+  },
+  {
+   "rev": 3,
+   "date": "2026-09-15",
+   "kind": "decision",
+   "text": "Wireframe means vector-display drawing (operator's references: Star Wars arcade 1983, Battlezone) — black ground, lines only, no fill or shading, one saturated stroke colour per object from the 13, depth from perspective and overlap rather than brightness, HUD drawn in the same stroke language at the same weight, curves as n-gons so a curve's cost is declared. Sensor CAPTURE stores an extracted EDGE SET as a WireModel group, never a photograph, behind one interface with two implementations (rendered-view extraction now, camera + CNN later). Resolution and frame rate rise only with measured spare compute after the Edge sensor's CNN reserve is subtracted; the tier changes what is drawn, never what is true — the model hash is identical across all tiers — and the tier is always visible, never silent.",
+   "commit": ""
+  },
+  {
+   "rev": 4,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "Pass 1 ships the two stationary modes on the route /main/Drone-2525, unlocked from the Vision 2525 launcher. The vector law decided at rev 3 is now code and gate, not taste. Adaptive fidelity takes the Edge sensor's CNN reserve out of the frame before the renderer, then selects a tier that changes what is drawn and never what is true — the model hash is identical across tiers. On the Capitol arena the LOW tier keeps 601 of a 1,200-segment budget and still draws every building, every door, the roads and the contours, dropping only the trees; ULTRA keeps 1,609 within its 4,000 ceiling. The 13-step CRS ladder renders from one editable source with a drift check, and its rows are in the /crs matrix under review id DR-2026.09.15-r0.001. Gates added to test:ci: drone-arena 27, drone-hal 29, vector-law 22, drone-crs 117, drone-i18n 52; full test:ci and next build both exit 0. Flight, the two-device crew and the AI roles under human approval remain Pass 1b and 1c, declared on screen with the pass that will deliver them.",
+   "commit": "2d5eb24"
+  }
+ ]
 }
