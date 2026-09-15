@@ -75,6 +75,30 @@ ok(new Set(hashes).size === 1, `five builds, one hash (${hashes[0].slice(0, 16)}
 const coarse = buildArena(SRC, { ngonSides: 8, contourStepM: 2, stamp: "eXeL v0.001-test" }).model;
 ok(coarse.edges.length < model.edges.length, "a coarser curve budget really does draw fewer segments");
 
+
+// THE FIT MUST CENTRE. A drawing sitting low in a tall pane is the defect a phone capture found, and the
+// cause was a re-centring term multiplied by a scale it had not applied yet. This asserts the outcome
+// rather than the cause, so any future way of getting it wrong fails here too.
+{
+  const { fitToPane, sceneProject } = await import("../lib/wire-core/scene-project.ts");
+  for (const [pw, ph] of [[1440, 620], [390, 257], [800, 800], [360, 700]]) {
+    const base = { pw, ph, pitchDeg: 58, bearingRad: 0, pxPerM: Math.min(pw, ph) / (SRC.arena.radiusM * 2.2) };
+    const cam = fitToPane(model.vertices, base);
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const v of model.vertices) {
+      const q = sceneProject(v, cam);
+      if (q.behind) continue;
+      if (q.x < minX) minX = q.x; if (q.x > maxX) maxX = q.x;
+      if (q.y < minY) minY = q.y; if (q.y > maxY) maxY = q.y;
+    }
+    const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    ok(Math.abs(cx - pw / 2) < pw * 0.06, `${pw}x${ph}: centred across (off by ${Math.abs(cx - pw / 2).toFixed(0)}px)`);
+    ok(Math.abs(cy - ph / 2) < ph * 0.08, `${pw}x${ph}: centred down the pane (off by ${Math.abs(cy - ph / 2).toFixed(0)}px)`);
+    ok(maxX - minX <= pw && maxY - minY <= ph, `${pw}x${ph}: and fits inside it`);
+    ok(maxX - minX > pw * 0.4, `${pw}x${ph}: and fills it, rather than sitting in it like a postage stamp`);
+  }
+}
+
 console.log(`drone-arena: ${pass} passed, ${fail} failed`);
 console.log(`  arena: ${model.vertices.length} verts · ${model.edges.length} segments · ${model.groups.length} groups · ${doors.length} doors · hash ${hashes[0].slice(0, 12)}…`);
 console.log(`  tiers: LOW ${low.kept} (dropped ${low.dropped}) · ULTRA ${ultra.kept}`);

@@ -59,7 +59,7 @@ export const cssTransform = (cam: SceneCam): string =>
  * Points the camera refuses (behind the eye) are ignored here exactly as they are ignored when drawing —
  * a fit computed from points that are not on screen would frame empty space.
  */
-export function fitToPane(vertices: readonly Vec3[], cam: SceneCam, margin = 0.9, passes = 2): SceneCam {
+export function fitToPane(vertices: readonly Vec3[], cam: SceneCam, margin = 0.9, passes = 3, marginY = margin): SceneCam {
   let out = cam;
   for (let i = 0; i < passes; i++) {
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, n = 0;
@@ -73,15 +73,21 @@ export function fitToPane(vertices: readonly Vec3[], cam: SceneCam, margin = 0.9
     if (n < 2) return out;                                   // nothing visible — leave the camera alone
     const w = maxX - minX, h = maxY - minY;
     if (!(w > 0) || !(h > 0)) return out;
-    const s = Math.min((out.pw * margin) / w, (out.ph * margin) / h);
+    // The vertical margin can be tighter than the horizontal one. It has to be: the heads-up display sits
+    // in bands at the top and bottom of the same box, and on a phone those bands wrap to three lines. A
+    // drawing fitted to the full height runs straight under them, which the first phone capture showed.
+    const s = Math.min((out.pw * margin) / w, (out.ph * marginY) / h);
     const ox = out.originX ?? 0.5, oy = out.originY ?? 0.6;
-    // Scale about the pane centre, then slide the bounds' centre onto it.
+    // Slide the bounds' centre onto the pane centre. The correction is NOT multiplied by the scale being
+    // applied in the same pass: that assumed the projection were linear about the origin, which perspective
+    // is not, and it left the drawing sitting low in a tall pane. Each pass corrects what the last one left,
+    // which is what the passes are for.
     const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
     out = {
       ...out,
       pxPerM: out.pxPerM * s,
-      originX: ox + (out.pw / 2 - cx) / out.pw * s,
-      originY: oy + (out.ph / 2 - cy) / out.ph * s,
+      originX: ox + (out.pw / 2 - cx) / out.pw,
+      originY: oy + (out.ph / 2 - cy) / out.ph,
     };
   }
   return out;

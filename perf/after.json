@@ -4,47 +4,47 @@
   "runs": [
     {
       "label": "idle 1.1",
-      "fps": 59.8,
-      "frames": 359,
-      "domNodes": 159,
+      "fps": 60,
+      "frames": 361,
+      "domNodes": 165,
       "svgPaths": 22,
-      "heapMB": 17.7,
+      "heapMB": 19.4,
       "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped"
     },
     {
       "label": "turrets running 1.1",
-      "fps": 59.9,
-      "frames": 360,
-      "domNodes": 161,
-      "svgPaths": 22,
-      "heapMB": 18.1,
+      "fps": 59.8,
+      "frames": 359,
+      "domNodes": 160,
+      "svgPaths": 23,
+      "heapMB": 24.3,
       "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped"
     },
     {
       "label": "turrets running 5.5",
-      "fps": 57.3,
-      "frames": 344,
-      "domNodes": 185,
+      "fps": 55.9,
+      "frames": 336,
+      "domNodes": 194,
       "svgPaths": 48,
-      "heapMB": 26.8,
+      "heapMB": 24,
       "hud": "MoT 5.5 FULL · 4000 seg · EO·IR·ACOUSTIC·MAG·CHEM · cnn 50ms · 1553 drawn"
     },
     {
       "label": "drone flying 1.1",
-      "fps": 59.5,
-      "frames": 357,
-      "domNodes": 176,
+      "fps": 59,
+      "frames": 354,
+      "domNodes": 179,
       "svgPaths": 23,
-      "heapMB": 36.4,
+      "heapMB": 30.5,
       "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped"
     },
     {
       "label": "mixed crew 1.1",
       "fps": 59.6,
       "frames": 358,
-      "domNodes": 192,
+      "domNodes": 191,
       "svgPaths": 23,
-      "heapMB": 20.8,
+      "heapMB": 43.2,
       "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped"
     }
   ]

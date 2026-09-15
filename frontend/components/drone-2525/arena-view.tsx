@@ -88,7 +88,13 @@ export function ArenaView({ source, level = "1.1", hal = "auto", overlay, hudRig
   const cam = useMemo(() => {
     const base = { pw: size.w, ph: size.h, pitchDeg: pitch, bearingRad: (bearing * Math.PI) / 180,
                    pxPerM: Math.min(size.w, size.h) / (source.arena.radiusM * 2.2) };
-    const fit = fitToPane(model.vertices, base);
+    // Reserve the bands the HUD actually occupies, measured in pixels rather than guessed as a fraction:
+    // the text is the same height on a phone as on a laptop, so on a short pane it eats a far larger share.
+    // Only the overlay needs dodging. Below the threshold the bands are in the flow and the drawing gets
+    // the whole box, which is why the phone still shows a city block rather than a postage stamp.
+    const band = size.w < 520 ? 0 : 46;
+    const marginY = Math.max(0.5, Math.min(0.9, 1 - (band * 2) / Math.max(1, size.h)));
+    const fit = fitToPane(model.vertices, base, 0.9, 2, marginY);
     return { ...fit, pxPerM: fit.pxPerM * zoom };
   }, [size, pitch, bearing, zoom, source.arena.radiusM, model]);
 
@@ -109,8 +115,41 @@ export function ArenaView({ source, level = "1.1", hal = "auto", overlay, hudRig
   }, []);
 
   const hud = { color: semanticHex("hud"), fontFamily: "ui-monospace, monospace", fontSize: 11, letterSpacing: "0.08em" };
-  return (
-    <div ref={box} data-drone-arena style={{ position: "relative", width: "100%", height: "min(62vh, max(300px, 80vw))", background: VECTOR_LAW.ground, overflow: "hidden", touchAction: "none" }}
+
+  // ON A PHONE THE HUD GOES UNDER THE DRAWING, NOT OVER IT. On a laptop each band is one line and an overlay
+  // is the right answer: the numbers sit in the corners of the world they describe. At 390 px the same
+  // content wraps to five lines and takes half the box, so an overlay puts text straight through the
+  // Capitol. Shrinking the drawing to make room would leave a city block the size of a postage stamp.
+  // Below a threshold the bands become ordinary content in the flow, which is what they are at that width.
+  const narrow = size.w < 520;
+  const topRow = (
+    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+      <span style={hud}>{t("drone.hud.arena")}</span>
+      {hudLeft}
+      <span style={{ ...hud, color: semanticHex("mount") }} data-drone-fidelity>
+        {motLabel(spec)} · {lod.kept} drawn{lod.dropped ? `, ${lod.dropped} dropped` : ""}
+      </span>
+    </div>
+  );
+  const bottomRow = (
+    <div style={{ display: "flex", justifyContent: "space-between", gap: narrow ? 8 : 12, flexWrap: "wrap", alignItems: narrow ? "flex-start" : "flex-end" }}>
+      <span style={{ ...hud, color: semanticHex("door") }}>{t("drone.hud.doors")} {doors.length}</span>
+      <span style={{ ...hud, opacity: 0.75 }}>{t("drone.arena.hand_authored")}</span>
+      {/* The live video standard gets its OWN field, not a clause inside a sentence: a drop from
+          1080p30 is the single fact a person must never have to go looking for. */}
+      <span style={{ ...hud, color: isReference(cal.streamIdx) ? semanticHex("frustum") : semanticHex("pending") }} data-drone-stream>
+        {streamLabel(cal.streamIdx)}
+      </span>
+      <span style={{ ...hud, color: semanticHex("frustum"), opacity: 0.8 }} data-drone-cal>
+        {calLine(cal, machine)}
+      </span>
+      {hudRight}
+      <span style={{ ...hud, opacity: 0.6 }}>{hash.slice(0, 12)}</span>
+    </div>
+  );
+
+  const world = (
+    <div ref={box} data-drone-arena style={{ position: "relative", width: "100%", height: narrow ? "min(52vh, 66vw)" : "min(62vh, max(300px, 80vw))", background: VECTOR_LAW.ground, overflow: "hidden", touchAction: "none" }}
          onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
       <WireSvg model={model} cam={cam} maxLod={spec.maxLod} segmentBudget={spec.segments} bloom={spec.bloom} fw={(w) => w} />
       {overlay ? (
@@ -118,31 +157,23 @@ export function ArenaView({ source, level = "1.1", hal = "auto", overlay, hudRig
           {overlay({ model, doors, ground, cam, stroke: (w) => w })}
         </div>
       ) : null}
-
       {/* HUD — drawn in the same stroke language, at the same weight, as the world (the vector law) */}
-      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", padding: 10, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <span style={hud}>{t("drone.hud.arena")}</span>
-          {hudLeft}
-          <span style={{ ...hud, color: semanticHex("mount") }} data-drone-fidelity>
-            {motLabel(spec)} · {lod.kept} drawn{lod.dropped ? `, ${lod.dropped} dropped` : ""}
-          </span>
+      {narrow ? null : (
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", padding: 10, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          {topRow}
+          {bottomRow}
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
-          <span style={{ ...hud, color: semanticHex("door") }}>{t("drone.hud.doors")} {doors.length}</span>
-          <span style={{ ...hud, opacity: 0.75 }}>{t("drone.arena.hand_authored")}</span>
-          {/* The live video standard gets its OWN field, not a clause inside a sentence: a drop from
-              1080p30 is the single fact a person must never have to go looking for. */}
-          <span style={{ ...hud, color: isReference(cal.streamIdx) ? semanticHex("frustum") : semanticHex("pending") }} data-drone-stream>
-            {streamLabel(cal.streamIdx)}
-          </span>
-          <span style={{ ...hud, color: semanticHex("frustum"), opacity: 0.8 }} data-drone-cal>
-            {calLine(cal, machine)}
-          </span>
-          {hudRight}
-          <span style={{ ...hud, opacity: 0.6 }}>{hash.slice(0, 12)}</span>
-        </div>
-      </div>
+      )}
     </div>
   );
+
+  if (!narrow) return world;
+  return (
+    <div style={{ background: VECTOR_LAW.ground }}>
+      <div style={{ padding: "6px 10px 4px" }}>{topRow}</div>
+      {world}
+      <div style={{ padding: "6px 10px 2px" }}>{bottomRow}</div>
+    </div>
+  );
+
 }
