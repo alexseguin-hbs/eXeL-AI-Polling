@@ -28,7 +28,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.005",
+  "revision": "0.006",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
   "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -72,6 +72,13 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Two people on two devices: one flies, one works the camera, and neither can do the other's job. Optimised against a measurement on a processor slowed ten times rather than against a desktop that hides every change. Nine runs of every gate with zero drift, ten spiral checks, SSSES 93.",
    "commit": "dffaa79"
+  },
+  {
+   "revision": "0.006",
+   "date": "2026-09-15",
+   "kind": "release",
+   "why": "Forty-two aircraft, 21 against 21, inside the ladder's budget at every rung. A five-level authority ladder on the band that already exists, with the invariant unbent on every rung. And an SSSES scorer rewritten to measure rather than assert, which dropped the score before the work lifted it to 96.",
+   "commit": "c7c40a5"
   }
  ],
  "arena": {
@@ -1550,6 +1557,79 @@ export const DRONE_DOMAIN = {
    "dtm": "a report a reviewer can re-run",
    "stretch": "the same harness for every domain",
    "status": "implemented"
+  },
+  {
+   "id": "DRN-09.03",
+   "title": "Forty-two aircraft, twenty-one against twenty-one",
+   "statement": "An engagement puts 42 aircraft in the air as two opposing sides of 21, held in flat columns so a tick allocates nothing, and drawn as an overlay in the arena's own camera batched into a handful of paths.",
+   "in": "DRN-09.03.IN",
+   "out": "DRN-09.03.OUT",
+   "section": "III",
+   "uwf": [
+    "U-WF-02",
+    "U-WF-07"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "a tick allocates nothing; 42 aircraft at rung 2.3 hold the 30 Hz reference on a processor slowed ten times",
+   "verify": "tests/drone-swarm.test.mjs · scripts/drone-perf.mjs",
+   "dtm": "42 aircraft flying",
+   "stretch": "the same columns carry a thousand",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.09",
+   "title": "One budget, two consumers: the aircraft are the world",
+   "statement": "In an engagement the swarm takes its share of the rung's segment budget first and the Capitol block takes what is left, so at a poor rung the world thins rather than the aircraft vanishing; and every aircraft is drawn at the smallest size before any is given detail.",
+   "in": "DRN-11.09.IN",
+   "out": "DRN-11.09.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "all 42 drawn at every one of the 25 rungs",
+   "verify": "tests/drone-swarm.test.mjs",
+   "dtm": "42 drawn at rung 1.1 with the world at 112 segments",
+   "stretch": "the same rule wherever a budget is shared",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.05",
+   "title": "Five authority levels, and silence is never consent on any of them",
+   "statement": "Autonomy rides on the band that already exists: level 1 a named person per shot, level 5 the key group's live lean as a standing mandate it can end at once; at every level a named human decision exists before any machine shot, and what scales is the breadth of one decision rather than whether one happened.",
+   "in": "DRN-10.05.IN",
+   "out": "DRN-10.05.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "a refusal from all five levels when nothing has been decided",
+   "verify": "tests/drone-authority.test.mjs",
+   "dtm": "five levels selectable",
+   "stretch": "the ladder serves any domain with a machine and an authority",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-13.02",
+   "title": "A score that can fall",
+   "statement": "Every SSSES pillar is computed from evidence produced in the same run — authority checks, nine-run drift, measured frames against the declared reference, whether the projection memo demonstrably holds, and duplication and dead exports counted from the source — and a performance file measured at a different commit is refused rather than trusted.",
+   "in": "DRN-13.02.IN",
+   "out": "DRN-13.02.OUT",
+   "section": "II",
+   "uwf": [
+    "U-WF-08"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "no pillar is a literal; the score fell before it rose",
+   "verify": "scripts/drone-spiral9.mjs",
+   "dtm": "a score a reviewer can re-derive",
+   "stretch": "the same scorer for every domain",
+   "status": "implemented"
   }
  ],
  "status": {
@@ -1638,6 +1718,30 @@ export const DRONE_DOMAIN = {
    "cloud endpoint /api/drone-link"
   ],
   "proof": "scripts/drone-crew-e2e.mjs — two separate browser profiles, only the cloud path available"
+ },
+ "swarm": {
+  "total": 42,
+  "perSide": 21,
+  "sides": [
+   "friendly",
+   "hostile"
+  ],
+  "glyphSegments": {
+   "far": 4,
+   "mid": 12,
+   "near": 24
+  },
+  "rule": "the swarm takes its share of the rung's budget first; every aircraft is drawn before any gets detail",
+  "passMark": "42 aircraft at rung 2.3 holding the 30 Hz reference on a processor slowed ten times"
+ },
+ "authority": {
+  "1": "a named person, every shot",
+  "2": "a named person, each aircraft once",
+  "3": "a named person, a declared window",
+  "4": "the key group, that window",
+  "5": "the key group's live lean, a standing mandate it can end",
+  "levels": 5,
+  "invariant": "a named human decision exists before any machine shot; silence is never consent at any level"
  }
 } as unknown as DroneDomain;
 export default DRONE_DOMAIN;

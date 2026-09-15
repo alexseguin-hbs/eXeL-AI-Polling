@@ -72,6 +72,13 @@
    "kind": "release",
    "text": "Revision 0.005. Two people, two devices, one aircraft, proven rather than claimed: two separate browser profiles with no shared channel exchanged a flight at 41 m and an aim at 296 degrees, and each screen showed what the other was doing. A seat may only send what that seat controls, checked on the way in as well as out, and the other seat's controls are absent rather than greyed out. That run found three defects hiding behind each other: the targeteer's phone was simulating flight too and fighting the pilot's, the take-off tore its own animation loop down mid-climb and stalled at 8 m of 45, and the harness itself was lying because Chromium throttles a background tab to a frame a second. Optimisation is quoted from a processor slowed ten times, where the heaviest case went 48.0 to 57.3 fps, because a desktop pins everything at the refresh rate and hides the change: the game clock now publishes ten times a second while the gimbal still slews every frame, and a hundred-sample sight line is no longer re-marched for a door that has not moved. Nine runs of every gate: 1,395 checks each, all green, twelve reproducible artefacts byte-identical across all nine, ten spiral checks in both directions. SSSES 93.",
    "commit": "dffaa79"
+  },
+  {
+   "rev": 11,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "Revision 0.006. Forty-two aircraft, twenty-one a side, in flat columns so a tick allocates nothing and as an overlay in the arena's own camera so no mesh is rebuilt. One budget, two consumers: the swarm takes its share first and the Capitol block takes the rest, so at rung 1.1 the world drops to 112 segments and all forty-two are still drawn. A five-level authority ladder rides the band that already exists, from a named person per shot to the key group's live lean as a standing mandate, and the invariant does not bend on any rung: silence is never consent. The SSSES scorer was rewritten because three of its five pillars were not measurements — Succinctness was the literal 85 — and two of the sentences it printed were false. The score fell to 92 before the work lifted it to 96. Measured on a processor slowed ten times: 51.4 fps with the engagement in the air against a 30 Hz reference, and the projection memo demonstrably holding, which it had never done — an inline one-line lambda had been invalidating it sixty times a second. Four defects my own optimisation introduced were each caught by a gate rather than by reading.",
+   "commit": "c7c40a5"
   }
  ]
 }
