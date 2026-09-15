@@ -30,6 +30,8 @@ import {
   CREWS, shotNeedsApproval, autoPilot, autoTargeteer, initApproval, requestShot, resolveRequest,
   mayFire, approvalPrompt, type CrewId,
 } from "@/lib/drone-2525/ai-crew";
+import { initSi, openCall, recogniseAdopted, openCallOf, tally } from "@/lib/drone-2525/si-pod";
+import { SiPanel } from "./si-panel";
 import { ArenaView, type ArenaCtx } from "./arena-view";
 import type { MotLevel } from "@/lib/wire-core/mot-ladder";
 import type { HalChoice } from "@/lib/wire-core/hal";
@@ -71,6 +73,7 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   const [seat, setSeat] = useState<"pilot" | "targeteer">("targeteer");
   const stick = useRef({ fwd: 0, lat: 0, climb: 0, yaw: 0 });
   const [climbing, setClimbing] = useState(false);
+  const [si, setSi] = useState(initSi);
 
   const crew = mode === "multi" ? CREWS[crewId] : CREWS.two_hi;
   const flying = FLYING(mode);
@@ -231,6 +234,8 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
         if (ap.pending) return ap;
         const reqId = `r${target.door.id}-${Math.round(tMsRef.current)}`;
         setAskedFor(reqId);
+        // SI takes the decision the round already has. It does not invent one to vote on.
+        setSi((s0) => openCall(s0, reqId, `${L.t("si.question")} ${target.door.label}?`, tMsRef.current));
         return requestShot(ap, {
           id: reqId, doorId: target.door.id, doorLabel: target.door.label, askedAtMs: tMsRef.current,
           az: aim.az, el: aim.el, rangeM: aimAt(L.eye, target.door.at).rangeM,
@@ -245,7 +250,12 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   const decide = useCallback((verdict: "approved" | "held") => {
     setApproval((ap) => {
       const { state, decision } = resolveRequest(ap, verdict, crew.approver || WATCH, tMsRef.current);
-      if (decision) setNote(`${decision.verdict === "approved" ? t("drone.crew.approved") : t("drone.crew.held")} — ${decision.by}`);
+      if (decision) {
+        setNote(`${decision.verdict === "approved" ? t("drone.crew.approved") : t("drone.crew.held")} — ${decision.by}`);
+        // Judged after the fact, exactly as the pod ladder intends: whoever argued the way the person went
+        // moves from noted to adopted. Nothing here changed what the person decided.
+        setSi((s0) => recogniseAdopted(s0, decision.request.id, verdict === "approved" ? "approve" : "hold", tMsRef.current));
+      }
       return state;
     });
   }, [crew.approver, t]);
@@ -344,6 +354,11 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
             <button data-drone-approve onClick={() => decide("approved")} style={btn(true, semanticHex("tree"))}>{t("drone.crew.approve")}</button>
             <button data-drone-hold onClick={() => decide("held")} style={btn(true, semanticHex("ray"))}>{t("drone.crew.hold")}</button>
           </div>
+          {si.on && openCallOf(si, tMs) ? (
+            <div data-si-advice style={{ ...hudFont, color: semanticHex("tagged"), marginTop: 8 }}>
+              {t("si.advice")} {tally(si, openCallOf(si, tMs)!, tMs).line}
+            </div>
+          ) : null}
           <div style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.6, marginTop: 6 }}>{t("drone.crew.gate_note")}</div>
         </div>
       ) : null}
@@ -414,6 +429,8 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
           </div>
         </div>
       ) : null}
+
+      <SiPanel si={si} setSi={setSi} nowMs={tMs} />
 
       {/* What just happened, in words — never a silent press */}
       <div style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.8, minHeight: 18 }} data-drone-note>

@@ -6,7 +6,7 @@ import fs from 'node:fs';
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 
-const FILES = ['components/drone-2525/command-ux1.tsx', 'components/drone-2525/arena-view.tsx', 'components/drone-2525/wire-svg.tsx', 'components/drone-2525/round.tsx', 'components/drone-2525/self-cal-panel.tsx'];
+const FILES = ['components/drone-2525/command-ux1.tsx', 'components/drone-2525/arena-view.tsx', 'components/drone-2525/wire-svg.tsx', 'components/drone-2525/round.tsx', 'components/drone-2525/self-cal-panel.tsx', 'components/drone-2525/si-panel.tsx'];
 const lex = fs.readFileSync('lib/lexicon-data.ts', 'utf8');
 const declared = new Set([...lex.matchAll(/\{ key: "([^"]+)"/g)].map((m) => m[1]));
 
@@ -27,7 +27,8 @@ for (const f of FILES) {
   // A template key (t(`drone.mode.${id}`)) must have every id it can produce.
   for (const m of s.matchAll(/\bt\(`([a-z0-9.]+)\.\$\{[^}]+\}`\)/g)) {
     const prefix = m[1];
-    ok(droneKeys.some((k) => k.startsWith(prefix + '.')), `${f} builds t(\`${prefix}.*\`) and those keys exist`);
+    // Check against EVERY declared key, not just the drone ones: this surface also speaks si.* now.
+    ok([...declared].some((k) => k.startsWith(prefix + '.')), `${f} builds t(\`${prefix}.*\`) and those keys exist`);
   }
 }
 

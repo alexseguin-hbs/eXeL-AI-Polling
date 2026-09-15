@@ -32,6 +32,10 @@ Id law (docs/vision-2525/CRS-GOVERNANCE-PLAN.md): `DRN-##.##`, two digits never 
 | `DRN-11.05` | Hold 1080p30, and name every step down from it | XI SSSES | Manual | pilot | implemented | `tests/mot-ladder.test.mjs` |
 | `DRN-11.06` | Self-test: the rung this machine actually holds, in 6 to 15 minutes | XI SSSES | Manual | pilot | implemented | `tests/self-cal-runner.test.mjs` |
 | `DRN-11.07` | The robot may pick its own compute class | XI SSSES | Manual | pilot | implemented | `tests/mot-ladder.test.mjs` |
+| `DRN-10.01` | Shared Intent: a key group, switched on or off | X Governance | Manual | pilot | implemented | `tests/si-pod.test.mjs` |
+| `DRN-10.02` | Key members only, by invitation | X Governance | Manual | pilot | implemented | `tests/si-pod.test.mjs` |
+| `DRN-10.03` | The group advises; a named person decides | X Governance | Manual | pilot | implemented | `tests/si-pod.test.mjs` |
+| `DRN-10.04` | Volunteer input, recognised on the ladder that already exists | X Governance | Manual | pilot | implemented | `tests/si-pod.test.mjs` |
 
 ## Every row in full
 
@@ -356,6 +360,74 @@ Id law (docs/vision-2525/CRS-GOVERNANCE-PLAN.md): `DRN-##.##`, two digits never 
 | DTM target | PI / EDGE-SOC / ACCELERATOR selectable |
 | Stretch | a fourth class added without touching a caller |
 | Verification | `tests/mot-ladder.test.mjs` |
+| Status | **implemented** |
+
+### DRN-10.01 — Shared Intent: a key group, switched on or off
+
+**Statement.** A closed group of named people may be switched on to weigh in on decisions; off is the normal state and the round behaves exactly as it does without them.
+
+| field | value |
+|---|---|
+| Input / Output | `DRN-10.01.IN` → `DRN-10.01.OUT` |
+| Vision • 2525 | § X — Governance |
+| U-WF trace | `U-WF-09` |
+| R-CORE mode | Manual |
+| De-risk phase | pilot |
+| Declared metric M | no call can open while it is off; switching off closes any open call |
+| DTM target | the switch and a closed roster |
+| Stretch | the group is a real polling session on Cube 1 |
+| Verification | `tests/si-pod.test.mjs` |
+| Status | **implemented** |
+
+### DRN-10.02 — Key members only, by invitation
+
+**Statement.** Reaching the group's call needs a code issued to named people; an empty roster produces no invitation rather than an open link, and the right code in the wrong hands is refused.
+
+| field | value |
+|---|---|
+| Input / Output | `DRN-10.02.IN` → `DRN-10.02.OUT` |
+| Vision • 2525 | § X — Governance |
+| U-WF trace | `U-WF-09` |
+| R-CORE mode | Manual |
+| De-risk phase | pilot |
+| Declared metric M | both halves must hold: on the roster, and a live code |
+| DTM target | a code and a scannable square |
+| Stretch | delivery through the operator's own channel |
+| Verification | `tests/si-pod.test.mjs` |
+| Status | **implemented** |
+
+### DRN-10.03 — The group advises; a named person decides
+
+**Statement.** Consensus is shown beside the decision a person is about to make and can never make it: no function in the consensus engine can retire a shot request or open the authority gate, and a unanimous group changes nothing about what may fire.
+
+| field | value |
+|---|---|
+| Input / Output | `DRN-10.03.IN` → `DRN-10.03.OUT` |
+| Vision • 2525 | § X — Governance |
+| U-WF trace | `U-WF-09` |
+| R-CORE mode | Manual |
+| De-risk phase | pilot |
+| Declared metric M | the two modules do not import each other; unanimity does not open the gate |
+| DTM target | advice beside the question |
+| Stretch | the same rule wherever a crowd meets an authority |
+| Verification | `tests/si-pod.test.mjs` |
+| Status | **implemented** |
+
+### DRN-10.04 — Volunteer input, recognised on the ladder that already exists
+
+**Statement.** Answering is voluntary and silence counts as nothing; a contribution is recognised as noted, and as adopted only after the decision went the way it argued, using the three fixed heart values the pod ladder already declares rather than a fourth invented here.
+
+| field | value |
+|---|---|
+| Input / Output | `DRN-10.04.IN` → `DRN-10.04.OUT` |
+| Vision • 2525 | § X — Governance |
+| U-WF trace | `U-WF-06` |
+| R-CORE mode | Manual |
+| De-risk phase | pilot |
+| Declared metric M | no value outside the declared ladder; silence earns nothing |
+| DTM target | a readable record of what was valued |
+| Stretch | entries reach the Cube 8 append-only ledger |
+| Verification | `tests/si-pod.test.mjs` |
 | Status | **implemented** |
 
 ## Revisions (append only)

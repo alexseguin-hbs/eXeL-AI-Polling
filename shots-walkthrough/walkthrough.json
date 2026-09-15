@@ -73,6 +73,11 @@
         },
         {
           "kind": "button",
+          "label": "Off",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -122,7 +127,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
         "aim": "A 000° · B +5°",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -206,6 +211,11 @@
         },
         {
           "kind": "button",
+          "label": "Off",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -255,7 +265,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
         "aim": "A 000° · B +5°",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -339,6 +349,11 @@
         },
         {
           "kind": "button",
+          "label": "Off",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -388,7 +403,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
         "aim": "A 000° · B +5° · C 155 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -472,6 +487,11 @@
         },
         {
           "kind": "button",
+          "label": "Off",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -521,7 +541,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
         "aim": "A 000° · B +5°",
         "score": "Tagged 1/14 · Captured 1",
         "seats": "Seats: A person flies · A person aims",
@@ -605,6 +625,11 @@
         },
         {
           "kind": "button",
+          "label": "Off",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -654,7 +679,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
         "aim": "A 090° · B +5°",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -733,6 +758,11 @@
         },
         {
           "kind": "button",
+          "label": "Off",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -792,7 +822,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
         "aim": "A 000° · B -12° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -871,6 +901,11 @@
         },
         {
           "kind": "button",
+          "label": "Off",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -930,7 +965,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
         "aim": "A 000° · B -12° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -1019,6 +1054,11 @@
         },
         {
           "kind": "button",
+          "label": "Off",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -1089,7 +1129,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
         "aim": "A 000° · B -11° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A machine aims · a person must approve every shot",
@@ -1178,6 +1218,11 @@
         },
         {
           "kind": "button",
+          "label": "Off",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -1248,7 +1293,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
         "aim": "A 000° · B -11° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A machine aims · a person must approve every shot",
@@ -1337,6 +1382,11 @@
         },
         {
           "kind": "button",
+          "label": "Off",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -1407,7 +1457,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
         "aim": "A 000° · B -11° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 0 approved, 1 held",
@@ -1486,6 +1536,11 @@
         },
         {
           "kind": "button",
+          "label": "Off",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -1556,7 +1611,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
         "aim": "A 000° · B -11° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 1 held",
@@ -1565,6 +1620,681 @@
         "approval": null
       },
       "paths": 23,
+      "width": 1440
+    },
+    {
+      "id": "16-si-group",
+      "title": "Shared Intent · the key group",
+      "what": "Switched on, a small invited group can weigh in. The invitation is a code and a scannable square for those people only, never an open link.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/16-si-group.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Approve the shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Hold",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "On",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Make an invitation",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Hide the code",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Copy the link",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I would",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I would not",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "No view",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Person flies · machine aims",
+          "enabled": true,
+          "options": 3,
+          "choices": [
+            "Person flies · machine aims",
+            "Machine flies · person aims",
+            "Machine flies and aims"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Ada",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Ada",
+            "Bo",
+            "Cass"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "aim": "A 000° · B -11° · C 208 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 1 held",
+        "flight": "QUAD · 0 m/s · 44 m AGL · 97% · ~15 min",
+        "note": "The machine is looking at TEXAS CAPITOL, 208 m",
+        "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldThe group so far: 0 of 4 have answered — not enough to read the group yetNothing fires while this question is open. If you do nothing, nothing happens."
+      },
+      "paths": 23,
+      "width": 1440
+    },
+    {
+      "id": "17-si-call",
+      "title": "The group answers while the question is open",
+      "what": "When a machine asks to shoot, the same question goes to the group. Their reading appears beside the decision, and the person still decides.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/17-si-call.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Approve the shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Hold",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "On",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Make an invitation",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Show the code",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Copy the link",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I would",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I would not",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "No view",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Person flies · machine aims",
+          "enabled": true,
+          "options": 3,
+          "choices": [
+            "Person flies · machine aims",
+            "Machine flies · person aims",
+            "Machine flies and aims"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Cass",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Ada",
+            "Bo",
+            "Cass"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "aim": "A 000° · B -11° · C 208 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 1 held",
+        "flight": "QUAD · 0 m/s · 44 m AGL · 97% · ~15 min",
+        "note": "The machine is looking at TEXAS CAPITOL, 208 m",
+        "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldThe group so far: 3 of 4 answered — 3 say holdNothing fires while this question is open. If you do nothing, nothing happens."
+      },
+      "paths": 23,
+      "width": 1440
+    },
+    {
+      "id": "18-si-recognised",
+      "title": "What taking part earned",
+      "what": "Answering is recognised on the three fixed steps the pod ladder already defines. It is a record of what was valued, not money.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/18-si-recognised.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Approve the shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Hold",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "On",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Make an invitation",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Show the code",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Copy the link",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I would",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I would not",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "No view",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Person flies · machine aims",
+          "enabled": true,
+          "options": 3,
+          "choices": [
+            "Person flies · machine aims",
+            "Machine flies · person aims",
+            "Machine flies and aims"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Cass",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Ada",
+            "Bo",
+            "Cass"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "aim": "A 002° · B -12°",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 2 held",
+        "flight": "QUAD · 0 m/s · 44 m AGL · 97% · ~15 min",
+        "note": "The machine is looking at CAPITOL VISITORS CENTER, 205 m",
+        "approval": "A machine is asking to shoot CAPITOL VISITORS CENTER, 205 m away. It says: the shape matches the door it photographedApprove the shotHoldThe group so far: 3 of 4 answered — 3 say holdNothing fires while this question is open. If you do nothing, nothing happens."
+      },
+      "paths": 22,
       "width": 1440
     },
     {
@@ -1645,6 +2375,61 @@
         },
         {
           "kind": "button",
+          "label": "On",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Make an invitation",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Show the code",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Copy the link",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I would",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I would not",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "No view",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -1697,6 +2482,17 @@
           ]
         },
         {
+          "kind": "menu",
+          "label": "Cass",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Ada",
+            "Bo",
+            "Cass"
+          ]
+        },
+        {
           "kind": "slider",
           "label": "6–15, now 6",
           "enabled": true
@@ -1715,13 +2511,13 @@
       "hud": {
         "level": "MoT 5.5 FULL · 4000 seg · EO·IR·ACOUSTIC·MAG·CHEM · cnn 50ms · 1553 drawn",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO·IR·ACOUSTIC·MAG · over budget by 0.3ms — CHEM shed",
-        "aim": "A 000° · B -11° · C 208 m",
+        "calibration": "1080p30 · EDGE-SOC · EO·IR · over budget by 0.3ms — ACOUSTIC shed",
+        "aim": "A 064° · B -12° · C 205 m",
         "score": "Tagged 0/14 · Captured 0",
-        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 1 held",
-        "flight": "QUAD · 0 m/s · 44 m AGL · 97% · ~15 min",
-        "note": "The machine is looking at TEXAS CAPITOL, 208 m",
-        "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldNothing fires while this question is open. If you do nothing, nothing happens."
+        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 2 held",
+        "flight": "QUAD · 0 m/s · 44 m AGL · 96% · ~15 min",
+        "note": "The machine is looking at CAPITOL VISITORS CENTER, 205 m",
+        "approval": "A machine is asking to shoot CAPITOL VISITORS CENTER, 205 m away. It says: the shape matches the door it photographedApprove the shotHoldThe group so far: 3 of 4 answered — 3 say holdNothing fires while this question is open. If you do nothing, nothing happens."
       },
       "paths": 48,
       "width": 1440
@@ -1804,6 +2600,46 @@
         },
         {
           "kind": "button",
+          "label": "On",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Make an invitation",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Show the code",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Copy the link",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Run self-test",
           "enabled": true
         },
@@ -1880,12 +2716,12 @@
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
         "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
-        "aim": "A 075° · B -8°",
+        "aim": "A 049° · B -7°",
         "score": "Tagged 0/14 · Captured 0",
-        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 1 held",
-        "flight": "QUAD · 0 m/s · 44 m AGL · 92% · ~14 min",
-        "note": "The machine is looking at INSURANCE ANNEX, 302 m",
-        "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldNothing fires while this question is open. If you do nothing, nothing happens."
+        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 2 held",
+        "flight": "QUAD · 0 m/s · 44 m AGL · 91% · ~14 min",
+        "note": "The machine is looking at TOM C. CLARK BLDG, 342 m",
+        "approval": "A machine is asking to shoot CAPITOL VISITORS CENTER, 205 m away. It says: the shape matches the door it photographedApprove the shotHoldNothing fires while this question is open. If you do nothing, nothing happens."
       },
       "paths": 22,
       "width": 1440
@@ -1959,6 +2795,11 @@
         {
           "kind": "button",
           "label": "east",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Off",
           "enabled": true
         },
         {
@@ -2087,6 +2928,11 @@
         {
           "kind": "button",
           "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Off",
           "enabled": true
         },
         {

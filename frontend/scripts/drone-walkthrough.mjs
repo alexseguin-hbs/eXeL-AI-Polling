@@ -194,6 +194,42 @@ async function screen(page, id, title, what, steps = async () => {}) {
         await p.waitForTimeout(800);
       });
 
+    await screen(page, "16-si-group", "Shared Intent · the key group",
+      "Switched on, a small invited group can weigh in. The invitation is a code and a scannable square for those people only, never an open link.",
+      async (p) => {
+        await p.click("[data-si-toggle]");
+        await p.waitForTimeout(300);
+        await p.click("[data-si-seed]", { timeout: 2000 }).catch(() => {});
+        await p.waitForTimeout(300);
+        await p.click("[data-si-invite]", { timeout: 2000 }).catch(() => {});
+        await p.waitForTimeout(300);
+        await p.click("[data-si-qr]", { timeout: 2000 }).catch(() => {});
+        await p.waitForTimeout(500);
+      });
+
+    await screen(page, "17-si-call", "The group answers while the question is open",
+      "When a machine asks to shoot, the same question goes to the group. Their reading appears beside the decision, and the person still decides.",
+      async (p) => {
+        await p.click("[data-si-qr]", { timeout: 2000 }).catch(() => {});
+        await p.waitForSelector("[data-si-call]", { timeout: 45000 }).catch(() => {});
+        for (const who of ["m1", "m2", "m3"]) {
+          await p.selectOption("[data-si-as]", who).catch(() => {});
+          await p.click("[data-si-vote='hold']", { timeout: 2000 }).catch(() => {});
+          await p.waitForTimeout(250);
+        }
+        await p.waitForTimeout(400);
+      });
+
+    await screen(page, "18-si-recognised", "What taking part earned",
+      "Answering is recognised on the three fixed steps the pod ladder already defines. It is a record of what was valued, not money.",
+      async (p) => {
+        await p.click("[data-drone-hold]", { timeout: 3000 }).catch(() => {});
+        await p.waitForTimeout(600);
+        const led = p.locator("[data-si-ledger] summary").first();
+        if (await led.count()) await led.click();
+        await p.waitForTimeout(400);
+      });
+
     await screen(page, "12-level-5-5", "Turning the level up",
       "Level 5.5 asks for the densest mesh and all five sensors. Calibration answers immediately and names what it shed.",
       async (p) => { await p.selectOption("[data-drone-mot]", "5.5"); await p.waitForTimeout(1500); });

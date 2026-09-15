@@ -1392,6 +1392,78 @@ export const DRONE_DOMAIN = {
    "dtm": "PI / EDGE-SOC / ACCELERATOR selectable",
    "stretch": "a fourth class added without touching a caller",
    "status": "implemented"
+  },
+  {
+   "id": "DRN-10.01",
+   "title": "Shared Intent: a key group, switched on or off",
+   "statement": "A closed group of named people may be switched on to weigh in on decisions; off is the normal state and the round behaves exactly as it does without them.",
+   "in": "DRN-10.01.IN",
+   "out": "DRN-10.01.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "no call can open while it is off; switching off closes any open call",
+   "verify": "tests/si-pod.test.mjs",
+   "dtm": "the switch and a closed roster",
+   "stretch": "the group is a real polling session on Cube 1",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.02",
+   "title": "Key members only, by invitation",
+   "statement": "Reaching the group's call needs a code issued to named people; an empty roster produces no invitation rather than an open link, and the right code in the wrong hands is refused.",
+   "in": "DRN-10.02.IN",
+   "out": "DRN-10.02.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "both halves must hold: on the roster, and a live code",
+   "verify": "tests/si-pod.test.mjs",
+   "dtm": "a code and a scannable square",
+   "stretch": "delivery through the operator's own channel",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.03",
+   "title": "The group advises; a named person decides",
+   "statement": "Consensus is shown beside the decision a person is about to make and can never make it: no function in the consensus engine can retire a shot request or open the authority gate, and a unanimous group changes nothing about what may fire.",
+   "in": "DRN-10.03.IN",
+   "out": "DRN-10.03.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "the two modules do not import each other; unanimity does not open the gate",
+   "verify": "tests/si-pod.test.mjs",
+   "dtm": "advice beside the question",
+   "stretch": "the same rule wherever a crowd meets an authority",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.04",
+   "title": "Volunteer input, recognised on the ladder that already exists",
+   "statement": "Answering is voluntary and silence counts as nothing; a contribution is recognised as noted, and as adopted only after the decision went the way it argued, using the three fixed heart values the pod ladder already declares rather than a fourth invented here.",
+   "in": "DRN-10.04.IN",
+   "out": "DRN-10.04.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "no value outside the declared ladder; silence earns nothing",
+   "verify": "tests/si-pod.test.mjs",
+   "dtm": "a readable record of what was valued",
+   "stretch": "entries reach the Cube 8 append-only ledger",
+   "status": "implemented"
   }
  ],
  "status": {
@@ -1456,6 +1528,17 @@ export const DRONE_DOMAIN = {
   "maxDwellS": 36,
   "failStreakToStop": 2,
   "goal": "report the highest rung this machine holds at the reference stream"
+ },
+ "si": {
+  "state": "placeholder",
+  "on_by_default": false,
+  "ladder": "lib/pod-clock.ts — noted 1, adopted 3, foundational 7; nothing in between and nothing above",
+  "authority": "the group advises, a named person decides; nothing in the consensus engine can fire a shot",
+  "not_yet": [
+   "no polling session is created",
+   "no invitation is delivered",
+   "no heart reaches a ledger"
+  ]
  }
 } as unknown as DroneDomain;
 export default DRONE_DOMAIN;
