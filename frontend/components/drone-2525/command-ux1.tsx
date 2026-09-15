@@ -37,9 +37,12 @@ export function DroneCommandUX1() {
   const label = semanticHex("hud");
   const dim = { color: label, opacity: 0.55 };
 
+  // Mobile-first: the controls shrink with the viewport so four modes and four detail steps still fit on a
+  // phone without pushing the arena itself below the fold.
   const btn = (on: boolean, hex: string) => ({
     background: "transparent", border: `1px solid ${on ? hex : "#2a2a2a"}`, color: on ? hex : "#6b6b6b",
-    padding: "6px 12px", fontFamily: "ui-monospace, monospace", fontSize: 11, letterSpacing: "0.08em",
+    padding: "5px clamp(7px, 2vw, 12px)", fontFamily: "ui-monospace, monospace",
+    fontSize: "clamp(9px, 2.4vw, 11px)", letterSpacing: "0.06em",
     textTransform: "uppercase" as const, cursor: "pointer", borderRadius: 2,
   });
 
@@ -52,7 +55,7 @@ export function DroneCommandUX1() {
         </button>
         <span style={{ fontSize: 13, letterSpacing: "0.18em", color: semanticHex("mount") }}>DRONE · 2525</span>
         <span style={{ ...dim, fontSize: 11 }}>{t("drone.subtitle")}</span>
-        <span style={{ marginLeft: "auto", fontSize: 10, ...dim }}>
+        <span style={{ marginLeft: "auto", fontSize: "clamp(8px, 2.1vw, 10px)", ...dim }}>
           {t("drone.version")} {SRC.project.version} · {t("drone.revision")} {SRC.project.revision} · {stamp}
         </span>
       </div>

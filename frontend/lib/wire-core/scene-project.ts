@@ -49,3 +49,40 @@ export function sceneProject(v: Vec3, cam: SceneCam): Projected {
 /** The CSS transform the ground layers must use for SVG and CSS to coincide. */
 export const cssTransform = (cam: SceneCam): string =>
   `perspective(${cam.perspective ?? 780}px) rotateX(${cam.pitchDeg}deg) scale(${cam.scale ?? 1.2})`;
+
+/**
+ * FIT THE WORLD TO THE PANE. A wireframe stranded in a corner of a black rectangle is a picture nobody can
+ * read, and the pane is a different shape on a phone than on a laptop. This re-scales and re-centres the
+ * camera so the model's projected bounds fill the pane with a margin, whatever the aspect ratio.
+ *
+ * Pure, and two passes rather than one: perspective is non-linear, so the bounds move when the scale does.
+ * Points the camera refuses (behind the eye) are ignored here exactly as they are ignored when drawing —
+ * a fit computed from points that are not on screen would frame empty space.
+ */
+export function fitToPane(vertices: readonly Vec3[], cam: SceneCam, margin = 0.9, passes = 2): SceneCam {
+  let out = cam;
+  for (let i = 0; i < passes; i++) {
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, n = 0;
+    for (const v of vertices) {
+      const p = sceneProject(v, out);
+      if (p.behind) continue;
+      n++;
+      if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+    }
+    if (n < 2) return out;                                   // nothing visible — leave the camera alone
+    const w = maxX - minX, h = maxY - minY;
+    if (!(w > 0) || !(h > 0)) return out;
+    const s = Math.min((out.pw * margin) / w, (out.ph * margin) / h);
+    const ox = out.originX ?? 0.5, oy = out.originY ?? 0.6;
+    // Scale about the pane centre, then slide the bounds' centre onto it.
+    const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    out = {
+      ...out,
+      pxPerM: out.pxPerM * s,
+      originX: ox + (out.pw / 2 - cx) / out.pw * s,
+      originY: oy + (out.ph / 2 - cy) / out.ph * s,
+    };
+  }
+  return out;
+}

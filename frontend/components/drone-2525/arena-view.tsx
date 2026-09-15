@@ -6,10 +6,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildArena, type DomainSource } from "@/lib/drone-2525/arena-model";
 import { selectLod } from "@/lib/wire-core/wire-model";
-import { TIERS, SENSOR_PROFILES, initFidelity, stepFidelity, fidelityLabel, type Tier } from "@/lib/wire-core/fidelity";
+import { TIERS, SENSOR_PROFILES, initFidelity, stepFidelity, applyCap, fidelityLabel, type Tier } from "@/lib/wire-core/fidelity";
 import { canonicalHash } from "@/lib/wire-core/wire-model";
 import { semanticHex } from "@/lib/wire-core/palette";
 import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
+import { fitToPane } from "@/lib/wire-core/scene-project";
 import { RCORE_CFG, clamp, rightDrag, wheelZoom } from "@/lib/rcore-gestures";
 import { useLexicon } from "@/lib/lexicon-context";
 import { versionStamp } from "@/lib/2525-core/version-stamp";
@@ -33,6 +34,9 @@ export function ArenaView({ source, tierCap = "ultra" }: { source: DomainSource;
     ro.observe(el); return () => ro.disconnect();
   }, []);
 
+  // The operator moved the ceiling — lowering it takes effect at once, raising it only permits an upgrade.
+  useEffect(() => { setFid((s) => applyCap(s, tierCap)); }, [tierCap]);
+
   // The model is built once per curve budget — a tier changes what is DRAWN, never what is true.
   const { model, doors } = useMemo(() => buildArena(source, { ngonSides: spec.ngonSides, contourStepM: 2, stamp: versionStamp() }), [source, spec.ngonSides]);
   const hash = useMemo(() => canonicalHash(model), [model]);
@@ -48,10 +52,14 @@ export function ArenaView({ source, tierCap = "ultra" }: { source: DomainSource;
     return () => window.clearTimeout(id);
   }, [model, lod, sensor, pitch, bearing, zoom]);
 
-  const cam = useMemo(() => ({
-    pw: size.w, ph: size.h, pitchDeg: pitch, bearingRad: (bearing * Math.PI) / 180,
-    pxPerM: (Math.min(size.w, size.h) / (source.arena.radiusM * 2.2)) * zoom,
-  }), [size, pitch, bearing, zoom, source.arena.radiusM]);
+  // Frame the world, then let the operator's zoom act on top of that frame — so a phone and a laptop both
+  // open on the whole block rather than on whatever fraction of it a fixed scale happened to leave visible.
+  const cam = useMemo(() => {
+    const base = { pw: size.w, ph: size.h, pitchDeg: pitch, bearingRad: (bearing * Math.PI) / 180,
+                   pxPerM: Math.min(size.w, size.h) / (source.arena.radiusM * 2.2) };
+    const fit = fitToPane(model.vertices, base);
+    return { ...fit, pxPerM: fit.pxPerM * zoom };
+  }, [size, pitch, bearing, zoom, source.arena.radiusM, model]);
 
   const onDown = useCallback((e: React.PointerEvent) => { drag.current = { x: e.clientX, y: e.clientY }; (e.target as Element).setPointerCapture?.(e.pointerId); }, []);
   const onMove = useCallback((e: React.PointerEvent) => {
@@ -71,7 +79,7 @@ export function ArenaView({ source, tierCap = "ultra" }: { source: DomainSource;
 
   const hud = { color: semanticHex("hud"), fontFamily: "ui-monospace, monospace", fontSize: 11, letterSpacing: "0.08em" };
   return (
-    <div ref={box} data-drone-arena style={{ position: "relative", width: "100%", height: "min(72vh, 620px)", background: VECTOR_LAW.ground, overflow: "hidden", touchAction: "none" }}
+    <div ref={box} data-drone-arena style={{ position: "relative", width: "100%", height: "min(62vh, max(300px, 80vw))", background: VECTOR_LAW.ground, overflow: "hidden", touchAction: "none" }}
          onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
       <WireSvg model={model} cam={cam} maxLod={spec.maxLod} segmentBudget={spec.segments} bloom={spec.bloom} fw={(w) => w} />
 

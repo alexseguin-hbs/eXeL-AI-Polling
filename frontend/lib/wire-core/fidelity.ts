@@ -68,6 +68,18 @@ const idx = (t: Tier) => TIER_ORDER.indexOf(t);
 const stepTier = (t: Tier, d: number, cap: Tier): Tier =>
   TIER_ORDER[Math.max(0, Math.min(Math.min(idx(cap), TIER_ORDER.length - 1), idx(t) + d))];
 
+/**
+ * THE MANUAL CEILING MOVED. A cap is a promise about the WORST case, so LOWERING it takes effect at once —
+ * a person who says "this machine can only afford LOW" must not keep watching a HIGH picture stutter.
+ * RAISING it only permits a later upgrade; it never jumps the picture, which still has to earn each step.
+ */
+export function applyCap(state: FidelityState, manualCap: Tier): FidelityState {
+  const tier = idx(state.tier) > idx(manualCap) ? manualCap : state.tier;
+  if (tier === state.tier && manualCap === state.manualCap) return state;
+  const reason = tier === state.tier ? `ceiling ${manualCap}` : `ceiling ${manualCap} → down to ${tier}`;
+  return { ...state, tier, manualCap, headroomSince: null, reason };
+}
+
 export interface FidelityStep { state: FidelityState; changed: boolean; reason: string }
 /**
  * One measurement in, one decision out. `renderMs` is the time the LAST frame spent drawing (sensor time

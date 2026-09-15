@@ -3,7 +3,7 @@
 //   1. THE SENSOR IS PAID FIRST — the CNN reserve comes out of the frame before the renderer may want anything.
 //   2. A TIER CHANGES WHAT IS DRAWN, NEVER WHAT IS TRUE — the model hash is identical at every tier.
 //   node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/drone-fidelity.test.mjs
-const { TIERS, TIER_ORDER, SENSOR_PROFILES, renderBudgetMs, tierFeasible, initFidelity, stepFidelity,
+const { TIERS, TIER_ORDER, SENSOR_PROFILES, renderBudgetMs, tierFeasible, initFidelity, stepFidelity, applyCap,
         fidelityLabel, UPGRADE_HOLD_MS, UPGRADE_HEADROOM } = await import("../lib/wire-core/fidelity.ts");
 const { WireBuilder, canonicalHash, selectLod } = await import("../lib/wire-core/wire-model.ts");
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -78,5 +78,18 @@ ok(lowReport.dropped > 0 && lowReport.byGroup.some((g) => !g.kept), "what was dr
 const label = fidelityLabel(initFidelity("ultra", "high"), pi, lowReport);
 ok(/HIGH/.test(label) && /30fps/.test(label) && /sensor 18ms/.test(label) && /dropped/.test(label),
    `the label carries tier, fps, sensor reserve and drops (${label})`);
+
+// THE MANUAL CEILING — lowering it is immediate, raising it is only permission.
+{
+  const high = { tier: 'high', manualCap: 'ultra', headroomSince: 1000, reason: 'x' };
+  const lowered = applyCap(high, 'low');
+  ok(lowered.tier === 'low', 'lowering the ceiling drops the picture at once, not on the next missed frame');
+  ok(lowered.manualCap === 'low', 'the new ceiling is remembered');
+  ok(lowered.headroomSince === null, 'lowering the ceiling forgets any headroom earned under the old one');
+  const raised = applyCap(lowered, 'ultra');
+  ok(raised.tier === 'low', 'raising the ceiling never jumps the picture — an upgrade still has to be earned');
+  ok(raised.manualCap === 'ultra', 'but the higher ceiling is now permitted');
+  ok(applyCap(raised, 'ultra') === raised, 'a cap that did not change returns the same state');
+}
 
 console.log(`drone-fidelity: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
