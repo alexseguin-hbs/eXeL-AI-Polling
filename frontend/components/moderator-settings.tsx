@@ -16,7 +16,6 @@ import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useLexicon } from "@/lib/lexicon-context";
 import { LanguageLexicon } from "@/components/language-lexicon";
 import { AtlantisAccordViewer } from "@/components/atlantis-accord-viewer";
-import { LightCodexSettingsRow } from "@/components/light-codex-cube";
 import { CubeArchitectureStatus } from "@/components/cube-status";
 import { readProvider, saveProvider, PROVIDER_LABEL, type AiProvider } from "@/lib/ai-provider";
 import { aiStatus, type AiConfigured } from "@/lib/ai";
@@ -551,9 +550,9 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
                   Kept as a note rather than silently deleted because two drawers offering the same
                   door is exactly how defect 27 began: copies drift, and the reader stops knowing
                   which one is canonical. One entry, one place. Do not re-add it here. */}
-              {/* Light Codex — hidden until the Easter-egg unlock; the row
-                  renders null otherwise, so no Separator artifact when locked. */}
-              <LightCodexSettingsRow />
+              {/* Light Codex is NOT listed here (operator 2026-09-15: "remove Light codex settings from
+                  settings menu, it is on easter egg unlock already"). Its one door is the Vision 2525
+                  launcher that the easter-egg unlock opens. One entry, one place — do not re-add. */}
             </>
           )}
           {/* ⚠ FEEDBACK + eXeL AI AT THE VERY BOTTOM, BELOW ATLANTIS ACCORD (operator, verbatim).
