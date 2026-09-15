@@ -1029,5 +1029,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "Klart — se resultat",
   "cube1.moderator.reopen_polling": "Öppna omröstningen igen (nästa omgång)",
   "cube1.dashboard.toast_reopened": "Omröstningen har öppnats igen för en ny omgång",
+  "cube10.access.enter_code": "Ange åtkomstkod",
+  "cube10.access.verify": "Verifiera",
 };
 export default T;

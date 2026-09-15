@@ -1166,5 +1166,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "Tapos na — tingnan ang mga resulta",
   "cube1.moderator.reopen_polling": "Buksan muli ang botohan (susunod na round)",
   "cube1.dashboard.toast_reopened": "Muling binuksan ang botohan para sa bagong round",
+  "cube10.access.enter_code": "Ilagay ang access code",
+  "cube10.access.verify": "I-verify",
 };
 export default T;

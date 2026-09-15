@@ -2805,6 +2805,8 @@ const pollUi: TranslationEntry[] = [
   { key: "pollui.see_results", englishDefault: "Done — see results", context: "Ranking stage: button that leaves the ballot and opens the results", cubeId: 7 },
   { key: "cube1.moderator.reopen_polling", englishDefault: "Re-open polling (next round)", context: "Moderator dashboard: button that re-opens a ranking round into the next cycle", cubeId: 1 },
   { key: "cube1.dashboard.toast_reopened", englishDefault: "Polling re-opened for a new round", context: "Moderator dashboard: toast after a round is re-opened", cubeId: 1 },
+  { key: "cube10.access.enter_code", englishDefault: "Enter access code", context: "SIM overlay: placeholder of the Cube 10 access-code field shown after the seed sequence", cubeId: 10 },
+  { key: "cube10.access.verify", englishDefault: "Verify", context: "SIM overlay: button that submits the Cube 10 access code", cubeId: 10 },
 ];
 
 export const CUBE_GROUPS: CubeGroup[] = [

@@ -1019,5 +1019,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "सकियो — नतिजा हेर्नुहोस्",
   "cube1.moderator.reopen_polling": "मतदान पुनः खोल्नुहोस् (अर्को चरण)",
   "cube1.dashboard.toast_reopened": "नयाँ चरणका लागि मतदान पुनः खुल्यो",
+  "cube10.access.enter_code": "पहुँच कोड प्रविष्ट गर्नुहोस्",
+  "cube10.access.verify": "प्रमाणित गर्नुहोस्",
 };
 export default T;

@@ -1018,5 +1018,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "Selesai — lihat keputusan",
   "cube1.moderator.reopen_polling": "Buka semula pengundian (pusingan seterusnya)",
   "cube1.dashboard.toast_reopened": "Pengundian dibuka semula untuk pusingan baharu",
+  "cube10.access.enter_code": "Masukkan kod akses",
+  "cube10.access.verify": "Sahkan",
 };
 export default T;

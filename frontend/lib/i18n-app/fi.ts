@@ -1021,5 +1021,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "Valmis — näytä tulokset",
   "cube1.moderator.reopen_polling": "Avaa äänestys uudelleen (seuraava kierros)",
   "cube1.dashboard.toast_reopened": "Äänestys avattu uudelleen uutta kierrosta varten",
+  "cube10.access.enter_code": "Syötä pääsykoodi",
+  "cube10.access.verify": "Vahvista",
 };
 export default T;

@@ -1021,5 +1021,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "Gata — vezi rezultatele",
   "cube1.moderator.reopen_polling": "Redeschide votul (runda următoare)",
   "cube1.dashboard.toast_reopened": "Votul a fost redeschis pentru o nouă rundă",
+  "cube10.access.enter_code": "Introduceți codul de acces",
+  "cube10.access.verify": "Verifică",
 };
 export default T;

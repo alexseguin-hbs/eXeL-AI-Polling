@@ -1020,5 +1020,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "Hotovo — zobrazit výsledky",
   "cube1.moderator.reopen_polling": "Znovu otevřít hlasování (další kolo)",
   "cube1.dashboard.toast_reopened": "Hlasování znovu otevřeno pro nové kolo",
+  "cube10.access.enter_code": "Zadejte přístupový kód",
+  "cube10.access.verify": "Ověřit",
 };
 export default T;

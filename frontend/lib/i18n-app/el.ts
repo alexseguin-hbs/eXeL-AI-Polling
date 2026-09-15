@@ -1030,5 +1030,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "Τέλος — δείτε τα αποτελέσματα",
   "cube1.moderator.reopen_polling": "Επανέναρξη ψηφοφορίας (επόμενος γύρος)",
   "cube1.dashboard.toast_reopened": "Η ψηφοφορία άνοιξε ξανά για νέο γύρο",
+  "cube10.access.enter_code": "Εισαγάγετε κωδικό πρόσβασης",
+  "cube10.access.verify": "Επαλήθευση",
 };
 export default T;

@@ -1019,5 +1019,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "완료 — 결과 보기",
   "cube1.moderator.reopen_polling": "투표 다시 열기 (다음 라운드)",
   "cube1.dashboard.toast_reopened": "새 라운드를 위해 투표가 다시 열렸습니다",
+  "cube10.access.enter_code": "액세스 코드 입력",
+  "cube10.access.verify": "확인",
 };
 export default T;

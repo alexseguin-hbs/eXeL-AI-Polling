@@ -1022,5 +1022,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "Xong — xem kết quả",
   "cube1.moderator.reopen_polling": "Mở lại bình chọn (vòng tiếp theo)",
   "cube1.dashboard.toast_reopened": "Bình chọn đã được mở lại cho vòng mới",
+  "cube10.access.enter_code": "Nhập mã truy cập",
+  "cube10.access.verify": "Xác minh",
 };
 export default T;

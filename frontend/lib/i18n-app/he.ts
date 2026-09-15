@@ -1018,5 +1018,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "סיימתי — לתוצאות",
   "cube1.moderator.reopen_polling": "פתיחת הסקר מחדש (סבב הבא)",
   "cube1.dashboard.toast_reopened": "הסקר נפתח מחדש לסבב חדש",
+  "cube10.access.enter_code": "הזן קוד גישה",
+  "cube10.access.verify": "אימות",
 };
 export default T;

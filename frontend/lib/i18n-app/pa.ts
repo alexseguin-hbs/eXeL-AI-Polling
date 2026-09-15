@@ -1026,5 +1026,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "ਹੋ ਗਿਆ — ਨਤੀਜੇ ਵੇਖੋ",
   "cube1.moderator.reopen_polling": "ਪੋਲਿੰਗ ਮੁੜ ਖੋਲ੍ਹੋ (ਅਗਲਾ ਦੌਰ)",
   "cube1.dashboard.toast_reopened": "ਨਵੇਂ ਦੌਰ ਲਈ ਪੋਲਿੰਗ ਮੁੜ ਖੁੱਲ੍ਹ ਗਈ",
+  "cube10.access.enter_code": "ਐਕਸੈਸ ਕੋਡ ਦਰਜ ਕਰੋ",
+  "cube10.access.verify": "ਤਸਦੀਕ ਕਰੋ",
 };
 export default T;

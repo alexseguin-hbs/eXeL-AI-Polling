@@ -1023,5 +1023,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "Imekamilika — tazama matokeo",
   "cube1.moderator.reopen_polling": "Fungua tena kura (raundi inayofuata)",
   "cube1.dashboard.toast_reopened": "Kura imefunguliwa tena kwa raundi mpya",
+  "cube10.access.enter_code": "Weka msimbo wa ufikiaji",
+  "cube10.access.verify": "Thibitisha",
 };
 export default T;

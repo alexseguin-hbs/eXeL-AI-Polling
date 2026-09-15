@@ -193,6 +193,14 @@ export function EasterEggProvider({ children }: { children: ReactNode }) {
 
   const verifyCube10Code = useCallback(async (code: string): Promise<boolean> => {
     const accessType = cube10Access === "admin_pending" ? "admin" : "challenger";
+    // Backendless deploy (NEXT_PUBLIC_MOCK_MODE unset/true — the default static export): there is no
+    // /api/v1/verify-access route to POST to, so the SIM unlock was dead code. Resolve the documented
+    // DEMO codes locally here and ONLY here; a deploy with a real backend still verifies server-side below.
+    if (process.env.NEXT_PUBLIC_MOCK_MODE !== "false") {
+      const demoOk = (accessType === "admin" && code.trim() === "94561230") || (accessType === "challenger" && code.trim() === "366999");
+      setCube10Access(demoOk ? (accessType as Cube10Access) : "none");
+      return demoOk;
+    }
     try {
       const resp = await fetch(VERIFY_ACCESS_ENDPOINT, {
         method: "POST",

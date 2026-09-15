@@ -1016,5 +1016,7 @@ const T: Record<string, string> = {
   "pollui.see_results": "Listo — ver resultados",
   "cube1.moderator.reopen_polling": "Reabrir la votación (siguiente ronda)",
   "cube1.dashboard.toast_reopened": "Votación reabierta para una nueva ronda",
+  "cube10.access.enter_code": "Introduce el código de acceso",
+  "cube10.access.verify": "Verificar",
 };
 export default T;

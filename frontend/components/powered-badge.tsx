@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
@@ -72,9 +72,22 @@ const TRACK_URLS = SONG_PAIRINGS.map((s) => `${s.audio}?v=${AUDIO_VERSION}`);
 // OVER any sub-menu (launcher / Cube Sim / security). The 3 Seed-of-Life logos + play/volume
 // persist and the music plays the whole time in easter-egg mode (E1). The fixed corner
 // elements leave the menu underneath fully clickable.
+const CUBE10_ICON_IDS = ["hi", "ai", "si"] as const; // SONG_PAIRINGS order: 웃 H.I. · ◬ A.I. · ♡ S.I.
+
 function SimulationOverlay() {
-  const { exitSimulationMode } = useEasterEgg();
+  const { exitSimulationMode, registerCube10Click, verifyCube10Code, cube10Access } = useEasterEgg();
   const { t } = useLexicon();
+  // Cube 10 access: clicking the three seeds in sequence (H.I.→A.I.→S.I. admin · S.I.→A.I.→H.I.
+  // challenger) arms a code prompt; the code is verified (server-side, or demo codes when backendless).
+  const [cube10Code, setCube10Code] = useState("");
+  const [cube10Busy, setCube10Busy] = useState(false);
+  const cube10Pending = cube10Access === "admin_pending" || cube10Access === "challenger_pending";
+  const cube10Granted = cube10Access === "admin" || cube10Access === "challenger";
+  const submitCube10Code = useCallback(async () => {
+    if (!cube10Code.trim() || cube10Busy) return;
+    setCube10Busy(true);
+    try { await verifyCube10Code(cube10Code); } finally { setCube10Busy(false); setCube10Code(""); }
+  }, [cube10Code, cube10Busy, verifyCube10Code]);
 
   const {
     state: {
@@ -147,7 +160,8 @@ function SimulationOverlay() {
     return (
       <div className="flex flex-col items-center gap-0.5">
         <button
-          onClick={() => switchTrack(index)}
+          data-cube10-icon={CUBE10_ICON_IDS[index]}
+          onClick={() => { switchTrack(index); registerCube10Click(CUBE10_ICON_IDS[index]); }}
           className="h-14 w-14 rounded-full border-2 flex items-center justify-center transition-all"
           style={{
             borderColor: isActive ? logoColor : `${logoColor}60`,
@@ -209,6 +223,33 @@ function SimulationOverlay() {
           {t("shared.sim.simulation_mode")}
         </span>
         {renderLogo(0)}
+        {/* Cube 10 access prompt — appears after a valid seed sequence; level shown once granted */}
+        {cube10Pending && (
+          <form
+            data-cube10-prompt
+            className="mt-1 flex items-center gap-1"
+            onSubmit={(e) => { e.preventDefault(); void submitCube10Code(); }}
+          >
+            <input
+              data-cube10-code
+              value={cube10Code}
+              onChange={(e) => setCube10Code(e.target.value)}
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder={t("cube10.access.enter_code")}
+              aria-label={t("cube10.access.enter_code")}
+              className="h-7 w-32 rounded-md border border-primary/40 bg-background/90 px-2 text-[11px] font-mono text-foreground outline-none focus:border-primary"
+            />
+            <Button data-cube10-verify type="submit" size="sm" className="h-7 px-2 text-[11px]" disabled={cube10Busy || !cube10Code.trim()}>
+              {t("cube10.access.verify")}
+            </Button>
+          </form>
+        )}
+        {cube10Granted && (
+          <span data-cube10-level className="text-[9px] font-mono uppercase tracking-[0.2em] text-primary">
+            {cube10Access}
+          </span>
+        )}
         {/* Exit X */}
         <Button
           variant="ghost"
