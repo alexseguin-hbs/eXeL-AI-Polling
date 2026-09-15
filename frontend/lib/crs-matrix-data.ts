@@ -3601,7 +3601,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "transfer": "",
     "transferConfirm": "",
     "change": "v00.00 r0.001",
-    "changeDesc": "draft"
+    "changeDesc": "implemented"
   },
   {
     "cube": "Drone-2525 — Canonical wire model and one-step export (VIII Rehearsal)",
@@ -3664,7 +3664,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "transfer": "",
     "transferConfirm": "",
     "change": "v00.00 r0.001",
-    "changeDesc": "draft"
+    "changeDesc": "implemented"
   },
   {
     "cube": "Drone-2525 — Capture and shoot with line of sight (V EDGE)",
@@ -3685,7 +3685,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "transfer": "",
     "transferConfirm": "",
     "change": "v00.00 r0.001",
-    "changeDesc": "draft"
+    "changeDesc": "implemented"
   },
   {
     "cube": "Drone-2525 — Score and replay (VI SYNC / Replay)",
@@ -3706,7 +3706,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "transfer": "",
     "transferConfirm": "",
     "change": "v00.00 r0.001",
-    "changeDesc": "draft"
+    "changeDesc": "implemented"
   },
   {
     "cube": "Drone-2525 — Command surface, route and unlock (I Humanity First)",
@@ -3727,7 +3727,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "transfer": "",
     "transferConfirm": "",
     "change": "v00.00 r0.001",
-    "changeDesc": "draft"
+    "changeDesc": "implemented"
   },
   {
     "cube": "Drone-2525 — Flight and energy, bounded (IX Trust)",
@@ -3832,7 +3832,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "transfer": "",
     "transferConfirm": "",
     "change": "v00.00 r0.001",
-    "changeDesc": "draft"
+    "changeDesc": "implemented"
   },
   {
     "cube": "Drone-2525 — Versioned, revisioned, comparable (II R-CORE)",

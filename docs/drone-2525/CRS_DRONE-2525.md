@@ -13,18 +13,18 @@ Id law (docs/vision-2525/CRS-GOVERNANCE-PLAN.md): `DRN-##.##`, two digits never 
 
 | CRS | Requirement | § | R-CORE | Phase | Status | Verified by |
 |---|---|---|---|---|---|---|
-| `DRN-01` | Arena frame and tiles | VII UCRS | Manual | pilot | draft | `tests/drone-capitol-tiles.test.mjs` |
+| `DRN-01` | Arena frame and tiles | VII UCRS | Manual | pilot | implemented | `tests/drone-capitol-tiles.test.mjs` |
 | `DRN-02` | Canonical wire model and one-step export | VIII Rehearsal | Manual | pilot | implemented | `tests/wire-export.test.mjs` |
 | `DRN-03` | Edge primitives | XII Flywheel | Manual | pilot | implemented | `tests/wire-core.test.mjs · tests/vector-law.test.mjs` |
-| `DRN-04` | One gimbal for turret and airframe | IV LINK | Manual | pilot | draft | `tests/drone-gimbal.test.mjs` |
-| `DRN-05` | Capture and shoot with line of sight | V EDGE | Manual | pilot | draft | `tests/drone-game.test.mjs` |
-| `DRN-06` | Score and replay | VI SYNC / Replay | Manual | pilot | draft | `tests/drone-game.test.mjs` |
-| `DRN-07` | Command surface, route and unlock | I Humanity First | Manual | pilot | draft | `next build · tests/vector-law.test.mjs` |
+| `DRN-04` | One gimbal for turret and airframe | IV LINK | Manual | pilot | implemented | `tests/drone-gimbal.test.mjs` |
+| `DRN-05` | Capture and shoot with line of sight | V EDGE | Manual | pilot | implemented | `tests/drone-game.test.mjs` |
+| `DRN-06` | Score and replay | VI SYNC / Replay | Manual | pilot | implemented | `tests/drone-game.test.mjs` |
+| `DRN-07` | Command surface, route and unlock | I Humanity First | Manual | pilot | implemented | `next build · tests/vector-law.test.mjs` |
 | `DRN-08` | Flight and energy, bounded | IX Trust | Manual | pilot | draft | `tests/drone-flight.test.mjs` |
 | `DRN-09` | Two operators, two devices | III COMM | Manual | pilot | draft | `tests/drone-link.test.mjs` |
 | `DRN-10` | AI roles under human approval | X Governance | Manual | pilot | draft | `tests/drone-game.test.mjs` |
 | `DRN-11` | Vector law, the 13, and adaptive fidelity | XI SSSES | Manual | pilot | implemented | `tests/drone-fidelity.test.mjs · tests/vector-law.test.mjs` |
-| `DRN-12` | Every word in 33 languages | XIII Translation | Manual | pilot | draft | `tests/lexicon-coverage.test.mjs · tests/drone-i18n.test.mjs` |
+| `DRN-12` | Every word in 33 languages | XIII Translation | Manual | pilot | implemented | `tests/lexicon-coverage.test.mjs · tests/drone-i18n.test.mjs` |
 | `DRN-13` | Versioned, revisioned, comparable | II R-CORE | Manual | pilot | implemented | `tests/traceability.test.mjs · tests/drone-crs.test.mjs` |
 
 ## Every row in full
@@ -44,7 +44,7 @@ Id law (docs/vision-2525/CRS-GOVERNANCE-PLAN.md): `DRN-##.##`, two digits never 
 | DTM target | hand-authored block renders |
 | Stretch | OSM extract replaces it with zero code change |
 | Verification | `tests/drone-capitol-tiles.test.mjs` |
-| Status | **draft** |
+| Status | **implemented** |
 
 ### DRN-02 — Canonical wire model and one-step export
 
@@ -95,7 +95,7 @@ Id law (docs/vision-2525/CRS-GOVERNANCE-PLAN.md): `DRN-##.##`, two digits never 
 | DTM target | turret slews and frames a door |
 | Stretch | airframe mount reuses it unchanged |
 | Verification | `tests/drone-gimbal.test.mjs` |
-| Status | **draft** |
+| Status | **implemented** |
 
 ### DRN-05 — Capture and shoot with line of sight
 
@@ -112,7 +112,7 @@ Id law (docs/vision-2525/CRS-GOVERNANCE-PLAN.md): `DRN-##.##`, two digits never 
 | DTM target | tag a door by capture then shot |
 | Stretch | live camera behind the same interface |
 | Verification | `tests/drone-game.test.mjs` |
-| Status | **draft** |
+| Status | **implemented** |
 
 ### DRN-06 — Score and replay
 
@@ -129,7 +129,7 @@ Id law (docs/vision-2525/CRS-GOVERNANCE-PLAN.md): `DRN-##.##`, two digits never 
 | DTM target | a round replays identically |
 | Stretch | portable .drn2525 file |
 | Verification | `tests/drone-game.test.mjs` |
-| Status | **draft** |
+| Status | **implemented** |
 
 ### DRN-07 — Command surface, route and unlock
 
@@ -146,7 +146,7 @@ Id law (docs/vision-2525/CRS-GOVERNANCE-PLAN.md): `DRN-##.##`, two digits never 
 | DTM target | arena visible on a phone |
 | Stretch | two devices in one session |
 | Verification | `next build · tests/vector-law.test.mjs` |
-| Status | **draft** |
+| Status | **implemented** |
 
 ### DRN-08 — Flight and energy, bounded
 
@@ -231,7 +231,7 @@ Id law (docs/vision-2525/CRS-GOVERNANCE-PLAN.md): `DRN-##.##`, two digits never 
 | DTM target | keys staged and listed |
 | Stretch | filled in all 32 non-English |
 | Verification | `tests/lexicon-coverage.test.mjs · tests/drone-i18n.test.mjs` |
-| Status | **draft** |
+| Status | **implemented** |
 
 ### DRN-13 — Versioned, revisioned, comparable
 

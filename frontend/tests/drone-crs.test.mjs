@@ -67,6 +67,11 @@ ok(rendered, 'CRS_DRONE-2525.md, README, ASSUMPTIONS_REGISTER and domain.gen.ts 
 const matrix = fs.readFileSync('lib/crs-matrix-data.ts', 'utf8');
 for (const r of d.crs) ok(matrix.includes(`"crs": "${r.id}"`), `${r.id} has a row in the /crs matrix`);
 ok(matrix.includes('DR-2026.09.15-r0.001'), 'the matrix rows carry this revision\'s review id');
+// The matrix must not claim a step is further along than the source says it is.
+for (const r of d.crs) {
+  const row = matrix.match(new RegExp(`"crs": "${r.id}",[\\s\\S]{0,1400}?"changeDesc": "([^"]*)"`));
+  ok(row && row[1] === r.status, `${r.id} reads "${row ? row[1] : '—'}" in the matrix and "${r.status}" in the source`);
+}
 
 // 9 — the app reads the generated module, never the docs file (a static export cannot reach outside its root)
 const shell = fs.readFileSync('components/drone-2525/command-ux1.tsx', 'utf8');

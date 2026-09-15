@@ -1053,7 +1053,7 @@ export const DRONE_DOMAIN = {
    "verify": "tests/drone-capitol-tiles.test.mjs",
    "dtm": "hand-authored block renders",
    "stretch": "OSM extract replaces it with zero code change",
-   "status": "draft"
+   "status": "implemented"
   },
   {
    "id": "DRN-02",
@@ -1110,7 +1110,7 @@ export const DRONE_DOMAIN = {
    "verify": "tests/drone-gimbal.test.mjs",
    "dtm": "turret slews and frames a door",
    "stretch": "airframe mount reuses it unchanged",
-   "status": "draft"
+   "status": "implemented"
   },
   {
    "id": "DRN-05",
@@ -1128,7 +1128,7 @@ export const DRONE_DOMAIN = {
    "verify": "tests/drone-game.test.mjs",
    "dtm": "tag a door by capture then shot",
    "stretch": "live camera behind the same interface",
-   "status": "draft"
+   "status": "implemented"
   },
   {
    "id": "DRN-06",
@@ -1147,7 +1147,7 @@ export const DRONE_DOMAIN = {
    "verify": "tests/drone-game.test.mjs",
    "dtm": "a round replays identically",
    "stretch": "portable .drn2525 file",
-   "status": "draft"
+   "status": "implemented"
   },
   {
    "id": "DRN-07",
@@ -1165,7 +1165,7 @@ export const DRONE_DOMAIN = {
    "verify": "next build · tests/vector-law.test.mjs",
    "dtm": "arena visible on a phone",
    "stretch": "two devices in one session",
-   "status": "draft"
+   "status": "implemented"
   },
   {
    "id": "DRN-08",
@@ -1249,7 +1249,7 @@ export const DRONE_DOMAIN = {
    "verify": "tests/lexicon-coverage.test.mjs · tests/drone-i18n.test.mjs",
    "dtm": "keys staged and listed",
    "stretch": "filled in all 32 non-English",
-   "status": "draft"
+   "status": "implemented"
   },
   {
    "id": "DRN-13",
@@ -1271,8 +1271,8 @@ export const DRONE_DOMAIN = {
   }
  ],
  "status": {
-  "conceptual_critique": "Red",
-  "build": "Red",
+  "conceptual_critique": "Amber",
+  "build": "Amber",
   "human_testing": "Red",
   "operations": "Red"
  }

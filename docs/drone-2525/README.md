@@ -65,8 +65,8 @@ Every building door is a pop-up target. Tag it by CAPTURE (store the sensor edge
 
 | gate | state |
 |---|---|
-| conceptual critique | Red |
-| build | Red |
+| conceptual critique | Amber |
+| build | Amber |
 | human testing | Red |
 | operations | Red |
 

@@ -30,6 +30,13 @@
    "kind": "release",
    "text": "Pass 1 ships the two stationary modes on the route /main/Drone-2525, unlocked from the Vision 2525 launcher. The vector law decided at rev 3 is now code and gate, not taste. Adaptive fidelity takes the Edge sensor's CNN reserve out of the frame before the renderer, then selects a tier that changes what is drawn and never what is true — the model hash is identical across tiers. On the Capitol arena the LOW tier keeps 601 of a 1,200-segment budget and still draws every building, every door, the roads and the contours, dropping only the trees; ULTRA keeps 1,609 within its 4,000 ceiling. The 13-step CRS ladder renders from one editable source with a drift check, and its rows are in the /crs matrix under review id DR-2026.09.15-r0.001. Gates added to test:ci: drone-arena 27, drone-hal 29, vector-law 22, drone-crs 117, drone-i18n 52; full test:ci and next build both exit 0. Flight, the two-device crew and the AI roles under human approval remain Pass 1b and 1c, declared on screen with the pass that will deliver them.",
    "commit": "2d5eb24"
+  },
+  {
+   "rev": 5,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "The stationary round is playable. One gimbal record and one slew law drive a fixed turret now and will drive the airframe in Pass 1b, gated so a second behaviour cannot be added quietly. Line of sight refuses a shot through the Capitol and names it; a building never blocks its own door. A capture or hit, the score and the replay entry move in one reducer step, so a completed action cannot be lost, and every attempt produces a reason a person can read rather than a silent no-op. The pop-up schedule is a function of the seed, so the same seed plays the same round. Proven by playing it headlessly in the static export: capture at 25.5s, hit at 25.7s, one door tagged of fourteen, transcript on screen. 28 lexicon keys across 33 languages with nothing staged. Ten of the thirteen CRS steps move from draft to implemented; flight (DRN-08), the two-device crew (DRN-09) and the AI roles under human approval (DRN-10) remain draft for Pass 1b and 1c.",
+   "commit": "d394dc9"
   }
  ]
 }
