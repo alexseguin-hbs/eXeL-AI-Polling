@@ -127,7 +127,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · EDGE-SOC · EO · holding 1.1 on 1080p30",
         "aim": "A 000° · B +5°",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -265,7 +265,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · EDGE-SOC · EO · holding 1.1 on 1080p30",
         "aim": "A 000° · B +5°",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -403,7 +403,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · EDGE-SOC · EO · holding 1.1 on 1080p30",
         "aim": "A 000° · B +5° · C 155 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -541,7 +541,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · EDGE-SOC · EO · holding 1.1 on 1080p30",
         "aim": "A 000° · B +5°",
         "score": "Tagged 1/14 · Captured 1",
         "seats": "Seats: A person flies · A person aims",
@@ -679,7 +679,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · EDGE-SOC · EO · holding 1.1 on 1080p30",
         "aim": "A 090° · B +5°",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -758,6 +758,16 @@
         },
         {
           "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Off",
           "enabled": true
         },
@@ -820,9 +830,9 @@
         }
       ],
       "hud": {
-        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · ACCELERATOR · EO · headroom 14.3ms, 2 of 3",
         "aim": "A 000° · B -12° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -830,7 +840,7 @@
         "note": "TEXAS CAPITOL",
         "approval": null
       },
-      "paths": 23,
+      "paths": 29,
       "width": 1440
     },
     {
@@ -901,6 +911,16 @@
         },
         {
           "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Off",
           "enabled": true
         },
@@ -963,9 +983,9 @@
         }
       ],
       "hud": {
-        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · ACCELERATOR · EO · headroom 14.3ms, 2 of 3",
         "aim": "A 000° · B -12° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -973,7 +993,7 @@
         "note": "TEXAS CAPITOL",
         "approval": null
       },
-      "paths": 23,
+      "paths": 29,
       "width": 1440
     },
     {
@@ -1054,6 +1074,16 @@
         },
         {
           "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Off",
           "enabled": true
         },
@@ -1127,17 +1157,17 @@
         }
       ],
       "hud": {
-        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · ACCELERATOR · EO · headroom 14.3ms, 2 of 3",
         "aim": "A 000° · B -11° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A machine aims · a person must approve every shot",
-        "flight": "QUAD · 0 m/s · 44 m AGL · 98% · ~15 min",
+        "flight": "QUAD · 0 m/s · 43 m AGL · 98% · ~15 min",
         "note": "The machine is looking at TEXAS CAPITOL, 208 m",
         "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldNothing fires while this question is open. If you do nothing, nothing happens."
       },
-      "paths": 23,
+      "paths": 29,
       "width": 1440
     },
     {
@@ -1218,6 +1248,16 @@
         },
         {
           "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Off",
           "enabled": true
         },
@@ -1291,17 +1331,17 @@
         }
       ],
       "hud": {
-        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · ACCELERATOR · EO · headroom 14.3ms, 2 of 3",
         "aim": "A 000° · B -11° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A machine aims · a person must approve every shot",
-        "flight": "QUAD · 0 m/s · 44 m AGL · 98% · ~15 min",
-        "note": "The machine is looking at TEXAS CAPITOL, 208 m",
+        "flight": "QUAD · 0 m/s · 43 m AGL · 97% · ~15 min",
+        "note": "Not fired — waiting for a person to decide",
         "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldNothing fires while this question is open. If you do nothing, nothing happens."
       },
-      "paths": 23,
+      "paths": 29,
       "width": 1440
     },
     {
@@ -1382,6 +1422,16 @@
         },
         {
           "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Off",
           "enabled": true
         },
@@ -1455,17 +1505,17 @@
         }
       ],
       "hud": {
-        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · ACCELERATOR · EO · headroom 14.3ms, 2 of 3",
         "aim": "A 000° · B -11° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 0 approved, 1 held",
-        "flight": "QUAD · 0 m/s · 44 m AGL · 97% · ~15 min",
+        "flight": "QUAD · 0 m/s · 43 m AGL · 97% · ~15 min",
         "note": "The machine is looking at TEXAS CAPITOL, 208 m",
         "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldNothing fires while this question is open. If you do nothing, nothing happens."
       },
-      "paths": 23,
+      "paths": 29,
       "width": 1440
     },
     {
@@ -1536,6 +1586,16 @@
         },
         {
           "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Off",
           "enabled": true
         },
@@ -1609,17 +1669,17 @@
         }
       ],
       "hud": {
-        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · ACCELERATOR · EO · headroom 14.3ms, 2 of 3",
         "aim": "A 000° · B -11° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 1 held",
-        "flight": "QUAD · 0 m/s · 44 m AGL · 97% · ~15 min",
+        "flight": "QUAD · 0 m/s · 43 m AGL · 97% · ~15 min",
         "note": "approved — the pilot",
         "approval": null
       },
-      "paths": 23,
+      "paths": 29,
       "width": 1440
     },
     {
@@ -1696,6 +1756,16 @@
         {
           "kind": "button",
           "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
           "enabled": true
         },
         {
@@ -1834,17 +1904,17 @@
         }
       ],
       "hud": {
-        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · ACCELERATOR · EO · headroom 14.3ms, 2 of 3",
         "aim": "A 000° · B -11° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 1 held",
-        "flight": "QUAD · 0 m/s · 44 m AGL · 97% · ~15 min",
+        "flight": "QUAD · 0 m/s · 43 m AGL · 97% · ~15 min",
         "note": "The machine is looking at TEXAS CAPITOL, 208 m",
         "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldThe group so far: 0 of 4 have answered — not enough to read the group yetNothing fires while this question is open. If you do nothing, nothing happens."
       },
-      "paths": 23,
+      "paths": 29,
       "width": 1440
     },
     {
@@ -1925,6 +1995,16 @@
         },
         {
           "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "On",
           "enabled": true
         },
@@ -2059,17 +2139,17 @@
         }
       ],
       "hud": {
-        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · ACCELERATOR · EO · headroom 14.3ms, 2 of 3",
         "aim": "A 000° · B -11° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 1 held",
-        "flight": "QUAD · 0 m/s · 44 m AGL · 97% · ~15 min",
+        "flight": "QUAD · 0 m/s · 43 m AGL · 97% · ~15 min",
         "note": "The machine is looking at TEXAS CAPITOL, 208 m",
         "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldThe group so far: 3 of 4 answered — 3 say holdNothing fires while this question is open. If you do nothing, nothing happens."
       },
-      "paths": 23,
+      "paths": 29,
       "width": 1440
     },
     {
@@ -2150,6 +2230,16 @@
         },
         {
           "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "On",
           "enabled": true
         },
@@ -2284,17 +2374,465 @@
         }
       ],
       "hud": {
-        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
-        "aim": "A 002° · B -12°",
+        "calibration": "1080p30 · ACCELERATOR · EO · headroom 14.3ms, 2 of 3",
+        "aim": "A 037° · B -12°",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 2 held",
-        "flight": "QUAD · 0 m/s · 44 m AGL · 97% · ~15 min",
+        "flight": "QUAD · 0 m/s · 43 m AGL · 96% · ~15 min",
         "note": "The machine is looking at CAPITOL VISITORS CENTER, 205 m",
         "approval": "A machine is asking to shoot CAPITOL VISITORS CENTER, 205 m away. It says: the shape matches the door it photographedApprove the shotHoldThe group so far: 3 of 4 answered — 3 say holdNothing fires while this question is open. If you do nothing, nothing happens."
       },
-      "paths": 22,
+      "paths": 28,
+      "width": 1440
+    },
+    {
+      "id": "19-engagement",
+      "title": "Forty-two aircraft, twenty-one a side",
+      "what": "The engagement runs in the flying modes. Friendly in chartreuse, opposing in red, and the heads-up line says how many of each are still up and how many segments they cost.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/19-engagement.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Approve the shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Hold",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "On",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Make an invitation",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Show the code",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Copy the link",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I would",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I would not",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "No view",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "2.3 FIELD · 2s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Cass",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Ada",
+            "Bo",
+            "Cass"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 2.3 FIELD · 1365 seg · EO·IR · cnn 16ms · 649 drawn, 760 dropped · 612 to the aircraft",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · ACCELERATOR · EO·IR · headroom 6.2ms, 2 of 3",
+        "aim": "A 000° · B -12° · C 208 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A person aims · 1 approved, 2 held",
+        "flight": "QUAD · 0 m/s · 43 m AGL · 95% · ~15 min",
+        "note": "TEXAS CAPITOL",
+        "approval": "A machine is asking to shoot CAPITOL VISITORS CENTER, 205 m away. It says: the shape matches the door it photographedApprove the shotHoldThe group so far: 3 of 4 answered — 3 say holdNothing fires while this question is open. If you do nothing, nothing happens."
+      },
+      "paths": 51,
+      "width": 1440
+    },
+    {
+      "id": "20-engagement-arcade",
+      "title": "The same engagement at the arcade rung",
+      "what": "At level 1.1 the world drops to a hundred segments to make room, and all forty-two aircraft are still drawn. The aircraft are the world.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/20-engagement-arcade.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Approve the shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Hold",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "On",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "×",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Make an invitation",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Show the code",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Copy the link",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I would",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I would not",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "No view",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Cass",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Ada",
+            "Bo",
+            "Cass"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · ACCELERATOR · EO · headroom 10.8ms, 1 of 3",
+        "aim": "A 000° · B -12° · C 208 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A person aims · 1 approved, 2 held",
+        "flight": "QUAD · 0 m/s · 43 m AGL · 95% · ~15 min",
+        "note": "TEXAS CAPITOL",
+        "approval": "A machine is asking to shoot CAPITOL VISITORS CENTER, 205 m away. It says: the shape matches the door it photographedApprove the shotHoldThe group so far: 3 of 4 answered — 3 say holdNothing fires while this question is open. If you do nothing, nothing happens."
+      },
+      "paths": 29,
       "width": 1440
     },
     {
@@ -2371,6 +2909,16 @@
         {
           "kind": "button",
           "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
           "enabled": true
         },
         {
@@ -2472,17 +3020,6 @@
         },
         {
           "kind": "menu",
-          "label": "Person flies · machine aims",
-          "enabled": true,
-          "options": 3,
-          "choices": [
-            "Person flies · machine aims",
-            "Machine flies · person aims",
-            "Machine flies and aims"
-          ]
-        },
-        {
-          "kind": "menu",
           "label": "Cass",
           "enabled": true,
           "options": 4,
@@ -2509,17 +3046,17 @@
         }
       ],
       "hud": {
-        "level": "MoT 5.5 FULL · 4000 seg · EO·IR·ACOUSTIC·MAG·CHEM · cnn 50ms · 1553 drawn",
+        "level": "MoT 5.5 FULL · 4000 seg · EO·IR·ACOUSTIC·MAG·CHEM · cnn 50ms · 1553 drawn · 612 to the aircraft",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO·IR · over budget by 0.3ms — ACOUSTIC shed",
-        "aim": "A 064° · B -12° · C 205 m",
+        "calibration": "1080p30 · ACCELERATOR · EO·IR·ACOUSTIC·MAG · over budget by 14.1ms — CHEM shed",
+        "aim": "A 000° · B -12° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
-        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 2 held",
-        "flight": "QUAD · 0 m/s · 44 m AGL · 96% · ~15 min",
-        "note": "The machine is looking at CAPITOL VISITORS CENTER, 205 m",
+        "seats": "Seats: A person flies · A person aims · 1 approved, 2 held",
+        "flight": "QUAD · 0 m/s · 43 m AGL · 95% · ~15 min",
+        "note": "TEXAS CAPITOL",
         "approval": "A machine is asking to shoot CAPITOL VISITORS CENTER, 205 m away. It says: the shape matches the door it photographedApprove the shotHoldThe group so far: 3 of 4 answered — 3 say holdNothing fires while this question is open. If you do nothing, nothing happens."
       },
-      "paths": 48,
+      "paths": 52,
       "width": 1440
     },
     {
@@ -2576,12 +3113,12 @@
         {
           "kind": "button",
           "label": "Capture",
-          "enabled": false
+          "enabled": true
         },
         {
           "kind": "button",
           "label": "Shoot",
-          "enabled": false
+          "enabled": true
         },
         {
           "kind": "button",
@@ -2596,6 +3133,16 @@
         {
           "kind": "button",
           "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
           "enabled": true
         },
         {
@@ -2686,17 +3233,6 @@
           ]
         },
         {
-          "kind": "menu",
-          "label": "Person flies · machine aims",
-          "enabled": true,
-          "options": 3,
-          "choices": [
-            "Person flies · machine aims",
-            "Machine flies · person aims",
-            "Machine flies and aims"
-          ]
-        },
-        {
           "kind": "slider",
           "label": "6–15, now 6",
           "enabled": true
@@ -2713,17 +3249,17 @@
         }
       ],
       "hud": {
-        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
-        "aim": "A 049° · B -7°",
+        "calibration": "1080p30 · ACCELERATOR · EO · headroom 10.3ms, 1 of 3",
+        "aim": "A 000° · B -12° · C 369 m",
         "score": "Tagged 0/14 · Captured 0",
-        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 2 held",
-        "flight": "QUAD · 0 m/s · 44 m AGL · 91% · ~14 min",
-        "note": "The machine is looking at TOM C. CLARK BLDG, 342 m",
+        "seats": "Seats: A person flies · A person aims · 1 approved, 2 held",
+        "flight": "QUAD · 0 m/s · 43 m AGL · 90% · ~14 min",
+        "note": "CAPITOL EXTENSION SKYLIGHTS",
         "approval": "A machine is asking to shoot CAPITOL VISITORS CENTER, 205 m away. It says: the shape matches the door it photographedApprove the shotHoldNothing fires while this question is open. If you do nothing, nothing happens."
       },
-      "paths": 22,
+      "paths": 29,
       "width": 1440
     },
     {
@@ -2853,7 +3389,7 @@
       "hud": {
         "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · EDGE-SOC · EO · holding 1.1 on 1080p30",
         "aim": "A 000° · B +5°",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -2932,6 +3468,16 @@
         },
         {
           "kind": "button",
+          "label": "I will fly",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "I will work the camera",
+          "enabled": true
+        },
+        {
+          "kind": "button",
           "label": "Off",
           "enabled": true
         },
@@ -2994,9 +3540,9 @@
         }
       ],
       "hud": {
-        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 156 drawn, 1183 dropped · 124 to the aircraft",
         "stream": "1080p30 · holding the reference",
-        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "calibration": "1080p30 · ACCELERATOR · EO · headroom 13.9ms, 2 of 3",
         "aim": "A 000° · B -12° · C 208 m",
         "score": "Tagged 0/14 · Captured 0",
         "seats": "Seats: A person flies · A person aims",
@@ -3004,7 +3550,7 @@
         "note": "TEXAS CAPITOL",
         "approval": null
       },
-      "paths": 23,
+      "paths": 29,
       "width": 390
     }
   ]

@@ -230,6 +230,17 @@ async function screen(page, id, title, what, steps = async () => {}) {
         await p.waitForTimeout(400);
       });
 
+    await screen(page, "19-engagement", "Forty-two aircraft, twenty-one a side",
+      "The engagement runs in the flying modes. Friendly in chartreuse, opposing in red, and the heads-up line says how many of each are still up and how many segments they cost.",
+      async (p) => {
+        await p.click("[data-drone-mode='drone']"); await p.waitForTimeout(400);
+        await p.selectOption("[data-drone-mot]", "2.3"); await p.waitForTimeout(600);
+        await p.click("[data-drone-run]"); await p.waitForTimeout(11000);
+      });
+    await screen(page, "20-engagement-arcade", "The same engagement at the arcade rung",
+      "At level 1.1 the world drops to a hundred segments to make room, and all forty-two aircraft are still drawn. The aircraft are the world.",
+      async (p) => { await p.selectOption("[data-drone-mot]", "1.1"); await p.waitForTimeout(1200); });
+
     await screen(page, "12-level-5-5", "Turning the level up",
       "Level 5.5 asks for the densest mesh and all five sensors. Calibration answers immediately and names what it shed.",
       async (p) => { await p.selectOption("[data-drone-mot]", "5.5"); await p.waitForTimeout(1500); });
