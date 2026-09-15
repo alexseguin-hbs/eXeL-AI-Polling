@@ -1065,5 +1065,6 @@ const T: Record<string, string> = {
   "drone.game.clock": "Zegar",
   "drone.game.no_target": "Brak drzwi w kadrze",
   "drone.game.log": "Co się stało",
+  "drone.game.no_reachable": "Brak drzwi osiągalnych na czas",
 };
 export default T;

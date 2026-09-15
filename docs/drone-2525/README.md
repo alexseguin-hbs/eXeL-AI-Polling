@@ -59,7 +59,7 @@ Profile `pi-baseline` — Edge extraction budget comes out of the frame before t
 
 ## Targets
 
-Every building door is a pop-up target. Tag it by CAPTURE (store the sensor edge set) then SHOOT (line of sight must reach it). Seed `20260915`, up 9000 ms, down 6000 ms, 3 at once.
+Every building door is a pop-up target. Tag it by CAPTURE (store the sensor edge set) then SHOOT (line of sight must reach it). The up-window is not a taste value: a target must stay up longer than the worst swing to reach it (4s at 45°/s for half a turn) plus time to aim and press, or the round is unwinnable by construction. Gated in tests/drone-gimbal.test.mjs. Seed `20260915`, up 14000 ms, down 6000 ms, 3 at once.
 
 ## Status
 

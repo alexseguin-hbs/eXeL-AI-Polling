@@ -37,6 +37,13 @@
    "kind": "release",
    "text": "The stationary round is playable. One gimbal record and one slew law drive a fixed turret now and will drive the airframe in Pass 1b, gated so a second behaviour cannot be added quietly. Line of sight refuses a shot through the Capitol and names it; a building never blocks its own door. A capture or hit, the score and the replay entry move in one reducer step, so a completed action cannot be lost, and every attempt produces a reason a person can read rather than a silent no-op. The pop-up schedule is a function of the seed, so the same seed plays the same round. Proven by playing it headlessly in the static export: capture at 25.5s, hit at 25.7s, one door tagged of fourteen, transcript on screen. 28 lexicon keys across 33 languages with nothing staged. Ten of the thirteen CRS steps move from draft to implemented; flight (DRN-08), the two-device crew (DRN-09) and the AI roles under human approval (DRN-10) remain draft for Pass 1b and 1c.",
    "commit": "d394dc9"
+  },
+  {
+   "rev": 6,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "What playing the round taught, folded back in. Instrumenting a real headless round found three defects no source gate would have caught. A door could drop while the gimbal was still swinging to it, because the up-window was shorter than the worst swing that can reach it; the window is now derived from the slew rate rather than chosen, and gated, so the round is winnable by construction. The next-door button offered doors the Capitol stood in front of and doors that would close in time, both refusals a player can do nothing about; it now offers only doors that are reachable and still open long enough, and says 'no door you can reach in time' when there are none. And picking the nearest door by subtracting azimuths skipped the door right beside you across the north wrap; it now uses the shortest turn. The two stationary modes also became genuinely different: Security Turrets seats you at one turret and teaches where a fixed position is blind, while Security Capital works the whole block and moves you to the turret that can reach the next door, carrying your score across the walk. A played Capital round: two doors tagged, three captured, 50% accuracy, the transcript on screen naming every refusal.",
+   "commit": "7a1a444"
   }
  ]
 }

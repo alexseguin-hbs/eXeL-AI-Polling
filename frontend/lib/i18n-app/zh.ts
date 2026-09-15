@@ -1064,5 +1064,6 @@ const T: Record<string, string> = {
   "drone.game.clock": "计时",
   "drone.game.no_target": "视野内无门",
   "drone.game.log": "事件记录",
+  "drone.game.no_reachable": "没有能及时抵达的门",
 };
 export default T;

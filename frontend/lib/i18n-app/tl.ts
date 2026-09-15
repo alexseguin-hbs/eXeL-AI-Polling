@@ -1210,5 +1210,6 @@ const T: Record<string, string> = {
   "drone.game.clock": "Oras",
   "drone.game.no_target": "Walang pintong nakikita",
   "drone.game.log": "Mga Nangyari",
+  "drone.game.no_reachable": "Walang pintuang maaabot sa oras",
 };
 export default T;

@@ -2848,6 +2848,7 @@ const drone2525: TranslationEntry[] = [
   { key: "drone.game.accuracy", englishDefault: "Accuracy", context: "Drone-2525 round score: label before the share of shots that landed, as a percentage", cubeId: 0 },
   { key: "drone.game.clock", englishDefault: "Clock", context: "Drone-2525 round: label before the elapsed and total time of the round, in seconds", cubeId: 0 },
   { key: "drone.game.no_target", englishDefault: "No door in view", context: "Drone-2525 round: message when the camera is not looking at any open door", cubeId: 0 },
+  { key: "drone.game.no_reachable", englishDefault: "No door you can reach in time", context: "Drone-2525 round: message when every open door is either behind a building or will close before the camera can swing to it", cubeId: 0 },
   { key: "drone.game.log", englishDefault: "What happened", context: "Drone-2525 round: expander holding the line-by-line record of the round, the score's own working", cubeId: 0 },
 ];
 

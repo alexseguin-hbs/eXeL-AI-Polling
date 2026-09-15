@@ -11,7 +11,7 @@ const { SIGN_TRANSLATIONS } = await import('../lib/lexicon-translations-sign.ts'
 const { ES_SIGN } = await import('../lib/lexicon-translations-es-sign.ts');
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
-const AFTER_FILL = new Set([]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
+const AFTER_FILL = new Set([]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;
 const ALLOWED = (() => { const f = path.resolve(process.cwd(), '..', 'docs/asks/2026-09-12_lexicon_identical_allowed.psv'); if (!fs.existsSync(f)) return new Set(); return new Set(fs.readFileSync(f, 'utf8').split('\n').slice(1).filter(Boolean).map((l) => { const [scope, key] = l.split('|'); return `${scope}|${key}`; })); })();   // reviewed: a formula, a name, a unit, or a word the language shares

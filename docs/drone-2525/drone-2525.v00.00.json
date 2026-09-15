@@ -970,10 +970,10 @@
  "targets": {
   "kind": "door",
   "seed": 20260915,
-  "upMs": 9000,
+  "upMs": 14000,
   "downMs": 6000,
   "concurrent": 3,
-  "note": "Every building door is a pop-up target. Tag it by CAPTURE (store the sensor edge set) then SHOOT (line of sight must reach it)."
+  "note": "Every building door is a pop-up target. Tag it by CAPTURE (store the sensor edge set) then SHOOT (line of sight must reach it). The up-window is not a taste value: a target must stay up longer than the worst swing to reach it (4s at 45°/s for half a turn) plus time to aim and press, or the round is unwinnable by construction. Gated in tests/drone-gimbal.test.mjs."
  },
  "modes": [
   {

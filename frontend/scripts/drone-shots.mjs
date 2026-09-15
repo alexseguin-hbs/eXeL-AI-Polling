@@ -80,15 +80,21 @@ async function shoot(ctx, name, width, height, steps = async () => {}) {
     });
     // Play a real round, headlessly: start the clock, swing to a door, photograph it, fire.
     await shoot(ctx, "05-round-played", 1440, 900, async (p) => {
+      await p.click("[data-drone-mode='capital']");
       await p.click("[data-drone-run]");
       await p.waitForTimeout(900);
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 6; i++) {
         await p.click("[data-drone-next]");
-        await p.waitForTimeout(1200);
-        await p.click("[data-drone-capture]").catch(() => {});
-        await p.waitForTimeout(200);
-        await p.click("[data-drone-shoot]").catch(() => {});
-        await p.waitForTimeout(200);
+        await p.waitForTimeout(3200);   // a 45°/s gimbal needs time to arrive; rushing it is the player's error, not the game's
+        const aimed = (await p.locator("[data-drone-note]").textContent()) ?? "";
+        const aimNow = (await p.locator("[data-drone-aim]").textContent()) ?? "";
+        await p.click("[data-drone-capture]", { timeout: 1500 }).catch(() => {});
+        await p.waitForTimeout(250);
+        const afterCap = (await p.locator("[data-drone-note]").textContent()) ?? "";
+        await p.click("[data-drone-shoot]", { timeout: 1500 }).catch(() => {});
+        await p.waitForTimeout(250);
+        const afterShot = (await p.locator("[data-drone-note]").textContent()) ?? "";
+        console.log(`    attempt ${i + 1}: ${aimNow.trim()} at "${aimed.trim()}" → capture "${afterCap.trim()}" → shoot "${afterShot.trim()}"`);
       }
       const note = await p.locator("[data-drone-note]").textContent();
       const sc = await p.locator("[data-drone-score]").textContent();

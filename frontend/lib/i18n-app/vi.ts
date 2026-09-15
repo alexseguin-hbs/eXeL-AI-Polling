@@ -1066,5 +1066,6 @@ const T: Record<string, string> = {
   "drone.game.clock": "Thời gian",
   "drone.game.no_target": "Không có cửa trong tầm nhìn",
   "drone.game.log": "Diễn biến",
+  "drone.game.no_reachable": "Không cửa nào kịp tới",
 };
 export default T;

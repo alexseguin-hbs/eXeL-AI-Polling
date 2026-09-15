@@ -1067,5 +1067,6 @@ const T: Record<string, string> = {
   "drone.game.clock": "Muda",
   "drone.game.no_target": "Hakuna mlango unaoonekana",
   "drone.game.log": "Yaliyotokea",
+  "drone.game.no_reachable": "Hakuna mlango unaoweza kufikiwa kwa wakati",
 };
 export default T;

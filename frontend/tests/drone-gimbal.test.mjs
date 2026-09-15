@@ -118,6 +118,16 @@ ok(JSON.stringify(buildSchedule(doors, { ...TSPEC, seed: 1 })) !== JSON.stringif
 ok(s1.length === doors.length, `every one of the ${doors.length} doors gets a turn`);
 ok(new Set(s1.map((w) => w.doorId)).size === doors.length, 'and no door gets two');
 ok(roundLengthMs(s1) > 0, 'the round has a declared length');
+// A ROUND MUST BE WINNABLE BY CONSTRUCTION. Instrumenting a played round showed doors dropping while the
+// gimbal was still swinging to them: the up-window was shorter than the worst swing that can reach it.
+// This is the rule that prevents it, not a number someone liked.
+{
+  const worstSwingMs = (180 / SPEC.slewDegPerSec) * 1000;    // half a turn is the furthest a door can be
+  const aimAllowanceMs = 6000;                                // see, decide, press — a person, not a script
+  ok(TSPEC.upMs >= worstSwingMs + aimAllowanceMs,
+     `a door stays up ${TSPEC.upMs / 1000}s, longer than the worst swing ${worstSwingMs / 1000}s plus ${aimAllowanceMs / 1000}s to aim`);
+  ok(TSPEC.downMs > 0, 'and it does go down again — a target that never drops is not a target');
+}
 {
   const tags = emptyTags();
   const at0 = targetsAt(doors, s1, tags, 0);

@@ -1063,5 +1063,6 @@ const T: Record<string, string> = {
   "drone.game.clock": "시간",
   "drone.game.no_target": "시야에 문 없음",
   "drone.game.log": "진행 기록",
+  "drone.game.no_reachable": "제때 도달할 문 없음",
 };
 export default T;

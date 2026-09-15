@@ -15,7 +15,7 @@ import { sceneProject } from "@/lib/wire-core/scene-project";
 import { canonicalHash } from "@/lib/wire-core/wire-model";
 import { DRONE_DOMAIN } from "@/lib/drone-2525/domain.gen";
 import {
-  initGimbal, command, slew, onTarget, eyeOf, aimAt, inFrame, aimReadout, turretMount,
+  initGimbal, command, slew, onTarget, eyeOf, aimAt, inFrame, aimReadout, turretMount, shortestTurn,
   type GimbalState, type Mount,
 } from "@/lib/drone-2525/gimbal";
 import { lineOfSight, losReason, type Prism } from "@/lib/drone-2525/los";
@@ -31,12 +31,19 @@ const TSPEC = {
   downMs: Number(DRONE_DOMAIN.targets.downMs), concurrent: Number(DRONE_DOMAIN.targets.concurrent),
 };
 
-/** "Security Capital" plays the whole block; "Security Turrets" is the same round on one mount at a time. */
+/**
+ * The operator named two stationary modes. Playing them showed what makes them different, so that is what
+ * they now are:
+ *   SECURITY TURRETS — you sit at ONE turret and work what it can see. Most of the block is behind a
+ *     building from any single mount, which is the point: it teaches where a fixed position is blind.
+ *   SECURITY CAPITAL — the whole block. The round moves you to whichever turret can actually reach the
+ *     next door, so the exercise is about covering the ground rather than about one seat.
+ */
 export function TurretGame({ mode, tierCap }: { mode: "turrets" | "capital"; tierCap: Tier }) {
   const { t } = useLexicon();
   const mounts = useMemo<Mount[]>(() => DRONE_DOMAIN.turrets.map(turretMount), []);
   const [mountIdx, setMountIdx] = useState(0);
-  const mount = mounts[mode === "capital" ? 0 : mountIdx];
+  const mount = mounts[mountIdx];
 
   const [gim, setGim] = useState<GimbalState>(() => initGimbal(mount));
   const [game, setGame] = useState<GameState>(() => initGame(0));
@@ -100,17 +107,42 @@ export function TurretGame({ mode, tierCap }: { mode: "turrets" | "capital"; tie
     if (running && roundMs > 0 && tMs > roundMs) { setRunning(false); setGame((g) => endRound(g, tMs)); }
   }, [running, tMs, roundMs]);
 
+  /**
+   * "Next door" hands the targeteer a door they can ACTUALLY reach, not merely the closest one.
+   * Instrumenting a played round showed the naive pick failing twice over: it offered doors the Capitol
+   * stood in front of, and doors whose window would close before the gimbal finished swinging. Both are
+   * refusals a player can do nothing about, so the button no longer offers them.
+   */
   const nextTarget = useCallback(() => {
     const live = views.filter((v) => v.phase === "up" || v.phase === "captured");
     if (!live.length) { setNote(t("drone.game.no_target")); return; }
-    // Nearest by turn angle, so pressing it twice walks the block rather than jumping about.
-    const ranked = live
-      .map((v) => ({ v, a: aimAt(eye, v.door.at) }))
-      .sort((p, q) => Math.abs(p.a.az - gim.az) - Math.abs(q.a.az - gim.az));
-    const pick = ranked.find(({ v }) => v.door.id !== framed?.door.id) ?? ranked[0];
+
+    // In CAPITAL the whole block is in play, so every turret is a candidate seat; in TURRETS you stay put.
+    const seats = mode === "capital" ? mounts.map((m, i) => ({ m, i })) : [{ m: mount, i: mountIdx }];
+    const cand = seats.flatMap(({ m, i }) => {
+      const seatEye = eyeOf(m, world.ground);
+      const here = i === mountIdx;
+      return live.map((v) => {
+        const a = aimAt(seatEye, v.door.at);
+        // Nearest by the SHORTEST TURN, not raw degrees: a door at 5° is ten degrees from a gimbal at 355°,
+        // not three hundred and fifty. Subtracting would skip the door right beside you.
+        const turn = here ? Math.abs(shortestTurn(gim.az, a.az)) : Math.abs(shortestTurn(m.homeAz, a.az));
+        const swingMs = (turn / Number(SPEC.slewDegPerSec)) * 1000;
+        const leftMs = v.window.endMs - tMs;
+        const reach = lineOfSight(seatEye, v.door.at, world.ground, prisms, { ignore: v.door.buildingId });
+        // A seat you have to move to costs the player a beat, so a reachable door here beats one over there.
+        return { v, a, seat: i, cost: turn + (here ? 0 : 400), ok: reach.clear && leftMs > swingMs + 1500 };
+      });
+    });
+
+    const usable = cand.filter((c) => c.ok);
+    if (!usable.length) { setNote(t("drone.game.no_reachable")); return; }
+    const fresh = usable.filter((c) => c.v.door.id !== framed?.door.id);
+    const pick = (fresh.length ? fresh : usable).sort((p, q) => p.cost - q.cost)[0];
+    if (pick.seat !== mountIdx) setMountIdx(pick.seat);
     setGim((g) => command(g, SPEC, pick.a.az, pick.a.el));
-    setNote(pick.v.door.label);
-  }, [views, eye, gim.az, framed, t]);
+    setNote(`${mounts[pick.seat].label} → ${pick.v.door.label}`);
+  }, [views, eye, gim.az, framed, t, tMs, world, prisms, mode, mounts, mount, mountIdx]);
 
   const doCapture = useCallback(() => {
     setGame((g) => {
@@ -135,7 +167,11 @@ export function TurretGame({ mode, tierCap }: { mode: "turrets" | "capital"; tie
     setGame(initGame(0)); setTMs(0); setRunning(false); setNote("");
     setGim(initGimbal(mount));
   }, [mount]);
-  useEffect(() => { reset(); }, [mount, reset]);
+  // Moving to another turret re-homes the gimbal and NOTHING else: a score already earned survives the
+  // walk across the lawn, which is the "a completed action is never lost" rule applied to the seat change.
+  useEffect(() => { setGim(initGimbal(mounts[mountIdx])); }, [mountIdx, mounts]);
+  // A change of MODE is a different exercise, so that does start over.
+  useEffect(() => { reset(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [mode]);
 
   const s = score(game);
   const hudFont = { fontFamily: "ui-monospace, monospace", fontSize: "clamp(9px, 2.4vw, 11px)", letterSpacing: "0.06em" };
@@ -200,16 +236,14 @@ export function TurretGame({ mode, tierCap }: { mode: "turrets" | "capital"; tie
           {t("drone.game.shoot")}
         </button>
         <button data-drone-reset onClick={reset} style={btn(false, semanticHex("contour"))}>{t("drone.game.reset")}</button>
-        {mode === "turrets" ? (
-          <div style={{ display: "flex", gap: 6, marginLeft: "auto", alignItems: "center" }}>
-            <span style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.6 }}>{t("drone.game.turret")}</span>
-            {mounts.map((m, i) => (
-              <button key={m.id} data-drone-mount={m.id} onClick={() => setMountIdx(i)} style={btn(i === mountIdx, semanticHex("mount"))}>
-                {m.id.replace("t-", "")}
-              </button>
-            ))}
-          </div>
-        ) : null}
+        <div style={{ display: "flex", gap: 6, marginLeft: "auto", alignItems: "center" }}>
+          <span style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.6 }}>{t("drone.game.turret")}</span>
+          {mounts.map((m, i) => (
+            <button key={m.id} data-drone-mount={m.id} onClick={() => setMountIdx(i)} style={btn(i === mountIdx, semanticHex("mount"))}>
+              {m.id.replace("t-", "")}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* What just happened, in words — never a silent press */}
