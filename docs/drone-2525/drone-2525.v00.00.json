@@ -26,7 +26,7 @@
    "date": "2026-09-15",
    "kind": "decision",
    "why": "The MoT ladder replaces the four-tier fidelity table: 5 compute bands x 5 resolution steps, 1.1 the arcade rung and the fastest. Demand and capability are separated. Multi-sensor fusion EO->CHEM sheds from the top and never sheds EO. The unit holds 1080p30 and names every step down. A self-test walks the ladder in 6 to 15 minutes and reports the rung this machine actually holds.",
-   "commit": "pending"
+   "commit": "ea91e01"
   }
  ],
  "arena": {

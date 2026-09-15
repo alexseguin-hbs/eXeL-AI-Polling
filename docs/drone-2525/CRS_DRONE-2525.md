@@ -363,5 +363,5 @@ Id law (docs/vision-2525/CRS-GOVERNANCE-PLAN.md): `DRN-##.##`, two digits never 
 | revision | date | kind | commit | why |
 |---|---|---|---|---|
 | 0.001 | 2026-09-15 | ask | `7b0b790` | Drone-2525 1st Pass persisted verbatim; the CRS ladder opens at Version 00.00. |
-| 0.002 | 2026-09-15 | decision | `pending` | The MoT ladder replaces the four-tier fidelity table: 5 compute bands x 5 resolution steps, 1.1 the arcade rung and the fastest. Demand and capability are separated. Multi-sensor fusion EO->CHEM sheds from the top and never sheds EO. The unit holds 1080p30 and names every step down. A self-test walks the ladder in 6 to 15 minutes and reports the rung this machine actually holds. |
+| 0.002 | 2026-09-15 | decision | `ea91e01` | The MoT ladder replaces the four-tier fidelity table: 5 compute bands x 5 resolution steps, 1.1 the arcade rung and the fastest. Demand and capability are separated. Multi-sensor fusion EO->CHEM sheds from the top and never sheds EO. The unit holds 1080p30 and names every step down. A self-test walks the ladder in 6 to 15 minutes and reports the rung this machine actually holds. |
 

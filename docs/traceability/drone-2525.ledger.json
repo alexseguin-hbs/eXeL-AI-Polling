@@ -44,6 +44,13 @@
    "kind": "release",
    "text": "What playing the round taught, folded back in. Instrumenting a real headless round found three defects no source gate would have caught. A door could drop while the gimbal was still swinging to it, because the up-window was shorter than the worst swing that can reach it; the window is now derived from the slew rate rather than chosen, and gated, so the round is winnable by construction. The next-door button offered doors the Capitol stood in front of and doors that would close in time, both refusals a player can do nothing about; it now offers only doors that are reachable and still open long enough, and says 'no door you can reach in time' when there are none. And picking the nearest door by subtracting azimuths skipped the door right beside you across the north wrap; it now uses the shortest turn. The two stationary modes also became genuinely different: Security Turrets seats you at one turret and teaches where a fixed position is blind, while Security Capital works the whole block and moves you to the turret that can reach the next door, carrying your score across the walk. A played Capital round: two doors tagged, three captured, 50% accuracy, the transcript on screen naming every refusal.",
    "commit": "ec87075"
+  },
+  {
+   "rev": 7,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "Revision 0.002. The four-tier fidelity table is replaced by a 25-rung MoT ladder, 1.1 to 5.5, five edge-compute bands by five resolution steps, and the error it carried is corrected: a richer setting asks for MORE work and therefore FEWER frames, so rung 1.1 — the 1983 vector arcade — is the fastest picture a machine can make. Demand and capability now live in separate modules and only calibration reconciles them; the superseded module is deleted rather than left beside its replacement. Sensing runs EO, IR, ACOUSTIC, MAG and CHEM, one more per band, shed from the top and never down to blind. The unit holds a 1920x1080 30 Hz reference and names every step down from it in its own HUD field. The self-test walks the ladder under real load and reports the rung this machine actually holds, with the dwell derived from the operator's 6-to-15-minute budget rather than chosen; run headlessly in the built site it reported 'This machine holds MoT 1.3 at 1080p30 with EO running'. Six CRS rows appended under permanent parents. Gates: mot-ladder 269, self-cal-runner 30, drone-hal 147 across all 25 rungs.",
+   "commit": "ea91e01"
   }
  ]
 }
