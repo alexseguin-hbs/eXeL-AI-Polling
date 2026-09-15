@@ -43,7 +43,7 @@
    "date": "2026-09-15",
    "kind": "release",
    "text": "What playing the round taught, folded back in. Instrumenting a real headless round found three defects no source gate would have caught. A door could drop while the gimbal was still swinging to it, because the up-window was shorter than the worst swing that can reach it; the window is now derived from the slew rate rather than chosen, and gated, so the round is winnable by construction. The next-door button offered doors the Capitol stood in front of and doors that would close in time, both refusals a player can do nothing about; it now offers only doors that are reachable and still open long enough, and says 'no door you can reach in time' when there are none. And picking the nearest door by subtracting azimuths skipped the door right beside you across the north wrap; it now uses the shortest turn. The two stationary modes also became genuinely different: Security Turrets seats you at one turret and teaches where a fixed position is blind, while Security Capital works the whole block and moves you to the turret that can reach the next door, carrying your score across the walk. A played Capital round: two doors tagged, three captured, 50% accuracy, the transcript on screen naming every refusal.",
-   "commit": "7a1a444"
+   "commit": "ec87075"
   }
  ]
 }
