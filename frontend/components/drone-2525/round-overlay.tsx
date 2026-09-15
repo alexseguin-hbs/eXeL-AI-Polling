@@ -18,10 +18,13 @@ import type { Vec3 } from "@/lib/wire-core/wire-model";
 import type { ArenaCtx } from "./arena-view";
 import { SwarmLayer } from "./swarm-layer";
 
-export function RoundOverlay({ ctx, views, eye, framed, los, swarm, swarmPlan }: {
+export function RoundOverlay({ ctx, views, eye, myEye, framed, los, swarm, swarmPlan }: {
   ctx: ArenaCtx;
   views: readonly TargetView[];
+  /** Where the SENSOR is — the laser and the sight line start here whoever is looking. */
   eye: Vec3;
+  /** Where the person at THIS screen is. On an airframe that is not the same point. */
+  myEye: Vec3;
   framed: TargetView | null;
   los: LosResult | null;
   swarm: Swarm;
@@ -43,6 +46,23 @@ export function RoundOverlay({ ctx, views, eye, framed, los, swarm, swarmPlan }:
     if (!a.behind && !b.behind) {
       const hex = semanticHex(los && !los.clear ? "blocked" : "ray");
       marks.push(<path key="sight" d={`M${a.x} ${a.y}L${b.x} ${b.y}`} {...strokeProps(hex, VECTOR_LAW.stroke.hairline)} />);
+    }
+  }
+
+  // THE PARALLAX, DRAWN. A pilot should be able to SEE that the laser does not leave from where they are
+  // sitting: a small cross at their own eye and a hairline back to the sensor. On a turret the two points
+  // coincide and nothing is drawn — the separation is zero there, and drawing a mark for it would be an
+  // invention. Same rule as everywhere else: behind the camera is dropped, never clamped.
+  {
+    const me = p(myEye), sen = p(eye);
+    const apart = Math.hypot(me.x - sen.x, me.y - sen.y);
+    if (!me.behind && !sen.behind && apart > 1.5) {
+      marks.push(
+        <path key="myeye" d={`M${me.x - 4} ${me.y}L${me.x + 4} ${me.y}M${me.x} ${me.y - 4}L${me.x} ${me.y + 4}`}
+              {...strokeProps(semanticHex("frustum"), VECTOR_LAW.stroke.normal)} />,
+        <path key="parallax" d={`M${me.x} ${me.y}L${sen.x} ${sen.y}`}
+              {...strokeProps(semanticHex("frustum"), VECTOR_LAW.stroke.hairline)} />,
+      );
     }
   }
 

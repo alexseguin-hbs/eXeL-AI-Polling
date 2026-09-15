@@ -30,7 +30,7 @@ const GATES = [
   "test:mot-ladder", "test:self-cal", "test:drone-arena", "test:drone-hal", "test:vector-law",
   "test:drone-crs", "test:drone-i18n", "test:drone-gimbal", "test:drone-flight", "test:si-pod",
   "test:drone-link", "test:wire-core", "test:wire-export",
-  "test:drone-swarm", "test:drone-authority", "test:arena-frame",
+  "test:drone-swarm", "test:drone-authority", "test:arena-frame", "test:seat-view",
 ];
 
 const sha = (s) => createHash("sha256").update(s).digest("hex").slice(0, 16);

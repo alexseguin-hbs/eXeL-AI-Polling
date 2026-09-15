@@ -33,6 +33,7 @@ import {
 } from "@/lib/drone-2525/ai-crew";
 import { initSi, openCall, recogniseAdopted, openCallOf, tally } from "@/lib/drone-2525/si-pod";
 import { initLink, seatUrl, seatFromParams, linkLine, linkUp, type Seat } from "@/lib/drone-2525/link";
+import { seatEye, seatEyeLine } from "@/lib/drone-2525/seat-view";
 import { useDroneLink } from "@/lib/drone-2525/use-drone-link";
 import { CrewSeatPanel } from "./crew-seat-panel";
 import { initSwarm, stepSwarm, planSwarmDraw, swarmLine, aliveCount, SWARM_N } from "@/lib/drone-2525/swarm";
@@ -148,9 +149,25 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   // object identity made every downstream memo — including the hundred-sample sight line — recompute sixty
   // times a second while flying. The audit caught the Efficiency claim being false for exactly this reason.
   // A camera that moved less than a decimetre has not moved for any purpose the sight line cares about.
+  //
+  // AND THERE ARE TWO OF THEM. Operator 2026-09-15: "make sure view from HI gimbal laser cockpit for HI
+  // pilot are different per dimensions of aircraft or quad." The pilot looks out of the canopy; the
+  // targeteer looks down a gimbal slung under the belly, and on this airframe that is 8.7 m apart in the
+  // hover and 18.6 m apart on the wing — derived from the airframe's own measured extent, not typed here.
+  // A TURRET returns the same point for both seats, by construction, so the stationary modes are unchanged.
+  //
+  //   sensorEye  — where the gimbal actually is. Framing, the sight line, the range readout and the laser
+  //                all start here, WHOEVER is looking, because that is where the sensor is bolted.
+  //   myEye      — where the person at THIS screen is. It is what their own seat marker is drawn from, and
+  //                it is why a pilot's picture is not the targeteer's picture.
   const eyeKey = `${Math.round(mount.at[0] * 10)}:${Math.round(mount.at[1] * 10)}:${Math.round(mount.heightM * 10)}`;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const eye = useMemo(() => eyeOf(mount, world.ground), [world, eyeKey]);
+  const mySeatOr: Seat = mySeat ?? (iAim ? "targeteer" : "pilot");
+  /* eslint-disable react-hooks/exhaustive-deps */
+  const sensorEye = useMemo(() => seatEye(mount, "targeteer", flight.mode, world.ground), [world, eyeKey, flight.mode]);
+  const myEye = useMemo(() => seatEye(mount, mySeatOr, flight.mode, world.ground), [world, eyeKey, flight.mode, mySeatOr]);
+  /* eslint-enable react-hooks/exhaustive-deps */
+  // Everything downstream of the sensor reads the sensor's eye. Named once so no call site has to remember.
+  const eye = sensorEye;
 
   // The target the sensor is actually looking at: up (or already captured) and inside the cone.
   const framed: TargetView | null = useMemo(() => {
@@ -200,16 +217,16 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
     // In CAPITAL the whole block is in play, so every turret is a candidate seat; in TURRETS you stay put.
     const seats = mode === "capital" ? mounts.map((m, i) => ({ m, i })) : [{ m: mount, i: mountIdx }];
     const cand = seats.flatMap(({ m, i }) => {
-      const seatEye = eyeOf(m, world.ground);
+      const fromSeat = eyeOf(m, world.ground);
       const here = i === mountIdx;
       return live.map((v) => {
-        const a = aimAt(seatEye, v.door.at);
+        const a = aimAt(fromSeat, v.door.at);
         // Nearest by the SHORTEST TURN, not raw degrees: a door at 5° is ten degrees from a gimbal at 355°,
         // not three hundred and fifty. Subtracting would skip the door right beside you.
         const turn = here ? Math.abs(shortestTurn(gim.az, a.az)) : Math.abs(shortestTurn(m.homeAz, a.az));
         const swingMs = (turn / Number(SPEC.slewDegPerSec)) * 1000;
         const leftMs = v.window.endMs - tMs;
-        const reach = lineOfSight(seatEye, v.door.at, world.ground, prisms, { ignore: v.door.buildingId });
+        const reach = lineOfSight(fromSeat, v.door.at, world.ground, prisms, { ignore: v.door.buildingId });
         // A seat you have to move to costs the player a beat, so a reachable door here beats one over there.
         return { v, a, seat: i, cost: turn + (here ? 0 : 400), ok: reach.clear && leftMs > swingMs + 1500 };
       });
@@ -360,8 +377,8 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
 
   // Everything drawn on top of the world, in the world's own camera.
   const overlay = useCallback((ctx: ArenaCtx) => (
-    <RoundOverlay ctx={ctx} views={views} eye={eye} framed={framed} los={los} swarm={swarm.current} swarmPlan={swarmPlan} />
-  ), [views, eye, framed, los, swarmPlan]);
+    <RoundOverlay ctx={ctx} views={views} eye={eye} myEye={myEye} framed={framed} los={los} swarm={swarm.current} swarmPlan={swarmPlan} />
+  ), [views, eye, myEye, framed, los, swarmPlan]);
 
   return (
     <div data-drone-game>
@@ -374,6 +391,9 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
         hudLeft={
           <>
             <span style={{ ...MONO, color: semanticHex("mount") }} data-drone-aim>{aimReadout(gim, los?.rangeM)}</span>
+            <span style={{ ...MONO, color: semanticHex("frustum") }} data-drone-seat-eye>
+              {seatEyeLine(mySeatOr, mount, flight.mode, world.ground)}
+            </span>
             {engagement && swarmPlan ? (
               <span style={{ ...MONO, color: semanticHex("ray") }} data-drone-swarm-line>{swarmLine(swarm.current, swarmPlan)}</span>
             ) : null}
