@@ -13,4 +13,10 @@ const md = fs.readFileSync(new URL("../../CLAUDE.md", import.meta.url), "utf8");
 ok(/\| 1 \| \(2,2,1\) CENTER/.test(md) && /\| 2 \| \(2,3,1\)/.test(md) && /\| 9 \| \(1,3,1\)/.test(md) && /\| 10 \| \(2,2,2\) CENTER/.test(md), "CLAUDE.md positions: 1=(2,2,1) 2=(2,3,1) 9=(1,3,1) 10=(2,2,2)");
 ok(/│  7  │  8  │  9  │[\s\S]*│  6  │  1  │  2  │[\s\S]*│  5  │  4  │  3  │/.test(md), "CLAUDE.md ASCII grid matches the spiral");
 ok(/\(row, col, level\)/.test(md) && !/Coordinates are `\(level, row, col\)`/.test(md), "CLAUDE.md states the (row, col, level) convention, old order gone");
+// The shared helper is the source of truth, and the Dev Sim picker lays cubes out through it as a 3×3.
+const helper = fs.readFileSync(new URL("../lib/cube-grid.ts", import.meta.url), "utf8");
+ok(/SPIRAL_OFFSETS[^=]*= \[\[6, 7, 8\], \[5, 0, 1\], \[4, 3, 2\]\]/.test(helper), "lib/cube-grid.ts encodes the right → down → left → up spiral");
+const dev = fs.readFileSync(new URL("../components/cube-dev-sim.tsx", import.meta.url), "utf8");
+ok(/cubeGridOrder\(1\)\.map/.test(dev), "Dev Sim picker orders cubes through cubeGridOrder(1)");
+ok(!/lg:grid-cols-9|sm:grid-cols-5/.test(dev), "Dev Sim picker is a fixed 3×3 (no 5- or 9-column flattening)");
 console.log(`cube-grid: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

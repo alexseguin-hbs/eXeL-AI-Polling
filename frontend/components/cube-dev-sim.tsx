@@ -16,6 +16,7 @@
  * highlight[level]) — one source, no drift. Reuses the 3/6/9 dial concept from the
  * live theme viz. i18n (§7) routes the strings through t().
  */
+import { cubeGridOrder } from "@/lib/cube-grid";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   Boxes, Loader2, Play, GitCommitHorizontal, Maximize2, X, Check, Pencil, Ban, Flag, Clock,
@@ -285,8 +286,10 @@ export function CubeDevSim() {
         <span className="rounded border px-1.5 py-0.5" style={{ borderColor: AI }}>Level 1</span>
         <span className="text-muted-foreground">{t("cube10.sim.pick_cube")}</span>
       </div>
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
-        {cubes.map((c) => (
+      {/* Always a 3×3 in the cube's REAL positions — (row, col, level) spiral right → down → left → up
+          around Session at the centre (lib/cube-grid.ts). A single row of nine would hide the geometry. */}
+      <div className="grid max-w-md grid-cols-3 gap-2">
+        {cubeGridOrder(1).map((n) => cubes.find((c) => c.cube_id === n)).filter((c): c is CubeInfo => !!c).map((c) => (
           <button key={c.cube_id} data-cube-sim-select={c.cube_id} onClick={() => pick(c.cube_id)}
             className={`rounded-lg border px-2 py-3 text-center text-xs transition ${
               sel === c.cube_id ? "border-primary bg-primary/10 text-primary" : "hover:border-primary/60"}`}>
