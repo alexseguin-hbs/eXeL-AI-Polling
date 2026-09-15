@@ -3748,7 +3748,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "transfer": "",
     "transferConfirm": "",
     "change": "v00.00 r0.001",
-    "changeDesc": "draft"
+    "changeDesc": "implemented"
   },
   {
     "cube": "Drone-2525 — Two operators, two devices (III COMM)",
@@ -3769,7 +3769,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "transfer": "",
     "transferConfirm": "",
     "change": "v00.00 r0.001",
-    "changeDesc": "draft"
+    "changeDesc": "implemented"
   },
   {
     "cube": "Drone-2525 — AI roles under human approval (X Governance)",
@@ -3790,7 +3790,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "transfer": "",
     "transferConfirm": "",
     "change": "v00.00 r0.001",
-    "changeDesc": "draft"
+    "changeDesc": "implemented"
   },
   {
     "cube": "Drone-2525 — Vector law, the 13, and adaptive fidelity (XI SSSES)",

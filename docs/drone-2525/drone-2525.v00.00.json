@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.002",
+  "revision": "0.003",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
   "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -27,6 +27,13 @@
    "kind": "decision",
    "why": "The MoT ladder replaces the four-tier fidelity table: 5 compute bands x 5 resolution steps, 1.1 the arcade rung and the fastest. Demand and capability are separated. Multi-sensor fusion EO->CHEM sheds from the top and never sheds EO. The unit holds 1080p30 and names every step down. A self-test walks the ladder in 6 to 15 minutes and reports the rung this machine actually holds.",
    "commit": "ea91e01"
+  },
+  {
+   "revision": "0.003",
+   "date": "2026-09-15",
+   "kind": "release",
+   "why": "The flying modes. A fixed-wing VTOL hovers on rotors and cruises on a wing, with the stall speed as the number the transition turns on. A machine may hold the pilot's seat, the camera operator's seat, or both — and a machine that is aiming must ask a named person before any shot, a gate with no bypass. All four of the operator's modes are unlocked.",
+   "commit": "a3cb92f"
   }
  ],
  "arena": {
@@ -1164,7 +1171,7 @@
    "verify": "tests/drone-flight.test.mjs",
    "dtm": "hover and cruise endurance",
    "stretch": "VTOL transition envelope",
-   "status": "draft"
+   "status": "implemented"
   },
   {
    "id": "DRN-09",
@@ -1180,7 +1187,7 @@
    "verify": "tests/drone-link.test.mjs",
    "dtm": "two phones share one round",
    "stretch": "hosted realtime",
-   "status": "draft"
+   "status": "implemented"
   },
   {
    "id": "DRN-10",
@@ -1196,7 +1203,7 @@
    "verify": "tests/drone-game.test.mjs",
    "dtm": "AI proposes, human approves",
    "stretch": "both AI seats with humans watching",
-   "status": "draft"
+   "status": "implemented"
   },
   {
    "id": "DRN-11",

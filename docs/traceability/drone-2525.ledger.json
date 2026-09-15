@@ -51,6 +51,13 @@
    "kind": "release",
    "text": "Revision 0.002. The four-tier fidelity table is replaced by a 25-rung MoT ladder, 1.1 to 5.5, five edge-compute bands by five resolution steps, and the error it carried is corrected: a richer setting asks for MORE work and therefore FEWER frames, so rung 1.1 — the 1983 vector arcade — is the fastest picture a machine can make. Demand and capability now live in separate modules and only calibration reconciles them; the superseded module is deleted rather than left beside its replacement. Sensing runs EO, IR, ACOUSTIC, MAG and CHEM, one more per band, shed from the top and never down to blind. The unit holds a 1920x1080 30 Hz reference and names every step down from it in its own HUD field. The self-test walks the ladder under real load and reports the rung this machine actually holds, with the dwell derived from the operator's 6-to-15-minute budget rather than chosen; run headlessly in the built site it reported 'This machine holds MoT 1.3 at 1080p30 with EO running'. Six CRS rows appended under permanent parents. Gates: mot-ladder 269, self-cal-runner 30, drone-hal 147 across all 25 rungs.",
    "commit": "ea91e01"
+  },
+  {
+   "rev": 8,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "Revision 0.003. The two flying modes ship, and with them the invariant the whole domain was built to hold: an AI-initiated shot never fires without a named human approval event. That is enforced by the type system as well as by tests — the only function that can retire a machine's request will not compile without an approver, a blank name changes nothing, and approving one shot does not authorise the next. Flight is a fixed-wing VTOL with the stall speed as the number the transition turns on: 8.4 m/s, hover 15 minutes, cruise 76, on the usable 80% of the battery. The walkthrough capture found three defects no unit test would have — a machine targeteer whose timer was destroyed every frame by a dependency that changed every frame, an aircraft that never left the ground so the camera saw only grass, and a machine held to different optics than the person it shares a gimbal with. DRN-08, DRN-09 and DRN-10 move from draft to implemented; all thirteen steps are now implemented and none is verified, because no person outside this session has flown it.",
+   "commit": "a3cb92f"
   }
  ]
 }
