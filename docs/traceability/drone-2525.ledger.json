@@ -58,6 +58,13 @@
    "kind": "release",
    "text": "Revision 0.003. The two flying modes ship, and with them the invariant the whole domain was built to hold: an AI-initiated shot never fires without a named human approval event. That is enforced by the type system as well as by tests — the only function that can retire a machine's request will not compile without an approver, a blank name changes nothing, and approving one shot does not authorise the next. Flight is a fixed-wing VTOL with the stall speed as the number the transition turns on: 8.4 m/s, hover 15 minutes, cruise 76, on the usable 80% of the battery. The walkthrough capture found three defects no unit test would have — a machine targeteer whose timer was destroyed every frame by a dependency that changed every frame, an aircraft that never left the ground so the camera saw only grass, and a machine held to different optics than the person it shares a gimbal with. DRN-08, DRN-09 and DRN-10 move from draft to implemented; all thirteen steps are now implemented and none is verified, because no person outside this session has flown it.",
    "commit": "a3cb92f"
+  },
+  {
+   "rev": 9,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "Revision 0.004. Shared Intent arrives as a placeholder and takes the decision the round already has: when a machine asks to shoot, the same question goes to a closed key group in the seconds it is open. The group advises and a named person decides — the consensus engine and the authority gate cannot import each other, and a unanimous group of five changes nothing about what may fire. Key members only: an empty roster produces no invitation rather than an open link, and the right code in the wrong hands is refused. Two things were built and then deleted because the repository already had them: a fourth code generator, when randomPodCode already owns the alphabet and takes its bytes as an argument; and a fourth value on a three-rung heart ladder that says in its own comment there is nothing in between and nothing above. Recognition now reads noted at once and adopted only after the decision went the way that contributor argued, which is what pod-clock means by judged after the fact. What the placeholder does not do is on the screen, each gap naming the function that will close it.",
+   "commit": "a1a9ff7"
   }
  ]
 }

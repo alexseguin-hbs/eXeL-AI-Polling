@@ -3999,7 +3999,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "testDesc": "no call can open while it is off; switching off closes any open call",
     "transfer": "",
     "transferConfirm": "",
-    "change": "v00.00 r0.003",
+    "change": "v00.00 r0.004",
     "changeDesc": "implemented"
   },
   {
@@ -4020,7 +4020,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "testDesc": "both halves must hold: on the roster, and a live code",
     "transfer": "",
     "transferConfirm": "",
-    "change": "v00.00 r0.003",
+    "change": "v00.00 r0.004",
     "changeDesc": "implemented"
   },
   {
@@ -4041,7 +4041,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "testDesc": "the two modules do not import each other; unanimity does not open the gate",
     "transfer": "",
     "transferConfirm": "",
-    "change": "v00.00 r0.003",
+    "change": "v00.00 r0.004",
     "changeDesc": "implemented"
   },
   {
@@ -4062,7 +4062,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "testDesc": "no value outside the declared ladder; silence earns nothing",
     "transfer": "",
     "transferConfirm": "",
-    "change": "v00.00 r0.003",
+    "change": "v00.00 r0.004",
     "changeDesc": "implemented"
   }
 ];

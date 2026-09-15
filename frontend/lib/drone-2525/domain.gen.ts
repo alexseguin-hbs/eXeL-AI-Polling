@@ -28,7 +28,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.003",
+  "revision": "0.004",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
   "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -58,6 +58,13 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "The flying modes. A fixed-wing VTOL hovers on rotors and cruises on a wing, with the stall speed as the number the transition turns on. A machine may hold the pilot's seat, the camera operator's seat, or both — and a machine that is aiming must ask a named person before any shot, a gate with no bypass. All four of the operator's modes are unlocked.",
    "commit": "a3cb92f"
+  },
+  {
+   "revision": "0.004",
+   "date": "2026-09-15",
+   "kind": "release",
+   "why": "Shared Intent, as a placeholder: a key group switched on or off, invited by a code and a scannable square, answering a real-time call on the decision the round already has. The group advises and a named person still decides. Recognition uses the three fixed heart values the pod ladder already declares, rather than a fourth invented for this feature.",
+   "commit": "a1a9ff7"
   }
  ],
  "arena": {
