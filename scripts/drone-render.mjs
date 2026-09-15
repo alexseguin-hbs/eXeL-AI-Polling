@@ -65,7 +65,7 @@ function renderReadme() {
   s += `## Modes\n\n| id | mode | mount | pass |\n|---|---|---|---|\n`;
   for (const m of d.modes) s += `| \`${m.id}\` | ${m.label} | ${m.mount} | ${m.pass} |\n`;
   s += `\n## Arena\n\n`;
-  s += `Origin \`${d.arena.origin.lat}, ${d.arena.origin.lon}\` at ${d.arena.origin.elevMslM} m MSL · radius ${d.arena.radiusM} m · ceiling ${d.arena.maxAltitudeM} m AGL.\n\n`;
+  s += `Origin \`${d.arena.origin.lat}, ${d.arena.origin.lon}\` at ${d.arena.origin.mslM} m MSL · radius ${d.arena.radiusM} m · ceiling ${d.arena.maxAltitudeM} m AGL.\n\n`;
   s += `${d.arena.note}\n\nTerrain: ${d.arena.demSource}\n\n`;
   s += `| building | height m | doors | source | confidence |\n|---|---|---|---|---|\n`;
   for (const b of d.buildings) s += `| ${b.label} | ${b.heightM} | ${b.doors.length} | ${b.source} | **${b.confidence}** |\n`;
@@ -163,6 +163,13 @@ const OUT = [
   ["docs/drone-2525/ASSUMPTIONS_REGISTER.md", renderAssumptions()],
   ["frontend/lib/drone-2525/domain.gen.ts", renderModule()],
 ];
+
+// A rendered view may never contain "undefined" or "NaN": that is a generator reading a field that is not
+// there, and --check alone cannot see it because a wrong render and a fresh render agree with each other.
+for (const [rel, body] of OUT) {
+  const bad = body.match(/\b(undefined|NaN)\b/);
+  if (bad) { console.error(`drone-render: ${rel} would render "${bad[1]}" — a field name is wrong; nothing written`); process.exit(1); }
+}
 
 let drift = 0;
 for (const [rel, body] of OUT) {

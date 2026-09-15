@@ -18,7 +18,7 @@ Mode: **Manual (MODE_R-CORE_SPEC: no commit without a named Human-Authority even
 
 ## Arena
 
-Origin `30.27467, -97.74035` at undefined m MSL · radius 450 m · ceiling 100 m AGL.
+Origin `30.27467, -97.74035` at 163 m MSL · radius 450 m · ceiling 100 m AGL.
 
 The Texas Capitol lawn and its bounding streets — 11th (S), 15th (N), Colorado (W), Brazos (E).
 
