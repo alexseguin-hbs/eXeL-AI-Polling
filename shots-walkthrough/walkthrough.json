@@ -1,0 +1,2165 @@
+{
+  "screens": [
+    {
+      "id": "01-arrive",
+      "title": "Arriving",
+      "what": "The arena as it opens: one turret on the south lawn, every door a target, level 1.1.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/01-arrive.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Start",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "south",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "west",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "east",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "aim": "A 000° · B +5°",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A person aims",
+        "flight": null,
+        "note": "No door in view",
+        "approval": null
+      },
+      "paths": 22,
+      "width": 1440
+    },
+    {
+      "id": "02-turrets-running",
+      "title": "Security Turrets · a round under way",
+      "what": "The clock is running and doors are popping up. This is the stationary practice mode on one turret.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/02-turrets-running.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "south",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "west",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "east",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "aim": "A 000° · B +5°",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A person aims",
+        "flight": null,
+        "note": "No door in view",
+        "approval": null
+      },
+      "paths": 22,
+      "width": 1440
+    },
+    {
+      "id": "03-turrets-aimed",
+      "title": "Aiming at a door",
+      "what": "Next door swings the camera to a door this turret can actually reach; the aim readout names the bearing and range.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/03-turrets-aimed.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "south",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "west",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "east",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "aim": "A 000° · B +5° · C 155 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A person aims",
+        "flight": null,
+        "note": "No door you can reach in time",
+        "approval": null
+      },
+      "paths": 23,
+      "width": 1440
+    },
+    {
+      "id": "04-turrets-tagged",
+      "title": "Photograph, then shoot",
+      "what": "Capture stores the door's edge set; only then will a shot count. The log keeps every attempt and its reason.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/04-turrets-tagged.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "south",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "west",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "east",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "aim": "A 000° · B +5°",
+        "score": "Tagged 1/14 · Captured 1",
+        "seats": "Seats: A person flies · A person aims",
+        "flight": null,
+        "note": "door tagged",
+        "approval": null
+      },
+      "paths": 22,
+      "width": 1440
+    },
+    {
+      "id": "05-capital-block",
+      "title": "Security Capital · the whole block",
+      "what": "The round now moves you to whichever turret can reach the next door, and your score follows you across the lawn.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/05-capital-block.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "south",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "west",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "east",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "aim": "A 090° · B +5°",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A person aims",
+        "flight": null,
+        "note": "TURRET · WEST → DEWITT C. GREER BLDG",
+        "approval": null
+      },
+      "paths": 22,
+      "width": 1440
+    },
+    {
+      "id": "06-drone-hover",
+      "title": "Two-person drone · hovering",
+      "what": "The same gimbal, now on a flying airframe. Left stick moves the aircraft, right stick turns it and changes height.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/06-drone-hover.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "aim": "A 000° · B -12° · C 208 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A person aims",
+        "flight": "QUAD · 0 m/s · 42 m AGL · 99% · ~15 min",
+        "note": "TEXAS CAPITOL",
+        "approval": null
+      },
+      "paths": 23,
+      "width": 1440
+    },
+    {
+      "id": "07-drone-wing-refused",
+      "title": "Why it will not go to the wing yet",
+      "what": "Asking for wing flight too low or too slow is refused in words a pilot can act on, rather than ignored.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/07-drone-wing-refused.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "aim": "A 000° · B -12° · C 208 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A person aims",
+        "flight": "QUAD · 0 m/s · 43 m AGL · 99% · ~15 min",
+        "note": "TEXAS CAPITOL",
+        "approval": null
+      },
+      "paths": 23,
+      "width": 1440
+    },
+    {
+      "id": "08-mixed-crew",
+      "title": "Mixed crew · a machine takes a seat",
+      "what": "Choose who holds which seat. The line under the controls always names who is flying and who is aiming.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/08-mixed-crew.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Approve the shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Hold",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Person flies · machine aims",
+          "enabled": true,
+          "options": 3,
+          "choices": [
+            "Person flies · machine aims",
+            "Machine flies · person aims",
+            "Machine flies and aims"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "aim": "A 000° · B -11° · C 208 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A machine aims · a person must approve every shot",
+        "flight": "QUAD · 0 m/s · 44 m AGL · 98% · ~15 min",
+        "note": "The machine is looking at TEXAS CAPITOL, 208 m",
+        "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldNothing fires while this question is open. If you do nothing, nothing happens."
+      },
+      "paths": 23,
+      "width": 1440
+    },
+    {
+      "id": "09-approval-asked",
+      "title": "The machine asks. Nothing fires.",
+      "what": "When a machine is aiming it must ask a named person before any shot. While this question is open, pressing Shoot does nothing and says why.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/09-approval-asked.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Approve the shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Hold",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Person flies · machine aims",
+          "enabled": true,
+          "options": 3,
+          "choices": [
+            "Person flies · machine aims",
+            "Machine flies · person aims",
+            "Machine flies and aims"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "aim": "A 000° · B -11° · C 208 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A machine aims · a person must approve every shot",
+        "flight": "QUAD · 0 m/s · 44 m AGL · 98% · ~15 min",
+        "note": "The machine is looking at TEXAS CAPITOL, 208 m",
+        "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldNothing fires while this question is open. If you do nothing, nothing happens."
+      },
+      "paths": 23,
+      "width": 1440
+    },
+    {
+      "id": "10-approval-held",
+      "title": "A person turns it down",
+      "what": "Hold refuses the shot, by name, and the refusal is counted and kept in the record.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/10-approval-held.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Approve the shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Hold",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Person flies · machine aims",
+          "enabled": true,
+          "options": 3,
+          "choices": [
+            "Person flies · machine aims",
+            "Machine flies · person aims",
+            "Machine flies and aims"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "aim": "A 000° · B -11° · C 208 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 0 approved, 1 held",
+        "flight": "QUAD · 0 m/s · 44 m AGL · 97% · ~15 min",
+        "note": "The machine is looking at TEXAS CAPITOL, 208 m",
+        "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldNothing fires while this question is open. If you do nothing, nothing happens."
+      },
+      "paths": 23,
+      "width": 1440
+    },
+    {
+      "id": "11-approval-approved",
+      "title": "A person allows it",
+      "what": "Approve is the only thing that opens the gate, and the permission carries the name that granted it.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/11-approval-approved.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Person flies · machine aims",
+          "enabled": true,
+          "options": 3,
+          "choices": [
+            "Person flies · machine aims",
+            "Machine flies · person aims",
+            "Machine flies and aims"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "aim": "A 000° · B -11° · C 208 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 1 held",
+        "flight": "QUAD · 0 m/s · 44 m AGL · 97% · ~15 min",
+        "note": "approved — the pilot",
+        "approval": null
+      },
+      "paths": 23,
+      "width": 1440
+    },
+    {
+      "id": "12-level-5-5",
+      "title": "Turning the level up",
+      "what": "Level 5.5 asks for the densest mesh and all five sensors. Calibration answers immediately and names what it shed.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/12-level-5-5.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Approve the shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Hold",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "5.5 FULL · 5s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Person flies · machine aims",
+          "enabled": true,
+          "options": 3,
+          "choices": [
+            "Person flies · machine aims",
+            "Machine flies · person aims",
+            "Machine flies and aims"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 5.5 FULL · 4000 seg · EO·IR·ACOUSTIC·MAG·CHEM · cnn 50ms · 1553 drawn",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO·IR·ACOUSTIC·MAG · over budget by 0.3ms — CHEM shed",
+        "aim": "A 000° · B -11° · C 208 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 1 held",
+        "flight": "QUAD · 0 m/s · 44 m AGL · 97% · ~15 min",
+        "note": "The machine is looking at TEXAS CAPITOL, 208 m",
+        "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldNothing fires while this question is open. If you do nothing, nothing happens."
+      },
+      "paths": 48,
+      "width": 1440
+    },
+    {
+      "id": "13-self-test",
+      "title": "The self-test",
+      "what": "Point it at a machine and it reports the highest level that machine holds at full video.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/13-self-test.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Approve the shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Hold",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Save result",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Person flies · machine aims",
+          "enabled": true,
+          "options": 3,
+          "choices": [
+            "Person flies · machine aims",
+            "Machine flies · person aims",
+            "Machine flies and aims"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · headroom 31.0ms, 1 of 3",
+        "aim": "A 075° · B -8°",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A machine aims · a person must approve every shot · 1 approved, 1 held",
+        "flight": "QUAD · 0 m/s · 44 m AGL · 92% · ~14 min",
+        "note": "The machine is looking at INSURANCE ANNEX, 302 m",
+        "approval": "A machine is asking to shoot TEXAS CAPITOL, 208 m away. It says: the shape matches the door it photographedApprove the shotHoldNothing fires while this question is open. If you do nothing, nothing happens."
+      },
+      "paths": 22,
+      "width": 1440
+    },
+    {
+      "id": "14-phone-turrets",
+      "title": "On a phone · stationary",
+      "what": "Every control reachable with one thumb at 390 px, with no sideways scrolling.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/14-phone-turrets.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Start",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "south",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "west",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "east",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "aim": "A 000° · B +5°",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A person aims",
+        "flight": null,
+        "note": "No door in view",
+        "approval": null
+      },
+      "paths": 22,
+      "width": 390
+    },
+    {
+      "id": "15-phone-drone",
+      "title": "On a phone · flying",
+      "what": "The two sticks sit under the arena where thumbs already are.",
+      "file": "/home/user/eXeL-AI-Polling/shots-walkthrough/15-phone-drone.png",
+      "controls": [
+        {
+          "kind": "button",
+          "label": "Back",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Turrets",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Security Capital",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Two-person drone",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Mixed crew · human approves every shot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Pause",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Next door",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Capture",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Shoot",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Reset",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Come down",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Go to wing",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Run self-test",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "Stop",
+          "enabled": false
+        },
+        {
+          "kind": "button",
+          "label": "Feedback",
+          "enabled": true
+        },
+        {
+          "kind": "button",
+          "label": "eXeL AI",
+          "enabled": true
+        },
+        {
+          "kind": "menu",
+          "label": "1.1 VECTOR · 1s",
+          "enabled": true,
+          "options": 25,
+          "choices": [
+            "1.1 VECTOR · 1s",
+            "1.2 VECTOR · 1s",
+            "1.3 VECTOR · 1s"
+          ]
+        },
+        {
+          "kind": "menu",
+          "label": "Decide for me",
+          "enabled": true,
+          "options": 4,
+          "choices": [
+            "Decide for me",
+            "PI-CLASS",
+            "EDGE-SOC"
+          ]
+        },
+        {
+          "kind": "slider",
+          "label": "6–15, now 6",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "BODY",
+          "enabled": true
+        },
+        {
+          "kind": "stick",
+          "label": "HEAD",
+          "enabled": true
+        }
+      ],
+      "hud": {
+        "level": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped",
+        "stream": "1080p30 · holding the reference",
+        "calibration": "1080p30 · EDGE-SOC · EO · at the ceiling 1.1",
+        "aim": "A 000° · B -12° · C 208 m",
+        "score": "Tagged 0/14 · Captured 0",
+        "seats": "Seats: A person flies · A person aims",
+        "flight": "QUAD · 0 m/s · 42 m AGL · 99% · ~15 min",
+        "note": "TEXAS CAPITOL",
+        "approval": null
+      },
+      "paths": 23,
+      "width": 390
+    }
+  ]
+}

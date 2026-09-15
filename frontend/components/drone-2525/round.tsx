@@ -7,7 +7,7 @@
 //
 // Everything a person reads here is a t() key. Everything drawn is one of the 13, edges only, in the
 // arena's OWN camera — there is no second projection and no second world.
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { semanticHex } from "@/lib/wire-core/palette";
 import { VECTOR_LAW, strokeProps } from "@/lib/wire-core/vector-law";
@@ -15,40 +15,76 @@ import { sceneProject } from "@/lib/wire-core/scene-project";
 import { canonicalHash } from "@/lib/wire-core/wire-model";
 import { DRONE_DOMAIN } from "@/lib/drone-2525/domain.gen";
 import {
-  initGimbal, command, slew, onTarget, eyeOf, aimAt, inFrame, aimReadout, turretMount, shortestTurn,
+  initGimbal, command, slew, onTarget, eyeOf, aimAt, inFrame, aimReadout, turretMount, airframeMount, shortestTurn,
   type GimbalState, type Mount,
 } from "@/lib/drone-2525/gimbal";
 import { lineOfSight, losReason, type Prism } from "@/lib/drone-2525/los";
 import { buildSchedule, targetsAt, roundLengthMs, targetRole, type TargetView } from "@/lib/drone-2525/targets";
 import { initGame, capture, shoot, endRound, score, transcript, type GameState } from "@/lib/drone-2525/game";
 import { buildArena } from "@/lib/drone-2525/arena-model";
+import {
+  initFlight, stepFlight, canTransition, flightLine, airspeedOf, minutesLeft, stallSpeedMs,
+  takeoffInput, LOITER_AGL_M, type FlightState,
+} from "@/lib/drone-2525/flight";
+import {
+  CREWS, shotNeedsApproval, autoPilot, autoTargeteer, initApproval, requestShot, resolveRequest,
+  mayFire, approvalPrompt, type CrewId,
+} from "@/lib/drone-2525/ai-crew";
 import { ArenaView, type ArenaCtx } from "./arena-view";
 import type { MotLevel } from "@/lib/wire-core/mot-ladder";
 import type { HalChoice } from "@/lib/wire-core/hal";
 
+export type RoundMode = "turrets" | "capital" | "drone" | "multi";
 const SPEC = DRONE_DOMAIN.gimbal as unknown as Parameters<typeof command>[1];
+const AIRFRAME = DRONE_DOMAIN.airframe as unknown as Parameters<typeof stepFlight>[0];
+const BATTERY = DRONE_DOMAIN.battery as unknown as Parameters<typeof stepFlight>[1];
+const FLYING = (m: RoundMode) => m === "drone" || m === "multi";
+/** Who is watching. A machine's shot is held until this person says otherwise, by name. */
+const WATCH = "the watch officer";
 const TSPEC = {
   seed: Number(DRONE_DOMAIN.targets.seed), upMs: Number(DRONE_DOMAIN.targets.upMs),
   downMs: Number(DRONE_DOMAIN.targets.downMs), concurrent: Number(DRONE_DOMAIN.targets.concurrent),
 };
 
 /**
- * The operator named two stationary modes. Playing them showed what makes them different, so that is what
- * they now are:
- *   SECURITY TURRETS — you sit at ONE turret and work what it can see. Most of the block is behind a
- *     building from any single mount, which is the point: it teaches where a fixed position is blind.
- *   SECURITY CAPITAL — the whole block. The round moves you to whichever turret can actually reach the
- *     next door, so the exercise is about covering the ground rather than about one seat.
+ * THE ROUND — all four of the operator's modes, on one gimbal.
+ *
+ *   SECURITY TURRETS   one fixed turret. Most of the block is behind a building from any single mount,
+ *                      which is the point: it teaches where a fixed position is blind.
+ *   SECURITY CAPITAL   the whole block. The round moves you to whichever turret can reach the next door.
+ *   TWO-PERSON DRONE   the same gimbal on a flying airframe. One seat flies, one seat aims. On a single
+ *                      screen you hold both, and the seat you are in is always named.
+ *   MIXED CREW         a machine takes one seat or both — and a machine that is AIMING must ask a named
+ *                      person before any shot. That gate is lib/drone-2525/ai-crew.ts and it has no
+ *                      bypass; this component can only ask it, never overrule it.
+ *
+ * LINK-2525 in one sentence: the mount changes, the gimbal does not.
  */
-export function TurretGame({ mode, level, hal }: { mode: "turrets" | "capital"; level: MotLevel; hal: HalChoice }) {
+export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; hal: HalChoice }) {
   const { t } = useLexicon();
   const mounts = useMemo<Mount[]>(() => DRONE_DOMAIN.turrets.map(turretMount), []);
   const [mountIdx, setMountIdx] = useState(0);
-  const mount = mounts[mountIdx];
+  const [crewId, setCrewId] = useState<CrewId>("hi_pilot");
+  const [flight, setFlight] = useState<FlightState>(() => initFlight());
+  const [approval, setApproval] = useState(initApproval);
+  const [askedFor, setAskedFor] = useState<string | null>(null);
+  const [seat, setSeat] = useState<"pilot" | "targeteer">("targeteer");
+  const stick = useRef({ fwd: 0, lat: 0, climb: 0, yaw: 0 });
+  const [climbing, setClimbing] = useState(false);
+
+  const crew = mode === "multi" ? CREWS[crewId] : CREWS.two_hi;
+  const flying = FLYING(mode);
+
+  // LINK-2525: the SAME gimbal record, bolted to a different thing. Nothing about its behaviour changes.
+  const mount = useMemo(
+    () => (flying ? airframeMount("vtol-01", "VTOL TRINITY", [flight.e, flight.n], flight.aglM, flight.headingDeg, -12) : mounts[mountIdx]),
+    [flying, flight.e, flight.n, flight.aglM, flight.headingDeg, mounts, mountIdx],
+  );
 
   const [gim, setGim] = useState<GimbalState>(() => initGimbal(mount));
   const [game, setGame] = useState<GameState>(() => initGame(0));
   const [tMs, setTMs] = useState(0);
+  const tMsRef = useRef(0);
   const [running, setRunning] = useState(false);
   const [note, setNote] = useState<string>("");
 
@@ -96,7 +132,7 @@ export function TurretGame({ mode, level, hal }: { mode: "turrets" | "capital"; 
     let raf = 0, last = performance.now();
     const tick = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000); last = now;
-      setTMs((v) => v + dt * 1000);
+      setTMs((v) => { tMsRef.current = v + dt * 1000; return tMsRef.current; });
       setGim((g) => slew(g, SPEC, dt));
       raf = requestAnimationFrame(tick);
     };
@@ -107,6 +143,33 @@ export function TurretGame({ mode, level, hal }: { mode: "turrets" | "capital"; 
   useEffect(() => {
     if (running && roundMs > 0 && tMs > roundMs) { setRunning(false); setGame((g) => endRound(g, tMs)); }
   }, [running, tMs, roundMs]);
+
+  // FLIGHT. A person flies with the sticks; a machine flies a declared pattern. Either way the airframe
+  // obeys the same physics, so what a pilot learns watching the machine is true when they take over.
+  useEffect(() => {
+    if (!running || !flying) return;
+    let raf = 0, last = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min(0.1, (now - last) / 1000); last = now;
+      if (crew.pilot === "AI") {
+        const p = autoPilot(tMsRef.current / 1000);
+        setFlight((f) => ({ ...f, e: p.e, n: p.n, aglM: p.aglM, headingDeg: p.headingDeg, mode: "wing", refused: "" }));
+      } else {
+        const k = stick.current;
+        setFlight((f) => {
+          // A take-off is a commanded climb through the same physics as a stick, not a teleport: the
+          // aircraft really flies up, spends the energy, and eases off as it reaches its loiter height.
+          const lift = climbing ? takeoffInput(f) : null;
+          if (lift?.done) setClimbing(false);
+          return stepFlight(AIRFRAME, BATTERY, f,
+            { climb: lift && !lift.done ? lift.climb : k.climb, forward: k.fwd, lateral: k.lat, yaw: k.yaw }, dt);
+        });
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [running, flying, crew.pilot, climbing]);
 
   /**
    * "Next door" hands the targeteer a door they can ACTUALLY reach, not merely the closest one.
@@ -145,6 +208,48 @@ export function TurretGame({ mode, level, hal }: { mode: "turrets" | "capital"; 
     setNote(`${mounts[pick.seat].label} → ${pick.v.door.label}`);
   }, [views, eye, gim.az, framed, t, tMs, world, prisms, mode, mounts, mount, mountIdx]);
 
+  // THE MACHINE TARGETEER. It aims and then it ASKS. There is no branch here that fires.
+  //
+  // The live world is read through a ref rather than through the effect's dependencies. That is not a
+  // style choice: the first version listed `views` as a dependency, and `views` is recomputed on every
+  // animation frame, so the interval was torn down and rebuilt sixty times a second and could never reach
+  // its 2.6-second tick. The machine sat silent and the approval gate never got a chance to be tested —
+  // which the walkthrough capture found, and no unit test would have.
+  const live = useRef({ eye, gim, views, world, prisms, t });
+  useEffect(() => { live.current = { eye, gim, views, world, prisms, t }; });
+
+  useEffect(() => {
+    if (!running || crew.targeteer !== "AI") return;
+    const id = window.setInterval(() => {
+      const L = live.current;
+      const aim = autoTargeteer(L.eye, L.gim, L.views, L.world.ground, L.prisms, { nearM: Number(SPEC.nearM), rangeM: Number(SPEC.rangeM) });
+      if (!aim.level) { setNote(L.t("drone.crew.ai_looking")); return; }
+      setGim((g) => command(g, SPEC, aim.az, aim.el));
+      setNote(`${L.t("drone.crew.ai_aiming")} ${aim.why}`);
+      const target = aim.level;
+      setApproval((ap) => {
+        if (ap.pending) return ap;
+        const reqId = `r${target.door.id}-${Math.round(tMsRef.current)}`;
+        setAskedFor(reqId);
+        return requestShot(ap, {
+          id: reqId, doorId: target.door.id, doorLabel: target.door.label, askedAtMs: tMsRef.current,
+          az: aim.az, el: aim.el, rangeM: aimAt(L.eye, target.door.at).rangeM,
+          claim: L.t("drone.crew.ai_claim"),
+        });
+      });
+    }, 2600);
+    return () => window.clearInterval(id);
+  }, [running, crew.targeteer]);
+
+  // A human answers, by name. This is the only thing that can retire a machine's question.
+  const decide = useCallback((verdict: "approved" | "held") => {
+    setApproval((ap) => {
+      const { state, decision } = resolveRequest(ap, verdict, crew.approver || WATCH, tMsRef.current);
+      if (decision) setNote(`${decision.verdict === "approved" ? t("drone.crew.approved") : t("drone.crew.held")} — ${decision.by}`);
+      return state;
+    });
+  }, [crew.approver, t]);
+
   const doCapture = useCallback(() => {
     setGame((g) => {
       const next = capture(g, { tMs, target: framed, los, edges: framed ? 480 : 0, az: gim.az, el: gim.el });
@@ -154,6 +259,9 @@ export function TurretGame({ mode, level, hal }: { mode: "turrets" | "capital"; 
   }, [tMs, framed, los, gim]);
 
   const doShoot = useCallback(() => {
+    // THE GATE. Consulted every time, with no way past it: a machine-aimed shot needs a named approval.
+    const permit = mayFire(crew, approval, askedFor);
+    if (!permit.ok) { setNote(`${t("drone.crew.refused")} — ${permit.why}`); return; }
     setGame((g) => {
       const next = shoot(g, {
         tMs, target: framed, los, onTarget: onTarget(gim), az: gim.az, el: gim.el,
@@ -162,7 +270,7 @@ export function TurretGame({ mode, level, hal }: { mode: "turrets" | "capital"; 
       setNote(next.events.at(-1)?.why ?? "");
       return next;
     });
-  }, [tMs, framed, los, gim]);
+  }, [tMs, framed, los, gim, crew, approval, askedFor, t]);
 
   const reset = useCallback(() => {
     setGame(initGame(0)); setTMs(0); setRunning(false); setNote("");
@@ -225,9 +333,30 @@ export function TurretGame({ mode, level, hal }: { mode: "turrets" | "capital"; 
         }
       />
 
+      {/* THE QUESTION. When a machine wants to shoot, this is the only thing that matters on the screen,
+          so it is the first thing under the arena and it is impossible to miss. Nothing fires behind it. */}
+      {approval.pending ? (
+        <div data-drone-approval style={{ border: `2px solid ${semanticHex("pending")}`, padding: 12, margin: "10px 0" }}>
+          <div style={{ ...hudFont, color: semanticHex("pending"), marginBottom: 8, fontSize: "clamp(11px, 3vw, 13px)" }}>
+            {approvalPrompt(approval.pending)}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button data-drone-approve onClick={() => decide("approved")} style={btn(true, semanticHex("tree"))}>{t("drone.crew.approve")}</button>
+            <button data-drone-hold onClick={() => decide("held")} style={btn(true, semanticHex("ray"))}>{t("drone.crew.hold")}</button>
+          </div>
+          <div style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.6, marginTop: 6 }}>{t("drone.crew.gate_note")}</div>
+        </div>
+      ) : null}
+
       {/* Controls — one thumb, 34px touch targets, wrapping at phone width */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", padding: "10px 0" }}>
-        <button data-drone-run onClick={() => setRunning((r) => !r)} style={btn(running, semanticHex("tree"))}>
+        <button data-drone-run onClick={() => {
+          setRunning((r) => {
+            const next = !r;
+            if (next && flying && crew.pilot === "HI" && flight.aglM < 2) setClimbing(true);
+            return next;
+          });
+        }} style={btn(running, semanticHex("tree"))}>
           {running ? t("drone.game.pause") : t("drone.game.start")}
         </button>
         <button data-drone-next onClick={nextTarget} style={btn(false, semanticHex("door"))}>{t("drone.game.next_target")}</button>
@@ -238,9 +367,34 @@ export function TurretGame({ mode, level, hal }: { mode: "turrets" | "capital"; 
           {t("drone.game.shoot")}
         </button>
         <button data-drone-reset onClick={reset} style={btn(false, semanticHex("contour"))}>{t("drone.game.reset")}</button>
+        {flying && crew.pilot === "HI" ? (
+          <button data-drone-takeoff onClick={() => { if (flight.aglM < 2) { setClimbing(true); setRunning(true); } else { setClimbing(false); stick.current.climb = -1; setTimeout(() => { stick.current.climb = 0; }, 3000); } }}
+                  style={btn(climbing, semanticHex("tree"))}>
+            {flight.aglM < 2 ? t("drone.fly.takeoff") : t("drone.fly.land")}
+          </button>
+        ) : null}
+        {flying && crew.pilot === "HI" ? (
+          <button data-drone-wing onClick={() => setFlight((f) => stepFlight(AIRFRAME, BATTERY, f, { climb: 0, forward: 1, lateral: 0, yaw: 0, toggleMode: true }, 0.016))}
+                  style={btn(flight.mode === "wing", semanticHex("frustum"))}>
+            {flight.mode === "wing" ? t("drone.fly.to_quad") : t("drone.fly.to_wing")}
+          </button>
+        ) : null}
+        {mode === "multi" ? (
+          <select data-drone-crew value={crewId} onChange={(e) => setCrewId(e.target.value as CrewId)}
+                  style={{ ...btn(true, semanticHex("pending")), minWidth: 130 }}>
+            <option value="hi_pilot">{t("drone.crew.hi_pilot")}</option>
+            <option value="ai_pilot">{t("drone.crew.ai_pilot")}</option>
+            <option value="both_ai">{t("drone.crew.both_ai")}</option>
+          </select>
+        ) : null}
         <div style={{ display: "flex", gap: 6, marginLeft: "auto", alignItems: "center" }}>
-          <span style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.6 }}>{t("drone.game.turret")}</span>
-          {mounts.map((m, i) => (
+          {flying ? (
+            <span data-drone-flight style={{ ...hudFont, color: semanticHex("mount") }}>
+              {flightLine(AIRFRAME, BATTERY, flight)}{flight.refused ? ` · ${flight.refused}` : ""}
+            </span>
+          ) : null}
+          {flying ? null : <span style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.6 }}>{t("drone.game.turret")}</span>}
+          {flying ? null : mounts.map((m, i) => (
             <button key={m.id} data-drone-mount={m.id} onClick={() => setMountIdx(i)} style={btn(i === mountIdx, semanticHex("mount"))}>
               {m.id.replace("t-", "")}
             </button>
@@ -248,9 +402,27 @@ export function TurretGame({ mode, level, hal }: { mode: "turrets" | "capital"; 
         </div>
       </div>
 
+      {/* THE STICKS. Left moves the body, right moves the head — the scheme the operator specified. They
+          appear only when a person actually holds the pilot's seat; a machine-flown airframe shows none,
+          because a control that does nothing is worse than no control. */}
+      {flying && crew.pilot === "HI" ? (
+        <div data-drone-sticks style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "8px 0" }}>
+          <Stick label={t("drone.fly.body")} onMove={(x, y) => { stick.current.lat = x; stick.current.fwd = -y; }} hex={semanticHex("mount")} />
+          <Stick label={t("drone.fly.head")} onMove={(x, y) => { stick.current.yaw = x; stick.current.climb = -y; }} hex={semanticHex("frustum")} />
+          <div style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.6, alignSelf: "center", maxWidth: 260, lineHeight: 1.6 }}>
+            {t("drone.fly.help")}
+          </div>
+        </div>
+      ) : null}
+
       {/* What just happened, in words — never a silent press */}
       <div style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.8, minHeight: 18 }} data-drone-note>
         {note || (framed ? framed.door.label : t("drone.game.no_target"))}
+      </div>
+      <div data-drone-crewline style={{ ...hudFont, color: semanticHex("pending"), opacity: 0.85, marginTop: 4 }}>
+        {t("drone.crew.seats")} {crew.pilot === "HI" ? t("drone.crew.person") : t("drone.crew.machine")} {t("drone.crew.flies")} · {crew.targeteer === "HI" ? t("drone.crew.person") : t("drone.crew.machine")} {t("drone.crew.aims")}
+        {shotNeedsApproval(crew) ? ` · ${t("drone.crew.gate_on")}` : ""}
+        {approval.decisions.length ? ` · ${approval.approved} ${t("drone.crew.approved")}, ${approval.held} ${t("drone.crew.held")}` : ""}
       </div>
       <div style={{ ...hudFont, color: semanticHex("hud"), opacity: 0.5, marginTop: 4 }}>
         {t("drone.game.accuracy")} {(s.accuracy * 100).toFixed(0)}% · {t("drone.game.clock")} {(tMs / 1000).toFixed(0)}s / {(roundMs / 1000).toFixed(0)}s
@@ -266,6 +438,34 @@ export function TurretGame({ mode, level, hal }: { mode: "turrets" | "capital"; 
         </details>
       ) : null}
 
+    </div>
+  );
+}
+
+/** One thumb stick. Pure input: it reports a normalised vector and owns no game state. */
+function Stick({ label, onMove, hex }: { label: string; onMove: (x: number, y: number) => void; hex: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [knob, setKnob] = useState({ x: 0, y: 0 });
+  const set = (e: React.PointerEvent) => {
+    const r = box.current?.getBoundingClientRect(); if (!r) return;
+    const x = (e.clientX - r.left - r.width / 2) / (r.width / 2);
+    const y = (e.clientY - r.top - r.height / 2) / (r.height / 2);
+    const m = Math.max(1, Math.hypot(x, y));
+    const nx = x / m, ny = y / m;
+    setKnob({ x: nx, y: ny }); onMove(nx, ny);
+  };
+  const clear = () => { setKnob({ x: 0, y: 0 }); onMove(0, 0); };
+  return (
+    <div style={{ textAlign: "center" }}>
+      <div ref={box} data-drone-stick={label}
+           onPointerDown={(e) => { (e.target as Element).setPointerCapture?.(e.pointerId); set(e); }}
+           onPointerMove={(e) => { if (e.buttons || e.pointerType === "touch") set(e); }}
+           onPointerUp={clear} onPointerCancel={clear}
+           style={{ width: 92, height: 92, border: `1px solid ${hex}`, borderRadius: "50%", position: "relative", touchAction: "none", cursor: "grab" }}>
+        <div style={{ position: "absolute", width: 26, height: 26, border: `1px solid ${hex}`, borderRadius: "50%",
+                      left: 33 + knob.x * 26, top: 33 + knob.y * 26, pointerEvents: "none" }} />
+      </div>
+      <div style={{ fontFamily: "ui-monospace, monospace", fontSize: 10, color: hex, opacity: 0.8, marginTop: 4, letterSpacing: "0.08em" }}>{label}</div>
     </div>
   );
 }

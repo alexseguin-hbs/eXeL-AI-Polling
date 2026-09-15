@@ -12,7 +12,7 @@ const { ES_SIGN } = await import('../lib/lexicon-translations-es-sign.ts');
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 const AFTER_FILL = new Set([
-  // Drone-2525 ladder + self-test keys, 2026-09-15: English until the fill lands — listed, never silent.
+  // Drone-2525 ladder, self-test, flight and crew keys — English until the fill lands, listed never silent.
   'drone.mot',
   'drone.hal',
   'drone.hal_auto',
@@ -31,6 +31,31 @@ const AFTER_FILL = new Set([
   'drone.selfcal.save',
   'drone.selfcal.asked',
   'drone.game.no_reachable',
+  'drone.crew.hi_pilot',
+  'drone.crew.ai_pilot',
+  'drone.crew.both_ai',
+  'drone.crew.seats',
+  'drone.crew.person',
+  'drone.crew.machine',
+  'drone.crew.flies',
+  'drone.crew.aims',
+  'drone.crew.gate_on',
+  'drone.crew.gate_note',
+  'drone.crew.approve',
+  'drone.crew.hold',
+  'drone.crew.approved',
+  'drone.crew.held',
+  'drone.crew.refused',
+  'drone.crew.ai_looking',
+  'drone.crew.ai_aiming',
+  'drone.crew.ai_claim',
+  'drone.fly.takeoff',
+  'drone.fly.land',
+  'drone.fly.to_wing',
+  'drone.fly.to_quad',
+  'drone.fly.body',
+  'drone.fly.head',
+  'drone.fly.help',
 ]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;

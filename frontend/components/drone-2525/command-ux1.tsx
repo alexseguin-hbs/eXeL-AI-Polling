@@ -22,14 +22,13 @@ import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
 import { MOT_LEVELS, motSpec, type MotLevel } from "@/lib/wire-core/mot-ladder";
 import { HAL_ORDER, HAL_PROFILES, type HalChoice } from "@/lib/wire-core/hal";
 import { DRONE_DOMAIN } from "@/lib/drone-2525/domain.gen";
-import { ArenaView } from "./arena-view";
-import { TurretGame } from "./turret-game";
+import { Round, type RoundMode } from "./round";
 import { SelfCalPanel } from "./self-cal-panel";
 
 const SRC = DRONE_DOMAIN;
 
-/** Pass 1 builds these; the rest are declared with the pass that will build them. */
-const SHIPPED = new Set(["turrets", "capital"]);
+/** All four of the operator's modes are now built: two stationary, two flying. */
+const SHIPPED = new Set(["turrets", "capital", "drone", "multi"]);
 
 export function DroneCommandUX1() {
   const { t } = useLexicon();
@@ -72,7 +71,7 @@ export function DroneCommandUX1() {
           return (
             <button key={m.id} data-drone-mode={m.id} disabled={!live} onClick={() => live && setMode(m.id)}
                     style={{ ...btn(on, semanticHex("door")), cursor: live ? "pointer" : "not-allowed", opacity: live ? 1 : 0.45 }}>
-              {t(`drone.mode.${m.id}`)}{live ? "" : ` · ${t("drone.mode.pass")} ${m.pass}`}
+              {t(`drone.mode.${m.id}`)}
             </button>
           );
         })}
@@ -97,9 +96,7 @@ export function DroneCommandUX1() {
 
       {/* The arena, and the round played on it */}
       <div style={{ padding: "0 14px 14px" }}>
-        {mode === "turrets" || mode === "capital"
-          ? <TurretGame mode={mode as "turrets" | "capital"} level={level} hal={hal} />
-          : <ArenaView source={SRC} level={level} hal={hal} />}
+        <Round mode={mode as RoundMode} level={level} hal={hal} />
       </div>
 
       <SelfCalPanel level={level} hal={hal} />

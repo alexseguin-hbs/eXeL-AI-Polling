@@ -6,13 +6,13 @@ import fs from 'node:fs';
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 
-const FILES = ['components/drone-2525/command-ux1.tsx', 'components/drone-2525/arena-view.tsx', 'components/drone-2525/wire-svg.tsx', 'components/drone-2525/turret-game.tsx', 'components/drone-2525/self-cal-panel.tsx'];
+const FILES = ['components/drone-2525/command-ux1.tsx', 'components/drone-2525/arena-view.tsx', 'components/drone-2525/wire-svg.tsx', 'components/drone-2525/round.tsx', 'components/drone-2525/self-cal-panel.tsx'];
 const lex = fs.readFileSync('lib/lexicon-data.ts', 'utf8');
 const declared = new Set([...lex.matchAll(/\{ key: "([^"]+)"/g)].map((m) => m[1]));
 
 // 1 — the drone group exists and every key it declares is unique and English-defaulted
 const droneKeys = [...declared].filter((k) => k.startsWith('drone.'));
-ok(droneKeys.length >= 44, `the drone group carries its keys (${droneKeys.length})`);
+ok(droneKeys.length >= 66, `the drone group carries its keys (${droneKeys.length})`);
 ok(/cubeId: 78, label: "Drone-2525/.test(lex), 'the drone keys are a named group in the lexicon, not loose strings');
 for (const k of droneKeys) {
   const row = lex.match(new RegExp(`\\{ key: "${k.replace(/\./g, '\\.')}", englishDefault: "([^"]*)"[^}]*context: "([^"]*)"`));
