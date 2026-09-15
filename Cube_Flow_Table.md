@@ -5,7 +5,7 @@
 
 ---
 
-## Cube 1 — Session Join & QR `(1,2,2) CENTER` [COMPLETE]
+## Cube 1 — Session Join & QR `(2,2,1) CENTER` [COMPLETE]
 
 ### Inputs
 | Input | Source | Type |
@@ -70,7 +70,7 @@
 
 ---
 
-## Cube 2 — Text Submission Handler `(1,2,3)` [COMPLETE]
+## Cube 2 — Text Submission Handler `(2,3,1)` [COMPLETE]
 
 ### Inputs
 | Input | Source | Type |
@@ -118,7 +118,7 @@
 
 ---
 
-## Cube 3 — Voice-to-Text Engine `(1,3,3)` [COMPLETE]
+## Cube 3 — Voice-to-Text Engine `(3,3,1)` [COMPLETE]
 
 ### Inputs
 | Input | Source | Type |
@@ -191,7 +191,7 @@ Payment gate: `session.is_paid == True` required (Moderator paid or cost-split)
 
 ---
 
-## Cube 4 — Response Collector `(1,3,2)` [STUB]
+## Cube 4 — Response Collector `(3,2,1)` [STUB]
 
 ### Inputs (Expected)
 | Input | Source | Type |
@@ -224,7 +224,7 @@ Payment gate: `session.is_paid == True` required (Moderator paid or cost-split)
 
 ---
 
-## Cube 5 — User Input Gateway / Orchestrator `(1,3,1)` [COMPLETE — Time Tracking]
+## Cube 5 — User Input Gateway / Orchestrator `(3,1,1)` [COMPLETE — Time Tracking]
 
 ### Inputs
 | Input | Source | Type |
@@ -262,7 +262,7 @@ Payment gate: `session.is_paid == True` required (Moderator paid or cost-split)
 
 ---
 
-## Cube 6 — AI Theming Clusterer `(1,2,1)` [COMPLETE]
+## Cube 6 — AI Theming Clusterer `(2,1,1)` [COMPLETE]
 
 ### Inputs
 | Input | Source | Type |
@@ -338,7 +338,7 @@ Payment gate: `session.is_paid == True` required (Moderator paid or cost-split)
 
 ---
 
-## Cube 8 — Token Reward Calculator `(1,1,2)` [COMPLETE — Ledger]
+## Cube 8 — Token Reward Calculator `(1,2,1)` [COMPLETE — Ledger]
 
 ### Inputs
 | Input | Source | Type |
@@ -375,7 +375,7 @@ Payment gate: `session.is_paid == True` required (Moderator paid or cost-split)
 
 ---
 
-## Cube 9 — Reports, Export & Dashboards `(1,1,3)` [PARTIAL — CSV Export]
+## Cube 9 — Reports, Export & Dashboards `(1,3,1)` [PARTIAL — CSV Export]
 
 ### Inputs
 | Input | Source | Type |
@@ -497,15 +497,15 @@ Cube 10 → All cubes (reads metrics for simulation comparison)
 
 | Cube | Position | Status | Service Functions | Router Endpoints | Tests |
 |------|----------|--------|-------------------|------------------|-------|
-| 1 Session | (1,2,2) | **COMPLETE** | 21 | 17 | 33 |
-| 2 Text | (1,2,3) | **COMPLETE** | 14 | 4 | 31 |
-| 3 Voice | (1,3,3) | **COMPLETE** | 8 + 3 providers + 2 realtime | 5 + WS | 18 |
-| 4 Collector | (1,3,2) | STUB | 0 | stub | 0 |
-| 5 Gateway | (1,3,1) | **COMPLETE** (time tracking) | 6 | 4 | 17 |
-| 6 AI Theming | (1,2,1) | **COMPLETE** (pipeline) | 11 | 3 | 0 |
+| 1 Session | (2,2,1) | **COMPLETE** | 21 | 17 | 33 |
+| 2 Text | (2,3,1) | **COMPLETE** | 14 | 4 | 31 |
+| 3 Voice | (3,3,1) | **COMPLETE** | 8 + 3 providers + 2 realtime | 5 + WS | 18 |
+| 4 Collector | (3,2,1) | STUB | 0 | stub | 0 |
+| 5 Gateway | (3,1,1) | **COMPLETE** (time tracking) | 6 | 4 | 17 |
+| 6 AI Theming | (2,1,1) | **COMPLETE** (pipeline) | 11 | 3 | 0 |
 | 7 Ranking | (1,1,1) | STUB | 0 | stub | 0 |
-| 8 Tokens | (1,1,2) | **COMPLETE** (ledger) | 3 | 5 | 21 |
-| 9 Reports | (1,1,3) | PARTIAL (CSV export) | 2 | stub | 0 |
+| 8 Tokens | (1,2,1) | **COMPLETE** (ledger) | 3 | 5 | 21 |
+| 9 Reports | (1,3,1) | PARTIAL (CSV export) | 2 | stub | 0 |
 | 10 Simulation | (2,2,2) | NOT STARTED | 0 | — | 0 |
 | **TOTAL** | | | **65+** | **50** | **120** |
 

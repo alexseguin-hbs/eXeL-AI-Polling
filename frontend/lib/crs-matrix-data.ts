@@ -13,7 +13,7 @@ export type CrsEntry = {
 };
 export const CRS_MATRIX: CrsEntry[] = [
   {
-    "cube": "Cube 1 — Session Join & QR (1,2,2)",
+    "cube": "Cube 1 — Session Join & QR (2,2,1)",
     "userStory": "As a Moderator, I want to create a polling session and generate a secure session link and QR code, so that participants can access the session instantly across devices.",
     "crs": "CRS-01",
     "devTeam": "SRS",
@@ -34,7 +34,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 1 — Session Join & QR (1,2,2)",
+    "cube": "Cube 1 — Session Join & QR (2,2,1)",
     "userStory": "As a User, I want to join a polling session via QR code or link without authentication friction, so that I can participate immediately.",
     "crs": "CRS-02",
     "devTeam": "WRS",
@@ -55,7 +55,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 1 — Session Join & QR (1,2,2)",
+    "cube": "Cube 1 — Session Join & QR (2,2,1)",
     "userStory": "As the System, I want to generate collision-free session IDs bound to QR codes, so that sessions cannot be spoofed or duplicated.",
     "crs": "CRS-03",
     "devTeam": "SRS",
@@ -76,7 +76,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 1 — Session Join & QR (1,2,2)",
+    "cube": "Cube 1 — Session Join & QR (2,2,1)",
     "userStory": "As the System, I want to validate QR-based access and block expired or invalid sessions, so that unauthorized joins are prevented.",
     "crs": "CRS-04",
     "devTeam": "SRS",
@@ -97,7 +97,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 2 — Text Submission Handler (1,2,3)",
+    "cube": "Cube 2 — Text Submission Handler (2,3,1)",
     "userStory": "As the System, I want to support anonymous and identified participation modes, so that Moderators can choose the appropriate privacy level for each session.",
     "crs": "CRS-05",
     "devTeam": "SRS",
@@ -118,7 +118,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 2 — Text Submission Handler (1,2,3)",
+    "cube": "Cube 2 — Text Submission Handler (2,3,1)",
     "userStory": "As a Moderator, I want to open and close polling sessions deliberately, so that responses are collected only during the defined decision window.",
     "crs": "CRS-06",
     "devTeam": "SRS",
@@ -139,7 +139,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 2 — Text Submission Handler (1,2,3)",
+    "cube": "Cube 2 — Text Submission Handler (2,3,1)",
     "userStory": "As a User, I want to submit text-based responses to polling questions, so that I can clearly express ideas and feedback.",
     "crs": "CRS-07",
     "devTeam": "WRS",
@@ -160,7 +160,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 3 — Voice & Multi-Modal Input (1,3,3)",
+    "cube": "Cube 3 — Voice & Multi-Modal Input (3,3,1)",
     "userStory": "As the System, I want to securely store all responses with timestamps and encryption, so that data integrity and compliance are preserved.",
     "crs": "CRS-08",
     "devTeam": "SRS",
@@ -181,7 +181,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 3 — Voice & Multi-Modal Input (1,3,3)",
+    "cube": "Cube 3 — Voice & Multi-Modal Input (3,3,1)",
     "userStory": "As a User, I want to submit responses using voice instead of typing, so that participation is faster and more natural.",
     "crs": "CRS-09",
     "devTeam": "AIML",
@@ -202,7 +202,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 4 — User Input Aggregator (1,3,2)",
+    "cube": "Cube 4 — User Input Aggregator (3,2,1)",
     "userStory": "As the System, I want to cluster responses into meaningful themes using AI so large volumes of input become understandable.",
     "crs": "CRS-10",
     "devTeam": "WRS",
@@ -223,7 +223,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 4 — User Input Aggregator (1,3,2)",
+    "cube": "Cube 4 — User Input Aggregator (3,2,1)",
     "userStory": "As the System, I want to aggregate rankings deterministically, so that outcomes are fair and reproducible.",
     "crs": "CRS-11",
     "devTeam": "SRS",
@@ -244,7 +244,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 5 — User Input Handler (1,3,1)",
+    "cube": "Cube 5 — User Input Handler (3,1,1)",
     "userStory": "As the System, I want to aggregate rankings deterministically so outcomes are fair and reproducible.",
     "crs": "CRS-12",
     "devTeam": "WRS",
@@ -265,7 +265,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 5 — User Input Handler (1,3,1)",
+    "cube": "Cube 5 — User Input Handler (3,1,1)",
     "userStory": "As a Lead/Developer, I want to review ranked priorities with metadata so decisions are evidence-based.",
     "crs": "CRS-13",
     "devTeam": "SRS",
@@ -286,7 +286,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 6 — AI Theming Clusterer (1,2,1)",
+    "cube": "Cube 6 — AI Theming Clusterer (2,1,1)",
     "userStory": "As a Lead/Developer, I want to review ranked priorities with metadata, so that decisions are evidence-based.",
     "crs": "CRS-14",
     "devTeam": "SRS",
@@ -307,7 +307,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 6 — AI Theming Clusterer (1,2,1)",
+    "cube": "Cube 6 — AI Theming Clusterer (2,1,1)",
     "userStory": "As the System, I want to export session results, so that outcomes can be reused outside the platform.",
     "crs": "CRS-15",
     "devTeam": "SRS",
@@ -370,7 +370,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 8 — Token Reward Calculator (1,1,2)",
+    "cube": "Cube 8 — Token Reward Calculator (1,2,1)",
     "userStory": "As the System, I want to track engagement metrics, so that participation quality can be measured.",
     "crs": "CRS-18",
     "devTeam": "SRS",
@@ -391,7 +391,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 8 — Token Reward Calculator (1,1,2)",
+    "cube": "Cube 8 — Token Reward Calculator (1,2,1)",
     "userStory": "As the System, I want to calculate Shared Intention, Human Intelligence, and AI leverage, so that all contributions are valued.",
     "crs": "CRS-19",
     "devTeam": "SRS",
@@ -412,7 +412,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 9 — Deep Dives & Continuity (1,1,3)",
+    "cube": "Cube 9 — Deep Dives & Continuity (1,3,1)",
     "userStory": "As a Moderator, I want to launch deep-dive polling cycles, so that complex topics can be explored iteratively.",
     "crs": "CRS-20",
     "devTeam": "SRS",
@@ -433,7 +433,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "changeDesc": ""
   },
   {
-    "cube": "Cube 9 — Deep Dives & Continuity (1,1,3)",
+    "cube": "Cube 9 — Deep Dives & Continuity (1,3,1)",
     "userStory": "As a User, I want follow-up cycles to preserve context, so that my prior input remains relevant.",
     "crs": "CRS-21",
     "devTeam": "WRS",

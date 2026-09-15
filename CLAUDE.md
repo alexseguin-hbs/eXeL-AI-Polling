@@ -322,16 +322,16 @@ All clustering and ranking operations must be fully reproducible:
                       ╲          │          ╱
                         ╲        │        ╱
                         ●─────●─────●─────●
-                        │  9  │  2  │  3  │
+                        │  7  │  8  │  9  │
                         ●─────●─────●─────●
-                        │  8  │  1  │  4  │
+                        │  6  │  1  │  2  │
                         ●─────●─────●─────●
-                        │  7  │  6  │  5  │
+                        │  5  │  4  │  3  │
                         ●─────●─────●─────●
 
-              9=Reports  2=Text      3=Voice
-              8=Tokens   1=Session   4=Collector
-              7=Ranking  6=AI        5=Gateway
+              7=Ranking  8=Tokens    9=Reports
+              6=AI       1=Session   2=Text
+              5=Gateway  4=Collector 3=Voice
 
          "Where Shared Intention moves at the Speed of Thought."
 
@@ -367,7 +367,9 @@ All clustering and ranking operations must be fully reproducible:
   ```
 - **Implementation order (clockwise spiral from center):**
   1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
-  (center → top → top-right → right → bottom-right → bottom → bottom-left → left → top-left)
+  (center → right → bottom-right → bottom → bottom-left → left → top-left → top → top-right —
+  operator 2026-09-15: coordinates are (row, col, level); Cube 1 = (2,2,1), Cube 2 = (2,3,1) "spiral right,
+  down, and up", Cube 9 = (1,3,1), Cube 10 = (2,2,2) the middle of the cube — docs/asks/2026-09-15_cube_coordinates.md)
 - **Cube 10** is Level 2 center, implemented after Layer 1 is complete
 - **Spiral Development Protocol:**
   The grid is a **bidirectional spiral** — not just a build order. When making any change:
@@ -382,38 +384,38 @@ All clustering and ranking operations must be fully reproducible:
 ## Cube Architecture Overview
 | Cube | Position | Name | MVP | Description |
 |------|----------|------|-----|-------------|
-| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create, state machine, QR/link, join flow, capacity tiers, Moderator config. **SSSES 100%** — Security (Auth0 RBAC, rate limiting, PII anonymization, anti-sybil), Stability (state machine with validated transitions, retry logic, circuit breakers), Scalability (in-memory presence, Supabase Realtime, horizontal-ready), Efficiency (indexed queries, batch operations, streaming QR), Succinctness (all functions <300 LOC, no legacy v04.2 comments). CRS-01 fully implemented and audited to 100% SSSES. |
-| 2 | (1,2,3) | Text Submission Handler | 1 | Text validation (34 languages), PII detection, anonymization, token display |
-| 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT (4 providers), circuit breaker failover, Cube 2 pipeline |
-| 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs (34 languages), PostgreSQL storage, presence tracking |
-| 5 | (1,3,1) | Gateway / Orchestrator | 1 | Pipeline triggers, time tracking (3 ♡ methods), token calculation |
-| 6 | (1,2,1) | AI Theming Clusterer | 1 | Two-phase: live summarization + parallel theming, CQS scoring engine |
+| 1 | (2,2,1) CENTER | Session Join & QR | 1 | Session create, state machine, QR/link, join flow, capacity tiers, Moderator config. **SSSES 100%** — Security (Auth0 RBAC, rate limiting, PII anonymization, anti-sybil), Stability (state machine with validated transitions, retry logic, circuit breakers), Scalability (in-memory presence, Supabase Realtime, horizontal-ready), Efficiency (indexed queries, batch operations, streaming QR), Succinctness (all functions <300 LOC, no legacy v04.2 comments). CRS-01 fully implemented and audited to 100% SSSES. |
+| 2 | (2,3,1) | Text Submission Handler | 1 | Text validation (34 languages), PII detection, anonymization, token display |
+| 3 | (3,3,1) | Voice-to-Text Engine | 2 | Browser mic, STT (4 providers), circuit breaker failover, Cube 2 pipeline |
+| 4 | (3,2,1) | Response Collector | 1 | Aggregate inputs (34 languages), PostgreSQL storage, presence tracking |
+| 5 | (3,1,1) | Gateway / Orchestrator | 1 | Pipeline triggers, time tracking (3 ♡ methods), token calculation |
+| 6 | (2,1,1) | AI Theming Clusterer | 1 | Two-phase: live summarization + parallel theming, CQS scoring engine |
 | 7 | (1,1,1) | Prioritization & Voting | 1 | Ranking UI, deterministic aggregation, governance compression |
-| 8 | (1,1,2) | Token Reward Calculator | 3 | SoI Trinity Tokens, ledger, payments, talent profiles, execution separation |
-| 9 | (1,1,3) | Reports & Dashboards | 1 | CSV/PDF, Pixelated Tokens, CQS dashboard, data destruction |
+| 8 | (1,2,1) | Token Reward Calculator | 3 | SoI Trinity Tokens, ledger, payments, talent profiles, execution separation |
+| 9 | (1,3,1) | Reports & Dashboards | 1 | CSV/PDF, Pixelated Tokens, CQS dashboard, data destruction |
 | 10 | (2,2,2) CENTER | Simulation Orchestrator | 3 | Per-cube isolation, code challenge, replay, metric comparison. **Feedback Loop (FB) at center** — collects from every screen, auto-tags Cube + CRS, feeds backlog → votes → AI → ◬ ♡ 웃 approval → deploy |
-| 11 | (2,1,2) | Replay / Metrics | 3 | Deterministic replay + metric-vs-baseline comparison for Cubes 1-9. Validation group. |
-| 12 | (2,1,3) | Verify | 3 | SHA-256 determinism proofs, checkout/checkin, CI gating. Validation group. |
-| 13 | (2,2,3) | Baseline Compare | 3 | Simulation pass criteria — must exceed existing System/User/Business metrics. Validation group. |
-| 14 | (2,3,3) | Payments | 3 | Stripe monetization tiers + cost estimation, layered on Cube 8's operational ledger. Value group. |
-| 15 | (2,3,2) | Tokenization | 3 | SoI Trinity tokens (♡ ◬ 웃) minting + cross-chain conversion. Value group. |
-| 16 | (2,3,1) | Atlantis Accords | 3 | Governance charter — accord sections, approvals (Government/Education/Innovation), target countries, 33-language viewer. Governance group. |
-| 17 | (2,2,1) | Blockchain (Quai/QI) | 3 | Quai/QI on-chain governance proofs; AI/SI/HI token conversion to QI/USDC. Governance group. (was Cube 11 in the old 12-cube model) |
-| 18 | (2,1,1) | ARX · S.I. | 3 | ARX physically-backed NFT tokens anchored to Shared Intent (S.I.). Governance group. (absorbs the old Cube 12 NFT ARX; the Divinity Guide is now a frontend route `/divinity-guide`, not a numbered cube) |
-| 19 | (3,2,2) CENTER | Innovation Life Cycle | 3 | Level 3 center (mirrors Cube 1 & Cube 10) — project life cycle across the 9 Level-3 cubes; Domain Play reference. Vision 2525 substrate. |
-| 20 | (3,1,2) | Concept Ingest | 3 | Concept intake + Spec Slug validation per Domain Play. Vision 2525 substrate. |
-| 21 | (3,1,3) | Model Ingest | 3 | CAD / Python edge / 3D model intake; validates on baseline HAL. Vision 2525 substrate. |
+| 11 | (2,3,2) | Replay / Metrics | 3 | Deterministic replay + metric-vs-baseline comparison for Cubes 1-9. Validation group. |
+| 12 | (3,3,2) | Verify | 3 | SHA-256 determinism proofs, checkout/checkin, CI gating. Validation group. |
+| 13 | (3,2,2) | Baseline Compare | 3 | Simulation pass criteria — must exceed existing System/User/Business metrics. Validation group. |
+| 14 | (3,1,2) | Payments | 3 | Stripe monetization tiers + cost estimation, layered on Cube 8's operational ledger. Value group. |
+| 15 | (2,1,2) | Tokenization | 3 | SoI Trinity tokens (♡ ◬ 웃) minting + cross-chain conversion. Value group. |
+| 16 | (1,1,2) | Atlantis Accords | 3 | Governance charter — accord sections, approvals (Government/Education/Innovation), target countries, 33-language viewer. Governance group. |
+| 17 | (1,2,2) | Blockchain (Quai/QI) | 3 | Quai/QI on-chain governance proofs; AI/SI/HI token conversion to QI/USDC. Governance group. (was Cube 11 in the old 12-cube model) |
+| 18 | (1,3,2) | ARX · S.I. | 3 | ARX physically-backed NFT tokens anchored to Shared Intent (S.I.). Governance group. (absorbs the old Cube 12 NFT ARX; the Divinity Guide is now a frontend route `/divinity-guide`, not a numbered cube) |
+| 19 | (2,2,3) CENTER | Innovation Life Cycle | 3 | Level 3 center (mirrors Cube 1 & Cube 10) — project life cycle across the 9 Level-3 cubes; Domain Play reference. Vision 2525 substrate. |
+| 20 | (2,3,3) | Concept Ingest | 3 | Concept intake + Spec Slug validation per Domain Play. Vision 2525 substrate. |
+| 21 | (3,3,3) | Model Ingest | 3 | CAD / Python edge / 3D model intake; validates on baseline HAL. Vision 2525 substrate. |
 | 22 | (3,2,3) | Proposal Collector | 3 | Reviews/proposals (distinct from L1 votes); feeds Cube 25. Vision 2525 substrate. |
-| 23 | (3,3,3) | De-Risk Gateway | 3 | Phased polling gates — Pilot→Refine→Qualify→Adopt; Risk Register. Vision 2525 substrate. |
-| 24 | (3,3,2) | Estimator AI | 3 | Cost / timeline / domain-declared axes; Monte Carlo P10/P50/P90. Vision 2525 substrate. |
-| 25 | (3,3,1) | Governance & Quote Board | 3 | Quote-lock bound to the Principle Compliance Manifest; ≥1 human signer. Vision 2525 substrate. |
-| 26 | (3,2,1) | Execution Marketplace | 3 | Trust-weighted, multi-country contractors; routes execution by HAL profile. Vision 2525 substrate. |
-| 27 | (3,1,1) | Delivery & Actuals | 3 | Actuals vs quote delta; feeds the Cube 24 world model. Vision 2525 substrate. |
+| 23 | (3,1,3) | De-Risk Gateway | 3 | Phased polling gates — Pilot→Refine→Qualify→Adopt; Risk Register. Vision 2525 substrate. |
+| 24 | (2,1,3) | Estimator AI | 3 | Cost / timeline / domain-declared axes; Monte Carlo P10/P50/P90. Vision 2525 substrate. |
+| 25 | (1,1,3) | Governance & Quote Board | 3 | Quote-lock bound to the Principle Compliance Manifest; ≥1 human signer. Vision 2525 substrate. |
+| 26 | (1,2,3) | Execution Marketplace | 3 | Trust-weighted, multi-country contractors; routes execution by HAL profile. Vision 2525 substrate. |
+| 27 | (1,3,3) | Delivery & Actuals | 3 | Actuals vs quote delta; feeds the Cube 24 world model. Vision 2525 substrate. |
 
 > **LEVELS (reconciled 2026-07-14 to `components/cube-status.tsx` + `docs/CUBE_19_27_LEVEL_3_FRAMEWORK.md`):**
 > **Level 1 (Cubes 1-9)** = Polling · **Level 2 (Cubes 10-18)** = Simulation / Provenance / Value / Governance
 > (Sim center 10; Validation 11-13; Value 14-15; Governance 16-18) · **Level 3 (Cubes 19-27)** = Innovation substrate
-> (Vision 2525). Coordinates are `(level, row, col)` on a 3×3 grid per level, center at `(L,2,2)`.
+> (Vision 2525). Coordinates are **`(row, col, level)`** on a 3×3 grid per level, centre at `(2,2,L)`; the spiral runs right → down → left → up → right (operator 2026-09-15).
 > **Standalone `<Domain>-2525` apps (Security-2525, Architecture-2525, Manta/Drone-2525) are NOT numbered cubes** — they
 > plug into the Level-3 substrate as **Domain Play** configs on the shared WIREFRAME-CORE (`docs/2525-core/`). The app
 > renders this exact map in Settings → Cube Architecture (Level 1/2/3 tabs).
