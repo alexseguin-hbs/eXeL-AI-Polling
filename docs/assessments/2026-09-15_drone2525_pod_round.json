@@ -1,0 +1,155 @@
+{
+  "session": "Drone-2525 · 1st Pass planning round",
+  "simulated": true,
+  "note": "A SIMULATED SoI POD session record. No 웃 is minted here; witnessed time is reported, not settled.",
+  "round": {
+    "startedAt": 1789487956000,
+    "stoppedAt": 1789492390000,
+    "anchors": {
+      "start": "8e04a0f",
+      "stop": "7b0b790"
+    },
+    "wallMs": 4434000,
+    "wall": "1:13:54"
+  },
+  "ai": {
+    "seats": [
+      {
+        "id": "ai.explore.mission",
+        "label": "Explore · Security-2525 Mission Planning, radar-dome object, palettes",
+        "start": 1789488016000,
+        "stop": 1789488297534,
+        "ms": 281534,
+        "hhmmss": "0:04:41",
+        "parallel": "wave-1",
+        "witnessed": true
+      },
+      {
+        "id": "ai.explore.core",
+        "label": "Explore · WIREFRAME-CORE, Manta precedent, engine-export search",
+        "start": 1789488297534,
+        "stop": 1789488599744,
+        "ms": 302210,
+        "hhmmss": "0:05:02",
+        "parallel": "wave-1",
+        "witnessed": true
+      },
+      {
+        "id": "ai.explore.engines",
+        "label": "Explore · renderers, geodata, physics, two-device relay",
+        "start": 1789488599744,
+        "stop": 1789488858760,
+        "ms": 259016,
+        "hhmmss": "0:04:19",
+        "parallel": "wave-1",
+        "witnessed": true
+      },
+      {
+        "id": "ai.design",
+        "label": "Design · Drone-2525 1st-pass implementation plan",
+        "start": 1789488858760,
+        "stop": 1789489224319,
+        "ms": 365559,
+        "hhmmss": "0:06:05",
+        "parallel": "wave-2",
+        "witnessed": true
+      },
+      {
+        "id": "ai.crs",
+        "label": "Explore · CRS templates, /crs versions + compare, Vision revision model",
+        "start": 1789489224319,
+        "stop": 1789489634500,
+        "ms": 410181,
+        "hhmmss": "0:06:50",
+        "parallel": "wave-2",
+        "witnessed": true
+      }
+    ],
+    "sumMs": 1618500,
+    "sum": "0:26:58",
+    "hours": 0.44958333333333333
+  },
+  "si": {
+    "seats": [
+      {
+        "id": "si.doctrine",
+        "label": "Read · VISION_2525.md (13 sections) · MODE_R-CORE_SPEC.md · R_CORE_SIMULATION_ARCHITECTURE.md",
+        "start": 1789492125000,
+        "stop": 1789492330000,
+        "ms": 205000,
+        "hhmmss": "0:03:25",
+        "witnessed": true
+      }
+    ],
+    "sumMs": 205000,
+    "sum": "0:03:25"
+  },
+  "hi": {
+    "seats": [
+      {
+        "id": "hi.1",
+        "label": "Asks to take the 1v1 drone wireframe himself (pilot + gimbal/laser targeteer)",
+        "witnessed": false,
+        "inferred": true,
+        "window": "~ inside the round bracket"
+      },
+      {
+        "id": "hi.2",
+        "label": "Drone-2525 1st Pass — four modes, Capitol lawn block, VTOL, shared gimbal, Unreal/Unity export",
+        "witnessed": false,
+        "inferred": true,
+        "window": "~ inside the round bracket"
+      },
+      {
+        "id": "hi.3",
+        "label": "Decisions: spectrum palette · hand-authored + builder · stationary first",
+        "witnessed": false,
+        "inferred": true,
+        "window": "~ inside the round bracket"
+      },
+      {
+        "id": "hi.4",
+        "label": "Step-by-step CRS with Vision-2525 revision, version and comparison tracking",
+        "witnessed": false,
+        "inferred": true,
+        "window": "~ inside the round bracket"
+      },
+      {
+        "id": "hi.5",
+        "label": "Read the 13-section R-Core doc and Vision-2525 first; log HI/AI inputs as a POD round",
+        "witnessed": false,
+        "inferred": true,
+        "window": "~ inside the round bracket"
+      },
+      {
+        "id": "hi.6",
+        "label": "Numbering starts at Version 00.00, revision 0.001",
+        "witnessed": false,
+        "inferred": true,
+        "window": "~ inside the round bracket"
+      },
+      {
+        "id": "hi.7",
+        "label": "Vector-arcade wireframe reference; compute-adaptive resolution and frame rate",
+        "witnessed": false,
+        "inferred": true,
+        "window": "~ inside the round bracket"
+      },
+      {
+        "id": "hi.8",
+        "label": "Approves the plan",
+        "witnessed": false,
+        "inferred": true,
+        "window": "~ inside the round bracket"
+      }
+    ],
+    "count": 8,
+    "sumMs": null,
+    "note": "Message timestamps are not readable by this process — inferred, never summed into witnessed time."
+  },
+  "witnessedTotal": {
+    "ms": 1823500,
+    "hhmmss": "0:30:23",
+    "hours": 0.5065277777777778
+  }
+}
