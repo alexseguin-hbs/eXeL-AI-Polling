@@ -76,14 +76,19 @@ function openingOnWall(b: WireBuilder, footprint: EN[], baseU: number, o: Openin
   b.path([at3(p0, u0), at3(p1, u0), at3(p1, u1), at3(p0, u1)], true);
 }
 
-/** A tree: trunk line, a canopy ring, and spokes to the apex. `sides` is the tier's spend. */
-export function tree(b: WireBuilder, base: EN, trunkH: number, canopyR: number, canopyH: number, sides = 6): void {
-  const shoulder = trunkH + canopyH * 0.3;
-  b.seg(at3(base, 0), at3(base, trunkH));
+/**
+ * A tree: trunk line, a canopy ring, and spokes to the apex. `sides` is the tier's spend.
+ * `baseU` is the GROUND height it stands on — omitting it would plant every tree at MSL 0, which on the
+ * Capitol lawn is about 160 m underground.
+ */
+export function tree(b: WireBuilder, base: EN, baseU: number, trunkH: number, canopyR: number, canopyH: number, sides = 6): void {
+  const top = baseU + trunkH;
+  const shoulder = top + canopyH * 0.3;
+  b.seg(at3(base, baseU), at3(base, top));
   const r = ngon(base, canopyR, sides);
   ring(b, r, shoulder);
-  const apex: Vec3 = [base[0], base[1], trunkH + canopyH];
-  for (const p of r) { b.seg(at3(p, shoulder), apex); b.seg(at3(p, shoulder), at3(base, trunkH)); }
+  const apex: Vec3 = [base[0], base[1], top + canopyH];
+  for (const p of r) { b.seg(at3(p, shoulder), apex); b.seg(at3(p, shoulder), at3(base, top)); }
 }
 
 /** A ground polyline (road, path, the Great Walk) draped at a sampled height. */

@@ -11,7 +11,24 @@ const { SIGN_TRANSLATIONS } = await import('../lib/lexicon-translations-sign.ts'
 const { ES_SIGN } = await import('../lib/lexicon-translations-es-sign.ts');
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
-const AFTER_FILL = new Set([]);   // 2026-09-12 morning keys: English until the second fill pass lands (listed, never silent)   // keys added after the last fill pass: English until the next pass — listed here, never silent
+const AFTER_FILL = new Set([
+  // Drone-2525 Version 00.00 · revision 0.001 (2026-09-15): English until the ×32 fill pass lands — listed, never silent.
+  'drone.back',
+  'drone.subtitle',
+  'drone.version',
+  'drone.revision',
+  'drone.mode.turrets',
+  'drone.mode.capital',
+  'drone.mode.drone',
+  'drone.mode.multi',
+  'drone.mode.pass',
+  'drone.fidelity_cap',
+  'drone.hud.arena',
+  'drone.hud.doors',
+  'drone.arena.hand_authored',
+  'drone.disclaimer',
+  'drone.mode_note',
+]);
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;
 const ALLOWED = (() => { const f = path.resolve(process.cwd(), '..', 'docs/asks/2026-09-12_lexicon_identical_allowed.psv'); if (!fs.existsSync(f)) return new Set(); return new Set(fs.readFileSync(f, 'utf8').split('\n').slice(1).filter(Boolean).map((l) => { const [scope, key] = l.split('|'); return `${scope}|${key}`; })); })();   // reviewed: a formula, a name, a unit, or a word the language shares

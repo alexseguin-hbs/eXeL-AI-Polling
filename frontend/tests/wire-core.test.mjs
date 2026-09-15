@@ -77,8 +77,10 @@ ok(em.vertices.some((v) => Math.abs(v[2] - 2.4) < 1e-9), "the door reaches its h
 ok(ngon([0,0], 5, 13).length === 13, "an n-gon has exactly the sides it declares");
 const [de, dn, du] = dirOf(0, 0); ok(Math.abs(de) < 1e-12 && Math.abs(dn - 1) < 1e-12 && Math.abs(du) < 1e-12, "azimuth 0 points north");
 const [ee] = dirOf(Math.PI / 2, 0); ok(Math.abs(ee - 1) < 1e-12, "azimuth 90° points east");
-const tb = new WireBuilder(); tb.group("t", "tree", "ooda", 1, () => tree(tb, [0,0], 3, 2, 4, 6));
-ok(tb.build(META, FRAME).edges.length === 1 + 6 + 12, "a 6-sided tree is trunk + ring + spokes");
+const tb = new WireBuilder(); tb.group("t", "tree", "ooda", 1, () => tree(tb, [0,0], 160, 3, 2, 4, 6));
+const tm = tb.build(META, FRAME);
+ok(tm.edges.length === 1 + 6 + 12, "a 6-sided tree is trunk + ring + spokes");
+ok(tm.vertices.every((v) => v[2] >= 160), "a tree stands ON its ground height, not at MSL 0");
 const fb = new WireBuilder(); fb.group("f", "frustum", "platonic", 0, () => frustum(fb, [0,0,10], 0, -0.3, 0.6, 0.4, 5, 100));
 ok(fb.build(META, FRAME).edges.length === 12, "a frustum is 12 edges: two rectangles and four sight lines");
 const sb = new WireBuilder(); sb.group("s", "ngon", "abundance", 0, () => ngonSolid(sb, [0,0,5], 50, 13, [-0.17, 0.38, 0.95]));

@@ -25,8 +25,11 @@ export interface TierSpec {
 }
 /** Baseline = a Raspberry-Pi-class head (U-WF-07). ULTRA is a desktop with the sensor on an accelerator. */
 export const TIERS: Record<Tier, TierSpec> = {
-  low:   { segments: 1200, fps: 15, dpr: 1,   ngonSides: 8,  maxLod: 0, bloom: false },
-  med:   { segments: 2000, fps: 20, dpr: 1,   ngonSides: 13, maxLod: 1, bloom: false },
+  // LOW keeps LOD 1 deliberately: roads, contours and mounts cost little and are what make a city block
+  // legible. Only LOD-2 detail (trees, windows) is surrendered. LOD 0 is the emergency floor the segment
+  // budget falls back to on an arena far larger than this one.
+  low:   { segments: 1200, fps: 15, dpr: 1,   ngonSides: 8,  maxLod: 1, bloom: false },
+  med:   { segments: 2000, fps: 20, dpr: 1,   ngonSides: 13, maxLod: 2, bloom: false },
   high:  { segments: 3000, fps: 30, dpr: 1.5, ngonSides: 26, maxLod: 2, bloom: true },
   ultra: { segments: 4000, fps: 60, dpr: 2,   ngonSides: 39, maxLod: 2, bloom: true },
 };

@@ -2820,7 +2820,26 @@ const pollUi: TranslationEntry[] = [
   { key: "cube10.access.verify", englishDefault: "Verify", context: "SIM overlay: button that submits the Cube 10 access code", cubeId: 10 },
 ];
 
+const drone2525: TranslationEntry[] = [
+  { key: "drone.back", englishDefault: "Back", context: "Drone-2525: button that leaves the arena and returns to the site", cubeId: 0 },
+  { key: "drone.subtitle", englishDefault: "Edge-wireframe arena · Texas Capitol lawn", context: "Drone-2525: one-line description of the surface, beside the title", cubeId: 0 },
+  { key: "drone.version", englishDefault: "Version", context: "Drone-2525: label before the domain version number (00.00)", cubeId: 0 },
+  { key: "drone.revision", englishDefault: "revision", context: "Drone-2525: label before the domain revision number (0.001)", cubeId: 0 },
+  { key: "drone.mode.turrets", englishDefault: "Security Turrets", context: "Drone-2525: stationary mode — fixed turrets shoot pop-up door targets", cubeId: 0 },
+  { key: "drone.mode.capital", englishDefault: "Security Capital", context: "Drone-2525: stationary mode — the Capitol block, pop-up door targets", cubeId: 0 },
+  { key: "drone.mode.drone", englishDefault: "Two-person drone", context: "Drone-2525: mode where one person flies and one operates the gimbal", cubeId: 0 },
+  { key: "drone.mode.multi", englishDefault: "Mixed crew · human approves every shot", context: "Drone-2525: mode mixing human and AI pilot/targeteer, a human approving each shot", cubeId: 0 },
+  { key: "drone.mode.pass", englishDefault: "pass", context: "Drone-2525: label before the build pass that will deliver a mode not built yet (e.g. 'pass 1b')", cubeId: 0 },
+  { key: "drone.fidelity_cap", englishDefault: "Detail cap", context: "Drone-2525: label for the manual ceiling on picture detail; the arena may pick lower, never higher", cubeId: 0 },
+  { key: "drone.hud.arena", englishDefault: "ARENA · CAPITOL LAWN", context: "Drone-2525 heads-up display: which arena is on screen. Uppercase, monospace.", cubeId: 0 },
+  { key: "drone.hud.doors", englishDefault: "DOORS", context: "Drone-2525 heads-up display: label before the count of doors that can be tagged. Uppercase.", cubeId: 0 },
+  { key: "drone.arena.hand_authored", englishDefault: "hand-drawn block — awaiting the surveyed map", context: "Drone-2525: badge saying the buildings are an estimate, not a map extract", cubeId: 0 },
+  { key: "drone.disclaimer", englishDefault: "A rehearsal for play and critique. The shapes, distances and power figures are bounding estimates, not design evidence, and nothing here authorises a flight or builds a weapon.", context: "Drone-2525: the standing disclaimer shown under the arena on every run", cubeId: 0 },
+  { key: "drone.mode_note", englishDefault: "The two stationary modes run now. The flying modes are dated, not hidden: a two-person drone next, then the mixed crew where a person approves every shot.", context: "Drone-2525: note explaining which modes are built and when the rest arrive", cubeId: 0 },
+];
+
 export const CUBE_GROUPS: CubeGroup[] = [
+  { cubeId: 78, label: "Drone-2525 — wireframe arena", keys: drone2525 },
   { cubeId: 77, label: "Polling results UI (2026-09-14)", keys: pollUi },
   { cubeId: 76, label: "Site UX — batch 7 residual (2026-09-13)", keys: siteUxB7 },
   { cubeId: 75, label: "Site UX — batch 6 SoI-2525 (2026-09-13)", keys: siteUxB6 },
