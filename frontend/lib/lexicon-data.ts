@@ -1274,9 +1274,20 @@ const cube8: TranslationEntry[] = [
   { key: "soi.nose.evidence.k", englishDefault: "Evidence", context: "SoI NOSE frame label", cubeId: 8 },
   { key: "soi.nose.evidence.d", englishDefault: "Live pilots since 2026 — an open model educators and innovators everywhere can build on.", context: "SoI NOSE: Evidence", cubeId: 8 },
   { key: "soi.qis.title", englishDefault: "QIS — how innovation growth is measured", context: "SoI Framework: QIS panel heading (Qualified Innovation Score, White Paper §18). Keep 'QIS'.", cubeId: 8 },
-  { key: "soi.qis.spine", englishDefault: "R | GP | OI | QRD → ERD → QIS → ΔQIS", context: "SoI Framework: QIS measurement spine — keep the symbols and arrows exactly (R, GP, OI, QRD, ERD, QIS, ΔQIS).", cubeId: 8 },
-  { key: "soi.qis.equation", englishDefault: "QIS = (R + GP + OI + ERD) ÷ 4 · growth = ΔQIS", context: "SoI Framework: QIS equation — keep the formula exactly.", cubeId: 8 },
-  { key: "soi.qis.note", englishDefault: "A project earns 웃 through budgeted, approved tasks. QIS measures the project's financial-innovation growth and sizes the ΔQIS Reward Pool — it mints no 웃 (웃 = M × hours).", context: "SoI Framework: QIS note — ties the budget-approval gate (a project earns 웃 only once tasks are scoped + approved) with the r228 single 웃 issuance path (QIS mints no 웃). Keep 웃 and ΔQIS.", cubeId: 8 },
+  { key: "soi.qis.lead", englishDefault: "QIS turns four audited dollar figures into one score. When that score rises, the growth (ΔQIS) sizes a bonus pool for the project's contributors.", context: "SoI Framework: QIS plain-language lead. Keep QIS and ΔQIS.", cubeId: 8 },
+  { key: "soi.qis.r_def", englishDefault: "Revenue — money in", context: "SoI Framework: definition of R (Revenue)", cubeId: 8 },
+  { key: "soi.qis.gp_def", englishDefault: "Gross Profit — revenue minus the cost of goods", context: "SoI Framework: definition of GP (Gross Profit)", cubeId: 8 },
+  { key: "soi.qis.oi_def", englishDefault: "Operating Income — profit after operating costs (can be negative)", context: "SoI Framework: definition of OI (Operating Income)", cubeId: 8 },
+  { key: "soi.qis.rd_def", englishDefault: "Qualified R&D → Effective R&D — counted in full up to one-third of revenue, half beyond it", context: "SoI Framework: definition of QRD → ERD (the one-third recognition curve). Keep R&D.", cubeId: 8 },
+  { key: "soi.qis.formula", englishDefault: "QIS = (R + GP + OI + ERD) ÷ 4", context: "SoI Framework: the QIS formula — keep exactly.", cubeId: 8 },
+  { key: "soi.qis.formula_note", englishDefault: "One dollar amount — not a percentage, not an index.", context: "SoI Framework: what the QIS formula yields", cubeId: 8 },
+  { key: "soi.qis.growth", englishDefault: "ΔQIS = QIS now − QIS at the start", context: "SoI Framework: growth definition. Keep ΔQIS and QIS; translate 'now' and 'at the start'.", cubeId: 8 },
+  { key: "soi.qis.growth_note", englishDefault: "Positive growth funds the Reward Pool for the project's contributors; a down period pays nothing.", context: "SoI Framework: what ΔQIS does (Reward Pool floored at zero)", cubeId: 8 },
+  { key: "soi.qis.example_title", englishDefault: "Worked example", context: "SoI Framework: heading of the QIS worked example", cubeId: 8 },
+  { key: "soi.qis.example_start", englishDefault: "Start · R · GP · OI · ERD", context: "SoI Framework: example tile label — the starting period's four inputs. Keep the symbols.", cubeId: 8 },
+  { key: "soi.qis.example_now", englishDefault: "Now · R · GP · OI · ERD", context: "SoI Framework: example tile label — the current period's four inputs. Keep the symbols.", cubeId: 8 },
+  { key: "soi.qis.example_delta", englishDefault: "Growth", context: "SoI Framework: example tile label for ΔQIS", cubeId: 8 },
+  { key: "soi.qis.firewall", englishDefault: "QIS is a measurement only — it mints no 웃 (웃 = M × hours) and changes no ownership.", context: "SoI Framework: the QIS firewall (single 웃 issuance path; QIS ≠ ownership). Keep 웃 and 'M × hours'.", cubeId: 8 },
 ];
 
 const cube9: TranslationEntry[] = [

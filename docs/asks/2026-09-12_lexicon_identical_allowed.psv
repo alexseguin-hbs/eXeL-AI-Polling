@@ -1,6 +1,5 @@
 Scope|Key|Reason
-*|soi.qis.spine|a formula: R | GP | OI | QRD → ERD → QIS → ΔQIS — symbols, not words
-*|soi.qis.equation|a formula: QIS = (R + GP + OI + ERD) ÷ 4 · growth = ΔQIS — 19 languages translated "growth"; the rest kept the formula
+*|soi.qis.formula|a formula: QIS = (R + GP + OI + ERD) ÷ 4 — symbols only
 *|innovation.gate.eyebrow|names only: Vision • 2525 · Harmattan AI
 *|innovation.dogtag.load|glyph string AI·SI·HI
 *|innovation.dep.load|glyph string AI·SI·HI

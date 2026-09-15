@@ -114,15 +114,58 @@ export function SoISection() {
           </div>
         )}
 
-        {/* QIS — the canonical financial-innovation measurement (White Paper §18). Projects earn 웃
-            through budgeted/approved tasks; QIS measures the project's growth and sizes the ΔQIS
-            Reward Pool — it mints no 웃 (웃 = M × hours). Static (canonical, not operator-editable). */}
+        {/* QIS — the canonical financial-innovation measurement (docs/QIS_CANONICAL_SPEC.md, White Paper §18).
+            Operator 2026-09-15: "make QIS legible and understandable — seems random". The block now SAYS what
+            the canon says in plain words: what the four inputs are, the formula (a dollar amount, not an index),
+            what growth means, a worked example (fund.reward r272, $000s), and the firewall (QIS mints no 웃,
+            웃 = M × hours, QIS ≠ ownership). Static (canonical, not operator-editable); numbers are literals. */}
         <div data-soi-section-qis>
           <div className="mb-2 text-sm font-semibold text-foreground">{t("soi.qis.title")}</div>
-          <div className="rounded-lg border p-2 text-xs space-y-1">
-            <div className="font-mono text-muted-foreground">{t("soi.qis.spine")}</div>
-            <div className="font-mono text-foreground">{t("soi.qis.equation")}</div>
-            <div className="text-muted-foreground">{t("soi.qis.note")}</div>
+          <div className="rounded-lg border p-3 text-xs space-y-3">
+            <p className="text-foreground/90 leading-relaxed">{t("soi.qis.lead")}</p>
+
+            {/* the four inputs */}
+            <dl className="grid gap-x-3 gap-y-1.5 sm:grid-cols-[auto_1fr]">
+              <dt className="font-mono font-semibold" style={{ color: accent }}>R</dt><dd className="text-muted-foreground">{t("soi.qis.r_def")}</dd>
+              <dt className="font-mono font-semibold" style={{ color: accent }}>GP</dt><dd className="text-muted-foreground">{t("soi.qis.gp_def")}</dd>
+              <dt className="font-mono font-semibold" style={{ color: accent }}>OI</dt><dd className="text-muted-foreground">{t("soi.qis.oi_def")}</dd>
+              <dt className="font-mono font-semibold whitespace-nowrap" style={{ color: accent }}>QRD → ERD</dt><dd className="text-muted-foreground">{t("soi.qis.rd_def")}</dd>
+            </dl>
+
+            {/* the formula + what it yields */}
+            <div className="rounded-md border border-border/60 bg-muted/30 p-2">
+              <div className="font-mono text-foreground">{t("soi.qis.formula")}</div>
+              <div className="text-muted-foreground">{t("soi.qis.formula_note")}</div>
+            </div>
+
+            {/* growth */}
+            <div>
+              <div className="font-mono text-foreground">{t("soi.qis.growth")}</div>
+              <div className="text-muted-foreground">{t("soi.qis.growth_note")}</div>
+            </div>
+
+            {/* worked example — the canon's numbers (fund.reward r272), $000s */}
+            <div>
+              <div className="mb-1 font-semibold text-foreground">{t("soi.qis.example_title")} <span className="font-normal text-muted-foreground">($000s)</span></div>
+              <div className="grid gap-1.5 sm:grid-cols-3">
+                <div className="rounded-md border p-2">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t("soi.qis.example_start")}</div>
+                  <div className="font-mono text-muted-foreground">300 · 200 · 100 · 300</div>
+                  <div className="font-mono text-foreground">QIS 175</div>
+                </div>
+                <div className="rounded-md border p-2">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t("soi.qis.example_now")}</div>
+                  <div className="font-mono text-muted-foreground">900 · 600 · 300 · 300</div>
+                  <div className="font-mono text-foreground">QIS 525</div>
+                </div>
+                <div className="rounded-md border p-2" style={{ borderColor: accent }}>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t("soi.qis.example_delta")}</div>
+                  <div className="font-mono font-semibold" style={{ color: accent }}>ΔQIS +350</div>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-muted-foreground">{t("soi.qis.firewall")}</p>
           </div>
         </div>
       </CardContent>
