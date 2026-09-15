@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.004",
+  "revision": "0.005",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
   "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -41,6 +41,13 @@
    "kind": "release",
    "why": "Shared Intent, as a placeholder: a key group switched on or off, invited by a code and a scannable square, answering a real-time call on the decision the round already has. The group advises and a named person still decides. Recognition uses the three fixed heart values the pod ladder already declares, rather than a fourth invented for this feature.",
    "commit": "a1a9ff7"
+  },
+  {
+   "revision": "0.005",
+   "date": "2026-09-15",
+   "kind": "release",
+   "why": "Two people on two devices: one flies, one works the camera, and neither can do the other's job. Optimised against a measurement on a processor slowed ten times rather than against a desktop that hides every change. Nine runs of every gate with zero drift, ten spiral checks, SSSES 93.",
+   "commit": "dffaa79"
   }
  ],
  "arena": {
@@ -1447,6 +1454,78 @@
    "dtm": "a readable record of what was valued",
    "stretch": "entries reach the Cube 8 append-only ledger",
    "status": "implemented"
+  },
+  {
+   "id": "DRN-09.01",
+   "title": "A seat may only send what that seat controls",
+   "statement": "The pilot flies and cannot aim, photograph or shoot; the targeteer aims, photographs and shoots and cannot fly; a message whose payload does not belong to the seat that sent it is refused on the way in as well as on the way out.",
+   "in": "DRN-09.01.IN",
+   "out": "DRN-09.01.OUT",
+   "section": "III",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "the other seat's controls are absent, not disabled",
+   "verify": "tests/drone-link.test.mjs",
+   "dtm": "two seats that cannot do each other's job",
+   "stretch": "the same rule for a third seat",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-09.02",
+   "title": "Three paths carry every word between the two devices",
+   "statement": "A crew message goes out on another tab, on shared storage and through a cloud endpoint at once; any one arriving is the message delivered and the duplicates the others produce are dropped without being counted as errors.",
+   "in": "DRN-09.02.IN",
+   "out": "DRN-09.02.OUT",
+   "section": "III",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "two separate browser profiles exchange flight and aim",
+   "verify": "scripts/drone-crew-e2e.mjs",
+   "dtm": "a phone and a computer flying one aircraft",
+   "stretch": "a fourth path when one is provisioned",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.08",
+   "title": "Measured, not assumed, on a slowed processor",
+   "statement": "Performance is reported from real painted frames on a processor slowed ten times, because a desktop pins every case at the refresh rate and hides any change; the heaviest case is the one quoted.",
+   "in": "DRN-11.08.IN",
+   "out": "DRN-11.08.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-07"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "48.0 to 57.3 fps at level 5.5, ten times slowed",
+   "verify": "scripts/drone-perf.mjs",
+   "dtm": "a before and after that can be compared",
+   "stretch": "run on the real board",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-13.01",
+   "title": "Nine runs, or it is not determinism",
+   "statement": "Every gate runs nine times and every reproducible artefact — the model hash, the schedule, a flown path, a crew code, the rung verdicts — must be byte-identical across all nine, and the spiral is asserted in both directions rather than asserted about.",
+   "in": "DRN-13.01.IN",
+   "out": "DRN-13.01.OUT",
+   "section": "II",
+   "uwf": [
+    "U-WF-08"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "1,395 checks per run, nine runs, zero drift, ten spiral checks",
+   "verify": "scripts/drone-spiral9.mjs",
+   "dtm": "a report a reviewer can re-run",
+   "stretch": "the same harness for every domain",
+   "status": "implemented"
   }
  ],
  "status": {
@@ -1522,5 +1601,18 @@
    "no invitation is delivered",
    "no heart reaches a ledger"
   ]
+ },
+ "crew": {
+  "seats": [
+   "pilot",
+   "targeteer"
+  ],
+  "rule": "a seat may only send what that seat controls; the other seat's controls are absent, not disabled",
+  "paths": [
+   "another tab",
+   "shared storage",
+   "cloud endpoint /api/drone-link"
+  ],
+  "proof": "scripts/drone-crew-e2e.mjs — two separate browser profiles, only the cloud path available"
  }
 }
