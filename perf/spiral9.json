@@ -1,0 +1,953 @@
+{
+  "n": 9,
+  "gateRuns": [
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "passed": 269,
+        "failed": 0,
+        "ms": 291
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 331
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "passed": 28,
+        "failed": 0,
+        "ms": 414
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 467
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 147
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "passed": 238,
+        "failed": 0,
+        "ms": 209
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "passed": 279,
+        "failed": 0,
+        "ms": 172
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 359
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 377
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 309
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 261
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 318
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 443
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "passed": 269,
+        "failed": 0,
+        "ms": 279
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 323
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "passed": 28,
+        "failed": 0,
+        "ms": 383
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 491
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 157
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "passed": 238,
+        "failed": 0,
+        "ms": 210
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "passed": 279,
+        "failed": 0,
+        "ms": 150
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 362
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 364
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 317
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 279
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 317
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 465
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "passed": 269,
+        "failed": 0,
+        "ms": 289
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 320
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "passed": 28,
+        "failed": 0,
+        "ms": 392
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 460
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 135
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "passed": 238,
+        "failed": 0,
+        "ms": 206
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "passed": 279,
+        "failed": 0,
+        "ms": 156
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 363
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 338
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 311
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 264
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 323
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 465
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "passed": 269,
+        "failed": 0,
+        "ms": 287
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 358
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "passed": 28,
+        "failed": 0,
+        "ms": 414
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 497
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 152
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "passed": 238,
+        "failed": 0,
+        "ms": 199
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "passed": 279,
+        "failed": 0,
+        "ms": 175
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 348
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 365
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 353
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 302
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 337
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 476
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "passed": 269,
+        "failed": 0,
+        "ms": 269
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 330
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "passed": 28,
+        "failed": 0,
+        "ms": 395
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 504
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 156
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "passed": 238,
+        "failed": 0,
+        "ms": 217
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "passed": 279,
+        "failed": 0,
+        "ms": 172
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 382
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 407
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 328
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 282
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 297
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 496
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "passed": 269,
+        "failed": 0,
+        "ms": 303
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 379
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "passed": 28,
+        "failed": 0,
+        "ms": 428
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 515
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 144
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "passed": 238,
+        "failed": 0,
+        "ms": 215
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "passed": 279,
+        "failed": 0,
+        "ms": 187
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 368
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 377
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 332
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 286
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 332
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 481
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "passed": 269,
+        "failed": 0,
+        "ms": 285
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 331
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "passed": 28,
+        "failed": 0,
+        "ms": 398
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 486
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 166
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "passed": 238,
+        "failed": 0,
+        "ms": 240
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "passed": 279,
+        "failed": 0,
+        "ms": 222
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 382
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 401
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 345
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 293
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 317
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 490
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "passed": 269,
+        "failed": 0,
+        "ms": 281
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 349
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "passed": 28,
+        "failed": 0,
+        "ms": 387
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 511
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 142
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "passed": 238,
+        "failed": 0,
+        "ms": 200
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "passed": 279,
+        "failed": 0,
+        "ms": 174
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 366
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 375
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 330
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 282
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 321
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 485
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "passed": 269,
+        "failed": 0,
+        "ms": 294
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 330
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "passed": 28,
+        "failed": 0,
+        "ms": 435
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 504
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 155
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "passed": 238,
+        "failed": 0,
+        "ms": 183
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "passed": 279,
+        "failed": 0,
+        "ms": 181
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 352
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 382
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 341
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 289
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 316
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 494
+      }
+    ]
+  ],
+  "artefacts": {
+    "modelHash": "fd9a70fa9565c492ca097dca7b53395d2007f3556b91df14da9c553074f6a0f2",
+    "doors": 14,
+    "segments": 1401,
+    "ladder": "62331c278a1e1ada",
+    "lodPerRung": "cc13a77d5fb065b9",
+    "schedule": "7cc33ad6644d5a0a",
+    "upAtStart": "door.greer.1",
+    "flownPath": "5f0b245ece7b593c",
+    "aiPilotPath": "f8cb1deae30ba45f",
+    "crewCode": "C6VWAK",
+    "selfCalPlan": "25x14s",
+    "rungVerdicts": "14de153301b99d03"
+  },
+  "drift": [],
+  "spiral": [
+    {
+      "dir": "forward",
+      "what": "the ladder reaches the arena",
+      "ok": true,
+      "detail": "1.1 draws 278, 5.5 draws 1553"
+    },
+    {
+      "dir": "forward",
+      "what": "the ladder reaches the model",
+      "ok": true,
+      "detail": "a different curve budget is a different world"
+    },
+    {
+      "dir": "forward",
+      "what": "the ladder reaches the sensors",
+      "ok": true,
+      "detail": "1 module at 1.1, 5 at 5.5"
+    },
+    {
+      "dir": "forward",
+      "what": "the ladder reaches the self-test",
+      "ok": true,
+      "detail": "a Pi holds the arcade rung; an accelerator cannot fit the full stack"
+    },
+    {
+      "dir": "forward",
+      "what": "the ladder reaches what is dropped",
+      "ok": true,
+      "detail": "1061 segments given up at 1.1, and named"
+    },
+    {
+      "dir": "backward",
+      "what": "the arena reaches the gimbal",
+      "ok": true,
+      "detail": "14 doors, all reachable as a bearing and a range"
+    },
+    {
+      "dir": "backward",
+      "what": "the arena reaches the ground",
+      "ok": true,
+      "detail": "the turret stands at 163.3 m, not at sea level"
+    },
+    {
+      "dir": "backward",
+      "what": "the arena reaches the budget",
+      "ok": true,
+      "detail": "1553 within the 4000 the rung allows"
+    },
+    {
+      "dir": "backward",
+      "what": "the arena reaches every rung",
+      "ok": true,
+      "detail": "the same fourteen doors exist at 1.1 as at 5.5"
+    },
+    {
+      "dir": "backward",
+      "what": "the world is the same at both ends",
+      "ok": true,
+      "detail": "the rung paints, it does not decide what exists"
+    }
+  ],
+  "perf": {
+    "before": 48,
+    "after": 57.3,
+    "gain": 9.3,
+    "throttle": 10
+  },
+  "ssses": {
+    "pillars": {
+      "Security": {
+        "score": 100,
+        "why": "A machine-aimed shot needs a named human approval, a seat may only send what it controls, and a key group cannot out-vote a person — each gated."
+      },
+      "Stability": {
+        "score": 100,
+        "why": "Nine runs agree byte for byte on every reproducible artefact."
+      },
+      "Scalability": {
+        "score": 90,
+        "why": "The heaviest case gained 9.3 fps on a processor slowed ten times. The ladder still draws every door at its poorest rung."
+      },
+      "Efficiency": {
+        "score": 90,
+        "why": "The game clock publishes ten times a second while the gimbal still slews every frame, and a sight line is no longer re-marched for a door that has not moved."
+      },
+      "Succinctness": {
+        "score": 85,
+        "why": "Two things built this session were deleted because the repository already had them: a fourth code generator and a fourth value on a three-rung ladder. One component serves all four modes."
+      }
+    },
+    "avg": 93,
+    "totalChecks": 1395,
+    "allGreen": true,
+    "spiralOk": true
+  }
+}

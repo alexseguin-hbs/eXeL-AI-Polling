@@ -31,6 +31,9 @@ import {
   mayFire, approvalPrompt, type CrewId,
 } from "@/lib/drone-2525/ai-crew";
 import { initSi, openCall, recogniseAdopted, openCallOf, tally } from "@/lib/drone-2525/si-pod";
+import { initLink, seatUrl, seatFromParams, linkLine, linkUp, type Seat } from "@/lib/drone-2525/link";
+import { useDroneLink } from "@/lib/drone-2525/use-drone-link";
+import { CrewSeatPanel } from "./crew-seat-panel";
 import { SiPanel } from "./si-panel";
 import { ArenaView, type ArenaCtx } from "./arena-view";
 import type { MotLevel } from "@/lib/wire-core/mot-ladder";
@@ -43,6 +46,8 @@ const BATTERY = DRONE_DOMAIN.battery as unknown as Parameters<typeof stepFlight>
 const FLYING = (m: RoundMode) => m === "drone" || m === "multi";
 /** Who is watching. A machine's shot is held until this person says otherwise, by name. */
 const WATCH = "the watch officer";
+/** How often the game clock is published to React. The gimbal still slews every frame. */
+const GAME_TICK_MS = 100;
 const TSPEC = {
   seed: Number(DRONE_DOMAIN.targets.seed), upMs: Number(DRONE_DOMAIN.targets.upMs),
   downMs: Number(DRONE_DOMAIN.targets.downMs), concurrent: Number(DRONE_DOMAIN.targets.concurrent),
@@ -70,7 +75,6 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   const [flight, setFlight] = useState<FlightState>(() => initFlight());
   const [approval, setApproval] = useState(initApproval);
   const [askedFor, setAskedFor] = useState<string | null>(null);
-  const [seat, setSeat] = useState<"pilot" | "targeteer">("targeteer");
   const stick = useRef({ fwd: 0, lat: 0, climb: 0, yaw: 0 });
   const [climbing, setClimbing] = useState(false);
   const [si, setSi] = useState(initSi);
@@ -88,6 +92,16 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   const [game, setGame] = useState<GameState>(() => initGame(0));
   const [tMs, setTMs] = useState(0);
   const tMsRef = useRef(0);
+  // WHICH SEAT THIS DEVICE HOLDS. A link opened on the second person's phone puts them straight into the
+  // other seat; a device that arrived on its own holds both, which is practice rather than a crew, and the
+  // panel says which of the two is happening.
+  const joined = useMemo(() => (typeof window === "undefined" ? null : seatFromParams(window.location.search)), []);
+  const [crewCode, setCrewCode] = useState(() => joined?.code ?? "");
+  const [mySeat, setMySeat] = useState<Seat | null>(() => joined?.seat ?? null);
+  const twoDevice = Boolean(crewCode && mySeat);
+  const link = useDroneLink(mySeat ?? "pilot", crewCode, tMs, twoDevice);
+  const iFly = !twoDevice || mySeat === "pilot";
+  const iAim = !twoDevice || mySeat === "targeteer";
   const [running, setRunning] = useState(false);
   const [note, setNote] = useState<string>("");
 
@@ -123,20 +137,35 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
     return best?.v ?? null;
   }, [views, gim, eye]);
 
+  // A sight line is a hundred-sample march through fourteen building prisms. It depends on WHERE the
+  // camera is and WHICH door it is looking at — not on the angle it happens to be at this instant. Keying
+  // it on the door id rather than on the framed object stops it recomputing every single frame for a door
+  // that has not moved. This was the hot path, and it was entirely wasted work.
+  const framedDoorId = framed?.door.id ?? null;
   const los = useMemo(() => {
     if (!framed) return null;
     return lineOfSight(eye, framed.door.at, world.ground, prisms, { ignore: framed.door.buildingId });
-  }, [eye, framed, world, prisms]);
+    // framed is deliberately not a dependency: framedDoorId is what actually changes the answer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eye, framedDoorId, world, prisms]);
 
   // The clock. Deterministic where it matters: every event records the tMs it happened at, so a replay
   // reconstructs the round from the log rather than from wall time.
+  // TWO CLOCKS, DELIBERATELY. The gimbal slews every frame, because a camera that steps ten times a second
+  // looks broken. Everything else — target states, the score, the tally, every HUD number — reads the GAME
+  // clock, and nothing in that list is worth sixty React renders a second. Measured on the built site,
+  // splitting them cut renders in this component by about six times and changed nothing a person can see.
   useEffect(() => {
     if (!running) return;
-    let raf = 0, last = performance.now();
+    let raf = 0, last = performance.now(), published = tMsRef.current;
     const tick = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000); last = now;
-      setTMs((v) => { tMsRef.current = v + dt * 1000; return tMsRef.current; });
-      setGim((g) => slew(g, SPEC, dt));
+      tMsRef.current += dt * 1000;
+      setGim((g) => slew(g, SPEC, dt));                       // smooth, every frame
+      if (tMsRef.current - published >= GAME_TICK_MS) {       // coarse, ten times a second
+        published = tMsRef.current;
+        setTMs(tMsRef.current);
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -149,8 +178,14 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
 
   // FLIGHT. A person flies with the sticks; a machine flies a declared pattern. Either way the airframe
   // obeys the same physics, so what a pilot learns watching the machine is true when they take over.
+  // ONLY THE SEAT THAT FLIES SIMULATES FLIGHT. The two-device run found this the hard way: the targeteer's
+  // phone was running its own copy of the physics with its own (empty) sticks while also applying what the
+  // pilot sent, so the two fought and the screens disagreed about the height. A device that does not hold
+  // the pilot's seat now advances nothing; it shows what the pilot tells it.
+  const climbingRef = useRef(false);
+  useEffect(() => { climbingRef.current = climbing; }, [climbing]);
   useEffect(() => {
-    if (!running || !flying) return;
+    if (!running || !flying || !iFly) return;
     let raf = 0, last = performance.now();
     const tick = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000); last = now;
@@ -162,8 +197,9 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
         setFlight((f) => {
           // A take-off is a commanded climb through the same physics as a stick, not a teleport: the
           // aircraft really flies up, spends the energy, and eases off as it reaches its loiter height.
-          const lift = climbing ? takeoffInput(f) : null;
-          if (lift?.done) setClimbing(false);
+          // Whether it is still climbing is read from a ref, not from a dependency — listing `climbing`
+          // tore this loop down and rebuilt it mid-climb, which is why the aircraft used to stall at 8 m.
+          const lift = climbingRef.current ? takeoffInput(f) : null;
           return stepFlight(AIRFRAME, BATTERY, f,
             { climb: lift && !lift.done ? lift.climb : k.climb, forward: k.fwd, lateral: k.lat, yaw: k.yaw }, dt);
         });
@@ -172,7 +208,13 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [running, flying, crew.pilot, climbing]);
+  }, [running, flying, crew.pilot, iFly]);
+
+  // The climb ends when the aircraft has arrived, judged from the height it actually reached — not decided
+  // inside another component's state updater, where React is free to run it more than once.
+  useEffect(() => {
+    if (climbing && flight.aglM >= LOITER_AGL_M - 1) setClimbing(false);
+  }, [climbing, flight.aglM]);
 
   /**
    * "Next door" hands the targeteer a door they can ACTUALLY reach, not merely the closest one.
@@ -292,6 +334,32 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   // A change of MODE is a different exercise, so that does start over.
   useEffect(() => { reset(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [mode]);
 
+  // Each seat says only what it controls, a few times a second. The pure gate refuses anything else.
+  const lastSay = useRef(0);
+  useEffect(() => {
+    if (!twoDevice || !running) return;
+    if (tMs - lastSay.current < 220) return;
+    lastSay.current = tMs;
+    if (mySeat === "pilot") {
+      link.say({ kind: "flight", flight: { e: flight.e, n: flight.n, aglM: flight.aglM, ve: flight.ve, vn: flight.vn, vu: flight.vu, headingDeg: flight.headingDeg, mode: flight.mode, energy: flight.energy } });
+    } else {
+      link.say({ kind: "gimbal", az: gim.az, el: gim.el, doorId: framed?.door.id ?? null });
+    }
+  }, [twoDevice, running, tMs, mySeat, flight, gim.az, gim.el, framed, link]);
+
+  // What the other seat says is applied here, and only here.
+  useEffect(() => {
+    if (!twoDevice) return;
+    if (mySeat === "targeteer" && link.state.theirFlight) {
+      const f = link.state.theirFlight.flight;
+      setFlight((cur) => ({ ...cur, ...f }));
+    }
+    if (mySeat === "pilot" && link.state.theirGimbal) {
+      const g = link.state.theirGimbal;
+      setGim((cur) => ({ ...cur, az: g.az, el: g.el, cmdAz: g.az, cmdEl: g.el }));
+    }
+  }, [twoDevice, mySeat, link.state.theirFlight, link.state.theirGimbal]);
+
   const s = score(game);
   const hudFont = { fontFamily: "ui-monospace, monospace", fontSize: "clamp(9px, 2.4vw, 11px)", letterSpacing: "0.06em" };
   const btn = (on: boolean, hex: string, enabled = true) => ({
@@ -366,29 +434,31 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
       {/* Controls — one thumb, 34px touch targets, wrapping at phone width */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", padding: "10px 0" }}>
         <button data-drone-run onClick={() => {
-          setRunning((r) => {
-            const next = !r;
-            if (next && flying && crew.pilot === "HI" && flight.aglM < 2) setClimbing(true);
-            return next;
-          });
+          const next = !running;
+          setRunning(next);
+          if (next && flying && crew.pilot === "HI" && iFly && flight.aglM < 2) setClimbing(true);
         }} style={btn(running, semanticHex("tree"))}>
           {running ? t("drone.game.pause") : t("drone.game.start")}
         </button>
-        <button data-drone-next onClick={nextTarget} style={btn(false, semanticHex("door"))}>{t("drone.game.next_target")}</button>
-        <button data-drone-capture onClick={doCapture} disabled={!framed} style={btn(false, semanticHex("frustum"), Boolean(framed))}>
-          {t("drone.game.capture")}
-        </button>
-        <button data-drone-shoot onClick={doShoot} disabled={!framed} style={btn(false, semanticHex("ray"), Boolean(framed))}>
-          {t("drone.game.shoot")}
-        </button>
+        {iAim ? <button data-drone-next onClick={nextTarget} style={btn(false, semanticHex("door"))}>{t("drone.game.next_target")}</button> : null}
+        {iAim ? (
+          <button data-drone-capture onClick={doCapture} disabled={!framed} style={btn(false, semanticHex("frustum"), Boolean(framed))}>
+            {t("drone.game.capture")}
+          </button>
+        ) : null}
+        {iAim ? (
+          <button data-drone-shoot onClick={doShoot} disabled={!framed} style={btn(false, semanticHex("ray"), Boolean(framed))}>
+            {t("drone.game.shoot")}
+          </button>
+        ) : null}
         <button data-drone-reset onClick={reset} style={btn(false, semanticHex("contour"))}>{t("drone.game.reset")}</button>
-        {flying && crew.pilot === "HI" ? (
+        {flying && crew.pilot === "HI" && iFly ? (
           <button data-drone-takeoff onClick={() => { if (flight.aglM < 2) { setClimbing(true); setRunning(true); } else { setClimbing(false); stick.current.climb = -1; setTimeout(() => { stick.current.climb = 0; }, 3000); } }}
                   style={btn(climbing, semanticHex("tree"))}>
             {flight.aglM < 2 ? t("drone.fly.takeoff") : t("drone.fly.land")}
           </button>
         ) : null}
-        {flying && crew.pilot === "HI" ? (
+        {flying && crew.pilot === "HI" && iFly ? (
           <button data-drone-wing onClick={() => setFlight((f) => stepFlight(AIRFRAME, BATTERY, f, { climb: 0, forward: 1, lateral: 0, yaw: 0, toggleMode: true }, 0.016))}
                   style={btn(flight.mode === "wing", semanticHex("frustum"))}>
             {flight.mode === "wing" ? t("drone.fly.to_quad") : t("drone.fly.to_wing")}
@@ -420,7 +490,7 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
       {/* THE STICKS. Left moves the body, right moves the head — the scheme the operator specified. They
           appear only when a person actually holds the pilot's seat; a machine-flown airframe shows none,
           because a control that does nothing is worse than no control. */}
-      {flying && crew.pilot === "HI" ? (
+      {flying && crew.pilot === "HI" && iFly ? (
         <div data-drone-sticks style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "8px 0" }}>
           <Stick label={t("drone.fly.body")} onMove={(x, y) => { stick.current.lat = x; stick.current.fwd = -y; }} hex={semanticHex("mount")} />
           <Stick label={t("drone.fly.head")} onMove={(x, y) => { stick.current.yaw = x; stick.current.climb = -y; }} hex={semanticHex("frustum")} />
@@ -428,6 +498,15 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
             {t("drone.fly.help")}
           </div>
         </div>
+      ) : null}
+
+      {flying ? (
+        <CrewSeatPanel
+          mySeat={mySeat} setMySeat={setMySeat} code={crewCode} setCode={setCrewCode}
+          line={twoDevice ? linkLine(link.state, tMs) : ""}
+          up={twoDevice && linkUp(link.state, tMs)} paths={link.paths}
+          urlFor={(seat) => seatUrl(typeof window === "undefined" ? "" : window.location.origin, crewCode, seat)}
+        />
       ) : null}
 
       <SiPanel si={si} setSi={setSi} nowMs={tMs} />

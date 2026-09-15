@@ -1,0 +1,51 @@
+{
+  "windowMs": 6000,
+  "cpuThrottle": 10,
+  "runs": [
+    {
+      "label": "idle 1.1",
+      "fps": 59.8,
+      "frames": 359,
+      "domNodes": 159,
+      "svgPaths": 22,
+      "heapMB": 17.7,
+      "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped"
+    },
+    {
+      "label": "turrets running 1.1",
+      "fps": 59.9,
+      "frames": 360,
+      "domNodes": 161,
+      "svgPaths": 22,
+      "heapMB": 18.1,
+      "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped"
+    },
+    {
+      "label": "turrets running 5.5",
+      "fps": 57.3,
+      "frames": 344,
+      "domNodes": 185,
+      "svgPaths": 48,
+      "heapMB": 26.8,
+      "hud": "MoT 5.5 FULL · 4000 seg · EO·IR·ACOUSTIC·MAG·CHEM · cnn 50ms · 1553 drawn"
+    },
+    {
+      "label": "drone flying 1.1",
+      "fps": 59.5,
+      "frames": 357,
+      "domNodes": 176,
+      "svgPaths": 23,
+      "heapMB": 36.4,
+      "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped"
+    },
+    {
+      "label": "mixed crew 1.1",
+      "fps": 59.6,
+      "frames": 358,
+      "domNodes": 192,
+      "svgPaths": 23,
+      "heapMB": 20.8,
+      "hud": "MoT 1.1 VECTOR · 280 seg · EO · cnn 3ms · 278 drawn, 1061 dropped"
+    }
+  ]
+}
