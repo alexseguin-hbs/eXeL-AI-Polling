@@ -78,6 +78,27 @@ async function shoot(ctx, name, width, height, steps = async () => {}) {
       await p.click("[data-drone-mode='capital']");
       await p.waitForTimeout(400);
     });
+    // Play a real round, headlessly: start the clock, swing to a door, photograph it, fire.
+    await shoot(ctx, "05-round-played", 1440, 900, async (p) => {
+      await p.click("[data-drone-run]");
+      await p.waitForTimeout(900);
+      for (let i = 0; i < 4; i++) {
+        await p.click("[data-drone-next]");
+        await p.waitForTimeout(1200);
+        await p.click("[data-drone-capture]").catch(() => {});
+        await p.waitForTimeout(200);
+        await p.click("[data-drone-shoot]").catch(() => {});
+        await p.waitForTimeout(200);
+      }
+      const note = await p.locator("[data-drone-note]").textContent();
+      const sc = await p.locator("[data-drone-score]").textContent();
+      const aim = await p.locator("[data-drone-aim]").textContent();
+      console.log(`  round: score "${(sc ?? "").trim()}" · aim "${(aim ?? "").trim()}" · last "${(note ?? "").trim()}"`);
+      await p.click("[data-drone-run]");
+      const log = await p.locator("details summary").first();
+      if (await log.count()) await log.click();
+      await p.waitForTimeout(200);
+    });
   } finally { await browser.close(); server.close(); }
 
   console.log("\nDrone-2525 shots");

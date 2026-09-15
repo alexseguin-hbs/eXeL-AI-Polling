@@ -16,7 +16,22 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { versionStamp } from "@/lib/2525-core/version-stamp";
 import { WireSvg } from "./wire-svg";
 
-export function ArenaView({ source, tierCap = "ultra" }: { source: DomainSource; tierCap?: Tier }) {
+/** What a layer drawn on top of the arena is given — the same world and the same camera, never a copy. */
+export interface ArenaCtx {
+  model: ReturnType<typeof buildArena>["model"];
+  doors: ReturnType<typeof buildArena>["doors"];
+  ground: ReturnType<typeof buildArena>["ground"];
+  cam: { pw: number; ph: number; pitchDeg: number; bearingRad: number; pxPerM: number; originX?: number; originY?: number };
+  stroke: (w: number) => number;
+}
+
+export function ArenaView({ source, tierCap = "ultra", overlay, hudRight, hudLeft }: {
+  source: DomainSource; tierCap?: Tier;
+  /** Drawn in the arena's own camera, above the world and below the HUD. */
+  overlay?: (ctx: ArenaCtx) => React.ReactNode;
+  hudRight?: React.ReactNode;
+  hudLeft?: React.ReactNode;
+}) {
   const { t } = useLexicon();
   const box = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 900, h: 560 });
@@ -38,7 +53,7 @@ export function ArenaView({ source, tierCap = "ultra" }: { source: DomainSource;
   useEffect(() => { setFid((s) => applyCap(s, tierCap)); }, [tierCap]);
 
   // The model is built once per curve budget — a tier changes what is DRAWN, never what is true.
-  const { model, doors } = useMemo(() => buildArena(source, { ngonSides: spec.ngonSides, contourStepM: 2, stamp: versionStamp() }), [source, spec.ngonSides]);
+  const { model, doors, ground } = useMemo(() => buildArena(source, { ngonSides: spec.ngonSides, contourStepM: 2, stamp: versionStamp() }), [source, spec.ngonSides]);
   const hash = useMemo(() => canonicalHash(model), [model]);
   const lod = useMemo(() => selectLod(model, spec.maxLod, spec.segments), [model, spec.maxLod, spec.segments]);
 
@@ -82,16 +97,23 @@ export function ArenaView({ source, tierCap = "ultra" }: { source: DomainSource;
     <div ref={box} data-drone-arena style={{ position: "relative", width: "100%", height: "min(62vh, max(300px, 80vw))", background: VECTOR_LAW.ground, overflow: "hidden", touchAction: "none" }}
          onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
       <WireSvg model={model} cam={cam} maxLod={spec.maxLod} segmentBudget={spec.segments} bloom={spec.bloom} fw={(w) => w} />
+      {overlay ? (
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+          {overlay({ model, doors, ground, cam, stroke: (w) => w })}
+        </div>
+      ) : null}
 
       {/* HUD — drawn in the same stroke language, at the same weight, as the world (the vector law) */}
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none", padding: 10, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <span style={hud}>{t("drone.hud.arena")}</span>
+          {hudLeft}
           <span style={{ ...hud, color: semanticHex("mount") }} data-drone-fidelity>{fidelityLabel(fid, sensor, lod)}</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
           <span style={{ ...hud, color: semanticHex("door") }}>{t("drone.hud.doors")} {doors.length}</span>
           <span style={{ ...hud, opacity: 0.75 }}>{t("drone.arena.hand_authored")}</span>
+          {hudRight}
           <span style={{ ...hud, opacity: 0.6 }}>{hash.slice(0, 12)}</span>
         </div>
       </div>

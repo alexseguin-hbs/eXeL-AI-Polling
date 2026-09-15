@@ -338,3 +338,17 @@ fr|arch.cmd.notifications|French cognate: Notifications is identical in French
 *|soi2525.term|the word term — a cognate shared by several languages
 *|atlantis.icon_seed_of_life|proper name of the Seed of Life sacred-geometry symbol (kept across the app)
 de|crs.user_story|German software teams use the English term "User Story"
+fr|drone.version|"Version" is the French word, spelled the same
+de|drone.version|"Version" is the German word, spelled the same
+sv|drone.version|"Version" is the Swedish word, spelled the same
+da|drone.version|"Version" is the Danish word, spelled the same
+sv|drone.revision|"revision" is the Swedish word, spelled the same
+da|drone.revision|"revision" is the Danish word, spelled the same
+de|drone.game.start|"Start" is the ordinary German button word
+da|drone.game.start|"Start" is the ordinary Danish button word
+no|drone.game.start|"Start" is the ordinary Norwegian button word
+pl|drone.game.start|"Start" is a native Polish word used on controls
+de|drone.game.pause|"Pause" is the ordinary German word
+da|drone.game.pause|"Pause" is the ordinary Danish word
+no|drone.game.pause|"Pause" is the ordinary Norwegian word
+fr|drone.game.pause|"Pause" is the ordinary French word on a timer control

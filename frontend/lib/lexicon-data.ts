@@ -2836,6 +2836,19 @@ const drone2525: TranslationEntry[] = [
   { key: "drone.arena.hand_authored", englishDefault: "hand-drawn block — awaiting the surveyed map", context: "Drone-2525: badge saying the buildings are an estimate, not a map extract", cubeId: 0 },
   { key: "drone.disclaimer", englishDefault: "A rehearsal for play and critique. The shapes, distances and power figures are bounding estimates, not design evidence, and nothing here authorises a flight or builds a weapon.", context: "Drone-2525: the standing disclaimer shown under the arena on every run", cubeId: 0 },
   { key: "drone.mode_note", englishDefault: "The two stationary modes run now. The flying modes are dated, not hidden: a two-person drone next, then the mixed crew where a person approves every shot.", context: "Drone-2525: note explaining which modes are built and when the rest arrive", cubeId: 0 },
+  { key: "drone.game.start", englishDefault: "Start", context: "Drone-2525 round: button that starts the clock and the pop-up targets", cubeId: 0 },
+  { key: "drone.game.pause", englishDefault: "Pause", context: "Drone-2525 round: button that stops the clock without ending the round", cubeId: 0 },
+  { key: "drone.game.next_target", englishDefault: "Next door", context: "Drone-2525 round: button that swings the camera to the next door standing open", cubeId: 0 },
+  { key: "drone.game.capture", englishDefault: "Capture", context: "Drone-2525 round: button that photographs the door in view; must happen before the shot", cubeId: 0 },
+  { key: "drone.game.shoot", englishDefault: "Shoot", context: "Drone-2525 round: button that fires at the door in view, tagging it if it was captured first", cubeId: 0 },
+  { key: "drone.game.reset", englishDefault: "Reset", context: "Drone-2525 round: button that clears the score and starts the round over", cubeId: 0 },
+  { key: "drone.game.turret", englishDefault: "Turret", context: "Drone-2525 round: label before the buttons that choose which fixed turret you are sitting at", cubeId: 0 },
+  { key: "drone.game.tagged", englishDefault: "Tagged", context: "Drone-2525 round score: label before the count of doors captured and then hit", cubeId: 0 },
+  { key: "drone.game.captured", englishDefault: "Captured", context: "Drone-2525 round score: label before the count of doors photographed so far", cubeId: 0 },
+  { key: "drone.game.accuracy", englishDefault: "Accuracy", context: "Drone-2525 round score: label before the share of shots that landed, as a percentage", cubeId: 0 },
+  { key: "drone.game.clock", englishDefault: "Clock", context: "Drone-2525 round: label before the elapsed and total time of the round, in seconds", cubeId: 0 },
+  { key: "drone.game.no_target", englishDefault: "No door in view", context: "Drone-2525 round: message when the camera is not looking at any open door", cubeId: 0 },
+  { key: "drone.game.log", englishDefault: "What happened", context: "Drone-2525 round: expander holding the line-by-line record of the round, the score's own working", cubeId: 0 },
 ];
 
 export const CUBE_GROUPS: CubeGroup[] = [

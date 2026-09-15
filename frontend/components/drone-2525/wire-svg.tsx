@@ -6,7 +6,7 @@
 // One <path> per group, not per segment: a 1,400-segment arena becomes ~33 DOM nodes, which is the difference
 // between a Raspberry Pi drawing a city block and a Raspberry Pi giving up. Points behind the camera plane are
 // DROPPED and counted — never clamped, because a clamped vertex draws a line to a place that does not exist.
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import type { WireModel, Lod } from "@/lib/wire-core/wire-model";
 import { TRINITY_COLORS } from "@/lib/wire-core/palette";
 import { VECTOR_LAW, strokeProps } from "@/lib/wire-core/vector-law";
@@ -24,8 +24,8 @@ export interface WireSvgProps {
   onCulled?: (n: number) => void;
 }
 
-export function WireSvg({ model, cam, maxLod, segmentBudget, fw = (w) => w, bloom = false, highlight }: WireSvgProps) {
-  const paths = useMemo(() => {
+export function WireSvg({ model, cam, maxLod, segmentBudget, fw = (w) => w, bloom = false, highlight, onCulled }: WireSvgProps) {
+  const { paths, culled } = useMemo(() => {
     const out: { id: string; d: string; hex: string; width: number; on: boolean }[] = [];
     let drawn = 0, culled = 0;
     for (const g of model.groups) {
@@ -46,9 +46,11 @@ export function WireSvg({ model, cam, maxLod, segmentBudget, fw = (w) => w, bloo
       const on = !highlight || highlight.has(g.id);
       out.push({ id: g.id, d, hex: TRINITY_COLORS[g.role], width: fw(on ? VECTOR_LAW.stroke.normal : VECTOR_LAW.stroke.hairline), on });
     }
-    void culled;
-    return out;
+    return { paths: out, culled };
   }, [model, cam, maxLod, segmentBudget, fw, highlight]);
+
+  // A dropped segment is REPORTED, never swallowed (U-WF-09) — the caller decides where to say it.
+  useEffect(() => { onCulled?.(culled); }, [culled, onCulled]);
 
   return (
     <svg

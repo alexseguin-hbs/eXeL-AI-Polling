@@ -22,6 +22,7 @@ import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
 import { TIER_ORDER, type Tier } from "@/lib/wire-core/fidelity";
 import { DRONE_DOMAIN } from "@/lib/drone-2525/domain.gen";
 import { ArenaView } from "./arena-view";
+import { TurretGame } from "./turret-game";
 
 const SRC = DRONE_DOMAIN;
 
@@ -80,9 +81,11 @@ export function DroneCommandUX1() {
         </div>
       </div>
 
-      {/* The arena */}
+      {/* The arena, and the round played on it */}
       <div style={{ padding: "0 14px 14px" }}>
-        <ArenaView source={SRC} tierCap={cap} />
+        {mode === "turrets" || mode === "capital"
+          ? <TurretGame mode={mode as "turrets" | "capital"} tierCap={cap} />
+          : <ArenaView source={SRC} tierCap={cap} />}
       </div>
 
       {/* What this is and is not — said once, in plain words, on every run */}
