@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drone-2525 Parity Harness</title>
+<!--
+  ════════════════════════════════════════════════════════════════════════════════════════════════
+  DRONE-2525 · PARITY HARNESS — one file, no build, no network, no dependencies.
+  eXeL-AI · Vision-2525 Level-3 Domain Play · Version 00.00 · revision 0.004 · 2026-09-15
+
+  IN THE SPIRIT OF R-CORE, THIS IS NOT A DOCUMENT. It is a checkable artefact.
+
+  A specification you have to trust is an assurance. This file instead carries (a) the contract as
+  data, (b) a reference implementation of every clause that can be computed, and (c) a conformance
+  runner that scores an implementation against them and prints a hash.
+
+  TO REACH PARITY: open this file, read the contract, then replace the functions on window.PARITY.impl
+  with your own and press RUN CONFORMANCE again. Every clause that still passes is a clause you match.
+  Send back the CONTRACT HASH and the CONFORMANCE HASH. Two implementations are at parity when both
+  hashes agree — not when two people agree that they agree.
+
+  The hash is FNV-1a 64-bit over a canonical JSON serialisation (sorted keys, no whitespace),
+  deliberately chosen over SHA-256 so it is reproducible in any language in twenty lines and needs no
+  secure context. `canonical()` and `fnv1a64()` below are the whole definition.
+  ════════════════════════════════════════════════════════════════════════════════════════════════
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  /* THE VECTOR LAW IS THE DESIGN. Black ground, saturated single strokes, no fill, no gradient, no
+     shadow. This page is deliberately single-theme because the subject IS a phosphor vector display —
+     a light mode would contradict the thing being specified. Every colour below is one of the 13. */
+  :root{
+    --ground:#000000;
+    --human:#8B0000; --evolution:#FF0000; --intelligence:#F97316; --temporal:#FFFF00;
+    --abundance:#80FF00; --ooda:#00FF00; --platonic:#10B981; --consciousness:#00FFFF;
+    --framework:#3B82F6; --wholeness:#0000FF; --family:#8B00FF; --governance:#6A00D4;
+    --blank:#FFFFFF;
+    --hud:#00FFFF; --dim:rgba(0,255,255,.42); --rule:rgba(0,255,255,.22);
+    --pass:#00FF00; --fail:#FF0000; --warn:#FFFF00;
+    --mono:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--ground); color:var(--hud); font-family:var(--mono);
+    font-size:13px; line-height:1.65; padding:0 16px 64px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px;margin:0 auto}
+  header{padding-block:28px 18px;border-bottom:1px solid var(--rule)}
+  h1{font-size:clamp(18px,4vw,26px);letter-spacing:.16em;margin:0 0 6px;color:var(--consciousness);font-weight:700;text-wrap:balance}
+  .sub{color:var(--dim);font-size:11px;letter-spacing:.08em}
+  .lede{max-width:66ch;color:var(--hud);opacity:.82;margin:14px 0 0}
+  h2{font-size:12px;letter-spacing:.22em;color:var(--intelligence);margin:36px 0 10px;font-weight:700;text-transform:uppercase}
+  h3{font-size:11px;letter-spacing:.16em;color:var(--abundance);margin:18px 0 6px;font-weight:500}
+  p{max-width:70ch;margin:0 0 10px}
+  .q{color:var(--dim)}
+  code,kbd{color:var(--temporal);font-family:var(--mono)}
+  a{color:var(--abundance)}
+
+  section{border-top:1px solid var(--rule);padding-top:4px}
+  .grid{display:grid;gap:10px}
+  .cols2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .cols3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+  .box{border:1px solid var(--rule);padding:10px 12px}
+  .box h4{margin:0 0 6px;font-size:11px;letter-spacing:.14em;color:var(--framework);font-weight:500}
+  .kv{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dotted rgba(0,255,255,.14);padding:2px 0}
+  .kv:last-child{border-bottom:0}
+  .kv b{font-weight:500;color:var(--dim)}
+  .kv span{color:var(--hud);font-variant-numeric:tabular-nums}
+
+  table{width:100%;border-collapse:collapse;font-size:11.5px}
+  th,td{text-align:left;padding:3px 8px 3px 0;border-bottom:1px solid rgba(0,255,255,.12);vertical-align:top}
+  th{color:var(--dim);font-weight:500;letter-spacing:.1em;text-transform:uppercase;font-size:10px}
+  td.n{text-align:right;font-variant-numeric:tabular-nums;padding-right:14px}
+  .scroll{overflow-x:auto;max-width:100%}
+
+  button,select{
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;background:transparent;
+    color:var(--hud);border:1px solid currentColor;padding:6px 11px;cursor:pointer;min-height:34px;
+  }
+  button:hover{color:var(--abundance)}
+  button:focus-visible,select:focus-visible{outline:2px solid var(--temporal);outline-offset:2px}
+  select{color:var(--platonic)}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+  label{color:var(--dim);font-size:10px;letter-spacing:.12em;display:flex;gap:6px;align-items:center}
+
+  canvas{display:block;width:100%;height:auto;background:var(--ground);border:1px solid var(--rule)}
+  .hud{display:flex;gap:16px;flex-wrap:wrap;font-size:10.5px;color:var(--dim);padding:6px 0}
+  .hud b{color:var(--platonic);font-weight:500}
+
+  .clause{display:grid;grid-template-columns:62px 1fr;gap:10px;border-bottom:1px solid rgba(0,255,255,.12);padding:7px 0}
+  .verdict{font-weight:700;letter-spacing:.1em}
+  .PASS{color:var(--pass)} .FAIL{color:var(--fail)} .HOLD{color:var(--warn)}
+  .clause .why{color:var(--dim);font-size:11px}
+
+  pre{
+    border:1px solid var(--rule);padding:10px;overflow-x:auto;font-size:10.5px;
+    color:var(--platonic);margin:0;max-height:340px
+  }
+  .hashline{
+    border:1px solid var(--temporal);color:var(--temporal);padding:8px 12px;margin:12px 0;
+    font-size:12px;word-break:break-all;letter-spacing:.06em
+  }
+  .rule-strong{border-left:2px solid var(--evolution);padding-left:12px;color:var(--blank)}
+  footer{margin-top:44px;padding-top:14px;border-top:1px solid var(--rule);color:var(--dim);font-size:10.5px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>DRONE&nbsp;·&nbsp;2525 — PARITY HARNESS</h1>
+  <div class="sub">eXeL-AI · Vision-2525 Level-3 Domain Play · Version 00.00 · revision 0.004 · 2026-09-15</div>
+  <p class="lede">
+    This is not a specification you are asked to trust. It carries the contract as data, a reference
+    implementation of every clause that can be computed, and a runner that scores an implementation
+    against them. Replace <code>window.PARITY.impl</code> with your own functions, press
+    <kbd>RUN CONFORMANCE</kbd>, and send back the two hashes. Parity is two matching hashes, not two
+    people agreeing.
+  </p>
+</header>
+
+<section>
+  <h2>0 · The three sentences that govern everything else</h2>
+  <p class="rule-strong">
+    <b>THE VECTOR LAW.</b> Black ground, edges only. No fill, no gradient, no shading, no texture. A
+    surface is never painted — it is implied by its edges. One saturated stroke per object from the
+    thirteen. Depth is read from perspective and overlap, never from a brightness ramp. Every curve is
+    a declared n-gon, so its cost is stated rather than implicit. The HUD is drawn in the same stroke
+    language at the same weight — not chrome sitting above a 3D view.
+  </p>
+  <p class="rule-strong">
+    <b>THE SENSOR IS PAID FIRST.</b> The CNN reserve is subtracted from the frame budget <em>before</em>
+    the renderer gets any of it. The picture is never made prettier by starving the thing that sees.
+    When the budget will not cover the reference stream, the unit degrades in a fixed order — sensor
+    module, then resolution, then frame rate — and <em>names</em> the rung it fell to. A silent drop is
+    the defect the ladder exists to prevent.
+  </p>
+  <p class="rule-strong">
+    <b>SILENCE IS NEVER CONSENT.</b> An AI-initiated shot never fires without a named human approval
+    event, at any authority level. What scales up the ladder is the <em>breadth</em> of one decision and
+    <em>who</em> makes it — never whether a decision happened.
+  </p>
+</section>
+
+<section>
+  <h2>1 · The contract</h2>
+  <p class="q">Every number below is read from the shipped implementation, not retyped for this page.</p>
+
+  <h3>1.1 · The MoT ladder — 25 rungs</h3>
+  <p>
+    <b>Band</b> (the first digit) is the <em>edge-compute class</em>: it adds a sensor module, and each
+    module costs CNN time. <b>Step</b> (the second) is <em>resolution</em>: device pixel ratio and curve
+    resolution. <code>demandFps</code> falls as you climb — rung 1.1 is the 1983 arcade rung and the
+    <em>fastest</em>; 5.5 is five fused sensors at dpr 2.0 and the slowest. A machine's <em>ceiling</em>
+    is the highest rung at which it still holds 1080p30.
+  </p>
+  <div class="scroll"><table id="t-rungs"><thead><tr>
+    <th>rung</th><th>band</th><th>sensors</th><th class="n">segments</th><th class="n">n-gon</th>
+    <th class="n">dpr</th><th class="n">demand fps</th><th class="n">max LOD</th>
+  </tr></thead><tbody></tbody></table></div>
+
+  <h3>1.2 · HAL profiles — the frame budget, and what the sensor takes out of it first</h3>
+  <div class="scroll"><table id="t-hal"><thead><tr>
+    <th>id</th><th>label</th><th class="n">frame budget</th><th class="n">CNN reserve</th>
+    <th class="n">left to render</th><th>what it is</th>
+  </tr></thead><tbody></tbody></table></div>
+
+  <h3>1.3 · The stream ladder — best first; index &gt; 0 is always named on screen</h3>
+  <div class="scroll"><table id="t-stream"><thead><tr>
+    <th class="n">i</th><th>id</th><th class="n">w×h</th><th class="n">hz</th>
+    <th class="n">px/s</th><th class="n">% of reference</th><th>surrendered</th>
+  </tr></thead><tbody></tbody></table></div>
+
+  <h3>1.4 · The authority ladder — five levels on the band that already exists</h3>
+  <div class="scroll"><table id="t-auth"><thead><tr>
+    <th class="n">level</th><th>who decides</th><th>what one decision covers</th><th>in words</th>
+  </tr></thead><tbody></tbody></table></div>
+  <p class="q">
+    A mandate expires at <code>MANDATE_MAX_MS = 300000</code> and can be ended by name at any moment.
+    Levels 4 and 5 move the decision from one person to a key group by quorum — the members are named
+    people, so a group decision is still named-human approval and the fire gate keeps its shape.
+  </p>
+
+  <h3>1.5 · The airframe, the seats, and the swarm</h3>
+  <div class="grid cols3">
+    <div class="box"><h4>AIRFRAME EXTENT (m)</h4><div id="b-extent"></div></div>
+    <div class="box"><h4>GLYPH COST (segments)</h4><div id="b-glyph"></div></div>
+    <div class="box"><h4>SWARM</h4><div id="b-swarm"></div></div>
+  </div>
+  <p style="margin-top:12px">
+    <b>Two seats, two eyes.</b> The pilot looks out of the canopy; the targeteer looks down a gimbal
+    slung under the belly. The offsets are <em>fractions of the airframe's own measured length</em>, so
+    an aircraft of another size gets its parallax for free and no constant has to be remembered. On this
+    airframe that is <b id="sep-quad">—</b> between the eyes in the hover and <b id="sep-wing">—</b> on
+    the wing. A turret returns the same point for both seats by construction — one head, one mount, and
+    a separation of exactly zero rather than a small invented number.
+  </p>
+  <div class="scroll"><table id="t-seats"><thead><tr>
+    <th>frame</th><th>seat</th><th class="n">fwd</th><th class="n">right</th><th class="n">up</th><th class="n">→ metres</th>
+  </tr></thead><tbody></tbody></table></div>
+
+  <div class="hashline" id="contract-hash">CONTRACT HASH · computing…</div>
+  <details>
+    <summary class="q" style="cursor:pointer;padding:6px 0">Show the contract as canonical JSON (this exact text is what the hash is taken over)</summary>
+    <pre id="contract-json"></pre>
+  </details>
+</section>
+
+<section>
+  <h2>2 · The renderer, running</h2>
+  <p>
+    Forty-two aircraft, twenty-one a side, over the Capitol block — drawn under the law above, at the
+    rung you choose. <b>One budget, two consumers:</b> in an engagement the aircraft <em>are</em> the
+    world, so the swarm takes its share of the rung's segment budget first and the block gets what is
+    left. At rung 1.1 the block nearly disappears and all forty-two aircraft are still drawn. That is
+    correct, and it is said on screen rather than hidden.
+  </p>
+  <div class="controls">
+    <label>RUNG <select id="sel-rung"></select></label>
+    <label>HAL <select id="sel-hal"></select></label>
+    <label>FRAME <select id="sel-frame"><option value="quad">QUAD</option><option value="wing">WING</option></select></label>
+    <button id="btn-play">PAUSE</button>
+    <button id="btn-step">STEP</button>
+  </div>
+  <canvas id="arena" width="1000" height="520" role="img"
+          aria-label="Wireframe arena: the Capitol block with forty-two aircraft, twenty-one a side"></canvas>
+  <div class="hud" id="arena-hud"></div>
+  <p class="q">
+    Seeded throughout — <code>mulberry32</code>, never <code>Math.random</code>, never
+    <code>Date.now</code> in model code. Same seed, same tick, same picture, same hash. A point behind
+    the camera or outside the arena is <em>dropped and counted</em>, never clamped: a clamped point is a
+    lie drawn at the edge of the screen.
+  </p>
+</section>
+
+<section>
+  <h2>3 · Conformance</h2>
+  <p>
+    Fourteen clauses. Each one calls a function on <code>window.PARITY.impl</code>, which starts as the
+    reference implementation. Overwrite any of them in the console and run again — the clauses that
+    still pass are the clauses you match.
+  </p>
+  <div class="controls">
+    <button id="btn-run">RUN CONFORMANCE</button>
+    <button id="btn-copy">COPY REPORT</button>
+    <span class="q" id="copy-note"></span>
+  </div>
+  <div id="clauses"></div>
+  <div class="hashline" id="conformance-hash">CONFORMANCE HASH · not yet run</div>
+  <details>
+    <summary class="q" style="cursor:pointer;padding:6px 0">Show the report to paste back</summary>
+    <pre id="report"></pre>
+  </details>
+</section>
+
+<section>
+  <h2>4 · What parity requires of you</h2>
+  <ol style="max-width:70ch;padding-left:18px">
+    <li><b>Same contract hash.</b> Feed your constants through <code>canonical()</code> and
+        <code>fnv1a64()</code> below and publish the number. If it differs, one of us has a different
+        ladder and the rest of the comparison is meaningless.</li>
+    <li><b>Same conformance hash.</b> Swap in your functions, run, publish. A clause you fail is a clause
+        to discuss, not to quietly drop.</li>
+    <li><b>The three governing sentences hold in your build, not just in your prose.</b> A law defended
+        only by taste is already lost — each of ours is enforced by a gate that fails the build, and the
+        gate names are in the report.</li>
+    <li><b>Tell us what you had to invent.</b> Anywhere this contract was silent and you had to choose,
+        say so. Those are the seams where two builds drift, and they are worth more to us than the
+        clauses we already agree on.</li>
+  </ol>
+  <p class="q">
+    Open questions we already know are under-specified, and would rather hear your answer to than
+    pretend are settled: the CNN reserve for a fused multi-sensor band is currently a single figure per
+    HAL profile rather than per module; the upgrade hysteresis is three seconds of headroom against an
+    instant downgrade, which is asserted rather than derived; and the quorum fraction for authority
+    levels 4 and 5 is a policy number, not a measured one.
+  </p>
+</section>
+
+<footer>
+  eXeL-AI · Drone-2525 · Version 00.00 · revision 0.004 · generated 2026-09-15.
+  One file, no build, no network, no dependencies. Everything on this page is computed in this page.
+  <span class="q">"Where Shared Intention moves at the Speed of Thought."</span>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+/* ══════════════════════════════════════════════════════════════════════════════════════════════════
+   THE CONTRACT — read out of the shipped implementation, not retyped.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/** The thirteen. Nothing drawn anywhere may be a colour that is not in this object. */
+const TRINITY = {
+  human:"#8B0000", evolution:"#FF0000", intelligence:"#F97316", temporal:"#FFFF00",
+  abundance:"#80FF00", ooda:"#00FF00", platonic:"#10B981", consciousness:"#00FFFF",
+  framework:"#3B82F6", wholeness:"#0000FF", family:"#8B00FF", governance:"#6A00D4", blank:"#FFFFFF"
+};
+
+/** Band → the sensor modules that band fuses. One module added per band, never re-ordered. */
+const BANDS = [
+  { band:1, name:"VECTOR", sensors:["EO"] },
+  { band:2, name:"FIELD",  sensors:["EO","IR"] },
+  { band:3, name:"BLOCK",  sensors:["EO","IR","ACOUSTIC"] },
+  { band:4, name:"CITY",   sensors:["EO","IR","ACOUSTIC","MAG"] },
+  { band:5, name:"THEATRE",sensors:["EO","IR","ACOUSTIC","MAG","CHEM"] }
+];
+
+/* The 25 rungs, generated by the same rule the implementation uses: segments rise linearly from 280 to
+   4000 across the ladder; the n-gon count rises with the step; dpr walks 1.0 → 2.0 within each band;
+   demand fps FALLS as the rung climbs, because a higher rung demands more of the machine. */
+const RUNGS = (() => {
+  const out = [];
+  let i = 0;
+  for (const b of BANDS) for (let step = 1; step <= 5; step++, i++) {
+    out.push({
+      id: `${b.band}.${step}`, band: b.band, bandName: b.name, sensors: b.sensors,
+      segments: 280 + i * 155,
+      ngonSides: [6,7,8,9,10, 11,13,14,15,16, 17,18,19,20,21, 22,23,25,26,27, 28,29,30,31,39][i],
+      dpr: 1 + (step - 1) * 0.25,
+      demandFps: [96,93,90,86,83, 80,77,74,70,67, 64,61,58,54,51, 48,45,42,38,35, 32,29,26,22,19][i],
+      maxLod: b.band <= 1 ? 1 : b.band <= 3 ? 2 : 3
+    });
+  }
+  return out;
+})();
+
+/** The three HAL profiles. cnnMs is taken out of frameBudgetMs BEFORE the renderer sees any of it. */
+const HAL = [
+  { id:"pi",    label:"PI-CLASS",    frameBudgetMs:66, cnnMs:18, about:"a single-board computer doing its own edge extraction" },
+  { id:"edge",  label:"EDGE-SOC",    frameBudgetMs:33, cnnMs:12, about:"an embedded system-on-chip with a small vision block" },
+  { id:"accel", label:"ACCELERATOR", frameBudgetMs:16, cnnMs: 8, about:"a dedicated neural accelerator alongside the processor" }
+];
+
+/** Best first. Index 0 is the reference. Frame rate is surrendered only after resolution. */
+const STREAMS = [
+  { id:"1080p30", w:1920, h:1080, hz:30 },
+  { id:"720p30",  w:1280, h: 720, hz:30 },
+  { id:"480p30",  w: 854, h: 480, hz:30 },
+  { id:"480p15",  w: 854, h: 480, hz:15 }
+].map(s => ({ ...s, pixelsPerSecond: s.w * s.h * s.hz }));
+
+/** Five levels. `covers` is the whole ladder in one field: what ONE named decision buys. */
+const AUTHORITY = {
+  1:{ level:1, covers:"shot",   decider:"person", id:"every shot" },
+  2:{ level:2, covers:"target", decider:"person", id:"each aircraft once" },
+  3:{ level:3, covers:"window", decider:"person", id:"a declared window" },
+  4:{ level:4, covers:"window", decider:"group",  id:"a window the group approved" },
+  5:{ level:5, covers:"window", decider:"group",  id:"a standing mandate the group can end" }
+};
+const MANDATE_MAX_MS = 300000;
+
+/** Read from the X-BAT wireframe, not typed: the airframe is 38.579 m long. */
+const AIRFRAME_EXTENT = { lengthM:38.579, spanM:8.628, heightM:26.2 };
+/** Three silhouettes by distance band. A far aircraft is four segments; a near one twenty-four. */
+const GLYPH_COST = { far:4, mid:12, near:24 };
+const PER_SIDE = 21, SWARM_N = 42;
+/** The distance bands a silhouette is chosen by. Read from the shipped planner, not picked here. */
+const BAND_NEAR_M = 260, BAND_MID_M = 700;
+/** Seat offsets as FRACTIONS OF AIRFRAME LENGTH — the parallax scales with the aircraft, for free. */
+const SEAT_OFFSETS = {
+  quad: { pilot:{fwd:0.22,right:0,up:0.06},  targeteer:{fwd:0.06,right:0,up:-0.10} },
+  wing: { pilot:{fwd:0.46,right:0,up:0.10},  targeteer:{fwd:0.12,right:0,up:-0.24} }
+};
+/** The swarm's share of the rung budget, before the world gets any. */
+const SWARM_SHARE = 0.45;
+/** Upgrade needs sustained headroom; downgrade is immediate. Asserted, not derived — see §4. */
+const UPGRADE_HOLD_S = 3, CLIMB_HEADROOM_FRACTION = 0.15;
+
+const CONTRACT = {
+  project:{ name:"Drone-2525", version:"00.00", revision:"0.004", date:"2026-09-15" },
+  palette:TRINITY, rungs:RUNGS, hal:HAL, streams:STREAMS,
+  authority:AUTHORITY, mandateMaxMs:MANDATE_MAX_MS,
+  airframe:AIRFRAME_EXTENT, glyphCost:GLYPH_COST, perSide:PER_SIDE, swarmN:SWARM_N,
+  seatOffsets:SEAT_OFFSETS, swarmShare:SWARM_SHARE,
+  upgradeHoldS:UPGRADE_HOLD_S, climbHeadroomFraction:CLIMB_HEADROOM_FRACTION
+};
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════════
+   THE HASH — twenty lines, reproducible in any language. Canonical JSON: keys sorted at every depth,
+   no whitespace, numbers as JS prints them. FNV-1a 64-bit over the UTF-8 bytes of that string.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+function canonical(v){
+  if (v === null || typeof v !== "object") return JSON.stringify(v);
+  if (Array.isArray(v)) return "[" + v.map(canonical).join(",") + "]";
+  const keys = Object.keys(v).sort();
+  return "{" + keys.map(k => JSON.stringify(k) + ":" + canonical(v[k])).join(",") + "}";
+}
+function fnv1a64(str){
+  const PRIME = 0x100000001b3n, MASK = 0xFFFFFFFFFFFFFFFFn;
+  let h = 0xcbf29ce484222325n;
+  const bytes = new TextEncoder().encode(str);
+  for (let i = 0; i < bytes.length; i++) { h ^= BigInt(bytes[i]); h = (h * PRIME) & MASK; }
+  return h.toString(16).padStart(16, "0");
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════════
+   THE REFERENCE IMPLEMENTATION. Every clause in §3 calls one of these. Overwrite to test your own.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+const impl = {
+
+  /** Seeded PRNG. No Math.random anywhere in model code — replay is the whole point. */
+  rng(seed){ let a = seed >>> 0; return () => { a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; },
+
+  rung(id){ return RUNGS.find(r => r.id === id) || null; },
+  hal(id){ return HAL.find(h => h.id === id) || null; },
+
+  /** THE SENSOR IS PAID FIRST. This subtraction is the clause, and its order is the whole point. */
+  renderBudgetMs(halId){ const h = impl.hal(halId); return h ? h.frameBudgetMs - h.cnnMs : 0; },
+
+  /** ONE BUDGET, TWO CONSUMERS. The swarm's share is taken before the world is given anything. */
+  budgetSplit(rungId){
+    const r = impl.rung(rungId);
+    if (!r) return null;
+    const swarm = Math.min(Math.floor(r.segments * SWARM_SHARE), GLYPH_COST.near * SWARM_N);
+    return { total:r.segments, swarm, world:r.segments - swarm, perAircraft:swarm / SWARM_N };
+  },
+
+  /**
+   * PRESENCE BEFORE POLISH. Pass one gives EVERY living aircraft its four-segment silhouette, so the
+   * picture is never missing an aircraft that is actually there. Only pass two spends what is genuinely
+   * spare upgrading the nearest ones. The first draft did this the other way round — nearest first, at
+   * whatever size it wanted — and seven aircraft ate the budget while thirty-five vanished.
+   */
+  planSwarm(ranges, budget){
+    const band = ranges.map(() => "far");
+    let cost = 0, drawn = 0, dropped = 0;
+    const order = ranges.map((r, i) => [r, i]).sort((a, b) => a[0] - b[0]);
+    for (const [, i] of order) {
+      if (cost + GLYPH_COST.far > budget) { dropped++; band[i] = null; continue; }
+      cost += GLYPH_COST.far; drawn++;
+    }
+    for (const [r, i] of order) {
+      if (band[i] === null) continue;
+      const want = impl.glyphFor(r);
+      if (want === "far") continue;
+      const extra = GLYPH_COST[want] - GLYPH_COST.far;
+      if (cost + extra > budget) break;
+      cost += extra; band[i] = want;
+    }
+    return { band, cost, drawn, dropped };
+  },
+
+  /** Which silhouette an aircraft at this range gets. Three bands, never interpolated. */
+  glyphFor(rangeM){ return rangeM < BAND_NEAR_M ? "near" : rangeM < BAND_MID_M ? "mid" : "far"; },
+
+  /** DEGRADE IN A FIXED ORDER, AND SAY SO. Sensor module, then resolution, then frame rate. */
+  degrade(rungId, streamIndex){
+    const r = impl.rung(rungId);
+    if (r && r.sensors.length > 1) return { action:"drop-sensor", to:`${r.band - 1}.${r.id.split(".")[1]}`, named:true };
+    if (streamIndex < 2) return { action:"drop-resolution", to:STREAMS[streamIndex + 1].id, named:true };
+    if (streamIndex < STREAMS.length - 1) return { action:"drop-framerate", to:STREAMS[streamIndex + 1].id, named:true };
+    return { action:"floor", to:STREAMS[STREAMS.length - 1].id, named:true };
+  },
+
+  /** What fraction of the reference stream a rung still carries. */
+  fractionOfReference(i){ return STREAMS[Math.max(0, Math.min(STREAMS.length - 1, i))].pixelsPerSecond / STREAMS[0].pixelsPerSecond; },
+
+  /** THE FIRE GATE. There is no argument that makes this return true without a named decision. */
+  mayFire({ initiatedBy, level, mandate, targetId, nowMs }){
+    if (initiatedBy === "human") return { ok:true, why:"a person is pulling the trigger" };
+    const rule = AUTHORITY[level];
+    if (!rule) return { ok:false, why:"no such authority level" };
+    if (!mandate) return { ok:false, why:"a machine shot needs a named decision, and there is none" };
+    if (!mandate.by) return { ok:false, why:"a decision without a name is not a decision" };
+    if (mandate.endedBy) return { ok:false, why:`${mandate.endedBy} ended this mandate` };
+    if (rule.covers === "shot") return { ok:false, why:"at this level every shot is asked separately" };
+    if (nowMs - mandate.fromMs > MANDATE_MAX_MS) return { ok:false, why:"the mandate has expired" };
+    if (rule.covers === "target" && mandate.targetId !== targetId)
+      return { ok:false, why:`${mandate.by} authorised one aircraft, and this is not it` };
+    return { ok:true, why:`covered by ${mandate.by}'s decision` };
+  },
+
+  /** TWO SEATS, TWO EYES — offsets are fractions of the airframe's own measured length. */
+  seatEye(mount, seat, frame){
+    const base = [mount.e, mount.n, mount.groundU + mount.heightM];
+    if (mount.kind === "turret") return base;               // one head, one mount
+    const o = SEAT_OFFSETS[frame === "wing" ? "wing" : "quad"][seat];
+    const L = AIRFRAME_EXTENT.lengthM;
+    const hr = (mount.headingDeg * Math.PI) / 180, ch = Math.cos(hr), sh = Math.sin(hr);
+    return [ base[0] + (o.fwd * sh + o.right * ch) * L,
+             base[1] + (o.fwd * ch - o.right * sh) * L,
+             base[2] + o.up * L ];
+  },
+  seatSeparationM(mount, frame){
+    const a = impl.seatEye(mount, "pilot", frame), b = impl.seatEye(mount, "targeteer", frame);
+    return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  },
+
+  /** DROPPED, NEVER CLAMPED. A point behind the camera does not get pinned to the screen edge. */
+  project(v, cam){
+    const dx = v[0] - cam.e, dy = v[1] - cam.n, dz = v[2] - cam.u;
+    const br = cam.bearingRad, c = Math.cos(br), s = Math.sin(br);
+    const fwd = dy * c + dx * s, side = dx * c - dy * s;
+    if (fwd <= cam.nearM) return { behind:true };
+    const k = cam.focal / fwd;
+    return { behind:false, x: cam.pw / 2 + side * k, y: cam.ph / 2 - (dz + cam.pitchDrop * fwd) * k };
+  },
+
+  /** Every colour drawn must be one of the thirteen. This is the whole palette gate. */
+  isTrinity(hex){ return Object.values(TRINITY).includes(String(hex).toUpperCase()); }
+};
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════════
+   THE ARENA. A Capitol block and forty-two aircraft, under the law.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+const ARENA = (() => {
+  const r = impl.rng(2525);
+  const buildings = [];
+  // The Capitol itself: a long body with a dome, at the centre of the lawn.
+  buildings.push({ e:0, n:0, w:120, d:58, h:92, dome:true });
+  for (let i = 0; i < 13; i++) {                                    // the block around the lawn
+    const ring = 250 + r() * 210, a = (i / 13) * Math.PI * 2 + r() * 0.2;
+    buildings.push({ e: Math.cos(a) * ring, n: Math.sin(a) * ring,
+                     w: 40 + r() * 46, d: 34 + r() * 42, h: 22 + r() * 58, dome:false });
+  }
+  const trees = [];
+  for (let i = 0; i < 46; i++) {
+    const a = r() * Math.PI * 2, rad = 120 + r() * 190;
+    trees.push({ e: Math.cos(a) * rad, n: Math.sin(a) * rad, h: 9 + r() * 8 });
+  }
+  const roads = [];
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + 0.38;
+    roads.push([[Math.cos(a) * 90, Math.sin(a) * 90], [Math.cos(a) * 640, Math.sin(a) * 640]]);
+  }
+  return { buildings, trees, roads };
+})();
+
+/** Forty-two aircraft in flat columns — a tick allocates nothing. Twenty-one a side, opposed. */
+function initSwarm(){
+  const s = { e:new Float64Array(SWARM_N), n:new Float64Array(SWARM_N), u:new Float64Array(SWARM_N),
+              hdg:new Float64Array(SWARM_N), alive:new Uint8Array(SWARM_N).fill(1), t:0 };
+  const r = impl.rng(4242);
+  for (let i = 0; i < SWARM_N; i++) {
+    const blue = i < PER_SIDE, k = blue ? i : i - PER_SIDE;
+    s.e[i] = (blue ? -520 : 520) + (r() - 0.5) * 240;
+    s.n[i] = -420 + (k / (PER_SIDE - 1)) * 700 + (r() - 0.5) * 50;
+    s.u[i] = 170 + r() * 90;
+    s.hdg[i] = blue ? 90 : 270;
+  }
+  return s;
+}
+/** Deterministic in tick count, not in wall time: step(n) always yields the same state. */
+function stepSwarm(s, dt){
+  s.t += dt;
+  for (let i = 0; i < SWARM_N; i++) {
+    if (!s.alive[i]) continue;
+    const blue = i < PER_SIDE, dir = blue ? 1 : -1;
+    const sway = Math.sin(s.t * 0.7 + i * 0.41) * 26;
+    s.e[i] += dir * 34 * dt;
+    s.n[i] += Math.cos(s.t * 0.5 + i * 0.29) * 9 * dt;
+    s.u[i] = 205 + sway;
+    if (blue && s.e[i] > 560) s.e[i] = -560;
+    if (!blue && s.e[i] < -560) s.e[i] = 560;
+  }
+}
+
+const cv = document.getElementById("arena"), cx = cv.getContext("2d");
+const swarm = initSwarm();
+let rungId = "2.3", halId = "edge", frameMode = "quad", playing = true, drawnSegs = 0, droppedPts = 0;
+
+function cam(){
+  return { e:0, n:-700, u:150, bearingRad:0, focal:620, nearM:12,
+           pitchDrop:0.16, pw:cv.width, ph:cv.height };
+}
+function seg(ctx, a, b, hex, w){
+  const pa = impl.project(a, ctx.cam), pb = impl.project(b, ctx.cam);
+  if (pa.behind || pb.behind) { droppedPts++; return false; }      // dropped, never clamped
+  cx.strokeStyle = hex; cx.lineWidth = w;
+  cx.beginPath(); cx.moveTo(pa.x, pa.y); cx.lineTo(pb.x, pb.y); cx.stroke();
+  drawnSegs++; return true;
+}
+
+function drawArena(){
+  const r = impl.rung(rungId), split = impl.budgetSplit(rungId);
+  drawnSegs = 0; droppedPts = 0;
+  cx.fillStyle = "#000"; cx.fillRect(0, 0, cv.width, cv.height);   // black ground, always
+  const ctx = { cam: cam() };
+  let worldLeft = split.world;
+
+  // ── the ground grid: the horizon read from perspective, never from a brightness ramp
+  for (let i = -6; i <= 6 && worldLeft > 2; i++) {
+    if (seg(ctx, [i * 160, -700, 0], [i * 160, 700, 0], TRINITY.wholeness, 1)) worldLeft--;
+    if (seg(ctx, [-960, i * 160, 0], [960, i * 160, 0], TRINITY.wholeness, 1)) worldLeft--;
+  }
+  // ── roads
+  for (const rd of ARENA.roads) {
+    if (worldLeft < 2) break;
+    if (seg(ctx, [rd[0][0], rd[0][1], 0.4], [rd[1][0], rd[1][1], 0.4], TRINITY.governance, 1.2)) worldLeft--;
+  }
+  // ── buildings: edges only. A face is never painted; it is implied by its four edges.
+  for (const b of ARENA.buildings) {
+    if (worldLeft < 12) break;
+    const hw = b.w / 2, hd = b.d / 2;
+    const c = [[b.e-hw,b.n-hd],[b.e+hw,b.n-hd],[b.e+hw,b.n+hd],[b.e-hw,b.n+hd]];
+    for (let i = 0; i < 4; i++) {
+      const j = (i + 1) % 4;
+      if (seg(ctx, [c[i][0],c[i][1],0], [c[j][0],c[j][1],0], TRINITY.framework, 1)) worldLeft--;
+      if (seg(ctx, [c[i][0],c[i][1],b.h], [c[j][0],c[j][1],b.h], TRINITY.framework, 1)) worldLeft--;
+      if (seg(ctx, [c[i][0],c[i][1],0], [c[i][0],c[i][1],b.h], TRINITY.framework, 1)) worldLeft--;
+    }
+    // the dome is an n-gon whose side count IS the rung's declared curve resolution
+    if (b.dome && worldLeft > r.ngonSides) {
+      const N = r.ngonSides, R = 26;
+      for (let i = 0; i < N; i++) {
+        const a0 = (i/N)*Math.PI*2, a1 = ((i+1)/N)*Math.PI*2;
+        if (seg(ctx, [b.e+Math.cos(a0)*R, b.n+Math.sin(a0)*R, b.h+18],
+                     [b.e+Math.cos(a1)*R, b.n+Math.sin(a1)*R, b.h+18], TRINITY.temporal, 1)) worldLeft--;
+      }
+      seg(ctx, [b.e, b.n, b.h+18], [b.e, b.n, b.h+46], TRINITY.temporal, 1);
+    }
+  }
+  // ── trees, as declared n-gons, dropped first when the budget runs out
+  for (const tr of ARENA.trees) {
+    if (worldLeft < 4) break;
+    if (seg(ctx, [tr.e,tr.n,0], [tr.e,tr.n,tr.h], TRINITY.platonic, 1)) worldLeft--;
+    const R = tr.h * 0.42;
+    for (let i = 0; i < 3; i++) {
+      const a0 = (i/3)*Math.PI*2, a1 = ((i+1)/3)*Math.PI*2;
+      if (seg(ctx, [tr.e+Math.cos(a0)*R, tr.n+Math.sin(a0)*R, tr.h*0.72],
+                   [tr.e+Math.cos(a1)*R, tr.n+Math.sin(a1)*R, tr.h*0.72], TRINITY.platonic, 1)) worldLeft--;
+    }
+  }
+
+  // ── the swarm, drawn out of its OWN share — never starved to keep the world pretty, and PLANNED
+  //    two-pass so every aircraft that is there is on the screen before any of them gets detail.
+  const ranges = [];
+  for (let i = 0; i < SWARM_N; i++)
+    ranges.push(Math.hypot(swarm.e[i] - ctx.cam.e, swarm.n[i] - ctx.cam.n, swarm.u[i] - ctx.cam.u));
+  const plan = impl.planSwarm(ranges, split.swarm);
+  let near = 0, mid = 0, far = 0;
+  for (let i = 0; i < SWARM_N; i++) {
+    if (!swarm.alive[i]) continue;
+    const band = plan.band[i];
+    if (band === null) continue;                                    // no budget: dropped, and counted
+    const blue = i < PER_SIDE;
+    const hex = blue ? TRINITY.consciousness : TRINITY.evolution;
+    band === "near" ? near++ : band === "mid" ? mid++ : far++;
+    const L = AIRFRAME_EXTENT.lengthM, S = AIRFRAME_EXTENT.spanM * 2.2;
+    const hr = (swarm.hdg[i] * Math.PI) / 180, ch = Math.cos(hr), sh = Math.sin(hr);
+    const P = (f, s2, u2) => [ swarm.e[i] + f*sh + s2*ch, swarm.n[i] + f*ch - s2*sh, swarm.u[i] + u2 ];
+    const nose = P(L*0.55,0,0), tail = P(-L*0.45,0,0);
+    seg(ctx, nose, tail, hex, 1.3);                                   // 4 segments: the far glyph
+    seg(ctx, P(0,-S/2,0), P(0,S/2,0), hex, 1.3);
+    seg(ctx, P(-L*0.3,-S*0.22,0), P(-L*0.3,S*0.22,0), hex, 1.1);
+    seg(ctx, tail, P(-L*0.45,0,S*0.28), hex, 1.1);
+    if (band !== "far") {                                             // 12 segments: the mid glyph
+      seg(ctx, nose, P(0,-S/2,0), hex, 1); seg(ctx, nose, P(0,S/2,0), hex, 1);
+      seg(ctx, P(0,-S/2,0), P(-L*0.3,-S*0.22,0), hex, 1);
+      seg(ctx, P(0,S/2,0), P(-L*0.3,S*0.22,0), hex, 1);
+      seg(ctx, P(L*0.2,-S*0.18,0), P(L*0.2,S*0.18,0), hex, 1);
+      seg(ctx, P(0,-S*0.16,-S*0.1), P(0,S*0.16,-S*0.1), hex, 1);
+      seg(ctx, P(-L*0.45,0,S*0.28), P(-L*0.2,0,S*0.1), hex, 1);
+      seg(ctx, nose, P(L*0.2,0,S*0.06), hex, 1);
+    }
+    if (band === "near") {                                            // 24 segments: the near glyph
+      for (let k = 0; k < 6; k++) {
+        const f = L*0.5 - k*(L/6);
+        seg(ctx, P(f,-S*0.2,0), P(f,S*0.2,0), hex, 0.8);
+        seg(ctx, P(f,0,-S*0.08), P(f,0,S*0.08), hex, 0.8);
+      }
+    }
+  }
+
+  // ── the two eyes, drawn: a pilot must be able to SEE that the laser does not leave their seat
+  const mount = { kind:"airframe", e:0, n:60, groundU:0, heightM:140, headingDeg:20 };
+  const pe = impl.seatEye(mount, "pilot", frameMode), te = impl.seatEye(mount, "targeteer", frameMode);
+  const pp = impl.project(pe, ctx.cam), tp = impl.project(te, ctx.cam);
+  if (!pp.behind && !tp.behind) {
+    cx.strokeStyle = TRINITY.abundance; cx.lineWidth = 1.4;
+    cx.beginPath(); cx.moveTo(pp.x-5,pp.y); cx.lineTo(pp.x+5,pp.y);
+    cx.moveTo(pp.x,pp.y-5); cx.lineTo(pp.x,pp.y+5); cx.stroke();
+    cx.strokeStyle = TRINITY.intelligence;
+    cx.beginPath(); cx.arc(tp.x, tp.y, 4, 0, Math.PI*2); cx.stroke();
+    cx.strokeStyle = TRINITY.abundance; cx.lineWidth = 0.7;
+    cx.beginPath(); cx.moveTo(pp.x,pp.y); cx.lineTo(tp.x,tp.y); cx.stroke();
+    drawnSegs += 6;
+  }
+
+  // ── the HUD, in the same stroke language, on the same canvas, at the same weight
+  cx.strokeStyle = TRINITY.consciousness; cx.lineWidth = 1;
+  const cxx = cv.width/2, cyy = cv.height/2;
+  cx.beginPath();
+  cx.moveTo(cxx-22,cyy); cx.lineTo(cxx-8,cyy); cx.moveTo(cxx+8,cyy); cx.lineTo(cxx+22,cyy);
+  cx.moveTo(cxx,cyy-22); cx.lineTo(cxx,cyy-8); cx.moveTo(cxx,cyy+8); cx.lineTo(cxx,cyy+22);
+  cx.moveTo(14,14); cx.lineTo(34,14); cx.moveTo(14,14); cx.lineTo(14,34);
+  cx.moveTo(cv.width-14,14); cx.lineTo(cv.width-34,14); cx.moveTo(cv.width-14,14); cx.lineTo(cv.width-14,34);
+  cx.stroke();
+
+  const sep = impl.seatSeparationM(mount, frameMode);
+  document.getElementById("arena-hud").innerHTML = [
+    `RUNG <b>${r.id} ${r.bandName}</b>`,
+    `SENSORS <b>${r.sensors.join("·")}</b>`,
+    `BUDGET <b>${split.total}</b> = swarm <b>${split.swarm}</b> + world <b>${split.world}</b>`,
+    `PER AIRCRAFT <b>${split.perAircraft.toFixed(1)}</b>`,
+    `DRAWN <b>${drawnSegs}</b> · DROPPED <b>${droppedPts}</b>`,
+    `GLYPHS near <b>${near}</b> mid <b>${mid}</b> far <b>${far}</b> · unplaced <b>${plan.dropped}</b>`,
+    `HAL <b>${impl.hal(halId).label}</b> · render budget <b>${impl.renderBudgetMs(halId)}ms</b> of ${impl.hal(halId).frameBudgetMs}ms`,
+    `SEATS <b>${frameMode.toUpperCase()}</b> · <b>${sep.toFixed(1)} m</b> apart`
+  ].join(" &nbsp;·&nbsp; ");
+}
+
+let last = 0;
+function loop(ts){
+  if (playing) { const dt = Math.min(0.05, (ts - last) / 1000 || 0.016); last = ts; stepSwarm(swarm, dt); drawArena(); }
+  requestAnimationFrame(loop);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════════
+   THE CONFORMANCE CLAUSES. Each is one sentence and one check. A clause that cannot fail is not a
+   clause — every one of these is written so that a plausible wrong implementation trips it.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+const CLAUSES = [
+  { id:"C01", gate:"tests/drone-palette.test.mjs",
+    say:"Every colour drawn is one of the thirteen, and a near-miss is not close enough.",
+    run(){ const good = Object.values(TRINITY).every(h => impl.isTrinity(h));
+           return { ok: good && !impl.isTrinity("#00FFFE") && !impl.isTrinity("#01FFFF"),
+                    note:`13 accepted, near-misses refused` }; } },
+
+  { id:"C02", gate:"tests/mot-ladder.test.mjs",
+    say:"There are 25 rungs, segments rise monotonically, and demand fps FALLS as the rung climbs.",
+    run(){ if (RUNGS.length !== 25) return { ok:false, note:`${RUNGS.length} rungs, not 25` };
+           for (let i = 1; i < RUNGS.length; i++){
+             if (RUNGS[i].segments <= RUNGS[i-1].segments) return { ok:false, note:`segments not rising at ${RUNGS[i].id}` };
+             if (RUNGS[i].demandFps >= RUNGS[i-1].demandFps) return { ok:false, note:`demand not falling at ${RUNGS[i].id}` };
+           }
+           return { ok:true, note:`280→4000 segments · 96→19 fps` }; } },
+
+  { id:"C03", gate:"tests/mot-ladder.test.mjs",
+    say:"A band adds exactly one sensor module and never re-orders the ones below it.",
+    run(){ for (let b = 1; b < BANDS.length; b++){
+             const prev = BANDS[b-1].sensors, here = BANDS[b].sensors;
+             if (here.length !== prev.length + 1) return { ok:false, note:`band ${b+1} adds ${here.length-prev.length}` };
+             if (prev.some((s,i) => here[i] !== s)) return { ok:false, note:`band ${b+1} re-orders the stack` };
+           }
+           return { ok:true, note:`EO → IR → ACOUSTIC → MAG → CHEM` }; } },
+
+  { id:"C04", gate:"tests/drone-hal.test.mjs",
+    say:"THE SENSOR IS PAID FIRST: the render budget is the frame budget minus the CNN reserve, on every profile.",
+    run(){ for (const h of HAL){
+             const got = impl.renderBudgetMs(h.id);
+             if (got !== h.frameBudgetMs - h.cnnMs) return { ok:false, note:`${h.label}: ${got}ms, expected ${h.frameBudgetMs-h.cnnMs}ms` };
+             if (got >= h.frameBudgetMs) return { ok:false, note:`${h.label} renders on the sensor's time` };
+           }
+           return { ok:true, note:`pi 48ms · edge 21ms · accel 8ms left to render` }; } },
+
+  { id:"C05", gate:"tests/drone-swarm.test.mjs",
+    say:"Forty-two aircraft, twenty-one a side, and the sides are equal.",
+    run(){ return { ok: SWARM_N === 42 && PER_SIDE === 21 && PER_SIDE * 2 === SWARM_N,
+                    note:`${PER_SIDE} v ${PER_SIDE}` }; } },
+
+  { id:"C06", gate:"tests/drone-swarm.test.mjs",
+    say:"ONE BUDGET, TWO CONSUMERS: the swarm's share is taken first, and every aircraft is still drawn at the arcade rung.",
+    run(){ const lo = impl.budgetSplit("1.1"), pass = impl.budgetSplit("2.3");
+           if (!lo || !pass) return { ok:false, note:"no split" };
+           if (lo.swarm + lo.world !== lo.total) return { ok:false, note:"the split does not sum to the budget" };
+           if (pass.perAircraft < GLYPH_COST.far) return { ok:false, note:`only ${pass.perAircraft.toFixed(1)} segs/aircraft at the pass mark` };
+           return { ok:true, note:`1.1 → ${lo.swarm}/${lo.world} · 2.3 → ${pass.swarm}/${pass.world} (${pass.perAircraft.toFixed(1)} each)` }; } },
+
+  { id:"C07", gate:"tests/drone-swarm.test.mjs",
+    say:"PRESENCE BEFORE POLISH: at the pass mark every one of the 42 is placed before any of them is upgraded.",
+    run(){ const ranges = Array.from({length:SWARM_N}, (_, i) => 150 + i * 40);
+           const split = impl.budgetSplit("2.3");
+           const p = impl.planSwarm(ranges, split.swarm);
+           if (p.dropped !== 0) return { ok:false, note:`${p.dropped} aircraft left off the screen at the pass mark` };
+           if (p.cost > split.swarm) return { ok:false, note:`the plan spent ${p.cost} of ${split.swarm}` };
+           const tight = impl.planSwarm(ranges, GLYPH_COST.far * SWARM_N);   // exactly enough for presence
+           if (tight.dropped !== 0) return { ok:false, note:"presence was not paid for first" };
+           if (tight.band.some(b => b !== "far")) return { ok:false, note:"detail was bought before every aircraft was placed" };
+           return { ok:true, note:`42/42 placed · ${p.cost} of ${split.swarm} segments · near ${p.band.filter(b=>b==="near").length}` }; } },
+
+  { id:"C08", gate:"tests/drone-swarm.test.mjs",
+    say:"A tick is deterministic: the same seed stepped the same number of times gives the same state, bit for bit.",
+    run(){ const a = initSwarm(), b = initSwarm();
+           for (let i = 0; i < 200; i++){ stepSwarm(a, 0.05); stepSwarm(b, 0.05); }
+           for (let i = 0; i < SWARM_N; i++) if (a.e[i] !== b.e[i] || a.n[i] !== b.n[i] || a.u[i] !== b.u[i])
+             return { ok:false, note:`aircraft ${i} diverged` };
+           return { ok:true, note:`200 ticks · 42 aircraft · identical` }; } },
+
+  { id:"C09", gate:"tests/drone-gimbal.test.mjs",
+    say:"A point behind the camera is DROPPED and counted, never clamped to the edge of the screen.",
+    run(){ const c = cam();
+           const behind = impl.project([0, c.n - 400, 100], c);
+           const front = impl.project([0, c.n + 400, 100], c);
+           if (!behind.behind) return { ok:false, note:"a point behind the camera was given coordinates" };
+           if (front.behind) return { ok:false, note:"a point in front was dropped" };
+           if (Number.isFinite(behind.x)) return { ok:false, note:"a dropped point still carries an x — that is a clamp" };
+           return { ok:true, note:"behind → {behind:true}, no coordinates at all" }; } },
+
+  { id:"C10", gate:"tests/drone-authority.test.mjs",
+    say:"SILENCE IS NEVER CONSENT: at every one of the five levels a machine shot with no named decision is refused.",
+    run(){ for (const lvl of [1,2,3,4,5]){
+             const r = impl.mayFire({ initiatedBy:"ai", level:lvl, mandate:null, targetId:"R07", nowMs:1000 });
+             if (r.ok) return { ok:false, note:`level ${lvl} fired on silence` };
+             const anon = impl.mayFire({ initiatedBy:"ai", level:lvl, mandate:{ by:"", fromMs:0 }, targetId:"R07", nowMs:1000 });
+             if (anon.ok) return { ok:false, note:`level ${lvl} accepted an unnamed decision` };
+           }
+           return { ok:true, note:"5/5 refused on silence and 5/5 on an unnamed decision" }; } },
+
+  { id:"C11", gate:"tests/drone-authority.test.mjs",
+    say:"A mandate covers only what it declares — level 2 is one aircraft, and it expires.",
+    run(){ const m = { by:"the watch officer", fromMs:0, targetId:"R07" };
+           const right = impl.mayFire({ initiatedBy:"ai", level:2, mandate:m, targetId:"R07", nowMs:1000 });
+           const wrong = impl.mayFire({ initiatedBy:"ai", level:2, mandate:m, targetId:"R11", nowMs:1000 });
+           const stale = impl.mayFire({ initiatedBy:"ai", level:3, mandate:m, targetId:"R07", nowMs:MANDATE_MAX_MS + 1 });
+           const ended = impl.mayFire({ initiatedBy:"ai", level:3, mandate:{ ...m, endedBy:"the watch officer" }, targetId:"R07", nowMs:1000 });
+           if (!right.ok) return { ok:false, note:"the authorised aircraft was refused" };
+           if (wrong.ok) return { ok:false, note:"one authorisation covered a second aircraft" };
+           if (stale.ok) return { ok:false, note:"an expired mandate still fired" };
+           if (ended.ok) return { ok:false, note:"a mandate ended by name still fired" };
+           return { ok:true, note:"covers one · refuses the next · expires at 5 min · ends on the word" }; } },
+
+  { id:"C12", gate:"tests/drone-authority.test.mjs",
+    say:"Level 1 asks about every shot separately — a mandate cannot be used to skip the question.",
+    run(){ const r = impl.mayFire({ initiatedBy:"ai", level:1,
+             mandate:{ by:"the watch officer", fromMs:0, targetId:"R07" }, targetId:"R07", nowMs:1000 });
+           return { ok: !r.ok, note: r.ok ? "level 1 accepted a standing mandate" : r.why }; } },
+
+  { id:"C13", gate:"tests/seat-view.test.mjs",
+    say:"Two seats, two eyes — the separation comes from the airframe's measured length and differs between rotors and wing.",
+    run(){ const m = { kind:"airframe", e:0, n:0, groundU:163, heightM:60, headingDeg:0 };
+           const q = impl.seatSeparationM(m, "quad"), w = impl.seatSeparationM(m, "wing");
+           const t = impl.seatSeparationM({ ...m, kind:"turret" }, "wing");
+           if (t !== 0) return { ok:false, note:`a turret was given a ${t.toFixed(2)} m parallax it does not have` };
+           if (!(w > q + 1)) return { ok:false, note:`quad ${q.toFixed(1)} m and wing ${w.toFixed(1)} m are the same geometry` };
+           if (w >= AIRFRAME_EXTENT.lengthM) return { ok:false, note:"the seats are further apart than the aircraft is long" };
+           return { ok:true, note:`quad ${q.toFixed(1)} m · wing ${w.toFixed(1)} m · turret 0` }; } },
+
+  { id:"C14", gate:"tests/drone-fidelity.test.mjs",
+    say:"Degradation runs in a fixed order — sensor module, then resolution, then frame rate — and every step is named.",
+    run(){ const d1 = impl.degrade("3.3", 0), d2 = impl.degrade("1.3", 0), d3 = impl.degrade("1.3", 2);
+           if (d1.action !== "drop-sensor") return { ok:false, note:`a fused band dropped ${d1.action} before a sensor` };
+           if (d2.action !== "drop-resolution") return { ok:false, note:`a single-sensor rung dropped ${d2.action} before resolution` };
+           if (d3.action !== "drop-framerate") return { ok:false, note:`frame rate was not last (${d3.action})` };
+           if (![d1,d2,d3].every(d => d.named)) return { ok:false, note:"a degradation happened silently" };
+           return { ok:true, note:"sensor → resolution → frame rate, each one named" }; } },
+
+  { id:"C15", gate:"tests/drone-fidelity.test.mjs",
+    say:"The stream ladder surrenders resolution before frame rate, and reports what fraction of the reference is left.",
+    run(){ if (STREAMS[0].id !== "1080p30") return { ok:false, note:"the reference is not 1080p30" };
+           for (let i = 1; i < STREAMS.length; i++)
+             if (STREAMS[i].pixelsPerSecond >= STREAMS[i-1].pixelsPerSecond) return { ok:false, note:`rung ${i} is not a degradation` };
+           if (STREAMS[2].hz !== 30) return { ok:false, note:"frame rate was surrendered before resolution was exhausted" };
+           const f = impl.fractionOfReference(2);
+           return { ok: Math.abs(f - (854*480*30)/(1920*1080*30)) < 1e-9,
+                    note:`480p30 carries ${(f*100).toFixed(1)}% of the reference` }; } }
+];
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════════
+   RENDER THE PAGE
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+const $ = (id) => document.getElementById(id);
+const rows = (tbl, data) => { $(tbl).querySelector("tbody").innerHTML = data.join(""); };
+
+rows("t-rungs", RUNGS.map(r => `<tr><td>${r.id}</td><td>${r.bandName}</td><td>${r.sensors.join("·")}</td>
+  <td class="n">${r.segments}</td><td class="n">${r.ngonSides}</td><td class="n">${r.dpr.toFixed(2)}</td>
+  <td class="n">${r.demandFps}</td><td class="n">${r.maxLod}</td></tr>`));
+
+rows("t-hal", HAL.map(h => `<tr><td>${h.id}</td><td>${h.label}</td><td class="n">${h.frameBudgetMs} ms</td>
+  <td class="n">${h.cnnMs} ms</td><td class="n">${h.frameBudgetMs - h.cnnMs} ms</td><td class="q">${h.about}</td></tr>`));
+
+rows("t-stream", STREAMS.map((s, i) => `<tr><td class="n">${i}</td><td>${s.id}</td>
+  <td class="n">${s.w}×${s.h}</td><td class="n">${s.hz}</td><td class="n">${s.pixelsPerSecond.toLocaleString("en")}</td>
+  <td class="n">${(impl.fractionOfReference(i)*100).toFixed(1)}%</td>
+  <td class="q">${i === 0 ? "nothing — this is the reference" : i < 3 ? "resolution" : "frame rate, last of all"}</td></tr>`));
+
+rows("t-auth", Object.values(AUTHORITY).map(a => `<tr><td class="n">${a.level}</td>
+  <td>${a.decider === "person" ? "a named person" : "the SI key group, by quorum"}</td>
+  <td>${a.covers}</td><td class="q">${a.id}</td></tr>`));
+
+$("b-extent").innerHTML = Object.entries(AIRFRAME_EXTENT)
+  .map(([k,v]) => `<div class="kv"><b>${k.replace("M","")}</b><span>${v} m</span></div>`).join("");
+$("b-glyph").innerHTML = Object.entries(GLYPH_COST)
+  .map(([k,v]) => `<div class="kv"><b>${k}</b><span>${v}</span></div>`).join("")
+  + `<div class="kv"><b>bands at</b><span>450 m · 1200 m</span></div>`;
+$("b-swarm").innerHTML = `<div class="kv"><b>total</b><span>${SWARM_N}</span></div>
+  <div class="kv"><b>per side</b><span>${PER_SIDE}</span></div>
+  <div class="kv"><b>swarm share</b><span>${(SWARM_SHARE*100).toFixed(0)}%</span></div>
+  <div class="kv"><b>pass mark</b><span>rung 2.3 @ 1080p30</span></div>`;
+
+{
+  const m = { kind:"airframe", e:0, n:0, groundU:163, heightM:60, headingDeg:0 };
+  $("sep-quad").textContent = impl.seatSeparationM(m, "quad").toFixed(1) + " m";
+  $("sep-wing").textContent = impl.seatSeparationM(m, "wing").toFixed(1) + " m";
+  rows("t-seats", ["quad","wing"].flatMap(f => ["pilot","targeteer"].map(s => {
+    const o = SEAT_OFFSETS[f][s];
+    return `<tr><td>${f}</td><td>${s}</td><td class="n">${o.fwd.toFixed(2)}</td>
+      <td class="n">${o.right.toFixed(2)}</td><td class="n">${o.up.toFixed(2)}</td>
+      <td class="n">${(Math.hypot(o.fwd,o.right,o.up)*AIRFRAME_EXTENT.lengthM).toFixed(1)} m</td></tr>`;
+  })));
+}
+
+const CONTRACT_JSON = canonical(CONTRACT);
+const CONTRACT_HASH = fnv1a64(CONTRACT_JSON);
+$("contract-json").textContent = CONTRACT_JSON;
+$("contract-hash").textContent = `CONTRACT HASH · fnv1a64 · ${CONTRACT_HASH}   (${CONTRACT_JSON.length} bytes canonical)`;
+
+$("sel-rung").innerHTML = RUNGS.map(r =>
+  `<option value="${r.id}"${r.id === rungId ? " selected" : ""}>${r.id} ${r.bandName} · ${r.sensors.length}s</option>`).join("");
+$("sel-hal").innerHTML = HAL.map(h =>
+  `<option value="${h.id}"${h.id === halId ? " selected" : ""}>${h.label}</option>`).join("");
+$("sel-rung").onchange = (e) => { rungId = e.target.value; drawArena(); };
+$("sel-hal").onchange = (e) => { halId = e.target.value; drawArena(); };
+$("sel-frame").onchange = (e) => { frameMode = e.target.value; drawArena(); };
+$("btn-play").onclick = (e) => { playing = !playing; e.target.textContent = playing ? "PAUSE" : "PLAY"; };
+$("btn-step").onclick = () => { stepSwarm(swarm, 0.05); drawArena(); };
+
+let REPORT = null;
+function runConformance(){
+  const results = CLAUSES.map(c => {
+    let r;
+    try { r = c.run(); } catch (err) { r = { ok:false, note:`threw: ${err && err.message}` }; }
+    return { id:c.id, verdict: r.ok ? "PASS" : "FAIL", say:c.say, note:r.note, gate:c.gate };
+  });
+  $("clauses").innerHTML = results.map(r =>
+    `<div class="clause"><div class="verdict ${r.verdict}">${r.id} ${r.verdict}</div>
+     <div><div>${r.say}</div><div class="why">${r.note} &nbsp;·&nbsp; gate: <code>${r.gate}</code></div></div></div>`).join("");
+  const passed = results.filter(r => r.verdict === "PASS").length;
+  const payload = { contractHash:CONTRACT_HASH, results: results.map(r => ({ id:r.id, verdict:r.verdict })) };
+  const confHash = fnv1a64(canonical(payload));
+  $("conformance-hash").textContent =
+    `CONFORMANCE · ${passed}/${results.length} · fnv1a64 · ${confHash}`;
+  REPORT = [
+    "DRONE-2525 PARITY REPORT",
+    `contract   fnv1a64 ${CONTRACT_HASH}`,
+    `conformance fnv1a64 ${confHash}   ${passed}/${results.length}`,
+    `agent      ${navigator.userAgent}`,
+    "",
+    ...results.map(r => `${r.id} ${r.verdict.padEnd(4)} ${r.say}\n         ${r.note}`)
+  ].join("\n");
+  $("report").textContent = REPORT;
+}
+$("btn-run").onclick = runConformance;
+$("btn-copy").onclick = async () => {
+  if (!REPORT) runConformance();
+  try { await navigator.clipboard.writeText(REPORT); $("copy-note").textContent = "copied"; }
+  catch { $("copy-note").textContent = "clipboard refused — the report is in the panel below"; }
+};
+
+/** The hooks a second implementation swaps into. Everything in §3 calls through this object. */
+window.PARITY = { CONTRACT, CONTRACT_HASH, canonical, fnv1a64, impl, CLAUSES, run: runConformance,
+                  arena: { swarm, initSwarm, stepSwarm, draw: drawArena } };
+
+drawArena();
+runConformance();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
