@@ -28,7 +28,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.001",
+  "revision": "0.002",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
   "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -44,6 +44,13 @@ export const DRONE_DOMAIN = {
    "kind": "ask",
    "why": "Drone-2525 1st Pass persisted verbatim; the CRS ladder opens at Version 00.00.",
    "commit": "7b0b790"
+  },
+  {
+   "revision": "0.002",
+   "date": "2026-09-15",
+   "kind": "decision",
+   "why": "The MoT ladder replaces the four-tier fidelity table: 5 compute bands x 5 resolution steps, 1.1 the arcade rung and the fastest. Demand and capability are separated. Multi-sensor fusion EO->CHEM sheds from the top and never sheds EO. The unit holds 1080p30 and names every step down. A self-test walks the ladder in 6 to 15 minutes and reports the rung this machine actually holds.",
+   "commit": "pending"
   }
  ],
  "arena": {
@@ -1268,6 +1275,116 @@ export const DRONE_DOMAIN = {
    "dtm": "Version 00.00 revision 0.001",
    "stretch": "CRS rows compare in /crs",
    "status": "implemented"
+  },
+  {
+   "id": "DRN-11.01",
+   "title": "The MoT ladder: five compute bands by five resolution steps",
+   "statement": "Detail and sensing are asked for on a 25-rung ladder, 1.1 through 5.5, where the band is the edge-compute class and the step is the resolution; rung 1.1 is the 1983 vector arcade and is the fastest picture the machine can make.",
+   "in": "DRN-11.01.IN",
+   "out": "DRN-11.01.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-07",
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "ladder monotonic in both axes; 1.1 asks for more frames than 5.5",
+   "verify": "tests/mot-ladder.test.mjs",
+   "dtm": "25 rungs selectable",
+   "stretch": "a robot picks its own rung unattended",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.04",
+   "title": "Demand and capability are separate, and never mixed",
+   "statement": "What the picture asks for (the rung) and what the machine can deliver (the HAL class and the measured frame rate) are different quantities held in different modules, and only calibration is allowed to reconcile them.",
+   "in": "DRN-11.04.IN",
+   "out": "DRN-11.04.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-07"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "a richer rung never asks for a faster picture",
+   "verify": "tests/mot-ladder.test.mjs",
+   "dtm": "the old inverted four-tier table is gone",
+   "stretch": "the same split serves every 2525 domain",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-05.03",
+   "title": "Multi-sensor fusion, shed from the top and never blind",
+   "statement": "Sensing runs EO, IR, ACOUSTIC, MAG and CHEM, one more module per compute band; when the frame will not hold, modules are shed from the top of that ladder and EO is never shed, because a unit that cannot see is not degraded but blind.",
+   "in": "DRN-05.03.IN",
+   "out": "DRN-05.03.OUT",
+   "section": "V",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "EO survives every degradation path",
+   "verify": "tests/mot-ladder.test.mjs",
+   "dtm": "five modules declared per band",
+   "stretch": "a real sensor replaces the simulated one behind the same interface",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.05",
+   "title": "Hold 1080p30, and name every step down from it",
+   "statement": "The unit tries to hold a 1920x1080 30 Hz reference stream; when it cannot it sheds a sensor module, then resolution, then frame rate, in that order, and every step is named on screen rather than taken silently.",
+   "in": "DRN-11.05.IN",
+   "out": "DRN-11.05.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "degradation order fixed; climb needs sustained headroom",
+   "verify": "tests/mot-ladder.test.mjs",
+   "dtm": "stream ladder live in the HUD",
+   "stretch": "the same ladder drives a real encoder",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.06",
+   "title": "Self-test: the rung this machine actually holds, in 6 to 15 minutes",
+   "statement": "Pointed at a new board or a new sensor, the unit walks the ladder from 1.1 upward under real drawing load, measures a sustained frame rate at each rung, and reports the highest rung it holds at the reference stream, inside a declared 6 to 15 minute budget.",
+   "in": "DRN-11.06.IN",
+   "out": "DRN-11.06.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-06",
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "dwell derived from the budget; sweep stops early after two failures",
+   "verify": "tests/self-cal-runner.test.mjs",
+   "dtm": "a saved result file naming the ceiling",
+   "stretch": "run headless on the robot itself",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.07",
+   "title": "The robot may pick its own compute class",
+   "statement": "Three compute classes are declared with their frame budgets and sensor costs, and AUTO lets the unit choose its own class from the frame rate it measures rather than from a label someone typed.",
+   "in": "DRN-11.07.IN",
+   "out": "DRN-11.07.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-07"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "AUTO thresholds derived from the budgets themselves",
+   "verify": "tests/mot-ladder.test.mjs",
+   "dtm": "PI / EDGE-SOC / ACCELERATOR selectable",
+   "stretch": "a fourth class added without touching a caller",
+   "status": "implemented"
   }
  ],
  "status": {
@@ -1275,6 +1392,63 @@ export const DRONE_DOMAIN = {
   "build": "Amber",
   "human_testing": "Red",
   "operations": "Red"
+ },
+ "motLadder": {
+  "bands": 5,
+  "steps": 5,
+  "rungs": 25,
+  "min": "1.1",
+  "max": "5.5",
+  "sensorLadder": [
+   "EO",
+   "IR",
+   "ACOUSTIC",
+   "MAG",
+   "CHEM"
+  ],
+  "note": "Band = edge-compute class (how many sensor modules and how much CNN). Step = resolution (pixel density and curve roundness). Rung 1.1 is the 1983 vector arcade and asks for the fastest picture; 5.5 is the dense fused mesh. A higher rung asks for MORE work and therefore FEWER frames per second — demand, not capability."
+ },
+ "hal": {
+  "profiles": [
+   {
+    "id": "pi",
+    "label": "PI-CLASS",
+    "frameBudgetMs": 66,
+    "cnnMs": 18
+   },
+   {
+    "id": "edge",
+    "label": "EDGE-SOC",
+    "frameBudgetMs": 33,
+    "cnnMs": 12
+   },
+   {
+    "id": "accel",
+    "label": "ACCELERATOR",
+    "frameBudgetMs": 16,
+    "cnnMs": 8
+   }
+  ],
+  "auto": "the unit picks its class from its own measured frame rate",
+  "rule": "the CNN reserve is subtracted from the frame before the renderer may want any of it"
+ },
+ "stream": {
+  "reference": "1080p30",
+  "ladder": [
+   "1080p30",
+   "720p30",
+   "480p30",
+   "480p15"
+  ],
+  "rule": "shed a sensor module first, then resolution, then frame rate — and name every step"
+ },
+ "selfCal": {
+  "budgetMinutesMin": 6,
+  "budgetMinutesMax": 15,
+  "minDwellS": 12,
+  "maxDwellS": 36,
+  "failStreakToStop": 2,
+  "goal": "report the highest rung this machine holds at the reference stream"
  }
 } as unknown as DroneDomain;
 export default DRONE_DOMAIN;

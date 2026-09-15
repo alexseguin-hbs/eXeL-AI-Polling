@@ -6,7 +6,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildArena, type DomainSource } from "@/lib/drone-2525/arena-model";
 import { selectLod } from "@/lib/wire-core/wire-model";
-import { TIERS, SENSOR_PROFILES, initFidelity, stepFidelity, applyCap, fidelityLabel, type Tier } from "@/lib/wire-core/fidelity";
+import { motSpec, motLabel, type MotLevel } from "@/lib/wire-core/mot-ladder";
+import { resolveHal, type HalChoice } from "@/lib/wire-core/hal";
+import { initCal, calStep, calLine } from "@/lib/wire-core/calibrate";
+import { streamAt, streamLabel, isReference } from "@/lib/wire-core/stream";
 import { canonicalHash } from "@/lib/wire-core/wire-model";
 import { semanticHex } from "@/lib/wire-core/palette";
 import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
@@ -25,8 +28,12 @@ export interface ArenaCtx {
   stroke: (w: number) => number;
 }
 
-export function ArenaView({ source, tierCap = "ultra", overlay, hudRight, hudLeft }: {
-  source: DomainSource; tierCap?: Tier;
+export function ArenaView({ source, level = "1.1", hal = "auto", overlay, hudRight, hudLeft }: {
+  source: DomainSource;
+  /** The rung being ASKED for, 1.1 … 5.5. Calibration may go below it and never above it. */
+  level?: MotLevel;
+  /** Which machine this is, or "auto" to let it decide from its own measured frame rate. */
+  hal?: HalChoice;
   /** Drawn in the arena's own camera, above the world and below the HUD. */
   overlay?: (ctx: ArenaCtx) => React.ReactNode;
   hudRight?: React.ReactNode;
@@ -38,10 +45,11 @@ export function ArenaView({ source, tierCap = "ultra", overlay, hudRight, hudLef
   const [pitch, setPitch] = useState(58);
   const [bearing, setBearing] = useState(0);
   const [zoom, setZoom] = useState(1);
-  const [fid, setFid] = useState(() => initFidelity(tierCap, "med"));
+  const [cal, setCal] = useState(() => initCal(level, level));
+  const [measuredFps, setMeasuredFps] = useState(0);
   const drag = useRef<{ x: number; y: number } | null>(null);
-  const sensor = SENSOR_PROFILES[(source as unknown as { sensor?: { profile?: string } }).sensor?.profile ?? "pi-baseline"] ?? SENSOR_PROFILES["pi-baseline"];
-  const spec = TIERS[fid.tier];
+  const machine = useMemo(() => resolveHal(hal, measuredFps), [hal, measuredFps]);
+  const spec = useMemo(() => motSpec(cal.level), [cal.level]);
 
   useEffect(() => {
     const el = box.current; if (!el) return;
@@ -49,8 +57,13 @@ export function ArenaView({ source, tierCap = "ultra", overlay, hudRight, hudLef
     ro.observe(el); return () => ro.disconnect();
   }, []);
 
-  // The operator moved the ceiling — lowering it takes effect at once, raising it only permits an upgrade.
-  useEffect(() => { setFid((s) => applyCap(s, tierCap)); }, [tierCap]);
+  // A PERSON PICKING A RUNG GETS THAT RUNG. The first draft only raised the ceiling and let calibration
+  // climb one step at a time, so choosing 5.5 showed 1.2 and the control looked broken. Asking is not
+  // negotiating: the rung is set, and calibration may pull it back down if this machine cannot hold it —
+  // which it will then say, in words, on the line below.
+  useEffect(() => {
+    setCal((s) => ({ ...s, cap: level, level, sensors: [...motSpec(level).sensors], streamIdx: 0, held: 0, reason: `asked for MoT ${level}` }));
+  }, [level]);
 
   // The model is built once per curve budget — a tier changes what is DRAWN, never what is true.
   const { model, doors, ground } = useMemo(() => buildArena(source, { ngonSides: spec.ngonSides, contourStepM: 2, stamp: versionStamp() }), [source, spec.ngonSides]);
@@ -63,9 +76,12 @@ export function ArenaView({ source, tierCap = "ultra", overlay, hudRight, hudLef
   useEffect(() => {
     if (typeof performance === "undefined") return;
     const ms = performance.now() - t0.current;
-    const id = window.setTimeout(() => setFid((s) => stepFidelity(s, ms, sensor, performance.now()).state), 250);
+    const id = window.setTimeout(() => {
+      setMeasuredFps(ms > 0 ? 1000 / ms : 0);
+      setCal((s) => calStep(s, { hal: machine, frameMs: ms }).state);
+    }, 250);
     return () => window.clearTimeout(id);
-  }, [model, lod, sensor, pitch, bearing, zoom]);
+  }, [model, lod, machine, pitch, bearing, zoom]);
 
   // Frame the world, then let the operator's zoom act on top of that frame — so a phone and a laptop both
   // open on the whole block rather than on whatever fraction of it a fixed scale happened to leave visible.
@@ -108,11 +124,21 @@ export function ArenaView({ source, tierCap = "ultra", overlay, hudRight, hudLef
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <span style={hud}>{t("drone.hud.arena")}</span>
           {hudLeft}
-          <span style={{ ...hud, color: semanticHex("mount") }} data-drone-fidelity>{fidelityLabel(fid, sensor, lod)}</span>
+          <span style={{ ...hud, color: semanticHex("mount") }} data-drone-fidelity>
+            {motLabel(spec)} · {lod.kept} drawn{lod.dropped ? `, ${lod.dropped} dropped` : ""}
+          </span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
           <span style={{ ...hud, color: semanticHex("door") }}>{t("drone.hud.doors")} {doors.length}</span>
           <span style={{ ...hud, opacity: 0.75 }}>{t("drone.arena.hand_authored")}</span>
+          {/* The live video standard gets its OWN field, not a clause inside a sentence: a drop from
+              1080p30 is the single fact a person must never have to go looking for. */}
+          <span style={{ ...hud, color: isReference(cal.streamIdx) ? semanticHex("frustum") : semanticHex("pending") }} data-drone-stream>
+            {streamLabel(cal.streamIdx)}
+          </span>
+          <span style={{ ...hud, color: semanticHex("frustum"), opacity: 0.8 }} data-drone-cal>
+            {calLine(cal, machine)}
+          </span>
           {hudRight}
           <span style={{ ...hud, opacity: 0.6 }}>{hash.slice(0, 12)}</span>
         </div>

@@ -23,7 +23,8 @@ import { buildSchedule, targetsAt, roundLengthMs, targetRole, type TargetView } 
 import { initGame, capture, shoot, endRound, score, transcript, type GameState } from "@/lib/drone-2525/game";
 import { buildArena } from "@/lib/drone-2525/arena-model";
 import { ArenaView, type ArenaCtx } from "./arena-view";
-import type { Tier } from "@/lib/wire-core/fidelity";
+import type { MotLevel } from "@/lib/wire-core/mot-ladder";
+import type { HalChoice } from "@/lib/wire-core/hal";
 
 const SPEC = DRONE_DOMAIN.gimbal as unknown as Parameters<typeof command>[1];
 const TSPEC = {
@@ -39,7 +40,7 @@ const TSPEC = {
  *   SECURITY CAPITAL — the whole block. The round moves you to whichever turret can actually reach the
  *     next door, so the exercise is about covering the ground rather than about one seat.
  */
-export function TurretGame({ mode, tierCap }: { mode: "turrets" | "capital"; tierCap: Tier }) {
+export function TurretGame({ mode, level, hal }: { mode: "turrets" | "capital"; level: MotLevel; hal: HalChoice }) {
   const { t } = useLexicon();
   const mounts = useMemo<Mount[]>(() => DRONE_DOMAIN.turrets.map(turretMount), []);
   const [mountIdx, setMountIdx] = useState(0);
@@ -213,7 +214,8 @@ export function TurretGame({ mode, tierCap }: { mode: "turrets" | "capital"; tie
     <div data-drone-game>
       <ArenaView
         source={DRONE_DOMAIN}
-        tierCap={tierCap}
+        level={level}
+        hal={hal}
         overlay={overlay}
         hudLeft={<span style={{ ...hudFont, color: semanticHex("mount") }} data-drone-aim>{aimReadout(gim, los?.rangeM)}</span>}
         hudRight={

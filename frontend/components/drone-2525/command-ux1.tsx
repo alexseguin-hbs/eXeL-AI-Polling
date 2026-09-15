@@ -19,10 +19,12 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { versionStamp } from "@/lib/2525-core/version-stamp";
 import { semanticHex } from "@/lib/wire-core/palette";
 import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
-import { TIER_ORDER, type Tier } from "@/lib/wire-core/fidelity";
+import { MOT_LEVELS, motSpec, type MotLevel } from "@/lib/wire-core/mot-ladder";
+import { HAL_ORDER, HAL_PROFILES, type HalChoice } from "@/lib/wire-core/hal";
 import { DRONE_DOMAIN } from "@/lib/drone-2525/domain.gen";
 import { ArenaView } from "./arena-view";
 import { TurretGame } from "./turret-game";
+import { SelfCalPanel } from "./self-cal-panel";
 
 const SRC = DRONE_DOMAIN;
 
@@ -33,7 +35,8 @@ export function DroneCommandUX1() {
   const { t } = useLexicon();
   const router = useRouter();
   const [mode, setMode] = useState("turrets");
-  const [cap, setCap] = useState<Tier>("ultra");
+  const [level, setLevel] = useState<MotLevel>("1.1");
+  const [hal, setHal] = useState<HalChoice>("auto");
   const stamp = useMemo(() => versionStamp(`v${SRC.project.revision}`), []);
   const label = semanticHex("hud");
   const dim = { color: label, opacity: 0.55 };
@@ -73,20 +76,33 @@ export function DroneCommandUX1() {
             </button>
           );
         })}
-        <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>
-          <span style={{ ...dim, fontSize: 10 }}>{t("drone.fidelity_cap")}</span>
-          {TIER_ORDER.map((tr) => (
-            <button key={tr} data-drone-tier={tr} onClick={() => setCap(tr)} style={btn(cap === tr, semanticHex("mount"))}>{tr}</button>
-          ))}
+        <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+          {/* THE LADDER — 5 compute bands × 5 resolution steps. 1.1 is the arcade rung and the fastest. */}
+          <span style={{ ...dim, fontSize: 10 }}>{t("drone.mot")}</span>
+          <select data-drone-mot value={level} onChange={(e) => setLevel(e.target.value as MotLevel)}
+                  style={{ ...btn(true, semanticHex("mount")), minWidth: 116 }}>
+            {MOT_LEVELS.map((l) => {
+              const s = motSpec(l);
+              return <option key={l} value={l}>{`${l} ${s.bandName} · ${s.sensors.length}s`}</option>;
+            })}
+          </select>
+          <span style={{ ...dim, fontSize: 10 }}>{t("drone.hal")}</span>
+          <select data-drone-hal value={hal} onChange={(e) => setHal(e.target.value as HalChoice)}
+                  style={{ ...btn(true, semanticHex("frustum")), minWidth: 104 }}>
+            <option value="auto">{t("drone.hal_auto")}</option>
+            {HAL_ORDER.map((h) => <option key={h} value={h}>{HAL_PROFILES[h].label}</option>)}
+          </select>
         </div>
       </div>
 
       {/* The arena, and the round played on it */}
       <div style={{ padding: "0 14px 14px" }}>
         {mode === "turrets" || mode === "capital"
-          ? <TurretGame mode={mode as "turrets" | "capital"} tierCap={cap} />
-          : <ArenaView source={SRC} tierCap={cap} />}
+          ? <TurretGame mode={mode as "turrets" | "capital"} level={level} hal={hal} />
+          : <ArenaView source={SRC} level={level} hal={hal} />}
       </div>
+
+      <SelfCalPanel level={level} hal={hal} />
 
       {/* What this is and is not — said once, in plain words, on every run */}
       <div style={{ padding: "0 14px 24px", maxWidth: 820 }}>

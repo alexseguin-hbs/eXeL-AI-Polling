@@ -6,14 +6,18 @@ import path from "node:path";
 const ROOT = path.resolve(process.cwd(), "..");
 const { buildArena } = await import("../lib/drone-2525/arena-model.ts");
 const { canonicalHash, selectLod } = await import("../lib/wire-core/wire-model.ts");
-const { TIERS } = await import("../lib/wire-core/fidelity.ts");
+const { motSpec } = await import("../lib/wire-core/mot-ladder.ts");
 const { ALLOWED_HEX, TRINITY_COLORS } = await import("../lib/wire-core/palette.ts");
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 
 const SRC = JSON.parse(fs.readFileSync(path.join(ROOT, "docs/drone-2525/drone-2525.v00.00.json"), "utf8"));
 
 // ── the source is the source ──
-ok(SRC.project.version === "00.00" && SRC.project.revision === "0.001", "opens at Version 00.00 · revision 0.001");
+// The VERSION is doctrine and stays 00.00 until the doctrine changes. The REVISION advances every edition,
+// so pinning it here would mean editing this gate on every ship — which is how a gate stops meaning anything.
+// tests/drone-crs.test.mjs owns the revision: format, monotonicity, and a real commit per release.
+ok(SRC.project.version === "00.00", "the domain is still at Version 00.00");
+ok(/^\d\.\d{3}$/.test(SRC.project.revision), `the revision is a well-formed X.YYY (${SRC.project.revision})`);
 ok(SRC.project.handoffSha256?.length === 64, "the source cites the ask's sha256");
 ok(SRC.buildings.length >= 12, `the Capitol complex is present (${SRC.buildings.length} buildings)`);
 ok(SRC.buildings.every((b) => b.source && b.confidence), "every building says where it came from and how much it is trusted");
@@ -58,11 +62,11 @@ ok(model.groups.every((g) => g.role in TRINITY_COLORS), "every group's colour is
 ok(new Set(model.groups.map((g) => TRINITY_COLORS[g.role].toLowerCase())).size <= ALLOWED_HEX.size, "no colour outside the palette can appear");
 
 // ── a Pi can draw it ──
-const low = selectLod(model, TIERS.low.maxLod, TIERS.low.segments);
-ok(low.kept <= TIERS.low.segments, `LOW fits the Pi budget (${low.kept} ≤ ${TIERS.low.segments})`);
+const low = selectLod(model, motSpec("1.1").maxLod, motSpec("1.1").segments);
+ok(low.kept <= motSpec("1.1").segments, `LOW fits the Pi budget (${low.kept} ≤ ${motSpec("1.1").segments})`);
 ok(low.kept > 200, `and LOW still shows the city block (${low.kept} segments)`);
 ok(low.dropped > 0 && low.byGroup.some((g) => !g.kept), "and says what it dropped");
-const ultra = selectLod(model, TIERS.ultra.maxLod, TIERS.ultra.segments);
+const ultra = selectLod(model, motSpec("5.5").maxLod, motSpec("5.5").segments);
 ok(ultra.kept >= low.kept, `ULTRA draws at least as much (${ultra.kept})`);
 
 // ── determinism (U-WF-08): five builds, one hash ──

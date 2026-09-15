@@ -68,10 +68,31 @@ async function shoot(ctx, name, width, height, steps = async () => {}) {
   const browser = await launch();
   const ctx = await browser.newContext({ deviceScaleFactor: 2 });
   try {
-    await shoot(ctx, "01-arena-desktop-ultra", 1440, 900);
-    await shoot(ctx, "02-arena-desktop-low", 1440, 900, async (p) => {
-      await p.click("[data-drone-tier='low']");
-      await p.waitForTimeout(600);
+    await shoot(ctx, "01-arena-default", 1440, 900);
+    // The arcade rung — 1.1, the 1983 vector look, the fastest picture this machine can make.
+    await shoot(ctx, "02-arena-mot-1.1", 1440, 900, async (p) => {
+      await p.selectOption("[data-drone-mot]", "1.1");
+      await p.waitForTimeout(800);
+      console.log(`    1.1 HUD: ${((await p.locator("[data-drone-fidelity]").textContent()) ?? "").trim()}`);
+      console.log(`    1.1 CAL: ${((await p.locator("[data-drone-cal]").textContent()) ?? "").trim()}`);
+    });
+    // The top of the ladder — all five sensors fused, the densest mesh.
+    await shoot(ctx, "06-arena-mot-5.5", 1440, 900, async (p) => {
+      await p.selectOption("[data-drone-mot]", "5.5");
+      await p.waitForTimeout(1200);
+      console.log(`    5.5 HUD: ${((await p.locator("[data-drone-fidelity]").textContent()) ?? "").trim()}`);
+      console.log(`    5.5 CAL: ${((await p.locator("[data-drone-cal]").textContent()) ?? "").trim()}`);
+    });
+    // The self-test, run for real on a 6-minute budget but stopped after a few rungs so the gate stays quick.
+    await shoot(ctx, "07-self-test", 1440, 1200, async (p) => {
+      await p.click("[data-selfcal-run]");
+      await p.waitForSelector("[data-selfcal-progress]", { timeout: 30000 });
+      await p.waitForTimeout(40000);
+      console.log(`    self-test: ${((await p.locator("[data-selfcal-progress]").textContent()) ?? "").trim()}`);
+      await p.click("[data-selfcal-stop]");
+      await p.waitForSelector("[data-selfcal-report]", { timeout: 60000 });
+      const head = await p.locator("[data-selfcal-report] > div").first().textContent();
+      console.log(`    REPORT: ${(head ?? "").trim()}`);
     });
     await shoot(ctx, "03-arena-phone", 390, 844);
     await shoot(ctx, "04-arena-phone-capital", 390, 844, async (p) => {
