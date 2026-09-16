@@ -4610,5 +4610,26 @@ export const CRS_MATRIX: CrsEntry[] = [
       "transferConfirm": "",
       "change": "v00.00 r0.013",
       "changeDesc": "implemented"
+  },
+  {
+      "cube": "Drone-2525 — The platform identities, from the deck (VIII Rehearsal)",
+      "userStory": "As a pilot, I want to pick the platform by the deck's own name, so that QUAD, VTOL and FOIL mean the same thing on the deck and in the app.",
+      "crs": "DRN-08.02",
+      "devTeam": "SRS",
+      "inputId": "DRN-08.02.IN",
+      "specInput": "The eight PLATFORM identities are data lifted from the deck — id, label, kind and flight mode — and a gate compares them to r.050's own units table and dropdown. A platform dropdown sits beside the mode row. D1Q QUAD·HOVER has no wing and refuses the transition by name; D1 VTOL flies both; D1F FOIL takes the wing the moment the transition is legal. Platforms that do not exist on this arena are listed and dated, never hidden; the round never forks a second airframe model per platform.",
+      "marketInput": "Manta, Ark and the droid on their own arenas",
+      "outputId": "DRN-08.02.OUT",
+      "outputDef": "the same platform names on the deck and in the app",
+      "reviewId": "DR-2026.09.16-r0.014",
+      "reviewPlan": "Vision • 2525 § VIII Rehearsal · R-CORE Manual · phase pilot",
+      "vvPlan": "frontend/tests/drone-platforms.test.mjs",
+      "testRun": "drone-platforms: 8 ids/labels/kinds/flights equal to r.050; D1Q wing refused; D1F wing first",
+      "testIssues": "",
+      "testDesc": "8 ids, labels, kinds and 3 flight modes equal to r.050; D1Q wing refused; D1F auto-transitions; one airframe model",
+      "transfer": "",
+      "transferConfirm": "",
+      "change": "v00.00 r0.014",
+      "changeDesc": "implemented"
   }
 ];

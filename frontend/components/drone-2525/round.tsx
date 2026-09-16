@@ -37,6 +37,7 @@ import { seatEye, seatEyeLine } from "@/lib/drone-2525/seat-view";
 import { initSlots, designate, nextFreeSlot, approve, canFire, clearSlot, pruneSlots, slotLine, refusalToast, slotOf, selectSlot, type SlotN, type Slots } from "@/lib/drone-2525/slots";
 import { hitDoor, newSpeech } from "@/lib/drone-2525/tap-target";
 import { challengeSpec, targetSpecFor, doorsInPlay, ch5RefusesSelfApproval, challengeLine, CH5_REASON, type Challenge, type Difficulty } from "@/lib/drone-2525/challenge";
+import { platformOf, wingAllowed, prefersWing, mountIdOf, DEFAULT_PLATFORM, type PlatformId } from "@/lib/drone-2525/platform";
 import { voiceToAction } from "@/lib/2525-core/controls";
 import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 import { useControls, type GimbalRate } from "@/lib/drone-2525/use-controls";
@@ -86,8 +87,10 @@ const TSPEC = {
  *
  * LINK-2525 in one sentence: the mount changes, the gimbal does not.
  */
-export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: RoundMode; level: MotLevel; hal: HalChoice; challenge?: Challenge; diff?: Difficulty }) {
+export function Round({ mode, level, hal, challenge = 1, diff = 3, platform = DEFAULT_PLATFORM }: { mode: RoundMode; level: MotLevel; hal: HalChoice; challenge?: Challenge; diff?: Difficulty; platform?: PlatformId }) {
   const { t } = useLexicon();
+  // Which of the deck's platform identities is flying. One airframe model; the platform decides the wing rule.
+  const plat = useMemo(() => platformOf(platform), [platform]);
   // CH1–CH5 × DIFF 1–5, the deck's own numbers (challenge.ts). Decides how many doors are in play and how
   // long each stays open; at CH5 NET the red box must come from a second person.
   const CH = useMemo(() => challengeSpec(challenge, diff), [challenge, diff]);
@@ -123,8 +126,8 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
 
   // LINK-2525: the SAME gimbal record, bolted to a different thing. Nothing about its behaviour changes.
   const mount = useMemo(
-    () => (flying ? airframeMount("vtol-01", "VTOL TRINITY", [flight.e, flight.n], flight.aglM, flight.headingDeg, -12) : mounts[mountIdx]),
-    [flying, flight.e, flight.n, flight.aglM, flight.headingDeg, mounts, mountIdx],
+    () => (flying ? airframeMount(mountIdOf(plat), plat.label, [flight.e, flight.n], flight.aglM, flight.headingDeg, -12) : mounts[mountIdx]),
+    [flying, flight.e, flight.n, flight.aglM, flight.headingDeg, mounts, mountIdx, plat],
   );
 
   const [gim, setGim] = useState<GimbalState>(() => initGimbal(mount));
@@ -514,6 +517,13 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
   // Moving to another turret re-homes the gimbal and NOTHING else: a score already earned survives the
   // walk across the lawn, which is the "a completed action is never lost" rule applied to the seat change.
   useEffect(() => { setGim(initGimbal(mounts[mountIdx])); }, [mountIdx, mounts]);
+  // D1F FOIL: the wing is home. The moment the transition is legal, the round takes it — through the same
+  // stepFlight rule the button uses, so a foil that is too low or too slow stays on its rotors and says why.
+  useEffect(() => {
+    if (!flying || !running || !prefersWing(plat) || flight.mode !== "quad") return;
+    if (!canTransition(AIRFRAME, flight).ok) return;
+    setFlight((f) => (f.mode === "quad" ? stepFlight(AIRFRAME, BATTERY, f, { climb: 0, forward: 1, lateral: 0, yaw: 0, toggleMode: true }, 0.016) : f));
+  }, [flying, running, plat, flight]);
   // A change of MODE is a different exercise, so that does start over.
   useEffect(() => { reset(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [mode]);
 
@@ -708,9 +718,11 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
           </button>
         ) : null}
         {flying && crew.pilot === "HI" && iFly ? (
-          <button data-drone-wing onClick={() => setFlight((f) => stepFlight(AIRFRAME, BATTERY, f, { climb: 0, forward: 1, lateral: 0, yaw: 0, toggleMode: true }, 0.016))}
-                  style={btn({ on: flight.mode === "wing", hex: semanticHex("frustum") })}>
-            {flight.mode === "wing" ? t("drone.fly.to_quad") : t("drone.fly.to_wing")}
+          <button data-drone-wing disabled={!wingAllowed(plat)}
+                  onClick={() => { if (!wingAllowed(plat)) { setNote(t("drone.fly.no_wing")); return; } setFlight((f) => stepFlight(AIRFRAME, BATTERY, f, { climb: 0, forward: 1, lateral: 0, yaw: 0, toggleMode: true }, 0.016)); }}
+                  style={btn({ on: flight.mode === "wing", hex: semanticHex("frustum"), enabled: wingAllowed(plat) })}
+                  title={wingAllowed(plat) ? undefined : t("drone.fly.no_wing")}>
+            {!wingAllowed(plat) ? t("drone.fly.no_wing") : flight.mode === "wing" ? t("drone.fly.to_quad") : t("drone.fly.to_wing")}
           </button>
         ) : null}
         {mode === "multi" ? (

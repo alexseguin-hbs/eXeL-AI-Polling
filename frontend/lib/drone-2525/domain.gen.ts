@@ -5,6 +5,8 @@
 import type { DomainSource } from "./arena-model";
 
 export interface DroneMode { id: string; label: string; mount: string; roles?: string[]; pass: number | string }
+/** A platform identity from the deck (r.050 units table). flight is the deck's word; here = exists on this arena. */
+export interface DronePlatform { id: string; label: string; kind: "turret" | "vtol" | "sub" | "ark" | "droid"; flight: "quad" | "vtol" | "foil" | null; here: boolean }
 /**
  * The airframe's real size and where it came from. Declared in ONE place so the drawing, the glyph and the
  * physics cannot describe three different aircraft — which, before 2026-09-16, they did.
@@ -43,6 +45,7 @@ export type DroneDomain = DomainSource & {
   sensor: { profile: string; note: string };
   targets: Record<string, number | string>;
   modes: DroneMode[];
+  platforms: DronePlatform[];
   crs: DroneCrsRow[];
   status: Record<string, string>;
 };
@@ -52,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.013",
+  "revision": "0.014",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
   "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -151,6 +154,13 @@ export const DRONE_DOMAIN = {
    "date": "2026-09-16",
    "kind": "decision",
    "why": "CH1–CH5 × DIFF 1–5 from the deck's challengeSpec, verbatim (25 cells checked against r.050's own function): quota bounds the doors in play, rate shortens the window, concurrent grows 1→3; at CH5 NET the red box must come from a second PERSON, and a device approving its own mark is refused CH5_NO_APPROVE and recorded as a HOLD. The AsM Cup (99 runs, seed 2525) is the regression fixture, read-only by contract: its bytes are pinned by hash and the published baseline — 6v6 BLU 3–1, 3v3 BLU 5–0, pairs 1–3 RED, 4–6 BLU — is recomputed from its numbers; the fixture's declared revision 0.039 is reported, not gated. APPROVE crosses the crew link: the targeteer's amber goes out on the gimbal word, the pilot approves it by name, and the mark turns red two-person on the device that holds it. Verify Live now probes /drone-2525/ itself.",
+   "commit": ""
+  },
+  {
+   "revision": "0.014",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "PLATFORM identities from the deck, as data: T1 TURRET · D1Q QUAD·HOVER · D1 VTOL · D1F FOIL · M99 MANTA 99-66 · M66 MINI 66-33 · ARK SAIL 33 · R2 MASS DROID — ids, labels, kinds and flight modes lifted from r.050's units table and checked against it by a gate. The four that exist on this arena are live; the sea, sail and droid platforms are dated, not hidden. D1Q has no wing and says so; D1F goes to the wing the moment it can; D1 is the VTOL as before. Also: the red box and its decision id now mirror to the approving device (eXeL AI gate 3).",
    "commit": ""
   }
  ],
@@ -2136,6 +2146,24 @@ export const DRONE_DOMAIN = {
    "dtm": "two phones make one red box, with two names on it",
    "stretch": "the same message on the Manta and the droid",
    "status": "implemented"
+  },
+  {
+   "id": "DRN-08.02",
+   "title": "The platform identities, from the deck",
+   "statement": "The eight PLATFORM identities are data lifted from the deck — id, label, kind and flight mode — and a gate compares them to r.050's own units table and dropdown. A platform dropdown sits beside the mode row. D1Q QUAD·HOVER has no wing and refuses the transition by name; D1 VTOL flies both; D1F FOIL takes the wing the moment the transition is legal. Platforms that do not exist on this arena are listed and dated, never hidden; the round never forks a second airframe model per platform.",
+   "in": "DRN-08.02.IN",
+   "out": "DRN-08.02.OUT",
+   "section": "VIII",
+   "uwf": [
+    "U-WF-05"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "8 ids, labels, kinds and 3 flight modes equal to r.050; D1Q wing refused; D1F auto-transitions; one airframe model",
+   "verify": "frontend/tests/drone-platforms.test.mjs",
+   "dtm": "the same platform names on the deck and in the app",
+   "stretch": "Manta, Ark and the droid on their own arenas",
+   "status": "implemented"
   }
  ],
  "status": {
@@ -2248,6 +2276,64 @@ export const DRONE_DOMAIN = {
   "5": "the key group's live lean, a standing mandate it can end",
   "levels": 5,
   "invariant": "a named human decision exists before any machine shot; silence is never consent at any level"
- }
+ },
+ "platforms": [
+  {
+   "id": "T1",
+   "label": "TURRET",
+   "kind": "turret",
+   "flight": null,
+   "here": true
+  },
+  {
+   "id": "D1Q",
+   "label": "QUAD · HOVER",
+   "kind": "vtol",
+   "flight": "quad",
+   "here": true
+  },
+  {
+   "id": "D1",
+   "label": "VTOL",
+   "kind": "vtol",
+   "flight": "vtol",
+   "here": true
+  },
+  {
+   "id": "D1F",
+   "label": "FOIL",
+   "kind": "vtol",
+   "flight": "foil",
+   "here": true
+  },
+  {
+   "id": "M99",
+   "label": "MANTA 99-66",
+   "kind": "sub",
+   "flight": null,
+   "here": false
+  },
+  {
+   "id": "M66",
+   "label": "MINI 66-33",
+   "kind": "sub",
+   "flight": null,
+   "here": false
+  },
+  {
+   "id": "ARK",
+   "label": "ARK SAIL 33",
+   "kind": "ark",
+   "flight": null,
+   "here": false
+  },
+  {
+   "id": "R2",
+   "label": "MASS DROID",
+   "kind": "droid",
+   "flight": null,
+   "here": false
+  }
+ ]
 } as unknown as DroneDomain;
 export default DRONE_DOMAIN;

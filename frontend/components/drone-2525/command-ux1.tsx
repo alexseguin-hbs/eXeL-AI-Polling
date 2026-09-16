@@ -12,6 +12,7 @@
  * Capital. The two flying modes are listed and visibly dated, never hidden — a mode the operator
  * asked for that is not built yet is a promise on screen, not a silence.
  */
+import { PLATFORMS, DEFAULT_PLATFORM, type PlatformId } from "@/lib/drone-2525/platform";
 import { CHALLENGES, DIFFICULTIES, CH_NAMES, DEFAULT_CHALLENGE, DEFAULT_DIFF, type Challenge, type Difficulty } from "@/lib/drone-2525/challenge";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -41,6 +42,8 @@ export function DroneCommandUX1() {
   // CH1–CH5 × DIFF 1–5 (operator deck r.036 → r.050). Dropdowns, not a chip wall — his r.044 rule.
   const [challenge, setChallenge] = useState<Challenge>(DEFAULT_CHALLENGE);
   const [diff, setDiff] = useState<Difficulty>(DEFAULT_DIFF);
+  // PLATFORM (r.050 units table, as data). The four on this arena are live; the rest are dated, not hidden.
+  const [platform, setPlatform] = useState<PlatformId>(DEFAULT_PLATFORM);
   const stamp = useMemo(() => versionStamp(`v${SRC.project.revision}`), []);
   const label = semanticHex("hud");
   const dim = { color: label, opacity: 0.55 };
@@ -88,6 +91,11 @@ export function DroneCommandUX1() {
             <option value="auto">{t("drone.hal_auto")}</option>
             {HAL_ORDER.map((h) => <option key={h} value={h}>{HAL_PROFILES[h].label}</option>)}
           </select>
+          <span style={{ ...dim, fontSize: 10 }}>{t("drone.platform")}</span>
+          <select data-drone-platform value={platform} onChange={(e) => setPlatform(e.target.value as PlatformId)}
+                  style={{ ...btn({ on: true, hex: semanticHex("mount") }), minWidth: 118 }}>
+            {PLATFORMS.map((p) => <option key={p.id} value={p.id} disabled={!p.here}>{p.here ? p.label : `${p.label} · ${t("drone.platform.dated")}`}</option>)}
+          </select>
           <span style={{ ...dim, fontSize: 10 }}>{t("drone.ch")}</span>
           <select data-drone-ch value={challenge} onChange={(e) => setChallenge(Number(e.target.value) as Challenge)}
                   style={{ ...btn({ on: true, hex: semanticHex("door") }), minWidth: 96 }}>
@@ -103,7 +111,7 @@ export function DroneCommandUX1() {
 
       {/* The arena, and the round played on it */}
       <div style={{ padding: "0 14px 14px" }}>
-        <Round mode={mode as RoundMode} level={level} hal={hal} challenge={challenge} diff={diff} />
+        <Round mode={mode as RoundMode} level={level} hal={hal} challenge={challenge} diff={diff} platform={platform} />
       </div>
 
       <SelfCalPanel level={level} hal={hal} />

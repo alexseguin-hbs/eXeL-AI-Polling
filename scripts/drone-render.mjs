@@ -119,6 +119,8 @@ function renderModule() {
 import type { DomainSource } from "./arena-model";
 
 export interface DroneMode { id: string; label: string; mount: string; roles?: string[]; pass: number | string }
+/** A platform identity from the deck (r.050 units table). flight is the deck's word; here = exists on this arena. */
+export interface DronePlatform { id: string; label: string; kind: "turret" | "vtol" | "sub" | "ark" | "droid"; flight: "quad" | "vtol" | "foil" | null; here: boolean }
 /**
  * The airframe's real size and where it came from. Declared in ONE place so the drawing, the glyph and the
  * physics cannot describe three different aircraft — which, before 2026-09-16, they did.
@@ -157,6 +159,7 @@ export type DroneDomain = DomainSource & {
   sensor: { profile: string; note: string };
   targets: Record<string, number | string>;
   modes: DroneMode[];
+  platforms: DronePlatform[];
   crs: DroneCrsRow[];
   status: Record<string, string>;
 };
