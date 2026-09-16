@@ -54,8 +54,14 @@ export function challengeSpec(challenge: number = DEFAULT_CHALLENGE, diff: numbe
 /** The deck's CH1 D3 rate, against which a window's length is scaled. */
 export const RATE_REF = challengeSpec(1, 3).rate;   // 38
 
-/** A pop in the deck stays up `4 + CH` seconds (r.050 spawn(): idle.life = 4 + g). Same here. */
-export const upSecondsFor = (spec: ChallengeSpec): number => 4 + spec.c;
+/**
+ * A pop in the deck stays up `4 + CH` seconds (r.050 spawn(): idle.life = 4 + g). A pop appears in front of
+ * you; a door here has to be swung to, captured, marked and approved — sometimes by a second person over a
+ * link — so the ARENA's declared window (targets.upMs, 9 s) is the CH1 baseline and the deck's proportion
+ * scales it: CH5 stays up (4+5)/(4+1) = 1.8× as long. The two-device harness found the 5 s literal closing
+ * a door between the targeteer's mark and the pilot's approval.
+ */
+export const upFactorFor = (spec: ChallengeSpec): number => (4 + spec.c) / 5;
 
 /**
  * The target schedule for a challenge: the same builder the round already uses, with the deck's numbers
@@ -68,7 +74,7 @@ export const upSecondsFor = (spec: ChallengeSpec): number => 4 + spec.c;
 export function targetSpecFor(base: TargetSpec, spec: ChallengeSpec): TargetSpec {
   return {
     seed: base.seed,
-    upMs: upSecondsFor(spec) * 1000,
+    upMs: Math.round(base.upMs * upFactorFor(spec)),
     downMs: Math.max(500, Math.round((base.downMs * spec.rate) / RATE_REF)),
     concurrent: Math.max(1, Math.min(3, 1 + Math.floor((spec.c - 1) / 2))),
   };

@@ -524,6 +524,8 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
   // the object destroyed this interval every hundred milliseconds — faster than its own period, so it never
   // fired once and the two devices went silent. `say` itself is stable. The two-device gate caught it; the
   // lesson is that an interval whose owner is rebuilt faster than its period is not an interval.
+  // The last approval this pilot gave, carried on every flight word until a newer one replaces it.
+  const givenApprove = useRef<{ doorId: string; slot: 1 | 2 | 3; n: number } | null>(null);
   const sending = useRef({ flight, gim, framed, mySeat, slots });
   sending.current.flight = flight; sending.current.gim = gim;
   sending.current.framed = framed; sending.current.mySeat = mySeat; sending.current.slots = slots;
@@ -533,7 +535,7 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
       const c = sending.current;
       if (c.mySeat === "pilot") {
         const f = c.flight;
-        say({ kind: "flight", flight: { e: f.e, n: f.n, aglM: f.aglM, ve: f.ve, vn: f.vn, vu: f.vu, headingDeg: f.headingDeg, mode: f.mode, energy: f.energy } });
+        say({ kind: "flight", flight: { e: f.e, n: f.n, aglM: f.aglM, ve: f.ve, vn: f.vn, vu: f.vu, headingDeg: f.headingDeg, mode: f.mode, energy: f.energy }, approve: givenApprove.current });
       } else {
         const cur = c.slots.current ? c.slots.s[c.slots.current] : null;
         say({ kind: "gimbal", az: c.gim.az, el: c.gim.el, doorId: c.framed?.door.id ?? null, amber: cur && cur.phase === "amber" ? cur.doorId : null });
@@ -545,22 +547,25 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
   // THE SECOND PERSON'S APPROVAL ARRIVES. The mark lives on this device; the other seat's name goes on
   // the red box, so approvalKind reads two-person — which is what CH5 requires and what the HUD says.
   // Applied once per sequence number; a stale or repeated approval changes nothing.
-  const appliedApprove = useRef(-1);
+  const appliedApprove = useRef(0);
+  const theirApprove = link.state.theirFlight?.approve ?? null;
+  const theirSeat = link.state.theirFlight?.seat ?? "pilot";
   useEffect(() => {
-    const a = link.state.theirApprove;
-    if (!twoDevice || !a || a.seq <= appliedApprove.current) return;
-    appliedApprove.current = a.seq;
+    const a = theirApprove;
+    if (!twoDevice || !a || a.n <= appliedApprove.current) return;
     const n = slotOf(slots, a.doorId);
     const cur = n ? slots.s[n] : null;
-    if (!n || !cur || cur.phase !== "amber" || cur.by === a.seat) return;   // nothing amber there, or their own mark
-    setSlots((s) => approve(s, n, a.seat, tMsRef.current));
+    if (!n || !cur) return;                                              // not (yet) marked here — the word repeats, so try again next tick
+    appliedApprove.current = a.n;
+    if (cur.phase !== "amber" || cur.by === theirSeat) return;           // already red, or their own mark
+    setSlots((s) => approve(s, n, theirSeat, tMsRef.current));
     setLedger((L) => {
-      const d = recordDecision(L, "APPROVE", a.doorId, { ...stampNow(), actor: a.seat, hiApproved: true }, { by: a.seat, from: cur.by, slot: n, link: true });
+      const d = recordDecision(L, "APPROVE", a.doorId, { ...stampNow(), actor: theirSeat, hiApproved: true }, { by: theirSeat, from: cur.by, slot: n, link: true });
       return recordEvent(d.ledger, "APPROVE", a.doorId, "RED", { ...stampNow(), hiApproved: true }, "HI").ledger;
     });
-    setNote(`T${n} · RED · ${a.seat}`);
+    setNote(`T${n} · RED · ${theirSeat}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [twoDevice, link.state.theirApprove]);
+  }, [twoDevice, theirApprove, slots]);
 
   // What the other seat says is applied here, and only here.
   useEffect(() => {
@@ -664,7 +669,7 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
         {twoDevice && mySeat === "pilot" && link.state.theirGimbal?.amber ? (
           <button data-drone-approve-link onClick={() => {
             const id = link.state.theirGimbal!.amber!;
-            say({ kind: "approve", doorId: id, slot: (slotOf(slots, id) ?? 1) as 1 | 2 | 3 });
+            givenApprove.current = { doorId: id, slot: 1, n: (givenApprove.current?.n ?? 0) + 1 };
             setNote(`${t("drone.game.approve_theirs")} · ${doorLabel(id)}`);
           }} style={btn({ hex: semanticHex("ray") })}>
             {t("drone.game.approve_theirs")} · {doorLabel(link.state.theirGimbal.amber)}

@@ -123,7 +123,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log("  FAIL:", m); 
     ok(await has(phone, "[data-drone-shoot]"), "the targeteer has shoot");
     ok(await has(phone, "[data-drone-capture]"), "and capture");
     ok(await has(phone, "[data-drone-next]"), "and next door");
-    ok(!(await has(phone, "[data-drone-sticks]")), "THE TARGETEER HAS NO STICKS — they cannot fly");
+    ok((await phone.locator("[data-drone-stick='BODY']").count()) === 0 && (await phone.locator("[data-drone-hold]").count()) === 0, "THE TARGETEER HAS NO BODY STICK AND NO TURN/CLIMB — they cannot fly (the HEAD stick is theirs, r.050)");
     ok(!(await has(phone, "[data-drone-takeoff]")), "and no take off");
 
     // ── THEY ACTUALLY REACH EACH OTHER ───────────────────────────────────────────────────────────
@@ -147,6 +147,30 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log("  FAIL:", m); 
     const pcAim = await txt(pc, "[data-drone-aim]");
     console.log(`  phone aim    : ${phoneAim}`);
     console.log(`  pilot sees   : ${pcAim}`);
+
+    // THE SECOND PERSON, OVER THE LINK (r.050: APPROVE — HI-2 or net peer; DRN-09.04). The targeteer marks a
+    // door AMBER on the phone; the mark rides the gimbal word; the pilot's computer shows a button to approve
+    // it; the approval crosses back and the phone's box turns RED in the PILOT's name — two-person, not HI-2.
+    let marked = false;
+    for (let i = 0; i < 12 && !marked; i++) {
+      if (await phone.locator("[data-drone-target]").isDisabled()) { await phone.click("[data-drone-next]"); await phone.waitForTimeout(1500); continue; }
+      await phone.click("[data-drone-target]"); await phone.waitForTimeout(300);
+      marked = !/TARGET FIRST/.test(await phone.locator("[data-drone-slot]").innerText());
+    }
+    const amberLine = await phone.locator("[data-drone-slot]").innerText();
+    ok(marked && /AMBER/.test(amberLine), `the targeteer marks a door amber on the phone (${amberLine})`);
+    await pc.waitForSelector("[data-drone-approve-link]", { timeout: 6000 }).catch(() => {});
+    const pcSeesAmber = (await pc.locator("[data-drone-approve-link]").count()) > 0;
+    ok(pcSeesAmber, `the pilot's computer sees the amber mark and offers to approve it${pcSeesAmber ? ": " + (await pc.locator("[data-drone-approve-link]").innerText()) : ""}`);
+    ok(!(await phone.locator("[data-drone-shoot]").isEnabled()), "the phone cannot fire on amber");
+    if (pcSeesAmber) {
+      await pc.click("[data-drone-approve-link]");
+      await phone.waitForFunction(() => /RED/.test(document.querySelector("[data-drone-slot]")?.textContent || ""), null, { timeout: 6000 }).catch(() => {});
+    }
+    const redLine = await phone.locator("[data-drone-slot]").innerText();
+    ok(/RED \(pilot\)/.test(redLine), `the phone's box turns RED in the PILOT's name — two-person (${redLine})`);
+    ok(await phone.locator("[data-drone-shoot]").isEnabled(), "and only now may the targeteer fire");
+    console.log(`  phone slot   : ${redLine}`);
     const az = (s) => Number(/A (\d+)°/.exec(s ?? "")?.[1] ?? "-1");
     ok(az(phoneAim) >= 0, `the targeteer aimed (${phoneAim})`);
     ok(az(pcAim) === az(phoneAim), `AND THE PILOT SEES THE SAME BEARING (${az(pcAim)}° vs ${az(phoneAim)}°) — the aim crossed the link`);
