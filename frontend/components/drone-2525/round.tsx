@@ -345,7 +345,11 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
     const cur = n ? slots.s[n] : null;
     if (!n || !cur) { setNote(refusalToast("NO_RED_BOX")); return; }
     if (cur.phase === "red") return;
-    const by = crew.approver || mySeatOr;
+    // WHO IS APPROVING. If the mark is MINE — this seat designated it — then approving it is the same
+    // person acting as HI-2, and the record must say two-step, not borrow the crew's named approver and
+    // read as two-person. The named approver (the watch officer) is a different actor only when the mark
+    // came from someone else: the machine targeteer, or the other seat over the link.
+    const by = cur.by === mySeatOr ? mySeatOr : (crew.approver || WATCH);
     setSlots((s) => approve(s, n, by, tMsRef.current));
     setLedger((L) => {
       const a = recordDecision(L, "APPROVE", cur.doorId, { ...stampNow(), actor: by, hiApproved: true }, { by, from: cur.by, slot: n });
