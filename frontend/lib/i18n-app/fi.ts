@@ -1219,5 +1219,8 @@ const T: Record<string, string> = {
   "drone.stream.fraction": "{a} · {b}% referenssistä",
   "drone.selfcal.holds": "Tämä kone pitää tason MoT {a} kuvavirralla {b}, kun {c} on käynnissä.",
   "drone.selfcal.held_none": "Tämä kone ei pitänyt yhtään porrasta kuvavirralla {a}. Alin kokeiltu porras oli {b}.",
+  "drone.platform": "Alusta",
+  "drone.platform.dated": "ei vielä tällä areenalla",
+  "drone.fly.no_wing": "Quadilla ei ole siipeä",
 };
 export default T;

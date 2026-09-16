@@ -1216,5 +1216,8 @@ const T: Record<string, string> = {
   "drone.stream.fraction": "{a} · {b}% מהייחוס",
   "drone.selfcal.holds": "מכונה זו מחזיקה MoT {a} ב-{b} עם {c} פעילים.",
   "drone.selfcal.held_none": "מכונה זו לא החזיקה אף שלב ב-{a}. השלב הנמוך ביותר שנוסה היה {b}.",
+  "drone.platform": "פלטפורמה",
+  "drone.platform.dated": "עדיין לא בזירה הזו",
+  "drone.fly.no_wing": "לקוואד אין כנף",
 };
 export default T;

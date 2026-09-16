@@ -1218,5 +1218,8 @@ const T: Record<string, string> = {
   "drone.stream.fraction": "{a} · 参考标准的 {b}%",
   "drone.selfcal.holds": "本机在 {b} 下运行 {c} 时可保持 MoT {a}。",
   "drone.selfcal.held_none": "本机在 {a} 下未能保持任何档位。尝试的最低档位为 {b}。",
+  "drone.platform": "平台",
+  "drone.platform.dated": "此竞技场暂不可用",
+  "drone.fly.no_wing": "四轴无机翼",
 };
 export default T;

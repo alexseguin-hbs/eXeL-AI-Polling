@@ -13,9 +13,6 @@ let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; con
 const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 const AFTER_FILL = new Set([
   // Drone-2525 platform identities (r.050 units table) — English until the fill lands.
-  'drone.platform',
-  'drone.platform.dated',
-  'drone.fly.no_wing',
   // Drone-2525 operator deck (r.050): TARGET → amber, APPROVE → red. English until the fill lands.
   // Drone-2525 ladder, self-test, flight and crew keys — English until the fill lands, listed never silent.
   // Drone-2525 control deck (r.050) — English until the fill lands, listed never silent.

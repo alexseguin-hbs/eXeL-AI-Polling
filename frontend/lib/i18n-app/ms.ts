@@ -1216,5 +1216,8 @@ const T: Record<string, string> = {
   "drone.stream.fraction": "{a} · {b}% daripada rujukan",
   "drone.selfcal.holds": "Mesin ini mengekalkan MoT {a} pada {b} dengan {c} berjalan.",
   "drone.selfcal.held_none": "Mesin ini tidak mengekalkan sebarang anak tangga pada {a}. Anak tangga terendah yang dicuba ialah {b}.",
+  "drone.platform": "Pelantar",
+  "drone.platform.dated": "belum ada di arena ini",
+  "drone.fly.no_wing": "Quad tiada sayap",
 };
 export default T;

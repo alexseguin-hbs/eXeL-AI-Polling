@@ -1217,5 +1217,8 @@ const T: Record<string, string> = {
   "drone.stream.fraction": "{a} · 기준의 {b}%",
   "drone.selfcal.holds": "이 기기는 {c} 가동 중 {b}에서 MoT {a}를 유지합니다.",
   "drone.selfcal.held_none": "이 기기는 {a}에서 어떤 단계도 유지하지 못했습니다. 시도한 최저 단계는 {b}입니다.",
+  "drone.platform": "기체",
+  "drone.platform.dated": "이 아레나에서는 아직 불가",
+  "drone.fly.no_wing": "쿼드에는 날개가 없다",
 };
 export default T;

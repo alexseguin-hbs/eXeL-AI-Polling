@@ -1221,5 +1221,8 @@ const T: Record<string, string> = {
   "drone.stream.fraction": "{a} · {b}% ya rejeleo",
   "drone.selfcal.holds": "Mashine hii inashikilia MoT {a} kwenye {b} huku {c} ikifanya kazi.",
   "drone.selfcal.held_none": "Mashine hii haikushikilia ngazi yoyote kwenye {a}. Ngazi ya chini kabisa iliyojaribiwa ilikuwa {b}.",
+  "drone.platform": "Jukwaa",
+  "drone.platform.dated": "bado haipo kwenye uwanja huu",
+  "drone.fly.no_wing": "Quad haina bawa",
 };
 export default T;

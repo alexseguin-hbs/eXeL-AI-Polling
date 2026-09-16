@@ -1228,5 +1228,8 @@ const T: Record<string, string> = {
   "drone.stream.fraction": "{a} · {b}% της αναφοράς",
   "drone.selfcal.holds": "Αυτή η μηχανή κρατά MoT {a} στα {b} με {c} ενεργά.",
   "drone.selfcal.held_none": "Αυτή η μηχανή δεν κράτησε κανένα σκαλί στα {a}. Το χαμηλότερο σκαλί που δοκιμάστηκε ήταν {b}.",
+  "drone.platform": "Πλατφόρμα",
+  "drone.platform.dated": "όχι ακόμη σε αυτή την αρένα",
+  "drone.fly.no_wing": "Το quad δεν έχει φτερό",
 };
 export default T;

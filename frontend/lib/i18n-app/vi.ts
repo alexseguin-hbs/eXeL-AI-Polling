@@ -1220,5 +1220,8 @@ const T: Record<string, string> = {
   "drone.stream.fraction": "{a} · {b}% mức tham chiếu",
   "drone.selfcal.holds": "Máy này giữ MoT {a} ở {b} với {c} đang chạy.",
   "drone.selfcal.held_none": "Máy này không giữ được bậc nào ở {a}. Bậc thấp nhất đã thử là {b}.",
+  "drone.platform": "Nền tảng",
+  "drone.platform.dated": "chưa có ở đấu trường này",
+  "drone.fly.no_wing": "Quad không có cánh",
 };
 export default T;

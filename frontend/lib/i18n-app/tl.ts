@@ -1364,5 +1364,8 @@ const T: Record<string, string> = {
   "drone.stream.fraction": "{a} · {b}% ng reperensiya",
   "drone.selfcal.holds": "Hawak ng makinang ito ang MoT {a} sa {b} habang tumatakbo ang {c}.",
   "drone.selfcal.held_none": "Walang baitang na nahawakan ang makinang ito sa {a}. Ang pinakamababang baitang na sinubukan ay {b}.",
+  "drone.platform": "Plataporma",
+  "drone.platform.dated": "wala pa sa arena na ito",
+  "drone.fly.no_wing": "Walang pakpak ang quad",
 };
 export default T;

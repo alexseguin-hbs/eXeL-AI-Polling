@@ -1222,5 +1222,8 @@ const T: Record<string, string> = {
   "drone.stream.fraction": "{a} · {b}% ของอ้างอิง",
   "drone.selfcal.holds": "เครื่องนี้คง MoT {a} ที่ {b} โดยเปิด {c} อยู่",
   "drone.selfcal.held_none": "เครื่องนี้คงขั้นใดไม่ได้ที่ {a} ขั้นต่ำสุดที่ลองคือ {b}",
+  "drone.platform": "แพลตฟอร์ม",
+  "drone.platform.dated": "ยังไม่มีในสนามนี้",
+  "drone.fly.no_wing": "ควอดไม่มีปีก",
 };
 export default T;
