@@ -77,6 +77,13 @@ function renderReadme() {
   s += `Scaled from \`${G.source}\` (span ${G.sourceExtentM.span} m · depth ${G.sourceExtentM.depth} m · nose-to-tail ${G.sourceExtentM.noseToTail} m), `;
   s += `read on the axes that drawing declares: span \`${G.sourceAxes.span}\`, depth \`${G.sourceAxes.depth}\`, nose-to-tail \`${G.sourceAxes.noseToTail}\`. ${G.scaleNote}\n\n`;
   s += `${d.airframe.class} · ${d.airframe.massKg} kg · cruise ${d.airframe.cruiseMs} m/s · hover ${d.airframe.hoverPowerW} W · cruise ${d.airframe.cruisePowerW} W · battery ${d.battery.capacityWh} Wh with ${Math.round(d.battery.reserveFrac * 100)}% reserve never spent.\n\n> ${d.airframe.note}\n\n`;
+  s += `## The beam, the shield, and the time it takes\n\n`;
+  s += `${d.beam.class} at ${d.beam.wavelengthNm} nm · ${d.beam.powerW} W at the aperture · ${d.beam.divergenceMrad} mrad spread · refused past ${d.beam.maxRangeM} m.\n\n`;
+  s += `Shield ${d.defences.shieldJcm2} J/cm², airframe ${d.defences.hullJcm2} J/cm² behind it. A defeated aircraft is **disabled and flown down** at ${d.defences.descentMs} m/s — there is no state called destroyed.\n\n`;
+  s += `**Hold the beam this long.** Computed from the figures above, never typed:\n\n`;
+  s += `| range | irradiance | shield down | disabled |\n|---:|---:|---:|---:|\n`;
+  for (const t of d.beam.dwellTable) s += `| ${t.rangeM} m | ${t.irradianceWcm2} W/cm² | ${t.shieldDownS} s | ${t.disableS} s |\n`;
+  s += `\n> ${d.beam.note}\n\n> ${d.defences.note}\n\n`;
   s += `## Sensor\n\nProfile \`${d.sensor.profile}\` — ${d.sensor.note}\n\n`;
   s += `## Targets\n\n${d.targets.note} Seed \`${d.targets.seed}\`, up ${d.targets.upMs} ms, down ${d.targets.downMs} ms, ${d.targets.concurrent} at once.\n\n`;
   s += `## Status\n\n| gate | state |\n|---|---|\n`;
@@ -98,6 +105,8 @@ function renderAssumptions() {
   s += `| hover power | ${d.airframe.hoverPowerW} W | brochure-class |\n`;
   s += `| cruise power | ${d.airframe.cruisePowerW} W | brochure-class |\n`;
   s += `| battery | ${d.battery.capacityWh} Wh | ${d.battery.note} |\n`;
+  s += `| beam power | ${d.beam.powerW} W | ${d.beam.note} |\n`;
+  s += `| shield | ${d.defences.shieldJcm2} J/cm² | ${d.defences.note} |\n`;
   s += `\n## Sensor\n\n| quantity | value |\n|---|---|\n| profile | \`${d.sensor.profile}\` |\n| note | ${d.sensor.note} |\n`;
   return s + `\n`;
 }
@@ -135,6 +144,12 @@ export type DroneDomain = DomainSource & {
   gimbal: Record<string, number | string>;
   airframe: Record<string, number | string> & { geometry: DroneAirframeGeometry };
   battery: Record<string, number | string>;
+  /** The beam, and what stands in front of it. Declared beside the airframe, not inside it: this is the
+   *  engagement, not the aircraft. dwellTable is computed from the other fields, never typed. */
+  beam: Record<string, number | string> & {
+    dwellTable: { rangeM: number; irradianceWcm2: number; shieldDownS: number; disableS: number }[];
+  };
+  defences: Record<string, number | string>;
   sensor: { profile: string; note: string };
   targets: Record<string, number | string>;
   modes: DroneMode[];

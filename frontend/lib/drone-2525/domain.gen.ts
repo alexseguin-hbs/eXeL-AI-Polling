@@ -30,6 +30,12 @@ export type DroneDomain = DomainSource & {
   gimbal: Record<string, number | string>;
   airframe: Record<string, number | string> & { geometry: DroneAirframeGeometry };
   battery: Record<string, number | string>;
+  /** The beam, and what stands in front of it. Declared beside the airframe, not inside it: this is the
+   *  engagement, not the aircraft. dwellTable is computed from the other fields, never typed. */
+  beam: Record<string, number | string> & {
+    dwellTable: { rangeM: number; irradianceWcm2: number; shieldDownS: number; disableS: number }[];
+  };
+  defences: Record<string, number | string>;
   sensor: { profile: string; note: string };
   targets: Record<string, number | string>;
   modes: DroneMode[];
@@ -42,7 +48,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.009",
+  "revision": "0.010",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
   "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -113,6 +119,13 @@ export const DRONE_DOMAIN = {
    "date": "2026-09-16",
    "kind": "decision",
    "why": "The aircraft is the FOIL on this surface and nowhere says its other name, with one declared exception for the provenance path. The game answers at /drone-2525 as well as /main/Drone-2525.",
+   "commit": ""
+  },
+  {
+   "revision": "0.010",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "Lasers, shields and time on target. A fluence model rather than hit points, so range is the thing that matters: 0.79 s to disable at 100 m, 5.15 s at 400 m, 13.67 s at 700 m. A defeated aircraft is disabled and flown down under control at 1.6 m/s; there is no state called destroyed.",
    "commit": ""
   }
  ],
@@ -1094,6 +1107,71 @@ export const DRONE_DOMAIN = {
   "capacityWh": 300,
   "reserveFrac": 0.2,
   "note": "Reserve is never spent by the sim; endurance is quoted on the usable 80%."
+ },
+ "beam": {
+  "wavelengthNm": 1064,
+  "class": "Nd:YAG-class continuous emitter, game scale",
+  "powerW": 2000,
+  "apertureRadiusM": 0.05,
+  "divergenceMrad": 0.5,
+  "attenuationPerKm": 0.12,
+  "maxRangeM": 700,
+  "lockS": 0.35,
+  "note": "BOUNDING ESTIMATE ONLY - not design evidence and not a real weapon. Chosen so the dwell a player feels lands where the game wants it: well under a second in close, a few seconds at the gimbal's declared range, and a slog beyond it. Range matters because the beam spreads and the air absorbs, which is the one physical fact the whole engagement turns on. Fine-track lock is 0.35 s: the director needs that long back on a target before full power, so flicking between targets is a losing tactic and holding is the game.",
+  "dwellTable": [
+   {
+    "rangeM": 100,
+    "irradianceWcm2": 6.29,
+    "shieldDownS": 0.65,
+    "disableS": 0.97
+   },
+   {
+    "rangeM": 200,
+    "irradianceWcm2": 2.762,
+    "shieldDownS": 1.26,
+    "disableS": 1.99
+   },
+   {
+    "rangeM": 300,
+    "irradianceWcm2": 1.535,
+    "shieldDownS": 2.13,
+    "disableS": 3.43
+   },
+   {
+    "rangeM": 400,
+    "irradianceWcm2": 0.971,
+    "shieldDownS": 3.27,
+    "disableS": 5.33
+   },
+   {
+    "rangeM": 500,
+    "irradianceWcm2": 0.666,
+    "shieldDownS": 4.68,
+    "disableS": 7.68
+   },
+   {
+    "rangeM": 600,
+    "irradianceWcm2": 0.484,
+    "shieldDownS": 6.38,
+    "disableS": 10.51
+   },
+   {
+    "rangeM": 700,
+    "irradianceWcm2": 0.366,
+    "shieldDownS": 8.38,
+    "disableS": 13.84
+   }
+  ]
+ },
+ "defences": {
+  "shieldJcm2": 3,
+  "hullJcm2": 2,
+  "shieldRegenJcm2PerS": 0.5,
+  "shieldRegenDelayS": 2,
+  "hullCoolJcm2PerS": 0.35,
+  "descentMs": 1.6,
+  "touchdownAglM": 0.3,
+  "note": "Independence Day: the shield absorbs first and nothing reaches the airframe until it fails. Ender's Game and the operator's own words: a defeated aircraft is DISABLED and flown down under control, never deleted in the air. Battle House: it comes back, it is not exterminated."
  },
  "sensor": {
   "profile": "pi-baseline",
