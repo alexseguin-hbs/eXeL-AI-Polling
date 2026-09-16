@@ -93,7 +93,7 @@ export function DroneCommandUX1() {
           </select>
           <span style={{ ...dim, fontSize: 10 }}>{t("drone.platform")}</span>
           <select data-drone-platform value={platform} onChange={(e) => setPlatform(e.target.value as PlatformId)}
-                  style={{ ...btn({ on: true, hex: semanticHex("mount") }), minWidth: 118 }}>
+                  style={{ ...btn({ on: true, hex: semanticHex("mount") }), minWidth: 118, maxWidth: 150 }}>
             {PLATFORMS.map((p) => <option key={p.id} value={p.id} disabled={!p.here}>{p.here ? p.label : `${p.label} · ${t("drone.platform.dated")}`}</option>)}
           </select>
           <span style={{ ...dim, fontSize: 10 }}>{t("drone.ch")}</span>
