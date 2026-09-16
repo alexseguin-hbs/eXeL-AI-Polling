@@ -1,7 +1,7 @@
 {
  "section": "Drone-2525",
  "route": "/main/Drone-2525",
- "note": "Append-only Vision 2525 traceability for the Drone-2525 Domain Play. rev monotonic; append, never edit. Version 00.00 · revision 0.001 opens the record (operator 2026-09-15).",
+ "note": "Append-only Vision 2525 traceability for the Drone-2525 Domain Play. rev monotonic; append, never edit. Version 00.00 · revision 0.001 opens the record (operator 2026-09-15). Revisions 0.007 to 0.011 append the FOIL declaration, the axis correction, the derived wing, the naming rule, the engagement rules and the N ladder (operator 2026-09-16).",
  "entries": [
   {
    "rev": 1,
@@ -79,6 +79,47 @@
    "kind": "release",
    "text": "Revision 0.006. Forty-two aircraft, twenty-one a side, in flat columns so a tick allocates nothing and as an overlay in the arena's own camera so no mesh is rebuilt. One budget, two consumers: the swarm takes its share first and the Capitol block takes the rest, so at rung 1.1 the world drops to 112 segments and all forty-two are still drawn. A five-level authority ladder rides the band that already exists, from a named person per shot to the key group's live lean as a standing mandate, and the invariant does not bend on any rung: silence is never consent. The SSSES scorer was rewritten because three of its five pillars were not measurements — Succinctness was the literal 85 — and two of the sentences it printed were false. The score fell to 92 before the work lifted it to 96. Measured on a processor slowed ten times: 51.4 fps with the engagement in the air against a 30 Hz reference, and the projection memo demonstrably holding, which it had never done — an inline one-line lambda had been invalidating it sixty times a second. Four defects my own optimisation introduced were each caught by a gate rather than by reading.",
    "commit": "c7c40a5"
+  },
+  {
+   "rev": 12,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.007. The fixed-wing is declared at the 1.111 m foil — span 1.111 m, nose-to-tail 0.7777 m, depth 0.2522 m — proportional to the operator's own 11.111 x 7.777 full scale to within 0.07 mm on the span. Declared with it are the AXES the drawing is measured on, because the shipped extent had span, depth and nose-to-tail under each other's names: the drawing's header reads 'X span, Y depth, Z vertical nose-up axis' and the carried model declared forward as x, so lengthM 38.579 was the SPAN. Every consumer inherited the permutation, including the crew parallax shipped the day before, which was therefore measured across the wing. Corrected at the source, and the mapping is now declared in one place rather than assumed in three.",
+   "commit": "538204b"
+  },
+  {
+   "rev": 13,
+   "date": "2026-09-16",
+   "kind": "correction",
+   "text": "CORRECTING REVISION 0.006 ON THE RECORD. That entry says 'at rung 1.1 the world drops to 112 segments and all forty-two are still drawn.' The second half was false of the app. The round hands the swarm floor(280 x 0.45) = 126 segments at rung 1.1, which at four segments a glyph buys thirty-one aircraft: ELEVEN OF THE FORTY-TWO WERE DROPPED on the level we promise runs everything. The gate agreed with the claim because it computed a more generous share for itself and then asserted only that something was drawn. The claim was true of the parity harness and false of the game. Fixed by a one-segment mark — at 1.111 m an aircraft is under a pixel wide beyond 700 m, so four segments for it is waste and dropping it is a lie — and the gate now copies the share the round actually uses. Forty-two drawn, none dropped, 60.2 fps under a ten-times-slowed processor. This entry appends rather than edits, because a record that can be corrected in place is not a record.",
+   "commit": "538204b"
+  },
+  {
+   "rev": 14,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.008. The wing is derived from the drawing instead of asserted beside it. The physics record said 5 kg on 0.9 m2; integrating the drawing's own ninety-four ribs gives 0.3092 m2 — the round had been flying a wing nearly three times the size of the one on screen, and nothing could notice because the two descriptions never met in code. Stall moves 8.43 to 14.38 m/s, which broke the transition, because the quad's acceleration had been hand-typed to beat the OLD stall. The requirement is now written as the requirement: terminal speed is a declared multiple of whatever this airframe's stall happens to be, checked across twenty mass and area combinations.",
+   "commit": "1875bda"
+  },
+  {
+   "rev": 15,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.009. The aircraft is the FOIL on this surface and has no other name — not in a label, a lexicon value, a CRS row, a component, a shipped document or an export (operator 2026-09-16: 'which we will not say in Drone-2525 so as not to upset Shield AI'). One declared exception, written into the domain as geometry.namingRule: the provenance path, because a derivation that cannot name its source cannot be verified. And the game now answers at /drone-2525 as well as /main/Drone-2525, with both emitted to the static export — a route that compiles but does not emit is a 404 in production and green in CI.",
+   "commit": "82325e3"
+  },
+  {
+   "rev": 16,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.010. Lasers, shields and time on target, as a fluence model rather than hit points: irradiance falls with beam spread and atmospheric loss, so disabling costs 0.97 s at 100 m and 13.84 s at 700 m and the game is about closing. The shield absorbs first and nothing reaches the airframe until it fails (Independence Day). A defeated aircraft is DISABLED and flown down under control at 1.6 m/s — there is no reachable state called destroyed (Ender's Game, and the operator's own words). Shields regenerate after a quiet period rather than a match exterminating anyone (Battle House, Barrington). The gate caught the module claiming 'you must hold the beam' while energy was energy; a 0.35 s fine-track lock made the claim true, and flicks now land 34 per cent of what held seconds do.",
+   "commit": "cd84715"
+  },
+  {
+   "rev": 17,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.011. The N ladder: the same game at 1v1, 2v2 and every rung to 21v21 — 42 aircraft, 84 seats, 42 HI a side — with twelve computed review lenses at each rung. It found three things that 21v21 alone could not have shown. A target already coming down was still a target, wasting ninety per cent of all beam time from the second rung upward. A match is decided when a side cannot fight, not when its last aircraft lands. And the person is the bottleneck, measurably: at 21v21 one watch officer is asked for 431 decisions at authority level 1 (117.8 a minute against the fifty a person can answer) and 42 at level 3. Levels 4 and 5 put the decision with a quorum of the key group, which answers 300 a minute between six people, and no rung outruns it. The invariant never bent at any level — what scales is the breadth of one decision and how many named people make it. Also: the winners' circle at one ninth, the R-CORE gate, ending on a floor that a named safety officer must clear; and one aircraft at two sizes with the square-cube law between them, mass 5 kg to 5.00 t and stall 14.4 to 45.5 m/s."
   }
  ]
 }

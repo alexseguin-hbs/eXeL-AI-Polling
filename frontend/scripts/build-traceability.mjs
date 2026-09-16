@@ -8,7 +8,11 @@
 import fs from 'node:fs'; import path from 'node:path'; import { execSync } from 'node:child_process';
 const ROOT = path.resolve(process.cwd(), '..');
 const DIR = path.join(ROOT, 'docs/traceability');
-const KINDS = new Set(['ask', 'decision', 'release']);
+// A LEDGER THAT CANNOT RECORD A CORRECTION IS A LEDGER THAT HIDES THEM. `correction` was added
+// 2026-09-16, when a shipped release entry turned out to carry a claim that was false of the app.
+// The append-only law forbids editing the entry, and labelling the fix a plain `decision` would have
+// left the record saying two contradictory things with nothing pointing between them.
+const KINDS = new Set(['ask', 'decision', 'release', 'correction']);
 const files = fs.readdirSync(DIR).filter((f) => f.endsWith('.ledger.json'));
 const commitExists = (sha) => { try { execSync(`git -C ${ROOT} cat-file -e ${sha}^{commit}`, { stdio: 'ignore' }); return true; } catch { return false; } };
 const load = () => files.map((f) => ({ file: f, ...JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8')) }));
@@ -20,7 +24,7 @@ export function validate(ledgers) {
     for (const e of L.entries) {
       if (!(e.rev === prev + 1)) errs.push(`${L.file}: rev ${e.rev} not monotonic (expected ${prev + 1})`);
       prev = e.rev;
-      if (!KINDS.has(e.kind)) errs.push(`${L.file} rev ${e.rev}: kind "${e.kind}" not in ask|decision|release`);
+      if (!KINDS.has(e.kind)) errs.push(`${L.file} rev ${e.rev}: kind "${e.kind}" not in ask|decision|release|correction`);
       if (!String(e.text || '').trim()) errs.push(`${L.file} rev ${e.rev}: empty text`);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(e.date || '')) errs.push(`${L.file} rev ${e.rev}: bad date`);
       if (e.kind === 'release') { if (!e.commit) errs.push(`${L.file} rev ${e.rev}: release cites no commit`); else if (!commitExists(e.commit)) errs.push(`${L.file} rev ${e.rev}: commit ${e.commit} does not exist`); }
