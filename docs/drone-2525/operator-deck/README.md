@@ -1,12 +1,69 @@
 # Drone-2525 · operator deck — the carried package
 
-Nine revisions of the operator's own build, plus the prompts and the Cup, carried **byte-for-byte** and
-never regenerated. `sha256` for every file is in
+**HEAD is `drone-2525_r.050.html`.** Eleven revisions of the operator's own build, plus the prompts, both
+notes files written for this repo, the roster and the Cup — carried **byte-for-byte** and never regenerated.
+`sha256` for every file is in
 [`docs/asks/2026-09-16_operator_deck_r042.sha256`](../../asks/2026-09-16_operator_deck_r042.sha256).
 
 ```
 cd docs/drone-2525/operator-deck && sha256sum -c ../../asks/2026-09-16_operator_deck_r042.sha256
 ```
+
+`CLAUDE_CODE_NOTES_r047_r050.md` (on top of `CLAUDE_CODE_NOTES_r042_r047.md`) is the operator's handoff to
+this repo and is the file to read first. Its standing instructions: **r.050 is HEAD · next file is r.051
+only if something actually changes · do not skip revision numbers · do not resurrect TG as a second level
+system · do not place live-fire or turret-siting advice on the real Capitol · keep CONTROLS unburied · leave
+`ASM_CUP_99.*` alone.**
+
+## The r.049 / r.050 fire gate — amber → red
+
+Verified in the r.050 source, not taken from the notes: `approveDesig()` (:957) is the **only** writer of
+`phase='red'`, and `fireN()` (:971) refuses anything else.
+
+```
+click / TARGET / voice target    →  AMBER box + Tn   (#F0A020)   cannot fire   toast AMBER · SECOND HI APPROVE
+APPROVE (HI-2 or net peer)       →  RED box          (#E24B3B)   can fire
+FIRE / double-click / voice fire →  only if phase==='red'
+```
+
+FIRE with no box → `NO_RED_BOX`; FIRE on amber → `AMBER_NO_APPROVE`. Both are refused **and recorded** as
+decisions. Double-click does not skip APPROVE.
+
+**Said plainly, because the notes only say "solo second-authority button still allowed":** on one device
+the same person may self-approve as `HI-2` (r.050 :960 permits it by comment, with no check). Solo play is
+therefore a **two-step** rule; with a second tab or a net peer (`BroadcastChannel {k:'APPROVE', id}`) it
+becomes a **two-person** rule. Both are honest; they are different claims.
+
+## What r.047–r.050 closed, verified by reading the source
+
+The r.040 and r.042 review items are genuinely closed, not merely claimed:
+
+| item | state in r.047 |
+|---|---|
+| boot order — 42 turrets before `const units` | **closed**, the loop runs after |
+| QUAD `D1Q` · VTOL `D1` · FOIL `D1F` kept distinct | **closed** |
+| one challenge spine, TG not competing | **closed** — `setTG` is gone and `tgSpec()` is a one-line shim returning `challengeSpec()` |
+| decision record on every action | **closed** — `decide()` writes `decisionId`, `designated`, `hiApproved`, `authorityLevel`, `actor`, `challenge`, `diff` |
+| canonical event line | **closed** — `ev()` emits `t \| role \| verb \| id \| result` |
+| `pack()` exports the collections | **closed** — `events`, `decisions`, `metrics`, `replayHash` |
+| deterministic replay hash | **closed, and correct** — FNV over `seq\|challenge\|diff\|role\|verb\|id\|designated\|hiApproved\|authorityLevel\|result\|blu\|red`, with no wall-clock, no ISO, no FPS and no SID, exactly as specified |
+| metrics reducer | **closed** — `metricsOf()` yields designation rate, HI holds, auth failures, handoffs |
+
+## Three defects found in r.047 while reading it
+
+Reported rather than fixed here, because this directory is a carried copy and nothing in this repo may edit it.
+
+1. **`metricsOf()` stamps `rev:'0.044'`** while the file declares `revision:'0.047'` three times elsewhere.
+   A sidecar written from r.047 would attribute its metrics to r.044 — which is precisely the comparison the
+   sidecar exists to make trustworthy. One-character fix, high consequence.
+2. **`replayScrub()` reads fields the canonical schema no longer has.** It renders
+   `(ev.k||'') + ' ' + (ev.id||'') + ' ' + (ev.x||'')`, but `ev()` rows carry `verb` and `result`, not `k`
+   and `x`. So scrubbing the replay strip shows the id alone — the verb and the result are silently blank.
+   The schema canonicalisation in r.043 broke the scrubber and nothing caught it.
+3. **`feed(m)` routes free-form text through `ev('FEED','',m)`**, so arbitrary strings enter the canonical
+   event stream and therefore the replay hash. Today that is harmless because scores are already hashed via
+   `blu`/`red`. It stops being harmless the moment any feed line contains a clock, an FPS figure or a SID —
+   the four things the hash spec explicitly excludes. Worth a guard rather than a convention.
 
 ## Read-only, and one of them emphatically so
 
@@ -14,13 +71,18 @@ cd docs/drone-2525/operator-deck && sha256sum -c ../../asks/2026-09-16_operator_
 fixture)."** A baseline that can be regenerated is not a baseline. `ASM_CUP_99.json` and `.md` are the
 published result a later build has to still reproduce, and nothing in this repo may write to them.
 
+**The fixture cannot answer the new questions, and that is not a flaw in it.** It preserves wins, points,
+teams, pairings and the seed — but not designation rate, HI holds, auth failures, handoffs, FPS or replay
+hashes. Those need a **non-destructive sidecar** beside it (`exel-2525-sidecar.json`), which is what r.043's
+SAVE already writes. The fixture stays untouched; the sidecar carries the new axes.
+
 | file | what it is |
 |---|---|
+| `CLAUDE_CODE_NOTES_r047_r050.md` · `r042_r047.md` | **the handoff to this repo.** Read first |
 | `ASM_CUP_99.json` · `.md` | **the fixture.** Seed 2525, 99 runs × levels 1–5. Baseline: 6v6 **BLU 3–1**, 3v3 **BLU 5–0**, pairs 1–3 RED, pairs 4–6 BLU |
 | `ASM_ROSTER.csv` | the twelve seats — six BLU (Enki, Thor, Odin, Athena, Krishna, Enlil) against six RED (Sofia, Aset, Pangu, Christo, Thoth, Asar) |
-| `PROMPT_ECO2525_r042.md` | the doctrine and the six fixes that define gameplay truth |
-| `PROMPT_ECO2525_r040.md` | its predecessor |
-| `drone-2525_r.003 … r.042.html` | the build, nine revisions |
+| `PROMPT_ECO2525_r042.md` · `r040.md` | the doctrine and the fixes that define gameplay truth |
+| `drone-2525_r.003 … r.050.html` | the build, eleven revisions |
 
 ## The doctrine, quoted
 
@@ -32,9 +94,17 @@ published result a later build has to still reproduce, and nothing in this repo 
 > Compare next sims on designation rate, HI holds, auth failures, handoffs, FPS, replay hash — not winners
 > only.
 
-## What is stable across all nine, and what is not
+**R-CORE — Recursive Continuous Operational Reality Ecosystem** (operator, from VISION • 2525): a
+coordination architecture, not a platform and not a command system, sitting across existing systems while
+preserving human judgment, institutional authority and accountability. Its loop is
+`REALITY → OBSERVE → RECORD → REPLAY → SIMULATE → VERIFY → IMPROVE → REALITY`; its five layers are
+Communications, Coordination, Intelligence, Simulation + Replay, and Continual Evolution; its five systems
+are COMM-2525, LINK-2525, EDGE-2525, SYNC-2525 and UCRS-2525. *"R-CORE coordinates; it does not dominate.
+Humanity remains the authority."*
 
-Checked rather than assumed. These four are **identical in every revision from r.013 to r.042**, so the
+## What is stable across all ten, and what is not
+
+Checked rather than assumed. These four are **identical in every revision from r.013 to r.047**, so the
 contract has been settled since r.013 and only the app around it grew:
 
 | | value | first seen |
@@ -44,8 +114,8 @@ contract has been settled since r.013 and only the app around it grew:
 | `T13` | md5 `7dfe3c58` | r.013 |
 | seats | `pilot {f:0.18, u:0.12}` · `tgt {f:-0.15, u:-0.04}` · turret separation 0 | r.013 |
 
-What grew: r.035 → r.042 added `decide`, `feed`, `rcoreStep`, `asmTick`, `challengeSpec` and `replayScrub`
-and dropped nothing — r.042 is a strict superset of r.035.
+What grew: r.035 → r.042 added `decide`, `feed`, `rcoreStep`, `asmTick`, `challengeSpec`, `replayScrub`;
+r.042 → r.047 added `ev`, `metricsOf`, `replayHash`, `voiceSync` and removed `setTG`. Nothing else was lost.
 
 ## Divergences from this repo, recorded rather than silently reconciled
 
