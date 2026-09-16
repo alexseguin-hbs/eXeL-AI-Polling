@@ -16,9 +16,11 @@ import type { LosResult } from "@/lib/drone-2525/los";
 import type { Swarm, SwarmDraw } from "@/lib/drone-2525/swarm";
 import type { Vec3 } from "@/lib/wire-core/wire-model";
 import type { ArenaCtx } from "./arena-view";
+import { tboxPath } from "@/lib/drone-2525/tap-target";
+import { SLOT_NS, type Slots } from "@/lib/drone-2525/slots";
 import { SwarmLayer } from "./swarm-layer";
 
-export function RoundOverlay({ ctx, views, eye, myEye, framed, los, swarm, swarmPlan }: {
+export function RoundOverlay({ ctx, views, eye, myEye, framed, los, swarm, swarmPlan, slots }: {
   ctx: ArenaCtx;
   views: readonly TargetView[];
   /** Where the SENSOR is — the laser and the sight line start here whoever is looking. */
@@ -29,6 +31,8 @@ export function RoundOverlay({ ctx, views, eye, myEye, framed, los, swarm, swarm
   los: LosResult | null;
   swarm: Swarm;
   swarmPlan: SwarmDraw | null;
+  /** T1 T2 T3 — drawn as r.050's T-box: amber until approved, red after. */
+  slots?: Slots;
 }) {
   const p = (v: Vec3) => sceneProject(v, ctx.cam);
   const marks: React.ReactNode[] = [];
@@ -39,6 +43,20 @@ export function RoundOverlay({ ctx, views, eye, myEye, framed, los, swarm, swarm
     const r = v.phase === "up" ? 7 + 5 * (1 - v.progress) : 5;
     const d = `M${q.x} ${q.y - r}L${q.x + r} ${q.y}L${q.x} ${q.y + r}L${q.x - r} ${q.y}Z`;
     marks.push(<path key={v.door.id} d={d} {...strokeProps(semanticHex(targetRole(v.phase)), VECTOR_LAW.stroke.normal)} />);
+  }
+
+  // THE T-BOX. Bracket corners and n ticks around each designated door, amber (a mark that cannot fire)
+  // or red (approved). Drawn here, in the world's camera, so the box sits on the door at every pitch and
+  // bearing rather than being a HUD label somewhere else.
+  if (slots) {
+    for (const n of SLOT_NS) {
+      const d = slots.s[n]; if (!d) continue;
+      const v = views.find((x) => x.door.id === d.doorId); if (!v) continue;
+      const q = p(v.door.at); if (q.behind) continue;
+      const hex = semanticHex(d.phase === "red" ? "ray" : "pending");
+      marks.push(<path key={`tbox-${n}`} data-drone-tbox={n} data-drone-tbox-phase={d.phase} d={tboxPath(q.x, q.y, slots.current === n ? 16 : 13, n)}
+                       {...strokeProps(hex, slots.current === n ? VECTOR_LAW.stroke.normal : VECTOR_LAW.stroke.hairline)} />);
+    }
   }
 
   if (framed) {

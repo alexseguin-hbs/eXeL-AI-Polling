@@ -60,12 +60,18 @@ ok(combineGimbalRate({ pan: 1, tilt: 0 }, { x: -1, y: 0 }).pan === 0, 'an arrow 
 // climb; this holds the rebinding, and holds that the keyboard is actually mounted rather than merely written.
 const round = fs.readFileSync(new URL('../components/drone-2525/round.tsx', import.meta.url), 'utf8');
 ok(/useControls\(\{/.test(round), 'round.tsx mounts useControls');
-ok(/onSlot: doSlot/.test(round) && /onFire: doShoot/.test(round) && /onApprove: doApprove/.test(round), 'slots, fire and approve are bound through the hook');
-const headStickLine = round.split('\n').find((l) => /drone\.fly\.head/.test(l) || /headStick\.current = applySets/.test(l));
-ok(headStickLine !== undefined && !/stick\.current\.yaw/.test(round.split('drone.fly.head')[1]?.split('\n')[1] ?? ''), 'the R stick no longer writes airframe yaw');
-ok(/headStick\.current = applySets\(\{ x, y \}, "R", sets\)/.test(round), 'the R stick writes the head rate, through the saved calibration');
-ok(/applySets\(\{ x, y \}, "L", sets\)/.test(round), 'the L stick passes through the saved calibration too');
-ok(/humanPilot \|\| iAim \?/.test(round), 'the stick row renders for whoever aims, so turret mode has its look-stick');
+ok(/onSlot: doSlot/.test(round) && /onFire: \(\) => doShoot\(\)/.test(round) && /onApprove: doApprove/.test(round), 'slots, fire and approve are bound through the hook');
+const deck = fs.readFileSync(new URL('../components/drone-2525/control-deck.tsx', import.meta.url), 'utf8');
+ok(/<ControlDeck/.test(round) && !/<Stick /.test(round), 'the sticks live in the deck, not in the round (the 300-line rule)');
+ok(!/drone\.fly\.head[^\n]*\n[^\n]*stick\.current\.yaw/.test(deck), 'the R stick no longer writes airframe yaw');
+ok(/headStick\.current = applySets\(\{ x, y \}, "R", sets\)/.test(deck), 'the R stick writes the head rate, through the saved calibration');
+ok(/applySets\(\{ x, y \}, "L", sets\)/.test(deck), 'the L stick passes through the saved calibration too');
+ok(/humanPilot \|\| iAim \?/.test(deck), 'the stick row renders for whoever aims, so turret mode has its look-stick');
+ok(/data-drone-set="from-stick"/.test(deck) && /data-drone-set="reset"/.test(deck) && /data-drone-set="zero"/.test(deck), 'SET FROM STICK, ZERO and RESET SETS are on the deck');
+ok(/data-drone-keymap/.test(deck) && /@media print/.test(deck), 'the keyboard map exists and prints');
+ok(/data-drone-voice/.test(deck), 'voice is offered on the deck');
+ok(/onTap=\{onArenaTap\}/.test(round) && /drag=\{iAim \? "look" : "orbit"\}/.test(round), 'tap targets, and the aiming seat owns the drag (dragView: gimbal look if HI)');
+ok(/if \(double\)/.test(round) && /doShoot\(next\)/.test(round), 'a double-tap fires through the same doShoot, so it cannot skip APPROVE');
 ok(/data-drone-hold=\{id\}/.test(fs.readFileSync(new URL('../components/drone-2525/stick.tsx', import.meta.url), 'utf8')), 'a hold button exists for the axes R used to carry');
 
 console.log(`\ndrone-controls: ${pass} passed, ${fail} failed · WASD body · arrows gimbal · QE yaw · UJ climb · typing is not flying`);

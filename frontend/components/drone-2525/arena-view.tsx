@@ -3,6 +3,7 @@
 // THE ARENA — the Texas Capitol lawn, drawn as edges, with the fidelity tier and what it dropped always on
 // screen (U-WF-09: a cap is never silent). R-CORE interaction: drag rotates and tilts, wheel zooms — the same
 // model every other 2525 surface speaks (lib/rcore-gestures.ts).
+import { classifyPress, isDoubleTap, type PointerSample } from "@/lib/drone-2525/tap-target";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type DomainSource } from "@/lib/drone-2525/arena-model";
 import { worldAt } from "@/lib/drone-2525/world";
@@ -37,7 +38,7 @@ export interface ArenaCtx {
  */
 const SAME_WIDTH = (w: number) => w;
 
-export function ArenaView({ source, level = "1.1", hal = "auto", reserve = 0, overlay, hudRight, hudLeft }: {
+export function ArenaView({ source, level = "1.1", hal = "auto", reserve = 0, overlay, hudRight, hudLeft, onTap, drag: dragMode = "orbit", onLook }: {
   source: DomainSource;
   /** The rung being ASKED for, 1.1 … 5.5. Calibration may go below it and never above it. */
   level?: MotLevel;
@@ -53,6 +54,11 @@ export function ArenaView({ source, level = "1.1", hal = "auto", reserve = 0, ov
   overlay?: (ctx: ArenaCtx) => React.ReactNode;
   hudRight?: React.ReactNode;
   hudLeft?: React.ReactNode;
+  /** A press that did not move: pixel position in the box, the camera it was made in, and whether it doubled. */
+  onTap?: (px: number, py: number, ctx: ArenaCtx, double: boolean) => void;
+  /** Who owns a drag. The schema's `dragView: 'gimbal look if HI'` — the aiming seat looks, anyone else orbits. */
+  drag?: "orbit" | "look";
+  onLook?: (dxPx: number, dyPx: number) => void;
 }) {
   const { t } = useLexicon();
   const box = useRef<HTMLDivElement>(null);
@@ -63,6 +69,9 @@ export function ArenaView({ source, level = "1.1", hal = "auto", reserve = 0, ov
   const [cal, setCal] = useState(() => initCal(level, level));
   const [measuredFps, setMeasuredFps] = useState(0);
   const drag = useRef<{ x: number; y: number } | null>(null);
+  // Where the press began and the last tap, for tap-vs-drag and double-tap (tap-target.ts decides).
+  const press = useRef<PointerSample | null>(null);
+  const lastTap = useRef<PointerSample | null>(null);
   const machine = useMemo(() => resolveHal(hal, measuredFps), [hal, measuredFps]);
   const spec = useMemo(() => motSpec(cal.level), [cal.level]);
 
@@ -115,15 +124,33 @@ export function ArenaView({ source, level = "1.1", hal = "auto", reserve = 0, ov
     return { ...fit, pxPerM: fit.pxPerM * zoom };
   }, [size, pitch, bearing, zoom, source.arena.radiusM, model]);
 
-  const onDown = useCallback((e: React.PointerEvent) => { drag.current = { x: e.clientX, y: e.clientY }; (e.target as Element).setPointerCapture?.(e.pointerId); }, []);
+  const onDown = useCallback((e: React.PointerEvent) => {
+    drag.current = { x: e.clientX, y: e.clientY };
+    press.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  }, []);
   const onMove = useCallback((e: React.PointerEvent) => {
     if (!drag.current) return;
-    const d = rightDrag(e.clientX - drag.current.x, e.clientY - drag.current.y, size.w);
+    const dx = e.clientX - drag.current.x, dy = e.clientY - drag.current.y;
+    // A press still inside the tap threshold is not a drag yet: do not orbit or look on a finger's wobble.
+    if (press.current && classifyPress(press.current, { x: e.clientX, y: e.clientY, t: press.current.t }) === "tap") return;
     drag.current = { x: e.clientX, y: e.clientY };
+    if (dragMode === "look") { onLook?.(dx, dy); return; }
+    const d = rightDrag(dx, dy, size.w);
     setBearing((b) => b + (d.dBearing * 180) / Math.PI);
     setPitch((p) => clamp(p + d.dPitch, RCORE_CFG.minPitch, RCORE_CFG.maxPitch));
-  }, [size.w]);
-  const onUp = useCallback(() => { drag.current = null; }, []);
+  }, [size.w, dragMode, onLook]);
+  const onUp = useCallback((e: React.PointerEvent) => {
+    drag.current = null;
+    const start = press.current; press.current = null;
+    if (!start || !onTap) return;
+    const up = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+    if (classifyPress(start, up) !== "tap") return;
+    const r = box.current?.getBoundingClientRect(); if (!r) return;
+    const double = isDoubleTap(lastTap.current, up);
+    lastTap.current = double ? null : up;                     // a triple is a new first tap, not a second double
+    onTap(up.x - r.left, up.y - r.top, { model, doors, ground, cam, stroke: SAME_WIDTH }, double);
+  }, [onTap, model, doors, ground, cam]);
   useEffect(() => {
     const el = box.current; if (!el) return;
     const onWheel = (e: WheelEvent) => { e.preventDefault(); setZoom((z) => clamp(z * wheelZoom(e.deltaY), RCORE_CFG.minZoom, RCORE_CFG.maxZoom)); };

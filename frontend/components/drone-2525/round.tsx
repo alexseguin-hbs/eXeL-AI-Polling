@@ -34,9 +34,12 @@ import {
 import { initSi, openCall, recogniseAdopted, openCallOf, tally } from "@/lib/drone-2525/si-pod";
 import { initLink, seatUrl, seatFromParams, linkLine, linkUp, type Seat } from "@/lib/drone-2525/link";
 import { seatEye, seatEyeLine } from "@/lib/drone-2525/seat-view";
-import { initSlots, designate, nextFreeSlot, approve, canFire, clearSlot, pruneSlots, slotLine, refusalToast, slotOf, selectSlot, type SlotN } from "@/lib/drone-2525/slots";
+import { initSlots, designate, nextFreeSlot, approve, canFire, clearSlot, pruneSlots, slotLine, refusalToast, slotOf, selectSlot, type SlotN, type Slots } from "@/lib/drone-2525/slots";
+import { hitDoor, newSpeech } from "@/lib/drone-2525/tap-target";
+import { voiceToAction } from "@/lib/2525-core/controls";
+import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 import { useControls, type GimbalRate } from "@/lib/drone-2525/use-controls";
-import { applySets, getSets, initSets, subscribeSets } from "@/lib/2525-core/stick-sets";
+import { getSets, initSets, subscribeSets } from "@/lib/2525-core/stick-sets";
 import { initLedger, decide as recordDecision, ev as recordEvent, type Stamp } from "@/lib/drone-2525/decisions";
 import { useDroneLink } from "@/lib/drone-2525/use-drone-link";
 import { CrewSeatPanel } from "./crew-seat-panel";
@@ -48,7 +51,7 @@ import { SwarmLayer } from "./swarm-layer";
 import { ApprovalBanner } from "./approval-banner";
 import { RoundStatus } from "./round-status";
 import { RoundOverlay } from "./round-overlay";
-import { Stick, HoldButton } from "./stick";
+import { ControlDeck } from "./control-deck";
 import { SiPanel } from "./si-panel";
 import { ArenaView, type ArenaCtx } from "./arena-view";
 import type { MotLevel } from "@/lib/wire-core/mot-ladder";
@@ -61,6 +64,8 @@ const BATTERY = DRONE_DOMAIN.battery as unknown as Parameters<typeof stepFlight>
 const FLYING = (m: RoundMode) => m === "drone" || m === "multi";
 /** Who is watching. A machine's shot is held until this person says otherwise, by name. */
 const WATCH = "the watch officer";
+/** A finger's drag across the arena, as gimbal degrees per pixel. */
+const LOOK_DEG_PER_PX = 0.12;
 const TSPEC = {
   seed: Number(DRONE_DOMAIN.targets.seed), upMs: Number(DRONE_DOMAIN.targets.upMs),
   downMs: Number(DRONE_DOMAIN.targets.downMs), concurrent: Number(DRONE_DOMAIN.targets.concurrent),
@@ -333,17 +338,24 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   // records it by name. click / the TARGET button / voice "target" all come here (r.050: redundant paths
   // onto one action). Re-targeting the door already held is a no-op rather than a second record.
   const doorLabel = useCallback((id: string) => views.find((v) => v.door.id === id)?.door.label ?? id, [views]);
-  const designateInto = useCallback((n: SlotN) => {
-    if (!framed) { setNote(t("drone.game.no_target")); return; }
-    const id = framed.door.id;
-    if (slotOf(slots, id) === n) { setNote(slotLine(slots, doorLabel)); return; }
-    setSlots((s) => designate(s, n, id, mySeatOr, tMsRef.current));
+  // ONE PATH TO AMBER. The TARGET button, the 1/2/3 keys, a tap on a door and a spoken "target" all end
+  // here; there is no second way to make a mark. Returns the slots as they will be, so a double-tap can
+  // hand them straight to doShoot without waiting for a render.
+  const designateDoor = useCallback((id: string, n: SlotN): Slots => {
+    if (slotOf(slots, id) === n) { setNote(slotLine(slots, doorLabel)); return slots; }
+    const next = designate(slots, n, id, mySeatOr, tMsRef.current);
+    setSlots(next);
     setLedger((L) => {
       const a = recordDecision(L, "DESIGNATE", id, stampNow(), { slot: n });
       return recordEvent(a.ledger, "DESIGNATE", id, "AMBER", stampNow()).ledger;
     });
-    setNote(`T${n} · AMBER · ${framed.door.label}`);
-  }, [framed, slots, mySeatOr, t, stampNow, doorLabel]);
+    setNote(`T${n} · AMBER · ${doorLabel(id)}`);
+    return next;
+  }, [slots, mySeatOr, stampNow, doorLabel]);
+  const designateInto = useCallback((n: SlotN) => {
+    if (!framed) { setNote(t("drone.game.no_target")); return; }
+    designateDoor(framed.door.id, n);
+  }, [framed, designateDoor, t]);
   const doTarget = useCallback(() => {
     designateInto(slotOf(slots, framed?.door.id ?? "") ?? nextFreeSlot(slots));
   }, [designateInto, slots, framed]);
@@ -387,12 +399,13 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
     });
   }, [tMs, framed, los, gim]);
 
-  const doShoot = useCallback(() => {
+  const doShoot = useCallback((st: Slots = slots) => {
     // THE GATE, IN TWO LAYERS, NEITHER OF WHICH CAN BE SKIPPED.
     // First r.050's: no red box, no shot. A shot with nothing designated is NO_RED_BOX; a shot on an amber
     // box is AMBER_NO_APPROVE. Both are refused AND RECORDED — a refusal is a decision, and a decision that
-    // is only toasted is a decision that is lost.
-    const check = canFire(slots);
+    // is only toasted is a decision that is lost. `st` is the slots to judge: the state, or — for a
+    // double-tap that has just designated — the slots as they will be, which are still amber and refuse.
+    const check = canFire(st);
     if (!check.ok) {
       const reason = check.refusal ?? "NO_RED_BOX";
       setLedger((L) => recordDecision(L, "REJECT", check.doorId ?? "NONE", stampNow(), { reason }).ledger);
@@ -435,9 +448,53 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   const humanPilot = flying && crew.pilot === "HI" && iFly;
   useControls({
     enabled: true, stick, headStick, onGimbalRate,
-    handlers: { onTarget: doTarget, onSlot: doSlot, onCycle: nextTarget, onFire: doShoot, onCapture: doCapture, onApprove: doApprove },
+    handlers: { onTarget: doTarget, onSlot: doSlot, onCycle: nextTarget, onFire: () => doShoot(), onCapture: doCapture, onApprove: doApprove },
     mayFly: humanPilot, mayAim: iAim,
   });
+
+  // TAP = TARGET, DOUBLE-TAP = TARGET THEN FIRE (r.050). A tap swings the gimbal to the door under the
+  // finger and marks it amber; a double-tap hands the freshly-designated slots to doShoot, which sees amber
+  // and refuses with AMBER_NO_APPROVE — recorded. There is no path from a gesture to a shot that does not
+  // pass canFire. A tap on empty lawn marks nothing.
+  const onArenaTap = useCallback((px: number, py: number, ctx: ArenaCtx, double: boolean) => {
+    if (!iAim) return;
+    const hit = hitDoor(px, py, views, ctx.cam);
+    if (!hit) { setNote(t("drone.game.no_target")); return; }
+    const a = aimAt(eye, hit.door.at);
+    setGim((g) => command(g, SPEC, a.az, a.el));
+    const n = slotOf(slots, hit.door.id) ?? nextFreeSlot(slots);
+    const next = designateDoor(hit.door.id, n);
+    if (double) doShoot(next);
+  }, [iAim, views, eye, slots, designateDoor, doShoot, t]);
+  // The aiming seat's drag on the arena is the gimbal look (schema: dragView 'gimbal look if HI'), through
+  // command() so the limits and the slew law hold; anyone else's drag orbits the view as before.
+  const onLook = useCallback((dx: number, dy: number) => {
+    setGim((g) => command(g, SPEC, g.cmdAz + dx * LOOK_DEG_PER_PX, g.cmdEl - dy * LOOK_DEG_PER_PX));
+  }, []);
+
+  // VOICE, on r.042's own terms: offered when the browser has it, never required. A spoken "fire" is a
+  // request through the same doShoot as a key or a tap — designation and approval are not spoken into being.
+  const heardLen = useRef(0);
+  const [heard, setHeard] = useState("");
+  const voiceRef = useRef({ doSlot, nextTarget, doShoot, doCapture, doApprove });
+  voiceRef.current = { doSlot, nextTarget, doShoot, doCapture, doApprove };
+  const onVoice = useCallback((full: string) => {
+    const { tail, len } = newSpeech(full, heardLen.current); heardLen.current = len;
+    const cmd = voiceToAction(tail);
+    if (!cmd) return;
+    setHeard(tail.trim());
+    const v = voiceRef.current;
+    if (cmd.action === "target.cycle") v.nextTarget();
+    else if (cmd.action.startsWith("target.slot-")) v.doSlot(cmd.slot!);
+    else if (cmd.action === "fire") { if (cmd.slot) v.doSlot(cmd.slot); v.doShoot(); }
+    else if (cmd.action === "capture") v.doCapture();
+    else if (cmd.action === "approve") v.doApprove();
+  }, []);
+  const speech = useSpeechRecognition({ onCommit: onVoice });
+  const voice = useMemo(() => ({
+    supported: speech.supported, listening: speech.listening, heard,
+    toggle: () => { if (speech.listening) speech.stop(); else { heardLen.current = 0; speech.start(); } },
+  }), [speech.supported, speech.listening, speech.start, speech.stop, heard]);
   // Moving to another turret re-homes the gimbal and NOTHING else: a score already earned survives the
   // walk across the lawn, which is the "a completed action is never lost" rule applied to the seat change.
   useEffect(() => { setGim(initGimbal(mounts[mountIdx])); }, [mountIdx, mounts]);
@@ -496,8 +553,8 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
 
   // Everything drawn on top of the world, in the world's own camera.
   const overlay = useCallback((ctx: ArenaCtx) => (
-    <RoundOverlay ctx={ctx} views={views} eye={eye} myEye={myEye} framed={framed} los={los} swarm={swarm.current} swarmPlan={swarmPlan} />
-  ), [views, eye, myEye, framed, los, swarmPlan]);
+    <RoundOverlay ctx={ctx} views={views} eye={eye} myEye={myEye} framed={framed} los={los} swarm={swarm.current} swarmPlan={swarmPlan} slots={slots} />
+  ), [views, eye, myEye, framed, los, swarmPlan, slots]);
 
   return (
     <div data-drone-game>
@@ -507,6 +564,9 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
         hal={hal}
         reserve={swarmPlan?.cost ?? 0}
         overlay={overlay}
+        onTap={onArenaTap}
+        drag={iAim ? "look" : "orbit"}
+        onLook={onLook}
         hudLeft={
           <>
             <span style={{ ...MONO, color: semanticHex("mount") }} data-drone-aim>{aimReadout(gim, los?.rangeM)}</span>
@@ -563,7 +623,7 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
           </button>
         ) : null}
         {iAim ? (
-          <button data-drone-shoot onClick={doShoot} disabled={!canFire(slots).ok} style={btn({ hex: semanticHex("ray"), enabled: canFire(slots).ok })}>
+          <button data-drone-shoot onClick={() => doShoot()} disabled={!canFire(slots).ok} style={btn({ hex: semanticHex("ray"), enabled: canFire(slots).ok })}>
             {t("drone.game.shoot")}
           </button>
         ) : null}
@@ -603,39 +663,8 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
         </div>
       </div>
 
-      {/* THE STICKS, per EXEL-2525-CONTROLS-1: L is the BODY, R is the HEAD. The body stick and the turn /
-          climb buttons appear only when a person actually holds the pilot's seat — a machine-flown airframe
-          shows none, because a control that does nothing is worse than no control. The head stick appears
-          for whoever aims, which in the turret modes is one centred look-stick above the dock (r.048).
-          Every reading passes through the saved calibration, so a resting thumb reads zero. */}
-      {humanPilot || iAim ? (
-        <div data-drone-sticks data-drone-sticks-layout={humanPilot ? "crew" : "look"}
-             style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "8px 0", alignItems: "center", justifyContent: humanPilot ? "flex-start" : "center" }}>
-          {humanPilot ? (
-            <Stick label={t("drone.fly.body")} hex={semanticHex("mount")}
-                   onMove={(x, y) => { const v = applySets({ x, y }, "L", sets); stick.current.lat = v.x; stick.current.fwd = -v.y; }} />
-          ) : null}
-          {humanPilot ? (
-            <div data-drone-yaw-climb style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, alignItems: "center" }}>
-              <HoldButton id="yaw.left" label="◄" hex={semanticHex("mount")} onHold={(d) => { stick.current.yaw = d ? -1 : 0; }} />
-              <HoldButton id="yaw.right" label="►" hex={semanticHex("mount")} onHold={(d) => { stick.current.yaw = d ? 1 : 0; }} />
-              <div style={{ ...MONO, gridColumn: "1 / -1", textAlign: "center", color: semanticHex("mount"), opacity: 0.8, fontSize: 10, letterSpacing: "0.08em" }}>{t("drone.fly.yaw")}</div>
-              <HoldButton id="climb.up" label="▲" hex={semanticHex("mount")} onHold={(d) => { stick.current.climb = d ? 1 : 0; }} />
-              <HoldButton id="climb.down" label="▼" hex={semanticHex("mount")} onHold={(d) => { stick.current.climb = d ? -1 : 0; }} />
-              <div style={{ ...MONO, gridColumn: "1 / -1", textAlign: "center", color: semanticHex("mount"), opacity: 0.8, fontSize: 10, letterSpacing: "0.08em" }}>{t("drone.fly.climb")}</div>
-            </div>
-          ) : null}
-          {iAim ? (
-            <Stick label={t("drone.fly.head")} hex={semanticHex("frustum")}
-                   onMove={(x, y) => { headStick.current = applySets({ x, y }, "R", sets); }} />
-          ) : null}
-          {humanPilot ? (
-            <div style={{ ...MONO, color: semanticHex("hud"), opacity: 0.6, alignSelf: "center", maxWidth: 260, lineHeight: 1.6 }}>
-              {t("drone.fly.help")}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+      <ControlDeck humanPilot={humanPilot} iAim={iAim} stick={stick} headStick={headStick} sets={sets} slots={slots}
+                   doorLabel={doorLabel} onSlot={doSlot} voice={voice} />
 
       {flying ? (
         <CrewSeatPanel
