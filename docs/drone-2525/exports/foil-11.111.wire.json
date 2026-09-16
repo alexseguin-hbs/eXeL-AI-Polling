@@ -3,9 +3,9 @@
   "id": "foil-11.111",
   "name": "FOIL · 11.111 m × 7.777 m (full scale)",
   "version": "00.00",
-  "revision": "0.008",
+  "revision": "0.009",
   "generator": "scripts/build-foil-model.mjs",
-  "stamp": "eXeL v0.008-2026.09.16-foil",
+  "stamp": "eXeL v0.009-2026.09.16-foil",
   "source": "docs/security-2525/xbat-wireframe/xbat.wire.json scaled by airframe.geometry (foil-1.111 family)"
  },
  "units": "m",

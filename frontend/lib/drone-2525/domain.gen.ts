@@ -42,7 +42,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.008",
+  "revision": "0.009",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
   "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -106,6 +106,13 @@ export const DRONE_DOMAIN = {
    "date": "2026-09-16",
    "kind": "decision",
    "why": "The wing is derived from the drawing instead of asserted beside it. wingAreaM2 was 0.9 m2 against a real planform of 0.3092 m2, so the round had been flying a wing three times the size of the one on screen. Stall moves 8.43 -> 14.38 m/s, and the quad's acceleration is now derived from the stall rather than typed, so the transition stays reachable on any airframe.",
+   "commit": ""
+  },
+  {
+   "revision": "0.009",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "The aircraft is the FOIL on this surface and nowhere says its other name, with one declared exception for the provenance path. The game answers at /drone-2525 as well as /main/Drone-2525.",
    "commit": ""
   }
  ],
@@ -1065,7 +1072,8 @@ export const DRONE_DOMAIN = {
     "depth": 0.029237
    },
    "planformM2": 0.3092,
-   "planformMethod": "Integrated from the drawing itself: group the 901 vertices by nose-to-tail station (the loft has 94 distinct ribs), take the half-span at each, trapezoid the full width between them, then scale by span x length. Bucketing into fixed bins does NOT converge — the ribs are discrete, so empty bins read as zero area and the answer halves every time you double the bins. 361.6614 m2 at the source, 0.3092 m2 at the foil, which is 72% of a plain delta of the same span and length."
+   "planformMethod": "Integrated from the drawing itself: group the 901 vertices by nose-to-tail station (the loft has 94 distinct ribs), take the half-span at each, trapezoid the full width between them, then scale by span x length. Bucketing into fixed bins does NOT converge — the ribs are discrete, so empty bins read as zero area and the answer halves every time you double the bins. 361.6614 m2 at the source, 0.3092 m2 at the foil, which is 72% of a plain delta of the same span and length.",
+   "namingRule": "Drone-2525 calls this aircraft the FOIL and does not use its other name (operator 2026-09-16: 'which we will not say in Drone-2525 so as not to upset Shield AI'). The `source` and `sourceNote` fields above are the ONLY place the other name may appear anywhere on this surface, and only as a filesystem path and a correction record — a derivation that cannot name its source cannot be verified. Enforced by frontend/tests/drone-naming.test.mjs, which refuses the token everywhere else."
   },
   "massKg": 5,
   "wingAreaM2": 0.3092,
@@ -1169,7 +1177,7 @@ export const DRONE_DOMAIN = {
    ],
    "phase": "pilot",
    "mode": "Manual",
-   "metric": "lossless round trip on the X-BAT wireframe",
+   "metric": "lossless round trip on the FOIL wireframe",
    "verify": "tests/wire-export.test.mjs",
    "dtm": "py/obj/cs/cpp from one model",
    "stretch": "every domain exports through it",
