@@ -1,0 +1,32 @@
+{
+  "name": "XBAT Full Scale 11.111m x 7.777m",
+  "use_case": "video game / laser-tag robotics previsualization",
+  "orientation": {
+    "x_axis": "span",
+    "y_axis": "depth",
+    "z_axis": "nose_to_rear_vertical_axis"
+  },
+  "dimensions_m": {
+    "wingspan": 11.111,
+    "nose_to_rear": 7.777,
+    "depth_scale_note": "depth scaled with geometric mean of span and length scales"
+  },
+  "export_package": {
+    "dimensioned_sheet_png": "/mnt/data/xbat_full_11_111x7_777_sheet.png",
+    "front_png": "/mnt/data/xbat_full_11_111x7_777_front.png",
+    "top_png": "/mnt/data/xbat_full_11_111x7_777_top.png",
+    "side_png": "/mnt/data/xbat_full_11_111x7_777_side.png",
+    "design_obj": "/mnt/data/xbat_full_11_111x7_777_design.obj",
+    "low_compute_frame_obj": "/mnt/data/xbat_full_11_111x7_777_lowcompute_frame.obj"
+  },
+  "simulation_notes": {
+    "recommended_initial_method": "frame-first wire simulation",
+    "lowest_compute": [
+      "render as line segments / LineRenderer / debug lines",
+      "use low-compute frame OBJ for first-pass capability",
+      "use simple collision proxy (box + capsule + wing slabs)",
+      "separate visuals from gameplay hitboxes"
+    ],
+    "game_mode_context": "laser tag robotics"
+  }
+}
