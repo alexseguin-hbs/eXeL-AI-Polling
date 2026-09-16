@@ -52,7 +52,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.011",
+  "revision": "0.012",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
   "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -137,6 +137,13 @@ export const DRONE_DOMAIN = {
    "date": "2026-09-16",
    "kind": "decision",
    "why": "Ten CRS rows for the overnight work: the beam and shield rules, the safe descent, the lighting inside the vector law, the two sizes and the square-cube law between them, the N ladder and what it measured about the person, the winners' circle and its one-ninth cut, the floor that must be cleared by name, the FOIL naming rule, and the address the game answers at.",
+   "commit": ""
+  },
+  {
+   "revision": "0.012",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "Operator deck r.050 adopted. The keyboard (EXEL-2525-CONTROLS-1) through the ref bus; the R stick is the HEAD; one centred look-stick in the turret modes; stick calibration persisted; tap, double-tap and look-drag on the arena; the T-box; voice on r.042's grammar; T1 T2 T3 with AMBER then RED and a fire that refuses NO_RED_BOX and AMBER_NO_APPROVE and records both; the decision record with r.043's replay hash; ONE seat geometry for every vehicle (28.5 cm on the foil, turret 0) replacing the two we had — a correction on the record; and the ladder measuring his six: designation rate, HI holds, auth failures, handoffs, sim speed, replay hash.",
    "commit": ""
   }
  ],
@@ -1974,6 +1981,98 @@ export const DRONE_DOMAIN = {
    "verify": "frontend/tests/drone-route.test.mjs",
    "dtm": "a link that works when it is handed to somebody",
    "stretch": "the live site checked from outside the sandbox",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-04.01",
+   "title": "One seat geometry for every vehicle",
+   "statement": "The pilot's eye is at +0.18 L forward and +0.12 L up; the targeteer's at −0.15 L (aft) and −0.04 L, as fractions of the nose-to-tail length; a turret's separation is exactly zero. The same geometry on rotors, on the wing and through a transition, and the same on every 2525 vehicle — read from the controls schema, never retyped.",
+   "in": "DRN-04.01.IN",
+   "out": "DRN-04.01.OUT",
+   "section": "IV",
+   "uwf": [
+    "U-WF-02"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "28.5 cm between the eyes on the 0.7777 m foil in every mode; turret 0; no second geometry in the source",
+   "verify": "frontend/tests/seat-view.test.mjs",
+   "dtm": "a crew's pictures agree the same way through a transition",
+   "stretch": "a Manta or a droid inherits its parallax from its own length",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-05.07",
+   "title": "Amber, then red — no shot without a second authority",
+   "statement": "A designation (button, key, tap, or spoken 'target') puts a door in a slot as AMBER and cannot fire. Only APPROVE — a second person over the link, or the same person acting explicitly as HI-2 — turns it RED, and the record says which of those it was. FIRE, a double-tap and a spoken 'fire' share one path and are refused with NO_RED_BOX or AMBER_NO_APPROVE; every refusal is recorded as a decision, never merely toasted.",
+   "in": "DRN-05.07.IN",
+   "out": "DRN-05.07.OUT",
+   "section": "V",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "approve() is the only writer of red; a double-tap on a fresh mark is a refusal; two-step and two-person told apart",
+   "verify": "frontend/tests/drone-slots.test.mjs · frontend/tests/drone-tap.test.mjs",
+   "dtm": "a first mark can never be a shot",
+   "stretch": "the second authority arrives over the crew link",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-06.01",
+   "title": "The decision record and the replay hash",
+   "statement": "Every designate, approve, refusal, hold and shot is a decision with a sequence id, a named actor, designated, hiApproved, authorityLevel, challenge, diff and the ledger's revision. The feed line is time | actor | verb | id | result. The replay hash is FNV-1a 64 over exactly r.043's projection — no wall-clock, no ISO, no FPS, no SID — and free-form notes sit beside the stream and are never hashed.",
+   "in": "DRN-06.01.IN",
+   "out": "DRN-06.01.OUT",
+   "section": "VI",
+   "uwf": [
+    "U-WF-06",
+    "U-WF-08"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "a note carrying 'fps 58.3 sid 9f3a' does not move the hash; a different game time does not either; the same round replays to the same hash",
+   "verify": "frontend/tests/drone-decisions.test.mjs",
+   "dtm": "two runs can say WHICH row they disagreed at",
+   "stretch": "the sidecar beside the immutable Cup fixture",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-07.02",
+   "title": "The operator deck: keys, sticks, touch and voice",
+   "statement": "EXEL-2525-CONTROLS-1 is the one map on every 2525 vehicle: L stick BODY (W A S D), R stick HEAD (arrows), Q E turn, U J climb, T next door, 1 2 3 the slots, F fire, C capture. Keys write the refs a thumb does; arrows and the R stick are one gimbal rate inside the declared limits; a tap marks, a double-tap fires only red, the aiming seat's drag looks; voice is offered, never required; calibration is persisted so a resting thumb reads zero; the keymap prints. Typing never flies.",
+   "in": "DRN-07.02.IN",
+   "out": "DRN-07.02.OUT",
+   "section": "I",
+   "uwf": [
+    "U-WF-09",
+    "U-WF-12"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "schema held field for field against r.050; arrows do not move the airframe; a 6% resting thumb reads zero; no gesture reaches a shot without canFire",
+   "verify": "frontend/tests/drone-controls.test.mjs · controls-schema · stick-sets · drone-tap",
+   "dtm": "a person flies and aims with what is in front of them",
+   "stretch": "the same deck on the turret, the Manta, the Ark and the droid",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.08",
+   "title": "Compare on what he asked to compare on",
+   "statement": "Every rung of the ladder reports designation rate, HI holds, auth failures, handoffs, simulation speed and a replay hash beside the three it already measured — not winners only. HI holds read zero in the contest and say so, because the contest models a person as a latency and never as a refusal; the holds that are real live in the decision record. Simulation speed is a wall-clock throughput and is never inside the hash.",
+   "in": "DRN-10.08.IN",
+   "out": "DRN-10.08.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "the same seed replays to the same hash at every rung; level 3 refuses far fewer fire-ticks than level 1",
+   "verify": "frontend/tests/drone-contest.test.mjs · frontend/scripts/drone-ladder.mjs",
+   "dtm": "a rung can be compared with yesterday's",
+   "stretch": "the Cup fixture replayed against these six",
    "status": "implemented"
   }
  ],

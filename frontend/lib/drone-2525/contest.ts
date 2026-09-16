@@ -24,6 +24,7 @@
 //
 // Pure and seeded: no clock, no DOM, no Math.random. The same N and the same seed play the same match, so
 // a rung can be replayed and two runs can be compared.
+import { fnv1a64 } from "./decisions";
 import {
   initSwarm, stepSwarm, downAircraft, aliveCount, sideOf, idOf, seatsFor,
   type Swarm, type Affiliation,
@@ -107,11 +108,18 @@ export interface ContestStats {
   /** Ticks stepped, so means are honest. */
   ticks: number;
   downed: { friendly: number; hostile: number };
+  /** Times a crew took a target (from nothing or from another). r.042: "designation rate". */
+  designations: number;
+  /** Times a crew swung from one live target straight onto another. r.042: "handoffs". */
+  handoffs: number;
+  /** Ticks on which a crew had a target and could not fire for want of a decision. r.042: "auth failures". */
+  refusedTicks: number;
 }
 
 const emptyStats = (): ContestStats => ({
   overkillBeamS: 0, beamS: 0, approvalWaitS: 0, approvalsAsked: 0,
   peakContention: 0, contentionMean: 0, ticks: 0, downed: { friendly: 0, hostile: 0 },
+  designations: 0, handoffs: 0, refusedTicks: 0,
 });
 
 export function initContest(spec: ContestSpec): Contest {
@@ -183,6 +191,7 @@ export function stepContest(c: Contest, dtS = CONTEST_TICK_S): Contest {
     // level 3 and above it was cleared once and fights. The invariant is untouched either way — a named
     // human still decided before anything fired. What scales is the BREADTH of that decision.
     if (best !== c.target[i]) {
+      if (best >= 0) { c.stats.designations++; if (c.target[i] >= 0) c.stats.handoffs++; }
       c.waitingS[i] = 0;
       if (AUTHORITY[spec.authority].covers !== "window") c.cleared[i] = 0;
     }
@@ -199,6 +208,7 @@ export function stepContest(c: Contest, dtS = CONTEST_TICK_S): Contest {
   let askedThisTick = 0;
   for (let i = 0; i < s.n; i++) {
     if (c.target[i] < 0 || c.cleared[i] === 1) continue;
+    c.stats.refusedTicks++;                                      // wanted to fire, had no decision: refused
     // One approver can only be answering so many at once; the rest of the side queues behind them.
     const side = sideOf(i, s.perSide);
     if (askedThisTick >= approversAt(spec) * 2 && c.waitingS[i] === 0) continue;       // still in the queue
@@ -263,6 +273,26 @@ export interface ContestResult {
   approvalsAsked: number;
   /** The share of the match one side spent unable to fire because nobody had cleared it yet. */
   blockedFrac: number;
+  // ── r.042's six, "not winners only" ─────────────────────────────────────────────────────────
+  /** Target acquisitions, and per minute of game time. */
+  designations: number;
+  designationsPerMin: number;
+  /** Crews that swung from one live target straight onto another. */
+  handoffs: number;
+  /** Fire refused for want of a decision — ticks summed over every crew. */
+  authFailures: number;
+  /**
+   * Decisions answered with a hold. ALWAYS ZERO HERE, and said so: the contest models a named human as a
+   * latency that eventually clears, never as one who refuses. Holds are real in the live round (the
+   * decision record's REJECT / held rows) and are compared there, not invented here.
+   */
+  hiHolds: 0;
+  /**
+   * FNV-1a 64 over the result's own projection — the same hash the decision record uses, over the same
+   * kind of fields: rung, level, seed, duration, survivors, downed, decisions, designations, handoffs,
+   * refusals. No wall-clock, no ISO, no FPS, no SID (r.043). The same seed must give the same hash.
+   */
+  replayHash: string;
 }
 
 export function runContest(spec: ContestSpec): ContestResult {
@@ -308,6 +338,16 @@ export function contestResult(c: Contest, resolved: boolean): ContestResult {
     approvalWaitPerAircraftS: aircraft > 0 ? stats.approvalWaitS / aircraft : 0,
     approvalsAsked: stats.approvalsAsked,
     blockedFrac: stats.ticks > 0 ? stats.approvalWaitS / (stats.ticks * CONTEST_TICK_S * aircraft) : 0,
+    designations: stats.designations,
+    designationsPerMin: c.tS > 0 ? (stats.designations / c.tS) * 60 : 0,
+    handoffs: stats.handoffs,
+    authFailures: stats.refusedTicks,
+    hiHolds: 0,
+    replayHash: fnv1a64([
+      spec.perSide, spec.authority, spec.seed, Math.round(c.tS * 10),
+      stillFighting(c, "friendly"), stillFighting(c, "hostile"), stats.downed.friendly, stats.downed.hostile,
+      stats.approvalsAsked, stats.designations, stats.handoffs, stats.refusedTicks,
+    ].join("|")),
   };
 }
 

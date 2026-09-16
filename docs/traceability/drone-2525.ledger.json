@@ -120,6 +120,20 @@
    "date": "2026-09-16",
    "kind": "decision",
    "text": "Revision 0.011. The N ladder: the same game at 1v1, 2v2 and every rung to 21v21 — 42 aircraft, 84 seats, 42 HI a side — with twelve computed review lenses at each rung. It found three things that 21v21 alone could not have shown. A target already coming down was still a target, wasting ninety per cent of all beam time from the second rung upward. A match is decided when a side cannot fight, not when its last aircraft lands. And the person is the bottleneck, measurably: at 21v21 one watch officer is asked for 431 decisions at authority level 1 (117.8 a minute against the fifty a person can answer) and 42 at level 3. Levels 4 and 5 put the decision with a quorum of the key group, which answers 300 a minute between six people, and no rung outruns it. The invariant never bent at any level — what scales is the breadth of one decision and how many named people make it. Also: the winners' circle at one ninth, the R-CORE gate, ending on a floor that a named safety officer must clear; and one aircraft at two sizes with the square-cube law between them, mass 5 kg to 5.00 t and stall 14.4 to 45.5 m/s."
+  },
+  {
+   "rev": 18,
+   "date": "2026-09-16",
+   "kind": "correction",
+   "text": "CORRECTING REVISION 0.008 ON THE RECORD. That entry, and the seat-view file it cites, said the two seats are '18 cm apart in the hover and 37 cm on the wing' — two geometries, ours, with the targeteer forward of centre. The operator's deck (r.013 through r.050, byte-identical) declares ONE seat geometry for every vehicle: pilot canopy +0.18 L / +0.12 up, targeteer belly −0.15 L / −0.04, turret separation 0 — 'same map on turret, VTOL, Manta, Ark, MASS droid: one mount, two seats.' Decision 2026-09-16: the deck's geometry is canonical. On the 0.7777 m fuselage the two eyes are 28.5 cm apart in every flight mode, and the targeteer sits AFT. The discipline is unchanged — fractions of the nose-to-tail length, never the span, turret exactly zero — and the gate that asserted rotors and wing DIFFER is rewritten to assert they are the SAME, not deleted. The fractions now live in the controls schema beside the rest of the deck, so the seat cannot drift from it unnoticed. This entry appends rather than edits.",
+   "commit": ""
+  },
+  {
+   "rev": 19,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.012. Operator deck r.050 absorbed, on its own terms. 50184f8: T1 T2 T3, AMBER then RED, the fire refused NO_RED_BOX / AMBER_NO_APPROVE and recorded; the decision record with r.043's hash (three r.050 defects deliberately not ported — the 0.044 stamp, the scrubber reading dead fields, free text in the hashed stream). 5e82a42: a device approving its own mark reads HI-2, two-step, not the crew's named approver. 0ab1dba: the keyboard through the ref bus, the R stick is the HEAD as the schema says (it had been airframe yaw), one centred look-stick for the turret, calibration persisted so a resting thumb reads zero. e7bd9ab: the deck on the glass — tap marks, double-tap fires only red, the aiming seat's drag looks, the T-box on the door, voice offered never required, stick settings, a keymap that prints. And the ladder gains his six: designation rate, HI holds (zero in the contest, and said so), auth failures, handoffs, simulation speed beside the hash never inside it, and a replay hash that the same seed reproduces. Parity divergences for Grok are recorded in the plan: the thirteen colours are not the same thirteen (his call), AIR L:B inverted against the drawing, mulberry32 against our mix, glyph 8 against 1/4/12/24, quorum 2/3 against 0.5, level 2 'one slot' (his is better; adopted with the slots).",
+   "commit": ""
   }
  ]
 }

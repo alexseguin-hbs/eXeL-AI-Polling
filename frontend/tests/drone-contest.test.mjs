@@ -124,6 +124,24 @@ const RUNGS = [1, 2, 3, 7, 21];          // enough shape to catch a break; fast 
 }
 
 const top21 = runContest(spec(21, 1));
+
+// ── r.042's SIX, "not winners only" ─────────────────────────────────────────────────────────────
+{
+  const mk = (perSide, seed, authority = 1) => runContest({ perSide, seed, beam: DRONE_DOMAIN.beam, defences: DRONE_DOMAIN.defences, authority, approvalLatencyS: 1.2, approversPerSide: 1, keyGroupSize: 9 });
+  const a = mk(3, 2525), b = mk(3, 2525), c = mk(3, 2526), d = mk(3, 2525, 3);
+  ok(a.designations >= 1, `a fought match designates at least once (${a.designations})`);
+  ok(a.designationsPerMin > 0 && Math.abs(a.designationsPerMin - (a.designations / a.durationS) * 60) < 1e-9, 'designation rate is designations per minute of game time');
+  ok(a.handoffs >= 0 && a.handoffs <= a.designations, `handoffs never exceed designations (${a.handoffs} of ${a.designations})`);
+  ok(a.authFailures > 0, `at level 1 every new target waits on a decision, so refused fire-ticks are counted (${a.authFailures})`);
+  ok(d.authFailures < a.authFailures, `at level 3 a window covers the fight, so far fewer refusals (${d.authFailures} against ${a.authFailures})`);
+  ok(a.hiHolds === 0, 'HI holds are zero HERE and say so: the contest models latency, never a refusal — holds live in the decision record');
+  ok(/^[0-9a-f]{16}$/.test(a.replayHash), `the replay hash is FNV-1a 64 hex (${a.replayHash})`);
+  ok(a.replayHash === b.replayHash, 'the same seed replays to the same hash');
+  ok(a.replayHash !== c.replayHash, 'a different seed hashes differently');
+  ok(a.replayHash !== d.replayHash, 'and so does a different authority level');
+  ok(!('fps' in a) && !('at' in a) && !('wallMs' in a), 'no clock, no FPS and no wall time live on the result, so none can leak into the hash');
+}
+
 console.log(`\ndrone-contest: ${pass} passed, ${fail} failed · ladder 1v1→21v21 · top rung 42 aircraft, 84 seats`
   + ` · 21v21 in ${top21.durationS}s asking ${top21.approvalsAsked} named decisions at level 1`);
 process.exit(fail ? 1 : 0);

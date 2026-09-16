@@ -94,10 +94,11 @@ const G = DRONE_DOMAIN.airframe.geometry;
 {
   ok(INVARIANT_UNDER_SCALE.length >= 6, 'the file says out loud what does not change');
 
-  // The seat offsets are fractions, so they scale for free and were never metres to begin with.
-  for (const frame of ['quad', 'wing']) for (const seat of ['pilot', 'targeteer']) {
-    const o = SEAT_OFFSETS[frame][seat];
-    ok(Math.abs(o.fwd) < 1 && Math.abs(o.up) < 1, `${frame}/${seat} offsets are fractions of the fuselage, not metres`);
+  // The seat offsets are fractions, so they scale for free and were never metres to begin with. ONE
+  // geometry for every vehicle and mode since r.050 was adopted (2026-09-16).
+  for (const seat of ['pilot', 'targeteer']) {
+    const o = SEAT_OFFSETS[seat];
+    ok(Math.abs(o.fwd) < 1 && Math.abs(o.up) < 1, `${seat} offsets are fractions of the fuselage, not metres`);
   }
 
   // The laser rules are fluence per square centimetre — a property of materials, not of size. The dwell to

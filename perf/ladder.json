@@ -1,6 +1,6 @@
 {
-  "commit": "cd84715",
-  "at": "2026-09-16T03:36:19.180Z",
+  "commit": "e7bd9ab",
+  "at": "2026-09-16T12:13:56.963Z",
   "seeds": 3,
   "levels": [
     1,
@@ -28,7 +28,13 @@
         "0-0",
         "0-0",
         "0-0"
-      ]
+      ],
+      "desigPerMin": 10.9,
+      "hiHolds": 0,
+      "authFailures": 24,
+      "handoffs": 0,
+      "simSpeed": 7306.8,
+      "replayHash": "625d584cf0e3c3f5"
     },
     {
       "level": 1,
@@ -49,7 +55,13 @@
         "0-1",
         "1-0",
         "1-0"
-      ]
+      ],
+      "desigPerMin": 19,
+      "hiHolds": 0,
+      "authFailures": 90,
+      "handoffs": 3,
+      "simSpeed": 14786.6,
+      "replayHash": "4a88b52dbabfa821"
     },
     {
       "level": 1,
@@ -70,7 +82,13 @@
         "2-0",
         "2-0",
         "0-1"
-      ]
+      ],
+      "desigPerMin": 18.6,
+      "hiHolds": 0,
+      "authFailures": 162,
+      "handoffs": 5,
+      "simSpeed": 21204.2,
+      "replayHash": "0e3227254872cfe5"
     },
     {
       "level": 1,
@@ -91,7 +109,13 @@
         "0-2",
         "1-0",
         "2-0"
-      ]
+      ],
+      "desigPerMin": 22.6,
+      "hiHolds": 0,
+      "authFailures": 262,
+      "handoffs": 10,
+      "simSpeed": 17169.7,
+      "replayHash": "4b3217aec6f73308"
     },
     {
       "level": 1,
@@ -112,7 +136,13 @@
         "1-0",
         "0-1",
         "1-0"
-      ]
+      ],
+      "desigPerMin": 26.3,
+      "hiHolds": 0,
+      "authFailures": 367,
+      "handoffs": 15,
+      "simSpeed": 32973,
+      "replayHash": "8464e1e90bb364d4"
     },
     {
       "level": 1,
@@ -133,7 +163,13 @@
         "0-2",
         "0-1",
         "3-0"
-      ]
+      ],
+      "desigPerMin": 32,
+      "hiHolds": 0,
+      "authFailures": 444,
+      "handoffs": 21,
+      "simSpeed": 35596.6,
+      "replayHash": "9e50c2a247d749fe"
     },
     {
       "level": 1,
@@ -154,7 +190,13 @@
         "0-2",
         "0-3",
         "2-0"
-      ]
+      ],
+      "desigPerMin": 38.9,
+      "hiHolds": 0,
+      "authFailures": 584,
+      "handoffs": 25,
+      "simSpeed": 26753.4,
+      "replayHash": "954846ea82a9b5d2"
     },
     {
       "level": 1,
@@ -175,7 +217,13 @@
         "3-0",
         "0-1",
         "3-0"
-      ]
+      ],
+      "desigPerMin": 49.7,
+      "hiHolds": 0,
+      "authFailures": 649,
+      "handoffs": 27,
+      "simSpeed": 23108.3,
+      "replayHash": "7961e4768bdbf2bd"
     },
     {
       "level": 1,
@@ -196,7 +244,13 @@
         "1-0",
         "1-0",
         "5-0"
-      ]
+      ],
+      "desigPerMin": 59.7,
+      "hiHolds": 0,
+      "authFailures": 840,
+      "handoffs": 42,
+      "simSpeed": 19406.7,
+      "replayHash": "686671715c9e2bb3"
     },
     {
       "level": 1,
@@ -217,7 +271,13 @@
         "0-1",
         "3-0",
         "5-0"
-      ]
+      ],
+      "desigPerMin": 85,
+      "hiHolds": 0,
+      "authFailures": 839,
+      "handoffs": 40,
+      "simSpeed": 15151.7,
+      "replayHash": "99bc5be9a0500b66"
     },
     {
       "level": 1,
@@ -238,7 +298,13 @@
         "1-0",
         "4-0",
         "1-0"
-      ]
+      ],
+      "desigPerMin": 60.9,
+      "hiHolds": 0,
+      "authFailures": 1033,
+      "handoffs": 43,
+      "simSpeed": 17152.9,
+      "replayHash": "8630fb3734082666"
     },
     {
       "level": 1,
@@ -259,7 +325,13 @@
         "0-5",
         "2-0",
         "0-5"
-      ]
+      ],
+      "desigPerMin": 85.8,
+      "hiHolds": 0,
+      "authFailures": 1160,
+      "handoffs": 56,
+      "simSpeed": 12146.5,
+      "replayHash": "7d1847e80ea968f6"
     },
     {
       "level": 1,
@@ -280,7 +352,13 @@
         "0-2",
         "2-0",
         "3-0"
-      ]
+      ],
+      "desigPerMin": 71.3,
+      "hiHolds": 0,
+      "authFailures": 1247,
+      "handoffs": 60,
+      "simSpeed": 13020.9,
+      "replayHash": "bbed98686bd8ae0b"
     },
     {
       "level": 1,
@@ -301,7 +379,13 @@
         "4-0",
         "3-0",
         "4-0"
-      ]
+      ],
+      "desigPerMin": 98.3,
+      "hiHolds": 0,
+      "authFailures": 1417,
+      "handoffs": 67,
+      "simSpeed": 10850.5,
+      "replayHash": "6f75043610977c4a"
     },
     {
       "level": 1,
@@ -322,7 +406,13 @@
         "4-0",
         "0-1",
         "2-0"
-      ]
+      ],
+      "desigPerMin": 94.4,
+      "hiHolds": 0,
+      "authFailures": 1774,
+      "handoffs": 109,
+      "simSpeed": 10984.2,
+      "replayHash": "f9364c41e808cfa0"
     },
     {
       "level": 1,
@@ -343,7 +433,13 @@
         "0-7",
         "0-1",
         "4-0"
-      ]
+      ],
+      "desigPerMin": 102.3,
+      "hiHolds": 0,
+      "authFailures": 1761,
+      "handoffs": 85,
+      "simSpeed": 9314.3,
+      "replayHash": "afe4f896ce4bbc67"
     },
     {
       "level": 1,
@@ -364,7 +460,13 @@
         "0-10",
         "0-1",
         "4-0"
-      ]
+      ],
+      "desigPerMin": 95.4,
+      "hiHolds": 0,
+      "authFailures": 2091,
+      "handoffs": 120,
+      "simSpeed": 10271.9,
+      "replayHash": "6d103a40a41999e6"
     },
     {
       "level": 1,
@@ -385,7 +487,13 @@
         "0-7",
         "2-0",
         "0-4"
-      ]
+      ],
+      "desigPerMin": 149.5,
+      "hiHolds": 0,
+      "authFailures": 2437,
+      "handoffs": 142,
+      "simSpeed": 8266.3,
+      "replayHash": "e3fdc3e49132c361"
     },
     {
       "level": 1,
@@ -406,7 +514,13 @@
         "1-0",
         "1-0",
         "0-8"
-      ]
+      ],
+      "desigPerMin": 148.4,
+      "hiHolds": 0,
+      "authFailures": 2275,
+      "handoffs": 132,
+      "simSpeed": 7907.1,
+      "replayHash": "8a9a12e23f0c9a24"
     },
     {
       "level": 1,
@@ -427,7 +541,13 @@
         "6-0",
         "0-3",
         "0-5"
-      ]
+      ],
+      "desigPerMin": 150.1,
+      "hiHolds": 0,
+      "authFailures": 2687,
+      "handoffs": 170,
+      "simSpeed": 7455.6,
+      "replayHash": "9d7a542ec9b36d2d"
     },
     {
       "level": 1,
@@ -448,7 +568,13 @@
         "0-3",
         "0-2",
         "4-0"
-      ]
+      ],
+      "desigPerMin": 121.2,
+      "hiHolds": 0,
+      "authFailures": 2702,
+      "handoffs": 180,
+      "simSpeed": 8095.4,
+      "replayHash": "9e987b3de455e08d"
     },
     {
       "level": 3,
@@ -469,7 +595,13 @@
         "0-0",
         "0-0",
         "0-0"
-      ]
+      ],
+      "desigPerMin": 10.9,
+      "hiHolds": 0,
+      "authFailures": 24,
+      "handoffs": 0,
+      "simSpeed": 38673.8,
+      "replayHash": "f41ccb8ffcf853ff"
     },
     {
       "level": 3,
@@ -490,7 +622,13 @@
         "1-0",
         "1-0",
         "1-0"
-      ]
+      ],
+      "desigPerMin": 22.1,
+      "hiHolds": 0,
+      "authFailures": 48,
+      "handoffs": 3,
+      "simSpeed": 37432.4,
+      "replayHash": "d9fac9f825c11614"
     },
     {
       "level": 3,
@@ -511,7 +649,13 @@
         "1-0",
         "1-0",
         "0-2"
-      ]
+      ],
+      "desigPerMin": 24.7,
+      "hiHolds": 0,
+      "authFailures": 78,
+      "handoffs": 5,
+      "simSpeed": 25412.4,
+      "replayHash": "acd3209fee461438"
     },
     {
       "level": 3,
@@ -532,7 +676,13 @@
         "0-2",
         "1-0",
         "1-0"
-      ]
+      ],
+      "desigPerMin": 22,
+      "hiHolds": 0,
+      "authFailures": 108,
+      "handoffs": 10,
+      "simSpeed": 19732.6,
+      "replayHash": "41f7f1d03abf8ef9"
     },
     {
       "level": 3,
@@ -553,7 +703,13 @@
         "1-0",
         "1-0",
         "1-0"
-      ]
+      ],
+      "desigPerMin": 66.3,
+      "hiHolds": 0,
+      "authFailures": 139,
+      "handoffs": 15,
+      "simSpeed": 20446.4,
+      "replayHash": "99b9d12ca75ba43f"
     },
     {
       "level": 3,
@@ -574,7 +730,13 @@
         "0-2",
         "2-0",
         "4-0"
-      ]
+      ],
+      "desigPerMin": 48.2,
+      "hiHolds": 0,
+      "authFailures": 174,
+      "handoffs": 18,
+      "simSpeed": 31694.4,
+      "replayHash": "da31e6a02b41eba7"
     },
     {
       "level": 3,
@@ -595,7 +757,13 @@
         "0-1",
         "0-3",
         "1-0"
-      ]
+      ],
+      "desigPerMin": 54.2,
+      "hiHolds": 0,
+      "authFailures": 219,
+      "handoffs": 26,
+      "simSpeed": 24988.2,
+      "replayHash": "83f76ccc46ca65c2"
     },
     {
       "level": 3,
@@ -616,7 +784,13 @@
         "3-0",
         "3-0",
         "0-2"
-      ]
+      ],
+      "desigPerMin": 49.8,
+      "hiHolds": 0,
+      "authFailures": 247,
+      "handoffs": 25,
+      "simSpeed": 21571.6,
+      "replayHash": "13ed79e8b33a67f3"
     },
     {
       "level": 3,
@@ -637,7 +811,13 @@
         "4-0",
         "0-3",
         "0-3"
-      ]
+      ],
+      "desigPerMin": 75.2,
+      "hiHolds": 0,
+      "authFailures": 288,
+      "handoffs": 24,
+      "simSpeed": 16889.4,
+      "replayHash": "f5bef09d6e23cd58"
     },
     {
       "level": 3,
@@ -658,7 +838,13 @@
         "0-1",
         "3-0",
         "0-4"
-      ]
+      ],
+      "desigPerMin": 87.2,
+      "hiHolds": 0,
+      "authFailures": 332,
+      "handoffs": 32,
+      "simSpeed": 13085.3,
+      "replayHash": "58c4f9cfae5ed15f"
     },
     {
       "level": 3,
@@ -679,7 +865,13 @@
         "0-3",
         "2-0",
         "4-0"
-      ]
+      ],
+      "desigPerMin": 104.8,
+      "hiHolds": 0,
+      "authFailures": 380,
+      "handoffs": 37,
+      "simSpeed": 9844,
+      "replayHash": "65e1f344bf6eb542"
     },
     {
       "level": 3,
@@ -700,7 +892,13 @@
         "0-5",
         "2-0",
         "2-0"
-      ]
+      ],
+      "desigPerMin": 87.4,
+      "hiHolds": 0,
+      "authFailures": 419,
+      "handoffs": 37,
+      "simSpeed": 11733,
+      "replayHash": "16b82453435ef27f"
     },
     {
       "level": 3,
@@ -721,7 +919,13 @@
         "0-4",
         "0-1",
         "0-2"
-      ]
+      ],
+      "desigPerMin": 94.6,
+      "hiHolds": 0,
+      "authFailures": 468,
+      "handoffs": 41,
+      "simSpeed": 11903.2,
+      "replayHash": "5a61d31285c856cf"
     },
     {
       "level": 3,
@@ -742,7 +946,13 @@
         "5-0",
         "2-0",
         "4-0"
-      ]
+      ],
+      "desigPerMin": 145.8,
+      "hiHolds": 0,
+      "authFailures": 527,
+      "handoffs": 52,
+      "simSpeed": 8765.6,
+      "replayHash": "305737ea5cbdd0f3"
     },
     {
       "level": 3,
@@ -763,7 +973,13 @@
         "0-2",
         "0-5",
         "0-2"
-      ]
+      ],
+      "desigPerMin": 146.5,
+      "hiHolds": 0,
+      "authFailures": 589,
+      "handoffs": 53,
+      "simSpeed": 8437.2,
+      "replayHash": "32e1e495a4fc8dd7"
     },
     {
       "level": 3,
@@ -784,7 +1000,13 @@
         "0-5",
         "0-1",
         "5-0"
-      ]
+      ],
+      "desigPerMin": 170.4,
+      "hiHolds": 0,
+      "authFailures": 639,
+      "handoffs": 53,
+      "simSpeed": 7692.4,
+      "replayHash": "635b10c3a7db4492"
     },
     {
       "level": 3,
@@ -805,7 +1027,13 @@
         "0-3",
         "5-0",
         "0-4"
-      ]
+      ],
+      "desigPerMin": 182.5,
+      "hiHolds": 0,
+      "authFailures": 680,
+      "handoffs": 62,
+      "simSpeed": 5973.1,
+      "replayHash": "4373a1eda6b6a50e"
     },
     {
       "level": 3,
@@ -826,7 +1054,13 @@
         "4-0",
         "0-6",
         "6-0"
-      ]
+      ],
+      "desigPerMin": 169.5,
+      "hiHolds": 0,
+      "authFailures": 738,
+      "handoffs": 66,
+      "simSpeed": 5916,
+      "replayHash": "e78928b3c5e3d9ef"
     },
     {
       "level": 3,
@@ -847,7 +1081,13 @@
         "0-2",
         "2-0",
         "0-8"
-      ]
+      ],
+      "desigPerMin": 149.7,
+      "hiHolds": 0,
+      "authFailures": 810,
+      "handoffs": 74,
+      "simSpeed": 6796.6,
+      "replayHash": "7363b8290b790460"
     },
     {
       "level": 3,
@@ -868,7 +1108,13 @@
         "8-0",
         "0-8",
         "3-0"
-      ]
+      ],
+      "desigPerMin": 138.9,
+      "hiHolds": 0,
+      "authFailures": 879,
+      "handoffs": 82,
+      "simSpeed": 6101.5,
+      "replayHash": "2e5901167eb09501"
     },
     {
       "level": 3,
@@ -889,7 +1135,13 @@
         "0-4",
         "4-0",
         "9-0"
-      ]
+      ],
+      "desigPerMin": 208.7,
+      "hiHolds": 0,
+      "authFailures": 924,
+      "handoffs": 78,
+      "simSpeed": 5157.9,
+      "replayHash": "651ebf684b1f0eef"
     },
     {
       "level": 5,
@@ -910,7 +1162,13 @@
         "0-0",
         "0-0",
         "0-0"
-      ]
+      ],
+      "desigPerMin": 10.9,
+      "hiHolds": 0,
+      "authFailures": 24,
+      "handoffs": 0,
+      "simSpeed": 49529.5,
+      "replayHash": "97db2b8c8eb351f9"
     },
     {
       "level": 5,
@@ -931,7 +1189,13 @@
         "1-0",
         "1-0",
         "1-0"
-      ]
+      ],
+      "desigPerMin": 22.1,
+      "hiHolds": 0,
+      "authFailures": 48,
+      "handoffs": 3,
+      "simSpeed": 36572.6,
+      "replayHash": "36298bce2d6b6baa"
     },
     {
       "level": 5,
@@ -952,7 +1216,13 @@
         "1-0",
         "1-0",
         "0-2"
-      ]
+      ],
+      "desigPerMin": 23.9,
+      "hiHolds": 0,
+      "authFailures": 72,
+      "handoffs": 4,
+      "simSpeed": 25501.7,
+      "replayHash": "968e35c117064e74"
     },
     {
       "level": 5,
@@ -973,7 +1243,13 @@
         "0-2",
         "1-0",
         "1-0"
-      ]
+      ],
+      "desigPerMin": 21.8,
+      "hiHolds": 0,
+      "authFailures": 96,
+      "handoffs": 10,
+      "simSpeed": 19170.7,
+      "replayHash": "8fb63a852fbc8913"
     },
     {
       "level": 5,
@@ -994,7 +1270,13 @@
         "1-0",
         "1-0",
         "1-0"
-      ]
+      ],
+      "desigPerMin": 65.5,
+      "hiHolds": 0,
+      "authFailures": 121,
+      "handoffs": 14,
+      "simSpeed": 34784.9,
+      "replayHash": "a3c29f30070d5667"
     },
     {
       "level": 5,
@@ -1015,7 +1297,13 @@
         "0-3",
         "2-0",
         "4-0"
-      ]
+      ],
+      "desigPerMin": 58.3,
+      "hiHolds": 0,
+      "authFailures": 146,
+      "handoffs": 16,
+      "simSpeed": 28647.4,
+      "replayHash": "cf1b533e1ccc6683"
     },
     {
       "level": 5,
@@ -1036,7 +1324,13 @@
         "0-1",
         "0-3",
         "0-2"
-      ]
+      ],
+      "desigPerMin": 55.7,
+      "hiHolds": 0,
+      "authFailures": 174,
+      "handoffs": 27,
+      "simSpeed": 26994,
+      "replayHash": "fc15a6fd0608ff26"
     },
     {
       "level": 5,
@@ -1057,7 +1351,13 @@
         "3-0",
         "3-0",
         "0-2"
-      ]
+      ],
+      "desigPerMin": 50,
+      "hiHolds": 0,
+      "authFailures": 197,
+      "handoffs": 25,
+      "simSpeed": 22294.7,
+      "replayHash": "48df1d68e3421285"
     },
     {
       "level": 5,
@@ -1078,7 +1378,13 @@
         "4-0",
         "0-3",
         "2-0"
-      ]
+      ],
+      "desigPerMin": 78,
+      "hiHolds": 0,
+      "authFailures": 223,
+      "handoffs": 25,
+      "simSpeed": 15255.6,
+      "replayHash": "9510956e45ed8ef3"
     },
     {
       "level": 5,
@@ -1099,7 +1405,13 @@
         "0-1",
         "3-0",
         "0-4"
-      ]
+      ],
+      "desigPerMin": 87.1,
+      "hiHolds": 0,
+      "authFailures": 253,
+      "handoffs": 33,
+      "simSpeed": 13746.8,
+      "replayHash": "99a17e473d16c390"
     },
     {
       "level": 5,
@@ -1120,7 +1432,13 @@
         "0-3",
         "2-0",
         "3-0"
-      ]
+      ],
+      "desigPerMin": 103.7,
+      "hiHolds": 0,
+      "authFailures": 276,
+      "handoffs": 37,
+      "simSpeed": 11908.3,
+      "replayHash": "b41c7a089a1c4e90"
     },
     {
       "level": 5,
@@ -1141,7 +1459,13 @@
         "0-4",
         "2-0",
         "0-2"
-      ]
+      ],
+      "desigPerMin": 85.3,
+      "hiHolds": 0,
+      "authFailures": 304,
+      "handoffs": 38,
+      "simSpeed": 11934.7,
+      "replayHash": "e5363d095a364682"
     },
     {
       "level": 5,
@@ -1162,7 +1486,13 @@
         "0-4",
         "1-0",
         "0-4"
-      ]
+      ],
+      "desigPerMin": 98.5,
+      "hiHolds": 0,
+      "authFailures": 333,
+      "handoffs": 39,
+      "simSpeed": 11877.5,
+      "replayHash": "748500e266594a73"
     },
     {
       "level": 5,
@@ -1183,7 +1513,13 @@
         "5-0",
         "2-0",
         "3-0"
-      ]
+      ],
+      "desigPerMin": 145.4,
+      "hiHolds": 0,
+      "authFailures": 360,
+      "handoffs": 53,
+      "simSpeed": 8636.3,
+      "replayHash": "40561dac86d57a0c"
     },
     {
       "level": 5,
@@ -1204,7 +1540,13 @@
         "1-0",
         "0-5",
         "0-2"
-      ]
+      ],
+      "desigPerMin": 128.8,
+      "hiHolds": 0,
+      "authFailures": 390,
+      "handoffs": 52,
+      "simSpeed": 9305.1,
+      "replayHash": "da7b06957da8c411"
     },
     {
       "level": 5,
@@ -1225,7 +1567,13 @@
         "0-5",
         "0-1",
         "5-0"
-      ]
+      ],
+      "desigPerMin": 173.8,
+      "hiHolds": 0,
+      "authFailures": 417,
+      "handoffs": 55,
+      "simSpeed": 7495,
+      "replayHash": "b44ed591d747f2b9"
     },
     {
       "level": 5,
@@ -1246,7 +1594,13 @@
         "0-4",
         "4-0",
         "0-4"
-      ]
+      ],
+      "desigPerMin": 176.5,
+      "hiHolds": 0,
+      "authFailures": 444,
+      "handoffs": 65,
+      "simSpeed": 5801.6,
+      "replayHash": "24ccdb512ff5d8d9"
     },
     {
       "level": 5,
@@ -1267,7 +1621,13 @@
         "0-5",
         "0-6",
         "3-0"
-      ]
+      ],
+      "desigPerMin": 155,
+      "hiHolds": 0,
+      "authFailures": 474,
+      "handoffs": 65,
+      "simSpeed": 6528.2,
+      "replayHash": "646f60e74f937476"
     },
     {
       "level": 5,
@@ -1288,7 +1648,13 @@
         "1-0",
         "4-0",
         "0-8"
-      ]
+      ],
+      "desigPerMin": 163.2,
+      "hiHolds": 0,
+      "authFailures": 506,
+      "handoffs": 73,
+      "simSpeed": 6464.1,
+      "replayHash": "5aa94dc683d11426"
     },
     {
       "level": 5,
@@ -1309,7 +1675,13 @@
         "7-0",
         "0-9",
         "2-0"
-      ]
+      ],
+      "desigPerMin": 150.8,
+      "hiHolds": 0,
+      "authFailures": 537,
+      "handoffs": 87,
+      "simSpeed": 6214.2,
+      "replayHash": "630525b92a8bb9aa"
     },
     {
       "level": 5,
@@ -1330,6 +1702,581 @@
         "0-5",
         "3-0",
         "7-0"
+      ],
+      "desigPerMin": 200.7,
+      "hiHolds": 0,
+      "authFailures": 565,
+      "handoffs": 84,
+      "simSpeed": 5300.8,
+      "replayHash": "b3c8573c49bb85c5"
+    }
+  ],
+  "hashes": [
+    {
+      "level": 1,
+      "perSide": 1,
+      "seeds": [
+        "625d584cf0e3c3f5",
+        "813cc847bfe971df",
+        "8afe74df9c7d3462"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 2,
+      "seeds": [
+        "4a88b52dbabfa821",
+        "00a4ebafbc9b4cb2",
+        "ea229da851c98172"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 3,
+      "seeds": [
+        "0e3227254872cfe5",
+        "8ba3f84939750574",
+        "edca71aa64d37371"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 4,
+      "seeds": [
+        "4b3217aec6f73308",
+        "e2711ac45262b692",
+        "e25b38446fa4baef"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 5,
+      "seeds": [
+        "8464e1e90bb364d4",
+        "009959d81b3fc3d1",
+        "83ff6fbc8b12df1b"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 6,
+      "seeds": [
+        "9e50c2a247d749fe",
+        "af59959bcfba10f4",
+        "00963be1bad3afe7"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 7,
+      "seeds": [
+        "954846ea82a9b5d2",
+        "2a0e957f151ae120",
+        "455a03eefacb92a1"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 8,
+      "seeds": [
+        "7961e4768bdbf2bd",
+        "02d68326b5939947",
+        "26f70ca1b6e46d64"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 9,
+      "seeds": [
+        "686671715c9e2bb3",
+        "801137ace66385fd",
+        "7292c5e9509a2500"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 10,
+      "seeds": [
+        "99bc5be9a0500b66",
+        "73fe2705030a3b8c",
+        "89d1b9e09d18ca2c"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 11,
+      "seeds": [
+        "8630fb3734082666",
+        "b7a46d06fc093ec4",
+        "e2953d72c545cffb"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 12,
+      "seeds": [
+        "7d1847e80ea968f6",
+        "daa5d26cec05c92e",
+        "a5b2a2f20abb934c"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 13,
+      "seeds": [
+        "bbed98686bd8ae0b",
+        "df2bdf020b5b0119",
+        "095109edc279a2cb"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 14,
+      "seeds": [
+        "6f75043610977c4a",
+        "2df579b2f397b787",
+        "07f7b783896482b4"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 15,
+      "seeds": [
+        "f9364c41e808cfa0",
+        "d2c706d47c841a16",
+        "410cc291f1fd3213"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 16,
+      "seeds": [
+        "afe4f896ce4bbc67",
+        "778ef3ecd84f7a84",
+        "7d38dbd71251d44c"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 17,
+      "seeds": [
+        "6d103a40a41999e6",
+        "d4684f3fecc95fc9",
+        "dfd60eec53125d4b"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 18,
+      "seeds": [
+        "e3fdc3e49132c361",
+        "24d7f93d5b5e54d1",
+        "61bd25df25823222"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 19,
+      "seeds": [
+        "8a9a12e23f0c9a24",
+        "ab91d899ab451827",
+        "181102a9608a1f00"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 20,
+      "seeds": [
+        "9d7a542ec9b36d2d",
+        "c3f492a96df9a731",
+        "6f1403c19afe027e"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 21,
+      "seeds": [
+        "9e987b3de455e08d",
+        "3962a9f1eb08cab8",
+        "0a4903ce1c9d27d7"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 1,
+      "seeds": [
+        "f41ccb8ffcf853ff",
+        "a84fe56df4232d11",
+        "3961e7648cced1e0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 2,
+      "seeds": [
+        "d9fac9f825c11614",
+        "fc9d88e3eeb3990a",
+        "9a53c012487225ec"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 3,
+      "seeds": [
+        "acd3209fee461438",
+        "53e60864d86a1215",
+        "9bc4f40a430aa1e3"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 4,
+      "seeds": [
+        "41f7f1d03abf8ef9",
+        "f552480ccef26ec9",
+        "f0ac1a02217398c9"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 5,
+      "seeds": [
+        "99b9d12ca75ba43f",
+        "b69b3fb624fba985",
+        "2780944fd8bfdbb8"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 6,
+      "seeds": [
+        "da31e6a02b41eba7",
+        "77ddcb79da464dfd",
+        "8f99c1b5031676e6"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 7,
+      "seeds": [
+        "83f76ccc46ca65c2",
+        "352f3c87bd69269f",
+        "4194583994212918"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 8,
+      "seeds": [
+        "13ed79e8b33a67f3",
+        "7da18984bc531d31",
+        "6a7aecf6ce32dcf9"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 9,
+      "seeds": [
+        "f5bef09d6e23cd58",
+        "ec5326c2d3584448",
+        "64bd8a8804c7b059"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 10,
+      "seeds": [
+        "58c4f9cfae5ed15f",
+        "818c72e0578a4458",
+        "34d118ecb476fccc"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 11,
+      "seeds": [
+        "65e1f344bf6eb542",
+        "afb6617333f3bf8d",
+        "240669ad860ffb27"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 12,
+      "seeds": [
+        "16b82453435ef27f",
+        "63191a711b9b455d",
+        "b58eea15f64a77b1"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 13,
+      "seeds": [
+        "5a61d31285c856cf",
+        "1c11657e24dc7dee",
+        "31d3328b93ce3161"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 14,
+      "seeds": [
+        "305737ea5cbdd0f3",
+        "acaa8ddfbe31dcff",
+        "022b871f3bf6a305"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 15,
+      "seeds": [
+        "32e1e495a4fc8dd7",
+        "050848080e8badcc",
+        "d8f297c0e56548c4"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 16,
+      "seeds": [
+        "635b10c3a7db4492",
+        "600bd64139837e83",
+        "70c442b08e14a944"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 17,
+      "seeds": [
+        "4373a1eda6b6a50e",
+        "499b0020e2bbf4f2",
+        "dd01be307d29b6b4"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 18,
+      "seeds": [
+        "e78928b3c5e3d9ef",
+        "be2686fcc8d13dc8",
+        "9af382ce8d0fb778"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 19,
+      "seeds": [
+        "7363b8290b790460",
+        "e6ce1c406fc54f3b",
+        "4f1783504767bd46"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 20,
+      "seeds": [
+        "2e5901167eb09501",
+        "539339c5a7415cd7",
+        "46b834eaed28af03"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 21,
+      "seeds": [
+        "651ebf684b1f0eef",
+        "b55d91ab85136516",
+        "aa024d16c9380fe1"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 1,
+      "seeds": [
+        "97db2b8c8eb351f9",
+        "f26b5681990b6113",
+        "ce3ed9236cf9ab8e"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 2,
+      "seeds": [
+        "36298bce2d6b6baa",
+        "9a1a0f9debbe18fc",
+        "71438785a092893a"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 3,
+      "seeds": [
+        "968e35c117064e74",
+        "7cd9275a089256b7",
+        "24ca3b5c9b8bb6cf"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 4,
+      "seeds": [
+        "8fb63a852fbc8913",
+        "394400b88b161f08",
+        "6d8643f6c0ced461"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 5,
+      "seeds": [
+        "a3c29f30070d5667",
+        "02c544cec67b9f92",
+        "87bdb91e42044d3c"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 6,
+      "seeds": [
+        "cf1b533e1ccc6683",
+        "0a1077411371da0f",
+        "3517fc358967f9b7"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 7,
+      "seeds": [
+        "fc15a6fd0608ff26",
+        "6b61d3132c504423",
+        "9a12f4990fe45778"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 8,
+      "seeds": [
+        "48df1d68e3421285",
+        "2c8d6cdee7353a0d",
+        "d900d50d4e20d9ba"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 9,
+      "seeds": [
+        "9510956e45ed8ef3",
+        "2bf43ed2c08dc1fb",
+        "9a016c4c8d1a97c6"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 10,
+      "seeds": [
+        "99a17e473d16c390",
+        "84f1fe58e8b2dae2",
+        "0b436ef5ee3d7034"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 11,
+      "seeds": [
+        "b41c7a089a1c4e90",
+        "9390a851c57e36fa",
+        "9f821649ce67c4ba"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 12,
+      "seeds": [
+        "e5363d095a364682",
+        "765fb98da8da81a8",
+        "b6100683eb6b14f2"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 13,
+      "seeds": [
+        "748500e266594a73",
+        "f0b8c74e7e3fc9d0",
+        "2d923fc52cb3860b"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 14,
+      "seeds": [
+        "40561dac86d57a0c",
+        "22a7cd5c0d5d57c6",
+        "1eb25e9ac501219d"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 15,
+      "seeds": [
+        "da7b06957da8c411",
+        "5a879dba715fda5a",
+        "d082f60e17978c27"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 16,
+      "seeds": [
+        "b44ed591d747f2b9",
+        "2f2132f7c2c82aaa",
+        "7deff22300f2c46c"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 17,
+      "seeds": [
+        "24ccdb512ff5d8d9",
+        "8bd0560746de8b10",
+        "a4edbb952b98d254"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 18,
+      "seeds": [
+        "646f60e74f937476",
+        "131cf6420545df42",
+        "345e639720d20d4a"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 19,
+      "seeds": [
+        "5aa94dc683d11426",
+        "b0b43921ad38ff38",
+        "14da85eefc012aff"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 20,
+      "seeds": [
+        "630525b92a8bb9aa",
+        "5731d8455469f642",
+        "eb1dd0099cb649e5"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 21,
+      "seeds": [
+        "b3c8573c49bb85c5",
+        "198852aa943937b4",
+        "44efcd0eb1471b89"
       ]
     }
   ],
@@ -1368,7 +2315,7 @@
       "who": "Enlil",
       "owns": "Implementation & build verification",
       "ok": true,
-      "say": "63 rungs × 3 seeds ran clean"
+      "say": "63 rungs × 3 seeds ran clean; 3v3 replays to the same hash 0e3227254872…"
     },
     {
       "who": "Krishna",

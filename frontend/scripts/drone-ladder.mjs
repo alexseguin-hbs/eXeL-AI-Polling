@@ -53,7 +53,9 @@ const rows = [];
 for (const level of LEVELS) {
   for (const perSide of LADDER) {
     const runs = [];
+    const t0 = performance.now();
     for (let k = 0; k < SEEDS; k++) runs.push(runContest(spec(perSide, level, 20260916 + k * 7919)));
+    const wallS = (performance.now() - t0) / 1000;
     const mean = (f) => runs.reduce((n, r) => n + f(r), 0) / runs.length;
     rows.push({
       level, perSide,
@@ -70,6 +72,15 @@ for (const level of LEVELS) {
       approvers: approversAt(spec(perSide, level, 0)),
       capacityPerMin: Math.round(capacityAt(level) * 10) / 10,
       outcomes: runs.map((r) => `${r.survivors.friendly}-${r.survivors.hostile}`),
+      // r.042's six — "compare on designation rate, HI holds, auth failures, handoffs, FPS, replay hash. Not
+      // winners only." FPS here is HONEST: the contest draws nothing, so the figure is simulated game
+      // seconds per wall second on this machine — a throughput, compared beside the hash, never inside it.
+      desigPerMin: Math.round(mean((r) => r.designationsPerMin) * 10) / 10,
+      hiHolds: runs.reduce((n, r) => n + r.hiHolds, 0),
+      authFailures: Math.round(mean((r) => r.authFailures)),
+      handoffs: Math.round(mean((r) => r.handoffs)),
+      simSpeed: Math.round((runs.reduce((n, r) => n + r.durationS, 0) / Math.max(1e-6, wallS)) * 10) / 10,
+      replayHash: runs[0].replayHash,
       runs,
     });
   }
@@ -118,7 +129,13 @@ const LENSES = [
     } },
   { who: "Enlil", owns: "Implementation & build verification", ask() {
       const bad = rows.filter((r) => !Number.isFinite(r.durationS) || r.durationS <= 0 || r.asked < 0);
-      return { ok: bad.length === 0, say: bad.length ? `${bad.length} rung(s) produced a number that is not a number` : `${rows.length} rungs × ${SEEDS} seeds ran clean` };
+      // REPLAY: the same seed must give the same hash, or nothing measured here can be compared tomorrow.
+      const again = runContest(spec(3, LEVELS[0], 20260916)).replayHash;
+      const same = again === at(LEVELS[0], 3).replayHash;
+      return { ok: bad.length === 0 && same,
+        say: bad.length ? `${bad.length} rung(s) produced a number that is not a number`
+           : !same ? `3v3 at seed 20260916 hashed ${at(LEVELS[0], 3).replayHash} then ${again} — the contest is not replayable`
+           : `${rows.length} rungs × ${SEEDS} seeds ran clean; 3v3 replays to the same hash ${again.slice(0, 12)}…` };
     } },
   { who: "Krishna", owns: "Integration & cross-module testing", ask() {
       // The three modules must agree: a match cannot be shorter than one kill takes at the beam's own reach.
@@ -177,7 +194,7 @@ for (const level of LEVELS) {
   const rule = AUTHORITY[level];
   console.log(`  AUTHORITY ${level} — one named decision covers ${rule.id} (${rule.decider}; `
     + `${approversAt(spec(1, level, 0))} approver(s), ${capacityAt(level).toFixed(0)} decisions/min between them)`);
-  console.log(`  rung   aircraft  seats     dur   outcome   waste  contend   asked   dec/min`);
+  console.log(`  rung   aircraft  seats     dur   outcome   waste  contend   asked   dec/min  desig/min  holds  refused  handoffs  sim×  hash`);
   for (const n of LADDER) {
     const r = at(level, n);
     console.log(
@@ -185,6 +202,8 @@ for (const level of LEVELS) {
       + ` ${(r.resolvedAll ? `${r.durationS}s` : "OPEN").padStart(8)} ${r.outcomes[0].padStart(9)}`
       + ` ${`${r.overkillPct}%`.padStart(7)} ${r.contention.toFixed(2).padStart(8)}`
       + ` ${String(r.asked).padStart(7)} ${r.perMin.toFixed(1).padStart(9)}`
+      + ` ${r.desigPerMin.toFixed(1).padStart(10)} ${String(r.hiHolds).padStart(6)} ${String(r.authFailures).padStart(8)} ${String(r.handoffs).padStart(9)}`
+      + ` ${String(r.simSpeed).padStart(5)} ${r.replayHash.slice(0, 8)}`
       + (r.perMin > r.capacityPerMin ? `  ← beyond its ${r.approvers} approver(s)` : ""));
   }
   console.log("");
@@ -216,7 +235,9 @@ try { commit = (await import("node:child_process")).execFileSync("git", ["rev-pa
 writeFileSync(OUT, JSON.stringify({
   commit, at: new Date().toISOString(), seeds: SEEDS, levels: LEVELS,
   humanCeilingPerMin: HUMAN_CEILING_PER_MIN,
+  // sim× is a wall-clock throughput and is deliberately NOT part of any hash (r.043: no FPS in the hash).
   rows: rows.map(({ runs, ...r }) => r),
+  hashes: rows.map((r) => ({ level: r.level, perSide: r.perSide, seeds: r.runs.map((x) => x.replayHash) })),
   lenses: LENSES.map((l) => ({ who: l.who, owns: l.owns, ...l.ask() })),
 }, null, 2) + "\n");
 console.log(`\n  ${failed ? `${failed} of ${LENSES.length} lenses REFUSED` : `all ${LENSES.length} lenses pass`} → ${path.relative(ROOT, OUT)}`);
