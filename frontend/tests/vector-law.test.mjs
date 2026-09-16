@@ -51,8 +51,8 @@ const hud = read('components/drone-2525/arena-view.tsx');
 ok(/semanticHex\("hud"\)/.test(hud), 'the HUD takes its colour from the same 13 as the world');
 ok(/fontFamily: "ui-monospace/.test(hud), 'the HUD is set in the vector display face, not app chrome');
 ok(/motLabel\(/.test(hud), 'the HUD states the rung being asked for — a level is never silent (U-WF-09)');
-ok(/calLine\(/.test(hud), 'and what calibration decided, with its reason');
-ok(/data-drone-stream/.test(hud) && /streamLabel\(/.test(hud),
+ok(/calLinePrefix\(/.test(hud) && /drone\.cal\.\$\{cal\.why\.k\}/.test(hud), 'and what calibration decided, with its reason — through the lexicon, in the reader\'s language');
+ok(/data-drone-stream/.test(hud) && /streamLabelParts\(/.test(hud) && /drone\.stream\.(reference|fraction)/.test(hud),
    'the live video standard has its OWN field — a silent drop from 1080p30 is the defect this prevents');
 ok(/isReference\(/.test(hud), 'and it changes colour the moment it stops being the reference');
 ok(/dropped/.test(hud), 'and how many segments were given up to get there');

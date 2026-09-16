@@ -14,27 +14,6 @@ const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 const AFTER_FILL = new Set([
   // Drone-2525 operator deck (r.050): TARGET → amber, APPROVE → red. English until the fill lands.
   // Drone-2525 ladder, self-test, flight and crew keys — English until the fill lands, listed never silent.
-  'crew.title',
-  'crew.lead',
-  'crew.take.pilot',
-  'crew.take.targeteer',
-  'crew.seat.pilot',
-  'crew.seat.targeteer',
-  'crew.you_are.pilot',
-  'crew.you_are.targeteer',
-  'crew.pilot_does',
-  'crew.targeteer_does',
-  'crew.send_other',
-  'crew.show',
-  'crew.hide',
-  'crew.copy',
-  'crew.leave',
-  'crew.solo',
-  'crew.waiting',
-  'crew.paths',
-  'crew.path.cloud',
-  'crew.path.tab',
-  'crew.path.store',
   // Drone-2525 control deck (r.050) — English until the fill lands, listed never silent.
 ]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');

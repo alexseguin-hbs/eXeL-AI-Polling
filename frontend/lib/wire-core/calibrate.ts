@@ -38,11 +38,21 @@ export interface CalState {
   streamIdx: number;        // which rung of the stream ladder is live
   sensors: SensorModule[];  // which modules are live right now (a subset of the rung's demand)
   held: number;             // consecutive readings with headroom
-  reason: string;           // why the last change happened, in words a person can read
+  reason: string;           // why the last change happened, in words a person can read (English; logs, exports, tests)
+  /**
+   * The same reason as a lexicon key and its arguments, so a screen can say it in the reader's language
+   * (drone.cal.<k>, filled with {a} {b}). Appended beside `reason`, never instead of it: the English stays
+   * the record; this is what the HUD renders. Every branch below sets both, and the gate counts them.
+   */
+  why: { k: CalReasonKey; a?: string; b?: string };
 }
 
+export type CalReasonKey =
+  | "cold_start" | "no_measurement" | "shed" | "stream_down" | "level_down" | "floor"
+  | "headroom" | "stream_up" | "sensor_on" | "level_up" | "ceiling" | "holding";
+
 export const initCal = (level: MotLevel = "1.1", cap: MotLevel = "5.5"): CalState =>
-  ({ level: motAtMost(level, cap), cap, streamIdx: 0, sensors: [...motSpec(motAtMost(level, cap)).sensors], held: 0, reason: "cold start" });
+  ({ level: motAtMost(level, cap), cap, streamIdx: 0, sensors: [...motSpec(motAtMost(level, cap)).sensors], held: 0, reason: "cold start", why: { k: "cold_start" } });
 
 export interface CalReading { hal: HalProfile; frameMs: number }
 export interface CalResult { state: CalState; changed: boolean }
@@ -51,9 +61,9 @@ export interface CalResult { state: CalState; changed: boolean }
 export function calStep(s: CalState, r: CalReading): CalResult {
   const spec = motSpec(s.level);
   const head = renderHeadroomMs(r.hal, spec.cnnMs, r.frameMs);
-  const keep = (reason: string, held = s.held): CalResult => ({ state: { ...s, held, reason }, changed: false });
+  const keep = (reason: string, why: CalState["why"], held = s.held): CalResult => ({ state: { ...s, held, reason, why }, changed: false });
 
-  if (!Number.isFinite(r.frameMs) || r.frameMs < 0) return keep("no measurement");
+  if (!Number.isFinite(r.frameMs) || r.frameMs < 0) return keep("no measurement", { k: "no_measurement" });
 
   if (head < 0) {
     // (a) shed a module the unit can live without — never EO, which is what seeing IS.
@@ -61,47 +71,50 @@ export function calStep(s: CalState, r: CalReading): CalResult {
       const dropped = s.sensors[s.sensors.length - 1];
       const sensors = s.sensors.slice(0, -1);
       const reason = `over budget by ${(-head).toFixed(1)}ms — ${dropped} shed`;
-      return { state: { ...s, sensors, held: 0, reason }, changed: true };
+      return { state: { ...s, sensors, held: 0, reason, why: { k: "shed", a: (-head).toFixed(1), b: dropped } }, changed: true };
     }
     // (b) then a pixel.
     if (s.streamIdx < STREAMS.length - 1) {
       const next = s.streamIdx + 1;
       const reason = `over budget — stream down to ${streamAt(next).id}`;
-      return { state: { ...s, streamIdx: next, held: 0, reason }, changed: true };
+      return { state: { ...s, streamIdx: next, held: 0, reason, why: { k: "stream_down", a: streamAt(next).id } }, changed: true };
     }
     // (c) then, only then, ask for less picture.
     const down = motStep(s.level, -1);
     if (down !== s.level) {
-      return { state: { ...s, level: down, sensors: [...motSpec(down).sensors], streamIdx: 0, held: 0, reason: `over budget at the floor stream — down to MoT ${down}` }, changed: true };
+      return { state: { ...s, level: down, sensors: [...motSpec(down).sensors], streamIdx: 0, held: 0, reason: `over budget at the floor stream — down to MoT ${down}`, why: { k: "level_down", a: down } }, changed: true };
     }
-    return keep(`over budget and already at ${s.level} on ${streamAt(s.streamIdx).id}`, 0);
+    return keep(`over budget and already at ${s.level} on ${streamAt(s.streamIdx).id}`, { k: "floor", a: s.level, b: streamAt(s.streamIdx).id }, 0);
   }
 
   if (head > climbThresholdMs(r.hal)) {
     const held = s.held + 1;
-    if (held < HOLD_TICKS_TO_CLIMB) return keep(`headroom ${head.toFixed(1)}ms, ${held} of ${HOLD_TICKS_TO_CLIMB}`, held);
+    if (held < HOLD_TICKS_TO_CLIMB) return keep(`headroom ${head.toFixed(1)}ms, ${held} of ${HOLD_TICKS_TO_CLIMB}`, { k: "headroom", a: head.toFixed(1), b: `${held} of ${HOLD_TICKS_TO_CLIMB}` }, held);
     // Climb back in the reverse order it fell: pixels first, then modules, then the rung itself.
     if (!isReference(s.streamIdx)) {
       const next = s.streamIdx - 1;
-      return { state: { ...s, streamIdx: next, held: 0, reason: `headroom held — stream up to ${streamAt(next).id}` }, changed: true };
+      return { state: { ...s, streamIdx: next, held: 0, reason: `headroom held — stream up to ${streamAt(next).id}`, why: { k: "stream_up", a: streamAt(next).id } }, changed: true };
     }
     if (s.sensors.length < spec.sensors.length) {
       const add = spec.sensors[s.sensors.length];
-      return { state: { ...s, sensors: [...s.sensors, add], held: 0, reason: `headroom held — ${add} back on` }, changed: true };
+      return { state: { ...s, sensors: [...s.sensors, add], held: 0, reason: `headroom held — ${add} back on`, why: { k: "sensor_on", a: add } }, changed: true };
     }
     const up = motStep(s.level, +1);
     if (up !== s.level && motIndex(up) <= motIndex(s.cap) && sensorFits(r.hal, motSpec(up).cnnMs)) {
-      return { state: { ...s, level: up, sensors: [...motSpec(up).sensors], held: 0, reason: `headroom held — up to MoT ${up}` }, changed: true };
+      return { state: { ...s, level: up, sensors: [...motSpec(up).sensors], held: 0, reason: `headroom held — up to MoT ${up}`, why: { k: "level_up", a: up } }, changed: true };
     }
-    return keep(`at the ceiling ${s.cap}`, 0);
+    return keep(`at the ceiling ${s.cap}`, { k: "ceiling", a: s.cap }, 0);
   }
 
-  return keep(`holding ${s.level} on ${streamAt(s.streamIdx).id}`, 0);
+  return keep(`holding ${s.level} on ${streamAt(s.streamIdx).id}`, { k: "holding", a: s.level, b: streamAt(s.streamIdx).id }, 0);
 }
 
 /** What the DATA panel shows: stream, HAL, sensors, and the last decision. */
 export const calLine = (s: CalState, hal: HalProfile): string =>
   `${streamAt(s.streamIdx).id} · ${hal.label} · ${s.sensors.join("·")} · ${s.reason}`;
+/** The same line with the reason left to the caller to translate: everything but the words. */
+export const calLinePrefix = (s: CalState, hal: HalProfile): string =>
+  `${streamAt(s.streamIdx).id} · ${hal.label} · ${s.sensors.join("·")} · `;
 
 // ── 2 · THE SELF-TEST ────────────────────────────────────────────────────────────────────────────────
 // The operator's budget is 6 to 15 minutes. That is not decoration: it is what makes the dwell time a
@@ -186,6 +199,7 @@ export interface SelfCalReport {
   elapsedS: number;
   results: RungResult[];
   headline: string;
+  headlineKey: { k: "holds"; a: string; b: string; c: string } | { k: "held_none"; a: string; b: string };
 }
 
 /** The answer, in one sentence a person can act on. */
@@ -200,6 +214,10 @@ export function selfCalReport(sw: SweepState, plan: SelfCalPlan, hal: HalProfile
     headline: ceiling
       ? `This machine holds MoT ${ceiling} at ${STREAMS[0].id} with ${sensorsAtCeiling.join(", ")} running.`
       : `This machine held no rung at ${STREAMS[0].id}. The lowest rung tried was ${plan.rungs[0]}.`,
+    // The headline as a lexicon key + args (drone.selfcal.holds / held_none), beside the English, for the screen.
+    headlineKey: ceiling
+      ? { k: "holds" as const, a: String(ceiling), b: STREAMS[0].id, c: sensorsAtCeiling.join(", ") }
+      : { k: "held_none" as const, a: STREAMS[0].id, b: String(plan.rungs[0]) },
   };
 }
 

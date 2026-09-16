@@ -10,6 +10,7 @@
 //
 // The run takes minutes by design, so it is never silent: the rung being measured, the frames it made, the
 // verdict and the reason all appear as they happen, and STOP returns what has been learned so far.
+import { fill } from "@/lib/2525-core/fill";
 import { useCallback, useRef, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { semanticHex } from "@/lib/wire-core/palette";
@@ -107,7 +108,7 @@ export function SelfCalPanel({ level, hal }: { level: MotLevel; hal: HalChoice }
 
       {report ? (
         <div data-selfcal-report style={{ border: `1px solid ${semanticHex("contour")}`, padding: 10 }}>
-          <div style={{ ...MONO, color: semanticHex("tagged"), marginBottom: 6 }}>{report.headline}</div>
+          <div style={{ ...MONO, color: semanticHex("tagged"), marginBottom: 6 }}>{fill(t(`drone.selfcal.${report.headlineKey.k}`), report.headlineKey)}</div>
           <div style={{ ...MONO, color: HUD, opacity: 0.7, marginBottom: 8 }}>
             {report.hal} · {t("drone.selfcal.tried")} {report.tried} · {t("drone.selfcal.held")} {report.passed} · {report.elapsedS}s
           </div>

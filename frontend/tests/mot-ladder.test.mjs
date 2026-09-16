@@ -137,6 +137,20 @@ ok(streamAt(-5).id === '1080p30' && streamAt(99).id === '480p15', 'an index off 
   const r1 = calStep(s, slow); s = r1.state;
   ok(r1.changed && s.sensors.length === 4 && !s.sensors.includes('CHEM'), 'the first thing shed is CHEM, from the top of the ladder');
   ok(/shed/.test(s.reason), 'and it says so');
+  ok(s.why.k === 'shed' && s.why.b === 'CHEM' && /^\d+\.\d$/.test(s.why.a), `and says it as a key with arguments for the reader's language (${s.why.k} a=${s.why.a} b=${s.why.b})`);
+  {
+    // EVERY reason carries its key: count the branches in the source, not the ones this test happens to walk.
+    const fs2 = await import('node:fs');
+    const src = fs2.readFileSync(new URL('../lib/wire-core/calibrate.ts', import.meta.url), 'utf8');
+    const reasons = (src.match(/reason[:,]|keep\(/g) || []).length;
+    const whys = (src.match(/why: \{ k: "|, \{ k: "/g) || []).length;
+    ok(whys >= 12, `twelve reason branches carry a key (${whys})`);
+    const av = fs2.readFileSync(new URL('../components/drone-2525/arena-view.tsx', import.meta.url), 'utf8');
+    ok(!/calLine\(cal|streamLabel\(cal/.test(av) && /drone\.cal\.\$\{cal\.why\.k\}/.test(av) && /drone\.stream\.(reference|fraction)/.test(av), 'the HUD renders the reason and the stream through the lexicon, not the English helpers');
+    const sc = fs2.readFileSync(new URL('../components/drone-2525/self-cal-panel.tsx', import.meta.url), 'utf8');
+    ok(!/\{report\.headline\}/.test(sc) && /drone\.selfcal\.\$\{report\.headlineKey\.k\}/.test(sc), 'and so does the self-test headline');
+    void reasons;
+  }
 
   for (let i = 0; i < 3; i++) s = calStep(s, slow).state;
   ok(s.sensors.length === 1 && s.sensors[0] === 'EO', 'it sheds down to EO and stops — a blind unit is not a degraded unit');

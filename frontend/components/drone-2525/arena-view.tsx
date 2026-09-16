@@ -3,6 +3,7 @@
 // THE ARENA — the Texas Capitol lawn, drawn as edges, with the fidelity tier and what it dropped always on
 // screen (U-WF-09: a cap is never silent). R-CORE interaction: drag rotates and tilts, wheel zooms — the same
 // model every other 2525 surface speaks (lib/rcore-gestures.ts).
+import { fill } from "@/lib/2525-core/fill";
 import { classifyPress, isDoubleTap, type PointerSample } from "@/lib/drone-2525/tap-target";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type DomainSource } from "@/lib/drone-2525/arena-model";
@@ -10,8 +11,8 @@ import { worldAt } from "@/lib/drone-2525/world";
 import { selectLod } from "@/lib/wire-core/wire-model";
 import { motSpec, motLabel, type MotLevel } from "@/lib/wire-core/mot-ladder";
 import { resolveHal, type HalChoice } from "@/lib/wire-core/hal";
-import { initCal, calStep, calLine } from "@/lib/wire-core/calibrate";
-import { streamAt, streamLabel, isReference } from "@/lib/wire-core/stream";
+import { initCal, calStep, calLinePrefix } from "@/lib/wire-core/calibrate";
+import { streamAt, streamLabelParts, isReference } from "@/lib/wire-core/stream";
 import { canonicalHash } from "@/lib/wire-core/wire-model";
 import { semanticHex } from "@/lib/wire-core/palette";
 import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
@@ -175,6 +176,7 @@ export function ArenaView({ source, level = "1.1", hal = "auto", reserve = 0, ov
       </span>
     </div>
   );
+  const sp = streamLabelParts(cal.streamIdx);
   const bottomRow = (
     <div style={{ display: "flex", justifyContent: "space-between", gap: narrow ? 8 : 12, flexWrap: "wrap", alignItems: narrow ? "flex-start" : "flex-end" }}>
       <span style={{ ...hud, color: semanticHex("door") }}>{t("drone.hud.doors")} {doors.length}</span>
@@ -182,10 +184,10 @@ export function ArenaView({ source, level = "1.1", hal = "auto", reserve = 0, ov
       {/* The live video standard gets its OWN field, not a clause inside a sentence: a drop from
           1080p30 is the single fact a person must never have to go looking for. */}
       <span style={{ ...hud, color: isReference(cal.streamIdx) ? semanticHex("frustum") : semanticHex("pending") }} data-drone-stream>
-        {streamLabel(cal.streamIdx)}
+        {fill(t(sp.reference ? "drone.stream.reference" : "drone.stream.fraction"), { a: sp.id, b: sp.pct })}
       </span>
       <span style={{ ...hud, color: semanticHex("frustum"), opacity: 0.8 }} data-drone-cal>
-        {calLine(cal, machine)}
+        {calLinePrefix(cal, machine)}{fill(t(`drone.cal.${cal.why.k}`), cal.why)}
       </span>
       {hudRight}
       <span style={{ ...hud, opacity: 0.6 }}>{hash.slice(0, 12)}</span>

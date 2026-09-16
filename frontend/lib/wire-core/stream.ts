@@ -23,6 +23,10 @@ export const isReference = (i: number): boolean => i === 0;
 export const fractionOfReference = (i: number): number =>
   streamAt(i).pixelsPerSecond / REFERENCE_STREAM.pixelsPerSecond;
 
+/** The label's parts, for a screen that says it in the reader's language (drone.stream.reference / fraction). */
+export const streamLabelParts = (i: number): { id: string; reference: boolean; pct: number } =>
+  ({ id: streamAt(i).id, reference: isReference(i), pct: Math.round(fractionOfReference(i) * 100) });
+
 export const streamLabel = (i: number): string => {
   const s = streamAt(i);
   return isReference(i) ? `${s.id} · holding the reference` : `${s.id} · ${Math.round(fractionOfReference(i) * 100)}% of reference`;

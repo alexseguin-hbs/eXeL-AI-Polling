@@ -49,7 +49,7 @@ The r.040 and r.042 review items are genuinely closed, not merely claimed:
 | deterministic replay hash | **closed, and correct** — FNV over `seq\|challenge\|diff\|role\|verb\|id\|designated\|hiApproved\|authorityLevel\|result\|blu\|red`, with no wall-clock, no ISO, no FPS and no SID, exactly as specified |
 | metrics reducer | **closed** — `metricsOf()` yields designation rate, HI holds, auth failures, handoffs |
 
-## Three defects found in r.047 while reading it
+## Four defects found in r.047 / r.050 while reading them
 
 Reported rather than fixed here, because this directory is a carried copy and nothing in this repo may edit it.
 
@@ -64,6 +64,16 @@ Reported rather than fixed here, because this directory is a carried copy and no
    event stream and therefore the replay hash. Today that is harmless because scores are already hashed via
    `blu`/`red`. It stops being harmless the moment any feed line contains a clock, an FPS figure or a SID —
    the four things the hash spec explicitly excludes. Worth a guard rather than a convention.
+
+4. **`designate()` does not set `phase:'amber'` on `state.desig`** (found by eXeL AI, 2026-09-16, on r.050).
+   It records `DESIGNATED … AMBER` and broadcasts `phase:'amber'`, but the local `state.desig` object is created
+   without the field. `fireN()` distinguishes `AMBER_NO_APPROVE` only when `state.desig.phase==='amber'`, so a
+   premature fire on a fresh mark falls through as `NO_RED_BOX` — the wrong refusal, and the wrong decision on
+   the record. The repository's port sets amber by construction (`slots.ts designate()`), and `tests/drone-slots`
+   holds it as an explicit acceptance test: a fire on a fresh mark must read `AMBER_NO_APPROVE`, never
+   `NO_RED_BOX`. Also noted by the same review: the r.050 receive side updates peer / RTT / sequence state but
+   the uploaded source does not show it applying an incoming `{k:'APPROVE'}` — the two-direction proof lives
+   in this repository's `scripts/drone-crew-e2e.mjs`, not in the deck.
 
 ## Read-only, and one of them emphatically so
 
