@@ -36,6 +36,7 @@ import { initLink, seatUrl, seatFromParams, linkLine, linkUp, type Seat } from "
 import { seatEye, seatEyeLine } from "@/lib/drone-2525/seat-view";
 import { initSlots, designate, nextFreeSlot, approve, canFire, clearSlot, pruneSlots, slotLine, refusalToast, slotOf, selectSlot, type SlotN, type Slots } from "@/lib/drone-2525/slots";
 import { hitDoor, newSpeech } from "@/lib/drone-2525/tap-target";
+import { challengeSpec, targetSpecFor, doorsInPlay, ch5RefusesSelfApproval, challengeLine, CH5_REASON, type Challenge, type Difficulty } from "@/lib/drone-2525/challenge";
 import { voiceToAction } from "@/lib/2525-core/controls";
 import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 import { useControls, type GimbalRate } from "@/lib/drone-2525/use-controls";
@@ -85,8 +86,11 @@ const TSPEC = {
  *
  * LINK-2525 in one sentence: the mount changes, the gimbal does not.
  */
-export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; hal: HalChoice }) {
+export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: RoundMode; level: MotLevel; hal: HalChoice; challenge?: Challenge; diff?: Difficulty }) {
   const { t } = useLexicon();
+  // CH1–CH5 × DIFF 1–5, the deck's own numbers (challenge.ts). Decides how many doors are in play and how
+  // long each stays open; at CH5 NET the red box must come from a second person.
+  const CH = useMemo(() => challengeSpec(challenge, diff), [challenge, diff]);
   const mounts = useMemo<Mount[]>(() => DRONE_DOMAIN.turrets.map(turretMount), []);
   const [mountIdx, setMountIdx] = useState(0);
   const [crewId, setCrewId] = useState<CrewId>("hi_pilot");
@@ -162,7 +166,10 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
     });
   }, [world]);
 
-  const schedule = useMemo(() => buildSchedule(world.doors, TSPEC), [world]);
+  const inPlay = useMemo(() => doorsInPlay(CH, world.doors.length), [CH, world.doors.length]);
+  // The builder ranks every door by seed; the challenge's quota takes the first N of that ranking, so which
+  // doors are in play is deterministic and the same on every device that shares the seed.
+  const schedule = useMemo(() => buildSchedule(world.doors, targetSpecFor(TSPEC, CH)).slice(0, inPlay), [world, CH, inPlay]);
   const roundMs = useMemo(() => roundLengthMs(schedule), [schedule]);
   const views = useMemo(() => targetsAt(world.doors, schedule, game.tags, tMs), [world, schedule, game.tags, tMs]);
   // THE EYE, QUANTISED. `mount` is rebuilt every frame from the flight state, so keying the eye on the
@@ -330,10 +337,10 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
     return {
       t: tMsRef.current / 1000, actor: mySeatOr,
       designated: Boolean(cur), hiApproved: cur?.phase === "red",
-      authorityLevel: 1, challenge: 1, diff: 3,
+      authorityLevel: 1, challenge: CH.c, diff: CH.d,
       blu: score(game).tagged, red: 0,
     };
-  }, [slots, mySeatOr, game]);
+  }, [slots, mySeatOr, game, CH]);
 
   // TARGET → AMBER. Puts the door in view into the next free slot as a designation that CANNOT fire, and
   // records it by name. click / the TARGET button / voice "target" all come here (r.050: redundant paths
@@ -384,13 +391,20 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
     // read as two-person. The named approver (the watch officer) is a different actor only when the mark
     // came from someone else: the machine targeteer, or the other seat over the link.
     const by = cur.by === mySeatOr ? mySeatOr : (crew.approver || WATCH);
+    // CH5 NET: two-step is not enough; the red box must come from a second PERSON. Refused AND recorded
+    // as a HOLD under the deck's own reason code, so the metric "HI holds" has something real to count.
+    if (ch5RefusesSelfApproval(CH, by, cur.by)) {
+      setLedger((L) => recordDecision(L, "HOLD", cur.doorId, { ...stampNow(), actor: by }, { reason: CH5_REASON, slot: n }).ledger);
+      setNote(t("drone.ch.second_person"));
+      return;
+    }
     setSlots((s) => approve(s, n, by, tMsRef.current));
     setLedger((L) => {
       const a = recordDecision(L, "APPROVE", cur.doorId, { ...stampNow(), actor: by, hiApproved: true }, { by, from: cur.by, slot: n });
       return recordEvent(a.ledger, "APPROVE", cur.doorId, "RED", { ...stampNow(), hiApproved: true }, by === cur.by ? "HI-2" : "HI").ledger;
     });
     setNote(`T${n} · RED · ${by === cur.by ? "HI-2" : by}`);
-  }, [slots, crew.approver, mySeatOr, stampNow]);
+  }, [slots, crew.approver, mySeatOr, stampNow, CH, t]);
 
   const doCapture = useCallback(() => {
     setGame((g) => {
@@ -510,9 +524,9 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   // the object destroyed this interval every hundred milliseconds — faster than its own period, so it never
   // fired once and the two devices went silent. `say` itself is stable. The two-device gate caught it; the
   // lesson is that an interval whose owner is rebuilt faster than its period is not an interval.
-  const sending = useRef({ flight, gim, framed, mySeat });
+  const sending = useRef({ flight, gim, framed, mySeat, slots });
   sending.current.flight = flight; sending.current.gim = gim;
-  sending.current.framed = framed; sending.current.mySeat = mySeat;
+  sending.current.framed = framed; sending.current.mySeat = mySeat; sending.current.slots = slots;
   useEffect(() => {
     if (!twoDevice || !running) return;
     const id = window.setInterval(() => {
@@ -521,11 +535,32 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
         const f = c.flight;
         say({ kind: "flight", flight: { e: f.e, n: f.n, aglM: f.aglM, ve: f.ve, vn: f.vn, vu: f.vu, headingDeg: f.headingDeg, mode: f.mode, energy: f.energy } });
       } else {
-        say({ kind: "gimbal", az: c.gim.az, el: c.gim.el, doorId: c.framed?.door.id ?? null });
+        const cur = c.slots.current ? c.slots.s[c.slots.current] : null;
+        say({ kind: "gimbal", az: c.gim.az, el: c.gim.el, doorId: c.framed?.door.id ?? null, amber: cur && cur.phase === "amber" ? cur.doorId : null });
       }
     }, 220);
     return () => window.clearInterval(id);
   }, [twoDevice, running, say]);
+
+  // THE SECOND PERSON'S APPROVAL ARRIVES. The mark lives on this device; the other seat's name goes on
+  // the red box, so approvalKind reads two-person — which is what CH5 requires and what the HUD says.
+  // Applied once per sequence number; a stale or repeated approval changes nothing.
+  const appliedApprove = useRef(-1);
+  useEffect(() => {
+    const a = link.state.theirApprove;
+    if (!twoDevice || !a || a.seq <= appliedApprove.current) return;
+    appliedApprove.current = a.seq;
+    const n = slotOf(slots, a.doorId);
+    const cur = n ? slots.s[n] : null;
+    if (!n || !cur || cur.phase !== "amber" || cur.by === a.seat) return;   // nothing amber there, or their own mark
+    setSlots((s) => approve(s, n, a.seat, tMsRef.current));
+    setLedger((L) => {
+      const d = recordDecision(L, "APPROVE", a.doorId, { ...stampNow(), actor: a.seat, hiApproved: true }, { by: a.seat, from: cur.by, slot: n, link: true });
+      return recordEvent(d.ledger, "APPROVE", a.doorId, "RED", { ...stampNow(), hiApproved: true }, "HI").ledger;
+    });
+    setNote(`T${n} · RED · ${a.seat}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [twoDevice, link.state.theirApprove]);
 
   // What the other seat says is applied here, and only here.
   useEffect(() => {
@@ -577,6 +612,9 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
             <span style={{ ...MONO, color: semanticHex("frustum") }} data-drone-seat-eye>
               {seatEyeLine(mySeatOr, mount, flight.mode, world.ground)}
             </span>
+            <span style={{ ...MONO, color: semanticHex(CH.net ? "pending" : "door") }} data-drone-challenge>
+              {challengeLine(CH, inPlay)}
+            </span>
             {engagement && swarmPlan ? (
               <span style={{ ...MONO, color: semanticHex("ray") }} data-drone-swarm-line>{swarmLine(swarm.current, swarmPlan)}</span>
             ) : null}
@@ -584,7 +622,7 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
         }
         hudRight={
           <span style={{ ...MONO, color: semanticHex("tagged") }} data-drone-score>
-            {t("drone.game.tagged")} {s.tagged}/{world.doors.length} · {t("drone.game.captured")} {s.captured}
+            {t("drone.game.tagged")} {s.tagged}/{inPlay} · {t("drone.game.captured")} {s.captured}
           </span>
         }
       />
@@ -621,6 +659,15 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
           <button data-drone-approve onClick={doApprove} disabled={!(slots.current && slots.s[slots.current]?.phase === "amber")}
                   style={btn({ hex: semanticHex("ray"), enabled: Boolean(slots.current && slots.s[slots.current]?.phase === "amber") })}>
             {t("drone.game.approve")}
+          </button>
+        ) : null}
+        {twoDevice && mySeat === "pilot" && link.state.theirGimbal?.amber ? (
+          <button data-drone-approve-link onClick={() => {
+            const id = link.state.theirGimbal!.amber!;
+            say({ kind: "approve", doorId: id, slot: (slotOf(slots, id) ?? 1) as 1 | 2 | 3 });
+            setNote(`${t("drone.game.approve_theirs")} · ${doorLabel(id)}`);
+          }} style={btn({ hex: semanticHex("ray") })}>
+            {t("drone.game.approve_theirs")} · {doorLabel(link.state.theirGimbal.amber)}
           </button>
         ) : null}
         {iAim ? (

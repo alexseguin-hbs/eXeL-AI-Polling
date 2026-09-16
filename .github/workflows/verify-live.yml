@@ -81,3 +81,21 @@ jobs:
             echo "or clear the build cache (Settings → Build → Clear build cache) and retry."
           } >> "$GITHUB_STEP_SUMMARY"
           exit 1
+
+      # THE ROUTE, NOT JUST THE ROOT (Round 10, R10-1). For three days "Verify Live passed" meant the site root
+      # carried the SHA; it never once requested /drone-2525/, the page the operator keeps pasting. A route that
+      # 404s on the live host while the root is green is precisely the failure this workflow exists to catch.
+      # Asserted by the arena's own markup (data-drone-ux1), not by any 200 — a soft-404 SPA shell is a 200 too.
+      - name: Probe /drone-2525/ on the live site
+        env:
+          SITE: https://exel-ai-polling.explore-096.workers.dev
+        run: |
+          code="$(curl -sS -m 20 -o /tmp/drone.html -w '%{http_code}' -H 'cache-control: no-cache' "$SITE/drone-2525/" || echo 000)"
+          if [ "$code" = "200" ] && grep -q 'data-drone-ux1' /tmp/drone.html; then
+            echo "::notice title=ROUTE::$SITE/drone-2525/ answers 200 with the arena markup"
+            echo "### ✅ /drone-2525/ answers (200, arena markup present)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::error title=ROUTE::$SITE/drone-2525/ returned $code (arena markup $(grep -q 'data-drone-ux1' /tmp/drone.html && echo present || echo ABSENT))"
+            echo "### ❌ /drone-2525/ does not answer — HTTP $code" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi

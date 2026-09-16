@@ -12,6 +12,7 @@
  * Capital. The two flying modes are listed and visibly dated, never hidden — a mode the operator
  * asked for that is not built yet is a promise on screen, not a silence.
  */
+import { CHALLENGES, DIFFICULTIES, CH_NAMES, DEFAULT_CHALLENGE, DEFAULT_DIFF, type Challenge, type Difficulty } from "@/lib/drone-2525/challenge";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -37,6 +38,9 @@ export function DroneCommandUX1() {
   const [mode, setMode] = useState("turrets");
   const [level, setLevel] = useState<MotLevel>("1.1");
   const [hal, setHal] = useState<HalChoice>("auto");
+  // CH1–CH5 × DIFF 1–5 (operator deck r.036 → r.050). Dropdowns, not a chip wall — his r.044 rule.
+  const [challenge, setChallenge] = useState<Challenge>(DEFAULT_CHALLENGE);
+  const [diff, setDiff] = useState<Difficulty>(DEFAULT_DIFF);
   const stamp = useMemo(() => versionStamp(`v${SRC.project.revision}`), []);
   const label = semanticHex("hud");
   const dim = { color: label, opacity: 0.55 };
@@ -84,12 +88,22 @@ export function DroneCommandUX1() {
             <option value="auto">{t("drone.hal_auto")}</option>
             {HAL_ORDER.map((h) => <option key={h} value={h}>{HAL_PROFILES[h].label}</option>)}
           </select>
+          <span style={{ ...dim, fontSize: 10 }}>{t("drone.ch")}</span>
+          <select data-drone-ch value={challenge} onChange={(e) => setChallenge(Number(e.target.value) as Challenge)}
+                  style={{ ...btn({ on: true, hex: semanticHex("door") }), minWidth: 96 }}>
+            {CHALLENGES.map((c) => <option key={c} value={c}>{`CH${c} ${CH_NAMES[c - 1]}`}</option>)}
+          </select>
+          <span style={{ ...dim, fontSize: 10 }}>{t("drone.diff")}</span>
+          <select data-drone-diff value={diff} onChange={(e) => setDiff(Number(e.target.value) as Difficulty)}
+                  style={{ ...btn({ on: true, hex: semanticHex("door") }), minWidth: 56 }}>
+            {DIFFICULTIES.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
         </div>
       </div>
 
       {/* The arena, and the round played on it */}
       <div style={{ padding: "0 14px 14px" }}>
-        <Round mode={mode as RoundMode} level={level} hal={hal} />
+        <Round mode={mode as RoundMode} level={level} hal={hal} challenge={challenge} diff={diff} />
       </div>
 
       <SelfCalPanel level={level} hal={hal} />

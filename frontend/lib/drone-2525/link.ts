@@ -41,12 +41,22 @@ export interface GimbalMsg {
   /** An action already taken, so the other screen can show it — never an instruction to the pilot. */
   did?: "capture" | "shoot" | null;
   doorId?: string | null;
+  /** The door this seat has marked AMBER and is waiting on a second person for, if any. r.050: net peer. */
+  amber?: string | null;
 }
+
+/**
+ * THE SECOND PERSON, OVER THE LINK (r.050: "APPROVE — HI-2 or net peer"). Either seat may approve the
+ * OTHER seat's amber mark; the receiving device is the one holding the mark and applies it there, by the
+ * sender's seat name, so approvalKind reads two-person. A seat cannot approve its own mark through this
+ * message — the reducer that holds the mark refuses a sender equal to the designator (slots.ts / round).
+ */
+export interface ApproveMsg { kind: "approve"; seat: Seat; seq: number; atMs: number; doorId: string; slot: 1 | 2 | 3 }
 
 /** Either seat may say it is here. Presence is not control. */
 export interface HelloMsg { kind: "hello"; seat: Seat; seq: number; atMs: number; name: string }
 
-export type LinkMsg = FlightMsg | GimbalMsg | HelloMsg;
+export type LinkMsg = FlightMsg | GimbalMsg | HelloMsg | ApproveMsg;
 
 /**
  * THE GATE. Does this message belong to the seat that claims to have sent it?
@@ -68,7 +78,13 @@ export function authored(m: LinkMsg): { ok: boolean; why: string } {
     if (m.seat !== "targeteer") return { ok: false, why: "only the targeteer aims" };
     if (!Number.isFinite(m.az) || !Number.isFinite(m.el)) return { ok: false, why: "the aim is not a pair of angles" };
     if (m.did != null && m.did !== "capture" && m.did !== "shoot") return { ok: false, why: `"${m.did}" is not something a targeteer does` };
+    if (m.amber != null && typeof m.amber !== "string") return { ok: false, why: "an amber mark is a door id or nothing" };
     return { ok: true, why: "the targeteer said where the camera is looking" };
+  }
+  if (m.kind === "approve") {
+    if (typeof m.doorId !== "string" || !m.doorId.trim()) return { ok: false, why: "an approval names a door" };
+    if (m.slot !== 1 && m.slot !== 2 && m.slot !== 3) return { ok: false, why: "an approval names a slot, T1 T2 or T3" };
+    return { ok: true, why: `${m.seat} approved the other seat's mark` };
   }
   if (m.kind === "hello") {
     if (typeof m.name !== "string") return { ok: false, why: "a seat arriving must say who it is" };
@@ -85,6 +101,8 @@ export interface LinkState {
   /** Last accepted message from the other seat, and when. */
   theirFlight: FlightMsg | null;
   theirGimbal: GimbalMsg | null;
+  /** The other seat's last approval of one of OUR marks. Applied once, by sequence. */
+  theirApprove: ApproveMsg | null;
   theirName: string;
   lastHeardMs: number;
   /** Sequence numbers already seen, so a message arriving twice on two transports lands once. */
@@ -95,7 +113,7 @@ export interface LinkState {
 }
 
 export const initLink = (me: Seat, code: string): LinkState => ({
-  me, code, theirFlight: null, theirGimbal: null, theirName: "",
+  me, code, theirFlight: null, theirGimbal: null, theirApprove: null, theirName: "",
   lastHeardMs: 0, seenSeq: { pilot: -1, targeteer: -1 }, accepted: 0, refused: 0, lastRefusal: "",
 });
 
@@ -122,14 +140,16 @@ export function receive(s: LinkState, m: LinkMsg, nowMs: number): LinkState {
   };
   if (m.kind === "flight") return { ...next, theirFlight: m };
   if (m.kind === "gimbal") return { ...next, theirGimbal: m };
+  if (m.kind === "approve") return { ...next, theirApprove: m };
   return { ...next, theirName: m.name || next.theirName };
 }
 
 /** What this device is allowed to build and send. A seat cannot compose the other seat's message. */
 export function compose(s: LinkState, seq: number, atMs: number, payload:
   | { kind: "flight"; flight: FlightMsg["flight"] }
-  | { kind: "gimbal"; az: number; el: number; did?: GimbalMsg["did"]; doorId?: string | null }
-  | { kind: "hello"; name: string },
+  | { kind: "gimbal"; az: number; el: number; did?: GimbalMsg["did"]; doorId?: string | null; amber?: string | null }
+  | { kind: "hello"; name: string }
+  | { kind: "approve"; doorId: string; slot: 1 | 2 | 3 },
 ): LinkMsg | null {
   if (payload.kind === "flight" && s.me !== "pilot") return null;
   if (payload.kind === "gimbal" && s.me !== "targeteer") return null;

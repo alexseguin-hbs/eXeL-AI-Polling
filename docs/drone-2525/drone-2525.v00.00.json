@@ -4,7 +4,7 @@
     "name": "Drone-2525",
     "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
     "version": "00.00",
-    "revision": "0.012",
+    "revision": "0.013",
     "stampPrefix": "eXeL v0.001",
     "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
     "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -96,6 +96,13 @@
       "date": "2026-09-16",
       "kind": "decision",
       "why": "Operator deck r.050 adopted. The keyboard (EXEL-2525-CONTROLS-1) through the ref bus; the R stick is the HEAD; one centred look-stick in the turret modes; stick calibration persisted; tap, double-tap and look-drag on the arena; the T-box; voice on r.042's grammar; T1 T2 T3 with AMBER then RED and a fire that refuses NO_RED_BOX and AMBER_NO_APPROVE and records both; the decision record with r.043's replay hash; ONE seat geometry for every vehicle (28.5 cm on the foil, turret 0) replacing the two we had — a correction on the record; and the ladder measuring his six: designation rate, HI holds, auth failures, handoffs, sim speed, replay hash.",
+      "commit": ""
+    },
+    {
+      "revision": "0.013",
+      "date": "2026-09-16",
+      "kind": "decision",
+      "why": "CH1–CH5 × DIFF 1–5 from the deck's challengeSpec, verbatim (25 cells checked against r.050's own function): quota bounds the doors in play, rate shortens the window, concurrent grows 1→3; at CH5 NET the red box must come from a second PERSON, and a device approving its own mark is refused CH5_NO_APPROVE and recorded as a HOLD. The AsM Cup (99 runs, seed 2525) is the regression fixture, read-only by contract: its bytes are pinned by hash and the published baseline — 6v6 BLU 3–1, 3v3 BLU 5–0, pairs 1–3 RED, 4–6 BLU — is recomputed from its numbers; the fixture's declared revision 0.039 is reported, not gated. APPROVE crosses the crew link: the targeteer's amber goes out on the gimbal word, the pilot approves it by name, and the mark turns red two-person on the device that holds it. Verify Live now probes /drone-2525/ itself.",
       "commit": ""
     }
   ],
@@ -2025,6 +2032,61 @@
       "verify": "frontend/tests/drone-contest.test.mjs · frontend/scripts/drone-ladder.mjs",
       "dtm": "a rung can be compared with yesterday's",
       "stretch": "the Cup fixture replayed against these six",
+      "status": "implemented"
+    },
+    {
+      "id": "DRN-10.09",
+      "title": "CH1–CH5 and DIFF 1–5, from the deck",
+      "statement": "Five challenges × five difficulties, the deck's challengeSpec verbatim: quota 4+CH×2+DIFF doors in play, window scaled by rate max(10, 56−CH×6−DIFF×4), concurrent doors 1→3, moving from CH3, NET at CH5. Chosen from two dropdowns in the top bar, never a hidden selector. At CH5 NET a red box must come from a second person; self-approval is refused CH5_NO_APPROVE and recorded as a HOLD. TG is not resurrected.",
+      "in": "DRN-10.09.IN",
+      "out": "DRN-10.09.OUT",
+      "section": "X",
+      "uwf": [
+        "U-WF-09"
+      ],
+      "phase": "pilot",
+      "mode": "Manual",
+      "metric": "25 CH×DIFF cells equal to r.050's function; harder is never more time; CH5 self-approval refused and on the record",
+      "verify": "frontend/tests/drone-challenge.test.mjs",
+      "dtm": "a player feels the rung, and CH5 needs two people",
+      "stretch": "moving targets from the swarm at CH3+",
+      "status": "implemented"
+    },
+    {
+      "id": "DRN-06.02",
+      "title": "The AsM Cup as a regression fixture",
+      "statement": "ASM_CUP_99.json and ASM_ROSTER.csv are read-only by contract: their bytes are pinned by sha256 and a gate refuses if either moves. The published baseline — seed 2525, 6v6 BLU 3–1, 3v3 BLU 5–0, pairs 1–3 RED and 4–6 BLU at every level — is recomputed from the fixture's numbers, not restated. A new run writes a sidecar beside the fixture, never at it. The fixture's declared revision (0.039) is reported and flagged, not gated.",
+      "in": "DRN-06.02.IN",
+      "out": "DRN-06.02.OUT",
+      "section": "VI",
+      "uwf": [
+        "U-WF-06",
+        "U-WF-08"
+      ],
+      "phase": "pilot",
+      "mode": "Manual",
+      "metric": "two hashes pinned; four baseline sentences recomputed; roster = the twelve; sidecar path ≠ fixture path; the module imports no filesystem",
+      "verify": "frontend/tests/asm-cup.test.mjs",
+      "dtm": "a later build is judged against his published result",
+      "stretch": "the contest replays the Cup at seed 2525 and compares his six",
+      "status": "implemented"
+    },
+    {
+      "id": "DRN-09.04",
+      "title": "The second person, over the link",
+      "statement": "The targeteer's amber mark goes out on the gimbal word; the pilot's device shows it with an APPROVE button; the approval crosses the link as its own message, authored by seat, applied once by sequence on the device that holds the mark, in the sender's name — so the box reads two-person. A seat cannot approve its own mark through the link: its echo is dropped and the holder refuses a sender equal to the designator.",
+      "in": "DRN-09.04.IN",
+      "out": "DRN-09.04.OUT",
+      "section": "III",
+      "uwf": [
+        "U-WF-06"
+      ],
+      "phase": "pilot",
+      "mode": "Manual",
+      "metric": "approve authored by either seat, needs door + slot; duplicate lands once; own echo dropped; holder refuses self",
+      "verify": "frontend/tests/drone-link.test.mjs",
+      "dtm": "two phones make one red box, with two names on it",
+      "stretch": "the same message on the Manta and the droid",
       "status": "implemented"
     }
   ],

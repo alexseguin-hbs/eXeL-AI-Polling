@@ -133,5 +133,27 @@ ok(!authored(gimbalMsg({ az: 'left' })).ok, 'an aim that is not a pair of angles
   ok(/not authoritative/i.test(fn), 'the endpoint says in its own header that both devices still check');
 }
 
+
+// ── THE SECOND PERSON, OVER THE LINK (r.050: APPROVE — HI-2 or net peer) ────────────────────────
+{
+  const { authored: A, receive: R, initLink: I, compose: C } = await import('../lib/drone-2525/link.ts');
+  ok(A({ kind: 'approve', seat: 'pilot', seq: 1, atMs: 1, doorId: 'door.a', slot: 1 }).ok, 'the pilot may approve the targeteer\'s mark');
+  ok(A({ kind: 'approve', seat: 'targeteer', seq: 1, atMs: 1, doorId: 'door.a', slot: 2 }).ok, 'and the targeteer the pilot\'s — either seat is a second person to the other');
+  ok(!A({ kind: 'approve', seat: 'pilot', seq: 1, atMs: 1, doorId: '', slot: 1 }).ok, 'an approval must name a door');
+  ok(!A({ kind: 'approve', seat: 'pilot', seq: 1, atMs: 1, doorId: 'door.a', slot: 4 }).ok, 'and a slot T1 T2 or T3');
+  ok(A({ kind: 'gimbal', seat: 'targeteer', seq: 1, atMs: 1, az: 0, el: 0, amber: 'door.a' }).ok, 'the targeteer\'s gimbal word may carry the door it is waiting on');
+  ok(!A({ kind: 'gimbal', seat: 'targeteer', seq: 1, atMs: 1, az: 0, el: 0, amber: 7 }).ok, 'but an amber mark is a door id or nothing');
+  let st = I('targeteer', 'CREW1');
+  st = R(st, { kind: 'approve', seat: 'pilot', seq: 5, atMs: 100, doorId: 'door.a', slot: 1 }, 100);
+  ok(st.theirApprove?.doorId === 'door.a' && st.accepted === 1, 'the targeteer\'s device receives the pilot\'s approval');
+  const again = R(st, { kind: 'approve', seat: 'pilot', seq: 5, atMs: 100, doorId: 'door.a', slot: 1 }, 200);
+  ok(again === st, 'the same approval on a second transport lands once');
+  ok(R(st, { kind: 'approve', seat: 'targeteer', seq: 9, atMs: 100, doorId: 'door.a', slot: 1 }, 200) === st, 'and its own echo is dropped — a seat cannot approve its own mark through the link');
+  ok(C(I('pilot', 'CREW1'), 1, 1, { kind: 'approve', doorId: 'door.a', slot: 1 })?.kind === 'approve', 'the pilot can compose an approval');
+  const round = fs.readFileSync('components/drone-2525/round.tsx', 'utf8');
+  ok(/cur\.by === a\.seat\) return/.test(round), 'the device holding the mark refuses an approval from whoever made it');
+  ok(/data-drone-approve-link/.test(round) && /amber: cur && cur\.phase === "amber"/.test(round), 'the amber mark goes out on the gimbal word and the pilot gets a button to approve it');
+}
+
 console.log(`\ndrone-link: ${pass} passed, ${fail} failed · pilot flies · targeteer aims · neither does the other`);
 process.exit(fail ? 1 : 0);

@@ -113,6 +113,10 @@ const AFTER_FILL = new Set([
   'drone.fly.yaw',
   'drone.fly.climb',
   // Drone-2525 control deck (r.050) — English until the fill lands, listed never silent.
+  'drone.game.approve_theirs',
+  'drone.ch',
+  'drone.diff',
+  'drone.ch.second_person',
   'drone.deck.slots',
   'drone.deck.slot_empty',
   'drone.deck.voice_on',
