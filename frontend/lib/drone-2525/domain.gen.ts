@@ -18,6 +18,10 @@ export interface DroneAirframeGeometry {
   fullScaleM: { span: number; noseToTail: number };
   scaleNote: string; depthRule: string;
   scales: { span: number; noseToTail: number; depth: number };
+  /** Planform, m2, integrated from the drawing by planformMethod rather than asserted beside it. */
+  planformM2: number; planformMethod: string;
+  /** Why the other name may appear in source and sourceNote, and nowhere else on this surface. */
+  namingRule: string;
 }
 export interface DroneCrsRow {
   id: string; title: string; statement: string; in: string; out: string; section: string; uwf: string[];

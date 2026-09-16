@@ -16,7 +16,10 @@ export async function resolve(spec, ctx, next) {
   }
   try { return await next(spec, ctx); }
   catch (e) {
-    if (/^\.{1,2}\//.test(spec) && !/\.[a-z0-9]+$/i.test(spec)) {
+    // A KNOWN extension, not merely a dot. `./domain.gen` ends in ".gen", which the old test read as an
+    // extension, so the loader refused to try "./domain.gen.ts" and any module importing a dotted
+    // filename relatively failed to resolve. The set below is the extensions this project actually uses.
+    if (/^\.{1,2}\//.test(spec) && !/\.(ts|tsx|js|jsx|mjs|cjs|json|css|svg)$/i.test(spec)) {
       try { return await next(spec + ".ts", ctx); } catch { return await next(spec + ".tsx", ctx); }
     }
     throw e;
