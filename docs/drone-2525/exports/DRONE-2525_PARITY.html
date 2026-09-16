@@ -7,7 +7,7 @@
 <!--
   ════════════════════════════════════════════════════════════════════════════════════════════════
   DRONE-2525 · PARITY HARNESS — one file, no build, no network, no dependencies.
-  eXeL-AI · Vision-2525 Level-3 Domain Play · Version 00.00 · revision 0.004 · 2026-09-15
+  eXeL-AI · Vision-2525 Level-3 Domain Play · Version 00.00 · revision 0.008 · 2026-09-15
 
   IN THE SPIRIT OF R-CORE, THIS IS NOT A DOCUMENT. It is a checkable artefact.
 
@@ -116,7 +116,7 @@
 
 <header>
   <h1>DRONE&nbsp;·&nbsp;2525 — PARITY HARNESS</h1>
-  <div class="sub">eXeL-AI · Vision-2525 Level-3 Domain Play · Version 00.00 · revision 0.004 · 2026-09-15</div>
+  <div class="sub">eXeL-AI · Vision-2525 Level-3 Domain Play · Version 00.00 · revision 0.008 · 2026-09-15</div>
   <p class="lede">
     This is not a specification you are asked to trust. It carries the contract as data, a reference
     implementation of every clause that can be computed, and a runner that scores an implementation
@@ -190,7 +190,7 @@
 
   <h3>1.5 · The airframe, the seats, and the swarm</h3>
   <div class="grid cols3">
-    <div class="box"><h4>AIRFRAME EXTENT (m)</h4><div id="b-extent"></div></div>
+    <div class="box"><h4>FOIL EXTENT (m)</h4><div id="b-extent"></div></div>
     <div class="box"><h4>GLYPH COST (segments)</h4><div id="b-glyph"></div></div>
     <div class="box"><h4>SWARM</h4><div id="b-swarm"></div></div>
   </div>
@@ -203,7 +203,7 @@
     a separation of exactly zero rather than a small invented number.
   </p>
   <div class="scroll"><table id="t-seats"><thead><tr>
-    <th>frame</th><th>seat</th><th class="n">fwd</th><th class="n">right</th><th class="n">up</th><th class="n">→ metres</th>
+    <th>frame</th><th>seat</th><th class="n">fwd</th><th class="n">right</th><th class="n">up</th><th class="n">→ apart</th>
   </tr></thead><tbody></tbody></table></div>
 
   <div class="hashline" id="contract-hash">CONTRACT HASH · computing…</div>
@@ -285,7 +285,7 @@
 </section>
 
 <footer>
-  eXeL-AI · Drone-2525 · Version 00.00 · revision 0.004 · generated 2026-09-15.
+  eXeL-AI · Drone-2525 · Version 00.00 · revision 0.008 · generated 2026-09-15.
   One file, no build, no network, no dependencies. Everything on this page is computed in this page.
   <span class="q">"Where Shared Intention moves at the Speed of Thought."</span>
 </footer>
@@ -358,13 +358,27 @@ const AUTHORITY = {
 };
 const MANDATE_MAX_MS = 300000;
 
-/** Read from the X-BAT wireframe, not typed: the airframe is 38.579 m long. */
-const AIRFRAME_EXTENT = { lengthM:38.579, spanM:8.628, heightM:26.2 };
+/**
+ * THE FOIL, as declared 2026-09-16. Named for the axis each dimension was MEASURED on — the drawing's own
+ * header reads "X span, Y depth, Z vertical nose-up axis", and an earlier edition of this harness (and of
+ * the app) carried these three numbers under each other's names, so the aircraft was drawn as a long thin
+ * dart when it is in fact wider than it is long. There is deliberately no `lengthM`.
+ */
+const AIRFRAME_EXTENT = { spanM:1.111, noseToTailM:0.7777, depthM:0.2522 };
+/** What the glyph is normalised against: the fuselage, never the wing. */
+const GLYPH_UNIT_M = AIRFRAME_EXTENT.noseToTailM;
 /** Three silhouettes by distance band. A far aircraft is four segments; a near one twenty-four. */
-const GLYPH_COST = { far:4, mid:12, near:24 };
+const GLYPH_COST = { dot:1, far:4, mid:12, near:24 };
 const PER_SIDE = 21, SWARM_N = 42;
-/** The distance bands a silhouette is chosen by. Read from the shipped planner, not picked here. */
-const BAND_NEAR_M = 260, BAND_MID_M = 700;
+/**
+ * HOW BIG IS IT ON SCREEN. This used to be two absolute distances, 260 m and 700 m, which are wrong at any
+ * other scale — and the foil is a change of scale of forty. Detail is earned by APPARENT PIXELS, so the
+ * rule holds at 1.111 m, at 11.111 m and at the drawing's own 38.579 m without retuning.
+ */
+const BAND_PX = { dot:2, far:6, mid:16 };
+const DEFAULT_FOCAL_PX = 620;
+/** No aircraft is ever smaller than this on screen. Its POSITION is still exact; only the symbol has a floor. */
+const MIN_SYMBOL_PX = 7;
 /** Seat offsets as FRACTIONS OF AIRFRAME LENGTH — the parallax scales with the aircraft, for free. */
 const SEAT_OFFSETS = {
   quad: { pilot:{fwd:0.22,right:0,up:0.06},  targeteer:{fwd:0.06,right:0,up:-0.10} },
@@ -427,32 +441,44 @@ const impl = {
   },
 
   /**
-   * PRESENCE BEFORE POLISH. Pass one gives EVERY living aircraft its four-segment silhouette, so the
-   * picture is never missing an aircraft that is actually there. Only pass two spends what is genuinely
-   * spare upgrading the nearest ones. The first draft did this the other way round — nearest first, at
-   * whatever size it wanted — and seven aircraft ate the budget while thirty-five vanished.
+   * PRESENCE BEFORE POLISH. Pass one gives EVERY living aircraft its one-segment MARK, so the picture is
+   * never missing an aircraft that is actually there. Only pass two spends what is genuinely spare
+   * upgrading the nearest ones. The first draft did this the other way round — nearest first, at whatever
+   * size it wanted — and seven aircraft ate the budget while thirty-five vanished.
+   *
+   * The mark costs one segment rather than four because at the declared 1.111 m foil an aircraft is under
+   * a pixel wide beyond about 700 m: four segments inside one pixel is waste, and dropping it is a lie.
+   * Forty-two marks cost 42 of rung 1.1's 280 segments, which is what makes the lowest rung hold the whole
+   * swarm — the Raspberry-Pi floor. At four segments each the real share at 1.1 dropped eleven of them.
    */
   planSwarm(ranges, budget){
-    const band = ranges.map(() => "far");
+    const band = ranges.map(() => "dot");
     let cost = 0, drawn = 0, dropped = 0;
     const order = ranges.map((r, i) => [r, i]).sort((a, b) => a[0] - b[0]);
     for (const [, i] of order) {
-      if (cost + GLYPH_COST.far > budget) { dropped++; band[i] = null; continue; }
-      cost += GLYPH_COST.far; drawn++;
+      if (cost + GLYPH_COST.dot > budget) { dropped++; band[i] = null; continue; }
+      cost += GLYPH_COST.dot; drawn++;
     }
     for (const [r, i] of order) {
       if (band[i] === null) continue;
       const want = impl.glyphFor(r);
-      if (want === "far") continue;
-      const extra = GLYPH_COST[want] - GLYPH_COST.far;
+      if (want === "dot") continue;
+      // The delta is from the band this aircraft ACTUALLY HOLDS, not from `far`. Hardcoding `far` here
+      // made a dot-to-far upgrade cost zero, so an exactly-sufficient presence budget bought free detail —
+      // which the C07 clause caught the moment the mark was introduced. This is why the clause exists.
+      const extra = GLYPH_COST[want] - GLYPH_COST[band[i]];
       if (cost + extra > budget) break;
       cost += extra; band[i] = want;
     }
     return { band, cost, drawn, dropped };
   },
 
-  /** Which silhouette an aircraft at this range gets. Three bands, never interpolated. */
-  glyphFor(rangeM){ return rangeM < BAND_NEAR_M ? "near" : rangeM < BAND_MID_M ? "mid" : "far"; },
+  /** Which silhouette an aircraft's apparent size earns. Four bands, never interpolated. */
+  apparentPx(spanM, rangeM, focalPx){ return rangeM > 0 ? (spanM * focalPx) / rangeM : Infinity; },
+  glyphFor(rangeM, spanM = AIRFRAME_EXTENT.spanM, focalPx = DEFAULT_FOCAL_PX){
+    const px = impl.apparentPx(spanM, rangeM, focalPx);
+    return px < BAND_PX.dot ? "dot" : px < BAND_PX.far ? "far" : px < BAND_PX.mid ? "mid" : "near";
+  },
 
   /** DEGRADE IN A FIXED ORDER, AND SAY SO. Sensor module, then resolution, then frame rate. */
   degrade(rungId, streamIndex){
@@ -486,7 +512,7 @@ const impl = {
     const base = [mount.e, mount.n, mount.groundU + mount.heightM];
     if (mount.kind === "turret") return base;               // one head, one mount
     const o = SEAT_OFFSETS[frame === "wing" ? "wing" : "quad"][seat];
-    const L = AIRFRAME_EXTENT.lengthM;
+    const L = GLYPH_UNIT_M;                                   // nose-to-tail, never the span
     const hr = (mount.headingDeg * Math.PI) / 180, ch = Math.cos(hr), sh = Math.sin(hr);
     return [ base[0] + (o.fwd * sh + o.right * ch) * L,
              base[1] + (o.fwd * ch - o.right * sh) * L,
@@ -639,15 +665,24 @@ function drawArena(){
   for (let i = 0; i < SWARM_N; i++)
     ranges.push(Math.hypot(swarm.e[i] - ctx.cam.e, swarm.n[i] - ctx.cam.n, swarm.u[i] - ctx.cam.u));
   const plan = impl.planSwarm(ranges, split.swarm);
-  let near = 0, mid = 0, far = 0;
+  let near = 0, mid = 0, far = 0, dots = 0, larger = 0;
   for (let i = 0; i < SWARM_N; i++) {
     if (!swarm.alive[i]) continue;
     const band = plan.band[i];
     if (band === null) continue;                                    // no budget: dropped, and counted
     const blue = i < PER_SIDE;
     const hex = blue ? TRINITY.consciousness : TRINITY.evolution;
-    band === "near" ? near++ : band === "mid" ? mid++ : far++;
-    const L = AIRFRAME_EXTENT.lengthM, S = AIRFRAME_EXTENT.spanM * 2.2;
+    band === "near" ? near++ : band === "mid" ? mid++ : band === "far" ? far++ : dots++;
+    // TRUE POSITION, MINIMUM LEGIBLE SYMBOL. Drawn strictly to scale, a 1.111 m aircraft at 700 m is under
+    // one pixel and forty-two of them are an empty sky — physically right and useless to look at. So the
+    // POSITION stays exact and only the SIZE has a floor. The count of aircraft drawn larger than life is
+    // reported in the HUD, because a symbol with a floor must not imply the picture is to scale.
+    // Real proportions otherwise: the ×2.2 span fudge this line used to carry is gone, the aircraft IS wide.
+    const rangeM = Math.hypot(swarm.e[i] - ctx.cam.e, swarm.n[i] - ctx.cam.n, swarm.u[i] - ctx.cam.u);
+    const pxAcross = (AIRFRAME_EXTENT.spanM * ctx.cam.focal) / Math.max(1, rangeM);
+    const lift = Math.max(1, MIN_SYMBOL_PX / pxAcross);
+    if (lift > 1) larger++;
+    const L = GLYPH_UNIT_M * lift, S = AIRFRAME_EXTENT.spanM * lift;
     const hr = (swarm.hdg[i] * Math.PI) / 180, ch = Math.cos(hr), sh = Math.sin(hr);
     const P = (f, s2, u2) => [ swarm.e[i] + f*sh + s2*ch, swarm.n[i] + f*ch - s2*sh, swarm.u[i] + u2 ];
     const nose = P(L*0.55,0,0), tail = P(-L*0.45,0,0);
@@ -705,7 +740,8 @@ function drawArena(){
     `BUDGET <b>${split.total}</b> = swarm <b>${split.swarm}</b> + world <b>${split.world}</b>`,
     `PER AIRCRAFT <b>${split.perAircraft.toFixed(1)}</b>`,
     `DRAWN <b>${drawnSegs}</b> · DROPPED <b>${droppedPts}</b>`,
-    `GLYPHS near <b>${near}</b> mid <b>${mid}</b> far <b>${far}</b> · unplaced <b>${plan.dropped}</b>`,
+    `GLYPHS near <b>${near}</b> mid <b>${mid}</b> far <b>${far}</b> mark <b>${dots}</b> · unplaced <b>${plan.dropped}</b>`,
+    `LARGER THAN LIFE <b>${larger}</b> of ${SWARM_N} — position true, size floored at ${MIN_SYMBOL_PX} px`,
     `HAL <b>${impl.hal(halId).label}</b> · render budget <b>${impl.renderBudgetMs(halId)}ms</b> of ${impl.hal(halId).frameBudgetMs}ms`,
     `SEATS <b>${frameMode.toUpperCase()}</b> · <b>${sep.toFixed(1)} m</b> apart`
   ].join(" &nbsp;·&nbsp; ");
@@ -775,10 +811,12 @@ const CLAUSES = [
            const p = impl.planSwarm(ranges, split.swarm);
            if (p.dropped !== 0) return { ok:false, note:`${p.dropped} aircraft left off the screen at the pass mark` };
            if (p.cost > split.swarm) return { ok:false, note:`the plan spent ${p.cost} of ${split.swarm}` };
-           const tight = impl.planSwarm(ranges, GLYPH_COST.far * SWARM_N);   // exactly enough for presence
+           const tight = impl.planSwarm(ranges, GLYPH_COST.dot * SWARM_N);   // exactly enough for presence
            if (tight.dropped !== 0) return { ok:false, note:"presence was not paid for first" };
-           if (tight.band.some(b => b !== "far")) return { ok:false, note:"detail was bought before every aircraft was placed" };
-           return { ok:true, note:`42/42 placed · ${p.cost} of ${split.swarm} segments · near ${p.band.filter(b=>b==="near").length}` }; } },
+           if (tight.band.some(b => b !== "dot")) return { ok:false, note:"detail was bought before every aircraft was placed" };
+           const floor = impl.planSwarm(ranges, Math.floor(280 * 0.45));      // rung 1.1's REAL share
+           if (floor.dropped !== 0) return { ok:false, note:`${floor.dropped} of 42 dropped at rung 1.1 — the level that must run everything` };
+           return { ok:true, note:`42/42 placed · ${p.cost} of ${split.swarm} segments · 42/42 again on rung 1.1's ${Math.floor(280 * 0.45)}` }; } },
 
   { id:"C08", gate:"tests/drone-swarm.test.mjs",
     say:"A tick is deterministic: the same seed stepped the same number of times gives the same state, bit for bit.",
@@ -828,14 +866,18 @@ const CLAUSES = [
            return { ok: !r.ok, note: r.ok ? "level 1 accepted a standing mandate" : r.why }; } },
 
   { id:"C13", gate:"tests/seat-view.test.mjs",
-    say:"Two seats, two eyes — the separation comes from the airframe's measured length and differs between rotors and wing.",
+    say:"Two seats, two eyes — the separation is a fraction of the FUSELAGE, and differs between rotors and wing.",
     run(){ const m = { kind:"airframe", e:0, n:0, groundU:163, heightM:60, headingDeg:0 };
            const q = impl.seatSeparationM(m, "quad"), w = impl.seatSeparationM(m, "wing");
            const t = impl.seatSeparationM({ ...m, kind:"turret" }, "wing");
-           if (t !== 0) return { ok:false, note:`a turret was given a ${t.toFixed(2)} m parallax it does not have` };
-           if (!(w > q + 1)) return { ok:false, note:`quad ${q.toFixed(1)} m and wing ${w.toFixed(1)} m are the same geometry` };
-           if (w >= AIRFRAME_EXTENT.lengthM) return { ok:false, note:"the seats are further apart than the aircraft is long" };
-           return { ok:true, note:`quad ${q.toFixed(1)} m · wing ${w.toFixed(1)} m · turret 0` }; } },
+           const cm = (x) => `${(x * 100).toFixed(0)} cm`;
+           if (t !== 0) return { ok:false, note:`a turret was given a ${cm(t)} parallax it does not have` };
+           // A FRACTION, not a metre. The earlier edition required a 1 m difference — meaningless on an
+           // aircraft 1.111 m across, and the same absolute-threshold mistake the distance bands had.
+           if (!(w > q + 0.1 * GLYPH_UNIT_M)) return { ok:false, note:`quad ${cm(q)} and wing ${cm(w)} are the same geometry` };
+           if (w >= GLYPH_UNIT_M) return { ok:false, note:"the seats are further apart than the aircraft is long" };
+           if (GLYPH_UNIT_M >= AIRFRAME_EXTENT.spanM) return { ok:false, note:"the fuselage cannot be longer than the span — the axes are permuted" };
+           return { ok:true, note:`quad ${cm(q)} · wing ${cm(w)} · turret 0 · on a ${GLYPH_UNIT_M} m fuselage` }; } },
 
   { id:"C14", gate:"tests/drone-fidelity.test.mjs",
     say:"Degradation runs in a fixed order — sensor module, then resolution, then frame rate — and every step is named.",
@@ -880,10 +922,10 @@ rows("t-auth", Object.values(AUTHORITY).map(a => `<tr><td class="n">${a.level}</
   <td>${a.covers}</td><td class="q">${a.id}</td></tr>`));
 
 $("b-extent").innerHTML = Object.entries(AIRFRAME_EXTENT)
-  .map(([k,v]) => `<div class="kv"><b>${k.replace("M","")}</b><span>${v} m</span></div>`).join("");
+  .map(([k,v]) => `<div class="kv"><b>${k.replace(/M$/,"")}</b><span>${v} m</span></div>`).join("");
 $("b-glyph").innerHTML = Object.entries(GLYPH_COST)
   .map(([k,v]) => `<div class="kv"><b>${k}</b><span>${v}</span></div>`).join("")
-  + `<div class="kv"><b>bands at</b><span>450 m · 1200 m</span></div>`;
+  + `<div class="kv"><b>bands at</b><span>2 · 6 · 16 px</span></div>`;
 $("b-swarm").innerHTML = `<div class="kv"><b>total</b><span>${SWARM_N}</span></div>
   <div class="kv"><b>per side</b><span>${PER_SIDE}</span></div>
   <div class="kv"><b>swarm share</b><span>${(SWARM_SHARE*100).toFixed(0)}%</span></div>
@@ -891,13 +933,13 @@ $("b-swarm").innerHTML = `<div class="kv"><b>total</b><span>${SWARM_N}</span></d
 
 {
   const m = { kind:"airframe", e:0, n:0, groundU:163, heightM:60, headingDeg:0 };
-  $("sep-quad").textContent = impl.seatSeparationM(m, "quad").toFixed(1) + " m";
-  $("sep-wing").textContent = impl.seatSeparationM(m, "wing").toFixed(1) + " m";
+  $("sep-quad").textContent = (impl.seatSeparationM(m, "quad") * 100).toFixed(0) + " cm";
+  $("sep-wing").textContent = (impl.seatSeparationM(m, "wing") * 100).toFixed(0) + " cm";
   rows("t-seats", ["quad","wing"].flatMap(f => ["pilot","targeteer"].map(s => {
     const o = SEAT_OFFSETS[f][s];
     return `<tr><td>${f}</td><td>${s}</td><td class="n">${o.fwd.toFixed(2)}</td>
       <td class="n">${o.right.toFixed(2)}</td><td class="n">${o.up.toFixed(2)}</td>
-      <td class="n">${(Math.hypot(o.fwd,o.right,o.up)*AIRFRAME_EXTENT.lengthM).toFixed(1)} m</td></tr>`;
+      <td class="n">${(Math.hypot(o.fwd,o.right,o.up)*GLYPH_UNIT_M*100).toFixed(0)} cm</td></tr>`;
   })));
 }
 

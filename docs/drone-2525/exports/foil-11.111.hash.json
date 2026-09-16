@@ -1,0 +1,18 @@
+{
+  "id": "foil-11.111",
+  "version": "00.00",
+  "revision": "0.008",
+  "stamp": "eXeL v0.008-2026.09.16-foil",
+  "vertices": 901,
+  "edges": 1755,
+  "groups": 1,
+  "overlays": 0,
+  "sha256": "edee8658e924d50db741df06a15343b0da3f6d935531804a6117736ed559bc18",
+  "axisMap": {
+    "py": "X=east,Y=north,Z=up,m",
+    "obj": "X=east,Y=north,Z=up,m",
+    "unity": "X=east,Y=up,Z=north,m",
+    "unreal": "X=north,Y=east,Z=up,cm"
+  },
+  "generator": "scripts/wire-export.mjs"
+}
