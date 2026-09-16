@@ -11,6 +11,7 @@ implementation instead of duplicating it. Import from `@/lib/2525-core`.
 | **Estimate/Qualification** | `lib/architect-estimate` | AACE Class 5→1 · G0–G13 gates · cone bands · 4D schedule · Human Authority checkpoints | Architect (Build → Estimate/Forecast) |
 | **SoI Framework** | `lib/soi-framework` | editable Tri-Coin schema · draft→published store · storage-event flow-through | Architect (SoI panel) + /main dashboard (SoISection) |
 | **Expander** | `components/2525-core/expander` | theme-agnostic collapsible ("start minimized, expand on demand") | Architect (Overview cleanup) |
+| **Controls** | `lib/2525-core/controls` | `EXEL-2525-CONTROLS-1` — twin-stick / key / touch / voice bindings for six vehicles, seat geometry, the R-CORE loop + five systems. Transcribed from the operator's r.050 and gated against it (`tests/controls-schema.test.mjs`) | Drone-2525 (first consumer) · Manta · Ark · Security · droid (when their turn comes) |
 
 ## Candidates to extract next (identified, not yet moved)
 - **Replay engine / timeline** — universal replay (Security-2525 owns a version today).

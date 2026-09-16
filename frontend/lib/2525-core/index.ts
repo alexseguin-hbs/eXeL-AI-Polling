@@ -41,3 +41,13 @@ export {
 
 // Shared UI primitive (collapsible)
 export { Expander, type ExpanderColors } from "@/components/2525-core/expander";
+
+// EXEL-2525-CONTROLS-1 · the operator deck's bindings for every 2525 vehicle (turret · VTOL · Manta · Ark ·
+// droid), the R-CORE loop and its five systems. Transcribed from the operator's r.050 build and gated
+// against it field for field. Drone-2525 is the first consumer, not the owner.
+export {
+  CONTROLS_SCHEMA, VEHICLES, EXEL_2525_CONTROLS, SEAT_GEOMETRY,
+  ACTIONS, KEY_TO_ACTION, HELD_ACTIONS, voiceToAction,
+  RCORE_LOOP, DOCTRINE, RCORE_SYS, RCORE_SENTENCE,
+  type Vehicle, type Action, type StickBinding,
+} from "@/lib/2525-core/controls";
