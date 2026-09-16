@@ -110,6 +110,8 @@ const AFTER_FILL = new Set([
   'drone.fly.body',
   'drone.fly.head',
   'drone.fly.help',
+  'drone.fly.yaw',
+  'drone.fly.climb',
 ]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;

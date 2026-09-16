@@ -8,6 +8,7 @@
 //   solo (HI-2) and two-person approvals are both recorded and told apart
 //   a slot whose door stops being actionable is dropped, not left pointing at nothing
 import {
+  selectSlot,
   SLOT_NS, initSlots, designate, nextFreeSlot, slotOf, approve, approvalKind, canFire,
   clearSlot, pruneSlots, slotLine, refusalToast,
 } from '../lib/drone-2525/slots.ts';
@@ -99,6 +100,18 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } 
   const check = canFire(st, 1);
   ok(!check.ok && check.refusal === 'AMBER_NO_APPROVE', 'tap-tap on a fresh mark is a refusal, not a shot');
   ok(typeof designate.fire === 'undefined' && typeof approve.fire === 'undefined', 'and there is no designate-and-fire function to call by mistake');
+}
+
+// ── 1 / 2 / 3 SELECT A HELD SLOT, NEVER COLOUR IT ───────────────────────────────────────────────
+{
+  let st = designate(initSlots(), 1, 'door.a', 'Alex', 1);
+  st = designate(st, 2, 'door.b', 'Alex', 2);
+  ok(st.current === 2, 'the latest mark is current');
+  const sel = selectSlot(st, 1);
+  ok(sel.current === 1 && sel.s[1].phase === 'amber', 'selecting T1 makes it current and leaves it amber');
+  ok(selectSlot(st, 3) === st, 'selecting an empty slot is a no-op — the same object back');
+  ok(selectSlot(sel, 1) === sel, 'selecting the current slot again is a no-op');
+  ok(!canFire(sel).ok && canFire(sel).refusal === 'AMBER_NO_APPROVE', 'and FIRE after a select still needs approve');
 }
 
 console.log(`\ndrone-slots: ${pass} passed, ${fail} failed · T1 T2 T3 · amber cannot fire · only approve() makes red · two-step and two-person told apart`);

@@ -118,6 +118,16 @@ export function canFire(st: Slots, n?: SlotN | null): FireCheck {
 
 // ── CLEARING ─────────────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Make a held slot the current one — the 1 / 2 / 3 keys and the voice "T2" when T2 already holds a door.
+ * An empty slot cannot be selected (there is nothing to act on); the caller designates into it instead.
+ * Selecting changes which box FIRE means; it never changes a box's colour.
+ */
+export function selectSlot(st: Slots, n: SlotN): Slots {
+  if (!st.s[n] || st.current === n) return st;
+  return { ...st, current: n };
+}
+
 /** Empty one slot. After a shot lands, or when the operator changes their mind. */
 export function clearSlot(st: Slots, n: SlotN): Slots {
   const s = { ...st.s, [n]: null };

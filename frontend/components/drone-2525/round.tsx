@@ -34,7 +34,9 @@ import {
 import { initSi, openCall, recogniseAdopted, openCallOf, tally } from "@/lib/drone-2525/si-pod";
 import { initLink, seatUrl, seatFromParams, linkLine, linkUp, type Seat } from "@/lib/drone-2525/link";
 import { seatEye, seatEyeLine } from "@/lib/drone-2525/seat-view";
-import { initSlots, designate, nextFreeSlot, approve, canFire, clearSlot, pruneSlots, slotLine, refusalToast, slotOf } from "@/lib/drone-2525/slots";
+import { initSlots, designate, nextFreeSlot, approve, canFire, clearSlot, pruneSlots, slotLine, refusalToast, slotOf, selectSlot, type SlotN } from "@/lib/drone-2525/slots";
+import { useControls, type GimbalRate } from "@/lib/drone-2525/use-controls";
+import { applySets, getSets, initSets, subscribeSets } from "@/lib/2525-core/stick-sets";
 import { initLedger, decide as recordDecision, ev as recordEvent, type Stamp } from "@/lib/drone-2525/decisions";
 import { useDroneLink } from "@/lib/drone-2525/use-drone-link";
 import { CrewSeatPanel } from "./crew-seat-panel";
@@ -46,7 +48,7 @@ import { SwarmLayer } from "./swarm-layer";
 import { ApprovalBanner } from "./approval-banner";
 import { RoundStatus } from "./round-status";
 import { RoundOverlay } from "./round-overlay";
-import { Stick } from "./stick";
+import { Stick, HoldButton } from "./stick";
 import { SiPanel } from "./si-panel";
 import { ArenaView, type ArenaCtx } from "./arena-view";
 import type { MotLevel } from "@/lib/wire-core/mot-ladder";
@@ -87,6 +89,12 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   const [approval, setApproval] = useState(initApproval);
   const [askedFor, setAskedFor] = useState<string | null>(null);
   const stick = useRef({ fwd: 0, lat: 0, climb: 0, yaw: 0 });
+  // The R stick is the HEAD (EXEL-2525-CONTROLS-1): its reading is a gimbal RATE, integrated each frame by
+  // the controls hook through command(), so the declared pan/tilt limits and the slew law still apply.
+  const headStick = useRef({ x: 0, y: 0 });
+  // Stick calibration — sensitivity, deadzone, trim — read once from what a previous visit saved.
+  const [sets, setSetsState] = useState(getSets);
+  useEffect(() => { setSetsState(initSets()); return subscribeSets(setSetsState); }, []);
   const [si, setSi] = useState(initSi);
   // T1 · T2 · T3 and AMBER → RED (operator r.049/r.050): a designation is amber and cannot fire; only a
   // named APPROVE makes red; only red can fire. And the RECORD: every designate, approve, refusal and shot
@@ -324,18 +332,31 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   // TARGET → AMBER. Puts the door in view into the next free slot as a designation that CANNOT fire, and
   // records it by name. click / the TARGET button / voice "target" all come here (r.050: redundant paths
   // onto one action). Re-targeting the door already held is a no-op rather than a second record.
-  const doTarget = useCallback(() => {
+  const doorLabel = useCallback((id: string) => views.find((v) => v.door.id === id)?.door.label ?? id, [views]);
+  const designateInto = useCallback((n: SlotN) => {
     if (!framed) { setNote(t("drone.game.no_target")); return; }
     const id = framed.door.id;
-    if (slotOf(slots, id) !== null) { setNote(slotLine(slots, () => framed.door.label)); return; }
-    const n = nextFreeSlot(slots);
+    if (slotOf(slots, id) === n) { setNote(slotLine(slots, doorLabel)); return; }
     setSlots((s) => designate(s, n, id, mySeatOr, tMsRef.current));
     setLedger((L) => {
       const a = recordDecision(L, "DESIGNATE", id, stampNow(), { slot: n });
       return recordEvent(a.ledger, "DESIGNATE", id, "AMBER", stampNow()).ledger;
     });
     setNote(`T${n} · AMBER · ${framed.door.label}`);
-  }, [framed, slots, mySeatOr, t, stampNow]);
+  }, [framed, slots, mySeatOr, t, stampNow, doorLabel]);
+  const doTarget = useCallback(() => {
+    designateInto(slotOf(slots, framed?.door.id ?? "") ?? nextFreeSlot(slots));
+  }, [designateInto, slots, framed]);
+  // The 1 / 2 / 3 keys (and voice "T2"): a held slot becomes the current one and the gimbal swings to its
+  // door; an empty slot takes the door in view as a new amber mark. Neither path changes a box's colour.
+  const doSlot = useCallback((n: SlotN) => {
+    const held = slots.s[n];
+    if (!held) { designateInto(n); return; }
+    setSlots((s) => selectSlot(s, n));
+    const v = views.find((x) => x.door.id === held.doorId);
+    if (v) { const a = aimAt(eye, v.door.at); setGim((g) => command(g, SPEC, a.az, a.el)); }
+    setNote(slotLine(selectSlot(slots, n), doorLabel));
+  }, [slots, designateInto, views, eye, doorLabel]);
 
   // APPROVE → RED. The second authority. On one device that is the same person acting as HI-2, and the
   // record says so (approvalKind reads two-step when approver === designator). A named approver in the
@@ -402,6 +423,21 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
     setGame(initGame(0)); resetClock(); setRunning(false); setNote("");
     setGim(initGimbal(mount));
   }, [mount, resetClock]);
+
+  // THE KEYBOARD AND THE R STICK, through the ref bus. The arrows and the R stick are a gimbal rate at the
+  // declared slew speed; command() clamps them to the declared limits. A human input takes the gimbal:
+  // any pending auto-aim is simply overwritten, which is the arbitration the two writers needed.
+  const onGimbalRate = useCallback((r: GimbalRate | null, dt: number) => {
+    if (!r) return;
+    const rate = Number(SPEC.slewDegPerSec);
+    setGim((g) => command(g, SPEC, g.cmdAz + r.pan * rate * dt, g.cmdEl + r.tilt * rate * dt));
+  }, []);
+  const humanPilot = flying && crew.pilot === "HI" && iFly;
+  useControls({
+    enabled: true, stick, headStick, onGimbalRate,
+    handlers: { onTarget: doTarget, onSlot: doSlot, onCycle: nextTarget, onFire: doShoot, onCapture: doCapture, onApprove: doApprove },
+    mayFly: humanPilot, mayAim: iAim,
+  });
   // Moving to another turret re-homes the gimbal and NOTHING else: a score already earned survives the
   // walk across the lawn, which is the "a completed action is never lost" rule applied to the seat change.
   useEffect(() => { setGim(initGimbal(mounts[mountIdx])); }, [mountIdx, mounts]);
@@ -567,16 +603,37 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
         </div>
       </div>
 
-      {/* THE STICKS. Left moves the body, right moves the head — the scheme the operator specified. They
-          appear only when a person actually holds the pilot's seat; a machine-flown airframe shows none,
-          because a control that does nothing is worse than no control. */}
-      {flying && crew.pilot === "HI" && iFly ? (
-        <div data-drone-sticks style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "8px 0" }}>
-          <Stick label={t("drone.fly.body")} onMove={(x, y) => { stick.current.lat = x; stick.current.fwd = -y; }} hex={semanticHex("mount")} />
-          <Stick label={t("drone.fly.head")} onMove={(x, y) => { stick.current.yaw = x; stick.current.climb = -y; }} hex={semanticHex("frustum")} />
-          <div style={{ ...MONO, color: semanticHex("hud"), opacity: 0.6, alignSelf: "center", maxWidth: 260, lineHeight: 1.6 }}>
-            {t("drone.fly.help")}
-          </div>
+      {/* THE STICKS, per EXEL-2525-CONTROLS-1: L is the BODY, R is the HEAD. The body stick and the turn /
+          climb buttons appear only when a person actually holds the pilot's seat — a machine-flown airframe
+          shows none, because a control that does nothing is worse than no control. The head stick appears
+          for whoever aims, which in the turret modes is one centred look-stick above the dock (r.048).
+          Every reading passes through the saved calibration, so a resting thumb reads zero. */}
+      {humanPilot || iAim ? (
+        <div data-drone-sticks data-drone-sticks-layout={humanPilot ? "crew" : "look"}
+             style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "8px 0", alignItems: "center", justifyContent: humanPilot ? "flex-start" : "center" }}>
+          {humanPilot ? (
+            <Stick label={t("drone.fly.body")} hex={semanticHex("mount")}
+                   onMove={(x, y) => { const v = applySets({ x, y }, "L", sets); stick.current.lat = v.x; stick.current.fwd = -v.y; }} />
+          ) : null}
+          {humanPilot ? (
+            <div data-drone-yaw-climb style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, alignItems: "center" }}>
+              <HoldButton id="yaw.left" label="◄" hex={semanticHex("mount")} onHold={(d) => { stick.current.yaw = d ? -1 : 0; }} />
+              <HoldButton id="yaw.right" label="►" hex={semanticHex("mount")} onHold={(d) => { stick.current.yaw = d ? 1 : 0; }} />
+              <div style={{ ...MONO, gridColumn: "1 / -1", textAlign: "center", color: semanticHex("mount"), opacity: 0.8, fontSize: 10, letterSpacing: "0.08em" }}>{t("drone.fly.yaw")}</div>
+              <HoldButton id="climb.up" label="▲" hex={semanticHex("mount")} onHold={(d) => { stick.current.climb = d ? 1 : 0; }} />
+              <HoldButton id="climb.down" label="▼" hex={semanticHex("mount")} onHold={(d) => { stick.current.climb = d ? -1 : 0; }} />
+              <div style={{ ...MONO, gridColumn: "1 / -1", textAlign: "center", color: semanticHex("mount"), opacity: 0.8, fontSize: 10, letterSpacing: "0.08em" }}>{t("drone.fly.climb")}</div>
+            </div>
+          ) : null}
+          {iAim ? (
+            <Stick label={t("drone.fly.head")} hex={semanticHex("frustum")}
+                   onMove={(x, y) => { headStick.current = applySets({ x, y }, "R", sets); }} />
+          ) : null}
+          {humanPilot ? (
+            <div style={{ ...MONO, color: semanticHex("hud"), opacity: 0.6, alignSelf: "center", maxWidth: 260, lineHeight: 1.6 }}>
+              {t("drone.fly.help")}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
