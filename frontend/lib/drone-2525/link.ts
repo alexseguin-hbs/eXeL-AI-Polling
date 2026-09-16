@@ -51,6 +51,13 @@ export interface GimbalMsg {
   doorId?: string | null;
   /** The door this seat has marked AMBER and is waiting on a second person for, if any. r.050: net peer. */
   amber?: string | null;
+  /**
+   * THE RED BOX, MIRRORED (eXeL AI gate 3: "both show the same red target and decision ID"). Once a mark is
+   * red on the device that holds it, its door, slot, who approved it and the decision id ride the gimbal
+   * word, so the approving device draws the same box and prints the same DEC-#### — one decision, two
+   * screens, one id. State, not an event, for the same reason the approval is.
+   */
+  red?: { doorId: string; slot: 1 | 2 | 3; by: string; decisionId: string } | null;
 }
 
 
@@ -86,6 +93,12 @@ export function authored(m: LinkMsg): { ok: boolean; why: string } {
     if (!Number.isFinite(m.az) || !Number.isFinite(m.el)) return { ok: false, why: "the aim is not a pair of angles" };
     if (m.did != null && m.did !== "capture" && m.did !== "shoot") return { ok: false, why: `"${m.did}" is not something a targeteer does` };
     if (m.amber != null && typeof m.amber !== "string") return { ok: false, why: "an amber mark is a door id or nothing" };
+    const r = m.red;
+    if (r != null) {
+      if (typeof r.doorId !== "string" || !r.doorId.trim()) return { ok: false, why: "a red box names a door" };
+      if (r.slot !== 1 && r.slot !== 2 && r.slot !== 3) return { ok: false, why: "a red box names a slot" };
+      if (typeof r.by !== "string" || !r.by.trim() || !/^DEC-\d{4,}$/.test(String(r.decisionId))) return { ok: false, why: "a red box carries who approved it and its decision id" };
+    }
     return { ok: true, why: "the targeteer said where the camera is looking" };
   }
 
@@ -147,7 +160,7 @@ export function receive(s: LinkState, m: LinkMsg, nowMs: number): LinkState {
 /** What this device is allowed to build and send. A seat cannot compose the other seat's message. */
 export function compose(s: LinkState, seq: number, atMs: number, payload:
   | { kind: "flight"; flight: FlightMsg["flight"]; approve?: FlightMsg["approve"] }
-  | { kind: "gimbal"; az: number; el: number; did?: GimbalMsg["did"]; doorId?: string | null; amber?: string | null }
+  | { kind: "gimbal"; az: number; el: number; did?: GimbalMsg["did"]; doorId?: string | null; amber?: string | null; red?: GimbalMsg["red"] }
   | { kind: "hello"; name: string },
 ): LinkMsg | null {
   if (payload.kind === "flight" && s.me !== "pilot") return null;

@@ -155,6 +155,13 @@ ok(!authored(gimbalMsg({ az: 'left' })).ok, 'an aim that is not a pair of angles
   ok(st.theirFlight?.approve?.n === 1, 'the next word repeats it — nothing is lost to timing; the holder applies n=1 once');
   ok(C(I('pilot', 'CREW1'), 1, 1, { kind: 'flight', flight: F, approve: { doorId: 'door.a', slot: 1, n: 1 } })?.kind === 'flight', 'the pilot can compose it');
   ok(!A({ kind: 'approve', seat: 'pilot', seq: 1, atMs: 1, doorId: 'door.a', slot: 1 }).ok, 'there is no one-shot approve message to lose');
+  const red = (r) => ({ kind: 'gimbal', seat: 'targeteer', seq: 3, atMs: 3, az: 0, el: 0, red: r });
+  ok(A(red({ doorId: 'door.a', slot: 1, by: 'pilot', decisionId: 'DEC-0002' })).ok, "the targeteer's word may carry the red box with who approved it and its decision id");
+  ok(!A(red({ doorId: 'door.a', slot: 1, by: 'pilot', decisionId: 'x' })).ok, 'a red box without a real decision id is refused');
+  ok(!A(red({ doorId: 'door.a', slot: 1, by: '', decisionId: 'DEC-0002' })).ok, 'and one without an approver');
+  const roundSrc = fs.readFileSync('components/drone-2525/round.tsx', 'utf8');
+  ok(/mirrored\.current !== r\.decisionId/.test(roundSrc) && /approve\(designate\(s, r\.slot, r\.doorId, "targeteer"/.test(roundSrc), 'the pilot mirrors the red box through the same slots, in the targeteer\'s and the approver\'s names, once per id');
+  ok(/data-drone-decision/.test(roundSrc), 'and both screens print the decision id under the box');
   const round = fs.readFileSync('components/drone-2525/round.tsx', 'utf8');
   ok(/cur\.by === theirSeat\) return/.test(round), 'the device holding the mark refuses an approval from whoever made it');
   ok(/a\.n <= appliedApprove\.current\) return/.test(round), 'and applies each numbered approval once');

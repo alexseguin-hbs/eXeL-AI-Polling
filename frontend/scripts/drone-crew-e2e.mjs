@@ -170,6 +170,15 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log("  FAIL:", m); 
     const redLine = await phone.locator("[data-drone-slot]").innerText();
     ok(/RED \(pilot\)/.test(redLine), `the phone's box turns RED in the PILOT's name — two-person (${redLine})`);
     ok(await phone.locator("[data-drone-shoot]").isEnabled(), "and only now may the targeteer fire");
+    // BOTH SCREENS, ONE DECISION (eXeL AI gate 3). The pilot's computer draws the same red box and prints the
+    // same DEC-#### the targeteer's ledger assigned.
+    await pc.waitForFunction(() => /RED/.test(document.querySelector("[data-drone-slot]")?.textContent || ""), null, { timeout: 6000 }).catch(() => {});
+    const pcSlot = await txt(pc, "[data-drone-slot]");
+    const phoneId = await txt(phone, "[data-drone-decision]");
+    const pcId = await txt(pc, "[data-drone-decision]");
+    ok(/RED \(pilot\)/.test(pcSlot ?? ""), `the pilot's screen shows the same red box (${pcSlot})`);
+    ok(/^DEC-\d{4}$/.test(phoneId ?? "") && phoneId === pcId, `and the same decision id on both screens (${phoneId} / ${pcId})`);
+    console.log(`  decision id  : ${phoneId} on the phone · ${pcId} on the computer`);
     console.log(`  phone slot   : ${redLine}`);
     const az = (s) => Number(/A (\d+)°/.exec(s ?? "")?.[1] ?? "-1");
     ok(az(phoneAim) >= 0, `the targeteer aimed (${phoneAim})`);

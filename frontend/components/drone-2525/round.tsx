@@ -401,6 +401,7 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
     setSlots((s) => approve(s, n, by, tMsRef.current));
     setLedger((L) => {
       const a = recordDecision(L, "APPROVE", cur.doorId, { ...stampNow(), actor: by, hiApproved: true }, { by, from: cur.by, slot: n });
+      if (a.record) redIds.current.set(cur.doorId, a.record.decisionId);
       return recordEvent(a.ledger, "APPROVE", cur.doorId, "RED", { ...stampNow(), hiApproved: true }, by === cur.by ? "HI-2" : "HI").ledger;
     });
     setNote(`T${n} · RED · ${by === cur.by ? "HI-2" : by}`);
@@ -526,6 +527,8 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
   // lesson is that an interval whose owner is rebuilt faster than its period is not an interval.
   // The last approval this pilot gave, carried on every flight word until a newer one replaces it.
   const givenApprove = useRef<{ doorId: string; slot: 1 | 2 | 3; n: number } | null>(null);
+  // The decision id under each red box, by door — so the mirror on the other device prints the same DEC-####.
+  const redIds = useRef(new Map<string, string>());
   const sending = useRef({ flight, gim, framed, mySeat, slots });
   sending.current.flight = flight; sending.current.gim = gim;
   sending.current.framed = framed; sending.current.mySeat = mySeat; sending.current.slots = slots;
@@ -538,7 +541,10 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
         say({ kind: "flight", flight: { e: f.e, n: f.n, aglM: f.aglM, ve: f.ve, vn: f.vn, vu: f.vu, headingDeg: f.headingDeg, mode: f.mode, energy: f.energy }, approve: givenApprove.current });
       } else {
         const cur = c.slots.current ? c.slots.s[c.slots.current] : null;
-        say({ kind: "gimbal", az: c.gim.az, el: c.gim.el, doorId: c.framed?.door.id ?? null, amber: cur && cur.phase === "amber" ? cur.doorId : null });
+        const redId = cur && cur.phase === "red" ? redIds.current.get(cur.doorId) : undefined;
+        say({ kind: "gimbal", az: c.gim.az, el: c.gim.el, doorId: c.framed?.door.id ?? null,
+              amber: cur && cur.phase === "amber" ? cur.doorId : null,
+              red: cur && cur.phase === "red" && redId && c.slots.current ? { doorId: cur.doorId, slot: c.slots.current, by: cur.approvedBy ?? "", decisionId: redId } : null });
       }
     }, 220);
     return () => window.clearInterval(id);
@@ -548,6 +554,7 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
   // the red box, so approvalKind reads two-person — which is what CH5 requires and what the HUD says.
   // Applied once per sequence number; a stale or repeated approval changes nothing.
   const appliedApprove = useRef(0);
+  const mirrored = useRef<string | null>(null);
   const theirApprove = link.state.theirFlight?.approve ?? null;
   const theirSeat = link.state.theirFlight?.seat ?? "pilot";
   useEffect(() => {
@@ -561,6 +568,7 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
     setSlots((s) => approve(s, n, theirSeat, tMsRef.current));
     setLedger((L) => {
       const d = recordDecision(L, "APPROVE", a.doorId, { ...stampNow(), actor: theirSeat, hiApproved: true }, { by: theirSeat, from: cur.by, slot: n, link: true });
+      if (d.record) redIds.current.set(a.doorId, d.record.decisionId);
       return recordEvent(d.ledger, "APPROVE", a.doorId, "RED", { ...stampNow(), hiApproved: true }, "HI").ledger;
     });
     setNote(`T${n} · RED · ${theirSeat}`);
@@ -577,6 +585,15 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
     if (mySeat === "pilot" && link.state.theirGimbal) {
       const g = link.state.theirGimbal;
       setGim((cur) => ({ ...cur, az: g.az, el: g.el, cmdAz: g.az, cmdEl: g.el }));
+      // THE MIRROR. The targeteer's red box is drawn here too, through the same slots and the same overlay,
+      // designated in the targeteer's name and approved in the approver's, with the SAME decision id.
+      // Applied once per id; the word repeats, the box does not multiply.
+      const r = g.red;
+      if (r && mirrored.current !== r.decisionId) {
+        mirrored.current = r.decisionId;
+        redIds.current.set(r.doorId, r.decisionId);
+        setSlots((s) => approve(designate(s, r.slot, r.doorId, "targeteer", tMsRef.current), r.slot, r.by, tMsRef.current));
+      }
     }
   }, [twoDevice, mySeat, link.state.theirFlight, link.state.theirGimbal]);
 
@@ -614,6 +631,9 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3 }: { mode: Rou
             <span style={{ ...MONO, color: semanticHex(slots.current && slots.s[slots.current]?.phase === "red" ? "ray" : "pending") }} data-drone-slot>
               {slotLine(slots, (id) => world.doors.find((d) => d.id === id)?.label ?? id)}
             </span>
+            {slots.current && slots.s[slots.current]?.phase === "red" && redIds.current.get(slots.s[slots.current]!.doorId) ? (
+              <span style={{ ...MONO, color: semanticHex("ray"), opacity: 0.8 }} data-drone-decision>{redIds.current.get(slots.s[slots.current]!.doorId)}</span>
+            ) : null}
             <span style={{ ...MONO, color: semanticHex("frustum") }} data-drone-seat-eye>
               {seatEyeLine(mySeatOr, mount, flight.mode, world.ground)}
             </span>
