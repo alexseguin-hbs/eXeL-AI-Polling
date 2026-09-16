@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.007",
+  "revision": "0.008",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
   "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -61,6 +61,13 @@
    "date": "2026-09-16",
    "kind": "decision",
    "why": "The fixed-wing is declared at the 1.111 m foil, proportional, from the early Security-2525 drawing — and the drawing's axes are declared with it, because the shipped extent had span, depth and nose-to-tail under each other's names and every consumer inherited the permutation.",
+   "commit": ""
+  },
+  {
+   "revision": "0.008",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "The wing is derived from the drawing instead of asserted beside it. wingAreaM2 was 0.9 m2 against a real planform of 0.3092 m2, so the round had been flying a wing three times the size of the one on screen. Stall moves 8.43 -> 14.38 m/s, and the quad's acceleration is now derived from the stall rather than typed, so the transition stays reachable on any airframe.",
    "commit": ""
   }
  ],
@@ -1018,10 +1025,12 @@
     "span": 0.028798,
     "noseToTail": 0.029683,
     "depth": 0.029237
-   }
+   },
+   "planformM2": 0.3092,
+   "planformMethod": "Integrated from the drawing itself: group the 901 vertices by nose-to-tail station (the loft has 94 distinct ribs), take the half-span at each, trapezoid the full width between them, then scale by span x length. Bucketing into fixed bins does NOT converge — the ribs are discrete, so empty bins read as zero area and the answer halves every time you double the bins. 361.6614 m2 at the source, 0.3092 m2 at the foil, which is 72% of a plain delta of the same span and length."
   },
   "massKg": 5.0,
-  "wingAreaM2": 0.9,
+  "wingAreaM2": 0.3092,
   "CLmax": 1.3,
   "CLcruise": 0.6,
   "CD0": 0.04,
@@ -1033,7 +1042,7 @@
   "cruisePowerW": 180,
   "transitionMinAglM": 20,
   "rhoKgM3": 1.18,
-  "note": "Brochure-class public figures for a 5 kg VTOL. BOUNDING ESTIMATE ONLY — not design evidence."
+  "note": "Brochure-class public figures for a 5 kg VTOL, EXCEPT wingAreaM2, which is no longer asserted: it is derived from the drawing by geometry.planformMethod and gated by frontend/tests/airframe-truth.test.mjs. It read 0.9 m2 until 2026-09-16 — 2.9x the area the aircraft actually has — because the physics record and the drawing were two unconnected descriptions of 'the aircraft' that never met in code. BOUNDING ESTIMATE ONLY - not design evidence."
  },
  "battery": {
   "capacityWh": 300,

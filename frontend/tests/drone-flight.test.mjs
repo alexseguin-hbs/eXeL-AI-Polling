@@ -6,6 +6,7 @@
 import {
   initFlight, stepFlight, stallSpeedMs, liftN, wingShare, dragN, canTransition, powerW,
   minutesLeft, rangeKm, usableWh, airspeedOf, flightLine, TRANSITION_S, G,
+  quadTerminalMs, QUAD_TERMINAL_OVER_STALL, DAMP_PER_S,
 } from '../lib/drone-2525/flight.ts';
 import {
   CREWS, shotNeedsApproval, autoPilot, autoTargeteer, initApproval, requestShot, resolveRequest,
@@ -224,6 +225,30 @@ for (const k of Object.keys(CREWS)) ok(CREWS[k].approver.length > 2, `crew "${k}
   const ap = initApproval();
   ok(mayFire(CREWS.two_hi, ap, null).ok, 'a human-aimed shot needs no request');
   ok(/a person is aiming/.test(mayFire(CREWS.two_hi, ap, null).why), 'and the reason says so');
+}
+
+// ── THE ROTORS MUST BE ABLE TO REACH THE WING, ON ANY AIRFRAME ─────────────────────────────────
+// This bug has now appeared twice, and both times a hand-typed acceleration was the cause. Draft one:
+// acc 9, damping 1.8, terminal 5 m/s against an 8.4 m/s stall — a transition that completes and instantly
+// falls back, forever. Fixed by typing acc = 14, which gave ~15 m/s. Then the wing was derived from the
+// drawing, the stall moved to 14.4, and 15 against 14.4 was the same bug with a thinner margin.
+//
+// So the gate is on the REQUIREMENT, not on the number, and it is checked across a span of airframes —
+// because the next one to break it will not be this one.
+{
+  ok(quadTerminalMs(A) > stall, `the rotors out-run the stall (${quadTerminalMs(A).toFixed(1)} m/s against ${stall.toFixed(1)})`);
+  ok(quadTerminalMs(A) / stall === QUAD_TERMINAL_OVER_STALL, 'by exactly the margin that is declared, not by luck');
+  ok(quadTerminalMs(A) < A.VneMs, `and stays under never-exceed (${A.VneMs} m/s)`);
+  ok(DAMP_PER_S > 0 && DAMP_PER_S < 1, 'the damping is a fraction per second, so a terminal speed exists at all');
+  for (const massKg of [1, 2, 5, 12, 30]) {
+    for (const wingAreaM2 of [0.08, 0.3092, 1.2, 4]) {
+      const alt = { ...A, massKg, wingAreaM2 };
+      ok(quadTerminalMs(alt) > stallSpeedMs(alt),
+         `a ${massKg} kg aircraft on ${wingAreaM2} m2 can still reach its wing (${quadTerminalMs(alt).toFixed(1)} over ${stallSpeedMs(alt).toFixed(1)})`);
+    }
+  }
+  // And the aircraft the domain actually declares must be able to cruise, not merely transition.
+  ok(A.cruiseMs > stall, `cruise ${A.cruiseMs} m/s is above the ${stall.toFixed(1)} m/s stall — it can hold the wing, not just reach it`);
 }
 
 console.log(`\ndrone-flight: ${pass} passed, ${fail} failed · stall ${stall.toFixed(1)} m/s · hover ${minutesLeft(A, B, { ...initFlight(), aglM: 40 }).toFixed(0)} min · cruise ${minutesLeft(A, B, { ...initFlight(), mode: 'wing', ve: A.cruiseMs, vn: 0, aglM: 80 }).toFixed(0)} min`);

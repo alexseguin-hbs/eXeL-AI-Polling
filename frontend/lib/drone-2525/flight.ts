@@ -23,6 +23,18 @@ export interface Battery { capacityWh: number; reserveFrac: number }
 
 export const G = 9.81;
 
+/** Velocity lost per second to rotor drag in the hover. The quad's terminal speed is acc / this. */
+export const DAMP_PER_S = 0.9;
+/**
+ * How far over its own stall the rotors must be able to push the aircraft before the wing is asked to fly.
+ * 1.35 is a margin, not a measurement, and it is stated here rather than buried in an acceleration.
+ * lib/drone-2525 gates this in tests/drone-flight.test.mjs: if the terminal speed ever falls to the stall
+ * speed, the transition becomes unreachable and the aircraft can never become an aeroplane.
+ */
+export const QUAD_TERMINAL_OVER_STALL = 1.35;
+/** What the rotors can actually work up to, for this airframe. Derived, never typed. */
+export const quadTerminalMs = (a: Airframe): number => QUAD_TERMINAL_OVER_STALL * stallSpeedMs(a);
+
 /** Below this airspeed the wing carries nothing. The single number the whole transition turns on. */
 export const stallSpeedMs = (a: Airframe): number =>
   Math.sqrt((2 * a.massKg * G) / (a.rhoKgM3 * a.wingAreaM2 * a.CLmax));
@@ -155,15 +167,20 @@ export function stepFlight(a: Airframe, b: Battery, s: FlightState, i: FlightInp
   } else {
     // Rotors: direct, damped, and every newton of it costs hover power.
     //
-    // THE QUAD MUST BE ABLE TO REACH ITS OWN STALL SPEED. The first draft had acceleration 9 against damping
-    // 1.8, giving a terminal speed of 5 m/s against an 8.4 m/s stall — so a transition to the wing could
-    // begin, complete, and then instantly fall back, forever. A quadcopter accelerating to transition tilts
-    // hard; these numbers give a terminal of about 15 m/s, comfortably over the stall, which is what makes
-    // the wing reachable at all.
-    const acc = 14;
+    // THE QUAD MUST BE ABLE TO REACH ITS OWN STALL SPEED — and now it is DERIVED to, not typed to.
+    //
+    // The first draft had acceleration 9 against damping 1.8: terminal 5 m/s against an 8.4 m/s stall, so a
+    // transition to the wing could begin, complete, and instantly fall back, forever. That was fixed by
+    // hand-typing `acc = 14`, which gave about 15 m/s — fine for THAT stall. Then 2026-09-16 derived the
+    // wing from the drawing, the stall moved to 14.4 m/s, and 15 against 14.4 is the same bug with a
+    // thinner margin. A constant tuned against one airframe is a constant that breaks on the next one.
+    //
+    // So the requirement is written as the requirement: terminal speed is a stated multiple of whatever
+    // this airframe's stall happens to be. Terminal is acc / DAMP_PER_S, so acc follows from the margin.
+    const acc = QUAD_TERMINAL_OVER_STALL * DAMP_PER_S * stallSpeedMs(a);
     ve += (fwd[0] * i.forward + right[0] * i.lateral) * acc * d;
     vn += (fwd[1] * i.forward + right[1] * i.lateral) * acc * d;
-    const damp = 1 - 0.9 * d;
+    const damp = 1 - DAMP_PER_S * d;
     ve *= damp; vn *= damp;
     vu = i.climb * 5;
     if (mode === "transition") {
