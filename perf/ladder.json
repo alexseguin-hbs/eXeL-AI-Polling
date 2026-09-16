@@ -1,0 +1,1410 @@
+{
+  "commit": "cd84715",
+  "at": "2026-09-16T03:36:19.180Z",
+  "seeds": 3,
+  "levels": [
+    1,
+    3,
+    5
+  ],
+  "humanCeilingPerMin": 50,
+  "rows": [
+    {
+      "level": 1,
+      "perSide": 1,
+      "aircraft": 2,
+      "seats": 4,
+      "resolvedAll": true,
+      "durationS": 11,
+      "overkillPct": 0,
+      "contention": 0,
+      "peakContention": 1,
+      "asked": 2,
+      "perMin": 10.9,
+      "blockedPct": 10.9,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-0",
+        "0-0",
+        "0-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 2,
+      "aircraft": 4,
+      "seats": 8,
+      "resolvedAll": true,
+      "durationS": 42.1,
+      "overkillPct": 0.1,
+      "contention": 0.33,
+      "peakContention": 2,
+      "asked": 9,
+      "perMin": 19,
+      "blockedPct": 7.9,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-1",
+        "1-0",
+        "1-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 3,
+      "aircraft": 6,
+      "seats": 12,
+      "resolvedAll": true,
+      "durationS": 58.9,
+      "overkillPct": 0.5,
+      "contention": 0.25,
+      "peakContention": 3,
+      "asked": 16,
+      "perMin": 17.8,
+      "blockedPct": 4.6,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "2-0",
+        "2-0",
+        "0-1"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 4,
+      "aircraft": 8,
+      "seats": 16,
+      "resolvedAll": true,
+      "durationS": 69.1,
+      "overkillPct": 0.8,
+      "contention": 0.38,
+      "peakContention": 4,
+      "asked": 23,
+      "perMin": 22.6,
+      "blockedPct": 5,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-2",
+        "1-0",
+        "2-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 5,
+      "aircraft": 10,
+      "seats": 20,
+      "resolvedAll": true,
+      "durationS": 78.7,
+      "overkillPct": 1,
+      "contention": 0.35,
+      "peakContention": 5,
+      "asked": 33,
+      "perMin": 25.6,
+      "blockedPct": 4.4,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "1-0",
+        "0-1",
+        "1-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 6,
+      "aircraft": 12,
+      "seats": 24,
+      "resolvedAll": true,
+      "durationS": 104.3,
+      "overkillPct": 1,
+      "contention": 0.31,
+      "peakContention": 6,
+      "asked": 47,
+      "perMin": 30.7,
+      "blockedPct": 3.6,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-2",
+        "0-1",
+        "3-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 7,
+      "aircraft": 14,
+      "seats": 28,
+      "resolvedAll": true,
+      "durationS": 93.8,
+      "overkillPct": 0.7,
+      "contention": 0.4,
+      "peakContention": 7,
+      "asked": 58,
+      "perMin": 37.5,
+      "blockedPct": 4,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-2",
+        "0-3",
+        "2-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 8,
+      "aircraft": 16,
+      "seats": 32,
+      "resolvedAll": true,
+      "durationS": 98.6,
+      "overkillPct": 1.3,
+      "contention": 0.41,
+      "peakContention": 7,
+      "asked": 78,
+      "perMin": 48,
+      "blockedPct": 3.7,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "3-0",
+        "0-1",
+        "3-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 9,
+      "aircraft": 18,
+      "seats": 36,
+      "resolvedAll": true,
+      "durationS": 125.7,
+      "overkillPct": 1,
+      "contention": 0.34,
+      "peakContention": 7,
+      "asked": 121,
+      "perMin": 58.9,
+      "blockedPct": 3.6,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "1-0",
+        "1-0",
+        "5-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 10,
+      "aircraft": 20,
+      "seats": 40,
+      "resolvedAll": true,
+      "durationS": 83,
+      "overkillPct": 1,
+      "contention": 0.57,
+      "peakContention": 7,
+      "asked": 107,
+      "perMin": 83.2,
+      "blockedPct": 4.6,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-1",
+        "3-0",
+        "5-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 11,
+      "aircraft": 22,
+      "seats": 44,
+      "resolvedAll": true,
+      "durationS": 131.3,
+      "overkillPct": 0.7,
+      "contention": 0.41,
+      "peakContention": 7,
+      "asked": 129,
+      "perMin": 59.3,
+      "blockedPct": 3.2,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "1-0",
+        "4-0",
+        "1-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 12,
+      "aircraft": 24,
+      "seats": 48,
+      "resolvedAll": true,
+      "durationS": 115,
+      "overkillPct": 0.9,
+      "contention": 0.43,
+      "peakContention": 7,
+      "asked": 160,
+      "perMin": 83.4,
+      "blockedPct": 3.7,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-5",
+        "2-0",
+        "0-5"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 13,
+      "aircraft": 26,
+      "seats": 52,
+      "resolvedAll": true,
+      "durationS": 126.3,
+      "overkillPct": 0.9,
+      "contention": 0.5,
+      "peakContention": 7,
+      "asked": 148,
+      "perMin": 69.1,
+      "blockedPct": 3.2,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-2",
+        "2-0",
+        "3-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 14,
+      "aircraft": 28,
+      "seats": 56,
+      "resolvedAll": true,
+      "durationS": 112,
+      "overkillPct": 1.2,
+      "contention": 0.65,
+      "peakContention": 7,
+      "asked": 173,
+      "perMin": 96,
+      "blockedPct": 4,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "4-0",
+        "3-0",
+        "4-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 15,
+      "aircraft": 30,
+      "seats": 60,
+      "resolvedAll": true,
+      "durationS": 175.1,
+      "overkillPct": 1.1,
+      "contention": 0.43,
+      "peakContention": 7,
+      "asked": 270,
+      "perMin": 92.6,
+      "blockedPct": 2.9,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "4-0",
+        "0-1",
+        "2-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 16,
+      "aircraft": 32,
+      "seats": 64,
+      "resolvedAll": true,
+      "durationS": 133,
+      "overkillPct": 1.1,
+      "contention": 0.57,
+      "peakContention": 7,
+      "asked": 218,
+      "perMin": 99.7,
+      "blockedPct": 3.6,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-7",
+        "0-1",
+        "4-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 17,
+      "aircraft": 34,
+      "seats": 68,
+      "resolvedAll": true,
+      "durationS": 208.7,
+      "overkillPct": 0.9,
+      "contention": 0.41,
+      "peakContention": 10,
+      "asked": 317,
+      "perMin": 92,
+      "blockedPct": 2.5,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-10",
+        "0-1",
+        "4-0"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 18,
+      "aircraft": 36,
+      "seats": 72,
+      "resolvedAll": true,
+      "durationS": 174.6,
+      "overkillPct": 1.2,
+      "contention": 0.53,
+      "peakContention": 7,
+      "asked": 414,
+      "perMin": 145.9,
+      "blockedPct": 3.4,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-7",
+        "2-0",
+        "0-4"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 19,
+      "aircraft": 38,
+      "seats": 76,
+      "resolvedAll": true,
+      "durationS": 149.6,
+      "overkillPct": 1.1,
+      "contention": 0.63,
+      "peakContention": 7,
+      "asked": 334,
+      "perMin": 145.9,
+      "blockedPct": 3.6,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "1-0",
+        "1-0",
+        "0-8"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 20,
+      "aircraft": 40,
+      "seats": 80,
+      "resolvedAll": true,
+      "durationS": 194.4,
+      "overkillPct": 1.1,
+      "contention": 0.49,
+      "peakContention": 7,
+      "asked": 461,
+      "perMin": 146.5,
+      "blockedPct": 2.9,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "6-0",
+        "0-3",
+        "0-5"
+      ]
+    },
+    {
+      "level": 1,
+      "perSide": 21,
+      "aircraft": 42,
+      "seats": 84,
+      "resolvedAll": true,
+      "durationS": 221.6,
+      "overkillPct": 1.1,
+      "contention": 0.46,
+      "peakContention": 7,
+      "asked": 431,
+      "perMin": 117.8,
+      "blockedPct": 2.4,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-3",
+        "0-2",
+        "4-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 1,
+      "aircraft": 2,
+      "seats": 4,
+      "resolvedAll": true,
+      "durationS": 11,
+      "overkillPct": 0,
+      "contention": 0,
+      "peakContention": 1,
+      "asked": 2,
+      "perMin": 10.9,
+      "blockedPct": 10.9,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-0",
+        "0-0",
+        "0-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 2,
+      "aircraft": 4,
+      "seats": 8,
+      "resolvedAll": true,
+      "durationS": 33.6,
+      "overkillPct": 0.1,
+      "contention": 0.43,
+      "peakContention": 2,
+      "asked": 4,
+      "perMin": 11.4,
+      "blockedPct": 5.7,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "1-0",
+        "1-0",
+        "1-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 3,
+      "aircraft": 6,
+      "seats": 12,
+      "resolvedAll": true,
+      "durationS": 46.4,
+      "overkillPct": 0.4,
+      "contention": 0.4,
+      "peakContention": 3,
+      "asked": 6,
+      "perMin": 10.1,
+      "blockedPct": 3.4,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "1-0",
+        "1-0",
+        "0-2"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 4,
+      "aircraft": 8,
+      "seats": 16,
+      "resolvedAll": true,
+      "durationS": 68.1,
+      "overkillPct": 0.8,
+      "contention": 0.44,
+      "peakContention": 4,
+      "asked": 8,
+      "perMin": 7.9,
+      "blockedPct": 2,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-2",
+        "1-0",
+        "1-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 5,
+      "aircraft": 10,
+      "seats": 20,
+      "resolvedAll": true,
+      "durationS": 25.8,
+      "overkillPct": 1,
+      "contention": 1.26,
+      "peakContention": 5,
+      "asked": 10,
+      "perMin": 23.5,
+      "blockedPct": 4.7,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "1-0",
+        "1-0",
+        "1-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 6,
+      "aircraft": 12,
+      "seats": 24,
+      "resolvedAll": true,
+      "durationS": 61.5,
+      "overkillPct": 0.9,
+      "contention": 0.71,
+      "peakContention": 6,
+      "asked": 12,
+      "perMin": 16.3,
+      "blockedPct": 2.7,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-2",
+        "2-0",
+        "4-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 7,
+      "aircraft": 14,
+      "seats": 28,
+      "resolvedAll": true,
+      "durationS": 72,
+      "overkillPct": 0.8,
+      "contention": 0.63,
+      "peakContention": 7,
+      "asked": 15,
+      "perMin": 16.8,
+      "blockedPct": 2.1,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-1",
+        "0-3",
+        "1-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 8,
+      "aircraft": 16,
+      "seats": 32,
+      "resolvedAll": true,
+      "durationS": 77,
+      "overkillPct": 1.4,
+      "contention": 0.64,
+      "peakContention": 7,
+      "asked": 16,
+      "perMin": 12.8,
+      "blockedPct": 1.6,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "3-0",
+        "3-0",
+        "0-2"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 9,
+      "aircraft": 18,
+      "seats": 36,
+      "resolvedAll": true,
+      "durationS": 65.1,
+      "overkillPct": 0.9,
+      "contention": 0.9,
+      "peakContention": 7,
+      "asked": 18,
+      "perMin": 22.6,
+      "blockedPct": 2.5,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "4-0",
+        "0-3",
+        "0-3"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 10,
+      "aircraft": 20,
+      "seats": 40,
+      "resolvedAll": true,
+      "durationS": 58.7,
+      "overkillPct": 0.8,
+      "contention": 1.04,
+      "peakContention": 7,
+      "asked": 21,
+      "perMin": 25.2,
+      "blockedPct": 2.4,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-1",
+        "3-0",
+        "0-4"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 11,
+      "aircraft": 22,
+      "seats": 44,
+      "resolvedAll": true,
+      "durationS": 51.2,
+      "overkillPct": 0.7,
+      "contention": 1.21,
+      "peakContention": 7,
+      "asked": 23,
+      "perMin": 28.6,
+      "blockedPct": 2.5,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-3",
+        "2-0",
+        "4-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 12,
+      "aircraft": 24,
+      "seats": 48,
+      "resolvedAll": true,
+      "durationS": 77.7,
+      "overkillPct": 0.8,
+      "contention": 0.85,
+      "peakContention": 7,
+      "asked": 24,
+      "perMin": 22.3,
+      "blockedPct": 1.9,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-5",
+        "2-0",
+        "2-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 13,
+      "aircraft": 26,
+      "seats": 52,
+      "resolvedAll": true,
+      "durationS": 76.8,
+      "overkillPct": 0.8,
+      "contention": 1.28,
+      "peakContention": 7,
+      "asked": 26,
+      "perMin": 28.4,
+      "blockedPct": 2.2,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-4",
+        "0-1",
+        "0-2"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 14,
+      "aircraft": 28,
+      "seats": 56,
+      "resolvedAll": true,
+      "durationS": 53.5,
+      "overkillPct": 1,
+      "contention": 1.78,
+      "peakContention": 7,
+      "asked": 29,
+      "perMin": 40.7,
+      "blockedPct": 2.9,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "5-0",
+        "2-0",
+        "4-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 15,
+      "aircraft": 30,
+      "seats": 60,
+      "resolvedAll": true,
+      "durationS": 72.9,
+      "overkillPct": 1.1,
+      "contention": 1.59,
+      "peakContention": 7,
+      "asked": 31,
+      "perMin": 40.7,
+      "blockedPct": 2.7,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-2",
+        "0-5",
+        "0-2"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 16,
+      "aircraft": 32,
+      "seats": 64,
+      "resolvedAll": true,
+      "durationS": 57.4,
+      "overkillPct": 0.8,
+      "contention": 2.06,
+      "peakContention": 7,
+      "asked": 33,
+      "perMin": 51.7,
+      "blockedPct": 3.1,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-5",
+        "0-1",
+        "5-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 17,
+      "aircraft": 34,
+      "seats": 68,
+      "resolvedAll": true,
+      "durationS": 50.6,
+      "overkillPct": 0.8,
+      "contention": 2.06,
+      "peakContention": 7,
+      "asked": 34,
+      "perMin": 48,
+      "blockedPct": 2.8,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-3",
+        "5-0",
+        "0-4"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 18,
+      "aircraft": 36,
+      "seats": 72,
+      "resolvedAll": true,
+      "durationS": 68.7,
+      "overkillPct": 1.1,
+      "contention": 1.58,
+      "peakContention": 7,
+      "asked": 36,
+      "perMin": 38.9,
+      "blockedPct": 2.2,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "4-0",
+        "0-6",
+        "6-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 19,
+      "aircraft": 38,
+      "seats": 76,
+      "resolvedAll": true,
+      "durationS": 81.5,
+      "overkillPct": 1,
+      "contention": 1.52,
+      "peakContention": 7,
+      "asked": 39,
+      "perMin": 37.5,
+      "blockedPct": 2,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-2",
+        "2-0",
+        "0-8"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 20,
+      "aircraft": 40,
+      "seats": 80,
+      "resolvedAll": true,
+      "durationS": 86.9,
+      "overkillPct": 1,
+      "contention": 1.24,
+      "peakContention": 7,
+      "asked": 41,
+      "perMin": 31.7,
+      "blockedPct": 1.5,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "8-0",
+        "0-8",
+        "3-0"
+      ]
+    },
+    {
+      "level": 3,
+      "perSide": 21,
+      "aircraft": 42,
+      "seats": 84,
+      "resolvedAll": true,
+      "durationS": 76.4,
+      "overkillPct": 1,
+      "contention": 1.99,
+      "peakContention": 7,
+      "asked": 42,
+      "perMin": 51.4,
+      "blockedPct": 2.4,
+      "approvers": 1,
+      "capacityPerMin": 50,
+      "outcomes": [
+        "0-4",
+        "4-0",
+        "9-0"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 1,
+      "aircraft": 2,
+      "seats": 4,
+      "resolvedAll": true,
+      "durationS": 11,
+      "overkillPct": 0,
+      "contention": 0,
+      "peakContention": 1,
+      "asked": 2,
+      "perMin": 10.9,
+      "blockedPct": 10.9,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "0-0",
+        "0-0",
+        "0-0"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 2,
+      "aircraft": 4,
+      "seats": 8,
+      "resolvedAll": true,
+      "durationS": 33.6,
+      "overkillPct": 0.1,
+      "contention": 0.43,
+      "peakContention": 2,
+      "asked": 4,
+      "perMin": 11.4,
+      "blockedPct": 5.7,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "1-0",
+        "1-0",
+        "1-0"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 3,
+      "aircraft": 6,
+      "seats": 12,
+      "resolvedAll": true,
+      "durationS": 46.4,
+      "overkillPct": 0.4,
+      "contention": 0.4,
+      "peakContention": 3,
+      "asked": 6,
+      "perMin": 10.7,
+      "blockedPct": 3.4,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "1-0",
+        "1-0",
+        "0-2"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 4,
+      "aircraft": 8,
+      "seats": 16,
+      "resolvedAll": true,
+      "durationS": 68.1,
+      "overkillPct": 0.9,
+      "contention": 0.45,
+      "peakContention": 4,
+      "asked": 8,
+      "perMin": 7.9,
+      "blockedPct": 2,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "0-2",
+        "1-0",
+        "1-0"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 5,
+      "aircraft": 10,
+      "seats": 20,
+      "resolvedAll": true,
+      "durationS": 25.8,
+      "overkillPct": 1.2,
+      "contention": 1.29,
+      "peakContention": 5,
+      "asked": 11,
+      "perMin": 24.9,
+      "blockedPct": 4.7,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "1-0",
+        "1-0",
+        "1-0"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 6,
+      "aircraft": 12,
+      "seats": 24,
+      "resolvedAll": true,
+      "durationS": 46.1,
+      "overkillPct": 1.4,
+      "contention": 0.92,
+      "peakContention": 6,
+      "asked": 14,
+      "perMin": 22.3,
+      "blockedPct": 3.4,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "0-3",
+        "2-0",
+        "4-0"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 7,
+      "aircraft": 14,
+      "seats": 28,
+      "resolvedAll": true,
+      "durationS": 69.6,
+      "overkillPct": 0.9,
+      "contention": 0.67,
+      "peakContention": 7,
+      "asked": 18,
+      "perMin": 19.5,
+      "blockedPct": 2.2,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "0-1",
+        "0-3",
+        "0-2"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 8,
+      "aircraft": 16,
+      "seats": 32,
+      "resolvedAll": true,
+      "durationS": 74.1,
+      "overkillPct": 1.2,
+      "contention": 0.68,
+      "peakContention": 7,
+      "asked": 17,
+      "perMin": 14.5,
+      "blockedPct": 1.7,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "3-0",
+        "3-0",
+        "0-2"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 9,
+      "aircraft": 18,
+      "seats": 36,
+      "resolvedAll": true,
+      "durationS": 59,
+      "overkillPct": 0.8,
+      "contention": 0.96,
+      "peakContention": 7,
+      "asked": 19,
+      "perMin": 24.5,
+      "blockedPct": 2.6,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "4-0",
+        "0-3",
+        "2-0"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 10,
+      "aircraft": 20,
+      "seats": 40,
+      "resolvedAll": true,
+      "durationS": 58.3,
+      "overkillPct": 0.7,
+      "contention": 1.1,
+      "peakContention": 7,
+      "asked": 22,
+      "perMin": 27.6,
+      "blockedPct": 2.5,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "0-1",
+        "3-0",
+        "0-4"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 11,
+      "aircraft": 22,
+      "seats": 44,
+      "resolvedAll": true,
+      "durationS": 51.4,
+      "overkillPct": 1.1,
+      "contention": 1.28,
+      "peakContention": 7,
+      "asked": 24,
+      "perMin": 30.6,
+      "blockedPct": 2.5,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "0-3",
+        "2-0",
+        "3-0"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 12,
+      "aircraft": 24,
+      "seats": 48,
+      "resolvedAll": true,
+      "durationS": 76.6,
+      "overkillPct": 0.7,
+      "contention": 0.91,
+      "peakContention": 7,
+      "asked": 27,
+      "perMin": 24,
+      "blockedPct": 1.9,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "0-4",
+        "2-0",
+        "0-2"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 13,
+      "aircraft": 26,
+      "seats": 52,
+      "resolvedAll": true,
+      "durationS": 67.7,
+      "overkillPct": 0.8,
+      "contention": 1.44,
+      "peakContention": 7,
+      "asked": 29,
+      "perMin": 34.3,
+      "blockedPct": 2.4,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "0-4",
+        "1-0",
+        "0-4"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 14,
+      "aircraft": 28,
+      "seats": 56,
+      "resolvedAll": true,
+      "durationS": 53.5,
+      "overkillPct": 0.8,
+      "contention": 1.86,
+      "peakContention": 7,
+      "asked": 31,
+      "perMin": 43.1,
+      "blockedPct": 2.9,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "5-0",
+        "2-0",
+        "3-0"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 15,
+      "aircraft": 30,
+      "seats": 60,
+      "resolvedAll": true,
+      "durationS": 90.5,
+      "overkillPct": 0.8,
+      "contention": 1.56,
+      "peakContention": 7,
+      "asked": 34,
+      "perMin": 41.7,
+      "blockedPct": 2.5,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "1-0",
+        "0-5",
+        "0-2"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 16,
+      "aircraft": 32,
+      "seats": 64,
+      "resolvedAll": true,
+      "durationS": 56.4,
+      "overkillPct": 0.8,
+      "contention": 2.21,
+      "peakContention": 7,
+      "asked": 36,
+      "perMin": 54.8,
+      "blockedPct": 3.1,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "0-5",
+        "0-1",
+        "5-0"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 17,
+      "aircraft": 34,
+      "seats": 68,
+      "resolvedAll": true,
+      "durationS": 50.6,
+      "overkillPct": 1.1,
+      "contention": 2.06,
+      "peakContention": 7,
+      "asked": 36,
+      "perMin": 48.3,
+      "blockedPct": 2.7,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "0-4",
+        "4-0",
+        "0-4"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 18,
+      "aircraft": 36,
+      "seats": 72,
+      "resolvedAll": true,
+      "durationS": 76.1,
+      "overkillPct": 1.1,
+      "contention": 1.6,
+      "peakContention": 7,
+      "asked": 38,
+      "perMin": 39.7,
+      "blockedPct": 2.1,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "0-5",
+        "0-6",
+        "3-0"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 19,
+      "aircraft": 38,
+      "seats": 76,
+      "resolvedAll": true,
+      "durationS": 71.7,
+      "overkillPct": 0.9,
+      "contention": 1.81,
+      "peakContention": 7,
+      "asked": 42,
+      "perMin": 43.9,
+      "blockedPct": 2.1,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "1-0",
+        "4-0",
+        "0-8"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 20,
+      "aircraft": 40,
+      "seats": 80,
+      "resolvedAll": true,
+      "durationS": 84,
+      "overkillPct": 0.9,
+      "contention": 1.42,
+      "peakContention": 7,
+      "asked": 44,
+      "perMin": 36,
+      "blockedPct": 1.6,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "7-0",
+        "0-9",
+        "2-0"
+      ]
+    },
+    {
+      "level": 5,
+      "perSide": 21,
+      "aircraft": 42,
+      "seats": 84,
+      "resolvedAll": true,
+      "durationS": 77.4,
+      "overkillPct": 1,
+      "contention": 1.96,
+      "peakContention": 7,
+      "asked": 45,
+      "perMin": 49.1,
+      "blockedPct": 2.2,
+      "approvers": 6,
+      "capacityPerMin": 300,
+      "outcomes": [
+        "0-5",
+        "3-0",
+        "7-0"
+      ]
+    }
+  ],
+  "lenses": [
+    {
+      "who": "Aset",
+      "owns": "Theme reinforcement & consistency",
+      "ok": true,
+      "say": "beam waste stays near zero at every rung — the physics does not change with N"
+    },
+    {
+      "who": "Asar",
+      "owns": "Synthesis & outcome validation",
+      "ok": true,
+      "say": "every rung produced a result, not a timeout (longest 221.6s)"
+    },
+    {
+      "who": "Athena",
+      "owns": "Strategic test planning & flow",
+      "ok": true,
+      "say": "all 21 rungs run at 3 authority level(s), +1 aircraft a side each time, as asked"
+    },
+    {
+      "who": "Christo",
+      "owns": "Consensus & user-flow validation",
+      "ok": true,
+      "say": "15 of 63 rungs outrun ONE officer (worst L1 20v20, 146.5/min against 50/min) — and none outruns level 5, where the decision belongs to a quorum"
+    },
+    {
+      "who": "Enki",
+      "owns": "Diversity & edge-case discovery",
+      "ok": true,
+      "say": "61 of 63 rungs played differently across 3 seeds — the ladder is not measuring one scripted match"
+    },
+    {
+      "who": "Enlil",
+      "owns": "Implementation & build verification",
+      "ok": true,
+      "say": "63 rungs × 3 seeds ran clean"
+    },
+    {
+      "who": "Krishna",
+      "owns": "Integration & cross-module testing",
+      "ok": true,
+      "say": "every match takes at least one kill's worth of beam (1.99s at 200 m); laser, swarm and authority agree"
+    },
+    {
+      "who": "Odin",
+      "owns": "Predictive & future-proof testing",
+      "ok": true,
+      "say": "at 21v21 level 1 asks 431 decisions and level 3 asks 42 — a 10.3× difference, so the ladder is what makes 42v42 conceivable at all"
+    },
+    {
+      "who": "Pangu",
+      "owns": "Cutting-edge innovation testing",
+      "ok": true,
+      "say": "contention is impossible at 1v1 (peak 1) and real at 21v21 (peak 7) — the rung ABOVE one is where the game starts"
+    },
+    {
+      "who": "Sofia",
+      "owns": "Multi-perspective analysis",
+      "ok": true,
+      "say": "blue won 102, red won 78 across 180 decided matches — skew 13%"
+    },
+    {
+      "who": "Thoth",
+      "owns": "Data & analytics deep dive",
+      "ok": true,
+      "say": "downed plus still-fighting never exceeds the roster, at any rung or seed"
+    },
+    {
+      "who": "Thor",
+      "owns": "Risk & security stress testing",
+      "ok": true,
+      "say": "every rung at every level asked a named human before anything fired; silence is never consent, at 1v1 or at 21v21"
+    }
+  ]
+}

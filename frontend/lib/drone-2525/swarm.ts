@@ -22,12 +22,25 @@ import { GLYPH_COST, AIRFRAME_EXTENT, type GlyphBand } from "./airframe-glyph";
 export type Affiliation = "friendly" | "hostile";
 export const SIDES: Affiliation[] = ["friendly", "hostile"];
 
+/**
+ * The full contest: twenty-one aircraft a side, crewed by forty-two people a side — a pilot and a
+ * targeteer each (operator 2026-09-16: "go to 21 v21 (42 v 42 HI)"). So a full engagement is 42 aircraft
+ * and 84 seats.
+ *
+ * PER_SIDE is the TOP of a ladder, not the only rung. The operator asked for the same game simulated at
+ * 1v1, 2v2, 3v3 and every step up to 21v21, "to work out complexities at each addition of 2 more drones",
+ * so every function here takes its side size from the swarm it is handed rather than from this constant.
+ * A model that can only run at full strength cannot tell you what breaks on the way there.
+ */
 export const PER_SIDE = 21;
 export const SWARM_N = PER_SIDE * 2;
+export const SEATS_PER_AIRCRAFT = 2;
 
 /** Columns, not rows. Index 0..20 is friendly, 21..41 is hostile — the side is the index range. */
 export interface Swarm {
   n: number;
+  /** Aircraft per side. Index 0..perSide-1 is friendly, the rest hostile. */
+  perSide: number;
   e: Float64Array; nCoord: Float64Array; aglM: Float64Array;
   ve: Float64Array; vn: Float64Array; vu: Float64Array;
   headingDeg: Float64Array;
@@ -36,8 +49,12 @@ export interface Swarm {
   seed: number;
 }
 
-export const sideOf = (i: number): Affiliation => (i < PER_SIDE ? "friendly" : "hostile");
-export const idOf = (i: number): string => `${sideOf(i) === "friendly" ? "B" : "R"}${String(i % PER_SIDE + 1).padStart(2, "0")}`;
+export const sideOf = (i: number, perSide = PER_SIDE): Affiliation => (i < perSide ? "friendly" : "hostile");
+/** B01…Bnn / R01…Rnn. Two digits while the ladder allows it, and the gate refuses a side past 99. */
+export const idOf = (i: number, perSide = PER_SIDE): string =>
+  `${sideOf(i, perSide) === "friendly" ? "B" : "R"}${String((i % perSide) + 1).padStart(2, "0")}`;
+/** How many people this engagement needs: every aircraft carries a pilot and a targeteer. */
+export const seatsFor = (perSide: number): number => perSide * 2 * SEATS_PER_AIRCRAFT;
 
 /** Deterministic 32-bit mix, the one the rest of this domain uses for seeded choices. */
 function mix(seed: number, i: number): number {
@@ -51,18 +68,18 @@ function mix(seed: number, i: number): number {
  * hostile from the north, both at a declared height band, so the first frame is already an engagement
  * rather than forty-two aircraft sitting on the grass.
  */
-export function initSwarm(seed = 20260915, radiusM = 380): Swarm {
-  const n = SWARM_N;
+export function initSwarm(seed = 20260915, radiusM = 380, perSide = PER_SIDE): Swarm {
+  const n = perSide * 2;
   const s: Swarm = {
-    n,
+    n, perSide,
     e: new Float64Array(n), nCoord: new Float64Array(n), aglM: new Float64Array(n),
     ve: new Float64Array(n), vn: new Float64Array(n), vu: new Float64Array(n),
     headingDeg: new Float64Array(n), alive: new Float64Array(n).fill(1), seed,
   };
   for (let i = 0; i < n; i++) {
-    const friendly = i < PER_SIDE, k = i % PER_SIDE;
+    const friendly = i < perSide, k = i % perSide;
     const r = mix(seed, i);
-    const spread = (k - (PER_SIDE - 1) / 2) * 34;                 // a line abreast, 34 m apart
+    const spread = (k - (perSide - 1) / 2) * 34;                  // a line abreast, 34 m apart
     const depth = (k % 3) * 55;                                   // three ranks, so it reads as a formation
     s.e[i] = spread + (r - 0.5) * 18;
     s.nCoord[i] = (friendly ? -radiusM + depth : radiusM - depth) + (r - 0.5) * 18;
@@ -87,10 +104,10 @@ export function stepSwarm(s: Swarm, dt: number): void {
   const d = Math.max(0, Math.min(0.25, dt));
   for (let i = 0; i < s.n; i++) {
     if (s.alive[i] === 0) continue;
-    const mine = i < PER_SIDE;
+    const mine = i < s.perSide;
     // Nearest living opponent, by squared distance — no square root in the inner loop.
     let best = -1, bestD2 = Infinity;
-    const lo = mine ? PER_SIDE : 0, hi = mine ? s.n : PER_SIDE;
+    const lo = mine ? s.perSide : 0, hi = mine ? s.n : s.perSide;
     for (let j = lo; j < hi; j++) {
       if (s.alive[j] === 0) continue;
       const de = s.e[j] - s.e[i], dn = s.nCoord[j] - s.nCoord[i];
@@ -122,7 +139,7 @@ export function downAircraft(s: Swarm, i: number): void {
 }
 export const aliveCount = (s: Swarm, side?: Affiliation): number => {
   let n = 0;
-  const lo = side === "hostile" ? PER_SIDE : 0, hi = side === "friendly" ? PER_SIDE : s.n;
+  const lo = side === "hostile" ? s.perSide : 0, hi = side === "friendly" ? s.perSide : s.n;
   for (let i = lo; i < hi; i++) if (s.alive[i] === 1) n++;
   return n;
 };
