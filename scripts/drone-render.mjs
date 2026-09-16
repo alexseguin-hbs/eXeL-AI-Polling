@@ -72,6 +72,10 @@ function renderReadme() {
   s += `\n## One gimbal, two mounts\n\n`;
   s += `Pan ${d.gimbal.panMinDeg}…${d.gimbal.panMaxDeg}° · tilt ${d.gimbal.tiltMinDeg}…${d.gimbal.tiltMaxDeg}° · slew ${d.gimbal.slewDegPerSec}°/s · FOV ${d.gimbal.hfovDeg}×${d.gimbal.vfovDeg}° · range ${d.gimbal.nearM}–${d.gimbal.rangeM} m.\n\n${d.gimbal.note}\n\n`;
   s += `## Airframe and energy (bounding estimates)\n\n`;
+  const G = d.airframe.geometry;
+  s += `**${G.scale}** — span ${G.spanM} m · nose-to-tail ${G.noseToTailM} m · depth ${G.depthM} m.\n\n`;
+  s += `Scaled from \`${G.source}\` (span ${G.sourceExtentM.span} m · depth ${G.sourceExtentM.depth} m · nose-to-tail ${G.sourceExtentM.noseToTail} m), `;
+  s += `read on the axes that drawing declares: span \`${G.sourceAxes.span}\`, depth \`${G.sourceAxes.depth}\`, nose-to-tail \`${G.sourceAxes.noseToTail}\`. ${G.scaleNote}\n\n`;
   s += `${d.airframe.class} · ${d.airframe.massKg} kg · cruise ${d.airframe.cruiseMs} m/s · hover ${d.airframe.hoverPowerW} W · cruise ${d.airframe.cruisePowerW} W · battery ${d.battery.capacityWh} Wh with ${Math.round(d.battery.reserveFrac * 100)}% reserve never spent.\n\n> ${d.airframe.note}\n\n`;
   s += `## Sensor\n\nProfile \`${d.sensor.profile}\` — ${d.sensor.note}\n\n`;
   s += `## Targets\n\n${d.targets.note} Seed \`${d.targets.seed}\`, up ${d.targets.upMs} ms, down ${d.targets.downMs} ms, ${d.targets.concurrent} at once.\n\n`;
@@ -88,6 +92,8 @@ function renderAssumptions() {
   for (const tr of d.treeRows) s += `| trees \`${tr.id}\` | ${tr.source} | **${tr.confidence}** |\n`;
   s += `| terrain | ${d.arena.demSource} | **low** |\n`;
   s += `\n## Physics and energy\n\n| quantity | value | note |\n|---|---|---|\n`;
+  s += `| span | ${d.airframe.geometry.spanM} m | declared by the operator (${d.airframe.geometry.scale}); the drawing is scaled to it, not measured from a real aircraft |\n`;
+  s += `| nose-to-tail | ${d.airframe.geometry.noseToTailM} m | same declaration; ${d.airframe.geometry.depthRule} |\n`;
   s += `| mass | ${d.airframe.massKg} kg | ${d.airframe.note} |\n`;
   s += `| hover power | ${d.airframe.hoverPowerW} W | brochure-class |\n`;
   s += `| cruise power | ${d.airframe.cruisePowerW} W | brochure-class |\n`;
@@ -104,6 +110,20 @@ function renderModule() {
 import type { DomainSource } from "./arena-model";
 
 export interface DroneMode { id: string; label: string; mount: string; roles?: string[]; pass: number | string }
+/**
+ * The airframe's real size and where it came from. Declared in ONE place so the drawing, the glyph and the
+ * physics cannot describe three different aircraft — which, before 2026-09-16, they did.
+ */
+export interface DroneAirframeGeometry {
+  source: string; sourceNote: string;
+  sourceAxes: { span: "x" | "y" | "z"; depth: "x" | "y" | "z"; noseToTail: "x" | "y" | "z" };
+  sourceExtentM: { span: number; depth: number; noseToTail: number };
+  bodyAxes: { forward: string; right: string; up: string; note: string };
+  scale: string; spanM: number; noseToTailM: number; depthM: number;
+  fullScaleM: { span: number; noseToTail: number };
+  scaleNote: string; depthRule: string;
+  scales: { span: number; noseToTail: number; depth: number };
+}
 export interface DroneCrsRow {
   id: string; title: string; statement: string; in: string; out: string; section: string; uwf: string[];
   phase: string; mode: string; metric: string; verify: string; dtm: string; stretch: string; status: string;
@@ -113,7 +133,7 @@ export type DroneDomain = DomainSource & {
              handoff: string; handoffSha256: string; ledger: string; disclaimer: string; mode: string; phase: string };
   revisions: { revision: string; date: string; kind: string; why: string; commit: string }[];
   gimbal: Record<string, number | string>;
-  airframe: Record<string, number | string>;
+  airframe: Record<string, number | string> & { geometry: DroneAirframeGeometry };
   battery: Record<string, number | string>;
   sensor: { profile: string; note: string };
   targets: Record<string, number | string>;

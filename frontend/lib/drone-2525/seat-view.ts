@@ -5,15 +5,21 @@
 //
 // Until now both seats looked from the same point, which quietly said the two people are in the same place.
 // They are not. A pilot looks out of the front of the airframe; a targeteer looks down a gimbal slung under
-// it. On a machine that is 38.6 m long and 26.2 m tall that is a real separation, and on a rotor-borne quad
-// it is a different one — the airframe is flat and level and the mount hangs close beneath the body, while
-// on the wing the nose is out front and the sensor sits forward and low.
+// it — and on a rotor-borne quad that is a different separation than on the wing, because in the hover the
+// canopy is barely ahead of the mast while in flight the nose stretches out in front.
 //
-// THE OFFSETS ARE FRACTIONS OF THE AIRFRAME'S OWN MEASURED EXTENT, so an aircraft of another size gets a
-// different parallax for free and nobody has to remember to update a constant.
+// THE OFFSETS ARE FRACTIONS OF THE AIRFRAME'S OWN NOSE-TO-TAIL LENGTH, so an aircraft of another size gets
+// a different parallax for free and nobody has to remember to update a constant.
+//
+// CORRECTED 2026-09-16. The first edition multiplied these fractions by `AIRFRAME_EXTENT.lengthM`, which —
+// because the glyph builder trusted a wrong `frame` block over the drawing's own header — was the SPAN, not
+// the fuselage. The law was right and the axis was wrong, so the crew parallax was measured across the
+// wing. It now scales by GLYPH_UNIT_M, the nose-to-tail length, and at the declared 0.7777 m foil that is
+// about 18 cm between the two eyes in the hover and 37 cm on the wing: a hand's width, which is the honest
+// answer for an aircraft this size.
 //
 // Pure: no clock, no DOM. The ground sampler is passed in, as everywhere else in this domain.
-import { AIRFRAME_EXTENT } from "./airframe-glyph";
+import { GLYPH_UNIT_M } from "./airframe-glyph";
 import type { Mount } from "./gimbal";
 import type { FlightMode } from "./flight";
 import type { Vec3 } from "@/lib/wire-core/wire-model";
@@ -26,13 +32,16 @@ export interface SeatOffset { fwd: number; right: number; up: number }
 /**
  * ROTORS: the airframe hangs level under its discs and the two crew positions are close together — the
  * canopy is barely ahead of the mast and the gimbal is slung just under the belly, close in, because a
- * sensor on a hovering machine wants to look straight down without the airframe in the way. Roughly nine
- * metres between the eyes on this airframe.
+ * sensor on a hovering machine wants to look straight down without the airframe in the way. Roughly
+ * eighteen centimetres between the eyes on this airframe.
  *
  * WING: flying, the machine stretches out. The nose — and the pilot in it — is far in front, while the
  * sensor stays under the fuselage centre of gravity and drops to clear the wing root. The two eyes pull
  * roughly twice as far apart as they were in the hover, which is exactly what a crew notices at transition:
  * the targeteer's picture stops agreeing with the pilot's.
+ *
+ * At the declared 1.111 m foil that is about 18 cm in the hover and 37 cm on the wing. Small numbers, and
+ * the right ones: on an aircraft this size the camera and the gimbal really are a hand's width apart.
  */
 export const SEAT_OFFSETS: Record<"quad" | "wing", Record<Seat, SeatOffset>> = {
   quad: {
@@ -61,7 +70,7 @@ export function seatEye(
   if (mount.kind === "turret") return base;
 
   const o = SEAT_OFFSETS[frameOf(flightMode)][seat];
-  const L = AIRFRAME_EXTENT.lengthM;
+  const L = GLYPH_UNIT_M;                                       // nose-to-tail, never the span
   const hr = (mount.homeAz * Math.PI) / 180;                    // the airframe's heading
   const ch = Math.cos(hr), sh = Math.sin(hr);
   // body (forward, right) → arena (east, north), yawed by the heading

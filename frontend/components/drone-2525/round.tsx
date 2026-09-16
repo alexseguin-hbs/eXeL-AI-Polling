@@ -152,8 +152,10 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   //
   // AND THERE ARE TWO OF THEM. Operator 2026-09-15: "make sure view from HI gimbal laser cockpit for HI
   // pilot are different per dimensions of aircraft or quad." The pilot looks out of the canopy; the
-  // targeteer looks down a gimbal slung under the belly, and on this airframe that is 8.7 m apart in the
-  // hover and 18.6 m apart on the wing — derived from the airframe's own measured extent, not typed here.
+  // targeteer looks down a gimbal slung under the belly, and on this airframe that is 18 cm apart in the
+  // hover and 37 cm on the wing — a fraction of the airframe's own nose-to-tail length, not typed here.
+  // (Those figures read 8.7 m and 18.6 m until 2026-09-16, when the aircraft was declared at its true
+  // 1.111 m foil and the scaling axis was corrected from the span to the fuselage.)
   // A TURRET returns the same point for both seats, by construction, so the stationary modes are unchanged.
   //
   //   sensorEye  — where the gimbal actually is. Framing, the sight line, the range readout and the laser

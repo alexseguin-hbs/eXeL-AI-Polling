@@ -5,9 +5,15 @@
 // AIRCRAFT'S OWN MEASURED SIZE rather than from a constant somebody picked, and it is different on the
 // rotors than it is on the wing. And a turret, which genuinely has one head, is not given a parallax it
 // does not have.
+//
+// CORRECTED 2026-09-16. The first edition scaled by `AIRFRAME_EXTENT.lengthM`, which was the SPAN under a
+// wrong name, so the crew parallax was measured across the wing. It now scales by GLYPH_UNIT_M, the
+// nose-to-tail length. The old floor here — `lengthM > 20`, "that length is read from the real airframe" —
+// asserted only that the aircraft was BIG, and would have failed the moment it was declared at its true
+// 1.111 m foil. A proportion is what an invariant should be; a size floor is what hid the bug.
 import { seatEye, seatSeparationM, seatEyeLine, SEAT_OFFSETS } from '../lib/drone-2525/seat-view.ts';
 import { turretMount, airframeMount } from '../lib/drone-2525/gimbal.ts';
-import { AIRFRAME_EXTENT } from '../lib/drone-2525/airframe-glyph.ts';
+import { AIRFRAME_EXTENT, GLYPH_UNIT_M } from '../lib/drone-2525/airframe-glyph.ts';
 import { DRONE_DOMAIN } from '../lib/drone-2525/domain.gen.ts';
 
 let pass = 0, fail = 0;
@@ -24,8 +30,8 @@ for (const mode of ['quad', 'wing']) {
   ok(p[2] > t[2], `${mode}: the pilot is above the sensor — a canopy over a slung gimbal`);
   ok(p[1] > t[1], `${mode}: and further forward, facing north`);
   const sep = seatSeparationM(m, mode, ground);
-  ok(sep > 3, `${mode}: they are ${sep.toFixed(1)} m apart, which a crew would notice`);
-  ok(sep < AIRFRAME_EXTENT.lengthM, `${mode}: and never further apart than the aircraft is long`);
+  ok(sep > 0.05 * GLYPH_UNIT_M, `${mode}: they are ${(sep * 100).toFixed(0)} cm apart — a real separation on an aircraft this size`);
+  ok(sep < GLYPH_UNIT_M, `${mode}: and never further apart than the aircraft is long, nose to tail`);
 }
 
 // ── THE SEPARATION COMES FROM THE AIRCRAFT'S SIZE ───────────────────────────────────────────────
@@ -34,9 +40,11 @@ for (const mode of ['quad', 'wing']) {
   const sep = seatSeparationM(m, 'wing', ground);
   const fwd = SEAT_OFFSETS.wing.pilot.fwd - SEAT_OFFSETS.wing.targeteer.fwd;
   const up = SEAT_OFFSETS.wing.pilot.up - SEAT_OFFSETS.wing.targeteer.up;
-  const expected = Math.hypot(fwd, up) * AIRFRAME_EXTENT.lengthM;
-  ok(Math.abs(sep - expected) < 0.01, `the separation is a fraction of the airframe's measured length (${sep.toFixed(2)} m of ${AIRFRAME_EXTENT.lengthM} m)`);
-  ok(AIRFRAME_EXTENT.lengthM > 20, 'and that length is read from the real airframe, not typed here');
+  const expected = Math.hypot(fwd, up) * GLYPH_UNIT_M;
+  ok(Math.abs(sep - expected) < 0.001, `the separation is a fraction of the airframe's NOSE-TO-TAIL length (${(sep * 100).toFixed(1)} cm of ${GLYPH_UNIT_M} m)`);
+  ok(GLYPH_UNIT_M === AIRFRAME_EXTENT.noseToTailM, 'and the fraction is taken along the fuselage, never across the wing');
+  ok(!('lengthM' in AIRFRAME_EXTENT), 'the ambiguous name is gone, so this cannot silently go back to the span');
+  ok(GLYPH_UNIT_M < AIRFRAME_EXTENT.spanM, 'which matters here precisely because this aircraft is wider than it is long');
 }
 
 // ── IT IS DIFFERENT ON THE ROTORS THAN ON THE WING ──────────────────────────────────────────────
@@ -44,7 +52,7 @@ for (const mode of ['quad', 'wing']) {
   const m = air();
   const q = seatSeparationM(m, 'quad', ground);
   const w = seatSeparationM(m, 'wing', ground);
-  ok(Math.abs(q - w) > 1, `the rotors and the wing give different separations (${q.toFixed(1)} m against ${w.toFixed(1)} m)`);
+  ok(Math.abs(q - w) > 0.1 * GLYPH_UNIT_M, `the rotors and the wing give different separations (${(q * 100).toFixed(0)} cm against ${(w * 100).toFixed(0)} cm)`);
   ok(w > q, 'and the wing is the wider of the two — the nose is out in front and the sensor drops to clear the wing root');
   const qp = seatEye(m, 'pilot', 'quad', ground), wp = seatEye(m, 'pilot', 'wing', ground);
   ok(qp[1] !== wp[1], 'the pilot sits further forward once it is flying');
@@ -117,5 +125,5 @@ for (const mode of ['quad', 'wing']) {
   ok(/data-drone-seat-eye/.test(round), 'the HUD names which eye this is and how far the other seat is');
 }
 
-console.log(`\nseat-view: ${pass} passed, ${fail} failed · quad ${seatSeparationM(air(), 'quad', ground).toFixed(1)} m · wing ${seatSeparationM(air(), 'wing', ground).toFixed(1)} m apart`);
+console.log(`\nseat-view: ${pass} passed, ${fail} failed · quad ${(seatSeparationM(air(), 'quad', ground) * 100).toFixed(0)} cm · wing ${(seatSeparationM(air(), 'wing', ground) * 100).toFixed(0)} cm apart · on a ${GLYPH_UNIT_M} m fuselage`);
 process.exit(fail ? 1 : 0);

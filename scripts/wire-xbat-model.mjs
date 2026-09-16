@@ -8,8 +8,15 @@
 // and every segment and the sha256 must survive. If the exporter ever lies, that test goes red on a shape
 // nobody in this process invented.
 //
-// Axes line up exactly: the OBJ header says "X span, Y depth, Z vertical nose-up axis"; the model frame is
-// ENU (east, north, up). Both are Z-up with the vertical last, so the carry is 1:1 and adds no error.
+// THE CARRY IS 1:1 NUMERICALLY, AND THE LABELS NOW SAY WHAT THE DRAWING SAYS. An earlier edition of this
+// script wrote `frame: { up: "z", forward: "x" }` while quoting, two lines above, the OBJ header that
+// contradicts it: "X span, Y depth, Z vertical nose-up axis". The numbers were never wrong; the names were.
+// scripts/build-airframe-glyph.mjs believed the names, so the shipped AIRFRAME_EXTENT carried span, depth
+// and nose-to-tail under each other's labels, and every consumer inherited the permutation — including the
+// seat parallax, which was measured along the wing. Corrected 2026-09-16; the axes are now DECLARED as a
+// map rather than implied by a forward/up pair, because this aircraft is drawn nose-UP, standing on its
+// tail, and a single "forward" field cannot honestly describe that. See
+// docs/asks/2026-09-16_foil_1m_five_levels_world.md.
 //
 //   node scripts/wire-xbat-model.mjs [--out <file>]
 import fs from "node:fs";
@@ -53,13 +60,23 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const parsed = parseLineObj(fs.readFileSync(SRC, "utf8"));
   const model = {
     meta: {
-      id: "xbat", name: "X-BAT · 3rd-pass wireframe", version: "00.00", revision: "0.001",
+      id: "xbat", name: "X-BAT · 3rd-pass wireframe", version: "00.00", revision: "0.002",
       generator: "scripts/wire-xbat-model.mjs",
-      stamp: "eXeL v0.001-2026.09.15-carried",
+      stamp: "eXeL v0.002-2026.09.16-carried",
       source: `${SRC} (hand-written; carried, not regenerated)`,
     },
     units: "m",
-    frame: { kind: "body", up: "z", forward: "x" },
+    frame: {
+      kind: "drawing",
+      attitude: "nose-up (tailsitter, as drawn)",
+      // The drawing's own header, verbatim: xbat_3rdpass_wireframe.obj:2 and .py:13-15.
+      axes: { span: "x", depth: "y", noseToTail: "z" },
+      // As drawn, standing on its tail, the vertical axis IS the fuselage. Both are z, and saying so is
+      // more honest than picking one. A consumer wanting the app's body frame reads airframe.geometry
+      // .bodyAxes in docs/drone-2525/drone-2525.v00.00.json, which declares the mapping explicitly.
+      up: "z", forward: "z",
+      supersedes: "revision 0.001 declared forward:'x', which the drawing's header contradicts",
+    },
     vertices: parsed.vertices,
     edges: parsed.edges,
     groups: [{ id: "xbat.airframe", kind: "polyline", role: "consciousness", edge0: 0, edgeN: parsed.edges.length, lod: 0,

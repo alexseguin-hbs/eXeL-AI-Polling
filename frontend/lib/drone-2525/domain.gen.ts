@@ -5,6 +5,20 @@
 import type { DomainSource } from "./arena-model";
 
 export interface DroneMode { id: string; label: string; mount: string; roles?: string[]; pass: number | string }
+/**
+ * The airframe's real size and where it came from. Declared in ONE place so the drawing, the glyph and the
+ * physics cannot describe three different aircraft — which, before 2026-09-16, they did.
+ */
+export interface DroneAirframeGeometry {
+  source: string; sourceNote: string;
+  sourceAxes: { span: "x" | "y" | "z"; depth: "x" | "y" | "z"; noseToTail: "x" | "y" | "z" };
+  sourceExtentM: { span: number; depth: number; noseToTail: number };
+  bodyAxes: { forward: string; right: string; up: string; note: string };
+  scale: string; spanM: number; noseToTailM: number; depthM: number;
+  fullScaleM: { span: number; noseToTail: number };
+  scaleNote: string; depthRule: string;
+  scales: { span: number; noseToTail: number; depth: number };
+}
 export interface DroneCrsRow {
   id: string; title: string; statement: string; in: string; out: string; section: string; uwf: string[];
   phase: string; mode: string; metric: string; verify: string; dtm: string; stretch: string; status: string;
@@ -14,7 +28,7 @@ export type DroneDomain = DomainSource & {
              handoff: string; handoffSha256: string; ledger: string; disclaimer: string; mode: string; phase: string };
   revisions: { revision: string; date: string; kind: string; why: string; commit: string }[];
   gimbal: Record<string, number | string>;
-  airframe: Record<string, number | string>;
+  airframe: Record<string, number | string> & { geometry: DroneAirframeGeometry };
   battery: Record<string, number | string>;
   sensor: { profile: string; note: string };
   targets: Record<string, number | string>;
@@ -28,7 +42,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.006",
+  "revision": "0.007",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
   "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -79,6 +93,13 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Forty-two aircraft, 21 against 21, inside the ladder's budget at every rung. A five-level authority ladder on the band that already exists, with the invariant unbent on every rung. And an SSSES scorer rewritten to measure rather than assert, which dropped the score before the work lifted it to 96.",
    "commit": "c7c40a5"
+  },
+  {
+   "revision": "0.007",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "The fixed-wing is declared at the 1.111 m foil, proportional, from the early Security-2525 drawing — and the drawing's axes are declared with it, because the shipped extent had span, depth and nose-to-tail under each other's names and every consumer inherited the permutation.",
+   "commit": ""
   }
  ],
  "arena": {
@@ -1002,6 +1023,41 @@ export const DRONE_DOMAIN = {
  "airframe": {
   "id": "vtol-01",
   "class": "fixed-wing VTOL (quadcopter <-> plane), Quantum-Systems-class",
+  "geometry": {
+   "source": "docs/security-2525/xbat-wireframe/xbat.wire.json",
+   "sourceNote": "The drawing's OWN header is the authority: xbat_3rdpass_wireframe.obj:2 reads '# X span, Y depth, Z vertical nose-up axis', and xbat_3rdpass_wireframe.py:13-15 repeats it. The carried model declared forward:'x', which was wrong, and scripts/build-airframe-glyph.mjs believed it — so the shipped extent was three correct measurements under three wrong names. Corrected 2026-09-16; see docs/asks/2026-09-16_foil_1m_five_levels_world.md.",
+   "sourceAxes": {
+    "span": "x",
+    "depth": "y",
+    "noseToTail": "z"
+   },
+   "sourceExtentM": {
+    "span": 38.579462,
+    "depth": 8.627519,
+    "noseToTail": 26.2
+   },
+   "bodyAxes": {
+    "forward": "z",
+    "right": "x",
+    "up": "y",
+    "note": "How the drawing's axes map into the app's body frame (forward +x, right +y, up +z). The model is drawn nose-UP, standing on its tail, so its vertical axis is the fuselage."
+   },
+   "scale": "foil-1.111",
+   "spanM": 1.111,
+   "noseToTailM": 0.7777,
+   "depthM": 0.2522,
+   "fullScaleM": {
+    "span": 11.111,
+    "noseToTail": 7.777
+   },
+   "scaleNote": "Operator 2026-09-16: 'make fix wing aircraft 1 m foil and proportional'. 1.111 x 0.7777 is the demo scale of his own FOIL package and is proportional to the full 11.111 x 7.777 to within 0.07 mm on the span. Against the SOURCE drawing it is a 3.07% stretch along the fuselage, which is intentional: his manifest specifies non-uniform scaling and gives the rule for depth, quoted next.",
+   "depthRule": "depth scaled with geometric mean of span and length scales (FOIL_full_11_111x7_777_manifest.json, dimensions_m.depth_scale_note)",
+   "scales": {
+    "span": 0.028798,
+    "noseToTail": 0.029683,
+    "depth": 0.029237
+   }
+  },
   "massKg": 5,
   "wingAreaM2": 0.9,
   "CLmax": 1.3,

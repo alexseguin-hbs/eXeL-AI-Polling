@@ -6,7 +6,7 @@
 //   3. ONE BUDGET, TWO CONSUMERS — the swarm takes its share and the world gets the rest, at every rung
 import {
   initSwarm, stepSwarm, downAircraft, aliveCount, planSwarmDraw, swarmLine,
-  sideOf, idOf, SIDES, PER_SIDE, SWARM_N, CLOSE_M, BAND_NEAR_M, BAND_MID_M,
+  sideOf, idOf, SIDES, PER_SIDE, SWARM_N, CLOSE_M, BAND_PX, bandFor, apparentPx, DEFAULT_FOCAL_PX,
 } from '../lib/drone-2525/swarm.ts';
 import { GLYPH_COST, GLYPHS, AIRFRAME_EXTENT } from '../lib/drone-2525/airframe-glyph.ts';
 import { MOT_LEVELS, motSpec } from '../lib/wire-core/mot-ladder.ts';
@@ -96,15 +96,72 @@ ok(s0.aglM.every((a) => a > 20), 'and in the air rather than on the grass — th
 }
 
 // ── THE SILHOUETTE IS TAKEN FROM THE REAL AIRFRAME ──────────────────────────────────────────────
-ok(GLYPH_COST.far === 4 && GLYPH_COST.mid === 12 && GLYPH_COST.near === 24, 'three sizes: 4, 12 and 24 segments');
+ok(GLYPH_COST.dot === 1 && GLYPH_COST.far === 4 && GLYPH_COST.mid === 12 && GLYPH_COST.near === 24, 'four sizes: 1, 4, 12 and 24 segments');
 ok(GLYPHS.far.length === 4 && GLYPHS.near.length === 24, 'and the tables match the costs declared');
-ok(AIRFRAME_EXTENT.lengthM > 20 && AIRFRAME_EXTENT.spanM > 5, `proportioned from the real airframe (${AIRFRAME_EXTENT.lengthM} m long)`);
 for (const [b, segs] of Object.entries(GLYPHS)) {
   ok(segs.every((sg) => sg.length === 2 && sg[0].length === 3 && sg[1].length === 3), `${b} is a list of segments in three dimensions`);
   ok(segs.every((sg) => [...sg[0], ...sg[1]].every(Number.isFinite)), `${b} has no holes in it`);
-  ok(segs.some((sg) => sg[0][0] > 0.4 || sg[1][0] > 0.4), `${b} has a nose`);
+  if (b !== 'dot') ok(segs.some((sg) => sg[0][0] > 0.4 || sg[1][0] > 0.4), `${b} has a nose`);
 }
-ok(GLYPH_COST.far * 42 === 168, 'forty-two at the smallest size is 168 segments — inside the 280 of rung 1.1');
+ok(GLYPHS.dot.length === 1 && GLYPHS.dot[0].every((pt) => pt[0] === 0),
+   'the mark has no nose and claims none — it is a position, not a silhouette');
+
+// ── THE AIRFRAME IS PROPORTIONED, NOT MERELY LARGE ──────────────────────────────────────────────
+// This used to assert `lengthM > 20 && spanM > 5`, a floor that only said "big". It passed happily while
+// the three dimensions sat under each other's names, and it would have failed the moment the aircraft was
+// declared at its real size. A proportion holds at every scale, which is what an invariant should do.
+{
+  const { spanM, noseToTailM, depthM } = AIRFRAME_EXTENT;
+  ok(spanM > noseToTailM, `the aircraft is wider than it is long (${spanM} m span, ${noseToTailM} m nose-to-tail) — it is a tailsitting delta, not a dart`);
+  ok(Math.abs(noseToTailM / spanM - 0.7) < 0.01, `nose-to-tail is 0.70 of the span (${(noseToTailM / spanM).toFixed(4)}), the ratio the operator declared`);
+  ok(Math.abs(depthM / spanM - 0.227) < 0.01, `depth is 0.227 of the span (${(depthM / spanM).toFixed(4)}), carried from the drawing`);
+  ok(!('lengthM' in AIRFRAME_EXTENT), 'and there is no "lengthM" to be ambiguous about — that name meant the span for months');
+}
+ok(GLYPH_COST.dot * 42 === 42, 'forty-two at the smallest size is 42 segments — well inside the 280 of rung 1.1');
+
+// ── DETAIL IS EARNED BY APPARENT SIZE, NOT BY A DISTANCE SOMEBODY PICKED ────────────────────────
+// The old rule was two absolute metres, 260 and 700, tuned against nothing. It broke at every change of
+// scale — and the 1.111 m foil is a change of scale of forty. The class fix: ask how many PIXELS the
+// aircraft covers. These assertions hold at 1.111 m, at 11.111 m and at the drawing's own 38.579 m.
+{
+  const F = DEFAULT_FOCAL_PX;
+  ok(Math.abs(apparentPx(1.111, 700, F) - 0.984) < 0.01,
+     `at the declared foil an aircraft is ${apparentPx(1.111, 700, F).toFixed(2)} px across at 700 m — under a pixel`);
+  ok(bandFor(1.111, 700, F) === 'dot', 'so at 700 m it gets the mark, not a delta it cannot fill');
+  ok(bandFor(1.111, 40, F) === 'near', 'and up close it earns the full planform');
+  for (const span of [1.111, 11.111, 38.579]) {
+    let prev = 'near';
+    const rank = { near: 3, mid: 2, far: 1, dot: 0 };
+    for (const r of [20, 60, 150, 400, 900, 2000]) {
+      const b = bandFor(span, r, F);
+      ok(rank[b] <= rank[prev], `span ${span} m: detail never increases with range (${r} m -> ${b})`);
+      prev = b;
+    }
+  }
+  ok(bandFor(1.111, 1e9, F) === 'dot' && GLYPH_COST.dot > 0,
+     'an aircraft at any range still has a symbol — the floor is on the size, never on the truth');
+  ok(apparentPx(1.111, 0, F) === Infinity, 'and a range of zero does not divide by it');
+}
+
+// ── THE LEVEL-ONE FLOOR: WHATEVER RUNG 1.1 CANNOT DRAW, NOTHING SHIPS ───────────────────────────
+// Operator 2026-09-16: "5 level design lowest simplest lowest rendered lowest memory requirement visual
+// first". Rung 1.1 is a Raspberry-Pi-class machine (WIREFRAME-CORE U-WF-07). Before the mark existed the
+// real share at 1.1 was 126 segments, which bought 31 deltas, and eleven of the forty-two were dropped on
+// the level we promise runs everything.
+{
+  const spec = motSpec('1.1');
+  const s = initSwarm();
+  const share = Math.min(Math.floor(spec.segments * 0.45), GLYPH_COST.near * 42);
+  const plan = planSwarmDraw(s, 0, -260, share);
+  ok(plan.drawn === 42, `rung 1.1 draws every one of the forty-two (${plan.drawn})`);
+  ok(plan.dropped === 0, `and drops none (${plan.dropped})`);
+  ok(plan.cost <= share, `inside the share the round hands over (${plan.cost} of ${share})`);
+  const w = worldAt(DRONE_DOMAIN, spec.ngonSides, 'swarm-test');
+  const lod = selectLod(w.model, spec.maxLod, spec.segments - plan.cost);
+  ok(lod.kept > 100, `and the Capitol block still gets ${lod.kept} of the 280 — the world does not vanish either`);
+  ok(swarmLine(s, plan).includes('at the mark'),
+     'and the HUD says how many are drawn larger than life, rather than implying the picture is to scale');
+}
 
 // ── ONE BUDGET, TWO CONSUMERS, AT EVERY RUNG ────────────────────────────────────────────────────
 console.log('\n  rung  budget  world  swarm  drawn  dropped');
@@ -113,8 +170,11 @@ for (const l of MOT_LEVELS) {
   const spec = motSpec(l);
   const w = worldAt(DRONE_DOMAIN, spec.ngonSides, 'swarm-test');
   const s = initSwarm();
-  // The swarm takes its share FIRST: in an engagement the aircraft are the world.
-  const share = Math.min(spec.segments, GLYPH_COST.far * 42);
+  // The swarm takes its share FIRST: in an engagement the aircraft are the world. THIS IS THE SHARE THE
+  // ROUND ACTUALLY HANDS OVER (components/drone-2525/round.tsx) — copied from it deliberately. An earlier
+  // edition computed a more generous one here and then asserted only `drawn > 0`, so the gate agreed with
+  // the claim instead of testing it, and eleven aircraft were dropped at rung 1.1 with nothing complaining.
+  const share = Math.min(Math.floor(spec.segments * 0.45), GLYPH_COST.near * 42);
   const plan = planSwarmDraw(s, 0, -260, share);
   const left = Math.max(0, spec.segments - plan.cost);
   const lod = selectLod(w.model, spec.maxLod, left);
@@ -143,12 +203,12 @@ ok(everyRungDrawsAircraft, 'EVERY rung draws aircraft — at the poorest the wor
   const tight = planSwarmDraw(s, 0, -260, 40);
   ok(tight.drawn > 0 && tight.dropped > 0, `a tight budget draws some and drops some (${tight.drawn} drawn, ${tight.dropped} dropped)`);
   ok(tight.cost <= 40, 'and never overspends');
-  ok(tight.band.every((b) => b === 'far'), 'and when it is tight NOBODY gets detail — presence before polish');
+  ok(tight.band.every((b) => b === 'dot'), 'and when it is tight NOBODY gets detail — presence before polish');
   // The rule the first draft got backwards: an aircraft never disappears while another still has detail.
-  const share = GLYPH_COST.far * 42;
+  const share = GLYPH_COST.dot * 42;
   const exact = planSwarmDraw(s, 0, -260, share);
-  ok(exact.drawn === 42 && exact.dropped === 0, `a share of exactly 42 small glyphs draws all 42 (${exact.drawn})`);
-  ok(exact.band.every((b) => b === 'far'), 'all at the smallest size, because that is all it could afford');
+  ok(exact.drawn === 42 && exact.dropped === 0, `a share of exactly 42 marks draws all 42 (${exact.drawn})`);
+  ok(exact.band.every((b) => b === 'dot'), 'all at the smallest size, because that is all it could afford');
   const near = planSwarmDraw(s, 0, -260, 10_000);
   ok(near.band.some((b) => b === 'near'), 'with room, something close gets the detailed silhouette');
   ok(near.band.filter((b) => b === 'far').length < 42, 'and not everything is a dot');

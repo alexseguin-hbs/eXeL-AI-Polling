@@ -3,16 +3,23 @@
   "id": "xbat",
   "name": "X-BAT · 3rd-pass wireframe",
   "version": "00.00",
-  "revision": "0.001",
+  "revision": "0.002",
   "generator": "scripts/wire-xbat-model.mjs",
-  "stamp": "eXeL v0.001-2026.09.15-carried",
+  "stamp": "eXeL v0.002-2026.09.16-carried",
   "source": "docs/security-2525/xbat-wireframe/xbat_3rdpass_wireframe.obj (hand-written; carried, not regenerated)"
  },
  "units": "m",
  "frame": {
-  "kind": "body",
+  "kind": "drawing",
+  "attitude": "nose-up (tailsitter, as drawn)",
+  "axes": {
+   "span": "x",
+   "depth": "y",
+   "noseToTail": "z"
+  },
   "up": "z",
-  "forward": "x"
+  "forward": "z",
+  "supersedes": "revision 0.001 declared forward:'x', which the drawing's header contradicts"
  },
  "vertices": [
   [

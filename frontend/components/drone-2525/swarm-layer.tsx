@@ -13,12 +13,14 @@ import { useMemo } from "react";
 import { semanticHex } from "@/lib/wire-core/palette";
 import { VECTOR_LAW, strokeProps } from "@/lib/wire-core/vector-law";
 import { sceneProject, type SceneCam } from "@/lib/wire-core/scene-project";
-import { GLYPHS, AIRFRAME_EXTENT, type GlyphBand } from "@/lib/drone-2525/airframe-glyph";
+import { GLYPHS, GLYPH_UNIT_M, type GlyphBand } from "@/lib/drone-2525/airframe-glyph";
 import { sideOf, type Swarm, type SwarmDraw } from "@/lib/drone-2525/swarm";
 import type { Vec3 } from "@/lib/wire-core/wire-model";
 
-/** Metres of aircraft on screen. Read from the real airframe rather than chosen. */
-const SCALE_M = AIRFRAME_EXTENT.lengthM;
+// Metres of aircraft on screen. The glyph is normalised to nose-to-tail = 1, so this is the number to
+// scale by — and it is imported as GLYPH_UNIT_M rather than picked off the extent, because picking the
+// wrong member of that record is exactly the mistake the 2026-09-16 axis correction was about.
+const SCALE_M = GLYPH_UNIT_M;
 
 export function SwarmLayer({ swarm, plan, cam, groundAt }: {
   swarm: Swarm;
