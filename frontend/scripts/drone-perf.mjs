@@ -111,6 +111,13 @@ async function run(page, label, setup, extra = {}) {
     runs.push(await run(page, "42 aircraft 5.5", async (p) => {
       await p.selectOption("[data-drone-mot]", "5.5"); await p.waitForTimeout(800);
     }, { aircraft: 42 }));
+    // THE LEVEL-ONE FLOOR (operator 2026-09-16: "lowest simplest lowest rendered lowest memory requirement
+    // visual first"). Rung 1.1 is the Raspberry-Pi-class rung, WIREFRAME-CORE U-WF-07. Until the one-segment
+    // mark existed, 1.1's real share bought 31 deltas and eleven of the forty-two were dropped here — so
+    // this case is the one that would have caught it, and it is the one that must never regress.
+    runs.push(await run(page, "42 aircraft 1.1", async (p) => {
+      await p.selectOption("[data-drone-mot]", "1.1"); await p.waitForTimeout(800);
+    }, { aircraft: 42 }));
 
     // ── DOES THE PROJECTION MEMO ACTUALLY HOLD? ──────────────────────────────────────────────────
     // Measured, not instrumented. With the round paused NOTHING in the world changes, so a memo that holds

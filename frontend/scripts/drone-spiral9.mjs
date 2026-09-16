@@ -36,16 +36,26 @@ const GATES = [
 
 const sha = (s) => createHash("sha256").update(s).digest("hex").slice(0, 16);
 
+/**
+ * A GATE THAT PRINTS NO COUNT STILL PASSES. Most gates end with "N passed, M failed"; the `--check` gates
+ * (glyph, foil model, render) print a single line and signal with their exit code. The first edition read
+ * the missing count as `failed = null` and every consumer compared it with `!== 0`, so a `--check` gate
+ * that exited 0 was reported as a failure — which dragged Stability from 100 to 70 and printed FAIL over a
+ * green run. Exactly the class of defect the scorer rewrite was for: a number that did not come from
+ * evidence. `failed` is now 0 when the gate exited cleanly and said nothing, and `counted` records whether
+ * there was a tally to read at all.
+ */
 function runGate(name) {
   const t0 = Date.now();
   try {
     const out = execFileSync("npm", ["run", "--silent", name], { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
     const m = /(\d+) passed, (\d+) failed/.exec(out);
-    return { name, ok: true, passed: m ? +m[1] : null, failed: m ? +m[2] : null, ms: Date.now() - t0 };
+    return { name, ok: true, counted: Boolean(m), passed: m ? +m[1] : 0, failed: m ? +m[2] : 0, ms: Date.now() - t0 };
   } catch (e) {
     const out = `${e.stdout ?? ""}${e.stderr ?? ""}`;
     const m = /(\d+) passed, (\d+) failed/.exec(out);
-    return { name, ok: false, passed: m ? +m[1] : null, failed: m ? +m[2] : null, ms: Date.now() - t0 };
+    // A gate that exited non-zero has failed whether or not it managed to print a tally.
+    return { name, ok: false, counted: Boolean(m), passed: m ? +m[1] : 0, failed: m ? +m[2] : 1, ms: Date.now() - t0 };
   }
 }
 
