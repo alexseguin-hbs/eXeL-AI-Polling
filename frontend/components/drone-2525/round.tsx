@@ -34,6 +34,8 @@ import {
 import { initSi, openCall, recogniseAdopted, openCallOf, tally } from "@/lib/drone-2525/si-pod";
 import { initLink, seatUrl, seatFromParams, linkLine, linkUp, type Seat } from "@/lib/drone-2525/link";
 import { seatEye, seatEyeLine } from "@/lib/drone-2525/seat-view";
+import { initSlots, designate, nextFreeSlot, approve, canFire, clearSlot, pruneSlots, slotLine, refusalToast, slotOf } from "@/lib/drone-2525/slots";
+import { initLedger, decide as recordDecision, ev as recordEvent, type Stamp } from "@/lib/drone-2525/decisions";
 import { useDroneLink } from "@/lib/drone-2525/use-drone-link";
 import { CrewSeatPanel } from "./crew-seat-panel";
 import { initSwarm, stepSwarm, planSwarmDraw, swarmLine, aliveCount, SWARM_N } from "@/lib/drone-2525/swarm";
@@ -86,6 +88,11 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   const [askedFor, setAskedFor] = useState<string | null>(null);
   const stick = useRef({ fwd: 0, lat: 0, climb: 0, yaw: 0 });
   const [si, setSi] = useState(initSi);
+  // T1 · T2 · T3 and AMBER → RED (operator r.049/r.050): a designation is amber and cannot fire; only a
+  // named APPROVE makes red; only red can fire. And the RECORD: every designate, approve, refusal and shot
+  // is a decision with a name on it, kept beside the game rather than inferred from it afterwards.
+  const [slots, setSlots] = useState(initSlots);
+  const [ledger, setLedger] = useState(() => initLedger(DRONE_DOMAIN.project.revision));
   // FORTY-TWO AIRCRAFT, 21 v 21. Held in a ref, not in state: the columns are written in place by the tick,
   // and putting them in state would mean React comparing forty-two aircraft sixty times a second to learn
   // what the tick already knows. A counter published on the game clock is what the screen actually needs.
@@ -189,6 +196,12 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   // it on the door id rather than on the framed object stops it recomputing every single frame for a door
   // that has not moved. This was the hot path, and it was entirely wasted work.
   const framedDoorId = framed?.door.id ?? null;
+  // A slot whose door has closed or been tagged is dropped, not left pointing at nothing. pruneSlots
+  // returns the same object when nothing changed, so this is a no-op render on the ticks that change nothing.
+  useEffect(() => {
+    const live = new Set(views.filter((v) => v.phase === "up" || v.phase === "captured").map((v) => v.door.id));
+    setSlots((s) => pruneSlots(s, live));
+  }, [views]);
   const los = useMemo(() => {
     if (!framed) return null;
     return lineOfSight(eye, framed.door.at, world.ground, prisms, { ignore: framed.door.buildingId });
@@ -295,6 +308,52 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
     });
   }, [crew.approver, t]);
 
+  // THE STAMP every decision and event is written with. The seat is the actor; challenge and difficulty
+  // are the round's defaults until CH1–CH5 / DIFF 1–5 land in this app; the score is the tag count, which
+  // is what the round has for a score today. Nothing here reads a clock — tMs is the game clock.
+  const stampNow = useCallback((): Stamp => {
+    const cur = slots.current ? slots.s[slots.current] : null;
+    return {
+      t: tMsRef.current / 1000, actor: mySeatOr,
+      designated: Boolean(cur), hiApproved: cur?.phase === "red",
+      authorityLevel: 1, challenge: 1, diff: 3,
+      blu: score(game).tagged, red: 0,
+    };
+  }, [slots, mySeatOr, game]);
+
+  // TARGET → AMBER. Puts the door in view into the next free slot as a designation that CANNOT fire, and
+  // records it by name. click / the TARGET button / voice "target" all come here (r.050: redundant paths
+  // onto one action). Re-targeting the door already held is a no-op rather than a second record.
+  const doTarget = useCallback(() => {
+    if (!framed) { setNote(t("drone.game.no_target")); return; }
+    const id = framed.door.id;
+    if (slotOf(slots, id) !== null) { setNote(slotLine(slots, () => framed.door.label)); return; }
+    const n = nextFreeSlot(slots);
+    setSlots((s) => designate(s, n, id, mySeatOr, tMsRef.current));
+    setLedger((L) => {
+      const a = recordDecision(L, "DESIGNATE", id, stampNow(), { slot: n });
+      return recordEvent(a.ledger, "DESIGNATE", id, "AMBER", stampNow()).ledger;
+    });
+    setNote(`T${n} · AMBER · ${framed.door.label}`);
+  }, [framed, slots, mySeatOr, t, stampNow]);
+
+  // APPROVE → RED. The second authority. On one device that is the same person acting as HI-2, and the
+  // record says so (approvalKind reads two-step when approver === designator). A named approver in the
+  // crew — the watch officer in the mixed modes — is a different actor and reads two-person.
+  const doApprove = useCallback(() => {
+    const n = slots.current;
+    const cur = n ? slots.s[n] : null;
+    if (!n || !cur) { setNote(refusalToast("NO_RED_BOX")); return; }
+    if (cur.phase === "red") return;
+    const by = crew.approver || mySeatOr;
+    setSlots((s) => approve(s, n, by, tMsRef.current));
+    setLedger((L) => {
+      const a = recordDecision(L, "APPROVE", cur.doorId, { ...stampNow(), actor: by, hiApproved: true }, { by, from: cur.by, slot: n });
+      return recordEvent(a.ledger, "APPROVE", cur.doorId, "RED", { ...stampNow(), hiApproved: true }, by === cur.by ? "HI-2" : "HI").ledger;
+    });
+    setNote(`T${n} · RED · ${by === cur.by ? "HI-2" : by}`);
+  }, [slots, crew.approver, mySeatOr, stampNow]);
+
   const doCapture = useCallback(() => {
     setGame((g) => {
       const next = capture(g, { tMs, target: framed, los, edges: framed ? 480 : 0, az: gim.az, el: gim.el });
@@ -304,9 +363,21 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
   }, [tMs, framed, los, gim]);
 
   const doShoot = useCallback(() => {
-    // THE GATE. Consulted every time, with no way past it: a machine-aimed shot needs a named approval.
+    // THE GATE, IN TWO LAYERS, NEITHER OF WHICH CAN BE SKIPPED.
+    // First r.050's: no red box, no shot. A shot with nothing designated is NO_RED_BOX; a shot on an amber
+    // box is AMBER_NO_APPROVE. Both are refused AND RECORDED — a refusal is a decision, and a decision that
+    // is only toasted is a decision that is lost.
+    const check = canFire(slots);
+    if (!check.ok) {
+      const reason = check.refusal ?? "NO_RED_BOX";
+      setLedger((L) => recordDecision(L, "REJECT", check.doorId ?? "NONE", stampNow(), { reason }).ledger);
+      setNote(refusalToast(reason));
+      return;
+    }
+    // Then the machine gate that was already here: a machine-aimed shot needs a named approval.
     const permit = mayFire(crew, approval, askedFor);
     if (!permit.ok) { setNote(`${t("drone.crew.refused")} — ${permit.why}`); return; }
+    const doorId = check.doorId!;
     setGame((g) => {
       const next = shoot(g, {
         tMs, target: framed, los, onTarget: onTarget(gim), az: gim.az, el: gim.el,
@@ -315,7 +386,13 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
       setNote(next.events.at(-1)?.why ?? "");
       return next;
     });
-  }, [tMs, framed, los, gim, crew, approval, askedFor, t]);
+    setLedger((L) => {
+      const a = recordDecision(L, "SIM-ACTION", doorId, stampNow(), { slot: check.slot ?? 0 });
+      return recordEvent(a.ledger, "SIM-ACTION", doorId, `T${check.slot}`, stampNow()).ledger;
+    });
+    // A box that has been fired on is spent. Red is for one shot, not a standing licence.
+    if (check.slot) setSlots((s) => clearSlot(s, check.slot!));
+  }, [tMs, framed, los, gim, crew, approval, askedFor, t, slots, stampNow]);
 
   const reset = useCallback(() => {
     setGame(initGame(0)); resetClock(); setRunning(false); setNote("");
@@ -393,6 +470,9 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
         hudLeft={
           <>
             <span style={{ ...MONO, color: semanticHex("mount") }} data-drone-aim>{aimReadout(gim, los?.rangeM)}</span>
+            <span style={{ ...MONO, color: semanticHex(slots.current && slots.s[slots.current]?.phase === "red" ? "ray" : "pending") }} data-drone-slot>
+              {slotLine(slots, (id) => world.doors.find((d) => d.id === id)?.label ?? id)}
+            </span>
             <span style={{ ...MONO, color: semanticHex("frustum") }} data-drone-seat-eye>
               {seatEyeLine(mySeatOr, mount, flight.mode, world.ground)}
             </span>
@@ -432,7 +512,18 @@ export function Round({ mode, level, hal }: { mode: RoundMode; level: MotLevel; 
           </button>
         ) : null}
         {iAim ? (
-          <button data-drone-shoot onClick={doShoot} disabled={!framed} style={btn({ hex: semanticHex("ray"), enabled: Boolean(framed) })}>
+          <button data-drone-target onClick={doTarget} disabled={!framed} style={btn({ hex: semanticHex("pending"), enabled: Boolean(framed) })}>
+            {t("drone.game.target")}
+          </button>
+        ) : null}
+        {iAim ? (
+          <button data-drone-approve onClick={doApprove} disabled={!(slots.current && slots.s[slots.current]?.phase === "amber")}
+                  style={btn({ hex: semanticHex("ray"), enabled: Boolean(slots.current && slots.s[slots.current]?.phase === "amber") })}>
+            {t("drone.game.approve")}
+          </button>
+        ) : null}
+        {iAim ? (
+          <button data-drone-shoot onClick={doShoot} disabled={!canFire(slots).ok} style={btn({ hex: semanticHex("ray"), enabled: canFire(slots).ok })}>
             {t("drone.game.shoot")}
           </button>
         ) : null}

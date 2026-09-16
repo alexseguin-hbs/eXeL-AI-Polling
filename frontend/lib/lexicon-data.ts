@@ -2933,6 +2933,8 @@ const drone2525: TranslationEntry[] = [
   { key: "drone.game.next_target", englishDefault: "Next door", context: "Drone-2525 round: button that swings the camera to the next door standing open", cubeId: 0 },
   { key: "drone.game.capture", englishDefault: "Capture", context: "Drone-2525 round: button that photographs the door in view; must happen before the shot", cubeId: 0 },
   { key: "drone.game.shoot", englishDefault: "Shoot", context: "Drone-2525 round: button that fires at the door in view, tagging it if it was captured first", cubeId: 0 },
+  { key: "drone.game.target", englishDefault: "Target", context: "Drone-2525 round: button that designates the door in view as T1, T2 or T3 in amber — a first mark that cannot fire yet", cubeId: 0 },
+  { key: "drone.game.approve", englishDefault: "Approve", context: "Drone-2525 round: button for the second authority that turns an amber mark red so it may be fired on", cubeId: 0 },
   { key: "drone.game.reset", englishDefault: "Reset", context: "Drone-2525 round: button that clears the score and starts the round over", cubeId: 0 },
   { key: "drone.game.turret", englishDefault: "Turret", context: "Drone-2525 round: label before the buttons that choose which fixed turret you are sitting at", cubeId: 0 },
   { key: "drone.game.tagged", englishDefault: "Tagged", context: "Drone-2525 round score: label before the count of doors captured and then hit", cubeId: 0 },
