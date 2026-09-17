@@ -2,8 +2,10 @@
 import fs from 'node:fs';
 import {
   challengeSpec, targetSpecFor, doorsInPlay, ch5RefusesSelfApproval, challengeLine, CH_NAMES, RATE_REF,
-  DEFAULT_CHALLENGE, DEFAULT_DIFF, CH5_REASON,
+  DEFAULT_CHALLENGE, DEFAULT_DIFF, CH5_REASON, CH0_NAME, CHALLENGES_ALL, chName,
 } from '../lib/drone-2525/challenge.ts';
+import { runTraining, trainingLine } from '../lib/drone-2525/training.ts';
+import { metricsOf } from '../lib/drone-2525/decisions.ts';
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
@@ -63,5 +65,39 @@ const ux = fs.readFileSync(new URL('../components/drone-2525/command-ux1.tsx', i
 ok(/data-drone-ch\b/.test(ux) && /data-drone-diff\b/.test(ux), 'CH and DIFF are dropdowns in the top bar, not a hidden selector');
 ok(!/\bTG\b|tgSpec/.test(round + ux), 'TG is not resurrected as a second level system');
 
-console.log(`\ndrone-challenge: ${pass} passed, ${fail} failed · 25 CH×DIFF cells verbatim from r.050 · CH5 = a second person`);
+// ── CH0 TRAINING: the rung BELOW CH1 (extension, not the deck — the deck clamps to 1) ────────────
+// CH0 is ours, added at the operator's ask ("add level 0 for training with pop up targets"). It is checked
+// against the SAME formula the deck uses for CH1–CH5, evaluated at c=0, NOT against the deck (which has no
+// CH0). The verbatim loop above stays 1–5; this proves the extension is the natural c=0 of that one formula.
+for (let d = 1; d <= 5; d++) {
+  const s = challengeSpec(0, d);
+  const okRow = s.quota === 4 + d && s.rate === Math.max(10, 56 - d * 4) && Math.abs(s.spd - (3 + d * 0.8)) < 1e-9
+    && s.moving === false && s.axes === 1 && s.net === false && s.pops === true && s.training === true
+    && s.name === `CH0 TRAINING D${d}`;
+  ok(okRow, `CH0 D${d}: quota ${s.quota} rate ${s.rate} — the c=0 of the deck's own formula, pops on, still, training`);
+}
+ok(challengeSpec(0, 3).c === 0 && challengeSpec(0, 3).training === true, 'an EXPLICIT 0 survives the clamp — the training rung is reachable');
+ok(challengeSpec(NaN, NaN).c === 1 && challengeSpec(NaN, NaN).training === false, 'garbage still falls to CH1, never to training');
+ok(challengeSpec(-3, 3).c === 0, 'below-zero clamps UP to the training floor, not to CH1');
+ok(CH0_NAME === 'TRAINING' && chName(0) === 'TRAINING' && chName(1) === 'LAWN' && chName(5) === 'NET', 'chName never reads CH_NAMES[-1]');
+ok(CHALLENGES_ALL.join(',') === '0,1,2,3,4,5', 'CHALLENGES_ALL carries CH0; the guided start and ladder iterate it');
+ok(targetSpecFor(base, challengeSpec(0, 3)).upMs === 7200, 'the CH0 window is the deck 4+CH proportion of the arena window (7.2 s)');
+
+// ── runTraining: pure, seeded, the SAME fire gate and the SAME ledger ────────────────────────────
+const t1 = runTraining({ diff: 3, seed: 2525 });
+const t2 = runTraining({ diff: 3, seed: 2525 });
+ok(t1.tagged >= 1, `a training pass tags at least one target (tagged ${t1.tagged}/${t1.quota})`);
+ok(t1.missed === 0, 'no target is missed in training — the gate clears every approved mark');
+ok(t1.tagged <= t1.quota, 'never more hits than the quota scheduled');
+ok(t1.replayHash === t2.replayHash && t1.tagged === t2.tagged, 'pure + seeded: two runs hash identically');
+ok(runTraining({ diff: 5, seed: 2525 }).replayHash !== t1.replayHash, 'a different difficulty is a different run');
+const evs = t1.ledger.events;
+ok(evs.filter((e) => e.verb === 'SIM-ACTION').length === t1.tagged, 'one SIM-ACTION per tagged target');
+ok(evs.filter((e) => e.verb === 'DESIGNATE').length === t1.tagged && evs.filter((e) => e.verb === 'APPROVE').length === t1.tagged,
+  'every target went TARGET → AMBER → APPROVE → RED → FIRE — the gate is never bypassed, even in training');
+ok(evs.every((e) => e.challenge === 0), 'every training event is stamped CH0');
+ok(metricsOf(t1.ledger).designations === t1.tagged, 'the decision record counts the designations the pass made');
+ok(/^CH0 TRAINING · \d+\/\d+ tagged/.test(trainingLine(t1)), 'the training line reads for a person');
+
+console.log(`\ndrone-challenge: ${pass} passed, ${fail} failed · 25 CH×DIFF cells verbatim from r.050 · CH0 the training rung below · CH5 = a second person`);
 process.exit(fail ? 1 : 0);

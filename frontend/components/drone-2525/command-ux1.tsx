@@ -13,7 +13,7 @@
  * asked for that is not built yet is a promise on screen, not a silence.
  */
 import { PLATFORMS, DEFAULT_PLATFORM, type PlatformId } from "@/lib/drone-2525/platform";
-import { CHALLENGES, DIFFICULTIES, CH_NAMES, DEFAULT_CHALLENGE, DEFAULT_DIFF, type Challenge, type Difficulty } from "@/lib/drone-2525/challenge";
+import { CHALLENGES_ALL, DIFFICULTIES, chName, DEFAULT_CHALLENGE, DEFAULT_DIFF, type Challenge, type Difficulty } from "@/lib/drone-2525/challenge";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -99,7 +99,7 @@ export function DroneCommandUX1() {
           <span style={{ ...dim, fontSize: 10 }}>{t("drone.ch")}</span>
           <select data-drone-ch value={challenge} onChange={(e) => setChallenge(Number(e.target.value) as Challenge)}
                   style={{ ...btn({ on: true, hex: semanticHex("door") }), minWidth: 96 }}>
-            {CHALLENGES.map((c) => <option key={c} value={c}>{`CH${c} ${CH_NAMES[c - 1]}`}</option>)}
+            {CHALLENGES_ALL.map((c) => <option key={c} value={c}>{`CH${c} ${chName(c)}`}</option>)}
           </select>
           <span style={{ ...dim, fontSize: 10 }}>{t("drone.diff")}</span>
           <select data-drone-diff value={diff} onChange={(e) => setDiff(Number(e.target.value) as Difficulty)}
@@ -119,6 +119,9 @@ export function DroneCommandUX1() {
       {/* What this is and is not — said once, in plain words, on every run */}
       <div style={{ padding: "0 14px 24px", maxWidth: 820 }}>
         <p style={{ fontSize: 11, lineHeight: 1.7, ...dim }}>{t("drone.disclaimer")}</p>
+        {challenge === 0 && (
+          <p data-drone-training style={{ fontSize: 11, lineHeight: 1.7, color: semanticHex("mount") }}>{t("drone.ch.training_line")}</p>
+        )}
         <p style={{ fontSize: 11, lineHeight: 1.7, ...dim }}>{t("drone.mode_note")}</p>
       </div>
     </div>

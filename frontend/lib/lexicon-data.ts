@@ -2978,6 +2978,8 @@ const drone2525: TranslationEntry[] = [
   { key: "drone.ch", englishDefault: "Challenge", context: "Drone-2525 top bar: label before the dropdown that picks the challenge, CH1 LAWN to CH5 NET", cubeId: 0 },
   { key: "drone.diff", englishDefault: "Difficulty", context: "Drone-2525 top bar: label before the dropdown that picks the difficulty, 1 to 5", cubeId: 0 },
   { key: "drone.ch.second_person", englishDefault: "CH5 · a second person must approve", context: "Drone-2525 round: message when, on the NET challenge, the same person who marked a door tries to approve their own mark; a different person has to", cubeId: 0 },
+  { key: "drone.ch.training_line", englishDefault: "Training — pop-up targets, no one shooting back. Feel target, approve, fire once.", context: "Drone-2525 CH0 TRAINING: one line telling a first-timer what the training rung is", cubeId: 0 },
+  { key: "drone.ch.first_visit", englishDefault: "First time? Start on the turret — targets pop up, you take one shot at a time.", context: "Drone-2525 guided start: line shown to a first-time player auto-assigned CH0 TRAINING on the turret", cubeId: 0 },
   { key: "drone.deck.slots", englishDefault: "Target slots", context: "Drone-2525 control deck: label before the T1 T2 T3 buttons that hold up to three marked doors", cubeId: 0 },
   { key: "drone.deck.slot_empty", englishDefault: "empty", context: "Drone-2525 control deck: tooltip on a target slot button that holds no door yet", cubeId: 0 },
   { key: "drone.deck.voice_on", englishDefault: "Voice on", context: "Drone-2525 control deck: toggle button state while the microphone is listening for commands", cubeId: 0 },

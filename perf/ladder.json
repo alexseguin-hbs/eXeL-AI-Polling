@@ -1,6 +1,6 @@
 {
-  "commit": "e7bd9ab",
-  "at": "2026-09-16T12:13:56.963Z",
+  "commit": "90882b3",
+  "at": "2026-09-17T09:51:26.633Z",
   "seeds": 3,
   "levels": [
     1,
@@ -8,6 +8,56 @@
     5
   ],
   "humanCeilingPerMin": 50,
+  "rung0Training": {
+    "deterministic": true,
+    "rows": [
+      {
+        "diff": 1,
+        "tagged": 5,
+        "missed": 0,
+        "quota": 5,
+        "replayHash": "e8be93b31e913b34",
+        "deterministic": true,
+        "line": "CH0 TRAINING · 5/5 tagged · e8be93b31e913b34"
+      },
+      {
+        "diff": 2,
+        "tagged": 6,
+        "missed": 0,
+        "quota": 6,
+        "replayHash": "0641752ad1713338",
+        "deterministic": true,
+        "line": "CH0 TRAINING · 6/6 tagged · 0641752ad1713338"
+      },
+      {
+        "diff": 3,
+        "tagged": 7,
+        "missed": 0,
+        "quota": 7,
+        "replayHash": "8bbbd7f2e111f227",
+        "deterministic": true,
+        "line": "CH0 TRAINING · 7/7 tagged · 8bbbd7f2e111f227"
+      },
+      {
+        "diff": 4,
+        "tagged": 8,
+        "missed": 0,
+        "quota": 8,
+        "replayHash": "d3f669f0abad68a4",
+        "deterministic": true,
+        "line": "CH0 TRAINING · 8/8 tagged · d3f669f0abad68a4"
+      },
+      {
+        "diff": 5,
+        "tagged": 9,
+        "missed": 0,
+        "quota": 9,
+        "replayHash": "01980a1b8a18d853",
+        "deterministic": true,
+        "line": "CH0 TRAINING · 9/9 tagged · 01980a1b8a18d853"
+      }
+    ]
+  },
   "rows": [
     {
       "level": 1,
@@ -33,7 +83,7 @@
       "hiHolds": 0,
       "authFailures": 24,
       "handoffs": 0,
-      "simSpeed": 7306.8,
+      "simSpeed": 7325.6,
       "replayHash": "625d584cf0e3c3f5"
     },
     {
@@ -60,7 +110,7 @@
       "hiHolds": 0,
       "authFailures": 90,
       "handoffs": 3,
-      "simSpeed": 14786.6,
+      "simSpeed": 12456.4,
       "replayHash": "4a88b52dbabfa821"
     },
     {
@@ -87,7 +137,7 @@
       "hiHolds": 0,
       "authFailures": 162,
       "handoffs": 5,
-      "simSpeed": 21204.2,
+      "simSpeed": 20031.8,
       "replayHash": "0e3227254872cfe5"
     },
     {
@@ -114,7 +164,7 @@
       "hiHolds": 0,
       "authFailures": 262,
       "handoffs": 10,
-      "simSpeed": 17169.7,
+      "simSpeed": 14908.4,
       "replayHash": "4b3217aec6f73308"
     },
     {
@@ -141,7 +191,7 @@
       "hiHolds": 0,
       "authFailures": 367,
       "handoffs": 15,
-      "simSpeed": 32973,
+      "simSpeed": 26803,
       "replayHash": "8464e1e90bb364d4"
     },
     {
@@ -168,7 +218,7 @@
       "hiHolds": 0,
       "authFailures": 444,
       "handoffs": 21,
-      "simSpeed": 35596.6,
+      "simSpeed": 31660.2,
       "replayHash": "9e50c2a247d749fe"
     },
     {
@@ -195,7 +245,7 @@
       "hiHolds": 0,
       "authFailures": 584,
       "handoffs": 25,
-      "simSpeed": 26753.4,
+      "simSpeed": 23135.6,
       "replayHash": "954846ea82a9b5d2"
     },
     {
@@ -222,7 +272,7 @@
       "hiHolds": 0,
       "authFailures": 649,
       "handoffs": 27,
-      "simSpeed": 23108.3,
+      "simSpeed": 20137.3,
       "replayHash": "7961e4768bdbf2bd"
     },
     {
@@ -249,7 +299,7 @@
       "hiHolds": 0,
       "authFailures": 840,
       "handoffs": 42,
-      "simSpeed": 19406.7,
+      "simSpeed": 17141,
       "replayHash": "686671715c9e2bb3"
     },
     {
@@ -276,7 +326,7 @@
       "hiHolds": 0,
       "authFailures": 839,
       "handoffs": 40,
-      "simSpeed": 15151.7,
+      "simSpeed": 13341.7,
       "replayHash": "99bc5be9a0500b66"
     },
     {
@@ -303,7 +353,7 @@
       "hiHolds": 0,
       "authFailures": 1033,
       "handoffs": 43,
-      "simSpeed": 17152.9,
+      "simSpeed": 15656.1,
       "replayHash": "8630fb3734082666"
     },
     {
@@ -330,7 +380,7 @@
       "hiHolds": 0,
       "authFailures": 1160,
       "handoffs": 56,
-      "simSpeed": 12146.5,
+      "simSpeed": 11137.4,
       "replayHash": "7d1847e80ea968f6"
     },
     {
@@ -357,7 +407,7 @@
       "hiHolds": 0,
       "authFailures": 1247,
       "handoffs": 60,
-      "simSpeed": 13020.9,
+      "simSpeed": 12199.5,
       "replayHash": "bbed98686bd8ae0b"
     },
     {
@@ -384,7 +434,7 @@
       "hiHolds": 0,
       "authFailures": 1417,
       "handoffs": 67,
-      "simSpeed": 10850.5,
+      "simSpeed": 9322.4,
       "replayHash": "6f75043610977c4a"
     },
     {
@@ -411,7 +461,7 @@
       "hiHolds": 0,
       "authFailures": 1774,
       "handoffs": 109,
-      "simSpeed": 10984.2,
+      "simSpeed": 9540.9,
       "replayHash": "f9364c41e808cfa0"
     },
     {
@@ -438,7 +488,7 @@
       "hiHolds": 0,
       "authFailures": 1761,
       "handoffs": 85,
-      "simSpeed": 9314.3,
+      "simSpeed": 8355.4,
       "replayHash": "afe4f896ce4bbc67"
     },
     {
@@ -465,7 +515,7 @@
       "hiHolds": 0,
       "authFailures": 2091,
       "handoffs": 120,
-      "simSpeed": 10271.9,
+      "simSpeed": 9547,
       "replayHash": "6d103a40a41999e6"
     },
     {
@@ -492,7 +542,7 @@
       "hiHolds": 0,
       "authFailures": 2437,
       "handoffs": 142,
-      "simSpeed": 8266.3,
+      "simSpeed": 6973.5,
       "replayHash": "e3fdc3e49132c361"
     },
     {
@@ -519,7 +569,7 @@
       "hiHolds": 0,
       "authFailures": 2275,
       "handoffs": 132,
-      "simSpeed": 7907.1,
+      "simSpeed": 7249.6,
       "replayHash": "8a9a12e23f0c9a24"
     },
     {
@@ -546,7 +596,7 @@
       "hiHolds": 0,
       "authFailures": 2687,
       "handoffs": 170,
-      "simSpeed": 7455.6,
+      "simSpeed": 6710.5,
       "replayHash": "9d7a542ec9b36d2d"
     },
     {
@@ -573,7 +623,7 @@
       "hiHolds": 0,
       "authFailures": 2702,
       "handoffs": 180,
-      "simSpeed": 8095.4,
+      "simSpeed": 7423.1,
       "replayHash": "9e987b3de455e08d"
     },
     {
@@ -600,7 +650,7 @@
       "hiHolds": 0,
       "authFailures": 24,
       "handoffs": 0,
-      "simSpeed": 38673.8,
+      "simSpeed": 43469.3,
       "replayHash": "f41ccb8ffcf853ff"
     },
     {
@@ -627,7 +677,7 @@
       "hiHolds": 0,
       "authFailures": 48,
       "handoffs": 3,
-      "simSpeed": 37432.4,
+      "simSpeed": 31651.2,
       "replayHash": "d9fac9f825c11614"
     },
     {
@@ -654,7 +704,7 @@
       "hiHolds": 0,
       "authFailures": 78,
       "handoffs": 5,
-      "simSpeed": 25412.4,
+      "simSpeed": 24452.2,
       "replayHash": "acd3209fee461438"
     },
     {
@@ -681,7 +731,7 @@
       "hiHolds": 0,
       "authFailures": 108,
       "handoffs": 10,
-      "simSpeed": 19732.6,
+      "simSpeed": 18427,
       "replayHash": "41f7f1d03abf8ef9"
     },
     {
@@ -708,7 +758,7 @@
       "hiHolds": 0,
       "authFailures": 139,
       "handoffs": 15,
-      "simSpeed": 20446.4,
+      "simSpeed": 27205.1,
       "replayHash": "99b9d12ca75ba43f"
     },
     {
@@ -735,7 +785,7 @@
       "hiHolds": 0,
       "authFailures": 174,
       "handoffs": 18,
-      "simSpeed": 31694.4,
+      "simSpeed": 27736.6,
       "replayHash": "da31e6a02b41eba7"
     },
     {
@@ -762,7 +812,7 @@
       "hiHolds": 0,
       "authFailures": 219,
       "handoffs": 26,
-      "simSpeed": 24988.2,
+      "simSpeed": 24247.7,
       "replayHash": "83f76ccc46ca65c2"
     },
     {
@@ -789,7 +839,7 @@
       "hiHolds": 0,
       "authFailures": 247,
       "handoffs": 25,
-      "simSpeed": 21571.6,
+      "simSpeed": 18280.8,
       "replayHash": "13ed79e8b33a67f3"
     },
     {
@@ -816,7 +866,7 @@
       "hiHolds": 0,
       "authFailures": 288,
       "handoffs": 24,
-      "simSpeed": 16889.4,
+      "simSpeed": 15670.1,
       "replayHash": "f5bef09d6e23cd58"
     },
     {
@@ -843,7 +893,7 @@
       "hiHolds": 0,
       "authFailures": 332,
       "handoffs": 32,
-      "simSpeed": 13085.3,
+      "simSpeed": 12772.6,
       "replayHash": "58c4f9cfae5ed15f"
     },
     {
@@ -870,7 +920,7 @@
       "hiHolds": 0,
       "authFailures": 380,
       "handoffs": 37,
-      "simSpeed": 9844,
+      "simSpeed": 9450.3,
       "replayHash": "65e1f344bf6eb542"
     },
     {
@@ -897,7 +947,7 @@
       "hiHolds": 0,
       "authFailures": 419,
       "handoffs": 37,
-      "simSpeed": 11733,
+      "simSpeed": 10833,
       "replayHash": "16b82453435ef27f"
     },
     {
@@ -924,7 +974,7 @@
       "hiHolds": 0,
       "authFailures": 468,
       "handoffs": 41,
-      "simSpeed": 11903.2,
+      "simSpeed": 10995.7,
       "replayHash": "5a61d31285c856cf"
     },
     {
@@ -951,7 +1001,7 @@
       "hiHolds": 0,
       "authFailures": 527,
       "handoffs": 52,
-      "simSpeed": 8765.6,
+      "simSpeed": 8246.1,
       "replayHash": "305737ea5cbdd0f3"
     },
     {
@@ -978,7 +1028,7 @@
       "hiHolds": 0,
       "authFailures": 589,
       "handoffs": 53,
-      "simSpeed": 8437.2,
+      "simSpeed": 7101.8,
       "replayHash": "32e1e495a4fc8dd7"
     },
     {
@@ -1005,7 +1055,7 @@
       "hiHolds": 0,
       "authFailures": 639,
       "handoffs": 53,
-      "simSpeed": 7692.4,
+      "simSpeed": 7085.1,
       "replayHash": "635b10c3a7db4492"
     },
     {
@@ -1032,7 +1082,7 @@
       "hiHolds": 0,
       "authFailures": 680,
       "handoffs": 62,
-      "simSpeed": 5973.1,
+      "simSpeed": 5375.1,
       "replayHash": "4373a1eda6b6a50e"
     },
     {
@@ -1059,7 +1109,7 @@
       "hiHolds": 0,
       "authFailures": 738,
       "handoffs": 66,
-      "simSpeed": 5916,
+      "simSpeed": 5655.3,
       "replayHash": "e78928b3c5e3d9ef"
     },
     {
@@ -1086,7 +1136,7 @@
       "hiHolds": 0,
       "authFailures": 810,
       "handoffs": 74,
-      "simSpeed": 6796.6,
+      "simSpeed": 5983.7,
       "replayHash": "7363b8290b790460"
     },
     {
@@ -1113,7 +1163,7 @@
       "hiHolds": 0,
       "authFailures": 879,
       "handoffs": 82,
-      "simSpeed": 6101.5,
+      "simSpeed": 5534.9,
       "replayHash": "2e5901167eb09501"
     },
     {
@@ -1140,7 +1190,7 @@
       "hiHolds": 0,
       "authFailures": 924,
       "handoffs": 78,
-      "simSpeed": 5157.9,
+      "simSpeed": 4669.1,
       "replayHash": "651ebf684b1f0eef"
     },
     {
@@ -1167,7 +1217,7 @@
       "hiHolds": 0,
       "authFailures": 24,
       "handoffs": 0,
-      "simSpeed": 49529.5,
+      "simSpeed": 42577.1,
       "replayHash": "97db2b8c8eb351f9"
     },
     {
@@ -1194,7 +1244,7 @@
       "hiHolds": 0,
       "authFailures": 48,
       "handoffs": 3,
-      "simSpeed": 36572.6,
+      "simSpeed": 27187.9,
       "replayHash": "36298bce2d6b6baa"
     },
     {
@@ -1221,7 +1271,7 @@
       "hiHolds": 0,
       "authFailures": 72,
       "handoffs": 4,
-      "simSpeed": 25501.7,
+      "simSpeed": 22717.9,
       "replayHash": "968e35c117064e74"
     },
     {
@@ -1248,7 +1298,7 @@
       "hiHolds": 0,
       "authFailures": 96,
       "handoffs": 10,
-      "simSpeed": 19170.7,
+      "simSpeed": 19054,
       "replayHash": "8fb63a852fbc8913"
     },
     {
@@ -1275,7 +1325,7 @@
       "hiHolds": 0,
       "authFailures": 121,
       "handoffs": 14,
-      "simSpeed": 34784.9,
+      "simSpeed": 24202.6,
       "replayHash": "a3c29f30070d5667"
     },
     {
@@ -1302,7 +1352,7 @@
       "hiHolds": 0,
       "authFailures": 146,
       "handoffs": 16,
-      "simSpeed": 28647.4,
+      "simSpeed": 23542.5,
       "replayHash": "cf1b533e1ccc6683"
     },
     {
@@ -1329,7 +1379,7 @@
       "hiHolds": 0,
       "authFailures": 174,
       "handoffs": 27,
-      "simSpeed": 26994,
+      "simSpeed": 24468.1,
       "replayHash": "fc15a6fd0608ff26"
     },
     {
@@ -1356,7 +1406,7 @@
       "hiHolds": 0,
       "authFailures": 197,
       "handoffs": 25,
-      "simSpeed": 22294.7,
+      "simSpeed": 20740.3,
       "replayHash": "48df1d68e3421285"
     },
     {
@@ -1383,7 +1433,7 @@
       "hiHolds": 0,
       "authFailures": 223,
       "handoffs": 25,
-      "simSpeed": 15255.6,
+      "simSpeed": 14054,
       "replayHash": "9510956e45ed8ef3"
     },
     {
@@ -1410,7 +1460,7 @@
       "hiHolds": 0,
       "authFailures": 253,
       "handoffs": 33,
-      "simSpeed": 13746.8,
+      "simSpeed": 12577.6,
       "replayHash": "99a17e473d16c390"
     },
     {
@@ -1437,7 +1487,7 @@
       "hiHolds": 0,
       "authFailures": 276,
       "handoffs": 37,
-      "simSpeed": 11908.3,
+      "simSpeed": 9677,
       "replayHash": "b41c7a089a1c4e90"
     },
     {
@@ -1464,7 +1514,7 @@
       "hiHolds": 0,
       "authFailures": 304,
       "handoffs": 38,
-      "simSpeed": 11934.7,
+      "simSpeed": 10068.2,
       "replayHash": "e5363d095a364682"
     },
     {
@@ -1491,7 +1541,7 @@
       "hiHolds": 0,
       "authFailures": 333,
       "handoffs": 39,
-      "simSpeed": 11877.5,
+      "simSpeed": 10310.8,
       "replayHash": "748500e266594a73"
     },
     {
@@ -1518,7 +1568,7 @@
       "hiHolds": 0,
       "authFailures": 360,
       "handoffs": 53,
-      "simSpeed": 8636.3,
+      "simSpeed": 7801.6,
       "replayHash": "40561dac86d57a0c"
     },
     {
@@ -1545,7 +1595,7 @@
       "hiHolds": 0,
       "authFailures": 390,
       "handoffs": 52,
-      "simSpeed": 9305.1,
+      "simSpeed": 8763.6,
       "replayHash": "da7b06957da8c411"
     },
     {
@@ -1572,7 +1622,7 @@
       "hiHolds": 0,
       "authFailures": 417,
       "handoffs": 55,
-      "simSpeed": 7495,
+      "simSpeed": 7008.5,
       "replayHash": "b44ed591d747f2b9"
     },
     {
@@ -1599,7 +1649,7 @@
       "hiHolds": 0,
       "authFailures": 444,
       "handoffs": 65,
-      "simSpeed": 5801.6,
+      "simSpeed": 5497.1,
       "replayHash": "24ccdb512ff5d8d9"
     },
     {
@@ -1626,7 +1676,7 @@
       "hiHolds": 0,
       "authFailures": 474,
       "handoffs": 65,
-      "simSpeed": 6528.2,
+      "simSpeed": 5850.2,
       "replayHash": "646f60e74f937476"
     },
     {
@@ -1653,7 +1703,7 @@
       "hiHolds": 0,
       "authFailures": 506,
       "handoffs": 73,
-      "simSpeed": 6464.1,
+      "simSpeed": 5827,
       "replayHash": "5aa94dc683d11426"
     },
     {
@@ -1680,7 +1730,7 @@
       "hiHolds": 0,
       "authFailures": 537,
       "handoffs": 87,
-      "simSpeed": 6214.2,
+      "simSpeed": 5255.4,
       "replayHash": "630525b92a8bb9aa"
     },
     {
@@ -1707,7 +1757,7 @@
       "hiHolds": 0,
       "authFailures": 565,
       "handoffs": 84,
-      "simSpeed": 5300.8,
+      "simSpeed": 3126.5,
       "replayHash": "b3c8573c49bb85c5"
     }
   ],

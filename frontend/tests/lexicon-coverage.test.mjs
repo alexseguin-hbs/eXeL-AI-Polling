@@ -17,11 +17,12 @@ const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 // re-staged AND its 32 now-stale translations are removed from lib/i18n-app/*, so t() falls back to the corrected
 // English rather than returning the old, wrong translation ("listed never silent" — an orphaned fill is a silent lie).
 const AFTER_FILL = new Set([
-  // Empty: the 9 drone.rec.* keys (P0-6) and the corrected drone.mode_note (P0-11, English changed 2026-09-17 —
-  // all four modes are live; the 32 stale translations were removed and re-filled ×32) all landed on 2026-09-17.
-  // ROUND-12 keys added hereafter (guided start, intro/CIN, edge deck, room, HAND OFF, CH0, legend) stage here
-  // the moment they are declared, and any key whose English is later changed is re-staged AND its stale
-  // translations removed from lib/i18n-app/* — never left to return the old wording ("listed never silent").
+  // ROUND-12 keys stage here the moment they are declared; any key whose English is later changed is re-staged
+  // AND its stale translations removed from lib/i18n-app/* — never left to return the old wording ("listed
+  // never silent"). Filled ×32 in a batch once a P1 revision's UI settles, then cleared.
+  // P1-E · CH0 TRAINING (2026-09-17):
+  'drone.ch.training_line',
+  'drone.ch.first_visit',
 ]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;

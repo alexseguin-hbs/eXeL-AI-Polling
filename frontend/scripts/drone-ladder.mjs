@@ -29,12 +29,14 @@ const { DRONE_DOMAIN } = await import(path.join(FRONTEND, "lib/drone-2525/domain
 const { dwellToDisableS } = await import(path.join(FRONTEND, "lib/drone-2525/laser.ts"));
 const { AUTHORITY } = await import(path.join(FRONTEND, "lib/drone-2525/authority.ts"));
 const { seatsFor } = await import(path.join(FRONTEND, "lib/drone-2525/swarm.ts"));
+const { runTraining, trainingLine } = await import(path.join(FRONTEND, "lib/drone-2525/training.ts"));
 
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : d; };
 const LEVELS = arg("--levels", "1,3,5").split(",").map(Number);
 const SEEDS = Number(arg("--seeds", "3"));
 const OUT = path.join(ROOT, arg("--json", "perf/ladder.json"));
 
+const DIFFICULTIES_5 = [1, 2, 3, 4, 5];
 const B = DRONE_DOMAIN.beam, D = DRONE_DOMAIN.defences;
 const spec = (perSide, authority, seed) => ({
   perSide, seed, beam: B, defences: D, authority,
@@ -188,6 +190,25 @@ const LENSES = [
     } },
 ];
 
+// ── RUNG 0 · TRAINING (1v0) ────────────────────────────────────────────────────────────────────
+// Below 1v1 sits the training rung: a stationary turret, pop-up targets, nobody shooting back — the rung a
+// first-timer plays before CH1. It is 1v0, so the contest engine (which needs two sides) does not run it;
+// the pure CH0 sim (lib/drone-2525/training.ts) does. The twelve lenses read it as the ladder's floor: the
+// authority path (TARGET → AMBER → APPROVE → RED → FIRE) is exercised here with zero opponent pressure, and
+// its determinism is the same seed → same hash the rest of the ladder demands.
+const training = DIFFICULTIES_5.map((d) => {
+  const a = runTraining({ diff: d, seed: 2525 });
+  const b = runTraining({ diff: d, seed: 2525 });
+  return { diff: d, tagged: a.tagged, missed: a.missed, quota: a.quota, replayHash: a.replayHash, deterministic: a.replayHash === b.replayHash, line: trainingLine(a) };
+});
+const trainingDeterministic = training.every((t) => t.deterministic && t.missed === 0 && t.tagged >= 1);
+console.log(`\nRUNG 0 — CH0 TRAINING (1v0), pop-up targets, no opponent · seed 2525\n`);
+console.log(`  diff   tagged/quota   missed   det   hash`);
+for (const t of training) {
+  console.log(`  D${t.diff}     ${String(t.tagged + "/" + t.quota).padEnd(11)}  ${String(t.missed).padEnd(6)}  ${t.deterministic ? "✓" : "✗"}    ${t.replayHash}`);
+}
+console.log(`  ${trainingDeterministic ? "✓ the training rung is deterministic and the gate is never bypassed" : "✗ training rung FAILED"}`);
+
 // ── REPORT ───────────────────────────────────────────────────────────────────────────────────────
 console.log(`\nTHE N LADDER — 1v1 → 21v21, ${SEEDS} seeds a rung, authority level(s) ${LEVELS.join(" and ")}\n`);
 for (const level of LEVELS) {
@@ -235,6 +256,7 @@ try { commit = (await import("node:child_process")).execFileSync("git", ["rev-pa
 writeFileSync(OUT, JSON.stringify({
   commit, at: new Date().toISOString(), seeds: SEEDS, levels: LEVELS,
   humanCeilingPerMin: HUMAN_CEILING_PER_MIN,
+  rung0Training: { deterministic: trainingDeterministic, rows: training },
   // sim× is a wall-clock throughput and is deliberately NOT part of any hash (r.043: no FPS in the hash).
   rows: rows.map(({ runs, ...r }) => r),
   hashes: rows.map((r) => ({ level: r.level, perSide: r.perSide, seeds: r.runs.map((x) => x.replayHash) })),

@@ -21,33 +21,48 @@
 // the net; two-person is the rule. Said here so nobody reads CH5 as "the same dialog we already had".
 import type { TargetSpec } from "./targets";
 
-export type Challenge = 1 | 2 | 3 | 4 | 5;
+export type Challenge = 0 | 1 | 2 | 3 | 4 | 5;
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 export const CH_NAMES = ["LAWN", "AXIS", "MIX", "RING", "NET"] as const;
+/** CH0 sits BELOW CH1 (operator 2026-09-16: "add level 0 for training with pop up targets"). */
+export const CH0_NAME = "TRAINING";
+/** The DEFAULT selector is still CH1–CH5 (CH0 is reached by the guided start / first visit, not chosen cold). */
 export const CHALLENGES: readonly Challenge[] = [1, 2, 3, 4, 5];
+/** Everything the round CAN run, CH0 included — what the guided start and the ladder iterate. */
+export const CHALLENGES_ALL: readonly Challenge[] = [0, 1, 2, 3, 4, 5];
 export const DIFFICULTIES: readonly Difficulty[] = [1, 2, 3, 4, 5];
 /** The deck's defaults: CH1 D3. */
 export const DEFAULT_CHALLENGE: Challenge = 1;
 export const DEFAULT_DIFF: Difficulty = 3;
 
+/** CH0 → TRAINING, CH1–CH5 → the deck names. One accessor so a c=0 never reads `CH_NAMES[-1]`. */
+export const chName = (c: number): string => (c === 0 ? CH0_NAME : CH_NAMES[(c as Challenge) - 1] ?? CH0_NAME);
+
 export interface ChallengeSpec {
   c: Challenge; d: Difficulty; name: string;
   quota: number; rate: number; spd: number;
   moving: boolean; axes: 1 | 2 | 4; net: boolean; pops: boolean;
+  /** CH0 is the training rung — a stationary turret and pop-up targets, auto-assigned to a first-timer. */
+  training: boolean;
 }
 
-const clamp5 = (v: number, dflt: number): Challenge =>
-  (Number.isFinite(v) ? Math.max(1, Math.min(5, Math.round(v))) : dflt) as Challenge;
+// Accepts an EXPLICIT 0 (the training rung); only a non-finite value falls back to the default. So a
+// deliberate CH0 survives, while garbage still becomes CH1 (the guided start relies on both).
+const clampCh = (v: number, dflt: number): Challenge =>
+  (Number.isFinite(v) ? Math.max(0, Math.min(5, Math.round(v))) : dflt) as Challenge;
+const clampDiff = (v: number, dflt: number): Difficulty =>
+  (Number.isFinite(v) ? Math.max(1, Math.min(5, Math.round(v))) : dflt) as Difficulty;
 
-/** r.050 challengeSpec(), field for field. */
+/** r.050 challengeSpec(), field for field — extended DOWN to CH0 (never forked). */
 export function challengeSpec(challenge: number = DEFAULT_CHALLENGE, diff: number = DEFAULT_DIFF): ChallengeSpec {
-  const c = clamp5(challenge, DEFAULT_CHALLENGE), d = clamp5(diff, DEFAULT_DIFF);
+  const c = clampCh(challenge, DEFAULT_CHALLENGE), d = clampDiff(diff, DEFAULT_DIFF);
   return {
-    c, d, name: `CH${c} ${CH_NAMES[c - 1]} D${d}`,
+    c, d, name: `CH${c} ${chName(c)} D${d}`,
     quota: 4 + c * 2 + d,
     rate: Math.max(10, 56 - c * 6 - d * 4),
     spd: 3 + c + d * 0.8,
     moving: c >= 3, axes: c >= 4 ? 4 : c === 2 ? 2 : 1, net: c === 5, pops: c !== 2,
+    training: c === 0,
   };
 }
 
