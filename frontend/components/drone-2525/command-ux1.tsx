@@ -63,7 +63,7 @@ export function DroneCommandUX1() {
         </span>
       </div>
 
-      {/* Mode row — the operator's four items, two live, two dated */}
+      {/* Mode row — the operator's four items, all four live (turret · capital · 2-HI drone · mixed crew) */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", padding: "10px 14px" }}>
         {SRC.modes.map((m) => {
           const live = SHIPPED.has(m.id);

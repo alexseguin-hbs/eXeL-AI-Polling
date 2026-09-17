@@ -1051,7 +1051,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "UȘI",
   "drone.arena.hand_authored": "bloc desenat manual — se așteaptă harta ridicată topografic",
   "drone.disclaimer": "O repetiție pentru joc și critică. Formele, distanțele și cifrele de putere sunt estimări aproximative de încadrare, nu dovezi de proiectare, iar nimic de aici nu autorizează un zbor și nu construiește o armă.",
-  "drone.mode_note": "Cele două moduri staționare funcționează acum. Modurile de zbor au o dată, nu sunt ascunse: mai întâi drona cu doi operatori, apoi echipajul mixt, în care o persoană aprobă fiecare foc.",
   "drone.game.start": "Pornește",
   "drone.game.pause": "Pauză",
   "drone.game.next_target": "Ușa următoare",
@@ -1222,5 +1221,15 @@ const T: Record<string, string> = {
   "drone.platform": "Platformă",
   "drone.platform.dated": "nu încă în această arenă",
   "drone.fly.no_wing": "Un quad nu are aripă",
+  "drone.mode_note": "Toate cele patru moduri funcționează acum: două poligoane fixe cu turelă, o dronă zburătoare cu doi operatori și echipajul mixt în care o persoană pilotează în timp ce alta aprobă. Modurile de zbor sunt acolo unde contează munca în echipă — niciun foc nu este tras până când o persoană desemnată nu îl aprobă.",
+  "drone.rec.designations": "Ținte",
+  "drone.rec.holds": "Rețineri",
+  "drone.rec.refusals": "Respinse",
+  "drone.rec.handoffs": "Predări",
+  "drone.rec.approvals": "Aprobări",
+  "drone.rec.two_person": "două persoane",
+  "drone.rec.hash": "Reluare",
+  "drone.rec.save": "Salvează înregistrarea",
+  "drone.rec.export": "Exportă înregistrarea",
 };
 export default T;

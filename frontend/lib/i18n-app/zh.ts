@@ -1050,7 +1050,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "门",
   "drone.arena.hand_authored": "手绘街区 — 等待实测地图",
   "drone.disclaimer": "这是用于演练和评议的推演。其中的形状、距离和功率数据为粗略的边界估算，并非设计依据；此处的任何内容都不构成飞行授权，也不构成武器制造。",
-  "drone.mode_note": "两种固定模式现已可用。飞行模式已排期，并未隐藏：下一步是双人无人机，随后是由人工批准每次射击的混合编队。",
   "drone.game.start": "开始",
   "drone.game.pause": "暂停",
   "drone.game.next_target": "下一扇门",
@@ -1221,5 +1220,15 @@ const T: Record<string, string> = {
   "drone.platform": "平台",
   "drone.platform.dated": "此竞技场暂不可用",
   "drone.fly.no_wing": "四轴无机翼",
+  "drone.mode_note": "四种模式现已全部可用：两个固定的炮塔靶场、一架双人飞行无人机，以及混合编队——一人驾驶、另一人批准。飞行模式正是团队协作的关键所在：在指定的人批准之前，不会发射任何一发。",
+  "drone.rec.designations": "目标",
+  "drone.rec.holds": "暂缓",
+  "drone.rec.refusals": "已拒绝",
+  "drone.rec.handoffs": "交接",
+  "drone.rec.approvals": "批准",
+  "drone.rec.two_person": "双人",
+  "drone.rec.hash": "回放",
+  "drone.rec.save": "保存记录",
+  "drone.rec.export": "导出记录",
 };
 export default T;

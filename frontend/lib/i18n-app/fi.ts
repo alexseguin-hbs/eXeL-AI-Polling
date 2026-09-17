@@ -1051,7 +1051,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "OVET",
   "drone.arena.hand_authored": "käsin piirretty kortteli — odottaa mitattua karttaa",
   "drone.disclaimer": "Harjoitus leikkiä ja arviointia varten. Muodot, etäisyydet ja teholuvut ovat karkeita raja-arvioita, eivät suunnittelunäyttöä, eikä mikään tässä valtuuta lentoa tai rakenna asetta.",
-  "drone.mode_note": "Kaksi paikallaan pysyvää tilaa toimivat nyt. Lentotiloilla on päivämäärä, niitä ei ole piilotettu: seuraavaksi kahden hengen drone, sitten sekamiehistö, jossa ihminen hyväksyy jokaisen laukauksen.",
   "drone.game.start": "Aloita",
   "drone.game.pause": "Tauko",
   "drone.game.next_target": "Seuraava ovi",
@@ -1222,5 +1221,15 @@ const T: Record<string, string> = {
   "drone.platform": "Alusta",
   "drone.platform.dated": "ei vielä tällä areenalla",
   "drone.fly.no_wing": "Quadilla ei ole siipeä",
+  "drone.mode_note": "Kaikki neljä tilaa toimivat nyt: kaksi paikallaan pysyvää tornirataa, kahden hengen lentävä drone ja sekamiehistö, jossa yksi ohjaa ja toinen hyväksyy. Lentotiloissa ratkaisee yhteistyö – laukausta ei ammuta ennen kuin nimetty henkilö hyväksyy sen.",
+  "drone.rec.designations": "Kohteet",
+  "drone.rec.holds": "Pidätykset",
+  "drone.rec.refusals": "Hylätyt",
+  "drone.rec.handoffs": "Luovutukset",
+  "drone.rec.approvals": "Hyväksynnät",
+  "drone.rec.two_person": "kaksi henkilöä",
+  "drone.rec.hash": "Toisto",
+  "drone.rec.save": "Tallenna kirjaus",
+  "drone.rec.export": "Vie kirjaus",
 };
 export default T;

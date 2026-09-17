@@ -1045,7 +1045,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "الأبواب",
   "drone.arena.hand_authored": "مجسّم مرسوم باليد — بانتظار الخريطة المساحية",
   "drone.disclaimer": "بروفة للعب والنقد. الأشكال والمسافات وأرقام الطاقة تقديرات حدّية وليست دليلاً تصميمياً، ولا شيء هنا يأذن بطيران أو يصنع سلاحاً.",
-  "drone.mode_note": "الوضعان الثابتان يعملان الآن. أوضاع الطيران مؤجَّلة بمواعيد محددة وليست مخفية: طائرة مسيّرة بمشغّلَين أولاً، ثم الطاقم المختلط حيث يوافق إنسان على كل طلقة.",
   "drone.game.start": "بدء",
   "drone.game.pause": "إيقاف مؤقت",
   "drone.game.next_target": "الباب التالي",
@@ -1216,5 +1215,15 @@ const T: Record<string, string> = {
   "drone.platform": "المنصة",
   "drone.platform.dated": "غير متاح في هذه الساحة بعد",
   "drone.fly.no_wing": "الكواد بلا جناح",
+  "drone.mode_note": "جميع الأوضاع الأربعة تعمل الآن: ميدانا رماية ثابتان بأبراج، وطائرة مسيّرة طائرة بمشغّلَين، والطاقم المختلط حيث يقود شخص بينما يوافق آخر. أوضاع الطيران هي حيث يهمّ العمل الجماعي — لا تُطلق أي طلقة حتى يوافق عليها شخص محدَّد بالاسم.",
+  "drone.rec.designations": "الأهداف",
+  "drone.rec.holds": "إيقافات",
+  "drone.rec.refusals": "مرفوضة",
+  "drone.rec.handoffs": "عمليات تسليم",
+  "drone.rec.approvals": "الموافقات",
+  "drone.rec.two_person": "شخصان",
+  "drone.rec.hash": "إعادة",
+  "drone.rec.save": "حفظ السجل",
+  "drone.rec.export": "تصدير السجل",
 };
 export default T;

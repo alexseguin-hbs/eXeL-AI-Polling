@@ -1054,7 +1054,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "DEUREN",
   "drone.arena.hand_authored": "met de hand getekend blok — wacht op de ingemeten kaart",
   "drone.disclaimer": "Een repetitie om mee te spelen en te bekritiseren. De vormen, afstanden en vermogenscijfers zijn ruwe schattingen, geen ontwerpbewijs, en niets hiervan geeft toestemming voor een vlucht of bouwt een wapen.",
-  "drone.mode_note": "De twee stilstaande modi werken nu. De vliegende modi hebben een datum, ze zijn niet verborgen: eerst een drone met twee personen, daarna de gemengde bemanning waarbij een mens elk schot goedkeurt.",
   "drone.game.start": "Starten",
   "drone.game.pause": "Pauzeren",
   "drone.game.next_target": "Volgende deur",
@@ -1225,5 +1224,15 @@ const T: Record<string, string> = {
   "drone.platform": "Toestel",
   "drone.platform.dated": "nog niet in deze arena",
   "drone.fly.no_wing": "Een quad heeft geen vleugel",
+  "drone.mode_note": "Alle vier de modi draaien nu: twee stilstaande torenschietbanen, een vliegende drone met twee personen en de gemengde bemanning waarbij één persoon vliegt terwijl een ander goedkeurt. In de vluchtmodi telt samenwerking: er wordt niet geschoten totdat een met naam genoemde persoon het goedkeurt.",
+  "drone.rec.designations": "Doelen",
+  "drone.rec.holds": "Aanhoudingen",
+  "drone.rec.refusals": "Geweigerd",
+  "drone.rec.handoffs": "Overdrachten",
+  "drone.rec.approvals": "Goedkeuringen",
+  "drone.rec.two_person": "twee personen",
+  "drone.rec.hash": "Herhaling",
+  "drone.rec.save": "Registratie opslaan",
+  "drone.rec.export": "Registratie exporteren",
 };
 export default T;

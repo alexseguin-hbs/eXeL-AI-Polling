@@ -1051,7 +1051,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "ドア",
   "drone.arena.hand_authored": "手描きの街区 — 実測地図を待機中",
   "drone.disclaimer": "遊びと批評のためのリハーサルです。形状・距離・出力の数値は概算の目安であり、設計上の根拠ではありません。ここにあるものは飛行を許可するものでも、武器を製造するものでもありません。",
-  "drone.mode_note": "据え置きの2モードは現在動作します。飛行モードは隠しているのではなく、時期が決まっています。次は2人組のドローン、その次は発射ごとに人が承認する混成クルーです。",
   "drone.game.start": "開始",
   "drone.game.pause": "一時停止",
   "drone.game.next_target": "次のドア",
@@ -1222,5 +1221,15 @@ const T: Record<string, string> = {
   "drone.platform": "機体",
   "drone.platform.dated": "このアリーナではまだ未対応",
   "drone.fly.no_wing": "クアッドに翼はない",
+  "drone.mode_note": "4つのモードすべてが現在動作します。据え置きのタレット射場が2つ、2人操作の飛行ドローン、そして1人が操縦し別の1人が承認する混成クルーです。飛行モードこそチームワークが重要な場面で、指名された人が承認するまで一発も発射されません。",
+  "drone.rec.designations": "目標",
+  "drone.rec.holds": "保留",
+  "drone.rec.refusals": "拒否",
+  "drone.rec.handoffs": "引き継ぎ",
+  "drone.rec.approvals": "承認",
+  "drone.rec.two_person": "2人",
+  "drone.rec.hash": "リプレイ",
+  "drone.rec.save": "記録を保存",
+  "drone.rec.export": "記録を書き出す",
 };
 export default T;

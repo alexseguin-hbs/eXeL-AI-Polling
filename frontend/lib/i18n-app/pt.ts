@@ -1044,7 +1044,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "PORTAS",
   "drone.arena.hand_authored": "bloco desenhado à mão — à espera do mapa levantado",
   "drone.disclaimer": "Um ensaio para jogar e criticar. As formas, as distâncias e os valores de potência são estimativas aproximadas, não provas de projeto, e nada aqui autoriza um voo nem constrói uma arma.",
-  "drone.mode_note": "Os dois modos fixos já funcionam. Os modos de voo têm data, não estão escondidos: primeiro um drone de duas pessoas e depois a tripulação mista, em que uma pessoa aprova cada disparo.",
   "drone.game.start": "Iniciar",
   "drone.game.pause": "Pausar",
   "drone.game.next_target": "Porta seguinte",
@@ -1215,5 +1214,15 @@ const T: Record<string, string> = {
   "drone.platform": "Plataforma",
   "drone.platform.dated": "ainda não nesta arena",
   "drone.fly.no_wing": "Um quad não tem asa",
+  "drone.mode_note": "Os quatro modos já funcionam: dois campos de tiro fixos com torre, um drone voador de duas pessoas e a tripulação mista em que uma pessoa pilota enquanto outra aprova. Os modos de voo são onde o trabalho em equipe importa: nenhum disparo ocorre até que uma pessoa identificada o aprove.",
+  "drone.rec.designations": "Alvos",
+  "drone.rec.holds": "Retenções",
+  "drone.rec.refusals": "Recusados",
+  "drone.rec.handoffs": "Transferências",
+  "drone.rec.approvals": "Aprovações",
+  "drone.rec.two_person": "duas pessoas",
+  "drone.rec.hash": "Repetição",
+  "drone.rec.save": "Salvar registro",
+  "drone.rec.export": "Exportar registro",
 };
 export default T;

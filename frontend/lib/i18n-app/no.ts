@@ -1056,7 +1056,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "DØRER",
   "drone.arena.hand_authored": "håndtegnet kvartal — venter på oppmålt kart",
   "drone.disclaimer": "En generalprøve for lek og kritikk. Formene, avstandene og effekttallene er grove ytteranslag, ikke designdokumentasjon, og ingenting her gir tillatelse til en flyging eller bygger et våpen.",
-  "drone.mode_note": "De to stasjonære modusene kjører nå. Flygemodusene er datert, ikke skjult: først en tomannsdrone, deretter det blandede mannskapet der et menneske godkjenner hvert skudd.",
   "drone.game.start": "Start",
   "drone.game.pause": "Pause",
   "drone.game.next_target": "Neste dør",
@@ -1227,5 +1226,15 @@ const T: Record<string, string> = {
   "drone.platform": "Plattform",
   "drone.platform.dated": "ikke på denne arenaen ennå",
   "drone.fly.no_wing": "En quad har ingen vinge",
+  "drone.mode_note": "Alle fire modusene kjører nå: to stasjonære tårnskytebaner, en flygende drone med to personer og det blandede mannskapet der én person flyr mens en annen godkjenner. I flygemodusene er det samarbeidet som teller – ingen skudd avfyres før en navngitt person godkjenner det.",
+  "drone.rec.designations": "Mål",
+  "drone.rec.holds": "Tilbakeholdinger",
+  "drone.rec.refusals": "Avvist",
+  "drone.rec.handoffs": "Overleveringer",
+  "drone.rec.approvals": "Godkjenninger",
+  "drone.rec.two_person": "to personer",
+  "drone.rec.hash": "Reprise",
+  "drone.rec.save": "Lagre registrering",
+  "drone.rec.export": "Eksporter registrering",
 };
 export default T;

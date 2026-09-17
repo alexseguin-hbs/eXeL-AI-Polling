@@ -1050,7 +1050,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "DVEŘE",
   "drone.arena.hand_authored": "ručně kreslený blok — čeká na zaměřenou mapu",
   "drone.disclaimer": "Zkouška pro hru a kritiku. Tvary, vzdálenosti a výkonová čísla jsou hrubé mezní odhady, nikoli konstrukční podklad, a nic zde neopravňuje k letu ani nestaví zbraň.",
-  "drone.mode_note": "Oba stacionární režimy fungují už teď. Letové režimy mají termín, nejsou skryté: nejdřív dvoučlenný dron, potom smíšená posádka, kde člověk schvaluje každý výstřel.",
   "drone.game.start": "Spustit",
   "drone.game.pause": "Pauza",
   "drone.game.next_target": "Další dveře",
@@ -1221,5 +1220,15 @@ const T: Record<string, string> = {
   "drone.platform": "Platforma",
   "drone.platform.dated": "v této aréně zatím ne",
   "drone.fly.no_wing": "Kvadrokoptéra nemá křídlo",
+  "drone.mode_note": "Všechny čtyři režimy nyní běží: dvě stacionární věžové střelnice, létající dron pro dvě osoby a smíšená posádka, kde jeden pilotuje a druhý schvaluje. Právě v letových režimech záleží na týmové práci — žádný výstřel nepadne, dokud jej jmenovaná osoba neschválí.",
+  "drone.rec.designations": "Cíle",
+  "drone.rec.holds": "Pozdržení",
+  "drone.rec.refusals": "Odmítnuto",
+  "drone.rec.handoffs": "Předání",
+  "drone.rec.approvals": "Schválení",
+  "drone.rec.two_person": "dvě osoby",
+  "drone.rec.hash": "Přehrání",
+  "drone.rec.save": "Uložit záznam",
+  "drone.rec.export": "Exportovat záznam",
 };
 export default T;

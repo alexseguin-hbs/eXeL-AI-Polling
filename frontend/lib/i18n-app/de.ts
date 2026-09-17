@@ -1049,7 +1049,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "TÜREN",
   "drone.arena.hand_authored": "von Hand gezeichneter Block — wartet auf die vermessene Karte",
   "drone.disclaimer": "Eine Probe zum Spielen und Kritisieren. Die Formen, Abstände und Leistungswerte sind grobe Schätzwerte, kein Konstruktionsnachweis, und nichts davon genehmigt einen Flug oder baut eine Waffe.",
-  "drone.mode_note": "Die beiden stationären Modi laufen jetzt. Die Flugmodi sind terminiert, nicht versteckt: zuerst eine Drohne mit zwei Personen, danach die gemischte Crew, bei der ein Mensch jeden Schuss freigibt.",
   "drone.game.start": "Start",
   "drone.game.pause": "Pause",
   "drone.game.next_target": "Nächste Tür",
@@ -1220,5 +1219,15 @@ const T: Record<string, string> = {
   "drone.platform": "Plattform",
   "drone.platform.dated": "in dieser Arena noch nicht",
   "drone.fly.no_wing": "Ein Quad hat keinen Flügel",
+  "drone.mode_note": "Alle vier Modi laufen jetzt: zwei stationäre Turmschießstände, eine von zwei Personen geflogene Drohne und die gemischte Crew, bei der eine Person fliegt, während eine andere freigibt. In den Flugmodi zählt die Teamarbeit – kein Schuss fällt, bevor eine benannte Person ihn freigibt.",
+  "drone.rec.designations": "Ziele",
+  "drone.rec.holds": "Zurückhaltungen",
+  "drone.rec.refusals": "Abgelehnt",
+  "drone.rec.handoffs": "Übergaben",
+  "drone.rec.approvals": "Freigaben",
+  "drone.rec.two_person": "zwei Personen",
+  "drone.rec.hash": "Wiederholung",
+  "drone.rec.save": "Aufzeichnung speichern",
+  "drone.rec.export": "Aufzeichnung exportieren",
 };
 export default T;

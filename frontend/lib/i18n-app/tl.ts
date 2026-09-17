@@ -1196,7 +1196,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "PINTO",
   "drone.arena.hand_authored": "bloke na iginuhit sa kamay — hinihintay ang sinukat na mapa",
   "drone.disclaimer": "Isang ensayo para sa laro at pagpuna. Ang mga hugis, distansya at bilang ng lakas ay magaspang na tantiya, hindi patunay ng disenyo, at walang anuman dito ang nagpapahintulot ng paglipad o gumagawa ng sandata.",
-  "drone.mode_note": "Tumatakbo na ngayon ang dalawang nakatigil na mode. May petsa na ang mga mode ng paglipad, hindi itinatago: susunod ang drone na dalawang tao, pagkatapos ang halong tripulante kung saan inaaprubahan ng tao ang bawat putok.",
   "drone.game.start": "Simulan",
   "drone.game.pause": "I-pause",
   "drone.game.next_target": "Susunod na Pinto",
@@ -1367,5 +1366,15 @@ const T: Record<string, string> = {
   "drone.platform": "Plataporma",
   "drone.platform.dated": "wala pa sa arena na ito",
   "drone.fly.no_wing": "Walang pakpak ang quad",
+  "drone.mode_note": "Tumatakbo na ngayon ang lahat ng apat na mode: dalawang nakatigil na turret range, isang lumilipad na drone na dalawang tao, at ang halong tripulante kung saan isa ang lumilipad habang isa ang nag-aapruba. Ang mga mode ng paglipad ang kung saan mahalaga ang pagtutulungan — walang putok hangga't hindi ito inaaprubahan ng isang pinangalanang tao.",
+  "drone.rec.designations": "Mga target",
+  "drone.rec.holds": "Mga hold",
+  "drone.rec.refusals": "Tinanggihan",
+  "drone.rec.handoffs": "Mga paglilipat",
+  "drone.rec.approvals": "Mga pag-apruba",
+  "drone.rec.two_person": "dalawang tao",
+  "drone.rec.hash": "Muling patakbo",
+  "drone.rec.save": "I-save ang tala",
+  "drone.rec.export": "I-export ang tala",
 };
 export default T;

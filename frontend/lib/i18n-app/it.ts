@@ -1049,7 +1049,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "PORTE",
   "drone.arena.hand_authored": "blocco disegnato a mano — in attesa della mappa rilevata",
   "drone.disclaimer": "Una prova per giocare e criticare. Le forme, le distanze e i valori di potenza sono stime approssimative, non prove di progetto, e nulla qui autorizza un volo o costruisce un'arma.",
-  "drone.mode_note": "I due modi fissi funzionano da ora. I modi in volo hanno una data, non sono nascosti: prima un drone a due persone, poi l'equipaggio misto in cui una persona approva ogni colpo.",
   "drone.game.start": "Avvia",
   "drone.game.pause": "Pausa",
   "drone.game.next_target": "Porta successiva",
@@ -1220,5 +1219,15 @@ const T: Record<string, string> = {
   "drone.platform": "Piattaforma",
   "drone.platform.dated": "non ancora in questa arena",
   "drone.fly.no_wing": "Un quad non ha ali",
+  "drone.mode_note": "Tutti e quattro i modi funzionano ora: due poligoni fissi con torretta, un drone in volo a due persone e l'equipaggio misto in cui una persona pilota mentre un'altra approva. I modi in volo sono dove conta il lavoro di squadra: nessun colpo parte finché una persona identificata non lo approva.",
+  "drone.rec.designations": "Bersagli",
+  "drone.rec.holds": "Sospensioni",
+  "drone.rec.refusals": "Rifiutati",
+  "drone.rec.handoffs": "Passaggi di consegne",
+  "drone.rec.approvals": "Approvazioni",
+  "drone.rec.two_person": "due persone",
+  "drone.rec.hash": "Riproduzione",
+  "drone.rec.save": "Salva registro",
+  "drone.rec.export": "Esporta registro",
 };
 export default T;

@@ -1064,7 +1064,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "PINTU",
   "drone.arena.hand_authored": "blok gambar tangan — menunggu peta hasil survei",
   "drone.disclaimer": "Sebuah gladi untuk bermain dan mengkritik. Bentuk, jarak, dan angka daya di sini adalah perkiraan kasar, bukan bukti desain, dan tidak ada yang di sini mengizinkan sebuah penerbangan atau membuat sebuah senjata.",
-  "drone.mode_note": "Dua mode diam berjalan sekarang. Mode terbang sudah dijadwalkan, bukan disembunyikan: berikutnya drone dua orang, lalu kru campuran tempat seseorang menyetujui setiap tembakan.",
   "drone.game.start": "Mulai",
   "drone.game.pause": "Jeda",
   "drone.game.next_target": "Pintu Berikutnya",
@@ -1235,5 +1234,15 @@ const T: Record<string, string> = {
   "drone.platform": "Wahana",
   "drone.platform.dated": "belum ada di arena ini",
   "drone.fly.no_wing": "Quad tidak punya sayap",
+  "drone.mode_note": "Keempat mode kini berjalan: dua lapangan tembak menara diam, sebuah drone terbang dua orang, dan kru campuran tempat satu orang menerbangkan sementara yang lain menyetujui. Mode terbang adalah tempat kerja tim penting — tidak ada tembakan yang dilepaskan sampai seseorang yang disebut namanya menyetujuinya.",
+  "drone.rec.designations": "Sasaran",
+  "drone.rec.holds": "Penahanan",
+  "drone.rec.refusals": "Ditolak",
+  "drone.rec.handoffs": "Serah terima",
+  "drone.rec.approvals": "Persetujuan",
+  "drone.rec.two_person": "dua orang",
+  "drone.rec.hash": "Putar ulang",
+  "drone.rec.save": "Simpan catatan",
+  "drone.rec.export": "Ekspor catatan",
 };
 export default T;

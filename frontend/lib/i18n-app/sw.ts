@@ -1053,7 +1053,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "MILANGO",
   "drone.arena.hand_authored": "kitalu kilichochorwa kwa mkono — kinasubiri ramani iliyopimwa",
   "drone.disclaimer": "Ni mazoezi ya kucheza na kukosoa. Maumbo, umbali na takwimu za nguvu ni makadirio ya kukisia tu, siyo ushahidi wa usanifu, na hakuna kitu hapa kinachoruhusu safari ya ndege wala kutengeneza silaha.",
-  "drone.mode_note": "Modi mbili zisizosogea zinafanya kazi sasa. Modi za kuruka zina tarehe, hazijafichwa: inayofuata ni droni ya watu wawili, kisha kikosi mchanganyiko ambapo binadamu huidhinisha kila risasi.",
   "drone.game.start": "Anza",
   "drone.game.pause": "Sitisha",
   "drone.game.next_target": "Mlango Unaofuata",
@@ -1224,5 +1223,15 @@ const T: Record<string, string> = {
   "drone.platform": "Jukwaa",
   "drone.platform.dated": "bado haipo kwenye uwanja huu",
   "drone.fly.no_wing": "Quad haina bawa",
+  "drone.mode_note": "Modi zote nne sasa zinafanya kazi: viwanja viwili vya kurusha vya mnara visivyosogea, droni inayoruka ya watu wawili, na kikosi mchanganyiko ambapo mtu mmoja anarusha huku mwingine akiidhinisha. Modi za kuruka ndipo kazi ya pamoja inapokuwa muhimu — hakuna risasi inayofyatuliwa hadi mtu aliyetajwa aidhinishe.",
+  "drone.rec.designations": "Shabaha",
+  "drone.rec.holds": "Kusimamisha",
+  "drone.rec.refusals": "Zilizokataliwa",
+  "drone.rec.handoffs": "Makabidhiano",
+  "drone.rec.approvals": "Idhini",
+  "drone.rec.two_person": "watu wawili",
+  "drone.rec.hash": "Kucheza tena",
+  "drone.rec.save": "Hifadhi rekodi",
+  "drone.rec.export": "Hamisha rekodi",
 };
 export default T;

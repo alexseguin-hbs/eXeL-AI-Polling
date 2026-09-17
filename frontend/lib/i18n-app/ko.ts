@@ -1049,7 +1049,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "문",
   "drone.arena.hand_authored": "손으로 그린 블록 — 실측 지도 대기 중",
   "drone.disclaimer": "놀이와 비평을 위한 리허설입니다. 여기의 형상, 거리, 출력 수치는 대략의 범위 추정치일 뿐 설계 근거가 아니며, 이곳의 어떤 것도 비행을 승인하거나 무기를 만들지 않습니다.",
-  "drone.mode_note": "고정형 두 모드는 지금 실행됩니다. 비행 모드는 숨긴 것이 아니라 일정이 정해져 있습니다. 다음은 2인 드론, 그다음은 사람이 모든 사격을 승인하는 혼합 편성입니다.",
   "drone.game.start": "시작",
   "drone.game.pause": "일시정지",
   "drone.game.next_target": "다음 문",
@@ -1220,5 +1219,15 @@ const T: Record<string, string> = {
   "drone.platform": "기체",
   "drone.platform.dated": "이 아레나에서는 아직 불가",
   "drone.fly.no_wing": "쿼드에는 날개가 없다",
+  "drone.mode_note": "이제 네 가지 모드가 모두 실행됩니다: 고정형 터렛 사격장 두 곳, 2인 조종 비행 드론, 그리고 한 사람이 조종하고 다른 사람이 승인하는 혼합 편성입니다. 비행 모드야말로 팀워크가 중요한 곳으로, 지정된 사람이 승인하기 전에는 한 발도 발사되지 않습니다.",
+  "drone.rec.designations": "표적",
+  "drone.rec.holds": "보류",
+  "drone.rec.refusals": "거부됨",
+  "drone.rec.handoffs": "인계",
+  "drone.rec.approvals": "승인",
+  "drone.rec.two_person": "2인",
+  "drone.rec.hash": "리플레이",
+  "drone.rec.save": "기록 저장",
+  "drone.rec.export": "기록 내보내기",
 };
 export default T;

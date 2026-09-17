@@ -1047,7 +1047,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "KAPILAR",
   "drone.arena.hand_authored": "elle çizilmiş blok — ölçülmüş harita bekleniyor",
   "drone.disclaimer": "Oyun ve eleştiri için bir prova. Biçimler, mesafeler ve güç değerleri kaba sınır tahminleridir, tasarım kanıtı değildir; buradaki hiçbir şey bir uçuşa izin vermez ya da bir silah üretmez.",
-  "drone.mode_note": "İki sabit mod şimdi çalışıyor. Uçuş modları gizli değil, tarihleri belli: önce iki kişilik drone, sonra her atışı bir insanın onayladığı karma ekip.",
   "drone.game.start": "Başlat",
   "drone.game.pause": "Duraklat",
   "drone.game.next_target": "Sonraki kapı",
@@ -1218,5 +1217,15 @@ const T: Record<string, string> = {
   "drone.platform": "Araç",
   "drone.platform.dated": "bu arenada henüz yok",
   "drone.fly.no_wing": "Quad'ın kanadı yok",
+  "drone.mode_note": "Dört modun tümü artık çalışıyor: iki sabit taret atış alanı, iki kişilik uçan bir drone ve bir kişinin uçurup diğerinin onayladığı karma ekip. Ekip çalışmasının önemli olduğu yer uçuş modlarıdır — adı belirtilen bir kişi onaylamadan hiçbir atış yapılmaz.",
+  "drone.rec.designations": "Hedefler",
+  "drone.rec.holds": "Beklemeler",
+  "drone.rec.refusals": "Reddedildi",
+  "drone.rec.handoffs": "Devirler",
+  "drone.rec.approvals": "Onaylar",
+  "drone.rec.two_person": "iki kişi",
+  "drone.rec.hash": "Tekrar",
+  "drone.rec.save": "Kaydı kaydet",
+  "drone.rec.export": "Kaydı dışa aktar",
 };
 export default T;

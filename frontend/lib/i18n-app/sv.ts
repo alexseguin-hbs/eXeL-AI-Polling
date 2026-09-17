@@ -1059,7 +1059,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "DÖRRAR",
   "drone.arena.hand_authored": "handritat kvarter — väntar på den uppmätta kartan",
   "drone.disclaimer": "En repetition för lek och kritik. Formerna, avstånden och effektsiffrorna är grova uppskattningar, inte konstruktionsunderlag, och ingenting här godkänner en flygning eller bygger ett vapen.",
-  "drone.mode_note": "De två stillastående lägena fungerar nu. Flyglägena är daterade, inte dolda: först en drönare med två personer, sedan den blandade besättningen där en människa godkänner varje skott.",
   "drone.game.start": "Starta",
   "drone.game.pause": "Pausa",
   "drone.game.next_target": "Nästa dörr",
@@ -1230,5 +1229,15 @@ const T: Record<string, string> = {
   "drone.platform": "Plattform",
   "drone.platform.dated": "inte på denna arena än",
   "drone.fly.no_wing": "En quad har ingen vinge",
+  "drone.mode_note": "Alla fyra lägena körs nu: två stillastående tornskjutbanor, en flygande drönare med två personer och den blandade besättningen där en person flyger medan en annan godkänner. I flyglägena är det lagarbetet som räknas – inget skott avlossas förrän en namngiven person godkänner det.",
+  "drone.rec.designations": "Mål",
+  "drone.rec.holds": "Uppehåll",
+  "drone.rec.refusals": "Nekade",
+  "drone.rec.handoffs": "Överlämningar",
+  "drone.rec.approvals": "Godkännanden",
+  "drone.rec.two_person": "två personer",
+  "drone.rec.hash": "Återspelning",
+  "drone.rec.save": "Spara registrering",
+  "drone.rec.export": "Exportera registrering",
 };
 export default T;

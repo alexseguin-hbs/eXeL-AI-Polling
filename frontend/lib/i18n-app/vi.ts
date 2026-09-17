@@ -1052,7 +1052,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "CỬA",
   "drone.arena.hand_authored": "khối vẽ tay — đang chờ bản đồ khảo sát",
   "drone.disclaimer": "Một buổi diễn tập để chơi và để phê bình. Các hình khối, khoảng cách và số liệu công suất là ước lượng giới hạn, không phải bằng chứng thiết kế, và không có gì ở đây cho phép một chuyến bay hay chế tạo một vũ khí.",
-  "drone.mode_note": "Hai chế độ cố định chạy ngay bây giờ. Các chế độ bay đã có mốc thời gian, không bị giấu: tiếp theo là drone hai người, rồi đến tổ hỗn hợp trong đó một người duyệt từng phát bắn.",
   "drone.game.start": "Bắt đầu",
   "drone.game.pause": "Tạm dừng",
   "drone.game.next_target": "Cửa tiếp theo",
@@ -1223,5 +1222,15 @@ const T: Record<string, string> = {
   "drone.platform": "Nền tảng",
   "drone.platform.dated": "chưa có ở đấu trường này",
   "drone.fly.no_wing": "Quad không có cánh",
+  "drone.mode_note": "Cả bốn chế độ đều chạy ngay bây giờ: hai trường bắn tháp pháo cố định, một drone bay hai người, và tổ hỗn hợp trong đó một người lái còn người kia phê duyệt. Các chế độ bay là nơi sự phối hợp quan trọng — không phát nào được bắn cho đến khi một người có tên phê duyệt.",
+  "drone.rec.designations": "Mục tiêu",
+  "drone.rec.holds": "Giữ",
+  "drone.rec.refusals": "Từ chối",
+  "drone.rec.handoffs": "Bàn giao",
+  "drone.rec.approvals": "Phê duyệt",
+  "drone.rec.two_person": "hai người",
+  "drone.rec.hash": "Phát lại",
+  "drone.rec.save": "Lưu bản ghi",
+  "drone.rec.export": "Xuất bản ghi",
 };
 export default T;

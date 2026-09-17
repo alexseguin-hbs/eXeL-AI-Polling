@@ -11,20 +11,17 @@ const { SIGN_TRANSLATIONS } = await import('../lib/lexicon-translations-sign.ts'
 const { ES_SIGN } = await import('../lib/lexicon-translations-es-sign.ts');
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
+// ROUND-12 i18n MANIFEST DISCIPLINE (P0-11): every Round-12 key — guided start, intro/CIN, edge deck, waiting
+// room, HAND OFF, CH0 training, amber/red legend — is STAGED here the moment it is added, and every key built in
+// pure lib/ (where the JSX scan cannot see it) is staged too. A key whose English is CHANGED after a fill is
+// re-staged AND its 32 now-stale translations are removed from lib/i18n-app/*, so t() falls back to the corrected
+// English rather than returning the old, wrong translation ("listed never silent" — an orphaned fill is a silent lie).
 const AFTER_FILL = new Set([
-  'drone.rec.designations',
-  'drone.rec.holds',
-  'drone.rec.refusals',
-  'drone.rec.handoffs',
-  'drone.rec.approvals',
-  'drone.rec.two_person',
-  'drone.rec.hash',
-  'drone.rec.save',
-  'drone.rec.export',
-  // Drone-2525 platform identities (r.050 units table) — English until the fill lands.
-  // Drone-2525 operator deck (r.050): TARGET → amber, APPROVE → red. English until the fill lands.
-  // Drone-2525 ladder, self-test, flight and crew keys — English until the fill lands, listed never silent.
-  // Drone-2525 control deck (r.050) — English until the fill lands, listed never silent.
+  // Empty: the 9 drone.rec.* keys (P0-6) and the corrected drone.mode_note (P0-11, English changed 2026-09-17 —
+  // all four modes are live; the 32 stale translations were removed and re-filled ×32) all landed on 2026-09-17.
+  // ROUND-12 keys added hereafter (guided start, intro/CIN, edge deck, room, HAND OFF, CH0, legend) stage here
+  // the moment they are declared, and any key whose English is later changed is re-staged AND its stale
+  // translations removed from lib/i18n-app/* — never left to return the old wording ("listed never silent").
 ]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;

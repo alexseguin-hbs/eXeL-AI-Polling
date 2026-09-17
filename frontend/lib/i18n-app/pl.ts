@@ -1051,7 +1051,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "DRZWI",
   "drone.arena.hand_authored": "kwartał rysowany ręcznie — czeka na mapę geodezyjną",
   "drone.disclaimer": "Próba do zabawy i krytyki. Kształty, odległości i wartości mocy to zgrubne oszacowania graniczne, a nie dowód projektowy; nic tutaj nie zezwala na lot ani nie buduje broni.",
-  "drone.mode_note": "Dwa tryby stacjonarne działają już teraz. Tryby latające mają daty, nie są ukryte: najpierw dron dwuosobowy, potem mieszana załoga, w której człowiek zatwierdza każdy strzał.",
   "drone.game.start": "Start",
   "drone.game.pause": "Pauza",
   "drone.game.next_target": "Następne drzwi",
@@ -1222,5 +1221,15 @@ const T: Record<string, string> = {
   "drone.platform": "Platforma",
   "drone.platform.dated": "jeszcze nie na tej arenie",
   "drone.fly.no_wing": "Quad nie ma skrzydła",
+  "drone.mode_note": "Wszystkie cztery tryby działają już teraz: dwie stacjonarne strzelnice wieżyczkowe, latający dron obsługiwany przez dwie osoby oraz mieszana załoga, w której jedna osoba pilotuje, a druga zatwierdza. W trybach latających liczy się praca zespołowa — żaden strzał nie pada, dopóki wskazana osoba go nie zatwierdzi.",
+  "drone.rec.designations": "Cele",
+  "drone.rec.holds": "Wstrzymania",
+  "drone.rec.refusals": "Odrzucone",
+  "drone.rec.handoffs": "Przekazania",
+  "drone.rec.approvals": "Zatwierdzenia",
+  "drone.rec.two_person": "dwie osoby",
+  "drone.rec.hash": "Powtórka",
+  "drone.rec.save": "Zapisz rejestr",
+  "drone.rec.export": "Eksportuj rejestr",
 };
 export default T;

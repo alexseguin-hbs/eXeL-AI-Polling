@@ -1048,7 +1048,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "דלתות",
   "drone.arena.hand_authored": "מבנה משורטט ביד — ממתין למפה מדודה",
   "drone.disclaimer": "חזרה לצורכי משחק וביקורת. הצורות, המרחקים ונתוני ההספק הם הערכות גבול ולא ראיה תכנונית, ודבר כאן אינו מאשר טיסה ואינו בונה נשק.",
-  "drone.mode_note": "שני המצבים הנייחים פועלים כעת. מצבי התעופה מתוארכים ולא מוסתרים: תחילה רחפן לשני מפעילים, ואחריו הצוות המעורב שבו אדם מאשר כל ירייה.",
   "drone.game.start": "התחל",
   "drone.game.pause": "השהה",
   "drone.game.next_target": "הדלת הבאה",
@@ -1219,5 +1218,15 @@ const T: Record<string, string> = {
   "drone.platform": "פלטפורמה",
   "drone.platform.dated": "עדיין לא בזירה הזו",
   "drone.fly.no_wing": "לקוואד אין כנף",
+  "drone.mode_note": "כל ארבעת המצבים פועלים כעת: שני מטווחי צריח נייחים, רחפן מעופף לשני מפעילים, והצוות המעורב שבו אדם אחד טס בעוד אחר מאשר. מצבי התעופה הם המקום שבו העבודה בצוות חשובה — אף ירייה אינה נורית עד שאדם בעל שם מאשר אותה.",
+  "drone.rec.designations": "מטרות",
+  "drone.rec.holds": "עצירות",
+  "drone.rec.refusals": "נדחו",
+  "drone.rec.handoffs": "מסירות",
+  "drone.rec.approvals": "אישורים",
+  "drone.rec.two_person": "שני אנשים",
+  "drone.rec.hash": "שחזור",
+  "drone.rec.save": "שמירת רישום",
+  "drone.rec.export": "ייצוא רישום",
 };
 export default T;

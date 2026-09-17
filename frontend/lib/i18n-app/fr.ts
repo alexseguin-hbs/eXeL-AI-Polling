@@ -988,7 +988,6 @@ const T: Record<string, string> = {
   "drone.hud.doors": "PORTES",
   "drone.arena.hand_authored": "bloc dessiné à la main — en attente du relevé cartographique",
   "drone.disclaimer": "Une répétition pour jouer et critiquer. Les formes, les distances et les chiffres de puissance sont des estimations approximatives, pas des preuves de conception, et rien ici n'autorise un vol ni ne construit une arme.",
-  "drone.mode_note": "Les deux modes fixes fonctionnent dès maintenant. Les modes en vol sont datés, pas cachés : d'abord un drone à deux personnes, puis l'équipage mixte où une personne valide chaque tir.",
   "drone.game.start": "Démarrer",
   "drone.game.pause": "Pause",
   "drone.game.next_target": "Porte suivante",
@@ -1159,5 +1158,15 @@ const T: Record<string, string> = {
   "drone.platform": "Plateforme",
   "drone.platform.dated": "pas encore dans cette arène",
   "drone.fly.no_wing": "Un quad n'a pas d'aile",
+  "drone.mode_note": "Les quatre modes fonctionnent désormais : deux stands de tir fixes à tourelle, un drone volant à deux personnes et l'équipage mixte où une personne pilote pendant qu'une autre valide. Les modes en vol sont là où le travail d'équipe compte : aucun tir n'a lieu tant qu'une personne identifiée ne l'a pas validé.",
+  "drone.rec.designations": "Cibles",
+  "drone.rec.holds": "Suspensions",
+  "drone.rec.refusals": "Refusés",
+  "drone.rec.handoffs": "Passations",
+  "drone.rec.approvals": "Validations",
+  "drone.rec.two_person": "à deux",
+  "drone.rec.hash": "Rejeu",
+  "drone.rec.save": "Enregistrer le relevé",
+  "drone.rec.export": "Exporter le relevé",
 };
 export default T;
