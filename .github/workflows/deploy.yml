@@ -61,6 +61,12 @@ jobs:
 
         run: npm run test:ci
 
+      # DETERMINISM ON MAIN (Round 12, 48-agent fleet: spiral9 ran in no workflow). Node-only, no browser:
+      # every drone gate ×9 with byte-identical artefacts, or the push fails. The determinism proof this
+      # domain rests on now gates main, not just a local run.
+      - name: Drone determinism (SPIRAL ×9)
+        run: npm run test:drone-spiral9
+
       # Cloudflare's git build is the door that actually ships, and its prebuild now runs the two Sign Doc gates.
       # This job's remaining value is the FULL test:ci above. When the two Supabase build vars are not present as Actions
       # secrets, the build+deploy half cannot produce a working bundle, so it is SKIPPED and said out loud rather than failed:

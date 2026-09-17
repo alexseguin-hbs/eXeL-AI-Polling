@@ -6,9 +6,9 @@
         "name": "test:mot-ladder",
         "ok": true,
         "counted": true,
-        "passed": 269,
+        "passed": 273,
         "failed": 0,
-        "ms": 399
+        "ms": 427
       },
       {
         "name": "test:self-cal",
@@ -16,427 +16,23 @@
         "counted": true,
         "passed": 30,
         "failed": 0,
-        "ms": 503
+        "ms": 528
       },
       {
         "name": "test:drone-arena",
         "ok": true,
         "counted": true,
         "passed": 44,
-        "failed": 0,
-        "ms": 586
-      },
-      {
-        "name": "test:drone-hal",
-        "ok": true,
-        "counted": true,
-        "passed": 147,
-        "failed": 0,
-        "ms": 704
-      },
-      {
-        "name": "test:vector-law",
-        "ok": true,
-        "counted": true,
-        "passed": 26,
-        "failed": 0,
-        "ms": 212
-      },
-      {
-        "name": "test:drone-crs",
-        "ok": true,
-        "counted": true,
-        "passed": 434,
-        "failed": 0,
-        "ms": 308
-      },
-      {
-        "name": "test:drone-i18n",
-        "ok": true,
-        "counted": true,
-        "passed": 262,
-        "failed": 0,
-        "ms": 249
-      },
-      {
-        "name": "test:drone-gimbal",
-        "ok": true,
-        "counted": true,
-        "passed": 58,
-        "failed": 0,
-        "ms": 501
-      },
-      {
-        "name": "test:drone-flight",
-        "ok": true,
-        "counted": true,
-        "passed": 100,
-        "failed": 0,
-        "ms": 501
-      },
-      {
-        "name": "test:si-pod",
-        "ok": true,
-        "counted": true,
-        "passed": 126,
-        "failed": 0,
-        "ms": 447
-      },
-      {
-        "name": "test:drone-link",
-        "ok": true,
-        "counted": true,
-        "passed": 56,
-        "failed": 0,
-        "ms": 387
-      },
-      {
-        "name": "test:wire-core",
-        "ok": true,
-        "counted": true,
-        "passed": 41,
-        "failed": 0,
-        "ms": 437
-      },
-      {
-        "name": "test:wire-export",
-        "ok": true,
-        "counted": true,
-        "passed": 22,
-        "failed": 0,
-        "ms": 679
-      },
-      {
-        "name": "test:drone-swarm",
-        "ok": true,
-        "counted": true,
-        "passed": 136,
-        "failed": 0,
-        "ms": 636
-      },
-      {
-        "name": "test:drone-authority",
-        "ok": true,
-        "counted": true,
-        "passed": 71,
-        "failed": 0,
-        "ms": 407
-      },
-      {
-        "name": "test:arena-frame",
-        "ok": true,
-        "counted": true,
-        "passed": 40,
-        "failed": 0,
-        "ms": 414
-      },
-      {
-        "name": "test:seat-view",
-        "ok": true,
-        "counted": true,
-        "passed": 39,
-        "failed": 0,
-        "ms": 425
-      },
-      {
-        "name": "test:airframe-truth",
-        "ok": true,
-        "counted": true,
-        "passed": 29,
-        "failed": 0,
-        "ms": 412
-      },
-      {
-        "name": "test:foil-model",
-        "ok": true,
-        "counted": false,
-        "passed": 0,
-        "failed": 0,
-        "ms": 302
-      },
-      {
-        "name": "test:drone-naming",
-        "ok": true,
-        "counted": true,
-        "passed": 12,
-        "failed": 0,
-        "ms": 326
-      },
-      {
-        "name": "test:drone-route",
-        "ok": true,
-        "counted": true,
-        "passed": 16,
-        "failed": 0,
-        "ms": 293
-      },
-      {
-        "name": "test:drone-laser",
-        "ok": true,
-        "counted": true,
-        "passed": 111,
-        "failed": 0,
-        "ms": 407
-      },
-      {
-        "name": "test:drone-contest",
-        "ok": true,
-        "counted": true,
-        "passed": 100,
-        "failed": 0,
-        "ms": 1003
-      },
-      {
-        "name": "test:drone-winners",
-        "ok": true,
-        "counted": true,
-        "passed": 481,
-        "failed": 0,
-        "ms": 385
-      },
-      {
-        "name": "test:drone-scale",
-        "ok": true,
-        "counted": true,
-        "passed": 48,
-        "failed": 0,
-        "ms": 436
-      }
-    ],
-    [
-      {
-        "name": "test:mot-ladder",
-        "ok": true,
-        "counted": true,
-        "passed": 269,
-        "failed": 0,
-        "ms": 393
-      },
-      {
-        "name": "test:self-cal",
-        "ok": true,
-        "counted": true,
-        "passed": 30,
-        "failed": 0,
-        "ms": 527
-      },
-      {
-        "name": "test:drone-arena",
-        "ok": true,
-        "counted": true,
-        "passed": 44,
-        "failed": 0,
-        "ms": 574
-      },
-      {
-        "name": "test:drone-hal",
-        "ok": true,
-        "counted": true,
-        "passed": 147,
-        "failed": 0,
-        "ms": 714
-      },
-      {
-        "name": "test:vector-law",
-        "ok": true,
-        "counted": true,
-        "passed": 26,
-        "failed": 0,
-        "ms": 208
-      },
-      {
-        "name": "test:drone-crs",
-        "ok": true,
-        "counted": true,
-        "passed": 434,
-        "failed": 0,
-        "ms": 306
-      },
-      {
-        "name": "test:drone-i18n",
-        "ok": true,
-        "counted": true,
-        "passed": 262,
-        "failed": 0,
-        "ms": 245
-      },
-      {
-        "name": "test:drone-gimbal",
-        "ok": true,
-        "counted": true,
-        "passed": 58,
-        "failed": 0,
-        "ms": 499
-      },
-      {
-        "name": "test:drone-flight",
-        "ok": true,
-        "counted": true,
-        "passed": 100,
-        "failed": 0,
-        "ms": 522
-      },
-      {
-        "name": "test:si-pod",
-        "ok": true,
-        "counted": true,
-        "passed": 126,
-        "failed": 0,
-        "ms": 455
-      },
-      {
-        "name": "test:drone-link",
-        "ok": true,
-        "counted": true,
-        "passed": 56,
-        "failed": 0,
-        "ms": 374
-      },
-      {
-        "name": "test:wire-core",
-        "ok": true,
-        "counted": true,
-        "passed": 41,
-        "failed": 0,
-        "ms": 442
-      },
-      {
-        "name": "test:wire-export",
-        "ok": true,
-        "counted": true,
-        "passed": 22,
-        "failed": 0,
-        "ms": 760
-      },
-      {
-        "name": "test:drone-swarm",
-        "ok": true,
-        "counted": true,
-        "passed": 136,
         "failed": 0,
         "ms": 625
       },
       {
-        "name": "test:drone-authority",
-        "ok": true,
-        "counted": true,
-        "passed": 71,
-        "failed": 0,
-        "ms": 407
-      },
-      {
-        "name": "test:arena-frame",
-        "ok": true,
-        "counted": true,
-        "passed": 40,
-        "failed": 0,
-        "ms": 403
-      },
-      {
-        "name": "test:seat-view",
-        "ok": true,
-        "counted": true,
-        "passed": 39,
-        "failed": 0,
-        "ms": 422
-      },
-      {
-        "name": "test:airframe-truth",
-        "ok": true,
-        "counted": true,
-        "passed": 29,
-        "failed": 0,
-        "ms": 398
-      },
-      {
-        "name": "test:foil-model",
-        "ok": true,
-        "counted": false,
-        "passed": 0,
-        "failed": 0,
-        "ms": 298
-      },
-      {
-        "name": "test:drone-naming",
-        "ok": true,
-        "counted": true,
-        "passed": 12,
-        "failed": 0,
-        "ms": 326
-      },
-      {
-        "name": "test:drone-route",
-        "ok": true,
-        "counted": true,
-        "passed": 16,
-        "failed": 0,
-        "ms": 297
-      },
-      {
-        "name": "test:drone-laser",
-        "ok": true,
-        "counted": true,
-        "passed": 111,
-        "failed": 0,
-        "ms": 401
-      },
-      {
-        "name": "test:drone-contest",
-        "ok": true,
-        "counted": true,
-        "passed": 100,
-        "failed": 0,
-        "ms": 995
-      },
-      {
-        "name": "test:drone-winners",
-        "ok": true,
-        "counted": true,
-        "passed": 481,
-        "failed": 0,
-        "ms": 404
-      },
-      {
-        "name": "test:drone-scale",
-        "ok": true,
-        "counted": true,
-        "passed": 48,
-        "failed": 0,
-        "ms": 434
-      }
-    ],
-    [
-      {
-        "name": "test:mot-ladder",
-        "ok": true,
-        "counted": true,
-        "passed": 269,
-        "failed": 0,
-        "ms": 423
-      },
-      {
-        "name": "test:self-cal",
-        "ok": true,
-        "counted": true,
-        "passed": 30,
-        "failed": 0,
-        "ms": 510
-      },
-      {
-        "name": "test:drone-arena",
-        "ok": true,
-        "counted": true,
-        "passed": 44,
-        "failed": 0,
-        "ms": 568
-      },
-      {
         "name": "test:drone-hal",
         "ok": true,
         "counted": true,
         "passed": 147,
         "failed": 0,
-        "ms": 678
+        "ms": 752
       },
       {
         "name": "test:vector-law",
@@ -444,23 +40,23 @@
         "counted": true,
         "passed": 26,
         "failed": 0,
-        "ms": 205
+        "ms": 209
       },
       {
         "name": "test:drone-crs",
         "ok": true,
         "counted": true,
-        "passed": 434,
+        "passed": 532,
         "failed": 0,
-        "ms": 315
+        "ms": 320
       },
       {
         "name": "test:drone-i18n",
         "ok": true,
         "counted": true,
-        "passed": 262,
+        "passed": 426,
         "failed": 0,
-        "ms": 247
+        "ms": 297
       },
       {
         "name": "test:drone-gimbal",
@@ -468,7 +64,7 @@
         "counted": true,
         "passed": 58,
         "failed": 0,
-        "ms": 491
+        "ms": 532
       },
       {
         "name": "test:drone-flight",
@@ -476,7 +72,7 @@
         "counted": true,
         "passed": 100,
         "failed": 0,
-        "ms": 491
+        "ms": 540
       },
       {
         "name": "test:si-pod",
@@ -484,15 +80,15 @@
         "counted": true,
         "passed": 126,
         "failed": 0,
-        "ms": 440
+        "ms": 472
       },
       {
         "name": "test:drone-link",
         "ok": true,
         "counted": true,
-        "passed": 56,
+        "passed": 75,
         "failed": 0,
-        "ms": 373
+        "ms": 426
       },
       {
         "name": "test:wire-core",
@@ -500,7 +96,7 @@
         "counted": true,
         "passed": 41,
         "failed": 0,
-        "ms": 439
+        "ms": 460
       },
       {
         "name": "test:wire-export",
@@ -508,7 +104,7 @@
         "counted": true,
         "passed": 22,
         "failed": 0,
-        "ms": 698
+        "ms": 737
       },
       {
         "name": "test:drone-swarm",
@@ -516,7 +112,7 @@
         "counted": true,
         "passed": 136,
         "failed": 0,
-        "ms": 657
+        "ms": 671
       },
       {
         "name": "test:drone-authority",
@@ -524,7 +120,7 @@
         "counted": true,
         "passed": 71,
         "failed": 0,
-        "ms": 421
+        "ms": 426
       },
       {
         "name": "test:arena-frame",
@@ -532,15 +128,15 @@
         "counted": true,
         "passed": 40,
         "failed": 0,
-        "ms": 431
+        "ms": 430
       },
       {
         "name": "test:seat-view",
         "ok": true,
         "counted": true,
-        "passed": 39,
+        "passed": 50,
         "failed": 0,
-        "ms": 440
+        "ms": 452
       },
       {
         "name": "test:airframe-truth",
@@ -548,7 +144,7 @@
         "counted": true,
         "passed": 29,
         "failed": 0,
-        "ms": 406
+        "ms": 524
       },
       {
         "name": "test:foil-model",
@@ -564,7 +160,7 @@
         "counted": true,
         "passed": 12,
         "failed": 0,
-        "ms": 377
+        "ms": 457
       },
       {
         "name": "test:drone-route",
@@ -572,7 +168,7 @@
         "counted": true,
         "passed": 16,
         "failed": 0,
-        "ms": 327
+        "ms": 306
       },
       {
         "name": "test:drone-laser",
@@ -580,15 +176,15 @@
         "counted": true,
         "passed": 111,
         "failed": 0,
-        "ms": 430
+        "ms": 437
       },
       {
         "name": "test:drone-contest",
         "ok": true,
         "counted": true,
-        "passed": 100,
+        "passed": 111,
         "failed": 0,
-        "ms": 1011
+        "ms": 1109
       },
       {
         "name": "test:drone-winners",
@@ -596,15 +192,103 @@
         "counted": true,
         "passed": 481,
         "failed": 0,
-        "ms": 391
+        "ms": 459
       },
       {
         "name": "test:drone-scale",
         "ok": true,
         "counted": true,
-        "passed": 48,
+        "passed": 46,
         "failed": 0,
-        "ms": 449
+        "ms": 497
+      },
+      {
+        "name": "test:controls-schema",
+        "ok": true,
+        "counted": true,
+        "passed": 86,
+        "failed": 0,
+        "ms": 415
+      },
+      {
+        "name": "test:drone-slots",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 420
+      },
+      {
+        "name": "test:drone-decisions",
+        "ok": true,
+        "counted": true,
+        "passed": 42,
+        "failed": 0,
+        "ms": 422
+      },
+      {
+        "name": "test:stick-sets",
+        "ok": true,
+        "counted": true,
+        "passed": 233,
+        "failed": 0,
+        "ms": 448
+      },
+      {
+        "name": "test:drone-controls",
+        "ok": true,
+        "counted": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 439
+      },
+      {
+        "name": "test:drone-tap",
+        "ok": true,
+        "counted": true,
+        "passed": 25,
+        "failed": 0,
+        "ms": 412
+      },
+      {
+        "name": "test:asm-cup",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 402
+      },
+      {
+        "name": "test:drone-challenge",
+        "ok": true,
+        "counted": true,
+        "passed": 51,
+        "failed": 0,
+        "ms": 406
+      },
+      {
+        "name": "test:drone-platforms",
+        "ok": true,
+        "counted": true,
+        "passed": 39,
+        "failed": 0,
+        "ms": 459
+      },
+      {
+        "name": "test:glyph-check",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 252
+      },
+      {
+        "name": "test:drone-size",
+        "ok": true,
+        "counted": true,
+        "passed": 4,
+        "failed": 0,
+        "ms": 334
       }
     ],
     [
@@ -612,9 +296,9 @@
         "name": "test:mot-ladder",
         "ok": true,
         "counted": true,
-        "passed": 269,
+        "passed": 273,
         "failed": 0,
-        "ms": 400
+        "ms": 428
       },
       {
         "name": "test:self-cal",
@@ -622,7 +306,7 @@
         "counted": true,
         "passed": 30,
         "failed": 0,
-        "ms": 529
+        "ms": 542
       },
       {
         "name": "test:drone-arena",
@@ -630,7 +314,7 @@
         "counted": true,
         "passed": 44,
         "failed": 0,
-        "ms": 591
+        "ms": 620
       },
       {
         "name": "test:drone-hal",
@@ -638,7 +322,7 @@
         "counted": true,
         "passed": 147,
         "failed": 0,
-        "ms": 721
+        "ms": 749
       },
       {
         "name": "test:vector-law",
@@ -646,23 +330,23 @@
         "counted": true,
         "passed": 26,
         "failed": 0,
-        "ms": 213
+        "ms": 215
       },
       {
         "name": "test:drone-crs",
         "ok": true,
         "counted": true,
-        "passed": 434,
+        "passed": 532,
         "failed": 0,
-        "ms": 328
+        "ms": 334
       },
       {
         "name": "test:drone-i18n",
         "ok": true,
         "counted": true,
-        "passed": 262,
+        "passed": 426,
         "failed": 0,
-        "ms": 255
+        "ms": 309
       },
       {
         "name": "test:drone-gimbal",
@@ -670,7 +354,1457 @@
         "counted": true,
         "passed": 58,
         "failed": 0,
+        "ms": 519
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "counted": true,
+        "passed": 100,
+        "failed": 0,
+        "ms": 525
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "counted": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 477
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "counted": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 403
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "counted": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 448
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 715
+      },
+      {
+        "name": "test:drone-swarm",
+        "ok": true,
+        "counted": true,
+        "passed": 136,
+        "failed": 0,
+        "ms": 671
+      },
+      {
+        "name": "test:drone-authority",
+        "ok": true,
+        "counted": true,
+        "passed": 71,
+        "failed": 0,
+        "ms": 417
+      },
+      {
+        "name": "test:arena-frame",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 406
+      },
+      {
+        "name": "test:seat-view",
+        "ok": true,
+        "counted": true,
+        "passed": 50,
+        "failed": 0,
+        "ms": 433
+      },
+      {
+        "name": "test:airframe-truth",
+        "ok": true,
+        "counted": true,
+        "passed": 29,
+        "failed": 0,
+        "ms": 436
+      },
+      {
+        "name": "test:foil-model",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 315
+      },
+      {
+        "name": "test:drone-naming",
+        "ok": true,
+        "counted": true,
+        "passed": 12,
+        "failed": 0,
+        "ms": 413
+      },
+      {
+        "name": "test:drone-route",
+        "ok": true,
+        "counted": true,
+        "passed": 16,
+        "failed": 0,
+        "ms": 307
+      },
+      {
+        "name": "test:drone-laser",
+        "ok": true,
+        "counted": true,
+        "passed": 111,
+        "failed": 0,
+        "ms": 422
+      },
+      {
+        "name": "test:drone-contest",
+        "ok": true,
+        "counted": true,
+        "passed": 111,
+        "failed": 0,
+        "ms": 1112
+      },
+      {
+        "name": "test:drone-winners",
+        "ok": true,
+        "counted": true,
+        "passed": 481,
+        "failed": 0,
+        "ms": 420
+      },
+      {
+        "name": "test:drone-scale",
+        "ok": true,
+        "counted": true,
+        "passed": 46,
+        "failed": 0,
+        "ms": 453
+      },
+      {
+        "name": "test:controls-schema",
+        "ok": true,
+        "counted": true,
+        "passed": 86,
+        "failed": 0,
+        "ms": 399
+      },
+      {
+        "name": "test:drone-slots",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 388
+      },
+      {
+        "name": "test:drone-decisions",
+        "ok": true,
+        "counted": true,
+        "passed": 42,
+        "failed": 0,
+        "ms": 400
+      },
+      {
+        "name": "test:stick-sets",
+        "ok": true,
+        "counted": true,
+        "passed": 233,
+        "failed": 0,
+        "ms": 438
+      },
+      {
+        "name": "test:drone-controls",
+        "ok": true,
+        "counted": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 426
+      },
+      {
+        "name": "test:drone-tap",
+        "ok": true,
+        "counted": true,
+        "passed": 25,
+        "failed": 0,
+        "ms": 392
+      },
+      {
+        "name": "test:asm-cup",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 414
+      },
+      {
+        "name": "test:drone-challenge",
+        "ok": true,
+        "counted": true,
+        "passed": 51,
+        "failed": 0,
+        "ms": 400
+      },
+      {
+        "name": "test:drone-platforms",
+        "ok": true,
+        "counted": true,
+        "passed": 39,
+        "failed": 0,
+        "ms": 470
+      },
+      {
+        "name": "test:glyph-check",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 224
+      },
+      {
+        "name": "test:drone-size",
+        "ok": true,
+        "counted": true,
+        "passed": 4,
+        "failed": 0,
+        "ms": 302
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "counted": true,
+        "passed": 273,
+        "failed": 0,
+        "ms": 432
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "counted": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 525
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "counted": true,
+        "passed": 44,
+        "failed": 0,
+        "ms": 615
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "counted": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 777
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "counted": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 220
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "counted": true,
+        "passed": 532,
+        "failed": 0,
+        "ms": 307
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "counted": true,
+        "passed": 426,
+        "failed": 0,
+        "ms": 282
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "counted": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 544
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "counted": true,
+        "passed": 100,
+        "failed": 0,
+        "ms": 524
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "counted": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 476
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "counted": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 406
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "counted": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 459
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 716
+      },
+      {
+        "name": "test:drone-swarm",
+        "ok": true,
+        "counted": true,
+        "passed": 136,
+        "failed": 0,
+        "ms": 678
+      },
+      {
+        "name": "test:drone-authority",
+        "ok": true,
+        "counted": true,
+        "passed": 71,
+        "failed": 0,
+        "ms": 431
+      },
+      {
+        "name": "test:arena-frame",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 433
+      },
+      {
+        "name": "test:seat-view",
+        "ok": true,
+        "counted": true,
+        "passed": 50,
+        "failed": 0,
+        "ms": 453
+      },
+      {
+        "name": "test:airframe-truth",
+        "ok": true,
+        "counted": true,
+        "passed": 29,
+        "failed": 0,
+        "ms": 432
+      },
+      {
+        "name": "test:foil-model",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 306
+      },
+      {
+        "name": "test:drone-naming",
+        "ok": true,
+        "counted": true,
+        "passed": 12,
+        "failed": 0,
+        "ms": 417
+      },
+      {
+        "name": "test:drone-route",
+        "ok": true,
+        "counted": true,
+        "passed": 16,
+        "failed": 0,
+        "ms": 307
+      },
+      {
+        "name": "test:drone-laser",
+        "ok": true,
+        "counted": true,
+        "passed": 111,
+        "failed": 0,
+        "ms": 521
+      },
+      {
+        "name": "test:drone-contest",
+        "ok": true,
+        "counted": true,
+        "passed": 111,
+        "failed": 0,
+        "ms": 1055
+      },
+      {
+        "name": "test:drone-winners",
+        "ok": true,
+        "counted": true,
+        "passed": 481,
+        "failed": 0,
+        "ms": 414
+      },
+      {
+        "name": "test:drone-scale",
+        "ok": true,
+        "counted": true,
+        "passed": 46,
+        "failed": 0,
         "ms": 486
+      },
+      {
+        "name": "test:controls-schema",
+        "ok": true,
+        "counted": true,
+        "passed": 86,
+        "failed": 0,
+        "ms": 403
+      },
+      {
+        "name": "test:drone-slots",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 451
+      },
+      {
+        "name": "test:drone-decisions",
+        "ok": true,
+        "counted": true,
+        "passed": 42,
+        "failed": 0,
+        "ms": 405
+      },
+      {
+        "name": "test:stick-sets",
+        "ok": true,
+        "counted": true,
+        "passed": 233,
+        "failed": 0,
+        "ms": 417
+      },
+      {
+        "name": "test:drone-controls",
+        "ok": true,
+        "counted": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 448
+      },
+      {
+        "name": "test:drone-tap",
+        "ok": true,
+        "counted": true,
+        "passed": 25,
+        "failed": 0,
+        "ms": 403
+      },
+      {
+        "name": "test:asm-cup",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 421
+      },
+      {
+        "name": "test:drone-challenge",
+        "ok": true,
+        "counted": true,
+        "passed": 51,
+        "failed": 0,
+        "ms": 408
+      },
+      {
+        "name": "test:drone-platforms",
+        "ok": true,
+        "counted": true,
+        "passed": 39,
+        "failed": 0,
+        "ms": 410
+      },
+      {
+        "name": "test:glyph-check",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 252
+      },
+      {
+        "name": "test:drone-size",
+        "ok": true,
+        "counted": true,
+        "passed": 4,
+        "failed": 0,
+        "ms": 343
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "counted": true,
+        "passed": 273,
+        "failed": 0,
+        "ms": 438
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "counted": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 590
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "counted": true,
+        "passed": 44,
+        "failed": 0,
+        "ms": 635
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "counted": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 838
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "counted": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 241
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "counted": true,
+        "passed": 532,
+        "failed": 0,
+        "ms": 336
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "counted": true,
+        "passed": 426,
+        "failed": 0,
+        "ms": 277
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "counted": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 567
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "counted": true,
+        "passed": 100,
+        "failed": 0,
+        "ms": 587
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "counted": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 457
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "counted": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 434
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "counted": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 496
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 732
+      },
+      {
+        "name": "test:drone-swarm",
+        "ok": true,
+        "counted": true,
+        "passed": 136,
+        "failed": 0,
+        "ms": 717
+      },
+      {
+        "name": "test:drone-authority",
+        "ok": true,
+        "counted": true,
+        "passed": 71,
+        "failed": 0,
+        "ms": 427
+      },
+      {
+        "name": "test:arena-frame",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 437
+      },
+      {
+        "name": "test:seat-view",
+        "ok": true,
+        "counted": true,
+        "passed": 50,
+        "failed": 0,
+        "ms": 462
+      },
+      {
+        "name": "test:airframe-truth",
+        "ok": true,
+        "counted": true,
+        "passed": 29,
+        "failed": 0,
+        "ms": 440
+      },
+      {
+        "name": "test:foil-model",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 354
+      },
+      {
+        "name": "test:drone-naming",
+        "ok": true,
+        "counted": true,
+        "passed": 12,
+        "failed": 0,
+        "ms": 393
+      },
+      {
+        "name": "test:drone-route",
+        "ok": true,
+        "counted": true,
+        "passed": 16,
+        "failed": 0,
+        "ms": 328
+      },
+      {
+        "name": "test:drone-laser",
+        "ok": true,
+        "counted": true,
+        "passed": 111,
+        "failed": 0,
+        "ms": 420
+      },
+      {
+        "name": "test:drone-contest",
+        "ok": true,
+        "counted": true,
+        "passed": 111,
+        "failed": 0,
+        "ms": 1104
+      },
+      {
+        "name": "test:drone-winners",
+        "ok": true,
+        "counted": true,
+        "passed": 481,
+        "failed": 0,
+        "ms": 437
+      },
+      {
+        "name": "test:drone-scale",
+        "ok": true,
+        "counted": true,
+        "passed": 46,
+        "failed": 0,
+        "ms": 496
+      },
+      {
+        "name": "test:controls-schema",
+        "ok": true,
+        "counted": true,
+        "passed": 86,
+        "failed": 0,
+        "ms": 428
+      },
+      {
+        "name": "test:drone-slots",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 375
+      },
+      {
+        "name": "test:drone-decisions",
+        "ok": true,
+        "counted": true,
+        "passed": 42,
+        "failed": 0,
+        "ms": 400
+      },
+      {
+        "name": "test:stick-sets",
+        "ok": true,
+        "counted": true,
+        "passed": 233,
+        "failed": 0,
+        "ms": 396
+      },
+      {
+        "name": "test:drone-controls",
+        "ok": true,
+        "counted": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 484
+      },
+      {
+        "name": "test:drone-tap",
+        "ok": true,
+        "counted": true,
+        "passed": 25,
+        "failed": 0,
+        "ms": 419
+      },
+      {
+        "name": "test:asm-cup",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 419
+      },
+      {
+        "name": "test:drone-challenge",
+        "ok": true,
+        "counted": true,
+        "passed": 51,
+        "failed": 0,
+        "ms": 401
+      },
+      {
+        "name": "test:drone-platforms",
+        "ok": true,
+        "counted": true,
+        "passed": 39,
+        "failed": 0,
+        "ms": 429
+      },
+      {
+        "name": "test:glyph-check",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 254
+      },
+      {
+        "name": "test:drone-size",
+        "ok": true,
+        "counted": true,
+        "passed": 4,
+        "failed": 0,
+        "ms": 301
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "counted": true,
+        "passed": 273,
+        "failed": 0,
+        "ms": 480
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "counted": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 515
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "counted": true,
+        "passed": 44,
+        "failed": 0,
+        "ms": 745
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "counted": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 827
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "counted": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 273
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "counted": true,
+        "passed": 532,
+        "failed": 0,
+        "ms": 312
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "counted": true,
+        "passed": 426,
+        "failed": 0,
+        "ms": 334
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "counted": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 550
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "counted": true,
+        "passed": 100,
+        "failed": 0,
+        "ms": 548
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "counted": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 454
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "counted": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 425
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "counted": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 489
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 757
+      },
+      {
+        "name": "test:drone-swarm",
+        "ok": true,
+        "counted": true,
+        "passed": 136,
+        "failed": 0,
+        "ms": 752
+      },
+      {
+        "name": "test:drone-authority",
+        "ok": true,
+        "counted": true,
+        "passed": 71,
+        "failed": 0,
+        "ms": 436
+      },
+      {
+        "name": "test:arena-frame",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 493
+      },
+      {
+        "name": "test:seat-view",
+        "ok": true,
+        "counted": true,
+        "passed": 50,
+        "failed": 0,
+        "ms": 446
+      },
+      {
+        "name": "test:airframe-truth",
+        "ok": true,
+        "counted": true,
+        "passed": 29,
+        "failed": 0,
+        "ms": 436
+      },
+      {
+        "name": "test:foil-model",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 331
+      },
+      {
+        "name": "test:drone-naming",
+        "ok": true,
+        "counted": true,
+        "passed": 12,
+        "failed": 0,
+        "ms": 410
+      },
+      {
+        "name": "test:drone-route",
+        "ok": true,
+        "counted": true,
+        "passed": 16,
+        "failed": 0,
+        "ms": 354
+      },
+      {
+        "name": "test:drone-laser",
+        "ok": true,
+        "counted": true,
+        "passed": 111,
+        "failed": 0,
+        "ms": 498
+      },
+      {
+        "name": "test:drone-contest",
+        "ok": true,
+        "counted": true,
+        "passed": 111,
+        "failed": 0,
+        "ms": 1218
+      },
+      {
+        "name": "test:drone-winners",
+        "ok": true,
+        "counted": true,
+        "passed": 481,
+        "failed": 0,
+        "ms": 450
+      },
+      {
+        "name": "test:drone-scale",
+        "ok": true,
+        "counted": true,
+        "passed": 46,
+        "failed": 0,
+        "ms": 476
+      },
+      {
+        "name": "test:controls-schema",
+        "ok": true,
+        "counted": true,
+        "passed": 86,
+        "failed": 0,
+        "ms": 439
+      },
+      {
+        "name": "test:drone-slots",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 411
+      },
+      {
+        "name": "test:drone-decisions",
+        "ok": true,
+        "counted": true,
+        "passed": 42,
+        "failed": 0,
+        "ms": 404
+      },
+      {
+        "name": "test:stick-sets",
+        "ok": true,
+        "counted": true,
+        "passed": 233,
+        "failed": 0,
+        "ms": 415
+      },
+      {
+        "name": "test:drone-controls",
+        "ok": true,
+        "counted": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 513
+      },
+      {
+        "name": "test:drone-tap",
+        "ok": true,
+        "counted": true,
+        "passed": 25,
+        "failed": 0,
+        "ms": 478
+      },
+      {
+        "name": "test:asm-cup",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 459
+      },
+      {
+        "name": "test:drone-challenge",
+        "ok": true,
+        "counted": true,
+        "passed": 51,
+        "failed": 0,
+        "ms": 428
+      },
+      {
+        "name": "test:drone-platforms",
+        "ok": true,
+        "counted": true,
+        "passed": 39,
+        "failed": 0,
+        "ms": 483
+      },
+      {
+        "name": "test:glyph-check",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 236
+      },
+      {
+        "name": "test:drone-size",
+        "ok": true,
+        "counted": true,
+        "passed": 4,
+        "failed": 0,
+        "ms": 321
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "counted": true,
+        "passed": 273,
+        "failed": 0,
+        "ms": 451
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "counted": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 564
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "counted": true,
+        "passed": 44,
+        "failed": 0,
+        "ms": 648
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "counted": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 781
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "counted": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 226
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "counted": true,
+        "passed": 532,
+        "failed": 0,
+        "ms": 319
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "counted": true,
+        "passed": 426,
+        "failed": 0,
+        "ms": 292
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "counted": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 587
+      },
+      {
+        "name": "test:drone-flight",
+        "ok": true,
+        "counted": true,
+        "passed": 100,
+        "failed": 0,
+        "ms": 559
+      },
+      {
+        "name": "test:si-pod",
+        "ok": true,
+        "counted": true,
+        "passed": 126,
+        "failed": 0,
+        "ms": 448
+      },
+      {
+        "name": "test:drone-link",
+        "ok": true,
+        "counted": true,
+        "passed": 75,
+        "failed": 0,
+        "ms": 424
+      },
+      {
+        "name": "test:wire-core",
+        "ok": true,
+        "counted": true,
+        "passed": 41,
+        "failed": 0,
+        "ms": 474
+      },
+      {
+        "name": "test:wire-export",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 715
+      },
+      {
+        "name": "test:drone-swarm",
+        "ok": true,
+        "counted": true,
+        "passed": 136,
+        "failed": 0,
+        "ms": 727
+      },
+      {
+        "name": "test:drone-authority",
+        "ok": true,
+        "counted": true,
+        "passed": 71,
+        "failed": 0,
+        "ms": 429
+      },
+      {
+        "name": "test:arena-frame",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 418
+      },
+      {
+        "name": "test:seat-view",
+        "ok": true,
+        "counted": true,
+        "passed": 50,
+        "failed": 0,
+        "ms": 423
+      },
+      {
+        "name": "test:airframe-truth",
+        "ok": true,
+        "counted": true,
+        "passed": 29,
+        "failed": 0,
+        "ms": 462
+      },
+      {
+        "name": "test:foil-model",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 313
+      },
+      {
+        "name": "test:drone-naming",
+        "ok": true,
+        "counted": true,
+        "passed": 12,
+        "failed": 0,
+        "ms": 409
+      },
+      {
+        "name": "test:drone-route",
+        "ok": true,
+        "counted": true,
+        "passed": 16,
+        "failed": 0,
+        "ms": 305
+      },
+      {
+        "name": "test:drone-laser",
+        "ok": true,
+        "counted": true,
+        "passed": 111,
+        "failed": 0,
+        "ms": 431
+      },
+      {
+        "name": "test:drone-contest",
+        "ok": true,
+        "counted": true,
+        "passed": 111,
+        "failed": 0,
+        "ms": 1042
+      },
+      {
+        "name": "test:drone-winners",
+        "ok": true,
+        "counted": true,
+        "passed": 481,
+        "failed": 0,
+        "ms": 397
+      },
+      {
+        "name": "test:drone-scale",
+        "ok": true,
+        "counted": true,
+        "passed": 46,
+        "failed": 0,
+        "ms": 497
+      },
+      {
+        "name": "test:controls-schema",
+        "ok": true,
+        "counted": true,
+        "passed": 86,
+        "failed": 0,
+        "ms": 504
+      },
+      {
+        "name": "test:drone-slots",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 380
+      },
+      {
+        "name": "test:drone-decisions",
+        "ok": true,
+        "counted": true,
+        "passed": 42,
+        "failed": 0,
+        "ms": 392
+      },
+      {
+        "name": "test:stick-sets",
+        "ok": true,
+        "counted": true,
+        "passed": 233,
+        "failed": 0,
+        "ms": 393
+      },
+      {
+        "name": "test:drone-controls",
+        "ok": true,
+        "counted": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 418
+      },
+      {
+        "name": "test:drone-tap",
+        "ok": true,
+        "counted": true,
+        "passed": 25,
+        "failed": 0,
+        "ms": 397
+      },
+      {
+        "name": "test:asm-cup",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 407
+      },
+      {
+        "name": "test:drone-challenge",
+        "ok": true,
+        "counted": true,
+        "passed": 51,
+        "failed": 0,
+        "ms": 407
+      },
+      {
+        "name": "test:drone-platforms",
+        "ok": true,
+        "counted": true,
+        "passed": 39,
+        "failed": 0,
+        "ms": 419
+      },
+      {
+        "name": "test:glyph-check",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 215
+      },
+      {
+        "name": "test:drone-size",
+        "ok": true,
+        "counted": true,
+        "passed": 4,
+        "failed": 0,
+        "ms": 294
+      }
+    ],
+    [
+      {
+        "name": "test:mot-ladder",
+        "ok": true,
+        "counted": true,
+        "passed": 273,
+        "failed": 0,
+        "ms": 398
+      },
+      {
+        "name": "test:self-cal",
+        "ok": true,
+        "counted": true,
+        "passed": 30,
+        "failed": 0,
+        "ms": 513
+      },
+      {
+        "name": "test:drone-arena",
+        "ok": true,
+        "counted": true,
+        "passed": 44,
+        "failed": 0,
+        "ms": 603
+      },
+      {
+        "name": "test:drone-hal",
+        "ok": true,
+        "counted": true,
+        "passed": 147,
+        "failed": 0,
+        "ms": 732
+      },
+      {
+        "name": "test:vector-law",
+        "ok": true,
+        "counted": true,
+        "passed": 26,
+        "failed": 0,
+        "ms": 218
+      },
+      {
+        "name": "test:drone-crs",
+        "ok": true,
+        "counted": true,
+        "passed": 532,
+        "failed": 0,
+        "ms": 306
+      },
+      {
+        "name": "test:drone-i18n",
+        "ok": true,
+        "counted": true,
+        "passed": 426,
+        "failed": 0,
+        "ms": 280
+      },
+      {
+        "name": "test:drone-gimbal",
+        "ok": true,
+        "counted": true,
+        "passed": 58,
+        "failed": 0,
+        "ms": 505
       },
       {
         "name": "test:drone-flight",
@@ -686,15 +1820,15 @@
         "counted": true,
         "passed": 126,
         "failed": 0,
-        "ms": 477
+        "ms": 508
       },
       {
         "name": "test:drone-link",
         "ok": true,
         "counted": true,
-        "passed": 56,
+        "passed": 75,
         "failed": 0,
-        "ms": 392
+        "ms": 457
       },
       {
         "name": "test:wire-core",
@@ -702,7 +1836,7 @@
         "counted": true,
         "passed": 41,
         "failed": 0,
-        "ms": 443
+        "ms": 469
       },
       {
         "name": "test:wire-export",
@@ -710,7 +1844,7 @@
         "counted": true,
         "passed": 22,
         "failed": 0,
-        "ms": 685
+        "ms": 735
       },
       {
         "name": "test:drone-swarm",
@@ -718,265 +1852,63 @@
         "counted": true,
         "passed": 136,
         "failed": 0,
-        "ms": 626
+        "ms": 641
       },
       {
         "name": "test:drone-authority",
         "ok": true,
         "counted": true,
         "passed": 71,
+        "failed": 0,
+        "ms": 466
+      },
+      {
+        "name": "test:arena-frame",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 417
+      },
+      {
+        "name": "test:seat-view",
+        "ok": true,
+        "counted": true,
+        "passed": 50,
+        "failed": 0,
+        "ms": 416
+      },
+      {
+        "name": "test:airframe-truth",
+        "ok": true,
+        "counted": true,
+        "passed": 29,
         "failed": 0,
         "ms": 410
       },
       {
-        "name": "test:arena-frame",
-        "ok": true,
-        "counted": true,
-        "passed": 40,
-        "failed": 0,
-        "ms": 389
-      },
-      {
-        "name": "test:seat-view",
-        "ok": true,
-        "counted": true,
-        "passed": 39,
-        "failed": 0,
-        "ms": 406
-      },
-      {
-        "name": "test:airframe-truth",
-        "ok": true,
-        "counted": true,
-        "passed": 29,
-        "failed": 0,
-        "ms": 415
-      },
-      {
         "name": "test:foil-model",
         "ok": true,
         "counted": false,
         "passed": 0,
         "failed": 0,
-        "ms": 310
+        "ms": 305
       },
       {
         "name": "test:drone-naming",
         "ok": true,
         "counted": true,
         "passed": 12,
-        "failed": 0,
-        "ms": 326
-      },
-      {
-        "name": "test:drone-route",
-        "ok": true,
-        "counted": true,
-        "passed": 16,
-        "failed": 0,
-        "ms": 295
-      },
-      {
-        "name": "test:drone-laser",
-        "ok": true,
-        "counted": true,
-        "passed": 111,
-        "failed": 0,
-        "ms": 402
-      },
-      {
-        "name": "test:drone-contest",
-        "ok": true,
-        "counted": true,
-        "passed": 100,
-        "failed": 0,
-        "ms": 1011
-      },
-      {
-        "name": "test:drone-winners",
-        "ok": true,
-        "counted": true,
-        "passed": 481,
-        "failed": 0,
-        "ms": 406
-      },
-      {
-        "name": "test:drone-scale",
-        "ok": true,
-        "counted": true,
-        "passed": 48,
-        "failed": 0,
-        "ms": 449
-      }
-    ],
-    [
-      {
-        "name": "test:mot-ladder",
-        "ok": true,
-        "counted": true,
-        "passed": 269,
-        "failed": 0,
-        "ms": 395
-      },
-      {
-        "name": "test:self-cal",
-        "ok": true,
-        "counted": true,
-        "passed": 30,
-        "failed": 0,
-        "ms": 505
-      },
-      {
-        "name": "test:drone-arena",
-        "ok": true,
-        "counted": true,
-        "passed": 44,
-        "failed": 0,
-        "ms": 590
-      },
-      {
-        "name": "test:drone-hal",
-        "ok": true,
-        "counted": true,
-        "passed": 147,
-        "failed": 0,
-        "ms": 706
-      },
-      {
-        "name": "test:vector-law",
-        "ok": true,
-        "counted": true,
-        "passed": 26,
-        "failed": 0,
-        "ms": 205
-      },
-      {
-        "name": "test:drone-crs",
-        "ok": true,
-        "counted": true,
-        "passed": 434,
-        "failed": 0,
-        "ms": 302
-      },
-      {
-        "name": "test:drone-i18n",
-        "ok": true,
-        "counted": true,
-        "passed": 262,
-        "failed": 0,
-        "ms": 255
-      },
-      {
-        "name": "test:drone-gimbal",
-        "ok": true,
-        "counted": true,
-        "passed": 58,
-        "failed": 0,
-        "ms": 496
-      },
-      {
-        "name": "test:drone-flight",
-        "ok": true,
-        "counted": true,
-        "passed": 100,
-        "failed": 0,
-        "ms": 498
-      },
-      {
-        "name": "test:si-pod",
-        "ok": true,
-        "counted": true,
-        "passed": 126,
-        "failed": 0,
-        "ms": 451
-      },
-      {
-        "name": "test:drone-link",
-        "ok": true,
-        "counted": true,
-        "passed": 56,
-        "failed": 0,
-        "ms": 377
-      },
-      {
-        "name": "test:wire-core",
-        "ok": true,
-        "counted": true,
-        "passed": 41,
-        "failed": 0,
-        "ms": 438
-      },
-      {
-        "name": "test:wire-export",
-        "ok": true,
-        "counted": true,
-        "passed": 22,
-        "failed": 0,
-        "ms": 681
-      },
-      {
-        "name": "test:drone-swarm",
-        "ok": true,
-        "counted": true,
-        "passed": 136,
-        "failed": 0,
-        "ms": 631
-      },
-      {
-        "name": "test:drone-authority",
-        "ok": true,
-        "counted": true,
-        "passed": 71,
-        "failed": 0,
-        "ms": 400
-      },
-      {
-        "name": "test:arena-frame",
-        "ok": true,
-        "counted": true,
-        "passed": 40,
         "failed": 0,
         "ms": 386
       },
       {
-        "name": "test:seat-view",
-        "ok": true,
-        "counted": true,
-        "passed": 39,
-        "failed": 0,
-        "ms": 402
-      },
-      {
-        "name": "test:airframe-truth",
-        "ok": true,
-        "counted": true,
-        "passed": 29,
-        "failed": 0,
-        "ms": 419
-      },
-      {
-        "name": "test:foil-model",
-        "ok": true,
-        "counted": false,
-        "passed": 0,
-        "failed": 0,
-        "ms": 306
-      },
-      {
-        "name": "test:drone-naming",
-        "ok": true,
-        "counted": true,
-        "passed": 12,
-        "failed": 0,
-        "ms": 323
-      },
-      {
         "name": "test:drone-route",
         "ok": true,
         "counted": true,
         "passed": 16,
         "failed": 0,
-        "ms": 333
+        "ms": 287
       },
       {
         "name": "test:drone-laser",
@@ -984,15 +1916,15 @@
         "counted": true,
         "passed": 111,
         "failed": 0,
-        "ms": 406
+        "ms": 409
       },
       {
         "name": "test:drone-contest",
         "ok": true,
         "counted": true,
-        "passed": 100,
+        "passed": 111,
         "failed": 0,
-        "ms": 1040
+        "ms": 1047
       },
       {
         "name": "test:drone-winners",
@@ -1000,15 +1932,103 @@
         "counted": true,
         "passed": 481,
         "failed": 0,
-        "ms": 390
+        "ms": 409
       },
       {
         "name": "test:drone-scale",
         "ok": true,
         "counted": true,
-        "passed": 48,
+        "passed": 46,
         "failed": 0,
-        "ms": 435
+        "ms": 490
+      },
+      {
+        "name": "test:controls-schema",
+        "ok": true,
+        "counted": true,
+        "passed": 86,
+        "failed": 0,
+        "ms": 412
+      },
+      {
+        "name": "test:drone-slots",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 455
+      },
+      {
+        "name": "test:drone-decisions",
+        "ok": true,
+        "counted": true,
+        "passed": 42,
+        "failed": 0,
+        "ms": 471
+      },
+      {
+        "name": "test:stick-sets",
+        "ok": true,
+        "counted": true,
+        "passed": 233,
+        "failed": 0,
+        "ms": 385
+      },
+      {
+        "name": "test:drone-controls",
+        "ok": true,
+        "counted": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 413
+      },
+      {
+        "name": "test:drone-tap",
+        "ok": true,
+        "counted": true,
+        "passed": 25,
+        "failed": 0,
+        "ms": 398
+      },
+      {
+        "name": "test:asm-cup",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 389
+      },
+      {
+        "name": "test:drone-challenge",
+        "ok": true,
+        "counted": true,
+        "passed": 51,
+        "failed": 0,
+        "ms": 409
+      },
+      {
+        "name": "test:drone-platforms",
+        "ok": true,
+        "counted": true,
+        "passed": 39,
+        "failed": 0,
+        "ms": 411
+      },
+      {
+        "name": "test:glyph-check",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 211
+      },
+      {
+        "name": "test:drone-size",
+        "ok": true,
+        "counted": true,
+        "passed": 4,
+        "failed": 0,
+        "ms": 315
       }
     ],
     [
@@ -1016,9 +2036,9 @@
         "name": "test:mot-ladder",
         "ok": true,
         "counted": true,
-        "passed": 269,
+        "passed": 273,
         "failed": 0,
-        "ms": 396
+        "ms": 411
       },
       {
         "name": "test:self-cal",
@@ -1026,7 +2046,7 @@
         "counted": true,
         "passed": 30,
         "failed": 0,
-        "ms": 507
+        "ms": 562
       },
       {
         "name": "test:drone-arena",
@@ -1034,7 +2054,7 @@
         "counted": true,
         "passed": 44,
         "failed": 0,
-        "ms": 574
+        "ms": 672
       },
       {
         "name": "test:drone-hal",
@@ -1042,7 +2062,7 @@
         "counted": true,
         "passed": 147,
         "failed": 0,
-        "ms": 707
+        "ms": 767
       },
       {
         "name": "test:vector-law",
@@ -1050,23 +2070,23 @@
         "counted": true,
         "passed": 26,
         "failed": 0,
-        "ms": 212
+        "ms": 220
       },
       {
         "name": "test:drone-crs",
         "ok": true,
         "counted": true,
-        "passed": 434,
+        "passed": 532,
         "failed": 0,
-        "ms": 303
+        "ms": 340
       },
       {
         "name": "test:drone-i18n",
         "ok": true,
         "counted": true,
-        "passed": 262,
+        "passed": 426,
         "failed": 0,
-        "ms": 251
+        "ms": 307
       },
       {
         "name": "test:drone-gimbal",
@@ -1074,7 +2094,7 @@
         "counted": true,
         "passed": 58,
         "failed": 0,
-        "ms": 508
+        "ms": 521
       },
       {
         "name": "test:drone-flight",
@@ -1082,7 +2102,7 @@
         "counted": true,
         "passed": 100,
         "failed": 0,
-        "ms": 528
+        "ms": 583
       },
       {
         "name": "test:si-pod",
@@ -1090,15 +2110,15 @@
         "counted": true,
         "passed": 126,
         "failed": 0,
-        "ms": 443
+        "ms": 457
       },
       {
         "name": "test:drone-link",
         "ok": true,
         "counted": true,
-        "passed": 56,
+        "passed": 75,
         "failed": 0,
-        "ms": 402
+        "ms": 397
       },
       {
         "name": "test:wire-core",
@@ -1106,7 +2126,7 @@
         "counted": true,
         "passed": 41,
         "failed": 0,
-        "ms": 438
+        "ms": 434
       },
       {
         "name": "test:wire-export",
@@ -1114,7 +2134,7 @@
         "counted": true,
         "passed": 22,
         "failed": 0,
-        "ms": 722
+        "ms": 823
       },
       {
         "name": "test:drone-swarm",
@@ -1122,7 +2142,7 @@
         "counted": true,
         "passed": 136,
         "failed": 0,
-        "ms": 627
+        "ms": 752
       },
       {
         "name": "test:drone-authority",
@@ -1130,7 +2150,7 @@
         "counted": true,
         "passed": 71,
         "failed": 0,
-        "ms": 407
+        "ms": 491
       },
       {
         "name": "test:arena-frame",
@@ -1138,15 +2158,15 @@
         "counted": true,
         "passed": 40,
         "failed": 0,
-        "ms": 389
+        "ms": 461
       },
       {
         "name": "test:seat-view",
         "ok": true,
         "counted": true,
-        "passed": 39,
+        "passed": 50,
         "failed": 0,
-        "ms": 421
+        "ms": 435
       },
       {
         "name": "test:airframe-truth",
@@ -1154,7 +2174,7 @@
         "counted": true,
         "passed": 29,
         "failed": 0,
-        "ms": 409
+        "ms": 457
       },
       {
         "name": "test:foil-model",
@@ -1162,7 +2182,7 @@
         "counted": false,
         "passed": 0,
         "failed": 0,
-        "ms": 293
+        "ms": 298
       },
       {
         "name": "test:drone-naming",
@@ -1170,7 +2190,7 @@
         "counted": true,
         "passed": 12,
         "failed": 0,
-        "ms": 333
+        "ms": 385
       },
       {
         "name": "test:drone-route",
@@ -1178,7 +2198,7 @@
         "counted": true,
         "passed": 16,
         "failed": 0,
-        "ms": 291
+        "ms": 285
       },
       {
         "name": "test:drone-laser",
@@ -1186,15 +2206,15 @@
         "counted": true,
         "passed": 111,
         "failed": 0,
-        "ms": 393
+        "ms": 411
       },
       {
         "name": "test:drone-contest",
         "ok": true,
         "counted": true,
-        "passed": 100,
+        "passed": 111,
         "failed": 0,
-        "ms": 1004
+        "ms": 1052
       },
       {
         "name": "test:drone-winners",
@@ -1202,15 +2222,103 @@
         "counted": true,
         "passed": 481,
         "failed": 0,
-        "ms": 375
+        "ms": 369
       },
       {
         "name": "test:drone-scale",
         "ok": true,
         "counted": true,
-        "passed": 48,
+        "passed": 46,
         "failed": 0,
-        "ms": 449
+        "ms": 441
+      },
+      {
+        "name": "test:controls-schema",
+        "ok": true,
+        "counted": true,
+        "passed": 86,
+        "failed": 0,
+        "ms": 388
+      },
+      {
+        "name": "test:drone-slots",
+        "ok": true,
+        "counted": true,
+        "passed": 40,
+        "failed": 0,
+        "ms": 376
+      },
+      {
+        "name": "test:drone-decisions",
+        "ok": true,
+        "counted": true,
+        "passed": 42,
+        "failed": 0,
+        "ms": 378
+      },
+      {
+        "name": "test:stick-sets",
+        "ok": true,
+        "counted": true,
+        "passed": 233,
+        "failed": 0,
+        "ms": 384
+      },
+      {
+        "name": "test:drone-controls",
+        "ok": true,
+        "counted": true,
+        "passed": 56,
+        "failed": 0,
+        "ms": 432
+      },
+      {
+        "name": "test:drone-tap",
+        "ok": true,
+        "counted": true,
+        "passed": 25,
+        "failed": 0,
+        "ms": 390
+      },
+      {
+        "name": "test:asm-cup",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 410
+      },
+      {
+        "name": "test:drone-challenge",
+        "ok": true,
+        "counted": true,
+        "passed": 51,
+        "failed": 0,
+        "ms": 425
+      },
+      {
+        "name": "test:drone-platforms",
+        "ok": true,
+        "counted": true,
+        "passed": 39,
+        "failed": 0,
+        "ms": 403
+      },
+      {
+        "name": "test:glyph-check",
+        "ok": true,
+        "counted": false,
+        "passed": 0,
+        "failed": 0,
+        "ms": 210
+      },
+      {
+        "name": "test:drone-size",
+        "ok": true,
+        "counted": true,
+        "passed": 4,
+        "failed": 0,
+        "ms": 286
       }
     ],
     [
@@ -1218,9 +2326,9 @@
         "name": "test:mot-ladder",
         "ok": true,
         "counted": true,
-        "passed": 269,
+        "passed": 273,
         "failed": 0,
-        "ms": 402
+        "ms": 391
       },
       {
         "name": "test:self-cal",
@@ -1228,7 +2336,7 @@
         "counted": true,
         "passed": 30,
         "failed": 0,
-        "ms": 498
+        "ms": 480
       },
       {
         "name": "test:drone-arena",
@@ -1236,7 +2344,7 @@
         "counted": true,
         "passed": 44,
         "failed": 0,
-        "ms": 569
+        "ms": 556
       },
       {
         "name": "test:drone-hal",
@@ -1244,7 +2352,7 @@
         "counted": true,
         "passed": 147,
         "failed": 0,
-        "ms": 685
+        "ms": 716
       },
       {
         "name": "test:vector-law",
@@ -1252,23 +2360,23 @@
         "counted": true,
         "passed": 26,
         "failed": 0,
-        "ms": 219
+        "ms": 213
       },
       {
         "name": "test:drone-crs",
         "ok": true,
         "counted": true,
-        "passed": 434,
+        "passed": 532,
         "failed": 0,
-        "ms": 290
+        "ms": 300
       },
       {
         "name": "test:drone-i18n",
         "ok": true,
         "counted": true,
-        "passed": 262,
+        "passed": 426,
         "failed": 0,
-        "ms": 264
+        "ms": 288
       },
       {
         "name": "test:drone-gimbal",
@@ -1284,7 +2392,7 @@
         "counted": true,
         "passed": 100,
         "failed": 0,
-        "ms": 519
+        "ms": 517
       },
       {
         "name": "test:si-pod",
@@ -1292,15 +2400,15 @@
         "counted": true,
         "passed": 126,
         "failed": 0,
-        "ms": 444
+        "ms": 443
       },
       {
         "name": "test:drone-link",
         "ok": true,
         "counted": true,
-        "passed": 56,
+        "passed": 75,
         "failed": 0,
-        "ms": 379
+        "ms": 401
       },
       {
         "name": "test:wire-core",
@@ -1308,7 +2416,7 @@
         "counted": true,
         "passed": 41,
         "failed": 0,
-        "ms": 437
+        "ms": 428
       },
       {
         "name": "test:wire-export",
@@ -1316,7 +2424,7 @@
         "counted": true,
         "passed": 22,
         "failed": 0,
-        "ms": 704
+        "ms": 681
       },
       {
         "name": "test:drone-swarm",
@@ -1324,7 +2432,7 @@
         "counted": true,
         "passed": 136,
         "failed": 0,
-        "ms": 617
+        "ms": 630
       },
       {
         "name": "test:drone-authority",
@@ -1332,223 +2440,21 @@
         "counted": true,
         "passed": 71,
         "failed": 0,
-        "ms": 404
+        "ms": 405
       },
       {
         "name": "test:arena-frame",
         "ok": true,
         "counted": true,
         "passed": 40,
-        "failed": 0,
-        "ms": 396
-      },
-      {
-        "name": "test:seat-view",
-        "ok": true,
-        "counted": true,
-        "passed": 39,
-        "failed": 0,
-        "ms": 411
-      },
-      {
-        "name": "test:airframe-truth",
-        "ok": true,
-        "counted": true,
-        "passed": 29,
-        "failed": 0,
-        "ms": 394
-      },
-      {
-        "name": "test:foil-model",
-        "ok": true,
-        "counted": false,
-        "passed": 0,
-        "failed": 0,
-        "ms": 311
-      },
-      {
-        "name": "test:drone-naming",
-        "ok": true,
-        "counted": true,
-        "passed": 12,
-        "failed": 0,
-        "ms": 327
-      },
-      {
-        "name": "test:drone-route",
-        "ok": true,
-        "counted": true,
-        "passed": 16,
-        "failed": 0,
-        "ms": 297
-      },
-      {
-        "name": "test:drone-laser",
-        "ok": true,
-        "counted": true,
-        "passed": 111,
-        "failed": 0,
-        "ms": 426
-      },
-      {
-        "name": "test:drone-contest",
-        "ok": true,
-        "counted": true,
-        "passed": 100,
-        "failed": 0,
-        "ms": 1006
-      },
-      {
-        "name": "test:drone-winners",
-        "ok": true,
-        "counted": true,
-        "passed": 481,
-        "failed": 0,
-        "ms": 385
-      },
-      {
-        "name": "test:drone-scale",
-        "ok": true,
-        "counted": true,
-        "passed": 48,
-        "failed": 0,
-        "ms": 427
-      }
-    ],
-    [
-      {
-        "name": "test:mot-ladder",
-        "ok": true,
-        "counted": true,
-        "passed": 269,
-        "failed": 0,
-        "ms": 402
-      },
-      {
-        "name": "test:self-cal",
-        "ok": true,
-        "counted": true,
-        "passed": 30,
-        "failed": 0,
-        "ms": 482
-      },
-      {
-        "name": "test:drone-arena",
-        "ok": true,
-        "counted": true,
-        "passed": 44,
-        "failed": 0,
-        "ms": 563
-      },
-      {
-        "name": "test:drone-hal",
-        "ok": true,
-        "counted": true,
-        "passed": 147,
-        "failed": 0,
-        "ms": 711
-      },
-      {
-        "name": "test:vector-law",
-        "ok": true,
-        "counted": true,
-        "passed": 26,
-        "failed": 0,
-        "ms": 211
-      },
-      {
-        "name": "test:drone-crs",
-        "ok": true,
-        "counted": true,
-        "passed": 434,
-        "failed": 0,
-        "ms": 300
-      },
-      {
-        "name": "test:drone-i18n",
-        "ok": true,
-        "counted": true,
-        "passed": 262,
-        "failed": 0,
-        "ms": 263
-      },
-      {
-        "name": "test:drone-gimbal",
-        "ok": true,
-        "counted": true,
-        "passed": 58,
-        "failed": 0,
-        "ms": 518
-      },
-      {
-        "name": "test:drone-flight",
-        "ok": true,
-        "counted": true,
-        "passed": 100,
-        "failed": 0,
-        "ms": 500
-      },
-      {
-        "name": "test:si-pod",
-        "ok": true,
-        "counted": true,
-        "passed": 126,
-        "failed": 0,
-        "ms": 435
-      },
-      {
-        "name": "test:drone-link",
-        "ok": true,
-        "counted": true,
-        "passed": 56,
         "failed": 0,
         "ms": 386
       },
       {
-        "name": "test:wire-core",
-        "ok": true,
-        "counted": true,
-        "passed": 41,
-        "failed": 0,
-        "ms": 453
-      },
-      {
-        "name": "test:wire-export",
-        "ok": true,
-        "counted": true,
-        "passed": 22,
-        "failed": 0,
-        "ms": 688
-      },
-      {
-        "name": "test:drone-swarm",
-        "ok": true,
-        "counted": true,
-        "passed": 136,
-        "failed": 0,
-        "ms": 628
-      },
-      {
-        "name": "test:drone-authority",
-        "ok": true,
-        "counted": true,
-        "passed": 71,
-        "failed": 0,
-        "ms": 415
-      },
-      {
-        "name": "test:arena-frame",
-        "ok": true,
-        "counted": true,
-        "passed": 40,
-        "failed": 0,
-        "ms": 390
-      },
-      {
         "name": "test:seat-view",
         "ok": true,
         "counted": true,
-        "passed": 39,
+        "passed": 50,
         "failed": 0,
         "ms": 400
       },
@@ -1558,7 +2464,7 @@
         "counted": true,
         "passed": 29,
         "failed": 0,
-        "ms": 405
+        "ms": 404
       },
       {
         "name": "test:foil-model",
@@ -1566,7 +2472,7 @@
         "counted": false,
         "passed": 0,
         "failed": 0,
-        "ms": 307
+        "ms": 302
       },
       {
         "name": "test:drone-naming",
@@ -1574,7 +2480,7 @@
         "counted": true,
         "passed": 12,
         "failed": 0,
-        "ms": 332
+        "ms": 402
       },
       {
         "name": "test:drone-route",
@@ -1582,7 +2488,7 @@
         "counted": true,
         "passed": 16,
         "failed": 0,
-        "ms": 296
+        "ms": 294
       },
       {
         "name": "test:drone-laser",
@@ -1590,15 +2496,15 @@
         "counted": true,
         "passed": 111,
         "failed": 0,
-        "ms": 395
+        "ms": 401
       },
       {
         "name": "test:drone-contest",
         "ok": true,
         "counted": true,
-        "passed": 100,
+        "passed": 111,
         "failed": 0,
-        "ms": 998
+        "ms": 1009
       },
       {
         "name": "test:drone-winners",
@@ -1606,217 +2512,103 @@
         "counted": true,
         "passed": 481,
         "failed": 0,
-        "ms": 386
+        "ms": 376
       },
       {
         "name": "test:drone-scale",
         "ok": true,
         "counted": true,
-        "passed": 48,
+        "passed": 46,
         "failed": 0,
-        "ms": 427
-      }
-    ],
-    [
-      {
-        "name": "test:mot-ladder",
-        "ok": true,
-        "counted": true,
-        "passed": 269,
-        "failed": 0,
-        "ms": 388
+        "ms": 423
       },
       {
-        "name": "test:self-cal",
+        "name": "test:controls-schema",
         "ok": true,
         "counted": true,
-        "passed": 30,
+        "passed": 86,
         "failed": 0,
-        "ms": 556
+        "ms": 379
       },
       {
-        "name": "test:drone-arena",
-        "ok": true,
-        "counted": true,
-        "passed": 44,
-        "failed": 0,
-        "ms": 587
-      },
-      {
-        "name": "test:drone-hal",
-        "ok": true,
-        "counted": true,
-        "passed": 147,
-        "failed": 0,
-        "ms": 686
-      },
-      {
-        "name": "test:vector-law",
-        "ok": true,
-        "counted": true,
-        "passed": 26,
-        "failed": 0,
-        "ms": 204
-      },
-      {
-        "name": "test:drone-crs",
-        "ok": true,
-        "counted": true,
-        "passed": 434,
-        "failed": 0,
-        "ms": 298
-      },
-      {
-        "name": "test:drone-i18n",
-        "ok": true,
-        "counted": true,
-        "passed": 262,
-        "failed": 0,
-        "ms": 262
-      },
-      {
-        "name": "test:drone-gimbal",
-        "ok": true,
-        "counted": true,
-        "passed": 58,
-        "failed": 0,
-        "ms": 487
-      },
-      {
-        "name": "test:drone-flight",
-        "ok": true,
-        "counted": true,
-        "passed": 100,
-        "failed": 0,
-        "ms": 506
-      },
-      {
-        "name": "test:si-pod",
-        "ok": true,
-        "counted": true,
-        "passed": 126,
-        "failed": 0,
-        "ms": 424
-      },
-      {
-        "name": "test:drone-link",
-        "ok": true,
-        "counted": true,
-        "passed": 56,
-        "failed": 0,
-        "ms": 378
-      },
-      {
-        "name": "test:wire-core",
-        "ok": true,
-        "counted": true,
-        "passed": 41,
-        "failed": 0,
-        "ms": 439
-      },
-      {
-        "name": "test:wire-export",
-        "ok": true,
-        "counted": true,
-        "passed": 22,
-        "failed": 0,
-        "ms": 666
-      },
-      {
-        "name": "test:drone-swarm",
-        "ok": true,
-        "counted": true,
-        "passed": 136,
-        "failed": 0,
-        "ms": 617
-      },
-      {
-        "name": "test:drone-authority",
-        "ok": true,
-        "counted": true,
-        "passed": 71,
-        "failed": 0,
-        "ms": 392
-      },
-      {
-        "name": "test:arena-frame",
+        "name": "test:drone-slots",
         "ok": true,
         "counted": true,
         "passed": 40,
         "failed": 0,
-        "ms": 392
+        "ms": 370
       },
       {
-        "name": "test:seat-view",
+        "name": "test:drone-decisions",
         "ok": true,
         "counted": true,
-        "passed": 39,
+        "passed": 42,
+        "failed": 0,
+        "ms": 376
+      },
+      {
+        "name": "test:stick-sets",
+        "ok": true,
+        "counted": true,
+        "passed": 233,
+        "failed": 0,
+        "ms": 391
+      },
+      {
+        "name": "test:drone-controls",
+        "ok": true,
+        "counted": true,
+        "passed": 56,
         "failed": 0,
         "ms": 407
       },
       {
-        "name": "test:airframe-truth",
+        "name": "test:drone-tap",
         "ok": true,
         "counted": true,
-        "passed": 29,
+        "passed": 25,
         "failed": 0,
-        "ms": 410
+        "ms": 419
       },
       {
-        "name": "test:foil-model",
+        "name": "test:asm-cup",
+        "ok": true,
+        "counted": true,
+        "passed": 22,
+        "failed": 0,
+        "ms": 394
+      },
+      {
+        "name": "test:drone-challenge",
+        "ok": true,
+        "counted": true,
+        "passed": 51,
+        "failed": 0,
+        "ms": 375
+      },
+      {
+        "name": "test:drone-platforms",
+        "ok": true,
+        "counted": true,
+        "passed": 39,
+        "failed": 0,
+        "ms": 401
+      },
+      {
+        "name": "test:glyph-check",
         "ok": true,
         "counted": false,
         "passed": 0,
         "failed": 0,
-        "ms": 306
+        "ms": 216
       },
       {
-        "name": "test:drone-naming",
+        "name": "test:drone-size",
         "ok": true,
         "counted": true,
-        "passed": 12,
+        "passed": 4,
         "failed": 0,
-        "ms": 324
-      },
-      {
-        "name": "test:drone-route",
-        "ok": true,
-        "counted": true,
-        "passed": 16,
-        "failed": 0,
-        "ms": 289
-      },
-      {
-        "name": "test:drone-laser",
-        "ok": true,
-        "counted": true,
-        "passed": 111,
-        "failed": 0,
-        "ms": 396
-      },
-      {
-        "name": "test:drone-contest",
-        "ok": true,
-        "counted": true,
-        "passed": 100,
-        "failed": 0,
-        "ms": 1026
-      },
-      {
-        "name": "test:drone-winners",
-        "ok": true,
-        "counted": true,
-        "passed": 481,
-        "failed": 0,
-        "ms": 386
-      },
-      {
-        "name": "test:drone-scale",
-        "ok": true,
-        "counted": true,
-        "passed": 48,
-        "failed": 0,
-        "ms": 443
+        "ms": 290
       }
     ]
   ],
@@ -1897,48 +2689,39 @@
       "detail": "the rung paints, it does not decide what exists"
     }
   ],
-  "perf": {
-    "before": 48,
-    "after": 42.8,
-    "gain": -5.2,
-    "throttle": 10,
-    "domNodes": 216,
-    "heapMB": 39.6,
-    "memoHit": true,
-    "aircraft": null
-  },
+  "perf": null,
   "ssses": {
     "pillars": {
       "Security": {
-        "score": 95,
-        "why": "353 checks on authority alone: a machine shot needs a named human at all five levels, a seat may only send what it controls, and a key group cannot out-vote a person."
+        "score": 97,
+        "why": "372 checks on authority alone: a machine shot needs a named human at all five levels, a seat may only send what it controls, and a key group cannot out-vote a person."
       },
       "Stability": {
         "score": 100,
         "why": "nine runs agree byte for byte on all 12 reproducible artefacts."
       },
       "Scalability": {
-        "score": 100,
-        "why": "42.8 fps at the heaviest case on a processor slowed 10 times, against the 30 Hz reference the operator set — 42 aircraft in the air."
+        "score": 0,
+        "why": "no measurement in this run: scripts/drone-perf.mjs was not run."
       },
       "Efficiency": {
-        "score": 100,
-        "why": "the projection memo holds between frames; 216 nodes for the whole engagement; heap 39.6 MB."
+        "score": 0,
+        "why": "no measurement in this run."
       },
       "Succinctness": {
-        "score": 85,
-        "why": "no helper is defined twice; 2 export(s) nothing imports; longest function Round at 427 lines against the 300 rule.",
+        "score": 63,
+        "why": "no helper is defined twice; 6 export(s) nothing imports; longest function Round at 682 lines against the 300 rule.",
         "dupes": [],
-        "dead": 2,
+        "dead": 6,
         "longest": {
           "name": "Round",
-          "lines": 427,
+          "lines": 682,
           "file": "round.tsx"
         }
       }
     },
-    "avg": 96,
-    "totalChecks": 2698,
+    "avg": 52,
+    "totalChecks": 3601,
     "allGreen": true,
     "spiralOk": true
   }
