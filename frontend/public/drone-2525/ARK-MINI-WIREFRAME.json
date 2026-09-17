@@ -1,0 +1,18 @@
+{
+  "source": "EXEL concept posters; targets unvalidated",
+  "domain": "water_only_austin_bathymetry",
+  "ark_sail_33": {
+    "id": "ARK33", "bodies": 1, "loa_m": 33.0, "beam_m": 13.0, "hull_height_m": 4.5,
+    "draft_hullborne_m": 1.8, "foil_extra_depth_m": 3.0, "range_km_target": 999,
+    "carries": ["MINI6633"], "obb": [33.0, 13.0, 4.5], "garage_m": [14.0, 6.0, 3.2],
+    "no_land": true, "no_flight": true
+  },
+  "manta_mini_66_33": {
+    "id": "MINI6633", "bodies": 1, "loa_m_placeholder": 12.5, "beam_m_placeholder": 3.2,
+    "height_hull_m": 3.0, "draft_surfaced_m": 1.2, "depth_rating_m": 33.0,
+    "range_km_target": 66, "endurance_h": 72, "people": 5, "captain_chair_is_sixth": false,
+    "surface_loading_only": true, "surface_pressure_cabin": true, "obb": [12.5, 3.2, 3.0],
+    "modules": ["A01","A02","B01","B","C","D","D01","E01","E02","E03","E04","E05"],
+    "no_land": true, "no_flight": true, "car_is_cargo_only": true
+  }
+}

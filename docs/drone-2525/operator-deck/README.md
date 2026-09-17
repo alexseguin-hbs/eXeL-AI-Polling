@@ -1,15 +1,15 @@
 # Drone-2525 · operator deck — the carried package
 
-**HEAD is `drone-2525_r.075.html`.** The operator's own build across r.003 → r.075, plus the prompts, the
+**HEAD is `drone-2525_r.076.html`.** The operator's own build across r.003 → r.076, plus the prompts, the
 notes files (r.042→r.047, r.047→r.050, r.051), the r.066 gap-close, the SSSES/SPIRAL-99 audit (md + json), the
 roster and the Cup — carried **byte-for-byte** and never regenerated. `sha256` for r.051→r.075 is in
 [`HASHES_r051_r075.sha256`](HASHES_r051_r075.sha256); r.003→r.050 in
 [`docs/asks/2026-09-16_operator_deck_r042.sha256`](../../asks/2026-09-16_operator_deck_r042.sha256).
 
-HEAD moved r.050 → r.075 on 2026-09-17: r.051 (state truth: `phase:'amber'` on the object) · r.052 (turret R
+HEAD moved r.050 → r.076 on 2026-09-17: r.051 (state truth: `phase:'amber'` on the object) · r.052 (turret R
 stick right edge, 3D wire box) · r.066 (intro cinematic + SELECT CITY/CRAFT/RANGE, WIFI/WebRTC HOST/JOIN) ·
 r.068 (stick geometry so you can move around the lawn) · r.073 (Lake Travis buoys, MASS-AI walk, SSSES/SPIRAL
-corrections) · r.075 (CH5·FOILS, defensive loop hardening). Diffs and the reconciled 48-agent + Grok audit
+corrections) · r.075 (CH5·FOILS, defensive loop hardening) · r.076 (WALLS collide MASS-AI + drones; WATER confines ARK/MINI to Austin bathymetry). Diffs and the reconciled 48-agent + Grok audit
 live in the plan (`ROUND 12`). `ASM_CUP_99.*` and `SSSES_SPIRAL_99.*` stay read-only fixtures.
 
 ```
