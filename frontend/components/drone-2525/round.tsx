@@ -54,6 +54,7 @@ import { SwarmLayer } from "./swarm-layer";
 import { ApprovalBanner } from "./approval-banner";
 import { RoundStatus } from "./round-status";
 import { RoundOverlay } from "./round-overlay";
+import { EngagementHud } from "./engagement-hud";
 import { ControlDeck } from "./control-deck";
 import { SiPanel } from "./si-panel";
 import { ArenaView, type ArenaCtx } from "./arena-view";
@@ -646,6 +647,7 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3, platform = DE
             <span style={{ ...MONO, color: semanticHex(CH.net ? "pending" : "door") }} data-drone-challenge>
               {challengeLine(CH, inPlay)}
             </span>
+            <EngagementHud framed={framed ? { label: doorLabel(framed.door.id), rangeM: Math.round(aimAt(eye, framed.door.at).rangeM) } : null} armed={!!(slots.current && slots.s[slots.current]?.phase === "red")} />
             {engagement && swarmPlan ? (
               <span style={{ ...MONO, color: semanticHex("ray") }} data-drone-swarm-line>{swarmLine(swarm.current, swarmPlan)}</span>
             ) : null}

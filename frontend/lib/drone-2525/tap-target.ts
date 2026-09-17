@@ -55,14 +55,25 @@ export function hitDoor(px: number, py: number, views: readonly TargetView[], ca
  * Tn — one, two or three strokes, so the slot number is read as a count rather than as a glyph that would
  * need a font and a fill. Amber and red are the caller's colours; this is only the geometry.
  */
-export function tboxPath(x: number, y: number, r: number, n: SlotN): string {
+/** The four bracket corners at a given radius. */
+const brackets = (x: number, y: number, r: number): string[] => {
   const a = r * 0.45;                                            // bracket arm length
-  const c = [
+  return [
     `M${x - r} ${y - r + a}L${x - r} ${y - r}L${x - r + a} ${y - r}`,
     `M${x + r - a} ${y - r}L${x + r} ${y - r}L${x + r} ${y - r + a}`,
     `M${x + r} ${y + r - a}L${x + r} ${y + r}L${x + r - a} ${y + r}`,
     `M${x - r + a} ${y + r}L${x - r} ${y + r}L${x - r} ${y + r - a}`,
   ];
+};
+
+/**
+ * The T-box. AMBER draws a SINGLE bracket; RED draws a DOUBLE bracket (a second frame 4 px in). The phase is
+ * read from the SHAPE, not the hue alone — so a colour-blind player, or a phone in sunlight, still sees that
+ * a box is armed. The n ticks along the top count the slot (T1/T2/T3). This is P1-2, the demo's core lesson.
+ */
+export function tboxPath(x: number, y: number, r: number, n: SlotN, phase: "amber" | "red" = "amber"): string {
+  const c = brackets(x, y, r);
+  if (phase === "red") c.push(...brackets(x, y, r - 4));         // the double bracket = ARMED, by shape
   const ticks: string[] = [];
   const gap = 4, h = 5, x0 = x - ((n - 1) * gap) / 2;
   for (let i = 0; i < n; i++) ticks.push(`M${x0 + i * gap} ${y - r - 2}L${x0 + i * gap} ${y - r - 2 - h}`);

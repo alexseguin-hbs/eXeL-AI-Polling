@@ -103,6 +103,16 @@ export function aimAt(eye: Vec3, p: Vec3): { az: number; el: number; rangeM: num
   };
 }
 
+/**
+ * Where the sensor is looking, as a world point at a given range — the inverse of aimAt. The LOCK reticle is
+ * drawn here so a player sees the boresight land in the arena, not float on the glass. `aimAt(eye, boresightAt
+ * (eye, s, r))` returns s.az / s.el back (within rounding), which is what the drone-glass gate checks.
+ */
+export function boresightAt(eye: Vec3, s: GimbalState, rangeM: number): Vec3 {
+  const v = aimVector(s.az, s.el);
+  return [eye[0] + v[0] * rangeM, eye[1] + v[1] * rangeM, eye[2] + v[2] * rangeM];
+}
+
 /** Is a world point inside the sensor's cone right now — and by how much, so a HUD can show near-misses. */
 export interface InFrame { inFrame: boolean; dAz: number; dEl: number; rangeM: number; tooNear: boolean; tooFar: boolean }
 export function inFrame(eye: Vec3, s: GimbalState, spec: GimbalSpec, p: Vec3): InFrame {

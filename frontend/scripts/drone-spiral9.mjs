@@ -31,7 +31,7 @@ const GATES = [
   "test:drone-crs", "test:drone-i18n", "test:drone-gimbal", "test:drone-flight", "test:si-pod",
   "test:drone-link", "test:wire-core", "test:wire-export",
   "test:drone-swarm", "test:drone-authority", "test:arena-frame", "test:seat-view",
-  "test:airframe-truth", "test:foil-model", "test:drone-naming", "test:drone-route", "test:drone-laser", "test:drone-contest", "test:drone-winners", "test:drone-scale", "test:controls-schema", "test:drone-slots", "test:drone-decisions", "test:stick-sets", "test:drone-controls", "test:drone-tap", "test:asm-cup", "test:drone-challenge", "test:drone-progression", "test:drone-intro", "test:drone-platforms", "test:glyph-check", "test:drone-size", "test:drone-ledger",
+  "test:airframe-truth", "test:foil-model", "test:drone-naming", "test:drone-route", "test:drone-laser", "test:drone-contest", "test:drone-winners", "test:drone-scale", "test:controls-schema", "test:drone-slots", "test:drone-decisions", "test:stick-sets", "test:drone-controls", "test:drone-tap", "test:asm-cup", "test:drone-challenge", "test:drone-progression", "test:drone-intro", "test:drone-glass", "test:drone-platforms", "test:glyph-check", "test:drone-size", "test:drone-ledger",
 ];
 
 const sha = (s) => createHash("sha256").update(s).digest("hex").slice(0, 16);

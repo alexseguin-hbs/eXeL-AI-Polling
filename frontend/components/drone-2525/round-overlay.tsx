@@ -54,7 +54,7 @@ export function RoundOverlay({ ctx, views, eye, myEye, framed, los, swarm, swarm
       const v = views.find((x) => x.door.id === d.doorId); if (!v) continue;
       const q = p(v.door.at); if (q.behind) continue;
       const hex = semanticHex(d.phase === "red" ? "ray" : "pending");
-      marks.push(<path key={`tbox-${n}`} data-drone-tbox={n} data-drone-tbox-phase={d.phase} d={tboxPath(q.x, q.y, slots.current === n ? 16 : 13, n)}
+      marks.push(<path key={`tbox-${n}`} data-drone-tbox={n} data-drone-tbox-phase={d.phase} d={tboxPath(q.x, q.y, slots.current === n ? 16 : 13, n, d.phase)}
                        {...strokeProps(hex, slots.current === n ? VECTOR_LAW.stroke.normal : VECTOR_LAW.stroke.hairline)} />);
     }
   }
@@ -64,6 +64,15 @@ export function RoundOverlay({ ctx, views, eye, myEye, framed, los, swarm, swarm
     if (!a.behind && !b.behind) {
       const hex = semanticHex(los && !los.clear ? "blocked" : "ray");
       marks.push(<path key="sight" d={`M${a.x} ${a.y}L${b.x} ${b.y}`} {...strokeProps(hex, VECTOR_LAW.stroke.hairline)} />);
+    }
+    // THE LOCK RETICLE — two rings + four ticks on the locked object. LOCK is AIM, never authority: it is
+    // drawn in the neutral frustum colour and NEVER red, so it can never be confused with an armed T-box.
+    const q = p(framed.door.at);
+    if (!q.behind) {
+      const ring = (r: number) => `M${q.x - r} ${q.y}L${q.x} ${q.y - r}L${q.x + r} ${q.y}L${q.x} ${q.y + r}Z`;
+      const t = 6, R = 22;
+      const ticks = `M${q.x} ${q.y - R}l0 ${t}M${q.x + R} ${q.y}l${-t} 0M${q.x} ${q.y + R}l0 ${-t}M${q.x - R} ${q.y}l${t} 0`;
+      marks.push(<path key="lock" data-drone-lock d={ring(R) + ring(R * 0.55) + ticks} {...strokeProps(semanticHex("frustum"), VECTOR_LAW.stroke.hairline)} />);
     }
   }
 
