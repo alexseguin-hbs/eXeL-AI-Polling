@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.014",
+  "revision": "0.015",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
   "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
@@ -161,6 +161,13 @@ export const DRONE_DOMAIN = {
    "date": "2026-09-16",
    "kind": "decision",
    "why": "PLATFORM identities from the deck, as data: T1 TURRET · D1Q QUAD·HOVER · D1 VTOL · D1F FOIL · M99 MANTA 99-66 · M66 MINI 66-33 · ARK SAIL 33 · R2 MASS DROID — ids, labels, kinds and flight modes lifted from r.050's units table and checked against it by a gate. The four that exist on this arena are live; the sea, sail and droid platforms are dated, not hidden. D1Q has no wing and says so; D1F goes to the wing the moment it can; D1 is the VTOL as before. Also: the red box and its decision id now mirror to the approving device (eXeL AI gate 3).",
+   "commit": ""
+  },
+  {
+   "revision": "0.015",
+   "date": "2026-09-17",
+   "kind": "decision",
+   "why": "Round 12 P0: operator deck HEAD moved r.050 -> r.075 and the control-schema transcription is re-pinned to it (controls.ts revision 0.075; the controls-schema gate now reads drone-2525_r.075.html, resolving BUILD when it lifts window.CONTROLS). The CONTROLS contract is byte-identical r.050 -> r.075 apart from the revision field, so this is a pin, not a behaviour change. window.CONTROLS.vehicle still names manta-99-66 (the control-map contract, which craft share the same map) -- distinct from the PLAYABLE platform roster, where the operator removed Manta (a later P3 revision). r.051-r.075 + the SSSES/SPIRAL-99 audit are carried read-only.",
    "commit": ""
   }
  ],

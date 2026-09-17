@@ -148,6 +148,13 @@
    "kind": "decision",
    "text": "Revision 0.014. eXeL AI's five gates, persisted verbatim (docs/asks/2026-09-16_exel_ai_feedback_r050_five_gates.md, sha256 6f74a11e…), and the two parity gaps they exposed closed: (gate 3) the red box and its decision id now mirror to the approving device — two browsers read the same DEC-0002 under the same red T-box; (gate 1) the eight PLATFORM identities are data lifted from r.050's units table — T1 TURRET, D1Q QUAD·HOVER, D1 VTOL, D1F FOIL, M99 MANTA 99-66, M66 MINI 66-33, ARK SAIL 33, R2 MASS DROID — held to the deck by a gate that reads the deck's own source. One airframe model: D1Q has no wing and refuses by name, D1F takes the wing the moment the transition is legal, D1 is the VTOL as before; the sea craft, the sail and the droid are listed and dated, never hidden. Also on the record: r.050 defect #4 (designate() never sets phase:'amber' on state.desig — the port sets amber by construction and drone-slots holds the acceptance test), the calibration HUD in the reader's language, and AFTER_FILL at zero for the first time.",
    "commit": ""
+  },
+  {
+   "rev": 22,
+   "date": "2026-09-17",
+   "kind": "decision",
+   "text": "Revision 0.015. Round 12 opens (plan approved). Operator deck HEAD r.050 -> r.075, carried byte-for-byte with a verified sha256 manifest, and the control-schema transcription re-pinned from r.050 to r.075 (the 48-agent fleet found controls.ts still said 0.050 while HEAD had moved four revisions on -- Gate 1, deck parity). The window.CONTROLS block is identical r.050->r.075 except its revision field. Model changed to Opus 4.8 mid-round. The reconciled 48-agent + Grok SSSES/SPIRAL audit sets the honest posture for the round: the engine, the fire gate and the determinism are real and strong; the demo on-ramp, the edge controls, the teaming surface and cross-device are not built yet. Sequence P0 (foundation) -> P1 (60-second demo) -> P2 (teaming + two-phone MATCH qualify) -> P3 (scenes).",
+   "commit": ""
   }
  ]
 }

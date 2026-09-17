@@ -2,13 +2,13 @@
 //
 // lib/2525-core/controls.ts is a TRANSCRIPTION of `window.CONTROLS` from the operator's r.050 build. A
 // transcription drifts the first time somebody edits one side and not the other, so this gate does not
-// trust the transcription: it opens the carried r.050 (docs/drone-2525/operator-deck/drone-2525_r.050.html),
+// trust the transcription: it opens the carried r.075 (docs/drone-2525/operator-deck/drone-2525_r.075.html),
 // lifts the `window.CONTROLS = {...}` block and the `seats:` block of his CONTRACT out of it, and compares
 // field for field. If he ships r.051 with a changed binding, the carried file changes, and this fails until
 // the transcription is updated — which is the point.
 //
 // It also holds the things the transcription ADDS and could get wrong on its own: the key map covers every
-// aux key the schema names, every held action is a declared action, the voice grammar is r.050's grammar,
+// aux key the schema names, every held action is a declared action, the voice grammar is r.075's grammar,
 // and the vehicle list is not quietly narrowed to the one vehicle this repo can currently fly.
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -24,7 +24,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } 
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
-const HEAD = path.join(ROOT, 'docs/drone-2525/operator-deck/drone-2525_r.050.html');
+const HEAD = path.join(ROOT, 'docs/drone-2525/operator-deck/drone-2525_r.075.html');
 const html = readFileSync(HEAD, 'utf8');
 
 // ── LIFT THE OPERATOR'S OWN BLOCKS OUT OF HIS FILE ──────────────────────────────────────────────
@@ -35,7 +35,11 @@ const lift = (re, label) => {
   if (!m) throw new Error(`could not find ${label} in ${path.relative(ROOT, HEAD)}`);
   return new Function(`return (${m[1]});`)();
 };
-const HIS = lift(/window\.CONTROLS\s*=\s*(\{[\s\S]*?\n\});/, 'window.CONTROLS');
+// r.075 writes `version:BUILD.version,revision:BUILD.revision` in the block, so lift BUILD first and
+// evaluate the block with it in scope (still a delimiter-extracted literal from a hashed artefact).
+const BUILD = lift(/const BUILD\s*=\s*(\{[^}]*\})/, 'BUILD');
+const liftWith = (re, label, ctx) => { const m = html.match(re); if (!m) throw new Error(`could not find ${label}`); return new Function(...Object.keys(ctx), `return (${m[1]});`)(...Object.values(ctx)); };
+const HIS = liftWith(/window\.CONTROLS\s*=\s*(\{[\s\S]*?\n\});/, 'window.CONTROLS', { BUILD });
 const HIS_SEATS = lift(/seats:\s*(\{pilot:\{[^}]*\},tgt:\{[^}]*\},turretSep:[^}]*\})/, 'CONTRACT.seats');
 const HIS_LOOP = lift(/const RCORE_LOOP\s*=\s*(\[[^\]]*\]);/, 'RCORE_LOOP');
 const HIS_SYS = lift(/const RCORE_SYS\s*=\s*(\{[^}]*\});/, 'RCORE_SYS');
@@ -49,7 +53,7 @@ ok(VEHICLES.length === 6, 'six vehicles — not narrowed to the one this repo ca
 ok(VEHICLES.includes('manta-99-66') && VEHICLES.includes('ark-sail-33') && VEHICLES.includes('mass-droid'),
    'Manta, Ark and the droid are still named, so the other domains inherit rather than retype');
 for (const s of ['L', 'R']) {
-  ok(same(HIS.sticks[s], EXEL_2525_CONTROLS.sticks[s]), `stick ${s} binds exactly as r.050 binds it (${HIS.sticks[s].role})`);
+  ok(same(HIS.sticks[s], EXEL_2525_CONTROLS.sticks[s]), `stick ${s} binds exactly as r.075 binds it (${HIS.sticks[s].role})`);
 }
 ok(same(HIS.aux, EXEL_2525_CONTROLS.aux), 'the aux keys and voice phrases are his');
 ok(same(HIS.touch, EXEL_2525_CONTROLS.touch), 'the touch gestures are his');
@@ -92,7 +96,7 @@ ok(/does not dominate/.test(RCORE_SENTENCE) && /Humanity remains the authority/.
   ok(!HELD_ACTIONS.has('fire') && !HELD_ACTIONS.has('capture') && !HELD_ACTIONS.has('target.slot-1'), 'fire, capture and slots are one-shot');
 }
 
-// ── THE VOICE GRAMMAR IS r.050's, AND IT IS SMALL ON PURPOSE ────────────────────────────────────
+// ── THE VOICE GRAMMAR IS r.075's, AND IT IS SMALL ON PURPOSE ────────────────────────────────────
 {
   for (const [phrase, want] of [
     ['target one', { action: 'target.slot-1', slot: 1 }], ['T 2', { action: 'target.slot-2', slot: 2 }],

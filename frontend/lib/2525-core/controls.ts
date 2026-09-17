@@ -1,17 +1,17 @@
 // EXEL-2525-CONTROLS-1 — the operator deck's bindings, AS DATA, for every 2525 vehicle.
 //
-// Operator 2026-09-16, r.013 through r.050: "operator deck is on the glass, same bindings as a drone / droid /
+// Operator 2026-09-16, r.013 through r.075: "operator deck is on the glass, same bindings as a drone / droid /
 // avatar … Same map on turret, VTOL, Manta, Ark, MASS droid — one mount, two seats."
 //
 // This is a transcription of `window.CONTROLS` from the operator's own build (docs/drone-2525/operator-deck/
-// drone-2525_r.050.html), byte-checked across eleven revisions: the block has been IDENTICAL from r.013 to
-// r.050 apart from its revision field, so it is a settled contract and not a moving target. It lives in
+// drone-2525_r.075.html), byte-checked across eleven revisions: the block has been IDENTICAL from r.013 to
+// r.075 apart from its revision field, so it is a settled contract and not a moving target. It lives in
 // lib/2525-core rather than lib/drone-2525 on purpose — it names six vehicles, and only one of them exists
 // in this repo today. Manta, Ark, Security and the droid import THIS file when their turn comes, rather than
 // each typing the same map again, which is the drift WIREFRAME-CORE U-WF-05 exists to prevent.
 //
 // Pure data and pure functions. No React, no DOM, no drone import. A gate (tests/controls-schema.test.mjs)
-// asserts this file says exactly what r.050 says, field for field, and that the vehicle list is not quietly
+// asserts this file says exactly what r.075 says, field for field, and that the vehicle list is not quietly
 // narrowed to the one vehicle that happens to exist.
 
 export const CONTROLS_SCHEMA = "EXEL-2525-CONTROLS-1" as const;
@@ -36,7 +36,7 @@ export interface StickBinding {
 export const EXEL_2525_CONTROLS = {
   schema: CONTROLS_SCHEMA,
   version: "00.00",
-  revision: "0.050",
+  revision: "0.075",
   vehicle: VEHICLES,
   sticks: {
     L: { role: "BODY", up: "forward", down: "back", left: "strafe-left", right: "strafe-right", keys: "WASD" },
@@ -87,7 +87,7 @@ export type Action = (typeof ACTIONS)[number];
 /**
  * KEY → ACTION, derived from the schema rather than typed beside it, so the two cannot disagree. Uses
  * KeyboardEvent.code so a layout that puts Q somewhere else still works by position — which is what a
- * stick replacement should do. Approve has no key in r.050's schema; it is a face button and a net message.
+ * stick replacement should do. Approve has no key in r.075's schema; it is a face button and a net message.
  */
 export const KEY_TO_ACTION: Readonly<Record<string, Action>> = {
   KeyW: "body.forward", KeyS: "body.back", KeyA: "body.strafe-left", KeyD: "body.strafe-right",
@@ -108,7 +108,7 @@ export const HELD_ACTIONS: ReadonlySet<Action> = new Set<Action>([
 ]);
 
 /**
- * VOICE → ACTION, r.050's grammar ported verbatim. Returns null for anything it does not recognise, and it
+ * VOICE → ACTION, r.075's grammar ported verbatim. Returns null for anything it does not recognise, and it
  * recognises very little on purpose: "target" with an optional slot, "fire" with an optional slot, and
  * "capture"/"photo". A phrase this does not match does nothing, silently, which is the correct behaviour for
  * a microphone in a room full of people.
