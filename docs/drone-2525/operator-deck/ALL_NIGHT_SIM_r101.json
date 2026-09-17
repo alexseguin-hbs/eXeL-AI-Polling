@@ -1,0 +1,329 @@
+{
+  "label": "ALL_NIGHT",
+  "hours": 8,
+  "trials": 2016,
+  "stored": 400,
+  "wallMs": 952,
+  "when": "2026-09-17T03:55:44.023Z",
+  "rev": "0.101",
+  "seed": 2525,
+  "semantics": "INDEPENDENT_TRIAL",
+  "hoursDetail": [
+    {
+      "hour": 1,
+      "n": 252,
+      "perCh": {
+        "0": 42,
+        "1": 42,
+        "2": 42,
+        "3": 42,
+        "4": 42,
+        "5": 42
+      },
+      "top": [
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        }
+      ],
+      "ssses": 90,
+      "core": 90
+    },
+    {
+      "hour": 2,
+      "n": 252,
+      "perCh": {
+        "0": 42,
+        "1": 42,
+        "2": 42,
+        "3": 42,
+        "4": 42,
+        "5": 42
+      },
+      "top": [
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        }
+      ],
+      "ssses": 90,
+      "core": 90
+    },
+    {
+      "hour": 3,
+      "n": 252,
+      "perCh": {
+        "0": 42,
+        "1": 42,
+        "2": 42,
+        "3": 42,
+        "4": 42,
+        "5": 42
+      },
+      "top": [
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        }
+      ],
+      "ssses": 90,
+      "core": 90
+    },
+    {
+      "hour": 4,
+      "n": 252,
+      "perCh": {
+        "0": 42,
+        "1": 42,
+        "2": 42,
+        "3": 42,
+        "4": 42,
+        "5": 42
+      },
+      "top": [
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        }
+      ],
+      "ssses": 90,
+      "core": 90
+    },
+    {
+      "hour": 5,
+      "n": 252,
+      "perCh": {
+        "0": 42,
+        "1": 42,
+        "2": 42,
+        "3": 42,
+        "4": 42,
+        "5": 42
+      },
+      "top": [
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        }
+      ],
+      "ssses": 90,
+      "core": 90
+    },
+    {
+      "hour": 6,
+      "n": 252,
+      "perCh": {
+        "0": 42,
+        "1": 42,
+        "2": 42,
+        "3": 42,
+        "4": 42,
+        "5": 42
+      },
+      "top": [
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        }
+      ],
+      "ssses": 90,
+      "core": 90
+    },
+    {
+      "hour": 7,
+      "n": 252,
+      "perCh": {
+        "0": 42,
+        "1": 42,
+        "2": 42,
+        "3": 42,
+        "4": 42,
+        "5": 42
+      },
+      "top": [
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        }
+      ],
+      "ssses": 90,
+      "core": 90
+    },
+    {
+      "hour": 8,
+      "n": 252,
+      "perCh": {
+        "0": 42,
+        "1": 42,
+        "2": 42,
+        "3": 42,
+        "4": 42,
+        "5": 42
+      },
+      "top": [
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        },
+        {
+          "scen": "CH5 NET",
+          "score": 690
+        }
+      ],
+      "ssses": 90,
+      "core": 90
+    }
+  ],
+  "top3": [
+    {
+      "t": 1789617343936,
+      "rev": "0.101",
+      "scen": "CH5 NET",
+      "ch": 5,
+      "score": 690,
+      "sssesCore": 90,
+      "device": {
+        "stab": 100,
+        "scale": 70,
+        "eff": 100,
+        "fps": 0,
+        "peers": 0,
+        "crash": 0
+      },
+      "held": true,
+      "red": true,
+      "hash": "f5a282d5",
+      "sim": true,
+      "semantics": "INDEPENDENT_TRIAL",
+      "seed": 2525
+    },
+    {
+      "t": 1789617343937,
+      "rev": "0.101",
+      "scen": "CH5 NET",
+      "ch": 5,
+      "score": 690,
+      "sssesCore": 90,
+      "device": {
+        "stab": 100,
+        "scale": 70,
+        "eff": 100,
+        "fps": 0,
+        "peers": 0,
+        "crash": 0
+      },
+      "held": true,
+      "red": true,
+      "hash": "f5a282d5",
+      "sim": true,
+      "semantics": "INDEPENDENT_TRIAL",
+      "seed": 2525
+    },
+    {
+      "t": 1789617343937,
+      "rev": "0.101",
+      "scen": "CH5 NET",
+      "ch": 5,
+      "score": 690,
+      "sssesCore": 90,
+      "device": {
+        "stab": 100,
+        "scale": 70,
+        "eff": 100,
+        "fps": 0,
+        "peers": 0,
+        "crash": 0
+      },
+      "held": true,
+      "red": true,
+      "hash": "f5a282d5",
+      "sim": true,
+      "semantics": "INDEPENDENT_TRIAL",
+      "seed": 2525
+    }
+  ],
+  "ssses": {
+    "sec": 100,
+    "stab": 100,
+    "scale": 70,
+    "eff": 100,
+    "suc": 80,
+    "avg": 90,
+    "core": {
+      "sec": 100,
+      "suc": 80,
+      "holds": 1,
+      "fires": 0,
+      "refuses": 1,
+      "avg": 90
+    },
+    "device": {
+      "stab": 100,
+      "scale": 70,
+      "eff": 100,
+      "fps": 0,
+      "peers": 0,
+      "crash": 0
+    }
+  }
+}

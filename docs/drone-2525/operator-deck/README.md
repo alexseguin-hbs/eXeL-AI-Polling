@@ -1,9 +1,10 @@
 # Drone-2525 · operator deck — the carried package
 
-**HEAD is `drone-2525_r.079.html`.** The operator's own build across r.003 → r.079, plus the prompts, the
+**HEAD is `drone-2525_r.102.html`.** The operator's own build across r.003 → r.102, plus the prompts, the
 notes files (r.042→r.047, r.047→r.050, r.051), the r.066 gap-close, the SSSES/SPIRAL-99 audit (md + json), the
 roster and the Cup — carried **byte-for-byte** and never regenerated. `sha256` for r.051→r.075 is in
-[`HASHES_r051_r079.sha256`](HASHES_r051_r079.sha256); r.003→r.050 in
+[`HASHES_r051_r079.sha256`](HASHES_r051_r079.sha256); r.093→r.102 in
+[`HASHES_r093_r102.sha256`](HASHES_r093_r102.sha256); r.003→r.050 in
 [`docs/asks/2026-09-16_operator_deck_r042.sha256`](../../asks/2026-09-16_operator_deck_r042.sha256).
 
 HEAD moved r.050 → r.079 on 2026-09-17: r.051 (state truth: `phase:'amber'` on the object) · r.052 (turret R
@@ -11,6 +12,24 @@ stick right edge, 3D wire box) · r.066 (intro cinematic + SELECT CITY/CRAFT/RAN
 r.068 (stick geometry so you can move around the lawn) · r.073 (Lake Travis buoys, MASS-AI walk, SSSES/SPIRAL
 corrections) · r.075 (CH5·FOILS, defensive loop hardening) · r.076 (WALLS collide MASS-AI + drones; WATER confines ARK/MINI) · r.079 (VTOL FOIL is ONE craft; multi-water Austin picker: Lady Bird / Lake Austin / Colorado). Diffs and the reconciled 48-agent + Grok audit
 live in the plan (`ROUND 12`). `ASM_CUP_99.*` and `SSSES_SPIRAL_99.*` stay read-only fixtures.
+
+**THE r.093 → r.102 NETWORKING/DETERMINISM ARC (Grok, carried 2026-09-17; built in our port as P2, AFTER the
+demo on-ramp).** This arc built the COMM/LINK/SYNC layer our React port has not yet built. THE ONE LAW to carry:
+**ONE EVENT → ONE REDUCER → ONE WORLD → ONE HASH** — a canonical event is created once, transmitted as that
+exact row, and applied to world state only through a single deterministic reducer `applyWorld(state, row)`;
+never local mutation on the sender plus log replication. Closed across r.094/095: WebRTC offer/answer carries
+`{room, description}` and the joiner adopts the host room · `appendCanonicalEvent` advances evSeq + appends
+events/replay + reduces + dedups · HELLO compares `replayHash` → **MATCH/DIVERGED** + ACK carries the hash ·
+SNAPSHOT replays through the reducer and verifies the hash · byte-count size gate via `new Blob([html]).size` ·
+Bluetooth honest (only "ready" with a writable characteristic, else `BT SCAFFOLD · NO 2525 CHAR`) · SIM runs
+separated from human plays. STILL OPEN at r.102 (do NOT inherit): a real two-peer COMM/SYNC gate (F04_NO_DIRECT
+proves the opposite) · one-decision-one-canonical-event (r.095/098/102 still double-count SIM-ACTION via
+`decide()`+`netEvent()`) · unmeasured device metrics must be null not 100 · a successful SIM-ACTION path in the
+batch (r.102 had `fires:0`) · exported hash histogram / unique-count / mismatch stats · concurrent ordering
+(`orderKey` not yet in the hash) before 3v3/9v9 · real 5-hour endurance (ALL_NIGHT_SIM's 2,016 trials ran in
+952 ms — an accelerated batch, NOT 8 wall-clock hours). The two-phone MATCH qualification: A TARGET → B amber →
+B APPROVE → both red → A sim action → both worlds + hashes match → disconnect → snapshot → hash verified →
+reconnect → next event → still match. `ALL_NIGHT_SIM_r101.json` is the preserved r.101 batch evidence.
 
 ```
 cd docs/drone-2525/operator-deck && sha256sum -c ../../asks/2026-09-16_operator_deck_r042.sha256
