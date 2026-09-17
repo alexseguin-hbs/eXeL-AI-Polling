@@ -44,6 +44,7 @@ import { useControls, type GimbalRate } from "@/lib/drone-2525/use-controls";
 import { getSets, initSets, subscribeSets } from "@/lib/2525-core/stick-sets";
 import { initLedger, decide as recordDecision, ev as recordEvent, stampOf, type Stamp } from "@/lib/drone-2525/decisions";
 import { useDroneLink } from "@/lib/drone-2525/use-drone-link";
+import { useAiTargeteer } from "@/lib/drone-2525/use-ai-targeteer";
 import { CrewSeatPanel } from "./crew-seat-panel";
 import { initSwarm, stepSwarm, planSwarmDraw, swarmLine, aliveCount, SWARM_N } from "@/lib/drone-2525/swarm";
 import { GLYPH_COST } from "@/lib/drone-2525/airframe-glyph";
@@ -100,6 +101,8 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3, platform = DE
   const [flight, setFlight] = useState<FlightState>(() => initFlight());
   const [approval, setApproval] = useState(initApproval);
   const [askedFor, setAskedFor] = useState<string | null>(null);
+  // decide() (above doShoot) fires an approved AI shot through this ref, assigned once doShoot exists.
+  const fireApprovedRef = useRef<(doorId: string) => void>(() => {});
   const stick = useRef({ fwd: 0, lat: 0, climb: 0, yaw: 0 });
   // The R stick is the HEAD (EXEL-2525-CONTROLS-1): its reading is a gimbal RATE, integrated each frame by
   // the controls hook through command(), so the declared pan/tilt limits and the slew law still apply.
@@ -280,43 +283,13 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3, platform = DE
     setNote(`${mounts[pick.seat].label} → ${pick.v.door.label}`);
   }, [views, eye, gim.az, framed, t, tMs, world, prisms, mode, mounts, mount, mountIdx]);
 
-  // THE MACHINE TARGETEER. It aims and then it ASKS. There is no branch here that fires.
-  //
-  // The live world is read through a ref rather than through the effect's dependencies. That is not a
-  // style choice: the first version listed `views` as a dependency, and `views` is recomputed on every
-  // animation frame, so the interval was torn down and rebuilt sixty times a second and could never reach
-  // its 2.6-second tick. The machine sat silent and the approval gate never got a chance to be tested —
-  // which the walkthrough capture found, and no unit test would have.
-  // Written in place rather than replaced: this ran on every render and allocated a six-field object each
-  // time, sixty times a second, to hand the interval below values it reads at most once every 2.6 seconds.
-  const live = useRef({ eye, gim, views, world, prisms, t });
-  live.current.eye = eye; live.current.gim = gim; live.current.views = views;
-  live.current.world = world; live.current.prisms = prisms; live.current.t = t;
-
-  useEffect(() => {
-    if (!running || crew.targeteer !== "AI") return;
-    const id = window.setInterval(() => {
-      const L = live.current;
-      const aim = autoTargeteer(L.eye, L.gim, L.views, L.world.ground, L.prisms, { nearM: Number(SPEC.nearM), rangeM: Number(SPEC.rangeM) });
-      if (!aim.level) { setNote(L.t("drone.crew.ai_looking")); return; }
-      setGim((g) => command(g, SPEC, aim.az, aim.el));
-      setNote(`${L.t("drone.crew.ai_aiming")} ${aim.why}`);
-      const target = aim.level;
-      setApproval((ap) => {
-        if (ap.pending) return ap;
-        const reqId = `r${target.door.id}-${Math.round(tMsRef.current)}`;
-        setAskedFor(reqId);
-        // SI takes the decision the round already has. It does not invent one to vote on.
-        setSi((s0) => openCall(s0, reqId, `${L.t("si.question")} ${target.door.label}?`, tMsRef.current));
-        return requestShot(ap, {
-          id: reqId, doorId: target.door.id, doorLabel: target.door.label, askedAtMs: tMsRef.current,
-          az: aim.az, el: aim.el, rangeM: aimAt(L.eye, target.door.at).rangeM,
-          claim: L.t("drone.crew.ai_claim"),
-        });
-      });
-    }, 2600);
-    return () => window.clearInterval(id);
-  }, [running, crew.targeteer]);
+  // THE MACHINE TARGETEER — extracted to use-ai-targeteer.ts (P0-5). It aims every 2.6 s and ASKS; it never
+  // fires. The approval it raises is answered by decide() below, which is now what actually fires the shot.
+  useAiTargeteer({
+    running, isAI: crew.targeteer === "AI", spec: SPEC, tMsRef,
+    eye, gim, views, world, prisms, t,
+    setGim, setNote, setApproval, setAskedFor, setSi,
+  });
 
   // A human answers, by name. This is the only thing that can retire a machine's question.
   const decide = useCallback((verdict: "approved" | "held") => {
@@ -327,6 +300,10 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3, platform = DE
         // Judged after the fact, exactly as the pod ladder intends: whoever argued the way the person went
         // moves from noted to adopted. Nothing here changed what the person decided.
         setSi((s0) => recogniseAdopted(s0, decision.request.id, verdict === "approved" ? "approve" : "hold", tMsRef.current));
+        // AND THE APPROVED SHOT NOW FIRES. Before P0-5 the machine asked, the human approved, and NOTHING
+        // happened — the "human approves every shot" beat fired nothing. On approve, stage the AI's door
+        // red in the approver's name and take the shot (through a ref, since doShoot is defined below).
+        if (verdict === "approved") fireApprovedRef.current(decision.request.doorId);
       }
       return state;
     });
@@ -447,6 +424,23 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3, platform = DE
     // A box that has been fired on is spent. Red is for one shot, not a standing licence.
     if (check.slot) setSlots((s) => clearSlot(s, check.slot!));
   }, [tMs, framed, los, gim, crew, approval, askedFor, t, slots, stampNow]);
+
+  // FIRE AN APPROVED AI SHOT. The machine designated and the human approved; stage that door red in the
+  // approver's name (two-person: approver != the AI targeteer), record both, capture and shoot. This is the
+  // only place the mixed-crew "human approves every shot" beat becomes a shot.
+  const fireApprovedAI = useCallback((doorId: string) => {
+    const n = slotOf(slots, doorId) ?? nextFreeSlot(slots);
+    const ns = approve(designate(slots, n, doorId, "targeteer", tMsRef.current), n, crew.approver || WATCH, tMsRef.current);
+    setSlots(ns);
+    setLedger((L) => {
+      const d = recordDecision(L, "DESIGNATE", doorId, { ...stampNow(), actor: "targeteer" }, { slot: n, ai: true });
+      const e = recordEvent(d.ledger, "DESIGNATE", doorId, "AMBER", { ...stampNow(), actor: "targeteer" });
+      const a = recordDecision(e.ledger, "APPROVE", doorId, { ...stampNow(), actor: crew.approver || WATCH, hiApproved: true }, { by: crew.approver || WATCH, from: "targeteer", slot: n });
+      return recordEvent(a.ledger, "APPROVE", doorId, "RED", { ...stampNow(), hiApproved: true }, "HI").ledger;
+    });
+    doCapture(); doShoot(ns);
+  }, [slots, crew.approver, stampNow, doCapture, doShoot]);
+  fireApprovedRef.current = fireApprovedAI;
 
   const reset = useCallback(() => {
     // A NEW RUN IS A NEW RECORD. Re-init the ledger so each run owns its decisions and its replay hash;

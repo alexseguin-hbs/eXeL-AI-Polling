@@ -54,5 +54,18 @@ ok(/ledger=\{ledger\}/.test(round) && /seed=\{Number\(DRONE_DOMAIN\.targets\.see
 ok(/metricsOf\(ledger\)/.test(rs) && /replayHash/.test(rs) && /sidecarOf\(ledger, seed\)/.test(rs) && /feedLine\(/.test(rs), 'RoundStatus READS the ledger (metrics, hash, sidecar, feed) — not a write-only sink');
 ok(/data-drone-metrics/.test(rs) && /data-drone-replayhash/.test(rs) && /data-drone-save/.test(rs) && /data-drone-export/.test(rs), 'the record, the hash and SAVE/EXPORT are on the glass');
 
+// ── THE MIXED-CREW BEAT FIRES (P0-5) ────────────────────────────────────────────────────────────
+// "Mixed crew · human approves every shot" wrote an approval and then nothing happened. Now approving an
+// AI request stages the door red in the approver's name and takes the shot.
+{
+  const aiHook = fs.readFileSync(new URL('../lib/drone-2525/use-ai-targeteer.ts', import.meta.url),'utf8');
+  ok(/from "@\/lib\/drone-2525\/use-ai-targeteer"/.test(round), 'the machine targeteer is extracted to a hook (round.tsx shrank under the size gate)');
+  ok(!/crew\.targeteer !== "AI"/.test(round), 'no inline AI-targeteer interval remains in the round');
+  ok(/There is no branch here that fires/.test(aiHook) && /requestShot\(/.test(aiHook) && !/doShoot/.test(aiHook), 'the hook ASKS and never fires');
+  ok(/if \(verdict === "approved"\) fireApprovedRef\.current\(decision\.request\.doorId\)/.test(round), 'decide() fires the approved AI shot');
+  ok(/approve\(designate\(slots, n, doorId, "targeteer", tMsRef\.current\), n, crew\.approver/.test(round), 'the AI door is designated by the targeteer and approved by the approver — two-person (approver != targeteer)');
+  ok(/doCapture\(\); doShoot\(ns\)/.test(round), 'and then it captures and shoots on the staged red slot');
+}
+
 console.log(`\ndrone-ledger: ${pass} passed, ${fail} failed · authority from the crew · metrics + hash + sidecar read from the record · re-init per run`);
 process.exit(fail?1:0);
