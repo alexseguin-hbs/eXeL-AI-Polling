@@ -28,7 +28,7 @@ import {
   takeoffInput, LOITER_AGL_M, type FlightState,
 } from "@/lib/drone-2525/flight";
 import {
-  CREWS, shotNeedsApproval, autoPilot, autoTargeteer, initApproval, requestShot, resolveRequest,
+  CREWS, shotNeedsApproval, autoPilot, autoTargeteer, initApproval, requestShot, resolveRequest, authorityLevelOf,
   mayFire, approvalPrompt, type CrewId,
 } from "@/lib/drone-2525/ai-crew";
 import { initSi, openCall, recogniseAdopted, openCallOf, tally } from "@/lib/drone-2525/si-pod";
@@ -42,7 +42,7 @@ import { voiceToAction } from "@/lib/2525-core/controls";
 import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 import { useControls, type GimbalRate } from "@/lib/drone-2525/use-controls";
 import { getSets, initSets, subscribeSets } from "@/lib/2525-core/stick-sets";
-import { initLedger, decide as recordDecision, ev as recordEvent, type Stamp } from "@/lib/drone-2525/decisions";
+import { initLedger, decide as recordDecision, ev as recordEvent, stampOf, type Stamp } from "@/lib/drone-2525/decisions";
 import { useDroneLink } from "@/lib/drone-2525/use-drone-link";
 import { CrewSeatPanel } from "./crew-seat-panel";
 import { initSwarm, stepSwarm, planSwarmDraw, swarmLine, aliveCount, SWARM_N } from "@/lib/drone-2525/swarm";
@@ -335,15 +335,12 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3, platform = DE
   // THE STAMP every decision and event is written with. The seat is the actor; challenge and difficulty
   // are the round's defaults until CH1–CH5 / DIFF 1–5 land in this app; the score is the tag count, which
   // is what the round has for a score today. Nothing here reads a clock — tMs is the game clock.
-  const stampNow = useCallback((): Stamp => {
-    const cur = slots.current ? slots.s[slots.current] : null;
-    return {
-      t: tMsRef.current / 1000, actor: mySeatOr,
-      designated: Boolean(cur), hiApproved: cur?.phase === "red",
-      authorityLevel: 1, challenge: CH.c, diff: CH.d,
-      blu: score(game).tagged, red: 0,
-    };
-  }, [slots, mySeatOr, game, CH]);
+  // The record's stamp: actor by seat, authority from the crew (who is in the loop), score, challenge —
+  // honest live values, not literals. stampOf is pure (decisions.ts); this closure just supplies them.
+  const stampNow = useCallback((): Stamp => stampOf(
+    tMsRef.current / 1000, mySeatOr, slots.current ? slots.s[slots.current] : null,
+    authorityLevelOf(crew), CH.c, CH.d, score(game).tagged,
+  ), [slots, mySeatOr, game, CH, crew]);
 
   // TARGET → AMBER. Puts the door in view into the next free slot as a designation that CANNOT fire, and
   // records it by name. click / the TARGET button / voice "target" all come here (r.050: redundant paths
@@ -452,7 +449,9 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3, platform = DE
   }, [tMs, framed, los, gim, crew, approval, askedFor, t, slots, stampNow]);
 
   const reset = useCallback(() => {
-    setGame(initGame(0)); resetClock(); setRunning(false); setNote("");
+    // A NEW RUN IS A NEW RECORD. Re-init the ledger so each run owns its decisions and its replay hash;
+    // without this the ledger accreted across every run since page load and no hash meant a single round.
+    setGame(initGame(0)); resetClock(); setRunning(false); setNote(""); setLedger(initLedger(DRONE_DOMAIN.project.revision));
     setGim(initGimbal(mount));
   }, [mount, resetClock]);
 
@@ -763,6 +762,7 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3, platform = DE
       <SiPanel si={si} setSi={setSi} nowMs={tMs} />
 
       <RoundStatus
+        ledger={ledger} seed={Number(DRONE_DOMAIN.targets.seed)}
         note={note || (framed ? framed.door.label : t("drone.game.no_target"))}
         crew={crew} approval={approval} game={game} tMs={tMs} roundMs={roundMs}
       />

@@ -12,6 +12,15 @@ const { ES_SIGN } = await import('../lib/lexicon-translations-es-sign.ts');
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 const AFTER_FILL = new Set([
+  'drone.rec.designations',
+  'drone.rec.holds',
+  'drone.rec.refusals',
+  'drone.rec.handoffs',
+  'drone.rec.approvals',
+  'drone.rec.two_person',
+  'drone.rec.hash',
+  'drone.rec.save',
+  'drone.rec.export',
   // Drone-2525 platform identities (r.050 units table) — English until the fill lands.
   // Drone-2525 operator deck (r.050): TARGET → amber, APPROVE → red. English until the fill lands.
   // Drone-2525 ladder, self-test, flight and crew keys — English until the fill lands, listed never silent.

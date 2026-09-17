@@ -76,6 +76,16 @@ export interface Stamp {
   red: number;
 }
 
+/**
+ * Assemble a Stamp from the round's live values. Pure, so the round's stampNow is a thin closure and the
+ * field logic is unit-testable. `red` defaults 0: the live single-player round scores no opposing side (that
+ * is the contest/ladder path), so 0 is the honest live value, not a forgotten constant.
+ */
+export const stampOf = (
+  t: number, actor: string, cur: { phase: string } | null,
+  authorityLevel: number, challenge: number, diff: number, blu: number, red = 0,
+): Stamp => ({ t, actor, designated: Boolean(cur), hiApproved: cur?.phase === "red", authorityLevel, challenge, diff, blu, red });
+
 // ── DECIDE ───────────────────────────────────────────────────────────────────────────────────────
 
 /**

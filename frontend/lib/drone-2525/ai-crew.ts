@@ -27,6 +27,15 @@ export type Seat = "pilot" | "targeteer";
 export type Who = "HI" | "AI";
 export interface Crew { pilot: Who; targeteer: Who; /** A human always watches; this names them. */ approver: string }
 
+/**
+ * The authority level a crew implies, for the decision record. NOT invented variance: it reads WHO is in
+ * the loop. Two humans deciding one shot = 1; a human authorizing an AI-involved shot = 2 (broader loop);
+ * a watch officer over two machines = 3. The live round is always a named human before any AI fire; this
+ * only records which shape that took, so a two-HI run and a mixed-crew run are distinguishable in the sidecar.
+ */
+export const authorityLevelOf = (c: Crew): number =>
+  c.pilot === "HI" && c.targeteer === "HI" ? 1 : c.pilot === "AI" && c.targeteer === "AI" ? 3 : 2;
+
 export const CREWS: Record<string, Crew> = {
   two_hi:      { pilot: "HI", targeteer: "HI", approver: "the crew" },
   hi_pilot:    { pilot: "HI", targeteer: "AI", approver: "the pilot" },
