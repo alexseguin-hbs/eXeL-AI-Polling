@@ -14,7 +14,8 @@
  */
 import { PLATFORMS, DEFAULT_PLATFORM, type PlatformId } from "@/lib/drone-2525/platform";
 import { CHALLENGES_ALL, DIFFICULTIES, chName, DEFAULT_CHALLENGE, DEFAULT_DIFF, type Challenge, type Difficulty } from "@/lib/drone-2525/challenge";
-import { useMemo, useState } from "react";
+import { loadProgression, saveProgression, advance, unlocked, startingMode, startingChallenge, stageIndex, type Progression } from "@/lib/drone-2525/progression";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -44,6 +45,17 @@ export function DroneCommandUX1() {
   const [diff, setDiff] = useState<Difficulty>(DEFAULT_DIFF);
   // PLATFORM (r.050 units table, as data). The four on this arena are live; the rest are dated, not hidden.
   const [platform, setPlatform] = useState<PlatformId>(DEFAULT_PLATFORM);
+  // THE GUIDED START. Server + first client render use the defaults above so nothing hydrates mismatched;
+  // the effect then reads the ladder and, on a first visit, drops the trainee onto the turret at CH0.
+  const [prog, setProg] = useState<Progression>({ reached: 0, firstVisit: false });
+  const [isJoiner, setIsJoiner] = useState(false);
+  useEffect(() => {
+    const joiner = typeof window !== "undefined" && /[?&]crew=/.test(window.location.search);
+    setIsJoiner(joiner);
+    const p = loadProgression();
+    setProg(p);
+    if (!joiner) { setMode(startingMode()); setChallenge(startingChallenge(p) as Challenge); }
+  }, []);
   const stamp = useMemo(() => versionStamp(`v${SRC.project.revision}`), []);
   const label = semanticHex("hud");
   const dim = { color: label, opacity: 0.55 };
@@ -66,12 +78,14 @@ export function DroneCommandUX1() {
       {/* Mode row — the operator's four items, all four live (turret · capital · 2-HI drone · mixed crew) */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", padding: "10px 14px" }}>
         {SRC.modes.map((m) => {
-          const live = SHIPPED.has(m.id);
-          const on = live && mode === m.id;
+          const built = SHIPPED.has(m.id);
+          const open = built && unlocked(prog, m.id, isJoiner);   // built AND reached on the ladder (joiner always)
+          const on = open && mode === m.id;
+          const suffix = !built ? ` · ${t("drone.platform.dated")}` : open ? "" : ` · ${t("drone.stage.locked")}`;
           return (
-            <button key={m.id} data-drone-mode={m.id} disabled={!live} onClick={() => live && setMode(m.id)}
-                    style={{ ...btn({ on, hex: semanticHex("door"), enabled: live }), opacity: live ? 1 : 0.45 }}>
-              {t(`drone.mode.${m.id}`)}
+            <button key={m.id} data-drone-mode={m.id} data-locked={built && !open ? "1" : undefined} disabled={!open} onClick={() => open && setMode(m.id)}
+                    style={{ ...btn({ on, hex: semanticHex("door"), enabled: open }), opacity: open ? 1 : 0.45 }}>
+              {t(`drone.mode.${m.id}`)}{suffix}
             </button>
           );
         })}
@@ -109,9 +123,18 @@ export function DroneCommandUX1() {
         </div>
       </div>
 
+      {/* YOU ARE HERE — one plain sentence per stage, so a stranger knows what this mode teaches (r.066) */}
+      <div data-drone-stage={mode} style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "0 14px 8px", flexWrap: "wrap" }}>
+        <span style={{ fontSize: 10, letterSpacing: "0.14em", color: semanticHex("mount") }}>
+          {t("drone.stage.here")} {stageIndex(mode) >= 0 ? `${stageIndex(mode) + 1}/4` : ""}
+        </span>
+        <span style={{ fontSize: 11, ...dim }}>{t(`drone.stage.${mode}`)}</span>
+      </div>
+
       {/* The arena, and the round played on it */}
       <div style={{ padding: "0 14px 14px" }}>
-        <Round mode={mode as RoundMode} level={level} hal={hal} challenge={challenge} diff={diff} platform={platform} />
+        <Round mode={mode as RoundMode} level={level} hal={hal} challenge={challenge} diff={diff} platform={platform}
+               onRoundEnd={(r) => setProg((p) => { const np = advance(p, r); if (np !== p) saveProgression(np); return np; })} />
       </div>
 
       <SelfCalPanel level={level} hal={hal} />

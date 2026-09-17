@@ -88,7 +88,7 @@ const TSPEC = {
  *
  * LINK-2525 in one sentence: the mount changes, the gimbal does not.
  */
-export function Round({ mode, level, hal, challenge = 1, diff = 3, platform = DEFAULT_PLATFORM }: { mode: RoundMode; level: MotLevel; hal: HalChoice; challenge?: Challenge; diff?: Difficulty; platform?: PlatformId }) {
+export function Round({ mode, level, hal, challenge = 1, diff = 3, platform = DEFAULT_PLATFORM, onRoundEnd }: { mode: RoundMode; level: MotLevel; hal: HalChoice; challenge?: Challenge; diff?: Difficulty; platform?: PlatformId; onRoundEnd?: (r: { mode: string; tagged: number }) => void }) {
   const { t } = useLexicon();
   // Which of the deck's platform identities is flying. One airframe model; the platform decides the wing rule.
   const plat = useMemo(() => platformOf(platform), [platform]);
@@ -240,7 +240,10 @@ export function Round({ mode, level, hal, challenge = 1, diff = 3, platform = DE
   // reconstructs the round from the log rather than from wall time.
 
   useEffect(() => {
-    if (running && roundMs > 0 && tMs > roundMs) { setRunning(false); setGame((g) => endRound(g, tMs)); }
+    if (running && roundMs > 0 && tMs > roundMs) {
+      setRunning(false); setGame((g) => endRound(g, tMs));
+      onRoundEnd?.({ mode, tagged: game.tags.tagged.size });   // the guided start advances on a played stage
+    }
   }, [running, tMs, roundMs]);
 
   // FLIGHT. A person flies with the sticks; a machine flies a declared pattern. Either way the airframe

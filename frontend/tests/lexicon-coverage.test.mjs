@@ -23,6 +23,13 @@ const AFTER_FILL = new Set([
   // P1-E · CH0 TRAINING (2026-09-17):
   'drone.ch.training_line',
   'drone.ch.first_visit',
+  // P1-A · guided start (2026-09-17):
+  'drone.stage.here',
+  'drone.stage.locked',
+  'drone.stage.turrets',
+  'drone.stage.capital',
+  'drone.stage.drone',
+  'drone.stage.multi',
 ]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;
