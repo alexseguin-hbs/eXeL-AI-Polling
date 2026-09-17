@@ -57,7 +57,8 @@ const ux = fs.readFileSync(new URL('../components/drone-2525/command-ux1.tsx', i
 ok(/from "@\/lib\/drone-2525\/progression"/.test(ux), 'the command shell imports the guided start');
 ok(/startingMode\(\)/.test(ux) && /startingChallenge\(/.test(ux), 'the shell initialises mode and challenge from the ladder');
 ok(/unlocked\(prog, m\.id, isJoiner\)/.test(ux), 'the mode buttons are locked by the ladder (joiner exempt)');
-ok(/data-drone-stage=/.test(ux), 'a "you are here" strip names the current stage');
+ok(/<StageStrip mode=\{mode\}/.test(ux), 'the shell mounts a "you are here" strip for the current stage');
+ok(/data-drone-stage=/.test(fs.readFileSync(new URL('../components/drone-2525/stage-strip.tsx', import.meta.url), 'utf8')), 'the strip names the current stage');
 ok(/onRoundEnd=\{[^}]*advance\(/.test(ux), 'the shell advances the ladder when a round ends');
 const round = fs.readFileSync(new URL('../components/drone-2525/round.tsx', import.meta.url), 'utf8');
 ok(/onRoundEnd\?\.\(\{ mode, tagged:/.test(round), 'the round reports its mode and tagged count when it ends');

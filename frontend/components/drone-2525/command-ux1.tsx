@@ -14,7 +14,7 @@
  */
 import { PLATFORMS, DEFAULT_PLATFORM, type PlatformId } from "@/lib/drone-2525/platform";
 import { CHALLENGES_ALL, DIFFICULTIES, chName, DEFAULT_CHALLENGE, DEFAULT_DIFF, type Challenge, type Difficulty } from "@/lib/drone-2525/challenge";
-import { loadProgression, saveProgression, advance, unlocked, startingMode, startingChallenge, stageIndex, type Progression } from "@/lib/drone-2525/progression";
+import { loadProgression, saveProgression, advance, unlocked, startingMode, startingChallenge, type Progression } from "@/lib/drone-2525/progression";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -28,6 +28,9 @@ import { HAL_ORDER, HAL_PROFILES, type HalChoice } from "@/lib/wire-core/hal";
 import { DRONE_DOMAIN } from "@/lib/drone-2525/domain.gen";
 import { Round, type RoundMode } from "./round";
 import { SelfCalPanel } from "./self-cal-panel";
+import { DroneIntro } from "./intro";
+import { StageStrip } from "./stage-strip";
+import { resolveBegin, introSeen, markIntroSeen, type BeginChoice } from "@/lib/drone-2525/guided-start";
 
 const SRC = DRONE_DOMAIN;
 
@@ -45,17 +48,25 @@ export function DroneCommandUX1() {
   const [diff, setDiff] = useState<Difficulty>(DEFAULT_DIFF);
   // PLATFORM (r.050 units table, as data). The four on this arena are live; the rest are dated, not hidden.
   const [platform, setPlatform] = useState<PlatformId>(DEFAULT_PLATFORM);
-  // THE GUIDED START. Server + first client render use the defaults above so nothing hydrates mismatched;
-  // the effect then reads the ladder and, on a first visit, drops the trainee onto the turret at CH0.
+  // THE GUIDED START — defaults render first (no hydration mismatch); the effect reads the ladder and, on a first visit, drops the trainee onto the turret at CH0.
   const [prog, setProg] = useState<Progression>({ reached: 0, firstVisit: false });
   const [isJoiner, setIsJoiner] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
   useEffect(() => {
     const joiner = typeof window !== "undefined" && /[?&]crew=/.test(window.location.search);
     setIsJoiner(joiner);
     const p = loadProgression();
     setProg(p);
     if (!joiner) { setMode(startingMode()); setChallenge(startingChallenge(p) as Challenge); }
+    setShowIntro(!joiner && p.firstVisit && !introSeen());   // the on-ramp shows once, on a true first visit
   }, []);
+
+  // BEGIN REHEARSAL — resolve the intro's choice within the unlocked ladder (a first-timer still lands on the turret at CH0).
+  const applyBegin = (c: BeginChoice) => {
+    const r = resolveBegin(prog, isJoiner, c);
+    setMode(r.mode); setPlatform(r.platform); setChallenge(r.challenge as Challenge);
+    markIntroSeen(); setShowIntro(false);
+  };
   const stamp = useMemo(() => versionStamp(`v${SRC.project.revision}`), []);
   const label = semanticHex("hud");
   const dim = { color: label, opacity: 0.55 };
@@ -63,6 +74,7 @@ export function DroneCommandUX1() {
 
   return (
     <div data-drone-ux1 style={{ minHeight: "100vh", background: VECTOR_LAW.ground, color: label, fontFamily: "ui-monospace, monospace" }}>
+      {showIntro && <DroneIntro onBegin={applyBegin} onSkip={() => { markIntroSeen(); setShowIntro(false); }} />}
       {/* Top bar — strokes, not chrome */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", padding: "10px 14px", borderBottom: `1px solid ${semanticHex("contour")}` }}>
         <button onClick={() => router.push("/")} aria-label={t("drone.back")} style={{ ...btn({ hex: label }), display: "flex", alignItems: "center", gap: 6 }}>
@@ -70,6 +82,7 @@ export function DroneCommandUX1() {
         </button>
         <span style={{ fontSize: 13, letterSpacing: "0.18em", color: semanticHex("mount") }}>DRONE · 2525</span>
         <span style={{ ...dim, fontSize: 11 }}>{t("drone.subtitle")}</span>
+        <button data-drone-replay-intro onClick={() => setShowIntro(true)} style={{ ...btn({ hex: label }), fontSize: 10 }}>{t("drone.intro.replay")}</button>
         <span style={{ marginLeft: "auto", fontSize: "clamp(8px, 2.1vw, 10px)", ...dim }}>
           {t("drone.version")} {SRC.project.version} · {t("drone.revision")} {SRC.project.revision} · {stamp}
         </span>
@@ -123,13 +136,8 @@ export function DroneCommandUX1() {
         </div>
       </div>
 
-      {/* YOU ARE HERE — one plain sentence per stage, so a stranger knows what this mode teaches (r.066) */}
-      <div data-drone-stage={mode} style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "0 14px 8px", flexWrap: "wrap" }}>
-        <span style={{ fontSize: 10, letterSpacing: "0.14em", color: semanticHex("mount") }}>
-          {t("drone.stage.here")} {stageIndex(mode) >= 0 ? `${stageIndex(mode) + 1}/4` : ""}
-        </span>
-        <span style={{ fontSize: 11, ...dim }}>{t(`drone.stage.${mode}`)}</span>
-      </div>
+      {/* YOU ARE HERE — one plain sentence per stage (its own component, keeps this shell small) */}
+      <StageStrip mode={mode} />
 
       {/* The arena, and the round played on it */}
       <div style={{ padding: "0 14px 14px" }}>

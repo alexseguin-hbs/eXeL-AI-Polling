@@ -30,6 +30,13 @@ const AFTER_FILL = new Set([
   'drone.stage.capital',
   'drone.stage.drone',
   'drone.stage.multi',
+  // P1-A · the r.066 intro (cinematic + SELECT CITY/CRAFT/RANGE) — 11 beats + chrome + city + craft:
+  'drone.cin.0', 'drone.cin.1', 'drone.cin.2', 'drone.cin.3', 'drone.cin.4', 'drone.cin.5',
+  'drone.cin.6', 'drone.cin.7', 'drone.cin.8', 'drone.cin.9', 'drone.cin.10',
+  'drone.intro.continue', 'drone.intro.skip', 'drone.intro.city', 'drone.intro.craft', 'drone.intro.range',
+  'drone.intro.begin', 'drone.intro.replay', 'drone.intro.loop',
+  'drone.city.capital', 'drone.city.austin', 'drone.city.atlantis',
+  'drone.craft.turret', 'drone.craft.quad', 'drone.craft.vtol',
 ]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;

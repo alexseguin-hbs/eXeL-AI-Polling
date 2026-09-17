@@ -6,7 +6,7 @@ import fs from 'node:fs';
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 
-const FILES = ['components/drone-2525/command-ux1.tsx', 'components/drone-2525/arena-view.tsx', 'components/drone-2525/wire-svg.tsx', 'components/drone-2525/round.tsx', 'components/drone-2525/self-cal-panel.tsx', 'components/drone-2525/si-panel.tsx', 'components/drone-2525/crew-seat-panel.tsx', 'components/drone-2525/control-deck.tsx', 'components/drone-2525/round-status.tsx'];
+const FILES = ['components/drone-2525/command-ux1.tsx', 'components/drone-2525/arena-view.tsx', 'components/drone-2525/wire-svg.tsx', 'components/drone-2525/round.tsx', 'components/drone-2525/self-cal-panel.tsx', 'components/drone-2525/si-panel.tsx', 'components/drone-2525/crew-seat-panel.tsx', 'components/drone-2525/control-deck.tsx', 'components/drone-2525/round-status.tsx', 'components/drone-2525/intro.tsx'];
 const lex = fs.readFileSync('lib/lexicon-data.ts', 'utf8');
 const declared = new Set([...lex.matchAll(/\{ key: "([^"]+)"/g)].map((m) => m[1]));
 
