@@ -73,6 +73,13 @@ ok(/data-drone-voice/.test(deck), 'voice is offered on the deck');
 ok(/onTap=\{onArenaTap\}/.test(round) && /drag=\{iAim \? "look" : "orbit"\}/.test(round), 'tap targets, and the aiming seat owns the drag (dragView: gimbal look if HI)');
 ok(/if \(double\)/.test(round) && /doShoot\(next\)/.test(round), 'a double-tap fires through the same doShoot, so it cannot skip APPROVE');
 ok(/data-drone-hold=\{id\}/.test(fs.readFileSync(new URL('../components/drone-2525/stick.tsx', import.meta.url), 'utf8')), 'a hold button exists for the axes R used to carry');
+// r.052/r.068 hardening: the stick releases on the two paths iOS takes without a pointerup (lost capture,
+// window blur), stops the arena orbit-drag firing under it, and parks/travels from the true measured centre.
+const stickSrc = fs.readFileSync(new URL('../components/drone-2525/stick.tsx', import.meta.url), 'utf8');
+ok(/onLostPointerCapture=\{clear\}/.test(stickSrc), 'the stick releases on lost pointer capture (an iOS freeze path)');
+ok(/addEventListener\("blur"/.test(stickSrc), 'the stick releases on window blur (the other iOS path that sends no pointerup)');
+ok(/e\.stopPropagation\(\)/.test(stickSrc), 'a press on the stick does not also fire the arena orbit-drag under it');
+ok(/travel = centre \* 0\.92/.test(stickSrc) && /const centre = \(size - knobSize\) \/ 2/.test(stickSrc), 'the knob parks at the true centre and travels 0.92 (r.068), not a hard-coded 26 px');
 
 console.log(`\ndrone-controls: ${pass} passed, ${fail} failed · WASD body · arrows gimbal · QE yaw · UJ climb · typing is not flying`);
 process.exit(fail ? 1 : 0);
