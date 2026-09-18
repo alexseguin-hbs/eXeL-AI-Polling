@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Light Codex Reference</title>
+<meta name="description" content="The canonical Light Codex alphabet (extended, collision-free) with a working double-helix encoder and decoder, self-contained in one file.">
+<style>
+  :root{ --bg:#07090c; --panel:#0d1218; --edge:#1c2a3a; --ink:#cfe6ee; --dim:#7a93a0; --mount:#5ba8ff; --accent:#3dcc8a; --warn:#f0a020; --red:#e24b3b; }
+  :root:not([data-theme="dark"]) @media (prefers-color-scheme: light){}
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace; padding:16px; }
+  h1{ font-size:18px; letter-spacing:.18em; color:var(--mount); margin:0 0 2px; }
+  h2{ font-size:12px; letter-spacing:.16em; color:var(--accent); text-transform:uppercase; margin:22px 0 8px; }
+  .sub{ color:var(--dim); font-size:12px; margin:0 0 8px; }
+  .wrap{ max-width:920px; margin:0 auto; }
+  .panel{ background:var(--panel); border:1px solid var(--edge); border-radius:8px; padding:14px; margin:10px 0; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; }
+  .cell{ border:1px solid var(--edge); border-radius:6px; padding:6px 8px; display:flex; align-items:center; gap:8px; }
+  .cell .ch{ min-width:22px; font-size:15px; color:var(--ink); }
+  .cell .grp{ color:var(--dim); font-size:11px; letter-spacing:.1em; }
+  .sw{ display:flex; gap:2px; }
+  .sw i{ width:9px; height:14px; display:block; border:1px solid #0006; }
+  label{ color:var(--dim); font-size:12px; display:block; margin:8px 0 2px; }
+  input,select,textarea,button{ font:inherit; background:#0a0f14; color:var(--ink); border:1px solid var(--edge); border-radius:6px; padding:7px 9px; }
+  textarea{ width:100%; min-height:52px; resize:vertical; }
+  button{ cursor:pointer; color:var(--mount); border-color:var(--mount); }
+  button:hover{ background:#12202e; }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+  canvas{ image-rendering:pixelated; border:1px solid var(--edge); background:#000; max-width:100%; margin-top:8px; }
+  .out{ white-space:pre-wrap; color:var(--accent); font-size:13px; margin-top:8px; }
+  .warn{ color:var(--warn); }
+  code{ color:var(--mount); }
+  .legend i{ width:14px; height:14px; display:inline-block; vertical-align:middle; border:1px solid #0006; margin-right:4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>LIGHT CODEX</h1>
+  <p class="sub">Double-helix colour-glyph encoding · canonical extended alphabet (collision-free) · one self-contained file.
+     Colour order <b>B R Y G C V W</b> = Black, Red, Yellow, Green, Cyan, Violet, White. Every character is a 4-token group.
+     Green (G) is reserved for the <b>transmission frame</b> (4=GGGG 3=GGGR 2=GGRR 1=GRRR). Signed as <b>4321</b> + message + <b>1234</b> forward, mirrored reversed.</p>
+
+  <div class="panel legend"><b class="sub">Colours:</b>
+    <span><i style="background:#000"></i>B</span> <span><i style="background:#f00"></i>R</span>
+    <span><i style="background:#ff0"></i>Y</span> <span><i style="background:#0f0"></i>G</span>
+    <span><i style="background:#0ff"></i>C</span> <span><i style="background:#f0f"></i>V</span>
+    <span><i style="background:#fff"></i>W</span></div>
+
+  <h2>Character table</h2>
+  <div class="panel"><div class="grid" id="table"></div>
+    <p class="sub" style="margin-top:10px">Fixed 2026-09-18: space is <code>WBWB</code> (was <code>BBBB</code>, which collided with digit 0 — a space then decoded as "0").
+       Added: <code>-</code> VCVC · <code>_</code> VRVR · <code>&bull;</code> VYVY · <code>:</code> VBVB. Each is unused by any letter/digit/frame, has no green, and its reversal is unused.</p></div>
+
+  <h2>Encode</h2>
+  <div class="panel">
+    <label>Message (A–Z · 0–9 · space · . - _ &bull; :)</label>
+    <textarea id="msg">SYNC.LEVEL.3.SEQ.12</textarea>
+    <div class="row">
+      <div><label>Style</label><select id="style"><option value="2">Double Helix</option><option value="1">Single Helix</option><option value="3">Hidden Double Helix</option></select></div>
+      <div><label>Block px</label><select id="bs"><option>4</option><option>2</option><option selected>1</option></select></div>
+      <div><label>Carrier</label><select id="carrier"><option value="black">Black strip</option></select></div>
+      <button id="enc">Encode →</button>
+      <button id="dl">Download PNG</button>
+    </div>
+    <div class="out" id="encOut"></div>
+    <canvas id="cv" width="640" height="64"></canvas>
+  </div>
+
+  <h2>Decode</h2>
+  <div class="panel">
+    <div class="row"><input type="file" id="file" accept="image/png,image/*"><button id="dec">Decode ←</button></div>
+    <div class="out" id="decOut"></div>
+  </div>
+</div>
+<script>
+"use strict";
+// ── Canonical Light Codex tables (mirror frontend/lib/light-codex.ts) ──────────────────────────────
+const ALPHA={A:"WWCC",B:"RRRR",C:"CWRC",D:"YCCY",E:"CCRR",F:"WRRW",G:"YCYC",H:"WWRR",I:"YBBY",J:"CWWC",K:"YYCC",L:"YBYB",M:"WCWC",N:"CWCW",O:"RRYY",P:"CCCW",Q:"YYYY",R:"RWWR",S:"WWWC",T:"RWCC",U:"RWRW",V:"WRWR",W:"CCRW",X:"WCCW",Y:"YRYR",Z:"YCRB"," ":"WBWB",".":"BBBW","-":"VCVC","_":"VRVR","•":"VYVY",":":"VBVB"};
+const NUMBERS={"0":"BBBB","1":"WBBB","2":"WWBB","3":"WWWB","4":"WWWW","5":"VBBB","6":"VWBB","7":"VWWB","8":"VWWW","9":"VVVV"};
+const TRANSMISSION={"4":"GGGG","3":"GGGR","2":"GGRR","1":"GRRR"};
+const COLORS={B:[0,0,0],R:[255,0,0],Y:[255,255,0],G:[0,255,0],C:[0,255,255],V:[255,0,255],W:[255,255,255]};
+const G2C={}; for(const[c,g]of Object.entries(ALPHA))G2C[g]=c; for(const[c,g]of Object.entries(NUMBERS))G2C[g]=c;
+const TG=new Set(Object.values(TRANSMISSION));
+const framing=s=>[...s].map(c=>TRANSMISSION[c]);
+const FWD_P=framing("4321"),FWD_S=framing("1234"),REV_P=framing("1234"),REV_S=framing("4321");
+function encChar(ch){ if(/[0-9]/.test(ch))return NUMBERS[ch]; const u=ch.toUpperCase(); if(ALPHA[u])return ALPHA[u]; if(ALPHA[ch])return ALPHA[ch]; throw new Error("Unsupported character: "+JSON.stringify(ch)); }
+const encMsg=t=>[...t].map(encChar);
+
+// ── Character table UI ─────────────────────────────────────────────────────────────────────────
+const tableEl=document.getElementById("table");
+const sw=g=>`<span class="sw">${[...g].map(t=>`<i style="background:rgb(${COLORS[t].join(",")})"></i>`).join("")}</span>`;
+const order=[...Object.keys(ALPHA).filter(k=>/[A-Z]/.test(k)),...Object.keys(NUMBERS)," ",".","-","_","•",":"];
+for(const ch of order){ const g=(ALPHA[ch]||NUMBERS[ch]); if(!g)continue; const label=ch===" "?"SP":ch;
+  tableEl.insertAdjacentHTML("beforeend",`<div class="cell"><span class="ch">${label}</span>${sw(g)}<span class="grp">${g}</span></div>`); }
+
+// ── Encode → canvas ───────────────────────────────────────────────────────────────────────────
+const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
+function drawGroup(px,W,H,x,y,g,bs){ for(let i=0;i<4;i++){ const[r,gr,b]=COLORS[g[i]]; const x0=x+i*bs;
+  for(let yy=y;yy<y+bs;yy++)for(let xx=x0;xx<x0+bs;xx++){ if(xx>=0&&xx<W&&yy>=0&&yy<H){ const o=(yy*W+xx)*4; px[o]=r;px[o+1]=gr;px[o+2]=b;px[o+3]=255; } } } }
+function drawLineLeft(px,W,H,gs,x0,y,bs,gap){ let x=x0; for(const g of gs){ drawGroup(px,W,H,x,y,g,bs); x+=4*bs+gap; } }
+function drawLineRight(px,W,H,gs,y,bs,gap){ const tot=gs.length*4*bs+Math.max(0,gs.length-1)*gap; let x=W-tot; for(const g of gs){ drawGroup(px,W,H,x,y,g,bs); x+=4*bs+gap; } }
+function encode(){
+  const msg=document.getElementById("msg").value, style=document.getElementById("style").value, bs=+document.getElementById("bs").value;
+  const gap=bs===1?0:1;
+  let groups;
+  try{ groups=encMsg(msg); }catch(e){ document.getElementById("encOut").innerHTML='<span class="warn">'+e.message+'</span>'; return; }
+  const width=Math.max(640,(groups.length+8)*(4*bs+gap)+8), height=Math.max(24,bs*2+8);
+  cv.width=width; cv.height=height;
+  ctx.fillStyle="#000"; ctx.fillRect(0,0,width,height);
+  const img=ctx.getImageData(0,0,width,height), px=img.data;
+  if(style==="1"){ drawLineRight(px,width,height,[...REV_P,...encMsg([...msg].reverse().join("")),...REV_S],height-bs,bs,gap); }
+  else if(style==="2"){ drawLineLeft(px,width,height,[...FWD_P,...groups,...FWD_S],0,0,bs,gap); drawLineRight(px,width,height,[...REV_P,...encMsg([...msg].reverse().join("")),...REV_S],height-bs,bs,gap); }
+  else { drawLineRight(px,width,height,groups,0,1,0); drawLineRight(px,width,height,encMsg([...msg].reverse().join("")),height-1,1,0); }
+  ctx.putImageData(img,0,0);
+  document.getElementById("encOut").textContent="Encoded "+groups.length+" groups · "+width+"×"+height+"px · style "+({1:"Single",2:"Double",3:"Hidden"}[style])+" · verify: decode reads back and reverse-checks.";
+}
+document.getElementById("enc").onclick=encode;
+document.getElementById("dl").onclick=()=>{ const a=document.createElement("a"); a.href=cv.toDataURL("image/png"); a.download="light-codex.png"; a.click(); };
+
+// ── Decode ← image ────────────────────────────────────────────────────────────────────────────
+function nearest(r,g,b){ let bt=null,bd=1e9; for(const[t,c]of Object.entries(COLORS)){ const d=(r-c[0])**2+(g-c[1])**2+(b-c[2])**2; if(d<bd){bd=d;bt=t;} } return bt; }
+function sampleGroup(px,W,H,x,y,bs){ let toks=""; for(let i=0;i<4;i++){ const x0=x+i*bs; if(x0<0||y<0||x0+bs>W||y+bs>H)return null; let R=0,Gc=0,B=0,n=0; for(let yy=y;yy<y+bs;yy++)for(let xx=x0;xx<x0+bs;xx++){ const o=(yy*W+xx)*4; R+=px[o];Gc+=px[o+1];B+=px[o+2];n++; } toks+=nearest(R/n|0,Gc/n|0,B/n|0); } return toks; }
+function parseLine(px,W,H,sx,y,bs,gap){ const gs=[]; let x=sx; const gw=4*bs; for(let k=0;k<500;k++){ if(x<0||x+gw>W)break; const g=sampleGroup(px,W,H,x,y,bs); if(!g)break; if(!(g in G2C)&&!TG.has(g))break; gs.push(g); x+=gw+gap; } return gs; }
+const startsWith=(a,b)=>a.length>=b.length&&b.every((v,i)=>a[i]===v);
+const endsWith=(a,b)=>a.length>=b.length&&b.every((v,i)=>a[a.length-b.length+i]===v);
+const toText=gs=>gs.map(g=>G2C[g]??"?").join("");
+function decodeImageData(px,W,H){
+  // hidden (1px, no frame)
+  const topC=[],botC=[];
+  for(let sx=Math.max(0,W-500);sx<W;sx++){ const g=parseLine(px,W,H,sx,0,1,0); if(g.length){const t=toText(g); if(!t.includes("?")&&t.trim())topC.push([g,t]);} }
+  for(let sx=Math.max(0,W-500);sx<W;sx++){ const g=parseLine(px,W,H,sx,H-1,1,0); if(g.length){const t=toText(g); if(!t.includes("?")&&t.trim())botC.push([g,t]);} }
+  if(topC.length&&botC.length){ topC.sort((a,b)=>b[0].length-a[0].length); botC.sort((a,b)=>b[0].length-a[0].length);
+    const[,tt]=topC[0]; for(const[,bt]of botC){ if(bt===[...tt].reverse().join("")) return{style:"Hidden Double Helix",block:1,forward:tt,reverseVerify:bt,verified:true}; } }
+  for(const bs of[1,2,4]){ const gap=bs===1?0:1;
+    // double
+    const top=parseLine(px,W,H,0,0,bs,gap);
+    if(startsWith(top,FWD_P)&&endsWith(top,FWD_S)){ const fwd=toText(top.slice(4,-4));
+      for(let sx=0;sx<Math.max(1,Math.min(16,W));sx++){ const bot=parseLine(px,W,H,sx,H-bs,bs,gap);
+        if(startsWith(bot,REV_P)&&endsWith(bot,REV_S)){ const rev=toText(bot.slice(4,-4)); if(rev===[...fwd].reverse().join("")) return{style:"Double Helix",block:bs,forward:fwd,reverseVerify:rev,verified:true}; } } }
+    // single
+    for(let sx=0;sx<Math.max(1,Math.min(16,W));sx++){ const g=parseLine(px,W,H,sx,H-bs,bs,gap);
+      if(startsWith(g,REV_P)&&endsWith(g,REV_S)){ const rev=toText(g.slice(4,-4)); return{style:"Single Helix",block:bs,forward:[...rev].reverse().join(""),reverseVerify:rev,verified:true}; } }
+  }
+  return null;
+}
+document.getElementById("dec").onclick=()=>{ const f=document.getElementById("file").files[0]; const out=document.getElementById("decOut");
+  if(!f){ out.innerHTML='<span class="warn">Choose a PNG first.</span>'; return; }
+  const im=new Image(); im.onload=()=>{ const c=document.createElement("canvas"); c.width=im.width; c.height=im.height; const g=c.getContext("2d"); g.drawImage(im,0,0);
+    const d=g.getImageData(0,0,im.width,im.height); const r=decodeImageData(d.data,im.width,im.height);
+    out.textContent=r?`Style: ${r.style} · block ${r.block}px\nForward:  ${r.forward}\nReverse:  ${r.reverseVerify}\nVerified: ${r.verified}`:"No Light Codex signature detected (PNG / lossless works best).";
+  }; im.src=URL.createObjectURL(f); };
+
+encode();
+</script>
+</body>
+</html>
