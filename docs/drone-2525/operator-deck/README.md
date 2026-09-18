@@ -1,6 +1,6 @@
 # Drone-2525 · operator deck — the carried package
 
-**HEAD is `drone-2525_r.102.html`.** The operator's own build across r.003 → r.102, plus the prompts, the
+**HEAD is `drone-2525_r.104.html`.** The operator's own build across r.003 → r.104, plus the prompts, the
 notes files (r.042→r.047, r.047→r.050, r.051), the r.066 gap-close, the SSSES/SPIRAL-99 audit (md + json), the
 roster and the Cup — carried **byte-for-byte** and never regenerated. `sha256` for r.051→r.075 is in
 [`HASHES_r051_r079.sha256`](HASHES_r051_r079.sha256); r.093→r.102 in
@@ -30,6 +30,17 @@ batch (r.102 had `fires:0`) · exported hash histogram / unique-count / mismatch
 952 ms — an accelerated batch, NOT 8 wall-clock hours). The two-phone MATCH qualification: A TARGET → B amber →
 B APPROVE → both red → A sim action → both worlds + hashes match → disconnect → snapshot → hash verified →
 reconnect → next event → still match. `ALL_NIGHT_SIM_r101.json` is the preserved r.101 batch evidence.
+
+**r.104 (eXeL AI, carried 2026-09-18)** is the first eXeL AI / MoT-coordinated build (141,677 B, JS
+node --check clean). On top of the reducer arc it adds: **Light Codex Double-Helix metadata**, a **6-digit
+human pairing** authorisation flow, and a **separate crypto layer ECDH P-256 → HKDF → AES-GCM-256** (the six
+digits authorise the two humans; they are NOT the encryption key; WebRTC DTLS underneath as well) — the
+operator's "Light Codex / SKL-for-Link-16 / Atlantis L1-7 packaged-HTML SYNC" directive, realised in the deck.
+It also corrected r.103 evidence (336 trials/challenge, CH5 top 700, r.103 batch SHA-256 embedded, missing
+digests marked not-exported not faked, cohort-aware trial-hash qualification) and adopts periods-not-spaces
+for the BBBB space/0 ambiguity (our `light-codex.ts` fixes that at the alphabet level: space = WBWB). Our
+port's own P2 (reducer + Light-Codex-encoded, 6-digit-keyed, Atlantis-L1-7-wrapped SYNC on the real repo
+primitives — `atlantis-package.ts` AES-GCM/PBKDF2 + `generateSealCode`) is planned; the deck is the reference.
 
 ```
 cd docs/drone-2525/operator-deck && sha256sum -c ../../asks/2026-09-16_operator_deck_r042.sha256
