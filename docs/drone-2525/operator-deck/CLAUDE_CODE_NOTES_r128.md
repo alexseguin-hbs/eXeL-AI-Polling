@@ -86,3 +86,27 @@ Derisk lesson for r.130+: in-file QA runs at BOOT with `challenge` left at 1 by 
 `challenge=0` or the shot silently routes to the CH1+ photo path (`NO EDGE`) and "fails" for the wrong reason.
 Fast-pace 6 target / 6 approve / any of 12 fire: the rule is enforced per designation (each red box needs its own
 second human); the lobby/sequencer carry the seats and the order. Live multi-peer transport is still the unproven part.
+
+## r.130 (Claude Code, 2026-09-19) — the range with turrets, and a correction of r.129
+Read `REVISIONS.md` (r.130 entry) for the full list. The two things the Grok / eXeL AI loop must carry forward:
+1. **ONE forward basis.** `fwdOf(yaw,tilt)` = (−sin yaw·cos t, sin t, cos yaw·cos t) is the projector's forward; `camOf`,
+   `lockOn`, `phys`, `yawTo` and the QA read it. Do not re-derive a forward anywhere (the old `(sin yaw, −cos yaw)`
+   was the opposite of what `proj` draws — that single disagreement was the range being blind AND "forward goes
+   reverse"). The `driveSign` QA now measures along `fwdOf`; `FWD_IS_WHAT_YOU_SEE_*` measures in picture terms and is
+   the row that would catch a future flip. The range pit is yaw 0 (was π).
+2. **The reducer keeps kind and identity.** `applyWorld` DESIGNATED used to write `kind:'obj'` and no `by`; every local
+   designation went through it, so at CH0 a plate was fired at as the bull ring and the two-humans rule saw no peer.
+   `kindOfRef(target)` + `by:row.peerId||same.by||SID`. If you add a target kind, add it to `kindOfRef`.
+Range rules: `EXPOSURE_S` 3..8 s by distance (FM 3-22.9), `EXPOSURE_GAP_S` 1.5, per-lane `exposureOrder(lane)`
+(`mulberry32(2525+lane)`), `rangeTick(dt)` from `spawn` at CH0, `plateHit` (pip inside the projected outline,
+`PIP_FLOOR_PX` 6), modes `RANGE_MODE_NAME`. Do not regress: RANGE_* / MODE_* / PROJ_FWD_AGREES rows never use simDirect.
+3. **A green "0 page errors" proved nothing about the picture.** r.129's `bullseye()` called `draw()`'s local `segs`
+   from top level → `ReferenceError` on every frame → the loop's `try/catch` swallowed it → nothing after the doors
+   (pops, silhouettes, T-boxes, the whole HUD pass) was drawn, and every QA row still passed. r.130: the loop RECORDS
+   `state.drawErr`, `draw()` stamps `state.drawDone` at its last line, and the deferred row `DRAW_COMPLETES` reads
+   both 1.5 s after boot. Any future render exception fails the deck's own QA. Do not put a boot-time `draw()` call
+   inside the QA — later `const`s (SWARM …) are still in their TDZ there; that is why the row is deferred.
+4. **Budget order is a design decision.** At MoT 1.1 the budget is 280 segments and the range wire is 601, so
+   whatever is drawn last is dropped. Draw what must be hit first (`drawPlates(segs)` before `RANGE_WIRE`), and
+   scope decoration to the seated lane ±1 at MoT 1 (`g.lane` tag on pit boxes). r.128's range never showed a target
+   at 1.1 for this reason.

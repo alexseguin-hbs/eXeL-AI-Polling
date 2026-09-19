@@ -155,6 +155,20 @@
    "kind": "decision",
    "text": "Revision 0.015. Round 12 opens (plan approved). Operator deck HEAD r.050 -> r.075, carried byte-for-byte with a verified sha256 manifest, and the control-schema transcription re-pinned from r.050 to r.075 (the 48-agent fleet found controls.ts still said 0.050 while HEAD had moved four revisions on -- Gate 1, deck parity). The window.CONTROLS block is identical r.050->r.075 except its revision field. Model changed to Opus 4.8 mid-round. The reconciled 48-agent + Grok SSSES/SPIRAL audit sets the honest posture for the round: the engine, the fire gate and the determinism are real and strong; the demo on-ramp, the edge controls, the teaming surface and cross-device are not built yet. Sequence P0 (foundation) -> P1 (60-second demo) -> P2 (teaming + two-phone MATCH qualify) -> P3 (scenes).",
    "commit": ""
+  },
+  {
+   "rev": 23,
+   "date": "2026-09-19",
+   "kind": "correction",
+   "text": "r.129 claimed 'forward-goes-reverse fixed at its class'. A read-only probe of the served r.129 (before any r.130 change) showed the class was untouched: the camera vector camOf and the projector proj disagreed by 180 degrees, so at pan 0 QUAD/VTOL still moved away from the point on screen (59.4 -> 68.3 m), the range pit looked away from its plates (all ten silhouettes culled, every aimed shot a MISS, LOCK on a buoy). r.129 fixed only the pan-folding sub-case. Corrected in r.130 by one forward basis (fwdOf/rightOf/yawTo) read by camOf, lockOn, phys, every aim and the QA; the QA row FWD_IS_WHAT_YOU_SEE measures in picture terms so a future flip cannot pass.",
+   "commit": "a83e670"
+  },
+  {
+   "rev": 24,
+   "date": "2026-09-19",
+   "kind": "release",
+   "text": "Operator deck r.130 served at /drone-2525/play.html (sha256 ce034c5e..., 231517 B). The range with turrets actually works: pit faces its plates; pop-ups per lane at 50-300 m on a seeded per-lane order with FM 3-22.9 exposure times (3 s at 50 m to 8 s at 300 m); three modes by the operator's names TRAINING RESET / TRAINING DOWN / QUAL 40 (lapsed exposure = unfired MISS, 23/30/36); scale-true hit test (pip inside the projected silhouette, CIRCLE/SILHOUETTE, 6 px floor); 9127 sheet layout (100 m x3, one 250 left, one 300 right); the reducer keeps a target's kind and its designator (a designated plate was being shot as the bull ring; the two-humans rule never saw a peer identity). In-file QA 75 rows, headless 74/75 (SYNC_DIRECT by design). Also fixes two render defects the probe exposed: r.129 bullseye() threw on every frame (hidden by the loop try/catch, nothing after the doors drawn) and at MoT 1.1 the range wire spent the segment budget before any silhouette. Every revision from r.128 on is documented in operator-deck/REVISIONS.md, append-only and chain-hashed, gated by tests/drone-revisions.test.mjs. Research with sources: docs/drone-2525/RANGE_QUALIFICATION_RESEARCH.md.",
+   "commit": "a83e670"
   }
  ]
 }
