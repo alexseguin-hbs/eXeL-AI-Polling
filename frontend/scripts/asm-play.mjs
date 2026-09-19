@@ -10,7 +10,8 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-const A = Object.assign({ seat: 'solo', lane: 20, mode: 'bounce', shots: 4, challenge: 0, craft: 'turret', tag: 'seat', width: 390, height: 844 }, JSON.parse(process.argv[2] || '{}'));
+const A = Object.assign({ seat: 'solo', lane: 20, mode: 'bounce', shots: 4, challenge: 0, craft: 'turret', tag: 'seat', width: 390, height: 844, doubleFire: false, asmPress: 0 }, JSON.parse(process.argv[2] || '{}'));
+// doubleFire: press FIRE a second time inside the same red exposure (the ONE ROUND PER EXPOSURE refusal path) · asmPress: how many times to press the AsM button (0 = leave SPOT, the default; 1 = AsM FIRE; 2 = OFF)
 const PUB = new URL('../public', import.meta.url).pathname, OUT = new URL('../perf/asm/', import.meta.url).pathname; mkdirSync(OUT, { recursive: true });
 const srv = createServer(async (req, res) => { let body; try { body = await readFile(join(PUB, decodeURIComponent(req.url.split('?')[0]))); } catch { res.writeHead(404); return res.end(); } res.writeHead(200, { 'content-type': 'text/html' }); res.end(body); }).listen(0);
 const PORT = srv.address().port;
@@ -21,17 +22,20 @@ const R = { seat: A, toasts: [], errors: [], steps: [], hits: 0, misses: 0, refu
 const open = async (ctx, tag) => { const p = await ctx.newPage(); p.on('pageerror', (e) => R.errors.push(tag + ': ' + String(e).slice(0, 160))); await p.goto(`http://127.0.0.1:${PORT}/drone-2525/play.html`, { waitUntil: 'load' }); await p.waitForFunction(() => typeof state !== 'undefined' && state.qa && state.qa.total > 0, null, { timeout: 60000 }); await p.waitForTimeout(1700); return p; };
 const hud = (p) => p.evaluate(() => ({ des: (document.getElementById('phDes') || {}).textContent, score: (document.getElementById('phScore') || {}).textContent, toast: document.getElementById('toast').textContent, desig: state.desig && { id: state.desig.id, phase: state.desig.phase, how: state.desig.how }, up: (typeof platesHere === 'function' ? platesHere().filter((q) => q.up).map((q) => q.base) : []), lane: state.lane, mode: state.rangeMode, ch: state.challenge, unit: state.unit, hash: replayHash(), lobby: state.lobby && state.lobby.phase, rangeHit: state.rangeHit | 0, rangeMiss: state.rangeMiss | 0, rangeLapsed: state.rangeLapsed | 0, qual: state.rangeMode === 'qual40' ? { R: state.qualR | 0, H: state.qualH | 0, tbl: state.qualTbl | 0, expired: state.qualExpired | 0 } : null }));
 const step = async (p, name, fn) => { try { await fn(); } catch (e) { R.errors.push(name + ': ' + String(e).slice(0, 120)); } const h = await hud(p); R.steps.push({ name, ...h }); if (h.toast) R.toasts.push(h.toast); return h; };
-const waitUp = (p) => p.waitForFunction(() => typeof platesHere === 'function' && platesHere().some((q) => q.up && (q.fall || 0) < 0.25 && q.lifePct > 0), null, { timeout: 15000 }).catch(() => null);
+const waitUp = (p) => (A.challenge > 0 ? p.waitForFunction(() => (pops || []).some((q) => q.up) || (drones || []).some((d) => d.up) || (typeof foils !== 'undefined' && foils.some((d) => d.up)), null, { timeout: 20000 }) : p.waitForFunction(() => typeof platesHere === 'function' && platesHere().some((q) => q.up && (q.fall || 0) < 0.25 && q.lifePct > 0), null, { timeout: 15000 })).catch(() => null);
 const cap = async (p, name) => { const f = OUT + `${A.tag}-${name}.png`; await p.screenshot({ path: f }); R.captures.push(f); };
 const intro = async (p, practice) => { await p.click('#sc0 button[data-next="sc1"]'); await p.click('#sc1 button[data-next="sc2"]'); await p.click(`#sc2 button[data-craft="${A.craft}"]`).catch(() => null); await p.click('#sc2 button[data-next="sc3"]'); await p.click(`#sc3 button[data-ch="${A.challenge}"]`).catch(() => null); await p.click(practice ? '#sc3 #btnPractice' : '#sc3 #btnIntro'); await p.waitForTimeout(400); };
 const seatLane = async (p) => { if (A.lane != null) { await p.selectOption('#lanePick', String(A.lane)).catch(() => null); await p.waitForTimeout(300); } if (A.mode && A.challenge === 0) { await p.selectOption('#rngMode', A.mode).catch(() => null); await p.waitForTimeout(400); } };
-const engage = async (p, approver) => { await waitUp(p); const t = await step(p, 'TARGET (key 1: aim + mark)', async () => { await p.bringToFront(); await p.keyboard.press('Digit1'); }); if (!t.desig) { R.refusals++; return; } const a = await step(approver || p, 'APPROVE', () => (approver || p).click('#fAppr')); if (approver) await p.waitForTimeout(700); const f = await step(p, 'FIRE', () => p.click('#fFire')); if (/HIT/.test(f.toast)) R.hits++; else if (/MISS|DOWN|SPENT/.test(f.toast)) R.misses++; else R.refusals++; };
+const engage = async (p, approver) => { await waitUp(p); const t = A.challenge > 0 ? await step(p, 'TARGET (button: LOCK → mark)', () => p.click('#fTgt')) : await step(p, 'TARGET (key 1: aim + mark)', async () => { await p.bringToFront(); await p.keyboard.press('Digit1'); }); if (!t.desig) { R.refusals++; return; } const a = await step(approver || p, 'APPROVE', () => (approver || p).click('#fAppr')); if (approver) await p.waitForTimeout(700); const f = await step(p, 'FIRE', () => p.click('#fFire')); if (/HIT/.test(f.toast)) R.hits++; else if (/MISS|DOWN|SPENT/.test(f.toast)) R.misses++; else R.refusals++;
+  const ov = await p.evaluate(() => { const a = document.getElementById('approve'); return a && a.classList.contains('show') ? a.textContent.slice(0, 80) : null; }); if (ov) { R.ch5Overlays = R.ch5Overlays || []; R.ch5Overlays.push(ov); const g = await step(p, 'CH5 overlay APPROVE', () => p.click('#btnYes')); if (/HIT/.test(g.toast)) { R.hits++; R.refusals--; } }
+  if (A.doubleFire) { const g = await step(p, 'FIRE AGAIN (same exposure)', () => p.click('#fFire')); R.secondPulls = R.secondPulls || []; R.secondPulls.push(g.toast); } };
 
 try {
-  if (A.seat === 'solo' || A.seat === 'ai' || A.seat === 'capitol') {
+  if (A.seat === 'solo' || A.seat === 'ai') {
     const ctx = await b.newContext({ viewport: { width: A.width, height: A.height } }); const p = await open(ctx, A.tag);
     await intro(p, true); await seatLane(p); await cap(p, '01-start');
-    if (A.seat === 'ai') { await step(p, 'MORE', () => p.click('#btnMore')); await step(p, 'AsM SPOT', () => p.click('#btnAsm')); await step(p, 'MORE close', () => p.click('#btnMore')); }
+    if (A.seat === 'ai' && A.asmPress > 0) { await step(p, 'MORE', () => p.click('#btnMore')); for (let k = 0; k < A.asmPress; k++) await step(p, 'AsM button press ' + (k + 1), () => p.click('#btnAsm')); await step(p, 'MORE close', () => p.click('#btnMore')); }
+    if (A.seat === 'ai') R.asm = await p.evaluate(() => ({ spot: state.asmSpot, fire: state.asmFire, label: (document.getElementById('btnAsm') || {}).textContent }));
     for (let i = 0; i < A.shots; i++) {
       if (A.seat === 'ai') { await p.waitForFunction(() => state.desig && state.desig.phase === 'amber', null, { timeout: 20000 }).catch(() => null); const d = await hud(p); if (!d.desig) { R.refusals++; R.steps.push({ name: 'AI never marked', ...d }); continue; } await step(p, 'APPROVE', () => p.click('#fAppr')); const f = await step(p, 'FIRE', () => p.click('#fFire')); if (/HIT/.test(f.toast)) R.hits++; else R.misses++; }
       else if (A.seat === 'capitol') { await step(p, 'TARGET', () => p.click('#fTgt')); await step(p, 'APPROVE', () => p.click('#fAppr')); const f = await step(p, 'FIRE', () => p.click('#fFire')); if (/HIT/.test(f.toast)) R.hits++; else if (/MISS|DOWN|NO EDGE/.test(f.toast)) R.misses++; else R.refusals++; await p.waitForTimeout(1500); }
@@ -39,7 +43,7 @@ try {
       if (i === 0) await cap(p, '02-first-shot');
     }
     const h = await hud(p); R.final = h; R.lapsed = h.rangeLapsed; await cap(p, '03-end');
-  } else if (A.seat === 'team') {
+  } else if (A.seat === 'team' || A.seat === 'capitol') { /* capitol: the same room at CH1..CH5 (A.challenge) — the deck refuses CH>0 without a room */
     const cH = await b.newContext({ viewport: { width: A.width, height: A.height } }), cJ = await b.newContext({ viewport: { width: A.width, height: A.height } });
     const H = await open(cH, A.tag + '-host'), J = await open(cJ, A.tag + '-join');
     await intro(H, false); await intro(J, false);
@@ -51,6 +55,7 @@ try {
     await J.waitForFunction(() => { const v = (document.getElementById('wrLink') || {}).value || '', w = (document.getElementById('linkBox') || {}).value || ''; return (v.length > 100 && /peerPub/.test(atob(v))) || (w.length > 100 && /peerPub/.test(atob(w))); }, null, { timeout: 30000 }).catch(() => null);
     const answer = await J.evaluate(() => { const v = document.getElementById('wrLink').value, w = document.getElementById('linkBox').value; return /peerPub/.test(atob(v || 'e30=')) ? v : w; });
     await H.fill('#wrLink', answer); await step(H, 'APPLY', () => H.click('#wrApply')); await H.waitForFunction(() => state.com.path === 'DIRECT', null, { timeout: 15000 }).catch(() => null); await J.waitForFunction(() => state.com.path === 'DIRECT' && state.codex.authenticated, null, { timeout: 15000 }).catch(() => null); await H.waitForTimeout(1200);
+    await cap(H, '01-host-room'); await cap(J, '01-join-room');
     await step(J, 'READY', () => J.click('#wrReady')); await step(H, 'READY', () => H.click('#wrReady')); await H.waitForTimeout(500); await step(H, 'START', () => H.click('#wrLaunch')); await H.waitForTimeout(1500);
     R.live = { H: (await hud(H)).lobby, J: (await hud(J)).lobby };
     for (const p of [H, J]) if (A.lane != null) { await p.selectOption('#lanePick', String(A.lane)).catch(() => null); await p.waitForTimeout(300); }
