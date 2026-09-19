@@ -39,6 +39,8 @@ const AFTER_FILL = new Set([
   'drone.craft.turret', 'drone.craft.quad', 'drone.craft.vtol',
   // P1-2 · amber↔red legibility + LOCK reticle:
   'drone.hud.lock', 'drone.hud.no_lock', 'drone.hud.armed', 'drone.hud.legend',
+  // P1-B declutter · config toggle + R-CORE playable (r.128 served as-is):
+  'drone.config', 'drone.play_deck',
 ]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;

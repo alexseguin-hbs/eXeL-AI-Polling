@@ -12,8 +12,8 @@
  * Capital. The two flying modes are listed and visibly dated, never hidden — a mode the operator
  * asked for that is not built yet is a promise on screen, not a silence.
  */
-import { PLATFORMS, DEFAULT_PLATFORM, type PlatformId } from "@/lib/drone-2525/platform";
-import { CHALLENGES_ALL, DIFFICULTIES, chName, DEFAULT_CHALLENGE, DEFAULT_DIFF, type Challenge, type Difficulty } from "@/lib/drone-2525/challenge";
+import { DEFAULT_PLATFORM, type PlatformId } from "@/lib/drone-2525/platform";
+import { DEFAULT_CHALLENGE, DEFAULT_DIFF, type Challenge, type Difficulty } from "@/lib/drone-2525/challenge";
 import { loadProgression, saveProgression, advance, unlocked, startingMode, startingChallenge, type Progression } from "@/lib/drone-2525/progression";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -23,11 +23,12 @@ import { versionStamp } from "@/lib/2525-core/version-stamp";
 import { semanticHex } from "@/lib/wire-core/palette";
 import { MONO, btn } from "./ui";
 import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
-import { MOT_LEVELS, motSpec, type MotLevel } from "@/lib/wire-core/mot-ladder";
-import { HAL_ORDER, HAL_PROFILES, type HalChoice } from "@/lib/wire-core/hal";
+import { type MotLevel } from "@/lib/wire-core/mot-ladder";
+import { type HalChoice } from "@/lib/wire-core/hal";
 import { DRONE_DOMAIN } from "@/lib/drone-2525/domain.gen";
 import { Round, type RoundMode } from "./round";
 import { SelfCalPanel } from "./self-cal-panel";
+import { ConfigBar } from "./config-bar";
 import { DroneIntro } from "./intro";
 import { StageStrip } from "./stage-strip";
 import { resolveBegin, introSeen, markIntroSeen, type BeginChoice } from "@/lib/drone-2525/guided-start";
@@ -52,6 +53,9 @@ export function DroneCommandUX1() {
   const [prog, setProg] = useState<Progression>({ reached: 0, firstVisit: false });
   const [isJoiner, setIsJoiner] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
+  // The config selects (MoT/HAL/platform/challenge/difficulty) collapse behind one toggle — the guided start
+  // and the intro set them, so the play screen stays the arena + controls, not a wall of dropdowns.
+  const [cfgOpen, setCfgOpen] = useState(false);
   useEffect(() => {
     const joiner = typeof window !== "undefined" && /[?&]crew=/.test(window.location.search);
     setIsJoiner(joiner);
@@ -83,6 +87,8 @@ export function DroneCommandUX1() {
         <span style={{ fontSize: 13, letterSpacing: "0.18em", color: semanticHex("mount") }}>DRONE · 2525</span>
         <span style={{ ...dim, fontSize: 11 }}>{t("drone.subtitle")}</span>
         <button data-drone-replay-intro onClick={() => setShowIntro(true)} style={{ ...btn({ hex: label }), fontSize: 10 }}>{t("drone.intro.replay")}</button>
+        {/* R-CORE: the best solution ships. r.128 (Grok + eXeL AI) is the complete single-file game — served as-is. */}
+        <a data-drone-play href="/drone-2525/play.html" style={{ ...btn({ on: true, hex: semanticHex("mount") }), fontSize: 11, textDecoration: "none" }}>{t("drone.play_deck")}</a>
         <span style={{ marginLeft: "auto", fontSize: "clamp(8px, 2.1vw, 10px)", ...dim }}>
           {t("drone.version")} {SRC.project.version} · {t("drone.revision")} {SRC.project.revision} · {stamp}
         </span>
@@ -102,38 +108,12 @@ export function DroneCommandUX1() {
             </button>
           );
         })}
-        <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-          {/* THE LADDER — 5 compute bands × 5 resolution steps. 1.1 is the arcade rung and the fastest. */}
-          <span style={{ ...dim, fontSize: 10 }}>{t("drone.mot")}</span>
-          <select data-drone-mot value={level} onChange={(e) => setLevel(e.target.value as MotLevel)}
-                  style={{ ...btn({ on: true, hex: semanticHex("mount") }), minWidth: 116 }}>
-            {MOT_LEVELS.map((l) => {
-              const s = motSpec(l);
-              return <option key={l} value={l}>{`${l} ${s.bandName} · ${s.sensors.length}s`}</option>;
-            })}
-          </select>
-          <span style={{ ...dim, fontSize: 10 }}>{t("drone.hal")}</span>
-          <select data-drone-hal value={hal} onChange={(e) => setHal(e.target.value as HalChoice)}
-                  style={{ ...btn({ on: true, hex: semanticHex("frustum") }), minWidth: 104 }}>
-            <option value="auto">{t("drone.hal_auto")}</option>
-            {HAL_ORDER.map((h) => <option key={h} value={h}>{HAL_PROFILES[h].label}</option>)}
-          </select>
-          <span style={{ ...dim, fontSize: 10 }}>{t("drone.platform")}</span>
-          <select data-drone-platform value={platform} onChange={(e) => setPlatform(e.target.value as PlatformId)}
-                  style={{ ...btn({ on: true, hex: semanticHex("mount") }), minWidth: 118, maxWidth: 150 }}>
-            {PLATFORMS.map((p) => <option key={p.id} value={p.id} disabled={!p.here}>{p.here ? p.label : `${p.label} · ${t("drone.platform.dated")}`}</option>)}
-          </select>
-          <span style={{ ...dim, fontSize: 10 }}>{t("drone.ch")}</span>
-          <select data-drone-ch value={challenge} onChange={(e) => setChallenge(Number(e.target.value) as Challenge)}
-                  style={{ ...btn({ on: true, hex: semanticHex("door") }), minWidth: 96 }}>
-            {CHALLENGES_ALL.map((c) => <option key={c} value={c}>{`CH${c} ${chName(c)}`}</option>)}
-          </select>
-          <span style={{ ...dim, fontSize: 10 }}>{t("drone.diff")}</span>
-          <select data-drone-diff value={diff} onChange={(e) => setDiff(Number(e.target.value) as Difficulty)}
-                  style={{ ...btn({ on: true, hex: semanticHex("door") }), minWidth: 56 }}>
-            {DIFFICULTIES.map((d) => <option key={d} value={d}>{d}</option>)}
-          </select>
-        </div>
+        <button data-drone-config onClick={() => setCfgOpen((o) => !o)}
+                style={{ ...btn({ on: cfgOpen, hex: semanticHex("frustum") }), marginLeft: "auto", fontSize: 10 }}>{t("drone.config")}</button>
+        {cfgOpen && (
+          <ConfigBar level={level} setLevel={setLevel} hal={hal} setHal={setHal} platform={platform} setPlatform={setPlatform}
+                     challenge={challenge} setChallenge={setChallenge} diff={diff} setDiff={setDiff} />
+        )}
       </div>
 
       {/* YOU ARE HERE — one plain sentence per stage (its own component, keeps this shell small) */}

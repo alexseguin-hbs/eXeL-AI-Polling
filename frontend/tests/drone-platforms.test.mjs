@@ -30,8 +30,8 @@ ok(DEFAULT_PLATFORM === 'D1' && platformOf('nonsense').id === 'D1', 'the default
 ok(mountIdOf(platformOf('D1F')) === 'd1f-01', 'the mount id carries the platform id');
 // The round and the top bar use it.
 const round = fs.readFileSync(new URL('../components/drone-2525/round.tsx', import.meta.url), 'utf8');
-const ux = fs.readFileSync(new URL('../components/drone-2525/command-ux1.tsx', import.meta.url), 'utf8');
-ok(/data-drone-platform/.test(ux) && /disabled=\{!p\.here\}/.test(ux), 'a PLATFORM dropdown in the top bar, dated ones disabled but listed');
+const ux = fs.readFileSync(new URL('../components/drone-2525/config-bar.tsx', import.meta.url), 'utf8');   // the selects live in the CONFIG bar (declutter 2026-09-19)
+ok(/data-drone-platform/.test(ux) && /disabled=\{!p\.here\}/.test(ux), 'a PLATFORM dropdown in the CONFIG bar, dated ones disabled but listed');
 ok(/airframeMount\(mountIdOf\(plat\), plat\.label/.test(round), 'the flying mount is named by the platform');
 ok(/disabled=\{!wingAllowed\(plat\)\}/.test(round) && /drone\.fly\.no_wing/.test(round), 'the wing button refuses by name on the quad');
 ok(/prefersWing\(plat\)/.test(round) && /canTransition\(AIRFRAME, flight\)\.ok/.test(round), 'the foil takes the wing through the same legality rule');

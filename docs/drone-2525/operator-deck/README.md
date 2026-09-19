@@ -1,6 +1,13 @@
 # Drone-2525 · operator deck — the carried package
 
-**HEAD is `drone-2525_r.104.html`.** The operator's own build across r.003 → r.104, plus the prompts, the
+**HEAD is `drone-2525_r.128.html` — and it is SERVED AS THE PLAYABLE at `/drone-2525/play.html`** (R-CORE:
+the best solution ships regardless of which AI wrote it; `frontend/tests/drone-playable.test.mjs` holds it
+byte-identical to this carried copy and under 7.77 MB). r.105 → r.128 (Grok + eXeL AI, 2026-09-18/19): r.122
+the 50 m RANGE (42 lanes, Alt-C silhouettes at true metres, PRACTICE UP/STAY/QUAL 40, ASM_QUAL40 fixture) ·
+r.124 the Grok/eXeL AI collaboration · r.128 **blue/red revisions + the Blizzard-style multiplayer LOBBY with
+6-digit team-specific codes** (the operator's key add). `CLAUDE_CODE_NOTES_r122.md` is the current handoff
+(doctrine, locked stick signs, do-not-regress list, honest open items). Hashes in `HASHES_r105_r128.sha256`.
+The operator's own build across r.003 → r.128, plus the prompts, the
 notes files (r.042→r.047, r.047→r.050, r.051), the r.066 gap-close, the SSSES/SPIRAL-99 audit (md + json), the
 roster and the Cup — carried **byte-for-byte** and never regenerated. `sha256` for r.051→r.075 is in
 [`HASHES_r051_r079.sha256`](HASHES_r051_r079.sha256); r.093→r.102 in

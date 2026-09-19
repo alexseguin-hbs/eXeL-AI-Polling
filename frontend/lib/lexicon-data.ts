@@ -2976,6 +2976,8 @@ const drone2525: TranslationEntry[] = [
   { key: "drone.platform.dated", englishDefault: "not on this arena yet", context: "Drone-2525 platform dropdown: suffix on a platform (sea craft, sail, droid) that is listed but cannot be flown here yet", cubeId: 0 },
   { key: "drone.fly.no_wing", englishDefault: "A quad has no wing", context: "Drone-2525: the wing button's label and refusal when the QUAD platform is flown — it stays on its rotors", cubeId: 0 },
   { key: "drone.ch", englishDefault: "Challenge", context: "Drone-2525 top bar: label before the dropdown that picks the challenge, CH1 LAWN to CH5 NET", cubeId: 0 },
+  { key: "drone.config", englishDefault: "Config", context: "Drone-2525 top bar: toggle that shows/hides the level/HAL/platform/challenge/difficulty dropdowns so the play screen stays uncluttered", cubeId: 0 },
+  { key: "drone.play_deck", englishDefault: "PLAY · r.128", context: "Drone-2525 top bar: the button that opens the complete single-file game build (the operator's deck, served as-is) — r.128 is its revision label", cubeId: 0 },
   { key: "drone.diff", englishDefault: "Difficulty", context: "Drone-2525 top bar: label before the dropdown that picks the difficulty, 1 to 5", cubeId: 0 },
   { key: "drone.ch.second_person", englishDefault: "CH5 · a second person must approve", context: "Drone-2525 round: message when, on the NET challenge, the same person who marked a door tries to approve their own mark; a different person has to", cubeId: 0 },
   { key: "drone.ch.training_line", englishDefault: "Training — pop-up targets, no one shooting back. Feel target, approve, fire once.", context: "Drone-2525 CH0 TRAINING: one line telling a first-timer what the training rung is", cubeId: 0 },

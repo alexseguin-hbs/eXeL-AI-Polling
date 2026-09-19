@@ -62,7 +62,9 @@ ok(/challengeSpec\(challenge, diff\)/.test(round), 'the round builds its spec fr
 ok(/targetSpecFor\(TSPEC, CH\)/.test(round) && /doorsInPlay\(CH, /.test(round), 'the schedule and the doors in play come from it');
 ok(/ch5RefusesSelfApproval\(CH, by, cur\.by\)/.test(round) && /"HOLD"[^\n]*CH5_REASON/.test(round), 'a CH5 self-approval is refused AND recorded as a HOLD');
 const ux = fs.readFileSync(new URL('../components/drone-2525/command-ux1.tsx', import.meta.url), 'utf8');
-ok(/data-drone-ch\b/.test(ux) && /data-drone-diff\b/.test(ux), 'CH and DIFF are dropdowns in the top bar, not a hidden selector');
+const cfg = fs.readFileSync(new URL('../components/drone-2525/config-bar.tsx', import.meta.url), 'utf8');
+ok(/data-drone-ch\b/.test(cfg) && /data-drone-diff\b/.test(cfg), 'CH and DIFF are real dropdowns in the CONFIG bar (declutter 2026-09-19), not a hidden TG selector');
+ok(/data-drone-config\b/.test(ux) && /<ConfigBar/.test(ux), 'the shell folds the config selects behind one CONFIG toggle so the play screen is not a wall of dropdowns');
 ok(!/\bTG\b|tgSpec/.test(round + ux), 'TG is not resurrected as a second level system');
 
 // ── CH0 TRAINING: the rung BELOW CH1 (extension, not the deck — the deck clamps to 1) ────────────
