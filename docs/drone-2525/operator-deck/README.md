@@ -1,6 +1,13 @@
 # Drone-2525 · operator deck — the carried package
 
-**HEAD is `drone-2525_r.128.html` — and it is SERVED AS THE PLAYABLE at `/drone-2525/play.html`** (R-CORE:
+**HEAD is `drone-2525_r.129.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.129 (Claude Code,
+2026-09-19, from r.128 by asserted exact patches — `HASHES_r129.sha256`) closes three operator items: the
+BODY moves along the airframe heading, never the head's pan (L-up drove QUAD/VTOL backwards whenever the gimbal
+was panned behind — `camOf` folds the pan into the pilot's camera yaw and `phys` used the camera forward);
+every standing target carries a white-circle bullseye in T13.SI; once HIT the T## slot clears with the box; in
+a LIVE room the red box needs TWO SEPARATE humans (a locally-marked target cannot be self-approved — solo CH0
+practice keeps SOLO HI-2). The deck's in-file QA gained `BODY_FWD_PAN180`, `HIT_CLEARS_SLOT`, `LIVE_TWO_HUMANS`.
+Previous HEAD r.128 (Grok + eXeL AI) — see below.
 the best solution ships regardless of which AI wrote it; `frontend/tests/drone-playable.test.mjs` holds it
 byte-identical to this carried copy and under 7.77 MB). r.105 → r.128 (Grok + eXeL AI, 2026-09-18/19): r.122
 the 50 m RANGE (42 lanes, Alt-C silhouettes at true metres, PRACTICE UP/STAY/QUAL 40, ASM_QUAL40 fixture) ·
