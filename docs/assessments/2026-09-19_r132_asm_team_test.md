@@ -153,3 +153,32 @@ Left open (named): the per-device range clock between peers; the joiner's qual t
 private by decision); the in-round CH picker bypass of "CH0 only"; the reticle over the APPROVE pill at 320 px; 2314 px of side panel
 below the fold on desktop; the third wave (12 seats: voice, tap/double-tap, sticks, MAP view, DATA/EXPORT, REPLAY scrub, lanes 21–41,
 HAL PI/EDGE, MoT 5.5, RESET mid-table, a lapse-then-fire, a data-channel drop) is owed after r.133 ships.
+
+## Wave 3 — 12 seats (s27–s38) on the SERVED r.133 (449de5f; Deploy #926 ✓, Verify Live #1725 ✓ with the play.html probe)
+
+| seat | lens | path | verdict | the one finding |
+|---|---|---|---|---|
+| s27 | Aset | tap / double-tap | PASS on the gate | amber double-tap refused (REJECT row), red double-tap fires; but a single tap on blank sky MARKS the locked plate, and after a lapse `#board` keeps the dead amber row (rangeRelease never calls list()) |
+| s28 | Asar | MAP view | **FAIL** | in MAP `phys()` returns early: the phase strip freezes at TARGET FIRST through amber→red→HIT, the AI member stops ticking, the turret never slews; the map legend overprints the score strip; lane labels sit under the pills at 390; Capitol doors drawn on the range map; the MAP button is `#btnView` |
+| s29 | Athena | DATA / SAVE / EXPORT | PASS | pack() carries events/decisions/metrics/replayHash/qual, all stamped 0.133; SAVE/EXPORT/pack never move the hash; SIX revision strings in one panel (r.0.133 · r0.133 · 0.133 · UPDATES r.128 · BOOT 0.125 · FIXTURE r0.103); SAVE = 4 downloads from one tap (phones drop three); "WIRE" is the whole EXPORT feedback; the QUAL clock runs under the panels |
+| s30 | Christo | REPLAY scrub | **FAIL** | the invariant holds (world/hash untouched) but `#replayBar` is display:none at ≤900 px and in landscape, PLAY is inert, «» skip rows, log-rows and ev-rows shift columns |
+| s31 | Enki | HAL PI · MoT 1.1 | PASS on play | 300 m plate hit on a phone (6×6 px floor box); HAL/MoT selects give NO toast; "PIP FLOOR … PX" exists only in a comment; PI budgetMs never throttles the loop (labelled, not simulated); `60/96` reads as an underrun |
+| s32 | Enlil | MoT 5.5 desktop | PASS on the r.133 claim | side panel at x 1140–1440, overlap 0; but the fixed R-HEAD stick (z 8) sits on the panel's corner; 74 % of the panel below the fold with no scroll cue; the orange pit-box edge crosses the same-colour toast |
+| s33 | Krishna | RESET mid table | **FAIL** | every visible expectation holds, but RESET is NOT on the record: hash identical before/after, BLU keeps counting (SCORE BLU 600 after a "fresh" table), no RESET row, not sent to a peer, no confirmation |
+| s34 | Odin | lapse then fire | PASS | lapse = R+1 expired+1, hit = R+1 H+1, TOTAL and LAPSED consistent at every step; `hudScore()` runs one call before `qualRecordShot()` (one-frame lag on the FIRE tick) |
+| s35 | Pangu | data-channel drop | **FAIL** | after the approver's page is gone the host shows DIRECT · 2p · MATCH for 48 s+, no toast, the red box holds silently, the fire lands; `dc close` only feeds `proofMark`, `com.peers` only rises, HELLO has no reply timeout, `fireN` never asks whether the approver is present |
+| s36 | Sofia | VOICE without a mic | **FAIL** | toast + button say VOICE ON while the recognizer died `not-allowed` 20 ms later; a second press re-announces ON; NO MIC API unreachable in Chromium; the APPROVE regex runs before the HOLD regex so "don't approve" approves |
+| s37 | Thoth | lanes 22/31/41 · determinism | PASS | same lane → same exposure order, lanes differ; the replay hash differs across two loads of the same lane BY DESIGN of its identity columns (SID, eventId, orderKey) — and `logicalClock` is beacon-driven, so the hash is not fully clock-free |
+| s38 | Thor | AsM FIRE after approve | PASS on the invariant | APPROVE precedes HIT on all three, the AI never fired on amber, once per box; but in the SAME tick a second turret re-marks the just-downed plate (stale amber → approvable → a phantom MISS DOWN row), and the HIT row names the human device, the AI only in the log |
+
+### New classes from wave 3
+**D15** RESET (and the mode change) mutate the qualification with no canonical row: not on the record, not on the peer, no confirmation ·
+**D16** the link has no liveness: DIRECT/peers/MATCH are last-written values, never a heartbeat with a timeout · **D17** VOICE reports the
+intent, not the outcome (`r.start()` toasts ON before `onerror`) and negation is heard as consent · **D18** MAP view stops the world's
+writers (strip, AI tick, slew) while the clock runs · **D19** the AI loop marks from a stale `live` after its own shot (one tick, two
+turrets, the second marks a dead plate) · **D20** state changes that only log (HAL, MoT) are invisible to the player · **D21** the
+replay bar is unreachable on a phone; PLAY inert · **D22** six revision strings on one panel; SAVE = four downloads.
+
+### Held on r.133 (re-verified by wave 3)
+The two-step by tap, key, button and voice grammar; one round per exposure; lapse/hit bookkeeping; SAVE/EXPORT/pack leave the hash; per-lane
+seeded exposures; 300 m hittable on a phone; desktop panel in its strip; AI fires only after APPROVE, once per box.
