@@ -16,6 +16,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.133 | 2026-09-19 | Claude Code (38-AsM team-test fold, autonomous) | 262814 | d10ae69bc53d1a73845b69db2da7280e518aa31c41eb415b10160e1f608e0526 | fbdd78e → 4321f40 (artefact, final bytes) | 2d0ac8d264429638379149bcf8bf8da8e38555b4c33551c002f1cf2e78b43605 |
 | r.134 | 2026-09-19 | Claude Code (wave-3 + 48-lens fleet fold, autonomous) | 276780 | 840cf55c6c0181503ff4417a1eff16f32825ba530a78eabd0d3744cd5a7d6aec | f2557ac (artefact) | dea8dbcdbe9b3ee72444eddc91cf9ab3ea543977ef827a2c6b2670f4cd0d5f9a |
 | r.135 | 2026-09-19 | Claude Code (fleet-48 second-reviewer fold, autonomous) | 290674 | 882287ecc3e2abc6fbac5f41723ea3a7682497531052a2ab5ebf06fa5b18b97b | 2020c02 (artefact) | 933db1088d53c08324590a27fdd24ba4340a8ba2fbad0392074bb14bf0c9ff78 |
+| r.136 | 2026-09-19 | Claude Code (fleet-48 synthesis fold, autonomous) | 292524 | 2bcd7a574e5044f72a1d4cb28a1a88d6b052e5cd5ba0a42b25b48f4f9e22820e | 543a86c (artefact) | ef31b289b6034dba2924974f4f8efc9248508fb909d401ed89adf44e41a27c3d |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -286,4 +287,31 @@ Record: `docs/assessments/2026-09-19_r133_fleet48_review.md` (reviewer B verdict
   where it is up on the shooter's); re-reduce from the sorted log; the ledger forks when a joiner writes a row while its channel is
   down; one pc/dc per peer and per-peer liveness before 3v3; SSSES pillars other than efficiency are labels; the word gate and `?diag=1`;
   the dock FIRE under the R-HEAD stick at 320/390; frame-time QUAL clocks; SAVE as four downloads; patch replay in CI; two real phones.
+
+## r.136 — Claude Code: the fold of the 48-agent fleet's SYNTHESIS (12 lenses over A + B + the r.135 candidate)
+Record: `docs/assessments/2026-09-19_r133_fleet48_review.md` (reviewer B verdicts, the twelve syntheses, the twelve MoT answers).
+- **The r.135 regression, closed.** Three syntheses (Thor, Asar, Christo) found the same thing: the marker's-seat rule refused FIRE
+  when the mark's author was not this seat — and the AI signs as `ASM@<seat>`, so an AI mark in a room, approved by the other seat,
+  could be fired by nobody. The marker's seat is now the human or its own AI (`by` stripped of `ASM@`). The approver's phone read
+  "NOW PRESS FIRE" on a button that refuses it; it now reads "THE OTHER SEAT FIRES". QA `AI_MARK_FIRES_IN_A_ROOM` (own seat held
+  for two humans, other seat approves, the owning seat fires, box cleared).
+- **A peer's ordinary release reaches the shooter** (Thor): AUTHORITY_RELEASED and TARGET_DOWN rows from the other seat demote my
+  box like APPROVER_LOST does; no red box crosses from the waiting room into LIVE (`releaseAuthority('ROOM START')`); an expired
+  drone takes its box with it.
+- **Two rows assert what they name** (Enlil): `MAP_KEEPS_THE_STRIP` clears the strip before the map step and demands the plate it
+  marked (it had passed on the previous row's leftovers); `LOST_APPROVER_IS_SAID` demands the sentence, not only the state.
+- In-file QA **117 rows**, headless **116/117**. Replays on the candidate: team 3/3 with the joiner's tally, AI FIRE 3/3, e2e 8/9
+  (the HEAD-number row until the re-point).
+- **Grades at r.135 (the twelve syntheses):** Aset B− · Asar C+ · Athena B− · Christo B− · Enki B− · Enlil B− · Krishna B+ · Odin
+  C+ · Pangu B · Sofia C− · Thoth C · Thor B−. Convergent sentence: *the record is honest on one phone and the fire gate refuses the
+  right people; two phones still keep their own range clock and fork on a channel drop; the panel is still the machine's.*
+- **Still open (r.137 first items, from the syntheses):** the canonical range clock (EXPOSE row from the host) · never mint a
+  sessionSeq on a JOIN whose channel is down; SNAPSHOT merges pending rows · re-reduce from the sorted log · every host row (QUAL,
+  SIM-ACTION) on the wire; SPENT / TARGET DOWN as REJECT rows; the TIME-out as N LAPSE rows · fireN refuses a PEER red whose approver
+  has been silent longer than one exposure · the join code selects the team and the refusal reaches the joiner before the wire ·
+  SSSES retired until measured; rtt on one clock and one sign on all five surfaces · the word gate and `?diag=1`; strip/board/lapse
+  through `plateWord`; one lapse sentence; "YOUR TARGET LAPSED" only for the player's own mark · the dock FIRE under the R-HEAD
+  stick and a bottom-stack disjointness gate; `MAP_NO_FIRE`; every mark entrance aims · wall-clock QUAL tables with a HIDDEN row ·
+  the harness measuring the AI as the AI · the SELECT screens honouring the solo path; the intro in the range's words · patch replay
+  in CI; deck-consistency comparing commits and bytes · SAVE as one download · two real phones.
 

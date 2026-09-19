@@ -211,6 +211,13 @@
       "kind": "release",
       "text": "Operator deck r.135 served at /drone-2525/play.html (sha256 882287ec...). THE FOLD OF THE FLEET'S SECOND (ADVERSARIAL) REVIEWERS: three r.134 regressions closed (the uncalled HUD frame tail; a training-lapse row from both phones that diverged the records — one lapse clock per room, the host's row travels; a DROPPED link undone by the next message); the fire gate's remaining members (the round must be open; the approver's seat never fires the marker's box; a door tag needs a red box; an expired target scores nothing; a row's data.by is never an AI passport; CH5 re-approves after a miss; a refused wire approval is a HOLD row; a received APPROVER_LOST demotes the shooter's red; a lane change releases); the record carries the decision's content and the actor, AI rows say AI, one name for a human's approval of the AI's mark, the AI never fires a qualification round; no session id or plate id reaches the player; three regex QA rows became behaviour rows and a loop-driven AI row was added. Corrections: r.134's mode-change ask and 'one revision string' claims. QA 116 rows, 115/116 headless.",
       "commit": "2020c02"
+    },
+    {
+      "rev": 31,
+      "date": "2026-09-19",
+      "kind": "release",
+      "text": "Operator deck r.136 served at /drone-2525/play.html (sha256 2bcd7a57...). THE FOLD OF THE 48-AGENT FLEET'S SYNTHESIS: the r.135 regression closed (the marker's-seat rule refused an AI mark in a room for every seat; the marker's seat is now the human or its own AI, and the approver is told the other seat fires); every peer release demotes the shooter's box; no red box crosses from the waiting room into LIVE; an expired drone takes its box; MAP_KEEPS_THE_STRIP and LOST_APPROVER_IS_SAID assert what they name; new row AI_MARK_FIRES_IN_A_ROOM. Grades at r.135 from the twelve syntheses: B+ to C-. QA 117 rows, 116/117 headless.",
+      "commit": "543a86c"
     }
   ]
 }

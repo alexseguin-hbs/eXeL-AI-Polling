@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.020",
+  "revision": "0.021",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -204,6 +204,13 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck HEAD r.135: the fold of the fleet's second (adversarial) reviewers. Three r.134 regressions closed (the uncalled frame tail; a training-lapse row from both phones that diverged the records — one lapse clock per room; a DROPPED link undone by the next message). The fire gate's remaining members: the round must be open, the approver's seat never fires the marker's box, a door tag needs a red box, an expired target scores nothing, a row's data.by is never an AI passport, CH5 re-approves after a miss, a refused wire approval is a HOLD row, a received APPROVER_LOST demotes the shooter's red. The record carries the decision's content and the actor; AI rows say AI; one name for a human's approval of the AI's mark; the AI never fires a qualification round. No session id or plate id reaches the player. Three regex QA rows became behaviour rows; a loop-driven AI row. 116 rows, 115/116 headless.",
    "commit": "2020c02"
+  },
+  {
+   "revision": "0.021",
+   "date": "2026-09-19",
+   "kind": "release",
+   "why": "Operator deck HEAD r.136: the fold of the 48-agent fleet's synthesis. The r.135 regression (an AI mark in a room refused for every seat: the marker's-seat rule was cut one token too wide) is closed — the marker's seat is the human or its own AI, and the approver is told the other seat fires; every peer release demotes the shooter's box; no red box crosses from the waiting room into LIVE; an expired drone takes its box; two QA rows now assert what they name (MAP strip names the plate; the lost-approver sentence). 117 rows, 116/117 headless.",
+   "commit": "543a86c"
   }
  ],
  "arena": {
