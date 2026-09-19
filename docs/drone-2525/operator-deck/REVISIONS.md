@@ -13,6 +13,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.130 | 2026-09-19 | Claude Code (AsM fleet, autonomous) | 231517 | ce034c5e5c52aff539321f8a8895965317b7d406b8d1fcdb5aaef978a5bee99e | a83e670 (artefact) · 1ce5a3c (gates, register, research) | 7ab4f6dee17afcdb97610353f954e0e5e0dcd77343d87c9626252a85068a0ef4 |
 | r.131 | 2026-09-19 | Claude Code (AsM fleet fold, autonomous) | 245877 | 700a51469e3e5ab174a851081aa555aa5201ff5a84a1b6a5f8f9aac1b347db54 | 9870031 (artefact) | ca5919226aea1b4785a4585432c38ecc217abc25e8988fbac2ab69888dc798f8 |
 | r.132 | 2026-09-19 | Claude Code (usability walk + two-phone gate, autonomous) | 256197 | d48ec579e31a7dfd684b7b1148944de0dcfcbe42cc1ef10d662f584e22adadaa | 607f0a8 (artefact) | 758cb5d629629a8e559c7aa8f332ec1602f56926142b0da2433f564641ad1690 |
+| r.133 | 2026-09-19 | Claude Code (38-AsM team-test fold, autonomous) | 262814 | d10ae69bc53d1a73845b69db2da7280e518aa31c41eb415b10160e1f608e0526 | fbdd78e → 4321f40 (artefact, final bytes) | 2d0ac8d264429638379149bcf8bf8da8e38555b4c33551c002f1cf2e78b43605 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -168,3 +169,32 @@ by real clicks `docs/assessments/2026-09-19_r131_usability_walk.md`.
 - **To verify tomorrow:** `cd frontend && npm run test:drone-team-e2e` (about 15 s), then `npm run test:drone-deck-qa`; on two
   phones: WAITING ROOM → host CREATE HOST OFFER, share the text + the other team's 6 digits → joiner JOIN OFFER → return the
   answer → host APPLY → both READY → START.
+
+## r.133 — Claude Code: the 38-AsM team-test fold (26 seats played the served r.132 by clicks; `docs/assessments/2026-09-19_r132_asm_team_test.md`)
+- **The AI member was dead code in live play.** `asmTick` was defined, exercised by a boot QA row, and never called from the
+  frame loop — so `AsM SPOT` marked nothing on any device while its gate read green (the gate called the function itself). Now
+  ticked from `spawn`; on the range it sees ONLY the seated lane's exposed silhouettes (a nearer lawn pop-up used to win `best`
+  and then fail its own 80 m gate), measures from the seated pit (its own mount can stand 300 m from the lane), and **fires only
+  on a red box** — a named human approved — once per box, through `fireN` (the r.132 branch downed the target on AMBER with no
+  APPROVE and no record). `AsM OFF` is the default; the cycle is OFF → SPOT → FIRE. The reducer keeps the author `designate()`
+  wrote (the AI's mark was re-stamped with the human's id). QA `ASM_TICKED_LIVE`, `ASM_SPOTS_FROM_PIT`, `ASM_FIRE_NEEDS_RED`.
+- **The score was clipped exactly where it mattered.** `#playHud` was nowrap + overflow hidden: at 320–390 px the HIT/MISS/
+  LAPSED count, the QUAL·40 clock and TOTAL, and the terminal `ALL DOWN` were off the phone. The strip wraps; the score has its
+  own line; `hudScore()` is the one writer and runs the moment a hit, miss or lapse lands (the strip lagged the toast by a frame).
+  QA `HUD_SCORE_WRAPS`. Desktop: the side panel now sits in the strip the stage reserves for it instead of on the picture.
+- **The approver never learned the outcome.** The joiner's HIT stayed 0 and its red box stayed on a dead target — the peer's
+  HIT row downed the plate but neither tallied nor released. A HIT/MISS row from the other seat now tallies here and takes the
+  box down with the target (`THE OTHER SEAT HIT · <id>`). QA `PEER_HIT_TALLIES_AND_CLEARS`.
+- **One sentence for an empty range** (key 1 said `NO T1`; the button and voice said `ALL DOWN · RESET`) — QA
+  `EMPTY_RANGE_ONE_SENTENCE`. **No lapse counts before the round starts** (54 lapsed behind the intro; 1 in every waiting
+  room) — QA `RANGE_IDLE_BEFORE_START`. TARGET aims the head at the mark (a red box 130 px off the pip read as a refusal); a
+  peer's mark turns the approver's head to it (the box was off the joiner's screen). A hit target leaves the lock and its
+  caption at once. LOCK is aim, drawn in the aim colour. A refusal names the next action; a long toast stays up to be read;
+  the joiner's toast for the host's refusal says whose it was. `DOWN DIRECT` → `DOWN`; `HIT · CIRCLE` → `IN THE AIMING CIRCLE`;
+  `SCEN · RANGE 50-300 M`; `TEAM SECRETS` (the joiner's panel said HOST).
+- In-file QA **100 rows**, headless **99/100** (`SYNC_DIRECT` by design on one device).
+- **Still open, honest:** the range clock between peers is per-device (r.132 note stands); the joiner cannot complete an unaided
+  join because the RED code is shown nowhere (`ROOM_PRIVATE_CODES` — an operator decision); a joiner's qual counters do not
+  move from remote hits (the tally covers HIT/MISS/LAPSED, not the qualification tables); the CH5 "second authority" overlay is
+  superseded by the two-step (a PEER approve already is the second human) — documented, not a defect; two real phones.
+

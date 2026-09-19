@@ -33,7 +33,7 @@ ok(/function plateHit\(q\)/.test(src) && /const hit=!!state\.simDirect \|\| \(ph
 ok(/TRAINING · RESET<\/option>/.test(src) && /TRAINING · DOWN<\/option>/.test(src) && /QUAL · 40<\/option>/.test(src) && /const RANGE_MODE_NAME=\{bounce:'TRAINING · RESET',stay:'TRAINING · DOWN',qual40:'QUAL · 40'\};/.test(src), 'the three range modes carry the operator\'s names');
 ok(/function rangeLapse\(q\)/.test(src) && /qualRecordShot\(false,q\.id\)/.test(src), 'in QUAL · 40 a lapsed exposure is an unfired MISS round');
 ok(/id:'C-100C'/.test(src) && !/C-250B/.test(src) && /\^C-100\[LCR\]\$/.test(src), 'the ten silhouettes follow the 9127 sheet (100 m ×3, one 250, one 300)');
-ok(/function kindOfRef\(ref\)/.test(src) && /kind:kindOfRef\(o\)/.test(src) && /by:row\.peerId\|\|\(same&&same\.by\)\|\|SID/.test(src), 'the reducer keeps the target\'s kind and the designator\'s identity (it used to write kind:obj and drop by)');
+ok(/function kindOfRef\(ref\)/.test(src) && /kind:kindOfRef\(o\)/.test(src) && /by:\(same&&same\.by\)\|\|row\.peerId\|\|SID/.test(src), 'the reducer keeps the target\'s kind and the designator\'s identity — the author designate() wrote comes first (r.133: the AI member\'s mark was re-stamped with the human\'s id)');
 ok(/if\(typeof buoys!=='undefined' && u\.kind!=='turret'\)buoys\.forEach/.test(src), 'a turret never locks a buoy');
 const qaBlock = src.slice(src.indexOf('the range with turrets actually works — one forward basis'), src.indexOf("state.simDirect=sv2.sd; }"));
 ok(qaBlock.length > 2000 && !/simDirect=true/.test(qaBlock) && /state\.simDirect=false;/.test(qaBlock), 'the r.130 range QA fires AIMED shots only — no simDirect anywhere in it');

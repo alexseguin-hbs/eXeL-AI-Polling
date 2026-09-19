@@ -1,7 +1,11 @@
 # Drone-2525 · operator deck — the carried package
 
-**HEAD is `drone-2525_r.132.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.132 (Claude Code, 2026-09-19, sha256 d48ec579e31a7dfd…):
-**two phones, one hash** — the wire path obeys the same rules as the buttons (a peer's mark lands in a slot, a peer's approval
+**HEAD is `drone-2525_r.133.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.133 (Claude Code, 2026-09-19, sha256 d10ae69bc53d1a73…, `HASHES_r133.sha256`): **the 38-AsM team-test fold** — the AI member
+is ticked in live play (it was dead code behind a working button), spots from the seated pit and fires only on a red box through the
+one fire path; the score strip wraps instead of clipping the count and the QUAL clock off a phone; the approver's device tallies and
+takes the box down from the same canonical row; one sentence for an empty range; no lapse before the round starts; TARGET aims as
+well as marks; the desktop panel sits in its reserved strip. Findings: `docs/assessments/2026-09-19_r132_asm_team_test.md`.
+r.132 (Claude Code, 2026-09-19, sha256 d48ec579e31a7dfd…): **two phones, one hash** — the wire path obeys the same rules as the buttons (a peer's mark lands in a slot, a peer's approval
 needs a second seated human, a snapshot never hands over red, HOLD/REJECT rows travel), proven by real clicks in two isolated
 browser contexts over WebRTC (`npm run test:drone-team-e2e`); plus the usability-walk fixes (MORE menu, double-tap, AI member
 sees the range). r.131 (Claude Code, 2026-09-19,

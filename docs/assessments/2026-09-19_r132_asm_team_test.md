@@ -92,3 +92,64 @@ ranges are 50–300 m), "SPIRAL v1". The demo bar is a stranger understanding in
 ONE ROUND PER EXPOSURE refusal (a second FIRE inside a still-red exposure); the 20-exposure / clock-expiry boundary of QUAL·40
 tables I→II→III; capitol CH1–CH5 (s07/s12 pending); a data-channel drop between APPROVE and FIRE; the waiting room imaged at
 360 px; 768×1024 tablet; lanes 21–42.
+
+## Wave 1 — the two capitol seats (landed after the table above)
+
+| seat | lens | kind | result | verdict |
+|---|---|---|---|---|
+| s07 | Krishna | capitol CH1 (PRACTICE) | round never started | **FAIL** — PRACTICE is CH0-only by design; the refusal is a 1.4 s toast naming no next action; the CH0 range ran and lapsed 54 targets behind the intro |
+| s12 | Thor | capitol CH5 (PRACTICE) | round never started | PASS — the deck refused CH5 alone and nothing fired; same wording gap |
+
+New classes from these two: **D10 · the range runs and lapses before anyone may fire** (54 lapses behind the intro; 1 in every waiting
+room) and **D11 · a refusal names the rule, not the next action** ("PRACTICE / NO ROOM · CH0 ONLY", 1.4 s). Also noted: the in-round CH
+picker lets a solo player reach CH1 after entering at CH0 — a path the intro says does not exist (open; not folded here).
+
+## Wave 2 — 13 seats (s14–s26), the paths wave 1 could not reach
+
+| seat | lens | kind | lane / mode / size | result | verdict |
+|---|---|---|---|---|---|
+| s14 | Aset | solo · 2nd pull | L21 · RESET · 6 | 6/0 · 6 second pulls → "NO RED BOX", REJECT rows, no extra hit | PASS |
+| s15 | Asar | solo · table boundary | L30 · QUAL·40 · 22 | 22/0 · TI 20/20 → "TII READY" · TII clock 75 s fresh · TOTAL 20→22 · no double charge | PASS |
+| s16 | Athena | solo · last lane | L42 · DOWN · 12 | 10/0 · ten distinct, ALL DOWN reached; key 1 said "NO T1" | PASS (D5 again) |
+| s17 | Christo | solo · 2nd pull | L25 · QUAL·40 · 6 | 6/0 · R never moved on a second pull; sentence was NO RED BOX (hit case), ONE ROUND PER EXPOSURE is the miss case | PASS on the invariant |
+| s18 | Enki | ai · SPOT default | L05 · RESET · 4 | 0/0 · AI never marked | **FAIL** — `asmTick` is never called from the live loop (D4 root) |
+| s19 | Enlil | ai · AsM FIRE | L09 · RESET · 4 | 0/0 · vacuous | **FAIL** — same root; and the FIRE branch checks no red phase (would down an amber target) |
+| s20 | Krishna | capitol CH1 room | 3 | 0/3 MISS · hash MATCH · red on both | PASS on the room; the marked pop was 106 px off the pip (D12) |
+| s21 | Odin | capitol CH3 room | 3 | 0/3 MISS · hash MATCH · moving UAV-1 locked | PASS on the room; same D12; the joiner's red box off its screen (D13) |
+| s22 | Pangu | capitol CH5 room | 3 | 0/3 MISS · hash MATCH · no CH5 overlay | brief was stale: a PEER approve already is the second human; overlay superseded — documented |
+| s23 | Sofia | team · tablet | L33 · 768×1024 | 3/0 · MATCH · waiting room legible | PASS; a stranger cannot complete an unaided join (RED code shown nowhere — `ROOM_PRIVATE_CODES`, operator decision) |
+| s24 | Thoth | team · 2nd pull over the wire | L05 · 3 | 3/0 · MATCH after every refusal · joiner HIT 0, red box on a dead target | PASS on the invariant; D3 confirmed |
+| s25 | Thor | solo · desktop | L01 · 1440×900 | 6/0 | **FAIL** — `#side` absolute inside the stage covers x 840–1140 while the reserved strip x 1140–1440 is black (D7 root); 2314 px of panel hidden below the fold |
+| s26 | MoT-2 | solo · smallest phone | L18 · QUAL·40 · 320×568 | 6/0 | **FAIL** — score clipped by 169 px; LOCK line overprints the unit footer by 17 px; reticle sits on the APPROVE pill |
+
+### What wave 2 proved held
+One round per exposure (R never moved on any second pull, solo or over the wire; the REJECT row travels and the hash matches after it);
+the QUAL·40 table boundary (20 → TII with its own clock, TOTAL carried, nothing charged twice); lane 42 = lane 1; two-device rooms
+at CH1, CH3 and CH5 reach LIVE and MATCH; a moving target can be locked; the tablet waiting room is legible.
+
+### New classes (added to D1–D9)
+**D10** the range lapses before the round starts · **D11** a refusal names no next action · **D12** a mark does not aim: TARGET
+designates what is in the cone (±21°) but never turns the head, so a red box 100+ px off the pip is fired at and reads as a refusal ·
+**D13** the approver's head is not turned to the mark, so the box can sit off the joiner's screen · **D14** the AI mark's author is
+re-stamped with the human's id by the reducer (`by:row.peerId||…`).
+
+### Root causes the seats found by reading the served source
+- `asmTick` (the AI member) is defined, exercised by the boot row `ASM_SEES_THE_RANGE`, and never called from `phys`/`spawn`/`loop`.
+  The gate was green while the feature was dead, because the gate called the function itself instead of proving the loop does.
+- `#side{position:absolute;right:0}` is a child of `#stage`, while `#app.desk #stage{margin-right:min(300px,32vw)}` reserves the strip
+  outside the stage — the panel never moves into the space reserved for it.
+- `#playHud` is `flex-wrap:nowrap; overflow:hidden; white-space:nowrap`; the designation and the score share one line.
+
+## r.133 — what was folded (verified on the served r.133 by the same harness before shipping)
+D1 (strip wraps, score on its own line; 320/360 px readable — capture `perf/asm/v133-solo-03-end.png`) · D2 (`hudScore()` written on the
+event) · D3 (peer HIT/MISS tally + release: joiner ends `HIT 2`, desig null, "THE OTHER SEAT · REJECT · NO RED BOX") · D4 (AI member ticked,
+plates-only on the range, pit distance, red-only fire through `fireN`, once per box, OFF default; AI seat 3/3 on replay) · D5 (one
+sentence) · D6 (hit target leaves lock + caption) · D7 (panel in its strip) · D9 (words) · D10 (`rangeArmed()`) · D11 (refusal names the
+next action; toast lifetime scales) · D12/D13 (TARGET aims; the approver's and the AI-marked seat's head turn to the mark) · D14 (reducer
+keeps the author). QA rows: `HUD_SCORE_WRAPS`, `ASM_TICKED_LIVE`, `ASM_SPOTS_FROM_PIT`, `ASM_FIRE_NEEDS_RED`, `PEER_HIT_TALLIES_AND_CLEARS`,
+`EMPTY_RANGE_ONE_SENTENCE`, `RANGE_IDLE_BEFORE_START` — 100 rows, 99/100 headless.
+
+Left open (named): the per-device range clock between peers; the joiner's qual tables from remote hits; the unaided join (RED code
+private by decision); the in-round CH picker bypass of "CH0 only"; the reticle over the APPROVE pill at 320 px; 2314 px of side panel
+below the fold on desktop; the third wave (12 seats: voice, tap/double-tap, sticks, MAP view, DATA/EXPORT, REPLAY scrub, lanes 21–41,
+HAL PI/EDGE, MoT 5.5, RESET mid-table, a lapse-then-fire, a data-channel drop) is owed after r.133 ships.
