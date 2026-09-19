@@ -1,6 +1,10 @@
 # Drone-2525 · operator deck — the carried package
 
-**HEAD is `drone-2525_r.131.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.131 (Claude Code, 2026-09-19,
+**HEAD is `drone-2525_r.132.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.132 (Claude Code, 2026-09-19, sha256 d48ec579e31a7dfd…):
+**two phones, one hash** — the wire path obeys the same rules as the buttons (a peer's mark lands in a slot, a peer's approval
+needs a second seated human, a snapshot never hands over red, HOLD/REJECT rows travel), proven by real clicks in two isolated
+browser contexts over WebRTC (`npm run test:drone-team-e2e`); plus the usability-walk fixes (MORE menu, double-tap, AI member
+sees the range). r.131 (Claude Code, 2026-09-19,
 the fold of a 24-lens fleet review of r.130 — `HASHES_r131.sha256`, sha256 700a51469e3e5ab1…) makes the range honest as a
 player meets it: one exposure one round, the box goes down with its target, every aim from the eye, QUAL·40 fits its clocks
 and can reach 40, the pickers no longer defeat the range, one caption per target, an angular pip floor, and QA that leaves

@@ -12,6 +12,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.129 | 2026-09-19 | Claude Code | 215379 | 7b1e0e51a31aa79c92211ac385e781452cc1c3d24899c118d6976b83ed2e8c7e | 8a54271 | 0b9539d90e05709195f2ab913bea0c0b25ae1ef0fe54b4f21242e824ec31188e |
 | r.130 | 2026-09-19 | Claude Code (AsM fleet, autonomous) | 231517 | ce034c5e5c52aff539321f8a8895965317b7d406b8d1fcdb5aaef978a5bee99e | a83e670 (artefact) · 1ce5a3c (gates, register, research) | 7ab4f6dee17afcdb97610353f954e0e5e0dcd77343d87c9626252a85068a0ef4 |
 | r.131 | 2026-09-19 | Claude Code (AsM fleet fold, autonomous) | 245877 | 700a51469e3e5ab174a851081aa555aa5201ff5a84a1b6a5f8f9aac1b347db54 | 9870031 (artefact) | ca5919226aea1b4785a4585432c38ecc217abc25e8988fbac2ab69888dc798f8 |
+| r.132 | 2026-09-19 | Claude Code (usability walk + two-phone gate, autonomous) | 256197 | d48ec579e31a7dfd684b7b1148944de0dcfcbe42cc1ef10d662f584e22adadaa | 607f0a8 (artefact) | 758cb5d629629a8e559c7aa8f332ec1602f56926142b0da2433f564641ad1690 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -136,3 +137,34 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 - **To verify tomorrow:** open `/drone-2525/play.html`, pick SCEN · 50M RANGE, watch a silhouette rise with its caption,
   TARGET → APPROVE → FIRE; then `cd frontend && npm run test:drone-deck-qa && npm run test:drone-playable && npm run
   test:drone-revisions && npm run test:range-2525`; `sha256sum -c docs/drone-2525/operator-deck/HASHES_r131.sha256` from the repo root.
+
+## r.132 — Claude Code: the wire path obeys the same rules as the buttons; two phones, one hash
+Operator ask (verbatim, hashed): `docs/asks/2026-09-19_usability_asm_team_test.md`. Findings that drove it: the usability walk
+by real clicks `docs/assessments/2026-09-19_r131_usability_walk.md`.
+- **Two phones, one hash — reached.** A real-click walk in two ISOLATED browser contexts over a WebRTC data channel (no shared
+  tab channel): host offer → joiner answer → DIRECT → team auth → READY 1/1 → START → LIVE on both; the host marks, the mark
+  reaches the joiner as the same slot by the host; the host's self-approve is refused `TWO HUMANS`; the joiner approves; red
+  on both as `PEER HI-2`; the host fires, HIT, the box clears on both; **replay hash `ee5ef022` on both, MATCH on both.**
+  Promoted to the repo as `frontend/scripts/drone-team-e2e.mjs` (`npm run test:drone-team-e2e`), a Deploy step.
+- **What had to change for that to be true:** a peer's mark lands in a slot with its author, honours the lane guard and never
+  overwrites a red box (`peerDesig`); a peer's approval needs an amber mark and, in a LIVE room, a seated human other than
+  the marker (`wireApprove`, used by the reducer and by the receive path alike); a snapshot hands over amber, never red,
+  never an approval, and keeps LIVE (`importSnapshotDesig`); `approveDesig(who, slot)` and `fireN(n)` honour the slot (six
+  ambers, six approvals; `T4 IS NOT THE RED TARGET`); a HOLD/REJECT decision travels as its own canonical row — the walk
+  found the host's refused self-approve missing from the joiner's hash; a tab message never downgrades a live DIRECT link.
+  QA rows `PEER_DESIG_TO_SLOT`, `WIRE_APPROVE_TWO_HUMANS`, `WIRE_APPROVE_NEEDS_AMBER`, `FOREIGN_LANE_MARK_NOT_MY_BOX`,
+  `PEER_MARK_NEVER_OVERWRITES_RED`, `FIRE_SLOT_MISMATCH_REFUSED`, `SNAPSHOT_NEVER_RED`, `HOLD_ROWS_TRAVEL`.
+- **From the usability walk:** boot QA leaves no last shot on the first screen; a tap on the marked target keeps its phase
+  (double-tap-to-fire works as documented); `MISS` is a miss and a lapsed exposure reads `LAPSED`; the MORE menu works (it
+  had NO handler — the AsM seat, RELINQUISH and T prev/next were unreachable on every device); the AI member sees the
+  exposed silhouette at CH0 (`ASM_SEES_THE_RANGE`).
+- In-file QA **93 rows**, headless **92/93** (`SYNC_DIRECT` by design on one device). sha256 `d48ec579e31a7dfd…`, 256197 B.
+- **Still open, honest:** the range has no canonical clock between peers (each phone runs its own exposures from `dt`; the
+  hash matched because both peers scored the same event rows, not because their silhouettes rose in step) — the next
+  R-CORE step for 3v3; the reducer applies in arrival order while the hash sorts (5A); two real phones on a real network
+  (the walk used two contexts in one headless browser: real WebRTC, real ICE, no shared state, but one machine).
+- The offer is ready 1.5 s after the first host candidate (8 s cap): a phone with no internet no longer waits out the STUN
+  timeout (40–90 s in the walk) to pair over WiFi.
+- **To verify tomorrow:** `cd frontend && npm run test:drone-team-e2e` (about 15 s), then `npm run test:drone-deck-qa`; on two
+  phones: WAITING ROOM → host CREATE HOST OFFER, share the text + the other team's 6 digits → joiner JOIN OFFER → return the
+  answer → host APPLY → both READY → START.

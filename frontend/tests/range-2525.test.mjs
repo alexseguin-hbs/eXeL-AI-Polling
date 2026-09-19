@@ -59,6 +59,6 @@ ok(/function rangeRelease\(q\)/.test(html) && /ref\._eng=true;/.test(html) && /O
 ok(/const PIP_FLOOR_MRAD=3;/.test(html) && /function pipFloorPx\(\)/.test(html) && !/PIP_FLOOR_PX/.test(html), 'r.131: the pip floor is angular (3 mrad, min 3 px) — the same standard at every zoom and screen size');
 ok(/rings\[0\]\.up=false; \}\n\};/.test(html) && !/rings\[0\]\.up=true; rings\[0\]\.lifePct=100;\n  \}\n\};/.test(html), 'r.131: picking CH0 never re-aims at the bull ring');
 ok(/tbNow&&tbNow\.cap\(q\.id\)<=0/.test(html) && /sec:142,/.test(html) && /sec:75,/.test(html), 'r.131: a QUAL table exposes only what it can score and its clock covers its exposures');
-ok(/if\(state\.linkMute\) return;/.test(html) && /const sim=true;/.test(html) && /state\.desig=null; state\.tgtSlot=\{\}; state\.hiApproved=false; state\.rangeHit=evSave\.rangeHit/.test(html), 'r.131: QA and batch runs never leave the device, never enter the record, never leave a box on the first screen');
+ok(/if\(state\.linkMute\) return;/.test(html) && /const sim=true;/.test(html) && /state\.desig=null; state\.tgtSlot=\{\}; state\.hiApproved=false; (state\.lastShot=null; state\.lastBand=''; )?state\.rangeHit=evSave\.rangeHit/.test(html), 'r.131: QA and batch runs never leave the device, never enter the record, never leave a box on the first screen');
 console.log(`\nrange-2525: ${pass} passed, ${fail} failed · r.${DECK_REV}'s range rules lifted and proven: one basis, sheet layout, per-lane exposures`);
 process.exit(fail ? 1 : 0);

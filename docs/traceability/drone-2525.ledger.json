@@ -183,6 +183,13 @@
    "kind": "release",
    "text": "Operator deck r.131 served at /drone-2525/play.html (sha256 700a5146..., the fleet fold). A 24-lens read-only fleet review of r.130 (docs/assessments/2026-09-19_r130_fleet_review.md) converged on eight player-path defects: the pickers re-aimed at the bull ring and left the mode as range; one exposure charged two rounds; a downed plate could be shot and resurrected; the red box outlived the pop-up; QUAL 40 could not fit its clocks and could not reach 40; the seat offset, Capitol turrets, every auto-aim and the T-box still used the old basis or raw plate coordinates; the HUD overprinted and LOCK sat under a button; the reducer's HIT branch was dead and QA left a phantom red box on the first screen. All eight fixed at the class in r.131 (QA 84 rows, headless 83/84). Repo: one deck-HEAD constant for every deck-reading gate, the deck's own QA in CI (drone-deck-qa), Verify Live probes play.html. Deferred to r.132: the wire path bypasses the two-humans gate (net APPROVE/SNAPSHOT/peer DESIG), no canonical range clock between peers, reduce-in-arrival-order.",
    "commit": "9870031"
+  },
+  {
+   "rev": 27,
+   "date": "2026-09-19",
+   "kind": "release",
+   "text": "Operator deck r.132 served at /drone-2525/play.html (sha256 d48ec579...). THE TWO-PHONE MATCH GATE IS REACHED: in two isolated browser contexts over a real WebRTC data channel, by real clicks — host offer, joiner answer, DIRECT, team auth, READY, START, LIVE; the host marks, the host's self-approve is refused TWO HUMANS, the joiner approves, red on both as PEER HI-2, the host fires, HIT — both peers hold one replay hash and report MATCH (frontend/scripts/drone-team-e2e.mjs, a Deploy step). To get there the wire path now obeys the same rules as the buttons (peerDesig / wireApprove / importSnapshotDesig), HOLD/REJECT decisions travel as canonical rows, and a tab message never downgrades a DIRECT link. Usability-walk fixes: MORE menu (it had no handler), double-tap keeps the mark's phase, MISS/LAPSED wording, no QA last-shot on the first screen, the AI member sees the range. Still open: a canonical range clock between peers; reduce-in-orderKey-order; 2v2+ transport; two real phones on a real network.",
+   "commit": "607f0a8"
   }
  ]
 }
