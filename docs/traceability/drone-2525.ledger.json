@@ -204,6 +204,13 @@
       "kind": "release",
       "text": "Operator deck r.134 served at /drone-2525/play.html (sha256 840cf55c...). THE FOLD OF TEAM-TEST WAVE 3 AND THE 48-LENS FLEET REVIEW: authority has one consumer (a scene change, a reset, a lost approver or a dead target releases the red box with a HOLD row; the CH5 popup, a second approval primitive, is gone; a door tag is on the record and consumes the box); RESET and mode changes are canonical rows that travel and ask before discarding a live table; the link has a heartbeat and a lost approver is said; VOICE reports the outcome and a negation is a HOLD; MAP keeps the strip; the AI member is an actor on the record (ASM@device, HI OVER AI approval) and never marks a dead plate; keys ignore text fields and the intro; a forged row is refused at the wire; a training lapse is said and is a row; refusals draw above the intro; the host shows the other team's six digits; the two-phone gate runs in Deploy and reads the approver's picture; one HEAD across register/README/domain JSON/ledger/hashes/patch is gated; Verify Live compares the served body's sha256 to the register. Corrections: the r.132 'Deploy step' claim (it was in no workflow until now); D18 (MAP froze the strip, not the AI tick). Boot QA 110 rows, 109/110 headless.",
       "commit": "f2557ac"
+    },
+    {
+      "rev": 30,
+      "date": "2026-09-19",
+      "kind": "release",
+      "text": "Operator deck r.135 served at /drone-2525/play.html (sha256 882287ec...). THE FOLD OF THE FLEET'S SECOND (ADVERSARIAL) REVIEWERS: three r.134 regressions closed (the uncalled HUD frame tail; a training-lapse row from both phones that diverged the records — one lapse clock per room, the host's row travels; a DROPPED link undone by the next message); the fire gate's remaining members (the round must be open; the approver's seat never fires the marker's box; a door tag needs a red box; an expired target scores nothing; a row's data.by is never an AI passport; CH5 re-approves after a miss; a refused wire approval is a HOLD row; a received APPROVER_LOST demotes the shooter's red; a lane change releases); the record carries the decision's content and the actor, AI rows say AI, one name for a human's approval of the AI's mark, the AI never fires a qualification round; no session id or plate id reaches the player; three regex QA rows became behaviour rows and a loop-driven AI row was added. Corrections: r.134's mode-change ask and 'one revision string' claims. QA 116 rows, 115/116 headless.",
+      "commit": "2020c02"
     }
   ]
 }

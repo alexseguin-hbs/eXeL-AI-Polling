@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.019",
+  "revision": "0.020",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -197,6 +197,13 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck HEAD r.134: the fold of team-test wave 3 and the 48-lens fleet review. RESET and mode change are canonical rows that travel and ask before discarding a live table; the link has a heartbeat and a lost approver is said (its approval does not outlive it); VOICE reports the outcome and negation is a HOLD; MAP keeps the strip; the AI member is an actor on the record (ASM@device) and never marks a dead plate; authority has one consumer (scene change, reset, lost approver release it with a row); the CH5 popup is gone; a door tag is on the record; dead refs are refused; keys ignore text fields and the intro; a training lapse is said and is a row; refusals are drawn above the intro; the host shows the other team's six digits.",
    "commit": "f2557ac"
+  },
+  {
+   "revision": "0.020",
+   "date": "2026-09-19",
+   "kind": "release",
+   "why": "Operator deck HEAD r.135: the fold of the fleet's second (adversarial) reviewers. Three r.134 regressions closed (the uncalled frame tail; a training-lapse row from both phones that diverged the records — one lapse clock per room; a DROPPED link undone by the next message). The fire gate's remaining members: the round must be open, the approver's seat never fires the marker's box, a door tag needs a red box, an expired target scores nothing, a row's data.by is never an AI passport, CH5 re-approves after a miss, a refused wire approval is a HOLD row, a received APPROVER_LOST demotes the shooter's red. The record carries the decision's content and the actor; AI rows say AI; one name for a human's approval of the AI's mark; the AI never fires a qualification round. No session id or plate id reaches the player. Three regex QA rows became behaviour rows; a loop-driven AI row. 116 rows, 115/116 headless.",
+   "commit": "2020c02"
   }
  ],
  "arena": {

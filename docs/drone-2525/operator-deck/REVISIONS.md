@@ -15,6 +15,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.132 | 2026-09-19 | Claude Code (usability walk + two-phone gate, autonomous) | 256197 | d48ec579e31a7dfd684b7b1148944de0dcfcbe42cc1ef10d662f584e22adadaa | 607f0a8 (artefact) | 758cb5d629629a8e559c7aa8f332ec1602f56926142b0da2433f564641ad1690 |
 | r.133 | 2026-09-19 | Claude Code (38-AsM team-test fold, autonomous) | 262814 | d10ae69bc53d1a73845b69db2da7280e518aa31c41eb415b10160e1f608e0526 | fbdd78e → 4321f40 (artefact, final bytes) | 2d0ac8d264429638379149bcf8bf8da8e38555b4c33551c002f1cf2e78b43605 |
 | r.134 | 2026-09-19 | Claude Code (wave-3 + 48-lens fleet fold, autonomous) | 276780 | 840cf55c6c0181503ff4417a1eff16f32825ba530a78eabd0d3744cd5a7d6aec | f2557ac (artefact) | dea8dbcdbe9b3ee72444eddc91cf9ab3ea543977ef827a2c6b2670f4cd0d5f9a |
+| r.135 | 2026-09-19 | Claude Code (fleet-48 second-reviewer fold, autonomous) | 290674 | 882287ecc3e2abc6fbac5f41723ea3a7682497531052a2ab5ebf06fa5b18b97b | 2020c02 (artefact) | 933db1088d53c08324590a27fdd24ba4340a8ba2fbad0392074bb14bf0c9ff78 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -243,4 +244,46 @@ Record: `docs/assessments/2026-09-19_r132_asm_team_test.md` (waves 1–3, D1–D
   operator door (Sofia A: a word gate and `?diag=1` are r.135); QUAL table clocks run on frame time, not wall time (a hidden
   tab pauses the table); the dock FIRE sits under the R-HEAD stick at 320/390 (Enki A); SAVE is four downloads from one tap;
   3v3/9v9 stand on a single-peer link; two real phones.
+
+## r.135 — Claude Code: the fold of the fleet's SECOND (adversarial) reviewers on the r.134 candidate
+Record: `docs/assessments/2026-09-19_r133_fleet48_review.md` (reviewer B verdicts, the synthesis and the MoT coordination).
+- **Three r.134 regressions, closed.** (1) The HUD split left `hudTail()` uncalled — the panel's CIL/HIL/SIL/COM stats, `calibrate()`
+  (the HAL stream ladder), the MoT stamp and bloom were dead every frame (Aset B, Enki B); called again from `phys`. (2) The
+  training-lapse row was written by BOTH phones for one exposure and diverged the two records from the first unengaged plate in the
+  default mode (Odin B, Christo B, Asar B); now one lapse clock per room — the host's row travels (`netEvent`) and the joiner books it
+  from the row, never a second row. (3) A DROPPED link was rewritten to DIRECT by the next inbound message and the recovery branch
+  could never run (Christo B, Odin B, Thoth B); only DIRECT traffic feeds the heartbeat, only its own HELLO revives.
+- **The fire gate's remaining members** (Thor B): nothing marks, approves or fires before PRACTICE or START (a WAITING room fired from
+  behind the intro); the approver's seat never fires the marker's box (one approval, two shooters); a door tag needs a red box and
+  goes through the record; an expired pop or UAV scores nothing and releases its box; a row's `data.by` is never an AI passport (a
+  joiner forged `ASM@` to approve its own mark) — a peer's mark is the PEER's mark here, its AI a fact for the strip; at CH5 a miss goes
+  back to amber so the other seat can re-approve (the popup's removal had left CH5 rooms unable to fire after one miss); a refused wire
+  approval is a HOLD row beside it; a received APPROVER_LOST/PEER_LOST demotes the shooter's red; a lane change releases. QA
+  `NO_FIRE_BEFORE_THE_ROUND`, `APPROVER_SEAT_NEVER_FIRES`, `EXPIRED_TARGET_SCORES_NOTHING`, `AI_PASSPORT_NEVER_FROM_A_ROW`,
+  `CH5_MISS_GOES_BACK_TO_AMBER`.
+- **The record** (Asar B, Aset B, Pangu B): `decide()` puts what it was handed into the hashed row (RESET why/mode/qualR/qualH, HOLD
+  reasons) and names the actor (the AI's shot is the AI's SIM-ACTION); AI rows say `role:AI`; one name for a human's approval of the
+  AI's mark on state, row, wire and toast (`HI OVER AI` / `PEER HI OVER AI`); in a room the AI's mark still needs the OTHER seat (r.129
+  stands — the r.134 exemption is withdrawn); the AI never fires a qualification round.
+- **Words** (Sofia B, Athena B): no session id or plate id reaches the player — `MARKED BY THE AI` / `THE OTHER SEAT` / `THE OTHER
+  SEAT'S AI`, `150 M RIGHT`; `designate()` owns the one amber sentence ("NOW PRESS APPROVE" / "WAIT FOR THE OTHER SEAT TO APPROVE");
+  APPROVE says "APPROVED BY YOU / THE OTHER SEAT / YOU APPROVED THE AI'S MARK · NOW PRESS FIRE"; a lapse names the gap; FIRE after a
+  lapse says the lapse; the lost-link sentence claims a red box only when one went amber; a mode change asks like RESET and carries the
+  mode to the peer; the join refusal travels; a spoken command is the whole utterance ("the fire alarm" fired); the desk keyboard works
+  after a dropdown (the guard blurs a SELECT instead of swallowing every key); the view button follows a reset; the replay bar clears
+  the pills; skew, not rtt, on the panel.
+- **Gates** (Enlil B): `VOICE_NEGATION_HOLDS`, `MAP_KEEPS_THE_STRIP`, `ASM_NEVER_MARKS_DEAD` are behaviour rows now (a synthetic map
+  step read from the DOM; five AI ticks over a downed plate); `ASM_MARKED_BY_THE_LOOP` is a deferred row written by the frame loop
+  itself (silent, lane- and mode-neutral; says so if the round started first — drone-deck-qa, which boots alone, proves it). The QA no
+  longer leaves `DROPPED · 1p` on the panel.
+- In-file QA **116 rows**, headless **115/116** (`SYNC_DIRECT` by design on one device). Replays on the candidate: team 3/3 with the
+  joiner's tally and "THE OTHER SEAT HIT · 100 M CENTRE"; AI FIRE 3/3 (the AI's shots on the record); QUAL·40 at 320 px 5/5.
+- **Corrections on the record:** the r.134 section says "RESET and a mode change … ask before discarding" — only the button asked in
+  r.134 (Enlil B); the r.134 section's "one revision string" overclaimed (the UPDATES body and the historical fixture label still carry
+  other numbers — Thoth B, Krishna B); the r.134 artefact commit alone was a state test:ci rejects (deck-head at 133) until the ship
+  commit followed — noted, the ship commit is the one that must be green.
+- **Still open, honest** (r.136 first items): the canonical range clock (an EXPOSE row from the host; a peer's plate can still be down
+  where it is up on the shooter's); re-reduce from the sorted log; the ledger forks when a joiner writes a row while its channel is
+  down; one pc/dc per peer and per-peer liveness before 3v3; SSSES pillars other than efficiency are labels; the word gate and `?diag=1`;
+  the dock FIRE under the R-HEAD stick at 320/390; frame-time QUAL clocks; SAVE as four downloads; patch replay in CI; two real phones.
 
