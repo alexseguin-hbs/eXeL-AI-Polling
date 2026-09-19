@@ -12,7 +12,7 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 const A = Object.assign({ seat: 'solo', lane: 20, mode: 'bounce', shots: 4, challenge: 0, craft: 'turret', tag: 'seat', width: 390, height: 844, doubleFire: false, asmPress: 0 }, JSON.parse(process.argv[2] || '{}'));
 // doubleFire: press FIRE a second time inside the same red exposure (the ONE ROUND PER EXPOSURE refusal path) · asmPress: how many times to press the AsM button (0 = leave SPOT, the default; 1 = AsM FIRE; 2 = OFF)
-const PUB = new URL('../public', import.meta.url).pathname, OUT = new URL('../perf/asm/', import.meta.url).pathname; mkdirSync(OUT, { recursive: true });
+const PUB = process.env.ASM_PUB || new URL('../public', import.meta.url).pathname, /* ASM_PUB: serve another folder (a candidate deck) without touching the served bytes */ OUT = new URL('../perf/asm/', import.meta.url).pathname; mkdirSync(OUT, { recursive: true });
 const srv = createServer(async (req, res) => { let body; try { body = await readFile(join(PUB, decodeURIComponent(req.url.split('?')[0]))); } catch { res.writeHead(404); return res.end(); } res.writeHead(200, { 'content-type': 'text/html' }); res.end(body); }).listen(0);
 const PORT = srv.address().port;
 const { chromium } = await import('playwright');

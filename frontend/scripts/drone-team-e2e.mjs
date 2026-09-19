@@ -11,7 +11,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } 
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-const PUB = new URL('../public', import.meta.url).pathname; const OUT = new URL('../perf/', import.meta.url).pathname;
+const PUB = process.env.ASM_PUB || new URL('../public', import.meta.url).pathname; const OUT = new URL('../perf/', import.meta.url).pathname;
 import { mkdirSync } from 'node:fs'; mkdirSync(OUT, { recursive: true });
 const srv = createServer(async (req, res) => { let body; try { body = await readFile(join(PUB, decodeURIComponent(req.url.split('?')[0]))); } catch { res.writeHead(404); return res.end(); } res.writeHead(200, { 'content-type': 'text/html' }); res.end(body); }).listen(0); const PORT = srv.address().port;
 let chromium; try { ({ chromium } = await import('playwright')); } catch (e) { console.log('FAIL: playwright is not installed'); console.log('\ndrone-team-e2e: 0 passed, 1 failed'); process.exit(1); }
@@ -21,7 +21,7 @@ const ctxH = await b.newContext({ viewport: { width: 390, height: 844 } }), ctxJ
 const note = (k, v) => console.log(k.padEnd(30), '·', (typeof v === 'string' ? v : JSON.stringify(v)).slice(0, 420));
 const open = async (tag) => { const p = await (tag === 'H' ? ctxH : ctxJ).newPage(); p.on('pageerror', (e) => note(tag + ':PAGEERROR', String(e).slice(0, 160))); await p.goto(`http://127.0.0.1:${PORT}/drone-2525/play.html`, { waitUntil: 'load' }); await p.waitForFunction(() => typeof state !== 'undefined' && state.qa && state.qa.total > 0, null, { timeout: 60000 }); await p.waitForTimeout(1700); return p; };
 const room = (p) => p.evaluate(() => ({ room: document.getElementById('wrRoom').textContent, role: document.getElementById('wrRole').textContent, path: document.getElementById('wrPath').textContent, roster: document.getElementById('wrRoster').textContent, auth: document.getElementById('wrAuth').textContent, myCode: (document.getElementById('wrMyCode') || {}).textContent, team: state.lobby.team, phase: state.lobby.phase, comPath: state.com.path, toast: document.getElementById('toast').textContent, launch: document.getElementById('wrLaunch').textContent }));
-const hud = (p) => p.evaluate(() => ({ des: (document.getElementById('phDes') || {}).textContent, toast: document.getElementById('toast').textContent, desig: state.desig && { id: state.desig.id, phase: state.desig.phase, by: state.desig.by, how: state.desig.how }, slots: Object.keys(state.tgtSlot || {}).map((k) => k + ':' + state.tgtSlot[k].id + ':' + state.tgtSlot[k].phase), lobby: state.lobby.phase, lane: state.lane, up: platesHere().filter((q) => q.up).map((q) => q.base), hash: replayHash(), sync: state.sync, events: (state.events || []).length }));
+const hud = (p) => p.evaluate(() => ({ des: (document.getElementById('phDes') || {}).textContent, score: (document.getElementById('phScore') || {}).textContent, toast: document.getElementById('toast').textContent, desig: state.desig && { id: state.desig.id, phase: state.desig.phase, by: state.desig.by, how: state.desig.how }, slots: Object.keys(state.tgtSlot || {}).map((k) => k + ':' + state.tgtSlot[k].id + ':' + state.tgtSlot[k].phase), lobby: state.lobby.phase, lane: state.lane, up: platesHere().filter((q) => q.up).map((q) => q.base), hash: replayHash(), sync: state.sync, events: (state.events || []).length }));
 const toRoom = async (p) => { await p.click('#sc0 button[data-next="sc1"]'); await p.click('#sc1 button[data-next="sc2"]'); await p.click('#sc2 button[data-craft="turret"]'); await p.click('#sc2 button[data-next="sc3"]'); await p.click('#sc3 button[data-ch="0"]'); await p.click('#sc3 #btnIntro'); await p.waitForTimeout(300); };
 
 const H = await open('H'), J = await open('J');
@@ -66,6 +66,7 @@ ok(tJ.desig && tJ.desig.phase === 'amber' && tJ.desig.by === hostSid, `the host'
 ok(/TWO HUMANS/.test(selfToast), `the host's self-approve was refused: ${selfToast}`);
 ok(aH.desig && aH.desig.phase === 'red' && aJ.desig && aJ.desig.phase === 'red' && aH.desig.how === 'PEER HI-2', 'the joiner\'s approval turned the box red on BOTH phones as PEER HI-2');
 ok(fH.des && /DOWN/.test(fH.des) && !fH.desig && !fJ.desig, 'the host fired, the target went down, the box cleared on both');
+ok(/HIT 1/.test(fJ.score || '') && /THE OTHER SEAT HIT/.test(fJ.toast || '') && /TARGET FIRST|DOWN/.test(fJ.des || ''), `the APPROVER'S PICTURE shows the outcome: strip '${fJ.score}' · toast '${fJ.toast}' (r.134: the gate reads the DOM, not state)`);
 ok(hh === hj && syncH === 'MATCH' && syncJ === 'MATCH', `one replay hash on both phones (${hh} / ${hj}) and MATCH on both`);
 await b.close(); srv.close();
 console.log(`\ndrone-team-e2e: ${pass} passed, ${fail} failed · two isolated contexts over WebRTC · hash ${hh} ${hh === hj ? '==' : '!='} ${hj}`);

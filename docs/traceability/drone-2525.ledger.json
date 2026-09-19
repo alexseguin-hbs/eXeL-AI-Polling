@@ -197,6 +197,13 @@
       "kind": "release",
       "text": "Operator deck r.133 served at /drone-2525/play.html (sha256 d10ae69b...). THE 38-AsM TEAM-TEST FOLD: 26 seats played the served r.132 by clicks and keys (docs/assessments/2026-09-19_r132_asm_team_test.md). The AI member was dead code in live play (asmTick never called from the loop) and its FIRE branch would have downed an amber target with no approval: now ticked, plates-only on the range, spots from the seated pit, fires only on a red box through the one fire path, once per box, OFF by default; the reducer keeps the author designate() wrote. The score strip wraps (HIT/MISS/LAPSED, the QUAL clock and ALL DOWN were clipped off every phone) and is written on the event. The approver's device tallies a peer's HIT/MISS and takes the box down from the same canonical row. One sentence for an empty range; no lapse before the round starts; TARGET aims as well as marks; a peer's or the AI's mark turns the seat's head to it; the desktop panel sits in its reserved strip; refusals name the next action. QA 100 rows, 99/100 headless; drone-team-e2e MATCH; replays on the served r.133: AI seat 3/3, team joiner tally 2/2, 360 px score readable.",
       "commit": "4321f40"
+    },
+    {
+      "rev": 29,
+      "date": "2026-09-19",
+      "kind": "release",
+      "text": "Operator deck r.134 served at /drone-2525/play.html (sha256 840cf55c...). THE FOLD OF TEAM-TEST WAVE 3 AND THE 48-LENS FLEET REVIEW: authority has one consumer (a scene change, a reset, a lost approver or a dead target releases the red box with a HOLD row; the CH5 popup, a second approval primitive, is gone; a door tag is on the record and consumes the box); RESET and mode changes are canonical rows that travel and ask before discarding a live table; the link has a heartbeat and a lost approver is said; VOICE reports the outcome and a negation is a HOLD; MAP keeps the strip; the AI member is an actor on the record (ASM@device, HI OVER AI approval) and never marks a dead plate; keys ignore text fields and the intro; a forged row is refused at the wire; a training lapse is said and is a row; refusals draw above the intro; the host shows the other team's six digits; the two-phone gate runs in Deploy and reads the approver's picture; one HEAD across register/README/domain JSON/ledger/hashes/patch is gated; Verify Live compares the served body's sha256 to the register. Corrections: the r.132 'Deploy step' claim (it was in no workflow until now); D18 (MAP froze the strip, not the AI tick). Boot QA 110 rows, 109/110 headless.",
+      "commit": "f2557ac"
     }
   ]
 }

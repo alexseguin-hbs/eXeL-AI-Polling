@@ -69,6 +69,7 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           npm run test:drone-deck-qa
+          npm run test:drone-team-e2e
       - name: Drone determinism (SPIRAL ×9)
         run: npm run test:drone-spiral9
 

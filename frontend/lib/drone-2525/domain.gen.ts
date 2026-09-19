@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.016",
+  "revision": "0.019",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -176,6 +176,27 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "The range with turrets actually works (operator ask 2026-09-19, persisted with the 9127 sheet). Operator deck HEAD r.130 then r.131: one forward basis (the camera vector and the projector were 180 degrees apart), per-lane pop-ups at 50-300 m with FM 3-22.9 exposure times, TRAINING RESET / TRAINING DOWN / QUAL 40, a scale-true angular hit rule, one round per exposure, the box goes down with its target, the deck's own QA in CI, and an append-only chain-hashed revision register. Five DRN rows added: the range (DRN-05), the hit rule (DRN-05), one basis (DRN-04), render honesty (DRN-11), the register (DRN-13). A 24-lens fleet review of r.130 is recorded in docs/assessments/2026-09-19_r130_fleet_review.md.",
    "commit": "9870031"
+  },
+  {
+   "revision": "0.017",
+   "date": "2026-09-19",
+   "kind": "release",
+   "why": "Operator deck HEAD r.132: the wire path obeys the same rules as the buttons (peer marks land in slots with their author, a peer approval needs a seated human other than the marker, a snapshot never hands over red, HOLD/REJECT rows travel); two isolated browser contexts over WebRTC end on ONE replay hash (frontend/scripts/drone-team-e2e.mjs). Entered late (Krishna A, fleet 48): the JSON sat two editions behind the register.",
+   "commit": "3d653bc"
+  },
+  {
+   "revision": "0.018",
+   "date": "2026-09-19",
+   "kind": "release",
+   "why": "Operator deck HEAD r.133: the 38-AsM team-test fold. The AI member was dead code in live play (asmTick never called from the loop) and fires only on a red box; the score strip wraps; the approver's device tallies HIT/MISS and takes the box down from the same row; one sentence for an empty range; no lapse before the round starts; TARGET aims as well as marks.",
+   "commit": "449de5f"
+  },
+  {
+   "revision": "0.019",
+   "date": "2026-09-19",
+   "kind": "release",
+   "why": "Operator deck HEAD r.134: the fold of team-test wave 3 and the 48-lens fleet review. RESET and mode change are canonical rows that travel and ask before discarding a live table; the link has a heartbeat and a lost approver is said (its approval does not outlive it); VOICE reports the outcome and negation is a HOLD; MAP keeps the strip; the AI member is an actor on the record (ASM@device) and never marks a dead plate; authority has one consumer (scene change, reset, lost approver release it with a row); the CH5 popup is gone; a door tag is on the record; dead refs are refused; keys ignore text fields and the intro; a training lapse is said and is a row; refusals are drawn above the intro; the host shows the other team's six digits.",
+   "commit": "f2557ac"
   }
  ],
  "arena": {

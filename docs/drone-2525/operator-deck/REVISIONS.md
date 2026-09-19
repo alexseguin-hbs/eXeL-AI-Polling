@@ -14,6 +14,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.131 | 2026-09-19 | Claude Code (AsM fleet fold, autonomous) | 245877 | 700a51469e3e5ab174a851081aa555aa5201ff5a84a1b6a5f8f9aac1b347db54 | 9870031 (artefact) | ca5919226aea1b4785a4585432c38ecc217abc25e8988fbac2ab69888dc798f8 |
 | r.132 | 2026-09-19 | Claude Code (usability walk + two-phone gate, autonomous) | 256197 | d48ec579e31a7dfd684b7b1148944de0dcfcbe42cc1ef10d662f584e22adadaa | 607f0a8 (artefact) | 758cb5d629629a8e559c7aa8f332ec1602f56926142b0da2433f564641ad1690 |
 | r.133 | 2026-09-19 | Claude Code (38-AsM team-test fold, autonomous) | 262814 | d10ae69bc53d1a73845b69db2da7280e518aa31c41eb415b10160e1f608e0526 | fbdd78e → 4321f40 (artefact, final bytes) | 2d0ac8d264429638379149bcf8bf8da8e38555b4c33551c002f1cf2e78b43605 |
+| r.134 | 2026-09-19 | Claude Code (wave-3 + 48-lens fleet fold, autonomous) | 276780 | 840cf55c6c0181503ff4417a1eff16f32825ba530a78eabd0d3744cd5a7d6aec | f2557ac (artefact) | dea8dbcdbe9b3ee72444eddc91cf9ab3ea543977ef827a2c6b2670f4cd0d5f9a |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -197,4 +198,49 @@ by real clicks `docs/assessments/2026-09-19_r131_usability_walk.md`.
   join because the RED code is shown nowhere (`ROOM_PRIVATE_CODES` — an operator decision); a joiner's qual counters do not
   move from remote hits (the tally covers HIT/MISS/LAPSED, not the qualification tables); the CH5 "second authority" overlay is
   superseded by the two-step (a PEER approve already is the second human) — documented, not a defect; two real phones.
+
+## r.134 — Claude Code: the fold of team-test wave 3 (12 seats) and the 48-lens fleet review (12 lenses × A/B reviewers + synthesis)
+Record: `docs/assessments/2026-09-19_r132_asm_team_test.md` (waves 1–3, D1–D22) and `docs/assessments/2026-09-19_r133_fleet48_review.md`.
+- **Authority has ONE consumer** (Thor A). The red box was a stored bit that outlived a scene change, a mode change, a reset and
+  its own approver. `releaseAuthority(why)` is the only path that drops it, and it writes a HOLD row; a scene change, RESET, a
+  lost approver and a dead target all go through it. The CH5 popup — a second approval primitive with no author, no two-humans
+  rule and no wire row — is gone: a red box whose approval was spent asks for a fresh APPROVE. A door tag is on the record and
+  consumes the box (it fired N times on one approve with no row). A dead target cannot be marked or approved (judged on the
+  marker's device; the range clock is still per device). QA `AUTHORITY_HAS_ONE_CONSUMER`, `NO_MARK_ON_A_DEAD_TARGET`,
+  `NO_APPROVE_ON_A_DEAD_TARGET`, `LOST_APPROVER_IS_SAID`.
+- **The record tells what happened** (Asar A, s33). RESET and a mode change are canonical rows that travel to the peer and ask
+  before discarding a live table; a training-mode lapse is said and is a row; the AI member is an actor — `ASM@<device>` on its
+  DESIGNATED and HIT/MISS rows, `HI OVER AI` when a human approves its mark, never held for "two humans" (Pangu A: the AI used
+  to sign as whichever turret the loop reached first, and a peer could second-human its mark). QA `RESET_ON_RECORD`,
+  `ASM_IS_AN_ACTOR`, `ASM_NEVER_MARKS_DEAD` (the second turret re-marked the plate the first had just downed, s38).
+- **The link has a heartbeat** (s35). Twelve silent seconds, a failed connection or a closed channel → `DROPPED · 1p`, one
+  sentence, and a peer-approved red box goes back to amber with a HOLD row. The strip read `DIRECT · 2p · MATCH` for 48 s after
+  the other phone was gone.
+- **VOICE reports the outcome** (s36): the recognizer's error turns the button OFF and says why; a second press always turns
+  it off; a negation is heard before consent ("don't approve" used to approve); the lone spoken "f" no longer fires. **MAP keeps
+  the strip** (s28). **Keys ignore text fields and the intro** (Thor A: typing a room code marked a target and sent it down
+  the wire). **A row signed as nobody, or forged as me, is refused** at the wire.
+- **The stranger** (Athena A): refusals are drawn ABOVE the intro (they were under it, z 6 vs 40); the first sentence names
+  the next tap ("NOW PRESS APPROVE" / "WAIT FOR THE OTHER SEAT TO APPROVE"); a lapse says "MARK THE NEXT ONE"; the host's card
+  shows the other team's six digits with one sentence (the unaided join was impossible — s23, Christo A). HAL/MoT changes say
+  so; the replay bar is reachable from MORE on a phone and PLAY plays; the desk stick leaves the panel; the pip floor is on the
+  HUD line; one revision string (UPDATES / BOOT / FIXTURE labels no longer carry other revisions).
+- **Repo** (Enlil A, Krishna A): the two-phone gate now RUNS in Deploy (`npm run test:drone-team-e2e` after deck-qa) and reads
+  the approver's PICTURE (strip `HIT 1`, toast `THE OTHER SEAT HIT`), not only state; `tests/deck-consistency.test.mjs` holds
+  ONE HEAD across the register, README, domain JSON, ledger, HASHES and the carried patch (the domain JSON sat two editions
+  behind, green — 0.017/0.018 entered for r.132/r.133); Verify Live compares the served body's sha256 to the register row
+  (a stale edge can carry the same revision string); the patcher's paths are relative to itself.
+- In-file QA **110 rows**, headless **109/110** (`SYNC_DIRECT` by design on one device).
+- **Corrections on the record:** (1) the r.132 section says the two-phone gate was "a Deploy step" — it was in no workflow
+  until r.134 (Enlil A). (2) The assessment's D18 says MAP "stops the AI tick and the slew" — `spawn()` runs before the map
+  return, so the AI kept marking and the seated head kept turning while the picture was hidden; MAP froze the STRIP only
+  (Pangu A, Asar A). (3) CLAUDE_CODE_NOTES_r133 names HEAD `drone-2525_v.00.00_r.133.html`; the carried file is
+  `drone-2525_r.133.html`.
+- **Still open, honest:** the range clock is per device (a peer's plate can be down where it is up on the shooter's; r.135's
+  first item — an EXPOSE row from the host); the reducer applies in arrival order while the hash sorts; the hash's identity
+  columns (SID, eventId, orderKey, beacon-driven logicalClock) make the same play a different hash per load — peer-agreement
+  only, by design, said here; SSSES pillars other than efficiency are labels; the DATA panel is the machine's panel with no
+  operator door (Sofia A: a word gate and `?diag=1` are r.135); QUAL table clocks run on frame time, not wall time (a hidden
+  tab pauses the table); the dock FIRE sits under the R-HEAD stick at 320/390 (Enki A); SAVE is four downloads from one tap;
+  3v3/9v9 stand on a single-peer link; two real phones.
 

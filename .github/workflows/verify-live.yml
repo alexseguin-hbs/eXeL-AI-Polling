@@ -111,5 +111,10 @@ jobs:
           body=$(curl -fsSL -H 'cache-control: no-cache' "$SITE/drone-2525/play.html")
           echo "$body" | grep -q "revision:'0.$REV'" || { echo "::error::/drone-2525/play.html does not carry revision 0.$REV (a soft-404 returns the SPA with 200)"; echo "### ❌ /drone-2525/play.html is not deck r.$REV" >> "$GITHUB_STEP_SUMMARY"; exit 1; }
           echo "$body" | grep -q 'id="playHud"' || { echo '::error::the served deck lacks its own markup'; exit 1; }
+          WANT_SHA=$(grep -E "^\| r\.$REV \|" docs/drone-2525/operator-deck/REVISIONS.md | tail -1 | awk -F'|' '{gsub(/ /,"",$6); print $6}')
+          LIVE_SHA=$(curl -fsSL -H 'cache-control: no-cache' "$SITE/drone-2525/play.html" | sha256sum | cut -c1-64)
+          [ -n "$WANT_SHA" ] && [ "$LIVE_SHA" = "$WANT_SHA" ] || { echo "::error::/drone-2525/play.html sha256 $LIVE_SHA is not the register's r.$REV row ($WANT_SHA) — a stale edge can carry the same revision string (r.134, Krishna A)"; exit 1; }
+          echo "✅ /drone-2525/play.html sha256 == register r.$REV"
+
           echo "✅ /drone-2525/play.html serves deck r.$REV"
           echo "### ✅ /drone-2525/play.html serves deck r.$REV" >> "$GITHUB_STEP_SUMMARY"
