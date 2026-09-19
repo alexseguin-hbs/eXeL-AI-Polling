@@ -18,8 +18,8 @@ but are scored as hits if they hit anywhere in the silhouette." Carried beside t
 |---|---|---|
 | targets engaged | 40 | SOURCED (search: FM 3-22.9 c06; army.mil 232139; sandboxx) |
 | positions / rounds | 20 prone supported (foxhole), 10 prone unsupported, 10 kneeling — the deck's tables I/II/III | SOURCED (search: FM 3-22.9 c06) |
-| distances | 50, 100, 150, 200, 250, 300 m | SOURCED |
-| single-target exposure | 3 s at 50 m, +1 s per 50 m → 4/5/6/7/8 s at 100/150/200/250/300 m (older editions: 5 s to 200 m, 10 s at 250/300 m) | SOURCED (search: FM 3-22.9 c06) |
+| distances | 50, 100, 150, 200, 250, 300 m | SOURCED (the 9127 sheet itself; search: FM 3-22.9 c06) |
+| single-target exposure | 3 s at 50 m, +1 s per 50 m → 4/5/6/7/8 s at 100/150/200/250/300 m | DECLARED — taken from a search-index summary of FM 3-22.9 c06 that also quoted older editions as 5 s to 200 m and 10 s at 250/300 m; no FM page could be fetched from the sandbox (fleet lens 11B: a constructed ramp is not SOURCED) |
 | scores | 23–29 MARKSMAN · 30–35 SHARPSHOOTER · 36–40 EXPERT · below 23 unqualified | SOURCED (search: army.mil 232139; armytimes 2019-12-29) |
 | target not engaged in its exposure | counted as a miss (the deck: UNFIRED MISS) | SOURCED (search: FM 3-22.9 c06, "targets not engaged are scored as misses") |
 | new qualification (TC 3-20.40, 2020) | still 40 targets and 23/30/36; positions re-ordered (standing → prone unsupported → prone supported → kneeling), magazine changes under time; not adopted here — the range keeps the three-table record fire the deck already scores | SOURCED (search: armytimes; army.mil 237739) — DECLARED not adopted |
@@ -34,14 +34,18 @@ distances above. That is the operator's "each lane has pop ups at various distan
 - Three modes, the operator's names, on the existing `rangeMode` values:
   **TRAINING · RESET** (`bounce`) — a target that goes down comes back up on its next exposure;
   **TRAINING · DOWN** (`stay`) — a target that goes down stays down until RESET;
-  **QUAL · 40** (`qual40`) — the timed test: tables I/II/III = 20/10/10 exposures, 120/60/60 s, a lapsed exposure
-  is an UNFIRED MISS round, 23/30/36.
-- `EXPOSURE_S = {50:3, 100:4, 150:5, 200:6, 250:7, 300:8}` (SOURCED, search) · gap between exposures 1.5 s
-  (DECLARED) · per-lane exposure order = a seeded shuffle of the ten silhouettes (`mulberry32(2525+lane)`,
+  **QUAL · 40** (`qual40`) — the timed test: tables I/II/III = 20/10/10 exposures; table clocks **142/75/75 s** (DECLARED, r.131:
+  exposures avg 5.2 s + 1.5 s gaps + slack — r.130's 120/60/60 could not fit their own exposures); a lapsed exposure is an
+  UNFIRED MISS round; one round per exposure; 23/30/36. **Per-plate scoring caps** (DECLARED, inherited from the deck's
+  r.122 tables, no doctrine source): table I 2 hits per plate, table II 1, table III 2 at 50/100, 1 at 150, 0 beyond — and
+  from r.131 a table exposes only plates it can score, so 40/40 is attainable. `EXPOSURE_S` falls back to 5 s for any
+  distance not in the table (DECLARED).
+- `EXPOSURE_S = {50:3, 100:4, 150:5, 200:6, 250:7, 300:8}` (DECLARED from a search-index summary, see above) · gap between
+  exposures 1.5 s (DECLARED; it decides whether a table is completable) · per-lane exposure order = a seeded shuffle of the ten silhouettes (`mulberry32(2525+lane)`,
   DECLARED, deterministic so replay repeats).
 - Hit = the pip inside the projected silhouette (SOURCED: "scored as hits if they hit anywhere in the silhouette");
-  inside the aiming circle records CIRCLE, elsewhere SILHOUETTE. A ±6 px pip floor (DECLARED) keeps a 300 m
-  silhouette hittable on a phone.
+  inside the aiming circle records CIRCLE, elsewhere SILHOUETTE. The pip floor is ANGULAR from r.131 — 3 mrad, minimum
+  3 px (DECLARED) — so the standard is the same at every zoom and screen size (r.130's 6 px floor was not).
 - The ten silhouettes follow the 9127 sheet: 50 F · 100 F ×3 · 150 E ×2 · 200 E ×2 · 250 E left · 300 E right.
 
 ## Sources (search index; links as returned)

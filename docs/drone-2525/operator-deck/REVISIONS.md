@@ -8,9 +8,10 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 
 | rev | date | author | bytes | sha256 | shipped in | chain |
 |---|---|---|---|---|---|---|
-| r.128 | 2026-09-19 | Grok + eXeL AI | 211344 | 6c26f43c052d68027952b139626aecf1d4b3171e1204cac54fc89da8f102ec8c | d195781 (served) | fc7480650848100badc8d62dfa8e509b212536c2616f9b1b08d332db3f66647b |
+| r.128 | 2026-09-19 | Grok + eXeL AI | 211344 | 6c26f43c052d68027952b139626aecf1d4b3171e1204cac54fc89da8f102ec8c | 2159671 (served; the r.130 row cited d195781 — corrected in the r.131 section below) | fc7480650848100badc8d62dfa8e509b212536c2616f9b1b08d332db3f66647b |
 | r.129 | 2026-09-19 | Claude Code | 215379 | 7b1e0e51a31aa79c92211ac385e781452cc1c3d24899c118d6976b83ed2e8c7e | 8a54271 | 0b9539d90e05709195f2ab913bea0c0b25ae1ef0fe54b4f21242e824ec31188e |
-| r.130 | 2026-09-19 | Claude Code (AsM fleet, autonomous) | 231517 | ce034c5e5c52aff539321f8a8895965317b7d406b8d1fcdb5aaef978a5bee99e | a83e670 | 7ab4f6dee17afcdb97610353f954e0e5e0dcd77343d87c9626252a85068a0ef4 |
+| r.130 | 2026-09-19 | Claude Code (AsM fleet, autonomous) | 231517 | ce034c5e5c52aff539321f8a8895965317b7d406b8d1fcdb5aaef978a5bee99e | a83e670 (artefact) · 1ce5a3c (gates, register, research) | 7ab4f6dee17afcdb97610353f954e0e5e0dcd77343d87c9626252a85068a0ef4 |
+| r.131 | 2026-09-19 | Claude Code (AsM fleet fold, autonomous) | 245877 | 700a51469e3e5ab174a851081aa555aa5201ff5a84a1b6a5f8f9aac1b347db54 | 9870031 (artefact) | ca5919226aea1b4785a4585432c38ecc217abc25e8988fbac2ab69888dc798f8 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -75,3 +76,63 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 - **Corrects r.129:** "forward-goes-reverse fixed at its class" — r.129 fixed only the pan-folding sub-case; the class
   was the basis disagreement above. Still open, honest: two real phones for HOST/JOIN → one hash; endurance soak;
   a perf run (SSSES Scalability/Efficiency stay unmeasured until it exists).
+
+## r.131 — Claude Code, the fleet fold (24 reviewer lenses on r.130 → `docs/assessments/2026-09-19_r130_fleet_review.md`)
+**Corrections of the record (new lines, the old rows stand as written):**
+- The r.130 row cited `d195781` as r.128's shipping commit; that commit carries no deck. r.128 was carried and served by
+  `2159671`. (lens 11A/11B)
+- The r.130 section said `range-2525 (64)` and `drone-playable (33)`; the gates reported 65 and 35 at that commit. (11B, 9B)
+- The r.130 README said "33 asserted exact patches"; the artefact commit said 44. Both were true of different builds of the
+  same evening; the patcher scripts were not committed. From r.131 the patcher is carried: `docs/drone-2525/operator-deck/patches/`.
+**What changed (each item names the lens that found it and the QA row that now holds it):**
+- The scenario/challenge pickers no longer defeat the range: picking CH0 keeps the bull ring DOWN (it re-aimed and raised it,
+  so every shot scored BULL-1 — 10B); the first pick of "50M RANGE" seats a turret (mode stayed `range`, slot keys chose
+  Capitol doors — 10B/2B). Rows `TARGETN_HITS_THE_EXPOSED_PLATE`, `RANGE_LOCK_PLATE`.
+- **One exposure, one round; a target that goes down takes its box with it.** `applyHit` refuses a plate that is not UP, not
+  falling, and the lane's current exposure (`TARGET DOWN · WAIT FOR THE NEXT EXPOSURE`); in QUAL·40 a second pull in the same
+  exposure is `ONE ROUND PER EXPOSURE`; a lapse after an engaged exposure charges nothing; `rangeRelease` clears the
+  designation/slot on hit or lapse; a miss keeps red for this exposure but never re-arms the CH5 second authority; plates are
+  never resurrected. (2A/2B/3A/3B/4A/4B/6A) Rows `ONE_ROUND_PER_EXPOSURE`, `LAPSE_RELEASES_THE_BOX`, `MODE_RESET_RETURNS`
+  (now observes the SAME plate returning, 64.8 s later), `MODE_QUAL_TIMED` (+ `qualH===0` + a LAPSE event).
+- **QUAL·40 fits its own clocks and can reach 40:** table clocks 142/75/75 s (DECLARED: exposures avg 5.2 s + 1.5 s gaps + slack;
+  r.130's 120/60/60 could not fit their own exposures — 4A/4B); a table exposes only plates it can score (table III: 50/100/150);
+  only a silhouette is a qualification round (never the bull ring); never a 41st round; the HUD shows per-table hits/rounds of
+  lim, time, total and lapses; LAPSE and QUAL table advances are canonical events; the qual block is in `pack()`. Rows
+  `TABLE_III_EXPOSES_ONLY_SCORABLE`, `QUAL40_TABLES` (re-based).
+- **The basis, finished:** `camOf`'s seat offset rides `fwdOf/rightOf` (it still used the old inverted forward — 1A/1B);
+  Capitol ring turrets face the Capitol; `mapCam` uses `fwdOf`; ONE `aimUnitAt` (camera eye, centre of mass, ±180 wrap) for
+  every aim site (auto-aim was 1.8° high at 50 m); ONE `worldOf` for the T-box, world box, pick and lock cone (a plate's box
+  was drawn up to 205 m from its silhouette — 1B/2B); tap-to-designate sees the range; double-tap fires only on the red box
+  itself; voice has APPROVE and never fires on "hold/cease/stop"; the turret look goes through the control law (deadzone,
+  sensitivity, trim, arrows) and is scaled by zoom; the seat/lane change starts clean and pre-aimed. Rows
+  `PIT_SEES_300_RIGHT_250_LEFT`, `PAN_RIGHT_MOVES_WORLD_LEFT`, `FWD_AT_YAW90` (the rows 1B/8B said were missing — picture terms, non-zero yaw).
+- **The picture on a phone (7A/7B/10A/10B):** what you must hit takes the segment budget before the world on EVERY channel
+  (`drawTargets` before `WIRE.g`; the swarm capped by remaining headroom; pit boxes near my lane at MoT ≤ 2; the wing
+  declutter names fixed); no lake craft or swarm on the range; ONE caption per exposed plate (`T1 · 100M F · 4s · RED`,
+  clamped to the canvas), no third label, the T-box never smaller than 16 px; LOCK moved clear of the kebab button; the FPS
+  text off the HUD line; the HUD line reads mode · HIT n · MISS n (and ALL DOWN · RESET); a RESET button (TRAINING·DOWN
+  "stays down until RESET" had no RESET); the pip floor is ANGULAR (3 mrad, min 3 px — the same standard at every zoom and
+  screen size; DECLARED).
+- **Evidence honesty (5A/5B/8A/8B/10A):** the reducer applies HIT (downs the plate on every peer), MISS and LAPSE rows; the
+  band is on the record (`HIT CIRCLE`); the batch labels every trial SIM and never broadcasts; boot QA snapshots and restores
+  events/decisions/scores, mutes the link, and leaves no designation on the first screen (the phantom red `QA-BULL` box a
+  stranger saw first — 10A); a QA that throws is a red row, never a blank panel; the deferred `DRAW_COMPLETES` row is printed
+  and guarded. Rows `REDUCER_HIT_AND_LAPSE_DOWN_THE_PLATE`, `QA_LEAVES_NO_TRACE`.
+- **The approve record tells the truth:** `how`/`sameDevice`/`samePerson` derive from whether ANOTHER seated human marked the
+  target, not from the literal `'HI-2'` (every approval said SOLO — 6B); the spiral self-test refuses in a LIVE room or over a
+  live box.
+- In-file QA **84 rows** (+9), headless **83/84** (`SYNC_DIRECT` by design), 0 page errors, 60 fps. sha256 `700a51469e3e5ab1…`.
+- **Repo (same evening, next commit):** ONE `tests/deck-head.mjs` names HEAD for every deck-reading gate (sequencer/lobby now
+  lift from HEAD, not r.128 — 9B); `scripts/drone-deck-qa.mjs` runs the deck's own rows in headless Chromium in CI against a
+  checked-in row manifest with set equality and a tight red-list (12A); Verify Live probes `play.html` for the revision
+  (12B); the PLAY button says the served revision (12B).
+- **Deferred to r.132 (a lobby/transport change, not a range change):** the wire path bypasses the two-humans gate — net
+  APPROVE has no gate, SNAPSHOT imports red and never restores LIVE, a peer DESIG never writes a slot and can jam a
+  foreign-lane box onto my device, six ambers coexist but only the newest is approvable (6A/6B/9A); the range has no
+  canonical clock between peers (9A/5A); the reducer applies in arrival order while the hash sorts (5A).
+- **Still open, honest:** two real phones for HOST/JOIN → one hash; endurance soak; `dt` is clamped so a slow device runs the
+  range slow (2A); the shell's CH0 and the deck's CH0 are different games and the PLAY link passes nothing (12B); the register
+  chain covers rev|sha|bytes only (11A/11B) — widening it re-bases every chain value and is a decision for the operator.
+- **To verify tomorrow:** open `/drone-2525/play.html`, pick SCEN · 50M RANGE, watch a silhouette rise with its caption,
+  TARGET → APPROVE → FIRE; then `cd frontend && npm run test:drone-deck-qa && npm run test:drone-playable && npm run
+  test:drone-revisions && npm run test:range-2525`; `sha256sum -c docs/drone-2525/operator-deck/HASHES_r131.sha256` from the repo root.

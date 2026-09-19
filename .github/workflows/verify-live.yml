@@ -99,3 +99,11 @@ jobs:
             echo "### ❌ /drone-2525/ does not answer — HTTP $code" >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
+
+      - name: Verify the served operator deck (the playable itself, not just the shell route)
+        run: |
+          REV=$(sed -n "s/^export const DECK_REV = '\([0-9]*\)';.*/\1/p" frontend/tests/deck-head.mjs)
+          body=$(curl -fsSL "$SITE/drone-2525/play.html")
+          echo "$body" | grep -q "revision:'0.$REV'" || { echo "::error::/drone-2525/play.html does not carry revision 0.$REV (a soft-404 returns the SPA with 200)"; exit 1; }
+          echo "$body" | grep -q 'SCEN · 50M RANGE' || { echo '::error::the served deck lacks its own markup'; exit 1; }
+          echo "✅ /drone-2525/play.html serves deck r.$REV"

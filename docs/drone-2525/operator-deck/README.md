@@ -1,7 +1,10 @@
 # Drone-2525 · operator deck — the carried package
 
-**HEAD is `drone-2525_r.130.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.130 (Claude Code,
-2026-09-19, from r.129 by 33 asserted exact patches — `HASHES_r130.sha256`) makes the range with turrets actually
+**HEAD is `drone-2525_r.131.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.131 (Claude Code, 2026-09-19,
+the fold of a 24-lens fleet review of r.130 — `HASHES_r131.sha256`, sha256 700a51469e3e5ab1…) makes the range honest as a
+player meets it: one exposure one round, the box goes down with its target, every aim from the eye, QUAL·40 fits its clocks
+and can reach 40, the pickers no longer defeat the range, one caption per target, an angular pip floor, and QA that leaves
+no trace. r.130 (Claude Code, 2026-09-19, from r.129 by asserted exact patches — `HASHES_r130.sha256`) makes the range with turrets actually
 work: ONE forward basis (the camera's forward is what the projector puts at screen centre — before r.130 they
 disagreed by 180°, so the pit looked away from its plates and left-stick forward flew away from the picture); the
 pit faces its plates; pop-ups per lane at 50–300 m on a seeded per-lane order with FM 3-22.9 exposure times; three

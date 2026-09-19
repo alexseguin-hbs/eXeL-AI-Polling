@@ -5,17 +5,18 @@
 // puts at screen centre), the per-lane exposure schedule (deterministic, every silhouette, seconds by distance from
 // FM 3-22.9), and the sheet's layout. Evaluating the deck's OWN functions means the repo and the deck cannot drift.
 import fs from 'node:fs';
+import { DECK_REV, deckUrl } from './deck-head.mjs';
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
-const html = fs.readFileSync(new URL('../../docs/drone-2525/operator-deck/drone-2525_r.130.html', import.meta.url), 'utf8');
-const line = (re) => { const m = html.match(re); if (!m) throw new Error('r.130 lacks ' + re); return m[0]; };
+const html = fs.readFileSync(deckUrl(import.meta.url), 'utf8');
+const line = (re) => { const m = html.match(re); if (!m) throw new Error(`r.${DECK_REV} lacks ` + re); return m[0]; };
 const src = [
   line(/^function mulberry32\(a\)\{.*\}$/m), line(/^function fwdOf\(yaw,tilt\)\{.*\}$/m), line(/^function rightOf\(yaw\)\{.*\}$/m), line(/^function yawTo\(dx,dz\)\{.*\}$/m),
   line(/^function proj\(p,cam,W,H\)\{[\s\S]*?\n\}/m), line(/^const QUAL=\[[\s\S]*?\]\.map\(q=>\(\{\.\.\.q,up:true,lifePct:100,life:99,mist:false,kind:'pop'\}\)\);/m),
   line(/^const EXPOSURE_S=\{.*\};$/m), line(/^const EXPOSURE_GAP_S=.*;$/m), line(/^function exposureOrder\(lane\)\{.*\}$/m), line(/^function exposureAt\(lane,k\)\{.*\}$/m),
 ].join('\n');
 const D = new Function('state', src + '\nreturn { fwdOf, rightOf, yawTo, proj, QUAL, EXPOSURE_S, EXPOSURE_GAP_S, exposureOrder, exposureAt };')({ zoom: 1 });
-ok(typeof D.fwdOf === 'function' && D.QUAL.length === 10, 'lifted fwdOf/rightOf/yawTo/proj/QUAL/exposure* out of r.130');
+ok(typeof D.fwdOf === 'function' && D.QUAL.length === 10, `lifted fwdOf/rightOf/yawTo/proj/QUAL/exposure* out of r.${DECK_REV} (HEAD)`);
 
 // ── the one forward basis ──────────────────────────────────────────────────────────────────────
 const W = 390, H = 844;
@@ -53,5 +54,11 @@ ok(/function kindOfRef\(ref\)/.test(html) && /kind:kindOfRef\(o\)/.test(html), '
 ok(/if\(\+state\.challenge===0\) rangeTick\(dt\);/.test(html) && !/q\._dead>2\.4/.test(html), 'spawn drives the range from rangeTick; the old always-up bounce is gone');
 ok(/qualResetPlatesForTable\(\)\{[\s\S]{0,400}q\.up=false/.test(html), 'a new QUAL table starts with every plate DOWN');
 ok(html.indexOf('drawPlates(segs); RANGE_WIRE.forEach') > 0 && /function bullseye\(x,y,z,segs\)/.test(html) && /state\.drawErr=String\(e\)/.test(html), 'silhouettes are drawn before the range wire; bullseye takes segs; render exceptions are recorded');
-console.log(`\nrange-2525: ${pass} passed, ${fail} failed · r.130's range rules lifted and proven: one basis, sheet layout, per-lane exposures`);
+ok(/function worldOf\(ref\)/.test(html) && /function aimUnitAt\(u,ref,lo,hi\)/.test(html) && !/const dx=s\.ref\.x-u\.x,dz=s\.ref\.z-u\.z;/.test(html), 'r.131: every aim goes through aimUnitAt (camera eye, centre of mass); the T-box and pick use worldOf');
+ok(/function rangeRelease\(q\)/.test(html) && /ref\._eng=true;/.test(html) && /ONE ROUND PER EXPOSURE/.test(html) && /TARGET DOWN · WAIT FOR THE NEXT EXPOSURE/.test(html), 'r.131: authority is scoped to the exposure; one round per exposure in QUAL·40; a downed plate cannot be hit or resurrected');
+ok(/const PIP_FLOOR_MRAD=3;/.test(html) && /function pipFloorPx\(\)/.test(html) && !/PIP_FLOOR_PX/.test(html), 'r.131: the pip floor is angular (3 mrad, min 3 px) — the same standard at every zoom and screen size');
+ok(/rings\[0\]\.up=false; \}\n\};/.test(html) && !/rings\[0\]\.up=true; rings\[0\]\.lifePct=100;\n  \}\n\};/.test(html), 'r.131: picking CH0 never re-aims at the bull ring');
+ok(/tbNow&&tbNow\.cap\(q\.id\)<=0/.test(html) && /sec:142,/.test(html) && /sec:75,/.test(html), 'r.131: a QUAL table exposes only what it can score and its clock covers its exposures');
+ok(/if\(state\.linkMute\) return;/.test(html) && /const sim=true;/.test(html) && /state\.desig=null; state\.tgtSlot=\{\}; state\.hiApproved=false; state\.rangeHit=evSave\.rangeHit/.test(html), 'r.131: QA and batch runs never leave the device, never enter the record, never leave a box on the first screen');
+console.log(`\nrange-2525: ${pass} passed, ${fail} failed · r.${DECK_REV}'s range rules lifted and proven: one basis, sheet layout, per-lane exposures`);
 process.exit(fail ? 1 : 0);

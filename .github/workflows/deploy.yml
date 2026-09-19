@@ -64,6 +64,11 @@ jobs:
       # DETERMINISM ON MAIN (Round 12, 48-agent fleet: spiral9 ran in no workflow). Node-only, no browser:
       # every drone gate ×9 with byte-identical artefacts, or the push fails. The determinism proof this
       # domain rests on now gates main, not just a local run.
+      - name: Deck boot QA in headless Chromium (the served drone-2525/play.html runs its own rows in CI)
+        working-directory: frontend
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:drone-deck-qa
       - name: Drone determinism (SPIRAL ×9)
         run: npm run test:drone-spiral9
 

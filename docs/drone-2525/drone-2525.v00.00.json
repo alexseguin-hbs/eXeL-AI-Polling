@@ -1,2294 +1,2391 @@
 {
-  "_warning": "ONE EDITABLE SOURCE. docs/drone-2525/CRS_DRONE-2525.md, README tables and ASSUMPTIONS_REGISTER.md are GENERATED from this file by scripts/drone-render.mjs — never hand-edit a generated view. Geometry marked hand-authored is an estimate awaiting the OSM extract; it is badged in the UI.",
-  "project": {
-    "name": "Drone-2525",
-    "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
-    "version": "00.00",
-    "revision": "0.015",
-    "stampPrefix": "eXeL v0.001",
-    "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
-    "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
-    "ledger": "docs/traceability/drone-2525.ledger.json",
-    "disclaimer": "Simulation for play and critique only. Bounding estimates, not design evidence. Not flight authorisation and not a weapons system.",
-    "mode": "Manual (MODE_R-CORE_SPEC: no commit without a named Human-Authority event)",
-    "phase": "pilot"
+ "_warning": "ONE EDITABLE SOURCE. docs/drone-2525/CRS_DRONE-2525.md, README tables and ASSUMPTIONS_REGISTER.md are GENERATED from this file by scripts/drone-render.mjs — never hand-edit a generated view. Geometry marked hand-authored is an estimate awaiting the OSM extract; it is badged in the UI.",
+ "project": {
+  "name": "Drone-2525",
+  "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
+  "version": "00.00",
+  "revision": "0.016",
+  "stampPrefix": "eXeL v0.001",
+  "handoff": "docs/asks/2026-09-19_range_popups.md",
+  "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
+  "ledger": "docs/traceability/drone-2525.ledger.json",
+  "disclaimer": "Simulation for play and critique only. Bounding estimates, not design evidence. Not flight authorisation and not a weapons system.",
+  "mode": "Manual (MODE_R-CORE_SPEC: no commit without a named Human-Authority event)",
+  "phase": "pilot"
+ },
+ "revisions": [
+  {
+   "revision": "0.001",
+   "date": "2026-09-15",
+   "kind": "ask",
+   "why": "Drone-2525 1st Pass persisted verbatim; the CRS ladder opens at Version 00.00.",
+   "commit": "7b0b790"
   },
-  "revisions": [
-    {
-      "revision": "0.001",
-      "date": "2026-09-15",
-      "kind": "ask",
-      "why": "Drone-2525 1st Pass persisted verbatim; the CRS ladder opens at Version 00.00.",
-      "commit": "7b0b790"
-    },
-    {
-      "revision": "0.002",
-      "date": "2026-09-15",
-      "kind": "decision",
-      "why": "The MoT ladder replaces the four-tier fidelity table: 5 compute bands x 5 resolution steps, 1.1 the arcade rung and the fastest. Demand and capability are separated. Multi-sensor fusion EO->CHEM sheds from the top and never sheds EO. The unit holds 1080p30 and names every step down. A self-test walks the ladder in 6 to 15 minutes and reports the rung this machine actually holds.",
-      "commit": "ea91e01"
-    },
-    {
-      "revision": "0.003",
-      "date": "2026-09-15",
-      "kind": "release",
-      "why": "The flying modes. A fixed-wing VTOL hovers on rotors and cruises on a wing, with the stall speed as the number the transition turns on. A machine may hold the pilot's seat, the camera operator's seat, or both — and a machine that is aiming must ask a named person before any shot, a gate with no bypass. All four of the operator's modes are unlocked.",
-      "commit": "a3cb92f"
-    },
-    {
-      "revision": "0.004",
-      "date": "2026-09-15",
-      "kind": "release",
-      "why": "Shared Intent, as a placeholder: a key group switched on or off, invited by a code and a scannable square, answering a real-time call on the decision the round already has. The group advises and a named person still decides. Recognition uses the three fixed heart values the pod ladder already declares, rather than a fourth invented for this feature.",
-      "commit": "a1a9ff7"
-    },
-    {
-      "revision": "0.005",
-      "date": "2026-09-15",
-      "kind": "release",
-      "why": "Two people on two devices: one flies, one works the camera, and neither can do the other's job. Optimised against a measurement on a processor slowed ten times rather than against a desktop that hides every change. Nine runs of every gate with zero drift, ten spiral checks, SSSES 93.",
-      "commit": "dffaa79"
-    },
-    {
-      "revision": "0.006",
-      "date": "2026-09-15",
-      "kind": "release",
-      "why": "Forty-two aircraft, 21 against 21, inside the ladder's budget at every rung. A five-level authority ladder on the band that already exists, with the invariant unbent on every rung. And an SSSES scorer rewritten to measure rather than assert, which dropped the score before the work lifted it to 96.",
-      "commit": "c7c40a5"
-    },
-    {
-      "revision": "0.007",
-      "date": "2026-09-16",
-      "kind": "decision",
-      "why": "The fixed-wing is declared at the 1.111 m foil, proportional, from the early Security-2525 drawing — and the drawing's axes are declared with it, because the shipped extent had span, depth and nose-to-tail under each other's names and every consumer inherited the permutation.",
-      "commit": ""
-    },
-    {
-      "revision": "0.008",
-      "date": "2026-09-16",
-      "kind": "decision",
-      "why": "The wing is derived from the drawing instead of asserted beside it. wingAreaM2 was 0.9 m2 against a real planform of 0.3092 m2, so the round had been flying a wing three times the size of the one on screen. Stall moves 8.43 -> 14.38 m/s, and the quad's acceleration is now derived from the stall rather than typed, so the transition stays reachable on any airframe.",
-      "commit": ""
-    },
-    {
-      "revision": "0.009",
-      "date": "2026-09-16",
-      "kind": "decision",
-      "why": "The aircraft is the FOIL on this surface and nowhere says its other name, with one declared exception for the provenance path. The game answers at /drone-2525 as well as /main/Drone-2525.",
-      "commit": ""
-    },
-    {
-      "revision": "0.010",
-      "date": "2026-09-16",
-      "kind": "decision",
-      "why": "Lasers, shields and time on target. A fluence model rather than hit points, so range is the thing that matters: 0.79 s to disable at 100 m, 5.15 s at 400 m, 13.67 s at 700 m. A defeated aircraft is disabled and flown down under control at 1.6 m/s; there is no state called destroyed.",
-      "commit": ""
-    },
-    {
-      "revision": "0.011",
-      "date": "2026-09-16",
-      "kind": "decision",
-      "why": "Ten CRS rows for the overnight work: the beam and shield rules, the safe descent, the lighting inside the vector law, the two sizes and the square-cube law between them, the N ladder and what it measured about the person, the winners' circle and its one-ninth cut, the floor that must be cleared by name, the FOIL naming rule, and the address the game answers at.",
-      "commit": ""
-    },
-    {
-      "revision": "0.012",
-      "date": "2026-09-16",
-      "kind": "decision",
-      "why": "Operator deck r.050 adopted. The keyboard (EXEL-2525-CONTROLS-1) through the ref bus; the R stick is the HEAD; one centred look-stick in the turret modes; stick calibration persisted; tap, double-tap and look-drag on the arena; the T-box; voice on r.042's grammar; T1 T2 T3 with AMBER then RED and a fire that refuses NO_RED_BOX and AMBER_NO_APPROVE and records both; the decision record with r.043's replay hash; ONE seat geometry for every vehicle (28.5 cm on the foil, turret 0) replacing the two we had — a correction on the record; and the ladder measuring his six: designation rate, HI holds, auth failures, handoffs, sim speed, replay hash.",
-      "commit": ""
-    },
-    {
-      "revision": "0.013",
-      "date": "2026-09-16",
-      "kind": "decision",
-      "why": "CH1–CH5 × DIFF 1–5 from the deck's challengeSpec, verbatim (25 cells checked against r.050's own function): quota bounds the doors in play, rate shortens the window, concurrent grows 1→3; at CH5 NET the red box must come from a second PERSON, and a device approving its own mark is refused CH5_NO_APPROVE and recorded as a HOLD. The AsM Cup (99 runs, seed 2525) is the regression fixture, read-only by contract: its bytes are pinned by hash and the published baseline — 6v6 BLU 3–1, 3v3 BLU 5–0, pairs 1–3 RED, 4–6 BLU — is recomputed from its numbers; the fixture's declared revision 0.039 is reported, not gated. APPROVE crosses the crew link: the targeteer's amber goes out on the gimbal word, the pilot approves it by name, and the mark turns red two-person on the device that holds it. Verify Live now probes /drone-2525/ itself.",
-      "commit": ""
-    },
-    {
-      "revision": "0.014",
-      "date": "2026-09-16",
-      "kind": "decision",
-      "why": "PLATFORM identities from the deck, as data: T1 TURRET · D1Q QUAD·HOVER · D1 VTOL · D1F FOIL · M99 MANTA 99-66 · M66 MINI 66-33 · ARK SAIL 33 · R2 MASS DROID — ids, labels, kinds and flight modes lifted from r.050's units table and checked against it by a gate. The four that exist on this arena are live; the sea, sail and droid platforms are dated, not hidden. D1Q has no wing and says so; D1F goes to the wing the moment it can; D1 is the VTOL as before. Also: the red box and its decision id now mirror to the approving device (eXeL AI gate 3).",
-      "commit": ""
-    },
-    {
-      "revision": "0.015",
-      "date": "2026-09-17",
-      "kind": "decision",
-      "why": "Round 12 P0: operator deck HEAD moved r.050 -> r.075 and the control-schema transcription is re-pinned to it (controls.ts revision 0.075; the controls-schema gate now reads drone-2525_r.075.html, resolving BUILD when it lifts window.CONTROLS). The CONTROLS contract is byte-identical r.050 -> r.075 apart from the revision field, so this is a pin, not a behaviour change. window.CONTROLS.vehicle still names manta-99-66 (the control-map contract, which craft share the same map) -- distinct from the PLAYABLE platform roster, where the operator removed Manta (a later P3 revision). r.051-r.075 + the SSSES/SPIRAL-99 audit are carried read-only.",
-      "commit": ""
-    }
-  ],
-  "arena": {
-    "origin": {
-      "lat": 30.27467,
-      "lon": -97.74035,
-      "mslM": 163
-    },
-    "radiusM": 450,
-    "maxAltitudeM": 100,
-    "note": "The Texas Capitol lawn and its bounding streets — 11th (S), 15th (N), Colorado (W), Brazos (E).",
-    "demSource": "hand-authored 9x9 lawn rise; replace via scripts/security-2525/build_dem.py capitol-lawn --dataset ned10m",
-    "elevation": {
-      "nx": 9,
-      "ny": 9,
-      "spanM": 900,
-      "note": "metres MSL on a 9x9 grid over the arena, row-major from the NORTH-west corner. The Capitol sits on a rise of about 12 m above 11th Street; the ground falls away south and west.",
-      "grid": [
-        [
-          154,
-          155,
-          156,
-          157,
-          157,
-          157,
-          156,
-          155,
-          154
-        ],
-        [
-          155,
-          157,
-          158,
-          159,
-          160,
-          159,
-          158,
-          157,
-          155
-        ],
-        [
-          156,
-          158,
-          160,
-          162,
-          162,
-          162,
-          160,
-          158,
-          156
-        ],
-        [
-          157,
-          159,
-          162,
-          163,
-          163,
-          163,
-          162,
-          159,
-          157
-        ],
-        [
-          157,
-          160,
-          162,
-          163,
-          163,
-          163,
-          162,
-          160,
-          157
-        ],
-        [
-          156,
-          159,
-          161,
-          162,
-          162,
-          162,
-          161,
-          159,
-          156
-        ],
-        [
-          154,
-          157,
-          159,
-          160,
-          160,
-          160,
-          159,
-          157,
-          154
-        ],
-        [
-          152,
-          154,
-          156,
-          157,
-          157,
-          157,
-          156,
-          154,
-          152
-        ],
-        [
-          150,
-          151,
-          152,
-          153,
-          153,
-          153,
-          152,
-          151,
-          150
-        ]
-      ]
-    }
+  {
+   "revision": "0.002",
+   "date": "2026-09-15",
+   "kind": "decision",
+   "why": "The MoT ladder replaces the four-tier fidelity table: 5 compute bands x 5 resolution steps, 1.1 the arcade rung and the fastest. Demand and capability are separated. Multi-sensor fusion EO->CHEM sheds from the top and never sheds EO. The unit holds 1080p30 and names every step down. A self-test walks the ladder in 6 to 15 minutes and reports the rung this machine actually holds.",
+   "commit": "ea91e01"
   },
-  "buildings": [
+  {
+   "revision": "0.003",
+   "date": "2026-09-15",
+   "kind": "release",
+   "why": "The flying modes. A fixed-wing VTOL hovers on rotors and cruises on a wing, with the stall speed as the number the transition turns on. A machine may hold the pilot's seat, the camera operator's seat, or both — and a machine that is aiming must ask a named person before any shot, a gate with no bypass. All four of the operator's modes are unlocked.",
+   "commit": "a3cb92f"
+  },
+  {
+   "revision": "0.004",
+   "date": "2026-09-15",
+   "kind": "release",
+   "why": "Shared Intent, as a placeholder: a key group switched on or off, invited by a code and a scannable square, answering a real-time call on the decision the round already has. The group advises and a named person still decides. Recognition uses the three fixed heart values the pod ladder already declares, rather than a fourth invented for this feature.",
+   "commit": "a1a9ff7"
+  },
+  {
+   "revision": "0.005",
+   "date": "2026-09-15",
+   "kind": "release",
+   "why": "Two people on two devices: one flies, one works the camera, and neither can do the other's job. Optimised against a measurement on a processor slowed ten times rather than against a desktop that hides every change. Nine runs of every gate with zero drift, ten spiral checks, SSSES 93.",
+   "commit": "dffaa79"
+  },
+  {
+   "revision": "0.006",
+   "date": "2026-09-15",
+   "kind": "release",
+   "why": "Forty-two aircraft, 21 against 21, inside the ladder's budget at every rung. A five-level authority ladder on the band that already exists, with the invariant unbent on every rung. And an SSSES scorer rewritten to measure rather than assert, which dropped the score before the work lifted it to 96.",
+   "commit": "c7c40a5"
+  },
+  {
+   "revision": "0.007",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "The fixed-wing is declared at the 1.111 m foil, proportional, from the early Security-2525 drawing — and the drawing's axes are declared with it, because the shipped extent had span, depth and nose-to-tail under each other's names and every consumer inherited the permutation.",
+   "commit": ""
+  },
+  {
+   "revision": "0.008",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "The wing is derived from the drawing instead of asserted beside it. wingAreaM2 was 0.9 m2 against a real planform of 0.3092 m2, so the round had been flying a wing three times the size of the one on screen. Stall moves 8.43 -> 14.38 m/s, and the quad's acceleration is now derived from the stall rather than typed, so the transition stays reachable on any airframe.",
+   "commit": ""
+  },
+  {
+   "revision": "0.009",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "The aircraft is the FOIL on this surface and nowhere says its other name, with one declared exception for the provenance path. The game answers at /drone-2525 as well as /main/Drone-2525.",
+   "commit": ""
+  },
+  {
+   "revision": "0.010",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "Lasers, shields and time on target. A fluence model rather than hit points, so range is the thing that matters: 0.79 s to disable at 100 m, 5.15 s at 400 m, 13.67 s at 700 m. A defeated aircraft is disabled and flown down under control at 1.6 m/s; there is no state called destroyed.",
+   "commit": ""
+  },
+  {
+   "revision": "0.011",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "Ten CRS rows for the overnight work: the beam and shield rules, the safe descent, the lighting inside the vector law, the two sizes and the square-cube law between them, the N ladder and what it measured about the person, the winners' circle and its one-ninth cut, the floor that must be cleared by name, the FOIL naming rule, and the address the game answers at.",
+   "commit": ""
+  },
+  {
+   "revision": "0.012",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "Operator deck r.050 adopted. The keyboard (EXEL-2525-CONTROLS-1) through the ref bus; the R stick is the HEAD; one centred look-stick in the turret modes; stick calibration persisted; tap, double-tap and look-drag on the arena; the T-box; voice on r.042's grammar; T1 T2 T3 with AMBER then RED and a fire that refuses NO_RED_BOX and AMBER_NO_APPROVE and records both; the decision record with r.043's replay hash; ONE seat geometry for every vehicle (28.5 cm on the foil, turret 0) replacing the two we had — a correction on the record; and the ladder measuring his six: designation rate, HI holds, auth failures, handoffs, sim speed, replay hash.",
+   "commit": ""
+  },
+  {
+   "revision": "0.013",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "CH1–CH5 × DIFF 1–5 from the deck's challengeSpec, verbatim (25 cells checked against r.050's own function): quota bounds the doors in play, rate shortens the window, concurrent grows 1→3; at CH5 NET the red box must come from a second PERSON, and a device approving its own mark is refused CH5_NO_APPROVE and recorded as a HOLD. The AsM Cup (99 runs, seed 2525) is the regression fixture, read-only by contract: its bytes are pinned by hash and the published baseline — 6v6 BLU 3–1, 3v3 BLU 5–0, pairs 1–3 RED, 4–6 BLU — is recomputed from its numbers; the fixture's declared revision 0.039 is reported, not gated. APPROVE crosses the crew link: the targeteer's amber goes out on the gimbal word, the pilot approves it by name, and the mark turns red two-person on the device that holds it. Verify Live now probes /drone-2525/ itself.",
+   "commit": ""
+  },
+  {
+   "revision": "0.014",
+   "date": "2026-09-16",
+   "kind": "decision",
+   "why": "PLATFORM identities from the deck, as data: T1 TURRET · D1Q QUAD·HOVER · D1 VTOL · D1F FOIL · M99 MANTA 99-66 · M66 MINI 66-33 · ARK SAIL 33 · R2 MASS DROID — ids, labels, kinds and flight modes lifted from r.050's units table and checked against it by a gate. The four that exist on this arena are live; the sea, sail and droid platforms are dated, not hidden. D1Q has no wing and says so; D1F goes to the wing the moment it can; D1 is the VTOL as before. Also: the red box and its decision id now mirror to the approving device (eXeL AI gate 3).",
+   "commit": ""
+  },
+  {
+   "revision": "0.015",
+   "date": "2026-09-17",
+   "kind": "decision",
+   "why": "Round 12 P0: operator deck HEAD moved r.050 -> r.075 and the control-schema transcription is re-pinned to it (controls.ts revision 0.075; the controls-schema gate now reads drone-2525_r.075.html, resolving BUILD when it lifts window.CONTROLS). The CONTROLS contract is byte-identical r.050 -> r.075 apart from the revision field, so this is a pin, not a behaviour change. window.CONTROLS.vehicle still names manta-99-66 (the control-map contract, which craft share the same map) -- distinct from the PLAYABLE platform roster, where the operator removed Manta (a later P3 revision). r.051-r.075 + the SSSES/SPIRAL-99 audit are carried read-only.",
+   "commit": ""
+  },
+  {
+   "revision": "0.016",
+   "date": "2026-09-19",
+   "kind": "release",
+   "why": "The range with turrets actually works (operator ask 2026-09-19, persisted with the 9127 sheet). Operator deck HEAD r.130 then r.131: one forward basis (the camera vector and the projector were 180 degrees apart), per-lane pop-ups at 50-300 m with FM 3-22.9 exposure times, TRAINING RESET / TRAINING DOWN / QUAL 40, a scale-true angular hit rule, one round per exposure, the box goes down with its target, the deck's own QA in CI, and an append-only chain-hashed revision register. Five DRN rows added: the range (DRN-05), the hit rule (DRN-05), one basis (DRN-04), render honesty (DRN-11), the register (DRN-13). A 24-lens fleet review of r.130 is recorded in docs/assessments/2026-09-19_r130_fleet_review.md.",
+   "commit": "9870031"
+  }
+ ],
+ "arena": {
+  "origin": {
+   "lat": 30.27467,
+   "lon": -97.74035,
+   "mslM": 163
+  },
+  "radiusM": 450,
+  "maxAltitudeM": 100,
+  "note": "The Texas Capitol lawn and its bounding streets — 11th (S), 15th (N), Colorado (W), Brazos (E).",
+  "demSource": "hand-authored 9x9 lawn rise; replace via scripts/security-2525/build_dem.py capitol-lawn --dataset ned10m",
+  "elevation": {
+   "nx": 9,
+   "ny": 9,
+   "spanM": 900,
+   "note": "metres MSL on a 9x9 grid over the arena, row-major from the NORTH-west corner. The Capitol sits on a rise of about 12 m above 11th Street; the ground falls away south and west.",
+   "grid": [
+    [
+     154,
+     155,
+     156,
+     157,
+     157,
+     157,
+     156,
+     155,
+     154
+    ],
+    [
+     155,
+     157,
+     158,
+     159,
+     160,
+     159,
+     158,
+     157,
+     155
+    ],
+    [
+     156,
+     158,
+     160,
+     162,
+     162,
+     162,
+     160,
+     158,
+     156
+    ],
+    [
+     157,
+     159,
+     162,
+     163,
+     163,
+     163,
+     162,
+     159,
+     157
+    ],
+    [
+     157,
+     160,
+     162,
+     163,
+     163,
+     163,
+     162,
+     160,
+     157
+    ],
+    [
+     156,
+     159,
+     161,
+     162,
+     162,
+     162,
+     161,
+     159,
+     156
+    ],
+    [
+     154,
+     157,
+     159,
+     160,
+     160,
+     160,
+     159,
+     157,
+     154
+    ],
+    [
+     152,
+     154,
+     156,
+     157,
+     157,
+     157,
+     156,
+     154,
+     152
+    ],
+    [
+     150,
+     151,
+     152,
+     153,
+     153,
+     153,
+     152,
+     151,
+     150
+    ]
+   ]
+  }
+ },
+ "buildings": [
+  {
+   "id": "capitol",
+   "label": "TEXAS CAPITOL",
+   "footprint": [
+    [
+     -30,
+     55
+    ],
+    [
+     30,
+     55
+    ],
+    [
+     30,
+     20
+    ],
+    [
+     88,
+     20
+    ],
+    [
+     88,
+     -20
+    ],
+    [
+     30,
+     -20
+    ],
+    [
+     30,
+     -55
+    ],
+    [
+     -30,
+     -55
+    ],
+    [
+     -30,
+     -20
+    ],
+    [
+     -88,
+     -20
+    ],
+    [
+     -88,
+     20
+    ],
+    [
+     -30,
+     20
+    ]
+   ],
+   "heightM": 29,
+   "doors": [
     {
-      "id": "capitol",
-      "label": "TEXAS CAPITOL",
-      "footprint": [
-        [
-          -30,
-          55
-        ],
-        [
-          30,
-          55
-        ],
-        [
-          30,
-          20
-        ],
-        [
-          88,
-          20
-        ],
-        [
-          88,
-          -20
-        ],
-        [
-          30,
-          -20
-        ],
-        [
-          30,
-          -55
-        ],
-        [
-          -30,
-          -55
-        ],
-        [
-          -30,
-          -20
-        ],
-        [
-          -88,
-          -20
-        ],
-        [
-          -88,
-          20
-        ],
-        [
-          -30,
-          20
-        ]
-      ],
-      "heightM": 29,
-      "doors": [
-        {
-          "at": [
-            0,
-            -55
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "carried",
-      "confidence": "high",
-      "note": "footprint carried verbatim from components/security-2525/mission-planning.tsx TX_CAPITOL — not re-authored"
-    },
-    {
-      "id": "sam-houston",
-      "label": "SAM HOUSTON BLDG",
-      "footprint": [
-        [
-          269.0,
-          319.0
-        ],
-        [
-          331.0,
-          319.0
-        ],
-        [
-          331.0,
-          361.0
-        ],
-        [
-          269.0,
-          361.0
-        ]
-      ],
-      "heightM": 32,
-      "doors": [
-        {
-          "at": [
-            300,
-            319
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "reagan",
-      "label": "JOHN H. REAGAN BLDG",
-      "footprint": [
-        [
-          -331.0,
-          319.0
-        ],
-        [
-          -269.0,
-          319.0
-        ],
-        [
-          -269.0,
-          361.0
-        ],
-        [
-          -331.0,
-          361.0
-        ]
-      ],
-      "heightM": 32,
-      "doors": [
-        {
-          "at": [
-            -300,
-            319
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "johnson",
-      "label": "ROBERT E. JOHNSON BLDG",
-      "footprint": [
-        [
-          -42.0,
-          410.0
-        ],
-        [
-          42.0,
-          410.0
-        ],
-        [
-          42.0,
-          450.0
-        ],
-        [
-          -42.0,
-          450.0
-        ]
-      ],
-      "heightM": 28,
-      "doors": [
-        {
-          "at": [
-            0,
-            410
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "zavala",
-      "label": "LORENZO DE ZAVALA ARCHIVES",
-      "footprint": [
-        [
-          272.0,
-          37.0
-        ],
-        [
-          328.0,
-          37.0
-        ],
-        [
-          328.0,
-          83.0
-        ],
-        [
-          272.0,
-          83.0
-        ]
-      ],
-      "heightM": 20,
-      "doors": [
-        {
-          "at": [
-            272,
-            60
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "supreme",
-      "label": "SUPREME COURT",
-      "footprint": [
-        [
-          -328.0,
-          37.0
-        ],
-        [
-          -272.0,
-          37.0
-        ],
-        [
-          -272.0,
-          83.0
-        ],
-        [
-          -328.0,
-          83.0
-        ]
-      ],
-      "heightM": 20,
-      "doors": [
-        {
-          "at": [
-            -272,
-            60
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "clark",
-      "label": "TOM C. CLARK BLDG",
-      "footprint": [
-        [
-          -326.0,
-          -80.0
-        ],
-        [
-          -274.0,
-          -80.0
-        ],
-        [
-          -274.0,
-          -40.0
-        ],
-        [
-          -326.0,
-          -40.0
-        ]
-      ],
-      "heightM": 22,
-      "doors": [
-        {
-          "at": [
-            -274,
-            -60
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "price-daniel",
-      "label": "PRICE DANIEL SR. BLDG",
-      "footprint": [
-        [
-          -326.0,
-          -205.0
-        ],
-        [
-          -274.0,
-          -205.0
-        ],
-        [
-          -274.0,
-          -165.0
-        ],
-        [
-          -326.0,
-          -165.0
-        ]
-      ],
-      "heightM": 22,
-      "doors": [
-        {
-          "at": [
-            -274,
-            -185
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "visitors",
-      "label": "CAPITOL VISITORS CENTER",
-      "footprint": [
-        [
-          164.0,
-          -198.0
-        ],
-        [
-          196.0,
-          -198.0
-        ],
-        [
-          196.0,
-          -172.0
-        ],
-        [
-          164.0,
-          -172.0
-        ]
-      ],
-      "heightM": 16,
-      "doors": [
-        {
-          "at": [
-            180,
-            -172
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "insurance",
-      "label": "INSURANCE ANNEX",
-      "footprint": [
-        [
-          289.0,
-          -201.0
-        ],
-        [
-          331.0,
-          -201.0
-        ],
-        [
-          331.0,
-          -169.0
-        ],
-        [
-          289.0,
-          -169.0
-        ]
-      ],
-      "heightM": 18,
-      "doors": [
-        {
-          "at": [
-            289,
-            -185
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "mansion",
-      "label": "GOVERNOR'S MANSION",
-      "footprint": [
-        [
-          -401.0,
-          -269.0
-        ],
-        [
-          -359.0,
-          -269.0
-        ],
-        [
-          -359.0,
-          -233.0
-        ],
-        [
-          -401.0,
-          -233.0
-        ]
-      ],
-      "heightM": 14,
-      "doors": [
-        {
-          "at": [
-            -380,
-            -233
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low",
-      "note": "anchored to the landmark already in mission-planning.tsx AOS.capitol (30.2724, -97.7443)"
-    },
-    {
-      "id": "workforce",
-      "label": "TEXAS WORKFORCE COMMISSION",
-      "footprint": [
-        [
-          -458.0,
-          159.0
-        ],
-        [
-          -402.0,
-          159.0
-        ],
-        [
-          -402.0,
-          201.0
-        ],
-        [
-          -458.0,
-          201.0
-        ]
-      ],
-      "heightM": 26,
-      "doors": [
-        {
-          "at": [
-            -402,
-            180
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "greer",
-      "label": "DEWITT C. GREER BLDG",
-      "footprint": [
-        [
-          -456.0,
-          -78.0
-        ],
-        [
-          -404.0,
-          -78.0
-        ],
-        [
-          -404.0,
-          -42.0
-        ],
-        [
-          -456.0,
-          -42.0
-        ]
-      ],
-      "heightM": 24,
-      "doors": [
-        {
-          "at": [
-            -404,
-            -60
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "extension-n",
-      "label": "CAPITOL EXTENSION SKYLIGHTS",
-      "footprint": [
-        [
-          -35.0,
-          107.0
-        ],
-        [
-          35.0,
-          107.0
-        ],
-        [
-          35.0,
-          153.0
-        ],
-        [
-          -35.0,
-          153.0
-        ]
-      ],
-      "heightM": 3,
-      "doors": [
-        {
-          "at": [
-            0,
-            107
-          ],
-          "w": 3.2,
-          "h": 2.6
-        }
-      ],
-      "source": "hand-authored",
-      "confidence": "low",
-      "note": "the extension is underground; only its north-lawn skylight band is above grade"
+     "at": [
+      0,
+      -55
+     ],
+     "w": 3.2,
+     "h": 2.6
     }
-  ],
-  "treeRows": [
+   ],
+   "source": "carried",
+   "confidence": "high",
+   "note": "footprint carried verbatim from components/security-2525/mission-planning.tsx TX_CAPITOL — not re-authored"
+  },
+  {
+   "id": "sam-houston",
+   "label": "SAM HOUSTON BLDG",
+   "footprint": [
+    [
+     269.0,
+     319.0
+    ],
+    [
+     331.0,
+     319.0
+    ],
+    [
+     331.0,
+     361.0
+    ],
+    [
+     269.0,
+     361.0
+    ]
+   ],
+   "heightM": 32,
+   "doors": [
     {
-      "id": "great-walk-w",
-      "label": "GREAT WALK · WEST ROW",
-      "from": [
-        -28,
-        -72
-      ],
-      "to": [
-        -28,
-        -240
-      ],
-      "count": 13,
-      "trunkH": 3.5,
-      "canopyR": 3.2,
-      "canopyH": 5.5,
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "great-walk-e",
-      "label": "GREAT WALK · EAST ROW",
-      "from": [
-        28,
-        -72
-      ],
-      "to": [
-        28,
-        -240
-      ],
-      "count": 13,
-      "trunkH": 3.5,
-      "canopyR": 3.2,
-      "canopyH": 5.5,
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "north-lawn-w",
-      "label": "NORTH LAWN · WEST",
-      "from": [
-        -150,
-        90
-      ],
-      "to": [
-        -150,
-        270
-      ],
-      "count": 7,
-      "trunkH": 4.0,
-      "canopyR": 4.0,
-      "canopyH": 6.5,
-      "source": "hand-authored",
-      "confidence": "low"
-    },
-    {
-      "id": "north-lawn-e",
-      "label": "NORTH LAWN · EAST",
-      "from": [
-        150,
-        90
-      ],
-      "to": [
-        150,
-        270
-      ],
-      "count": 7,
-      "trunkH": 4.0,
-      "canopyR": 4.0,
-      "canopyH": 6.5,
-      "source": "hand-authored",
-      "confidence": "low"
+     "at": [
+      300,
+      319
+     ],
+     "w": 3.2,
+     "h": 2.6
     }
-  ],
-  "roads": [
+   ],
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "reagan",
+   "label": "JOHN H. REAGAN BLDG",
+   "footprint": [
+    [
+     -331.0,
+     319.0
+    ],
+    [
+     -269.0,
+     319.0
+    ],
+    [
+     -269.0,
+     361.0
+    ],
+    [
+     -331.0,
+     361.0
+    ]
+   ],
+   "heightM": 32,
+   "doors": [
     {
-      "id": "11th",
-      "label": "E 11TH ST",
-      "tier": 3,
-      "p": [
-        [
-          -450,
-          -250
-        ],
-        [
-          450,
-          -250
-        ]
-      ]
-    },
-    {
-      "id": "15th",
-      "label": "E 15TH ST",
-      "tier": 3,
-      "p": [
-        [
-          -450,
-          300
-        ],
-        [
-          450,
-          300
-        ]
-      ]
-    },
-    {
-      "id": "colorado",
-      "label": "COLORADO ST",
-      "tier": 2,
-      "p": [
-        [
-          -230,
-          -350
-        ],
-        [
-          -230,
-          400
-        ]
-      ]
-    },
-    {
-      "id": "brazos",
-      "label": "BRAZOS ST",
-      "tier": 2,
-      "p": [
-        [
-          230,
-          -350
-        ],
-        [
-          230,
-          400
-        ]
-      ]
-    },
-    {
-      "id": "lavaca",
-      "label": "LAVACA ST",
-      "tier": 2,
-      "p": [
-        [
-          -350,
-          -350
-        ],
-        [
-          -350,
-          400
-        ]
-      ]
-    },
-    {
-      "id": "sanjacinto",
-      "label": "SAN JACINTO",
-      "tier": 2,
-      "p": [
-        [
-          350,
-          -350
-        ],
-        [
-          350,
-          400
-        ]
-      ]
-    },
-    {
-      "id": "congress",
-      "label": "CONGRESS AVE",
-      "tier": 4,
-      "p": [
-        [
-          0,
-          -250
-        ],
-        [
-          0,
-          -450
-        ]
-      ]
-    },
-    {
-      "id": "10th",
-      "label": "E 10TH ST",
-      "tier": 2,
-      "p": [
-        [
-          -450,
-          -380
-        ],
-        [
-          450,
-          -380
-        ]
-      ]
-    },
-    {
-      "id": "16th",
-      "label": "E 16TH ST",
-      "tier": 2,
-      "p": [
-        [
-          -450,
-          420
-        ],
-        [
-          450,
-          420
-        ]
-      ]
-    },
-    {
-      "id": "greatwalk",
-      "label": "THE GREAT WALK",
-      "tier": 1,
-      "p": [
-        [
-          0,
-          -58
-        ],
-        [
-          0,
-          -250
-        ]
-      ]
+     "at": [
+      -300,
+      319
+     ],
+     "w": 3.2,
+     "h": 2.6
     }
-  ],
-  "turrets": [
+   ],
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "johnson",
+   "label": "ROBERT E. JOHNSON BLDG",
+   "footprint": [
+    [
+     -42.0,
+     410.0
+    ],
+    [
+     42.0,
+     410.0
+    ],
+    [
+     42.0,
+     450.0
+    ],
+    [
+     -42.0,
+     450.0
+    ]
+   ],
+   "heightM": 28,
+   "doors": [
     {
-      "id": "t-south",
-      "label": "TURRET · SOUTH LAWN",
-      "at": [
-        0,
-        -210
-      ],
-      "heightM": 3.0,
-      "homeAz": 0,
-      "homeEl": 5
-    },
-    {
-      "id": "t-west",
-      "label": "TURRET · WEST",
-      "at": [
-        -210,
-        0
-      ],
-      "heightM": 3.0,
-      "homeAz": 90,
-      "homeEl": 5
-    },
-    {
-      "id": "t-east",
-      "label": "TURRET · EAST",
-      "at": [
-        210,
-        0
-      ],
-      "heightM": 3.0,
-      "homeAz": 270,
-      "homeEl": 5
+     "at": [
+      0,
+      410
+     ],
+     "w": 3.2,
+     "h": 2.6
     }
-  ],
-  "gimbal": {
-    "panMinDeg": -180,
-    "panMaxDeg": 180,
-    "tiltMinDeg": -30,
-    "tiltMaxDeg": 60,
-    "slewDegPerSec": 45,
-    "hfovDeg": 34,
-    "vfovDeg": 20,
-    "nearM": 5,
+   ],
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "zavala",
+   "label": "LORENZO DE ZAVALA ARCHIVES",
+   "footprint": [
+    [
+     272.0,
+     37.0
+    ],
+    [
+     328.0,
+     37.0
+    ],
+    [
+     328.0,
+     83.0
+    ],
+    [
+     272.0,
+     83.0
+    ]
+   ],
+   "heightM": 20,
+   "doors": [
+    {
+     "at": [
+      272,
+      60
+     ],
+     "w": 3.2,
+     "h": 2.6
+    }
+   ],
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "supreme",
+   "label": "SUPREME COURT",
+   "footprint": [
+    [
+     -328.0,
+     37.0
+    ],
+    [
+     -272.0,
+     37.0
+    ],
+    [
+     -272.0,
+     83.0
+    ],
+    [
+     -328.0,
+     83.0
+    ]
+   ],
+   "heightM": 20,
+   "doors": [
+    {
+     "at": [
+      -272,
+      60
+     ],
+     "w": 3.2,
+     "h": 2.6
+    }
+   ],
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "clark",
+   "label": "TOM C. CLARK BLDG",
+   "footprint": [
+    [
+     -326.0,
+     -80.0
+    ],
+    [
+     -274.0,
+     -80.0
+    ],
+    [
+     -274.0,
+     -40.0
+    ],
+    [
+     -326.0,
+     -40.0
+    ]
+   ],
+   "heightM": 22,
+   "doors": [
+    {
+     "at": [
+      -274,
+      -60
+     ],
+     "w": 3.2,
+     "h": 2.6
+    }
+   ],
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "price-daniel",
+   "label": "PRICE DANIEL SR. BLDG",
+   "footprint": [
+    [
+     -326.0,
+     -205.0
+    ],
+    [
+     -274.0,
+     -205.0
+    ],
+    [
+     -274.0,
+     -165.0
+    ],
+    [
+     -326.0,
+     -165.0
+    ]
+   ],
+   "heightM": 22,
+   "doors": [
+    {
+     "at": [
+      -274,
+      -185
+     ],
+     "w": 3.2,
+     "h": 2.6
+    }
+   ],
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "visitors",
+   "label": "CAPITOL VISITORS CENTER",
+   "footprint": [
+    [
+     164.0,
+     -198.0
+    ],
+    [
+     196.0,
+     -198.0
+    ],
+    [
+     196.0,
+     -172.0
+    ],
+    [
+     164.0,
+     -172.0
+    ]
+   ],
+   "heightM": 16,
+   "doors": [
+    {
+     "at": [
+      180,
+      -172
+     ],
+     "w": 3.2,
+     "h": 2.6
+    }
+   ],
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "insurance",
+   "label": "INSURANCE ANNEX",
+   "footprint": [
+    [
+     289.0,
+     -201.0
+    ],
+    [
+     331.0,
+     -201.0
+    ],
+    [
+     331.0,
+     -169.0
+    ],
+    [
+     289.0,
+     -169.0
+    ]
+   ],
+   "heightM": 18,
+   "doors": [
+    {
+     "at": [
+      289,
+      -185
+     ],
+     "w": 3.2,
+     "h": 2.6
+    }
+   ],
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "mansion",
+   "label": "GOVERNOR'S MANSION",
+   "footprint": [
+    [
+     -401.0,
+     -269.0
+    ],
+    [
+     -359.0,
+     -269.0
+    ],
+    [
+     -359.0,
+     -233.0
+    ],
+    [
+     -401.0,
+     -233.0
+    ]
+   ],
+   "heightM": 14,
+   "doors": [
+    {
+     "at": [
+      -380,
+      -233
+     ],
+     "w": 3.2,
+     "h": 2.6
+    }
+   ],
+   "source": "hand-authored",
+   "confidence": "low",
+   "note": "anchored to the landmark already in mission-planning.tsx AOS.capitol (30.2724, -97.7443)"
+  },
+  {
+   "id": "workforce",
+   "label": "TEXAS WORKFORCE COMMISSION",
+   "footprint": [
+    [
+     -458.0,
+     159.0
+    ],
+    [
+     -402.0,
+     159.0
+    ],
+    [
+     -402.0,
+     201.0
+    ],
+    [
+     -458.0,
+     201.0
+    ]
+   ],
+   "heightM": 26,
+   "doors": [
+    {
+     "at": [
+      -402,
+      180
+     ],
+     "w": 3.2,
+     "h": 2.6
+    }
+   ],
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "greer",
+   "label": "DEWITT C. GREER BLDG",
+   "footprint": [
+    [
+     -456.0,
+     -78.0
+    ],
+    [
+     -404.0,
+     -78.0
+    ],
+    [
+     -404.0,
+     -42.0
+    ],
+    [
+     -456.0,
+     -42.0
+    ]
+   ],
+   "heightM": 24,
+   "doors": [
+    {
+     "at": [
+      -404,
+      -60
+     ],
+     "w": 3.2,
+     "h": 2.6
+    }
+   ],
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "extension-n",
+   "label": "CAPITOL EXTENSION SKYLIGHTS",
+   "footprint": [
+    [
+     -35.0,
+     107.0
+    ],
+    [
+     35.0,
+     107.0
+    ],
+    [
+     35.0,
+     153.0
+    ],
+    [
+     -35.0,
+     153.0
+    ]
+   ],
+   "heightM": 3,
+   "doors": [
+    {
+     "at": [
+      0,
+      107
+     ],
+     "w": 3.2,
+     "h": 2.6
+    }
+   ],
+   "source": "hand-authored",
+   "confidence": "low",
+   "note": "the extension is underground; only its north-lawn skylight band is above grade"
+  }
+ ],
+ "treeRows": [
+  {
+   "id": "great-walk-w",
+   "label": "GREAT WALK · WEST ROW",
+   "from": [
+    -28,
+    -72
+   ],
+   "to": [
+    -28,
+    -240
+   ],
+   "count": 13,
+   "trunkH": 3.5,
+   "canopyR": 3.2,
+   "canopyH": 5.5,
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "great-walk-e",
+   "label": "GREAT WALK · EAST ROW",
+   "from": [
+    28,
+    -72
+   ],
+   "to": [
+    28,
+    -240
+   ],
+   "count": 13,
+   "trunkH": 3.5,
+   "canopyR": 3.2,
+   "canopyH": 5.5,
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "north-lawn-w",
+   "label": "NORTH LAWN · WEST",
+   "from": [
+    -150,
+    90
+   ],
+   "to": [
+    -150,
+    270
+   ],
+   "count": 7,
+   "trunkH": 4.0,
+   "canopyR": 4.0,
+   "canopyH": 6.5,
+   "source": "hand-authored",
+   "confidence": "low"
+  },
+  {
+   "id": "north-lawn-e",
+   "label": "NORTH LAWN · EAST",
+   "from": [
+    150,
+    90
+   ],
+   "to": [
+    150,
+    270
+   ],
+   "count": 7,
+   "trunkH": 4.0,
+   "canopyR": 4.0,
+   "canopyH": 6.5,
+   "source": "hand-authored",
+   "confidence": "low"
+  }
+ ],
+ "roads": [
+  {
+   "id": "11th",
+   "label": "E 11TH ST",
+   "tier": 3,
+   "p": [
+    [
+     -450,
+     -250
+    ],
+    [
+     450,
+     -250
+    ]
+   ]
+  },
+  {
+   "id": "15th",
+   "label": "E 15TH ST",
+   "tier": 3,
+   "p": [
+    [
+     -450,
+     300
+    ],
+    [
+     450,
+     300
+    ]
+   ]
+  },
+  {
+   "id": "colorado",
+   "label": "COLORADO ST",
+   "tier": 2,
+   "p": [
+    [
+     -230,
+     -350
+    ],
+    [
+     -230,
+     400
+    ]
+   ]
+  },
+  {
+   "id": "brazos",
+   "label": "BRAZOS ST",
+   "tier": 2,
+   "p": [
+    [
+     230,
+     -350
+    ],
+    [
+     230,
+     400
+    ]
+   ]
+  },
+  {
+   "id": "lavaca",
+   "label": "LAVACA ST",
+   "tier": 2,
+   "p": [
+    [
+     -350,
+     -350
+    ],
+    [
+     -350,
+     400
+    ]
+   ]
+  },
+  {
+   "id": "sanjacinto",
+   "label": "SAN JACINTO",
+   "tier": 2,
+   "p": [
+    [
+     350,
+     -350
+    ],
+    [
+     350,
+     400
+    ]
+   ]
+  },
+  {
+   "id": "congress",
+   "label": "CONGRESS AVE",
+   "tier": 4,
+   "p": [
+    [
+     0,
+     -250
+    ],
+    [
+     0,
+     -450
+    ]
+   ]
+  },
+  {
+   "id": "10th",
+   "label": "E 10TH ST",
+   "tier": 2,
+   "p": [
+    [
+     -450,
+     -380
+    ],
+    [
+     450,
+     -380
+    ]
+   ]
+  },
+  {
+   "id": "16th",
+   "label": "E 16TH ST",
+   "tier": 2,
+   "p": [
+    [
+     -450,
+     420
+    ],
+    [
+     450,
+     420
+    ]
+   ]
+  },
+  {
+   "id": "greatwalk",
+   "label": "THE GREAT WALK",
+   "tier": 1,
+   "p": [
+    [
+     0,
+     -58
+    ],
+    [
+     0,
+     -250
+    ]
+   ]
+  }
+ ],
+ "turrets": [
+  {
+   "id": "t-south",
+   "label": "TURRET · SOUTH LAWN",
+   "at": [
+    0,
+    -210
+   ],
+   "heightM": 3.0,
+   "homeAz": 0,
+   "homeEl": 5
+  },
+  {
+   "id": "t-west",
+   "label": "TURRET · WEST",
+   "at": [
+    -210,
+    0
+   ],
+   "heightM": 3.0,
+   "homeAz": 90,
+   "homeEl": 5
+  },
+  {
+   "id": "t-east",
+   "label": "TURRET · EAST",
+   "at": [
+    210,
+    0
+   ],
+   "heightM": 3.0,
+   "homeAz": 270,
+   "homeEl": 5
+  }
+ ],
+ "gimbal": {
+  "panMinDeg": -180,
+  "panMaxDeg": 180,
+  "tiltMinDeg": -30,
+  "tiltMaxDeg": 60,
+  "slewDegPerSec": 45,
+  "hfovDeg": 34,
+  "vfovDeg": 20,
+  "nearM": 5,
+  "rangeM": 400,
+  "note": "ONE gimbal. The same record drives a fixed turret and an airframe mount — the operator's rule: 'design must be the same for both'."
+ },
+ "airframe": {
+  "id": "vtol-01",
+  "class": "fixed-wing VTOL (quadcopter <-> plane), Quantum-Systems-class",
+  "geometry": {
+   "source": "docs/security-2525/xbat-wireframe/xbat.wire.json",
+   "sourceNote": "The drawing's OWN header is the authority: xbat_3rdpass_wireframe.obj:2 reads '# X span, Y depth, Z vertical nose-up axis', and xbat_3rdpass_wireframe.py:13-15 repeats it. The carried model declared forward:'x', which was wrong, and scripts/build-airframe-glyph.mjs believed it — so the shipped extent was three correct measurements under three wrong names. Corrected 2026-09-16; see docs/asks/2026-09-16_foil_1m_five_levels_world.md.",
+   "sourceAxes": {
+    "span": "x",
+    "depth": "y",
+    "noseToTail": "z"
+   },
+   "sourceExtentM": {
+    "span": 38.579462,
+    "depth": 8.627519,
+    "noseToTail": 26.2
+   },
+   "bodyAxes": {
+    "forward": "z",
+    "right": "x",
+    "up": "y",
+    "note": "How the drawing's axes map into the app's body frame (forward +x, right +y, up +z). The model is drawn nose-UP, standing on its tail, so its vertical axis is the fuselage."
+   },
+   "scale": "foil-1.111",
+   "spanM": 1.111,
+   "noseToTailM": 0.7777,
+   "depthM": 0.2522,
+   "fullScaleM": {
+    "span": 11.111,
+    "noseToTail": 7.777
+   },
+   "scaleNote": "Operator 2026-09-16: 'make fix wing aircraft 1 m foil and proportional'. 1.111 x 0.7777 is the demo scale of his own FOIL package and is proportional to the full 11.111 x 7.777 to within 0.07 mm on the span. Against the SOURCE drawing it is a 3.07% stretch along the fuselage, which is intentional: his manifest specifies non-uniform scaling and gives the rule for depth, quoted next.",
+   "depthRule": "depth scaled with geometric mean of span and length scales (FOIL_full_11_111x7_777_manifest.json, dimensions_m.depth_scale_note)",
+   "scales": {
+    "span": 0.028798,
+    "noseToTail": 0.029683,
+    "depth": 0.029237
+   },
+   "planformM2": 0.3092,
+   "planformMethod": "Integrated from the drawing itself: group the 901 vertices by nose-to-tail station (the loft has 94 distinct ribs), take the half-span at each, trapezoid the full width between them, then scale by span x length. Bucketing into fixed bins does NOT converge — the ribs are discrete, so empty bins read as zero area and the answer halves every time you double the bins. 361.6614 m2 at the source, 0.3092 m2 at the foil, which is 72% of a plain delta of the same span and length.",
+   "namingRule": "Drone-2525 calls this aircraft the FOIL and does not use its other name (operator 2026-09-16: 'which we will not say in Drone-2525 so as not to upset Shield AI'). The `source` and `sourceNote` fields above are the ONLY place the other name may appear anywhere on this surface, and only as a filesystem path and a correction record — a derivation that cannot name its source cannot be verified. Enforced by frontend/tests/drone-naming.test.mjs, which refuses the token everywhere else."
+  },
+  "massKg": 5.0,
+  "wingAreaM2": 0.3092,
+  "CLmax": 1.3,
+  "CLcruise": 0.6,
+  "CD0": 0.04,
+  "cruiseMs": 17,
+  "VneMs": 30,
+  "rotors": 4,
+  "rotorThrustMaxN": 110,
+  "hoverPowerW": 900,
+  "cruisePowerW": 180,
+  "transitionMinAglM": 20,
+  "rhoKgM3": 1.18,
+  "note": "Brochure-class public figures for a 5 kg VTOL, EXCEPT wingAreaM2, which is no longer asserted: it is derived from the drawing by geometry.planformMethod and gated by frontend/tests/airframe-truth.test.mjs. It read 0.9 m2 until 2026-09-16 — 2.9x the area the aircraft actually has — because the physics record and the drawing were two unconnected descriptions of 'the aircraft' that never met in code. BOUNDING ESTIMATE ONLY - not design evidence."
+ },
+ "battery": {
+  "capacityWh": 300,
+  "reserveFrac": 0.2,
+  "note": "Reserve is never spent by the sim; endurance is quoted on the usable 80%."
+ },
+ "beam": {
+  "wavelengthNm": 1064,
+  "class": "Nd:YAG-class continuous emitter, game scale",
+  "powerW": 2000,
+  "apertureRadiusM": 0.05,
+  "divergenceMrad": 0.5,
+  "attenuationPerKm": 0.12,
+  "maxRangeM": 700,
+  "lockS": 0.35,
+  "note": "BOUNDING ESTIMATE ONLY - not design evidence and not a real weapon. Chosen so the dwell a player feels lands where the game wants it: well under a second in close, a few seconds at the gimbal's declared range, and a slog beyond it. Range matters because the beam spreads and the air absorbs, which is the one physical fact the whole engagement turns on. Fine-track lock is 0.35 s: the director needs that long back on a target before full power, so flicking between targets is a losing tactic and holding is the game.",
+  "dwellTable": [
+   {
+    "rangeM": 100,
+    "irradianceWcm2": 6.29,
+    "shieldDownS": 0.65,
+    "disableS": 0.97
+   },
+   {
+    "rangeM": 200,
+    "irradianceWcm2": 2.762,
+    "shieldDownS": 1.26,
+    "disableS": 1.99
+   },
+   {
+    "rangeM": 300,
+    "irradianceWcm2": 1.535,
+    "shieldDownS": 2.13,
+    "disableS": 3.43
+   },
+   {
     "rangeM": 400,
-    "note": "ONE gimbal. The same record drives a fixed turret and an airframe mount — the operator's rule: 'design must be the same for both'."
-  },
-  "airframe": {
-    "id": "vtol-01",
-    "class": "fixed-wing VTOL (quadcopter <-> plane), Quantum-Systems-class",
-    "geometry": {
-      "source": "docs/security-2525/xbat-wireframe/xbat.wire.json",
-      "sourceNote": "The drawing's OWN header is the authority: xbat_3rdpass_wireframe.obj:2 reads '# X span, Y depth, Z vertical nose-up axis', and xbat_3rdpass_wireframe.py:13-15 repeats it. The carried model declared forward:'x', which was wrong, and scripts/build-airframe-glyph.mjs believed it — so the shipped extent was three correct measurements under three wrong names. Corrected 2026-09-16; see docs/asks/2026-09-16_foil_1m_five_levels_world.md.",
-      "sourceAxes": {
-        "span": "x",
-        "depth": "y",
-        "noseToTail": "z"
-      },
-      "sourceExtentM": {
-        "span": 38.579462,
-        "depth": 8.627519,
-        "noseToTail": 26.2
-      },
-      "bodyAxes": {
-        "forward": "z",
-        "right": "x",
-        "up": "y",
-        "note": "How the drawing's axes map into the app's body frame (forward +x, right +y, up +z). The model is drawn nose-UP, standing on its tail, so its vertical axis is the fuselage."
-      },
-      "scale": "foil-1.111",
-      "spanM": 1.111,
-      "noseToTailM": 0.7777,
-      "depthM": 0.2522,
-      "fullScaleM": {
-        "span": 11.111,
-        "noseToTail": 7.777
-      },
-      "scaleNote": "Operator 2026-09-16: 'make fix wing aircraft 1 m foil and proportional'. 1.111 x 0.7777 is the demo scale of his own FOIL package and is proportional to the full 11.111 x 7.777 to within 0.07 mm on the span. Against the SOURCE drawing it is a 3.07% stretch along the fuselage, which is intentional: his manifest specifies non-uniform scaling and gives the rule for depth, quoted next.",
-      "depthRule": "depth scaled with geometric mean of span and length scales (FOIL_full_11_111x7_777_manifest.json, dimensions_m.depth_scale_note)",
-      "scales": {
-        "span": 0.028798,
-        "noseToTail": 0.029683,
-        "depth": 0.029237
-      },
-      "planformM2": 0.3092,
-      "planformMethod": "Integrated from the drawing itself: group the 901 vertices by nose-to-tail station (the loft has 94 distinct ribs), take the half-span at each, trapezoid the full width between them, then scale by span x length. Bucketing into fixed bins does NOT converge — the ribs are discrete, so empty bins read as zero area and the answer halves every time you double the bins. 361.6614 m2 at the source, 0.3092 m2 at the foil, which is 72% of a plain delta of the same span and length.",
-      "namingRule": "Drone-2525 calls this aircraft the FOIL and does not use its other name (operator 2026-09-16: 'which we will not say in Drone-2525 so as not to upset Shield AI'). The `source` and `sourceNote` fields above are the ONLY place the other name may appear anywhere on this surface, and only as a filesystem path and a correction record — a derivation that cannot name its source cannot be verified. Enforced by frontend/tests/drone-naming.test.mjs, which refuses the token everywhere else."
-    },
-    "massKg": 5.0,
-    "wingAreaM2": 0.3092,
-    "CLmax": 1.3,
-    "CLcruise": 0.6,
-    "CD0": 0.04,
-    "cruiseMs": 17,
-    "VneMs": 30,
-    "rotors": 4,
-    "rotorThrustMaxN": 110,
-    "hoverPowerW": 900,
-    "cruisePowerW": 180,
-    "transitionMinAglM": 20,
-    "rhoKgM3": 1.18,
-    "note": "Brochure-class public figures for a 5 kg VTOL, EXCEPT wingAreaM2, which is no longer asserted: it is derived from the drawing by geometry.planformMethod and gated by frontend/tests/airframe-truth.test.mjs. It read 0.9 m2 until 2026-09-16 — 2.9x the area the aircraft actually has — because the physics record and the drawing were two unconnected descriptions of 'the aircraft' that never met in code. BOUNDING ESTIMATE ONLY - not design evidence."
-  },
-  "battery": {
-    "capacityWh": 300,
-    "reserveFrac": 0.2,
-    "note": "Reserve is never spent by the sim; endurance is quoted on the usable 80%."
-  },
-  "beam": {
-    "wavelengthNm": 1064,
-    "class": "Nd:YAG-class continuous emitter, game scale",
-    "powerW": 2000,
-    "apertureRadiusM": 0.05,
-    "divergenceMrad": 0.5,
-    "attenuationPerKm": 0.12,
-    "maxRangeM": 700,
-    "lockS": 0.35,
-    "note": "BOUNDING ESTIMATE ONLY - not design evidence and not a real weapon. Chosen so the dwell a player feels lands where the game wants it: well under a second in close, a few seconds at the gimbal's declared range, and a slog beyond it. Range matters because the beam spreads and the air absorbs, which is the one physical fact the whole engagement turns on. Fine-track lock is 0.35 s: the director needs that long back on a target before full power, so flicking between targets is a losing tactic and holding is the game.",
-    "dwellTable": [
-      {
-        "rangeM": 100,
-        "irradianceWcm2": 6.29,
-        "shieldDownS": 0.65,
-        "disableS": 0.97
-      },
-      {
-        "rangeM": 200,
-        "irradianceWcm2": 2.762,
-        "shieldDownS": 1.26,
-        "disableS": 1.99
-      },
-      {
-        "rangeM": 300,
-        "irradianceWcm2": 1.535,
-        "shieldDownS": 2.13,
-        "disableS": 3.43
-      },
-      {
-        "rangeM": 400,
-        "irradianceWcm2": 0.971,
-        "shieldDownS": 3.27,
-        "disableS": 5.33
-      },
-      {
-        "rangeM": 500,
-        "irradianceWcm2": 0.666,
-        "shieldDownS": 4.68,
-        "disableS": 7.68
-      },
-      {
-        "rangeM": 600,
-        "irradianceWcm2": 0.484,
-        "shieldDownS": 6.38,
-        "disableS": 10.51
-      },
-      {
-        "rangeM": 700,
-        "irradianceWcm2": 0.366,
-        "shieldDownS": 8.38,
-        "disableS": 13.84
-      }
-    ]
-  },
-  "defences": {
-    "shieldJcm2": 3.0,
-    "hullJcm2": 2.0,
-    "shieldRegenJcm2PerS": 0.5,
-    "shieldRegenDelayS": 2.0,
-    "hullCoolJcm2PerS": 0.35,
-    "descentMs": 1.6,
-    "touchdownAglM": 0.3,
-    "note": "Independence Day: the shield absorbs first and nothing reaches the airframe until it fails. Ender's Game and the operator's own words: a defeated aircraft is DISABLED and flown down under control, never deleted in the air. Battle House: it comes back, it is not exterminated."
-  },
-  "sensor": {
-    "profile": "pi-baseline",
-    "note": "Edge extraction budget comes out of the frame before the renderer (lib/wire-core/fidelity.ts)."
-  },
-  "targets": {
-    "kind": "door",
-    "seed": 20260915,
-    "upMs": 14000,
-    "downMs": 6000,
-    "concurrent": 3,
-    "note": "Every building door is a pop-up target. Tag it by CAPTURE (store the sensor edge set) then SHOOT (line of sight must reach it). The up-window is not a taste value: a target must stay up longer than the worst swing to reach it (4s at 45°/s for half a turn) plus time to aim and press, or the round is unwinnable by construction. Gated in tests/drone-gimbal.test.mjs."
-  },
-  "modes": [
-    {
-      "id": "turrets",
-      "label": "Security Turrets",
-      "mount": "turret",
-      "movingTargets": false,
-      "pass": 1
-    },
-    {
-      "id": "capital",
-      "label": "Security Capital",
-      "mount": "turret",
-      "movingTargets": false,
-      "pass": 1
-    },
-    {
-      "id": "drone",
-      "label": "2 HI operated drone",
-      "mount": "airframe",
-      "roles": [
-        "pilot",
-        "targeteer"
-      ],
-      "pass": "1b"
-    },
-    {
-      "id": "multi",
-      "label": "HI/AI pilot + targeteer, HI approves every shot",
-      "mount": "airframe",
-      "roles": [
-        "pilot",
-        "targeteer",
-        "approver"
-      ],
-      "pass": "1c"
-    }
-  ],
-  "crs": [
-    {
-      "id": "DRN-01",
-      "title": "Arena frame and tiles",
-      "statement": "The arena is an ENU frame on the Texas Capitol origin, and every building, tree, road and contour it draws is either carried from the repo, hand-authored and badged, or read from a map extract.",
-      "in": "DRN-01.IN",
-      "out": "DRN-01.OUT",
-      "section": "VII",
-      "uwf": [
-        "U-WF-01"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "tile gate green; every element carries a source",
-      "verify": "tests/drone-capitol-tiles.test.mjs",
-      "dtm": "hand-authored block renders",
-      "stretch": "OSM extract replaces it with zero code change",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-02",
-      "title": "Canonical wire model and one-step export",
-      "statement": "One model feeds the browser and the four engine targets, and a change is visible in all of them or none.",
-      "in": "DRN-02.IN",
-      "out": "DRN-02.OUT",
-      "section": "VIII",
-      "uwf": [
-        "U-WF-02",
-        "U-WF-05",
-        "U-WF-08"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "lossless round trip on the FOIL wireframe",
-      "verify": "tests/wire-export.test.mjs",
-      "dtm": "py/obj/cs/cpp from one model",
-      "stretch": "every domain exports through it",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-03",
-      "title": "Edge primitives",
-      "statement": "Buildings, trees, roads and contours draw as edges only, with door and window openings in their real wall.",
-      "in": "DRN-03.IN",
-      "out": "DRN-03.OUT",
-      "section": "XII",
-      "uwf": [
-        "U-WF-02",
-        "U-WF-10"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "no fill on any drawn element",
-      "verify": "tests/wire-core.test.mjs · tests/vector-law.test.mjs",
-      "dtm": "Capitol block renders as edges",
-      "stretch": "shared with Architect and Security",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-04",
-      "title": "One gimbal for turret and airframe",
-      "statement": "The same mount and gimbal record drives a fixed turret and a drone, so nothing learned on the turret is thrown away on the airframe.",
-      "in": "DRN-04.IN",
-      "out": "DRN-04.OUT",
-      "section": "IV",
-      "uwf": [
-        "U-WF-02"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "identical frustum model from both mounts",
-      "verify": "tests/drone-gimbal.test.mjs",
-      "dtm": "turret slews and frames a door",
-      "stretch": "airframe mount reuses it unchanged",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-05",
-      "title": "Capture and shoot with line of sight",
-      "statement": "A capture stores the sensor's extracted edges, and a shot only counts when the ray actually reaches the door.",
-      "in": "DRN-05.IN",
-      "out": "DRN-05.OUT",
-      "section": "V",
-      "uwf": [
-        "U-WF-06"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "occluded shots are refused",
-      "verify": "tests/drone-game.test.mjs",
-      "dtm": "tag a door by capture then shot",
-      "stretch": "live camera behind the same interface",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-06",
-      "title": "Score and replay",
-      "statement": "A completed capture or shot is written to the replay log before the score moves, so nothing that happened can be lost.",
-      "in": "DRN-06.IN",
-      "out": "DRN-06.OUT",
-      "section": "VI",
-      "uwf": [
-        "U-WF-06",
-        "U-WF-08"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "replay reproduces the score and the hash",
-      "verify": "tests/drone-game.test.mjs",
-      "dtm": "a round replays identically",
-      "stretch": "portable .drn2525 file",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-07",
-      "title": "Command surface, route and unlock",
-      "statement": "The domain has its own route and its card is enterable, drawn under the vector law at any viewport down to 375 px.",
-      "in": "DRN-07.IN",
-      "out": "DRN-07.OUT",
-      "section": "I",
-      "uwf": [
-        "U-WF-12"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "route builds; card enters",
-      "verify": "next build · tests/vector-law.test.mjs",
-      "dtm": "arena visible on a phone",
-      "stretch": "two devices in one session",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-08",
-      "title": "Flight and energy, bounded",
-      "statement": "The flight model is a bounding estimate that says so on every run, and its published numbers reproduce from the source constants.",
-      "in": "DRN-08.IN",
-      "out": "DRN-08.OUT",
-      "section": "IX",
-      "uwf": [],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "--reproduce reports zero drift",
-      "verify": "tests/drone-flight.test.mjs",
-      "dtm": "hover and cruise endurance",
-      "stretch": "VTOL transition envelope",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-09",
-      "title": "Two operators, two devices",
-      "statement": "The pilot is the only sender of flight state and the targeteer the only sender of gimbal commands.",
-      "in": "DRN-09.IN",
-      "out": "DRN-09.OUT",
-      "section": "III",
-      "uwf": [],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "role authority refuses a wrong sender",
-      "verify": "tests/drone-link.test.mjs",
-      "dtm": "two phones share one round",
-      "stretch": "hosted realtime",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-10",
-      "title": "AI roles under human approval",
-      "statement": "An AI-initiated shot never fires without a human approval event.",
-      "in": "DRN-10.IN",
-      "out": "DRN-10.OUT",
-      "section": "X",
-      "uwf": [],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "no shot without an approve event",
-      "verify": "tests/drone-game.test.mjs",
-      "dtm": "AI proposes, human approves",
-      "stretch": "both AI seats with humans watching",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-11",
-      "title": "Vector law, the 13, and adaptive fidelity",
-      "statement": "Everything drawn is edges in one of the 13 colours, and resolution and frame rate rise only with compute left over after the Edge sensor's CNN reserve.",
-      "in": "DRN-11.IN",
-      "out": "DRN-11.OUT",
-      "section": "XI",
-      "uwf": [
-        "U-WF-07",
-        "U-WF-09",
-        "U-WF-11"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "model hash identical at every tier; LOW holds a Pi budget",
-      "verify": "tests/drone-fidelity.test.mjs · tests/vector-law.test.mjs",
-      "dtm": "four tiers, one truth",
-      "stretch": "accelerator profile reaches ULTRA",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-12",
-      "title": "Every word in 33 languages",
-      "statement": "No user-facing string is English in the source; every one is a lexicon key present in all 33 languages.",
-      "in": "DRN-12.IN",
-      "out": "DRN-12.OUT",
-      "section": "XIII",
-      "uwf": [],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "lexicon coverage green with no pending keys",
-      "verify": "tests/lexicon-coverage.test.mjs · tests/drone-i18n.test.mjs",
-      "dtm": "keys staged and listed",
-      "stretch": "filled in all 32 non-English",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-13",
-      "title": "Versioned, revisioned, comparable",
-      "statement": "Every edition of this specification appends a revision that cites its commit, and any two revisions can be replayed and compared.",
-      "in": "DRN-13.IN",
-      "out": "DRN-13.OUT",
-      "section": "II",
-      "uwf": [
-        "U-WF-12"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "ledger validates; render --check clean",
-      "verify": "tests/traceability.test.mjs · tests/drone-crs.test.mjs",
-      "dtm": "Version 00.00 revision 0.001",
-      "stretch": "CRS rows compare in /crs",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-11.01",
-      "title": "The MoT ladder: five compute bands by five resolution steps",
-      "statement": "Detail and sensing are asked for on a 25-rung ladder, 1.1 through 5.5, where the band is the edge-compute class and the step is the resolution; rung 1.1 is the 1983 vector arcade and is the fastest picture the machine can make.",
-      "in": "DRN-11.01.IN",
-      "out": "DRN-11.01.OUT",
-      "section": "XI",
-      "uwf": [
-        "U-WF-07",
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "ladder monotonic in both axes; 1.1 asks for more frames than 5.5",
-      "verify": "tests/mot-ladder.test.mjs",
-      "dtm": "25 rungs selectable",
-      "stretch": "a robot picks its own rung unattended",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-11.04",
-      "title": "Demand and capability are separate, and never mixed",
-      "statement": "What the picture asks for (the rung) and what the machine can deliver (the HAL class and the measured frame rate) are different quantities held in different modules, and only calibration is allowed to reconcile them.",
-      "in": "DRN-11.04.IN",
-      "out": "DRN-11.04.OUT",
-      "section": "XI",
-      "uwf": [
-        "U-WF-07"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "a richer rung never asks for a faster picture",
-      "verify": "tests/mot-ladder.test.mjs",
-      "dtm": "the old inverted four-tier table is gone",
-      "stretch": "the same split serves every 2525 domain",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-05.03",
-      "title": "Multi-sensor fusion, shed from the top and never blind",
-      "statement": "Sensing runs EO, IR, ACOUSTIC, MAG and CHEM, one more module per compute band; when the frame will not hold, modules are shed from the top of that ladder and EO is never shed, because a unit that cannot see is not degraded but blind.",
-      "in": "DRN-05.03.IN",
-      "out": "DRN-05.03.OUT",
-      "section": "V",
-      "uwf": [
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "EO survives every degradation path",
-      "verify": "tests/mot-ladder.test.mjs",
-      "dtm": "five modules declared per band",
-      "stretch": "a real sensor replaces the simulated one behind the same interface",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-11.05",
-      "title": "Hold 1080p30, and name every step down from it",
-      "statement": "The unit tries to hold a 1920x1080 30 Hz reference stream; when it cannot it sheds a sensor module, then resolution, then frame rate, in that order, and every step is named on screen rather than taken silently.",
-      "in": "DRN-11.05.IN",
-      "out": "DRN-11.05.OUT",
-      "section": "XI",
-      "uwf": [
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "degradation order fixed; climb needs sustained headroom",
-      "verify": "tests/mot-ladder.test.mjs",
-      "dtm": "stream ladder live in the HUD",
-      "stretch": "the same ladder drives a real encoder",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-11.06",
-      "title": "Self-test: the rung this machine actually holds, in 6 to 15 minutes",
-      "statement": "Pointed at a new board or a new sensor, the unit walks the ladder from 1.1 upward under real drawing load, measures a sustained frame rate at each rung, and reports the highest rung it holds at the reference stream, inside a declared 6 to 15 minute budget.",
-      "in": "DRN-11.06.IN",
-      "out": "DRN-11.06.OUT",
-      "section": "XI",
-      "uwf": [
-        "U-WF-06",
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "dwell derived from the budget; sweep stops early after two failures",
-      "verify": "tests/self-cal-runner.test.mjs",
-      "dtm": "a saved result file naming the ceiling",
-      "stretch": "run headless on the robot itself",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-11.07",
-      "title": "The robot may pick its own compute class",
-      "statement": "Three compute classes are declared with their frame budgets and sensor costs, and AUTO lets the unit choose its own class from the frame rate it measures rather than from a label someone typed.",
-      "in": "DRN-11.07.IN",
-      "out": "DRN-11.07.OUT",
-      "section": "XI",
-      "uwf": [
-        "U-WF-07"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "AUTO thresholds derived from the budgets themselves",
-      "verify": "tests/mot-ladder.test.mjs",
-      "dtm": "PI / EDGE-SOC / ACCELERATOR selectable",
-      "stretch": "a fourth class added without touching a caller",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-10.01",
-      "title": "Shared Intent: a key group, switched on or off",
-      "statement": "A closed group of named people may be switched on to weigh in on decisions; off is the normal state and the round behaves exactly as it does without them.",
-      "in": "DRN-10.01.IN",
-      "out": "DRN-10.01.OUT",
-      "section": "X",
-      "uwf": [
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "no call can open while it is off; switching off closes any open call",
-      "verify": "tests/si-pod.test.mjs",
-      "dtm": "the switch and a closed roster",
-      "stretch": "the group is a real polling session on Cube 1",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-10.02",
-      "title": "Key members only, by invitation",
-      "statement": "Reaching the group's call needs a code issued to named people; an empty roster produces no invitation rather than an open link, and the right code in the wrong hands is refused.",
-      "in": "DRN-10.02.IN",
-      "out": "DRN-10.02.OUT",
-      "section": "X",
-      "uwf": [
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "both halves must hold: on the roster, and a live code",
-      "verify": "tests/si-pod.test.mjs",
-      "dtm": "a code and a scannable square",
-      "stretch": "delivery through the operator's own channel",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-10.03",
-      "title": "The group advises; a named person decides",
-      "statement": "Consensus is shown beside the decision a person is about to make and can never make it: no function in the consensus engine can retire a shot request or open the authority gate, and a unanimous group changes nothing about what may fire.",
-      "in": "DRN-10.03.IN",
-      "out": "DRN-10.03.OUT",
-      "section": "X",
-      "uwf": [
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "the two modules do not import each other; unanimity does not open the gate",
-      "verify": "tests/si-pod.test.mjs",
-      "dtm": "advice beside the question",
-      "stretch": "the same rule wherever a crowd meets an authority",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-10.04",
-      "title": "Volunteer input, recognised on the ladder that already exists",
-      "statement": "Answering is voluntary and silence counts as nothing; a contribution is recognised as noted, and as adopted only after the decision went the way it argued, using the three fixed heart values the pod ladder already declares rather than a fourth invented here.",
-      "in": "DRN-10.04.IN",
-      "out": "DRN-10.04.OUT",
-      "section": "X",
-      "uwf": [
-        "U-WF-06"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "no value outside the declared ladder; silence earns nothing",
-      "verify": "tests/si-pod.test.mjs",
-      "dtm": "a readable record of what was valued",
-      "stretch": "entries reach the Cube 8 append-only ledger",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-09.01",
-      "title": "A seat may only send what that seat controls",
-      "statement": "The pilot flies and cannot aim, photograph or shoot; the targeteer aims, photographs and shoots and cannot fly; a message whose payload does not belong to the seat that sent it is refused on the way in as well as on the way out.",
-      "in": "DRN-09.01.IN",
-      "out": "DRN-09.01.OUT",
-      "section": "III",
-      "uwf": [
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "the other seat's controls are absent, not disabled",
-      "verify": "tests/drone-link.test.mjs",
-      "dtm": "two seats that cannot do each other's job",
-      "stretch": "the same rule for a third seat",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-09.02",
-      "title": "Three paths carry every word between the two devices",
-      "statement": "A crew message goes out on another tab, on shared storage and through a cloud endpoint at once; any one arriving is the message delivered and the duplicates the others produce are dropped without being counted as errors.",
-      "in": "DRN-09.02.IN",
-      "out": "DRN-09.02.OUT",
-      "section": "III",
-      "uwf": [
-        "U-WF-06"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "two separate browser profiles exchange flight and aim",
-      "verify": "scripts/drone-crew-e2e.mjs",
-      "dtm": "a phone and a computer flying one aircraft",
-      "stretch": "a fourth path when one is provisioned",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-11.08",
-      "title": "Measured, not assumed, on a slowed processor",
-      "statement": "Performance is reported from real painted frames on a processor slowed ten times, because a desktop pins every case at the refresh rate and hides any change; the heaviest case is the one quoted.",
-      "in": "DRN-11.08.IN",
-      "out": "DRN-11.08.OUT",
-      "section": "XI",
-      "uwf": [
-        "U-WF-07"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "48.0 to 57.3 fps at level 5.5, ten times slowed",
-      "verify": "scripts/drone-perf.mjs",
-      "dtm": "a before and after that can be compared",
-      "stretch": "run on the real board",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-13.01",
-      "title": "Nine runs, or it is not determinism",
-      "statement": "Every gate runs nine times and every reproducible artefact — the model hash, the schedule, a flown path, a crew code, the rung verdicts — must be byte-identical across all nine, and the spiral is asserted in both directions rather than asserted about.",
-      "in": "DRN-13.01.IN",
-      "out": "DRN-13.01.OUT",
-      "section": "II",
-      "uwf": [
-        "U-WF-08"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "1,395 checks per run, nine runs, zero drift, ten spiral checks",
-      "verify": "scripts/drone-spiral9.mjs",
-      "dtm": "a report a reviewer can re-run",
-      "stretch": "the same harness for every domain",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-09.03",
-      "title": "Forty-two aircraft, twenty-one against twenty-one",
-      "statement": "An engagement puts 42 aircraft in the air as two opposing sides of 21, held in flat columns so a tick allocates nothing, and drawn as an overlay in the arena's own camera batched into a handful of paths.",
-      "in": "DRN-09.03.IN",
-      "out": "DRN-09.03.OUT",
-      "section": "III",
-      "uwf": [
-        "U-WF-02",
-        "U-WF-07"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "a tick allocates nothing; 42 aircraft at rung 2.3 hold the 30 Hz reference on a processor slowed ten times",
-      "verify": "tests/drone-swarm.test.mjs · scripts/drone-perf.mjs",
-      "dtm": "42 aircraft flying",
-      "stretch": "the same columns carry a thousand",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-11.09",
-      "title": "One budget, two consumers: the aircraft are the world",
-      "statement": "In an engagement the swarm takes its share of the rung's segment budget first and the Capitol block takes what is left, so at a poor rung the world thins rather than the aircraft vanishing; and every aircraft is drawn at the smallest size before any is given detail.",
-      "in": "DRN-11.09.IN",
-      "out": "DRN-11.09.OUT",
-      "section": "XI",
-      "uwf": [
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "all 42 drawn at every one of the 25 rungs",
-      "verify": "tests/drone-swarm.test.mjs",
-      "dtm": "42 drawn at rung 1.1 with the world at 112 segments",
-      "stretch": "the same rule wherever a budget is shared",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-10.05",
-      "title": "Five authority levels, and silence is never consent on any of them",
-      "statement": "Autonomy rides on the band that already exists: level 1 a named person per shot, level 5 the key group's live lean as a standing mandate it can end at once; at every level a named human decision exists before any machine shot, and what scales is the breadth of one decision rather than whether one happened.",
-      "in": "DRN-10.05.IN",
-      "out": "DRN-10.05.OUT",
-      "section": "X",
-      "uwf": [
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "a refusal from all five levels when nothing has been decided",
-      "verify": "tests/drone-authority.test.mjs",
-      "dtm": "five levels selectable",
-      "stretch": "the ladder serves any domain with a machine and an authority",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-13.02",
-      "title": "A score that can fall",
-      "statement": "Every SSSES pillar is computed from evidence produced in the same run — authority checks, nine-run drift, measured frames against the declared reference, whether the projection memo demonstrably holds, and duplication and dead exports counted from the source — and a performance file measured at a different commit is refused rather than trusted.",
-      "in": "DRN-13.02.IN",
-      "out": "DRN-13.02.OUT",
-      "section": "II",
-      "uwf": [
-        "U-WF-08"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "no pillar is a literal; the score fell before it rose",
-      "verify": "scripts/drone-spiral9.mjs",
-      "dtm": "a score a reviewer can re-derive",
-      "stretch": "the same scorer for every domain",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-05.04",
-      "title": "The beam, the shield, and the time it takes",
-      "statement": "Engagement is a fluence model, not hit points: irradiance at the target falls with beam spread and atmospheric loss, so the same emitter needs under a second in close and seconds at reach, and a fine-track lock means a broken beam loses its progress. The shield absorbs first and nothing reaches the airframe until it fails.",
-      "in": "DRN-05.04.IN",
-      "out": "DRN-05.04.OUT",
-      "section": "V",
-      "uwf": [
-        "U-WF-09",
-        "U-WF-11"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "the published dwell table is what the model computes, at every range",
-      "verify": "frontend/tests/drone-laser.test.mjs",
-      "dtm": "a player learns to close and to hold, without being told",
-      "stretch": "a real emitter profile behind the same interface",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-05.05",
-      "title": "Nothing is destroyed in the air",
-      "statement": "A defeated aircraft is DISABLED and flown down under control to a safe landing. There is no reachable state called destroyed, and a beam on an aircraft already coming down changes nothing about its descent.",
-      "in": "DRN-05.05.IN",
-      "out": "DRN-05.05.OUT",
-      "section": "I",
-      "uwf": [
-        "U-WF-06"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "every state a beam can reach is one of five, and none of them is destroyed",
-      "verify": "frontend/tests/drone-laser.test.mjs",
-      "dtm": "real machines over a real floor with people underneath",
-      "stretch": "a physical descent check before every match",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-05.06",
-      "title": "Lighting inside the vector law",
-      "statement": "The engagement reads from stroke colour and weight alone — tracking, absorbing, the moment the shield fails, burning, coming down — plus a shield ring drawn as a declared n-gon that shrinks as the shield is spent. No glow, no gradient, no bloom.",
-      "in": "DRN-05.06.IN",
-      "out": "DRN-05.06.OUT",
-      "section": "XI",
-      "uwf": [
-        "U-WF-11"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "every stage names a palette role and a declared stroke weight",
-      "verify": "frontend/tests/drone-laser.test.mjs",
-      "dtm": "forty-two engagements readable as shapes",
-      "stretch": "the same language on every 2525 surface",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-08.01",
-      "title": "One aircraft, two sizes",
-      "statement": "The mini foil scales to the full one by geometric similarity, with every derived quantity following the exponent it actually has: area as the square, mass as the cube, stall as the square root. The geometry, the proportions and every rule about materials or people are unchanged by the switch.",
-      "in": "DRN-08.01.IN",
-      "out": "DRN-08.01.OUT",
-      "section": "VIII",
-      "uwf": [
-        "U-WF-01",
-        "U-WF-04"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "stall at the full size is the square root of the length ratio times the mini's, recomputed rather than asserted",
-      "verify": "frontend/tests/drone-scale.test.mjs",
-      "dtm": "a demo at the Capitol at the size it will really be",
-      "stretch": "a third size needing one line and no arithmetic",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-10.06",
-      "title": "The same game at every N",
-      "statement": "The engagement runs at 1v1, 2v2 and every rung to 21v21 — 42 aircraft, 84 seats — from one model, so what breaks can be found on the way up rather than only at full strength. Each rung is measured for beam waste, contention, decision load and seats.",
-      "in": "DRN-10.06.IN",
-      "out": "DRN-10.06.OUT",
-      "section": "VIII",
-      "uwf": [
-        "U-WF-06",
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "twenty-one rungs, three seeds each, twelve computed review lenses, all passing",
-      "verify": "frontend/tests/drone-contest.test.mjs",
-      "dtm": "a complexity found at the rung where it appears",
-      "stretch": "the ladder run against a live crew",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-10.07",
-      "title": "The person is the bottleneck, and it is measured",
-      "statement": "The invariant that a machine shot needs a named human decision does not bend with N, so the decision load is measured at every rung and compared against what the people present can physically answer. Levels one to three put the decision with one person; four and five put it with a quorum of the key group, which is the only thing that raises a throughput ceiling.",
-      "in": "DRN-10.07.IN",
-      "out": "DRN-10.07.OUT",
-      "section": "X",
-      "uwf": [
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "no rung at the top authority level asks for more decisions than its approvers can answer",
-      "verify": "frontend/scripts/drone-ladder.mjs",
-      "dtm": "an argument for the authority ladder from measurement, not assertion",
-      "stretch": "the same measurement against real approvers",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-12.01",
-      "title": "From open play to a real floor",
-      "statement": "Progression runs open play to the winners' circle to a tournament to a physical match. The cut is one ninth, the R-CORE recursion gate, floored and published with its cut line. The score is dominated by accuracy and by whether decisions were answered rather than by kills.",
-      "in": "DRN-12.01.IN",
-      "out": "DRN-12.01.OUT",
-      "section": "XII",
-      "uwf": [
-        "U-WF-08"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "one ninth holds at every field size from nine to three hundred and ninety-nine",
-      "verify": "frontend/tests/drone-winners-circle.test.mjs",
-      "dtm": "the eleven per cent who want the real thing find it",
-      "stretch": "a season run end to end",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-12.02",
-      "title": "The last gate is not about skill",
-      "statement": "A physical match requires a NAMED safety officer, both crews present, the arena clear of anyone not in the match, and every machine's descent checked. None of those is a score, a perfect record opens none of them, and a refusal names the condition that is missing without discarding the entry.",
-      "in": "DRN-12.02.IN",
-      "out": "DRN-12.02.OUT",
-      "section": "I",
-      "uwf": [
-        "U-WF-08"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "a champion with a perfect record still cannot clear an arena",
-      "verify": "frontend/tests/drone-winners-circle.test.mjs",
-      "dtm": "nobody is hurt by a tournament",
-      "stretch": "a signed floor clearance on the record",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-11.10",
-      "title": "The aircraft is the FOIL",
-      "statement": "This surface calls the aircraft the FOIL and uses no other name for it — not in a label, a lexicon value, a CRS row, a component, a shipped document or an export. The geometry provenance path is the single declared exception, because a derivation that cannot name its source cannot be verified.",
-      "in": "DRN-11.10.IN",
-      "out": "DRN-11.10.OUT",
-      "section": "IX",
-      "uwf": [
-        "U-WF-05"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "forty-four files scanned, the token refused outside two declared provenance fields",
-      "verify": "frontend/tests/drone-naming.test.mjs",
-      "dtm": "a name we chose, used everywhere",
-      "stretch": "the provenance carried under a neutral path",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-07.01",
-      "title": "The address the game answers at",
-      "statement": "The game is served at /drone-2525 as well as at /main/Drone-2525. Both routes render the one component, their code is identical, and both are emitted to the static export — a route that compiles but does not emit is a 404 in production and green in CI.",
-      "in": "DRN-07.01.IN",
-      "out": "DRN-07.01.OUT",
-      "section": "I",
-      "uwf": [
-        "U-WF-12"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "both pages exist, import the same component, and appear in out/",
-      "verify": "frontend/tests/drone-route.test.mjs",
-      "dtm": "a link that works when it is handed to somebody",
-      "stretch": "the live site checked from outside the sandbox",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-04.01",
-      "title": "One seat geometry for every vehicle",
-      "statement": "The pilot's eye is at +0.18 L forward and +0.12 L up; the targeteer's at −0.15 L (aft) and −0.04 L, as fractions of the nose-to-tail length; a turret's separation is exactly zero. The same geometry on rotors, on the wing and through a transition, and the same on every 2525 vehicle — read from the controls schema, never retyped.",
-      "in": "DRN-04.01.IN",
-      "out": "DRN-04.01.OUT",
-      "section": "IV",
-      "uwf": [
-        "U-WF-02"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "28.5 cm between the eyes on the 0.7777 m foil in every mode; turret 0; no second geometry in the source",
-      "verify": "frontend/tests/seat-view.test.mjs",
-      "dtm": "a crew's pictures agree the same way through a transition",
-      "stretch": "a Manta or a droid inherits its parallax from its own length",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-05.07",
-      "title": "Amber, then red — no shot without a second authority",
-      "statement": "A designation (button, key, tap, or spoken 'target') puts a door in a slot as AMBER and cannot fire. Only APPROVE — a second person over the link, or the same person acting explicitly as HI-2 — turns it RED, and the record says which of those it was. FIRE, a double-tap and a spoken 'fire' share one path and are refused with NO_RED_BOX or AMBER_NO_APPROVE; every refusal is recorded as a decision, never merely toasted.",
-      "in": "DRN-05.07.IN",
-      "out": "DRN-05.07.OUT",
-      "section": "V",
-      "uwf": [
-        "U-WF-06"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "approve() is the only writer of red; a double-tap on a fresh mark is a refusal; two-step and two-person told apart",
-      "verify": "frontend/tests/drone-slots.test.mjs · frontend/tests/drone-tap.test.mjs",
-      "dtm": "a first mark can never be a shot",
-      "stretch": "the second authority arrives over the crew link",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-06.01",
-      "title": "The decision record and the replay hash",
-      "statement": "Every designate, approve, refusal, hold and shot is a decision with a sequence id, a named actor, designated, hiApproved, authorityLevel, challenge, diff and the ledger's revision. The feed line is time | actor | verb | id | result. The replay hash is FNV-1a 64 over exactly r.043's projection — no wall-clock, no ISO, no FPS, no SID — and free-form notes sit beside the stream and are never hashed.",
-      "in": "DRN-06.01.IN",
-      "out": "DRN-06.01.OUT",
-      "section": "VI",
-      "uwf": [
-        "U-WF-06",
-        "U-WF-08"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "a note carrying 'fps 58.3 sid 9f3a' does not move the hash; a different game time does not either; the same round replays to the same hash",
-      "verify": "frontend/tests/drone-decisions.test.mjs",
-      "dtm": "two runs can say WHICH row they disagreed at",
-      "stretch": "the sidecar beside the immutable Cup fixture",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-07.02",
-      "title": "The operator deck: keys, sticks, touch and voice",
-      "statement": "EXEL-2525-CONTROLS-1 is the one map on every 2525 vehicle: L stick BODY (W A S D), R stick HEAD (arrows), Q E turn, U J climb, T next door, 1 2 3 the slots, F fire, C capture. Keys write the refs a thumb does; arrows and the R stick are one gimbal rate inside the declared limits; a tap marks, a double-tap fires only red, the aiming seat's drag looks; voice is offered, never required; calibration is persisted so a resting thumb reads zero; the keymap prints. Typing never flies.",
-      "in": "DRN-07.02.IN",
-      "out": "DRN-07.02.OUT",
-      "section": "I",
-      "uwf": [
-        "U-WF-09",
-        "U-WF-12"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "schema held field for field against r.050; arrows do not move the airframe; a 6% resting thumb reads zero; no gesture reaches a shot without canFire",
-      "verify": "frontend/tests/drone-controls.test.mjs · controls-schema · stick-sets · drone-tap",
-      "dtm": "a person flies and aims with what is in front of them",
-      "stretch": "the same deck on the turret, the Manta, the Ark and the droid",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-10.08",
-      "title": "Compare on what he asked to compare on",
-      "statement": "Every rung of the ladder reports designation rate, HI holds, auth failures, handoffs, simulation speed and a replay hash beside the three it already measured — not winners only. HI holds read zero in the contest and say so, because the contest models a person as a latency and never as a refusal; the holds that are real live in the decision record. Simulation speed is a wall-clock throughput and is never inside the hash.",
-      "in": "DRN-10.08.IN",
-      "out": "DRN-10.08.OUT",
-      "section": "X",
-      "uwf": [
-        "U-WF-06"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "the same seed replays to the same hash at every rung; level 3 refuses far fewer fire-ticks than level 1",
-      "verify": "frontend/tests/drone-contest.test.mjs · frontend/scripts/drone-ladder.mjs",
-      "dtm": "a rung can be compared with yesterday's",
-      "stretch": "the Cup fixture replayed against these six",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-10.09",
-      "title": "CH1–CH5 and DIFF 1–5, from the deck",
-      "statement": "Five challenges × five difficulties, the deck's challengeSpec verbatim: quota 4+CH×2+DIFF doors in play, window scaled by rate max(10, 56−CH×6−DIFF×4), concurrent doors 1→3, moving from CH3, NET at CH5. Chosen from two dropdowns in the top bar, never a hidden selector. At CH5 NET a red box must come from a second person; self-approval is refused CH5_NO_APPROVE and recorded as a HOLD. TG is not resurrected.",
-      "in": "DRN-10.09.IN",
-      "out": "DRN-10.09.OUT",
-      "section": "X",
-      "uwf": [
-        "U-WF-09"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "25 CH×DIFF cells equal to r.050's function; harder is never more time; CH5 self-approval refused and on the record",
-      "verify": "frontend/tests/drone-challenge.test.mjs",
-      "dtm": "a player feels the rung, and CH5 needs two people",
-      "stretch": "moving targets from the swarm at CH3+",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-06.02",
-      "title": "The AsM Cup as a regression fixture",
-      "statement": "ASM_CUP_99.json and ASM_ROSTER.csv are read-only by contract: their bytes are pinned by sha256 and a gate refuses if either moves. The published baseline — seed 2525, 6v6 BLU 3–1, 3v3 BLU 5–0, pairs 1–3 RED and 4–6 BLU at every level — is recomputed from the fixture's numbers, not restated. A new run writes a sidecar beside the fixture, never at it. The fixture's declared revision (0.039) is reported and flagged, not gated.",
-      "in": "DRN-06.02.IN",
-      "out": "DRN-06.02.OUT",
-      "section": "VI",
-      "uwf": [
-        "U-WF-06",
-        "U-WF-08"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "two hashes pinned; four baseline sentences recomputed; roster = the twelve; sidecar path ≠ fixture path; the module imports no filesystem",
-      "verify": "frontend/tests/asm-cup.test.mjs",
-      "dtm": "a later build is judged against his published result",
-      "stretch": "the contest replays the Cup at seed 2525 and compares his six",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-09.04",
-      "title": "The second person, over the link",
-      "statement": "The targeteer's amber mark goes out on the gimbal word; the pilot's device shows it with an APPROVE button; the approval crosses the link as its own message, authored by seat, applied once by sequence on the device that holds the mark, in the sender's name — so the box reads two-person. A seat cannot approve its own mark through the link: its echo is dropped and the holder refuses a sender equal to the designator.",
-      "in": "DRN-09.04.IN",
-      "out": "DRN-09.04.OUT",
-      "section": "III",
-      "uwf": [
-        "U-WF-06"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "approve authored by either seat, needs door + slot; duplicate lands once; own echo dropped; holder refuses self",
-      "verify": "frontend/tests/drone-link.test.mjs",
-      "dtm": "two phones make one red box, with two names on it",
-      "stretch": "the same message on the Manta and the droid",
-      "status": "implemented"
-    },
-    {
-      "id": "DRN-08.02",
-      "title": "The platform identities, from the deck",
-      "statement": "The eight PLATFORM identities are data lifted from the deck — id, label, kind and flight mode — and a gate compares them to r.050's own units table and dropdown. A platform dropdown sits beside the mode row. D1Q QUAD·HOVER has no wing and refuses the transition by name; D1 VTOL flies both; D1F FOIL takes the wing the moment the transition is legal. Platforms that do not exist on this arena are listed and dated, never hidden; the round never forks a second airframe model per platform.",
-      "in": "DRN-08.02.IN",
-      "out": "DRN-08.02.OUT",
-      "section": "VIII",
-      "uwf": [
-        "U-WF-05"
-      ],
-      "phase": "pilot",
-      "mode": "Manual",
-      "metric": "8 ids, labels, kinds and 3 flight modes equal to r.050; D1Q wing refused; D1F auto-transitions; one airframe model",
-      "verify": "frontend/tests/drone-platforms.test.mjs",
-      "dtm": "the same platform names on the deck and in the app",
-      "stretch": "Manta, Ark and the droid on their own arenas",
-      "status": "implemented"
-    }
-  ],
-  "status": {
-    "conceptual_critique": "Amber",
-    "build": "Amber",
-    "human_testing": "Red",
-    "operations": "Red"
-  },
-  "motLadder": {
-    "bands": 5,
-    "steps": 5,
-    "rungs": 25,
-    "min": "1.1",
-    "max": "5.5",
-    "sensorLadder": [
-      "EO",
-      "IR",
-      "ACOUSTIC",
-      "MAG",
-      "CHEM"
-    ],
-    "note": "Band = edge-compute class (how many sensor modules and how much CNN). Step = resolution (pixel density and curve roundness). Rung 1.1 is the 1983 vector arcade and asks for the fastest picture; 5.5 is the dense fused mesh. A higher rung asks for MORE work and therefore FEWER frames per second — demand, not capability."
-  },
-  "hal": {
-    "profiles": [
-      {
-        "id": "pi",
-        "label": "PI-CLASS",
-        "frameBudgetMs": 66,
-        "cnnMs": 18
-      },
-      {
-        "id": "edge",
-        "label": "EDGE-SOC",
-        "frameBudgetMs": 33,
-        "cnnMs": 12
-      },
-      {
-        "id": "accel",
-        "label": "ACCELERATOR",
-        "frameBudgetMs": 16,
-        "cnnMs": 8
-      }
-    ],
-    "auto": "the unit picks its class from its own measured frame rate",
-    "rule": "the CNN reserve is subtracted from the frame before the renderer may want any of it"
-  },
-  "stream": {
-    "reference": "1080p30",
-    "ladder": [
-      "1080p30",
-      "720p30",
-      "480p30",
-      "480p15"
-    ],
-    "rule": "shed a sensor module first, then resolution, then frame rate — and name every step"
-  },
-  "selfCal": {
-    "budgetMinutesMin": 6,
-    "budgetMinutesMax": 15,
-    "minDwellS": 12,
-    "maxDwellS": 36,
-    "failStreakToStop": 2,
-    "goal": "report the highest rung this machine holds at the reference stream"
-  },
-  "si": {
-    "state": "placeholder",
-    "on_by_default": false,
-    "ladder": "lib/pod-clock.ts — noted 1, adopted 3, foundational 7; nothing in between and nothing above",
-    "authority": "the group advises, a named person decides; nothing in the consensus engine can fire a shot",
-    "not_yet": [
-      "no polling session is created",
-      "no invitation is delivered",
-      "no heart reaches a ledger"
-    ]
-  },
-  "crew": {
-    "seats": [
-      "pilot",
-      "targeteer"
-    ],
-    "rule": "a seat may only send what that seat controls; the other seat's controls are absent, not disabled",
-    "paths": [
-      "another tab",
-      "shared storage",
-      "cloud endpoint /api/drone-link"
-    ],
-    "proof": "scripts/drone-crew-e2e.mjs — two separate browser profiles, only the cloud path available"
-  },
-  "swarm": {
-    "total": 42,
-    "perSide": 21,
-    "sides": [
-      "friendly",
-      "hostile"
-    ],
-    "glyphSegments": {
-      "far": 4,
-      "mid": 12,
-      "near": 24
-    },
-    "rule": "the swarm takes its share of the rung's budget first; every aircraft is drawn before any gets detail",
-    "passMark": "42 aircraft at rung 2.3 holding the 30 Hz reference on a processor slowed ten times"
-  },
-  "authority": {
-    "levels": 5,
-    "1": "a named person, every shot",
-    "2": "a named person, each aircraft once",
-    "3": "a named person, a declared window",
-    "4": "the key group, that window",
-    "5": "the key group's live lean, a standing mandate it can end",
-    "invariant": "a named human decision exists before any machine shot; silence is never consent at any level"
-  },
-  "platforms": [
-    {
-      "id": "T1",
-      "label": "TURRET",
-      "kind": "turret",
-      "flight": null,
-      "here": true
-    },
-    {
-      "id": "D1Q",
-      "label": "QUAD · HOVER",
-      "kind": "vtol",
-      "flight": "quad",
-      "here": true
-    },
-    {
-      "id": "D1",
-      "label": "VTOL",
-      "kind": "vtol",
-      "flight": "vtol",
-      "here": true
-    },
-    {
-      "id": "D1F",
-      "label": "FOIL",
-      "kind": "vtol",
-      "flight": "foil",
-      "here": true
-    },
-    {
-      "id": "M99",
-      "label": "MANTA 99-66",
-      "kind": "sub",
-      "flight": null,
-      "here": false
-    },
-    {
-      "id": "M66",
-      "label": "MINI 66-33",
-      "kind": "sub",
-      "flight": null,
-      "here": false
-    },
-    {
-      "id": "ARK",
-      "label": "ARK SAIL 33",
-      "kind": "ark",
-      "flight": null,
-      "here": false
-    },
-    {
-      "id": "R2",
-      "label": "MASS DROID",
-      "kind": "droid",
-      "flight": null,
-      "here": false
-    }
+    "irradianceWcm2": 0.971,
+    "shieldDownS": 3.27,
+    "disableS": 5.33
+   },
+   {
+    "rangeM": 500,
+    "irradianceWcm2": 0.666,
+    "shieldDownS": 4.68,
+    "disableS": 7.68
+   },
+   {
+    "rangeM": 600,
+    "irradianceWcm2": 0.484,
+    "shieldDownS": 6.38,
+    "disableS": 10.51
+   },
+   {
+    "rangeM": 700,
+    "irradianceWcm2": 0.366,
+    "shieldDownS": 8.38,
+    "disableS": 13.84
+   }
   ]
+ },
+ "defences": {
+  "shieldJcm2": 3.0,
+  "hullJcm2": 2.0,
+  "shieldRegenJcm2PerS": 0.5,
+  "shieldRegenDelayS": 2.0,
+  "hullCoolJcm2PerS": 0.35,
+  "descentMs": 1.6,
+  "touchdownAglM": 0.3,
+  "note": "Independence Day: the shield absorbs first and nothing reaches the airframe until it fails. Ender's Game and the operator's own words: a defeated aircraft is DISABLED and flown down under control, never deleted in the air. Battle House: it comes back, it is not exterminated."
+ },
+ "sensor": {
+  "profile": "pi-baseline",
+  "note": "Edge extraction budget comes out of the frame before the renderer (lib/wire-core/fidelity.ts)."
+ },
+ "targets": {
+  "kind": "door",
+  "seed": 20260915,
+  "upMs": 14000,
+  "downMs": 6000,
+  "concurrent": 3,
+  "note": "Every building door is a pop-up target. Tag it by CAPTURE (store the sensor edge set) then SHOOT (line of sight must reach it). The up-window is not a taste value: a target must stay up longer than the worst swing to reach it (4s at 45°/s for half a turn) plus time to aim and press, or the round is unwinnable by construction. Gated in tests/drone-gimbal.test.mjs."
+ },
+ "modes": [
+  {
+   "id": "turrets",
+   "label": "Security Turrets",
+   "mount": "turret",
+   "movingTargets": false,
+   "pass": 1
+  },
+  {
+   "id": "capital",
+   "label": "Security Capital",
+   "mount": "turret",
+   "movingTargets": false,
+   "pass": 1
+  },
+  {
+   "id": "drone",
+   "label": "2 HI operated drone",
+   "mount": "airframe",
+   "roles": [
+    "pilot",
+    "targeteer"
+   ],
+   "pass": "1b"
+  },
+  {
+   "id": "multi",
+   "label": "HI/AI pilot + targeteer, HI approves every shot",
+   "mount": "airframe",
+   "roles": [
+    "pilot",
+    "targeteer",
+    "approver"
+   ],
+   "pass": "1c"
+  }
+ ],
+ "crs": [
+  {
+   "id": "DRN-01",
+   "title": "Arena frame and tiles",
+   "statement": "The arena is an ENU frame on the Texas Capitol origin, and every building, tree, road and contour it draws is either carried from the repo, hand-authored and badged, or read from a map extract.",
+   "in": "DRN-01.IN",
+   "out": "DRN-01.OUT",
+   "section": "VII",
+   "uwf": [
+    "U-WF-01"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "tile gate green; every element carries a source",
+   "verify": "tests/drone-capitol-tiles.test.mjs",
+   "dtm": "hand-authored block renders",
+   "stretch": "OSM extract replaces it with zero code change",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-02",
+   "title": "Canonical wire model and one-step export",
+   "statement": "One model feeds the browser and the four engine targets, and a change is visible in all of them or none.",
+   "in": "DRN-02.IN",
+   "out": "DRN-02.OUT",
+   "section": "VIII",
+   "uwf": [
+    "U-WF-02",
+    "U-WF-05",
+    "U-WF-08"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "lossless round trip on the FOIL wireframe",
+   "verify": "tests/wire-export.test.mjs",
+   "dtm": "py/obj/cs/cpp from one model",
+   "stretch": "every domain exports through it",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-03",
+   "title": "Edge primitives",
+   "statement": "Buildings, trees, roads and contours draw as edges only, with door and window openings in their real wall.",
+   "in": "DRN-03.IN",
+   "out": "DRN-03.OUT",
+   "section": "XII",
+   "uwf": [
+    "U-WF-02",
+    "U-WF-10"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "no fill on any drawn element",
+   "verify": "tests/wire-core.test.mjs · tests/vector-law.test.mjs",
+   "dtm": "Capitol block renders as edges",
+   "stretch": "shared with Architect and Security",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-04",
+   "title": "One gimbal for turret and airframe",
+   "statement": "The same mount and gimbal record drives a fixed turret and a drone, so nothing learned on the turret is thrown away on the airframe.",
+   "in": "DRN-04.IN",
+   "out": "DRN-04.OUT",
+   "section": "IV",
+   "uwf": [
+    "U-WF-02"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "identical frustum model from both mounts",
+   "verify": "tests/drone-gimbal.test.mjs",
+   "dtm": "turret slews and frames a door",
+   "stretch": "airframe mount reuses it unchanged",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-05",
+   "title": "Capture and shoot with line of sight",
+   "statement": "A capture stores the sensor's extracted edges, and a shot only counts when the ray actually reaches the door.",
+   "in": "DRN-05.IN",
+   "out": "DRN-05.OUT",
+   "section": "V",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "occluded shots are refused",
+   "verify": "tests/drone-game.test.mjs",
+   "dtm": "tag a door by capture then shot",
+   "stretch": "live camera behind the same interface",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-06",
+   "title": "Score and replay",
+   "statement": "A completed capture or shot is written to the replay log before the score moves, so nothing that happened can be lost.",
+   "in": "DRN-06.IN",
+   "out": "DRN-06.OUT",
+   "section": "VI",
+   "uwf": [
+    "U-WF-06",
+    "U-WF-08"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "replay reproduces the score and the hash",
+   "verify": "tests/drone-game.test.mjs",
+   "dtm": "a round replays identically",
+   "stretch": "portable .drn2525 file",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-07",
+   "title": "Command surface, route and unlock",
+   "statement": "The domain has its own route and its card is enterable, drawn under the vector law at any viewport down to 375 px.",
+   "in": "DRN-07.IN",
+   "out": "DRN-07.OUT",
+   "section": "I",
+   "uwf": [
+    "U-WF-12"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "route builds; card enters",
+   "verify": "next build · tests/vector-law.test.mjs",
+   "dtm": "arena visible on a phone",
+   "stretch": "two devices in one session",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-08",
+   "title": "Flight and energy, bounded",
+   "statement": "The flight model is a bounding estimate that says so on every run, and its published numbers reproduce from the source constants.",
+   "in": "DRN-08.IN",
+   "out": "DRN-08.OUT",
+   "section": "IX",
+   "uwf": [],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "--reproduce reports zero drift",
+   "verify": "tests/drone-flight.test.mjs",
+   "dtm": "hover and cruise endurance",
+   "stretch": "VTOL transition envelope",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-09",
+   "title": "Two operators, two devices",
+   "statement": "The pilot is the only sender of flight state and the targeteer the only sender of gimbal commands.",
+   "in": "DRN-09.IN",
+   "out": "DRN-09.OUT",
+   "section": "III",
+   "uwf": [],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "role authority refuses a wrong sender",
+   "verify": "tests/drone-link.test.mjs",
+   "dtm": "two phones share one round",
+   "stretch": "hosted realtime",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10",
+   "title": "AI roles under human approval",
+   "statement": "An AI-initiated shot never fires without a human approval event.",
+   "in": "DRN-10.IN",
+   "out": "DRN-10.OUT",
+   "section": "X",
+   "uwf": [],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "no shot without an approve event",
+   "verify": "tests/drone-game.test.mjs",
+   "dtm": "AI proposes, human approves",
+   "stretch": "both AI seats with humans watching",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11",
+   "title": "Vector law, the 13, and adaptive fidelity",
+   "statement": "Everything drawn is edges in one of the 13 colours, and resolution and frame rate rise only with compute left over after the Edge sensor's CNN reserve.",
+   "in": "DRN-11.IN",
+   "out": "DRN-11.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-07",
+    "U-WF-09",
+    "U-WF-11"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "model hash identical at every tier; LOW holds a Pi budget",
+   "verify": "tests/drone-fidelity.test.mjs · tests/vector-law.test.mjs",
+   "dtm": "four tiers, one truth",
+   "stretch": "accelerator profile reaches ULTRA",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-12",
+   "title": "Every word in 33 languages",
+   "statement": "No user-facing string is English in the source; every one is a lexicon key present in all 33 languages.",
+   "in": "DRN-12.IN",
+   "out": "DRN-12.OUT",
+   "section": "XIII",
+   "uwf": [],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "lexicon coverage green with no pending keys",
+   "verify": "tests/lexicon-coverage.test.mjs · tests/drone-i18n.test.mjs",
+   "dtm": "keys staged and listed",
+   "stretch": "filled in all 32 non-English",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-13",
+   "title": "Versioned, revisioned, comparable",
+   "statement": "Every edition of this specification appends a revision that cites its commit, and any two revisions can be replayed and compared.",
+   "in": "DRN-13.IN",
+   "out": "DRN-13.OUT",
+   "section": "II",
+   "uwf": [
+    "U-WF-12"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "ledger validates; render --check clean",
+   "verify": "tests/traceability.test.mjs · tests/drone-crs.test.mjs",
+   "dtm": "Version 00.00 revision 0.001",
+   "stretch": "CRS rows compare in /crs",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.01",
+   "title": "The MoT ladder: five compute bands by five resolution steps",
+   "statement": "Detail and sensing are asked for on a 25-rung ladder, 1.1 through 5.5, where the band is the edge-compute class and the step is the resolution; rung 1.1 is the 1983 vector arcade and is the fastest picture the machine can make.",
+   "in": "DRN-11.01.IN",
+   "out": "DRN-11.01.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-07",
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "ladder monotonic in both axes; 1.1 asks for more frames than 5.5",
+   "verify": "tests/mot-ladder.test.mjs",
+   "dtm": "25 rungs selectable",
+   "stretch": "a robot picks its own rung unattended",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.04",
+   "title": "Demand and capability are separate, and never mixed",
+   "statement": "What the picture asks for (the rung) and what the machine can deliver (the HAL class and the measured frame rate) are different quantities held in different modules, and only calibration is allowed to reconcile them.",
+   "in": "DRN-11.04.IN",
+   "out": "DRN-11.04.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-07"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "a richer rung never asks for a faster picture",
+   "verify": "tests/mot-ladder.test.mjs",
+   "dtm": "the old inverted four-tier table is gone",
+   "stretch": "the same split serves every 2525 domain",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-05.03",
+   "title": "Multi-sensor fusion, shed from the top and never blind",
+   "statement": "Sensing runs EO, IR, ACOUSTIC, MAG and CHEM, one more module per compute band; when the frame will not hold, modules are shed from the top of that ladder and EO is never shed, because a unit that cannot see is not degraded but blind.",
+   "in": "DRN-05.03.IN",
+   "out": "DRN-05.03.OUT",
+   "section": "V",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "EO survives every degradation path",
+   "verify": "tests/mot-ladder.test.mjs",
+   "dtm": "five modules declared per band",
+   "stretch": "a real sensor replaces the simulated one behind the same interface",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.05",
+   "title": "Hold 1080p30, and name every step down from it",
+   "statement": "The unit tries to hold a 1920x1080 30 Hz reference stream; when it cannot it sheds a sensor module, then resolution, then frame rate, in that order, and every step is named on screen rather than taken silently.",
+   "in": "DRN-11.05.IN",
+   "out": "DRN-11.05.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "degradation order fixed; climb needs sustained headroom",
+   "verify": "tests/mot-ladder.test.mjs",
+   "dtm": "stream ladder live in the HUD",
+   "stretch": "the same ladder drives a real encoder",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.06",
+   "title": "Self-test: the rung this machine actually holds, in 6 to 15 minutes",
+   "statement": "Pointed at a new board or a new sensor, the unit walks the ladder from 1.1 upward under real drawing load, measures a sustained frame rate at each rung, and reports the highest rung it holds at the reference stream, inside a declared 6 to 15 minute budget.",
+   "in": "DRN-11.06.IN",
+   "out": "DRN-11.06.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-06",
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "dwell derived from the budget; sweep stops early after two failures",
+   "verify": "tests/self-cal-runner.test.mjs",
+   "dtm": "a saved result file naming the ceiling",
+   "stretch": "run headless on the robot itself",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.07",
+   "title": "The robot may pick its own compute class",
+   "statement": "Three compute classes are declared with their frame budgets and sensor costs, and AUTO lets the unit choose its own class from the frame rate it measures rather than from a label someone typed.",
+   "in": "DRN-11.07.IN",
+   "out": "DRN-11.07.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-07"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "AUTO thresholds derived from the budgets themselves",
+   "verify": "tests/mot-ladder.test.mjs",
+   "dtm": "PI / EDGE-SOC / ACCELERATOR selectable",
+   "stretch": "a fourth class added without touching a caller",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.01",
+   "title": "Shared Intent: a key group, switched on or off",
+   "statement": "A closed group of named people may be switched on to weigh in on decisions; off is the normal state and the round behaves exactly as it does without them.",
+   "in": "DRN-10.01.IN",
+   "out": "DRN-10.01.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "no call can open while it is off; switching off closes any open call",
+   "verify": "tests/si-pod.test.mjs",
+   "dtm": "the switch and a closed roster",
+   "stretch": "the group is a real polling session on Cube 1",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.02",
+   "title": "Key members only, by invitation",
+   "statement": "Reaching the group's call needs a code issued to named people; an empty roster produces no invitation rather than an open link, and the right code in the wrong hands is refused.",
+   "in": "DRN-10.02.IN",
+   "out": "DRN-10.02.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "both halves must hold: on the roster, and a live code",
+   "verify": "tests/si-pod.test.mjs",
+   "dtm": "a code and a scannable square",
+   "stretch": "delivery through the operator's own channel",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.03",
+   "title": "The group advises; a named person decides",
+   "statement": "Consensus is shown beside the decision a person is about to make and can never make it: no function in the consensus engine can retire a shot request or open the authority gate, and a unanimous group changes nothing about what may fire.",
+   "in": "DRN-10.03.IN",
+   "out": "DRN-10.03.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "the two modules do not import each other; unanimity does not open the gate",
+   "verify": "tests/si-pod.test.mjs",
+   "dtm": "advice beside the question",
+   "stretch": "the same rule wherever a crowd meets an authority",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.04",
+   "title": "Volunteer input, recognised on the ladder that already exists",
+   "statement": "Answering is voluntary and silence counts as nothing; a contribution is recognised as noted, and as adopted only after the decision went the way it argued, using the three fixed heart values the pod ladder already declares rather than a fourth invented here.",
+   "in": "DRN-10.04.IN",
+   "out": "DRN-10.04.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "no value outside the declared ladder; silence earns nothing",
+   "verify": "tests/si-pod.test.mjs",
+   "dtm": "a readable record of what was valued",
+   "stretch": "entries reach the Cube 8 append-only ledger",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-09.01",
+   "title": "A seat may only send what that seat controls",
+   "statement": "The pilot flies and cannot aim, photograph or shoot; the targeteer aims, photographs and shoots and cannot fly; a message whose payload does not belong to the seat that sent it is refused on the way in as well as on the way out.",
+   "in": "DRN-09.01.IN",
+   "out": "DRN-09.01.OUT",
+   "section": "III",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "the other seat's controls are absent, not disabled",
+   "verify": "tests/drone-link.test.mjs",
+   "dtm": "two seats that cannot do each other's job",
+   "stretch": "the same rule for a third seat",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-09.02",
+   "title": "Three paths carry every word between the two devices",
+   "statement": "A crew message goes out on another tab, on shared storage and through a cloud endpoint at once; any one arriving is the message delivered and the duplicates the others produce are dropped without being counted as errors.",
+   "in": "DRN-09.02.IN",
+   "out": "DRN-09.02.OUT",
+   "section": "III",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "two separate browser profiles exchange flight and aim",
+   "verify": "scripts/drone-crew-e2e.mjs",
+   "dtm": "a phone and a computer flying one aircraft",
+   "stretch": "a fourth path when one is provisioned",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.08",
+   "title": "Measured, not assumed, on a slowed processor",
+   "statement": "Performance is reported from real painted frames on a processor slowed ten times, because a desktop pins every case at the refresh rate and hides any change; the heaviest case is the one quoted.",
+   "in": "DRN-11.08.IN",
+   "out": "DRN-11.08.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-07"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "48.0 to 57.3 fps at level 5.5, ten times slowed",
+   "verify": "scripts/drone-perf.mjs",
+   "dtm": "a before and after that can be compared",
+   "stretch": "run on the real board",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-13.01",
+   "title": "Nine runs, or it is not determinism",
+   "statement": "Every gate runs nine times and every reproducible artefact — the model hash, the schedule, a flown path, a crew code, the rung verdicts — must be byte-identical across all nine, and the spiral is asserted in both directions rather than asserted about.",
+   "in": "DRN-13.01.IN",
+   "out": "DRN-13.01.OUT",
+   "section": "II",
+   "uwf": [
+    "U-WF-08"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "1,395 checks per run, nine runs, zero drift, ten spiral checks",
+   "verify": "scripts/drone-spiral9.mjs",
+   "dtm": "a report a reviewer can re-run",
+   "stretch": "the same harness for every domain",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-09.03",
+   "title": "Forty-two aircraft, twenty-one against twenty-one",
+   "statement": "An engagement puts 42 aircraft in the air as two opposing sides of 21, held in flat columns so a tick allocates nothing, and drawn as an overlay in the arena's own camera batched into a handful of paths.",
+   "in": "DRN-09.03.IN",
+   "out": "DRN-09.03.OUT",
+   "section": "III",
+   "uwf": [
+    "U-WF-02",
+    "U-WF-07"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "a tick allocates nothing; 42 aircraft at rung 2.3 hold the 30 Hz reference on a processor slowed ten times",
+   "verify": "tests/drone-swarm.test.mjs · scripts/drone-perf.mjs",
+   "dtm": "42 aircraft flying",
+   "stretch": "the same columns carry a thousand",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.09",
+   "title": "One budget, two consumers: the aircraft are the world",
+   "statement": "In an engagement the swarm takes its share of the rung's segment budget first and the Capitol block takes what is left, so at a poor rung the world thins rather than the aircraft vanishing; and every aircraft is drawn at the smallest size before any is given detail.",
+   "in": "DRN-11.09.IN",
+   "out": "DRN-11.09.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "all 42 drawn at every one of the 25 rungs",
+   "verify": "tests/drone-swarm.test.mjs",
+   "dtm": "42 drawn at rung 1.1 with the world at 112 segments",
+   "stretch": "the same rule wherever a budget is shared",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.05",
+   "title": "Five authority levels, and silence is never consent on any of them",
+   "statement": "Autonomy rides on the band that already exists: level 1 a named person per shot, level 5 the key group's live lean as a standing mandate it can end at once; at every level a named human decision exists before any machine shot, and what scales is the breadth of one decision rather than whether one happened.",
+   "in": "DRN-10.05.IN",
+   "out": "DRN-10.05.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "a refusal from all five levels when nothing has been decided",
+   "verify": "tests/drone-authority.test.mjs",
+   "dtm": "five levels selectable",
+   "stretch": "the ladder serves any domain with a machine and an authority",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-13.02",
+   "title": "A score that can fall",
+   "statement": "Every SSSES pillar is computed from evidence produced in the same run — authority checks, nine-run drift, measured frames against the declared reference, whether the projection memo demonstrably holds, and duplication and dead exports counted from the source — and a performance file measured at a different commit is refused rather than trusted.",
+   "in": "DRN-13.02.IN",
+   "out": "DRN-13.02.OUT",
+   "section": "II",
+   "uwf": [
+    "U-WF-08"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "no pillar is a literal; the score fell before it rose",
+   "verify": "scripts/drone-spiral9.mjs",
+   "dtm": "a score a reviewer can re-derive",
+   "stretch": "the same scorer for every domain",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-05.04",
+   "title": "The beam, the shield, and the time it takes",
+   "statement": "Engagement is a fluence model, not hit points: irradiance at the target falls with beam spread and atmospheric loss, so the same emitter needs under a second in close and seconds at reach, and a fine-track lock means a broken beam loses its progress. The shield absorbs first and nothing reaches the airframe until it fails.",
+   "in": "DRN-05.04.IN",
+   "out": "DRN-05.04.OUT",
+   "section": "V",
+   "uwf": [
+    "U-WF-09",
+    "U-WF-11"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "the published dwell table is what the model computes, at every range",
+   "verify": "frontend/tests/drone-laser.test.mjs",
+   "dtm": "a player learns to close and to hold, without being told",
+   "stretch": "a real emitter profile behind the same interface",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-05.05",
+   "title": "Nothing is destroyed in the air",
+   "statement": "A defeated aircraft is DISABLED and flown down under control to a safe landing. There is no reachable state called destroyed, and a beam on an aircraft already coming down changes nothing about its descent.",
+   "in": "DRN-05.05.IN",
+   "out": "DRN-05.05.OUT",
+   "section": "I",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "every state a beam can reach is one of five, and none of them is destroyed",
+   "verify": "frontend/tests/drone-laser.test.mjs",
+   "dtm": "real machines over a real floor with people underneath",
+   "stretch": "a physical descent check before every match",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-05.06",
+   "title": "Lighting inside the vector law",
+   "statement": "The engagement reads from stroke colour and weight alone — tracking, absorbing, the moment the shield fails, burning, coming down — plus a shield ring drawn as a declared n-gon that shrinks as the shield is spent. No glow, no gradient, no bloom.",
+   "in": "DRN-05.06.IN",
+   "out": "DRN-05.06.OUT",
+   "section": "XI",
+   "uwf": [
+    "U-WF-11"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "every stage names a palette role and a declared stroke weight",
+   "verify": "frontend/tests/drone-laser.test.mjs",
+   "dtm": "forty-two engagements readable as shapes",
+   "stretch": "the same language on every 2525 surface",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-08.01",
+   "title": "One aircraft, two sizes",
+   "statement": "The mini foil scales to the full one by geometric similarity, with every derived quantity following the exponent it actually has: area as the square, mass as the cube, stall as the square root. The geometry, the proportions and every rule about materials or people are unchanged by the switch.",
+   "in": "DRN-08.01.IN",
+   "out": "DRN-08.01.OUT",
+   "section": "VIII",
+   "uwf": [
+    "U-WF-01",
+    "U-WF-04"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "stall at the full size is the square root of the length ratio times the mini's, recomputed rather than asserted",
+   "verify": "frontend/tests/drone-scale.test.mjs",
+   "dtm": "a demo at the Capitol at the size it will really be",
+   "stretch": "a third size needing one line and no arithmetic",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.06",
+   "title": "The same game at every N",
+   "statement": "The engagement runs at 1v1, 2v2 and every rung to 21v21 — 42 aircraft, 84 seats — from one model, so what breaks can be found on the way up rather than only at full strength. Each rung is measured for beam waste, contention, decision load and seats.",
+   "in": "DRN-10.06.IN",
+   "out": "DRN-10.06.OUT",
+   "section": "VIII",
+   "uwf": [
+    "U-WF-06",
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "twenty-one rungs, three seeds each, twelve computed review lenses, all passing",
+   "verify": "frontend/tests/drone-contest.test.mjs",
+   "dtm": "a complexity found at the rung where it appears",
+   "stretch": "the ladder run against a live crew",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.07",
+   "title": "The person is the bottleneck, and it is measured",
+   "statement": "The invariant that a machine shot needs a named human decision does not bend with N, so the decision load is measured at every rung and compared against what the people present can physically answer. Levels one to three put the decision with one person; four and five put it with a quorum of the key group, which is the only thing that raises a throughput ceiling.",
+   "in": "DRN-10.07.IN",
+   "out": "DRN-10.07.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "no rung at the top authority level asks for more decisions than its approvers can answer",
+   "verify": "frontend/scripts/drone-ladder.mjs",
+   "dtm": "an argument for the authority ladder from measurement, not assertion",
+   "stretch": "the same measurement against real approvers",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-12.01",
+   "title": "From open play to a real floor",
+   "statement": "Progression runs open play to the winners' circle to a tournament to a physical match. The cut is one ninth, the R-CORE recursion gate, floored and published with its cut line. The score is dominated by accuracy and by whether decisions were answered rather than by kills.",
+   "in": "DRN-12.01.IN",
+   "out": "DRN-12.01.OUT",
+   "section": "XII",
+   "uwf": [
+    "U-WF-08"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "one ninth holds at every field size from nine to three hundred and ninety-nine",
+   "verify": "frontend/tests/drone-winners-circle.test.mjs",
+   "dtm": "the eleven per cent who want the real thing find it",
+   "stretch": "a season run end to end",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-12.02",
+   "title": "The last gate is not about skill",
+   "statement": "A physical match requires a NAMED safety officer, both crews present, the arena clear of anyone not in the match, and every machine's descent checked. None of those is a score, a perfect record opens none of them, and a refusal names the condition that is missing without discarding the entry.",
+   "in": "DRN-12.02.IN",
+   "out": "DRN-12.02.OUT",
+   "section": "I",
+   "uwf": [
+    "U-WF-08"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "a champion with a perfect record still cannot clear an arena",
+   "verify": "frontend/tests/drone-winners-circle.test.mjs",
+   "dtm": "nobody is hurt by a tournament",
+   "stretch": "a signed floor clearance on the record",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-11.10",
+   "title": "The aircraft is the FOIL",
+   "statement": "This surface calls the aircraft the FOIL and uses no other name for it — not in a label, a lexicon value, a CRS row, a component, a shipped document or an export. The geometry provenance path is the single declared exception, because a derivation that cannot name its source cannot be verified.",
+   "in": "DRN-11.10.IN",
+   "out": "DRN-11.10.OUT",
+   "section": "IX",
+   "uwf": [
+    "U-WF-05"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "forty-four files scanned, the token refused outside two declared provenance fields",
+   "verify": "frontend/tests/drone-naming.test.mjs",
+   "dtm": "a name we chose, used everywhere",
+   "stretch": "the provenance carried under a neutral path",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-07.01",
+   "title": "The address the game answers at",
+   "statement": "The game is served at /drone-2525 as well as at /main/Drone-2525. Both routes render the one component, their code is identical, and both are emitted to the static export — a route that compiles but does not emit is a 404 in production and green in CI.",
+   "in": "DRN-07.01.IN",
+   "out": "DRN-07.01.OUT",
+   "section": "I",
+   "uwf": [
+    "U-WF-12"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "both pages exist, import the same component, and appear in out/",
+   "verify": "frontend/tests/drone-route.test.mjs",
+   "dtm": "a link that works when it is handed to somebody",
+   "stretch": "the live site checked from outside the sandbox",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-04.01",
+   "title": "One seat geometry for every vehicle",
+   "statement": "The pilot's eye is at +0.18 L forward and +0.12 L up; the targeteer's at −0.15 L (aft) and −0.04 L, as fractions of the nose-to-tail length; a turret's separation is exactly zero. The same geometry on rotors, on the wing and through a transition, and the same on every 2525 vehicle — read from the controls schema, never retyped.",
+   "in": "DRN-04.01.IN",
+   "out": "DRN-04.01.OUT",
+   "section": "IV",
+   "uwf": [
+    "U-WF-02"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "28.5 cm between the eyes on the 0.7777 m foil in every mode; turret 0; no second geometry in the source",
+   "verify": "frontend/tests/seat-view.test.mjs",
+   "dtm": "a crew's pictures agree the same way through a transition",
+   "stretch": "a Manta or a droid inherits its parallax from its own length",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-05.07",
+   "title": "Amber, then red — no shot without a second authority",
+   "statement": "A designation (button, key, tap, or spoken 'target') puts a door in a slot as AMBER and cannot fire. Only APPROVE — a second person over the link, or the same person acting explicitly as HI-2 — turns it RED, and the record says which of those it was. FIRE, a double-tap and a spoken 'fire' share one path and are refused with NO_RED_BOX or AMBER_NO_APPROVE; every refusal is recorded as a decision, never merely toasted.",
+   "in": "DRN-05.07.IN",
+   "out": "DRN-05.07.OUT",
+   "section": "V",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "approve() is the only writer of red; a double-tap on a fresh mark is a refusal; two-step and two-person told apart",
+   "verify": "frontend/tests/drone-slots.test.mjs · frontend/tests/drone-tap.test.mjs",
+   "dtm": "a first mark can never be a shot",
+   "stretch": "the second authority arrives over the crew link",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-06.01",
+   "title": "The decision record and the replay hash",
+   "statement": "Every designate, approve, refusal, hold and shot is a decision with a sequence id, a named actor, designated, hiApproved, authorityLevel, challenge, diff and the ledger's revision. The feed line is time | actor | verb | id | result. The replay hash is FNV-1a 64 over exactly r.043's projection — no wall-clock, no ISO, no FPS, no SID — and free-form notes sit beside the stream and are never hashed.",
+   "in": "DRN-06.01.IN",
+   "out": "DRN-06.01.OUT",
+   "section": "VI",
+   "uwf": [
+    "U-WF-06",
+    "U-WF-08"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "a note carrying 'fps 58.3 sid 9f3a' does not move the hash; a different game time does not either; the same round replays to the same hash",
+   "verify": "frontend/tests/drone-decisions.test.mjs",
+   "dtm": "two runs can say WHICH row they disagreed at",
+   "stretch": "the sidecar beside the immutable Cup fixture",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-07.02",
+   "title": "The operator deck: keys, sticks, touch and voice",
+   "statement": "EXEL-2525-CONTROLS-1 is the one map on every 2525 vehicle: L stick BODY (W A S D), R stick HEAD (arrows), Q E turn, U J climb, T next door, 1 2 3 the slots, F fire, C capture. Keys write the refs a thumb does; arrows and the R stick are one gimbal rate inside the declared limits; a tap marks, a double-tap fires only red, the aiming seat's drag looks; voice is offered, never required; calibration is persisted so a resting thumb reads zero; the keymap prints. Typing never flies.",
+   "in": "DRN-07.02.IN",
+   "out": "DRN-07.02.OUT",
+   "section": "I",
+   "uwf": [
+    "U-WF-09",
+    "U-WF-12"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "schema held field for field against r.050; arrows do not move the airframe; a 6% resting thumb reads zero; no gesture reaches a shot without canFire",
+   "verify": "frontend/tests/drone-controls.test.mjs · controls-schema · stick-sets · drone-tap",
+   "dtm": "a person flies and aims with what is in front of them",
+   "stretch": "the same deck on the turret, the Manta, the Ark and the droid",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.08",
+   "title": "Compare on what he asked to compare on",
+   "statement": "Every rung of the ladder reports designation rate, HI holds, auth failures, handoffs, simulation speed and a replay hash beside the three it already measured — not winners only. HI holds read zero in the contest and say so, because the contest models a person as a latency and never as a refusal; the holds that are real live in the decision record. Simulation speed is a wall-clock throughput and is never inside the hash.",
+   "in": "DRN-10.08.IN",
+   "out": "DRN-10.08.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "the same seed replays to the same hash at every rung; level 3 refuses far fewer fire-ticks than level 1",
+   "verify": "frontend/tests/drone-contest.test.mjs · frontend/scripts/drone-ladder.mjs",
+   "dtm": "a rung can be compared with yesterday's",
+   "stretch": "the Cup fixture replayed against these six",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-10.09",
+   "title": "CH1–CH5 and DIFF 1–5, from the deck",
+   "statement": "Five challenges × five difficulties, the deck's challengeSpec verbatim: quota 4+CH×2+DIFF doors in play, window scaled by rate max(10, 56−CH×6−DIFF×4), concurrent doors 1→3, moving from CH3, NET at CH5. Chosen from two dropdowns in the top bar, never a hidden selector. At CH5 NET a red box must come from a second person; self-approval is refused CH5_NO_APPROVE and recorded as a HOLD. TG is not resurrected.",
+   "in": "DRN-10.09.IN",
+   "out": "DRN-10.09.OUT",
+   "section": "X",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "25 CH×DIFF cells equal to r.050's function; harder is never more time; CH5 self-approval refused and on the record",
+   "verify": "frontend/tests/drone-challenge.test.mjs",
+   "dtm": "a player feels the rung, and CH5 needs two people",
+   "stretch": "moving targets from the swarm at CH3+",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-06.02",
+   "title": "The AsM Cup as a regression fixture",
+   "statement": "ASM_CUP_99.json and ASM_ROSTER.csv are read-only by contract: their bytes are pinned by sha256 and a gate refuses if either moves. The published baseline — seed 2525, 6v6 BLU 3–1, 3v3 BLU 5–0, pairs 1–3 RED and 4–6 BLU at every level — is recomputed from the fixture's numbers, not restated. A new run writes a sidecar beside the fixture, never at it. The fixture's declared revision (0.039) is reported and flagged, not gated.",
+   "in": "DRN-06.02.IN",
+   "out": "DRN-06.02.OUT",
+   "section": "VI",
+   "uwf": [
+    "U-WF-06",
+    "U-WF-08"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "two hashes pinned; four baseline sentences recomputed; roster = the twelve; sidecar path ≠ fixture path; the module imports no filesystem",
+   "verify": "frontend/tests/asm-cup.test.mjs",
+   "dtm": "a later build is judged against his published result",
+   "stretch": "the contest replays the Cup at seed 2525 and compares his six",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-09.04",
+   "title": "The second person, over the link",
+   "statement": "The targeteer's amber mark goes out on the gimbal word; the pilot's device shows it with an APPROVE button; the approval crosses the link as its own message, authored by seat, applied once by sequence on the device that holds the mark, in the sender's name — so the box reads two-person. A seat cannot approve its own mark through the link: its echo is dropped and the holder refuses a sender equal to the designator.",
+   "in": "DRN-09.04.IN",
+   "out": "DRN-09.04.OUT",
+   "section": "III",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "approve authored by either seat, needs door + slot; duplicate lands once; own echo dropped; holder refuses self",
+   "verify": "frontend/tests/drone-link.test.mjs",
+   "dtm": "two phones make one red box, with two names on it",
+   "stretch": "the same message on the Manta and the droid",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-08.02",
+   "title": "The platform identities, from the deck",
+   "statement": "The eight PLATFORM identities are data lifted from the deck — id, label, kind and flight mode — and a gate compares them to r.050's own units table and dropdown. A platform dropdown sits beside the mode row. D1Q QUAD·HOVER has no wing and refuses the transition by name; D1 VTOL flies both; D1F FOIL takes the wing the moment the transition is legal. Platforms that do not exist on this arena are listed and dated, never hidden; the round never forks a second airframe model per platform.",
+   "in": "DRN-08.02.IN",
+   "out": "DRN-08.02.OUT",
+   "section": "VIII",
+   "uwf": [
+    "U-WF-05"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "8 ids, labels, kinds and 3 flight modes equal to r.050; D1Q wing refused; D1F auto-transitions; one airframe model",
+   "verify": "frontend/tests/drone-platforms.test.mjs",
+   "dtm": "the same platform names on the deck and in the app",
+   "stretch": "Manta, Ark and the droid on their own arenas",
+   "status": "implemented"
+  },
+  {
+   "id": "DRN-05.08",
+   "title": "The range: per-lane pop-ups at 50–300 m, three modes",
+   "statement": "At CH0 the turret sits on one of 42 lanes and the ten silhouettes of the 9127 Alt-C sheet (50 F · 100 F ×3 · 150 E ×2 · 200 E ×2 · 250 E · 300 E) stand DOWN until their exposure: one plate per lane at a time, in a seeded per-lane order, for 3 s at 50 m rising 1 s per 50 m to 8 s at 300 m, 1.5 s between exposures. TRAINING·RESET raises a downed target on its next scheduled exposure; TRAINING·DOWN keeps it down until RESET; QUAL·40 runs tables I/II/III of 20/10/10 exposures under clocks that cover them (142/75/75 s), one round per exposure, a lapse is an unfired MISS, a table exposes only what it can score, 23/30/36.",
+   "section": "VIII",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "10 silhouettes; exposures 3..8 s by distance; 42 independent lane orders; one round per exposure; 40/40 attainable",
+   "verify": "frontend/tests/range-2525.test.mjs · frontend/scripts/drone-deck-qa.mjs (RANGE_POP_SCHEDULE, MODE_RESET_RETURNS, MODE_DOWN_STAYS, MODE_QUAL_TIMED, ONE_ROUND_PER_EXPOSURE, TABLE_III_EXPOSES_ONLY_SCORABLE)",
+   "dtm": "a first-timer sees a target rise, its caption and its seconds, on a phone",
+   "stretch": "a canonical range clock shared between two phones (r.132)",
+   "status": "implemented",
+   "in": "DRN-05.08.IN",
+   "out": "DRN-05.08.OUT"
+  },
+  {
+   "id": "DRN-05.09",
+   "title": "A hit is scale-true; a target that is down is not a target",
+   "statement": "A silhouette is hit when the pip sits inside its projected outline (CIRCLE inside the aiming circle, else SILHOUETTE), with an angular floor of 3 mrad (min 3 px) so the standard is the same at every zoom and screen size. A plate that is down, falling, or not the lane's current exposure cannot be hit and is never resurrected; when a target goes down (hit or lapsed) its amber/red box goes with it; a miss keeps red for that exposure only and never re-arms the CH5 second authority.",
+   "section": "V",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "RANGE_HIT_50 / RANGE_HIT_300 aimed hits; RANGE_MISS_300_OFF20; LAPSE_RELEASES_THE_BOX; no simDirect in any range row",
+   "verify": "frontend/scripts/drone-deck-qa.mjs (RANGE_HIT_*, LAPSE_RELEASES_THE_BOX) · frontend/tests/drone-playable.test.mjs",
+   "dtm": "the pip on the silhouette is the whole rule",
+   "stretch": "an outline test (dome / shoulders) instead of the bounding rectangle",
+   "status": "implemented",
+   "in": "DRN-05.09.IN",
+   "out": "DRN-05.09.OUT"
+  },
+  {
+   "id": "DRN-04.02",
+   "title": "One forward basis; one aim from the eye",
+   "statement": "The camera vector, the projector, the body motion, the lock cone, every aim and every box read ONE basis (fwdOf/rightOf/yawTo, derived from the projector) and ONE world position (worldOf); every aim is computed from the camera eye to the centre of mass (aimUnitAt). Before r.130 the camera vector and the projector disagreed by 180°: the range pit looked away from its plates and left-stick forward flew the airframe away from what the screen showed.",
+   "section": "IV",
+   "uwf": [
+    "U-WF-04"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "camera forward lands at screen centre at every yaw/tilt; a fixed point slides left when the stick pans right; the body closes on the point on screen at yaw 90°",
+   "verify": "frontend/tests/range-2525.test.mjs · frontend/scripts/drone-deck-qa.mjs (PROJ_FWD_AGREES, PAN_RIGHT_MOVES_WORLD_LEFT, FWD_AT_YAW90, PIT_SEES_300_RIGHT_250_LEFT)",
+   "dtm": "forward is what you see",
+   "stretch": "the same basis lifted into lib/wire-core for every 2525 surface",
+   "status": "implemented",
+   "in": "DRN-04.02.IN",
+   "out": "DRN-04.02.OUT"
+  },
+  {
+   "id": "DRN-11.11",
+   "title": "Render honesty: exceptions recorded, must-hit first, the deck's own QA in CI",
+   "statement": "A render exception is recorded (state.drawErr), never swallowed; a frame stamps that it ran to its last line and a deferred QA row reads it. What you must hit takes the segment budget before the world on every channel. The deck's boot QA (84 rows) runs in headless Chromium in CI against a checked-in row manifest with set equality and a tight red-list; QA snapshots and restores the record and leaves no designation on the first screen.",
+   "section": "XI",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "DRAW_COMPLETES; QA_LEAVES_NO_TRACE; deck-qa manifest equality; only SYNC_DIRECT red on one device",
+   "verify": "frontend/scripts/drone-deck-qa.mjs · frontend/tests/deck-qa-manifest.mjs",
+   "dtm": "a green board that cannot lie about the picture",
+   "stretch": "a completeness assertion that the must-hit set survived the budget",
+   "status": "implemented",
+   "in": "DRN-11.11.IN",
+   "out": "DRN-11.11.OUT"
+  },
+  {
+   "id": "DRN-13.03",
+   "title": "Every operator-deck revision documented, chain-hashed, gated",
+   "statement": "docs/drone-2525/operator-deck/REVISIONS.md carries one entry per carried revision from r.128 — bytes, sha256, shipping commit, what changed, corrections of earlier claims as NEW lines — chained by sha256(prev|rev|sha|bytes); a gate holds every carried file to its row, README HEAD to the last row, and the chain intact; ONE tests/deck-head.mjs names HEAD for every deck-reading gate; the patchers that built each revision are carried beside it.",
+   "section": "II",
+   "uwf": [
+    "U-WF-12"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "4 entries r.128..r.131; chain intact; HEAD constant equal across gates and the PLAY button",
+   "verify": "frontend/tests/drone-revisions.test.mjs · frontend/tests/drone-playable.test.mjs",
+   "dtm": "a reviewer can check every revision by hash tomorrow",
+   "stretch": "a chain that also covers the narrative and the shipping commit, anchored in git",
+   "status": "implemented",
+   "in": "DRN-13.03.IN",
+   "out": "DRN-13.03.OUT"
+  }
+ ],
+ "status": {
+  "conceptual_critique": "Amber",
+  "build": "Amber",
+  "human_testing": "Red",
+  "operations": "Red"
+ },
+ "motLadder": {
+  "bands": 5,
+  "steps": 5,
+  "rungs": 25,
+  "min": "1.1",
+  "max": "5.5",
+  "sensorLadder": [
+   "EO",
+   "IR",
+   "ACOUSTIC",
+   "MAG",
+   "CHEM"
+  ],
+  "note": "Band = edge-compute class (how many sensor modules and how much CNN). Step = resolution (pixel density and curve roundness). Rung 1.1 is the 1983 vector arcade and asks for the fastest picture; 5.5 is the dense fused mesh. A higher rung asks for MORE work and therefore FEWER frames per second — demand, not capability."
+ },
+ "hal": {
+  "profiles": [
+   {
+    "id": "pi",
+    "label": "PI-CLASS",
+    "frameBudgetMs": 66,
+    "cnnMs": 18
+   },
+   {
+    "id": "edge",
+    "label": "EDGE-SOC",
+    "frameBudgetMs": 33,
+    "cnnMs": 12
+   },
+   {
+    "id": "accel",
+    "label": "ACCELERATOR",
+    "frameBudgetMs": 16,
+    "cnnMs": 8
+   }
+  ],
+  "auto": "the unit picks its class from its own measured frame rate",
+  "rule": "the CNN reserve is subtracted from the frame before the renderer may want any of it"
+ },
+ "stream": {
+  "reference": "1080p30",
+  "ladder": [
+   "1080p30",
+   "720p30",
+   "480p30",
+   "480p15"
+  ],
+  "rule": "shed a sensor module first, then resolution, then frame rate — and name every step"
+ },
+ "selfCal": {
+  "budgetMinutesMin": 6,
+  "budgetMinutesMax": 15,
+  "minDwellS": 12,
+  "maxDwellS": 36,
+  "failStreakToStop": 2,
+  "goal": "report the highest rung this machine holds at the reference stream"
+ },
+ "si": {
+  "state": "placeholder",
+  "on_by_default": false,
+  "ladder": "lib/pod-clock.ts — noted 1, adopted 3, foundational 7; nothing in between and nothing above",
+  "authority": "the group advises, a named person decides; nothing in the consensus engine can fire a shot",
+  "not_yet": [
+   "no polling session is created",
+   "no invitation is delivered",
+   "no heart reaches a ledger"
+  ]
+ },
+ "crew": {
+  "seats": [
+   "pilot",
+   "targeteer"
+  ],
+  "rule": "a seat may only send what that seat controls; the other seat's controls are absent, not disabled",
+  "paths": [
+   "another tab",
+   "shared storage",
+   "cloud endpoint /api/drone-link"
+  ],
+  "proof": "scripts/drone-crew-e2e.mjs — two separate browser profiles, only the cloud path available"
+ },
+ "swarm": {
+  "total": 42,
+  "perSide": 21,
+  "sides": [
+   "friendly",
+   "hostile"
+  ],
+  "glyphSegments": {
+   "far": 4,
+   "mid": 12,
+   "near": 24
+  },
+  "rule": "the swarm takes its share of the rung's budget first; every aircraft is drawn before any gets detail",
+  "passMark": "42 aircraft at rung 2.3 holding the 30 Hz reference on a processor slowed ten times"
+ },
+ "authority": {
+  "levels": 5,
+  "1": "a named person, every shot",
+  "2": "a named person, each aircraft once",
+  "3": "a named person, a declared window",
+  "4": "the key group, that window",
+  "5": "the key group's live lean, a standing mandate it can end",
+  "invariant": "a named human decision exists before any machine shot; silence is never consent at any level"
+ },
+ "platforms": [
+  {
+   "id": "T1",
+   "label": "TURRET",
+   "kind": "turret",
+   "flight": null,
+   "here": true
+  },
+  {
+   "id": "D1Q",
+   "label": "QUAD · HOVER",
+   "kind": "vtol",
+   "flight": "quad",
+   "here": true
+  },
+  {
+   "id": "D1",
+   "label": "VTOL",
+   "kind": "vtol",
+   "flight": "vtol",
+   "here": true
+  },
+  {
+   "id": "D1F",
+   "label": "FOIL",
+   "kind": "vtol",
+   "flight": "foil",
+   "here": true
+  },
+  {
+   "id": "M99",
+   "label": "MANTA 99-66",
+   "kind": "sub",
+   "flight": null,
+   "here": false
+  },
+  {
+   "id": "M66",
+   "label": "MINI 66-33",
+   "kind": "sub",
+   "flight": null,
+   "here": false
+  },
+  {
+   "id": "ARK",
+   "label": "ARK SAIL 33",
+   "kind": "ark",
+   "flight": null,
+   "here": false
+  },
+  {
+   "id": "R2",
+   "label": "MASS DROID",
+   "kind": "droid",
+   "flight": null,
+   "here": false
+  }
+ ]
 }

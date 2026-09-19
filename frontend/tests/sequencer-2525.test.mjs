@@ -6,11 +6,13 @@
 // every peer ends with the same committed order and the same replay hash, and a provisional event never enters
 // a hash. World mutation (applyWorld) and DOM are stubbed — this is a proof about ORDER and EVIDENCE, not physics.
 import fs from 'node:fs';
+import { DECK_REV, deckUrl } from './deck-head.mjs';
+const R128 = new URL('../../docs/drone-2525/operator-deck/drone-2525_r.128.html', import.meta.url);
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 
-const html = fs.readFileSync(new URL('../../docs/drone-2525/operator-deck/drone-2525_r.128.html', import.meta.url), 'utf8');
+const html = fs.readFileSync(deckUrl(import.meta.url), 'utf8');
 const lift = (name) => { const m = html.match(new RegExp(`function ${name}\\([^)]*\\)\\{[\\s\\S]*?\\n\\}`)); if (!m) throw new Error(`r.128 lacks ${name}`); return m[0]; };
 const NAMES = ['fnv1a64', 'stableCanon', 'sessionOrderKey', 'sessionClockObserve', 'sessionAdoptHead', 'sessionClockNext', 'sessionCommitEvent', 'eventById', 'appendCanonicalEvent', 'replayHash'];
 const src = NAMES.map(lift).join('\n');

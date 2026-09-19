@@ -3,3 +3,6 @@ test-results/
 # Playwright self-test screenshots (artifacts)
 tests/__shots__/
 .census/
+
+# gate output, regenerated on every run (scripts/drone-deck-qa.mjs)
+perf/deck-qa.json

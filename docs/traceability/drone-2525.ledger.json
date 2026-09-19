@@ -169,6 +169,20 @@
    "kind": "release",
    "text": "Operator deck r.130 served at /drone-2525/play.html (sha256 ce034c5e..., 231517 B). The range with turrets actually works: pit faces its plates; pop-ups per lane at 50-300 m on a seeded per-lane order with FM 3-22.9 exposure times (3 s at 50 m to 8 s at 300 m); three modes by the operator's names TRAINING RESET / TRAINING DOWN / QUAL 40 (lapsed exposure = unfired MISS, 23/30/36); scale-true hit test (pip inside the projected silhouette, CIRCLE/SILHOUETTE, 6 px floor); 9127 sheet layout (100 m x3, one 250 left, one 300 right); the reducer keeps a target's kind and its designator (a designated plate was being shot as the bull ring; the two-humans rule never saw a peer identity). In-file QA 75 rows, headless 74/75 (SYNC_DIRECT by design). Also fixes two render defects the probe exposed: r.129 bullseye() threw on every frame (hidden by the loop try/catch, nothing after the doors drawn) and at MoT 1.1 the range wire spent the segment budget before any silhouette. Every revision from r.128 on is documented in operator-deck/REVISIONS.md, append-only and chain-hashed, gated by tests/drone-revisions.test.mjs. Research with sources: docs/drone-2525/RANGE_QUALIFICATION_RESEARCH.md.",
    "commit": "a83e670"
+  },
+  {
+   "rev": 25,
+   "date": "2026-09-19",
+   "kind": "correction",
+   "text": "Register row r.128 cited d195781 as the shipping commit; r.128 was carried and served by 2159671. The r.130 register section stated gate counts 64/33; the gates reported 65/35. Both corrected as new lines in REVISIONS.md r.131; the old rows stand.",
+   "commit": "9870031"
+  },
+  {
+   "rev": 26,
+   "date": "2026-09-19",
+   "kind": "release",
+   "text": "Operator deck r.131 served at /drone-2525/play.html (sha256 700a5146..., the fleet fold). A 24-lens read-only fleet review of r.130 (docs/assessments/2026-09-19_r130_fleet_review.md) converged on eight player-path defects: the pickers re-aimed at the bull ring and left the mode as range; one exposure charged two rounds; a downed plate could be shot and resurrected; the red box outlived the pop-up; QUAL 40 could not fit its clocks and could not reach 40; the seat offset, Capitol turrets, every auto-aim and the T-box still used the old basis or raw plate coordinates; the HUD overprinted and LOCK sat under a button; the reducer's HIT branch was dead and QA left a phantom red box on the first screen. All eight fixed at the class in r.131 (QA 84 rows, headless 83/84). Repo: one deck-HEAD constant for every deck-reading gate, the deck's own QA in CI (drone-deck-qa), Verify Live probes play.html. Deferred to r.132: the wire path bypasses the two-humans gate (net APPROVE/SNAPSHOT/peer DESIG), no canonical range clock between peers, reduce-in-arrival-order.",
+   "commit": "9870031"
   }
  ]
 }

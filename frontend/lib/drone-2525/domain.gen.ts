@@ -55,10 +55,10 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.015",
+  "revision": "0.016",
   "stampPrefix": "eXeL v0.001",
-  "handoff": "docs/asks/2026-09-15_drone_2525_first_pass.md",
-  "handoffSha256": "0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2",
+  "handoff": "docs/asks/2026-09-19_range_popups.md",
+  "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
   "ledger": "docs/traceability/drone-2525.ledger.json",
   "disclaimer": "Simulation for play and critique only. Bounding estimates, not design evidence. Not flight authorisation and not a weapons system.",
   "mode": "Manual (MODE_R-CORE_SPEC: no commit without a named Human-Authority event)",
@@ -169,6 +169,13 @@ export const DRONE_DOMAIN = {
    "kind": "decision",
    "why": "Round 12 P0: operator deck HEAD moved r.050 -> r.075 and the control-schema transcription is re-pinned to it (controls.ts revision 0.075; the controls-schema gate now reads drone-2525_r.075.html, resolving BUILD when it lifts window.CONTROLS). The CONTROLS contract is byte-identical r.050 -> r.075 apart from the revision field, so this is a pin, not a behaviour change. window.CONTROLS.vehicle still names manta-99-66 (the control-map contract, which craft share the same map) -- distinct from the PLAYABLE platform roster, where the operator removed Manta (a later P3 revision). r.051-r.075 + the SSSES/SPIRAL-99 audit are carried read-only.",
    "commit": ""
+  },
+  {
+   "revision": "0.016",
+   "date": "2026-09-19",
+   "kind": "release",
+   "why": "The range with turrets actually works (operator ask 2026-09-19, persisted with the 9127 sheet). Operator deck HEAD r.130 then r.131: one forward basis (the camera vector and the projector were 180 degrees apart), per-lane pop-ups at 50-300 m with FM 3-22.9 exposure times, TRAINING RESET / TRAINING DOWN / QUAL 40, a scale-true angular hit rule, one round per exposure, the box goes down with its target, the deck's own QA in CI, and an append-only chain-hashed revision register. Five DRN rows added: the range (DRN-05), the hit rule (DRN-05), one basis (DRN-04), render honesty (DRN-11), the register (DRN-13). A 24-lens fleet review of r.130 is recorded in docs/assessments/2026-09-19_r130_fleet_review.md.",
+   "commit": "9870031"
   }
  ],
  "arena": {
@@ -2171,6 +2178,96 @@ export const DRONE_DOMAIN = {
    "dtm": "the same platform names on the deck and in the app",
    "stretch": "Manta, Ark and the droid on their own arenas",
    "status": "implemented"
+  },
+  {
+   "id": "DRN-05.08",
+   "title": "The range: per-lane pop-ups at 50–300 m, three modes",
+   "statement": "At CH0 the turret sits on one of 42 lanes and the ten silhouettes of the 9127 Alt-C sheet (50 F · 100 F ×3 · 150 E ×2 · 200 E ×2 · 250 E · 300 E) stand DOWN until their exposure: one plate per lane at a time, in a seeded per-lane order, for 3 s at 50 m rising 1 s per 50 m to 8 s at 300 m, 1.5 s between exposures. TRAINING·RESET raises a downed target on its next scheduled exposure; TRAINING·DOWN keeps it down until RESET; QUAL·40 runs tables I/II/III of 20/10/10 exposures under clocks that cover them (142/75/75 s), one round per exposure, a lapse is an unfired MISS, a table exposes only what it can score, 23/30/36.",
+   "section": "VIII",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "10 silhouettes; exposures 3..8 s by distance; 42 independent lane orders; one round per exposure; 40/40 attainable",
+   "verify": "frontend/tests/range-2525.test.mjs · frontend/scripts/drone-deck-qa.mjs (RANGE_POP_SCHEDULE, MODE_RESET_RETURNS, MODE_DOWN_STAYS, MODE_QUAL_TIMED, ONE_ROUND_PER_EXPOSURE, TABLE_III_EXPOSES_ONLY_SCORABLE)",
+   "dtm": "a first-timer sees a target rise, its caption and its seconds, on a phone",
+   "stretch": "a canonical range clock shared between two phones (r.132)",
+   "status": "implemented",
+   "in": "DRN-05.08.IN",
+   "out": "DRN-05.08.OUT"
+  },
+  {
+   "id": "DRN-05.09",
+   "title": "A hit is scale-true; a target that is down is not a target",
+   "statement": "A silhouette is hit when the pip sits inside its projected outline (CIRCLE inside the aiming circle, else SILHOUETTE), with an angular floor of 3 mrad (min 3 px) so the standard is the same at every zoom and screen size. A plate that is down, falling, or not the lane's current exposure cannot be hit and is never resurrected; when a target goes down (hit or lapsed) its amber/red box goes with it; a miss keeps red for that exposure only and never re-arms the CH5 second authority.",
+   "section": "V",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "RANGE_HIT_50 / RANGE_HIT_300 aimed hits; RANGE_MISS_300_OFF20; LAPSE_RELEASES_THE_BOX; no simDirect in any range row",
+   "verify": "frontend/scripts/drone-deck-qa.mjs (RANGE_HIT_*, LAPSE_RELEASES_THE_BOX) · frontend/tests/drone-playable.test.mjs",
+   "dtm": "the pip on the silhouette is the whole rule",
+   "stretch": "an outline test (dome / shoulders) instead of the bounding rectangle",
+   "status": "implemented",
+   "in": "DRN-05.09.IN",
+   "out": "DRN-05.09.OUT"
+  },
+  {
+   "id": "DRN-04.02",
+   "title": "One forward basis; one aim from the eye",
+   "statement": "The camera vector, the projector, the body motion, the lock cone, every aim and every box read ONE basis (fwdOf/rightOf/yawTo, derived from the projector) and ONE world position (worldOf); every aim is computed from the camera eye to the centre of mass (aimUnitAt). Before r.130 the camera vector and the projector disagreed by 180°: the range pit looked away from its plates and left-stick forward flew the airframe away from what the screen showed.",
+   "section": "IV",
+   "uwf": [
+    "U-WF-04"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "camera forward lands at screen centre at every yaw/tilt; a fixed point slides left when the stick pans right; the body closes on the point on screen at yaw 90°",
+   "verify": "frontend/tests/range-2525.test.mjs · frontend/scripts/drone-deck-qa.mjs (PROJ_FWD_AGREES, PAN_RIGHT_MOVES_WORLD_LEFT, FWD_AT_YAW90, PIT_SEES_300_RIGHT_250_LEFT)",
+   "dtm": "forward is what you see",
+   "stretch": "the same basis lifted into lib/wire-core for every 2525 surface",
+   "status": "implemented",
+   "in": "DRN-04.02.IN",
+   "out": "DRN-04.02.OUT"
+  },
+  {
+   "id": "DRN-11.11",
+   "title": "Render honesty: exceptions recorded, must-hit first, the deck's own QA in CI",
+   "statement": "A render exception is recorded (state.drawErr), never swallowed; a frame stamps that it ran to its last line and a deferred QA row reads it. What you must hit takes the segment budget before the world on every channel. The deck's boot QA (84 rows) runs in headless Chromium in CI against a checked-in row manifest with set equality and a tight red-list; QA snapshots and restores the record and leaves no designation on the first screen.",
+   "section": "XI",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "DRAW_COMPLETES; QA_LEAVES_NO_TRACE; deck-qa manifest equality; only SYNC_DIRECT red on one device",
+   "verify": "frontend/scripts/drone-deck-qa.mjs · frontend/tests/deck-qa-manifest.mjs",
+   "dtm": "a green board that cannot lie about the picture",
+   "stretch": "a completeness assertion that the must-hit set survived the budget",
+   "status": "implemented",
+   "in": "DRN-11.11.IN",
+   "out": "DRN-11.11.OUT"
+  },
+  {
+   "id": "DRN-13.03",
+   "title": "Every operator-deck revision documented, chain-hashed, gated",
+   "statement": "docs/drone-2525/operator-deck/REVISIONS.md carries one entry per carried revision from r.128 — bytes, sha256, shipping commit, what changed, corrections of earlier claims as NEW lines — chained by sha256(prev|rev|sha|bytes); a gate holds every carried file to its row, README HEAD to the last row, and the chain intact; ONE tests/deck-head.mjs names HEAD for every deck-reading gate; the patchers that built each revision are carried beside it.",
+   "section": "II",
+   "uwf": [
+    "U-WF-12"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "4 entries r.128..r.131; chain intact; HEAD constant equal across gates and the PLAY button",
+   "verify": "frontend/tests/drone-revisions.test.mjs · frontend/tests/drone-playable.test.mjs",
+   "dtm": "a reviewer can check every revision by hash tomorrow",
+   "stretch": "a chain that also covers the narrative and the shipping commit, anchored in git",
+   "status": "implemented",
+   "in": "DRN-13.03.IN",
+   "out": "DRN-13.03.OUT"
   }
  ],
  "status": {

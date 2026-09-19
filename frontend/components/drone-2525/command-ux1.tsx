@@ -12,6 +12,7 @@
  * Capital. The two flying modes are listed and visibly dated, never hidden — a mode the operator
  * asked for that is not built yet is a promise on screen, not a silence.
  */
+import { DECK_REV } from "@/lib/drone-2525/deck-rev";
 import { DEFAULT_PLATFORM, type PlatformId } from "@/lib/drone-2525/platform";
 import { DEFAULT_CHALLENGE, DEFAULT_DIFF, type Challenge, type Difficulty } from "@/lib/drone-2525/challenge";
 import { loadProgression, saveProgression, advance, unlocked, startingMode, startingChallenge, type Progression } from "@/lib/drone-2525/progression";
@@ -87,8 +88,8 @@ export function DroneCommandUX1() {
         <span style={{ fontSize: 13, letterSpacing: "0.18em", color: semanticHex("mount") }}>DRONE · 2525</span>
         <span style={{ ...dim, fontSize: 11 }}>{t("drone.subtitle")}</span>
         <button data-drone-replay-intro onClick={() => setShowIntro(true)} style={{ ...btn({ hex: label }), fontSize: 10 }}>{t("drone.intro.replay")}</button>
-        {/* R-CORE: the best solution ships. r.128 (Grok + eXeL AI) is the complete single-file game — served as-is. */}
-        <a data-drone-play href="/drone-2525/play.html" style={{ ...btn({ on: true, hex: semanticHex("mount") }), fontSize: 11, textDecoration: "none" }}>{t("drone.play_deck")}</a>
+        {/* R-CORE: the best solution ships. The operator deck (Grok + eXeL AI + Claude Code) is the complete single-file game — served as-is; the label carries the served revision. */}
+        <a data-drone-play href="/drone-2525/play.html" style={{ ...btn({ on: true, hex: semanticHex("mount") }), fontSize: 11, textDecoration: "none" }}>{t("drone.play_deck").replace(/r\.\d+/, "r." + DECK_REV)}</a>
         <span style={{ marginLeft: "auto", fontSize: "clamp(8px, 2.1vw, 10px)", ...dim }}>
           {t("drone.version")} {SRC.project.version} · {t("drone.revision")} {SRC.project.revision} · {stamp}
         </span>

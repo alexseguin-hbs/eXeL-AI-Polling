@@ -5,6 +5,8 @@
 //   2. THE RULES — rotate refused once authenticated / a second member; roster sorted by peerId; canLaunch in the
 //      deck's exact refusal order; a non-host cannot ready up before DIRECT + auth; solo practice is CH0 only.
 import fs from 'node:fs';
+import { DECK_REV, deckUrl } from './deck-head.mjs';
+const R128 = new URL('../../docs/drone-2525/operator-deck/drone-2525_r.128.html', import.meta.url);
 import { lc4Seed, lc4Alphabet, lc4Token, lc4Encode, lc4Decode, LC4_CHARS } from '../lib/2525-core/lc4.ts';
 import { initLobby, ensureCodes, rotateCodes, markMember, roster, readyCounts, counts, canLaunch, toggleReady, launchSnapshot, roomState, canPracticeAlone, rand6, opaqueSeedId, isCode6, QUALIFIED_MATCH, LOCKED_MATCH } from '../lib/2525-core/lobby.ts';
 import { randomIndex, randomDigits } from '../lib/2525-core/random.ts';
@@ -13,7 +15,7 @@ let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 
 // ── 1 · INTEROP: the deck's own lc4, evaluated ───────────────────────────────────────────────────
-const html = fs.readFileSync(new URL('../../docs/drone-2525/operator-deck/drone-2525_r.128.html', import.meta.url), 'utf8');
+const html = fs.readFileSync(deckUrl(import.meta.url), 'utf8');
 const lift = (name) => { const m = html.match(new RegExp(`function ${name}\\([^)]*\\)\\{[\\s\\S]*?\\n\\}`)); if (!m) throw new Error(`r.128 lacks ${name}`); return m[0]; };
 const deckSrc = ['lc4Seed', 'lc4Rand', 'lc4Alphabet', 'lc4Digits', 'lc4Token', 'lc4Encode', 'lc4Decode'].map(lift).join('\n');
 const deck = new Function(`const LC4_CHARS='${LC4_CHARS}';\n${deckSrc}\nreturn {lc4Seed,lc4Alphabet,lc4Token,lc4Encode,lc4Decode};`)();
