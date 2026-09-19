@@ -144,6 +144,13 @@ rep("state.desig={id,kind:kindOfRef(o),ref:o||{id,x:0,y:1,z:0},phase:'amber',how
 rep("  const live=[...pops.filter(p=>p.up),...drones.filter(d=>d.up),...((+state.challenge===0&&typeof platesHere==='function')?platesHere().filter(q=>q.up&&(q.fall||0)<0.25&&q.lifePct>0):[])]; /* r.132: on the range the AI member sees the exposed silhouette */",
     "  const live=(+state.challenge===0&&typeof platesHere==='function')?platesHere().filter(q=>q.up&&(q.fall||0)<0.25&&q.lifePct>0):[...pops.filter(p=>p.up),...drones.filter(d=>d.up)]; /* r.133: on the range the AI member sees ONLY the seated lane's exposed silhouette — a nearer lawn pop-up was chosen as best and then failed its own 80 m gate, so no plate was ever marked */")
 
+
+# ── the AI's mark turns the seated head to it (same rule as a peer's mark); a miss is not "MISS · MISS" ──
+rep("      designate({id:best.id,kind:best.id.indexOf('UAV')===0?'uav':'pop',ref:best},u.label||id);\n    }",
+    "      designate({id:best.id,kind:best.id.indexOf('UAV')===0?'uav':'pop',ref:best},u.label||id);\n      { const su=units[state.unit]; if(su&&su.kind==='turret'&&state.desig&&state.desig.id===best.id) aimUnitAt(su,best,-40,20); } /* r.133: the seat looks at what the AI marked, as it does for a peer's mark */\n    }")
+rep("function bandWord(b){ return ({","function bandWord(b){ if(b==='MISS') return ''; return ({")
+rep("(state.lastBand?' · '+bandWord(state.lastBand):'')","(state.lastBand&&bandWord(state.lastBand)?' · '+bandWord(state.lastBand):'')",2)
+
 c=s.count("revision:'0.132'"); rep("revision:'0.132'","revision:'0.133'",c)
 h=s.count("r0.132"); rep("r0.132","r0.133",h)
 open(DST,'w',encoding='utf-8').write(s)

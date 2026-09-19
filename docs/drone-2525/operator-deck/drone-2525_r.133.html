@@ -2235,7 +2235,7 @@ function hudScore(){
     ps.textContent=state.qualDone?('QUAL '+(state.qualH||0)+'/40 '+qualBadge(state.qualH||0)):('TABLE '+tb.id+' · '+(state.qualTblH||0)+'/'+(state.qualTblR||0)+' of '+tb.lim+' · '+rem+' S LEFT · TOTAL '+(state.qualH||0)+'/'+(state.qualR||0)+(state.qualExpired?' · LAPSED '+state.qualExpired:''));
   } else ps.textContent=chNum()===0?(RANGE_MODE_NAME[state.rangeMode||'bounce']+' · HIT '+(state.rangeHit|0)+' · MISS '+(state.rangeMiss|0)+' · LAPSED '+(state.rangeLapsed|0)+(state.rangeAllDown?' · ALL DOWN · PRESS RESET':'')):('BLU '+(state.blu|0)+' · RED '+(state.red|0));
 }
-function bandWord(b){ return ({CIRCLE:'IN THE AIMING CIRCLE',SILHOUETTE:'ON THE SILHOUETTE',DOWN:'TARGET ALREADY DOWN',SPENT:'ROUND ALREADY SPENT',CULLED:'OUT OF THE PICTURE'})[b]||b; } /* r.133: the band in the player's words; the record keeps the band name */
+function bandWord(b){ if(b==='MISS') return ''; return ({CIRCLE:'IN THE AIMING CIRCLE',SILHOUETTE:'ON THE SILHOUETTE',DOWN:'TARGET ALREADY DOWN',SPENT:'ROUND ALREADY SPENT',CULLED:'OUT OF THE PICTURE'})[b]||b; } /* r.133: the band in the player's words; the record keeps the band name */
 function applyHit(ref,id){
   if(ref.lifePct==null) ref.lifePct=100;
   const isPlate=!!(ref&&ref.id&&String(ref.id).charAt(0)==='C'&&ref.form&&typeof plateHit==='function');
@@ -2262,8 +2262,8 @@ function applyHit(ref,id){
           ' · T'+qr.table.id+' '+qr.table.pos+
           ' · '+qr.hits+'/'+qr.round+done+next);
       }
-    } else toast((hit?'HIT':'MISS')+(state.lastBand?' · '+bandWord(state.lastBand):''));
-  } else toast((hit?'HIT':'MISS')+(state.lastBand?' · '+bandWord(state.lastBand):''));
+    } else toast((hit?'HIT':'MISS')+(state.lastBand&&bandWord(state.lastBand)?' · '+bandWord(state.lastBand):''));
+  } else toast((hit?'HIT':'MISS')+(state.lastBand&&bandWord(state.lastBand)?' · '+bandWord(state.lastBand):''));
   if(hit) return {dead:true,direct:true,pts:100,result:'HIT'};
   return {dead:false,direct:false,pts:0,result:'MISS'};
 }
@@ -2426,6 +2426,7 @@ function asmTick(dt){
     u.tilt+=(((Math.atan2((best.y||1.2)-4.2,bd)*180/Math.PI)-u.tilt)*Math.min(1,2*dt));
     if(state.asmSpot && !state.hiLock && !state.desig && bd<(best.form?340:80)){
       designate({id:best.id,kind:best.id.indexOf('UAV')===0?'uav':'pop',ref:best},u.label||id);
+      { const su=units[state.unit]; if(su&&su.kind==='turret'&&state.desig&&state.desig.id===best.id) aimUnitAt(su,best,-40,20); } /* r.133: the seat looks at what the AI marked, as it does for a peer's mark */
     }
     if(state.asmFire && state.desig && state.desig.id===best.id && state.desig.phase==='red' && !state.desig.asmFired && challengeSpec().c<5){ /* r.133: the AI member fires ONLY on a red box (a named human approved), once per box, through the one fire path — the r.132 branch downed the target on amber with no APPROVE and no record */
       state.desig.asmFired=true; feed((u.team||'BLU')+' AsM FIRE '+best.id); log('ASM',id,best.id); fireN(state.desig.slot||state.slot||1);
