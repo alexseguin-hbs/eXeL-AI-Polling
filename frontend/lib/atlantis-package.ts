@@ -133,13 +133,9 @@ export const SEAL_STRENGTHS: SealStrength[] = [
 ];
 
 /** Unbiased random index in [0, max) via rejection sampling (no modulo bias). */
-function randomIndex(max: number): number {
-  const limit = Math.floor(0x1_0000_0000 / max) * max;
-  const buf = new Uint32Array(1);
-  let v: number;
-  do { v = crypto.getRandomValues(buf)[0]; } while (v >= limit);
-  return v % max;
-}
+// The unbiased sampler now lives in lib/2525-core/random.ts so the Drone-2525 lobby reuses it (one primitive,
+// N consumers); behaviour is identical to the private copy that was here.
+import { randomIndex } from "@/lib/2525-core/random";
 
 /** Cryptographically random seal code for the given strength tier. */
 export function generateSealCode(s: SealStrength): string {
