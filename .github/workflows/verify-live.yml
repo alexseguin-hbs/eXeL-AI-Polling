@@ -101,9 +101,15 @@ jobs:
           fi
 
       - name: Verify the served operator deck (the playable itself, not just the shell route)
+        # r.133: this step ran without SITE since r.131 (curl "No host part") and grepped a label the deck renames — every
+        # Verify Live since #1722 was red for that reason, not because the deck was stale. SITE is passed and the marker is
+        # the deck's own HUD node, which no revision renames.
+        env:
+          SITE: https://exel-ai-polling.explore-096.workers.dev
         run: |
           REV=$(sed -n "s/^export const DECK_REV = '\([0-9]*\)';.*/\1/p" frontend/tests/deck-head.mjs)
-          body=$(curl -fsSL "$SITE/drone-2525/play.html")
-          echo "$body" | grep -q "revision:'0.$REV'" || { echo "::error::/drone-2525/play.html does not carry revision 0.$REV (a soft-404 returns the SPA with 200)"; exit 1; }
-          echo "$body" | grep -q 'SCEN · 50M RANGE' || { echo '::error::the served deck lacks its own markup'; exit 1; }
+          body=$(curl -fsSL -H 'cache-control: no-cache' "$SITE/drone-2525/play.html")
+          echo "$body" | grep -q "revision:'0.$REV'" || { echo "::error::/drone-2525/play.html does not carry revision 0.$REV (a soft-404 returns the SPA with 200)"; echo "### ❌ /drone-2525/play.html is not deck r.$REV" >> "$GITHUB_STEP_SUMMARY"; exit 1; }
+          echo "$body" | grep -q 'id="playHud"' || { echo '::error::the served deck lacks its own markup'; exit 1; }
           echo "✅ /drone-2525/play.html serves deck r.$REV"
+          echo "### ✅ /drone-2525/play.html serves deck r.$REV" >> "$GITHUB_STEP_SUMMARY"
