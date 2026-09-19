@@ -30,11 +30,26 @@ design requires `path==='DIRECT' && sync==='MATCH'` — it MUST stay FAIL on one
 ## Genuinely OPEN — cannot be closed in-file or on one device (unchanged, honest)
 1. **Two real phones**: HOST/JOIN → DIRECT → AMBER both → RED both → same hash → disconnect/snapshot → same
    hash. Local QA green ≠ that proof. This is THE qualification gate; it needs two devices in one room.
-2. **3v3+ ordering**: `orderKey` is room + peer + local seq — deterministic replay sort, not a shared session
-   clock. Needed before any 3v3 claim; 9v9 stays locked until 1v1 then 3v3 qualify.
+2. **3v3+ ordering — CORRECTED 2026-09-19: r.128 already has a session clock.** A host SEQUENCER assigns a
+   monotonic `sessionSeq` (`sessionCommitEvent`), joiners hold events provisional (`committed:false`,
+   `orderKey 'P:'+eventId`) until the host's `SEQ_COMMIT`, a Lamport `logicalClock` is observed on receive,
+   and `replayHash` sorts by `sessionOrderKey(sessionSeq, peerId, seq)`. The deck's own QA said "structurally
+   deterministic; not a live 3v3 proof" — that proof now exists in the repo: `frontend/tests/sequencer-2525.
+   test.mjs` lifts the deck's sequencer functions out of this file, instantiates a host + two joiners, has all
+   three originate concurrently, delivers the commits to each joiner in a DIFFERENT shuffled order, and asserts
+   one committed order + one replay hash on every peer, no duplicates, no provisional row in any hash (13/0,
+   in test:ci + spiral9). What is still owed is the same on LIVE transport (phones), not the algorithm.
 3. **Endurance soak**: hours of wall-clock FPS/heap on a device. The 2,016-trial batch is depth, not time.
 4. **Alt-C**: keep "true 50–300 m plates" vs "25 m scaled paper" explicitly distinguished (both valid).
 5. **Bathymetry** is a proxy, not survey data.
+
+## Lifted into the Vision-2525 substrate (reuse, not rework — held to this file by gates)
+- `frontend/lib/2525-core/lc4.ts` — LIGHT-4 · TEAM CODE, bit-exact with this deck's `lc4*` (gate lifts and
+  evaluates the deck's own functions: 10/10 team codes identical alphabets, cross-decodes).
+- `frontend/lib/2525-core/lobby.ts` — the room as a pure reducer: 6-digit code + seed id per team, rotate
+  lock, sorted roster, readyCounts, `canLaunch` in this deck's exact refusal order, guest ready rule, launch
+  snapshot with pre-launch hash. `frontend/lib/2525-core/random.ts` — the one unbiased sampler both the
+  Atlantis seal PIN and the team code now use.
 
 ## What the repo side adds around the deck (modular reuse toward Vision 2525, no rework)
 - `/drone-2525` (React shell) = the on-ramp: r.066-style intro, guided start (turret-first, CH0 first visit,
