@@ -1181,7 +1181,7 @@
    "date": "2026-09-23",
    "kind": "release",
    "why": "Reconciled to the operator's second message (docs/asks/2026-09-23_drs_bu_sbu_alpha_needs.md): eight differentiators per segment, eleven risks, S12 clusters + target position, S20 five approvals; NBAs SOURCED from vendor pages; CrisisCommand described from search (site egress-blocked; name collision flagged); the needs-assessment research (two families, ten methods, each with its source and what DRS takes); the Pod codes DR › DRC › CR1 › CR1D with PRJ-34 on HOLD; logo placeholder.",
-   "commit": "PENDING"
+   "commit": "8f7b0bd"
   }
  ],
  "coreControl": "AI recommends and organizes. Authorized humans retain command.",
