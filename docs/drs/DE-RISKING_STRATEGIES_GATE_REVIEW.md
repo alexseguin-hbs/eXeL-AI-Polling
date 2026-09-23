@@ -673,5 +673,5 @@ Id law: `DRS-##`, two digits never letters; parents permanent; a changed require
 | revision | date | kind | commit | why |
 |---|---|---|---|---|
 | 0.001 | 2026-09-23 | ask | `fe6fa34` | Operator's draft text deck v0.1 with the two source PDFs and the CrisisCommand partnership (docs/asks/2026-09-23_de_risking_strategies.md) |
-| 0.002 | 2026-09-23 | release | `PENDING` | The demo project: one JSON source, S1–S20 rendered, three NOSE statements, three value tables (every number $ — / HYPOTHESIS / UNPROVEN), DRS-01…13 CRS rows on the G1–G7 ladder, risks C1–C2 / M1–M5, roadmap MVP 1–3 PROPOSED. |
+| 0.002 | 2026-09-23 | release | `e97abf4` | The demo project: one JSON source, S1–S20 rendered, three NOSE statements, three value tables (every number $ — / HYPOTHESIS / UNPROVEN), DRS-01…13 CRS rows on the G1–G7 ladder, risks C1–C2 / M1–M5, roadmap MVP 1–3 PROPOSED. |
 
