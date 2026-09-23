@@ -787,7 +787,7 @@ function engagementAt(lane,k){ /* the k-th engagement of the program on this lan
 function rangeRun(lane){ return RANGE_RUN[lane]||(RANGE_RUN[lane]={k:0,phase:'gap',t:0,cur:[],eng:null}); }
 function rangeRunReset(lane){ if(lane==null){ Object.keys(RANGE_RUN).forEach(k=>delete RANGE_RUN[k]); } else delete RANGE_RUN[lane]; }
 function rangeTraining(){ return (state.rangeMode||'bounce')!=='qual40'; }
-function rangeReset(){ magLoad('RESET'); const up=rangeTraining(); (PLATES||QUAL).forEach(q=>{q.holes=[];q._hit=false;q.up=up;q.lifePct=100;q.life=up?1e9:0;q.fall=up?0:1;q._dead=0;q._down=false;q._eng=false;q._ret=0;q.mist=false;}); rangeRunReset(); state.lastBand=''; state.rangeAllDown=false; state.rangeHit=0; state.rangeMiss=0; state.rangeLapsed=0; } /* r.137: training raises EVERY target; qualification starts with every target down */
+function rangeReset(){ magLoad('RESET'); const up=rangeTraining(); (PLATES||QUAL).forEach(q=>{q.holes=[];q._hit=false;q.up=up&&(!onSheet()||sheetHas(q));q.lifePct=100;q.life=up?1e9:0;q.fall=up?0:1;q._dead=0;q._down=false;q._eng=false;q._ret=0;q.mist=false;}); rangeRunReset(); state.lastBand=''; state.rangeAllDown=false; state.rangeHit=0; state.rangeMiss=0; state.rangeLapsed=0; } /* r.137: training raises EVERY target; qualification starts with every target down */
 /* r.131: authority is scoped to the EXPOSURE — when a target goes down (hit or lapsed) its amber/red box goes with it. */
 function rangeRelease(q){ if(!q) return; if(state.desig&&(state.desig.ref===q||state.desig.id===q.id)){ state.desig=null; state.hiApproved=false; } Object.keys(state.tgtSlot||{}).forEach(k=>{ const sl=state.tgtSlot[k]; if(sl&&(sl.ref===q||sl.id===q.id)) delete state.tgtSlot[k]; }); q.mist=false; if(typeof list==='function') list(); } /* r.134: the board kept a dead amber row after a lapse */
 function rangeFirstPlate(){ const lane=state.lane||0; return (PLATES||[]).find(p=>p.lane===lane&&p.base==='C-50')||QUAL.find(q=>q.id==='C-50')||QUAL[0]; } /* the 50 R: first in the program, and the pre-aim in training */
@@ -810,7 +810,7 @@ function rangeTick(dt){
     let anyUp=false;
     platesHere().forEach(q=>{
       if(q.up&&q.lifePct<=0){ q.fall=Math.min(1,(q.fall||0)+dt*2.4); if(q.fall>=1){ q.up=false; q._down=true; q._ret=0; rangeRelease(q); } anyUp=true; return; }
-      if(!q.up){ if(mode==='bounce'){ q._ret=(q._ret||0)+dt; if(q._ret>=RETURN_S){ q.up=true;q.lifePct=100;q.life=1e9;q.fall=0;q._eng=false;q._down=false;q._ret=0;q.mist=false; anyUp=true; } } return; }
+      if(!q.up){ if(mode==='bounce'&&(!onSheet()||sheetHas(q))){ q._ret=(q._ret||0)+dt; if(q._ret>=RETURN_S){ q.up=true;q.lifePct=100;q.life=1e9;q.fall=0;q._eng=false;q._down=false;q._ret=0;q.mist=false; anyUp=true; } } return; }
       anyUp=true;
     });
     state.rangeAllDown=(mode==='stay'&&!anyUp);
@@ -3900,7 +3900,7 @@ function toolSelfTest(){
       const angleMatch=Object.keys(SHEET_LAYOUT).every(b=>popH[b]>0&&sheetH[b]>0&&Math.abs(sheetH[b]/popH[b]-1)<0.06); const worst=Math.max(...Object.keys(SHEET_LAYOUT).map(b=>Math.abs((sheetH[b]||0)/(popH[b]||1)-1)));
       push('SHEET_SCALES_TO_ANGLE', platesHere().filter(sheetHas).length===10 && angular && fit && seen===10 && angleMatch, 'ten silhouettes on the 17" × 22" sheet at 25 m, each scaled by 25/range: on screen each is the same height as the real target at its range (worst '+(worst*100).toFixed(1)+' %), all inside the sheet, all in the picture from the pit');
       state.targets='sheet'; state.rangeMode='bounce'; rangeReset(); const q1=platesHere().find(q=>q.base==='C-100C'); aimPlate(q1,0); state.tgtSlot={}; state.desig=null; state.hiApproved=false; designate({id:q1.id,kind:'pop',ref:q1},'QA'); approveDesig('HI-2'); const h0=state.rangeHit|0; fireN(1);
-      push('SHEET_HIT_IS_A_HOLE', (state.rangeHit|0)===h0+1 && q1.up===true && q1.lifePct===100 && (q1.holes||[]).length===1 && !state.desig, 'on the sheet a hit is a hole: the silhouette stays up, the box clears, HIT counts');
+      push('SHEET_HIT_IS_A_HOLE', (state.rangeHit|0)===h0+1 && q1.up===true && q1.lifePct===100 && (q1.holes||[]).length===1 && !state.desig && platesHere().filter(q=>q.up).length===10 && !platesHere().find(q=>q.base==='C-50L').up && (()=>{ for(let i=0;i<100;i++) rangeTick(0.05); return !platesHere().find(q=>q.base==='C-50L').up && platesHere().filter(q=>q.up).length===10; })(), 'on the sheet a hit is a hole: the silhouette stays up, the box clears, HIT counts; the 50 L (not on the sheet) is never a phantom target, not even after the 3 s return');
       state.rangeMode='stay'; rangeReset(); const q2=platesHere().find(q=>q.base==='C-100C'); aimPlate(q2,0); state.tgtSlot={}; state.desig=null; state.hiApproved=false; designate({id:q2.id,kind:'pop',ref:q2},'QA'); approveDesig('HI-2'); fireN(1);
       push('SHEET_DOWN_SCORES_OUT', q2.up===false && q2._down===true && (q2.holes||[]).length===1 && platesHere().filter(sheetHas).filter(q=>q.up).length===9, 'TRAINING · DOWN on the sheet: a hit silhouette is scored out (dim), the other nine stand');
       state.rangeMode='qual40'; rangeReset(); qualResetTower(); { const R=rangeRun(0); let k4=false; for(let i=0;i<4000&&!k4;i++){ rangeTick(0.05); if(R.phase==='up'&&R.k===4) k4=true; } const upIds=platesHere().filter(q=>q.up).map(q=>q.base).sort().join('/'); const cur=R.cur.map(id=>PLATES.find(p=>p.id===id)).filter(Boolean);
@@ -4541,7 +4541,7 @@ function seatLane(i){
   const u=units[state.unit];
   if(u&&u.kind==='turret'){
     u.x=L.x;u.y=L.y;u.z=0;u.yaw=0;u.pan=0;u.tilt=0;
-    releaseAuthority('LANE CHANGE'); rangeRunReset(state.lane); /* r.135: a lane change is a consumer too */ (typeof platesHere==='function'?platesHere():[]).forEach(q=>{const up=rangeTraining();q.up=up;q.fall=up?0:1;q.lifePct=100;q.life=up?1e9:0;q._eng=false;q._down=false;q._ret=0;}); if(typeof qualResetTower==='function'&&!rangeTraining()) qualResetTower(); /* r.137: a new lane in training stands every target; in QUAL it starts the program over */ const q0=rangeFirstPlate(); if(q0) aimUnitAt(u,q0,-20,8); /* r.131: a new lane starts clean and pre-aimed */
+    releaseAuthority('LANE CHANGE'); rangeRunReset(state.lane); /* r.135: a lane change is a consumer too */ (typeof platesHere==='function'?platesHere():[]).forEach(q=>{const up=rangeTraining()&&(!onSheet()||sheetHas(q));q.up=up;q.fall=up?0:1;q.lifePct=100;q.life=up?1e9:0;q._eng=false;q._down=false;q._ret=0;}); if(typeof qualResetTower==='function'&&!rangeTraining()) qualResetTower(); /* r.137: a new lane in training stands every target; in QUAL it starts the program over */ const q0=rangeFirstPlate(); if(q0) aimUnitAt(u,q0,-20,8); /* r.131: a new lane starts clean and pre-aimed */
   }
   toast(L.id+' · '+L.kind+(L.slope>0?' UPHILL':L.slope<0?' DOWNHILL':' FLAT QUAL'));
   state.viewMode='op';

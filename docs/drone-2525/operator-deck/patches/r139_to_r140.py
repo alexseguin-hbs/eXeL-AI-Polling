@@ -69,7 +69,9 @@ rep("function drawPlates(segs){\n  (PLATES||QUAL).forEach(q=>{\n    if(!q.up)ret
   });
 }""")
 rep("function rangeReset(){ magLoad('RESET'); const up=rangeTraining(); (PLATES||QUAL).forEach(q=>{q.up=up;",
-    "function rangeReset(){ magLoad('RESET'); const up=rangeTraining(); (PLATES||QUAL).forEach(q=>{q.holes=[];q._hit=false;q.up=up;")
+    "function rangeReset(){ magLoad('RESET'); const up=rangeTraining(); (PLATES||QUAL).forEach(q=>{q.holes=[];q._hit=false;q.up=up&&(!onSheet()||sheetHas(q));")
+rep("(typeof platesHere==='function'?platesHere():[]).forEach(q=>{const up=rangeTraining();q.up=up;",
+    "(typeof platesHere==='function'?platesHere():[]).forEach(q=>{const up=rangeTraining()&&(!onSheet()||sheetHas(q));q.up=up;")
 
 # ── the engagement program on the sheet picks only silhouettes the sheet carries ──
 rep("  const bases=e.ranges.map(z=>{ const c=QUAL.filter(q=>q.z===z); if(k===0&&z===50) return 'C-50'; return c[Math.floor(r()*c.length)].id; });",
@@ -109,7 +111,7 @@ rep("      push('SILHOUETTES_TRUE_SCALE', QUAL.every(q=>Math.abs(q.w-0.495)<1e-9
       const angleMatch=Object.keys(SHEET_LAYOUT).every(b=>popH[b]>0&&sheetH[b]>0&&Math.abs(sheetH[b]/popH[b]-1)<0.06); const worst=Math.max(...Object.keys(SHEET_LAYOUT).map(b=>Math.abs((sheetH[b]||0)/(popH[b]||1)-1)));
       push('SHEET_SCALES_TO_ANGLE', platesHere().filter(sheetHas).length===10 && angular && fit && seen===10 && angleMatch, 'ten silhouettes on the 17" × 22" sheet at 25 m, each scaled by 25/range: on screen each is the same height as the real target at its range (worst '+(worst*100).toFixed(1)+' %), all inside the sheet, all in the picture from the pit');
       state.targets='sheet'; state.rangeMode='bounce'; rangeReset(); const q1=platesHere().find(q=>q.base==='C-100C'); aimPlate(q1,0); state.tgtSlot={}; state.desig=null; state.hiApproved=false; designate({id:q1.id,kind:'pop',ref:q1},'QA'); approveDesig('HI-2'); const h0=state.rangeHit|0; fireN(1);
-      push('SHEET_HIT_IS_A_HOLE', (state.rangeHit|0)===h0+1 && q1.up===true && q1.lifePct===100 && (q1.holes||[]).length===1 && !state.desig, 'on the sheet a hit is a hole: the silhouette stays up, the box clears, HIT counts');
+      push('SHEET_HIT_IS_A_HOLE', (state.rangeHit|0)===h0+1 && q1.up===true && q1.lifePct===100 && (q1.holes||[]).length===1 && !state.desig && platesHere().filter(q=>q.up).length===10 && !platesHere().find(q=>q.base==='C-50L').up && (()=>{ for(let i=0;i<100;i++) rangeTick(0.05); return !platesHere().find(q=>q.base==='C-50L').up && platesHere().filter(q=>q.up).length===10; })(), 'on the sheet a hit is a hole: the silhouette stays up, the box clears, HIT counts; the 50 L (not on the sheet) is never a phantom target, not even after the 3 s return');
       state.rangeMode='stay'; rangeReset(); const q2=platesHere().find(q=>q.base==='C-100C'); aimPlate(q2,0); state.tgtSlot={}; state.desig=null; state.hiApproved=false; designate({id:q2.id,kind:'pop',ref:q2},'QA'); approveDesig('HI-2'); fireN(1);
       push('SHEET_DOWN_SCORES_OUT', q2.up===false && q2._down===true && (q2.holes||[]).length===1 && platesHere().filter(sheetHas).filter(q=>q.up).length===9, 'TRAINING · DOWN on the sheet: a hit silhouette is scored out (dim), the other nine stand');
       state.rangeMode='qual40'; rangeReset(); qualResetTower(); { const R=rangeRun(0); let k4=false; for(let i=0;i<4000&&!k4;i++){ rangeTick(0.05); if(R.phase==='up'&&R.k===4) k4=true; } const upIds=platesHere().filter(q=>q.up).map(q=>q.base).sort().join('/'); const cur=R.cur.map(id=>PLATES.find(p=>p.id===id)).filter(Boolean);
@@ -118,6 +120,8 @@ rep("      push('SILHOUETTES_TRUE_SCALE', QUAL.every(q=>Math.abs(q.w-0.495)<1e-9
 
 rep("      if(m) o.lifePct=+m[1]; else if(/^HIT/.test(res)){ o.lifePct=0; if(!(o.fall>0)) o.fall=0.05; } /* r.131: a HIT row downs the target on every peer */",
     "      if(m) o.lifePct=+m[1]; else if(/^HIT/.test(res)){ if(o.form&&typeof onSheet==='function'&&onSheet()&&sheetHas(o)){ if(row.peerId&&row.peerId!==SID){ o.holes=(o.holes||[]).concat([{dx:0,dy:plateDims(o).h*(o.form==='F'?0.42:0.43)}]); o._hit=true; if(state.rangeMode==='stay'){ o.up=false; o._down=true; } } } else { o.lifePct=0; if(!(o.fall>0)) o.fall=0.05; } } /* r.131: a HIT row downs the target on every peer · r.140: on the sheet it is a hole (a peer's row puts it at the centre of mass); paper never falls */")
+rep("      if(!q.up){ if(mode==='bounce'){ q._ret=(q._ret||0)+dt; if(q._ret>=RETURN_S){",
+    "      if(!q.up){ if(mode==='bounce'&&(!onSheet()||sheetHas(q))){ q._ret=(q._ret||0)+dt; if(q._ret>=RETURN_S){")
 c=s.count("revision:'0.139'"); rep("revision:'0.139'","revision:'0.140'",c)
 h=s.count("r0.139"); rep("r0.139","r0.140",h)
 for dead in ["w:0.495,h:0.508"]:
