@@ -19,9 +19,20 @@ try {
     : execSync('git rev-parse --short HEAD').toString().trim();
 } catch {}
 
-// Build timestamp in CST (America/Chicago handles CST/CDT automatically)
+// Build timestamp in CST (America/Chicago handles CST/CDT automatically).
+// ONE STAMP PER COMMIT, sampled from the commit's own clock — never from `new Date()` at config load. Next loads this
+// file in more than one process during a build (the page renderer and the client bundler), and a build that straddled a
+// minute boundary shipped HTML stamped 14:50 beside chunks stamped 14:51: every 2525 surface that renders the stamp then
+// threw React #425 (hydration text mismatch) on the live site (found 2026-09-23 by scripts/drone-render-smoke.mjs).
+// The commit time is the same in every process and in every rebuild of the same commit (U-WF-08: two renders of one
+// build stamp identically). SOURCE_DATE_EPOCH is honoured for reproducible builds; the wall clock is the last resort
+// (no git, no epoch) and is then sampled once per process, which is the old, flaky behaviour — named here, not hidden.
 const pad = (n) => String(n).padStart(2, '0');
-const now = new Date();
+let stampEpochMs = Number(process.env.SOURCE_DATE_EPOCH) * 1000 || 0;
+if (!stampEpochMs) {
+  try { stampEpochMs = Number(execSync('git log -1 --format=%ct').toString().trim()) * 1000 || 0; } catch {}
+}
+const now = stampEpochMs ? new Date(stampEpochMs) : new Date();
 const cst = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
 const buildDate = `${cst.getFullYear()}.${pad(cst.getMonth() + 1)}.${pad(cst.getDate())}`;
 const buildTime = `${pad(cst.getHours())}:${pad(cst.getMinutes())} CST`;
