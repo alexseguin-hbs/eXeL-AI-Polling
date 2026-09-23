@@ -253,6 +253,13 @@
       "kind": "release",
       "text": "Operator deck r.141 served at /drone-2525/play.html (sha256 d1771876...). LIFE-SIZE AT 12 INCHES: one focal length at 1x (12 in x 152.3 px/in, iPhone 12 Pro Max); the typed 38-degree half-angle of r.130-r.140 corrected on the record (a 76-degree field made every target tiny); a 50 m F is 24 px at 1x, a 300 m E 6 px; the 50 L/R at +-4.6 m, the edges of a portrait phone. QA 142 rows, 141/142 in each orientation.",
       "commit": "1e8b2d4"
+    },
+    {
+      "rev": 37,
+      "date": "2026-09-23",
+      "kind": "release",
+      "text": "Operator deck r.142 served at /drone-2525/play.html (sha256 4c7d6ee3...). RELOAD BY HAND ON QUAL, THE SAME ORDER AS THE ACTUAL TEST: the program names its silhouettes and is identical on every lane (per-lane seed retired, operator decision); ten targets a phase; the tower's rest loads nothing; the shooter presses RELOAD; four magazines as issued. QA 143 rows, 142/143 in each orientation.",
+      "commit": "662f8e3"
     }
   ]
 }

@@ -104,6 +104,13 @@ r.130 by-distance exposures and the three 20/10/10 tables above, which were DECL
 | the 50 m pair | ±4.6 m: on the edges of a 390–430 px portrait phone at 50 m (±5.3–5.9 m visible) | DECLARED |
 | correction | r.130–r.140 projected with a typed 38° half-angle (a 76° vertical field): the targets were drawn true-size into a field three times too wide | on the record |
 
+## Reload by hand; the same order every time (r.142, operator 2026-09-23)
+| item | value | status |
+|---|---|---|
+| magazines | four of ten, one per phase; the shooter changes magazines at each position; the tower's rest only rests | SOURCED (IWQ Table VI: "exchanging magazines with each transition") + OPERATOR ("we reload on Qual") |
+| named silhouettes | 1: 50 R · 2: 100 C · 3: 150 L · 4: 50 L, 150 R, 200 L · 5: 150 L, 200 R, 250, 300 · 6: 100 L · 7: 150 R, 300 · 8: 200 L, 300 · 9: 250, 300 · 10: 150 L, 250, 300 · 11: 50 R, 100 R, 200 R · 12: 50 L, 200 L · 13: 150 R, 250 · 14: 100 C, 150 L, 200 R · 15: 50 R, 200 L · 16: 100 L, 150 R, 250 · 17: 100 R, 200 R · 18: 50 L, 100 C, 250 | ranges SOURCED (operator's table, 1–14) / DECLARED (15–18); the left/centre/right assignment DECLARED once — "same order as actual test so user memorizes order" |
+| per lane | identical on every lane (the r.137 per-lane seed retired) | OPERATOR decision |
+
 ## Sources (search index; links as returned)
 - FM 3-22.9 ch.6 Field Fire — https://www.globalsecurity.org/military/library/policy/army/fm/3-22-9/c06.htm
 - FM 3-22.9 ch.7 Advanced Rifle Marksmanship — https://www.globalsecurity.org/military/library/policy/army/fm/3-22-9/c07.htm

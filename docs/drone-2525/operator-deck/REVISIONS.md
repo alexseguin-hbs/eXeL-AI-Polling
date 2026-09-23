@@ -22,6 +22,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.139 | 2026-09-23 | Claude Code (landscape + portrait like Mission Planning, after plan review) | 313903 | e8b52069c3b2ec8e9adf6c4b773bb6ea00f37d32f0fb92dfc4ca9ea39693aa38 | 0f71961 (artefact) | c002c0e0b14fce8e6478c4c12216307d9e7d613341ef570709943071fb77cf52 |
 | r.140 | 2026-09-23 | Claude Code (the dark green plates + the 25 m Alt-C sheet) | 322411 | 0f44f0d8bfd83c0e55cda9a77501d3e65ec3306cbbc4b75ab3da5c89da6cce7a | f0f9592 → 9d45dae (artefact, final bytes) | d0fdb1208117f5366895b36957434da88208bfe63fcc45cb5416706564f353c3 |
 | r.141 | 2026-09-23 | Claude Code (life-size at 12 in · the 50s at the edges) | 324194 | d177187681613f8d61c70f6df2fe39efc667557989548bc3d12bbdf48c3daf14 | 1e8b2d4 (artefact) | 1cb42d37446afd4816818e3b46508cfb2fdbd5f5aac30fd3df39e34179cadb83 |
+| r.142 | 2026-09-23 | Claude Code (reload by hand on QUAL · the same order as the actual test) | 326615 | 4c7d6ee31fa60573b0a75069290482dae67f91773e304b6c4173c6d55677c367 | 662f8e3 (artefact) | 29e9b8bff3fbe53012e7afe75f1267f40e7e7f512cf9aff19036b0843cdb2c3e |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -425,3 +426,20 @@ Ask: `docs/asks/2026-09-23_eye_scale_12in_fifty_at_edges.md` (verbatim, hashed).
   focal length, the two half-angles and the edge geometry; `drone-playable` 76/0; `drone-deck-qa` 34/0; `drone-team-e2e` 9/9.
 - **Still open, honest:** 152.3 px/in is the iPhone 12 Pro Max's; other phones differ by a few percent and are not yet read from the
   device; ±4.6 m is tuned to a 390–430 px portrait phone.
+
+## r.142 — Claude Code: reload by hand on QUAL, the same order as the actual test (2026-09-23)
+Ask: `docs/asks/2026-09-23_qual_reload_fixed_order.md` (verbatim, hashed: "key is we reload on Qual and have same order as actual test so user
+memorizes order"). Notes: `CLAUDE_CODE_NOTES_r142.md`. Patch: `patches/r141_to_r142.py` (12 asserted edits).
+- **The program names its silhouettes and is the same on every lane, every time.** Ranges per engagement are the operator's IWQ Table VI
+  (1–14 verbatim, 15–18 DECLARED); which of left / centre / right stands is DECLARED once (per silhouette 3/3/3/2/2/4/4/4/4/6/5 = 50 × 6 ·
+  100 × 7 · 150 × 8 · 200 × 8 · 250 × 6 · 300 × 5) and never seeded. **Operator decision on the record:** r.137's per-lane seed ("each lane
+  has pop ups at various distances") is retired — a shooter memorises one order, as with the real table. Each phase is exactly ten targets.
+- **Reload by hand.** The tower's rest no longer loads the next magazine; it says "PHASE 2 · PRONE SUPPORTED · PRESS RELOAD · MOVE". An
+  empty magazine refuses FIRE ("EMPTY · PRESS RELOAD"); RELOAD is the shooter's row; four magazines as issued — a fifth is refused
+  `NO_MAGAZINE` on the record. One `magReload()` rule serves the button and the QA.
+- **Gates:** in-file QA 143 rows, 142/143 in portrait and landscape; `QUAL_SAME_ORDER_EVERY_LANE` (L01 = L02 = L21 = L42; ten a phase; the
+  per-silhouette counts), `PHASE_NEEDS_RELOAD` (magazine 1 still in after the rest; engagement 6 refused on empty), `QUAL_FOUR_MAGS`;
+  `QUAL_LANES_DIFFER` and `PHASE_CHANGES_MAG` retired. `range-2525` 108/0 (one order across 42 lanes; ten a phase; the counts; no tower
+  reload); `drone-playable` 78/0; `drone-deck-qa` 34/0; `drone-team-e2e` 9/9. Replayed: phase 1 = ten hits on ten rounds → the rest →
+  engagement 6 refused EMPTY → RELOAD → fires.
+- **Still open, honest:** engagements 15–18 and the left/centre/right assignment are declared, not from a range computer file.

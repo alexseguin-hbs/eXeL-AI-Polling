@@ -4,7 +4,7 @@
     "name": "Drone-2525",
     "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
     "version": "00.00",
-    "revision": "0.026",
+    "revision": "0.027",
     "stampPrefix": "eXeL v0.001",
     "handoff": "docs/asks/2026-09-19_range_popups.md",
     "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -195,6 +195,13 @@
       "kind": "release",
       "why": "Operator deck HEAD r.141: life-size at 12 inches. One focal length at 1× — the eye distance in CSS px (12 in × 152.3 px/in = 1827.6 px, iPhone 12 Pro Max) — so the picture subtends the angles the world does; the deck's typed 38° half-angle (a 76° field) is corrected on the record: a 50 m F is now 24 px wide at 1×, a 300 m E 6 px; the stick rate follows the real half-angle; the 50 L / 50 R stand at ±4.6 m, the edges of a portrait phone at 50 m. QA 142 rows, 141/142 in each orientation.",
       "commit": "1e8b2d4"
+    },
+    {
+      "revision": "0.027",
+      "date": "2026-09-23",
+      "kind": "release",
+      "why": "Operator deck HEAD r.142: reload by hand on QUAL, the same order as the actual test. The engagement program names its silhouettes (left / centre / right) and is the same on every lane, every time — the r.137 per-lane seed retired by operator decision so a shooter can memorise the order; ten targets a phase = one magazine; the tower's rest says PRESS RELOAD and loads nothing; an empty magazine refuses FIRE; four magazines as issued (a fifth refused NO_MAGAZINE). QA 143 rows, 142/143 in each orientation.",
+      "commit": "662f8e3"
     }
   ],
   "arena": {
