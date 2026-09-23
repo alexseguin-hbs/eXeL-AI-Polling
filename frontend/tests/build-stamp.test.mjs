@@ -11,11 +11,18 @@ let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; con
 const load = () => JSON.parse(execFileSync(process.execPath, ['-e', "console.log(JSON.stringify(require('./next.config.js').env))"], { cwd: root, env: { ...process.env, SOURCE_DATE_EPOCH: '' } }).toString());
 const a = load(); await new Promise((r) => setTimeout(r, 1100)); const b = load();
 ok(a.NEXT_PUBLIC_BUILD_DATE === b.NEXT_PUBLIC_BUILD_DATE && a.NEXT_PUBLIC_BUILD_TIME === b.NEXT_PUBLIC_BUILD_TIME, `two processes stamp the same build (${a.NEXT_PUBLIC_BUILD_TIME} vs ${b.NEXT_PUBLIC_BUILD_TIME})`);
-const epoch = Number(execFileSync('git', ['log', '-1', '--format=%ct'], { cwd: root }).toString().trim()) * 1000;
-const cst = new Date(new Date(epoch).toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-const pad = (n) => String(n).padStart(2, '0');
-const wantDate = `${cst.getFullYear()}.${pad(cst.getMonth() + 1)}.${pad(cst.getDate())}`, wantTime = `${pad(cst.getHours())}:${pad(cst.getMinutes())} CST`;
-ok(a.NEXT_PUBLIC_BUILD_DATE === wantDate && a.NEXT_PUBLIC_BUILD_TIME === wantTime, `the stamp is the commit's own time (${a.NEXT_PUBLIC_BUILD_DATE} ${a.NEXT_PUBLIC_BUILD_TIME}; commit ${wantDate} ${wantTime})`);
+let epoch = 0; try { epoch = Number(execFileSync('git', ['log', '-1', '--format=%ct'], { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()) * 1000; } catch {}
+if (epoch) {
+  const cst = new Date(new Date(epoch).toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+  const pad = (n) => String(n).padStart(2, '0');
+  const wantDate = `${cst.getFullYear()}.${pad(cst.getMonth() + 1)}.${pad(cst.getDate())}`, wantTime = `${pad(cst.getHours())}:${pad(cst.getMinutes())} CST`;
+  ok(a.NEXT_PUBLIC_BUILD_DATE === wantDate && a.NEXT_PUBLIC_BUILD_TIME === wantTime, `the stamp is the commit's own time (${a.NEXT_PUBLIC_BUILD_DATE} ${a.NEXT_PUBLIC_BUILD_TIME}; commit ${wantDate} ${wantTime})`);
+} else { console.log('  (no git history here: the commit-time assertion is not exercised; the two-process agreement above is the guarantee)'); }
+// Without git (a build container with no history): the memo in the temp dir makes two processes agree on one sampled clock.
+const noGit = (sha) => JSON.parse(execFileSync(process.execPath, ['-e', "console.log(JSON.stringify(require('./next.config.js').env))"], { cwd: root, env: { ...process.env, SOURCE_DATE_EPOCH: '', WORKERS_CI_COMMIT_SHA: sha, PATH: '/nonexistent' } }).toString());
+const fake = 'f'.repeat(40); const m1 = noGit(fake); await new Promise((r) => setTimeout(r, 1100)); const m2 = noGit(fake);
+ok(m1.NEXT_PUBLIC_GIT_SHA === 'fffffff' && m1.NEXT_PUBLIC_BUILD_TIME === m2.NEXT_PUBLIC_BUILD_TIME && m1.NEXT_PUBLIC_BUILD_DATE === m2.NEXT_PUBLIC_BUILD_DATE, `without git, two processes of one build still stamp identically via the memo (${m1.NEXT_PUBLIC_BUILD_TIME} vs ${m2.NEXT_PUBLIC_BUILD_TIME})`);
+try { (await import('node:fs')).unlinkSync((await import('node:path')).join((await import('node:os')).tmpdir(), `exel-build-stamp-fffffff.json`)); } catch {}
 const c = JSON.parse(execFileSync(process.execPath, ['-e', "console.log(JSON.stringify(require('./next.config.js').env))"], { cwd: root, env: { ...process.env, SOURCE_DATE_EPOCH: '1700000000' } }).toString());
 ok(c.NEXT_PUBLIC_BUILD_DATE === '2023.11.14' && c.NEXT_PUBLIC_BUILD_TIME === '16:13 CST', `SOURCE_DATE_EPOCH pins the stamp for a reproducible build (${c.NEXT_PUBLIC_BUILD_DATE} ${c.NEXT_PUBLIC_BUILD_TIME})`);
 ok(/^[0-9a-f]{7}$/.test(a.NEXT_PUBLIC_GIT_SHA), `the sha is seven hex digits (${a.NEXT_PUBLIC_GIT_SHA})`);
