@@ -23,6 +23,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.140 | 2026-09-23 | Claude Code (the dark green plates + the 25 m Alt-C sheet) | 322411 | 0f44f0d8bfd83c0e55cda9a77501d3e65ec3306cbbc4b75ab3da5c89da6cce7a | f0f9592 → 9d45dae (artefact, final bytes) | d0fdb1208117f5366895b36957434da88208bfe63fcc45cb5416706564f353c3 |
 | r.141 | 2026-09-23 | Claude Code (life-size at 12 in · the 50s at the edges) | 324194 | d177187681613f8d61c70f6df2fe39efc667557989548bc3d12bbdf48c3daf14 | 1e8b2d4 (artefact) | 1cb42d37446afd4816818e3b46508cfb2fdbd5f5aac30fd3df39e34179cadb83 |
 | r.142 | 2026-09-23 | Claude Code (reload by hand on QUAL · the same order as the actual test) | 326615 | 4c7d6ee31fa60573b0a75069290482dae67f91773e304b6c4173c6d55677c367 | 662f8e3 (artefact) | 29e9b8bff3fbe53012e7afe75f1267f40e7e7f512cf9aff19036b0843cdb2c3e |
+| r.143 | 2026-09-23 | Claude Code (no horizon line · white bullseye, red near a target · LOCK under the pip) | 329471 | c4c187b415aebed148c8c0e0d2a2c4b45b85ae974aff9b79d815e1794a4f568d | a9c6360 (artefact) | dae08b70abb13e811236476e3f89ab6781fe005b0f7448411066ec1ef0119197 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -443,3 +444,18 @@ memorizes order"). Notes: `CLAUDE_CODE_NOTES_r142.md`. Patch: `patches/r141_to_r
   reload); `drone-playable` 78/0; `drone-deck-qa` 34/0; `drone-team-e2e` 9/9. Replayed: phase 1 = ten hits on ten rounds → the rest →
   engagement 6 refused EMPTY → RELOAD → fires.
 - **Still open, honest:** engagements 15–18 and the left/centre/right assignment are declared, not from a range computer file.
+
+## r.143 — Claude Code: no horizon line; a white bullseye that turns red near a target; the bracket red with it (2026-09-23)
+Ask: `docs/asks/2026-09-23_reticle_white_red_no_horizon.md` (verbatim, hashed). Notes: `CLAUDE_CODE_NOTES_r143.md`. Patch: `patches/r142_to_r143.py` (8 asserted edits).
+- **The green horizon line is gone** from every scene; the world's own wire says where the ground is.
+- **The bullseye is white** (the palette's white, `T13.SI`) **and turns red when the pip sits on a target** — a plate's projected outline
+  + 8 px, any other target within 28 px of its centre (`reticleNear()`); the hairline bracket around that silhouette turns red with it.
+  NEAR is aim, never authority: the amber → red designation box of the fire gate is untouched.
+- **Fix the class on the way — LOCK is the thing in the crosshair (r.130 invariant).** With every target up (r.137), the nearest-in-cone
+  rule named the 50 while the pip sat on the 100; the plate under the pip now wins. (A marked target still holds LOCK while in the cone —
+  the r.131 hysteresis, by design.)
+- **Gates:** in-file QA 146 rows, 145/146 in portrait and landscape; new `RETICLE_RED_NEAR_TARGET` (on the 100 C red; 30 px beside it white;
+  25° away white), `LOCK_IS_THE_THING_IN_THE_CROSSHAIR`, `NO_HORIZON_LINE` (four pixel samples across the horizon row + the painter's source).
+  `drone-playable` 82/0; `range-2525` 108/0; `drone-deck-qa` 34/0; `drone-team-e2e` 9/9.
+- **Next, per the operator:** the same bullseye behaviour on the Capital and the other scenes (`reticleNear()` already covers non-plate
+  targets by centre distance; the bracket is the range's).

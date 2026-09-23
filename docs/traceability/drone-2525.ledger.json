@@ -260,6 +260,13 @@
       "kind": "release",
       "text": "Operator deck r.142 served at /drone-2525/play.html (sha256 4c7d6ee3...). RELOAD BY HAND ON QUAL, THE SAME ORDER AS THE ACTUAL TEST: the program names its silhouettes and is identical on every lane (per-lane seed retired, operator decision); ten targets a phase; the tower's rest loads nothing; the shooter presses RELOAD; four magazines as issued. QA 143 rows, 142/143 in each orientation.",
       "commit": "662f8e3"
+    },
+    {
+      "rev": 38,
+      "date": "2026-09-23",
+      "kind": "release",
+      "text": "Operator deck r.143 served at /drone-2525/play.html (sha256 c4c187b4...). NO HORIZON LINE; WHITE BULLSEYE, RED NEAR A TARGET; BRACKET RED WITH IT; LOCK IS THE THING IN THE CROSSHAIR. QA 146 rows, 145/146 in each orientation.",
+      "commit": "a9c6360"
     }
   ]
 }
