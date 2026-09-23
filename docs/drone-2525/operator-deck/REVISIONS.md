@@ -28,6 +28,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.145 | 2026-09-23 | Claude Code (lane markers at 100 · 200 · 300 m) | 333517 | 3a2d43e22387a21837a04587cd392ca5e904600eb226c82dc299b10e0a62d817 | 8531339 (artefact) | a33146a145a84ae34bea03124ab307a178f837ff09ff4b66a730c4081b2ce755 |
 | r.146 | 2026-09-23 | Claude Code (deferred QA rows decide on evidence) | 334257 | b3b17cbde2f49a145f995c7716261e679886c00d356c97a7af72446db43b64e3 | 5466050 (artefact) | bac705abb3a8e1885c0d413f46931f9ae9ba5f2ea1c815b843c5fc024ff2efe4 |
 | r.147 | 2026-09-23 | Claude Code (LOCK is the target nearest the bullseye on the picture) | 338605 | 2476f68a8a8835e144aeaebcb3a4dd9143b8311214b7d568efc42ac397629eb5 | 7a7a2c7 (artefact) | e8ba39881ab3eda4fad54156261828a07a470b7052fc7f2c59d247d75fb742e3 |
+| r.148 | 2026-09-23 | Claude Code (the eye outranks the mark — the 48-agent fleet's fold) | 348198 | 213a56fc08d41f510d325002d5152a05435803b6a95e18ba6874349e9e0c5b76 | 8ccab36 (artefact) | efa9e45b39f71fdc06e5c8f26ba80a7488224710a74ad6d919c1cf14216d9ace |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -530,3 +531,37 @@ target; fix". Notes: `CLAUDE_CODE_NOTES_r147.md`. Patch: `patches/r146_to_r147.p
   and passed only because key 1 took the nearest plate in metres — the row now puts the pip beside the plate, and key 1 refuses the grass.
 - **Still open, honest:** the AI member (`asmTick`) still spots the nearest standing plate in metres from its own mount — that is its own
   sensor, not the human's bullseye, and is unchanged; everything r.146 owed.
+
+## r.148 — Claude Code: the eye outranks the mark — the 48-agent fleet's fold on r.147 (2026-09-23)
+Fleet: `docs/assessments/2026-09-23_r147_fleet48_review.md` (12 lenses × reviewer A + adversarial reviewer B + one synthesis, + 12 MoT
+coordinators). Notes: `CLAUDE_CODE_NOTES_r148.md`. Patch: `patches/r147_to_r148.py` (23 asserted edits).
+- **Correction of the r.147 claim.** r.147's "LOCK is the target nearest the bullseye" ran only on an EMPTY board. `lockOn` kept the marked
+  target — mine, the other seat's, or the AI's — anywhere inside a 35° cone BEFORE the pip rule, and its gate cleared the board before it
+  looked. The deck parks the head on a 50 m plate; the first TARGET marks it; the AI member marked the nearest plate in metres the moment a
+  box cleared and swung the seated head onto it; so every later TARGET re-marked that plate and swung the head back, APPROVE reddened it
+  under a ring on another plate, and FIRE said MISS. The operator's sentence reproduced verbatim on r.147 (Athena B, both orientations;
+  Pangu A/B with the AI on; Aset A, Enki A, Christo A/B, Odin A, Thor A on the source).
+- **The class, as one rule with its members.** (1) a mark is held as LOCK only while the bullseye is ON it (`pipOn`: a plate's outline + 8 px,
+  28 px for anything else); otherwise the pip rule runs. (2) `markLock` is the one door for TARGET, key N and voice: on the current mark it
+  keeps the phase and the author and says who marked it (a red box is never demoted, a peer's or the AI's box never re-signed); on another
+  target it releases my own unfinished mark with one HOLD row (RE-MARK) and moves the head only after a mark was made. (3) T1 · T2 · T3 obey
+  the reach on every craft — the assign and numbered-door pools rank by the pip and a door behind the camera is not a slot; keys 2/3 refuse
+  like key 1; voice "target N" is key N. (4) the AI member spots THROUGH THE BULLSEYE (pipRank from the seated camera) and says
+  "NOT UNDER YOUR BULLSEYE" when it fell back to metres; it never moves the seated head; it marks nothing for 1.2 s after a shot so the HIT
+  sentence is read; a reset forgets the last shot. (5) a FIRE with no box is booked against NONE, never the nearest plate (the record had
+  named a plate nobody marked, on both phones, hashed). (6) the board sits under the strip in portrait (they overprinted at 390 px).
+  (7) the wire: APPROVE's author is the authenticated sender, never a claimed field (a joiner had signed the host's approval); a peer HIT row
+  downs a plate only with an APPROVE for it on this record (a replay-log refusal, not a hashed row, so an honest peer never forks the hash).
+  (8) the EYE comment says 24 px, measured.
+- **Gates:** nine new rows — `TARGET_FOLLOWS_THE_EYE` (100 C marked, bullseye beside the 150 R → TARGET marks the 150 R, head 0.63°, the
+  100 C released with a row), `TARGET_ON_OWN_MARK_KEEPS_PHASE`, `KEYS_2_3_OBEY_THE_REACH`, `ASM_SPOTS_THE_PIP_AND_NEVER_MOVES_IT` (head
+  0.000°), `TARGET_OVER_AI_AMBER_MARKS_THE_PIP`, `REJECT_NEVER_NAMES_AN_UNMARKED_TARGET`, `BOARD_NEVER_OVER_THE_STRIP`,
+  `PEER_HIT_NEEDS_RED_ON_RECORD`, `AI_WAITS_FOR_THE_HIT_TO_BE_READ` — 161 rows, 160/161 in portrait and landscape; `drone-playable` 90/0;
+  `drone-team-e2e` 9/9; the AI seat replay now looks at the AI's box before approving (the head no longer snaps there).
+- **Still open, honest (from the fleet, named for r.149):** FIRE with the ring off the red box should say where the box is and spend nothing
+  (Athena); the record's vocabulary on the strip / board / LOCK line and the room sentences to the wrong seat (Sofia; a word gate); a
+  refusal at MARK / APPROVE / RELOAD-full / SPENT time as a row (Asar); `commit()` (the door tag) without a red box, blind approval of a
+  target off the approver's picture, a peer mark on a dead plate approved (Thor); the sheet's under-pip pass by metres among overlapping
+  outlines (Enki); false DIVERGED for ~1 s after a HOLD (Christo); `state.fps` clamped at 20 so HAL.PI never engages (Odin); SSSES
+  pillars scored as labels / unmeasured zeros (Thoth); the TARGET BUTTON itself and the ASM self-exemption without predicate gates, and
+  the deck's rows running only after main (Enlil); the AI signs SIM-ACTION/REJECT rows as HI (Pangu); the deploy door (Krishna).

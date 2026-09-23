@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.032",
+  "revision": "0.033",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -288,6 +288,13 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck HEAD r.147: LOCK, T1 · T2 · T3 and key 1 are the targets nearest the bullseye on the picture within LOCK_REACH_PX (48 px, declared), never the nearest in metres and never off the picture — one rule for plates, rings, buoys, pops, aircraft, foils and doors, on the range and the Capital (TARGET / APPROVE / FIRE had kept resetting to the 50 m left target). QA 152 rows, 151/152 in each orientation.",
    "commit": "7a7a2c7"
+  },
+  {
+   "revision": "0.033",
+   "date": "2026-09-23",
+   "kind": "release",
+   "why": "Operator deck HEAD r.148: the eye outranks the mark — the 48-agent fleet's fold on r.147 (whose rule ran only on an empty board): a mark is held as LOCK only while the bullseye is on it; one door for TARGET / key N / voice that keeps a mark's phase and author and releases my own unfinished mark on the record; T1-T3 obey the reach on every craft; the AI member spots through the bullseye, never moves the seated head and waits for the HIT to be read; a FIRE with no box names NONE; the board under the strip; APPROVE's author from the authenticated envelope; a peer HIT needs an APPROVE on this record. QA 161 rows, 160/161 in each orientation.",
+   "commit": "8ccab36"
   }
  ],
  "arena": {
