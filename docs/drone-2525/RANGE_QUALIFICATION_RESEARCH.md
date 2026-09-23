@@ -48,6 +48,30 @@ distances above. That is the operator's "each lane has pop ups at various distan
   3 px (DECLARED) — so the standard is the same at every zoom and screen size (r.130's 6 px floor was not).
 - The ten silhouettes follow the 9127 sheet: 50 F · 100 F ×3 · 150 E ×2 · 200 E ×2 · 250 E left · 300 E right.
 
+## The program of record — Army IWQ Table VI, 40-round day fire (operator-supplied 2026-09-23; r.137)
+Source: the operator, verbatim in `docs/asks/2026-09-23_range_modes_iwq_table_vi.md` (sha256 in the sidecar). This supersedes the
+r.130 by-distance exposures and the three 20/10/10 tables above, which were DECLARED from a search index and never sourced.
+
+| item | value | status |
+|---|---|---|
+| structure | 18 engagements in 4 phases: standing → prone unsupported (1–5), prone supported (6–10), kneeling supported (11–14), standing supported (15–18) | SOURCED (operator) |
+| engagements 1–14 | 50 R · 100 · 150 · 50/150/200 · 150/200/250/300 · 100 · 150/300 · 200/300 · 250/300 · 150/250/300 · 50/100/200 · 50/200 · 150/250 · 100/150/200 | SOURCED (operator, verbatim) |
+| engagements 15–18 | 50/200 · 100/150/250 · 100/200 · 50/100/250 — a mix that consumes exactly the remaining 50×2 · 100×3 · 150×1 · 200×2 · 250×2 | DECLARED (operator: "can differ a little by range computer file — confirm the lane program with the tower") |
+| exposure by count | 1 target 5 s · 2 targets 8 s · 3 targets 12 s · 4 targets 16 s (`EXPOSURE_BY_COUNT`) | SOURCED (operator) |
+| between engagements | ~3 s down (`ENG_GAP_S = 3`) | SOURCED (operator) |
+| between phases | ~8–10 s, mag change + move (`PHASE_GAP_S = 9`) | DECLARED midpoint of the operator's range |
+| rounds | one round per silhouette; a target not engaged in its window is a miss (UNFIRED MISS) | SOURCED (operator; FM 3-22.9 "targets not engaged are scored as misses") |
+| targets | 40 = 50×6 · 100×7 · 150×8 · 200×8 · 250×6 · 300×5 | SOURCED (operator) — the deck's `IWQ_PROGRAM_IS_40` row and `tests/range-2525.test.mjs` assert these counts |
+| 50 m | targets left and right; the 50 R standing shot is first | SOURCED (operator) — `C-50L` added, `C-50` is the 50 R |
+| which sibling stands (L/C/R at 100, L/R at 150 and 200) | seeded per lane from the deck's PRNG so lanes differ; the same on both phones of a room | DECLARED |
+| order within an engagement | "shoot near to far" — advisory (LOCK prefers the nearest standing target); not scored | SOURCED (operator) as advice, DECLARED as not scored |
+| badge | 23 MARKSMAN · 30 SHARPSHOOTER · 36 EXPERT (unchanged) | SOURCED (above) |
+
+### The training modes (operator 2026-09-23, r.137)
+- **TRAINING · RESET** ("Target Up"): every target is up; a hit target falls and comes back after `RETURN_S = 3` s (DECLARED — the same ~3 s).
+- **TRAINING · DOWN**: every target is up; a hit target stays down until RESET; when all are down the strip says ALL DOWN · PRESS RESET.
+- Training has no exposure clock, so nothing lapses in training; LAPSE rows exist only in QUAL · 40.
+
 ## Sources (search index; links as returned)
 - FM 3-22.9 ch.6 Field Fire — https://www.globalsecurity.org/military/library/policy/army/fm/3-22-9/c06.htm
 - FM 3-22.9 ch.7 Advanced Rifle Marksmanship — https://www.globalsecurity.org/military/library/policy/army/fm/3-22-9/c07.htm

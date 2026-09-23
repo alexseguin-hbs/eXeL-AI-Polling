@@ -17,6 +17,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.134 | 2026-09-19 | Claude Code (wave-3 + 48-lens fleet fold, autonomous) | 276780 | 840cf55c6c0181503ff4417a1eff16f32825ba530a78eabd0d3744cd5a7d6aec | f2557ac (artefact) | dea8dbcdbe9b3ee72444eddc91cf9ab3ea543977ef827a2c6b2670f4cd0d5f9a |
 | r.135 | 2026-09-19 | Claude Code (fleet-48 second-reviewer fold, autonomous) | 290674 | 882287ecc3e2abc6fbac5f41723ea3a7682497531052a2ab5ebf06fa5b18b97b | 2020c02 (artefact) | 933db1088d53c08324590a27fdd24ba4340a8ba2fbad0392074bb14bf0c9ff78 |
 | r.136 | 2026-09-19 | Claude Code (fleet-48 synthesis fold, autonomous) | 292524 | 2bcd7a574e5044f72a1d4cb28a1a88d6b052e5cd5ba0a42b25b48f4f9e22820e | 543a86c (artefact) | ef31b289b6034dba2924974f4f8efc9248508fb909d401ed89adf44e41a27c3d |
+| r.137 | 2026-09-23 | Claude Code (the range the operator described, after plan review) | 297506 | 8e3ef876699b5a0b93beed1c971c72b92eb6066ab167f564af4b62e87af31ddc | c0e57ea (artefact) | c8348351f6ad2481976877dff8c1c8a21901761287a56fe277c7a6f4c39f9e70 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -315,3 +316,24 @@ Record: `docs/assessments/2026-09-19_r133_fleet48_review.md` (reviewer B verdict
   the harness measuring the AI as the AI · the SELECT screens honouring the solo path; the intro in the range's words · patch replay
   in CI; deck-consistency comparing commits and bytes · SAVE as one download · two real phones.
 
+## r.137 — Claude Code: the range the operator described (2026-09-23)
+Ask: `docs/asks/2026-09-23_range_modes_iwq_table_vi.md` (verbatim, hashed). Program of record: `docs/drone-2525/RANGE_QUALIFICATION_RESEARCH.md`
+§"The program of record". Notes: `CLAUDE_CODE_NOTES_r137.md`. Patch: `patches/r136_to_r137.py` (30 asserted edits).
+- **The unit of exposure is the ENGAGEMENT, not the plate.** The operator played r.136 and restated the three modes: in TRAINING every
+  target is up (RESET: a hit target comes back; DOWN: it stays down); in QUAL the targets of an engagement come up TOGETHER — the Army
+  IWQ Table VI 40-round day fire he pasted: 18 engagements in 4 phases, 5 / 8 / 12 / 16 s by count, ~3 s between engagements, ~8–10 s
+  between phases, one round per silhouette, unengaged = miss, 40 targets = 50×6 · 100×7 · 150×8 · 200×8 · 250×6 · 300×5, the 50 R first.
+- **Built:** `IWQ_VI` (1–14 verbatim; 15–18 DECLARED to consume exactly the remaining 50×2 · 100×3 · 150×1 · 200×2 · 250×2),
+  `EXPOSURE_BY_COUNT {1:5,2:8,3:12,4:16}`, `ENG_GAP_S 3`, `PHASE_GAP_S 9`, `RETURN_S 3`, `engagementAt(lane,k)` (siblings seeded per
+  lane; the same program on every lane and both phones); `rangeTick` runs training (no clock) or the tower (engagements, windows, the
+  phase rest, unfired misses, four QUAL rows); `qualRecordShot` counts one round per silhouette and finishes at 40; `C-50L` added
+  (11 silhouettes); the strip reads the engagement; LAPSED leaves the training strip.
+- **Corrections on the record:** r.130's exposure-by-distance (3 s at 50 m, +1 s per 50 m) and its three 20/10/10 tables with
+  142/75/75 s clocks were DECLARED from a search index and are superseded; r.131's per-plate scoring caps had no doctrine source and
+  are retired. QA rows `QUAL40_TABLES`, `QUAL40_CAP_III`, `RANGE_POP_SCHEDULE`, `MODE_QUAL_TIMED`, `ONE_ROUND_PER_EXPOSURE`,
+  `TABLE_III_EXPOSES_ONLY_SCORABLE` are retired with them.
+- **Gates:** in-file QA 124 rows, headless 123/124 (`SYNC_DIRECT` by design); thirteen new rows (`IWQ_PROGRAM_IS_40` … `QUAL_ONE_ROUND_PER_TARGET`);
+  `range-2525` rewritten (96 checks lift `IWQ_VI`/`engagementAt` out of the served bytes); `drone-playable`, manifest 124, `deck-consistency`,
+  `drone-team-e2e` 9/9 (all-up training: the host marks a standing plate), seat replays solo 4/4 · qual 6/6 · AI FIRE 3/3.
+- **Still open, honest:** engagements 15–18 against a real lane program (operator/tower); "near to far" is advice, not scored; a quad
+  within 16 s on a thumb (hardware); everything the r.136 section lists as r.137-owed moves to r.138 unchanged.

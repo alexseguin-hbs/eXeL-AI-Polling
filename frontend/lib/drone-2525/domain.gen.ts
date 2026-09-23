@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.021",
+  "revision": "0.022",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -211,6 +211,13 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck HEAD r.136: the fold of the 48-agent fleet's synthesis. The r.135 regression (an AI mark in a room refused for every seat: the marker's-seat rule was cut one token too wide) is closed — the marker's seat is the human or its own AI, and the approver is told the other seat fires; every peer release demotes the shooter's box; no red box crosses from the waiting room into LIVE; an expired drone takes its box; two QA rows now assert what they name (MAP strip names the plate; the lost-approver sentence). 117 rows, 116/117 headless.",
    "commit": "543a86c"
+  },
+  {
+   "revision": "0.022",
+   "date": "2026-09-23",
+   "kind": "release",
+   "why": "Operator deck HEAD r.137: the range the operator described. TRAINING · RESET / DOWN stand every target (a hit one comes back after 3 s, or stays down; no exposure clock, nothing lapses). QUAL · 40 is the Army IWQ Table VI 40-round day fire he supplied: 18 engagements in 4 phases, singles/doubles/triples/quads up TOGETHER for 5/8/12/16 s, 3 s between engagements, 9 s between phases, one round per silhouette, an unengaged target is an unfired miss, 40 targets (50×6 100×7 150×8 200×8 250×6 300×5), the 50 R standing shot first; engagements 15–18 DECLARED. C-50L added (11 silhouettes). r.130's by-distance exposures and 20/10/10 tables superseded on the record. QA 124 rows, 123/124 headless.",
+   "commit": "c0e57ea"
   }
  ],
  "arena": {
