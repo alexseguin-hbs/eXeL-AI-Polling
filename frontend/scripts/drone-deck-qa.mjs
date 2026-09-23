@@ -31,6 +31,10 @@ for (const vp of VIEWPORTS) {
   await page.goto(`http://127.0.0.1:${port}/drone-2525/play.html`, { waitUntil: 'load' });
   try { await page.waitForFunction((n) => typeof state !== 'undefined' && state.qa && state.qa.total >= n, DECK_QA_ROWS.length, { timeout: 60000 }); }
   catch { const qa = await page.evaluate(() => (typeof state !== 'undefined' && state.qa) ? state.qa : null); console.log(`FAIL: [${vp.name}] the boot QA never published`, DECK_QA_ROWS.length, 'rows —', JSON.stringify(qa)); }
+  /* r.141: wait for the frame loop to be RUNNING (a frame drawn, an fps measured, the deferred rows landed) before reading — Deploy #939
+     read a slow runner's page 800 ms after the rows and saw fps 0.0 and DRAW_COMPLETES still pending; a timeout here is a real failure. */
+  try { await page.waitForFunction(() => typeof state !== 'undefined' && (state.drawDone || 0) > 0 && (state.fps || 0) > 0 && (state.outcomes || []).some((x) => x.id === 'DRAW_COMPLETES'), null, { timeout: 30000 }); }
+  catch { console.log(`FAIL: [${vp.name}] the frame loop never reported a drawn frame with a measured fps within 30 s`); }
   await page.waitForTimeout(800);
   const r = await page.evaluate(() => ({ rev: state.qa && state.qa.rev, rows: (state.outcomes || []).map((x) => ({ id: x.id, ok: !!x.ok, note: String(x.note || '') })), fps: state.fps || 0, drawDone: state.drawDone || 0, drawErr: state.drawErr || null, simDirect: !!state.simDirect, threw: state.qaThrew || null, cls: document.getElementById('app').className }));
   const T = `[${vp.name} ${vp.width}×${vp.height}]`;
