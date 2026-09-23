@@ -267,6 +267,13 @@
       "kind": "release",
       "text": "Operator deck r.143 served at /drone-2525/play.html (sha256 c4c187b4...). NO HORIZON LINE; WHITE BULLSEYE, RED NEAR A TARGET; BRACKET RED WITH IT; LOCK IS THE THING IN THE CROSSHAIR. QA 146 rows, 145/146 in each orientation.",
       "commit": "a9c6360"
+    },
+    {
+      "rev": 39,
+      "date": "2026-09-23",
+      "kind": "release",
+      "text": "Operator deck r.144 served at /drone-2525/play.html (sha256 2ffd1288...). THE TARGETS ON EACH OF THE 42 LANES: 462 plates gated by id and range; the neighbouring lanes draw every silhouette, dim; fire stays on your lane. QA 148 rows, 147/148 in each orientation.",
+      "commit": "b2b64dc"
     }
   ]
 }

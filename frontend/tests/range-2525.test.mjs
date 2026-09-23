@@ -17,8 +17,9 @@ const src = [
   line(/^const EYE=\{.*\};/m), line(/^function focalPx\(\)\{.*\}$/m), line(/^function fovDeg\(H\)\{.*\}/m), line(/^function zoomMax\(\)\{.*\}/m), line(/^function zoomClamp\(z\)\{.*\}$/m), line(/^function proj\(p,cam,W,H\)\{[\s\S]*?\n\}/m), line(/^const QUAL=\[[\s\S]*?\]\.map\(q=>\(\{\.\.\.q,up:true,lifePct:100,life:99,mist:false,kind:'pop'\}\)\);/m),
   line(/^const IWQ_VI=\[[\s\S]*?\n\];$/m), line(/^const IWQ_ENG=.*;$/m), line(/^const EXPOSURE_BY_COUNT=\{.*\};/m), line(/^const ENG_GAP_S=\d+;/m), line(/^const PHASE_GAP_S=\d+;/m), line(/^const RETURN_S=\d+;/m), line(/^const IWQ_TOTAL=.*;$/m),
   line(/^function engagementAt\(lane,k\)\{[\s\S]*?\n  return \{n:e\.n,ph:e\.ph,pos:e\.pos,bases,sec:EXPOSURE_BY_COUNT\[bases\.length\]\|\|5\}; \}$/m),
+  line(/^const LANES=Array\.from\(\{length:42\},\(_,i\)=>\{[\s\S]*?\n\}\);$/m), line(/^const PLATES=LANES\.flatMap\(.*?\)\)\);/m),
 ].join('\n');
-const D = new Function('state', 'const units={}; const view={height:844};\n' + src + '\nreturn { EYE, focalPx, fovDeg, fwdOf, rightOf, yawTo, proj, QUAL, IWQ_VI, IWQ_ENG, IWQ_TOTAL, EXPOSURE_BY_COUNT, ENG_GAP_S, PHASE_GAP_S, RETURN_S, engagementAt };')({ zoom: 1 });
+const D = new Function('state', 'const units={}; const view={height:844};\n' + src + '\nreturn { LANES, PLATES, EYE, focalPx, fovDeg, fwdOf, rightOf, yawTo, proj, QUAL, IWQ_VI, IWQ_ENG, IWQ_TOTAL, EXPOSURE_BY_COUNT, ENG_GAP_S, PHASE_GAP_S, RETURN_S, engagementAt };')({ zoom: 1 });
 ok(typeof D.fwdOf === 'function' && D.QUAL.length === 11, `lifted fwdOf/rightOf/yawTo/proj/QUAL/IWQ_* out of r.${DECK_REV} (HEAD)`);
 
 // ── the one forward basis ──────────────────────────────────────────────────────────────────────
@@ -72,6 +73,8 @@ ok(sigs.size === 1, `r.142: the same order on every lane (${sigs.size} distinct 
 ok(D.IWQ_VI.every((P) => P.eng.reduce((a, ids) => a + ids.length, 0) === 10), 'each phase is exactly ten targets — one magazine');
 { const count = {}; D.IWQ_ENG.forEach((e) => e.ids.forEach((id) => { count[id] = (count[id] || 0) + 1; })); ok(['C-50', 'C-50L', 'C-100C', 'C-100L', 'C-100R', 'C-150L', 'C-150R', 'C-200L', 'C-200R', 'C-250', 'C-300'].map((id) => count[id] || 0).join('/') === '3/3/3/2/2/4/4/4/4/6/5', 'the named silhouettes carry 50 × 6 · 100 × 7 · 150 × 8 · 200 × 8 · 250 × 6 · 300 × 5 across left/centre/right'); }
 ok(!/magLoad\('PHASE'\)/.test(html) && /PRESS RELOAD · MOVE/.test(html) && /reason:'NO_MAGAZINE'/.test(html), 'r.142: the tower never reloads for the shooter; the rest says PRESS RELOAD; a fifth magazine is refused');
+ok(D.LANES.length === 42 && D.PLATES.length === 42 * 11 && D.LANES.every((L) => { const ps = D.PLATES.filter((p) => p.lane === L.i); return ps.length === 11 && D.QUAL.every((q) => ps.some((p) => p.base === q.id && p.id === q.id + '-' + L.id && p.z === q.z)); }), 'r.144: every one of the 42 lanes carries the same eleven silhouettes at the same ranges (462 plates)');
+ok(new Set(D.LANES.map((L) => L.x)).size === 42 && D.LANES.every((L, i) => i === 0 || L.x - D.LANES[i - 1].x === 10), 'the 42 lanes stand 10 m apart, each on its own x');
 ok(D.engagementAt(0, 18) === null && D.engagementAt(0, 99) === null, 'after engagement 18 the program ends (null), it never wraps');
 ok(!/const EXPOSURE_S=/.test(html) && !/QUAL_TABLES/.test(html) && !/exposureOrder\(/.test(html), 'r.130\'s by-distance exposures and the 20/10/10 tables are gone (superseded by the program of record)');
 

@@ -3,9 +3,9 @@
   "id": "foil-1.111",
   "name": "FOIL · 1.111 m × 0.7777 m (demo / laser-tag scale)",
   "version": "00.00",
-  "revision": "0.028",
+  "revision": "0.029",
   "generator": "scripts/build-foil-model.mjs",
-  "stamp": "eXeL v0.028-2026.09.16-foil",
+  "stamp": "eXeL v0.029-2026.09.16-foil",
   "source": "docs/security-2525/xbat-wireframe/xbat.wire.json scaled by airframe.geometry (foil-1.111 family)"
  },
  "units": "m",

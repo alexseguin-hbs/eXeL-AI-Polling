@@ -24,6 +24,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.141 | 2026-09-23 | Claude Code (life-size at 12 in · the 50s at the edges) | 324194 | d177187681613f8d61c70f6df2fe39efc667557989548bc3d12bbdf48c3daf14 | 1e8b2d4 (artefact) | 1cb42d37446afd4816818e3b46508cfb2fdbd5f5aac30fd3df39e34179cadb83 |
 | r.142 | 2026-09-23 | Claude Code (reload by hand on QUAL · the same order as the actual test) | 326615 | 4c7d6ee31fa60573b0a75069290482dae67f91773e304b6c4173c6d55677c367 | 662f8e3 (artefact) | 29e9b8bff3fbe53012e7afe75f1267f40e7e7f512cf9aff19036b0843cdb2c3e |
 | r.143 | 2026-09-23 | Claude Code (no horizon line · white bullseye, red near a target · LOCK under the pip) | 329471 | c4c187b415aebed148c8c0e0d2a2c4b45b85ae974aff9b79d815e1794a4f568d | a9c6360 (artefact) | dae08b70abb13e811236476e3f89ab6781fe005b0f7448411066ec1ef0119197 |
+| r.144 | 2026-09-23 | Claude Code (the targets on each of the 42 lanes) | 330920 | 2ffd1288883d2e1d36319309f8cf67ff08d254d7e72d95624ebf93a948fd9433 | b2b64dc (artefact) | 2a5f36b60e972eeed00421a1c43b36cd182030b13b5b7dc0e1609823757ed593 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -459,3 +460,15 @@ Ask: `docs/asks/2026-09-23_reticle_white_red_no_horizon.md` (verbatim, hashed). 
   `drone-playable` 82/0; `range-2525` 108/0; `drone-deck-qa` 34/0; `drone-team-e2e` 9/9.
 - **Next, per the operator:** the same bullseye behaviour on the Capital and the other scenes (`reticleNear()` already covers non-plate
   targets by centre distance; the bracket is the range's).
+
+## r.144 — Claude Code: the targets on each of the 42 lanes (2026-09-23)
+Ask: `docs/asks/2026-09-23_targets_on_all_42_lanes.md` (verbatim, hashed; the operator's phone screenshot beside it). Notes:
+`CLAUDE_CODE_NOTES_r144.md`. Patch: `patches/r143_to_r144.py` (5 asserted edits).
+- **Every lane carries the same eleven silhouettes** at the same ranges — it already did as data (42 × 11 = 462 plates, one id per lane),
+  and a shooter on any lane sees his eleven; but he saw only his neighbours' 50 m plates. **The neighbouring lanes (±1) now draw every
+  standing silhouette, dim**, as on a real range; marking and firing stay on his own lane (`WRONG_LANE` is refused, unchanged).
+- **Gates:** `EVERY_LANE_HAS_THE_TARGETS` (42 lanes, 462 plates, L42's eleven by id, every lane's targets standing in training) and
+  `NEIGHBOUR_LANES_DRAWN` (a paint counter: 11 of mine + 11 per neighbour, dim) — 148 rows, 147/148 in portrait and landscape;
+  `range-2525` 110/0 lifts `LANES` and `PLATES` (42 lanes 10 m apart, each with the eleven); `drone-playable` 85/0; `drone-deck-qa` 34/0;
+  `drone-team-e2e` 9/9. Measured: lane 21 draws 11 own + 22 neighbour silhouettes; lane 1 (edge) 11 + 11; lane 42 carries C-50L-L42 … C-300-L42.
+- **Still open, honest:** lanes beyond ±1 are not drawn (segment budget at MoT 1.1); on a real range the far lanes are visible too.
