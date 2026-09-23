@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.022",
+  "revision": "0.023",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -218,6 +218,13 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck HEAD r.137: the range the operator described. TRAINING · RESET / DOWN stand every target (a hit one comes back after 3 s, or stays down; no exposure clock, nothing lapses). QUAL · 40 is the Army IWQ Table VI 40-round day fire he supplied: 18 engagements in 4 phases, singles/doubles/triples/quads up TOGETHER for 5/8/12/16 s, 3 s between engagements, 9 s between phases, one round per silhouette, an unengaged target is an unfired miss, 40 targets (50×6 100×7 150×8 200×8 250×6 300×5), the 50 R standing shot first; engagements 15–18 DECLARED. C-50L added (11 silhouettes). r.130's by-distance exposures and 20/10/10 tables superseded on the record. QA 124 rows, 123/124 headless.",
    "commit": "c0e57ea"
+  },
+  {
+   "revision": "0.023",
+   "date": "2026-09-23",
+   "kind": "release",
+   "why": "Operator deck HEAD r.138: true-scale silhouettes (F 0.495×0.508 m, E 0.495×1.016 m; a 300 m E is 1.6 px at 1×, the 3 mrad pip floor keeps it hittable), labels justified by side and stacked so none overlaps, the zoom law (turret 3× in QUAL · 40, 30× in training; every craft 30× optical; one clamp), magazine + reload (10 rounds in QUAL as four magazines with the phase rest reloading on the record, 30 elsewhere; an empty magazine refuses FIRE; RELOAD is a canonical row; counter + zoom at the top of the picture), full screen (bars, strip and dock hide; sticks, TARGET · APPROVE · FIRE and RELOAD stay), layout() toggles classes instead of rewriting them. QA 132 rows, 131/132 headless.",
+   "commit": "c5995ce"
   }
  ],
  "arena": {

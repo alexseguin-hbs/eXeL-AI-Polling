@@ -18,6 +18,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.135 | 2026-09-19 | Claude Code (fleet-48 second-reviewer fold, autonomous) | 290674 | 882287ecc3e2abc6fbac5f41723ea3a7682497531052a2ab5ebf06fa5b18b97b | 2020c02 (artefact) | 933db1088d53c08324590a27fdd24ba4340a8ba2fbad0392074bb14bf0c9ff78 |
 | r.136 | 2026-09-19 | Claude Code (fleet-48 synthesis fold, autonomous) | 292524 | 2bcd7a574e5044f72a1d4cb28a1a88d6b052e5cd5ba0a42b25b48f4f9e22820e | 543a86c (artefact) | ef31b289b6034dba2924974f4f8efc9248508fb909d401ed89adf44e41a27c3d |
 | r.137 | 2026-09-23 | Claude Code (the range the operator described, after plan review) | 297506 | 8e3ef876699b5a0b93beed1c971c72b92eb6066ab167f564af4b62e87af31ddc | c0e57ea (artefact) | c8348351f6ad2481976877dff8c1c8a21901761287a56fe277c7a6f4c39f9e70 |
+| r.138 | 2026-09-23 | Claude Code (true scale · labels · zoom law · magazine · full screen, after plan review) | 310828 | c8449d701799ff23acedf70e341aca5119ff7033281e01b7c3292d6b4168bd18 | 474e6a7 → c5995ce (artefact, final bytes) | ad1c508f2e7ddc6226eae71faf975817c49675841695c2203e387fe21d1d556f |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -337,3 +338,28 @@ Ask: `docs/asks/2026-09-23_range_modes_iwq_table_vi.md` (verbatim, hashed). Prog
   `drone-team-e2e` 9/9 (all-up training: the host marks a standing plate), seat replays solo 4/4 · qual 6/6 · AI FIRE 3/3.
 - **Still open, honest:** engagements 15–18 against a real lane program (operator/tower); "near to far" is advice, not scored; a quad
   within 16 s on a thumb (hardware); everything the r.136 section lists as r.137-owed moves to r.138 unchanged.
+
+## r.138 — Claude Code: true-scale silhouettes, justified labels, the zoom law, magazine + reload, full screen (2026-09-23)
+Ask: `docs/asks/2026-09-23_labels_scale_zoom_reload_fullscreen.md` (verbatim, hashed; two DVIDS range photographs beside it). Notes:
+`CLAUDE_CODE_NOTES_r138.md`. Patch: `patches/r137_to_r138.py` (36 asserted edits). Operator answers: no 75 m (a typo); FIRE stays the third
+pill in full screen; QUAL = four 10-round magazines, training and every craft = 30-round magazines.
+- **Silhouettes at their real size.** F 0.495 × 0.508 m, E 0.495 × 1.016 m (SOURCED: Range Systems E-type sheet 19.5" × 40"; F 19.5" × 20"
+  DECLARED from the same family). A 300 m E is 1.6 px tall at 1×; the r.131 angular pip floor (3 mrad) is what keeps it hittable.
+  **Correction on the record:** r.130's silhouette sizes (2.20 × 1.15 m at 50 m …) were sized for visibility, not truth.
+- **Labels never overlap.** One placement function (`plateCaptionRects`) for the painter and the QA row: left targets right-justified to
+  the left of the plate, right targets left-justified to the right, centre targets above; same-side captions stack.
+- **The zoom law.** `zoomMax()`: turret 3× in QUAL · 40, 30× in training; every craft 30× optical. One clamp (`zoomClamp`) at every optic
+  site; entering QUAL caps a higher zoom; a mouse wheel zooms too (pinch had been the only optic). Zoom is an optic, never authority.
+- **Magazine and reload.** `magCap()` 10 in QUAL, 30 elsewhere; an empty magazine refuses FIRE (`EMPTY_MAGAZINE`, no shot, no round);
+  RELOAD is a canonical row that travels (`why` MANUAL or PHASE); the tower's phase rest loads the next magazine on the record; RESET
+  refills silently (the RESET row already exists). The counter and the zoom read at the top of the picture: `MAG 2/4 · 7 RDS · ZOOM 3×/3×`.
+- **Full screen.** FULL hides the two bars, the strip and the dock; the sticks, TARGET · APPROVE · FIRE, RELOAD and the counter stay; the
+  score moves into the top line; the browser's fullscreen is used when offered, never required; persisted in the sets store.
+- **Fix the class:** `layout()` rewrote the app's class list on every resize — a rotation dropped `turret` (and would have dropped `full`);
+  it toggles now.
+- **Gates:** in-file QA 132 rows, headless 131/132 (`SYNC_DIRECT` by design); new `SILHOUETTES_TRUE_SCALE`, `LABELS_DO_NOT_OVERLAP`,
+  `ZOOM_LAW`, `TRAINING_MAG_30`, `PHASE_CHANGES_MAG`, `EMPTY_MAG_REFUSES`, `RELOAD_ON_RECORD`, `FULL_SCREEN_KEEPS_CONTROLS`;
+  `RANGE_HIT_50_OFF10` → `RANGE_HIT_50_OFF2` (the true-scale F is 2.8 px wide at 50 m). Repo: `range-2525` (dimensions, the zoom law, the
+  magazine), `drone-playable`, manifest 132, `drone-team-e2e` 9/9, seat replays qual 11/11 with a phase reload, AI FIRE 3/3.
+- **Still open, honest:** the F-type sheet dimension is declared, not read; a real iOS Safari fullscreen and a thumb on RELOAD at 320 px are
+  hardware; everything r.137 listed as owed stands.

@@ -72,6 +72,18 @@ r.130 by-distance exposures and the three 20/10/10 tables above, which were DECL
 - **TRAINING · DOWN**: every target is up; a hit target stays down until RESET; when all are down the strip says ALL DOWN · PRESS RESET.
 - Training has no exposure clock, so nothing lapses in training; LAPSE rows exist only in QUAL · 40.
 
+## Silhouette sizes, magazines and the optic (r.138, operator 2026-09-23 + his two DVIDS photographs)
+| item | value | status |
+|---|---|---|
+| E-type silhouette | 19.5" × 40" = 0.495 × 1.016 m | SOURCED (Range Systems E-type plastic target sheet; Wikimedia "NATO E-type Silhouette Target") |
+| F-type silhouette | 19.5" × 20" = 0.495 × 0.508 m | DECLARED (the E-type's family; a sheet was not fetched from the sandbox) |
+| what a shooter sees | a 300 m E is 1.6 px tall at 1× on a 390 × 844 phone, a 50 m F 5.7 px; the r.131 angular pip floor (3 mrad, min 3 px) keeps them hittable | DECLARED (the photographs: targets are small on the berms) |
+| magazines in IWQ Table VI | four magazines of ten; a change at each position, 8–10 s to move and change | SOURCED (sandboxx; iwtsexplained Table VI; usar.mil IWQ) |
+| magazines in training / on every craft | 30 rounds, reload any time | OPERATOR (2026-09-23) |
+| optic | turret 3× in qualification, 30× in training; every drone, aircraft, robot and boat 30× optical | OPERATOR (2026-09-23) |
+| labels | left targets read to the left, right targets to the right, centre above; same side stacked | OPERATOR (2026-09-23) |
+| 75 m | no 75 m target (the operator: a typo) | OPERATOR |
+
 ## Sources (search index; links as returned)
 - FM 3-22.9 ch.6 Field Fire — https://www.globalsecurity.org/military/library/policy/army/fm/3-22-9/c06.htm
 - FM 3-22.9 ch.7 Advanced Rifle Marksmanship — https://www.globalsecurity.org/military/library/policy/army/fm/3-22-9/c07.htm

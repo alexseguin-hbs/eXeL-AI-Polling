@@ -225,6 +225,13 @@
       "kind": "release",
       "text": "Operator deck r.137 served at /drone-2525/play.html (sha256 8e3ef876...). THE RANGE THE OPERATOR DESCRIBED: training stands every target (RESET returns a hit one after 3 s, DOWN keeps it down); QUAL · 40 is the Army IWQ Table VI program he supplied (18 engagements, 4 phases, targets up together for 5/8/12/16 s by count, 3 s between engagements, 9 s between phases, one round per silhouette, unengaged = unfired miss, 40 targets, the 50 R first; 15-18 DECLARED); the 50 m targets are left and right. r.130's by-distance exposures and 20/10/10 tables are superseded on the record. QA 124 rows, 123/124 headless; range-2525 96/0.",
       "commit": "c0e57ea"
+    },
+    {
+      "rev": 33,
+      "date": "2026-09-23",
+      "kind": "release",
+      "text": "Operator deck r.138 served at /drone-2525/play.html (sha256 c8449d70...). TRUE SCALE, LABELS, ZOOM, MAGAZINE, FULL SCREEN: silhouettes at their real size (r.130's sizes corrected on the record); labels justified by side and stacked; the zoom law (turret 3x in QUAL, 30x otherwise; every craft 30x); four 10-round magazines in QUAL with the phase rest reloading on the record, 30-round magazines elsewhere, RELOAD + counter at the top of the picture, an empty magazine refuses FIRE; FULL keeps only the controls. QA 132 rows, 131/132 headless.",
+      "commit": "c5995ce"
     }
   ]
 }

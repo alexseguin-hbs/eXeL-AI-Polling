@@ -14,11 +14,11 @@ const html = fs.readFileSync(deckUrl(import.meta.url), 'utf8');
 const line = (re) => { const m = html.match(re); if (!m) throw new Error(`r.${DECK_REV} lacks ` + re); return m[0]; };
 const src = [
   line(/^function mulberry32\(a\)\{.*\}$/m), line(/^function fwdOf\(yaw,tilt\)\{.*\}$/m), line(/^function rightOf\(yaw\)\{.*\}$/m), line(/^function yawTo\(dx,dz\)\{.*\}$/m),
-  line(/^function proj\(p,cam,W,H\)\{[\s\S]*?\n\}/m), line(/^const QUAL=\[[\s\S]*?\]\.map\(q=>\(\{\.\.\.q,up:true,lifePct:100,life:99,mist:false,kind:'pop'\}\)\);/m),
+  line(/^function zoomMax\(\)\{.*\}/m), line(/^function zoomClamp\(z\)\{.*\}$/m), line(/^function proj\(p,cam,W,H\)\{[\s\S]*?\n\}/m), line(/^const QUAL=\[[\s\S]*?\]\.map\(q=>\(\{\.\.\.q,up:true,lifePct:100,life:99,mist:false,kind:'pop'\}\)\);/m),
   line(/^const IWQ_VI=\[[\s\S]*?\n\];$/m), line(/^const IWQ_ENG=.*;$/m), line(/^const EXPOSURE_BY_COUNT=\{.*\};/m), line(/^const ENG_GAP_S=\d+;/m), line(/^const PHASE_GAP_S=\d+;/m), line(/^const RETURN_S=\d+;/m), line(/^const IWQ_TOTAL=.*;$/m),
   line(/^function engagementAt\(lane,k\)\{[\s\S]*?\n  return \{n:e\.n,ph:e\.ph,pos:e\.pos,bases,sec:EXPOSURE_BY_COUNT\[bases\.length\]\|\|5\}; \}$/m),
 ].join('\n');
-const D = new Function('state', src + '\nreturn { fwdOf, rightOf, yawTo, proj, QUAL, IWQ_VI, IWQ_ENG, IWQ_TOTAL, EXPOSURE_BY_COUNT, ENG_GAP_S, PHASE_GAP_S, RETURN_S, engagementAt };')({ zoom: 1 });
+const D = new Function('state', 'const units={};\n' + src + '\nreturn { fwdOf, rightOf, yawTo, proj, QUAL, IWQ_VI, IWQ_ENG, IWQ_TOTAL, EXPOSURE_BY_COUNT, ENG_GAP_S, PHASE_GAP_S, RETURN_S, engagementAt };')({ zoom: 1 });
 ok(typeof D.fwdOf === 'function' && D.QUAL.length === 11, `lifted fwdOf/rightOf/yawTo/proj/QUAL/IWQ_* out of r.${DECK_REV} (HEAD)`);
 
 // ── the one forward basis ──────────────────────────────────────────────────────────────────────
@@ -41,6 +41,10 @@ ok(Q.filter((q) => q.z === 50).length === 2 && Q.find((q) => q.id === 'C-50L').x
 ok(Q.filter((q) => q.z === 100 && q.form === 'F').length === 3 && Q.filter((q) => q.z === 150).length === 2 && Q.filter((q) => q.z === 200).length === 2 && Q.filter((q) => q.z === 250).length === 1 && Q.filter((q) => q.z === 300).length === 1, '100 F×3 · 150 E×2 · 200 E×2 · 250 · 300 (sheet 9127)');
 ok(Q.find((q) => q.z === 250).x < 0 && Q.find((q) => q.z === 300).x > 0, '250 M on the left, 300 M on the right, as printed');
 ok(Q.every((q) => q.z >= 50 && q.z <= 300 && q.w > 0 && q.h > 0), 'every silhouette has a distance in 50..300 and a real size');
+ok(Q.every((q) => Math.abs(q.w - 0.495) < 1e-9 && (q.form === 'F' ? Math.abs(q.h - 0.508) < 1e-9 : Math.abs(q.h - 1.016) < 1e-9)), 'r.138: true scale — F 0.495 × 0.508 m, E 0.495 × 1.016 m (19.5" × 20" / 19.5" × 40")');
+{ const f = (844 * 0.52) / Math.tan((38 / 1) * Math.PI / 180); const px300 = (1.016 / 300) * f; const px50 = (0.508 / 50) * f; ok(px300 < 8 && px50 < 12, `a 300 m E is ${px300.toFixed(1)} px tall and a 50 m F ${px50.toFixed(1)} px at 1× — small, as the photographs show; the 3 mrad floor (${(f * 3 / 1000).toFixed(1)} px) keeps them hittable`); }
+ok(/function zoomMax\(\)\{ const u=units\[state\.unit\]\|\|\{\}; const tur=u\.kind==='turret'\|\|state\.mode==='turret'; return \(tur&&state\.rangeMode==='qual40'&&\+state\.challenge===0\)\?3:30; \}/.test(html) && (html.match(/zoomClamp\(/g) || []).length >= 8 && !/Math\.min\(3\.2,/.test(html), 'r.138 zoom law: turret + QUAL 3×, everything else 30×; one clamp at every optic site');
+ok(/function magCap\(\)\{ return \(state\.rangeMode==='qual40'&&\+state\.challenge===0\)\?10:30; \}/.test(html) && /reason:'EMPTY_MAGAZINE'/.test(html) && /decide\('RELOAD','MAG'/.test(html) && /magLoad\('PHASE'\)/.test(html), 'r.138 magazine: 10 rounds in QUAL · 40, 30 elsewhere; an empty magazine refuses; RELOAD is a row; the phase rest reloads');
 ok([50, 100, 150, 200, 250, 300].every((z) => Q.some((q) => q.z === z)), 'every range the program names has a silhouette to raise');
 
 // ── the IWQ Table VI program (operator 2026-09-23, verbatim in docs/asks/2026-09-23_range_modes_iwq_table_vi.md) ──
@@ -70,10 +74,10 @@ ok(!/const EXPOSURE_S=/.test(html) && !/QUAL_TABLES/.test(html) && !/exposureOrd
 // ── source-level invariants the browser QA relies on ───────────────────────────────────────────
 ok(/function kindOfRef\(ref\)/.test(html) && /kind:kindOfRef\(o\)/.test(html), 'the reducer keeps the target\'s kind (a designated plate is shot as a plate, not as the bull ring)');
 ok(/if\(\+state\.challenge===0\) rangeTick\(dt\);/.test(html) && !/q\._dead>2\.4/.test(html), 'spawn drives the range from rangeTick; the old always-up bounce is gone');
-ok(/function rangeReset\(\)\{ const up=rangeTraining\(\);/.test(html) && /qualResetPlatesForTable\(\)\{[\s\S]{0,400}q\.up=false/.test(html), 'r.137: RESET stands every target in training; a qualification starts with every plate DOWN');
+ok(/function rangeReset\(\)\{ (magLoad\('RESET'\); )?const up=rangeTraining\(\);/.test(html) && /qualResetPlatesForTable\(\)\{[\s\S]{0,400}q\.up=false/.test(html), 'r.137: RESET stands every target in training; a qualification starts with every plate DOWN');
 ok(/if\(mode!=='qual40'\)\{ \/\* TRAINING: every target stands; a hit target falls, then returns \(RESET\) or stays down \(DOWN\)/.test(html) && /if\(q\._ret>=RETURN_S\)/.test(html) && /state\.rangeAllDown=\(mode==='stay'&&!anyUp\);/.test(html), 'r.137: training has no exposure clock — RESET returns a hit target after RETURN_S, DOWN keeps it down and says ALL DOWN');
 ok(/R\.cur=e\.bases\.map\(b=>plateOf\(mine,b\)\)/.test(html) && /if\(R\.t>=\(R\.eng\?R\.eng\.sec:5\)\)/.test(html) && /rangeLapse\(q,false\); state\.rangeLapsed=/.test(html), 'r.137: the tower raises the engagement\'s targets TOGETHER and lapses every unengaged one when the window ends');
-ok(/R\.phase='phasegap'; if\(rangeArmed\(\)\) toast\('PHASE '\+nxt\.ph\+' · '\+nxt\.pos\+' · MAG CHANGE · MOVE'\)/.test(html), 'r.137: between phases the tower rests for the mag change and says so');
+ok(/R\.phase='phasegap'; (magLoad\('PHASE'\); )?if\(rangeArmed\(\)\) toast\('PHASE '\+nxt\.ph\+' · '\+nxt\.pos\+' · MAG CHANGE · MOVE'\)/.test(html), 'r.137: between phases the tower rests for the mag change and says so');
 ok(html.indexOf('drawPlates(segs); RANGE_WIRE.forEach') > 0 && /function bullseye\(x,y,z,segs\)/.test(html) && /state\.drawErr=String\(e\)/.test(html), 'silhouettes are drawn before the range wire; bullseye takes segs; render exceptions are recorded');
 ok(/function worldOf\(ref\)/.test(html) && /function aimUnitAt\(u,ref,lo,hi\)/.test(html) && !/const dx=s\.ref\.x-u\.x,dz=s\.ref\.z-u\.z;/.test(html), 'r.131: every aim goes through aimUnitAt (camera eye, centre of mass); the T-box and pick use worldOf');
 ok(/function rangeRelease\(q\)/.test(html) && /ref\._eng=true;/.test(html) && /ONE ROUND PER TARGET/.test(html) && /TARGET DOWN · WAIT FOR THE NEXT EXPOSURE/.test(html), 'r.131/r.137: authority is scoped to the exposure; one round per silhouette in QUAL·40; a down target is refused');
