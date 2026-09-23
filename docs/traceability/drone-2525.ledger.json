@@ -232,6 +232,13 @@
       "kind": "release",
       "text": "Operator deck r.138 served at /drone-2525/play.html (sha256 c8449d70...). TRUE SCALE, LABELS, ZOOM, MAGAZINE, FULL SCREEN: silhouettes at their real size (r.130's sizes corrected on the record); labels justified by side and stacked; the zoom law (turret 3x in QUAL, 30x otherwise; every craft 30x); four 10-round magazines in QUAL with the phase rest reloading on the record, 30-round magazines elsewhere, RELOAD + counter at the top of the picture, an empty magazine refuses FIRE; FULL keeps only the controls. QA 132 rows, 131/132 headless.",
       "commit": "c5995ce"
+    },
+    {
+      "rev": 34,
+      "date": "2026-09-23",
+      "kind": "release",
+      "text": "Operator deck r.139 served at /drone-2525/play.html (sha256 e8b52069...). LANDSCAPE AND PORTRAIT, LIKE MISSION PLANNING: a phone is a phone in both orientations; FULL fills the whole screen in every orientation (r.138's 36 % picture corrected on the record); portrait stacks the top lines, landscape sets them side by side; rotation re-lays out; the deck-QA gate proves both orientations on every deploy. QA 136 rows, 135/136 in each orientation.",
+      "commit": "0f71961"
     }
   ]
 }

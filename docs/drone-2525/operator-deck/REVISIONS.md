@@ -19,6 +19,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.136 | 2026-09-19 | Claude Code (fleet-48 synthesis fold, autonomous) | 292524 | 2bcd7a574e5044f72a1d4cb28a1a88d6b052e5cd5ba0a42b25b48f4f9e22820e | 543a86c (artefact) | ef31b289b6034dba2924974f4f8efc9248508fb909d401ed89adf44e41a27c3d |
 | r.137 | 2026-09-23 | Claude Code (the range the operator described, after plan review) | 297506 | 8e3ef876699b5a0b93beed1c971c72b92eb6066ab167f564af4b62e87af31ddc | c0e57ea (artefact) | c8348351f6ad2481976877dff8c1c8a21901761287a56fe277c7a6f4c39f9e70 |
 | r.138 | 2026-09-23 | Claude Code (true scale · labels · zoom law · magazine · full screen, after plan review) | 310828 | c8449d701799ff23acedf70e341aca5119ff7033281e01b7c3292d6b4168bd18 | 474e6a7 → c5995ce (artefact, final bytes) | ad1c508f2e7ddc6226eae71faf975817c49675841695c2203e387fe21d1d556f |
+| r.139 | 2026-09-23 | Claude Code (landscape + portrait like Mission Planning, after plan review) | 313903 | e8b52069c3b2ec8e9adf6c4b773bb6ea00f37d32f0fb92dfc4ca9ea39693aa38 | 0f71961 (artefact) | c002c0e0b14fce8e6478c4c12216307d9e7d613341ef570709943071fb77cf52 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -366,3 +367,23 @@ pill in full screen; QUAL = four 10-round magazines, training and every craft = 
   Fixed in the gate script (the rename), re-pushed; a red local gate is a stop, not a note.
 - **Still open, honest:** the F-type sheet dimension is declared, not read; a real iOS Safari fullscreen and a thumb on RELOAD at 320 px are
   hardware; everything r.137 listed as owed stands.
+
+## r.139 — Claude Code: landscape and portrait, like Mission Planning (2026-09-23)
+Ask: `docs/asks/2026-09-23_landscape_portrait.md` (verbatim, hashed). Notes: `CLAUDE_CODE_NOTES_r139.md`. Patch: `patches/r138_to_r139.py` (10 asserted edits).
+- **A phone is a phone in both orientations.** `deviceClass(w,h)` = phone when the short side is under 600 px. r.138 classed a phone in
+  landscape (844 × 390) as a desk and gave it the side panel and a 573 px picture.
+- **FULL fills the whole screen — correction of r.138.** `#app` is a four-row grid placed by auto-flow; hiding the two bars let `#stage`
+  slide into an `auto` row at its 36 vh minimum, in BOTH orientations (measured `grid-template-rows 140.39px 0 249.6px 0` at 390 tall; the
+  same 304 px band in the r.138 portrait capture). r.138's `FULL_SCREEN_KEEPS_CONTROLS` measured the controls, never the picture. The rows
+  are named now (`.bar` 1 · 2, `#stage` 3, `#dock` 4), FULL is one row = the screen, FULL beats the desk layout (no side-panel margin, the
+  HEAD stick at the edge).
+- **Portrait stacks, landscape sits side by side.** The magazine line and the strip: under each other in portrait, one row in landscape.
+- **Rotation.** `orientationchange` and `screen.orientation.change` re-lay out after 300 ms (iOS reports the old size on the first event);
+  every resize re-fits the top line.
+- **Gates:** in-file QA 136 rows, headless 135/136 (`SYNC_DIRECT` by design) in portrait AND landscape; new `DEVICE_CLASS_BY_SHORT_SIDE`,
+  `FULL_FILLS_THE_STAGE` (stage rect == app rect), `FULL_BEATS_DESK`, `TOP_LINES_NEVER_OVERLAP`. `scripts/drone-deck-qa.mjs` now runs the boot
+  QA in both orientations on every deploy (34 checks) — the way Mission Planning's harness runs both panes. `drone-playable` 68/0,
+  `range-2525` 100/0, `drone-team-e2e` 9/9. Measured on the candidate: portrait FULL 390 × 844 = the screen; landscape FULL 844 × 390;
+  tablet landscape FULL 1180 × 820; rotated in place, each way, the stage follows.
+- **Still open, honest:** a real iPhone rotation and Safari's fullscreen are hardware; the tablet's side panel in portrait (820 wide → desk) is
+  by the rule, not yet by a person's eye.

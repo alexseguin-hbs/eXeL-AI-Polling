@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.023",
+  "revision": "0.024",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -225,6 +225,13 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck HEAD r.138: true-scale silhouettes (F 0.495×0.508 m, E 0.495×1.016 m; a 300 m E is 1.6 px at 1×, the 3 mrad pip floor keeps it hittable), labels justified by side and stacked so none overlaps, the zoom law (turret 3× in QUAL · 40, 30× in training; every craft 30× optical; one clamp), magazine + reload (10 rounds in QUAL as four magazines with the phase rest reloading on the record, 30 elsewhere; an empty magazine refuses FIRE; RELOAD is a canonical row; counter + zoom at the top of the picture), full screen (bars, strip and dock hide; sticks, TARGET · APPROVE · FIRE and RELOAD stay), layout() toggles classes instead of rewriting them. QA 132 rows, 131/132 headless.",
    "commit": "c5995ce"
+  },
+  {
+   "revision": "0.024",
+   "date": "2026-09-23",
+   "kind": "release",
+   "why": "Operator deck HEAD r.139: landscape and portrait, like Mission Planning. A phone is a phone in both orientations (device class by the short side; r.138 classed a landscape phone as a desk). FULL fills the whole screen in every orientation — r.138's grid let the stage slide into an auto row at 36 % height, corrected on the record; FULL beats the desk layout. Portrait stacks the magazine line and the strip; landscape sets them side by side. Rotation re-lays out (orientationchange, screen.orientation). The deck-QA gate runs the boot QA in both orientations in CI. QA 136 rows, 135/136 headless in each.",
+   "commit": "0f71961"
   }
  ],
  "arena": {
