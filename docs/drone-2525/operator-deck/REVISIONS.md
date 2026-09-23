@@ -29,6 +29,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.146 | 2026-09-23 | Claude Code (deferred QA rows decide on evidence) | 334257 | b3b17cbde2f49a145f995c7716261e679886c00d356c97a7af72446db43b64e3 | 5466050 (artefact) | bac705abb3a8e1885c0d413f46931f9ae9ba5f2ea1c815b843c5fc024ff2efe4 |
 | r.147 | 2026-09-23 | Claude Code (LOCK is the target nearest the bullseye on the picture) | 338605 | 2476f68a8a8835e144aeaebcb3a4dd9143b8311214b7d568efc42ac397629eb5 | 7a7a2c7 (artefact) | e8ba39881ab3eda4fad54156261828a07a470b7052fc7f2c59d247d75fb742e3 |
 | r.148 | 2026-09-23 | Claude Code (the eye outranks the mark — the 48-agent fleet's fold) | 348198 | 213a56fc08d41f510d325002d5152a05435803b6a95e18ba6874349e9e0c5b76 | 8ccab36 (artefact) | efa9e45b39f71fdc06e5c8f26ba80a7488224710a74ad6d919c1cf14216d9ace |
+| r.149 | 2026-09-23 | Claude Code (a box only around the marked target) | 349698 | 20499eed97482ba229216c507e2b4494174ebf94bb95b81e1fd145361621d80a | 6b585bf (artefact) | 731c50160124c96c74841643ca0be8e6bed982850c6f1a6e25041f49ad738e3e |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -565,3 +566,21 @@ coordinators). Notes: `CLAUDE_CODE_NOTES_r148.md`. Patch: `patches/r147_to_r148.
   outlines (Enki); false DIVERGED for ~1 s after a HOLD (Christo); `state.fps` clamped at 20 so HAL.PI never engages (Odin); SSSES
   pillars scored as labels / unmeasured zeros (Thoth); the TARGET BUTTON itself and the ASM self-exemption without predicate gates, and
   the deck's rows running only after main (Enlil); the AI signs SIM-ACTION/REJECT rows as HI (Pangu); the deploy door (Krishna).
+
+## r.149 — Claude Code: a box only around the marked target — amber on TARGET, red on APPROVE, the voxel in 3D (2026-09-23)
+Ask: `docs/asks/2026-09-23_edge_markers_only_when_targeted.md` (verbatim, hashed; the phone screenshot beside it). Notes:
+`CLAUDE_CODE_NOTES_r149.md`. Patch: `patches/r148_to_r149.py` (6 asserted edits).
+- **No edge markers unless targeted.** The r.130 hairline bracket that every standing silhouette wore (and that r.143 turned red near the
+  bullseye) is gone. A marked target wears the amber T-box on the picture; APPROVE turns it red; and in the 3D picture every marked slot
+  gets the wire box in the world (the voxel) in the same colour — `slotBoxes()`, one pure list for the painter and the QA (r.052 drew the
+  voxel for the current mark only). The bullseye itself still turns red when it sits on a target (r.143 aim colour, never authority).
+- **The three range modes, unchanged and re-stated in the operator's words:** TRAINING · RESET — a hit target goes down and pops back up
+  (RETURN_S 3 s); TRAINING · DOWN — a hit target stays down until RESET; QUAL · 40 — the engagement's targets rise together and a hit one
+  stays down for the rest of its window; a lifter rises again only when the program names it in a later engagement (40 targets on 11
+  lifters, as the real range does). Gates unchanged: `TRAIN_ALL_UP`, `MODE_RESET_RETURNS`, `MODE_DOWN_STAYS`, `QUAL_ENG_TOGETHER`,
+  `QUAL_UNENGAGED_IS_MISS`.
+- **Gates:** `VOXEL_BOX_FOLLOWS_THE_MARK` (no box with nothing marked; TARGET → one 12-edge voxel in amber; APPROVE → the same box red) ·
+  `NO_BRACKET_UNLESS_TARGETED` (the painter carries no bracket path for an unmarked silhouette and draws the slot boxes) — 163 rows,
+  162/163 in portrait and landscape; `drone-playable` 91/0.
+- **Still open, honest:** everything r.148 owed (the fleet's r.149 order in `docs/assessments/2026-09-23_r147_fleet48_review.md` MoT 1 —
+  FIRE_SAYS_WHERE and the gate door first); the r.143 register line "the bracket turns red with the bullseye" is superseded by this entry.

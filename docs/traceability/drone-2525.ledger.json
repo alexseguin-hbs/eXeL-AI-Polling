@@ -302,6 +302,13 @@
       "kind": "release",
       "text": "Operator deck r.148 served at /drone-2525/play.html (sha256 213a56fc...). THE EYE OUTRANKS THE MARK: the 48-agent fleet's fold — a mark is held only while the bullseye is on it, one door for TARGET/keys/voice, every key obeys the reach, the AI spots through the bullseye and never moves the seated head, FIRE with no box names NONE, board under the strip, wire APPROVE author from the envelope, peer HIT needs red on record. Correction: r.147's rule ran only on an empty board. QA 161 rows, 160/161 in each orientation.",
       "commit": "8ccab36"
+    },
+    {
+      "rev": 44,
+      "date": "2026-09-23",
+      "kind": "release",
+      "text": "Operator deck r.149 served at /drone-2525/play.html (sha256 20499eed...). A BOX ONLY AROUND THE MARKED TARGET: no edge markers unless targeted; amber on TARGET, red on APPROVE; the voxel around every marked slot in 3D; the three range modes re-stated. QA 163 rows, 162/163 in each orientation.",
+      "commit": "6b585bf"
     }
   ]
 }
