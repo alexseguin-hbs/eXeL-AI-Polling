@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.029",
+  "revision": "0.030",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -267,6 +267,13 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck HEAD r.144: the targets on each of the 42 lanes — every lane carries the same eleven silhouettes (42 × 11 = 462 plates, gated by id and range, standing in training); the neighbouring lanes (±1) draw every silhouette, dim, as on a real range; marking and firing stay on the shooter's lane. QA 148 rows, 147/148 in each orientation.",
    "commit": "b2b64dc"
+  },
+  {
+   "revision": "0.030",
+   "date": "2026-09-23",
+   "kind": "release",
+   "why": "Operator deck HEAD r.145: lane markers — white numbered boards on posts at each lane's left edge at 100, 200 and 300 m (the last lane both edges), 129 boards each with its lane number, in the wire idiom, drawn with the silhouettes for the shooter's lane and its neighbours; one pure laneMarkers(lane) for painter, HUD and QA. QA 149 rows, 148/149 in each orientation.",
+   "commit": "8531339"
   }
  ],
  "arena": {

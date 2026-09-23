@@ -25,6 +25,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.142 | 2026-09-23 | Claude Code (reload by hand on QUAL · the same order as the actual test) | 326615 | 4c7d6ee31fa60573b0a75069290482dae67f91773e304b6c4173c6d55677c367 | 662f8e3 (artefact) | 29e9b8bff3fbe53012e7afe75f1267f40e7e7f512cf9aff19036b0843cdb2c3e |
 | r.143 | 2026-09-23 | Claude Code (no horizon line · white bullseye, red near a target · LOCK under the pip) | 329471 | c4c187b415aebed148c8c0e0d2a2c4b45b85ae974aff9b79d815e1794a4f568d | a9c6360 (artefact) | dae08b70abb13e811236476e3f89ab6781fe005b0f7448411066ec1ef0119197 |
 | r.144 | 2026-09-23 | Claude Code (the targets on each of the 42 lanes) | 330920 | 2ffd1288883d2e1d36319309f8cf67ff08d254d7e72d95624ebf93a948fd9433 | b2b64dc (artefact) | 2a5f36b60e972eeed00421a1c43b36cd182030b13b5b7dc0e1609823757ed593 |
+| r.145 | 2026-09-23 | Claude Code (lane markers at 100 · 200 · 300 m) | 333517 | 3a2d43e22387a21837a04587cd392ca5e904600eb226c82dc299b10e0a62d817 | 8531339 (artefact) | a33146a145a84ae34bea03124ab307a178f837ff09ff4b66a730c4081b2ce755 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -472,3 +473,16 @@ Ask: `docs/asks/2026-09-23_targets_on_all_42_lanes.md` (verbatim, hashed; the op
   `range-2525` 110/0 lifts `LANES` and `PLATES` (42 lanes 10 m apart, each with the eleven); `drone-playable` 85/0; `drone-deck-qa` 34/0;
   `drone-team-e2e` 9/9. Measured: lane 21 draws 11 own + 22 neighbour silhouettes; lane 1 (edge) 11 + 11; lane 42 carries C-50L-L42 … C-300-L42.
 - **Still open, honest:** lanes beyond ±1 are not drawn (segment budget at MoT 1.1); on a real range the far lanes are visible too.
+
+## r.145 — Claude Code: lane markers at 100, 200 and 300 m (2026-09-23)
+Ask: `docs/asks/2026-09-23_lane_markers.md` (verbatim, hashed; the range photograph beside it). Notes: `CLAUDE_CODE_NOTES_r145.md`. Patch:
+`patches/r144_to_r145.py` (6 asserted edits).
+- **Numbered boards on posts at the lane edges**, like the photograph: each lane's left edge at 100, 200 and 300 m (the back of the lane),
+  the last lane's right edge too — 129 boards, each carrying its lane number. Wire idiom: a 1.2 m post and a 0.5 m square board
+  (DECLARED from the photograph), the number as HUD text on the board. Drawn with the silhouettes for the shooter's lane (bright) and the
+  lanes beside it (dim). One pure `laneMarkers(lane)` serves the painter, the HUD and the QA.
+- **Gates:** `LANE_MARKERS_100_200_300` (three boards at the left edge at 100/200/300, the last lane six, mine bright, 15 segments drawn, all
+  in the picture from the pit) — 149 rows, 148/149 in portrait and landscape; `range-2525` 111/0 lifts `laneMarkers` and proves every lane's
+  boards by number, edge and range; `drone-playable` 87/0; `drone-deck-qa` 34/0; `drone-team-e2e` 9/9.
+- **Still open, honest:** the boards are at the lane's LEFT edge (the photograph's convention read as "the board opens the lane"); a
+  real range may sign both edges — the operator's call; post and board sizes are declared.

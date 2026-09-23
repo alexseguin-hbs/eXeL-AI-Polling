@@ -274,6 +274,13 @@
       "kind": "release",
       "text": "Operator deck r.144 served at /drone-2525/play.html (sha256 2ffd1288...). THE TARGETS ON EACH OF THE 42 LANES: 462 plates gated by id and range; the neighbouring lanes draw every silhouette, dim; fire stays on your lane. QA 148 rows, 147/148 in each orientation.",
       "commit": "b2b64dc"
+    },
+    {
+      "rev": 40,
+      "date": "2026-09-23",
+      "kind": "release",
+      "text": "Operator deck r.145 served at /drone-2525/play.html (sha256 3a2d43e2...). LANE MARKERS at 100, 200 and 300 m: numbered boards on posts at the lane edges, 129 boards, gated by number, edge and range. QA 149 rows, 148/149 in each orientation.",
+      "commit": "8531339"
     }
   ]
 }
