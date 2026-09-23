@@ -27,6 +27,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.144 | 2026-09-23 | Claude Code (the targets on each of the 42 lanes) | 330920 | 2ffd1288883d2e1d36319309f8cf67ff08d254d7e72d95624ebf93a948fd9433 | b2b64dc (artefact) | 2a5f36b60e972eeed00421a1c43b36cd182030b13b5b7dc0e1609823757ed593 |
 | r.145 | 2026-09-23 | Claude Code (lane markers at 100 · 200 · 300 m) | 333517 | 3a2d43e22387a21837a04587cd392ca5e904600eb226c82dc299b10e0a62d817 | 8531339 (artefact) | a33146a145a84ae34bea03124ab307a178f837ff09ff4b66a730c4081b2ce755 |
 | r.146 | 2026-09-23 | Claude Code (deferred QA rows decide on evidence) | 334257 | b3b17cbde2f49a145f995c7716261e679886c00d356c97a7af72446db43b64e3 | 5466050 (artefact) | bac705abb3a8e1885c0d413f46931f9ae9ba5f2ea1c815b843c5fc024ff2efe4 |
+| r.147 | 2026-09-23 | Claude Code (LOCK is the target nearest the bullseye on the picture) | 338605 | 2476f68a8a8835e144aeaebcb3a4dd9143b8311214b7d568efc42ac397629eb5 | 7a7a2c7 (artefact) | e8ba39881ab3eda4fad54156261828a07a470b7052fc7f2c59d247d75fb742e3 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -505,3 +506,27 @@ Cause: Deploy #950 (commit eee8d92, carrying the r.144 deck) went red in CI on `
 - **Gates:** in-file QA 149 rows, 148/149 in portrait and landscape (unchanged set); `drone-playable` 88/0 (`DRAW_ROW_CEIL_MS` present, the
   1.5 s and 700 ms timers gone); `drone-deck-qa` 34/0; `range-2525` 111/0; `drone-team-e2e` 9/9.
 - **Still open, honest:** everything r.145 owed (boards at the left edge only; declared sizes; the fleet's r.137-owed items).
+
+## r.147 — Claude Code: LOCK, T1 · T2 · T3 and key 1 are the targets nearest the bullseye on the picture (2026-09-23)
+Ask: `docs/asks/2026-09-23_target_resets_to_50L_fleet_test.md` (verbatim, hashed): "target approve and fire keeps resetting to 50 m left
+target; fix". Notes: `CLAUDE_CODE_NOTES_r147.md`. Patch: `patches/r146_to_r147.py` (13 asserted edits).
+- **Reproduced on the served r.146:** bullseye 20 px beside the 150 R → LOCK `C-50L`, a plate whose centre sat 21 px OFF the left edge of
+  the picture; TARGET then swung the head 7.3° onto it. Key 1 and voice "target one" named the 50 L in every case.
+- **The class, not the instance.** Every fallback in `lockOn()` chose the nearest candidate IN METRES inside a 35° cone — plates, rings,
+  buoys, pops, aircraft, foils and doors alike — and the turret's `slots()` took the first three standing plates in ARRAY ORDER, so T1 was
+  the 50 L for ever. Whenever the pip was not exactly inside a plate's outline (11 px at 150 m on a phone) the 50 m pair won. The Capital
+  scenes carried the same rule. Now ONE rule for every kind and every scene: the candidate whose projection is nearest the pip on the
+  picture, within `LOCK_REACH_PX` (48 px, DECLARED: 26 mrad at 1×, finer as the optic zooms); off the picture is never a candidate; nothing
+  within reach is no lock ("NO TARGET UNDER THE BULLSEYE · PUT IT ON ONE"); T1 · T2 · T3 are the three nearest the pip in that order; key 1
+  marks what the button marks (T1 within reach, or nothing). The marked target's hysteresis and the plate-under-the-pip pass (r.143) stay.
+  This is the "same function on the Capital of Texas" the operator asked for on 2026-09-23 (r.143), delivered as the lock rule.
+- **Gates:** `LOCK_IS_NEAREST_TO_THE_PIP` (20 px beside the 150 R → the 150 R at 20 px, the off-picture 50 L never a candidate, the sky →
+  none) · `TARGET_MARKS_THE_PIP` (TARGET marks the 150 R and moves the head 0.63° onto it, APPROVE reds it, FIRE lands) ·
+  `CAP_LOCK_IS_THE_PIP` (Capital, T11: beside door D-LIB → D-LIB, the nearer D-CAP-W does not take it) — 152 rows, 151/152 in portrait and
+  landscape; `range-2525` 115/0 lifts `pipRank` / `pipNearest` and proves the order, the off-picture rule, the reach and the on-bullseye
+  lock; `drone-playable` 89/0.
+- **Corrections of earlier claims:** r.131's `RANGE_LOCK_PLATE` read "LOCK from the pit at pan 0 = C-50" — at pan 0 the pip sits on the
+  grass, and the row now aims at the exposed plate; r.131's `TARGETN_HITS_THE_EXPOSED_PLATE` fired key 1 with the pip 55 px off the plate
+  and passed only because key 1 took the nearest plate in metres — the row now puts the pip beside the plate, and key 1 refuses the grass.
+- **Still open, honest:** the AI member (`asmTick`) still spots the nearest standing plate in metres from its own mount — that is its own
+  sensor, not the human's bullseye, and is unchanged; everything r.146 owed.

@@ -17,9 +17,9 @@ const src = [
   line(/^const EYE=\{.*\};/m), line(/^function focalPx\(\)\{.*\}$/m), line(/^function fovDeg\(H\)\{.*\}/m), line(/^function zoomMax\(\)\{.*\}/m), line(/^function zoomClamp\(z\)\{.*\}$/m), line(/^function proj\(p,cam,W,H\)\{[\s\S]*?\n\}/m), line(/^const QUAL=\[[\s\S]*?\]\.map\(q=>\(\{\.\.\.q,up:true,lifePct:100,life:99,mist:false,kind:'pop'\}\)\);/m),
   line(/^const IWQ_VI=\[[\s\S]*?\n\];$/m), line(/^const IWQ_ENG=.*;$/m), line(/^const EXPOSURE_BY_COUNT=\{.*\};/m), line(/^const ENG_GAP_S=\d+;/m), line(/^const PHASE_GAP_S=\d+;/m), line(/^const RETURN_S=\d+;/m), line(/^const IWQ_TOTAL=.*;$/m),
   line(/^function engagementAt\(lane,k\)\{[\s\S]*?\n  return \{n:e\.n,ph:e\.ph,pos:e\.pos,bases,sec:EXPOSURE_BY_COUNT\[bases\.length\]\|\|5\}; \}$/m),
-  line(/^const LANES=Array\.from\(\{length:42\},\(_,i\)=>\{[\s\S]*?\n\}\);$/m), line(/^const PLATES=LANES\.flatMap\(.*?\)\)\);/m), line(/^const LANE_MARKER_Z=.*$/m), line(/^function laneMarkers\(lane\)\{.*$/m), line(/^  LANE_MARKER_Z\.forEach\(z=>\{ out\.push.*return out; \}$/m),
+  line(/^const LANES=Array\.from\(\{length:42\},\(_,i\)=>\{[\s\S]*?\n\}\);$/m), line(/^const PLATES=LANES\.flatMap\(.*?\)\)\);/m), line(/^const LOCK_REACH_PX=48;.*$/m), line(/^function pipRank\(cands,c,W,H\)\{.*$/m), line(/^function pipNearest\(cands,c,W,H\)\{.*$/m), line(/^const LANE_MARKER_Z=.*$/m), line(/^function laneMarkers\(lane\)\{.*$/m), line(/^  LANE_MARKER_Z\.forEach\(z=>\{ out\.push.*return out; \}$/m),
 ].join('\n');
-const D = new Function('state', 'const units={}; const view={height:844};\n' + src + '\nreturn { LANES, PLATES, laneMarkers, LANE_MARKER_Z, EYE, focalPx, fovDeg, fwdOf, rightOf, yawTo, proj, QUAL, IWQ_VI, IWQ_ENG, IWQ_TOTAL, EXPOSURE_BY_COUNT, ENG_GAP_S, PHASE_GAP_S, RETURN_S, engagementAt };')({ zoom: 1 });
+const D = new Function('state', 'const units={}; const view={height:844};\n' + src + '\nreturn { LOCK_REACH_PX, pipRank, pipNearest, LANES, PLATES, laneMarkers, LANE_MARKER_Z, EYE, focalPx, fovDeg, fwdOf, rightOf, yawTo, proj, QUAL, IWQ_VI, IWQ_ENG, IWQ_TOTAL, EXPOSURE_BY_COUNT, ENG_GAP_S, PHASE_GAP_S, RETURN_S, engagementAt };')({ zoom: 1 });
 ok(typeof D.fwdOf === 'function' && D.QUAL.length === 11, `lifted fwdOf/rightOf/yawTo/proj/QUAL/IWQ_* out of r.${DECK_REV} (HEAD)`);
 
 // ── the one forward basis ──────────────────────────────────────────────────────────────────────
@@ -92,5 +92,14 @@ ok(/function rangeRelease\(q\)/.test(html) && /ref\._eng=true;/.test(html) && /O
 ok(/const PIP_FLOOR_MRAD=3;/.test(html) && /function pipFloorPx\(\)/.test(html) && !/PIP_FLOOR_PX/.test(html), 'r.131: the pip floor is angular (3 mrad, min 3 px) — the same standard at every zoom and screen size');
 ok(/rings\[0\]\.up=false; \}\n\};/.test(html) && !/rings\[0\]\.up=true; rings\[0\]\.lifePct=100;\n  \}\n\};/.test(html), 'r.131: picking CH0 never re-aims at the bull ring');
 ok(/if\(state\.linkMute\) return;/.test(html) && /const sim=true;/.test(html) && /state\.desig=null; state\.tgtSlot=\{\}; state\.hiApproved=false; (state\.lastShot=null; state\.lastBand=''; )?state\.rangeHit=evSave\.rangeHit/.test(html), 'r.131: QA and batch runs leave no trace on the record or the strip');
+
+// r.147 — LOCK is the target nearest the bullseye ON THE PICTURE (operator 2026-09-23: TARGET/APPROVE/FIRE kept resetting to the 50 m left target).
+{ const cam = { x: 0, y: 1.6, z: 0, yaw: 0, tilt: 0 }; const W = 390, H = 844; const mk = (id, x, y, z) => ({ id, kind: 'pop', ref: { id }, dist: Math.hypot(x, z), world: { x, y, z } });
+  const near50L = mk('C-50L', -4.6, 0.3, 50), near50R = mk('C-50', 4.6, 0.3, 50), far150 = mk('C-150R', 0.9, 0.4, 150), far100 = mk('C-100C', 0.0, 0.4, 100);
+  const rank = D.pipRank([near50L, near50R, far150, far100], cam, W, H);
+  ok(rank.length >= 2 && rank[0].id !== 'C-50L' && rank.every((r) => r.px >= 0) && rank.every((r, i) => i === 0 || r.px >= rank[i - 1].px), 'r.147: the rank is by distance from the pip on the picture, nearest first — the 50 L at 4.6 m off-axis is never first at pan 0 (' + rank.map((r) => r.id + ':' + r.px.toFixed(0)).join(' ') + ')');
+  const onlyFar = D.pipRank([mk('EDGE', -60, 0.3, 50)], cam, W, H); ok(onlyFar.length === 0, 'r.147: a target off the picture is never a candidate');
+  const tight = D.pipNearest([mk('FAR', 3.0, 0.4, 100)], cam, W, H); ok(tight === null, 'r.147: a target on the picture but beyond LOCK_REACH_PX (' + D.LOCK_REACH_PX + ' px) is no lock');
+  const on = D.pipNearest([mk('ON', 0.0, 1.6, 100)], cam, W, H); ok(!!on && on.id === 'ON' && on.px <= D.LOCK_REACH_PX, 'r.147: a target on the bullseye is the lock (' + (on ? on.px.toFixed(1) + ' px' : 'none') + ')'); }
 console.log(`\nrange-2525: ${pass} passed, ${fail} failed · r.${DECK_REV}'s range rules lifted and proven: one basis, the 50 L/R layout, the IWQ Table VI program`);
 process.exit(fail ? 1 : 0);

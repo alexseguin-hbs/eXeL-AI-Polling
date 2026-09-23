@@ -11,7 +11,7 @@ import { readFile } from 'node:fs/promises';
 import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 const A = Object.assign({ seat: 'solo', lane: 20, mode: 'bounce', shots: 4, challenge: 0, craft: 'turret', tag: 'seat', width: 390, height: 844, doubleFire: false, asmPress: 0 }, JSON.parse(process.argv[2] || '{}'));
-// doubleFire: press FIRE a second time inside the same red exposure (the ONE ROUND PER EXPOSURE refusal path) · asmPress: how many times to press the AsM button (0 = leave SPOT, the default; 1 = AsM FIRE; 2 = OFF)
+// doubleFire: press FIRE a second time inside the same red exposure (the ONE ROUND PER EXPOSURE refusal path) · asmPress: how many times to press the AsM button (0 = press until the deck says SPOT, the default; a count presses that many times from OFF: 1 = SPOT, 2 = FIRE, 3 = OFF)
 const PUB = process.env.ASM_PUB || new URL('../public', import.meta.url).pathname, /* ASM_PUB: serve another folder (a candidate deck) without touching the served bytes */ OUT = new URL('../perf/asm/', import.meta.url).pathname; mkdirSync(OUT, { recursive: true });
 const srv = createServer(async (req, res) => { let body; try { body = await readFile(join(PUB, decodeURIComponent(req.url.split('?')[0]))); } catch { res.writeHead(404); return res.end(); } res.writeHead(200, { 'content-type': 'text/html' }); res.end(body); }).listen(0);
 const PORT = srv.address().port;
@@ -34,7 +34,13 @@ try {
   if (A.seat === 'solo' || A.seat === 'ai') {
     const ctx = await b.newContext({ viewport: { width: A.width, height: A.height } }); const p = await open(ctx, A.tag);
     await intro(p, true); await seatLane(p); await cap(p, '01-start');
-    if (A.seat === 'ai' && A.asmPress > 0) { await step(p, 'MORE', () => p.click('#btnMore')); for (let k = 0; k < A.asmPress; k++) await step(p, 'AsM button press ' + (k + 1), () => p.click('#btnAsm')); await step(p, 'MORE close', () => p.click('#btnMore')); }
+    /* r.147: the deck's default is AsM OFF (r.133: OFF → SPOT → FIRE → OFF), so the AI seat presses the button until the deck SAYS SPOT — a state, not a
+       count — unless asmPress names a count (1 = one press from wherever the deck is). The old default of 0 presses left the AI member off and the seat
+       reported "AI never marked" against every deck since r.133. */
+    if (A.seat === 'ai') { await step(p, 'MORE', () => p.click('#btnMore'));
+      if (A.asmPress > 0) { for (let k = 0; k < A.asmPress; k++) await step(p, 'AsM button press ' + (k + 1), () => p.click('#btnAsm')); }
+      else { for (let k = 0; k < 3; k++) { const on = await p.evaluate(() => !!state.asmSpot && !state.asmFire); if (on) break; await step(p, 'AsM button press until SPOT ' + (k + 1), () => p.click('#btnAsm')); } }
+      await step(p, 'MORE close', () => p.click('#btnMore')); }
     if (A.seat === 'ai') R.asm = await p.evaluate(() => ({ spot: state.asmSpot, fire: state.asmFire, label: (document.getElementById('btnAsm') || {}).textContent }));
     for (let i = 0; i < A.shots; i++) {
       if (A.seat === 'ai') { await p.waitForFunction(() => state.desig && state.desig.phase === 'amber', null, { timeout: 20000 }).catch(() => null); const d = await hud(p); if (!d.desig) { R.refusals++; R.steps.push({ name: 'AI never marked', ...d }); continue; } await step(p, 'APPROVE', () => p.click('#fAppr')); const f = await step(p, 'FIRE', () => p.click('#fFire')); if (/HIT/.test(f.toast)) R.hits++; else R.misses++; }
