@@ -94,6 +94,16 @@ r.130 by-distance exposures and the three 20/10/10 tables above, which were DECL
 | sheet height above the lane | bottom edge 1.1 m (a target frame at chest height) | DECLARED |
 | paper | never falls: a hit is a hole; TRAINING · DOWN scores a hit silhouette out; QUAL · 40 = the same 18-engagement program on the sheet | DECLARED from the sheet's use (Alt-C record fire is a timed course on the same sheet) |
 
+## Life-size at 12 inches (r.141, operator 2026-09-23)
+| item | value | status |
+|---|---|---|
+| viewing distance | 12 in from the eye | OPERATOR |
+| device | iPhone 12 Pro Max: 6.7 in diagonal, 2778 × 1284 px, 926 × 428 CSS px → 6.08 in tall → 152.3 CSS px/in | SOURCED (Apple tech specs) — DECLARED for other phones |
+| focal length at 1× | 12 in × 152.3 px/in = 1827.6 CSS px (the eye distance in CSS px; independent of the screen size) | DERIVED |
+| what it means | a 50 m F (26 in wide) is 24 px wide at 1×; a 300 m E (40 in tall) is 6 px; the 3 mrad pip floor is 5.5 px | MEASURED (QA `EYE_SCALE_12_IN`, `SILHOUETTES_TRUE_SCALE`) |
+| the 50 m pair | ±4.6 m: on the edges of a 390–430 px portrait phone at 50 m (±5.3–5.9 m visible) | DECLARED |
+| correction | r.130–r.140 projected with a typed 38° half-angle (a 76° vertical field): the targets were drawn true-size into a field three times too wide | on the record |
+
 ## Sources (search index; links as returned)
 - FM 3-22.9 ch.6 Field Fire — https://www.globalsecurity.org/military/library/policy/army/fm/3-22-9/c06.htm
 - FM 3-22.9 ch.7 Advanced Rifle Marksmanship — https://www.globalsecurity.org/military/library/policy/army/fm/3-22-9/c07.htm

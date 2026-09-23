@@ -4,7 +4,7 @@
     "name": "Drone-2525",
     "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
     "version": "00.00",
-    "revision": "0.025",
+    "revision": "0.026",
     "stampPrefix": "eXeL v0.001",
     "handoff": "docs/asks/2026-09-19_range_popups.md",
     "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -188,6 +188,13 @@
       "kind": "release",
       "why": "Operator deck HEAD r.140: the dark green plates and the 25 m Alt-C sheet. The F-type silhouette is 26 × 21 in (NSN 6920-00-071-4589; r.138's 19.5 × 20 corrected on the record), E 19.5 × 40 in. TARGETS picker: POP-UPS · 50–300 M or ALT-C SHEET · 25 M — a 17 × 22 in sheet at 25 m carrying the ten silhouettes scaled by 25/range (measured: the same height on screen as the real target at its range); one geometry through qWorld()/plateDims(); paper never falls — a hit is a hole, DOWN scores out, QUAL · 40 runs the same program on the sheet; the sheet travels with RESET. QA 140 rows, 139/140 in each orientation.",
       "commit": "9d45dae"
+    },
+    {
+      "revision": "0.026",
+      "date": "2026-09-23",
+      "kind": "release",
+      "why": "Operator deck HEAD r.141: life-size at 12 inches. One focal length at 1× — the eye distance in CSS px (12 in × 152.3 px/in = 1827.6 px, iPhone 12 Pro Max) — so the picture subtends the angles the world does; the deck's typed 38° half-angle (a 76° field) is corrected on the record: a 50 m F is now 24 px wide at 1×, a 300 m E 6 px; the stick rate follows the real half-angle; the 50 L / 50 R stand at ±4.6 m, the edges of a portrait phone at 50 m. QA 142 rows, 141/142 in each orientation.",
+      "commit": "1e8b2d4"
     }
   ],
   "arena": {

@@ -246,6 +246,13 @@
       "kind": "release",
       "text": "Operator deck r.140 served at /drone-2525/play.html (sha256 0f44f0d8...). THE DARK GREEN PLATES AND THE 25 M ALT-C SHEET: F-type 26 x 21 in (sourced; r.138 corrected), a TARGETS picker with the 17 x 22 in Alt-C sheet at 25 m carrying ten silhouettes scaled by 25/range (measured same-angle), one geometry through qWorld/plateDims, paper never falls (a hit is a hole; DOWN scores out; QUAL runs on the sheet). QA 140 rows, 139/140 in each orientation.",
       "commit": "9d45dae"
+    },
+    {
+      "rev": 36,
+      "date": "2026-09-23",
+      "kind": "release",
+      "text": "Operator deck r.141 served at /drone-2525/play.html (sha256 d1771876...). LIFE-SIZE AT 12 INCHES: one focal length at 1x (12 in x 152.3 px/in, iPhone 12 Pro Max); the typed 38-degree half-angle of r.130-r.140 corrected on the record (a 76-degree field made every target tiny); a 50 m F is 24 px at 1x, a 300 m E 6 px; the 50 L/R at +-4.6 m, the edges of a portrait phone. QA 142 rows, 141/142 in each orientation.",
+      "commit": "1e8b2d4"
     }
   ]
 }

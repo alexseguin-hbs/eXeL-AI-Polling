@@ -21,6 +21,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.138 | 2026-09-23 | Claude Code (true scale · labels · zoom law · magazine · full screen, after plan review) | 310828 | c8449d701799ff23acedf70e341aca5119ff7033281e01b7c3292d6b4168bd18 | 474e6a7 → c5995ce (artefact, final bytes) | ad1c508f2e7ddc6226eae71faf975817c49675841695c2203e387fe21d1d556f |
 | r.139 | 2026-09-23 | Claude Code (landscape + portrait like Mission Planning, after plan review) | 313903 | e8b52069c3b2ec8e9adf6c4b773bb6ea00f37d32f0fb92dfc4ca9ea39693aa38 | 0f71961 (artefact) | c002c0e0b14fce8e6478c4c12216307d9e7d613341ef570709943071fb77cf52 |
 | r.140 | 2026-09-23 | Claude Code (the dark green plates + the 25 m Alt-C sheet) | 322411 | 0f44f0d8bfd83c0e55cda9a77501d3e65ec3306cbbc4b75ab3da5c89da6cce7a | f0f9592 → 9d45dae (artefact, final bytes) | d0fdb1208117f5366895b36957434da88208bfe63fcc45cb5416706564f353c3 |
+| r.141 | 2026-09-23 | Claude Code (life-size at 12 in · the 50s at the edges) | 324194 | d177187681613f8d61c70f6df2fe39efc667557989548bc3d12bbdf48c3daf14 | 1e8b2d4 (artefact) | 1cb42d37446afd4816818e3b46508cfb2fdbd5f5aac30fd3df39e34179cadb83 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -409,3 +410,18 @@ Patch: `patches/r139_to_r140.py` (26 asserted edits).
   34/0; `drone-team-e2e` 9/9; qual seat 6/6.
 - **Still open, honest:** the sheet's height above the lane (1.1 m) is declared; hole positions on a peer's phone are at the centre of mass,
   not where the shooter's pip sat; the 50 L has no place on the sheet by design.
+
+## r.141 — Claude Code: life-size at 12 inches (iPhone 12 Pro Max), the two 50 m targets at the edges (2026-09-23)
+Ask: `docs/asks/2026-09-23_eye_scale_12in_fifty_at_edges.md` (verbatim, hashed). Notes: `CLAUDE_CODE_NOTES_r141.md`. Patch: `patches/r140_to_r141.py` (11 asserted edits).
+- **One focal length, life-size.** At 1× the focal length in CSS px is the eye distance in CSS px: 12 in × 152.3 px/in = 1827.6 px
+  (iPhone 12 Pro Max: 6.7 in diagonal, 926 × 428 CSS px → 6.08 in tall; Apple tech specs; DECLARED for other phones). A thing on the screen
+  subtends the angle it subtends in the world. **Correction of r.130–r.140:** the deck projected with a typed 38° half-angle — a 76° vertical
+  field — which is why a 50 m F was 7 px and a 300 m E under 2 px; "targets are small" was the field, not the targets. Now: a 50 m F is
+  24 px wide at 1×, a 300 m E 6 px (measured, QA `EYE_SCALE_12_IN`). The half-angle is derived from the screen height (10.7° at 662 px,
+  5.2° in landscape) — the same scale, more or less sky. The stick moves the same fraction of the screen per second at any zoom.
+- **The 50 L and 50 R stand at ±4.6 m** — the edges of a portrait phone at 50 m (a 390 px phone at 12 in sees ±5.3 m; 15 px inside; QA
+  `FIFTY_AT_THE_EDGES`, portrait-conditional). DECLARED for 390–430 px phones.
+- **Gates:** in-file QA 142 rows, 141/142 in portrait and landscape; `range-2525` 105/0 lifts `EYE`, `focalPx`, `fovDeg` and proves the
+  focal length, the two half-angles and the edge geometry; `drone-playable` 76/0; `drone-deck-qa` 34/0; `drone-team-e2e` 9/9.
+- **Still open, honest:** 152.3 px/in is the iPhone 12 Pro Max's; other phones differ by a few percent and are not yet read from the
+  device; ±4.6 m is tuned to a 390–430 px portrait phone.
