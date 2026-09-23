@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.024",
+  "revision": "0.025",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -232,6 +232,13 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck HEAD r.139: landscape and portrait, like Mission Planning. A phone is a phone in both orientations (device class by the short side; r.138 classed a landscape phone as a desk). FULL fills the whole screen in every orientation — r.138's grid let the stage slide into an auto row at 36 % height, corrected on the record; FULL beats the desk layout. Portrait stacks the magazine line and the strip; landscape sets them side by side. Rotation re-lays out (orientationchange, screen.orientation). The deck-QA gate runs the boot QA in both orientations in CI. QA 136 rows, 135/136 headless in each.",
    "commit": "0f71961"
+  },
+  {
+   "revision": "0.025",
+   "date": "2026-09-23",
+   "kind": "release",
+   "why": "Operator deck HEAD r.140: the dark green plates and the 25 m Alt-C sheet. The F-type silhouette is 26 × 21 in (NSN 6920-00-071-4589; r.138's 19.5 × 20 corrected on the record), E 19.5 × 40 in. TARGETS picker: POP-UPS · 50–300 M or ALT-C SHEET · 25 M — a 17 × 22 in sheet at 25 m carrying the ten silhouettes scaled by 25/range (measured: the same height on screen as the real target at its range); one geometry through qWorld()/plateDims(); paper never falls — a hit is a hole, DOWN scores out, QUAL · 40 runs the same program on the sheet; the sheet travels with RESET. QA 140 rows, 139/140 in each orientation.",
+   "commit": "9d45dae"
   }
  ],
  "arena": {

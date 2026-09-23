@@ -239,6 +239,13 @@
       "kind": "release",
       "text": "Operator deck r.139 served at /drone-2525/play.html (sha256 e8b52069...). LANDSCAPE AND PORTRAIT, LIKE MISSION PLANNING: a phone is a phone in both orientations; FULL fills the whole screen in every orientation (r.138's 36 % picture corrected on the record); portrait stacks the top lines, landscape sets them side by side; rotation re-lays out; the deck-QA gate proves both orientations on every deploy. QA 136 rows, 135/136 in each orientation.",
       "commit": "0f71961"
+    },
+    {
+      "rev": 35,
+      "date": "2026-09-23",
+      "kind": "release",
+      "text": "Operator deck r.140 served at /drone-2525/play.html (sha256 0f44f0d8...). THE DARK GREEN PLATES AND THE 25 M ALT-C SHEET: F-type 26 x 21 in (sourced; r.138 corrected), a TARGETS picker with the 17 x 22 in Alt-C sheet at 25 m carrying ten silhouettes scaled by 25/range (measured same-angle), one geometry through qWorld/plateDims, paper never falls (a hit is a hole; DOWN scores out; QUAL runs on the sheet). QA 140 rows, 139/140 in each orientation.",
+      "commit": "9d45dae"
     }
   ]
 }

@@ -84,6 +84,16 @@ r.130 by-distance exposures and the three 20/10/10 tables above, which were DECL
 | labels | left targets read to the left, right targets to the right, centre above; same side stacked | OPERATOR (2026-09-23) |
 | 75 m | no 75 m target (the operator: a typo) | OPERATOR |
 
+## The dark green plates and the 25 m Alt-C sheet (r.140, operator 2026-09-23)
+| item | value | status |
+|---|---|---|
+| F-type silhouette (prone / kneeling, the wide shouldered plate) | 26" × 21" = 0.660 × 0.533 m, NSN 6920-00-071-4589, OD green polyethylene | SOURCED (NCSS "Plastic Silhouette Target, Green, Prone Position, 26″ x 21″"; Action Target F-Type; ArmyProperty NSN listing) — r.138's 19.5" × 20" was DECLARED and is corrected |
+| E-type silhouette | 19.5" × 40" = 0.495 × 1.016 m, NSN 6920-00-071-4780 | SOURCED (Range Systems E-type sheet) |
+| 25 m Alt-C sheet | 17" × 22" (0.4318 × 0.5588 m), M16A1 / 25 m Alternate Course C record fire; ten scaled silhouettes: 250 and 300 top corners, 200 × 2, 150 left/right, 100 × 3, 50 bottom centre | SOURCED (Rite in the Rain 9127; Qualification Targets Inc.; edisastersystems 17 × 22) |
+| scaling on the sheet | each silhouette scaled by 25 / range so it subtends the real target's angle; the deck measures the on-screen height against the pop-up at its range (0.0 % worst) | SOURCED (the sheet's purpose) + MEASURED (QA `SHEET_SCALES_TO_ANGLE`) |
+| sheet height above the lane | bottom edge 1.1 m (a target frame at chest height) | DECLARED |
+| paper | never falls: a hit is a hole; TRAINING · DOWN scores a hit silhouette out; QUAL · 40 = the same 18-engagement program on the sheet | DECLARED from the sheet's use (Alt-C record fire is a timed course on the same sheet) |
+
 ## Sources (search index; links as returned)
 - FM 3-22.9 ch.6 Field Fire — https://www.globalsecurity.org/military/library/policy/army/fm/3-22-9/c06.htm
 - FM 3-22.9 ch.7 Advanced Rifle Marksmanship — https://www.globalsecurity.org/military/library/policy/army/fm/3-22-9/c07.htm

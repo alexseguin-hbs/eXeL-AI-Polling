@@ -20,6 +20,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.137 | 2026-09-23 | Claude Code (the range the operator described, after plan review) | 297506 | 8e3ef876699b5a0b93beed1c971c72b92eb6066ab167f564af4b62e87af31ddc | c0e57ea (artefact) | c8348351f6ad2481976877dff8c1c8a21901761287a56fe277c7a6f4c39f9e70 |
 | r.138 | 2026-09-23 | Claude Code (true scale · labels · zoom law · magazine · full screen, after plan review) | 310828 | c8449d701799ff23acedf70e341aca5119ff7033281e01b7c3292d6b4168bd18 | 474e6a7 → c5995ce (artefact, final bytes) | ad1c508f2e7ddc6226eae71faf975817c49675841695c2203e387fe21d1d556f |
 | r.139 | 2026-09-23 | Claude Code (landscape + portrait like Mission Planning, after plan review) | 313903 | e8b52069c3b2ec8e9adf6c4b773bb6ea00f37d32f0fb92dfc4ca9ea39693aa38 | 0f71961 (artefact) | c002c0e0b14fce8e6478c4c12216307d9e7d613341ef570709943071fb77cf52 |
+| r.140 | 2026-09-23 | Claude Code (the dark green plates + the 25 m Alt-C sheet) | 322411 | 0f44f0d8bfd83c0e55cda9a77501d3e65ec3306cbbc4b75ab3da5c89da6cce7a | f0f9592 → 9d45dae (artefact, final bytes) | d0fdb1208117f5366895b36957434da88208bfe63fcc45cb5416706564f353c3 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -387,3 +388,24 @@ Ask: `docs/asks/2026-09-23_landscape_portrait.md` (verbatim, hashed). Notes: `CL
   tablet landscape FULL 1180 × 820; rotated in place, each way, the stage follows.
 - **Still open, honest:** a real iPhone rotation and Safari's fullscreen are hardware; the tablet's side panel in portrait (820 wide → desk) is
   by the rule, not yet by a person's eye.
+
+## r.140 — Claude Code: the dark green plates and the 25 m Alt-C sheet (2026-09-23)
+Ask: `docs/asks/2026-09-23_targets_bigger_altc_sheet.md` (verbatim, hashed, the search screenshot beside it). Notes: `CLAUDE_CODE_NOTES_r140.md`.
+Patch: `patches/r139_to_r140.py` (26 asserted edits).
+- **The F-type is the wide shouldered plate: 26" × 21" = 0.660 × 0.533 m** (SOURCED: NSN 6920-00-071-4589, NCSS / Action Target).
+  **Correction of r.138:** its F-type (19.5" × 20") was declared from the E-type's family and was wrong — the operator's "a little bigger".
+  E stays 19.5" × 40".
+- **The 25 m Alt-C sheet is a target option** (`TARGETS` picker: POP-UPS · 50–300 M or ALT-C SHEET · 25 M). One 17" × 22" sheet at 25 m
+  (Rite in the Rain 9127 / Qualification Targets Inc.) carries the ten silhouettes scaled by 25/range, laid out as printed (50 bottom
+  centre · 100 × 3 · 150 left/right · 200 × 2 · 250 top-left · 300 top-right; one 50 m, as printed — the 50 L stays down and is never a
+  phantom). Measured: on screen each sheet silhouette is the same height as the real target at its range (worst 0.0 %). Every consumer
+  of a plate's place and size goes through `qWorld()` and `plateDims()` — one geometry, no fork.
+- **Paper never falls.** A hit is a hole drawn where the pip sat; the silhouette stays; the box clears; TRAINING · DOWN scores the
+  silhouette out (dim); QUAL · 40 runs the same engagement program on the sheet (engaged silhouettes lit, the rest dim; windows, rounds,
+  unfired misses unchanged); a peer's HIT row is a hole at the centre of mass. The sheet travels with the RESET row.
+- **Gates:** in-file QA 140 rows, 139/140 in portrait and landscape (`SYNC_DIRECT` by design); new `SHEET_SCALES_TO_ANGLE`,
+  `SHEET_HIT_IS_A_HOLE` (incl. no phantom after the 3 s return), `SHEET_DOWN_SCORES_OUT`, `SHEET_QUAL_ENGAGES`; `SILHOUETTES_TRUE_SCALE` holds the
+  new F. `range-2525` 103/0 lifts the sheet and its layout (ten silhouettes, all inside 17 × 22 in); `drone-playable` 73/0; `drone-deck-qa`
+  34/0; `drone-team-e2e` 9/9; qual seat 6/6.
+- **Still open, honest:** the sheet's height above the lane (1.1 m) is declared; hole positions on a peer's phone are at the centre of mass,
+  not where the shooter's pip sat; the 50 L has no place on the sheet by design.
