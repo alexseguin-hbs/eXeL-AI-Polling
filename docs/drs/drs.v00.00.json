@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.002",
+  "revision": "0.003",
   "stage": "Concept (G1) → requesting Plan (G2) entry",
   "decisionRequested": "Authorize MVP definition and the three-segment customer validation program.",
   "created": "2026-09-23",
@@ -46,6 +46,16 @@
    "title": "Operator draft text deck v0.1 (verbatim)",
    "where": "docs/asks/2026-09-23_de_risking_strategies.md",
    "sha256": "d06e6ce263b74f96b557cf0f1cd712ebe16aaff1d238b1ba7460e071ab10dcd1"
+  },
+  {
+   "id": "SRC-6",
+   "title": "Vendor pages for the three NBAs (GE Vernova GridOS ADMS/OMS; Veoci Vitals EM; YUDU Sentinel)",
+   "where": "URLs on each NBA row; read by web search 2026-09-23"
+  },
+  {
+   "id": "SRC-7",
+   "title": "CrisisCommand.ai as described by search-engine results 2026-09-23: 'AI-powered crisis strategy and communications platform' — an 11-section intelligence report in under 3 minutes, saved reports and status tracking on a dashboard, board-ready PDFs, multi-org management, shareable briefs to legal and PR, donor / board / volunteer messaging for nonprofits; corporations, nonprofits, executives",
+   "where": "https://www.crisiscommand.ai/ (the site itself is egress-blocked from the build sandbox; the operator's fuller description of facts / objectives / SITREPs / simulations / strategic memory stays DECLARED). NAME COLLISION to tell the partner: a separate crisiscommandai.com 'AI Crisis Intelligence Platform' exists."
   }
  ],
  "evidenceLaw": "Every statement carries one of: SOURCED (a named document says it), DECLARED (we chose it and say so), HYPOTHESIS (to be validated in the S16 program), UNPROVEN (no number is written until measured). Dollars appear only as '$ —' until a pilot measures them — the template's own convention ($ -- k).",
@@ -119,7 +129,11 @@
     "Simulations"
    ],
    "positioning": "GridOS operates the electrical grid. DRS coordinates the human, organizational and resource crisis around the disruption.",
-   "status": "DECLARED from the operator's research; confirm against vendor documentation in the S16 program"
+   "status": "SOURCED (vendor pages read 2026-09-23 — GridOS ADMS with its built-in Enterprise OMS and SAIDI/SAIFI/CMI; Veoci Vitals EM incidents, HVA, AAR, full incident timeline, resource management; Sentinel crisis management + notification + continuity, Video Crisis Rooms, mass notification under 60 s); confirm the competitive weight in the S16 interviews",
+   "sources": [
+    "https://www.gevernova.com/software/products/gridos/advanced-distribution-management-system",
+    "https://www.gevernova.com/software/products/gridos/power-grid-disruption"
+   ]
   },
   {
    "id": "NBA-2",
@@ -134,7 +148,11 @@
     "AARs and improvement plans"
    ],
    "positioning": "Veoci runs the hospital's incident. DRS coordinates the healthcare system, its leadership and the affected population as one transparent, authority-controlled response environment.",
-   "status": "DECLARED; confirm"
+   "status": "SOURCED (vendor pages read 2026-09-23 — GridOS ADMS with its built-in Enterprise OMS and SAIDI/SAIFI/CMI; Veoci Vitals EM incidents, HVA, AAR, full incident timeline, resource management; Sentinel crisis management + notification + continuity, Video Crisis Rooms, mass notification under 60 s); confirm the competitive weight in the S16 interviews",
+   "sources": [
+    "https://veoci.com/hospitals-healthcare/vitals-em/",
+    "https://veoci.com/press/veoci-vitals-em-healthcare-emergency-management"
+   ]
   },
   {
    "id": "NBA-3",
@@ -149,7 +167,11 @@
     "Extreme-weather / lockdown use cases"
    ],
    "positioning": "Sentinel tells the campus. DRS fulfils the campus's needs: who lacks heat, which building has capacity, who has blankets, who is qualified, who approved the relocation, who has been helped.",
-   "status": "DECLARED; confirm"
+   "status": "SOURCED (vendor pages read 2026-09-23 — GridOS ADMS with its built-in Enterprise OMS and SAIDI/SAIFI/CMI; Veoci Vitals EM incidents, HVA, AAR, full incident timeline, resource management; Sentinel crisis management + notification + continuity, Video Crisis Rooms, mass notification under 60 s); confirm the competitive weight in the S16 interviews",
+   "sources": [
+    "https://www.sentinelresilience.com/use-cases/crisis-management/features",
+    "https://www.sentinelresilience.com/"
+   ]
   },
   {
    "id": "NBA-0",
@@ -453,6 +475,14 @@
      "valueDriver": "$ / avoided shutdown exposure through pre-positioning",
      "metric": "plan chosen vs trigger; reserve used",
      "status": "HYPOTHESIS"
+    },
+    {
+     "n": 8,
+     "differentiator": "Responsive phone + desktop interface",
+     "nbaToday": "GridOS is an operator console; field crews, facilities and community roles have no shared screen",
+     "valueDriver": "Adoption by responders and community roles without training; fewer phone relays between the EOC and the field",
+     "metric": "responders active on a phone; time from a field concern to a plan revision",
+     "status": "HYPOTHESIS"
     }
    ],
    "totalCustomerValue": "$ — (sum of measured rows)",
@@ -514,10 +544,18 @@
     },
     {
      "n": 7,
-     "differentiator": "Three-scenario forecasting + R-CORE cross-event replay",
-     "nbaToday": "AARs per incident",
-     "valueDriver": "Readiness across events",
-     "metric": "simulation vs actual",
+     "differentiator": "Three-scenario resource forecasting",
+     "nbaToday": "Veoci plans and activates; regional surge posture is set by call and email",
+     "valueDriver": "Capacity pre-positioned against a chosen posture (Conservative / Baseline / Aggressive) instead of after the diversion",
+     "metric": "plan chosen vs trigger; diversion hours avoided",
+     "status": "HYPOTHESIS"
+    },
+    {
+     "n": 8,
+     "differentiator": "R-CORE cross-event replay and simulation",
+     "nbaToday": "Veoci writes an AAR per incident; learning stays inside one institution",
+     "valueDriver": "Readiness improvement across institutions and events; drill cost avoided",
+     "metric": "simulation vs actual performance; time to a named decision across facilities",
      "status": "HYPOTHESIS"
     }
    ],
@@ -572,10 +610,26 @@
     },
     {
      "n": 6,
-     "differentiator": "Collective feedback / polling + replay-to-drill",
-     "nbaToday": "Post-event survey",
-     "valueDriver": "Readiness / drill performance",
-     "metric": "drill score, baseline vs pilot",
+     "differentiator": "Collective feedback / polling",
+     "nbaToday": "Sentinel is two-way for safety checks; it does not rank concerns",
+     "valueDriver": "Emergent needs (heat, transport, medication) surface as a ranked list before they become failures",
+     "metric": "needs submitted; time from concern to plan revision",
+     "status": "HYPOTHESIS"
+    },
+    {
+     "n": 7,
+     "differentiator": "Replay-to-drill learning",
+     "nbaToday": "Auditable communications log; no replay into the next drill",
+     "valueDriver": "Readiness / drill performance improvement per event",
+     "metric": "simulation vs actual performance; drill score",
+     "status": "HYPOTHESIS"
+    },
+    {
+     "n": 8,
+     "differentiator": "Resource scenarios before the event",
+     "nbaToday": "None — resource posture is decided during the event",
+     "valueDriver": "Blankets, water, heat, transport and building capacity pre-positioned against a chosen posture",
+     "metric": "plan chosen vs trigger; time-to-shelter; time-to-distribute supplies",
      "status": "HYPOTHESIS"
     }
    ],
@@ -730,37 +784,65 @@
   },
   {
    "id": "M1",
-   "risk": "Privacy and sensitive data; healthcare compliance",
-   "issue": "Welfare and medical needs are personal data",
-   "mitigation": "Minimum intake; role-scoped visibility; compliance review before the healthcare pilot",
+   "risk": "Privacy and sensitive data",
+   "issue": "Needs intake carries names, locations, medical and welfare facts of affected people",
+   "mitigation": "Minimum record (CASPER-shaped fields), role-scoped reads, retention by event, no public row ever carries a person's medical detail",
    "owner": "TBD"
   },
   {
    "id": "M2",
    "risk": "Public misinformation",
-   "issue": "The public reads rumour faster than the plan",
-   "mitigation": "Controlled public transparency: the current plan, its version and its authority are the public record",
+   "issue": "A public plan view can be quoted out of context or spoofed",
+   "mitigation": "Controlled transparency: every public statement carries the authorizing role and the plan version; corrections are versions, never deletions",
    "owner": "TBD"
   },
   {
    "id": "M3",
-   "risk": "Integration burden",
-   "issue": "Four partner systems, three NBAs",
-   "mitigation": "Coordinate across, never replace; MVP 1 needs no integration; ingestion lands in MVP 3",
+   "risk": "Unauthorized resource access",
+   "issue": "A request from an unverified party diverts scarce supplies",
+   "mitigation": "Allocation only against a recorded need by a verified responder; every grant is a named-human row; refusals recorded",
    "owner": "TBD"
   },
   {
    "id": "M4",
-   "risk": "Emergency communications availability; cybersecurity",
-   "issue": "The event takes the network down",
-   "mitigation": "Offline-first record with replay on reconnect; the standalone-HTML discipline of the 2525 domain plays",
+   "risk": "Integration burden",
+   "issue": "GridOS / hospital / notification systems each have their own data and access model",
+   "mitigation": "Coordinate beside them (MVP 1 needs no integration); cross-system ingestion is MVP 3 and enters only through the de-risk gate",
    "owner": "TBD"
   },
   {
    "id": "M5",
-   "risk": "Government procurement; liability / reliance",
-   "issue": "Long cycles; reliance on the system in a life-safety context",
-   "mitigation": "Pilot through a partner customer first; the record is evidence, not a promise; scope of reliance written into the pilot agreement",
+   "risk": "Emergency communications availability",
+   "issue": "Networks and power fail in the events the product exists for",
+   "mitigation": "Phone-first, offline-tolerant record with replay on reconnect; the four-channel delivery precedent from the polling engine",
+   "owner": "TBD"
+  },
+  {
+   "id": "M6",
+   "risk": "Government procurement",
+   "issue": "Public buyers move by cycle and grant, not by pilot",
+   "mitigation": "Pilot through an existing operator's or partner's authority; readiness subscription priced after the S16 pilot; align with THIRA/SPR reporting cycles",
+   "owner": "TBD"
+  },
+  {
+   "id": "M7",
+   "risk": "Healthcare compliance",
+   "issue": "Regional health data crosses institutions and jurisdictions",
+   "mitigation": "Healthcare pilot carries only capacity and coordination facts, no patient records, until compliance counsel signs the data map",
+   "owner": "TBD"
+  },
+  {
+   "id": "M8",
+   "risk": "Cybersecurity",
+   "issue": "A crisis-coordination system is a target during the crisis",
+   "mitigation": "Verified roster + signed rows + append-only record; the amber→red two-step for every consequential act; incident-response drills through HSEEP",
+   "owner": "TBD"
+  },
+  {
+   "id": "M9",
+   "risk": "Liability / reliance",
+   "issue": "A wrong recommendation or a stale plan version is acted on",
+   "mitigation": "AI recommends and organizes, authorized humans retain command; every plan carries who authorized it and when; replay reconstructs what was known",
    "owner": "TBD"
   }
  ],
@@ -785,7 +867,7 @@
    "out": "DRS-02.01.OUT — every need has a timestamp, a location, a priority and a state (open / assigned / fulfilled)",
    "stage": "Concept",
    "status": "draft",
-   "evidence": "UNPROVEN",
+   "evidence": "DECLARED (intake record shaped on CDC CASPER + FEMA Community Lifelines — see needsAssessment)",
    "vision": "III COMM",
    "segment": "all"
   },
@@ -797,7 +879,7 @@
    "out": "DRS-03.01.OUT — a live gap view: needs open vs resources available, per scenario",
    "stage": "Concept",
    "status": "draft",
-   "evidence": "UNPROVEN",
+   "evidence": "DECLARED (ICS 215 / NIMS resource typing — see needsAssessment)",
    "vision": "VII UCRS",
    "segment": "all"
   },
@@ -1004,14 +1086,14 @@
    "n": "S12",
    "title": "Competition + Value",
    "stage": "Concept",
-   "fields": "three clusters, target position",
+   "fields": "nbas (SOURCED), competition.clusters, competition.targetPosition, wedge",
    "evidence": "DECLARED"
   },
   {
    "n": "S13",
    "title": "Differentiator Value Equation",
    "stage": "Concept",
-   "fields": "valueTables ×3",
+   "fields": "valueTables ×3 (8 rows each)",
    "evidence": "UNPROVEN ($ —)"
   },
   {
@@ -1032,7 +1114,7 @@
    "n": "S16",
    "title": "Validation + Evidence",
    "stage": "Concept",
-   "fields": "evidenceProgram",
+   "fields": "evidenceProgram, nose[].evidence, needsAssessment",
    "evidence": "DECLARED (the columns)"
   },
   {
@@ -1053,14 +1135,14 @@
    "n": "S19",
    "title": "Risks + Dependencies",
    "stage": "Concept",
-   "fields": "risks",
+   "fields": "risks ×11, coreControl",
    "evidence": "DECLARED"
   },
   {
    "n": "S20",
    "title": "Gate / Decision",
    "stage": "Concept → Plan",
-   "fields": "decision, exit criteria",
+   "fields": "gateDecision.approvals ×5, gateExit, unproven",
    "evidence": "DECLARED (the gate-exit list; the decision itself is the reviewers’)"
   }
  ],
@@ -1093,6 +1175,189 @@
    "kind": "release",
    "why": "The demo project: one JSON source, S1–S20 rendered, three NOSE statements, three value tables (every number $ — / HYPOTHESIS / UNPROVEN), DRS-01…13 CRS rows on the G1–G7 ladder, risks C1–C2 / M1–M5, roadmap MVP 1–3 PROPOSED.",
    "commit": "e97abf4"
+  },
+  {
+   "revision": "0.003",
+   "date": "2026-09-23",
+   "kind": "release",
+   "why": "Reconciled to the operator's second message (docs/asks/2026-09-23_drs_bu_sbu_alpha_needs.md): eight differentiators per segment, eleven risks, S12 clusters + target position, S20 five approvals; NBAs SOURCED from vendor pages; CrisisCommand described from search (site egress-blocked; name collision flagged); the needs-assessment research (two families, ten methods, each with its source and what DRS takes); the Pod codes DR › DRC › CR1 › CR1D with PRJ-34 on HOLD; logo placeholder.",
+   "commit": "PENDING"
   }
- ]
+ ],
+ "coreControl": "AI recommends and organizes. Authorized humans retain command.",
+ "competition": {
+  "clusters": [
+   {
+    "name": "Deep operational systems",
+    "members": "GridOS / hospital systems / facility systems"
+   },
+   {
+    "name": "Crisis-management systems",
+    "members": "Veoci / Sentinel"
+   },
+   {
+    "name": "Cognitive crisis command",
+    "members": "CrisisCommand"
+   }
+  ],
+  "targetPosition": [
+   "High Human Coordination",
+   "High Replay / Readiness",
+   "Increasing Operational Impact"
+  ],
+  "honesty": "We should not position ourselves as immediately superior in every dimension. That will make the story more credible."
+ },
+ "gateDecision": {
+  "approvals": [
+   "Three-segment validation — Utility / Industrial · Healthcare · Campus",
+   "Three NBA benchmarks — GridOS · Veoci · Sentinel",
+   "MVP architecture",
+   "Outcome / WTP experiments",
+   "First live or simulated resilience pilot"
+  ]
+ },
+ "needsAssessment": {
+  "ask": "research best in class needs assessments to help fiends business (operator 2026-09-23)",
+  "law": "Two families are needed and they are not the same instrument: the CUSTOMER needs assessment prices the product (S3, S8–S10, S13, S14); the CRISIS needs assessment is the product's own intake (DRS-02, DRS-03, S4, S15, S16). Every method below is SOURCED by URL; what DRS takes from it is DECLARED.",
+  "families": [
+   {
+    "id": "customer",
+    "name": "Customer / product needs assessment",
+    "methods": [
+     {
+      "name": "Outcome-Driven Innovation (Ulwick / Strategyn)",
+      "what": "Jobs-to-be-done put into practice: 50–150 desired-outcome statements per job, each {direction, measure, object, context}; the opportunity algorithm ranks importance vs satisfaction; segments are formed by outcome profile, not by industry",
+      "sources": [
+       "https://anthonyulwick.com/outcome-driven-innovation/",
+       "https://strategyn.com/jobs-to-be-done/",
+       "https://en.wikipedia.org/wiki/Outcome-Driven_Innovation"
+      ],
+      "whatDrsTakes": "Every S13 value-driver row and every S14 interview question is written as a desired-outcome statement; the S3 segmentation is validated by outcome profile (the X/Y/Z weights are the first three outcome clusters)"
+     },
+     {
+      "name": "Voice of the Customer loop (the gate-review template's own method)",
+      "what": "Continuous and iterative customer feedback through the stage gates: understand needs vs the next-best alternative → validate concepts with prototypes → evaluate and adapt",
+      "sources": [
+       "docs/drs/sources/01.1_DRS_ProjectResilience_Market_Landscape_Needs_2023.12.06.pdf (p.2–3)",
+       "docs/drs/sources/01.1_DRS_Project-AdFusion_Market_Landscape_Needs.pdf (p.2–3)"
+      ],
+      "whatDrsTakes": "The G1→G2 program: three segments × interviews vs the paired NBA before any prototype; the S11/S15/S17 VOC tables of the Pod carry the results"
+     },
+     {
+      "name": "Kano classification",
+      "what": "Must-be · performance · delighter attributes from paired functional/dysfunctional questions; a must-be is not a differentiator",
+      "sources": [
+       "https://asq.org/quality-resources/kano-model",
+       "https://citoolkit.com/articles/kano-analysis/"
+      ],
+      "whatDrsTakes": "The 'not differentiators' list (alerting, dashboards, incident logs, messaging, simulations, AAR) are must-be for the NBAs; each S13 row is tagged must-be / performance / delighter in the S16 interviews before it is priced"
+     }
+    ]
+   },
+   {
+    "id": "crisis",
+    "name": "Crisis / community needs assessment (the product's intake)",
+    "methods": [
+     {
+      "name": "CDC CASPER — Community Assessment for Public Health Emergency Response",
+      "what": "Rapid needs assessment at the household level: two-stage cluster sampling (30 clusters × 7 households), volunteer interview teams, a standard questionnaire, results in days; toolkit 3rd edition 2019",
+      "sources": [
+       "https://www.cdc.gov/casper/media/pdfs/CASPER-toolkit-3_508.pdf",
+       "https://cdc.gov/casper/php/overview/index.html",
+       "https://pmc.ncbi.nlm.nih.gov/articles/PMC4630127/"
+      ],
+      "whatDrsTakes": "DRS-02 needs intake carries CASPER's record shape (who · where · what is lacking · severity · who is responsible · time) so a phone poll is a valid sample of a community, not a shout; the 30×7 design is the fallback when the roster cannot reach everyone"
+     },
+     {
+      "name": "UN OCHA MIRA — Multi-Sector Initial Rapid Assessment",
+      "what": "One common picture across all sectors: situational analysis within 72 hours, MIRA report within two weeks, agreed immediate strategies",
+      "sources": [
+       "https://reliefweb.int/report/world/multi-sector-initial-rapid-assessment-guidance-revision-july-2015-enru",
+       "https://emergency.unhcr.org/coordination-and-communication/cluster-system/multi-cluster-sector-initial-rapid-needs-assessment-mira"
+      ],
+      "whatDrsTakes": "The S4 CONOPS clock: authoritative facts and a first needs picture within 72 h; one picture shared by command, responders and the affected population (S6 layers)"
+     },
+     {
+      "name": "FEMA THIRA / SPR — Threat and Hazard Identification and Risk Assessment / Stakeholder Preparedness Review",
+      "what": "Capability targets and the resource requirements to meet them, self-assessed yearly against last year's capability (built, sustained, lost)",
+      "sources": [
+       "https://www.fema.gov/emergency-managers/national-preparedness/goal/risk-capability-assessment",
+       "https://www.fema.gov/sites/default/files/2020-07/threat-hazard-identification-risk-assessment-stakeholder-preparedness-review-guide.pdf",
+       "https://www.rand.org/pubs/research_reports/RRA2437-1.html"
+      ],
+      "whatDrsTakes": "S15's Conservative / Baseline / Aggressive plans are expressed as capability targets with resource requirements; the trigger for changing plans is a target missed"
+     },
+     {
+      "name": "FEMA HSEEP — Homeland Security Exercise and Evaluation Program",
+      "what": "Exercise design, evaluation and corrective actions that feed the next cycle, informed by risk and capability assessments",
+      "sources": [
+       "https://www.fema.gov/emergency-managers/national-preparedness/exercises/hseep"
+      ],
+      "whatDrsTakes": "S16's Replay → Improve columns are HSEEP corrective actions; the R-CORE loop is HSEEP's cycle with the record kept by the system instead of a binder"
+     },
+     {
+      "name": "FEMA Community Lifelines",
+      "what": "Eight lifelines (Safety and Security · Food, Hydration, Shelter · Health and Medical · Energy · Communications · Transportation · Hazardous Materials · Water) with a status ladder Unstable → Stabilizing → Recovery",
+      "sources": [
+       "https://www.fema.gov/emergency-managers/practitioners/lifelines",
+       "https://www.dhs.gov/sites/default/files/2025-01/25_0127_community_lifeline_status_system_fact_sheet.pdf"
+      ],
+      "whatDrsTakes": "The 'what people currently need' list on S2 and the needs-intake categories are the eight lifelines; a lifeline status is the first line of every plan version"
+     },
+     {
+      "name": "NIMS resource typing + ICS 215 Operational Planning Worksheet",
+      "what": "Resources categorized by capability; the ICS 215 lists assignments, resources required vs available and the gap for the next operational period",
+      "sources": [
+       "https://www.fema.gov/emergency-managers/nims/components",
+       "https://training.fema.gov/emiweb/is/icsresource/assets/ics%20forms/ics%20form%20215,%20operational%20planning%20worksheet%20(v3).pdf"
+      ],
+      "whatDrsTakes": "DRS-03 resource inventory + gap analysis is an ICS 215 the responders fill from phones; DRS-04 assignments use NIMS typing so a request names a capability, not a brand"
+     },
+     {
+      "name": "ISO 22301 Business Impact Analysis",
+      "what": "Critical activities, maximum acceptable downtime, resources required, financial and non-financial impact of disruption",
+      "sources": [
+       "https://advisera.com/27001academy/knowledgebase/how-to-implement-business-impact-analysis-bia-according-to-iso-22301/",
+       "https://www.qmii.com/how-to-conduct-a-business-impact-analysis-bia-in-iso-22301/"
+      ],
+      "whatDrsTakes": "SEG-1's outcome units (outage-hour, production-hour) come from the buyer's own BIA; the S14 interview asks for the BIA's downtime and impact figures before naming any price"
+     }
+    ]
+   }
+  ],
+  "intakeRecord": [
+   "who (verified role)",
+   "where (lifeline + location)",
+   "what is lacking (lifeline category)",
+   "severity",
+   "who is responsible",
+   "time recorded / time assigned / time fulfilled"
+  ],
+  "clocks": {
+   "commonPicture": "72 h (MIRA)",
+   "report": "2 weeks (MIRA)",
+   "operationalPeriod": "per ICS 215"
+  },
+  "outcomeStatementFormat": "{direction} {measure} {object} {context} — e.g. 'minimize the time from a recorded need to an assigned responder during a grid outage' (ODI)"
+ },
+ "pod": {
+  "company": "Harmattan AI (the Innovation Pod's demo portfolio)",
+  "bu": "DR",
+  "buLabel": "De-Risking Strategies",
+  "sbu": "DRC",
+  "sbuLabel": "Crisis + Resilience",
+  "alphaGroup": "CR1",
+  "alphaGroupLabel": "Crisis Coordination",
+  "alphaCode": "CR1D",
+  "product": "70034 (reserved)",
+  "material": "70034-001 (reserved)",
+  "projectId": "PRJ-34 (reserved)",
+  "status": "HOLD — the codes exist in the Pod's Setup; the project row is seeded only after the S14 WTP experiments give a range (operator 2026-09-23)"
+ },
+ "assets": {
+  "logo": {
+   "status": "NOT RECEIVED — the 2026-09-23 message says a logo was supplied; no file reached the session. The deck cover carries a labelled placeholder until it lands.",
+   "placeholder": true
+  }
+ }
 }

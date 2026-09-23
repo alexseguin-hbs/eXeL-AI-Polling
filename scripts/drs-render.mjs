@@ -78,8 +78,11 @@ function slideBody(n) {
     case "S11": return (
       `**The chain.**\n\n${oli(d.rcore.chain)}\n**${d.rcore.statement}**\n\n${d.rcore.law}\n`);
     case "S12": return (
+      `**Three clusters, one honest position.**\n\n| cluster | members |\n|---|---|\n` +
+      d.competition.clusters.map((c) => `| ${c.name} | ${c.members} |`).join("\n") + "\n\n" +
+      `**De-Risking Strategies target position.** ${d.competition.targetPosition.join(" · ")}. ${d.competition.honesty}\n\n` +
       `| NBA | segment | strong at | positioning | status |\n|---|---|---|---|---|\n` +
-      d.nbas.map((n) => `| ${n.name} | ${n.segment} | ${n.strongAt.join(" · ")} | ${n.positioning} | ${n.status} |`).join("\n") + "\n\n" +
+      d.nbas.map((n) => `| ${n.name} | ${n.segment} | ${n.strongAt.join(" · ")} | ${n.positioning} | ${n.status}${n.sources ? " — " + n.sources.map((u) => `<${u}>`).join(" ") : ""} |`).join("\n") + "\n\n" +
       `**The wedge.** ${d.wedge.join(" · ")}.\n`);
     case "S13": return d.valueTables.map(valueTable).join("\n");
     case "S14": return (
@@ -95,7 +98,9 @@ function slideBody(n) {
     case "S16": return (
       `**Loop.** ${d.evidenceProgram.loop}\n\n**The thirteen columns of the pilot's record.**\n\n${oli(d.evidenceProgram.metrics)}\n> ${d.evidenceProgram.note}\n\n` +
       `**Experiments by segment (from the NOSE statements).**\n\n| segment | claim | status | experiment |\n|---|---|---|---|\n` +
-      d.nose.flatMap((n) => n.evidence.map((e) => `| ${n.segment} | ${e.claim} | ${e.status} | ${e.experiment} |`)).join("\n") + "\n");
+      d.nose.flatMap((n) => n.evidence.map((e) => `| ${n.segment} | ${e.claim} | ${e.status} | ${e.experiment} |`)).join("\n") + "\n\n" +
+      `**Method.** ${d.needsAssessment.law} The methods, each with its source, are in \`docs/drs/NEEDS_ASSESSMENT_RESEARCH.md\` (rendered from the same master): ` +
+      d.needsAssessment.families.map((f) => `${f.name} — ${f.methods.map((m) => m.name.split(" — ")[0].split(" (")[0]).join(", ")}`).join("; ") + `.\n`);
     case "S17": return (
       `| line | value |\n|---|---|\n| Value creation | ${d.financial.valueCreation} |\n| Value capture | ${d.financial.valueCapture} |\n` +
       `| Commercial model | ${d.financial.commercialModel.join(" · ")} |\n| 3-year NPV | ${d.financial.npv} |\n| IRR | ${d.financial.irr} |\n` +
@@ -103,9 +108,11 @@ function slideBody(n) {
     case "S18": return d.roadmap.map((r) => `**${r.mvp}** · ${r.when} · ${r.stage}\n\n${li(r.items)}`).join("\n");
     case "S19": return (
       `| id | risk | issue | countermeasure / mitigation | owner |\n|---|---|---|---|---|\n` +
-      d.risks.map((r) => `| ${r.id} | ${r.risk} | ${r.issue} | ${r.mitigation} | ${r.owner} |`).join("\n") + "\n");
+      d.risks.map((r) => `| ${r.id} | ${r.risk} | ${r.issue} | ${r.mitigation} | ${r.owner} |`).join("\n") + "\n\n" +
+      `**Core control.** ${d.coreControl}\n`);
     case "S20": return (
-      `**Decision requested.** ${d.project.decisionRequested}\n\n**Gate exit — what must be true to pass G2 → G3.**\n\n${li(d.gateExit)}\n` +
+      `**Decision requested.** ${d.project.decisionRequested}\n\n**Approve:**\n\n${oli(d.gateDecision.approvals)}\n` +
+      `**Gate exit — what must be true to pass G2 → G3.**\n\n${li(d.gateExit)}\n` +
       `**Explicitly unproven (no number is written for these until measured).**\n\n${li(d.unproven)}`);
     default: return "";
   }
@@ -153,6 +160,10 @@ function renderDoc() {
   for (const r of d.crs) s += `| ${r.step} | \`${r.id}\` | ${r.name} | ${r.stage} | ${r.status} | ${r.evidence} | ${r.vision} | ${r.segment} |\n`;
   s += `\n### Every row in full\n\n`;
   for (const r of d.crs) s += `**${r.id} — ${r.name}**\n\n- IN: ${r.in}\n- OUT: ${r.out}\n\n`;
+  s += `---\n\n## The Innovation Pod (SoI-2525)\n\n`;
+  s += `| tier | code | label |\n|---|---|---|\n| Company | — | ${d.pod.company} |\n| BU | \`${d.pod.bu}\` | ${d.pod.buLabel} |\n| SBU | \`${d.pod.sbu}\` | ${d.pod.sbuLabel} |\n| Alpha Group | \`${d.pod.alphaGroup}\` | ${d.pod.alphaGroupLabel} |\n| Alpha Code | \`${d.pod.alphaCode}\` | — |\n| Product # | \`${d.pod.product}\` | — |\n| Material # | \`${d.pod.material}\` | — |\n| Project | \`${d.pod.projectId}\` | — |\n\n`;
+  s += `**Status.** ${d.pod.status}\n\n`;
+  s += `**Logo.** ${d.assets.logo.status}\n\n`;
   s += `---\n\n## Revisions (append only)\n\n| revision | date | kind | commit | why |\n|---|---|---|---|---|\n`;
   for (const r of d.revisions) s += `| ${r.revision} | ${r.date} | ${r.kind} | \`${r.commit}\` | ${r.why} |\n`;
   return s + `\n`;
@@ -192,7 +203,7 @@ function assertSource() {
   }
   if (d.valueTables.length !== 3) fail(`three value tables, got ${d.valueTables.length}`);
   for (const v of d.valueTables) {
-    if (!(v.rows.length >= 5 && v.rows.length <= 7)) fail(`value table ${v.segment} must carry 5–7 rows, got ${v.rows.length}`);
+    if (!(v.rows.length >= 5 && v.rows.length <= 8)) fail(`value table ${v.segment} must carry 5–8 rows (the operator's text lists eight), got ${v.rows.length}`);
     v.rows.forEach((r, i) => { if (r.n !== i + 1) fail(`value table ${v.segment} row ${i + 1} is numbered ${r.n}`); });
     for (const r of v.rows) if (!EVIDENCE.includes(r.status)) fail(`value table ${v.segment} row ${r.n} status "${r.status}" is not evidence-law`);
     if (!nba(v.nba)) fail(`value table ${v.segment} names NBA ${v.nba}, which does not exist`);
@@ -216,6 +227,25 @@ function assertSource() {
   });
   if (d.crs.length !== 13) fail(`thirteen CRS rows (one per Vision • 2525 section), got ${d.crs.length}`);
   if (d.unproven.length !== 4) fail(`the operator named four unproven items, got ${d.unproven.length}`);
+  // r0.003: the operator's text carries eleven risks, three competition clusters, five approvals; the research carries
+  // sourced methods; the Pod codes obey the Pod's own code law; the logo is a stated status, never an assumed file.
+  if (d.risks.length !== 11) fail(`eleven risks (the operator's list), got ${d.risks.length}`);
+  for (const r of d.risks) for (const f of ["id", "risk", "issue", "mitigation", "owner"]) if (!r[f]) fail(`risk ${r.id || "?"} is missing ${f}`);
+  if (!d.coreControl) fail(`coreControl is missing`);
+  if (d.competition?.clusters?.length !== 3 || d.competition.targetPosition?.length !== 3) fail(`competition needs three clusters and three target-position lines`);
+  if (d.gateDecision?.approvals?.length !== 5) fail(`five approvals requested at the gate, got ${d.gateDecision?.approvals?.length}`);
+  const methods = (d.needsAssessment?.families ?? []).flatMap((f) => f.methods ?? []);
+  if (methods.length < 8) fail(`needsAssessment must carry at least eight sourced methods, got ${methods.length}`);
+  for (const m of methods) {
+    if (!m.name || !m.what || !m.whatDrsTakes) fail(`method "${m.name || "?"}" is missing name / what / whatDrsTakes`);
+    if (!Array.isArray(m.sources) || !m.sources.length) fail(`method "${m.name}" has no source`);
+    for (const u of m.sources) if (!/^https:\/\/|^docs\//.test(u)) fail(`method "${m.name}" source "${u}" is neither a URL nor a repo path`);
+  }
+  if (!d.needsAssessment.intakeRecord?.length || !d.needsAssessment.outcomeStatementFormat) fail(`needsAssessment needs intakeRecord + outcomeStatementFormat`);
+  const P = d.pod || {};
+  if (!/^[A-Z]{2}$/.test(P.bu) || !/^[A-Z0-9]{3}$/.test(P.sbu) || !/^[A-Z0-9]{3,4}$/.test(P.alphaGroup) || !/^[A-Z0-9]{4}$/.test(P.alphaCode)) fail(`pod codes break the Pod's code law (BU 2 · SBU 3 · Alpha Group 3–4 · Alpha Code 4): ${JSON.stringify(P)}`);
+  if (!/^HOLD/.test(P.status || "")) fail(`pod.status must state the HOLD (operator 2026-09-23)`);
+  if (typeof d.assets?.logo?.status !== "string") fail(`assets.logo.status must be a stated string`);
   // revisions strictly increase; the last is the project's; a release cites a commit or says PENDING (filled after the artefact commit)
   let last = 0;
   for (const r of d.revisions) {
@@ -228,16 +258,40 @@ function assertSource() {
 }
 
 assertSource();
-const body = renderDoc();
-const badWord = body.match(/\b(undefined|NaN)\b/);
-if (badWord) { console.error(`drs-render: would render "${badWord[1]}" — a field name is wrong; nothing written`); process.exit(1); }
-
-const abs = path.join(ROOT, OUT_REL);
-const cur = fs.existsSync(abs) ? fs.readFileSync(abs, "utf8") : null;
-if (CHECK) {
-  if (cur !== body) { console.error(`drs-render --check: ${OUT_REL} is stale (re-run \`node scripts/drs-render.mjs\`)`); process.exit(1); }
-  console.log(`drs-render --check: ${OUT_REL} matches the source (${d.slides.length} slides · ${d.crs.length} CRS · ${d.nose.length} NOSE · ${d.valueTables.reduce((a, v) => a + v.rows.length, 0)} value rows · revision ${d.project.revision})`);
-} else {
-  if (cur !== body) { fs.mkdirSync(path.dirname(abs), { recursive: true }); fs.writeFileSync(abs, body); console.log(`wrote ${OUT_REL}`); }
-  console.log(`drs-render: ${d.slides.length} slides · ${d.crs.length} CRS rows · revision ${d.project.revision}`);
+function renderResearch() {
+  const N = d.needsAssessment;
+  let s = `<!-- GENERATED by scripts/drs-render.mjs from docs/drs/drs.v00.00.json — do not hand-edit. -->\n`;
+  s += `# Needs assessment — best in class, and what De-Risking Strategies takes from each\n\n`;
+  s += `**Version ${d.project.version} · revision ${d.project.revision}** · ${d.project.name}\n\n`;
+  s += `> **Ask.** ${N.ask}\n\n> **Law.** ${N.law}\n\n`;
+  for (const f of N.families) {
+    s += `## ${f.name}\n\n`;
+    for (const m of f.methods) {
+      s += `### ${m.name}\n\n**What it is (SOURCED).** ${m.what}\n\n**Sources.**\n\n${li(m.sources.map((u) => (/^https:/.test(u) ? `<${u}>` : `\`${u}\``)))}\n**What DRS takes (DECLARED).** ${m.whatDrsTakes}\n\n`;
+    }
+  }
+  s += `## The intake record (CASPER-shaped, lifeline-categorized)\n\n${oli(N.intakeRecord)}\n`;
+  s += `## Clocks\n\n| clock | value |\n|---|---|\n` + Object.entries(N.clocks).map(([k, v]) => `| ${k} | ${v} |`).join("\n") + `\n\n`;
+  s += `## The outcome-statement format for every value driver and interview question\n\n${N.outcomeStatementFormat}\n\n`;
+  s += `## Where it lands in the deck\n\n| slide / CRS | takes |\n|---|---|\n| S2 | the eight Community Lifelines as the "what people currently need" list |\n| S3 · S8–S10 | segments validated by outcome profile (ODI) |\n| S4 | the 72 h common-picture clock (MIRA) |\n| S13 · S14 | value drivers and interview questions as desired-outcome statements; Kano tag before pricing; BIA figures from the buyer |\n| S15 | plans as capability targets with resource requirements (THIRA/SPR) |\n| S16 | Replay → Improve columns as HSEEP corrective actions |\n| DRS-02 | the intake record above |\n| DRS-03 · DRS-04 | ICS 215 gap analysis; NIMS resource typing |\n\n`;
+  return s;
 }
+const OUT = [
+  [OUT_REL, renderDoc()],
+  ["docs/drs/NEEDS_ASSESSMENT_RESEARCH.md", renderResearch()],
+];
+for (const [rel, body] of OUT) {
+  const badWord = body.match(/\b(undefined|NaN)\b/);
+  if (badWord) { console.error(`drs-render: ${rel} would render "${badWord[1]}" — a field name is wrong; nothing written`); process.exit(1); }
+}
+let drift = 0;
+for (const [rel, body] of OUT) {
+  const abs = path.join(ROOT, rel);
+  const cur = fs.existsSync(abs) ? fs.readFileSync(abs, "utf8") : null;
+  if (CHECK) { if (cur !== body) { console.error(`drs-render --check: ${rel} is stale (re-run \`node scripts/drs-render.mjs\`)`); drift++; } }
+  else if (cur !== body) { fs.mkdirSync(path.dirname(abs), { recursive: true }); fs.writeFileSync(abs, body); console.log(`wrote ${rel}`); }
+}
+if (CHECK && drift) process.exit(1);
+const rows = d.valueTables.reduce((a, v) => a + v.rows.length, 0);
+console.log(CHECK ? `drs-render --check: ${OUT.length} views match the source (${d.slides.length} slides · ${d.crs.length} CRS · ${d.nose.length} NOSE · ${rows} value rows · ${d.risks.length} risks · revision ${d.project.revision})`
+                  : `drs-render: ${d.slides.length} slides · ${d.crs.length} CRS rows · ${rows} value rows · ${d.risks.length} risks · revision ${d.project.revision}`);
