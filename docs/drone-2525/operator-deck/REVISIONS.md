@@ -26,6 +26,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.143 | 2026-09-23 | Claude Code (no horizon line · white bullseye, red near a target · LOCK under the pip) | 329471 | c4c187b415aebed148c8c0e0d2a2c4b45b85ae974aff9b79d815e1794a4f568d | a9c6360 (artefact) | dae08b70abb13e811236476e3f89ab6781fe005b0f7448411066ec1ef0119197 |
 | r.144 | 2026-09-23 | Claude Code (the targets on each of the 42 lanes) | 330920 | 2ffd1288883d2e1d36319309f8cf67ff08d254d7e72d95624ebf93a948fd9433 | b2b64dc (artefact) | 2a5f36b60e972eeed00421a1c43b36cd182030b13b5b7dc0e1609823757ed593 |
 | r.145 | 2026-09-23 | Claude Code (lane markers at 100 · 200 · 300 m) | 333517 | 3a2d43e22387a21837a04587cd392ca5e904600eb226c82dc299b10e0a62d817 | 8531339 (artefact) | a33146a145a84ae34bea03124ab307a178f837ff09ff4b66a730c4081b2ce755 |
+| r.146 | 2026-09-23 | Claude Code (deferred QA rows decide on evidence) | 334257 | b3b17cbde2f49a145f995c7716261e679886c00d356c97a7af72446db43b64e3 | 5466050 (artefact) | bac705abb3a8e1885c0d413f46931f9ae9ba5f2ea1c815b843c5fc024ff2efe4 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -486,3 +487,21 @@ Ask: `docs/asks/2026-09-23_lane_markers.md` (verbatim, hashed; the range photogr
   boards by number, edge and range; `drone-playable` 87/0; `drone-deck-qa` 34/0; `drone-team-e2e` 9/9.
 - **Still open, honest:** the boards are at the lane's LEFT edge (the photograph's convention read as "the board opens the lane"); a
   real range may sign both edges — the operator's call; post and board sizes are declared.
+
+## r.146 — Claude Code: deferred QA rows decide on evidence, not the runner's clock (2026-09-23)
+Cause: Deploy #950 (commit eee8d92, carrying the r.144 deck) went red in CI on `DRAW_COMPLETES` in portrait — 146/148. Notes:
+`CLAUDE_CODE_NOTES_r146.md`. Patch: `patches/r145_to_r146.py` (5 asserted edits).
+- **The class.** `DRAW_COMPLETES` was decided by a fixed 1.5 s timer after the boot QA; a cold GitHub runner (Chromium freshly downloaded,
+  462 plates and 129 boards on the first paint) had no frame done at 1.5 s, so the row read "no frame completed" for ever while the loop ran
+  fine a moment later. `ASM_MARKED_BY_THE_LOOP` carried the same clock (a 700 ms window for the loop's mark). Both rows now POLL for the
+  evidence they name — a frame that reached its last line or a recorded render exception; the loop's own mark — and decide when it arrives,
+  up to a declared ceiling (`DRAW_ROW_CEIL_MS` 20 s, `ASM_ROW_CEIL_MS` 5 s) that is a real failure, not a runner speed. Each note now
+  carries the time the evidence took ("after 3812 ms").
+- **Proof of the class:** the served r.146 under a 30× CPU throttle (headless Chromium, CDP `Emulation.setCPUThrottlingRate`) — `DRAW_COMPLETES`
+  OK after 3812 ms (the old timer would have said NO at 1500), `ASM_MARKED_BY_THE_LOOP` OK after 183 ms, 148/149; at 1× OK after 103 ms / 50 ms.
+- **Correction of the r.130 record:** `DRAW_COMPLETES` as written in r.130 measured "a frame within 1.5 s of boot" — the runner's speed — not
+  "the frame loop runs to its last line without exception". The r.141 gate fix (Deploy #939, fps 0.0) treated the same class at the gate
+  only; the deck's own row still carried the clock. Now the deck's row is the evidence and the gate waits for it.
+- **Gates:** in-file QA 149 rows, 148/149 in portrait and landscape (unchanged set); `drone-playable` 88/0 (`DRAW_ROW_CEIL_MS` present, the
+  1.5 s and 700 ms timers gone); `drone-deck-qa` 34/0; `range-2525` 111/0; `drone-team-e2e` 9/9.
+- **Still open, honest:** everything r.145 owed (boards at the left edge only; declared sizes; the fleet's r.137-owed items).

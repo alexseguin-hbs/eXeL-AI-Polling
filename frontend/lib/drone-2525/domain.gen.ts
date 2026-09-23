@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.030",
+  "revision": "0.031",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -274,6 +274,13 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck HEAD r.145: lane markers — white numbered boards on posts at each lane's left edge at 100, 200 and 300 m (the last lane both edges), 129 boards each with its lane number, in the wire idiom, drawn with the silhouettes for the shooter's lane and its neighbours; one pure laneMarkers(lane) for painter, HUD and QA. QA 149 rows, 148/149 in each orientation.",
    "commit": "8531339"
+  },
+  {
+   "revision": "0.031",
+   "date": "2026-09-23",
+   "kind": "release",
+   "why": "Operator deck HEAD r.146: the boot QA's deferred rows (DRAW_COMPLETES, ASM_MARKED_BY_THE_LOOP) decide on their evidence — a completed frame or a render exception; the loop's mark — up to a declared ceiling (20 s / 5 s), not on a fixed 1.5 s / 700 ms timer that judged a cold CI runner 'no frame completed' for ever (Deploy #950). Proven under a 30x CPU throttle. QA 149 rows, 148/149 in each orientation.",
+   "commit": "5466050"
   }
  ],
  "arena": {

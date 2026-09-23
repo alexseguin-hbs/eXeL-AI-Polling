@@ -281,6 +281,13 @@
       "kind": "release",
       "text": "Operator deck r.145 served at /drone-2525/play.html (sha256 3a2d43e2...). LANE MARKERS at 100, 200 and 300 m: numbered boards on posts at the lane edges, 129 boards, gated by number, edge and range. QA 149 rows, 148/149 in each orientation.",
       "commit": "8531339"
+    },
+    {
+      "rev": 41,
+      "date": "2026-09-23",
+      "kind": "release",
+      "text": "Operator deck r.146 served at /drone-2525/play.html (sha256 b3b17cbd...). DEFERRED QA ROWS DECIDE ON EVIDENCE: DRAW_COMPLETES and ASM_MARKED_BY_THE_LOOP poll for the frame / the loop's mark up to a declared ceiling instead of a fixed timer that judged a cold CI runner red (Deploy #950). Correction: r.130's DRAW_COMPLETES measured the runner's speed. QA 149 rows, 148/149 in each orientation.",
+      "commit": "5466050"
     }
   ]
 }

@@ -33,6 +33,8 @@ for (const vp of VIEWPORTS) {
   catch { const qa = await page.evaluate(() => (typeof state !== 'undefined' && state.qa) ? state.qa : null); console.log(`FAIL: [${vp.name}] the boot QA never published`, DECK_QA_ROWS.length, 'rows —', JSON.stringify(qa)); }
   /* r.141: wait for the frame loop to be RUNNING (a frame drawn, an fps measured, the deferred rows landed) before reading — Deploy #939
      read a slow runner's page 800 ms after the rows and saw fps 0.0 and DRAW_COMPLETES still pending; a timeout here is a real failure. */
+  /* r.146: the deck's own deferred rows now decide on evidence (a frame; the loop's mark) up to a declared ceiling — Deploy #950 had a cold
+     runner judged 'no frame completed' by the row's fixed 1.5 s timer. Proven under a 30× CPU throttle (scripts/drone-deck-slow-probe.mjs: OK after 3.8 s). */
   try { await page.waitForFunction(() => typeof state !== 'undefined' && (state.drawDone || 0) > 0 && (state.fps || 0) > 0 && (state.outcomes || []).some((x) => x.id === 'DRAW_COMPLETES'), null, { timeout: 30000 }); }
   catch { console.log(`FAIL: [${vp.name}] the frame loop never reported a drawn frame with a measured fps within 30 s`); }
   await page.waitForTimeout(800);
