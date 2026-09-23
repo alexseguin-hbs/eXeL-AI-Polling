@@ -361,5 +361,8 @@ pill in full screen; QUAL = four 10-round magazines, training and every craft = 
   `ZOOM_LAW`, `TRAINING_MAG_30`, `PHASE_CHANGES_MAG`, `EMPTY_MAG_REFUSES`, `RELOAD_ON_RECORD`, `FULL_SCREEN_KEEPS_CONTROLS`;
   `RANGE_HIT_50_OFF10` → `RANGE_HIT_50_OFF2` (the true-scale F is 2.8 px wide at 50 m). Repo: `range-2525` (dimensions, the zoom law, the
   magazine), `drone-playable`, manifest 132, `drone-team-e2e` 9/9, seat replays qual 11/11 with a phase reload, AI FIRE 3/3.
+- **Correction on the record:** the r.138 ship commit (6071c48) carried `drone-deck-qa 11/1` in its own message and was pushed anyway — the
+  gate's pinned aimed-hit list still named `RANGE_HIT_50_OFF10`; Deploy #935 refused (the deck boot-QA step) and the Deploy step was skipped.
+  Fixed in the gate script (the rename), re-pushed; a red local gate is a stop, not a note.
 - **Still open, honest:** the F-type sheet dimension is declared, not read; a real iOS Safari fullscreen and a thumb on RELOAD at 320 px are
   hardware; everything r.137 listed as owed stands.

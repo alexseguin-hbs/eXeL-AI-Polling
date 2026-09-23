@@ -38,7 +38,7 @@ ok(red.every((id) => EXPECTED_RED.includes(id)), `every red row is expected: ${r
 ok(EXPECTED_RED.every((id) => red.includes(id)), `every expected-red row is actually red (a stale exemption would hide a regression): ${EXPECTED_RED.join(',')}`);
 ok(errs.length === 0, `no page error: ${errs.join(' | ')}`);
 ok(r.drawDone > 0 && !r.drawErr && !r.threw, `frames ran to their last line (${r.drawDone}) with no recorded render exception${r.drawErr ? ': ' + r.drawErr : ''}${r.threw ? ' · QA THREW ' + r.threw : ''}`);
-for (const [id, re] of [['RANGE_HIT_50', /aimed/], ['RANGE_HIT_300', /aimed/], ['RANGE_HIT_50_OFF10', /dead=true/], ['TARGETN_HITS_THE_EXPOSED_PLATE', /lands/]]) { const row = r.rows.find((x) => x.id === id); ok(!!row && row.ok && re.test(row.note), `${id} is an AIMED hit: ${row ? row.note.slice(0, 80) : 'missing'}`); }
+for (const [id, re] of [['RANGE_HIT_50', /aimed/], ['RANGE_HIT_300', /aimed/], ['RANGE_HIT_50_OFF2', /dead=true/], ['TARGETN_HITS_THE_EXPOSED_PLATE', /lands/]]) { const row = r.rows.find((x) => x.id === id); ok(!!row && row.ok && re.test(row.note), `${id} is an AIMED hit: ${row ? row.note.slice(0, 80) : 'missing'}`); }
 ok(!r.simDirect, 'simDirect is off when the QA is done (the range rows were never short-circuited)');
 ok(r.fps >= 30, `fps ${r.fps.toFixed(1)} holds the 30 Hz reference`);
 await mkdir(new URL('../perf', import.meta.url), { recursive: true });
