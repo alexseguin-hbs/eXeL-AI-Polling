@@ -31,6 +31,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.148 | 2026-09-23 | Claude Code (the eye outranks the mark — the 48-agent fleet's fold) | 348198 | 213a56fc08d41f510d325002d5152a05435803b6a95e18ba6874349e9e0c5b76 | 8ccab36 (artefact) | efa9e45b39f71fdc06e5c8f26ba80a7488224710a74ad6d919c1cf14216d9ace |
 | r.149 | 2026-09-23 | Claude Code (a box only around the marked target) | 349698 | 20499eed97482ba229216c507e2b4494174ebf94bb95b81e1fd145361621d80a | 6b585bf (artefact) | 731c50160124c96c74841643ca0be8e6bed982850c6f1a6e25041f49ad738e3e |
 | r.150 | 2026-09-24 | Claude Code (the fire gate reads the picture) | 364301 | e8d553ed035352b1cb3edc7271a07f4af6f1141295af26599dd94de0bd8a5920 | ec241fa (artefact) | d7982abe4c087736b792aed0ed97b753c0ca220a7dc37ed1d7b0a5217a1262cf |
+| r.151 | 2026-09-24 | Claude Code (pop-up targets fire again) | 367557 | 3c4d297eec612261a699a899eea7efe489178fb3c6fd8784e50fb7f72b231020 | PENDING (Verify Live) | 1069141c979f4e412750c90d38445c32d357e0c4bc449f3db2cd19e23e86f959 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -614,3 +615,24 @@ carry `shipped`).
   kind-obj ring and now marks the real ring.
 - **Still open (the fleet's order):** item 5 (one "under the pip") → r.151 · items 6–8 (one voice, one layer; the overprint in the
   operator's screenshot) → r.152 · items 9–11 (the record and the wire; wall-clock fps; the ledger's ship field) → r.153.
+
+## r.151 — Claude Code: pop-up targets fire again — a pop the LOCK reaches is fireable (2026-09-24)
+Operator: **"pop-up targets no longer work."** The fleet's r.147 order, MoT 1 item 5 ("one under the pip"). Notes:
+`CLAUDE_CODE_NOTES_r151.md`. Patch: `patches/r150_to_r151.py` (4 asserted edits). Artefact commit PENDING; shipped in: PENDING
+until Verify Live (the ledger and the domain JSON carry `shipped`).
+- **One value, root-caused.** r.150 taught the FIRE gate to spend a round only with the bullseye on the red box. Its non-plate
+  branch projected `worldOf(tgt)` — a pop's **BASE**, y≈1.2 — and accepted only within **32 px** of the pip. But a lawn pop is
+  **drawn at body-centre** `p.y+1.2` (≈2.4) and the LOCK reaches `LOCK_REACH_PX` (**48 px**). So a TURRET / CAPITAL pop
+  (`s.kind==='pop'`, no `.form`) could be marked and approved — the LOCK reached it — yet FIRE was refused `TARGET_OFF_PICTURE`.
+  Range plates (`tgt.form`) use `pipOn` and were never affected. **The fix: the non-plate FIRE tolerance is `LOCK_REACH_PX`, not
+  32** — the gate now accepts exactly what the LOCK accepts. "If you can lock it you can fire it." Scope is strict — `pipOn`, the
+  lock, the draw and plate handling are untouched.
+- **Correction on the record (r.150).** r.150's FIRE-gate comment read "every other kind the 32 px the hit test uses"; that 32 px
+  was the bug for a pop, whose base sits 1.2 m below the drawn silhouette. From r.151 the non-plate FIRE reach is `LOCK_REACH_PX`.
+  The applyHit HIT test (`pipOff < 32`) is unchanged, so a shot aimed at the silhouette spends a round and a shot aimed at the
+  base lands the hit — the round is no longer refused outright.
+- **Gate:** one new boot-QA row `FIRE_HITS_A_POP` with a note regex in `scripts/drone-deck-qa.mjs` (a predicate replaced by
+  `true` cannot pass): a turret lawn pop, marked and approved — bullseye on the drawn silhouette (its base past 32 px, within
+  `LOCK_REACH_PX`) FIRE **spends a round** where r.150 refused; on the base FIRE → **HIT / SIM-ACTION**. Plus a REPO source gate
+  in `drone-playable` holding the non-plate branch to `LOCK_REACH_PX` (never `<=32`). 176 rows, 175/176 in portrait and landscape.
+- **Still open (the fleet's order):** items 6–8 → r.152 · items 9–11 → r.153.

@@ -320,6 +320,14 @@
    "kind": "release",
    "text": "Operator deck r.150 served at /drone-2525/play.html (sha256 e8d553ed...). THE FIRE GATE READS THE PICTURE: a round or a tag is spent only on a red box the bullseye is on — FIRE says where, costs nothing, keeps the box red; no tag without a red box; no approval on a dead plate whoever marked it; the approver looks at a peer's mark from any seat, never for an AI mark; the AI re-arms on reload and reads the HIT for 1.4 s; a forged red never shoots the bull; the deck's own SSSES row gone. Items 1–4 of the 48-agent fleet's order on r.147. QA 175 rows, 174/175 in each orientation.",
    "commit": "ec241fa",
+   "shipped": "ec241fa"
+  },
+  {
+   "rev": 46,
+   "date": "2026-09-24",
+   "kind": "release",
+   "text": "Operator deck r.151 served at /drone-2525/play.html (sha256 3c4d297e...). POP-UP TARGETS FIRE AGAIN: r.150's non-plate FIRE gate refused a marked, approved TURRET/CAPITAL lawn pop (32 px against the pop's base, 1.2 m below the drawn silhouette, while the LOCK reaches LOCK_REACH_PX 48 px) — 'pop-up targets no longer work'. One value: the non-plate FIRE tolerance is now LOCK_REACH_PX, so the gate accepts exactly what the LOCK accepts ('if you can lock it you can fire it'); pipOn, the lock, the draw and plate handling untouched. Item 5 of the 48-agent fleet's order on r.147. QA row FIRE_HITS_A_POP added; 176 rows, 175/176 in each orientation.",
+   "commit": "9fb8c97",
    "shipped": "PENDING"
   }
  ]

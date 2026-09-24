@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.035",
+  "revision": "0.036",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -313,6 +313,14 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck r.150 — the fire gate reads the picture: a round or a tag is spent only on a red box the bullseye is on (FIRE says where, costs nothing); no tag without a red box; no approval on a dead plate; the approver looks at a peer's mark from any seat, never for an AI mark; the AI re-arms on reload and reads the HIT for 1.4 s; a forged red never shoots the bull; the deck's own SSSES row gone. Items 1–4 of the fleet's order (docs/assessments/2026-09-23_r147_fleet48_review.md). Corrections on the record for five earlier QA rows that fired off the picture.",
    "commit": "ec241fa",
+   "shipped": "ec241fa"
+  },
+  {
+   "revision": "0.036",
+   "date": "2026-09-24",
+   "kind": "release",
+   "why": "Operator deck r.151 — pop-up targets fire again: r.150's non-plate FIRE gate refused a marked, approved TURRET/CAPITAL lawn pop because it tested the pop's base (1.2 m below the drawn silhouette) within 32 px of the pip while the LOCK reaches LOCK_REACH_PX (48 px) — 'pop-up targets no longer work'. One value: the non-plate FIRE tolerance is now LOCK_REACH_PX, so the gate accepts exactly what the LOCK accepts ('if you can lock it you can fire it'); pipOn, the lock, the draw and plate handling untouched. Item 5 of the fleet's order (docs/assessments/2026-09-23_r147_fleet48_review.md). QA row FIRE_HITS_A_POP added.",
+   "commit": "9fb8c97",
    "shipped": "PENDING"
   }
  ],
