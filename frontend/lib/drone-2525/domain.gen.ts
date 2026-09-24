@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.036",
+  "revision": "0.037",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -321,6 +321,14 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck r.151 — pop-up targets fire again: r.150's non-plate FIRE gate refused a marked, approved TURRET/CAPITAL lawn pop because it tested the pop's base (1.2 m below the drawn silhouette) within 32 px of the pip while the LOCK reaches LOCK_REACH_PX (48 px) — 'pop-up targets no longer work'. One value: the non-plate FIRE tolerance is now LOCK_REACH_PX, so the gate accepts exactly what the LOCK accepts ('if you can lock it you can fire it'); pipOn, the lock, the draw and plate handling untouched. Item 5 of the fleet's order (docs/assessments/2026-09-23_r147_fleet48_review.md). QA row FIRE_HITS_A_POP added.",
    "commit": "9fb8c97",
+   "shipped": "0dd4cc4"
+  },
+  {
+   "revision": "0.037",
+   "date": "2026-09-24",
+   "kind": "release",
+   "why": "Operator deck r.152 — the full-screen control is an icon, not a word: the top-bar (btnFullBar) and #magBar (btnFull) FULL/EXIT word buttons become the Mission-Planning maximize (⤢) / minimize (⤡) icons (the SoI-2525 ChartFrame and Security-2525 Mission Planning convention); the top-bar maximize icon moves to the upper-right at a comfortable tap size; the fullscreen behaviour (requestFullscreen/exitFullscreen, #app.full hiding the words) is untouched. Operator ask docs/asks/2026-09-24_drone_popups_box_maximize.md; the pop-ups (all up in Target-Up, amber on TARGET, red on APPROVE, a pop fires) verified on the served deck. QA row FULLSCREEN_IS_AN_ICON added.",
+   "commit": "8366dfa",
    "shipped": "PENDING"
   }
  ],

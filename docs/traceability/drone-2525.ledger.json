@@ -328,6 +328,14 @@
    "kind": "release",
    "text": "Operator deck r.151 served at /drone-2525/play.html (sha256 3c4d297e...). POP-UP TARGETS FIRE AGAIN: r.150's non-plate FIRE gate refused a marked, approved TURRET/CAPITAL lawn pop (32 px against the pop's base, 1.2 m below the drawn silhouette, while the LOCK reaches LOCK_REACH_PX 48 px) — 'pop-up targets no longer work'. One value: the non-plate FIRE tolerance is now LOCK_REACH_PX, so the gate accepts exactly what the LOCK accepts ('if you can lock it you can fire it'); pipOn, the lock, the draw and plate handling untouched. Item 5 of the 48-agent fleet's order on r.147. QA row FIRE_HITS_A_POP added; 176 rows, 175/176 in each orientation.",
    "commit": "9fb8c97",
+   "shipped": "0dd4cc4"
+  },
+  {
+   "rev": 47,
+   "date": "2026-09-24",
+   "kind": "release",
+   "text": "Operator deck r.152 served at /drone-2525/play.html (sha256 e15cd399...). THE FULL-SCREEN CONTROL IS AN ICON, NOT A WORD: the top-bar (btnFullBar) and #magBar (btnFull) FULL/EXIT word buttons become the Mission-Planning maximize (⤢) / minimize (⤡) icons — the SoI-2525 ChartFrame and Security-2525 Mission Planning affordance; the top-bar maximize icon sits at the upper-right at a comfortable tap size; the fullscreen behaviour (requestFullscreen/exitFullscreen, #app.full hiding the words) is untouched. Operator ask docs/asks/2026-09-24_drone_popups_box_maximize.md; the pop-ups reconfirmed on the served deck (all up in Target-Up, amber on TARGET, red on APPROVE, a marked+approved pop fires — no fix needed). QA row FULLSCREEN_IS_AN_ICON added; 177 rows, 176/177 in each orientation.",
+   "commit": "8366dfa",
    "shipped": "PENDING"
   }
  ]

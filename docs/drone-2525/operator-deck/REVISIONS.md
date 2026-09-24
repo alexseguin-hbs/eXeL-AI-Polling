@@ -32,6 +32,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.149 | 2026-09-23 | Claude Code (a box only around the marked target) | 349698 | 20499eed97482ba229216c507e2b4494174ebf94bb95b81e1fd145361621d80a | 6b585bf (artefact) | 731c50160124c96c74841643ca0be8e6bed982850c6f1a6e25041f49ad738e3e |
 | r.150 | 2026-09-24 | Claude Code (the fire gate reads the picture) | 364301 | e8d553ed035352b1cb3edc7271a07f4af6f1141295af26599dd94de0bd8a5920 | ec241fa (artefact) | d7982abe4c087736b792aed0ed97b753c0ca220a7dc37ed1d7b0a5217a1262cf |
 | r.151 | 2026-09-24 | Claude Code (pop-up targets fire again) | 367557 | 3c4d297eec612261a699a899eea7efe489178fb3c6fd8784e50fb7f72b231020 | PENDING (Verify Live) | 1069141c979f4e412750c90d38445c32d357e0c4bc449f3db2cd19e23e86f959 |
+| r.152 | 2026-09-24 | Claude Code (the full-screen control is an icon) | 368979 | e15cd3993aa378c958b9469831b87f50317ee98b47bdfcc112c11980c9e2eebd | PENDING (Verify Live) | 28e068d9d57b8ee6e2b42a697b95c0d65a0d0f577955895d5a51ff3daf78bb29 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -636,3 +637,30 @@ until Verify Live (the ledger and the domain JSON carry `shipped`).
   `LOCK_REACH_PX`) FIRE **spends a round** where r.150 refused; on the base FIRE → **HIT / SIM-ACTION**. Plus a REPO source gate
   in `drone-playable` holding the non-plate branch to `LOCK_REACH_PX` (never `<=32`). 176 rows, 175/176 in portrait and landscape.
 - **Still open (the fleet's order):** items 6–8 → r.152 · items 9–11 → r.153.
+
+## r.152 — Claude Code: the full-screen control is an icon, not a word (2026-09-24)
+Operator (`docs/asks/2026-09-24_drone_popups_box_maximize.md`): **"Add maximize from Mission Planning in upper right versus
+words to indicate Full Screen Mode (and minimize arrows instead of Exit)"** — with two screenshots. Notes:
+`CLAUDE_CODE_NOTES_r152.md`. Patch: `patches/r151_to_r152.py` (8 asserted edits). Artefact commit `8366dfa`; shipped in:
+PENDING until Verify Live (the ledger and the domain JSON carry `shipped`; r.151's `shipped` is filled `0dd4cc4` — the commit that
+put its bytes on `main` and the current served HEAD).
+- **The icon, not the word.** The deck carried two full-screen controls — `btnFullBar` in the top `.bar` and `btnFull` in
+  `#magBar` — whose label was the WORD `FULL`, toggled to `EXIT`. Both now carry the Mission-Planning affordance the rest of the
+  app uses: **maximize `⤢`** to enter full screen, **minimize `⤡`** to exit — the exact convention in
+  `frontend/app/SoI-2525/page.tsx` (`portfolioMax ? "⤡" : "⤢"`) and Security-2525 Mission Planning's Maximize2 / Minimize2. The
+  toggle writes `on ? '⤡' : '⤢'` and keeps a descriptive `title` / `aria-label` (`full screen` → `exit full screen`) so the meaning
+  survives the loss of the word.
+- **Upper-right, at a tap size.** `#btnFullBar{order:9;margin-left:8px;font-size:16px;…}` renders the top-bar maximize icon last in
+  the flex bar, where the existing `flex:1` spacer right-aligns it at the upper-right **without disturbing the CONTROLS / DATA / MORE
+  dropdowns** (they keep their places); `#magBar #btnFull` is bumped so its glyph reads. The fullscreen BEHAVIOUR
+  (`setFull` → `requestFullscreen`/`exitFullscreen`, `#app.full` hiding the words while the sticks · TARGET · APPROVE · FIRE · RELOAD
+  stay) is untouched.
+- **The pop-ups, reconfirmed (no fix needed).** The operator re-asked to confirm pop-up behaviour. Verified on the served deck,
+  headless: TRAINING · RESET ("Target - Up") stands every target at once; TARGET on a pop draws the **amber** designation box;
+  APPROVE turns it **red**; FIRE on a marked+approved pop spends a round and lands a HIT (the r.151 fire fix). All four already work —
+  no code change was made to the pop / box / fire logic (the r.151 `LOCK_REACH_PX` fire fix is untouched).
+- **Gate:** one new boot-QA row `FULLSCREEN_IS_AN_ICON` with a note regex in `scripts/drone-deck-qa.mjs` (a predicate replaced by
+  `true` cannot pass): off → `⤢`/`⤢`, full → `⤡`/`⤡`, measured on both buttons in the served bytes. Plus a REPO source gate in
+  `drone-playable` holding the served bytes to the `⤢`/`⤡` glyphs (never the word `FULL`/`EXIT`) and the top-bar right-alignment.
+  177 rows, 176/177 in portrait and landscape.
+- **Still open (the fleet's order):** items 6–8 → still owed · items 9–11 → r.153.
