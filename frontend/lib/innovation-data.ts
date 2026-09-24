@@ -2009,10 +2009,11 @@ export const COMPANY_NAME = "Company (All BUs)";
 // Distinct from COMPANY_NAME (the drill-down rollup aggregate label, which stays "Company (All BUs)").
 export const DEFAULT_COMPANY_NAME = "Harmattan AI";
 // BU (2-letter) — aka LOB. SBU (3-letter) rolls up to a BU. Codes + human labels.
-export const BU_LABEL: Record<string, string> = { MS: "Mission System", DS: "Drone Swarm", AP: "Advanced Programs" };
+export const BU_LABEL: Record<string, string> = { MS: "Mission System", DS: "Drone Swarm", AP: "Advanced Programs", DR: "De-Risking Strategies" };
 // Trinity color per BU (SoI: AI cyan · SI sunset · HI violet) — the ONE hierarchy color source shared by the
 // stacked bar, the tier-table BU vertical line, and the per-BU CAGR banner (Aset: no per-surface color drift).
-export const BU_COLOR: Record<string, string> = { DS: "#22d3ee", MS: "#f7b955", AP: "#a78bfa" };
+// DR (De-Risking Strategies, operator 2026-09-23) takes the emerald slot of the same palette.
+export const BU_COLOR: Record<string, string> = { DS: "#22d3ee", MS: "#f7b955", AP: "#a78bfa", DR: "#34d399" };
 const SEG_PALETTE = ["#22d3ee", "#f7b955", "#a78bfa", "#34d399", "#fb7185", "#60a5fa", "#facc15", "#f472b6", "#4ade80", "#c084fc"];
 export const hashHsl = (s: string): string => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return `hsl(${h % 360} 68% 62%)`; };
 /** Distinct color for a stacked-bar segment: BU segments use the Trinity BU color; deeper levels use a stable
@@ -2024,10 +2025,12 @@ export const nodeBuColorOf = (buCode: string): string => BU_COLOR[buCode] ?? has
 export const SBU_LABEL: Record<string, string> = {
   MSP: "MS Planning", MSE: "MS Engagement", DSI: "DS ISR", DSE: "DS EW", DSC: "DS Control",
   AP1: "AP Group 1", AP2: "AP Group 2", AP3: "AP Group 3",
+  DRC: "Crisis + Resilience",
 };
-// SBU base revenue ($M) — the do-nothing anchor per SBU (Σ = 700M company).
-export const SBU_BASE: Record<string, number> = { MSP: 150, MSE: 150, DSI: 100, DSE: 60, DSC: 40, AP1: 70, AP2: 80, AP3: 50 };
-export const BU_OF_SBU: Record<string, string> = { MSP: "MS", MSE: "MS", DSI: "DS", DSE: "DS", DSC: "DS", AP1: "AP", AP2: "AP", AP3: "AP" };
+// SBU base revenue ($M) — the do-nothing anchor per SBU (Σ = 700M company). DRC is 0 by the De-Risking Strategies
+// evidence law: no dollar is written until a pilot measures it (docs/drs/drs.v00.00.json → evidenceLaw).
+export const SBU_BASE: Record<string, number> = { MSP: 150, MSE: 150, DSI: 100, DSE: 60, DSC: 40, AP1: 70, AP2: 80, AP3: 50, DRC: 0 };
+export const BU_OF_SBU: Record<string, string> = { MSP: "MS", MSE: "MS", DSI: "DS", DSE: "DS", DSC: "DS", AP1: "AP", AP2: "AP", AP3: "AP", DRC: "DR" };
 export const companyBaseM = () => Object.values(SBU_BASE).reduce((s, v) => s + v, 0); // 700
 export const sbuBaseM = (sbu: string) => SBU_BASE[sbu] ?? 0;
 export const buBaseM = (bu: string) => Object.entries(SBU_BASE).filter(([s]) => BU_OF_SBU[s] === bu).reduce((a, [, v]) => a + v, 0);
@@ -2104,7 +2107,27 @@ export const PROJECT_HIER: Record<string, HierPath> = {
   "PRJ-31": { bu: "AP", sbu: "AP1", pgroup: "AP1", alpha: "AP1D", product: "70031", material: "70031-001" },
   "PRJ-32": { bu: "AP", sbu: "AP1", pgroup: "AP4", alpha: "AP4A", product: "70032", material: "70032-001" },
   "PRJ-33": { bu: "AP", sbu: "AP3", pgroup: "AP3", alpha: "AP3T", product: "70033", material: "70033-001" },
+  // PRJ-34 is RESERVED for De-Risking Strategies (operator 2026-09-23: "hold PRJ-34 until priced"). The path exists so
+  // the codes below are a real chain; the project row is seeded only after the S14 WTP experiments give a range
+  // (docs/drs/drs.v00.00.json → pod). `nextProjectId` never hands this id to a new idea.
+  "PRJ-34": { bu: "DR", sbu: "DRC", pgroup: "CR1", alpha: "CR1D", product: "70034", material: "70034-001" },
 };
+export const RESERVED_PROJECT_IDS: readonly string[] = ["PRJ-34"];
+/** The next free project id: one past the highest number in the portfolio, skipping reserved ids. */
+export const nextProjectId = (projects: { id: string }[]): string => {
+  const maxN = projects.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, ""), 10) || 0), 0);
+  let n = maxN + 1;
+  while (RESERVED_PROJECT_IDS.includes(`PRJ-${String(n).padStart(2, "0")}`)) n++;
+  return `PRJ-${String(n).padStart(2, "0")}`;
+};
+/** Hierarchy nodes that exist with no project under them (a new BU declared before its first project is priced).
+ *  seedBizSetup appends them after the project-derived nodes, so Setup shows them and resetSeed keeps them. */
+export const HIER_DECLARED: { tier: BizTier; code: string; label: string; parent?: string }[] = [
+  { tier: "bu", code: "DR", label: BU_LABEL.DR },
+  { tier: "sbu", code: "DRC", label: SBU_LABEL.DRC, parent: "DR" },
+  { tier: "pgroup", code: "CR1", label: "Crisis Coordination", parent: "DRC" },
+  { tier: "alpha", code: "CR1D", label: "CR1D", parent: "CR1" },
+];
 export const hierOf = (p: Project): HierPath => {
   const base = PROJECT_HIER[p.id] ?? { bu: BU_OF_SBU[p.lob] ?? p.lob, sbu: p.lob, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };
   // Optional per-project overrides (from edit / Submit-New-Idea) win over the seed.
@@ -2408,8 +2431,8 @@ export type BizSetup = { company: string } & Record<BizTier, BizNode[]>;
 // jump-off bar the New/Incremental stacks build on): AP $11M, DS $42M, MS $31M = $84M company. Growth is the
 // aspirational CAGR per BU. Seeded down to the SBU tier (Base Rev split by SBU share, Growth inherited); deeper
 // tiers edit in-app. NOTE: there is no separate "base" number — Base Rev IS the baseline (old BASE $M removed).
-export const BU_SEED_REV: Record<string, number> = { AP: 11, DS: 42, MS: 31 };
-export const BU_SEED_GROWTH: Record<string, number> = { DS: 77, MS: 33, AP: 44 };
+export const BU_SEED_REV: Record<string, number> = { AP: 11, DS: 42, MS: 31, DR: 0 };
+export const BU_SEED_GROWTH: Record<string, number> = { DS: 77, MS: 33, AP: 44, DR: 0 };
 const SEED_MARGIN_FRAC = 0.4; // demo gross-margin fraction → seeds Margin $ from base-year Revenue
 export function seedBizSetup(projects: Project[]): BizSetup {
   const uniq = (arr: BizNode[]) => Array.from(new Map(arr.map((n) => [n.code, n])).values()).sort((a, b) => a.code.localeCompare(b.code));
@@ -2426,8 +2449,25 @@ export function seedBizSetup(projects: Project[]): BizSetup {
     product.push({ code: h.product, label: p.name, parent: h.alpha });
     material.push({ code: h.material, label: `${p.name} variant`, parent: h.product });
   }
+  // Declared nodes (a BU with no priced project yet) — appended after the derived ones; uniq keeps the derived row when both exist.
+  for (const n of HIER_DECLARED) {
+    const node: BizNode = { code: n.code, label: n.label, parent: n.parent };
+    if (n.tier === "bu") Object.assign(node, { revM: BU_SEED_REV[n.code] ?? 0, marginM: 0, growthPct: BU_SEED_GROWTH[n.code] ?? 0, color: BU_COLOR[n.code] });
+    if (n.tier === "sbu") Object.assign(node, { baseM: SBU_BASE[n.code] ?? 0, revM: 0, marginM: 0, growthPct: BU_SEED_GROWTH[n.parent ?? ""] ?? 0 });
+    ({ bu, sbu, pgroup, alpha, product, material })[n.tier].push(node);
+  }
   return { company: DEFAULT_COMPANY_NAME, bu: uniq(bu), sbu: uniq(sbu), pgroup: uniq(pgroup), alpha: uniq(alpha), product: uniq(product), material: uniq(material) };
 }
+/** A CONSISTENT default chain for a new idea: the first BU, then its first SBU, that SBU's first Alpha Group, that
+ *  group's first Alpha Code — never element [0] of each list taken independently (which gave AP › AP1 › AB1 › AA1D,
+ *  a path whose Alpha Group belongs to another BU). `preferBu` lets the caller start from the scoped BU. */
+export const defaultChain = (setup: BizSetup, preferBu?: string): { bu?: string; sbu?: string; pgroup?: string; alpha?: string } => {
+  const bu = setup.bu.find((b) => b.code === preferBu) ?? setup.bu[0];
+  const sbu = setup.sbu.find((s) => s.parent === bu?.code) ?? setup.sbu[0];
+  const pgroup = setup.pgroup.find((g) => g.parent === sbu?.code);
+  const alpha = setup.alpha.find((a) => a.parent === pgroup?.code);
+  return { bu: bu?.code, sbu: sbu?.code, pgroup: pgroup?.code, alpha: alpha?.code };
+};
 
 // ── STACK: rank order → cumulative NRE → funding line (CRS-42/43/71) ─────────────────────
 export function stackWithBudget(order: Project[], availableK_: number) {

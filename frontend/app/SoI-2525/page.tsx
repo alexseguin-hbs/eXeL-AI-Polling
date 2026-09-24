@@ -42,7 +42,7 @@ import {
   expectedValueOf, handoffReadiness, consistencyCheck, intelLoadGloss,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf, constellationLayout,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
-  seedBizSetup, DEFAULT_COMPANY_NAME, BIZ_TIERS, BU_COLOR, fmtPerCadence, CADENCE_UNIT, type Cadence,
+  seedBizSetup, DEFAULT_COMPANY_NAME, BIZ_TIERS, BU_COLOR, nodeBuColorOf, nextProjectId, defaultChain, HIER_DECLARED, fmtPerCadence, CADENCE_UNIT, type Cadence,
   can, roleOf, isLastLead, scrubText, ROLE_LABEL, PROJECT_ROLES, type ProjectRole, type ProjectMember, type MembershipMap,
   makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry, auditTimeline, type AuditEntry, type AuditKind, type TimelinePoint,
   changeSummaryRows, reviewApprovalRows,
@@ -317,15 +317,17 @@ function Board() {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const createIdea = (fields: { name: string; valueProp: string; nba: string; segments: SegmentValueProp[]; drivers: ValueDriver[] }) => {
-    const maxN = order.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, ""), 10) || 0), 0);
-    const id = `PRJ-${String(maxN + 1).padStart(2, "0")}`;
+    // ONE id allocator (skips reserved ids such as PRJ-34, held for De-Risking Strategies until priced) and ONE
+    // consistent hierarchy chain (BU → its SBU → its Alpha Group → its Alpha Code), never element [0] of each list.
+    const id = nextProjectId(order);
+    const chain = defaultChain(setup, hierFilter.bu.length === 1 ? hierFilter.bu[0] : undefined);
     const np: Project = {
       id, name: fields.name.trim() || "New Idea", division: "New", manager: "you", category: "New Product",
-      gate: "G1", confidence: 2, tech: "med", comm: "med", lob: setup.sbu[0]?.code ?? "SBU-1",
+      gate: "G1", confidence: 2, tech: "med", comm: "med", lob: chain.sbu ?? "SBU-1",
       nreK: 1000, fullRev10yM: 50, doNothing10yM: 0, firstRevenue: "2028-Q1",
       criticalPath: false, humanLoad: 0.4, ai: 0.4, si: 0.3, hi: 0.3, predictions: 0,
-      bu: setup.bu[0]?.code, sbu: setup.sbu[0]?.code, pgroup: setup.pgroup[0]?.code,
-      alpha: setup.alpha[0]?.code, initiative: loadPillars()[0]?.name ?? STRATEGIC_INITIATIVES[0],
+      bu: chain.bu, sbu: chain.sbu, pgroup: chain.pgroup,
+      alpha: chain.alpha, initiative: loadPillars()[0]?.name ?? STRATEGIC_INITIATIVES[0],
       valueProp: fields.valueProp.trim(),
       nextBestAlternative: fields.nba.trim(),
       segmentValueProps: fields.segments.filter((s) => s.prop.trim() && s.segment.trim()),
@@ -2215,9 +2217,18 @@ function ScopeFilter({ projects, sel, onChange }: { projects: Project[]; sel: Hi
   const { t } = useLexicon();
   const [open, setOpen] = useState(false);
   const count = sel.bu.length + sel.sbu.length + sel.pgroup.length;
-  const buOpts = hierValues(projects, "bu");
-  const sbuOpts = Array.from(new Set(projects.filter((p) => !sel.bu.length || sel.bu.includes(hierOf(p).bu)).map((p) => hierOf(p).sbu))).sort();
-  const pgOpts = Array.from(new Set(projects.filter((p) => (!sel.bu.length || sel.bu.includes(hierOf(p).bu)) && (!sel.sbu.length || sel.sbu.includes(hierOf(p).sbu))).map((p) => hierOf(p).pgroup))).sort();
+  // Options = the values projects carry ∪ the declared nodes (a BU with no priced project yet, e.g. DR), cascading.
+  const declared = (tier: "bu" | "sbu" | "pgroup", parentOk: (parent?: string) => boolean) => HIER_DECLARED.filter((n) => n.tier === tier && parentOk(n.parent)).map((n) => n.code);
+  const buOpts = Array.from(new Set([...hierValues(projects, "bu"), ...declared("bu", () => true)])).sort();
+  const sbuOpts = Array.from(new Set([
+    ...projects.filter((p) => !sel.bu.length || sel.bu.includes(hierOf(p).bu)).map((p) => hierOf(p).sbu),
+    ...declared("sbu", (parent) => !sel.bu.length || sel.bu.includes(parent ?? "")),
+  ])).sort();
+  const declaredSbuParent = (code: string) => HIER_DECLARED.find((n) => n.tier === "sbu" && n.code === code)?.parent ?? "";
+  const pgOpts = Array.from(new Set([
+    ...projects.filter((p) => (!sel.bu.length || sel.bu.includes(hierOf(p).bu)) && (!sel.sbu.length || sel.sbu.includes(hierOf(p).sbu))).map((p) => hierOf(p).pgroup),
+    ...declared("pgroup", (parent) => (!sel.sbu.length || sel.sbu.includes(parent ?? "")) && (!sel.bu.length || sel.bu.includes(declaredSbuParent(parent ?? "")))),
+  ])).sort();
   const toggle = (lvl: keyof HierSel, v: string) => {
     const cur = sel[lvl]; const next = cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v];
     onChange({ ...sel, [lvl]: next });
@@ -7790,14 +7801,16 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
       {/* Per-BU CAGR banner (operator, upper-right scrollable) — target (seeded Growth %) vs actual (rollup). */}
       <div className="mt-2 flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-1 text-[10px]">
         <span className="shrink-0 font-semibold uppercase tracking-wider text-slate-500">CAGR</span>
-        {(["DS", "MS", "AP"] as const).map((b) => {
+        {/* Every BU in Setup, not a typed triple: a BU declared before its first priced project (DR) reads "—". */}
+        {bizSetup.bu.map((n) => n.code).map((b) => {
           const tgt = scopeSeed(bizSetup, "growthPct", b, "All", "All");
           const act = buCagrPct(funded, b, { years: 10 });
+          const unpriced = !(scopeSeed(bizSetup, "revM", b, "All", "All") > 0);
           const onTrack = act >= tgt - 3;
           return (
-            <span key={b} className="inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5" style={{ borderColor: `${BU_COLOR[b]}55` }}>
-              <i className="inline-block h-2 w-2 rounded-sm" style={{ background: BU_COLOR[b] }} />
-              <b className="font-mono" style={{ color: BU_COLOR[b] }}>{b}</b>
+            <span key={b} className="inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5" style={{ borderColor: `${nodeBuColorOf(b)}55` }}>
+              <i className="inline-block h-2 w-2 rounded-sm" style={{ background: nodeBuColorOf(b) }} />
+              <b className="font-mono" style={{ color: nodeBuColorOf(b) }}>{b}</b>
               <span className="text-slate-400">Tgt {Math.round(tgt)}%</span>
               <span className={onTrack ? "text-emerald-300" : "text-rose-300"}>Act {Math.round(act)}%</span>
             </span>

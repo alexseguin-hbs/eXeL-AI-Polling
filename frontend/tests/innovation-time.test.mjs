@@ -350,7 +350,26 @@ ok(depSum.find((r) => r.id === "PRJ-05").dependents >= 1, "summary counts depend
 import { seedBizSetup, BIZ_TIERS } from "../lib/innovation-data.ts";
 const biz = seedBizSetup(DEMO_PROJECTS);
 ok(BIZ_TIERS.length === 6 && BIZ_TIERS[0].key === "bu" && BIZ_TIERS[5].key === "material", "6 master tiers BU→…→Material");
-ok(biz.bu.length === 3 && biz.sbu.length === 8, "seed master data: 3 BU · 8 SBU");
+ok(biz.bu.length === 4 && biz.sbu.length === 9, "seed master data: 4 BU · 9 SBU (MS/DS/AP from projects + DR declared, operator 2026-09-23)");
+// De-Risking Strategies (operator 2026-09-23): the codes exist before the project is priced; the project is HELD.
+import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJECT_HIER } from "../lib/innovation-data.ts";
+{
+  const bu = biz.bu.find((n) => n.code === "DR"), sbu = biz.sbu.find((n) => n.code === "DRC"), pg = biz.pgroup.find((n) => n.code === "CR1"), al = biz.alpha.find((n) => n.code === "CR1D");
+  ok(bu && bu.label === "De-Risking Strategies" && bu.revM === 0 && bu.growthPct === 0 && !!bu.color, "BU DR declared with no dollar (evidence law) and a color");
+  ok(sbu && sbu.parent === "DR" && sbu.label === "Crisis + Resilience" && sbu.baseM === 0, "SBU DRC under DR, base 0");
+  ok(pg && pg.parent === "DRC" && pg.label === "Crisis Coordination", "Alpha Group CR1 under DRC");
+  ok(al && al.parent === "CR1", "Alpha Code CR1D under CR1");
+  ok(HIER_DECLARED.every((n) => (n.tier === "bu" ? n.code.length === 2 : n.tier === "sbu" ? n.code.length === 3 : n.tier === "alpha" ? n.code.length === 4 : n.code.length >= 3)), "declared codes obey BU 2 · SBU 3 · Alpha Code 4");
+  ok(PROJECT_HIER["PRJ-34"] && PROJECT_HIER["PRJ-34"].bu === "DR" && PROJECT_HIER["PRJ-34"].sbu === "DRC" && PROJECT_HIER["PRJ-34"].pgroup === "CR1" && PROJECT_HIER["PRJ-34"].alpha === "CR1D" && PROJECT_HIER["PRJ-34"].product === "70034", "PRJ-34's path is reserved on the DR chain");
+  ok(!DEMO_PROJECTS.some((p) => p.id === "PRJ-34") && RESERVED_PROJECT_IDS.includes("PRJ-34"), "PRJ-34 is HELD: reserved, not in the portfolio");
+  ok(nextProjectId(DEMO_PROJECTS) === "PRJ-35", "a new idea on the 33-project seed gets PRJ-35, never the reserved PRJ-34");
+  ok(nextProjectId([{ id: "PRJ-07" }]) === "PRJ-08", "nextProjectId is max+1 when nothing is reserved there");
+  const chain = defaultChain(biz);
+  const sbuOf = biz.sbu.find((n) => n.code === chain.sbu), pgOf = biz.pgroup.find((n) => n.code === chain.pgroup), alOf = biz.alpha.find((n) => n.code === chain.alpha);
+  ok(chain.bu && sbuOf && sbuOf.parent === chain.bu && pgOf && pgOf.parent === chain.sbu && alOf && alOf.parent === chain.pgroup, `defaultChain is one consistent path (${chain.bu} › ${chain.sbu} › ${chain.pgroup} › ${chain.alpha})`);
+  const dr = defaultChain(biz, "DR");
+  ok(dr.bu === "DR" && dr.sbu === "DRC" && dr.pgroup === "CR1" && dr.alpha === "CR1D", "defaultChain(setup, 'DR') walks DR › DRC › CR1 › CR1D");
+}
 ok(biz.product.length === DEMO_PROJECTS.length, "one Product # per project in master data");
 ok(biz.sbu.every((s) => s.parent && s.baseM !== undefined), "SBU nodes carry parent BU + base revenue");
 ok(biz.sbu.every((s) => biz.bu.some((b) => b.code === s.parent)), "every SBU parent resolves to a BU");
@@ -1457,7 +1476,7 @@ import { BU_SEED_REV, BU_SEED_GROWTH } from "../lib/innovation-data.ts";
   ok(setup.product.every((n) => n.revM === undefined), "Product tier carries no seeded Rev (seed stops at Alpha Code)");
   // Back-compat: an old setup missing the new fields still loads (fields optional) — simulate by round-tripping.
   const legacy = JSON.parse(JSON.stringify(setup.bu.map((n) => ({ code: n.code, label: n.label }))));
-  ok(legacy.every((n) => n.revM === undefined) && legacy.length === 3, "legacy BizNodes without P&L fields remain valid");
+  ok(legacy.every((n) => n.revM === undefined) && legacy.length === 4, "legacy BizNodes without P&L fields remain valid");
 }
 
 // H39 — Growth Model reads tier seeds via scopeSeed; per-BU CAGR banner (target seed vs actual rollup).
