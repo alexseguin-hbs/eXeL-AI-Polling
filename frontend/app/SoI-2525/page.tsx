@@ -5072,6 +5072,34 @@ function useFitScale(ref: React.RefObject<HTMLElement | null>) {
   });
 }
 
+/** EXPORT HTML (operator 2026-09-24, docs/asks/2026-09-24_rcore_public_projects_html_export.md: "create HTML output of slide show as
+ *  well … so I can send this PDF OR HTML of slides"). The SAME fitted print stack the PDF prints, serialised as ONE self-contained file:
+ *  the app's stylesheets inlined (cross-origin font sheets linked), every control removed, the sheets stacked at 1600 × 900 and zoomed
+ *  to the reader's width. Real data to the slides — it is the record as it stands when exported, never a presentation kept apart. */
+const escHtml = (x: string) => x.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
+function exportDeckHtml(p: Project, stamp: string): boolean {
+  const stack = document.querySelector(".slide-print-stack") as HTMLElement | null;
+  if (!stack) return false;
+  const clone = stack.cloneNode(true) as HTMLElement;
+  clone.classList.remove("slide-print-offstage");
+  clone.querySelectorAll("button, [data-noprint], .slide-noprint").forEach((b) => b.remove());   // a document, not an app
+  let css = ""; const links: string[] = [];
+  for (const sh of Array.from(document.styleSheets)) {
+    try { css += Array.from(sh.cssRules).map((r) => r.cssText).join("\n") + "\n"; }
+    catch { if (sh.href) links.push(sh.href); }                                                     // cross-origin (fonts): link it
+  }
+  const title = `${escHtml(p.name)} · S1–S${SLIDE_SCHEMA.length} · ${escHtml(stamp)}`;
+  const html = `<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title>` +
+    links.map((h) => `<link rel="stylesheet" href="${escHtml(h)}">`).join("") +
+    `<style>${css}</style><style>html,body{margin:0;background:#0b0f14}.slide-print-stack{position:static;display:block;width:1600px;margin:0 auto;transform-origin:top left}.slide-print-page{position:relative;width:1600px;height:900px;margin:0 0 24px}.slide-print-page [data-slide-canvas]{width:100%;height:100%}</style></head>` +
+    `<body><div data-deck="${escHtml(p.id)}" data-stamp="${escHtml(stamp)}" class="slide-print-stack pdf-original">${clone.innerHTML}</div>` +
+    `<script>(function(){var s=document.querySelector(".slide-print-stack");function fit(){s.style.zoom=String(Math.min(1,(window.innerWidth-16)/1600));}fit();addEventListener("resize",fit);})();</script></body></html>`;
+  const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+  const a = document.createElement("a"); a.href = url; a.download = `${p.id}_S1-S${SLIDE_SCHEMA.length}_${stamp}.html`; a.click();
+  URL.revokeObjectURL(url);
+  return true;
+}
+
 function AmtsPanel({ title, icon, required, wide, tall, taller, full, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; tall?: boolean; taller?: boolean; full?: boolean; children: React.ReactNode }) {
   const fitRef = useRef<HTMLDivElement>(null); useFitScale(fitRef);   // the fit law, panel level
   return (
@@ -6476,7 +6504,15 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                     <span className="mt-0.5 block text-[10px] leading-tight text-slate-400">{tip}</span>
                   </button>
                 ))}
-                <div className="border-t border-slate-800 px-3 py-1.5 text-[10px] text-slate-500">All {SLIDE_SCHEMA.length + 1} pages · landscape · 0.5in — choose “Save as PDF”, keep scaling 100%.</div>
+                {/* EXPORT HTML (operator 2026-09-24): the third option — the same fitted stack as ONE self-contained file to send. The
+                    stack mounts off-stage, the fit and the charts settle (six frames + a beat), then it is serialised and unmounted. */}
+                <button role="menuitem" aria-label="Export the deck as HTML"
+                  onClick={() => { setExportOpen(false); setPrintMode("original"); setPrinting(true); let n = 0; const tick = () => { if (++n < 6) { requestAnimationFrame(tick); return; } setTimeout(() => { exportDeckHtml(p, exportDate); setPrinting(false); }, 350); }; requestAnimationFrame(tick); }}
+                  className="block w-full border-b border-slate-800 px-3 py-2 text-left hover:bg-slate-800/70">
+                  <span className="text-xs font-semibold text-slate-100">⌘ HTML</span>
+                  <span className="mt-0.5 block text-[10px] leading-tight text-slate-400">One self-contained page of every slide, exactly as printed — send it as a file; opens in any browser.</span>
+                </button>
+                <div className="border-t border-slate-800 px-3 py-1.5 text-[10px] text-slate-500">All {SLIDE_SCHEMA.length + 1} pages · landscape · 0.5in — choose “Save as PDF”, keep scaling 100%. HTML: one file, every slide.</div>
               </div>
             )}
           </div>
