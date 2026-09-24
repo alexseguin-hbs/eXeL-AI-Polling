@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.025",
+    "revision": "0.026",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1441,7 +1441,14 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Round 19 of 99 (twelve lenses) records the S1 top-row density work of rounds 13–18 as complete — a full deck scan finds no same-slide hi-vs-hi repeat left — and turns to the brief's R-CORE mandate that every round tie CrisisCommand's crisis learnings to the steering of PUBLIC-GOVERNMENT projects. The public body was present on S4, S7, S12, S13, S16, S17 and S18 but absent from S5, the problem slide the case opens on; this round writes it into S5.problem.ai (the note; problem.hi and the shown face unchanged): its people answer through the eXeL Polling API, their answers enter the record, every approved posture and outcome is replayable by the body that owns it (IA, after G3; extends D12, D27). S2 status and S18 e0 carry rev 0.025 and the D1–D27 register; PROV and the row provenance move to rev 0.025. No printed number, date or law moved; all figures IA.",
-      "commit": "PENDING"
+      "commit": "816958f"
+    },
+    {
+      "revision": "0.026",
+      "date": "2026-09-24",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 20 of 99 (twelve lenses) acts on the S14 resourcing overflow the brief names under law 6 and the previous round (0.025) flagged then deferred for lack of a hi-only anchor: the three time-value clock rows on S14.ftedollar.hi (EDU / FOOD / TECH) each enumerated every economic input in full on the shown face, overrunning the panel. This round trims each shown row's third column to its leading inputs and keeps the whole enumeration in ftedollar.ai (the note), anchored on the unique ftedollar hi block so only the shown rows change; hi stays string[][] (three rows × four columns), ai is unchanged (four rows) and stays the superset, nothing is emptied, and no printed number, date or law moves — every figure IA. Raises efficiency and succinctness without touching the substance, which survives complete in the note (D28); S2 status and S18 e0 carry rev 0.026 and the grown D1–D28 register; PROV and the row provenance bump to rev 0.026."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2346,6 +2353,13 @@
       "revision": "0.025",
       "by": "twelve lenses · round 19",
       "decision": "Round 19 turns from the S1 same-slide-density arc (rounds 13–18, now exhausted — a full deck scan finds no hi-vs-hi repeat left anywhere) to the brief's R-CORE mandate that every round tie CrisisCommand's crisis learnings to the steering of PUBLIC-GOVERNMENT projects. The public body was present on S4, S7, S12, S13, S16, S17 and S18 but absent from S5, the problem slide the case opens on. This round writes it into S5.problem.ai (the note; problem.hi and the shown face unchanged): a public body steering a public project meets the same governed-decision gap — its people answer through the eXeL Polling API, their answers enter the record as operational truth, and every approved posture and its outcome is replayable by the body that owns it, the same loop steering strategy → game plan → execution → delivered results (IA, after G3; extends D12). Raises scalability (a broader user base — the Spiral Development Protocol's test) and coverage; moves no printed number, date or law; all figures IA; nothing emptied; ai stays the superset."
+    },
+    {
+      "id": "D28",
+      "date": "2026-09-24",
+      "revision": "0.026",
+      "by": "twelve lenses · round 20",
+      "decision": "Round 20 acts on the S14 resourcing overflow the brief names under law 6 and the previous round (0.025) flagged then deferred for lack of a hi-only anchor: the three time-value clock rows on S14.ftedollar.hi (EDU / FOOD / TECH) each listed every economic input in full on the shown face, overrunning the panel. This round trims each row's third column to its leading inputs on the face and keeps the whole enumeration in S14.ftedollar.ai (the note), anchored on the unique ftedollar hi block so only the shown rows change. hi stays string[][] with three rows of four columns; ai is unchanged (four rows) and stays the superset; no cell is emptied; no printed number, date or law moves; every figure remains IA. Raises efficiency and succinctness (the Spiral Development Protocol's density test) without touching the substance, which survives complete in the note."
     }
   ],
   "iterations": [
@@ -2876,6 +2890,29 @@
       ],
       "decisions": [
         "D27"
+      ]
+    },
+    {
+      "revision": "0.026",
+      "n": 20,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 20",
+      "file": "docs/drs/iterations/0.026.md",
+      "ssesMeans": {
+        "security": 92.2,
+        "stability": 86.0,
+        "scalability": 81.8,
+        "efficiency": 80.8,
+        "succinctness": 80.3
+      },
+      "edits": [
+        "S2 · status · rev 0.025 → 0.026, decision register D1–D27 → D1–D28 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D27 → D1–D28 (hi + ai) · the register grew (D28)",
+        "PROV / row provenance · rev 0.025 → 0.026 · law 5",
+        "S14 · ftedollar · hi · trim the three time-value clock rows' economic input lists to their leading inputs on the shown face; the full enumeration moves to ftedollar.ai (the note) — the brief-named S14 overflow (law 6) that 0.025 flagged and deferred; hi stays string[][] (three rows × four columns), ai unchanged (four rows) and still the superset, nothing emptied, no printed number / date / law moved · raises efficiency and succinctness · D28"
+      ],
+      "decisions": [
+        "D28"
       ]
     }
   ]
