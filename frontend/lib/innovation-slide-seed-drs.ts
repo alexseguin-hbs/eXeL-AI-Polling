@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.009";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.010";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -81,8 +81,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.009 · decision register D1–D11 and the iteration ledger in docs/drs (append-only).",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.009 · decision register D1–D11 and the iteration ledger in docs/drs (append-only). " + PROV,
+        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.010 · decision register D1–D12 and the iteration ledger in docs/drs (append-only).",
+        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.010 · decision register D1–D12 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
@@ -147,7 +147,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "Cabinet alignment.",
           "Approved posture — under explicit decision rights.",
           "Named action owners.",
-          "Stakeholder strategy → communications.",
+          "Stakeholder strategy → communications → the community answers back.",
           "Acknowledgement / evidence.",
           "Current-plan update.",
         ],
@@ -160,7 +160,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "Cabinet alignment.",
           "Approved posture — under explicit decision rights.",
           "Named action owners.",
-          "Stakeholder strategy → communications synchronized to the approved posture.",
+          "Stakeholder strategy → communications synchronized to the approved posture → the community answers back, and its answers enter the record as operational truth (S7; for a public body, through the eXeL Polling API).",
           "Acknowledgement / evidence → current-plan update. After — replay → decisions vs outcomes → stakeholder response → governance lesson → policy / playbook update → next simulation.",
         ],
       },
@@ -483,6 +483,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "G2 exit: buyer confirms the need · primary NBA confirmed · current-state baseline confirmed · at least two future-state deltas survive comparison · measurable clock defined · economic weight can be sourced · CTS path understood · pilot willingness exists.",
           MASTER_Q,
           "Dependencies: the live CrisisCommand product as the baseline; the benchmark teardown (Everbridge 360 AI / Bridge) and pointer-level access to Rave, quality / recall and PagerDuty / status / security; an EDU buyer for the G2 tabletop.",
+          "Public-body dependency (IA, after G3): one government owner for a project steered through the loop — its citizens' answers by the eXeL Polling API, its approved posture and delivered result replayable by the body and by the people it serves; nothing in the record's shape is crisis-specific.",
         ],
       },
     },
@@ -523,6 +524,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "Horizon 1 — Governed Leadership State: decision rights · approval state · action ownership · acknowledgement · evidence · governed current-plan state · outcome-linked replay.",
           "Horizon 2 — Absorb by qualification: every benchmark function reachable from inside the platform first (link, selected structured facts, status, action reference), then native function by function only after each beats Everbridge 360 AI / Bridge on its pre-registered clock by the one-ninth gate; Rave and PagerDuty facts flow in as inbound feeds; alerting last and certified.",
           "Horizon 3 — Enterprise Decision Graph: decision relationships · shared authority across teams · stakeholder patterns · executive action ownership · recurring crisis themes · multi-instance outcome replay (extends the announced Enterprise Crisis Dashboard, never a claim that cross-instance visibility is new). Horizon 4 — Recursive Readiness: multi-event learning · simulation · qualification · institutional continuity.",
+          "Horizon 1 also ships the approver threat model (S13): step-up identity on every consequential sign-off, succession of decision rights when an approver is unreachable, privilege-aware fields for counsel-marked entries — a named human on every consequence is only as strong as the proof of who signed.",
         ],
       },
     },
@@ -584,14 +586,14 @@ export const SLIDE_SEED_DRS: SlideSeed = {
       },
       plc: {
         hi: [
-          ["G2 — measurement-design tabletop (EDU)", "date TBD"],
-          ["G3 — instrumented benchmark-alone vs one-platform A/B (three institutions per segment, or it is a pilot)", "date TBD"],
+          ["G2 — measurement-design tabletop (EDU)", "2026-Q4 target (IA)"],
+          ["G3 — instrumented benchmark-alone vs one-platform A/B (three institutions per segment, or it is a pilot)", "2027-H1 target (IA)"],
           ["Horizon 1 — Governed Leadership State", "2027"],
           ["Horizons 3 / 4 — Enterprise Decision Graph · Recursive Readiness", "2030"],
         ],
         ai: [
-          ["G2 — measurement-design tabletop (EDU)", "date TBD"],
-          ["G3 — instrumented benchmark-alone vs one-platform A/B (three institutions per segment, or it is a pilot)", "date TBD"],
+          ["G2 — measurement-design tabletop (EDU)", "2026-Q4 target (IA) — derived from the row's first revenue 2027-Q3 and six paying accounts in 2027 (D12); the date is an assumption until an EDU institution is named"],
+          ["G3 — instrumented benchmark-alone vs one-platform A/B (three institutions per segment, or it is a pilot)", "2027-H1 target (IA) — closes before first revenue 2027-Q3 (D12); pre-registered before it starts, or it is not evidence"],
           ["Horizon 1 — Governed Leadership State", "2027"],
           ["Horizons 3 / 4 — Enterprise Decision Graph · Recursive Readiness", "2030"],
           ["2525 — recursive continuity of institutional learning", "vision"],
@@ -657,6 +659,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "Absorption is a ladder, not a launch: pilot → replay → qualify → certify → adopt → educate → expand; autonomy is earned per capability, never granted; coordination without domination.",
           "AI recommends and organizes. Humans approve and own consequences. " + MOTTO,
           "The future-state operating loop: operational truth → executive judgment → approved decision → named action → evidence → stakeholder response → replay → improvement. Learning compounds.",
+          "Public bodies (R-CORE as it already runs here): a government steers a public project through the same loop — strategy → game plan → execution → delivered results — asks its people through the eXeL Polling API, decides with named authority, and shows them what was decided and why; every approved posture and its outcome replayable by the body that owns it and by the citizens it serves. After G3, one public-body pilot on the same record (IA, D12).",
         ],
       },
     },
@@ -671,6 +674,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "DECLARED (not in v0.9): retire a governance-state capability only after its successor keeps decision rights, approval state, action ownership, evidence and replay on the record.",
           "Export the decision history, plan versions, evidence and outcome-linked replay to the customer in an open format.",
           "Every absorbed function's data leaves with the customer in the same open export; partnered rails (Rave, PagerDuty, quality / recall, legal) hand back cleanly — the record is the customer's, never the vendor's.",
+          "For a public body the export is its citizens' record: opened through the eXeL Polling API so the people who answered can replay what was decided, by whom and why — transparency and accountability outlive the vendor.",
         ],
       },
       e90: {
@@ -699,12 +703,12 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D11) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D12) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
         ],
         ai: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D11) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D12) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
           PROV,
         ],
       },

@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.009",
+    "revision": "0.010",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1329,6 +1329,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Iteration 0.009 (Master of Thought, between the twelve-lens rounds): the operator's 'NPV MUST BE NON ZERO; resources must exist for full 11 years' (D10) — the eleven-year financial record PRJ34_FIN_PLAN (spend every year 2026–2036, two price tiers 60 k → 120 k, 2,121 account-years, 248 M, 11.2 M spend) becomes the source the row rolls up from and the S3 / S10 / S14 surfaces read; financialsOverview honours a project's own plan; the charts draw FIN_SPAN years; the NPV proxy is +1.0 M at the G2 weighting and its formula is stated on S3.",
+      "commit": "b3e01cb"
+    },
+    {
+      "revision": "0.010",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Iteration 4 of 99 (twelve lenses, round 4 — the first lens round under the brief's 'R-CORE is implemented — use it'): the G2 tabletop and the G3 A/B gain target quarters derived from the row's own record (2026-Q4 · 2027-H1, IA, D12) so the plan has a calendar the ramp depends on; the community answers back on S4's slide, not only in its note; the approver threat model (step-up identity, succession of decision rights, privilege-aware fields) joins Horizon 1 on S14; public-government steering through the same loop — asked through the eXeL Polling API, replayable by the body and its citizens — is carried as speaker notes on S13, S17 and S18 and as a post-G3 dependency, never as a claimed customer; SSSES means of the twelve recorded (security 80.3 · stability 67.9 · scalability 66.3 · efficiency 64.6 · succinctness 61.9).",
       "commit": "PENDING"
     }
   ],
@@ -2122,6 +2129,13 @@
       "by": "operator",
       "decision": "NPV must be non-zero and resources must exist for the full eleven years: the PRJ-34 row carries an eleven-year financial record (spend every year 2026–2036, revenue 2027–2036 at 60 k then 120 k an account, 2,121 account-years, 248 M, 11.2 M spend) whose roll-up is the row's nreK / fullRev10yM; S3, S10 and S14 read the record; the Pod's NPV proxy reads +1.0 M at the G2 weighting.",
       "supersedes": "D8 (figures)"
+    },
+    {
+      "id": "D12",
+      "date": "2026-09-24",
+      "revision": "0.010",
+      "by": "twelve lenses · round 4",
+      "decision": "The G2 measurement-design tabletop and the G3 instrumented A/B carry target quarters derived from the row's own record (firstRevenue 2027-Q3, six paying accounts in 2027): G2 by 2026-Q4, G3 in 2027-H1, both labelled IA and re-derived if the input moves. The steering of public-government projects through the same loop (citizens' answers in by the eXeL Polling API, approved posture and delivered result replayable by the body and its people) is carried as speaker notes and as a post-G3 dependency until a public body is named — never as a claim of a customer."
     }
   ],
   "iterations": [
@@ -2223,6 +2237,49 @@
         ],
         "keep": [
           "declared IA labelling on every figure"
+        ],
+        "cut": []
+      }
+    },
+    {
+      "revision": "0.010",
+      "n": 4,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 4",
+      "file": "docs/drs/iterations/0.010.md",
+      "ssesMeans": {
+        "security": 80.3,
+        "stability": 67.9,
+        "scalability": 66.3,
+        "efficiency": 64.6,
+        "succinctness": 61.9
+      },
+      "edits": [
+        "S2 · status · rev 0.010, decision register D1–D12 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D12 (hi + ai) · the register grew (D12)",
+        "PROV / row provenance · rev 0.010 · law 5",
+        "S16 · plc · the G2 tabletop and the G3 A/B rows carry target quarters — 2026-Q4 and 2027-H1, labelled IA — derived from the row's firstRevenue 2027-Q3 and the six 2027 accounts; ai carries the derivation · Athena / Asar / Thoth: a plan without a calendar entry is a wish (D12)",
+        "S17 · obs · ai (speaker note only) · public bodies steer a project through the same loop — strategy → game plan → execution → delivered results — asking through the eXeL Polling API, replayable by the body and its citizens; one public-body pilot after G3 (IA) · the brief's 'R-CORE is implemented — use it' (S13 · S16 · S17)",
+        "S18 · e120 · ai · for a public body the open export is its citizens' record, opened through the eXeL Polling API · the brief (S12 · S18)",
+        "S14 · notes · ai · Horizon 1 ships the approver threat model — step-up identity per sign-off, succession of decision rights, privilege-aware fields · Thor / Enlil (round 2 ask, S13 row)",
+        "S4 · conops · hi step 8 + ai step 9 · 'the community answers back' — the citizen's answer enters the record as operational truth (S7; a public body through the Polling API) · the brief (S4 · S7), Christo",
+        "S13 · deps · ai · public-body dependency after G3: one government owner, citizens' answers by the Polling API, posture and delivered result replayable · Enki: nothing in the record's shape is crisis-specific"
+      ],
+      "decisions": [
+        "D12"
+      ],
+      "aar": {
+        "fix": [
+          "S16 plc rows said 'date TBD' — targets derived from the record (IA)",
+          "S4 hi did not say the community answers back — it does now",
+          "S14 lacked the approver identity model round 2 asked for — added to Horizon 1 in ai",
+          "the public-body steering the brief requires was on S12 only — now S4 · S13 · S17 · S18"
+        ],
+        "keep": [
+          "the ladder in the same order on S1, S2, S11, S15, S16, S17",
+          "the declared model in the same words on S3, S8, S15",
+          "every dollar labelled IA",
+          "the citizen row on S7"
         ],
         "cut": []
       }

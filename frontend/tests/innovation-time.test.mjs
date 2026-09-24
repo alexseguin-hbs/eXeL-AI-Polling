@@ -380,6 +380,11 @@ import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJE
   const pageSrcU = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   ok(/if \(p\.unpriced && UNPRICED_FIELDS\.has\(id\)\)/.test(pageSrcU) && ["profile", "accel", "revtable", "rdchart", "vpchart", "vpdiffs", "valuechart", "diffs", "wtp", "capture"].every((f) => new RegExp(`UNPRICED_FIELDS = new Set\\(\\[[^\\]]*"${f}"`).test(pageSrcU)), "the field renderer prints the unpriced sentence for every linked money field");
   ok((pageSrcU.match(/p\.unpriced \?/g) || []).length >= 4, "S10 grid (×2), the slide header and the project card all honour `unpriced`");
+  // EXPORT HTML (operator 2026-09-24): the third export option serialises the SAME fitted print stack, strips every control, inlines the
+  // stylesheets, and the built app's postbuild gate opens the file from disk (scripts/html-export-gate.mjs).
+  ok(/aria-label="Export the deck as HTML"/.test(pageSrcU) && /function exportDeckHtml\(p: Project, stamp: string\)/.test(pageSrcU) && /querySelectorAll\("button, \[data-noprint\], \.slide-noprint"\)\.forEach\(\(b\) => b\.remove\(\)\)/.test(pageSrcU) && /document\.styleSheets/.test(pageSrcU), "the Export menu offers HTML: the fitted stack serialised, controls removed, stylesheets inlined");
+  const pkgU = JSON.parse(await (await import("node:fs/promises")).readFile("package.json", "utf8"));
+  ok(/npm run test:html-export/.test(pkgU.scripts.postbuild) && /html-export-gate\.mjs/.test(pkgU.scripts["test:html-export"]), "the HTML export is gated on every build (postbuild), from disk, in a fresh page");
   ok(nextProjectId(DEMO_PROJECTS) === "PRJ-35", "a new idea on the 33-project seed gets PRJ-35, never the reserved PRJ-34");
   ok(nextProjectId([{ id: "PRJ-07" }]) === "PRJ-08", "nextProjectId is max+1 when nothing is reserved there");
   // PRJ-34 · a seed added after a device saved its portfolio joins it (the operator's phone showed 0/33 on 1f1a800).
