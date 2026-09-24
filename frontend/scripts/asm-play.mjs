@@ -13,7 +13,7 @@ import { join } from 'node:path';
 const A = Object.assign({ seat: 'solo', lane: 20, mode: 'bounce', shots: 4, challenge: 0, craft: 'turret', tag: 'seat', width: 390, height: 844, doubleFire: false, asmPress: 0 }, JSON.parse(process.argv[2] || '{}'));
 // doubleFire: press FIRE a second time inside the same red exposure (the ONE ROUND PER EXPOSURE refusal path) · asmPress: how many times to press the AsM button (0 = press until the deck says SPOT, the default; a count presses that many times from OFF: 1 = SPOT, 2 = FIRE, 3 = OFF)
 const PUB = process.env.ASM_PUB || new URL('../public', import.meta.url).pathname, /* ASM_PUB: serve another folder (a candidate deck) without touching the served bytes */ OUT = new URL('../perf/asm/', import.meta.url).pathname; mkdirSync(OUT, { recursive: true });
-const srv = createServer(async (req, res) => { let body; try { body = await readFile(join(PUB, decodeURIComponent(req.url.split('?')[0]))); } catch { res.writeHead(404); return res.end(); } res.writeHead(200, { 'content-type': 'text/html' }); res.end(body); }).listen(0);
+const srv = createServer(async (req, res) => { if (req.url.startsWith('/favicon')) { res.writeHead(204); return res.end(); } let body; try { body = await readFile(join(PUB, decodeURIComponent(req.url.split('?')[0]))); } catch { res.writeHead(404); return res.end(); } res.writeHead(200, { 'content-type': 'text/html' }); res.end(body); }).listen(0);
 const PORT = srv.address().port;
 const { chromium } = await import('playwright');
 const exe = [process.env.CHROMIUM_PATH, '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', '/opt/pw-browsers/chromium/chrome-linux/chrome', '/usr/bin/chromium'].filter(Boolean).find((p) => existsSync(p));
@@ -74,3 +74,13 @@ try {
 await b.close(); srv.close();
 R.toasts = [...new Set(R.toasts)];
 console.log(JSON.stringify(R, null, 1));
+// EXIT CODE (fleet r.147, Enlil/MoT 11): red on a page error, a run error, zero hits over the shots asked (a seat that never
+// scored proved nothing), an AI seat that never marked, or a team run whose two hashes differ. ASM_ALLOW_ZERO_HITS=1 lets a
+// refusal-only probe (e.g. doubleFire) stay green on purpose, said out loud.
+const red = [];
+if (R.errors.length) red.push('errors ' + R.errors.length);
+if ((A.shots | 0) > 0 && !(R.hits > 0) && !process.env.ASM_ALLOW_ZERO_HITS) red.push('zero hits over ' + A.shots + ' shots');
+if (A.seat === 'ai' && R.asm && R.asm.spot === false) red.push('AI never marked');
+if (R.final && R.final.hashMatch === false) red.push('team hashes differ');
+console.log(red.length ? 'asm-play: RED — ' + red.join(' · ') : 'asm-play: green');
+process.exit(red.length ? 1 : 0);

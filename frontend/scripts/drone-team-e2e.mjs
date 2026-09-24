@@ -13,7 +13,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 const PUB = process.env.ASM_PUB || new URL('../public', import.meta.url).pathname; const OUT = new URL('../perf/', import.meta.url).pathname;
 import { mkdirSync } from 'node:fs'; mkdirSync(OUT, { recursive: true });
-const srv = createServer(async (req, res) => { let body; try { body = await readFile(join(PUB, decodeURIComponent(req.url.split('?')[0]))); } catch { res.writeHead(404); return res.end(); } res.writeHead(200, { 'content-type': 'text/html' }); res.end(body); }).listen(0); const PORT = srv.address().port;
+const srv = createServer(async (req, res) => { if (req.url.startsWith('/favicon')) { res.writeHead(204); return res.end(); } let body; try { body = await readFile(join(PUB, decodeURIComponent(req.url.split('?')[0]))); } catch { res.writeHead(404); return res.end(); } res.writeHead(200, { 'content-type': 'text/html' }); res.end(body); }).listen(0); const PORT = srv.address().port;
 let chromium; try { ({ chromium } = await import('playwright')); } catch (e) { console.log('FAIL: playwright is not installed'); console.log('\ndrone-team-e2e: 0 passed, 1 failed'); process.exit(1); }
 const exe = [process.env.CHROMIUM_PATH, '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', '/opt/pw-browsers/chromium/chrome-linux/chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser'].filter(Boolean).find((p) => existsSync(p));
 let b; try { b = exe ? await chromium.launch({ executablePath: exe }) : await chromium.launch(); } catch (e) { console.log('FAIL: no Chromium could be launched —', String(e).slice(0, 100)); console.log('\ndrone-team-e2e: 0 passed, 1 failed'); process.exit(1); }
