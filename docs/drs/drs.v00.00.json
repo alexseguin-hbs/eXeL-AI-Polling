@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.020",
+    "revision": "0.021",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1406,6 +1406,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Round 14 of 99 (twelve lenses) continues the round-13 density work on S1, staying on the same slide the brief flags under law 6, and finds the operating loop stated twice there: the S1 oneline cell carries the loop in full (operational truth to improvement) while the strategy thesis (strategy.hi[0]) restated a compressed copy of it — judgment → approved action → evidence → stakeholder response → learning. This round drops that copy from the shown thesis and leaves the one-platform statement on the face; strategy.ai is unchanged and still the superset, nothing emptied (D22). S2 status and S18 e0 carry rev 0.020 and the D1–D22 register; PROV and the row provenance are bumped to rev 0.020. No printed number, date or law moved; the twelve-lens means rise, succinctness most, as a doubled loop on S1 becomes one clean statement (security 90.7 · stability 81.7 · scalability 77.8 · efficiency 75.9 · succinctness 73.4).",
+      "commit": "83faaa0"
+    },
+    {
+      "revision": "0.021",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Round 15 of 99 (twelve lenses) continues the round-13 and round-14 density work on the S1 top row the brief flags under law 6, staying on the same slide, and finds a same-slide repeat of the one-platform claim there: the S1 segment cell (segment.hi) carried a compressed copy — \"Benchmark: Everbridge 360 AI / Bridge — carried whole inside CrisisCommand.ai\" — the exact thesis the S1 strategy cell (strategy.hi[0]) states in full on the same slide. This round drops that copy from the shown segment cell and leaves the benchmark named and the validation order on the face; segment.ai is unchanged and still the superset, nothing emptied (D23). S2 status and S18 e0 carry rev 0.021 and the D1–D23 register; PROV and the row provenance are bumped to rev 0.021. No printed number, date or law moved; the twelve-lens means rise, succinctness most, as a doubled one-platform claim on S1 becomes one clean statement (security 91.4 · stability 82.7 · scalability 78.7 · efficiency 76.8 · succinctness 75.4).",
       "commit": "PENDING"
     }
   ],
@@ -2276,6 +2283,13 @@
       "revision": "0.020",
       "by": "twelve lenses · round 14",
       "decision": "Round 14 continues clearing the S1 density the brief flags under law 6 and removes a same-slide repeat (extends D21): the S1 strategy thesis (strategy.hi[0]) carried a compressed copy of the operating loop — judgment → approved action → evidence → stakeholder response → learning — the exact sequence the S1 oneline cell states in full on the same slide; this round drops that copy from the shown thesis and leaves the one-platform statement on the face; strategy.ai is unchanged and still the superset, and nothing is emptied. The slide reads shorter and states the operating loop once. Raises succinctness (the weakest pillar) and slide density; moves no printed number, date or law; all figures IA."
+    },
+    {
+      "id": "D23",
+      "date": "2026-09-24",
+      "revision": "0.021",
+      "by": "twelve lenses · round 15",
+      "decision": "Round 15 continues clearing the S1 density the brief flags under law 6 and removes a same-slide repeat (extends D21 / D22): the S1 segment cell (segment.hi) carried a compressed copy of the one-platform claim — \"Benchmark: Everbridge 360 AI / Bridge — carried whole inside CrisisCommand.ai\" — the exact thesis the S1 strategy cell (strategy.hi[0]) states in full on the same slide (CrisisCommand.ai carries every aspect of the benchmark's critical-event job inside the governed leadership record); this round drops that copy from the shown segment cell and leaves the benchmark named and the validation order on the face; segment.ai is unchanged and still the superset, and nothing is emptied. The slide reads shorter and states the one-platform claim once. Raises succinctness (the weakest pillar) and slide density; moves no printed number, date or law; all figures IA."
     }
   ],
   "iterations": [
@@ -2691,6 +2705,29 @@
       ],
       "decisions": [
         "D22"
+      ]
+    },
+    {
+      "revision": "0.021",
+      "n": 15,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 15",
+      "file": "docs/drs/iterations/0.021.md",
+      "ssesMeans": {
+        "security": 91.4,
+        "stability": 82.7,
+        "scalability": 78.7,
+        "efficiency": 76.8,
+        "succinctness": 75.4
+      },
+      "edits": [
+        "S2 · status · rev 0.021, decision register D1–D23 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D23 (hi + ai) · the register grew (D23)",
+        "PROV / row provenance · rev 0.021 · law 5",
+        "S1 · segment · hi · the compressed one-platform assertion (\"— carried whole inside CrisisCommand.ai\") is removed from the shown segment cell — the S1 strategy thesis (strategy.hi[0]) already states the one-platform claim in full on the same slide — leaving the benchmark named and the validation order on the face; segment.ai unchanged and still the superset · continues clearing the S1 top-row density (law 6) and removes a same-slide repeat of the one-platform claim (extends D21 / D22), raising succinctness (the weakest pillar) · D23"
+      ],
+      "decisions": [
+        "D23"
       ]
     }
   ]
