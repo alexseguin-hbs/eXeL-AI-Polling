@@ -84,17 +84,24 @@ async function run(page, label, setup, extra = {}) {
   await mkdir(DEST, { recursive: true });
   const browser = await launch();
   const ctx = await browser.newContext({ deviceScaleFactor: 1 });
+  await ctx.addInitScript(() => { try { localStorage.setItem('drone2525.introSeen', '1'); localStorage.setItem('drone2525.progression', JSON.stringify({ reached: 3, firstVisit: false })); } catch {} }); // the r.066 on-ramp shows once on a true first visit and would intercept every click; a harness is never a first visit (fleet r.147 W2: Deploy #966)
   const page = await ctx.newPage();
   await page.setViewportSize({ width: 1440, height: 900 });
   const cdp = await ctx.newCDPSession(page);
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: CPU_THROTTLE });
-  const runs = [];
+  // The config bar (MoT · HAL · platform · CH · DIFF) is collapsed behind [data-drone-config] since Round 12; open it once before a pick.
+async function mot(p, v) {
+  const sel = p.locator("[data-drone-mot]");
+  for (let i = 0; i < 3 && !(await sel.isVisible().catch(() => false)); i++) { await p.click("[data-drone-config]"); await p.waitForTimeout(400); } // the toggle may already be open-but-hidden after a mode switch: press until the select is visible
+  await p.selectOption("[data-drone-mot]", v);
+}
+const runs = [];
   try {
     console.log(`Drone-2525 performance · ${WINDOW_MS / 1000}s per case · processor slowed ${CPU_THROTTLE}x · real painted frames\n`);
     runs.push(await run(page, "idle 1.1", async () => {}));
     runs.push(await run(page, "turrets running 1.1", async (p) => { await p.click("[data-drone-run]"); }));
     runs.push(await run(page, "turrets running 5.5", async (p) => {
-      await p.selectOption("[data-drone-mot]", "5.5"); await p.waitForTimeout(800); await p.click("[data-drone-run]");
+      await mot(p, "5.5"); await p.waitForTimeout(800); await p.click("[data-drone-run]");
     }));
     runs.push(await run(page, "drone flying 1.1", async (p) => {
       await p.click("[data-drone-mode='drone']"); await p.waitForTimeout(400); await p.click("[data-drone-run]"); await p.waitForTimeout(3000);
@@ -105,18 +112,18 @@ async function run(page, label, setup, extra = {}) {
     // THE PASS MARK THE OPERATOR SET: forty-two aircraft, rung 2.3, holding the 30 Hz reference.
     runs.push(await run(page, "42 aircraft 2.3", async (p) => {
       await p.click("[data-drone-mode='drone']"); await p.waitForTimeout(300);
-      await p.selectOption("[data-drone-mot]", "2.3"); await p.waitForTimeout(500);
+      await mot(p, "2.3"); await p.waitForTimeout(500);
       await p.click("[data-drone-run]"); await p.waitForTimeout(6000);
     }, { aircraft: 42 }));
     runs.push(await run(page, "42 aircraft 5.5", async (p) => {
-      await p.selectOption("[data-drone-mot]", "5.5"); await p.waitForTimeout(800);
+      await mot(p, "5.5"); await p.waitForTimeout(800);
     }, { aircraft: 42 }));
     // THE LEVEL-ONE FLOOR (operator 2026-09-16: "lowest simplest lowest rendered lowest memory requirement
     // visual first"). Rung 1.1 is the Raspberry-Pi-class rung, WIREFRAME-CORE U-WF-07. Until the one-segment
     // mark existed, 1.1's real share bought 31 deltas and eleven of the forty-two were dropped here — so
     // this case is the one that would have caught it, and it is the one that must never regress.
     runs.push(await run(page, "42 aircraft 1.1", async (p) => {
-      await p.selectOption("[data-drone-mot]", "1.1"); await p.waitForTimeout(800);
+      await mot(p, "1.1"); await p.waitForTimeout(800);
     }, { aircraft: 42 }));
 
     // ── DOES THE PROJECTION MEMO ACTUALLY HOLD? ──────────────────────────────────────────────────
@@ -127,7 +134,7 @@ async function run(page, label, setup, extra = {}) {
     const paused = async (level) => {
       await page.goto(`http://127.0.0.1:${PORT}/main/Drone-2525/`, { waitUntil: "networkidle" });
       await page.waitForSelector("[data-drone-arena] svg path", { timeout: 20000 });
-      await page.selectOption("[data-drone-mot]", level);
+      await mot(page, level);
       await page.waitForTimeout(900);
       return page.evaluate(async (ms) => {
         let f = 0; const t0 = performance.now();

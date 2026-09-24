@@ -95,6 +95,8 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log("  FAIL:", m); 
   // here, it works between a phone and a computer.
   const ctxPc = await browser.newContext({ deviceScaleFactor: 2 });
   const ctxPhone = await browser.newContext({ deviceScaleFactor: 2 });
+  await ctxPc.addInitScript(() => { try { localStorage.setItem('drone2525.introSeen', '1'); localStorage.setItem('drone2525.progression', JSON.stringify({ reached: 3, firstVisit: false })); } catch {} }); // the r.066 on-ramp shows once on a true first visit and would intercept every click; a harness is never a first visit (fleet r.147 W2: Deploy #966)
+  await ctxPhone.addInitScript(() => { try { localStorage.setItem('drone2525.introSeen', '1'); localStorage.setItem('drone2525.progression', JSON.stringify({ reached: 3, firstVisit: false })); } catch {} }); // the r.066 on-ramp shows once on a true first visit and would intercept every click; a harness is never a first visit (fleet r.147 W2: Deploy #966)
   try {
     const pc = await ctxPc.newPage();                     // the person at a computer
     await pc.setViewportSize({ width: 1280, height: 1000 });
