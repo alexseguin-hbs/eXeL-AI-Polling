@@ -35,6 +35,15 @@ certify → adopt → educate → expand).
 7. Append, never edit, the record: `revisions[]`, `decisions[]` (D-numbers) and `iterations[]` in the master only grow; a changed decision is a
    new D that names the one it supersedes.
 
+## R-CORE is implemented — use it (operator 2026-09-24, docs/asks/2026-09-24_rcore_public_projects_html_export.md)
+R-CORE is not a future promise in this repo: the decision record and replay, the one-ninth qualification gate, the named-human-before-
+any-machine-action law and the append-only ledgers already run (Drone-2525, SoI-2525, this programme's own register). Every round's lenses
+and edits therefore tie CrisisCommand's crisis learnings to the steering of PUBLIC-GOVERNMENT projects — strategy → game plan → execution
+→ delivered results — for transparency and accountability, opened through the eXeL Polling API and the ecosystem around it (a Vision 2525
+goal). Concretely: the citizen's answer enters the record (S4 · S7); every approved posture and its outcome is replayable by the public
+body that owns it (S13 · S16 · S17); the Polling API is how a government asks its people and shows them what was decided and why (S12 ·
+S18). Real-time data to the slides, no presentation theatre: the deck is the record as it stands.
+
 ## The round, step by step
 1. Read: this file · the seed · the master's `platform`, `financialModel`, `decisions`, the last three `iterations[]` entries · the previous
    round's file `docs/drs/iterations/0.<N-1>.md` · the two asks of 2026-09-24. Skim the doctrine files only for the sections you cite.
