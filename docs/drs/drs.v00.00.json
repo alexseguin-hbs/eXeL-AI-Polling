@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.019",
+    "revision": "0.020",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1399,6 +1399,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Round 13 of 99 (twelve lenses) turns from the S14 density fix of round 12 to the other law-6 overflow the brief names, the S1 top row, and finds a same-slide repeat there: the S1 segment cell listed the comparators EDU → Rave · FOOD → Everbridge · TECH → PagerDuty, the exact pairings the S1 market table already carries row by row on the same slide (D10), with the full breakdown held in the segment speaker note. This round drops that list from segment.hi and leaves the benchmark statement and the validation order on the shown face; segment.ai is unchanged and still the superset, nothing emptied (D21). S2 status and S18 e0 carry rev 0.019 and the D1–D21 register; PROV and the row provenance are bumped to rev 0.019. No printed number, date or law moved; the twelve-lens means rise, succinctness most, as a doubled fact on S1 becomes one clean statement (security 89.7 · stability 80.7 · scalability 77.0 · efficiency 74.9 · succinctness 71.4).",
+      "commit": "29dc6af"
+    },
+    {
+      "revision": "0.020",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Round 14 of 99 (twelve lenses) continues the round-13 density work on S1, staying on the same slide the brief flags under law 6, and finds the operating loop stated twice there: the S1 oneline cell carries the loop in full (operational truth to improvement) while the strategy thesis (strategy.hi[0]) restated a compressed copy of it — judgment → approved action → evidence → stakeholder response → learning. This round drops that copy from the shown thesis and leaves the one-platform statement on the face; strategy.ai is unchanged and still the superset, nothing emptied (D22). S2 status and S18 e0 carry rev 0.020 and the D1–D22 register; PROV and the row provenance are bumped to rev 0.020. No printed number, date or law moved; the twelve-lens means rise, succinctness most, as a doubled loop on S1 becomes one clean statement (security 90.7 · stability 81.7 · scalability 77.8 · efficiency 75.9 · succinctness 73.4).",
       "commit": "PENDING"
     }
   ],
@@ -2262,6 +2269,13 @@
       "revision": "0.019",
       "by": "twelve lenses · round 13",
       "decision": "Round 13 clears part of the S1 top-row density the brief flags under law 6 and removes a same-slide repeat (D10): the S1 segment cell's shown face carried the comparator list EDU → Rave · FOOD → Everbridge · TECH → PagerDuty, which the S1 market table already states on the same slide and which the segment speaker note carries in full; this round drops that list from segment.hi and leaves the benchmark statement and the validation order on the face; segment.ai is unchanged and still the superset, and nothing is emptied. The slide reads shorter and states each comparator pairing once. Raises succinctness (the weakest pillar) and slide density; moves no printed number, date or law; all figures IA."
+    },
+    {
+      "id": "D22",
+      "date": "2026-09-24",
+      "revision": "0.020",
+      "by": "twelve lenses · round 14",
+      "decision": "Round 14 continues clearing the S1 density the brief flags under law 6 and removes a same-slide repeat (extends D21): the S1 strategy thesis (strategy.hi[0]) carried a compressed copy of the operating loop — judgment → approved action → evidence → stakeholder response → learning — the exact sequence the S1 oneline cell states in full on the same slide; this round drops that copy from the shown thesis and leaves the one-platform statement on the face; strategy.ai is unchanged and still the superset, and nothing is emptied. The slide reads shorter and states the operating loop once. Raises succinctness (the weakest pillar) and slide density; moves no printed number, date or law; all figures IA."
     }
   ],
   "iterations": [
@@ -2654,6 +2668,29 @@
       ],
       "decisions": [
         "D21"
+      ]
+    },
+    {
+      "revision": "0.020",
+      "n": 14,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 14",
+      "file": "docs/drs/iterations/0.020.md",
+      "ssesMeans": {
+        "security": 90.7,
+        "stability": 81.7,
+        "scalability": 77.8,
+        "efficiency": 75.9,
+        "succinctness": 73.4
+      },
+      "edits": [
+        "S2 · status · rev 0.020, decision register D1–D22 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D22 (hi + ai) · the register grew (D22)",
+        "PROV / row provenance · rev 0.020 · law 5",
+        "S1 · strategy · hi[0] · the compressed operating-loop restatement (judgment → approved action → evidence → stakeholder response → learning) is removed from the shown thesis — the S1 oneline cell already states the operating loop in full on the same slide — leaving the one-platform thesis on the face; strategy.ai unchanged and still the superset · continues clearing the S1 top-row density (law 6) and removes a same-slide repeat of the operating loop (extends D21), raising succinctness (the weakest pillar) · D22"
+      ],
+      "decisions": [
+        "D22"
       ]
     }
   ]
