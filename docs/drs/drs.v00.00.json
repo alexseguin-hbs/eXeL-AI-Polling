@@ -1,1460 +1,1853 @@
 {
- "project": {
-  "name": "De-Risking Strategies — Crisis + Resilience",
-  "short": "DRS",
-  "business": "CrisisCommand.ai — the future state this program writes (operator 2026-09-24); authored by De-Risking Strategies (founder A. Seguin) with eXeL AI; cross-review informed by Grok",
-  "projectNumber": "26.005W",
-  "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
-  "version": "00.00",
-  "revision": "0.005",
-  "stage": "Concept (G1) → requesting Plan (G2) entry",
-  "decisionRequested": "Authorize MVP definition and the three-segment customer validation program.",
-  "created": "2026-09-23",
-  "author": "eXeL AI (Claude Code) from the operator's draft text deck v0.1",
-  "leads": {
-   "productMgr": "A. Seguin",
-   "projectEng": "eXeL AI",
-   "bdSalesLead": "CrisisCommand.ai (partner) — name TBD",
-   "functionalLead": "TBD"
-  }
- },
- "sources": [
-  {
-   "id": "SRC-1",
-   "title": "eXeL AI Polling / Gate Review template (this repository: the Innovation Pod slide deck, the CRS matrix, the R-CORE and VISION • 2525 specs)",
-   "where": "frontend/lib/innovation-data.ts · frontend/lib/crs-matrix-data.ts · docs/MODE_R-CORE_SPEC.md · docs/VISION_2525.md"
-  },
-  {
-   "id": "SRC-2",
-   "title": "01.1 DRS Project Resilience — Market Landscape + Needs (2023-12-06)",
-   "where": "docs/drs/sources/01.1_DRS_ProjectResilience_Market_Landscape_Needs_2023.12.06.pdf",
-   "sha256": "49564ac090b5dda148d583f01ae7b2382197c13ab433783a846c4aecbb0a63f9"
-  },
-  {
-   "id": "SRC-3",
-   "title": "01.1 DRS Project AdFusion — Market Landscape + Needs (the same template, second instance)",
-   "where": "docs/drs/sources/01.1_DRS_Project-AdFusion_Market_Landscape_Needs.pdf",
-   "sha256": "10c13c1f19c7de0b641a85fac7a8d5c760b46c3a438cd8416bb86ce30712956e"
-  },
-  {
-   "id": "SRC-4",
-   "title": "CrisisCommand.ai offering as described in the operator's draft (facts, objectives, stakeholders, messaging, SITREPs, short-horizon planning, simulations, historical learning, strategic memory)",
-   "where": "docs/asks/2026-09-23_de_risking_strategies.md — the site itself was not fetched from this sandbox (outbound blocked); every CrisisCommand claim below is DECLARED from the draft, to be confirmed with the partner"
-  },
-  {
-   "id": "SRC-5",
-   "title": "Operator draft text deck v0.1 (verbatim)",
-   "where": "docs/asks/2026-09-23_de_risking_strategies.md",
-   "sha256": "d06e6ce263b74f96b557cf0f1cd712ebe16aaff1d238b1ba7460e071ab10dcd1"
-  },
-  {
-   "id": "SRC-6",
-   "title": "Vendor pages for the three NBAs (GE Vernova GridOS ADMS/OMS; Veoci Vitals EM; YUDU Sentinel)",
-   "where": "URLs on each NBA row; read by web search 2026-09-23"
-  },
-  {
-   "id": "SRC-7",
-   "title": "CrisisCommand.ai as described by search-engine results 2026-09-23: 'AI-powered crisis strategy and communications platform' — an 11-section intelligence report in under 3 minutes, saved reports and status tracking on a dashboard, board-ready PDFs, multi-org management, shareable briefs to legal and PR, donor / board / volunteer messaging for nonprofits; corporations, nonprofits, executives",
-   "where": "https://www.crisiscommand.ai/ (the site itself is egress-blocked from the build sandbox; the operator's fuller description of facts / objectives / SITREPs / simulations / strategic memory stays DECLARED). NAME COLLISION to tell the partner: a separate crisiscommandai.com 'AI Crisis Intelligence Platform' exists."
-  }
- ],
- "evidenceLaw": "Every statement carries one of: SOURCED (a named document says it), DECLARED (we chose it and say so), HYPOTHESIS (to be validated in the S16 program), UNPROVEN (no number is written until measured). Dollars appear only as '$ —' until a pilot measures them — the template's own convention ($ -- k).",
- "stageGate": {
-  "stages": [
-   "Concept",
-   "Plan",
-   "Develop",
-   "Qualify",
-   "Launch",
-   "Maximize",
-   "Retire / EOL"
-  ],
-  "gates": [
-   "G1",
-   "G2",
-   "G3",
-   "G4",
-   "G5",
-   "G6",
-   "G7"
-  ],
-  "loop": "Understand Needs (vs NBA; refine value proposition + segmentation) → Validate Concepts (prototypes with customers) → Evaluate Offering and Adapt (iterate, validate final design, assess success) — POC / MVP / future versions iterate.",
-  "source": "SRC-2 p.3, SRC-3 p.3"
- },
- "segments": [
-  {
-   "id": "SEG-1",
-   "name": "Utility + petrochemical / manufacturing",
-   "x_operationalImpact": 10,
-   "y_humanCoordination": 6,
-   "z_replayLearning": 4,
-   "weightsStatus": "HYPOTHESIS (HI discovery)",
-   "nba": "NBA-1"
-  },
-  {
-   "id": "SEG-2",
-   "name": "Healthcare / regional health disruption",
-   "x_operationalImpact": 5,
-   "y_humanCoordination": 10,
-   "z_replayLearning": 5,
-   "weightsStatus": "HYPOTHESIS (HI discovery)",
-   "nba": "NBA-2"
-  },
-  {
-   "id": "SEG-3",
-   "name": "Education + fixed-site campus safety",
-   "x_operationalImpact": 7,
-   "y_humanCoordination": 9,
-   "z_replayLearning": 6,
-   "weightsStatus": "HYPOTHESIS (proposed; validate with campus customers)",
-   "nba": "NBA-3"
-  }
- ],
- "axes": {
-  "x": "Operational Impact — how heavily the buyer values restoration, continuity and reduction of physical disruption",
-  "y": "Human Coordination — transparent communication, leadership, public/workforce participation, multi-party coordination",
-  "z": "Replay / Readiness Learning — traceability, reconstruction, simulation, improvement of the next response"
- },
- "nbas": [
-  {
-   "id": "NBA-1",
-   "name": "GE Vernova GridOS",
-   "segment": "SEG-1",
-   "strongAt": [
-    "Deep grid telemetry / orchestration",
-    "OMS / ADMS",
-    "Distribution automation",
-    "Utility reliability analytics (SAIDI / SAIFI)",
-    "Direct technical restoration workflows",
-    "Simulations"
-   ],
-   "positioning": "GridOS operates the electrical grid. DRS coordinates the human, organizational and resource crisis around the disruption.",
-   "status": "SOURCED (vendor pages read 2026-09-23 — GridOS ADMS with its built-in Enterprise OMS and SAIDI/SAIFI/CMI; Veoci Vitals EM incidents, HVA, AAR, full incident timeline, resource management; Sentinel crisis management + notification + continuity, Video Crisis Rooms, mass notification under 60 s); confirm the competitive weight in the S16 interviews",
-   "sources": [
-    "https://www.gevernova.com/software/products/gridos/advanced-distribution-management-system",
-    "https://www.gevernova.com/software/products/gridos/power-grid-disruption"
-   ]
-  },
-  {
-   "id": "NBA-2",
-   "name": "Veoci (Vitals EM)",
-   "segment": "SEG-2",
-   "strongAt": [
-    "Real-time operational picture",
-    "Cross-facility coordination",
-    "One-click activation",
-    "Automatic incident timelines",
-    "Audit-ready documentation",
-    "AARs and improvement plans"
-   ],
-   "positioning": "Veoci runs the hospital's incident. DRS coordinates the healthcare system, its leadership and the affected population as one transparent, authority-controlled response environment.",
-   "status": "SOURCED (vendor pages read 2026-09-23 — GridOS ADMS with its built-in Enterprise OMS and SAIDI/SAIFI/CMI; Veoci Vitals EM incidents, HVA, AAR, full incident timeline, resource management; Sentinel crisis management + notification + continuity, Video Crisis Rooms, mass notification under 60 s); confirm the competitive weight in the S16 interviews",
-   "sources": [
-    "https://veoci.com/hospitals-healthcare/vitals-em/",
-    "https://veoci.com/press/veoci-vitals-em-healthcare-emergency-management"
-   ]
-  },
-  {
-   "id": "NBA-3",
-   "name": "YUDU Sentinel",
-   "segment": "SEG-3",
-   "strongAt": [
-    "Multi-channel mass notification",
-    "Two-way safety checking",
-    "Secure crisis rooms (video)",
-    "Auditable communications",
-    "Emergency documents",
-    "Extreme-weather / lockdown use cases"
-   ],
-   "positioning": "Sentinel tells the campus. DRS fulfils the campus's needs: who lacks heat, which building has capacity, who has blankets, who is qualified, who approved the relocation, who has been helped.",
-   "status": "SOURCED (vendor pages read 2026-09-23 — GridOS ADMS with its built-in Enterprise OMS and SAIDI/SAIFI/CMI; Veoci Vitals EM incidents, HVA, AAR, full incident timeline, resource management; Sentinel crisis management + notification + continuity, Video Crisis Rooms, mass notification under 60 s); confirm the competitive weight in the S16 interviews",
-   "sources": [
-    "https://www.sentinelresilience.com/use-cases/crisis-management/features",
-    "https://www.sentinelresilience.com/"
-   ]
-  },
-  {
-   "id": "NBA-0",
-   "name": "CrisisCommand.ai (partner, not a competitor)",
-   "segment": "all",
-   "strongAt": [
-    "Facts",
-    "Objectives",
-    "Stakeholder assessment",
-    "Messaging",
-    "SITREPs",
-    "Short-horizon planning",
-    "Simulations",
-    "Historical learning / strategic memory"
-   ],
-   "positioning": "CrisisCommand thinks and commands. DRS coordinates and allocates beneath it; eXeL listens; R-CORE preserves, replays and improves.",
-   "status": "DECLARED from SRC-4"
-  }
- ],
- "wedge": [
-  "Verified authority",
-  "Distributed needs intake",
-  "Real resource allocation",
-  "Plan / version traceability",
-  "Collective feedback (eXeL polling)",
-  "Operational replay",
-  "Scenario-based resource planning (Conservative / Baseline / Aggressive)"
- ],
- "notDifferentiators": [
-  "Basic alerting",
-  "Dashboards",
-  "Incident logs",
-  "Stakeholder messaging",
-  "Simulations as such",
-  "After-action learning as such"
- ],
- "personas": {
-  "command": [
-   "Incident commander",
-   "City official",
-   "Utility executive",
-   "Plant manager",
-   "Hospital executive",
-   "Campus leader"
-  ],
-  "responders": [
-   "Emergency management",
-   "Facilities",
-   "Medical personnel",
-   "Maintenance",
-   "Security",
-   "Logistics",
-   "Qualified volunteers"
-  ],
-  "affected": [
-   "Residents",
-   "Employees",
-   "Patients / families",
-   "Students / parents"
-  ],
-  "principle": "Public participants do not receive the same authority as operational leaders. The platform maintains a validated roster and a rank / authority structure. AI recommends and organizes; authorized humans retain command."
- },
- "conops": {
-  "before": [
-   "Prepare plans",
-   "Validate rosters",
-   "Identify resources",
-   "Simulate Conservative / Baseline / Aggressive response"
-  ],
-  "during": [
-   "Sense event",
-   "Establish authoritative facts",
-   "Activate command structure",
-   "Gather concerns (poll)",
-   "Prioritize needs",
-   "Allocate resources",
-   "Communicate",
-   "Monitor outcomes",
-   "Revise plan"
-  ],
-  "revision": "Plan v1 → Event → Change → Authority → Plan v2 — the user reads: what changed, why, who authorized it, what to do now",
-  "after": [
-   "Replay",
-   "Measure",
-   "Qualify",
-   "Improve",
-   "Simulate the next event"
-  ],
-  "resilienceHeritage": "Project Resilience CONOPS 1–7 (SRC-2 p.5): real-time alerts · user reporting · alert dissemination · resource management (inventory + gap analysis) · volunteer coordination · public communication · preparedness information — DRS keeps all seven and adds verified authority, plan versioning, polling, replay and scenario planning."
- },
- "architecture": [
-  {
-   "layer": "CRISISCOMMAND — Think / Command",
-   "items": [
-    "Facts",
-    "Objectives",
-    "Stakeholders",
-    "Strategy",
-    "SITREPs",
-    "Communications"
-   ],
-   "owner": "CrisisCommand.ai (partner)"
-  },
-  {
-   "layer": "DE-RISKING STRATEGIES — Coordinate / Allocate",
-   "items": [
-    "Verified leadership roster",
-    "Responders",
-    "Volunteers",
-    "Needs",
-    "Resources",
-    "Facilities",
-    "Supplies",
-    "Public / workforce interface"
-   ],
-   "owner": "DRS (this project)"
-  },
-  {
-   "layer": "eXeL COLLECTIVE INTELLIGENCE — Listen",
-   "items": [
-    "Polling",
-    "Concerns",
-    "Priorities",
-    "Feedback",
-    "Emergent needs"
-   ],
-   "owner": "eXeL AI Polling (this repository: sessions → responses → 3/6/9 themes with 33/111/333-word summaries → living rankings; 33 languages; responsive phone / desktop)"
-  },
-  {
-   "layer": "R-CORE — Preserve / Replay / Improve",
-   "items": [
-    "Authority",
-    "Version history",
-    "Operational truth",
-    "Replay",
-    "Simulation",
-    "Qualification"
-   ],
-   "owner": "VISION • 2525 / R-CORE (docs/MODE_R-CORE_SPEC.md, docs/VISION_2525.md)"
-  }
- ],
- "rcore": {
-  "chain": [
-   "LIVE EVENT — signals + people + resources",
-   "COORDINATE — command + needs + assignments",
-   "SYNC / OPERATIONAL TRUTH — who knew what · who authorized what · what changed · what moved · what happened",
-   "REPLAY — reconstruct the event",
-   "SIMULATE — Conservative · Baseline · Aggressive",
-   "QUALIFY — measure readiness",
-   "NEXT EVENT — better prepared"
-  ],
-  "statement": "Every crisis becomes evidence. Every replay improves readiness. Every cycle strengthens resilience.",
-  "law": "R-CORE is not the crisis application; it is the recursive operational architecture beneath it. No commit without a named human-authority event (MODE_R-CORE_SPEC)."
- },
- "nose": [
-  {
-   "segment": "SEG-1",
-   "needs": "Restore electricity / operations quickly while understanding impact, available backup capacity, community and facility needs, and who is responsible.",
-   "outcomes": [
-    "Every need outside the grid (a facility without power, a plant without water, a neighbourhood without heat) is recorded, prioritized and assigned to a verified responder",
-    "Scarce backup capacity (generators, fuel, crews, shelters) is allocated against recorded needs, not requests by loudness",
-    "Every plan change carries who authorized it and why; the workforce and the public read the current plan",
-    "The event replays for the next one"
-   ],
-   "solution": "DRS beside GridOS: GridOS restores the grid; DRS runs the verified roster, needs intake, resource allocation, plan versioning, polling and replay for the human and organizational crisis around it.",
-   "evidence": [
-    {
-     "claim": "Time from a recorded need to an assignment falls with DRS vs the pre-pilot baseline",
-     "status": "UNPROVEN",
-     "experiment": "Pilot one utility or plant through one simulated and one live disruption; log need → assignment → fulfilment timestamps (S16)"
-    },
-    {
-     "claim": "Duplicate or misallocated resource deployments fall",
-     "status": "UNPROVEN",
-     "experiment": "Count duplicate assignments per event, baseline vs pilot"
-    },
-    {
-     "claim": "Buyers pay for coordination outside the grid on top of GridOS",
-     "status": "UNPROVEN",
-     "experiment": "Outcome-based WTP interviews with three utility / industrial buyers (S14)"
+  "project": {
+    "name": "Project 34 — CrisisCommand Future State",
+    "short": "DRS",
+    "business": "CrisisCommand.ai — customer-facing product; internal innovation method De-Risking Strategies / Project 34; authored by De-Risking Strategies (founder A. Seguin) with eXeL AI; cross-review informed by Grok; final authority: De-Risking Strategies / Human Intelligence",
+    "projectNumber": "26.005W",
+    "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
+    "version": "00.00",
+    "revision": "0.006",
+    "stage": "G2 / future-state validation",
+    "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
+    "created": "2026-09-23",
+    "author": "eXeL AI (Claude Code) from the operator's draft text deck v0.1",
+    "leads": {
+      "productMgr": "A. Seguin",
+      "projectEng": "eXeL AI",
+      "bdSalesLead": "CrisisCommand.ai (partner) — name TBD",
+      "functionalLead": "TBD"
     }
-   ]
   },
-  {
-   "segment": "SEG-2",
-   "needs": "Give healthcare leaders, officials, clinicians and citizens enough trustworthy information to coordinate regional capacity without amplifying panic.",
-   "outcomes": [
-    "A verified regional leadership / authority map",
-    "Demand-to-resource coordination across organizations, not inside one hospital",
-    "Controlled public transparency: the public reads the current plan and its authority, never rumour",
-    "Regional volunteers and assistance qualified before they are used",
-    "Cross-event replay and simulation"
-   ],
-   "solution": "DRS beside Veoci: Veoci runs the incident inside the institution; DRS coordinates the region — leadership, capacity, the affected population — under one authority-controlled record.",
-   "evidence": [
+  "sources": [
     {
-     "claim": "Capacity-coordination time across facilities falls",
-     "status": "UNPROVEN",
-     "experiment": "Regional exercise with two or more facilities; time-stamp capacity requests and answers"
+      "id": "SRC-1",
+      "title": "eXeL AI Polling / Gate Review template (this repository: the Innovation Pod slide deck, the CRS matrix, the R-CORE and VISION • 2525 specs)",
+      "where": "frontend/lib/innovation-data.ts · frontend/lib/crs-matrix-data.ts · docs/MODE_R-CORE_SPEC.md · docs/VISION_2525.md"
     },
     {
-     "claim": "Public acknowledgement rate of plan changes rises and rumour-driven load falls",
-     "status": "UNPROVEN",
-     "experiment": "Measure acknowledgement rate and call-centre / diversion load, baseline vs pilot"
+      "id": "SRC-2",
+      "title": "01.1 DRS Project Resilience — Market Landscape + Needs (2023-12-06)",
+      "where": "docs/drs/sources/01.1_DRS_ProjectResilience_Market_Landscape_Needs_2023.12.06.pdf",
+      "sha256": "49564ac090b5dda148d583f01ae7b2382197c13ab433783a846c4aecbb0a63f9"
     },
     {
-     "claim": "A regional buyer exists (health department, hospital association, county) who owns the cross-organization gap",
-     "status": "UNPROVEN",
-     "experiment": "Buyer validation interviews (S20 exit criterion: validated buyer)"
+      "id": "SRC-3",
+      "title": "01.1 DRS Project AdFusion — Market Landscape + Needs (the same template, second instance)",
+      "where": "docs/drs/sources/01.1_DRS_Project-AdFusion_Market_Landscape_Needs.pdf",
+      "sha256": "10c13c1f19c7de0b641a85fac7a8d5c760b46c3a438cd8416bb86ce30712956e"
+    },
+    {
+      "id": "SRC-4",
+      "title": "CrisisCommand.ai offering as described in the operator's draft (facts, objectives, stakeholders, messaging, SITREPs, short-horizon planning, simulations, historical learning, strategic memory)",
+      "where": "docs/asks/2026-09-23_de_risking_strategies.md — the site itself was not fetched from this sandbox (outbound blocked); every CrisisCommand claim below is DECLARED from the draft, to be confirmed with the partner"
+    },
+    {
+      "id": "SRC-5",
+      "title": "Operator draft text deck v0.1 (verbatim)",
+      "where": "docs/asks/2026-09-23_de_risking_strategies.md",
+      "sha256": "d06e6ce263b74f96b557cf0f1cd712ebe16aaff1d238b1ba7460e071ab10dcd1"
+    },
+    {
+      "id": "SRC-6",
+      "title": "Vendor pages for the three NBAs (GE Vernova GridOS ADMS/OMS; Veoci Vitals EM; YUDU Sentinel)",
+      "where": "URLs on each NBA row; read by web search 2026-09-23"
+    },
+    {
+      "id": "SRC-7",
+      "title": "CrisisCommand.ai as described by search-engine results 2026-09-23: 'AI-powered crisis strategy and communications platform' — an 11-section intelligence report in under 3 minutes, saved reports and status tracking on a dashboard, board-ready PDFs, multi-org management, shareable briefs to legal and PR, donor / board / volunteer messaging for nonprofits; corporations, nonprofits, executives",
+      "where": "https://www.crisiscommand.ai/ (the site itself is egress-blocked from the build sandbox; the operator's fuller description of facts / objectives / SITREPs / simulations / strategic memory stays DECLARED). NAME COLLISION to tell the partner: a separate crisiscommandai.com 'AI Crisis Intelligence Platform' exists."
     }
-   ]
-  },
-  {
-   "segment": "SEG-3",
-   "needs": "Protect a known population in a bounded environment during safety, security, infrastructure or severe-weather disruption.",
-   "outcomes": [
-    "Every person accounted for and every welfare need (heat, shelter, water, transport) recorded and fulfilled",
-    "Blankets, water, heat, transport and facility capacity allocated against the intake",
-    "A verified responder / volunteer roster",
-    "Every relocation and plan change with its approver",
-    "Replay feeds the next drill"
-   ],
-   "solution": "DRS beside Sentinel: Sentinel notifies and checks; DRS fulfils — intake, allocation, provenance, polling, replay-to-drill, resource scenarios before the event.",
-   "evidence": [
-    {
-     "claim": "Time-to-account-for population and time-to-shelter fall vs the campus's current drill baseline",
-     "status": "UNPROVEN",
-     "experiment": "Two drills, one without and one with DRS, same scenario (winter freeze), timed"
-    },
-    {
-     "claim": "Supplies reach recorded needs with fewer duplicate emergency labour hours",
-     "status": "UNPROVEN",
-     "experiment": "Count labour hours and duplicate deliveries per drill"
-    },
-    {
-     "claim": "The campus weights (7 / 9 / 6) hold",
-     "status": "HYPOTHESIS",
-     "experiment": "Segment interviews rank the three axes"
-    }
-   ]
-  }
- ],
- "valueTables": [
-  {
-   "segment": "SEG-1",
-   "nba": "NBA-1",
-   "nbaOutcomeCost": "$ — (GridOS licence + integration + the human coordination done today by phone, spreadsheet and memory — measure in the pilot)",
-   "rows": [
-    {
-     "n": 1,
-     "differentiator": "Human / community coordination outside the grid",
-     "nbaToday": "Out of scope for GridOS; handled by EOC phones and spreadsheets",
-     "valueDriver": "$ / outage-hour avoided for facilities the grid cannot see; $ / resource-deployment hour saved",
-     "metric": "need → assignment → fulfilment times; duplicate deployments",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 2,
-     "differentiator": "Verified authority + responder roster",
-     "nbaToday": "Utility crews are rostered; community responders are not",
-     "valueDriver": "Avoided unauthorized access to resources; faster trusted hand-offs",
-     "metric": "verified responders active; unauthorized-request rejections",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 3,
-     "differentiator": "Needs-to-resource allocation",
-     "nbaToday": "Restoration priority is technical, not needs-based",
-     "valueDriver": "$ / production-hour restored at the right site first; $ / avoided emergency logistics",
-     "metric": "resources requested vs fulfilled; unresolved shortages",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 4,
-     "differentiator": "eXeL polling / distributed concern intake",
-     "nbaToday": "None",
-     "valueDriver": "Emergent needs surface before they become failures",
-     "metric": "needs submitted; time from concern to plan revision",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 5,
-     "differentiator": "Plan revision + authority traceability",
-     "nbaToday": "Change records live in the OMS for the grid only",
-     "valueDriver": "Liability and audit exposure reduced; less re-work from conflicting instructions",
-     "metric": "plan revisions with authority; acknowledgement rate",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 6,
-     "differentiator": "R-CORE event replay / readiness",
-     "nbaToday": "GridOS simulates the grid, not the organization",
-     "valueDriver": "Readiness improvement per event; drill cost avoided",
-     "metric": "simulation vs actual performance",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 7,
-     "differentiator": "Conservative / Baseline / Aggressive resource scenarios",
-     "nbaToday": "None for community resources",
-     "valueDriver": "$ / avoided shutdown exposure through pre-positioning",
-     "metric": "plan chosen vs trigger; reserve used",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 8,
-     "differentiator": "Responsive phone + desktop interface",
-     "nbaToday": "GridOS is an operator console; field crews, facilities and community roles have no shared screen",
-     "valueDriver": "Adoption by responders and community roles without training; fewer phone relays between the EOC and the field",
-     "metric": "responders active on a phone; time from a field concern to a plan revision",
-     "status": "HYPOTHESIS"
-    }
-   ],
-   "totalCustomerValue": "$ — (sum of measured rows)",
-   "valueCapture": "— % (proposed after measurement)",
-   "wtpRange": "$ — to $ — (S14 experiments)"
-  },
-  {
-   "segment": "SEG-2",
-   "nba": "NBA-2",
-   "nbaOutcomeCost": "$ — (Veoci licence + the regional coordination done today across institutions by calls and email)",
-   "rows": [
-    {
-     "n": 1,
-     "differentiator": "Public-facing controlled transparency",
-     "nbaToday": "Internal dashboards; public messaging via PIO",
-     "valueDriver": "Avoidable diversion and communications workload",
-     "metric": "acknowledgement rate; diversion hours",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 2,
-     "differentiator": "Collective polling of emerging concerns",
-     "nbaToday": "None",
-     "valueDriver": "Earlier detection of regional demand",
-     "metric": "needs submitted → plan revision time",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 3,
-     "differentiator": "Verified regional leadership / authority map",
-     "nbaToday": "Per-institution rosters",
-     "valueDriver": "Capacity coordination time",
-     "metric": "time to a named decision across facilities",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 4,
-     "differentiator": "Demand-to-resource coordination beyond one organization",
-     "nbaToday": "Per-institution",
-     "valueDriver": "Regional resource utilization; staff redeployment time",
-     "metric": "resources requested vs fulfilled regionally",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 5,
-     "differentiator": "Regional assistance / volunteer qualification",
-     "nbaToday": "Ad hoc",
-     "valueDriver": "Incident labour saved; liability avoided",
-     "metric": "verified responders; unqualified assignments rejected",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 6,
-     "differentiator": "Version-controlled public + operational plans",
-     "nbaToday": "Timelines inside Veoci",
-     "valueDriver": "Communications workload; audit",
-     "metric": "plan revisions with authority",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 7,
-     "differentiator": "Three-scenario resource forecasting",
-     "nbaToday": "Veoci plans and activates; regional surge posture is set by call and email",
-     "valueDriver": "Capacity pre-positioned against a chosen posture (Conservative / Baseline / Aggressive) instead of after the diversion",
-     "metric": "plan chosen vs trigger; diversion hours avoided",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 8,
-     "differentiator": "R-CORE cross-event replay and simulation",
-     "nbaToday": "Veoci writes an AAR per incident; learning stays inside one institution",
-     "valueDriver": "Readiness improvement across institutions and events; drill cost avoided",
-     "metric": "simulation vs actual performance; time to a named decision across facilities",
-     "status": "HYPOTHESIS"
-    }
-   ],
-   "totalCustomerValue": "$ —",
-   "valueCapture": "— %",
-   "wtpRange": "$ — to $ —"
-  },
-  {
-   "segment": "SEG-3",
-   "nba": "NBA-3",
-   "nbaOutcomeCost": "$ — (Sentinel licence + the fulfilment done today by facilities staff and volunteers on foot)",
-   "rows": [
-    {
-     "n": 1,
-     "differentiator": "Resource fulfilment, not only notification",
-     "nbaToday": "Notifies and checks; does not allocate",
-     "valueDriver": "Time-to-shelter; time-to-distribute supplies",
-     "metric": "need → fulfilment time",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 2,
-     "differentiator": "Verified responder / volunteer roster",
-     "nbaToday": "Contact lists",
-     "valueDriver": "Qualified help reaches the right building",
-     "metric": "verified responders active",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 3,
-     "differentiator": "Individual needs / shelter / welfare intake",
-     "nbaToday": "Two-way check-in only",
-     "valueDriver": "Time-to-account-for population",
-     "metric": "population accounted / elapsed",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 4,
-     "differentiator": "Allocation of blankets, water, heat, transport, facility capacity",
-     "nbaToday": "None",
-     "valueDriver": "Reduction in duplicate emergency labour",
-     "metric": "duplicate deliveries; labour hours",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 5,
-     "differentiator": "Plan-change provenance",
-     "nbaToday": "Audit of messages, not of decisions",
-     "valueDriver": "Liability; parent / student trust",
-     "metric": "relocations with an approver on record",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 6,
-     "differentiator": "Collective feedback / polling",
-     "nbaToday": "Sentinel is two-way for safety checks; it does not rank concerns",
-     "valueDriver": "Emergent needs (heat, transport, medication) surface as a ranked list before they become failures",
-     "metric": "needs submitted; time from concern to plan revision",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 7,
-     "differentiator": "Replay-to-drill learning",
-     "nbaToday": "Auditable communications log; no replay into the next drill",
-     "valueDriver": "Readiness / drill performance improvement per event",
-     "metric": "simulation vs actual performance; drill score",
-     "status": "HYPOTHESIS"
-    },
-    {
-     "n": 8,
-     "differentiator": "Resource scenarios before the event",
-     "nbaToday": "None — resource posture is decided during the event",
-     "valueDriver": "Blankets, water, heat, transport and building capacity pre-positioned against a chosen posture",
-     "metric": "plan chosen vs trigger; time-to-shelter; time-to-distribute supplies",
-     "status": "HYPOTHESIS"
-    }
-   ],
-   "totalCustomerValue": "$ —",
-   "valueCapture": "— %",
-   "wtpRange": "$ — to $ —"
-  }
- ],
- "wtpMetrics": {
-  "SEG-1": [
-   "$ / outage-hour avoided",
-   "$ / production-hour restored",
-   "$ / resource-deployment hour saved",
-   "$ / avoided emergency logistics cost",
-   "$ / avoided shutdown exposure"
   ],
-  "SEG-2": [
-   "capacity coordination time",
-   "staff redeployment time",
-   "avoidable diversion",
-   "incident labour",
-   "communications workload",
-   "regional resource utilization"
-  ],
-  "SEG-3": [
-   "time-to-account-for population",
-   "time-to-shelter",
-   "time-to-distribute supplies",
-   "reduction in duplicate emergency labour",
-   "readiness / drill performance"
-  ],
-  "law": "Every dollar connects to a measured outcome from S16. Nothing is priced before a pilot measures it."
- },
- "scenarios": [
-  {
-   "name": "CONSERVATIVE",
-   "items": [
-    "Minimum essential deployment",
-    "Protect scarce resources",
-    "High reserve"
-   ]
-  },
-  {
-   "name": "BASELINE",
-   "items": [
-    "Expected demand",
-    "Balanced response",
-    "Normal reserve"
-   ]
-  },
-  {
-   "name": "AGGRESSIVE",
-   "items": [
-    "High-impact assumption",
-    "Pre-position additional resources",
-    "Maximum surge capacity"
-   ]
-  },
-  {
-   "shows": "Plan chosen → assumptions → cost → resources → the trigger for changing plans"
-  }
- ],
- "evidenceProgram": {
-  "loop": "Pilot → Measure → Replay → Improve",
-  "metrics": [
-   "participating users",
-   "verified responders",
-   "officials active",
-   "messages / response rate",
-   "needs submitted",
-   "resources requested",
-   "resources fulfilled",
-   "time from need → assignment",
-   "time from assignment → fulfilment",
-   "plan revisions",
-   "acknowledgement rate",
-   "unresolved shortages",
-   "simulation vs actual performance"
-  ],
-  "note": "These thirteen numbers are the foundation of WTP. They are the columns of the pilot's record; none is filled here."
- },
- "financial": {
-  "valueCreation": "Measured customer outcome (S16) — $ —",
-  "valueCapture": "Proposed % captured — — %",
-  "commercialModel": [
-   "Annual readiness subscription",
-   "Deployment / integration",
-   "Optional event activation",
-   "Advanced R-CORE / simulation tier"
-  ],
-  "npv": "$ — M (after pricing validation)",
-  "irr": "— %",
-  "cogs": "$ — k",
-  "msrp": "$ — k",
-  "margin": "— %",
-  "note": "The template's mature business case (NPV, IRR, revenue, margin) is deliberately not populated; it follows pricing validation."
- },
- "roadmap": [
-  {
-   "mvp": "MVP 1 — Coordinate",
-   "items": [
-    "Responsive React interface (phone portrait, phone landscape, desktop landscape / full screen)",
-    "Verified roster",
-    "Needs intake",
-    "Resource inventory",
-    "Assignments",
-    "Updates",
-    "Plan versioning"
-   ],
-   "when": "PROPOSED Q1 2027",
-   "stage": "Develop (G3)"
-  },
-  {
-   "mvp": "MVP 2 — Learn",
-   "items": [
-    "Polling (eXeL)",
-    "Scenario planning (Conservative / Baseline / Aggressive)",
-    "Operational record",
-    "Replay",
-    "Readiness metrics"
-   ],
-   "when": "PROPOSED Q3 2027",
-   "stage": "Qualify (G4)"
-  },
-  {
-   "mvp": "MVP 3 — R-CORE enabled",
-   "items": [
-    "Cross-system ingestion (GridOS / Veoci / Sentinel / CrisisCommand)",
-    "Simulation",
-    "Qualification",
-    "Persistent operational memory",
-    "Multi-event learning"
-   ],
-   "when": "PROPOSED 2028",
-   "stage": "Launch (G5)"
-  }
- ],
- "risks": [
-  {
-   "id": "C1",
-   "risk": "Trust in identity / responder validation",
-   "issue": "A false responder receives authority or resources",
-   "mitigation": "Verified roster with rank / authority; every grant is a named-human row; unauthorized requests refused and recorded",
-   "owner": "TBD"
-  },
-  {
-   "id": "C2",
-   "risk": "AI hallucination / automation overreach",
-   "issue": "A recommendation is acted on as a decision",
-   "mitigation": "AI recommends and organizes; authorized humans retain command; no commit without a named human-authority event (R-CORE)",
-   "owner": "TBD"
-  },
-  {
-   "id": "M1",
-   "risk": "Privacy and sensitive data",
-   "issue": "Needs intake carries names, locations, medical and welfare facts of affected people",
-   "mitigation": "Minimum record (CASPER-shaped fields), role-scoped reads, retention by event, no public row ever carries a person's medical detail",
-   "owner": "TBD"
-  },
-  {
-   "id": "M2",
-   "risk": "Public misinformation",
-   "issue": "A public plan view can be quoted out of context or spoofed",
-   "mitigation": "Controlled transparency: every public statement carries the authorizing role and the plan version; corrections are versions, never deletions",
-   "owner": "TBD"
-  },
-  {
-   "id": "M3",
-   "risk": "Unauthorized resource access",
-   "issue": "A request from an unverified party diverts scarce supplies",
-   "mitigation": "Allocation only against a recorded need by a verified responder; every grant is a named-human row; refusals recorded",
-   "owner": "TBD"
-  },
-  {
-   "id": "M4",
-   "risk": "Integration burden",
-   "issue": "GridOS / hospital / notification systems each have their own data and access model",
-   "mitigation": "Coordinate beside them (MVP 1 needs no integration); cross-system ingestion is MVP 3 and enters only through the de-risk gate",
-   "owner": "TBD"
-  },
-  {
-   "id": "M5",
-   "risk": "Emergency communications availability",
-   "issue": "Networks and power fail in the events the product exists for",
-   "mitigation": "Phone-first, offline-tolerant record with replay on reconnect; the four-channel delivery precedent from the polling engine",
-   "owner": "TBD"
-  },
-  {
-   "id": "M6",
-   "risk": "Government procurement",
-   "issue": "Public buyers move by cycle and grant, not by pilot",
-   "mitigation": "Pilot through an existing operator's or partner's authority; readiness subscription priced after the S16 pilot; align with THIRA/SPR reporting cycles",
-   "owner": "TBD"
-  },
-  {
-   "id": "M7",
-   "risk": "Healthcare compliance",
-   "issue": "Regional health data crosses institutions and jurisdictions",
-   "mitigation": "Healthcare pilot carries only capacity and coordination facts, no patient records, until compliance counsel signs the data map",
-   "owner": "TBD"
-  },
-  {
-   "id": "M8",
-   "risk": "Cybersecurity",
-   "issue": "A crisis-coordination system is a target during the crisis",
-   "mitigation": "Verified roster + signed rows + append-only record; the amber→red two-step for every consequential act; incident-response drills through HSEEP",
-   "owner": "TBD"
-  },
-  {
-   "id": "M9",
-   "risk": "Liability / reliance",
-   "issue": "A wrong recommendation or a stale plan version is acted on",
-   "mitigation": "AI recommends and organizes, authorized humans retain command; every plan carries who authorized it and when; replay reconstructs what was known",
-   "owner": "TBD"
-  }
- ],
- "crs": [
-  {
-   "id": "DRS-01",
-   "step": 1,
-   "name": "Verified authority + roster",
-   "in": "DRS-01.01.IN — a responder, official or volunteer is admitted only after verification by a named authority; rank / authority is on the record",
-   "out": "DRS-01.01.OUT — 100% of grants carry the verifier's identity and time; an unverified request is refused and recorded (target set after the baseline pilot)",
-   "stage": "Concept",
-   "status": "draft",
-   "evidence": "UNPROVEN",
-   "vision": "X Governance",
-   "segment": "all"
-  },
-  {
-   "id": "DRS-02",
-   "step": 2,
-   "name": "Needs intake",
-   "in": "DRS-02.01.IN — any affected person or field responder can submit a need (heat, shelter, water, transport, capacity) from a phone in ≤ 3 taps",
-   "out": "DRS-02.01.OUT — every need has a timestamp, a location, a priority and a state (open / assigned / fulfilled)",
-   "stage": "Concept",
-   "status": "draft",
-   "evidence": "DECLARED (intake record shaped on CDC CASPER + FEMA Community Lifelines — see needsAssessment)",
-   "vision": "III COMM",
-   "segment": "all"
-  },
-  {
-   "id": "DRS-03",
-   "step": 3,
-   "name": "Resource inventory + gap analysis",
-   "in": "DRS-03.01.IN — resources, facilities and supplies are listed with quantity, location, owner and qualification",
-   "out": "DRS-03.01.OUT — a live gap view: needs open vs resources available, per scenario",
-   "stage": "Concept",
-   "status": "draft",
-   "evidence": "DECLARED (ICS 215 / NIMS resource typing — see needsAssessment)",
-   "vision": "VII UCRS",
-   "segment": "all"
-  },
-  {
-   "id": "DRS-04",
-   "step": 4,
-   "name": "Assignment + fulfilment",
-   "in": "DRS-04.01.IN — an authorized person assigns a resource to a need; the assignee acknowledges; fulfilment is confirmed by the need's owner",
-   "out": "DRS-04.01.OUT — need → assignment and assignment → fulfilment times recorded for 100% of needs",
-   "stage": "Concept",
-   "status": "draft",
-   "evidence": "UNPROVEN",
-   "vision": "IV LINK",
-   "segment": "all"
-  },
-  {
-   "id": "DRS-05",
-   "step": 5,
-   "name": "Plan versioning + authority traceability",
-   "in": "DRS-05.01.IN — Plan v1 → Event → Change → Authority → Plan v2; every change names its authorizer",
-   "out": "DRS-05.01.OUT — the user reads what changed, why, who authorized it, what to do now; an unversioned change cannot exist",
-   "stage": "Concept",
-   "status": "draft",
-   "evidence": "UNPROVEN",
-   "vision": "VI SYNC",
-   "segment": "all"
-  },
-  {
-   "id": "DRS-06",
-   "step": 6,
-   "name": "Collective intelligence (eXeL polling)",
-   "in": "DRS-06.01.IN — concerns and priorities are collected from the workforce / public through eXeL polling sessions (33 languages, phone-first)",
-   "out": "DRS-06.01.OUT — themes (3/6/9) with summaries feed the plan revision; time from concern to revision recorded",
-   "stage": "Plan",
-   "status": "draft",
-   "evidence": "SOURCED (the eXeL AI Polling engine exists: Cubes 1–9)",
-   "vision": "V EDGE",
-   "segment": "all"
-  },
-  {
-   "id": "DRS-07",
-   "step": 7,
-   "name": "Controlled public transparency",
-   "in": "DRS-07.01.IN — the public / workforce reads the current plan, its version and its authority; nothing more",
-   "out": "DRS-07.01.OUT — acknowledgement rate of each revision measured",
-   "stage": "Concept",
-   "status": "draft",
-   "evidence": "UNPROVEN",
-   "vision": "I Humanity",
-   "segment": "SEG-2, SEG-3"
-  },
-  {
-   "id": "DRS-08",
-   "step": 8,
-   "name": "Three resource plans",
-   "in": "DRS-08.01.IN — Conservative / Baseline / Aggressive plans with assumptions, cost, resources and the trigger for changing plans",
-   "out": "DRS-08.01.OUT — the plan in force and its trigger are visible at all times; a plan change is a versioned, authorized event",
-   "stage": "Concept",
-   "status": "draft",
-   "evidence": "UNPROVEN",
-   "vision": "VIII Rehearsal",
-   "segment": "all"
-  },
-  {
-   "id": "DRS-09",
-   "step": 9,
-   "name": "Operational record + replay (R-CORE)",
-   "in": "DRS-09.01.IN — every mark, grant, assignment, change and refusal is one canonical row; the record replays",
-   "out": "DRS-09.01.OUT — replay reconstructs who knew what, who authorized what, what changed, what moved, what happened; replay hash stable",
-   "stage": "Plan",
-   "status": "draft",
-   "evidence": "SOURCED (R-CORE spec; the Drone-2525 domain play carries a working replay hash and register)",
-   "vision": "VI SYNC · II R-CORE",
-   "segment": "all"
-  },
-  {
-   "id": "DRS-10",
-   "step": 10,
-   "name": "Simulation + qualification",
-   "in": "DRS-10.01.IN — the three scenarios run against the record; readiness is measured",
-   "out": "DRS-10.01.OUT — simulation vs actual performance reported per event",
-   "stage": "Concept",
-   "status": "draft",
-   "evidence": "UNPROVEN",
-   "vision": "VIII Rehearsal · XI SSSES",
-   "segment": "all"
-  },
-  {
-   "id": "DRS-11",
-   "step": 11,
-   "name": "Cross-system ingestion",
-   "in": "DRS-11.01.IN — GridOS / Veoci / Sentinel / CrisisCommand facts and events enter the record with provenance; DRS never replaces them",
-   "out": "DRS-11.01.OUT — an ingested fact carries its source and time; conflicts are shown, not resolved silently",
-   "stage": "Concept",
-   "status": "draft",
-   "evidence": "UNPROVEN",
-   "vision": "III COMM",
-   "segment": "all"
-  },
-  {
-   "id": "DRS-12",
-   "step": 12,
-   "name": "Three interfaces",
-   "in": "DRS-12.01.IN — phone portrait, phone landscape, desktop landscape / full screen",
-   "out": "DRS-12.01.OUT — every workflow completes at 390 px wide and in landscape; gated in CI like the 2525 domain plays",
-   "stage": "Plan",
-   "status": "draft",
-   "evidence": "SOURCED (the 2525 harness runs both orientations in CI)",
-   "vision": "I Humanity",
-   "segment": "all"
-  },
-  {
-   "id": "DRS-13",
-   "step": 13,
-   "name": "Validation + evidence program",
-   "in": "DRS-13.01.IN — the thirteen S16 metrics are the columns of every pilot record",
-   "out": "DRS-13.01.OUT — WTP ranges and NBA deltas are written only from measured pilot columns",
-   "stage": "Concept",
-   "status": "draft",
-   "evidence": "UNPROVEN",
-   "vision": "XII Flywheel",
-   "segment": "all"
-  }
- ],
- "slides": [
-  {
-   "n": "S1",
-   "title": "Executive Summary",
-   "stage": "Concept",
-   "fields": "project.decisionRequested, segments, wedge",
-   "evidence": "SOURCED (draft v0.1)"
-  },
-  {
-   "n": "S2",
-   "title": "Project Overview",
-   "stage": "Concept",
-   "fields": "problem list, product thesis",
-   "evidence": "SOURCED"
-  },
-  {
-   "n": "S3",
-   "title": "Needs-Based Segmentation",
-   "stage": "Concept",
-   "fields": "axes, segments (X/Y/Z)",
-   "evidence": "HYPOTHESIS"
-  },
-  {
-   "n": "S4",
-   "title": "Customer CONOPS",
-   "stage": "Concept",
-   "fields": "conops",
-   "evidence": "SOURCED (SRC-2 p.5 heritage)"
-  },
-  {
-   "n": "S5",
-   "title": "Customer Problem",
-   "stage": "Concept",
-   "fields": "problem statement, status quo, whys, outcomes",
-   "evidence": "SOURCED (SRC-2 p.8 structure)"
-  },
-  {
-   "n": "S6",
-   "title": "Product Summary",
-   "stage": "Concept",
-   "fields": "architecture",
-   "evidence": "DECLARED"
-  },
-  {
-   "n": "S7",
-   "title": "Workflow + Personas",
-   "stage": "Concept",
-   "fields": "personas",
-   "evidence": "SOURCED (SRC-2 p.6–7 structure)"
-  },
-  {
-   "n": "S8",
-   "title": "Utility + Industrial Segment",
-   "stage": "Concept",
-   "fields": "SEG-1, NBA-1, nose[0], valueTables[0]",
-   "evidence": "HYPOTHESIS"
-  },
-  {
-   "n": "S9",
-   "title": "Healthcare Segment",
-   "stage": "Concept",
-   "fields": "SEG-2, NBA-2, nose[1], valueTables[1]",
-   "evidence": "HYPOTHESIS"
-  },
-  {
-   "n": "S10",
-   "title": "Campus / Fixed-Site Segment",
-   "stage": "Concept",
-   "fields": "SEG-3, NBA-3, nose[2], valueTables[2]",
-   "evidence": "HYPOTHESIS"
-  },
-  {
-   "n": "S11",
-   "title": "R-CORE Relationship",
-   "stage": "Concept",
-   "fields": "rcore",
-   "evidence": "SOURCED (VISION • 2525, MODE_R-CORE_SPEC)"
-  },
-  {
-   "n": "S12",
-   "title": "Competition + Value",
-   "stage": "Concept",
-   "fields": "nbas (SOURCED), competition.clusters, competition.targetPosition, wedge",
-   "evidence": "DECLARED"
-  },
-  {
-   "n": "S13",
-   "title": "Differentiator Value Equation",
-   "stage": "Concept",
-   "fields": "valueTables ×3 (8 rows each)",
-   "evidence": "UNPROVEN ($ —)"
-  },
-  {
-   "n": "S14",
-   "title": "Outcome-Based WTP",
-   "stage": "Concept",
-   "fields": "wtpMetrics",
-   "evidence": "UNPROVEN"
-  },
-  {
-   "n": "S15",
-   "title": "Three Resource Plans",
-   "stage": "Concept",
-   "fields": "scenarios",
-   "evidence": "DECLARED"
-  },
-  {
-   "n": "S16",
-   "title": "Validation + Evidence",
-   "stage": "Concept",
-   "fields": "evidenceProgram, nose[].evidence, needsAssessment",
-   "evidence": "DECLARED (the columns)"
-  },
-  {
-   "n": "S17",
-   "title": "Financial Model",
-   "stage": "Concept",
-   "fields": "financial",
-   "evidence": "UNPROVEN ($ —)"
-  },
-  {
-   "n": "S18",
-   "title": "MVP / Roadmap",
-   "stage": "Concept",
-   "fields": "roadmap",
-   "evidence": "DECLARED (dates PROPOSED, not committed)"
-  },
-  {
-   "n": "S19",
-   "title": "Risks + Dependencies",
-   "stage": "Concept",
-   "fields": "risks ×11, coreControl",
-   "evidence": "DECLARED"
-  },
-  {
-   "n": "S20",
-   "title": "Gate / Decision",
-   "stage": "Concept → Plan",
-   "fields": "gateDecision.approvals ×5, gateExit, unproven",
-   "evidence": "DECLARED (the gate-exit list; the decision itself is the reviewers’)"
-  }
- ],
- "gateExit": [
-  "Validated buyer",
-  "Validated need",
-  "Validated NBA",
-  "Validated differentiators",
-  "Measured operational outcome",
-  "Initial WTP range",
-  "Pilot customer"
- ],
- "unproven": [
-  "Actual WTP",
-  "Implementation cost",
-  "Quantified improvement relative to each NBA",
-  "Segment-specific market size"
- ],
- "revisions": [
-  {
-   "revision": "0.001",
-   "date": "2026-09-23",
-   "kind": "ask",
-   "why": "Operator's draft text deck v0.1 with the two source PDFs and the CrisisCommand partnership (docs/asks/2026-09-23_de_risking_strategies.md)",
-   "commit": "fe6fa34"
-  },
-  {
-   "revision": "0.002",
-   "date": "2026-09-23",
-   "kind": "release",
-   "why": "The demo project: one JSON source, S1–S20 rendered, three NOSE statements, three value tables (every number $ — / HYPOTHESIS / UNPROVEN), DRS-01…13 CRS rows on the G1–G7 ladder, risks C1–C2 / M1–M5, roadmap MVP 1–3 PROPOSED.",
-   "commit": "e97abf4"
-  },
-  {
-   "revision": "0.003",
-   "date": "2026-09-23",
-   "kind": "release",
-   "why": "Reconciled to the operator's second message (docs/asks/2026-09-23_drs_bu_sbu_alpha_needs.md): eight differentiators per segment, eleven risks, S12 clusters + target position, S20 five approvals; NBAs SOURCED from vendor pages; CrisisCommand described from search (site egress-blocked; name collision flagged); the needs-assessment research (two families, ten methods, each with its source and what DRS takes); the Pod codes DR › DRC › CR1 › CR1D with PRJ-34 on HOLD; logo placeholder.",
-   "commit": "8f7b0bd"
-  },
-  {
-   "revision": "0.004",
-   "date": "2026-09-24",
-   "kind": "release",
-   "why": "PRJ-34 SEEDED in the Innovation Pod (the 2026-09-23 HOLD lifted on the operator's 'complete project 34 finalization first'). Sources persisted under docs/drs/sources/ and docs/drs/sources/PRJ-34_drop/ (v0.4 canonical writeup, v0.5 slide manuscript, build brief S1–S19, contribution ledger, upload brief, archive). The Pod's S1–S18 deck for PRJ-34 is built from v0.5 only, with the ledger's corrections (NPV $0.16M · IRR ~20% · universe $268M · near-term SAM $67M; 14%/$220M retired; CrisisCommand = proposed integration; SKU 'Replay + Readiness — powered by R-CORE'), every number labelled IA, the provenance footer '· v0.5 · IA for feedback' on every slide. This JSON's own value/financial sections stay figure-free (evidence law) — the Pod seed is where the IA numbers live.",
-   "commit": "1f1a800"
-  },
-  {
-   "revision": "0.005",
-   "date": "2026-09-24",
-   "kind": "release",
-   "why": "FUTURE STATE FOR CRISISCOMMAND.AI (operator 2026-09-24: 'we are writing a future state for CrisisCommand.ai — value prop and all need to be informed by NBA and needs based segment research'). New futureState block: one master value proposition and three per-segment outcome statements, each DERIVED from where its NBA stops (nbas[].strongAt vs wedge) and from the segment research (nose, X·Y·Z, ODI / CASPER / MIRA / THIRA / HSEEP / Kano), targets IA; rendered on S1 and mirrored into the Pod's PRJ-34 value prop, segment props and S1 / S5 / S6 / S8 cells. project.business names CrisisCommand.ai as the subject. Provenance and the frozen numbers unchanged; the change enters on HI's direction (final authority), recorded in docs/asks/2026-09-24_prj34_future_state_crisiscommand.md.",
-   "commit": "adc9350"
-  }
- ],
- "coreControl": "AI recommends and organizes. Authorized humans retain command.",
- "competition": {
-  "clusters": [
-   {
-    "name": "Deep operational systems",
-    "members": "GridOS / hospital systems / facility systems"
-   },
-   {
-    "name": "Crisis-management systems",
-    "members": "Veoci / Sentinel"
-   },
-   {
-    "name": "Cognitive crisis command",
-    "members": "CrisisCommand"
-   }
-  ],
-  "targetPosition": [
-   "High Human Coordination",
-   "High Replay / Readiness",
-   "Increasing Operational Impact"
-  ],
-  "honesty": "We should not position ourselves as immediately superior in every dimension. That will make the story more credible."
- },
- "gateDecision": {
-  "approvals": [
-   "Three-segment validation — Utility / Industrial · Healthcare · Campus",
-   "Three NBA benchmarks — GridOS · Veoci · Sentinel",
-   "MVP architecture",
-   "Outcome / WTP experiments",
-   "First live or simulated resilience pilot"
-  ]
- },
- "needsAssessment": {
-  "ask": "research best in class needs assessments to help fiends business (operator 2026-09-23)",
-  "law": "Two families are needed and they are not the same instrument: the CUSTOMER needs assessment prices the product (S3, S8–S10, S13, S14); the CRISIS needs assessment is the product's own intake (DRS-02, DRS-03, S4, S15, S16). Every method below is SOURCED by URL; what DRS takes from it is DECLARED.",
-  "families": [
-   {
-    "id": "customer",
-    "name": "Customer / product needs assessment",
-    "methods": [
-     {
-      "name": "Outcome-Driven Innovation (Ulwick / Strategyn)",
-      "what": "Jobs-to-be-done put into practice: 50–150 desired-outcome statements per job, each {direction, measure, object, context}; the opportunity algorithm ranks importance vs satisfaction; segments are formed by outcome profile, not by industry",
-      "sources": [
-       "https://anthonyulwick.com/outcome-driven-innovation/",
-       "https://strategyn.com/jobs-to-be-done/",
-       "https://en.wikipedia.org/wiki/Outcome-Driven_Innovation"
-      ],
-      "whatDrsTakes": "Every S13 value-driver row and every S14 interview question is written as a desired-outcome statement; the S3 segmentation is validated by outcome profile (the X/Y/Z weights are the first three outcome clusters)"
-     },
-     {
-      "name": "Voice of the Customer loop (the gate-review template's own method)",
-      "what": "Continuous and iterative customer feedback through the stage gates: understand needs vs the next-best alternative → validate concepts with prototypes → evaluate and adapt",
-      "sources": [
-       "docs/drs/sources/01.1_DRS_ProjectResilience_Market_Landscape_Needs_2023.12.06.pdf (p.2–3)",
-       "docs/drs/sources/01.1_DRS_Project-AdFusion_Market_Landscape_Needs.pdf (p.2–3)"
-      ],
-      "whatDrsTakes": "The G1→G2 program: three segments × interviews vs the paired NBA before any prototype; the S11/S15/S17 VOC tables of the Pod carry the results"
-     },
-     {
-      "name": "Kano classification",
-      "what": "Must-be · performance · delighter attributes from paired functional/dysfunctional questions; a must-be is not a differentiator",
-      "sources": [
-       "https://asq.org/quality-resources/kano-model",
-       "https://citoolkit.com/articles/kano-analysis/"
-      ],
-      "whatDrsTakes": "The 'not differentiators' list (alerting, dashboards, incident logs, messaging, simulations, AAR) are must-be for the NBAs; each S13 row is tagged must-be / performance / delighter in the S16 interviews before it is priced"
-     }
-    ]
-   },
-   {
-    "id": "crisis",
-    "name": "Crisis / community needs assessment (the product's intake)",
-    "methods": [
-     {
-      "name": "CDC CASPER — Community Assessment for Public Health Emergency Response",
-      "what": "Rapid needs assessment at the household level: two-stage cluster sampling (30 clusters × 7 households), volunteer interview teams, a standard questionnaire, results in days; toolkit 3rd edition 2019",
-      "sources": [
-       "https://www.cdc.gov/casper/media/pdfs/CASPER-toolkit-3_508.pdf",
-       "https://cdc.gov/casper/php/overview/index.html",
-       "https://pmc.ncbi.nlm.nih.gov/articles/PMC4630127/"
-      ],
-      "whatDrsTakes": "DRS-02 needs intake carries CASPER's record shape (who · where · what is lacking · severity · who is responsible · time) so a phone poll is a valid sample of a community, not a shout; the 30×7 design is the fallback when the roster cannot reach everyone"
-     },
-     {
-      "name": "UN OCHA MIRA — Multi-Sector Initial Rapid Assessment",
-      "what": "One common picture across all sectors: situational analysis within 72 hours, MIRA report within two weeks, agreed immediate strategies",
-      "sources": [
-       "https://reliefweb.int/report/world/multi-sector-initial-rapid-assessment-guidance-revision-july-2015-enru",
-       "https://emergency.unhcr.org/coordination-and-communication/cluster-system/multi-cluster-sector-initial-rapid-needs-assessment-mira"
-      ],
-      "whatDrsTakes": "The S4 CONOPS clock: authoritative facts and a first needs picture within 72 h; one picture shared by command, responders and the affected population (S6 layers)"
-     },
-     {
-      "name": "FEMA THIRA / SPR — Threat and Hazard Identification and Risk Assessment / Stakeholder Preparedness Review",
-      "what": "Capability targets and the resource requirements to meet them, self-assessed yearly against last year's capability (built, sustained, lost)",
-      "sources": [
-       "https://www.fema.gov/emergency-managers/national-preparedness/goal/risk-capability-assessment",
-       "https://www.fema.gov/sites/default/files/2020-07/threat-hazard-identification-risk-assessment-stakeholder-preparedness-review-guide.pdf",
-       "https://www.rand.org/pubs/research_reports/RRA2437-1.html"
-      ],
-      "whatDrsTakes": "S15's Conservative / Baseline / Aggressive plans are expressed as capability targets with resource requirements; the trigger for changing plans is a target missed"
-     },
-     {
-      "name": "FEMA HSEEP — Homeland Security Exercise and Evaluation Program",
-      "what": "Exercise design, evaluation and corrective actions that feed the next cycle, informed by risk and capability assessments",
-      "sources": [
-       "https://www.fema.gov/emergency-managers/national-preparedness/exercises/hseep"
-      ],
-      "whatDrsTakes": "S16's Replay → Improve columns are HSEEP corrective actions; the R-CORE loop is HSEEP's cycle with the record kept by the system instead of a binder"
-     },
-     {
-      "name": "FEMA Community Lifelines",
-      "what": "Eight lifelines (Safety and Security · Food, Hydration, Shelter · Health and Medical · Energy · Communications · Transportation · Hazardous Materials · Water) with a status ladder Unstable → Stabilizing → Recovery",
-      "sources": [
-       "https://www.fema.gov/emergency-managers/practitioners/lifelines",
-       "https://www.dhs.gov/sites/default/files/2025-01/25_0127_community_lifeline_status_system_fact_sheet.pdf"
-      ],
-      "whatDrsTakes": "The 'what people currently need' list on S2 and the needs-intake categories are the eight lifelines; a lifeline status is the first line of every plan version"
-     },
-     {
-      "name": "NIMS resource typing + ICS 215 Operational Planning Worksheet",
-      "what": "Resources categorized by capability; the ICS 215 lists assignments, resources required vs available and the gap for the next operational period",
-      "sources": [
-       "https://www.fema.gov/emergency-managers/nims/components",
-       "https://training.fema.gov/emiweb/is/icsresource/assets/ics%20forms/ics%20form%20215,%20operational%20planning%20worksheet%20(v3).pdf"
-      ],
-      "whatDrsTakes": "DRS-03 resource inventory + gap analysis is an ICS 215 the responders fill from phones; DRS-04 assignments use NIMS typing so a request names a capability, not a brand"
-     },
-     {
-      "name": "ISO 22301 Business Impact Analysis",
-      "what": "Critical activities, maximum acceptable downtime, resources required, financial and non-financial impact of disruption",
-      "sources": [
-       "https://advisera.com/27001academy/knowledgebase/how-to-implement-business-impact-analysis-bia-according-to-iso-22301/",
-       "https://www.qmii.com/how-to-conduct-a-business-impact-analysis-bia-in-iso-22301/"
-      ],
-      "whatDrsTakes": "SEG-1's outcome units (outage-hour, production-hour) come from the buyer's own BIA; the S14 interview asks for the BIA's downtime and impact figures before naming any price"
-     }
-    ]
-   }
-  ],
-  "intakeRecord": [
-   "who (verified role)",
-   "where (lifeline + location)",
-   "what is lacking (lifeline category)",
-   "severity",
-   "who is responsible",
-   "time recorded / time assigned / time fulfilled"
-  ],
-  "clocks": {
-   "commonPicture": "72 h (MIRA)",
-   "report": "2 weeks (MIRA)",
-   "operationalPeriod": "per ICS 215"
-  },
-  "outcomeStatementFormat": "{direction} {measure} {object} {context} — e.g. 'minimize the time from a recorded need to an assigned responder during a grid outage' (ODI)"
- },
- "pod": {
-  "company": "Harmattan AI (the Innovation Pod's demo portfolio)",
-  "bu": "DR",
-  "buLabel": "De-Risking Strategies",
-  "sbu": "DRC",
-  "sbuLabel": "Crisis + Resilience",
-  "alphaGroup": "CR1",
-  "alphaGroupLabel": "Crisis Coordination",
-  "alphaCode": "CR1D",
-  "product": "70034",
-  "material": "70034-001",
-  "projectId": "PRJ-34",
-  "status": "SEEDED — PRJ-34 is in the Innovation Pod on DR › DRC › CR1 › CR1D with IA figures (operator 2026-09-24: \"please complete project 34 finalization first; a time sensitive deliverable and demo of H.I. + A.I.\"). Slide seed: frontend/lib/innovation-slide-seed-drs.ts, built from the v0.5 slide manuscript only (docs/drs/sources/PRJ-34_drop/), ledger corrections printed. The HOLD of 2026-09-23 is lifted."
- },
- "assets": {
-  "logo": {
-   "status": "NOT RECEIVED — the 2026-09-23 message says a logo was supplied; no file reached the session. The deck cover carries a labelled placeholder until it lands.",
-   "placeholder": true
-  }
- },
- "futureState": {
-  "subject": "CrisisCommand.ai — future state",
-  "law": "Every statement here is DERIVED, not asserted: from where each next-best alternative STOPS (nbas[].strongAt is what it does; the segment's wedge is what it does not) and from the needs-based segment research (segments[] X·Y·Z axes, nose[] per segment, needsAssessment methods — ODI desired-outcome statements, CASPER intake record, MIRA 72 h picture, THIRA capability targets, HSEEP corrective actions). Targets are IA until the S16 matrix returns a measured delta beside the NBA. No dollar appears here (evidence law).",
-  "master": {
-   "statement": "CrisisCommand.ai, future state: the human-directed coordination layer that begins where GridOS, Veoci and Sentinel stop — verified authority, needs and resources as objects, recipient fulfillment, plan provenance, replay into the next event — built for three needs-based segments and proven only by a measured delta beside each segment's NBA.",
-   "derivedFrom": [
-    "nbas[NBA-1..3].strongAt (what the NBAs do) versus wedge[] (what they do not)",
-    "segments[] X·Y·Z axes and nose[] needs",
-    "needsAssessment: ODI outcome statements, THIRA capability targets, HSEEP corrective actions"
-   ]
+  "evidenceLaw": "Every statement carries one of: SOURCED (a named document says it), DECLARED (we chose it and say so), HYPOTHESIS (to be validated in the S16 program), UNPROVEN (no number is written until measured). Dollars appear only as '$ —' until a pilot measures them — the template's own convention ($ -- k).",
+  "stageGate": {
+    "stages": [
+      "Concept",
+      "Plan",
+      "Develop",
+      "Qualify",
+      "Launch",
+      "Maximize",
+      "Retire / EOL"
+    ],
+    "gates": [
+      "G1",
+      "G2",
+      "G3",
+      "G4",
+      "G5",
+      "G6",
+      "G7"
+    ],
+    "loop": "Understand Needs (vs NBA; refine value proposition + segmentation) → Validate Concepts (prototypes with customers) → Evaluate Offering and Adapt (iterate, validate final design, assess success) — POC / MVP / future versions iterate.",
+    "source": "SRC-2 p.3, SRC-3 p.3"
   },
   "segments": [
-   {
-    "segment": "SEG-1",
-    "nba": "NBA-1",
-    "buyer": "COO / VP Grid Ops / Plant GM (operating buyer: EM + Storm Director)",
-    "nbaStops": [
-     "community and plant envelope: shelter, heat / cool, water, non-store fuel, medical dependence",
-     "civic and volunteer identity beyond the crew roster",
-     "recipient trace and the public / large-customer plan card"
+    {
+      "id": "SEG-1",
+      "name": "Utility + petrochemical / manufacturing",
+      "x_operationalImpact": 10,
+      "y_humanCoordination": 6,
+      "z_replayLearning": 4,
+      "weightsStatus": "HYPOTHESIS (HI discovery)",
+      "nba": "NBA-1",
+      "status": "ARCHIVED — retired DRS-attach segment (v0.8.2)"
+    },
+    {
+      "id": "SEG-2",
+      "name": "Healthcare / regional health disruption",
+      "x_operationalImpact": 5,
+      "y_humanCoordination": 10,
+      "z_replayLearning": 5,
+      "weightsStatus": "HYPOTHESIS (HI discovery)",
+      "nba": "NBA-2",
+      "status": "ARCHIVED — retired DRS-attach segment (v0.8.2)"
+    },
+    {
+      "id": "SEG-3",
+      "name": "Education + fixed-site campus safety",
+      "x_operationalImpact": 7,
+      "y_humanCoordination": 9,
+      "z_replayLearning": 6,
+      "weightsStatus": "HYPOTHESIS (proposed; validate with campus customers)",
+      "nba": "NBA-3",
+      "status": "ARCHIVED — retired DRS-attach segment (v0.8.2)"
+    },
+    {
+      "id": "SEG-4",
+      "name": "Distributed Institutional Trust & Governance Under Pressure",
+      "beachhead": "EDU (first proof)",
+      "dominantNeed": "Align leadership across safety, governance, legal, reputation, student / parent / faculty / donor expectations",
+      "economicBuyer": "President / Chancellor / COO / CCO",
+      "operatingBuyer": "Comms / GC / chief of staff / EM leadership",
+      "nba": "NBA-4",
+      "status": "CURRENT (v0.9) — validation-sequence hypothesis, not a TAM rank"
+    },
+    {
+      "id": "SEG-5",
+      "name": "Product Safety, Recall & Consumer Trust Under Pressure",
+      "beachhead": "FOOD (second proof)",
+      "dominantNeed": "Align quality / ops, legal / regulatory, customer, franchisee, employee, investor and brand response",
+      "economicBuyer": "COO / CCO / GC / Quality",
+      "operatingBuyer": "Crisis team / comms / quality / regulatory",
+      "nba": "NBA-5",
+      "status": "CURRENT (v0.9)"
+    },
+    {
+      "id": "SEG-6",
+      "name": "Digital Revenue & Trust Under Technical Pressure",
+      "beachhead": "TECH (scale-potential, after the leadership-layer wedge is proven)",
+      "dominantNeed": "Translate technical incident facts into executive, legal, regulatory, investor, customer and reputation decisions",
+      "economicBuyer": "COO / CCO / CISO / CIO / GC",
+      "operatingBuyer": "Incident leadership / comms / security",
+      "nba": "NBA-6",
+      "status": "CURRENT (v0.9)"
+    }
+  ],
+  "axes": {
+    "x": "Operational Impact — how heavily the buyer values restoration, continuity and reduction of physical disruption",
+    "y": "Human Coordination — transparent communication, leadership, public/workforce participation, multi-party coordination",
+    "z": "Replay / Readiness Learning — traceability, reconstruction, simulation, improvement of the next response"
+  },
+  "nbas": [
+    {
+      "id": "NBA-1",
+      "name": "GE Vernova GridOS",
+      "segment": "SEG-1",
+      "strongAt": [
+        "Deep grid telemetry / orchestration",
+        "OMS / ADMS",
+        "Distribution automation",
+        "Utility reliability analytics (SAIDI / SAIFI)",
+        "Direct technical restoration workflows",
+        "Simulations"
+      ],
+      "positioning": "GridOS operates the electrical grid. DRS coordinates the human, organizational and resource crisis around the disruption.",
+      "status": "ARCHIVED — retired DRS-attach NBA (v0.8.2). SOURCED (vendor pages read 2026-09-23 — GridOS ADMS with its built-in Enterprise OMS and SAIDI/SAIFI/CMI; Veoci Vitals EM incidents, HVA, AAR, full incident timeline, resource management; Sentinel crisis management + notification + continuity, Video Crisis Rooms, mass notification under 60 s); confirm the competitive weight in the S16 interviews",
+      "sources": [
+        "https://www.gevernova.com/software/products/gridos/advanced-distribution-management-system",
+        "https://www.gevernova.com/software/products/gridos/power-grid-disruption"
+      ]
+    },
+    {
+      "id": "NBA-2",
+      "name": "Veoci (Vitals EM)",
+      "segment": "SEG-2",
+      "strongAt": [
+        "Real-time operational picture",
+        "Cross-facility coordination",
+        "One-click activation",
+        "Automatic incident timelines",
+        "Audit-ready documentation",
+        "AARs and improvement plans"
+      ],
+      "positioning": "Veoci runs the hospital's incident. DRS coordinates the healthcare system, its leadership and the affected population as one transparent, authority-controlled response environment.",
+      "status": "ARCHIVED — retired DRS-attach NBA (v0.8.2). SOURCED (vendor pages read 2026-09-23 — GridOS ADMS with its built-in Enterprise OMS and SAIDI/SAIFI/CMI; Veoci Vitals EM incidents, HVA, AAR, full incident timeline, resource management; Sentinel crisis management + notification + continuity, Video Crisis Rooms, mass notification under 60 s); confirm the competitive weight in the S16 interviews",
+      "sources": [
+        "https://veoci.com/hospitals-healthcare/vitals-em/",
+        "https://veoci.com/press/veoci-vitals-em-healthcare-emergency-management"
+      ]
+    },
+    {
+      "id": "NBA-3",
+      "name": "YUDU Sentinel",
+      "segment": "SEG-3",
+      "strongAt": [
+        "Multi-channel mass notification",
+        "Two-way safety checking",
+        "Secure crisis rooms (video)",
+        "Auditable communications",
+        "Emergency documents",
+        "Extreme-weather / lockdown use cases"
+      ],
+      "positioning": "Sentinel tells the campus. DRS fulfils the campus's needs: who lacks heat, which building has capacity, who has blankets, who is qualified, who approved the relocation, who has been helped.",
+      "status": "ARCHIVED — retired DRS-attach NBA (v0.8.2). SOURCED (vendor pages read 2026-09-23 — GridOS ADMS with its built-in Enterprise OMS and SAIDI/SAIFI/CMI; Veoci Vitals EM incidents, HVA, AAR, full incident timeline, resource management; Sentinel crisis management + notification + continuity, Video Crisis Rooms, mass notification under 60 s); confirm the competitive weight in the S16 interviews",
+      "sources": [
+        "https://www.sentinelresilience.com/use-cases/crisis-management/features",
+        "https://www.sentinelresilience.com/"
+      ]
+    },
+    {
+      "id": "NBA-0",
+      "name": "CrisisCommand.ai (partner, not a competitor)",
+      "segment": "all",
+      "strongAt": [
+        "Facts",
+        "Objectives",
+        "Stakeholder assessment",
+        "Messaging",
+        "SITREPs",
+        "Short-horizon planning",
+        "Simulations",
+        "Historical learning / strategic memory"
+      ],
+      "positioning": "CrisisCommand thinks and commands. DRS coordinates and allocates beneath it; eXeL listens; R-CORE preserves, replays and improves.",
+      "status": "ARCHIVED — retired DRS-attach NBA (v0.8.2). DECLARED from SRC-4"
+    },
+    {
+      "id": "NBA-4",
+      "name": "Rave Mobile Safety / Rave Alert (Motorola Solutions) — primary EDU NBA",
+      "segment": "SEG-4",
+      "strongAt": [
+        "mass notification",
+        "campus emergency communication",
+        "safety applications",
+        "status / help reporting",
+        "emergency coordination",
+        "first-responder information",
+        "campus-wide warning"
+      ],
+      "positioning": "Rave helps the institution protect and communicate with the campus. CrisisCommand helps leadership decide what the institution will do, why, who owns it, and how that posture stays coherent as the crisis evolves.",
+      "status": "SOURCED (v0.9 primary NBA — eXeL manuscript + Grok narrative, vendor pages read 23 Sep 2026); the composite stack of v0.8.2 is kept as `stack` for interview discovery and speaker notes, never a main slide",
+      "sources": [
+        "https://www.crisiscommand.ai/products",
+        "https://www.crisiscommand.ai/",
+        "https://view.motorolasolutions.com/en-us-rave-apparmor-education",
+        "https://view.motorolasolutions.com/en-us-rave-alert-enterprise",
+        "https://view.motorolasolutions.com/en-us-rave-911-suite"
+      ],
+      "stack": "Broader current EDU stack (interview discovery, speaker notes only — never a main slide): Everbridge / Rave + emergency plans + the cabinet process + Teams / email / meetings + external counsel / crisis advisors. Sentinel only if that campus actually runs it."
+    },
+    {
+      "id": "NBA-5",
+      "name": "Everbridge 360 AI / Bridge — PLATFORM BENCHMARK (v1.0) and primary FOOD NBA",
+      "segment": "SEG-5",
+      "strongAt": [
+        "risk intelligence",
+        "emergency communications",
+        "incident-response workflows",
+        "coordinated action",
+        "business-continuity planning",
+        "impact / dependency context",
+        "AI-assisted guidance",
+        "preparedness-to-response feedback"
+      ],
+      "positioning": "Everbridge coordinates the critical event and continuity response. CrisisCommand governs the leadership judgment around what the event means for the enterprise and its stakeholders.",
+      "status": "SOURCED (v0.9 primary NBA — eXeL manuscript + Grok narrative, vendor pages read 23 Sep 2026); the composite stack of v0.8.2 is kept as `stack` for interview discovery and speaker notes, never a main slide",
+      "sources": [
+        "https://www.crisiscommand.ai/products",
+        "https://www.crisiscommand.ai/",
+        "https://www.everbridge.com/platform/critical-event-management/",
+        "https://www.everbridge.com/newsroom/article/everbridge-introduces-everbridge-360-ai-the-next-evolution-of-high-velocity-critical-event-management/",
+        "https://www.everbridge.com/products/bridge/"
+      ],
+      "stack": "Broader current FOOD stack (interview discovery, speaker notes only): Everbridge / CEM + recall / quality / ERP / traceability + legal counsel + crisis / PR agency + manual cross-functional coordination."
+    },
+    {
+      "id": "NBA-6",
+      "name": "PagerDuty — primary TECH NBA",
+      "segment": "SEG-6",
+      "strongAt": [
+        "technical incident response",
+        "on-call mobilization",
+        "response workflows",
+        "technical / business-service status",
+        "stakeholder incident updates",
+        "service visibility",
+        "remediation coordination"
+      ],
+      "positioning": "PagerDuty runs the technical incident. CrisisCommand runs leadership's response to what that incident means for the enterprise.",
+      "status": "SOURCED (v0.9 primary NBA — eXeL manuscript + Grok narrative, vendor pages read 23 Sep 2026); the composite stack of v0.8.2 is kept as `stack` for interview discovery and speaker notes, never a main slide",
+      "sources": [
+        "https://www.crisiscommand.ai/products",
+        "https://www.crisiscommand.ai/",
+        "https://www.pagerduty.com/platform/incident-management/stakeholder-communication/",
+        "https://stakeholders.pagerduty.com/",
+        "https://support.pagerduty.com/main/docs/business-services"
+      ],
+      "stack": "Broader current TECH stack (interview discovery, speaker notes only): PagerDuty + observability / security / status + Slack / Teams + incident commander + the manual legal / communications / executive layer."
+    }
+  ],
+  "wedge": [
+    "Verified authority",
+    "Distributed needs intake",
+    "Real resource allocation",
+    "Plan / version traceability",
+    "Collective feedback (eXeL polling)",
+    "Operational replay",
+    "Scenario-based resource planning (Conservative / Baseline / Aggressive)"
+  ],
+  "notDifferentiators": [
+    "Basic alerting",
+    "Dashboards",
+    "Incident logs",
+    "Stakeholder messaging",
+    "Simulations as such",
+    "After-action learning as such"
+  ],
+  "personas": {
+    "command": [
+      "Incident commander",
+      "City official",
+      "Utility executive",
+      "Plant manager",
+      "Hospital executive",
+      "Campus leader"
     ],
-    "need": "Restore electricity / operations quickly while understanding impact, available backup capacity, community and facility needs, and who is responsible (nose SEG-1).",
-    "outcomes": [
-     "Minimise the time from a recorded community or plant need to a verified assignment — baseline 8–18 h, target ≤ 2 h (IA)",
-     "Minimise unresolved priority needs at T+24h — ≤ 15 % (IA)",
-     "Maximise plan-card acknowledgement by named officials — ≥ 80 % within 30 min (IA)",
-     "Industrial subcase: the five Plant GM numbers decide the value — $/hour interruption, minimum sustainable output, safe-state time, backup duration, staff / access / fuel"
+    "responders": [
+      "Emergency management",
+      "Facilities",
+      "Medical personnel",
+      "Maintenance",
+      "Security",
+      "Logistics",
+      "Qualified volunteers"
     ],
-    "statement": "For the utility or plant whose NBA already owns restoration math and crews, CrisisCommand.ai coordinates the envelope Storm Manager does not hold — shelter, heat, water, fuel, medical dependence, civic identity, recipient trace — so a recorded need reaches a verified assignment in hours, not shifts.",
-    "research": [
-     "Outcome-Driven Innovation",
-     "FEMA THIRA / SPR",
-     "CDC CASPER"
+    "affected": [
+      "Residents",
+      "Employees",
+      "Patients / families",
+      "Students / parents"
+    ],
+    "principle": "Public participants do not receive the same authority as operational leaders. The platform maintains a validated roster and a rank / authority structure. AI recommends and organizes; authorized humans retain command."
+  },
+  "conops": {
+    "before": [
+      "Prepare plans",
+      "Validate rosters",
+      "Identify resources",
+      "Simulate Conservative / Baseline / Aggressive response"
+    ],
+    "during": [
+      "Sense event",
+      "Establish authoritative facts",
+      "Activate command structure",
+      "Gather concerns (poll)",
+      "Prioritize needs",
+      "Allocate resources",
+      "Communicate",
+      "Monitor outcomes",
+      "Revise plan"
+    ],
+    "revision": "Plan v1 → Event → Change → Authority → Plan v2 — the user reads: what changed, why, who authorized it, what to do now",
+    "after": [
+      "Replay",
+      "Measure",
+      "Qualify",
+      "Improve",
+      "Simulate the next event"
+    ],
+    "resilienceHeritage": "Project Resilience CONOPS 1–7 (SRC-2 p.5): real-time alerts · user reporting · alert dissemination · resource management (inventory + gap analysis) · volunteer coordination · public communication · preparedness information — DRS keeps all seven and adds verified authority, plan versioning, polling, replay and scenario planning."
+  },
+  "architecture": [
+    {
+      "layer": "CRISISCOMMAND — Think / Command",
+      "items": [
+        "Facts",
+        "Objectives",
+        "Stakeholders",
+        "Strategy",
+        "SITREPs",
+        "Communications"
+      ],
+      "owner": "CrisisCommand.ai (partner)"
+    },
+    {
+      "layer": "DE-RISKING STRATEGIES — Coordinate / Allocate",
+      "items": [
+        "Verified leadership roster",
+        "Responders",
+        "Volunteers",
+        "Needs",
+        "Resources",
+        "Facilities",
+        "Supplies",
+        "Public / workforce interface"
+      ],
+      "owner": "DRS (this project)"
+    },
+    {
+      "layer": "eXeL COLLECTIVE INTELLIGENCE — Listen",
+      "items": [
+        "Polling",
+        "Concerns",
+        "Priorities",
+        "Feedback",
+        "Emergent needs"
+      ],
+      "owner": "eXeL AI Polling (this repository: sessions → responses → 3/6/9 themes with 33/111/333-word summaries → living rankings; 33 languages; responsive phone / desktop)"
+    },
+    {
+      "layer": "R-CORE — Preserve / Replay / Improve",
+      "items": [
+        "Authority",
+        "Version history",
+        "Operational truth",
+        "Replay",
+        "Simulation",
+        "Qualification"
+      ],
+      "owner": "VISION • 2525 / R-CORE (docs/MODE_R-CORE_SPEC.md, docs/VISION_2525.md)"
+    }
+  ],
+  "rcore": {
+    "chain": [
+      "LIVE EVENT — signals + people + resources",
+      "COORDINATE — command + needs + assignments",
+      "SYNC / OPERATIONAL TRUTH — who knew what · who authorized what · what changed · what moved · what happened",
+      "REPLAY — reconstruct the event",
+      "SIMULATE — Conservative · Baseline · Aggressive",
+      "QUALIFY — measure readiness",
+      "NEXT EVENT — better prepared"
+    ],
+    "statement": "Every crisis becomes evidence. Every replay improves readiness. Every cycle strengthens resilience.",
+    "law": "R-CORE is not the crisis application; it is the recursive operational architecture beneath it. No commit without a named human-authority event (MODE_R-CORE_SPEC)."
+  },
+  "nose": [
+    {
+      "segment": "SEG-1",
+      "needs": "Restore electricity / operations quickly while understanding impact, available backup capacity, community and facility needs, and who is responsible.",
+      "outcomes": [
+        "Every need outside the grid (a facility without power, a plant without water, a neighbourhood without heat) is recorded, prioritized and assigned to a verified responder",
+        "Scarce backup capacity (generators, fuel, crews, shelters) is allocated against recorded needs, not requests by loudness",
+        "Every plan change carries who authorized it and why; the workforce and the public read the current plan",
+        "The event replays for the next one"
+      ],
+      "solution": "DRS beside GridOS: GridOS restores the grid; DRS runs the verified roster, needs intake, resource allocation, plan versioning, polling and replay for the human and organizational crisis around it.",
+      "evidence": [
+        {
+          "claim": "Time from a recorded need to an assignment falls with DRS vs the pre-pilot baseline",
+          "status": "UNPROVEN",
+          "experiment": "Pilot one utility or plant through one simulated and one live disruption; log need → assignment → fulfilment timestamps (S16)"
+        },
+        {
+          "claim": "Duplicate or misallocated resource deployments fall",
+          "status": "UNPROVEN",
+          "experiment": "Count duplicate assignments per event, baseline vs pilot"
+        },
+        {
+          "claim": "Buyers pay for coordination outside the grid on top of GridOS",
+          "status": "UNPROVEN",
+          "experiment": "Outcome-based WTP interviews with three utility / industrial buyers (S14)"
+        }
+      ]
+    },
+    {
+      "segment": "SEG-2",
+      "needs": "Give healthcare leaders, officials, clinicians and citizens enough trustworthy information to coordinate regional capacity without amplifying panic.",
+      "outcomes": [
+        "A verified regional leadership / authority map",
+        "Demand-to-resource coordination across organizations, not inside one hospital",
+        "Controlled public transparency: the public reads the current plan and its authority, never rumour",
+        "Regional volunteers and assistance qualified before they are used",
+        "Cross-event replay and simulation"
+      ],
+      "solution": "DRS beside Veoci: Veoci runs the incident inside the institution; DRS coordinates the region — leadership, capacity, the affected population — under one authority-controlled record.",
+      "evidence": [
+        {
+          "claim": "Capacity-coordination time across facilities falls",
+          "status": "UNPROVEN",
+          "experiment": "Regional exercise with two or more facilities; time-stamp capacity requests and answers"
+        },
+        {
+          "claim": "Public acknowledgement rate of plan changes rises and rumour-driven load falls",
+          "status": "UNPROVEN",
+          "experiment": "Measure acknowledgement rate and call-centre / diversion load, baseline vs pilot"
+        },
+        {
+          "claim": "A regional buyer exists (health department, hospital association, county) who owns the cross-organization gap",
+          "status": "UNPROVEN",
+          "experiment": "Buyer validation interviews (S20 exit criterion: validated buyer)"
+        }
+      ]
+    },
+    {
+      "segment": "SEG-3",
+      "needs": "Protect a known population in a bounded environment during safety, security, infrastructure or severe-weather disruption.",
+      "outcomes": [
+        "Every person accounted for and every welfare need (heat, shelter, water, transport) recorded and fulfilled",
+        "Blankets, water, heat, transport and facility capacity allocated against the intake",
+        "A verified responder / volunteer roster",
+        "Every relocation and plan change with its approver",
+        "Replay feeds the next drill"
+      ],
+      "solution": "DRS beside Sentinel: Sentinel notifies and checks; DRS fulfils — intake, allocation, provenance, polling, replay-to-drill, resource scenarios before the event.",
+      "evidence": [
+        {
+          "claim": "Time-to-account-for population and time-to-shelter fall vs the campus's current drill baseline",
+          "status": "UNPROVEN",
+          "experiment": "Two drills, one without and one with DRS, same scenario (winter freeze), timed"
+        },
+        {
+          "claim": "Supplies reach recorded needs with fewer duplicate emergency labour hours",
+          "status": "UNPROVEN",
+          "experiment": "Count labour hours and duplicate deliveries per drill"
+        },
+        {
+          "claim": "The campus weights (7 / 9 / 6) hold",
+          "status": "HYPOTHESIS",
+          "experiment": "Segment interviews rank the three axes"
+        }
+      ]
+    }
+  ],
+  "valueTables": [
+    {
+      "segment": "SEG-1",
+      "nba": "NBA-1",
+      "nbaOutcomeCost": "$ — (GridOS licence + integration + the human coordination done today by phone, spreadsheet and memory — measure in the pilot)",
+      "rows": [
+        {
+          "n": 1,
+          "differentiator": "Human / community coordination outside the grid",
+          "nbaToday": "Out of scope for GridOS; handled by EOC phones and spreadsheets",
+          "valueDriver": "$ / outage-hour avoided for facilities the grid cannot see; $ / resource-deployment hour saved",
+          "metric": "need → assignment → fulfilment times; duplicate deployments",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 2,
+          "differentiator": "Verified authority + responder roster",
+          "nbaToday": "Utility crews are rostered; community responders are not",
+          "valueDriver": "Avoided unauthorized access to resources; faster trusted hand-offs",
+          "metric": "verified responders active; unauthorized-request rejections",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 3,
+          "differentiator": "Needs-to-resource allocation",
+          "nbaToday": "Restoration priority is technical, not needs-based",
+          "valueDriver": "$ / production-hour restored at the right site first; $ / avoided emergency logistics",
+          "metric": "resources requested vs fulfilled; unresolved shortages",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 4,
+          "differentiator": "eXeL polling / distributed concern intake",
+          "nbaToday": "None",
+          "valueDriver": "Emergent needs surface before they become failures",
+          "metric": "needs submitted; time from concern to plan revision",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 5,
+          "differentiator": "Plan revision + authority traceability",
+          "nbaToday": "Change records live in the OMS for the grid only",
+          "valueDriver": "Liability and audit exposure reduced; less re-work from conflicting instructions",
+          "metric": "plan revisions with authority; acknowledgement rate",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 6,
+          "differentiator": "R-CORE event replay / readiness",
+          "nbaToday": "GridOS simulates the grid, not the organization",
+          "valueDriver": "Readiness improvement per event; drill cost avoided",
+          "metric": "simulation vs actual performance",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 7,
+          "differentiator": "Conservative / Baseline / Aggressive resource scenarios",
+          "nbaToday": "None for community resources",
+          "valueDriver": "$ / avoided shutdown exposure through pre-positioning",
+          "metric": "plan chosen vs trigger; reserve used",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 8,
+          "differentiator": "Responsive phone + desktop interface",
+          "nbaToday": "GridOS is an operator console; field crews, facilities and community roles have no shared screen",
+          "valueDriver": "Adoption by responders and community roles without training; fewer phone relays between the EOC and the field",
+          "metric": "responders active on a phone; time from a field concern to a plan revision",
+          "status": "HYPOTHESIS"
+        }
+      ],
+      "totalCustomerValue": "$ — (sum of measured rows)",
+      "valueCapture": "— % (proposed after measurement)",
+      "wtpRange": "$ — to $ — (S14 experiments)"
+    },
+    {
+      "segment": "SEG-2",
+      "nba": "NBA-2",
+      "nbaOutcomeCost": "$ — (Veoci licence + the regional coordination done today across institutions by calls and email)",
+      "rows": [
+        {
+          "n": 1,
+          "differentiator": "Public-facing controlled transparency",
+          "nbaToday": "Internal dashboards; public messaging via PIO",
+          "valueDriver": "Avoidable diversion and communications workload",
+          "metric": "acknowledgement rate; diversion hours",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 2,
+          "differentiator": "Collective polling of emerging concerns",
+          "nbaToday": "None",
+          "valueDriver": "Earlier detection of regional demand",
+          "metric": "needs submitted → plan revision time",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 3,
+          "differentiator": "Verified regional leadership / authority map",
+          "nbaToday": "Per-institution rosters",
+          "valueDriver": "Capacity coordination time",
+          "metric": "time to a named decision across facilities",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 4,
+          "differentiator": "Demand-to-resource coordination beyond one organization",
+          "nbaToday": "Per-institution",
+          "valueDriver": "Regional resource utilization; staff redeployment time",
+          "metric": "resources requested vs fulfilled regionally",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 5,
+          "differentiator": "Regional assistance / volunteer qualification",
+          "nbaToday": "Ad hoc",
+          "valueDriver": "Incident labour saved; liability avoided",
+          "metric": "verified responders; unqualified assignments rejected",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 6,
+          "differentiator": "Version-controlled public + operational plans",
+          "nbaToday": "Timelines inside Veoci",
+          "valueDriver": "Communications workload; audit",
+          "metric": "plan revisions with authority",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 7,
+          "differentiator": "Three-scenario resource forecasting",
+          "nbaToday": "Veoci plans and activates; regional surge posture is set by call and email",
+          "valueDriver": "Capacity pre-positioned against a chosen posture (Conservative / Baseline / Aggressive) instead of after the diversion",
+          "metric": "plan chosen vs trigger; diversion hours avoided",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 8,
+          "differentiator": "R-CORE cross-event replay and simulation",
+          "nbaToday": "Veoci writes an AAR per incident; learning stays inside one institution",
+          "valueDriver": "Readiness improvement across institutions and events; drill cost avoided",
+          "metric": "simulation vs actual performance; time to a named decision across facilities",
+          "status": "HYPOTHESIS"
+        }
+      ],
+      "totalCustomerValue": "$ —",
+      "valueCapture": "— %",
+      "wtpRange": "$ — to $ —"
+    },
+    {
+      "segment": "SEG-3",
+      "nba": "NBA-3",
+      "nbaOutcomeCost": "$ — (Sentinel licence + the fulfilment done today by facilities staff and volunteers on foot)",
+      "rows": [
+        {
+          "n": 1,
+          "differentiator": "Resource fulfilment, not only notification",
+          "nbaToday": "Notifies and checks; does not allocate",
+          "valueDriver": "Time-to-shelter; time-to-distribute supplies",
+          "metric": "need → fulfilment time",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 2,
+          "differentiator": "Verified responder / volunteer roster",
+          "nbaToday": "Contact lists",
+          "valueDriver": "Qualified help reaches the right building",
+          "metric": "verified responders active",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 3,
+          "differentiator": "Individual needs / shelter / welfare intake",
+          "nbaToday": "Two-way check-in only",
+          "valueDriver": "Time-to-account-for population",
+          "metric": "population accounted / elapsed",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 4,
+          "differentiator": "Allocation of blankets, water, heat, transport, facility capacity",
+          "nbaToday": "None",
+          "valueDriver": "Reduction in duplicate emergency labour",
+          "metric": "duplicate deliveries; labour hours",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 5,
+          "differentiator": "Plan-change provenance",
+          "nbaToday": "Audit of messages, not of decisions",
+          "valueDriver": "Liability; parent / student trust",
+          "metric": "relocations with an approver on record",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 6,
+          "differentiator": "Collective feedback / polling",
+          "nbaToday": "Sentinel is two-way for safety checks; it does not rank concerns",
+          "valueDriver": "Emergent needs (heat, transport, medication) surface as a ranked list before they become failures",
+          "metric": "needs submitted; time from concern to plan revision",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 7,
+          "differentiator": "Replay-to-drill learning",
+          "nbaToday": "Auditable communications log; no replay into the next drill",
+          "valueDriver": "Readiness / drill performance improvement per event",
+          "metric": "simulation vs actual performance; drill score",
+          "status": "HYPOTHESIS"
+        },
+        {
+          "n": 8,
+          "differentiator": "Resource scenarios before the event",
+          "nbaToday": "None — resource posture is decided during the event",
+          "valueDriver": "Blankets, water, heat, transport and building capacity pre-positioned against a chosen posture",
+          "metric": "plan chosen vs trigger; time-to-shelter; time-to-distribute supplies",
+          "status": "HYPOTHESIS"
+        }
+      ],
+      "totalCustomerValue": "$ —",
+      "valueCapture": "— %",
+      "wtpRange": "$ — to $ —"
+    }
+  ],
+  "wtpMetrics": {
+    "SEG-1": [
+      "$ / outage-hour avoided",
+      "$ / production-hour restored",
+      "$ / resource-deployment hour saved",
+      "$ / avoided emergency logistics cost",
+      "$ / avoided shutdown exposure"
+    ],
+    "SEG-2": [
+      "capacity coordination time",
+      "staff redeployment time",
+      "avoidable diversion",
+      "incident labour",
+      "communications workload",
+      "regional resource utilization"
+    ],
+    "SEG-3": [
+      "time-to-account-for population",
+      "time-to-shelter",
+      "time-to-distribute supplies",
+      "reduction in duplicate emergency labour",
+      "readiness / drill performance"
+    ],
+    "law": "Every dollar connects to a measured outcome from S16. Nothing is priced before a pilot measures it."
+  },
+  "scenarios": [
+    {
+      "name": "CONSERVATIVE",
+      "items": [
+        "Minimum essential deployment",
+        "Protect scarce resources",
+        "High reserve"
+      ]
+    },
+    {
+      "name": "BASELINE",
+      "items": [
+        "Expected demand",
+        "Balanced response",
+        "Normal reserve"
+      ]
+    },
+    {
+      "name": "AGGRESSIVE",
+      "items": [
+        "High-impact assumption",
+        "Pre-position additional resources",
+        "Maximum surge capacity"
+      ]
+    },
+    {
+      "shows": "Plan chosen → assumptions → cost → resources → the trigger for changing plans"
+    }
+  ],
+  "evidenceProgram": {
+    "loop": "Pilot → Measure → Replay → Improve",
+    "metrics": [
+      "participating users",
+      "verified responders",
+      "officials active",
+      "messages / response rate",
+      "needs submitted",
+      "resources requested",
+      "resources fulfilled",
+      "time from need → assignment",
+      "time from assignment → fulfilment",
+      "plan revisions",
+      "acknowledgement rate",
+      "unresolved shortages",
+      "simulation vs actual performance"
+    ],
+    "note": "These thirteen numbers are the foundation of WTP. They are the columns of the pilot's record; none is filled here."
+  },
+  "financial": {
+    "valueCreation": "Measured customer outcome (S16) — $ —",
+    "valueCapture": "Proposed % captured — — %",
+    "commercialModel": [
+      "Annual readiness subscription",
+      "Deployment / integration",
+      "Optional event activation",
+      "Advanced R-CORE / simulation tier"
+    ],
+    "npv": "$ — M (after pricing validation)",
+    "irr": "— %",
+    "cogs": "$ — k",
+    "msrp": "$ — k",
+    "margin": "— %",
+    "note": "The template's mature business case (NPV, IRR, revenue, margin) is deliberately not populated; it follows pricing validation."
+  },
+  "roadmap": [
+    {
+      "mvp": "MVP 1 — Coordinate",
+      "items": [
+        "Responsive React interface (phone portrait, phone landscape, desktop landscape / full screen)",
+        "Verified roster",
+        "Needs intake",
+        "Resource inventory",
+        "Assignments",
+        "Updates",
+        "Plan versioning"
+      ],
+      "when": "PROPOSED Q1 2027",
+      "stage": "Develop (G3)"
+    },
+    {
+      "mvp": "MVP 2 — Learn",
+      "items": [
+        "Polling (eXeL)",
+        "Scenario planning (Conservative / Baseline / Aggressive)",
+        "Operational record",
+        "Replay",
+        "Readiness metrics"
+      ],
+      "when": "PROPOSED Q3 2027",
+      "stage": "Qualify (G4)"
+    },
+    {
+      "mvp": "MVP 3 — R-CORE enabled",
+      "items": [
+        "Cross-system ingestion (GridOS / Veoci / Sentinel / CrisisCommand)",
+        "Simulation",
+        "Qualification",
+        "Persistent operational memory",
+        "Multi-event learning"
+      ],
+      "when": "PROPOSED 2028",
+      "stage": "Launch (G5)"
+    }
+  ],
+  "risks": [
+    {
+      "id": "C1",
+      "risk": "Trust in identity / responder validation",
+      "issue": "A false responder receives authority or resources",
+      "mitigation": "Verified roster with rank / authority; every grant is a named-human row; unauthorized requests refused and recorded",
+      "owner": "TBD"
+    },
+    {
+      "id": "C2",
+      "risk": "AI hallucination / automation overreach",
+      "issue": "A recommendation is acted on as a decision",
+      "mitigation": "AI recommends and organizes; authorized humans retain command; no commit without a named human-authority event (R-CORE)",
+      "owner": "TBD"
+    },
+    {
+      "id": "M1",
+      "risk": "Privacy and sensitive data",
+      "issue": "Needs intake carries names, locations, medical and welfare facts of affected people",
+      "mitigation": "Minimum record (CASPER-shaped fields), role-scoped reads, retention by event, no public row ever carries a person's medical detail",
+      "owner": "TBD"
+    },
+    {
+      "id": "M2",
+      "risk": "Public misinformation",
+      "issue": "A public plan view can be quoted out of context or spoofed",
+      "mitigation": "Controlled transparency: every public statement carries the authorizing role and the plan version; corrections are versions, never deletions",
+      "owner": "TBD"
+    },
+    {
+      "id": "M3",
+      "risk": "Unauthorized resource access",
+      "issue": "A request from an unverified party diverts scarce supplies",
+      "mitigation": "Allocation only against a recorded need by a verified responder; every grant is a named-human row; refusals recorded",
+      "owner": "TBD"
+    },
+    {
+      "id": "M4",
+      "risk": "Integration burden",
+      "issue": "GridOS / hospital / notification systems each have their own data and access model",
+      "mitigation": "Coordinate beside them (MVP 1 needs no integration); cross-system ingestion is MVP 3 and enters only through the de-risk gate",
+      "owner": "TBD"
+    },
+    {
+      "id": "M5",
+      "risk": "Emergency communications availability",
+      "issue": "Networks and power fail in the events the product exists for",
+      "mitigation": "Phone-first, offline-tolerant record with replay on reconnect; the four-channel delivery precedent from the polling engine",
+      "owner": "TBD"
+    },
+    {
+      "id": "M6",
+      "risk": "Government procurement",
+      "issue": "Public buyers move by cycle and grant, not by pilot",
+      "mitigation": "Pilot through an existing operator's or partner's authority; readiness subscription priced after the S16 pilot; align with THIRA/SPR reporting cycles",
+      "owner": "TBD"
+    },
+    {
+      "id": "M7",
+      "risk": "Healthcare compliance",
+      "issue": "Regional health data crosses institutions and jurisdictions",
+      "mitigation": "Healthcare pilot carries only capacity and coordination facts, no patient records, until compliance counsel signs the data map",
+      "owner": "TBD"
+    },
+    {
+      "id": "M8",
+      "risk": "Cybersecurity",
+      "issue": "A crisis-coordination system is a target during the crisis",
+      "mitigation": "Verified roster + signed rows + append-only record; the amber→red two-step for every consequential act; incident-response drills through HSEEP",
+      "owner": "TBD"
+    },
+    {
+      "id": "M9",
+      "risk": "Liability / reliance",
+      "issue": "A wrong recommendation or a stale plan version is acted on",
+      "mitigation": "AI recommends and organizes, authorized humans retain command; every plan carries who authorized it and when; replay reconstructs what was known",
+      "owner": "TBD"
+    }
+  ],
+  "crs": [
+    {
+      "id": "DRS-01",
+      "step": 1,
+      "name": "Verified authority + roster",
+      "in": "DRS-01.01.IN — a responder, official or volunteer is admitted only after verification by a named authority; rank / authority is on the record",
+      "out": "DRS-01.01.OUT — 100% of grants carry the verifier's identity and time; an unverified request is refused and recorded (target set after the baseline pilot)",
+      "stage": "Concept",
+      "status": "draft",
+      "evidence": "UNPROVEN",
+      "vision": "X Governance",
+      "segment": "all"
+    },
+    {
+      "id": "DRS-02",
+      "step": 2,
+      "name": "Needs intake",
+      "in": "DRS-02.01.IN — any affected person or field responder can submit a need (heat, shelter, water, transport, capacity) from a phone in ≤ 3 taps",
+      "out": "DRS-02.01.OUT — every need has a timestamp, a location, a priority and a state (open / assigned / fulfilled)",
+      "stage": "Concept",
+      "status": "draft",
+      "evidence": "DECLARED (intake record shaped on CDC CASPER + FEMA Community Lifelines — see needsAssessment)",
+      "vision": "III COMM",
+      "segment": "all"
+    },
+    {
+      "id": "DRS-03",
+      "step": 3,
+      "name": "Resource inventory + gap analysis",
+      "in": "DRS-03.01.IN — resources, facilities and supplies are listed with quantity, location, owner and qualification",
+      "out": "DRS-03.01.OUT — a live gap view: needs open vs resources available, per scenario",
+      "stage": "Concept",
+      "status": "draft",
+      "evidence": "DECLARED (ICS 215 / NIMS resource typing — see needsAssessment)",
+      "vision": "VII UCRS",
+      "segment": "all"
+    },
+    {
+      "id": "DRS-04",
+      "step": 4,
+      "name": "Assignment + fulfilment",
+      "in": "DRS-04.01.IN — an authorized person assigns a resource to a need; the assignee acknowledges; fulfilment is confirmed by the need's owner",
+      "out": "DRS-04.01.OUT — need → assignment and assignment → fulfilment times recorded for 100% of needs",
+      "stage": "Concept",
+      "status": "draft",
+      "evidence": "UNPROVEN",
+      "vision": "IV LINK",
+      "segment": "all"
+    },
+    {
+      "id": "DRS-05",
+      "step": 5,
+      "name": "Plan versioning + authority traceability",
+      "in": "DRS-05.01.IN — Plan v1 → Event → Change → Authority → Plan v2; every change names its authorizer",
+      "out": "DRS-05.01.OUT — the user reads what changed, why, who authorized it, what to do now; an unversioned change cannot exist",
+      "stage": "Concept",
+      "status": "draft",
+      "evidence": "UNPROVEN",
+      "vision": "VI SYNC",
+      "segment": "all"
+    },
+    {
+      "id": "DRS-06",
+      "step": 6,
+      "name": "Collective intelligence (eXeL polling)",
+      "in": "DRS-06.01.IN — concerns and priorities are collected from the workforce / public through eXeL polling sessions (33 languages, phone-first)",
+      "out": "DRS-06.01.OUT — themes (3/6/9) with summaries feed the plan revision; time from concern to revision recorded",
+      "stage": "Plan",
+      "status": "draft",
+      "evidence": "SOURCED (the eXeL AI Polling engine exists: Cubes 1–9)",
+      "vision": "V EDGE",
+      "segment": "all"
+    },
+    {
+      "id": "DRS-07",
+      "step": 7,
+      "name": "Controlled public transparency",
+      "in": "DRS-07.01.IN — the public / workforce reads the current plan, its version and its authority; nothing more",
+      "out": "DRS-07.01.OUT — acknowledgement rate of each revision measured",
+      "stage": "Concept",
+      "status": "draft",
+      "evidence": "UNPROVEN",
+      "vision": "I Humanity",
+      "segment": "SEG-2, SEG-3"
+    },
+    {
+      "id": "DRS-08",
+      "step": 8,
+      "name": "Three resource plans",
+      "in": "DRS-08.01.IN — Conservative / Baseline / Aggressive plans with assumptions, cost, resources and the trigger for changing plans",
+      "out": "DRS-08.01.OUT — the plan in force and its trigger are visible at all times; a plan change is a versioned, authorized event",
+      "stage": "Concept",
+      "status": "draft",
+      "evidence": "UNPROVEN",
+      "vision": "VIII Rehearsal",
+      "segment": "all"
+    },
+    {
+      "id": "DRS-09",
+      "step": 9,
+      "name": "Operational record + replay (R-CORE)",
+      "in": "DRS-09.01.IN — every mark, grant, assignment, change and refusal is one canonical row; the record replays",
+      "out": "DRS-09.01.OUT — replay reconstructs who knew what, who authorized what, what changed, what moved, what happened; replay hash stable",
+      "stage": "Plan",
+      "status": "draft",
+      "evidence": "SOURCED (R-CORE spec; the Drone-2525 domain play carries a working replay hash and register)",
+      "vision": "VI SYNC · II R-CORE",
+      "segment": "all"
+    },
+    {
+      "id": "DRS-10",
+      "step": 10,
+      "name": "Simulation + qualification",
+      "in": "DRS-10.01.IN — the three scenarios run against the record; readiness is measured",
+      "out": "DRS-10.01.OUT — simulation vs actual performance reported per event",
+      "stage": "Concept",
+      "status": "draft",
+      "evidence": "UNPROVEN",
+      "vision": "VIII Rehearsal · XI SSSES",
+      "segment": "all"
+    },
+    {
+      "id": "DRS-11",
+      "step": 11,
+      "name": "Cross-system ingestion",
+      "in": "DRS-11.01.IN — GridOS / Veoci / Sentinel / CrisisCommand facts and events enter the record with provenance; DRS never replaces them",
+      "out": "DRS-11.01.OUT — an ingested fact carries its source and time; conflicts are shown, not resolved silently",
+      "stage": "Concept",
+      "status": "draft",
+      "evidence": "UNPROVEN",
+      "vision": "III COMM",
+      "segment": "all"
+    },
+    {
+      "id": "DRS-12",
+      "step": 12,
+      "name": "Three interfaces",
+      "in": "DRS-12.01.IN — phone portrait, phone landscape, desktop landscape / full screen",
+      "out": "DRS-12.01.OUT — every workflow completes at 390 px wide and in landscape; gated in CI like the 2525 domain plays",
+      "stage": "Plan",
+      "status": "draft",
+      "evidence": "SOURCED (the 2525 harness runs both orientations in CI)",
+      "vision": "I Humanity",
+      "segment": "all"
+    },
+    {
+      "id": "DRS-13",
+      "step": 13,
+      "name": "Validation + evidence program",
+      "in": "DRS-13.01.IN — the thirteen S16 metrics are the columns of every pilot record",
+      "out": "DRS-13.01.OUT — WTP ranges and NBA deltas are written only from measured pilot columns",
+      "stage": "Concept",
+      "status": "draft",
+      "evidence": "UNPROVEN",
+      "vision": "XII Flywheel",
+      "segment": "all"
+    }
+  ],
+  "slides": [
+    {
+      "n": "S1",
+      "title": "Executive Summary",
+      "stage": "Concept",
+      "fields": "project.decisionRequested, segments, wedge",
+      "evidence": "SOURCED (draft v0.1)"
+    },
+    {
+      "n": "S2",
+      "title": "Project Overview",
+      "stage": "Concept",
+      "fields": "problem list, product thesis",
+      "evidence": "SOURCED"
+    },
+    {
+      "n": "S3",
+      "title": "Needs-Based Segmentation",
+      "stage": "Concept",
+      "fields": "axes, segments (X/Y/Z)",
+      "evidence": "HYPOTHESIS"
+    },
+    {
+      "n": "S4",
+      "title": "Customer CONOPS",
+      "stage": "Concept",
+      "fields": "conops",
+      "evidence": "SOURCED (SRC-2 p.5 heritage)"
+    },
+    {
+      "n": "S5",
+      "title": "Customer Problem",
+      "stage": "Concept",
+      "fields": "problem statement, status quo, whys, outcomes",
+      "evidence": "SOURCED (SRC-2 p.8 structure)"
+    },
+    {
+      "n": "S6",
+      "title": "Product Summary",
+      "stage": "Concept",
+      "fields": "architecture",
+      "evidence": "DECLARED"
+    },
+    {
+      "n": "S7",
+      "title": "Workflow + Personas",
+      "stage": "Concept",
+      "fields": "personas",
+      "evidence": "SOURCED (SRC-2 p.6–7 structure)"
+    },
+    {
+      "n": "S8",
+      "title": "Utility + Industrial Segment",
+      "stage": "Concept",
+      "fields": "SEG-1, NBA-1, nose[0], valueTables[0]",
+      "evidence": "HYPOTHESIS"
+    },
+    {
+      "n": "S9",
+      "title": "Healthcare Segment",
+      "stage": "Concept",
+      "fields": "SEG-2, NBA-2, nose[1], valueTables[1]",
+      "evidence": "HYPOTHESIS"
+    },
+    {
+      "n": "S10",
+      "title": "Campus / Fixed-Site Segment",
+      "stage": "Concept",
+      "fields": "SEG-3, NBA-3, nose[2], valueTables[2]",
+      "evidence": "HYPOTHESIS"
+    },
+    {
+      "n": "S11",
+      "title": "R-CORE Relationship",
+      "stage": "Concept",
+      "fields": "rcore",
+      "evidence": "SOURCED (VISION • 2525, MODE_R-CORE_SPEC)"
+    },
+    {
+      "n": "S12",
+      "title": "Competition + Value",
+      "stage": "Concept",
+      "fields": "nbas (SOURCED), competition.clusters, competition.targetPosition, wedge",
+      "evidence": "DECLARED"
+    },
+    {
+      "n": "S13",
+      "title": "Differentiator Value Equation",
+      "stage": "Concept",
+      "fields": "valueTables ×3 (8 rows each)",
+      "evidence": "UNPROVEN ($ —)"
+    },
+    {
+      "n": "S14",
+      "title": "Outcome-Based WTP",
+      "stage": "Concept",
+      "fields": "wtpMetrics",
+      "evidence": "UNPROVEN"
+    },
+    {
+      "n": "S15",
+      "title": "Three Resource Plans",
+      "stage": "Concept",
+      "fields": "scenarios",
+      "evidence": "DECLARED"
+    },
+    {
+      "n": "S16",
+      "title": "Validation + Evidence",
+      "stage": "Concept",
+      "fields": "evidenceProgram, nose[].evidence, needsAssessment",
+      "evidence": "DECLARED (the columns)"
+    },
+    {
+      "n": "S17",
+      "title": "Financial Model",
+      "stage": "Concept",
+      "fields": "financial",
+      "evidence": "UNPROVEN ($ —)"
+    },
+    {
+      "n": "S18",
+      "title": "MVP / Roadmap",
+      "stage": "Concept",
+      "fields": "roadmap",
+      "evidence": "DECLARED (dates PROPOSED, not committed)"
+    },
+    {
+      "n": "S19",
+      "title": "Risks + Dependencies",
+      "stage": "Concept",
+      "fields": "risks ×11, coreControl",
+      "evidence": "DECLARED"
+    },
+    {
+      "n": "S20",
+      "title": "Gate / Decision",
+      "stage": "Concept → Plan",
+      "fields": "gateDecision.approvals ×5, gateExit, unproven",
+      "evidence": "DECLARED (the gate-exit list; the decision itself is the reviewers’)"
+    }
+  ],
+  "gateExit": [
+    "Validated buyer",
+    "Validated need",
+    "Validated NBA",
+    "Validated differentiators",
+    "Measured operational outcome",
+    "Initial WTP range",
+    "Pilot customer"
+  ],
+  "unproven": [
+    "Actual WTP",
+    "Implementation cost",
+    "Quantified improvement relative to each NBA",
+    "Segment-specific market size"
+  ],
+  "revisions": [
+    {
+      "revision": "0.001",
+      "date": "2026-09-23",
+      "kind": "ask",
+      "why": "Operator's draft text deck v0.1 with the two source PDFs and the CrisisCommand partnership (docs/asks/2026-09-23_de_risking_strategies.md)",
+      "commit": "fe6fa34"
+    },
+    {
+      "revision": "0.002",
+      "date": "2026-09-23",
+      "kind": "release",
+      "why": "The demo project: one JSON source, S1–S20 rendered, three NOSE statements, three value tables (every number $ — / HYPOTHESIS / UNPROVEN), DRS-01…13 CRS rows on the G1–G7 ladder, risks C1–C2 / M1–M5, roadmap MVP 1–3 PROPOSED.",
+      "commit": "e97abf4"
+    },
+    {
+      "revision": "0.003",
+      "date": "2026-09-23",
+      "kind": "release",
+      "why": "Reconciled to the operator's second message (docs/asks/2026-09-23_drs_bu_sbu_alpha_needs.md): eight differentiators per segment, eleven risks, S12 clusters + target position, S20 five approvals; NBAs SOURCED from vendor pages; CrisisCommand described from search (site egress-blocked; name collision flagged); the needs-assessment research (two families, ten methods, each with its source and what DRS takes); the Pod codes DR › DRC › CR1 › CR1D with PRJ-34 on HOLD; logo placeholder.",
+      "commit": "8f7b0bd"
+    },
+    {
+      "revision": "0.004",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "PRJ-34 SEEDED in the Innovation Pod (the 2026-09-23 HOLD lifted on the operator's 'complete project 34 finalization first'). Sources persisted under docs/drs/sources/ and docs/drs/sources/PRJ-34_drop/ (v0.4 canonical writeup, v0.5 slide manuscript, build brief S1–S19, contribution ledger, upload brief, archive). The Pod's S1–S18 deck for PRJ-34 is built from v0.5 only, with the ledger's corrections (NPV $0.16M · IRR ~20% · universe $268M · near-term SAM $67M; 14%/$220M retired; CrisisCommand = proposed integration; SKU 'Replay + Readiness — powered by R-CORE'), every number labelled IA, the provenance footer '· v0.5 · IA for feedback' on every slide. This JSON's own value/financial sections stay figure-free (evidence law) — the Pod seed is where the IA numbers live.",
+      "commit": "1f1a800"
+    },
+    {
+      "revision": "0.005",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "FUTURE STATE FOR CRISISCOMMAND.AI (operator 2026-09-24: 'we are writing a future state for CrisisCommand.ai — value prop and all need to be informed by NBA and needs based segment research'). New futureState block: one master value proposition and three per-segment outcome statements, each DERIVED from where its NBA stops (nbas[].strongAt vs wedge) and from the segment research (nose, X·Y·Z, ODI / CASPER / MIRA / THIRA / HSEEP / Kano), targets IA; rendered on S1 and mirrored into the Pod's PRJ-34 value prop, segment props and S1 / S5 / S6 / S8 cells. project.business names CrisisCommand.ai as the subject. Provenance and the frozen numbers unchanged; the change enters on HI's direction (final authority), recorded in docs/asks/2026-09-24_prj34_future_state_crisiscommand.md.",
+      "commit": "adc9350"
+    },
+    {
+      "revision": "0.006",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "v1.0 ONE PLATFORM edition (operator 2026-09-24: 'future state should have all aspects of existing NBA within a single platform … highlight the strongest value prop, and single NBA'; the v0.9 inputs of the same day are the source text). The twelve-lens review of the BUSINESS CASE (asmReview; docs/assessments/2026-09-24_prj34_asm_business_case_review.md) converged: the deck argued the retired 'layer above, replace none' stance, the Pod template printed dollars the deck disowned, three benchmarks diluted conviction. Folded: platform benchmark NBA-5 Everbridge 360 AI / Bridge (11 of 12), the one-sentence value proposition as futureState.master, per-segment single-platform statements, the 2027 / 2030 / 2525 absorption ladder under the R-CORE one-ninth gate (alerting last and certified), a named human approver on every outbound action, the citizen in the record, evidence that can fail (pre-registered hypothesis / null / stop rule), the PRJ-34 row typed unpriced with the Pod's unpriced mode (header · S2 / S3 profile · S8 charts · S10 grid). Earlier in this same unshipped revision: v0.9 primary NBAs per segment (NBA-4..6, composite stacks demoted to `stack`), SEG-1..3 / NBA-1..3 ARCHIVED in place, pricing reset, Pro Team → Pro Enterprise with CONFIRM in speaker notes; provenance footer '… twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0'.",
+      "commit": "PENDING"
+    }
+  ],
+  "coreControl": "AI recommends and organizes. Authorized humans retain command.",
+  "competition": {
+    "clusters": [
+      {
+        "name": "Deep operational systems",
+        "members": "GridOS / hospital systems / facility systems"
+      },
+      {
+        "name": "Crisis-management systems",
+        "members": "Veoci / Sentinel"
+      },
+      {
+        "name": "Cognitive crisis command",
+        "members": "CrisisCommand"
+      }
+    ],
+    "targetPosition": [
+      "High Human Coordination",
+      "High Replay / Readiness",
+      "Increasing Operational Impact"
+    ],
+    "honesty": "We should not position ourselves as immediately superior in every dimension. That will make the story more credible."
+  },
+  "gateDecision": {
+    "approvals": [
+      "Three-segment validation — Utility / Industrial · Healthcare · Campus",
+      "Three NBA benchmarks — GridOS · Veoci · Sentinel",
+      "MVP architecture",
+      "Outcome / WTP experiments",
+      "First live or simulated resilience pilot"
     ]
-   },
-   {
-    "segment": "SEG-2",
-    "nba": "NBA-2",
-    "buyer": "COO / CMO (operating buyer: EM / BCM director)",
-    "nbaStops": [
-     "regional non-clinical resource exchange across organizations",
-     "affected-population transparency distinct from internal HICS traffic",
-     "verified cross-organizational authority when ICS structures disagree",
-     "replay across events, beyond the accreditation AAR"
+  },
+  "needsAssessment": {
+    "ask": "research best in class needs assessments to help fiends business (operator 2026-09-23)",
+    "law": "Two families are needed and they are not the same instrument: the CUSTOMER needs assessment prices the product (S3, S8–S10, S13, S14); the CRISIS needs assessment is the product's own intake (DRS-02, DRS-03, S4, S15, S16). Every method below is SOURCED by URL; what DRS takes from it is DECLARED.",
+    "families": [
+      {
+        "id": "customer",
+        "name": "Customer / product needs assessment",
+        "methods": [
+          {
+            "name": "Outcome-Driven Innovation (Ulwick / Strategyn)",
+            "what": "Jobs-to-be-done put into practice: 50–150 desired-outcome statements per job, each {direction, measure, object, context}; the opportunity algorithm ranks importance vs satisfaction; segments are formed by outcome profile, not by industry",
+            "sources": [
+              "https://anthonyulwick.com/outcome-driven-innovation/",
+              "https://strategyn.com/jobs-to-be-done/",
+              "https://en.wikipedia.org/wiki/Outcome-Driven_Innovation"
+            ],
+            "whatDrsTakes": "Every S13 value-driver row and every S14 interview question is written as a desired-outcome statement; the S3 segmentation is validated by outcome profile (the X/Y/Z weights are the first three outcome clusters)"
+          },
+          {
+            "name": "Voice of the Customer loop (the gate-review template's own method)",
+            "what": "Continuous and iterative customer feedback through the stage gates: understand needs vs the next-best alternative → validate concepts with prototypes → evaluate and adapt",
+            "sources": [
+              "docs/drs/sources/01.1_DRS_ProjectResilience_Market_Landscape_Needs_2023.12.06.pdf (p.2–3)",
+              "docs/drs/sources/01.1_DRS_Project-AdFusion_Market_Landscape_Needs.pdf (p.2–3)"
+            ],
+            "whatDrsTakes": "The G1→G2 program: three segments × interviews vs the paired NBA before any prototype; the S11/S15/S17 VOC tables of the Pod carry the results"
+          },
+          {
+            "name": "Kano classification",
+            "what": "Must-be · performance · delighter attributes from paired functional/dysfunctional questions; a must-be is not a differentiator",
+            "sources": [
+              "https://asq.org/quality-resources/kano-model",
+              "https://citoolkit.com/articles/kano-analysis/"
+            ],
+            "whatDrsTakes": "The 'not differentiators' list (alerting, dashboards, incident logs, messaging, simulations, AAR) are must-be for the NBAs; each S13 row is tagged must-be / performance / delighter in the S16 interviews before it is priced"
+          }
+        ]
+      },
+      {
+        "id": "crisis",
+        "name": "Crisis / community needs assessment (the product's intake)",
+        "methods": [
+          {
+            "name": "CDC CASPER — Community Assessment for Public Health Emergency Response",
+            "what": "Rapid needs assessment at the household level: two-stage cluster sampling (30 clusters × 7 households), volunteer interview teams, a standard questionnaire, results in days; toolkit 3rd edition 2019",
+            "sources": [
+              "https://www.cdc.gov/casper/media/pdfs/CASPER-toolkit-3_508.pdf",
+              "https://cdc.gov/casper/php/overview/index.html",
+              "https://pmc.ncbi.nlm.nih.gov/articles/PMC4630127/"
+            ],
+            "whatDrsTakes": "DRS-02 needs intake carries CASPER's record shape (who · where · what is lacking · severity · who is responsible · time) so a phone poll is a valid sample of a community, not a shout; the 30×7 design is the fallback when the roster cannot reach everyone"
+          },
+          {
+            "name": "UN OCHA MIRA — Multi-Sector Initial Rapid Assessment",
+            "what": "One common picture across all sectors: situational analysis within 72 hours, MIRA report within two weeks, agreed immediate strategies",
+            "sources": [
+              "https://reliefweb.int/report/world/multi-sector-initial-rapid-assessment-guidance-revision-july-2015-enru",
+              "https://emergency.unhcr.org/coordination-and-communication/cluster-system/multi-cluster-sector-initial-rapid-needs-assessment-mira"
+            ],
+            "whatDrsTakes": "The S4 CONOPS clock: authoritative facts and a first needs picture within 72 h; one picture shared by command, responders and the affected population (S6 layers)"
+          },
+          {
+            "name": "FEMA THIRA / SPR — Threat and Hazard Identification and Risk Assessment / Stakeholder Preparedness Review",
+            "what": "Capability targets and the resource requirements to meet them, self-assessed yearly against last year's capability (built, sustained, lost)",
+            "sources": [
+              "https://www.fema.gov/emergency-managers/national-preparedness/goal/risk-capability-assessment",
+              "https://www.fema.gov/sites/default/files/2020-07/threat-hazard-identification-risk-assessment-stakeholder-preparedness-review-guide.pdf",
+              "https://www.rand.org/pubs/research_reports/RRA2437-1.html"
+            ],
+            "whatDrsTakes": "S15's Conservative / Baseline / Aggressive plans are expressed as capability targets with resource requirements; the trigger for changing plans is a target missed"
+          },
+          {
+            "name": "FEMA HSEEP — Homeland Security Exercise and Evaluation Program",
+            "what": "Exercise design, evaluation and corrective actions that feed the next cycle, informed by risk and capability assessments",
+            "sources": [
+              "https://www.fema.gov/emergency-managers/national-preparedness/exercises/hseep"
+            ],
+            "whatDrsTakes": "S16's Replay → Improve columns are HSEEP corrective actions; the R-CORE loop is HSEEP's cycle with the record kept by the system instead of a binder"
+          },
+          {
+            "name": "FEMA Community Lifelines",
+            "what": "Eight lifelines (Safety and Security · Food, Hydration, Shelter · Health and Medical · Energy · Communications · Transportation · Hazardous Materials · Water) with a status ladder Unstable → Stabilizing → Recovery",
+            "sources": [
+              "https://www.fema.gov/emergency-managers/practitioners/lifelines",
+              "https://www.dhs.gov/sites/default/files/2025-01/25_0127_community_lifeline_status_system_fact_sheet.pdf"
+            ],
+            "whatDrsTakes": "The 'what people currently need' list on S2 and the needs-intake categories are the eight lifelines; a lifeline status is the first line of every plan version"
+          },
+          {
+            "name": "NIMS resource typing + ICS 215 Operational Planning Worksheet",
+            "what": "Resources categorized by capability; the ICS 215 lists assignments, resources required vs available and the gap for the next operational period",
+            "sources": [
+              "https://www.fema.gov/emergency-managers/nims/components",
+              "https://training.fema.gov/emiweb/is/icsresource/assets/ics%20forms/ics%20form%20215,%20operational%20planning%20worksheet%20(v3).pdf"
+            ],
+            "whatDrsTakes": "DRS-03 resource inventory + gap analysis is an ICS 215 the responders fill from phones; DRS-04 assignments use NIMS typing so a request names a capability, not a brand"
+          },
+          {
+            "name": "ISO 22301 Business Impact Analysis",
+            "what": "Critical activities, maximum acceptable downtime, resources required, financial and non-financial impact of disruption",
+            "sources": [
+              "https://advisera.com/27001academy/knowledgebase/how-to-implement-business-impact-analysis-bia-according-to-iso-22301/",
+              "https://www.qmii.com/how-to-conduct-a-business-impact-analysis-bia-in-iso-22301/"
+            ],
+            "whatDrsTakes": "SEG-1's outcome units (outage-hour, production-hour) come from the buyer's own BIA; the S14 interview asks for the BIA's downtime and impact figures before naming any price"
+          }
+        ]
+      }
     ],
-    "need": "Give healthcare leaders, officials, clinicians and citizens enough trustworthy information to coordinate regional capacity without amplifying panic (nose SEG-2).",
-    "outcomes": [
-     "Minimise minutes to a multi-organization authority picture — ≤ 25 min from activation (IA)",
-     "Minimise distinct public-message versions in the first 12 hours — ≤ 2 (IA)",
-     "Minimise volunteer time to a qualified assignment — ≤ 4 h (IA)"
+    "intakeRecord": [
+      "who (verified role)",
+      "where (lifeline + location)",
+      "what is lacking (lifeline category)",
+      "severity",
+      "who is responsible",
+      "time recorded / time assigned / time fulfilled"
     ],
-    "statement": "For the regional health system whose NBA already runs HICS, the 96-hour view and the AAR, CrisisCommand.ai coordinates the regional non-clinical exchange and the public card under named cross-organizational authority — never HICS, never PHI.",
-    "research": [
-     "Outcome-Driven Innovation",
-     "UN OCHA MIRA",
-     "FEMA HSEEP"
+    "clocks": {
+      "commonPicture": "72 h (MIRA)",
+      "report": "2 weeks (MIRA)",
+      "operationalPeriod": "per ICS 215"
+    },
+    "outcomeStatementFormat": "{direction} {measure} {object} {context} — e.g. 'minimize the time from a recorded need to an assigned responder during a grid outage' (ODI)"
+  },
+  "pod": {
+    "company": "Harmattan AI (the Innovation Pod's demo portfolio)",
+    "bu": "DR",
+    "buLabel": "De-Risking Strategies",
+    "sbu": "DRC",
+    "sbuLabel": "Crisis + Resilience",
+    "alphaGroup": "CR1",
+    "alphaGroupLabel": "Crisis Coordination",
+    "alphaCode": "CR1D",
+    "product": "70034",
+    "material": "70034-001",
+    "projectId": "PRJ-34",
+    "status": "SEEDED — PRJ-34 is in the Innovation Pod on DR › DRC › CR1 › CR1D. Edition v1.0 ONE PLATFORM; the row is typed unpriced (evidence law) and the Pod prints no derived money for it. Slide seed: frontend/lib/innovation-slide-seed-drs.ts, built from CC_Future_State_S1-S19_v0.9_eXeL.md (slides) + CC_Future_State_NARRATIVE_v0.9.md (meaning), with v0.8.2 only for the S16 / S19 matrix (operator 2026-09-24); v0.4 / v0.5 archived. The HOLD of 2026-09-23 is lifted."
+  },
+  "assets": {
+    "logo": {
+      "status": "NOT RECEIVED — the 2026-09-23 message says a logo was supplied; no file reached the session. The deck cover carries a labelled placeholder until it lands.",
+      "placeholder": true
+    }
+  },
+  "futureState": {
+    "subject": "CrisisCommand.ai — future state (v1.0 ONE PLATFORM)",
+    "law": "Every statement is DERIVED: the operator's 2026-09-24 decision (the future state is ONE platform carrying every aspect of the existing NBA — not 'coordinate across, replace none'), the twelve-lens review of the business case (asmReview), one primary NBA per segment (nbas[NBA-4..6].strongAt vs the future-state whitespace) and the needs-based segment research (segments SEG-4..6, the S3 measures, the needsAssessment methods). The platform benchmark is NBA-5; NBA-4 and NBA-6 are segment comparators and inbound feeds. No dollar appears; no v0.5 number is carried; current capabilities are never re-sold as new; every outbound action carries a named human approver.",
+    "master": {
+      "statement": "CrisisCommand.ai is the one human-governed crisis platform where an institution's leaders see the facts, decide with named authority, alert and act, hold every stakeholder to one approved posture, prove what was done, and learn — so the next crisis begins from the last one's record, never from a blank page.",
+      "derivedFrom": [
+        "operator 2026-09-24 (docs/asks/2026-09-24_prj34_asm_review_single_platform.md): every aspect of the existing NBA inside a single platform; highlight the strongest value proposition and a single NBA",
+        "the twelve-lens review (docs/assessments/2026-09-24_prj34_asm_business_case_review.md): eleven of twelve name Everbridge 360 AI / Bridge as the benchmark; the one-sentence value proposition synthesised from the twelve",
+        "v0.9 S3 (eXeL AI) + the Grok narrative v0.9 for the leadership-record half; nbas[NBA-5].strongAt for the critical-event half the platform absorbs; segments SEG-4..6 + needsAssessment (ODI, Kano, HSEEP, ISO 22301 BIA)"
+      ]
+    },
+    "segments": [
+      {
+        "segment": "SEG-4",
+        "nba": "NBA-4",
+        "buyer": "President / Chancellor / COO / CCO (operating buyer: comms / GC / chief of staff / EM leadership)",
+        "nbaStops": [
+          "executive decision rights and cabinet alignment",
+          "governance interpretation and stakeholder tradeoffs",
+          "approved institutional posture with action ownership and approval / rationale provenance",
+          "board / parent / faculty / donor strategy and outcome-linked replay"
+        ],
+        "need": "During a campus or institutional crisis, leadership must align safety, governance, legal, communications, reputation, student, parent, faculty, trustee, donor, athletics and community expectations while facts continue to change (v0.9 S4).",
+        "outcomes": [
+          "Minimise minutes from event recognition to one approved institutional posture — baseline TBD, target: improve (signature outcome, v0.9 S5)",
+          "Reduce consequential strategy / message revisions — baseline TBD, target: reduce",
+          "One approved institutional posture across president, cabinet, legal, communications and operational leadership"
+        ],
+        "statement": "Rave protects and communicates with the campus today; in the one platform, CrisisCommand.ai carries that reach under named authority — leadership decides what the institution will do, why, who owns it, and every message leaves from the approved posture.",
+        "research": [
+          "Outcome-Driven Innovation",
+          "Kano classification",
+          "FEMA HSEEP"
+        ]
+      },
+      {
+        "segment": "SEG-5",
+        "nba": "NBA-5",
+        "buyer": "COO / CCO / GC / Quality (operating buyer: crisis team / comms / quality / regulatory)",
+        "nbaStops": [
+          "enterprise severity judgment and brand / legal / regulatory tradeoffs",
+          "executive decision rights and stakeholder strategy across customers / regulators / franchisees / employees / investors",
+          "approval provenance and one approved enterprise posture",
+          "action / message synchronization and outcome-linked replay"
+        ],
+        "need": "A product, quality, contamination, recall, supplier, workforce or brand event rapidly crosses operations, legal, regulatory, customer, franchisee, employee, investor and reputation domains (v0.9 S6).",
+        "outcomes": [
+          "Minimise time from material product fact to approved enterprise severity and stakeholder posture — baseline TBD, target: improve (signature outcome, v0.9 S7)",
+          "Reduce conflicting approved versions across regulator / customer / franchisee posture — baseline TBD, target: reduce",
+          "One enterprise posture from affected product / unit facts to customer and regulator trust decisions"
+        ],
+        "statement": "Everbridge 360 AI / Bridge is the benchmark: CrisisCommand.ai carries the critical-event and continuity job inside one governed record, so enterprise judgment, approval and the response to customers, regulators and franchisees are one platform, never two.",
+        "research": [
+          "Outcome-Driven Innovation",
+          "Kano classification",
+          "ISO 22301 Business Impact Analysis"
+        ]
+      },
+      {
+        "segment": "SEG-6",
+        "nba": "NBA-6",
+        "buyer": "COO / CCO / CISO / CIO / GC (operating buyer: incident leadership / comms / security)",
+        "nbaStops": [
+          "the enterprise meaning of the technical event — reputation / legal / regulatory / financial exposure",
+          "executive options, tradeoffs and decision rights",
+          "approval provenance, customer / regulator / investor posture and a board-ready current strategy",
+          "action ownership outside the technical response and outcome-linked replay"
+        ],
+        "need": "A technical outage, cyber event, data breach, product failure, AI failure or platform incident becomes an enterprise crisis when it creates customer, legal, regulatory, investor, employee, financial and reputation consequences (v0.9 S8).",
+        "outcomes": [
+          "Minimise time from technical severity established to approved executive / customer / regulator posture — baseline TBD, target: improve (signature outcome, v0.9 S9)",
+          "Reduce major revisions / contradictory customer, investor and regulator versions — baseline TBD, target: reduce",
+          "Never claim CrisisCommand reduces technical outage duration unless causality is proven — the leadership clock only"
+        ],
+        "statement": "PagerDuty runs the technical incident and stays an inbound feed; CrisisCommand.ai runs leadership's response to what it means and carries the stakeholder-update half natively — never claiming restoration minutes.",
+        "research": [
+          "Outcome-Driven Innovation",
+          "Kano classification",
+          "FEMA HSEEP"
+        ]
+      }
     ]
-   },
-   {
-    "segment": "SEG-3",
-    "nba": "NBA-3",
-    "buyer": "VP Student Affairs / COO / Superintendent (operating buyer: Clery / EM / campus safety)",
-    "nbaStops": [
-     "fulfillment and account-for after the notification",
-     "individual needs, shelter and welfare intake",
-     "allocation of blankets, water, heat, transport, facility capacity",
-     "plan provenance, three resource plans, the degraded-mode cache / bridge"
+  },
+  "manuscript": {
+    "current": "CC_Future_State_S1-S19_v0.9_eXeL.md",
+    "path": "docs/drs/sources/PRJ-34_drop/canonical/CC_Future_State_S1-S19_v0.9_eXeL.md",
+    "parent": "CC_Future_State_NARRATIVE_v0.9.md (Grok, 23 Sep 2026) — the parent for meaning; docs/drs/sources/PRJ-34_drop/canonical/CC_Future_State_NARRATIVE_v0.9.md",
+    "status": "SOURCE TEXT for the slides, read under the v1.0 ONE PLATFORM edition (v0.9 future-state clean, operator 2026-09-24 'final inputs for considerations'); one primary NBA per segment on the main slides (EDU → Rave · FOOD → Everbridge 360 AI / Bridge · TECH → PagerDuty), composite stacks in speaker notes only; S16 / S19 matrix detail from v0.8.2 where a slide needs it; the commercial spine and live sectors carry a CONFIRM flag (v0.8.2 + narrative read Pro Team → Pro Enterprise with six live sectors; the eXeL v0.9 text reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live)",
+    "archived": [
+      "DRS_Crisis_Resilience_Full_Text_Writeup_v0.4 (retired DRS-attach)",
+      "DRS_Crisis_Resilience_S1-S19_Slide_Manuscript_v0.5 (retired DRS-attach)",
+      "Grok v0.6 / v0.6.1 (merge records)",
+      "CC_Future_State_S1-S19_v0.8.2 (superseded as slide source by v0.9; kept for the S16 / S19 full matrix)"
     ],
-    "need": "Protect a known population in a bounded environment during safety, security, infrastructure or severe-weather disruption (nose SEG-3).",
-    "outcomes": [
-     "Minimise minutes to 90 % of a known population accounted for — ≤ 40 min (IA)",
-     "Minimise need-to-fulfillment for heat, water and blankets — ≤ 90 min median (IA)",
-     "Cut duplicate emergency-labour hours versus the last comparable event — −25 % (IA)"
-    ],
-    "statement": "For the campus whose NBA already notifies in under 60 seconds and convenes, CrisisCommand.ai fulfills and accounts — who lacks heat, which building has capacity, who has blankets, who is qualified, who approved relocation, who received assistance — never the blast, the check-in or the video room.",
-    "research": [
-     "Outcome-Driven Innovation",
-     "CDC CASPER",
-     "Kano classification"
+    "edition": "v1.0 ONE PLATFORM (2026-09-24): the v0.9 text read under the operator's single-platform decision and the twelve-lens review; the rendered gate review and the Pod's S1–S18 seed are the edition's carriers"
+  },
+  "archive": {
+    "note": "ARCHIVED BY v0.8.2 (operator 2026-09-24, 'less confusion'): the sections segments SEG-1..3, nose, valueTables, wtpMetrics, financial, scenarios, competition, gateDecision, the CRS ladder and the DRS-attach positioning describe the RETIRED DRS-attach exploration (utility / healthcare / campus beside GridOS / Veoci / Sentinel). They stay in this append-only master as the record of that exploration; nothing in them is current strategy. The current strategy is futureState (v0.9) with segments SEG-4..6 and one primary NBA each (NBA-4..6).",
+    "retired": [
+      "SEG-1",
+      "SEG-2",
+      "SEG-3",
+      "NBA-1",
+      "NBA-2",
+      "NBA-3",
+      "nose",
+      "valueTables",
+      "wtpMetrics",
+      "financial",
+      "scenarios",
+      "competition",
+      "gateDecision",
+      "crs (DRS-01..13 as written)"
     ]
-   }
-  ]
- }
+  },
+  "platform": {
+    "benchmark": "NBA-5",
+    "why": "The only alternative whose surface already spans the whole event (risk intelligence · emergency communications · incident workflow · coordinated action · continuity · dependency context · AI-assisted guidance · preparedness-to-response feedback); present in two of the three segment stacks (EDU beside Rave, FOOD outright); its buyer already believes in one platform; the incumbent already moving into the whitespace. Eleven of twelve reviewer lenses; Enlil argued PagerDuty for buildability.",
+    "comparators": [
+      "NBA-4",
+      "NBA-6"
+    ],
+    "ladder": [
+      {
+        "horizon": "2027",
+        "state": "the governed leadership state native (decision rights · approval state · action ownership · acknowledgement · evidence · current-plan state · replay) and every benchmark function reachable from inside CrisisCommand.ai — built-in or partnered rails — one login, one record; alerts leave only under a named human"
+      },
+      {
+        "horizon": "2030",
+        "state": "the whole critical-event surface native, absorbed function by function only after each beats the benchmark on its pre-registered clock by the one-ninth (11.1 %) gate; life-safety alerting last, delivery-guaranteed and certified; Rave and PagerDuty facts as inbound feeds; the Enterprise Decision Graph across instances"
+      },
+      {
+        "horizon": "2525",
+        "state": "humanity's shared, human-governed crisis memory — every institution's decisions, evidence and outcomes replayable across people, systems and generations in an open, exportable record; the affected community a participant in the record; coordination without domination"
+      }
+    ],
+    "rules": [
+      "govern first, absorb by qualification — a ladder (pilot → replay → qualify → certify → adopt → educate → expand), never a launch",
+      "every outbound action carries its decision right, a named approver and a timestamp; Manual cadence by default, Semi-Automated earned per capability",
+      "alerting absorbed last and certified; sensitive facts arrive by pointer and never become the platform's",
+      "degraded mode: the approved posture and the record survive on any phone; a completed approval is never discarded",
+      "no price until a buyer validates baseline, delta, economic weight, attribution and WTP; the row is typed unpriced"
+    ],
+    "status": "DECIDED (Master of Thought synthesis, 2026-09-24) — the founder's HI test is the Pod's S1–S18 PDF"
+  },
+  "asmReview": {
+    "date": "2026-09-24",
+    "ask": "docs/asks/2026-09-24_prj34_asm_review_single_platform.md",
+    "synthesis": "docs/assessments/2026-09-24_prj34_asm_business_case_review.md",
+    "scope": "textual SPIRAL + SSSES on the BUSINESS CASE (S1–S18 as the Pod renders them), R-CORE + Vision 2525 folded; audience founder / investors / future customers",
+    "means": {
+      "security": 77.2,
+      "stability": 58.9,
+      "scalability": 59.7,
+      "efficiency": 58.8,
+      "succinctness": 54.8
+    },
+    "mean": 61.9,
+    "lenses": [
+      {
+        "lens": "Aset",
+        "focus": "theme reinforcement & consistency",
+        "ssses": {
+          "security": 78,
+          "stability": 62,
+          "scalability": 58,
+          "efficiency": 60,
+          "succinctness": 55
+        },
+        "topRisk": "R1 · The deck's one truth is the retired one (\"above, beside, pointer, never become\") on S1, S2, S4, S6, S8, S11, S13, S14, S15, S18 · H · One boundary sentence written once and echoed everywhere: CrisisCommand carries the NBA's job inside one platform, every step under named human authority.",
+        "summary111": "To the founder, investors and future customers: CrisisCommand.ai already helps leaders think clearly under pressure. The next step is not a layer above the tools you run today; it is one platform that carries everything your critical-event system does now and adds what none of them have — named authority for every decision, a visible approver, a named owner, proof the action was done, and a replay that teaches the next crisis to the next team. Everbridge 360 AI–Bridge is the benchmark to absorb; campus and technical feeds follow. No price is claimed until a buyer proves the minutes. Humanity decides. Technology assists. Trust is proven on the record, event after event.",
+        "words": 112,
+        "benchmark": "Everbridge 360 AI / Bridge",
+        "report": "docs/assessments/prj34_asm_2026-09-24/Aset.md"
+      },
+      {
+        "lens": "Asar",
+        "focus": "final synthesis of meaning",
+        "ssses": {
+          "security": 70,
+          "stability": 55,
+          "scalability": 60,
+          "efficiency": 50,
+          "succinctness": 48
+        },
+        "topRisk": "R1 · The deck argues the stance the operator retired — \"sits above, replaces none\" on S1, S5, S6, S8, S13, S18 — so the founder is handed a layer when the ask is a platform · H · One boundary sentence, rewritten once and reused: CrisisCommand carries every aspect of the benchmark NBA, added in the order each aspect beats it on a pre-registered clock.",
+        "summary111": "Founder, investors, future customers: read this deck as one decision, not eighteen slides. CrisisCommand already helps leaders think under pressure; nobody disputes that. The question is whether it becomes the single platform where a crisis is seen, decided, approved, executed, communicated and remembered, carrying everything today's critical-event system does beneath a layer only humans can provide: who may decide, who approved, who owns, what evidence, what replay. Take Everbridge 360 as the benchmark, EDU as the first proof, one pre-registered clock as the evidence, and add each absorbed capability only when it beats that benchmark. No prices until a real buyer verifies them. Humanity decides. Technology assists. Trust must be proven.",
+        "words": 111,
+        "benchmark": "Everbridge 360 AI / Bridge",
+        "report": "docs/assessments/prj34_asm_2026-09-24/Asar.md"
+      },
+      {
+        "lens": "Athena",
+        "focus": "strategy & flow",
+        "ssses": {
+          "security": 84,
+          "stability": 58,
+          "scalability": 61,
+          "efficiency": 57,
+          "succinctness": 52
+        },
+        "topRisk": "R1 · Two strategies in one deck: S1 / S6 / S13 / S14 / S18 say \"replace none\", the operator's future state says one platform — the founder and an investor read a contradiction · H · Rewrite those five slides to the single-platform thesis before the PDF leaves the Pod; one gate test that no slide carries the retired clause.",
+        "summary111": "To the founder, investors and future customers: CrisisCommand.ai already helps leaders think clearly under pressure. The next step is not to sit beside Everbridge, Rave and PagerDuty, but to become the single crisis platform where the alert, the workflow, the continuity plan and the leadership decision share one governed record. Benchmark Everbridge 360 AI, because that buyer already believes in one platform. Prove the leadership layer first in education, then absorb the platform surface in food, then carry it to technology. Every module earns its place by a measured improvement on a pre-declared clock. Humans always decide; the platform then executes; every crisis teaches the next, for every institution, across generations.",
+        "words": 111,
+        "benchmark": "Everbridge 360 AI / Bridge",
+        "report": "docs/assessments/prj34_asm_2026-09-24/Athena.md"
+      },
+      {
+        "lens": "Christo",
+        "focus": "consensus & user flow",
+        "ssses": {
+          "security": 82,
+          "stability": 58,
+          "scalability": 55,
+          "efficiency": 60,
+          "succinctness": 52
+        },
+        "topRisk": "R1 · The deck's spine (S1, S3, S6, S8, S12, S18) says \"layer above, replace none\" while the operator's future state is one platform carrying every aspect of the NBA; founder and investors read two theses · H · One rewrite pass on those six slides before the PDF ships; the boundary becomes a 2027 sequencing statement, not a permanent law.",
+        "summary111": "To the founder, investors and future customers: CrisisCommand already helps leaders think clearly under pressure. That is not small; it is the hardest part. The future state makes it one platform: the facts come in, named people decide, everyone who must hear, hears, the actions are owned and proven, and the record teaches the next crisis. Everbridge 360 AI / Bridge is the benchmark because it is the widest system your buyers already trust; carry its work inside one record, not beside it. Keep one law on every screen: humans approve, own the consequences, and can always export their history. Prove minutes first, then price. Unite the segments; never divide them.",
+        "words": 111,
+        "benchmark": "Everbridge 360 AI / Bridge",
+        "report": "docs/assessments/prj34_asm_2026-09-24/Christo.md"
+      },
+      {
+        "lens": "Enki",
+        "focus": "diversity & edge cases",
+        "ssses": {
+          "security": 72,
+          "stability": 58,
+          "scalability": 45,
+          "efficiency": 55,
+          "succinctness": 50
+        },
+        "topRisk": "R1 · The deck argues against the ask: S1, S6, S13, S14 and S18 all say \"never become the NBA\", so a founder reads two strategies in one PDF · H · One stance on S1 and S6: CrisisCommand carries the critical-event job inside one platform; delivery rails are embedded commodities, never rebuilt.",
+        "summary111": "Founder, investors, future customers: this deck is honest about what CrisisCommand already does and careful never to let a machine decide. Its flaw is that it argues for a coordinating layer beside three vendors when the future is one platform that runs the whole event. From the edge, three NBAs are three products; one benchmark, Everbridge 360 AI / Bridge, is the job to carry, with a governed head it lacks. The deck forgets the buyer with no tooling, the trustee who signs, the counsel who fears the record, the crisis without a minute zero, and every institution outside the United States. Fix those, and small success becomes humanity's operating memory.",
+        "words": 111,
+        "benchmark": "Everbridge 360 AI / Bridge",
+        "report": "docs/assessments/prj34_asm_2026-09-24/Enki.md"
+      },
+      {
+        "lens": "Enlil",
+        "focus": "implementation & build",
+        "ssses": {
+          "security": 82,
+          "stability": 58,
+          "scalability": 64,
+          "efficiency": 55,
+          "succinctness": 50
+        },
+        "topRisk": "R1 · Two theses in one deck: S1, S6, S8 and the S13 master question say \"without replacing\"; the operator's future state is one platform carrying the NBA's job · H · One rewrite pass through the shared constants (`MASTER_Q`, boundary text); a source-level gate that fails on \"without replacing\" or \"does not need to become\".",
+        "summary111": "Founder, investors, customers: this deck holds where it is honest and breaks where it hedges. It says CrisisCommand sits above PagerDuty, Rave and Everbridge and replaces none; the future you asked for is one platform doing the whole job. Build it around PagerDuty first, not last: its surface is software, documented and bounded, and your TECH edition already exists. Carry on-call, escalation, status and stakeholder updates natively by 2027, absorb recall and campus jobs by 2030, and keep every decision signed by a human. Remove the template's placeholder figures before anyone reads the PDF. Declare one metric per horizon, ship only on measured gain, and replay everything. Humanity decides. Technology assists.",
+        "words": 111,
+        "benchmark": "PagerDuty",
+        "report": "docs/assessments/prj34_asm_2026-09-24/Enlil.md"
+      },
+      {
+        "lens": "Krishna",
+        "focus": "integration & cross-module",
+        "ssses": {
+          "security": 72,
+          "stability": 58,
+          "scalability": 70,
+          "efficiency": 64,
+          "succinctness": 60
+        },
+        "topRisk": "R1 · S3 and S10 carry template dollars (declared NRE, ten-year revenue, NPV/IRR, subscription quantity) into the founder's PDF while every other slide says no dollar is current · H · Zero the return profile and revenue plan for PRJ-34, or suppress S3/S10 read-outs in the deck export; the S3 disclaimer is not a control.",
+        "summary111": "Founder, investors, future customers: CrisisCommand.ai should become one platform, not a layer above three others. Today the deck says it sits above Rave, Everbridge and PagerDuty and replaces none; that stance caps you at a feature. Benchmark one alternative, Everbridge 360, and carry every job it does inside a platform where humans hold every decision right, every approval and every outbound action. Prove it the same honest way each time: the same scenario twice, leadership minutes measured, no dollar promised until a buyer supplies the inputs. Learn in EDU, then FOOD, then TECH, and let each event's replay make the next institution wiser. Humanity decides. Technology assists. Trust must be proven.",
+        "words": 111,
+        "benchmark": "Everbridge 360 AI / Bridge",
+        "report": "docs/assessments/prj34_asm_2026-09-24/Krishna.md"
+      },
+      {
+        "lens": "Odin",
+        "focus": "predictive & future-proof",
+        "ssses": {
+          "security": 82,
+          "stability": 61,
+          "scalability": 58,
+          "efficiency": 55,
+          "succinctness": 60
+        },
+        "topRisk": "R1 · Incumbent absorption: by 2027 Everbridge, PagerDuty and Motorola each ship an \"AI executive layer\" with approvals; \"we sit above them\" becomes a feature they copy, not a company · H · Own what they cannot copy: the authority record (decision rights, approval provenance, outcome-linked replay), sector precedent, institutional memory; then carry their job inside one platform (S6, S8).",
+        "summary111": "To the founder, investors and future customers: crises will not wait for the market to settle. By 2027 every incumbent will sell an AI executive layer; by 2030 regulators will demand proof of human oversight for each decision. Sitting above Everbridge, Rave and PagerDuty is a feature they can copy. Owning the record of authority is not. Make CrisisCommand the one platform where an event is sensed, judged, approved, executed, communicated and remembered, and carry every job Everbridge does today inside it. Prove it on one campus first, measured honestly, minute by minute. Then food, then technology, then every institution that humanity trusts. Humanity decides. Technology assists. Trust must be proven.",
+        "words": 111,
+        "benchmark": "Everbridge 360 AI / Bridge",
+        "report": "docs/assessments/prj34_asm_2026-09-24/Odin.md"
+      },
+      {
+        "lens": "Pangu",
+        "focus": "cutting-edge innovation",
+        "ssses": {
+          "security": 86,
+          "stability": 61,
+          "scalability": 70,
+          "efficiency": 72,
+          "succinctness": 66
+        },
+        "topRisk": "R1 · The deck argues with itself: S1 / S6 / S8 / S13 say \"replace none\" while the operator's future state says one platform; a founder or investor will ask which · H · One thesis on every slide: govern first, absorb by qualification; rewrite the four slides before the PDF ships",
+        "summary111": "Founder, investors, future customers: CrisisCommand already does the hard part. It makes leaders decide well under pressure. The bold, true next step is not to sit above Everbridge, Rave and PagerDuty; it is to become the one platform where a crisis is sensed, judged, approved, communicated, executed, evidenced and learned from, with a named human owning every consequence. Benchmark Everbridge 360 AI and Bridge, the widest floor today. Win the governed leadership layer first, prove it minute by minute in the EDU tabletop, then absorb notification, workflow and continuity surfaces as commodities under that record. By 2525 this is humanity's shared crisis memory. Humanity decides. Technology assists. Trust must be proven.",
+        "words": 111,
+        "benchmark": "Everbridge 360 AI / Bridge",
+        "report": "docs/assessments/prj34_asm_2026-09-24/Pangu.md"
+      },
+      {
+        "lens": "Sofia",
+        "focus": "multi-perspective",
+        "ssses": {
+          "security": 78,
+          "stability": 66,
+          "scalability": 55,
+          "efficiency": 62,
+          "succinctness": 60
+        },
+        "topRisk": "R1 · The deck argues against its own future state: S1, S2, S6, S13 defend \"layer above, replace none\" while the operator's future state is one platform carrying every aspect of the NBA · H · One thesis sentence on S1, and S6 / S13 rewritten so absorption is the plan and \"lite\" is the failure mode.",
+        "summary111": "Founder, investors, future customers: read S1 four ways and it splits. The founder hears a bigger CrisisCommand; the investor hears a layer that replaces nothing; the customer hears a second tool beside Everbridge; the citizen in the crisis hears nothing at all, because the person who actually receives the alert is not on any slide. Fix the split by choosing one platform. Benchmark Everbridge 360 AI/Bridge, absorb every aspect it does into one governed record, keep PagerDuty as a pointer, and let the alert and the decision leave from the same approved posture. Then the four readings converge: one voice, human-approved, replayable, remembered, carried from one campus to all of humanity.",
+        "words": 111,
+        "benchmark": "Everbridge 360 AI / Bridge",
+        "report": "docs/assessments/prj34_asm_2026-09-24/Sofia.md"
+      },
+      {
+        "lens": "Thoth",
+        "focus": "data & analytics",
+        "ssses": {
+          "security": 82,
+          "stability": 66,
+          "scalability": 58,
+          "efficiency": 61,
+          "succinctness": 55
+        },
+        "topRisk": "R1 · Placeholder money prints on S3 and S10 while S1, S8, S12, S15 promise no price — the founder's first \"which is true?\" · H · Zero the PRJ-34 plan cells or suppress the return chart; add a PDF gate that fails on any currency symbol.",
+        "summary111": "Founder, investors, customers: this deck's strength is that it refuses to sell what it cannot measure. Its weakness is that three measurements are not yet definable. Minute zero has no owner. The A/B simulation on S16 has no pre-registered null result. Two slides, S3 and S10, print placeholder money while every other slide promises none. Fix these and the story is falsifiable, which is the only kind investors should fund. Then go further: make CrisisCommand.ai the single platform that alerts, coordinates, decides and remembers, benchmarked against Everbridge, measured by one clock family, gated by an eleven-percent improvement rule before any capability is called proven. Humans approve every consequence. Numbers decide gates.",
+        "words": 111,
+        "benchmark": "Everbridge 360 AI / Bridge",
+        "report": "docs/assessments/prj34_asm_2026-09-24/Thoth.md"
+      },
+      {
+        "lens": "Thor",
+        "focus": "risk & security",
+        "ssses": {
+          "security": 58,
+          "stability": 46,
+          "scalability": 62,
+          "efficiency": 55,
+          "succinctness": 50
+        },
+        "topRisk": "R1 · Two theses in one deck: \"layer above, replace none\" (S1, S6, S8, S13) against the operator's \"every aspect of the NBA inside one platform\"; a founder reads confusion, an investor reads drift · H · One thesis on every slide: one platform, absorbed in liability order, the NBA retained only where the customer keeps it; the S13 risk table rewritten to match.",
+        "summary111": "To the founder, investors and future customers: CrisisCommand.ai should become one crisis platform, not a layer above someone else's. Benchmark Everbridge 360, the only alternative that already spans the whole event, and absorb its functions in liability order: leadership governance first (2027), communications and workflow next, life-safety alerting last and only after qualification. Three things protect the company: every recommendation carries a named human approver, so authority never drifts to the machine; facts arrive by pointer and sensitive records never become yours; the approved posture survives your own outage on any phone. What kills it: two theses in one deck, dollar figures no buyer verified, a cloned alert engine before evidence.",
+        "words": 111,
+        "benchmark": "Everbridge 360 AI / Bridge",
+        "report": "docs/assessments/prj34_asm_2026-09-24/Thor.md"
+      }
+    ],
+    "decisions": [
+      "platform benchmark NBA-5 (11 of 12)",
+      "one value proposition sentence (futureState.master.statement)",
+      "absorption ladder 2027 / 2030 / 2525 under the one-ninth gate, alerting last",
+      "human approver on every outbound action",
+      "the row typed unpriced; the Pod hides derived money",
+      "one thesis on every slide; CONFIRM to speaker notes",
+      "the citizen enters the record (S4 · S7 · S15 · S17)",
+      "evidence that can fail: pre-registered hypothesis / null / stop rule; clocks the platform logs"
+    ]
+  }
 }

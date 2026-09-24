@@ -365,7 +365,11 @@ import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJE
   ok(DEMO_PROJECTS.some((p) => p.id === "PRJ-34") && !RESERVED_PROJECT_IDS.includes("PRJ-34") && RESERVED_PROJECT_IDS.length === 0, "PRJ-34 is SEEDED: in the portfolio, nothing reserved");
   const p34 = DEMO_PROJECTS.find((p) => p.id === "PRJ-34");
   ok(hierOf(p34).bu === "DR" && hierOf(p34).sbu === "DRC" && hierOf(p34).pgroup === "CR1" && hierOf(p34).alpha === "CR1D" && hierOf(p34).product === "70034", "PRJ-34 resolves to DR › DRC › CR1 › CR1D · 70034");
-  ok(p34.gate === "G2" && p34.nreK === 1460 && p34.firstRevenue === "2027-Q3" && /final authority: De-Risking Strategies · v0\.5 · IA for feedback$/.test(p34.provenance ?? ""), "PRJ-34 is G2 Plan, NRE $1.46M (IA), first paid DP 2027-Q3, provenance footer set");
+  ok(p34.gate === "G2" && p34.nreK === 0 && p34.fullRev10yM === 0 && typeof p34.unpriced === "string" && /Unpriced by rule/.test(p34.unpriced) && /twelve-lens review 2026-09-24 · final authority: De-Risking Strategies \/ Human Intelligence · v1\.0$/.test(p34.provenance ?? ""), "PRJ-34 is G2, typed UNPRICED with zero dollars, provenance footer v1.0 set");
+  // v1.0 · UNPRICED BY RULE reaches the glass: one class guard in the field renderer + S10 + the header + the card.
+  const pageSrcU = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
+  ok(/if \(p\.unpriced && UNPRICED_FIELDS\.has\(id\)\)/.test(pageSrcU) && ["profile", "accel", "revtable", "rdchart", "vpchart", "vpdiffs", "valuechart", "diffs", "wtp", "capture"].every((f) => new RegExp(`UNPRICED_FIELDS = new Set\\(\\[[^\\]]*"${f}"`).test(pageSrcU)), "the field renderer prints the unpriced sentence for every linked money field");
+  ok((pageSrcU.match(/p\.unpriced \?/g) || []).length >= 4, "S10 grid (×2), the slide header and the project card all honour `unpriced`");
   ok(nextProjectId(DEMO_PROJECTS) === "PRJ-35", "a new idea on the 33-project seed gets PRJ-35, never the reserved PRJ-34");
   ok(nextProjectId([{ id: "PRJ-07" }]) === "PRJ-08", "nextProjectId is max+1 when nothing is reserved there");
   // PRJ-34 · a seed added after a device saved its portfolio joins it (the operator's phone showed 0/33 on 1f1a800).
@@ -396,6 +400,21 @@ import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJE
   ok(p34.valueProp === drs.futureState.master.statement, "PRJ-34 valueProp is the DRS futureState master statement (derived from NBA + segment research), verbatim");
   ok((p34.segmentValueProps ?? []).length === 3 && p34.segmentValueProps.every((sv, i) => sv.prop === drs.futureState.segments[i].statement), "PRJ-34's three segment props are the DRS per-segment future-state statements, in order");
   ok(p34.segmentValueProps.every((sv) => /CrisisCommand\.ai/.test(sv.prop) && /where the NBA stops/.test(sv.pain)), "every segment prop names CrisisCommand.ai and states where its NBA stops");
+  ok(/Rave/.test(p34.segmentValueProps[0].segment) && /Everbridge 360 AI/.test(p34.segmentValueProps[1].segment) && /PagerDuty/.test(p34.segmentValueProps[2].segment) && !/Composite/.test(p34.nextBestAlternative), "v0.9: one primary NBA per segment — EDU → Rave · FOOD → Everbridge 360 AI / Bridge · TECH → PagerDuty; no composite on the row");
+  ok(/Rave/.test(drs.nbas.find((n) => n.id === "NBA-4").name) && drs.nbas.filter((n) => /^NBA-[456]$/.test(n.id)).every((n) => n.stack && !/^Composite/.test(n.name)), "the DRS master carries the same primary NBAs with the composite stacks demoted to `stack`");
+  // v1.0 · ONE PLATFORM: the benchmark, the ladder and the twelve-lens review are one master, mirrored on the row and in the seed.
+  ok(drs.platform?.benchmark === "NBA-5" && /Everbridge 360 AI \/ Bridge/.test(p34.nextBestAlternative) && /^Platform benchmark/.test(p34.nextBestAlternative), "the Pod row names the platform benchmark the DRS master decided (NBA-5, Everbridge 360 AI / Bridge)");
+  ok(drs.asmReview?.lenses?.length === 12 && drs.asmReview.lenses.every((x) => x.summary111.split(/\s+/).length >= 100 && x.summary111.split(/\s+/).length <= 115 && !/\$\s?\d/.test(x.summary111)), "the twelve 111-word summaries are carried in the master, none with a dollar");
+  const seedFileU = await (await import("node:fs/promises")).readFile("lib/innovation-slide-seed-drs.ts", "utf8"), seedSrcU = seedFileU.slice(seedFileU.indexOf("export const SLIDE_SEED_DRS"));
+  ok(/ONE platform/.test(seedSrcU) && !/without replacing specialist/.test(seedSrcU) && !/never as them/.test(seedSrcU) && !/replaces none/.test(seedSrcU), "the seed argues one platform on every slide — the retired stance is gone from the cells");
+  ok((seedSrcU.match(/one-ninth gate/g) || []).length >= 3 && /alerting last/.test(seedSrcU), "the absorption ladder (one-ninth gate, alerting last) is on the slides");
+  // v0.9 laws on the Pod row: no v0.5 dollar in any PRJ-34 cell; EDU / FOOD / TECH; one primary NBA each; Pro Team → Pro Enterprise (CONFIRM); drivers unpriced.
+  const seedFile = await (await import("node:fs/promises")).readFile("lib/innovation-slide-seed-drs.ts", "utf8");
+  const seedSrc = seedFile.slice(seedFile.indexOf("export const SLIDE_SEED_DRS")); // the cells, not the header comment that names what was retired
+  ok(!/\$\s?\d/.test(seedSrc), "the PRJ-34 seed carries no dollar figure (v0.9 pricing reset)");
+  ok(/EDU/.test(seedSrc) && /FOOD/.test(seedSrc) && /TECH/.test(seedSrc) && /Pro Team → Pro Enterprise/.test(seedSrc) && !/GridOS|Veoci/.test(seedSrc), "the seed is EDU · FOOD · TECH on Pro Team → Pro Enterprise; the retired DRS-attach NBAs are gone");
+  ok((p34.valueDrivers ?? []).every((v) => v.valueM === 0), "PRJ-34 value drivers are typed unpriced (0) — no derived dollar");
+  ok(p34.name.length <= 40 && p34.name === "Project 34 — CrisisCommand Future State", "PRJ-34 carries the v1.0 title within the header law");
   const chain = defaultChain(biz);
   const sbuOf = biz.sbu.find((n) => n.code === chain.sbu), pgOf = biz.pgroup.find((n) => n.code === chain.pgroup), alOf = biz.alpha.find((n) => n.code === chain.alpha);
   ok(chain.bu && sbuOf && sbuOf.parent === chain.bu && pgOf && pgOf.parent === chain.sbu && alOf && alOf.parent === chain.pgroup, `defaultChain is one consistent path (${chain.bu} › ${chain.sbu} › ${chain.pgroup} › ${chain.alpha})`);
@@ -710,7 +729,10 @@ ok(Array.isArray(aiSlideField(P0, "S8", "diffs")), "aiSlideField(S8 value equati
 /* ---------------- $/min System of Innovation + BU funding buckets (real-time decision core, R-Core reuse) ---------------- */
 import { costPerMinuteOf, buBuckets, TOTAL_PROGRAM_WORKDAYS, CADENCE_ORDER, CADENCE_PER_YEAR } from "../lib/innovation-data.ts";
 ok(TOTAL_PROGRAM_WORKDAYS > 0, "TOTAL_PROGRAM_WORKDAYS is the fixed program schedule total");
-ok(DEMO_PROJECTS.every((p) => costPerMinuteOf(p) > 0 && Number.isFinite(costPerMinuteOf(p))), "costPerMinuteOf is a positive finite $/min burn for every project");
+// v1.0 · an UNPRICED project (PRJ-34, evidence law) carries zero dollars by rule and is exempt from every money invariant — the class, not the instance.
+const PRICED = DEMO_PROJECTS.filter((p) => !p.unpriced);
+ok(PRICED.length === DEMO_PROJECTS.length - 1 && DEMO_PROJECTS.some((p) => p.unpriced && costPerMinuteOf(p) === 0), "exactly one project is unpriced and its $/min burn is zero, not a derived number");
+ok(PRICED.every((p) => costPerMinuteOf(p) > 0 && Number.isFinite(costPerMinuteOf(p))), "costPerMinuteOf is a positive finite $/min burn for every priced project");
 ok(costPerMinuteOf({ ...P0, nreK: P0.nreK * 2 }) > costPerMinuteOf(P0), "costPerMinuteOf scales with NRE (more spend → higher burn)");
 ok(CADENCE_ORDER.join("") === "QMWD", "cadence ladder is Quarterly → Monthly → Weekly → Daily");
 ok(CADENCE_PER_YEAR.D > CADENCE_PER_YEAR.W && CADENCE_PER_YEAR.W > CADENCE_PER_YEAR.Q, "cadence decision-cycles/yr tighten Q→D");
@@ -738,7 +760,7 @@ import { fundingBuckets } from "../lib/innovation-data.ts";
 
 /* ---------------- Upside spending accelerator lever (per-project intake, single source of truth) ---------------- */
 import { upsideAccelOf } from "../lib/innovation-data.ts";
-ok(DEMO_PROJECTS.every((p) => { const ua = upsideAccelOf(p); return ua.accelK > 0 && ua.months >= 0 && ua.months <= 6 && ua.revFwdM >= 0; }), "upsideAccelOf yields a bounded accelerator (accelK>0, 0≤months≤6, revFwd≥0) for every project");
+ok(DEMO_PROJECTS.filter((p) => !p.unpriced).every((p) => { const ua = upsideAccelOf(p); return ua.accelK > 0 && ua.months >= 0 && ua.months <= 6 && ua.revFwdM >= 0; }), "upsideAccelOf yields a bounded accelerator (accelK>0, 0≤months≤6, revFwd≥0) for every project");
 ok(upsideAccelOf({ ...P0, upsideAccelK: 500 }).accelK === 500, "upsideAccelOf honors an explicit per-project intake override");
 ok(upsideAccelOf({ ...P0, upsideAccelK: undefined }).accelK === Math.round(P0.nreK * 0.15), "upsideAccelOf defaults to 15% of NRE when no intake is set");
 ok(upsideAccelOf(P0).revFwdM === upsideAccelOf(P0).revFwdM, "upsideAccelOf is deterministic (single source of truth)");
@@ -1587,7 +1609,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // fullRev10yM + execOf margin (so no headline number moves; MoT invariant).
 {
   ok(DEMO_PROJECTS.every((p) => p.revPlan && p.revPlan.entryMode === "detailed"), "all 24 projects have a Detailed RevPlan baseline");
-  ok(DEMO_PROJECTS.every((p) => (p.revPlan.qty ?? 0) > 0 && (p.revPlan.aspK ?? 0) > 0 && (p.revPlan.unitCogsK ?? 0) >= 0), "every baseline has qty·aspK·unitCogsK set");
+  ok(DEMO_PROJECTS.filter((p) => !p.unpriced).every((p) => (p.revPlan.qty ?? 0) > 0 && (p.revPlan.aspK ?? 0) > 0 && (p.revPlan.unitCogsK ?? 0) >= 0), "every baseline has qty·aspK·unitCogsK set");
   // Revenue invariant: Detailed 10-yr total == fullRev10yM (±0.01 $M — exact by construction, float slack only).
   const revBad = DEMO_PROJECTS.filter((p) => Math.abs(revPlanFullM(p, p.revPlan) - p.fullRev10yM) > 0.01);
   ok(revBad.length === 0, `revPlanFullM == fullRev10yM for all 24 (off: ${revBad.map((p) => p.id).join(",") || "none"})`);

@@ -3424,9 +3424,11 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
           <div><div className="text-[10px] uppercase tracking-wider text-slate-500">BD / Sales</div><div className="text-slate-200">{ex.bdLead}</div></div>
         </div>
         <div className="mt-2 grid grid-cols-4 gap-2">
+          {p.unpriced ? <div data-unpriced className="col-span-3 text-slate-400">{p.unpriced}</div> : <>
           <div><div className="text-[10px] uppercase tracking-wider text-slate-500">COGS</div><div className="tabular-nums text-slate-200">${ex.cogsK}k</div></div>
           <div><div className="text-[10px] uppercase tracking-wider text-slate-500">MSRP</div><div className="tabular-nums text-slate-200">${ex.msrpK}k</div></div>
           <div><div className="text-[10px] uppercase tracking-wider text-slate-500">Margin</div><div className="tabular-nums text-emerald-400">{ex.marginPct}%</div></div>
+          </>}
           <div><div className="text-[10px] uppercase tracking-wider text-slate-500">Customer</div><div className="text-cyan-300">{ex.customer}</div></div>
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-400">
@@ -4932,6 +4934,8 @@ function S10FinEditor({ p, baseYear, onEdit }: {
 // columns any more and nothing spans. Kept, it would be an abstraction with zero callers — the same
 // Succinctness failure the `rows` hatch was removed for two commits ago. Re-adding it is four lines.
 
+/** UNPRICED BY RULE · the linked fields that DERIVE money from the project record; a row typed `unpriced` prints its sentence here. */
+const UNPRICED_FIELDS = new Set(["profile", "accel", "revtable", "rdchart", "vpchart", "vpdiffs", "valuechart", "diffs", "wtp", "capture"]);
 const BODY_ROWS: Record<string, string> = {
   S10: "minmax(0, 10fr) minmax(0, 24fr)",
   // Y-1 · THREE ROWS, NOT FOUR — the value proposition, NBA and the price strip share row 1.
@@ -5851,6 +5855,12 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     const fieldsIn = (sp: SlideSpec, ids: string[], lean?: boolean) => ids.map((id) => {
       const f = sp.fields.find((x) => x.id === id);
       if (!f) return null;
+      // UNPRICED BY RULE (PRJ-34, operator 2026-09-24 · evidence law). A project typed `unpriced` prints its OWN sentence wherever
+      // the template would DERIVE money — the class (every linked money field on every slide), never one panel. The template
+      // prints dollars for any row (header, return profile, grid) whatever the row holds, so a founder promised "no price" would
+      // otherwise read NPV / IRR / revenue the deck itself disowns.
+      if (p.unpriced && UNPRICED_FIELDS.has(id))
+        return <p key={id} data-unpriced className="m-0 italic text-slate-400" style={{ fontSize: TS.body }}>{p.unpriced}</p>;
       const solo = ids.length === 1;
       const alwaysRenders = f.kind === "attach" || (f.kind === "chart" && f.linked);
       if (!alwaysRenders && fieldEmpty(effective(sp, f, presentSrc)))
@@ -6055,10 +6065,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       S10: () => (
         <>
           <AmtsPanel wide title={t("soi2525.rd_spend")} icon={<MarkSpend />} required={sp.stage}>
-            <S10SpendTable p={p} baseYear={baseYear} />
+            {p.unpriced ? <p data-unpriced className="m-0 italic text-slate-400">{p.unpriced}</p> : <S10SpendTable p={p} baseYear={baseYear} />}
           </AmtsPanel>
           <AmtsPanel wide title={t("soi2525.rd_revenues")} icon={<MarkRevenue />} required={sp.stage}>
-            <S10RevenueTable p={p} baseYear={baseYear} />
+            {p.unpriced ? <p data-unpriced className="m-0 italic text-slate-400">{p.unpriced}</p> : <S10RevenueTable p={p} baseYear={baseYear} />}
           </AmtsPanel>
         </>
       ),
@@ -6245,9 +6255,11 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 <div data-proj-name className={`font-semibold tracking-tight text-cyan-200 ${nameFit.wrap ? "" : "whitespace-nowrap"}`}
                   style={{ fontSize: `${nameFit.cqw}cqw`, lineHeight: 1.15 }}>{p.name}</div>
                 <div className="mt-[0.6cqh] flex flex-wrap gap-x-[1.4cqw] font-mono text-slate-400" style={{ fontSize: TS.meta }}>
+                  {p.unpriced ? <span data-unpriced className="text-slate-400">{p.unpriced}</span> : <>
                   <span>COGS <b className="text-slate-200">${ex.cogsK}k</b></span>
                   <span>MSRP <b className="text-slate-200">${ex.msrpK}k</b></span>
                   <span>Mgn <b className="text-slate-200">{ex.marginPct}%</b></span>
+                  </>}
                 </div>
               </div>
               <h2 data-slide-title className={`shrink-0 text-center font-semibold leading-[1.05] tracking-tight text-slate-100 ${titleFit.wrap ? "" : "whitespace-nowrap"}`}
@@ -7621,7 +7633,7 @@ function Differentiators({ p, cadence = "M" }: { p: Project; cadence?: Cadence }
       {/* Upside pool + $/min */}
       <Card title={t("soi2525.project_upside_pool")} tag="Time = money">
         <Row l="Pool @ 1 mo early" v={usd(upsidePoolM)} good />
-        <Row l="Cost of time" v={fmtPerCadence(costPerMinuteOf(p), cadence)} />
+        <Row l="Cost of time" v={p.unpriced ?? fmtPerCadence(costPerMinuteOf(p), cadence)} />
         <Row l="Critical-path" v={p.criticalPath ? "multiplier ×" : "base rate"} tone={p.criticalPath ? "good" : undefined} />
         <p className="mt-1 text-[11px] text-slate-500">{t("soi2525.baseline_locked_g2_note")}</p>
       </Card>

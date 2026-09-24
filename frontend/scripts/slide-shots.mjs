@@ -85,7 +85,7 @@ const PROJECT = process.env.PROJECT || "PRJ-23";
 // own live panel, and a code that draws a chart with NO seed is reported too — an unseeded chart merely
 // under-fills, but silence about it is how the next stale number gets in.
 const SLOT_TOL = 0.08;
-const SLOT_BLOCK = (await readFile(join(ROOT, "app/innovation/page.tsx"), "utf8"))
+const SLOT_BLOCK = (await readFile(join(ROOT, "app/SoI-2525/page.tsx"), "utf8"))
   .match(/const SLIDE_SLOT_ASPECT: Record<string, number> = \{([\s\S]*?)\n\};/)?.[1] ?? "";
 const SLOT_CONSTS = Object.fromEntries(
   [...SLOT_BLOCK.matchAll(/(\w+):\s*([\d.]+)\s*,/g)].map((m) => [m[1], Number(m[2])]));

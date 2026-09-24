@@ -29,6 +29,9 @@ const STAGES = d.stageGate.stages;
 const li = (xs) => xs.map((x) => `- ${x}`).join("\n") + "\n";
 const oli = (xs) => xs.map((x, i) => `${i + 1}. ${x}`).join("\n") + "\n";
 const seg = (id) => d.segments.find((s) => s.id === id);
+// 0.006 · two segment sets: the ARCHIVED DRS-attach exploration (SEG-1..3, NOSE / value tables) and the CURRENT v0.8.2 set (SEG-4..6).
+const ARCHIVED = () => d.segments.filter((s) => /^ARCHIVED/.test(s.status || ""));
+const CURRENT = () => d.segments.filter((s) => /^CURRENT/.test(s.status || ""));
 const nba = (id) => d.nbas.find((n) => n.id === id);
 const slide = (n) => d.slides.find((s) => s.n === n);
 
@@ -45,12 +48,17 @@ const head = () =>
 function slideBody(n) {
   switch (n) {
     case "S1": return (
+      (d.archive ? `> **ARCHIVE NOTE (v0.8.2).** ${d.archive.note}\n\n` : "") +
+      (d.manuscript ? `**Manuscript of record.** \`${d.manuscript.current}\` — ${d.manuscript.status}. Archived: ${d.manuscript.archived.join("; ")}.\n\n` : "") +
       `**Future state — ${d.futureState.subject}.** ${d.futureState.master.statement}\n\n` +
       `*Derived from:* ${d.futureState.master.derivedFrom.join(" · ")}\n\n` +
       d.futureState.segments.map((f) => `- **${f.segment} · ${f.buyer}** — ${f.statement} *(where ${nba(f.nba).name} stops: ${f.nbaStops.join("; ")}. Outcomes: ${f.outcomes.join(" · ")}. Research: ${f.research.join(", ")}.)*`).join("\n") + "\n\n" +
+      (d.platform ? `**ONE PLATFORM — benchmark ${nba(d.platform.benchmark).name}.** ${d.platform.why}\n\n` + d.platform.ladder.map((l) => `- **${l.horizon}** — ${l.state}`).join("\n") + `\n\nRules: ${d.platform.rules.join(" · ")}. *${d.platform.status}*\n\n` : "") +
+      (d.asmReview ? `**Twelve-lens review of the business case (${d.asmReview.date}; ${d.asmReview.scope}) — SSSES mean ${d.asmReview.mean} (security ${d.asmReview.means.security} · stability ${d.asmReview.means.stability} · scalability ${d.asmReview.means.scalability} · efficiency ${d.asmReview.means.efficiency} · succinctness ${d.asmReview.means.succinctness}).** Synthesis: \`${d.asmReview.synthesis}\`.\n\n| lens | focus | Sec | Stab | Scal | Eff | Succ | benchmark |\n|---|---|---:|---:|---:|---:|---:|---|\n` + d.asmReview.lenses.map((x) => `| ${x.lens} | ${x.focus} | ${x.ssses.security} | ${x.ssses.stability} | ${x.ssses.scalability} | ${x.ssses.efficiency} | ${x.ssses.succinctness} | ${x.benchmark} |`).join("\n") + "\n\n" + d.asmReview.lenses.map((x) => `- **${x.lens}** (${x.words} words) — ${x.summary111}`).join("\n") + "\n\n" : "") +
       `**Decision requested.** ${d.project.decisionRequested}\n\n` +
       `**Three segments, three next-best alternatives.**\n\n| segment | name | NBA | X · Y · Z (weights) | weights |\n|---|---|---|---|---|\n` +
-      d.segments.map((s) => `| ${s.id} | ${s.name} | ${nba(s.nba).name} | ${s.x_operationalImpact} · ${s.y_humanCoordination} · ${s.z_replayLearning} | ${s.weightsStatus} |`).join("\n") + "\n\n" +
+      CURRENT().map((s) => `| ${s.id} | ${s.name} — ${s.beachhead} | ${nba(s.nba).name} | dominant need: ${s.dominantNeed} | ${s.status} |`).join("\n") + "\n\n" +
+      `*Archived DRS-attach segments (v0.5, retired):* ${ARCHIVED().map((s) => `${s.id} ${s.name}`).join(" · ")}\n\n` +
       `**The wedge (what the NBAs do not do).**\n\n${li(d.wedge)}\n` +
       `**What stays unproven at this gate.**\n\n${li(d.unproven)}`);
     case "S2": return (
@@ -60,8 +68,8 @@ function slideBody(n) {
       `**Resilience heritage.** ${d.conops.resilienceHeritage}\n`);
     case "S3": return (
       `**Axes.**\n\n| axis | meaning |\n|---|---|\n| X | ${d.axes.x} |\n| Y | ${d.axes.y} |\n| Z | ${d.axes.z} |\n\n` +
-      `**Segments and weights (1–10, ${d.segments[0].weightsStatus}).**\n\n| segment | name | X operational impact | Y human coordination | Z replay / learning | paired NBA |\n|---|---|---:|---:|---:|---|\n` +
-      d.segments.map((s) => `| ${s.id} | ${s.name} | ${s.x_operationalImpact} | ${s.y_humanCoordination} | ${s.z_replayLearning} | ${nba(s.nba).name} |`).join("\n") + "\n");
+      `**ARCHIVED (v0.5 DRS-attach) — segments and weights (1–10, ${ARCHIVED()[0].weightsStatus}).**\n\n| segment | name | X operational impact | Y human coordination | Z replay / learning | paired NBA |\n|---|---|---:|---:|---:|---|\n` +
+      ARCHIVED().map((s) => `| ${s.id} | ${s.name} | ${s.x_operationalImpact} | ${s.y_humanCoordination} | ${s.z_replayLearning} | ${nba(s.nba).name} |`).join("\n") + "\n");
     case "S4": return (
       `**Before.**\n\n${oli(d.conops.before)}\n**During.**\n\n${oli(d.conops.during)}\n**Plan revision.** ${d.conops.revision}\n\n**After.**\n\n${oli(d.conops.after)}`);
     case "S5": return (
@@ -90,7 +98,7 @@ function slideBody(n) {
     case "S13": return d.valueTables.map(valueTable).join("\n");
     case "S14": return (
       `**${d.wtpMetrics.law}**\n\n` +
-      d.segments.map((s) => `**${s.id} — ${s.name}.** ${d.wtpMetrics[s.id].join(" · ")}`).join("\n\n") + "\n\n" +
+      ARCHIVED().map((s) => `**${s.id} — ${s.name} (ARCHIVED v0.5).** ${d.wtpMetrics[s.id].join(" · ")}`).join("\n\n") + "\n\n" +
       `| segment | NBA outcome cost today | total customer value | value capture | WTP range |\n|---|---|---|---|---|\n` +
       d.valueTables.map((v) => `| ${v.segment} | ${v.nbaOutcomeCost} | ${v.totalCustomerValue} | ${v.valueCapture} | ${v.wtpRange} |`).join("\n") + "\n");
     case "S15": {
@@ -189,8 +197,10 @@ function assertSource() {
     if (!EVIDENCE.some((e) => s.evidence.startsWith(e))) fail(`${s.n} evidence "${s.evidence}" must start with one of ${EVIDENCE.join(", ")}`);
   }
   // three segments, three paired NBAs (a fourth NBA may be a partner, never a segment's pair), NOSE and value tables per segment
-  if (d.segments.length !== 3) fail(`three segments, got ${d.segments.length}`);
-  for (const s of d.segments) {
+  if (ARCHIVED().length !== 3) fail(`three ARCHIVED (v0.5) segments, got ${ARCHIVED().length}`);
+  if (CURRENT().length !== 3) fail(`three CURRENT (v0.9) segments, got ${CURRENT().length}`);
+  for (const s of CURRENT()) if (!s.beachhead || !s.dominantNeed || !s.economicBuyer || !s.operatingBuyer || !nba(s.nba)) fail(`${s.id} (current) needs beachhead, dominantNeed, buyers and a real NBA`);
+  for (const s of ARCHIVED()) {
     if (!nba(s.nba)) fail(`${s.id} pairs an NBA that does not exist: ${s.nba}`);
     for (const k of ["x_operationalImpact", "y_humanCoordination", "z_replayLearning"]) {
       if (!(Number.isInteger(s[k]) && s[k] >= 1 && s[k] <= 10)) fail(`${s.id}.${k} must be an integer 1–10`);
@@ -249,6 +259,13 @@ function assertSource() {
   const F = d.futureState;
   if (!F || !F.master?.statement || !(F.master.derivedFrom?.length >= 3)) fail(`futureState.master needs a statement and >= 3 derivedFrom lines`);
   if (!Array.isArray(F.segments) || F.segments.length !== 3) fail(`futureState needs exactly three segment statements`);
+  // 0.006 · the current segments are SEG-4..6 (EDU · FOOD · TECH) with ONE primary NBA each (v0.9); SEG-1..3 / NBA-1..3 are archived in place.
+  if (!d.archive?.note || !d.manuscript?.current?.includes("v0.9") || !d.manuscript?.parent?.includes("NARRATIVE_v0.9")) fail(`0.006 needs the archive note, the v0.9 manuscript of record and the v0.9 narrative as its parent`);
+  for (const id of ["NBA-4", "NBA-5", "NBA-6"]) { const n = nba(id); if (!n || /^Composite/.test(n.name) || !n.stack || !/^SOURCED/.test(n.status || "")) fail(`${id} must be ONE primary NBA (v0.9), SOURCED, with the composite stack kept as \`stack\``); }
+  if (!/Rave/.test(nba("NBA-4").name) || !/Everbridge 360 AI/.test(nba("NBA-5").name) || !/PagerDuty/.test(nba("NBA-6").name)) fail(`the v0.9 pairings are EDU → Rave · FOOD → Everbridge 360 AI / Bridge · TECH → PagerDuty`);
+  if (!["SEG-4","SEG-5","SEG-6"].every((id) => F.segments.some((f) => f.segment === id))) fail(`futureState must cover SEG-4..6 (EDU · FOOD · TECH)`);
+  if (!d.segments.filter((s) => /^CURRENT/.test(s.status || "")).every((s) => d.nbas.some((n) => n.id === s.nba && /SOURCED/.test(n.status)))) fail(`every current segment needs a SOURCED composite NBA`);
+  if (/\$\s?\d/.test(JSON.stringify([F, d.segments.filter((s) => /^CURRENT/.test(s.status || "")), d.nbas.filter((n) => /^SOURCED/.test(n.status))]))) fail(`a current (v0.8.2) block carries a dollar figure — the pricing reset forbids it`);
   const methodNames = (d.needsAssessment?.families ?? []).flatMap((f) => f.methods ?? []).map((m) => m.name);
   for (const f of F.segments) {
     if (!d.segments.some((s) => s.id === f.segment)) fail(`futureState ${f.segment} is not a segment`);
@@ -259,6 +276,20 @@ function assertSource() {
     if (!/CrisisCommand\.ai/.test(f.statement)) fail(`futureState ${f.segment} statement must name CrisisCommand.ai (the subject)`);
   }
   if (/\$\s?\d/.test(JSON.stringify(F))) fail(`futureState carries a dollar figure — the evidence law forbids it here`);
+  // v1.0 · ONE PLATFORM: the benchmark is a real NBA, the ladder has its three horizons, and the twelve-lens review is carried whole.
+  const PL = d.platform;
+  if (!PL || !nba(PL.benchmark) || !/Everbridge 360 AI/.test(nba(PL.benchmark).name)) fail(`platform.benchmark must be the Everbridge 360 AI / Bridge NBA (v1.0)`);
+  if (!(PL.ladder?.length === 3) || !["2027", "2030", "2525"].every((h, i) => PL.ladder[i].horizon === h && PL.ladder[i].state)) fail(`platform.ladder needs 2027 · 2030 · 2525`);
+  if (!(PL.rules?.length >= 4) || !(PL.comparators ?? []).every((id) => nba(id))) fail(`platform needs >= 4 rules and real comparator NBAs`);
+  if (!/one human-governed crisis platform/.test(F.master.statement)) fail(`the v1.0 master statement names the one platform`);
+  const AR = d.asmReview;
+  if (!AR || !(AR.lenses?.length === 12)) fail(`asmReview needs twelve lenses`);
+  for (const x of AR.lenses ?? []) {
+    for (const k of ["security", "stability", "scalability", "efficiency", "succinctness"]) if (!(Number.isInteger(x.ssses?.[k]) && x.ssses[k] >= 0 && x.ssses[k] <= 100)) fail(`asmReview ${x.lens} ${k} must be 0–100`);
+    const w = String(x.summary111 ?? "").trim().split(/\s+/).length;
+    if (w < 100 || w > 115) fail(`asmReview ${x.lens} summary is ${w} words, not ~111`);
+    if (/\$\s?\d/.test(x.summary111)) fail(`asmReview ${x.lens} carries a dollar figure`);
+  }
   const P = d.pod || {};
   if (!/^[A-Z]{2}$/.test(P.bu) || !/^[A-Z0-9]{3}$/.test(P.sbu) || !/^[A-Z0-9]{3,4}$/.test(P.alphaGroup) || !/^[A-Z0-9]{4}$/.test(P.alphaCode)) fail(`pod codes break the Pod's code law (BU 2 · SBU 3 · Alpha Group 3–4 · Alpha Code 4): ${JSON.stringify(P)}`);
   // 2026-09-23 HOLD → 2026-09-24 SEEDED (operator: "complete project 34 finalization first"); the status must say which.

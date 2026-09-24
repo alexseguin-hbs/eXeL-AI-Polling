@@ -272,7 +272,7 @@ for (const paper of PAPER) for (const mode of MODES) {
   // into. Direction-agnostic, and it still catches the original defect — unmeasured is 320/165.4 = 1.935
   // against a 1.51 slot, which is 28% out.
   // Z-1 · the seed is a per-code map now; this reads S8's entry, which is the sheet `mounted` samples.
-  const SEED_BLOCK = (await readFile(join(ROOT, "app/innovation/page.tsx"), "utf8"))
+  const SEED_BLOCK = (await readFile(join(ROOT, "app/SoI-2525/page.tsx"), "utf8"))
     .match(/const SLIDE_SLOT_ASPECT: Record<string, number> = \{([\s\S]*?)\n\};/)?.[1] ?? "";
   const SEED = Number(SEED_BLOCK.match(/\bS8:\s*([\d.]+)/)?.[1] ?? 0);
   if (!mounted.vbAspect)
