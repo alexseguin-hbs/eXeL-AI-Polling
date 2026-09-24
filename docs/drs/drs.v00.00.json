@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.010",
+    "revision": "0.011",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1336,6 +1336,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Iteration 4 of 99 (twelve lenses, round 4 — the first lens round under the brief's 'R-CORE is implemented — use it'): the G2 tabletop and the G3 A/B gain target quarters derived from the row's own record (2026-Q4 · 2027-H1, IA, D12) so the plan has a calendar the ramp depends on; the community answers back on S4's slide, not only in its note; the approver threat model (step-up identity, succession of decision rights, privilege-aware fields) joins Horizon 1 on S14; public-government steering through the same loop — asked through the eXeL Polling API, replayable by the body and its citizens — is carried as speaker notes on S13, S17 and S18 and as a post-G3 dependency, never as a claimed customer; SSSES means of the twelve recorded (security 80.3 · stability 67.9 · scalability 66.3 · efficiency 64.6 · succinctness 61.9).",
+      "commit": "efe49ee"
+    },
+    {
+      "revision": "0.011",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Iteration 5 of 99 (twelve lenses, round 5): the deck gains its first worked specimen — one EDU event in minutes on S4's note, benchmark alone against the one platform, reconciling to the 90 leadership-delay minutes and the 250 $/min the S3 model declares (22.5 k an event, 90 k a year), labelled IA and re-derived when the inputs move (D13); the seven Horizon-1 objects become a data model on S6's note (object, fields, who writes it) for builders and integrators; the S14 note carries a build calendar row that reads the eleven-year spend (what each year buys); S16's note extends the measurement instrument to a public body rehearsing a policy posture, replayable by the citizens who answered, as the brief's R-CORE section names S16; the register reads D1–D13; SSSES means of the twelve recorded (security 82.4 · stability 70.8 · scalability 69.2 · efficiency 67.5 · succinctness 64.0).",
       "commit": "PENDING"
     }
   ],
@@ -2136,6 +2143,13 @@
       "revision": "0.010",
       "by": "twelve lenses · round 4",
       "decision": "The G2 measurement-design tabletop and the G3 instrumented A/B carry target quarters derived from the row's own record (firstRevenue 2027-Q3, six paying accounts in 2027): G2 by 2026-Q4, G3 in 2027-H1, both labelled IA and re-derived if the input moves. The steering of public-government projects through the same loop (citizens' answers in by the eXeL Polling API, approved posture and delivered result replayable by the body and its people) is carried as speaker notes and as a post-G3 dependency until a public body is named — never as a claim of a customer."
+    },
+    {
+      "id": "D13",
+      "date": "2026-09-24",
+      "revision": "0.011",
+      "by": "twelve lenses · round 5",
+      "decision": "Worked examples and calendars on the deck are DERIVED, never typed: the S4 worked event reads the financialModel's single-customer inputs (250 $/min · 90 leadership-delay minutes · 4 events a year) and the S14 build calendar reads spendUsdKByYear; both are labelled IA, live in the speaker notes, and are re-derived when an input moves. A real clock enters only when the G2 tabletop stamps it (independent timekeeper), and then the assumed minute is replaced, never averaged with it."
     }
   ],
   "iterations": [
@@ -2280,6 +2294,48 @@
           "the declared model in the same words on S3, S8, S15",
           "every dollar labelled IA",
           "the citizen row on S7"
+        ],
+        "cut": []
+      }
+    },
+    {
+      "revision": "0.011",
+      "n": 5,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 5",
+      "file": "docs/drs/iterations/0.011.md",
+      "ssesMeans": {
+        "security": 82.4,
+        "stability": 70.8,
+        "scalability": 69.2,
+        "efficiency": 67.5,
+        "succinctness": 64.0
+      },
+      "edits": [
+        "S2 · status · rev 0.011, decision register D1–D13 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D13 (hi + ai) · the register grew (D13)",
+        "PROV / row provenance · rev 0.011 · law 5",
+        "S4 · future · ai (speaker note only) · one EDU event worked in minutes — A benchmark alone: posture at minute 130 · B the one platform: posture at minute 40 — 90 leadership-delay minutes removed × 250 $/min = 22.5 k an event, four events = the 90 k time value on S3; labelled IA, re-derived when the S3 inputs move · the system thinker's ask from 0.010 (Sofia / Thoth)",
+        "S6 · conops · ai (speaker note only) · the seven Horizon-1 objects as a data model — each object, its fields, who writes it · the innovator's ask from 0.010 (Enlil / Krishna)",
+        "S14 · fte · ai (a fifth row, five columns) · the build calendar (IA) reading the eleven-year spend — 2026 measurement design · 2027 seven objects, G3, first six accounts · 2028–2030 absorb function by function, alerting last · 2031–2036 platform tier and sustain · the execution genius's ask from 0.010 (Athena / Enlil)",
+        "S16 · counter · ai (speaker note only) · a public body rehearses a policy posture with the same instrument — asked through the eXeL Polling API, approved under named authority, replayable by the body and the citizens who answered (IA, after G3) · the brief's 'R-CORE is implemented — use it' names S16 (Christo / Pangu)"
+      ],
+      "decisions": [
+        "D13"
+      ],
+      "aar": {
+        "fix": [
+          "S4 had no event worked with numbers — one EDU event in minutes in the note, derived from S3's inputs (IA)",
+          "S6 named the seven Horizon-1 objects in prose only — a data-model line (object · fields · who writes it) in the note",
+          "S14 named roles only behind the eleven-year spend — a build calendar row reading the spend (IA)",
+          "S16 carried no public-body line although the brief names it — the instrument rehearses a policy posture, replayable by its citizens (note)"
+        ],
+        "keep": [
+          "the ladder in the same order on S1, S2, S11, S15, S16, S17",
+          "the declared model in the same words on S3, S8, S15",
+          "every dollar labelled IA",
+          "the citizen row on S7",
+          "no cell repeats another on the same slide (D10)"
         ],
         "cut": []
       }

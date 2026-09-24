@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.010";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.011";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -81,8 +81,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.010 · decision register D1–D12 and the iteration ledger in docs/drs (append-only).",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.010 · decision register D1–D12 and the iteration ledger in docs/drs (append-only). " + PROV,
+        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.011 · decision register D1–D13 and the iteration ledger in docs/drs (append-only).",
+        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.011 · decision register D1–D13 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
@@ -175,6 +175,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "FOOD CONOPS: operational / quality fact → enterprise severity judgment → cross-domain exposure → objectives → regulator / customer / franchisee / employee / investor posture → executive approval → named actions → synchronized communications → evidence / acknowledgement → current-plan update. Signature: time from material product fact to approved enterprise severity and stakeholder posture.",
           "TECH CONOPS: PagerDuty / security fact → business exposure → objectives → legal / regulatory / customer / investor implications → executive options → approved posture → named non-technical actions → stakeholder communications → evidence / acknowledgement → plan update as technical state changes. Signature: time from technical severity established to approved executive / customer / regulator posture.",
           "Do not claim CrisisCommand reduces technical outage duration unless causality is proven.",
+          "Worked event (IA, EDU — derived from the S3 inputs, re-derived when they move; D13): A — benchmark alone: minute 0 event recognised · 3 campus alert out · 20 cabinet convened · 55 facts agreed · 95 objectives · 130 approved posture · 150 first stakeholder release. B — the one platform: minute 0 · 10 facts on the record · 20 objectives · 40 approved posture under a named decision right · 45 release with a named owner · 50 acknowledgement. 90 leadership-delay minutes removed × 250 $/min = 22.5 k time value an event; four events a year = the 90 k on S3. An assumption until the G2 tabletop stamps real clocks — never a promise.",
         ],
       },
     },
@@ -252,6 +253,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "Architecture — 1 Operational Context (INPUT): selected facts / status from Rave in EDU, Everbridge / quality / recall systems in FOOD, PagerDuty / security / status systems in TECH, approved human inputs — the operational systems of record today, absorbed into the platform by qualification → 2 CrisisCommand (LEADERSHIP GOVERNANCE) owns: strategic picture · objectives · exposure analysis · stakeholder priorities · executive options · decision rights · approvals · rationale · action owners · current-plan state · communications posture · escalation watchpoints → 3 Execution (OUTPUT): approved actions route to operational systems, collaboration tools, human owners, external communications systems → 4 Evidence + Learning (RETURN): acknowledgement · execution evidence · stakeholder response · outcome · plan revision · replay · readiness implication.",
           LOOP,
           "Future-state objects to validate: decision right · required approver / sign-off · action owner · action acknowledgement · evidence pointer · current-plan state · authority-linked rationale · outcome link · replay result · readiness implication.",
+          "Data model of the seven Horizon-1 objects (for builders and integrators): decision right — scope · holder · delegate · succession, written at governance setup · approval — decision id · approver identity (step-up) · timestamp · state, written by the approver · action — owner · due · linked decision, written by the approver · acknowledgement — accepted / started / completed / escalated · timestamp, written by the owner · evidence pointer — source system · reference · classification, written by the owner or an inbound feed · current-plan state — version · approved posture · what changed, written by the platform on approval · replay — decision → outcome link · lesson, written after the event. Sensitive facts arrive as pointers; nothing in the shape is crisis-specific.",
           "AI recommends and organizes. Humans approve and own consequences.",
         ],
       },
@@ -500,6 +502,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           ["CTS to measure (CC-specific)", "security / isolation · integrations", "support · customer success", "simulation / tabletop support", "expert review if included"],
           ["Rule", "CTS is product-finance evidence", "not an old DRS import", "no price until WTP clears CTS + hurdle", "measure actual CTS per segment"],
           ["Team (DECLARED, not in v0.9)", "product + design", "engineering (light-integration pointers)", "sector knowledge-base curation", "customer success / tabletop facilitation"],
+          ["Build calendar (IA — reads the eleven-year spend, D13)", "2026 · 0.6 M — measurement design, the G2 tabletop", "2027 · 1.2 M — the seven objects native, the G3 A/B, the first six accounts", "2028–2030 · 1.2 → 1.0 M a year — absorb function by function under the one-ninth gate, alerting last", "2031–2036 · 1.0 M a year — platform tier, knowledge base, customer success"],
         ],
       },
       ftedollar: {
@@ -619,6 +622,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "Simulation as a measurement instrument: run the same scenario twice — A the benchmark alone versus B the one platform — across Conservative, Baseline and Severe, pre-registered with a hypothesis, a null and a stop rule.",
           "G2 validates the measurement design; G3 proves the measurable timing / risk / outcome delta.",
           "Track minute-zero trigger · facts available · minutes to objectives · minutes to approved posture · minutes to action ownership · minutes to stakeholder release · decision / message forks · unowned actions · residual risk at T+30 / 60 / 120 · hard-dollar time exposure · outcome · replay lesson.",
+          "For a public body the same instrument rehearses a policy posture before adoption — its people asked through the eXeL Polling API, the posture approved under named authority, the outcome replayable by the body and by the citizens who answered (IA, after G3, D12); the decision record and replay it needs already run in this repo (R-CORE).",
         ],
       },
     },
@@ -703,12 +707,12 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D12) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D13) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
         ],
         ai: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D12) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D13) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
           PROV,
         ],
       },
