@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.012",
+    "revision": "0.013",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1350,6 +1350,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Iteration 6 of 99 (twelve lenses, round 6): the deck learns to withdraw its own example — the S4 worked event carries a pre-registered null and stop rule (no delta beyond the one-ninth gate on the primary clock, fewer than 15 of the benchmark's 130 minutes; a failed null withdraws the example and S3 re-derives from the stamped minutes, D14), and S16's note states the instrument's null and stop rule that S11's G3 row had only promised (a run without a stamped clock, or with an approver unreachable beyond succession, is void — recorded, never averaged); the seven Horizon-1 objects gain an interface shape on S6's note for integrators (addressable, versioned, append-only, a named writer, a correction as a new version, pointers in through the eXeL Polling API); the public-body pilot becomes step 4 of the validation sequence on S12's note (after G3, IA, D12); the register reads D1–D14; SSSES means of the twelve recorded (security 83.8 · stability 72.8 · scalability 70.4 · efficiency 69.0 · succinctness 65.4).",
+      "commit": "ddac40a"
+    },
+    {
+      "revision": "0.013",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Iteration 7 of 99 (twelve lenses, round 7): the deck proves its measurement repeats — a second worked event (FOOD) joins the S4 note on FOOD's own clock (material product fact → approved enterprise severity / recall posture), reconciling to the same declared single-customer baseline as the EDU event (250 $/min · 90 leadership-delay minutes · 4 events = the same 90 k on S3), printing no new number and held to round six's null and stop rule (D14); D15 records the policy that the deck works one derived specimen per segment, analogous and never independent, closing the system thinker's standing gap for a second segment's event worked in minutes; the register reads D1–D15; SSSES means of the twelve recorded (security 84.7 · stability 74.3 · scalability 72.3 · efficiency 70.0 · succinctness 65.4).",
       "commit": "PENDING"
     }
   ],
@@ -2164,6 +2171,13 @@
       "revision": "0.012",
       "by": "twelve lenses · round 6",
       "decision": "Every derived example on the deck carries its own pre-registered null and stop rule: the null is no delta beyond the one-ninth gate on the segment's primary clock (for the S4 EDU event, fewer than 15 of the benchmark's 130 minutes removed); a failed null withdraws the example and S3 re-derives from the stamped minutes (D13); a run the independent timekeeper cannot stamp, or whose approver is unreachable beyond the succession of decision rights, is void — recorded with its reason, never averaged into a mean. The gate is a floor for claiming a delta, never a target."
+    },
+    {
+      "id": "D15",
+      "date": "2026-09-24",
+      "revision": "0.013",
+      "by": "twelve lenses · round 7",
+      "decision": "The deck works one derived specimen per segment, analogous and never independent: after the S4 EDU event (D13), a FOOD event is worked in minutes on S4's note on FOOD's own clock (material product fact → approved enterprise severity / recall posture) against the same single-customer baseline (250 $/min · 90 leadership-delay minutes · 4 events), printing no new aggregate — the identical 90 k on S3, on a second clock; it is held to the same null and stop rule (D14) and re-derived when the inputs move (D13); an assumption until the FOOD buyer interview stamps real clocks, never a promise."
     }
   ],
   "iterations": [
@@ -2396,6 +2410,29 @@
         ],
         "cut": []
       }
+    },
+    {
+      "revision": "0.013",
+      "n": 7,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 7",
+      "file": "docs/drs/iterations/0.013.md",
+      "ssesMeans": {
+        "security": 84.7,
+        "stability": 74.3,
+        "scalability": 72.3,
+        "efficiency": 70.0,
+        "succinctness": 65.4
+      },
+      "edits": [
+        "S2 · status · rev 0.013, decision register D1–D15 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D15 (hi + ai) · the register grew (D15)",
+        "PROV / row provenance · rev 0.013 · law 5",
+        "S4 · future · ai (a seventh line, speaker note only, hi unchanged) · a second worked event (FOOD) in minutes on FOOD's own clock — material product fact → approved enterprise severity / recall posture — benchmark alone at minute 130 · the one platform at minute 40 · 90 leadership-delay minutes removed × 250 $/min = 22.5 k an event, four events the same 90 k on S3; the single-customer baseline (D13) on a second clock, not a second number; held to the same null and stop rule (D14); an assumption until the FOOD buyer interview stamps real clocks · the system thinker's standing gap from rounds 4–6 (Sofia / Thoth); D15"
+      ],
+      "decisions": [
+        "D15"
+      ]
     }
   ]
 }
