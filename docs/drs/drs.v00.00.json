@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.013",
+    "revision": "0.014",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1357,6 +1357,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Iteration 7 of 99 (twelve lenses, round 7): the deck proves its measurement repeats — a second worked event (FOOD) joins the S4 note on FOOD's own clock (material product fact → approved enterprise severity / recall posture), reconciling to the same declared single-customer baseline as the EDU event (250 $/min · 90 leadership-delay minutes · 4 events = the same 90 k on S3), printing no new number and held to round six's null and stop rule (D14); D15 records the policy that the deck works one derived specimen per segment, analogous and never independent, closing the system thinker's standing gap for a second segment's event worked in minutes; the register reads D1–D15; SSSES means of the twelve recorded (security 84.7 · stability 74.3 · scalability 72.3 · efficiency 70.0 · succinctness 65.4).",
+      "commit": "e8e15ef"
+    },
+    {
+      "revision": "0.014",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Round 8 of 99 closes the derived-specimen set at the three primary segments: a third worked event (TECH) is added to the S4 speaker note on TECH's own clock — technical severity established → approved executive / customer / regulator posture, never outage duration — against the same declared single-customer baseline (250 $/min · 90 leadership-delay minutes · 4 events), printing no new aggregate but the identical 90 k on S3 on a third clock, and held to the same null and stop rule (D14). D16 records that all three primary segments (EDU · FOOD · TECH) now carry exactly one derived specimen, extends D15 and bounds it against segment sprawl (no fourth-segment specimen before its validation wave). S2 status and S18 e0 carry rev 0.014 and the D1–D16 register; PROV and the row provenance are bumped to rev 0.014. No printed number, date or law moved; the twelve-lens means rise on stability and scalability as the method is shown whole across every primary segment.",
       "commit": "PENDING"
     }
   ],
@@ -2178,6 +2185,13 @@
       "revision": "0.013",
       "by": "twelve lenses · round 7",
       "decision": "The deck works one derived specimen per segment, analogous and never independent: after the S4 EDU event (D13), a FOOD event is worked in minutes on S4's note on FOOD's own clock (material product fact → approved enterprise severity / recall posture) against the same single-customer baseline (250 $/min · 90 leadership-delay minutes · 4 events), printing no new aggregate — the identical 90 k on S3, on a second clock; it is held to the same null and stop rule (D14) and re-derived when the inputs move (D13); an assumption until the FOOD buyer interview stamps real clocks, never a promise."
+    },
+    {
+      "id": "D16",
+      "date": "2026-09-24",
+      "revision": "0.014",
+      "by": "twelve lenses · round 8",
+      "decision": "The derived-specimen set is closed at the three primary segments (EDU · FOOD · TECH): with the S4 TECH event worked in minutes on TECH's own clock (technical severity established → approved executive / customer / regulator posture, never technical outage duration) against the same single-customer baseline (250 $/min · 90 leadership-delay minutes · 4 events), printing no new aggregate — the identical 90 k on S3, on a third clock — all three primary segments now carry exactly one derived specimen, each held to the same null and stop rule (D14) and re-derived when the inputs move (D13); extends D15 (one specimen per segment) and bounds it: no fourth-segment specimen (RETAIL / HEALTH / FIN) is worked on the deck before that segment enters the validation wave — guards segment sprawl (S13)."
     }
   ],
   "iterations": [
@@ -2432,6 +2446,29 @@
       ],
       "decisions": [
         "D15"
+      ]
+    },
+    {
+      "revision": "0.014",
+      "n": 8,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 8",
+      "file": "docs/drs/iterations/0.014.md",
+      "ssesMeans": {
+        "security": 85.7,
+        "stability": 75.9,
+        "scalability": 74.0,
+        "efficiency": 71.0,
+        "succinctness": 65.4
+      },
+      "edits": [
+        "S2 · status · rev 0.014, decision register D1–D16 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D16 (hi + ai) · the register grew (D16)",
+        "PROV / row provenance · rev 0.014 · law 5",
+        "S4 · future · ai (an eighth line, speaker note only, hi unchanged) · a third worked event (TECH) in minutes on TECH's own clock — technical severity established → approved executive / customer / regulator posture, never outage duration — benchmark alone posture at minute 130 · the one platform at minute 40 · 90 leadership-delay minutes removed × 250 $/min = 22.5 k an event, four events the same 90 k on S3; the single-customer baseline (D13) applied to a third clock, not a third number; held to the same null and stop rule (D14); an assumption until the TECH buyer interview stamps real clocks · closes the last standing spiral gap (Sofia / Pangu); D16"
+      ],
+      "decisions": [
+        "D16"
       ]
     }
   ]
