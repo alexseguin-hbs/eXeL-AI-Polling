@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.015",
+    "revision": "0.016",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1371,6 +1371,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Round 9 of 99 (twelve lenses) bounds the worked events without adding a new specimen: a ninth line on the S4 speaker note names the claim boundary (D17) — each EDU / FOOD / TECH specimen demonstrates the time-value leg only, 90 k of the 180 k modeled value on S3 (250 $/min × 90 leadership-delay minutes × 4 events), while the discrete avoided cost (30 k) and the risk-adjusted outcome (60 k) stay declared, not worked, and only the buyer interview sizes them; because 33 % capture of the worked 90 k alone is ≈ 30 k, below the 60 k price, the price depends on the two un-worked legs being validated, and the deck never presents the worked minutes as the full modeled value or the price — capping the sharpest overclaim (a modeled figure read as a promise, S13). S2 status and S18 e0 carry rev 0.015 and the D1–D17 register; PROV and the row provenance are bumped to rev 0.015. No printed number, date or law moved; the twelve-lens means rise on security and stability as the case names the limit of its own proof (security 86.7 · stability 76.9 · scalability 74.0 · efficiency 71.0 · succinctness 65.5).",
+      "commit": "20d018c"
+    },
+    {
+      "revision": "0.016",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Round 10 of 99 (twelve lenses) draws the road past the round-9 boundary without adding a new specimen: a tenth line on the S4 speaker note names how the two un-worked legs of the S3 modeled value are sized (D18) — the discrete avoided cost (30 k) from the buyer's directly-attributable avoided-cost inputs on S14 (advisor burn, message / recall-coordination rework, contact-center / support surge) confirmed in the interview, and the risk-adjusted outcome (60 k) from the buyer's (P before − P after) × consequence ranges (S14 / S15), always ranges and never guaranteed savings, both entering through the S11 / S16 validation matrix and the G3 A/B; so the path from the worked ≈ 30 k time-value capture to the full 60 k price is the interview sizing these two legs, and the deck names the method, not a new number. S2 status and S18 e0 carry rev 0.016 and the D1–D18 register; PROV and the row provenance are bumped to rev 0.016. No printed number, date or law moved; the twelve-lens means rise as the case draws the road from its worked proof to its full price (security 87.7 · stability 77.9 · scalability 74.8 · efficiency 72.0 · succinctness 66.2).",
       "commit": "PENDING"
     }
   ],
@@ -2206,6 +2213,13 @@
       "revision": "0.015",
       "by": "twelve lenses · round 9",
       "decision": "The worked events on S4 demonstrate the time-value leg only: each specimen (EDU · FOOD · TECH, D13–D16) shows 90 k of the 180 k modeled value on S3 (250 $/min × 90 leadership-delay minutes × 4 events), while the discrete avoided cost (30 k) and the risk-adjusted outcome (60 k) are declared inputs, not worked, sized only by the buyer interview; because 33 % capture of the worked 90 k alone is ≈ 30 k — below the 60 k price — the price depends on the two un-worked legs being validated, and the deck never presents the worked minutes as the full modeled value or the price (the worked minute is a floor on time value, never the whole case); caps the overclaim risk on S13 (a modeled figure quoted as a promise) and bounds D13–D16 without moving any printed number, date or law; all figures IA."
+    },
+    {
+      "id": "D18",
+      "date": "2026-09-24",
+      "revision": "0.016",
+      "by": "twelve lenses · round 10",
+      "decision": "The two un-worked legs of the S3 modeled value are sized through the validation matrix, not by a worked specimen (extends D17): the discrete avoided cost (30 k) is sized from the buyer's directly-attributable avoided-cost inputs named on S14 — advisor burn, message / recall-coordination rework, contact-center / support surge — confirmed in the interview; the risk-adjusted outcome (60 k) is sized from the buyer's (P before − P after) × consequence ranges (S14 / S15), shown as ranges and never as guaranteed savings; both enter through the S11 / S16 validation matrix and the G3 A/B. So the path from the worked ≈ 30 k time-value capture to the full 60 k price is the interview sizing these two legs — the deck names the method, not a new number, date or law; all figures IA."
     }
   ],
   "iterations": [
@@ -2506,6 +2520,29 @@
       ],
       "decisions": [
         "D17"
+      ]
+    },
+    {
+      "revision": "0.016",
+      "n": 10,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 10",
+      "file": "docs/drs/iterations/0.016.md",
+      "ssesMeans": {
+        "security": 87.7,
+        "stability": 77.9,
+        "scalability": 74.8,
+        "efficiency": 72.0,
+        "succinctness": 66.2
+      },
+      "edits": [
+        "S2 · status · rev 0.016, decision register D1–D18 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D18 (hi + ai) · the register grew (D18)",
+        "PROV / row provenance · rev 0.016 · law 5",
+        "S4 · future · ai (a tenth line, speaker note only, hi unchanged) · the sizing path for the two un-worked legs of the S3 modeled value — the discrete avoided cost (30 k) sized from the buyer's directly-attributable avoided-cost inputs on S14 (advisor burn, message / recall-coordination rework, contact-center / support surge) confirmed in the interview; the risk-adjusted outcome (60 k) sized from the buyer's (P before − P after) × consequence ranges (S14 / S15), always ranges, never guaranteed savings; both enter through the S11 / S16 validation matrix and the G3 A/B, so the path from the worked ≈ 30 k time-value capture to the full 60 k price is the interview sizing these two legs · draws the road past the round-9 boundary (Krishna / Thoth / Pangu); D18"
+      ],
+      "decisions": [
+        "D18"
       ]
     }
   ]
