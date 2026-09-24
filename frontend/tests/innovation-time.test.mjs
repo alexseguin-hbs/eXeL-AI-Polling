@@ -368,6 +368,29 @@ import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJE
   ok(p34.gate === "G2" && p34.nreK === 1460 && p34.firstRevenue === "2027-Q3" && /final authority: De-Risking Strategies · v0\.5 · IA for feedback$/.test(p34.provenance ?? ""), "PRJ-34 is G2 Plan, NRE $1.46M (IA), first paid DP 2027-Q3, provenance footer set");
   ok(nextProjectId(DEMO_PROJECTS) === "PRJ-35", "a new idea on the 33-project seed gets PRJ-35, never the reserved PRJ-34");
   ok(nextProjectId([{ id: "PRJ-07" }]) === "PRJ-08", "nextProjectId is max+1 when nothing is reserved there");
+  // PRJ-34 · a seed added after a device saved its portfolio joins it (the operator's phone showed 0/33 on 1f1a800).
+  const { mergeNewSeeds } = await import("../lib/innovation-data.ts");
+  const saved33 = DEMO_PROJECTS.filter((p) => p.id !== "PRJ-34").map((p) => ({ ...p, name: p.name + " (edited)" }));
+  const merged = mergeNewSeeds(saved33, DEMO_PROJECTS);
+  ok(merged.length === 34 && merged[33].id === "PRJ-34" && merged[0].name.endsWith("(edited)"), "mergeNewSeeds appends the missing seed and keeps the saved rows' order and edits");
+  ok(mergeNewSeeds(merged, DEMO_PROJECTS) === merged, "mergeNewSeeds is idempotent — nothing to add returns the same array");
+  ok(mergeNewSeeds(saved33, DEMO_PROJECTS, ["PRJ-34"]).length === 33, "a deliberately removed id (tombstone) is never resurrected by a deploy");
+  const pageSrc = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
+  ok((pageSrc.match(/mergeNewSeeds\((local|saved), DEMO_PROJECTS, readRemoved\(\)\)/g) || []).length === 2, "both hydration paths (local mirror + cloud) merge new seeds through the one helper");
+  ok(/lsSet\(REMOVED_KEY/.test(pageSrc) && /readRemoved\(\)\.filter\(\(x\) => x !== undoRemoved\.p\.id\)/.test(pageSrc), "Remove writes a tombstone and Undo clears it");
+  // ADMIN PANEL ALWAYS UPDATED (operator 2026-09-24): a saved Business Setup gains every seeded master-data node.
+  const { mergeSetupSeeds, seedBizSetup: seedBiz, STRATEGIC_INITIATIVES: PILLARS } = await import("../lib/innovation-data.ts");
+  // A Setup saved before 2026-09-23 has no DR chain at all (HIER_DECLARED now seeds the codes even with no project).
+  const drCodes = new Set(["DR", "DRC", "CR1", "CR1D", "70034", "70034-001"]);
+  const savedSetup = Object.fromEntries(Object.entries(seedBiz(saved33)).map(([k, v]) => [k, Array.isArray(v) ? v.filter((n) => !drCodes.has(n.code)) : v]));
+  ok(savedSetup.bu.length === 3 && !savedSetup.product.some((n) => n.code === "70034"), "a Setup saved before PRJ-34 has 3 BUs and no 70034");
+  const mergedSetup = mergeSetupSeeds({ ...savedSetup, company: "Operator Co", bu: savedSetup.bu.map((n) => ({ ...n, label: n.label + " (edited)" })) }, seedBiz(DEMO_PROJECTS));
+  ok(mergedSetup.company === "Operator Co" && mergedSetup.bu[0].label.endsWith("(edited)"), "mergeSetupSeeds keeps the company name and every saved node edit");
+  ok(["DR", "DRC", "CR1", "CR1D", "70034", "70034-001"].every((c, i) => mergedSetup[["bu", "sbu", "pgroup", "alpha", "product", "material"][i]].some((n) => n.code === c)), "mergeSetupSeeds adds DR › DRC › CR1 › CR1D · 70034 · 70034-001 to a saved Setup");
+  ok(mergeSetupSeeds(mergedSetup, seedBiz(DEMO_PROJECTS)) === mergedSetup, "mergeSetupSeeds is idempotent");
+  ok(/return mergeSetupSeeds\(parsed, seedBizSetup\(DEMO_PROJECTS\)\)/.test(pageSrc), "loadBizSetup (the Admin panel) merges seeded master data into a saved Setup");
+  ok(/mergeMissingBy\(p, seed, \(x\) => x\.name, readPillarsRemoved\(\)\)/.test(pageSrc) && /lsSet\(PILLARS_REMOVED_KEY/.test(pageSrc), "loadPillars merges seeded pillars (5th: Civic Crisis + Resilience) and the ✕ writes a tombstone");
+  ok(PILLARS.includes("Civic Crisis + Resilience"), "the DR pillar is in the seed the Admin panel merges from");
   const chain = defaultChain(biz);
   const sbuOf = biz.sbu.find((n) => n.code === chain.sbu), pgOf = biz.pgroup.find((n) => n.code === chain.pgroup), alOf = biz.alpha.find((n) => n.code === chain.alpha);
   ok(chain.bu && sbuOf && sbuOf.parent === chain.bu && pgOf && pgOf.parent === chain.sbu && alOf && alOf.parent === chain.pgroup, `defaultChain is one consistent path (${chain.bu} › ${chain.sbu} › ${chain.pgroup} › ${chain.alpha})`);

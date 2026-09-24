@@ -14,7 +14,7 @@ import React, { useMemo, useState, useEffect, useRef, useCallback, useId, Fragme
 import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
-  DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac, segColorOf, scopeSeed, buCagrPct,
+  DEMO_PROJECTS, mergeNewSeeds, mergeMissingBy, mergeSetupSeeds, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac, segColorOf, scopeSeed, buCagrPct,
   launchYearOf, perMinFinancials, groupsOf,
   BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario, scenarioNodeBudgets,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
@@ -197,6 +197,10 @@ function Gate({ onUnlock }: { onUnlock: () => void }) {
 
 /** Local mirror of the working project set. Same namespace convention as the other `innovation-*` keys. */
 const PROJECTS_KEY = "innovation-projects";
+// PRJ-34 · ids a person removed on purpose — the tombstones `mergeNewSeeds` honours, so a seed added later in the code
+// joins every saved portfolio but a deliberate removal is never undone by a deploy.
+const REMOVED_KEY = "innovation-projects-removed";
+const readRemoved = (): string[] => { try { const v = JSON.parse(lsGet(REMOVED_KEY) || "[]"); return Array.isArray(v) ? v.filter((x) => typeof x === "string") : []; } catch { return []; } };
 
 // ── Portfolio workbench ─────────────────────────────────────────────────────────────────
 function Board() {
@@ -217,7 +221,9 @@ function Board() {
     try {
       const local = JSON.parse(raw) as Project[];
       if (Array.isArray(local) && local.length > 0 && local.every((p) => p && typeof p.id === "string")) {
-        setOrder(local); setSelId(local[0].id);
+        // PRJ-34 · a seed added after this device first saved joins the saved list (never replaces it).
+        const merged = mergeNewSeeds(local, DEMO_PROJECTS, readRemoved());
+        setOrder(merged); setSelId(merged[0].id);
       }
     } catch { /* corrupt mirror → keep the seeds, never blank the portfolio */ }
   }, []);
@@ -367,6 +373,7 @@ function Board() {
       (members[id] ?? []).length,
     ];
     setUndoRemoved({ p: victim, at: Date.now() });
+    lsSet(REMOVED_KEY, JSON.stringify(Array.from(new Set(readRemoved().concat(id))))); // tombstone: a deploy never resurrects it
     setOrder((o) => o.filter((x) => x.id !== id));
     // Selection safety: never leave the detail pane pointed at a dead id.
     if (selId === id) {
@@ -381,6 +388,7 @@ function Board() {
     if (!undoRemoved) return;
     // Restore at the head, exactly where createIdea puts a project, and re-select it so the operator sees
     // it come back rather than having to hunt for it.
+    lsSet(REMOVED_KEY, JSON.stringify(readRemoved().filter((x) => x !== undoRemoved.p.id))); // the tombstone goes with the undo
     setOrder((o) => (o.some((x) => x.id === undoRemoved.p.id) ? o : [undoRemoved.p, ...o]));
     selectProject(undoRemoved.p.id);
     log("edit", undoRemoved.p.name, "project removal UNDONE — record restored intact", "you", { projectId: undoRemoved.p.id });
@@ -551,7 +559,8 @@ function Board() {
       // fall back to the local mirror below, and only then to the seeds.
       const saved = cloud["projects"] as Project[] | undefined;
       if (Array.isArray(saved) && saved.length > 0 && saved.every((p) => p && typeof p.id === "string")) {
-        setOrder(saved); setSelId(saved[0].id);
+        const merged = mergeNewSeeds(saved, DEMO_PROJECTS, readRemoved()); // PRJ-34 · same law for the cloud copy
+        setOrder(merged); setSelId(merged[0].id);
       }
       // De-risk (council · Odin/Krishna): restore the per-project slide/gate namespaces — seed localStorage ONLY
       // where the local key is absent/empty, so a fresher local edit is never clobbered (guarded fill-if-empty).
@@ -6277,16 +6286,20 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               </div>
             </div>
             {/* B2 · footer — page # (left) · progress · reference links (right) · PRINT provenance (print only) */}
-            <div className="mt-[1cqh] flex shrink-0 items-center gap-[1.2cqw] border-t border-slate-700 pt-[1cqh] font-mono text-slate-500" style={{ fontSize: TS.meta }}>
-              <span className="tabular-nums">{i + 1}/{SLIDE_SCHEMA.length}</span>
-              <div className="flex flex-1 gap-[0.4cqw]">
-                {SLIDE_SCHEMA.map((x, xi) => <span key={x.code} data-ink className={`h-[0.5cqh] flex-1 rounded ${xi === i ? "bg-cyan-500" : fillOf(x) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
+            <div className="mt-[1cqh] flex shrink-0 flex-col gap-[0.4cqh] border-t border-slate-700 pt-[1cqh] font-mono text-slate-500" style={{ fontSize: TS.meta }}>
+              <div className="flex items-center gap-[1.2cqw]">
+                <span className="tabular-nums">{i + 1}/{SLIDE_SCHEMA.length}</span>
+                <div className="flex flex-1 gap-[0.4cqw]">
+                  {SLIDE_SCHEMA.map((x, xi) => <span key={x.code} data-ink className={`h-[0.5cqh] flex-1 rounded ${xi === i ? "bg-cyan-500" : fillOf(x) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
+                </div>
+                {/* Provenance — a board artifact with no provenance is orphaned within a week (operator #17). */}
+                <span className="slide-printonly hidden truncate">{p.id} · {p.gate} · {scenarioLabel} · p{i + 2}/{SLIDE_SCHEMA.length + 1} · {exportDate}</span>
+                <span className="truncate">{t("soi2525.reference_links")} <span className="text-slate-400">{sp.source}</span></span>
               </div>
-              {/* Provenance — a board artifact with no provenance is orphaned within a week (operator #17). */}
-              <span className="slide-printonly hidden truncate">{p.id} · {p.gate} · {scenarioLabel} · p{i + 2}/{SLIDE_SCHEMA.length + 1} · {exportDate}</span>
-              {/* PRJ-34 · a project-declared provenance line prints on EVERY slide (Project.provenance) — screen and PDF. */}
+              {/* PRJ-34 · a project-declared provenance line prints on EVERY slide (Project.provenance), screen and PDF — on its
+                  OWN full-width line. Sharing the progress row pushed the row 59–249 px past the canvas on every slide
+                  (slide-shots, 2026-09-24): a footer that must carry the exact sentence cannot be a truncated flex sibling. */}
               {p.provenance && <span data-slide-provenance className="truncate text-slate-400">{p.provenance}</span>}
-              <span className="truncate">{t("soi2525.reference_links")} <span className="text-slate-400">{sp.source}</span></span>
             </div>
           </div>
         </div>
@@ -7144,6 +7157,8 @@ function GateRequirementsView({ projects, allProjects, hierFilter, onScope, sel,
 // ── BUSINESS SETUP (master data admin) — unlock 369963 → set up BU→SBU→Alpha Group→Alpha
 // Code→Product→Material. Seeds from the live portfolio; edits persist to localStorage.
 const BIZ_KEY = "innovation-biz-setup";
+const PILLARS_REMOVED_KEY = "innovation-pillars-removed"; // pillar names the admin deleted — never resurrected by a deploy
+const readPillarsRemoved = (): string[] => { try { const v = JSON.parse(lsGet(PILLARS_REMOVED_KEY) || "[]"); return Array.isArray(v) ? v.filter((x) => typeof x === "string") : []; } catch { return []; } };
 const ADMIN_KEY = "innovation-admin";
 const PILLAR_KEY = "innovation-pillars";
 // Strategic pillars are admin-editable (Business Setup) — seeded from the code defaults and
@@ -7151,8 +7166,11 @@ const PILLAR_KEY = "innovation-pillars";
 type PillarDef = { name: string; desc: string; color?: string };
 function loadPillars(): PillarDef[] {
   const s = lsGet(PILLAR_KEY);
-  if (s) { try { const p = JSON.parse(s) as PillarDef[]; if (Array.isArray(p) && p.length) return p; } catch { /* seed */ } }
-  return STRATEGIC_INITIATIVES.map((n) => ({ name: n, desc: PILLAR_DESC[n] }));
+  const seed = STRATEGIC_INITIATIVES.map((n) => ({ name: n, desc: PILLAR_DESC[n] }));
+  // ADMIN PANEL ALWAYS UPDATED (operator 2026-09-24): a pillar seeded later in the code joins a saved list; a pillar the
+  // admin deleted stays deleted (tombstone written by the ✕ below).
+  if (s) { try { const p = JSON.parse(s) as PillarDef[]; if (Array.isArray(p) && p.length) return mergeMissingBy(p, seed, (x) => x.name, readPillarsRemoved()); } catch { /* seed */ } }
+  return seed;
 }
 // Shared master-data loader — reads the admin Business Setup (localStorage) or falls back to
 // the seed. Powers the edit-project + Submit-New-Idea dropdowns so BU/SBU/Alpha changes flow.
@@ -7164,7 +7182,9 @@ function loadBizSetup(): BizSetup {
       // Coerce the legacy generic company label (or an empty value) to the brand so existing demo
       // localStorage shows "Harmattan AI"; any operator-chosen custom name is preserved as-is.
       if (!parsed.company?.trim() || parsed.company === COMPANY_NAME) parsed.company = DEFAULT_COMPANY_NAME;
-      return parsed;
+      // ADMIN PANEL ALWAYS UPDATED (operator 2026-09-24): master data seeded after this device saved its Setup
+      // (DR › DRC › CR1 › CR1D · 70034 for PRJ-34) joins the saved Setup; saved nodes and edits are untouched.
+      return mergeSetupSeeds(parsed, seedBizSetup(DEMO_PROJECTS));
     } catch { /* fall through to seed */ }
   }
   return seedBizSetup(DEMO_PROJECTS);
@@ -7437,7 +7457,7 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                   className="h-6 w-8 cursor-pointer rounded border border-slate-700 bg-transparent p-0" />
                 {pl.color && <button onClick={() => persistPillars(pillars.map((x, j) => j === i ? { ...x, color: undefined } : x))} title={t("soi2525.reset_to_trinity_default")} aria-label={`Reset color for ${pl.name}`} className="text-slate-500 hover:text-cyan-300">↺</button>}
               </label>
-              <button onClick={() => persistPillars(pillars.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title={t("soi2525.delete")}>✕</button>
+              <button onClick={() => { lsSet(PILLARS_REMOVED_KEY, JSON.stringify(Array.from(new Set(readPillarsRemoved().concat(pillars[i].name))))); persistPillars(pillars.filter((_, j) => j !== i)); }} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title={t("soi2525.delete")}>✕</button>
             </div>
           ))}
         </div>

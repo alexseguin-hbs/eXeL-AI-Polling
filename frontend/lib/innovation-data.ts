@@ -1393,9 +1393,17 @@ const PROJECT_INTEL: Record<string, ProjectIntel> = {
     segmentValueProps: [{ segment: "Joint · ISR Tasking", prop: "One queue across every constellation, with the first feasible revisit returned.", pain: "hand-arbitrated portals", outcome: "one tasking answer", confidence: 3 }],
   },
   "PRJ-34": {
-    valueProp: "For organizations responsible for people, infrastructure, and essential resources during high-consequence disruptions, De-Risking Strategies connects crisis command, validated leadership, community and field input, resources, and operational learning in one human-directed system — so leaders can see what is happening, adapt the plan, communicate changes, allocate scarce resources, and preserve what happened for the next event.",
+    valueProp: "The coordination layer beside CrisisCommand and specialist ops systems: verify command, see real needs, allocate scarce resources, publish the current plan, replay what happened. Do not replace GridOS, Veoci, Sentinel, or CrisisCommand — coordinate across them.",
     nextBestAlternative: "One NBA per segment: GE Vernova GridOS (utility / industrial) · Veoci Vitals EM (healthcare) · YUDU Sentinel (campus) — DRS wins only where those systems stop",
-    valueDrivers: [d("Verified authority roster with rank", 1.0, 0.9, 0.3), d("Needs + resources as cross-boundary objects", 0.95, 0.88, 0.35), d("Plan vN provenance (what changed · why · who · what now)", 0.9, 0.9, 0.4), d("eXeL collective intake — advisory, never a vote", 0.7, 0.85, 0.2), d("Three resource plans with named triggers", 0.75, 0.8, 0.3), d("R-CORE replay into the next event", 0.8, 0.82, 0.35)],
+    // The waterfall bars are the v0.5 S13 modeled values per segment row, TYPED (annual, per design-partner account,
+    // IA, $k → $M) — never a derived split across the six differentiators, which the frozen brief forbids as "new value".
+    // The six defended differentiators are named on S1 / S8 as text; this is the manuscript's own value table.
+    valueDrivers: [
+      { ...d("Modeled value — Utility community envelope (IA)", 1.0, 0.9, 0.3), valueM: 0.158, detail: "$158k/yr modeled · 12% capture $19k · DP WTP hypothesis $84k · CTS $53k · contribution at DP +$31k" },
+      { ...d("Modeled value — Industrial plant subcase (IA, C-grade)", 0.95, 0.88, 0.35), valueM: 0.15, detail: "$150k/yr modeled · 12% capture $18k · DP $84–110k · CTS $59k · +$25–51k; combined site less 20% overlap $246k" },
+      { ...d("Modeled value — Healthcare regional (IA)", 0.8, 0.85, 0.4), valueM: 0.049, detail: "$49k/yr modeled · 12% capture $6k · DP $54k (~110% of modeled, INTERNAL) · CTS $39k · +$15k" },
+      { ...d("Modeled value — Campus / fixed site (IA)", 0.7, 0.8, 0.3), valueM: 0.024, detail: "$24k/yr modeled · 12% capture $3k · DP $22k (~92% of modeled, INTERNAL) · CTS $16k · +$6k" },
+    ],
     killRisk: "A utility EM confirms community-envelope coordination is NOT already in Storm Manager, and one design partner shows a measured delta on a pre-registered metric versus its NBA-only control window",
     segmentValueProps: [
       { segment: "Utility / industrial (↔ GridOS)", prop: "GridOS operates the electrical grid; DRS coordinates the human, organizational, and resource crisis surrounding the disruption.", pain: "unmanaged community failures during an already-counted SAIDI event", outcome: "fewer unresolved shortages at T+24h; plan-change latency to city, PIO, large customers falls", confidence: 2 },
@@ -2143,6 +2151,36 @@ export const PROJECT_HIER: Record<string, HierPath> = {
   // with IA figures (operator: "complete project 34 finalization first"). DR › DRC › CR1 › CR1D, product 70034.
   "PRJ-34": { bu: "DR", sbu: "DRC", pgroup: "CR1", alpha: "CR1D", product: "70034", material: "70034-001" },
 };
+/** PRJ-34 (2026-09-24) · A SEED ADDED AFTER A DEVICE FIRST SAVED ITS PORTFOLIO NEVER APPEARED THERE. The page hydrates
+ *  `order` from localStorage / the cloud and replaced the seed WHOLESALE, so the operator's phone kept "0/33" and the
+ *  DR › DRC › CR1 scope was empty on the sha that shipped PRJ-34. Invariant: a project seeded in the code exists in
+ *  every portfolio unless a person removed it on purpose. Pure: appends the seeds a saved list lacks (the saved
+ *  order and every edit stay), skipping ids in `removed` (the tombstones the Remove button writes). Idempotent. */
+export function mergeNewSeeds<T extends { id: string }>(saved: T[], seeds: readonly T[], removed: readonly string[] = []): T[] {
+  return mergeMissingBy(saved, seeds, (p) => p.id, removed);
+}
+/** The one merge law behind projects, master data and pillars: append the seed rows the saved list lacks (by key),
+ *  keep every saved row and its order, skip keys a person removed on purpose. Returns the SAME array when nothing
+ *  is missing, so a React state set is a no-op. */
+export function mergeMissingBy<T>(saved: T[], seeds: readonly T[], keyOf: (x: T) => string, removed: readonly string[] = []): T[] {
+  const have = new Set(saved.map(keyOf)), gone = new Set(removed);
+  const add = seeds.filter((x) => !have.has(keyOf(x)) && !gone.has(keyOf(x)));
+  return add.length ? [...saved, ...add] : saved;
+}
+/** ADMIN PANEL ALWAYS UPDATED (operator 2026-09-24: "ensure Admin panel is also updated · always do this in the future").
+ *  A saved Business Setup (the Admin panel's master data) gains every node the code now seeds — BU, SBU, Alpha Group,
+ *  Alpha Code, Product #, Material # — by code, per tier; saved nodes, their edits and the company name are untouched.
+ *  Returns the same object when nothing is missing. */
+export function mergeSetupSeeds(saved: BizSetup, seed: BizSetup): BizSetup {
+  let changed = false;
+  const out = { ...saved } as BizSetup;
+  for (const t of BIZ_TIERS) {
+    const cur = Array.isArray(saved[t.key]) ? saved[t.key] : [];
+    const next = mergeMissingBy(cur, seed[t.key], (n) => n.code);
+    if (next !== cur) { out[t.key] = next; changed = true; }
+  }
+  return changed ? out : saved;
+}
 // 2026-09-24: the HOLD on PRJ-34 is LIFTED (operator: "please complete project 34 finalization first") — the row now
 // lives in DEMO_PROJECTS_BASE with IA figures. The reservation mechanism stays for the next held id; nothing is held.
 export const RESERVED_PROJECT_IDS: readonly string[] = [];

@@ -36,15 +36,14 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         ai: "The coordination layer beside CrisisCommand and specialist ops systems: verify command, see real needs, allocate scarce resources, publish the current plan, replay what happened. Thesis: do not replace GridOS, Veoci, Sentinel, or CrisisCommand — coordinate across them. CrisisCommand status: proposed complementary integration, not a signed partnership, not an assumed API.",
       },
       segment: {
-        hi: "1. Utility + industrial (one need, two economic subcases) · 2. Healthcare / regional · 3. Campus / fixed site. NBA pairs: GridOS · Veoci Vitals EM · YUDU Sentinel.",
+        hi: "1 Utility + industrial (one need, two economic subcases) · 2 Healthcare / regional · 3 Campus / fixed site.",
         ai: "1. Utility + industrial (one need, two economic subcases: utility community envelope · petrochemical / manufacturing plant) · 2. Healthcare / regional · 3. Campus / fixed site. NBA pairs: GridOS · Veoci Vitals EM · YUDU Sentinel. Do not create a fourth industrial segment; do not change segment definitions or NBA pairings.",
       },
       market: {
         hi: [
-          ["DP-01 Campus · 8–20k population", "Campus / district", "NBA YUDU Sentinel", "Y1 cash hypothesis $42k (IA)"],
-          ["DP-02 Health · 3–8 hospitals", "Regional health system", "NBA Veoci Vitals EM", "Y1 cash hypothesis $84k (IA)"],
-          ["DP-03 Utility / plant", "IOU / muni or large plant + community envelope", "NBA GE Vernova GridOS", "Y1 cash hypothesis $129k (IA)"],
-          ["Book if all three sign", "Target, not forecast", "First paid DP 2027-Q3 / Q4", "$255k cash / $160k ARR (IA)"],
+          ["Campus 8–20k pop", "DP-01", "Sentinel", "$42k Y1 cash (IA)"],
+          ["Health 3–8 hospitals", "DP-02", "Veoci Vitals EM", "$84k Y1 cash (IA)"],
+          ["Utility / plant", "DP-03", "GridOS", "$129k Y1 cash (IA)"],
         ],
         ai: [
           ["DP-01 Campus · 8–20k population", "Campus / district", "NBA YUDU Sentinel", "Y1 cash hypothesis $42k (IA)"],
@@ -278,11 +277,11 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S8 Competition + Value ← manuscript S8 / S9 / S10 (three NBA slides) + S12 + S13 (internal table) ──
     S8: {
       vprop: {
-        hi: "GridOS operates the grid. DRS coordinates the crisis around it. · Veoci runs the hospital emergency program. DRS coordinates regional non-clinical exchange and the public card under named authority. · Sentinel notifies and convenes. DRS fulfills and accounts. · Not superior on GridOS ops, Veoci compliance, or Sentinel notify — win only where those stop.",
+        hi: "GridOS operates the grid. DRS coordinates the crisis around it. · Veoci runs the hospital emergency program. DRS coordinates regional non-clinical exchange and the public card under named authority. · Sentinel notifies and convenes. DRS fulfills and accounts.",
         ai: "GridOS operates the grid. DRS coordinates the crisis around it. · Veoci runs the hospital emergency program. DRS coordinates regional non-clinical exchange and the public card under named authority. · Sentinel notifies and convenes. DRS fulfills and accounts. · Not superior on GridOS ops, Veoci compliance, or Sentinel notify — win only where those stop. Competition clusters: deep ops (GridOS, hospital systems, CMMS) · CEM / crisis (Veoci, Sentinel; Everbridge et al. in notes) · cognitive command (CrisisCommand). DRS target: high Human Coordination · high Replay / Readiness · rising Operational Impact.",
       },
       nba: {
-        hi: "Utility / industrial ↔ GE Vernova GridOS (OMS / ADMS · FLISR · SAIDI / SAIFI / CMI · Storm Manager crews, GPS, lodging, expenses, external participants · Disruption Prepare ~72h) · Healthcare ↔ Veoci Vitals EM (one-click activation · ~30 s departmental report · HICS · partner COP · shortage tracking · 96-hour · HVA · JC / CMS / DNV AAR) · Campus ↔ YUDU Sentinel (<60 s multi-channel notify · two-way check · video rooms · audit · lockbox · offline docs · independent comms; anchor only: G-Cloud £5,000 / licence / year).",
+        hi: "One NBA per segment: Utility / industrial ↔ GE Vernova GridOS · Healthcare ↔ Veoci Vitals EM · Campus ↔ YUDU Sentinel (anchor only: G-Cloud £5,000 / licence / year). CrisisCommand is a proposed complementary integration, not an NBA.",
         ai: "Utility / industrial ↔ GE Vernova GridOS (OMS / ADMS · FLISR · SAIDI / SAIFI / CMI · Storm Manager crews, GPS, lodging, expenses, external participants · Disruption Prepare ~72h) · Healthcare ↔ Veoci Vitals EM (one-click activation · ~30 s departmental report · HICS · partner COP · shortage tracking · 96-hour · HVA · JC / CMS / DNV AAR) · Campus ↔ YUDU Sentinel (<60 s multi-channel notify · two-way check · video rooms · audit · lockbox · offline docs · independent comms; anchor only: G-Cloud £5,000 / licence / year, historical floor ~£4,500). Do not claim: SAIDI · crews · lodging · switching · DER · generic logistics · HICS · accreditation packet · PHI SoR · generic 'beyond one org' · generic AAR · blast · check-in · video · offline app · out-of-band tenancy.",
       },
       benefits: {

@@ -17,6 +17,14 @@
   4. **When the operator repeats himself, the last answer missed.** Change what you do, not how you describe
      it. He should never have to ask five ways.
   5. See `docs/AAR_2026-08-28_MOTION_WITHOUT_RECORD.md` and the `mot:` field of release 279.
+- **A SEED REACHES EVERY DEVICE, AND THE ADMIN PANEL WITH IT (operator 2026-09-24: "ensure Admin panel is also updated
+  · always do this in the future").** PRJ-34 shipped in the code and the operator's phone showed **0/33**: the page hydrated
+  its saved portfolio and replaced the seed wholesale, so a project seeded after a device first saved never appeared there,
+  and the Business Setup (the Admin panel's master data) never gained DR › DRC › CR1 › CR1D. The law: **anything seeded in the
+  code — a project, a BU / SBU / Alpha Group / Alpha Code / Product # / Material #, a strategic pillar — is MERGED into every
+  saved copy (local mirror and cloud), never replaced by it, and a deliberate removal leaves a tombstone a deploy never
+  undoes.** One helper (`mergeMissingBy` → `mergeNewSeeds`, `mergeSetupSeeds` in `lib/innovation-data.ts`), every hydration
+  path, gated in `tests/innovation-time.test.mjs`. When you seed a row, update the Admin panel in the same commit and say so.
 - **A NEW EDITION IS AN APPEND, NEVER AN EDIT (same AAR).** `replay()` picks the last ledger entry at or
   below the release being read. Changing an existing `L(v,…)` in place silently removes that block from every
   release that already shipped with it. Append `L(newer,"same.id",…)` instead — the past then replays what it

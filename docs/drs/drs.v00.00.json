@@ -1188,7 +1188,7 @@
    "date": "2026-09-24",
    "kind": "release",
    "why": "PRJ-34 SEEDED in the Innovation Pod (the 2026-09-23 HOLD lifted on the operator's 'complete project 34 finalization first'). Sources persisted under docs/drs/sources/ and docs/drs/sources/PRJ-34_drop/ (v0.4 canonical writeup, v0.5 slide manuscript, build brief S1–S19, contribution ledger, upload brief, archive). The Pod's S1–S18 deck for PRJ-34 is built from v0.5 only, with the ledger's corrections (NPV $0.16M · IRR ~20% · universe $268M · near-term SAM $67M; 14%/$220M retired; CrisisCommand = proposed integration; SKU 'Replay + Readiness — powered by R-CORE'), every number labelled IA, the provenance footer '· v0.5 · IA for feedback' on every slide. This JSON's own value/financial sections stay figure-free (evidence law) — the Pod seed is where the IA numbers live.",
-   "commit": "PENDING"
+   "commit": "1f1a800"
   }
  ],
  "coreControl": "AI recommends and organizes. Authorized humans retain command.",
