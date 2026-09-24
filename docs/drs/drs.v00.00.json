@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.024",
+    "revision": "0.025",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1434,6 +1434,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Round 18 of 99 (twelve lenses) continues the round-13/14/15/16/17 density work on the S1 top row the brief flags under law 6, staying on the same slide, and clears the last same-slide restatement of the proof order there: the S1 segment cell (segment.hi) declared the proof order a validation sequence (\"Proof order is a validation sequence, not a TAM ranking.\"), the exact first-proof / second-proof / scale-potential ordering the S1 market table (market.hi, second column) already ranks on the same slide. This round removes that sentence from the shown segment cell, leaving \"Benchmark: Everbridge 360 AI / Bridge.\", and keeps the full caveat \"Validation sequence EDU → FOOD → TECH — not a TAM ranking.\" in segment.ai; segment.ai is unchanged and still the superset, nothing emptied (D26). S2 status and S18 e0 carry rev 0.024 and the D1–D26 register; PROV and the row provenance move to rev 0.024. No printed number, date or law moved; all figures IA.",
+      "commit": "974cfd7"
+    },
+    {
+      "revision": "0.025",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Round 19 of 99 (twelve lenses) records the S1 top-row density work of rounds 13–18 as complete — a full deck scan finds no same-slide hi-vs-hi repeat left — and turns to the brief's R-CORE mandate that every round tie CrisisCommand's crisis learnings to the steering of PUBLIC-GOVERNMENT projects. The public body was present on S4, S7, S12, S13, S16, S17 and S18 but absent from S5, the problem slide the case opens on; this round writes it into S5.problem.ai (the note; problem.hi and the shown face unchanged): its people answer through the eXeL Polling API, their answers enter the record, every approved posture and outcome is replayable by the body that owns it (IA, after G3; extends D12, D27). S2 status and S18 e0 carry rev 0.025 and the D1–D27 register; PROV and the row provenance move to rev 0.025. No printed number, date or law moved; all figures IA.",
       "commit": "PENDING"
     }
   ],
@@ -2332,6 +2339,13 @@
       "revision": "0.024",
       "by": "twelve lenses · round 18",
       "decision": "Round 18 continues clearing the S1 density the brief flags under law 6 and removes the last same-slide restatement of the proof order (extends D21–D25): the S1 segment cell (segment.hi) declared the proof order a validation sequence (\"Proof order is a validation sequence, not a TAM ranking.\") — the exact first-proof / second-proof / scale-potential ordering the S1 market table (market.hi, second column) already ranks on the same slide; this round removes that sentence from the shown segment cell, leaving \"Benchmark: Everbridge 360 AI / Bridge.\", and keeps the full caveat \"Validation sequence EDU → FOOD → TECH — not a TAM ranking.\" in segment.ai; segment.ai is unchanged and still the superset, and nothing is emptied. The shown segment cell names the benchmark once and reads the proof order from the market table. Raises succinctness (the weakest pillar) and slide density; moves no printed number, date or law; all figures IA."
+    },
+    {
+      "id": "D27",
+      "date": "2026-09-24",
+      "revision": "0.025",
+      "by": "twelve lenses · round 19",
+      "decision": "Round 19 turns from the S1 same-slide-density arc (rounds 13–18, now exhausted — a full deck scan finds no hi-vs-hi repeat left anywhere) to the brief's R-CORE mandate that every round tie CrisisCommand's crisis learnings to the steering of PUBLIC-GOVERNMENT projects. The public body was present on S4, S7, S12, S13, S16, S17 and S18 but absent from S5, the problem slide the case opens on. This round writes it into S5.problem.ai (the note; problem.hi and the shown face unchanged): a public body steering a public project meets the same governed-decision gap — its people answer through the eXeL Polling API, their answers enter the record as operational truth, and every approved posture and its outcome is replayable by the body that owns it, the same loop steering strategy → game plan → execution → delivered results (IA, after G3; extends D12). Raises scalability (a broader user base — the Spiral Development Protocol's test) and coverage; moves no printed number, date or law; all figures IA; nothing emptied; ai stays the superset."
     }
   ],
   "iterations": [
@@ -2839,6 +2853,29 @@
       ],
       "decisions": [
         "D26"
+      ]
+    },
+    {
+      "revision": "0.025",
+      "n": 19,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 19",
+      "file": "docs/drs/iterations/0.025.md",
+      "ssesMeans": {
+        "security": 92.2,
+        "stability": 85.5,
+        "scalability": 81.8,
+        "efficiency": 79.0,
+        "succinctness": 78.3
+      },
+      "edits": [
+        "S2 · status · rev 0.024 → 0.025, decision register D1–D26 → D1–D27 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D26 → D1–D27 (hi + ai) · the register grew (D27)",
+        "PROV / row provenance · rev 0.024 → 0.025 · law 5",
+        "S5 · problem · ai · append the public-body / R-CORE tie — a public body steering a public project meets the same governed-decision gap, its people answering through the eXeL Polling API, their answers entering the record, every approved posture and outcome replayable by the body that owns it (IA, after G3, extends D12) — the S1 same-slide-density arc is exhausted (no hi-vs-hi repeat remains) so the round turns to the brief's R-CORE mandate and seats the public body on the problem slide where it was absent; problem.hi and the shown face unchanged, ai stays the superset, nothing emptied, no printed number / date / law moved, raises scalability · D27"
+      ],
+      "decisions": [
+        "D27"
       ]
     }
   ]
