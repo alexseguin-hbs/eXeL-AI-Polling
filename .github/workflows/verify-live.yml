@@ -61,7 +61,8 @@ jobs:
             html="$(curl -sS -m 20 -H 'cache-control: no-cache' "$SITE" || true)"
             # The stamp, read where the layout renders it (SHA: <span>sha</span>); NO fallback to "the first 7-hex word" —
             # that fallback matched by luck for a week (fleet r.147, Krishna). A miss is red.
-            live="$(printf '%s' "$html" | grep -oE 'SHA:[^0-9a-f]{0,80}[0-9a-f]{7}' | grep -oE '[0-9a-f]{7}$' | head -1)"
+            # The layout renders `SHA: <span class="…">sha</span>`; the span's class holds hex letters, so the pattern names the tag.
+            live="$(printf '%s' "$html" | grep -oE 'SHA: *(<[^>]*> *)?[0-9a-f]{7}' | grep -oE '[0-9a-f]{7}$' | head -1)"
             echo "attempt $i/20 — live=${live:-none}"
             if [ "$live" = "$want7" ]; then
               echo "LIVE=$live" >> "$GITHUB_ENV"
