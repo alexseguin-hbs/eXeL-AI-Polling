@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.026",
+    "revision": "0.027",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1447,8 +1447,15 @@
       "revision": "0.026",
       "date": "2026-09-24",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "e7a1ef0",
       "why": "Round 20 of 99 (twelve lenses) acts on the S14 resourcing overflow the brief names under law 6 and the previous round (0.025) flagged then deferred for lack of a hi-only anchor: the three time-value clock rows on S14.ftedollar.hi (EDU / FOOD / TECH) each enumerated every economic input in full on the shown face, overrunning the panel. This round trims each shown row's third column to its leading inputs and keeps the whole enumeration in ftedollar.ai (the note), anchored on the unique ftedollar hi block so only the shown rows change; hi stays string[][] (three rows × four columns), ai is unchanged (four rows) and stays the superset, nothing is emptied, and no printed number, date or law moves — every figure IA. Raises efficiency and succinctness without touching the substance, which survives complete in the note (D28); S2 status and S18 e0 carry rev 0.026 and the grown D1–D28 register; PROV and the row provenance bump to rev 0.026."
+    },
+    {
+      "revision": "0.027",
+      "date": "2026-09-24",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 21 of 99 (twelve lenses) acts on a law-6 density overflow on S8 (Competition + Value): the three whitespace-above-NBA rows on S8.benefits.hi (EDU above Rave, FOOD above Everbridge, TECH above PagerDuty) each enumerated all nine differentiators in full on the shown face — the longest single-cell enumerations left on any face — while S8.benefits.ai already carried the identical full lists plus a fifth future-state-territory row. This round trims each shown whitespace row to its three leading differentiators and the shared outcome-linked-replay moat and keeps the full nine-item enumeration in benefits.ai (the note), anchored on the unique benefits hi block so only the shown rows change; hi stays string[] (four elements), ai is unchanged (five elements) and stays the superset, the priced line is untouched, nothing is emptied, and no printed number, date or law moves — every figure IA. Raises efficiency and succinctness (D29); S2 status and S18 e0 carry rev 0.027 and the grown D1–D29 register; PROV and the row provenance bump to rev 0.027."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2360,6 +2367,13 @@
       "revision": "0.026",
       "by": "twelve lenses · round 20",
       "decision": "Round 20 acts on the S14 resourcing overflow the brief names under law 6 and the previous round (0.025) flagged then deferred for lack of a hi-only anchor: the three time-value clock rows on S14.ftedollar.hi (EDU / FOOD / TECH) each listed every economic input in full on the shown face, overrunning the panel. This round trims each row's third column to its leading inputs on the face and keeps the whole enumeration in S14.ftedollar.ai (the note), anchored on the unique ftedollar hi block so only the shown rows change. hi stays string[][] with three rows of four columns; ai is unchanged (four rows) and stays the superset; no cell is emptied; no printed number, date or law moves; every figure remains IA. Raises efficiency and succinctness (the Spiral Development Protocol's density test) without touching the substance, which survives complete in the note."
+    },
+    {
+      "id": "D29",
+      "date": "2026-09-24",
+      "revision": "0.027",
+      "by": "twelve lenses · round 21",
+      "decision": "Round 21 acts on a law-6 overflow on S8 (Competition + Value): the three whitespace-above-NBA rows on S8.benefits.hi (EDU above Rave, FOOD above Everbridge, TECH above PagerDuty) each enumerated all nine differentiators in full on the shown face — the longest single-cell enumerations left on any face — and S8.benefits.ai already carried the identical full lists (plus a fifth future-state-territory row). This round trims each shown whitespace row to its three leading differentiators and the shared outcome-linked-replay moat, and keeps the full nine-item enumeration in S8.benefits.ai (the note), anchored on the unique benefits hi block so only the shown rows change. hi stays string[] with four elements; ai is unchanged (five elements) and stays the superset; the priced line (benefits.hi[3]) is untouched; no cell is emptied; no printed number, date or law moves; every figure remains IA. Raises efficiency and succinctness (the Spiral Development Protocol's density test) without touching the substance, which survives complete in the note."
     }
   ],
   "iterations": [
@@ -2913,6 +2927,29 @@
       ],
       "decisions": [
         "D28"
+      ]
+    },
+    {
+      "revision": "0.027",
+      "n": 21,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 21",
+      "file": "docs/drs/iterations/0.027.md",
+      "ssesMeans": {
+        "security": 92.3,
+        "stability": 86.2,
+        "scalability": 82.0,
+        "efficiency": 81.9,
+        "succinctness": 81.3
+      },
+      "edits": [
+        "S2 · status · rev 0.026 → 0.027, decision register D1–D28 → D1–D29 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D28 → D1–D29 (hi + ai) · the register grew (D29)",
+        "PROV / row provenance · rev 0.026 → 0.027 · law 5",
+        "S8 · benefits · hi · trim the three whitespace-above-NBA rows (EDU / FOOD / TECH) to their three leading differentiators and the shared outcome-linked-replay moat on the shown face; the full nine-item enumeration stays in benefits.ai (the note) — a law-6 overflow, the longest single-cell enumerations left on any face; hi stays string[] (four elements), ai unchanged (five elements) and still the superset, the priced line untouched, nothing emptied, no printed number / date / law moved · raises efficiency and succinctness · D29"
+      ],
+      "decisions": [
+        "D29"
       ]
     }
   ]
