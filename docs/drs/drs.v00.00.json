@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.023",
+    "revision": "0.024",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1427,6 +1427,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Round 17 of 99 (twelve lenses) continues the round-13/14/15/16 density work on the S1 top row the brief flags under law 6, staying on the same slide, and clears the last same-slide repeat of the three segment→NBA pairings there: the S1 G2 ask (ask.hi) re-listed the teardowns \"the EDU / Rave, FOOD / Everbridge 360 AI and TECH / PagerDuty teardowns\", the exact segment→primary-NBA pairings the S1 market table (market.hi) already names on the same slide (the segment cell carried them too until 0.019 / D21). This round drops the NBA names from the shown ask, points it to the market table (\"the three segment teardowns (NBAs in the market table)\"), and keeps the full enumeration in ask.ai; ask.ai is unchanged and still the superset, nothing emptied (D25). S2 status and S18 e0 carry rev 0.023 and the D1–D25 register; PROV and the row provenance move to rev 0.023. No printed number, date or law moved; all figures IA.",
+      "commit": "e385d01"
+    },
+    {
+      "revision": "0.024",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Round 18 of 99 (twelve lenses) continues the round-13/14/15/16/17 density work on the S1 top row the brief flags under law 6, staying on the same slide, and clears the last same-slide restatement of the proof order there: the S1 segment cell (segment.hi) declared the proof order a validation sequence (\"Proof order is a validation sequence, not a TAM ranking.\"), the exact first-proof / second-proof / scale-potential ordering the S1 market table (market.hi, second column) already ranks on the same slide. This round removes that sentence from the shown segment cell, leaving \"Benchmark: Everbridge 360 AI / Bridge.\", and keeps the full caveat \"Validation sequence EDU → FOOD → TECH — not a TAM ranking.\" in segment.ai; segment.ai is unchanged and still the superset, nothing emptied (D26). S2 status and S18 e0 carry rev 0.024 and the D1–D26 register; PROV and the row provenance move to rev 0.024. No printed number, date or law moved; all figures IA.",
       "commit": "PENDING"
     }
   ],
@@ -2318,6 +2325,13 @@
       "revision": "0.023",
       "by": "twelve lenses · round 17",
       "decision": "Round 17 continues clearing the S1 density the brief flags under law 6 and removes the last same-slide repeat of the three segment→NBA pairings (extends D21–D24): the S1 G2 ask cell (ask.hi) re-listed the teardowns \"the EDU / Rave, FOOD / Everbridge 360 AI and TECH / PagerDuty teardowns\" — the exact segment→primary-NBA pairings the S1 market table (market.hi) already names on the same slide (and that the segment cell also carried until 0.019 / D21); this round drops the proper NBA names from the shown ask, points it to the market table, and keeps the full enumerated teardown list in ask.ai; ask.ai is unchanged and still the superset, and nothing is emptied. The shown ask reads shorter and names the three teardown targets once (in the table). Raises succinctness (the weakest pillar) and slide density; moves no printed number, date or law; all figures IA."
+    },
+    {
+      "id": "D26",
+      "date": "2026-09-24",
+      "revision": "0.024",
+      "by": "twelve lenses · round 18",
+      "decision": "Round 18 continues clearing the S1 density the brief flags under law 6 and removes the last same-slide restatement of the proof order (extends D21–D25): the S1 segment cell (segment.hi) declared the proof order a validation sequence (\"Proof order is a validation sequence, not a TAM ranking.\") — the exact first-proof / second-proof / scale-potential ordering the S1 market table (market.hi, second column) already ranks on the same slide; this round removes that sentence from the shown segment cell, leaving \"Benchmark: Everbridge 360 AI / Bridge.\", and keeps the full caveat \"Validation sequence EDU → FOOD → TECH — not a TAM ranking.\" in segment.ai; segment.ai is unchanged and still the superset, and nothing is emptied. The shown segment cell names the benchmark once and reads the proof order from the market table. Raises succinctness (the weakest pillar) and slide density; moves no printed number, date or law; all figures IA."
     }
   ],
   "iterations": [
@@ -2802,6 +2816,29 @@
       ],
       "decisions": [
         "D25"
+      ]
+    },
+    {
+      "revision": "0.024",
+      "n": 18,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 18",
+      "file": "docs/drs/iterations/0.024.md",
+      "ssesMeans": {
+        "security": 92.0,
+        "stability": 85.0,
+        "scalability": 80.6,
+        "efficiency": 78.8,
+        "succinctness": 78.4
+      },
+      "edits": [
+        "S2 · status · rev 0.024, decision register D1–D26 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D26 (hi + ai) · the register grew (D26)",
+        "PROV / row provenance · rev 0.024 · law 5",
+        "S1 · segment · hi · the sentence \"Proof order is a validation sequence, not a TAM ranking.\" is removed from the shown segment cell — the S1 market table (market.hi, second column) already ranks each segment's proof position (first proof / second proof / scale-potential) on the same slide — the cell now reads \"Benchmark: Everbridge 360 AI / Bridge.\"; segment.ai is unchanged and still the superset · continues clearing the S1 top-row density (law 6) and removes the last same-slide restatement of the proof order (extends D21–D25), raising succinctness (the weakest pillar) · D26"
+      ],
+      "decisions": [
+        "D26"
       ]
     }
   ]
