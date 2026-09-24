@@ -10,7 +10,7 @@
  */
 import ReactDOM from "react-dom";
 import { Vision2525Mark } from "@/components/vision-2525-mark";
-import React, { useMemo, useState, useEffect, useRef, useCallback, useId, Fragment } from "react";
+import React, { useMemo, useState, useEffect, useLayoutEffect, useRef, useCallback, useId, Fragment } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
@@ -1678,7 +1678,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
  *  lock reads it out of the source text instead, which is what the other page-level locks already do. */
 const SLIDE_SLOT_ASPECT: Record<string, number> = {
   S1: 1.0,   // measured: S1 Portfolio Positioning, dog tag above the chart, on the 1600x900 sheet
-  S8: 1.48,   // measured: the panel's flex column is 718.1 x 485.9 on the 1600x900 sheet
+  S8: 1.8,    // measured 2026-09-24 with the shared row 3 (fit law) — the value panel's body on the 1600x900 sheet; was 1.48 with an auto row 3
 };
 
 function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGenerate, onCompetitors, big, slotKey }: {
@@ -4015,6 +4015,9 @@ function GateCube({ p, onEditSource }: { p: Project; onEditSource?: (patch: Part
 // get their tint back, so the sheet reads as the same document in reverse rather than a washed-out screen
 // grab. Charts keep their colours: SVG paints with `fill`, which `background-color` cannot touch.
 const SLIDE_PRINT_CSS = `
+/* FIT LAW · while printing, the stack is laid out OFF-STAGE (not display:none) so every sheet can be measured and fitted before
+   window.print(); @media print below puts it back in flow. 1600px wide = the sheet, so the fit is the paper's. */
+.slide-print-offstage { position: fixed; top: 0; left: -30000px; width: 1600px; opacity: 0; pointer-events: none; }
 @media print {
   /* THE PAPER IS PAPER. The old rule declared size: 1600px 900px landscape — a custom size AND an
      orientation keyword at once, which is contradictory CSS, and it asserted that the sheet's 1600x900 px
@@ -4029,7 +4032,10 @@ const SLIDE_PRINT_CSS = `
      and display:none (not visibility:hidden) removes them from FLOW, which is what stops the print engine
      paginating around boxes nobody can see. */
   body > *:not(.slide-print-stack) { display: none !important; }
-  .slide-print-stack { position: static !important; display: block !important; width: 100%; margin: 0 !important; }
+  .slide-print-stack { position: static !important; display: block !important; width: 100%; margin: 0 !important; opacity: 1 !important; left: auto !important; top: auto !important; }
+  /* NO CONTROL PRINTS (operator 2026-09-24): the ⤢ expand and every other button are screen affordances; on paper they overprinted
+     a table header. Buttons are interactive by definition, so the rule is the class, not a list of icons. */
+  .slide-print-stack button, .slide-print-stack [data-noprint] { display: none !important; }
   /* The sheet FILLS the printable box and keeps the deck's 16:9. Because the canvas is a container-type:size
      box, every cqw/cqh inside it rescales proportionally — a true photographic reduction, the same law item 3
      established for portrait vs landscape. Deliberately NOT transform: scale(): WebKit ignores fragmentation
@@ -4063,6 +4069,13 @@ const SLIDE_PRINT_CSS = `
   .slide-printonly { display: inline !important; }
   .slide-print-page { break-after: page; page-break-after: always; overflow: hidden; }
   .slide-print-page:last-child { break-after: auto; page-break-after: auto; }
+  /* ONE SHEET PER PAGE ON WEBKIT TOO (operator 2026-09-24: "landscape print renders only 2 slides" on the phone). An aspect-ratio
+     box with an absolutely-positioned child is a height WebKit can compute as zero while paginating; give every sheet its
+     explicit paper size per orientation (Letter, 0.5in margins) and an explicit break BEFORE every sheet after the first —
+     belt and braces, since the sandbox has no WebKit to reproduce. Chromium's pdf-gate proves both counts. */
+  .slide-print-page + .slide-print-page { break-before: page; page-break-before: always; }
+  @media (orientation: landscape) { .slide-print-page { width: 10in !important; height: 5.625in !important; } }
+  @media (orientation: portrait)  { .slide-print-page { width: 7.5in !important; height: 4.21875in !important; } }
   .slide-print-stack [data-slide-canvas] { box-shadow: none !important; }
 
   /* ── P1 · TWO VERSIONS, ONE RENDERER ───────────────────────────────────────────────────────
@@ -4937,6 +4950,9 @@ function S10FinEditor({ p, baseYear, onEdit }: {
 /** UNPRICED BY RULE · the linked fields that DERIVE money from the project record; a row typed `unpriced` prints its sentence here. */
 const UNPRICED_FIELDS = new Set(["profile", "accel", "revtable", "rdchart", "vpchart", "vpdiffs", "valuechart", "diffs", "wtp", "capture"]);
 const BODY_ROWS: Record<string, string> = {
+  // FIT LAW (2026-09-24) · S3 had auto rows, so the financial comments (row 2) grew into the cash-flow chart's row; the chart row keeps
+  // the share it needs and the comments yield through the fit.
+  S3: "minmax(0, 2.95fr) minmax(0, 1fr)",
   S10: "minmax(0, 10fr) minmax(0, 24fr)",
   // Y-1 · THREE ROWS, NOT FOUR — the value proposition, NBA and the price strip share row 1.
   //
@@ -4956,7 +4972,9 @@ const BODY_ROWS: Record<string, string> = {
   // stays 138px on a 540px-tall page eats two and a half times the share it does at 900, and the exported
   // waterfall fell from 51% of the canvas to 41% / 33%. The gate's floor is 12%, so it stayed GREEN — the
   // regression was only visible because the run prints the number. 138/900 = 15.33cqh scales with the sheet.
-  S8: "minmax(0, 1fr) auto minmax(15.33cqh, auto)",
+  // FIT LAW (2026-09-24) · row 3 SHARES the height (it was `auto`, so a longer benefits list shrank the value chart above it — the S8 slot
+  // drifted from 1.48 to 2.3); text in row 3 now yields through the fit and the chart keeps its slot.
+  S8: "minmax(0, 1.4fr) auto minmax(15.33cqh, 1fr)",
   // Z-1/Z-2 · S1's four bands: two content rows of three columns, the one-sentence Ask, the Roadmap band.
   // Same law as S8: NO absolute lengths, ever — the print stack rescales the sheet.
   // ⚠ THE RATIO IS MEASURED, NOT CHOSEN. Row 1 carries the value proposition (the longest prose on the
@@ -4971,7 +4989,8 @@ const BODY_ROWS: Record<string, string> = {
   // gives that slack back automatically, and it does it PER PROJECT: a project with a long dependency
   // list takes its extra from row 1 rather than clipping row 3. Row 1 is the only `fr`, so it absorbs
   // the remainder — and if it ever cannot, the S1×33 sweep says so instead of the sheet quietly clipping.
-  S1: "minmax(0, 1fr) auto auto auto",
+  // FIT LAW (2026-09-24) · rows 2–3 share the height with row 1 instead of taking all they want; each panel then fits its box.
+  S1: "minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) auto",
 };
 
 // ⚠ Z-1 · THE BODY GRID IS TWO COLUMNS FOR EVERY SLIDE BUT ONE. The AMTS sheet has always been a 2-up,
@@ -5000,7 +5019,61 @@ const S8_PANEL_ECHO = new Set(["vprop", "nba", "valuechart", "diffs"]);
 // `wide` spans both COLUMNS; `tall` spans three ROWS. X-7 added `tall` so one panel can run the height of
 // a stack beside it — the waterfall against VProp / NBA / Price Performance — which is the only way a chart
 // gets real height on a sheet that also has to carry five prose boxes.
+/** THE FIT LAW (operator 2026-09-24, phone PDF of S15 — docs/asks/2026-09-24_pdf_expand_buttons_overlap.md): "all words should be
+ *  legible and not overlap another section (make react if sections can modularly adjust size)". A box that would overflow its
+ *  slot SCALES to fit — measured in layout, never clipped, never overprinting its neighbour. Two levels, one hook: the slide BODY
+ *  fits its sheet (every panel visible), then EACH PANEL fits its box (every word visible). The element keeps its grid layout;
+ *  transform + width/height compensation shrink the paint only, and the scale is written on the element as data-fit so the
+ *  screenshot gate (scripts/slide-shots.mjs) can refuse an illegible fit below FIT_FLOOR. Nothing in the record changes.
+ *  The hidden print stack (display:none) measures 0 and is left alone; while printing the stack is laid out off-stage
+ *  (.slide-print-offstage) precisely so this hook can measure it before window.print(). */
+const FIT_FLOOR = 0.7;
+function useFitScale(ref: React.RefObject<HTMLElement | null>) {
+  useLayoutEffect(() => {
+    const el = ref.current, box = el?.parentElement;
+    if (!el || !box) return;
+    let raf = 0;
+    const fit = () => {
+      const st = el.style as CSSStyleDeclaration & { zoom?: string };
+      st.zoom = ""; el.style.height = ""; el.style.flex = "";
+      const avail = el.clientHeight;                              // the share the box gives it (flex-1 or h-full) — 0 when display:none
+      if (!avail || !box.clientWidth) return;
+      // A CHART PANEL IS NEVER FITTED. A chart sizes itself to its box (its own ResizeObserver, cq-unit heights); measuring it at
+      // height:auto and zooming it moves the box it measures — a loop that drifted the S8 slot from 1.48 to 1.9 and pushed the S3
+      // chart 18 px out. Text fits; charts already do.
+      if (el.querySelector("svg[role='img'], [data-fit-skip]")) { el.setAttribute("data-fit", "1.000"); return; }
+      // NATURAL height: let the element take its content (no flex share, no percent height) so a cell that would overprint its
+      // neighbour inside an equal-share grid is counted (the stretched grid's scrollHeight hides it)…
+      el.style.flex = "none"; el.style.height = "auto";
+      // …plus what any INNER clipper hides (a table frame with its own overflow does not grow the parent's scrollHeight, but its
+      // clipped rows are still words the founder must read).
+      let inner = 0;
+      for (const c of Array.from(el.querySelectorAll<HTMLElement>("*"))) {
+        const oy = getComputedStyle(c).overflowY;
+        if (oy === "hidden" || oy === "clip" || oy === "auto" || oy === "scroll") { const d = c.scrollHeight - c.clientHeight; if (d > 1) inner += d; }
+      }
+      const h0 = el.scrollHeight + inner;
+      el.style.flex = ""; el.style.height = "";
+      const sig = `${avail}:${h0}`;
+      if (sig === el.dataset.fitSig) { const kk = el.dataset.fit ? Number(el.dataset.fit) : 1; st.zoom = kk < 1 ? String(kk) : ""; return; }
+      el.dataset.fitSig = sig;
+      const k = h0 > avail + 1 ? Math.max(FIT_FLOOR, avail / h0) : 1;
+      // CSS zoom, not transform: the layout itself shrinks, so the screenshot gate, the print engine and every scroll size see the
+      // fitted box — a transform leaves a larger layout box behind and reads as clipping.
+      st.zoom = k < 1 ? String(k) : "";
+      el.setAttribute("data-fit", k.toFixed(3));
+    };
+    fit();
+    // Refit when the box OR the content changes (fonts settling, a cell edited). Observing the element itself would loop on our own
+    // zoom, so a fit that measures the same box and the same natural height as last time is a no-op — that is the loop breaker.
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); }) : null;
+    ro?.observe(box); ro?.observe(el);
+    return () => { ro?.disconnect(); cancelAnimationFrame(raf); };
+  });
+}
+
 function AmtsPanel({ title, icon, required, wide, tall, taller, full, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; tall?: boolean; taller?: boolean; full?: boolean; children: React.ReactNode }) {
+  const fitRef = useRef<HTMLDivElement>(null); useFitScale(fitRef);   // the fit law, panel level
   return (
     // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
     // renders its title with an empty body is a hard build failure. Attributes only — zero visual effect.
@@ -5023,7 +5096,9 @@ function AmtsPanel({ title, icon, required, wide, tall, taller, full, children }
           `1fr` and its three capture figures `auto`; X-2 deleted those figures from the slide, leaving the
           hatch with ZERO callers, so it is gone too. One panel primitive, one behaviour — an abstraction kept
           for a single caller that no longer exists is the Succinctness pillar's exact failure mode. */}
-      <div data-panel-body className="grid min-h-0 flex-1 content-stretch gap-[0.7cqh] p-[0.7cqw]"><PanelTitleCtx.Provider value={title}>{children}</PanelTitleCtx.Provider></div>
+      {/* FIT LAW · the body is the flex share the panel gives it (as it always was); useFitScale measures its natural height and
+          zooms it to that share instead of letting the panel clip it. No wrapper: a wrapper changed the share a chart measured. */}
+      <div data-panel-body className="grid min-h-0 flex-1 content-stretch gap-[0.7cqh] p-[0.7cqw]" ref={fitRef}><PanelTitleCtx.Provider value={title}>{children}</PanelTitleCtx.Provider></div>
     </div>
   );
 }
@@ -6233,6 +6308,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // Anything that renders a slide renders THIS. A second, print-only slide renderer is exactly how a PDF
     // ends up disagreeing with what the board saw on the projector.
     const Sheet = ({ sp, i, style }: { sp: SlideSpec; i: number; style?: React.CSSProperties }) => {
+      const bodyFitRef = useRef<HTMLDivElement>(null); useFitScale(bodyFitRef);   // the fit law, body level
       // `style` is passed ONLY by the print stack and the cover, and it REPLACES `sheetStyle` — which is
       // where the zoom transform now lives (Z5). So the exported PDF is at 1x no matter what the operator
       // has zoomed the screen to, structurally rather than by a flag. Belt and braces: the print CSS forces
@@ -6292,7 +6368,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 style={{ fontSize: TS.body,
                   ...(BODY_ROWS[sp.code] ? { gridTemplateRows: BODY_ROWS[sp.code] } : {}),
                   ...(BODY_COLS[sp.code] ? { gridTemplateColumns: BODY_COLS[sp.code] } : {}),
-                  ...(BODY_GAP[sp.code] ? { gap: BODY_GAP[sp.code] } : {}) }}>
+                  ...(BODY_GAP[sp.code] ? { gap: BODY_GAP[sp.code] } : {}) }} ref={bodyFitRef}>
                 {panel ? panel() : sp.fields.map((f) => <PresentField key={f.id} sp={sp} f={f} big />)}
                 {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>{t("soi2525.nothing_authored_slide")}</p>}
               </div>
@@ -6392,7 +6468,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 {([["friendly", "Light", "White page, dark text. Charts, legends and the value prop keep their own colours."],
                    ["original", "Original", "Exactly as it looks on screen — dark sheet. Turn ON “Background graphics” in the print dialog."]] as const).map(([mode, label, tip]) => (
                   <button key={mode} role="menuitem"
-                    onClick={() => { setExportOpen(false); setPrintMode(mode); setPrinting(true); requestAnimationFrame(() => requestAnimationFrame(() => window.print())); }}
+                    onClick={() => { setExportOpen(false); setPrintMode(mode); setPrinting(true); requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => window.print()))); }}
                     aria-label={mode === "friendly" ? "Export a light PDF" : "Export an original dark PDF"}
                     className="block w-full border-b border-slate-800 px-3 py-2 text-left last:border-b-0 hover:bg-slate-800/70">
                     <span className="text-xs font-semibold text-slate-100">⎙ {label}</span>
@@ -6451,7 +6527,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         </div>
         {/* PRINT STACK — cover + every slide at 1:1, hidden on screen, one @page each. Same Sheet renderer. */}
         {printing && typeof document !== "undefined" && ReactDOM.createPortal(
-          <div className={`slide-print-stack hidden ${printMode === "friendly" ? "pdf-friendly" : "pdf-original"}`} aria-hidden>
+          <div className={`slide-print-stack slide-print-offstage ${printMode === "friendly" ? "pdf-friendly" : "pdf-original"}`} aria-hidden>
           {/* X-8a · `data-slide-code` IS THE GATE'S HOOK, AND IT EXISTS BECAUSE THE GATE HAD NONE.
               pdf-gate asserted page count, width, sheet count and fill — every one a GEOMETRY measure — so a
               correctly-sized, perfectly-filled deck of BLANK sheets passed it. Probing the stack for S8/S10

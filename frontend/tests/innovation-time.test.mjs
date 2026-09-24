@@ -3398,8 +3398,10 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // and an absolute row does not shrink with it. pdf-gate stayed green throughout — its floor is 12% — so
   // only the printed percentage caught it. Any absolute length in BODY_ROWS is this bug waiting again.
   ok(!/S8: "[^"]*\d(px|rem|em)\b/.test(src), "…and that pin is a SHEET-RELATIVE unit — an absolute length here shrinks the exported chart");
-  ok(/S8: "minmax\(0, 1fr\) auto minmax\(15\.33cqh, auto\)"/.test(src),
-     "S8's value-equation row is `auto` (adapts to the driver count) and its bottom row is a pinned sheet constant");
+  // FIT LAW (2026-09-24): the bottom row keeps its 15.33cqh floor but SHARES the rest (1fr, not auto) — an auto row let a longer benefits
+  // list shrink the value chart above it; the text yields through the fit, the chart keeps its slot.
+  ok(/S8: "minmax\(0, 1\.4fr\) auto minmax\(15\.33cqh, 1fr\)"/.test(src),
+     "S8's value-equation row is `auto` (adapts to the driver count) and its bottom row is a pinned floor that shares the rest");
   ok(!/mode !== "slide" && <CompetitionStrip[\s\S]{0,200}?compact/.test(veq),
      "the strip inside ValueProp is off the slide entirely — it is not merely made smaller there");
   ok(/\{mode !== "slide" && <CompetitionStrip/.test(veq),
@@ -3532,8 +3534,9 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "…and CONOPS keeps the full-width span it has always had");
 
   // 3 · THE PRINT SEED — the reason the exported chart was a small drawing in a big box.
-  ok(/const SLIDE_SLOT_ASPECT: Record<string, number> = \{[\s\S]*?\n  S8: 1\.48,/.test(src),
-     "the sheet-constant slot aspect is a per-code MAP, and S8's entry is the measured 1.48");
+  // FIT LAW (2026-09-24): S8's row 3 shares the height, so the value panel measures 1.8 (was 1.48 with an auto row 3); the shots gate re-measures it.
+  ok(/const SLIDE_SLOT_ASPECT: Record<string, number> = \{[\s\S]*?\n  S8: 1\.8,/.test(src),
+     "the sheet-constant slot aspect is a per-code MAP, and S8's entry is the measured 1.8");
   // ⚠ X-7 · AND IT IS NOW ACTUALLY GUARDED. X-4's comment promised a drift lock and I never built one; the
   // pin above is a pin, not a guard — it would go red on a CORRECT update and stay green while the number
   // rotted. slide-shots now measures the live panel and fails past 8%. Mutation-tested with the stale 2.03.
@@ -3975,7 +3978,8 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "the block is armed on entering Present and torn down on leaving — never the whole route");
   ok(/for \(const ev of \["gesturestart", "gesturechange", "gestureend"\]\) target\.removeEventListener/.test(p1),
      "…and every listener is removed, so nothing leaks outside the deck");
-  ok(/slide-print-stack hidden \$\{printMode === "friendly" \? "pdf-friendly" : "pdf-original"\}/.test(p1),
+  // FIT LAW (2026-09-24): the stack is laid out off-stage while printing so useFitScale can measure it; @media print restores it.
+  ok(/slide-print-stack slide-print-offstage \$\{printMode === "friendly" \? "pdf-friendly" : "pdf-original"\}/.test(p1) && /\.slide-print-offstage \{ position: fixed; top: 0; left: -30000px; width: 1600px; opacity: 0; pointer-events: none; \}/.test(p1),
      "the portal carries the mode as a class — one stack, one Sheet, two inks");
   ok((p1.match(/<Sheet sp=\{sp\} i=\{i\} style=\{printSheetStyle\} \/>/g) || []).length === 1,
      "…and there is still exactly ONE print renderer, so the two versions cannot drift in content");
@@ -5978,8 +5982,10 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/flex flex-wrap justify-center gap-x-2/.test(src), "…and the slide-only inline wrap is gone, not just bypassed");
   ok(/\{!slide && <button onClick=\{\(\) => setFace\(/.test(src),
      "…and the face-flip control is absent from a slide, present on the card");
-  ok(/S1: "minmax\(0, 1fr\) auto auto auto"/.test(src),
-     "S1's rows 2-4 size to their content and row 1 takes the remainder — the tag's height comes from real slack");
+  // FIT LAW (2026-09-24): rows 2–3 now SHARE the height with row 1 (fr, not auto) and each panel fits its box by measurement;
+  // "row 1 takes the remainder" left the value proposition with no room once the strategy and ask filled rows 2–3.
+  ok(/S1: "minmax\(0, 1\.4fr\) minmax\(0, 1fr\) minmax\(0, 1fr\) auto"/.test(src),
+     "S1's rows 1–3 share the height (1.4 : 1 : 1) and the roadmap row sizes to itself — the fit law fits each panel");
 
   // The dog tag is REUSED, deterministic, and prints no financials.
   ok(/<DogTag p=\{p\} showType slide \/>/.test(src), "the Product Type tag reuses DogTag with the type spelled out");
@@ -5991,7 +5997,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/if \(kind === "S1" && field === "vpchart"\) return \(/.test(src), "S1 resolves its own chart, keyed by field");
   ok(/<CompetitionStrip p=\{p\} ours=\{captureFraction\(p\)\} oursLabel=\{\(p\.name \|\| "Ours"\)\.split\(" "\)\[0\]\} compact \/>/.test(src),
      "…and the compressed price bar rides under it — the same component S8 uses, in its short mode");
-  ok(/\n  S1: 1\.0,/.test(src) && /\n  S8: 1\.48,/.test(src), "both charted slides carry their own measured print seed");
+  ok(/\n  S1: 1\.0,/.test(src) && /\n  S8: 1\.8,/.test(src), "both charted slides carry their own measured print seed");
 }
 
 // ── Z-1 · THE CALENDAR IS THE PLANNING HORIZON, NOT THE WHOLE LADDER ─────────────────────────

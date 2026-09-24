@@ -296,7 +296,10 @@ const AUDIT = (printW) => {
     const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
     if (ox > 1 && oy > 1) collide.push({ a: labels[i].t, b: labels[j].t, ox: round(ox / (scale || 1)), oy: round(oy / (scale || 1)) });
   }
-  return { cw, k: round(k), overflow, type, panels, bodyText, deadInk, deadBox, ellipsis, collide, labels: labels.length, pipelineTop,
+  // FIT LAW · every fitted element reports its scale; the gate refuses an illegible fit (below the page's FIT_FLOOR, 0.7).
+  const fits = [...canvas.querySelectorAll("[data-fit]")].map((e) => Number(e.getAttribute("data-fit"))).filter((n) => n > 0);
+  const fitMin = fits.length ? Math.min(...fits) : 1, fitted = fits.filter((n) => n < 0.999).length;
+  return { cw, k: round(k), overflow, type, panels, bodyText, deadInk, deadBox, ellipsis, collide, labels: labels.length, pipelineTop, fitMin, fitted,
     head: { proj: box("[data-proj-name]"), title: box("[data-slide-title]"), bodyTop } };
 };
 
@@ -418,7 +421,8 @@ for (const vp of VIEWPORTS) {
     const maxH = heads.length ? Math.max(...heads.map((t) => t.px)) : 0;
     console.log(`  ${empty.length || a.overflow.length || overBody.length || overHead.length || a.deadBox > DEAD_BOX ? "✗" : "✓"} ${tag.padEnd(28)} canvas ${String(a.cw).padStart(4)}px ·` +
       ` body max ${String(maxB).padStart(5)}px · header max ${String(maxH).padStart(5)}px · panels ${a.panels.length}` +
-      ` · overflow ${a.overflow.length} · box-void ${a.deadBox}px · ink-void ${maxInk}px · labels ${a.labels ?? 0}/collide ${(a.collide ?? []).length}`);
+      ` · overflow ${a.overflow.length} · box-void ${a.deadBox}px · ink-void ${maxInk}px · labels ${a.labels ?? 0}/collide ${(a.collide ?? []).length} · fit min ${(a.fitMin ?? 1).toFixed(2)} (${a.fitted ?? 0} fitted)`);
+    if ((a.fitMin ?? 1) < 0.7) failures.push(`${tag} — FIT ${a.fitMin.toFixed(2)} is below the legibility floor 0.7 (trim the cell, the fit law cannot make it readable)`);
   }
   // ── #21 · HEADER UNIFORMITY across every slide at this viewport ────────────────────────────
   const seen = headBoxes.filter((h) => h.proj && h.title);
