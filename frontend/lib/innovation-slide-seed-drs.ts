@@ -33,25 +33,26 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.007";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.008";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
     // ── Pod S1 Executive Summary ← v0.9 S1 + S3 one sentence ─────────────────────────────────────────────
     S1: {
       oneline: {
-        hi: "CrisisCommand.ai is the one human-governed crisis platform where an institution's leaders see the facts, decide with named authority, alert and act, hold every stakeholder to one approved posture, prove what was done, and learn — so the next crisis begins from the last one's record, never from a blank page.",
-        ai: "CrisisCommand.ai is the one human-governed crisis platform where an institution's leaders see the facts, decide with named authority, alert and act, hold every stakeholder to one approved posture, prove what was done, and learn — so the next crisis begins from the last one's record, never from a blank page. Future-state vision: the leadership operating layer that connects operational truth → executive judgment → approved decision → named action → acknowledgement / evidence → stakeholder response → replay → improvement. " + MOTTO,
+        // 0.008 (D10) · the linked value proposition above this cell already prints the master sentence (D6); this line adds the loop and the ladder — no cell repeats another on the same slide.
+        hi: "The operating loop: operational truth → executive judgment → approved decision → named action → evidence → stakeholder response → replay → improvement. The ladder: govern first (2027) · absorb by the one-ninth gate (2030) · humanity's shared crisis memory (2525).",
+        ai: "The operating loop: operational truth → executive judgment → approved decision → named action → evidence → stakeholder response → replay → improvement. The ladder: govern first (2027) · absorb by the one-ninth gate (2030) · humanity's shared crisis memory (2525). The one sentence above (the linked value proposition, D6) is the master statement, printed once on this slide: CrisisCommand.ai is the one human-governed crisis platform where an institution's leaders see the facts, decide with named authority, alert and act, hold every stakeholder to one approved posture, prove what was done, and learn — so the next crisis begins from the last one's record, never from a blank page. " + MOTTO,
       },
       segment: {
-        hi: "Platform benchmark: Everbridge 360 AI / Bridge — the one critical-event platform the future state carries inside CrisisCommand.ai. Segment comparators: EDU → Rave · FOOD → Everbridge 360 AI / Bridge · TECH → PagerDuty; validation sequence EDU → FOOD → TECH, not a TAM ranking.",
+        hi: "Benchmark: Everbridge 360 AI / Bridge — carried whole inside CrisisCommand.ai. Comparators: EDU → Rave · FOOD → Everbridge · TECH → PagerDuty. Validation order EDU → FOOD → TECH, not a TAM ranking.",
         ai: "Three needs-based segments, one primary NBA each: EDU → Rave Mobile Safety / Rave Alert · FOOD → Everbridge 360 AI / Bridge · TECH → PagerDuty. Validation sequence EDU → FOOD → TECH — not a TAM ranking. Speaker note — the customer's broader stack still matters in interviews: EDU Rave / Everbridge + emergency plans + cabinet process + Teams / email + external counsel · FOOD Everbridge / CEM + recall / quality / ERP + legal counsel + PR agency + manual cross-functional work · TECH PagerDuty + observability / security / status + Slack / Teams + manual exec / comms layer. Sentinel is discovery-only on EDU unless a named buyer has it in the stack.",
       },
       market: {
         hi: [
-          ["1 · Institutional Trust & Governance Under Pressure", "EDU — first proof", "Rave Mobile Safety / Rave Alert", "Rave protects and communicates; CrisisCommand decides, approves, owns"],
-          ["2 · Product Safety, Recall & Consumer Trust", "FOOD — second proof", "Everbridge 360 AI / Bridge", "Everbridge coordinates the event; CrisisCommand governs enterprise judgment"],
-          ["3 · Digital Revenue & Trust Under Technical Pressure", "TECH — scale-potential", "PagerDuty", "PagerDuty runs the incident; CrisisCommand runs leadership's response"],
+          ["1 · Trust & Governance Under Pressure", "EDU — first proof", "Rave", "Rave protects and communicates; CrisisCommand decides, approves, owns"],
+          ["2 · Product Safety & Recall", "FOOD — second proof", "Everbridge 360 AI / Bridge", "Everbridge coordinates the event; CrisisCommand governs the judgment"],
+          ["3 · Digital Trust Under Technical Pressure", "TECH — scale-potential", "PagerDuty", "PagerDuty runs the incident; CrisisCommand runs leadership's response"],
         ],
         ai: [
           ["1 · Distributed Institutional Trust & Governance Under Pressure", "EDU — first proof", "Rave Mobile Safety / Rave Alert", "Rave coordinates campus safety and emergency communication; CrisisCommand governs executive judgment, posture, approval, stakeholder strategy, learning"],
@@ -80,8 +81,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.007 · decision register D1–D9 and the iteration ledger in docs/drs (append-only).",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.007 · decision register D1–D9 and the iteration ledger in docs/drs (append-only). " + PROV,
+        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.008 · decision register D1–D10 and the iteration ledger in docs/drs (append-only).",
+        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.008 · decision register D1–D10 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
@@ -420,6 +421,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "Financial reset: reachable accounts × validated annual value × realistic conversion = serviceable opportunity; no old DRS prices, SAM, SOM, NPV, IRR or CTS.",
           "Design-partner path for the strongest validated segment; no price until a buyer validates baseline, delta, economic weight, attribution and willingness to pay.",
           "Source trail (v0.9): crisiscommand.ai/products · crisiscommand.ai · Rave / Motorola campus safety and Rave Alert pages · everbridge.com critical-event-management and Bridge · pagerduty.com stakeholder communication and business services.",
+          "Public bodies (R-CORE already runs in this repo — decision record, replay, the one-ninth gate, a named human before any machine action): the eXeL Polling API is how a government asks its people and shows them what was decided and why; the citizen's answer enters the record (S4 · S7) and every approved posture and its outcome is replayable by the public body that owns it (S13 · S16 · S17) — strategy → game plan → execution → delivered results, transparent and accountable.",
         ],
       },
     },
@@ -488,8 +490,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     S14: {
       fte: {
         hi: [
-          ["CTS to measure (CC-specific)", "model / inference", "sector intelligence maintenance", "case / scenario maintenance", "enterprise context onboarding"],
-          ["CTS to measure (CC-specific)", "security / isolation · integrations", "support · customer success", "simulation / tabletop support", "expert review if included"],
+          ["CTS (CC-specific)", "model / inference", "sector intelligence upkeep", "case / scenario upkeep", "enterprise context onboarding"],
+          ["CTS (CC-specific)", "security / isolation · integrations", "support · customer success", "simulation / tabletop support", "expert review if included"],
           ["Rule", "CTS is product-finance evidence", "not an old DRS import", "no price until WTP clears CTS + hurdle", "measure actual CTS per segment"],
         ],
         ai: [
@@ -697,12 +699,12 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D9) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D10) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
         ],
         ai: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D9) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D10) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
           PROV,
         ],
       },
