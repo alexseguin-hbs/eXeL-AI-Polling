@@ -136,8 +136,8 @@ import {
 // ── hierarchy: Company → BU → SBU → Product Group, cascading + filter ──
 const h1 = hierOf(DEMO_PROJECTS[0]);
 ok(!!h1.bu && !!h1.sbu && !!h1.pgroup && !!h1.material, "hierOf returns full BU→SBU→PG→Material path");
-ok(hierValues(DEMO_PROJECTS, "bu").length === 3, "3 BUs (MS/DS/AP)");
-ok(hierValues(DEMO_PROJECTS, "sbu").length === 8, "8 SBUs (MSP/MSE·DSI/DSE/DSC·AP1/AP2/AP3)");
+ok(hierValues(DEMO_PROJECTS, "bu").length === 4, "4 BUs (MS/DS/AP + DR since PRJ-34, 2026-09-24)");
+ok(hierValues(DEMO_PROJECTS, "sbu").length === 9, "9 SBUs (MSP/MSE·DSI/DSE/DSC·AP1/AP2/AP3·DRC)");
 const sbusOfMS = hierValues(DEMO_PROJECTS, "sbu", { level: "bu", value: "MS" });
 ok(sbusOfMS.includes("MSP") && sbusOfMS.includes("MSE") && !sbusOfMS.includes("DSI"), "cascading SBUs respect BU parent");
 ok(filterByHier(DEMO_PROJECTS, "sbu", "DSC").every((p) => hierOf(p).sbu === "DSC"), "filterByHier scopes to SBU");
@@ -151,7 +151,7 @@ ok(companyBaseM() === 700, "company base = Σ SBU = 700M");
 ok(buBaseM("MS") === 300 && buBaseM("DS") === 200 && buBaseM("AP") === 200, "BU base = Σ its SBUs (MS 300 · DS 200 · AP 200)");
 ok(scopeBaseM("All", "All") === 700 && scopeBaseM("MS", "All") === 300 && scopeBaseM("x", "MSP") === 150, "scopeBaseM: Company/BU/SBU");
 const cr = companyRollup(DEMO_PROJECTS);
-ok(cr.bus.length === 3 && cr.company.count === DEMO_PROJECTS.length, "rollup: 3 BUs, company counts all projects");
+ok(cr.bus.length === 4 && cr.company.count === DEMO_PROJECTS.length, "rollup: 4 BUs, company counts all projects");
 ok(cr.bus.every((b) => b.sbus.length >= 1 && b.sbus.every((s) => s.groups.length >= 1)), "BU → SBU → Product Group nesting");
 // admin Business-Setup base revenue flows through: BU + Company base sum from the SBUs present
 const crAdmin = companyRollup(DEMO_PROJECTS, { sbuBase: () => 10 });
@@ -164,17 +164,17 @@ ok(GATE_DELIVERABLES.G1.includes("Executive Summary") && GATE_DELIVERABLES.G7.in
 
 // ── level-aware Rack & Stack: aggregate to any hierarchy tier, sorted by NPV, sums preserved ──
 const rackSbu = rackByLevel(DEMO_PROJECTS, "sbu");
-ok(rackSbu.length === 8, "rackByLevel SBU → 8 rows");
+ok(rackSbu.length === 9, "rackByLevel SBU → 9 rows");
 ok(rackSbu.every((r, i) => i === 0 || rackSbu[i - 1].npvM >= r.npvM), "rack rows sorted by NPV desc");
 ok(Math.abs(rackSbu.reduce((s, r) => s + r.count, 0) - DEMO_PROJECTS.length) < 1e-9, "rack SBU counts sum to portfolio");
-ok(rackByLevel(DEMO_PROJECTS, "bu").length === 3 && rackByLevel(DEMO_PROJECTS, "material").length === DEMO_PROJECTS.length, "rack BU=3, Material# = one per project (BOM)");
+ok(rackByLevel(DEMO_PROJECTS, "bu").length === 4 && rackByLevel(DEMO_PROJECTS, "material").length === DEMO_PROJECTS.length, "rack BU=4, Material# = one per project (BOM)");
 
 // ── grouped Rack & Stack (H10): SBU rows grouped under a BU header, Alpha Groups under an SBU header ──
 import { rackGroupedByParent } from "../lib/innovation-data.ts";
 {
   const gS = rackGroupedByParent(DEMO_PROJECTS, "sbu");
   ok(gS.parentLevel === "bu", "sbu split → parent header level is BU");
-  ok(gS.groups.length === 3, "sbu split → 3 BU parent groups");
+  ok(gS.groups.length === 4, "sbu split → 4 BU parent groups");
   ok(gS.groups.flatMap((g) => g.rows).length === rackSbu.length, "grouped SBU rows === flat SBU row count (none dropped)");
   ok(gS.groups.every((g) => Math.abs(g.npvM - g.rows.reduce((s, r) => s + r.npvM, 0)) < 1e-9), "BU header NPV = Σ its SBU rows");
   ok(gS.groups.reduce((s, g) => s + g.count, 0) === DEMO_PROJECTS.length, "BU headers' project counts sum to portfolio");
@@ -308,7 +308,7 @@ import {
 } from "../lib/innovation-data.ts";
 
 // meta (§2.1): 4 strategic initiatives + value ladder + target market + competitive, derived for every project
-ok(STRATEGIC_INITIATIVES.length === 4, "exactly 4 Harmattan-AI strategic pillars (Loitering Munitions · AI Targeting · Attritable Systems · Sovereign Deep-Strike)");
+ok(STRATEGIC_INITIATIVES.length === 5, "exactly 5 strategic pillars (Loitering Munitions · AI Targeting · Attritable Systems · Sovereign Deep-Strike · Civic Crisis + Resilience for the DR BU)");
 ok(DEMO_PROJECTS.every((p) => { const m = metaOf(p); return STRATEGIC_INITIATIVES.includes(m.initiative) && VALUE_LADDER.includes(m.valueLadder) && COMPETITIVE_POSITIONS.includes(m.competitive) && !!m.targetMarket && !!m.valueImpact; }), "every project derives a full meta set (initiative/ladder/impact/market/competitive)");
 ok(metaOf(DEMO_PROJECTS.find((p) => p.id === "PRJ-02")).initiative === "AI Targeting & Terminal Autonomy", "swarm-fusion-AI project → AI Targeting & Terminal Autonomy pillar");
 ok(metaOf(DEMO_PROJECTS.find((p) => p.id === "PRJ-04")).initiative === "Autonomous Loitering Munitions", "counter-UAS effector → Autonomous Loitering Munitions pillar");
@@ -361,7 +361,11 @@ import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJE
   ok(al && al.parent === "CR1", "Alpha Code CR1D under CR1");
   ok(HIER_DECLARED.every((n) => (n.tier === "bu" ? n.code.length === 2 : n.tier === "sbu" ? n.code.length === 3 : n.tier === "alpha" ? n.code.length === 4 : n.code.length >= 3)), "declared codes obey BU 2 · SBU 3 · Alpha Code 4");
   ok(PROJECT_HIER["PRJ-34"] && PROJECT_HIER["PRJ-34"].bu === "DR" && PROJECT_HIER["PRJ-34"].sbu === "DRC" && PROJECT_HIER["PRJ-34"].pgroup === "CR1" && PROJECT_HIER["PRJ-34"].alpha === "CR1D" && PROJECT_HIER["PRJ-34"].product === "70034", "PRJ-34's path is reserved on the DR chain");
-  ok(!DEMO_PROJECTS.some((p) => p.id === "PRJ-34") && RESERVED_PROJECT_IDS.includes("PRJ-34"), "PRJ-34 is HELD: reserved, not in the portfolio");
+  // 2026-09-24 · the HOLD is lifted: PRJ-34 is in the portfolio on DR › DRC › CR1 › CR1D with IA figures; nothing is reserved.
+  ok(DEMO_PROJECTS.some((p) => p.id === "PRJ-34") && !RESERVED_PROJECT_IDS.includes("PRJ-34") && RESERVED_PROJECT_IDS.length === 0, "PRJ-34 is SEEDED: in the portfolio, nothing reserved");
+  const p34 = DEMO_PROJECTS.find((p) => p.id === "PRJ-34");
+  ok(hierOf(p34).bu === "DR" && hierOf(p34).sbu === "DRC" && hierOf(p34).pgroup === "CR1" && hierOf(p34).alpha === "CR1D" && hierOf(p34).product === "70034", "PRJ-34 resolves to DR › DRC › CR1 › CR1D · 70034");
+  ok(p34.gate === "G2" && p34.nreK === 1460 && p34.firstRevenue === "2027-Q3" && /final authority: De-Risking Strategies · v0\.5 · IA for feedback$/.test(p34.provenance ?? ""), "PRJ-34 is G2 Plan, NRE $1.46M (IA), first paid DP 2027-Q3, provenance footer set");
   ok(nextProjectId(DEMO_PROJECTS) === "PRJ-35", "a new idea on the 33-project seed gets PRJ-35, never the reserved PRJ-34");
   ok(nextProjectId([{ id: "PRJ-07" }]) === "PRJ-08", "nextProjectId is max+1 when nothing is reserved there");
   const chain = defaultChain(biz);
@@ -391,8 +395,8 @@ const ilPillar = intelligenceLoad(DEMO_PROJECTS, (p) => metaOf(p).initiative);
 ok(ilPillar.length >= 1 && ilPillar.length <= STRATEGIC_INITIATIVES.length, "intelligence load groups into strategic-pillar categories");
 ok(ilPillar.every((r) => r.ai >= 0 && r.si >= 0 && r.hi >= 0 && r.count >= 1), "each pillar row carries mean AI/SI/HI + count");
 ok(ilPillar.every((r) => Math.abs(r.ai + r.si + r.hi - 1) < 0.2), "AI+SI+HI mix ≈ 1 per group");
-ok(intelligenceLoad(DEMO_PROJECTS, (p) => hierOf(p).bu).length === 3, "intelligence load by BU → 3 rows");
-ok(intelligenceLoad(DEMO_PROJECTS, (p) => hierOf(p).sbu).length === 8, "intelligence load by SBU → 8 rows");
+ok(intelligenceLoad(DEMO_PROJECTS, (p) => hierOf(p).bu).length === 4, "intelligence load by BU → 4 rows");
+ok(intelligenceLoad(DEMO_PROJECTS, (p) => hierOf(p).sbu).length === 9, "intelligence load by SBU → 9 rows");
 ok(intelligenceLoad(DEMO_PROJECTS, (p) => p.id).length === DEMO_PROJECTS.length, "intelligence load by project → one row each");
 
 /* ---------------- Rack & Stack funding line: stackWithBudget (CRS-42/43/71) ---------------- */
@@ -628,8 +632,10 @@ ok(DEMO_PROJECTS.every((p) => (p.segmentValueProps?.length ?? 0) >= 1), "every p
 /* ---------------- Optimized BU/SBU mix (rebalanced — no single BU dominates) ---------------- */
 {
   const buCounts = DEMO_PROJECTS.reduce((m, p) => { const b = hierOf(p).bu; m[b] = (m[b] || 0) + 1; return m; }, {});
-  ok(Object.keys(buCounts).length === 3, "portfolio still spans exactly 3 BUs after rebalance");
-  ok(Object.values(buCounts).every((n) => n >= 5), "every BU carries >=5 projects (no starved BU)");
+  ok(Object.keys(buCounts).length === 4, "portfolio spans exactly 4 BUs (MS/DS/AP rebalanced + DR)");
+  // DR is a REAL business unit seeded with its one real project (PRJ-34, 2026-09-24), not a demo-balance BU — the
+  // ">=5 per BU" balance law is the demo portfolio's and applies to the three demo BUs.
+  ok(Object.entries(buCounts).every(([b, n]) => (b === "DR" ? n >= 1 : n >= 5)), "every demo BU carries >=5 projects (no starved BU); DR carries PRJ-34");
   ok(Math.max(...Object.values(buCounts)) <= DEMO_PROJECTS.length / 2, "no single BU holds more than half the portfolio (balanced mix)");
   ok(filterByHier(DEMO_PROJECTS, "sbu", "DSC").length >= 1, "DSC SBU stays populated after the rebalance");
   ok(DEMO_PROJECTS.every((p) => hierOf(p).bu.length === 2 && hierOf(p).sbu.length === 3 && hierOf(p).alpha.length === 4), "BU 2-char · SBU 3-char · Alpha 4-char invariants hold");
@@ -683,7 +689,7 @@ ok(CADENCE_PER_YEAR.D > CADENCE_PER_YEAR.W && CADENCE_PER_YEAR.W > CADENCE_PER_Y
 {
   const funded = new Set(DEMO_PROJECTS.slice(0, 10).map((p) => p.id));
   const buckets = buBuckets(DEMO_PROJECTS, (id) => funded.has(id));
-  ok(buckets.length === 3, "buBuckets returns one entry per BU (3 BUs → 3 rows, each carrying funded + unfunded)");
+  ok(buckets.length === 4, "buBuckets returns one entry per BU (4 BUs → 4 rows, each carrying funded + unfunded)");
   const totalInBuckets = buckets.reduce((s, b) => s + b.funded.count + b.unfunded.count, 0);
   ok(totalInBuckets === DEMO_PROJECTS.length, "every project lands in exactly one of the 6 buckets (Σ funded+unfunded = portfolio)");
   const fundedCount = buckets.reduce((s, b) => s + b.funded.count, 0);
@@ -1432,7 +1438,7 @@ import { scenarioNodeBudgets } from "../lib/innovation-data.ts";
 {
   for (const total of [66, 77, 88]) {
     const split = scenarioNodeBudgets(total, DEMO_PROJECTS, "sbu");
-    ok(split.length === 8, `scenario $${total}M splits across 8 SBUs`);
+    ok(split.length === 9, `scenario $${total}M splits across 9 SBUs`);
     ok(split.every((n) => n.m >= 0), `scenario $${total}M — no negative SBU budget`);
     const sum = split.reduce((s, n) => s + n.m, 0);
     ok(Math.abs(sum - total) <= split.length * 0.1, `scenario $${total}M SBU budgets sum to the total (±rounding): ${sum}`);
@@ -1623,8 +1629,8 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const { groupsOf, inGroup, scopeByHier } = await import("../lib/innovation-data.ts");
   // Portfolio grew to 33 while the hierarchy shape (the drill's contract) is unchanged.
-  ok(DEMO_PROJECTS.length === 33, `portfolio is 33 projects after H5 (${DEMO_PROJECTS.length})`);
-  ok(hierValues(DEMO_PROJECTS, "bu").length === 3 && hierValues(DEMO_PROJECTS, "sbu").length === 8, "still exactly 3 BUs / 8 SBUs after H5");
+  ok(DEMO_PROJECTS.length === 34, `portfolio is 34 projects after H5 + PRJ-34 (${DEMO_PROJECTS.length})`);
+  ok(hierValues(DEMO_PROJECTS, "bu").length === 4 && hierValues(DEMO_PROJECTS, "sbu").length === 9, "exactly 4 BUs / 9 SBUs after H5 + PRJ-34");
   const buCount = {};
   for (const p of DEMO_PROJECTS) buCount[hierOf(p).bu] = (buCount[hierOf(p).bu] ?? 0) + 1;
   ok(Math.max(...Object.values(buCount)) <= DEMO_PROJECTS.length / 2, "no BU holds more than half the 33-project portfolio");
@@ -3107,7 +3113,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(mgnBad === 0, `Margin reads the same typed or built up, on every row — ${mgnBad} disagree`);
   // …and because the identity holds, the bands can honestly be SHOWN as a build-up. This is the number the
   // operator's "we need rows for QTY, COGS, ASP" depends on: at 0, the sheet has nothing truthful to print.
-  ok(on === 99 && off === 0, `all 99 seeded bands run unit economics — on ${on}, typed ${off} (was on 0, typed 99)`);
+  ok(on === F.DEMO_PROJECTS.length * 3 && off === 0, `all ${F.DEMO_PROJECTS.length * 3} seeded bands run unit economics — on ${on}, typed ${off} (was on 0, typed 99)`);
   // The seeded ASP is IMPLIED by revenue, not typed. Guard the direction of the derivation so nobody
   // "simplifies" it back to the MSRP fallback, which is what made the numbers disagree in the first place.
   const p0 = F.DEMO_PROJECTS.find((p) => F.finOf(p, 2026).years.some((y) => y.neu.units > 0));

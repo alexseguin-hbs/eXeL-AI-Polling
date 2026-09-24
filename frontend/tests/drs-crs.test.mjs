@@ -31,7 +31,8 @@ ok(!/\$\s?\d/.test(drsBlock), 'no DRS matrix row carries a dollar figure');
 const inno = fs.readFileSync('lib/innovation-data.ts', 'utf8');
 ok(inno.includes(`code: "${d.pod.bu}"`) && inno.includes(`code: "${d.pod.sbu}"`) && inno.includes(`code: "${d.pod.alphaGroup}"`) && inno.includes(`code: "${d.pod.alphaCode}"`), `HIER_DECLARED carries ${d.pod.bu} › ${d.pod.sbu} › ${d.pod.alphaGroup} › ${d.pod.alphaCode}`);
 ok(inno.includes(`"${d.pod.projectId.split(' ')[0]}": { bu: "${d.pod.bu}"`), `${d.pod.projectId.split(' ')[0]} is reserved on the ${d.pod.bu} chain`);
-ok(/^HOLD/.test(d.pod.status), 'the source states the HOLD on the project row');
+// 2026-09-24: the HOLD is lifted — the source must say SEEDED and name PRJ-34 + the Pod codes (operator: 'complete project 34 finalization first').
+ok(/^SEEDED/.test(d.pod.status) && d.pod.projectId === 'PRJ-34' && d.pod.bu === 'DR' && d.pod.sbu === 'DRC' && d.pod.alphaGroup === 'CR1' && d.pod.alphaCode === 'CR1D', 'the source states PRJ-34 is SEEDED on DR › DRC › CR1 › CR1D');
 
 console.log(`\ndrs-crs: ${pass} passed, ${fail} failed · ${d.crs.length} DRS rows · revision ${d.project.revision}`);
 process.exit(fail ? 1 : 0);

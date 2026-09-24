@@ -244,7 +244,8 @@ function assertSource() {
   if (!d.needsAssessment.intakeRecord?.length || !d.needsAssessment.outcomeStatementFormat) fail(`needsAssessment needs intakeRecord + outcomeStatementFormat`);
   const P = d.pod || {};
   if (!/^[A-Z]{2}$/.test(P.bu) || !/^[A-Z0-9]{3}$/.test(P.sbu) || !/^[A-Z0-9]{3,4}$/.test(P.alphaGroup) || !/^[A-Z0-9]{4}$/.test(P.alphaCode)) fail(`pod codes break the Pod's code law (BU 2 · SBU 3 · Alpha Group 3–4 · Alpha Code 4): ${JSON.stringify(P)}`);
-  if (!/^HOLD/.test(P.status || "")) fail(`pod.status must state the HOLD (operator 2026-09-23)`);
+  // 2026-09-23 HOLD → 2026-09-24 SEEDED (operator: "complete project 34 finalization first"); the status must say which.
+  if (!/^(HOLD|SEEDED)/.test(P.status || "")) fail(`pod.status must state HOLD or SEEDED (operator 2026-09-23 / 2026-09-24)`);
   if (typeof d.assets?.logo?.status !== "string") fail(`assets.logo.status must be a stated string`);
   // revisions strictly increase; the last is the project's; a release cites a commit or says PENDING (filled after the artefact commit)
   let last = 0;

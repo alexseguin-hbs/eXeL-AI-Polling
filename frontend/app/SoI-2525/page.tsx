@@ -6284,6 +6284,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               </div>
               {/* Provenance — a board artifact with no provenance is orphaned within a week (operator #17). */}
               <span className="slide-printonly hidden truncate">{p.id} · {p.gate} · {scenarioLabel} · p{i + 2}/{SLIDE_SCHEMA.length + 1} · {exportDate}</span>
+              {/* PRJ-34 · a project-declared provenance line prints on EVERY slide (Project.provenance) — screen and PDF. */}
+              {p.provenance && <span data-slide-provenance className="truncate text-slate-400">{p.provenance}</span>}
               <span className="truncate">{t("soi2525.reference_links")} <span className="text-slate-400">{sp.source}</span></span>
             </div>
           </div>
@@ -6312,7 +6314,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             <div className="uppercase tracking-[0.14em] text-cyan-300" style={{ fontSize: TS.micro }}>{t("soi2525.decision_requested")}</div>
             <p className="m-0 mt-[0.5cqh] text-slate-100" style={{ fontSize: TS.lead }}>{decisionAsk}</p>
           </div>
-          <div className="font-mono text-slate-500" style={{ fontSize: TS.micro }}>{p.id} · {p.gate} · {scenarioLabel} · p1/{SLIDE_SCHEMA.length + 1} · {exportDate}</div>
+          <div className="font-mono text-slate-500" style={{ fontSize: TS.micro }}>{p.id} · {p.gate} · {scenarioLabel} · p1/{SLIDE_SCHEMA.length + 1} · {exportDate}{p.provenance ? ` · ${p.provenance}` : ""}</div>
         </div>
       </div>
     );

@@ -312,7 +312,16 @@ let ARTEFACT_KEYS = {};
   let perf = null;
   try {
     const before = JSON.parse(await import("node:fs").then((m) => m.readFileSync(join(DEST, "before.json"), "utf8")));
-    const after = JSON.parse(await import("node:fs").then((m) => m.readFileSync(join(DEST, "after.json"), "utf8")));
+    // THE RUN'S OWN MEASUREMENT FIRST (Deploy #967 red, 2026-09-24): `scripts/drone-perf.mjs` writes `perf/run.json`
+    // in the gate job, but this scorer only ever read `after.json` — a checked-in sidecar measured at 85e8382 — so a
+    // fresh, green perf run was refused as stale and the gate went red on every commit. Read run.json when it exists
+    // and was measured at this head; fall back to after.json (the same staleness law applies to both).
+    const fsm = await import("node:fs");
+    const readIf = (name) => { try { return JSON.parse(fsm.readFileSync(join(DEST, name), "utf8")); } catch { return null; } };
+    const headNow = (() => { try { return execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim(); } catch { return null; } })();
+    const run = readIf("run.json");
+    const after = run && (!headNow || !run.commit || run.commit === headNow) ? run : readIf("after.json");
+    if (!after) throw new Error("no perf sidecar");
     // The pass mark is the 42-aircraft case; fall back to the old heaviest only if it is absent.
     const pick = (j) => j.runs.find((r) => r.label.includes("42 aircraft 2.3")) ?? j.runs.find((r) => r.label.includes("5.5"));
     const b = pick(before), a = pick(after);

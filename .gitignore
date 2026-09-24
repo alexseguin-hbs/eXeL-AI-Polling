@@ -104,3 +104,6 @@ _*.mjs
 _*.py
 frontend/public/pdf.worker.min.mjs
 frontend/public/sql/
+
+# perf sidecar the gate job writes (scripts/drone-perf.mjs → perf/run.json); never a checked-in measurement
+perf/run.json

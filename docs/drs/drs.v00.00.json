@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.003",
+  "revision": "0.004",
   "stage": "Concept (G1) → requesting Plan (G2) entry",
   "decisionRequested": "Authorize MVP definition and the three-segment customer validation program.",
   "created": "2026-09-23",
@@ -1182,6 +1182,13 @@
    "kind": "release",
    "why": "Reconciled to the operator's second message (docs/asks/2026-09-23_drs_bu_sbu_alpha_needs.md): eight differentiators per segment, eleven risks, S12 clusters + target position, S20 five approvals; NBAs SOURCED from vendor pages; CrisisCommand described from search (site egress-blocked; name collision flagged); the needs-assessment research (two families, ten methods, each with its source and what DRS takes); the Pod codes DR › DRC › CR1 › CR1D with PRJ-34 on HOLD; logo placeholder.",
    "commit": "8f7b0bd"
+  },
+  {
+   "revision": "0.004",
+   "date": "2026-09-24",
+   "kind": "release",
+   "why": "PRJ-34 SEEDED in the Innovation Pod (the 2026-09-23 HOLD lifted on the operator's 'complete project 34 finalization first'). Sources persisted under docs/drs/sources/ and docs/drs/sources/PRJ-34_drop/ (v0.4 canonical writeup, v0.5 slide manuscript, build brief S1–S19, contribution ledger, upload brief, archive). The Pod's S1–S18 deck for PRJ-34 is built from v0.5 only, with the ledger's corrections (NPV $0.16M · IRR ~20% · universe $268M · near-term SAM $67M; 14%/$220M retired; CrisisCommand = proposed integration; SKU 'Replay + Readiness — powered by R-CORE'), every number labelled IA, the provenance footer '· v0.5 · IA for feedback' on every slide. This JSON's own value/financial sections stay figure-free (evidence law) — the Pod seed is where the IA numbers live.",
+   "commit": "PENDING"
   }
  ],
  "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -1349,10 +1356,10 @@
   "alphaGroup": "CR1",
   "alphaGroupLabel": "Crisis Coordination",
   "alphaCode": "CR1D",
-  "product": "70034 (reserved)",
-  "material": "70034-001 (reserved)",
-  "projectId": "PRJ-34 (reserved)",
-  "status": "HOLD — the codes exist in the Pod's Setup; the project row is seeded only after the S14 WTP experiments give a range (operator 2026-09-23)"
+  "product": "70034",
+  "material": "70034-001",
+  "projectId": "PRJ-34",
+  "status": "SEEDED — PRJ-34 is in the Innovation Pod on DR › DRC › CR1 › CR1D with IA figures (operator 2026-09-24: \"please complete project 34 finalization first; a time sensitive deliverable and demo of H.I. + A.I.\"). Slide seed: frontend/lib/innovation-slide-seed-drs.ts, built from the v0.5 slide manuscript only (docs/drs/sources/PRJ-34_drop/), ledger corrections printed. The HOLD of 2026-09-23 is lifted."
  },
  "assets": {
   "logo": {

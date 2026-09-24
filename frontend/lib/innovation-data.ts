@@ -305,6 +305,9 @@ export interface Project {
   humanLoad: number;          // 0..1 sustained human-intelligence load (CRS-93 burnout guard)
   ai: number; si: number; hi: number; // intelligence contribution mix (sums ~1)
   predictions: number;        // open risk-market predictions against the project (CRS-81)
+  /** PRJ-34 (operator 2026-09-24) · a provenance line the deck prints on EVERY slide and on the cover — a board
+   *  artifact with no provenance is orphaned within a week. Optional; absent on the 33 demo rows. */
+  provenance?: string;
   // Optional master-data overrides — set via project edit / Submit-New-Idea. When present they
   // win over the PROJECT_HIER seed (hierOf) and the derived pillar (metaOf), so edits to the
   // Business-Setup hierarchy flow through the whole tool.
@@ -409,6 +412,13 @@ export const PROJECT_BRIEF: Record<string, ProjectBrief> = {
   "PRJ-21": { needs: ["Compress the commander OODA loop", "Prioritized, trusted, actionable insight"], outcomes: ["Decisions in minutes, not tens of minutes", "Fused feeds → ranked actions"], solution: ["Decision-speed SA fusion engine", "Explainable prioritization for HITL trust"], evidence: ["Decision-cycle time cut in exercise", "Commanders act on the ranked insight"] },
   "PRJ-22": { needs: ["Team Group 1/3/5 UAS as one force", "Cross-vendor teaming under one intent"], outcomes: ["Cross-group teaming under commander intent", "Mixed-vendor UAS on one fabric"], solution: ["Open multi-UAS teaming fabric", "Single-intent tasking across echelons"], evidence: ["Cross-group teaming demonstrated in sim", "Fabric interoperates across UAS types"] },
   "PRJ-23": { needs: ["One IVAS common operating picture across UGV/UAS/aircraft feeds", "Real-time edge decision support that reduces operator cognitive load"], outcomes: ["Sensor-to-decision-to-effect compressed inside the OODA loop", "In-app escalations + JADC2-ready engagement approvals"], solution: ["Edge AI/CV fusion + digital-twin mission planning on IVAS", "Fit-for-purpose AI/ML packages downloadable per sensor"], evidence: ["Phase-1 multi-drone mission → real-time 3D output (Cesium/Unreal 5)", "MVP1.0→3.0 across 4 phases · $18M ROM · JADC2 integration"] },
+  // PRJ-34 · De-Risking Strategies — Crisis + Resilience (operator's frozen text, v0.3 writeup + the frozen ledger).
+  "PRJ-34": {
+    needs: ["A shared layer showing who is accountable, who is qualified to help, what people need, what resources exist, where they are going, what changed, who authorized it, and what to learn afterward", "Coordinate across grid, hospital, notification and CrisisCommand systems — never replace them"],
+    outcomes: ["A single current plan with named authority", "Needs and resources as objects, not chat threads", "Controlled transparency — enough truth to reduce panic, not so much that it creates it", "An after-event record that can be replayed rather than reconstructed from inboxes"],
+    solution: ["Verified authority roster with rank", "Needs and non-specialist resources as first-class objects across organizational boundaries", "Plan vN provenance card: what changed, why, who authorized, what to do now", "eXeL collective intake — advisory to command, never a vote", "Conservative / Baseline / Aggressive resource plans with named triggers", "Replay + Readiness — powered by R-CORE"],
+    evidence: ["Three-segment validation (Utility / Industrial, Healthcare, Campus) — hypotheses, no LOI yet", "Three NBA teardowns: GE Vernova GridOS, Veoci Vitals EM, YUDU Sentinel", "S16 matrix: segment → NBA → hypothesis → metric → baseline → target → $ → source → result → pursue / pivot / pass", "Every number an initial assessment (IA) for feedback"],
+  },
   "PRJ-24": { needs: ["Command a UAS/UGV swarm forward of reliable cloud reachback", "Keep JADC2 escalations + engagement approvals moving when the link is degraded"], outcomes: ["Decision loop stays alive at the edge (comms-degraded C2)", "Auditable in-app approvals under commander intent"], solution: ["Ruggedized edge-compute node (Mimic / Universal Controller class)", "On-node sensor fusion + decentralized swarm tasking"], evidence: ["Edge autopilot + ATAK / Kägwerks integration in prior IVAS phases", "Concept synthesized from two partial source documents into one full node spec"] },
 };
 export const briefOf = (p: Project): ProjectBrief =>
@@ -422,6 +432,7 @@ const BD_POOL = ["G. Marsh", "L. Fournier", "R. Adler", "M. Boone", "S. Aziz", "
 const idNum = (id: string) => parseInt(id.replace(/\D/g, ""), 10) || 0;
 export function customerOf(p: Project): string {
   const d = `${p.division} ${p.name}`.toLowerCase();
+  if (/crisis|resilience/.test(d)) return "Cities · utilities · health systems · campuses"; // PRJ-34 (civic, not DoD)
   if (/space|radar|sar/.test(d)) return "DoD / USSF";
   if (/autonomy|teaming|mum-t/.test(d)) return "DoD / DIU";
   if (/effect|c-uas|counter/.test(d)) return "US Army RCCTO";
@@ -1117,6 +1128,15 @@ const DEMO_PROJECTS_BASE: Project[] = [
   { id: "PRJ-30", name: "Edge Mission Autonomy Runtime", division: "Autonomy SW", lob: "SBU-2", manager: "L. Okafor", category: "New Product", gate: "G2", confidence: 3, tech: "med", comm: "low", nreK: 5800, fullRev10yM: 195, doNothing10yM: 0, firstRevenue: "2028-Q2", criticalPath: true, humanLoad: 0.63, ai: 0.6, si: 0.25, hi: 0.15, predictions: 37, altGroups: ["DC1"] },
   { id: "PRJ-31", name: "Sovereign Deep-Strike Datalink", division: "Comms", lob: "SBU-3", manager: "T. Cho", category: "Sustaining", gate: "G6", confidence: 5, tech: "low", comm: "low", nreK: 2600, fullRev10yM: 85, doNothing10yM: 0, firstRevenue: "2026-Q2", criticalPath: false, humanLoad: 0.36, ai: 0.25, si: 0.4, hi: 0.35, predictions: 12, altGroups: ["AP4"] },
   { id: "PRJ-32", name: "Attritable Sensor Airframe", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Platform", gate: "G1", confidence: 1, tech: "high", comm: "high", nreK: 11200, fullRev10yM: 340, doNothing10yM: 0, firstRevenue: "2030-Q2", criticalPath: true, humanLoad: 0.69, ai: 0.55, si: 0.25, hi: 0.2, predictions: 71 },
+  // ── PRJ-34 · De-Risking Strategies — Crisis + Resilience (operator 2026-09-24: "please complete project 34 finalization
+  //    first; a time sensitive deliverable and demo of H.I. + A.I."). The HOLD of 2026-09-23 is lifted: every figure is an
+  //    initial assessment (IA) from the v0.5 slide manuscript + the frozen contribution ledger (docs/drs/sources/PRJ-34_drop/). nreK = product NRE
+  //    through MVP 3 (~$1.46M IA). fullRev10yM is a DECLARED 10-year extrapolation of the four-year IA sketch
+  //    ($0 / $95k / $0.94M / $2.39M 2026–2029, then growth toward ~$4M/yr on the $67M near-term SAM) — the frozen
+  //    four-year IA (NPV $0.16M · IRR ~20% · payback ~36 mo) is the figure of record; the Pod's 10-yr profile is derived.
+  //    tech med (integration burden 16) · comm high (procurement 15, "Storm Manager already does this" 15).
+  { id: "PRJ-34", name: "De-Risking Strategies: Crisis+Resilience", /* 40 ch — the deck header's one-size law (≤40); the full title lives on S1 */ division: "Crisis + Resilience", lob: "DRC", manager: "A. Seguin", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "high", nreK: 1460, fullRev10yM: 30, doNothing10yM: 0, firstRevenue: "2027-Q3", criticalPath: false, humanLoad: 0.5, ai: 0.3, si: 0.2, hi: 0.5, predictions: 0, startDate: "2026-09-23",
+    provenance: "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · final authority: De-Risking Strategies · v0.5 · IA for feedback" },
   { id: "PRJ-33", name: "Multi-Orbit ISR Tasking Broker", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "med", nreK: 4900, fullRev10yM: 155, doNothing10yM: 0, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.54, ai: 0.5, si: 0.3, hi: 0.2, predictions: 27 },
 ];
 
@@ -1372,6 +1392,17 @@ const PROJECT_INTEL: Record<string, ProjectIntel> = {
     killRisk: "Partner constellations expose tasking APIs with latency low enough for the revisit promise",
     segmentValueProps: [{ segment: "Joint · ISR Tasking", prop: "One queue across every constellation, with the first feasible revisit returned.", pain: "hand-arbitrated portals", outcome: "one tasking answer", confidence: 3 }],
   },
+  "PRJ-34": {
+    valueProp: "For organizations responsible for people, infrastructure, and essential resources during high-consequence disruptions, De-Risking Strategies connects crisis command, validated leadership, community and field input, resources, and operational learning in one human-directed system — so leaders can see what is happening, adapt the plan, communicate changes, allocate scarce resources, and preserve what happened for the next event.",
+    nextBestAlternative: "One NBA per segment: GE Vernova GridOS (utility / industrial) · Veoci Vitals EM (healthcare) · YUDU Sentinel (campus) — DRS wins only where those systems stop",
+    valueDrivers: [d("Verified authority roster with rank", 1.0, 0.9, 0.3), d("Needs + resources as cross-boundary objects", 0.95, 0.88, 0.35), d("Plan vN provenance (what changed · why · who · what now)", 0.9, 0.9, 0.4), d("eXeL collective intake — advisory, never a vote", 0.7, 0.85, 0.2), d("Three resource plans with named triggers", 0.75, 0.8, 0.3), d("R-CORE replay into the next event", 0.8, 0.82, 0.35)],
+    killRisk: "A utility EM confirms community-envelope coordination is NOT already in Storm Manager, and one design partner shows a measured delta on a pre-registered metric versus its NBA-only control window",
+    segmentValueProps: [
+      { segment: "Utility / industrial (↔ GridOS)", prop: "GridOS operates the electrical grid; DRS coordinates the human, organizational, and resource crisis surrounding the disruption.", pain: "unmanaged community failures during an already-counted SAIDI event", outcome: "fewer unresolved shortages at T+24h; plan-change latency to city, PIO, large customers falls", confidence: 2 },
+      { segment: "Healthcare / regional (↔ Veoci Vitals EM)", prop: "Veoci runs the hospital's emergency program; DRS coordinates the healthcare system, surrounding leadership, and affected population as one authority-controlled environment.", pain: "regional load and the public narrative fragment across facilities", outcome: "faster multi-organization picture; fewer conflicting public messages; auditable authority", confidence: 2 },
+      { segment: "Campus / fixed site (↔ YUDU Sentinel)", prop: "Sentinel notifies and convenes; DRS fulfills and accounts.", pain: "the campus is told something happened but nobody issues blankets or opens the right building", outcome: "minutes-to-accounted-for; minutes-to-sheltered; supplies issued versus requested", confidence: 2 },
+    ],
+  },
 };
 
 // Every project ships with populated intel merged over the base (explicit fields still win; a project
@@ -1395,6 +1426,7 @@ const REVPLAN_QTY: Record<string, number> = {
   // H5 — volumes by archetype for the 9 added projects (space very-low · hardware low · attritable/software high).
   "PRJ-25": 140, "PRJ-26": 65, "PRJ-27": 85, "PRJ-28": 400, "PRJ-29": 320,
   "PRJ-30": 450, "PRJ-31": 260, "PRJ-32": 30, "PRJ-33": 180,
+  "PRJ-34": 60, // ~22 paying accounts by 2029 (IA), growing — annual Readiness subscriptions, not units
 };
 function revPlanProfileFor(p: Project): Pick<RevPlan, "profile" | "growthPctQ" | "rampQuarters"> {
   const isNew = p.category === "New Platform" || p.category === "New Product";
@@ -2107,12 +2139,13 @@ export const PROJECT_HIER: Record<string, HierPath> = {
   "PRJ-31": { bu: "AP", sbu: "AP1", pgroup: "AP1", alpha: "AP1D", product: "70031", material: "70031-001" },
   "PRJ-32": { bu: "AP", sbu: "AP1", pgroup: "AP4", alpha: "AP4A", product: "70032", material: "70032-001" },
   "PRJ-33": { bu: "AP", sbu: "AP3", pgroup: "AP3", alpha: "AP3T", product: "70033", material: "70033-001" },
-  // PRJ-34 is RESERVED for De-Risking Strategies (operator 2026-09-23: "hold PRJ-34 until priced"). The path exists so
-  // the codes below are a real chain; the project row is seeded only after the S14 WTP experiments give a range
-  // (docs/drs/drs.v00.00.json → pod). `nextProjectId` never hands this id to a new idea.
+  // PRJ-34 · De-Risking Strategies — Crisis + Resilience. Reserved 2026-09-23 ("hold until priced"); SEEDED 2026-09-24
+  // with IA figures (operator: "complete project 34 finalization first"). DR › DRC › CR1 › CR1D, product 70034.
   "PRJ-34": { bu: "DR", sbu: "DRC", pgroup: "CR1", alpha: "CR1D", product: "70034", material: "70034-001" },
 };
-export const RESERVED_PROJECT_IDS: readonly string[] = ["PRJ-34"];
+// 2026-09-24: the HOLD on PRJ-34 is LIFTED (operator: "please complete project 34 finalization first") — the row now
+// lives in DEMO_PROJECTS_BASE with IA figures. The reservation mechanism stays for the next held id; nothing is held.
+export const RESERVED_PROJECT_IDS: readonly string[] = [];
 /** The next free project id: one past the highest number in the portfolio, skipping reserved ids. */
 export const nextProjectId = (projects: { id: string }[]): string => {
   const maxN = projects.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, ""), 10) || 0), 0);
@@ -2491,6 +2524,7 @@ export const STRATEGIC_INITIATIVES = [
   "AI Targeting & Terminal Autonomy",
   "Mass-Producible Attritable Systems",
   "Sovereign Deep-Strike & ISR",
+  "Civic Crisis + Resilience", // PRJ-34 · the De-Risking Strategies BU's own pillar (operator 2026-09-24)
 ] as const;
 export type StrategicInitiative = typeof STRATEGIC_INITIATIVES[number];
 // Pillar one-liners for the unlock screen + lens (the "why" behind each initiative).
@@ -2499,6 +2533,7 @@ export const PILLAR_DESC: Record<StrategicInitiative, string> = {
   "AI Targeting & Terminal Autonomy": "On-board AI: detect · track · terminal guidance in GPS/EW-denied fights.",
   "Mass-Producible Attritable Systems": "Low-cost, high-rate, software-defined attritable platforms at scale.",
   "Sovereign Deep-Strike & ISR": "Sovereign long-range ISR + strike with assured, interoperable datalink.",
+  "Civic Crisis + Resilience": "Human-directed coordination beside grid, hospital and campus systems — verify authority, allocate, publish the plan, replay.",
 };
 // Strategic-pillar COLOR (the InnovationTag highlight/border). Defaults start from the SoI Trinity palette
 // (AI cyan · SI sunset · HI violet) + a 4th distinct hue. Admin can override per pillar (PillarDef.color).
@@ -2508,6 +2543,7 @@ export const PILLAR_COLOR: Record<string, string> = {
   "AI Targeting & Terminal Autonomy": "#f7b955", // SI sunset
   "Mass-Producible Attritable Systems": "#a78bfa", // HI violet
   "Sovereign Deep-Strike & ISR": "#fb7185",      // rose (4th)
+  "Civic Crisis + Resilience": "#34d399",        // emerald — BU_COLOR.DR (5th, PRJ-34)
 };
 // Deterministic fallback palette for admin-added pillars with no explicit color (stable by name hash).
 const PILLAR_FALLBACK = ["#22d3ee", "#facc15", "#c084fc", "#f472b6", "#4ade80", "#60a5fa", "#fb923c", "#2dd4bf"];
@@ -2580,7 +2616,8 @@ export function metaOf(p: Project): ProjectMeta {
   const d = `${p.division} ${p.name} ${p.category}`.toLowerCase();
   const initiative: StrategicInitiative =
     (p.initiative && (STRATEGIC_INITIATIVES as readonly string[]).includes(p.initiative) ? (p.initiative as StrategicInitiative) : null) ??
-    (/effect|counter|loiter|strike|munition/.test(d) ? "Autonomous Loitering Munitions"
+    (/crisis|resilience/.test(d) ? "Civic Crisis + Resilience"
+      : /effect|counter|loiter|strike|munition/.test(d) ? "Autonomous Loitering Munitions"
       : /\bai\b|autonomy|swarm|teaming|mum-t|fusion|hivemind|targeting|c2|command|control/.test(d) ? "AI Targeting & Terminal Autonomy"
       : /sdk|marketplace|cloud|software|handheld|gcs|modern|bridge|eol|legacy/.test(d) ? "Mass-Producible Attritable Systems"
       : "Sovereign Deep-Strike & ISR");
@@ -3229,6 +3266,7 @@ export function plcStageOf(cagrPct: number): PlcStage {
 
 // Import as a LOCAL binding (so buildDemoVersionSeed can read it) AND re-export for consumers.
 import { SLIDE_SEED as SLIDE_SEED_AUTHORED } from "./innovation-slide-seed";
+import { SLIDE_SEED_DRS } from "./innovation-slide-seed-drs";
 import { SLIDE_SEED_H5 } from "./innovation-slide-seed-h5";
 // The 24 original projects carry 12-AsM authored deck content; the 9 H5 additions carry deck content generated
 // deterministically from their own intel (same hi+ai contract). One merged seed → one lookup for the whole deck.
@@ -3285,7 +3323,7 @@ function withDerivedS1Seed(seed: SlideSeed): SlideSeed {
   }
   return out;
 }
-export const SLIDE_SEED: SlideSeed = withDerivedS1Seed({ ...SLIDE_SEED_AUTHORED, ...SLIDE_SEED_H5 });
+export const SLIDE_SEED: SlideSeed = withDerivedS1Seed({ ...SLIDE_SEED_AUTHORED, ...SLIDE_SEED_H5, ...SLIDE_SEED_DRS });
 
 export type SlideFieldValue = string | string[] | string[][] | Record<string, string> | null;
 
