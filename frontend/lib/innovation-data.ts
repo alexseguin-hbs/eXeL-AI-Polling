@@ -3677,6 +3677,29 @@ export function traceRowsOf(p: Project): string[][] {
 
 const cap1 = (x: string) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : "");
 
+/** The distinct personas a project's user stories are told from, in first-appearance order, each with a one-line
+ *  role blurb — the LEFT column of the S9 "User Story · Highlights" slide (operator 2026-09-24: personas with a
+ *  mini description on the left that align with the story bullets on the right). Derived from storiesOf, so the
+ *  names match the stories exactly and a persona can never appear on one side and not the other. */
+export function personaBlurb(name: string): string {
+  const n = name.toLowerCase();
+  if (n === "the system") return "The autonomous platform itself — what must hold with no person in the loop.";
+  if (n.includes("program lead")) return "The customer's decision maker — buys it, fields it, sustains it.";
+  if (n.includes("lead/developer")) return "Builds it and proves evidence a reviewer can reproduce.";
+  if (n.includes("operator")) return "Uses it in the field, where the mission actually happens.";
+  return "A stakeholder the project must serve.";
+}
+export function personasOf(p: Project): { name: string; desc: string }[] {
+  const out: { name: string; desc: string }[] = [];
+  const seen = new Set<string>();
+  for (const s of storiesOf(p)) {
+    if (seen.has(s.persona)) continue;
+    seen.add(s.persona);
+    out.push({ name: s.persona, desc: personaBlurb(s.persona) });
+  }
+  return out;
+}
+
 /** A trace group row: heading in cell 0, everything else empty. */
 export const isTraceGroupRow = (row: string[]) => !!row[0] && row.slice(1).every((c) => !c || !c.trim());
 

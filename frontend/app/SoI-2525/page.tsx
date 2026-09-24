@@ -30,6 +30,7 @@ import {
   sourceSlideOf, sourceLabelOf, SOURCE_LABEL,
   DISCIPLINES, disciplineLabel, storyReqId, DISCIPLINE_MAX,
   STORY_MATURITY, isStoryGroupRow, storyTableRows, TRACE_COLS, isTraceGroupRow, traceRowsOf, designOutputId,
+  storiesOf, personasOf,
   fitHeader, HEADER_NAME_BUDGET, HEADER_NAME_FLOOR, HEADER_TITLE_BUDGET, HEADER_TITLE_FLOOR,
   type SlideField, type SlideSpec, type SlideFieldValue,
   buBuckets, fundingBuckets, costPerMinuteOf, upsideAccelOf, nodeAllocation, type BuBucket, type FundingBucket, type NodeAllocation,
@@ -4160,7 +4161,7 @@ const STORY_LEVELS = [
   { key: "L3", label: "Level 3 · Design Traceability Matrix" },
 ] as const;
 
-function StorySpecs({ cols, rows, trace, big }: { cols: string[]; rows: string[][]; trace: string[][]; big?: boolean }) {
+function StorySpecs({ p, cols, rows, trace, big }: { p: Project; cols: string[]; rows: string[][]; trace: string[][]; big?: boolean }) {
   const { t } = useLexicon();
   const max = React.useContext(ChartMaxCtx);
   const [level, setLevel] = useState<"L1" | "L2" | "L3">("L1");
@@ -4178,14 +4179,48 @@ function StorySpecs({ cols, rows, trace, big }: { cols: string[]; rows: string[]
     </div>
   );
 
+  // ⚠ AF-1 · L1 IS THE AMTS "USER STORY · HIGHLIGHTS" LAYOUT (operator 2026-09-24,
+  // docs/asks/2026-09-24_user_story_personas_layout.md + the reference PDF): fill the slide L→R with a narrow
+  // PERSONAS column (name + mini description) on the LEFT, aligned row-band for row-band to the HIGH-PRIORITY
+  // USER STORIES on the RIGHT. One CSS grid, one row per persona, so the left block and its stories share a
+  // grid row and top-align by construction — the alignment is structural, not eyeballed. Colour per persona
+  // (matched left and right). storyTableRows() still feeds L2; traceRowsOf() still feeds L3 — no traceability
+  // is lost, only the highlights view is re-laid-out. The `rows` prop is now used by L2 alone.
+  const PERSONA_TONE = [
+    { name: "text-cyan-300", ring: "border-cyan-500/30" },
+    { name: "text-emerald-300", ring: "border-emerald-500/30" },
+    { name: "text-rose-300", ring: "border-rose-500/30" },
+    { name: "text-amber-300", ring: "border-amber-500/30" },
+  ];
+  const capName = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+  const splitStory = (story: string) => { const m = story.match(/^As (.+?), ([\s\S]*)$/); return m ? { who: m[1], rest: m[2] } : { who: "", rest: story }; };
+  const personas = personasOf(p);
+  const allStories = storiesOf(p);
+  const hdr = "rounded bg-cyan-500/10 px-[0.8cqw] py-[0.4cqh] font-semibold uppercase tracking-[0.14em] text-cyan-300";
   const L1 = (
-    <table className="w-full table-fixed" style={cell}>
-      <tbody>
-        {rows.map((r, ri) => isStoryGroupRow(r)
-          ? <tr key={ri}><td className="px-2 pb-0.5 pt-1.5 font-semibold uppercase tracking-[0.1em] text-cyan-300">{r[0]}</td></tr>
-          : <tr key={ri}><td className="px-2 py-0.5 align-top text-slate-200">{r[0]}</td></tr>)}
-      </tbody>
-    </table>
+    <div className="grid gap-x-[1.2cqw] gap-y-[0.7cqh]" style={{ gridTemplateColumns: "minmax(0, 1fr) minmax(0, 3.1fr)", alignItems: "start" }}>
+      <div className={hdr} style={big ? { fontSize: TS.head } : micro}>{t("soi2525.personas")}</div>
+      <div className={hdr} style={big ? { fontSize: TS.head } : micro}>{t("soi2525.high_priority_user_stories")}</div>
+      {personas.map((per, i) => {
+        const tone = PERSONA_TONE[i % PERSONA_TONE.length];
+        const mine = allStories.filter((s) => s.persona === per.name);
+        return (
+          <React.Fragment key={per.name}>
+            <div className={`rounded-lg border ${tone.ring} bg-[#0b0f14] px-[0.7cqw] py-[0.5cqh]`}>
+              <div className={`font-semibold ${tone.name}`} style={cell}>{capName(per.name)}</div>
+              <p className="m-0 mt-[0.3cqh] leading-snug text-slate-400" style={micro}>{per.desc}</p>
+            </div>
+            <ul className="m-0 list-disc pl-5 text-slate-200" style={cell}>
+              {mine.map((s, j) => { const b = splitStory(s.story); return (
+                <li key={j} className="mb-[0.3cqh] leading-snug">{b.who
+                  ? <><span className="text-slate-400">As </span><span className={`font-semibold ${tone.name}`}>{b.who}</span><span>, {b.rest}</span></>
+                  : b.rest}</li>
+              ); })}
+            </ul>
+          </React.Fragment>
+        );
+      })}
+    </div>
   );
 
   const L2 = (
@@ -5937,7 +5972,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           );
         })()}
         {(f.kind === "table" || f.kind === "chart") && !isSchedule && Array.isArray(v) && <ChartFrame label={f.name}>{f.id === "stories"
-          ? <StorySpecs cols={f.cols ?? []} rows={(v as string[][]).filter((r) => r.some((c) => c && c.trim()))} trace={traceRowsOf(p)} big={big} />
+          ? <StorySpecs p={p} cols={f.cols ?? []} rows={(v as string[][]).filter((r) => r.some((c) => c && c.trim()))} trace={traceRowsOf(p)} big={big} />
           : <div className="overflow-x-auto"><table className={`w-full ${big ? "leading-tight" : "text-[clamp(12px,1.2vw,16px)]"}`} style={big ? { fontSize: TS.body } : undefined}><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className={`px-2 text-left font-semibold uppercase tracking-wide text-slate-400 ${big ? "py-0" : "py-1 text-[clamp(12px,1.2vw,16px)]"}`}>{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => { const ncols = f.cols?.length ?? r.length; return <tr key={ri} className="border-t border-slate-800">{Array.from({ length: ncols }, (_, ci) => <td key={ci} className={`px-2 text-slate-200 ${big ? "py-0" : "py-1"}`}>{r[ci] || "—"}</td>)}</tr>; })}</tbody></table></div>}</ChartFrame>}
         {/* Single source of truth — icon-link to whichever slide OWNS this field's record (SOURCE_SLIDE). */}
         {showSourceLink(sp.code, f.id) && <SourceLink source={sp.source} code={sp.code} fieldId={f.id} />}
@@ -6176,6 +6211,17 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             {fieldsOf("features")}
           </AmtsPanel>
         </>
+      ),
+      // S9 — User Story · Highlights (operator 2026-09-24, AMTS template + reference PDF). The slide fills L→R:
+      // a narrow PERSONAS column (name + mini description) aligned to the HIGH-PRIORITY USER STORIES on the
+      // right — StorySpecs' L1 draws the two-column grid; the tabs still reach the CRS (L2) and DTM (L3). It is
+      // `full` (col-span-full) because the default grid would hand a single-field slide only ONE of two columns,
+      // which is exactly the half-width the operator flagged. `leanFieldsOf` renders the field bare so the only
+      // headers are the two column heads, not a third field banner above them.
+      S9: () => (
+        <div className="col-span-full flex min-h-0 flex-col">
+          {leanFieldsOf("stories")}
+        </div>
       ),
       // S10 — Financials by Year. THE single source of truth, and the only slide that accepts financial input.
       // Two panels, matching the operator's own Rack & Stack: R&D Spend above, R&D Revenues below. Both are

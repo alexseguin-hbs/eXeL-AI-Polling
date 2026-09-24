@@ -4006,6 +4006,23 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      /const k = Math\.min\(kH, kW\);/.test(p1),
      "AE-1: useFitScale is width-aware — it scales to the box on both axes, the tighter axis winning");
 
+  // AF-1 · S9 IS THE PERSONAS-ALIGNED "USER STORY · HIGHLIGHTS" (operator 2026-09-24, reference PDF). S9 is a
+  // full-width panel; StorySpecs' L1 is a two-column grid (Personas | High Priority User Stories) grouped by
+  // persona so left and right align by construction; personasOf derives from storiesOf so the two sides can
+  // never disagree on who a persona is. The invariant is a gate, not a hope.
+  ok(/S9: \(\) => \(\s*<div className="col-span-full/.test(p1) && /\{leanFieldsOf\("stories"\)\}/.test(p1),
+     "AF-1: S9 renders full-width (col-span-full), so the personas + user stories fill the slide L→R");
+  // NB: __resolveT has already replaced {t("soi2525.…")} with its English default, so assert the resolved header text.
+  ok(/function StorySpecs\(\{ p, cols, rows, trace, big \}/.test(p1) &&
+     /gridTemplateColumns: "minmax\(0, 1fr\) minmax\(0, 3\.1fr\)", alignItems: "start"/.test(p1) &&
+     />Personas</.test(p1) && />High Priority User Stories</.test(p1),
+     "AF-1: StorySpecs L1 is the two-column personas↔stories grid, aligned, with both column headers");
+  {
+    const idata = await (await import("node:fs/promises")).readFile("lib/innovation-data.ts", "utf8").then(__resolveT);
+    ok(/export function personasOf\(p: Project\)/.test(idata) && /for \(const s of storiesOf\(p\)\)/.test(idata),
+       "AF-1: personasOf derives the persona list from storiesOf (names match the stories exactly)");
+  }
+
   // 2 · ORIGINAL IS THE EXACT REPLICA **BY CONSTRUCTION** — no rule targets it, so there is nothing that
   //     could make it differ from Present mode. Asserted as an absence, which is the strong form.
   ok(!/pdf-original\s*\[data-slide-canvas\]/.test(p1) && !/\.pdf-original [^{]*\{/.test(p1),

@@ -2611,6 +2611,8 @@ const siteUxB6: TranslationEntry[] = [
   { key: "soi2525.planned_delivered_beats_plan", englishDefault: "planned ÷ delivered · >1.0 beats plan", context: "auto: app/SoI-2525/page.tsx:undefined", cubeId: 0 },
   { key: "soi2525.tap_to_cycle_signoff", englishDefault: "Tap to cycle: pending → signed → blocked", context: "auto: app/SoI-2525/page.tsx:undefined", cubeId: 0 },
   { key: "soi2525.user_story_detail_level", englishDefault: "User story detail level", context: "auto: app/SoI-2525/page.tsx:undefined", cubeId: 0 },
+  { key: "soi2525.personas", englishDefault: "Personas", context: "S9 left-column header: the personas the user stories are told from", cubeId: 0 },
+  { key: "soi2525.high_priority_user_stories", englishDefault: "High Priority User Stories", context: "S9 right-column header: the user-story bullets grouped by persona", cubeId: 0 },
   { key: "soi2525.expand_for_detail_matrix", englishDefault: "⤢ expand for detail and the traceability matrix", context: "auto: app/SoI-2525/page.tsx:undefined", cubeId: 0 },
   { key: "soi2525.s10_financials_by_year", englishDefault: "S10 · Financials by Year", context: "auto: app/SoI-2525/page.tsx:undefined", cubeId: 0 },
   { key: "soi2525.technical_financials", englishDefault: "Technical Financials", context: "auto: app/SoI-2525/page.tsx:undefined", cubeId: 0 },
