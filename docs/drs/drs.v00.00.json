@@ -1195,7 +1195,7 @@
    "date": "2026-09-24",
    "kind": "release",
    "why": "FUTURE STATE FOR CRISISCOMMAND.AI (operator 2026-09-24: 'we are writing a future state for CrisisCommand.ai — value prop and all need to be informed by NBA and needs based segment research'). New futureState block: one master value proposition and three per-segment outcome statements, each DERIVED from where its NBA stops (nbas[].strongAt vs wedge) and from the segment research (nose, X·Y·Z, ODI / CASPER / MIRA / THIRA / HSEEP / Kano), targets IA; rendered on S1 and mirrored into the Pod's PRJ-34 value prop, segment props and S1 / S5 / S6 / S8 cells. project.business names CrisisCommand.ai as the subject. Provenance and the frozen numbers unchanged; the change enters on HI's direction (final authority), recorded in docs/asks/2026-09-24_prj34_future_state_crisiscommand.md.",
-   "commit": "PENDING"
+   "commit": "adc9350"
   }
  ],
  "coreControl": "AI recommends and organizes. Authorized humans retain command.",

@@ -32,7 +32,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S1 Executive Summary ← manuscript S1 ───────────────────────────────────────────────────────────────
     S1: {
       oneline: {
-        hi: "CrisisCommand.ai, future state: the coordination layer that begins where GridOS, Veoci and Sentinel stop — verify command, see real needs, allocate scarce resources, fulfil to a named recipient, publish the current plan, replay what happened.",
+        hi: "Verify command, see real needs, allocate scarce resources, fulfil to a named recipient, publish the current plan, replay what happened — beginning where GridOS, Veoci and Sentinel stop.",
         ai: "CrisisCommand.ai, future state: the coordination layer that begins where GridOS, Veoci and Sentinel stop — verify command, see real needs, allocate scarce resources, fulfil to a named recipient, publish the current plan, replay what happened. Thesis: do not replace GridOS, Veoci, Sentinel, or the CrisisCommand Think / Command objects — coordinate across them; the value prop is derived from where each NBA stops and from the needs-based segment research (S3, NOSE, ODI / CASPER / MIRA / THIRA / HSEEP).",
       },
       segment: {
@@ -69,7 +69,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         ],
       },
       ask: {
-        hi: "Approve G2. Release $280k of $620k MVP 1 (IA). First paid DP 2027-Q3. Not G6, not 2026-Q2 revenue. " + MASTER_Q,
+        hi: "Approve G2 · release $280k of $620k MVP 1 (IA) · first paid DP 2027-Q3 · not G6, not 2026-Q2 revenue. Master question: can verified authority + resource fulfillment + provenance + replay create enough incremental value beside the customer's NBA to support a paid attach product?",
         ai: "Approve G2. Release $280k of $620k MVP 1. First paid DP 2027-Q3 / Q4; first repeatable revenue target 2028-Q1. Not G6. Not 2026-Q2 revenue. " + MASTER_Q + " Do not present this as G6 / Maximize, imply 2026-Q2 first revenue, change segment definitions, NBA pairings or architecture, invent new pricing or value, or replace IA assumptions with fake precision. " + IA,
       },
     },
