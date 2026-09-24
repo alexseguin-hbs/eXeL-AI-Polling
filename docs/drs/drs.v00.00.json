@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.014",
+    "revision": "0.015",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1364,6 +1364,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Round 8 of 99 closes the derived-specimen set at the three primary segments: a third worked event (TECH) is added to the S4 speaker note on TECH's own clock — technical severity established → approved executive / customer / regulator posture, never outage duration — against the same declared single-customer baseline (250 $/min · 90 leadership-delay minutes · 4 events), printing no new aggregate but the identical 90 k on S3 on a third clock, and held to the same null and stop rule (D14). D16 records that all three primary segments (EDU · FOOD · TECH) now carry exactly one derived specimen, extends D15 and bounds it against segment sprawl (no fourth-segment specimen before its validation wave). S2 status and S18 e0 carry rev 0.014 and the D1–D16 register; PROV and the row provenance are bumped to rev 0.014. No printed number, date or law moved; the twelve-lens means rise on stability and scalability as the method is shown whole across every primary segment.",
+      "commit": "38fa4af"
+    },
+    {
+      "revision": "0.015",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Round 9 of 99 (twelve lenses) bounds the worked events without adding a new specimen: a ninth line on the S4 speaker note names the claim boundary (D17) — each EDU / FOOD / TECH specimen demonstrates the time-value leg only, 90 k of the 180 k modeled value on S3 (250 $/min × 90 leadership-delay minutes × 4 events), while the discrete avoided cost (30 k) and the risk-adjusted outcome (60 k) stay declared, not worked, and only the buyer interview sizes them; because 33 % capture of the worked 90 k alone is ≈ 30 k, below the 60 k price, the price depends on the two un-worked legs being validated, and the deck never presents the worked minutes as the full modeled value or the price — capping the sharpest overclaim (a modeled figure read as a promise, S13). S2 status and S18 e0 carry rev 0.015 and the D1–D17 register; PROV and the row provenance are bumped to rev 0.015. No printed number, date or law moved; the twelve-lens means rise on security and stability as the case names the limit of its own proof (security 86.7 · stability 76.9 · scalability 74.0 · efficiency 71.0 · succinctness 65.5).",
       "commit": "PENDING"
     }
   ],
@@ -2192,6 +2199,13 @@
       "revision": "0.014",
       "by": "twelve lenses · round 8",
       "decision": "The derived-specimen set is closed at the three primary segments (EDU · FOOD · TECH): with the S4 TECH event worked in minutes on TECH's own clock (technical severity established → approved executive / customer / regulator posture, never technical outage duration) against the same single-customer baseline (250 $/min · 90 leadership-delay minutes · 4 events), printing no new aggregate — the identical 90 k on S3, on a third clock — all three primary segments now carry exactly one derived specimen, each held to the same null and stop rule (D14) and re-derived when the inputs move (D13); extends D15 (one specimen per segment) and bounds it: no fourth-segment specimen (RETAIL / HEALTH / FIN) is worked on the deck before that segment enters the validation wave — guards segment sprawl (S13)."
+    },
+    {
+      "id": "D17",
+      "date": "2026-09-24",
+      "revision": "0.015",
+      "by": "twelve lenses · round 9",
+      "decision": "The worked events on S4 demonstrate the time-value leg only: each specimen (EDU · FOOD · TECH, D13–D16) shows 90 k of the 180 k modeled value on S3 (250 $/min × 90 leadership-delay minutes × 4 events), while the discrete avoided cost (30 k) and the risk-adjusted outcome (60 k) are declared inputs, not worked, sized only by the buyer interview; because 33 % capture of the worked 90 k alone is ≈ 30 k — below the 60 k price — the price depends on the two un-worked legs being validated, and the deck never presents the worked minutes as the full modeled value or the price (the worked minute is a floor on time value, never the whole case); caps the overclaim risk on S13 (a modeled figure quoted as a promise) and bounds D13–D16 without moving any printed number, date or law; all figures IA."
     }
   ],
   "iterations": [
@@ -2469,6 +2483,29 @@
       ],
       "decisions": [
         "D16"
+      ]
+    },
+    {
+      "revision": "0.015",
+      "n": 9,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 9",
+      "file": "docs/drs/iterations/0.015.md",
+      "ssesMeans": {
+        "security": 86.7,
+        "stability": 76.9,
+        "scalability": 74.0,
+        "efficiency": 71.0,
+        "succinctness": 65.5
+      },
+      "edits": [
+        "S2 · status · rev 0.015, decision register D1–D17 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D17 (hi + ai) · the register grew (D17)",
+        "PROV / row provenance · rev 0.015 · law 5",
+        "S4 · future · ai (a ninth line, speaker note only, hi unchanged) · the claim boundary of the worked events — each demonstrates the time-value leg only (90 k of the 180 k modeled value on S3); the discrete avoided cost (30 k) and risk-adjusted outcome (60 k) are declared, not worked, sized only by the buyer interview; 33 % capture of the worked 90 k alone is ≈ 30 k, below the 60 k price, so the price depends on the two un-worked legs; the deck never presents the worked minutes as the full value or the price · caps the sharpest overclaim (Thor / Thoth / Enki); D17"
+      ],
+      "decisions": [
+        "D17"
       ]
     }
   ]
