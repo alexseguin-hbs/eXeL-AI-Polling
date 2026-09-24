@@ -1139,11 +1139,12 @@ const DEMO_PROJECTS_BASE: Project[] = [
   //    ($0 / $95k / $0.94M / $2.39M 2026–2029, then growth toward ~$4M/yr on the $67M near-term SAM) — the frozen
   //    four-year IA (NPV $0.16M · IRR ~20% · payback ~36 mo) is the figure of record; the Pod's 10-yr profile is derived.
   //    tech med (integration burden 16) · comm high (procurement 15, "Storm Manager already does this" 15).
-  { id: "PRJ-34", name: "Project 34 — CrisisCommand Future State", /* 39 ch — the deck header's one-size law (≤40); v0.8.2 title */ division: "Crisis + Resilience", lob: "DRC", manager: "A. Seguin", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "high", // 0.007 (D8, operator 2026-09-24 night) · DIGITAL INPUTS, DECLARED (IA): nreK 3600 = 1.2 M/yr × 3 build years; fullRev10yM 64 = 1,066 account-years × 60 k
+  { id: "PRJ-34", name: "Project 34 — CrisisCommand Future State", /* 39 ch — the deck header's one-size law (≤40); v0.8.2 title */ division: "Crisis + Resilience", lob: "DRC", manager: "A. Seguin", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "high", // 0.007 → 0.009 (D8 · D10, operator 2026-09-24) · DIGITAL INPUTS, DECLARED (IA): nreK 11200 = every year's spend 2026–2036; fullRev10yM 248 = 2,121 account-years
+  // at 60 k (2027–2030) then 120 k (2031+) — both the roll-up of PRJ34_FIN_PLAN (finRollup), the eleven-year record S3 / S10 / S14 read.
   // (docs/drs/drs.v00.00.json financialModel). The Pod's linked fields (S1 chart · S2 / S3 profile · S8 charts · S10 grid) derive from these two numbers,
   // REVPLAN_QTY and the value drivers — change the inputs, never a printed number. The unpriced class (v1.0) stays in the code, no longer applied here.
-  nreK: 3600, fullRev10yM: 64, doNothing10yM: 0, firstRevenue: "2027-Q3", criticalPath: false, humanLoad: 0.5, ai: 0.3, si: 0.2, hi: 0.5, predictions: 0, startDate: "2026-09-23",
-    provenance: "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.008" },
+  nreK: 11200, fullRev10yM: 248, doNothing10yM: 0, firstRevenue: "2027-Q3", criticalPath: false, humanLoad: 0.5, ai: 0.3, si: 0.2, hi: 0.5, predictions: 0, startDate: "2026-09-23",
+    provenance: "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.009" },
   { id: "PRJ-33", name: "Multi-Orbit ISR Tasking Broker", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "med", nreK: 4900, fullRev10yM: 155, doNothing10yM: 0, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.54, ai: 0.5, si: 0.3, hi: 0.2, predictions: 27 },
 ];
 
@@ -1426,7 +1427,37 @@ const PROJECT_INTEL: Record<string, ProjectIntel> = {
 // without an intel entry falls back to the deterministic derived engine, so nothing ever blanks).
 // H40 — only the two hardware franchises carry an existing/EOL revenue line; every other project is new-revenue
 // only (do-nothing baseline zeroed). SAR (PRJ-01): $33M→$11M over 5y, $0 yrs 6–10. Legacy (PRJ-11): $11M→$0 by yr11.
+
+// ── PRJ-34 · THE ELEVEN-YEAR RECORD (operator 2026-09-24: "NPV MUST BE NON ZERO; resources must exist for full 11 years for 10 year
+// financial and resource build"; decision D10, docs/drs/drs.v00.00.json financialModel). DECLARED (IA), labelled at the source:
+// one Pro Enterprise institution pays 60 k a year for the governed leadership state (2027–2030) and 120 k a year once the benchmark's
+// functions are native (2031+); paying accounts 6 → 640 by 2036; spend every year 2026–2036 (build 2027–2029, then platform R&D,
+// knowledge-base and customer-success sustain). The Pod's NPV proxy (35 % margin × 0.78 discount on the G2-weighted revenue, less
+// every year's spend) reads +1.0 M at the G2 weighting; nreK / fullRev10yM are the roll-up of this plan, never typed beside it.
+const PRJ34_YEARS = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036] as const;
+const PRJ34_ACCOUNTS = [0, 6, 15, 30, 60, 120, 180, 250, 350, 470, 640] as const;           // paying accounts (customer-years)
+const PRJ34_PRICE_K = [0, 60, 60, 60, 60, 120, 120, 120, 120, 120, 120] as const;          // annual price per account, $K
+const PRJ34_SPEND_K: readonly (readonly [number, number, number, number, number])[] = [    // labor · contractor · materials · other · sustain, $K
+  [400, 100, 50, 50, 0], [800, 200, 100, 100, 0], [800, 200, 100, 100, 0], [800, 200, 100, 100, 0],
+  [600, 100, 50, 50, 200], [600, 100, 50, 50, 200], [600, 100, 50, 50, 200], [600, 100, 50, 50, 200], [600, 100, 50, 50, 200], [600, 100, 50, 50, 200], [600, 100, 50, 50, 200],
+];
+export function prj34FinPlan(): FinPlan {
+  const plan = emptyFinPlan(PRJ34_YEARS[0]);
+  plan.years.forEach((y, i) => {
+    const [labor, contractor, materials, other, sustain] = PRJ34_SPEND_K[i];
+    Object.assign(y, { labor, contractor, materials, other, sustain });
+    const asp = PRJ34_PRICE_K[i];
+    const cogs = Math.round(asp * 0.41 * 10) / 10, units = PRJ34_ACCOUNTS[i];                                      // 59 % margin, the exec model's own
+    y.neu = { units, aspK: asp, msrpK: asp, discPct: 0, cogsK: cogs, revK: units * asp, mgnK: units * (asp - cogs) };  // typed = built up, by construction
+  });
+  plan.unitEcon = { neu: true, don: true, dec: true };
+  plan.techConfPct = 50; plan.commConfPct = 25; plan.spendRequestK = spendTotalK(plan.years[0]);
+  return plan;
+}
+export const PRJ34_FIN_PLAN: FinPlan = prj34FinPlan();
+export const PRJ34_ROLLUP = finRollup(PRJ34_FIN_PLAN);   // { nreK: 11200, fullRev10yM: 248, doNothing10yM: 0 } — the gate holds the row to it
 const EXISTING_OVERRIDE: Record<string, Partial<Project>> = {
+  "PRJ-34": { finPlan: PRJ34_FIN_PLAN },   // the eleven-year record is the source; nreK / fullRev10yM on the row equal its roll-up
   "PRJ-01": { existingRevM: 33, existingDecline: { toM: 11, overYears: 5, zeroAfterYear: 5 } },
   "PRJ-11": { existingRevM: 11, existingDecline: { toM: 0, overYears: 10, zeroAfterYear: 10 } },
 };
@@ -1443,7 +1474,7 @@ const REVPLAN_QTY: Record<string, number> = {
   // H5 — volumes by archetype for the 9 added projects (space very-low · hardware low · attritable/software high).
   "PRJ-25": 140, "PRJ-26": 65, "PRJ-27": 85, "PRJ-28": 400, "PRJ-29": 320,
   "PRJ-30": 450, "PRJ-31": 260, "PRJ-32": 30, "PRJ-33": 180,
-  "PRJ-34": 107, // 0.007 (D8) · average paying accounts a year over the ten-year ramp 6 → 220 (1,066 account-years ÷ 10); ASP back-solves to 60 k (IA)
+  "PRJ-34": 212, // 0.009 (D10) · average paying accounts a year over the ten-year ramp 6 → 640 (2,121 account-years ÷ 10); ASP back-solves to ~117 k (IA, a blend of 60 k and 120 k)
 };
 function revPlanProfileFor(p: Project): Pick<RevPlan, "profile" | "growthPctQ" | "rampQuarters"> {
   const isNew = p.category === "New Platform" || p.category === "New Product";
@@ -4290,6 +4321,16 @@ export interface FinOverviewRow { year: number; revM: number; marginM: number; r
 export function financialsOverview(p: Project, opts: { years?: number; funded?: boolean } = {}): FinOverviewRow[] {
   const years = opts.years ?? 10, funded = opts.funded ?? true;
   const marginPct = execOf(p).marginPct / 100;
+  // THE RECORD WINS (operator 2026-09-24: "resources must exist for full 11 years for 10 year financial and resource build").
+  // A project that carries its own `finPlan` reports spend and revenue year by year FROM THAT PLAN — S3 / S10 / S14 read the
+  // same eleven years the grid holds — instead of the three-year NRE spread below, which stays the baseline for rows without one.
+  if (p.finPlan) {
+    return p.finPlan.years.slice(0, years).map((y) => {
+      const revK = bandRevK(y.neu, p.finPlan!.unitEcon.neu) + (funded ? 0 : bandRevK(y.don, p.finPlan!.unitEcon.don)) + bandRevK(y.dec, p.finPlan!.unitEcon.dec);
+      const mgnK = bandMgnK(y.neu, p.finPlan!.unitEcon.neu) + bandMgnK(y.dec, p.finPlan!.unitEcon.dec);
+      return { year: y.year, revM: +(revK / 1000).toFixed(1), marginM: +(mgnK / 1000).toFixed(1), rdK: spendTotalK(y) };
+    });
+  }
   const series = projectRevSeries(p, { years, funded });
   // R&D spend front-loaded over the first ~3 years (NRE burns before revenue matures).
   const rdYears = Math.min(3, years);

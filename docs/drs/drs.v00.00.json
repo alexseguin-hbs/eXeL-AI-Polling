@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.008",
+    "revision": "0.009",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1322,6 +1322,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Iteration 2 of 99 (twelve lenses, round 2): S1 no longer prints the master sentence twice — the linked value proposition carries it (D6) and the one-liner beneath now carries the operating loop and the three-horizon ladder (D10); the S1 segment and market cells, the S9 brief and the S14 CTS labels trimmed at slide density with the detail kept in the speaker notes; SSSES means of the twelve on the business case recorded (security 79.2 · stability 65.3 · scalability 64.2 · efficiency 62.6 · succinctness 60.2); the template's printed expand control logged as a defect and fixed by the template session in 5968ab9 while the round ran. The brief's new section 'R-CORE is implemented — use it' (operator ask of the same day) landed during the round: honoured on the edit side by an S12 speaker-note line on public bodies and the Polling API; the twelve lenses take it up from 0.009.",
+      "commit": "ea00901"
+    },
+    {
+      "revision": "0.009",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Iteration 0.009 (Master of Thought, between the twelve-lens rounds): the operator's 'NPV MUST BE NON ZERO; resources must exist for full 11 years' (D10) — the eleven-year financial record PRJ34_FIN_PLAN (spend every year 2026–2036, two price tiers 60 k → 120 k, 2,121 account-years, 248 M, 11.2 M spend) becomes the source the row rolls up from and the S3 / S10 / S14 surfaces read; financialsOverview honours a project's own plan; the charts draw FIN_SPAN years; the NPV proxy is +1.0 M at the G2 weighting and its formula is stated on S3.",
       "commit": "PENDING"
     }
   ],
@@ -1865,7 +1872,7 @@
     ]
   },
   "financialModel": {
-    "status": "DECLARED (IA) — operator 2026-09-24 night: 'ensure 2027-2030 financials to allow for 3 year CAGR; ensure value creation is not zero; baseline value prop for a single customer'. Every figure is an internal assumption derived from the S14 value equation and labelled IA; none is buyer-validated; the S16 A/B and the buyer interviews replace them. Supersedes decision D7 (the unpriced row) — the Pod's unpriced class stays in the code.",
+    "status": "DECLARED (IA) — operator 2026-09-24 night: 'ensure 2027-2030 financials to allow for 3 year CAGR; ensure value creation is not zero; baseline value prop for a single customer', then 'NPV MUST BE NON ZERO; resources must exist for full 11 years for 10 year financial and resource build' (D10). Every figure is an internal assumption derived from the S14 value equation and labelled IA; none is buyer-validated; the S16 A/B and the buyer interviews replace them. The eleven-year record (frontend/lib/innovation-data.ts PRJ34_FIN_PLAN) is the source; the row's nreK / fullRev10yM are its roll-up.",
     "singleCustomer": {
       "archetype": "one Pro Enterprise institution (EDU beachhead; FOOD / TECH analogous)",
       "verifiedUsdPerMin": 250,
@@ -1886,26 +1893,26 @@
         "2028": 15,
         "2029": 30,
         "2030": 60,
-        "2031": 90,
-        "2032": 120,
-        "2033": 150,
-        "2034": 175,
-        "2035": 200,
-        "2036": 220
+        "2031": 120,
+        "2032": 180,
+        "2033": 250,
+        "2034": 350,
+        "2035": 470,
+        "2036": 640
       },
       "cagr2027to2030Pct": 115,
-      "note": "6 → 60 accounts from 2027 to 2030 is 10× in three years = 115 % CAGR (declared)"
+      "note": "6 → 60 accounts from 2027 to 2030 is 10× in three years = 115 % CAGR (declared); 640 by 2036 ≈ one tenth of the benchmark's installed base"
     },
     "tenYear": {
-      "accountYears": 1066,
-      "revenueUsdM": 64,
-      "nreUsdK": 3600,
-      "nreNote": "2027–2029 build of the governed leadership state and the first absorbed functions, 1.2 M a year (IA)"
+      "accountYears": 2121,
+      "revenueUsdM": 248,
+      "nreUsdK": 11200,
+      "nreNote": "every year's spend 2026–2036: the build of the governed leadership state 2027–2029 (1.2 M a year), then platform R&D, knowledge-base and customer-success sustain (1.0 M a year) — resources exist for the full eleven years (IA)"
     },
     "podInputs": {
-      "nreK": 3600,
-      "fullRev10yM": 64,
-      "revPlanQtyAnnual": 107,
+      "nreK": 11200,
+      "fullRev10yM": 248,
+      "revPlanQtyAnnual": 212,
       "valueDriversUsdMPerCustomerYear": [
         0.06,
         0.05,
@@ -1914,7 +1921,125 @@
       ],
       "buSeedRevM": 0.36,
       "buSeedGrowthPct": 115,
+      "finPlan": "PRJ34_FIN_PLAN (eleven calendar years 2026–2036; the row's nreK / fullRev10yM are finRollup of it)",
       "note": "the Pod's linked fields derive from these — change the inputs, never a printed number"
+    },
+    "tiers": {
+      "2027-2030": {
+        "annualPriceUsdK": 60,
+        "what": "the governed leadership state (Horizon 1) inside the existing Pro Enterprise tier"
+      },
+      "2031+": {
+        "annualPriceUsdK": 120,
+        "what": "the one platform — the benchmark's functions native by qualification (Horizon 2), platform tier (IA)"
+      }
+    },
+    "revenueUsdMByYear": {
+      "2027": 0.36,
+      "2028": 0.9,
+      "2029": 1.8,
+      "2030": 3.6,
+      "2031": 14.4,
+      "2032": 21.6,
+      "2033": 30.0,
+      "2034": 42.0,
+      "2035": 56.4,
+      "2036": 76.8
+    },
+    "spendUsdKByYear": {
+      "2026": {
+        "labor": 400,
+        "contractor": 100,
+        "materials": 50,
+        "other": 50,
+        "sustain": 0,
+        "total": 600
+      },
+      "2027": {
+        "labor": 800,
+        "contractor": 200,
+        "materials": 100,
+        "other": 100,
+        "sustain": 0,
+        "total": 1200
+      },
+      "2028": {
+        "labor": 800,
+        "contractor": 200,
+        "materials": 100,
+        "other": 100,
+        "sustain": 0,
+        "total": 1200
+      },
+      "2029": {
+        "labor": 800,
+        "contractor": 200,
+        "materials": 100,
+        "other": 100,
+        "sustain": 0,
+        "total": 1200
+      },
+      "2030": {
+        "labor": 600,
+        "contractor": 100,
+        "materials": 50,
+        "other": 50,
+        "sustain": 200,
+        "total": 1000
+      },
+      "2031": {
+        "labor": 600,
+        "contractor": 100,
+        "materials": 50,
+        "other": 50,
+        "sustain": 200,
+        "total": 1000
+      },
+      "2032": {
+        "labor": 600,
+        "contractor": 100,
+        "materials": 50,
+        "other": 50,
+        "sustain": 200,
+        "total": 1000
+      },
+      "2033": {
+        "labor": 600,
+        "contractor": 100,
+        "materials": 50,
+        "other": 50,
+        "sustain": 200,
+        "total": 1000
+      },
+      "2034": {
+        "labor": 600,
+        "contractor": 100,
+        "materials": 50,
+        "other": 50,
+        "sustain": 200,
+        "total": 1000
+      },
+      "2035": {
+        "labor": 600,
+        "contractor": 100,
+        "materials": 50,
+        "other": 50,
+        "sustain": 200,
+        "total": 1000
+      },
+      "2036": {
+        "labor": 600,
+        "contractor": 100,
+        "materials": 50,
+        "other": 50,
+        "sustain": 200,
+        "total": 1000
+      }
+    },
+    "npv": {
+      "podProxyUsdM": 1.0,
+      "formula": "weighted incremental revenue (fullRev10yM × tech 0.6 × comm 0.3 = 0.18 at G2) × 0.35 margin proxy × 0.78 discount − every year's spend (nreK / 1000)",
+      "note": "positive and non-zero at the G2 weighting; a G3 pass that moves commercial risk from high to med (weight 0.36) roughly doubles the weighted return; the proxy is the Pod's demo model, stated as such"
     }
   },
   "decisions": [
@@ -1989,6 +2114,14 @@
       "revision": "0.008",
       "by": "twelve lenses · round 2",
       "decision": "S1 prints the master sentence once — as the linked value proposition (D6); the seed's S1 oneline carries the operating loop and the three-horizon ladder instead. Density rule for every round: no cell repeats another cell on the same slide, and a cell that overflows is trimmed in hi with its detail kept in ai (law 6)."
+    },
+    {
+      "id": "D11",
+      "date": "2026-09-24",
+      "revision": "0.009",
+      "by": "operator",
+      "decision": "NPV must be non-zero and resources must exist for the full eleven years: the PRJ-34 row carries an eleven-year financial record (spend every year 2026–2036, revenue 2027–2036 at 60 k then 120 k an account, 2,121 account-years, 248 M, 11.2 M spend) whose roll-up is the row's nreK / fullRev10yM; S3, S10 and S14 read the record; the Pod's NPV proxy reads +1.0 M at the G2 weighting.",
+      "supersedes": "D8 (figures)"
     }
   ],
   "iterations": [
@@ -2065,6 +2198,33 @@
         ],
         "cut": [],
         "templateDefect": "the chart frame's full-screen control (ChartFrame ⤢) printed in the exported PDF at the start of the round (operator ask docs/asks/2026-09-24_pdf_expand_buttons_overlap.md) — a template item outside the iteration programme's scope, fixed by the template session in 5968ab9 (the fit law: no control prints on paper) while this round ran; the round waited for that commit before opening the door"
+      }
+    },
+    {
+      "revision": "0.009",
+      "n": 3,
+      "date": "2026-09-24",
+      "author": "Master of Thought (the eleven-year record)",
+      "file": "docs/drs/iterations/0.009.md",
+      "ssesMeans": null,
+      "edits": [
+        "financialModel v2: two price tiers, the eleven-year spend, the 2027–2036 revenue, the NPV proxy stated",
+        "PRJ34_FIN_PLAN as the source; row = its roll-up (nreK 11200 · fullRev10yM 248); REVPLAN_QTY 212",
+        "financialsOverview reads a project's own finPlan; S3 / S14 charts draw FIN_SPAN years",
+        "S3 financial comments restated; S2 / S18 register D1–D10; PROV rev 0.009"
+      ],
+      "decisions": [
+        "D11"
+      ],
+      "aar": {
+        "fix": [
+          "NPV proxy was −0.5 M at 0.007's 64 M / 3.6 M; the eleven-year record and the platform tier make it +1.0 M",
+          "S14 drew six years from the NRE spread; it now draws the eleven-year record"
+        ],
+        "keep": [
+          "declared IA labelling on every figure"
+        ],
+        "cut": []
       }
     }
   ]

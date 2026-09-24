@@ -5652,7 +5652,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       </div>
     );
     if (kind === "S8") return <ValueProp p={p} mode="slide" big={big} slotKey={kind} />;
-    const fo = financialsOverview(p, { years: 6, funded: true });
+    // ELEVEN YEARS, NOT SIX (operator 2026-09-24): the return and resource charts draw the whole record the S10 grid holds.
+    const fo = financialsOverview(p, { years: FIN_SPAN, funded: true });
     const series = kind === "S14"
       ? [{ label: "Resource $ (R&D)", color: "#a78bfa", vals: fo.map((r) => r.rdK / 1000) }]
       : [
