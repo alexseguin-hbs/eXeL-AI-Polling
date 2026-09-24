@@ -5159,7 +5159,9 @@ function AmtsPanel({ title, icon, required, wide, tall, taller, full, children }
       <div data-panel-head className="flex items-center justify-between gap-[1cqw] bg-cyan-500/10 px-[1cqw] py-[0.5cqh]">
         <span className="flex min-w-0 items-center gap-[0.6cqw] text-cyan-300">
           {icon && <span aria-hidden style={{ fontSize: TS.head }}>{icon}</span>}
-          <span className="truncate font-semibold uppercase tracking-[0.14em]" style={{ fontSize: TS.head }}>{title}</span>
+          {/* AG-1 · a panel title may carry a " · ✎ <source>" edit hint (e.g. the Program Timeline). The hint
+              is a LIVE affordance: split it off into [data-noprint] so the export drops it and the app keeps it. */}
+          <span className="truncate font-semibold uppercase tracking-[0.14em]" style={{ fontSize: TS.head }}>{(() => { const [head, ed] = title.split(" · ✎ "); return <>{head}{ed && <span data-noprint> · ✎ {ed}</span>}</>; })()}</span>
         </span>
         {required && <span className="shrink-0 whitespace-nowrap font-semibold tracking-wide text-amber-300/90" style={{ fontSize: TS.micro }}>REQUIRED: {required}+</span>}
       </div>
@@ -5829,7 +5831,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     const Banner = () => (
       <div data-field-banner className={`flex items-center gap-1.5 ${big ? "px-[0.8cqw] py-[0.45cqh]" : "px-3 py-1.5"} ${acc.bar}`} style={big ? { fontSize: TS.head } : undefined}>
         <span aria-hidden className={big ? "leading-none" : "text-[12px] leading-none"}>{acc.icon}</span>
-        <span className={`font-semibold uppercase tracking-[0.14em] ${big ? "" : "text-[10px]"}`}>{f.name}{f.linked ? ` · ✎ ${sourceLabelOf(sp.code, f.id)}` : ""}</span>
+        {/* AG-1 · the ✎ source/edit hint is a LIVE affordance only. The export (PDF print + the self-contained
+            HTML) strips [data-noprint], so a founder's static deck never shows "· ✎ EDIT FINANCIALS" — a link
+            that would be dead on paper — while the app keeps it (operator 2026-09-24). */}
+        <span className={`font-semibold uppercase tracking-[0.14em] ${big ? "" : "text-[10px]"}`}>{f.name}{f.linked && <span data-noprint> · ✎ {sourceLabelOf(sp.code, f.id)}</span>}</span>
       </div>
     );
     if (f.kind === "chart" && f.linked) return (

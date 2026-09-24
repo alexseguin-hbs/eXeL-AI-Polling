@@ -2855,7 +2855,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // 3. THE EDIT SYMBOL, as asked. The old ◈ was a diamond, not an edit affordance.
   ok(/<span aria-hidden>✎<\/span> \{verb\}/.test(code), "the control leads with the ✎ edit symbol and the owner's verb");
-  ok(/✎ \$\{sourceLabelOf\(sp\.code, f\.id\)\}/.test(code), "the PRESENT-mode field banner carries the same verb");
+  ok(/✎ \{sourceLabelOf\(sp\.code, f\.id\)\}/.test(code), "the PRESENT-mode field banner carries the same verb (now a data-noprint span, AG-1)");
 
   // 4. IT ACTUALLY GOES SOMEWHERE — off the owning slide. On the owning slide there is nowhere to go, so it
   //    stays a badge: an edit verb that navigates nowhere would be a lie, which is the defect F0 fixed.
@@ -4022,6 +4022,18 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
     ok(/export function personasOf\(p: Project\)/.test(idata) && /for \(const s of storiesOf\(p\)\)/.test(idata),
        "AF-1: personasOf derives the persona list from storiesOf (names match the stories exactly)");
   }
+
+  // AG-1 · EXPORTS CARRY NO EDIT / SYSTEM-INTERACTION LINK (operator 2026-09-24). The field banner's ✎ source
+  // suffix and a panel title's ✎ edit suffix are wrapped in [data-noprint]; the print CSS and exportDeckHtml
+  // already drop [data-noprint] and every <button> (SourceLink, ⤢ maximize, the level tabs), so the export is
+  // clean by construction while the live app keeps every link. The gate holds the two text affordances that
+  // are NOT buttons.
+  ok(/f\.linked && <span data-noprint> · ✎ \{sourceLabelOf\(sp\.code, f\.id\)\}<\/span>/.test(p1),
+     "AG-1: the field banner's ✎ source suffix is data-noprint (dropped in export, live keeps it)");
+  ok(/const \[head, ed\] = title\.split\(" · ✎ "\);/.test(p1) && /ed && <span data-noprint> · ✎ \{ed\}<\/span>/.test(p1),
+     "AG-1: a panel title's ✎ edit suffix is split into data-noprint");
+  ok(/clone\.querySelectorAll\("button, \[data-noprint\], \.slide-noprint"\)\.forEach\(\(b\) => b\.remove\(\)\)/.test(p1),
+     "AG-1: exportDeckHtml removes every button and [data-noprint] — the export is a document, not an app");
 
   // 2 · ORIGINAL IS THE EXACT REPLICA **BY CONSTRUCTION** — no rule targets it, so there is nothing that
   //     could make it differ from Present mode. Asserted as an absence, which is the strong form.

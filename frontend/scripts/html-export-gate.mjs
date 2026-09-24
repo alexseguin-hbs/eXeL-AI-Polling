@@ -36,17 +36,23 @@ try {
   const r = await reader.evaluate(() => {
     const sheets = [...document.querySelectorAll("[data-slide-code]")];
     const text = (el) => (el.textContent || "").replace(/\s+/g, " ").trim();
+    const body = (document.body.textContent || "").replace(/\s+/g, " ");
     return { sheets: sheets.length, codes: sheets.map((s) => s.getAttribute("data-slide-code")), buttons: document.querySelectorAll("button").length,
       thin: sheets.filter((s) => text(s).length < 200).map((s) => s.getAttribute("data-slide-code")), s1: text(sheets.find((s) => s.getAttribute("data-slide-code") === "S1") || document.body).slice(0, 400),
+      // AG-1 (operator 2026-09-24): a founder's export shows no edit / system-interaction link. The " · ✎ " edit
+      // suffix and "EDIT FINANCIALS" are LIVE-only ([data-noprint]); a survivor here is a dead link on paper.
+      editLinks: ((body.match(/· ✎|EDIT FINANCIALS/gi)) || []).length, noprint: document.querySelectorAll("[data-noprint]").length,
       styled: getComputedStyle(document.querySelector("[data-slide-canvas]") || document.body).containerType, width: Math.round((document.querySelector(".slide-print-page") || document.body).getBoundingClientRect().width) };
   });
   if (r.sheets !== 20) failures.push(`the file carries ${r.sheets} sheets, expected 20 (cover + 19) — ${r.codes.join(",")}`);
   if (r.buttons) failures.push(`${r.buttons} <button> survived in the export — a document, not an app`);
+  if (r.editLinks) failures.push(`${r.editLinks} edit / system-interaction link(s) survived in the export ("· ✎" / "EDIT FINANCIALS") — must be [data-noprint], live-only`);
+  if (r.noprint) failures.push(`${r.noprint} [data-noprint] element(s) survived — the export strip did not run`);
   if (r.thin.length) failures.push(`thin sheets (< 200 chars): ${r.thin.join(",")}`);
   if (PROJECT === "PRJ-34" && !/CrisisCommand/.test(r.s1)) failures.push(`S1 does not carry the project's own text: "${r.s1.slice(0, 120)}"`);
   if (r.styled !== "size") failures.push(`the canvas lost its container-type (stylesheets not inlined?)`);
   if (errs.length) failures.push(`console/page errors in the exported file: ${errs.slice(0, 3).join(" | ").slice(0, 300)}`);
-  console.log(`html-export · ${PROJECT} · ${dl.suggestedFilename()} · ${bytes} B · sheets ${r.sheets} · buttons ${r.buttons} · page width ${r.width}px · errors ${errs.length}`);
+  console.log(`html-export · ${PROJECT} · ${dl.suggestedFilename()} · ${bytes} B · sheets ${r.sheets} · buttons ${r.buttons} · edit-links ${r.editLinks} · page width ${r.width}px · errors ${errs.length}`);
 } catch (e) { failures.push(`could not export: ${String(e?.message || e).split("\n")[0].slice(0, 200)}`); }
 await browser.close(); srv.close();
 if (failures.length) { console.log("✗ html-export"); for (const f of failures) console.log("  ✗ " + f); process.exit(1); }
