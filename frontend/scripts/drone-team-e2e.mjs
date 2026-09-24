@@ -68,6 +68,12 @@ ok(aH.desig && aH.desig.phase === 'red' && aJ.desig && aJ.desig.phase === 'red' 
 ok(fH.des && /DOWN/.test(fH.des) && !fH.desig && !fJ.desig, 'the host fired, the target went down, the box cleared on both');
 ok(/HIT 1/.test(fJ.score || '') && /THE OTHER SEAT HIT/.test(fJ.toast || '') && /TARGET FIRST|DOWN/.test(fJ.des || ''), `the APPROVER'S PICTURE shows the outcome: strip '${fJ.score}' · toast '${fJ.toast}' (r.134: the gate reads the DOM, not state)`);
 ok(hh === hj && syncH === 'MATCH' && syncJ === 'MATCH', `one replay hash on both phones (${hh} / ${hj}) and MATCH on both`);
+// r.150 step 14 (Thor A B1, MoT 1 #3 — PENDING_NEVER_TAGS on the wire): a request parked on the joiner by a peer, then Enter, scores nothing
+// and writes no TAG on EITHER phone — the tag needs a red box under the joiner's own bullseye.
+const tagTry = await J.evaluate(() => { const sc0 = state.score | 0, e0 = (state.events || []).length; state.pending = { id: 'C-100C-L21', from: 'peer' }; document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter', bubbles: true })); if (state.pending) commit(state.pending); const rows = (state.events || []).slice(e0).map((e) => e.verb + ':' + e.result); return { sc0, sc1: state.score | 0, rows, pending: state.pending }; });
+await H.waitForTimeout(400);
+const tagH = await H.evaluate(() => (state.events || []).some((e) => e && (e.verb === 'TAG' || (e.verb === 'SIM-ACTION' && e.data && e.data.tag))));
+ok(tagTry.sc1 === tagTry.sc0 && tagTry.pending === null && !tagTry.rows.some((r) => /^TAG:|^SIM-ACTION:/.test(r)) && tagTry.rows.some((r) => r === 'REJECT:TAG_NEEDS_RED_BOX') && !tagH, `a peer's request + Enter tags nothing on either phone (joiner ${tagTry.sc0}→${tagTry.sc1}, rows ${tagTry.rows.join(',')}; host TAG row ${tagH})`);
 await b.close(); srv.close();
 console.log(`\ndrone-team-e2e: ${pass} passed, ${fail} failed · two isolated contexts over WebRTC · hash ${hh} ${hh === hj ? '==' : '!='} ${hj}`);
 process.exit(fail ? 1 : 0);

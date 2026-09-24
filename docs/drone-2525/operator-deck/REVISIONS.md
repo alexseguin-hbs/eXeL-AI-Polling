@@ -30,6 +30,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.147 | 2026-09-23 | Claude Code (LOCK is the target nearest the bullseye on the picture) | 338605 | 2476f68a8a8835e144aeaebcb3a4dd9143b8311214b7d568efc42ac397629eb5 | 7a7a2c7 (artefact) | e8ba39881ab3eda4fad54156261828a07a470b7052fc7f2c59d247d75fb742e3 |
 | r.148 | 2026-09-23 | Claude Code (the eye outranks the mark — the 48-agent fleet's fold) | 348198 | 213a56fc08d41f510d325002d5152a05435803b6a95e18ba6874349e9e0c5b76 | 8ccab36 (artefact) | efa9e45b39f71fdc06e5c8f26ba80a7488224710a74ad6d919c1cf14216d9ace |
 | r.149 | 2026-09-23 | Claude Code (a box only around the marked target) | 349698 | 20499eed97482ba229216c507e2b4494174ebf94bb95b81e1fd145361621d80a | 6b585bf (artefact) | 731c50160124c96c74841643ca0be8e6bed982850c6f1a6e25041f49ad738e3e |
+| r.150 | 2026-09-24 | Claude Code (the fire gate reads the picture) | 364301 | e8d553ed035352b1cb3edc7271a07f4af6f1141295af26599dd94de0bd8a5920 | ec241fa (artefact) | d7982abe4c087736b792aed0ed97b753c0ca220a7dc37ed1d7b0a5217a1262cf |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -584,3 +585,32 @@ Ask: `docs/asks/2026-09-23_edge_markers_only_when_targeted.md` (verbatim, hashed
   162/163 in portrait and landscape; `drone-playable` 91/0.
 - **Still open, honest:** everything r.148 owed (the fleet's r.149 order in `docs/assessments/2026-09-23_r147_fleet48_review.md` MoT 1 —
   FIRE_SAYS_WHERE and the gate door first); the r.143 register line "the bracket turns red with the bullseye" is superseded by this entry.
+
+## r.150 — Claude Code: the fire gate reads the picture — a round or a tag is spent only on a red box the bullseye is on (2026-09-24)
+Ask: `docs/asks/2026-09-23_drs_bu_sbu_alpha_needs.md` ("fix all AsM identified issues"), executed in MoT 1's order from the 48-agent
+fleet on r.147 (`docs/assessments/2026-09-23_r147_fleet48_review.md`) — items 1–4. Notes: `CLAUDE_CODE_NOTES_r150.md`. Patch:
+`patches/r149_to_r150.py` (27 asserted edits). Artefact commit `ec241fa`; shipped in: PENDING until Verify Live (the ledger and the domain JSON
+carry `shipped`).
+- **FIRE says where (A1/A1b/A2).** Red box on the 50 L, bullseye on the 150 R: FIRE → `YOUR RED BOX IS ON THE 50 M LEFT · YOUR BULLSEYE IS
+  NOT · PUT IT ON IT`, one REJECT `TARGET_OFF_PICTURE` row, no round spent, the box still red. r.149 spent the round, said MISS and never
+  named the box — the last visible half of the operator's complaint. Plates use the one hold rule (outline + 8 px); other kinds the 32 px
+  of the hit test; the MAP view cannot fire; the batch's own `simDirect` bypasses the gate as it bypasses the hit test. A miss still costs a
+  round when the bullseye is on the box's edge and the shot lands outside the silhouette; N pulls per approval stay, one row per pull.
+- **A tag needs a red box under the bullseye (A4).** `commit()` refuses `TAG_NEEDS_RED_BOX` (Enter / YES on a peer's REQ scored +250 with no
+  mark); a pending request dies with RESET, RELEASE and a closed round.
+- **No approval on a dead plate, whoever marked it (B15)** — button and wire both HOLD `TARGET_DOWN`. **The approver looks at a peer's mark
+  from any seat (B16)** — never for an AI mark. **The AI re-arms on reload (A18), reads the HIT for `ASM_READ_S` 1.4 s (A22)**; the dead
+  `!state.hiLock` guard is gone (A19). **A forged red of another kind never shoots the bull (A21).**
+- **The door (E4/E5/E9):** `ASM_MARKED_BY_THE_LOOP` says NOT EXERCISED in red; `DRAW_COMPLETES` needs three frames and zero render errors;
+  the deck's own `SSSES` row (it could not fail) is gone.
+- **Gates:** 13 new rows, each with a note regex in `scripts/drone-deck-qa.mjs` (a predicate replaced by `true` cannot pass):
+  `FIRE_SAYS_WHERE` · `FIRE_ON_THE_BOX_STILL_HITS` · `FIRE_FROM_MAP_REFUSED` · `ONE_ROW_PER_PULL` · `TAG_NEEDS_RED_BOX` ·
+  `PENDING_DIES_WITH_THE_SCENE` · `PEER_APPROVE_OF_A_DEAD_PLATE_REFUSED` · `APPROVE_LOOKS_AT_THE_MARK` · `AI_MARK_NEVER_TURNS_THE_SEAT` ·
+  `AI_RESUMES_AFTER_RELOAD` · `FORGED_RED_NEVER_HITS_THE_RING` · `KEY1_REFUSES_THE_GRASS` · `TARGET_BUTTON_FOLLOWS_THE_EYE` (deferred: it
+  clicks the real button). 175 rows, 174/175 in portrait and landscape.
+- **Corrections, on the record:** `RANGE_MISS_300_OFF20` (r.130) is a refusal that spends nothing, not a MISS that spends a round;
+  `QUAL_ONE_ROUND_PER_TARGET` (r.131), `EMPTY_MAG_REFUSES` (r.138) and `CH5_MISS_GOES_BACK_TO_AMBER` (r.135) made their MISS 80 px or 25° off
+  the plate — now 4 px outside the silhouette, inside the hold rule; `HIT_CLEARS_SLOT` (r.131) rode the hole A21 closes with a synthetic
+  kind-obj ring and now marks the real ring.
+- **Still open (the fleet's order):** item 5 (one "under the pip") → r.151 · items 6–8 (one voice, one layer; the overprint in the
+  operator's screenshot) → r.152 · items 9–11 (the record and the wire; wall-clock fps; the ledger's ship field) → r.153.

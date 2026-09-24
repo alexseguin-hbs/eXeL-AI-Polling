@@ -313,6 +313,14 @@
    "text": "Operator deck r.149 served at /drone-2525/play.html (sha256 20499eed...). A BOX ONLY AROUND THE MARKED TARGET: no edge markers unless targeted; amber on TARGET, red on APPROVE; the voxel around every marked slot in 3D; the three range modes re-stated. QA 163 rows, 162/163 in each orientation.",
    "commit": "6b585bf",
    "shipped": "8055270"
+  },
+  {
+   "rev": 45,
+   "date": "2026-09-24",
+   "kind": "release",
+   "text": "Operator deck r.150 served at /drone-2525/play.html (sha256 e8d553ed...). THE FIRE GATE READS THE PICTURE: a round or a tag is spent only on a red box the bullseye is on — FIRE says where, costs nothing, keeps the box red; no tag without a red box; no approval on a dead plate whoever marked it; the approver looks at a peer's mark from any seat, never for an AI mark; the AI re-arms on reload and reads the HIT for 1.4 s; a forged red never shoots the bull; the deck's own SSSES row gone. Items 1–4 of the 48-agent fleet's order on r.147. QA 175 rows, 174/175 in each orientation.",
+   "commit": "ec241fa",
+   "shipped": "PENDING"
   }
  ]
 }
