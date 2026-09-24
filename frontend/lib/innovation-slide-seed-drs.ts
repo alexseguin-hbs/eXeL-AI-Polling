@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.018";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.019";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -45,7 +45,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         ai: "The operating loop: operational truth → executive judgment → approved decision → named action → evidence → stakeholder response → replay → improvement. The ladder: govern first (2027) · absorb by the one-ninth gate (2030) · humanity's shared crisis memory (2525). The one sentence above (the linked value proposition, D6) is the master statement, printed once on this slide: CrisisCommand.ai is the one human-governed crisis platform where an institution's leaders see the facts, decide with named authority, alert and act, hold every stakeholder to one approved posture, prove what was done, and learn — so the next crisis begins from the last one's record, never from a blank page. " + MOTTO,
       },
       segment: {
-        hi: "Benchmark: Everbridge 360 AI / Bridge — carried whole inside CrisisCommand.ai. Comparators: EDU → Rave · FOOD → Everbridge · TECH → PagerDuty. Validation order EDU → FOOD → TECH, not a TAM ranking.",
+        hi: "Benchmark: Everbridge 360 AI / Bridge — carried whole inside CrisisCommand.ai. Validation order EDU → FOOD → TECH, not a TAM ranking.",
         ai: "Three needs-based segments, one primary NBA each: EDU → Rave Mobile Safety / Rave Alert · FOOD → Everbridge 360 AI / Bridge · TECH → PagerDuty. Validation sequence EDU → FOOD → TECH — not a TAM ranking. Speaker note — the customer's broader stack still matters in interviews: EDU Rave / Everbridge + emergency plans + cabinet process + Teams / email + external counsel · FOOD Everbridge / CEM + recall / quality / ERP + legal counsel + PR agency + manual cross-functional work · TECH PagerDuty + observability / security / status + Slack / Teams + manual exec / comms layer. Sentinel is discovery-only on EDU unless a named buyer has it in the stack.",
       },
       market: {
@@ -81,8 +81,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.018 · decision register D1–D20 and the iteration ledger in docs/drs (append-only).",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.018 · decision register D1–D20 and the iteration ledger in docs/drs (append-only). " + PROV,
+        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.019 · decision register D1–D21 and the iteration ledger in docs/drs (append-only).",
+        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.019 · decision register D1–D21 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
@@ -716,12 +716,12 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D20) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D21) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
         ],
         ai: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D20) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D21) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
           PROV,
         ],
       },

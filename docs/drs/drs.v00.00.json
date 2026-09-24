@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.018",
+    "revision": "0.019",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1392,6 +1392,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Round 12 of 99 (twelve lenses) turns from the closed financial thread to a density fault the brief flags under law 6: the S14 Horizon-2 absorption cell overflowed its panel, carrying its whole mechanism on the shown face. This round moves that mechanism — the reachable-first pointer list, the benchmark's proper name (Everbridge 360 AI / Bridge), and the Rave / PagerDuty inbound-feed clause — into the S14 speaker note, where it already lived, and leaves the shown cell stating the absorption ladder alone (reachable first, then native by qualification under the one-ninth gate, alerting last and certified); ai stays a superset of hi (D20). S2 status and S18 e0 carry rev 0.018 and the D1–D20 register; PROV and the row provenance are bumped to rev 0.018. No printed number, date or law moved; the twelve-lens means rise, succinctness most, as a spilled slide becomes one legible line (security 89.2 · stability 79.9 · scalability 76.4 · efficiency 74.0 · succinctness 70.2).",
+      "commit": "ed89c2b"
+    },
+    {
+      "revision": "0.019",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Round 13 of 99 (twelve lenses) turns from the S14 density fix of round 12 to the other law-6 overflow the brief names, the S1 top row, and finds a same-slide repeat there: the S1 segment cell listed the comparators EDU → Rave · FOOD → Everbridge · TECH → PagerDuty, the exact pairings the S1 market table already carries row by row on the same slide (D10), with the full breakdown held in the segment speaker note. This round drops that list from segment.hi and leaves the benchmark statement and the validation order on the shown face; segment.ai is unchanged and still the superset, nothing emptied (D21). S2 status and S18 e0 carry rev 0.019 and the D1–D21 register; PROV and the row provenance are bumped to rev 0.019. No printed number, date or law moved; the twelve-lens means rise, succinctness most, as a doubled fact on S1 becomes one clean statement (security 89.7 · stability 80.7 · scalability 77.0 · efficiency 74.9 · succinctness 71.4).",
       "commit": "PENDING"
     }
   ],
@@ -2248,6 +2255,13 @@
       "revision": "0.018",
       "by": "twelve lenses · round 12",
       "decision": "Round 12 clears the S14 Horizon-2 overflow the brief flags under law 6 (density): the shown cell now states the absorption ladder — reachable first, then native by qualification under the one-ninth gate, alerting last and certified — while its implementation detail (the reachable-first pointer list, the benchmark's proper name Everbridge 360 AI / Bridge, the Rave / PagerDuty inbound-feed clause) moves to the S14 speaker note, where it already lived; ai remains a superset of hi and nothing is emptied. The slide reads in one line; the full mechanism stays intact in the record. Raises succinctness (the weakest pillar) and slide density; moves no printed number, date or law; all figures IA."
+    },
+    {
+      "id": "D21",
+      "date": "2026-09-24",
+      "revision": "0.019",
+      "by": "twelve lenses · round 13",
+      "decision": "Round 13 clears part of the S1 top-row density the brief flags under law 6 and removes a same-slide repeat (D10): the S1 segment cell's shown face carried the comparator list EDU → Rave · FOOD → Everbridge · TECH → PagerDuty, which the S1 market table already states on the same slide and which the segment speaker note carries in full; this round drops that list from segment.hi and leaves the benchmark statement and the validation order on the face; segment.ai is unchanged and still the superset, and nothing is emptied. The slide reads shorter and states each comparator pairing once. Raises succinctness (the weakest pillar) and slide density; moves no printed number, date or law; all figures IA."
     }
   ],
   "iterations": [
@@ -2617,6 +2631,29 @@
       ],
       "decisions": [
         "D20"
+      ]
+    },
+    {
+      "revision": "0.019",
+      "n": 13,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 13",
+      "file": "docs/drs/iterations/0.019.md",
+      "ssesMeans": {
+        "security": 89.7,
+        "stability": 80.7,
+        "scalability": 77.0,
+        "efficiency": 74.9,
+        "succinctness": 71.4
+      },
+      "edits": [
+        "S2 · status · rev 0.019, decision register D1–D21 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D21 (hi + ai) · the register grew (D21)",
+        "PROV / row provenance · rev 0.019 · law 5",
+        "S1 · segment · hi · the comparator list (EDU → Rave · FOOD → Everbridge · TECH → PagerDuty) is removed from the shown cell — the S1 market table already states each pairing on the same slide (D10) and the segment speaker note carries them in full — leaving the benchmark statement and the validation order on the face; hi shorter, ai unchanged and still the superset · clears part of the S1 top-row density (law 6) and removes a same-slide repeat (D10), raising succinctness, the weakest pillar · D21"
+      ],
+      "decisions": [
+        "D21"
       ]
     }
   ]
