@@ -22,6 +22,8 @@ if [ "$FULL" = "full" ]; then
   tail -3 /tmp/prj34-build.log
 fi
 cd "$ROOT"
+# ONE WRITER AT A TIME on the git index: the overnight rounds and the template work share this lock.
+exec 9>/tmp/prj34-git.lock; flock 9
 # the round file carries the door's own lines (the record says what ran, not what was hoped)
 RF="docs/drs/iterations/$REV.md"
 if [ -f "$RF" ]; then python3 - "$RF" "$GATES" <<'PY'
