@@ -40,8 +40,13 @@ if (!stampEpochMs) {
 }
 if (!stampEpochMs && gitSha !== 'dev') {
   const memo = path.join(os.tmpdir(), `exel-build-stamp-${gitSha}.json`);
-  try { stampEpochMs = Number(JSON.parse(fs.readFileSync(memo, 'utf8')).epochMs) || 0; } catch {}
-  if (!stampEpochMs) { stampEpochMs = Date.now(); try { fs.writeFileSync(memo, JSON.stringify({ epochMs: stampEpochMs })); } catch {} }
+  try { const m = JSON.parse(fs.readFileSync(memo, 'utf8')); if (Date.now() - Number(m.epochMs) < 10 * 60 * 1000) stampEpochMs = Number(m.epochMs) || 0; } catch {}
+  if (!stampEpochMs) {
+    stampEpochMs = Date.now();
+    // 'wx': the first process wins the race; a loser re-reads the winner's stamp so both agree (fleet r.147, Krishna).
+    try { fs.writeFileSync(memo, JSON.stringify({ epochMs: stampEpochMs }), { flag: 'wx' }); }
+    catch { try { stampEpochMs = Number(JSON.parse(fs.readFileSync(memo, 'utf8')).epochMs) || stampEpochMs; } catch {} }
+  }
 }
 const now = stampEpochMs ? new Date(stampEpochMs) : new Date();
 const cst = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));

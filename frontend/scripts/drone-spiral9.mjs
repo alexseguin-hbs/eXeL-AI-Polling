@@ -259,7 +259,7 @@ function ssses(gateRuns, drift, spiralChecks, perf) {
   // SCALABILITY — the measured frame rate against the 30 Hz reference, WITH the engagement in the air.
   const scal = perf
     ? { score: Math.max(0, Math.min(100, Math.round((perf.after / 30) * 100))), why: `${perf.after} fps at the heaviest case on a processor slowed ${perf.throttle} times, against the 30 Hz reference the operator set — ${perf.aircraft ?? 42} aircraft in the air.` }
-    : { score: 0, why: "no measurement in this run: scripts/drone-perf.mjs was not run." };
+    : { score: null, why: "UNMEASURED — scripts/drone-perf.mjs did not run in this build; a label is not a measurement (fleet r.147, Thoth/MoT 3)." };
 
   // EFFICIENCY — measured, from the counters the perf harness emits.
   const eff = perf
@@ -268,14 +268,16 @@ function ssses(gateRuns, drift, spiralChecks, perf) {
           Math.round(Math.min(1, perf.after / 30) * 55) + (perf.memoHit === true ? 25 : 0) + (perf.domNodes != null && perf.domNodes < 260 ? 20 : 0))),
         why: `${perf.memoHit === true ? "the projection memo holds between frames" : perf.memoHit === false ? "THE PROJECTION MEMO IS NOT HOLDING" : "the memo was not measured in this run"}; ${perf.domNodes} nodes for the whole engagement; heap ${perf.heapMB} MB.`,
       }
-    : { score: 0, why: "no measurement in this run." };
+    : { score: null, why: "UNMEASURED — no perf counters in this build." };
 
   // SUCCINCTNESS — counted from the source, in this run.
   const suc = succinctness(readSource());
 
   const pillars = { Security: security, Stability: stability, Scalability: scal, Efficiency: eff, Succinctness: suc };
-  const avg = Math.round(Object.values(pillars).reduce((n, p) => n + p.score, 0) / 5);
-  return { pillars, avg, totalChecks: runs.reduce((n, g) => n + (g.passed ?? 0), 0), allGreen, spiralOk };
+  // The average is over MEASURED pillars only; an unmeasured pillar never drags the number down or props it up.
+  const measured = Object.values(pillars).filter((p) => typeof p.score === "number");
+  const avg = measured.length ? Math.round(measured.reduce((n, p) => n + p.score, 0) / measured.length) : null;
+  return { pillars, avg, measured: measured.length, totalChecks: runs.reduce((n, g) => n + (g.passed ?? 0), 0), allGreen, spiralOk };
 }
 
 /** Named so Stability can say how many artefacts it compared without hardcoding the number. */
@@ -329,13 +331,15 @@ let ARTEFACT_KEYS = {};
 
   const s = ssses(gateRuns, drift, sp, perf);
   console.log(`\n  SSSES`);
-  for (const [name, p] of Object.entries(s.pillars)) console.log(`    ${name.padEnd(14)} ${String(p.score).padStart(3)}  ${p.why}`);
-  console.log(`    ${"AVERAGE".padEnd(14)} ${String(s.avg).padStart(3)}`);
+  for (const [name, p] of Object.entries(s.pillars)) console.log(`    ${name.padEnd(14)} ${String(p.score ?? "—").padStart(3)}  ${typeof p.score === "number" ? "M" : "U"}  ${p.why}`);
+  console.log(`    ${"AVERAGE".padEnd(14)} ${String(s.avg ?? "—").padStart(3)}  (${s.measured} of 5 pillars measured; M = measured, U = unmeasured)`);
 
   const report = { n: N, gateRuns, artefacts: arts[0], drift, spiral: sp, perf, ssses: s };
   writeFileSync(join(DEST, "spiral9.json"), JSON.stringify(report, null, 2));
-  const pass = s.allGreen && drift.length === 0 && s.spiralOk;
-  console.log(`\n  ${pass ? "PASS" : "FAIL"} · ${s.totalChecks} checks per run · ${N} runs · ${drift.length} drifted · ${sp.filter((c) => !c.ok).length} spiral failures`);
+  // SPIRAL_REQUIRE_PERF=1 (deploy.yml, where drone-perf ran first) makes an unmeasured Scalability/Efficiency a FAIL.
+  const perfOk = perf !== null || !process.env.SPIRAL_REQUIRE_PERF;
+  const pass = s.allGreen && drift.length === 0 && s.spiralOk && perfOk;
+  console.log(`\n  ${pass ? "PASS" : "FAIL"} · ${s.totalChecks} checks per run · ${N} runs · ${drift.length} drifted · ${sp.filter((c) => !c.ok).length} spiral failures · SSSES ${s.avg ?? "—"} over ${s.measured}/5 measured pillars${perfOk ? "" : " · PERF REQUIRED AND ABSENT"}`);
   console.log(`\n→ ${join(DEST, "spiral9.json")}`);
   process.exit(pass ? 0 : 1);
 })();

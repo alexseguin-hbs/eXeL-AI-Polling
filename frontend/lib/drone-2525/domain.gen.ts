@@ -280,28 +280,32 @@ export const DRONE_DOMAIN = {
    "date": "2026-09-23",
    "kind": "release",
    "why": "Operator deck HEAD r.146: the boot QA's deferred rows (DRAW_COMPLETES, ASM_MARKED_BY_THE_LOOP) decide on their evidence — a completed frame or a render exception; the loop's mark — up to a declared ceiling (20 s / 5 s), not on a fixed 1.5 s / 700 ms timer that judged a cold CI runner 'no frame completed' for ever (Deploy #950). Proven under a 30x CPU throttle. QA 149 rows, 148/149 in each orientation.",
-   "commit": "5466050"
+   "commit": "5466050",
+   "shipped": "01f36a9"
   },
   {
    "revision": "0.032",
    "date": "2026-09-23",
    "kind": "release",
    "why": "Operator deck HEAD r.147: LOCK, T1 · T2 · T3 and key 1 are the targets nearest the bullseye on the picture within LOCK_REACH_PX (48 px, declared), never the nearest in metres and never off the picture — one rule for plates, rings, buoys, pops, aircraft, foils and doors, on the range and the Capital (TARGET / APPROVE / FIRE had kept resetting to the 50 m left target). QA 152 rows, 151/152 in each orientation.",
-   "commit": "7a7a2c7"
+   "commit": "7a7a2c7",
+   "shipped": "b3d1f63"
   },
   {
    "revision": "0.033",
    "date": "2026-09-23",
    "kind": "release",
    "why": "Operator deck HEAD r.148: the eye outranks the mark — the 48-agent fleet's fold on r.147 (whose rule ran only on an empty board): a mark is held as LOCK only while the bullseye is on it; one door for TARGET / key N / voice that keeps a mark's phase and author and releases my own unfinished mark on the record; T1-T3 obey the reach on every craft; the AI member spots through the bullseye, never moves the seated head and waits for the HIT to be read; a FIRE with no box names NONE; the board under the strip; APPROVE's author from the authenticated envelope; a peer HIT needs an APPROVE on this record. QA 161 rows, 160/161 in each orientation.",
-   "commit": "8ccab36"
+   "commit": "8ccab36",
+   "shipped": "10865bd"
   },
   {
    "revision": "0.034",
    "date": "2026-09-23",
    "kind": "release",
    "why": "Operator deck HEAD r.149: a box only around the marked target — no edge markers unless targeted; amber on TARGET, red on APPROVE; the 3D wire box (voxel) around every marked slot in its phase colour (slotBoxes); the three range modes unchanged and re-stated (RESET pops back up, DOWN stays down, QUAL rises the engagement together and a hit one stays down for its window). QA 163 rows, 162/163 in each orientation.",
-   "commit": "6b585bf"
+   "commit": "6b585bf",
+   "shipped": "8055270"
   }
  ],
  "arena": {

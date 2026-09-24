@@ -1,314 +1,318 @@
 {
-  "section": "Drone-2525",
-  "route": "/main/Drone-2525",
-  "note": "Append-only Vision 2525 traceability for the Drone-2525 Domain Play. rev monotonic; append, never edit. Version 00.00 · revision 0.001 opens the record (operator 2026-09-15). Revisions 0.007 to 0.011 append the FOIL declaration, the axis correction, the derived wing, the naming rule, the engagement rules and the N ladder (operator 2026-09-16).",
-  "entries": [
-    {
-      "rev": 1,
-      "date": "2026-09-15",
-      "kind": "ask",
-      "text": "Drone-2525 1st Pass — Security Turrets and Security Capital (stationary pop-up targets), 2 HI-operated drone, and mixed HI/AI pilot+targeteer with HI approving every shot; an edge-wireframe city block around the Texas Capitol lawn built on Security-2525 Mission Planning; tag each door by capturing a picture and shooting it; 13 trinity colours only; fixed-wing VTOL; one gimbal design shared by turret and airframe; wireframes that feed Unreal and Unity through a one-step conversion built from scratch. Persisted verbatim, sha256 0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2.",
-      "commit": "7b0b790"
-    },
-    {
-      "rev": 2,
-      "date": "2026-09-15",
-      "kind": "decision",
-      "text": "Five decisions taken with the operator: (1) the 13 are the SPECTRUM palette lib/trinity-palette.ts, not the iconology set, and the drone surface may draw no other hex; (2) the Capitol block is hand-authored now, badged confidence-low, with a checked-in offline builder the operator runs for the real OSM buildings/trees/roads and a fine DEM; (3) stationary first — Turrets and Capital ship as Pass 1 with the WireModel and exporter, drone flight and two-device pilot/targeteer as Pass 1b, AI roles and the HI approval gate as Pass 1c; (4) numbering starts at Version 00.00 revision 0.001 and every later edition appends, never edits; (5) the vector law lives in lib/wire-core and every 2525 domain surface inherits it — the polling app's chrome is NOT repainted without a further instruction.",
-      "commit": ""
-    },
-    {
-      "rev": 3,
-      "date": "2026-09-15",
-      "kind": "decision",
-      "text": "Wireframe means vector-display drawing (operator's references: Star Wars arcade 1983, Battlezone) — black ground, lines only, no fill or shading, one saturated stroke colour per object from the 13, depth from perspective and overlap rather than brightness, HUD drawn in the same stroke language at the same weight, curves as n-gons so a curve's cost is declared. Sensor CAPTURE stores an extracted EDGE SET as a WireModel group, never a photograph, behind one interface with two implementations (rendered-view extraction now, camera + CNN later). Resolution and frame rate rise only with measured spare compute after the Edge sensor's CNN reserve is subtracted; the tier changes what is drawn, never what is true — the model hash is identical across all tiers — and the tier is always visible, never silent.",
-      "commit": ""
-    },
-    {
-      "rev": 4,
-      "date": "2026-09-15",
-      "kind": "release",
-      "text": "Pass 1 ships the two stationary modes on the route /main/Drone-2525, unlocked from the Vision 2525 launcher. The vector law decided at rev 3 is now code and gate, not taste. Adaptive fidelity takes the Edge sensor's CNN reserve out of the frame before the renderer, then selects a tier that changes what is drawn and never what is true — the model hash is identical across tiers. On the Capitol arena the LOW tier keeps 601 of a 1,200-segment budget and still draws every building, every door, the roads and the contours, dropping only the trees; ULTRA keeps 1,609 within its 4,000 ceiling. The 13-step CRS ladder renders from one editable source with a drift check, and its rows are in the /crs matrix under review id DR-2026.09.15-r0.001. Gates added to test:ci: drone-arena 27, drone-hal 29, vector-law 22, drone-crs 117, drone-i18n 52; full test:ci and next build both exit 0. Flight, the two-device crew and the AI roles under human approval remain Pass 1b and 1c, declared on screen with the pass that will deliver them.",
-      "commit": "2d5eb24"
-    },
-    {
-      "rev": 5,
-      "date": "2026-09-15",
-      "kind": "release",
-      "text": "The stationary round is playable. One gimbal record and one slew law drive a fixed turret now and will drive the airframe in Pass 1b, gated so a second behaviour cannot be added quietly. Line of sight refuses a shot through the Capitol and names it; a building never blocks its own door. A capture or hit, the score and the replay entry move in one reducer step, so a completed action cannot be lost, and every attempt produces a reason a person can read rather than a silent no-op. The pop-up schedule is a function of the seed, so the same seed plays the same round. Proven by playing it headlessly in the static export: capture at 25.5s, hit at 25.7s, one door tagged of fourteen, transcript on screen. 28 lexicon keys across 33 languages with nothing staged. Ten of the thirteen CRS steps move from draft to implemented; flight (DRN-08), the two-device crew (DRN-09) and the AI roles under human approval (DRN-10) remain draft for Pass 1b and 1c.",
-      "commit": "d394dc9"
-    },
-    {
-      "rev": 6,
-      "date": "2026-09-15",
-      "kind": "release",
-      "text": "What playing the round taught, folded back in. Instrumenting a real headless round found three defects no source gate would have caught. A door could drop while the gimbal was still swinging to it, because the up-window was shorter than the worst swing that can reach it; the window is now derived from the slew rate rather than chosen, and gated, so the round is winnable by construction. The next-door button offered doors the Capitol stood in front of and doors that would close in time, both refusals a player can do nothing about; it now offers only doors that are reachable and still open long enough, and says 'no door you can reach in time' when there are none. And picking the nearest door by subtracting azimuths skipped the door right beside you across the north wrap; it now uses the shortest turn. The two stationary modes also became genuinely different: Security Turrets seats you at one turret and teaches where a fixed position is blind, while Security Capital works the whole block and moves you to the turret that can reach the next door, carrying your score across the walk. A played Capital round: two doors tagged, three captured, 50% accuracy, the transcript on screen naming every refusal.",
-      "commit": "ec87075"
-    },
-    {
-      "rev": 7,
-      "date": "2026-09-15",
-      "kind": "release",
-      "text": "Revision 0.002. The four-tier fidelity table is replaced by a 25-rung MoT ladder, 1.1 to 5.5, five edge-compute bands by five resolution steps, and the error it carried is corrected: a richer setting asks for MORE work and therefore FEWER frames, so rung 1.1 — the 1983 vector arcade — is the fastest picture a machine can make. Demand and capability now live in separate modules and only calibration reconciles them; the superseded module is deleted rather than left beside its replacement. Sensing runs EO, IR, ACOUSTIC, MAG and CHEM, one more per band, shed from the top and never down to blind. The unit holds a 1920x1080 30 Hz reference and names every step down from it in its own HUD field. The self-test walks the ladder under real load and reports the rung this machine actually holds, with the dwell derived from the operator's 6-to-15-minute budget rather than chosen; run headlessly in the built site it reported 'This machine holds MoT 1.3 at 1080p30 with EO running'. Six CRS rows appended under permanent parents. Gates: mot-ladder 269, self-cal-runner 30, drone-hal 147 across all 25 rungs.",
-      "commit": "ea91e01"
-    },
-    {
-      "rev": 8,
-      "date": "2026-09-15",
-      "kind": "release",
-      "text": "Revision 0.003. The two flying modes ship, and with them the invariant the whole domain was built to hold: an AI-initiated shot never fires without a named human approval event. That is enforced by the type system as well as by tests — the only function that can retire a machine's request will not compile without an approver, a blank name changes nothing, and approving one shot does not authorise the next. Flight is a fixed-wing VTOL with the stall speed as the number the transition turns on: 8.4 m/s, hover 15 minutes, cruise 76, on the usable 80% of the battery. The walkthrough capture found three defects no unit test would have — a machine targeteer whose timer was destroyed every frame by a dependency that changed every frame, an aircraft that never left the ground so the camera saw only grass, and a machine held to different optics than the person it shares a gimbal with. DRN-08, DRN-09 and DRN-10 move from draft to implemented; all thirteen steps are now implemented and none is verified, because no person outside this session has flown it.",
-      "commit": "a3cb92f"
-    },
-    {
-      "rev": 9,
-      "date": "2026-09-15",
-      "kind": "release",
-      "text": "Revision 0.004. Shared Intent arrives as a placeholder and takes the decision the round already has: when a machine asks to shoot, the same question goes to a closed key group in the seconds it is open. The group advises and a named person decides — the consensus engine and the authority gate cannot import each other, and a unanimous group of five changes nothing about what may fire. Key members only: an empty roster produces no invitation rather than an open link, and the right code in the wrong hands is refused. Two things were built and then deleted because the repository already had them: a fourth code generator, when randomPodCode already owns the alphabet and takes its bytes as an argument; and a fourth value on a three-rung heart ladder that says in its own comment there is nothing in between and nothing above. Recognition now reads noted at once and adopted only after the decision went the way that contributor argued, which is what pod-clock means by judged after the fact. What the placeholder does not do is on the screen, each gap naming the function that will close it.",
-      "commit": "a1a9ff7"
-    },
-    {
-      "rev": 10,
-      "date": "2026-09-15",
-      "kind": "release",
-      "text": "Revision 0.005. Two people, two devices, one aircraft, proven rather than claimed: two separate browser profiles with no shared channel exchanged a flight at 41 m and an aim at 296 degrees, and each screen showed what the other was doing. A seat may only send what that seat controls, checked on the way in as well as out, and the other seat's controls are absent rather than greyed out. That run found three defects hiding behind each other: the targeteer's phone was simulating flight too and fighting the pilot's, the take-off tore its own animation loop down mid-climb and stalled at 8 m of 45, and the harness itself was lying because Chromium throttles a background tab to a frame a second. Optimisation is quoted from a processor slowed ten times, where the heaviest case went 48.0 to 57.3 fps, because a desktop pins everything at the refresh rate and hides the change: the game clock now publishes ten times a second while the gimbal still slews every frame, and a hundred-sample sight line is no longer re-marched for a door that has not moved. Nine runs of every gate: 1,395 checks each, all green, twelve reproducible artefacts byte-identical across all nine, ten spiral checks in both directions. SSSES 93.",
-      "commit": "dffaa79"
-    },
-    {
-      "rev": 11,
-      "date": "2026-09-15",
-      "kind": "release",
-      "text": "Revision 0.006. Forty-two aircraft, twenty-one a side, in flat columns so a tick allocates nothing and as an overlay in the arena's own camera so no mesh is rebuilt. One budget, two consumers: the swarm takes its share first and the Capitol block takes the rest, so at rung 1.1 the world drops to 112 segments and all forty-two are still drawn. A five-level authority ladder rides the band that already exists, from a named person per shot to the key group's live lean as a standing mandate, and the invariant does not bend on any rung: silence is never consent. The SSSES scorer was rewritten because three of its five pillars were not measurements — Succinctness was the literal 85 — and two of the sentences it printed were false. The score fell to 92 before the work lifted it to 96. Measured on a processor slowed ten times: 51.4 fps with the engagement in the air against a 30 Hz reference, and the projection memo demonstrably holding, which it had never done — an inline one-line lambda had been invalidating it sixty times a second. Four defects my own optimisation introduced were each caught by a gate rather than by reading.",
-      "commit": "c7c40a5"
-    },
-    {
-      "rev": 12,
-      "date": "2026-09-16",
-      "kind": "decision",
-      "text": "Revision 0.007. The fixed-wing is declared at the 1.111 m foil — span 1.111 m, nose-to-tail 0.7777 m, depth 0.2522 m — proportional to the operator's own 11.111 x 7.777 full scale to within 0.07 mm on the span. Declared with it are the AXES the drawing is measured on, because the shipped extent had span, depth and nose-to-tail under each other's names: the drawing's header reads 'X span, Y depth, Z vertical nose-up axis' and the carried model declared forward as x, so lengthM 38.579 was the SPAN. Every consumer inherited the permutation, including the crew parallax shipped the day before, which was therefore measured across the wing. Corrected at the source, and the mapping is now declared in one place rather than assumed in three.",
-      "commit": "538204b"
-    },
-    {
-      "rev": 13,
-      "date": "2026-09-16",
-      "kind": "correction",
-      "text": "CORRECTING REVISION 0.006 ON THE RECORD. That entry says 'at rung 1.1 the world drops to 112 segments and all forty-two are still drawn.' The second half was false of the app. The round hands the swarm floor(280 x 0.45) = 126 segments at rung 1.1, which at four segments a glyph buys thirty-one aircraft: ELEVEN OF THE FORTY-TWO WERE DROPPED on the level we promise runs everything. The gate agreed with the claim because it computed a more generous share for itself and then asserted only that something was drawn. The claim was true of the parity harness and false of the game. Fixed by a one-segment mark — at 1.111 m an aircraft is under a pixel wide beyond 700 m, so four segments for it is waste and dropping it is a lie — and the gate now copies the share the round actually uses. Forty-two drawn, none dropped, 60.2 fps under a ten-times-slowed processor. This entry appends rather than edits, because a record that can be corrected in place is not a record.",
-      "commit": "538204b"
-    },
-    {
-      "rev": 14,
-      "date": "2026-09-16",
-      "kind": "decision",
-      "text": "Revision 0.008. The wing is derived from the drawing instead of asserted beside it. The physics record said 5 kg on 0.9 m2; integrating the drawing's own ninety-four ribs gives 0.3092 m2 — the round had been flying a wing nearly three times the size of the one on screen, and nothing could notice because the two descriptions never met in code. Stall moves 8.43 to 14.38 m/s, which broke the transition, because the quad's acceleration had been hand-typed to beat the OLD stall. The requirement is now written as the requirement: terminal speed is a declared multiple of whatever this airframe's stall happens to be, checked across twenty mass and area combinations.",
-      "commit": "1875bda"
-    },
-    {
-      "rev": 15,
-      "date": "2026-09-16",
-      "kind": "decision",
-      "text": "Revision 0.009. The aircraft is the FOIL on this surface and has no other name — not in a label, a lexicon value, a CRS row, a component, a shipped document or an export (operator 2026-09-16: 'which we will not say in Drone-2525 so as not to upset Shield AI'). One declared exception, written into the domain as geometry.namingRule: the provenance path, because a derivation that cannot name its source cannot be verified. And the game now answers at /drone-2525 as well as /main/Drone-2525, with both emitted to the static export — a route that compiles but does not emit is a 404 in production and green in CI.",
-      "commit": "82325e3"
-    },
-    {
-      "rev": 16,
-      "date": "2026-09-16",
-      "kind": "decision",
-      "text": "Revision 0.010. Lasers, shields and time on target, as a fluence model rather than hit points: irradiance falls with beam spread and atmospheric loss, so disabling costs 0.97 s at 100 m and 13.84 s at 700 m and the game is about closing. The shield absorbs first and nothing reaches the airframe until it fails (Independence Day). A defeated aircraft is DISABLED and flown down under control at 1.6 m/s — there is no reachable state called destroyed (Ender's Game, and the operator's own words). Shields regenerate after a quiet period rather than a match exterminating anyone (Battle House, Barrington). The gate caught the module claiming 'you must hold the beam' while energy was energy; a 0.35 s fine-track lock made the claim true, and flicks now land 34 per cent of what held seconds do.",
-      "commit": "cd84715"
-    },
-    {
-      "rev": 17,
-      "date": "2026-09-16",
-      "kind": "decision",
-      "text": "Revision 0.011. The N ladder: the same game at 1v1, 2v2 and every rung to 21v21 — 42 aircraft, 84 seats, 42 HI a side — with twelve computed review lenses at each rung. It found three things that 21v21 alone could not have shown. A target already coming down was still a target, wasting ninety per cent of all beam time from the second rung upward. A match is decided when a side cannot fight, not when its last aircraft lands. And the person is the bottleneck, measurably: at 21v21 one watch officer is asked for 431 decisions at authority level 1 (117.8 a minute against the fifty a person can answer) and 42 at level 3. Levels 4 and 5 put the decision with a quorum of the key group, which answers 300 a minute between six people, and no rung outruns it. The invariant never bent at any level — what scales is the breadth of one decision and how many named people make it. Also: the winners' circle at one ninth, the R-CORE gate, ending on a floor that a named safety officer must clear; and one aircraft at two sizes with the square-cube law between them, mass 5 kg to 5.00 t and stall 14.4 to 45.5 m/s."
-    },
-    {
-      "rev": 18,
-      "date": "2026-09-16",
-      "kind": "correction",
-      "text": "CORRECTING REVISION 0.008 ON THE RECORD. That entry, and the seat-view file it cites, said the two seats are '18 cm apart in the hover and 37 cm on the wing' — two geometries, ours, with the targeteer forward of centre. The operator's deck (r.013 through r.050, byte-identical) declares ONE seat geometry for every vehicle: pilot canopy +0.18 L / +0.12 up, targeteer belly −0.15 L / −0.04, turret separation 0 — 'same map on turret, VTOL, Manta, Ark, MASS droid: one mount, two seats.' Decision 2026-09-16: the deck's geometry is canonical. On the 0.7777 m fuselage the two eyes are 28.5 cm apart in every flight mode, and the targeteer sits AFT. The discipline is unchanged — fractions of the nose-to-tail length, never the span, turret exactly zero — and the gate that asserted rotors and wing DIFFER is rewritten to assert they are the SAME, not deleted. The fractions now live in the controls schema beside the rest of the deck, so the seat cannot drift from it unnoticed. This entry appends rather than edits.",
-      "commit": ""
-    },
-    {
-      "rev": 19,
-      "date": "2026-09-16",
-      "kind": "decision",
-      "text": "Revision 0.012. Operator deck r.050 absorbed, on its own terms. 50184f8: T1 T2 T3, AMBER then RED, the fire refused NO_RED_BOX / AMBER_NO_APPROVE and recorded; the decision record with r.043's hash (three r.050 defects deliberately not ported — the 0.044 stamp, the scrubber reading dead fields, free text in the hashed stream). 5e82a42: a device approving its own mark reads HI-2, two-step, not the crew's named approver. 0ab1dba: the keyboard through the ref bus, the R stick is the HEAD as the schema says (it had been airframe yaw), one centred look-stick for the turret, calibration persisted so a resting thumb reads zero. e7bd9ab: the deck on the glass — tap marks, double-tap fires only red, the aiming seat's drag looks, the T-box on the door, voice offered never required, stick settings, a keymap that prints. And the ladder gains his six: designation rate, HI holds (zero in the contest, and said so), auth failures, handoffs, simulation speed beside the hash never inside it, and a replay hash that the same seed reproduces. Parity divergences for Grok are recorded in the plan: the thirteen colours are not the same thirteen (his call), AIR L:B inverted against the drawing, mulberry32 against our mix, glyph 8 against 1/4/12/24, quorum 2/3 against 0.5, level 2 'one slot' (his is better; adopted with the slots).",
-      "commit": ""
-    },
-    {
-      "rev": 20,
-      "date": "2026-09-16",
-      "kind": "decision",
-      "text": "Revision 0.013. CH1 LAWN · CH2 AXIS · CH3 MIX · CH4 RING · CH5 NET × DIFF 1–5, lifted from the deck's own challengeSpec() and checked cell by cell against r.050's source rather than against a memory of it. On this arena the numbers land as doors in play (quota), window length (rate) and doors at once (1→3). CH5 is stronger here than in the deck, and says so: every shot already needs APPROVE (amber → red), so the deck's CH5 dialog has nowhere to go but up — on the net the red box must come from a second PERSON; a device approving its own mark is refused CH5_NO_APPROVE and recorded as a HOLD, which gives 'HI holds' a real count. The AsM Cup is the regression fixture, read-only by contract: two sha256 pinned, the four published sentences recomputed from the 99-run numbers (6v6 level 3 is a 47–47 tie — the fourth level his 3–1 leaves unspoken — and level 4 is RED's), the sidecar beside it never at it; the fixture's revision 0.039 is reported and left for the operator to confirm as the reference. APPROVE now crosses the crew link, so two phones can make one red box with two names on it. And Verify Live probes /drone-2525/ by its own markup — for three days a green run had never once asked for the page he keeps pasting.",
-      "commit": ""
-    },
-    {
-      "rev": 21,
-      "date": "2026-09-16",
-      "kind": "decision",
-      "text": "Revision 0.014. eXeL AI's five gates, persisted verbatim (docs/asks/2026-09-16_exel_ai_feedback_r050_five_gates.md, sha256 6f74a11e…), and the two parity gaps they exposed closed: (gate 3) the red box and its decision id now mirror to the approving device — two browsers read the same DEC-0002 under the same red T-box; (gate 1) the eight PLATFORM identities are data lifted from r.050's units table — T1 TURRET, D1Q QUAD·HOVER, D1 VTOL, D1F FOIL, M99 MANTA 99-66, M66 MINI 66-33, ARK SAIL 33, R2 MASS DROID — held to the deck by a gate that reads the deck's own source. One airframe model: D1Q has no wing and refuses by name, D1F takes the wing the moment the transition is legal, D1 is the VTOL as before; the sea craft, the sail and the droid are listed and dated, never hidden. Also on the record: r.050 defect #4 (designate() never sets phase:'amber' on state.desig — the port sets amber by construction and drone-slots holds the acceptance test), the calibration HUD in the reader's language, and AFTER_FILL at zero for the first time.",
-      "commit": ""
-    },
-    {
-      "rev": 22,
-      "date": "2026-09-17",
-      "kind": "decision",
-      "text": "Revision 0.015. Round 12 opens (plan approved). Operator deck HEAD r.050 -> r.075, carried byte-for-byte with a verified sha256 manifest, and the control-schema transcription re-pinned from r.050 to r.075 (the 48-agent fleet found controls.ts still said 0.050 while HEAD had moved four revisions on -- Gate 1, deck parity). The window.CONTROLS block is identical r.050->r.075 except its revision field. Model changed to Opus 4.8 mid-round. The reconciled 48-agent + Grok SSSES/SPIRAL audit sets the honest posture for the round: the engine, the fire gate and the determinism are real and strong; the demo on-ramp, the edge controls, the teaming surface and cross-device are not built yet. Sequence P0 (foundation) -> P1 (60-second demo) -> P2 (teaming + two-phone MATCH qualify) -> P3 (scenes).",
-      "commit": ""
-    },
-    {
-      "rev": 23,
-      "date": "2026-09-19",
-      "kind": "correction",
-      "text": "r.129 claimed 'forward-goes-reverse fixed at its class'. A read-only probe of the served r.129 (before any r.130 change) showed the class was untouched: the camera vector camOf and the projector proj disagreed by 180 degrees, so at pan 0 QUAD/VTOL still moved away from the point on screen (59.4 -> 68.3 m), the range pit looked away from its plates (all ten silhouettes culled, every aimed shot a MISS, LOCK on a buoy). r.129 fixed only the pan-folding sub-case. Corrected in r.130 by one forward basis (fwdOf/rightOf/yawTo) read by camOf, lockOn, phys, every aim and the QA; the QA row FWD_IS_WHAT_YOU_SEE measures in picture terms so a future flip cannot pass.",
-      "commit": "a83e670"
-    },
-    {
-      "rev": 24,
-      "date": "2026-09-19",
-      "kind": "release",
-      "text": "Operator deck r.130 served at /drone-2525/play.html (sha256 ce034c5e..., 231517 B). The range with turrets actually works: pit faces its plates; pop-ups per lane at 50-300 m on a seeded per-lane order with FM 3-22.9 exposure times (3 s at 50 m to 8 s at 300 m); three modes by the operator's names TRAINING RESET / TRAINING DOWN / QUAL 40 (lapsed exposure = unfired MISS, 23/30/36); scale-true hit test (pip inside the projected silhouette, CIRCLE/SILHOUETTE, 6 px floor); 9127 sheet layout (100 m x3, one 250 left, one 300 right); the reducer keeps a target's kind and its designator (a designated plate was being shot as the bull ring; the two-humans rule never saw a peer identity). In-file QA 75 rows, headless 74/75 (SYNC_DIRECT by design). Also fixes two render defects the probe exposed: r.129 bullseye() threw on every frame (hidden by the loop try/catch, nothing after the doors drawn) and at MoT 1.1 the range wire spent the segment budget before any silhouette. Every revision from r.128 on is documented in operator-deck/REVISIONS.md, append-only and chain-hashed, gated by tests/drone-revisions.test.mjs. Research with sources: docs/drone-2525/RANGE_QUALIFICATION_RESEARCH.md.",
-      "commit": "a83e670"
-    },
-    {
-      "rev": 25,
-      "date": "2026-09-19",
-      "kind": "correction",
-      "text": "Register row r.128 cited d195781 as the shipping commit; r.128 was carried and served by 2159671. The r.130 register section stated gate counts 64/33; the gates reported 65/35. Both corrected as new lines in REVISIONS.md r.131; the old rows stand.",
-      "commit": "9870031"
-    },
-    {
-      "rev": 26,
-      "date": "2026-09-19",
-      "kind": "release",
-      "text": "Operator deck r.131 served at /drone-2525/play.html (sha256 700a5146..., the fleet fold). A 24-lens read-only fleet review of r.130 (docs/assessments/2026-09-19_r130_fleet_review.md) converged on eight player-path defects: the pickers re-aimed at the bull ring and left the mode as range; one exposure charged two rounds; a downed plate could be shot and resurrected; the red box outlived the pop-up; QUAL 40 could not fit its clocks and could not reach 40; the seat offset, Capitol turrets, every auto-aim and the T-box still used the old basis or raw plate coordinates; the HUD overprinted and LOCK sat under a button; the reducer's HIT branch was dead and QA left a phantom red box on the first screen. All eight fixed at the class in r.131 (QA 84 rows, headless 83/84). Repo: one deck-HEAD constant for every deck-reading gate, the deck's own QA in CI (drone-deck-qa), Verify Live probes play.html. Deferred to r.132: the wire path bypasses the two-humans gate (net APPROVE/SNAPSHOT/peer DESIG), no canonical range clock between peers, reduce-in-arrival-order.",
-      "commit": "9870031"
-    },
-    {
-      "rev": 27,
-      "date": "2026-09-19",
-      "kind": "release",
-      "text": "Operator deck r.132 served at /drone-2525/play.html (sha256 d48ec579...). THE TWO-PHONE MATCH GATE IS REACHED: in two isolated browser contexts over a real WebRTC data channel, by real clicks — host offer, joiner answer, DIRECT, team auth, READY, START, LIVE; the host marks, the host's self-approve is refused TWO HUMANS, the joiner approves, red on both as PEER HI-2, the host fires, HIT — both peers hold one replay hash and report MATCH (frontend/scripts/drone-team-e2e.mjs, a Deploy step). To get there the wire path now obeys the same rules as the buttons (peerDesig / wireApprove / importSnapshotDesig), HOLD/REJECT decisions travel as canonical rows, and a tab message never downgrades a DIRECT link. Usability-walk fixes: MORE menu (it had no handler), double-tap keeps the mark's phase, MISS/LAPSED wording, no QA last-shot on the first screen, the AI member sees the range. Still open: a canonical range clock between peers; reduce-in-orderKey-order; 2v2+ transport; two real phones on a real network.",
-      "commit": "607f0a8"
-    },
-    {
-      "rev": 28,
-      "date": "2026-09-19",
-      "kind": "release",
-      "text": "Operator deck r.133 served at /drone-2525/play.html (sha256 d10ae69b...). THE 38-AsM TEAM-TEST FOLD: 26 seats played the served r.132 by clicks and keys (docs/assessments/2026-09-19_r132_asm_team_test.md). The AI member was dead code in live play (asmTick never called from the loop) and its FIRE branch would have downed an amber target with no approval: now ticked, plates-only on the range, spots from the seated pit, fires only on a red box through the one fire path, once per box, OFF by default; the reducer keeps the author designate() wrote. The score strip wraps (HIT/MISS/LAPSED, the QUAL clock and ALL DOWN were clipped off every phone) and is written on the event. The approver's device tallies a peer's HIT/MISS and takes the box down from the same canonical row. One sentence for an empty range; no lapse before the round starts; TARGET aims as well as marks; a peer's or the AI's mark turns the seat's head to it; the desktop panel sits in its reserved strip; refusals name the next action. QA 100 rows, 99/100 headless; drone-team-e2e MATCH; replays on the served r.133: AI seat 3/3, team joiner tally 2/2, 360 px score readable.",
-      "commit": "4321f40"
-    },
-    {
-      "rev": 29,
-      "date": "2026-09-19",
-      "kind": "release",
-      "text": "Operator deck r.134 served at /drone-2525/play.html (sha256 840cf55c...). THE FOLD OF TEAM-TEST WAVE 3 AND THE 48-LENS FLEET REVIEW: authority has one consumer (a scene change, a reset, a lost approver or a dead target releases the red box with a HOLD row; the CH5 popup, a second approval primitive, is gone; a door tag is on the record and consumes the box); RESET and mode changes are canonical rows that travel and ask before discarding a live table; the link has a heartbeat and a lost approver is said; VOICE reports the outcome and a negation is a HOLD; MAP keeps the strip; the AI member is an actor on the record (ASM@device, HI OVER AI approval) and never marks a dead plate; keys ignore text fields and the intro; a forged row is refused at the wire; a training lapse is said and is a row; refusals draw above the intro; the host shows the other team's six digits; the two-phone gate runs in Deploy and reads the approver's picture; one HEAD across register/README/domain JSON/ledger/hashes/patch is gated; Verify Live compares the served body's sha256 to the register. Corrections: the r.132 'Deploy step' claim (it was in no workflow until now); D18 (MAP froze the strip, not the AI tick). Boot QA 110 rows, 109/110 headless.",
-      "commit": "f2557ac"
-    },
-    {
-      "rev": 30,
-      "date": "2026-09-19",
-      "kind": "release",
-      "text": "Operator deck r.135 served at /drone-2525/play.html (sha256 882287ec...). THE FOLD OF THE FLEET'S SECOND (ADVERSARIAL) REVIEWERS: three r.134 regressions closed (the uncalled HUD frame tail; a training-lapse row from both phones that diverged the records — one lapse clock per room, the host's row travels; a DROPPED link undone by the next message); the fire gate's remaining members (the round must be open; the approver's seat never fires the marker's box; a door tag needs a red box; an expired target scores nothing; a row's data.by is never an AI passport; CH5 re-approves after a miss; a refused wire approval is a HOLD row; a received APPROVER_LOST demotes the shooter's red; a lane change releases); the record carries the decision's content and the actor, AI rows say AI, one name for a human's approval of the AI's mark, the AI never fires a qualification round; no session id or plate id reaches the player; three regex QA rows became behaviour rows and a loop-driven AI row was added. Corrections: r.134's mode-change ask and 'one revision string' claims. QA 116 rows, 115/116 headless.",
-      "commit": "2020c02"
-    },
-    {
-      "rev": 31,
-      "date": "2026-09-19",
-      "kind": "release",
-      "text": "Operator deck r.136 served at /drone-2525/play.html (sha256 2bcd7a57...). THE FOLD OF THE 48-AGENT FLEET'S SYNTHESIS: the r.135 regression closed (the marker's-seat rule refused an AI mark in a room for every seat; the marker's seat is now the human or its own AI, and the approver is told the other seat fires); every peer release demotes the shooter's box; no red box crosses from the waiting room into LIVE; an expired drone takes its box; MAP_KEEPS_THE_STRIP and LOST_APPROVER_IS_SAID assert what they name; new row AI_MARK_FIRES_IN_A_ROOM. Grades at r.135 from the twelve syntheses: B+ to C-. QA 117 rows, 116/117 headless.",
-      "commit": "543a86c"
-    },
-    {
-      "rev": 32,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.137 served at /drone-2525/play.html (sha256 8e3ef876...). THE RANGE THE OPERATOR DESCRIBED: training stands every target (RESET returns a hit one after 3 s, DOWN keeps it down); QUAL · 40 is the Army IWQ Table VI program he supplied (18 engagements, 4 phases, targets up together for 5/8/12/16 s by count, 3 s between engagements, 9 s between phases, one round per silhouette, unengaged = unfired miss, 40 targets, the 50 R first; 15-18 DECLARED); the 50 m targets are left and right. r.130's by-distance exposures and 20/10/10 tables are superseded on the record. QA 124 rows, 123/124 headless; range-2525 96/0.",
-      "commit": "c0e57ea"
-    },
-    {
-      "rev": 33,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.138 served at /drone-2525/play.html (sha256 c8449d70...). TRUE SCALE, LABELS, ZOOM, MAGAZINE, FULL SCREEN: silhouettes at their real size (r.130's sizes corrected on the record); labels justified by side and stacked; the zoom law (turret 3x in QUAL, 30x otherwise; every craft 30x); four 10-round magazines in QUAL with the phase rest reloading on the record, 30-round magazines elsewhere, RELOAD + counter at the top of the picture, an empty magazine refuses FIRE; FULL keeps only the controls. QA 132 rows, 131/132 headless.",
-      "commit": "c5995ce"
-    },
-    {
-      "rev": 34,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.139 served at /drone-2525/play.html (sha256 e8b52069...). LANDSCAPE AND PORTRAIT, LIKE MISSION PLANNING: a phone is a phone in both orientations; FULL fills the whole screen in every orientation (r.138's 36 % picture corrected on the record); portrait stacks the top lines, landscape sets them side by side; rotation re-lays out; the deck-QA gate proves both orientations on every deploy. QA 136 rows, 135/136 in each orientation.",
-      "commit": "0f71961"
-    },
-    {
-      "rev": 35,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.140 served at /drone-2525/play.html (sha256 0f44f0d8...). THE DARK GREEN PLATES AND THE 25 M ALT-C SHEET: F-type 26 x 21 in (sourced; r.138 corrected), a TARGETS picker with the 17 x 22 in Alt-C sheet at 25 m carrying ten silhouettes scaled by 25/range (measured same-angle), one geometry through qWorld/plateDims, paper never falls (a hit is a hole; DOWN scores out; QUAL runs on the sheet). QA 140 rows, 139/140 in each orientation.",
-      "commit": "9d45dae"
-    },
-    {
-      "rev": 36,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.141 served at /drone-2525/play.html (sha256 d1771876...). LIFE-SIZE AT 12 INCHES: one focal length at 1x (12 in x 152.3 px/in, iPhone 12 Pro Max); the typed 38-degree half-angle of r.130-r.140 corrected on the record (a 76-degree field made every target tiny); a 50 m F is 24 px at 1x, a 300 m E 6 px; the 50 L/R at +-4.6 m, the edges of a portrait phone. QA 142 rows, 141/142 in each orientation.",
-      "commit": "1e8b2d4"
-    },
-    {
-      "rev": 37,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.142 served at /drone-2525/play.html (sha256 4c7d6ee3...). RELOAD BY HAND ON QUAL, THE SAME ORDER AS THE ACTUAL TEST: the program names its silhouettes and is identical on every lane (per-lane seed retired, operator decision); ten targets a phase; the tower's rest loads nothing; the shooter presses RELOAD; four magazines as issued. QA 143 rows, 142/143 in each orientation.",
-      "commit": "662f8e3"
-    },
-    {
-      "rev": 38,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.143 served at /drone-2525/play.html (sha256 c4c187b4...). NO HORIZON LINE; WHITE BULLSEYE, RED NEAR A TARGET; BRACKET RED WITH IT; LOCK IS THE THING IN THE CROSSHAIR. QA 146 rows, 145/146 in each orientation.",
-      "commit": "a9c6360"
-    },
-    {
-      "rev": 39,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.144 served at /drone-2525/play.html (sha256 2ffd1288...). THE TARGETS ON EACH OF THE 42 LANES: 462 plates gated by id and range; the neighbouring lanes draw every silhouette, dim; fire stays on your lane. QA 148 rows, 147/148 in each orientation.",
-      "commit": "b2b64dc"
-    },
-    {
-      "rev": 40,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.145 served at /drone-2525/play.html (sha256 3a2d43e2...). LANE MARKERS at 100, 200 and 300 m: numbered boards on posts at the lane edges, 129 boards, gated by number, edge and range. QA 149 rows, 148/149 in each orientation.",
-      "commit": "8531339"
-    },
-    {
-      "rev": 41,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.146 served at /drone-2525/play.html (sha256 b3b17cbd...). DEFERRED QA ROWS DECIDE ON EVIDENCE: DRAW_COMPLETES and ASM_MARKED_BY_THE_LOOP poll for the frame / the loop's mark up to a declared ceiling instead of a fixed timer that judged a cold CI runner red (Deploy #950). Correction: r.130's DRAW_COMPLETES measured the runner's speed. QA 149 rows, 148/149 in each orientation.",
-      "commit": "5466050"
-    },
-    {
-      "rev": 42,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.147 served at /drone-2525/play.html (sha256 2476f68a...). LOCK IS THE TARGET NEAREST THE BULLSEYE ON THE PICTURE: one pip-nearest rule (48 px reach, declared) for every kind and scene; T1·T2·T3 in that order; key 1 marks what the button marks. Correction: r.131's two lock rows passed with the pip on the grass. QA 152 rows, 151/152 in each orientation.",
-      "commit": "7a7a2c7"
-    },
-    {
-      "rev": 43,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.148 served at /drone-2525/play.html (sha256 213a56fc...). THE EYE OUTRANKS THE MARK: the 48-agent fleet's fold — a mark is held only while the bullseye is on it, one door for TARGET/keys/voice, every key obeys the reach, the AI spots through the bullseye and never moves the seated head, FIRE with no box names NONE, board under the strip, wire APPROVE author from the envelope, peer HIT needs red on record. Correction: r.147's rule ran only on an empty board. QA 161 rows, 160/161 in each orientation.",
-      "commit": "8ccab36"
-    },
-    {
-      "rev": 44,
-      "date": "2026-09-23",
-      "kind": "release",
-      "text": "Operator deck r.149 served at /drone-2525/play.html (sha256 20499eed...). A BOX ONLY AROUND THE MARKED TARGET: no edge markers unless targeted; amber on TARGET, red on APPROVE; the voxel around every marked slot in 3D; the three range modes re-stated. QA 163 rows, 162/163 in each orientation.",
-      "commit": "6b585bf"
-    }
-  ]
+ "section": "Drone-2525",
+ "route": "/main/Drone-2525",
+ "note": "Append-only Vision 2525 traceability for the Drone-2525 Domain Play. rev monotonic; append, never edit. Version 00.00 · revision 0.001 opens the record (operator 2026-09-15). Revisions 0.007 to 0.011 append the FOIL declaration, the axis correction, the derived wing, the naming rule, the engagement rules and the N ladder (operator 2026-09-16).",
+ "entries": [
+  {
+   "rev": 1,
+   "date": "2026-09-15",
+   "kind": "ask",
+   "text": "Drone-2525 1st Pass — Security Turrets and Security Capital (stationary pop-up targets), 2 HI-operated drone, and mixed HI/AI pilot+targeteer with HI approving every shot; an edge-wireframe city block around the Texas Capitol lawn built on Security-2525 Mission Planning; tag each door by capturing a picture and shooting it; 13 trinity colours only; fixed-wing VTOL; one gimbal design shared by turret and airframe; wireframes that feed Unreal and Unity through a one-step conversion built from scratch. Persisted verbatim, sha256 0d3987649112c0222a87795167eb1aa85b68df698c55b76dd929bab86233d1e2.",
+   "commit": "7b0b790"
+  },
+  {
+   "rev": 2,
+   "date": "2026-09-15",
+   "kind": "decision",
+   "text": "Five decisions taken with the operator: (1) the 13 are the SPECTRUM palette lib/trinity-palette.ts, not the iconology set, and the drone surface may draw no other hex; (2) the Capitol block is hand-authored now, badged confidence-low, with a checked-in offline builder the operator runs for the real OSM buildings/trees/roads and a fine DEM; (3) stationary first — Turrets and Capital ship as Pass 1 with the WireModel and exporter, drone flight and two-device pilot/targeteer as Pass 1b, AI roles and the HI approval gate as Pass 1c; (4) numbering starts at Version 00.00 revision 0.001 and every later edition appends, never edits; (5) the vector law lives in lib/wire-core and every 2525 domain surface inherits it — the polling app's chrome is NOT repainted without a further instruction.",
+   "commit": ""
+  },
+  {
+   "rev": 3,
+   "date": "2026-09-15",
+   "kind": "decision",
+   "text": "Wireframe means vector-display drawing (operator's references: Star Wars arcade 1983, Battlezone) — black ground, lines only, no fill or shading, one saturated stroke colour per object from the 13, depth from perspective and overlap rather than brightness, HUD drawn in the same stroke language at the same weight, curves as n-gons so a curve's cost is declared. Sensor CAPTURE stores an extracted EDGE SET as a WireModel group, never a photograph, behind one interface with two implementations (rendered-view extraction now, camera + CNN later). Resolution and frame rate rise only with measured spare compute after the Edge sensor's CNN reserve is subtracted; the tier changes what is drawn, never what is true — the model hash is identical across all tiers — and the tier is always visible, never silent.",
+   "commit": ""
+  },
+  {
+   "rev": 4,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "Pass 1 ships the two stationary modes on the route /main/Drone-2525, unlocked from the Vision 2525 launcher. The vector law decided at rev 3 is now code and gate, not taste. Adaptive fidelity takes the Edge sensor's CNN reserve out of the frame before the renderer, then selects a tier that changes what is drawn and never what is true — the model hash is identical across tiers. On the Capitol arena the LOW tier keeps 601 of a 1,200-segment budget and still draws every building, every door, the roads and the contours, dropping only the trees; ULTRA keeps 1,609 within its 4,000 ceiling. The 13-step CRS ladder renders from one editable source with a drift check, and its rows are in the /crs matrix under review id DR-2026.09.15-r0.001. Gates added to test:ci: drone-arena 27, drone-hal 29, vector-law 22, drone-crs 117, drone-i18n 52; full test:ci and next build both exit 0. Flight, the two-device crew and the AI roles under human approval remain Pass 1b and 1c, declared on screen with the pass that will deliver them.",
+   "commit": "2d5eb24"
+  },
+  {
+   "rev": 5,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "The stationary round is playable. One gimbal record and one slew law drive a fixed turret now and will drive the airframe in Pass 1b, gated so a second behaviour cannot be added quietly. Line of sight refuses a shot through the Capitol and names it; a building never blocks its own door. A capture or hit, the score and the replay entry move in one reducer step, so a completed action cannot be lost, and every attempt produces a reason a person can read rather than a silent no-op. The pop-up schedule is a function of the seed, so the same seed plays the same round. Proven by playing it headlessly in the static export: capture at 25.5s, hit at 25.7s, one door tagged of fourteen, transcript on screen. 28 lexicon keys across 33 languages with nothing staged. Ten of the thirteen CRS steps move from draft to implemented; flight (DRN-08), the two-device crew (DRN-09) and the AI roles under human approval (DRN-10) remain draft for Pass 1b and 1c.",
+   "commit": "d394dc9"
+  },
+  {
+   "rev": 6,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "What playing the round taught, folded back in. Instrumenting a real headless round found three defects no source gate would have caught. A door could drop while the gimbal was still swinging to it, because the up-window was shorter than the worst swing that can reach it; the window is now derived from the slew rate rather than chosen, and gated, so the round is winnable by construction. The next-door button offered doors the Capitol stood in front of and doors that would close in time, both refusals a player can do nothing about; it now offers only doors that are reachable and still open long enough, and says 'no door you can reach in time' when there are none. And picking the nearest door by subtracting azimuths skipped the door right beside you across the north wrap; it now uses the shortest turn. The two stationary modes also became genuinely different: Security Turrets seats you at one turret and teaches where a fixed position is blind, while Security Capital works the whole block and moves you to the turret that can reach the next door, carrying your score across the walk. A played Capital round: two doors tagged, three captured, 50% accuracy, the transcript on screen naming every refusal.",
+   "commit": "ec87075"
+  },
+  {
+   "rev": 7,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "Revision 0.002. The four-tier fidelity table is replaced by a 25-rung MoT ladder, 1.1 to 5.5, five edge-compute bands by five resolution steps, and the error it carried is corrected: a richer setting asks for MORE work and therefore FEWER frames, so rung 1.1 — the 1983 vector arcade — is the fastest picture a machine can make. Demand and capability now live in separate modules and only calibration reconciles them; the superseded module is deleted rather than left beside its replacement. Sensing runs EO, IR, ACOUSTIC, MAG and CHEM, one more per band, shed from the top and never down to blind. The unit holds a 1920x1080 30 Hz reference and names every step down from it in its own HUD field. The self-test walks the ladder under real load and reports the rung this machine actually holds, with the dwell derived from the operator's 6-to-15-minute budget rather than chosen; run headlessly in the built site it reported 'This machine holds MoT 1.3 at 1080p30 with EO running'. Six CRS rows appended under permanent parents. Gates: mot-ladder 269, self-cal-runner 30, drone-hal 147 across all 25 rungs.",
+   "commit": "ea91e01"
+  },
+  {
+   "rev": 8,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "Revision 0.003. The two flying modes ship, and with them the invariant the whole domain was built to hold: an AI-initiated shot never fires without a named human approval event. That is enforced by the type system as well as by tests — the only function that can retire a machine's request will not compile without an approver, a blank name changes nothing, and approving one shot does not authorise the next. Flight is a fixed-wing VTOL with the stall speed as the number the transition turns on: 8.4 m/s, hover 15 minutes, cruise 76, on the usable 80% of the battery. The walkthrough capture found three defects no unit test would have — a machine targeteer whose timer was destroyed every frame by a dependency that changed every frame, an aircraft that never left the ground so the camera saw only grass, and a machine held to different optics than the person it shares a gimbal with. DRN-08, DRN-09 and DRN-10 move from draft to implemented; all thirteen steps are now implemented and none is verified, because no person outside this session has flown it.",
+   "commit": "a3cb92f"
+  },
+  {
+   "rev": 9,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "Revision 0.004. Shared Intent arrives as a placeholder and takes the decision the round already has: when a machine asks to shoot, the same question goes to a closed key group in the seconds it is open. The group advises and a named person decides — the consensus engine and the authority gate cannot import each other, and a unanimous group of five changes nothing about what may fire. Key members only: an empty roster produces no invitation rather than an open link, and the right code in the wrong hands is refused. Two things were built and then deleted because the repository already had them: a fourth code generator, when randomPodCode already owns the alphabet and takes its bytes as an argument; and a fourth value on a three-rung heart ladder that says in its own comment there is nothing in between and nothing above. Recognition now reads noted at once and adopted only after the decision went the way that contributor argued, which is what pod-clock means by judged after the fact. What the placeholder does not do is on the screen, each gap naming the function that will close it.",
+   "commit": "a1a9ff7"
+  },
+  {
+   "rev": 10,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "Revision 0.005. Two people, two devices, one aircraft, proven rather than claimed: two separate browser profiles with no shared channel exchanged a flight at 41 m and an aim at 296 degrees, and each screen showed what the other was doing. A seat may only send what that seat controls, checked on the way in as well as out, and the other seat's controls are absent rather than greyed out. That run found three defects hiding behind each other: the targeteer's phone was simulating flight too and fighting the pilot's, the take-off tore its own animation loop down mid-climb and stalled at 8 m of 45, and the harness itself was lying because Chromium throttles a background tab to a frame a second. Optimisation is quoted from a processor slowed ten times, where the heaviest case went 48.0 to 57.3 fps, because a desktop pins everything at the refresh rate and hides the change: the game clock now publishes ten times a second while the gimbal still slews every frame, and a hundred-sample sight line is no longer re-marched for a door that has not moved. Nine runs of every gate: 1,395 checks each, all green, twelve reproducible artefacts byte-identical across all nine, ten spiral checks in both directions. SSSES 93.",
+   "commit": "dffaa79"
+  },
+  {
+   "rev": 11,
+   "date": "2026-09-15",
+   "kind": "release",
+   "text": "Revision 0.006. Forty-two aircraft, twenty-one a side, in flat columns so a tick allocates nothing and as an overlay in the arena's own camera so no mesh is rebuilt. One budget, two consumers: the swarm takes its share first and the Capitol block takes the rest, so at rung 1.1 the world drops to 112 segments and all forty-two are still drawn. A five-level authority ladder rides the band that already exists, from a named person per shot to the key group's live lean as a standing mandate, and the invariant does not bend on any rung: silence is never consent. The SSSES scorer was rewritten because three of its five pillars were not measurements — Succinctness was the literal 85 — and two of the sentences it printed were false. The score fell to 92 before the work lifted it to 96. Measured on a processor slowed ten times: 51.4 fps with the engagement in the air against a 30 Hz reference, and the projection memo demonstrably holding, which it had never done — an inline one-line lambda had been invalidating it sixty times a second. Four defects my own optimisation introduced were each caught by a gate rather than by reading.",
+   "commit": "c7c40a5"
+  },
+  {
+   "rev": 12,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.007. The fixed-wing is declared at the 1.111 m foil — span 1.111 m, nose-to-tail 0.7777 m, depth 0.2522 m — proportional to the operator's own 11.111 x 7.777 full scale to within 0.07 mm on the span. Declared with it are the AXES the drawing is measured on, because the shipped extent had span, depth and nose-to-tail under each other's names: the drawing's header reads 'X span, Y depth, Z vertical nose-up axis' and the carried model declared forward as x, so lengthM 38.579 was the SPAN. Every consumer inherited the permutation, including the crew parallax shipped the day before, which was therefore measured across the wing. Corrected at the source, and the mapping is now declared in one place rather than assumed in three.",
+   "commit": "538204b"
+  },
+  {
+   "rev": 13,
+   "date": "2026-09-16",
+   "kind": "correction",
+   "text": "CORRECTING REVISION 0.006 ON THE RECORD. That entry says 'at rung 1.1 the world drops to 112 segments and all forty-two are still drawn.' The second half was false of the app. The round hands the swarm floor(280 x 0.45) = 126 segments at rung 1.1, which at four segments a glyph buys thirty-one aircraft: ELEVEN OF THE FORTY-TWO WERE DROPPED on the level we promise runs everything. The gate agreed with the claim because it computed a more generous share for itself and then asserted only that something was drawn. The claim was true of the parity harness and false of the game. Fixed by a one-segment mark — at 1.111 m an aircraft is under a pixel wide beyond 700 m, so four segments for it is waste and dropping it is a lie — and the gate now copies the share the round actually uses. Forty-two drawn, none dropped, 60.2 fps under a ten-times-slowed processor. This entry appends rather than edits, because a record that can be corrected in place is not a record.",
+   "commit": "538204b"
+  },
+  {
+   "rev": 14,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.008. The wing is derived from the drawing instead of asserted beside it. The physics record said 5 kg on 0.9 m2; integrating the drawing's own ninety-four ribs gives 0.3092 m2 — the round had been flying a wing nearly three times the size of the one on screen, and nothing could notice because the two descriptions never met in code. Stall moves 8.43 to 14.38 m/s, which broke the transition, because the quad's acceleration had been hand-typed to beat the OLD stall. The requirement is now written as the requirement: terminal speed is a declared multiple of whatever this airframe's stall happens to be, checked across twenty mass and area combinations.",
+   "commit": "1875bda"
+  },
+  {
+   "rev": 15,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.009. The aircraft is the FOIL on this surface and has no other name — not in a label, a lexicon value, a CRS row, a component, a shipped document or an export (operator 2026-09-16: 'which we will not say in Drone-2525 so as not to upset Shield AI'). One declared exception, written into the domain as geometry.namingRule: the provenance path, because a derivation that cannot name its source cannot be verified. And the game now answers at /drone-2525 as well as /main/Drone-2525, with both emitted to the static export — a route that compiles but does not emit is a 404 in production and green in CI.",
+   "commit": "82325e3"
+  },
+  {
+   "rev": 16,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.010. Lasers, shields and time on target, as a fluence model rather than hit points: irradiance falls with beam spread and atmospheric loss, so disabling costs 0.97 s at 100 m and 13.84 s at 700 m and the game is about closing. The shield absorbs first and nothing reaches the airframe until it fails (Independence Day). A defeated aircraft is DISABLED and flown down under control at 1.6 m/s — there is no reachable state called destroyed (Ender's Game, and the operator's own words). Shields regenerate after a quiet period rather than a match exterminating anyone (Battle House, Barrington). The gate caught the module claiming 'you must hold the beam' while energy was energy; a 0.35 s fine-track lock made the claim true, and flicks now land 34 per cent of what held seconds do.",
+   "commit": "cd84715"
+  },
+  {
+   "rev": 17,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.011. The N ladder: the same game at 1v1, 2v2 and every rung to 21v21 — 42 aircraft, 84 seats, 42 HI a side — with twelve computed review lenses at each rung. It found three things that 21v21 alone could not have shown. A target already coming down was still a target, wasting ninety per cent of all beam time from the second rung upward. A match is decided when a side cannot fight, not when its last aircraft lands. And the person is the bottleneck, measurably: at 21v21 one watch officer is asked for 431 decisions at authority level 1 (117.8 a minute against the fifty a person can answer) and 42 at level 3. Levels 4 and 5 put the decision with a quorum of the key group, which answers 300 a minute between six people, and no rung outruns it. The invariant never bent at any level — what scales is the breadth of one decision and how many named people make it. Also: the winners' circle at one ninth, the R-CORE gate, ending on a floor that a named safety officer must clear; and one aircraft at two sizes with the square-cube law between them, mass 5 kg to 5.00 t and stall 14.4 to 45.5 m/s."
+  },
+  {
+   "rev": 18,
+   "date": "2026-09-16",
+   "kind": "correction",
+   "text": "CORRECTING REVISION 0.008 ON THE RECORD. That entry, and the seat-view file it cites, said the two seats are '18 cm apart in the hover and 37 cm on the wing' — two geometries, ours, with the targeteer forward of centre. The operator's deck (r.013 through r.050, byte-identical) declares ONE seat geometry for every vehicle: pilot canopy +0.18 L / +0.12 up, targeteer belly −0.15 L / −0.04, turret separation 0 — 'same map on turret, VTOL, Manta, Ark, MASS droid: one mount, two seats.' Decision 2026-09-16: the deck's geometry is canonical. On the 0.7777 m fuselage the two eyes are 28.5 cm apart in every flight mode, and the targeteer sits AFT. The discipline is unchanged — fractions of the nose-to-tail length, never the span, turret exactly zero — and the gate that asserted rotors and wing DIFFER is rewritten to assert they are the SAME, not deleted. The fractions now live in the controls schema beside the rest of the deck, so the seat cannot drift from it unnoticed. This entry appends rather than edits.",
+   "commit": ""
+  },
+  {
+   "rev": 19,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.012. Operator deck r.050 absorbed, on its own terms. 50184f8: T1 T2 T3, AMBER then RED, the fire refused NO_RED_BOX / AMBER_NO_APPROVE and recorded; the decision record with r.043's hash (three r.050 defects deliberately not ported — the 0.044 stamp, the scrubber reading dead fields, free text in the hashed stream). 5e82a42: a device approving its own mark reads HI-2, two-step, not the crew's named approver. 0ab1dba: the keyboard through the ref bus, the R stick is the HEAD as the schema says (it had been airframe yaw), one centred look-stick for the turret, calibration persisted so a resting thumb reads zero. e7bd9ab: the deck on the glass — tap marks, double-tap fires only red, the aiming seat's drag looks, the T-box on the door, voice offered never required, stick settings, a keymap that prints. And the ladder gains his six: designation rate, HI holds (zero in the contest, and said so), auth failures, handoffs, simulation speed beside the hash never inside it, and a replay hash that the same seed reproduces. Parity divergences for Grok are recorded in the plan: the thirteen colours are not the same thirteen (his call), AIR L:B inverted against the drawing, mulberry32 against our mix, glyph 8 against 1/4/12/24, quorum 2/3 against 0.5, level 2 'one slot' (his is better; adopted with the slots).",
+   "commit": ""
+  },
+  {
+   "rev": 20,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.013. CH1 LAWN · CH2 AXIS · CH3 MIX · CH4 RING · CH5 NET × DIFF 1–5, lifted from the deck's own challengeSpec() and checked cell by cell against r.050's source rather than against a memory of it. On this arena the numbers land as doors in play (quota), window length (rate) and doors at once (1→3). CH5 is stronger here than in the deck, and says so: every shot already needs APPROVE (amber → red), so the deck's CH5 dialog has nowhere to go but up — on the net the red box must come from a second PERSON; a device approving its own mark is refused CH5_NO_APPROVE and recorded as a HOLD, which gives 'HI holds' a real count. The AsM Cup is the regression fixture, read-only by contract: two sha256 pinned, the four published sentences recomputed from the 99-run numbers (6v6 level 3 is a 47–47 tie — the fourth level his 3–1 leaves unspoken — and level 4 is RED's), the sidecar beside it never at it; the fixture's revision 0.039 is reported and left for the operator to confirm as the reference. APPROVE now crosses the crew link, so two phones can make one red box with two names on it. And Verify Live probes /drone-2525/ by its own markup — for three days a green run had never once asked for the page he keeps pasting.",
+   "commit": ""
+  },
+  {
+   "rev": 21,
+   "date": "2026-09-16",
+   "kind": "decision",
+   "text": "Revision 0.014. eXeL AI's five gates, persisted verbatim (docs/asks/2026-09-16_exel_ai_feedback_r050_five_gates.md, sha256 6f74a11e…), and the two parity gaps they exposed closed: (gate 3) the red box and its decision id now mirror to the approving device — two browsers read the same DEC-0002 under the same red T-box; (gate 1) the eight PLATFORM identities are data lifted from r.050's units table — T1 TURRET, D1Q QUAD·HOVER, D1 VTOL, D1F FOIL, M99 MANTA 99-66, M66 MINI 66-33, ARK SAIL 33, R2 MASS DROID — held to the deck by a gate that reads the deck's own source. One airframe model: D1Q has no wing and refuses by name, D1F takes the wing the moment the transition is legal, D1 is the VTOL as before; the sea craft, the sail and the droid are listed and dated, never hidden. Also on the record: r.050 defect #4 (designate() never sets phase:'amber' on state.desig — the port sets amber by construction and drone-slots holds the acceptance test), the calibration HUD in the reader's language, and AFTER_FILL at zero for the first time.",
+   "commit": ""
+  },
+  {
+   "rev": 22,
+   "date": "2026-09-17",
+   "kind": "decision",
+   "text": "Revision 0.015. Round 12 opens (plan approved). Operator deck HEAD r.050 -> r.075, carried byte-for-byte with a verified sha256 manifest, and the control-schema transcription re-pinned from r.050 to r.075 (the 48-agent fleet found controls.ts still said 0.050 while HEAD had moved four revisions on -- Gate 1, deck parity). The window.CONTROLS block is identical r.050->r.075 except its revision field. Model changed to Opus 4.8 mid-round. The reconciled 48-agent + Grok SSSES/SPIRAL audit sets the honest posture for the round: the engine, the fire gate and the determinism are real and strong; the demo on-ramp, the edge controls, the teaming surface and cross-device are not built yet. Sequence P0 (foundation) -> P1 (60-second demo) -> P2 (teaming + two-phone MATCH qualify) -> P3 (scenes).",
+   "commit": ""
+  },
+  {
+   "rev": 23,
+   "date": "2026-09-19",
+   "kind": "correction",
+   "text": "r.129 claimed 'forward-goes-reverse fixed at its class'. A read-only probe of the served r.129 (before any r.130 change) showed the class was untouched: the camera vector camOf and the projector proj disagreed by 180 degrees, so at pan 0 QUAD/VTOL still moved away from the point on screen (59.4 -> 68.3 m), the range pit looked away from its plates (all ten silhouettes culled, every aimed shot a MISS, LOCK on a buoy). r.129 fixed only the pan-folding sub-case. Corrected in r.130 by one forward basis (fwdOf/rightOf/yawTo) read by camOf, lockOn, phys, every aim and the QA; the QA row FWD_IS_WHAT_YOU_SEE measures in picture terms so a future flip cannot pass.",
+   "commit": "a83e670"
+  },
+  {
+   "rev": 24,
+   "date": "2026-09-19",
+   "kind": "release",
+   "text": "Operator deck r.130 served at /drone-2525/play.html (sha256 ce034c5e..., 231517 B). The range with turrets actually works: pit faces its plates; pop-ups per lane at 50-300 m on a seeded per-lane order with FM 3-22.9 exposure times (3 s at 50 m to 8 s at 300 m); three modes by the operator's names TRAINING RESET / TRAINING DOWN / QUAL 40 (lapsed exposure = unfired MISS, 23/30/36); scale-true hit test (pip inside the projected silhouette, CIRCLE/SILHOUETTE, 6 px floor); 9127 sheet layout (100 m x3, one 250 left, one 300 right); the reducer keeps a target's kind and its designator (a designated plate was being shot as the bull ring; the two-humans rule never saw a peer identity). In-file QA 75 rows, headless 74/75 (SYNC_DIRECT by design). Also fixes two render defects the probe exposed: r.129 bullseye() threw on every frame (hidden by the loop try/catch, nothing after the doors drawn) and at MoT 1.1 the range wire spent the segment budget before any silhouette. Every revision from r.128 on is documented in operator-deck/REVISIONS.md, append-only and chain-hashed, gated by tests/drone-revisions.test.mjs. Research with sources: docs/drone-2525/RANGE_QUALIFICATION_RESEARCH.md.",
+   "commit": "a83e670"
+  },
+  {
+   "rev": 25,
+   "date": "2026-09-19",
+   "kind": "correction",
+   "text": "Register row r.128 cited d195781 as the shipping commit; r.128 was carried and served by 2159671. The r.130 register section stated gate counts 64/33; the gates reported 65/35. Both corrected as new lines in REVISIONS.md r.131; the old rows stand.",
+   "commit": "9870031"
+  },
+  {
+   "rev": 26,
+   "date": "2026-09-19",
+   "kind": "release",
+   "text": "Operator deck r.131 served at /drone-2525/play.html (sha256 700a5146..., the fleet fold). A 24-lens read-only fleet review of r.130 (docs/assessments/2026-09-19_r130_fleet_review.md) converged on eight player-path defects: the pickers re-aimed at the bull ring and left the mode as range; one exposure charged two rounds; a downed plate could be shot and resurrected; the red box outlived the pop-up; QUAL 40 could not fit its clocks and could not reach 40; the seat offset, Capitol turrets, every auto-aim and the T-box still used the old basis or raw plate coordinates; the HUD overprinted and LOCK sat under a button; the reducer's HIT branch was dead and QA left a phantom red box on the first screen. All eight fixed at the class in r.131 (QA 84 rows, headless 83/84). Repo: one deck-HEAD constant for every deck-reading gate, the deck's own QA in CI (drone-deck-qa), Verify Live probes play.html. Deferred to r.132: the wire path bypasses the two-humans gate (net APPROVE/SNAPSHOT/peer DESIG), no canonical range clock between peers, reduce-in-arrival-order.",
+   "commit": "9870031"
+  },
+  {
+   "rev": 27,
+   "date": "2026-09-19",
+   "kind": "release",
+   "text": "Operator deck r.132 served at /drone-2525/play.html (sha256 d48ec579...). THE TWO-PHONE MATCH GATE IS REACHED: in two isolated browser contexts over a real WebRTC data channel, by real clicks — host offer, joiner answer, DIRECT, team auth, READY, START, LIVE; the host marks, the host's self-approve is refused TWO HUMANS, the joiner approves, red on both as PEER HI-2, the host fires, HIT — both peers hold one replay hash and report MATCH (frontend/scripts/drone-team-e2e.mjs, a Deploy step). To get there the wire path now obeys the same rules as the buttons (peerDesig / wireApprove / importSnapshotDesig), HOLD/REJECT decisions travel as canonical rows, and a tab message never downgrades a DIRECT link. Usability-walk fixes: MORE menu (it had no handler), double-tap keeps the mark's phase, MISS/LAPSED wording, no QA last-shot on the first screen, the AI member sees the range. Still open: a canonical range clock between peers; reduce-in-orderKey-order; 2v2+ transport; two real phones on a real network.",
+   "commit": "607f0a8"
+  },
+  {
+   "rev": 28,
+   "date": "2026-09-19",
+   "kind": "release",
+   "text": "Operator deck r.133 served at /drone-2525/play.html (sha256 d10ae69b...). THE 38-AsM TEAM-TEST FOLD: 26 seats played the served r.132 by clicks and keys (docs/assessments/2026-09-19_r132_asm_team_test.md). The AI member was dead code in live play (asmTick never called from the loop) and its FIRE branch would have downed an amber target with no approval: now ticked, plates-only on the range, spots from the seated pit, fires only on a red box through the one fire path, once per box, OFF by default; the reducer keeps the author designate() wrote. The score strip wraps (HIT/MISS/LAPSED, the QUAL clock and ALL DOWN were clipped off every phone) and is written on the event. The approver's device tallies a peer's HIT/MISS and takes the box down from the same canonical row. One sentence for an empty range; no lapse before the round starts; TARGET aims as well as marks; a peer's or the AI's mark turns the seat's head to it; the desktop panel sits in its reserved strip; refusals name the next action. QA 100 rows, 99/100 headless; drone-team-e2e MATCH; replays on the served r.133: AI seat 3/3, team joiner tally 2/2, 360 px score readable.",
+   "commit": "4321f40"
+  },
+  {
+   "rev": 29,
+   "date": "2026-09-19",
+   "kind": "release",
+   "text": "Operator deck r.134 served at /drone-2525/play.html (sha256 840cf55c...). THE FOLD OF TEAM-TEST WAVE 3 AND THE 48-LENS FLEET REVIEW: authority has one consumer (a scene change, a reset, a lost approver or a dead target releases the red box with a HOLD row; the CH5 popup, a second approval primitive, is gone; a door tag is on the record and consumes the box); RESET and mode changes are canonical rows that travel and ask before discarding a live table; the link has a heartbeat and a lost approver is said; VOICE reports the outcome and a negation is a HOLD; MAP keeps the strip; the AI member is an actor on the record (ASM@device, HI OVER AI approval) and never marks a dead plate; keys ignore text fields and the intro; a forged row is refused at the wire; a training lapse is said and is a row; refusals draw above the intro; the host shows the other team's six digits; the two-phone gate runs in Deploy and reads the approver's picture; one HEAD across register/README/domain JSON/ledger/hashes/patch is gated; Verify Live compares the served body's sha256 to the register. Corrections: the r.132 'Deploy step' claim (it was in no workflow until now); D18 (MAP froze the strip, not the AI tick). Boot QA 110 rows, 109/110 headless.",
+   "commit": "f2557ac"
+  },
+  {
+   "rev": 30,
+   "date": "2026-09-19",
+   "kind": "release",
+   "text": "Operator deck r.135 served at /drone-2525/play.html (sha256 882287ec...). THE FOLD OF THE FLEET'S SECOND (ADVERSARIAL) REVIEWERS: three r.134 regressions closed (the uncalled HUD frame tail; a training-lapse row from both phones that diverged the records — one lapse clock per room, the host's row travels; a DROPPED link undone by the next message); the fire gate's remaining members (the round must be open; the approver's seat never fires the marker's box; a door tag needs a red box; an expired target scores nothing; a row's data.by is never an AI passport; CH5 re-approves after a miss; a refused wire approval is a HOLD row; a received APPROVER_LOST demotes the shooter's red; a lane change releases); the record carries the decision's content and the actor, AI rows say AI, one name for a human's approval of the AI's mark, the AI never fires a qualification round; no session id or plate id reaches the player; three regex QA rows became behaviour rows and a loop-driven AI row was added. Corrections: r.134's mode-change ask and 'one revision string' claims. QA 116 rows, 115/116 headless.",
+   "commit": "2020c02"
+  },
+  {
+   "rev": 31,
+   "date": "2026-09-19",
+   "kind": "release",
+   "text": "Operator deck r.136 served at /drone-2525/play.html (sha256 2bcd7a57...). THE FOLD OF THE 48-AGENT FLEET'S SYNTHESIS: the r.135 regression closed (the marker's-seat rule refused an AI mark in a room for every seat; the marker's seat is now the human or its own AI, and the approver is told the other seat fires); every peer release demotes the shooter's box; no red box crosses from the waiting room into LIVE; an expired drone takes its box; MAP_KEEPS_THE_STRIP and LOST_APPROVER_IS_SAID assert what they name; new row AI_MARK_FIRES_IN_A_ROOM. Grades at r.135 from the twelve syntheses: B+ to C-. QA 117 rows, 116/117 headless.",
+   "commit": "543a86c"
+  },
+  {
+   "rev": 32,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.137 served at /drone-2525/play.html (sha256 8e3ef876...). THE RANGE THE OPERATOR DESCRIBED: training stands every target (RESET returns a hit one after 3 s, DOWN keeps it down); QUAL · 40 is the Army IWQ Table VI program he supplied (18 engagements, 4 phases, targets up together for 5/8/12/16 s by count, 3 s between engagements, 9 s between phases, one round per silhouette, unengaged = unfired miss, 40 targets, the 50 R first; 15-18 DECLARED); the 50 m targets are left and right. r.130's by-distance exposures and 20/10/10 tables are superseded on the record. QA 124 rows, 123/124 headless; range-2525 96/0.",
+   "commit": "c0e57ea"
+  },
+  {
+   "rev": 33,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.138 served at /drone-2525/play.html (sha256 c8449d70...). TRUE SCALE, LABELS, ZOOM, MAGAZINE, FULL SCREEN: silhouettes at their real size (r.130's sizes corrected on the record); labels justified by side and stacked; the zoom law (turret 3x in QUAL, 30x otherwise; every craft 30x); four 10-round magazines in QUAL with the phase rest reloading on the record, 30-round magazines elsewhere, RELOAD + counter at the top of the picture, an empty magazine refuses FIRE; FULL keeps only the controls. QA 132 rows, 131/132 headless.",
+   "commit": "c5995ce"
+  },
+  {
+   "rev": 34,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.139 served at /drone-2525/play.html (sha256 e8b52069...). LANDSCAPE AND PORTRAIT, LIKE MISSION PLANNING: a phone is a phone in both orientations; FULL fills the whole screen in every orientation (r.138's 36 % picture corrected on the record); portrait stacks the top lines, landscape sets them side by side; rotation re-lays out; the deck-QA gate proves both orientations on every deploy. QA 136 rows, 135/136 in each orientation.",
+   "commit": "0f71961"
+  },
+  {
+   "rev": 35,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.140 served at /drone-2525/play.html (sha256 0f44f0d8...). THE DARK GREEN PLATES AND THE 25 M ALT-C SHEET: F-type 26 x 21 in (sourced; r.138 corrected), a TARGETS picker with the 17 x 22 in Alt-C sheet at 25 m carrying ten silhouettes scaled by 25/range (measured same-angle), one geometry through qWorld/plateDims, paper never falls (a hit is a hole; DOWN scores out; QUAL runs on the sheet). QA 140 rows, 139/140 in each orientation.",
+   "commit": "9d45dae"
+  },
+  {
+   "rev": 36,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.141 served at /drone-2525/play.html (sha256 d1771876...). LIFE-SIZE AT 12 INCHES: one focal length at 1x (12 in x 152.3 px/in, iPhone 12 Pro Max); the typed 38-degree half-angle of r.130-r.140 corrected on the record (a 76-degree field made every target tiny); a 50 m F is 24 px at 1x, a 300 m E 6 px; the 50 L/R at +-4.6 m, the edges of a portrait phone. QA 142 rows, 141/142 in each orientation.",
+   "commit": "1e8b2d4"
+  },
+  {
+   "rev": 37,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.142 served at /drone-2525/play.html (sha256 4c7d6ee3...). RELOAD BY HAND ON QUAL, THE SAME ORDER AS THE ACTUAL TEST: the program names its silhouettes and is identical on every lane (per-lane seed retired, operator decision); ten targets a phase; the tower's rest loads nothing; the shooter presses RELOAD; four magazines as issued. QA 143 rows, 142/143 in each orientation.",
+   "commit": "662f8e3"
+  },
+  {
+   "rev": 38,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.143 served at /drone-2525/play.html (sha256 c4c187b4...). NO HORIZON LINE; WHITE BULLSEYE, RED NEAR A TARGET; BRACKET RED WITH IT; LOCK IS THE THING IN THE CROSSHAIR. QA 146 rows, 145/146 in each orientation.",
+   "commit": "a9c6360"
+  },
+  {
+   "rev": 39,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.144 served at /drone-2525/play.html (sha256 2ffd1288...). THE TARGETS ON EACH OF THE 42 LANES: 462 plates gated by id and range; the neighbouring lanes draw every silhouette, dim; fire stays on your lane. QA 148 rows, 147/148 in each orientation.",
+   "commit": "b2b64dc"
+  },
+  {
+   "rev": 40,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.145 served at /drone-2525/play.html (sha256 3a2d43e2...). LANE MARKERS at 100, 200 and 300 m: numbered boards on posts at the lane edges, 129 boards, gated by number, edge and range. QA 149 rows, 148/149 in each orientation.",
+   "commit": "8531339"
+  },
+  {
+   "rev": 41,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.146 served at /drone-2525/play.html (sha256 b3b17cbd...). DEFERRED QA ROWS DECIDE ON EVIDENCE: DRAW_COMPLETES and ASM_MARKED_BY_THE_LOOP poll for the frame / the loop's mark up to a declared ceiling instead of a fixed timer that judged a cold CI runner red (Deploy #950). Correction: r.130's DRAW_COMPLETES measured the runner's speed. QA 149 rows, 148/149 in each orientation.",
+   "commit": "5466050",
+   "shipped": "01f36a9"
+  },
+  {
+   "rev": 42,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.147 served at /drone-2525/play.html (sha256 2476f68a...). LOCK IS THE TARGET NEAREST THE BULLSEYE ON THE PICTURE: one pip-nearest rule (48 px reach, declared) for every kind and scene; T1·T2·T3 in that order; key 1 marks what the button marks. Correction: r.131's two lock rows passed with the pip on the grass. QA 152 rows, 151/152 in each orientation.",
+   "commit": "7a7a2c7",
+   "shipped": "b3d1f63"
+  },
+  {
+   "rev": 43,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.148 served at /drone-2525/play.html (sha256 213a56fc...). THE EYE OUTRANKS THE MARK: the 48-agent fleet's fold — a mark is held only while the bullseye is on it, one door for TARGET/keys/voice, every key obeys the reach, the AI spots through the bullseye and never moves the seated head, FIRE with no box names NONE, board under the strip, wire APPROVE author from the envelope, peer HIT needs red on record. Correction: r.147's rule ran only on an empty board. QA 161 rows, 160/161 in each orientation.",
+   "commit": "8ccab36",
+   "shipped": "10865bd"
+  },
+  {
+   "rev": 44,
+   "date": "2026-09-23",
+   "kind": "release",
+   "text": "Operator deck r.149 served at /drone-2525/play.html (sha256 20499eed...). A BOX ONLY AROUND THE MARKED TARGET: no edge markers unless targeted; amber on TARGET, red on APPROVE; the voxel around every marked slot in 3D; the three range modes re-stated. QA 163 rows, 162/163 in each orientation.",
+   "commit": "6b585bf",
+   "shipped": "8055270"
+  }
+ ]
 }

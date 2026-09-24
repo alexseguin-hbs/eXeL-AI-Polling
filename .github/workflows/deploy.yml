@@ -35,9 +35,12 @@ defaults:
     working-directory: frontend
 
 jobs:
-  deploy:
+  # THE GATE (fleet r.147, MoT 2/11): every test the repo owns, on every push to main, in one job that is required.
+  gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
+    outputs:
+      canbuild: ${{ steps.canbuild.outputs.ok }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -57,20 +60,22 @@ jobs:
       # FAIL CLOSED. Building without these produces a site that loads fine and whose live-response path is dead.
 
 
-      - name: Test (headless suites — sign, pod, donate, lexicon, guards)
+      # test:ci now carries the deck boot QA and the two-phone e2e (fleet r.147: "the gates run only after main"), so
+      # Chromium is installed BEFORE it. The perf and crew runs come next, then spiral9 with perf REQUIRED, so an
+      # unmeasured Scalability/Efficiency pillar is a red line here rather than a label (MoT 3).
+      - name: Chromium for the headless gates
+        run: npx playwright install --with-deps chromium
 
+      - name: Test (headless suites — sign, pod, donate, lexicon, guards, deck boot QA, two-phone e2e)
         run: npm run test:ci
 
-      # DETERMINISM ON MAIN (Round 12, 48-agent fleet: spiral9 ran in no workflow). Node-only, no browser:
-      # every drone gate ×9 with byte-identical artefacts, or the push fails. The determinism proof this
-      # domain rests on now gates main, not just a local run.
-      - name: Deck boot QA in headless Chromium (the served drone-2525/play.html runs its own rows in CI)
-        working-directory: frontend
+      - name: Drone perf + crew (measured, before the scorer reads them)
         run: |
-          npx playwright install --with-deps chromium
-          npm run test:drone-deck-qa
-          npm run test:drone-team-e2e
-      - name: Drone determinism (SPIRAL ×9)
+          npm run test:drone-perf
+          npm run test:drone-crew
+      - name: Drone determinism (SPIRAL ×9, SSSES from measurements only)
+        env:
+          SPIRAL_REQUIRE_PERF: "1"
         run: npm run test:drone-spiral9
 
       # Cloudflare's git build is the door that actually ships, and its prebuild now runs the two Sign Doc gates.
@@ -88,13 +93,34 @@ jobs:
             echo "Build vars present — this run gates AND deploys."
           else
             echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "## SHIP SKIPPED — the Supabase build vars are not set as Actions secrets; Cloudflare's git build is the only deployer of this sha" >> "$GITHUB_STEP_SUMMARY"
             echo "::notice title=Deploy skipped::The Supabase build vars are not set as Actions secrets, so this runner cannot"
             echo "::notice::produce a working bundle. The tests above still gated this commit. Cloudflare's git build ships the"
             echo "::notice::site and its prebuild runs the Sign Doc invariant and voice gates. Set the two secrets to deploy here too."
           fi
 
+  # THE SHIP (operator 2026-09-23: the four secrets will be set). A job-level `if` on the gate's output means a run without
+  # the secrets shows this job SKIPPED — grey, a fourth state — never a green "Deploy" that shipped nothing (MoT 11).
+  ship:
+    needs: gate
+    if: needs.gate.outputs.canbuild == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Chromium for the render smoke
+        run: npx playwright install --with-deps chromium
+
       - name: Check required build vars
-        if: steps.canbuild.outputs.ok == 'true'
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -107,12 +133,10 @@ jobs:
         run: node scripts/envcheck.mjs
 
       - name: Test
-        if: steps.canbuild.outputs.ok == 'true'
         run: npm run test:innovation-time
 
       # A build that exits 0 without compiling is exactly how a broken deploy got shipped before. Require the words.
       - name: Build
-        if: steps.canbuild.outputs.ok == 'true'
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -132,13 +156,11 @@ jobs:
       # 2026-09-23: this is what caught the build stamp sampled in two processes (HTML 14:50, chunks 14:51 → React #425
       # on every 2525 surface). It needs out/, so it runs here, after Build and before Deploy.
       - name: Render smoke on the export (the drone UI mounts with no page error)
-        if: steps.canbuild.outputs.ok == 'true'
         run: npm run test:drone-render-smoke
 
       # `deploy` uploads AND routes 100% of traffic. `versions upload` stages at 0% and is what left the site
       # serving a stale version while every build looked fine. Do not change this verb.
       - name: Deploy
-        if: steps.canbuild.outputs.ok == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -149,7 +171,6 @@ jobs:
       # A deploy is not a ship. Cloudflare's edge needs a moment to propagate, so poll rather than fail on the
       # first miss — but if it never matches, the run goes RED. That is the whole point.
       - name: Verify live site serves ${{ github.sha }}
-        if: steps.canbuild.outputs.ok == 'true'
         run: |
           for i in 1 2 3 4 5 6; do
             if node scripts/verify-deploy.mjs "${{ github.sha }}"; then exit 0; fi

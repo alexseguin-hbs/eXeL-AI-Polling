@@ -6,5 +6,6 @@ tests/__shots__/
 
 # gate output, regenerated on every run (scripts/drone-deck-qa.mjs)
 perf/deck-qa.json
+perf/spiral9.json
 perf/asm/
 perf/t-*.png

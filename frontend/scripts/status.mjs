@@ -62,10 +62,30 @@ try {
   live.note = `unreachable (${(e?.message || e).toString().slice(0, 60)}) — this is NOT proof of deployment`;
 }
 
+// ── ACTIONS (fourth stage, fleet r.147 Krishna/MoT 11): the Deploy gate and Verify Live for THIS sha, read through `gh`
+// where it exists. A Deploy whose ship steps were skipped reads SKIPPED, never ✓; without gh it reads UNVERIFIED.
+let actions = { state: "UNVERIFIED", note: "gh not available here" };
+try {
+  const raw = execSync(`gh run list --commit ${sha} --json name,conclusion,status,databaseId --limit 10`, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+  const runs = JSON.parse(raw);
+  const deploy = runs.find((r) => r.name === "Deploy"), verify = runs.find((r) => /verify/i.test(r.name));
+  let ship = "—";
+  if (deploy && deploy.conclusion === "success") {
+    try {
+      const jobs = JSON.parse(execSync(`gh run view ${deploy.databaseId} --json jobs`, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })).jobs || [];
+      const steps = jobs.flatMap((j) => j.steps || []);
+      const shipStep = steps.find((st) => /^Deploy$/.test(st.name));
+      ship = !shipStep ? "—" : shipStep.conclusion === "skipped" ? "SKIPPED" : shipStep.conclusion;
+    } catch { ship = "?"; }
+  }
+  const word = (r) => (r ? (r.status !== "completed" ? r.status : r.conclusion) : "none");
+  actions = { state: "READ", deploy: word(deploy), ship, verify: word(verify), note: "" };
+} catch {}
 const mark = (ok) => (ok ? "✓" : "✗");
 if (oneLine) {
   const liveTxt = live.state === "LIVE" ? `LIVE ${live.sha}` : live.state === "STALE" ? `STALE ${live.sha}` : "UNVERIFIED";
-  console.log(`SHA ${short} | committed ${mark(!dirty)} | pushed ${mark(pushed)} | cloudflare ${liveTxt}`);
+  const act = actions.state === "READ" ? ` | actions Deploy ${actions.deploy} · ship ${actions.ship} · Verify Live ${actions.verify}` : " | actions UNVERIFIED";
+  console.log(`SHA ${short} | committed ${mark(!dirty)} | pushed ${mark(pushed)} | cloudflare ${liveTxt}${act}`);
 } else {
   console.log(`
 ┌─ DEPLOY STATUS ────────────────────────────────────────────
@@ -73,10 +93,12 @@ if (oneLine) {
 │ COMMITTED  ${mark(!dirty)} ${dirty ? "working tree DIRTY — uncommitted changes exist" : "clean"}
 ${branches.map((b) => `│ PUSHED     ${mark(b.ok)} origin/${b.br} = ${b.short}`).join("\n")}
 │ CLOUDFLARE ${live.state === "LIVE" ? `✓ LIVE — serving ${live.sha}` : live.state === "STALE" ? `✗ STALE — serving ${live.sha}, expected ${short}` : `? UNVERIFIED — ${live.note}`}
+│ ACTIONS    ${actions.state === "READ" ? `Deploy ${actions.deploy} · ship ${actions.ship} · Verify Live ${actions.verify}` : `? UNVERIFIED — ${actions.note}`}
 │ WEBSITE    ${SITE}
 └────────────────────────────────────────────────────────────`);
   if (live.state === "STALE") console.log(`  → Cloudflare has not promoted ${short}. Check Deployments, or run: npm run ship`);
   if (live.state === "UNVERIFIED") console.log(`  → Run this from a machine with network access. UNVERIFIED never means shipped.`);
+  if (actions.ship === "SKIPPED") console.log(`  → The Actions ship steps were SKIPPED (secrets absent): Cloudflare's git build is the only deployer of this sha.`);
 }
 
 // Exit 0 only when all three stages are true. Anything else is a non-zero, on purpose.

@@ -20,6 +20,14 @@ ok(json.project.revision === (rel && rel.revision), 'domain JSON project.revisio
 const led = JSON.parse(fs.readFileSync(new URL('../traceability/drone-2525.ledger.json', D), 'utf8'));
 const ents = led.entries || led; const lrel = [...ents].reverse().find((e) => e.kind === 'release');
 ok(lrel && new RegExp(`\\br\\.${DECK_REV}\\b`).test(lrel.text), `traceability ledger's last release names r.${DECK_REV}`);
+// THE LEDGER NAMES THE SHIP (fleet r.147, Krishna/MoT 11): a release carries `shipped` — the commit that put the bytes on the
+// site, distinct from the artefact commit. PENDING is allowed only on the LAST release (the ship sha is unknowable when the
+// artefact is committed); every earlier release must name a real 7-hex sha, and the ledger and the domain JSON must agree.
+const relsJ = json.revisions.filter((r) => r.kind === 'release'), relsL = ents.filter((e) => e.kind === 'release');
+const shipOk = (v, last) => (last ? /^([0-9a-f]{7,40}|PENDING)$/ : /^[0-9a-f]{7,40}$/).test(String(v || ''));
+relsJ.forEach((r, i) => { if (r.shipped !== undefined || i === relsJ.length - 1) ok(shipOk(r.shipped, i === relsJ.length - 1), `domain JSON release ${r.revision} names its ship commit (${r.shipped ?? 'missing'})`); });
+relsL.forEach((e, i) => { if (e.shipped !== undefined || i === relsL.length - 1) ok(shipOk(e.shipped, i === relsL.length - 1), `ledger release rev ${e.rev} names its ship commit (${e.shipped ?? 'missing'})`); });
+ok(String(rel.shipped || '') === String(lrel.shipped || ''), `the domain JSON and the ledger name the SAME ship commit for the last release (${rel.shipped} vs ${lrel.shipped})`);
 const hashes = fs.readFileSync(new URL(`operator-deck/HASHES_r${DECK_REV}.sha256`, D), 'utf8');
 const prev = String(+DECK_REV - 1);
 const patchPath = new URL(`operator-deck/patches/r${prev}_to_r${DECK_REV}.py`, D);

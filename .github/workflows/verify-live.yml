@@ -59,8 +59,9 @@ jobs:
           echo "expecting: $want7"
           for i in $(seq 1 20); do
             html="$(curl -sS -m 20 -H 'cache-control: no-cache' "$SITE" || true)"
-            live="$(printf '%s' "$html" | grep -oE 'SHA:[^0-9a-f]*[0-9a-f]{7}' | grep -oE '[0-9a-f]{7}$' | head -1)"
-            [ -z "$live" ] && live="$(printf '%s' "$html" | grep -oE '\b[0-9a-f]{7}\b' | head -1)"
+            # The stamp, read where the layout renders it (SHA: <span>sha</span>); NO fallback to "the first 7-hex word" —
+            # that fallback matched by luck for a week (fleet r.147, Krishna). A miss is red.
+            live="$(printf '%s' "$html" | grep -oE 'SHA:[^0-9a-f]{0,80}[0-9a-f]{7}' | grep -oE '[0-9a-f]{7}$' | head -1)"
             echo "attempt $i/20 — live=${live:-none}"
             if [ "$live" = "$want7" ]; then
               echo "LIVE=$live" >> "$GITHUB_ENV"
@@ -118,3 +119,22 @@ jobs:
 
           echo "✅ /drone-2525/play.html serves deck r.$REV"
           echo "### ✅ /drone-2525/play.html serves deck r.$REV" >> "$GITHUB_STEP_SUMMARY"
+
+      # THE LIVE BYTES RUN THEIR OWN QA (fleet r.147, Krishna): the served deck, opened headless, must publish the same
+      # row set as the manifest with no page error — a stale edge or a broken chunk goes red here, not on a phone.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+      - name: Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Boot QA on the LIVE deck
+        working-directory: frontend
+        env:
+          DECK_URL: https://exel-ai-polling.explore-096.workers.dev/drone-2525/play.html
+        run: npm run test:drone-deck-qa
