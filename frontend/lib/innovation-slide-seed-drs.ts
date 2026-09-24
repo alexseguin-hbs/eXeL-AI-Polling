@@ -32,8 +32,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S1 Executive Summary ← manuscript S1 ───────────────────────────────────────────────────────────────
     S1: {
       oneline: {
-        hi: "The coordination layer beside CrisisCommand and specialist ops systems: verify command, see real needs, allocate scarce resources, publish the current plan, replay what happened.",
-        ai: "The coordination layer beside CrisisCommand and specialist ops systems: verify command, see real needs, allocate scarce resources, publish the current plan, replay what happened. Thesis: do not replace GridOS, Veoci, Sentinel, or CrisisCommand — coordinate across them. CrisisCommand status: proposed complementary integration, not a signed partnership, not an assumed API.",
+        hi: "CrisisCommand.ai, future state: the coordination layer that begins where GridOS, Veoci and Sentinel stop — verify command, see real needs, allocate scarce resources, fulfil to a named recipient, publish the current plan, replay what happened.",
+        ai: "CrisisCommand.ai, future state: the coordination layer that begins where GridOS, Veoci and Sentinel stop — verify command, see real needs, allocate scarce resources, fulfil to a named recipient, publish the current plan, replay what happened. Thesis: do not replace GridOS, Veoci, Sentinel, or the CrisisCommand Think / Command objects — coordinate across them; the value prop is derived from where each NBA stops and from the needs-based segment research (S3, NOSE, ODI / CASPER / MIRA / THIRA / HSEEP).",
       },
       segment: {
         hi: "1 Utility + industrial (one need, two economic subcases) · 2 Healthcare / regional · 3 Campus / fixed site.",
@@ -55,10 +55,9 @@ export const SLIDE_SEED_DRS: SlideSeed = {
       },
       strategy: {
         hi: [
-          "Thesis: do not replace GridOS, Veoci, Sentinel, or CrisisCommand. Coordinate across them.",
-          "Defend only these six: 1 verified authority roster + rank · 2 needs / resources as objects + recipient trace · 3 Plan vN provenance · 4 eXeL advisory intake (not a vote) · 5 Conservative / Baseline / Aggressive plans · 6 Replay + Readiness — powered by R-CORE.",
-          "Do not claim: alerts · dashboards · logs · generic messaging · generic AAR · UI · crew logistics · HICS · mass notify · offline docs.",
-          "CrisisCommand: proposed complementary integration. Not a signed partnership. Not an assumed API.",
+          "Thesis: coordinate across GridOS, Veoci and Sentinel — replace none; the value prop is derived from where each stops and from the segment research.",
+          "Defend six: authority roster + rank · needs / resources + recipient trace · Plan vN provenance · eXeL advisory intake · C / B / A plans · Replay + Readiness — powered by R-CORE.",
+          "Do not claim: alerts · dashboards · logs · messaging · AAR · UI · crew logistics · HICS · mass notify · offline docs.",
         ],
         ai: [
           "Thesis: do not replace GridOS, Veoci, Sentinel, or CrisisCommand. Coordinate across them.",
@@ -70,7 +69,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         ],
       },
       ask: {
-        hi: "Approve G2. Release $280k of $620k MVP 1. First paid DP 2027-Q3. Not G6. Not 2026-Q2 revenue. " + MASTER_Q,
+        hi: "Approve G2. Release $280k of $620k MVP 1 (IA). First paid DP 2027-Q3. Not G6, not 2026-Q2 revenue. " + MASTER_Q,
         ai: "Approve G2. Release $280k of $620k MVP 1. First paid DP 2027-Q3 / Q4; first repeatable revenue target 2028-Q1. Not G6. Not 2026-Q2 revenue. " + MASTER_Q + " Do not present this as G6 / Maximize, imply 2026-Q2 first revenue, change segment definitions, NBA pairings or architecture, invent new pricing or value, or replace IA assumptions with fake precision. " + IA,
       },
     },
@@ -243,6 +242,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "Four layers — CrisisCommand: Think / Command (proposed integration) → DRS: Coordinate / Allocate (system of record: roster, need, resource, recipient, assignment, plan, cache) → eXeL: Listen (advisory only) → R-CORE: Architecture (SKU: Replay + Readiness — powered by R-CORE).",
           "Visual spine, centre of the slide: Requester → validation / entitlement → quantity → assignment → fulfillment → timestamp.",
+          "Future state (derived): " + "For the utility or plant whose NBA already owns restoration math and crews, CrisisCommand.ai coordinates the envelope Storm Manager does not hold \u2014 shelter, heat, water, fuel, medical dependence, civic identity, recipient trace \u2014 so a recorded need reaches a verified assignment in hours, not shifts." + " · " + "For the regional health system whose NBA already runs HICS, the 96-hour view and the AAR, CrisisCommand.ai coordinates the regional non-clinical exchange and the public card under named cross-organizational authority \u2014 never HICS, never PHI." + " · " + "For the campus whose NBA already notifies in under 60 seconds and convenes, CrisisCommand.ai fulfills and accounts \u2014 who lacks heat, which building has capacity, who has blankets, who is qualified, who approved relocation, who received assistance \u2014 never the blast, the check-in or the video room.",
         ],
         ai: [
           "Four layers — CrisisCommand: Think / Command (proposed integration) → DRS: Coordinate / Allocate (system of record: roster, need, resource, recipient, assignment, plan, cache) → eXeL: Listen (advisory only) → R-CORE: Architecture (SKU: Replay + Readiness — powered by R-CORE).",
@@ -277,8 +277,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S8 Competition + Value ← manuscript S8 / S9 / S10 (three NBA slides) + S12 + S13 (internal table) ──
     S8: {
       vprop: {
-        hi: "GridOS operates the grid. DRS coordinates the crisis around it. · Veoci runs the hospital emergency program. DRS coordinates regional non-clinical exchange and the public card under named authority. · Sentinel notifies and convenes. DRS fulfills and accounts.",
-        ai: "GridOS operates the grid. DRS coordinates the crisis around it. · Veoci runs the hospital emergency program. DRS coordinates regional non-clinical exchange and the public card under named authority. · Sentinel notifies and convenes. DRS fulfills and accounts. · Not superior on GridOS ops, Veoci compliance, or Sentinel notify — win only where those stop. Competition clusters: deep ops (GridOS, hospital systems, CMMS) · CEM / crisis (Veoci, Sentinel; Everbridge et al. in notes) · cognitive command (CrisisCommand). DRS target: high Human Coordination · high Replay / Readiness · rising Operational Impact.",
+        hi: "CrisisCommand.ai, future state: the human-directed coordination layer that begins where GridOS, Veoci and Sentinel stop \u2014 verified authority, needs and resources as objects, recipient fulfillment, plan provenance, replay into the next event \u2014 built for three needs-based segments and proven only by a measured delta beside each segment's NBA.",
+        ai: "CrisisCommand.ai, future state: the human-directed coordination layer that begins where GridOS, Veoci and Sentinel stop \u2014 verified authority, needs and resources as objects, recipient fulfillment, plan provenance, replay into the next event \u2014 built for three needs-based segments and proven only by a measured delta beside each segment's NBA." + " Per segment: GridOS operates the grid — the future state coordinates the crisis around it. · Veoci runs the hospital emergency program — the future state coordinates regional non-clinical exchange and the public card under named authority. · Sentinel notifies and convenes — the future state fulfills and accounts. · Not superior on GridOS ops, Veoci compliance, or Sentinel notify — win only where those stop. Competition clusters: deep ops (GridOS, hospital systems, CMMS) · CEM / crisis (Veoci, Sentinel; Everbridge et al. in notes) · cognitive command (CrisisCommand). DRS target: high Human Coordination · high Replay / Readiness · rising Operational Impact.",
       },
       nba: {
         hi: "One NBA per segment: Utility / industrial ↔ GE Vernova GridOS · Healthcare ↔ Veoci Vitals EM · Campus ↔ YUDU Sentinel (anchor only: G-Cloud £5,000 / licence / year). CrisisCommand is a proposed complementary integration, not an NBA.",

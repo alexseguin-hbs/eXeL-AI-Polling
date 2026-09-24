@@ -391,6 +391,11 @@ import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJE
   ok(/return mergeSetupSeeds\(parsed, seedBizSetup\(DEMO_PROJECTS\)\)/.test(pageSrc), "loadBizSetup (the Admin panel) merges seeded master data into a saved Setup");
   ok(/mergeMissingBy\(p, seed, \(x\) => x\.name, readPillarsRemoved\(\)\)/.test(pageSrc) && /lsSet\(PILLARS_REMOVED_KEY/.test(pageSrc), "loadPillars merges seeded pillars (5th: Civic Crisis + Resilience) and the ✕ writes a tombstone");
   ok(PILLARS.includes("Civic Crisis + Resilience"), "the DR pillar is in the seed the Admin panel merges from");
+  // 0.005 · ONE MASTER FOR THE FUTURE STATE: the Pod's PRJ-34 value prop IS the DRS master's derived statement, byte for byte.
+  const drs = JSON.parse(await (await import("node:fs/promises")).readFile("../docs/drs/drs.v00.00.json", "utf8"));
+  ok(p34.valueProp === drs.futureState.master.statement, "PRJ-34 valueProp is the DRS futureState master statement (derived from NBA + segment research), verbatim");
+  ok((p34.segmentValueProps ?? []).length === 3 && p34.segmentValueProps.every((sv, i) => sv.prop === drs.futureState.segments[i].statement), "PRJ-34's three segment props are the DRS per-segment future-state statements, in order");
+  ok(p34.segmentValueProps.every((sv) => /CrisisCommand\.ai/.test(sv.prop) && /where the NBA stops/.test(sv.pain)), "every segment prop names CrisisCommand.ai and states where its NBA stops");
   const chain = defaultChain(biz);
   const sbuOf = biz.sbu.find((n) => n.code === chain.sbu), pgOf = biz.pgroup.find((n) => n.code === chain.pgroup), alOf = biz.alpha.find((n) => n.code === chain.alpha);
   ok(chain.bu && sbuOf && sbuOf.parent === chain.bu && pgOf && pgOf.parent === chain.sbu && alOf && alOf.parent === chain.pgroup, `defaultChain is one consistent path (${chain.bu} › ${chain.sbu} › ${chain.pgroup} › ${chain.alpha})`);

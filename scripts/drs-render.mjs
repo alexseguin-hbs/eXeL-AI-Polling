@@ -45,6 +45,9 @@ const head = () =>
 function slideBody(n) {
   switch (n) {
     case "S1": return (
+      `**Future state — ${d.futureState.subject}.** ${d.futureState.master.statement}\n\n` +
+      `*Derived from:* ${d.futureState.master.derivedFrom.join(" · ")}\n\n` +
+      d.futureState.segments.map((f) => `- **${f.segment} · ${f.buyer}** — ${f.statement} *(where ${nba(f.nba).name} stops: ${f.nbaStops.join("; ")}. Outcomes: ${f.outcomes.join(" · ")}. Research: ${f.research.join(", ")}.)*`).join("\n") + "\n\n" +
       `**Decision requested.** ${d.project.decisionRequested}\n\n` +
       `**Three segments, three next-best alternatives.**\n\n| segment | name | NBA | X · Y · Z (weights) | weights |\n|---|---|---|---|---|\n` +
       d.segments.map((s) => `| ${s.id} | ${s.name} | ${nba(s.nba).name} | ${s.x_operationalImpact} · ${s.y_humanCoordination} · ${s.z_replayLearning} | ${s.weightsStatus} |`).join("\n") + "\n\n" +
@@ -242,6 +245,20 @@ function assertSource() {
     for (const u of m.sources) if (!/^https:\/\/|^docs\//.test(u)) fail(`method "${m.name}" source "${u}" is neither a URL nor a repo path`);
   }
   if (!d.needsAssessment.intakeRecord?.length || !d.needsAssessment.outcomeStatementFormat) fail(`needsAssessment needs intakeRecord + outcomeStatementFormat`);
+  // 0.005 · the future state is DERIVED: every segment statement cites an NBA that exists and research methods that exist.
+  const F = d.futureState;
+  if (!F || !F.master?.statement || !(F.master.derivedFrom?.length >= 3)) fail(`futureState.master needs a statement and >= 3 derivedFrom lines`);
+  if (!Array.isArray(F.segments) || F.segments.length !== 3) fail(`futureState needs exactly three segment statements`);
+  const methodNames = (d.needsAssessment?.families ?? []).flatMap((f) => f.methods ?? []).map((m) => m.name);
+  for (const f of F.segments) {
+    if (!d.segments.some((s) => s.id === f.segment)) fail(`futureState ${f.segment} is not a segment`);
+    if (!d.nbas.some((n) => n.id === f.nba)) fail(`futureState ${f.segment} cites an unknown NBA ${f.nba}`);
+    if (!(f.nbaStops?.length >= 3) || !(f.outcomes?.length >= 3) || !f.statement || !f.need) fail(`futureState ${f.segment} needs >= 3 nbaStops, >= 3 outcomes, a need and a statement`);
+    for (const m of f.research ?? []) if (!methodNames.some((n) => n.startsWith(m))) fail(`futureState ${f.segment} cites research "${m}" that needsAssessment does not carry`);
+    if (!(f.research?.length >= 2)) fail(`futureState ${f.segment} must cite at least two research methods`);
+    if (!/CrisisCommand\.ai/.test(f.statement)) fail(`futureState ${f.segment} statement must name CrisisCommand.ai (the subject)`);
+  }
+  if (/\$\s?\d/.test(JSON.stringify(F))) fail(`futureState carries a dollar figure — the evidence law forbids it here`);
   const P = d.pod || {};
   if (!/^[A-Z]{2}$/.test(P.bu) || !/^[A-Z0-9]{3}$/.test(P.sbu) || !/^[A-Z0-9]{3,4}$/.test(P.alphaGroup) || !/^[A-Z0-9]{4}$/.test(P.alphaCode)) fail(`pod codes break the Pod's code law (BU 2 · SBU 3 · Alpha Group 3–4 · Alpha Code 4): ${JSON.stringify(P)}`);
   // 2026-09-23 HOLD → 2026-09-24 SEEDED (operator: "complete project 34 finalization first"); the status must say which.
