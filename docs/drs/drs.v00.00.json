@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.011",
+    "revision": "0.012",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1343,6 +1343,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "Iteration 5 of 99 (twelve lenses, round 5): the deck gains its first worked specimen — one EDU event in minutes on S4's note, benchmark alone against the one platform, reconciling to the 90 leadership-delay minutes and the 250 $/min the S3 model declares (22.5 k an event, 90 k a year), labelled IA and re-derived when the inputs move (D13); the seven Horizon-1 objects become a data model on S6's note (object, fields, who writes it) for builders and integrators; the S14 note carries a build calendar row that reads the eleven-year spend (what each year buys); S16's note extends the measurement instrument to a public body rehearsing a policy posture, replayable by the citizens who answered, as the brief's R-CORE section names S16; the register reads D1–D13; SSSES means of the twelve recorded (security 82.4 · stability 70.8 · scalability 69.2 · efficiency 67.5 · succinctness 64.0).",
+      "commit": "cd2021e"
+    },
+    {
+      "revision": "0.012",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Iteration 6 of 99 (twelve lenses, round 6): the deck learns to withdraw its own example — the S4 worked event carries a pre-registered null and stop rule (no delta beyond the one-ninth gate on the primary clock, fewer than 15 of the benchmark's 130 minutes; a failed null withdraws the example and S3 re-derives from the stamped minutes, D14), and S16's note states the instrument's null and stop rule that S11's G3 row had only promised (a run without a stamped clock, or with an approver unreachable beyond succession, is void — recorded, never averaged); the seven Horizon-1 objects gain an interface shape on S6's note for integrators (addressable, versioned, append-only, a named writer, a correction as a new version, pointers in through the eXeL Polling API); the public-body pilot becomes step 4 of the validation sequence on S12's note (after G3, IA, D12); the register reads D1–D14; SSSES means of the twelve recorded (security 83.8 · stability 72.8 · scalability 70.4 · efficiency 69.0 · succinctness 65.4).",
       "commit": "PENDING"
     }
   ],
@@ -2150,6 +2157,13 @@
       "revision": "0.011",
       "by": "twelve lenses · round 5",
       "decision": "Worked examples and calendars on the deck are DERIVED, never typed: the S4 worked event reads the financialModel's single-customer inputs (250 $/min · 90 leadership-delay minutes · 4 events a year) and the S14 build calendar reads spendUsdKByYear; both are labelled IA, live in the speaker notes, and are re-derived when an input moves. A real clock enters only when the G2 tabletop stamps it (independent timekeeper), and then the assumed minute is replaced, never averaged with it."
+    },
+    {
+      "id": "D14",
+      "date": "2026-09-24",
+      "revision": "0.012",
+      "by": "twelve lenses · round 6",
+      "decision": "Every derived example on the deck carries its own pre-registered null and stop rule: the null is no delta beyond the one-ninth gate on the segment's primary clock (for the S4 EDU event, fewer than 15 of the benchmark's 130 minutes removed); a failed null withdraws the example and S3 re-derives from the stamped minutes (D13); a run the independent timekeeper cannot stamp, or whose approver is unreachable beyond the succession of decision rights, is void — recorded with its reason, never averaged into a mean. The gate is a floor for claiming a delta, never a target."
     }
   ],
   "iterations": [
@@ -2336,6 +2350,49 @@
           "every dollar labelled IA",
           "the citizen row on S7",
           "no cell repeats another on the same slide (D10)"
+        ],
+        "cut": []
+      }
+    },
+    {
+      "revision": "0.012",
+      "n": 6,
+      "date": "2026-09-24",
+      "author": "twelve lenses · round 6",
+      "file": "docs/drs/iterations/0.012.md",
+      "ssesMeans": {
+        "security": 83.8,
+        "stability": 72.8,
+        "scalability": 70.4,
+        "efficiency": 69.0,
+        "succinctness": 65.4
+      },
+      "edits": [
+        "S2 · status · rev 0.012, decision register D1–D14 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D14 (hi + ai) · the register grew (D14)",
+        "PROV / row provenance · rev 0.012 · law 5",
+        "S4 · future · ai (speaker note only) · the worked event's own null and stop rule — fewer than 15 of the benchmark's 130 minutes removed (the one-ninth gate) withdraws the example; the stamped minute replaces the assumed 90 on S3 either way and the ramp re-reads it (D13); the gate is a floor, never a target · Thor's ask from 0.011 (D14)",
+        "S16 · counter · ai (speaker note only) · the instrument's null and stop rule stated — null on the segment's primary clock; a run without a stamped clock or with an approver unreachable beyond succession is void, recorded with its reason, never averaged · Enki / Thor (D14); S11's G3 row promised them without stating them",
+        "S6 · conops · ai (speaker note only) · the interface shape of the seven objects — addressable, versioned, append-only resources with a named writer and a timestamp; a correction is a new version; the citizen's answer and a partner's fact enter as evidence pointers through the eXeL Polling API; the export is the whole record · the innovator's ask from 0.011 (Enlil / Krishna)",
+        "S12 · l30 · ai (a fourth line) · step 4 of the validation sequence — PUBLIC BODY after G3 (IA, D12): one government owner, one project through the same loop, its people asked through the eXeL Polling API; never a claimed customer · Athena / Christo; the brief names S12"
+      ],
+      "decisions": [
+        "D14"
+      ],
+      "aar": {
+        "fix": [
+          "S4's worked event had no rule that would withdraw it — its own null and stop rule in the note (one-ninth gate on the primary clock, IA)",
+          "S16 promised a null and a stop rule on S11's G3 row without stating them — stated in the counter-measure note; void runs recorded, never averaged",
+          "S6 carried the seven objects as a data model but no interface shape — addressable, versioned, append-only resources with a named writer (note)",
+          "S12's validation sequence stopped at TECH — the public-body pilot is step 4, after G3 (IA, D12)"
+        ],
+        "keep": [
+          "the ladder in the same order on S1, S2, S11, S15, S16, S17",
+          "the declared model in the same words on S3, S8, S15",
+          "every dollar labelled IA",
+          "the citizen row on S7",
+          "no cell repeats another on the same slide (D10)",
+          "the build calendar and the approver identity model on S14"
         ],
         "cut": []
       }
