@@ -355,7 +355,8 @@ ok(biz.bu.length === 4 && biz.sbu.length === 9, "seed master data: 4 BU · 9 SBU
 import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJECT_HIER } from "../lib/innovation-data.ts";
 {
   const bu = biz.bu.find((n) => n.code === "DR"), sbu = biz.sbu.find((n) => n.code === "DRC"), pg = biz.pgroup.find((n) => n.code === "CR1"), al = biz.alpha.find((n) => n.code === "CR1D");
-  ok(bu && bu.label === "De-Risking Strategies" && bu.revM === 0 && bu.growthPct === 0 && !!bu.color, "BU DR declared with no dollar (evidence law) and a color");
+  // 0.007 (D8, operator 2026-09-24 night): the DR BU carries the DECLARED IA seed — 0.36 M in 2027 at the 115 % three-year CAGR — so the Growth Model shows a CAGR; labelled IA at the source.
+  ok(bu && bu.label === "De-Risking Strategies" && bu.revM === 0.36 && bu.growthPct === 115 && !!bu.color, "BU DR carries the declared IA seed (0.36 M at 115 % CAGR, D8) and a color");
   ok(sbu && sbu.parent === "DR" && sbu.label === "Crisis + Resilience" && sbu.baseM === 0, "SBU DRC under DR, base 0");
   ok(pg && pg.parent === "DRC" && pg.label === "Crisis Coordination", "Alpha Group CR1 under DRC");
   ok(al && al.parent === "CR1", "Alpha Code CR1D under CR1");
@@ -365,7 +366,10 @@ import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJE
   ok(DEMO_PROJECTS.some((p) => p.id === "PRJ-34") && !RESERVED_PROJECT_IDS.includes("PRJ-34") && RESERVED_PROJECT_IDS.length === 0, "PRJ-34 is SEEDED: in the portfolio, nothing reserved");
   const p34 = DEMO_PROJECTS.find((p) => p.id === "PRJ-34");
   ok(hierOf(p34).bu === "DR" && hierOf(p34).sbu === "DRC" && hierOf(p34).pgroup === "CR1" && hierOf(p34).alpha === "CR1D" && hierOf(p34).product === "70034", "PRJ-34 resolves to DR › DRC › CR1 › CR1D · 70034");
-  ok(p34.gate === "G2" && p34.nreK === 0 && p34.fullRev10yM === 0 && typeof p34.unpriced === "string" && /Unpriced by rule/.test(p34.unpriced) && /twelve-lens review 2026-09-24 · final authority: De-Risking Strategies \/ Human Intelligence · v1\.0$/.test(p34.provenance ?? ""), "PRJ-34 is G2, typed UNPRICED with zero dollars, provenance footer v1.0 set");
+  ok(p34.gate === "G2" && p34.nreK === 3600 && p34.fullRev10yM === 64 && !p34.unpriced && /twelve-lens review 2026-09-24 · final authority: De-Risking Strategies \/ Human Intelligence · v1\.0 · rev 0\.\d{3}$/.test(p34.provenance ?? ""), "PRJ-34 is G2 with the DECLARED IA digital inputs (D8: nreK 3600, fullRev10yM 64), no longer unpriced, provenance footer v1.0 · rev 0.NNN");
+  const drs0 = JSON.parse(await (await import("node:fs/promises")).readFile("../docs/drs/drs.v00.00.json", "utf8"));
+  ok(drs0.financialModel?.podInputs?.nreK === p34.nreK && drs0.financialModel.podInputs.fullRev10yM === p34.fullRev10yM && (p34.valueDrivers ?? []).map((v) => v.valueM).join() === drs0.financialModel.podInputs.valueDriversUsdMPerCustomerYear.join() && drs0.financialModel.tenYear.accountYears === Object.values(drs0.financialModel.ramp.years).reduce((a, b) => a + b, 0), "the row's digital inputs ARE the master's financialModel.podInputs (one master; slides update from them)");
+  ok((drs0.decisions ?? []).length >= 9 && drs0.decisions.every((x, i) => x.id === `D${i + 1}`) && drs0.decisions.find((x) => x.id === "D7").supersededBy === "D8" && (drs0.iterations ?? []).length >= 1, "the decision register is D1..Dn append-only (D8 supersedes the unpriced D7) and the iteration ledger is open");
   // v1.0 · UNPRICED BY RULE reaches the glass: one class guard in the field renderer + S10 + the header + the card.
   const pageSrcU = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   ok(/if \(p\.unpriced && UNPRICED_FIELDS\.has\(id\)\)/.test(pageSrcU) && ["profile", "accel", "revtable", "rdchart", "vpchart", "vpdiffs", "valuechart", "diffs", "wtp", "capture"].every((f) => new RegExp(`UNPRICED_FIELDS = new Set\\(\\[[^\\]]*"${f}"`).test(pageSrcU)), "the field renderer prints the unpriced sentence for every linked money field");
@@ -411,9 +415,9 @@ import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJE
   // v0.9 laws on the Pod row: no v0.5 dollar in any PRJ-34 cell; EDU / FOOD / TECH; one primary NBA each; Pro Team → Pro Enterprise (CONFIRM); drivers unpriced.
   const seedFile = await (await import("node:fs/promises")).readFile("lib/innovation-slide-seed-drs.ts", "utf8");
   const seedSrc = seedFile.slice(seedFile.indexOf("export const SLIDE_SEED_DRS")); // the cells, not the header comment that names what was retired
-  ok(!/\$\s?\d/.test(seedSrc), "the PRJ-34 seed carries no dollar figure (v0.9 pricing reset)");
+  ok(seedSrc.split("\n").filter((l) => /\$\s?\d/.test(l)).every((l) => /\bIA\b|DECLARED|declared/.test(l)), "every dollar figure in the PRJ-34 cells is labelled IA / declared (D8) — nothing reads as buyer-validated");
   ok(/EDU/.test(seedSrc) && /FOOD/.test(seedSrc) && /TECH/.test(seedSrc) && /Pro Team → Pro Enterprise/.test(seedSrc) && !/GridOS|Veoci/.test(seedSrc), "the seed is EDU · FOOD · TECH on Pro Team → Pro Enterprise; the retired DRS-attach NBAs are gone");
-  ok((p34.valueDrivers ?? []).every((v) => v.valueM === 0), "PRJ-34 value drivers are typed unpriced (0) — no derived dollar");
+  ok((p34.valueDrivers ?? []).every((v) => v.valueM > 0 && /^IA/.test(v.detail ?? "")) && Math.round((p34.valueDrivers ?? []).reduce((a, v) => a + v.valueM, 0) * 1000) === drs.financialModel.singleCustomer.modeledValueUsdK, "PRJ-34 value drivers are the DECLARED single-customer baseline (IA), summing to the model's modeled value per customer-year");
   ok(p34.name.length <= 40 && p34.name === "Project 34 — CrisisCommand Future State", "PRJ-34 carries the v1.0 title within the header law");
   const chain = defaultChain(biz);
   const sbuOf = biz.sbu.find((n) => n.code === chain.sbu), pgOf = biz.pgroup.find((n) => n.code === chain.pgroup), alOf = biz.alpha.find((n) => n.code === chain.alpha);
@@ -731,7 +735,7 @@ import { costPerMinuteOf, buBuckets, TOTAL_PROGRAM_WORKDAYS, CADENCE_ORDER, CADE
 ok(TOTAL_PROGRAM_WORKDAYS > 0, "TOTAL_PROGRAM_WORKDAYS is the fixed program schedule total");
 // v1.0 · an UNPRICED project (PRJ-34, evidence law) carries zero dollars by rule and is exempt from every money invariant — the class, not the instance.
 const PRICED = DEMO_PROJECTS.filter((p) => !p.unpriced);
-ok(PRICED.length === DEMO_PROJECTS.length - 1 && DEMO_PROJECTS.some((p) => p.unpriced && costPerMinuteOf(p) === 0), "exactly one project is unpriced and its $/min burn is zero, not a derived number");
+ok(PRICED.length === DEMO_PROJECTS.length, "no seeded project is unpriced after D8 (PRJ-34 re-priced from the declared model); the unpriced class stays gated by the source locks");
 ok(PRICED.every((p) => costPerMinuteOf(p) > 0 && Number.isFinite(costPerMinuteOf(p))), "costPerMinuteOf is a positive finite $/min burn for every priced project");
 ok(costPerMinuteOf({ ...P0, nreK: P0.nreK * 2 }) > costPerMinuteOf(P0), "costPerMinuteOf scales with NRE (more spend → higher burn)");
 ok(CADENCE_ORDER.join("") === "QMWD", "cadence ladder is Quarterly → Monthly → Weekly → Daily");
@@ -1524,7 +1528,7 @@ import { BU_SEED_REV, BU_SEED_GROWTH } from "../lib/innovation-data.ts";
   }
   // Base Rev = current-year baseline jump-off (operator IMG_8152/8154): AP $11M · DS $42M · MS $31M = $84M company.
   ok(BU_SEED_REV.AP === 11 && BU_SEED_REV.DS === 42 && BU_SEED_REV.MS === 31, "Base Rev per BU: AP 11 · DS 42 · MS 31");
-  ok(Object.values(BU_SEED_REV).reduce((a, b) => a + b, 0) === 84, "company Base Rev = Σ BU Base Rev = $84M");
+  ok(Math.round(Object.values(BU_SEED_REV).reduce((a, b) => a + b, 0) * 100) === 8436, "company Base Rev = Σ BU Base Rev = $84.36M (AP 11 · DS 42 · MS 31 · DR 0.36 declared, D8)");
   // Revenue splits down to SBU and sums back to the BU (within rounding).
   const dsSbuRev = setup.sbu.filter((n) => n.parent === "DS").reduce((s, n) => s + (n.revM ?? 0), 0);
   ok(Math.abs(dsSbuRev - BU_SEED_REV.DS) <= 1, `DS SBU revenue sums back to the BU base-year Rev (${dsSbuRev})`);

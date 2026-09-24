@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.006",
+    "revision": "0.007",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1308,6 +1308,13 @@
       "date": "2026-09-24",
       "kind": "release",
       "why": "v1.0 ONE PLATFORM edition (operator 2026-09-24: 'future state should have all aspects of existing NBA within a single platform … highlight the strongest value prop, and single NBA'; the v0.9 inputs of the same day are the source text). The twelve-lens review of the BUSINESS CASE (asmReview; docs/assessments/2026-09-24_prj34_asm_business_case_review.md) converged: the deck argued the retired 'layer above, replace none' stance, the Pod template printed dollars the deck disowned, three benchmarks diluted conviction. Folded: platform benchmark NBA-5 Everbridge 360 AI / Bridge (11 of 12), the one-sentence value proposition as futureState.master, per-segment single-platform statements, the 2027 / 2030 / 2525 absorption ladder under the R-CORE one-ninth gate (alerting last and certified), a named human approver on every outbound action, the citizen in the record, evidence that can fail (pre-registered hypothesis / null / stop rule), the PRJ-34 row typed unpriced with the Pod's unpriced mode (header · S2 / S3 profile · S8 charts · S10 grid). Earlier in this same unshipped revision: v0.9 primary NBAs per segment (NBA-4..6, composite stacks demoted to `stack`), SEG-1..3 / NBA-1..3 ARCHIVED in place, pricing reset, Pro Team → Pro Enterprise with CONFIRM in speaker notes; provenance footer '… twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0'.",
+      "commit": "26b5bab"
+    },
+    {
+      "revision": "0.007",
+      "date": "2026-09-24",
+      "kind": "release",
+      "why": "Iteration 1 of 99 (operator night ask): DIGITAL INPUTS — the declared IA financial model (single-customer baseline 180 k modeled / 60 k captured a year; ramp 6 → 220 accounts 2027 → 2036, 3-year CAGR 115 %; ten-year 64 M; NRE 3.6 M) applied to the PRJ-34 row so the Pod's linked fields update automatically; decision register D1–D9 (D8 supersedes the unpriced D7); the iteration ledger and brief (docs/drs/ITERATION_BRIEF.md, docs/drs/iterations/); the door scripts/prj34-iterate.sh.",
       "commit": "PENDING"
     }
   ],
@@ -1479,7 +1486,7 @@
     "product": "70034",
     "material": "70034-001",
     "projectId": "PRJ-34",
-    "status": "SEEDED — PRJ-34 is in the Innovation Pod on DR › DRC › CR1 › CR1D. Edition v1.0 ONE PLATFORM; the row is typed unpriced (evidence law) and the Pod prints no derived money for it. Slide seed: frontend/lib/innovation-slide-seed-drs.ts, built from CC_Future_State_S1-S19_v0.9_eXeL.md (slides) + CC_Future_State_NARRATIVE_v0.9.md (meaning), with v0.8.2 only for the S16 / S19 matrix (operator 2026-09-24); v0.4 / v0.5 archived. The HOLD of 2026-09-23 is lifted."
+    "status": "SEEDED — PRJ-34 is in the Innovation Pod on DR › DRC › CR1 › CR1D. Edition v1.0 ONE PLATFORM; the row carries DECLARED IA financials (D8) so the Pod's linked fields update automatically; the unpriced class stays in the code. Slide seed: frontend/lib/innovation-slide-seed-drs.ts, built from CC_Future_State_S1-S19_v0.9_eXeL.md (slides) + CC_Future_State_NARRATIVE_v0.9.md (meaning), with v0.8.2 only for the S16 / S19 matrix (operator 2026-09-24); v0.4 / v0.5 archived. The HOLD of 2026-09-23 is lifted."
   },
   "assets": {
     "logo": {
@@ -1849,5 +1856,159 @@
       "the citizen enters the record (S4 · S7 · S15 · S17)",
       "evidence that can fail: pre-registered hypothesis / null / stop rule; clocks the platform logs"
     ]
-  }
+  },
+  "financialModel": {
+    "status": "DECLARED (IA) — operator 2026-09-24 night: 'ensure 2027-2030 financials to allow for 3 year CAGR; ensure value creation is not zero; baseline value prop for a single customer'. Every figure is an internal assumption derived from the S14 value equation and labelled IA; none is buyer-validated; the S16 A/B and the buyer interviews replace them. Supersedes decision D7 (the unpriced row) — the Pod's unpriced class stays in the code.",
+    "singleCustomer": {
+      "archetype": "one Pro Enterprise institution (EDU beachhead; FOOD / TECH analogous)",
+      "verifiedUsdPerMin": 250,
+      "leadershipDelayMinutesReducedPerEvent": 90,
+      "eventsPerYear": 4,
+      "timeValueUsdK": 90,
+      "discreteAvoidedCostUsdK": 30,
+      "riskAdjustedOutcomeUsdK": 60,
+      "modeledValueUsdK": 180,
+      "capturePct": 33,
+      "annualPriceUsdK": 60,
+      "note": "Modeled Value = Time Value (250 $/min × 90 min × 4 events) + Discrete Avoided Cost + Risk-Adjusted Outcome (range midpoint) = 180 k per customer-year; price = 33 % capture (the Pod's default capture fraction) = 60 k a year"
+    },
+    "ramp": {
+      "unit": "paying accounts (customer-years)",
+      "years": {
+        "2027": 6,
+        "2028": 15,
+        "2029": 30,
+        "2030": 60,
+        "2031": 90,
+        "2032": 120,
+        "2033": 150,
+        "2034": 175,
+        "2035": 200,
+        "2036": 220
+      },
+      "cagr2027to2030Pct": 115,
+      "note": "6 → 60 accounts from 2027 to 2030 is 10× in three years = 115 % CAGR (declared)"
+    },
+    "tenYear": {
+      "accountYears": 1066,
+      "revenueUsdM": 64,
+      "nreUsdK": 3600,
+      "nreNote": "2027–2029 build of the governed leadership state and the first absorbed functions, 1.2 M a year (IA)"
+    },
+    "podInputs": {
+      "nreK": 3600,
+      "fullRev10yM": 64,
+      "revPlanQtyAnnual": 107,
+      "valueDriversUsdMPerCustomerYear": [
+        0.06,
+        0.05,
+        0.04,
+        0.03
+      ],
+      "buSeedRevM": 0.36,
+      "buSeedGrowthPct": 115,
+      "note": "the Pod's linked fields derive from these — change the inputs, never a printed number"
+    }
+  },
+  "decisions": [
+    {
+      "id": "D1",
+      "date": "2026-09-23",
+      "revision": "0.003",
+      "by": "operator",
+      "decision": "Codes BU DR › SBU DRC › Alpha Group CR1 › Alpha Code CR1D; PRJ-34 reserved and HELD until priced."
+    },
+    {
+      "id": "D2",
+      "date": "2026-09-24",
+      "revision": "0.004",
+      "by": "operator",
+      "decision": "HOLD lifted — 'complete project 34 finalization first'; PRJ-34 seeded in the Innovation Pod with IA figures."
+    },
+    {
+      "id": "D3",
+      "date": "2026-09-24",
+      "revision": "0.004",
+      "by": "operator",
+      "decision": "A seed reaches every device and the Admin panel with it — seeds merge into saved portfolios, never replace them (CLAUDE.md rule)."
+    },
+    {
+      "id": "D4",
+      "date": "2026-09-24",
+      "revision": "0.006",
+      "by": "operator + v0.8.2 / v0.9 inputs",
+      "decision": "CrisisCommand.ai is the future-state product; three needs-based segments EDU · FOOD · TECH with one primary NBA each; the DRS-attach exploration (GridOS / Veoci / Sentinel) archived in place; pricing reset."
+    },
+    {
+      "id": "D5",
+      "date": "2026-09-24",
+      "revision": "0.006",
+      "by": "operator + twelve lenses (11 of 12) + Master of Thought",
+      "decision": "ONE platform: every aspect of the existing NBA inside CrisisCommand.ai; benchmark Everbridge 360 AI / Bridge; absorption ladder 2027 · 2030 · 2525 under the one-ninth gate, alerting last and certified."
+    },
+    {
+      "id": "D6",
+      "date": "2026-09-24",
+      "revision": "0.006",
+      "by": "Master of Thought",
+      "decision": "The one-sentence value proposition (futureState.master.statement) leads S1 and S8 and is mirrored on the Pod row."
+    },
+    {
+      "id": "D7",
+      "date": "2026-09-24",
+      "revision": "0.006",
+      "by": "Master of Thought (evidence law)",
+      "decision": "PRJ-34 typed unpriced; the Pod prints its sentence wherever the template derives money.",
+      "supersededBy": "D8"
+    },
+    {
+      "id": "D8",
+      "date": "2026-09-24",
+      "revision": "0.007",
+      "by": "operator (night ask)",
+      "decision": "D7 superseded: declared IA financials — a single-customer baseline value (180 k modeled, 60 k captured a year), a 2027 → 2030 ramp for a 3-year CAGR (115 %), ten-year revenue 64 M, NRE 3.6 M — so the Pod's linked fields update from digital inputs; the unpriced class stays in the code.",
+      "supersedes": "D7"
+    },
+    {
+      "id": "D9",
+      "date": "2026-09-24",
+      "revision": "0.007",
+      "by": "operator + Master of Thought",
+      "decision": "The 99-iteration programme: each revision carries twelve 111-word lens summaries and an AAR that improves S1–S18; gates + push both refs per iteration; full CI + build every eleventh; append-only iteration ledger and decision register for traceability."
+    }
+  ],
+  "iterations": [
+    {
+      "revision": "0.007",
+      "n": 1,
+      "date": "2026-09-24",
+      "author": "Master of Thought (digital inputs)",
+      "file": "docs/drs/iterations/0.007.md",
+      "ssesMeans": null,
+      "edits": [
+        "financialModel declared (IA) and its podInputs applied to the row",
+        "decisions register D1–D9",
+        "iteration ledger opened",
+        "S3 financial comments rewritten to the declared model",
+        "S8 benefit line re-priced",
+        "S2 status + S18 carry the revision and the register",
+        "PROV / provenance carry rev 0.007"
+      ],
+      "decisions": [
+        "D8",
+        "D9"
+      ],
+      "aar": {
+        "fix": [
+          "S1 top row still overflows at slide density (+68 / +194 px on the v1.0 shots)",
+          "S9 stories overflow +31 px",
+          "S14 FTE table +2 px"
+        ],
+        "keep": [
+          "one thesis on every slide (v1.0)"
+        ],
+        "cut": []
+      }
+    }
+  ]
 }

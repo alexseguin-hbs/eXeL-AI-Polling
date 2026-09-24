@@ -1139,9 +1139,11 @@ const DEMO_PROJECTS_BASE: Project[] = [
   //    ($0 / $95k / $0.94M / $2.39M 2026–2029, then growth toward ~$4M/yr on the $67M near-term SAM) — the frozen
   //    four-year IA (NPV $0.16M · IRR ~20% · payback ~36 mo) is the figure of record; the Pod's 10-yr profile is derived.
   //    tech med (integration burden 16) · comm high (procurement 15, "Storm Manager already does this" 15).
-  { id: "PRJ-34", name: "Project 34 — CrisisCommand Future State", /* 39 ch — the deck header's one-size law (≤40); v0.8.2 title */ division: "Crisis + Resilience", lob: "DRC", manager: "A. Seguin", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "high", nreK: 0, fullRev10yM: 0, doNothing10yM: 0, firstRevenue: "2027-Q3", criticalPath: false, humanLoad: 0.5, ai: 0.3, si: 0.2, hi: 0.5, predictions: 0, startDate: "2026-09-23",
-    unpriced: "Unpriced by rule — no dollar is current for CrisisCommand Future State; value is rebuilt from buyer-verified inputs (S14 / S15). Evidence law.",
-    provenance: "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0" },
+  { id: "PRJ-34", name: "Project 34 — CrisisCommand Future State", /* 39 ch — the deck header's one-size law (≤40); v0.8.2 title */ division: "Crisis + Resilience", lob: "DRC", manager: "A. Seguin", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "high", // 0.007 (D8, operator 2026-09-24 night) · DIGITAL INPUTS, DECLARED (IA): nreK 3600 = 1.2 M/yr × 3 build years; fullRev10yM 64 = 1,066 account-years × 60 k
+  // (docs/drs/drs.v00.00.json financialModel). The Pod's linked fields (S1 chart · S2 / S3 profile · S8 charts · S10 grid) derive from these two numbers,
+  // REVPLAN_QTY and the value drivers — change the inputs, never a printed number. The unpriced class (v1.0) stays in the code, no longer applied here.
+  nreK: 3600, fullRev10yM: 64, doNothing10yM: 0, firstRevenue: "2027-Q3", criticalPath: false, humanLoad: 0.5, ai: 0.3, si: 0.2, hi: 0.5, predictions: 0, startDate: "2026-09-23",
+    provenance: "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.007" },
   { id: "PRJ-33", name: "Multi-Orbit ISR Tasking Broker", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "med", nreK: 4900, fullRev10yM: 155, doNothing10yM: 0, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.54, ai: 0.5, si: 0.3, hi: 0.2, predictions: 27 },
 ];
 
@@ -1405,10 +1407,11 @@ const PROJECT_INTEL: Record<string, ProjectIntel> = {
     valueProp: "CrisisCommand.ai is the one human-governed crisis platform where an institution's leaders see the facts, decide with named authority, alert and act, hold every stakeholder to one approved posture, prove what was done, and learn — so the next crisis begins from the last one's record, never from a blank page.",
     nextBestAlternative: "Platform benchmark: Everbridge 360 AI / Bridge — the one critical-event platform whose every aspect the future state carries inside CrisisCommand.ai (risk intelligence · emergency communications · incident workflow · coordinated action · continuity · dependency context · AI-assisted guidance). Segment comparators: EDU — Rave Mobile Safety / Rave Alert · TECH — PagerDuty, inbound feeds of the platform. The customer's broader stack is interview discovery, in speaker notes only",
     valueDrivers: [
-      { ...d("Explicit decision rights + approval state", 1.0, 0.9, 0.3), valueM: 0, detail: "unpriced — value rebuilt from the CrisisCommand-specific delta once a buyer supplies verified inputs (S14 / S16)" },
-      { ...d("Action-owner linkage, acknowledgement, evidence pointer", 0.95, 0.88, 0.35), valueM: 0, detail: "unpriced — time-to-coherence clocks, customer-supported $/min only" },
-      { ...d("Formal versioned current-plan state + cross-system context loop", 0.85, 0.85, 0.4), valueM: 0, detail: "unpriced — every benchmark function reachable from inside the platform first, native by qualification" },
-      { ...d("Outcome-linked replay + risk / outcome simulation", 0.8, 0.82, 0.35), valueM: 0, detail: "unpriced — G3 instrumented benchmark-alone vs one-platform A/B is the evidence mechanism" },
+      // 0.007 (D8) · single-customer baseline, DECLARED (IA): 180 k modeled value per customer-year split across the four deltas (docs/drs financialModel).
+      { ...d("Explicit decision rights + approval state", 1.0, 0.9, 0.3), valueM: 0.06, detail: "IA · 60 k per customer-year — time value of the leadership-delay minutes removed (250 $/min × 90 min × 4 events, S14); buyer-verified at G3" },
+      { ...d("Action-owner linkage, acknowledgement, evidence pointer", 0.95, 0.88, 0.35), valueM: 0.05, detail: "IA · 50 k per customer-year — discrete avoided cost (advisor and message rework) + owned actions; time-to-coherence clocks the platform logs" },
+      { ...d("Formal versioned current-plan state + cross-system context loop", 0.85, 0.85, 0.4), valueM: 0.04, detail: "IA · 40 k per customer-year — every benchmark function reachable from inside the platform first, native by qualification (one login, one record)" },
+      { ...d("Outcome-linked replay + risk / outcome simulation", 0.8, 0.82, 0.35), valueM: 0.03, detail: "IA · 30 k per customer-year — risk-adjusted outcome (range midpoint); G3 instrumented benchmark-alone vs one-platform A/B is the evidence mechanism" },
     ],
     killRisk: "An EDU buyer confirms the need, the pre-registered G2 tabletop shows the measurement design works, and G3 shows a measurable timing / risk / outcome delta of the one platform above Everbridge 360 AI / Bridge (Rave in EDU, PagerDuty in TECH) on a pre-registered clock — each absorbed function earning its place by the one-ninth gate, a named human on every consequence",
     segmentValueProps: [
@@ -1440,7 +1443,7 @@ const REVPLAN_QTY: Record<string, number> = {
   // H5 — volumes by archetype for the 9 added projects (space very-low · hardware low · attritable/software high).
   "PRJ-25": 140, "PRJ-26": 65, "PRJ-27": 85, "PRJ-28": 400, "PRJ-29": 320,
   "PRJ-30": 450, "PRJ-31": 260, "PRJ-32": 30, "PRJ-33": 180,
-  "PRJ-34": 60, // ~22 paying accounts by 2029 (IA), growing — annual Readiness subscriptions, not units
+  "PRJ-34": 107, // 0.007 (D8) · average paying accounts a year over the ten-year ramp 6 → 220 (1,066 account-years ÷ 10); ASP back-solves to 60 k (IA)
 };
 function revPlanProfileFor(p: Project): Pick<RevPlan, "profile" | "growthPctQ" | "rampQuarters"> {
   const isNew = p.category === "New Platform" || p.category === "New Product";
@@ -2508,8 +2511,8 @@ export type BizSetup = { company: string } & Record<BizTier, BizNode[]>;
 // jump-off bar the New/Incremental stacks build on): AP $11M, DS $42M, MS $31M = $84M company. Growth is the
 // aspirational CAGR per BU. Seeded down to the SBU tier (Base Rev split by SBU share, Growth inherited); deeper
 // tiers edit in-app. NOTE: there is no separate "base" number — Base Rev IS the baseline (old BASE $M removed).
-export const BU_SEED_REV: Record<string, number> = { AP: 11, DS: 42, MS: 31, DR: 0 };
-export const BU_SEED_GROWTH: Record<string, number> = { DS: 77, MS: 33, AP: 44, DR: 0 };
+export const BU_SEED_REV: Record<string, number> = { AP: 11, DS: 42, MS: 31, DR: 0.36 }; // DR 0.36 = 6 accounts × 60 k in 2027 (0.007, D8, IA)
+export const BU_SEED_GROWTH: Record<string, number> = { DS: 77, MS: 33, AP: 44, DR: 115 }; // DR 115 = the declared 3-year CAGR 2027 → 2030 (0.007, D8, IA)
 const SEED_MARGIN_FRAC = 0.4; // demo gross-margin fraction → seeds Margin $ from base-year Revenue
 export function seedBizSetup(projects: Project[]): BizSetup {
   const uniq = (arr: BizNode[]) => Array.from(new Map(arr.map((n) => [n.code, n])).values()).sort((a, b) => a.code.localeCompare(b.code));

@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.007";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -80,8 +80,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired.",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired. " + PROV,
+        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.007 · decision register D1–D9 and the iteration ledger in docs/drs (append-only).",
+        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.007 · decision register D1–D9 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
@@ -120,13 +120,15 @@ export const SLIDE_SEED_DRS: SlideSeed = {
       fincomment: {
         hi: [
           "Financial RESET (v0.9 S17): do not reuse old DRS prices, SAM, SOM, NPV, IRR or CTS. New market model: reachable accounts × validated annual value × realistic conversion = serviceable opportunity.",
-          "Unpriced by rule: this project is typed unpriced, so the template prints no return profile, no revenue table and no cash-flow chart — the evidence law, mechanically.",
+          "Financial model — DECLARED (IA), not buyer-validated: one Pro Enterprise institution · verified 250 $/min (IA) × 90 leadership-delay minutes removed × 4 events a year = 90 k time value · 30 k discrete avoided cost · 60 k risk-adjusted outcome (range midpoint) → 180 k modeled value per customer-year · 33 % capture → 60 k annual price.",
+          "Ramp (IA): 6 paying accounts in 2027 → 15 · 30 · 60 (2030) → 220 by 2036 = 1,066 account-years, 64 M ten-year revenue, 3-year CAGR 2027 → 2030 = 115 %; NRE 3.6 M over 2027–2029 (IA). The return profile above derives from these digital inputs and updates when they change.",
           "Value equation (S14): Verified $/min = direct time-dependent cost ÷ elapsed minutes · Time Value = verified $/min × leadership-delay minutes reduced · Risk-Adjusted Value = (P(loss) before − P(loss) after) × consequence value, ranges only · Modeled Value = Time Value + Discrete Avoided Cost + Risk-Adjusted Outcome Value · Contribution = validated WTP − CrisisCommand-specific CTS.",
           "No price is supported until a buyer validates baseline, delta, economic weight, attribution and willingness to pay.",
         ],
         ai: [
           "Financial RESET (v0.9 S17): do not reuse old DRS prices, SAM, SOM, NPV, IRR or CTS. New market model: reachable accounts × validated annual value × realistic conversion = serviceable opportunity.",
-          "Unpriced by rule: this project is typed unpriced, so the template prints no return profile, no revenue table and no cash-flow chart — the evidence law, mechanically.",
+          "Financial model — DECLARED (IA), not buyer-validated: one Pro Enterprise institution · verified 250 $/min (IA) × 90 leadership-delay minutes removed × 4 events a year = 90 k time value · 30 k discrete avoided cost · 60 k risk-adjusted outcome (range midpoint) → 180 k modeled value per customer-year · 33 % capture → 60 k annual price.",
+          "Ramp (IA): 6 paying accounts in 2027 → 15 · 30 · 60 (2030) → 220 by 2036 = 1,066 account-years, 64 M ten-year revenue, 3-year CAGR 2027 → 2030 = 115 %; NRE 3.6 M over 2027–2029 (IA). The return profile above derives from these digital inputs and updates when they change.",
           "Value equation (S14): Verified $/min = direct time-dependent cost ÷ elapsed minutes · Time Value = verified $/min × leadership-delay minutes reduced · Risk-Adjusted Value = (P(loss) before − P(loss) after) × consequence value, ranges only · Modeled Value = Time Value + Discrete Avoided Cost + Risk-Adjusted Outcome Value · Contribution = validated WTP − CrisisCommand-specific CTS.",
           "No price is supported until a buyer validates baseline, delta, economic weight, attribution and willingness to pay.",
           "Customer-supported inputs only: executive / legal / communications labor · external advisor burn · contact-center surge · directly attributable revenue / transaction exposure · contractual / SLA exposure · incremental operating expense. Never present modeled risk reduction as guaranteed savings.",
@@ -292,13 +294,13 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "Whitespace EDU (above Rave): executive decision rights · cabinet alignment · governance interpretation · stakeholder tradeoffs · approved institutional posture · action ownership · approval / rationale provenance · board / parent / faculty / donor strategy · outcome-linked replay.",
           "Whitespace FOOD (above Everbridge): enterprise severity judgment · brand / legal / regulatory tradeoffs · executive decision rights · stakeholder strategy across customers / regulators / franchisees / employees / investors · approval provenance · one approved enterprise posture · action / message synchronization · outcome-linked replay.",
           "Whitespace TECH (above PagerDuty): enterprise meaning of the technical event · reputation / legal / regulatory / financial exposure · executive options and tradeoffs · decision rights · approval provenance · customer / regulator / investor posture · board-ready current strategy · action ownership outside the technical response · outcome-linked replay.",
-          "Unpriced by rule: no old DRS dollar table is carried; value is rebuilt per segment from the CrisisCommand-specific delta once a buyer supplies verified inputs (S14 / S15).",
+          "Priced as a DECLARED single-customer baseline (IA): 180 k modeled value per customer-year, 60 k captured — rebuilt from buyer-verified inputs at G3 (S14 / S15); no old DRS dollar table is carried.",
         ],
         ai: [
           "Whitespace EDU (above Rave): executive decision rights · cabinet alignment · governance interpretation · stakeholder tradeoffs · approved institutional posture · action ownership · approval / rationale provenance · board / parent / faculty / donor strategy · outcome-linked replay.",
           "Whitespace FOOD (above Everbridge): enterprise severity judgment · brand / legal / regulatory tradeoffs · executive decision rights · stakeholder strategy across customers / regulators / franchisees / employees / investors · approval provenance · one approved enterprise posture · action / message synchronization · outcome-linked replay.",
           "Whitespace TECH (above PagerDuty): enterprise meaning of the technical event · reputation / legal / regulatory / financial exposure · executive options and tradeoffs · decision rights · approval provenance · customer / regulator / investor posture · board-ready current strategy · action ownership outside the technical response · outcome-linked replay.",
-          "Unpriced by rule: no old DRS dollar table is carried; value is rebuilt per segment from the CrisisCommand-specific delta once a buyer supplies verified inputs (S14 / S15).",
+          "Priced as a DECLARED single-customer baseline (IA): 180 k modeled value per customer-year, 60 k captured — rebuilt from buyer-verified inputs at G3 (S14 / S15); no old DRS dollar table is carried.",
           "Future-state territory across all three: human-curated sector precedent applied to live judgment · organization-specific context · cross-domain executive exposure · leadership decision rights · approval state · stakeholder strategy · action ownership / acknowledgement · evidence-linked plan state · time-to-coherence · outcome-linked replay. Thought Master test: how many minutes change · what is each verified minute worth · which risk changes as time passes · which observable outcome improves.",
         ],
       },
@@ -695,10 +697,12 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
+          "The decision register (D1–D9) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
         ],
         ai: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
+          "The decision register (D1–D9) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
           PROV,
         ],
       },
