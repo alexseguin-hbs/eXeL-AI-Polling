@@ -69,6 +69,16 @@ jobs:
       - name: Test (headless suites — sign, pod, donate, lexicon, guards, deck boot QA, two-phone e2e)
         run: npm run test:ci
 
+      # The perf and crew harnesses serve the static export, so the gate builds one of its own (no secrets: the drone routes need
+      # none; the live-response path is the ship job's concern). postbuild counts the stamp and runs the render smoke here, where
+      # Chromium exists — the first Deploy #965 under the split failed exactly here, waiting for an arena that was never exported.
+      - name: Build the export for the headless gates (no secrets)
+        env:
+          WORKERS_CI_COMMIT_SHA: ${{ github.sha }}
+          SMOKE_REQUIRED: "1"
+        run: |
+          npm run build 2>&1 | tee /tmp/gate-build.log
+          grep -q "Compiled successfully" /tmp/gate-build.log || { echo "::error::gate build did not report 'Compiled successfully'"; exit 1; }
       - name: Drone perf + crew (measured, before the scorer reads them)
         run: |
           npm run test:drone-perf
