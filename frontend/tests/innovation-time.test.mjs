@@ -3995,6 +3995,17 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok((p1.match(/<Sheet sp=\{sp\} i=\{i\} style=\{printSheetStyle\} \/>/g) || []).length === 1,
      "…and there is still exactly ONE print renderer, so the two versions cannot drift in content");
 
+  // AE-1 · A DIFFERENTIATOR IS ALWAYS ON ONE LINE (operator 2026-09-24, exported-deck screenshot). The two
+  // differentiator lists render each bullet `whitespace-nowrap`, and the fit law is width-aware so the panel
+  // zooms to the widest line instead of clipping — the invariant defended mechanically, not by taste.
+  ok(/const oneLine = f\.id === "vpdiffs" \|\| f\.id === "diffs";/.test(p1) &&
+     /\$\{oneLine \? "whitespace-nowrap" : ""\}/.test(p1),
+     "AE-1: the differentiator lists (vpdiffs · diffs) render each bullet on a single line");
+  ok(/const availW = el\.clientWidth;/.test(p1) && /const w0 = el\.scrollWidth;/.test(p1) &&
+     /const kW = w0 > availW \+ 1 \? Math\.max\(FIT_FLOOR, availW \/ w0\) : 1;/.test(p1) &&
+     /const k = Math\.min\(kH, kW\);/.test(p1),
+     "AE-1: useFitScale is width-aware — it scales to the box on both axes, the tighter axis winning");
+
   // 2 · ORIGINAL IS THE EXACT REPLICA **BY CONSTRUCTION** — no rule targets it, so there is nothing that
   //     could make it differ from Present mode. Asserted as an absence, which is the strong form.
   ok(!/pdf-original\s*\[data-slide-canvas\]/.test(p1) && !/\.pdf-original [^{]*\{/.test(p1),

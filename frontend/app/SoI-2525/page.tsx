@@ -5037,6 +5037,7 @@ function useFitScale(ref: React.RefObject<HTMLElement | null>) {
       const st = el.style as CSSStyleDeclaration & { zoom?: string };
       st.zoom = ""; el.style.height = ""; el.style.flex = "";
       const avail = el.clientHeight;                              // the share the box gives it (flex-1 or h-full) — 0 when display:none
+      const availW = el.clientWidth;                              // the box WIDTH — the second axis the fit must respect (AE-1: a nowrap differentiator that overflows it)
       if (!avail || !box.clientWidth) return;
       // A CHART PANEL IS NEVER FITTED. A chart sizes itself to its box (its own ResizeObserver, cq-unit heights); measuring it at
       // height:auto and zooming it moves the box it measures — a loop that drifted the S8 slot from 1.48 to 1.9 and pushed the S3
@@ -5053,11 +5054,19 @@ function useFitScale(ref: React.RefObject<HTMLElement | null>) {
         if (oy === "hidden" || oy === "clip" || oy === "auto" || oy === "scroll") { const d = c.scrollHeight - c.clientHeight; if (d > 1) inner += d; }
       }
       const h0 = el.scrollHeight + inner;
+      // WIDTH the same way (AE-1): a `whitespace-nowrap` child (a single-line differentiator) that is wider than the box
+      // shows up as scrollWidth > clientWidth here. A wrapping panel never overflows width, so w0 === availW and kW === 1
+      // for every panel that is not deliberately one-line — the width axis is a no-op unless nowrap content demands it.
+      // Content in its own scroll container (a table's overflow-x-auto wrapper) keeps its overflow inside itself and does
+      // not inflate el.scrollWidth, so tables never trip this.
+      const w0 = el.scrollWidth;
       el.style.flex = ""; el.style.height = "";
-      const sig = `${avail}:${h0}`;
+      const sig = `${avail}:${h0}:${availW}:${w0}`;
       if (sig === el.dataset.fitSig) { const kk = el.dataset.fit ? Number(el.dataset.fit) : 1; st.zoom = kk < 1 ? String(kk) : ""; return; }
       el.dataset.fitSig = sig;
-      const k = h0 > avail + 1 ? Math.max(FIT_FLOOR, avail / h0) : 1;
+      const kH = h0 > avail + 1 ? Math.max(FIT_FLOOR, avail / h0) : 1;
+      const kW = w0 > availW + 1 ? Math.max(FIT_FLOOR, availW / w0) : 1;
+      const k = Math.min(kH, kW);   // scale to the box on BOTH axes; the tighter axis wins, floored so text stays legible
       // CSS zoom, not transform: the layout itself shrinks, so the screenshot gate, the print engine and every scroll size see the
       // fitted box — a transform leaves a larger layout box behind and reads as clipping.
       st.zoom = k < 1 ? String(k) : "";
@@ -5863,7 +5872,14 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             </div>
           );
         })()}
-        {f.kind === "list" && !isConops && <ul className={`m-0 list-disc pl-5 text-slate-200 ${big ? "" : "text-[clamp(13px,1.4vw,18px)]"}`} style={big ? { fontSize: TS.body } : undefined}>{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
+        {/* ⚠ AE-1 · A DIFFERENTIATOR IS ONE LINE (operator 2026-09-24, docs/asks/2026-09-24_differentiators_single_line.md,
+            with the exported-deck screenshot: "each differentiator must always be on a single line"). The bullet
+            "…evidence pointer — $0.1M · ▮▮▮▮▮ · NBA ▲" wrapped its meta ("NBA ▲") to a second line because the panel
+            column was narrower than the longest bullet. `whitespace-nowrap` forces one line; the fit law (useFitScale)
+            is width-aware, so the panel zooms to the widest line instead of clipping — the same "scale to the box" rule,
+            now on both axes. Scoped to the two differentiator lists (vpdiffs on S1, diffs / Value Equation on S8); every
+            other list keeps wrapping. */}
+        {f.kind === "list" && !isConops && (() => { const oneLine = f.id === "vpdiffs" || f.id === "diffs"; return <ul className={`m-0 list-disc pl-5 text-slate-200 ${big ? "" : "text-[clamp(13px,1.4vw,18px)]"}`} style={big ? { fontSize: TS.body } : undefined}>{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className={`mb-0.5 ${oneLine ? "whitespace-nowrap" : ""}`}>{x}</li>)}</ul>; })()}
         {/* X-1 · A CAPTION STRIP, NOT THREE CARDS (operator: "Shrink Boxes and find locations for them
             around waterfall chart"). Value and label sit on ONE line each, so the row costs the height of a
             single line instead of a stacked card with its own padding — and that reclaimed height is exactly
