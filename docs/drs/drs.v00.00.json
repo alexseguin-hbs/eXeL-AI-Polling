@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.063",
+  "revision": "0.064",
   "stage": "G2 / future-state validation",
   "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -1707,6 +1707,13 @@
    "date": "2026-09-25",
    "kind": "release",
    "why": "Round 57 of 99 (twelve lenses) continues the strategic-comprehension class D63/D64: the near-unanimous consensus behind the benchmark selection comes onto the shown face. The master platform.why carries one further business-relevant clause the deck showed on no face — 'Eleven of twelve reviewer lenses' — the strength of agreement that tells a non-analyst the benchmark pick is well-grounded, not one voice; S8.nba.ai already read it, the shown face did not. This round adds 'eleven of twelve reviewer lenses; ' at the head of the benchmark's selection-ground parenthetical on S8.nba.hi, mirroring S8.nba.ai and completing platform.why's business clauses (surface · stacks · buyer · why-now · consensus) on the face; the ellipsis-tail 'Enlil argued PagerDuty for buildability' is an internal review dissent, left off the deck by design. No figure, date, NBA pairing or law moves; ai stays a strict superset, unedited and far longer; scalability and efficiency rise, the other three hold. S2 status and S18 register read rev 0.063 · D1–D65; PROV and the row provenance read rev 0.063; the previous release 0.062 records commit 9e6a655.",
+   "commit": "4b73981"
+  },
+  {
+   "revision": "0.064",
+   "date": "2026-09-25",
+   "kind": "release",
+   "why": "Round 58 of 99 (twelve lenses) opens a public-reach-comprehension move now that the strategic-comprehension class D63–D65 completed the master platform.why's business clauses on the shown face S8.nba.hi. The brief's R-CORE section mandates every round tie CrisisCommand's crisis learnings to the steering of PUBLIC-GOVERNMENT projects, opened through the eXeL Polling API — a Vision 2525 goal — yet that public-body reach was carried on no shown (hi) face, only in the speaker notes (S4, S5, S12, S16, S17). This round brings the fourth market step onto the go-to-market face S12.l30.hi verbatim from l30.ai[3]: '4 PUBLIC BODY — after G3 (IA, D12): the fourth step in the sequence', a government asking its people through the eXeL Polling API, the approved posture and delivered result replayable by the body that owns it. It is D12's decision, not a new claim; marked (IA, after G3) and 'never a claimed customer' so law 3 and the no-overclaim law hold on the face; the ai stays a strict superset; no figure, date, NBA pairing or law moves. S2 status and S18 e0 read rev 0.064 · D1–D66; PROV and the row provenance read rev 0.064; the previous release 0.063 records commit 4b73981.",
    "commit": "PENDING"
   }
  ],
@@ -2878,6 +2885,13 @@
    "revision": "0.063",
    "by": "twelve lenses · round 57",
    "decision": "Round 57 of 99 CONTINUES the strategic-comprehension move D63 opened at round 55 and D64 continued at round 56 (bring the master's own plain-language STRATEGIC framing onto the shown face where a non-analyst reads it, where the shown face carried only part of the record's reasoning). D63 brought the benchmark's SELECTION ground — 'present in the EDU and FOOD stacks, its buyer already believes in one platform' — onto S8.nba.hi from the master platform.why; D64 brought its WHY-NOW — 'the incumbent already moving into the whitespace' — onto the same cell. The master platform.why carries one further business-relevant clause the deck showed on no face: 'Eleven of twelve reviewer lenses' — the near-unanimous consensus behind the benchmark selection, the strength of agreement that tells a non-analyst the pick is well-grounded, not one voice. A founder, an investor, a business owner or a system thinker without analytics know-how could read on S8 that Everbridge is the widest surface, already in two of the three stacks, its buyer believing in one platform, and the incumbent already crossing into the whitespace — yet not read how firmly the choice was held; S8.nba.ai already carried 'eleven of twelve reviewer lenses', the shown face did not. This round adds 'eleven of twelve reviewer lenses; ' at the head of the benchmark's selection-ground parenthetical on S8.nba.hi, mirroring the head of S8.nba.ai's own parenthetical and completing the master platform.why's business clauses (surface · stacks · buyer · why-now · consensus) on the shown face; the parenthetical's ellipsis-tail — 'Enlil argued PagerDuty for buildability' — is an internal review dissent, a claim about the review's own debate rather than about the business case, and is deliberately left off the deck (Enlil's own lens states this, honestly, in this round's file). The framing is not a new business claim: the clause is the master platform.why's own words (the twelve-lens synthesis on the record), S8.nba.ai already carried it and stays a strict superset (unedited, far longer), and no figure, date, NBA pairing or law moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; the primary NBA pairings EDU -> Rave · FOOD -> Everbridge · TECH -> PagerDuty untouched; the one-ninth-gate >=3 lock holds at 9; nothing emptied). It raises scalability (the non-analyst now reads how surely the benchmark was chosen — eleven of twelve reviewer lenses named it — the conviction behind the whole one-platform thesis legible on the face) and efficiency (the strength reads without cross-referencing the note or the master) and holds security, stability and succinctness (~5 words on an already-kept cell, the master's own words, ai unchanged and still far longer). It supersedes nothing and continues D63/D64's strategic-comprehension class, distinct from the closed financial class D55–D62 and the acronym-comprehension class D44–D51: with platform.why's business clauses now all on the shown face, the reader who lacks the specialist's units reads why the numbers are what they are, why the case anchors on Everbridge, why the moment to move is now, and how firmly that anchor was chosen — all from the record. A later round continues this strategic-comprehension move where another master framing a non-analyst needs is still off the face, a density pass under law 6, or an evidence-gated change under the S11 change-control law — never a claim the record does not carry."
+  },
+  {
+   "id": "D66",
+   "date": "2026-09-25",
+   "revision": "0.064",
+   "by": "twelve lenses · round 58",
+   "decision": "Round 58 of 99 OPENS a public-reach-comprehension move now that the strategic-comprehension move D63–D65 completed the master platform.why's business clauses (surface · stacks · buyer · why-now · consensus) on the shown face S8.nba.hi, and the financial class D55–D62 closed before it. The class's spirit is the same as both: bring onto the shown face, in the record's own words, something a reader of the printed PDF needs but that lived only in the speaker note. The brief's R-CORE section is emphatic that every round ties CrisisCommand's crisis learnings to the steering of PUBLIC-GOVERNMENT projects — opened through the eXeL Polling API, the citizen's answer entering the record, every approved posture and outcome replayable by the body that owns it, for transparency and accountability (a Vision 2525 goal). That public-body reach is carried richly in the ai (speaker-note) cells (S4, S5, S12, S16, S17) but on NO shown (hi) face except a faint 'the community answers back' on S4 — so a reader of the slides alone would not see that the same governed-decision loop steers public-government projects. The go-to-market slide S12.l30 is the most on-point face: its ai already carried '4 PUBLIC BODY — after G3 (IA, D12): the fourth step in the sequence' as a full note element, while its shown face named only the three commercial steps (EDU · FOOD · TECH). This round brings that fourth step onto S12.l30.hi verbatim from S12.l30.ai[3] — the record's own words (D12), marked (IA, after G3) and 'never a claimed customer' so law 3 and the no-overclaim law hold on the face. It is not a new business claim: the step is D12's decision, the ai cell already carried it, the ai stays a strict superset (four note elements to the face's three, still longer and carrying the extra 'sequence is not TAM' detail), and no figure, date, NBA pairing or law moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU -> Rave · FOOD -> Everbridge · TECH -> PagerDuty untouched; the one-ninth-gate >=3 lock holds at 9; nothing emptied; S4 CONOPS steps untouched at 10). It raises scalability (an investor, a business owner or a system thinker without analytics know-how reading the go-to-market page now sees the public-government market as the fourth step, legible to a broader audience), efficiency (the reach reads without opening the note), stability and security a hair (the shown face agrees with the note, and law 3's 'never a claimed customer' guard reads on the face), and dips succinctness a hair (a ~50-word bullet joins a slide that showed two short ones and had room). It supersedes nothing and opens a public-reach-comprehension class distinct from the closed financial class D55–D62 and the strategic class D63–D65. A later round continues this move where the public-body reach is still off another shown face (S5.problem.hi, S17.obs.hi), a density pass under law 6, or an evidence-gated change under the S11 change-control law (customer, competitive, cost, implementation or pilot evidence) — never a claim the record does not carry."
   }
  ],
  "iterations": [
@@ -4286,6 +4300,29 @@
    ],
    "decisions": [
     "D65"
+   ]
+  },
+  {
+   "revision": "0.064",
+   "n": 58,
+   "date": "2026-09-25",
+   "author": "twelve lenses · round 58",
+   "file": "docs/drs/iterations/0.064.md",
+   "ssesMeans": {
+    "security": 95.83,
+    "stability": 96.67,
+    "scalability": 98.42,
+    "efficiency": 97.33,
+    "succinctness": 90.25
+   },
+   "edits": [
+    "S12 · l30.hi · open a public-reach-comprehension move: bring the fourth market step, the public body, onto the shown go-to-market face verbatim from l30.ai[3], where the R-CORE / Vision 2525 public-government reach (the eXeL Polling API, the citizen's answer entering the record, every approved posture and outcome replayable by the body that owns it) lived only in the speaker note. hi gains a new element \"4 PUBLIC BODY — after G3 (IA, D12): the fourth step in the sequence — ... never a claimed customer.\" (anchor \"This is a validation sequence, not a TAM (total addressable market) ranking.\" + ] + ai: [ , count 1). ai untouched, stays a strict superset (four note elements to the face's three, keeping the extra 'sequence is not TAM' detail). D12's decision, not a new claim; marked (IA, after G3) and 'never a claimed customer' so law 3 held on the face; no figure, date, NBA pairing or law moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU -> Rave · FOOD -> Everbridge · TECH -> PagerDuty untouched; the one-ninth-gate >=3 lock holds at 9; S4 CONOPS steps untouched at 10). Raises scalability and efficiency · D66",
+    "S2 · status · rev 0.063 -> 0.064, decision register D1–D65 -> D1–D66 (hi + ai, anchor \"rev 0.063 · decision register D1–D65\", count 2) · laws 5 and 7",
+    "S18 · e0 · decision register (D1–D65) -> (D1–D66) (hi[2] + ai[2], anchor \"The decision register (D1–D65)\", count 2) — the register grew (D66); both S2 and S18 read one count · law 7",
+    "PROV / row provenance · rev 0.063 -> 0.064 (seed PROV anchor \"v1.0 · rev 0.063\" count 1; innovation-data.ts row provenance anchor \"v1.0 · rev 0.063\" count 1) · law 5"
+   ],
+   "decisions": [
+    "D66"
    ]
   }
  ]
