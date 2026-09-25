@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.046";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.047";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -81,8 +81,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.046 · decision register D1–D48 and the iteration ledger in docs/drs (append-only).",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.046 · decision register D1–D48 and the iteration ledger in docs/drs (append-only). " + PROV,
+        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.047 · decision register D1–D49 and the iteration ledger in docs/drs (append-only).",
+        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.047 · decision register D1–D49 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
@@ -441,13 +441,13 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           ["High", "Single-platform concentration — the platform's own outage during the event it serves", "Degraded mode: the approved posture and the record survive on any phone; a completed approval is never discarded; no AI required to read the plan", "Open"],
           ["Med", "AI appears to command once the platform sends, tasks and releases", "Every outbound action carries its decision right, a named approver and a timestamp; Manual cadence by default, Semi-Automated earned per capability (R-CORE)", "Mitigating"],
-          ["Med", "Data / PHI boundary erodes under one platform", "Classify at intake; sensitive facts arrive by pointer and never become the platform's; HEALTH stays outside PHI", "Mitigating"],
+          ["Med", "Data / PHI (protected health information) boundary erodes under one platform", "Classify at intake; sensitive facts arrive by pointer and never become the platform's; HEALTH stays outside PHI", "Mitigating"],
           ["Med", "Simulation becomes theater", "Pre-registered hypothesis, null and stop rule; timing, risk and outcome metrics declared before G3", "Mitigating"],
         ],
         ai: [
           ["High", "Single-platform concentration — the platform's own outage during the event it serves", "Degraded mode: the approved posture and the record survive on any phone; a completed approval is never discarded; no AI required to read the plan", "Open"],
           ["Med", "AI appears to command once the platform sends, tasks and releases", "Every outbound action carries its decision right, a named approver and a timestamp; Manual cadence by default, Semi-Automated earned per capability (R-CORE)", "Mitigating"],
-          ["Med", "Data / PHI boundary erodes under one platform", "Classify at intake; sensitive facts arrive by pointer and never become the platform's; HEALTH stays outside PHI", "Mitigating"],
+          ["Med", "Data / PHI (protected health information) boundary erodes under one platform", "Classify at intake; sensitive facts arrive by pointer and never become the platform's; HEALTH stays outside PHI", "Mitigating"],
           ["Med", "Simulation becomes theater", "Pre-registered hypothesis, null and stop rule; timing, risk and outcome metrics declared before G3", "Mitigating"],
           ["Low", "HEALTH PHI / HIPAA (current-state external boundary)", "Not a PHI / HIPAA system of record; clinical records stay out — never a future feature", "Mitigated"],
         ],
