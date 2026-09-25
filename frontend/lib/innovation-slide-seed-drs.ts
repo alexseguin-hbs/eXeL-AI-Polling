@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.050";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.051";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -81,20 +81,20 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.050 · decision register D1–D52 and the iteration ledger in docs/drs (append-only).",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.050 · decision register D1–D52 and the iteration ledger in docs/drs (append-only). " + PROV,
+        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.051 · decision register D1–D53 and the iteration ledger in docs/drs (append-only).",
+        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.051 · decision register D1–D53 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
           "Today: Understand → Structure → Align → Communicate → Manage → Prepare / Simulate.",
           "Future extension: Understand → Judge → Align → Approve → Assign → Acknowledge → Communicate → Observe → Replay → Improve.",
-          "Horizon 1 (2027) Governed Leadership State, native · Horizon 2 (→ 2030) the critical-event surface absorbed under the one-ninth gate, alerting last · Horizon 3 Enterprise Decision Graph · Horizon 4 Recursive Readiness (2525).",
+          "Horizon 1 (2027) Governed Leadership State, native · Horizon 2 (→ 2030) the critical-event surface absorbed under the one-ninth (11.1 %) gate, alerting last · Horizon 3 Enterprise Decision Graph · Horizon 4 Recursive Readiness (2525).",
           "Gates: G2 validates the measurement design (interviews, NBA teardown, prototype, one pre-registered EDU tabletop) · G3 runs the instrumented A/B.",
         ],
         ai: [
           "Today: Understand → Structure → Align → Communicate → Manage → Prepare / Simulate.",
           "Future extension: Understand → Judge → Align → Approve → Assign → Acknowledge → Communicate → Observe → Replay → Improve.",
-          "Horizon 1 (2027) Governed Leadership State, native, with every benchmark function reachable from inside the platform · Horizon 2 (→ 2030) the critical-event surface absorbed function by function under the one-ninth gate, alerting last · Horizon 3 Enterprise Decision Graph · Horizon 4 Recursive Readiness (2525).",
+          "Horizon 1 (2027) Governed Leadership State, native, with every benchmark function reachable from inside the platform · Horizon 2 (→ 2030) the critical-event surface absorbed function by function under the one-ninth (11.1 %) gate, alerting last · Horizon 3 Enterprise Decision Graph · Horizon 4 Recursive Readiness (2525).",
           "Gates: G2 validates the measurement design (interviews, NBA teardown, prototype, one pre-registered EDU tabletop) · G3 runs the instrumented A/B.",
           "Validation sequence 1 EDU · 2 FOOD · 3 TECH — a sequence, not a market-size ranking.",
         ],
@@ -454,14 +454,14 @@ export const SLIDE_SEED_DRS: SlideSeed = {
       },
       comm: {
         hi: [
-          ["High", "Absorbing the benchmark's surface before the leadership proof (Everbridge-lite)", "Govern first; absorb function by function only after each beats the benchmark on its pre-registered clock by the one-ninth gate", "Mitigating"],
+          ["High", "Absorbing the benchmark's surface before the leadership proof (Everbridge-lite)", "Govern first; absorb function by function only after each beats the benchmark on its pre-registered clock by the one-ninth (11.1 %) gate", "Mitigating"],
           ["High", "Life-safety alerting liability inside one platform", "Alerting absorbed last, delivery-guaranteed and certified; partnered rails under a named human until then", "Open"],
           ["Med", "Incumbent retaliation — pointer access cut, a bundled 'leadership module'", "Sell to the C-suite door the incumbents do not hold; own the decision record; partnered rails are optional channels", "Mitigating"],
           ["Med", "New SKU invented before WTP evidence", "Preserve the current commercial spine until validated", "Mitigating"],
           ["Med", "Segment sprawl", "Validate EDU / FOOD / TECH first", "Mitigating"],
         ],
         ai: [
-          ["High", "Absorbing the benchmark's surface before the leadership proof (Everbridge-lite)", "Govern first; absorb function by function only after each beats the benchmark on its pre-registered clock by the one-ninth gate", "Mitigating"],
+          ["High", "Absorbing the benchmark's surface before the leadership proof (Everbridge-lite)", "Govern first; absorb function by function only after each beats the benchmark on its pre-registered clock by the one-ninth (11.1 %) gate", "Mitigating"],
           ["High", "Life-safety alerting liability inside one platform", "Alerting absorbed last, delivery-guaranteed and certified; partnered rails under a named human until then", "Open"],
           ["Med", "Incumbent retaliation — pointer access cut, a bundled 'leadership module'", "Sell to the C-suite door the incumbents do not hold; own the decision record; partnered rails are optional channels", "Mitigating"],
           ["Med", "New SKU invented before WTP evidence", "Preserve the current commercial spine until validated", "Mitigating"],
@@ -716,12 +716,12 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D52) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D53) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
         ],
         ai: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D52) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D53) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
           PROV,
         ],
       },
