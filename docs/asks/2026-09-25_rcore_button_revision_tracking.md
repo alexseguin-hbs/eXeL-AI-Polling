@@ -40,3 +40,15 @@ A two-stage badge (mirrors the existing Powered Badge pattern), on EVERY Innovat
    revisions, the ledger / audit trail), reading the domain's own revision record, in the Vision-2525 style.
 "All Innovation 2525 projects" = every 2525 domain surface (Drone-2525, SoI-2525, Manta-2525, Security-2525, and
 the others of the family — Architect-2525, Celestial-2525 — kept uniform).
+
+## Extension (operator 2026-09-25) — Settings + easter-egg menu too
+> great, lets do for settings and easter egg menu as well (so we can see evolution for traceability as we add
+> more features).
+
+The R-CORE badge + version-history/compare tool is not only for the domain projects — it also goes on:
+- the SETTINGS panel (the shared Settings slide-over — moderator-settings.tsx / the settings surface), and
+- the EASTER-EGG MENU (the powered-badge unlock → Cube 10 SIM / the /sim console).
+Each of these surfaces gets its OWN append-only revision ledger (seeded from its current state + recent changes)
+so, as we add more features, the evolution of Settings and the easter-egg menu is itself traceable through the
+same R-CORE compare tool — "in the spirit of R-CORE and Vision-2525: one method, per surface, its own history."
+So the R-CORE record becomes the traceability substrate for every surface we build, not just the projects.
