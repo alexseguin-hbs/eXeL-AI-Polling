@@ -53,10 +53,13 @@ export function RCoreBadge({ history, accent = "#22d3ee" }: { history: RCoreHist
 
   return (
     <>
+      {/* Operator 2026-09-25: the R-CORE target sits at the BOTTOM OF THE PAGE, in normal flow, below the
+          content — never a fixed overlay on top of the image/slide. Mounted last in each surface, so it lands
+          at the page bottom. (The version-history panel below is still a click-to-open modal.) */}
       <div
         data-rcore-badge
-        className="fixed left-1/2 z-[60] -translate-x-1/2"
-        style={{ bottom: 12, pointerEvents: "auto" }}
+        className="flex w-full justify-center"
+        style={{ padding: "18px 16px", pointerEvents: "auto" }}
       >
         {stage === 0 ? (
           <button
