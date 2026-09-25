@@ -1144,7 +1144,7 @@ const DEMO_PROJECTS_BASE: Project[] = [
   // (docs/drs/drs.v00.00.json financialModel). The Pod's linked fields (S1 chart · S2 / S3 profile · S8 charts · S10 grid) derive from these two numbers,
   // REVPLAN_QTY and the value drivers — change the inputs, never a printed number. The unpriced class (v1.0) stays in the code, no longer applied here.
   nreK: 11200, fullRev10yM: 248, doNothing10yM: 0, firstRevenue: "2027-Q3", criticalPath: false, humanLoad: 0.5, ai: 0.3, si: 0.2, hi: 0.5, predictions: 0, startDate: "2026-09-23",
-    provenance: "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.090" },
+    provenance: "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.091" },
   { id: "PRJ-33", name: "Multi-Orbit ISR Tasking Broker", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "med", nreK: 4900, fullRev10yM: 155, doNothing10yM: 0, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.54, ai: 0.5, si: 0.3, hi: 0.2, predictions: 27 },
 ];
 

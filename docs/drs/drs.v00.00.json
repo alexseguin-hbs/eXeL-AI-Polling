@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.090",
+  "revision": "0.091",
   "stage": "G2 / future-state validation",
   "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -1896,6 +1896,13 @@
    "date": "2026-09-25",
    "kind": "release",
    "why": "Round 84 of 99 continues the density / law-6 class (D76–D91) on the S7 Customer Workflow slide: S7.personas.hi[3] (the citizen / recipient row) sheds its inline six-field CASPER roster 'who · where · what is lacking · severity · who is responsible · time' and keeps the concept 'a CASPER-shaped intake (a standard community-assessment record — fields in the note)' and the eXeL Polling API entry point on the face; personas.ai[3] keeps the full roster as a strict superset (law 6). No figure, financial date, NBA pairing, claim, gate or reach moves; S2.status and S18.e0 advance the register to D1–D92 and the rev / provenance to 0.090. Efficiency 99.33 → 99.92; succinctness holds 100.0.",
+   "commit": "b3368bb"
+  },
+  {
+   "revision": "0.091",
+   "date": "2026-09-25",
+   "kind": "release",
+   "why": "Round 85 of 99 continues the density / law-6 class (D76–D92) on the S5 Customer Problem slide: S5.problem.hi sheds its inline seven-domain roster 'reputation, operations, legal, regulatory, financial, safety and stakeholder domains' and keeps the breadth 'leaders across many enterprise domains have no governed layer' on the face; problem.ai keeps the full roster as a strict superset (law 6). It joins D79, which earlier cleared the record-contents field-list from the same cell, so S5.problem.hi now states the gap without either enumeration. No figure, financial date, NBA pairing, claim, gate or reach moves; S2.status and S18.e0 advance the register to D1–D93 and the rev / provenance to 0.091. Efficiency 99.92 → 100.0; succinctness holds 100.0.",
    "commit": "PENDING"
   }
  ],
@@ -3256,6 +3263,13 @@
    "revision": "0.090",
    "by": "twelve lenses · round 84",
    "decision": "D92 — Round 84 of 99 CONTINUES the density / law-6 class (D76 S8.nba.hi, D77 S1.ask.hi gate parenthetical, D78 S1.ask.hi CTS gloss, D79 S5.problem.hi field-list, D80 S6.conops.hi[0] vendor roster, D81 S2.status.hi edition-provenance log, D82 S1.strategy.hi[0] component sample, D83 S12.l60.hi[1] cost-to-serve sample, D84 S12.l60.hi[0] commercial-forms sample, D85 S6.problem.hi[1] current-foundation inventory, D86 S1.strategy.hi[1] ten-delta enumeration, D87 S5.statusquo.hi[3] table-stakes list, D88 S11.exp.hi[1] col-3 tracked-clock enumeration, D89 S5.whys.hi[0] campus-constituency roster, D90 S5.whys.hi[1] enterprise-domain roster, D91 S5.whys.hi[2] enterprise-consequence roster): bring INTERNAL / illustrative detail OFF a customer-facing shown face into its speaker note, where the detail is already carried, while KEEPING the reader's core understanding on the face so comprehension is never lost. This round takes S7.personas.hi[3] (Customer Workflow, the citizen / recipient row), whose cell paused to spell every field of the CASPER intake inline — 'who · where · what is lacking · severity · who is responsible · time' — a roster the speaker note personas.ai[3] already holds in full, identically. The fields are not the point; the point is that the citizen answers back and the need enters the record as operational truth, a standard community-assessment record, reachable for a public body through the eXeL Polling API — the concept and the entry point, which both stay on the face. This round REMOVES only the inline field roster from the shown cell and leaves it in personas.ai[3], so personas.ai stays a strict superset and never shorter than personas.hi (law 6), keeps the array's five hi rows and six ai rows, and empties nothing. It is not a business change: no figure, financial date, NBA pairing, claim, gate or reach moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched as pairings; the ≥3 'one-ninth gate' lock is untouched; the master statement and vprop untouched under law 4). It raises efficiency (99.33 → 99.92) and holds succinctness (100.0). It is the SEVENTEENTH member of the density / law-6 class (after D76–D91) and the first to take an S7 shown cell, extending the discipline proven on the S5 whys trio to the personas slide. A later round continues the class on a shown cell that still carries internal / illustrative inventory without a comprehension cost — an evidence-gated change under the S11 change-control law, or a fresh readability class — never a claim the record does not carry."
+  },
+  {
+   "id": "D93",
+   "date": "2026-09-25",
+   "revision": "0.091",
+   "by": "twelve lenses · round 85",
+   "decision": "D93 — Round 85 of 99 CONTINUES the density / law-6 class (D76–D92): bring INTERNAL / illustrative detail OFF a customer-facing shown face into its speaker note, where the detail is already carried, while KEEPING the reader's core understanding on the face so comprehension is never lost. This round takes S5.problem.hi (Customer Problem), whose opening still paused to spell every domain a crisis crosses inline — 'reputation, operations, legal, regulatory, financial, safety and stakeholder domains' — a roster the speaker note problem.ai already holds in full, identically. The domains are not the point; the point is that leaders across MANY domains have no governed layer that turns incident context into aligned executive decisions, governed action, coherent stakeholder response and reusable learning — the breadth, which stays on the face as 'leaders across many enterprise domains have no governed layer'. This round REMOVES only the inline seven-domain roster from the shown cell and leaves it in problem.ai, so problem.ai stays a strict superset and never shorter than problem.hi (law 6), and empties nothing. It joins D79, which earlier cleared the record-contents field-list ('who decided what, why, who owned it and what happened next') from the same S5.problem.hi cell, so that cell now states the gap — operational truth in specialist systems, judgment in meetings, the record reconstructed afterwards; two systems split the record; the future state is one platform — without either enumeration. It is not a business change: no figure, financial date, NBA pairing, claim, gate or reach moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched as pairings; the ≥3 'one-ninth gate' lock is untouched; the master statement and vprop untouched under law 4; the public-body reach clause and its '(IA, after G3, D12 · D27)' citation deliberately LEFT on the face). It raises efficiency (99.92 → 100.0) and holds succinctness (100.0), bringing the two reader-cost pillars of the business case to their ceiling; the remaining SSSES headroom — security, stability, scalability — is evidence-gated (a buyer interview / the G3 A/B under the S11 change-control law), not an edit. It is the EIGHTEENTH member of the density / law-6 class (after D76–D92) and the second to touch S5.problem.hi (D79 took its other enumeration). A later round continues the class on a shown cell that still carries internal / illustrative inventory without a comprehension cost, an evidence-gated change under the S11 change-control law, or a fresh readability class — never a claim the record does not carry."
   }
  ],
  "iterations": [
@@ -5298,6 +5312,30 @@
    ],
    "decisions": [
     "D92"
+   ]
+  },
+  {
+   "revision": "0.091",
+   "n": 85,
+   "date": "2026-09-25",
+   "author": "twelve lenses · round 85",
+   "file": "docs/drs/iterations/0.091.md",
+   "ssesMeans": {
+    "security": 96.75,
+    "stability": 97.67,
+    "scalability": 99.75,
+    "efficiency": 100.0,
+    "succinctness": 100.0
+   },
+   "edits": [
+    "S5 · problem.hi — remove the inline seven-domain roster (reputation, operations, legal, regulatory, financial, safety and stakeholder domains) from the shown Customer Problem cell; keep the breadth 'leaders across many enterprise domains have no governed layer' on the face; problem.ai keeps the full roster (law 6) — D93",
+    "S2 · status.hi — rev 0.090 → 0.091, register D1–D92 → D1–D93",
+    "S2 · status.ai — rev 0.090 → 0.091, register D1–D92 → D1–D93 (edition history kept, strict superset)",
+    "S18 · e0 — register (D1–D92) → (D1–D93) (hi[2] + ai[2])",
+    "PROV / row provenance — rev 0.090 → 0.091"
+   ],
+   "decisions": [
+    "D93"
    ]
   }
  ]
