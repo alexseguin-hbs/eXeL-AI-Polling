@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.051",
+    "revision": "0.052",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1622,8 +1622,15 @@
       "revision": "0.051",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "6053dd8",
       "why": "Round 45 of 99 (twelve lenses) continues the consistency-reconciliation pass D52 opened at round 44. The absorption gate — the hinge of the one-platform thesis, a benchmark function going native only after it removes at least a ninth (11.1 %) of the benchmark's baseline on its clock (D38) — carried its exact threshold on the summary (S1, D52) and in the master platform ladder, but the two other shown faces where the thesis is weighed still named only the fraction: the Horizon-2 roadmap headline (S2.roadmap) and the top commercial-risk mitigation (S13.comm, 'Absorbing the benchmark's surface before the leadership proof'). This round adds '(11.1 %)' at the gate on both, so they read 'the one-ninth (11.1 %) gate', matching the master ladder verbatim and S1. 11.1 % is 1/9 — pure arithmetic the master already carries — so the edit invents nothing and moves no printed money, date or law (no dollar touched; 60 k / 180 k / 115 % / the ramp unchanged); it agrees with S4's stop rule (11.1 % of 130 = 14.4). Four of the seed's nineteen 'one-ninth gate' occurrences become 'one-ninth (11.1 %) gate', leaving fifteen contiguous (the ≥3 lock holds). S2 status and S18 e0 carry rev 0.051 and the grown D1–D53 register; PROV and the row provenance bump to rev 0.051 (D53)."
+    },
+    {
+      "revision": "0.052",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 46 of 99 (twelve lenses) CLOSES the consistency-reconciliation pass D52 opened (round 44) and D53 continued (round 45). The absorption gate — the hinge of the one-platform thesis, a benchmark function going native only after it removes at least a ninth (11.1 %) of the benchmark's baseline on its clock (D38) — carried its exact threshold on the summary (S1, D52), the Horizon-2 roadmap headline and the top commercial-risk mitigation (S2 / S13, D53), but three shown faces still named only the fraction: the resourcing Horizon-2 note (S14.notes), the beta-feedback priority row (S15.prio) and the post-launch 2030 priority row (S17.prio). This round adds '(11.1 %)' at the gate on all three (and their matching ai cells), so they read 'the one-ninth (11.1 %) gate', matching the master ladder verbatim; with this, every SHOWN face where the gate is load-bearing carries its exact value and the class is closed. 11.1 % is 1/9 — pure arithmetic the master already carries — so the edit invents nothing and moves no printed money, date or law (no dollar touched; 60 k / 180 k / 115 % / the ramp unchanged); it agrees with S4's stop rule (11.1 % of 130 = 14.4). Six of the seed's fifteen 'one-ninth gate' occurrences become 'one-ninth (11.1 %) gate', leaving nine contiguous (the >=3 lock holds). S2 status and S18 e0 carry rev 0.052 and the grown D1–D54 register; PROV and the row provenance bump to rev 0.052 (D54)."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2710,6 +2717,13 @@
       "revision": "0.051",
       "by": "twelve lenses · round 45",
       "decision": "Round 45 of 99 continues the consistency-reconciliation pass that D52 opened at round 44 (make the deck's shown faces agree with the master record, and with each other, where a load-bearing quantity was stated qualitatively on some faces and precisely in the record). The absorption gate is the hinge of the one-platform thesis: a benchmark function goes native only after it removes at least a ninth of the benchmark's baseline on its clock (defined on the shown face at D38). The master platform ladder records that gate quantitatively — 'the one-ninth (11.1 %) gate' (platform.ladder, 2030 horizon) — and round 44 (D52) brought the exact value onto the summary (S1.oneline). But the one-ninth gate is load-bearing on other shown faces a reader actually opens: the Horizon-2 roadmap headline (S2.roadmap.hi[2] + ai[2]) and the top commercial-risk mitigation (S13.comm.hi[0] + ai[0], 'Absorbing the benchmark's surface before the leadership proof (Everbridge-lite)'), where an investor, a board, a system thinker without analytics know-how or an execution genius weighs whether the 'govern first, absorb by qualification' discipline is real — and there the threshold read only as the fraction 'the one-ninth gate', while the summary and the master read it precisely. This round reconciles them: it adds '(11.1 %)' at the gate on S2.roadmap (hi[2] + ai[2]) and S13.comm (hi[0] + ai[0]), so those faces read 'the one-ninth (11.1 %) gate', matching the master platform ladder verbatim and S1. The figure is not a new business number: 11.1 % is one divided by nine, the arithmetic of the ninth the gate already named, and it is already carried in the master — so the edit invents nothing and moves no printed money, date or law (no dollar touched; 60 k / 180 k / 115 % / the ramp all unchanged; law 3's financialModel inputs untouched). It agrees with S4's pre-registered stop rule ('fewer than 15 of the benchmark's 130 minutes removed', D14; 11.1 % of 130 = 14.4). It is the same consistency-reconciliation class as D52, not the closed acronym-comprehension class (D44–D51): D52 reconciled the summary; this round reconciles the roadmap and the risk, the two other shown faces where the hinge threshold is weighed. Converting four of the seed's nineteen 'one-ninth gate' occurrences to 'one-ninth (11.1 %) gate' leaves fifteen contiguous 'one-ninth gate' occurrences, well above the innovation-time ≥3 lock, and 'alerting last' remains on the same faces. It raises scalability (a precise-minded or 2525 reader reads the exact qualification bar wherever they open the deck), efficiency (the gate reads to a number on the faces that govern the plan and the risk) and stability (the shown faces agree with each other and with the master), at no succinctness cost beyond ~9 characters on already-kept cells. It supersedes nothing. A later round's clarity work continues this consistency-reconciliation class (any remaining shown face where the one-ninth gate is load-bearing — S12.l30.ai, S14.notes, S15.prio, S17.prio — could carry the exact figure), or a density pass under law 6, or an evidence-gated change under the S11 change-control law (customer, competitive, cost, implementation or pilot evidence) — never a figure the record does not carry."
+    },
+    {
+      "id": "D54",
+      "date": "2026-09-25",
+      "revision": "0.052",
+      "by": "twelve lenses · round 46",
+      "decision": "Round 46 of 99 CLOSES the consistency-reconciliation pass that D52 (round 44) opened and D53 (round 45) continued (make the deck's shown faces agree with the master record, and with each other, where a load-bearing quantity was stated qualitatively on some faces and precisely in the record). The absorption gate is the hinge of the one-platform thesis: a benchmark function goes native only after it removes at least a ninth of the benchmark's baseline on its clock (defined on the shown face at D38, made exact — 'a ninth (11.1 %)' — on S1.oneline at D52, and on the Horizon-2 roadmap headline and the top commercial-risk mitigation at D53). Three shown (hi) faces still carried the load-bearing 'one-ninth gate' as the bare fraction: the resourcing Horizon-2 note (S14.notes.hi[1] + its matching ai[1]), the beta-feedback priority row (S15.prio.hi[1] + ai[1], identical cells) and the post-launch 2030 priority row (S17.prio.hi[1] + ai[1], identical cells) — read by a resourcing planner, a validation lead and an execution reader weighing whether the 'govern first, absorb by qualification' discipline is real. This round adds '(11.1 %)' at the gate on all three, so they read 'one-ninth (11.1 %) gate', matching the master platform ladder verbatim and S1 / S2 / S13. With this, every SHOWN face where the one-ninth gate is load-bearing now carries its exact threshold; the shown-face reconciliation class for the gate is closed. The figure is not a new business number: 11.1 % is one divided by nine, the arithmetic of the ninth the gate already named, and it is already carried in the master — so the edit invents nothing and moves no printed money, date or law (no dollar touched; 60 k / 180 k / 115 % / the ramp all unchanged; law 3's financialModel inputs untouched). It agrees with S4's pre-registered stop rule ('fewer than 15 of the benchmark's 130 minutes removed', D14; 11.1 % of 130 = 14.4). Converting six of the seed's fifteen 'one-ninth gate' occurrences to 'one-ninth (11.1 %) gate' leaves nine contiguous 'one-ninth gate' occurrences (all ai-only notes and the file header), well above the innovation-time >=3 lock, and 'alerting last' remains on the same faces. It raises stability (every shown face agrees with the others and with the master), scalability (a precise-minded or 2525 reader reads the exact qualification bar wherever they open the deck) and efficiency (the gate reads to a number on every governing face), at no succinctness cost beyond ~9 characters on already-kept cells; security holds. It supersedes nothing. With the shown-face reconciliation for the one-ninth gate complete, a later round returns to a density pass under law 6, an evidence-gated change under the S11 change-control law (customer, competitive, cost, implementation or pilot evidence), or a new consistency-reconciliation target — never a figure the record does not carry."
     }
   ],
   "iterations": [
@@ -3840,6 +3854,31 @@
       ],
       "decisions": [
         "D53"
+      ]
+    },
+    {
+      "revision": "0.052",
+      "n": 46,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 46",
+      "file": "docs/drs/iterations/0.052.md",
+      "ssesMeans": {
+        "security": 94.8,
+        "stability": 96.5,
+        "scalability": 96.6,
+        "efficiency": 96.0,
+        "succinctness": 90.3
+      },
+      "edits": [
+        "S14 · notes.hi[1] + ai[1] · add the absorption gate's exact threshold to the Horizon-2 resourcing note — hi[1] anchor \"clock by the one-ninth gate; alerting last and certified.\" → \"… by the one-ninth (11.1 %) gate; alerting last and certified.\" (count 1); ai[1] anchor \"clock by the one-ninth gate; Rave and PagerDuty\" → \"… by the one-ninth (11.1 %) gate; Rave and PagerDuty\" (count 1). This is a shown (hi) face a resourcing planner reads; the Horizon-2 absorption bar now reads to its exact value, matching the master ladder and S1 / S2 / S13. Both stay string[], ai a superset, nothing emptied · raises stability, scalability and efficiency · D54",
+        "S15 · prio.hi[1] + ai[1] · add the exact threshold to the beta-feedback Horizon-2 priority row — anchor \"by qualification (one-ninth gate), alerting last\" → \"by qualification (one-ninth (11.1 %) gate), alerting last\" (identical hi[1] + ai[1] cells, count 2). A shown face a validation lead reads; both stay string[][] rows with the same column count, ai an identical superset, nothing emptied · raises stability and scalability · D54",
+        "S17 · prio.hi[1] + ai[1] · add the exact threshold to the 2030 post-launch priority row — anchor \"under the one-ninth gate, alerting last and certified; multi-event learning\" → \"under the one-ninth (11.1 %) gate, alerting last and certified; multi-event learning\" (identical hi[1] + ai[1] cells, count 2). A shown face an execution reader reads; both stay string[][] rows with the same column count, ai an identical superset, nothing emptied. With S14 / S15 / S17 done, every shown face where the one-ninth gate is load-bearing carries the exact figure — the class is closed · raises stability and scalability · D54",
+        "S2 · status · rev 0.051 → 0.052, decision register D1–D53 → D1–D54 (hi + ai, anchor \"rev 0.051 · decision register D1–D53\", count 2) · laws 5 and 7",
+        "S18 · e0 · decision register (D1–D53) → (D1–D54) (hi[2] + ai[2], anchor \"The decision register (D1–D53)\", count 2) — the register grew (D54); both S2 and S18 read one count · law 7",
+        "PROV / row provenance · rev 0.051 → 0.052 (seed PROV anchor \"v1.0 · rev 0.051\" count 1; innovation-data.ts row provenance anchor \"v1.0 · rev 0.051\" count 1) · law 5"
+      ],
+      "decisions": [
+        "D54"
       ]
     }
   ]

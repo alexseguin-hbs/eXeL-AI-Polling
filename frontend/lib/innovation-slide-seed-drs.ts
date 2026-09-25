@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.051";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.052";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -81,8 +81,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.051 · decision register D1–D53 and the iteration ledger in docs/drs (append-only).",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.051 · decision register D1–D53 and the iteration ledger in docs/drs (append-only). " + PROV,
+        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.052 · decision register D1–D54 and the iteration ledger in docs/drs (append-only).",
+        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.052 · decision register D1–D54 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
@@ -529,11 +529,11 @@ export const SLIDE_SEED_DRS: SlideSeed = {
       notes: {
         hi: [
           "Horizon 1 — Governed Leadership State: decision rights · approval state · action ownership · acknowledgement · evidence · governed current-plan state · outcome-linked replay.",
-          "Horizon 2 — Absorb by qualification: every benchmark function reachable from inside the platform first, then native function by function only after each beats the benchmark on its pre-registered clock by the one-ninth gate; alerting last and certified.",
+          "Horizon 2 — Absorb by qualification: every benchmark function reachable from inside the platform first, then native function by function only after each beats the benchmark on its pre-registered clock by the one-ninth (11.1 %) gate; alerting last and certified.",
         ],
         ai: [
           "Horizon 1 — Governed Leadership State: decision rights · approval state · action ownership · acknowledgement · evidence · governed current-plan state · outcome-linked replay.",
-          "Horizon 2 — Absorb by qualification: every benchmark function reachable from inside the platform first (link, selected structured facts, status, action reference), then native function by function only after each beats Everbridge 360 AI / Bridge on its pre-registered clock by the one-ninth gate; Rave and PagerDuty facts flow in as inbound feeds; alerting last and certified.",
+          "Horizon 2 — Absorb by qualification: every benchmark function reachable from inside the platform first (link, selected structured facts, status, action reference), then native function by function only after each beats Everbridge 360 AI / Bridge on its pre-registered clock by the one-ninth (11.1 %) gate; Rave and PagerDuty facts flow in as inbound feeds; alerting last and certified.",
           "Horizon 3 — Enterprise Decision Graph: decision relationships · shared authority across teams · stakeholder patterns · executive action ownership · recurring crisis themes · multi-instance outcome replay (extends the announced Enterprise Crisis Dashboard, never a claim that cross-instance visibility is new). Horizon 4 — Recursive Readiness: multi-event learning · simulation · qualification · institutional continuity.",
           "Horizon 1 also ships the approver threat model (S13): step-up identity on every consequential sign-off, succession of decision rights when an approver is unreachable, privilege-aware fields for counsel-marked entries — a named human on every consequence is only as strong as the proof of who signed.",
         ],
@@ -559,13 +559,13 @@ export const SLIDE_SEED_DRS: SlideSeed = {
       prio: {
         hi: [
           ["1", "Horizon 1 — Governed Leadership State", "G2 measurement-design tabletop → G3 instrumented A/B"],
-          ["2", "Horizon 2 — Absorb the benchmark's surface by qualification (one-ninth gate), alerting last", "After the leadership-layer wedge is proven; each function on its own clock"],
+          ["2", "Horizon 2 — Absorb the benchmark's surface by qualification (one-ninth (11.1 %) gate), alerting last", "After the leadership-layer wedge is proven; each function on its own clock"],
           ["3", "Horizon 3 — Enterprise Decision Graph", "2030 horizon"],
           ["4", "Horizon 4 — Recursive Readiness (R-CORE-informed)", "2030 → 2525"],
         ],
         ai: [
           ["1", "Horizon 1 — Governed Leadership State", "G2 measurement-design tabletop → G3 instrumented A/B"],
-          ["2", "Horizon 2 — Absorb the benchmark's surface by qualification (one-ninth gate), alerting last", "After the leadership-layer wedge is proven; each function on its own clock"],
+          ["2", "Horizon 2 — Absorb the benchmark's surface by qualification (one-ninth (11.1 %) gate), alerting last", "After the leadership-layer wedge is proven; each function on its own clock"],
           ["3", "Horizon 3 — Enterprise Decision Graph", "2030 horizon"],
           ["4", "Horizon 4 — Recursive Readiness (R-CORE-informed)", "2030 → 2525"],
           ["5", "Segment-specific workflows (e.g. physical resources) only where segment evidence proves them", "Never universal"],
@@ -651,12 +651,12 @@ export const SLIDE_SEED_DRS: SlideSeed = {
       prio: {
         hi: [
           ["2027", "Governed leadership state native — decision rights · approval state · action ownership · acknowledgement · evidence · current-plan state · replay — and every benchmark function reachable from inside the platform: one login, one record", "Horizon 1"],
-          ["2030", "The whole critical-event surface native, absorbed function by function under the one-ninth gate, alerting last and certified; multi-event learning · simulation · readiness qualification · the Enterprise Decision Graph", "Horizons 2–4"],
+          ["2030", "The whole critical-event surface native, absorbed function by function under the one-ninth (11.1 %) gate, alerting last and certified; multi-event learning · simulation · readiness qualification · the Enterprise Decision Graph", "Horizons 2–4"],
           ["2525", "Humanity's shared, human-governed crisis memory: every institution's decisions, evidence and outcomes replayable across people, systems and generations in an open record; the affected community a participant, not only a recipient", "Vision"],
         ],
         ai: [
           ["2027", "Governed leadership state native — decision rights · approval state · action ownership · acknowledgement · evidence · current-plan state · replay — and every benchmark function reachable from inside the platform: one login, one record", "Horizon 1"],
-          ["2030", "The whole critical-event surface native, absorbed function by function under the one-ninth gate, alerting last and certified; multi-event learning · simulation · readiness qualification · the Enterprise Decision Graph", "Horizons 2–4"],
+          ["2030", "The whole critical-event surface native, absorbed function by function under the one-ninth (11.1 %) gate, alerting last and certified; multi-event learning · simulation · readiness qualification · the Enterprise Decision Graph", "Horizons 2–4"],
           ["2525", "Humanity's shared, human-governed crisis memory: every institution's decisions, evidence and outcomes replayable across people, systems and generations in an open record; the affected community a participant, not only a recipient", "Vision"],
           ["Thought Master test", "How many minutes change? What is each verified minute worth? Which risk changes as time passes? Which observable outcome improves?", "Internal, S14 / S15"],
         ],
@@ -716,12 +716,12 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D53) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D54) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
         ],
         ai: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D53) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D54) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
           PROV,
         ],
       },
