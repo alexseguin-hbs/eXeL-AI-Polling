@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.029",
+    "revision": "0.030",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1468,8 +1468,15 @@
       "revision": "0.029",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "103d244",
       "why": "Round 23 of 99 (twelve lenses) acts on the largest cleanly-trimmable law-6 density overflow left on any shown face: S6.problem.hi[0] (Product Summary — the Product boundary) carried the whole one-platform boundary — the ONE-platform thesis, every aspect of the benchmark's critical-event job with its five-function enumeration, absorption by qualification with the 2027 and 2030 horizons, and the three systems it is not — as one 543-character line, while S6.problem.ai[0] already carried that exact line verbatim plus the current-foundation and narrative note lines. (S5.problem.hi at 564 characters is longer but is a single problem argument, not an enumeration; trimming it would sever the case's opening one-platform thesis, so it is kept.) This round trims the shown line to its thesis, the 2027 / 2030 horizons, alerting-last and certified, and the pointer boundary (369 characters), anchored on the unique problem hi[0] so only the shown cell changes; hi stays string[] (two elements), ai is unchanged (three elements) and stays the superset, nothing is emptied, and no printed number, date or law moves — every benchmark function and excluded system survives complete in the note (D31); S2 status and S18 e0 carry rev 0.029 and the grown D1–D31 register; PROV and the row provenance bump to rev 0.029."
+    },
+    {
+      "revision": "0.030",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 24 of 99 (twelve lenses) acts on the two largest genuine law-6 density overflows left on any shown face once the financial-core lines (S3.fincomment Ramp and Value equation, which the financial slide exists to show and which law 3 wants on the deck) and the metadata status line are set aside: S4.future.hi[1] (FOOD CONOPS, 392 characters) and S4.future.hi[2] (TECH CONOPS, 402 characters) each ran the whole segment concept-of-operations chain in full on the shown face, near-identical arrow-for-arrow to the EDU chain, while S4.future.ai[1]/ai[2] already carried both chains verbatim plus the per-segment worked events and S4.conops.hi already shows the full EDU chain as ten ordered steps. (S5.problem.hi at 564 characters is longer but is a single problem argument, not an enumeration, and is kept.) This round trims the two shown lines to their signature outcomes, parallel to the EDU signature already at S4.future.hi[0], so the shown face reads as three matched signature outcomes over one fully worked concept; the anchor is the whole S4.future hi array block (unique — the identical strings recur only inside the untouched ai block), so only the shown cells change; hi stays string[] (3 elements), ai is unchanged (12 elements) and stays the superset, nothing is emptied, and no printed number, date or law moves — every step of both segment chains survives verbatim in the note (D32); S2 status and S18 e0 carry rev 0.030 and the grown D1–D32 register; PROV and the row provenance bump to rev 0.030."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2402,6 +2409,13 @@
       "revision": "0.029",
       "by": "twelve lenses · round 23",
       "decision": "Round 23 acts on the largest cleanly-trimmable law-6 density overflow left on any shown face: S6.problem.hi[0] (Product Summary — Product boundary) carried the whole one-platform boundary (the ONE-platform thesis · every aspect of the benchmark's critical-event job with its five-function enumeration · absorbed by qualification with the 2027 and 2030 horizons · the three systems it is not) as one 543-character line, and S6.problem.ai[0] already carried that exact line verbatim plus the current-foundation line and the narrative note line. S5.problem.hi (564 characters) is longer but is a single problem argument, not an enumeration, and trimming it would sever the case's opening one-platform thesis, so it is kept. This round trims the shown line to its thesis, the 2027 / 2030 horizons, alerting-last and certified, and the pointer boundary (369 characters), anchored on the unique problem hi[0] so only the shown cell changes; hi stays string[] (two elements), ai is unchanged (three elements) and stays the superset, nothing is emptied, and no printed number, date or law moves. Every benchmark function and excluded system survives complete in problem.ai[0]. Raises efficiency and succinctness (the Spiral Development Protocol's density test) without touching the substance."
+    },
+    {
+      "id": "D32",
+      "date": "2026-09-25",
+      "revision": "0.030",
+      "by": "twelve lenses · round 24",
+      "decision": "Round 24 acts on the two largest genuine law-6 density overflows left on any shown face once the financial-core lines (S3.fincomment Ramp 519 / Value equation 382, which the financial slide exists to show and which law 3 wants on the deck) and the metadata status line (S2.status) are set aside: S4.future.hi[1] (FOOD CONOPS, 392 chars) and S4.future.hi[2] (TECH CONOPS, 402 chars) each carried the whole segment concept-of-operations chain in full on the shown face, near-identical arrow-for-arrow to the EDU chain, past their panels, while S4.future.ai[1]/ai[2] already carried both chains verbatim plus the per-segment worked events (D13–D19) and S4.conops.hi already shows the full EDU chain as ten ordered steps. S5.problem.hi (564 chars) is longer but is a single problem argument, not an enumeration, and is kept (as at 0.029). This round trims the two shown lines to their signature outcomes, parallel to the EDU signature already at S4.future.hi[0], so the shown face reads as three matched signature outcomes over one fully worked concept; the anchor is the whole S4.future hi array block (unique — the identical strings recur only inside the ai block, which is left untouched), so only the shown cells change; hi stays string[] (3 elements), ai is unchanged (12 elements) and stays the superset, nothing is emptied, and no printed number, date or law moves (the CONOPS chains carry no digits). Every step of both segment chains survives verbatim in the note. Raises efficiency and succinctness (the Spiral Development Protocol's density test) without touching the substance."
     }
   ],
   "iterations": [
@@ -3024,6 +3038,30 @@
       ],
       "decisions": [
         "D31"
+      ]
+    },
+    {
+      "revision": "0.030",
+      "n": 24,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 24",
+      "file": "docs/drs/iterations/0.030.md",
+      "ssesMeans": {
+        "security": 92.5,
+        "stability": 86.6,
+        "scalability": 82.6,
+        "efficiency": 86.4,
+        "succinctness": 85.5
+      },
+      "edits": [
+        "S2 · status · rev 0.029 → 0.030, decision register D1–D31 → D1–D32 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D31 → D1–D32 (hi + ai) · the register grew (D32)",
+        "PROV / row provenance · rev 0.029 → 0.030 · law 5",
+        "S4 · future · hi[1] · trim the FOOD CONOPS chain (392 chars) to its signature outcome, parallel to the EDU signature at hi[0]; the full FOOD CONOPS chain stays verbatim in future.ai[1] (the note), which already carried it identically plus the worked events, and the full EDU chain is already shown on S4.conops.hi · hi stays string[] (3 elements), ai unchanged (12 elements) and still the superset, nothing emptied, no printed number / date / law moved · raises efficiency and succinctness · D32",
+        "S4 · future · hi[2] · trim the TECH CONOPS chain (402 chars — the longest genuine law-6 overflow left on any shown face once the financial-core and metadata lines are set aside) to its signature outcome, parallel to hi[0]; the full TECH CONOPS chain stays verbatim in future.ai[2] (the note) · same shape guarantees as edit 4 · D32"
+      ],
+      "decisions": [
+        "D32"
       ]
     }
   ]
