@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.036",
+    "revision": "0.037",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1517,8 +1517,15 @@
       "revision": "0.036",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "d86e7c2",
       "why": "Round 30 of 99 (twelve lenses) opens a comprehension pass after the Go-To-Market density pass (D30–D37) closed: the deck's most load-bearing architectural term, \"the one-ninth gate,\" is used on ~17 shown faces but was defined on none — only S4's note glossed it (D14) and the master carries \"the one-ninth (11.1 %) gate.\" This round defines it once, at its first shown appearance (S1.oneline, the ladder): a function goes native only after it removes at least a ninth of the benchmark's baseline on its clock, a floor to qualify. The definition mirrors into oneline.ai (kept the superset), invents no number, and moves no printed figure, date or law (the years 2027 / 2030 / 2525 stay); the S1 cell grows to ~370 chars, under the kept financial-core and single-argument cells laws 3 and 6 keep on the face. Every one of the term's ~17 later uses is now legible where the reader first meets it, raising scalability, efficiency and stability at a negligible succinctness cost. The decision register grows to D38; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.036."
+    },
+    {
+      "revision": "0.037",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 31 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate to the deck's other load-bearing acronym, NBA. NBA is used on ~13 shown faces (S1.ask, S5.statusquo, S7.personas, S8.nba, S11.voc, S13.deps, S15.voc, S16.saydo) but was spelled out on no shown face and nowhere in the seed. This round defines it once, at its first shown appearance (S1.ask): \"an NBA is a segment's Next Best Alternative, the primary competitor a buyer would use instead, shown in the market table,\" and mirrors the expansion into the S1 note tier (segment.ai). The expansion is drawn verbatim from the v0.9 manuscript of record; it invents no market, moves no printed figure, date or law (no digit touched; the three primary NBAs are unchanged) and keeps the note a superset of the face. Anchored on two unique strings, so only S1.ask.hi and S1.segment.ai change. The decision register grows to D39; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.037. Raises scalability, stability and efficiency at a negligible succinctness cost."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2500,6 +2507,13 @@
       "revision": "0.036",
       "by": "twelve lenses · round 30",
       "decision": "Round 30 of 99 opens a comprehension pass after the Go-To-Market density pass (D30–D37) closed. The deck's most load-bearing architectural term, \"the one-ninth gate,\" appears on roughly seventeen shown faces (S1 ladder, S1 strategy, S2 roadmap, S2 toprisks, S13 comm mitigation, S14 notes, S15 prio, S17 prio, S12 l0) yet is defined on no shown (hi) face — only S4's speaker note glosses it operationally (\"fewer than 15 of the benchmark's 130 minutes,\" ≈ one-ninth of the baseline, D14) and the master's platform.rules carries \"the one-ninth (11.1 %) gate.\" A first-time reader — investor, future customer, system thinker without analytics know-how — meets the term on the summary slide and must trust it. This round defines it once, at its first shown appearance (S1.oneline, the ladder), in plain words: \"a function goes native only after it removes at least a ninth of the benchmark's baseline on its clock, a floor to qualify.\" It invents no number (a ninth is a fraction of a baseline the deck already carries, faithful to the master's 11.1 % and to S4's stop rule), moves no printed figure, date or law (the years 2027 / 2030 / 2525 stay), and keeps ai a superset of hi (the definition mirrors into oneline.ai, which retains its master-sentence tail). Anchored on the unique \"absorb by the one-ninth gate (2030)\" string (its two occurrences, hi and ai), so only the ladder segment changes. The shown S1.oneline cell grows to roughly 370 characters — under the kept financial-core (S3 Ramp 519) and single-argument (S5 problem 564) cells that laws 3 and 6 keep on the face — a bounded, one-time cost that makes every one of the term's ~17 later uses legible where the reader first meets it. Raises scalability (a 2525 or any-segment reader now resolves the core absorption mechanism), efficiency (comprehension without a note dive) and stability (the term now means one thing across the deck), at a negligible succinctness cost. The note-only fuller definitions (S14.notes, S16.counter) still serve the detail reader; the shown face now carries the floor. It supersedes nothing — it fills a gap the density pass left, and it is the first pass of a new class (make every shown term self-explaining) that later rounds can extend to any other jargon a cold reader cannot resolve."
+    },
+    {
+      "id": "D39",
+      "date": "2026-09-25",
+      "revision": "0.037",
+      "by": "twelve lenses · round 31",
+      "decision": "Round 31 of 99 extends the comprehension pass D38 opened (define every shown term where a cold reader first meets it) from the one-ninth gate to the deck's other load-bearing acronym, NBA. NBA appears on roughly thirteen shown faces — S1.ask (\"NBAs in the market table\"), S5.statusquo (the per-segment competitive arguments), S7.personas (\"primary NBA Rave / Everbridge 360 AI / Bridge / PagerDuty\"), S8.nba, S11.voc, S13.deps (the G2-exit \"primary NBA confirmed\"), S15.voc and S16.saydo — yet the three letters are spelled out on no shown face and, in fact, nowhere in the seed (grep: 0 occurrences of \"Next Best Alternative\"). A first-time reader — an investor, a future customer, a system thinker without analytics know-how — meets the acronym on the summary slide and must supply its meaning. This round defines it once, at its first shown appearance (S1.ask, where the deck already points the reader to the market table): \"an NBA is a segment's Next Best Alternative, the primary competitor a buyer would use instead, shown in the market table,\" and mirrors the expansion into the S1 note tier (segment.ai \"one primary NBA (Next Best Alternative) each\") so the shown face and the note agree. The expansion invents nothing: it is drawn verbatim from the manuscript of record (docs/drs/sources/PRJ-34_drop/canonical/CC_Future_State_S1-S19_v0.9_eXeL.md, \"Each segment has one primary competitive Next Best Alternative (NBA)\"). It moves no printed figure, date or law (no digit is touched; the three primary NBAs Rave / Everbridge 360 AI / Bridge / PagerDuty are unchanged), and keeps the note a superset of the face. Anchored on two unique strings (count 1 each), so only S1.ask.hi and S1.segment.ai change. The shown S1.ask cell grows to roughly 375 characters — comparable to the S1.oneline cell (0.036) and under the kept financial-core (S3 Ramp 519) and single-argument (S5 problem 564) cells that laws 3 and 6 keep on the face — a bounded, one-time cost that makes every one of the term's ~13 later uses legible where the reader first meets it. It raises scalability (a 2525 or any-segment reader now resolves the core positioning term), stability (NBA means one thing across the deck) and efficiency (comprehension without hunting a note), at a negligible succinctness cost. It supersedes nothing — it is the second member of the D38 self-explaining-term class, which later rounds can extend to any remaining shorthand a cold reader cannot resolve (e.g. G2 / G3 are already glossed on S2.roadmap, WTP / CTS spell out on their home slides)."
     }
   ],
   "iterations": [
@@ -3284,6 +3298,29 @@
       ],
       "decisions": [
         "D38"
+      ]
+    },
+    {
+      "revision": "0.037",
+      "n": 31,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 31",
+      "file": "docs/drs/iterations/0.037.md",
+      "ssesMeans": {
+        "security": 92.8,
+        "stability": 88.8,
+        "scalability": 85.9,
+        "efficiency": 92.4,
+        "succinctness": 90.2
+      },
+      "edits": [
+        "S1 · ask.hi + segment.ai · define NBA at its first shown appearance — ask.hi \"the three segment teardowns (NBAs in the market table) with buyer interviews\" → \"the three segment teardowns — an NBA is a segment's Next Best Alternative, the primary competitor a buyer would use instead, shown in the market table — with buyer interviews\"; and segment.ai \"one primary NBA each:\" → \"one primary NBA (Next Best Alternative) each:\" so the note tier carries the expansion too; NBA is used on ~13 shown faces and was spelled out on none (0 occurrences of \"Next Best Alternative\" in the seed); the expansion is verbatim from the v0.9 source · law-6 comprehension / clarity, extends D38's self-explaining-term class; anchored on two unique strings (count 1 each), only those two cells change; hi stays string, segment.ai stays the superset, nothing emptied, no printed number / date / law moved · raises scalability, stability and efficiency · D39",
+        "S2 · status · rev 0.036 → 0.037, decision register D1–D38 → D1–D39 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register (D1–D38) → (D1–D39) (hi[2] + ai[2]) · the register grew (D39)",
+        "PROV / row provenance · rev 0.036 → 0.037 · law 5"
+      ],
+      "decisions": [
+        "D39"
       ]
     }
   ]
