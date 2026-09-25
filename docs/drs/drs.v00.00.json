@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.031",
+    "revision": "0.032",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1482,8 +1482,15 @@
       "revision": "0.031",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "c89f54a",
       "why": "Round 25 of the twelve-lens programme: continuing the density discipline of D30–D32, the largest cleanly-trimmable law-6 enumeration left on any shown face — S6.problem.hi[1], the twelve-item current-foundation inventory (324 chars) — is trimmed to a representative subset (232 chars) on the shown line, with the full inventory kept verbatim in the note (problem.ai[1]); the decision register grows to D33, the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.031, and no printed number, date or law moves."
+    },
+    {
+      "revision": "0.032",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 26 of 99 (twelve lenses) continues the density discipline of D30–D33 onto the one content enumeration round 25 overlooked, found by measurement: S2.roadmap.hi[2], the four-horizon roadmap line (312 chars), ran all four horizons with their full descriptions on the shown face while S2.roadmap.ai[2] already carried that line verbatim and the same horizons recur in full on S14.notes, S15.prio and S17.prio. (S5.problem.hi 564 is a single argument; the S3 financial-core lines and the S2.status metadata stamp 418 are kept; S6.conops.hi[0] 462 is the deliberate four-stage form settled at D30.) This round trims the shown line to the four horizon headlines with their years, the one-ninth gate and alerting-last (225 chars), anchored on the unique roadmap hi[2] + hi[3] + array-close block so only the shown cell changes; hi stays string[] (four elements), ai is unchanged (five elements) and stays the superset, nothing is emptied, and no printed number, date or law moves — the years 2027 / 2030 / 2525 are kept and every horizon description survives complete in the note and on three later slides (D34); S2 status and S18 e0 carry rev 0.032 and the grown D1–D34 register; PROV and the row provenance bump to rev 0.032."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2430,6 +2437,13 @@
       "revision": "0.031",
       "by": "twelve lenses · round 25",
       "decision": "Round 25 acts on the largest cleanly-trimmable law-6 density overflow left on any shown face once the single-argument lines (S5.problem.hi 564, the opening one-platform problem argument, and S13.deps.hi[1] 361, the master question — both kept as single arguments per D31 / D32), the financial-core lines (S3.fincomment Ramp 519 / Value equation 382 / Financial model 335, which the financial slide exists to show and which law 3 wants on the deck) and the metadata status line (S2.status 418) are set aside: S6.problem.hi[1] (Product Summary — Current foundation) carried the whole twelve-item current-capability inventory (structured crisis workflow · facts / intake · objectives · stakeholder analysis · message development · pressure testing · SITREPs · near-term planning · sector intelligence · case / scenario libraries · organization-specific enterprise context · historical / continuous learning) as one 324-character line, and S6.problem.ai[1] already carried that exact line verbatim plus the narrative \"Also live\" line and the CONFIRM note. This round trims the shown line to a representative subset of the foundation (232 chars), anchored on the unique S6.problem hi[0]+hi[1] block (the identical string recurs only inside the ai block, which is left untouched) so only the shown cell changes; hi stays string[] (two elements), ai is unchanged (three elements) and stays the superset, nothing is emptied, and no printed number, date or law moves (the inventory carries no digits). Every foundation item survives complete in problem.ai[1]. Raises efficiency and succinctness (the Spiral Development Protocol's density test) without touching the substance. Continues D30 (Architecture) / D31 (Product boundary) / D32 (CONOPS chains): after this the remaining shown overflows are all single arguments, financial-core numbers, or metadata that law 3 and law 6 keep on the face."
+    },
+    {
+      "id": "D34",
+      "date": "2026-09-25",
+      "revision": "0.032",
+      "by": "twelve lenses · round 26",
+      "decision": "Round 26 acts on the largest cleanly-trimmable law-6 density enumeration left on any shown face once the single-argument lines (S5.problem.hi 564, the opening one-platform problem argument, and S13.deps.hi[1] 361, the master question — both kept per D31 / D32), the financial-core lines (S3.fincomment Ramp 519 / Value equation 382 / Financial model 335, which the financial slide exists to show and which law 3 wants on the deck), the deliberate four-stage form of S6.conops.hi[0] (462, settled at D30) and the edition/provenance metadata stamp S2.status.hi (418, a single stamp meant to be complete in one place) are set aside: S2.roadmap.hi[2] (Project Overview — the roadmap) carried all four horizons with their full descriptions (Horizon 1 2027 Governed Leadership State, native, with every benchmark function reachable from inside the platform · Horizon 2 → 2030 the critical-event surface absorbed function by function under the one-ninth gate, alerting last · Horizon 3 Enterprise Decision Graph · Horizon 4 Recursive Readiness 2525) as one 312-character line, and S2.roadmap.ai[2] already carried that exact line verbatim while the same horizons recur in full on S14.notes, S15.prio and S17.prio. This round trims the shown line to the four horizon headlines with their years, the one-ninth gate and alerting-last (225 chars), anchored on the unique roadmap hi[2] + hi[3] + array-close block (the identical string recurs only inside the untouched ai block) so only the shown cell changes; hi stays string[] (four elements), ai is unchanged (five elements) and stays the superset, nothing is emptied, and no printed number, date or law moves (the years 2027 / 2030 / 2525 are kept on the face). Every horizon description survives complete in roadmap.ai[2] and on three later slides. Raises efficiency and succinctness (the Spiral Development Protocol's density test) without touching the substance. Continues D30 (Architecture) / D31 (Product boundary) / D32 (CONOPS chains) / D33 (Current foundation): the one content enumeration D33 overlooked, corrected by measurement this round; after it the remaining shown overflows are all single arguments, financial-core numbers, a settled four-stage form, or a metadata stamp that law 3 and law 6 keep on the face."
     }
   ],
   "iterations": [
@@ -3099,6 +3113,29 @@
       ],
       "decisions": [
         "D33"
+      ]
+    },
+    {
+      "revision": "0.032",
+      "n": 26,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 26",
+      "file": "docs/drs/iterations/0.032.md",
+      "ssesMeans": {
+        "security": 92.5,
+        "stability": 86.6,
+        "scalability": 82.6,
+        "efficiency": 88.4,
+        "succinctness": 87.5
+      },
+      "edits": [
+        "S2 · status · rev 0.031 → 0.032, decision register D1–D33 → D1–D34 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D33 → D1–D34 (hi[2] + ai[2]) · the register grew (D34)",
+        "PROV / row provenance · rev 0.031 → 0.032 · law 5",
+        "S2 · roadmap · hi[2] · trim the four-horizon roadmap line (312 chars — the largest content enumeration left on any shown face once the single-argument, financial-core, settled four-stage and metadata-stamp lines are set aside) to its four horizon headlines with their years, the one-ninth gate and alerting-last; the full horizon descriptions stay verbatim in roadmap.ai[2] (the note) and are echoed on S14.notes / S15.prio / S17.prio · law-6 overflow; anchored on the unique roadmap hi[2] + hi[3] + array-close block so only the shown cell changes; hi stays string[] (4 elements), ai unchanged (5 elements) and still the superset, nothing emptied, no printed number / date / law moved (years 2027 / 2030 / 2525 kept) · raises efficiency and succinctness · D34"
+      ],
+      "decisions": [
+        "D34"
       ]
     }
   ]
