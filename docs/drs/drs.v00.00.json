@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.076",
+  "revision": "0.077",
   "stage": "G2 / future-state validation",
   "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -1798,6 +1798,13 @@
    "date": "2026-09-25",
    "kind": "release",
    "why": "Round 70 of 99 (twelve lenses) CONTINUES the density / law-6 class (D76 round 68, D77 round 69) and CLOSES the S1.ask CTS sub-thread the D77 note named: bring INTERNAL / teaching detail off a customer-facing shown face into its speaker note while KEEPING the reader's plain acronym expansion on the face so comprehension is never lost. On S1 (Executive Summary) the shown request ask.hi carried a full inline cost-to-serve definition ('CTS discovery — CTS is what CrisisCommand spends to serve a customer, the cost a validated price must clear —'); this round reduces it to 'CTS (cost-to-serve) discovery' on the face and carries the fuller definition in ask.ai item 6, so ask.ai stays a strict superset and never shorter than ask.hi (law 6). No figure, date, NBA pairing, claim or reach moves; the master statement and vprop are untouched (law 4); the 'one-ninth gate' phrase is not in ask.hi so the ≥3 lock holds. S2 status and S18 e0 read the grown register D1–D78; PROV and the row provenance read rev 0.076. It raises succinctness (92.83 → 93.75) and holds efficiency (99.17). The NBA gloss on ask.hi is deliberately left because it is the sole shown-face expansion of the term. Gates: tsc · drs-render (+ --check) · drs-crs · innovation-time.",
+   "commit": "12dc79a"
+  },
+  {
+   "revision": "0.077",
+   "date": "2026-09-25",
+   "kind": "release",
+   "why": "Round 71 of 99 continues the density / law-6 class (D76–D78) on its first shown-face panel overflow: S5.problem.hi (the 987-char Customer Problem cell the D78 note named) drops the record's inline field-list ('of who decided what, why, who owned it and what happened next') and reads 'the record is reconstructed afterwards', keeping the three-part pain and the public-body reach on the face; the enumeration stays in problem.ai (a strict superset, never shorter than hi, law 6) and is shown on S7.desired. No figure, date, NBA pairing, claim or reach moves; succinctness rises 93.75 → 94.75, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D79; PROV and the row provenance bump to rev 0.077.",
    "commit": "PENDING"
   }
  ],
@@ -3060,6 +3067,13 @@
    "revision": "0.076",
    "by": "twelve lenses · round 70",
    "decision": "D78 — Round 70 of 99 CONTINUES the density / law-6 class (D76 S8.nba.hi, D77 S1.ask.hi gate parenthetical): bring INTERNAL / teaching detail OFF a customer-facing shown face and into its speaker note, where the note carries it, while KEEPING the reader's plain acronym expansion on the face so comprehension is never lost. This round takes the next member the D77 note teed up — the S1 ask's (Executive Summary) remaining cost-to-serve (CTS) gloss. The shown request ask.hi carried a full inline definition — 'CTS discovery — CTS is what CrisisCommand spends to serve a customer, the cost a validated price must clear —' — a teaching sentence a founder, investor or future customer must cross to reach the request, when the plain acronym expansion alone would carry them and S14 (Resourcing) already holds the CTS detail. This round REDUCES the shown ask to 'CTS (cost-to-serve) discovery' (the acronym expansion is KEPT on the face, so a slide-only reader still understands the term — unlike a bare removal) and moves the fuller definition into ask.ai item 6 ('CrisisCommand-specific CTS (cost-to-serve — what CrisisCommand spends to serve a customer, the cost a validated price must clear) discovery'), so ask.ai stays a strict superset and never shorter than ask.hi (law 6). Nothing is emptied. It is not a business change: no figure, date, NBA pairing, claim or reach moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched; the exact phrase 'one-ninth gate' is not in ask.hi so the ≥3 lock holds; the master statement and vprop untouched under law 4). It raises succinctness (shown teaching removed, mean 92.83 → 93.75) and holds efficiency (99.17: the ask reaches its request without a definition to read past, the term still named); security, stability and scalability hold, because the note carries the definition and the acronym stays on the face, so nothing is lost. It supersedes nothing and is the THIRD member of the density / law-6 class (after D76, D77), and it CLOSES the S1.ask CTS sub-thread the D77 note named. The remaining NBA gloss on ask.hi (the sole shown-face expansion of 'NBA') is deliberately LEFT so the acronym stays defined for a slide-only reader — a bare removal there would regress comprehension, the opposite of this class's intent. A later round continues the class on a shown cell that carries internal method language or overflows without a comprehension cost (S5.problem.hi at 987 chars, or S8.nba.ai's composite-stack note), an evidence-gated change under the S11 change-control law, or a fresh readability class — never a claim the record does not carry."
+  },
+  {
+   "id": "D79",
+   "date": "2026-09-25",
+   "revision": "0.077",
+   "by": "twelve lenses · round 71",
+   "decision": "D79 — Round 71 of 99 CONTINUES the density / law-6 class (D76 S8.nba.hi, D77 S1.ask.hi gate parenthetical, D78 S1.ask.hi CTS gloss): bring INTERNAL / teaching detail OFF a customer-facing shown face and into its speaker note, where the note already carries it, while KEEPING the reader's core understanding on the face so comprehension is never lost. This round takes the member the D78 note named — S5.problem.hi (Customer Problem), the 987-char shown cell that overflows its panel (a law-6 density defect). The shown problem carried the record's full inline field-list — 'the record of who decided what, why, who owned it and what happened next is reconstructed afterwards' — an enumeration of the record's contents that problem.ai already teaches verbatim (a strict superset) and that S7.desired already shows ('the record answers what changed, why, who approved, and what happened next'). The list is not the gap; the gap is stated by the three-part pain that stays on the face — operational truth lives in specialist systems, judgment happens in meetings, and the record is reconstructed afterwards — and by 'Two systems … split the record; the future state is one platform'. This round REDUCES the shown problem to 'and the record is reconstructed afterwards' (the three-part pain is KEPT on the face, so a slide-only reader still understands the gap — unlike a bare removal of the pain) and leaves the fuller enumeration in problem.ai, so problem.ai stays a strict superset and never shorter than problem.hi (law 6). Nothing is emptied. It is not a business change: no figure, date, NBA pairing, claim or reach moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched; the master statement and vprop untouched under law 4). The public-body reach clause brought onto this face at D68 and its '(IA, after G3, D12 · D27)' citation are deliberately LEFT — removing either would regress the public-reach comprehension the D66–D75 class established, the opposite of this class's intent. It raises succinctness (93.75 → 94.75) and holds efficiency (99.17). It is the FOURTH member of the density / law-6 class (after D76, D77, D78) and the FIRST to take a shown-face panel overflow rather than a parenthetical. A later round continues the class on a shown cell that still overflows or carries internal method language without a comprehension cost, an evidence-gated change under the S11 change-control law, or a fresh readability class — never a claim the record does not carry."
   }
  ],
  "iterations": [
@@ -4768,6 +4782,29 @@
    ],
    "decisions": [
     "D78"
+   ]
+  },
+  {
+   "revision": "0.077",
+   "n": 71,
+   "date": "2026-09-25",
+   "author": "twelve lenses · round 71",
+   "file": "docs/drs/iterations/0.077.md",
+   "ssesMeans": {
+    "security": 96.75,
+    "stability": 97.67,
+    "scalability": 99.75,
+    "efficiency": 99.17,
+    "succinctness": 94.75
+   },
+   "edits": [
+    "S5 · problem.hi (Customer Problem) · CONTINUE the density / law-6 class (D76–D78) — drop the record's inline field-list from the shown problem, keeping the three-part pain and the public-body reach on the face; the list stays in problem.ai (strict superset) and is shown on S7.desired. Anchor (hi-only, count 1, includes the hi-only 'one platform. A public body' suffix): 'and the record of who decided what, why, who owned it and what happened next is reconstructed afterwards. Two systems … the future state is one platform. A public body steering a public project meets the same governed-decision gap' → 'and the record is reconstructed afterwards. Two systems … the future state is one platform. A public body steering a public project meets the same governed-decision gap'. problem.ai untouched (ai stays a strict superset, never shorter than hi, law 6); hi shortens ~987 → ~935 chars. No figure, date, NBA pairing, claim or reach moves; the public-body clause (D68) and the '(IA, after G3, D12 · D27)' citation are LEFT; master statement and vprop untouched (law 4). Raises succinctness · D79",
+    "S2 · status · rev 0.076 → 0.077, decision register D1–D78 → D1–D79 (hi + ai, anchor 'rev 0.076 · decision register D1–D78', count 2) · laws 5 and 7",
+    "S18 · e0 · decision register (D1–D78) → (D1–D79) (hi[2] + ai[2], anchor 'The decision register (D1–D78)', count 2) — the register grew (D79); both S2 and S18 read one count · law 7",
+    "PROV / row provenance · rev 0.076 → 0.077 (seed PROV anchor 'v1.0 · rev 0.076' count 1; innovation-data.ts row provenance anchor 'v1.0 · rev 0.076' count 1) · law 5"
+   ],
+   "decisions": [
+    "D79"
    ]
   }
  ]
