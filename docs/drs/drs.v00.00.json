@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.117",
+  "revision": "0.118",
   "stage": "G2 / future-state validation",
   "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -2084,8 +2084,15 @@
    "revision": "0.117",
    "date": "2026-09-25",
    "kind": "release",
-   "commit": "PENDING",
+   "commit": "798e34d",
    "why": "Per-slide S12 pass: slide S12 (Go-To-Market) is a seed slide, and its one law-6 density defect is corrected — the PUBLIC BODY item (l30.hi[2]) had overflowed its list slot into a ~52-word paragraph, so it is trimmed to a single slide line while the full path (one government owner, one project through the same governed loop, its people asked through the eXeL Polling API, the approved posture and delivered result replayable by the body and by the people who answered) is preserved verbatim in l30.ai[3], the note, which stays unchanged so ai ≥ hi. S12 is the slide that shows the case will not overreach: the commercial spine is preserved (law 1), no SKU or price is invented before a buyer validates (law 3), the segments are a validation sequence and not a market-size ranking, and the public body enters as a declared future step (IA, after G3, D12) reusing the R-CORE record and replay already running in the repo — never a claimed customer. This revision also RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci. No figure, claim, gate, law or linked number moves; the master statement and segment value props are untouched (law 4)."
+  },
+  {
+   "revision": "0.118",
+   "date": "2026-09-25",
+   "kind": "release",
+   "commit": "PENDING",
+   "why": "Per-slide S13 pass: slide S13 (Risk Highlights) is a seed slide, and its one law-6 density defect is corrected — the public-body dependency item (deps.hi[2]) had overflowed its list slot into a ~48-word paragraph, so it is trimmed to a single slide line while the full path (one government owner, one project through the same governed loop, its citizens answering through the eXeL Polling API, the approved posture and delivered result replayable by the body and by the people it serves, and the 'nothing crisis-specific' clause) is preserved verbatim in deps.ai[3], the note, which stays unchanged so ai >= hi. S13 is the slide that shows the case has faced its own failure modes honestly: single-platform concentration is survived by a degraded mode and a never-discarded approval (law 2), every outbound action carries a named human (law 2), each absorbed benchmark function clears the one-ninth gate with alerting last and certified (law 1), and the public body enters only as a declared future dependency (IA, after G3), never a claimed customer (law 3). This revision also RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci; the deck renderer carries no icon reference. No status, severity, mitigation, gate, claim, law or linked number moves; the master statement and segment value props are untouched (law 4)."
   }
  ],
  "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -3634,6 +3641,13 @@
    "revision": "0.117",
    "by": "twelve lenses · per-slide S12",
    "decision": "Per-slide S12 pass (rev 0.117). Slide S12 (Go-To-Market) IS a seed slide (the l90 draft launch plan, the l60 align & execute list, the l30 final-deliverables / validation-sequence list, the l0 launch & optimize list; rendered by the S12 field config in innovation-data.ts). Its one law-6 density defect is corrected: the PUBLIC BODY item (l30.hi[2]) had overflowed its list slot into a ~52-word paragraph, so it is trimmed to a single slide line while the full path — one government owner, one project through the same governed loop, its people asked through the eXeL Polling API, the approved posture and delivered result replayable by the body and by the people who answered — is preserved verbatim in l30.ai[3] (the note), which stays unchanged so ai ≥ hi. This CONTINUES the density/clarity discipline of D110–D118 (short hi, detail in the note), applied to the slide that shows the case will not overreach: the commercial spine is preserved (law 1), no SKU or price is invented before a buyer validates (law 3), the segments are a validation sequence and not a market-size ranking, and the public body enters as a declared future step (IA, after G3, D12) that reuses the R-CORE record and replay already running in the repo — never a claimed customer. No figure, segment, gate (G3), decision reference (D12), IA label, claim, law or linked number moves (law 3); the master statement and segment value props stay fixed (law 4); the field id/shape is preserved and no cell is emptied (law 6). This decision also RECORDS, with checkable proof, that the operator's standing overriding instruction for the page is satisfied and gated this run — the R-CORE rasters exist as committed PNG (public/r-core/r-core-icon.png 1448×1086 · public/r-core/r-core-wordmark.png 2172×724) and the R-CORE icon's target sits at the BOTTOM of the page in NORMAL FLOW (wrapper 'flex w-full justify-center', no fixed/absolute geometry, mounted last after the footer at app/SoI-2525/page.tsx:1100), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci (asserts data-rcore-badge + 'flex w-full justify-center' + absence of 'fixed left-1/2') — carrying the D117 / D118 finding forward for the S12 slide, and noting the one cosmetic leftover (the stale 'Fixed + centred + high z' docstring in rcore-badge.tsx) as out of the door's staging set, to be fixed in a future badge-scoped commit rather than stranded uncommitted. It does not supersede any prior decision. Holds security, stability and scalability at ceiling; S12's efficiency and succinctness rise this revision because the overflowing PUBLIC BODY line is drawn back to one legible line with no loss of substance."
+  },
+  {
+   "id": "D120",
+   "date": "2026-09-25",
+   "revision": "0.118",
+   "by": "twelve lenses · per-slide S13",
+   "decision": "Per-slide S13 pass (rev 0.118). Slide S13 (Risk Highlights) IS a seed slide (the tech / comm / biz risk registers, each a four-column table of severity · risk · mitigation · status, plus the deps gate-dependencies list; rendered by the S13 field config in innovation-data.ts). Its one law-6 density defect is corrected: the public-body dependency item (deps.hi[2]) had overflowed its list slot into a ~48-word paragraph, so it is trimmed to a single slide line while the full path — one government owner, one project through the same governed loop, its citizens answering through the eXeL Polling API, the approved posture and delivered result replayable by the body and by the people it serves, and the 'nothing in the record's shape is crisis-specific' clause — is preserved verbatim in deps.ai[3] (the note), which stays unchanged so ai >= hi. This CONTINUES the density/clarity discipline of D110-D119 (short hi, detail in the note), applied here to the slide that shows the case has faced its own failure modes honestly: single-platform concentration is survived by a degraded mode and a never-discarded approval (law 2, fix-the-class), every outbound action carries a named human (law 2), each absorbed benchmark function clears the one-ninth gate with alerting last and certified (law 1), and the public body enters only as a declared future dependency (IA, after G3), never a claimed customer (law 3). No status, severity, mitigation, gate (G3), IA label, claim, law or linked number moves (law 3); the master statement and segment value props stay fixed (law 4); the field id/shape is preserved and no cell is emptied (law 6). This decision also RECORDS, with checkable proof, that the operator's standing overriding instruction for the page is satisfied and gated this run — the R-CORE rasters exist as committed PNG (public/r-core/r-core-icon.png 1448x1086 · public/r-core/r-core-wordmark.png 2172x724) and the R-CORE icon's target sits at the BOTTOM of the page in NORMAL FLOW (wrapper 'flex w-full justify-center', no fixed/absolute geometry, mounted last after the footer at app/SoI-2525/page.tsx:1100), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci; the deck renderer (scripts/drs-render.mjs) carries no icon reference — carrying the D117-D119 finding forward for the S13 slide, and noting the one cosmetic leftover (the stale 'Fixed + centred + high z' docstring in rcore-badge.tsx) as out of the door's staging set, to be fixed in a future badge-scoped commit rather than stranded uncommitted. It does not supersede any prior decision. Holds security, stability and scalability at ceiling; S13's efficiency and succinctness rise this revision because the overflowing public-body dependency line is drawn back to one legible line with no loss of substance."
   }
  ],
  "iterations": [
@@ -6308,6 +6322,29 @@
    ],
    "decisions": [
     "D119"
+   ]
+  },
+  {
+   "revision": "0.118",
+   "n": 118,
+   "date": "2026-09-25",
+   "author": "twelve lenses · per-slide S13",
+   "file": "docs/drs/iterations/0.118.md",
+   "ssesMeans": {
+    "security": 98.75,
+    "stability": 100.0,
+    "scalability": 100.0,
+    "efficiency": 98.58,
+    "succinctness": 90.25
+   },
+   "edits": [
+    "S13 (Risk Highlights) IS a seed slide (tech / comm / biz risk registers, each a 4-column table severity · risk · mitigation · status; plus the deps gate-dependencies list; rendered by the S13 field config in innovation-data.ts). Law-6 density trim: the public-body dependency item (deps.hi[2]) had overflowed its list slot into a ~48-word paragraph, so it is trimmed to a single slide line — 'Public-body dependency (IA, after G3): one government owner steers one project through the same loop; the full path is in the note.' — while the FULL path (its citizens' answers by the eXeL Polling API, its approved posture and delivered result replayable by the body and by the people it serves, and the 'nothing in the record's shape is crisis-specific' clause) is preserved verbatim in deps.ai[3] (the note), which stays unchanged so ai >= hi. Anchor: the hi[2] string followed by the array close and the ai opener — unique to the hi occurrence (the identical string in ai[3] is the last element, followed by the deps block close), asserted found exactly once.",
+    "PROV seed constant rev 0.117 -> 0.118 (law 5).",
+    "innovation-data.ts row provenance rev 0.117 -> 0.118 (law 5).",
+    "Master record: filled revisions[] 0.117 commit PENDING -> 798e34d; appended iterations[] 0.118, decisions[] D120, revisions[] 0.118 (PENDING); set project.revision 0.118 (law 7)."
+   ],
+   "decisions": [
+    "D120"
    ]
   }
  ]
