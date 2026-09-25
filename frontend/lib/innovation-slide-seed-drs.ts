@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.045";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.046";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -81,8 +81,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.045 · decision register D1–D47 and the iteration ledger in docs/drs (append-only).",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.045 · decision register D1–D47 and the iteration ledger in docs/drs (append-only). " + PROV,
+        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.046 · decision register D1–D48 and the iteration ledger in docs/drs (append-only).",
+        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.046 · decision register D1–D48 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
@@ -272,14 +272,14 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           ["EDU — President / Chancellor / COO / CCO · operating: comms, GC, chief of staff, EM leadership · primary NBA Rave", "One approved institutional posture: what the institution will do, why, who owns it, how it stays coherent as the crisis changes."],
           ["FOOD — COO / CCO / GC / Quality · operating: crisis team, comms, quality, regulatory · primary NBA Everbridge 360 AI / Bridge", "One enterprise posture from unit / product fact to customer and regulator trust decisions."],
           ["TECH — COO / CCO / CISO / CIO / GC · operating: incident leadership, comms, security · primary NBA PagerDuty", "Translate technical incident state into coherent enterprise judgment; named non-technical actions outside the technical response."],
-          ["Citizen / recipient — student, parent, customer, employee, community (all segments)", "Hears one human-approved voice in their language, can answer back, and their need enters the record as operational truth (CASPER-shaped intake)."],
+          ["Citizen / recipient — student, parent, customer, employee, community (all segments)", "Hears one human-approved voice in their language, can answer back, and their need enters the record as operational truth (a CASPER-shaped intake — a standard community-assessment record: who · where · what is lacking · severity · who is responsible · time)."],
           ["Principle (all)", "AI recommends and organizes. Humans approve and own consequences."],
         ],
         ai: [
           ["EDU — President / Chancellor / COO / CCO · operating: comms, GC, chief of staff, EM leadership · primary NBA Rave", "One approved institutional posture: what the institution will do, why, who owns it, how it stays coherent as the crisis changes. Broader stack (discovery): Rave / Everbridge + emergency plans + cabinet process + Teams / email + external counsel."],
           ["FOOD — COO / CCO / GC / Quality · operating: crisis team, comms, quality, regulatory · primary NBA Everbridge 360 AI / Bridge", "One enterprise posture from unit / product fact to customer and regulator trust decisions. Broader stack: Everbridge / CEM + recall / quality / ERP + legal counsel + PR agency + manual cross-functional work."],
           ["TECH — COO / CCO / CISO / CIO / GC · operating: incident leadership, comms, security · primary NBA PagerDuty", "Translate technical incident state into coherent enterprise judgment; named non-technical actions outside the technical response. Broader stack: PagerDuty + observability / security / status + Slack / Teams + manual exec / comms layer."],
-          ["Citizen / recipient — student, parent, customer, employee, community (all segments)", "Hears one human-approved voice in their language, can answer back, and their need enters the record as operational truth (CASPER-shaped intake); stakeholder posture in every language, data resident in the customer's region."],
+          ["Citizen / recipient — student, parent, customer, employee, community (all segments)", "Hears one human-approved voice in their language, can answer back, and their need enters the record as operational truth (a CASPER-shaped intake — a standard community-assessment record: who · where · what is lacking · severity · who is responsible · time); stakeholder posture in every language, data resident in the customer's region."],
           ["Principle (all)", "AI recommends and organizes. Humans approve and own consequences. " + MOTTO],
           ["Measure per segment", "Need intensity · frequency · NBA satisfaction · leadership consequence · WTP · CTS · integration burden · sales cycle · repeatability — after interviews, replace hypotheses with evidence."],
         ],
@@ -716,12 +716,12 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D47) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D48) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
         ],
         ai: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D47) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D48) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
           PROV,
         ],
       },
