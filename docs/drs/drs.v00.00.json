@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.038",
+    "revision": "0.039",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1531,8 +1531,15 @@
       "revision": "0.038",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "fd1283a",
       "why": "Round 32 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate (D38) and NBA (D39) to the deck's most load-bearing money marker, IA. IA is law 3's mark on every declared dollar; it stamps ~26 shown figures across S3 / S4 / S8 / S12 / S13 / S14 / S16 but was spelled out on no shown face and nowhere in the seed. This round defines it once, at its first shown appearance (S3.fincomment): \"DECLARED (IA — an internal assumption, not buyer-validated)\", with the identical S3 note cell carrying the same expansion. The expansion is drawn from the master financialModel.status; it invents no number, moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the twice-occurring string, so only the two S3 cells change. The decision register grows to D40; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.038. Raises scalability, stability and efficiency at a negligible succinctness cost."
+    },
+    {
+      "revision": "0.039",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 33 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate (D38), NBA (D39) and IA (D40) to the deck's most-used remaining acronym, CTS. CTS is the term the pricing law turns on (no price until WTP clears CTS + hurdle; Contribution = validated WTP − CTS); it appears on ~31 shown faces but a cold reader first meets it in the G2 ask on the summary and it is spelled out only ten slides later, on S12. This round defines it once, at its first shown appearance (S1.ask.hi, beside the NBA gloss D39 added): \"CTS is what CrisisCommand spends to serve a customer, the cost a validated price must clear,\" with the S1 note tier carrying the same expansion. The expansion is drawn from the seed's own cost-to-serve usage and the master's pricing rule; it invents no number, moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the unique S1.ask.hi string, so only the shown ask cell and its note mirror change. The decision register grows to D41; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.039. Raises scalability and stability at a negligible succinctness cost."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2528,6 +2535,13 @@
       "revision": "0.038",
       "by": "twelve lenses · round 32",
       "decision": "Round 32 of 99 extends the comprehension pass D38 opened (define every shown term where a cold reader first meets it) from the one-ninth gate (D38) and NBA (D39) to the deck's most load-bearing money marker, IA. IA is the mark law 3 puts on every declared dollar — it stamps roughly twenty-six shown figures across S3 (the financial model, the ramp, the priced value equation), S4 (the three per-segment worked events), S8 (the priced single-customer baseline), S12 (the public-body pilot), S13 (the post-G3 dependency), S14 (the build calendar) and S16 (the target dates) — yet the two letters are spelled out on no shown face and, in fact, nowhere in the seed (grep: 0 occurrences of \"internal assumption\"). A first-time reader — an investor, a future customer, a system thinker without analytics know-how — meets \"(IA)\" beside a dollar figure and may mistake a modeled estimate for a booked or buyer-validated result. This round defines it once, at its first shown appearance (S3.fincomment.hi[0], where money first appears): \"Financial model — DECLARED (IA — an internal assumption, not buyer-validated):\", and the identical S3 note cell (ai[0]) carries the same expansion, so the shown face and the note agree. The expansion invents nothing: it is drawn from the master of record (financialModel.status: \"Every figure is an internal assumption derived from the S14 value equation and labelled IA\"). It moves no printed figure, date or law (no digit is touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face (the two cells stay identical). Anchored on the twice-occurring string (hi[0] + ai[0], count 2), so only those two S3 cells change. The shown S3 financial-model cell grows by roughly twenty-five characters to ~360 — under the kept financial-core (S3 Ramp 519) and single-argument (S5 problem 564) cells that laws 3 and 6 keep on the face — a bounded, one-time cost that makes every one of the marker's ~26 later uses legible where the reader first meets it. It raises scalability (a 2525 or any-segment reader now resolves the money marker), stability (IA means one thing across the deck) and efficiency (comprehension without hunting a note), at a negligible succinctness cost. It supersedes nothing — it is the third member of the D38 self-explaining-term class, which later rounds can extend to any remaining shorthand a cold reader cannot resolve (G2 / G3 are glossed on S2.roadmap; WTP / CTS spell out on their home slides)."
+    },
+    {
+      "id": "D41",
+      "date": "2026-09-25",
+      "revision": "0.039",
+      "by": "twelve lenses · round 33",
+      "decision": "Round 33 of 99 extends the comprehension pass D38 opened (define every shown term where a cold reader first meets it) from the one-ninth gate (D38), NBA (D39) and IA (D40) to the deck's most load-bearing remaining acronym, CTS. CTS appears on roughly thirty-one shown faces — S1.ask (\"CTS discovery\"), S3.fincomment (\"CrisisCommand-specific CTS\"), S11.voc, S12.l60 / l0, S14.fte and S15.impact — and it is the term the pricing law turns on (\"no price until WTP clears CTS + hurdle\"; \"Contribution = validated WTP − CrisisCommand-specific CTS\"), yet a cold reader first meets it on the summary slide (S1.ask.hi) and it is spelled out only ten slides later, on S12 (\"the ten cost-to-serve items\"). A first-time reader — an investor, a future customer, a system thinker without analytics know-how — meets \"CTS discovery\" in the G2 ask and must carry the three letters unresolved to the twelfth slide. This round defines it once, at its first shown appearance (S1.ask.hi, where the deck already glosses NBA inline, D39): \"CTS is what CrisisCommand spends to serve a customer, the cost a validated price must clear,\" and mirrors the expansion into the S1 note tier (ask.ai \"CrisisCommand-specific CTS (cost-to-serve) discovery\") so the shown face and the note agree. The expansion invents nothing: it is drawn from the seed's own cost-to-serve usage (S12.l60) and the master's pricing rule (no price until a buyer validates WTP; Contribution = WTP − CTS). It moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the unique S1.ask.hi string, so only the shown ask cell (plus its note mirror) changes; the shown S1.ask.hi cell grows to ~478 characters — under the kept financial-core (S3 Ramp 519) and single-argument (S5 problem 564) cells that laws 3 and 6 keep on the face. It raises scalability (a 2525 or cold reader now resolves the deck's most-used remaining acronym where they first meet it), stability (CTS means one thing across the deck) and efficiency (comprehension without hunting ten slides on), at a negligible succinctness cost. It supersedes nothing — it is the fourth member of the D38 self-explaining-term class, which later rounds can extend to the last remaining shorthand a cold reader cannot resolve at first sight (WTP first appears on S2.toprisks before it is spelled out on S3; G2 / G3 first appear on S1.ask and are glossed on S2.roadmap)."
     }
   ],
   "iterations": [
@@ -3358,6 +3372,29 @@
       ],
       "decisions": [
         "D40"
+      ]
+    },
+    {
+      "revision": "0.039",
+      "n": 33,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 33",
+      "file": "docs/drs/iterations/0.039.md",
+      "ssesMeans": {
+        "security": 92.8,
+        "stability": 90.7,
+        "scalability": 87.9,
+        "efficiency": 92.7,
+        "succinctness": 90.2
+      },
+      "edits": [
+        "S1 · ask.hi + ai · define CTS at its first shown appearance — \"segment value equations, CTS discovery and S16 evidence tracking\" → \"… CTS discovery — CTS is what CrisisCommand spends to serve a customer, the cost a validated price must clear — and S16 …\"; CTS is the deck's most-used remaining acronym (31 shown uses) and a cold reader first meets it in the G2 ask on the summary but it is spelled out only on S12, ten slides later; the expansion is drawn from the seed's own cost-to-serve usage (S12) and the master's pricing rule (Contribution = WTP − CTS) · law-6 comprehension, extends the D38 / D39 / D40 self-explaining-term class; hi anchored on the unique string (count 1), ai mirror on \"· 6 CrisisCommand-specific CTS discovery ·\" (count 1) → \"… CTS (cost-to-serve) discovery …\"; both stay strings, ai stays the superset (>> hi length), nothing emptied, no printed number / date / law moved (no digit touched) · raises scalability, stability and efficiency · D41",
+        "S2 · status · rev 0.038 → 0.039, decision register D1–D40 → D1–D41 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register (D1–D40) → (D1–D41) (hi[2] + ai[2]) · the register grew (D41)",
+        "PROV / row provenance · rev 0.038 → 0.039 · law 5"
+      ],
+      "decisions": [
+        "D41"
       ]
     }
   ]
