@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.086",
+    "revision": "0.087",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1868,6 +1868,13 @@
       "date": "2026-09-25",
       "kind": "release",
       "why": "Round 80 of 99 continues the density / law-6 class (D76–D87) on the S11 validation matrix: S11.exp.hi[1] col-3 (the G3 · A/B expectation row) sheds its inline enumeration of tracked clocks and metrics 'minute-zero trigger, facts available, minutes to objectives / posture / ownership / release, forks, unowned actions, residual risk at T+30 / 60 / 120, hard-dollar time exposure, outcome, replay lesson' and keeps the criterion 'Measurable delta in timing, risk or outcome' with a pointer to the note on the face; the full list stays in exp.ai[1] col-3 (a strict superset, never shorter than hi, law 6) and is carried a second time by the S16 instrument (counter.ai). This is the thirteenth member of the density class and the first on an S11 validation-matrix criteria cell. No figure, financial date, NBA pairing, claim, gate or reach moves; succinctness rises 99.0 → 99.25, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D88; PROV and the row provenance bump to rev 0.086.",
+      "commit": "3151c6b"
+    },
+    {
+      "revision": "0.087",
+      "date": "2026-09-25",
+      "kind": "release",
+      "why": "Round 81 of 99 continues the density / law-6 class (D76–D88) on the S5 Customer Problem slide: S5.whys.hi[0] (the EDU why) sheds its inline six-name campus-constituency roster 'student, parent, faculty, trustee, donor, athletics' and keeps the breadth 'leadership must align safety, governance, legal, communications, reputation and its many campus constituencies while facts keep changing' on the face; whys.ai[0] keeps the full roster as a strict superset (law 6), the whys array keeps its four hi rows and five ai rows, and no figure, financial date, NBA pairing, claim, gate or public-reach clause moves. Bookkeeping: rev 0.086 → 0.087 and the decision register D1–D88 → D1–D89 on S2 (status.hi / status.ai) and S18 (e0), PROV and the row provenance bumped. Succinctness 99.25 → 99.67, efficiency held at 99.25.",
       "commit": "PENDING"
     }
   ],
@@ -3200,6 +3207,13 @@
       "revision": "0.086",
       "by": "twelve lenses · round 80",
       "decision": "D88 — Round 80 of 99 CONTINUES the density / law-6 class (D76 S8.nba.hi, D77 S1.ask.hi gate parenthetical, D78 S1.ask.hi CTS gloss, D79 S5.problem.hi field-list, D80 S6.conops.hi[0] vendor roster, D81 S2.status.hi edition-provenance log, D82 S1.strategy.hi[0] component sample, D83 S12.l60.hi[1] cost-to-serve sample, D84 S12.l60.hi[0] commercial-forms sample, D85 S6.problem.hi[1] current-foundation inventory, D86 S1.strategy.hi[1] ten-delta enumeration, D87 S5.statusquo.hi[3] table-stakes list): bring INTERNAL / illustrative detail OFF a customer-facing shown face into its speaker note, where the detail is already carried, while KEEPING the reader's core understanding on the face so comprehension is never lost. This round takes S11.exp.hi[1] col-3 (Prelim Feedback / Validation, the G3 · A/B expectation row), whose criteria cell paused inside a narrow four-column matrix to enumerate every tracked clock and metric inline — 'minute-zero trigger, facts available, minutes to objectives / posture / ownership / release, forks, unowned actions, residual risk at T+30 / 60 / 120, hard-dollar time exposure, outcome, replay lesson' — an enumeration the speaker note exp.ai[1] col-3 already holds in full and the S16 instrument (counter.ai, 'Track minute-zero trigger …') carries a second time. The item-names are not the point; the point is the criterion 'Measurable delta in timing, risk or outcome' — the standard the A/B must meet — which stays on the face with a pointer to the note. This round REMOVES only the inline enumeration from the shown cell and leaves it in exp.ai[1] col-3, so exp.ai stays a strict superset and never shorter than exp.hi (law 6), keeps the row's four columns, and empties nothing. It is not a business change: no figure, financial date, NBA pairing, claim, gate or reach moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched; the ≥3 'one-ninth gate' lock stands; the master statement and vprop untouched under law 4). It raises succinctness (99.0 → 99.25) and holds efficiency (99.17). It is the THIRTEENTH member of the density / law-6 class (after D76–D87) and the first to take an S11 validation-matrix criteria cell, so the G3 · A/B pass criterion now shows the standard as a rule with its tracked clocks kept in the note. A later round continues the class on a shown cell that still carries internal / illustrative inventory without a comprehension cost, an evidence-gated change under the S11 change-control law, or a fresh readability class — never a claim the record does not carry."
+    },
+    {
+      "id": "D89",
+      "date": "2026-09-25",
+      "revision": "0.087",
+      "by": "twelve lenses · round 81",
+      "decision": "D89 — Round 81 of 99 CONTINUES the density / law-6 class (D76–D88): bring INTERNAL / illustrative detail OFF a customer-facing shown face into its speaker note, where the detail is already carried, while KEEPING the reader's core understanding on the face so comprehension is never lost. This round takes S5.whys.hi[0] (Customer Problem, the EDU why), whose cell paused to enumerate every campus constituency inline — 'student, parent, faculty, trustee, donor, athletics' — a roster the speaker note whys.ai[0] already holds in full, identically. The names are not the point; the point is that EDU leadership must align across many constituencies while the facts keep changing — the breadth, which stays on the face with 'its many campus constituencies'. This round REMOVES only the inline roster from the shown cell and leaves it in whys.ai[0], so whys.ai stays a strict superset and never shorter than whys.hi (law 6), keeps the array's four hi rows and five ai rows, and empties nothing. It is not a business change: no figure, financial date, NBA pairing, claim, gate or reach moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched; the ≥3 'one-ninth gate' lock untouched; the master statement and vprop untouched under law 4). It raises succinctness (99.25 → 99.67) and holds efficiency (99.25). It is the FOURTEENTH member of the density / law-6 class and the second to take an S5 shown cell (after D79 and D87)."
     }
   ],
   "iterations": [
@@ -5146,6 +5160,30 @@
       ],
       "decisions": [
         "D88"
+      ]
+    },
+    {
+      "revision": "0.087",
+      "n": 81,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 81",
+      "file": "docs/drs/iterations/0.087.md",
+      "ssesMeans": {
+        "security": 96.75,
+        "stability": 97.67,
+        "scalability": 99.75,
+        "efficiency": 99.25,
+        "succinctness": 99.67
+      },
+      "edits": [
+        "S5 · whys.hi[0] — remove the inline six-name campus-constituency roster (student, parent, faculty, trustee, donor, athletics) from the shown EDU why; keep the breadth on the face; whys.ai[0] keeps the full roster (law 6) — D89",
+        "S2 · status.hi — rev 0.086 → 0.087, register D1–D88 → D1–D89",
+        "S2 · status.ai — rev 0.086 → 0.087, register D1–D88 → D1–D89 (edition history kept, strict superset)",
+        "S18 · e0 — register (D1–D88) → (D1–D89) (hi[2] + ai[2])",
+        "PROV / row provenance — rev 0.086 → 0.087"
+      ],
+      "decisions": [
+        "D89"
       ]
     }
   ]
