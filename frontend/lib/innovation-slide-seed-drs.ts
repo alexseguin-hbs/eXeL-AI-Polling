@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.052";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.053";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -81,8 +81,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.052 · decision register D1–D54 and the iteration ledger in docs/drs (append-only).",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.052 · decision register D1–D54 and the iteration ledger in docs/drs (append-only). " + PROV,
+        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.053 · decision register D1–D55 and the iteration ledger in docs/drs (append-only).",
+        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.053 · decision register D1–D55 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
@@ -122,14 +122,14 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "Financial RESET (v0.9 S17): do not reuse old DRS prices, SAM, SOM, NPV (net present value), IRR or CTS. New market model: reachable accounts × validated annual value × realistic conversion = serviceable opportunity.",
           "Financial model — DECLARED (IA — an internal assumption, not buyer-validated): one Pro Enterprise institution · verified 250 $/min (IA) × 90 leadership-delay minutes removed × 4 events a year = 90 k time value · 30 k discrete avoided cost · 60 k risk-adjusted outcome (range midpoint) → 180 k modeled value per customer-year · 33 % capture → 60 k annual price.",
-          "Ramp (IA): 6 paying accounts in 2027 → 15 · 30 · 60 (2030) → 640 by 2036 at 60 k, then 120 k a year once the benchmark's functions are native (2031+) = 2,121 account-years, 248 M ten-year revenue, 3-year CAGR (compound annual growth rate) 2027 → 2030 = 115 %. Resources every year 2026–2036: 11.2 M in total (build 2027–2029, then platform R&D, knowledge base and customer success). NPV proxy +1.0 M at the G2 weighting (tech med × comm high = 0.18); a G3 pass roughly doubles it. The return profile, S10 and S14 derive from this eleven-year record.",
+          "Ramp (IA): 6 paying accounts in 2027 → 15 · 30 · 60 (2030) → 640 by 2036 at 60 k, then 120 k a year once the benchmark's functions are native (2031+) = 2,121 account-years, 248 M ten-year revenue, 3-year CAGR (compound annual growth rate) 2027 → 2030 = 115 % — a 10× rise in three years. Resources every year 2026–2036: 11.2 M in total (build 2027–2029, then platform R&D, knowledge base and customer success). NPV proxy +1.0 M at the G2 weighting (tech med × comm high = 0.18); a G3 pass roughly doubles it. The return profile, S10 and S14 derive from this eleven-year record.",
           "Value equation (S14): Verified $/min = direct time-dependent cost ÷ elapsed minutes · Time Value = verified $/min × leadership-delay minutes reduced · Risk-Adjusted Value = (P(loss) (the probability of a loss) before − P(loss) after) × consequence value, ranges only · Modeled Value = Time Value + Discrete Avoided Cost + Risk-Adjusted Outcome Value · Contribution = validated WTP − CrisisCommand-specific CTS.",
           "No price is supported until a buyer validates baseline, delta, economic weight, attribution and willingness to pay.",
         ],
         ai: [
           "Financial RESET (v0.9 S17): do not reuse old DRS prices, SAM, SOM, NPV (net present value), IRR or CTS. New market model: reachable accounts × validated annual value × realistic conversion = serviceable opportunity.",
           "Financial model — DECLARED (IA — an internal assumption, not buyer-validated): one Pro Enterprise institution · verified 250 $/min (IA) × 90 leadership-delay minutes removed × 4 events a year = 90 k time value · 30 k discrete avoided cost · 60 k risk-adjusted outcome (range midpoint) → 180 k modeled value per customer-year · 33 % capture → 60 k annual price.",
-          "Ramp (IA): 6 paying accounts in 2027 → 15 · 30 · 60 (2030) → 640 by 2036 at 60 k, then 120 k a year once the benchmark's functions are native (2031+) = 2,121 account-years, 248 M ten-year revenue, 3-year CAGR (compound annual growth rate) 2027 → 2030 = 115 %. Resources every year 2026–2036: 11.2 M in total (build 2027–2029, then platform R&D, knowledge base and customer success). NPV proxy +1.0 M at the G2 weighting (tech med × comm high = 0.18); a G3 pass roughly doubles it. The return profile, S10 and S14 derive from this eleven-year record.",
+          "Ramp (IA): 6 paying accounts in 2027 → 15 · 30 · 60 (2030) → 640 by 2036 at 60 k, then 120 k a year once the benchmark's functions are native (2031+) = 2,121 account-years, 248 M ten-year revenue, 3-year CAGR (compound annual growth rate) 2027 → 2030 = 115 % — a 10× rise in three years. Resources every year 2026–2036: 11.2 M in total (build 2027–2029, then platform R&D, knowledge base and customer success). NPV proxy +1.0 M at the G2 weighting (tech med × comm high = 0.18); a G3 pass roughly doubles it. The return profile, S10 and S14 derive from this eleven-year record.",
           "Value equation (S14): Verified $/min = direct time-dependent cost ÷ elapsed minutes · Time Value = verified $/min × leadership-delay minutes reduced · Risk-Adjusted Value = (P(loss) (the probability of a loss) before − P(loss) after) × consequence value, ranges only · Modeled Value = Time Value + Discrete Avoided Cost + Risk-Adjusted Outcome Value · Contribution = validated WTP − CrisisCommand-specific CTS.",
           "No price is supported until a buyer validates baseline, delta, economic weight, attribution and willingness to pay.",
           "Customer-supported inputs only: executive / legal / communications labor · external advisor burn · contact-center surge · directly attributable revenue / transaction exposure · contractual / SLA exposure · incremental operating expense. Never present modeled risk reduction as guaranteed savings.",
@@ -716,12 +716,12 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D54) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D55) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
         ],
         ai: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D54) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D55) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
           PROV,
         ],
       },
