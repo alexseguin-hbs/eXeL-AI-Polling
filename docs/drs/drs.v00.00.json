@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.078",
+  "revision": "0.079",
   "stage": "G2 / future-state validation",
   "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -1812,6 +1812,13 @@
    "date": "2026-09-25",
    "kind": "release",
    "why": "Round 72 of 99 continues the density / law-6 class (D76–D79) on a second shown-face panel cell: S6.conops.hi[0] (the 572-char Product Summary architecture cell) drops the inline vendor-name inventory '(Rave · Everbridge · PagerDuty)' from the INPUT clause and keeps 'facts / status from the operational systems of record, absorbed by qualification' plus the public-body citizen-entry clause on the face; the fuller per-segment mapping stays in conops.ai[0] (a strict superset, never shorter than hi, law 6) and the vendor names stand on S1 · S5 · S7 · S8. No figure, date, NBA pairing, claim or reach moves; succinctness rises 94.75 → 95.75, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D80; PROV and the row provenance bump to rev 0.078.",
+   "commit": "c2c4965"
+  },
+  {
+   "revision": "0.079",
+   "date": "2026-09-25",
+   "kind": "release",
+   "why": "Round 73 of 99 continues the density / law-6 class (D76–D80) on a status / metadata line for the first time: S2.status.hi (Project Overview) sheds the internal edition-provenance log '(operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired' and keeps the validation stage, product, method, edition name (v1.0 ONE PLATFORM), rev and the append-only register + ledger on the face; the full edition history stays in status.ai (a strict superset, never shorter than hi, law 6, which also carries PROV). No figure, financial date, NBA pairing, claim or reach moves; succinctness rises 95.75 → 96.75, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D81; PROV and the row provenance bump to rev 0.079.",
    "commit": "PENDING"
   }
  ],
@@ -3088,6 +3095,13 @@
    "revision": "0.078",
    "by": "twelve lenses · round 72",
    "decision": "D80 — Round 72 of 99 CONTINUES the density / law-6 class (D76 S8.nba.hi, D77 S1.ask.hi gate parenthetical, D78 S1.ask.hi CTS gloss, D79 S5.problem.hi field-list): bring INTERNAL / teaching detail OFF a customer-facing shown face and into its speaker note, where the note already carries it, while KEEPING the reader's core understanding on the face so comprehension is never lost. This round takes S6.conops.hi[0] (Product Summary architecture), the 572-char shown cell whose INPUT clause named three operational systems inline — '(Rave · Everbridge · PagerDuty)' — a roster the note conops.ai[0] already maps segment by segment ('from Rave in EDU, Everbridge / quality / recall systems in FOOD, PagerDuty / security / status systems in TECH') and that the market table (S1), the problem (S5), the personas (S7) and the competition (S8) already carry. The roster is not the input path; the path is stated by 'selected facts / status from the operational systems of record, absorbed by qualification', which stays on the face. This round REMOVES the vendor-name parenthetical from the shown architecture line (the path is KEPT on the face, so a slide-only reader still understands that facts enter from the operational systems of record and are absorbed by qualification) and leaves the fuller per-segment mapping in conops.ai[0], so conops.ai[0] stays a strict superset and never shorter than conops.hi[0] (law 6). Nothing is emptied. It is not a business change: no figure, date, NBA pairing, claim or reach moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched as pairings; the master statement and vprop untouched under law 4). The public-body citizen-entry clause brought onto this face at D74 is deliberately LEFT — removing it would regress the public-reach comprehension the D66–D75 class established, the opposite of this class's intent. It raises succinctness (94.75 → 95.75) and holds efficiency (99.17). It is the FIFTH member of the density / law-6 class (after D76, D77, D78, D79) and the SECOND to take a shown-face panel cell rather than a parenthetical on S1. A later round continues the class on a shown cell that still overflows or carries internal / inventory language without a comprehension cost, an evidence-gated change under the S11 change-control law, or a fresh readability class — never a claim the record does not carry."
+  },
+  {
+   "id": "D81",
+   "date": "2026-09-25",
+   "revision": "0.079",
+   "by": "twelve lenses · round 73",
+   "decision": "D81 — Round 73 of 99 CONTINUES the density / law-6 class (D76 S8.nba.hi, D77 S1.ask.hi gate parenthetical, D78 S1.ask.hi CTS gloss, D79 S5.problem.hi field-list, D80 S6.conops.hi[0] vendor roster): bring INTERNAL / teaching detail OFF a customer-facing shown face into its speaker note, where the note already carries it, while KEEPING the reader's core understanding on the face so comprehension is never lost. This round takes S2.status.hi (Project Overview), the shown status line that carried internal edition-provenance metadata — '(operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired' — record-keeping about which manuscript, which narrative author and which editions were retired, none of it business-case value a founder, investor or customer needs on the shown status line, and all of it retained verbatim in status.ai (a strict superset, which also carries the PROV footer). The standing the reader needs is KEPT on the face: the validation stage (G2 / future-state), the customer-facing product (CrisisCommand.ai), the internal method (De-Risking Strategies / Project 34), the edition name (v1.0 ONE PLATFORM), the current rev (law 5) and the append-only decision register + iteration ledger (law 7). This round REMOVES only the edition-provenance metadata from the shown status and leaves it in status.ai, so status.ai stays a strict superset and never shorter than status.hi (law 6). Nothing is emptied. The dates removed are edition-provenance metadata, not business-case dates. It is not a business change: no figure, financial date, NBA pairing, claim or reach moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched as pairings; the master statement and vprop untouched under law 4). It raises succinctness (95.75 → 96.75) and holds efficiency (99.17). It is the SIXTH member of the density / law-6 class (after D76, D77, D78, D79, D80) and the FIRST to take a status / metadata line rather than a value, parenthetical or architecture cell. A later round continues the class on a shown cell that still overflows or carries internal / inventory language without a comprehension cost, an evidence-gated change under the S11 change-control law, or a fresh readability class — never a claim the record does not carry."
   }
  ],
  "iterations": [
@@ -4842,6 +4856,30 @@
    ],
    "decisions": [
     "D80"
+   ]
+  },
+  {
+   "revision": "0.079",
+   "n": 73,
+   "date": "2026-09-25",
+   "author": "twelve lenses · round 73",
+   "file": "docs/drs/iterations/0.079.md",
+   "ssesMeans": {
+    "security": 96.75,
+    "stability": 97.67,
+    "scalability": 99.75,
+    "efficiency": 99.17,
+    "succinctness": 96.75
+   },
+   "edits": [
+    "S2 · status.hi (Project Overview) · CONTINUE the density / law-6 class (D76–D80) — remove the internal edition-provenance log '(operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired ' from the shown status line, keeping the validation stage, product, method, edition name (v1.0 ONE PLATFORM), rev and the append-only register + ledger on the face; the full edition history stays in status.ai (strict superset, which also carries PROV). Anchor (hi-only, count 1). No figure, financial date, NBA pairing, claim or reach moves; master statement and vprop untouched (law 4). Raises succinctness · D81",
+    "S2 · status.hi · rev 0.078 → 0.079, decision register D1–D80 → D1–D81 (folded into edit 1's hi replacement) · laws 5 and 7",
+    "S2 · status.ai · rev 0.078 → 0.079, decision register D1–D80 → D1–D81 (anchor via ' \" + PROV', count 1) — edition history KEPT so ai stays a strict superset · laws 5, 6, 7",
+    "S18 · e0 · decision register (D1–D80) → (D1–D81) (hi[2] + ai[2], count 2) — the register grew (D81); both S2 and S18 read one count · law 7",
+    "PROV / row provenance · rev 0.078 → 0.079 (seed PROV count 1; innovation-data.ts row provenance count 1) · law 5"
+   ],
+   "decisions": [
+    "D81"
    ]
   }
  ]
