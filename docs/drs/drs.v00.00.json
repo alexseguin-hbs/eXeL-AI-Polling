@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.112",
+    "revision": "0.113",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -2049,8 +2049,15 @@
       "revision": "0.112",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "0282c84",
       "why": "Per-slide S7 pass: one law-6 density trim to slide S7 (Customer Workflow), returning the citizen / recipient row (personas.hi[3]) to its core by moving the CASPER-shaped-intake definition into personas.ai[3], which already carries the full field list, so ai stays a strict superset; the public-body eXeL Polling API reach STAYS on the S7 face because S7 is a public-body anchor slide (S4 · S7 · S12 · S18); no figure, claim, gate, law or linked number moves."
+    },
+    {
+      "revision": "0.113",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Per-slide S8 pass: one law-6 density trim to slide S8 (Competition + Value), returning the public-body row (benefits.hi[4]) to its distinctive value claim (no NBA to displace, never a claimed customer) by moving the public-body mechanism (eXeL Polling API answer + replay pointers) into benefits.ai[4], which already carries it in full, so ai stays a strict superset; the mechanism moves off this face because S8 is NOT a public-body anchor (S4 · S7 · S12 · S13 · S16 · S17 · S18 are); no figure, claim, gate, law or linked number moves — the DECLARED single-customer baseline and the master statement are untouched."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -3564,6 +3571,13 @@
       "revision": "0.112",
       "by": "twelve lenses · per-slide S7",
       "decision": "Per-slide S7 pass (rev 0.112) applies one face edit to slide S7, the Customer Workflow slide: personas.hi[3] (the citizen / recipient row) carried three loads on one face — the core (one human-approved voice, the answer back, the need entering the record as operational truth), the public-body eXeL Polling API reach (S4), and a CASPER-shaped-intake definition ending in its own note pointer ('fields in the note'), overloading the row (law 6). This decision trims the CASPER-intake definition to the note, leaving the citizen's core and the public-body eXeL Polling API reach on the face, because S7 is one of the deck's public-body ANCHOR slides (S4 · S7 · S12 · S18; brief R-CORE: the citizen's answer enters the record at S4 · S7) — so, unlike the S4 (D111), S5 (D112) and S6 (D113) passes that moved the public-body pointer off those non-anchor faces, this pass KEEPS the eXeL Polling API pointer on S7 and moves only the intake definition. personas.ai[3] already carries the full CASPER field list, so ai stays a strict superset of hi (law 6; no cell emptied). It CONTINUES the density / law-6 discipline of D110–D113, applied here to the citizen row of the workflow slide while preserving S7's anchor role. No figure, claim, gate, law or linked number moves (law 3): the row's digital inputs and every derived field (S1 chart, S2/S3 profile, S8 charts, S10 grid) are untouched, and the master statement and the segment value props stay fixed under law 4. It does not supersede any prior decision. Holds security, stability and scalability at ceiling and lifts S7's efficiency and succinctness by returning the citizen row to one clear reading with its anchor reach intact."
+    },
+    {
+      "id": "D115",
+      "date": "2026-09-25",
+      "revision": "0.113",
+      "by": "twelve lenses · per-slide S8",
+      "decision": "Per-slide S8 pass (rev 0.113) applies one face edit to slide S8, the Competition + Value slide: benefits.hi[4] (the public-body row) carried two loads on one face — the distinctive value claim (for a public body there is no NBA to displace and it is never a claimed customer, the point S8 uniquely makes) and the mechanism (citizens answer through the eXeL Polling API, every approved posture and its outcome replayable by the body that owns it, S12 · S16 · S17), overloading the row (law 6). This decision trims the mechanism to benefits.ai[4], which already carries it in full, leaving the distinctive claim on the face, because S8 is NOT one of the deck's public-body ANCHOR slides (S4 · S7 · S12 · S13 · S16 · S17 · S18; the brief's R-CORE section: the citizen's answer enters the record at S4 · S7, replay at S13 · S16 · S17, the Polling API at S12 · S18) — so, exactly like the S4 (D111), S5 (D112) and S6 (D113) passes that moved the public-body mechanism off those non-anchor faces, and unlike S7 (D114) which KEPT it because S7 is an anchor, this pass moves the mechanism off S8. benefits.ai[4] is untouched, so ai stays a strict superset of hi (law 6; no cell emptied). It CONTINUES the density / law-6 discipline of D110–D114, applied here to the public-body row of the Competition + Value slide. No figure, claim, gate, law or linked number moves (law 3): the DECLARED single-customer baseline (benefits.hi[3] / [3], 180 k modeled / 60 k captured) is untouched, the row's digital inputs and every derived field (S1 chart, S2 / S3 profile, S8 charts, S10 grid) are untouched, and the master statement (vprop) and the segment value props stay fixed under law 4. It does not supersede any prior decision. Holds security, stability and scalability at ceiling and lifts S8's efficiency and succinctness by returning the public-body row to its one distinctive reading."
     }
   ],
   "iterations": [
@@ -6123,6 +6137,29 @@
       ],
       "decisions": [
         "D114"
+      ]
+    },
+    {
+      "revision": "0.113",
+      "n": 113,
+      "date": "2026-09-25",
+      "author": "twelve lenses · per-slide S8",
+      "file": "docs/drs/iterations/0.113.md",
+      "ssesMeans": {
+        "security": 98.75,
+        "stability": 100.0,
+        "scalability": 100.0,
+        "efficiency": 98.58,
+        "succinctness": 90.25
+      },
+      "edits": [
+        "S8.benefits.hi[4] (public-body row) — law-6 density trim: moved the public-body MECHANISM (eXeL Polling API answer + replay pointers S12 · S16 · S17) off the face into benefits.ai[4], which already carries it in full, leaving only the distinctive value claim; the row now reads 'For a public body (IA, after G3, D12): no NBA to displace — the governed record steers a public project; never a claimed customer.'; S8 is NOT a public-body anchor (S4 · S7 · S12 · S13 · S16 · S17 · S18 are), so the mechanism moves off this face exactly as on the S4/S5/S6 passes and unlike S7; benefits.ai[4] is untouched so ai stays a strict superset (law 6; no cell emptied); no figure or claim moves (law 3) — the DECLARED baseline benefits.hi[3] (180 k modeled / 60 k captured) and the master statement vprop (law 4) are untouched.",
+        "PROV · seed constant · rev 0.112 → 0.113 (anchor 'v1.0 · rev 0.112', one occurrence) · law 5",
+        "innovation-data.ts · row provenance · rev 0.112 → 0.113 (anchor 'v1.0 · rev 0.112', one occurrence) · law 5",
+        "Master record · fill revisions[] 0.112 commit PENDING → 0282c84; append iterations[] 0.113, decisions[] D115, revisions[] 0.113 (PENDING); set project.revision 0.113 · law 7"
+      ],
+      "decisions": [
+        "D115"
       ]
     }
   ]
