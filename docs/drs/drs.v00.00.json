@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.049",
+    "revision": "0.050",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1608,8 +1608,15 @@
       "revision": "0.049",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "eea19dd",
       "why": "Round 43 of 99 (twelve lenses) CLOSES the acronym-comprehension pass that D44–D50 opened from the deck's financial figures (NPV D44, CAGR D45, P(loss) D46), its market-sizing term (TAM D47), its differentiator domain-method acronym (CASPER D48), its regulatory / compliance boundary acronym (PHI D49) and its value-equation input (SLA D50) to SITREP, the last unglossed acronym on any shown face. Round 42 (D50) named SITREP the last remaining acronym on a shown face and deferred it as the lowest-load-bearing (the product-summary current-foundation list, 'do not re-sell as new'); this round opens it first — before the deck enters the S11 evidence-gated plateau — because a cold or 2525 reader still meets it unglossed and cannot open it. SITREP — situation report — was spelled out on no shown face; this round defines it once at its first shown appearance (S6.problem.hi[1]) and its matching ai[1], in two plain words drawn from the deck's own current-state text: 'situation reports'. From rev 0.049 every acronym a cold reader meets on any shown face is defined where they meet it. No printed figure, date or law moved (D51)."
+    },
+    {
+      "revision": "0.050",
+      "date": "2026-09-25",
+      "kind": "release",
+      "why": "Round 44 of 99 (twelve lenses) opens a consistency-reconciliation pass after the acronym-comprehension pass (D44–D51) closed at round 43. The absorption gate — the hinge of the one-platform thesis, a benchmark function going native only after it removes at least a ninth of the benchmark's baseline on its clock (D38) — was defined on the shown face (S1.oneline) as only the fraction 'a ninth', while the master platform ladder already records it quantitatively as 'the one-ninth (11.1 %) gate' (platform.ladder, 2030 horizon). A precise-minded reader (an investor, a system thinker, an execution genius, a 2525 reader) met the load-bearing threshold on the summary and could not read its exact value, though the record held it. This round adds '(11.1 %)' at the gate's definition on S1.oneline.hi and its matching ai, so the shown face reads 'removes at least a ninth (11.1 %) of the benchmark's baseline on its clock', matching the master ladder verbatim. 11.1 % is 1/9 — pure arithmetic the master already carries — so the edit invents nothing and moves no printed money, date or law (no dollar touched; 60 k / 180 k / 115 % / the ramp unchanged); it agrees with S4's stop rule (11.1 % of 130 = 14.4). S2 status and S18 e0 carry rev 0.050 and the grown D1–D52 register; PROV and the row provenance bump to rev 0.050 (D52).",
+      "commit": "PENDING"
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2682,6 +2689,13 @@
       "revision": "0.049",
       "by": "twelve lenses · round 43",
       "decision": "Round 43 of 99 CLOSES the acronym-comprehension pass (define every load-bearing term where a cold reader first meets it on a shown face) that D44–D50 opened across the deck's financial figures (NPV D44, CAGR D45, P(loss) D46), its market-sizing / positioning term (TAM D47), its differentiator domain-method acronym (CASPER D48), its regulatory / compliance boundary acronym (PHI D49) and its value-equation input (SLA D50). SITREP is the last acronym standing on any shown face: round 42 (D50) named it 'the last remaining acronym on a shown face … deliberately deferred as the lowest-load-bearing (a current-foundation list item, not a differentiator or a case input),' and noted 'a later round would need customer, competitive, cost, implementation or pilot evidence (the S11 change-control law), not another gloss.' This round elects to open SITREP FIRST — before the deck enters that evidence-gated plateau — because a cold reader (an investor, a future customer, a system thinker without analytics know-how, a 2525 reader) still meets it unglossed on a shown face and cannot open it, and closing the class is a figure-neutral clarity move the sandbox can make honestly. SITREP appears on the product-summary current-foundation list (S6.problem.hi[1] '… message development · SITREPs · planning …' and the matching ai[1]), a list the deck marks 'do not re-sell as new' — so a reader who could not open the abbreviation misjudged what already ships. Yet SITREP — situation report — was spelled out on no shown face and defined nowhere in the seed (grep: 0 occurrences of 'situation report'). This round defines it once, at its first shown-face appearance (S6.problem.hi[1]), inline in two plain words drawn from the deck's own current-state text: '(situation reports)'. The matching ai[1] carries the same expansion so the shown face and the note agree and ai stays a superset; S8.features.ai[8] is an ai-only occurrence that resolves to this gloss (as SLA's S3.fincomment.ai occurrence resolved to the S14 gloss, D50). Opening SITREP is distinct from the financial-figure class (D44–D46), the market-sizing class (D47), the domain-method class (D48), the regulatory / compliance class (D49) and the value-equation-input class (D50): SITREP is a current-foundation capability term, the lowest-load-bearing member and therefore the one that closes the pass. The gloss invents nothing — situation report is exactly what the abbreviation names; it moves no printed figure, date or law (no digit touched). Anchored on the once-occurring hi[1] string 'message development · SITREPs · planning' (count 1) and the once-occurring ai[1] string 'pressure testing · SITREPs · near-term planning' (count 1); both stay string[] rows, ai stays a superset (ai[1] already longer than hi[1]), nothing emptied. It raises scalability (a 2525 or non-analyst reader now resolves EVERY acronym on every shown face — the class is complete, not merely advanced), efficiency (the last closed term reads without a glossary) and stability (SITREP means one thing across the deck), at a negligible succinctness cost. It supersedes nothing. With the acronym-comprehension pass complete, no acronym remains on any shown face to gloss; a later round's clarity work must be a different class (density under law 6, a consistency reconciliation, or an evidence-gated change under the S11 change-control law), not another acronym gloss."
+    },
+    {
+      "id": "D52",
+      "date": "2026-09-25",
+      "revision": "0.050",
+      "by": "twelve lenses · round 44",
+      "decision": "Round 44 of 99 opens a consistency-reconciliation pass after the acronym-comprehension pass (D44–D51) closed at round 43. The absorption gate is the hinge of the one-platform thesis: a benchmark function goes native only after it removes at least a ninth of the benchmark's baseline on its clock (defined on the shown face at D38). The master platform ladder records that gate quantitatively — 'the one-ninth (11.1 %) gate' (platform.ladder, 2030 horizon) — but the deck's shown-face definition (S1.oneline) named only the fraction 'a ninth', so a precise-minded reader (an investor, a system thinker without analytics know-how, an execution genius, a 2525 reader) met the load-bearing threshold on the summary and could not read its exact value, though the record already held it. This round reconciles the two: it adds '(11.1 %)' at the gate's definition on S1.oneline.hi and the matching oneline.ai, so the shown face reads 'removes at least a ninth (11.1 %) of the benchmark's baseline on its clock', matching the master platform ladder. The figure is not a new business number: 11.1 % is one divided by nine, the arithmetic of the ninth the gate already named, and it is already carried in the master — so the edit invents nothing and moves no printed money, date or law (no dollar touched; 60 k / 180 k / 115 % / the ramp all unchanged; law 3's financialModel inputs untouched). It also agrees with S4's pre-registered stop rule ('fewer than 15 of the benchmark's 130 minutes removed', D14; 11.1 % of 130 = 14.4). It is distinct from the acronym-comprehension class (D44–D51): that class opened closed abbreviations; this pass makes the deck's shown faces agree with the master record where a load-bearing quantity was stated qualitatively on the face and precisely in the record. Anchored on the twice-occurring string 'removes at least a ninth of the benchmark's baseline on its clock' (hi + ai, count 2); both stay single strings, ai stays a superset (the identical loop-and-ladder text plus the master-statement appendix), nothing emptied; the three seed occurrences of the 'one-ninth gate' string are untouched, so the innovation-time test's ≥3 count holds. It raises scalability (a precise-minded or 2525 reader now reads the exact qualification bar where they meet it), efficiency (the gate reads to a number) and stability (deck and master agree on the threshold), at no succinctness cost beyond ~9 characters on an already-kept S1 cell. It supersedes nothing. A later round's clarity work continues this consistency-reconciliation class, or a density pass under law 6, or an evidence-gated change under the S11 change-control law (customer, competitive, cost, implementation or pilot evidence) — never a figure the record does not carry."
     }
   ],
   "iterations": [
@@ -3765,6 +3779,29 @@
       ],
       "decisions": [
         "D51"
+      ]
+    },
+    {
+      "revision": "0.050",
+      "n": 44,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 44",
+      "file": "docs/drs/iterations/0.050.md",
+      "ssesMeans": {
+        "security": 94.6,
+        "stability": 95.8,
+        "scalability": 95.4,
+        "efficiency": 95.5,
+        "succinctness": 90.3
+      },
+      "edits": [
+        "S1 · oneline.hi + ai · add the absorption gate's exact threshold at its definition point — \"removes at least a ninth of the benchmark's baseline on its clock\" → \"removes at least a ninth (11.1 %) of the benchmark's baseline on its clock\", reconciling the shown face with the master platform ladder which already records 'the one-ninth (11.1 %) gate' (platform.ladder, 2030 horizon). 11.1 % is 1/9, pure arithmetic the master already carries — it invents nothing and moves no printed money, date or law (no dollar touched; 60 k / 180 k / 115 % / the ramp unchanged; law 3 inputs untouched); it agrees with S4's stop rule (11.1 % of 130 = 14.4). Anchored on the twice-occurring string (hi + ai, count 2); both stay single strings, ai stays a superset, nothing emptied; the seed's 'one-ninth gate' occurrences are untouched (innovation-time ≥3 holds) · raises scalability, efficiency and stability · D52",
+        "S2 · status · rev 0.049 → 0.050, decision register D1–D51 → D1–D52 (hi + ai, anchor \"rev 0.049 · decision register D1–D51\", count 2) · laws 5 and 7",
+        "S18 · e0 · decision register (D1–D51) → (D1–D52) (hi[2] + ai[2], anchor \"The decision register (D1–D51)\", count 2) — the register grew (D52); both S2 and S18 read one count · law 7",
+        "PROV / row provenance · rev 0.049 → 0.050 (seed PROV anchor \"v1.0 · rev 0.049\" count 1; innovation-data.ts row provenance anchor \"v1.0 · rev 0.049\" count 1) · law 5"
+      ],
+      "decisions": [
+        "D52"
       ]
     }
   ]
