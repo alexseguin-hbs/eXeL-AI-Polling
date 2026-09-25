@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.108",
+    "revision": "0.109",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -2021,8 +2021,15 @@
       "revision": "0.108",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "557b66d",
       "why": "Per-slide S3 pass (slide 2 of 18 in this pass): the twelve lenses focus on slide S3 alone — the Financial — Return slide — and apply one density / law-6 edit to it. fincomment.hi[2], the Ramp cell, was the single densest cell on the deck, fusing the ramp, both price tiers, account-years, ten-year revenue, the CAGR with its spelled-out definition, the year-by-year resource phasing and the NPV proxy with its weighting formula and a G3-doubling aside into one run-on that overflowed its panel; the derivation is lifted onto fincomment.ai[2], the note that already carries it, leaving every headline figure (ramp 6 → 60 → 640, tiers 60 k / 120 k, 2,121 account-years, 248 M revenue, 115 % CAGR, NPV proxy +1.0 M, funded 11.2 M) on the face. No other slide face is touched, no figure moves (every number derives from financialModel), the master statement and vprop stay fixed under law 4, ai[2] is unchanged so ai stays a strict superset of hi and still carries NPV and IRR, and the provenance footer is bumped to rev 0.108 via PROV and the row (D110)."
+    },
+    {
+      "revision": "0.109",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Per-slide S4 pass: one law-6 density trim to slide S4 (Customer CONOPS), returning conops.hi[7], the stakeholder step, to the terse one-idea-per-step register by moving its synchronized-posture, operational-truth and public-body eXeL Polling API detail into conops.ai[8] (which already carries it verbatim, so ai stays a strict superset); no figure, claim, gate, law or linked number moves."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -3508,6 +3515,13 @@
       "revision": "0.108",
       "by": "twelve lenses · per-slide S3",
       "decision": "D110 — Per-slide S3 pass (rev 0.108) applies one face edit to slide S3, the Financial — Return slide: fincomment.hi[2], the Ramp cell, was the single densest cell on the deck, fusing the ramp, both price tiers, account-years, ten-year revenue, the CAGR with its spelled-out definition, the year-by-year resource phasing, and the NPV proxy with its weighting formula and a G3-doubling aside into one run-on that overflows its panel (law 6). This decision lifts the derivation off the face into fincomment.ai[2], the note that already carries it verbatim, leaving on the face every headline figure that decides the case (ramp 6 → 60 → 640, tiers 60 k / 120 k, 2,121 account-years, 248 M revenue, 115 % CAGR, NPV proxy +1.0 M, funded 11.2 M). It CONTINUES the density / law-6 discipline of D108 (which moved the one-ninth-gate definition off the S1 face) — the same move on the deck's densest financial cell, a presentational separation of result from working, not a change of meaning. No figure moves (law 3): every number derives from financialModel and none is edited, so the S1 chart, S2/S3 profile, S8 charts and S10 grid are untouched; the master statement and vprop stay fixed under law 4; ai[2] is unchanged, so ai stays a strict superset of hi and still carries NPV and IRR (law 6, no cell emptied). It does not supersede any prior decision. Holds security, stability and scalability at ceiling and lifts S3's efficiency and succinctness by letting the founder read the return before its proof."
+    },
+    {
+      "id": "D111",
+      "date": "2026-09-25",
+      "revision": "0.109",
+      "by": "twelve lenses · per-slide S4",
+      "decision": "Per-slide S4 pass (rev 0.109) applies one face edit to slide S4, the Customer CONOPS slide: conops.hi[7], the stakeholder step, was the one long run-on on an otherwise terse CONOPS face — carrying the synchronized-to-the-approved-posture clause, the answers-enter-the-record-as-operational-truth clause and the public-body eXeL Polling API pointer where every neighbouring step states one idea, overflowing the step register (law 6). This decision trims the face to 'Stakeholder strategy → synchronized communications → the community answers back (S7 · eXeL Polling API).', leaving the full text in conops.ai[8], which already carries it verbatim, so ai stays a strict superset of hi (law 6; no cell emptied; the CONOPS array length 10 unchanged, so the 6–10-step floor holds). It CONTINUES the density / law-6 discipline of D108 (the S1 one-ninth-gate face) and D110 (the S3 Ramp cell) — the same presentational separation of the face's one idea from the note's derivation, now on the deck's CONOPS chain. No figure, claim, gate, law or linked number moves (law 3): the worked events, the stop rule and the claim boundary in conops.ai and future.ai are untouched, so the S1 chart, S2/S3 profile, S8 charts and S10 grid are unaffected; the master statement and vprop stay fixed under law 4. It does not supersede any prior decision. Holds security, stability and scalability at ceiling and lifts S4's efficiency and succinctness by returning the CONOPS face to one idea per step."
     }
   ],
   "iterations": [
@@ -5975,6 +5989,29 @@
       ],
       "decisions": [
         "D110"
+      ]
+    },
+    {
+      "revision": "0.109",
+      "n": 109,
+      "date": "2026-09-25",
+      "author": "twelve lenses · per-slide S4",
+      "file": "docs/drs/iterations/0.109.md",
+      "ssesMeans": {
+        "security": 98.75,
+        "stability": 100.0,
+        "scalability": 100.0,
+        "efficiency": 98.58,
+        "succinctness": 92.08
+      },
+      "edits": [
+        "S4.conops.hi[7] (stakeholder step) — law-6 density trim: moved the synchronized-to-the-approved-posture clause, the answers-enter-the-record-as-operational-truth clause and the public-body eXeL Polling API pointer off the face into conops.ai[8] (unchanged, already carries them verbatim); the face now reads 'Stakeholder strategy → synchronized communications → the community answers back (S7 · eXeL Polling API).', restoring the terse one-idea-per-step CONOPS register; CONOPS array length 10 unchanged, ai a strict superset (law 6); no figure or claim moves (law 3).",
+        "PROV · seed constant · rev 0.108 → 0.109 (anchor 'v1.0 · rev 0.108', one occurrence) · law 5",
+        "innovation-data.ts · row provenance · rev 0.108 → 0.109 (anchor 'v1.0 · rev 0.108', one occurrence) · law 5",
+        "Master record · fill revisions[] 0.108 commit PENDING → 557b66d; append iterations[] 0.109, decisions[] D111, revisions[] 0.109 (PENDING); set project.revision 0.109 · law 7"
+      ],
+      "decisions": [
+        "D111"
       ]
     }
   ]
