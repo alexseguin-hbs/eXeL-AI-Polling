@@ -22,7 +22,12 @@ import { useLexicon } from "@/lib/lexicon-context";
 import type { RCoreHistory } from "@/lib/2525-core/revisions";
 import { RCoreRevisionPanel } from "@/components/2525-core/rcore-revision-panel";
 
-const ICON = "/r-core/r-core-icon.png";
+// Operator 2026-09-25 ("just use icons provided exactly as is"): render the supplied R-CORE raster artwork
+// verbatim — the framed reticle at rest, the R-CORE wordmark pill on the first click — never a CSS/glyph/text
+// recreation. Both are used as-is (docs/asks/2026-09-25_rcore_exact_icons.md).
+const ICON = "/r-core/r-core-icon.png";        // image 1 — the framed reticle (REST)
+const WORDMARK = "/r-core/r-core-wordmark.png"; // image 3 — the "R-CORE" wordmark pill (CLICK 1)
+const H = 42;                                    // display height for both, natural width
 
 export function RCoreBadge({ history, accent = "#22d3ee" }: { history: RCoreHistory; accent?: string }) {
   const { t } = useLexicon();
@@ -60,11 +65,12 @@ export function RCoreBadge({ history, accent = "#22d3ee" }: { history: RCoreHist
             onClick={expand}
             aria-label={t("rcore.icon_aria")}
             title={t("rcore.icon_aria")}
-            className="flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2"
-            style={{ background: "rgba(6,18,26,0.72)", borderColor: `${accent}66`, boxShadow: `0 0 10px ${accent}33` }}
+            className="block bg-transparent p-0 transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70 rounded-lg"
+            style={{ border: 0, lineHeight: 0 }}
           >
+            {/* The operator's exact reticle artwork, as-is. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={ICON} alt="R-CORE" width={22} height={22} style={{ display: "block" }} />
+            <img src={ICON} alt="R-CORE" style={{ height: H, width: "auto", display: "block" }} />
           </button>
         ) : (
           <button
@@ -73,13 +79,12 @@ export function RCoreBadge({ history, accent = "#22d3ee" }: { history: RCoreHist
             onClick={openPanel}
             aria-label={t("rcore.open_aria")}
             title={t("rcore.open_aria")}
-            className="flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold backdrop-blur transition-colors focus:outline-none focus-visible:ring-2"
-            style={{ background: "rgba(6,18,26,0.82)", borderColor: accent, color: accent, boxShadow: `0 0 14px ${accent}44` }}
+            className="block bg-transparent p-0 transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70 rounded-full"
+            style={{ border: 0, lineHeight: 0 }}
           >
+            {/* The operator's exact "R-CORE" wordmark artwork, as-is — no glyph, no text recreation. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={ICON} alt="" width={18} height={18} style={{ display: "block" }} />
-            <span aria-hidden>⊕</span>
-            <span className="tracking-wider">{t("rcore.brand")}</span>
+            <img src={WORDMARK} alt={t("rcore.brand")} style={{ height: H, width: "auto", display: "block" }} />
           </button>
         )}
       </div>
