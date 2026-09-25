@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.118",
+  "revision": "0.119",
   "stage": "G2 / future-state validation",
   "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -2091,8 +2091,15 @@
    "revision": "0.118",
    "date": "2026-09-25",
    "kind": "release",
-   "commit": "PENDING",
+   "commit": "88b7fcd",
    "why": "Per-slide S13 pass: slide S13 (Risk Highlights) is a seed slide, and its one law-6 density defect is corrected — the public-body dependency item (deps.hi[2]) had overflowed its list slot into a ~48-word paragraph, so it is trimmed to a single slide line while the full path (one government owner, one project through the same governed loop, its citizens answering through the eXeL Polling API, the approved posture and delivered result replayable by the body and by the people it serves, and the 'nothing crisis-specific' clause) is preserved verbatim in deps.ai[3], the note, which stays unchanged so ai >= hi. S13 is the slide that shows the case has faced its own failure modes honestly: single-platform concentration is survived by a degraded mode and a never-discarded approval (law 2), every outbound action carries a named human (law 2), each absorbed benchmark function clears the one-ninth gate with alerting last and certified (law 1), and the public body enters only as a declared future dependency (IA, after G3), never a claimed customer (law 3). This revision also RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci; the deck renderer carries no icon reference. No status, severity, mitigation, gate, claim, law or linked number moves; the master statement and segment value props are untouched (law 4)."
+  },
+  {
+   "revision": "0.119",
+   "date": "2026-09-25",
+   "kind": "release",
+   "commit": "PENDING",
+   "why": "Per-slide S14 pass: slide S14 (Resourcing) is a seed slide, and its one law-6 density defect is corrected — the Horizon-2 item (notes.hi[1]) had overflowed its list slot into a ~37-word run-on, so it is trimmed to a single slide line while the fuller path (the benchmark named Everbridge 360 AI / Bridge, the reachable-first objects, and the Rave / PagerDuty inbound feeds) is preserved verbatim in notes.ai[1], the note, which stays unchanged so ai >= hi. S14 is the slide that shows the case has priced its build honestly and proves value as a method, not a promise: cost-to-serve is CrisisCommand-specific and measured per segment, no price is set until willingness-to-pay clears CTS plus the hurdle (law 3), value is a stated equation in ranges and never a guaranteed saving nor technical-restoration minutes (law 2), the eleven-year build is declared (IA, D13), and every absorbed benchmark function clears the one-ninth gate on its clock with alerting last (law 1). This revision also RE-RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed 8-bit RGBA PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci; the deck renderer carries no icon reference. No horizon, gate, claim, law or linked number moves; the master statement and segment value props are untouched (law 4)."
   }
  ],
  "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -3648,6 +3655,13 @@
    "revision": "0.118",
    "by": "twelve lenses · per-slide S13",
    "decision": "Per-slide S13 pass (rev 0.118). Slide S13 (Risk Highlights) IS a seed slide (the tech / comm / biz risk registers, each a four-column table of severity · risk · mitigation · status, plus the deps gate-dependencies list; rendered by the S13 field config in innovation-data.ts). Its one law-6 density defect is corrected: the public-body dependency item (deps.hi[2]) had overflowed its list slot into a ~48-word paragraph, so it is trimmed to a single slide line while the full path — one government owner, one project through the same governed loop, its citizens answering through the eXeL Polling API, the approved posture and delivered result replayable by the body and by the people it serves, and the 'nothing in the record's shape is crisis-specific' clause — is preserved verbatim in deps.ai[3] (the note), which stays unchanged so ai >= hi. This CONTINUES the density/clarity discipline of D110-D119 (short hi, detail in the note), applied here to the slide that shows the case has faced its own failure modes honestly: single-platform concentration is survived by a degraded mode and a never-discarded approval (law 2, fix-the-class), every outbound action carries a named human (law 2), each absorbed benchmark function clears the one-ninth gate with alerting last and certified (law 1), and the public body enters only as a declared future dependency (IA, after G3), never a claimed customer (law 3). No status, severity, mitigation, gate (G3), IA label, claim, law or linked number moves (law 3); the master statement and segment value props stay fixed (law 4); the field id/shape is preserved and no cell is emptied (law 6). This decision also RECORDS, with checkable proof, that the operator's standing overriding instruction for the page is satisfied and gated this run — the R-CORE rasters exist as committed PNG (public/r-core/r-core-icon.png 1448x1086 · public/r-core/r-core-wordmark.png 2172x724) and the R-CORE icon's target sits at the BOTTOM of the page in NORMAL FLOW (wrapper 'flex w-full justify-center', no fixed/absolute geometry, mounted last after the footer at app/SoI-2525/page.tsx:1100), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci; the deck renderer (scripts/drs-render.mjs) carries no icon reference — carrying the D117-D119 finding forward for the S13 slide, and noting the one cosmetic leftover (the stale 'Fixed + centred + high z' docstring in rcore-badge.tsx) as out of the door's staging set, to be fixed in a future badge-scoped commit rather than stranded uncommitted. It does not supersede any prior decision. Holds security, stability and scalability at ceiling; S13's efficiency and succinctness rise this revision because the overflowing public-body dependency line is drawn back to one legible line with no loss of substance."
+  },
+  {
+   "id": "D121",
+   "date": "2026-09-25",
+   "revision": "0.119",
+   "by": "twelve lenses · per-slide S14",
+   "decision": "Per-slide S14 pass (rev 0.119). Slide S14 (Resourcing) IS a seed slide (the fte cost-to-serve register, a five-column table of CTS components plus a Rule row; the ftedollar three sector value clocks EDU / FOOD / TECH, a four-column table of clock · event→posture · inputs · guardrail; and the notes governed-record horizons list; rendered by the S14 field config in innovation-data.ts). Its one law-6 density defect is corrected: the Horizon-2 item (notes.hi[1]) had overflowed its list slot into a ~37-word run-on, so it is trimmed to a single slide line — 'Horizon 2 — Absorb by qualification: reachable from inside first, native only after each clears the one-ninth (11.1 %) gate on its clock; alerting last and certified.' — while the fuller path (the benchmark named Everbridge 360 AI / Bridge, the reachable-first objects, and the Rave / PagerDuty inbound feeds) is preserved verbatim in notes.ai[1] (the note), which stays unchanged so ai >= hi. This CONTINUES the density/clarity discipline of D110–D120 (short hi, detail in the note), applied here to the slide that shows the case has priced its build honestly and proves value as a method, not a promise: cost-to-serve is CrisisCommand-specific and measured per segment, no price is set until willingness-to-pay clears CTS plus the hurdle (law 3), value is a stated equation in ranges and never a guaranteed saving nor technical-restoration minutes (law 2, law 3), the eleven-year build is declared (IA, D13), and every absorbed benchmark function clears the one-ninth gate on its clock with alerting last (law 1). No horizon, gate, IA label, CTS rule, claim, law or linked number moves (law 3); the master statement and segment value props stay fixed (law 4); the field id/shape is preserved and no cell is emptied (law 6). This decision also RE-RECORDS, with checkable proof, that the operator's standing overriding instruction for the page is satisfied and gated this run — the R-CORE rasters exist as committed 8-bit RGBA PNG (public/r-core/r-core-icon.png 1448×1086 · public/r-core/r-core-wordmark.png 2172×724) and the R-CORE icon's target sits at the BOTTOM of the page in NORMAL FLOW (wrapper flex w-full justify-center, no fixed/absolute geometry, mounted last after the footer at app/SoI-2525/page.tsx:1100), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci; the deck renderer carries no icon reference. It does not supersede any prior decision. Holds security, stability and scalability at ceiling; S14's efficiency and succinctness rise this revision because the overflowing Horizon-2 line is drawn back to one legible line with no loss of substance."
   }
  ],
  "iterations": [
@@ -6345,6 +6359,29 @@
    ],
    "decisions": [
     "D120"
+   ]
+  },
+  {
+   "revision": "0.119",
+   "n": 119,
+   "date": "2026-09-25",
+   "author": "twelve lenses · per-slide S14",
+   "file": "docs/drs/iterations/0.119.md",
+   "ssesMeans": {
+    "security": 98.75,
+    "stability": 100.0,
+    "scalability": 100.0,
+    "efficiency": 97.58,
+    "succinctness": 88.58
+   },
+   "edits": [
+    "S14 (Resourcing) IS a seed slide (fte cost-to-serve register, a 5-column table of CTS components plus a Rule row; ftedollar the three sector value clocks EDU / FOOD / TECH, a 4-column table clock · event→posture · inputs · guardrail; notes the governed-record horizons list; rendered by the S14 field config in innovation-data.ts). Law-6 density trim: the Horizon-2 item (notes.hi[1]) had overflowed its list slot into a ~37-word run-on, so it is trimmed to a single slide line — 'Horizon 2 — Absorb by qualification: reachable from inside first, native only after each clears the one-ninth (11.1 %) gate on its clock; alerting last and certified.' — while the FULLER path (the benchmark named Everbridge 360 AI / Bridge, the reachable-first objects link / selected structured facts / status / action reference, and the Rave / PagerDuty inbound feeds) is preserved verbatim in notes.ai[1] (the note), which stays unchanged so ai >= hi. Anchor: the full hi[1] string (which differs from ai[1], since ai[1] names Everbridge 360 AI / Bridge and the inbound feeds), asserted found exactly once. No horizon, gate (one-ninth / G2 / G3), IA label, CTS rule, claim or linked number moves (law 3); the field id/shape (string[], list of 2) is preserved and no cell is emptied (law 6); the master statement and segment value props stay fixed (law 4).",
+    "PROV seed constant: v1.0 · rev 0.118 -> v1.0 · rev 0.119 (law 5).",
+    "innovation-data.ts row provenance: v1.0 · rev 0.118 -> v1.0 · rev 0.119 (law 5).",
+    "Master record (law 7): filled revisions[] 0.118 commit PENDING -> 88b7fcd; appended iterations[] 0.119, decisions[] D121, revisions[] 0.119 (PENDING); set project.revision 0.119."
+   ],
+   "decisions": [
+    "D121"
    ]
   }
  ]

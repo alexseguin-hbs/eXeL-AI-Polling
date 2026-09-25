@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.118";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.119";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -533,7 +533,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
       notes: {
         hi: [
           "Horizon 1 — Governed Leadership State: decision rights · approval state · action ownership · acknowledgement · evidence · governed current-plan state · outcome-linked replay.",
-          "Horizon 2 — Absorb by qualification: every benchmark function reachable from inside the platform first, then native function by function only after each beats the benchmark on its pre-registered clock by the one-ninth (11.1 %) gate; alerting last and certified.",
+          "Horizon 2 — Absorb by qualification: reachable from inside first, native only after each clears the one-ninth (11.1 %) gate on its clock; alerting last and certified.",
         ],
         ai: [
           "Horizon 1 — Governed Leadership State: decision rights · approval state · action ownership · acknowledgement · evidence · governed current-plan state · outcome-linked replay.",
