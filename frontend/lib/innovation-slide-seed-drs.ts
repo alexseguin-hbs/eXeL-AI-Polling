@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.071";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.072";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -81,8 +81,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.071 · decision register D1–D73 and the iteration ledger in docs/drs (append-only).",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.071 · decision register D1–D73 and the iteration ledger in docs/drs (append-only). " + PROV,
+        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.072 · decision register D1–D74 and the iteration ledger in docs/drs (append-only).",
+        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.072 · decision register D1–D74 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
@@ -252,11 +252,11 @@ export const SLIDE_SEED_DRS: SlideSeed = {
       },
       conops: {
         hi: [
-          "Architecture — 1 Operational Context (INPUT): selected facts / status from the operational systems of record (Rave · Everbridge · PagerDuty), absorbed by qualification → 2 CrisisCommand (LEADERSHIP GOVERNANCE): decision rights · approvals · rationale · action owners · current-plan state → 3 Execution (OUTPUT): approved actions route to operational systems, tools and human owners → 4 Evidence + Learning (RETURN): acknowledgement · evidence · outcome · replay.",
+          "Architecture — 1 Operational Context (INPUT): selected facts / status from the operational systems of record (Rave · Everbridge · PagerDuty), absorbed by qualification; for a public body, the citizen's answer enters through the eXeL Polling API as an evidence pointer (S4 · S7) → 2 CrisisCommand (LEADERSHIP GOVERNANCE): decision rights · approvals · rationale · action owners · current-plan state → 3 Execution (OUTPUT): approved actions route to operational systems, tools and human owners → 4 Evidence + Learning (RETURN): acknowledgement · evidence · outcome · replay.",
           LOOP,
         ],
         ai: [
-          "Architecture — 1 Operational Context (INPUT): selected facts / status from Rave in EDU, Everbridge / quality / recall systems in FOOD, PagerDuty / security / status systems in TECH, approved human inputs — the operational systems of record today, absorbed into the platform by qualification → 2 CrisisCommand (LEADERSHIP GOVERNANCE) owns: strategic picture · objectives · exposure analysis · stakeholder priorities · executive options · decision rights · approvals · rationale · action owners · current-plan state · communications posture · escalation watchpoints → 3 Execution (OUTPUT): approved actions route to operational systems, collaboration tools, human owners, external communications systems → 4 Evidence + Learning (RETURN): acknowledgement · execution evidence · stakeholder response · outcome · plan revision · replay · readiness implication.",
+          "Architecture — 1 Operational Context (INPUT): selected facts / status from Rave in EDU, Everbridge / quality / recall systems in FOOD, PagerDuty / security / status systems in TECH, approved human inputs — the operational systems of record today, absorbed into the platform by qualification; for a public body, the citizen's answer enters through the eXeL Polling API as an evidence pointer (S4 · S7) → 2 CrisisCommand (LEADERSHIP GOVERNANCE) owns: strategic picture · objectives · exposure analysis · stakeholder priorities · executive options · decision rights · approvals · rationale · action owners · current-plan state · communications posture · escalation watchpoints → 3 Execution (OUTPUT): approved actions route to operational systems, collaboration tools, human owners, external communications systems → 4 Evidence + Learning (RETURN): acknowledgement · execution evidence · stakeholder response · outcome · plan revision · replay · readiness implication.",
           LOOP,
           "Future-state objects to validate: decision right · required approver / sign-off · action owner · action acknowledgement · evidence pointer · current-plan state · authority-linked rationale · outcome link · replay result · readiness implication.",
           "Data model of the seven Horizon-1 objects (for builders and integrators): decision right — scope · holder · delegate · succession, written at governance setup · approval — decision id · approver identity (step-up) · timestamp · state, written by the approver · action — owner · due · linked decision, written by the approver · acknowledgement — accepted / started / completed / escalated · timestamp, written by the owner · evidence pointer — source system · reference · classification, written by the owner or an inbound feed · current-plan state — version · approved posture · what changed, written by the platform on approval · replay — decision → outcome link · lesson, written after the event. Sensitive facts arrive as pointers; nothing in the shape is crisis-specific.",
@@ -721,12 +721,12 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D73) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D74) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
         ],
         ai: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D73) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D74) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
           PROV,
         ],
       },
