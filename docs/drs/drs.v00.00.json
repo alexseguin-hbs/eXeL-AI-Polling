@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.028",
+    "revision": "0.029",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1461,8 +1461,15 @@
       "revision": "0.028",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "ad97db8",
       "why": "Round 22 of 99 (twelve lenses, a full-gate round — test:ci and build) acts on the largest law-6 density overflow left on any shown face: S6.conops.hi[0] (Product Summary — the four-corner Architecture) carried the whole INPUT → LEADERSHIP GOVERNANCE → OUTPUT → RETURN loop as one 857-character line, nearly twice the next-longest shown cell, while S6.conops.ai[0] already carried that exact line verbatim plus four further note lines. This round trims the shown line to its four numbered stages with a leading gloss each (462 characters), anchored on the unique conops hi[0] so only the shown cell changes; hi stays string[] (the trimmed architecture and the LOOP constant), ai is unchanged (six elements) and stays the superset, nothing is emptied, and no printed number, date or law moves — every object and enumeration survives complete in the note (D30); S2 status and S18 e0 carry rev 0.028 and the grown D1–D30 register; PROV and the row provenance bump to rev 0.028."
+    },
+    {
+      "revision": "0.029",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 23 of 99 (twelve lenses) acts on the largest cleanly-trimmable law-6 density overflow left on any shown face: S6.problem.hi[0] (Product Summary — the Product boundary) carried the whole one-platform boundary — the ONE-platform thesis, every aspect of the benchmark's critical-event job with its five-function enumeration, absorption by qualification with the 2027 and 2030 horizons, and the three systems it is not — as one 543-character line, while S6.problem.ai[0] already carried that exact line verbatim plus the current-foundation and narrative note lines. (S5.problem.hi at 564 characters is longer but is a single problem argument, not an enumeration; trimming it would sever the case's opening one-platform thesis, so it is kept.) This round trims the shown line to its thesis, the 2027 / 2030 horizons, alerting-last and certified, and the pointer boundary (369 characters), anchored on the unique problem hi[0] so only the shown cell changes; hi stays string[] (two elements), ai is unchanged (three elements) and stays the superset, nothing is emptied, and no printed number, date or law moves — every benchmark function and excluded system survives complete in the note (D31); S2 status and S18 e0 carry rev 0.029 and the grown D1–D31 register; PROV and the row provenance bump to rev 0.029."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2388,6 +2395,13 @@
       "revision": "0.028",
       "by": "twelve lenses · round 22",
       "decision": "Round 22 acts on the largest law-6 density overflow left on any shown face: S6.conops.hi[0] (Product Summary — Architecture) carried the whole four-corner loop (1 Operational Context INPUT · 2 CrisisCommand LEADERSHIP GOVERNANCE · 3 Execution OUTPUT · 4 Evidence + Learning RETURN) as one 857-character line, nearly twice the next-longest shown cell, and S6.conops.ai[0] already carried that exact line verbatim plus four further note lines (the seven Horizon-1 objects, the data model, the interface shape, the human-authority principle). This round trims the shown line to its four numbered stages with a leading gloss each (462 characters), anchored on the unique conops hi[0] so only the shown cell changes; hi stays string[] (the trimmed architecture and the LOOP constant), ai is unchanged (six elements) and stays the superset, nothing is emptied, and no printed number, date or law moves. Every object and enumeration survives complete in conops.ai[0]. Raises efficiency and succinctness (the Spiral Development Protocol's density test) without touching the substance."
+    },
+    {
+      "id": "D31",
+      "date": "2026-09-25",
+      "revision": "0.029",
+      "by": "twelve lenses · round 23",
+      "decision": "Round 23 acts on the largest cleanly-trimmable law-6 density overflow left on any shown face: S6.problem.hi[0] (Product Summary — Product boundary) carried the whole one-platform boundary (the ONE-platform thesis · every aspect of the benchmark's critical-event job with its five-function enumeration · absorbed by qualification with the 2027 and 2030 horizons · the three systems it is not) as one 543-character line, and S6.problem.ai[0] already carried that exact line verbatim plus the current-foundation line and the narrative note line. S5.problem.hi (564 characters) is longer but is a single problem argument, not an enumeration, and trimming it would sever the case's opening one-platform thesis, so it is kept. This round trims the shown line to its thesis, the 2027 / 2030 horizons, alerting-last and certified, and the pointer boundary (369 characters), anchored on the unique problem hi[0] so only the shown cell changes; hi stays string[] (two elements), ai is unchanged (three elements) and stays the superset, nothing is emptied, and no printed number, date or law moves. Every benchmark function and excluded system survives complete in problem.ai[0]. Raises efficiency and succinctness (the Spiral Development Protocol's density test) without touching the substance."
     }
   ],
   "iterations": [
@@ -2987,6 +3001,29 @@
       ],
       "decisions": [
         "D30"
+      ]
+    },
+    {
+      "revision": "0.029",
+      "n": 23,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 23",
+      "file": "docs/drs/iterations/0.029.md",
+      "ssesMeans": {
+        "security": 92.5,
+        "stability": 86.6,
+        "scalability": 82.6,
+        "efficiency": 85.3,
+        "succinctness": 84.5
+      },
+      "edits": [
+        "S2 · status · rev 0.028 → 0.029, decision register D1–D30 → D1–D31 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register D1–D30 → D1–D31 (hi + ai) · the register grew (D31)",
+        "PROV / row provenance · rev 0.028 → 0.029 · law 5",
+        "S6 · problem · hi[0] · trim the Product boundary line (543 → 369 chars — the longest cleanly-trimmable single-cell enumeration left on any shown face) to its one-platform thesis, the 2027 / 2030 horizons, alerting-last and certified, and the pointer boundary; the full benchmark-function enumeration and the three excluded systems stay verbatim in problem.ai[0] (the note), which already carried the line identically plus the current-foundation and narrative note lines · law-6 overflow; hi stays string[] (two elements), ai unchanged (three elements) and still the superset, nothing emptied, no printed number / date / law moved · raises efficiency and succinctness · D31"
+      ],
+      "decisions": [
+        "D31"
       ]
     }
   ]
