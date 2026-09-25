@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.062";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.063";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -81,8 +81,8 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.062 · decision register D1–D64 and the iteration ledger in docs/drs (append-only).",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.062 · decision register D1–D64 and the iteration ledger in docs/drs (append-only). " + PROV,
+        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.063 · decision register D1–D65 and the iteration ledger in docs/drs (append-only).",
+        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.063 · decision register D1–D65 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
@@ -296,7 +296,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         ai: "CrisisCommand.ai is the one human-governed crisis platform where an institution's leaders see the facts, decide with named authority, alert and act, hold every stakeholder to one approved posture, prove what was done, and learn — so the next crisis begins from the last one's record, never from a blank page. Positioning per segment — Rave helps the institution protect and communicate with the campus; CrisisCommand helps leadership decide what the institution will do, why, who owns it, and how that posture stays coherent as the crisis evolves. · Everbridge coordinates the critical event and continuity response; CrisisCommand governs the leadership judgment around what the event means for the enterprise and its stakeholders. · PagerDuty runs the technical incident; CrisisCommand runs leadership's response to what that incident means for the enterprise.",
       },
       nba: {
-        hi: "Platform benchmark: Everbridge 360 AI / Bridge — the only alternative whose surface spans the whole event (present in the EDU and FOOD stacks, its buyer already believes in one platform, and the incumbent already moving into the whitespace); the future state carries every aspect of it inside CrisisCommand.ai. Segment comparators: EDU — Rave Mobile Safety / Rave Alert · TECH — PagerDuty (inbound feeds of the platform).",
+        hi: "Platform benchmark: Everbridge 360 AI / Bridge — the only alternative whose surface spans the whole event (eleven of twelve reviewer lenses; present in the EDU and FOOD stacks, its buyer already believes in one platform, and the incumbent already moving into the whitespace); the future state carries every aspect of it inside CrisisCommand.ai. Segment comparators: EDU — Rave Mobile Safety / Rave Alert · TECH — PagerDuty (inbound feeds of the platform).",
         ai: "Platform benchmark: Everbridge 360 AI / Bridge (eleven of twelve reviewer lenses; the widest surface, present in the EDU and FOOD stacks, its buyer already believes in one platform, and the incumbent already moving into the whitespace). Segment comparators, one per segment. EDU — Rave Mobile Safety / Rave Alert (mass notification · campus emergency communication · safety applications · status / help reporting · emergency coordination · first-responder information · campus-wide warning). FOOD — Everbridge 360 AI / Bridge (risk intelligence · emergency communications · incident-response workflows · coordinated action · business-continuity planning · impact / dependency context · AI-assisted guidance · preparedness-to-response feedback). TECH — PagerDuty (technical incident response · on-call mobilization · response workflows · technical / business-service status · stakeholder incident updates · service visibility · remediation coordination). Speaker note — composite stacks for interview discovery: EDU Rave / Everbridge + emergency plans + cabinet process + Teams / email + external counsel · FOOD Everbridge / CEM + recall / quality / ERP + legal counsel + PR agency + manual cross-functional work · TECH PagerDuty + observability / security / status + Slack / Teams + manual exec / comms layer. Sentinel: discovery-only on EDU unless a named buyer has it in the stack.",
       },
       benefits: {
@@ -716,12 +716,12 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D64) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D65) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
         ],
         ai: [
           "End-of-life communication to leadership, crisis team and stakeholders through the approved posture.",
           "The last event's replay carried into the successor: the next crisis does not restart from a blank page.",
-          "The decision register (D1–D64) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
+          "The decision register (D1–D65) and the iteration ledger travel with the record — every key decision, its revision and its author, replayable.",
           PROV,
         ],
       },
