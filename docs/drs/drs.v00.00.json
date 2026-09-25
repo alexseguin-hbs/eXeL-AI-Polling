@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.083",
+  "revision": "0.084",
   "stage": "G2 / future-state validation",
   "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -1847,6 +1847,13 @@
    "date": "2026-09-25",
    "kind": "release",
    "why": "Round 77 of 99 continues the density / law-6 class (D76–D84) on the S6 Product-Summary current-foundation line: S6.problem.hi[1] sheds the inline nine-part inventory of the live crisis workflow 'facts / objectives · stakeholder analysis · message development · SITREPs (situation reports) · planning · sector intelligence · organization-specific context · continuous learning' and keeps the rule 'Current foundation (do not re-sell as new): the live crisis workflow' and the pointer 'itemised in the note' on the face; the full list stays in problem.ai[1] (a strict superset, never shorter than hi, law 6) and on S8. This is the second density-class move on S6 (after D80 took conops.hi[0]). No figure, financial date, NBA pairing, claim or reach moves; succinctness rises 98.25 → 98.50, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D85; PROV and the row provenance bump to rev 0.083.",
+   "commit": "99e8699"
+  },
+  {
+   "revision": "0.084",
+   "date": "2026-09-25",
+   "kind": "release",
+   "why": "Round 78 of 99 continues the density / law-6 class (D76–D85) on the S1 Executive-Summary validation line: S1.strategy.hi[1] sheds the inline ten-item delta enumeration 'decision rights · approval state · action ownership · acknowledgement · evidence · current-plan state · cross-system context · outcome-linked replay · time-to-coherence · simulation' and keeps the rule 'Validate ten deltas', the count and 'The economic lens stays internal (S14 / S15)' on the face, pointing to the ten features itemised on S8; the full expansion stays in strategy.ai[1] (a strict superset, never shorter than hi, law 6) and the ten are numbered one through ten on S8.features.hi. This completes the pair of S1 strategy lines (strategy.hi[0], D82; strategy.hi[1], this round). No figure, financial date, NBA pairing, claim or reach moves; succinctness rises 98.50 → 98.75, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D86; PROV and the row provenance bump to rev 0.084.",
    "commit": "PENDING"
   }
  ],
@@ -3158,6 +3165,13 @@
    "revision": "0.083",
    "by": "twelve lenses · round 77",
    "decision": "D85 — Round 77 of 99 CONTINUES the density / law-6 class (D76 S8.nba.hi, D77 S1.ask.hi gate parenthetical, D78 S1.ask.hi CTS gloss, D79 S5.problem.hi field-list, D80 S6.conops.hi[0] vendor roster, D81 S2.status.hi edition-provenance log, D82 S1.strategy.hi[0] component sample, D83 S12.l60.hi[1] cost-to-serve sample, D84 S12.l60.hi[0] commercial-forms sample): bring INTERNAL / illustrative detail OFF a customer-facing shown face into its speaker note, where the note already carries it, while KEEPING the reader's core understanding on the face so comprehension is never lost. This round takes S6.problem.hi[1] (Product Summary), the current-foundation line, whose sentence paused to inventory the live crisis workflow inline — 'facts / objectives · stakeholder analysis · message development · SITREPs (situation reports) · planning · sector intelligence · organization-specific context · continuous learning' — an illustration of the workflow the same line names, and which problem.ai[1] holds complete and longer. The nine parts are not the rule; the rule is 'Current foundation (do not re-sell as new): the live crisis workflow' and the pointer 'itemised in the note', both of which stay on the face. This round REMOVES only the inline inventory from the shown line and leaves it in problem.ai[1], so problem.ai stays a strict superset and never shorter than problem.hi (law 6). Nothing is emptied. It is not a business change: no figure, financial date, NBA pairing, claim or reach moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched as pairings; the phrase 'one-ninth gate' is not in problem.hi[1] so the ≥3 lock holds; the master statement and vprop untouched under law 4). It raises succinctness (98.25 → 98.50) and holds efficiency (99.17). It is the TENTH member of the density / law-6 class (after D76–D84) and the SECOND to take an S6 face (after D80 took conops.hi[0]), so S6 now reads its product boundary and its foundation rule on the face with both inventories kept in the note. A later round continues the class on a shown cell that still overflows or carries internal / illustrative inventory without a comprehension cost, an evidence-gated change under the S11 change-control law, or a fresh readability class — never a claim the record does not carry."
+  },
+  {
+   "id": "D86",
+   "date": "2026-09-25",
+   "revision": "0.084",
+   "by": "twelve lenses · round 78",
+   "decision": "D86 — Round 78 of 99 CONTINUES the density / law-6 class (D76 S8.nba.hi, D77 S1.ask.hi gate parenthetical, D78 S1.ask.hi CTS gloss, D79 S5.problem.hi field-list, D80 S6.conops.hi[0] vendor roster, D81 S2.status.hi edition-provenance log, D82 S1.strategy.hi[0] component sample, D83 S12.l60.hi[1] cost-to-serve sample, D84 S12.l60.hi[0] commercial-forms sample, D85 S6.problem.hi[1] current-foundation inventory): bring INTERNAL / illustrative detail OFF a customer-facing shown face into its speaker note and onto the deck face that already numbers it, while KEEPING the reader's core understanding on the face so comprehension is never lost. This round takes S1.strategy.hi[1] (Executive Summary), the sibling of the ONE-platform thesis line D82 took, whose sentence paused to enumerate all ten deltas inline — 'decision rights · approval state · action ownership · acknowledgement · evidence · current-plan state · cross-system context · outcome-linked replay · time-to-coherence · simulation' — an enumeration of the ten the S8 features face already numbers one through ten and that strategy.ai[1] holds in full. The ten item-names are not the rule; the rule is 'Validate ten deltas' with 'The economic lens stays internal (S14 / S15)' and the pointer to the ten features itemised on S8, all of which stay on the face. This round REMOVES only the inline enumeration from the shown line and leaves it on S8 and in strategy.ai[1], so strategy.ai stays a strict superset and never shorter than strategy.hi (law 6). Nothing is emptied. It is not a business change: no figure, financial date, NBA pairing, claim or reach moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched as pairings; the exact phrase 'one-ninth gate' is not in strategy.hi[1] so the ≥3 lock holds; the master statement and vprop untouched under law 4). It raises succinctness (98.50 → 98.75) and holds efficiency (99.17). It is the ELEVENTH member of the density / law-6 class (after D76–D85) and completes the pair of S1 strategy lines (strategy.hi[0], D82; strategy.hi[1], this round). A later round continues the class on a shown cell that still overflows or carries internal / illustrative inventory without a comprehension cost, an evidence-gated change under the S11 change-control law, or a fresh readability class — never a claim the record does not carry."
   }
  ],
  "iterations": [
@@ -5032,6 +5046,30 @@
    ],
    "decisions": [
     "D85"
+   ]
+  },
+  {
+   "revision": "0.084",
+   "n": 78,
+   "date": "2026-09-25",
+   "author": "twelve lenses · round 78",
+   "file": "docs/drs/iterations/0.084.md",
+   "ssesMeans": {
+    "security": 96.75,
+    "stability": 97.67,
+    "scalability": 99.75,
+    "efficiency": 99.17,
+    "succinctness": 98.75
+   },
+   "edits": [
+    "S1 · strategy.hi[1] (Executive Summary) · CONTINUE the density / law-6 class (D76–D85) — remove the inline ten-item delta enumeration and keep the rule 'Validate ten deltas', the count and 'The economic lens stays internal (S14 / S15)' on the face, pointing to the ten features itemised on S8; the full expansion stays in strategy.ai[1] (a strict superset, law 6) and the ten are numbered on S8.features.hi. Anchor count 1. No figure, financial date, NBA pairing, claim or reach moves; master statement and vprop untouched (law 4). D86",
+    "S2 · status.hi · rev 0.083 → 0.084, decision register D1–D85 → D1–D86 · laws 5 and 7",
+    "S2 · status.ai · rev 0.083 → 0.084, decision register D1–D85 → D1–D86 — edition history KEPT so ai stays a strict superset · laws 5, 6, 7",
+    "S18 · e0 · decision register (D1–D85) → (D1–D86) (hi[2] + ai[2]) — both S2 and S18 read one count · law 7",
+    "PROV / row provenance · rev 0.083 → 0.084 (seed PROV + innovation-data.ts row provenance) · law 5"
+   ],
+   "decisions": [
+    "D86"
    ]
   }
  ]
