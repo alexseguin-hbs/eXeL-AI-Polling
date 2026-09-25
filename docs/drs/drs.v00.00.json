@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.041",
+    "revision": "0.042",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1552,8 +1552,15 @@
       "revision": "0.041",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "eb750c9",
       "why": "Round 35 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate (D38), NBA (D39), IA (D40), CTS (D41) and WTP (D42) to the deck's two remaining unglossed load-bearing marks, the validation gates G2 and G3. A cold reader first meets both in the summary ask (S1.ask) — \"G2 ask … G3 A/B\" — a slide before they are spelled out on the S2 roadmap. This round defines them once, at their first shown appearance (S1.ask.hi), inline beside the NBA and CTS glosses already there: \"G2 · G3 are the two validation gates — G2 approves the measurement design, G3 runs the instrumented A/B\", with the S1 note tier carrying the fuller gloss. The expansion is drawn from the seed's own roadmap gloss and the master stageGate; it invents no number, moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the unique S1.ask.hi and ask.ai strings, so only the two S1 ask cells change. The decision register grows to D43; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.041. With G2 and G3 defined, the D38 self-explaining-term class is complete for the marks a cold reader cannot resolve at first sight. Raises scalability, stability and efficiency at a negligible succinctness cost."
+    },
+    {
+      "revision": "0.042",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 36 of 99 (twelve lenses) opens a new comprehension class after the D38 self-explaining-term class closed at D43. D43 completed that class for the deck's architectural and method marks; one category was left standing — the financial acronyms a reader without analytics training meets on the shown financial face, the audience the operator named (\"system thinkers who lack data analytics knowhow\"). The load-bearing member is NPV, the deck's headline return: it appears on the shown face first in the financial-reset line (S3.fincomment.hi[0]) and then two lines down as the live figure \"NPV proxy +1.0 M\" (S3.fincomment.hi[2]) — the number an investor weighs first — yet was spelled out on no shown face. This round defines it once, at its first shown appearance: \"SAM, SOM, NPV (net present value), IRR or CTS\", with the identical S3 note cell carrying the same expansion. The expansion is drawn from the master npv.formula / npv.note (net present value is the return in today's dollars); it invents no number, moves no printed figure, date or law (no digit touched; +1.0 M is unchanged) and keeps the note a superset of the face. Anchored on the twice-occurring \"do not reuse old DRS prices, SAM, SOM, NPV, IRR or CTS.\" string (hi[0] + ai[0], count 2), so only those two S3 cells change; the S1.market.ai and S12.l0 variants resolve upstream on S3. The decision register grows to D44; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.042. Raises scalability, stability and efficiency at a negligible succinctness cost."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2570,6 +2577,13 @@
       "revision": "0.041",
       "by": "twelve lenses · round 35",
       "decision": "Round 35 of 99 extends the comprehension pass D38 opened (define every shown term where a cold reader first meets it) from the one-ninth gate (D38), NBA (D39), IA (D40), CTS (D41) and WTP (D42) to the deck's two remaining unglossed load-bearing marks, the validation gates G2 and G3. G2 and G3 are the two checkpoints the whole evidence program turns on — G2 approves the measurement design (buyer interviews, NBA teardown, prototype, one pre-registered EDU tabletop) and G3 runs the instrumented A/B that produces the evidence — and they appear on roughly nine shown faces (S1.ask, S2.roadmap, S3 / S8 \"at G3\", S11.exp, S13.tech, S14 build calendar, S15.voc, S16.plc). A cold reader first meets both in the summary ask (S1.ask.hi: \"G2 ask … G3 A/B simulation only after the G2 measurement design is credible\"), yet they are spelled out only one slide later, on S2.roadmap (\"Gates: G2 validates the measurement design … G3 runs the instrumented A/B\"). A first-time reader — an investor, a future customer, a system thinker without analytics know-how — meets the two gate marks in the ask and must carry them a slide before they resolve. This round defines them once, at their first shown appearance (S1.ask.hi), inline beside the NBA (D39) and CTS (D41) glosses already there: \"G2 ask (G2 · G3 are the two validation gates — G2 approves the measurement design, G3 runs the instrumented A/B): approve …\", and mirrors a fuller gloss into the S1 note tier (ask.ai: \"the two De-Risking Strategies validation gates\") so the shown face and the note agree and the note stays a superset of the face. The expansion invents nothing: it is drawn from the seed's own roadmap gloss (S2.roadmap) and the master stageGate (G1–G7). It moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs). Anchored on the unique S1.ask.hi and ask.ai strings, so only those two cells change; both keep their string type and neither is emptied. With G2 and G3 defined, the deck's load-bearing shorthand — the one-ninth gate, NBA, IA, CTS, WTP and now the two gates — all define themselves where a reader first meets them; the D38 self-explaining-term class is complete for the marks a cold reader cannot resolve at first sight. It raises scalability (a 2525 or cold reader resolves the gate names where they first appear), stability (G2 and G3 mean one thing across the deck) and efficiency (comprehension without hunting a slide on), at a negligible succinctness cost. It supersedes nothing — it is the sixth and closing member of the D38 self-explaining-term class."
+    },
+    {
+      "id": "D44",
+      "date": "2026-09-25",
+      "revision": "0.042",
+      "by": "twelve lenses · round 36",
+      "decision": "Round 36 of 99 opens a new comprehension class after the D38 self-explaining-term class closed at D43. D43 completed that class for the deck's load-bearing architectural and method marks (the one-ninth gate D38, NBA D39, IA D40, CTS D41, WTP D42, the validation gates G2 / G3 D43) — the marks a cold reader cannot resolve at first sight. One category was left standing: the financial acronyms a reader without analytics training meets on the shown financial face. The operator named that reader explicitly (\"system thinkers who lack data analytics knowhow\", docs/asks/2026-09-24_prj34_99_iterations_overnight.md). The load-bearing member is NPV: it is the deck's headline return, appearing on the shown face first in the financial-reset line (S3.fincomment.hi[0], \"do not reuse old DRS prices, SAM, SOM, NPV, IRR or CTS\") and then two lines down as the live figure \"NPV proxy +1.0 M at the G2 weighting\" (S3.fincomment.hi[2]) — the single number an investor weighs first, echoed in the master's npv block (podProxyUsdM 1.0). The three letters were spelled out on no shown face and nowhere in the seed (grep: 0 occurrences of \"net present value\"). Of the reset list's five terms, NPV is the only one that recurs as a live figure — IRR and SAM / SOM appear only in the not-reused list, never as a number the case turns on, and CTS was already glossed on S1 (D41) — so NPV is the class's one load-bearing member this round. This round defines it once, at its first shown appearance (S3.fincomment.hi[0]), inline beside the IA gloss already on that slide (D40): \"SAM, SOM, NPV (net present value), IRR or CTS\", and the identical S3 note cell (ai[0]) carries the same expansion so the shown face and the note agree and the note stays a superset of the face. The expansion invents nothing: it is drawn from the master npv.formula (\"weighted incremental revenue × margin proxy × discount − spend\") and npv.note (positive and non-zero at the G2 weighting) — net present value is the return in today's dollars. It moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs; +1.0 M is unchanged). Anchored on the twice-occurring \"do not reuse old DRS prices, SAM, SOM, NPV, IRR or CTS.\" string (hi[0] + ai[0], count 2), so only those two S3 cells change; the \"no old DRS prices, SAM, SOM, NPV, IRR or CTS\" variants on S1.market.ai[3] (note tier) and S12.l0 (a later slide) are left to resolve upstream on S3, following the same rule the IA gloss used (D40 defined IA on S3 though \"(IA)\" marks appear in S1 / S2 notes). Both cells keep their string type and neither is emptied; the shown S3 reset cell grows by ~19 characters, far under the kept financial-core (S3 Ramp 519) and single-argument (S5 problem 564) cells that laws 3 and 6 keep on the face. It raises scalability (a 2525 or non-analyst reader now resolves the deck's headline return where they first meet it), stability (NPV means one thing across the deck) and efficiency (comprehension without a finance glossary), at a negligible succinctness cost. It supersedes nothing — it is the first member of the financial-acronym comprehension class, which a later round could extend to any other money term a non-analyst reader cannot resolve at first sight (IRR and SAM / SOM appear only in the not-reused list and carry no live figure, so none is load-bearing today)."
     }
   ],
   "iterations": [
@@ -3469,6 +3483,29 @@
       ],
       "decisions": [
         "D43"
+      ]
+    },
+    {
+      "revision": "0.042",
+      "n": 36,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 36",
+      "file": "docs/drs/iterations/0.042.md",
+      "ssesMeans": {
+        "security": 92.8,
+        "stability": 92.5,
+        "scalability": 90.0,
+        "efficiency": 92.9,
+        "succinctness": 90.2
+      },
+      "edits": [
+        "S3 · fincomment.hi[0] + ai[0] · define NPV at its first shown appearance — \"do not reuse old DRS prices, SAM, SOM, NPV, IRR or CTS.\" → \"do not reuse old DRS prices, SAM, SOM, NPV (net present value), IRR or CTS.\" (hi[0] and ai[0] identical; both carry the gloss). NPV is the deck's headline return — it recurs two lines down as \"NPV proxy +1.0 M\" (S3.fincomment.hi[2]) — yet was spelled out on no shown face (0 occurrences of \"net present value\" in the seed); a reader without finance training (an audience the operator named) meets it on the reset line and cannot open it. The expansion is drawn from the master npv.formula / npv.note; opens a NEW financial-acronym class distinct from the D38 self-explaining-term class D43 closed. Anchored on the twice-occurring string (hi[0] + ai[0], count 2; the S1.market.ai / S12.l0 variants untouched); both stay strings, ai stays identical to hi (the superset), nothing emptied, no printed number / date / law moved (no digit touched) · raises scalability, stability and efficiency · D44",
+        "S2 · status · rev 0.041 → 0.042, decision register D1–D43 → D1–D44 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register (D1–D43) → (D1–D44) (hi[2] + ai[2]) · the register grew (D44)",
+        "PROV / row provenance · rev 0.041 → 0.042 · law 5"
+      ],
+      "decisions": [
+        "D44"
       ]
     }
   ]
