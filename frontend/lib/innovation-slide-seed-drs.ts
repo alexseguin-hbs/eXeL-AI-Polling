@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.116";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.117";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -416,7 +416,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
         hi: [
           "Validation sequence: 1 EDU — first proof · 2 FOOD — second proof · 3 TECH — scale-potential (the per-segment validation work is itemised in the note).",
           "This is a validation sequence, not a TAM (total addressable market) ranking.",
-          "4 PUBLIC BODY — after G3 (IA, D12): the fourth step in the sequence — one government owner, one project through the same loop, its people asked through the eXeL Polling API, the approved posture and the delivered result replayable by the body and by the people who answered; never a claimed customer.",
+          "4 PUBLIC BODY — after G3 (IA, D12): the fourth step — one government owner, one project through the same loop; the full path is in the note; never a claimed customer.",
         ],
         ai: [
           "Validation sequence: 1 EDU — first proof (Rave teardown, buyer interviews, measurement-design tabletop) · 2 FOOD — second proof (Everbridge 360 AI / Bridge teardown, buyer interviews) · 3 TECH — scale-potential (PagerDuty teardown, buyer interviews).",

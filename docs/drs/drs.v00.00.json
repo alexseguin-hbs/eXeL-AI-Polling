@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.116",
+  "revision": "0.117",
   "stage": "G2 / future-state validation",
   "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -2077,8 +2077,15 @@
    "revision": "0.116",
    "date": "2026-09-25",
    "kind": "release",
-   "commit": "PENDING",
+   "commit": "b8f59db",
    "why": "Per-slide S11 pass: slide S11 (Preliminary Feedback / Validation) is a seed slide, and its one law-6 density defect is corrected — the G3 A/B row's 'Assumption to test' cell (exp.hi[1]) had overflowed its table panel into a ~45-word paragraph, so it is trimmed to a single slide line while the full experiment design (benchmark Everbridge 360 AI / Bridge; comparators Rave in EDU, PagerDuty in TECH; Conservative / Baseline / Severe; pre-registered hypothesis, null and stop rule; counterbalanced run order; independent timekeeper) is preserved verbatim in exp.ai[1], the note, which stays unchanged so ai ≥ hi. S11 is the slide that keeps the whole case honest: nothing graduates until a customer names the need, confirms the primary NBA, a baseline is observed, a measurable delta survives, and the economic buyer assigns value — the A/B legibility fix serves that reader. This revision also RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci. No figure, claim, gate, law or linked number moves; the master statement and segment value props are untouched (law 4)."
+  },
+  {
+   "revision": "0.117",
+   "date": "2026-09-25",
+   "kind": "release",
+   "commit": "PENDING",
+   "why": "Per-slide S12 pass: slide S12 (Go-To-Market) is a seed slide, and its one law-6 density defect is corrected — the PUBLIC BODY item (l30.hi[2]) had overflowed its list slot into a ~52-word paragraph, so it is trimmed to a single slide line while the full path (one government owner, one project through the same governed loop, its people asked through the eXeL Polling API, the approved posture and delivered result replayable by the body and by the people who answered) is preserved verbatim in l30.ai[3], the note, which stays unchanged so ai ≥ hi. S12 is the slide that shows the case will not overreach: the commercial spine is preserved (law 1), no SKU or price is invented before a buyer validates (law 3), the segments are a validation sequence and not a market-size ranking, and the public body enters as a declared future step (IA, after G3, D12) reusing the R-CORE record and replay already running in the repo — never a claimed customer. This revision also RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci. No figure, claim, gate, law or linked number moves; the master statement and segment value props are untouched (law 4)."
   }
  ],
  "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -3620,6 +3627,13 @@
    "revision": "0.116",
    "by": "twelve lenses · per-slide S11",
    "decision": "Per-slide S11 pass (rev 0.116). Slide S11 (Preliminary Feedback / Validation) IS a seed slide (the voc early-validation matrix, the exp planned-experiments table, the comments list; rendered by the S11 field config in innovation-data.ts). Its one law-6 density defect is corrected: the G3 A/B row's 'Assumption to test' cell (exp.hi[1]) had overflowed its table panel into a ~45-word paragraph, so it is trimmed to a single slide line while the full experiment design — benchmark Everbridge 360 AI / Bridge; comparators Rave (EDU) and PagerDuty (TECH); Conservative / Baseline / Severe; pre-registered hypothesis, null and stop rule; counterbalanced run order; independent timekeeper stamps every clock — is preserved verbatim in exp.ai[1] (the note), which stays unchanged so ai ≥ hi. This CONTINUES the density/clarity discipline of D110–D117 (short hi, detail in the note), applied to the slide that proves the whole case is honest: nothing graduates until a customer names the need, confirms the primary NBA, a baseline is observed, a measurable delta survives, and the economic buyer assigns value; the A/B is the experiment that will replace every DECLARED (IA) number with a buyer-validated one, and it must be legible to be believed. No figure, differentiator, primary NBA, decision column, claim, gate, law or linked number moves (law 3); the master statement and segment value props stay fixed (law 4); the field id/shape is preserved and no cell is emptied (law 6). This decision also RECORDS, with checkable proof, that the operator's standing overriding instruction for the page is satisfied and gated this run — the R-CORE rasters exist as committed PNG (public/r-core/r-core-icon.png 1448×1086, public/r-core/r-core-wordmark.png 2172×724, committed at 42be8dd) and the R-CORE icon's target sits at the BOTTOM of the page in NORMAL FLOW (wrapper flex w-full justify-center, no fixed/absolute geometry, mounted last after the footer at app/SoI-2525/page.tsx:1100), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci (data-rcore-badge + flex w-full justify-center + absence of fixed left-1/2; holding 1·1·0) — carrying D117's finding forward for the S11 slide, and noting the one cosmetic leftover (the stale 'Fixed + centred + high z' docstring in rcore-badge.tsx) as out of the door's staging set, for a future badge-scoped commit rather than stranded uncommitted. It does not supersede any prior decision. Holds security, stability and scalability at ceiling; S11's efficiency and succinctness rise this revision because the overflowing A/B cell is drawn back to one legible line with no loss of substance."
+  },
+  {
+   "id": "D119",
+   "date": "2026-09-25",
+   "revision": "0.117",
+   "by": "twelve lenses · per-slide S12",
+   "decision": "Per-slide S12 pass (rev 0.117). Slide S12 (Go-To-Market) IS a seed slide (the l90 draft launch plan, the l60 align & execute list, the l30 final-deliverables / validation-sequence list, the l0 launch & optimize list; rendered by the S12 field config in innovation-data.ts). Its one law-6 density defect is corrected: the PUBLIC BODY item (l30.hi[2]) had overflowed its list slot into a ~52-word paragraph, so it is trimmed to a single slide line while the full path — one government owner, one project through the same governed loop, its people asked through the eXeL Polling API, the approved posture and delivered result replayable by the body and by the people who answered — is preserved verbatim in l30.ai[3] (the note), which stays unchanged so ai ≥ hi. This CONTINUES the density/clarity discipline of D110–D118 (short hi, detail in the note), applied to the slide that shows the case will not overreach: the commercial spine is preserved (law 1), no SKU or price is invented before a buyer validates (law 3), the segments are a validation sequence and not a market-size ranking, and the public body enters as a declared future step (IA, after G3, D12) that reuses the R-CORE record and replay already running in the repo — never a claimed customer. No figure, segment, gate (G3), decision reference (D12), IA label, claim, law or linked number moves (law 3); the master statement and segment value props stay fixed (law 4); the field id/shape is preserved and no cell is emptied (law 6). This decision also RECORDS, with checkable proof, that the operator's standing overriding instruction for the page is satisfied and gated this run — the R-CORE rasters exist as committed PNG (public/r-core/r-core-icon.png 1448×1086 · public/r-core/r-core-wordmark.png 2172×724) and the R-CORE icon's target sits at the BOTTOM of the page in NORMAL FLOW (wrapper 'flex w-full justify-center', no fixed/absolute geometry, mounted last after the footer at app/SoI-2525/page.tsx:1100), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci (asserts data-rcore-badge + 'flex w-full justify-center' + absence of 'fixed left-1/2') — carrying the D117 / D118 finding forward for the S12 slide, and noting the one cosmetic leftover (the stale 'Fixed + centred + high z' docstring in rcore-badge.tsx) as out of the door's staging set, to be fixed in a future badge-scoped commit rather than stranded uncommitted. It does not supersede any prior decision. Holds security, stability and scalability at ceiling; S12's efficiency and succinctness rise this revision because the overflowing PUBLIC BODY line is drawn back to one legible line with no loss of substance."
   }
  ],
  "iterations": [
@@ -6274,6 +6288,26 @@
    ],
    "decisions": [
     "D118"
+   ]
+  },
+  {
+   "revision": "0.117",
+   "n": 117,
+   "date": "2026-09-25",
+   "author": "twelve lenses · per-slide S12",
+   "file": "docs/drs/iterations/0.117.md",
+   "ssesMeans": {
+    "security": 98.75,
+    "stability": 100.0,
+    "scalability": 100.0,
+    "efficiency": 98.58,
+    "succinctness": 90.25
+   },
+   "edits": [
+    "S12 (Go-To-Market) IS a seed slide (l90 draft launch plan · l60 align & execute · l30 final deliverables / validation sequence · l0 launch & optimize; rendered by the S12 field config in innovation-data.ts). Law-6 density trim: the PUBLIC BODY item (l30.hi[2]) had overflowed its list slot into a ~52-word paragraph, so it is trimmed to a single slide line — '4 PUBLIC BODY — after G3 (IA, D12): the fourth step — one government owner, one project through the same loop; the full path is in the note; never a claimed customer' — while the FULL path (its people asked through the eXeL Polling API, the approved posture and the delivered result replayable by the body and by the people who answered) is preserved verbatim in l30.ai[3] (the note), which stays unchanged so ai ≥ hi. Anchor: the hi[2] string followed by the array close and the ai opener with ai[0]'s 'Validation sequence: 1 EDU — first proof (Rave teardown' — unique to the hi occurrence (the identical string in ai[3] is the last element, followed by the l30 block close) — asserted found exactly once. No number, segment, gate (G3), decision reference (D12), IA label or linked field moves (law 3); the field id/shape (string[], list) is preserved and no cell is emptied (law 6); the master statement and segment value props stay fixed (law 4)."
+   ],
+   "decisions": [
+    "D119"
    ]
   }
  ]
