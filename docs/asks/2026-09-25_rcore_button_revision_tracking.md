@@ -26,3 +26,17 @@ button (branded with the logo) that expands its revision tracking — the same a
 offers (What Changed diff across revisions, the ledger, determinism/replay proof, registers), reading each
 domain's own revision record (Drone-2525's REVISIONS.md/ledger, SoI-2525's slide/polling versions + DRS ledger,
 Manta/Security's own). FIRST check what each already has; ADD the R-CORE button where missing; keep it uniform.
+
+## Refinement (operator 2026-09-25) — the interaction, exactly
+> Smaller logo is in bottom center of all Innovation 2525 projects. When clicked, R-CORE with icon pops up,
+> and when clicked again we are taken to version history and compare tool.
+
+A two-stage badge (mirrors the existing Powered Badge pattern), on EVERY Innovation 2525 project surface:
+1. REST: a SMALL R-CORE reticle icon (docs/r-core/logo/r-core-icon.png), fixed at the BOTTOM CENTRE of the
+   screen — unobtrusive, like the powered badge.
+2. CLICK 1: it pops up / expands to the "⊕ R-CORE" wordmark pill (icon + R-CORE label,
+   docs/r-core/logo/r-core-wordmark.jpg) — a labelled affordance.
+3. CLICK 2: opens that domain's VERSION HISTORY + COMPARE TOOL — the revision tracking (What Changed between two
+   revisions, the ledger / audit trail), reading the domain's own revision record, in the Vision-2525 style.
+"All Innovation 2525 projects" = every 2525 domain surface (Drone-2525, SoI-2525, Manta-2525, Security-2525, and
+the others of the family — Architect-2525, Celestial-2525 — kept uniform).
