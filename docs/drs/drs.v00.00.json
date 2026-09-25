@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.080",
+  "revision": "0.081",
   "stage": "G2 / future-state validation",
   "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -1826,6 +1826,13 @@
    "date": "2026-09-25",
    "kind": "release",
    "why": "Round 74 of 99 continues the density / law-6 class (D76–D81) on the S1 Executive-Summary thesis line: S1.strategy.hi[0] sheds the illustrative four-item component sample '— alert, workflow, continuity, risk feed —' inside the ONE-platform thesis and keeps 'CrisisCommand.ai carries every aspect of the benchmark's critical-event job inside the governed leadership record' on the face; the full component list stays in strategy.ai[0] (a strict superset, never shorter than hi, law 6) and on S6 / S8. No figure, financial date, NBA pairing, claim or reach moves; succinctness rises 96.75 → 97.75, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D82; PROV and the row provenance bump to rev 0.080.",
+   "commit": "58a6bfa"
+  },
+  {
+   "revision": "0.081",
+   "date": "2026-09-25",
+   "kind": "release",
+   "why": "Round 75 of 99 continues the density / law-6 class (D76–D82) on the S12 Go-To-Market cost-to-serve line: S12.l60.hi[1] sheds the five-item illustrative CTS sample 'model / inference · sector intelligence · integrations · support · customer success, and more' and keeps 'the ten cost-to-serve items are itemised on S14 (Resourcing); measure actual CTS per segment' on the face; the full ten stay in l60.ai[1] (a strict superset, never shorter than hi, law 6) and on S14.fte. No figure, financial date, NBA pairing, claim or reach moves; succinctness rises 97.75 → 98.00, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D83; PROV and the row provenance bump to rev 0.081.",
    "commit": "PENDING"
   }
  ],
@@ -3116,6 +3123,13 @@
    "revision": "0.080",
    "by": "twelve lenses · round 74",
    "decision": "D82 — Round 74 of 99 CONTINUES the density / law-6 class (D76 S8.nba.hi, D77 S1.ask.hi gate parenthetical, D78 S1.ask.hi CTS gloss, D79 S5.problem.hi field-list, D80 S6.conops.hi[0] vendor roster, D81 S2.status.hi edition-provenance log): bring INTERNAL / illustrative detail OFF a customer-facing shown face into its speaker note, where the note already carries it, while KEEPING the reader's core understanding on the face so comprehension is never lost. This round takes S1.strategy.hi[0] (Executive Summary), the ONE-platform thesis line whose sentence paused to list four sample pieces of the benchmark's critical-event job inline — '— alert, workflow, continuity, risk feed —' — an illustration of what 'every aspect of the benchmark's critical-event job' already carries, and one the note strategy.ai[0] holds in full ('Everbridge 360 AI / Bridge: risk intelligence, emergency communications, incident workflow, coordinated action, continuity') and that S6 (product boundary) and S8 (competition) already show. The four examples are not the thesis; the thesis is stated by 'CrisisCommand.ai carries every aspect of the benchmark's critical-event job inside the governed leadership record', which stays on the face. This round REMOVES only the illustrative sample from the shown thesis and leaves it in strategy.ai[0], so strategy.ai stays a strict superset and never shorter than strategy.hi (law 6). Nothing is emptied. It is not a business change: no figure, financial date, NBA pairing, claim or reach moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched as pairings; the exact phrase 'one-ninth gate' is not in strategy.hi[0] so the ≥3 lock holds; the master statement and vprop untouched under law 4). It raises succinctness (96.75 → 97.75) and holds efficiency (99.17). It is the SEVENTH member of the density / law-6 class (after D76, D77, D78, D79, D80, D81) and the FIRST to take the S1 thesis line's own scope-illustration rather than a status line, an architecture cell, a field-list or a gloss. A later round continues the class on a shown cell that still overflows or carries internal / illustrative inventory without a comprehension cost, an evidence-gated change under the S11 change-control law, or a fresh readability class — never a claim the record does not carry."
+  },
+  {
+   "id": "D83",
+   "date": "2026-09-25",
+   "revision": "0.081",
+   "by": "twelve lenses · round 75",
+   "decision": "D83 — Round 75 of 99 CONTINUES the density / law-6 class (D76 S8.nba.hi, D77 S1.ask.hi gate parenthetical, D78 S1.ask.hi CTS gloss, D79 S5.problem.hi field-list, D80 S6.conops.hi[0] vendor roster, D81 S2.status.hi edition-provenance log, D82 S1.strategy.hi[0] component sample): bring INTERNAL / illustrative detail OFF a customer-facing shown face into its speaker note, where the note already carries it, while KEEPING the reader's core understanding on the face so comprehension is never lost. This round takes S12.l60.hi[1] (Go-To-Market), the cost-to-serve line whose sentence paused to sample five of the ten cost-to-serve items inline — 'model / inference · sector intelligence · integrations · support · customer success, and more' — an illustration of the CTS items the same sentence already sends the reader to S14 to read in full, and that l60.ai[1] holds complete and S14.fte shows on its own face. The five examples are not the rule; the rule is 'the ten cost-to-serve items are itemised on S14 (Resourcing); measure actual CTS per segment', which stays on the face. This round REMOVES only the illustrative sample from the shown line and leaves it in l60.ai[1], so l60.ai stays a strict superset and never shorter than l60.hi (law 6). Nothing is emptied. It is not a business change: no figure, financial date, NBA pairing, claim or reach moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched as pairings; the exact phrase 'one-ninth gate' is not in l60.hi[1] so the ≥3 lock holds; the master statement and vprop untouched under law 4). It raises succinctness (97.75 → 98.00) and holds efficiency (99.17). It is the EIGHTH member of the density / law-6 class (after D76, D77, D78, D79, D80, D81, D82) and the FIRST to take the Go-To-Market slide's cost-to-serve line rather than an executive-summary, status, architecture, field-list or gloss cell. A later round continues the class on a shown cell that still overflows or carries internal / illustrative inventory without a comprehension cost, an evidence-gated change under the S11 change-control law, or a fresh readability class — never a claim the record does not carry."
   }
  ],
  "iterations": [
@@ -4918,6 +4932,30 @@
    ],
    "decisions": [
     "D82"
+   ]
+  },
+  {
+   "revision": "0.081",
+   "n": 75,
+   "date": "2026-09-25",
+   "author": "twelve lenses · round 75",
+   "file": "docs/drs/iterations/0.081.md",
+   "ssesMeans": {
+    "security": 96.75,
+    "stability": 97.67,
+    "scalability": 99.75,
+    "efficiency": 99.17,
+    "succinctness": 98.0
+   },
+   "edits": [
+    "S12 · l60.hi[1] (Go-To-Market) · CONTINUE the density / law-6 class (D76–D82) — remove the five-item illustrative cost-to-serve sample 'model / inference · sector intelligence · integrations · support · customer success, and more' from the shown CTS line, keeping 'the ten cost-to-serve items are itemised on S14 (Resourcing); measure actual CTS per segment' on the face; the full ten stay in l60.ai[1] (a strict superset, law 6) and on S14.fte. Anchor '(Resourcing): model / inference · sector intelligence · integrations · support · customer success, and more; measure' → '(Resourcing); measure' (count 1). No figure, financial date, NBA pairing, claim or reach moves; master statement and vprop untouched (law 4). D83",
+    "S2 · status.hi · rev 0.080 → 0.081, decision register D1–D82 → D1–D83 · laws 5 and 7",
+    "S2 · status.ai · rev 0.080 → 0.081, decision register D1–D82 → D1–D83 — edition history KEPT so ai stays a strict superset · laws 5, 6, 7",
+    "S18 · e0 · decision register (D1–D82) → (D1–D83) (hi[2] + ai[2]) — both S2 and S18 read one count · law 7",
+    "PROV / row provenance · rev 0.080 → 0.081 (seed PROV + innovation-data.ts row provenance) · law 5"
+   ],
+   "decisions": [
+    "D83"
    ]
   }
  ]
