@@ -85,7 +85,7 @@ const badgeSrc = fs.readFileSync(new URL("../components/2525-core/rcore-badge.ts
 ok(/data-rcore-icon/.test(badgeSrc) && /onClick=\{expand\}/.test(badgeSrc) && /setStage\(1\)/.test(badgeSrc), "badge CLICK 1: the rest icon expands to the pill (setStage(1))");
 ok(/data-rcore-pill/.test(badgeSrc) && /onClick=\{openPanel\}/.test(badgeSrc) && /setOpen\(true\)/.test(badgeSrc), "badge CLICK 2: the pill opens the panel (setOpen(true))");
 ok(/\{open && <RCoreRevisionPanel/.test(badgeSrc), "badge renders RCoreRevisionPanel when open");
-ok(/fixed left-1\/2/.test(badgeSrc) && /translate-x-1\/2/.test(badgeSrc) && /bottom:/.test(badgeSrc), "badge is fixed at the bottom centre");
+ok(/data-rcore-badge/.test(badgeSrc) && /flex w-full justify-center/.test(badgeSrc) && !/fixed left-1\/2/.test(badgeSrc), "badge sits at the BOTTOM of the page in normal flow (mounted last, centred), never a fixed overlay on top of the image/slide (operator 2026-09-25)");
 
 // the panel is the version-history + compare tool, reusing compareRevisions
 const panelSrc = fs.readFileSync(new URL("../components/2525-core/rcore-revision-panel.tsx", import.meta.url), "utf8");
