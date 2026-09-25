@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.105",
+    "revision": "0.106",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -2001,7 +2001,14 @@
       "date": "2026-09-25",
       "kind": "release",
       "why": "Round 99 of 99, the final round: the twelve lenses walk S1–S18 a fifth consecutive time and confirm the convergence of the density / law-6 class (D76–D106) is durable and complete — no customer-facing face overflows its panel or hides its point, and a further cut would empty meaning, which law 6 forbids. This closing round therefore changes no slide face: it completes the decision register at D1–D107 (D107), stamps the final edition rev 0.105 across the seed PROV, S2 status and S18 e0, bumps the row provenance, fills the 0.104 commit (b44d90f), and verifies the FULL gate (test:ci + next build) stays green at the programme's close. No figure, financial date, NBA pairing, claim, gate, R-CORE reach or law moves.",
-      "commit": "PENDING"
+      "commit": "82e02bf"
+    },
+    {
+      "revision": "0.106",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Per-slide S1 pass (slide 1 of 19): the twelve lenses focus on slide S1 alone and apply one density / law-6 edit to it — the trailing one-ninth-gate definition moves off oneline.hi (the executive-summary face, the first page a reader opens) into oneline.ai, which already carries it, keeping the operating loop, the absorption ladder (2027 · 2030 · 2525) and the one-ninth (11.1 %) gate milestone on the face; no other slide face is touched, no figure, NBA pairing, claim, gate or law moves, the master statement stays fixed under law 4, and the provenance footer is bumped to rev 0.106 via PROV and the row (D108)."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -3466,6 +3473,13 @@
       "revision": "0.105",
       "by": "twelve lenses · round 99",
       "decision": "D107 — Round 99 of 99, the final round, CLOSES the 99-iteration programme the operator asked for on 2026-09-24, holding the CONVERGENCE recorded at D103 and reaffirmed at D104, D105 and D106: after the density / law-6 class (D76–D106) reached its floor, no customer-facing shown face overflows its panel or hides its point, and a further cut would empty meaning, which law 6 forbids (ai never shorter than hi, no cell emptied). The twelve lenses walked S1–S18 a fifth consecutive time and found no face too full and no truth stranded in a note. This round therefore touches no slide face: it completes the decision register at D1–D107, stamps the final edition rev 0.105, fills the 0.104 commit (b44d90f) and verifies the FULL build (test:ci + next build) stays green at the close. Not a business change: no figure, financial date, NBA pairing, claim, gate, R-CORE reach or law moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched; the one-ninth gate and alerting-last locks untouched; master statement and vprop untouched under law 4). Holds security, stability, scalability, efficiency and succinctness at or near ceiling. It is the fifth and final consecutive round in the class to add no face edit — the record that the business case is complete, whole and durable, and that the programme ended on a green full gate with the deck exactly as its evidence supports."
+    },
+    {
+      "id": "D108",
+      "date": "2026-09-25",
+      "revision": "0.106",
+      "by": "twelve lenses · per-slide S1",
+      "decision": "D108 — Per-slide S1 pass (rev 0.106) applies one face edit to slide S1, continuing the density / law-6 class D76–D106 recorded convergent at D103–D107: the operating line (oneline.hi) told the one-ninth gate twice — as a milestone AND as a full definition — on the first page a reader opens, while oneline.ai already carries the full definition. This decision moves the definition off the S1 face into the note, keeping 'absorb by the one-ninth (11.1 %) gate to qualify (2030)' and the loop, the ladder horizons (2027 · 2030 · 2525) and the one-platform reach on the face. It REFINES the S1 presentation of D52 (the one-ninth gate on the face) without superseding it — the gate stays visible on the face — and does not supersede D107's convergence claim, which concerned whole-deck rounds; a per-slide reading legitimately found one law-6 duplication a whole-deck pass had left. Not a business change: no figure, financial date, NBA pairing (EDU → Rave · FOOD → Everbridge 360 AI / Bridge · TECH → PagerDuty), claim, gate, R-CORE reach or law moves; the master statement and vprop are untouched under law 4; oneline.ai stays a strict superset of oneline.hi. Holds security, stability, scalability, efficiency near ceiling and lifts S1's succinctness by removing the duplicate telling from the face."
     }
   ],
   "iterations": [
@@ -5867,6 +5881,28 @@
       ],
       "decisions": [
         "D107"
+      ]
+    },
+    {
+      "revision": "0.106",
+      "n": 106,
+      "date": "2026-09-25",
+      "author": "twelve lenses · per-slide S1",
+      "file": "docs/drs/iterations/0.106.md",
+      "ssesMeans": {
+        "security": 98.92,
+        "stability": 100.0,
+        "scalability": 100.0,
+        "efficiency": 99.67,
+        "succinctness": 96.83
+      },
+      "edits": [
+        "S1.oneline.hi — trimmed the trailing one-ninth-gate definition off the face, keeping 'absorb by the one-ninth (11.1 %) gate to qualify (2030)'; oneline.ai keeps the full definition (law 6, ai never shorter, no cell emptied)",
+        "PROV / row provenance — rev 0.105 → 0.106",
+        "per-slide S1 pass: no other slide face edited; fill 0.105 commit 82e02bf; append D108, iterations[] 0.106, revisions[] 0.106"
+      ],
+      "decisions": [
+        "D108"
       ]
     }
   ]

@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.105";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.106";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -41,7 +41,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     S1: {
       oneline: {
         // 0.008 (D10) · the linked value proposition above this cell already prints the master sentence (D6); this line adds the loop and the ladder — no cell repeats another on the same slide.
-        hi: "The operating loop: operational truth → executive judgment → approved decision → named action → evidence → stakeholder response → replay → improvement. The ladder: govern first (2027) · absorb by the one-ninth gate — a function goes native only after it removes at least a ninth (11.1 %) of the benchmark's baseline on its clock, a floor to qualify (2030) · humanity's shared crisis memory (2525).",
+        hi: "The operating loop: operational truth → executive judgment → approved decision → named action → evidence → stakeholder response → replay → improvement. The ladder: govern first (2027) · absorb by the one-ninth (11.1 %) gate to qualify (2030) · humanity's shared crisis memory (2525).",
         ai: "The operating loop: operational truth → executive judgment → approved decision → named action → evidence → stakeholder response → replay → improvement. The ladder: govern first (2027) · absorb by the one-ninth gate — a function goes native only after it removes at least a ninth (11.1 %) of the benchmark's baseline on its clock, a floor to qualify (2030) · humanity's shared crisis memory (2525). The one sentence above (the linked value proposition, D6) is the master statement, printed once on this slide: CrisisCommand.ai is the one human-governed crisis platform where an institution's leaders see the facts, decide with named authority, alert and act, hold every stakeholder to one approved posture, prove what was done, and learn — so the next crisis begins from the last one's record, never from a blank page. " + MOTTO,
       },
       segment: {
