@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.115";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.116";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -366,7 +366,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
       exp: {
         hi: [
           ["G2 · EDU tabletop (pre-registered)", "The measurement design works: timing, risk and outcome can be measured", "Metrics captured end-to-end; the tabletop does NOT prove economic value", "Empty"],
-          ["G3 · A/B", "Same scenario twice — A the benchmark alone (Everbridge 360 AI / Bridge; Rave in EDU, PagerDuty in TECH) vs B the one platform × Conservative / Baseline / Severe; pre-registered hypothesis, null and stop rule; run order counterbalanced; an independent timekeeper stamps every clock", "Measurable delta in timing, risk or outcome — the tracked clocks and metrics itemised in the note", "Empty"],
+          ["G3 · A/B", "Same scenario twice — A the benchmark alone vs B the one platform, across three severities; the pre-registration, run order and independent timekeeper are in the note", "Measurable delta in timing, risk or outcome — the tracked clocks and metrics itemised in the note", "Empty"],
           ["Interviews · all", "Buyer confirms the need and the primary NBA", "Current-state baseline confirmed; at least two future-state deltas survive; measurable clock defined; economic weight sourced", "Empty"],
         ],
         ai: [

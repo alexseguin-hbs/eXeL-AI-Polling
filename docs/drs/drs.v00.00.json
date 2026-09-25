@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.115",
+  "revision": "0.116",
   "stage": "G2 / future-state validation",
   "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -2070,8 +2070,15 @@
    "revision": "0.115",
    "date": "2026-09-25",
    "kind": "release",
-   "commit": "PENDING",
+   "commit": "87b90cc",
    "why": "Per-slide S10 pass: slide S10 (Financials by Year — Cost + Revenues) is not a seed slide and its cost/revenue grid is linked/derived from PRJ-34's eleven-year record (PRJ34_FIN_PLAN; roll-ups nreK 11200, fullRev10yM 248), so it carries no editable face to trim; law 3 ('change the inputs, never a printed number') and the shared generator's 33-project scope forbid a face edit. This revision's subject is the operator's overriding instruction for the page, REPEATED verbatim this run and verified against the repository AND the gate that defends it (CLAUDE.md: stop fixing, start enumerating; prove with a hash/gate, not an assurance): the R-CORE raster icons exist as PNG (public/r-core/r-core-icon.png + r-core-wordmark.png, tracked, committed at 42be8dd, built into out/) and the R-CORE mark's target sits at the BOTTOM of the page in NORMAL FLOW (no fixed/absolute geometry, mounted last after the footer), never overlaying the image or the slide — defended by frontend/tests/rcore-revisions.test.mjs:88 in test:ci. Advances D116 from assurance to checkable proof. No figure, claim, gate, law or linked number moves — the DECLARED digital inputs and the master statement are untouched."
+  },
+  {
+   "revision": "0.116",
+   "date": "2026-09-25",
+   "kind": "release",
+   "commit": "PENDING",
+   "why": "Per-slide S11 pass: slide S11 (Preliminary Feedback / Validation) is a seed slide, and its one law-6 density defect is corrected — the G3 A/B row's 'Assumption to test' cell (exp.hi[1]) had overflowed its table panel into a ~45-word paragraph, so it is trimmed to a single slide line while the full experiment design (benchmark Everbridge 360 AI / Bridge; comparators Rave in EDU, PagerDuty in TECH; Conservative / Baseline / Severe; pre-registered hypothesis, null and stop rule; counterbalanced run order; independent timekeeper) is preserved verbatim in exp.ai[1], the note, which stays unchanged so ai ≥ hi. S11 is the slide that keeps the whole case honest: nothing graduates until a customer names the need, confirms the primary NBA, a baseline is observed, a measurable delta survives, and the economic buyer assigns value — the A/B legibility fix serves that reader. This revision also RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci. No figure, claim, gate, law or linked number moves; the master statement and segment value props are untouched (law 4)."
   }
  ],
  "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -3606,6 +3613,13 @@
    "revision": "0.115",
    "by": "twelve lenses · per-slide S10",
    "decision": "Per-slide S10 pass (rev 0.115). Slide S10 (Financials by Year — Cost + Revenues) is NOT a seed slide: the seed defines S1–S8 and S11–S18 only, and S10's financial grid is linked, derived deterministically from the row's digital inputs (the eleven-year PRJ34_FIN_PLAN; roll-ups nreK 11200, fullRev10yM 248, revPlanQtyAnnual 212, value drivers, BU seed) through the shared generators/formatters in innovation-data.ts — so there is no PRJ-34-specific hand-authored S10 cell to trim, and law 3 ('change the inputs, never a printed number') plus the scope law (editing the shared generator would change all 33 projects) forbid a face edit. Because this per-slide revision therefore has no editable S10 face, its subject is the operator's own overriding instruction for the page, REPEATED verbatim in this run and, per CLAUDE.md 'when the operator reports the same thing twice, stop fixing and start enumerating', answered by enumerating the whole failure class with checkable proof: (1) the R-CORE raster icons are created as PNG (public/r-core/r-core-icon.png 1448×1086 · public/r-core/r-core-wordmark.png 2172×724, both tracked, committed at 42be8dd and built into out/), referenced verbatim by rcore-badge.tsx; and (2) the R-CORE mark's target sits at the BOTTOM of the page in NORMAL FLOW (wrapper flex w-full justify-center, no fixed/absolute geometry, mounted last after the footer in app/SoI-2525/page.tsx:1100), never overlaying the image or the slide (present mode is a separate fixed inset-0 z-[60] overlay above it), an invariant defended by frontend/tests/rcore-revisions.test.mjs:88 in test:ci (asserts data-rcore-badge + flex w-full justify-center + absence of fixed left-1/2; verified holding 1·1·0 this run). This decision ADVANCES D116 (the S9 pass, which recorded the same ask as satisfied but only as an assurance): it upgrades the finding from assurance to CHECKABLE PROOF (committed-file sha 42be8dd + a named passing gate), per CLAUDE.md's 'proof the operator can check, never an assurance he must trust' and FIX-THE-CLASS law 4 ('every invariant gets a gate'). It also records the one cosmetic leftover — the stale 'Fixed + centred + high z' docstring in rcore-badge.tsx (lines 16-18), contradicted by the live normal-flow code — as out of scope for the door's staging set (the door stages docs/drs, the seed, innovation-data.ts, innovation-time.test.mjs, drs-render.mjs, docs/assessments only, not rcore-badge.tsx) and for this no-git pass, to be corrected in a future badge-scoped commit rather than orphaned here. It CONTINUES the density/clarity discipline of D110–D116 by refusing to overload a page — here refusing to lay the R-CORE mark over the money grid. No figure, claim, gate, law or linked number moves (law 3); the master statement and segment value props stay fixed (law 4). It does not supersede any prior decision. Holds security, stability and scalability at ceiling; S10's efficiency and succinctness stay high because the derived grid is lean and the mark now rests, proven and gated, below the content."
+  },
+  {
+   "id": "D118",
+   "date": "2026-09-25",
+   "revision": "0.116",
+   "by": "twelve lenses · per-slide S11",
+   "decision": "Per-slide S11 pass (rev 0.116). Slide S11 (Preliminary Feedback / Validation) IS a seed slide (the voc early-validation matrix, the exp planned-experiments table, the comments list; rendered by the S11 field config in innovation-data.ts). Its one law-6 density defect is corrected: the G3 A/B row's 'Assumption to test' cell (exp.hi[1]) had overflowed its table panel into a ~45-word paragraph, so it is trimmed to a single slide line while the full experiment design — benchmark Everbridge 360 AI / Bridge; comparators Rave (EDU) and PagerDuty (TECH); Conservative / Baseline / Severe; pre-registered hypothesis, null and stop rule; counterbalanced run order; independent timekeeper stamps every clock — is preserved verbatim in exp.ai[1] (the note), which stays unchanged so ai ≥ hi. This CONTINUES the density/clarity discipline of D110–D117 (short hi, detail in the note), applied to the slide that proves the whole case is honest: nothing graduates until a customer names the need, confirms the primary NBA, a baseline is observed, a measurable delta survives, and the economic buyer assigns value; the A/B is the experiment that will replace every DECLARED (IA) number with a buyer-validated one, and it must be legible to be believed. No figure, differentiator, primary NBA, decision column, claim, gate, law or linked number moves (law 3); the master statement and segment value props stay fixed (law 4); the field id/shape is preserved and no cell is emptied (law 6). This decision also RECORDS, with checkable proof, that the operator's standing overriding instruction for the page is satisfied and gated this run — the R-CORE rasters exist as committed PNG (public/r-core/r-core-icon.png 1448×1086, public/r-core/r-core-wordmark.png 2172×724, committed at 42be8dd) and the R-CORE icon's target sits at the BOTTOM of the page in NORMAL FLOW (wrapper flex w-full justify-center, no fixed/absolute geometry, mounted last after the footer at app/SoI-2525/page.tsx:1100), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci (data-rcore-badge + flex w-full justify-center + absence of fixed left-1/2; holding 1·1·0) — carrying D117's finding forward for the S11 slide, and noting the one cosmetic leftover (the stale 'Fixed + centred + high z' docstring in rcore-badge.tsx) as out of the door's staging set, for a future badge-scoped commit rather than stranded uncommitted. It does not supersede any prior decision. Holds security, stability and scalability at ceiling; S11's efficiency and succinctness rise this revision because the overflowing A/B cell is drawn back to one legible line with no loss of substance."
   }
  ],
  "iterations": [
@@ -6236,6 +6250,30 @@
    ],
    "decisions": [
     "D117"
+   ]
+  },
+  {
+   "revision": "0.116",
+   "n": 116,
+   "date": "2026-09-25",
+   "author": "twelve lenses · per-slide S11",
+   "file": "docs/drs/iterations/0.116.md",
+   "ssesMeans": {
+    "security": 98.75,
+    "stability": 100.0,
+    "scalability": 100.0,
+    "efficiency": 98.58,
+    "succinctness": 92.25
+   },
+   "edits": [
+    "S11 (Preliminary Feedback / Validation) IS a seed slide (voc early-validation matrix · exp planned experiments · comments; rendered by the S11 field config in innovation-data.ts). Law-6 density trim: the G3 A/B row's 'Assumption to test' cell (exp.hi[1]) had overflowed its table panel into a ~45-word paragraph, so it is trimmed to a single slide line — 'Same scenario twice — A the benchmark alone vs B the one platform, across three severities; the pre-registration, run order and independent timekeeper are in the note' — while the FULL design (benchmark Everbridge 360 AI / Bridge; comparators Rave in EDU, PagerDuty in TECH; Conservative / Baseline / Severe; pre-registered hypothesis, null and stop rule; counterbalanced run order; independent timekeeper) is preserved verbatim in exp.ai[1] (the note), which stays unchanged so ai ≥ hi. Anchor: the hi assumption string + its short '…itemised in the note' success cell — a combination unique to hi (in ai the same assumption is followed by the long itemised success criterion) — asserted found exactly once. No number, differentiator, primary NBA, decision column or linked field moves (law 3); field id/shape (string[][], 4 cols) preserved, no cell emptied (law 6).",
+    "Operator's standing overriding instruction, re-relayed this run ('ensure rastors are created; use png versions … R-CORE icon at bottom of page and does not overlay') — VERIFIED SATISFIED + GATED with checkable proof: (1) R-CORE rasters exist as committed PNG — public/r-core/r-core-icon.png (1448×1086) + public/r-core/r-core-wordmark.png (2172×724), tracked, committed at 42be8dd, placement refreshed at c37706d, referenced verbatim by rcore-badge.tsx; (2) the R-CORE icon's target sits at the BOTTOM of the page in NORMAL FLOW (wrapper flex w-full justify-center, no fixed/absolute geometry, mounted last after the footer at app/SoI-2525/page.tsx:1100), never overlaying the image/slide — defended by frontend/tests/rcore-revisions.test.mjs in test:ci (data-rcore-badge + flex w-full justify-center + absence of fixed left-1/2; holding 1·1·0). Recorded leftover (out of the door's staging set): the stale 'Fixed + centred + high z' docstring in rcore-badge.tsx lines 14–18, for a future badge-scoped commit — editing it here would strand an uncommitted change (persist-first law).",
+    "PROV · seed constant · rev 0.115 → 0.116 (anchor 'v1.0 · rev 0.115', one occurrence) · law 5",
+    "innovation-data.ts · row provenance · rev 0.115 → 0.116 (anchor 'v1.0 · rev 0.115', one occurrence) · law 5",
+    "Master record · fill revisions[] 0.115 commit PENDING → 87b90cc; append iterations[] 0.116, decisions[] D118, revisions[] 0.116 (PENDING); set project.revision 0.116 · law 7"
+   ],
+   "decisions": [
+    "D118"
    ]
   }
  ]
