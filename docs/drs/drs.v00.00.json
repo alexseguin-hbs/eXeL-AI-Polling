@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.032",
+    "revision": "0.033",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1489,8 +1489,15 @@
       "revision": "0.032",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "986ea33",
       "why": "Round 26 of 99 (twelve lenses) continues the density discipline of D30–D33 onto the one content enumeration round 25 overlooked, found by measurement: S2.roadmap.hi[2], the four-horizon roadmap line (312 chars), ran all four horizons with their full descriptions on the shown face while S2.roadmap.ai[2] already carried that line verbatim and the same horizons recur in full on S14.notes, S15.prio and S17.prio. (S5.problem.hi 564 is a single argument; the S3 financial-core lines and the S2.status metadata stamp 418 are kept; S6.conops.hi[0] 462 is the deliberate four-stage form settled at D30.) This round trims the shown line to the four horizon headlines with their years, the one-ninth gate and alerting-last (225 chars), anchored on the unique roadmap hi[2] + hi[3] + array-close block so only the shown cell changes; hi stays string[] (four elements), ai is unchanged (five elements) and stays the superset, nothing is emptied, and no printed number, date or law moves — the years 2027 / 2030 / 2525 are kept and every horizon description survives complete in the note and on three later slides (D34); S2 status and S18 e0 carry rev 0.032 and the grown D1–D34 register; PROV and the row provenance bump to rev 0.032."
+    },
+    {
+      "revision": "0.033",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 27 of 99 (twelve lenses) continues the density discipline of D30–D34 with a genuine cross-slide de-duplication: S12.l60.hi[1] (Go-To-Market — the cost-to-serve line) carried the whole ten-item cost-to-serve enumeration on the shown face, while S12.l60.ai[1] already held that line verbatim and S14.fte.hi — the Resourcing slide, whose whole reason to exist is the cost-to-serve list — itemises the same ten. This round trims the shown line to a named pointer to S14 plus the rule to measure actual CTS per segment, so the list now lives in one home (S14) and S12 points to it, and the two can never drift; the full list survives in the note and on S14. The decision register grows to D35, the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.033. No printed number, date or law moved (the line carries no digit); hi stays string[] (2), ai unchanged (3) and still the superset."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2444,6 +2451,13 @@
       "revision": "0.032",
       "by": "twelve lenses · round 26",
       "decision": "Round 26 acts on the largest cleanly-trimmable law-6 density enumeration left on any shown face once the single-argument lines (S5.problem.hi 564, the opening one-platform problem argument, and S13.deps.hi[1] 361, the master question — both kept per D31 / D32), the financial-core lines (S3.fincomment Ramp 519 / Value equation 382 / Financial model 335, which the financial slide exists to show and which law 3 wants on the deck), the deliberate four-stage form of S6.conops.hi[0] (462, settled at D30) and the edition/provenance metadata stamp S2.status.hi (418, a single stamp meant to be complete in one place) are set aside: S2.roadmap.hi[2] (Project Overview — the roadmap) carried all four horizons with their full descriptions (Horizon 1 2027 Governed Leadership State, native, with every benchmark function reachable from inside the platform · Horizon 2 → 2030 the critical-event surface absorbed function by function under the one-ninth gate, alerting last · Horizon 3 Enterprise Decision Graph · Horizon 4 Recursive Readiness 2525) as one 312-character line, and S2.roadmap.ai[2] already carried that exact line verbatim while the same horizons recur in full on S14.notes, S15.prio and S17.prio. This round trims the shown line to the four horizon headlines with their years, the one-ninth gate and alerting-last (225 chars), anchored on the unique roadmap hi[2] + hi[3] + array-close block (the identical string recurs only inside the untouched ai block) so only the shown cell changes; hi stays string[] (four elements), ai is unchanged (five elements) and stays the superset, nothing is emptied, and no printed number, date or law moves (the years 2027 / 2030 / 2525 are kept on the face). Every horizon description survives complete in roadmap.ai[2] and on three later slides. Raises efficiency and succinctness (the Spiral Development Protocol's density test) without touching the substance. Continues D30 (Architecture) / D31 (Product boundary) / D32 (CONOPS chains) / D33 (Current foundation): the one content enumeration D33 overlooked, corrected by measurement this round; after it the remaining shown overflows are all single arguments, financial-core numbers, a settled four-stage form, or a metadata stamp that law 3 and law 6 keep on the face."
+    },
+    {
+      "id": "D35",
+      "date": "2026-09-25",
+      "revision": "0.033",
+      "by": "twelve lenses · round 27",
+      "decision": "Round 27 continues the density discipline of D30–D34 onto the largest cleanly-trimmable pure operational enumeration left on any shown non-matrix face, once the lines the prior rounds set aside are set aside again: the single-argument lines (S5.problem.hi 564, the opening one-platform argument; S13.deps.hi[1] 361, the master question — both kept per D31/D32), the financial-core lines (S3.fincomment Ramp 519 / Value equation 382 / Financial model 335, which the financial slide exists to show and which law 3 wants on the deck), the master statement (S8.vprop.hi 308, bound by law 4 — one master), the record-answers synthesis S7.desired.hi 290 (a distinct framing from the S8 feature list, kept shown), the settled forms (S6.conops.hi[0] 462 at D30; S6.problem.hi[0]/[1] at D31/D33) and the metadata stamp (S2.status.hi 418). What remains is S12.l60.hi[1] (Go-To-Market — the cost-to-serve line): it carried the whole ten-item cost-to-serve enumeration (model / inference · sector intelligence maintenance · case / scenario maintenance · enterprise context onboarding · security / isolation · integrations · support · customer success · simulation / tabletop support · expert review if included, 257 chars) on the shown face, while S12.l60.ai[1] already carried that exact line verbatim and S14.fte.hi — the Resourcing slide, whose whole reason to exist is the cost-to-serve list — itemises the same ten. This round trims the shown line to a named pointer to S14 plus the rule to measure actual CTS per segment (~195 chars), anchored on the unique l60 hi[0]+hi[1]+array-close-into-ai block so only the shown cell changes; hi stays string[] (two elements), ai is unchanged (three elements) and stays the superset, nothing is emptied, and no printed number, date or law moves (the line carries no digit). The full ten-item list survives complete in l60.ai[1] and on S14.fte. A genuine cross-slide de-duplication, not only a face trim: the cost-to-serve list now lives in one home (S14) and S12 points to it, so the two can never drift. Raises efficiency and succinctness (the Spiral Development Protocol's density test) without touching the substance."
     }
   ],
   "iterations": [
@@ -3136,6 +3150,29 @@
       ],
       "decisions": [
         "D34"
+      ]
+    },
+    {
+      "revision": "0.033",
+      "n": 27,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 27",
+      "file": "docs/drs/iterations/0.033.md",
+      "ssesMeans": {
+        "security": 92.5,
+        "stability": 86.6,
+        "scalability": 82.6,
+        "efficiency": 89.4,
+        "succinctness": 88.5
+      },
+      "edits": [
+        "S2 · status · rev 0.032 → 0.033, decision register D1–D34 → D1–D35 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register (D1–D34) → (D1–D35) (hi[2] + ai[2]) · the register grew (D35)",
+        "PROV / row provenance · rev 0.032 → 0.033 · law 5",
+        "S12 · l60 · hi[1] · trim the ten-item cost-to-serve (CTS) enumeration (257 chars — the largest cleanly-trimmable pure operational enumeration left on any shown non-matrix face once the single-argument, financial-core, master-statement, settled-form and metadata lines are set aside) to a named pointer to S14 (Resourcing), the slide that exists to itemise cost-to-serve; the full ten-item list stays verbatim in l60.ai[1] (the note) and is itemised on S14.fte.hi · law-6 overflow + cross-slide duplication; anchored on the unique l60 hi[0]+hi[1]+array-close-into-ai block so only the shown cell changes; hi stays string[] (2 elements), ai unchanged (3 elements) and still the superset, nothing emptied, no printed number / date / law moved (the line carries no digit) · raises efficiency and succinctness · D35"
+      ],
+      "decisions": [
+        "D35"
       ]
     }
   ]
