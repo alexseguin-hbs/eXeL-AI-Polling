@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.040",
+    "revision": "0.041",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1545,8 +1545,15 @@
       "revision": "0.040",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "d467e25",
       "why": "Round 34 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate (D38), NBA (D39), IA (D40) and CTS (D41) to the deck's last unglossed load-bearing acronym, WTP. WTP is one of the two terms the pricing law turns on (no price until WTP clears CTS + hurdle; Contribution = validated WTP − CTS); a cold reader first meets it on the risk slide (S2.toprisks.hi[3], \"a new SKU invented before WTP evidence\") a slide before \"willingness to pay\" is spelled out on S3. This round defines it once, at its first shown appearance (S2.toprisks.hi[3]): \"a new SKU invented before WTP (willingness to pay) evidence,\" with the S2 note tier carrying the fuller gloss. The expansion is drawn from the seed's own \"willingness to pay\" usage and the master's pricing rule; it invents no number, moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the unique S2.toprisks.hi[3] and ai[3] strings, so only those two cells change. With CTS (D41), both terms of the contribution equation now define themselves where a reader first meets them. The decision register grows to D42; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.040. Raises scalability, stability and efficiency at a negligible succinctness cost."
+    },
+    {
+      "revision": "0.041",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 35 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate (D38), NBA (D39), IA (D40), CTS (D41) and WTP (D42) to the deck's two remaining unglossed load-bearing marks, the validation gates G2 and G3. A cold reader first meets both in the summary ask (S1.ask) — \"G2 ask … G3 A/B\" — a slide before they are spelled out on the S2 roadmap. This round defines them once, at their first shown appearance (S1.ask.hi), inline beside the NBA and CTS glosses already there: \"G2 · G3 are the two validation gates — G2 approves the measurement design, G3 runs the instrumented A/B\", with the S1 note tier carrying the fuller gloss. The expansion is drawn from the seed's own roadmap gloss and the master stageGate; it invents no number, moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the unique S1.ask.hi and ask.ai strings, so only the two S1 ask cells change. The decision register grows to D43; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.041. With G2 and G3 defined, the D38 self-explaining-term class is complete for the marks a cold reader cannot resolve at first sight. Raises scalability, stability and efficiency at a negligible succinctness cost."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2556,6 +2563,13 @@
       "revision": "0.040",
       "by": "twelve lenses · round 34",
       "decision": "Round 34 of 99 extends the comprehension pass D38 opened (define every shown term where a cold reader first meets it) from the one-ninth gate (D38), NBA (D39), IA (D40) and CTS (D41) to the deck's last unglossed load-bearing acronym, WTP. WTP is one of the two terms the pricing law turns on — \"no price until WTP clears CTS + hurdle\" and \"Contribution = validated WTP − CrisisCommand-specific CTS\" — and it appears on roughly seven shown faces (S2.toprisks, S7.personas measure, S11.voc, S12.l60 / l90, S14.fte, S15.impact, S16.saydo). CTS was defined last round (D41) at its first shown appearance on S1; WTP, the other half of the same equation, first appears one slide later, on S2.toprisks.hi[3] (\"a new SKU invented before WTP evidence\"), while \"willingness to pay\" is not spelled out until S3.fincomment.hi[4], a slide on. A first-time reader — an investor, a future customer, a system thinker without analytics know-how — meets the acronym in the risk line and must carry it a slide before it resolves. This round defines it once, at its first shown appearance (S2.toprisks.hi[3]): \"a new SKU invented before WTP (willingness to pay) evidence,\" and mirrors a fuller gloss into the S2 note tier (toprisks.ai[3] \"WTP (willingness to pay — what a buyer will actually pay)\") so the shown face and the note agree and the note stays a superset of the face. The expansion invents nothing: it is drawn from the seed's own \"willingness to pay\" usage (S3.fincomment, S12.l0) and the master's pricing rule (no price until a buyer validates WTP; Contribution = WTP − CTS). It moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs). Anchored on the unique S2.toprisks.hi[3] and ai[3] strings, so only those two cells change; both keep their string type inside the string[] field and neither is emptied. With CTS (D41), both terms of the contribution equation now define themselves where a reader first meets them. It raises scalability (a 2525 or cold reader resolves the deck's last unglossed acronym where they first meet it), stability (WTP means one thing across the deck) and efficiency (comprehension without hunting a slide on), at a negligible succinctness cost. It supersedes nothing — it is the fifth member of the D38 self-explaining-term class, which later rounds can extend to any remaining shorthand a cold reader cannot resolve at first sight (G2 / G3 first appear on S1.ask and are glossed on S2.roadmap)."
+    },
+    {
+      "id": "D43",
+      "date": "2026-09-25",
+      "revision": "0.041",
+      "by": "twelve lenses · round 35",
+      "decision": "Round 35 of 99 extends the comprehension pass D38 opened (define every shown term where a cold reader first meets it) from the one-ninth gate (D38), NBA (D39), IA (D40), CTS (D41) and WTP (D42) to the deck's two remaining unglossed load-bearing marks, the validation gates G2 and G3. G2 and G3 are the two checkpoints the whole evidence program turns on — G2 approves the measurement design (buyer interviews, NBA teardown, prototype, one pre-registered EDU tabletop) and G3 runs the instrumented A/B that produces the evidence — and they appear on roughly nine shown faces (S1.ask, S2.roadmap, S3 / S8 \"at G3\", S11.exp, S13.tech, S14 build calendar, S15.voc, S16.plc). A cold reader first meets both in the summary ask (S1.ask.hi: \"G2 ask … G3 A/B simulation only after the G2 measurement design is credible\"), yet they are spelled out only one slide later, on S2.roadmap (\"Gates: G2 validates the measurement design … G3 runs the instrumented A/B\"). A first-time reader — an investor, a future customer, a system thinker without analytics know-how — meets the two gate marks in the ask and must carry them a slide before they resolve. This round defines them once, at their first shown appearance (S1.ask.hi), inline beside the NBA (D39) and CTS (D41) glosses already there: \"G2 ask (G2 · G3 are the two validation gates — G2 approves the measurement design, G3 runs the instrumented A/B): approve …\", and mirrors a fuller gloss into the S1 note tier (ask.ai: \"the two De-Risking Strategies validation gates\") so the shown face and the note agree and the note stays a superset of the face. The expansion invents nothing: it is drawn from the seed's own roadmap gloss (S2.roadmap) and the master stageGate (G1–G7). It moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs). Anchored on the unique S1.ask.hi and ask.ai strings, so only those two cells change; both keep their string type and neither is emptied. With G2 and G3 defined, the deck's load-bearing shorthand — the one-ninth gate, NBA, IA, CTS, WTP and now the two gates — all define themselves where a reader first meets them; the D38 self-explaining-term class is complete for the marks a cold reader cannot resolve at first sight. It raises scalability (a 2525 or cold reader resolves the gate names where they first appear), stability (G2 and G3 mean one thing across the deck) and efficiency (comprehension without hunting a slide on), at a negligible succinctness cost. It supersedes nothing — it is the sixth and closing member of the D38 self-explaining-term class."
     }
   ],
   "iterations": [
@@ -3432,6 +3446,29 @@
       ],
       "decisions": [
         "D42"
+      ]
+    },
+    {
+      "revision": "0.041",
+      "n": 35,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 35",
+      "file": "docs/drs/iterations/0.041.md",
+      "ssesMeans": {
+        "security": 92.8,
+        "stability": 92.4,
+        "scalability": 89.5,
+        "efficiency": 92.8,
+        "succinctness": 90.2
+      },
+      "edits": [
+        "S1 · ask.hi + ai · define G2 / G3 at their first shown appearance — hi \"G2 ask: approve the three segment teardowns\" → \"G2 ask (G2 · G3 are the two validation gates — G2 approves the measurement design, G3 runs the instrumented A/B): approve the three segment teardowns\"; ai \"G2 ask: approve 1 EDU / Rave teardown\" → \"G2 ask (G2 · G3 are the two De-Risking Strategies validation gates — …): approve 1 EDU / Rave teardown\" (the note tier carries the fuller gloss and stays the superset). G2 and G3 are the deck's two remaining unglossed load-bearing marks — the two checkpoints the whole evidence program turns on — and a cold reader first meets both in the summary ask (S1.ask.hi) a slide before S2.roadmap spells them out. The expansion is drawn from the seed's own roadmap gloss (S2.roadmap) and the master stageGate (G1–G7) · law-6 comprehension, closes the D38 / D39 / D40 / D41 / D42 self-explaining-term class; hi anchored on the unique string (count 1), ai on its unique string (count 1); both stay strings, ai stays the superset, nothing emptied, no printed number / date / law moved (no digit touched) · raises scalability, stability and efficiency · D43",
+        "S2 · status · rev 0.040 → 0.041, decision register D1–D42 → D1–D43 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register (D1–D42) → (D1–D43) (hi[2] + ai[2]) · the register grew (D43)",
+        "PROV / row provenance · rev 0.040 → 0.041 · law 5"
+      ],
+      "decisions": [
+        "D43"
       ]
     }
   ]
