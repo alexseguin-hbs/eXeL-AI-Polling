@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.039",
+    "revision": "0.040",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1538,8 +1538,15 @@
       "revision": "0.039",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "a98bf59",
       "why": "Round 33 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate (D38), NBA (D39) and IA (D40) to the deck's most-used remaining acronym, CTS. CTS is the term the pricing law turns on (no price until WTP clears CTS + hurdle; Contribution = validated WTP − CTS); it appears on ~31 shown faces but a cold reader first meets it in the G2 ask on the summary and it is spelled out only ten slides later, on S12. This round defines it once, at its first shown appearance (S1.ask.hi, beside the NBA gloss D39 added): \"CTS is what CrisisCommand spends to serve a customer, the cost a validated price must clear,\" with the S1 note tier carrying the same expansion. The expansion is drawn from the seed's own cost-to-serve usage and the master's pricing rule; it invents no number, moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the unique S1.ask.hi string, so only the shown ask cell and its note mirror change. The decision register grows to D41; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.039. Raises scalability and stability at a negligible succinctness cost."
+    },
+    {
+      "revision": "0.040",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 34 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate (D38), NBA (D39), IA (D40) and CTS (D41) to the deck's last unglossed load-bearing acronym, WTP. WTP is one of the two terms the pricing law turns on (no price until WTP clears CTS + hurdle; Contribution = validated WTP − CTS); a cold reader first meets it on the risk slide (S2.toprisks.hi[3], \"a new SKU invented before WTP evidence\") a slide before \"willingness to pay\" is spelled out on S3. This round defines it once, at its first shown appearance (S2.toprisks.hi[3]): \"a new SKU invented before WTP (willingness to pay) evidence,\" with the S2 note tier carrying the fuller gloss. The expansion is drawn from the seed's own \"willingness to pay\" usage and the master's pricing rule; it invents no number, moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the unique S2.toprisks.hi[3] and ai[3] strings, so only those two cells change. With CTS (D41), both terms of the contribution equation now define themselves where a reader first meets them. The decision register grows to D42; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.040. Raises scalability, stability and efficiency at a negligible succinctness cost."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2542,6 +2549,13 @@
       "revision": "0.039",
       "by": "twelve lenses · round 33",
       "decision": "Round 33 of 99 extends the comprehension pass D38 opened (define every shown term where a cold reader first meets it) from the one-ninth gate (D38), NBA (D39) and IA (D40) to the deck's most load-bearing remaining acronym, CTS. CTS appears on roughly thirty-one shown faces — S1.ask (\"CTS discovery\"), S3.fincomment (\"CrisisCommand-specific CTS\"), S11.voc, S12.l60 / l0, S14.fte and S15.impact — and it is the term the pricing law turns on (\"no price until WTP clears CTS + hurdle\"; \"Contribution = validated WTP − CrisisCommand-specific CTS\"), yet a cold reader first meets it on the summary slide (S1.ask.hi) and it is spelled out only ten slides later, on S12 (\"the ten cost-to-serve items\"). A first-time reader — an investor, a future customer, a system thinker without analytics know-how — meets \"CTS discovery\" in the G2 ask and must carry the three letters unresolved to the twelfth slide. This round defines it once, at its first shown appearance (S1.ask.hi, where the deck already glosses NBA inline, D39): \"CTS is what CrisisCommand spends to serve a customer, the cost a validated price must clear,\" and mirrors the expansion into the S1 note tier (ask.ai \"CrisisCommand-specific CTS (cost-to-serve) discovery\") so the shown face and the note agree. The expansion invents nothing: it is drawn from the seed's own cost-to-serve usage (S12.l60) and the master's pricing rule (no price until a buyer validates WTP; Contribution = WTP − CTS). It moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the unique S1.ask.hi string, so only the shown ask cell (plus its note mirror) changes; the shown S1.ask.hi cell grows to ~478 characters — under the kept financial-core (S3 Ramp 519) and single-argument (S5 problem 564) cells that laws 3 and 6 keep on the face. It raises scalability (a 2525 or cold reader now resolves the deck's most-used remaining acronym where they first meet it), stability (CTS means one thing across the deck) and efficiency (comprehension without hunting ten slides on), at a negligible succinctness cost. It supersedes nothing — it is the fourth member of the D38 self-explaining-term class, which later rounds can extend to the last remaining shorthand a cold reader cannot resolve at first sight (WTP first appears on S2.toprisks before it is spelled out on S3; G2 / G3 first appear on S1.ask and are glossed on S2.roadmap)."
+    },
+    {
+      "id": "D42",
+      "date": "2026-09-25",
+      "revision": "0.040",
+      "by": "twelve lenses · round 34",
+      "decision": "Round 34 of 99 extends the comprehension pass D38 opened (define every shown term where a cold reader first meets it) from the one-ninth gate (D38), NBA (D39), IA (D40) and CTS (D41) to the deck's last unglossed load-bearing acronym, WTP. WTP is one of the two terms the pricing law turns on — \"no price until WTP clears CTS + hurdle\" and \"Contribution = validated WTP − CrisisCommand-specific CTS\" — and it appears on roughly seven shown faces (S2.toprisks, S7.personas measure, S11.voc, S12.l60 / l90, S14.fte, S15.impact, S16.saydo). CTS was defined last round (D41) at its first shown appearance on S1; WTP, the other half of the same equation, first appears one slide later, on S2.toprisks.hi[3] (\"a new SKU invented before WTP evidence\"), while \"willingness to pay\" is not spelled out until S3.fincomment.hi[4], a slide on. A first-time reader — an investor, a future customer, a system thinker without analytics know-how — meets the acronym in the risk line and must carry it a slide before it resolves. This round defines it once, at its first shown appearance (S2.toprisks.hi[3]): \"a new SKU invented before WTP (willingness to pay) evidence,\" and mirrors a fuller gloss into the S2 note tier (toprisks.ai[3] \"WTP (willingness to pay — what a buyer will actually pay)\") so the shown face and the note agree and the note stays a superset of the face. The expansion invents nothing: it is drawn from the seed's own \"willingness to pay\" usage (S3.fincomment, S12.l0) and the master's pricing rule (no price until a buyer validates WTP; Contribution = WTP − CTS). It moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs). Anchored on the unique S2.toprisks.hi[3] and ai[3] strings, so only those two cells change; both keep their string type inside the string[] field and neither is emptied. With CTS (D41), both terms of the contribution equation now define themselves where a reader first meets them. It raises scalability (a 2525 or cold reader resolves the deck's last unglossed acronym where they first meet it), stability (WTP means one thing across the deck) and efficiency (comprehension without hunting a slide on), at a negligible succinctness cost. It supersedes nothing — it is the fifth member of the D38 self-explaining-term class, which later rounds can extend to any remaining shorthand a cold reader cannot resolve at first sight (G2 / G3 first appear on S1.ask and are glossed on S2.roadmap)."
     }
   ],
   "iterations": [
@@ -3395,6 +3409,29 @@
       ],
       "decisions": [
         "D41"
+      ]
+    },
+    {
+      "revision": "0.040",
+      "n": 34,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 34",
+      "file": "docs/drs/iterations/0.040.md",
+      "ssesMeans": {
+        "security": 92.8,
+        "stability": 91.7,
+        "scalability": 88.8,
+        "efficiency": 92.8,
+        "succinctness": 90.2
+      },
+      "edits": [
+        "S2 · toprisks.hi[3] + ai[3] · define WTP at its first shown appearance — hi[3] \"a new SKU invented before WTP evidence.\" → \"a new SKU invented before WTP (willingness to pay) evidence.\"; ai[3] carries the fuller gloss \"WTP (willingness to pay — what a buyer will actually pay)\" so the note tier resolves it too and stays the superset. WTP is the deck's last unglossed load-bearing acronym; a cold reader first meets it on S2.toprisks before \"willingness to pay\" is spelled out on S3, and it is one of the two terms the pricing law turns on (no price until WTP clears CTS + hurdle; Contribution = validated WTP − CTS). The expansion is drawn from the seed's own \"willingness to pay\" usage (S3 / S12) · law-6 comprehension, extends the D38 / D39 / D40 / D41 self-explaining-term class; hi anchored on the unique string (count 1), ai on its unique string (count 1); both stay strings, ai stays the superset, nothing emptied, no printed number / date / law moved (no digit touched) · raises scalability, stability and efficiency · D42",
+        "S2 · status · rev 0.039 → 0.040, decision register D1–D41 → D1–D42 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register (D1–D41) → (D1–D42) (hi[2] + ai[2]) · the register grew (D42)",
+        "PROV / row provenance · rev 0.039 → 0.040 · law 5"
+      ],
+      "decisions": [
+        "D42"
       ]
     }
   ]
