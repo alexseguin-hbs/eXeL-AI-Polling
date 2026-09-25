@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.034",
+    "revision": "0.035",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1503,8 +1503,15 @@
       "revision": "0.034",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "14619e2",
       "why": "Round 28 of 99 (twelve lenses) continues the density discipline of D30–D35 with a within-field de-duplication that is the sibling of last round's: S12.l60.hi[0] (Go-To-Market — the future-commercial-forms line) carried the whole five-item enumeration on the shown face, while S12.l60.ai[0] already held that exact line verbatim. This round trims the shown line to a representative pair plus a pointer to the note and the governing rule that customer WTP and CTS determine the form, so both lines of the Go-To-Market resourcing panel now read as one home each rather than a face that repeats its own note; the full five-form list survives in l60.ai[0]. The decision register grows to D36, the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.034. No printed number, date or law moved (the line carries no digit); hi stays string[] (2), ai unchanged (3) and still the superset."
+    },
+    {
+      "revision": "0.035",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 29 of 99 (twelve lenses) completes the Go-To-Market density pass of D35–D36: S12.l30.hi[0] (the validation-sequence line) still printed every per-segment teardown in full on the shown face, while S12.l30.ai[0] already carried that exact text verbatim and the three benchmarks are already shown on S1.market, S1.ask and S8.nba. This round trims the shown line to the three sequence labels (1 EDU — first proof · 2 FOOD — second proof · 3 TECH — scale-potential) plus a pointer to the note, so all three shown quadrants of the Go-To-Market slide (l60 cost-to-serve, l60 commercial-forms, l30 validation-sequence) now read as labels or a settled line plus a pointer — the slide reads as one uniform surface, which also raises stability. The decision register grows to D37; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.035. No printed number, date or law moved (the segment numbers 1 / 2 / 3 stay); hi stays string[] (2), ai unchanged (4) and still the superset. The full teardown detail survives in l30.ai[0]."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2472,6 +2479,13 @@
       "revision": "0.034",
       "by": "twelve lenses · round 28",
       "decision": "Round 28 continues the density discipline of D30–D35 onto the largest cleanly-trimmable pure operational enumeration left on any shown non-matrix face, once the lines the prior rounds set aside are set aside again: the single-argument lines (S5.problem.hi 564, the opening one-platform problem argument; S13.deps.hi[1] 361, the master question; S1.ask.hi 285, the G2 ask; S1.strategy.hi[1] 249, the ten-delta strategic argument — all kept as single arguments), the financial-core lines (S3.fincomment Ramp 519 / Value equation 382 / Financial model 335 and S15.impact.hi 257, which the financial slides exist to show and which law 3 wants on the deck), the master statement (S8.vprop.hi 308, bound by law 4 — one master — and never trimmed), the benchmark-positioning argument (S8.nba.hi 286, the declaration the competition slide exists to make), the record-answers synthesis (S7.desired.hi 290, a distinct framing from the S8 feature list, kept shown), the settled forms (S6.conops.hi[0] 462 at D30; S6.problem.hi[0]/[1] at D31/D33; S2.roadmap.hi[2] at D34) and the metadata stamp (S2.status.hi 418). What remains is S12.l60.hi[0] (Go-To-Market — the future-commercial-forms line): it carried the whole five-item enumeration (capability expansion in the enterprise tier · enterprise integration package · additional organizational instance · advisor / consultant operating model · event / usage construct, 252 chars) on the shown face, while S12.l60.ai[0] already carried that exact line verbatim. This is the sibling of S12.l60.hi[1], the cost-to-serve line closed as a pointer last round (D35); with it, both lines of the Go-To-Market resourcing panel read as one home each rather than a face that repeats its own note. This round trims the shown line to a representative pair (the first two forms) plus a pointer to the note and the governing rule that customer WTP and CTS determine the form (~190 chars), anchored on the unique hi:[-prefixed l60 hi[0] block (the identical string recurs only inside the ai block, left untouched) so only the shown cell changes; hi stays string[] (two elements), ai is unchanged (three elements) and stays the superset, nothing is emptied, and no printed number, date or law moves (the line carries no digit). The full five-item list survives complete in l60.ai[0]. A within-field verbatim de-duplication in the vein of D33 and D34: the shown face no longer repeats its own note. Raises efficiency and succinctness (the Spiral Development Protocol's density test) without touching the substance. After it, the remaining shown enumerations on non-matrix faces are single arguments, financial-core numbers, the master statement, a positioning declaration, a record-answers synthesis, settled forms, or a metadata stamp that laws 3, 4 and 6 keep on the face."
+    },
+    {
+      "id": "D37",
+      "date": "2026-09-25",
+      "revision": "0.035",
+      "by": "twelve lenses · round 29",
+      "decision": "Round 29 of 99 completes the Go-To-Market density pass begun at D35 and D36. With the cost-to-serve line pointed to S14 Resourcing (D35) and the commercial-forms line trimmed to a representative pair plus a pointer (D36), only S12.l30.hi[0] — the validation-sequence line — still printed every per-segment teardown in full on the shown face (1 EDU · Rave teardown, buyer interviews, measurement-design tabletop · 2 FOOD · Everbridge 360 AI / Bridge teardown, buyer interviews · 3 TECH · PagerDuty teardown, buyer interviews, 250 chars), while S12.l30.ai[0] already carried that exact text verbatim and the three benchmarks are already shown on S1.market, S1.ask and S8.nba. This round trims the shown line to the three sequence labels (1 EDU — first proof · 2 FOOD — second proof · 3 TECH — scale-potential) plus a pointer to the note (per-segment NBA teardown + buyer interviews, the EDU measurement-design tabletop — detail in note, ~190 chars), anchored on the unique l30 hi block (the identical string recurs only inside the ai block, left untouched) so only the shown cell changes; hi stays string[] (two elements), ai is unchanged (four elements) and stays the superset, nothing is emptied, and no printed number, date or law moves (the segment numbers 1 / 2 / 3 stay). The full teardown detail survives complete in l30.ai[0]. With it, all three shown quadrants of the Go-To-Market slide (l60 cost-to-serve, l60 commercial-forms, l30 validation-sequence) read as labels or a settled line plus a pointer to their note, so the slide reads as one uniform surface — a within-field verbatim de-duplication in the vein of D33–D36 that also raises stability by making the slide internally consistent, face and note aligned across every shown quadrant. Raises efficiency, succinctness and stability (the Spiral Development Protocol's density test) without touching the substance: the sequence itself, its three proof-order labels and the not-a-TAM-ranking line all stay on the face. After it, the remaining shown enumerations on non-matrix faces are single arguments, financial-core numbers, the master statement, a positioning declaration, a record-answers synthesis, settled forms, or a metadata stamp that laws 3, 4 and 6 keep on the face."
     }
   ],
   "iterations": [
@@ -3210,6 +3224,29 @@
       ],
       "decisions": [
         "D36"
+      ]
+    },
+    {
+      "revision": "0.035",
+      "n": 29,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 29",
+      "file": "docs/drs/iterations/0.035.md",
+      "ssesMeans": {
+        "security": 92.5,
+        "stability": 87.0,
+        "scalability": 82.6,
+        "efficiency": 91.4,
+        "succinctness": 90.5
+      },
+      "edits": [
+        "S2 · status · rev 0.034 — 0.035, decision register D1–D36 — D1–D37 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register (D1–D36) — (D1–D37) (hi[2] + ai[2]) · the register grew (D37)",
+        "PROV / row provenance · rev 0.034 — 0.035 · law 5",
+        "S12 · l30 · hi[0] · trim the three-segment validation-sequence teardown enumeration (250 chars) to the three sequence labels (1 EDU — first proof · 2 FOOD — second proof · 3 TECH — scale-potential) plus a pointer to the note (~190 chars); the full per-segment teardown detail (Rave / Everbridge 360 AI / Bridge / PagerDuty teardown + buyer interviews + the EDU measurement-design tabletop) stays verbatim in l30.ai[0] and is shown on S1.market / S1.ask / S8.nba · law-6 overflow + within-field (hi shown === ai note) duplication; anchored on the unique l30 hi block so only the shown cell changes; hi stays string[] (2 elements), ai unchanged (4 elements) and still the superset, nothing emptied, no printed number / date / law moved (segment numbers 1 / 2 / 3 kept) · raises efficiency, succinctness and stability · D37"
+      ],
+      "decisions": [
+        "D37"
       ]
     }
   ]
