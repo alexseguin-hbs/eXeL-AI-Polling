@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.111";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.112";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -272,7 +272,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           ["EDU — President / Chancellor / COO / CCO · operating: comms, GC, chief of staff, EM leadership · primary NBA Rave", "One approved institutional posture: what the institution will do, why, who owns it, how it stays coherent as the crisis changes."],
           ["FOOD — COO / CCO / GC / Quality · operating: crisis team, comms, quality, regulatory · primary NBA Everbridge 360 AI / Bridge", "One enterprise posture from unit / product fact to customer and regulator trust decisions."],
           ["TECH — COO / CCO / CISO / CIO / GC · operating: incident leadership, comms, security · primary NBA PagerDuty", "Translate technical incident state into coherent enterprise judgment; named non-technical actions outside the technical response."],
-          ["Citizen / recipient — student, parent, customer, employee, community (all segments)", "Hears one human-approved voice in their language, can answer back, and their need enters the record as operational truth — for a public body, through the eXeL Polling API (S4) — a CASPER-shaped intake (a standard community-assessment record — fields in the note)."],
+          ["Citizen / recipient — student, parent, customer, employee, community (all segments)", "Hears one human-approved voice in their language, can answer back, and their need enters the record as operational truth — for a public body, through the eXeL Polling API (S4)."],
           ["Principle (all)", "AI recommends and organizes. Humans approve and own consequences."],
         ],
         ai: [

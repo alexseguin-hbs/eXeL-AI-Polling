@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.111",
+    "revision": "0.112",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -2042,8 +2042,15 @@
       "revision": "0.111",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "f3e7c3d",
       "why": "Per-slide S6 pass: one law-6 density trim to slide S6 (Product Summary / Architecture), returning the four-stage architecture loop's INPUT face to the operational-context intake alone by moving its fused public-body clause (the citizen's answer through the eXeL Polling API as an evidence pointer, S4 · S7) into conops.ai[0], which already carries it in its own stage one, so ai stays a strict superset; the public body stays on the deck's face at anchor slides S4 · S7 · S12 · S18; no figure, claim, gate, law or linked number moves."
+    },
+    {
+      "revision": "0.112",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Per-slide S7 pass: one law-6 density trim to slide S7 (Customer Workflow), returning the citizen / recipient row (personas.hi[3]) to its core by moving the CASPER-shaped-intake definition into personas.ai[3], which already carries the full field list, so ai stays a strict superset; the public-body eXeL Polling API reach STAYS on the S7 face because S7 is a public-body anchor slide (S4 · S7 · S12 · S18); no figure, claim, gate, law or linked number moves."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -3550,6 +3557,13 @@
       "revision": "0.111",
       "by": "twelve lenses · per-slide S6",
       "decision": "Per-slide S6 pass (rev 0.111) applies one face edit to slide S6, the Product Summary / Architecture slide: conops.hi[0] carried a public-body clause — '; for a public body, the citizen's answer enters through the eXeL Polling API as an evidence pointer (S4 · S7)' — fused onto stage one (Operational Context / INPUT) of the four-stage architecture loop, where the clean loop should stand alone, overloading the first stage and delaying the loop itself (law 6). This decision trims stage one to the operational-context intake ('selected facts / status from the operational systems of record, absorbed by qualification → 2 CrisisCommand …'), leaving the public-body pointer in conops.ai[0], which already carries it in its own stage one, so ai stays a strict superset of hi (law 6; no cell emptied). The public body stays present on the deck's face at its anchor slides S4 · S7 · S12 · S18 (the brief's R-CORE section), so the R-CORE citizen-in-the-record thread loses nothing. It CONTINUES the density / law-6 discipline of D110 (the S3 Ramp cell), D111 (the S4 stakeholder step) and D112 (the S5 problem opening) — the same presentational separation of the face's one idea from the note's public-body extension, now on the deck's architecture loop. No figure, claim, gate, law or linked number moves (law 3): the row's digital inputs and every derived field (S1 chart, S2/S3 profile, S8 charts, S10 grid) are untouched, and the master statement and vprop stay fixed under law 4. It does not supersede any prior decision. Holds security, stability and scalability at ceiling and lifts S6's efficiency and succinctness by returning the architecture face to its four clean stages."
+    },
+    {
+      "id": "D114",
+      "date": "2026-09-25",
+      "revision": "0.112",
+      "by": "twelve lenses · per-slide S7",
+      "decision": "Per-slide S7 pass (rev 0.112) applies one face edit to slide S7, the Customer Workflow slide: personas.hi[3] (the citizen / recipient row) carried three loads on one face — the core (one human-approved voice, the answer back, the need entering the record as operational truth), the public-body eXeL Polling API reach (S4), and a CASPER-shaped-intake definition ending in its own note pointer ('fields in the note'), overloading the row (law 6). This decision trims the CASPER-intake definition to the note, leaving the citizen's core and the public-body eXeL Polling API reach on the face, because S7 is one of the deck's public-body ANCHOR slides (S4 · S7 · S12 · S18; brief R-CORE: the citizen's answer enters the record at S4 · S7) — so, unlike the S4 (D111), S5 (D112) and S6 (D113) passes that moved the public-body pointer off those non-anchor faces, this pass KEEPS the eXeL Polling API pointer on S7 and moves only the intake definition. personas.ai[3] already carries the full CASPER field list, so ai stays a strict superset of hi (law 6; no cell emptied). It CONTINUES the density / law-6 discipline of D110–D113, applied here to the citizen row of the workflow slide while preserving S7's anchor role. No figure, claim, gate, law or linked number moves (law 3): the row's digital inputs and every derived field (S1 chart, S2/S3 profile, S8 charts, S10 grid) are untouched, and the master statement and the segment value props stay fixed under law 4. It does not supersede any prior decision. Holds security, stability and scalability at ceiling and lifts S7's efficiency and succinctness by returning the citizen row to one clear reading with its anchor reach intact."
     }
   ],
   "iterations": [
@@ -6086,6 +6100,29 @@
       ],
       "decisions": [
         "D113"
+      ]
+    },
+    {
+      "revision": "0.112",
+      "n": 112,
+      "date": "2026-09-25",
+      "author": "twelve lenses · per-slide S7",
+      "file": "docs/drs/iterations/0.112.md",
+      "ssesMeans": {
+        "security": 98.75,
+        "stability": 100.0,
+        "scalability": 100.0,
+        "efficiency": 98.58,
+        "succinctness": 90.25
+      },
+      "edits": [
+        "S7.personas.hi[3][1] (citizen / recipient row) — law-6 density trim: dropped the trailing CASPER clause (' — a CASPER-shaped intake (a standard community-assessment record — fields in the note).') so the row reads 'Hears one human-approved voice in their language, can answer back, and their need enters the record as operational truth — for a public body, through the eXeL Polling API (S4).'; the public-body eXeL Polling API reach STAYS on the face — S7 is a public-body anchor slide (S4 · S7 · S12 · S18; brief R-CORE), unlike the S4/S5/S6 passes; personas.ai[3][1] is untouched and keeps the full CASPER field list, so ai stays a strict superset (law 6; no cell emptied); no figure or claim moves (law 3).",
+        "PROV · seed constant · rev 0.111 → 0.112 (anchor 'v1.0 · rev 0.111', one occurrence) · law 5",
+        "innovation-data.ts · row provenance · rev 0.111 → 0.112 (anchor 'v1.0 · rev 0.111', one occurrence) · law 5",
+        "Master record · fill revisions[] 0.111 commit PENDING → f3e7c3d; append iterations[] 0.112, decisions[] D114, revisions[] 0.112 (PENDING); set project.revision 0.112 · law 7"
+      ],
+      "decisions": [
+        "D114"
       ]
     }
   ]
