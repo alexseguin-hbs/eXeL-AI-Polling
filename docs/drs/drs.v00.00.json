@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.037",
+    "revision": "0.038",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1524,8 +1524,15 @@
       "revision": "0.037",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "e1e6c4c",
       "why": "Round 31 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate to the deck's other load-bearing acronym, NBA. NBA is used on ~13 shown faces (S1.ask, S5.statusquo, S7.personas, S8.nba, S11.voc, S13.deps, S15.voc, S16.saydo) but was spelled out on no shown face and nowhere in the seed. This round defines it once, at its first shown appearance (S1.ask): \"an NBA is a segment's Next Best Alternative, the primary competitor a buyer would use instead, shown in the market table,\" and mirrors the expansion into the S1 note tier (segment.ai). The expansion is drawn verbatim from the v0.9 manuscript of record; it invents no market, moves no printed figure, date or law (no digit touched; the three primary NBAs are unchanged) and keeps the note a superset of the face. Anchored on two unique strings, so only S1.ask.hi and S1.segment.ai change. The decision register grows to D39; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.037. Raises scalability, stability and efficiency at a negligible succinctness cost."
+    },
+    {
+      "revision": "0.038",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 32 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate (D38) and NBA (D39) to the deck's most load-bearing money marker, IA. IA is law 3's mark on every declared dollar; it stamps ~26 shown figures across S3 / S4 / S8 / S12 / S13 / S14 / S16 but was spelled out on no shown face and nowhere in the seed. This round defines it once, at its first shown appearance (S3.fincomment): \"DECLARED (IA — an internal assumption, not buyer-validated)\", with the identical S3 note cell carrying the same expansion. The expansion is drawn from the master financialModel.status; it invents no number, moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the twice-occurring string, so only the two S3 cells change. The decision register grows to D40; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.038. Raises scalability, stability and efficiency at a negligible succinctness cost."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2514,6 +2521,13 @@
       "revision": "0.037",
       "by": "twelve lenses · round 31",
       "decision": "Round 31 of 99 extends the comprehension pass D38 opened (define every shown term where a cold reader first meets it) from the one-ninth gate to the deck's other load-bearing acronym, NBA. NBA appears on roughly thirteen shown faces — S1.ask (\"NBAs in the market table\"), S5.statusquo (the per-segment competitive arguments), S7.personas (\"primary NBA Rave / Everbridge 360 AI / Bridge / PagerDuty\"), S8.nba, S11.voc, S13.deps (the G2-exit \"primary NBA confirmed\"), S15.voc and S16.saydo — yet the three letters are spelled out on no shown face and, in fact, nowhere in the seed (grep: 0 occurrences of \"Next Best Alternative\"). A first-time reader — an investor, a future customer, a system thinker without analytics know-how — meets the acronym on the summary slide and must supply its meaning. This round defines it once, at its first shown appearance (S1.ask, where the deck already points the reader to the market table): \"an NBA is a segment's Next Best Alternative, the primary competitor a buyer would use instead, shown in the market table,\" and mirrors the expansion into the S1 note tier (segment.ai \"one primary NBA (Next Best Alternative) each\") so the shown face and the note agree. The expansion invents nothing: it is drawn verbatim from the manuscript of record (docs/drs/sources/PRJ-34_drop/canonical/CC_Future_State_S1-S19_v0.9_eXeL.md, \"Each segment has one primary competitive Next Best Alternative (NBA)\"). It moves no printed figure, date or law (no digit is touched; the three primary NBAs Rave / Everbridge 360 AI / Bridge / PagerDuty are unchanged), and keeps the note a superset of the face. Anchored on two unique strings (count 1 each), so only S1.ask.hi and S1.segment.ai change. The shown S1.ask cell grows to roughly 375 characters — comparable to the S1.oneline cell (0.036) and under the kept financial-core (S3 Ramp 519) and single-argument (S5 problem 564) cells that laws 3 and 6 keep on the face — a bounded, one-time cost that makes every one of the term's ~13 later uses legible where the reader first meets it. It raises scalability (a 2525 or any-segment reader now resolves the core positioning term), stability (NBA means one thing across the deck) and efficiency (comprehension without hunting a note), at a negligible succinctness cost. It supersedes nothing — it is the second member of the D38 self-explaining-term class, which later rounds can extend to any remaining shorthand a cold reader cannot resolve (e.g. G2 / G3 are already glossed on S2.roadmap, WTP / CTS spell out on their home slides)."
+    },
+    {
+      "id": "D40",
+      "date": "2026-09-25",
+      "revision": "0.038",
+      "by": "twelve lenses · round 32",
+      "decision": "Round 32 of 99 extends the comprehension pass D38 opened (define every shown term where a cold reader first meets it) from the one-ninth gate (D38) and NBA (D39) to the deck's most load-bearing money marker, IA. IA is the mark law 3 puts on every declared dollar — it stamps roughly twenty-six shown figures across S3 (the financial model, the ramp, the priced value equation), S4 (the three per-segment worked events), S8 (the priced single-customer baseline), S12 (the public-body pilot), S13 (the post-G3 dependency), S14 (the build calendar) and S16 (the target dates) — yet the two letters are spelled out on no shown face and, in fact, nowhere in the seed (grep: 0 occurrences of \"internal assumption\"). A first-time reader — an investor, a future customer, a system thinker without analytics know-how — meets \"(IA)\" beside a dollar figure and may mistake a modeled estimate for a booked or buyer-validated result. This round defines it once, at its first shown appearance (S3.fincomment.hi[0], where money first appears): \"Financial model — DECLARED (IA — an internal assumption, not buyer-validated):\", and the identical S3 note cell (ai[0]) carries the same expansion, so the shown face and the note agree. The expansion invents nothing: it is drawn from the master of record (financialModel.status: \"Every figure is an internal assumption derived from the S14 value equation and labelled IA\"). It moves no printed figure, date or law (no digit is touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face (the two cells stay identical). Anchored on the twice-occurring string (hi[0] + ai[0], count 2), so only those two S3 cells change. The shown S3 financial-model cell grows by roughly twenty-five characters to ~360 — under the kept financial-core (S3 Ramp 519) and single-argument (S5 problem 564) cells that laws 3 and 6 keep on the face — a bounded, one-time cost that makes every one of the marker's ~26 later uses legible where the reader first meets it. It raises scalability (a 2525 or any-segment reader now resolves the money marker), stability (IA means one thing across the deck) and efficiency (comprehension without hunting a note), at a negligible succinctness cost. It supersedes nothing — it is the third member of the D38 self-explaining-term class, which later rounds can extend to any remaining shorthand a cold reader cannot resolve (G2 / G3 are glossed on S2.roadmap; WTP / CTS spell out on their home slides)."
     }
   ],
   "iterations": [
@@ -3321,6 +3335,29 @@
       ],
       "decisions": [
         "D39"
+      ]
+    },
+    {
+      "revision": "0.038",
+      "n": 32,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 32",
+      "file": "docs/drs/iterations/0.038.md",
+      "ssesMeans": {
+        "security": 92.8,
+        "stability": 89.8,
+        "scalability": 86.9,
+        "efficiency": 92.5,
+        "succinctness": 90.2
+      },
+      "edits": [
+        "S3 · fincomment.hi[0] + ai[0] · define IA at its first shown appearance — \"Financial model — DECLARED (IA), not buyer-validated:\" → \"Financial model — DECLARED (IA — an internal assumption, not buyer-validated):\"; IA stamps ~26 shown figures across S3 / S4 / S8 / S12 / S13 / S14 / S16 and was spelled out on no shown face (0 occurrences of \"internal assumption\" in the seed); the expansion is drawn from the master financialModel.status · law-3 declared-money marker + law-6 comprehension, extends the D38 / D39 self-explaining-term class; anchored on the twice-occurring string (hi[0] + ai[0], count 2), only those two cells change; both stay strings, ai stays identical to hi (the superset), nothing emptied, no printed number / date / law moved (no digit touched) · raises scalability, stability and efficiency · D40",
+        "S2 · status · rev 0.037 → 0.038, decision register D1–D39 → D1–D40 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register (D1–D39) → (D1–D40) (hi[2] + ai[2]) · the register grew (D40)",
+        "PROV / row provenance · rev 0.037 → 0.038 · law 5"
+      ],
+      "decisions": [
+        "D40"
       ]
     }
   ]
