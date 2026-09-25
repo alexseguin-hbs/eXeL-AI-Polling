@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.035",
+    "revision": "0.036",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -1510,8 +1510,15 @@
       "revision": "0.035",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "6c9b3fd",
       "why": "Round 29 of 99 (twelve lenses) completes the Go-To-Market density pass of D35–D36: S12.l30.hi[0] (the validation-sequence line) still printed every per-segment teardown in full on the shown face, while S12.l30.ai[0] already carried that exact text verbatim and the three benchmarks are already shown on S1.market, S1.ask and S8.nba. This round trims the shown line to the three sequence labels (1 EDU — first proof · 2 FOOD — second proof · 3 TECH — scale-potential) plus a pointer to the note, so all three shown quadrants of the Go-To-Market slide (l60 cost-to-serve, l60 commercial-forms, l30 validation-sequence) now read as labels or a settled line plus a pointer — the slide reads as one uniform surface, which also raises stability. The decision register grows to D37; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.035. No printed number, date or law moved (the segment numbers 1 / 2 / 3 stay); hi stays string[] (2), ai unchanged (4) and still the superset. The full teardown detail survives in l30.ai[0]."
+    },
+    {
+      "revision": "0.036",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Round 30 of 99 (twelve lenses) opens a comprehension pass after the Go-To-Market density pass (D30–D37) closed: the deck's most load-bearing architectural term, \"the one-ninth gate,\" is used on ~17 shown faces but was defined on none — only S4's note glossed it (D14) and the master carries \"the one-ninth (11.1 %) gate.\" This round defines it once, at its first shown appearance (S1.oneline, the ladder): a function goes native only after it removes at least a ninth of the benchmark's baseline on its clock, a floor to qualify. The definition mirrors into oneline.ai (kept the superset), invents no number, and moves no printed figure, date or law (the years 2027 / 2030 / 2525 stay); the S1 cell grows to ~370 chars, under the kept financial-core and single-argument cells laws 3 and 6 keep on the face. Every one of the term's ~17 later uses is now legible where the reader first meets it, raising scalability, efficiency and stability at a negligible succinctness cost. The decision register grows to D38; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.036."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -2486,6 +2493,13 @@
       "revision": "0.035",
       "by": "twelve lenses · round 29",
       "decision": "Round 29 of 99 completes the Go-To-Market density pass begun at D35 and D36. With the cost-to-serve line pointed to S14 Resourcing (D35) and the commercial-forms line trimmed to a representative pair plus a pointer (D36), only S12.l30.hi[0] — the validation-sequence line — still printed every per-segment teardown in full on the shown face (1 EDU · Rave teardown, buyer interviews, measurement-design tabletop · 2 FOOD · Everbridge 360 AI / Bridge teardown, buyer interviews · 3 TECH · PagerDuty teardown, buyer interviews, 250 chars), while S12.l30.ai[0] already carried that exact text verbatim and the three benchmarks are already shown on S1.market, S1.ask and S8.nba. This round trims the shown line to the three sequence labels (1 EDU — first proof · 2 FOOD — second proof · 3 TECH — scale-potential) plus a pointer to the note (per-segment NBA teardown + buyer interviews, the EDU measurement-design tabletop — detail in note, ~190 chars), anchored on the unique l30 hi block (the identical string recurs only inside the ai block, left untouched) so only the shown cell changes; hi stays string[] (two elements), ai is unchanged (four elements) and stays the superset, nothing is emptied, and no printed number, date or law moves (the segment numbers 1 / 2 / 3 stay). The full teardown detail survives complete in l30.ai[0]. With it, all three shown quadrants of the Go-To-Market slide (l60 cost-to-serve, l60 commercial-forms, l30 validation-sequence) read as labels or a settled line plus a pointer to their note, so the slide reads as one uniform surface — a within-field verbatim de-duplication in the vein of D33–D36 that also raises stability by making the slide internally consistent, face and note aligned across every shown quadrant. Raises efficiency, succinctness and stability (the Spiral Development Protocol's density test) without touching the substance: the sequence itself, its three proof-order labels and the not-a-TAM-ranking line all stay on the face. After it, the remaining shown enumerations on non-matrix faces are single arguments, financial-core numbers, the master statement, a positioning declaration, a record-answers synthesis, settled forms, or a metadata stamp that laws 3, 4 and 6 keep on the face."
+    },
+    {
+      "id": "D38",
+      "date": "2026-09-25",
+      "revision": "0.036",
+      "by": "twelve lenses · round 30",
+      "decision": "Round 30 of 99 opens a comprehension pass after the Go-To-Market density pass (D30–D37) closed. The deck's most load-bearing architectural term, \"the one-ninth gate,\" appears on roughly seventeen shown faces (S1 ladder, S1 strategy, S2 roadmap, S2 toprisks, S13 comm mitigation, S14 notes, S15 prio, S17 prio, S12 l0) yet is defined on no shown (hi) face — only S4's speaker note glosses it operationally (\"fewer than 15 of the benchmark's 130 minutes,\" ≈ one-ninth of the baseline, D14) and the master's platform.rules carries \"the one-ninth (11.1 %) gate.\" A first-time reader — investor, future customer, system thinker without analytics know-how — meets the term on the summary slide and must trust it. This round defines it once, at its first shown appearance (S1.oneline, the ladder), in plain words: \"a function goes native only after it removes at least a ninth of the benchmark's baseline on its clock, a floor to qualify.\" It invents no number (a ninth is a fraction of a baseline the deck already carries, faithful to the master's 11.1 % and to S4's stop rule), moves no printed figure, date or law (the years 2027 / 2030 / 2525 stay), and keeps ai a superset of hi (the definition mirrors into oneline.ai, which retains its master-sentence tail). Anchored on the unique \"absorb by the one-ninth gate (2030)\" string (its two occurrences, hi and ai), so only the ladder segment changes. The shown S1.oneline cell grows to roughly 370 characters — under the kept financial-core (S3 Ramp 519) and single-argument (S5 problem 564) cells that laws 3 and 6 keep on the face — a bounded, one-time cost that makes every one of the term's ~17 later uses legible where the reader first meets it. Raises scalability (a 2525 or any-segment reader now resolves the core absorption mechanism), efficiency (comprehension without a note dive) and stability (the term now means one thing across the deck), at a negligible succinctness cost. The note-only fuller definitions (S14.notes, S16.counter) still serve the detail reader; the shown face now carries the floor. It supersedes nothing — it fills a gap the density pass left, and it is the first pass of a new class (make every shown term self-explaining) that later rounds can extend to any other jargon a cold reader cannot resolve."
     }
   ],
   "iterations": [
@@ -3247,6 +3261,29 @@
       ],
       "decisions": [
         "D37"
+      ]
+    },
+    {
+      "revision": "0.036",
+      "n": 30,
+      "date": "2026-09-25",
+      "author": "twelve lenses · round 30",
+      "file": "docs/drs/iterations/0.036.md",
+      "ssesMeans": {
+        "security": 92.8,
+        "stability": 87.9,
+        "scalability": 84.5,
+        "efficiency": 92.3,
+        "succinctness": 90.4
+      },
+      "edits": [
+        "S1 · oneline · hi + ai · define the one-ninth gate at its first shown appearance — \"absorb by the one-ninth gate (2030)\" → \"absorb by the one-ninth gate — a function goes native only after it removes at least a ninth of the benchmark's baseline on its clock, a floor to qualify (2030)\" (the same substring in hi and ai; ai keeps its master-sentence tail and stays the superset); the term appears on ~17 shown faces and was defined on none, only glossed in the S4 note (D14) and the master's platform.rules (11.1 %) · law-6 comprehension / clarity; anchored on the unique \"absorb by the one-ninth gate (2030)\" string (its two occurrences, hi + ai), so only the ladder segment changes; hi stays string, ai stays string and still the superset, nothing emptied, no printed number / date / law moved (a ninth is a fraction of the existing baseline, not a new figure; the years 2027 / 2030 / 2525 kept) · raises scalability, efficiency and stability · D38",
+        "S2 · status · rev 0.035 → 0.036, decision register D1–D37 → D1–D38 (hi + ai) · laws 5 and 7",
+        "S18 · e0 · decision register (D1–D37) → (D1–D38) (hi[2] + ai[2]) · the register grew (D38)",
+        "PROV / row provenance · rev 0.035 → 0.036 · law 5"
+      ],
+      "decisions": [
+        "D38"
       ]
     }
   ]
