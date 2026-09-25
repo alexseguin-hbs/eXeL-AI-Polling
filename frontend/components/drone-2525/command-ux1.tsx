@@ -33,11 +33,18 @@ import { ConfigBar } from "./config-bar";
 import { DroneIntro } from "./intro";
 import { StageStrip } from "./stage-strip";
 import { resolveBegin, introSeen, markIntroSeen, type BeginChoice } from "@/lib/drone-2525/guided-start";
+import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { fromLedgerJson } from "@/lib/2525-core/revisions";
+import { DRONE_LEDGER } from "@/lib/2525-core/drone-ledger.gen"; // Drone-2525 append-only traceability ledger
 
 const SRC = DRONE_DOMAIN;
 
 /** All four of the operator's modes are now built: two stationary, two flying. */
 const SHIPPED = new Set(["turrets", "capital", "drone", "multi"]);
+
+// R-CORE history for Drone-2525 — the append-only traceability ledger (docs/traceability/drone-2525.ledger.json),
+// normalized once at module scope via the shared adapter.
+const DRONE_RCORE_HISTORY = fromLedgerJson(DRONE_LEDGER);
 
 export function DroneCommandUX1() {
   const { t } = useLexicon();
@@ -79,6 +86,8 @@ export function DroneCommandUX1() {
 
   return (
     <div data-drone-ux1 style={{ minHeight: "100vh", background: VECTOR_LAW.ground, color: label, fontFamily: "ui-monospace, monospace" }}>
+      {/* R-CORE · version-history badge — bottom-centre, two-click; reads Drone-2525's traceability ledger. */}
+      <RCoreBadge history={DRONE_RCORE_HISTORY} accent={semanticHex("mount")} />
       {showIntro && <DroneIntro onBegin={applyBegin} onSkip={() => { markIntroSeen(); setShowIntro(false); }} />}
       {/* Top bar — strokes, not chrome */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", padding: "10px 14px", borderBottom: `1px solid ${semanticHex("contour")}` }}>

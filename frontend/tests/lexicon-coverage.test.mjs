@@ -44,6 +44,12 @@ const AFTER_FILL = new Set([
   'drone.hud.lock', 'drone.hud.no_lock', 'drone.hud.armed', 'drone.hud.legend',
   // P1-B declutter · config toggle + R-CORE playable (r.128 served as-is):
   'drone.config', 'drone.play_deck',
+  // R-CORE · version-history badge + compare panel (Stage 1, 2026-09-25) — ×32 fill owed:
+  'rcore.brand', 'rcore.version_history', 'rcore.icon_aria', 'rcore.open_aria', 'rcore.compare',
+  'rcore.what_changed', 'rcore.history', 'rcore.before', 'rcore.after', 'rcore.releases_crossed',
+  'rcore.added', 'rcore.revised', 'rcore.carried', 'rcore.rev_short', 'rcore.close',
+  'rcore.same_rev', 'rcore.too_large', 'rcore.fewer_than_two',
+  'rcore.impact.l1', 'rcore.impact.l2', 'rcore.impact.l3', 'rcore.impact.l4', 'rcore.impact.l5',
 ]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;

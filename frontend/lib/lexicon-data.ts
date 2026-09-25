@@ -213,6 +213,32 @@ const shared: TranslationEntry[] = [
   { key: "shared.atlantis.seven.adopt", englishDefault: "Citizens fund the next generation directly.", context: "Accord 7-word overview — ADOPT", cubeId: 0 },
   { key: "shared.atlantis.seven.educate", englishDefault: "Every learner in their own language.", context: "Accord 7-word overview — EDUCATE", cubeId: 0 },
   { key: "shared.atlantis.seven.expand", englishDefault: "Never faster than dignity can travel.", context: "Accord 7-word overview — EXPAND", cubeId: 0 },
+  // ── R-CORE · version-history badge + compare panel (Stage 1, operator 2026-09-25) ──
+  // The bottom-centre R-CORE icon → ⊕ R-CORE pill → "R-CORE · Version History" compare panel, uniform
+  // across every Innovation 2525 surface. Staged in tests/lexicon-coverage AFTER_FILL (×32 fill owed).
+  { key: "rcore.brand", englishDefault: "R-CORE", context: "R-CORE brand wordmark on the version-history badge/pill", cubeId: 0 },
+  { key: "rcore.version_history", englishDefault: "Version History", context: "R-CORE panel title (second half): 'R-CORE · Version History'", cubeId: 0 },
+  { key: "rcore.icon_aria", englishDefault: "R-CORE — version history", context: "R-CORE rest-state icon aria-label + tooltip", cubeId: 0 },
+  { key: "rcore.open_aria", englishDefault: "Open R-CORE version history and compare", context: "R-CORE pill aria-label + tooltip (opens the compare panel)", cubeId: 0 },
+  { key: "rcore.compare", englishDefault: "Compare", context: "R-CORE compare-selectors label (A → B)", cubeId: 0 },
+  { key: "rcore.what_changed", englishDefault: "What changed", context: "R-CORE diff section heading (word-level before/after)", cubeId: 0 },
+  { key: "rcore.history", englishDefault: "History", context: "R-CORE revision-timeline heading", cubeId: 0 },
+  { key: "rcore.before", englishDefault: "before", context: "R-CORE diff — old-side label prefix ('before · rX')", cubeId: 0 },
+  { key: "rcore.after", englishDefault: "after", context: "R-CORE diff — new-side label prefix ('after · rY')", cubeId: 0 },
+  { key: "rcore.releases_crossed", englishDefault: "releases crossed", context: "R-CORE overview stat — release entries between two revisions", cubeId: 0 },
+  { key: "rcore.added", englishDefault: "added", context: "R-CORE overview stat — asks + releases introduced", cubeId: 0 },
+  { key: "rcore.revised", englishDefault: "revised", context: "R-CORE overview stat — decisions + corrections", cubeId: 0 },
+  { key: "rcore.carried", englishDefault: "carried", context: "R-CORE overview stat — unchanged history carried forward", cubeId: 0 },
+  { key: "rcore.rev_short", englishDefault: "rev", context: "R-CORE header — revision-count suffix ('N rev')", cubeId: 0 },
+  { key: "rcore.close", englishDefault: "Close", context: "R-CORE panel close-button aria-label", cubeId: 0 },
+  { key: "rcore.same_rev", englishDefault: "Same revision selected on both sides — pick two to see what changed.", context: "R-CORE — both selectors on one revision", cubeId: 0 },
+  { key: "rcore.too_large", englishDefault: "These revisions are too large for a word-level view — see the timeline below.", context: "R-CORE — diff exceeds the LCS cap", cubeId: 0 },
+  { key: "rcore.fewer_than_two", englishDefault: "Fewer than two revisions on record — nothing to compare yet.", context: "R-CORE — history has fewer than two revisions", cubeId: 0 },
+  { key: "rcore.impact.l1", englishDefault: "L1 · editorial", context: "R-CORE impact ladder — L1 editorial", cubeId: 0 },
+  { key: "rcore.impact.l2", englishDefault: "L2 · clarification", context: "R-CORE impact ladder — L2 clarification", cubeId: 0 },
+  { key: "rcore.impact.l3", englishDefault: "L3 · functional", context: "R-CORE impact ladder — L3 functional", cubeId: 0 },
+  { key: "rcore.impact.l4", englishDefault: "L4 · governance / economic", context: "R-CORE impact ladder — L4 governance/economic", cubeId: 0 },
+  { key: "rcore.impact.l5", englishDefault: "L5 · constitutional", context: "R-CORE impact ladder — L5 constitutional/ontology", cubeId: 0 },
 ];
 
 const cube1: TranslationEntry[] = [

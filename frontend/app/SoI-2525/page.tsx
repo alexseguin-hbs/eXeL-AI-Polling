@@ -66,6 +66,13 @@ import { SoiProjectCrs } from "@/components/soi-project-crs";
 import { Settings, FileText, Lightbulb, Save, Trash2 } from "lucide-react"; // settings gear + Template/New-Idea icons + W-7 disk Save (the ONE save glyph, matching Architect-2525)
 import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
 import { loadImageLibrary, addToImageLibrary, removeFromImageLibrary, signedDataURL, type LibImage } from "@/lib/image-library"; // shared CONOPS image pool (Light-Codex signed)
+import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { fromDrsRevisions, historyOf, type RCoreHistory } from "@/lib/2525-core/revisions";
+import { SOI_DRS_REVISIONS } from "@/lib/2525-core/soi-drs-revisions.gen"; // extracted DRS revisions[] (not the whole 200KB JSON)
+
+// R-CORE history for SoI-2525 — built from the DRS revision record (docs/drs/drs.v00.00.json revisions[]),
+// read at build time via the small generated adapter above. Module-level so it is computed once.
+const SOI_RCORE_HISTORY: RCoreHistory = historyOf("SoI-2525", "/SoI-2525", fromDrsRevisions(SOI_DRS_REVISIONS));
 
 const CODE = "369963";
 const SS_KEY = "innovation-unlocked";
@@ -1089,6 +1096,8 @@ function Board() {
         Demo portfolio · financials are derived from the inputs, never hand-entered. Reprioritize the stack, gate projects, and poll feedback to de-risk the roadmap.
       </footer>
     </div>
+    {/* R-CORE · version-history badge — bottom-centre, two-click; reads SoI-2525's DRS revision record. */}
+    <RCoreBadge history={SOI_RCORE_HISTORY} accent="#22d3ee" />
     </div>
   );
 }
