@@ -19,6 +19,9 @@ import {
 import { Expander as CoreExpander } from "@/components/2525-core/expander";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useLexicon } from "@/lib/lexicon-context";
+import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { fromLedgerJson } from "@/lib/2525-core/revisions";
+import { ARCHITECT_LEDGER } from "@/lib/2525-core/architect-ledger.gen"; // Architect-2525 append-only traceability ledger
 import { FpsMeter } from "@/components/security-2525/fps-meter";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
@@ -122,6 +125,9 @@ function NumField({ label, value, onChange, step = 1 }: { label: string; value: 
 // Architect binding of the shared 2525-core Expander (collapsed by default; persists arch2525.exp.<id>).
 const EXP_COLORS = { border: C.border, panel: C.panel, accent: C.violet, dim: C.dim };
 const EXP_COLORS_CYAN = { border: C.border, panel: C.panel, accent: C.cyan, dim: C.dim };   // Design primary
+
+// R-CORE history for Architect-2525 — the append-only traceability ledger, normalized once via the shared adapter.
+const ARCHITECT_RCORE_HISTORY = fromLedgerJson(ARCHITECT_LEDGER);
 const Expander = ({ cyan, ...p }: { id: string; title: string; sub?: string; defaultOpen?: boolean; dots?: boolean; cyan?: boolean; children: React.ReactNode }) =>
   <CoreExpander {...p} colors={cyan ? EXP_COLORS_CYAN : EXP_COLORS} storagePrefix="arch2525.exp" />;
 
@@ -183,6 +189,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
 
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
+      {/* R-CORE · version-history badge — bottom-centre, two-click; reads Architect-2525's own traceability ledger. */}
+      <RCoreBadge history={ARCHITECT_RCORE_HISTORY} accent="#c084fc" />
       <div className="sticky top-0 z-40" style={{ background: C.bg }}>
         {/* TOP BAR */}
         <div className="flex items-center gap-2 border-b px-3 py-2" style={{ borderColor: C.border }}>

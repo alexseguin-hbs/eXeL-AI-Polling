@@ -25,6 +25,9 @@ import {
 } from "@/components/security-2525/asset-icons";
 import { MissionPlanning } from "@/components/security-2525/mission-planning";
 import { useLexicon } from "@/lib/lexicon-context";
+import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { fromLedgerJson } from "@/lib/2525-core/revisions";
+import { SECURITY_LEDGER } from "@/lib/2525-core/security-ledger.gen"; // Security-2525 append-only traceability ledger
 
 const C = {
   bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
@@ -40,6 +43,10 @@ const BUILD_DATE = process.env.NEXT_PUBLIC_BUILD_DATE;
 const BUILD_TIME = process.env.NEXT_PUBLIC_BUILD_TIME?.replace(":", ".").replace(" ", "");
 const GIT_SHA = process.env.NEXT_PUBLIC_GIT_SHA ?? "dev";
 const EXEL_VERSION = BUILD_DATE && BUILD_TIME ? `v0.001-${BUILD_DATE}-${BUILD_TIME}` : "v0.001-dev";
+
+// R-CORE history for Security-2525 — the append-only traceability ledger (docs/traceability/security-2525.ledger.json),
+// normalized once at module scope via the shared adapter.
+const SECURITY_RCORE_HISTORY = fromLedgerJson(SECURITY_LEDGER);
 
 const NAV: [string, React.ComponentType<{ className?: string }>][] = [
   ["OVERVIEW", LayoutDashboard],
@@ -259,6 +266,8 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
 
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
+      {/* R-CORE · version-history badge — bottom-centre, two-click; reads Security-2525's own traceability ledger. */}
+      <RCoreBadge history={SECURITY_RCORE_HISTORY} accent="#19c8cf" />
       {/* Top bar + nav tabs — ONE sticky block so BOTH menus stay visible on scroll.
           data attr = clamp line for the floating mini-map (drag anywhere BELOW the menus). */}
       <div data-sec2525-sticky className="sticky top-0 z-40" style={{ background: C.bg }}>

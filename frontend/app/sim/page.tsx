@@ -11,6 +11,12 @@ import { toast } from "@/components/ui/use-toast";
 import { useLexicon } from "@/lib/lexicon-context";
 import { CubeDevSim } from "@/components/cube-dev-sim";
 import { SimAdminConsole } from "@/components/sim-admin-console";
+import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { fromLedgerJson } from "@/lib/2525-core/revisions";
+import { EASTER_EGG_LEDGER } from "@/lib/2525-core/easter-egg-ledger.gen"; // Easter-egg / SIM append-only traceability ledger
+
+// R-CORE history for the easter-egg / SIM console — normalized once at module scope via the shared adapter.
+const EASTER_EGG_RCORE_HISTORY = fromLedgerJson(EASTER_EGG_LEDGER);
 
 // SIM is easter-egg + password gated. The gate lives in React context (in-memory
 // only). If the user navigates here without unlocking on `/` first, we bounce
@@ -67,6 +73,8 @@ function SimSplitScreen() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      {/* R-CORE · version-history badge — bottom-centre, two-click; reads the easter-egg / SIM surface's own ledger. */}
+      <RCoreBadge history={EASTER_EGG_RCORE_HISTORY} accent="#a78bfa" />
       <Navbar sessionTitle={`[SIM · Split] ${sessionCode}`} />
 
       <div className="flex items-center justify-between border-b border-border/40 bg-muted/20 px-4 py-2 text-xs">

@@ -72,4 +72,39 @@ const HEADER = (src) =>
   console.log(`drone-ledger.gen.ts ← ${ledger.entries.length} ledger entries`);
 }
 
+// ── Stage 2 · one traceability ledger per additional surface, verbatim ─────────────────────────────
+// Each is an append-only {section,route,note,entries[]} ledger I author under docs/traceability, mirroring
+// the Drone-2525 shape. These are MY OWN files (not owned by another workflow), seeded from real commits.
+// Emitting a small typed snapshot per surface keeps the client import identical to the Stage-1 pattern.
+const STAGE2_LEDGERS = [
+  { file: "security-2525.ledger.json", constName: "SECURITY_LEDGER", out: "security-ledger.gen.ts" },
+  { file: "settings.ledger.json",      constName: "SETTINGS_LEDGER", out: "settings-ledger.gen.ts" },
+  { file: "easter-egg.ledger.json",    constName: "EASTER_EGG_LEDGER", out: "easter-egg-ledger.gen.ts" },
+  { file: "architect-2525.ledger.json", constName: "ARCHITECT_LEDGER", out: "architect-ledger.gen.ts" },
+  { file: "celestial-2525.ledger.json", constName: "CELESTIAL_LEDGER", out: "celestial-ledger.gen.ts" },
+];
+for (const { file, constName, out } of STAGE2_LEDGERS) {
+  const src = path.join(ROOT, "docs/traceability", file);
+  const led = JSON.parse(fs.readFileSync(src, "utf8"));
+  const ledger = {
+    section: String(led.section ?? ""),
+    route: String(led.route ?? ""),
+    note: String(led.note ?? ""),
+    entries: (Array.isArray(led.entries) ? led.entries : []).map((e) => ({
+      rev: e.rev,
+      date: String(e.date ?? ""),
+      kind: String(e.kind ?? ""),
+      text: String(e.text ?? ""),
+      commit: String(e.commit ?? ""),
+    })),
+  };
+  const body =
+    HEADER(`docs/traceability/${file}`) +
+    `\nimport type { LedgerInput } from "@/lib/2525-core/revisions";\n\n` +
+    `/** ${ledger.section} append-only traceability ledger — ${ledger.entries.length} entries, extracted at build time. */\n` +
+    `export const ${constName}: LedgerInput = ${JSON.stringify(ledger, null, 2)};\n`;
+  fs.writeFileSync(path.join(OUT_DIR, out), body);
+  console.log(`${out} ← ${ledger.entries.length} ledger entries`);
+}
+
 console.log("gen-rcore-revisions OK");

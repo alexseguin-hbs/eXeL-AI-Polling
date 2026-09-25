@@ -23,6 +23,12 @@ import { FeedbackWidget } from "@/components/feedback-widget";
 import { PoweredBadge } from "@/components/powered-badge";
 import { TrinityColorPicker } from "@/components/trinity-color-picker";
 import { getSortedLanguages } from "@/lib/language-utils";
+import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { fromLedgerJson } from "@/lib/2525-core/revisions";
+import { SETTINGS_LEDGER } from "@/lib/2525-core/settings-ledger.gen"; // Settings slide-over append-only traceability ledger
+
+// R-CORE history for the Settings surface — normalized once at module scope via the shared adapter.
+const SETTINGS_RCORE_HISTORY = fromLedgerJson(SETTINGS_LEDGER);
 
 // ─── Theme Customizer Section ───────────────────────────────────
 
@@ -477,6 +483,9 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
 
   return (
     <>
+      {/* R-CORE · version-history badge — bottom-centre, two-click; scoped to when Settings is the surface
+          (this component returns null when closed), reading the Settings slide-over's own traceability ledger. */}
+      <RCoreBadge history={SETTINGS_RCORE_HISTORY} accent="#22d3ee" />
       {/* Backdrop */}
       <div
         className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"

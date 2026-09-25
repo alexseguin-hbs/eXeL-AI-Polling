@@ -11,7 +11,9 @@ let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; con
 const KINDS = new Set(['ask', 'decision', 'release', 'correction']);
 const files = fs.readdirSync(DIR).filter((f) => f.endsWith('.ledger.json'));
 ok(files.length >= 3, `three section ledgers exist (got ${files.length}: ${files.join(', ')})`);
-const need = ['POD session', 'Create Doc', 'Sign Doc', 'Drone-2525'];
+const need = ['POD session', 'Create Doc', 'Sign Doc', 'Drone-2525',
+  // R-CORE Stage 2 (operator 2026-09-25) — one append-only ledger per surface that carries the R-CORE badge.
+  'Security-2525', 'Settings', 'Easter-Egg', 'Architect-2525', 'Celestial-2525'];
 const exists = (sha) => { try { execSync(`git -C ${ROOT} cat-file -e ${sha}^{commit}`, { stdio: 'ignore' }); return true; } catch { return false; } };
 const sections = [];
 for (const f of files) {

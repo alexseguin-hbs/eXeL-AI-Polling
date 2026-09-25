@@ -16,8 +16,14 @@ import { CELESTIAL_BODIES, CELESTIAL_GROUPS, READING_LEVELS, type ReadingLevel }
 import { useLexicon } from "@/lib/lexicon-context";
 import { useCelestialContent } from "@/lib/use-celestial-content";
 import { AlignedBilingual } from "@/components/celestial-2525/aligned-bilingual";
+import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { fromLedgerJson } from "@/lib/2525-core/revisions";
+import { CELESTIAL_LEDGER } from "@/lib/2525-core/celestial-ledger.gen"; // Celestial-2525 append-only traceability ledger
 
 const C = { bg: "#070b12", panel: "#0c1420", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400" };
+
+// R-CORE history for Celestial-2525 — the append-only traceability ledger, normalized once via the shared adapter.
+const CELESTIAL_RCORE_HISTORY = fromLedgerJson(CELESTIAL_LEDGER);
 
 export function CelestialReader() {
   const { t, activeLocale, languages } = useLexicon();
@@ -57,6 +63,8 @@ export function CelestialReader() {
 
   const reader = (
     <div data-celestial-reader className={full ? "fixed inset-0 z-[120] flex flex-col overflow-auto" : "flex min-h-screen flex-col"} style={{ background: C.bg, color: C.text }}>
+      {/* R-CORE · version-history badge — bottom-centre, two-click; reads Celestial-2525's own traceability ledger. */}
+      <RCoreBadge history={CELESTIAL_RCORE_HISTORY} accent="#ffd400" />
       {/* header */}
       <div className="flex items-center gap-3 border-b px-4 py-2" style={{ borderColor: C.border }}>
         <a href="/" className="text-[12px] font-bold" style={{ color: C.cyan }}>eXeL <span style={{ color: C.dim }}>AI</span></a>
