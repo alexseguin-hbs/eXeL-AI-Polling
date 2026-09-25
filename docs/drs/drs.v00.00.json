@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.065",
+  "revision": "0.066",
   "stage": "G2 / future-state validation",
   "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -1721,6 +1721,13 @@
    "date": "2026-09-25",
    "kind": "release",
    "why": "Round 59 of 99 (twelve lenses) continues the public-reach-comprehension class D66 opened at round 58: the public-government mission comes onto a second shown face. D66 brought the public body onto the go-to-market face S12; the R-CORE / post-launch slide S17 — the R-CORE face itself — still carried the loop, the ladder and the human-authority principle on its shown surface while its obs.ai held a full 'Public bodies (R-CORE as it already runs here): a government steers a public project through the same loop … asks its people through the eXeL Polling API … every approved posture and its outcome replayable … After G3, one public-body pilot (IA, D12)' element on no shown face. This round brings that element onto S17.obs.hi verbatim from S17.obs.ai. It is D12's decision, not a new claim; marked (IA, after G3) and 'one public-body pilot', never a claimed customer, so law 3 and the no-overclaim law hold on the face; the ai stays a strict superset; no figure, date, NBA pairing or law moves. S2 status and S18 e0 read rev 0.065 · D1–D67; PROV and the row provenance read rev 0.065; the previous release 0.064 records commit 70f5c9f.",
+   "commit": "679fcef"
+  },
+  {
+   "revision": "0.066",
+   "date": "2026-09-25",
+   "kind": "release",
+   "why": "Round 60 of 99 (twelve lenses) continues the public-reach-comprehension class D66 opened at round 58 and D67 continued at round 59: the public-government mission comes onto a third shown face. D66 brought the public body onto the go-to-market face S12; D67 onto the R-CORE / post-launch face S17; the customer-problem slide S5 — which states the governed-decision gap — still named that gap for the enterprise only on its shown surface, while its problem.ai held a full 'A public body steering a public project meets the same governed-decision gap: … the people it serves answer through the eXeL Polling API … every approved posture and its outcome is replayable by the body that owns it … transparent and accountable (IA, after G3, D12 · D27)' sentence on no shown face. This round brings that sentence onto S5.problem.hi verbatim from S5.problem.ai. It is D12 and D27's decisions, not a new claim; marked (IA, after G3) and never a claimed customer, so law 3 and the no-overclaim law hold on the face; the ai stays a strict superset; no figure, date, NBA pairing or law moves. S2 status and S18 e0 read rev 0.066 · D1–D68; PROV and the row provenance read rev 0.066; the previous release 0.065 records commit 679fcef.",
    "commit": "PENDING"
   }
  ],
@@ -2906,6 +2913,13 @@
    "revision": "0.065",
    "by": "twelve lenses · round 59",
    "decision": "Round 59 of 99 CONTINUES the public-reach-comprehension class D66 opened at round 58 (bring onto the shown face, in the record's own words, the PUBLIC-GOVERNMENT reach a reader of the printed PDF needs but that lived only in the speaker note). D66 brought the public body onto the shown go-to-market face S12.l30.hi as the fourth market step. The brief's R-CORE section is emphatic that every round ties CrisisCommand's crisis learnings to the steering of PUBLIC-GOVERNMENT projects — opened through the eXeL Polling API, the citizen's answer entering the record, every approved posture and outcome replayable by the body that owns it, for transparency and accountability (a Vision 2525 goal). S17 (Post-Launch Development) is the R-CORE face itself: its obs.hi named the R-CORE loop, the absorption ladder and the human-authority principle, while its obs.ai carried a full 'Public bodies (R-CORE as it already runs here): a government steers a public project through the same loop … asks its people through the eXeL Polling API … every approved posture and its outcome replayable … After G3, one public-body pilot on the same record (IA, D12)' element that NO shown face on S17 held. This round brings that element onto S17.obs.hi verbatim from S17.obs.ai — the record's own words (D12), marked (IA, after G3) and 'one public-body pilot', never a claimed customer, so law 3 and the no-overclaim law hold on the face. It is not a new business claim: the step is D12's decision, the ai cell already carried it, the ai stays a strict superset (five note elements to the face's four, still longer and carrying the extra future-state-operating-loop element), and no figure, date, NBA pairing or law moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU -> Rave · FOOD -> Everbridge · TECH -> PagerDuty untouched; the one-ninth-gate >=3 lock holds at 9; nothing emptied; S4 CONOPS steps untouched at 10). It raises scalability (an investor, a business owner or a system thinker without analytics know-how reading the R-CORE page now sees the public-government mission on the face, legible to a broader audience), efficiency (the reach reads without opening the note), stability and security a hair (the shown face agrees with the note, and law 3's 'never a claimed customer' guard reads on the face), and dips succinctness a hair (a fourth bullet joins a slide that showed three and had room). It supersedes nothing and is the second member of the public-reach-comprehension class (S12 was the first, D66). A later round continues this move where the public-body reach is still off another shown face (S5.problem.hi, S18.e120.hi), a density pass under law 6, or an evidence-gated change under the S11 change-control law (customer, competitive, cost, implementation or pilot evidence) — never a claim the record does not carry."
+  },
+  {
+   "id": "D68",
+   "date": "2026-09-25",
+   "revision": "0.066",
+   "by": "twelve lenses · round 60",
+   "decision": "D68 — Round 60 of 99 CONTINUES the public-reach-comprehension class D66 opened at round 58 and D67 continued at round 59 (bring onto the shown face, in the record's own words, the PUBLIC-GOVERNMENT reach a reader of the printed PDF needs but that lived only in the speaker note). D66 brought the public body onto the shown go-to-market face S12.l30.hi as the fourth market step; D67 brought it onto the R-CORE / post-launch face S17.obs.hi verbatim from obs.ai. The brief's R-CORE section is emphatic that every round ties CrisisCommand's crisis learnings to the steering of PUBLIC-GOVERNMENT projects — opened through the eXeL Polling API, the citizen's answer entering the record, every approved posture and outcome replayable by the body that owns it, for transparency and accountability (a Vision 2525 goal). S5 (Customer Problem) states the governed-decision gap: its problem.hi named that gap for the enterprise only, while its problem.ai already carried 'A public body steering a public project meets the same governed-decision gap: the people it serves answer through the eXeL Polling API, their answers enter the record as operational truth, and every approved posture and its outcome is replayable by the body that owns it — … transparent and accountable (IA, after G3, D12 · D27)' — a reach NO shown face on S5 held. This round brings that sentence onto S5.problem.hi verbatim from S5.problem.ai — the record's own words (D12 · D27), marked (IA, after G3) and never a claimed customer, so law 3 and the no-overclaim law hold on the face. It is not a new business claim: the reach is D12 and D27's decisions, the ai cell already carried it, the ai stays a strict superset (its 'The leadership layer answers …' clause remains only in the ai, so ai stays longer than hi), and no figure, date, NBA pairing or law moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU -> Rave · FOOD -> Everbridge · TECH -> PagerDuty untouched; the one-ninth-gate >=3 lock holds at 9; nothing emptied; S4 CONOPS steps untouched at 10). It raises scalability (an investor, a business owner or a system thinker without analytics know-how reading the problem page now sees the public-government reach on the face), efficiency (the reach reads without opening the note), security and stability a hair (the shown face agrees with the note and law 3's 'never a claimed customer' guard reads on the face), and dips succinctness a hair (a longer problem statement on the face). It supersedes nothing and is the third member of the public-reach-comprehension class (S12 first D66, S17 second D67). A later round continues this move where the public-body reach is still off another shown face (S18.e120.hi carries the public-body export only in the ai), a density pass under law 6, or an evidence-gated change under the S11 change-control law (customer, competitive, cost, implementation or pilot evidence) — never a claim the record does not carry."
   }
  ],
  "iterations": [
@@ -4360,6 +4374,29 @@
    ],
    "decisions": [
     "D67"
+   ]
+  },
+  {
+   "revision": "0.066",
+   "n": 60,
+   "date": "2026-09-25",
+   "author": "twelve lenses · round 60",
+   "file": "docs/drs/iterations/0.066.md",
+   "ssesMeans": {
+    "security": 96.0,
+    "stability": 96.83,
+    "scalability": 98.83,
+    "efficiency": 97.83,
+    "succinctness": 90.0
+   },
+   "edits": [
+    "S5 · problem.hi · continue the public-reach-comprehension class D66 (opened round 58 on S12) and D67 (round 59 on S17): bring the public-body reach onto a THIRD shown face, the customer-problem face, verbatim from problem.ai's public-body sentence, where before it lived only in the speaker note. The brief's R-CORE section mandates every round tie the crisis learnings to the steering of PUBLIC-GOVERNMENT projects opened through the eXeL Polling API (a Vision 2525 goal); S5 states the governed-decision gap yet its shown surface named that gap for the enterprise only. hi gains one sentence \"A public body steering a public project meets the same governed-decision gap: … the people it serves answer through the eXeL Polling API … every approved posture and its outcome is replayable by the body that owns it … transparent and accountable (IA, after G3, D12 · D27).\" (anchor 'split the record; the future state is one platform.\",' count 1). ai untouched, stays a strict superset (its 'The leadership layer answers …' clause remains only in the ai, so ai stays longer than hi). D12 and D27's decisions, not a new claim; marked (IA, after G3) and never a claimed customer, so law 3 held on the face; no figure, date, NBA pairing or law moves (60 k / 120 k / 180 k / 90 k / 30 k / 60 k risk / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU -> Rave · FOOD -> Everbridge · TECH -> PagerDuty untouched; the one-ninth-gate >=3 lock holds at 9; S4 CONOPS steps untouched at 10). Raises scalability and efficiency · D68",
+    "S2 · status · rev 0.065 -> 0.066, decision register D1–D67 -> D1–D68 (hi + ai, anchor \"rev 0.065 · decision register D1–D67\", count 2) · laws 5 and 7",
+    "S18 · e0 · decision register (D1–D67) -> (D1–D68) (hi[2] + ai[2], anchor \"The decision register (D1–D67)\", count 2) — the register grew (D68); both S2 and S18 read one count · law 7",
+    "PROV / row provenance · rev 0.065 -> 0.066 (seed PROV anchor \"v1.0 · rev 0.065\" count 1; innovation-data.ts row provenance anchor \"v1.0 · rev 0.065\" count 1) · law 5"
+   ],
+   "decisions": [
+    "D68"
    ]
   }
  ]
