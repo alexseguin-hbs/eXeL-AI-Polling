@@ -189,8 +189,6 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
 
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
-      {/* R-CORE · version-history badge — bottom-centre, two-click; reads Architect-2525's own traceability ledger. */}
-      <RCoreBadge history={ARCHITECT_RCORE_HISTORY} accent="#c084fc" />
       <div className="sticky top-0 z-40" style={{ background: C.bg }}>
         {/* TOP BAR */}
         <div className="flex items-center gap-2 border-b px-3 py-2" style={{ borderColor: C.border }}>
@@ -468,6 +466,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         <span>{t("arch.cmd.tagline")}</span>
         <span>ARCHITECT-2525 · {EXEL_VERSION} · {GIT_SHA.slice(0, 7)}</span>
       </div>
+      {/* R-CORE · version-history badge — bottom of page, normal flow (mounted last), two-click; reads Architect-2525's own traceability ledger. */}
+      <RCoreBadge history={ARCHITECT_RCORE_HISTORY} accent="#c084fc" />
     </div>
   );
 }

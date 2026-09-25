@@ -63,8 +63,6 @@ export function CelestialReader() {
 
   const reader = (
     <div data-celestial-reader className={full ? "fixed inset-0 z-[120] flex flex-col overflow-auto" : "flex min-h-screen flex-col"} style={{ background: C.bg, color: C.text }}>
-      {/* R-CORE · version-history badge — bottom-centre, two-click; reads Celestial-2525's own traceability ledger. */}
-      <RCoreBadge history={CELESTIAL_RCORE_HISTORY} accent="#ffd400" />
       {/* header */}
       <div className="flex items-center gap-3 border-b px-4 py-2" style={{ borderColor: C.border }}>
         <a href="/" className="text-[12px] font-bold" style={{ color: C.cyan }}>eXeL <span style={{ color: C.dim }}>AI</span></a>
@@ -187,6 +185,8 @@ export function CelestialReader() {
         </div>
         )}
       </div>
+      {/* R-CORE · version-history badge — bottom of page, normal flow (mounted last), two-click; reads Celestial-2525's own traceability ledger. */}
+      <RCoreBadge history={CELESTIAL_RCORE_HISTORY} accent="#ffd400" />
     </div>
   );
   // Full-screen → portal over the app nav (mini-panel maximize pattern); else render in place.

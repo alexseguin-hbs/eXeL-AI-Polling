@@ -73,8 +73,6 @@ function SimSplitScreen() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* R-CORE · version-history badge — bottom-centre, two-click; reads the easter-egg / SIM surface's own ledger. */}
-      <RCoreBadge history={EASTER_EGG_RCORE_HISTORY} accent="#a78bfa" />
       <Navbar sessionTitle={`[SIM · Split] ${sessionCode}`} />
 
       <div className="flex items-center justify-between border-b border-border/40 bg-muted/20 px-4 py-2 text-xs">
@@ -182,6 +180,8 @@ function SimSplitScreen() {
         </div>
       </div>
       </>)}
+      {/* R-CORE · version-history badge — bottom of page, normal flow (mounted last), two-click; reads the easter-egg / SIM surface's own ledger. */}
+      <RCoreBadge history={EASTER_EGG_RCORE_HISTORY} accent="#a78bfa" />
     </div>
   );
 }

@@ -86,8 +86,6 @@ export function DroneCommandUX1() {
 
   return (
     <div data-drone-ux1 style={{ minHeight: "100vh", background: VECTOR_LAW.ground, color: label, fontFamily: "ui-monospace, monospace" }}>
-      {/* R-CORE · version-history badge — bottom-centre, two-click; reads Drone-2525's traceability ledger. */}
-      <RCoreBadge history={DRONE_RCORE_HISTORY} accent={semanticHex("mount")} />
       {showIntro && <DroneIntro onBegin={applyBegin} onSkip={() => { markIntroSeen(); setShowIntro(false); }} />}
       {/* Top bar — strokes, not chrome */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", padding: "10px 14px", borderBottom: `1px solid ${semanticHex("contour")}` }}>
@@ -145,6 +143,8 @@ export function DroneCommandUX1() {
         )}
         <p style={{ fontSize: 11, lineHeight: 1.7, ...dim }}>{t("drone.mode_note")}</p>
       </div>
+      {/* R-CORE · version-history badge — bottom of page, normal flow (mounted last), two-click; reads Drone-2525's traceability ledger. */}
+      <RCoreBadge history={DRONE_RCORE_HISTORY} accent={semanticHex("mount")} />
     </div>
   );
 }

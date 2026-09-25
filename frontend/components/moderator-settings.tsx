@@ -483,9 +483,6 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
 
   return (
     <>
-      {/* R-CORE · version-history badge — bottom-centre, two-click; scoped to when Settings is the surface
-          (this component returns null when closed), reading the Settings slide-over's own traceability ledger. */}
-      <RCoreBadge history={SETTINGS_RCORE_HISTORY} accent="#22d3ee" />
       {/* Backdrop */}
       <div
         className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
@@ -583,6 +580,8 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
             <PoweredBadge docked badgeOnly />
           </div>
         </div>
+        {/* R-CORE · version-history badge — bottom of the Settings drawer, normal flow (mounted last), two-click; reads the Settings slide-over's own traceability ledger. */}
+        <RCoreBadge history={SETTINGS_RCORE_HISTORY} accent="#22d3ee" />
       </div>
     </>
   );

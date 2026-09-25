@@ -8,7 +8,7 @@
  * When clicked, R-CORE with icon pops up, and when clicked again we are taken to version history and
  * compare tool.").
  *
- *   REST     → a small R-CORE reticle icon, fixed at the bottom centre, unobtrusive.
+ *   REST     → a small R-CORE reticle icon at the BOTTOM of the page (normal flow, mounted last), unobtrusive.
  *   CLICK 1  → it expands to the "⊕ R-CORE" wordmark pill (a labelled affordance).
  *   CLICK 2  → opens that surface's VERSION HISTORY + COMPARE panel (RCoreRevisionPanel).
  *

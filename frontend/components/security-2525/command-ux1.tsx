@@ -266,8 +266,6 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
 
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
-      {/* R-CORE · version-history badge — bottom-centre, two-click; reads Security-2525's own traceability ledger. */}
-      <RCoreBadge history={SECURITY_RCORE_HISTORY} accent="#19c8cf" />
       {/* Top bar + nav tabs — ONE sticky block so BOTH menus stay visible on scroll.
           data attr = clamp line for the floating mini-map (drag anywhere BELOW the menus). */}
       <div data-sec2525-sticky className="sticky top-0 z-40" style={{ background: C.bg }}>
@@ -678,6 +676,8 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
         </span>
         <span>DATA FUSION ENGINE: eXeL {EXEL_VERSION} · {GIT_SHA}</span>
       </div>
+      {/* R-CORE · version-history badge — bottom of page, normal flow (mounted last), two-click; reads Security-2525's own traceability ledger. */}
+      <RCoreBadge history={SECURITY_RCORE_HISTORY} accent="#19c8cf" />
     </div>
   );
 }
