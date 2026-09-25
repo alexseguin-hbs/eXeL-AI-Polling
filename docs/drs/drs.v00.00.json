@@ -6,7 +6,7 @@
     "projectNumber": "26.005W",
     "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
     "version": "00.00",
-    "revision": "0.110",
+    "revision": "0.111",
     "stage": "G2 / future-state validation",
     "decisionRequested": "G2 ask (v1.0) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
     "created": "2026-09-23",
@@ -2035,8 +2035,15 @@
       "revision": "0.110",
       "date": "2026-09-25",
       "kind": "release",
-      "commit": "PENDING",
+      "commit": "2764b08",
       "why": "Per-slide S5 pass: one law-6 density trim to slide S5 (Customer Problem), returning problem.hi to the core two-sentence governed-decision gap by moving its third sentence, the public-body eXeL Polling API extension, into problem.ai (which already carries it in a longer form, so ai stays a strict superset); the public body stays on the deck's face at anchor slides S4 · S7 · S12 · S18; no figure, claim, gate, law or linked number moves."
+    },
+    {
+      "revision": "0.111",
+      "date": "2026-09-25",
+      "kind": "release",
+      "commit": "PENDING",
+      "why": "Per-slide S6 pass: one law-6 density trim to slide S6 (Product Summary / Architecture), returning the four-stage architecture loop's INPUT face to the operational-context intake alone by moving its fused public-body clause (the citizen's answer through the eXeL Polling API as an evidence pointer, S4 · S7) into conops.ai[0], which already carries it in its own stage one, so ai stays a strict superset; the public body stays on the deck's face at anchor slides S4 · S7 · S12 · S18; no figure, claim, gate, law or linked number moves."
     }
   ],
   "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -3536,6 +3543,13 @@
       "revision": "0.110",
       "by": "twelve lenses · per-slide S5",
       "decision": "Per-slide S5 pass (rev 0.110) applies one face edit to slide S5, the Customer Problem slide: problem.hi carried a third sentence — the public-body extension (the people a public body serves answer through the eXeL Polling API, their answers enter the record, and every approved posture is replayable by the body that owns it, IA, after G3) — fused onto the opening panel where the core governed-decision gap should stand alone, overflowing it and delaying the problem itself (law 6). This decision trims the face to the two-sentence gap statement ('… split the record; the future state is one platform.'), leaving the public-body extension in problem.ai, which already carries it in a longer form, so ai stays a strict superset of hi (law 6; no cell emptied). The public body stays present on the deck's face at its anchor slides S4 · S7 · S12 · S18 (the brief's R-CORE section), so the R-CORE citizen-in-the-record thread loses nothing. It CONTINUES the density / law-6 discipline of D108 (the S1 one-ninth-gate face), D110 (the S3 Ramp cell) and D111 (the S4 stakeholder step) — the same presentational separation of the face's one idea from the note's extension, now on the deck's problem statement. No figure, claim, gate, law or linked number moves (law 3): the row's digital inputs and every derived field (S1 chart, S2/S3 profile, S8 charts, S10 grid) are untouched, and the master statement and vprop stay fixed under law 4. It does not supersede any prior decision. Holds security, stability and scalability at ceiling and lifts S5's efficiency and succinctness by returning the problem face to its one core gap."
+    },
+    {
+      "id": "D113",
+      "date": "2026-09-25",
+      "revision": "0.111",
+      "by": "twelve lenses · per-slide S6",
+      "decision": "Per-slide S6 pass (rev 0.111) applies one face edit to slide S6, the Product Summary / Architecture slide: conops.hi[0] carried a public-body clause — '; for a public body, the citizen's answer enters through the eXeL Polling API as an evidence pointer (S4 · S7)' — fused onto stage one (Operational Context / INPUT) of the four-stage architecture loop, where the clean loop should stand alone, overloading the first stage and delaying the loop itself (law 6). This decision trims stage one to the operational-context intake ('selected facts / status from the operational systems of record, absorbed by qualification → 2 CrisisCommand …'), leaving the public-body pointer in conops.ai[0], which already carries it in its own stage one, so ai stays a strict superset of hi (law 6; no cell emptied). The public body stays present on the deck's face at its anchor slides S4 · S7 · S12 · S18 (the brief's R-CORE section), so the R-CORE citizen-in-the-record thread loses nothing. It CONTINUES the density / law-6 discipline of D110 (the S3 Ramp cell), D111 (the S4 stakeholder step) and D112 (the S5 problem opening) — the same presentational separation of the face's one idea from the note's public-body extension, now on the deck's architecture loop. No figure, claim, gate, law or linked number moves (law 3): the row's digital inputs and every derived field (S1 chart, S2/S3 profile, S8 charts, S10 grid) are untouched, and the master statement and vprop stay fixed under law 4. It does not supersede any prior decision. Holds security, stability and scalability at ceiling and lifts S6's efficiency and succinctness by returning the architecture face to its four clean stages."
     }
   ],
   "iterations": [
@@ -6049,6 +6063,29 @@
       ],
       "decisions": [
         "D112"
+      ]
+    },
+    {
+      "revision": "0.111",
+      "n": 111,
+      "date": "2026-09-25",
+      "author": "twelve lenses · per-slide S6",
+      "file": "docs/drs/iterations/0.111.md",
+      "ssesMeans": {
+        "security": 98.75,
+        "stability": 100.0,
+        "scalability": 100.0,
+        "efficiency": 98.58,
+        "succinctness": 90.25
+      },
+      "edits": [
+        "S6.conops.hi[0] (architecture loop) — law-6 density trim: dropped the public-body clause fused onto stage one INPUT ('; for a public body, the citizen's answer enters through the eXeL Polling API as an evidence pointer (S4 · S7)') so the first stage reads 'selected facts / status from the operational systems of record, absorbed by qualification → 2 CrisisCommand …', returning the architecture face to its four clean stages; conops.ai[0] is untouched and keeps the public-body pointer in its own stage one, so ai stays a strict superset (law 6); the public body stays on the deck's face at anchor slides S4 · S7 · S12 · S18 (brief R-CORE); no figure or claim moves (law 3).",
+        "PROV · seed constant · rev 0.110 → 0.111 (anchor 'v1.0 · rev 0.110', one occurrence) · law 5",
+        "innovation-data.ts · row provenance · rev 0.110 → 0.111 (anchor 'v1.0 · rev 0.110', one occurrence) · law 5",
+        "Master record · fill revisions[] 0.110 commit PENDING → 2764b08; append iterations[] 0.111, decisions[] D113, revisions[] 0.111 (PENDING); set project.revision 0.111 · law 7"
+      ],
+      "decisions": [
+        "D113"
       ]
     }
   ]
