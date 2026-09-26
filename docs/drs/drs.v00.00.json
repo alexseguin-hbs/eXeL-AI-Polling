@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.127",
+  "revision": "0.128",
   "stage": "Concept (G1) · future-state validation",
   "decisionRequested": "Concept-gate ask (Concept · G1, v1.0) — pass the Concept gate and advance to Plan by approving the concept and its de-risking plan, which then runs the forward DRS validation gates (G2 measurement design, G3 A/B) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -2154,8 +2154,15 @@
    "revision": "0.127",
    "date": "2026-09-26",
    "kind": "release",
-   "commit": "PENDING",
+   "commit": "663e724",
    "why": "Per-slide S15 pass (rev 0.127), Concept (G1) reframe round: slide S15 is the BETA-feedback slide of the founder-facing Innovation-Pod deck (innovation-slide-seed-drs.ts S15: voc; prio; impact). Unlike S1 (D127) and S2 (D128), which were homes of the current-stage/ask label, S15 carries the DRS G2/G3 only as validation detail -- the voc rows are per-segment hypotheses with empty results and the impact cell is the pricing rule; only the prio row-1 third column presented 'G2 measurement-design tabletop -> G3 instrumented A/B' as the Horizon-1 approach in a way a reader could take for the present activity. So this pass reframes that one seed string (hi + ai, 2 occurrences) to 'Forward de-risking plan (after the Concept gate): G2 measurement-design tabletop -> G3 instrumented A/B' -- the DRS G2/G3 detail kept verbatim, now the forward de-risking plan that runs after Concept. drs.v00.00.json project.stage and decisionRequested are NOT re-edited (S1/S2 are their home, already Concept from rev 0.125; S15 is not). HARD LIMITS: the Pod row's gate field stays 'G2' (innovation-time.test.mjs:369), no test is edited, the G1-G6 ladder labels are unchanged. Mandatory law-5 provenance bump (rev 0.126 -> 0.127) and law-7 record (fill revisions[] 0.126 commit -> b5c773f; append iterations[] 0.127, decisions[] D129, revisions[] 0.127 PENDING; project.revision 0.127). No horizon, the one-ninth (11.1 %) figure, timing label, claim, law or linked number moves (law 3); the master statement and segment value props are untouched (law 4)."
+  },
+  {
+   "revision": "0.128",
+   "date": "2026-09-26",
+   "kind": "release",
+   "commit": "PENDING",
+   "why": "Visionary pass 1 of 3 (rev 0.128), whole-deck twelve-lens upside-offering round: strengthens the deck's UPSIDE VISIONARY offering within every ITERATION_BRIEF law. Thesis -- by 2525 CrisisCommand carries the key features of ALL major NBA offerings (benchmark Everbridge 360 AI / Bridge plus comparators Rave, PagerDuty and the other sourced majors GridOS ADMS/OMS, Veoci Vitals EM, YUDU Sentinel), absorbed function-by-function through the one-ninth gate into the one human-governed record, alerting last. Law 1 EXTENDED (primary set stays EDU/FOOD/TECH, others discovery-only, full reach a 2525 horizon). Upside painted as an expanding tool suite (detect -> judge -> approve -> act -> replay -> improve) around critical outcomes and high-upside financial-crisis coordination, as horizon never a shipped/savings claim. Four content edits: S8 nba.hi (face clause), S8 nba.ai (full superset), S17 prio.ai 2525 row (superset + tool suite), S17 obs.ai (financial-crisis upside via the operating loop). HARD LAWS: money DECLARED (IA) (law 3); Concept (G1) framing kept (project.stage / decisionRequested not re-edited); Pod row gate field stays 'G2' (innovation-time.test.mjs), no test edited; no model names; master statement + segment value props fixed (law 4); no cell emptied, ai >= hi (law 6). Law-5 provenance bump (rev 0.127 -> 0.128) and law-7 record (fill revisions[] 0.127 commit -> 663e724; append iterations[] 0.128, decisions[] D130, revisions[] 0.128 PENDING; project.revision 0.128)."
   }
  ],
  "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -3774,6 +3781,13 @@
    "revision": "0.127",
    "by": "twelve lenses · per-slide S15 · G1 reframe",
    "decision": "Per-slide S15 pass (rev 0.127), Concept (G1) reframe round (operator 2026-09-26 'Make G1'), slide 5 of 5 in this pass. Slide S15 is the BETA-feedback slide of the founder-facing Innovation-Pod deck (innovation-slide-seed-drs.ts S15: voc; prio; impact). Unlike S1 (D127) and S2 (D128), which were homes of the current-stage/ask label, S15 carries the DRS G2/G3 only as validation detail -- the voc rows are per-segment hypotheses (empty results), the impact cell is the pricing rule (no price until a buyer validates; Contribution = validated WTP - CrisisCommand-specific CTS), and only the prio row-1 third column presented the G2 measurement-design tabletop -> G3 instrumented A/B as the Horizon-1 approach in a way a reader could take for the present activity. So this pass reframes that one seed string (hi + ai, 2 occurrences): 'G2 measurement-design tabletop -> G3 instrumented A/B' becomes 'Forward de-risking plan (after the Concept gate): G2 measurement-design tabletop -> G3 instrumented A/B' -- the DRS G2/G3 detail kept verbatim, now presented as the forward de-risking plan that runs after Concept, as the operator directed. The voc 'G2 tabletop (pre-registered)' label and the prio one-ninth-gate absorption rows are DRS validation / absorption detail the reframe explicitly keeps, and are left as-is. drs.v00.00.json project.stage and decisionRequested are NOT re-edited: the S1 pass (D127, rev 0.125) already reframed both to Concept (G1); S15 is not their home. HARD LIMITS honoured: the Pod row's gate field in innovation-data.ts stays 'G2' (asserted by innovation-time.test.mjs:369, drives the financial-year horizon); no test edited; the roadmap G1-G6 ladder labels unchanged -- only the current-gate framing. NO-REWORK (R-CORE law): the reframe touches only the one S15 string carrying the current-gate framing; the hypotheses, the horizons, the one-ninth gate and the pricing rule are left as-is; no parallel implementation is forked. Laws held: no horizon, the one-ninth (11.1 %) figure, timing label, claim, law or linked financialModel number moves (law 3); the master statement (futureState.master.statement === valueProp) and the three segment value props stay fixed (law 4); no cell emptied and no field shape changed, ai >= hi (law 6); the append-only record grows only (law 7). Mandatory law-5 provenance bump (PROV constant + row provenance, rev 0.126 -> 0.127) and law-7 record (fill revisions[] 0.126 commit -> b5c773f; append iterations[] 0.127, decisions[] D129, revisions[] 0.127 PENDING; set project.revision 0.127). It does not supersede any prior decision -- it completes on S15 the current-gate reframe that D127 (S1) and D128 (S2) applied, on the same reframe-round mandate."
+  },
+  {
+   "id": "D130",
+   "date": "2026-09-26",
+   "revision": "0.128",
+   "by": "twelve lenses · visionary 1/3",
+   "decision": "Visionary pass 1 of 3 (rev 0.128), whole-deck twelve-lens upside-offering round (operator 2026-09-25, docs/asks/2026-09-25_rcore_traceability_and_3_visionary_passes.md). The round strengthens the deck's UPSIDE VISIONARY offering within every ITERATION_BRIEF law: by 2525 CrisisCommand carries the KEY FEATURES OF ALL MAJOR NBA offerings -- not only the benchmark Everbridge 360 AI / Bridge, but the named comparators (Rave / Rave Alert in EDU, PagerDuty in TECH) and the other sourced majors (GridOS ADMS / OMS in utility, Veoci Vitals EM in healthcare, YUDU Sentinel on campus, from NEEDS_ASSESSMENT_RESEARCH.md and the retired DRS-attach study -- named by DOMAIN in the seed cells and by product name only in this record, since innovation-time.test.mjs:430 forbids the GridOS/Veoci product names in the deck cells) -- each absorbed function-by-function through the one-ninth (11.1 %) gate into the ONE human-governed leadership record, alerting last and certified. Law 1 is EXTENDED, not broken: the primary validation set stays EDU / FOOD / TECH, the other majors are discovery-only until a named buyer runs them, and the full-offering reach is a 2525 horizon (govern 2027 / native 2030 / shared crisis memory 2525), never the primary three. The upside is painted as an expanding tool suite (detect -> judge -> approve -> act -> replay -> improve) built around critical outcomes and high-upside financial-crisis coordination, shown as horizon, never a shipped or savings claim. Four content edits carry it: S8 nba.hi (one compact vision clause on the face), S8 nba.ai (the full superset), S17 prio.ai 2525 row (offering superset + expanding tool suite) and S17 obs.ai (the financial-crisis upside picture through the operating loop). NO-REWORK (R-CORE law): grep-verified the full-offering horizon and the expanding-tool-suite / financial-crisis picture were not on any slide face or note (only in the seed boundary comment and NEEDS_ASSESSMENT_RESEARCH.md); the edits append to existing cells and fork no parallel implementation. HARD LAWS honoured: money stays DECLARED (IA), never buyer-validated (law 3); the Concept (G1) narrative framing is KEPT (master question / status / ask read Concept . G1 from D127-D129; DRS G2/G3 stay the forward de-risking plan; project.stage and decisionRequested not re-edited); the Pod row's gate field in innovation-data.ts stays 'G2' (asserted by innovation-time.test.mjs), no test is edited; no model names in any file; the master statement (futureState.master.statement === valueProp) and the three segment value props stay fixed (law 4); no cell emptied, no field shape changed, ai >= hi (law 6); the append-only record grows only (law 7). Mandatory law-5 provenance bump (PROV constant + row provenance, rev 0.127 -> 0.128) and law-7 record (fill revisions[] 0.127 commit -> 663e724; append iterations[] 0.128 n 122, decisions[] D130, revisions[] 0.128 PENDING; set project.revision 0.128). It does not supersede any prior decision -- it opens the three-pass visionary arc the operator asked for, extending the one-platform thesis from one benchmark to the full NBA set by 2525."
   }
  ],
  "iterations": [
@@ -6674,6 +6688,31 @@
    ],
    "decisions": [
     "D129"
+   ]
+  },
+  {
+   "revision": "0.128",
+   "n": 122,
+   "date": "2026-09-26",
+   "author": "twelve lenses · visionary 1/3",
+   "file": "docs/drs/iterations/0.128.md",
+   "ssesMeans": {
+    "security": 96.0,
+    "stability": 98.08,
+    "scalability": 97.67,
+    "efficiency": 95.33,
+    "succinctness": 91.5
+   },
+   "edits": [
+    "S8 nba.hi (seed): appended one compact upside-vision clause on the face where alternatives are weighed -- 'By 2525, the key features of every major crisis-management offering are carried inside the one platform, absorbed function by function by the one-ninth gate -- a horizon, not a claim.' (anchor once). Primary three unchanged; no number. Field shape unchanged, ai >= hi.",
+    "S8 nba.ai (seed): appended the Full-NBA horizon superset naming the benchmark plus Rave and PagerDuty; the other sourced majors are named by DOMAIN in the seed cell (utility, healthcare, campus operational systems) because innovation-time.test.mjs:430 forbids the retired DRS-attach product names (GridOS, Veoci) in the deck cells -- the product names (GridOS ADMS/OMS, Veoci Vitals EM, YUDU Sentinel) are carried in the round file and this D130 record for traceability. Each absorbed only after clearing the one-ninth (11.1 %) gate on its own clock, alerting last and certified; others discovery-only, primary set EDU/FOOD/TECH (IA, 2525 vision -- not a shipped claim) (anchor once).",
+    "S17 prio.ai 2525 row middle (seed): appended, on the ai face only (trailing Thought-Master anchor), the offering superset + the expanding tool suite (detect -> judge -> approve -> act -> replay -> improve) turned to critical outcomes and high-upside financial-crisis coordination (IA, 2525 vision) (anchor once). ai >= hi.",
+    "S17 obs.ai (seed): appended one new element -- the expanding-tool-suite upside picture around critical outcomes and high-upside financial-crisis situations, run through the operating loop, dated govern 2027 / native 2030 / shared crisis memory 2525, money DECLARED (IA) never a savings claim (anchor once). Field shape unchanged, ai >= hi.",
+    "PROV constant (seed) and row provenance (innovation-data.ts): rev 0.127 -> 0.128 (law 5). The row's gate field stays 'G2' (HARD LIMIT, innovation-time.test.mjs); no test edited.",
+    "drs.v00.00.json: filled revisions[] 0.127 commit PENDING -> 663e724; set project.revision 0.128; appended iterations[] 0.128 (n 122), decisions[] D130, revisions[] 0.128 (kind release, commit PENDING) (law 7)."
+   ],
+   "decisions": [
+    "D130"
    ]
   }
  ]
