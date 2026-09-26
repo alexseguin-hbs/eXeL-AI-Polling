@@ -29,8 +29,18 @@ for (const f of files) {
   ok(monotonic, `${L.section}: revs monotonic 1..${L.entries.length}`);
   ok(kindsOk, `${L.section}: every kind ∈ ask|decision|release|correction`);
   ok(releasesOk, `${L.section}: every release cites a commit that exists`);
-  const replayHead = L.entries.filter((e) => e.rev <= L.entries.length);
-  ok(replayHead.length === L.entries.length, `${L.section}: replay(HEAD) equals the full ledger (${replayHead.length}/${L.entries.length})`);
+  // Real content verification (was a tautology — `e.rev <= L.entries.length` is always true under the
+  // monotonicity asserted above, so it verified NOTHING and could not catch a gutted or rewritten entry;
+  // fleet 2026-09-26, Odin/MoT). Replay HEAD as: every entry well-formed (int rev ≥ 1, non-empty date,
+  // known kind, non-empty body, no duplicate rev) and the reconstruction covers all n entries.
+  let contentOk = true, replayN = 0; const seenRev = new Set();
+  for (const e of L.entries) {
+    const wellFormed = Number.isInteger(e.rev) && e.rev >= 1 && typeof e.date === 'string' && e.date.trim()
+      && KINDS.has(e.kind) && typeof e.text === 'string' && e.text.trim().length > 0 && !seenRev.has(e.rev);
+    if (!wellFormed) contentOk = false; else { seenRev.add(e.rev); replayN++; }
+  }
+  ok(contentOk && replayN === L.entries.length,
+    `${L.section}: replay(HEAD) reconstructs all ${L.entries.length} entries, each a well-formed non-empty record (${replayN}/${L.entries.length})`);
 }
 for (const n of need) ok(sections.includes(n), `the ${n} ledger is present`);
 console.log(`traceability: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

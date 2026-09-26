@@ -12,7 +12,8 @@
  *   CLICK 1  → it expands to the "⊕ R-CORE" wordmark pill (a labelled affordance).
  *   CLICK 2  → opens that surface's VERSION HISTORY + COMPARE panel (RCoreRevisionPanel).
  *
- * Fixed + centred + high z, pointer-events on the control only, so it never blocks the page; small and
+ * In NORMAL FLOW — a full-width, centred row mounted LAST on the page (never a fixed overlay on the
+ * image/slide, operator 2026-09-25), pointer-events on the control only; small and
  * dismissable (Escape collapses the pill; Escape closes the panel). Keyboard + ARIA accessible.
  * Theme-agnostic — the accent colour comes in as a prop.
  */
