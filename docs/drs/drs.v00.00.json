@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.125",
+  "revision": "0.126",
   "stage": "Concept (G1) · future-state validation",
   "decisionRequested": "Concept-gate ask (Concept · G1, v1.0) — pass the Concept gate and advance to Plan by approving the concept and its de-risking plan, which then runs the forward DRS validation gates (G2 measurement design, G3 A/B) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -2140,8 +2140,15 @@
    "revision": "0.125",
    "date": "2026-09-26",
    "kind": "release",
-   "commit": "PENDING",
+   "commit": "f858aa4",
    "why": "Per-slide S1 pass (rev 0.125), Concept (G1) reframe round: slide S1 is the executive summary of the founder-facing Innovation-Pod deck, and it IS a home of the current-gate framing, so this pass applies the reframe. The S1 ask cell (hi + ai) is reframed from 'G2 ask' to the Concept-gate ask (pass Concept (G1), advance to Plan by approving the concept and its de-risking plan), keeping the DRS G2 measurement gate and G3 A/B as the forward de-risking plan plus all eight approval items, the NBA definition and the master question; the shared MASTER_Q constant's label becomes 'Master question (Concept . G1)' (one master, updating S1.ask.ai and S16 together); project.stage -> 'Concept (G1) . future-state validation' and decisionRequested's opening is reframed (S1/S2 is their home; drs-render --check green). HARD LIMITS: the Pod row's gate field stays 'G2' (innovation-time.test.mjs:369), no test is edited, the G1-G6 ladder labels are unchanged. Mandatory law-5 provenance bump (rev 0.124 -> 0.125) and law-7 record (fill revisions[] 0.124 commit -> f6bd8d5; append iterations[] 0.125, decisions[] D127, revisions[] 0.125 PENDING; project.revision 0.125). No horizon, the one-ninth (11.1 %) figure, timing label, claim, law or linked number moves (law 3); the master statement and segment value props are untouched (law 4)."
+  },
+  {
+   "revision": "0.126",
+   "date": "2026-09-26",
+   "kind": "release",
+   "commit": "PENDING",
+   "why": "Per-slide S2 pass (rev 0.126), Concept (G1) reframe round: slide S2 is the project overview of the founder-facing Innovation-Pod deck, and it IS a home of the current-gate framing, so this pass applies the reframe to its two current-gate seed strings. The S2 status cell (hi + ai) opening 'G2 / future-state validation' becomes 'Concept (G1) . future-state validation' (gate label only), and the S2 roadmap gates line (hi + ai) becomes 'Forward de-risking gates (after the Concept gate): G2 validates the measurement design ... . G3 runs the instrumented A/B.' -- the DRS G2/G3 detail kept verbatim as the forward de-risking plan. project.stage and decisionRequested are NOT re-edited (the S1 pass, rev 0.125, already reframed both to Concept (G1); byte-verified as already-Concept). HARD LIMITS: the Pod row's gate field stays 'G2' (innovation-time.test.mjs:369), no test is edited, the G1-G6 ladder labels are unchanged. Mandatory law-5 provenance bump (rev 0.125 -> 0.126) and law-7 record (fill revisions[] 0.125 commit -> f858aa4; append iterations[] 0.126, decisions[] D128, revisions[] 0.126 PENDING; project.revision 0.126). No horizon, the one-ninth (11.1 %) figure, timing label, claim, law or linked number moves (law 3); the master statement and segment value props are untouched (law 4)."
   }
  ],
  "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -3746,6 +3753,13 @@
    "revision": "0.125",
    "by": "twelve lenses · per-slide S1 · G1 reframe",
    "decision": "Per-slide S1 pass (rev 0.125), Concept (G1) reframe round (operator 2026-09-26 'Make G1'), slide 3 of 5 in this pass. Slide S1 is the executive summary of the founder-facing Innovation-Pod deck (innovation-slide-seed-drs.ts S1: oneline; segment; market; strategy; ask). Unlike the per-slide S18 (D125) and S19 (D126) passes, which found no current-gate reference and reduced to law-6 optimization, S1 IS a home of the current-gate framing, so this pass applies the reframe: (a) the S1 ask cell (hi + ai) is reframed from 'G2 ask' to the Concept-gate ask -- pass the Concept (G1) gate and advance to Plan by approving the concept and its de-risking plan -- while KEEPING the DRS G2 measurement gate and G3 A/B as the FORWARD de-risking plan, all eight approval items, the NBA definition and the master question; (b) the shared MASTER_Q constant's label 'Master question (G2)' becomes 'Master question (Concept . G1)' (gate label only, question byte-identical), which -- one master -- updates its use on S1.ask.ai and S16 consistently, as the reframe explicitly names correct; (c) drs.v00.00.json project.stage 'G2 / future-state validation' -> 'Concept (G1) . future-state validation' and decisionRequested's 'G2 ask (v1.0) -- approve:' opening -> a Concept-gate framing (S1/S2 is their home; regenerated by drs-render, --check green). HARD LIMITS honoured: the Pod row's gate field in innovation-data.ts stays 'G2' (asserted by innovation-time.test.mjs:369, drives the financial-year horizon); no test edited; the roadmap G1-G6 ladder labels unchanged -- only the current-gate framing. NO-REWORK (R-CORE law): the reframe touches only the strings that carry the current-gate reference; no parallel implementation is forked. Laws held: no horizon, the one-ninth (11.1 %) figure, timing label, claim, law or linked financialModel number moves (law 3); the master statement (futureState.master.statement === valueProp) and the three segment value props stay fixed (law 4); no cell emptied and no field shape changed, ai >= hi (law 6); the append-only record grows only (law 7). Mandatory law-5 provenance bump (PROV constant + row provenance, rev 0.124 -> 0.125) and law-7 record (fill revisions[] 0.124 commit -> f6bd8d5; append iterations[] 0.125, decisions[] D127, revisions[] 0.125 PENDING; set project.revision 0.125). It does not supersede any prior decision -- it completes on S1 the current-gate reframe that D125 (S18) and D126 (S19) recorded as not-applicable on those slides."
+  },
+  {
+   "id": "D128",
+   "date": "2026-09-26",
+   "revision": "0.126",
+   "by": "twelve lenses · per-slide S2 · G1 reframe",
+   "decision": "Per-slide S2 pass (rev 0.126), Concept (G1) reframe round (operator 2026-09-26 'Make G1'), slide 4 of 5 in this pass. Slide S2 is the project overview of the founder-facing Innovation-Pod deck (innovation-slide-seed-drs.ts S2: status; roadmap; toprisks). Like S1 (D127), S2 IS a home of the current-gate framing, so this pass applies the reframe to its two current-gate seed strings: (a) the S2 status cell (hi + ai) opening 'G2 / future-state validation' -- the current-stage label -- becomes 'Concept (G1) . future-state validation' (gate label only; the customer-facing product, internal method, edition, provenance and register note unchanged); (b) the S2 roadmap gates line (hi + ai) 'Gates: G2 validates the measurement design ... . G3 runs the instrumented A/B.' becomes 'Forward de-risking gates (after the Concept gate): G2 validates the measurement design ... . G3 runs the instrumented A/B.' -- the DRS G2/G3 detail kept verbatim, now presented as the forward de-risking plan that runs after Concept, as the operator directed. drs.v00.00.json project.stage and decisionRequested are NOT re-edited: the S1 pass (D127, rev 0.125) already reframed both to Concept (G1), and this round byte-verifies them as already-Concept (append-only, no duplicate edit). HARD LIMITS honoured: the Pod row's gate field in innovation-data.ts stays 'G2' (asserted by innovation-time.test.mjs:369, drives the financial-year horizon); no test edited; the roadmap G1-G6 ladder labels unchanged -- only the current-gate framing. NO-REWORK (R-CORE law): the reframe touches only the two S2 strings carrying the current-gate reference; the horizons, the one-ninth gate and the top-risk table are left as-is; no parallel implementation is forked. Laws held: no horizon, the one-ninth (11.1 %) figure, timing label, claim, law or linked financialModel number moves (law 3); the master statement (futureState.master.statement === valueProp) and the three segment value props stay fixed (law 4); no cell emptied and no field shape changed, ai >= hi (law 6); the append-only record grows only (law 7). Mandatory law-5 provenance bump (PROV constant + row provenance, rev 0.125 -> 0.126) and law-7 record (fill revisions[] 0.125 commit -> f858aa4; append iterations[] 0.126, decisions[] D128, revisions[] 0.126 PENDING; set project.revision 0.126). It does not supersede any prior decision -- it completes on S2 the current-gate reframe that D127 applied on S1, on the same reframe-round mandate."
   }
  ],
  "iterations": [
@@ -6600,6 +6614,29 @@
    ],
    "decisions": [
     "D127"
+   ]
+  },
+  {
+   "revision": "0.126",
+   "n": 126,
+   "date": "2026-09-26",
+   "author": "twelve lenses · per-slide S2 · G1 reframe",
+   "file": "docs/drs/iterations/0.126.md",
+   "ssesMeans": {
+    "security": 96.0,
+    "stability": 98.08,
+    "scalability": 97.58,
+    "efficiency": 95.33,
+    "succinctness": 91.33
+   },
+   "edits": [
+    "S2 status.hi + status.ai (seed): opening 'G2 / future-state validation' -> 'Concept (G1) . future-state validation' (current-stage label only; customer-facing product, internal method, edition, provenance and append-only-register note unchanged) -- G1 reframe. Field shapes unchanged, ai >= hi.",
+    "S2 roadmap.hi + roadmap.ai (seed): 'Gates: G2 validates the measurement design ... . G3 runs the instrumented A/B.' -> 'Forward de-risking gates (after the Concept gate): G2 validates the measurement design ... . G3 runs the instrumented A/B.' (both occurrences; DRS G2/G3 detail kept verbatim, now the forward de-risking plan) -- G1 reframe.",
+    "drs.v00.00.json project.stage / decisionRequested NOT re-edited: the S1 pass (rev 0.125, D127) already reframed both to Concept (G1); byte-verified as already-Concept this round (append-only, no duplicate edit). The Pod row's gate field stays 'G2' (HARD LIMIT, innovation-time.test.mjs:369).",
+    "PROV constant (seed) and row provenance (innovation-data.ts) bumped rev 0.125 -> 0.126 (law 5); append-only record filled (revisions[] 0.125 commit -> f858aa4; appended iterations[] 0.126, decisions[] D128, revisions[] 0.126 PENDING; project.revision 0.126) (law 7). No dollar / linked number / horizon / master statement / segment value prop moves (laws 3-4)."
+   ],
+   "decisions": [
+    "D128"
    ]
   }
  ]

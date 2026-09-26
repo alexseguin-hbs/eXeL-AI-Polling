@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (Concept · G1): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.125";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.126";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -81,21 +81,21 @@ export const SLIDE_SEED_DRS: SlideSeed = {
     // ── Pod S2 Project Overview ← v0.9 S2 + S18 ──────────────────────────────────────────────────────────
     S2: {
       status: {
-        hi: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM · rev 0.107 · decision register D1–D109 and the iteration ledger in docs/drs (append-only).",
-        ai: "G2 / future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.107 · decision register D1–D109 and the iteration ledger in docs/drs (append-only). " + PROV,
+        hi: "Concept (G1) · future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM · rev 0.107 · decision register D1–D109 and the iteration ledger in docs/drs (append-only).",
+        ai: "Concept (G1) · future-state validation · customer-facing product CrisisCommand.ai · internal innovation method De-Risking Strategies / Project 34 · edition v1.0 ONE PLATFORM (operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired · rev 0.107 · decision register D1–D109 and the iteration ledger in docs/drs (append-only). " + PROV,
       },
       roadmap: {
         hi: [
           "Today: Understand → Structure → Align → Communicate → Manage → Prepare / Simulate.",
           "Future extension: Understand → Judge → Align → Approve → Assign → Acknowledge → Communicate → Observe → Replay → Improve.",
           "Horizon 1 (2027) Governed Leadership State, native · Horizon 2 (→ 2030) the critical-event surface absorbed under the one-ninth (11.1 %) gate, alerting last · Horizon 3 Enterprise Decision Graph · Horizon 4 Recursive Readiness (2525).",
-          "Gates: G2 validates the measurement design (interviews, NBA teardown, prototype, one pre-registered EDU tabletop) · G3 runs the instrumented A/B.",
+          "Forward de-risking gates (after the Concept gate): G2 validates the measurement design (interviews, NBA teardown, prototype, one pre-registered EDU tabletop) · G3 runs the instrumented A/B.",
         ],
         ai: [
           "Today: Understand → Structure → Align → Communicate → Manage → Prepare / Simulate.",
           "Future extension: Understand → Judge → Align → Approve → Assign → Acknowledge → Communicate → Observe → Replay → Improve.",
           "Horizon 1 (2027) Governed Leadership State, native, with every benchmark function reachable from inside the platform · Horizon 2 (→ 2030) the critical-event surface absorbed function by function under the one-ninth (11.1 %) gate, alerting last · Horizon 3 Enterprise Decision Graph · Horizon 4 Recursive Readiness (2525).",
-          "Gates: G2 validates the measurement design (interviews, NBA teardown, prototype, one pre-registered EDU tabletop) · G3 runs the instrumented A/B.",
+          "Forward de-risking gates (after the Concept gate): G2 validates the measurement design (interviews, NBA teardown, prototype, one pre-registered EDU tabletop) · G3 runs the instrumented A/B.",
           "Validation sequence 1 EDU · 2 FOOD · 3 TECH — a sequence, not a market-size ranking.",
         ],
       },
