@@ -33,6 +33,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.150 | 2026-09-24 | Claude Code (the fire gate reads the picture) | 364301 | e8d553ed035352b1cb3edc7271a07f4af6f1141295af26599dd94de0bd8a5920 | ec241fa (artefact) | d7982abe4c087736b792aed0ed97b753c0ca220a7dc37ed1d7b0a5217a1262cf |
 | r.151 | 2026-09-24 | Claude Code (pop-up targets fire again) | 367557 | 3c4d297eec612261a699a899eea7efe489178fb3c6fd8784e50fb7f72b231020 | PENDING (Verify Live) | 1069141c979f4e412750c90d38445c32d357e0c4bc449f3db2cd19e23e86f959 |
 | r.152 | 2026-09-24 | Claude Code (the full-screen control is an icon) | 368979 | e15cd3993aa378c958b9469831b87f50317ee98b47bdfcc112c11980c9e2eebd | PENDING (Verify Live) | 28e068d9d57b8ee6e2b42a697b95c0d65a0d0f577955895d5a51ff3daf78bb29 |
+| r.153 | 2026-09-26 | Claude Code (the tab reads eXeL Drone-2525) | 368965 | 3c3de52165ea9138569c2901b5f1a9207ed3ab0a3cb0fd103c8c6fee8148b318 | PENDING (Verify Live) | 4e7b234595851c7538ced56f81165efa2c7442777e50ecc19be8bebbe699907e |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -664,3 +665,20 @@ put its bytes on `main` and the current served HEAD).
   `drone-playable` holding the served bytes to the `⤢`/`⤡` glyphs (never the word `FULL`/`EXIT`) and the top-bar right-alignment.
   177 rows, 176/177 in portrait and landscape.
 - **Still open (the fleet's order):** items 6–8 → still owed · items 9–11 → r.153.
+
+## r.153 — Claude Code: the browser tab reads "eXeL Drone-2525" (2026-09-26)
+Operator (`docs/asks/2026-09-26_drone_tab_name.md`): **"make drone-2525 tab name / eXeL Drone-2525 / not sure why ECO IS
+IN NAME"**, and the follow-up: **"It should be 'eXeL Drone-2525' not 'eXeL Drone-2525 · MoT · SSSES'"**. Notes:
+`CLAUDE_CODE_NOTES_r153.md`. Patch: `patches/r152_to_r153.py` (3 asserted edits). Artefact commit `c65d719`; shipped in:
+PENDING until Verify Live (the ledger and the domain JSON carry `shipped`; r.152's `shipped` is filled `948c37e` — the
+commit that put its bytes on `main` and the served HEAD).
+- **Title-only.** The served deck's `<title>` was the last place the stale early deck name **"eXeL ECO-2525 · MoT ·
+  SSSES"** survived, so the phone browser tab read "ECO-2525". It now reads exactly **"eXeL Drone-2525"** — the whole
+  "· MoT · SSSES" suffix dropped (operator's follow-up). "ECO-2525" was a leftover name; the surface is Drone-2525. The
+  masthead had already read Drone-2525; only the `<title>` lagged.
+- **No logic, no layout, no QA row.** A browser title carries no runtime behaviour, so there is nothing new to prove at
+  runtime; `drone-playable` holds `public/drone-2525/play.html` byte-identical to the carried r.153 snapshot, which is the
+  proof the title shipped. The manifest and every QA row are unchanged; the r.152 `⤢`/`⤡` full-screen assertions and all
+  range behaviour carry over untouched.
+- **Note on the numbering.** The previously-planned r.153 "record & wire" work (the fleet's items 9–11) shifts to **r.154**;
+  this title fix takes r.153, per the operator's 2026-09-26 ask.

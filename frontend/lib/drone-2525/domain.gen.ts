@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.037",
+  "revision": "0.038",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -329,6 +329,14 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck r.152 — the full-screen control is an icon, not a word: the top-bar (btnFullBar) and #magBar (btnFull) FULL/EXIT word buttons become the Mission-Planning maximize (⤢) / minimize (⤡) icons (the SoI-2525 ChartFrame and Security-2525 Mission Planning convention); the top-bar maximize icon moves to the upper-right at a comfortable tap size; the fullscreen behaviour (requestFullscreen/exitFullscreen, #app.full hiding the words) is untouched. Operator ask docs/asks/2026-09-24_drone_popups_box_maximize.md; the pop-ups (all up in Target-Up, amber on TARGET, red on APPROVE, a pop fires) verified on the served deck. QA row FULLSCREEN_IS_AN_ICON added.",
    "commit": "8366dfa",
+   "shipped": "948c37e"
+  },
+  {
+   "revision": "0.038",
+   "date": "2026-09-26",
+   "kind": "release",
+   "why": "Operator deck r.153 — the browser tab reads \"eXeL Drone-2525\" (operator 2026-09-26, docs/asks/2026-09-26_drone_tab_name.md: \"make drone-2525 tab name / eXeL Drone-2525 / not sure why ECO IS IN NAME\" and the follow-up dropping the \"· MoT · SSSES\" suffix). Title-only: play.html <title> \"eXeL ECO-2525 · MoT · SSSES\" → \"eXeL Drone-2525\" + the revision stamps. No logic, layout or QA row changes (a browser title carries no runtime behaviour); drone-playable holds play.html byte-identical to the carried r.153 snapshot, which is the proof the title shipped. Patch patches/r152_to_r153.py (3 asserted edits).",
+   "commit": "c65d719",
    "shipped": "PENDING"
   }
  ],
