@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (G2): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.121";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.122";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -656,7 +656,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
       prio: {
         hi: [
           ["2027", "Governed leadership state native — the seven Horizon-1 governed-record objects (itemised on S14) — and every benchmark function reachable from inside the platform: one login, one record", "Horizon 1"],
-          ["2030", "The whole critical-event surface native, absorbed function by function under the one-ninth (11.1 %) gate, alerting last and certified; multi-event learning · simulation · readiness qualification · the Enterprise Decision Graph", "Horizons 2–4"],
+          ["2030", "The whole critical-event surface native, absorbed function by function under the one-ninth (11.1 %) gate, alerting last and certified", "Horizons 2–4"],
           ["2525", "Humanity's shared, human-governed crisis memory: every institution's decisions, evidence and outcomes replayable across people, systems and generations in an open record; the affected community a participant, not only a recipient", "Vision"],
         ],
         ai: [
