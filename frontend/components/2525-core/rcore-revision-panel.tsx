@@ -139,23 +139,28 @@ export function RCoreRevisionPanel({
       aria-modal="true"
       aria-label="R-CORE · Version History"
       onClick={onClose}
-      style={{ position: "fixed", inset: 0, zIndex: 80, background: PAL.scrim, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: "0 8px" }}
+      // TOP-ANCHORED with a safe-area top gap (operator 2026-09-26 "when open I cant see top"): a bottom-anchored
+      // sheet slid its header under the phone's URL bar. Anchored to the top on phones (header always visible),
+      // centred on desktop (sm:items-center).
+      style={{ position: "fixed", inset: 0, zIndex: 80, background: PAL.scrim, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "max(env(safe-area-inset-top, 0px), 12px) 8px 12px", overflowY: "auto" }}
       className="sm:items-center"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ width: "100%", maxWidth: 640, maxHeight: "92vh", overflowY: "auto", background: PAL.bg, color: PAL.ink, border: `1px solid ${PAL.line}`, borderRadius: 14, boxShadow: `0 0 40px ${accent}22`, fontFamily: "ui-sans-serif, system-ui, sans-serif" }}
+        style={{ width: "100%", maxWidth: 640, maxHeight: "88vh", overflowY: "auto", background: PAL.bg, color: PAL.ink, border: `1px solid ${PAL.line}`, borderRadius: 14, boxShadow: `0 0 40px ${accent}22`, fontFamily: "ui-sans-serif, system-ui, sans-serif" }}
       >
-        {/* Header */}
+        {/* Header — the R-CORE icon + wordmark RASTERS at the top when open (operator 2026-09-26 "place icon and
+            word art raster at top when open"). Sticky, so the branding + close stay in view while the list scrolls. */}
         <div style={{ position: "sticky", top: 0, background: PAL.bg, borderBottom: `1px solid ${PAL.line}`, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, zIndex: 1 }}>
+          {/* the operator's exact reticle raster, as-is */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/r-core/r-core-icon.png" alt="" width={20} height={20} style={{ display: "block" }} />
+          <img src="/r-core/r-core-icon.png" alt="" width={30} height={30} style={{ display: "block", flexShrink: 0 }} />
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", color: accent }}>
-              <span aria-hidden>⊕ </span>{t("rcore.brand")} · {t("rcore.version_history")}
-            </div>
-            <div style={{ fontSize: 11, color: PAL.muted, fontFamily: "ui-monospace, monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {history.surface || "—"}{history.route ? " · " + history.route : ""} · {n} {t("rcore.rev_short")}
+            {/* the operator's exact "R-CORE" wordmark raster, as-is — the wordart at the top */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/r-core/r-core-wordmark.png" alt={t("rcore.brand")} style={{ height: 22, width: "auto", display: "block" }} />
+            <div style={{ fontSize: 11, color: PAL.muted, fontFamily: "ui-monospace, monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 3 }}>
+              {t("rcore.version_history")} · {history.surface || "—"}{history.route ? " · " + history.route : ""} · {n} {t("rcore.rev_short")}
             </div>
           </div>
           {/* Self-contained HTML download — the living document's ↓ (operator 2026-09-26). */}
