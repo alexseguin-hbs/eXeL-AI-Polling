@@ -89,6 +89,36 @@ E) THEMING (spec 78-81 → keep our accent cyan `#22d3ee`): impact chip L5=purpl
 
 F) HTML DOWNLOAD (operator addendum): mirror the living-doc ↓ — a `data-rcore-download` button (near the header/version badge) that builds a SELF-CONTAINED single-file HTML of this surface's full ledger (rev · date · kind · title · D# · commit) + the current A→B compare (stat line, summary, KEY IMPROVEMENTS, before/after diff), dark-ground, inline CSS, no JS needed to read; filename e.g. `R-CORE_{surface}_r{VMAX}_{date}.html`. Reuse the living doc's download-builder pattern (find its ↓ handler in the same file); Blob + a[download].
 
+## BLUEPRINT ADDENDUM 2 (mapping agent) — download reality + the full feature set
+DOWNLOAD: Vision has NO client-side serializer/Blob — the ↓ is a static, worker-served prebuilt one-file copy
++ HTML5 `download`. Verbatim (living doc line 1181): `<a id="bDL" href="…/whitepaper/SOI_VISION2525_v.19_LIVING_DOCUMENT.html"
+download="SOI_VISION2525_v.19_LIVING_DOCUMENT.html" title="Download this document — HTML, one self-contained file"
+aria-label="Download this document"><svg …path d="M12 3v12M7 10l5 5 5-5M5 21h14"…></a>`. Self-contained: no
+external fetch/eval, absolute internal links + noopener so it reads offline.
+  → MIRROR in R-CORE (the app has no per-surface prebuilt artifact): FALLBACK path (noted divergence) — a
+  `data-rcore-download` `<a download>` in the panel header, built at click time via
+  `URL.createObjectURL(new Blob([html],{type:"text/html"}))`, `download="R-CORE_{surface}_r{VMAX}_{date}.html"`,
+  DETERMINISTIC payload (no clock/random inside), dark-ground, inline CSS, no JS to read; content = the full
+  ledger (rev·date·kind·title·D#·commit) + the current A→B compare (stat line, summary, KEY IMPROVEMENTS,
+  before/after diff). Reuse the same title/aria/glyph (path `M12 3v12M7 10l5 5 5-5M5 21h14`).
+
+MODES REALITY: the spec's four modes (Overview·Meaning(AI)·Exact-Diff·Evolution) are NOT built in Vision either
+— only Overview (summary line + stat chips + KEY IMPROVEMENTS, already top of panel) and Exact-Diff
+(Unified/Side-by-side passages + Details table) exist. So mirror those two now; leave Meaning(AI) + Evolution
+as LABELLED FUTURE slices (don't fake them).
+
+FULL FEATURE SET to mirror (verbatim ids/labels from the living doc):
+  1. **Unified ↔ Side-by-side toggle** over the before/after diff: `<span class="cmp-mode" role="group"><button id="cmpVU">Unified</button><button id="cmpVS">Side by side</button></span>` (our panel is side-only today — ADD Unified + the toggle).
+  2. **Change navigator**: `<span class="cmp-nav">‹ Previous change · – / – · Next change ›</span>` when multiple passages.
+  3. **Stat chips as FILTERS**: added/revised/removed chips filter the list (aria-pressed + `.on`; a `Filtered: {kind}` chip; self-clears on re-pick).
+  4. **Show-all**: `Show all {N} changed sections`.
+  5. **Details table (collapsed)**: `<details><summary>Details</summary>` Revision · Kind · Impact · Date · recorded reason.
+  6. **Version badge**: `<span class="tag">{stamp} · {rev===current ? 'latest release' : 'historical release'}</span>` — per-revision, driven by rev===history.current.
+  7. Keep the slim pair bar + "Change" edit affordance, Escape/close.
+  autoCmp was REMOVED in Vision (r250) — deck nav just navigates; compare opens only via the toggle. This
+  CONTRADICTS spec R2 "auto compare-to-current" — FLAG to operator; our panel opens compare explicitly, which
+  matches current Vision behaviour, so keep as-is.
+
 ## Execute (QUIET window — after the DRS visionary passes finish + the drone r.153 tab fix; it edits the
 ## compiled panel, which collides with the visionary tsc/test:ci)
 Rework rcore-revision-panel.tsx to the above; extend compareRevisions; keep every existing data-* hook
