@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (Concept · G1): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.126";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.127";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -562,13 +562,13 @@ export const SLIDE_SEED_DRS: SlideSeed = {
       },
       prio: {
         hi: [
-          ["1", "Horizon 1 — Governed Leadership State", "G2 measurement-design tabletop → G3 instrumented A/B"],
+          ["1", "Horizon 1 — Governed Leadership State", "Forward de-risking plan (after the Concept gate): G2 measurement-design tabletop → G3 instrumented A/B"],
           ["2", "Horizon 2 — Absorb the benchmark's surface by qualification (one-ninth (11.1 %) gate), alerting last", "After the leadership-layer wedge is proven; each function on its own clock"],
           ["3", "Horizon 3 — Enterprise Decision Graph", "2030 horizon"],
           ["4", "Horizon 4 — Recursive Readiness (R-CORE-informed)", "2030 → 2525"],
         ],
         ai: [
-          ["1", "Horizon 1 — Governed Leadership State", "G2 measurement-design tabletop → G3 instrumented A/B"],
+          ["1", "Horizon 1 — Governed Leadership State", "Forward de-risking plan (after the Concept gate): G2 measurement-design tabletop → G3 instrumented A/B"],
           ["2", "Horizon 2 — Absorb the benchmark's surface by qualification (one-ninth (11.1 %) gate), alerting last", "After the leadership-layer wedge is proven; each function on its own clock"],
           ["3", "Horizon 3 — Enterprise Decision Graph", "2030 horizon"],
           ["4", "Horizon 4 — Recursive Readiness (R-CORE-informed)", "2030 → 2525"],
