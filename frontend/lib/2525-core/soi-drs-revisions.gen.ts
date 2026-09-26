@@ -4,7 +4,7 @@
 
 import type { DrsRevisionInput } from "@/lib/2525-core/revisions";
 
-/** SoI-2525 DRS revision record — 34 revisions, extracted at build time. */
+/** SoI-2525 DRS revision record — 127 revisions, extracted at build time. */
 export const SOI_DRS_REVISIONS: DrsRevisionInput[] = [
   {
     "revision": "0.001",
@@ -242,6 +242,657 @@ export const SOI_DRS_REVISIONS: DrsRevisionInput[] = [
     "date": "2026-09-25",
     "kind": "release",
     "why": "Round 28 of 99 (twelve lenses) continues the density discipline of D30–D35 with a within-field de-duplication that is the sibling of last round's: S12.l60.hi[0] (Go-To-Market — the future-commercial-forms line) carried the whole five-item enumeration on the shown face, while S12.l60.ai[0] already held that exact line verbatim. This round trims the shown line to a representative pair plus a pointer to the note and the governing rule that customer WTP and CTS determine the form, so both lines of the Go-To-Market resourcing panel now read as one home each rather than a face that repeats its own note; the full five-form list survives in l60.ai[0]. The decision register grows to D36, the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.034. No printed number, date or law moved (the line carries no digit); hi stays string[] (2), ai unchanged (3) and still the superset.",
+    "commit": "14619e2"
+  },
+  {
+    "revision": "0.035",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 29 of 99 (twelve lenses) completes the Go-To-Market density pass of D35–D36: S12.l30.hi[0] (the validation-sequence line) still printed every per-segment teardown in full on the shown face, while S12.l30.ai[0] already carried that exact text verbatim and the three benchmarks are already shown on S1.market, S1.ask and S8.nba. This round trims the shown line to the three sequence labels (1 EDU — first proof · 2 FOOD — second proof · 3 TECH — scale-potential) plus a pointer to the note, so all three shown quadrants of the Go-To-Market slide (l60 cost-to-serve, l60 commercial-forms, l30 validation-sequence) now read as labels or a settled line plus a pointer — the slide reads as one uniform surface, which also raises stability. The decision register grows to D37; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.035. No printed number, date or law moved (the segment numbers 1 / 2 / 3 stay); hi stays string[] (2), ai unchanged (4) and still the superset. The full teardown detail survives in l30.ai[0].",
+    "commit": "6c9b3fd"
+  },
+  {
+    "revision": "0.036",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 30 of 99 (twelve lenses) opens a comprehension pass after the Go-To-Market density pass (D30–D37) closed: the deck's most load-bearing architectural term, \"the one-ninth gate,\" is used on ~17 shown faces but was defined on none — only S4's note glossed it (D14) and the master carries \"the one-ninth (11.1 %) gate.\" This round defines it once, at its first shown appearance (S1.oneline, the ladder): a function goes native only after it removes at least a ninth of the benchmark's baseline on its clock, a floor to qualify. The definition mirrors into oneline.ai (kept the superset), invents no number, and moves no printed figure, date or law (the years 2027 / 2030 / 2525 stay); the S1 cell grows to ~370 chars, under the kept financial-core and single-argument cells laws 3 and 6 keep on the face. Every one of the term's ~17 later uses is now legible where the reader first meets it, raising scalability, efficiency and stability at a negligible succinctness cost. The decision register grows to D38; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.036.",
+    "commit": "d86e7c2"
+  },
+  {
+    "revision": "0.037",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 31 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate to the deck's other load-bearing acronym, NBA. NBA is used on ~13 shown faces (S1.ask, S5.statusquo, S7.personas, S8.nba, S11.voc, S13.deps, S15.voc, S16.saydo) but was spelled out on no shown face and nowhere in the seed. This round defines it once, at its first shown appearance (S1.ask): \"an NBA is a segment's Next Best Alternative, the primary competitor a buyer would use instead, shown in the market table,\" and mirrors the expansion into the S1 note tier (segment.ai). The expansion is drawn verbatim from the v0.9 manuscript of record; it invents no market, moves no printed figure, date or law (no digit touched; the three primary NBAs are unchanged) and keeps the note a superset of the face. Anchored on two unique strings, so only S1.ask.hi and S1.segment.ai change. The decision register grows to D39; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.037. Raises scalability, stability and efficiency at a negligible succinctness cost.",
+    "commit": "e1e6c4c"
+  },
+  {
+    "revision": "0.038",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 32 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate (D38) and NBA (D39) to the deck's most load-bearing money marker, IA. IA is law 3's mark on every declared dollar; it stamps ~26 shown figures across S3 / S4 / S8 / S12 / S13 / S14 / S16 but was spelled out on no shown face and nowhere in the seed. This round defines it once, at its first shown appearance (S3.fincomment): \"DECLARED (IA — an internal assumption, not buyer-validated)\", with the identical S3 note cell carrying the same expansion. The expansion is drawn from the master financialModel.status; it invents no number, moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the twice-occurring string, so only the two S3 cells change. The decision register grows to D40; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.038. Raises scalability, stability and efficiency at a negligible succinctness cost.",
+    "commit": "fd1283a"
+  },
+  {
+    "revision": "0.039",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 33 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate (D38), NBA (D39) and IA (D40) to the deck's most-used remaining acronym, CTS. CTS is the term the pricing law turns on (no price until WTP clears CTS + hurdle; Contribution = validated WTP − CTS); it appears on ~31 shown faces but a cold reader first meets it in the G2 ask on the summary and it is spelled out only ten slides later, on S12. This round defines it once, at its first shown appearance (S1.ask.hi, beside the NBA gloss D39 added): \"CTS is what CrisisCommand spends to serve a customer, the cost a validated price must clear,\" with the S1 note tier carrying the same expansion. The expansion is drawn from the seed's own cost-to-serve usage and the master's pricing rule; it invents no number, moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the unique S1.ask.hi string, so only the shown ask cell and its note mirror change. The decision register grows to D41; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.039. Raises scalability and stability at a negligible succinctness cost.",
+    "commit": "a98bf59"
+  },
+  {
+    "revision": "0.040",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 34 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate (D38), NBA (D39), IA (D40) and CTS (D41) to the deck's last unglossed load-bearing acronym, WTP. WTP is one of the two terms the pricing law turns on (no price until WTP clears CTS + hurdle; Contribution = validated WTP − CTS); a cold reader first meets it on the risk slide (S2.toprisks.hi[3], \"a new SKU invented before WTP evidence\") a slide before \"willingness to pay\" is spelled out on S3. This round defines it once, at its first shown appearance (S2.toprisks.hi[3]): \"a new SKU invented before WTP (willingness to pay) evidence,\" with the S2 note tier carrying the fuller gloss. The expansion is drawn from the seed's own \"willingness to pay\" usage and the master's pricing rule; it invents no number, moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the unique S2.toprisks.hi[3] and ai[3] strings, so only those two cells change. With CTS (D41), both terms of the contribution equation now define themselves where a reader first meets them. The decision register grows to D42; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.040. Raises scalability, stability and efficiency at a negligible succinctness cost.",
+    "commit": "d467e25"
+  },
+  {
+    "revision": "0.041",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 35 of 99 (twelve lenses) extends the comprehension pass D38 opened — define every shown term where a cold reader first meets it — from the one-ninth gate (D38), NBA (D39), IA (D40), CTS (D41) and WTP (D42) to the deck's two remaining unglossed load-bearing marks, the validation gates G2 and G3. A cold reader first meets both in the summary ask (S1.ask) — \"G2 ask … G3 A/B\" — a slide before they are spelled out on the S2 roadmap. This round defines them once, at their first shown appearance (S1.ask.hi), inline beside the NBA and CTS glosses already there: \"G2 · G3 are the two validation gates — G2 approves the measurement design, G3 runs the instrumented A/B\", with the S1 note tier carrying the fuller gloss. The expansion is drawn from the seed's own roadmap gloss and the master stageGate; it invents no number, moves no printed figure, date or law (no digit touched; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the unique S1.ask.hi and ask.ai strings, so only the two S1 ask cells change. The decision register grows to D43; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.041. With G2 and G3 defined, the D38 self-explaining-term class is complete for the marks a cold reader cannot resolve at first sight. Raises scalability, stability and efficiency at a negligible succinctness cost.",
+    "commit": "eb750c9"
+  },
+  {
+    "revision": "0.042",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 36 of 99 (twelve lenses) opens a new comprehension class after the D38 self-explaining-term class closed at D43. D43 completed that class for the deck's architectural and method marks; one category was left standing — the financial acronyms a reader without analytics training meets on the shown financial face, the audience the operator named (\"system thinkers who lack data analytics knowhow\"). The load-bearing member is NPV, the deck's headline return: it appears on the shown face first in the financial-reset line (S3.fincomment.hi[0]) and then two lines down as the live figure \"NPV proxy +1.0 M\" (S3.fincomment.hi[2]) — the number an investor weighs first — yet was spelled out on no shown face. This round defines it once, at its first shown appearance: \"SAM, SOM, NPV (net present value), IRR or CTS\", with the identical S3 note cell carrying the same expansion. The expansion is drawn from the master npv.formula / npv.note (net present value is the return in today's dollars); it invents no number, moves no printed figure, date or law (no digit touched; +1.0 M is unchanged) and keeps the note a superset of the face. Anchored on the twice-occurring \"do not reuse old DRS prices, SAM, SOM, NPV, IRR or CTS.\" string (hi[0] + ai[0], count 2), so only those two S3 cells change; the S1.market.ai and S12.l0 variants resolve upstream on S3. The decision register grows to D44; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.042. Raises scalability, stability and efficiency at a negligible succinctness cost.",
+    "commit": "0e050d8"
+  },
+  {
+    "revision": "0.043",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 37 of 99 (twelve lenses) extends the financial-acronym comprehension class D44 opened — define the shown financial figures a reader without analytics training cannot resolve at first sight — from NPV, the deck's headline return (D44), to CAGR, the deck's headline growth rate and the one the operator asked for by name (\"ensure 2027-2030 financials to allow for 3 year CAGR\"). CAGR is a live figure the case turns on, printed on the shown face in the Ramp line (S3.fincomment.hi[2], \"3-year CAGR 2027 → 2030 = 115 %\") and the identical note cell (ai[2]), yet spelled out on no shown face (0 occurrences of \"compound annual growth rate\" in the seed). This round defines it once, at its first shown appearance, inline beside the NPV gloss (D44) and the IA gloss (D40): \"3-year CAGR (compound annual growth rate) 2027 → 2030 = 115 %\". The expansion is drawn from the master financialModel.ramp (cagr2027to2030Pct 115, note \"6 → 60 accounts from 2027 to 2030 is 10× in three years = 115 % CAGR\"); it invents no number, moves no printed figure, date or law (no digit touched; 115 % is unchanged; every dollar re-derives from the same declared inputs) and keeps the note a superset of the face. Anchored on the twice-occurring string (hi[2] + ai[2], count 2), so only those two S3 cells change; the S1 / S12 reset-list variants carry no CAGR figure and are untouched. With the return (NPV) and the growth (CAGR) both defined where a reader first meets them, the two live finance figures the case turns on now read without a glossary. The decision register grows to D45; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.043. Raises scalability, stability and efficiency at a negligible succinctness cost.",
+    "commit": "491349c"
+  },
+  {
+    "revision": "0.044",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 38 of 99 (twelve lenses) extends the financial-analytics comprehension class D44 opened — define the shown financial figures a reader without analytics training cannot resolve at first sight — from NPV, the deck's headline return (D44), and CAGR, its headline growth (D45), to P(loss), the last unglossed term in the deck's central value equation. On the shown financial face (S3.fincomment.hi[3] and the identical ai[3]) the whole model's arithmetic is written out and every term names itself inline — Verified $/min, Time Value, Modeled Value, Contribution — except the probability symbol P(loss) in the risk-adjusted leg, which sizes the 60 k risk-adjusted outcome, a third of the 180 k modeled value (D17). This round defines it once, at its first shown appearance in the equation, matching the D44 / D45 parenthetical-gloss pattern: \"Risk-Adjusted Value = (P(loss) (the probability of a loss) before − P(loss) after) × consequence value\", with the identical S3 note cell carrying the same expansion. The expansion is drawn from the value equation itself and the master financialModel.singleCustomer.riskAdjustedOutcomeUsdK; it invents no number, moves no printed figure, date or law (no digit touched; 60 k / 180 k / 115 % unchanged) and keeps the note a superset of the face. Anchored on the twice-occurring \"Risk-Adjusted Value = (P(loss) before − P(loss) after) × consequence value, ranges only\" string (hi[3] + ai[3], count 2), so only those two S3 cells change; the S14 / S15 \"P before − P after\" variants resolve upstream on S3. With the return (NPV), the growth (CAGR) and the risk factor (P(loss)) all defined where a reader first meets them, the deck's central value equation now reads end to end for any reader. The decision register grows to D46; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.044. Raises scalability, stability and efficiency at a negligible succinctness cost.",
+    "commit": "d414816"
+  },
+  {
+    "revision": "0.045",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 39 of 99 (twelve lenses) opens a market-sizing comprehension class after the financial-figure class D44 opened and D46 closed. D44–D46 defined the three live money figures the case turns on — NPV (return), CAGR (growth), P(loss) (risk factor) — and D46 closed that class, noting it could extend only to a money term that both appears on a shown face and carries a live figure. One category was left standing: TAM, a market-sizing term a reader without analytics training meets on a shown face, which carries no live figure but shapes the reader's understanding of the positioning. It is the load-bearing member of the new class: the go-to-market slide's positioning line (S12.l30.hi[1] and the identical ai[1]) reads \"This is a validation sequence, not a TAM ranking\", and the deck repeats the disclaimer (S1.segment.ai; S12.l30.ai[2]) because refusing a market-size ordering is a deliberate positioning statement the case turns on — the sequence EDU → FOOD → TECH is by proof order, never by market size. Yet the three initials were spelled out on no shown face (grep: 0 occurrences of \"total addressable market\"). This round defines it once, at its first shown appearance, matching the D44 / D45 / D46 parenthetical-gloss pattern: \"This is a validation sequence, not a TAM (total addressable market) ranking\", with the identical S12 note cell carrying the same expansion. The expansion is drawn from the master financialModel market model (podInputs / ramp) and the deck's own reset line; it invents no number, moves no printed figure, date or law (no digit touched) and keeps the note a superset of the face. This is a new class, distinct from the closed financial-figure class, because TAM carries no live figure. Anchored on the twice-occurring string (hi[1] + ai[1], count 2), so only those two S12 cells change; the S12.l30.ai[2] and S1.segment.ai variants resolve upstream on S12. The decision register grows to D47; the S2 status and S18 end-of-life register lines and the provenance footer bump to rev 0.045. Raises scalability, stability and efficiency at a negligible succinctness cost.",
+    "commit": "a03fd35"
+  },
+  {
+    "revision": "0.046",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 40 of 99 (twelve lenses) extends the comprehension pass from the deck's financial figures (NPV D44, CAGR D45, P(loss) D46) and its market-sizing term (TAM D47) to CASPER, the last unglossed load-bearing domain-method acronym in the deck and the one carrying its differentiator moat. CASPER appears on the citizen / recipient persona row (S7.personas.hi[3] and the identical opening of ai[3]): 'their need enters the record as operational truth (CASPER-shaped intake)'. That row is the deck's moat — every NBA (Rave, Everbridge 360 AI / Bridge, PagerDuty) treats the affected person as a recipient of alerts only, while CrisisCommand makes the citizen a source of truth whose need enters the leadership record before the posture is approved (the operator's explicit 'add differentiator value'; a Vision 2525 goal). Yet CASPER — CDC's Community Assessment for Public Health Emergency Response — is the least resolvable term in the deck, spelled out on no shown face, so a cold reader met 'CASPER-shaped intake' and could not open it, and the differentiator it carries was invisible. This round defines it once, at its first shown appearance, in the record's own words drawn from the master needsAssessment and docs/drs/NEEDS_ASSESSMENT_RESEARCH.md: 'a standard community-assessment record: who · where · what is lacking · severity · who is responsible · time'. No printed figure, date or law moved (D48).",
+    "commit": "edf3749"
+  },
+  {
+    "revision": "0.047",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 41 of 99 (twelve lenses) extends the comprehension pass from the deck's financial figures (NPV D44, CAGR D45, P(loss) D46), its market-sizing term (TAM D47) and its differentiator domain-method acronym (CASPER D48) to PHI, the last unglossed load-bearing regulatory / compliance acronym on a shown face. PHI appears on the risk slide's health-data boundary row (S13.tech.hi[2] and the identical ai[2]): 'Data / PHI boundary erodes under one platform … HEALTH stays outside PHI' — a security pillar of the case, the boundary that keeps the platform clear of a health-data liability an investor weighs and a customer trusts. Yet PHI — protected health information — was spelled out on no shown face, so a cold reader met the boundary row and could not open the acronym the safeguard turns on. This round defines it once, at its first shown appearance, in three plain words drawn from the deck's own risk record: 'protected health information'. No printed figure, date or law moved (D49).",
+    "commit": "89c9102"
+  },
+  {
+    "revision": "0.048",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 42 of 99 (twelve lenses) extends the comprehension pass from the deck's financial figures (NPV D44, CAGR D45, P(loss) D46), its market-sizing term (TAM D47), its differentiator domain-method acronym (CASPER D48) and its regulatory / compliance boundary acronym (PHI D49) to SLA, the highest-ranked unglossed load-bearing acronym remaining on a shown face. SLA appears on the resourcing slide's TECH clock value-equation inputs (S14.ftedollar.hi[2] and its matching ai[2]): 'inputs: … advisor burn · attributable / SLA exposure' / '… contractual / SLA exposure where leadership delay matters' — a live economic input the case turns on, one of the buyer-verified inputs the TECH clock sources its value from. Yet SLA — service-level agreement — was spelled out on no shown face, so a cold reader met the input and could not open the acronym the contractual exposure turns on. This round defines it once, at its first shown-face appearance (S14.ftedollar.hi[2]) and mirrored on the matching ai[2], in three plain words drawn from the deck's own value equation: 'service-level agreement'. This round also corrects a record drift: round 0.047 bumped S2's register to D1–D49 but its S18 e0 edit did not land in the seed, leaving S18 at D1–D48; both S2 and S18 e0 now read one count, D1–D50. No printed figure, date or law moved (D50).",
+    "commit": "fe7f6fe"
+  },
+  {
+    "revision": "0.049",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 43 of 99 (twelve lenses) CLOSES the acronym-comprehension pass that D44–D50 opened from the deck's financial figures (NPV D44, CAGR D45, P(loss) D46), its market-sizing term (TAM D47), its differentiator domain-method acronym (CASPER D48), its regulatory / compliance boundary acronym (PHI D49) and its value-equation input (SLA D50) to SITREP, the last unglossed acronym on any shown face. Round 42 (D50) named SITREP the last remaining acronym on a shown face and deferred it as the lowest-load-bearing (the product-summary current-foundation list, 'do not re-sell as new'); this round opens it first — before the deck enters the S11 evidence-gated plateau — because a cold or 2525 reader still meets it unglossed and cannot open it. SITREP — situation report — was spelled out on no shown face; this round defines it once at its first shown appearance (S6.problem.hi[1]) and its matching ai[1], in two plain words drawn from the deck's own current-state text: 'situation reports'. From rev 0.049 every acronym a cold reader meets on any shown face is defined where they meet it. No printed figure, date or law moved (D51).",
+    "commit": "eea19dd"
+  },
+  {
+    "revision": "0.050",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 44 of 99 (twelve lenses) opens a consistency-reconciliation pass after the acronym-comprehension pass (D44–D51) closed at round 43. The absorption gate — the hinge of the one-platform thesis, a benchmark function going native only after it removes at least a ninth of the benchmark's baseline on its clock (D38) — was defined on the shown face (S1.oneline) as only the fraction 'a ninth', while the master platform ladder already records it quantitatively as 'the one-ninth (11.1 %) gate' (platform.ladder, 2030 horizon). A precise-minded reader (an investor, a system thinker, an execution genius, a 2525 reader) met the load-bearing threshold on the summary and could not read its exact value, though the record held it. This round adds '(11.1 %)' at the gate's definition on S1.oneline.hi and its matching ai, so the shown face reads 'removes at least a ninth (11.1 %) of the benchmark's baseline on its clock', matching the master ladder verbatim. 11.1 % is 1/9 — pure arithmetic the master already carries — so the edit invents nothing and moves no printed money, date or law (no dollar touched; 60 k / 180 k / 115 % / the ramp unchanged); it agrees with S4's stop rule (11.1 % of 130 = 14.4). S2 status and S18 e0 carry rev 0.050 and the grown D1–D52 register; PROV and the row provenance bump to rev 0.050 (D52).",
+    "commit": "eb3482b"
+  },
+  {
+    "revision": "0.051",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 45 of 99 (twelve lenses) continues the consistency-reconciliation pass D52 opened at round 44. The absorption gate — the hinge of the one-platform thesis, a benchmark function going native only after it removes at least a ninth (11.1 %) of the benchmark's baseline on its clock (D38) — carried its exact threshold on the summary (S1, D52) and in the master platform ladder, but the two other shown faces where the thesis is weighed still named only the fraction: the Horizon-2 roadmap headline (S2.roadmap) and the top commercial-risk mitigation (S13.comm, 'Absorbing the benchmark's surface before the leadership proof'). This round adds '(11.1 %)' at the gate on both, so they read 'the one-ninth (11.1 %) gate', matching the master ladder verbatim and S1. 11.1 % is 1/9 — pure arithmetic the master already carries — so the edit invents nothing and moves no printed money, date or law (no dollar touched; 60 k / 180 k / 115 % / the ramp unchanged); it agrees with S4's stop rule (11.1 % of 130 = 14.4). Four of the seed's nineteen 'one-ninth gate' occurrences become 'one-ninth (11.1 %) gate', leaving fifteen contiguous (the ≥3 lock holds). S2 status and S18 e0 carry rev 0.051 and the grown D1–D53 register; PROV and the row provenance bump to rev 0.051 (D53).",
+    "commit": "6053dd8"
+  },
+  {
+    "revision": "0.052",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 46 of 99 (twelve lenses) CLOSES the consistency-reconciliation pass D52 opened (round 44) and D53 continued (round 45). The absorption gate — the hinge of the one-platform thesis, a benchmark function going native only after it removes at least a ninth (11.1 %) of the benchmark's baseline on its clock (D38) — carried its exact threshold on the summary (S1, D52), the Horizon-2 roadmap headline and the top commercial-risk mitigation (S2 / S13, D53), but three shown faces still named only the fraction: the resourcing Horizon-2 note (S14.notes), the beta-feedback priority row (S15.prio) and the post-launch 2030 priority row (S17.prio). This round adds '(11.1 %)' at the gate on all three (and their matching ai cells), so they read 'the one-ninth (11.1 %) gate', matching the master ladder verbatim; with this, every SHOWN face where the gate is load-bearing carries its exact value and the class is closed. 11.1 % is 1/9 — pure arithmetic the master already carries — so the edit invents nothing and moves no printed money, date or law (no dollar touched; 60 k / 180 k / 115 % / the ramp unchanged); it agrees with S4's stop rule (11.1 % of 130 = 14.4). Six of the seed's fifteen 'one-ninth gate' occurrences become 'one-ninth (11.1 %) gate', leaving nine contiguous (the >=3 lock holds). S2 status and S18 e0 carry rev 0.052 and the grown D1–D54 register; PROV and the row provenance bump to rev 0.052 (D54).",
+    "commit": "077eb12"
+  },
+  {
+    "revision": "0.053",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 47 of 99 (twelve lenses) opens a plain-language comprehension-reconciliation class after the one-ninth-gate shown-face class closed at round 46 (D52-D54). The single-customer ramp's growth from six to sixty paying accounts across 2027-2030 is shown on S3.fincomment as the account trajectory and the 3-year CAGR (115 %), while the master financialModel.ramp.note already frames that same rise plainly as '10x in three years' - a plain multiple a non-analyst (a business owner, a system thinker without analytics know-how, a 2525 reader) reads without computing a compound annual growth rate. This round adds '- a 10x rise in three years' beside the CAGR on S3.fincomment.hi[2] and its identical ai[2], so the shown face carries both the plain multiple and the rate, matching the master ramp note verbatim. 10x is the same 6 -> 60 accounts already printed on the same bullet and 115 % compounded three times is 2.15^3 = 10 - pure arithmetic the master already carries - so the edit invents nothing and moves no printed money, date or law (60 k / 180 k / 115 % / 2,121 account-years / 248 M / the ramp all unchanged; law 3's financialModel inputs untouched). S2 status and S18 e0 carry rev 0.053 and the grown D1-D55 register; PROV and the row provenance bump to rev 0.053 (D55).",
+    "commit": "7f77a8a"
+  },
+  {
+    "revision": "0.054",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 48 of 99 (twelve lenses) continues the plain-language comprehension-reconciliation class D55 opened at round 47. The single-customer ramp's endpoint — 640 paying accounts by 2036 — is shown on S3.fincomment as a bare count, while the master financialModel.ramp.note already frames that same endpoint plainly as 'one tenth of the benchmark's installed base' — a plain share a non-analyst (a business owner, a system thinker without analytics know-how, a 2525 reader) reads without knowing the benchmark's size. Round 47 brought the ramp note's first plain framing ('10x in three years') onto S3 beside the 115 % CAGR (D55); this round brings its second ('≈ one tenth of the benchmark's installed base') onto S3 beside the 640, so the shown face carries the endpoint's plain scale beside its count, matching the master ramp note verbatim. 640 by 2036 is already printed on the same bullet and the framing is the record's own — the edit invents nothing and moves no printed money, date or law (60 k / 180 k / 115 % / 2,121 account-years / 248 M / the ramp all unchanged; law 3's financialModel inputs untouched; the one-ninth-gate ≥3 lock holds at 9). S2 status and S18 e0 carry rev 0.054 and the grown D1–D56 register; PROV and the row provenance bump to rev 0.054 (D56).",
+    "commit": "dea6878"
+  },
+  {
+    "revision": "0.055",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 49 of 99 (twelve lenses) continues the plain-language comprehension-reconciliation class D55 opened at round 47 and D56 continued at round 48. The single-customer price's capture rate — 33 % — is shown on S3.fincomment as a bare percentage before the 60 k price, while the master financialModel.singleCustomer.note already frames that same rate plainly as 'the Pod's default capture fraction' (declared). A business owner, a system thinker without analytics know-how, or a 2525 reader could read the percentage but not tell a validated rate from a declared assumption — and law 3 (money is DECLARED, never buyer-validated) went untold on the face for the deck's most load-bearing number. This round adds '(the Pod's default capture fraction)' beside the 33 % on S3.fincomment.hi[1] and its identical ai[1], matching the master note verbatim; it invents nothing and moves no printed money, date or law (60 k / 180 k / 115 % / 10x / one-tenth / 2,121 account-years / 248 M / the ramp all unchanged; the one-ninth-gate ≥3 lock holds at 9). Security rises as the headline price's rate now reads on the shown face as a declared default rather than a validated fact (D57).",
+    "commit": "1692760"
+  },
+  {
+    "revision": "0.056",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 50 of 99 (twelve lenses) continues the plain-language comprehension-reconciliation class D55 opened at round 47 (D56 at 48, D57 at 49). The single-customer return — the +1.0 M NPV proxy at the G2 weighting — is shown on S3.fincomment as a bare figure with its weighting, while the master financialModel.npv.note already frames that same proxy plainly as 'positive and non-zero … the proxy is the Pod's demo model, stated as such' (declared). A business owner, a system thinker without analytics know-how, or a 2525 reader could read the number but not tell a projected return from a declared demo model — and law 3 (money is DECLARED, never buyer-validated) went untold on the face for the deck's headline return, the counterpart to the price D57 marked. This round adds '— positive and non-zero, the Pod's demo model, stated as such' beside the +1.0 M on S3.fincomment.hi[2] and its identical ai[2], matching the master npv.note; it invents nothing and moves no printed money, date or law (60 k / 180 k / 115 % / 10x / one-tenth / 33 % / +1.0 M / 2,121 account-years / 248 M / the ramp all unchanged; the one-ninth-gate ≥3 lock holds at 9). Security rises as the headline return's standing now reads on the shown face as a declared demo model that is positive and non-zero rather than a validated fact (D58). S2 status and S18 e0 carry rev 0.056 and the grown D1–D58 register; PROV and the row provenance bump to rev 0.056.",
+    "commit": "c434aa4"
+  },
+  {
+    "revision": "0.057",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 51 of 99 (twelve lenses) continues the plain-language comprehension-reconciliation class D55 opened at round 47 (D56 at 48, D57 at 49, D58 at 50). The single-customer resource total — 11.2 M of spend across 2026–2036 — is shown on S3.fincomment as a bare figure and its phase split, while the master financialModel.tenYear.nreNote already frames that same spend plainly as 'resources exist for the full eleven years (IA)' — the operator's D10 directive ('resources must exist for full 11 years for 10 year financial and resource build') made plain. A business owner, a system thinker without analytics know-how, or a 2525 reader could read the total but not tell whether the build is funded for one year or eleven — and law 3 (money is DECLARED, never buyer-validated) went untold on the face for the spend, the cost counterpart to the ramp revenue (D55/D56), the price (D57) and the return (D58) already marked. This round adds ' — resources exist for the full eleven years (IA)' beside the 11.2 M on S3.fincomment.hi[2] and its identical ai[2], matching the master nreNote; it invents nothing and moves no printed money, date or law (60 k / 180 k / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; the one-ninth-gate ≥3 lock holds at 9). Security rises as the resource total's standing now reads on the shown face as a declared full eleven-year build rather than an unmarked figure (D59). S2 status and S18 e0 carry rev 0.057 and the grown D1–D59 register; PROV and the row provenance bump to rev 0.057.",
+    "commit": "4049342"
+  },
+  {
+    "revision": "0.058",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 52 of 99 (twelve lenses) continues the plain-language comprehension-reconciliation class D55 opened at round 47 (D56 at 48, D57 at 49, D58 at 50, D59 at 51). The single-customer baseline — the head of the S3 financial derivation — is shown on S3.fincomment as a bare 'one Pro Enterprise institution', while the master financialModel.singleCustomer.archetype already frames that same baseline plainly as 'one Pro Enterprise institution (EDU beachhead; FOOD / TECH analogous)' — which customer the whole money model is anchored on and that it generalizes to the other two segments. A business owner, a system thinker without analytics know-how, or a 2525 reader could read the institution but not which customer it models or whether it reaches beyond one — the anchor the record already held. This round adds ' (EDU beachhead; FOOD / TECH analogous)' beside the institution on S3.fincomment.hi[1] and its identical ai[1], matching the master archetype verbatim; it invents nothing and moves no printed money, date or law (60 k / 180 k / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; the one-ninth-gate ≥3 lock holds at 9). Scalability and efficiency rise as the non-analyst now reads which customer the baseline models and that it reaches all three segments, the money model legible without cross-referencing S1 / S4 (D60). With the customer, value, price, ramp, return and resources all named on the face, the whole financial reading carries its plain framing where it is met. S2 status and S18 e0 carry rev 0.058 and the grown D1–D60 register; PROV and the row provenance bump to rev 0.058.",
+    "commit": "a95d22b"
+  },
+  {
+    "revision": "0.059",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 53 of 99 (twelve lenses) continues the plain-language comprehension-reconciliation class D55 opened at round 47 (D56 at 48, D57 at 49, D58 at 50, D59 at 51, D60 at 52). The single-customer model carries two commercial tiers — 60 k for the governed leadership state (Horizon 1) and 120 k for the whole platform once the benchmark's functions are native (Horizon 2) — but on S3.fincomment the second price was shown as 'then 120 k a year once the benchmark's functions are native (2031+)', its number and trigger but never named as a tier, while the master financialModel.tiers.'2031+'.what already frames it plainly as the 'platform tier'. A business owner, a system thinker without analytics know-how, or a 2525 reader could read the doubling but not that the 120 k is a distinct commercial tier — the whole platform — rather than an arbitrary increase. This round adds ', the platform tier' inside the parens beside the 120 k on S3.fincomment.hi[2] and its identical ai[2], matching the master tiers verbatim; it invents nothing and moves no printed money, date or law (60 k / 120 k / 180 k / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; the one-ninth-gate ≥3 lock holds at 9). Scalability and efficiency rise as the non-analyst now reads the second price as a named platform tier rather than a bare doubling, the two-tier structure legible without cross-referencing the master or S12 (D61). With the customer, value, price, its capture, the two tiers, the ramp, the return and the resources all named on the face, the whole financial reading carries its plain framing where it is met. S2 status and S18 e0 carry rev 0.059 and the grown D1–D61 register; PROV and the row provenance bump to rev 0.059.",
+    "commit": "b7f91a3"
+  },
+  {
+    "revision": "0.060",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 54 of 99 (twelve lenses) continues the plain-language comprehension-reconciliation class D55 opened at round 47 (D56 at 48, D57 at 49, D58 at 50, D59 at 51, D60 at 52, D61 at 53). The single-customer model carries two commercial tiers — 60 k for the governed leadership state (Horizon 1) inside the existing Pro Enterprise tier and 120 k for the whole platform once the benchmark's functions are native (Horizon 2), the platform tier. D61 named the second tier beside its 120 k on S3.fincomment, but the first price still read as a bare 'at 60 k' with its tier unnamed, while the master financialModel.tiers.'2027-2030'.what already frames it plainly as 'inside the existing Pro Enterprise tier'. A business owner, a system thinker without analytics know-how, or a 2525 reader could read the second tier's name but not tell whether the 60 k is a new fee or an existing tier — a matched pair left half-told. This round adds '(inside the existing Pro Enterprise tier)' inside a parenthetical beside the 60 k on S3.fincomment.hi[2] and its identical ai[2], mirroring the '(2031+, the platform tier)' parenthetical beside the 120 k, matching the master tiers verbatim; it invents nothing and moves no printed money, date or law (60 k / 120 k / 180 k / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; the one-ninth-gate ≥3 lock holds at 9; Pro Team → Pro Enterprise still reads on S12). Scalability and efficiency rise as the non-analyst now reads BOTH prices as named tiers — the first riding an existing product, the second the whole platform — the two-tier structure legible as a matched pair without cross-referencing the master or S12 (D62). With the customer, value, price, its capture, BOTH tiers, the ramp, the return and the resources all named on the face, the whole financial reading carries its plain framing where it is met, the two-tier pair now closed. S2 status and S18 e0 carry rev 0.060 and the grown D1–D62 register; PROV and the row provenance bump to rev 0.060.",
+    "commit": "883adc7"
+  },
+  {
+    "revision": "0.061",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 55 of 99 (twelve lenses) opens a kindred comprehension move now that the plain-language FINANCIAL reconciliation class D55–D62 has closed — D62 named the eighth and final master financial framing (the first price's own tier) onto S3, closing the two-tier pair. The class's spirit — bring the master's own plain-language framing onto the shown face where a non-analyst reads it — now moves from figures to the first STRATEGIC framing: the reason the platform benchmark is Everbridge 360 AI / Bridge. The master platform.why carries it plainly ('present in two of the three segment stacks (EDU beside Rave, FOOD outright); its buyer already believes in one platform') and S8.nba.ai already reads 'present in the EDU and FOOD stacks, its buyer already believes in one platform', but S8.nba.hi — the shown face — named the benchmark only by 'the only alternative whose surface spans the whole event', leaving the SELECTION reason (already in two of the three buyers' stacks, its buyer already believing in one platform, so displacing it is credible, not arbitrary) in the note and the master. A business owner, a system thinker without analytics know-how, or a 2525 reader could read that Everbridge is the widest surface but then ask why it, and not PagerDuty or Rave, anchors the whole one-platform thesis. This round adds '(present in the EDU and FOOD stacks, its buyer already believes in one platform)' inside a parenthetical beside that surface reason on S8.nba.hi, mirroring the parenthetical style D61/D62 struck on S3, matching S8.nba.ai and the master platform.why verbatim; it invents nothing and moves no figure, date, NBA pairing or law (60 k / 120 k / 180 k / 115 % / 10x / one-tenth / 33 % / +1.0 M / 11.2 M / 2,121 account-years / 248 M / the ramp all unchanged; EDU → Rave · FOOD → Everbridge · TECH → PagerDuty untouched; the one-ninth-gate ≥3 lock holds at 9; ai stays a strict superset). Scalability rises as the non-analyst now reads why the benchmark is the anchor — a credible displacement, not an arbitrary pick, the thesis's foundation legible on the face — and efficiency rises as the reason reads without cross-referencing the note or the master (D63). S2 status and S18 e0 carry rev 0.061 and the grown D1–D63 register; PROV and the row provenance bump to rev 0.061.",
+    "commit": "4bf32fc"
+  },
+  {
+    "revision": "0.062",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 56 of 99 continues the strategic-comprehension class D63 opened: the benchmark's WHY-NOW comes onto the shown face. The master platform.why closes with 'the incumbent already moving into the whitespace' — the competitive urgency that makes the one-platform displacement timely — and the deck carried that clause on no face. This round adds it to S8.nba.hi beside the selection ground D63 struck there, and mirrors it in S8.nba.ai so the note stays a strict superset, completing platform.why's clauses on the shown face; 'whitespace' is already S8's own shown vocabulary. No figure, date, NBA pairing or law moves; scalability and efficiency rise, the other three hold. S2 status and S18 register read rev 0.062 · D1–D64; PROV and the row provenance read rev 0.062; the previous release 0.061 records commit 4bf32fc.",
+    "commit": "9e6a655"
+  },
+  {
+    "revision": "0.063",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 57 of 99 (twelve lenses) continues the strategic-comprehension class D63/D64: the near-unanimous consensus behind the benchmark selection comes onto the shown face. The master platform.why carries one further business-relevant clause the deck showed on no face — 'Eleven of twelve reviewer lenses' — the strength of agreement that tells a non-analyst the benchmark pick is well-grounded, not one voice; S8.nba.ai already read it, the shown face did not. This round adds 'eleven of twelve reviewer lenses; ' at the head of the benchmark's selection-ground parenthetical on S8.nba.hi, mirroring S8.nba.ai and completing platform.why's business clauses (surface · stacks · buyer · why-now · consensus) on the face; the ellipsis-tail 'Enlil argued PagerDuty for buildability' is an internal review dissent, left off the deck by design. No figure, date, NBA pairing or law moves; ai stays a strict superset, unedited and far longer; scalability and efficiency rise, the other three hold. S2 status and S18 register read rev 0.063 · D1–D65; PROV and the row provenance read rev 0.063; the previous release 0.062 records commit 9e6a655.",
+    "commit": "4b73981"
+  },
+  {
+    "revision": "0.064",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 58 of 99 (twelve lenses) opens a public-reach-comprehension move now that the strategic-comprehension class D63–D65 completed the master platform.why's business clauses on the shown face S8.nba.hi. The brief's R-CORE section mandates every round tie CrisisCommand's crisis learnings to the steering of PUBLIC-GOVERNMENT projects, opened through the eXeL Polling API — a Vision 2525 goal — yet that public-body reach was carried on no shown (hi) face, only in the speaker notes (S4, S5, S12, S16, S17). This round brings the fourth market step onto the go-to-market face S12.l30.hi verbatim from l30.ai[3]: '4 PUBLIC BODY — after G3 (IA, D12): the fourth step in the sequence', a government asking its people through the eXeL Polling API, the approved posture and delivered result replayable by the body that owns it. It is D12's decision, not a new claim; marked (IA, after G3) and 'never a claimed customer' so law 3 and the no-overclaim law hold on the face; the ai stays a strict superset; no figure, date, NBA pairing or law moves. S2 status and S18 e0 read rev 0.064 · D1–D66; PROV and the row provenance read rev 0.064; the previous release 0.063 records commit 4b73981.",
+    "commit": "70f5c9f"
+  },
+  {
+    "revision": "0.065",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 59 of 99 (twelve lenses) continues the public-reach-comprehension class D66 opened at round 58: the public-government mission comes onto a second shown face. D66 brought the public body onto the go-to-market face S12; the R-CORE / post-launch slide S17 — the R-CORE face itself — still carried the loop, the ladder and the human-authority principle on its shown surface while its obs.ai held a full 'Public bodies (R-CORE as it already runs here): a government steers a public project through the same loop … asks its people through the eXeL Polling API … every approved posture and its outcome replayable … After G3, one public-body pilot (IA, D12)' element on no shown face. This round brings that element onto S17.obs.hi verbatim from S17.obs.ai. It is D12's decision, not a new claim; marked (IA, after G3) and 'one public-body pilot', never a claimed customer, so law 3 and the no-overclaim law hold on the face; the ai stays a strict superset; no figure, date, NBA pairing or law moves. S2 status and S18 e0 read rev 0.065 · D1–D67; PROV and the row provenance read rev 0.065; the previous release 0.064 records commit 70f5c9f.",
+    "commit": "679fcef"
+  },
+  {
+    "revision": "0.066",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 60 of 99 (twelve lenses) continues the public-reach-comprehension class D66 opened at round 58 and D67 continued at round 59: the public-government mission comes onto a third shown face. D66 brought the public body onto the go-to-market face S12; D67 onto the R-CORE / post-launch face S17; the customer-problem slide S5 — which states the governed-decision gap — still named that gap for the enterprise only on its shown surface, while its problem.ai held a full 'A public body steering a public project meets the same governed-decision gap: … the people it serves answer through the eXeL Polling API … every approved posture and its outcome is replayable by the body that owns it … transparent and accountable (IA, after G3, D12 · D27)' sentence on no shown face. This round brings that sentence onto S5.problem.hi verbatim from S5.problem.ai. It is D12 and D27's decisions, not a new claim; marked (IA, after G3) and never a claimed customer, so law 3 and the no-overclaim law hold on the face; the ai stays a strict superset; no figure, date, NBA pairing or law moves. S2 status and S18 e0 read rev 0.066 · D1–D68; PROV and the row provenance read rev 0.066; the previous release 0.065 records commit 679fcef.",
+    "commit": "340740e"
+  },
+  {
+    "revision": "0.067",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 61 of 99 (twelve lenses) continues the public-reach-comprehension class D66 opened at round 58, D67 continued at round 59 and D68 continued at round 60: the public-government mission comes onto a fourth shown face. D66 brought the public body onto the go-to-market face S12; D67 onto the R-CORE / post-launch face S17; D68 onto the customer-problem face S5; the end-of-life slide S18 — the export / handover face the brief names beside S12 — still carried the customer's open export only on its shown surface, while its e120.ai held 'For a public body the export is its citizens' record: opened through the eXeL Polling API so the people who answered can replay what was decided, by whom and why — transparency and accountability outlive the vendor' on no shown face. This round brings that sentence onto S18.e120.hi verbatim from S18.e120.ai[3]. It is D12's decision, not a new claim; never a claimed customer, so law 3 and the no-overclaim law hold on the face; the ai stays a strict superset; no figure, date, NBA pairing or law moves. S2 status and S18 e0 read rev 0.067 · D1–D69; PROV and the row provenance read rev 0.067; the previous release 0.066 records commit 340740e.",
+    "commit": "71ddb1d"
+  },
+  {
+    "revision": "0.068",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 62 of 99 (twelve lenses) continues the public-reach-comprehension class D66 opened at round 58, D67 continued at round 59, D68 continued at round 60 and D69 continued at round 61: the public-government mission comes onto a fifth shown face. D66 brought the public body onto the go-to-market face S12; D67 onto the R-CORE / post-launch face S17; D68 onto the customer-problem face S5; D69 onto the end-of-life export face S18; the market-performance slide S16 — which the brief names in the clause 'replayable by the public body that owns it (S13 · S16 · S17)' — still carried the enterprise A/B and the G2 / G3 split only on its shown surface, while its counter.ai held 'For a public body the same instrument rehearses a policy posture before adoption — its people asked through the eXeL Polling API, the posture approved under named authority, the outcome replayable by the body and by the citizens who answered (IA, after G3, D12); the decision record and replay it needs already run in this repo (R-CORE)' on no shown face. This round brings that sentence onto S16.counter.hi verbatim from S16.counter.ai[3]. It is D12's decision, not a new claim; marked (IA, after G3) and never a claimed customer, so law 3 and the no-overclaim law hold on the face; the ai stays a strict superset; no figure, date, NBA pairing or law moves. S2 status and S18 e0 read rev 0.068 · D1–D70; PROV and the row provenance read rev 0.068; the previous release 0.067 records commit 71ddb1d.",
+    "commit": "5dd973a"
+  },
+  {
+    "revision": "0.069",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 63 of 99 (twelve lenses) continues the public-reach-comprehension class D66 opened at round 58, D67 continued at round 59, D68 continued at round 60, D69 continued at round 61 and D70 continued at round 62: the public-government mission comes onto a sixth shown face and COMPLETES the R-CORE clause's three named faces (S13 · S16 · S17) on the shown surface. D66 brought the public body onto the go-to-market face S12; D67 onto the R-CORE / post-launch face S17; D68 onto the customer-problem face S5; D69 onto the end-of-life export face S18; D70 onto the market-performance face S16; the risk-highlights slide S13 — which the brief names in the clause 'replayable by the public body that owns it (S13 · S16 · S17)' — still carried its dependencies for the enterprise only on its shown surface (deps.hi), while its deps.ai held 'Public-body dependency (IA, after G3): one government owner for a project steered through the loop — its citizens' answers by the eXeL Polling API, its approved posture and delivered result replayable by the body and by the people it serves; nothing in the record's shape is crisis-specific.' on no shown face. This round brings that sentence onto S13.deps.hi verbatim from S13.deps.ai[3]. It is D12's decision, not a new claim; marked (IA, after G3) and never a claimed customer, so law 3 and the no-overclaim law hold on the face; the ai stays a strict superset (4 to 3); no figure, date, NBA pairing or law moves. S2 status and S18 e0 read rev 0.069 · D1–D71; PROV and the row provenance read rev 0.069; the previous release 0.068 records commit 5dd973a.",
+    "commit": "20b6f22"
+  },
+  {
+    "revision": "0.070",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 64 of 99 continues the public-reach-comprehension class (D66–D71) by opening the S4/S6/S7/S8 group the D71 note named: it rewrites S4.conops.hi step 8 in place, from 'the community answers back' to conops.ai[8] verbatim, so the customer-CONOPS operating-flow face itself now names that, for a public body, the community's answers enter the record through the eXeL Polling API (D72, D12) — a public-government reach that lived only in the note. The step is rewritten, not appended, so the CONOPS steps hold at 10 and conops.ai stays a strict superset; no figure, date, NBA pairing or law moves and never a claimed customer, so law 3 holds on the face. S2 status and S18 e0 register move to D1–D72 and the seed PROV / row provenance to rev 0.070. Means: security 96.33 · stability 97.17 · scalability 99.33 · efficiency 98.25 · succinctness 89.83 — all five rise, succinctness because an existing step was rewritten rather than a bullet appended.",
+    "commit": "9383dea"
+  },
+  {
+    "revision": "0.071",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 65 of 99 (twelve lenses) continues the public-reach-comprehension class D66 opened at round 58 and D67-D72 continued at rounds 59-64: the public-government mission comes onto an eighth shown face and CLOSES the S4<->S7 cross-reference round 64 opened. D72 rewrote S4.conops step 8 in place so the operating flow now POINTS a reader to S7 'for a public body, through the eXeL Polling API'; but S7.personas.hi[3], the citizen / recipient row, named the citizen answering back and their need entering the record 'as operational truth (a CASPER-shaped intake ...)' WITHOUT the public body or the eXeL Polling API it was cited for -- so the S4->S7 pointer resolved to a page missing its promised reach. This round rewrites S7.personas.hi[3][1] in place (and its ai sibling ai[3][1] with it, so the ai stays a strict superset, keeping '; stakeholder posture in every language, data resident in the customer's region.') to add, in the record's own words -- the exact phrase S4.conops carries -- 'for a public body, through the eXeL Polling API (S4)'. It is D12's decision, not a new claim; marked 'for a public body' and never a claimed customer, so law 3 and the no-overclaim law hold on the face; the persona rows hold at 5, nothing emptied; no figure, date, NBA pairing or law moves. S2 status and S18 e0 register move to D1-D73 and the seed PROV / row provenance to rev 0.071. Means: security 96.42 · stability 97.33 · scalability 99.50 · efficiency 98.42 · succinctness 90.00 -- all five rise, the succinctness mean reaching 90 for the first time because an existing cell was rewritten rather than a row appended. The previous release 0.070 records commit 9383dea.",
+    "commit": "bc6617c"
+  },
+  {
+    "revision": "0.072",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 66 of 99 (twelve lenses) continues the public-reach-comprehension class D66 opened at round 58 and D67–D73 continued at rounds 59–65: the public-government mission comes onto a NINTH shown face and continues the S4/S6/S7/S8 group on S6 (Product Summary), the architecture face, the THIRD of that group. S6.conops.hi[0] drew the architecture naming the operational systems (Rave · Everbridge · PagerDuty) as inputs but NOT the citizen's public answer, which lived only in conops.ai[4] (the interface-shape note). This round rewrites the INPUT clause IN PLACE in BOTH conops.hi[0] and conops.ai[0] to insert, in the record's own words — the exact phrase conops.ai[4] carries — '; for a public body, the citizen's answer enters through the eXeL Polling API as an evidence pointer (S4 · S7)'. Because both are rewritten in place, the architecture holds at one element on each face (conops.hi at 2, conops.ai at 6); nothing appended, nothing emptied; ai[0] gains the same clause so ai stays a strict superset. It is D12's decision, not a new claim; marked 'for a public body' and never a claimed customer, so law 3 and the no-overclaim law hold on the face; no figure, date, NBA pairing or law moves. S2 status and S18 e0 register move to D1–D74 and the seed PROV / row provenance to rev 0.072. Means: security 96.58 · stability 97.50 · scalability 99.67 · efficiency 98.58 · succinctness 90.08 — all five rise, succinctness a hair because an existing line was rewritten in place rather than a bullet appended. The previous release 0.071 records commit bc6617c.",
+    "commit": "46ea91e"
+  },
+  {
+    "revision": "0.073",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 67 of 99 (twelve lenses) continues AND CLOSES the public-reach-comprehension class D66 opened at round 58 and D67–D74 continued at rounds 59–66: the public-government mission comes onto a TENTH shown face and closes the S4/S6/S7/S8 group on S8 (Competition + Value), the FOURTH and LAST of that group. S8.benefits carried the three whitespace bullets (each above its segment NBA) and the DECLARED single-customer price, but no public-body value — a public body has no NBA to displace, so the whitespace framing did not reach it, and the reach lived on the slide only faintly through the shared 'outcome-linked replay'. This round APPENDS one concise public-body VALUE bullet to benefits.hi (4 → 5) and benefits.ai (5 → 6), in the record's own words: 'For a public body (IA, after G3, D12): no NBA to displace — the governed record steers a public project, its citizens answer through the eXeL Polling API, and every approved posture and its outcome is replayable by the body that owns it (S12 · S16 · S17); never a claimed customer'; ai[5] the same clause expanded so it stays a strict superset. Nothing emptied; the hi bullet is one short line under law 6. It is D12's decision, not a new claim; marked 'for a public body' and 'never a claimed customer', so law 3 and the no-overclaim law hold on the face; no figure, date, NBA pairing or law moves; the master statement and vprop untouched under law 4. S2 status and S18 e0 register move to D1–D75 and the seed PROV / row provenance to rev 0.073. Means: security 96.75 · stability 97.67 · scalability 99.75 · efficiency 98.75 · succinctness 90.08 — four rise, succinctness held flat because a bullet was appended (kept short) rather than a line rewritten in place. The previous release 0.072 records commit 46ea91e.",
+    "commit": "7a1eefd"
+  },
+  {
+    "revision": "0.074",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 68 of 99 (twelve lenses) OPENS a new density / law-6 class after the public-reach-comprehension class (D66-D75) closed at round 67: bring INTERNAL review-process language off a customer-facing shown face and into its speaker note, where the note already carries it. On S8 (Competition + Value) the shown benchmark line nba.hi carried the parenthetical 'eleven of twelve reviewer lenses; present in the EDU and FOOD stacks, its buyer already believes in one platform, and the incumbent already moving into the whitespace' — the internal reviewer-vote rationale for choosing Everbridge as the platform benchmark, not a claim a buyer weighs. This round REMOVES it from nba.hi, leaving the claim (Everbridge alone spans the whole event; the future state carries every aspect of it inside CrisisCommand.ai; EDU / TECH comparators) shown and plain; nba.ai is untouched and already carried the rationale verbatim, so ai stays a strict superset and never shorter than hi (law 6). Nothing is emptied; no figure, date, NBA pairing, claim or reach moves; the exact phrase 'one-ninth gate' is not in nba.hi so the >=3 lock holds; the master statement and vprop untouched under law 4. S2 status and S18 e0 register move to D1–D76 and the seed PROV / row provenance to rev 0.074. Means: security 96.75 · stability 97.67 · scalability 99.75 · efficiency 98.92 · succinctness 91.92 — succinctness rises (90.08 -> 91.92) because for the first time in this run the edit removes shown text rather than appending it, efficiency a touch, the rest hold. The previous release 0.073 records commit 7a1eefd.",
+    "commit": "2dd273d"
+  },
+  {
+    "revision": "0.075",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 69 of 99 (twelve lenses) CONTINUES the density / law-6 class opened at round 68 (D76): bring INTERNAL method language off a customer-facing shown face and into its speaker note, where the note already carries it. On S1 (Executive Summary) the shown request ask.hi carried the parenthetical '(G2 · G3 are the two validation gates — G2 approves the measurement design, G3 runs the instrumented A/B)' — the internal definition of the two validation gates, not part of the request a buyer acts on. This round REMOVES it from ask.hi, leaving the request (approve the three segment teardowns, the eight numbered items, G3 only after the G2 measurement design is credible) shown and plain; ask.ai is untouched and already carried the definition verbatim, and S2.roadmap.hi also shows the gates, so ai stays a strict superset and never shorter than hi (law 6) and nothing is lost. Nothing is emptied; no figure, date, NBA pairing, claim or reach moves; the exact phrase 'one-ninth gate' is not in ask.hi so the >=3 lock holds; the master statement and vprop untouched under law 4. S2 status and S18 e0 register move to D1–D77 and the seed PROV / row provenance to rev 0.075. Means: security 96.75 · stability 97.67 · scalability 99.75 · efficiency 99.17 · succinctness 92.83 — succinctness rises (91.92 -> 92.83) and efficiency (98.92 -> 99.17) because the edit removes shown text rather than appending it, the rest hold. The previous release 0.074 records commit 2dd273d.",
+    "commit": "5d66fab"
+  },
+  {
+    "revision": "0.076",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 70 of 99 (twelve lenses) CONTINUES the density / law-6 class (D76 round 68, D77 round 69) and CLOSES the S1.ask CTS sub-thread the D77 note named: bring INTERNAL / teaching detail off a customer-facing shown face into its speaker note while KEEPING the reader's plain acronym expansion on the face so comprehension is never lost. On S1 (Executive Summary) the shown request ask.hi carried a full inline cost-to-serve definition ('CTS discovery — CTS is what CrisisCommand spends to serve a customer, the cost a validated price must clear —'); this round reduces it to 'CTS (cost-to-serve) discovery' on the face and carries the fuller definition in ask.ai item 6, so ask.ai stays a strict superset and never shorter than ask.hi (law 6). No figure, date, NBA pairing, claim or reach moves; the master statement and vprop are untouched (law 4); the 'one-ninth gate' phrase is not in ask.hi so the ≥3 lock holds. S2 status and S18 e0 read the grown register D1–D78; PROV and the row provenance read rev 0.076. It raises succinctness (92.83 → 93.75) and holds efficiency (99.17). The NBA gloss on ask.hi is deliberately left because it is the sole shown-face expansion of the term. Gates: tsc · drs-render (+ --check) · drs-crs · innovation-time.",
+    "commit": "12dc79a"
+  },
+  {
+    "revision": "0.077",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 71 of 99 continues the density / law-6 class (D76–D78) on its first shown-face panel overflow: S5.problem.hi (the 987-char Customer Problem cell the D78 note named) drops the record's inline field-list ('of who decided what, why, who owned it and what happened next') and reads 'the record is reconstructed afterwards', keeping the three-part pain and the public-body reach on the face; the enumeration stays in problem.ai (a strict superset, never shorter than hi, law 6) and is shown on S7.desired. No figure, date, NBA pairing, claim or reach moves; succinctness rises 93.75 → 94.75, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D79; PROV and the row provenance bump to rev 0.077.",
+    "commit": "32395c5"
+  },
+  {
+    "revision": "0.078",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 72 of 99 continues the density / law-6 class (D76–D79) on a second shown-face panel cell: S6.conops.hi[0] (the 572-char Product Summary architecture cell) drops the inline vendor-name inventory '(Rave · Everbridge · PagerDuty)' from the INPUT clause and keeps 'facts / status from the operational systems of record, absorbed by qualification' plus the public-body citizen-entry clause on the face; the fuller per-segment mapping stays in conops.ai[0] (a strict superset, never shorter than hi, law 6) and the vendor names stand on S1 · S5 · S7 · S8. No figure, date, NBA pairing, claim or reach moves; succinctness rises 94.75 → 95.75, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D80; PROV and the row provenance bump to rev 0.078.",
+    "commit": "c2c4965"
+  },
+  {
+    "revision": "0.079",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 73 of 99 continues the density / law-6 class (D76–D80) on a status / metadata line for the first time: S2.status.hi (Project Overview) sheds the internal edition-provenance log '(operator 2026-09-24 + the twelve-lens review) over the v0.9 gate manuscript (eXeL) and the v0.9 narrative (Grok); v0.8.2 for S16 / S19 detail; v0.4 / v0.5 retired' and keeps the validation stage, product, method, edition name (v1.0 ONE PLATFORM), rev and the append-only register + ledger on the face; the full edition history stays in status.ai (a strict superset, never shorter than hi, law 6, which also carries PROV). No figure, financial date, NBA pairing, claim or reach moves; succinctness rises 95.75 → 96.75, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D81; PROV and the row provenance bump to rev 0.079.",
+    "commit": "995fa21"
+  },
+  {
+    "revision": "0.080",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 74 of 99 continues the density / law-6 class (D76–D81) on the S1 Executive-Summary thesis line: S1.strategy.hi[0] sheds the illustrative four-item component sample '— alert, workflow, continuity, risk feed —' inside the ONE-platform thesis and keeps 'CrisisCommand.ai carries every aspect of the benchmark's critical-event job inside the governed leadership record' on the face; the full component list stays in strategy.ai[0] (a strict superset, never shorter than hi, law 6) and on S6 / S8. No figure, financial date, NBA pairing, claim or reach moves; succinctness rises 96.75 → 97.75, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D82; PROV and the row provenance bump to rev 0.080.",
+    "commit": "58a6bfa"
+  },
+  {
+    "revision": "0.081",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 75 of 99 continues the density / law-6 class (D76–D82) on the S12 Go-To-Market cost-to-serve line: S12.l60.hi[1] sheds the five-item illustrative CTS sample 'model / inference · sector intelligence · integrations · support · customer success, and more' and keeps 'the ten cost-to-serve items are itemised on S14 (Resourcing); measure actual CTS per segment' on the face; the full ten stay in l60.ai[1] (a strict superset, never shorter than hi, law 6) and on S14.fte. No figure, financial date, NBA pairing, claim or reach moves; succinctness rises 97.75 → 98.00, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D83; PROV and the row provenance bump to rev 0.081.",
+    "commit": "cf86d0c"
+  },
+  {
+    "revision": "0.082",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 76 of 99 continues the density / law-6 class (D76–D83) on the S12 Go-To-Market future-commercial-forms line: S12.l60.hi[0] sheds the three-item illustrative sample 'capability expansion · enterprise integration package · and more' and keeps the rule 'customer WTP + CTS determine the form' and the pointer 'the five candidate forms are itemised in the note' on the face; the full five forms stay in l60.ai[0] (a strict superset, never shorter than hi, law 6). This completes the pair of S12 forward commercial lines (l60.hi[0] with l60.hi[1], D83) so both read rule + pointer on the face with the itemised list in the note. No figure, financial date, NBA pairing, claim or reach moves; succinctness rises 98.00 → 98.25, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D84; PROV and the row provenance bump to rev 0.082.",
+    "commit": "8ceb06e"
+  },
+  {
+    "revision": "0.083",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 77 of 99 continues the density / law-6 class (D76–D84) on the S6 Product-Summary current-foundation line: S6.problem.hi[1] sheds the inline nine-part inventory of the live crisis workflow 'facts / objectives · stakeholder analysis · message development · SITREPs (situation reports) · planning · sector intelligence · organization-specific context · continuous learning' and keeps the rule 'Current foundation (do not re-sell as new): the live crisis workflow' and the pointer 'itemised in the note' on the face; the full list stays in problem.ai[1] (a strict superset, never shorter than hi, law 6) and on S8. This is the second density-class move on S6 (after D80 took conops.hi[0]). No figure, financial date, NBA pairing, claim or reach moves; succinctness rises 98.25 → 98.50, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D85; PROV and the row provenance bump to rev 0.083.",
+    "commit": "99e8699"
+  },
+  {
+    "revision": "0.084",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 78 of 99 continues the density / law-6 class (D76–D85) on the S1 Executive-Summary validation line: S1.strategy.hi[1] sheds the inline ten-item delta enumeration 'decision rights · approval state · action ownership · acknowledgement · evidence · current-plan state · cross-system context · outcome-linked replay · time-to-coherence · simulation' and keeps the rule 'Validate ten deltas', the count and 'The economic lens stays internal (S14 / S15)' on the face, pointing to the ten features itemised on S8; the full expansion stays in strategy.ai[1] (a strict superset, never shorter than hi, law 6) and the ten are numbered one through ten on S8.features.hi. This completes the pair of S1 strategy lines (strategy.hi[0], D82; strategy.hi[1], this round). No figure, financial date, NBA pairing, claim or reach moves; succinctness rises 98.50 → 98.75, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D86; PROV and the row provenance bump to rev 0.084.",
+    "commit": "a57a92e"
+  },
+  {
+    "revision": "0.085",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 79 of 99 continues the density / law-6 class (D76–D86) on the S5 Customer-Problem status-quo line: S5.statusquo.hi[3] sheds the inline eight-item table-stakes enumeration 'better decisions · AI advisor · continuous improvement · crisis management · executive dashboards · alerts · tasks · locked plans' and keeps the rule 'Not unique by themselves: common crisis-tool capabilities' and the pointer 'itemised in the note' on the face; the full eight stay in statusquo.ai[3] (a strict superset, never shorter than hi, law 6). This is the twelfth member of the density class and the first on an S5 status-quo list. No figure, financial date, NBA pairing, claim or reach moves; succinctness rises 98.75 → 99.0, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D87; PROV and the row provenance bump to rev 0.085.",
+    "commit": "546ff27"
+  },
+  {
+    "revision": "0.086",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 80 of 99 continues the density / law-6 class (D76–D87) on the S11 validation matrix: S11.exp.hi[1] col-3 (the G3 · A/B expectation row) sheds its inline enumeration of tracked clocks and metrics 'minute-zero trigger, facts available, minutes to objectives / posture / ownership / release, forks, unowned actions, residual risk at T+30 / 60 / 120, hard-dollar time exposure, outcome, replay lesson' and keeps the criterion 'Measurable delta in timing, risk or outcome' with a pointer to the note on the face; the full list stays in exp.ai[1] col-3 (a strict superset, never shorter than hi, law 6) and is carried a second time by the S16 instrument (counter.ai). This is the thirteenth member of the density class and the first on an S11 validation-matrix criteria cell. No figure, financial date, NBA pairing, claim, gate or reach moves; succinctness rises 99.0 → 99.25, efficiency holds 99.17. S2 status and S18 e0 grow the register to D1–D88; PROV and the row provenance bump to rev 0.086.",
+    "commit": "3151c6b"
+  },
+  {
+    "revision": "0.087",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 81 of 99 continues the density / law-6 class (D76–D88) on the S5 Customer Problem slide: S5.whys.hi[0] (the EDU why) sheds its inline six-name campus-constituency roster 'student, parent, faculty, trustee, donor, athletics' and keeps the breadth 'leadership must align safety, governance, legal, communications, reputation and its many campus constituencies while facts keep changing' on the face; whys.ai[0] keeps the full roster as a strict superset (law 6), the whys array keeps its four hi rows and five ai rows, and no figure, financial date, NBA pairing, claim, gate or public-reach clause moves. Bookkeeping: rev 0.086 → 0.087 and the decision register D1–D88 → D1–D89 on S2 (status.hi / status.ai) and S18 (e0), PROV and the row provenance bumped. Succinctness 99.25 → 99.67, efficiency held at 99.25.",
+    "commit": "a252544"
+  },
+  {
+    "revision": "0.088",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 82 of 99 continues the density / law-6 class (D76–D89) on the S5 Customer Problem slide: S5.whys.hi[1] (the FOOD why) sheds its inline eight-name enterprise-domain roster 'operations, legal, regulatory, customer, franchisee, employee, investor and reputation' and keeps the breadth 'a product, quality, contamination, recall, supplier, workforce or brand event rapidly crosses many enterprise domains' on the face; whys.ai[1] keeps the full roster as a strict superset (law 6), the whys array keeps its four hi rows and five ai rows, and no figure, financial date, NBA pairing, claim, gate or public-reach clause moves. It is the fifteenth member of the density class and the second to take an S5 whys row (after D89's EDU why). Bookkeeping: rev 0.087 → 0.088 and the decision register D1–D89 → D1–D90 on S2 (status.hi + status.ai) and S18 (e0.hi[2] + ai[2]); PROV and the innovation-data.ts row provenance move to rev 0.088.",
+    "commit": "7bf006f"
+  },
+  {
+    "revision": "0.089",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 83 of 99 continues the density / law-6 class (D76–D90) on the S5 Customer Problem slide: S5.whys.hi[2] (the TECH why) sheds its inline seven-name enterprise-consequence roster 'customer, legal, regulatory, investor, employee, financial and reputation' and keeps the breadth 'a technical outage, cyber event, data breach, product failure, AI failure or platform incident becomes an enterprise crisis when it creates consequences across many enterprise domains' on the face; whys.ai[2] keeps the full roster as a strict superset (law 6), the whys array keeps its four hi rows and five ai rows, and the S5 whys trio — EDU (D89), FOOD (D90), TECH (D91) — is now uniform. No figure, financial date, NBA pairing, claim, gate or reach moves; S2.status and S18.e0 advance the register to D1–D91 and the rev / provenance to 0.089. Succinctness 99.83 → 100.0.",
+    "commit": "138625b"
+  },
+  {
+    "revision": "0.090",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 84 of 99 continues the density / law-6 class (D76–D91) on the S7 Customer Workflow slide: S7.personas.hi[3] (the citizen / recipient row) sheds its inline six-field CASPER roster 'who · where · what is lacking · severity · who is responsible · time' and keeps the concept 'a CASPER-shaped intake (a standard community-assessment record — fields in the note)' and the eXeL Polling API entry point on the face; personas.ai[3] keeps the full roster as a strict superset (law 6). No figure, financial date, NBA pairing, claim, gate or reach moves; S2.status and S18.e0 advance the register to D1–D92 and the rev / provenance to 0.090. Efficiency 99.33 → 99.92; succinctness holds 100.0.",
+    "commit": "b3368bb"
+  },
+  {
+    "revision": "0.091",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 85 of 99 continues the density / law-6 class (D76–D92) on the S5 Customer Problem slide: S5.problem.hi sheds its inline seven-domain roster 'reputation, operations, legal, regulatory, financial, safety and stakeholder domains' and keeps the breadth 'leaders across many enterprise domains have no governed layer' on the face; problem.ai keeps the full roster as a strict superset (law 6). It joins D79, which earlier cleared the record-contents field-list from the same cell, so S5.problem.hi now states the gap without either enumeration. No figure, financial date, NBA pairing, claim, gate or reach moves; S2.status and S18.e0 advance the register to D1–D93 and the rev / provenance to 0.091. Efficiency 99.92 → 100.0; succinctness holds 100.0.",
+    "commit": "62991e7"
+  },
+  {
+    "revision": "0.092",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 86 of 99 continues the density / law-6 class (D76–D93) on the S12 Go-To-Market slide: S12.l30.hi[0] (the validation sequence) sheds its inline per-segment work roster 'per-segment NBA teardown + buyer interviews, the EDU measurement-design tabletop — detail in note' and keeps the EDU → FOOD → TECH order and its per-step roles ('1 EDU — first proof · 2 FOOD — second proof · 3 TECH — scale-potential') on the face, followed by a pointer to the note; l30.ai[0] carries the full per-segment work (Rave / Everbridge / PagerDuty teardowns + buyer interviews + the EDU tabletop) as a strict superset, never shorter than hi (law 6). It joins D83 and D84, so all three itemising S12 shown faces now state their rule or order and point to the note for the work. No figure, financial date, NBA pairing, claim, gate or reach moves; the master statement and vprop are untouched (law 4). S2.status (hi + ai), S18.e0 (hi[2] + ai[2]) and the PROV / row provenance are bumped to rev 0.092 and the register to D1–D94 (laws 5, 6, 7). D94.",
+    "commit": "b333197"
+  },
+  {
+    "revision": "0.093",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 87 of 99 continues the density / law-6 class (D76–D94) on the S1 Executive Summary slide: S1.ask.hi (the G2 ask) sheds its inline validation-work roster 'with buyer interviews, the EDU measurement-design tabletop, workflow prototypes, segment value equations, CTS (cost-to-serve) discovery and S16 evidence tracking' and keeps the request — approve the three segment teardowns (with the NBA gloss, D77) and G3 A/B only after the G2 measurement design is credible — on the face, followed by a pointer to the note; ask.ai carries the full numbered 1–8 work list as a strict superset, never shorter than hi (law 6). It joins D83 / D84 / D94 (the S12 shown faces) and D92 / D93 (S7 / S5), and is the third member to touch the S1 ask (after D77 · D78) on a distinct span. The term CTS no longer appears on the S1 hi face, so the D78 acronym gloss departs with its roster (no orphaned acronym); ask.ai keeps the full CTS expansion. No figure, financial date, NBA pairing, claim, gate or reach moves; the master statement and vprop are untouched (law 4). S2.status (hi + ai), S18.e0 (hi[2] + ai[2]) and the PROV / row provenance are bumped to rev 0.093 and the register to D1–D95 (laws 5, 6, 7). D95.",
+    "commit": "f9d681b"
+  },
+  {
+    "revision": "0.094",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 88 of 99 continues the density / law-6 class (D76–D95) on the S17 Post-Launch Development slide: S17.prio.hi[0] (the 2027 roadmap row) sheds its inline seven-object roster 'decision rights · approval state · action ownership · acknowledgement · evidence · current-plan state · replay' and keeps the 2027 deliverable — governed leadership state native and every benchmark function reachable from inside the platform, one login, one record — on the face, followed by a pointer to S14 where the seven Horizon-1 objects are itemised; prio.ai[0] carries the full roster as a strict superset, never shorter than hi (law 6). It is the first density-class member to touch an S17 shown face. No figure, financial date, NBA pairing, claim, gate or reach moves; the master statement and vprop are untouched (law 4). S2.status (hi + ai), S18.e0 (hi[2] + ai[2]) and the PROV / row provenance are bumped to rev 0.094 and the register to D1–D96 (laws 5, 6, 7). D96.",
+    "commit": "7edde19"
+  },
+  {
+    "revision": "0.095",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 89 of 99 continues the density / law-6 class (D76–D96) on the S18 End-of-Life slide: S18.e120.hi[0] (the retirement rule) sheds its inline five-object roster 'decision rights, approval state, action ownership, evidence and replay' and keeps the rule — retire a governance-state capability only after its successor keeps the governed record, the Horizon-1 objects itemised on S14, intact on the record — on the face; e120.ai[0] carries the full five objects as a strict superset, never shorter than hi (law 6). It is the first density-class member to touch an S18 shown face. No figure, financial date, NBA pairing, claim, gate or reach moves; the master statement and vprop are untouched (law 4). S2.status (hi + ai), S18.e0 (hi[2] + ai[2]) and the PROV / row provenance are bumped to rev 0.095 and the register to D1–D97 (laws 5, 6, 7). D97.",
+    "commit": "869dda7"
+  },
+  {
+    "revision": "0.096",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 90 of 99 continues the density / law-6 class (D76–D97) on the S6 Product Summary slide: S6.conops.hi[0]'s leadership-governance box (box 2 of the four-box architecture) sheds its inline five-object roster 'decision rights · approvals · rationale · action owners · current-plan state' and keeps the box's role — the governed leadership record — on the face, now reading '2 CrisisCommand (LEADERSHIP GOVERNANCE): the governed leadership record — its Horizon-1 objects itemised on S14'; conops.ai[0] keeps the full twelve-item object list as a strict superset, never shorter than hi (law 6). It unifies S6 with S17 (D96) and S18 (D97), which already point to S14's canonical Horizon-1 list instead of re-spelling it inline, and joins D95 / D94 / D93 / D92. No figure, financial date, NBA pairing, claim, gate or reach moves; the master statement and vprop are untouched (law 4). S2.status (hi + ai), S18.e0 (hi[2] + ai[2]) and the PROV / row provenance are bumped to rev 0.096 and the register to D1–D98 (laws 5, 6, 7). D98.",
+    "commit": "e1c19b5"
+  },
+  {
+    "revision": "0.097",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 91 of 99 continues the density / law-6 class (D76–D98) on the S6 Product Summary slide, completing the S6 four-box architecture's alignment to S14: last round cleared the leadership-governance box (box 2, D98), and this round S6.conops.hi[0]'s Evidence + Learning (RETURN) box (box 4) sheds its inline four-object roster 'acknowledgement · evidence · outcome · replay' and keeps the box's role — the return path back onto the record — on the face, now reading '4 Evidence + Learning (RETURN): the return path back onto the record — its objects itemised on S14'; conops.ai[0] keeps the full seven-item return list as a strict superset, never shorter than hi (law 6). Both object-bearing boxes now point to S14's canonical Horizon-1 list instead of re-spelling it inline; it joins D96 / D97 / D95 / D94 / D93 / D92. No figure, financial date, NBA pairing, claim, gate or reach moves; the master statement and vprop are untouched (law 4). S2.status (hi + ai), S18.e0 (hi[2] + ai[2]) and the PROV / row provenance are bumped to rev 0.097 and the register to D1–D99 (laws 5, 6, 7). D99.",
+    "commit": "c720a2a"
+  },
+  {
+    "revision": "0.098",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 92 of 99 continues the density / law-6 class (D76–D99) on the S7 Customer Workflow slide: S7.desired.hi sheds its inline six-object governed-record roster ('who may decide it, its sign-off state, the named owner, an acknowledgement, an evidence pointer and the versioned current-plan state') and keeps its promise — the record answers what changed, why, who approved, and what happened next — on the face, now reading 'Every approved decision carries its Horizon-1 governed-record objects (itemised on S14) — so the record answers what changed, why, who approved, and what happened next.'; desired.ai keeps the full roster plus the loop line as a strict superset, never shorter than hi (law 6). S7's desired cell now points to S14's canonical Horizon-1 list instead of re-spelling it inline, joining the two S6 boxes (D98 · D99), S17 (D96), S18 (D97), D95, D94, D93 and D92. No figure, financial date, NBA pairing, claim, gate or reach moves; the master statement and vprop are untouched (law 4). S2.status (hi + ai), S18.e0 (hi[2] + ai[2]) and the PROV / row provenance are bumped to rev 0.098 and the register to D1–D100 (laws 5, 6, 7). D100.",
+    "commit": "0fba61f"
+  },
+  {
+    "revision": "0.099",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 93 of 99 continues the density / law-6 class (D76–D100) on the S5 Customer Problem slide: S5.problem.hi — the deck's longest face cell (864 characters) — sheds its inline illustrative clause ('operational truth lives in specialist systems, judgment happens in meetings, and the record is reconstructed afterwards') and keeps the gap statement, the ONE-PLATFORM thesis ('Two systems — one to respond, one to decide — split the record; the future state is one platform') and the R-CORE public-body clause on the face; problem.ai keeps the fuller clause as a strict superset, never shorter than hi (law 6). No figure, financial date, NBA pairing, claim, gate or reach moves; the master statement and vprop are untouched (law 4). S2.status (hi + ai), S18.e0 (hi[2] + ai[2]) and the PROV / row provenance are bumped to rev 0.099 and the register to D1–D101 (laws 5, 6, 7). D101.",
+    "commit": "d2b6192"
+  },
+  {
+    "revision": "0.100",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 94 of 99: continue the density / law-6 discipline on the deck's longest face cell — S5.problem.hi sheds its trailing illustration of how the crisis-leadership loop steers a public project into its speaker note, while the gap, the one-platform thesis and the citizen's public-body reach stay whole on the face. Register grown to D1–D102; rev and provenance bumped to 0.100. No printed number, date, pairing, claim, gate, reach or law moved.",
+    "commit": "68aea6a"
+  },
+  {
+    "revision": "0.101",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 95 of 99 records the convergence of the density / law-6 class (D76–D102): after rounds of moving illustrative clauses off the customer-facing shown faces into their speaker notes, no face cell now overflows its panel or hides its point, and a further cut would empty meaning (law 6). The twelve lenses walked S1–S18 and found no face too full and no truth stranded; the deck's longest cells read clean. This round therefore touches no slide face — it advances the decision register to D1–D103, stamps the edition rev 0.101 and keeps the build green. No printed number, date, pairing, claim, gate, reach or law moved; master statement and vprop untouched (law 4). D103.",
+    "commit": "828947f"
+  },
+  {
+    "revision": "0.102",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 96 of 99 holds the convergence recorded at D103: after the density / law-6 class (D76–D103) reached its floor, no customer-facing shown face overflows its panel or hides its point, and a further cut would empty meaning (law 6). The twelve lenses walked S1–S18 again and found no face too full and no truth stranded. This round therefore touches no slide face — it advances the decision register to D1–D104, stamps the edition rev 0.102 and keeps the build green. No printed number, date, pairing, claim, gate, reach or law moved; master statement and vprop untouched (law 4). The second round in the class to add no face edit, three rounds before the programme closes. D104.",
+    "commit": "2498a5e"
+  },
+  {
+    "revision": "0.103",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 97 of 99: the twelve lenses walk S1–S18 a third consecutive time and confirm the convergence of the density / law-6 class (D76–D104) is durable — no customer-facing face overflows its panel or hides its point, and a further cut would empty meaning, which law 6 forbids. This round therefore changes no slide face: it advances the decision register to D1–D105 (D105), stamps the edition rev 0.103 across the seed PROV, S2 status and S18 e0, bumps the row provenance, fills the 0.102 commit, and verifies the gates stay green. No figure, financial date, NBA pairing, claim, gate, R-CORE reach or law moves.",
+    "commit": "70fae09"
+  },
+  {
+    "revision": "0.104",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 98 of 99, the penultimate round: the twelve lenses walk S1–S18 a fourth consecutive time and confirm the convergence of the density / law-6 class (D76–D105) is durable — no customer-facing face overflows its panel or hides its point, and a further cut would empty meaning, which law 6 forbids. This round therefore changes no slide face: it advances the decision register to D1–D106 (D106), stamps the edition rev 0.104 across the seed PROV, S2 status and S18 e0, bumps the row provenance, fills the 0.103 commit (70fae09), and verifies the gates stay green. No figure, financial date, NBA pairing, claim, gate, R-CORE reach or law moves.",
+    "commit": "b44d90f"
+  },
+  {
+    "revision": "0.105",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Round 99 of 99, the final round: the twelve lenses walk S1–S18 a fifth consecutive time and confirm the convergence of the density / law-6 class (D76–D106) is durable and complete — no customer-facing face overflows its panel or hides its point, and a further cut would empty meaning, which law 6 forbids. This closing round therefore changes no slide face: it completes the decision register at D1–D107 (D107), stamps the final edition rev 0.105 across the seed PROV, S2 status and S18 e0, bumps the row provenance, fills the 0.104 commit (b44d90f), and verifies the FULL gate (test:ci + next build) stays green at the programme's close. No figure, financial date, NBA pairing, claim, gate, R-CORE reach or law moves.",
+    "commit": "82e02bf"
+  },
+  {
+    "revision": "0.106",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S1 pass (slide 1 of 19): the twelve lenses focus on slide S1 alone and apply one density / law-6 edit to it — the trailing one-ninth-gate definition moves off oneline.hi (the executive-summary face, the first page a reader opens) into oneline.ai, which already carries it, keeping the operating loop, the absorption ladder (2027 · 2030 · 2525) and the one-ninth (11.1 %) gate milestone on the face; no other slide face is touched, no figure, NBA pairing, claim, gate or law moves, the master statement stays fixed under law 4, and the provenance footer is bumped to rev 0.106 via PROV and the row (D108).",
+    "commit": "41cd3b2"
+  },
+  {
+    "revision": "0.107",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S2 pass (slide 1 of 18 in this pass): the twelve lenses focus on slide S2 alone — the Project Overview — and apply one accuracy edit to it. The overview's status line named rev 0.105 and a decision register ending at D107 while the record had advanced to rev 0.107 with the register at D109, so the slide whose job is to state where the record stands understated it by two revisions and two decisions; both twin cells (status.hi and status.ai) are brought current, status.ai staying a strict superset (law 6). No other slide face is touched, no figure, financial date, NBA pairing, claim, gate, R-CORE reach or law moves, the master statement and vprop stay fixed under law 4, and the provenance footer is bumped to rev 0.107 via PROV and the row. S18.e0 keeps rev 0.105 · D1–D107 until its own per-slide pass (D109).",
+    "commit": "4352cae"
+  },
+  {
+    "revision": "0.108",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S3 pass (slide 2 of 18 in this pass): the twelve lenses focus on slide S3 alone — the Financial — Return slide — and apply one density / law-6 edit to it. fincomment.hi[2], the Ramp cell, was the single densest cell on the deck, fusing the ramp, both price tiers, account-years, ten-year revenue, the CAGR with its spelled-out definition, the year-by-year resource phasing and the NPV proxy with its weighting formula and a G3-doubling aside into one run-on that overflowed its panel; the derivation is lifted onto fincomment.ai[2], the note that already carries it, leaving every headline figure (ramp 6 → 60 → 640, tiers 60 k / 120 k, 2,121 account-years, 248 M revenue, 115 % CAGR, NPV proxy +1.0 M, funded 11.2 M) on the face. No other slide face is touched, no figure moves (every number derives from financialModel), the master statement and vprop stay fixed under law 4, ai[2] is unchanged so ai stays a strict superset of hi and still carries NPV and IRR, and the provenance footer is bumped to rev 0.108 via PROV and the row (D110).",
+    "commit": "557b66d"
+  },
+  {
+    "revision": "0.109",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S4 pass: one law-6 density trim to slide S4 (Customer CONOPS), returning conops.hi[7], the stakeholder step, to the terse one-idea-per-step register by moving its synchronized-posture, operational-truth and public-body eXeL Polling API detail into conops.ai[8] (which already carries it verbatim, so ai stays a strict superset); no figure, claim, gate, law or linked number moves.",
+    "commit": "79b63f3"
+  },
+  {
+    "revision": "0.110",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S5 pass: one law-6 density trim to slide S5 (Customer Problem), returning problem.hi to the core two-sentence governed-decision gap by moving its third sentence, the public-body eXeL Polling API extension, into problem.ai (which already carries it in a longer form, so ai stays a strict superset); the public body stays on the deck's face at anchor slides S4 · S7 · S12 · S18; no figure, claim, gate, law or linked number moves.",
+    "commit": "2764b08"
+  },
+  {
+    "revision": "0.111",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S6 pass: one law-6 density trim to slide S6 (Product Summary / Architecture), returning the four-stage architecture loop's INPUT face to the operational-context intake alone by moving its fused public-body clause (the citizen's answer through the eXeL Polling API as an evidence pointer, S4 · S7) into conops.ai[0], which already carries it in its own stage one, so ai stays a strict superset; the public body stays on the deck's face at anchor slides S4 · S7 · S12 · S18; no figure, claim, gate, law or linked number moves.",
+    "commit": "f3e7c3d"
+  },
+  {
+    "revision": "0.112",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S7 pass: one law-6 density trim to slide S7 (Customer Workflow), returning the citizen / recipient row (personas.hi[3]) to its core by moving the CASPER-shaped-intake definition into personas.ai[3], which already carries the full field list, so ai stays a strict superset; the public-body eXeL Polling API reach STAYS on the S7 face because S7 is a public-body anchor slide (S4 · S7 · S12 · S18); no figure, claim, gate, law or linked number moves.",
+    "commit": "0282c84"
+  },
+  {
+    "revision": "0.113",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S8 pass: one law-6 density trim to slide S8 (Competition + Value), returning the public-body row (benefits.hi[4]) to its distinctive value claim (no NBA to displace, never a claimed customer) by moving the public-body mechanism (eXeL Polling API answer + replay pointers) into benefits.ai[4], which already carries it in full, so ai stays a strict superset; the mechanism moves off this face because S8 is NOT a public-body anchor (S4 · S7 · S12 · S13 · S16 · S17 · S18 are); no figure, claim, gate, law or linked number moves — the DECLARED single-customer baseline and the master statement are untouched.",
+    "commit": "3fcfc6c"
+  },
+  {
+    "revision": "0.114",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S9 pass: slide S9 (User Stories — Highlights) is not a seed slide and its stories table is linked/derived from PRJ-34's brief, so it carries no editable face to trim; the shared storiesOf engine is out of scope. This revision's subject is the operator's overriding instruction for the page, verified against the repository and recorded (not re-edited, as the files are outside this pass's editable set): the R-CORE raster icons exist as PNG (public/r-core/r-core-icon.png + r-core-wordmark.png, tracked, committed, built into out/) and the R-CORE mark's target sits at the BOTTOM of the page in NORMAL FLOW (no fixed/absolute geometry, mounted last after the footer), never overlaying the image or the slide. No figure, claim, gate, law or linked number moves — the DECLARED digital inputs and the master statement are untouched.",
+    "commit": "ad42dcc"
+  },
+  {
+    "revision": "0.115",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S10 pass: slide S10 (Financials by Year — Cost + Revenues) is not a seed slide and its cost/revenue grid is linked/derived from PRJ-34's eleven-year record (PRJ34_FIN_PLAN; roll-ups nreK 11200, fullRev10yM 248), so it carries no editable face to trim; law 3 ('change the inputs, never a printed number') and the shared generator's 33-project scope forbid a face edit. This revision's subject is the operator's overriding instruction for the page, REPEATED verbatim this run and verified against the repository AND the gate that defends it (CLAUDE.md: stop fixing, start enumerating; prove with a hash/gate, not an assurance): the R-CORE raster icons exist as PNG (public/r-core/r-core-icon.png + r-core-wordmark.png, tracked, committed at 42be8dd, built into out/) and the R-CORE mark's target sits at the BOTTOM of the page in NORMAL FLOW (no fixed/absolute geometry, mounted last after the footer), never overlaying the image or the slide — defended by frontend/tests/rcore-revisions.test.mjs:88 in test:ci. Advances D116 from assurance to checkable proof. No figure, claim, gate, law or linked number moves — the DECLARED digital inputs and the master statement are untouched.",
+    "commit": "87b90cc"
+  },
+  {
+    "revision": "0.116",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S11 pass: slide S11 (Preliminary Feedback / Validation) is a seed slide, and its one law-6 density defect is corrected — the G3 A/B row's 'Assumption to test' cell (exp.hi[1]) had overflowed its table panel into a ~45-word paragraph, so it is trimmed to a single slide line while the full experiment design (benchmark Everbridge 360 AI / Bridge; comparators Rave in EDU, PagerDuty in TECH; Conservative / Baseline / Severe; pre-registered hypothesis, null and stop rule; counterbalanced run order; independent timekeeper) is preserved verbatim in exp.ai[1], the note, which stays unchanged so ai ≥ hi. S11 is the slide that keeps the whole case honest: nothing graduates until a customer names the need, confirms the primary NBA, a baseline is observed, a measurable delta survives, and the economic buyer assigns value — the A/B legibility fix serves that reader. This revision also RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci. No figure, claim, gate, law or linked number moves; the master statement and segment value props are untouched (law 4).",
+    "commit": "b8f59db"
+  },
+  {
+    "revision": "0.117",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S12 pass: slide S12 (Go-To-Market) is a seed slide, and its one law-6 density defect is corrected — the PUBLIC BODY item (l30.hi[2]) had overflowed its list slot into a ~52-word paragraph, so it is trimmed to a single slide line while the full path (one government owner, one project through the same governed loop, its people asked through the eXeL Polling API, the approved posture and delivered result replayable by the body and by the people who answered) is preserved verbatim in l30.ai[3], the note, which stays unchanged so ai ≥ hi. S12 is the slide that shows the case will not overreach: the commercial spine is preserved (law 1), no SKU or price is invented before a buyer validates (law 3), the segments are a validation sequence and not a market-size ranking, and the public body enters as a declared future step (IA, after G3, D12) reusing the R-CORE record and replay already running in the repo — never a claimed customer. This revision also RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci. No figure, claim, gate, law or linked number moves; the master statement and segment value props are untouched (law 4).",
+    "commit": "798e34d"
+  },
+  {
+    "revision": "0.118",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S13 pass: slide S13 (Risk Highlights) is a seed slide, and its one law-6 density defect is corrected — the public-body dependency item (deps.hi[2]) had overflowed its list slot into a ~48-word paragraph, so it is trimmed to a single slide line while the full path (one government owner, one project through the same governed loop, its citizens answering through the eXeL Polling API, the approved posture and delivered result replayable by the body and by the people it serves, and the 'nothing crisis-specific' clause) is preserved verbatim in deps.ai[3], the note, which stays unchanged so ai >= hi. S13 is the slide that shows the case has faced its own failure modes honestly: single-platform concentration is survived by a degraded mode and a never-discarded approval (law 2), every outbound action carries a named human (law 2), each absorbed benchmark function clears the one-ninth gate with alerting last and certified (law 1), and the public body enters only as a declared future dependency (IA, after G3), never a claimed customer (law 3). This revision also RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci; the deck renderer carries no icon reference. No status, severity, mitigation, gate, claim, law or linked number moves; the master statement and segment value props are untouched (law 4).",
+    "commit": "88b7fcd"
+  },
+  {
+    "revision": "0.119",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S14 pass: slide S14 (Resourcing) is a seed slide, and its one law-6 density defect is corrected — the Horizon-2 item (notes.hi[1]) had overflowed its list slot into a ~37-word run-on, so it is trimmed to a single slide line while the fuller path (the benchmark named Everbridge 360 AI / Bridge, the reachable-first objects, and the Rave / PagerDuty inbound feeds) is preserved verbatim in notes.ai[1], the note, which stays unchanged so ai >= hi. S14 is the slide that shows the case has priced its build honestly and proves value as a method, not a promise: cost-to-serve is CrisisCommand-specific and measured per segment, no price is set until willingness-to-pay clears CTS plus the hurdle (law 3), value is a stated equation in ranges and never a guaranteed saving nor technical-restoration minutes (law 2), the eleven-year build is declared (IA, D13), and every absorbed benchmark function clears the one-ninth gate on its clock with alerting last (law 1). This revision also RE-RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed 8-bit RGBA PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci; the deck renderer carries no icon reference. No horizon, gate, claim, law or linked number moves; the master statement and segment value props are untouched (law 4).",
+    "commit": "de1b9e9"
+  },
+  {
+    "revision": "0.120",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S15 pass: slide S15 (BETA Feedback — pre-launch VOCs) is a seed slide, and its one law-6 density defect is corrected — the EDU row's VOC-learnings cell (voc.hi[0][2]) carried a trailing status caveat ('— measurement design proven, value not yet') that its FOOD and TECH sibling rows do not, breaking the learnings column's even width, so it is trimmed to the metric alone ('Minutes event → approved objectives; # consequential revisions') while the caveat is preserved verbatim in voc.ai[0][2], the note, which stays unchanged so ai >= hi. S15 is the slide that shows the case designed its own pre-launch test before claiming any result and refuses to price ahead of evidence: every voice-of-customer row stands at zero customers and disposition 'Pursue — hypothesized' (law 2), each learning is measured per segment against the named comparator (EDU vs Rave, FOOD vs Everbridge 360 AI / Bridge, TECH vs PagerDuty), no price is set until a buyer validates baseline, delta, economic weight, attribution and willingness to pay, contribution = validated WTP minus CrisisCommand-specific CTS, and modeled value is shown as ranges, never a guaranteed saving (law 3), with development priorities ordered by the absorption ladder under the one-ninth gate, alerting last (law 1). This revision also RE-RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed 8-bit RGBA PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci; the deck renderer carries no icon reference. No comparator, disposition, gate, claim, law or linked number moves; the master statement and segment value props are untouched (law 4).",
+    "commit": "de2dfb7"
+  },
+  {
+    "revision": "0.121",
+    "date": "2026-09-25",
+    "kind": "release",
+    "why": "Per-slide S16 pass: slide S16 (Market Performance — simulation as proof) is a seed slide, and its one law-6 density defect is corrected — the EDU row's state cell (saydo.hi[0][3]) read 'Empty — no tabletop yet' while its FOOD, TECH and ALL sibling rows read the single word 'Empty', breaking the state column's even width, so it is trimmed to 'Empty' while the caveat is preserved verbatim in saydo.ai[0][3], the note, which stays unchanged so ai >= hi. S16 is the slide that shows the case built its proof as a measurement instrument and refuses to count a result before it is measured: the same scenario is run twice — A the benchmark alone versus B the one platform — across Conservative / Baseline / Severe, pre-registered with a hypothesis, a null and a stop rule; G2 validates the measurement design (2026-Q4 target, IA) and G3 proves the measurable timing / risk / outcome delta (2027-H1 target, IA); every evidence state stands honestly at 'Empty' (law 2, law 3), each metric pre-registered per segment against the named comparator (EDU vs Rave, FOOD vs Everbridge 360 AI / Bridge, TECH vs PagerDuty), modeled exposure a range bound by buyer-verified inputs and attribution, never a guaranteed saving (law 2). This revision also RE-RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed 8-bit RGBA PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci; the deck renderer carries no icon reference. No comparator, method, pass criterion, gate, claim, law or linked number moves; the master statement and segment value props are untouched (law 4).",
+    "commit": "e6d9795"
+  },
+  {
+    "revision": "0.122",
+    "date": "2026-09-26",
+    "kind": "release",
+    "why": "Per-slide S17 pass: slide S17 (Post-Launch Development — VOC + development priorities + market performance observations) is a seed slide, and its one law-6 density defect is corrected — the 2030 row's feature-enhancement cell (prio.hi[1][1]) carried a trailing enumeration ('; multi-event learning · simulation · readiness qualification · the Enterprise Decision Graph') that its 2027 sibling does not, overrunning the feature-enhancement column, so it is trimmed to its core claim ('The whole critical-event surface native, absorbed function by function under the one-ninth (11.1 %) gate, alerting last and certified') while the enumeration is preserved verbatim in prio.ai[1][1], the note, which stays unchanged so ai >= hi. S17 is the slide that shows the case runs on a governed learning loop and orders its roadmap by absorption, not wishlist: post-launch development is set from voice-of-customer tied to stakeholder / business outcomes across events (every VOC row hypothesized at post-proof, disposition Pursue — law 2); priorities climb one ladder from the governed leadership state native (2027) through the whole critical-event surface under the one-ninth (11.1 %) gate with alerting last and certified (2030) to humanity's shared, human-governed crisis memory (2525, kept whole); AI recommends and organizes while a named human approves and owns every consequence, and the same loop steers a public project through the eXeL Polling API under named authority (IA, after G3, D12; R-CORE already runs in this repo). This revision also RE-RECORDS, with checkable proof, that the operator's standing instruction is satisfied and gated: the R-CORE rasters exist as committed 8-bit RGBA PNG and the R-CORE icon's target sits at the BOTTOM of the page in normal flow (mounted last after the footer), never overlaying the image or slide, defended by frontend/tests/rcore-revisions.test.mjs in test:ci; the deck renderer carries no icon reference. No horizon, gate, the one-ninth (11.1 %) figure, timing label, claim, law or linked number moves; the master statement and segment value props are untouched (law 4).",
+    "commit": "c157569"
+  },
+  {
+    "revision": "0.123",
+    "date": "2026-09-26",
+    "kind": "release",
+    "why": "Per-slide S18 pass, Concept (G1) reframe round: slide S18 (End-of-Life, a DECLARED template slide not in v0.9) carries no narrative gate/stage reference in any cell (the gate:'G7' in innovation-data.ts is structural AMTS metadata, and S18 is not the home of project.stage/decisionRequested, which belong to S1/S2), so per the reframe rule this is a normal law-6 optimization and no drs.json stage field is touched. One law-6 + honesty fix on the e0 EOL-0 handover panel: the decision-register line (e0.hi[2]) carried a trailing elaboration that belongs in the note and a pinned count '(D1–D107)' that has drifted stale (the register is now at D124, D125 this revision), so it is trimmed to its core claim 'The decision register and the iteration ledger travel with the record.', the elaboration preserved verbatim in the note (e0.ai[2], ai >= hi), and the stale range removed from both carriers rather than re-pinned to a moving figure. S18's thesis is unchanged: retire only behind a successor that keeps the governed record; export the whole record to the customer in an open format; every absorbed function's data leaves and partnered rails hand back cleanly; nothing life-critical is switched off without a named successor channel (law 2); and the export is a public body's citizens' record, opened through the eXeL Polling API so transparency and accountability outlive the vendor. No horizon, gate, the one-ninth (11.1 %) figure, timing label, claim, law or linked number moves; the master statement and segment value props are untouched (law 4).",
+    "commit": "6e2b36e"
+  },
+  {
+    "revision": "0.124",
+    "date": "2026-09-26",
+    "kind": "release",
+    "why": "Per-slide S19 pass, Concept (G1) reframe round, the final slide of the per-slide S1->S19 pass: slide S19 is the gate-review document's Risks + Dependencies slide (rendered by scripts/drs-render.mjs from the eleven-row risks register and coreControl), and it has NO Pod-seed face -- the founder-facing Innovation-Pod deck (innovation-slide-seed-drs.ts) is S1-S18 + the CSRA close-out, with no S19 slide. Concept (G1) reframe: S19 carries no narrative 'G2' gate/stage reference -- its gate-review stage field already reads 'Concept' and its body (risks x11 + coreControl) prints no 'G2 ask' or master-question label; S19 is not the home of project.stage/decisionRequested (that is S1/S2), so per the reframe HARD LIMITS those fields are not touched, the risk ladder / structural gates are not touched, and no test is touched. Per the reframe rule ('if your slide carries no gate/stage reference, just do the normal law-6 optimization') this reduces to the normal per-slide review, and the review finds the slide already sound: the risk register is complete and locked at eleven by the renderer's own invariant, each row pairs a danger with a countermeasure, the hard failure modes (single-platform concentration, AI overreach, cybersecurity, liability) are present, and coreControl is law-2 exact. NO-REWORK (R-CORE law): a fabricated edit on a complete, generated, non-hand-editable slide is refused, so -- exactly as for the per-slide S9 (D116) and S10 (D117) 'no seed face' passes -- the only changes are the mandatory provenance bump (PROV constant + row provenance, rev 0.123 -> 0.124, law 5) and this append-only record (law 7). No horizon, gate, the one-ninth (11.1 %) figure, timing label, claim, law, risk row or linked number moves (law 3); the master statement and segment value props are untouched (law 4).",
+    "commit": "f6bd8d5"
+  },
+  {
+    "revision": "0.125",
+    "date": "2026-09-26",
+    "kind": "release",
+    "why": "Per-slide S1 pass (rev 0.125), Concept (G1) reframe round: slide S1 is the executive summary of the founder-facing Innovation-Pod deck, and it IS a home of the current-gate framing, so this pass applies the reframe. The S1 ask cell (hi + ai) is reframed from 'G2 ask' to the Concept-gate ask (pass Concept (G1), advance to Plan by approving the concept and its de-risking plan), keeping the DRS G2 measurement gate and G3 A/B as the forward de-risking plan plus all eight approval items, the NBA definition and the master question; the shared MASTER_Q constant's label becomes 'Master question (Concept . G1)' (one master, updating S1.ask.ai and S16 together); project.stage -> 'Concept (G1) . future-state validation' and decisionRequested's opening is reframed (S1/S2 is their home; drs-render --check green). HARD LIMITS: the Pod row's gate field stays 'G2' (innovation-time.test.mjs:369), no test is edited, the G1-G6 ladder labels are unchanged. Mandatory law-5 provenance bump (rev 0.124 -> 0.125) and law-7 record (fill revisions[] 0.124 commit -> f6bd8d5; append iterations[] 0.125, decisions[] D127, revisions[] 0.125 PENDING; project.revision 0.125). No horizon, the one-ninth (11.1 %) figure, timing label, claim, law or linked number moves (law 3); the master statement and segment value props are untouched (law 4).",
+    "commit": "f858aa4"
+  },
+  {
+    "revision": "0.126",
+    "date": "2026-09-26",
+    "kind": "release",
+    "why": "Per-slide S2 pass (rev 0.126), Concept (G1) reframe round: slide S2 is the project overview of the founder-facing Innovation-Pod deck, and it IS a home of the current-gate framing, so this pass applies the reframe to its two current-gate seed strings. The S2 status cell (hi + ai) opening 'G2 / future-state validation' becomes 'Concept (G1) . future-state validation' (gate label only), and the S2 roadmap gates line (hi + ai) becomes 'Forward de-risking gates (after the Concept gate): G2 validates the measurement design ... . G3 runs the instrumented A/B.' -- the DRS G2/G3 detail kept verbatim as the forward de-risking plan. project.stage and decisionRequested are NOT re-edited (the S1 pass, rev 0.125, already reframed both to Concept (G1); byte-verified as already-Concept). HARD LIMITS: the Pod row's gate field stays 'G2' (innovation-time.test.mjs:369), no test is edited, the G1-G6 ladder labels are unchanged. Mandatory law-5 provenance bump (rev 0.125 -> 0.126) and law-7 record (fill revisions[] 0.125 commit -> f858aa4; append iterations[] 0.126, decisions[] D128, revisions[] 0.126 PENDING; project.revision 0.126). No horizon, the one-ninth (11.1 %) figure, timing label, claim, law or linked number moves (law 3); the master statement and segment value props are untouched (law 4).",
+    "commit": "b5c773f"
+  },
+  {
+    "revision": "0.127",
+    "date": "2026-09-26",
+    "kind": "release",
+    "why": "Per-slide S15 pass (rev 0.127), Concept (G1) reframe round: slide S15 is the BETA-feedback slide of the founder-facing Innovation-Pod deck (innovation-slide-seed-drs.ts S15: voc; prio; impact). Unlike S1 (D127) and S2 (D128), which were homes of the current-stage/ask label, S15 carries the DRS G2/G3 only as validation detail -- the voc rows are per-segment hypotheses with empty results and the impact cell is the pricing rule; only the prio row-1 third column presented 'G2 measurement-design tabletop -> G3 instrumented A/B' as the Horizon-1 approach in a way a reader could take for the present activity. So this pass reframes that one seed string (hi + ai, 2 occurrences) to 'Forward de-risking plan (after the Concept gate): G2 measurement-design tabletop -> G3 instrumented A/B' -- the DRS G2/G3 detail kept verbatim, now the forward de-risking plan that runs after Concept. drs.v00.00.json project.stage and decisionRequested are NOT re-edited (S1/S2 are their home, already Concept from rev 0.125; S15 is not). HARD LIMITS: the Pod row's gate field stays 'G2' (innovation-time.test.mjs:369), no test is edited, the G1-G6 ladder labels are unchanged. Mandatory law-5 provenance bump (rev 0.126 -> 0.127) and law-7 record (fill revisions[] 0.126 commit -> b5c773f; append iterations[] 0.127, decisions[] D129, revisions[] 0.127 PENDING; project.revision 0.127). No horizon, the one-ninth (11.1 %) figure, timing label, claim, law or linked number moves (law 3); the master statement and segment value props are untouched (law 4).",
     "commit": "PENDING"
   }
 ];

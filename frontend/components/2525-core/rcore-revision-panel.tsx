@@ -36,6 +36,14 @@ function revLabel(r: RCoreRevision): string {
   return `r${r.rev}${r.date ? " · " + r.date : ""}${r.kind ? " · " + r.kind : ""}`;
 }
 
+// Max traceability (operator 2026-09-26): surface every decision the revision cites, drawn straight from
+// its own record text — the Vision-2525 way (each ledger entry names its decisions). Deterministic, dedup,
+// order-stable; a revision that cites none simply shows none.
+const D_RE = /\bD\d+\b/g;
+function decisionsOf(r: RCoreRevision): string[] {
+  return Array.from(new Set(String(r.detail ?? "").match(D_RE) ?? []));
+}
+
 export function RCoreRevisionPanel({
   history,
   onClose,
@@ -198,6 +206,7 @@ export function RCoreRevisionPanel({
                 {display.map(({ r }) => {
                   const isB = r.rev === bRev;
                   const isA = r.rev === aRev;
+                  const ds = decisionsOf(r);
                   return (
                     <li key={r.rev}>
                       <button
@@ -226,8 +235,16 @@ export function RCoreRevisionPanel({
                           )}
                         </div>
                         <div style={{ marginTop: 3, fontSize: 12, color: PAL.ink, lineHeight: 1.45 }}>{r.title}</div>
-                        {r.commit && (
-                          <div style={{ marginTop: 2, fontSize: 10, color: "#34d399", fontFamily: "ui-monospace, monospace" }}>{r.commit}</div>
+                        {/* Traceability line: the decisions this revision cites + the shipping commit sha. */}
+                        {(ds.length > 0 || r.commit) && (
+                          <div style={{ marginTop: 4, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 5 }}>
+                            {ds.map((d) => (
+                              <span key={d} style={{ fontSize: 9, fontFamily: "ui-monospace, monospace", color: "#a78bfa", border: "1px solid #a78bfa55", borderRadius: 4, padding: "0 5px", lineHeight: "15px" }}>{d}</span>
+                            ))}
+                            {r.commit && (
+                              <span style={{ fontSize: 10, color: "#34d399", fontFamily: "ui-monospace, monospace" }} title={t("rcore.rev_short")}><span aria-hidden>⎇ </span>{r.commit}</span>
+                            )}
+                          </div>
                         )}
                       </button>
                     </li>
