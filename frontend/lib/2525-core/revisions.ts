@@ -13,6 +13,16 @@
 
 import { diffText, sideBySide, escHtml, type Op } from "@/lib/version-diff";
 
+// ── Model-identifier redaction (operator 2026-09-26: "redact at render, keep the record") ────────
+// The append-only ledgers keep their exact words (a factual AAR note names the model that produced a
+// round); but nothing model-named ever reaches the glass. Applied in the adapters below, so the
+// revision-history panel — its list, its A/B word diff and its HTML download — never renders a model
+// identifier, on any surface, while the source files are untouched (fleet 2026-09-26, Christo/Thor/MoT).
+const MODEL_ID_RE = /\b(?:Claude\s+)?(?:Opus|Sonnet|Haiku)\s*\d+(?:\.\d+)?|\bGrok\b(?:\s*\d+(?:\.\d+)?)?|\bGemini\b(?:\s*\d+(?:\.\d+)?)?|\bGPT-?\s*\d+(?:\.\d+)?/gi;
+export function redactModelIds(s: string): string {
+  return String(s ?? "").replace(MODEL_ID_RE, "an external model");
+}
+
 // ── The normalized shape every surface's history collapses into ──────────────────────────────
 export interface RCoreRevision {
   /** Revision id as a string — "0.034" (DRS) or "47" (ledger). Normalized so both sort/compare alike. */
@@ -62,14 +72,17 @@ export function firstSentence(text: string, max = 100): string {
 /** Normalize a traceability ledger ({section,route,entries}) into a full RCoreHistory. */
 export function fromLedgerJson(json: LedgerInput | null | undefined): RCoreHistory {
   const entries = Array.isArray(json?.entries) ? json!.entries! : [];
-  const revisions: RCoreRevision[] = entries.map((e) => ({
-    rev: String(e.rev ?? ""),
-    date: String(e.date ?? ""),
-    kind: e.kind ? String(e.kind) : undefined,
-    title: firstSentence(String(e.text ?? "")),
-    detail: String(e.text ?? ""),
-    commit: commitOf(e.commit),
-  }));
+  const revisions: RCoreRevision[] = entries.map((e) => {
+    const text = redactModelIds(String(e.text ?? "")); // render-redact model ids; the source ledger keeps its words
+    return {
+      rev: String(e.rev ?? ""),
+      date: String(e.date ?? ""),
+      kind: e.kind ? String(e.kind) : undefined,
+      title: firstSentence(text),
+      detail: text,
+      commit: commitOf(e.commit),
+    };
+  });
   return {
     surface: String(json?.section ?? ""),
     route: String(json?.route ?? ""),
@@ -80,14 +93,17 @@ export function fromLedgerJson(json: LedgerInput | null | undefined): RCoreHisto
 
 /** Normalize a DRS revisions[] into RCoreRevision[] — caller wraps it in an RCoreHistory with a surface/route. */
 export function fromDrsRevisions(revisions: readonly DrsRevisionInput[] | null | undefined): RCoreRevision[] {
-  return (Array.isArray(revisions) ? revisions : []).map((r) => ({
-    rev: String(r.revision ?? ""),
-    date: String(r.date ?? ""),
-    kind: r.kind ? String(r.kind) : undefined,
-    title: firstSentence(String(r.why ?? "")),
-    detail: String(r.why ?? ""),
-    commit: commitOf(r.commit),
-  }));
+  return (Array.isArray(revisions) ? revisions : []).map((r) => {
+    const why = redactModelIds(String(r.why ?? "")); // render-redact model ids; the source revisions[] keeps its words
+    return {
+      rev: String(r.revision ?? ""),
+      date: String(r.date ?? ""),
+      kind: r.kind ? String(r.kind) : undefined,
+      title: firstSentence(why),
+      detail: why,
+      commit: commitOf(r.commit),
+    };
+  });
 }
 
 /** Build an RCoreHistory around a bare revision list (the DRS path). */

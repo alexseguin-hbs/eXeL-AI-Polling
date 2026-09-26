@@ -437,6 +437,10 @@ import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJE
   const seedSrc = seedFile.slice(seedFile.indexOf("export const SLIDE_SEED_DRS")); // the cells, not the header comment that names what was retired
   ok(seedSrc.split("\n").filter((l) => /\$\s?\d/.test(l)).every((l) => /\bIA\b|DECLARED|declared/.test(l)), "every dollar figure in the PRJ-34 cells is labelled IA / declared (D8) — nothing reads as buyer-validated");
   ok(/EDU/.test(seedSrc) && /FOOD/.test(seedSrc) && /TECH/.test(seedSrc) && /Pro Team → Pro Enterprise/.test(seedSrc) && !/GridOS|Veoci/.test(seedSrc), "the seed is EDU · FOOD · TECH on Pro Team → Pro Enterprise; the retired DRS-attach NBAs are gone");
+  // MODEL-ID SCAN (operator 2026-09-26, "redact at render, keep record"): no model identifier in any RENDERED deck cell
+  // or the PROV / CONFIRM constants (scan from the first const, so the file-header authorship comment is not in scope).
+  const renderScan = seedFile.slice(seedFile.indexOf("const CONFIRM ="));
+  ok(!/\b(?:Claude\s+)?(?:Opus|Sonnet|Haiku)\s*\d|\bGrok\b|\bGemini\b|\bGPT-?\s*\d/.test(renderScan), "no model identifier renders in any DRS deck cell / PROV / CONFIRM (an external tool is named generically)");
   ok((p34.valueDrivers ?? []).every((v) => v.valueM > 0 && /^IA/.test(v.detail ?? "")) && Math.round((p34.valueDrivers ?? []).reduce((a, v) => a + v.valueM, 0) * 1000) === drs.financialModel.singleCustomer.modeledValueUsdK, "PRJ-34 value drivers are the DECLARED single-customer baseline (IA), summing to the model's modeled value per customer-year");
   ok(p34.name.length <= 40 && p34.name === "Project 34 — CrisisCommand Future State", "PRJ-34 carries the v1.0 title within the header law");
   const chain = defaultChain(biz);

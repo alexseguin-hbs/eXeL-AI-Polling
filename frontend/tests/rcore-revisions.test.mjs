@@ -6,7 +6,7 @@
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/rcore-revisions.test.mjs
 import fs from "node:fs";
 import {
-  fromLedgerJson, fromDrsRevisions, historyOf, compareRevisions, firstSentence,
+  fromLedgerJson, fromDrsRevisions, historyOf, compareRevisions, firstSentence, redactModelIds,
 } from "../lib/2525-core/revisions.ts";
 
 let pass = 0, fail = 0;
@@ -73,8 +73,20 @@ ok(cab.fromRev === cba.fromRev && cab.toRev === cba.toRev && cab.crossed.length 
 const { SOI_DRS_REVISIONS } = await import("../lib/2525-core/soi-drs-revisions.gen.ts");
 const { DRONE_LEDGER } = await import("../lib/2525-core/drone-ledger.gen.ts");
 const soiH = historyOf("SoI-2525", "/SoI-2525", fromDrsRevisions(SOI_DRS_REVISIONS));
-ok(soiH.revisions.length >= 20, `SoI history is built from the DRS record (${soiH.revisions.length} revisions)`);
+// FRESHNESS, not a floor (fleet 2026-09-26, HIGH): the generated SoI ledger must reflect EVERY revision of its
+// source (docs/drs/drs.v00.00.json) and end on the same rev — a stale gen (the 0.127-vs-0.130 drift) fails here.
+const drsSrc = JSON.parse(fs.readFileSync(new URL("../../docs/drs/drs.v00.00.json", import.meta.url), "utf8"));
+ok(soiH.revisions.length === drsSrc.revisions.length, `SoI gen reflects EVERY DRS revision (gen ${soiH.revisions.length} === source ${drsSrc.revisions.length}) — no stale drift`);
+ok(soiH.current === drsSrc.revisions[drsSrc.revisions.length - 1].revision, `SoI gen ends on the source's latest revision (${soiH.current} === ${drsSrc.revisions[drsSrc.revisions.length - 1].revision})`);
 ok(soiH.revisions.every((r) => r.rev && typeof r.title === "string"), "every SoI revision normalized (rev + title)");
+// MODEL-ID RENDER REDACTION (operator 2026-09-26, "redact at render, keep record"): the normalized text the panel
+// renders (title + detail, on every surface) carries NO model identifier, though the source ledgers keep their words.
+const MODEL = /\b(?:Claude\s+)?(?:Opus|Sonnet|Haiku)\s*\d|\bGrok\b|\bGemini\b|\bGPT-?\s*\d/i;
+ok(redactModelIds("Model changed to Opus 4.8 mid-round; the Grok audit") === "Model changed to an external model mid-round; the an external model audit", "redactModelIds replaces model tokens with a neutral label");
+const soiClean = soiH.revisions.every((r) => !MODEL.test(r.title) && !MODEL.test(r.detail ?? ""));
+const droneClean = fromLedgerJson(DRONE_LEDGER).revisions.every((r) => !MODEL.test(r.title) && !MODEL.test(r.detail ?? ""));
+ok(soiClean, "no model identifier renders in ANY SoI revision (title/detail) — the flagship compare surface is clean");
+ok(droneClean, "no model identifier renders in ANY Drone revision (title/detail) — the drone compare surface is clean");
 const droneH = fromLedgerJson(DRONE_LEDGER);
 ok(droneH.surface === "Drone-2525" && droneH.revisions.length >= 40, `Drone history from the ledger (${droneH.revisions.length} entries)`);
 const soiCmp = compareRevisions(soiH.revisions[0].rev, soiH.current, soiH);
@@ -91,6 +103,7 @@ ok(/data-rcore-badge/.test(badgeSrc) && /flex w-full justify-center/.test(badgeS
 const panelSrc = fs.readFileSync(new URL("../components/2525-core/rcore-revision-panel.tsx", import.meta.url), "utf8");
 ok(/data-rcore-panel/.test(panelSrc) && /compareRevisions\(/.test(panelSrc), "panel is the compare tool (uses compareRevisions)");
 ok(/rcore\.version_history/.test(panelSrc) && /rcore\.what_changed/.test(panelSrc), "panel is titled Version History and shows the 'What changed' diff");
+ok(/decisionsOf\(/.test(panelSrc) && /\\bD\\d/.test(panelSrc), "panel renders the per-revision D# decision citations (traceability), not just the diff (fleet 2026-09-26, Athena)");
 
 // ── 7 · both Stage-1 surfaces mount RCoreBadge, each from its own source ────────────────────────────
 const soiSrc = fs.readFileSync(new URL("../app/SoI-2525/page.tsx", import.meta.url), "utf8");
