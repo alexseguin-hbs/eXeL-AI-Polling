@@ -305,6 +305,12 @@ export interface Project {
   humanLoad: number;          // 0..1 sustained human-intelligence load (CRS-93 burnout guard)
   ai: number; si: number; hi: number; // intelligence contribution mix (sums ~1)
   predictions: number;        // open risk-market predictions against the project (CRS-81)
+  /** PRJ-34 (operator 2026-09-26) · DECLARED (IA) market sizing in $M — the Gate Review History "Market TAM/SAM, $"
+   *  rows read these when present, so they render in the project's CURRENT gate column (Concept for a G1 project) and
+   *  are no longer a "no source yet" gap. Optional and UNSET on the 33 demo rows (they stay gaps — the tool never
+   *  invents a figure without a basis). A value here is a DECLARED estimate with a source recorded in the DRS master. */
+  tamUsdM?: number;           // Total Addressable Market, $M (DECLARED/IA)
+  samUsdM?: number;           // Serviceable Available Market, $M (DECLARED/IA)
   /** PRJ-34 (operator 2026-09-24) · a provenance line the deck prints on EVERY slide and on the cover — a board
    *  artifact with no provenance is orphaned within a week. Optional; absent on the 33 demo rows. */
   provenance?: string;
@@ -1139,12 +1145,16 @@ const DEMO_PROJECTS_BASE: Project[] = [
   //    ($0 / $95k / $0.94M / $2.39M 2026–2029, then growth toward ~$4M/yr on the $67M near-term SAM) — the frozen
   //    four-year IA (NPV $0.16M · IRR ~20% · payback ~36 mo) is the figure of record; the Pod's 10-yr profile is derived.
   //    tech med (integration burden 16) · comm high (procurement 15, "Storm Manager already does this" 15).
-  { id: "PRJ-34", name: "Project 34 — CrisisCommand Future State", /* 39 ch — the deck header's one-size law (≤40); v0.8.2 title */ division: "Crisis + Resilience", lob: "DRC", manager: "A. Seguin", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "high", // 0.007 → 0.009 (D8 · D10, operator 2026-09-24) · DIGITAL INPUTS, DECLARED (IA): nreK 11200 = every year's spend 2026–2036; fullRev10yM 248 = 2,121 account-years
+  { id: "PRJ-34", name: "Project 34 — CrisisCommand Future State", /* 39 ch — the deck header's one-size law (≤40); v0.8.2 title */ division: "Crisis + Resilience", lob: "DRC", manager: "A. Seguin", category: "New Product", gate: "G1", confidence: 2, tech: "med", comm: "high", // gate G2→G1 (operator 2026-09-26 "remember this is G1 · ensure financials align to a concept column"): the recorded business case renders in the CONCEPT column + PRB "Current Gate G1 · Concept"; reconciles the row to the master, which already declares stage "Concept (G1)". Same numbers (gate-independent roll-ups); the S10 window shows the correct 4-yr Concept horizon; storage stays 11 years (lossless). // 0.007 → 0.009 (D8 · D10, operator 2026-09-24) · DIGITAL INPUTS, DECLARED (IA): nreK 11200 = every year's spend 2026–2036; fullRev10yM 248 = 2,121 account-years
   // at 60 k (2027–2030) then 120 k (2031+) — both the roll-up of PRJ34_FIN_PLAN (finRollup), the eleven-year record S3 / S10 / S14 read.
   // (docs/drs/drs.v00.00.json financialModel). The Pod's linked fields (S1 chart · S2 / S3 profile · S8 charts · S10 grid) derive from these two numbers,
   // REVPLAN_QTY and the value drivers — change the inputs, never a printed number. The unpriced class (v1.0) stays in the code, no longer applied here.
   nreK: 11200, fullRev10yM: 248, doNothing10yM: 0, firstRevenue: "2027-Q3", criticalPath: false, humanLoad: 0.5, ai: 0.3, si: 0.2, hi: 0.5, predictions: 0, startDate: "2026-09-23",
-    provenance: "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.130" },
+    // DECLARED (IA) market sizing (operator 2026-09-26 "take a stab at TAM and SAM"), $M, sourced in docs/drs (marketSizing):
+    // TAM 30,000 = the Critical Event Management category CrisisCommand aims to absorb (CEM $23.45B 2023 → $45.18B 2030 @ 9.2% → ~$30B 2026);
+    // SAM 10,000 = the crisis-management software segment it directly serves (~$9.5–9.8B 2025 → ~$10B 2026 @ ~5.9%), a coherent ~1/3 of TAM.
+    tamUsdM: 30000, samUsdM: 10000,
+    provenance: "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review by an external narrative pass · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.131" },
   { id: "PRJ-33", name: "Multi-Orbit ISR Tasking Broker", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "med", nreK: 4900, fullRev10yM: 155, doNothing10yM: 0, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.54, ai: 0.5, si: 0.3, hi: 0.2, predictions: 27 },
 ];
 
@@ -3195,6 +3205,8 @@ export interface GateHistoryReport {
 /** Format helpers local to the matrix, so every cell in it rounds the same way. */
 const gh$M = (m: number) => `$${(Math.round(m * 10) / 10).toLocaleString("en-US")}M`;
 const gh$K = (k: number) => `$${Math.round(k).toLocaleString("en-US")}k`;
+// Market TAM/SAM read in billions once they cross $1,000M — "$30B" rather than "$30,000M".
+const gh$B = (m: number) => (m >= 1000 ? `$${(Math.round(m / 100) / 10).toLocaleString("en-US")}B` : gh$M(m));
 
 /**
  * CS · GATE REVIEW HISTORY — the business case at every gate, changes flagged.
@@ -3231,10 +3243,11 @@ export function gateReviewHistoryRows(
   // `snap` rows can be reconstructed at a past gate from SlideFinSnap; `now` rows only at the current gate.
   type Spec = { rail: string; label: string; now: string | null; snap?: (s: SlideFinSnap) => string };
   const specs: Spec[] = [
-    // ⚠ NO SOURCE IN THE TREE. Rendered so the operator sees the hole where the template puts it, rather
-    // than a quietly shortened table. Named in `gaps`, and never filled with an invented figure.
-    { rail: "Market", label: "TAM, $", now: null },
-    { rail: "Market", label: "SAM, $", now: null },
+    // TAM/SAM: a DECLARED (IA) estimate when the project carries one (operator 2026-09-26 "take a stab at TAM and SAM";
+    // PRJ-34 = TAM $30B / SAM $10B, sourced in docs/drs marketSizing), else a NAMED gap so the tool never invents a
+    // figure without a basis. A value renders in the project's CURRENT gate column (Concept for a G1 project).
+    { rail: "Market", label: "TAM, $", now: p.tamUsdM != null ? gh$B(p.tamUsdM) : null },
+    { rail: "Market", label: "SAM, $", now: p.samUsdM != null ? gh$B(p.samUsdM) : null },
     { rail: "Market", label: "Market CAGR, %", now: `${cagrPctOf(p).toFixed(1)}%` },
     { rail: "Date", label: "Date of 1st Revenue", now: p.firstRevenue },
     { rail: "Financials · 1-Yr", label: "Incremental Revenues, $", now: gh$K(incRev1) },

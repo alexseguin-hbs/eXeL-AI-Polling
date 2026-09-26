@@ -366,12 +366,21 @@ import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJE
   ok(DEMO_PROJECTS.some((p) => p.id === "PRJ-34") && !RESERVED_PROJECT_IDS.includes("PRJ-34") && RESERVED_PROJECT_IDS.length === 0, "PRJ-34 is SEEDED: in the portfolio, nothing reserved");
   const p34 = DEMO_PROJECTS.find((p) => p.id === "PRJ-34");
   ok(hierOf(p34).bu === "DR" && hierOf(p34).sbu === "DRC" && hierOf(p34).pgroup === "CR1" && hierOf(p34).alpha === "CR1D" && hierOf(p34).product === "70034", "PRJ-34 resolves to DR › DRC › CR1 › CR1D · 70034");
-  ok(p34.gate === "G2" && p34.nreK === 11200 && p34.fullRev10yM === 248 && !p34.unpriced && /twelve-lens review 2026-09-24 · final authority: De-Risking Strategies \/ Human Intelligence · v1\.0 · rev 0\.\d{3}$/.test(p34.provenance ?? ""), "PRJ-34 is G2 with the DECLARED IA digital inputs (D10: nreK 11200, fullRev10yM 248), no longer unpriced, provenance footer v1.0 · rev 0.NNN");
+  ok(p34.gate === "G1" && p34.nreK === 11200 && p34.fullRev10yM === 248 && !p34.unpriced && /twelve-lens review 2026-09-24 · final authority: De-Risking Strategies \/ Human Intelligence · v1\.0 · rev 0\.\d{3}$/.test(p34.provenance ?? ""), "PRJ-34 is G1 (Concept) — financials render in the Concept column (D133, operator 2026-09-26) — with the DECLARED IA digital inputs (D10: nreK 11200, fullRev10yM 248), no longer unpriced, provenance footer v1.0 · rev 0.NNN");
   // D10 · THE ELEVEN-YEAR RECORD IS THE SOURCE: the row rolls up from its own plan, every year carries resources, NPV is non-zero.
   const { finRollup: rollup, financialsOverview: fov, npvM: npvOf, FIN_SPAN: SPAN, PRJ34_FIN_PLAN: P34PLAN } = await import("../lib/innovation-data.ts");
   ok(p34.finPlan === P34PLAN && rollup(P34PLAN).nreK === p34.nreK && rollup(P34PLAN).fullRev10yM === p34.fullRev10yM && P34PLAN.years.length === SPAN && P34PLAN.years[0].year === 2026, "PRJ-34's nreK / fullRev10yM ARE the roll-up of its eleven-year plan (2026–2036)");
   ok(fov(p34, { years: SPAN }).every((r) => r.rdK > 0) && fov(p34, { years: SPAN }).slice(1).every((r) => r.revM > 0), "resources exist in every one of the eleven years and revenue in all ten from 2027 (the record, not the NRE spread)");
-  ok(npvOf(p34) > 0.5 && npvOf(p34) < 5, `PRJ-34 NPV is non-zero and positive at the G2 weighting (${npvOf(p34).toFixed(2)} M by the Pod's proxy)`);
+  ok(npvOf(p34) > 0.5 && npvOf(p34) < 5, `PRJ-34 NPV is non-zero and positive at the Concept-gate weighting (${npvOf(p34).toFixed(2)} M by the Pod's proxy; gate-independent)`);
+  // D133 · CONCEPT COLUMN + TAM/SAM (operator 2026-09-26): PRJ-34 carries a DECLARED (IA) TAM/SAM, and the Gate Review
+  // History renders them in the CONCEPT column (the project's current gate is G1), so TAM/SAM are no longer "no source" gaps.
+  const { gateReviewHistoryRows: grh, finOf: finOfP, buildDemoVersionSeed: seedP, GATE_HISTORY_COLS: GHC } = await import("../lib/innovation-data.ts");
+  const rep34 = grh(p34, finOfP(p34, 2026), seedP(p34));
+  const conceptCol = GHC.findIndex((c) => c.gate === "G1");
+  const tamRow = rep34.rows.find((r) => r.label === "TAM, $"), samRow = rep34.rows.find((r) => r.label === "SAM, $");
+  ok(p34.tamUsdM === 30000 && p34.samUsdM === 10000, `PRJ-34 carries DECLARED (IA) TAM $30B / SAM $10B (got ${p34.tamUsdM} / ${p34.samUsdM})`);
+  ok(tamRow && tamRow.values[conceptCol] === "$30B" && samRow && samRow.values[conceptCol] === "$10B", `TAM/SAM render in the Concept column (${tamRow?.values[conceptCol]} / ${samRow?.values[conceptCol]})`);
+  ok(!rep34.gaps.includes("TAM, $") && !rep34.gaps.includes("SAM, $") && rep34.gaps.includes("Competitive NBA Price, $"), `PRJ-34's TAM/SAM are sourced (not gaps); only Competitive NBA Price stays a gap: ${rep34.gaps.join(" · ")}`);
   ok(/financialsOverview\(p, \{ years: FIN_SPAN, funded: true \}\)/.test(await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8")), "the S3 / S14 mini charts draw the whole eleven-year record");
   const drs0 = JSON.parse(await (await import("node:fs/promises")).readFile("../docs/drs/drs.v00.00.json", "utf8"));
   ok(drs0.financialModel?.podInputs?.nreK === p34.nreK && drs0.financialModel.podInputs.fullRev10yM === p34.fullRev10yM && (p34.valueDrivers ?? []).map((v) => v.valueM).join() === drs0.financialModel.podInputs.valueDriversUsdMPerCustomerYear.join() && drs0.financialModel.tenYear.accountYears === Object.values(drs0.financialModel.ramp.years).reduce((a, b) => a + b, 0), "the row's digital inputs ARE the master's financialModel.podInputs (one master; slides update from them)");

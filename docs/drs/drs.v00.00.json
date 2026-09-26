@@ -6,7 +6,7 @@
   "projectNumber": "26.005W",
   "projectNumberNote": "PROPOSED — follows the template's numbering (Project Resilience 23.003W, Project AdFusion 24.004W).",
   "version": "00.00",
-  "revision": "0.130",
+  "revision": "0.131",
   "stage": "Concept (G1) · future-state validation",
   "decisionRequested": "Concept-gate ask (Concept · G1, v1.0) — pass the Concept gate and advance to Plan by approving the concept and its de-risking plan, which then runs the forward DRS validation gates (G2 measurement design, G3 A/B) — approve: 1. the benchmark teardown (Everbridge 360 AI / Bridge) + EDU / Rave and TECH / PagerDuty comparator teardowns with buyer interviews · 2. the pre-registered EDU measurement-design tabletop (hypothesis, null, stop rule, an independent timekeeper) · 3. future-state workflow prototypes of the governed leadership state · 4. segment-specific value equations with clocks the platform itself logs · 5. CrisisCommand-specific CTS discovery per absorbed function · 6. S16-style evidence tracking · 7. G3 A/B (benchmark alone vs the one platform) only after the G2 design is credible, three institutions per segment or it is a pilot · 8. the absorption ladder as the roadmap: govern first, absorb by the one-ninth gate, alerting last and certified. Master question: can ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — create measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, with a named human on every consequence?",
   "created": "2026-09-23",
@@ -2177,6 +2177,13 @@
    "kind": "release",
    "commit": "PENDING",
    "why": "Visionary pass 3 of 3 (rev 0.130), whole-deck twelve-lens upside-offering round: CLOSES the visionary arc by completing the distribution of the far-horizon thesis D130 opened and D131 extended onto the four remaining slides where the upside fits -- S5 customer problem (whys.ai), S6 architecture (conops.ai), S12 go-to-market (l0.ai) and S16 market-performance (counter.ai) -- so the ONE human-governed record carries the ambition evenly across S2 / S5 / S6 / S8 / S12 / S14 / S16 / S17 and a reader who opens any middle slide still meets it. Thesis EXTENDED not changed -- by 2525 CrisisCommand carries the key features of ALL major NBA offerings (benchmark Everbridge 360 AI / Bridge plus comparators Rave, PagerDuty and the other sourced majors GridOS ADMS/OMS, Veoci Vitals EM, YUDU Sentinel -- named by DOMAIN in the seed cells, product names only here since innovation-time.test.mjs:430 forbids GridOS/Veoci in the deck cells), absorbed function-by-function through the one-ninth (11.1 %) gate into the leadership record, alerting last and certified. Law 1 stays EXTENDED (primary set EDU/FOOD/TECH, others discovery-only, full reach a 2525 horizon: govern 2027 / native 2030 / shared crisis memory 2525). Upside painted as an expanding tool suite (detect -> judge -> approve -> act -> replay -> improve) around critical outcomes and high-upside financial-crisis coordination, as horizon never a shipped/savings claim. Four content edits, none repeating pass 1's or pass 2's cells: S5 whys.ai (problem-face upside horizon), S6 conops.ai (expanding tool suite as the growing object set), S12 l0.ai (commercial-reach horizon), S16 counter.ai (instrument turned to financial-crisis coordination). NO-REWORK: grep-verified the upside was not on those four cells before this pass. HARD LAWS: money DECLARED (IA) (law 3); Concept (G1) framing kept (project.stage / decisionRequested not re-edited); Pod row gate field stays 'G2' (innovation-time.test.mjs), no test edited; no model names; master statement + segment value props fixed (law 4); no cell emptied, no field shape / column count changed, ai >= hi (law 6). Law-5 provenance bump (rev 0.129 -> 0.130) and law-7 record (fill revisions[] 0.129 commit -> 7789934; append iterations[] 0.130 n 124, decisions[] D132, revisions[] 0.130 PENDING; project.revision 0.130)."
+  },
+  {
+   "revision": "0.131",
+   "date": "2026-09-26",
+   "kind": "release",
+   "commit": "PENDING",
+   "why": "Concept (G1) gate alignment + TAM/SAM + records hygiene (operator 2026-09-26; decision D133). Pod row gate G2 -> G1 so the financials render in the CONCEPT column and the PRB reads Current Gate G1 - Concept (reconciles the code row to this master's already-Concept stage; same numbers, lossless 11-year storage, S10 window -> 4-year Concept horizon; innovation-time.test.mjs updated G2 -> G1, no other test loosened). TAM $30B / SAM $10B DECLARED (IA), sourced under marketSizing, carried on the Pod row (tamUsdM/samUsdM) and rendered in the Concept column, dropped from the gap list. Records: iterations[].n renumbered clean 1..124 (was non-monotonic, \"124 of 99\"); drs-render true count + monotonic-n gate; S2 status corrected to rev 0.131 - D1-D133; rendered model-identifier references scrubbed from the deck cells (redact at render, keep record). Append-only; law-5 provenance 0.130 -> 0.131."
   }
  ],
  "coreControl": "AI recommends and organizes. Authorized humans retain command.",
@@ -3816,6 +3823,13 @@
    "revision": "0.130",
    "by": "twelve lenses · visionary 3/3",
    "decision": "Visionary pass 3 of 3 (rev 0.130), whole-deck twelve-lens upside-offering round (operator 2026-09-25, docs/asks/2026-09-25_rcore_traceability_and_3_visionary_passes.md). The round CLOSES the three-pass visionary arc by COMPLETING the distribution of the far-horizon thesis that D130 opened and D131 extended onto the four remaining slides where the upside naturally fits -- S5 customer problem (whys.ai), S6 architecture (conops.ai), S12 go-to-market (l0.ai) and S16 market-performance (counter.ai) -- so the ONE human-governed record carries the ambition evenly across S2 / S5 / S6 / S8 / S12 / S14 / S16 / S17 and a reader who opens any middle slide still meets it. The thesis is EXTENDED, not changed: by 2525 CrisisCommand carries the KEY FEATURES OF ALL MAJOR NBA offerings -- the benchmark Everbridge 360 AI / Bridge, the named comparators (Rave / Rave Alert in EDU, PagerDuty in TECH) and the other sourced majors (GridOS ADMS / OMS in utility, Veoci Vitals EM in healthcare, YUDU Sentinel on campus, from NEEDS_ASSESSMENT_RESEARCH.md -- named by DOMAIN in the seed cells and by product name only in this record, since innovation-time.test.mjs:430 forbids the GridOS/Veoci product names in the deck cells) -- each absorbed function-by-function through the one-ninth (11.1 %) gate into the leadership record, alerting last and certified. Law 1 stays EXTENDED, not broken: the primary validation set stays EDU / FOOD / TECH, the other majors are discovery-only until a named buyer runs them, and the full reach is a 2525 horizon (govern 2027 / native 2030 / shared crisis memory 2525), never the primary three. The upside is painted as an expanding tool suite (detect -> judge -> approve -> act -> replay -> improve) built around critical outcomes and high-upside financial-crisis coordination, shown as horizon, never a shipped or savings claim, run through the operating loop. Four content edits carry it: S5 whys.ai (the problem-face upside horizon), S6 conops.ai (the expanding tool suite as the growing object set), S12 l0.ai (the commercial-reach horizon) and S16 counter.ai (the instrument turned to financial-crisis coordination). NO-REWORK (R-CORE law): grep-verified the upside horizon and the expanding-tool-suite / financial-crisis picture were not on S5 whys.ai, S6 conops.ai, S12 l0.ai or S16 counter.ai before this pass (they lived only on S8 nba / S17 from pass 1, S2 / S8 benefits / S14 from pass 2, and in NEEDS_ASSESSMENT_RESEARCH.md); the edits append one new list item each and repeat none of pass 1's or pass 2's cells. HARD LAWS honoured: money stays DECLARED (IA), never buyer-validated (law 3); the Concept (G1) narrative framing is KEPT (master question / status / ask read Concept . G1 from D127-D131; DRS G2/G3 stay the forward de-risking plan; project.stage and decisionRequested not re-edited); the Pod row's gate field in innovation-data.ts stays 'G2' (asserted by innovation-time.test.mjs), no test is edited; no model names in any file; the master statement (futureState.master.statement === valueProp) and the three segment value props stay fixed (law 4); no cell emptied, no field shape or column count changed, ai >= hi (law 6); the append-only record grows only (law 7). Mandatory law-5 provenance bump (PROV constant + row provenance, rev 0.129 -> 0.130) and law-7 record (fill revisions[] 0.129 commit -> 7789934; append iterations[] 0.130 n 124, decisions[] D132, revisions[] 0.130 PENDING; set project.revision 0.130). It does not supersede any prior decision -- it completes the three-pass visionary arc (D130 -> D131 -> D132), finishing the distribution of the one-platform full-NBA horizon across the deck."
+  },
+  {
+   "id": "D133",
+   "date": "2026-09-26",
+   "revision": "0.131",
+   "by": "operator - De-Risking Strategies / Human Intelligence",
+   "decision": "CONCEPT (G1) GATE ALIGNMENT + TAM/SAM (operator 2026-09-26: \"remember this is G1 - ensure financials align to a concept column\" + \"also take a stab at TAM and SAM\", with the Changes-Approvals screenshot). (a) GATE: the Pod row gate field in frontend/lib/innovation-data.ts is set G2 -> G1, reconciling the code row to this master, which already declares project.stage \"Concept (G1) - future-state validation\". The recorded business case now renders in the CONCEPT column of the Gate Review History and the PRB panel reads \"Current Gate G1 - Concept\". This SUPERSEDES the visionary passes' constraint (D130-D132 kept the row gate at G2 pending an operator call); the operator has now made that call. Same numbers: nreK 11200 / fullRev10yM 248 / NPV / Competitive-NBA are gate-independent roll-ups of the full eleven-year plan; storage stays 11 years (lossless); only the display column and the S10 input-grid window (6 -> the correct 4-year Concept horizon) change. The one locked assertion (innovation-time.test.mjs) is updated G2 -> G1; no other test is loosened. (b) TAM/SAM: the blank Market TAM/SAM rows are populated with DECLARED (IA) estimates carried on the Pod row (tamUsdM 30000 / samUsdM 10000, $M) and recorded here under marketSizing with sources - TAM ~$30B (the CEM category), SAM ~$10B (the crisis-management-software segment). They render in the Concept column and drop from the \"no source yet\" gap list; other projects keep TAM/SAM as named gaps (the tool never invents a figure without a basis). Money stays DECLARED/IA, never buyer-validated (law 3). (c) RECORDS HYGIENE (48-agent fleet 2026-09-26): iterations[].n renumbered to a clean monotonic 1..124 (was dup'd 122-124 / skipped 100-105 / non-monotonic, rendering \"124 of 99\"); drs-render prints the true count; a monotonic-n check is added. S2 status cell rev/decision-register corrected to rev 0.131 - D1-D133 (was a stale 0.107 - D1-D109 that self-contradicted the PROV footer). Rendered model-identifier references scrubbed from the deck cells (row provenance, PROV, S2 status, CONFIRM: an external tool name -> \"an external narrative pass\") per the operator's \"redact at render, keep the record\" decision. HARD LAWS: append-only (this appends; no prior decision's substance edited - only the derived n ordinal corrected); one master (law 4); law-5 provenance bump 0.130 -> 0.131; law-7 record grows only."
   }
  ],
  "iterations": [
@@ -6221,7 +6235,7 @@
   },
   {
    "revision": "0.106",
-   "n": 106,
+   "n": 100,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S1",
    "file": "docs/drs/iterations/0.106.md",
@@ -6243,7 +6257,7 @@
   },
   {
    "revision": "0.107",
-   "n": 107,
+   "n": 101,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S2",
    "file": "docs/drs/iterations/0.107.md",
@@ -6265,7 +6279,7 @@
   },
   {
    "revision": "0.108",
-   "n": 108,
+   "n": 102,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S3",
    "file": "docs/drs/iterations/0.108.md",
@@ -6287,7 +6301,7 @@
   },
   {
    "revision": "0.109",
-   "n": 109,
+   "n": 103,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S4",
    "file": "docs/drs/iterations/0.109.md",
@@ -6310,7 +6324,7 @@
   },
   {
    "revision": "0.110",
-   "n": 110,
+   "n": 104,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S5",
    "file": "docs/drs/iterations/0.110.md",
@@ -6333,7 +6347,7 @@
   },
   {
    "revision": "0.111",
-   "n": 111,
+   "n": 105,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S6",
    "file": "docs/drs/iterations/0.111.md",
@@ -6356,7 +6370,7 @@
   },
   {
    "revision": "0.112",
-   "n": 112,
+   "n": 106,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S7",
    "file": "docs/drs/iterations/0.112.md",
@@ -6379,7 +6393,7 @@
   },
   {
    "revision": "0.113",
-   "n": 113,
+   "n": 107,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S8",
    "file": "docs/drs/iterations/0.113.md",
@@ -6402,7 +6416,7 @@
   },
   {
    "revision": "0.114",
-   "n": 114,
+   "n": 108,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S9",
    "file": "docs/drs/iterations/0.114.md",
@@ -6426,7 +6440,7 @@
   },
   {
    "revision": "0.115",
-   "n": 115,
+   "n": 109,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S10",
    "file": "docs/drs/iterations/0.115.md",
@@ -6450,7 +6464,7 @@
   },
   {
    "revision": "0.116",
-   "n": 116,
+   "n": 110,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S11",
    "file": "docs/drs/iterations/0.116.md",
@@ -6474,7 +6488,7 @@
   },
   {
    "revision": "0.117",
-   "n": 117,
+   "n": 111,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S12",
    "file": "docs/drs/iterations/0.117.md",
@@ -6494,7 +6508,7 @@
   },
   {
    "revision": "0.118",
-   "n": 118,
+   "n": 112,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S13",
    "file": "docs/drs/iterations/0.118.md",
@@ -6517,7 +6531,7 @@
   },
   {
    "revision": "0.119",
-   "n": 119,
+   "n": 113,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S14",
    "file": "docs/drs/iterations/0.119.md",
@@ -6540,7 +6554,7 @@
   },
   {
    "revision": "0.120",
-   "n": 120,
+   "n": 114,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S15",
    "file": "docs/drs/iterations/0.120.md",
@@ -6563,7 +6577,7 @@
   },
   {
    "revision": "0.121",
-   "n": 121,
+   "n": 115,
    "date": "2026-09-25",
    "author": "twelve lenses · per-slide S16",
    "file": "docs/drs/iterations/0.121.md",
@@ -6585,7 +6599,7 @@
   },
   {
    "revision": "0.122",
-   "n": 122,
+   "n": 116,
    "date": "2026-09-26",
    "author": "twelve lenses · per-slide S17",
    "file": "docs/drs/iterations/0.122.md",
@@ -6607,7 +6621,7 @@
   },
   {
    "revision": "0.123",
-   "n": 123,
+   "n": 117,
    "date": "2026-09-26",
    "author": "twelve lenses · per-slide S18 · G1 reframe",
    "file": "docs/drs/iterations/0.123.md",
@@ -6629,7 +6643,7 @@
   },
   {
    "revision": "0.124",
-   "n": 124,
+   "n": 118,
    "date": "2026-09-26",
    "author": "twelve lenses · per-slide S19 · G1 reframe",
    "file": "docs/drs/iterations/0.124.md",
@@ -6651,7 +6665,7 @@
   },
   {
    "revision": "0.125",
-   "n": 125,
+   "n": 119,
    "date": "2026-09-26",
    "author": "twelve lenses · per-slide S1 · G1 reframe",
    "file": "docs/drs/iterations/0.125.md",
@@ -6674,7 +6688,7 @@
   },
   {
    "revision": "0.126",
-   "n": 126,
+   "n": 120,
    "date": "2026-09-26",
    "author": "twelve lenses · per-slide S2 · G1 reframe",
    "file": "docs/drs/iterations/0.126.md",
@@ -6697,7 +6711,7 @@
   },
   {
    "revision": "0.127",
-   "n": 127,
+   "n": 121,
    "date": "2026-09-26",
    "author": "twelve lenses · per-slide S15 · G1 reframe",
    "file": "docs/drs/iterations/0.127.md",
@@ -6793,5 +6807,29 @@
     "D132"
    ]
   }
- ]
+ ],
+ "marketSizing": {
+  "basis": "DECLARED (IA) - a Concept-gate market estimate, sourced from published market reports, never buyer-validated (evidence law 3).",
+  "tamUsdM": 30000,
+  "samUsdM": 10000,
+  "tam": {
+   "label": "Total Addressable Market",
+   "valueUsdB": 30,
+   "definition": "The Critical Event Management (CEM) platform category CrisisCommand aims to absorb function-by-function (Everbridge and the other majors) - the full one-platform horizon.",
+   "derivation": "CEM platforms $23.45B (2023) -> $45.18B (2030) at 9.2 percent CAGR -> ~$30B interpolated for 2026.",
+   "sources": [
+    "https://www.forinsightsconsultancy.com/reports/critical-event-management-cem-platforms-market"
+   ]
+  },
+  "sam": {
+   "label": "Serviceable Available Market",
+   "valueUsdB": 10,
+   "definition": "The crisis-management software segment CrisisCommand directly serves today - a coherent subset (~1/3) of the CEM TAM.",
+   "derivation": "Crisis-management software ~$9.5-9.8B (2025) -> ~$10B (2026) at ~5.9 percent CAGR.",
+   "sources": [
+    "https://www.giiresearch.com/report/tbrc1973043-crisis-management-software-global-market-report.html",
+    "https://www.openpr.com/news/4632010/crisis-management-software-market-trends-support-a-6-cagr"
+   ]
+  }
+ }
 }
