@@ -2,11 +2,13 @@
 
 ## Verbatim ask
 > also make drone-2525 tan [tab] name / eXeL Drone-2525 / not sure why ECO IS IN NAME
+> (2026-09-26 follow-up) It should be "eXeL Drone-2525" not "eXeL Drone-2525 · MoT · SSSES"
 
 ## The defect
 `frontend/public/drone-2525/play.html:7` = `<title>eXeL ECO-2525 · MoT · SSSES</title>`. The browser tab
-therefore reads "eXeL ECO-2525 · …". It should read **"eXeL Drone-2525 · MoT · SSSES"** (leading name
-"eXeL Drone-2525"). "ECO-2525" is a stale/leftover deck name; the surface is Drone-2525.
+therefore reads "eXeL ECO-2525 · …". It should read **exactly "eXeL Drone-2525"** — the full title string,
+with the "· MoT · SSSES" suffix REMOVED (operator 2026-09-26). i.e. `<title>eXeL Drone-2525</title>`.
+"ECO-2525" is a stale/leftover deck name; the surface is Drone-2525.
 
 ## Why it needs a drone revision (not a raw edit)
 play.html is the byte-gated served operator deck (DECK_REV currently **152**). Editing it directly breaks
@@ -19,7 +21,7 @@ Follow the established drone-ship pattern used for r.150→r.152 (asserted patch
 HASHES → register → deck-rev → manifest → ledger → notes → gates → push both refs). Concretely, one
 title-only change propagated through:
 - The carried snapshot `docs/drone-2525/operator-deck/drone-2525_r.153.html` = byte-copy of r.152 with
-  line-7 title `eXeL ECO-2525 · MoT · SSSES` → `eXeL Drone-2525 · MoT · SSSES` (via an asserted patch, one edit).
+  line-7 title `eXeL ECO-2525 · MoT · SSSES` → `eXeL Drone-2525` (drop the whole suffix; via an asserted patch, one edit).
 - `frontend/public/drone-2525/play.html` = byte copy of the r.153 snapshot (title fixed).
 - `docs/drone-2525/operator-deck/HASHES_r153.sha256` (sha of the r.153 html/play.html).
 - `docs/drone-2525/operator-deck/REVISIONS.md` — append the r.153 row (chain hash), what changed
