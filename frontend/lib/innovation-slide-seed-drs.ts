@@ -33,7 +33,7 @@ const MOTTO = "Humanity decides. Technology assists. Trust must be proven.";
 const MASTER_Q = "Master question (Concept · G1): can CrisisCommand prove that ONE human-governed platform — the leadership record plus, by qualification, every aspect of the benchmark's critical-event job — creates measurable incremental value above Everbridge 360 AI / Bridge in FOOD, Rave in EDU and PagerDuty in TECH, on a pre-registered clock, with a named human on every consequence?";
 const LOOP = "Operational truth in → human judgment → approved action out → evidence back → learning compounds.";
 const CONFIRM = "CONFIRM with CrisisCommand before external use: v0.8.2 and the Grok narrative read Pro Team → Pro Enterprise with six live Industry Knowledge Bases (EDU · FOOD · TECH · RETAIL · HEALTH · FIN); the eXeL v0.9 manuscript reads CORE / PRO / ENTERPRISE with EDU · FOOD · TECH live and Healthcare / Retail / Manufacturing / Finance upcoming.";
-const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.128";
+const PROV = "Human-authored strategy · AI-assisted synthesis by eXeL AI · cross-review informed by Grok · twelve-lens review 2026-09-24 · final authority: De-Risking Strategies / Human Intelligence · v1.0 · rev 0.129";
 
 export const SLIDE_SEED_DRS: SlideSeed = {
   "PRJ-34": {
@@ -89,6 +89,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "Today: Understand → Structure → Align → Communicate → Manage → Prepare / Simulate.",
           "Future extension: Understand → Judge → Align → Approve → Assign → Acknowledge → Communicate → Observe → Replay → Improve.",
           "Horizon 1 (2027) Governed Leadership State, native · Horizon 2 (→ 2030) the critical-event surface absorbed under the one-ninth (11.1 %) gate, alerting last · Horizon 3 Enterprise Decision Graph · Horizon 4 Recursive Readiness (2525).",
+          "Upside horizon (vision, not a claim): by 2525 the key features of every major crisis offering are absorbed by qualification into the one human-governed record.",
           "Forward de-risking gates (after the Concept gate): G2 validates the measurement design (interviews, NBA teardown, prototype, one pre-registered EDU tabletop) · G3 runs the instrumented A/B.",
         ],
         ai: [
@@ -97,6 +98,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "Horizon 1 (2027) Governed Leadership State, native, with every benchmark function reachable from inside the platform · Horizon 2 (→ 2030) the critical-event surface absorbed function by function under the one-ninth (11.1 %) gate, alerting last · Horizon 3 Enterprise Decision Graph · Horizon 4 Recursive Readiness (2525).",
           "Forward de-risking gates (after the Concept gate): G2 validates the measurement design (interviews, NBA teardown, prototype, one pre-registered EDU tabletop) · G3 runs the instrumented A/B.",
           "Validation sequence 1 EDU · 2 FOOD · 3 TECH — a sequence, not a market-size ranking.",
+          "Upside horizon (IA, 2525 vision — not a shipped or savings claim): the expanding tool suite — detect → judge → approve → act → replay → improve — turned to critical outcomes and high-upside financial-crisis coordination, where getting the leadership loop right carries large upside; the full major-offering set absorbed by qualification (the one-ninth (11.1 %) gate, alerting last and certified), dated govern 2027 · native 2030 · humanity's shared crisis memory 2525; primary set EDU · FOOD · TECH, other majors discovery-only; money DECLARED (IA), never buyer-validated."
         ],
       },
       toprisks: {
@@ -314,6 +316,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "Priced as a DECLARED single-customer baseline (IA): 180 k modeled value per customer-year, 60 k captured — rebuilt from buyer-verified inputs at G3 (S14 / S15); no old DRS dollar table is carried.",
           "Future-state territory across all three: human-curated sector precedent applied to live judgment · organization-specific context · cross-domain executive exposure · leadership decision rights · approval state · stakeholder strategy · action ownership / acknowledgement · evidence-linked plan state · time-to-coherence · outcome-linked replay. Thought Master test: how many minutes change · what is each verified minute worth · which risk changes as time passes · which observable outcome improves.",
           "For a public body (IA, after G3, D12): no NBA to displace — the governed record steers a public project for its people, its citizens answer through the eXeL Polling API, and every approved posture and its outcome is replayable by the body that owns it and by the people it serves (S12 · S16 · S17) — strategy → game plan → execution → delivered results, transparent and accountable; never a claimed customer, and the decision record and replay it needs already run in this repo (R-CORE).",
+          "Value horizon (IA, 2525 vision — not a shipped or savings claim): the expanding tool suite — detect → judge → approve → act → replay → improve — built out around critical outcomes and high-upside financial-crisis situations, where getting the leadership loop right carries the largest upside; by 2525 the one human-governed record carries the key features of every major crisis offering, each absorbed only after it clears the one-ninth (11.1 %) gate on its own clock, alerting last and certified; money stays DECLARED (IA), never a savings claim.",
         ],
       },
       features: {
@@ -540,6 +543,7 @@ export const SLIDE_SEED_DRS: SlideSeed = {
           "Horizon 2 — Absorb by qualification: every benchmark function reachable from inside the platform first (link, selected structured facts, status, action reference), then native function by function only after each beats Everbridge 360 AI / Bridge on its pre-registered clock by the one-ninth (11.1 %) gate; Rave and PagerDuty facts flow in as inbound feeds; alerting last and certified.",
           "Horizon 3 — Enterprise Decision Graph: decision relationships · shared authority across teams · stakeholder patterns · executive action ownership · recurring crisis themes · multi-instance outcome replay (extends the announced Enterprise Crisis Dashboard, never a claim that cross-instance visibility is new). Horizon 4 — Recursive Readiness: multi-event learning · simulation · qualification · institutional continuity.",
           "Horizon 1 also ships the approver threat model (S13): step-up identity on every consequential sign-off, succession of decision rights when an approver is unreachable, privilege-aware fields for counsel-marked entries — a named human on every consequence is only as strong as the proof of who signed.",
+          "Horizon 4 upside (IA, 2525 vision — not a shipped or savings claim): by 2525 the record carries the key features of every major crisis offering, absorbed by qualification (the one-ninth (11.1 %) gate, alerting last and certified), and the expanding tool suite — detect → judge → approve → act → replay → improve — is turned to critical outcomes and high-upside financial-crisis coordination; the return profile stays DECLARED (IA), never a buyer-validated saving.",
         ],
       },
     },
