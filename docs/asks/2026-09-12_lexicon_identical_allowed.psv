@@ -352,3 +352,16 @@ de|drone.game.pause|"Pause" is the ordinary German word
 da|drone.game.pause|"Pause" is the ordinary Danish word
 no|drone.game.pause|"Pause" is the ordinary Norwegian word
 fr|drone.game.pause|"Pause" is the ordinary French word on a timer control
+da|rcore.revision_col
+de|rcore.details
+de|rcore.revision_col
+fr|rcore.section_one
+fr|rcore.section_many
+fr|rcore.impact_col
+fr|rcore.date_col
+nl|rcore.release_one
+nl|rcore.release_many
+nl|rcore.details
+nl|rcore.impact_col
+ro|rcore.impact_col
+sv|rcore.revision_col
