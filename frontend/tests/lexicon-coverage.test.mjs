@@ -17,6 +17,13 @@ const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 // re-staged AND its 32 now-stale translations are removed from lib/i18n-app/*, so t() falls back to the corrected
 // English rather than returning the old, wrong translation ("listed never silent" — an orphaned fill is a silent lie).
 const AFTER_FILL = new Set([
+  // R-CORE compare mirror of Vision-2525 (operator 2026-09-26) — 29 new rcore.* keys; ×32 fill owed:
+  'rcore.download', 'rcore.vs_previous', 'rcore.first_vs_latest', 'rcore.carried_unchanged', 'rcore.crossed_suffix',
+  'rcore.across', 'rcore.change_one', 'rcore.change_many', 'rcore.section_one', 'rcore.section_many',
+  'rcore.release_one', 'rcore.release_many', 'rcore.highest_impact', 'rcore.append_only', 'rcore.removed',
+  'rcore.key_improvements', 'rcore.unified', 'rcore.side_by_side', 'rcore.prev_change', 'rcore.next_change',
+  'rcore.details', 'rcore.filtered', 'rcore.revision_col', 'rcore.kind_col', 'rcore.impact_col',
+  'rcore.date_col', 'rcore.reason_col', 'rcore.latest_release', 'rcore.historical_release',
   // S9 · User Story · Highlights personas-aligned layout (operator 2026-09-24) — two column headers; ×32 fill owed:
   'soi2525.personas',
   'soi2525.high_priority_user_stories',

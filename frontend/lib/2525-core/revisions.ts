@@ -116,7 +116,7 @@ export type RCoreImpact = "L1" | "L2" | "L3" | "L4" | "L5";
 const IMPACT_RANK: Record<RCoreImpact, number> = { L1: 1, L2: 2, L3: 3, L4: 4, L5: 5 };
 
 // Highest-impact wording is constitutional/ontological; correction/release/decision/ask ladder below it.
-function impactOfRevision(r: RCoreRevision): RCoreImpact {
+export function impactOfRevision(r: RCoreRevision): RCoreImpact {
   const t = `${r.detail ?? ""}`.toLowerCase();
   if (/\binvariant\b|\bauthority\b|\bgovernance\b|\bconstitution|\bontolog|never fires|human approv/.test(t)) return "L5";
   if (r.kind === "correction") return "L4";
@@ -141,6 +141,20 @@ function tagsOf(revs: RCoreRevision[]): string[] {
   for (const [re, tag] of CATEGORY_RULES) if (re.test(text)) out.push(tag);
   if (revs.some((r) => r.kind === "correction")) out.push("correction");
   return Array.from(new Set(out));
+}
+
+// The single dominant category of ONE revision (for the per-improvement chips). "other" when none match.
+export function categoryOf(r: RCoreRevision): string {
+  return tagsOf([r])[0] ?? "other";
+}
+
+/** One crossed revision, enriched for the compare panel's KEY IMPROVEMENTS + Details (Vision-2525 mirror). */
+export interface RCoreCrossed {
+  rev: string;
+  title: string;
+  kind: string;
+  impact: RCoreImpact;
+  category: string;
 }
 
 // A small, stable fingerprint of a comparison (FNV-1a 32) — same inputs → same hash, for cache keys.
@@ -172,6 +186,16 @@ export interface RCoreCompare {
   /** highest impact among the crossed set (L1..L5); L1 when nothing crossed. */
   impact: RCoreImpact;
   impactTags: string[];
+  /** crossed.length — the number of changes (new editions) between the two picks. */
+  changes: number;
+  /** every crossed revision, enriched (rev·title·kind·impact·category) — chronological. */
+  perCrossed: RCoreCrossed[];
+  /** the top crossed improvements, impact desc then newest-first, capped at 7 (KEY IMPROVEMENTS). */
+  top: RCoreCrossed[];
+  /** distinct categories among the crossed set (alias of impactTags, for the summary line). */
+  sectionsAffected: string[];
+  /** the categories of the L4/L5 crossed revisions (the summary's "highest impact"), capped at 4. */
+  highestImpactAreas: string[];
   compareHash: string;
 }
 
@@ -209,6 +233,21 @@ export function compareRevisions(a: string, b: string, history: RCoreHistory): R
       }, "L1")
     : "L1";
 
+  // Enriched crossed set for KEY IMPROVEMENTS + Details (deterministic; no existing field changed).
+  const perCrossedFull = crossed.map((r, i) => ({
+    rev: r.rev, title: r.title, kind: r.kind ?? "", impact: impactOfRevision(r), category: categoryOf(r), i,
+  }));
+  const stripI = ({ i: _i, ...rest }: (typeof perCrossedFull)[number]): RCoreCrossed => rest;
+  const perCrossed = perCrossedFull.map(stripI);
+  const top = [...perCrossedFull]
+    .sort((a, b) => IMPACT_RANK[b.impact] - IMPACT_RANK[a.impact] || b.i - a.i) // impact desc, then newest-first
+    .slice(0, 7)
+    .map(stripI);
+  const sectionsAffected = tagsOf(crossed);
+  const highestImpactAreas = Array.from(
+    new Set(perCrossedFull.filter((c) => c.impact === "L4" || c.impact === "L5").map((c) => c.category)),
+  ).slice(0, 4);
+
   const compareHash = fnv1a(`${from?.rev ?? ""}->${to?.rev ?? ""}|${crossed.length}|${releasesCrossed}|${ops ? ops.length : -1}`);
 
   return {
@@ -225,6 +264,11 @@ export function compareRevisions(a: string, b: string, history: RCoreHistory): R
     sideBySide: sbs,
     impact,
     impactTags: tagsOf(crossed),
+    changes: crossed.length,
+    perCrossed,
+    top,
+    sectionsAffected,
+    highestImpactAreas,
     compareHash,
   };
 }

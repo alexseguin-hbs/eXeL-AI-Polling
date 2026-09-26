@@ -154,3 +154,17 @@ export function sideBySide(ops: Op[] | null, esc: (s: string) => string): { left
   }
   return { left: left.trim(), right: right.trim() };
 }
+
+// Convenience: render diffText ops as a single INLINE stream (removed struck-through, added marked) for a
+// Unified view — the living document's default. Caller supplies esc. `null` when ops is null.
+export function unified(ops: Op[] | null, esc: (s: string) => string): string | null {
+  if (!ops) return null;
+  let out = "";
+  for (const o of ops) {
+    const e = esc(stripBidi(o.s)); // defense-in-depth: neutralize bidi/zero-width before escaping
+    if (o.t === 0) out += e + " ";
+    else if (o.t === -1) out += `<del>${e}</del> `;
+    else out += `<ins>${e}</ins> `;
+  }
+  return out.trim();
+}
