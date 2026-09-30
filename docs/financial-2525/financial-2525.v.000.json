@@ -171,7 +171,7 @@
    "kind": "correction",
    "why": "r.010 claimed the unit dropdown was the panel's full width in portrait; its gate read class names (w-full on the select) and passed, while the r.010 capture measured the select at 145 px of the panel's 292 px — the label sits inside the panel's wrapping header row (title on the left, picker on the right), so a w-full select inside a content-width label was only as wide as its own text. Fix at the class: the LABEL takes the full line in portrait (w-full; landscape:w-auto), so its select fills the panel; landscape unchanged. FIN-06.04's statement stands and its metric is now met on the glass (the r.011 capture measures the select's width equal to the panel's inner width in portrait). Lesson on the record: a layout claim needs a measured capture, not a class-name gate — the r.010 gate was green while the layout was not.",
    "commit": "68c5c74",
-   "shipped": "PENDING"
+   "shipped": "57f2332"
   }
  ],
  "mot": {

@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 22 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 23 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -163,6 +163,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.011 correction: r.010's unit dropdown was NOT full width in portrait on the glass (measured 145 of 292 px — the label sat in the panel's wrapping header row); the label now takes the whole line in portrait (w-full, landscape:w-auto). r.010's class-name gate was green while the layout was not; the capture is the proof.",
       "commit": "68c5c74"
+    },
+    {
+      "rev": 23,
+      "date": "2026-09-30",
+      "kind": "release",
+      "text": "v.000_r.011 SHIPPED — the unit dropdown IS the panel's full width in portrait now (the label takes the whole line; measured on the glass: the select's width equals the panel's inner width at 390 × 844; landscape unchanged). Corrects r.010. Shipped as 57f2332. Gates: financial-surface 63 · financial-crs 291 · full test:ci 0 · next build 0.",
+      "commit": "57f2332"
     }
   ]
 };
