@@ -112,6 +112,8 @@
 > Fitness
 > Fun
 
+> (addendum 20, verbatim — with his phone view of the r.006 capture of PERSONAL BUDGET ON THE LADDER, saved beside this file as `2026-09-30_financial_2525_budget_unit_dropdown.png`: the eight unit pills — per second · per minute · per hour · per day · per week · per 33 days · per month (91) · per year — wrapping over three rows above the table) use drop down
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -228,6 +230,10 @@
     category dropdown on both forms, and on the roster and the record. His words Car and Food match the sheet (CAR · FOOD);
     the glass reads Auto and Groceries from the earlier transcription — the labels are NOT changed by this addendum (only the
     icons are asked); flagged for his word. Ships as r.008.
+28. **The budget's unit is picked from a DROPDOWN (addendum 20):** the eight units (per second · per minute · per hour · per day ·
+    per week · per 33 days · per month (91) · per year) sit in one `<select>` above the table instead of the segmented pill group
+    that wrapped over three rows on the phone; the default (per 33 days, the sheet) and every conversion are unchanged; the same
+    control on every width (mobile first). Ships as r.009.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
