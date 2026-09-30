@@ -117,6 +117,164 @@
 > (addendum 21, verbatim — on the r.009 capture of the unit dropdown reading "Unit · per minute" at its own width) thats full width of UX on portrait mode
 > FOR PER HOUR ETC
 
+> (addendum 22, verbatim — on the r.011 captures; the A–U taxonomy brief the operator obtained from an external narrative pass, pasted whole)
+> thats full width of UX on portrait mode
+> heres complete list from grok on transaction types
+>
+> Maybe we do double drop down A-U category on left drop down, detailed sub category in second dropdown.  I’ll let you decide
+>
+> Claude Code brief — Personal Finance Ladder (final A–U)
+> Implement this taxonomy. Do not invent extra top-level letters. Slash-merged labels are the display names; optional sub-notes may exist in detail, not as new rows.
+>
+> Purpose
+> One personal-finance model with two planes:
+> 	•	Flow (ladder): A–M + J/I as cash velocity, convertible across time bases
+> 	•	Stock / status (off-ladder): N–T
+> 	•	U is not a plane. It is an amortization rule that spreads lumpy annual amounts into A–M
+> Existing UI time bases stay: per second · minute · hour · day · week · 33 days · month (91) · year.
+>
+> Canonical sections
+> FLOW — ladder rows
+> ID
+> Section
+> Fields (display)
+> A
+> Income
+> Income / Wages (take-home) · Upside: Overtime / Bonus / Gifts / Other · Annuity / Pension / Disability · Alimony / Child Support · Capital Gains (realized)
+> B
+> Housing
+> Rent / Mortgage · Property Tax / HOA / Fees · Housing insurance · Home Maintenance & Repairs · Lawn / Pest / Security · Other Fees
+> C
+> Transportation
+> Auto Payment · Fuel · Maintenance / Other · Ride-share / Taxi · Airfare / Other
+> D
+> Insurance
+> Health / Dental / Vision · Auto / Renters / Home · Life / Disability · Umbrella / Pet / Other
+> E
+> Utilities
+> Electric / Gas · Water / Sewer / Trash · Internet / Phone · Subscriptions / AI / Cloud
+> F
+> Food
+> Groceries · Dining / Work · Alcohol (or Fun)
+> G
+> Health
+> Copays / Deductibles / Rx · HSA / FSA contributions · Mental Health / Physical Fitness · Personal Care / Medical Devices
+> H
+> Family
+> Childcare / Elderly Care / Education · Pets (food, vet, insurance)
+> I
+> Debt service
+> Credit Cards / Student Loans · Personal / Medical / Tax / Other Loans
+> J
+> Taxes
+> Federal / State income tax · FICA / Self-employment tax · Tax preparation
+> K
+> Work
+> Gear / Licenses / Tools · Education / Certifications
+> L
+> Lifestyle
+> Fun / Hobbies / Clothing · Gifts / Holidays / Travel · Giving / Charity
+> M
+> Transfers
+> Emergency / Sinking funds · Retirement / Brokerage / 529 · Extra debt / Extra mortgage
+> STOCK / STATUS — not per-minute rows
+> ID
+> Section
+> Fields
+> N
+> Cash
+> Checking / Savings / Cash
+> O
+> Investments
+> Retirement accounts · Brokerage / HSA / 529 · Property / Business / Other
+> P
+> Debts
+> Mortgage / Auto · Cards / Student / Other
+> Q
+> Net worth
+> Assets − Debts · Liquid / Home / Invested
+> R
+> Credit
+> Score / Utilization / Collections
+> S
+> Protection
+> Will / Beneficiaries / POA · ID / Docs / Umbrella
+> T
+> Goals
+> Cash buffer / Debt-free date · House / Vehicle / Travel / School · Retirement / Business
+> AMORTIZE
+> ID
+> Rule
+> U
+> Premiums / Taxes / Registration · Holidays / Travel / Tuition / Deductibles → divide by period and add into the matching A–M field. Never show U as its own ladder category.
+>
+> Data model (minimum)
+> type Plane = "flow" | "stock" | "goal" | "status";
+>
+> type Field = {
+>   id: string;           // e.g. "B.rent_mortgage"
+>   section: "A"|"B"|...|"T";
+>   label: string;        // exact slash-merged display
+>   plane: Plane;
+>   kind: "Income" | "Fixed" | "Variable" | "Transfer" | "Stock" | "Goal";
+>   amountNative: number; // stored in user's entry period
+>   nativePeriod: Period;
+> };
+>
+> type Period =
+>   | "second" | "minute" | "hour" | "day"
+>   | "week" | "days33" | "month91" | "year";
+> Period factors (fixed):
+> 	•	minute = 60 s
+> 	•	hour = 3,600 s
+> 	•	day = 86,400 s
+> 	•	week = 7 d
+> 	•	33 days = 33 d
+> 	•	month (91) = 91 d
+> 	•	year = 365 d
+> Do not use 30-day months. The UI already chose 33 and 91.
+>
+> Ladder math (lock)
+> Let (I) = sum of A (income). Let (L) = sum of B+C+D+E+F+G+H+K+L (living). Let (Ds) = I (debt service). Let (Tx) = J. Let (Tr) = M (transfers out of cash).
+> [ \mathrm{Net} = I - L - Ds - Tx - Tr ]
+> 	•	Income fields: kind = Income, sign positive.
+> 	•	Transfers: kind = Transfer, treat as outflow on the ladder (they raise N/O, they lower cash flow).
+> 	•	HSA/FSA in G is outflow on the ladder; invested HSA balance lives in O.
+> 	•	Extra mortgage / extra principal in M is flow; remaining balance stays in P.
+> 	•	Do not net P against I. Payment ≠ balance.
+> Show Net as the last ladder row. Red if Net < 0.
+>
+> UI rules
+> 	1	Default ladder sections: A B C D E F G H I J K L M + Net
+> 	2	N–T on a second surface (Balance / Goals), not extra time-base columns.
+> 	3	Consolidation is the product: one row per field above — no exploding slashes into child rows unless the user opens detail.
+> 	4	Detail sheet may list components (e.g. Health + Dental + Vision) that sum to the parent field. Parent is what the ladder shows.
+> 	5	Duplicate insurance: Housing insurance stays in B; D is the policy map. If a premium is entered in both, warn; do not double-count Net.
+> 	6	Alcohol may map to F or L; one target only.
+> 	7	U amounts must name a destination field (mapsTo: "B.property_tax").
+>
+> What not to build
+> 	•	Extra letters past U
+> 	•	Per-minute columns on N–T
+> 	•	CAGR, valuation multiples, or QIS on this budget
+> 	•	“Safe / proven / you can afford it” copy from Net
+> 	•	Silent double-count of the same premium in B and D
+>
+> Acceptance
+> 	•	13 flow sections A–M render; Net matches the equation at every time base
+> 	•	Switching per minute → per year multiplies by a constant; no rounding drift beyond cents
+> 	•	N–T visible only on stock/goals view
+> 	•	U never appears as a category chip
+> 	•	Field labels match this brief exactly
+> That is the lock. Implement the model first; styling second.
+>
+> Hoping you have the following already:
+>
+> each transactions has an MoT timeline established at transaction entry
+>
+> monthly , weekly, One time etc timeline so when we do $/min its based of transaction date and how long it last 30.333 days etc
+> goal is to tract $/min against budget long term; first by testing and adjusting with my own finances.  and to see $/min accrual process
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -241,6 +399,23 @@
     stretches to the panel's full width (the label above it), so every option — per hour, per month (91), per year — reads at
     the full line; in landscape it may sit at its own width beside the label. Same options, default and conversions. Ships as
     r.010.
+30. **The Personal Finance Ladder A–U is the taxonomy (addendum 22):** the brief is THE LOCK — thirteen FLOW sections A–M
+    (+ Net as the last row, red when negative; Net = I − L − Ds − Tx − Tr with I = A, L = B+C+D+E+F+G+H+K+L, Ds = I, Tx = J,
+    Tr = M), seven STOCK / STATUS sections N–T on a second surface (never per-minute columns), and U as an AMORTIZE RULE
+    (divide a lumpy annual amount by its period and add it into the A–M field it names via mapsTo — never a category of its
+    own). Field labels exactly as written (slash-merged); one row per field on the ladder, components only in a detail
+    sheet; a premium entered in both B and D warns and never double-counts; Alcohol maps to F or L, one target. Period
+    factors fixed (minute 60 s · hour 3,600 s · day 86,400 s · week 7 d · 33 d · month 91 d · year 365 d — the brief's own
+    table; the MoT's exact 365.259636-day revolution stays the A.B..C whole, the ladder's "year" period is the brief's 365 d,
+    said on the record). Nothing past U; no CAGR / multiples / QIS on this budget; no "safe / affordable" copy from Net.
+    **The pickers (the operator delegated the decision):** two dropdowns — the SECTION (A–M for a transaction; A–T on the
+    stock surface) on the left, the FIELD within it on the right; both full width in portrait (FD-24). **Transaction
+    timelines (the operator asks whether it exists — it does, in part):** every deposit already carries its MoT length at
+    entry (motDays, the escrow releases $/min from the deposit instant for that length — the r.001 law); the brief extends it
+    to every transaction — a recurrence (one-time · weekly · monthly (33 d) · per 91 · yearly) chosen at entry, so the $/min
+    of each entry runs from its transaction date for its length and the ladder's $/min can be tracked against the budget
+    over time, first on the operator's own finances. Ships as r.012 (the model first — types, sections, fields, periods, the
+    Net equation, the U rule, gates; then the pickers and the stock surface).
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
