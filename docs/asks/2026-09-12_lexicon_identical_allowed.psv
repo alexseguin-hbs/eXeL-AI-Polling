@@ -365,3 +365,31 @@ nl|rcore.details
 nl|rcore.impact_col
 ro|rcore.impact_col
 sv|rcore.revision_col
+*|fin.title|the surface's wordmark FINANCIAL · 2525 — a proper name (Financial-2525, operator 2026-09-30)
+cs|fin.cat.auto|Auto is the Czech word for a car
+de|fin.cat.auto|Auto is the German word for a car
+es|fin.cat.auto|Auto is the Spanish word for a car
+fr|fin.cat.auto|Auto is the French word for a car
+it|fin.cat.auto|Auto is the Italian word for a car
+nl|fin.cat.auto|Auto is the Dutch word for a car
+ro|fin.cat.auto|Auto is the Romanian word for a car
+cs|fin.cat.fitness|Fitness is the Czech loanword for the gym
+de|fin.cat.fitness|Fitness is the German loanword for the gym
+es|fin.cat.fitness|Fitness is the Spanish loanword for the gym
+fr|fin.cat.fitness|Fitness is the French loanword for the gym
+it|fin.cat.fitness|Fitness is the Italian loanword for the gym
+nl|fin.cat.fitness|Fitness is the Dutch loanword for the gym
+pl|fin.cat.fitness|Fitness is the Polish loanword for the gym
+pt|fin.cat.fitness|Fitness is the Portuguese loanword for the gym
+ro|fin.cat.fitness|Fitness is the Romanian loanword for the gym
+tr|fin.cat.fitness|Fitness is the Turkish loanword for the gym
+fr|fin.net|Net is the French word for a net amount
+ro|fin.net|Net is the Romanian word for a net amount
+tr|fin.net|Net is the Turkish word for a net amount
+es|fin.variable|Variable is the Spanish word
+fr|fin.variable|Variable is the French word
+de|fin.version|Version is the German word
+fr|fin.version|Version is the French word
+nl|fin.escrowed|In escrow — Dutch uses the English term for escrow
+id|fin.deposit|Deposit is the Indonesian word (also setoran)
+id|fin.ph.deposit|Deposit is the Indonesian word (also setoran)
