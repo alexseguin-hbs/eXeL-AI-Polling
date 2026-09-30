@@ -4,7 +4,9 @@
  * The rail, the explainer line and the phone strip all read from here, never from prose.
  */
 export type PodPhaseKey = "compose" | "invite" | "sync" | "active" | "record" | "audit" | "closed";
-export interface PodPhaseDef { key: PodPhaseKey; labelKey: string; earnsKey: string; glyph: "◬" | "♡" | "웃" }
+/** One phase chip. `key` is open (string) so another 2525 surface can rail its own phases through the same component
+ *  (Financial-2525 rails DEPOSIT ◬ · HOLD ♡ · RELEASE ♡ · WITHDRAW 웃 · RECORD 웃 — max R-CORE reuse, operator 2026-09-30). */
+export interface PodPhaseDef { key: PodPhaseKey | string; labelKey: string; earnsKey: string; glyph: "◬" | "♡" | "웃" }
 
 export const POD_PHASES: PodPhaseDef[] = [
   { key: "compose", labelKey: "soi.pod.phase.compose", earnsKey: "soi.pod.earns.compose", glyph: "◬" },

@@ -23,6 +23,13 @@
    "kind": "release",
    "text": "v.000_r.001 SHIPPED — the MoT Financial System opens: the pure laws (MoT in A.B..C · the perihelion calendar · escrow releases $/min with the 3-hour hold · the budget ladder · the chain-hashed record), the one editable source with 13 FIN rows and 9 decisions, the rendered CRS / README / decisions register, the surface at /main/Financial-2525 (the worked example live before sign-in, the person's record after; the A.B..C chart; the R-CORE badge), the FINANCIAL launcher tile, 66 lexicon keys staged; five gates in test:ci (financial-mot 41 · accrual 28 · crs 130 · surface 36 · i18n 218). The twelve-lens review of the MoT notes runs as round 1; the ◬ ♡ 웃 Session shell (addendum 7) is r.002's first item.",
    "commit": "39f44c1"
+  },
+  {
+   "rev": 4,
+   "date": "2026-09-30",
+   "kind": "decision",
+   "text": "r.002 decided (operator addenda 7–8): the UI/UX starts from the ◬ ♡ 웃 Session shell — root, header (globe + Trinity glyphs), card, phase rail with the five financial phases DEPOSIT ◬ · HOLD ♡ · RELEASE ♡ · WITHDRAW 웃 · RECORD 웃 (PodPhaseRail gains additive phases/countFor props, the pod untouched), the guide card, the roster of deposits, the ACTIVE clock block whose big number is money released at $/min, the phone strip, the folded Trinity wheel seated the operator's way — HI 웃 on top, AI ◬ tokens bottom-left, SI ♡ minutes contribution bottom-right (addendum 9, FD-12) — sign-in returning the person here; A.B..C stays behind the scenes and the chart's glass reads day · hour · minute by default with A.B..C on reveal (FD-10, FD-11).",
+   "commit": ""
   }
  ]
 }

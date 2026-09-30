@@ -26,7 +26,10 @@ const AFTER_FILL = new Set([
     'now', 'chart_title', 'budget_title', 'income', 'fixed', 'variable', 'net', 'per_33', 'ledger_title', 'chain_ok',
     'chain_broken', 'device_only', 'stamp_hint', 'no_deposits', 'save_failed', 'elapsed', 'pending_from',
     'cat.income', 'cat.home', 'cat.auto', 'cat.insurance', 'cat.utilities', 'cat.fitness', 'cat.fun', 'cat.groceries',
-    'cat.dining_out', 'cat.other', 'back',
+    'cat.dining_out', 'cat.other', 'back', 'show_abc', 'show_ltu',
+    'ph.deposit', 'ph.deposit_earns', 'ph.hold', 'ph.hold_earns', 'ph.release', 'ph.release_earns', 'ph.withdraw', 'ph.withdraw_earns',
+    'ph.record', 'ph.record_earns', 'guide.sign_in', 'guide.first_deposit', 'guide.pending', 'guide.held', 'guide.withdrawable',
+    'guide.done', 'roster_title', 'trinity_caption', 'wheel.hi', 'wheel.ai', 'wheel.si',
   ].map((k) => `fin.${k}`),
   // R-CORE compare mirror of Vision-2525 (operator 2026-09-26) — the 29 new rcore.* keys were filled ×32 (Haiku),
   // 13 legitimate loanwords (Revision/Details/Impact/Date/section(s)/release(s)) on the reviewed identical-allowed list.

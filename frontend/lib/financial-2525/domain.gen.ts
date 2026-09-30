@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.001",
-  "stamp": "v.000_r.001",
+  "revision": "0.002",
+  "stamp": "v.000_r.002",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "fe4768a6a10f45ff7c406349c66ca07c6d5cba5bd71b3143fcd643f07d3fbb30",
+  "handoffSha256": "d2d9b6e4307eed898be90c51844dbde71a9a6515fe228bac87d4da87fb42cd47",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -51,6 +51,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "fe4768a6a10f45ff7c406349c66ca07c6d5cba5bd71b3143fcd643f07d3fbb30",
     "date": "2026-09-30",
     "note": "+ addendum 8 (max R-CORE reuse; A.B..C behind the scenes, day · hour · minute on the chart)"
+   },
+   {
+    "sha256": "d2d9b6e4307eed898be90c51844dbde71a9a6515fe228bac87d4da87fb42cd47",
+    "date": "2026-09-30",
+    "note": "+ addendum 9 (the Trinity wheel's seats: HI top · AI tokens bottom-left · SI minutes bottom-right) — r.002 built against this hash"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -68,6 +73,13 @@ export const FINANCIAL_DOMAIN = {
    "why": "Financial-2525 opens at v.000_r.001 (operator: \"we start Financial-2525 at revision 0.001 · v.000_r.001\"): the MoT Financial System ask persisted verbatim with six addenda and the three MoT sheets transcribed; the pure laws (MoT in A.B..C, the perihelion calendar, escrow that releases $/min, the append-only record, the personal budget on the $/min · $/sec ladder), the wireframe surface on the ◬ ♡ 웃 Session basis, the R-CORE badge and this ladder — all gated in test:ci from the first line.",
    "commit": "e31cc45",
    "shipped": "39f44c1"
+  },
+  {
+   "revision": "0.002",
+   "date": "2026-09-30",
+   "kind": "decision",
+   "why": "The UI/UX STARTS FROM the ◬ ♡ 웃 Session shell (operator addendum 7) and the chart's glass reads day · hour · minute with A.B..C behind the scenes (addendum 8, max R-CORE reuse): the surface is rebuilt on /soi-session's own root, header (globe + Trinity glyphs), card, phase rail (PodPhaseRail gains additive `phases`/`countFor` props — DEPOSIT ◬ · HOLD ♡ · RELEASE ♡ · WITHDRAW 웃 · RECORD 웃), guide card, roster (PodRosterList), ACTIVE clock block (the big mono number is money released), phone strip and folded Trinity (SoITrinity: ◬ M_SS · 웃 M_33 · ♡ M_LTU); sign-in returns the person here; the chart stays under the vector law. Decisions FD-10, FD-11.",
+   "commit": "d5d2b72"
   }
  ],
  "mot": {
@@ -514,6 +526,24 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The 9,999 웃 cap is YUG_CEILING from lib/pod-yug.ts — never a second constant.",
    "status": "OPERATOR",
    "basis": "addendum 4"
+  },
+  {
+   "id": "FD-10",
+   "decision": "The surface starts from the ◬ ♡ 웃 Session shell — its root, header, card, phase rail, guide card, roster, clock block, phone strip and folded Trinity are imported or carry the Session's exact classes; the financial laws render inside it. The chart alone stays under the vector law (strokes only, the 13 colours).",
+   "status": "OPERATOR",
+   "basis": "addendum 7; max R-CORE reuse (addendum 8); pod-invariant pins the Session's own JSX, so reuse means importing its components, never moving them"
+  },
+  {
+   "id": "FD-11",
+   "decision": "Behind the scenes is A.B..C; the glass defaults to day · hour · minute (Earth LTU) on the chart and the clock, and A.B..C is a reveal (a toggle), never the default.",
+   "status": "OPERATOR",
+   "basis": "addendum 8"
+  },
+  {
+   "id": "FD-12",
+   "decision": "The Trinity wheel's seats: TOP = HI 웃 (the person) · BOTTOM-LEFT = AI ◬ (AI tokens) · BOTTOM-RIGHT = SI ♡ (minutes contribution — volunteer / time logged). SoITrinity's tuple order is [top, bottom-right, bottom-left], so the surface passes [HI, SI, AI] with glyphs [웃, ♡, ◬].",
+   "status": "OPERATOR",
+   "basis": "addendum 9"
   }
  ],
  "reviews": [
