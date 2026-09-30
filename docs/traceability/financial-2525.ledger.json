@@ -65,6 +65,13 @@
    "kind": "release",
    "text": "v.000_r.004 SHIPPED — the twelve-lens round-1 record on the record: reviews[0] PERSISTED (file · sha256 · the commit that persisted it alone), FD-14 the stop rule for \"until simulated sufficiently\" (seven conditions; the business frame waits on all of them), and the second half of the FIN-09 gate — financial-render refuses a non-PENDING round whose record is missing, incomplete or edited (12 lens sections · the synthesis · bytes hashing to reviews[].sha256); financial-crs proves the same plus the sidecar, the persisting commit, FD-14 and no model identifier in the record. Gates: financial-crs 151 · financial-surface 43 · rcore-stage2 78 · traceability 61 · full test:ci 0 · next build 0.",
    "commit": "78b4cdf"
+  },
+  {
+   "rev": 10,
+   "date": "2026-09-30",
+   "kind": "correction",
+   "text": "The 365-day financial year IS 3600 A exactly (operator addendum 11, clarified: \"365 days is 3600.0000..0000 … Half year … = 1800\"): one A = 8,760 s; r.003 measured lengths on the 365.259636-day mean anomalistic year (298.97 A for the pay MoT) — superseded: 91 ÷ 3 days = 299.0641..0345 A; the day · hour · minute · second ladder is DERIVED from the scale (one day = 9.3106..3058 A); every writing prints its true A (365 d → 3600.0000..0000; r.003 substituted 3600.3600..3600); positions are never clamped and flagged past day 365; the fourth tier D (A.BBBB..CCCC...DDDD, 0.18776 µs) is declared. Every planet's whole is its own revolution, perihelion to perihelion (addendum 12: Mars 686.98 Earth days, 668.5991 sols the future form); A.B..C is the standard for all planets, converted to the planet's LTU — Earth hours · minutes · seconds for Mars for now — from the PER-PLANET LTU TABLE, now MASTER DATA IN THE ADMIN PANEL under the seed law (Business Setup › Planet LTU; the cloud config bundle), read by Financial-2525 so an edit adjusts every conversion with no code change. For now the Earth row reads Month = 91 with one system-offline day on Dec 31 (addendum 13): the calendar year is the default anchor, Dec 31 the offline day 365, the perihelion anchor selectable. The reveal is the MoT-icon ⇄ Clock-icon toggle, one state for the card. FIN-01.01 → FIN-01.02 · FIN-02 → FIN-02.01 · FIN-13 → FIN-13.01 + FIN-13.02 · FD-15..18. The lenses' round-1 backlog carries to r.006.",
+   "commit": "c27628d"
   }
  ]
 }

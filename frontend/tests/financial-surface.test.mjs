@@ -1,8 +1,10 @@
-// financial-surface — the Financial-2525 screen is wired the way the laws say (operator 2026-09-30, v.000_r.001).
+// financial-surface — the Financial-2525 screen is wired the way the laws say (operator 2026-09-30, v.000_r.005).
 // Source-level gate over the two route pages, the component and the launcher: the route mounts one component; the
-// component reads the generated domain, ticks one clock, feeds every number through the pure libraries, gates recording
-// behind the app's login, draws the chart as strokes on the black ground, carries the R-CORE badge last, and the export
-// (when out/ exists) emits both routes. The pure laws themselves are gated in financial-mot / financial-accrual.
+// component reads the generated domain, ticks one clock, feeds every number through the pure libraries, converts time
+// from the Admin panel's Planet LTU table (the selected planet's whole, day, hours, minutes, anchor), gates recording
+// behind the app's login, draws the chart as strokes on the black ground with the MoT ⇄ Clock icon toggle as the card's
+// one reveal, carries the R-CORE badge last, and the export (when out/ exists) emits both routes. The pure laws
+// themselves are gated in financial-mot / financial-accrual / planet-ltu.
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -24,8 +26,16 @@ ok(/setInterval\(\(\) => setNow\(Date\.now\(\)\), 1000\)/.test(ux) && /useState<
 ok(!/Math\.random/.test(ux), 'nothing random on the surface');
 for (const fn of ['balanceAt', 'series', 'validateWithdrawal', 'HOLD_MS']) ok(new RegExp(`\\b${fn}\\b`).test(ux), `every number goes through the pure accrual law (${fn})`);
 for (const fn of ['spanABC', 'fmtMot', 'fmtStampCST', 'parseStampCST']) ok(new RegExp(`\\b${fn}\\b`).test(ux), `MoT in A.B..C and CST stamps come from lib/financial-2525/mot (${fn})`);
-ok(/showAbc \? fmtMot\(positionInYear\(from \+ f \* len\)\.abc\)/.test(ux) && /spanABC\(elapsed \/ MS_PER_DAY\)/.test(ux) && !/\bmotABC\(/.test(ux), 'A.B..C IS the revolution (addendum 10): the reveal reads the year position at each axis mark and the elapsed span in A-units — never a period as its own 0→3600');
-ok(/positionInYear/.test(ux) && /frameOf\(now, 33\)/.test(ux), 'the year position (perihelion orbit) and the 33-day frame are shown');
+ok(/showAbc \? fmtMot\(positionInYear\(from \+ f \* len, planet\.yearAnchor\)\.abc\)/.test(ux) && /spanABC\(elapsed \/ dayMs, planet\.yearDays\)/.test(ux) && !/\bmotABC\(/.test(ux) && !/MS_PER_DAY/.test(ux), "A.B..C IS the revolution (addenda 10–12): the reveal reads the year position at each axis mark on the planet's anchor and the elapsed span in A-units of the planet's whole — never a period as its own 0→3600, never an Earth constant typed on the surface");
+ok(/positionInYear\(now, planet\.yearAnchor\)/.test(ux) && /frameOf\(now, 33, planet\.yearAnchor\)/.test(ux) && /data-fin-past-full/.test(ux), "the year position (on the table's anchor) and the 33-day frame are shown; a year past day 365 carries its flag");
+// r.005 — the Planet LTU table (Admin panel) drives every conversion; the planet selector; the MoT ⇄ Clock icon toggle is the card's one state
+ok(/readPlanetLtu\(\)/.test(ux) && /PLANET_LTU_KEYS\.includes\(e\.key\)/.test(ux) && /planetRow\(planets, planetCode\)/.test(ux) && /daySecOf\(planet\) \* 1000/.test(ux), "every conversion reads the selected planet's row from the Admin panel's LTU table (seed on the server, the device copy after mount, other tabs via storage)");
+ok(/useState<PlanetLtuRow\[\]>\(\(\) => \[\.\.\.PLANET_LTU_SEED\]\)/.test(ux) && /setPlanets\(readPlanetLtu\(\)\)/.test(ux), 'the first paint is the seed, the device copy arrives after mount (never a hydration mismatch)');
+ok(/data-fin-planet/.test(ux) && /planets\.map\(\(p\) => <option key=\{p\.code\} value=\{p\.code\}>\{p\.name\}<\/option>\)/.test(ux), "a planet selector lists the table's rows (Earth default · Mars)");
+ok(/import \{ Clock, Orbit \} from "lucide-react"/.test(ux) && /role="group" data-fin-abc-toggle/.test(ux) && /aria-pressed=\{showAbc\} aria-label=\{t\("fin\.show_abc"\)\}/.test(ux) && /aria-pressed=\{!showAbc\} aria-label=\{t\("fin\.show_ltu"\)\}/.test(ux) && /<Orbit size=\{16\} strokeWidth=\{1\.5\} aria-hidden \/>/.test(ux) && /<Clock size=\{16\} strokeWidth=\{1\.5\} aria-hidden \/>/.test(ux), 'the reveal is a MoT-icon ⇄ Clock-icon toggle (addendum 13): two stroke icons, aria-pressed, the existing keys as their names');
+ok(/ring-1 ring-inset ring-cyan-500/.test(ux) && !/bg-cyan-500\/15/.test(ux), 'the pressed icon is ringed, never filled (the vector law)');
+ok(!/function MotChart[\s\S]*useState\(/.test(ux) && /const \[showAbc, setShowAbc\] = useState\(false\);/.test(ux) && /showAbc=\{showAbc\} onToggle=\{setShowAbc\}/.test(ux) && /\{showAbc \? `[^`]*fin\.a_units[^`]*` : ""\}/.test(ux) && /\{showAbc \? fmtMot\(year\.abc\) : /.test(ux), "ONE toggle state for the whole card: the chart, its header, the clock ladder's A-units line and the year line follow it");
+ok(/planet\.code !== "earth" && <p[^>]*>\{t\("fin\.anchor_note"\)\}<\/p>/.test(ux), 'on a planet without a perihelion table the year line says so (declared, not sourced)');
 ok(/append\(record, tx, at\)/.test(ux) && /loadRecord\(owner\)/.test(ux) && /saveRecord\(next\)/.test(ux), 'the record is appended, loaded and saved through lib/financial-2525/record');
 ok(/summarize\(SHEET_BUDGET, SHEET_MONTH_DAYS\)/.test(ux), 'the budget ladder comes from lib/financial-2525/budget');
 ok(/useAuth0\(\)/.test(ux) && /loginWithRedirect\(\{ appState: \{ returnTo: /.test(ux) && /user\?\.sub/.test(ux), 'each user their own login: Auth0 gates recording, keys the record, and returns the person HERE after login');
@@ -36,7 +46,7 @@ ok(/<PodPhaseRail phase=\{phase\} phases=\{FIN_PHASES\} countFor=\{countFor\}/.t
 ok(/data-testid="fin-your-turn" data-state=\{guide\.state\}/.test(ux) && /font-mono text-2xl tabular-nums text-cyan-500/.test(ux) && /data-testid="fin-strip"/.test(ux) && /<SoITrinity /.test(ux), 'the guide card, the ACTIVE clock block, the phone strip and the folded Trinity carry the Session\'s classes');
 ok(/const CARD = "mt-8 rounded-xl border border-border bg-card p-5"/.test(ux) && !/VECTOR_LAW\.ground/.test(ux), 'the chrome is the app theme card (bg-card), not a fresh black console');
 ok(/<SoITrinity labels=\{\[t\("fin\.wheel\.hi"\), t\("fin\.wheel\.si"\), t\("fin\.wheel\.ai"\)\]\} centerGlyphs=\{\["웃", "♡", "◬"\]\}/.test(ux), 'the Trinity wheel seats the operator\'s way: TOP HI 웃 · BOTTOM-RIGHT SI ♡ minutes · BOTTOM-LEFT AI ◬ tokens (addendum 9; SoITrinity tuple = [top, bottom-right, bottom-left])');
-ok(/showAbc \? fmtMot\(positionInYear\(from \+ f \* len\)\.abc\) : ltuLabel\(f \* len, len\)/.test(ux) && /useState\(false\)/.test(ux), 'the chart glass defaults to day · hour · minute; A.B..C (the revolution\'s coordinate) is a reveal (addenda 8 + 10)');
+ok(/showAbc \? fmtMot\(positionInYear\(from \+ f \* len, planet\.yearAnchor\)\.abc\) : ltuLabel\(f \* len, len, planet\)/.test(ux) && /useState\(false\)/.test(ux), "the chart glass defaults to the planet's day · hour · minute; A.B..C (the revolution's coordinate) is a reveal (addenda 8 + 10 + 12)");
 ok(/data-fin-signin/.test(ux) && /fin\.example_badge/.test(ux), 'an unsigned visitor sees the example badge and a sign-in');
 ok(/const EXAMPLE: FinTx = \{[\s\S]*?SRC\.example\.amountUsd[\s\S]*?SRC\.example\.depositStamp[\s\S]*?SRC\.example\.motDays/.test(ux), 'the worked example is read from the domain source, never typed on the surface');
 ok(/data-fin-chart/.test(ux) && /<svg viewBox/.test(ux) && /<polyline fill="none"/.test(ux) && !/fill="#/.test(ux), 'the chart is strokes on the black ground — no face is painted');

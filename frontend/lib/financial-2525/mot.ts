@@ -1,81 +1,136 @@
 /**
- * Financial-2525 · MoT — Measure of Time, in A.B..C (operator 2026-09-30, v.000_r.003).
+ * Financial-2525 · MoT — Measure of Time, in A.B..C (operator 2026-09-30, v.000_r.005).
  * ====================================================================================================
  * "A.B..C IS earth length around sun · 1 revolution split to 3600 units · 3600 sub units · 3600 sub sub units"
- * (addendum 10) · "all is defaulted to A.B..C so MoT = 30.33 converted to 3600.3600..3600 from Celestial-2525 scale
- * (for earth), which will allow for financial system to convert to Mars and future planets" · "it is important A.B..C
- * is used for time and easily converted to Earth local time units LTU."
+ * (addendum 10) · "365 days is 3600.0000..0000 which can also be notated 3600. Half year is 365/2 days = 1800 …
+ * we use this to translate to day/min/sec … if smaller time splits are needed we use A.B..C…D" (addendum 11,
+ * clarified) · "remember 3600 units for mars from perihelion to perihelion… Standard units for all planets are A.B..C
+ * · then we convert to hours for earth and LTU for Mars (for now it is hours minutes and seconds)" (addendum 12).
  *
- * THE LAW (corrected in r.003 — r.001/r.002 read a pay period as its own whole; the whole is the REVOLUTION):
- *   ONE REVOLUTION of the planet around its star — for Earth, perihelion to perihelion, the financial year — is split
- *   into 3600 A-units; each A into 3600 B sub-units; each B into 3600 C sub-sub-units. Exactly the celestial UCRS-2525
- *   orbit (lib/ucrs-2525.ts: HU 0 = perihelion, 3600 = a full orbit = 3600.3600..3600).
- *   · The A.B..C of an INSTANT is its position in the current revolution: 0.0000..0000 at perihelion, 3600.3600..3600
- *     at the next (lib/financial-2525/calendar.ts positionInYear — the sourced perihelion instants, so the year
- *     resets exactly when the operator said).
- *   · The A.B..C of a LENGTH (a MoT) is days ÷ revolution-days × 3600: the 30.333-day pay MoT is ≈ 298.97 A-units —
- *     "30.33 converted into the 3600.3600..3600 scale". One A ≈ 2.43 h, one B ≈ 2.43 s, one C ≈ 0.68 ms on Earth.
- *   · The scale never names a planet: on Mars the same functions take sols and the Martian revolution in sols.
- *   The three writings the sheet calls Equal — 3600.0000..0000 · 3600.3600..3600 · 3599.3599..3599 — all read FULL:
- *   a whole revolution. Pure, deterministic, no clock reads.
+ * THE LAW (r.003 made the whole the REVOLUTION; r.005 pins it — corrections on the record, never edits):
+ *   ONE REVOLUTION of the planet around its star, perihelion to perihelion, is split into 3600 A-units; each A into
+ *   3600 B; each B into 3600 C; and, below C, 3600 D (written A.BBBB..CCCC...DDDD — declared, not on the glass).
+ *   Exactly the celestial UCRS-2525 orbit (lib/ucrs-2525.ts: HU 0 = perihelion, 3600 = a full orbit).
+ *   · For EARTH the financial year is EXACTLY 365 days = 3600 A (also written 3600); half a year, 182.5 days, = 1800.
+ *     So ONE A = 8,760 s (2 h 26 min), one B = 2.4333 s, one C = 0.6759 ms, one D = 0.18776 µs. The mean anomalistic
+ *     year (365.259636 d) is kept below as the astronomical NOTE; r.003 measured lengths on it (298.97 A for the pay
+ *     MoT) — superseded: the pay MoT (91 ÷ 3 days) is 299.0641..0345 A.
+ *   · The day · hour · minute · second ladder is DERIVED from the scale (A_PER): one day = 3600 ÷ 365 = 9.3106..3058 A.
+ *     "24 hr day is split to 3600.3600..3600" is that translation, never a second whole.
+ *   · The A.B..C of an INSTANT is its position in the current year: elapsed ÷ 365 d × 3600, NEVER clamped — a year
+ *     that runs past day 365 reads past 3600 and is flagged (calendar.ts pastFull) until the year resets.
+ *   · The A.B..C of a LENGTH is days ÷ 365 × 3600, never clamped: 730 days are 7200.0000..0000.
+ *   · Every writing prints its TRUE A (365 d → 3600.0000..0000). "3600.3600..3600 · 3600.0000..0000 · 3599.3599..3599
+ *     } Equal" (the sheet) stays a predicate (isFull), never a print substitution.
+ *   · The scale never names a planet: Mars' whole is ITS revolution (686.98 Earth days; 668.5991 sols is the same
+ *     whole in sols) and its LTU is, FOR NOW, Earth hours · minutes · seconds (FD-16); the per-planet LTU table lives
+ *     in the Admin panel (lib/planet-ltu.ts) so a change there adjusts every conversion.
  *
  * Earth LTU here = seconds, minutes, hours, days (Austin, Texas — CST STANDARD, UTC−6, no daylight shift: the
  * operator's fixed rule; lib/ucrs-2525.ts:153 carries the same −6 for Pfield). Timestamps are written
  * YYYY.MM.DD_HH.MM..SS and durations 0000.00.DD_HH.MM..SS, exactly as the sheets write them. The glass defaults to
- * day · hour · minute; A.B..C is a reveal (addendum 8).
+ * day · hour · minute; A.B..C is a reveal (addendum 8) — the MoT-icon ⇄ Clock-icon toggle (addendum 13).
+ * Pure, deterministic, no clock reads.
  */
 import { toABC, fmtABC, abcToValue, type ABC } from "@/lib/abc-3600";
 
-export const SUB = 3600;                                  // 3600 units · 3600 sub-units · 3600 sub-sub-units
+export const SUB = 3600;                                  // 3600 units · 3600 sub-units · 3600 sub-sub-units (· 3600 D)
 export const CST_OFFSET_MIN = -360;                       // CST standard, never CDT (operator 2026-09-30)
 export const SEC_PER_MIN = 60, MIN_PER_HOUR = 60, HOUR_PER_DAY = 24;
 export const MIN_PER_DAY = MIN_PER_HOUR * HOUR_PER_DAY;   // 1,440 — the sheet's "1440 m/D"
 export const SEC_PER_DAY = MIN_PER_DAY * SEC_PER_MIN;     // 86,400
 export const MS_PER_DAY = SEC_PER_DAY * 1000;
+/** THE WHOLE for Earth: the financial year is exactly 365 days = 3600 A (operator, addendum 11: "365 days is 3600"). */
+export const FINANCIAL_YEAR_DAYS = 365;
+export const FINANCIAL_YEAR_SEC = FINANCIAL_YEAR_DAYS * SEC_PER_DAY;   // 31,536,000 s → one A = 8,760 s
+export const HALF_YEAR_DAYS = FINANCIAL_YEAR_DAYS / 2;                // 182.5 d = 1800.0000..0000
 /** Earth's mean revolution perihelion to perihelion — the anomalistic year, 365.259636 days (SOURCED: standard
- *  astronomical constant; an individual perihelion-to-perihelion interval swings ±~1 day with the Moon, which is why
- *  an INSTANT's position uses the sourced perihelion table in calendar.ts, and a LENGTH uses this mean). */
+ *  astronomical constant). The astronomical NOTE only: r.003 measured lengths on it; r.005's whole is 365 d exactly. */
 export const EARTH_REVOLUTION_DAYS = 365.259636;
-/** Mars' revolution in sols (686.98 Earth days ÷ 1.02749 days per sol), for the planet-independence proof. */
+/** Mars' revolution as the SAME whole: 686.98 Earth days (= lib/ucrs-2525.ts PLANETS mars.tDays — one primitive) with
+ *  Earth hours · minutes · seconds as its LTU for now (FD-16); 668.5991 sols is the same revolution counted in sols
+ *  (686.98 ÷ 1.02749), the future form once a 24-unit split of the sol is declared. */
+export const MARS_REVOLUTION_EARTH_DAYS = 686.98;
 export const MARS_REVOLUTION_SOLS = 668.5991;
+export const SOL_SEC = 88775.244;                          // one Martian solar day in SI seconds (SOURCED: 24 h 39 m 35.244 s)
 /** The worked example: one third of a 91-day quarter — "pay check example is $ deposit, October 1, 2026 at 07:00, 30.333". */
 export const MOT_PAY_MONTH_DAYS = 91 / 3;                 // 30.333…
-/** The personal frame the sheets draw in: D · W = 7 · M = 33 · Q = 99 · Y = 365 ("Options – Time Frame", sheet 3). */
+/** The personal frame the sheets draw in: D · W = 7 · M = 33 · Q = 99 · Y = 365 ("Options – Time Frame", sheet 3).
+ *  The Admin panel's LTU table (Month 91 for now) is the ANALYSIS ladder — lib/planet-ltu.ts ltuDays(row). */
 export const LTU_DAYS = { D: 1, W: 7, M: 33, Q: 99, Y: 365 } as const;
 export type LtuUnit = keyof typeof LTU_DAYS;
 
 export const FULL_ABC: ABC = { a: SUB, b: SUB, c: SUB };
+/** The sheet's writing of a whole ("3600.3600..3600 } Equal 3600.0000..0000") — a predicate, never printed for it. */
 export const FULL_MOT = "3600.3600..3600";
+/** One A · B · C · D of the whole, as fractions of the whole — the derived ladder's own unit (A_PER below). */
+export const A_PER = {
+  day: SUB / FINANCIAL_YEAR_DAYS,                         // 9.8630 A per Earth day
+  hour: SUB / FINANCIAL_YEAR_DAYS / HOUR_PER_DAY,         // 0.41096 A per hour
+  min: SUB / FINANCIAL_YEAR_DAYS / MIN_PER_DAY,           // 0.0068493 A per minute
+  sec: SUB / FINANCIAL_YEAR_DAYS / SEC_PER_DAY,           // 0.00011416 A per second (1,479 C)
+} as const;
 
 /** Seconds a length of `days` Earth days holds. */
 export const motSeconds = (days: number): number => Math.max(0, days) * SEC_PER_DAY;
 
-/** Position inside ONE REVOLUTION: `elapsedSec` since perihelion over a revolution of `revolutionSec` → A.B..C
- *  (0.0000..0000 at perihelion, FULL at the next). calendar.ts feeds it the sourced perihelion interval. */
+/** Position inside ONE WHOLE: `elapsedSec` since the whole opened over `revolutionSec` → A.B..C (0.0000..0000 at the
+ *  start, 3600.0000..0000 at the end). NEVER clamped above: past the whole reads past 3600 (calendar.ts flags it). */
 export function motABC(elapsedSec: number, revolutionSec: number): ABC {
   if (!(revolutionSec > 0) || !isFinite(elapsedSec)) return { a: 0, b: 0, c: 0 };
-  const f = Math.max(0, Math.min(1, elapsedSec / revolutionSec));
-  if (f >= 1) return FULL_ABC;
+  const f = Math.max(0, elapsedSec / revolutionSec);
   return toABC(f * SUB);
 }
-/** A LENGTH in A.B..C: `days` of a revolution of `revolutionDays` (Earth's mean by default; sols and a Martian
- *  revolution on Mars). The 30.333-day pay MoT → ≈ 298.97 A. Never clamped: a length may exceed one revolution. */
-export function spanABC(days: number, revolutionDays: number = EARTH_REVOLUTION_DAYS): ABC {
+/** A LENGTH in A.B..C: `days` of a whole of `revolutionDays` (Earth's 365-day financial year by default; Earth days of
+ *  the Martian revolution on Mars). The 30.333-day pay MoT → 299.0641..0345 A. Never clamped. */
+export function spanABC(days: number, revolutionDays: number = FINANCIAL_YEAR_DAYS): ABC {
   if (!(revolutionDays > 0) || !isFinite(days) || days <= 0) return { a: 0, b: 0, c: 0 };
   return toABC((days / revolutionDays) * SUB);
 }
-/** The inverse of spanABC: an A.B..C length back to days (or sols) of the given revolution. */
-export const daysOfSpanABC = (abc: ABC, revolutionDays: number = EARTH_REVOLUTION_DAYS): number => (abcToValue(abc) / SUB) * revolutionDays;
-/** "3600.0000..0000 · 3600.3600..3600 · 3599.3599..3599 } Equal" — every writing of a whole revolution reads FULL. */
+/** The inverse of spanABC: an A.B..C length back to days of the given whole. */
+export const daysOfSpanABC = (abc: ABC, revolutionDays: number = FINANCIAL_YEAR_DAYS): number => (abcToValue(abc) / SUB) * revolutionDays;
+/** "3600.0000..0000 · 3600.3600..3600 · 3599.3599..3599 } Equal" — every writing of a whole reads FULL (a predicate). */
 export const isFull = (abc: ABC): boolean => abc.a >= SUB || (abc.a === SUB - 1 && abc.b === SUB - 1 && abc.c >= SUB - 1);
-/** Canonical text: A unpadded, B and C four digits — the abc-3600 grammar; a whole revolution prints 3600.3600..3600. */
-export const fmtMot = (abc: ABC): string => (isFull(abc) ? FULL_MOT : fmtABC(abc));
-/** Fraction 0..1 of a revolution an A.B..C position stands for (the inverse of motABC). */
-export const fractionOf = (abc: ABC): number => (isFull(abc) ? 1 : Math.max(0, Math.min(1, abcToValue(abc) / SUB)));
-/** The Earth LTU seconds an A.B..C position stands for inside a revolution of `revolutionSec` — the conversion the operator asked for. */
+/** Canonical text: A unpadded, B and C four digits — the abc-3600 grammar. Always the TRUE A (r.005): a whole prints
+ *  3600.0000..0000, two wholes 7200.0000..0000; r.003 substituted 3600.3600..3600 for anything ≥ 3600 — superseded. */
+export const fmtMot = (abc: ABC): string => fmtABC(abc);
+/** The sheet's three Equal writings of ONE whole — 3600.0000..0000 · 3600.3600..3600 · 3599.3599..3599 — read exactly 1. */
+const isEqualWriting = (abc: ABC): boolean =>
+  (abc.a === SUB && ((abc.b === 0 && abc.c === 0) || (abc.b >= SUB && abc.c >= SUB))) || (abc.a === SUB - 1 && abc.b === SUB - 1 && abc.c >= SUB - 1);
+/** Fraction of a whole an A.B..C position stands for (the inverse of motABC); never clamped above (2 = two wholes). */
+export const fractionOf = (abc: ABC): number => (isEqualWriting(abc) ? 1 : Math.max(0, abcToValue(abc) / SUB));
+/** The LTU seconds an A.B..C position stands for inside a whole of `revolutionSec` — the conversion the operator asked for. */
 export const ltuOfMotABC = (abc: ABC, revolutionSec: number): number => fractionOf(abc) * Math.max(0, revolutionSec);
-/** The seconds ONE A, ONE B and ONE C hold in a revolution — Earth: A ≈ 8,766 s (2.43 h), B ≈ 2.43 s, C ≈ 0.68 ms. */
-export const orbitUnits = (revolutionSec: number) => ({ aSec: revolutionSec / SUB, bSec: revolutionSec / SUB / SUB, cSec: revolutionSec / SUB / SUB / SUB });
+/** The seconds ONE A, ONE B, ONE C and ONE D hold in a whole — Earth (365 d): A = 8,760 s (2 h 26 min), B = 2.4333 s,
+ *  C = 0.6759 ms, D = 0.18776 µs. */
+export const orbitUnits = (revolutionSec: number) => ({
+  aSec: revolutionSec / SUB, bSec: revolutionSec / SUB / SUB, cSec: revolutionSec / SUB / SUB / SUB, dSec: revolutionSec / SUB / SUB / SUB / SUB,
+});
+
+// ── The fourth tier, D · A.BBBB..CCCC...DDDD ("if smaller time splits are needed we use A.B..C…D") ──────────────
+export interface ABCD extends ABC { d: number }
+const p4 = (n: number) => String(Math.max(0, Math.trunc(n))).padStart(4, "0");
+/** Decompose a value into four Base-3600 tiers with its own carry (toABC rounds C, so it is not derived from it). */
+export function toABCD(value: number): ABCD {
+  if (!isFinite(value) || value <= 0) return { a: 0, b: 0, c: 0, d: 0 };
+  let a = Math.trunc(value);
+  const bf = (value - a) * SUB;
+  let b = Math.trunc(bf);
+  const cf = (bf - b) * SUB;
+  let c = Math.trunc(cf);
+  let d = Math.round((cf - c) * SUB);
+  if (d >= SUB) { d -= SUB; c += 1; }
+  if (c >= SUB) { c -= SUB; b += 1; }
+  if (b >= SUB) { b -= SUB; a += 1; }
+  return { a, b, c, d };
+}
+export const fmtABCD = (x: ABCD): string => `${fmtABC(x)}...${p4(x.d)}`;
+export const abcdToValue = (x: ABCD): number => x.a + x.b / SUB + x.c / SUB / SUB + x.d / SUB / SUB / SUB;
+/** A LENGTH in A.B..C...D of a whole of `revolutionDays` (Earth's 365 by default). */
+export function spanABCD(days: number, revolutionDays: number = FINANCIAL_YEAR_DAYS): ABCD {
+  if (!(revolutionDays > 0) || !isFinite(days) || days <= 0) return { a: 0, b: 0, c: 0, d: 0 };
+  return toABCD((days / revolutionDays) * SUB);
+}
 
 // ── Rates: a MoT converts money to $/day · $/hour · $/min · $/sec (the sheet's "$/MoT" column) ──────────────────
 export const perDay = (amount: number, days: number): number => (days > 0 ? amount / days : 0);

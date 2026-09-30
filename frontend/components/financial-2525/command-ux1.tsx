@@ -13,9 +13,14 @@
  * same phone strip, the same folded Trinity logo, the same footer line — every piece imported from the Session's own
  * components or carrying its exact classes. Nothing here is drawn twice. Money and time come from the pure laws in
  * lib/financial-2525 (deterministic, clock-free); the one clock on the surface is the 1 Hz tick that feeds them `now`.
- * The chart stays under the vector law (strokes only); its glass reads day · hour · minute, A.B..C on reveal.
+ * The chart stays under the vector law (strokes only); its glass reads day · hour · minute, A.B..C on reveal — the
+ * MoT-icon ⇄ Clock-icon toggle, ONE state for the whole card (addendum 13). Every time conversion reads the PLANET LTU
+ * TABLE the operator edits in the Admin panel (lib/planet-ltu.ts via lib/financial-2525/planets.ts): the selected planet's
+ * whole (its revolution = 3600 A), its day, hours, minutes, seconds and year anchor (addendum 12 — "everything should
+ * modularly adjust"). A.B..C is the standard for all planets; the glass converts to the planet's LTU.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Clock, Orbit } from "lucide-react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
@@ -33,8 +38,10 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { FINANCIAL_LEDGER } from "@/lib/2525-core/financial-ledger.gen";
 import { FINANCIAL_DOMAIN as SRC } from "@/lib/financial-2525/domain.gen";
-import { fmtMot, spanABC, fmtStampCST, parseStampCST, MS_PER_DAY } from "@/lib/financial-2525/mot";
+import { fmtMot, spanABC, fmtStampCST, parseStampCST } from "@/lib/financial-2525/mot";
 import { positionInYear, frameOf } from "@/lib/financial-2525/calendar";
+import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
+import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
 import { balanceAt, series, validateWithdrawal, depositView, HOLD_MS, type FinTx } from "@/lib/financial-2525/accrual";
 import { SHEET_BUDGET, SHEET_MONTH_DAYS, summarize, type BudgetCategory } from "@/lib/financial-2525/budget";
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
@@ -84,6 +91,18 @@ export function FinancialCommandUX1() {
   // The one clock on the surface: null until mounted (a server render has no "now" — a hydration mismatch is a white page).
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => { setNow(Date.now()); const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, []);
+  // The Planet LTU table from the Admin panel (seed on the server render; the device's copy after mount; other tabs' edits via storage)
+  const [planets, setPlanets] = useState<PlanetLtuRow[]>(() => [...PLANET_LTU_SEED]);
+  const [planetCode, setPlanetCode] = useState("earth");
+  useEffect(() => {
+    setPlanets(readPlanetLtu());
+    const onStorage = (e: StorageEvent) => { if (!e.key || PLANET_LTU_KEYS.includes(e.key)) setPlanets(readPlanetLtu()); };
+    window.addEventListener("storage", onStorage); return () => window.removeEventListener("storage", onStorage);
+  }, []);
+  const planet = planetRow(planets, planetCode);
+  const dayMs = daySecOf(planet) * 1000;                       // one LTU day of the selected planet (Earth hours for every planet for now)
+  // ONE reveal state for the whole card: the MoT icon (A.B..C) ⇄ the Clock icon (the planet's LTU) — addendum 13
+  const [showAbc, setShowAbc] = useState(false);
 
   // The person's record on this device, under their own key — loaded on sign-in, verified before it is trusted.
   const owner = isAuthenticated && user?.sub ? user.sub : null;
@@ -101,8 +120,8 @@ export function FinancialCommandUX1() {
   const phase = phaseOf(focus, withdrawals.length, at);
   const phaseDef = FIN_PHASES.find((p) => p.key === phase) ?? FIN_PHASES[0];
   const focusView = focus && now ? depositView(focus, at) : null;
-  const year = now ? positionInYear(now) : null;
-  const frame = now ? frameOf(now, 33) : null;
+  const year = now ? positionInYear(now, planet.yearAnchor) : null;
+  const frame = now ? frameOf(now, 33, planet.yearAnchor) : null;
   const budget = useMemo(() => summarize(SHEET_BUDGET, SHEET_MONTH_DAYS), []);
   const signIn = () => loginWithRedirect({ appState: { returnTo: `${SRC.project.route}/` } });
 
@@ -197,20 +216,28 @@ export function FinancialCommandUX1() {
           {bal.ratePerMinCents > 0 && (
             <ul className="mt-2 space-y-0.5 font-mono text-xs text-muted-foreground" data-testid="fin-ladder">
               <li>{usd4(bal.ratePerMinCents * 60)} {t("fin.per_hour")} · {usd(Math.round(bal.ratePerMinCents * 1440))} {t("fin.per_day")} · {usd4(bal.ratePerMinCents / 60)} {t("fin.per_sec")}</li>
-              {focusView && <li>{hhmmss(Math.max(0, at - focus!.atMs))} {t("fin.elapsed")} · {fmtMot(spanABC(Math.max(0, at - focus!.atMs) / MS_PER_DAY))} {t("fin.a_units")}</li>}
+              {focusView && <li>{hhmmss(Math.max(0, at - focus!.atMs))} {t("fin.elapsed")}{showAbc ? ` · ${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : ""}</li>}
             </ul>
           )}
         </div>
 
         {/* the chart — strokes only, day · hour · minute by default, A.B..C on reveal */}
-        {focus && <MotChart tx={focus} txs={txs} now={at} t={t} />}
+        {focus && (
+          <MotChart tx={focus} txs={txs} now={at} t={t} planet={planet} showAbc={showAbc} onToggle={setShowAbc}
+            selector={<label className="flex items-center gap-1 text-xs text-muted-foreground">{t("fin.planet")}
+              <select data-fin-planet value={planetCode} onChange={(e) => setPlanetCode(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-xs">
+                {planets.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
+              </select>
+            </label>} />
+        )}
 
         {/* the year — the orbit that resets at perihelion; the 33-day frame */}
         {year && frame && (
-          <div data-fin-year className={SUB}>
+          <div data-fin-year className={SUB} data-fin-past-full={year.pastFull ? "1" : undefined}>
             <div className={LABEL}>{t("fin.year_position")}</div>
             <p className="mt-1">{t("fin.day")} {year.day} · {year.down ? t("fin.down_day") : `${t("fin.quarter")} ${year.quarter} · ${year.dayInQuarter}/91`} · {t("fin.frame")} {frame.index + 1} · {frame.dayInFrame}/33</p>
-            <p className="font-mono text-xs text-muted-foreground">{fmtStampCST(at)} CST · {year.year} · {year.status} · {fmtMot(year.abc)}</p>
+            <p className="font-mono text-xs text-muted-foreground">{fmtStampCST(at)} CST · {year.year} · {year.status} · {showAbc ? fmtMot(year.abc) : `${year.day}/${planet.yearDays}`}{year.pastFull ? " ↑" : ""}</p>
+            {planet.code !== "earth" && <p className="mt-1 text-xs text-muted-foreground">{t("fin.anchor_note")}</p>}
           </div>
         )}
 
@@ -300,19 +327,22 @@ export function FinancialCommandUX1() {
   );
 }
 
-/** Earth LTU for the glass (operator addendum 8: "UX is defaulted in day, hour, min"): days + hours over a day, hours + minutes under. */
-function ltuLabel(ms: number, wholeMs: number): string {
-  const d = Math.floor(ms / MS_PER_DAY), h = Math.floor((ms % MS_PER_DAY) / 3600000), m = Math.floor((ms % 3600000) / 60000);
-  return wholeMs >= MS_PER_DAY && d > 0 ? `${d} d ${h} h` : `${h} h ${m} min`;
+/** The planet's LTU for the glass (operator addendum 8: "UX is defaulted in day, hour, min"; addendum 12: the LTU table decides
+ *  the day, the hour and the minute): days + hours over a day, hours + minutes under. */
+function ltuLabel(ms: number, wholeMs: number, p: PlanetLtuRow): string {
+  const dayMs = daySecOf(p) * 1000, hourMs = p.minPerHour * p.secPerMin * 1000, minMs = p.secPerMin * 1000;
+  const d = Math.floor(ms / dayMs), h = Math.floor((ms % dayMs) / hourMs), m = Math.floor((ms % hourMs) / minMs);
+  return wholeMs >= dayMs && d > 0 ? `${d} d ${h} h` : `${h} h ${m} min`;
 }
 
 /** One deposit over its MoT: released / withdrawable / escrowed as strokes, NOW, the 3-hour hold, withdrawals as marks.
- *  BEHIND THE SCENES IS A.B..C — the revolution's coordinate (addendum 10): on reveal the axis reads the year position
- *  (positionInYear) at each mark and the elapsed span in A-units; the glass defaults to day · hour · minute (addendum 8). */
-function MotChart({ tx, txs, now, t }: { tx: FinTx; txs: FinTx[]; now: number; t: (k: string) => string }) {
+ *  BEHIND THE SCENES IS A.B..C — the revolution's coordinate (addendum 10) on the selected planet's whole (addendum 12):
+ *  on reveal the axis reads the year position (positionInYear, the planet's anchor) at each mark and the elapsed span in
+ *  A-units; the glass defaults to the planet's day · hour · minute (addendum 8). The toggle is the card's one state. */
+function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector }: { tx: FinTx; txs: FinTx[]; now: number; t: (k: string) => string; planet: PlanetLtuRow; showAbc: boolean; onToggle: (v: boolean) => void; selector?: ReactNode }) {
   const W = 360, H = 150, P = 10;
-  const [showAbc, setShowAbc] = useState(false);
-  const len = Math.max(1, (tx.motDays ?? 0) * MS_PER_DAY);
+  const dayMs = daySecOf(planet) * 1000;
+  const len = Math.max(1, (tx.motDays ?? 0) * dayMs);
   const from = tx.atMs, to = tx.atMs + len;
   function inside(ms: number) { return !(ms < from) && !(ms > to); }
   const withdrawals = txs.filter((x) => x.kind === "withdrawal" && inside(x.atMs));
@@ -321,18 +351,25 @@ function MotChart({ tx, txs, now, t }: { tx: FinTx; txs: FinTx[]; now: number; t
   const y = (cents: number) => H - P - (Math.max(0, Math.min(1, cents / tx.amountCents)) * (H - 2 * P));
   const poly = (pick: (p: (typeof pts)[number]) => number) => pts.map((p) => `${x(p.t).toFixed(1)},${y(pick(p)).toFixed(1)}`).join(" ");
   const elapsed = Math.max(0, Math.min(len, now - from));
-  const elapsedAbc = spanABC(elapsed / MS_PER_DAY);                 // the elapsed LENGTH, in A-units of the revolution
-  const motAbc = spanABC(tx.motDays ?? 0);                           // the whole MoT, in A-units (30.333 d ≈ 298.97 A)
+  const elapsedAbc = spanABC(elapsed / dayMs, planet.yearDays);      // the elapsed LENGTH, in A-units of the planet's revolution
+  const motAbc = spanABC(tx.motDays ?? 0, planet.yearDays);          // the whole MoT, in A-units (30.333 d = 299.0641..0345 A on Earth)
   const sw = VECTOR_LAW.stroke.normal, hair = VECTOR_LAW.stroke.hairline;
   // the x axis: five marks over the MoT — day · hour · minute by default; on reveal the revolution's A.B..C at each mark
-  const axis = [0, 0.25, 0.5, 0.75, 1].map((f) => (showAbc ? fmtMot(positionInYear(from + f * len).abc) : ltuLabel(f * len, len)));
+  const axis = [0, 0.25, 0.5, 0.75, 1].map((f) => (showAbc ? fmtMot(positionInYear(from + f * len, planet.yearAnchor).abc) : ltuLabel(f * len, len, planet)));
   return (
     <div data-fin-chart className={SUB}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className={LABEL}>{t("fin.chart_title")} · {showAbc ? `${fmtMot(elapsedAbc)} / ${fmtMot(motAbc)} ${t("fin.a_units")}` : `${ltuLabel(elapsed, len)} ${t("fin.elapsed")}`}</div>
-        <button type="button" data-fin-abc-toggle className="rounded-md border border-border px-2 py-1 text-xs" onClick={() => setShowAbc((v) => !v)}>{showAbc ? t("fin.show_ltu") : t("fin.show_abc")}</button>
+        <div className={LABEL}>{t("fin.chart_title")} · {showAbc ? `${fmtMot(elapsedAbc)} / ${fmtMot(motAbc)} ${t("fin.a_units")}` : `${ltuLabel(elapsed, len, planet)} ${t("fin.elapsed")}`}</div>
+        <div className="flex items-center gap-2">
+          {selector}
+          {/* the MoT icon ⇄ the Clock icon (addendum 13): two strokes, the pressed one ringed, never filled; the names are the existing keys */}
+          <div role="group" data-fin-abc-toggle className="flex overflow-hidden rounded-md border border-border">
+            <button type="button" aria-pressed={showAbc} aria-label={t("fin.show_abc")} title={t("fin.show_abc")} onClick={() => onToggle(true)} className={`flex h-8 w-9 items-center justify-center ${showAbc ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}><Orbit size={16} strokeWidth={1.5} aria-hidden /></button>
+            <button type="button" aria-pressed={!showAbc} aria-label={t("fin.show_ltu")} title={t("fin.show_ltu")} onClick={() => onToggle(false)} className={`flex h-8 w-9 items-center justify-center ${!showAbc ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}><Clock size={16} strokeWidth={1.5} aria-hidden /></button>
+          </div>
+        </div>
       </div>
-      <p className="mt-1 font-mono text-xs text-muted-foreground">{fmtStampCST(tx.atMs)} · {usd(tx.amountCents)} · {tx.motDays} · {now < from ? `${t("fin.pending_from")} ${fmtStampCST(tx.atMs)}` : showAbc ? `${fmtMot(positionInYear(from).abc)} → ${fmtMot(positionInYear(to).abc)}` : `${ltuLabel(elapsed, len)} ${t("fin.elapsed")}`}</p>
+      <p className="mt-1 font-mono text-xs text-muted-foreground">{fmtStampCST(tx.atMs)} · {usd(tx.amountCents)} · {tx.motDays} · {now < from ? `${t("fin.pending_from")} ${fmtStampCST(tx.atMs)}` : showAbc ? `${fmtMot(positionInYear(from, planet.yearAnchor).abc)} → ${fmtMot(positionInYear(to, planet.yearAnchor).abc)}` : `${ltuLabel(elapsed, len, planet)} ${t("fin.elapsed")}`}</p>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" className="mt-2 block" aria-hidden>
         <rect x={P} y={P} width={W - 2 * P} height={H - 2 * P} fill="none" stroke="var(--border)" strokeWidth={hair} />
         {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={P + f * (W - 2 * P)} y1={P} x2={P + f * (W - 2 * P)} y2={H - P} stroke="var(--border)" strokeWidth={hair} />)}

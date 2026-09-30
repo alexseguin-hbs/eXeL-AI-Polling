@@ -60,6 +60,8 @@ import {
   BIZ_CONF_LADDER, bizConfOf, competitorsOf, clampX, nextCompetitorLabel, type WtpMarker,
   PLANNING_HORIZON_YEARS,
 } from "@/lib/innovation-data";
+// The Planet LTU table — master data the Financial-2525 surface converts A.B..C with (operator 2026-09-30, addenda 12–13).
+import { PLANET_LTU_KEY, PLANET_LTU_REMOVED_KEY, PLANET_LTU_SEED, planetLtuTable, derive as derivePlanet, withDayInA, type PlanetLtuRow } from "@/lib/planet-ltu";
 import { useViewport, pinchZoom, touchDistance, ZOOM_MIN, ZOOM_MAX } from "@/lib/use-viewport";
 import { SoiSlideCompare } from "@/components/soi-slide-compare";
 import { SoiProjectCrs } from "@/components/soi-project-crs";
@@ -81,11 +83,11 @@ const SS_KEY = "innovation-unlocked";
 // THE SEED LAW (operator 2026-09-27 "update all related supabase as well"): the three tombstone lists — a project, a
 // pillar or a master-data code a person removed on purpose — travel in the bundle too, so a removal made on one device
 // is never undone by the seed on another (they were local-only before). Merged by UNION on hydration, never overwritten.
-const TOMBSTONE_KEYS = ["innovation-projects-removed", "innovation-pillars-removed", "innovation-biz-setup-removed"];
+const TOMBSTONE_KEYS = ["innovation-projects-removed", "innovation-pillars-removed", "innovation-biz-setup-removed", "innovation-planet-ltu-removed"];
 const CONFIG_KEYS = [
   "innovation-pillars", "innovation-biz-setup", "innovation-review-board",
   "innovation-stack-name", "innovation-dogtag-highlights", "innovation-segment-library",
-  "innovation-glossary",
+  "innovation-glossary", "innovation-planet-ltu",
   ...TOMBSTONE_KEYS,
 ];
 // Shared glossary (Slice 8) — one versioned definition per metric/term, admin-editable, cited across the
@@ -590,6 +592,7 @@ function Board() {
         }
         const s = loadBizSetup(); setSetup(s); setCompanyName(s.company); setStackName(loadStackName());
         loadPillars(); // reconciles + writes back the seeded pillars the same way (its result is read by Business Setup on mount)
+        loadPlanetLtu(); // the Planet LTU table (Financial-2525 reads it) — reconciled + written back the same way
         // THE SEED LAW: the loaders reconciled seeded master data into the saved Setup/pillars and wrote the result back
         // locally; if anything differs from what the cloud sent, push the bundle so the Supabase "config" copy carries
         // it too — otherwise the cloud keeps the pre-seed Setup until someone happens to visit Business Setup.
@@ -7415,6 +7418,16 @@ function loadPillars(): PillarDef[] {
   }
   return seed;
 }
+// The Planet LTU table (Financial-2525 r.005): one row per planet, seeded in lib/planet-ltu.ts, merged into the saved copy
+// under the seed law, written back so the cloud bundle carries it; the ✕ below writes a tombstone. Read by
+// lib/financial-2525/planets.ts on the Financial surface — an edit here changes every conversion there.
+function loadPlanetLtu(): PlanetLtuRow[] {
+  const s = lsGet(PLANET_LTU_KEY);
+  const m = planetLtuTable(s, lsGet(PLANET_LTU_REMOVED_KEY));
+  const next = JSON.stringify(m);
+  if (next !== s) lsSet(PLANET_LTU_KEY, JSON.stringify(m)); // THE SEED LAW: written back, so the bundle carries it
+  return m;
+}
 // Shared master-data loader — reads the admin Business Setup (localStorage) or falls back to
 // the seed. Powers the edit-project + Submit-New-Idea dropdowns so BU/SBU/Alpha changes flow.
 function loadBizSetup(): BizSetup {
@@ -7499,11 +7512,13 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
   const [segLib, setSegLib] = useState<string[]>(DEFAULT_SEGLIB);
   const [glossary, setGlossary] = useState<[string, string][]>(Object.entries(DEFAULT_GLOSSARY));
   const [scenarios, setScenarios] = useState<ScenarioCfg[]>(() => loadScenarios());
+  const [planets, setPlanets] = useState<PlanetLtuRow[]>(() => [...PLANET_LTU_SEED]);
   const { t } = useLexicon();
   useEffect(() => {
     setAdmin(ssGet(ADMIN_KEY) === "1");
     setSetup(loadBizSetup()); // shared loader coerces the legacy company label → brand (single source)
     setPillars(loadPillars());
+    setPlanets(loadPlanetLtu());
     setScenarios(loadScenarios());
     setBoard(loadReviewBoard());
     setStackName(loadStackName());
@@ -7518,6 +7533,10 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
   const persistSegLib = (next: string[]) => { setSegLib(next); lsSet(SEGLIB_KEY, JSON.stringify(next)); };
   const persistGlossary = (next: [string, string][]) => { setGlossary(next); lsSet(GLOSSARY_KEY, JSON.stringify(Object.fromEntries(next.filter(([k2]) => k2.trim())))); };
   const persistPillars = (next: PillarDef[]) => { setPillars(next); lsSet(PILLAR_KEY, JSON.stringify(next)); };
+  const persistPlanets = (next: PlanetLtuRow[]) => { setPlanets(next); lsSet(PLANET_LTU_KEY, JSON.stringify(next)); };
+  // a number a person types makes the row DECLARED (its provenance is now this panel, not the seed)
+  const editPlanet = (i: number, patch: Partial<PlanetLtuRow>) => persistPlanets(planets.map((r, j) => (j === i ? { ...r, ...patch, status: "DECLARED" } : r)));
+  const numOf = (v: string, fallback: number) => (/^\d*\.?\d*$/.test(v) && v !== "" && v !== "." ? Number(v) : fallback);
   // AD · category colour + mask, same persistence path as the pillars (lsSet), so two people printing the
   // same deck get the same sheet rather than a per-device preference.
   const [devTypeStyles, setDevTypeStyles] = useState<Partial<Record<DevType, DevTypeStyle>>>({});
@@ -7714,6 +7733,65 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
           ))}
         </div>
         <p className="mt-2 text-[10px] text-slate-500">{t("soi2525.pillar_rename_note")}</p>
+      </section>
+
+      {/* Planet LTU — the per-planet Local Time Unit table Financial-2525 converts A.B..C with (operator 2026-09-30, addenda 12–13):
+          "Standard units for all planets are A.B..C · then we convert to hours for earth and LTU for Mars (for now hours, minutes,
+          seconds) … LTU tables for each planet are in admin panel" · "Month 91 for now (with 1 day system off line Dec 31). Day in
+          A.B..C as well as Hours, Minutes, and Seconds with ability to edit". Seeded (lib/planet-ltu.ts), merged under the seed
+          law, tombstoned by ✕, mirrored to the cloud bundle. Day in A.B..C and One A are DERIVED; editing Day in A.B..C back-solves the year. */}
+      <section data-planet-ltu className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">{t("soi2525.planet_ltu")} <span className="text-[11px] text-slate-500">({planets.length})</span></h2>
+          <button onClick={() => { lsSet(PLANET_LTU_REMOVED_KEY, "[]"); persistPlanets(planetLtuTable(null, null)); pushConfigBundle(); }} className="rounded border border-slate-700 px-2.5 py-1 text-[11px] text-slate-300 hover:bg-slate-800">{t("soi2525.reset_to_seed")}</button>
+        </div>
+        <div className="mt-2 overflow-x-auto">
+          <table className="w-full text-[11px]">
+            <thead className="text-left text-[10px] uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-2 py-1">{t("soi2525.planet_ltu_planet")}</th>
+                <th className="px-2 py-1 text-right">{t("soi2525.planet_ltu_year")}</th>
+                <th className="px-2 py-1 text-right">{t("soi2525.planet_ltu_month")}</th>
+                <th className="px-2 py-1">{t("soi2525.planet_ltu_offline")}</th>
+                <th className="px-2 py-1">{t("soi2525.planet_ltu_anchor")}</th>
+                <th className="px-2 py-1 text-right">{t("soi2525.planet_ltu_day_abc")}</th>
+                <th className="px-2 py-1 text-right">{t("soi2525.planet_ltu_hours")}</th>
+                <th className="px-2 py-1 text-right">{t("soi2525.planet_ltu_minutes")}</th>
+                <th className="px-2 py-1 text-right">{t("soi2525.planet_ltu_seconds")}</th>
+                <th className="px-2 py-1 text-right">{t("soi2525.planet_ltu_a_seconds")}</th>
+                <th className="px-2 py-1">{t("soi2525.planet_ltu_status")}</th>
+                <th className="px-2 py-1" />
+              </tr>
+            </thead>
+            <tbody>
+              {planets.map((r, i) => {
+                const d = derivePlanet(r);
+                return (
+                  <tr key={r.code} className="border-t border-slate-800/60" data-planet-row={r.code}>
+                    <td className="px-2 py-1.5"><input value={r.name} onChange={(e) => editPlanet(i, { name: e.target.value })} className={`w-20 ${inp}`} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.yearDays)} onChange={(e) => editPlanet(i, { yearDays: numOf(e.target.value, r.yearDays) })} className={`w-20 text-right tabular-nums ${inp}`} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.monthDays)} onChange={(e) => editPlanet(i, { monthDays: numOf(e.target.value, r.monthDays) })} className={`w-14 text-right tabular-nums ${inp}`} /></td>
+                    <td className="px-2 py-1.5"><input value={r.offlineDay} onChange={(e) => editPlanet(i, { offlineDay: e.target.value })} className={`w-16 ${inp}`} /></td>
+                    <td className="px-2 py-1.5">
+                      <select value={r.yearAnchor} onChange={(e) => editPlanet(i, { yearAnchor: e.target.value === "perihelion" ? "perihelion" : "calendar" })} className={inp}>
+                        <option value="calendar">{t("soi2525.planet_ltu_anchor_calendar")}</option>
+                        <option value="perihelion">{t("soi2525.planet_ltu_anchor_perihelion")}</option>
+                      </select>
+                    </td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={d.dayInA.toFixed(4)} onChange={(e) => { const v = Number(e.target.value); if (v > 0 && isFinite(v)) persistPlanets(planets.map((x, j) => (j === i ? withDayInA(x, v) : x))); }} className={`w-20 text-right tabular-nums ${inp}`} title={d.dayABC} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.hoursPerDay)} onChange={(e) => editPlanet(i, { hoursPerDay: numOf(e.target.value, r.hoursPerDay) })} className={`w-14 text-right tabular-nums ${inp}`} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.minPerHour)} onChange={(e) => editPlanet(i, { minPerHour: numOf(e.target.value, r.minPerHour) })} className={`w-14 text-right tabular-nums ${inp}`} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.secPerMin)} onChange={(e) => editPlanet(i, { secPerMin: numOf(e.target.value, r.secPerMin) })} className={`w-14 text-right tabular-nums ${inp}`} /></td>
+                    <td className="px-2 py-1.5 text-right font-mono tabular-nums text-slate-300">{d.aSeconds.toLocaleString("en-US", { maximumFractionDigits: 2 })}</td>
+                    <td className="px-2 py-1.5 font-mono text-[10px] text-slate-400" title={r.note}>{r.status}</td>
+                    <td className="px-2 py-1.5 text-right"><button onClick={() => { lsSet(PLANET_LTU_REMOVED_KEY, JSON.stringify(Array.from(new Set(listOf(lsGet(PLANET_LTU_REMOVED_KEY)).concat(r.code))))); persistPlanets(planets.filter((_, j) => j !== i)); pushConfigBundle(); }} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title={t("soi2525.delete")}>✕</button></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-[10px] text-slate-500">{t("soi2525.planet_ltu_note")}</p>
       </section>
 
       {/* Segment library (Slice 7) — reusable buyer-need taxonomy for authoring per-segment value props */}

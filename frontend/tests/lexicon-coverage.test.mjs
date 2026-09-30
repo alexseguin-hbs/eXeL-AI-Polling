@@ -24,6 +24,8 @@ const AFTER_FILL = new Set([
   // S9 · User Story · Highlights personas-aligned layout (operator 2026-09-24) — two column headers; ×32 fill owed:
   'soi2525.personas',
   'soi2525.high_priority_user_stories',
+  // Financial-2525 r.005 (operator 2026-09-30, addenda 12–13) — the 17 Planet-LTU / selector keys were filled ×32 (native-speaker
+  // agents, four languages each); 23 reviewed loanwords (Planet · Status · Perihelion) on the identical-allowed list.
   // ROUND-12 keys stage here the moment they are declared; any key whose English is later changed is re-staged
   // AND its stale translations removed from lib/i18n-app/* — never left to return the old wording ("listed
   // never silent"). Filled ×32 in a batch once a P1 revision's UI settles, then cleared.

@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.004",
-  "stamp": "v.000_r.004",
+  "revision": "0.005",
+  "stamp": "v.000_r.005",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "c5176ce276c0ea06fbf499eea271b3f24be0f47572b3123fdab4dcbf69231f61",
+  "handoffSha256": "92f4caee2858c3c5f1e9a8a86e9a520872a0646f759c83b65f239d89284c44e9",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -61,6 +61,16 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "c5176ce276c0ea06fbf499eea271b3f24be0f47572b3123fdab4dcbf69231f61",
     "date": "2026-09-30",
     "note": "+ addendum 10 (A.B..C IS the Earth's revolution: 3600 · 3600 · 3600) — r.003 built against this hash"
+   },
+   {
+    "sha256": "31efe32759c5045763bd7aecbc57b2f94709934c0cdbee6248d64dda8e3fbab0",
+    "date": "2026-09-30",
+    "note": "+ addenda 11–13 and two clarifications (365 days = 3600 A exactly; the day ladder derived; A.B..C...D declared; Mars perihelion→perihelion on Earth hours for now; LTU tables per planet in the Admin panel — Month 91, offline Dec 31; the MoT ⇄ Clock icon toggle) — r.005 built against this hash"
+   },
+   {
+    "sha256": "92f4caee2858c3c5f1e9a8a86e9a520872a0646f759c83b65f239d89284c44e9",
+    "date": "2026-09-30",
+    "note": "+ addendum 14 (\"A.B..C always\" — the notation is always A.B..C, never A.B.C; the card opens on the Clock icon with the MoT toggle) — r.005 shipped against this hash"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -102,25 +112,40 @@ export const FINANCIAL_DOMAIN = {
    "why": "The twelve-lens review of the MoT Financials notes (round 1, FIN-09) is persisted beside the revisions — docs/financial-2525/reviews/r001_twelve_lenses.md, sha256 97ff0c06… on the ledger, committed alone at 8990b2d — and its stop rule for \"until simulated sufficiently\" is adopted as FD-14. Grades: median B (7 B · 5 B−); all twelve agree the notes were enough to build from and that r.001–r.003 already hold the money law; what they rule is on the record as r.005's backlog: one perihelion table, one MoT number on glass and gate, a withdrawal checked at every instant, the chart drawing available and its hold vertex, a record that survives a full phone, no machine word on the person's screen, the ×32 fill. The gate now proves the record file exists with 12 lens sections and hashes to reviews[].sha256. Addenda 6–10 (arrived mid-review) supersede any lens reading they contradict.",
    "commit": "8990b2d",
    "shipped": "78b4cdf"
+  },
+  {
+   "revision": "0.005",
+   "date": "2026-09-30",
+   "kind": "correction",
+   "why": "The 365-day financial year IS 3600 A exactly (operator addendum 11, clarified: \"365 days is 3600.0000..0000 … Half year … = 1800\"): one A = 8,760 s (r.003 measured lengths on the 365.259636-day mean anomalistic year — 298.97 A for the pay MoT — superseded: 91 ÷ 3 days = 299.0641..0345 A); the day · hour · minute · second ladder is DERIVED from the scale (one day = 9.3106..3058 A); every writing prints its true A (365 d → 3600.0000..0000, r.003 substituted 3600.3600..3600); positions are never clamped and flagged pastFull past day 365; the fourth tier D (A.BBBB..CCCC...DDDD, 0.18776 µs) is declared. Every planet's whole is its own revolution, perihelion to perihelion (addendum 12: Mars 686.98 Earth days; 668.5991 sols the future form), A.B..C the standard for all, converted to the planet's LTU — Earth hours · minutes · seconds for Mars for now; the PER-PLANET LTU TABLE IS MASTER DATA IN THE ADMIN PANEL under the seed law (lib/planet-ltu.ts; SoI-2525 › Business Setup › Planet LTU; the cloud config bundle) and Financial-2525 reads it — a change there adjusts every conversion with no code change. For now the Earth row reads Month = 91 days with ONE system-offline day on Dec 31 (addendum 13), so the calendar year (Jan 1 → Dec 31) is the default anchor and Dec 31 the offline day 365; the perihelion anchor stays selectable. The reveal is the MoT-icon ⇄ Clock-icon toggle, one state for the whole card. FIN-01.01 → FIN-01.02, FIN-02 → FIN-02.01, FIN-13 → FIN-13.01 + FIN-13.02; FD-15..18. The lenses' round-1 backlog carries to r.006. Addendum 14 (\"A.B..C always\"): the notation is always A.B..C, never A.B.C; the card opens on the Clock icon with the MoT toggle — as built.",
+   "commit": "c27628d",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
-  "law": "A.B..C IS THE REVOLUTION (addendum 10, r.003): one revolution of the planet around its star — for Earth, perihelion to perihelion, the financial year — is split into 3600 A-units; each A into 3600 B sub-units; each B into 3600 C sub-sub-units — exactly the celestial UCRS-2525 orbit (HU 0 = perihelion, 3600.3600..3600 = a full orbit). The A.B..C of an INSTANT is its position in the current revolution (0.0000..0000 at perihelion, 3600.3600..3600 at the next). The A.B..C of a LENGTH (a MoT) is days ÷ revolution-days × 3600: the 30.333-day pay MoT is ≈ 298.97 A-units — that is '30.33 converted into the 3600.3600..3600 scale'. The scale never names a planet: on Mars the same functions take sols and the Martian revolution in sols. Behind the scenes only — the glass reads day · hour · minute.",
+  "law": "A.B..C IS THE REVOLUTION (addendum 10, r.003): one revolution of the planet around its star — for Earth, perihelion to perihelion, the financial year — is split into 3600 A-units; each A into 3600 B sub-units; each B into 3600 C sub-sub-units — exactly the celestial UCRS-2525 orbit (HU 0 = perihelion, 3600.3600..3600 = a full orbit). The A.B..C of an INSTANT is its position in the current revolution (0.0000..0000 at perihelion, 3600.3600..3600 at the next). The A.B..C of a LENGTH (a MoT) is days ÷ revolution-days × 3600: the 30.333-day pay MoT is ≈ 298.97 A-units — that is '30.33 converted into the 3600.3600..3600 scale'. The scale never names a planet: on Mars the same functions take sols and the Martian revolution in sols. Behind the scenes only — the glass reads day · hour · minute. · r.005 (addenda 11–13): for EARTH the financial year is EXACTLY 365 days = 3600 A (also written 3600), half = 1800; one A = 8,760 s; the day · hour · minute · second ladder is DERIVED from the scale (one day = 3600 ÷ 365 = 9.3106..3058 A — '24 hr day is split to 3600.3600..3600' is that translation, never a second whole); positions are never clamped (past day 365 reads past 3600, flagged); lengths print their true A (730 d = 7200); below C there is D. Every planet's whole is ITS revolution, perihelion to perihelion; A.B..C is the standard for all planets and the glass converts to the planet's LTU from the Admin panel's Planet LTU table (Mars: Earth hours · minutes · seconds for now).",
   "revolution": {
    "earthDaysMean": 365.259636,
-   "earthNote": "the anomalistic year — perihelion to perihelion; an instant's position uses the sourced perihelion table (calendar.ts), a length uses this mean",
+   "earthNote": "365.259636 d is the mean anomalistic year — kept as the astronomical NOTE (r.003 measured lengths on it); r.005's whole is exactly 365 days = 3600 A (addendum 11); an instant's position uses the year's anchor (calendar.ts: Jan 1 for now, or the sourced perihelion table)",
    "marsSols": 668.5991,
    "units": 3600,
    "subUnits": 3600,
-   "subSubUnits": 3600
+   "subSubUnits": 3600,
+   "financialYearDays": 365,
+   "halfYearDays": 182.5,
+   "halfYearInA": 1800,
+   "fullInA": 3600,
+   "marsEarthDays": 686.98,
+   "marsLtu": "Earth hours · minutes · seconds for now (FD-16); a 24-unit split of the sol is the future form"
   },
   "orbitUnitsEarth": {
-   "aSeconds": 8766.2,
-   "bSeconds": 2.435,
-   "cSeconds": 0.000676
+   "aSeconds": 8760,
+   "bSeconds": 2.4333,
+   "cSeconds": 0.000675926,
+   "dSeconds": 1.8776e-7
   },
-  "payMotInA": 298.97,
-  "correction": "r.001–r.002 read a pay period as its own whole (its end printed 3600.3600..3600). Superseded by this law; the record keeps both.",
+  "payMotInA": 299.18,
+  "correction": "r.001–r.002 read a pay period as its own whole (its end printed 3600.3600..3600). Superseded by this law; the record keeps both. · r.003 measured lengths on 365.259636 d and printed every whole as 3600.3600..3600; r.005: 365 d exactly, the true A printed, positions unclamped — the record keeps all three readings.",
   "full": "3600.3600..3600",
   "equalWritings": [
    "3600.0000..0000",
@@ -135,10 +160,12 @@ export const FINANCIAL_DOMAIN = {
    "M": 33,
    "Q": 99,
    "Y": 365,
-   "minutesPerDay": 1440
+   "minutesPerDay": 1440,
+   "analysisMonth": 91,
+   "analysisNote": "Month 91 for now (addendum 13) — the analysis ladder comes from the Admin panel's Planet LTU table (ltuDays(row)); D · W 7 · M 33 · Q 99 · Y 365 remain the SHEET's personal frame"
   },
   "payMotDays": 30.333,
-  "payMotNote": "one third of a 91-day quarter (91 ÷ 3 = 30.333…) — the operator's worked example; ≈ 298.97 A of the revolution",
+  "payMotNote": "one third of a 91-day quarter (91 ÷ 3 = 30.333…) — the operator's worked example; 299.0641..0345 A of the 365-day whole (r.003's 298.97 was on the mean anomalistic year)",
   "trinity": {
    "♡": "M_LTU — local time, the witness",
    "웃": "M_33 — the 33-day personal month",
@@ -150,7 +177,50 @@ export const FINANCIAL_DOMAIN = {
    "◬": "minutes × efficiency gain",
    "tradedFor": "$"
   },
-  "source": "frontend/lib/financial-2525/mot.ts · frontend/lib/abc-3600.ts · frontend/lib/ucrs-2525.ts"
+  "source": "frontend/lib/financial-2525/mot.ts · frontend/lib/abc-3600.ts · frontend/lib/ucrs-2525.ts",
+  "orbitUnitsEarthMean": {
+   "aSeconds": 8766.2,
+   "bSeconds": 2.435,
+   "cSeconds": 0.000676,
+   "note": "r.003 — on the mean anomalistic year; superseded"
+  },
+  "positions": "on the 365-day whole, never clamped; past 3600 flagged pastFull until the year resets (the reset is the anchor — Jan 1 for now, or the perihelion — never the number)",
+  "fullPrint": "3600.0000..0000 (= 3600); 3600.3600..3600 is the sheet's writing of the same whole (isFull), a predicate, never substituted",
+  "ltuInA": {
+   "day": 9.863,
+   "hour": 0.41096,
+   "minute": 0.0068493,
+   "second": 0.00011416,
+   "dayABC": "9.3106..3058",
+   "hourABC": "0.1479..1627",
+   "minuteABC": "0.0024..2367",
+   "secondABC": "0.0000..1479"
+  },
+  "tierD": {
+   "notation": "A.BBBB..CCCC...DDDD",
+   "seconds": 1.8776e-7,
+   "status": "DECLARED — not on the glass (operator: 'if smaller time splits are needed we use A.B..C…D')"
+  },
+  "planetLtuTable": {
+   "where": "Admin panel — SoI-2525 › Business Setup › Planet LTU (lib/planet-ltu.ts seeds it; localStorage innovation-planet-ltu + its tombstone list ride the cloud config bundle; lib/financial-2525/planets.ts reads it)",
+   "rows": [
+    "earth",
+    "mars"
+   ],
+   "columns": [
+    "year (days = 3600 A)",
+    "month (91)",
+    "offline day (12-31)",
+    "year opens (Jan 1 · perihelion)",
+    "day in A.B..C (derived, editable — back-solves the year)",
+    "hours/day",
+    "minutes/hour",
+    "seconds/minute",
+    "one A in seconds (derived)",
+    "status"
+   ],
+   "law": "the seed law — merged into every saved copy, a person's edit wins, tombstones hold; an edit adjusts every conversion with no code change (addendum 12)"
+  }
  },
  "calendar": {
   "anchor": "PERIHELION — day 1 of every Financial-2525 year begins at the perihelion instant (the SoI calendar's own anchor; Celestial-2525's HU 0)",
@@ -206,7 +276,7 @@ export const FINANCIAL_DOMAIN = {
   "perHourUsd": 4.95,
   "perSecUsd": 0.001375,
   "withdrawableAt3hUsd": 14.85,
-  "motInA": 298.97,
+  "motInA": 299.18,
   "note": "the operator's own paycheck, transcribed from his bank screen; a record, never an invention"
  },
  "budget": {
@@ -299,11 +369,11 @@ export const FINANCIAL_DOMAIN = {
    ],
    "phase": "pilot",
    "mode": "Manual",
-   "metric": "one whole revolution reads FULL; a position round-trips to LTU within 1 s; the pay MoT converts to 298 A and back to 30.333 days; on Earth one A = 8,766 s",
+   "metric": "SUPERSEDED by FIN-01.02 (addendum 11): the financial year is exactly 365 days = 3600 A — 298.97 A and 8,766 s were measured on the mean anomalistic year",
    "verify": "tests/financial-mot.test.mjs",
    "dtm": "the chart's reveal shows the revolution's coordinate at each axis mark and the elapsed span in A-units",
    "stretch": "a 30-sol MoT on Mars converts to 161 A of the Martian revolution and back",
-   "status": "implemented"
+   "status": "superseded"
   },
   {
    "id": "FIN-02",
@@ -317,11 +387,11 @@ export const FINANCIAL_DOMAIN = {
    ],
    "phase": "pilot",
    "mode": "Manual",
-   "metric": "the perihelion instant is day 1 · Q1 · 0.0000..0000; day 364 closes Q4; day 365 is down; the minute before the next perihelion reads ~FULL",
+   "metric": "SUPERSEDED by FIN-02.01 (addendum 13): for now the year opens Jan 1 and Dec 31 is the one offline day; the perihelion anchor stays selectable in the Admin panel's LTU table",
    "verify": "tests/financial-mot.test.mjs",
    "dtm": "twelve sourced years with provenance; a year outside the table is DECLARED and says so",
    "stretch": "the table refreshed from an ephemeris the operator confirms annually",
-   "status": "implemented"
+   "status": "superseded"
   },
   {
    "id": "FIN-03",
@@ -516,10 +586,83 @@ export const FINANCIAL_DOMAIN = {
    ],
    "phase": "pilot",
    "mode": "Manual",
-   "metric": "a quarter of a 30-sol MoT reads 900.0000..0000 and converts back to 30 × 88,775.244 ÷ 4 s",
+   "metric": "SUPERSEDED by FIN-13.01 + FIN-13.02 (addendum 12): Mars' whole is its own revolution in Earth days with Earth hours as LTU for now; the per-planet LTU table lives in the Admin panel",
    "verify": "tests/financial-mot.test.mjs",
    "dtm": "one Martian case in the gate",
    "stretch": "a planet selector on the surface reading UCRS-2525's PLANETS",
+   "status": "superseded"
+  },
+  {
+   "id": "FIN-01.02",
+   "title": "365 days = 3600 A exactly — the measure of time, pinned",
+   "section": "VII",
+   "uwf": [
+    "U-WF-12"
+   ],
+   "statement": "Every planet's whole is its own revolution, perihelion to perihelion, = 3600 A; for Earth the financial year is EXACTLY 365 days = 3600.0000..0000 (also written 3600), half = 1800, so one A = 8,760 s, one B = 2.4333 s, one C = 0.6759 ms and one D = 0.18776 µs (A.BBBB..CCCC...DDDD, declared); the day · hour · minute · second ladder is DERIVED from the scale (one day = 9.3106..3058 A); a length prints its true A even past 3600; a position past day 365 is shown and flagged, never clamped; the glass reads the planet's day · hour · minute, A.B..C on the MoT-icon ⇄ Clock-icon reveal — one state for the whole card.",
+   "metric": "365 d reads 3600.0000..0000 and 182.5 d 1800.0000..0000 exactly; one A = 8,760 s; the pay MoT is 299.0641..0345 A and back to 30.333 d; 730 d read 7200; a position past 365 d reads past 3600 and is flagged, never clamped; A.B..C...D round-trips within one D",
+   "dtm": "the reveal and the clock ladder read A-units of the 365-day whole; the toggle is two stroke icons (Orbit · Clock) with the existing keys as their names; the year panel carries the pastFull hook",
+   "stretch": "the D tier shown on request; one perihelion table shared with lib/soi-calendar (the lenses' backlog)",
+   "in": "FIN-01.02.IN",
+   "out": "FIN-01.02.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "verify": "tests/financial-mot.test.mjs",
+   "status": "implemented"
+  },
+  {
+   "id": "FIN-02.01",
+   "title": "The year opens on its anchor — Jan 1 for now, the perihelion selectable",
+   "section": "VI",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "statement": "Which instant opens the year is a field of the Admin panel's Planet LTU table: 'calendar' (the default for now, addendum 13) opens Jan 1 at midnight CST and makes Dec 31 the one system-offline day (day 365, DOWN); 'perihelion' (r.001–r.004) opens at the sourced perihelion instant. On either anchor the position is elapsed ÷ 365 d × 3600, never clamped: a leap Dec 31 is day 366 and past full; a 367-day perihelion interval reads past 3600 on days 366–368; a 363-day one never reaches day 365 — the reset is the anchor, never the number. Quarters are 91 days, the grid 364, personal frames 33 / 66 / 99.",
+   "metric": "Jan 1 at midnight CST is day 1 · 0.0000..0000; noon Jul 2 reads 1800.0000..0000; Dec 30 closes Q4 (day 364); Dec 31 is day 365, down, not past full; a leap Dec 31 is day 366, down, past full (3604.…); on the perihelion anchor the minute before the 2027 perihelion reads 3593.… (a 364.39-day orbit), day 367 of 2027 reads 3609.3106..3058 past full, and 2028 ends on day 364",
+   "dtm": "the anchor is edited in the Admin panel and the surface follows; twelve sourced perihelion years with provenance",
+   "stretch": "SHORT / LONG badges on every sourced perihelion year; a Mars perihelion epoch table",
+   "in": "FIN-02.01.IN",
+   "out": "FIN-02.01.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "verify": "tests/financial-mot.test.mjs",
+   "status": "implemented"
+  },
+  {
+   "id": "FIN-13.01",
+   "title": "Mars on its own revolution, Earth hours for now",
+   "section": "VIII",
+   "uwf": [
+    "U-WF-12"
+   ],
+   "statement": "Mars' whole is its revolution, perihelion to perihelion — 686.98 Earth days (= UCRS-2525 PLANETS mars.tDays, one primitive) — and its LTU is, FOR NOW, Earth hours · minutes · seconds (addendum 12 / clarification: 'since mars does not have 24 unit split of time; we'll use Earth Hours for now'); 668.5991 sols × 88,775.244 s is the same whole in sols, the future form once a 24-unit split of the sol is declared.",
+   "metric": "on Mars one A = 16,487.5 s = 4.58 Earth hours; a quarter of the Martian revolution reads 900.0000..0000 on either LTU; a 30-sol MoT is 161 A and 30 Earth days 157 A; the two wholes agree within 30 s",
+   "dtm": "the Mars row in the Planet LTU table; the planet selector on the surface converts from it",
+   "stretch": "a 24-unit split of the sol declared in the table (hoursPerDay 24.66 …) — everything adjusts modularly",
+   "in": "FIN-13.01.IN",
+   "out": "FIN-13.01.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "verify": "tests/financial-mot.test.mjs",
+   "status": "implemented"
+  },
+  {
+   "id": "FIN-13.02",
+   "title": "The per-planet LTU table is master data in the Admin panel",
+   "section": "VIII",
+   "uwf": [
+    "U-WF-06",
+    "U-WF-12"
+   ],
+   "verify": "tests/planet-ltu.test.mjs",
+   "statement": "A.B..C is the standard unit for all planets; the conversion to a planet's Local Time Units reads ONE table the operator edits in the Admin panel (SoI-2525 › Business Setup › Planet LTU): per planet the year in days (= 3600 A), the month (91 for now), the offline day (Dec 31), which instant opens the year, the Day in A.B..C beside hours · minutes · seconds — every field editable, the derived ones re-solved on edit. Seeded in code, merged into every saved copy under the seed law (local mirror + cloud config bundle), tombstoned by ✕; Financial-2525 reads it, so a change there adjusts every conversion with no code change.",
+   "metric": "editing Mars's hours/day in a saved copy changes the Mars ladder (one A = 16,940.9 s at 24.66 h) with no code change; editing Day-in-A.B..C to 10 makes the year 360 days; a tombstoned planet never re-seeds; a seeded row's untouched field follows a seed change; the table and its tombstone list ride the config bundle",
+   "dtm": "the Planet LTU section in Business Setup; the planet selector and the LTU labels on the Financial surface",
+   "stretch": "login-bound sync of the table (FD-18); more planets from UCRS-2525's PLANETS",
+   "in": "FIN-13.02.IN",
+   "out": "FIN-13.02.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
    "status": "implemented"
   }
  ],
@@ -607,6 +750,30 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The stop rule for \"until simulated sufficiently\" (FIN-09): the twelve stop iterating on the PERSONAL framework — and FIN-12 (business) may open — only when all seven hold on one commit: (1) one full real MoT has run on the operator's own phone (the worked paycheck, 2026.10.01_07.00..00 → 2026.10.31_15.00..00 CST, one Q3→Q4 crossing) with at least one recorded withdrawal, and his feedback is persisted as a hashed addendum in the ask file and as a feedback entry in reviews[]; (2) two consecutive twelve-lens rounds on consecutive revisions raise zero new FD, zero new gate and zero grade below B; (3) determinism — the same ledger replayed at the same instant on two devices and nine runs yields the same cent for released, withdrawable and available, and the same A.B..C to the C; (4) every gate the round names exists and is green in test:ci with tsc at 0, and the round's review file is on disk with 12 lens sections and its sha256 on the ledger; (5) no redeclared primitive — one perihelion table, one YUG_CEILING, one $/min spread, one MoT number on glass and gate; (6) the ×32 fin.* fill has landed and the banned-word regex finds zero machine words in any of the 33 languages; (7) npm run status reports cloudflare LIVE for the commit that satisfies (1)–(6). Until all seven hold, each round appends a revision and the next round runs; nothing in the business frame is built.",
    "status": "DECLARED",
    "basis": "the twelve-lens synthesis, round 1 (docs/financial-2525/reviews/r001_twelve_lenses.md § the stop rule); addendum 5 makes the operator's feedback the trigger"
+  },
+  {
+   "id": "FD-15",
+   "decision": "The financial year is EXACTLY 365 days = 3600 A (one A = 8,760 s; half 182.5 d = 1800); the day · hour · minute · second ladder is DERIVED from the scale (one day = 9.3106..3058 A) — '24 hr day is split to 3600.3600..3600' is a translation, not a second whole; positions on that whole are never clamped and flagged pastFull past day 365; lengths print their true A; A.B..C...D (0.18776 µs) is declared, not shown. SUPERSEDES FD-13's length constant (365.259636 d kept as the astronomical note).",
+   "status": "OPERATOR",
+   "basis": "addendum 11 + clarification 1 ('365 days is 3600.0000..0000 … Half year … 1800 … we use A.B..C…D')"
+  },
+  {
+   "id": "FD-16",
+   "decision": "Mars' whole is its own revolution, perihelion to perihelion (686.98 Earth days = UCRS-2525 PLANETS mars.tDays; 668.5991 sols the same whole in sols), and its LTU is Earth hours · minutes · seconds FOR NOW; a 24-unit split of the sol is the future form, declared in the LTU table when it comes.",
+   "status": "OPERATOR",
+   "basis": "addendum 12 + clarification 2 ('we use full revolution around sun as A.B..C schedule … we'll use Earth Hours for now')"
+  },
+  {
+   "id": "FD-17",
+   "decision": "A.B..C is the standard unit for all planets; the per-planet LTU tables are MASTER DATA IN THE ADMIN PANEL under the seed law and every conversion reads them (a change adjusts everything modularly). For now the Earth row reads Month = 91 days with one system-offline day on Dec 31 — so the year opens Jan 1 and Dec 31 is the offline day 365; the perihelion anchor stays selectable; the sheet's 33 · 66 · 99 stay personal frames. The Day in A.B..C is shown beside hours · minutes · seconds, every field editable.",
+   "status": "OPERATOR",
+   "basis": "addendum 12 ('LTU tables for each planet are in admin panel') + addendum 13 ('Month 91 for now (with 1 day system off line Dec 31). Day in A.B..C as well as Hours, Minutes, and Seconds with ability to edit')"
+  },
+  {
+   "id": "FD-18",
+   "decision": "The reach of the table's mirror, said plainly: this browser's copy (the owner key is per browser) plus the cloud config bundle the pod hydrates; login-bound sync arrives when auth reaches Supabase. On the server the seed is read, so the first paint never differs from the seed. The reveal on the surface is the MoT-icon ⇄ Clock-icon toggle, one state for the whole card, named by the existing keys.",
+   "status": "DECLARED",
+   "basis": "addendum 13 ('have MoT Icon toggle with Clock icon toggle'); lib/innovation-store.ts ownerKeyOrNull (per-browser owner key); migration 030"
   }
  ],
  "reviews": [
@@ -619,6 +786,14 @@ export const FINANCIAL_DOMAIN = {
    "sha256": "97ff0c063b4f466f96401dd436f9cd9b05ec172d9257e693b196b14f1254c75d",
    "commit": "8990b2d",
    "status": "PERSISTED r.004 — 12/12 lenses + synthesis; median B (7 B · 5 B−); 22 invariants each with a gate, 35 declared defaults, the stop rule adopted as FD-14; addenda 6–10 supersede any lens reading they contradict"
+  },
+  {
+   "round": 2,
+   "revision": "0.005",
+   "subject": "r.005 — the 365-day whole, the Planet LTU table in the Admin panel, the MoT ⇄ Clock toggle",
+   "lenses": 12,
+   "record": "docs/financial-2525/reviews/r002_twelve_lenses.md",
+   "status": "PENDING — the twelve run on r.005 after it ships; persisted when they return"
   }
  ],
  "status": {

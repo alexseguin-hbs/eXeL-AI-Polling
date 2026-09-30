@@ -56,7 +56,12 @@ function renderReadme() {
   s += `| Stamp | \`${d.mot.stampFormat}\` |\n| Duration | \`${d.mot.durationFormat}\` |\n`;
   s += `| LTU | D ${d.mot.ltu.D} · W ${d.mot.ltu.W} · M ${d.mot.ltu.M} · Q ${d.mot.ltu.Q} · Y ${d.mot.ltu.Y} · ${d.mot.ltu.minutesPerDay} min/day |\n`;
   s += `| Revolution | Earth ${d.mot.revolution.earthDaysMean} days (${d.mot.revolution.earthNote}); Mars ${d.mot.revolution.marsSols} sols; ${d.mot.revolution.units} A · ${d.mot.revolution.subUnits} B · ${d.mot.revolution.subSubUnits} C |\n`;
-  s += `| One unit on Earth | A = ${d.mot.orbitUnitsEarth.aSeconds} s (2.43 h) · B = ${d.mot.orbitUnitsEarth.bSeconds} s · C = ${d.mot.orbitUnitsEarth.cSeconds} s |\n`;
+  s += `| Financial year | ${d.mot.revolution.financialYearDays} days = ${d.mot.revolution.fullInA} A exactly · half ${d.mot.revolution.halfYearDays} d = ${d.mot.revolution.halfYearInA} · one day ${d.mot.ltuInA.dayABC} A · one hour ${d.mot.ltuInA.hourABC} · one second ${d.mot.ltuInA.secondABC} |\n`;
+  s += `| One unit on Earth | A = ${d.mot.orbitUnitsEarth.aSeconds} s (${(d.mot.orbitUnitsEarth.aSeconds / 3600).toFixed(2)} h) · B = ${d.mot.orbitUnitsEarth.bSeconds} s · C = ${d.mot.orbitUnitsEarth.cSeconds} s · D = ${d.mot.orbitUnitsEarth.dSeconds} s (${d.mot.tierD.notation}, ${d.mot.tierD.status}) |\n`;
+  s += `| Positions | ${d.mot.positions} |\n| Full | ${d.mot.fullPrint} |\n`;
+  s += `| Mars | ${d.mot.revolution.marsEarthDays} Earth days = 3600 A (${d.mot.revolution.marsSols} sols the future form); LTU ${d.mot.revolution.marsLtu} |\n`;
+  s += `| Planet LTU table | ${d.mot.planetLtuTable.where} — rows ${d.mot.planetLtuTable.rows.join(" · ")}; ${d.mot.planetLtuTable.law} |\n`;
+  s += `| Analysis month | ${d.mot.ltu.analysisMonth} days — ${d.mot.ltu.analysisNote} |\n`;
   s += `| Pay MoT | ${d.mot.payMotDays} days — ${d.mot.payMotNote} (${d.mot.payMotInA} A) |\n`;
   s += `| Correction | ${d.mot.correction} |\n`;
   s += `| ◬ ♡ 웃 | ♡ ${d.mot.trinity["♡"]} · 웃 ${d.mot.trinity["웃"]} · ◬ ${d.mot.trinity["◬"]} |\n`;

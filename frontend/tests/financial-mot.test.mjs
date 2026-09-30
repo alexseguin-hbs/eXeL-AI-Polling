@@ -1,39 +1,52 @@
-// financial-mot — THE MoT LAW + THE CALENDAR of Financial-2525 (operator 2026-09-30, v.000_r.001).
-// A MoT is one whole; a moment inside it is its elapsed fraction in Base-3600 (A.B..C), 0.0000..0000 at the start and
-// 3600.3600..3600 at completion; every position converts to Earth LTU and back. The year resets at perihelion (Austin,
-// CST standard); quarters are 91 days, day 365 is DOWN; personal frames run 33 / 66 / 99 days.
+// financial-mot — THE MoT LAW + THE CALENDAR of Financial-2525 (operator 2026-09-30, v.000_r.005).
+// The whole is every planet's own revolution, perihelion to perihelion, = 3600 A; for Earth the financial year is EXACTLY
+// 365 days = 3600.0000..0000 (half = 1800), so one A = 8,760 s; the day · hour · minute · second ladder is DERIVED from the
+// scale; a length prints its true A even past 3600; a position past day 365 is shown and flagged, never clamped; below C
+// there is D. Quarters are 91 days, day 365 is DOWN (Dec 31 on the calendar anchor — the system's offline day); the
+// perihelion anchor stays selectable; personal frames run 33 / 66 / 99 days. Mars: its own revolution, Earth hours for now.
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/financial-mot.test.mjs
 const M = await import("../lib/financial-2525/mot.ts");
 const C = await import("../lib/financial-2525/calendar.ts");
+const U = await import("../lib/ucrs-2525.ts");
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 const near = (a, b, eps) => Math.abs(a - b) <= eps;
 
-// ── 1 · A.B..C IS the revolution (operator addendum 10): one revolution = 3600 A · 3600 B · 3600 C ───────────────
+// ── 1 · the whole: 365 days = 3600 A exactly (addendum 11); positions and lengths never clamped ────────────────
 const MOT = M.motSeconds(M.MOT_PAY_MONTH_DAYS);
 ok(near(M.MOT_PAY_MONTH_DAYS, 30.3333, 1e-3) && MOT === 2620800, `the pay MoT is 91/3 = 30.333 days = 2,620,800 s (got ${MOT})`);
-const REV = M.motSeconds(M.EARTH_REVOLUTION_DAYS);
-ok(near(M.EARTH_REVOLUTION_DAYS, 365.2596, 1e-4), "Earth's revolution perihelion to perihelion (the anomalistic year) is 365.2596 days");
-ok(M.fmtMot(M.motABC(0, REV)) === "0.0000..0000", "perihelion reads 0.0000..0000");
-ok(M.fmtMot(M.motABC(REV, REV)) === "3600.3600..3600", "one whole revolution reads 3600.3600..3600 — the operator's FULL");
-ok(M.fmtMot(M.motABC(REV / 2, REV)) === "1800.0000..0000", "half a revolution reads 1800.0000..0000");
-ok(M.fmtMot(M.motABC(REV * 2, REV)) === "3600.3600..3600" && M.fmtMot(M.motABC(-5, REV)) === "0.0000..0000", "a position is clamped to the revolution: past its end is FULL, before perihelion is 0");
-ok(M.isFull({ a: 3600, b: 0, c: 0 }) && M.isFull({ a: 3600, b: 3600, c: 3600 }) && M.isFull({ a: 3599, b: 3599, c: 3599 }) && !M.isFull({ a: 3599, b: 3599, c: 3598 }), "the sheet's three writings — 3600.0000..0000 · 3600.3600..3600 · 3599.3599..3599 — are Equal (all FULL)");
-const u = M.orbitUnits(REV);
-ok(near(u.aSec, 8766.23, 0.01) && near(u.bSec, 2.435, 1e-3) && near(u.cSec, 0.000676, 1e-6), `on Earth one A = 8,766 s (2.43 h), one B = 2.43 s, one C = 0.68 ms (got A ${u.aSec.toFixed(2)})`);
-for (const e of [0, 1, 59, 3600, 86400, 1234567, REV - 1, REV]) {
-  const back = M.ltuOfMotABC(M.motABC(e, REV), REV);
-  ok(near(back, e, 1), `A.B..C ↔ LTU round-trips within 1 s at ${e} s of the revolution (got ${back.toFixed(3)})`);
+const FY = M.FINANCIAL_YEAR_SEC;
+ok(M.FINANCIAL_YEAR_DAYS === 365 && FY === 31536000 && M.HALF_YEAR_DAYS === 182.5, "the financial year is exactly 365 days = 31,536,000 s; half is 182.5 d");
+ok(near(M.EARTH_REVOLUTION_DAYS, 365.2596, 1e-4), "365.2596 d (the anomalistic year) stays on the record as the astronomical note, not the whole");
+ok(M.fmtMot(M.motABC(0, FY)) === "0.0000..0000", "the year's opening reads 0.0000..0000");
+ok(M.fmtMot(M.motABC(FY, FY)) === "3600.0000..0000" && M.isFull(M.motABC(FY, FY)), "365 days read 3600.0000..0000 — 'which can also be notated 3600' — and are FULL");
+ok(M.fmtMot(M.motABC(FY / 2, FY)) === "1800.0000..0000" && M.fmtMot(M.spanABC(182.5)) === "1800.0000..0000", "half a year, 182.5 days, reads 1800.0000..0000 (position and length)");
+ok(M.fmtMot(M.motABC(2 * FY, FY)) === "7200.0000..0000" && M.fmtMot(M.motABC(-5, FY)) === "0.0000..0000", "a position is never clamped above: two years read 7200; before the opening is 0");
+ok(M.isFull({ a: 3600, b: 0, c: 0 }) && M.isFull({ a: 3600, b: 3600, c: 3600 }) && M.isFull({ a: 3599, b: 3599, c: 3599 }) && !M.isFull({ a: 3599, b: 3599, c: 3598 }), "the sheet's three writings — 3600.0000..0000 · 3600.3600..3600 · 3599.3599..3599 — are Equal (all FULL), a predicate");
+ok(M.fmtMot(M.FULL_ABC) === "3600.3600..3600" && M.FULL_MOT === "3600.3600..3600", "the sheet's writing is kept as text, never substituted for a true A");
+const u = M.orbitUnits(FY);
+ok(u.aSec === 8760 && near(u.bSec, 2.43333, 1e-4) && near(u.cSec, 0.000675926, 1e-8) && near(u.dSec, 1.8776e-7, 1e-10), `one A = 8,760 s (2 h 26 min), one B = 2.4333 s, one C = 0.6759 ms, one D = 0.18776 µs (got A ${u.aSec})`);
+for (const e of [0, 1, 59, 3600, 86400, 1234567, FY - 1, FY, FY + 86400]) {
+  const back = M.ltuOfMotABC(M.motABC(e, FY), FY);
+  ok(near(back, e, 1), `A.B..C ↔ LTU round-trips within 1 s at ${e} s of the year, day 366 included (got ${back.toFixed(3)})`);
 }
-ok(M.ltuOfMotABC(M.FULL_ABC, 12345) === 12345, "FULL converts to the whole revolution in LTU");
-// a LENGTH converts INTO the scale: 30.333 days = 298.97 A — "MoT = 30.33 converted … from the Celestial-2525 scale"
+ok(M.ltuOfMotABC(M.FULL_ABC, 12345) === 12345 && M.fractionOf({ a: 7200, b: 0, c: 0 }) === 2 && M.fractionOf({ a: 1800, b: 0, c: 0 }) === 0.5, "an Equal writing converts to exactly the whole; 7200 is two wholes; 1800 is half");
+// the derived ladder: "we use this to translate to day/min/sec"
+ok(near(M.A_PER.day, 9.86301, 1e-5) && near(M.A_PER.hour, 0.410959, 1e-6) && near(M.A_PER.min, 0.00684932, 1e-8) && near(M.A_PER.sec, 1.14155e-4, 1e-9), "one day = 9.8630 A · one hour 0.41096 A · one minute 0.0068493 A · one second 0.00011416 A (1,479 C)");
+// a LENGTH converts INTO the scale
 const span = M.spanABC(M.MOT_PAY_MONTH_DAYS);
-ok(span.a === 298 && near(M.daysOfSpanABC(span), M.MOT_PAY_MONTH_DAYS, 1e-6), `the 30.333-day pay MoT is 298 A and change (${M.fmtMot(span)}) and converts back to 30.333 days`);
-ok(near(M.daysOfSpanABC(M.spanABC(1)), 1, 1e-6) && M.spanABC(0).a === 0 && M.fmtMot(M.spanABC(M.EARTH_REVOLUTION_DAYS)) === "3600.3600..3600", "one day, zero, and one whole revolution convert as lengths (a revolution's length is FULL; one C is 0.68 ms, so a day round-trips within a microsecond)");
-ok(M.spanABC(2 * M.EARTH_REVOLUTION_DAYS).a === 7200, "a length is never clamped: two revolutions are 7200 A");
-// Mars: the same scale — sols over the Martian revolution in sols; only the local seconds differ
-const SOL = 88775.244, MARS_REV = M.MARS_REVOLUTION_SOLS * SOL;
-ok(M.fmtMot(M.motABC(MARS_REV / 4, MARS_REV)) === "900.0000..0000" && near(M.ltuOfMotABC({ a: 900, b: 0, c: 0 }, MARS_REV), MARS_REV / 4, 1e-6), "a quarter of the Martian revolution reads 900.0000..0000 — the scale never names a planet");
-ok(near(M.daysOfSpanABC(M.spanABC(30, M.MARS_REVOLUTION_SOLS), M.MARS_REVOLUTION_SOLS), 30, 1e-6) && M.spanABC(30, M.MARS_REVOLUTION_SOLS).a === 161, "a 30-sol MoT on Mars is 161 A of the Martian revolution and converts back to 30 sols");
+ok(span.a === 299 && M.fmtMot(span) === "299.0641..0345" && near(M.daysOfSpanABC(span), M.MOT_PAY_MONTH_DAYS, 1e-6), `the 30.333-day pay MoT is 299.0641..0345 A (r.003's 298.97 measured on 365.26 d — superseded) and converts back to 30.333 days (${M.fmtMot(span)})`);
+ok(M.fmtMot(M.spanABC(1)) === "9.3106..3058" && M.fmtMot(M.spanABC(365)) === "3600.0000..0000" && M.fmtMot(M.spanABC(730)) === "7200.0000..0000" && M.spanABC(0).a === 0, "one day 9.3106..3058 · 365 d 3600.0000..0000 · 730 d 7200.0000..0000 — a length prints its true A, never clamped");
+ok(M.fmtMot(M.spanABC(M.EARTH_REVOLUTION_DAYS)).startsWith("3602."), "the anomalistic year is 3602 A and change on the 365-day whole — the note, not the law");
+ok(M.fmtMot(M.spanABC(0.125)) === "1.0838..1282" && M.fmtMot(M.spanABC(2)) === "19.2613..2515" && M.fmtMot(M.spanABC(1 / 86400)) === "0.0000..1479" && M.fmtMot(M.spanABC(1 / 24)) === "0.1479..1627", "the 3-hour hold 1.0838..1282 · two days 19.2613..2515 · one second 0.0000..1479 · one hour 0.1479..1627");
+// the fourth tier D
+ok(M.fmtABCD(M.spanABCD(M.MOT_PAY_MONTH_DAYS)) === "299.0641..0345...0740" && M.fmtABCD(M.toABCD(3600)) === "3600.0000..0000...0000", "A.B..C...D: the pay MoT reads 299.0641..0345...0740; 3600 reads 3600.0000..0000...0000");
+for (const v of [0, 0.5, 299.178, 3599.99999, 3609.863]) ok(near(M.abcdToValue(M.toABCD(v)), v, 1 / 3600 ** 3), `A.B..C...D round-trips within one D at ${v}`);
+// Mars: its own revolution as the whole, Earth hours as the LTU for now (FD-16); the sol form on the record
+const MARS_E = M.motSeconds(M.MARS_REVOLUTION_EARTH_DAYS), MARS_S = M.MARS_REVOLUTION_SOLS * M.SOL_SEC;
+ok(U.PLANETS.find((p) => p.id === "mars")?.tDays === M.MARS_REVOLUTION_EARTH_DAYS, "Mars' revolution is ONE primitive: mot.ts equals UCRS-2525's PLANETS mars.tDays (686.98 Earth days)");
+ok(near(M.orbitUnits(MARS_E).aSec, 16487.52, 0.01) && near(M.orbitUnits(MARS_E).aSec / 3600, 4.58, 0.01), "on Mars one A = 16,487.5 s = 4.58 Earth hours (Earth hours as LTU for now)");
+ok(M.spanABC(30 * M.SOL_SEC / M.SEC_PER_DAY, M.MARS_REVOLUTION_EARTH_DAYS).a === 161 && M.spanABC(30, M.MARS_REVOLUTION_EARTH_DAYS).a === 157, "a 30-sol MoT on Mars is 161 A of the Martian revolution; 30 Earth days are 157 A");
+ok(near(MARS_S, MARS_E, 30) && M.fmtMot(M.motABC(MARS_S / 4, MARS_S)) === "900.0000..0000" && M.spanABC(30, M.MARS_REVOLUTION_SOLS).a === 161, "the sol form (668.5991 sols × 88,775.244 s) is the same whole within 30 s; a quarter reads 900.0000..0000 on either");
 
 // ── 2 · rates: the worked example and the sheet ───────────────────────────────────────────────────────────────
 const AMT = 360449; // $3,604.49 in cents
@@ -41,7 +54,7 @@ ok(near(M.perMin(AMT, M.MOT_PAY_MONTH_DAYS), 8.2520, 1e-3), `$3,604.49 over 30.3
 ok(near(M.perDay(AMT, M.MOT_PAY_MONTH_DAYS), 11882.93, 0.01) && near(M.perHour(AMT, M.MOT_PAY_MONTH_DAYS), 495.12, 0.01) && near(M.perSec(AMT, M.MOT_PAY_MONTH_DAYS), 0.13753, 1e-4), "…= $118.83/day · $4.95/hour · $0.001375/sec (360,449 × 3 ÷ 91 = 11,882.93 ¢/day)");
 ok(M.perMin(14400, 1) === 10, "the sheet: 144 $/D = 0.1 $/m (10 ¢/min)");
 ok(M.perUnit(14400, 1, "W") === 100800 && M.perUnit(14400, 1, "M") === 475200 && M.perUnit(14400, 1, "Q") === 1425600 && M.perUnit(14400, 1, "Y") === 5256000, "the sheet's ladder: 1,008 $/W · 4,752 $/M33 (the sheet's 4,762 is its own slip) · 14,256 $/Q99 · 52,560 $/Y");
-ok(M.LTU_DAYS.D === 1 && M.LTU_DAYS.W === 7 && M.LTU_DAYS.M === 33 && M.LTU_DAYS.Q === 99 && M.LTU_DAYS.Y === 365 && M.MIN_PER_DAY === 1440, "LTU units as the sheet writes them (D · W 7 · M 33 · Q 99 · Y 365 · 1440 m/D)");
+ok(M.LTU_DAYS.D === 1 && M.LTU_DAYS.W === 7 && M.LTU_DAYS.M === 33 && M.LTU_DAYS.Q === 99 && M.LTU_DAYS.Y === 365 && M.MIN_PER_DAY === 1440, "the sheet's personal frame as it writes it (D · W 7 · M 33 · Q 99 · Y 365 · 1440 m/D); the Admin table's Month 91 is the analysis ladder");
 
 // ── 3 · CST stamps and sheet durations ────────────────────────────────────────────────────────────────────────
 const t0 = M.cstMs(2026, 10, 1, 7, 0, 0);
@@ -51,29 +64,47 @@ ok(M.parseStampCST("2026.10.01_07.00..00") === t0 && M.parseStampCST("2026.01.11
 ok(M.fmtDurationDays(33) === "0000.00.33_00.00..00" && M.fmtDurationDays(16.5) === "0000.00.16_12.00..00", "durations as the sheet writes them: 33 days · 16.5 days");
 ok(M.parseDurationDays("0000.00.16_12.00..00") === 16.5 && M.parseDurationDays("0000.00.33_00.00.00") === 33 && M.parseDurationDays("0001.00.00_00.00..00") === 365 && M.parseDurationDays("x") === null, "durations parse back (years → 365, months → 33)");
 
-// ── 4 · the calendar: perihelion resets the year ──────────────────────────────────────────────────────────────
-const p26 = C.perihelionOf(2026), p27 = C.perihelionOf(2027);
+// ── 4 · the calendar anchor "calendar" (the default for now, addendum 13): Jan 1 opens the year, Dec 31 is the offline day
+ok(C.DEFAULT_ANCHOR === "calendar", "the default anchor is the calendar year (Month 91 for now, 1 day offline Dec 31)");
+let y = C.positionInYear(M.cstMs(2026, 1, 1));
+ok(y.year === 2026 && y.anchor === "calendar" && y.day === 1 && y.quarter === 1 && !y.down && M.fmtMot(y.abc) === "0.0000..0000" && y.lengthDays === 365, "Jan 1 at midnight CST is day 1 · Q1 · 0.0000..0000 of a 365-day year");
+y = C.positionInYear(M.cstMs(2026, 7, 2, 12));
+ok(y.day === 183 && M.fmtMot(y.abc) === "1800.0000..0000", "noon on Jul 2 is exactly half the year: 1800.0000..0000");
+y = C.positionInYear(M.cstMs(2026, 10, 1, 7));
+ok(y.day === 274 && y.quarter === 4 && y.dayInQuarter === 1 && M.fmtMot(y.abc) === "2695.1726..0099", "the worked deposit (Oct 1 07:00 CST) is day 274, Q4 day 1, 2695.1726..0099");
+y = C.positionInYear(M.cstMs(2026, 12, 30, 12));
+ok(y.day === 364 && y.quarter === 4 && y.dayInQuarter === 91 && !y.down, "Dec 30 is day 364 — Q4 day 91 closes the 4 × 91 grid");
+y = C.positionInYear(M.cstMs(2026, 12, 31, 23, 59));
+ok(y.day === 365 && y.quarter === 0 && y.down && !y.pastFull && M.fmtMot(y.abc).startsWith("3599.") , "Dec 31 is day 365 — the DOWN day, the system's one offline day; its last minute reads 3599.… and is not past full");
+y = C.positionInYear(M.cstMs(2028, 12, 31, 12));
+ok(y.day === 366 && y.down && y.pastFull && y.abc.a === 3604 && y.lengthDays === 366, "a leap year's Dec 31 is day 366: down, past full (3604.…), said, never clamped");
+ok(C.positionInYear(M.cstMs(2027, 1, 1)).year === 2027 && C.positionInYear(M.cstMs(2027, 1, 1)).day === 1, "Jan 1 resets to day 1");
+const fc = C.frameOf(M.cstMs(2026, 2, 10), 33);
+ok(fc.index === 1 && fc.dayInFrame === 8 && M.fmtMot(fc.abc).startsWith("763."), "personal 33-day frames count from day 1 on the calendar anchor: Feb 10 is frame 2, day 8 of it");
+
+// ── 5 · the perihelion anchor (r.001–r.004, kept selectable): the reset is the perihelion, never the number ────
+const p26 = C.perihelionOf(2026), p27 = C.perihelionOf(2027), p28 = C.perihelionOf(2028), p29 = C.perihelionOf(2029);
 ok(p26.ms === Date.parse("2026-01-03T17:15Z") && p26.status === "SOURCED" && C.PERIHELION[2026].source.length > 10, "2026 opens at the sourced perihelion 2026-01-03 17:15 UTC");
 ok(C.perihelionOf(2040).status === "DECLARED" && C.perihelionOf(2040).ms === Date.UTC(2040, 0, 3, 12), "a year outside the table is DECLARED (Jan 3 12:00 UTC) and says so — never a silent guess");
 ok(Object.keys(C.PERIHELION).length === 12 && Object.values(C.PERIHELION).every((r) => /^\d{4}-01-0\dT\d{2}:\d{2}Z$/.test(r.utc) && r.status === "SOURCED"), "twelve sourced years 2024–2035, each an early-January UTC instant");
+const P = (ms) => C.positionInYear(ms, "perihelion");
 const at = (d, h = 0) => p26.ms + d * M.MS_PER_DAY + h * 3600 * 1000;
-let y = C.positionInYear(p26.ms);
-ok(y.year === 2026 && y.day === 1 && y.quarter === 1 && y.dayInQuarter === 1 && !y.down && M.fmtMot(y.abc) === "0.0000..0000", "the perihelion instant is day 1 · Q1 · 0.0000..0000");
-y = C.positionInYear(at(90, 23));
-ok(y.day === 91 && y.quarter === 1 && y.dayInQuarter === 91, "day 91 closes Q1");
-y = C.positionInYear(at(91));
-ok(y.day === 92 && y.quarter === 2 && y.dayInQuarter === 1, "day 92 opens Q2 (91-day quarters)");
-y = C.positionInYear(at(363, 12));
-ok(y.day === 364 && y.quarter === 4 && y.dayInQuarter === 91 && !y.down, "day 364 closes Q4 — the 4 × 91 grid");
-y = C.positionInYear(at(364));
-ok(y.day === 365 && y.quarter === 0 && y.down, "day 365 is the DOWN day — no quarter owns it");
-y = C.positionInYear(p27.ms - 60000);
-ok(y.year === 2026 && y.down && y.abc.a >= 3599, "the minute before the next perihelion is still 2026, down, and reads ~FULL");
-y = C.positionInYear(p27.ms);
-ok(y.year === 2027 && y.day === 1 && M.fmtMot(y.abc) === "0.0000..0000", "the next perihelion resets to day 1 · 0.0000..0000 — the year is one orbit");
-ok(C.positionInYear(Date.UTC(2026, 0, 2)).year === 2025, "2026-01-02 (before the 2026 perihelion) still belongs to financial year 2025");
-ok(near(C.positionInYear(p26.ms).lengthDays, 364.39, 0.01), `2026 runs 364.39 days perihelion to perihelion (the orbit, not a calendar) — got ${C.positionInYear(p26.ms).lengthDays.toFixed(3)}`);
-const f = C.frameOf(at(40), 33);
+y = P(p26.ms);
+ok(y.year === 2026 && y.anchor === "perihelion" && y.day === 1 && y.quarter === 1 && y.dayInQuarter === 1 && !y.down && M.fmtMot(y.abc) === "0.0000..0000", "the perihelion instant is day 1 · Q1 · 0.0000..0000");
+y = P(at(90, 23)); ok(y.day === 91 && y.quarter === 1 && y.dayInQuarter === 91, "day 91 closes Q1");
+y = P(at(91)); ok(y.day === 92 && y.quarter === 2 && y.dayInQuarter === 1, "day 92 opens Q2 (91-day quarters)");
+y = P(at(363, 12)); ok(y.day === 364 && y.quarter === 4 && y.dayInQuarter === 91 && !y.down, "day 364 closes Q4 — the 4 × 91 grid");
+y = P(at(364)); ok(y.day === 365 && y.quarter === 0 && y.down, "day 365 is the DOWN day — no quarter owns it");
+y = P(p27.ms - 60000);
+ok(y.year === 2026 && y.down && !y.pastFull && y.abc.a === 3593, `2026 is a 364.39-day orbit: the minute before the 2027 perihelion reads 3593.… — not FULL — and resets anyway (got ${M.fmtMot(y.abc)})`);
+y = P(p27.ms); ok(y.year === 2027 && y.day === 1 && M.fmtMot(y.abc) === "0.0000..0000", "the next perihelion resets to day 1 · 0.0000..0000 — the reset is the perihelion, not the number");
+y = P(p27.ms + 365 * M.MS_PER_DAY); ok(y.day === 366 && M.fmtMot(y.abc) === "3600.0000..0000" && !y.pastFull, "365 days into 2027 (a 367.41-day orbit) reads exactly 3600.0000..0000 on day 366");
+y = P(p27.ms + 366 * M.MS_PER_DAY); ok(y.day === 367 && y.down && y.pastFull && M.fmtMot(y.abc) === "3609.3106..3058", "day 367 reads 3609.3106..3058 — past full, flagged, never clamped");
+y = P(p28.ms - 60000); ok(y.year === 2027 && y.day === 368 && y.pastFull && y.abc.a === 3623, "the minute before the 2028 perihelion is day 368 of 2027 at 3623.…");
+y = P(p29.ms - 60000); ok(y.year === 2028 && y.day === 364 && y.quarter === 4 && y.dayInQuarter === 91 && !y.down, "2028 (a 363.24-day orbit) never reaches day 365 — recorded, FIN-02.01");
+ok(P(Date.UTC(2026, 0, 2)).year === 2025, "2026-01-02 (before the 2026 perihelion) still belongs to perihelion year 2025");
+ok(near(P(p26.ms).lengthDays, 364.39, 0.01), `2026 runs 364.39 days perihelion to perihelion (the orbit, not a calendar) — got ${P(p26.ms).lengthDays.toFixed(3)}`);
+const f = C.frameOf(at(40), 33, "perihelion");
 ok(f.index === 1 && f.dayInFrame === 8 && f.frameDays === 33 && M.fmtMot(f.abc).startsWith("763."), "personal 33-day frames count from day 1: day 41 is frame 2, day 8 of it (its own 0→3600 progress, a display aid, not the A.B..C coordinate)");
 ok(C.FRAMES.join() === "33,66,99" && C.QUARTER_DAYS === 91 && C.GRID_DAYS === 364 && C.DOWN_DAY === 365 && C.unitDays("Q") === 99, "frames 33/66/99 · quarter 91 · grid 364 · down 365 · Q99 for analysis");
 
