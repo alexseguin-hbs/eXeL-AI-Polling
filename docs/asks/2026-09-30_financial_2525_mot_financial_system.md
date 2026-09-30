@@ -280,6 +280,8 @@
 
 > (addendum 24, verbatim — with his phone screenshot of the live r.011 forms, signed in: DEPOSIT (Amount · Deposit day and time · MoT · Memo · Category · Record it) above WITHDRAWAL (Amount · Deposit day and time · Category · Withdraw), saved beside this file as `2026-09-30_financial_2525_one_transaction_form.png`) there should be just transaction, with type on drop down
 
+> (addendum 25, verbatim — on the same screen) length needs to be drop down; with Other for manual entry (MoT selectable to Year, Days, hrs, min
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -433,6 +435,11 @@
     time · section · field · timeline · memo) with the deposit-only MoT length shown only when the type is Deposit; one button
     whose word follows the type (Record it · Withdraw); the same refusals; every picker full width in portrait (FD-24). Ships as
     r.013 with the ×32 fill of the ladder keys already landed.
+33. **The LENGTH (the MoT) is a dropdown with Other (addendum 25):** on the one transaction form the length the money covers
+    is picked from a dropdown — One time · Weekly · 30.333 days (the pay MoT) · Every 33 days · Monthly (91) · Yearly · Other —
+    and Other opens a manual entry: a number with its unit selectable (Years · Days · Hours · Minutes), stored as the entry's
+    MoT length in days; this ONE control replaces both the typed "MoT · length in days" field and the separate timeline
+    dropdown of r.012 — a transaction's timeline IS its MoT length. Ships in r.013 with addendum 24.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
