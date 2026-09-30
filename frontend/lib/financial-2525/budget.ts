@@ -12,6 +12,7 @@
  * kept as DATA the person edits, never as advice. Pure; no clock reads.
  */
 import { perDay, perHour, perMin, perSec, perUnit, type LtuUnit } from "./mot";
+import type { LadderLine } from "./ladder";
 
 export type BudgetKind = "income" | "fixed" | "variable";
 export type BudgetCategory = "Income" | "Home" | "Auto" | "Insurance" | "Utilities" | "Fitness" | "Fun" | "Groceries" | "Dining Out" | "Other";
@@ -63,3 +64,14 @@ export function summarize(lines: readonly BudgetLine[], days: number): BudgetSum
     lines: lines.map((l) => ({ ...l, ladder: ladder(l.amountCents, days) })),
   };
 }
+
+/** r.012 (addendum 22): the sheet's eight lines on the A–U ladder — the one bridge from the r.001 categories to the brief's fields.
+ *  Income → A.income_wages · Home → B.rent_mortgage · Car → C.auto_payment · Insurance → D.auto_renters_home · Electric →
+ *  E.electric_gas · Food → F.groceries · Fitness → G.mental_physical · Fun → L.fun_hobbies_clothing; the old categories stay for
+ *  the record's `category` (r.006–r.011 entries are never rewritten). */
+export const CATEGORY_FIELD: Record<BudgetCategory, string> = {
+  Income: "A.income_wages", Home: "B.rent_mortgage", Auto: "C.auto_payment", Insurance: "D.auto_renters_home", Utilities: "E.electric_gas",
+  Fitness: "G.mental_physical", Fun: "L.fun_hobbies_clothing", Groceries: "F.groceries", "Dining Out": "F.dining_work", Other: "L.fun_hobbies_clothing",
+};
+/** The sheet as ladder lines: dollars per 33 days (the sheet's month), one line per field. */
+export const SHEET_LINES: readonly LadderLine[] = SHEET_BUDGET.map((l) => ({ fieldId: CATEGORY_FIELD[l.category], amountNative: l.amountCents / 100, nativePeriod: "days33" as const }));

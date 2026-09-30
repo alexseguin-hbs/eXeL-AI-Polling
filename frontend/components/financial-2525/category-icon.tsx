@@ -7,7 +7,8 @@
  * vector law), aria-hidden: the word beside it carries the meaning; the icon never replaces it. Gated by
  * tests/financial-surface.test.mjs (the map's keys === BUDGET_CATEGORIES).
  */
-import { Banknote, House, Car, ShieldCheck, Zap, Dumbbell, PartyPopper, ShoppingBasket, UtensilsCrossed, CircleEllipsis, type LucideIcon } from "lucide-react";
+import { Banknote, House, Car, ShieldCheck, Zap, Dumbbell, PartyPopper, ShoppingBasket, UtensilsCrossed, CircleEllipsis, HeartPulse, Users, CreditCard, Landmark, Briefcase, ArrowLeftRight, Wallet, TrendingUp, Scale, Gauge, FileCheck, Target, type LucideIcon } from "lucide-react";
+import type { SectionId } from "@/lib/financial-2525/ladder";
 import type { BudgetCategory } from "@/lib/financial-2525/budget";
 
 export const CATEGORY_ICON: Record<BudgetCategory, LucideIcon> = {
@@ -27,4 +28,15 @@ export const CATEGORY_ICON: Record<BudgetCategory, LucideIcon> = {
 export function CategoryIcon({ category, size = 14, className = "" }: { category: BudgetCategory; size?: number; className?: string }) {
   const Icon = CATEGORY_ICON[category] ?? CircleEllipsis;
   return <Icon size={size} strokeWidth={1.5} aria-hidden className={`inline-block shrink-0 align-[-2px] ${className}`} data-fin-cat-icon={category} />;
+}
+
+/** r.012 (addendum 22): every ladder SECTION A–T carries its stroke icon — the law of FD-22 reaches the sections; a field wears
+ *  its section's icon. Gated: the map's keys are the twenty sections. */
+export const SECTION_ICON: Record<SectionId, LucideIcon> = {
+  A: Banknote, B: House, C: Car, D: ShieldCheck, E: Zap, F: ShoppingBasket, G: HeartPulse, H: Users, I: CreditCard, J: Landmark, K: Briefcase, L: PartyPopper, M: ArrowLeftRight,
+  N: Wallet, O: TrendingUp, P: Scale, Q: Gauge, R: Gauge, S: FileCheck, T: Target,
+};
+export function SectionIcon({ section, size = 14, className = "" }: { section: SectionId; size?: number; className?: string }) {
+  const Icon = SECTION_ICON[section] ?? CircleEllipsis;
+  return <Icon size={size} strokeWidth={1.5} aria-hidden className={`inline-block shrink-0 align-[-2px] ${className}`} data-fin-sec-icon={section} />;
 }

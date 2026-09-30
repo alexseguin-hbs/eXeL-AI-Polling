@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 23 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 24 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -170,6 +170,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "v.000_r.011 SHIPPED — the unit dropdown IS the panel's full width in portrait now (the label takes the whole line; measured on the glass: the select's width equals the panel's inner width at 390 × 844; landscape unchanged). Corrects r.010. Shipped as 57f2332. Gates: financial-surface 63 · financial-crs 291 · full test:ci 0 · next build 0.",
       "commit": "57f2332"
+    },
+    {
+      "rev": 24,
+      "date": "2026-09-30",
+      "kind": "decision",
+      "text": "r.012 decided (operator addendum 22 — the Personal Finance Ladder A–U, 'the lock'): twenty sections in two planes, sixty fields with the brief's exact labels, the fixed period factors, Net = I − L − Ds − Tx − Tr at every period, U an amortize rule never a category, the duplicate-insurance warning, Alcohol one target; two dropdowns (section, then field) + a timeline on both forms; the budget table by section with Net last; N–T off the ladder (the Balance view, r.013). FIN-06.04 → FIN-06.05 · FIN-03.01 → FIN-03.02 · FIN-06.06 planned · FD-25 · FD-26; 90 keys staged.",
+      "commit": "d9b1a72"
     }
   ]
 };

@@ -17,6 +17,7 @@
  * Pure — every function takes the instant `t`; nothing here reads a clock. Amounts are integer cents.
  */
 import { MIN_PER_DAY, MS_PER_DAY, perMin } from "./mot";
+import type { Recurrence } from "./ladder";
 import type { BudgetCategory } from "./budget";
 
 export const HOLD_HOURS = 3;
@@ -32,6 +33,8 @@ export interface FinTx {
   memo?: string;         // "PENDING DIRECT DEPOSIT", "PAYROLL", …
   payer?: string;        // who put it in escrow (the employer, the business, the person)
   category?: BudgetCategory; // the personal-finance element (addendum 16): Income · Mortgage/Rent · Auto · Insurance · … — recorded, never required to accrue
+  field?: string;            // the A–U ladder field (addendum 22: "B.rent_mortgage") — the category's successor; recorded, never required to accrue
+  recurrence?: Recurrence;   // the transaction's timeline chosen at entry (addendum 22): once · weekly · days33 · month91 · yearly — its $/min runs from atMs for that length
 }
 
 export type DepositState = "pending" | "releasing" | "released";

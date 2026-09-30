@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.011",
-  "stamp": "v.000_r.011",
+  "revision": "0.012",
+  "stamp": "v.000_r.012",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "7b7a9ab6412fec38e826bb338c80c85cdda5afe281666f04a2728550b890d9e5",
+  "handoffSha256": "a465d3bd153f9c35c3b06167cfd40014a0b4644dd317ea13b5acfe7a6164b68b",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -74,6 +74,21 @@
     "sha256": "7b7a9ab6412fec38e826bb338c80c85cdda5afe281666f04a2728550b890d9e5",
     "date": "2026-09-30",
     "note": "+ addendum 21 (the unit dropdown is the full width of the panel in portrait — 'FOR PER HOUR ETC') — persisted 0f842a9; folded as r.010"
+   },
+   {
+    "sha256": "418a7d2cd18a165fa9f5e94d5e8b7e40d3b40d6ced764b935e2c2bcda8451ac7",
+    "date": "2026-09-30",
+    "note": "+ addendum 22 (the Personal Finance Ladder A–U brief, pasted whole; the double dropdown delegated; transaction MoT timelines) — persisted d9b1a72; folded as r.012"
+   },
+   {
+    "sha256": "be376dbe4c2ef11cddd0a21eae823c6e074059758461607bd6692f081b253577",
+    "date": "2026-09-30",
+    "note": "+ addendum 23 (a 48-agent usability fleet on Financial-2525 — twelve lenses under MoT) — persisted during the r.012 gate chain; the fleet runs on the shipped r.012"
+   },
+   {
+    "sha256": "a465d3bd153f9c35c3b06167cfd40014a0b4644dd317ea13b5acfe7a6164b68b",
+    "date": "2026-09-30",
+    "note": "+ addendum 24 (one transaction form, the type a dropdown — his screenshot of the live r.011 forms) — persisted during the r.012 build; owed as r.013"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -172,6 +187,14 @@
    "why": "r.010 claimed the unit dropdown was the panel's full width in portrait; its gate read class names (w-full on the select) and passed, while the r.010 capture measured the select at 145 px of the panel's 292 px — the label sits inside the panel's wrapping header row (title on the left, picker on the right), so a w-full select inside a content-width label was only as wide as its own text. Fix at the class: the LABEL takes the full line in portrait (w-full; landscape:w-auto), so its select fills the panel; landscape unchanged. FIN-06.04's statement stands and its metric is now met on the glass (the r.011 capture measures the select's width equal to the panel's inner width in portrait). Lesson on the record: a layout claim needs a measured capture, not a class-name gate — the r.010 gate was green while the layout was not.",
    "commit": "68c5c74",
    "shipped": "57f2332"
+  },
+  {
+   "revision": "0.012",
+   "date": "2026-09-30",
+   "kind": "decision",
+   "why": "THE PERSONAL FINANCE LADDER A–U — the lock (operator addendum 22, a taxonomy brief pasted whole). lib/financial-2525/ladder.ts (pure): twenty sections A–T in two planes (A–M FLOW; N–P stock · Q–S status · T goal — off the ladder, never per minute), sixty fields with the brief's slash-merged labels exactly (46 flow · 14 off), the fixed period factors (second · minute 60 · hour 3,600 · day 86,400 · week 7 d · 33 d · month 91 d · year 365 d — never a 30-day month; the MoT's A.B..C whole stays the exact revolution, said on the record), toPeriod as one constant (no drift beyond cents), the locked Net = I − L − Ds − Tx − Tr (transfers OUTFLOW; a balance in P never nets against I), the duplicate-insurance WARNING (B.housing_insurance and D.auto_renters_home both entered — Net counts what was entered, the detail sheet decides), Alcohol → F or L (one target), U as the AMORTIZE RULE (a lumpy amount ÷ its period into the A–M field it names; refuses N–T; never a section, never a chip), a transaction's TIMELINE at entry (once · weekly · 33 days · month 91 · yearly → its length) and actualsByField (each transaction's money spread from its date over its length, summed per field over a window — the operator's '$/min against budget'). accrual.ts: FinTx.field + FinTx.recurrence (optional; r.006–r.011 entries and their hashes untouched). budget.ts: the sheet bridged onto the fields (SHEET_LINES). The glass: TWO dropdowns on both forms — SECTION A–M, then FIELD within it (the delegated decision) — and a TIMELINE dropdown, all full width in portrait (FD-24); the budget table by SECTION (thirteen rows A–M with the section's icon and its total in the chosen unit, the fields with amounts beneath, Net last and red when negative); the note that N–T live on the Balance view. The unit factors for week · month · year are now the brief's fixed 7 · 91 · 365 (FD-20's 'read the planet's LTU row' superseded for the ladder — said in FD-25). 90 lexicon keys staged (20 sections · 60 fields · 5 timelines · 5 labels) — ×32 fill follows. FIN-06.05 (the ladder), FIN-03.02 (the timeline), FIN-06.06 PLANNED (the N–T Balance / Goals surface, the U entry form, the detail sheet, the actuals column — r.013), FD-25, FD-26. Gate tests/financial-ladder.test.mjs (59) in test:ci.",
+   "commit": "d9b1a72",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -378,7 +401,24 @@
    "47,620 min written for 33 days (33 × 1440 = 47,520)",
    "4,762 $/M33 written (0.1 $/min × 47,520 = 4,752; the quarter figure 14,256 = 3 × 4,752 is consistent)"
   ],
-  "source": "frontend/lib/financial-2525/budget.ts"
+  "source": "frontend/lib/financial-2525/budget.ts",
+  "ladder_r012": {
+   "sections": "A–M flow · N–P stock · Q–S status · T goal",
+   "fields": 60,
+   "periods": {
+    "second": 1,
+    "minute": 60,
+    "hour": 3600,
+    "day": 86400,
+    "week": "7 d",
+    "days33": "33 d",
+    "month91": "91 d",
+    "year": "365 d"
+   },
+   "net": "I − L − Ds − Tx − Tr",
+   "u": "amortize rule → an A–M field (mapsTo); never a section",
+   "source": "lib/financial-2525/ladder.ts (the brief, addendum 22)"
+  }
  },
  "tokenization": {
   "yugCeiling": 9999,
@@ -740,14 +780,14 @@
    ],
    "verify": "tests/financial-surface.test.mjs",
    "statement": "Every deposit carries the operator's three fields — amount, deposit day and time, MoT — and every withdrawal its amount and day and time; each also carries its personal-finance element from ONE grouped dropdown (Income · Fixed · Variable → Mortgage/Rent, Auto, Insurance, Utilities, Fitness, Fun, Groceries, Dining Out, Other), recorded inside the chain hash and shown on the roster and the record; a category is never required to accrue.",
-   "metric": "both forms carry the grouped dropdown; the entry's category is inside its hash (a changed category breaks the chain where it changed); the roster and the record print it; the worked example is Income",
+   "metric": "SUPERSEDED by FIN-03.02 (addendum 22): a transaction names its ladder field (section, then field) and its timeline",
    "dtm": "a withdrawal typed on the phone as Groceries appears on the record as Groceries",
    "stretch": "a line's actual spend summed against the budget row of the same category",
    "in": "FIN-03.01.IN",
    "out": "FIN-03.01.OUT",
    "phase": "pilot",
    "mode": "Manual",
-   "status": "implemented"
+   "status": "superseded"
   },
   {
    "id": "FIN-06.01",
@@ -866,14 +906,68 @@
    ],
    "verify": "tests/financial-surface.test.mjs",
    "statement": "The personal budget is a table — category (with its icon) · kind · one figure — under ONE labelled dropdown of eight units; in portrait the dropdown stretches to the panel's full width with its label above it, so every option (per hour · per month (91) · per year …) reads at the full line; in landscape it sits at its own width beside the label. Same default (per 33 days) and conversions.",
-   "metric": "the select carries w-full with the landscape variants (landscape:w-auto landscape:min-w-[14rem]) and its label stacks (flex-col) in portrait, rows (landscape:flex-row) in landscape; at 390 × 844 the select's width equals the panel's inner width; the eight options and the m33 default unchanged",
+   "metric": "SUPERSEDED by FIN-06.05 (addendum 22): the budget is the A–M ladder by section under the unit dropdown",
    "dtm": "on the phone upright the dropdown reads across the whole panel: 'per hour'",
    "stretch": "actuals per category beside the plan, from the record",
    "in": "FIN-06.04.IN",
    "out": "FIN-06.04.OUT",
    "phase": "pilot",
    "mode": "Manual",
+   "status": "superseded"
+  },
+  {
+   "id": "FIN-06.05",
+   "title": "The Personal Finance Ladder A–M under one unit dropdown; N–T off the ladder",
+   "section": "I",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "verify": "tests/financial-ladder.test.mjs",
+   "statement": "The budget is the Personal Finance Ladder: thirteen FLOW sections A–M (Income · Housing · Transportation · Insurance · Utilities · Food · Health · Family · Debt service · Taxes · Work · Lifestyle · Transfers), each a row with its icon and its total in the chosen unit, its fields with amounts beneath (one row per field, labels exactly as the brief writes them), and Net = I − L − Ds − Tx − Tr as the last row, red when negative; the unit dropdown's factors are the fixed second · minute · hour · day · week 7 · 33 days · month 91 · year 365; N–T (Cash · Investments · Debts · Net worth · Credit · Protection · Goals) never carry per-minute columns and live on the Balance view; U is an amortize rule into an A–M field, never a category chip; a premium in both B and D warns; Alcohol maps to F or L, one target; nothing past U; no CAGR, multiples, QIS or 'affordable' copy.",
+   "metric": "SECTIONS are exactly A–T, FIELDS exactly sixty with the brief's labels, U absent; Net matches the equation at every one of the eight periods and a period switch is one constant with no drift beyond cents; amortize refuses N–T; the duplicate-insurance warning fires; Alcohol counts in one section; the glass renders thirteen section rows and the Net row from netLadder(SHEET_LINES)",
+   "dtm": "the operator's sheet on the ladder: A 3,200 · B 700 · C 1,800 · D 200 · E 150 · F 300 · G 50 · L 200 · Net −200 per 33 days; −$0.0042 per minute",
+   "stretch": "the N–T Balance / Goals surface, the U entry, the detail sheet, actuals beside the plan (FIN-06.06)",
+   "in": "FIN-06.05.IN",
+   "out": "FIN-06.05.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-03.02",
+   "title": "A transaction names its ladder field and its timeline",
+   "section": "V",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "Every deposit and withdrawal names its ladder field from TWO dropdowns — the SECTION A–M, then the FIELD within it — and its TIMELINE (one time · weekly · every 33 days · monthly (91) · yearly), all full width in portrait; the field and the timeline ride the entry inside its chain hash; a deposit keeps its MoT length; a transaction's $/min runs from its date for its timeline's length so the ladder's actuals can be tracked against the budget over time.",
+   "metric": "both forms carry <select data-fin-section>, <select data-fin-field> (the fields of the chosen section only) and <select data-fin-timeline>; the committed entry carries field and recurrence; recurrenceDays maps the five timelines to 0 · 7 · 33 · 91 · 365; actualsByField sums each transaction's money over a window from its date for its length",
+   "dtm": "a withdrawal typed as B · Rent / Mortgage · Monthly (91) appears on the record as Rent / Mortgage",
+   "stretch": "the actuals column beside the plan (r.013)",
+   "in": "FIN-03.02.IN",
+   "out": "FIN-03.02.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
+  },
+  {
+   "id": "FIN-06.06",
+   "title": "The Balance / Goals view (N–T), the U entry, the detail sheet, the actuals column",
+   "section": "I",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "verify": "tests/financial-ladder.test.mjs",
+   "statement": "A second surface carries N–T — Cash · Investments · Debts · Net worth · Credit · Protection · Goals — as balances and goals, never per-minute columns; a U entry names its destination field and its period; a detail sheet lists components that sum to the parent field; an actuals column beside the plan reads actualsByField over the chosen window.",
+   "metric": "DRAFT (planned for r.013) — the model already carries every rule (planes, amortize, actualsByField); the surface lands as r.013",
+   "dtm": "the Balance view on the phone",
+   "stretch": "goals with dates (debt-free date, cash buffer) on the year line",
+   "in": "FIN-06.06.IN",
+   "out": "FIN-06.06.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "draft"
   }
  ],
  "decisions": [
@@ -1020,6 +1114,18 @@
    "decision": "In portrait every picker on the Financial-2525 panel is the panel's full width with its label above; in landscape a picker may sit beside its label at its own width. The unit dropdown is the first; the same rule reaches the category and planet pickers when the operator asks.",
    "status": "OPERATOR",
    "basis": "addendum 21 (verbatim: 'thats full width of UX on portrait mode FOR PER HOUR ETC'); reading item 29"
+  },
+  {
+   "id": "FD-25",
+   "decision": "The Personal Finance Ladder A–U is THE LOCK: sections A–T as the brief names them, sixty fields with its exact labels, two planes (A–M flow; N–T off the ladder, never per minute), U an amortize rule never a category, Net = I − L − Ds − Tx − Tr, the fixed period factors (week 7 · 33 d · month 91 · year 365 — for the ladder's periods this supersedes FD-20's reading of week · month · year from the planet's LTU row; the MoT's A.B..C whole stays the exact revolution), the duplicate-insurance warning, Alcohol one target, nothing past U, no CAGR / multiples / QIS / 'affordable' copy. Model first; styling second.",
+   "status": "OPERATOR",
+   "basis": "addendum 22 (the brief pasted whole: 'That is the lock. Implement the model first; styling second.'); reading item 30"
+  },
+  {
+   "id": "FD-26",
+   "decision": "A transaction is placed with TWO dropdowns — the SECTION (A–M), then the FIELD within it — and a TIMELINE dropdown (one time · weekly · every 33 days · monthly (91) · yearly), all full width in portrait; the timeline is the transaction's MoT: its $/min runs from its date for that length. The delegated decision ('I'll let you decide'), taken.",
+   "status": "DECLARED",
+   "basis": "addendum 22 ('Maybe we do double drop down A-U category on left drop down, detailed sub category in second dropdown. I'll let you decide'; 'each transactions has an MoT timeline established at transaction entry')"
   }
  ],
  "reviews": [

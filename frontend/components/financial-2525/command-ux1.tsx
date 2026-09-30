@@ -19,9 +19,9 @@
  * whole (its revolution = 3600 A), its day, hours, minutes, seconds and year anchor (addendum 12 — "everything should
  * modularly adjust"). A.B..C is the standard for all planets; the glass converts to the planet's LTU.
  */
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Clock, Orbit } from "lucide-react";
-import { CategoryIcon } from "@/components/financial-2525/category-icon";   // addendum 19: every category carries its icon
+import { CategoryIcon, SectionIcon } from "@/components/financial-2525/category-icon";   // addendum 19: every category carries its icon; r.012: every section too
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
@@ -42,9 +42,10 @@ import { FINANCIAL_DOMAIN as SRC } from "@/lib/financial-2525/domain.gen";
 import { fmtMot, spanABC, fmtStampCST, parseStampCST } from "@/lib/financial-2525/mot";
 import { positionInYear, frameOf } from "@/lib/financial-2525/calendar";
 import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
-import { planetRow, daySecOf, ltuDays, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
+import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
 import { balanceAt, series, validateWithdrawal, depositView, HOLD_MS, type FinTx } from "@/lib/financial-2525/accrual";
-import { SHEET_BUDGET, SHEET_MONTH_DAYS, summarize, TRANSACTION_CATEGORIES, type BudgetCategory } from "@/lib/financial-2525/budget";
+import { SHEET_LINES, type BudgetCategory } from "@/lib/financial-2525/budget";
+import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, RECURRENCES, type SectionId, type FlowSectionId, type Recurrence, type Period } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -81,7 +82,7 @@ export function phaseOf(focus: FinTx | null, withdrawals: number, now: number): 
 /** The worked example as data — the operator's paycheck (amount · deposit day and time · MoT), never invented. */
 const EXAMPLE: FinTx = {
   id: "example-d1", kind: "deposit", amountCents: Math.round(SRC.example.amountUsd * 100),
-  atMs: parseStampCST(SRC.example.depositStamp) ?? 0, motDays: SRC.example.motDays, memo: SRC.example.memo, payer: "example", category: "Income",
+  atMs: parseStampCST(SRC.example.depositStamp) ?? 0, motDays: SRC.example.motDays, memo: SRC.example.memo, payer: "example", category: "Income", field: "A.income_wages", recurrence: "days33",
 };
 
 export function FinancialCommandUX1() {
@@ -123,26 +124,20 @@ export function FinancialCommandUX1() {
   const focusView = focus && now ? depositView(focus, at) : null;
   const year = now ? positionInYear(now, planet.yearAnchor, planet.yearDays) : null;
   const frame = now ? frameOf(now, 33, planet.yearAnchor, planet.yearDays) : null;
-  const budget = useMemo(() => summarize(SHEET_BUDGET, SHEET_MONTH_DAYS), []);
-  // THE BUDGET TABLE'S UNIT (addendum 17: "View must be possible in $/min · Day, Week, Month etc") — a segmented toggle; the
-  // sheet's 33-day month is the default; week · month · year come from the planet's LTU table (Month 91 for now).
+  // THE LADDER'S UNIT (addendum 17 → 20 → 21 → 22): one dropdown of the brief's eight periods with FIXED factors — second · minute 60 ·
+  // hour 3,600 · day 86,400 · week 7 d · 33 d · month 91 d · year 365 d (FD-25; never a 30-day month). The sheet's 33 days is the default.
   type BudgetUnit = "sec" | "min" | "hour" | "day" | "week" | "m33" | "month" | "year";
   const [budgetUnit, setBudgetUnit] = useState<BudgetUnit>("m33");
-  const LTU = ltuDays(planet);
-  const UNITS: { key: BudgetUnit; label: string; days: number }[] = [
-    { key: "sec", label: t("fin.per_sec"), days: 1 / (planet.hoursPerDay * planet.minPerHour * planet.secPerMin) },
-    { key: "min", label: t("fin.per_min"), days: 1 / (planet.hoursPerDay * planet.minPerHour) },
-    { key: "hour", label: t("fin.per_hour"), days: 1 / planet.hoursPerDay },
-    { key: "day", label: t("fin.per_day"), days: LTU.D },
-    { key: "week", label: t("fin.per_week"), days: LTU.W },
-    { key: "m33", label: t("fin.per_33"), days: SHEET_MONTH_DAYS },
-    { key: "month", label: `${t("fin.per_month")} (${LTU.M})`, days: LTU.M },
-    { key: "year", label: t("fin.per_year"), days: LTU.Y },
+  const UNITS: { key: BudgetUnit; label: string; period: Period }[] = [
+    { key: "sec", label: t("fin.per_sec"), period: "second" }, { key: "min", label: t("fin.per_min"), period: "minute" }, { key: "hour", label: t("fin.per_hour"), period: "hour" },
+    { key: "day", label: t("fin.per_day"), period: "day" }, { key: "week", label: t("fin.per_week"), period: "week" }, { key: "m33", label: t("fin.per_33"), period: "days33" },
+    { key: "month", label: `${t("fin.per_month")} (91)`, period: "month91" }, { key: "year", label: t("fin.per_year"), period: "year" },
   ];
-  const unitDaysSel = UNITS.find((u) => u.key === budgetUnit)?.days ?? SHEET_MONTH_DAYS;
-  // a sheet line is an amount per 33 days; in the chosen unit it is amount × unitDays ÷ 33 — cents, shown to the cent above a
-  // dollar a unit and to four places below it (the $/min · $/sec ladder the sheet writes)
-  const inUnit = (cents: number) => (cents * unitDaysSel) / SHEET_MONTH_DAYS;
+  const period: Period = UNITS.find((u) => u.key === budgetUnit)?.period ?? "days33";
+  // the ladder in the chosen period: thirteen sections A–M and the locked Net = I − L − Ds − Tx − Tr (the sheet's lines on the fields)
+  const totals = useMemo(() => netLadder(SHEET_LINES, period), [period]);
+  const inPeriod = (l: { amountNative: number; nativePeriod: Period }) => toPeriod(l.amountNative, l.nativePeriod, period);
+  const usdDollars = (x: number) => usdUnit(x * 100);
   const usdUnit = (cents: number) => (Math.abs(cents) >= 100 ? usd(Math.round(cents)) : usd4(cents));
   const signIn = () => loginWithRedirect({ appState: { returnTo: `${SRC.project.route}/` } });
 
@@ -150,33 +145,56 @@ export function FinancialCommandUX1() {
   const [dAmt, setDAmt] = useState(""); const [dAt, setDAt] = useState(""); const [dMot, setDMot] = useState(String(SRC.mot.payMotDays)); const [dMemo, setDMemo] = useState("");
   const [wAmt, setWAmt] = useState(""); const [wAt, setWAt] = useState("");
   // the personal-finance element of the entry (addendum 16): a deposit is Income by default, a withdrawal Mortgage/Rent (the sheet's first fixed line)
-  const [dCat, setDCat] = useState("Income" as BudgetCategory); const [wCat, setWCat] = useState("Home" as BudgetCategory);
-  const catLabel = (c: BudgetCategory) => t(`fin.cat.${CAT_KEY[c]}`);
-  const CategorySelect = ({ value, onChange, hook }: { value: BudgetCategory; onChange: (c: BudgetCategory) => void; hook: string }) => (
-    <label className="text-xs text-muted-foreground"><CategoryIcon category={value} className="mr-1" />{t("fin.category")}
-      <select data-fin-category={hook} className={INPUT} value={value} onChange={(e) => onChange(e.target.value as BudgetCategory)}>
-        {TRANSACTION_CATEGORIES.map((g) => (
-          <optgroup key={g.kind} label={t(`fin.${g.kind}`)}>{g.categories.map((c) => <option key={c} value={c}>{catLabel(c)}</option>)}</optgroup>
-        ))}
-      </select>
-    </label>
+  // addendum 22 (FD-26, the delegated decision): TWO dropdowns — the SECTION A–M, then the FIELD within it — and the TIMELINE the
+  // transaction's money covers from its date; every picker the panel's full width in portrait (FD-24). A deposit starts on A ·
+  // Income / Wages every 33 days (the pay MoT); a withdrawal on B · Rent / Mortgage, one time.
+  const [dSec, setDSec] = useState("A" as FlowSectionId); const [dField, setDField] = useState("A.income_wages"); const [dRec, setDRec] = useState("days33" as Recurrence);
+  const [wSec, setWSec] = useState("B" as FlowSectionId); const [wField, setWField] = useState("B.rent_mortgage"); const [wRec, setWRec] = useState("once" as Recurrence);
+  const catLabel = (c: BudgetCategory) => t(`fin.cat.${CAT_KEY[c]}`);   // the record's r.006–r.011 entries still print their category
+  const fieldLabel = (id: string) => { const f = fieldOf(id); return f ? t(`fin.field.${f.key}`) : id; };
+  const secLabel = (sec: SectionId) => t(`fin.sec.${sec.toLowerCase()}`);
+  const PICK = "w-full rounded-md border border-border bg-background px-2 py-2 text-sm text-foreground landscape:py-1 landscape:text-xs";
+  const LadderPicker = ({ section, field, rec, onSection, onField, onRec, hook }: { section: FlowSectionId; field: string; rec: Recurrence; onSection: (s: FlowSectionId) => void; onField: (f: string) => void; onRec: (r: Recurrence) => void; hook: string }) => (
+    <>
+      <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground"><span><SectionIcon section={section} className="mr-1" />{t("fin.section")}</span>
+        <select data-fin-section={hook} className={PICK} value={section} onChange={(e) => { const sec = e.target.value as FlowSectionId; onSection(sec); onField(fieldsOf(sec)[0].id); }}>
+          {FLOW_SECTIONS.map((sec) => <option key={sec} value={sec}>{sec} · {secLabel(sec)}</option>)}
+        </select>
+      </label>
+      <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.field")}
+        <select data-fin-field={hook} className={PICK} value={field} onChange={(e) => onField(e.target.value)}>
+          {fieldsOf(section).map((f) => <option key={f.id} value={f.id}>{fieldLabel(f.id)}</option>)}
+        </select>
+      </label>
+      <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.timeline")}
+        <select data-fin-timeline={hook} className={PICK} value={rec} onChange={(e) => onRec(e.target.value as Recurrence)}>
+          {RECURRENCES.map((r) => <option key={r} value={r}>{t(`fin.rec.${r}`)}</option>)}
+        </select>
+      </label>
+    </>
   );
   const [refusal, setRefusal] = useState<string | null>(null);
   const commit = (tx: FinTx) => { const next = append(record, tx, at); setRecord(next); if (!saveRecord(next)) setSaveFailed(true); };
+  /** What an entry is for — its ladder field (r.012) or, for the r.006–r.011 entries, its category; icon before the word. */
+  const txWhat = (tx: FinTx): ReactNode => {
+    if (tx.field) { const sec = fieldOf(tx.field)?.section ?? "L"; return <span data-fin-tx-field={tx.field}> · <SectionIcon section={sec} className="mx-0.5" />{fieldLabel(tx.field)}</span>; }
+    if (tx.category) return <span> · <CategoryIcon category={tx.category} className="mx-0.5" />{catLabel(tx.category)}</span>;
+    return null;
+  };
   const recordDeposit = () => {
     const cents = Math.round(Number(dAmt) * 100);
     const when = dAt.trim() ? parseStampCST(dAt) : at;
     if (!(cents > 0)) return setRefusal(t("fin.reason_amount"));
     if (when === null) return setRefusal(t("fin.reason_stamp"));
     setRefusal(null);
-    commit({ id: `d-${when}-${cents}`, kind: "deposit", amountCents: cents, atMs: when, motDays: Math.max(0, Number(dMot) || 0), memo: dMemo.trim() || undefined, category: dCat });
+    commit({ id: `d-${when}-${cents}`, kind: "deposit", amountCents: cents, atMs: when, motDays: Math.max(0, Number(dMot) || 0), memo: dMemo.trim() || undefined, field: dField, recurrence: dRec });
     setDAmt(""); setDMemo("");
   };
   const recordWithdrawal = () => {
     const cents = Math.round(Number(wAmt) * 100);
     const when = wAt.trim() ? parseStampCST(wAt) : at;
     if (when === null) return setRefusal(t("fin.reason_stamp"));
-    const w: FinTx = { id: `w-${when}-${cents}`, kind: "withdrawal", amountCents: cents, atMs: when, category: wCat };
+    const w: FinTx = { id: `w-${when}-${cents}`, kind: "withdrawal", amountCents: cents, atMs: when, field: wField, recurrence: wRec };
     const v = validateWithdrawal(txs, w);
     if (!v.ok) return setRefusal(v.reason === "HOLD" ? t("fin.reason_hold") : v.reason === "INSUFFICIENT" ? t("fin.reason_insufficient") : t("fin.reason_amount"));
     setRefusal(null); commit(w); setWAmt("");
@@ -194,7 +212,7 @@ export function FinancialCommandUX1() {
   })();
   const rosterRows: PodRosterRow[] = deposits.map((d) => {
     const v = depositView(d, at);
-    return { name: `${fmtStampCST(d.atMs)}${d.category ? ` · ${catLabel(d.category)}` : ""}${d.memo ? ` · ${d.memo}` : ""}`, me: true, state: v.state === "released" ? "done" : v.state === "pending" ? "pending" : "turn", label: `${usd(d.amountCents)} · ${d.motDays}` };
+    return { name: `${fmtStampCST(d.atMs)}${d.field ? ` · ${fieldLabel(d.field)}` : d.category ? ` · ${catLabel(d.category)}` : ""}${d.memo ? ` · ${d.memo}` : ""}`, me: true, state: v.state === "released" ? "done" : v.state === "pending" ? "pending" : "turn", label: `${usd(d.amountCents)} · ${d.motDays}` };
   });
   const countFor = (k: string): string | null => {
     if (k === "deposit") return String(deposits.length);
@@ -248,7 +266,7 @@ export function FinancialCommandUX1() {
           <p className="text-muted-foreground"><span className="font-medium text-foreground">{t("fin.available")}:</span> {usd(bal.availableCents)}{focusView && focusView.state === "releasing" ? ` · ${t("fin.hold_mark")} ${fmtStampCST(focusView.holdUntilMs)}` : ""}</p>
           {bal.ratePerMinCents > 0 && (
             <ul className="mt-2 space-y-0.5 font-mono text-xs text-muted-foreground" data-testid="fin-ladder">
-              <li>{usd4(bal.ratePerMinCents * 60)} {t("fin.per_hour")} · {usd(Math.round(bal.ratePerMinCents * 1440))} {t("fin.per_day")} · {usd4(bal.ratePerMinCents / 60)} {t("fin.per_sec")}</li>
+              <li>{usd4(bal.ratePerMinCents * planet.minPerHour)} {t("fin.per_hour")} · {usd(Math.round(bal.ratePerMinCents * planet.hoursPerDay * planet.minPerHour))} {t("fin.per_day")} · {usd4(bal.ratePerMinCents / planet.secPerMin)} {t("fin.per_sec")}</li>
               {focusView && <li>{hhmmss(Math.max(0, at - focus!.atMs))} {t("fin.elapsed")}{showAbc ? ` · ${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : ""}</li>}
             </ul>
           )}
@@ -285,7 +303,7 @@ export function FinancialCommandUX1() {
                 <label className="text-xs text-muted-foreground">{t("fin.deposit_at")}<input className={INPUT} value={dAt} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setDAt(e.target.value)} /></label>
                 <label className="text-xs text-muted-foreground">{t("fin.mot_days")}<input className={INPUT} inputMode="decimal" value={dMot} onChange={(e) => setDMot(e.target.value)} /></label>
                 <label className="text-xs text-muted-foreground">{t("fin.memo")}<input className={INPUT} value={dMemo} onChange={(e) => setDMemo(e.target.value)} /></label>
-                <CategorySelect value={dCat} onChange={setDCat} hook="deposit" />
+                <LadderPicker section={dSec} field={dField} rec={dRec} onSection={setDSec} onField={setDField} onRec={setDRec} hook="deposit" />
               </div>
               <button type="button" className={`mt-2 ${PRIMARY}`} onClick={recordDeposit}>{t("fin.record_it")}</button>
             </div>
@@ -294,7 +312,7 @@ export function FinancialCommandUX1() {
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 <label className="text-xs text-muted-foreground">{t("fin.amount")}<input className={INPUT} inputMode="decimal" value={wAmt} onChange={(e) => setWAmt(e.target.value)} /></label>
                 <label className="text-xs text-muted-foreground">{t("fin.deposit_at")}<input className={INPUT} value={wAt} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setWAt(e.target.value)} /></label>
-                <CategorySelect value={wCat} onChange={setWCat} hook="withdrawal" />
+                <LadderPicker section={wSec} field={wField} rec={wRec} onSection={setWSec} onField={setWField} onRec={setWRec} hook="withdrawal" />
               </div>
               <button type="button" className={`mt-2 ${SECONDARY}`} onClick={recordWithdrawal}>{t("fin.withdraw")}</button>
               {refusal && <p className="mt-2 text-sm text-red-500">{t("fin.refused")} · {refusal}</p>}
@@ -315,7 +333,7 @@ export function FinancialCommandUX1() {
         {/* the budget — every line on the ladder (FIN-06) */}
         <div data-fin-budget className={SUB}>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className={LABEL}>{t("fin.budget_title")}</div>
+            <div className={LABEL}>{t("fin.ladder_title")}</div>
             {/* the unit toggle (addendum 17): one figure per row in the unit the person picks — $/s · $/min · $/h · $/day · $/week · 33 days · month · year */}
             {/* the unit — ONE dropdown (addendum 20 "use drop down": the eight pills wrapped over three rows on the phone) */}
             {/* addendum 21: in portrait the select is the panel's full width (the label above it) so "per hour" etc. read at the full line; landscape keeps it at its own width */}
@@ -325,18 +343,24 @@ export function FinancialCommandUX1() {
               </select>
             </label>
           </div>
-          {/* the table (addendum 17: "Ensure table"): category · kind · the figure in the chosen unit; net on the last row */}
+          {/* the table (addenda 17 + 22): the ladder by SECTION A–M — the section's icon, its total in the chosen unit, its fields beneath; Net last, red when negative */}
           <table className="mt-2 w-full font-mono text-xs">
             <thead className="text-left text-[10px] uppercase tracking-wide text-muted-foreground">
-              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="py-1 pr-2">{t("fin.kind")}</th><th className="py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}</th></tr>
+              <tr><th className="py-1 pr-2">{t("fin.section")}</th><th className="py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}</th></tr>
             </thead>
             <tbody>
-              {budget.lines.map((l) => (
-                <tr key={l.id} data-fin-budget-row={l.id} className="border-t border-border/60"><td className="py-1 pr-2"><CategoryIcon category={l.category} className="mr-1.5" />{t(`fin.cat.${CAT_KEY[l.category]}`)}</td><td className="py-1 pr-2 text-muted-foreground">{l.kind === "income" ? t("fin.income") : l.kind === "fixed" ? t("fin.fixed") : t("fin.variable")}</td><td className="py-1 text-right tabular-nums">{usdUnit(inUnit(l.amountCents))}</td></tr>
+              {FLOW_SECTIONS.map((sec) => (
+                <Fragment key={sec}>
+                  <tr data-fin-budget-row={sec} className="border-t border-border/60 font-semibold"><td className="py-1 pr-2"><SectionIcon section={sec} className="mr-1.5" />{sec} · {secLabel(sec)}</td><td className="py-1 text-right tabular-nums">{usdDollars(totals.sections[sec])}</td></tr>
+                  {SHEET_LINES.filter((l) => fieldOf(l.fieldId)?.section === sec).map((l) => (
+                    <tr key={l.fieldId} data-fin-ladder-field={l.fieldId} className="text-muted-foreground"><td className="py-0.5 pl-6 pr-2">{fieldLabel(l.fieldId)}</td><td className="py-0.5 text-right tabular-nums">{usdDollars(inPeriod(l))}</td></tr>
+                  ))}
+                </Fragment>
               ))}
-              <tr className={`border-t border-border font-semibold ${budget.netCents < 0 ? "text-red-500" : "text-green-500"}`}><td className="py-1 pr-2">{t("fin.net")}</td><td /><td data-fin-budget-net className="py-1 text-right tabular-nums">{usdUnit(inUnit(budget.netCents))}</td></tr>
+              <tr className={`border-t border-border font-semibold ${totals.net < 0 ? "text-red-500" : "text-green-500"}`}><td className="py-1 pr-2">{t("fin.net")}</td><td data-fin-budget-net className="py-1 text-right tabular-nums">{usdDollars(totals.net)}</td></tr>
             </tbody>
           </table>
+          <p className="mt-2 text-xs text-muted-foreground">{t("fin.stock_note")}</p>
         </div>
 
         {/* the record — append-only, chain-hashed (FIN-05); honest about where it lives */}
@@ -346,7 +370,7 @@ export function FinancialCommandUX1() {
             {!owner && <li className="flex justify-between gap-2"><span>{fmtStampCST(EXAMPLE.atMs)} · {t("fin.deposit")} · {EXAMPLE.memo}</span><span>{usd(EXAMPLE.amountCents)} · {EXAMPLE.motDays}</span></li>}
             {owner && record.entries.length === 0 && <li>{t("fin.no_deposits")}</li>}
             {owner && record.entries.map((e) => (
-              <li key={e.hash} className="flex justify-between gap-2"><span>{e.rev} · {fmtStampCST(e.tx.atMs)} · {e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}{e.tx.category ? <> · <CategoryIcon category={e.tx.category} className="mx-0.5" />{catLabel(e.tx.category)}</> : ""}{e.tx.memo ? ` · ${e.tx.memo}` : ""}</span><span className={e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}>{usd(e.tx.amountCents)}{e.tx.motDays ? ` · ${e.tx.motDays}` : ""} · {e.hash.slice(0, 8)}</span></li>
+              <li key={e.hash} className="flex justify-between gap-2"><span>{e.rev} · {fmtStampCST(e.tx.atMs)} · {e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}{txWhat(e.tx)}{e.tx.memo ? ` · ${e.tx.memo}` : ""}</span><span className={e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}>{usd(e.tx.amountCents)}{e.tx.motDays ? ` · ${e.tx.motDays}` : ""} · {e.hash.slice(0, 8)}</span></li>
             ))}
           </ul>
           <p className="mt-2 text-xs text-muted-foreground">{t("fin.device_only")}</p>
