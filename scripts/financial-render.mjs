@@ -54,7 +54,10 @@ function renderReadme() {
   s += `| | |\n|---|---|\n| FULL | \`${d.mot.full}\` — the Equal writings ${d.mot.equalWritings.map((w) => `\`${w}\``).join(" · ")} |\n`;
   s += `| Stamp | \`${d.mot.stampFormat}\` |\n| Duration | \`${d.mot.durationFormat}\` |\n`;
   s += `| LTU | D ${d.mot.ltu.D} · W ${d.mot.ltu.W} · M ${d.mot.ltu.M} · Q ${d.mot.ltu.Q} · Y ${d.mot.ltu.Y} · ${d.mot.ltu.minutesPerDay} min/day |\n`;
-  s += `| Pay MoT | ${d.mot.payMotDays} days — ${d.mot.payMotNote}; one A = ${d.mot.unitsInPayMot.aSeconds} s · one B = ${d.mot.unitsInPayMot.bSeconds} s · one C = ${d.mot.unitsInPayMot.cSeconds} s |\n`;
+  s += `| Revolution | Earth ${d.mot.revolution.earthDaysMean} days (${d.mot.revolution.earthNote}); Mars ${d.mot.revolution.marsSols} sols; ${d.mot.revolution.units} A · ${d.mot.revolution.subUnits} B · ${d.mot.revolution.subSubUnits} C |\n`;
+  s += `| One unit on Earth | A = ${d.mot.orbitUnitsEarth.aSeconds} s (2.43 h) · B = ${d.mot.orbitUnitsEarth.bSeconds} s · C = ${d.mot.orbitUnitsEarth.cSeconds} s |\n`;
+  s += `| Pay MoT | ${d.mot.payMotDays} days — ${d.mot.payMotNote} (${d.mot.payMotInA} A) |\n`;
+  s += `| Correction | ${d.mot.correction} |\n`;
   s += `| ◬ ♡ 웃 | ♡ ${d.mot.trinity["♡"]} · 웃 ${d.mot.trinity["웃"]} · ◬ ${d.mot.trinity["◬"]} |\n`;
   s += `| Project value | ♡ = ${d.mot.projectValue["♡"]} · 웃 = ${d.mot.projectValue["웃"]} · ◬ = ${d.mot.projectValue["◬"]} → traded for ${d.mot.projectValue.tradedFor} |\n\n`;
   s += `## The calendar\n\n${d.calendar.anchor}. ${d.calendar.timezone}.\n\n`;

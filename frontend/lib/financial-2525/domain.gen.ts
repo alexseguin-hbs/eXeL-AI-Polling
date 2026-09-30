@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.002",
-  "stamp": "v.000_r.002",
+  "revision": "0.003",
+  "stamp": "v.000_r.003",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "d2d9b6e4307eed898be90c51844dbde71a9a6515fe228bac87d4da87fb42cd47",
+  "handoffSha256": "c5176ce276c0ea06fbf499eea271b3f24be0f47572b3123fdab4dcbf69231f61",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -56,6 +56,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "d2d9b6e4307eed898be90c51844dbde71a9a6515fe228bac87d4da87fb42cd47",
     "date": "2026-09-30",
     "note": "+ addendum 9 (the Trinity wheel's seats: HI top · AI tokens bottom-left · SI minutes bottom-right) — r.002 built against this hash"
+   },
+   {
+    "sha256": "c5176ce276c0ea06fbf499eea271b3f24be0f47572b3123fdab4dcbf69231f61",
+    "date": "2026-09-30",
+    "note": "+ addendum 10 (A.B..C IS the Earth's revolution: 3600 · 3600 · 3600) — r.003 built against this hash"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -81,10 +86,32 @@ export const FINANCIAL_DOMAIN = {
    "why": "The UI/UX STARTS FROM the ◬ ♡ 웃 Session shell (operator addendum 7) and the chart's glass reads day · hour · minute with A.B..C behind the scenes (addendum 8, max R-CORE reuse): the surface is rebuilt on /soi-session's own root, header (globe + Trinity glyphs), card, phase rail (PodPhaseRail gains additive `phases`/`countFor` props — DEPOSIT ◬ · HOLD ♡ · RELEASE ♡ · WITHDRAW 웃 · RECORD 웃), guide card, roster (PodRosterList), ACTIVE clock block (the big mono number is money released), phone strip and folded Trinity (SoITrinity: ◬ M_SS · 웃 M_33 · ♡ M_LTU); sign-in returns the person here; the chart stays under the vector law. Decisions FD-10, FD-11.",
    "commit": "d5d2b72",
    "shipped": "5838c67"
+  },
+  {
+   "revision": "0.003",
+   "date": "2026-09-30",
+   "kind": "correction",
+   "why": "A.B..C IS the Earth's revolution around the Sun (operator addendum 10): one revolution — perihelion to perihelion, the financial year — split into 3600 A-units · 3600 B sub-units · 3600 C sub-sub-units. r.001–r.002 read a pay period as its own whole (its end printed 3600.3600..3600); corrected: the A.B..C of an instant is its position in the current revolution (positionInYear, the sourced perihelion instants) and a MoT LENGTH converts INTO the scale — the 30.333-day pay MoT is ≈ 298.97 A. FIN-01 superseded by FIN-01.01; FD-13 supersedes FD-01; the chart's reveal now reads the revolution's coordinate at each axis mark and the elapsed span in A-units.",
+   "commit": "fe6f8e6"
   }
  ],
  "mot": {
-  "law": "A MoT (Measure of Time) is ONE WHOLE — a pay period, a budget month, a financial year. A moment inside it is its elapsed fraction in Base-3600: A = 3600ths of the MoT (0 at the start, 3600 at completion) · B = 3600ths of an A · C = 3600ths of a B. The start reads 0.0000..0000 and the end reads 3600.3600..3600 — exactly the celestial UCRS-2525 orbit (HU 0 = perihelion, 3600 = a full orbit). The scale never names a planet; only the LTU conversion knows how many local seconds the whole holds, so the same record converts to Mars and later planets.",
+  "law": "A.B..C IS THE REVOLUTION (addendum 10, r.003): one revolution of the planet around its star — for Earth, perihelion to perihelion, the financial year — is split into 3600 A-units; each A into 3600 B sub-units; each B into 3600 C sub-sub-units — exactly the celestial UCRS-2525 orbit (HU 0 = perihelion, 3600.3600..3600 = a full orbit). The A.B..C of an INSTANT is its position in the current revolution (0.0000..0000 at perihelion, 3600.3600..3600 at the next). The A.B..C of a LENGTH (a MoT) is days ÷ revolution-days × 3600: the 30.333-day pay MoT is ≈ 298.97 A-units — that is '30.33 converted into the 3600.3600..3600 scale'. The scale never names a planet: on Mars the same functions take sols and the Martian revolution in sols. Behind the scenes only — the glass reads day · hour · minute.",
+  "revolution": {
+   "earthDaysMean": 365.259636,
+   "earthNote": "the anomalistic year — perihelion to perihelion; an instant's position uses the sourced perihelion table (calendar.ts), a length uses this mean",
+   "marsSols": 668.5991,
+   "units": 3600,
+   "subUnits": 3600,
+   "subSubUnits": 3600
+  },
+  "orbitUnitsEarth": {
+   "aSeconds": 8766.2,
+   "bSeconds": 2.435,
+   "cSeconds": 0.000676
+  },
+  "payMotInA": 298.97,
+  "correction": "r.001–r.002 read a pay period as its own whole (its end printed 3600.3600..3600). Superseded by this law; the record keeps both.",
   "full": "3600.3600..3600",
   "equalWritings": [
    "3600.0000..0000",
@@ -102,12 +129,7 @@ export const FINANCIAL_DOMAIN = {
    "minutesPerDay": 1440
   },
   "payMotDays": 30.333,
-  "payMotNote": "one third of a 91-day quarter (91 ÷ 3 = 30.333…) — the operator's worked example",
-  "unitsInPayMot": {
-   "aSeconds": 728,
-   "bSeconds": 0.2022,
-   "cSeconds": 0.0000562
-  },
+  "payMotNote": "one third of a 91-day quarter (91 ÷ 3 = 30.333…) — the operator's worked example; ≈ 298.97 A of the revolution",
   "trinity": {
    "♡": "M_LTU — local time, the witness",
    "웃": "M_33 — the 33-day personal month",
@@ -175,6 +197,7 @@ export const FINANCIAL_DOMAIN = {
   "perHourUsd": 4.95,
   "perSecUsd": 0.001375,
   "withdrawableAt3hUsd": 14.85,
+  "motInA": 298.97,
   "note": "the operator's own paycheck, transcribed from his bank screen; a record, never an invention"
  },
  "budget": {
@@ -249,10 +272,28 @@ export const FINANCIAL_DOMAIN = {
    ],
    "phase": "pilot",
    "mode": "Manual",
-   "metric": "A.B..C ↔ LTU round-trips within 1 s over a 30.333-day MoT; the three Equal writings all read FULL",
+   "metric": "SUPERSEDED by FIN-01.01 (addendum 10): a pay period is not its own whole — the revolution is",
    "verify": "tests/financial-mot.test.mjs",
-   "dtm": "the worked example reads 0.0825 $/min from 3,604.49 over 30.333 days",
-   "stretch": "a Martian sol-period reads the same A.B..C at every fraction",
+   "dtm": "superseded",
+   "stretch": "superseded",
+   "status": "superseded"
+  },
+  {
+   "id": "FIN-01.01",
+   "title": "A.B..C is the revolution — the measure of time",
+   "statement": "One revolution of the planet around its star (for Earth, perihelion to perihelion — the financial year) is split into 3600 A-units, each A into 3600 B, each B into 3600 C; the A.B..C of an instant is its position in the current revolution (0.0000..0000 at perihelion, 3600.3600..3600 at the next) and the A.B..C of a MoT length is days ÷ revolution-days × 3600 (the 30.333-day pay MoT ≈ 298.97 A), converting to Earth LTU and back within one C; timestamps read YYYY.MM.DD_HH.MM..SS in CST standard, durations 0000.00.DD_HH.MM..SS; the glass reads day · hour · minute, A.B..C on reveal.",
+   "in": "FIN-01.01.IN",
+   "out": "FIN-01.01.OUT",
+   "section": "VII",
+   "uwf": [
+    "U-WF-12"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "one whole revolution reads FULL; a position round-trips to LTU within 1 s; the pay MoT converts to 298 A and back to 30.333 days; on Earth one A = 8,766 s",
+   "verify": "tests/financial-mot.test.mjs",
+   "dtm": "the chart's reveal shows the revolution's coordinate at each axis mark and the elapsed span in A-units",
+   "stretch": "a 30-sol MoT on Mars converts to 161 A of the Martian revolution and back",
    "status": "implemented"
   },
   {
@@ -545,6 +586,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The Trinity wheel's seats: TOP = HI 웃 (the person) · BOTTOM-LEFT = AI ◬ (AI tokens) · BOTTOM-RIGHT = SI ♡ (minutes contribution — volunteer / time logged). SoITrinity's tuple order is [top, bottom-right, bottom-left], so the surface passes [HI, SI, AI] with glyphs [웃, ♡, ◬].",
    "status": "OPERATOR",
    "basis": "addendum 9"
+  },
+  {
+   "id": "FD-13",
+   "decision": "A.B..C IS the Earth's revolution around the Sun: one revolution (perihelion to perihelion) = 3600 A · 3600 B · 3600 C. An instant's A.B..C is its position in the current revolution (the sourced perihelion instants); a MoT length converts into the scale as days ÷ revolution-days × 3600 (mean anomalistic year 365.259636 d). SUPERSEDES FD-01, which read a pay period as its own whole.",
+   "status": "OPERATOR",
+   "basis": "addendum 10; lib/ucrs-2525.ts (HU 0 = perihelion, 3600 = a full orbit)"
   }
  ],
  "reviews": [

@@ -33,7 +33,7 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { FINANCIAL_LEDGER } from "@/lib/2525-core/financial-ledger.gen";
 import { FINANCIAL_DOMAIN as SRC } from "@/lib/financial-2525/domain.gen";
-import { fmtMot, motABC, fmtStampCST, parseStampCST, MS_PER_DAY } from "@/lib/financial-2525/mot";
+import { fmtMot, spanABC, fmtStampCST, parseStampCST, MS_PER_DAY } from "@/lib/financial-2525/mot";
 import { positionInYear, frameOf } from "@/lib/financial-2525/calendar";
 import { balanceAt, series, validateWithdrawal, depositView, HOLD_MS, type FinTx } from "@/lib/financial-2525/accrual";
 import { SHEET_BUDGET, SHEET_MONTH_DAYS, summarize, type BudgetCategory } from "@/lib/financial-2525/budget";
@@ -197,7 +197,7 @@ export function FinancialCommandUX1() {
           {bal.ratePerMinCents > 0 && (
             <ul className="mt-2 space-y-0.5 font-mono text-xs text-muted-foreground" data-testid="fin-ladder">
               <li>{usd4(bal.ratePerMinCents * 60)} {t("fin.per_hour")} · {usd(Math.round(bal.ratePerMinCents * 1440))} {t("fin.per_day")} · {usd4(bal.ratePerMinCents / 60)} {t("fin.per_sec")}</li>
-              {focusView && <li>{hhmmss(Math.max(0, at - focus!.atMs))} {t("fin.elapsed")} · {fmtMot(motABC(Math.max(0, at - focus!.atMs) / 1000, ((focus!.motDays ?? 0) * MS_PER_DAY) / 1000))}</li>}
+              {focusView && <li>{hhmmss(Math.max(0, at - focus!.atMs))} {t("fin.elapsed")} · {fmtMot(spanABC(Math.max(0, at - focus!.atMs) / MS_PER_DAY))} {t("fin.a_units")}</li>}
             </ul>
           )}
         </div>
@@ -307,7 +307,8 @@ function ltuLabel(ms: number, wholeMs: number): string {
 }
 
 /** One deposit over its MoT: released / withdrawable / escrowed as strokes, NOW, the 3-hour hold, withdrawals as marks.
- *  BEHIND THE SCENES IS A.B..C; the glass defaults to day · hour · minute, and A.B..C is a reveal (operator addendum 8). */
+ *  BEHIND THE SCENES IS A.B..C — the revolution's coordinate (addendum 10): on reveal the axis reads the year position
+ *  (positionInYear) at each mark and the elapsed span in A-units; the glass defaults to day · hour · minute (addendum 8). */
 function MotChart({ tx, txs, now, t }: { tx: FinTx; txs: FinTx[]; now: number; t: (k: string) => string }) {
   const W = 360, H = 150, P = 10;
   const [showAbc, setShowAbc] = useState(false);
@@ -320,16 +321,18 @@ function MotChart({ tx, txs, now, t }: { tx: FinTx; txs: FinTx[]; now: number; t
   const y = (cents: number) => H - P - (Math.max(0, Math.min(1, cents / tx.amountCents)) * (H - 2 * P));
   const poly = (pick: (p: (typeof pts)[number]) => number) => pts.map((p) => `${x(p.t).toFixed(1)},${y(pick(p)).toFixed(1)}`).join(" ");
   const elapsed = Math.max(0, Math.min(len, now - from));
-  const abc = motABC(elapsed / 1000, len / 1000);
+  const elapsedAbc = spanABC(elapsed / MS_PER_DAY);                 // the elapsed LENGTH, in A-units of the revolution
+  const motAbc = spanABC(tx.motDays ?? 0);                           // the whole MoT, in A-units (30.333 d ≈ 298.97 A)
   const sw = VECTOR_LAW.stroke.normal, hair = VECTOR_LAW.stroke.hairline;
-  const axis = [0, 0.25, 0.5, 0.75, 1].map((f) => (showAbc ? String(Math.round(f * 3600)) : ltuLabel(f * len, len)));
+  // the x axis: five marks over the MoT — day · hour · minute by default; on reveal the revolution's A.B..C at each mark
+  const axis = [0, 0.25, 0.5, 0.75, 1].map((f) => (showAbc ? fmtMot(positionInYear(from + f * len).abc) : ltuLabel(f * len, len)));
   return (
     <div data-fin-chart className={SUB}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className={LABEL}>{t("fin.chart_title")} · {showAbc ? fmtMot(abc) : `${ltuLabel(elapsed, len)} ${t("fin.elapsed")}`}</div>
+        <div className={LABEL}>{t("fin.chart_title")} · {showAbc ? `${fmtMot(elapsedAbc)} / ${fmtMot(motAbc)} ${t("fin.a_units")}` : `${ltuLabel(elapsed, len)} ${t("fin.elapsed")}`}</div>
         <button type="button" data-fin-abc-toggle className="rounded-md border border-border px-2 py-1 text-xs" onClick={() => setShowAbc((v) => !v)}>{showAbc ? t("fin.show_ltu") : t("fin.show_abc")}</button>
       </div>
-      <p className="mt-1 font-mono text-xs text-muted-foreground">{fmtStampCST(tx.atMs)} · {usd(tx.amountCents)} · {tx.motDays} · {now < from ? `${t("fin.pending_from")} ${fmtStampCST(tx.atMs)}` : showAbc ? fmtMot(abc) : `${ltuLabel(elapsed, len)} ${t("fin.elapsed")}`}</p>
+      <p className="mt-1 font-mono text-xs text-muted-foreground">{fmtStampCST(tx.atMs)} · {usd(tx.amountCents)} · {tx.motDays} · {now < from ? `${t("fin.pending_from")} ${fmtStampCST(tx.atMs)}` : showAbc ? `${fmtMot(positionInYear(from).abc)} → ${fmtMot(positionInYear(to).abc)}` : `${ltuLabel(elapsed, len)} ${t("fin.elapsed")}`}</p>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" className="mt-2 block" aria-hidden>
         <rect x={P} y={P} width={W - 2 * P} height={H - 2 * P} fill="none" stroke="var(--border)" strokeWidth={hair} />
         {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={P + f * (W - 2 * P)} y1={P} x2={P + f * (W - 2 * P)} y2={H - P} stroke="var(--border)" strokeWidth={hair} />)}

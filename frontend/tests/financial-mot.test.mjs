@@ -8,24 +8,32 @@ const C = await import("../lib/financial-2525/calendar.ts");
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 const near = (a, b, eps) => Math.abs(a - b) <= eps;
 
-// ── 1 · A.B..C of a MoT ────────────────────────────────────────────────────────────────────────────────────────
+// ── 1 · A.B..C IS the revolution (operator addendum 10): one revolution = 3600 A · 3600 B · 3600 C ───────────────
 const MOT = M.motSeconds(M.MOT_PAY_MONTH_DAYS);
 ok(near(M.MOT_PAY_MONTH_DAYS, 30.3333, 1e-3) && MOT === 2620800, `the pay MoT is 91/3 = 30.333 days = 2,620,800 s (got ${MOT})`);
-ok(M.fmtMot(M.motABC(0, MOT)) === "0.0000..0000", "the start of a MoT reads 0.0000..0000 (perihelion of the period)");
-ok(M.fmtMot(M.motABC(MOT, MOT)) === "3600.3600..3600", "the end of a MoT reads 3600.3600..3600 — the operator's FULL");
-ok(M.fmtMot(M.motABC(MOT / 2, MOT)) === "1800.0000..0000", "half way reads 1800.0000..0000");
-ok(M.fmtMot(M.motABC(MOT * 2, MOT)) === "3600.3600..3600" && M.fmtMot(M.motABC(-5, MOT)) === "0.0000..0000", "clamped to the whole: past the end is FULL, before the start is 0");
+const REV = M.motSeconds(M.EARTH_REVOLUTION_DAYS);
+ok(near(M.EARTH_REVOLUTION_DAYS, 365.2596, 1e-4), "Earth's revolution perihelion to perihelion (the anomalistic year) is 365.2596 days");
+ok(M.fmtMot(M.motABC(0, REV)) === "0.0000..0000", "perihelion reads 0.0000..0000");
+ok(M.fmtMot(M.motABC(REV, REV)) === "3600.3600..3600", "one whole revolution reads 3600.3600..3600 — the operator's FULL");
+ok(M.fmtMot(M.motABC(REV / 2, REV)) === "1800.0000..0000", "half a revolution reads 1800.0000..0000");
+ok(M.fmtMot(M.motABC(REV * 2, REV)) === "3600.3600..3600" && M.fmtMot(M.motABC(-5, REV)) === "0.0000..0000", "a position is clamped to the revolution: past its end is FULL, before perihelion is 0");
 ok(M.isFull({ a: 3600, b: 0, c: 0 }) && M.isFull({ a: 3600, b: 3600, c: 3600 }) && M.isFull({ a: 3599, b: 3599, c: 3599 }) && !M.isFull({ a: 3599, b: 3599, c: 3598 }), "the sheet's three writings — 3600.0000..0000 · 3600.3600..3600 · 3599.3599..3599 — are Equal (all FULL)");
-const u = M.motUnits(MOT);
-ok(near(u.aSec, 728, 1e-9) && near(u.bSec, 728 / 3600, 1e-9) && near(u.cSec, 728 / 3600 / 3600, 1e-12), `in a 30.333-day MoT one A = 728 s (12.13 min), one B = 0.202 s, one C = 56 µs (got A ${u.aSec})`);
-for (const e of [0, 1, 59, 3600, 86400, 1234567, MOT - 1, MOT]) {
-  const back = M.ltuOfMotABC(M.motABC(e, MOT), MOT);
-  ok(near(back, e, 1), `A.B..C ↔ LTU round-trips within 1 s at ${e} s (got ${back.toFixed(3)})`);
+const u = M.orbitUnits(REV);
+ok(near(u.aSec, 8766.23, 0.01) && near(u.bSec, 2.435, 1e-3) && near(u.cSec, 0.000676, 1e-6), `on Earth one A = 8,766 s (2.43 h), one B = 2.43 s, one C = 0.68 ms (got A ${u.aSec.toFixed(2)})`);
+for (const e of [0, 1, 59, 3600, 86400, 1234567, REV - 1, REV]) {
+  const back = M.ltuOfMotABC(M.motABC(e, REV), REV);
+  ok(near(back, e, 1), `A.B..C ↔ LTU round-trips within 1 s at ${e} s of the revolution (got ${back.toFixed(3)})`);
 }
-ok(M.ltuOfMotABC(M.FULL_ABC, 12345) === 12345, "FULL converts to the whole MoT in LTU");
-// Mars: the same scale — a sol-based period runs 0 → FULL identically; only the LTU seconds differ
-const SOL = 88775.244, MARS_MOT = 30 * SOL;
-ok(M.fmtMot(M.motABC(MARS_MOT / 4, MARS_MOT)) === "900.0000..0000" && near(M.ltuOfMotABC({ a: 900, b: 0, c: 0 }, MARS_MOT), MARS_MOT / 4, 1e-6), "a Martian 30-sol MoT reads the same A.B..C at a quarter (900.0000..0000) — the scale never names a planet");
+ok(M.ltuOfMotABC(M.FULL_ABC, 12345) === 12345, "FULL converts to the whole revolution in LTU");
+// a LENGTH converts INTO the scale: 30.333 days = 298.97 A — "MoT = 30.33 converted … from the Celestial-2525 scale"
+const span = M.spanABC(M.MOT_PAY_MONTH_DAYS);
+ok(span.a === 298 && near(M.daysOfSpanABC(span), M.MOT_PAY_MONTH_DAYS, 1e-6), `the 30.333-day pay MoT is 298 A and change (${M.fmtMot(span)}) and converts back to 30.333 days`);
+ok(near(M.daysOfSpanABC(M.spanABC(1)), 1, 1e-6) && M.spanABC(0).a === 0 && M.fmtMot(M.spanABC(M.EARTH_REVOLUTION_DAYS)) === "3600.3600..3600", "one day, zero, and one whole revolution convert as lengths (a revolution's length is FULL; one C is 0.68 ms, so a day round-trips within a microsecond)");
+ok(M.spanABC(2 * M.EARTH_REVOLUTION_DAYS).a === 7200, "a length is never clamped: two revolutions are 7200 A");
+// Mars: the same scale — sols over the Martian revolution in sols; only the local seconds differ
+const SOL = 88775.244, MARS_REV = M.MARS_REVOLUTION_SOLS * SOL;
+ok(M.fmtMot(M.motABC(MARS_REV / 4, MARS_REV)) === "900.0000..0000" && near(M.ltuOfMotABC({ a: 900, b: 0, c: 0 }, MARS_REV), MARS_REV / 4, 1e-6), "a quarter of the Martian revolution reads 900.0000..0000 — the scale never names a planet");
+ok(near(M.daysOfSpanABC(M.spanABC(30, M.MARS_REVOLUTION_SOLS), M.MARS_REVOLUTION_SOLS), 30, 1e-6) && M.spanABC(30, M.MARS_REVOLUTION_SOLS).a === 161, "a 30-sol MoT on Mars is 161 A of the Martian revolution and converts back to 30 sols");
 
 // ── 2 · rates: the worked example and the sheet ───────────────────────────────────────────────────────────────
 const AMT = 360449; // $3,604.49 in cents
@@ -66,7 +74,7 @@ ok(y.year === 2027 && y.day === 1 && M.fmtMot(y.abc) === "0.0000..0000", "the ne
 ok(C.positionInYear(Date.UTC(2026, 0, 2)).year === 2025, "2026-01-02 (before the 2026 perihelion) still belongs to financial year 2025");
 ok(near(C.positionInYear(p26.ms).lengthDays, 364.39, 0.01), `2026 runs 364.39 days perihelion to perihelion (the orbit, not a calendar) — got ${C.positionInYear(p26.ms).lengthDays.toFixed(3)}`);
 const f = C.frameOf(at(40), 33);
-ok(f.index === 1 && f.dayInFrame === 8 && f.frameDays === 33 && M.fmtMot(f.abc).startsWith("763."), "personal 33-day frames count from day 1: day 41 is frame 2, day 8 of it");
+ok(f.index === 1 && f.dayInFrame === 8 && f.frameDays === 33 && M.fmtMot(f.abc).startsWith("763."), "personal 33-day frames count from day 1: day 41 is frame 2, day 8 of it (its own 0→3600 progress, a display aid, not the A.B..C coordinate)");
 ok(C.FRAMES.join() === "33,66,99" && C.QUARTER_DAYS === 91 && C.GRID_DAYS === 364 && C.DOWN_DAY === 365 && C.unitDays("Q") === 99, "frames 33/66/99 · quarter 91 · grid 364 · down 365 · Q99 for analysis");
 
 console.log(`financial-mot: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

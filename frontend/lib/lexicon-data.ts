@@ -2971,6 +2971,7 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.wheel.hi", englishDefault: "HI", context: "Financial-2525: the top ring of the Trinity wheel — Human Intelligence, the person (웃); a proper abbreviation, kept short", cubeId: 0 },
   { key: "fin.wheel.ai", englishDefault: "AI TOKENS", context: "Financial-2525: the bottom-left ring of the Trinity wheel — Artificial Intelligence, counted in AI tokens (◬)", cubeId: 0 },
   { key: "fin.wheel.si", englishDefault: "SI MINUTES", context: "Financial-2525: the bottom-right ring of the Trinity wheel — Shared Intent, counted in minutes of contribution (volunteer / time logged) (♡)", cubeId: 0 },
+  { key: "fin.a_units", englishDefault: "A-units of the revolution", context: "Financial-2525: unit label after an A.B..C length — one revolution of the Earth around the Sun is 3600 A-units", cubeId: 0 },
 ];
 const drone2525: TranslationEntry[] = [
   { key: "drone.back", englishDefault: "Back", context: "Drone-2525: button that leaves the arena and returns to the site", cubeId: 0 },

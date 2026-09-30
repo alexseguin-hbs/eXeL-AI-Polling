@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 5 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 6 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/main/Financial-2525",
@@ -44,6 +44,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "v.000_r.002 SHIPPED — Financial-2525 on the ◬ ♡ 웃 Session shell: the Session's root, header (globe + Trinity glyphs), card and phase pill, PodPhaseRail railing DEPOSIT ◬ · HOLD ♡ · RELEASE ♡ · WITHDRAW 웃 · RECORD 웃 (additive props, the pod untouched), the guide card, the roster of deposits, the ACTIVE clock block with money released as the big number, the phone strip, the Trinity wheel seated HI 웃 top · AI ◬ tokens bottom-left · SI ♡ minutes bottom-right, sign-in returning here; the chart's glass in day · hour · minute with A.B..C on reveal; 23 more fin.* keys staged. Gates: financial-surface 42 · i18n 288 · crs 132 · pod-invariant 463 · full test:ci 0 · next build 0.",
       "commit": "5838c67"
+    },
+    {
+      "rev": 6,
+      "date": "2026-09-30",
+      "kind": "correction",
+      "text": "A.B..C IS the Earth's revolution around the Sun (operator addendum 10): one revolution, perihelion to perihelion, split into 3600 A-units · 3600 B sub-units · 3600 C sub-sub-units. r.001–r.002 read a pay period as its own whole, so its end printed 3600.3600..3600 — corrected in r.003: an instant's A.B..C is its position in the current revolution (the sourced perihelion instants), a MoT length converts INTO the scale (the 30.333-day pay MoT ≈ 298.97 A; on Earth one A = 8,766 s, one B = 2.43 s, one C = 0.68 ms; a 30-sol MoT on Mars = 161 A of the Martian revolution), and the chart's reveal reads the revolution's coordinate at each axis mark. FIN-01 superseded by FIN-01.01; FD-13 supersedes FD-01. The record keeps both readings.",
+      "commit": ""
     }
   ]
 };

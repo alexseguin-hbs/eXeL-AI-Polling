@@ -23,7 +23,8 @@ ok(/from "@\/lib\/financial-2525\/domain\.gen"/.test(ux) && !/docs\/financial-25
 ok(/setInterval\(\(\) => setNow\(Date\.now\(\)\), 1000\)/.test(ux) && /useState<number \| null>\(null\)/.test(ux), 'one 1 Hz clock, null until mounted (no hydration mismatch)');
 ok(!/Math\.random/.test(ux), 'nothing random on the surface');
 for (const fn of ['balanceAt', 'series', 'validateWithdrawal', 'HOLD_MS']) ok(new RegExp(`\\b${fn}\\b`).test(ux), `every number goes through the pure accrual law (${fn})`);
-for (const fn of ['motABC', 'fmtMot', 'fmtStampCST', 'parseStampCST']) ok(new RegExp(`\\b${fn}\\b`).test(ux), `MoT in A.B..C and CST stamps come from lib/financial-2525/mot (${fn})`);
+for (const fn of ['spanABC', 'fmtMot', 'fmtStampCST', 'parseStampCST']) ok(new RegExp(`\\b${fn}\\b`).test(ux), `MoT in A.B..C and CST stamps come from lib/financial-2525/mot (${fn})`);
+ok(/showAbc \? fmtMot\(positionInYear\(from \+ f \* len\)\.abc\)/.test(ux) && /spanABC\(elapsed \/ MS_PER_DAY\)/.test(ux) && !/\bmotABC\(/.test(ux), 'A.B..C IS the revolution (addendum 10): the reveal reads the year position at each axis mark and the elapsed span in A-units — never a period as its own 0→3600');
 ok(/positionInYear/.test(ux) && /frameOf\(now, 33\)/.test(ux), 'the year position (perihelion orbit) and the 33-day frame are shown');
 ok(/append\(record, tx, at\)/.test(ux) && /loadRecord\(owner\)/.test(ux) && /saveRecord\(next\)/.test(ux), 'the record is appended, loaded and saved through lib/financial-2525/record');
 ok(/summarize\(SHEET_BUDGET, SHEET_MONTH_DAYS\)/.test(ux), 'the budget ladder comes from lib/financial-2525/budget');
@@ -35,7 +36,7 @@ ok(/<PodPhaseRail phase=\{phase\} phases=\{FIN_PHASES\} countFor=\{countFor\}/.t
 ok(/data-testid="fin-your-turn" data-state=\{guide\.state\}/.test(ux) && /font-mono text-2xl tabular-nums text-cyan-500/.test(ux) && /data-testid="fin-strip"/.test(ux) && /<SoITrinity /.test(ux), 'the guide card, the ACTIVE clock block, the phone strip and the folded Trinity carry the Session\'s classes');
 ok(/const CARD = "mt-8 rounded-xl border border-border bg-card p-5"/.test(ux) && !/VECTOR_LAW\.ground/.test(ux), 'the chrome is the app theme card (bg-card), not a fresh black console');
 ok(/<SoITrinity labels=\{\[t\("fin\.wheel\.hi"\), t\("fin\.wheel\.si"\), t\("fin\.wheel\.ai"\)\]\} centerGlyphs=\{\["웃", "♡", "◬"\]\}/.test(ux), 'the Trinity wheel seats the operator\'s way: TOP HI 웃 · BOTTOM-RIGHT SI ♡ minutes · BOTTOM-LEFT AI ◬ tokens (addendum 9; SoITrinity tuple = [top, bottom-right, bottom-left])');
-ok(/showAbc \? String\(Math\.round\(f \* 3600\)\) : ltuLabel\(f \* len, len\)/.test(ux) && /useState\(false\)/.test(ux), 'the chart glass defaults to day · hour · minute; A.B..C is a reveal (addendum 8)');
+ok(/showAbc \? fmtMot\(positionInYear\(from \+ f \* len\)\.abc\) : ltuLabel\(f \* len, len\)/.test(ux) && /useState\(false\)/.test(ux), 'the chart glass defaults to day · hour · minute; A.B..C (the revolution\'s coordinate) is a reveal (addenda 8 + 10)');
 ok(/data-fin-signin/.test(ux) && /fin\.example_badge/.test(ux), 'an unsigned visitor sees the example badge and a sign-in');
 ok(/const EXAMPLE: FinTx = \{[\s\S]*?SRC\.example\.amountUsd[\s\S]*?SRC\.example\.depositStamp[\s\S]*?SRC\.example\.motDays/.test(ux), 'the worked example is read from the domain source, never typed on the surface');
 ok(/data-fin-chart/.test(ux) && /<svg viewBox/.test(ux) && /<polyline fill="none"/.test(ux) && !/fill="#/.test(ux), 'the chart is strokes on the black ground — no face is painted');
