@@ -55,6 +55,12 @@
 >
 > AI is left bottom (AI tokens), and Right bottom is SI (minutes contribution for volunteer / time logged contributikn)
 
+> (addendum 10, verbatim) A.B..C IS earth length around sun
+>
+> i revolution split to 3600 units.  3600 sub units
+>
+> 3600 sub sub ubits
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -117,6 +123,12 @@
     **AI (◬) — AI tokens**; the bottom-right circle is **SI (♡) — minutes contribution** (volunteer / time-logged
     contribution). The financial surface's wheel (SoITrinity) carries exactly this order: top 웃 · bottom-right ♡ ·
     bottom-left ◬.
+20. **A.B..C IS the Earth's revolution around the Sun (addendum 10):** one revolution (perihelion to perihelion — the
+    financial year) is split into **3600 A-units**, each A into **3600 B sub-units**, each B into **3600 C sub-sub-units**.
+    So the A.B..C of an instant is its position in the current revolution (0.0000..0000 at perihelion, 3600.3600..3600
+    at the next), and a MoT LENGTH such as 30.333 days converts INTO that scale as ≈ 298.97 A-units (30.333 ÷ 365.26 ×
+    3600) — that is what "MoT = 30.33 converted … from the Celestial-2525 scale" meant. **Correction on the record:**
+    r.001–r.002 read a pay period as its own whole (its end printed 3600.3600..3600); the whole is the revolution.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
