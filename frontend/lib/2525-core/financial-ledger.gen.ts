@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 18 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 19 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -135,6 +135,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.009 decided (operator addendum 20 'use drop down'): the budget's unit is picked from one dropdown of the eight units instead of the pill toggle that wrapped over three rows on the phone; same default (per 33 days), same conversions. FIN-06.01 → FIN-06.03 · FD-23.",
       "commit": "756075a"
+    },
+    {
+      "rev": 19,
+      "date": "2026-09-30",
+      "kind": "release",
+      "text": "v.000_r.009 SHIPPED — the budget's unit is picked from ONE dropdown of the eight units (per second … per year) instead of the pill toggle that wrapped on the phone; same default (per 33 days), same conversions. FIN-06.01 → FIN-06.03 · FD-23. Shipped as af028ab. Gates: financial-surface 62 · financial-crs 278 · financial-i18n 327 · full test:ci 0 · next build 0.",
+      "commit": "af028ab"
     }
   ]
 };

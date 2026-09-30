@@ -150,7 +150,7 @@
    "kind": "decision",
    "why": "The budget's unit is picked from ONE dropdown (operator addendum 20 'use drop down', with his phone view of the r.006 capture: the eight unit pills wrapped over three rows above the table). command-ux1.tsx: the role=group pill toggle becomes a labelled <select data-fin-budget-unit> whose options are the same eight units — per second · per minute · per hour · per day · per week · per 33 days (the sheet, the default) · per month (the LTU table's 91) · per year — the same default, the same conversions, the same control on every width. FIN-06.01 → FIN-06.03 (the toggle's wording superseded; FIN-06.02's icons stand), FD-23. No new lexicon key (fin.unit labels the select).",
    "commit": "756075a",
-   "shipped": "PENDING"
+   "shipped": "af028ab"
   }
  ],
  "mot": {
