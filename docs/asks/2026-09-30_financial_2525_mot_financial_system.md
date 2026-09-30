@@ -47,6 +47,9 @@
 >
 > ◬ ♡ 웃 Session
 
+> (addendum 8, verbatim) remember max R-CORE REUSE
+> BEHIND SCENES IS A.B..C but UX IS DEFAULTED IN day hour, Min, for financial tracking chart
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -100,6 +103,11 @@
     `/soi-session` page's chrome (its header with the globe and the Trinity glyphs, its cards, its phase rail, its big
     clock, its phone strip) is the starting point the financial surface is built on, not a fresh dark console; the
     financial laws render inside that shell.
+18. **Max R-CORE reuse; A.B..C behind the scenes, LTU on the glass (addendum 8):** the financial tracking chart is
+    labelled by default in **days · hours · minutes** (Earth LTU); A.B..C is the internal basis every value is computed
+    in and stays available (a reveal, never the default). Every piece of the surface reuses what R-CORE already has —
+    the ◬ ♡ 웃 Session shell and clock, the R-CORE badge and compare panel, the pod ledger pattern, the vector law —
+    before anything new is drawn.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
