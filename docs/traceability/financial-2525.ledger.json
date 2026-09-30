@@ -1,0 +1,21 @@
+{
+ "section": "Financial-2525",
+ "route": "/main/Financial-2525",
+ "note": "Append-only. rev 1..n, never renumbered; a release cites the commit that shipped it. The surface's R-CORE badge reads this ledger through frontend/lib/2525-core/financial-ledger.gen.ts (scripts/gen-rcore-revisions.mjs).",
+ "entries": [
+  {
+   "rev": 1,
+   "date": "2026-09-30",
+   "kind": "ask",
+   "text": "Financial-2525 — the MoT Financial System (operator 2026-09-30, six addenda, three handwritten MoT sheets transcribed): document real-time transactions; financial management in 91-day quarters with day 365 down; the year resets at perihelion, Austin CST standard; $/min of an individual's financials; the ◬ ♡ 웃 Session as the wireframe basis; revision control from the first line, the Drone-2525 way; each user their own login; deposits with a deposit day and time and a MoT length for real-time accrual; escrow that releases $/min, withdrawable 3 h after the deposit; all time in A.B..C from the Celestial-2525 scale, convertible to Earth LTU and to Mars; the personal budget to $/min and $/sec; twelve lenses until simulated sufficiently; the 9,999 HI token cap; personal first, business after feedback; v.000_r.001; the UI/UX shell starts from the ◬ ♡ 웃 Session (addendum 7 — folded in r.002). Persisted verbatim, sha256 7dc5bd9494b76064e9e349b8c353c0a520b4041c3a074f46f89577235aab49db.",
+   "commit": "e31cc45"
+  },
+  {
+   "rev": 2,
+   "date": "2026-09-30",
+   "kind": "decision",
+   "text": "Nine decisions on the record for revision 0.001 (docs/financial-2525/financial-2525.v.000.json decisions[]): (1) MoT in A.B..C is the elapsed fraction of one whole in Base-3600 — 0.0000..0000 at the start, 3600.3600..3600 at completion, the celestial orbit convention; (2) CST standard is UTC−6 all year; (3) released money is withdrawable from exactly 3 h after the deposit; (4) the pay MoT is 30.333 days = 91 ÷ 3, the personal month 33 days; (5) release is linear from the deposit instant; (6) personal first, business after feedback; (7) the cloud half is honest — per-login Supabase isolation waits on the login being wired into Supabase; (8) version 000 · revision 0.001 · stamp v.000_r.001; (9) the 9,999 웃 cap is YUG_CEILING, reused.",
+   "commit": ""
+  }
+ ]
+}

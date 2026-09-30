@@ -82,6 +82,7 @@ const STAGE2_LEDGERS = [
   { file: "easter-egg.ledger.json",    constName: "EASTER_EGG_LEDGER", out: "easter-egg-ledger.gen.ts" },
   { file: "architect-2525.ledger.json", constName: "ARCHITECT_LEDGER", out: "architect-ledger.gen.ts" },
   { file: "celestial-2525.ledger.json", constName: "CELESTIAL_LEDGER", out: "celestial-ledger.gen.ts" },
+  { file: "financial-2525.ledger.json", constName: "FINANCIAL_LEDGER", out: "financial-ledger.gen.ts" }, // Financial-2525 (operator 2026-09-30, v.000_r.001)
 ];
 for (const { file, constName, out } of STAGE2_LEDGERS) {
   const src = path.join(ROOT, "docs/traceability", file);

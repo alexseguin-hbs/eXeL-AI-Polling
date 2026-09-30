@@ -17,6 +17,17 @@ const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 // re-staged AND its 32 now-stale translations are removed from lib/i18n-app/*, so t() falls back to the corrected
 // English rather than returning the old, wrong translation ("listed never silent" — an orphaned fill is a silent lie).
 const AFTER_FILL = new Set([
+  // Financial-2525 (operator 2026-09-30, v.000_r.001) — the fin.* group staged the moment it was declared; ×32 fill owed.
+  ...[
+    'title', 'subtitle', 'version', 'revision', 'example_badge', 'sign_in', 'signed_in_as', 'sign_out', 'deposit', 'withdrawal',
+    'amount', 'deposit_at', 'mot_days', 'memo', 'record_it', 'withdraw', 'refused', 'reason_hold', 'reason_insufficient',
+    'reason_amount', 'reason_stamp', 'escrowed', 'released', 'withdrawable', 'withdrawn', 'available', 'rate', 'per_min',
+    'per_hour', 'per_day', 'per_sec', 'mot_position', 'year_position', 'day', 'quarter', 'down_day', 'frame', 'hold_mark',
+    'now', 'chart_title', 'budget_title', 'income', 'fixed', 'variable', 'net', 'per_33', 'ledger_title', 'chain_ok',
+    'chain_broken', 'device_only', 'stamp_hint', 'no_deposits', 'save_failed', 'elapsed', 'pending_from',
+    'cat.income', 'cat.home', 'cat.auto', 'cat.insurance', 'cat.utilities', 'cat.fitness', 'cat.fun', 'cat.groceries',
+    'cat.dining_out', 'cat.other', 'back',
+  ].map((k) => `fin.${k}`),
   // R-CORE compare mirror of Vision-2525 (operator 2026-09-26) — the 29 new rcore.* keys were filled ×32 (Haiku),
   // 13 legitimate loanwords (Revision/Details/Impact/Date/section(s)/release(s)) on the reviewed identical-allowed list.
   // S9 · User Story · Highlights personas-aligned layout (operator 2026-09-24) — two column headers; ×32 fill owed:

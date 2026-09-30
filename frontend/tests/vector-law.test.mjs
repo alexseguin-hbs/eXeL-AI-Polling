@@ -13,7 +13,7 @@ const ROOT = path.resolve('.');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 /** Prose explains the law and may name what it forbids; only CODE is judged by it. */
 const code = (p) => read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
-const SURFACES = ['components/drone-2525/wire-svg.tsx', 'components/drone-2525/arena-view.tsx', 'components/drone-2525/command-ux1.tsx'];
+const SURFACES = ['components/drone-2525/wire-svg.tsx', 'components/drone-2525/arena-view.tsx', 'components/drone-2525/command-ux1.tsx', 'components/financial-2525/command-ux1.tsx'];
 const MODEL = ['lib/drone-2525/arena-model.ts', 'lib/wire-core/primitives.ts', 'lib/wire-core/wire-model.ts', 'lib/wire-core/palette.ts', 'lib/wire-core/vector-law.ts'];
 
 // 1 — the law itself says what it says

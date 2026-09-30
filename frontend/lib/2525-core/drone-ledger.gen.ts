@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 47 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 48 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -338,6 +338,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "Operator deck r.152 served at /drone-2525/play.html (sha256 e15cd399...). THE FULL-SCREEN CONTROL IS AN ICON, NOT A WORD: the top-bar (btnFullBar) and #magBar (btnFull) FULL/EXIT word buttons become the Mission-Planning maximize (⤢) / minimize (⤡) icons — the SoI-2525 ChartFrame and Security-2525 Mission Planning affordance; the top-bar maximize icon sits at the upper-right at a comfortable tap size; the fullscreen behaviour (requestFullscreen/exitFullscreen, #app.full hiding the words) is untouched. Operator ask docs/asks/2026-09-24_drone_popups_box_maximize.md; the pop-ups reconfirmed on the served deck (all up in Target-Up, amber on TARGET, red on APPROVE, a marked+approved pop fires — no fix needed). QA row FULLSCREEN_IS_AN_ICON added; 177 rows, 176/177 in each orientation.",
       "commit": "8366dfa"
+    },
+    {
+      "rev": 48,
+      "date": "2026-09-26",
+      "kind": "release",
+      "text": "Operator deck r.153 served at /drone-2525/play.html (sha256 3c3de521...). THE BROWSER TAB READS \"eXeL Drone-2525\" — the <title> was the last place the stale early deck name \"eXeL ECO-2525 · MoT · SSSES\" survived, so the phone tab said ECO; now exactly \"eXeL Drone-2525\" (operator 2026-09-26, docs/asks/2026-09-26_drone_tab_name.md). Title-only, byte-gated: patch patches/r152_to_r153.py, byte-identical play.html, no QA-row or logic change.",
+      "commit": "c65d719"
     }
   ]
 };

@@ -23,8 +23,11 @@ for (const r of d.crs) {
   const row = matrix.match(new RegExp(`"crs": "${r.id}",[\\s\\S]{0,1400}?"changeDesc": "([^"]*)"`));
   ok(row && row[1] === r.status, `${r.id} reads "${row ? row[1] : '—'}" in the matrix and "${r.status}" in the source`);
 }
-// 3 — no dollar figure in any DRS matrix row (the evidence law)
-const drsBlock = matrix.slice(matrix.indexOf('"crs": "DRS-01"'));
+// 3 — no dollar figure in any DRS matrix row (the evidence law). Bounded to the DRS rows: the matrix carries other
+// domains after them (Financial-2525's FIN rows record the operator's REAL figures by design — a different law).
+const drsStart = matrix.indexOf('"crs": "DRS-01"');
+const drsEnd = matrix.indexOf('// ── Financial-2525', drsStart);
+const drsBlock = matrix.slice(drsStart, drsEnd > 0 ? drsEnd : undefined);
 ok(!/\$\s?\d/.test(drsBlock), 'no DRS matrix row carries a dollar figure');
 
 // 4 — the Pod codes in the source are the ones the Pod seeds (one master for the hierarchy too)

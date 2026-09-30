@@ -35,6 +35,8 @@ export function Vision2525Launcher() {
     { id: "celestial", code: "CELESTIAL-2525", name: "CELESTIAL", tagline: "Sky · Learn · Family", color: "#a78bfa", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/main/Celestial-2525"); } },
     { id: "manta", code: "MANTA-2525", name: "MANTA", tagline: "Maritime · Subsurface", color: "#38bdf8", unlocked: false },
     { id: "drone", code: "DRONE-2525", name: "DRONE", tagline: "Wireframe Arena · Capitol Lawn", color: "#f59e0b", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/main/Drone-2525"); } },
+    // Financial-2525 — the MoT Financial System (operator 2026-09-30, v.000_r.001): escrow releases $/min, MoT in A.B..C.
+    { id: "financial", code: "FINANCIAL-2525", name: "FINANCIAL", tagline: "MoT · $/min · Escrow", color: "#80ff00", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/main/Financial-2525"); } },
   ];
 
   return (

@@ -14,6 +14,7 @@ import { SETTINGS_LEDGER } from "../lib/2525-core/settings-ledger.gen.ts";
 import { EASTER_EGG_LEDGER } from "../lib/2525-core/easter-egg-ledger.gen.ts";
 import { ARCHITECT_LEDGER } from "../lib/2525-core/architect-ledger.gen.ts";
 import { CELESTIAL_LEDGER } from "../lib/2525-core/celestial-ledger.gen.ts";
+import { FINANCIAL_LEDGER } from "../lib/2525-core/financial-ledger.gen.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -25,6 +26,7 @@ const LEDGERS = [
   { name: "Easter-Egg", ledger: EASTER_EGG_LEDGER },
   { name: "Architect-2525", ledger: ARCHITECT_LEDGER },
   { name: "Celestial-2525", ledger: CELESTIAL_LEDGER },
+  { name: "Financial-2525", ledger: FINANCIAL_LEDGER },
 ];
 for (const { name, ledger } of LEDGERS) {
   const H = fromLedgerJson(ledger);
@@ -49,6 +51,7 @@ const SURFACES = [
   { name: "Easter-Egg / SIM", file: "../app/sim/page.tsx", constName: "EASTER_EGG_LEDGER", gen: "easter-egg-ledger.gen" },
   { name: "Architect-2525", file: "../components/architect-2525/command-ux1.tsx", constName: "ARCHITECT_LEDGER", gen: "architect-ledger.gen" },
   { name: "Celestial-2525", file: "../components/celestial-2525/celestial-reader.tsx", constName: "CELESTIAL_LEDGER", gen: "celestial-ledger.gen" },
+  { name: "Financial-2525", file: "../components/financial-2525/command-ux1.tsx", constName: "FINANCIAL_LEDGER", gen: "financial-ledger.gen" },
 ];
 for (const { name, file, constName, gen } of SURFACES) {
   const src = fs.readFileSync(new URL(file, import.meta.url), "utf8");
