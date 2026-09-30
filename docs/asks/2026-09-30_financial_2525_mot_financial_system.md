@@ -73,6 +73,10 @@
 
 > (addendum 13, verbatim — returned with the r.005 plan) have MoT Icon toggle with Clock icon toggle to switch between measurements .  LTU Table should show Month 91 for now (with 1 day system off line Dec 31). Day in A.B..C as well as Hours, Minutes, and Seconds with ability to edit
 
+> (addendum 14, verbatim — during the r.005 build) A.B..C always
+>
+> (asked which reading was meant for the surface) I just meant don’t say A.B.C Default Clock icon with MoT toggle
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -159,6 +163,9 @@
     Seconds, every field editable. On the surface the reveal is a MoT-icon ⇄ Clock-icon toggle. **On the record:** r.003's
     298.97 A (measured on the 365.259636-day mean anomalistic year) is superseded by 299.18 A (91 ÷ 3 ÷ 365 × 3600 =
     299.0641..0345); the record keeps both.
+22. **The notation is always A.B..C (addendum 14):** two dots before C, never "A.B.C"; the surface opens on the Clock
+    icon (the planet's day · hour · minute) with the MoT icon as the toggle to A.B..C — exactly addenda 8 + 13; nothing
+    else changes on the glass.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
