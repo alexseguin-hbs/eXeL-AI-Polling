@@ -282,6 +282,8 @@
 
 > (addendum 25, verbatim — on the same screen) length needs to be drop down; with Other for manual entry (MoT selectable to Year, Days, hrs, min
 
+> (addendum 26, verbatim — with his phone screenshot of the live surface at 16:51 CST, the r.011 edition still on his phone: the WITHDRAWAL panel's Category dropdown open — Income · Fixed (Mortgage/Rent ✓ · Auto · Insurance · Fitness) · Variable (Utilities · Fun · Groceries · Dining Out · Other) — over the PERSONAL BUDGET table, saved beside this file as `2026-09-30_financial_2525_dropdown_dismissed.png`) this drop down goes away quick!
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -440,6 +442,14 @@
     and Other opens a manual entry: a number with its unit selectable (Years · Days · Hours · Minutes), stored as the entry's
     MoT length in days; this ONE control replaces both the typed "MoT · length in days" field and the separate timeline
     dropdown of r.012 — a transaction's timeline IS its MoT length. Ships in r.013 with addendum 24.
+34. **A dropdown must stay open until the person picks (addendum 26):** on his phone the category picker (and, by the same
+    cause, the section · field · length pickers of r.012–r.013) closes by itself within a second. THE CLASS: every such picker is a
+    component declared INSIDE the surface's render function (`CategorySelect` in r.006, `LadderPicker` in r.012), so the
+    once-a-second clock that drives $/min re-creates the component type and React unmounts and remounts the `<select>` every
+    second — and the phone's picker sheet is dismissed with the element it belonged to. The fix is the class, not the instance:
+    every picker is a module-level component with a stable identity, so a re-render never remounts a `<select>`; gated at the
+    source (no component declared inside the render body renders a `<select>`) and on the glass (a select's DOM node is the
+    same node three seconds later while the clock ticks). Ships as r.014, a correction of r.006–r.013.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
