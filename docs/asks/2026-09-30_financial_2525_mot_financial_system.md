@@ -77,6 +77,10 @@
 >
 > (asked which reading was meant for the surface) I just meant don’t say A.B.C Default Clock icon with MoT toggle
 
+> (addendum 15, verbatim) web site must be:
+>
+> https://exel-ai-polling.explore-096.workers.dev/financial-2525
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -166,6 +170,9 @@
 22. **The notation is always A.B..C (addendum 14):** two dots before C, never "A.B.C"; the surface opens on the Clock
     icon (the planet's day · hour · minute) with the MoT icon as the toggle to A.B..C — exactly addenda 8 + 13; nothing
     else changes on the glass.
+23. **The canonical address is `/financial-2525` (addendum 15):** the launcher tile, the record's route, the sign-in return
+    and every report point at https://exel-ai-polling.explore-096.workers.dev/financial-2525; `/main/Financial-2525` stays as
+    an alias (the Drone-2525 two-route pattern), never the name.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
