@@ -44,9 +44,15 @@ for (const f of FILES) {
 
 // 4 — the one deliberate exception is declared, not accidental: the wordmark is a proper name
 ok(/FINANCIAL · 2525/.test(ux), 'the domain wordmark is a proper name and stays untranslated');
-// 5 — the staged keys are LISTED in lexicon-coverage until the ×32 fill lands (never silent)
+// 5 — a fin.* key is either LISTED in lexicon-coverage's AFTER_FILL (staged, never silent) or FILLED in every one of the
+// 32 lazy stores (lib/i18n-app/<code>.ts) — the ×32 fill landed 2026-09-30 after a native-reviewer pass per language.
 const cov = fs.readFileSync('tests/lexicon-coverage.test.mjs', 'utf8');
-ok(/map\(\(k\) => `fin\.\$\{k\}`\)/.test(cov) || finKeys.every((k) => cov.includes(`'${k}'`)), 'every fin.* key is staged in AFTER_FILL (or already filled) — listed, never silent');
+const stores = fs.readdirSync('lib/i18n-app').filter((f) => /^[a-z]{2,3}\.ts$/.test(f)).map((f) => fs.readFileSync(`lib/i18n-app/${f}`, 'utf8'));
+ok(stores.length === 32, `32 non-English stores under lib/i18n-app (got ${stores.length})`);
+const staged = (k) => /map\(\(k\) => `fin\.\$\{k\}`\)/.test(cov) && cov.includes(`'${k.slice(4)}'`);
+const filled = (k) => stores.every((s) => s.includes(`"${k}":`));
+const neither = finKeys.filter((k) => !staged(k) && !filled(k));
+ok(neither.length === 0, `every fin.* key is staged in AFTER_FILL or filled in all 32 stores — listed, never silent (neither: ${neither.slice(0, 8).join(' ')})`);
 
 console.log(`\nfinancial-i18n: ${pass} passed, ${fail} failed · ${finKeys.length} keys`);
 process.exit(fail ? 1 : 0);
