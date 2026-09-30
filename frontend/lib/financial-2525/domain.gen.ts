@@ -156,7 +156,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "correction",
    "why": "The year is the EXACT revolution, never a rounded 365 (operator addendum 18: '365 should be exact amount 365.25 etc. · remember perihelion exact time for Austin Texas CST is Standard'). mot.ts: FINANCIAL_YEAR_DAYS = EARTH_REVOLUTION_DAYS = 365.259636 (the anomalistic year, SOURCED, one primitive) = 3600 A, so one A = 8,766.23 s, one B = 2.4351 s, one C = 0.6764 ms, one D = 0.18789 µs; half 182.629818 d = 1800; the pay MoT (91 ÷ 3 d) reads 298.3475..1826 A (≈ 298.97, r.003's reading on the exact year — r.005's 299.0641..0345 on exactly 365 d superseded on the record); one day 9.3081..2196 A; 365 calendar days read 3597.1587..2508. calendar.ts: the PERIHELION is the default anchor again ('calendar' stays selectable in the Planet LTU table), and the perihelion instant is written in Austin CST STANDARD (UTC−6, never daylight) beside the sourced UTC (perihelionCst; 2026 opens 2026.01.03_11.15..00 CST) — printed on the year panel. planet-ltu.ts: the Earth seed row reads yearDays 365.259636 · anchor perihelion (the seed law carries it into every saved copy an operator has not edited). Month 91 and the Dec 31 offline day stay calendar dates. The A.B..C axis marks are three lines (A / .B / ..C — the r.006 Mars capture showed B and C overprinting at 390 px). FIN-01.02 → FIN-01.03, FIN-02.01 → FIN-02.02, FD-21 (supersedes FD-15's exact-365 whole and FD-17's calendar default); one lexicon key (fin.perihelion_cst) staged. r.005's numbers stay on the record in orbitUnitsEarth365 and the correction line.",
    "commit": "25ec03d",
-   "shipped": "PENDING"
+   "shipped": "71935d2"
   }
  ],
  "mot": {
