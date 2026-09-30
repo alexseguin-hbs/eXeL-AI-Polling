@@ -91,5 +91,14 @@ for (const r of ['out/main/Financial-2525/index.html', 'out/financial-2525/index
 }
 ok(path.basename(process.cwd()) === 'frontend', 'runs from frontend/');
 
+// r.014 — THE PICKER LAW (operator addendum 26 "this drop down goes away quick!"): a dropdown stays open until the person picks.
+// A component declared inside the render body is a new type every render; the once-a-second clock remounts its <select> and the
+// phone dismisses the picker sheet. Every picker is a module-level component with a stable identity.
+ok(/^function LadderPicker\(\{ section, field, rec, onSection, onField, onRec, otherN, onOtherN, otherUnit, onOtherUnit, t, hook \}/m.test(ux), 'LadderPicker is declared at module level (column 0), its Other state and t passed as props');
+ok(!/^\s+const [A-Z][A-Za-z]+ = \(/m.test(ux) && !/^\s+function [A-Z][A-Za-z]+\(/m.test(ux), 'no component is declared inside the render body (a nested component remounts its <select> on every clock tick — r.006 CategorySelect, r.012 LadderPicker)');
+ok(/^const PICK = "w-full rounded-md/m.test(ux), 'the picker class string is module-level too');
+ok(/<LadderPicker section=\{sec\} field=\{field\} rec=\{rec\} onSection=\{setSec\} onField=\{setField\} onRec=\{setRec\} otherN=\{otherN\} onOtherN=\{setOtherN\} otherUnit=\{otherUnit\} onOtherUnit=\{setOtherUnit\} t=\{t\} hook="transaction" \/>/.test(ux), 'the one form mounts the module-level picker with the Other state from the surface');
+ok(/THE PICKER LAW \(r\.014/.test(ux), 'the law is written into the file beside the component');
+
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

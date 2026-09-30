@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.013",
-  "stamp": "v.000_r.013",
+  "revision": "0.014",
+  "stamp": "v.000_r.014",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "cc37ed1a483302e9b0eb870a4a70701703d825a96eb7bb4f3f318e4e3674fcf7",
+  "handoffSha256": "33cc55cf9dd6a33d1bb55db0f6fb81be5ac6769651642edb0fd3bda63000eea1",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -94,6 +94,11 @@
     "sha256": "cc37ed1a483302e9b0eb870a4a70701703d825a96eb7bb4f3f318e4e3674fcf7",
     "date": "2026-09-30",
     "note": "+ addendum 25 (the length a dropdown with Other — the MoT selectable in years · days · hours · minutes) — persisted during the ladder-fill build; folded with 24 into r.013"
+   },
+   {
+    "sha256": "33cc55cf9dd6a33d1bb55db0f6fb81be5ac6769651642edb0fd3bda63000eea1",
+    "date": "2026-09-30",
+    "note": "+ addendum 26 (\"this drop down goes away quick!\" — the r.011 category picker on his phone; reading item 34: the picker law)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -208,6 +213,15 @@
    "why": "ONE transaction form, the TYPE a dropdown (operator addendum 24 'there should be just transaction, with type on drop down', with his phone screenshot of the live r.011 DEPOSIT and WITHDRAWAL panels). command-ux1.tsx: the two panels collapse into one TRANSACTION panel — the type (Deposit · Withdrawal) as its first dropdown, then amount · day and time · the MoT length (deposits only) · section · field · timeline · memo — one picker set re-seated by the type (a deposit on A · Income / Wages every 33 days, a withdrawal on B · Rent / Mortgage once), one button whose word follows the type (Record it · Withdraw), the same refusals; a withdrawal may now carry a memo. AND (addendum 25 'length needs to be drop down; with Other for manual entry (MoT selectable to Year, Days, hrs, min') the LENGTH — the MoT — is ONE dropdown of presets (One time · Weekly · 30.333 days the pay MoT · Every 33 days · Monthly (91) · Yearly · Other) and Other opens a number with its unit (Years · Days · Hours · Minutes), stored as the entry's motDays on both kinds; the typed 'MoT · length in days' field and the separate timeline dropdown of r.012 are retired — a transaction's timeline IS its MoT length (ladder.ts: Recurrence gains paymot and other, PAY_MOT_DAYS, LENGTH_UNITS, lengthDays). Ten keys staged (fin.transaction · fin.type · fin.when · fin.length · fin.rec.paymot · fin.rec.other · fin.u.minutes/hours/days/years). FIN-03.02 → FIN-03.03, FD-27, FD-28.",
    "commit": "5690e9f",
    "shipped": "1c89639"
+  },
+  {
+   "revision": "0.014",
+   "date": "2026-09-30",
+   "kind": "correction",
+   "why": "A dropdown stays open until the person picks (operator addendum 26 'this drop down goes away quick!', with his phone screenshot of the r.011 category picker closing by itself). THE CLASS, not the instance: every picker of r.006–r.013 (CategorySelect, then LadderPicker) was a component declared INSIDE the surface's render function — a new component type on every render — and the once-a-second clock that drives $/min re-renders the surface, so React unmounted and remounted every <select> each second and the phone's picker sheet was dismissed with the element it belonged to. Fix: LadderPicker is a module-level component with a stable identity (its Other state and t passed as props; PICK module-level); no component is declared inside the render body. Proven on the glass by the r.014 probe: on the r.013 export the section · field · length · unit selects read REMOUNTED after three clock ticks; on r.014 every select on the surface is the SAME DOM node. Gated at the source (financial-surface: LadderPicker at column 0, no indented component declaration). FIN-03.04 · FD-29.",
+   "commit": "6da8a3c",
+   "shipped": "PENDING",
+   "correction": "r.006–r.013 shipped pickers that a re-render remounted; the r.010/r.011 lesson (a layout claim needs a measured capture) extends to behaviour — a picker claim needs a measured probe on the glass with the clock running."
   }
  ],
  "mot": {
@@ -999,6 +1013,25 @@
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-03.04",
+   "title": "A dropdown stays open until the person picks — the picker law",
+   "section": "V",
+   "uwf": [
+    "U-WF-06",
+    "U-WF-09"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "Every picker on the surface (type · section · field · length · Other's unit · the budget unit · the planet) stays open until the person picks; no re-render of the surface — including the once-a-second $/min clock — ever unmounts and remounts a <select>, because every picker is a module-level component with a stable identity and no component is declared inside the render body.",
+   "metric": "source: LadderPicker is declared at column 0 with its Other state and t as props, PICK is module-level, and no line declares a capitalised component inside the render body; glass: with the clock ticking, every <select> queried on the r.014 export is the same DOM node 3.3 s later (the r.014 probe read SAME for every select present (type · section · field · length · unit · budget unit; the planet selector is not rendered on this export); on the r.013 export it read REMOUNTED for section · field · length · unit)",
+   "dtm": "on the phone: open Section, wait, read the list, pick — it is still open",
+   "stretch": "the same probe in a CI door once the export is built before the gates run",
+   "in": "FIN-03.04.IN",
+   "out": "FIN-03.04.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -1169,6 +1202,12 @@
    "decision": "There is ONE transaction form; its type (Deposit · Withdrawal) is the first dropdown and re-seats the picker's default; the deposit-only MoT length appears only for a deposit; one button whose word follows the type. The two-panel form of r.001–r.012 is retired.",
    "status": "OPERATOR",
    "basis": "addendum 24 (verbatim: 'there should be just transaction, with type on drop down'); reading item 32"
+  },
+  {
+   "id": "FD-29",
+   "decision": "THE PICKER LAW: a dropdown stays open until the person picks. Every picker is a module-level component with a stable identity; a component declared inside the render body is refused by the surface gate. A behaviour claim on the glass needs a measured probe with the clock running, as a layout claim needs a measured capture (FD-24's lesson extended).",
+   "status": "DECLARED",
+   "basis": "addendum 26 (verbatim: 'this drop down goes away quick!'); reading item 34; the r.014 probe on the r.013 and r.014 exports"
   }
  ],
  "reviews": [

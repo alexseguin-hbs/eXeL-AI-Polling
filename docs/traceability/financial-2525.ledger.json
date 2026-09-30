@@ -191,6 +191,13 @@
    "kind": "release",
    "text": "v.000_r.013 SHIPPED — ONE transaction form (the type a dropdown that re-seats the picker; one button whose word follows the type) and the LENGTH a dropdown of presets with Other (a number in years · days · hours · minutes, stored as the entry's motDays on both kinds) — the typed MoT field and the separate timeline retired. FIN-03.02 → FIN-03.03 · FD-27 · FD-28; ten keys staged. Shipped as 1c89639. Gates: financial-surface 64 · financial-ladder 60 · financial-crs 340 · full test:ci 0 · next build 0.",
    "commit": "1c89639"
+  },
+  {
+   "rev": 28,
+   "date": "2026-09-30",
+   "kind": "correction",
+   "text": "r.014 correction of r.006–r.013 (operator addendum 26 'this drop down goes away quick!'): every picker was a component declared inside the render body, remounted by the once-a-second $/min clock, so the phone dismissed its picker sheet. LadderPicker hoisted to a module-level component (stable identity), PICK module-level, the surface gate refuses any nested component; proven on the glass — the r.013 export read REMOUNTED for section · field · length · unit after three ticks, r.014 reads SAME for every select. FIN-03.04 · FD-29.",
+   "commit": "6da8a3c"
   }
  ]
 }

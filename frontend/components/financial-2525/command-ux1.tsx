@@ -61,6 +61,49 @@ const LABEL = "text-xs font-semibold uppercase tracking-wide text-cyan-400";
 const PRIMARY = "min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50";
 const SECONDARY = "min-h-[44px] rounded-md border border-border px-4 py-2 text-sm";
 const INPUT = "w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring";
+const PICK = "w-full rounded-md border border-border bg-background px-2 py-2 text-sm text-foreground landscape:py-1 landscape:text-xs";
+
+/** THE PICKER LAW (r.014, operator addendum 26 "this drop down goes away quick!"): a dropdown stays open until the person picks.
+ *  Every picker is a MODULE-LEVEL component with a stable identity. A component declared inside the surface's render body is a new
+ *  type on every render, and the once-a-second clock that drives $/min re-renders the surface — React then unmounts and remounts
+ *  the <select> every second, and the phone's picker sheet is dismissed with the element it belonged to (r.006's CategorySelect,
+ *  r.012's LadderPicker). Gated at the source (financial-surface) and on the glass (the r.014 capture: the same DOM node three ticks later). */
+function LadderPicker({ section, field, rec, onSection, onField, onRec, otherN, onOtherN, otherUnit, onOtherUnit, t, hook }: {
+  section: FlowSectionId; field: string; rec: Recurrence; onSection: (s: FlowSectionId) => void; onField: (f: string) => void; onRec: (r: Recurrence) => void;
+  otherN: string; onOtherN: (n: string) => void; otherUnit: LengthUnit; onOtherUnit: (u: LengthUnit) => void; t: (k: string) => string; hook: string;
+}) {
+  const secLabel = (sec: SectionId) => t(`fin.sec.${sec.toLowerCase()}`);
+  const fieldLabel = (id: string) => { const f = fieldOf(id); return f ? t(`fin.field.${f.key}`) : id; };
+  return (
+    <>
+      <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground"><span><SectionIcon section={section} className="mr-1" />{t("fin.section")}</span>
+        <select data-fin-section={hook} className={PICK} value={section} onChange={(e) => { const sec = e.target.value as FlowSectionId; onSection(sec); onField(fieldsOf(sec)[0].id); }}>
+          {FLOW_SECTIONS.map((sec) => <option key={sec} value={sec}>{sec} · {secLabel(sec)}</option>)}
+        </select>
+      </label>
+      <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.field")}
+        <select data-fin-field={hook} className={PICK} value={field} onChange={(e) => onField(e.target.value)}>
+          {fieldsOf(section).map((f) => <option key={f.id} value={f.id}>{fieldLabel(f.id)}</option>)}
+        </select>
+      </label>
+      <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.length")}
+        <select data-fin-length={hook} className={PICK} value={rec} onChange={(e) => onRec(e.target.value as Recurrence)}>
+          {RECURRENCES.map((r) => <option key={r} value={r}>{t(`fin.rec.${r}`)}</option>)}
+        </select>
+      </label>
+      {rec === "other" && (
+        <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.rec.other")}
+          <span className="flex gap-2">
+            <input data-fin-length-n={hook} className={INPUT} inputMode="decimal" value={otherN} onChange={(e) => onOtherN(e.target.value)} />
+            <select data-fin-length-unit={hook} className={PICK} value={otherUnit} onChange={(e) => onOtherUnit(e.target.value as LengthUnit)}>
+              {LENGTH_UNITS.map((u) => <option key={u} value={u}>{t(`fin.u.${u}`)}</option>)}
+            </select>
+          </span>
+        </label>
+      )}
+    </>
+  );
+}
 
 /** The five phases of one deposit, on the Session's rail: DEPOSIT ◬ · HOLD ♡ · RELEASE ♡ · WITHDRAW 웃 · RECORD 웃. */
 export const FIN_PHASES: PodPhaseDef[] = [
@@ -160,36 +203,6 @@ export function FinancialCommandUX1() {
   const catLabel = (c: BudgetCategory) => t(`fin.cat.${CAT_KEY[c]}`);   // the record's r.006–r.011 entries still print their category
   const fieldLabel = (id: string) => { const f = fieldOf(id); return f ? t(`fin.field.${f.key}`) : id; };
   const secLabel = (sec: SectionId) => t(`fin.sec.${sec.toLowerCase()}`);
-  const PICK = "w-full rounded-md border border-border bg-background px-2 py-2 text-sm text-foreground landscape:py-1 landscape:text-xs";
-  const LadderPicker = ({ section, field, rec, onSection, onField, onRec, hook }: { section: FlowSectionId; field: string; rec: Recurrence; onSection: (s: FlowSectionId) => void; onField: (f: string) => void; onRec: (r: Recurrence) => void; hook: string }) => (
-    <>
-      <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground"><span><SectionIcon section={section} className="mr-1" />{t("fin.section")}</span>
-        <select data-fin-section={hook} className={PICK} value={section} onChange={(e) => { const sec = e.target.value as FlowSectionId; onSection(sec); onField(fieldsOf(sec)[0].id); }}>
-          {FLOW_SECTIONS.map((sec) => <option key={sec} value={sec}>{sec} · {secLabel(sec)}</option>)}
-        </select>
-      </label>
-      <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.field")}
-        <select data-fin-field={hook} className={PICK} value={field} onChange={(e) => onField(e.target.value)}>
-          {fieldsOf(section).map((f) => <option key={f.id} value={f.id}>{fieldLabel(f.id)}</option>)}
-        </select>
-      </label>
-      <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.length")}
-        <select data-fin-length={hook} className={PICK} value={rec} onChange={(e) => onRec(e.target.value as Recurrence)}>
-          {RECURRENCES.map((r) => <option key={r} value={r}>{t(`fin.rec.${r}`)}</option>)}
-        </select>
-      </label>
-      {rec === "other" && (
-        <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.rec.other")}
-          <span className="flex gap-2">
-            <input data-fin-length-n={hook} className={INPUT} inputMode="decimal" value={otherN} onChange={(e) => setOtherN(e.target.value)} />
-            <select data-fin-length-unit={hook} className={PICK} value={otherUnit} onChange={(e) => setOtherUnit(e.target.value as LengthUnit)}>
-              {LENGTH_UNITS.map((u) => <option key={u} value={u}>{t(`fin.u.${u}`)}</option>)}
-            </select>
-          </span>
-        </label>
-      )}
-    </>
-  );
   const [refusal, setRefusal] = useState<string | null>(null);
   const commit = (tx: FinTx) => { const next = append(record, tx, at); setRecord(next); if (!saveRecord(next)) setSaveFailed(true); };
   /** What an entry is for — its ladder field (r.012) or, for the r.006–r.011 entries, its category; icon before the word. */
@@ -325,7 +338,7 @@ export function FinancialCommandUX1() {
                 </label>
                 <label className="text-xs text-muted-foreground">{t("fin.amount")}<input className={INPUT} inputMode="decimal" value={amt} onChange={(e) => setAmt(e.target.value)} /></label>
                 <label className="text-xs text-muted-foreground">{t("fin.when")}<input className={INPUT} value={when} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setWhen(e.target.value)} /></label>
-                <LadderPicker section={sec} field={field} rec={rec} onSection={setSec} onField={setField} onRec={setRec} hook="transaction" />
+                <LadderPicker section={sec} field={field} rec={rec} onSection={setSec} onField={setField} onRec={setRec} otherN={otherN} onOtherN={setOtherN} otherUnit={otherUnit} onOtherUnit={setOtherUnit} t={t} hook="transaction" />
                 <label className="text-xs text-muted-foreground">{t("fin.memo")}<input className={INPUT} value={memo} onChange={(e) => setMemo(e.target.value)} /></label>
               </div>
               <button type="button" data-fin-record className={`mt-2 ${txType === "deposit" ? PRIMARY : SECONDARY}`} onClick={recordTransaction}>{txType === "deposit" ? t("fin.record_it") : t("fin.withdraw")}</button>
