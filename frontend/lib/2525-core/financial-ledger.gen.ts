@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 10 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 11 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -79,6 +79,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "The 365-day financial year IS 3600 A exactly (operator addendum 11, clarified: \"365 days is 3600.0000..0000 … Half year … = 1800\"): one A = 8,760 s; r.003 measured lengths on the 365.259636-day mean anomalistic year (298.97 A for the pay MoT) — superseded: 91 ÷ 3 days = 299.0641..0345 A; the day · hour · minute · second ladder is DERIVED from the scale (one day = 9.3106..3058 A); every writing prints its true A (365 d → 3600.0000..0000; r.003 substituted 3600.3600..3600); positions are never clamped and flagged past day 365; the fourth tier D (A.BBBB..CCCC...DDDD, 0.18776 µs) is declared. Every planet's whole is its own revolution, perihelion to perihelion (addendum 12: Mars 686.98 Earth days, 668.5991 sols the future form); A.B..C is the standard for all planets, converted to the planet's LTU — Earth hours · minutes · seconds for Mars for now — from the PER-PLANET LTU TABLE, now MASTER DATA IN THE ADMIN PANEL under the seed law (Business Setup › Planet LTU; the cloud config bundle), read by Financial-2525 so an edit adjusts every conversion with no code change. For now the Earth row reads Month = 91 with one system-offline day on Dec 31 (addendum 13): the calendar year is the default anchor, Dec 31 the offline day 365, the perihelion anchor selectable. The reveal is the MoT-icon ⇄ Clock-icon toggle, one state for the card. FIN-01.01 → FIN-01.02 · FIN-02 → FIN-02.01 · FIN-13 → FIN-13.01 + FIN-13.02 · FD-15..18. The lenses' round-1 backlog carries to r.006.",
       "commit": "c27628d"
+    },
+    {
+      "rev": 11,
+      "date": "2026-09-30",
+      "kind": "release",
+      "text": "v.000_r.005 SHIPPED — the 365-day financial year IS 3600 A exactly (one A = 8,760 s; the pay MoT 299.0641..0345 A; the day · hour · minute · second ladder derived; positions never clamped, flagged past day 365; the D tier declared), every planet on its own revolution (Mars 686.98 Earth days, Earth hours as LTU for now), the PER-PLANET LTU TABLE as master data in the Admin panel under the seed law (Business Setup › Planet LTU: year · month 91 · offline day Dec 31 · year opens · Day in A.B..C · hours · minutes · seconds, every field editable; read by the Financial surface so an edit adjusts every conversion), the planet selector, the MoT-icon ⇄ Clock-icon toggle as the card's one reveal (Clock by default), the canonical address /financial-2525 (addendum 15; /main/Financial-2525 the alias), 17 lexicon keys filled ×32. Shipped as 9163fab (the edition) + a8f6acd (the address). Gates: financial-mot 72 · planet-ltu 24 · financial-surface 50 · financial-crs 202 · financial-i18n 301 · innovation-time 3813 · lexicon-coverage 97 · full test:ci 0 (92 suites) · next build 0 (one stamp a8f6acd, smoke 5/0).",
+      "commit": "a8f6acd"
     }
   ]
 };
