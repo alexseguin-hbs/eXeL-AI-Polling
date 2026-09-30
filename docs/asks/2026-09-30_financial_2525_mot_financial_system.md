@@ -102,6 +102,16 @@
 >
 > remember perihelion exact time for Austin Texas CST is Standard
 
+> (addendum 19, verbatim — with the PERSONAL sheet photographed again, saved beside this file as `2026-09-30_financial_2525_personal_sheet_icons.jpg`, and a phone crop of its Fixed/Variable list as `2026-09-30_financial_2525_personal_sheet_icons_phone.png`: the sheet draws an icon before every line — a house for Home 700 F, a car for CAR 1,800 F, a circled mark for INSURANCE 200 F, a lightning bolt for Electric 150 V, a plate for FOOD 300 V, a lifting figure for Fitness 50 F, a dancing figure for FUN 200 V, a banknote for Income 3200 F) Ensure all have icons
+>
+> Income 
+> Mortgage
+> Car
+> Insurance
+> Food
+> Fitness
+> Fun
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -211,6 +221,13 @@
     table but is no longer the default), and its exact time is written in **Austin, Texas CST STANDARD time (UTC−6, no daylight
     shift, ever)** — every perihelion row of the sourced table carries its CST-standard instant beside its UTC one. Month 91
     and the Dec 31 offline day (addendum 13) are calendar dates and stay as they are. Ships as r.007.
+27. **Every category carries its icon (addendum 19):** the sheet draws an icon before every personal-finance line, and the
+    operator names seven — Income · Mortgage · Car · Insurance · Food · Fitness · Fun; "ensure ALL have icons" binds every
+    category on the glass, so the two the sheet does not name (Dining Out · Other) and the sheet's own Electric (Utilities)
+    get one too. Icons are strokes (the vector law), never fills; they sit before the word on the budget table, beside the
+    category dropdown on both forms, and on the roster and the record. His words Car and Food match the sheet (CAR · FOOD);
+    the glass reads Auto and Groceries from the earlier transcription — the labels are NOT changed by this addendum (only the
+    icons are asked); flagged for his word. Ships as r.008.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
