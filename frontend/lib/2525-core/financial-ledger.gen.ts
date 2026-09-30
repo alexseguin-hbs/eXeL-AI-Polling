@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 8 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 9 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/main/Financial-2525",
@@ -65,6 +65,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "Round 1 of the twelve-lens review (FIN-09) persisted: docs/financial-2525/reviews/r001_twelve_lenses.md (sha256 97ff0c063b4f466f96401dd436f9cd9b05ec172d9257e693b196b14f1254c75d, committed alone at 8990b2d) — 12 lenses + synthesis on the MoT Financials notes, median B (7 B · 5 B−); all twelve agree the notes were enough to build from and that r.001–r.003 already hold the money law. The stop rule for \"until simulated sufficiently\" adopted as FD-14: one full real MoT on the operator's phone with a withdrawal and his feedback persisted; two consecutive converging rounds; determinism on two devices × nine runs; every named gate green; no redeclared primitive; the ×32 fill landed; LIVE verified. The lenses' owed list — one perihelion table, one MoT number on glass and gate, a withdrawal checked at every instant, the chart's available series and hold vertex, a record that survives a full phone, no machine word on the person's screen — is r.005's backlog. Addenda 6–10 supersede any lens reading they contradict.",
       "commit": "8990b2d"
+    },
+    {
+      "rev": 9,
+      "date": "2026-09-30",
+      "kind": "release",
+      "text": "v.000_r.004 SHIPPED — the twelve-lens round-1 record on the record: reviews[0] PERSISTED (file · sha256 · the commit that persisted it alone), FD-14 the stop rule for \"until simulated sufficiently\" (seven conditions; the business frame waits on all of them), and the second half of the FIN-09 gate — financial-render refuses a non-PENDING round whose record is missing, incomplete or edited (12 lens sections · the synthesis · bytes hashing to reviews[].sha256); financial-crs proves the same plus the sidecar, the persisting commit, FD-14 and no model identifier in the record. Gates: financial-crs 151 · financial-surface 43 · rcore-stage2 78 · traceability 61 · full test:ci 0 · next build 0.",
+      "commit": "78b4cdf"
     }
   ]
 };

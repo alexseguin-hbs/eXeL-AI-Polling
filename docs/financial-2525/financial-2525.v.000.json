@@ -54,7 +54,7 @@
    "kind": "decision",
    "why": "The twelve-lens review of the MoT Financials notes (round 1, FIN-09) is persisted beside the revisions — docs/financial-2525/reviews/r001_twelve_lenses.md, sha256 97ff0c06… on the ledger, committed alone at 8990b2d — and its stop rule for \"until simulated sufficiently\" is adopted as FD-14. Grades: median B (7 B · 5 B−); all twelve agree the notes were enough to build from and that r.001–r.003 already hold the money law; what they rule is on the record as r.005's backlog: one perihelion table, one MoT number on glass and gate, a withdrawal checked at every instant, the chart drawing available and its hold vertex, a record that survives a full phone, no machine word on the person's screen, the ×32 fill. The gate now proves the record file exists with 12 lens sections and hashes to reviews[].sha256. Addenda 6–10 (arrived mid-review) supersede any lens reading they contradict.",
    "commit": "8990b2d",
-   "shipped": "PENDING"
+   "shipped": "78b4cdf"
   }
  ],
  "mot": {
