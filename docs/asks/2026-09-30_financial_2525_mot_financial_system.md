@@ -61,6 +61,18 @@
 >
 > 3600 sub sub ubits
 
+> (addendum 11, verbatim) key is 24 hr day is split to 3600.3600..3600 backend for all time measurements. This works for Earth and Mars (based off local time units universally established by the planet of choice).
+
+> (clarification 1, verbatim — asked how the day relates to the revolution whole of r.003) 365 days is 3600.0000..0000 which can also be notated 3600. Half year is 365/2 days = 1800.0000.0000 or 1800  Basically we use this to translate to day/min/sec 3600.3600..3600 allows for smaller than second measurements due to nature of A.B..C and if smaller time splits are needed we use A.B..C…D
+
+> (clarification 2, verbatim — asked which local units Mars uses) Same; we use full revolution around sun as A.B..C scheudle.  since mars does not have 24 unit split of time; we’ll use Earth Hours for now.  That said; true universal system would use longer time delays if mars days are linger and standardize to 24 hour unit based off revolution of planet
+
+> (addendum 12, verbatim) remember 3600 units for mars from perihelion to perihelion… Standard units for all planets are A.B..C
+>
+> then we convert to hours for earth and LTU for Mars (for now it is hours minutes and seconds).  Therefore in the future if we should change mars LTU, everything should modularly adjust (LTU tables for each planet are in admin panel).
+
+> (addendum 13, verbatim — returned with the r.005 plan) have MoT Icon toggle with Clock icon toggle to switch between measurements .  LTU Table should show Month 91 for now (with 1 day system off line Dec 31). Day in A.B..C as well as Hours, Minutes, and Seconds with ability to edit
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -129,6 +141,24 @@
     at the next), and a MoT LENGTH such as 30.333 days converts INTO that scale as ≈ 298.97 A-units (30.333 ÷ 365.26 ×
     3600) — that is what "MoT = 30.33 converted … from the Celestial-2525 scale" meant. **Correction on the record:**
     r.001–r.002 read a pay period as its own whole (its end printed 3600.3600..3600); the whole is the revolution.
+21. **The 365-day financial year IS 3600 A exactly, and the LTU table is master data (addenda 11–13, r.005):** the whole
+    stays every planet's OWN revolution, perihelion to perihelion (Mars included); for Earth the financial year is
+    EXACTLY 365 days = 3600.0000..0000 (also written 3600) and half a year 182.5 days = 1800, so 1 A = 8,760 s (2 h 26 min),
+    1 B = 2.4333 s, 1 C = 0.6759 ms, and a fourth tier D (0.18776 µs, written A.BBBB..CCCC...DDDD) exists for splits below C;
+    the day · hour · minute · second ladder is DERIVED from that scale (1 day = 3600 ÷ 365 = 9.3106..3058 A) — "24 hr day is
+    split to 3600.3600..3600" is a translation, not a second whole. Lengths print their true A even past 3600 (730 days =
+    7200); a position past day 365 is shown and flagged, never clamped — six of the eleven sourced perihelion years never
+    reach 3600 before the next perihelion and 2028 / 2031 / 2034 never reach day 365, so the reset is the perihelion, not
+    the number. Mars converts to its LTU, which for now is Earth hours · minutes · seconds; the sol form (668.5991 sols) is
+    the future form. A.B..C is the standard backend unit for all planets, and the PER-PLANET LTU TABLE IS MASTER DATA IN THE
+    ADMIN PANEL under the seed law (seeded in code, merged into every saved copy, editable, tombstoned) — Financial-2525 reads
+    it, so a change of Mars's LTU there adjusts every conversion with no code change. FOR NOW the table's Earth row reads
+    Month = 91 days (4 × 91 = 364) with ONE system-offline day on Dec 31, which makes the calendar year (Jan 1 → Dec 31) the
+    default anchor and Dec 31 the offline day 365; the perihelion anchor stays selectable in the table; the sheet's personal
+    frames 33 · 66 · 99 remain frames, not the month. The table shows, per planet, the Day in A.B..C beside Hours · Minutes ·
+    Seconds, every field editable. On the surface the reveal is a MoT-icon ⇄ Clock-icon toggle. **On the record:** r.003's
+    298.97 A (measured on the 365.259636-day mean anomalistic year) is superseded by 299.18 A (91 ÷ 3 ÷ 365 × 3600 =
+    299.0641..0345); the record keeps both.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
