@@ -275,6 +275,9 @@
 > monthly , weekly, One time etc timeline so when we do $/min its based of transaction date and how long it last 30.333 days etc
 > goal is to tract $/min against budget long term; first by testing and adjusting with my own finances.  and to see $/min accrual process
 
+> (addendum 23, verbatim — while r.012 was in its gate chain) 48 Fleet test usability of Finance-2525
+> use 12 AsM and MoT to orchestrate
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -416,6 +419,13 @@
     of each entry runs from its transaction date for its length and the ladder's $/min can be tracked against the budget
     over time, first on the operator's own finances. Ships as r.012 (the model first — types, sections, fields, periods, the
     Net equation, the U rule, gates; then the pickers and the stock surface).
+31. **A 48-agent usability fleet on Financial-2525 (addendum 23):** twelve lenses (Aset · Asar · Athena · Christo · Enki · Enlil ·
+    Krishna · Odin · Pangu · Sofia · Thoth · Thor) × three agents each — a constructive usability walk (a stranger with the
+    operator's own sheet, on a phone, in 60 seconds), an adversarial pass (break the ladder math, the pickers, the timelines,
+    the record), and a synthesiser — 36, plus twelve MoT coordinators each answering one cross-cutting question over the twelve
+    syntheses — 48; read-only on the shipped r.012 tree and its export, verdicts persisted verbatim as
+    `docs/assessments/2026-09-30_financial_2525_fleet48_usability.md`; anything real and small folds into r.013 with the
+    N–T Balance view. Runs the moment r.012 is shipped.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
