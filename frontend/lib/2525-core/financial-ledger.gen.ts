@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 26 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 27 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -191,6 +191,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.013 decided (operator addendum 24): one transaction form — the type (Deposit · Withdrawal) as the first dropdown, the shared fields after it, the MoT length only for a deposit, one button whose word follows the type. FIN-03.02 → FIN-03.03 · FD-27 · FD-28 (the length dropdown with Other — addendum 25); ten keys staged.",
       "commit": "5690e9f"
+    },
+    {
+      "rev": 27,
+      "date": "2026-09-30",
+      "kind": "release",
+      "text": "v.000_r.013 SHIPPED — ONE transaction form (the type a dropdown that re-seats the picker; one button whose word follows the type) and the LENGTH a dropdown of presets with Other (a number in years · days · hours · minutes, stored as the entry's motDays on both kinds) — the typed MoT field and the separate timeline retired. FIN-03.02 → FIN-03.03 · FD-27 · FD-28; ten keys staged. Shipped as 1c89639. Gates: financial-surface 64 · financial-ladder 60 · financial-crs 340 · full test:ci 0 · next build 0.",
+      "commit": "1c89639"
     }
   ]
 };

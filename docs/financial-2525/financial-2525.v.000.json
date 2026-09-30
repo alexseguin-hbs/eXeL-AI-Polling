@@ -207,7 +207,7 @@
    "kind": "decision",
    "why": "ONE transaction form, the TYPE a dropdown (operator addendum 24 'there should be just transaction, with type on drop down', with his phone screenshot of the live r.011 DEPOSIT and WITHDRAWAL panels). command-ux1.tsx: the two panels collapse into one TRANSACTION panel — the type (Deposit · Withdrawal) as its first dropdown, then amount · day and time · the MoT length (deposits only) · section · field · timeline · memo — one picker set re-seated by the type (a deposit on A · Income / Wages every 33 days, a withdrawal on B · Rent / Mortgage once), one button whose word follows the type (Record it · Withdraw), the same refusals; a withdrawal may now carry a memo. AND (addendum 25 'length needs to be drop down; with Other for manual entry (MoT selectable to Year, Days, hrs, min') the LENGTH — the MoT — is ONE dropdown of presets (One time · Weekly · 30.333 days the pay MoT · Every 33 days · Monthly (91) · Yearly · Other) and Other opens a number with its unit (Years · Days · Hours · Minutes), stored as the entry's motDays on both kinds; the typed 'MoT · length in days' field and the separate timeline dropdown of r.012 are retired — a transaction's timeline IS its MoT length (ladder.ts: Recurrence gains paymot and other, PAY_MOT_DAYS, LENGTH_UNITS, lengthDays). Ten keys staged (fin.transaction · fin.type · fin.when · fin.length · fin.rec.paymot · fin.rec.other · fin.u.minutes/hours/days/years). FIN-03.02 → FIN-03.03, FD-27, FD-28.",
    "commit": "5690e9f",
-   "shipped": "PENDING"
+   "shipped": "1c89639"
   }
  ],
  "mot": {
