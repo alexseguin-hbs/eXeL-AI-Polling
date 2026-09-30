@@ -16,6 +16,13 @@
    "kind": "decision",
    "text": "Nine decisions on the record for revision 0.001 (docs/financial-2525/financial-2525.v.000.json decisions[]): (1) MoT in A.B..C is the elapsed fraction of one whole in Base-3600 — 0.0000..0000 at the start, 3600.3600..3600 at completion, the celestial orbit convention; (2) CST standard is UTC−6 all year; (3) released money is withdrawable from exactly 3 h after the deposit; (4) the pay MoT is 30.333 days = 91 ÷ 3, the personal month 33 days; (5) release is linear from the deposit instant; (6) personal first, business after feedback; (7) the cloud half is honest — per-login Supabase isolation waits on the login being wired into Supabase; (8) version 000 · revision 0.001 · stamp v.000_r.001; (9) the 9,999 웃 cap is YUG_CEILING, reused.",
    "commit": ""
+  },
+  {
+   "rev": 3,
+   "date": "2026-09-30",
+   "kind": "release",
+   "text": "v.000_r.001 SHIPPED — the MoT Financial System opens: the pure laws (MoT in A.B..C · the perihelion calendar · escrow releases $/min with the 3-hour hold · the budget ladder · the chain-hashed record), the one editable source with 13 FIN rows and 9 decisions, the rendered CRS / README / decisions register, the surface at /main/Financial-2525 (the worked example live before sign-in, the person's record after; the A.B..C chart; the R-CORE badge), the FINANCIAL launcher tile, 66 lexicon keys staged; five gates in test:ci (financial-mot 41 · accrual 28 · crs 130 · surface 36 · i18n 218). The twelve-lens review of the MoT notes runs as round 1; the ◬ ♡ 웃 Session shell (addendum 7) is r.002's first item.",
+   "commit": "39f44c1"
   }
  ]
 }

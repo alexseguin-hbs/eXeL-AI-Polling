@@ -48,7 +48,8 @@ export const FINANCIAL_DOMAIN = {
    "date": "2026-09-30",
    "kind": "ask",
    "why": "Financial-2525 opens at v.000_r.001 (operator: \"we start Financial-2525 at revision 0.001 · v.000_r.001\"): the MoT Financial System ask persisted verbatim with six addenda and the three MoT sheets transcribed; the pure laws (MoT in A.B..C, the perihelion calendar, escrow that releases $/min, the append-only record, the personal budget on the $/min · $/sec ladder), the wireframe surface on the ◬ ♡ 웃 Session basis, the R-CORE badge and this ladder — all gated in test:ci from the first line.",
-   "commit": "e31cc45"
+   "commit": "e31cc45",
+   "shipped": "39f44c1"
   }
  ],
  "mot": {
