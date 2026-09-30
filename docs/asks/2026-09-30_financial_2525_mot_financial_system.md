@@ -81,6 +81,17 @@
 >
 > https://exel-ai-polling.explore-096.workers.dev/financial-2525
 
+> (addendum 16, verbatim — with a phone screenshot of the live deposit / withdrawal forms, saved beside this file as `2026-09-30_financial_2525_transaction_category.png`: the Released card, the year line, the DEPOSIT form — Amount $, Deposit day and time (CST) 2026.09.30_15.34..27, MoT · length in days 30.333, Memo, Record it — and the WITHDRAWAL form) place input transaction, have drop down of mentioned elements of personal finance:
+>
+> fixed
+> variable
+>
+> income
+> Mortgage/Rent
+> Auto
+> Insurance
+> etc
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -173,6 +184,10 @@
 23. **The canonical address is `/financial-2525` (addendum 15):** the launcher tile, the record's route, the sign-in return
     and every report point at https://exel-ai-polling.explore-096.workers.dev/financial-2525; `/main/Financial-2525` stays as
     an alias (the Drone-2525 two-route pattern), never the name.
+24. **Every transaction carries a personal-finance category (addendum 16):** the deposit and withdrawal forms gain a
+    dropdown of the sheet's budget elements — the kinds Income · Fixed · Variable, and under them Mortgage/Rent (the
+    sheet's Home), Auto, Insurance, Utilities, Fitness, Fun, Groceries, Dining Out, Other — recorded on the entry, shown
+    on the roster and the record, so the budget ladder can meet the actuals.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
