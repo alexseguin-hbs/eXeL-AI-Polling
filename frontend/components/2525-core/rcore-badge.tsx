@@ -20,7 +20,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
-import type { RCoreHistory } from "@/lib/2525-core/revisions";
+import { RCORE_LOGO_H, type RCoreHistory } from "@/lib/2525-core/revisions";
 import { RCoreRevisionPanel } from "@/components/2525-core/rcore-revision-panel";
 
 // Operator 2026-09-25 ("just use icons provided exactly as is"): render the supplied R-CORE raster artwork
@@ -28,7 +28,7 @@ import { RCoreRevisionPanel } from "@/components/2525-core/rcore-revision-panel"
 // recreation. Both are used as-is (docs/asks/2026-09-25_rcore_exact_icons.md).
 const ICON = "/r-core/r-core-icon.png";        // image 1 — the framed reticle (REST)
 const WORDMARK = "/r-core/r-core-wordmark.png"; // image 3 — the "R-CORE" wordmark pill (CLICK 1)
-const H = 42;                                    // display height for both, natural width
+const H = RCORE_LOGO_H;                          // display height for both, natural width — the SAME size the panel header uses (operator 2026-09-27)
 
 export function RCoreBadge({ history, accent = "#22d3ee" }: { history: RCoreHistory; accent?: string }) {
   const { t } = useLexicon();

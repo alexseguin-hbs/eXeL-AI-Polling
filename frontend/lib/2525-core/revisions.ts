@@ -23,6 +23,13 @@ export function redactModelIds(s: string): string {
   return String(s ?? "").replace(MODEL_ID_RE, "an external model");
 }
 
+// ── The ONE display size of the R-CORE rasters (operator 2026-09-27) ─────────────────────────────
+// "make R-CORE LOGO AND LOGO + Word art default size at bottom of page and the same size at top of
+// comparison / revision review." The reticle icon and the wordmark pill render at this height (natural
+// width) on the bottom-of-page badge AND in the panel header — one constant, shared here because the
+// badge imports the panel (a UI constant in either component would be an import cycle).
+export const RCORE_LOGO_H = 42;
+
 // ── The normalized shape every surface's history collapses into ──────────────────────────────
 export interface RCoreRevision {
   /** Revision id as a string — "0.034" (DRS) or "47" (ledger). Normalized so both sort/compare alike. */

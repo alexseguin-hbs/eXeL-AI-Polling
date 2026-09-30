@@ -105,6 +105,19 @@ ok(/data-rcore-panel/.test(panelSrc) && /compareRevisions\(/.test(panelSrc), "pa
 ok(/rcore\.version_history/.test(panelSrc) && /rcore\.what_changed/.test(panelSrc), "panel is titled Version History and shows the 'What changed' diff");
 ok(/decisionsOf\(/.test(panelSrc) && /\\bD\\d/.test(panelSrc), "panel renders the per-revision D# decision citations (traceability), not just the diff (fleet 2026-09-26, Athena)");
 
+// ── 6b · ONE logo size: the bottom badge and the panel header size the rasters from the SAME constant ──
+// Operator 2026-09-27: "make R-CORE LOGO AND LOGO + Word art default size at bottom of page and the same size at
+// top of comparison / revision review." The invariant is the shared constant, not a pixel number: the badge reads
+// RCORE_LOGO_H, every raster in the panel header reads RCORE_LOGO_H, and no raster is forced to a square.
+const revSrc = fs.readFileSync(new URL("../lib/2525-core/revisions.ts", import.meta.url), "utf8");
+ok(/export const RCORE_LOGO_H = \d+;/.test(revSrc), "RCORE_LOGO_H is exported once from the shared revisions module (no import cycle)");
+// the badge names its rasters by the ICON / WORDMARK constants; the panel inlines the two paths
+const badgeImgs = [...badgeSrc.matchAll(/<img src=\{(?:ICON|WORDMARK)\}[^>]*>/g)].map((m) => m[0]);
+const panelImgs = [...panelSrc.matchAll(/<img[^>]*\/r-core\/r-core-(?:icon|wordmark)\.png[^>]*>/g)].map((m) => m[0]);
+ok(badgeImgs.length === 2 && badgeImgs.every((s) => /height: H\b/.test(s) && /width: "auto"/.test(s)) && /const H = RCORE_LOGO_H;/.test(badgeSrc), "badge: icon + wordmark rasters at height H = RCORE_LOGO_H, natural width");
+ok(panelImgs.length === 2 && panelImgs.every((s) => /height: RCORE_LOGO_H\b/.test(s) && /width: "auto"/.test(s) && !/width=\{\d+\}|height=\{\d+\}/.test(s)), "panel header: icon + wordmark rasters at height RCORE_LOGO_H, natural width, never a forced width/height square");
+ok(!/height: \d+, width: "auto"/.test(panelSrc) && !/height: \d+, width: "auto"/.test(badgeSrc), "no hardcoded raster height remains in the badge or the panel — one size, one constant");
+
 // ── 7 · both Stage-1 surfaces mount RCoreBadge, each from its own source ────────────────────────────
 const soiSrc = fs.readFileSync(new URL("../app/SoI-2525/page.tsx", import.meta.url), "utf8");
 ok(/<RCoreBadge\b/.test(soiSrc) && /fromDrsRevisions/.test(soiSrc) && /SOI_DRS_REVISIONS/.test(soiSrc), "SoI-2525 mounts RCoreBadge, sourced from the DRS revisions");

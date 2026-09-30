@@ -24,7 +24,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import {
-  compareRevisions, impactOfRevision, categoryOf,
+  compareRevisions, impactOfRevision, categoryOf, RCORE_LOGO_H,
   type RCoreHistory, type RCoreRevision, type RCoreImpact,
 } from "@/lib/2525-core/revisions";
 import { escHtml, escAttr, unified } from "@/lib/version-diff";
@@ -154,11 +154,12 @@ export function RCoreRevisionPanel({
         <div style={{ position: "sticky", top: 0, background: PAL.bg, borderBottom: `1px solid ${PAL.line}`, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, zIndex: 1 }}>
           {/* the operator's exact reticle raster, as-is */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/r-core/r-core-icon.png" alt="" width={30} height={30} style={{ display: "block", flexShrink: 0 }} />
+          {/* the badge's default size, natural aspect — never a forced square (operator 2026-09-27 "the same size at top") */}
+          <img src="/r-core/r-core-icon.png" alt="" style={{ height: RCORE_LOGO_H, width: "auto", display: "block", flexShrink: 0 }} />
           <div style={{ minWidth: 0, flex: 1 }}>
             {/* the operator's exact "R-CORE" wordmark raster, as-is — the wordart at the top */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/r-core/r-core-wordmark.png" alt={t("rcore.brand")} style={{ height: 22, width: "auto", display: "block" }} />
+            <img src="/r-core/r-core-wordmark.png" alt={t("rcore.brand")} style={{ height: RCORE_LOGO_H, width: "auto", display: "block" }} />
             <div style={{ fontSize: 11, color: PAL.muted, fontFamily: "ui-monospace, monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 3 }}>
               {t("rcore.version_history")} · {history.surface || "—"}{history.route ? " · " + history.route : ""} · {n} {t("rcore.rev_short")}
             </div>
