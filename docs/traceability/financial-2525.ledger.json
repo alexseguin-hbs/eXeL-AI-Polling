@@ -198,6 +198,13 @@
    "kind": "correction",
    "text": "r.014 correction of r.006–r.013 (operator addendum 26 'this drop down goes away quick!'): every picker was a component declared inside the render body, remounted by the once-a-second $/min clock, so the phone dismissed its picker sheet. LadderPicker hoisted to a module-level component (stable identity), PICK module-level, the surface gate refuses any nested component; proven on the glass — the r.013 export read REMOUNTED for section · field · length · unit after three ticks, r.014 reads SAME for every select. FIN-03.04 · FD-29.",
    "commit": "6da8a3c"
+  },
+  {
+   "rev": 29,
+   "date": "2026-09-30",
+   "kind": "release",
+   "text": "v.000_r.014 SHIPPED — the picker law: every picker a module-level component with a stable identity, so the once-a-second clock never remounts a <select> and the phone keeps its picker open; proven on the glass (r.013 REMOUNTED ×4 → r.014 SAME for every select present). FIN-03.04 · FD-29. Shipped as 84f28f5. Gates: financial-surface 69 · financial-crs 350 · full test:ci 0 · next build 0.",
+   "commit": "84f28f5"
   }
  ]
 }

@@ -247,7 +247,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "correction",
    "why": "A dropdown stays open until the person picks (operator addendum 26 'this drop down goes away quick!', with his phone screenshot of the r.011 category picker closing by itself). THE CLASS, not the instance: every picker of r.006–r.013 (CategorySelect, then LadderPicker) was a component declared INSIDE the surface's render function — a new component type on every render — and the once-a-second clock that drives $/min re-renders the surface, so React unmounted and remounted every <select> each second and the phone's picker sheet was dismissed with the element it belonged to. Fix: LadderPicker is a module-level component with a stable identity (its Other state and t passed as props; PICK module-level); no component is declared inside the render body. Proven on the glass by the r.014 probe: on the r.013 export the section · field · length · unit selects read REMOUNTED after three clock ticks; on r.014 every select on the surface is the SAME DOM node. Gated at the source (financial-surface: LadderPicker at column 0, no indented component declaration). FIN-03.04 · FD-29.",
    "commit": "6da8a3c",
-   "shipped": "PENDING",
+   "shipped": "84f28f5",
    "correction": "r.006–r.013 shipped pickers that a re-render remounted; the r.010/r.011 lesson (a layout claim needs a measured capture) extends to behaviour — a picker claim needs a measured probe on the glass with the clock running."
   }
  ],
