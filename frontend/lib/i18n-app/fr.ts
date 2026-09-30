@@ -1310,5 +1310,6 @@ const T: Record<string, string> = {
   "fin.unit": "Unité",
   "fin.kind": "Type",
   "fin.device_only": "Sur ce téléphone uniquement — une copie en ligne suivra dès que la connexion à votre compte sera en place",
+  "fin.perihelion_cst": "Périhélie (heure normale CST d'Austin)",
 };
 export default T;

@@ -1378,5 +1378,6 @@ const T: Record<string, string> = {
   "fin.unit": "ਇਕਾਈ",
   "fin.kind": "ਕਿਸਮ",
   "fin.device_only": "ਸਿਰਫ਼ ਇਸ ਫ਼ੋਨ 'ਤੇ ਹੈ — ਸਾਈਨ ਇਨ ਕਰਨ 'ਤੇ ਕਲਾਊਡ 'ਤੇ ਵੀ ਇੱਕ ਕਾਪੀ ਰੱਖੀ ਜਾਵੇਗੀ",
+  "fin.perihelion_cst": "ਉਪਸੌਰ (ਆਸਟਿਨ CST ਮਿਆਰੀ ਸਮਾਂ)",
 };
 export default T;

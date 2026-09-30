@@ -1367,5 +1367,6 @@ const T: Record<string, string> = {
   "fin.unit": "الوحدة",
   "fin.kind": "النوع",
   "fin.device_only": "محفوظ على هذا الهاتف فقط — وستُحفظ نسخة سحابية بعد أن يصبح تسجيل الدخول متاحًا",
+  "fin.perihelion_cst": "الحضيض الشمسي (أوستن، التوقيت القياسي CST)",
 };
 export default T;

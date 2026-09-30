@@ -1366,5 +1366,6 @@ const T: Record<string, string> = {
   "fin.unit": "Unidade",
   "fin.kind": "Tipo",
   "fin.device_only": "Somente neste celular — uma cópia na nuvem virá assim que o login a levar",
+  "fin.perihelion_cst": "Periélio (Austin, hora padrão CST)",
 };
 export default T;

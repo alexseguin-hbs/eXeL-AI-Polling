@@ -1374,5 +1374,6 @@ const T: Record<string, string> = {
   "fin.unit": "Đơn vị",
   "fin.kind": "Loại",
   "fin.device_only": "Chỉ lưu trên điện thoại này — bản sao trên đám mây sẽ có sau khi bạn đăng nhập",
+  "fin.perihelion_cst": "Điểm cận nhật (giờ chuẩn CST Austin)",
 };
 export default T;

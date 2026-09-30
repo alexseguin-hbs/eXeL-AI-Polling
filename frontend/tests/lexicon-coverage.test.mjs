@@ -24,6 +24,8 @@ const AFTER_FILL = new Set([
   // S9 · User Story · Highlights personas-aligned layout (operator 2026-09-24) — two column headers; ×32 fill owed:
   'soi2525.personas',
   'soi2525.high_priority_user_stories',
+  // Financial-2525 r.007 (operator 2026-09-30, addendum 18) — fin.perihelion_cst (the perihelion instant in CST standard on the year
+  // line) filled ×32 (native-speaker agents, eight languages each); nothing left in AFTER_FILL for r.007.
   // Financial-2525 r.006 (operator 2026-09-30, addenda 16–17) — the category dropdown + the budget unit toggle: 8 keys (fin.category ·
   // fin.cat.home (Home → Mortgage/Rent, its 32 stale fills removed first) · per_week · per_month · per_year · unit · kind · device_only)
   // were filled ×32 (native-speaker agents, four languages each); 2 reviewed shared words (ms Unit · nl per week) on the identical-allowed list.

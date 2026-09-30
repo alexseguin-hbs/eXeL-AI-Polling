@@ -8,13 +8,17 @@
  * TWO ANCHORS, one law. The year is 365 days = 3600 A exactly (mot.ts FINANCIAL_YEAR_DAYS); 4 × 91-day quarters = 364
  * days; day 365 is the DOWN day — the system's offline day — and no quarter owns it. Which instant OPENS the year is
  * the anchor, a field of the Admin panel's LTU table (lib/planet-ltu.ts yearAnchor):
- *   · "calendar" (the DEFAULT for now, addendum 13): the year opens Jan 1 at midnight CST and day 365 IS Dec 31 — the one
- *     offline day; a leap year's Feb 29 pushes Dec 31 to day 366, which still reads down and is flagged pastFull.
- *   · "perihelion" (r.001–r.004, kept selectable): the year opens at the PERIHELION INSTANT (the SoI calendar's own
+ *   · "perihelion" (the DEFAULT — r.001–r.004, r.005 made it selectable, r.007 restores it: addendum 18 "remember perihelion
+ *     exact time for Austin Texas CST is Standard"): the year opens at the PERIHELION INSTANT, written in CST STANDARD
+ *     (UTC−6, never daylight) beside its UTC (perihelionCst); Dec 31 stays the one system-offline day by its calendar date.
+ *   · "calendar" (r.005's default for one edition, kept selectable): the year opens Jan 1 at midnight CST and day 365 IS
+ *     Dec 31; a leap year's Feb 29 pushes Dec 31 to day 366, which still reads down and is flagged pastFull.
+ *   · The whole is the EXACT revolution, 365.259636 days = 3600 A (addendum 18 "365 should be exact amount 365.25 etc.";
+ *     mot.ts FINANCIAL_YEAR_DAYS) — the perihelion (r.001–r.004, kept selectable): the year opens at the PERIHELION INSTANT (the SoI calendar's own
  *     anchor, Celestial-2525's HU 0) and runs to the next; a perihelion-to-perihelion interval swings 363–368 days, so
  *     six of the eleven sourced years never reach 3600 before the reset and 2028 / 2031 / 2034 never reach day 365 —
  *     the reset is the perihelion, never the number (FIN-02.01).
- * The A.B..C of an instant is elapsed ÷ 365 d × 3600 on EITHER anchor, NEVER clamped; past 365 days it reads past
+ * The A.B..C of an instant is elapsed ÷ 365.259636 d × 3600 on EITHER anchor, NEVER clamped; past the whole it reads past
  * 3600 and `pastFull` says so. The PERSONAL frames run in 33-day months from day 1. CST standard (UTC−6, fixed) is
  * only how a day is NAMED; the instants are universal.
  *
@@ -24,7 +28,7 @@
  * outside the table are DECLARED (Jan 3 12:00 UTC) and say so — never a silent guess (U-WF-09). Pure; no clock reads.
  */
 import type { ABC } from "@/lib/abc-3600";
-import { motABC, MS_PER_DAY, LTU_DAYS, FINANCIAL_YEAR_DAYS, cstMs, cstParts, type LtuUnit } from "./mot";
+import { motABC, MS_PER_DAY, LTU_DAYS, FINANCIAL_YEAR_DAYS, cstMs, cstParts, fmtStampCST, type LtuUnit } from "./mot";
 
 export interface PerihelionRow { utc: string; status: "SOURCED" | "DECLARED"; source: string }
 export const PERIHELION: Record<number, PerihelionRow> = {
@@ -57,11 +61,15 @@ export function perihelionOf(year: number): { ms: number; status: "SOURCED" | "D
 
 export const QUARTER_DAYS = 91;
 export const GRID_DAYS = QUARTER_DAYS * 4;   // 364 — the business grid
+/** The perihelion instant of a year written in Austin CST STANDARD (UTC−6, never daylight): YYYY.MM.DD_HH.MM..SS — the
+ *  operator's fixed rule (addendum 18). Beside the UTC row, never instead of it. */
+export const perihelionCst = (year: number): { cst: string; status: "SOURCED" | "DECLARED" } => { const p = perihelionOf(year); return { cst: fmtStampCST(p.ms), status: p.status }; };
 export const DOWN_DAY = GRID_DAYS + 1;       // 365 — "down day 365 of year": Dec 31 on the calendar anchor (the system's
                                              // offline day); days 366–368 of a long perihelion year are down too, flagged pastFull
-/** Which instant opens the year — the Admin panel's LTU table decides (lib/planet-ltu.ts); "calendar" for now (addendum 13). */
+/** Which instant opens the year — the Admin panel's LTU table decides (lib/planet-ltu.ts); "perihelion" (addendum 18: "remember
+ *  perihelion exact time for Austin Texas CST is Standard"); "calendar" (Jan 1, r.005's default for a day) stays selectable. */
 export type YearAnchor = "calendar" | "perihelion";
-export const DEFAULT_ANCHOR: YearAnchor = "calendar";
+export const DEFAULT_ANCHOR: YearAnchor = "perihelion";   // r.007 (addendum 18): the perihelion instant opens the year again
 
 export interface YearPosition {
   year: number;            // the financial year (the CST calendar year, or the year whose perihelion opened it)

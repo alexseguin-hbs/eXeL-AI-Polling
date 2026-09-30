@@ -1,5 +1,5 @@
 /**
- * Financial-2525 · MoT — Measure of Time, in A.B..C (operator 2026-09-30, v.000_r.005).
+ * Financial-2525 · MoT — Measure of Time, in A.B..C (operator 2026-09-30, v.000_r.007).
  * ====================================================================================================
  * "A.B..C IS earth length around sun · 1 revolution split to 3600 units · 3600 sub units · 3600 sub sub units"
  * (addendum 10) · "365 days is 3600.0000..0000 which can also be notated 3600. Half year is 365/2 days = 1800 …
@@ -11,16 +11,17 @@
  *   ONE REVOLUTION of the planet around its star, perihelion to perihelion, is split into 3600 A-units; each A into
  *   3600 B; each B into 3600 C; and, below C, 3600 D (written A.BBBB..CCCC...DDDD — declared, not on the glass).
  *   Exactly the celestial UCRS-2525 orbit (lib/ucrs-2525.ts: HU 0 = perihelion, 3600 = a full orbit).
- *   · For EARTH the financial year is EXACTLY 365 days = 3600 A (also written 3600); half a year, 182.5 days, = 1800.
- *     So ONE A = 8,760 s (2 h 26 min), one B = 2.4333 s, one C = 0.6759 ms, one D = 0.18776 µs. The mean anomalistic
- *     year (365.259636 d) is kept below as the astronomical NOTE; r.003 measured lengths on it (298.97 A for the pay
- *     MoT) — superseded: the pay MoT (91 ÷ 3 days) is 299.0641..0345 A.
- *   · The day · hour · minute · second ladder is DERIVED from the scale (A_PER): one day = 3600 ÷ 365 = 9.3106..3058 A.
- *     "24 hr day is split to 3600.3600..3600" is that translation, never a second whole.
- *   · The A.B..C of an INSTANT is its position in the current year: elapsed ÷ 365 d × 3600, NEVER clamped — a year
- *     that runs past day 365 reads past 3600 and is flagged (calendar.ts pastFull) until the year resets.
- *   · The A.B..C of a LENGTH is days ÷ 365 × 3600, never clamped: 730 days are 7200.0000..0000.
- *   · Every writing prints its TRUE A (365 d → 3600.0000..0000). "3600.3600..3600 · 3600.0000..0000 · 3599.3599..3599
+ *   · For EARTH the financial year is the EXACT revolution, 365.259636 days (the anomalistic year, SOURCED) = 3600 A
+ *     (also written 3600); half a year, 182.629818 days, = 1800. So ONE A = 8,766.23 s (2 h 26 min), one B = 2.4351 s,
+ *     one C = 0.6764 ms, one D = 0.18790 µs. r.007 (addendum 18, "365 should be exact amount 365.25 etc."): r.005 had
+ *     pinned EXACTLY 365 days (8,760 s per A, the pay MoT 299.0641..0345) — superseded on the record; r.003's 298.97
+ *     A for the pay MoT (91 ÷ 3 days) is the reading again: 298.3475..1826.
+ *   · The day · hour · minute · second ladder is DERIVED from the scale (A_PER): one day = 3600 ÷ 365.259636 =
+ *     9.3081..2196 A. "24 hr day is split to 3600.3600..3600" is that translation, never a second whole.
+ *   · The A.B..C of an INSTANT is its position in the current year: elapsed ÷ 365.259636 d × 3600, NEVER clamped — a
+ *     year that runs past the whole reads past 3600 and is flagged (calendar.ts pastFull) until the next perihelion.
+ *   · The A.B..C of a LENGTH is days ÷ 365.259636 × 3600, never clamped: two years are 7200.0000..0000.
+ *   · Every writing prints its TRUE A (365.259636 d → 3600.0000..0000). "3600.3600..3600 · 3600.0000..0000 · 3599.3599..3599
  *     } Equal" (the sheet) stays a predicate (isFull), never a print substitution.
  *   · The scale never names a planet: Mars' whole is ITS revolution (686.98 Earth days; 668.5991 sols is the same
  *     whole in sols) and its LTU is, FOR NOW, Earth hours · minutes · seconds (FD-16); the per-planet LTU table lives
@@ -41,12 +42,13 @@ export const MIN_PER_DAY = MIN_PER_HOUR * HOUR_PER_DAY;   // 1,440 — the sheet
 export const SEC_PER_DAY = MIN_PER_DAY * SEC_PER_MIN;     // 86,400
 export const MS_PER_DAY = SEC_PER_DAY * 1000;
 /** THE WHOLE for Earth: the financial year is exactly 365 days = 3600 A (operator, addendum 11: "365 days is 3600"). */
-export const FINANCIAL_YEAR_DAYS = 365;
-export const FINANCIAL_YEAR_SEC = FINANCIAL_YEAR_DAYS * SEC_PER_DAY;   // 31,536,000 s → one A = 8,760 s
-export const HALF_YEAR_DAYS = FINANCIAL_YEAR_DAYS / 2;                // 182.5 d = 1800.0000..0000
 /** Earth's mean revolution perihelion to perihelion — the anomalistic year, 365.259636 days (SOURCED: standard
- *  astronomical constant). The astronomical NOTE only: r.003 measured lengths on it; r.005's whole is 365 d exactly. */
+ *  astronomical constant). r.007 (addendum 18, "365 should be exact amount 365.25 etc."): this IS the financial year's
+ *  whole — r.005's exact-365 is superseded on the record; r.003 had measured on it. */
 export const EARTH_REVOLUTION_DAYS = 365.259636;
+export const FINANCIAL_YEAR_DAYS = EARTH_REVOLUTION_DAYS;             // 365.259636 d = 3600 A exactly — one primitive
+export const FINANCIAL_YEAR_SEC = FINANCIAL_YEAR_DAYS * SEC_PER_DAY;   // 31,558,432.55 s → one A = 8,766.23 s
+export const HALF_YEAR_DAYS = FINANCIAL_YEAR_DAYS / 2;                // 182.629818 d = 1800.0000..0000
 /** Mars' revolution as the SAME whole: 686.98 Earth days (= lib/ucrs-2525.ts PLANETS mars.tDays — one primitive) with
  *  Earth hours · minutes · seconds as its LTU for now (FD-16); 668.5991 sols is the same revolution counted in sols
  *  (686.98 ÷ 1.02749), the future form once a 24-unit split of the sol is declared. */
@@ -65,10 +67,10 @@ export const FULL_ABC: ABC = { a: SUB, b: SUB, c: SUB };
 export const FULL_MOT = "3600.3600..3600";
 /** One A · B · C · D of the whole, as fractions of the whole — the derived ladder's own unit (A_PER below). */
 export const A_PER = {
-  day: SUB / FINANCIAL_YEAR_DAYS,                         // 9.8630 A per Earth day
-  hour: SUB / FINANCIAL_YEAR_DAYS / HOUR_PER_DAY,         // 0.41096 A per hour
-  min: SUB / FINANCIAL_YEAR_DAYS / MIN_PER_DAY,           // 0.0068493 A per minute
-  sec: SUB / FINANCIAL_YEAR_DAYS / SEC_PER_DAY,           // 0.00011416 A per second (1,479 C)
+  day: SUB / FINANCIAL_YEAR_DAYS,                         // 9.8560 A per Earth day
+  hour: SUB / FINANCIAL_YEAR_DAYS / HOUR_PER_DAY,         // 0.41067 A per hour
+  min: SUB / FINANCIAL_YEAR_DAYS / MIN_PER_DAY,           // 0.0068445 A per minute
+  sec: SUB / FINANCIAL_YEAR_DAYS / SEC_PER_DAY,           // 0.00011407 A per second (1,478 C)
 } as const;
 
 /** Seconds a length of `days` Earth days holds. */

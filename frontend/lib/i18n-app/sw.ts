@@ -1375,5 +1375,6 @@ const T: Record<string, string> = {
   "fin.unit": "Kipimo",
   "fin.kind": "Aina",
   "fin.device_only": "Kwenye simu hii pekee — nakala kwenye wingu itafuata pindi kuingia kutakapoibeba",
+  "fin.perihelion_cst": "Perihelioni (saa za kawaida za CST, Austin)",
 };
 export default T;

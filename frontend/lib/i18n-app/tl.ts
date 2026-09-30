@@ -1518,5 +1518,6 @@ const T: Record<string, string> = {
   "fin.unit": "Yunit",
   "fin.kind": "Uri",
   "fin.device_only": "Sa teleponong ito lamang — susunod ang kopya sa cloud kapag naka-sign in ka na",
+  "fin.perihelion_cst": "Perihelyo (pamantayang oras CST ng Austin)",
 };
 export default T;

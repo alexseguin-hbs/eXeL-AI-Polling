@@ -1373,5 +1373,6 @@ const T: Record<string, string> = {
   "fin.unit": "Unitate",
   "fin.kind": "Tip",
   "fin.device_only": "Doar pe acest telefon — o copie în cloud va apărea după autentificare",
+  "fin.perihelion_cst": "Periheliu (Austin, ora standard CST)",
 };
 export default T;

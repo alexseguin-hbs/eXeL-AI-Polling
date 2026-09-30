@@ -1369,5 +1369,6 @@ const T: Record<string, string> = {
   "fin.unit": "Birim",
   "fin.kind": "Tür",
   "fin.device_only": "Yalnızca bu telefonda — oturum açtığınızda bulut kopyası da eklenir",
+  "fin.perihelion_cst": "Günberi (Austin CST standart saati)",
 };
 export default T;

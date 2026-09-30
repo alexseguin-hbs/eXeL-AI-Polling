@@ -1373,5 +1373,6 @@ const T: Record<string, string> = {
   "fin.unit": "Jednostka",
   "fin.kind": "Rodzaj",
   "fin.device_only": "Tylko na tym telefonie — kopia w chmurze pojawi się po zalogowaniu",
+  "fin.perihelion_cst": "Peryhelium (Austin, czas standardowy CST)",
 };
 export default T;

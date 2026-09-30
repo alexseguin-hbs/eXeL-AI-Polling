@@ -1372,5 +1372,6 @@ const T: Record<string, string> = {
   "fin.unit": "Jednotka",
   "fin.kind": "Druh",
   "fin.device_only": "Jen v tomto telefonu – kopie v cloudu přibude, jakmile se přihlásíte",
+  "fin.perihelion_cst": "Perihelium (Austin, standardní čas CST)",
 };
 export default T;

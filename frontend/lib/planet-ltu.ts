@@ -47,8 +47,8 @@ export const PLANET_LTU_REMOVED_KEY = "innovation-planet-ltu-removed";
 export const PLANET_LTU_SEED: readonly PlanetLtuRow[] = [
   {
     code: "earth", name: "Earth", revLocalDays: FINANCIAL_YEAR_DAYS, revEarthDays: FINANCIAL_YEAR_DAYS, yearDays: FINANCIAL_YEAR_DAYS,
-    monthDays: 91, offlineDay: "12-31", yearAnchor: "calendar", hoursPerDay: HOUR_PER_DAY, minPerHour: MIN_PER_HOUR, secPerMin: SEC_PER_MIN,
-    status: "OPERATOR", note: "365 days = 3600 A exactly (addendum 11); Month 91 for now, one offline day Dec 31 (addendum 13); hours · minutes · seconds",
+    monthDays: 91, offlineDay: "12-31", yearAnchor: "perihelion", hoursPerDay: HOUR_PER_DAY, minPerHour: MIN_PER_HOUR, secPerMin: SEC_PER_MIN,
+    status: "OPERATOR", note: "the EXACT revolution 365.259636 days = 3600 A (addendum 18, '365.25 etc.'); the year opens at the perihelion instant, Austin CST standard; Month 91 for now, one offline day Dec 31 (addendum 13); hours · minutes · seconds",
   },
   {
     code: "mars", name: "Mars", revLocalDays: MARS_REVOLUTION_SOLS, revEarthDays: MARS_REVOLUTION_EARTH_DAYS, yearDays: MARS_REVOLUTION_EARTH_DAYS,

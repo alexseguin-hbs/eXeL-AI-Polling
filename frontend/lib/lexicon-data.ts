@@ -2995,6 +2995,7 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.a_units", englishDefault: "A-units of the revolution", context: "Financial-2525: unit label after an A.B..C length — one revolution of the Earth around the Sun is 3600 A-units", cubeId: 0 },
   { key: "fin.planet", englishDefault: "Planet", context: "Financial-2525: label of the planet selector whose LTU table (Admin panel) every conversion on the chart reads — Earth by default", cubeId: 0 },
   { key: "fin.anchor_note", englishDefault: "The year position is on the perihelion anchor; no perihelion table for this planet yet — declared, not sourced", context: "Financial-2525: the note under the year line when a planet other than Earth is selected", cubeId: 0 },
+  { key: "fin.perihelion_cst", englishDefault: "Perihelion (Austin CST standard)", context: "Financial-2525: label before the perihelion instant that opens the year, written in Central Standard Time (UTC−6, never daylight time)", cubeId: 0 },
 ];
 const drone2525: TranslationEntry[] = [
   { key: "drone.back", englishDefault: "Back", context: "Drone-2525: button that leaves the arena and returns to the site", cubeId: 0 },

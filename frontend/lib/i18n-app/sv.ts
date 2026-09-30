@@ -1381,5 +1381,6 @@ const T: Record<string, string> = {
   "fin.unit": "Enhet",
   "fin.kind": "Typ",
   "fin.device_only": "Bara på den här telefonen – en kopia i molnet följer när du loggar in",
+  "fin.perihelion_cst": "Perihelium (Austin CST normaltid)",
 };
 export default T;

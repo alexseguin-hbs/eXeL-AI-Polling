@@ -1371,5 +1371,6 @@ const T: Record<string, string> = {
   "fin.unit": "একক",
   "fin.kind": "ধরন",
   "fin.device_only": "শুধু এই ফোনে আছে — সাইন ইন করলে ক্লাউডেও একটি কপি রাখা হবে",
+  "fin.perihelion_cst": "অনুসূর (অস্টিন CST মান সময়)",
 };
 export default T;

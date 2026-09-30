@@ -1382,5 +1382,6 @@ const T: Record<string, string> = {
   "fin.unit": "Μονάδα",
   "fin.kind": "Είδος",
   "fin.device_only": "Μόνο σε αυτό το τηλέφωνο — ένα αντίγραφο στο cloud θα ακολουθήσει μόλις συνδεθείτε",
+  "fin.perihelion_cst": "Περιήλιο (Ώστιν, τυπική ώρα CST)",
 };
 export default T;

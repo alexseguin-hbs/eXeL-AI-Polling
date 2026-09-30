@@ -1370,5 +1370,6 @@ const T: Record<string, string> = {
   "fin.unit": "יחידה",
   "fin.kind": "סוג",
   "fin.device_only": "רק בטלפון הזה — עותק בענן יגיע ברגע שההתחברות תישא אותו",
+  "fin.perihelion_cst": "פריהליון (שעון חורף CST של אוסטין)",
 };
 export default T;

@@ -1386,5 +1386,6 @@ const T: Record<string, string> = {
   "fin.unit": "Satuan",
   "fin.kind": "Jenis",
   "fin.device_only": "Hanya di ponsel ini — salinan di awan menyusul setelah Anda masuk",
+  "fin.perihelion_cst": "Perihelion (waktu standar CST Austin)",
 };
 export default T;

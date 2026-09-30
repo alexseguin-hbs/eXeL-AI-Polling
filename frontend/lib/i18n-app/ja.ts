@@ -1373,5 +1373,6 @@ const T: Record<string, string> = {
   "fin.unit": "単位",
   "fin.kind": "種別",
   "fin.device_only": "このスマートフォンにのみ保存されています — サインインが使えるようになれば、クラウドにも控えが残ります",
+  "fin.perihelion_cst": "近日点 (オースティン CST 標準時)",
 };
 export default T;

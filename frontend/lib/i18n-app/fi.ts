@@ -1373,5 +1373,6 @@ const T: Record<string, string> = {
   "fin.unit": "Yksikkö",
   "fin.kind": "Tyyppi",
   "fin.device_only": "Vain tällä puhelimella – kopio pilveen tulee, kun kirjaudut sisään",
+  "fin.perihelion_cst": "Periheli (Austin, CST-normaaliaika)",
 };
 export default T;

@@ -93,6 +93,13 @@
    "kind": "release",
    "text": "v.000_r.006 SHIPPED — every transaction carries its personal-finance element from ONE grouped dropdown (Income · Fixed · Variable → Mortgage/Rent, Auto, Insurance, Utilities, Fitness, Fun, Groceries, Dining Out, Other) on both forms, recorded inside the entry's chain hash and printed on the roster and the record; the budget is a TABLE under a unit toggle — $/second · $/minute · $/hour · per day · per week · per 33 days (default) · per month (the LTU table's 91) · per year — week, month and year read the selected planet's LTU row; the record's sentence names no vendor. FIN-03 → FIN-03.01 · FIN-06 → FIN-06.01 · FD-19 · FD-20; eight lexicon keys filled ×32 (two reviewed shared words on the identical-allowed list). Shipped as 419e85b. Gates: financial-crs 220 · financial-surface 56 · financial-mot 72 · planet-ltu 24 · financial-i18n 324 · lexicon-coverage 97 · full test:ci 0 · next build 0.",
    "commit": "419e85b"
+  },
+  {
+   "rev": 14,
+   "date": "2026-09-30",
+   "kind": "correction",
+   "text": "r.007 decided (operator addendum 18): the year is the EXACT revolution — 365.259636 days = 3600 A (one A = 8,766.23 s; the pay MoT 298.3475..1826 A) — never a rounded 365; the perihelion instant opens the year again (default anchor; the calendar year selectable) and is written in Austin CST STANDARD (UTC−6, never daylight) on the year panel; the Earth seed row updated under the seed law; the A.B..C axis marks three lines. r.005's exact-365 whole and calendar default superseded on the record. FIN-01.02 → FIN-01.03 · FIN-02.01 → FIN-02.02 · FD-21.",
+   "commit": "25ec03d"
   }
  ]
 }

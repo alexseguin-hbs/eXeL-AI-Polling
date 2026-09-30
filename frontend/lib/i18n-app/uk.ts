@@ -1371,5 +1371,6 @@ const T: Record<string, string> = {
   "fin.unit": "Одиниця",
   "fin.kind": "Тип",
   "fin.device_only": "Лише на цьому телефоні — копія в хмарі з’явиться після входу",
+  "fin.perihelion_cst": "Перигелій (стандартний час CST, Остін)",
 };
 export default T;

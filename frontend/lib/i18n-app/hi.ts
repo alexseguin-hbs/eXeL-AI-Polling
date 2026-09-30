@@ -1368,5 +1368,6 @@ const T: Record<string, string> = {
   "fin.unit": "इकाई",
   "fin.kind": "प्रकार",
   "fin.device_only": "केवल इस फ़ोन पर सहेजा गया — साइन-इन उपलब्ध होते ही क्लाउड में भी एक प्रति रखी जाएगी",
+  "fin.perihelion_cst": "उपसौर (ऑस्टिन CST मानक समय)",
 };
 export default T;

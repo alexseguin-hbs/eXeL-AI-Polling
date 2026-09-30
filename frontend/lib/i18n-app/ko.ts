@@ -1371,5 +1371,6 @@ const T: Record<string, string> = {
   "fin.unit": "단위",
   "fin.kind": "구분",
   "fin.device_only": "이 휴대폰에만 저장됨 — 로그인이 가능해지면 클라우드 사본도 함께 보관됩니다",
+  "fin.perihelion_cst": "근일점 (오스틴 CST 표준시)",
 };
 export default T;

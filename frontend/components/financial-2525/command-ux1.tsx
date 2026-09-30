@@ -268,7 +268,8 @@ export function FinancialCommandUX1() {
           <div data-fin-year className={SUB} data-fin-past-full={year.pastFull ? "1" : undefined}>
             <div className={LABEL}>{t("fin.year_position")}</div>
             <p className="mt-1">{t("fin.day")} {year.day} · {year.down ? t("fin.down_day") : `${t("fin.quarter")} ${year.quarter} · ${year.dayInQuarter}/91`} · {t("fin.frame")} {frame.index + 1} · {frame.dayInFrame}/33</p>
-            <p className="font-mono text-xs text-muted-foreground">{fmtStampCST(at)} CST · {year.year} · {year.status} · {showAbc ? fmtMot(year.abc) : `${year.day}/${planet.yearDays}`}{year.pastFull ? " ↑" : ""}</p>
+            <p className="font-mono text-xs text-muted-foreground">{fmtStampCST(at)} CST · {year.year} · {year.status} · {showAbc ? fmtMot(year.abc) : `${year.day}/${Math.ceil(year.lengthDays)}`}{year.pastFull ? " ↑" : ""}</p>
+            {planet.code === "earth" && year.anchor === "perihelion" && <p data-fin-perihelion className="mt-1 font-mono text-xs text-muted-foreground">{t("fin.perihelion_cst")} · {fmtStampCST(year.startMs)} CST</p>}
             {planet.code !== "earth" && <p className="mt-1 text-xs text-muted-foreground">{t("fin.anchor_note")}</p>}
           </div>
         )}
@@ -400,7 +401,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector }: { tx
   const poly = (pick: (p: (typeof pts)[number]) => number) => pts.map((p) => `${x(p.t).toFixed(1)},${y(pick(p)).toFixed(1)}`).join(" ");
   const elapsed = Math.max(0, Math.min(len, now - from));
   const elapsedAbc = spanABC(elapsed / dayMs, planet.yearDays);      // the elapsed LENGTH, in A-units of the planet's revolution
-  const motAbc = spanABC(tx.motDays ?? 0, planet.yearDays);          // the whole MoT, in A-units (30.333 d = 299.0641..0345 A on Earth)
+  const motAbc = spanABC(tx.motDays ?? 0, planet.yearDays);          // the whole MoT, in A-units (30.333 d = 298.3475..1826 A on the exact Earth year)
   const sw = VECTOR_LAW.stroke.normal, hair = VECTOR_LAW.stroke.hairline;
   // the x axis: five marks over the MoT — day · hour · minute by default; on reveal the revolution's A.B..C at each mark
   const axis = [0, 0.25, 0.5, 0.75, 1].map((f) => (showAbc ? fmtMot(positionInYear(from + f * len, planet.yearAnchor).abc) : ltuLabel(f * len, len, planet)));
@@ -429,7 +430,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector }: { tx
         {inside(now) && <line x1={x(now)} y1={P} x2={x(now)} y2={H - P} stroke={C.blank} strokeWidth={hair} />}
       </svg>
       {/* five marks; in A.B..C mode a mark is two lines (A · .BBBB..CCCC) so five of them fit a 390 px phone without overprinting */}
-      <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{axis.map((a, i) => <span key={i} className={`whitespace-pre-line ${i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}`}>{showAbc ? a.replace(".", "\n.") : a}</span>)}</div>
+      <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{axis.map((a, i) => <span key={i} className={`whitespace-pre-line ${i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}`}>{showAbc ? a.replace(".", "\n.").replace("..", "\n..") : a}</span>)}</div>
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
         <span style={{ color: C.abundance }}>— {t("fin.released")}</span><span style={{ color: C.consciousness }}>— {t("fin.withdrawable")}</span><span style={{ color: C.intelligence }}>— {t("fin.escrowed")}</span><span style={{ color: C.temporal }}>| {t("fin.hold_mark")}</span><span>| {t("fin.now")}</span><span style={{ color: C.evolution }}>| {t("fin.withdrawal")}</span>
       </p>

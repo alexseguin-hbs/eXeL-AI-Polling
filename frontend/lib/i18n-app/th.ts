@@ -1376,5 +1376,6 @@ const T: Record<string, string> = {
   "fin.unit": "หน่วย",
   "fin.kind": "ประเภท",
   "fin.device_only": "อยู่ในโทรศัพท์เครื่องนี้เท่านั้น — เมื่อลงชื่อเข้าใช้แล้ว จะมีสำเนาบนคลาวด์ตามมา",
+  "fin.perihelion_cst": "จุดใกล้ดวงอาทิตย์ที่สุด (เวลามาตรฐาน CST ออสติน)",
 };
 export default T;

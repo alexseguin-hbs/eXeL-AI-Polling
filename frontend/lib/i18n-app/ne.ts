@@ -1371,5 +1371,6 @@ const T: Record<string, string> = {
   "fin.unit": "एकाइ",
   "fin.kind": "प्रकार",
   "fin.device_only": "यो फोनमा मात्र — साइन इनले साथमा लगेपछि क्लाउडमा प्रतिलिपि पुग्नेछ",
+  "fin.perihelion_cst": "उपसौर (अस्टिन CST मानक समय)",
 };
 export default T;

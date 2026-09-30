@@ -1370,5 +1370,6 @@ const T: Record<string, string> = {
   "fin.unit": "Единица",
   "fin.kind": "Вид",
   "fin.device_only": "Только на этом телефоне — копия в облаке появится после входа в аккаунт",
+  "fin.perihelion_cst": "Перигелий (Остин, стандартное время CST)",
 };
 export default T;

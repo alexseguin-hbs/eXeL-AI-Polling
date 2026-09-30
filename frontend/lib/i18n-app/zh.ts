@@ -1372,5 +1372,6 @@ const T: Record<string, string> = {
   "fin.unit": "单位",
   "fin.kind": "类型",
   "fin.device_only": "仅保存在这部手机上——登录后会自动同步一份云端副本",
+  "fin.perihelion_cst": "近日点（奥斯汀 CST 标准时间）",
 };
 export default T;

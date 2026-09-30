@@ -78,19 +78,21 @@ ok(d.decisions.some((x) => x.id === "FD-14" && /stop rule/.test(x.decision) && /
 ok(!/\b(Opus|Fable|Sonnet|Haiku|Grok|Gemini|GPT)\b/.test(recBody), "no model identifier in the persisted record");
 
 // ── 6b · r.005 (addenda 11–13): the 365-day whole, Mars on its own revolution, the LTU table in the Admin panel ──────
-ok(d.mot.revolution.financialYearDays === 365 && d.mot.revolution.halfYearInA === 1800 && d.mot.revolution.fullInA === 3600 && d.mot.orbitUnitsEarth.aSeconds === 8760 && d.mot.payMotInA === 299.18 && d.example.motInA === 299.18, "365 days = 3600 A exactly on the record: one A = 8,760 s; the pay MoT 299.18 A (r.003's 298.97 kept in the correction)");
+ok(d.mot.revolution.financialYearDays === 365.259636 && d.mot.revolution.halfYearInA === 1800 && d.mot.revolution.fullInA === 3600 && d.mot.orbitUnitsEarth.aSeconds === 8766.231264 && d.mot.payMotInA === 298.97 && d.example.motInA === 298.97, "r.007 (addendum 18): the exact revolution 365.259636 d = 3600 A on the record: one A = 8,766.23 s; the pay MoT 298.97 A");
+ok(d.mot.orbitUnitsEarth365 && d.mot.orbitUnitsEarth365.aSeconds === 8760 && /r\.005/.test(d.mot.orbitUnitsEarth365.note) && /299\.0641/.test(d.mot.payMotNote), "r.005's exact-365 units and its pay MoT stay on the record (never edited away)");
+ok(d.mot.anchor && d.mot.anchor.default === "perihelion" && /CST STANDARD/.test(d.mot.anchor.cst) && /2026\.01\.03_11\.15\.\.00/.test(d.mot.anchor.cst) && /never daylight/.test(d.mot.anchor.cst), "the perihelion is the default anchor and its instant is written in Austin CST standard on the record");
 ok(/298\.97/.test(d.mot.payMotNote) && d.mot.orbitUnitsEarthMean && d.mot.orbitUnitsEarthMean.aSeconds === 8766.2, "r.003's reading stays on the record (never edited away)");
 ok(d.mot.tierD && d.mot.tierD.notation === "A.BBBB..CCCC...DDDD" && /DECLARED/.test(d.mot.tierD.status), "the fourth tier D is declared, not on the glass");
 ok(d.mot.revolution.marsEarthDays === 686.98 && /Earth hours/.test(d.mot.revolution.marsLtu), "Mars: its own revolution in Earth days, Earth hours as LTU for now");
 ok(d.mot.planetLtuTable && d.mot.planetLtuTable.rows.join() === "earth,mars" && /Admin panel/.test(d.mot.planetLtuTable.where) && d.mot.ltu.analysisMonth === 91, "the per-planet LTU table is master data in the Admin panel; Month 91 for now");
-for (const [old, next] of [["FIN-01.01", "FIN-01.02"], ["FIN-02", "FIN-02.01"], ["FIN-13", "FIN-13.01"]]) {
+for (const [old, next] of [["FIN-01.01", "FIN-01.02"], ["FIN-02", "FIN-02.01"], ["FIN-13", "FIN-13.01"], ["FIN-01.02", "FIN-01.03"], ["FIN-02.01", "FIN-02.02"]]) {
   const o = d.crs.find((x) => x.id === old), n = d.crs.find((x) => x.id === next);
   ok(o && o.status === "superseded" && new RegExp(next.replace(/\./g, "\\.")).test(o.metric), `${old} is superseded and names its successor`);
-  ok(n && n.status === "implemented" && n.section === o.section, `${next} is implemented in the parent's Vision section`);
+  ok(n && (n.status === "implemented" || (n.status === "superseded" && /SUPERSEDED by FIN-/.test(n.metric))) && n.section === o.section, `${next} is implemented in the parent's Vision section (or itself superseded by a named successor)`);
 }
 ok(d.crs.find((x) => x.id === "FIN-13.02")?.verify === "tests/planet-ltu.test.mjs", "FIN-13.02 (the LTU table) is gated by planet-ltu");
-for (const id of ["FD-15", "FD-16", "FD-17", "FD-18"]) ok(d.decisions.some((x) => x.id === id && x.basis.length > 10), `${id} is on the record with a basis`);
-ok(d.reviews[1] && d.reviews[1].round === 2 && d.reviews[1].revision === "0.005" && /^PENDING/.test(d.reviews[1].status), "round 2 of the twelve lenses is named on r.005 (PENDING until it returns)");
+for (const id of ["FD-15", "FD-16", "FD-17", "FD-18", "FD-21"]) ok(d.decisions.some((x) => x.id === id && x.basis.length > 10), `${id} is on the record with a basis`);
+ok(d.reviews[1] && d.reviews[1].round === 2 && d.reviews[1].revision === "0.007" && /^PENDING/.test(d.reviews[1].status), "round 2 of the twelve lenses is named on r.007 (PENDING until it returns)");
 
 // ── 7 · rendered views fresh (--check) ────────────────────────────────────────────────────────────────────────
 try { execFileSync("node", [path.join(ROOT, "scripts/financial-render.mjs"), "--check"], { stdio: "pipe" }); pass++; }
@@ -100,7 +102,7 @@ catch (e) { fail++; console.log("FAIL: financial-render --check reports drift:\n
 const matrix = fs.readFileSync(path.join(process.cwd(), "lib/crs-matrix-data.ts"), "utf8");
 ok(matrix.includes('"reviewId": "FIN-2026.09.30-r0.001"'), "the matrix carries the FIN review id");
 for (const r of d.crs) {
-  const m = new RegExp(`"crs": "${r.id}",[\\s\\S]{0,1600}?"changeDesc": "([^"]*)"`).exec(matrix);
+  const m = new RegExp(`"crs": "${r.id}",[\\s\\S]{0,3200}?"changeDesc": "([^"]*)"`).exec(matrix);   // lazy: the row's own changeDesc comes first; r.007 rows run past 1,600 chars
   ok(m && m[1] === r.status, `${r.id}: in the matrix with changeDesc = ${r.status}${m ? ` (got ${m[1]})` : " (missing)"}`);
 }
 
