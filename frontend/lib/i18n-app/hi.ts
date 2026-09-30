@@ -1459,5 +1459,15 @@ const T: Record<string, string> = {
   "fin.timeline": "अवधि",
   "fin.ladder_title": "व्यक्तिगत वित्त सीढ़ी A–M",
   "fin.stock_note": "नकद, निवेश, ऋण, निवल संपत्ति, क्रेडिट, सुरक्षा और लक्ष्य बैलेंस दृश्य में रहते हैं — कभी प्रति मिनट नहीं",
+  "fin.transaction": "लेन-देन",
+  "fin.type": "प्रकार",
+  "fin.when": "दिन और समय (CST)",
+  "fin.length": "अवधि (MoT)",
+  "fin.rec.paymot": "30.333 दिन (वेतन MoT)",
+  "fin.rec.other": "अन्य",
+  "fin.u.minutes": "मिनट",
+  "fin.u.hours": "घंटे",
+  "fin.u.days": "दिन",
+  "fin.u.years": "वर्ष",
 };
 export default T;

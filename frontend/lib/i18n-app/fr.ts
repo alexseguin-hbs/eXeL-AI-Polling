@@ -1401,5 +1401,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Périodicité",
   "fin.ladder_title": "Échelle des finances personnelles A–M",
   "fin.stock_note": "Liquidités, placements, dettes, valeur nette, crédit, protection et objectifs vivent dans la vue Bilan — jamais à la minute",
+  "fin.transaction": "Transaction",
+  "fin.type": "Type",
+  "fin.when": "Jour et heure (CST)",
+  "fin.length": "Durée (MoT)",
+  "fin.rec.paymot": "30.333 jours (MoT de paie)",
+  "fin.rec.other": "Autre",
+  "fin.u.minutes": "Minutes",
+  "fin.u.hours": "Heures",
+  "fin.u.days": "Jours",
+  "fin.u.years": "Années",
 };
 export default T;

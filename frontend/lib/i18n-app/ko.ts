@@ -1462,5 +1462,15 @@ const T: Record<string, string> = {
   "fin.timeline": "기간",
   "fin.ladder_title": "개인 재무 사다리 A–M",
   "fin.stock_note": "현금, 투자, 부채, 순자산, 신용, 보호, 목표는 잔액 보기에 표시됩니다. 분 단위로는 다루지 않습니다",
+  "fin.transaction": "거래",
+  "fin.type": "유형",
+  "fin.when": "날짜 및 시간 (CST)",
+  "fin.length": "기간 (MoT)",
+  "fin.rec.paymot": "30.333일 (급여 MoT)",
+  "fin.rec.other": "기타",
+  "fin.u.minutes": "분",
+  "fin.u.hours": "시간",
+  "fin.u.days": "일",
+  "fin.u.years": "년",
 };
 export default T;

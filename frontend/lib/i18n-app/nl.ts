@@ -1467,5 +1467,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Tijdlijn",
   "fin.ladder_title": "Persoonlijke financiële ladder A–M",
   "fin.stock_note": "Contanten, beleggingen, schulden, nettovermogen, krediet, bescherming en doelen staan in de Balans-weergave — nooit per minuut",
+  "fin.transaction": "Transactie",
+  "fin.type": "Type",
+  "fin.when": "Dag en tijd (CST)",
+  "fin.length": "Duur (MoT)",
+  "fin.rec.paymot": "30.333 dagen (salaris-MoT)",
+  "fin.rec.other": "Anders",
+  "fin.u.minutes": "Minuten",
+  "fin.u.hours": "Uren",
+  "fin.u.days": "Dagen",
+  "fin.u.years": "Jaren",
 };
 export default T;

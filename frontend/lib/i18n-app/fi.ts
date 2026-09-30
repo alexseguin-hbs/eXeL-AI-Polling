@@ -1464,5 +1464,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Aikajänne",
   "fin.ladder_title": "Henkilökohtaisen talouden tikkaat A–M",
   "fin.stock_note": "Käteisvarat, sijoitukset, velat, nettovarallisuus, luotto, turva ja tavoitteet ovat Tase-näkymässä — eivät koskaan minuuttikohtaisia",
+  "fin.transaction": "Tapahtuma",
+  "fin.type": "Tyyppi",
+  "fin.when": "Päivä ja kellonaika (CST)",
+  "fin.length": "Kesto (MoT)",
+  "fin.rec.paymot": "30.333 päivää (palkka-MoT)",
+  "fin.rec.other": "Muu",
+  "fin.u.minutes": "Minuutit",
+  "fin.u.hours": "Tunnit",
+  "fin.u.days": "Päivät",
+  "fin.u.years": "Vuodet",
 };
 export default T;

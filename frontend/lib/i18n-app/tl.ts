@@ -1609,5 +1609,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Panahon",
   "fin.ladder_title": "Hagdan ng personal na pananalapi A–M",
   "fin.stock_note": "Ang cash, mga pamumuhunan, mga utang, netong halaga, kredito, proteksyon at mga layunin ay nasa view ng Balanse — hindi kailanman bawat minuto",
+  "fin.transaction": "Transaksyon",
+  "fin.type": "Uri",
+  "fin.when": "Araw at oras (CST)",
+  "fin.length": "Tagal (MoT)",
+  "fin.rec.paymot": "30.333 araw (MoT ng sahod)",
+  "fin.rec.other": "Iba pa",
+  "fin.u.minutes": "Minuto",
+  "fin.u.hours": "Oras",
+  "fin.u.days": "Araw",
+  "fin.u.years": "Taon",
 };
 export default T;

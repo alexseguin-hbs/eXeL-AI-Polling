@@ -1464,5 +1464,15 @@ const T: Record<string, string> = {
   "fin.timeline": "期間",
   "fin.ladder_title": "個人財務ラダー A–M",
   "fin.stock_note": "現金、投資、負債、純資産、信用、備え、目標はバランス画面に表示されます。分単位では扱いません",
+  "fin.transaction": "取引",
+  "fin.type": "種類",
+  "fin.when": "日付と時刻（CST）",
+  "fin.length": "期間（MoT）",
+  "fin.rec.paymot": "30.333日（給与MoT）",
+  "fin.rec.other": "その他",
+  "fin.u.minutes": "分",
+  "fin.u.hours": "時間",
+  "fin.u.days": "日",
+  "fin.u.years": "年",
 };
 export default T;

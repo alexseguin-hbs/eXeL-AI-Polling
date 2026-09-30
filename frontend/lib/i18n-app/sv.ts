@@ -1472,5 +1472,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Tidslinje",
   "fin.ladder_title": "Privatekonomisk stege A–M",
   "fin.stock_note": "Likvida medel, investeringar, skulder, nettoförmögenhet, kredit, skydd och mål finns i Balansvyn — aldrig per minut",
+  "fin.transaction": "Transaktion",
+  "fin.type": "Typ",
+  "fin.when": "Dag och tid (CST)",
+  "fin.length": "Längd (MoT)",
+  "fin.rec.paymot": "30.333 dagar (löne-MoT)",
+  "fin.rec.other": "Annat",
+  "fin.u.minutes": "Minuter",
+  "fin.u.hours": "Timmar",
+  "fin.u.days": "Dagar",
+  "fin.u.years": "År",
 };
 export default T;

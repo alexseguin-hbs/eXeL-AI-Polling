@@ -1463,5 +1463,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Časový rámec",
   "fin.ladder_title": "Žebřík osobních financí A–M",
   "fin.stock_note": "Hotovost, investice, dluhy, čisté jmění, bonita, ochrana a cíle žijí v zobrazení Bilance — nikdy po minutách",
+  "fin.transaction": "Transakce",
+  "fin.type": "Typ",
+  "fin.when": "Den a čas (CST)",
+  "fin.length": "Délka (MoT)",
+  "fin.rec.paymot": "30.333 dne (výplatní MoT)",
+  "fin.rec.other": "Jiné",
+  "fin.u.minutes": "Minuty",
+  "fin.u.hours": "Hodiny",
+  "fin.u.days": "Dny",
+  "fin.u.years": "Roky",
 };
 export default T;

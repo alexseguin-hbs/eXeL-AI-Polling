@@ -1477,5 +1477,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Periode",
   "fin.ladder_title": "Tangga keuangan pribadi A–M",
   "fin.stock_note": "Kas, investasi, utang, kekayaan bersih, kredit, perlindungan, dan tujuan berada di tampilan Neraca — tidak pernah per menit",
+  "fin.transaction": "Transaksi",
+  "fin.type": "Jenis",
+  "fin.when": "Hari dan waktu (CST)",
+  "fin.length": "Durasi (MoT)",
+  "fin.rec.paymot": "30.333 hari (MoT gaji)",
+  "fin.rec.other": "Lainnya",
+  "fin.u.minutes": "Menit",
+  "fin.u.hours": "Jam",
+  "fin.u.days": "Hari",
+  "fin.u.years": "Tahun",
 };
 export default T;

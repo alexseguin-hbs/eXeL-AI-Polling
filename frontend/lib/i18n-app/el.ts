@@ -1473,5 +1473,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Χρονικό διάστημα",
   "fin.ladder_title": "Κλίμακα προσωπικών οικονομικών A–M",
   "fin.stock_note": "Μετρητά, επενδύσεις, χρέη, καθαρή θέση, πίστωση, προστασία και στόχοι ζουν στην προβολή Ισολογισμός — ποτέ ανά λεπτό",
+  "fin.transaction": "Συναλλαγή",
+  "fin.type": "Τύπος",
+  "fin.when": "Ημέρα και ώρα (CST)",
+  "fin.length": "Διάρκεια (MoT)",
+  "fin.rec.paymot": "30.333 ημέρες (MoT μισθοδοσίας)",
+  "fin.rec.other": "Άλλο",
+  "fin.u.minutes": "Λεπτά",
+  "fin.u.hours": "Ώρες",
+  "fin.u.days": "Ημέρες",
+  "fin.u.years": "Έτη",
 };
 export default T;

@@ -1464,5 +1464,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Perioadă",
   "fin.ladder_title": "Scara finanțelor personale A–M",
   "fin.stock_note": "Numerarul, investițiile, datoriile, averea netă, creditul, protecția și obiectivele se află în vizualizarea Bilanț — niciodată pe minut",
+  "fin.transaction": "Tranzacție",
+  "fin.type": "Tip",
+  "fin.when": "Ziua și ora (CST)",
+  "fin.length": "Durată (MoT)",
+  "fin.rec.paymot": "30.333 de zile (MoT de plată)",
+  "fin.rec.other": "Altele",
+  "fin.u.minutes": "Minute",
+  "fin.u.hours": "Ore",
+  "fin.u.days": "Zile",
+  "fin.u.years": "Ani",
 };
 export default T;

@@ -1458,5 +1458,15 @@ const T: Record<string, string> = {
   "fin.timeline": "المدة",
   "fin.ladder_title": "سلّم المالية الشخصية A–M",
   "fin.stock_note": "النقد والاستثمارات والديون وصافي الثروة والائتمان والحماية والأهداف تظهر في عرض الميزانية — وليس بالدقيقة أبدًا",
+  "fin.transaction": "معاملة",
+  "fin.type": "النوع",
+  "fin.when": "اليوم والوقت (CST)",
+  "fin.length": "المدة (MoT)",
+  "fin.rec.paymot": "30.333 يومًا (MoT الراتب)",
+  "fin.rec.other": "أخرى",
+  "fin.u.minutes": "دقائق",
+  "fin.u.hours": "ساعات",
+  "fin.u.days": "أيام",
+  "fin.u.years": "سنوات",
 };
 export default T;

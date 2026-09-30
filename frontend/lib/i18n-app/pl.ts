@@ -1464,5 +1464,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Okres",
   "fin.ladder_title": "Drabina finansów osobistych A–M",
   "fin.stock_note": "Gotówka, inwestycje, długi, wartość netto, kredyt, ochrona i cele znajdują się w widoku Bilans — nigdy w ujęciu minutowym",
+  "fin.transaction": "Transakcja",
+  "fin.type": "Rodzaj",
+  "fin.when": "Dzień i godzina (CST)",
+  "fin.length": "Okres (MoT)",
+  "fin.rec.paymot": "30.333 dnia (MoT wypłaty)",
+  "fin.rec.other": "Inne",
+  "fin.u.minutes": "Minuty",
+  "fin.u.hours": "Godziny",
+  "fin.u.days": "Dni",
+  "fin.u.years": "Lata",
 };
 export default T;

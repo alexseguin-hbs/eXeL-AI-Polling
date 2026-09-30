@@ -1465,5 +1465,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Chu kỳ",
   "fin.ladder_title": "Thang tài chính cá nhân A–M",
   "fin.stock_note": "Tiền mặt, đầu tư, nợ, giá trị tài sản ròng, tín dụng, bảo vệ và mục tiêu nằm ở màn hình Số dư — không bao giờ tính theo phút",
+  "fin.transaction": "Giao dịch",
+  "fin.type": "Loại",
+  "fin.when": "Ngày và giờ (CST)",
+  "fin.length": "Thời hạn (MoT)",
+  "fin.rec.paymot": "30.333 ngày (MoT kỳ lương)",
+  "fin.rec.other": "Khác",
+  "fin.u.minutes": "Phút",
+  "fin.u.hours": "Giờ",
+  "fin.u.days": "Ngày",
+  "fin.u.years": "Năm",
 };
 export default T;

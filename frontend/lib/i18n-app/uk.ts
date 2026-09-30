@@ -1462,5 +1462,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Період",
   "fin.ladder_title": "Драбина особистих фінансів A–M",
   "fin.stock_note": "Готівка, інвестиції, борги, чисті активи, кредит, захист і цілі живуть у поданні «Баланс» — ніколи похвилинно",
+  "fin.transaction": "Транзакція",
+  "fin.type": "Тип",
+  "fin.when": "День і час (CST)",
+  "fin.length": "Тривалість (MoT)",
+  "fin.rec.paymot": "30.333 дня (MoT зарплати)",
+  "fin.rec.other": "Інше",
+  "fin.u.minutes": "Хвилини",
+  "fin.u.hours": "Години",
+  "fin.u.days": "Дні",
+  "fin.u.years": "Роки",
 };
 export default T;

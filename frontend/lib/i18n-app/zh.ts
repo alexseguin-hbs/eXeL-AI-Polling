@@ -1463,5 +1463,15 @@ const T: Record<string, string> = {
   "fin.timeline": "周期",
   "fin.ladder_title": "个人理财阶梯 A–M",
   "fin.stock_note": "现金、投资、债务、净资产、信用、保障和目标位于“资产负债”视图 — 从不按分钟计算",
+  "fin.transaction": "交易",
+  "fin.type": "类型",
+  "fin.when": "日期和时间（CST）",
+  "fin.length": "时长（MoT）",
+  "fin.rec.paymot": "30.333 天（薪资 MoT）",
+  "fin.rec.other": "其他",
+  "fin.u.minutes": "分钟",
+  "fin.u.hours": "小时",
+  "fin.u.days": "天",
+  "fin.u.years": "年",
 };
 export default T;

@@ -1461,5 +1461,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Tempoh",
   "fin.ladder_title": "Tangga kewangan peribadi A–M",
   "fin.stock_note": "Tunai, pelaburan, hutang, nilai bersih, kredit, perlindungan dan matlamat berada pada paparan Imbangan — bukan per minit",
+  "fin.transaction": "Transaksi",
+  "fin.type": "Jenis",
+  "fin.when": "Hari dan masa (CST)",
+  "fin.length": "Tempoh (MoT)",
+  "fin.rec.paymot": "30.333 hari (MoT gaji)",
+  "fin.rec.other": "Lain-lain",
+  "fin.u.minutes": "Minit",
+  "fin.u.hours": "Jam",
+  "fin.u.days": "Hari",
+  "fin.u.years": "Tahun",
 };
 export default T;

@@ -1461,5 +1461,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Периодичность",
   "fin.ladder_title": "Лестница личных финансов A–M",
   "fin.stock_note": "Наличные, инвестиции, долги, чистые активы, кредит, защита и цели находятся в представлении «Баланс» — никогда не поминутно",
+  "fin.transaction": "Транзакция",
+  "fin.type": "Тип",
+  "fin.when": "Дата и время (CST)",
+  "fin.length": "Срок (MoT)",
+  "fin.rec.paymot": "30.333 дня (MoT зарплаты)",
+  "fin.rec.other": "Другое",
+  "fin.u.minutes": "Минуты",
+  "fin.u.hours": "Часы",
+  "fin.u.days": "Дни",
+  "fin.u.years": "Годы",
 };
 export default T;

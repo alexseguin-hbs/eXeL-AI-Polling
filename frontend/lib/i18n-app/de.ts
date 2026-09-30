@@ -1462,5 +1462,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Turnus",
   "fin.ladder_title": "Leiter der persönlichen Finanzen A–M",
   "fin.stock_note": "Bargeld, Geldanlagen, Schulden, Nettovermögen, Kredit, Absicherung und Ziele leben in der Bilanz-Ansicht — nie pro Minute",
+  "fin.transaction": "Transaktion",
+  "fin.type": "Art",
+  "fin.when": "Tag und Uhrzeit (CST)",
+  "fin.length": "Dauer (MoT)",
+  "fin.rec.paymot": "30.333 Tage (Gehalts-MoT)",
+  "fin.rec.other": "Sonstiges",
+  "fin.u.minutes": "Minuten",
+  "fin.u.hours": "Stunden",
+  "fin.u.days": "Tage",
+  "fin.u.years": "Jahre",
 };
 export default T;

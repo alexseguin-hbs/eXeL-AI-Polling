@@ -1467,5 +1467,15 @@ const T: Record<string, string> = {
   "fin.timeline": "ช่วงเวลา",
   "fin.ladder_title": "บันไดการเงินส่วนบุคคล A–M",
   "fin.stock_note": "เงินสด การลงทุน หนี้สิน ความมั่งคั่งสุทธิ เครดิต การคุ้มครอง และเป้าหมาย อยู่ในมุมมองงบดุล — ไม่ใช่ต่อนาที",
+  "fin.transaction": "ธุรกรรม",
+  "fin.type": "ประเภท",
+  "fin.when": "วันและเวลา (CST)",
+  "fin.length": "ระยะเวลา (MoT)",
+  "fin.rec.paymot": "30.333 วัน (MoT รอบจ่ายเงิน)",
+  "fin.rec.other": "อื่นๆ",
+  "fin.u.minutes": "นาที",
+  "fin.u.hours": "ชั่วโมง",
+  "fin.u.days": "วัน",
+  "fin.u.years": "ปี",
 };
 export default T;

@@ -1462,5 +1462,15 @@ const T: Record<string, string> = {
   "fin.timeline": "সময়রেখা",
   "fin.ladder_title": "ব্যক্তিগত আর্থিক সিঁড়ি A–M",
   "fin.stock_note": "নগদ, বিনিয়োগ, ঋণ, নিট সম্পদ, ক্রেডিট, সুরক্ষা ও লক্ষ্য ব্যালেন্স ভিউতে থাকে — কখনও প্রতি মিনিটে নয়",
+  "fin.transaction": "লেনদেন",
+  "fin.type": "ধরন",
+  "fin.when": "দিন ও সময় (CST)",
+  "fin.length": "সময়কাল (MoT)",
+  "fin.rec.paymot": "30.333 দিন (বেতন MoT)",
+  "fin.rec.other": "অন্যান্য",
+  "fin.u.minutes": "মিনিট",
+  "fin.u.hours": "ঘণ্টা",
+  "fin.u.days": "দিন",
+  "fin.u.years": "বছর",
 };
 export default T;

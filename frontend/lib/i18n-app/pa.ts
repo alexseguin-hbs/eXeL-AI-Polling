@@ -1469,5 +1469,15 @@ const T: Record<string, string> = {
   "fin.timeline": "ਸਮਾਂ-ਰੇਖਾ",
   "fin.ladder_title": "ਨਿੱਜੀ ਵਿੱਤ ਪੌੜੀ A–M",
   "fin.stock_note": "ਨਕਦ, ਨਿਵੇਸ਼, ਕਰਜ਼ੇ, ਸ਼ੁੱਧ ਸੰਪਤੀ, ਕ੍ਰੈਡਿਟ, ਸੁਰੱਖਿਆ ਅਤੇ ਟੀਚੇ ਬੈਲੇਂਸ ਵਿਊ ਵਿੱਚ ਰਹਿੰਦੇ ਹਨ — ਕਦੇ ਵੀ ਪ੍ਰਤੀ ਮਿੰਟ ਨਹੀਂ",
+  "fin.transaction": "ਲੈਣ-ਦੇਣ",
+  "fin.type": "ਕਿਸਮ",
+  "fin.when": "ਦਿਨ ਅਤੇ ਸਮਾਂ (CST)",
+  "fin.length": "ਮਿਆਦ (MoT)",
+  "fin.rec.paymot": "30.333 ਦਿਨ (ਤਨਖ਼ਾਹ MoT)",
+  "fin.rec.other": "ਹੋਰ",
+  "fin.u.minutes": "ਮਿੰਟ",
+  "fin.u.hours": "ਘੰਟੇ",
+  "fin.u.days": "ਦਿਨ",
+  "fin.u.years": "ਸਾਲ",
 };
 export default T;

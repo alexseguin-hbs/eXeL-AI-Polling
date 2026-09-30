@@ -1461,5 +1461,15 @@ const T: Record<string, string> = {
   "fin.timeline": "ציר זמן",
   "fin.ladder_title": "סולם הכספים האישי A–M",
   "fin.stock_note": "מזומן, השקעות, חובות, שווי נקי, אשראי, הגנה ויעדים נמצאים בתצוגת המאזן – לעולם לא לפי דקה",
+  "fin.transaction": "עסקה",
+  "fin.type": "סוג",
+  "fin.when": "יום ושעה (CST)",
+  "fin.length": "משך (MoT)",
+  "fin.rec.paymot": "30.333 ימים (MoT שכר)",
+  "fin.rec.other": "אחר",
+  "fin.u.minutes": "דקות",
+  "fin.u.hours": "שעות",
+  "fin.u.days": "ימים",
+  "fin.u.years": "שנים",
 };
 export default T;

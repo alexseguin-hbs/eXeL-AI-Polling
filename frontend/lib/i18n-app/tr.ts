@@ -1460,5 +1460,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Periyot",
   "fin.ladder_title": "Kişisel finans merdiveni A–M",
   "fin.stock_note": "Nakit, yatırımlar, borçlar, net varlık, kredi, koruma ve hedefler Bilanço görünümünde yer alır — asla dakika başına değil",
+  "fin.transaction": "İşlem",
+  "fin.type": "Tür",
+  "fin.when": "Gün ve saat (CST)",
+  "fin.length": "Süre (MoT)",
+  "fin.rec.paymot": "30.333 gün (maaş MoT)",
+  "fin.rec.other": "Diğer",
+  "fin.u.minutes": "Dakika",
+  "fin.u.hours": "Saat",
+  "fin.u.days": "Gün",
+  "fin.u.years": "Yıl",
 };
 export default T;

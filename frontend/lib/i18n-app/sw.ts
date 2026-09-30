@@ -1466,5 +1466,15 @@ const T: Record<string, string> = {
   "fin.timeline": "Ratiba ya muda",
   "fin.ladder_title": "Ngazi ya fedha binafsi A–M",
   "fin.stock_note": "Fedha taslimu, uwekezaji, madeni, thamani halisi, mikopo, ulinzi na malengo yako kwenye mwonekano wa Mizania – kamwe si kwa dakika",
+  "fin.transaction": "Muamala",
+  "fin.type": "Aina",
+  "fin.when": "Siku na saa (CST)",
+  "fin.length": "Muda (MoT)",
+  "fin.rec.paymot": "Siku 30.333 (MoT ya malipo)",
+  "fin.rec.other": "Nyingine",
+  "fin.u.minutes": "Dakika",
+  "fin.u.hours": "Saa",
+  "fin.u.days": "Siku",
+  "fin.u.years": "Miaka",
 };
 export default T;
