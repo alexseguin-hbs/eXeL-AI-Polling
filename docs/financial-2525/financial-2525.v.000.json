@@ -8,7 +8,7 @@
   "stamp": "v.000_r.012",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "a465d3bd153f9c35c3b06167cfd40014a0b4644dd317ea13b5acfe7a6164b68b",
+  "handoffSha256": "cc37ed1a483302e9b0eb870a4a70701703d825a96eb7bb4f3f318e4e3674fcf7",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -89,6 +89,11 @@
     "sha256": "a465d3bd153f9c35c3b06167cfd40014a0b4644dd317ea13b5acfe7a6164b68b",
     "date": "2026-09-30",
     "note": "+ addendum 24 (one transaction form, the type a dropdown — his screenshot of the live r.011 forms) — persisted during the r.012 build; owed as r.013"
+   },
+   {
+    "sha256": "cc37ed1a483302e9b0eb870a4a70701703d825a96eb7bb4f3f318e4e3674fcf7",
+    "date": "2026-09-30",
+    "note": "+ addendum 25 (the length a dropdown with Other — the MoT selectable in years · days · hours · minutes) — persisted during the ladder-fill build; folded with 24 into r.013"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
