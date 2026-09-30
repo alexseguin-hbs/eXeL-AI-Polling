@@ -284,6 +284,8 @@
 
 > (addendum 26, verbatim — with his phone screenshot of the live surface at 16:51 CST, the r.011 edition still on his phone: the WITHDRAWAL panel's Category dropdown open — Income · Fixed (Mortgage/Rent ✓ · Auto · Insurance · Fitness) · Variable (Utilities · Fun · Groceries · Dining Out · Other) — over the PERSONAL BUDGET table, saved beside this file as `2026-09-30_financial_2525_dropdown_dismissed.png`) this drop down goes away quick!
 
+> (addendum 27, verbatim — with his phone screenshot at 16:52 CST, still the r.011 edition (stamp v.000_r.011 · d9b1a72): the PERSONAL BUDGET ON THE LADDER table with an icon before Income · Mortgage/Rent · Auto · Insurance · Utilities · Groceries · Fitness · Fun and Net −$200.00, saved beside this file as `2026-09-30_financial_2525_iconology_a_u.png`) well done on iconology; ensure for all A-U major categories icons exist
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -450,6 +452,12 @@
     every picker is a module-level component with a stable identity, so a re-render never remounts a `<select>`; gated at the
     source (no component declared inside the render body renders a `<select>`) and on the glass (a select's DOM node is the
     same node three seconds later while the clock ticks). Ships as r.014, a correction of r.006–r.013.
+35. **Every A–U major category carries an icon (addendum 27):** the icon before every line (r.008's law for the sheet's
+    categories) must hold for every SECTION of the ladder A–T — U is a rule (amortize), never a chip, so it has no icon and is said
+    so. Grep-verified before any code (NO REWORK): r.012 already ships `SECTION_ICON` keyed A–T (twenty strokes) and the ladder
+    table, the picker and the record line draw one before every section; the gap is that Q · Net worth and R · Credit shared one
+    stroke and no gate held the twenty — r.015 gives every section its own stroke and gates it. The phone in the screenshot still
+    ran r.011.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
