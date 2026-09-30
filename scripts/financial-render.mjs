@@ -10,6 +10,7 @@
 // source. Run it in test:ci (tests/financial-crs.test.mjs).
 import fs from "node:fs";
 import path from "node:path";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -100,7 +101,7 @@ export interface FinancialCrsRow {
   phase: string; mode: string; metric: string; verify: string; dtm: string; stretch: string; status: string;
 }
 export interface FinancialDecision { id: string; decision: string; status: string; basis: string }
-export interface FinancialReview { round: number; revision: string; subject: string; lenses: number; record: string; status: string }
+export interface FinancialReview { round: number; revision: string; subject: string; lenses: number; record: string; sha256?: string; commit?: string; status: string }
 export interface FinancialDomain {
   project: { name: string; family: string; version: string; revision: string; stamp: string; stampPrefix: string;
              handoff: string; handoffSha256: string; handoffHistory?: { sha256: string; date: string; note: string }[];
@@ -158,6 +159,19 @@ function assertSource() {
   }
   if (d.revisions[d.revisions.length - 1].revision !== d.project.revision) fail(`project.revision ${d.project.revision} is not the last entry in revisions[]`);
   for (const x of d.decisions) if (!/^FD-\d{2}$/.test(x.id) || !["DECLARED", "OPERATOR", "SOURCED"].includes(x.status) || !x.basis) fail(`decision ${x.id} malformed`);
+  // FIN-09: a review round that is no longer PENDING must be on disk — 12 lens sections, the synthesis, and the bytes
+  // hashing to reviews[].sha256 (a round is appended, never edited; the hash is what the operator can check).
+  for (const r of d.reviews ?? []) {
+    if (!(r.lenses === 12 && r.record)) fail(`review round ${r.round} must name 12 lenses and a record path`);
+    if (/^PENDING/.test(r.status)) continue;
+    const abs = path.join(ROOT, r.record);
+    if (!fs.existsSync(abs)) fail(`review round ${r.round} reads "${r.status.slice(0, 24)}…" but ${r.record} is not on disk`);
+    const body = fs.readFileSync(abs, "utf8");
+    const lensCount = (body.match(/^### /gm) || []).length;
+    if (lensCount !== 12) fail(`${r.record} carries ${lensCount} lens sections, not 12`);
+    if (!/^## The synthesis$/m.test(body)) fail(`${r.record} has no synthesis section`);
+    if (createHash("sha256").update(fs.readFileSync(abs)).digest("hex") !== r.sha256) fail(`${r.record} does not hash to reviews[${r.round}].sha256 — a persisted round is never edited; append the next round instead`);
+  }
   if (!(d.accrual.holdHours === 3)) fail(`the hold is 3 hours (operator) — got ${d.accrual.holdHours}`);
   if (!(d.calendar.quarterDays === 91 && d.calendar.gridDays === 364 && d.calendar.downDay === 365)) fail(`calendar must be 91 · 364 · 365`);
   if (d.tokenization.yugCeiling !== 9999) fail(`the cap is 9,999 웃 (operator)`);

@@ -66,6 +66,16 @@ ok(d.tokenization.yugCeiling === 9999 && /YUG_CEILING/.test(fs.readFileSync(path
 ok(d.business.status.startsWith("TEST LATER") && d.project.tenant.startsWith("personal"), "personal first; business declared, tested after feedback (operator addendum 5)");
 ok(Array.isArray(d.decisions) && d.decisions.length >= 9 && d.decisions.every((x) => /^FD-\d{2}$/.test(x.id) && x.basis), "≥ 9 decisions on the record, each with a basis");
 ok(Array.isArray(d.reviews) && d.reviews.length >= 1 && d.reviews[0].lenses === 12 && d.reviews[0].record, "the twelve-lens review round is named on the record (FIN-09)");
+// FIN-09, the second half: the round is ON DISK, whole, and hashes to the ledger — the gap the lenses themselves named.
+const rec = path.join(ROOT, d.reviews[0].record);
+const recBody = fs.existsSync(rec) ? fs.readFileSync(rec, "utf8") : "";
+ok(!/^PENDING/.test(d.reviews[0].status) && fs.existsSync(rec), `round 1 is persisted on disk: ${d.reviews[0].record}`);
+ok((recBody.match(/^### /gm) || []).length === 12 && /^## The synthesis$/m.test(recBody) && /the stop rule/.test(recBody), "the round-1 record carries 12 lens sections, the synthesis and the stop rule");
+ok(/^[0-9a-f]{64}$/.test(d.reviews[0].sha256 ?? "") && recBody && createHash("sha256").update(fs.readFileSync(rec)).digest("hex") === d.reviews[0].sha256, "the round-1 record hashes to reviews[0].sha256 (the hash the operator can check)");
+ok(fs.existsSync(rec + ".sha256") && fs.readFileSync(rec + ".sha256", "utf8").startsWith(d.reviews[0].sha256), "the record's .sha256 sidecar carries the same hash");
+ok(/^[0-9a-f]{7,40}$/.test(d.reviews[0].commit ?? ""), "the record names the commit that persisted it alone");
+ok(d.decisions.some((x) => x.id === "FD-14" && /stop rule/.test(x.decision) && /all seven/.test(x.decision) && /business/.test(x.decision)), "FD-14 adopts the stop rule the twelve stated (seven conditions; business waits)");
+ok(!/\b(Opus|Fable|Sonnet|Haiku|Grok|Gemini|GPT)\b/.test(recBody), "no model identifier in the persisted record");
 
 // ── 7 · rendered views fresh (--check) ────────────────────────────────────────────────────────────────────────
 try { execFileSync("node", [path.join(ROOT, "scripts/financial-render.mjs"), "--check"], { stdio: "pipe" }); pass++; }

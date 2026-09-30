@@ -51,6 +51,13 @@
    "kind": "release",
    "text": "v.000_r.003 SHIPPED — A.B..C is the revolution: mot.ts corrected (EARTH_REVOLUTION_DAYS 365.259636 · spanABC / daysOfSpanABC / orbitUnits · motABC as the position within one revolution), the chart's reveal reads the revolution's coordinate at each axis mark and the elapsed span in A-units, FIN-01 superseded by FIN-01.01, FD-13, the CRS matrix carrying both. Gates: financial-mot 46 · financial-surface 43 · financial-crs 142 · financial-i18n 292 · full test:ci 0 · next build 0.",
    "commit": "13028c0"
+  },
+  {
+   "rev": 8,
+   "date": "2026-09-30",
+   "kind": "decision",
+   "text": "Round 1 of the twelve-lens review (FIN-09) persisted: docs/financial-2525/reviews/r001_twelve_lenses.md (sha256 97ff0c063b4f466f96401dd436f9cd9b05ec172d9257e693b196b14f1254c75d, committed alone at 8990b2d) — 12 lenses + synthesis on the MoT Financials notes, median B (7 B · 5 B−); all twelve agree the notes were enough to build from and that r.001–r.003 already hold the money law. The stop rule for \"until simulated sufficiently\" adopted as FD-14: one full real MoT on the operator's phone with a withdrawal and his feedback persisted; two consecutive converging rounds; determinism on two devices × nine runs; every named gate green; no redeclared primitive; the ×32 fill landed; LIVE verified. The lenses' owed list — one perihelion table, one MoT number on glass and gate, a withdrawal checked at every instant, the chart's available series and hold vertex, a record that survives a full phone, no machine word on the person's screen — is r.005's backlog. Addenda 6–10 supersede any lens reading they contradict.",
+   "commit": "8990b2d"
   }
  ]
 }

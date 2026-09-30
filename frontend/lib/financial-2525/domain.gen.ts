@@ -7,7 +7,7 @@ export interface FinancialCrsRow {
   phase: string; mode: string; metric: string; verify: string; dtm: string; stretch: string; status: string;
 }
 export interface FinancialDecision { id: string; decision: string; status: string; basis: string }
-export interface FinancialReview { round: number; revision: string; subject: string; lenses: number; record: string; status: string }
+export interface FinancialReview { round: number; revision: string; subject: string; lenses: number; record: string; sha256?: string; commit?: string; status: string }
 export interface FinancialDomain {
   project: { name: string; family: string; version: string; revision: string; stamp: string; stampPrefix: string;
              handoff: string; handoffSha256: string; handoffHistory?: { sha256: string; date: string; note: string }[];
@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.003",
-  "stamp": "v.000_r.003",
+  "revision": "0.004",
+  "stamp": "v.000_r.004",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "c5176ce276c0ea06fbf499eea271b3f24be0f47572b3123fdab4dcbf69231f61",
@@ -94,6 +94,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "A.B..C IS the Earth's revolution around the Sun (operator addendum 10): one revolution — perihelion to perihelion, the financial year — split into 3600 A-units · 3600 B sub-units · 3600 C sub-sub-units. r.001–r.002 read a pay period as its own whole (its end printed 3600.3600..3600); corrected: the A.B..C of an instant is its position in the current revolution (positionInYear, the sourced perihelion instants) and a MoT LENGTH converts INTO the scale — the 30.333-day pay MoT is ≈ 298.97 A. FIN-01 superseded by FIN-01.01; FD-13 supersedes FD-01; the chart's reveal now reads the revolution's coordinate at each axis mark and the elapsed span in A-units.",
    "commit": "fe6f8e6",
    "shipped": "13028c0"
+  },
+  {
+   "revision": "0.004",
+   "date": "2026-09-30",
+   "kind": "decision",
+   "why": "The twelve-lens review of the MoT Financials notes (round 1, FIN-09) is persisted beside the revisions — docs/financial-2525/reviews/r001_twelve_lenses.md, sha256 97ff0c06… on the ledger, committed alone at 8990b2d — and its stop rule for \"until simulated sufficiently\" is adopted as FD-14. Grades: median B (7 B · 5 B−); all twelve agree the notes were enough to build from and that r.001–r.003 already hold the money law; what they rule is on the record as r.005's backlog: one perihelion table, one MoT number on glass and gate, a withdrawal checked at every instant, the chart drawing available and its hold vertex, a record that survives a full phone, no machine word on the person's screen, the ×32 fill. The gate now proves the record file exists with 12 lens sections and hashes to reviews[].sha256. Addenda 6–10 (arrived mid-review) supersede any lens reading they contradict.",
+   "commit": "8990b2d",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -593,6 +601,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "A.B..C IS the Earth's revolution around the Sun: one revolution (perihelion to perihelion) = 3600 A · 3600 B · 3600 C. An instant's A.B..C is its position in the current revolution (the sourced perihelion instants); a MoT length converts into the scale as days ÷ revolution-days × 3600 (mean anomalistic year 365.259636 d). SUPERSEDES FD-01, which read a pay period as its own whole.",
    "status": "OPERATOR",
    "basis": "addendum 10; lib/ucrs-2525.ts (HU 0 = perihelion, 3600 = a full orbit)"
+  },
+  {
+   "id": "FD-14",
+   "decision": "The stop rule for \"until simulated sufficiently\" (FIN-09): the twelve stop iterating on the PERSONAL framework — and FIN-12 (business) may open — only when all seven hold on one commit: (1) one full real MoT has run on the operator's own phone (the worked paycheck, 2026.10.01_07.00..00 → 2026.10.31_15.00..00 CST, one Q3→Q4 crossing) with at least one recorded withdrawal, and his feedback is persisted as a hashed addendum in the ask file and as a feedback entry in reviews[]; (2) two consecutive twelve-lens rounds on consecutive revisions raise zero new FD, zero new gate and zero grade below B; (3) determinism — the same ledger replayed at the same instant on two devices and nine runs yields the same cent for released, withdrawable and available, and the same A.B..C to the C; (4) every gate the round names exists and is green in test:ci with tsc at 0, and the round's review file is on disk with 12 lens sections and its sha256 on the ledger; (5) no redeclared primitive — one perihelion table, one YUG_CEILING, one $/min spread, one MoT number on glass and gate; (6) the ×32 fin.* fill has landed and the banned-word regex finds zero machine words in any of the 33 languages; (7) npm run status reports cloudflare LIVE for the commit that satisfies (1)–(6). Until all seven hold, each round appends a revision and the next round runs; nothing in the business frame is built.",
+   "status": "DECLARED",
+   "basis": "the twelve-lens synthesis, round 1 (docs/financial-2525/reviews/r001_twelve_lenses.md § the stop rule); addendum 5 makes the operator's feedback the trigger"
   }
  ],
  "reviews": [
@@ -602,7 +616,9 @@ export const FINANCIAL_DOMAIN = {
    "subject": "the MoT Financials notes (three sheets + six addenda)",
    "lenses": 12,
    "record": "docs/financial-2525/reviews/r001_twelve_lenses.md",
-   "status": "PENDING — persisted when the twelve return"
+   "sha256": "97ff0c063b4f466f96401dd436f9cd9b05ec172d9257e693b196b14f1254c75d",
+   "commit": "8990b2d",
+   "status": "PERSISTED r.004 — 12/12 lenses + synthesis; median B (7 B · 5 B−); 22 invariants each with a gate, 35 declared defaults, the stop rule adopted as FD-14; addenda 6–10 supersede any lens reading they contradict"
   }
  ],
  "status": {
