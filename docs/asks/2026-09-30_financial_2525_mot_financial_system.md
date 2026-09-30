@@ -43,6 +43,10 @@
 >
 > v.000_r.001
 
+> (addendum 7, verbatim) financial 2525 uses shell from as UI/UX STARTING POINT FROM
+>
+> ◬ ♡ 웃 Session
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -92,6 +96,10 @@
     pilot has been used and reviewed.
 16. **Numbering (addendum 6): Financial-2525 starts at revision 0.001, stamped `v.000_r.001`** — the operator's own
     form: version `000`, revision `001`; every later edition appends (`r.002`, …), never edits.
+17. **The UI/UX shell (addendum 7): Financial-2525's screen STARTS FROM the ◬ ♡ 웃 Session's shell** — the
+    `/soi-session` page's chrome (its header with the globe and the Trinity glyphs, its cards, its phase rail, its big
+    clock, its phone strip) is the starting point the financial surface is built on, not a fresh dark console; the
+    financial laws render inside that shell.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
