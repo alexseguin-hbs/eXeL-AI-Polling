@@ -33,6 +33,8 @@
 
 > (verbatim) it is important A.B..C is used for time and easily converted to Earth local time units LTU,  similar to how drone positioning and planetary positioning uses A.B..C TO show universal system on where they are in our solar system
 
+> (addendum 3, verbatim, with a phone crop of sheet 3's budget lines) For personal MoT financial pilot expenses are Income, Fixed / Variable, from there Home, Auto, Insurance, Utilities, Fitness, Fun, Groceries, Dining Out, and other basic budgeting items.  This will allow personal budget to $/min, $/sec (using MoT that converts to Hour, Min, Second), to prepare for a world of personal financial optimization and real time personal optimization per Vision-2525
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -69,6 +71,10 @@
 9. **Escrow releases $/min.** The payer (an individual's employer or the business) deposits a period's pay UP FRONT (two weeks or one month) into escrow; escrow releases it at `$ ÷ MoT-minutes` per minute into a balance the person can see in real time and draw from as needed; **3 hours after the deposit the individual may withdraw the released amount** to their own account if they need cash. Every deposit and withdrawal is a transaction on the record.
 10. **Twelve AsM lenses review the MoT Financials notes** (the three sheets) so the real-time chart of a person's financials is designed from that review, not from one reading.
 11. **Personal frame vs business frame.** Personal: real-time frames of 33 / 66 / 99 days, analysis in D · W(7) · M(33) · Q(99) · Y(365); a fixed/variable budget (Home, Car, Insurance, Electric, Food, Fitness, Fun; Income) rendered as $/D and a swings chart; outcome = cash on hand. Business ("test later"): 4-4-5 weeks, 13 weeks = 91 days, the P&L ladder Rev − COGS = Margin − R&D − Marketing − Sales − SG&A = Operating Income − DA → EBITDA → EBIT.
+13. **The personal pilot's budget lines (addendum 3):** Income · then Fixed / Variable · then Home, Auto, Insurance,
+    Utilities, Fitness, Fun, Groceries, Dining Out and the other basic budgeting items — every line expressed in $/min
+    and $/sec through MoT (which converts to hour · minute · second), so a personal budget becomes a real-time
+    optimisation surface per Vision-2525.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
