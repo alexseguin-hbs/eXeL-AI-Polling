@@ -311,6 +311,9 @@ export interface Project {
    *  invents a figure without a basis). A value here is a DECLARED estimate with a source recorded in the DRS master. */
   tamUsdM?: number;           // Total Addressable Market, $M (DECLARED/IA)
   samUsdM?: number;           // Serviceable Available Market, $M (DECLARED/IA)
+  /** THE SEED LAW (operator 2026-09-27) · per-field fingerprint of the seed value this saved row last matched, written
+   *  by reconcileSeedRow on every hydration and carried inside the row (local mirror + cloud jsonb). Never typed. */
+  _seed?: Record<string, string>;
   /** PRJ-34 (operator 2026-09-24) · a provenance line the deck prints on EVERY slide and on the cover — a board
    *  artifact with no provenance is orphaned within a week. Optional; absent on the 33 demo rows. */
   provenance?: string;
@@ -2209,24 +2212,88 @@ export const PROJECT_HIER: Record<string, HierPath> = {
 export function mergeNewSeeds<T extends { id: string }>(saved: T[], seeds: readonly T[], removed: readonly string[] = []): T[] {
   return mergeMissingBy(saved, seeds, (p) => p.id, removed);
 }
+// ── THE SEED LAW, SECOND HALF (operator 2026-09-27: "update all related supabase as well") ──────────────────────────
+// mergeMissingBy only ADDED rows a saved copy lacked. A seed FIELD that changed on a row a device had already saved
+// never reached it — the operator's phone (local mirror AND the Supabase `innovation_state` "projects" blob it writes
+// back) kept PRJ-34 at G2 with no TAM/SAM after 048628d shipped G1 · $30B · $10B. Invariant, in the operator's terms:
+//   WHAT THE CODE SEEDS TODAY IS WHAT EVERY DEVICE SHOWS, UNLESS A PERSON CHANGED THAT VERY FIELD ON PURPOSE;
+//   a person's edit is never overwritten by a deploy; a removal is never undone by a deploy.
+// Mechanism: every reconciled row carries `_seed`, a per-field fingerprint of the seed value it last matched. It
+// travels INSIDE the row, so it reaches the local mirror and the cloud jsonb alike — no migration. On every hydration,
+// per seed field: missing on the row → take the seed; the row still equals its last seed fingerprint and the seed
+// moved → take the seed (a person never touched it); otherwise the row wins (a person edited it). Rows saved before
+// this law carry no fingerprint: a value equal to a DECLARED former seed value (SEED_SUPERSEDED, append-only) is stale
+// seed and refreshes; anything else is treated as a person's, kept, and fingerprinted from here on.
+export interface SeedSuperseded { key: string; field: string; was?: unknown; wasLike?: RegExp; rev: string }
+/** Former seed values a pre-law saved row may still hold. APPEND-ONLY: a new edition adds a line, never edits one. */
+export const SEED_SUPERSEDED: readonly SeedSuperseded[] = [
+  { key: "PRJ-34", field: "gate", was: "G2", rev: "0.131 · D133 — Concept (G1) gate alignment (operator 2026-09-26)" },
+  { key: "PRJ-34", field: "provenance", wasLike: /· rev 0\.\d{3}$/, rev: "every edition since 0.107 — the provenance line carries the master's revision" },
+];
+export const SEED_STAMP = "_seed" as const;
+const stableJson = (v: unknown): string =>
+  JSON.stringify(v, (_k, x) => (x && typeof x === "object" && !Array.isArray(x) ? Object.fromEntries(Object.keys(x as object).sort().map((k) => [k, (x as Record<string, unknown>)[k]])) : x)) ?? "undefined";
+/** FNV-1a 32-bit over the key-sorted JSON — a fingerprint, not a secret; 8 hex chars per field keeps a row small. */
+export const seedFingerprint = (v: unknown): string => {
+  let h = 0x811c9dc5; const s = stableJson(v);
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16).padStart(8, "0");
+};
+/** Reconcile ONE saved row against its seed (see the law above). Returns the SAME object when nothing changes. */
+export function reconcileSeedRow<T extends object>(saved: T, seed: T, key: string, superseded: readonly SeedSuperseded[] = SEED_SUPERSEDED): T {
+  const row = saved as Record<string, unknown>;
+  const base = (row[SEED_STAMP] && typeof row[SEED_STAMP] === "object" ? row[SEED_STAMP] : {}) as Record<string, string>;
+  const next: Record<string, unknown> = { ...row };
+  const stamp: Record<string, string> = { ...base };
+  let changed = false;
+  for (const [k, seedVal] of Object.entries(seed as Record<string, unknown>)) {
+    if (k === SEED_STAMP || seedVal === undefined) continue;
+    const seedFp = seedFingerprint(seedVal);
+    const has = Object.prototype.hasOwnProperty.call(row, k) && row[k] !== undefined;
+    const rowFp = has ? seedFingerprint(row[k]) : "";
+    let take = false;
+    if (!has) take = true;                                                              // the seed added a field this row never had
+    else if (base[k] !== undefined) take = rowFp === base[k] && seedFp !== base[k];      // untouched by a person, and the seed moved
+    else if (rowFp !== seedFp) take = superseded.some((s) => s.key === key && s.field === k && (s.wasLike ? typeof row[k] === "string" && s.wasLike.test(row[k] as string) : seedFingerprint(s.was) === rowFp)); // pre-law row: a declared former seed value
+    if (take && rowFp !== seedFp) { next[k] = seedVal; changed = true; }
+    if (stamp[k] !== seedFp) { stamp[k] = seedFp; changed = true; }
+  }
+  if (!changed) return saved;
+  next[SEED_STAMP] = stamp;
+  return next as T;
+}
 /** The one merge law behind projects, master data and pillars: append the seed rows the saved list lacks (by key),
- *  keep every saved row and its order, skip keys a person removed on purpose. Returns the SAME array when nothing
- *  is missing, so a React state set is a no-op. */
-export function mergeMissingBy<T>(saved: T[], seeds: readonly T[], keyOf: (x: T) => string, removed: readonly string[] = []): T[] {
-  const have = new Set(saved.map(keyOf)), gone = new Set(removed);
+ *  RECONCILE the rows it has (a changed seed field reaches an untouched row; an edited field stays), keep the saved
+ *  order, skip keys a person removed on purpose. Returns the SAME array when nothing changes, so a React state set
+ *  is a no-op. */
+export function mergeMissingBy<T>(saved: T[], seeds: readonly T[], keyOf: (x: T) => string, removed: readonly string[] = [], superseded: readonly SeedSuperseded[] = SEED_SUPERSEDED): T[] {
+  const gone = new Set(removed);
+  const byKey = new Map(seeds.map((s) => [keyOf(s), s]));
+  let changed = false;
+  const kept = saved.map((row) => {
+    const s = byKey.get(keyOf(row));
+    if (!s || typeof row !== "object" || row === null) return row;
+    const r = reconcileSeedRow(row as object, s as object, keyOf(row), superseded) as T;
+    if (r !== row) changed = true;
+    return r;
+  });
+  const have = new Set(saved.map(keyOf));
   const add = seeds.filter((x) => !have.has(keyOf(x)) && !gone.has(keyOf(x)));
-  return add.length ? [...saved, ...add] : saved;
+  if (!add.length && !changed) return saved;
+  // a row added from the seed is fingerprinted at birth, so the NEXT seed change reaches it too
+  return [...kept, ...add.map((x) => (typeof x === "object" && x !== null ? (reconcileSeedRow({} as object, x as object, keyOf(x), superseded) as T) : x))];
 }
 /** ADMIN PANEL ALWAYS UPDATED (operator 2026-09-24: "ensure Admin panel is also updated · always do this in the future").
  *  A saved Business Setup (the Admin panel's master data) gains every node the code now seeds — BU, SBU, Alpha Group,
- *  Alpha Code, Product #, Material # — by code, per tier; saved nodes, their edits and the company name are untouched.
- *  Returns the same object when nothing is missing. */
-export function mergeSetupSeeds(saved: BizSetup, seed: BizSetup): BizSetup {
+ *  Alpha Code, Product #, Material # — by code, per tier, and a seeded node's untouched fields follow the seed (the law
+ *  above); saved nodes' edits and the company name are untouched; a code the admin deleted (`removed`, the Setup
+ *  tombstones) never comes back. Returns the same object when nothing changes. */
+export function mergeSetupSeeds(saved: BizSetup, seed: BizSetup, removed: readonly string[] = []): BizSetup {
   let changed = false;
   const out = { ...saved } as BizSetup;
   for (const t of BIZ_TIERS) {
     const cur = Array.isArray(saved[t.key]) ? saved[t.key] : [];
-    const next = mergeMissingBy(cur, seed[t.key], (n) => n.code);
+    const next = mergeMissingBy(cur, seed[t.key], (n) => n.code, removed, []);
     if (next !== cur) { out[t.key] = next; changed = true; }
   }
   return changed ? out : saved;
@@ -2546,7 +2613,7 @@ export const BIZ_TIERS: { key: BizTier; label: string; parent?: BizTier }[] = [
 // A hierarchy node. `baseM` = grey do-nothing anchor (existing). H38 adds the seeded P&L trio — base-year
 // Revenue (revM), Margin $ (marginM), and Growth Rate % (growthPct) — plus an optional Trinity `color` (BU only,
 // inherited by children). ALL new fields are optional so a validated loader tolerates old persisted setups.
-export interface BizNode { code: string; label: string; desc?: string; parent?: string; baseM?: number; revM?: number; marginM?: number; growthPct?: number; color?: string }
+export interface BizNode { code: string; label: string; desc?: string; parent?: string; baseM?: number; revM?: number; marginM?: number; growthPct?: number; color?: string; _seed?: Record<string, string> }
 export type BizSetup = { company: string } & Record<BizTier, BizNode[]>;
 // Base-year Base Rev per BU (operator IMG_8152/8154 — the current-year existing-revenue baseline, i.e. the grey
 // jump-off bar the New/Incremental stacks build on): AP $11M, DS $42M, MS $31M = $84M company. Growth is the

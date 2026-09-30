@@ -416,9 +416,35 @@ import { HIER_DECLARED, RESERVED_PROJECT_IDS, nextProjectId, defaultChain, PROJE
   ok(mergedSetup.company === "Operator Co" && mergedSetup.bu[0].label.endsWith("(edited)"), "mergeSetupSeeds keeps the company name and every saved node edit");
   ok(["DR", "DRC", "CR1", "CR1D", "70034", "70034-001"].every((c, i) => mergedSetup[["bu", "sbu", "pgroup", "alpha", "product", "material"][i]].some((n) => n.code === c)), "mergeSetupSeeds adds DR › DRC › CR1 › CR1D · 70034 · 70034-001 to a saved Setup");
   ok(mergeSetupSeeds(mergedSetup, seedBiz(DEMO_PROJECTS)) === mergedSetup, "mergeSetupSeeds is idempotent");
-  ok(/return mergeSetupSeeds\(parsed, seedBizSetup\(DEMO_PROJECTS\)\)/.test(pageSrc), "loadBizSetup (the Admin panel) merges seeded master data into a saved Setup");
-  ok(/mergeMissingBy\(p, seed, \(x\) => x\.name, readPillarsRemoved\(\)\)/.test(pageSrc) && /lsSet\(PILLARS_REMOVED_KEY/.test(pageSrc), "loadPillars merges seeded pillars (5th: Civic Crisis + Resilience) and the ✕ writes a tombstone");
+  ok(/mergeSetupSeeds\(parsed, seedBizSetup\(DEMO_PROJECTS\), readSetupRemoved\(\)\)/.test(pageSrc) && /if \(merged !== parsed\) lsSet\(BIZ_KEY/.test(pageSrc), "loadBizSetup (the Admin panel) reconciles seeded master data into a saved Setup, honours the Setup tombstones, and writes the result back");
+  ok(/mergeMissingBy\(p, seed, \(x\) => x\.name, readPillarsRemoved\(\)\)/.test(pageSrc) && /lsSet\(PILLARS_REMOVED_KEY/.test(pageSrc) && /if \(m !== p\) lsSet\(PILLAR_KEY/.test(pageSrc), "loadPillars merges seeded pillars (5th: Civic Crisis + Resilience), writes the result back, and the ✕ writes a tombstone");
   ok(PILLARS.includes("Civic Crisis + Resilience"), "the DR pillar is in the seed the Admin panel merges from");
+  // THE SEED LAW, SECOND HALF (operator 2026-09-27 "update all related supabase as well"): a seed FIELD that changed on a row a
+  // device had already saved reaches that row — the local mirror AND the Supabase copy it writes back — unless a person edited
+  // that very field. The operator's phone kept PRJ-34 at G2 with no TAM/SAM after 048628d shipped G1 · $30B · $10B.
+  const { reconcileSeedRow, SEED_SUPERSEDED, seedFingerprint } = await import("../lib/innovation-data.ts");
+  const seed34 = DEMO_PROJECTS.find((p) => p.id === "PRJ-34");
+  const { tamUsdM: _tam, samUsdM: _sam, ...phone34 } = { ...seed34, gate: "G2", name: seed34.name + " (edited)", provenance: seed34.provenance.replace(/rev 0\.\d{3}$/, "rev 0.107") };
+  const fixed = mergeNewSeeds([phone34], DEMO_PROJECTS);
+  const r34 = fixed.find((p) => p.id === "PRJ-34");
+  ok(r34.gate === "G1" && r34.tamUsdM === 30000 && r34.samUsdM === 10000 && r34.provenance === seed34.provenance && r34.name.endsWith("(edited)"), "the phone's pre-law PRJ-34 (G2, no TAM/SAM, a rev 0.107 provenance, an edited name) reconciles to G1 · $30B · $10B · the master's provenance — and keeps the edited name");
+  ok(r34._seed && r34._seed.gate === seedFingerprint("G1") && Object.keys(r34._seed).length >= 20, "the reconciled row is fingerprinted per seed field (the stamp travels inside the row → local mirror + cloud jsonb, no migration)");
+  ok(mergeNewSeeds(fixed, DEMO_PROJECTS) === fixed, "reconciling again changes nothing (the same array)");
+  ok(reconcileSeedRow({ ...r34, gate: "G3" }, seed34, "PRJ-34").gate === "G3", "a person's edit (G3, differing from its fingerprint) survives a seed that still says G1");
+  ok(reconcileSeedRow(r34, { ...seed34, tamUsdM: 31000 }, "PRJ-34").tamUsdM === 31000, "an untouched, fingerprinted field follows the NEXT seed change");
+  ok(reconcileSeedRow(r34, seed34, "PRJ-34") === r34, "a row that matches its seed is returned as the same object");
+  ok(SEED_SUPERSEDED.some((s) => s.key === "PRJ-34" && s.field === "gate" && s.was === "G2"), "SEED_SUPERSEDED declares the former G2 seed value (append-only)");
+  // Setup master data: a pre-law node is fingerprinted on first contact; from then on an untouched label follows the seed while an
+  // edited one stays; a code on the Setup tombstones is never re-seeded.
+  const seedSetup = seedBiz(DEMO_PROJECTS);
+  const pass1 = mergeSetupSeeds({ ...seedSetup, bu: seedSetup.bu.map((n) => (n.code === "MS" ? { ...n, label: "Mine (edited)" } : n)) }, seedSetup);
+  const seed2 = { ...seedSetup, bu: seedSetup.bu.map((n) => (n.code === "DR" ? { ...n, label: "De-Risking Strategies v2" } : n.code === "MS" ? { ...n, label: "MS v2" } : n)) };
+  const pass2 = mergeSetupSeeds(pass1, seed2);
+  ok(pass2.bu.find((n) => n.code === "DR").label === "De-Risking Strategies v2" && pass2.bu.find((n) => n.code === "MS").label === "Mine (edited)", "Setup: an untouched seeded label follows the seed; an edited label stays");
+  ok(!mergeSetupSeeds({ ...seedSetup, bu: seedSetup.bu.filter((n) => n.code !== "DR") }, seedSetup, ["DR"]).bu.some((n) => n.code === "DR"), "Setup: a code the admin deleted (tombstone) is never re-seeded");
+  ok(/const TOMBSTONE_KEYS = \["innovation-projects-removed", "innovation-pillars-removed", "innovation-biz-setup-removed"\]/.test(pageSrc) && /\.\.\.TOMBSTONE_KEYS,/.test(pageSrc), "the three tombstone lists ride the cloud config bundle (CONFIG_KEYS), so a removal holds on every device");
+  ok(/TOMBSTONE_KEYS\.includes\(key\)\) \{ lsSet\(key, JSON\.stringify\(Array\.from\(new Set\(\[\.\.\.listOf\(lsGet\(key\)\), \.\.\.listOf\(raw\)\]\)\)\)\)/.test(pageSrc), "on hydration a tombstone list is the UNION of device + cloud, never overwritten");
+  ok((pageSrc.match(/pushConfigBundle\(\)/g) || []).length >= 6 && /const delRow = \(i: number\) => \{[\s\S]{0,300}?lsSet\(SETUP_REMOVED_KEY/.test(pageSrc) && /needsWriteBack\.current = merged !== local/.test(pageSrc) && /if \(needsWriteBack\.current\) \{ needsWriteBack\.current = false; setOrder\(\(o\) => o\.slice\(\)\); \}/.test(pageSrc), "every tombstone write pushes the bundle; Setup delRow writes a tombstone; a local-only reconcile is written back to local + cloud after hydration");
   // 0.005 · ONE MASTER FOR THE FUTURE STATE: the Pod's PRJ-34 value prop IS the DRS master's derived statement, byte for byte.
   const drs = JSON.parse(await (await import("node:fs/promises")).readFile("../docs/drs/drs.v00.00.json", "utf8"));
   ok(p34.valueProp === drs.futureState.master.statement, "PRJ-34 valueProp is the DRS futureState master statement (derived from NBA + segment research), verbatim");

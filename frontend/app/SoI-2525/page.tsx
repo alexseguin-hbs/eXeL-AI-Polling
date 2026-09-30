@@ -78,10 +78,15 @@ const CODE = "369963";
 const SS_KEY = "innovation-unlocked";
 // Admin config bundle mirrored to Supabase (Slice 0) — the persisted localStorage keys that make up
 // the tool's editable master data. Kept as literals so the store stays decoupled from the loaders below.
+// THE SEED LAW (operator 2026-09-27 "update all related supabase as well"): the three tombstone lists — a project, a
+// pillar or a master-data code a person removed on purpose — travel in the bundle too, so a removal made on one device
+// is never undone by the seed on another (they were local-only before). Merged by UNION on hydration, never overwritten.
+const TOMBSTONE_KEYS = ["innovation-projects-removed", "innovation-pillars-removed", "innovation-biz-setup-removed"];
 const CONFIG_KEYS = [
   "innovation-pillars", "innovation-biz-setup", "innovation-review-board",
   "innovation-stack-name", "innovation-dogtag-highlights", "innovation-segment-library",
   "innovation-glossary",
+  ...TOMBSTONE_KEYS,
 ];
 // Shared glossary (Slice 8) — one versioned definition per metric/term, admin-editable, cited across the
 // tool. Persisted with the config bundle (→ Supabase). Keeps engineer/business/BD vocabulary aligned.
@@ -209,6 +214,19 @@ const PROJECTS_KEY = "innovation-projects";
 // joins every saved portfolio but a deliberate removal is never undone by a deploy.
 const REMOVED_KEY = "innovation-projects-removed";
 const readRemoved = (): string[] => { try { const v = JSON.parse(lsGet(REMOVED_KEY) || "[]"); return Array.isArray(v) ? v.filter((x) => typeof x === "string") : []; } catch { return []; } };
+/** A JSON string list, or [] — the shape every tombstone list shares. */
+const listOf = (raw: string | null | undefined): string[] => { try { const v = JSON.parse(raw || "[]"); return Array.isArray(v) ? v.filter((x) => typeof x === "string") : []; } catch { return []; } };
+// Business Setup tombstones (THE SEED LAW): a master-data code the admin deleted — never re-seeded by a deploy.
+const SETUP_REMOVED_KEY = "innovation-biz-setup-removed";
+const readSetupRemoved = (): string[] => listOf(lsGet(SETUP_REMOVED_KEY));
+/** Push the admin config bundle (every CONFIG_KEY the device holds, tombstones included) to the cloud — best-effort,
+ *  never blocks. Called when the operator leaves Business Setup, on every tombstone write, and once after a hydration
+ *  reconciled seeded master data into the saved copy, so the Supabase "config" blob never lags the device. */
+const pushConfigBundle = () => {
+  const bundle: Record<string, string> = {};
+  for (const key of CONFIG_KEYS) { const raw = lsGet(key); if (raw != null) bundle[key] = raw; }
+  void saveState("config", bundle);
+};
 
 // ── Portfolio workbench ─────────────────────────────────────────────────────────────────
 function Board() {
@@ -223,14 +241,19 @@ function Board() {
   const [order, setOrder] = useState<Project[]>(
     [...DEMO_PROJECTS].sort((a, b) => npvM(b) - npvM(a))
   );
+  // THE SEED LAW: when the local mirror alone was reconciled (a seed field moved, or a seed row joined), the result
+  // must still be written back — locally and to the cloud — once hydration completes, even if the cloud had no copy.
+  const needsWriteBack = useRef(false);
   useEffect(() => {
     const raw = lsGet(PROJECTS_KEY);
     if (!raw) return;
     try {
       const local = JSON.parse(raw) as Project[];
       if (Array.isArray(local) && local.length > 0 && local.every((p) => p && typeof p.id === "string")) {
-        // PRJ-34 · a seed added after this device first saved joins the saved list (never replaces it).
+        // PRJ-34 · a seed added after this device first saved joins the saved list (never replaces it); a seed FIELD
+        // that changed on a row this device already saved reaches it too (reconcileSeedRow, operator 2026-09-27).
         const merged = mergeNewSeeds(local, DEMO_PROJECTS, readRemoved());
+        needsWriteBack.current = merged !== local;
         setOrder(merged); setSelId(merged[0].id);
       }
     } catch { /* corrupt mirror → keep the seeds, never blank the portfolio */ }
@@ -382,6 +405,7 @@ function Board() {
     ];
     setUndoRemoved({ p: victim, at: Date.now() });
     lsSet(REMOVED_KEY, JSON.stringify(Array.from(new Set(readRemoved().concat(id))))); // tombstone: a deploy never resurrects it
+    pushConfigBundle();                                                                 // …on any device (the tombstone rides the bundle)
     setOrder((o) => o.filter((x) => x.id !== id));
     // Selection safety: never leave the detail pane pointed at a dead id.
     if (selId === id) {
@@ -397,6 +421,7 @@ function Board() {
     // Restore at the head, exactly where createIdea puts a project, and re-select it so the operator sees
     // it come back rather than having to hunt for it.
     lsSet(REMOVED_KEY, JSON.stringify(readRemoved().filter((x) => x !== undoRemoved.p.id))); // the tombstone goes with the undo
+    pushConfigBundle();
     setOrder((o) => (o.some((x) => x.id === undoRemoved.p.id) ? o : [undoRemoved.p, ...o]));
     selectProject(undoRemoved.p.id);
     log("edit", undoRemoved.p.name, "project removal UNDONE — record restored intact", "you", { projectId: undoRemoved.p.id });
@@ -558,9 +583,17 @@ function Board() {
       const bundle = cloud["config"] as Record<string, string> | undefined;
       if (bundle && typeof bundle === "object") {
         for (const [key, raw] of Object.entries(bundle)) {
-          if (CONFIG_KEYS.includes(key) && typeof raw === "string") lsSet(key, raw);
+          if (!CONFIG_KEYS.includes(key) || typeof raw !== "string") continue;
+          // a tombstone list is the UNION of what this device and the cloud each removed — a removal holds everywhere
+          if (TOMBSTONE_KEYS.includes(key)) { lsSet(key, JSON.stringify(Array.from(new Set([...listOf(lsGet(key)), ...listOf(raw)])))); continue; }
+          lsSet(key, raw);
         }
         const s = loadBizSetup(); setSetup(s); setCompanyName(s.company); setStackName(loadStackName());
+        loadPillars(); // reconciles + writes back the seeded pillars the same way (its result is read by Business Setup on mount)
+        // THE SEED LAW: the loaders reconciled seeded master data into the saved Setup/pillars and wrote the result back
+        // locally; if anything differs from what the cloud sent, push the bundle so the Supabase "config" copy carries
+        // it too — otherwise the cloud keeps the pre-seed Setup until someone happens to visit Business Setup.
+        if (CONFIG_KEYS.some((key) => (lsGet(key) ?? null) !== (typeof bundle[key] === "string" ? bundle[key] : null))) pushConfigBundle();
       }
       // Per-project edits (new ideas, value drivers, gate/field edits, S10 financials) — durable +
       // cross-device. Cloud is the source of truth once the operator has saved anything; with no cloud we
@@ -568,6 +601,7 @@ function Board() {
       const saved = cloud["projects"] as Project[] | undefined;
       if (Array.isArray(saved) && saved.length > 0 && saved.every((p) => p && typeof p.id === "string")) {
         const merged = mergeNewSeeds(saved, DEMO_PROJECTS, readRemoved()); // PRJ-34 · same law for the cloud copy
+        if (merged !== saved) needsWriteBack.current = true;               // the reconciled cloud copy goes back up
         setOrder(merged); setSelId(merged[0].id);
       }
       // De-risk (council · Odin/Krishna): restore the per-project slide/gate namespaces — seed localStorage ONLY
@@ -579,6 +613,9 @@ function Board() {
         if (c && typeof c === "object" && Object.keys(c).length > 0) lsSet(lsKey, JSON.stringify(c));
       }
       projectsHydrated.current = true;
+      // THE SEED LAW: a reconcile owed by the local mirror (or by the cloud copy above) is written back now — a fresh
+      // array reference makes the [order] effect below mirror it locally and push it to the cloud.
+      if (needsWriteBack.current) { needsWriteBack.current = false; setOrder((o) => o.slice()); }
     })();
   }, []);
   // Debounced best-effort push of the working project set (new ideas + edits + value drivers) to the cloud.
@@ -595,11 +632,7 @@ function Board() {
   // happen). Reads the persisted localStorage config keys and upserts them as one blob. Best-effort.
   const prevView = useRef(view);
   useEffect(() => {
-    if (prevView.current === "setup" && view !== "setup") {
-      const bundle: Record<string, string> = {};
-      for (const key of CONFIG_KEYS) { const raw = lsGet(key); if (raw != null) bundle[key] = raw; }
-      void saveState("config", bundle);
-    }
+    if (prevView.current === "setup" && view !== "setup") pushConfigBundle();
     prevView.current = view;
   }, [view]);
 
@@ -7370,7 +7403,16 @@ function loadPillars(): PillarDef[] {
   const seed = STRATEGIC_INITIATIVES.map((n) => ({ name: n, desc: PILLAR_DESC[n] }));
   // ADMIN PANEL ALWAYS UPDATED (operator 2026-09-24): a pillar seeded later in the code joins a saved list; a pillar the
   // admin deleted stays deleted (tombstone written by the ✕ below).
-  if (s) { try { const p = JSON.parse(s) as PillarDef[]; if (Array.isArray(p) && p.length) return mergeMissingBy(p, seed, (x) => x.name, readPillarsRemoved()); } catch { /* seed */ } }
+  if (s) {
+    try {
+      const p = JSON.parse(s) as PillarDef[];
+      if (Array.isArray(p) && p.length) {
+        const m = mergeMissingBy(p, seed, (x) => x.name, readPillarsRemoved());
+        if (m !== p) lsSet(PILLAR_KEY, JSON.stringify(m)); // THE SEED LAW: the reconciled list is written back, so the bundle carries it
+        return m;
+      }
+    } catch { /* seed */ }
+  }
   return seed;
 }
 // Shared master-data loader — reads the admin Business Setup (localStorage) or falls back to
@@ -7384,8 +7426,11 @@ function loadBizSetup(): BizSetup {
       // localStorage shows "Harmattan AI"; any operator-chosen custom name is preserved as-is.
       if (!parsed.company?.trim() || parsed.company === COMPANY_NAME) parsed.company = DEFAULT_COMPANY_NAME;
       // ADMIN PANEL ALWAYS UPDATED (operator 2026-09-24): master data seeded after this device saved its Setup
-      // (DR › DRC › CR1 › CR1D · 70034 for PRJ-34) joins the saved Setup; saved nodes and edits are untouched.
-      return mergeSetupSeeds(parsed, seedBizSetup(DEMO_PROJECTS));
+      // (DR › DRC › CR1 › CR1D · 70034 for PRJ-34) joins the saved Setup; a seeded node's untouched fields follow the
+      // seed; saved edits are untouched; a code the admin deleted (tombstone) never returns.
+      const merged = mergeSetupSeeds(parsed, seedBizSetup(DEMO_PROJECTS), readSetupRemoved());
+      if (merged !== parsed) lsSet(BIZ_KEY, JSON.stringify(merged)); // THE SEED LAW: written back, so the cloud bundle carries it
+      return merged;
     } catch { /* fall through to seed */ }
   }
   return seedBizSetup(DEMO_PROJECTS);
@@ -7528,8 +7573,14 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
   };
   const rowColor = (r: BizNode): string => BU_COLOR[buCodeOf(tier, r.code)] ?? "#334155";
   const addRow = () => setRows([...rows, { code: `NEW${rows.length + 1}`, label: "New " + tierMeta.label, parent: parentRows[0]?.code, baseM: baseTier ? 0 : undefined }]);
-  const delRow = (i: number) => setRows(rows.filter((_, j) => j !== i));
-  const resetSeed = () => persist(seedBizSetup(DEMO_PROJECTS));
+  // THE SEED LAW: deleting a master-data row writes its code to the Setup tombstones (and pushes the bundle) so no
+  // deploy — on this device or another — re-seeds it; Reset to seed forgets the tombstones (a reset means everything).
+  const delRow = (i: number) => {
+    const code = rows[i]?.code;
+    setRows(rows.filter((_, j) => j !== i));
+    if (code) { lsSet(SETUP_REMOVED_KEY, JSON.stringify(Array.from(new Set(readSetupRemoved().concat(code))))); pushConfigBundle(); }
+  };
+  const resetSeed = () => { lsSet(SETUP_REMOVED_KEY, "[]"); persist(seedBizSetup(DEMO_PROJECTS)); };
   const inp = "rounded border border-slate-700 bg-[#0b0f14] px-1.5 py-0.5 text-xs text-slate-100 outline-none focus:border-cyan-500";
   // Σ Base Rev = the current-year baseline (Rev $M at SBU tier). The old do-nothing "Base $M" column was removed
   // (operator: "Base Rev / Base Mgn are current-year figures … there is not another number too").
@@ -7658,7 +7709,7 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                   className="h-6 w-8 cursor-pointer rounded border border-slate-700 bg-transparent p-0" />
                 {pl.color && <button onClick={() => persistPillars(pillars.map((x, j) => j === i ? { ...x, color: undefined } : x))} title={t("soi2525.reset_to_trinity_default")} aria-label={`Reset color for ${pl.name}`} className="text-slate-500 hover:text-cyan-300">↺</button>}
               </label>
-              <button onClick={() => { lsSet(PILLARS_REMOVED_KEY, JSON.stringify(Array.from(new Set(readPillarsRemoved().concat(pillars[i].name))))); persistPillars(pillars.filter((_, j) => j !== i)); }} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title={t("soi2525.delete")}>✕</button>
+              <button onClick={() => { lsSet(PILLARS_REMOVED_KEY, JSON.stringify(Array.from(new Set(readPillarsRemoved().concat(pillars[i].name))))); persistPillars(pillars.filter((_, j) => j !== i)); pushConfigBundle(); }} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title={t("soi2525.delete")}>✕</button>
             </div>
           ))}
         </div>
