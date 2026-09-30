@@ -17,6 +17,16 @@ export type BudgetKind = "income" | "fixed" | "variable";
 export type BudgetCategory = "Income" | "Home" | "Auto" | "Insurance" | "Utilities" | "Fitness" | "Fun" | "Groceries" | "Dining Out" | "Other";
 export const BUDGET_CATEGORIES: readonly BudgetCategory[] = ["Income", "Home", "Auto", "Insurance", "Utilities", "Fitness", "Fun", "Groceries", "Dining Out", "Other"];
 export interface BudgetLine { id: string; category: BudgetCategory; kind: BudgetKind; amountCents: number; label?: string }
+/** The kind of every category (the sheet's F / V columns; Income is its own kind) — the dropdown on the transaction forms
+ *  groups by it (addendum 16: "fixed · variable · income · Mortgage/Rent · Auto · Insurance · etc"). */
+export const CATEGORY_KIND: Record<BudgetCategory, BudgetKind> = {
+  Income: "income", Home: "fixed", Auto: "fixed", Insurance: "fixed", Fitness: "fixed",
+  Utilities: "variable", Fun: "variable", Groceries: "variable", "Dining Out": "variable", Other: "variable",
+};
+export const BUDGET_KINDS: readonly BudgetKind[] = ["income", "fixed", "variable"];
+/** The dropdown's groups, in the operator's order: income, then fixed, then variable. */
+export const TRANSACTION_CATEGORIES: readonly { kind: BudgetKind; categories: BudgetCategory[] }[] =
+  BUDGET_KINDS.map((kind) => ({ kind, categories: BUDGET_CATEGORIES.filter((c) => CATEGORY_KIND[c] === kind) }));
 
 /** The operator's sheet, as seed data per 33-day month (F = fixed, V = variable). */
 export const SHEET_BUDGET: readonly BudgetLine[] = [

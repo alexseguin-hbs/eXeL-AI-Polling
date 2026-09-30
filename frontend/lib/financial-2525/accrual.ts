@@ -17,6 +17,7 @@
  * Pure — every function takes the instant `t`; nothing here reads a clock. Amounts are integer cents.
  */
 import { MIN_PER_DAY, MS_PER_DAY, perMin } from "./mot";
+import type { BudgetCategory } from "./budget";
 
 export const HOLD_HOURS = 3;
 export const HOLD_MS = HOLD_HOURS * 3600 * 1000;
@@ -30,6 +31,7 @@ export interface FinTx {
   motDays?: number;      // deposits only — the length of time the money covers (30.333 for the worked example)
   memo?: string;         // "PENDING DIRECT DEPOSIT", "PAYROLL", …
   payer?: string;        // who put it in escrow (the employer, the business, the person)
+  category?: BudgetCategory; // the personal-finance element (addendum 16): Income · Mortgage/Rent · Auto · Insurance · … — recorded, never required to accrue
 }
 
 export type DepositState = "pending" | "releasing" | "released";

@@ -41,9 +41,9 @@ import { FINANCIAL_DOMAIN as SRC } from "@/lib/financial-2525/domain.gen";
 import { fmtMot, spanABC, fmtStampCST, parseStampCST } from "@/lib/financial-2525/mot";
 import { positionInYear, frameOf } from "@/lib/financial-2525/calendar";
 import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
-import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
+import { planetRow, daySecOf, ltuDays, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
 import { balanceAt, series, validateWithdrawal, depositView, HOLD_MS, type FinTx } from "@/lib/financial-2525/accrual";
-import { SHEET_BUDGET, SHEET_MONTH_DAYS, summarize, type BudgetCategory } from "@/lib/financial-2525/budget";
+import { SHEET_BUDGET, SHEET_MONTH_DAYS, summarize, TRANSACTION_CATEGORIES, type BudgetCategory } from "@/lib/financial-2525/budget";
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -80,7 +80,7 @@ export function phaseOf(focus: FinTx | null, withdrawals: number, now: number): 
 /** The worked example as data — the operator's paycheck (amount · deposit day and time · MoT), never invented. */
 const EXAMPLE: FinTx = {
   id: "example-d1", kind: "deposit", amountCents: Math.round(SRC.example.amountUsd * 100),
-  atMs: parseStampCST(SRC.example.depositStamp) ?? 0, motDays: SRC.example.motDays, memo: SRC.example.memo, payer: "example",
+  atMs: parseStampCST(SRC.example.depositStamp) ?? 0, motDays: SRC.example.motDays, memo: SRC.example.memo, payer: "example", category: "Income",
 };
 
 export function FinancialCommandUX1() {
@@ -123,11 +123,43 @@ export function FinancialCommandUX1() {
   const year = now ? positionInYear(now, planet.yearAnchor) : null;
   const frame = now ? frameOf(now, 33, planet.yearAnchor) : null;
   const budget = useMemo(() => summarize(SHEET_BUDGET, SHEET_MONTH_DAYS), []);
+  // THE BUDGET TABLE'S UNIT (addendum 17: "View must be possible in $/min · Day, Week, Month etc") — a segmented toggle; the
+  // sheet's 33-day month is the default; week · month · year come from the planet's LTU table (Month 91 for now).
+  type BudgetUnit = "sec" | "min" | "hour" | "day" | "week" | "m33" | "month" | "year";
+  const [budgetUnit, setBudgetUnit] = useState<BudgetUnit>("m33");
+  const LTU = ltuDays(planet);
+  const UNITS: { key: BudgetUnit; label: string; days: number }[] = [
+    { key: "sec", label: t("fin.per_sec"), days: 1 / (planet.hoursPerDay * planet.minPerHour * planet.secPerMin) },
+    { key: "min", label: t("fin.per_min"), days: 1 / (planet.hoursPerDay * planet.minPerHour) },
+    { key: "hour", label: t("fin.per_hour"), days: 1 / planet.hoursPerDay },
+    { key: "day", label: t("fin.per_day"), days: LTU.D },
+    { key: "week", label: t("fin.per_week"), days: LTU.W },
+    { key: "m33", label: t("fin.per_33"), days: SHEET_MONTH_DAYS },
+    { key: "month", label: `${t("fin.per_month")} (${LTU.M})`, days: LTU.M },
+    { key: "year", label: t("fin.per_year"), days: LTU.Y },
+  ];
+  const unitDaysSel = UNITS.find((u) => u.key === budgetUnit)?.days ?? SHEET_MONTH_DAYS;
+  // a sheet line is an amount per 33 days; in the chosen unit it is amount × unitDays ÷ 33 — cents, shown to the cent above a
+  // dollar a unit and to four places below it (the $/min · $/sec ladder the sheet writes)
+  const inUnit = (cents: number) => (cents * unitDaysSel) / SHEET_MONTH_DAYS;
+  const usdUnit = (cents: number) => (Math.abs(cents) >= 100 ? usd(Math.round(cents)) : usd4(cents));
   const signIn = () => loginWithRedirect({ appState: { returnTo: `${SRC.project.route}/` } });
 
   // ── forms ──────────────────────────────────────────────────────────────────────────────────────────────────
   const [dAmt, setDAmt] = useState(""); const [dAt, setDAt] = useState(""); const [dMot, setDMot] = useState(String(SRC.mot.payMotDays)); const [dMemo, setDMemo] = useState("");
   const [wAmt, setWAmt] = useState(""); const [wAt, setWAt] = useState("");
+  // the personal-finance element of the entry (addendum 16): a deposit is Income by default, a withdrawal Mortgage/Rent (the sheet's first fixed line)
+  const [dCat, setDCat] = useState("Income" as BudgetCategory); const [wCat, setWCat] = useState("Home" as BudgetCategory);
+  const catLabel = (c: BudgetCategory) => t(`fin.cat.${CAT_KEY[c]}`);
+  const CategorySelect = ({ value, onChange, hook }: { value: BudgetCategory; onChange: (c: BudgetCategory) => void; hook: string }) => (
+    <label className="text-xs text-muted-foreground">{t("fin.category")}
+      <select data-fin-category={hook} className={INPUT} value={value} onChange={(e) => onChange(e.target.value as BudgetCategory)}>
+        {TRANSACTION_CATEGORIES.map((g) => (
+          <optgroup key={g.kind} label={t(`fin.${g.kind}`)}>{g.categories.map((c) => <option key={c} value={c}>{catLabel(c)}</option>)}</optgroup>
+        ))}
+      </select>
+    </label>
+  );
   const [refusal, setRefusal] = useState<string | null>(null);
   const commit = (tx: FinTx) => { const next = append(record, tx, at); setRecord(next); if (!saveRecord(next)) setSaveFailed(true); };
   const recordDeposit = () => {
@@ -136,14 +168,14 @@ export function FinancialCommandUX1() {
     if (!(cents > 0)) return setRefusal(t("fin.reason_amount"));
     if (when === null) return setRefusal(t("fin.reason_stamp"));
     setRefusal(null);
-    commit({ id: `d-${when}-${cents}`, kind: "deposit", amountCents: cents, atMs: when, motDays: Math.max(0, Number(dMot) || 0), memo: dMemo.trim() || undefined });
+    commit({ id: `d-${when}-${cents}`, kind: "deposit", amountCents: cents, atMs: when, motDays: Math.max(0, Number(dMot) || 0), memo: dMemo.trim() || undefined, category: dCat });
     setDAmt(""); setDMemo("");
   };
   const recordWithdrawal = () => {
     const cents = Math.round(Number(wAmt) * 100);
     const when = wAt.trim() ? parseStampCST(wAt) : at;
     if (when === null) return setRefusal(t("fin.reason_stamp"));
-    const w: FinTx = { id: `w-${when}-${cents}`, kind: "withdrawal", amountCents: cents, atMs: when };
+    const w: FinTx = { id: `w-${when}-${cents}`, kind: "withdrawal", amountCents: cents, atMs: when, category: wCat };
     const v = validateWithdrawal(txs, w);
     if (!v.ok) return setRefusal(v.reason === "HOLD" ? t("fin.reason_hold") : v.reason === "INSUFFICIENT" ? t("fin.reason_insufficient") : t("fin.reason_amount"));
     setRefusal(null); commit(w); setWAmt("");
@@ -161,7 +193,7 @@ export function FinancialCommandUX1() {
   })();
   const rosterRows: PodRosterRow[] = deposits.map((d) => {
     const v = depositView(d, at);
-    return { name: `${fmtStampCST(d.atMs)}${d.memo ? ` · ${d.memo}` : ""}`, me: true, state: v.state === "released" ? "done" : v.state === "pending" ? "pending" : "turn", label: `${usd(d.amountCents)} · ${d.motDays}` };
+    return { name: `${fmtStampCST(d.atMs)}${d.category ? ` · ${catLabel(d.category)}` : ""}${d.memo ? ` · ${d.memo}` : ""}`, me: true, state: v.state === "released" ? "done" : v.state === "pending" ? "pending" : "turn", label: `${usd(d.amountCents)} · ${d.motDays}` };
   });
   const countFor = (k: string): string | null => {
     if (k === "deposit") return String(deposits.length);
@@ -251,6 +283,7 @@ export function FinancialCommandUX1() {
                 <label className="text-xs text-muted-foreground">{t("fin.deposit_at")}<input className={INPUT} value={dAt} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setDAt(e.target.value)} /></label>
                 <label className="text-xs text-muted-foreground">{t("fin.mot_days")}<input className={INPUT} inputMode="decimal" value={dMot} onChange={(e) => setDMot(e.target.value)} /></label>
                 <label className="text-xs text-muted-foreground">{t("fin.memo")}<input className={INPUT} value={dMemo} onChange={(e) => setDMemo(e.target.value)} /></label>
+                <CategorySelect value={dCat} onChange={setDCat} hook="deposit" />
               </div>
               <button type="button" className={`mt-2 ${PRIMARY}`} onClick={recordDeposit}>{t("fin.record_it")}</button>
             </div>
@@ -259,6 +292,7 @@ export function FinancialCommandUX1() {
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 <label className="text-xs text-muted-foreground">{t("fin.amount")}<input className={INPUT} inputMode="decimal" value={wAmt} onChange={(e) => setWAmt(e.target.value)} /></label>
                 <label className="text-xs text-muted-foreground">{t("fin.deposit_at")}<input className={INPUT} value={wAt} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setWAt(e.target.value)} /></label>
+                <CategorySelect value={wCat} onChange={setWCat} hook="withdrawal" />
               </div>
               <button type="button" className={`mt-2 ${SECONDARY}`} onClick={recordWithdrawal}>{t("fin.withdraw")}</button>
               {refusal && <p className="mt-2 text-sm text-red-500">{t("fin.refused")} · {refusal}</p>}
@@ -278,14 +312,28 @@ export function FinancialCommandUX1() {
 
         {/* the budget — every line on the ladder (FIN-06) */}
         <div data-fin-budget className={SUB}>
-          <div className={LABEL}>{t("fin.budget_title")}</div>
-          <p className="mt-1 text-xs text-muted-foreground">{t("fin.per_33")} · {t("fin.per_day")} · {t("fin.per_min")} · {t("fin.per_sec")}</p>
-          <ul className="mt-2 space-y-0.5 font-mono text-xs">
-            {budget.lines.map((l) => (
-              <li key={l.id} className="flex justify-between gap-2"><span>{t(`fin.cat.${CAT_KEY[l.category]}`)}{l.kind === "income" ? "" : ` · ${l.kind === "fixed" ? t("fin.fixed") : t("fin.variable")}`}</span><span className="tabular-nums">{usd(l.amountCents)} · {usd(Math.round(l.ladder.perDay))} · {usd4(l.ladder.perMin)} · {usd4(l.ladder.perSec)}</span></li>
-            ))}
-            <li className={`flex justify-between gap-2 border-t border-border pt-1 ${budget.netCents < 0 ? "text-red-500" : "text-green-500"}`}><span>{t("fin.net")}</span><span className="tabular-nums">{usd(budget.netCents)} · {usd(Math.round(budget.net.perDay))} · {usd4(budget.net.perMin)} · {usd4(budget.net.perSec)}</span></li>
-          </ul>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className={LABEL}>{t("fin.budget_title")}</div>
+            {/* the unit toggle (addendum 17): one figure per row in the unit the person picks — $/s · $/min · $/h · $/day · $/week · 33 days · month · year */}
+            <div role="group" data-fin-budget-unit aria-label={t("fin.unit")} className="flex flex-wrap overflow-hidden rounded-md border border-border">
+              {UNITS.map((u) => (
+                <button key={u.key} type="button" aria-pressed={budgetUnit === u.key} onClick={() => setBudgetUnit(u.key)}
+                  className={`min-h-[32px] px-2 text-[11px] ${budgetUnit === u.key ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}>{u.label}</button>
+              ))}
+            </div>
+          </div>
+          {/* the table (addendum 17: "Ensure table"): category · kind · the figure in the chosen unit; net on the last row */}
+          <table className="mt-2 w-full font-mono text-xs">
+            <thead className="text-left text-[10px] uppercase tracking-wide text-muted-foreground">
+              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="py-1 pr-2">{t("fin.kind")}</th><th className="py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}</th></tr>
+            </thead>
+            <tbody>
+              {budget.lines.map((l) => (
+                <tr key={l.id} data-fin-budget-row={l.id} className="border-t border-border/60"><td className="py-1 pr-2">{t(`fin.cat.${CAT_KEY[l.category]}`)}</td><td className="py-1 pr-2 text-muted-foreground">{l.kind === "income" ? t("fin.income") : l.kind === "fixed" ? t("fin.fixed") : t("fin.variable")}</td><td className="py-1 text-right tabular-nums">{usdUnit(inUnit(l.amountCents))}</td></tr>
+              ))}
+              <tr className={`border-t border-border font-semibold ${budget.netCents < 0 ? "text-red-500" : "text-green-500"}`}><td className="py-1 pr-2">{t("fin.net")}</td><td /><td data-fin-budget-net className="py-1 text-right tabular-nums">{usdUnit(inUnit(budget.netCents))}</td></tr>
+            </tbody>
+          </table>
         </div>
 
         {/* the record — append-only, chain-hashed (FIN-05); honest about where it lives */}
@@ -295,7 +343,7 @@ export function FinancialCommandUX1() {
             {!owner && <li className="flex justify-between gap-2"><span>{fmtStampCST(EXAMPLE.atMs)} · {t("fin.deposit")} · {EXAMPLE.memo}</span><span>{usd(EXAMPLE.amountCents)} · {EXAMPLE.motDays}</span></li>}
             {owner && record.entries.length === 0 && <li>{t("fin.no_deposits")}</li>}
             {owner && record.entries.map((e) => (
-              <li key={e.hash} className="flex justify-between gap-2"><span>{e.rev} · {fmtStampCST(e.tx.atMs)} · {e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}{e.tx.memo ? ` · ${e.tx.memo}` : ""}</span><span className={e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}>{usd(e.tx.amountCents)}{e.tx.motDays ? ` · ${e.tx.motDays}` : ""} · {e.hash.slice(0, 8)}</span></li>
+              <li key={e.hash} className="flex justify-between gap-2"><span>{e.rev} · {fmtStampCST(e.tx.atMs)} · {e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}{e.tx.category ? ` · ${catLabel(e.tx.category)}` : ""}{e.tx.memo ? ` · ${e.tx.memo}` : ""}</span><span className={e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}>{usd(e.tx.amountCents)}{e.tx.motDays ? ` · ${e.tx.motDays}` : ""} · {e.hash.slice(0, 8)}</span></li>
             ))}
           </ul>
           <p className="mt-2 text-xs text-muted-foreground">{t("fin.device_only")}</p>

@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.005",
-  "stamp": "v.000_r.005",
+  "revision": "0.006",
+  "stamp": "v.000_r.006",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "6d467c4dead4f07ba45dd3141a800ec3d0bfe247aabfab8121e43e64524dae96",
+  "handoffSha256": "dbc66801dfb4143f48dc733f1d9d2d70339e65333b146725ca8683d3cc98aedc",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -76,6 +76,16 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "6d467c4dead4f07ba45dd3141a800ec3d0bfe247aabfab8121e43e64524dae96",
     "date": "2026-09-30",
     "note": "+ addendum 15 (the web site must be https://exel-ai-polling.explore-096.workers.dev/financial-2525 — the canonical route; /main/Financial-2525 an alias) — r.005 shipped against this hash"
+   },
+   {
+    "sha256": "0a62efd68c4afbd3b0ff2b80949713dd7e2f37cdb43477db09ec4cf766625ace",
+    "date": "2026-09-30",
+    "note": "+ addenda 16–17 (a category dropdown of the personal-finance elements on the transaction forms; the budget as a table with a unit toggle — $/min, day, week, month …) with the two phone screenshots — r.006 built against this hash"
+   },
+   {
+    "sha256": "dbc66801dfb4143f48dc733f1d9d2d70339e65333b146725ca8683d3cc98aedc",
+    "date": "2026-09-30",
+    "note": "+ addendum 18 (the year is the EXACT revolution, \"365.25 etc.\"; the perihelion instant in Austin CST standard) — persisted 25ec03d during the r.006 gate chain; owed as r.007, not folded into r.006"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -126,6 +136,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "The 365-day financial year IS 3600 A exactly (operator addendum 11, clarified: \"365 days is 3600.0000..0000 … Half year … = 1800\"): one A = 8,760 s (r.003 measured lengths on the 365.259636-day mean anomalistic year — 298.97 A for the pay MoT — superseded: 91 ÷ 3 days = 299.0641..0345 A); the day · hour · minute · second ladder is DERIVED from the scale (one day = 9.3106..3058 A); every writing prints its true A (365 d → 3600.0000..0000, r.003 substituted 3600.3600..3600); positions are never clamped and flagged pastFull past day 365; the fourth tier D (A.BBBB..CCCC...DDDD, 0.18776 µs) is declared. Every planet's whole is its own revolution, perihelion to perihelion (addendum 12: Mars 686.98 Earth days; 668.5991 sols the future form), A.B..C the standard for all, converted to the planet's LTU — Earth hours · minutes · seconds for Mars for now; the PER-PLANET LTU TABLE IS MASTER DATA IN THE ADMIN PANEL under the seed law (lib/planet-ltu.ts; SoI-2525 › Business Setup › Planet LTU; the cloud config bundle) and Financial-2525 reads it — a change there adjusts every conversion with no code change. For now the Earth row reads Month = 91 days with ONE system-offline day on Dec 31 (addendum 13), so the calendar year (Jan 1 → Dec 31) is the default anchor and Dec 31 the offline day 365; the perihelion anchor stays selectable. The reveal is the MoT-icon ⇄ Clock-icon toggle, one state for the whole card. FIN-01.01 → FIN-01.02, FIN-02 → FIN-02.01, FIN-13 → FIN-13.01 + FIN-13.02; FD-15..18. The lenses' round-1 backlog carries to r.006. Addendum 14 (\"A.B..C always\"): the notation is always A.B..C, never A.B.C; the card opens on the Clock icon with the MoT toggle — as built. Addendum 15: the canonical address is /financial-2525 (the launcher, the record's route and the sign-in return point there; /main/Financial-2525 stays an alias).",
    "commit": "c27628d",
    "shipped": "a8f6acd"
+  },
+  {
+   "revision": "0.006",
+   "date": "2026-09-30",
+   "kind": "decision",
+   "why": "Every transaction carries its personal-finance element (operator addendum 16, with his phone screenshot of the live forms): the deposit and withdrawal forms gain a dropdown grouped Income · Fixed · Variable over the sheet's categories — Mortgage/Rent (the sheet's Home, in the operator's word) · Auto · Insurance · Utilities · Fitness · Fun · Groceries · Dining Out · Other — recorded on the entry (FinTx.category, inside the chain hash), shown on the roster and the record; CATEGORY_KIND is the one map. The budget is a TABLE with a UNIT TOGGLE (addendum 17, with his screenshot of the wrapping ladder): category · kind · one figure in the unit the person picks — $/second · $/minute · $/hour · per day · per week · per 33 days (the sheet, the default) · per month (the LTU table's 91) · per year — the units read the selected planet's LTU row. The record's sentence stops naming a vendor (the lenses' owed item; the signer-voice law). FIN-03 → FIN-03.01, FIN-06 → FIN-06.01, FD-19, FD-20; eight lexicon keys staged (fin.category · fin.cat.home re-worded Mortgage/Rent · per_week · per_month · per_year · unit · kind · device_only re-worded) — ×32 fill follows.",
+   "commit": "0f41042",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -411,11 +429,11 @@ export const FINANCIAL_DOMAIN = {
    ],
    "phase": "pilot",
    "mode": "Manual",
-   "metric": "the worked example ($3,604.49 · 2026.10.01_07.00..00 · 30.333) accrues from its three fields alone",
+   "metric": "SUPERSEDED by FIN-03.01 (addendum 16): a transaction also carries its personal-finance category",
    "verify": "tests/financial-accrual.test.mjs",
    "dtm": "a deposit typed on the phone appears on the record with its stamp and MoT",
    "stretch": "a bank export imported as transactions with the same three fields",
-   "status": "implemented"
+   "status": "superseded"
   },
   {
    "id": "FIN-04",
@@ -465,11 +483,11 @@ export const FINANCIAL_DOMAIN = {
    ],
    "phase": "pilot",
    "mode": "Manual",
-   "metric": "the sheet's 144 $/D reads 0.1 $/min · 1,008 $/W · 4,752 $/M33 · 14,256 $/Q99",
+   "metric": "SUPERSEDED by FIN-06.01 (addendum 17): the budget is a table with a unit toggle, every unit from $/second to per year",
    "verify": "tests/financial-accrual.test.mjs",
    "dtm": "the operator's own lines in his order, each with its ladder",
    "stretch": "a line's actual spend logged as withdrawals against it",
-   "status": "implemented"
+   "status": "superseded"
   },
   {
    "id": "FIN-07",
@@ -670,6 +688,42 @@ export const FINANCIAL_DOMAIN = {
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-03.01",
+   "title": "The transaction — $, day and time, MoT, and its category",
+   "section": "V",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "Every deposit carries the operator's three fields — amount, deposit day and time, MoT — and every withdrawal its amount and day and time; each also carries its personal-finance element from ONE grouped dropdown (Income · Fixed · Variable → Mortgage/Rent, Auto, Insurance, Utilities, Fitness, Fun, Groceries, Dining Out, Other), recorded inside the chain hash and shown on the roster and the record; a category is never required to accrue.",
+   "metric": "both forms carry the grouped dropdown; the entry's category is inside its hash (a changed category breaks the chain where it changed); the roster and the record print it; the worked example is Income",
+   "dtm": "a withdrawal typed on the phone as Groceries appears on the record as Groceries",
+   "stretch": "a line's actual spend summed against the budget row of the same category",
+   "in": "FIN-03.01.IN",
+   "out": "FIN-03.01.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
+  },
+  {
+   "id": "FIN-06.01",
+   "title": "The personal budget as a table with a unit toggle",
+   "section": "I",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "The personal budget is a table — category · kind · one figure — under a segmented unit toggle: $/second · $/minute · $/hour · per day · per week · per 33 days (the sheet, the default) · per month (the LTU table's month, 91 for now) · per year; every view is possible, $/min among them; the units come from the selected planet's LTU row; the net is the last row on the same unit; the sheet's figures stay seed data the person edits, never advice.",
+   "metric": "the toggle carries eight units; the 33-day column reproduces the sheet (Income $3,200 · Net −$200); $/min reads the sheet's ladder (144 $/D = 0.1 $/min); per week = 7 × per day; per month = the LTU table's 91 days; nothing wraps on a 390 px phone",
+   "dtm": "the table on the phone with the toggle above it",
+   "stretch": "actuals per category beside the plan, from the record",
+   "in": "FIN-06.01.IN",
+   "out": "FIN-06.01.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -780,6 +834,18 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The reach of the table's mirror, said plainly: this browser's copy (the owner key is per browser) plus the cloud config bundle the pod hydrates; login-bound sync arrives when auth reaches Supabase. On the server the seed is read, so the first paint never differs from the seed. The reveal on the surface is the MoT-icon ⇄ Clock-icon toggle, one state for the whole card, named by the existing keys.",
    "status": "DECLARED",
    "basis": "addendum 13 ('have MoT Icon toggle with Clock icon toggle'); lib/innovation-store.ts ownerKeyOrNull (per-browser owner key); migration 030"
+  },
+  {
+   "id": "FD-19",
+   "decision": "Every transaction carries its personal-finance element, chosen from ONE grouped dropdown (Income · Fixed · Variable over the sheet's categories); the sheet's Home reads Mortgage/Rent in the operator's word; the category is recorded inside the entry's chain hash and shown on the roster and the record; it is never required to accrue.",
+   "status": "OPERATOR",
+   "basis": "addendum 16 ('place input transaction, have drop down of mentioned elements of personal finance: fixed · variable · income · Mortgage/Rent · Auto · Insurance · etc')"
+  },
+  {
+   "id": "FD-20",
+   "decision": "The budget is a table with a unit toggle — $/second · $/minute · $/hour · per day · per week · per 33 days · per month · per year — one figure per row in the unit the person picks; the sheet's 33-day month is the default; week, month and year read the selected planet's LTU row. The record's sentence names no vendor: 'On this phone only — a cloud copy follows once sign-in carries it'.",
+   "status": "OPERATOR",
+   "basis": "addendum 17 ('Ensure table and toggle to finance · View must be possible in $/min · Day, Week, Month etc'); the signer-voice law for the sentence"
   }
  ],
  "reviews": [
