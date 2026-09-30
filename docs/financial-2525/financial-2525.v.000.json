@@ -137,7 +137,7 @@
    "kind": "decision",
    "why": "Every category carries its icon (operator addendum 19, with his PERSONAL sheet photographed again: an icon drawn before every Fixed/Variable line — 'Ensure all have icons: Income · Mortgage · Car · Insurance · Food · Fitness · Fun'). components/financial-2525/category-icon.tsx: ONE map, CATEGORY_ICON, keyed by every BudgetCategory — the seven he named (Income banknote · Home/Mortgage house · Auto car · Insurance shield · Groceries/Food basket · Fitness dumbbell · Fun party) and the three the sheet does not name (Utilities = the sheet's Electric bolt · Dining Out crossed utensils · Other ellipsis) — strokes only (the vector law), aria-hidden, the word beside it always; shown on the budget table rows, before the category dropdown on both forms (the chosen category's icon), and on the record's lines. Labels unchanged: his Car and Food match the sheet's CAR and FOOD; the glass reads Auto and Groceries from the r.001 transcription — flagged for his word, not renamed. Also folded (fix the class): the year position now takes the planet's revolution — positionInYear/frameOf gain yearDays and the surface passes the selected row's — because the r.007 Mars capture showed the axis reading Earth positions (the head already read the Martian whole). FIN-06.02 (additive beside FIN-06.01), FIN-13.03 (the Mars position on its own revolution), FD-22.",
    "commit": "589d223",
-   "shipped": "PENDING"
+   "shipped": "b83dff3"
   }
  ],
  "mot": {

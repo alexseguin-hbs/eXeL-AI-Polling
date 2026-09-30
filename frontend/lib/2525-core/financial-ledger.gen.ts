@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 16 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 17 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -121,6 +121,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.008 decided (operator addendum 19, the PERSONAL sheet photographed): every category carries its icon — one map, ten strokes (Income banknote · Mortgage/Rent house · Auto car · Insurance shield · Utilities bolt · Groceries basket · Dining Out utensils · Fitness dumbbell · Fun party · Other ellipsis) — on the budget table, before the dropdown on both forms, on the record; labels unchanged (Car / Food flagged). Folded: the year position takes the planet's revolution (the r.007 Mars capture read Earth positions). FIN-06.02 · FIN-13.03 · FD-22.",
       "commit": "589d223"
+    },
+    {
+      "rev": 17,
+      "date": "2026-09-30",
+      "kind": "release",
+      "text": "v.000_r.008 SHIPPED — every category carries its icon: one map, ten strokes (Income banknote · Mortgage/Rent house · Auto car · Insurance shield · Utilities bolt · Groceries basket · Dining Out utensils · Fitness dumbbell · Fun party · Other ellipsis) before the word on the budget table, on both forms' dropdown label and on every record line — labels unchanged (Car / Food flagged); the year position and the frame take the planet's revolution (the r.007 Mars axis read Earth positions — fixed at its class). FIN-06.02 · FIN-13.03 · FD-22. Shipped as b83dff3. Gates: financial-surface 62 · financial-mot 75 · financial-crs 265 · financial-i18n 327 · vector-law 29 · full test:ci 0 · next build 0.",
+      "commit": "b83dff3"
     }
   ]
 };
