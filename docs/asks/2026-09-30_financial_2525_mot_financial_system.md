@@ -50,6 +50,11 @@
 > (addendum 8, verbatim) remember max R-CORE REUSE
 > BEHIND SCENES IS A.B..C but UX IS DEFAULTED IN day hour, Min, for financial tracking chart
 
+> (addendum 9, verbatim) since we are using trinity wheel;
+>  topncircle is HI,
+>
+> AI is left bottom (AI tokens), and Right bottom is SI (minutes contribution for volunteer / time logged contributikn)
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -108,6 +113,10 @@
     in and stays available (a reveal, never the default). Every piece of the surface reuses what R-CORE already has —
     the ◬ ♡ 웃 Session shell and clock, the R-CORE badge and compare panel, the pod ledger pattern, the vector law —
     before anything new is drawn.
+19. **The Trinity wheel's seats (addendum 9):** the top circle is **HI (웃)** — the person; the bottom-left circle is
+    **AI (◬) — AI tokens**; the bottom-right circle is **SI (♡) — minutes contribution** (volunteer / time-logged
+    contribution). The financial surface's wheel (SoITrinity) carries exactly this order: top 웃 · bottom-right ♡ ·
+    bottom-left ◬.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
