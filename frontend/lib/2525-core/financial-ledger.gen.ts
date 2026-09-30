@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 29 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 30 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -212,6 +212,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "v.000_r.014 SHIPPED — the picker law: every picker a module-level component with a stable identity, so the once-a-second clock never remounts a <select> and the phone keeps its picker open; proven on the glass (r.013 REMOUNTED ×4 → r.014 SAME for every select present). FIN-03.04 · FD-29. Shipped as 84f28f5. Gates: financial-surface 69 · financial-crs 350 · full test:ci 0 · next build 0.",
       "commit": "84f28f5"
+    },
+    {
+      "rev": 30,
+      "date": "2026-09-30",
+      "kind": "decision",
+      "text": "r.015 decided (operator addendum 27): every section A–T has its own stroke — Q · Net worth takes CircleDollarSign (it shared Gauge with R · Credit), the twenty distinct and imported, U a rule with no icon by design, held by six surface asserts. FIN-06.07 · FD-30.",
+      "commit": "d9054ef"
     }
   ]
 };

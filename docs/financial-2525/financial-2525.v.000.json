@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.014",
-  "stamp": "v.000_r.014",
+  "revision": "0.015",
+  "stamp": "v.000_r.015",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "33cc55cf9dd6a33d1bb55db0f6fb81be5ac6769651642edb0fd3bda63000eea1",
+  "handoffSha256": "fa4f8bc14a82b5a050b1e77c36c00fc5d7e008cef7a9c8eb4b0b4a34dd23a387",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -99,6 +99,11 @@
     "sha256": "33cc55cf9dd6a33d1bb55db0f6fb81be5ac6769651642edb0fd3bda63000eea1",
     "date": "2026-09-30",
     "note": "+ addendum 26 (\"this drop down goes away quick!\" — the r.011 category picker on his phone; reading item 34: the picker law)"
+   },
+   {
+    "sha256": "fa4f8bc14a82b5a050b1e77c36c00fc5d7e008cef7a9c8eb4b0b4a34dd23a387",
+    "date": "2026-09-30",
+    "note": "+ addendum 27 (\"well done on iconology; ensure for all A-U major categories icons exist\"; reading item 35: twenty distinct strokes A–T, U a rule)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -222,6 +227,14 @@
    "commit": "6da8a3c",
    "shipped": "84f28f5",
    "correction": "r.006–r.013 shipped pickers that a re-render remounted; the r.010/r.011 lesson (a layout claim needs a measured capture) extends to behaviour — a picker claim needs a measured probe on the glass with the clock running."
+  },
+  {
+   "revision": "0.015",
+   "date": "2026-09-30",
+   "kind": "decision",
+   "why": "Every A–U major category carries an icon (operator addendum 27 'well done on iconology; ensure for all A-U major categories icons exist', with his phone screenshot of the r.011 ladder). Grep-verified before code (NO REWORK): r.012 already keyed SECTION_ICON A–T and drew it on the ladder rows, the picker and the record line; the gap was Q · Net worth and R · Credit sharing one stroke (Gauge) and no gate holding the twenty. r.015: Q takes its own stroke (CircleDollarSign), the twenty are distinct and all imported, U — the amortize rule, never a section or a chip — has no icon by design and the file says so; the surface gate holds all of it (six asserts). FIN-06.07 · FD-30.",
+   "commit": "d9054ef",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1032,6 +1045,24 @@
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-06.07",
+   "title": "Every section A–T has its own stroke; U has none by design",
+   "section": "V",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "Every major category of the ladder — the twenty sections A–T — carries its own distinct stroke icon, drawn before its word wherever a section is named (the ladder's section rows, the section picker, the record line); U is the amortize rule, never a section or a chip, and carries no icon.",
+   "metric": "SECTION_ICON holds exactly the twenty section ids the ladder declares (A–T), every value a lucide stroke that is imported, all twenty distinct, no U key; the record line and every ladder section row draw <SectionIcon section={sec}> before the word",
+   "dtm": "on the phone: the ladder's rows A–M each open with a different stroke; the picker's Section label carries the chosen section's stroke",
+   "stretch": "the N–T Balance / Goals view draws the same strokes (r.016)",
+   "in": "FIN-06.07.IN",
+   "out": "FIN-06.07.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -1208,6 +1239,12 @@
    "decision": "THE PICKER LAW: a dropdown stays open until the person picks. Every picker is a module-level component with a stable identity; a component declared inside the render body is refused by the surface gate. A behaviour claim on the glass needs a measured probe with the clock running, as a layout claim needs a measured capture (FD-24's lesson extended).",
    "status": "DECLARED",
    "basis": "addendum 26 (verbatim: 'this drop down goes away quick!'); reading item 34; the r.014 probe on the r.013 and r.014 exports"
+  },
+  {
+   "id": "FD-30",
+   "decision": "Twenty sections, twenty strokes: every section A–T has its own icon from ONE map, distinct and imported, gated; U is a rule and has none. The r.008 icon law for the sheet's categories extends to the ladder's sections.",
+   "status": "OPERATOR",
+   "basis": "addendum 27 (verbatim: 'well done on iconology; ensure for all A-U major categories icons exist'); reading item 35"
   }
  ],
  "reviews": [

@@ -100,5 +100,20 @@ ok(/^const PICK = "w-full rounded-md/m.test(ux), 'the picker class string is mod
 ok(/<LadderPicker section=\{sec\} field=\{field\} rec=\{rec\} onSection=\{setSec\} onField=\{setField\} onRec=\{setRec\} otherN=\{otherN\} onOtherN=\{setOtherN\} otherUnit=\{otherUnit\} onOtherUnit=\{setOtherUnit\} t=\{t\} hook="transaction" \/>/.test(ux), 'the one form mounts the module-level picker with the Other state from the surface');
 ok(/THE PICKER LAW \(r\.014/.test(ux), 'the law is written into the file beside the component');
 
+// r.015 (addendum 27) — every section A–T has its OWN stroke; U (the amortize rule) has none by design
+{
+  const ladderSrc = fs.readFileSync(path.join(process.cwd(), "lib/financial-2525/ladder.ts"), "utf8");
+  const secIds = [...ladderSrc.matchAll(/\{ id: "([A-Z])", name: "[^"]+", plane: "[^"]+", key: "[a-z]" \}/g)].map((m) => m[1]);
+  const map = /export const SECTION_ICON: Record<SectionId, LucideIcon> = \{([^}]+)\}/.exec(iconSrc);
+  const entries = map ? [...map[1].matchAll(/\b([A-Z]): ([A-Z][A-Za-z]+),/g)].map((m) => [m[1], m[2]]) : [];
+  const icons = Object.fromEntries(entries);
+  ok(secIds.length === 20 && secIds.join("") === "ABCDEFGHIJKLMNOPQRST", `the ladder declares the twenty sections A–T (${secIds.join("")})`);
+  ok(secIds.every((id) => icons[id]), `every section A–T has an icon in SECTION_ICON (missing: ${secIds.filter((id) => !icons[id]).join(" ") || "none"})`);
+  ok(new Set(Object.values(icons)).size === entries.length && entries.length === 20, `the twenty section strokes are all distinct (${entries.length} entries, ${new Set(Object.values(icons)).size} strokes)`);
+  ok(!icons.U && !/\bU: /.test(map ? map[1] : ""), "U is the amortize rule, never a section — it has no icon by design");
+  ok(entries.every(([, name]) => new RegExp(`\\b${name}\\b`).test(iconSrc.split("\n").find((l) => l.startsWith("import {")) ?? "")), "every section stroke is imported from lucide (a name that is not imported would render nothing)");
+  ok(/data-fin-tx-field=\{tx\.field\}> · <SectionIcon section=\{sec\}/.test(ux) && /<tr data-fin-budget-row=\{sec\}[^\n]*<SectionIcon section=\{sec\}/.test(ux), "the record line and every ladder section row draw the section's stroke before its word");
+}
+
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
