@@ -35,6 +35,10 @@
 
 > (addendum 3, verbatim, with a phone crop of sheet 3's budget lines) For personal MoT financial pilot expenses are Income, Fixed / Variable, from there Home, Auto, Insurance, Utilities, Fitness, Fun, Groceries, Dining Out, and other basic budgeting items.  This will allow personal budget to $/min, $/sec (using MoT that converts to Hour, Min, Second), to prepare for a world of personal financial optimization and real time personal optimization per Vision-2525
 
+> (addendum 4, verbatim) Remember all 12 AsM will contribute until simulated sufficiently so system complements Vision-2525 for personal FINANCIAL management and tracking tokenization 9999 HI TOKEN CAP
+
+> (addendum 5, verbatim) ONCE PERSONAL FRAMEWORK RECEIVES FEEDBACK WELL TEST BUSINESS
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -75,6 +79,13 @@
     Utilities, Fitness, Fun, Groceries, Dining Out and the other basic budgeting items — every line expressed in $/min
     and $/sec through MoT (which converts to hour · minute · second), so a personal budget becomes a real-time
     optimisation surface per Vision-2525.
+14. **Twelve lenses, iterated until the simulation is sufficient (addendum 4):** every Financial-2525 revision is reviewed
+    by all twelve AsM lenses and the loop continues until the simulated system is judged sufficient; the system
+    COMPLEMENTS Vision-2525 (personal financial management + tracking), and its tokenisation honours the **9,999 HI
+    (웃) token cap** — the `YUG_CEILING` the POD session already enforces (`lib/pod-yug.ts`), never a second ceiling.
+15. **Sequence (addendum 5): the PERSONAL framework ships first and receives feedback; only then is the BUSINESS frame
+    tested** — the business P&L ladder and the 4-4-5 / 91-day quarter stay declared ("test later") until the personal
+    pilot has been used and reviewed.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
