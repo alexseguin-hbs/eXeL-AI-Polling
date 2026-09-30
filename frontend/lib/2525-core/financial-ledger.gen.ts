@@ -7,7 +7,7 @@ import type { LedgerInput } from "@/lib/2525-core/revisions";
 /** Financial-2525 append-only traceability ledger — 10 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
-  "route": "/main/Financial-2525",
+  "route": "/financial-2525",
   "note": "Append-only. rev 1..n, never renumbered; a release cites the commit that shipped it. The surface's R-CORE badge reads this ledger through frontend/lib/2525-core/financial-ledger.gen.ts (scripts/gen-rcore-revisions.mjs).",
   "entries": [
     {

@@ -8,7 +8,7 @@
   "stamp": "v.000_r.005",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "92f4caee2858c3c5f1e9a8a86e9a520872a0646f759c83b65f239d89284c44e9",
+  "handoffSha256": "6d467c4dead4f07ba45dd3141a800ec3d0bfe247aabfab8121e43e64524dae96",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -44,14 +44,20 @@
     "sha256": "92f4caee2858c3c5f1e9a8a86e9a520872a0646f759c83b65f239d89284c44e9",
     "date": "2026-09-30",
     "note": "+ addendum 14 (\"A.B..C always\" — the notation is always A.B..C, never A.B.C; the card opens on the Clock icon with the MoT toggle) — r.005 shipped against this hash"
+   },
+   {
+    "sha256": "6d467c4dead4f07ba45dd3141a800ec3d0bfe247aabfab8121e43e64524dae96",
+    "date": "2026-09-30",
+    "note": "+ addendum 15 (the web site must be https://exel-ai-polling.explore-096.workers.dev/financial-2525 — the canonical route; /main/Financial-2525 an alias) — r.005 shipped against this hash"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
-  "route": "/main/Financial-2525",
+  "route": "/financial-2525",
   "disclaimer": "A personal pilot on the operator's own figures. Money on this surface is a RECORD of what a person typed, never advice, never a bank; the cloud half is best-effort and says so.",
   "mode": "Manual (MODE_R-CORE_SPEC: no commit without a named Human-Authority event)",
   "phase": "pilot",
-  "tenant": "personal — the business frame is declared and tested only after the personal framework has received feedback (operator addendum 5)"
+  "tenant": "personal — the business frame is declared and tested only after the personal framework has received feedback (operator addendum 5)",
+  "routeAlias": "/main/Financial-2525"
  },
  "revisions": [
   {
@@ -90,7 +96,7 @@
    "revision": "0.005",
    "date": "2026-09-30",
    "kind": "correction",
-   "why": "The 365-day financial year IS 3600 A exactly (operator addendum 11, clarified: \"365 days is 3600.0000..0000 … Half year … = 1800\"): one A = 8,760 s (r.003 measured lengths on the 365.259636-day mean anomalistic year — 298.97 A for the pay MoT — superseded: 91 ÷ 3 days = 299.0641..0345 A); the day · hour · minute · second ladder is DERIVED from the scale (one day = 9.3106..3058 A); every writing prints its true A (365 d → 3600.0000..0000, r.003 substituted 3600.3600..3600); positions are never clamped and flagged pastFull past day 365; the fourth tier D (A.BBBB..CCCC...DDDD, 0.18776 µs) is declared. Every planet's whole is its own revolution, perihelion to perihelion (addendum 12: Mars 686.98 Earth days; 668.5991 sols the future form), A.B..C the standard for all, converted to the planet's LTU — Earth hours · minutes · seconds for Mars for now; the PER-PLANET LTU TABLE IS MASTER DATA IN THE ADMIN PANEL under the seed law (lib/planet-ltu.ts; SoI-2525 › Business Setup › Planet LTU; the cloud config bundle) and Financial-2525 reads it — a change there adjusts every conversion with no code change. For now the Earth row reads Month = 91 days with ONE system-offline day on Dec 31 (addendum 13), so the calendar year (Jan 1 → Dec 31) is the default anchor and Dec 31 the offline day 365; the perihelion anchor stays selectable. The reveal is the MoT-icon ⇄ Clock-icon toggle, one state for the whole card. FIN-01.01 → FIN-01.02, FIN-02 → FIN-02.01, FIN-13 → FIN-13.01 + FIN-13.02; FD-15..18. The lenses' round-1 backlog carries to r.006. Addendum 14 (\"A.B..C always\"): the notation is always A.B..C, never A.B.C; the card opens on the Clock icon with the MoT toggle — as built.",
+   "why": "The 365-day financial year IS 3600 A exactly (operator addendum 11, clarified: \"365 days is 3600.0000..0000 … Half year … = 1800\"): one A = 8,760 s (r.003 measured lengths on the 365.259636-day mean anomalistic year — 298.97 A for the pay MoT — superseded: 91 ÷ 3 days = 299.0641..0345 A); the day · hour · minute · second ladder is DERIVED from the scale (one day = 9.3106..3058 A); every writing prints its true A (365 d → 3600.0000..0000, r.003 substituted 3600.3600..3600); positions are never clamped and flagged pastFull past day 365; the fourth tier D (A.BBBB..CCCC...DDDD, 0.18776 µs) is declared. Every planet's whole is its own revolution, perihelion to perihelion (addendum 12: Mars 686.98 Earth days; 668.5991 sols the future form), A.B..C the standard for all, converted to the planet's LTU — Earth hours · minutes · seconds for Mars for now; the PER-PLANET LTU TABLE IS MASTER DATA IN THE ADMIN PANEL under the seed law (lib/planet-ltu.ts; SoI-2525 › Business Setup › Planet LTU; the cloud config bundle) and Financial-2525 reads it — a change there adjusts every conversion with no code change. For now the Earth row reads Month = 91 days with ONE system-offline day on Dec 31 (addendum 13), so the calendar year (Jan 1 → Dec 31) is the default anchor and Dec 31 the offline day 365; the perihelion anchor stays selectable. The reveal is the MoT-icon ⇄ Clock-icon toggle, one state for the whole card. FIN-01.01 → FIN-01.02, FIN-02 → FIN-02.01, FIN-13 → FIN-13.01 + FIN-13.02; FD-15..18. The lenses' round-1 backlog carries to r.006. Addendum 14 (\"A.B..C always\"): the notation is always A.B..C, never A.B.C; the card opens on the Clock icon with the MoT toggle — as built. Addendum 15: the canonical address is /financial-2525 (the launcher, the record's route and the sign-in return point there; /main/Financial-2525 stays an alias).",
    "commit": "c27628d",
    "shipped": "PENDING"
   }

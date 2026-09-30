@@ -5,7 +5,7 @@
 
 > A personal pilot on the operator's own figures. Money on this surface is a RECORD of what a person typed, never advice, never a bank; the cloud half is best-effort and says so.
 
-Mode: **Manual (MODE_R-CORE_SPEC: no commit without a named Human-Authority event)** · phase **pilot** · route `/main/Financial-2525` · ledger `docs/traceability/financial-2525.ledger.json`
+Mode: **Manual (MODE_R-CORE_SPEC: no commit without a named Human-Authority event)** · phase **pilot** · route `/financial-2525` · ledger `docs/traceability/financial-2525.ledger.json`
 
 Tenant: personal — the business frame is declared and tested only after the personal framework has received feedback (operator addendum 5)
 

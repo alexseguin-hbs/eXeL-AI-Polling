@@ -61,7 +61,7 @@ ok(/fin\.device_only/.test(ux) && /fin\.chain_broken/.test(ux), 'the record says
 
 // 3 — the launcher tile
 const launcher = read('components/vision-2525-launcher.tsx');
-ok(/code: "FINANCIAL-2525"/.test(launcher) && /router\.push\("\/main\/Financial-2525"\)/.test(launcher), 'the VISION • 2525 launcher carries the FINANCIAL tile → /main/Financial-2525');
+ok(/code: "FINANCIAL-2525"/.test(launcher) && /router\.push\("\/financial-2525"\)/.test(launcher), 'the VISION • 2525 launcher carries the FINANCIAL tile → /financial-2525 (the canonical address, addendum 15; /main/Financial-2525 the alias)');
 
 // 4 — the export emits both routes when out/ exists
 for (const r of ['out/main/Financial-2525/index.html', 'out/financial-2525/index.html']) {
