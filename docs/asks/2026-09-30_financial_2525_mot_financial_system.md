@@ -278,6 +278,8 @@
 > (addendum 23, verbatim — while r.012 was in its gate chain) 48 Fleet test usability of Finance-2525
 > use 12 AsM and MoT to orchestrate
 
+> (addendum 24, verbatim — with his phone screenshot of the live r.011 forms, signed in: DEPOSIT (Amount · Deposit day and time · MoT · Memo · Category · Record it) above WITHDRAWAL (Amount · Deposit day and time · Category · Withdraw), saved beside this file as `2026-09-30_financial_2525_one_transaction_form.png`) there should be just transaction, with type on drop down
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -426,6 +428,11 @@
     syntheses — 48; read-only on the shipped r.012 tree and its export, verdicts persisted verbatim as
     `docs/assessments/2026-09-30_financial_2525_fleet48_usability.md`; anything real and small folds into r.013 with the
     N–T Balance view. Runs the moment r.012 is shipped.
+32. **ONE transaction form, the TYPE a dropdown (addendum 24):** the two panels (DEPOSIT · WITHDRAWAL) collapse into one
+    TRANSACTION panel whose first dropdown is the type — Deposit · Withdrawal — followed by the shared fields (amount · day and
+    time · section · field · timeline · memo) with the deposit-only MoT length shown only when the type is Deposit; one button
+    whose word follows the type (Record it · Withdraw); the same refusals; every picker full width in portrait (FD-24). Ships as
+    r.013 with the ×32 fill of the ladder keys already landed.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
