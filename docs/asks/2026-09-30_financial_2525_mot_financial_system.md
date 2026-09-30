@@ -98,6 +98,10 @@
 >
 > Day, Week, Month etc
 
+> (addendum 18, verbatim — during the r.006 gate chain, before its commit) 365 should be exact amount 365.25 etc. 
+>
+> remember perihelion exact time for Austin Texas CST is Standard
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -199,6 +203,14 @@
     Clock one; every view must be possible, $/min among them; the sheet's month stays the default. The record panel's
     sentence stops naming a vendor (the signer-voice law): it says the copy is on this phone until sign-in carries it.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
+26. **The year is the EXACT revolution, never a rounded 365 (addendum 18):** the financial year's whole is the exact
+    perihelion-to-perihelion length — "365.25 etc.", i.e. the sourced anomalistic year 365.259636 days as the mean and, for a
+    given year, the sourced interval between its two perihelion instants — read as 3600 A; the half-year is half of that. The
+    exact-365 whole of r.005 (FD-15, clarification 1) is superseded on the record, never rewritten. **The perihelion instant is
+    the anchor** (reading item 2 holds; the r.005 "calendar" anchor — Jan 1 opens the year — stays selectable in the Planet LTU
+    table but is no longer the default), and its exact time is written in **Austin, Texas CST STANDARD time (UTC−6, no daylight
+    shift, ever)** — every perihelion row of the sourced table carries its CST-standard instant beside its UTC one. Month 91
+    and the Dec 31 offline day (addendum 13) are calendar dates and stay as they are. Ships as r.007.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
