@@ -44,6 +44,13 @@
    "kind": "correction",
    "text": "A.B..C IS the Earth's revolution around the Sun (operator addendum 10): one revolution, perihelion to perihelion, split into 3600 A-units · 3600 B sub-units · 3600 C sub-sub-units. r.001–r.002 read a pay period as its own whole, so its end printed 3600.3600..3600 — corrected in r.003: an instant's A.B..C is its position in the current revolution (the sourced perihelion instants), a MoT length converts INTO the scale (the 30.333-day pay MoT ≈ 298.97 A; on Earth one A = 8,766 s, one B = 2.43 s, one C = 0.68 ms; a 30-sol MoT on Mars = 161 A of the Martian revolution), and the chart's reveal reads the revolution's coordinate at each axis mark. FIN-01 superseded by FIN-01.01; FD-13 supersedes FD-01. The record keeps both readings.",
    "commit": ""
+  },
+  {
+   "rev": 7,
+   "date": "2026-09-30",
+   "kind": "release",
+   "text": "v.000_r.003 SHIPPED — A.B..C is the revolution: mot.ts corrected (EARTH_REVOLUTION_DAYS 365.259636 · spanABC / daysOfSpanABC / orbitUnits · motABC as the position within one revolution), the chart's reveal reads the revolution's coordinate at each axis mark and the elapsed span in A-units, FIN-01 superseded by FIN-01.01, FD-13, the CRS matrix carrying both. Gates: financial-mot 46 · financial-surface 43 · financial-crs 142 · financial-i18n 292 · full test:ci 0 · next build 0.",
+   "commit": "13028c0"
   }
  ]
 }

@@ -45,7 +45,8 @@
    "date": "2026-09-30",
    "kind": "correction",
    "why": "A.B..C IS the Earth's revolution around the Sun (operator addendum 10): one revolution — perihelion to perihelion, the financial year — split into 3600 A-units · 3600 B sub-units · 3600 C sub-sub-units. r.001–r.002 read a pay period as its own whole (its end printed 3600.3600..3600); corrected: the A.B..C of an instant is its position in the current revolution (positionInYear, the sourced perihelion instants) and a MoT LENGTH converts INTO the scale — the 30.333-day pay MoT is ≈ 298.97 A. FIN-01 superseded by FIN-01.01; FD-13 supersedes FD-01; the chart's reveal now reads the revolution's coordinate at each axis mark and the elapsed span in A-units.",
-   "commit": "fe6f8e6"
+   "commit": "fe6f8e6",
+   "shipped": "13028c0"
   }
  ],
  "mot": {
