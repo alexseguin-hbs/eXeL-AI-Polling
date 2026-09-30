@@ -39,6 +39,10 @@
 
 > (addendum 5, verbatim) ONCE PERSONAL FRAMEWORK RECEIVES FEEDBACK WELL TEST BUSINESS
 
+> (addendum 6, verbatim) we start Financial-2525 at revision 0.001
+>
+> v.000_r.001
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -86,6 +90,8 @@
 15. **Sequence (addendum 5): the PERSONAL framework ships first and receives feedback; only then is the BUSINESS frame
     tested** — the business P&L ladder and the 4-4-5 / 91-day quarter stay declared ("test later") until the personal
     pilot has been used and reviewed.
+16. **Numbering (addendum 6): Financial-2525 starts at revision 0.001, stamped `v.000_r.001`** — the operator's own
+    form: version `000`, revision `001`; every later edition appends (`r.002`, …), never edits.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
