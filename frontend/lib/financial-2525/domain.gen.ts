@@ -10,7 +10,8 @@ export interface FinancialDecision { id: string; decision: string; status: strin
 export interface FinancialReview { round: number; revision: string; subject: string; lenses: number; record: string; status: string }
 export interface FinancialDomain {
   project: { name: string; family: string; version: string; revision: string; stamp: string; stampPrefix: string;
-             handoff: string; handoffSha256: string; ledger: string; route: string; disclaimer: string; mode: string; phase: string; tenant: string };
+             handoff: string; handoffSha256: string; handoffHistory?: { sha256: string; date: string; note: string }[];
+             ledger: string; route: string; disclaimer: string; mode: string; phase: string; tenant: string };
   revisions: { revision: string; date: string; kind: string; why: string; commit: string; shipped?: string }[];
   mot: Record<string, unknown> & { law: string; full: string; payMotDays: number; ltu: Record<string, number> };
   calendar: Record<string, unknown> & { quarterDays: number; gridDays: number; downDay: number; personalFrames: number[] };
@@ -34,7 +35,24 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.001",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "7dc5bd9494b76064e9e349b8c353c0a520b4041c3a074f46f89577235aab49db",
+  "handoffSha256": "fe4768a6a10f45ff7c406349c66ca07c6d5cba5bd71b3143fcd643f07d3fbb30",
+  "handoffHistory": [
+   {
+    "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
+    "date": "2026-09-30",
+    "note": "the ask with addenda 1–6 — what r.001 was built from"
+   },
+   {
+    "sha256": "7dc5bd9494b76064e9e349b8c353c0a520b4041c3a074f46f89577235aab49db",
+    "date": "2026-09-30",
+    "note": "+ addendum 7 (the ◬ ♡ 웃 Session shell as the UI/UX starting point) — r.001 shipped against this hash"
+   },
+   {
+    "sha256": "fe4768a6a10f45ff7c406349c66ca07c6d5cba5bd71b3143fcd643f07d3fbb30",
+    "date": "2026-09-30",
+    "note": "+ addendum 8 (max R-CORE reuse; A.B..C behind the scenes, day · hour · minute on the chart)"
+   }
+  ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
   "route": "/main/Financial-2525",
   "disclaimer": "A personal pilot on the operator's own figures. Money on this surface is a RECORD of what a person typed, never advice, never a bank; the cloud half is best-effort and says so.",

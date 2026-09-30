@@ -100,7 +100,8 @@ export interface FinancialDecision { id: string; decision: string; status: strin
 export interface FinancialReview { round: number; revision: string; subject: string; lenses: number; record: string; status: string }
 export interface FinancialDomain {
   project: { name: string; family: string; version: string; revision: string; stamp: string; stampPrefix: string;
-             handoff: string; handoffSha256: string; ledger: string; route: string; disclaimer: string; mode: string; phase: string; tenant: string };
+             handoff: string; handoffSha256: string; handoffHistory?: { sha256: string; date: string; note: string }[];
+             ledger: string; route: string; disclaimer: string; mode: string; phase: string; tenant: string };
   revisions: { revision: string; date: string; kind: string; why: string; commit: string; shipped?: string }[];
   mot: Record<string, unknown> & { law: string; full: string; payMotDays: number; ltu: Record<string, number> };
   calendar: Record<string, unknown> & { quarterDays: number; gridDays: number; downDay: number; personalFrames: number[] };
