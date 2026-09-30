@@ -317,12 +317,12 @@ export function FinancialCommandUX1() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className={LABEL}>{t("fin.budget_title")}</div>
             {/* the unit toggle (addendum 17): one figure per row in the unit the person picks — $/s · $/min · $/h · $/day · $/week · 33 days · month · year */}
-            <div role="group" data-fin-budget-unit aria-label={t("fin.unit")} className="flex flex-wrap overflow-hidden rounded-md border border-border">
-              {UNITS.map((u) => (
-                <button key={u.key} type="button" aria-pressed={budgetUnit === u.key} onClick={() => setBudgetUnit(u.key)}
-                  className={`min-h-[32px] px-2 text-[11px] ${budgetUnit === u.key ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}>{u.label}</button>
-              ))}
-            </div>
+            {/* the unit — ONE dropdown (addendum 20 "use drop down": the eight pills wrapped over three rows on the phone) */}
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">{t("fin.unit")}
+              <select data-fin-budget-unit value={budgetUnit} onChange={(e) => setBudgetUnit(e.target.value as BudgetUnit)} className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground">
+                {UNITS.map((u) => <option key={u.key} value={u.key}>{u.label}</option>)}
+              </select>
+            </label>
           </div>
           {/* the table (addendum 17: "Ensure table"): category · kind · the figure in the chosen unit; net on the last row */}
           <table className="mt-2 w-full font-mono text-xs">

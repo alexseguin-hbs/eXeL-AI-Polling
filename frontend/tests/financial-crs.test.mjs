@@ -85,14 +85,14 @@ ok(/298\.97/.test(d.mot.payMotNote) && d.mot.orbitUnitsEarthMean && d.mot.orbitU
 ok(d.mot.tierD && d.mot.tierD.notation === "A.BBBB..CCCC...DDDD" && /DECLARED/.test(d.mot.tierD.status), "the fourth tier D is declared, not on the glass");
 ok(d.mot.revolution.marsEarthDays === 686.98 && /Earth hours/.test(d.mot.revolution.marsLtu), "Mars: its own revolution in Earth days, Earth hours as LTU for now");
 ok(d.mot.planetLtuTable && d.mot.planetLtuTable.rows.join() === "earth,mars" && /Admin panel/.test(d.mot.planetLtuTable.where) && d.mot.ltu.analysisMonth === 91, "the per-planet LTU table is master data in the Admin panel; Month 91 for now");
-for (const [old, next] of [["FIN-01.01", "FIN-01.02"], ["FIN-02", "FIN-02.01"], ["FIN-13", "FIN-13.01"], ["FIN-01.02", "FIN-01.03"], ["FIN-02.01", "FIN-02.02"]]) {
+for (const [old, next] of [["FIN-01.01", "FIN-01.02"], ["FIN-02", "FIN-02.01"], ["FIN-13", "FIN-13.01"], ["FIN-01.02", "FIN-01.03"], ["FIN-02.01", "FIN-02.02"], ["FIN-06.01", "FIN-06.03"]]) {
   const o = d.crs.find((x) => x.id === old), n = d.crs.find((x) => x.id === next);
   ok(o && o.status === "superseded" && new RegExp(next.replace(/\./g, "\\.")).test(o.metric), `${old} is superseded and names its successor`);
   ok(n && (n.status === "implemented" || (n.status === "superseded" && /SUPERSEDED by FIN-/.test(n.metric))) && n.section === o.section, `${next} is implemented in the parent's Vision section (or itself superseded by a named successor)`);
 }
 ok(d.crs.find((x) => x.id === "FIN-13.02")?.verify === "tests/planet-ltu.test.mjs", "FIN-13.02 (the LTU table) is gated by planet-ltu");
-ok(d.crs.find((x) => x.id === "FIN-06.02")?.status === "implemented" && d.crs.find((x) => x.id === "FIN-06.01")?.status === "implemented" && d.crs.find((x) => x.id === "FIN-13.03")?.status === "implemented", "r.008 (addendum 19): FIN-06.02 (every category carries its icon) is additive beside FIN-06.01; FIN-13.03 (a planet's positions on its own revolution) implemented");
-for (const id of ["FD-15", "FD-16", "FD-17", "FD-18", "FD-21", "FD-22"]) ok(d.decisions.some((x) => x.id === id && x.basis.length > 10), `${id} is on the record with a basis`);
+ok(d.crs.find((x) => x.id === "FIN-06.02")?.status === "implemented" && d.crs.find((x) => x.id === "FIN-06.03")?.status === "implemented" && d.crs.find((x) => x.id === "FIN-13.03")?.status === "implemented", "r.008/r.009: FIN-06.02 (every category carries its icon) is additive; FIN-06.03 (the unit dropdown) implemented; FIN-13.03 (a planet's positions on its own revolution) implemented");
+for (const id of ["FD-15", "FD-16", "FD-17", "FD-18", "FD-21", "FD-22", "FD-23"]) ok(d.decisions.some((x) => x.id === id && x.basis.length > 10), `${id} is on the record with a basis`);
 ok(d.reviews[1] && d.reviews[1].round === 2 && d.reviews[1].revision === "0.007" && /^PENDING/.test(d.reviews[1].status), "round 2 of the twelve lenses is named on r.007 (PENDING until it returns)");
 
 // ── 7 · rendered views fresh (--check) ────────────────────────────────────────────────────────────────────────

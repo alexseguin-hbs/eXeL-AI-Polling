@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.008",
-  "stamp": "v.000_r.008",
+  "revision": "0.009",
+  "stamp": "v.000_r.009",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "f900715a5063928d9f80458cf77491babd624ee98567ef0f28b2fa7032218ac6",
+  "handoffSha256": "15c8e44b1db9df751ec7b3194b363c512d99650d88d127fb36bb8b9290be9f88",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -64,6 +64,11 @@
     "sha256": "f900715a5063928d9f80458cf77491babd624ee98567ef0f28b2fa7032218ac6",
     "date": "2026-09-30",
     "note": "+ addendum 19 (every category carries its icon — Income · Mortgage · Car · Insurance · Food · Fitness · Fun; the PERSONAL sheet photographed) — persisted 589d223 during the r.007 gate chain; owed as r.008, not folded into r.007"
+   },
+   {
+    "sha256": "15c8e44b1db9df751ec7b3194b363c512d99650d88d127fb36bb8b9290be9f88",
+    "date": "2026-09-30",
+    "note": "+ addendum 20 (\"use drop down\" — the budget's unit picker, with his phone view of the r.006 capture) — persisted 756075a; folded as r.009"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -138,6 +143,14 @@
    "why": "Every category carries its icon (operator addendum 19, with his PERSONAL sheet photographed again: an icon drawn before every Fixed/Variable line — 'Ensure all have icons: Income · Mortgage · Car · Insurance · Food · Fitness · Fun'). components/financial-2525/category-icon.tsx: ONE map, CATEGORY_ICON, keyed by every BudgetCategory — the seven he named (Income banknote · Home/Mortgage house · Auto car · Insurance shield · Groceries/Food basket · Fitness dumbbell · Fun party) and the three the sheet does not name (Utilities = the sheet's Electric bolt · Dining Out crossed utensils · Other ellipsis) — strokes only (the vector law), aria-hidden, the word beside it always; shown on the budget table rows, before the category dropdown on both forms (the chosen category's icon), and on the record's lines. Labels unchanged: his Car and Food match the sheet's CAR and FOOD; the glass reads Auto and Groceries from the r.001 transcription — flagged for his word, not renamed. Also folded (fix the class): the year position now takes the planet's revolution — positionInYear/frameOf gain yearDays and the surface passes the selected row's — because the r.007 Mars capture showed the axis reading Earth positions (the head already read the Martian whole). FIN-06.02 (additive beside FIN-06.01), FIN-13.03 (the Mars position on its own revolution), FD-22.",
    "commit": "589d223",
    "shipped": "b83dff3"
+  },
+  {
+   "revision": "0.009",
+   "date": "2026-09-30",
+   "kind": "decision",
+   "why": "The budget's unit is picked from ONE dropdown (operator addendum 20 'use drop down', with his phone view of the r.006 capture: the eight unit pills wrapped over three rows above the table). command-ux1.tsx: the role=group pill toggle becomes a labelled <select data-fin-budget-unit> whose options are the same eight units — per second · per minute · per hour · per day · per week · per 33 days (the sheet, the default) · per month (the LTU table's 91) · per year — the same default, the same conversions, the same control on every width. FIN-06.01 → FIN-06.03 (the toggle's wording superseded; FIN-06.02's icons stand), FD-23. No new lexicon key (fin.unit labels the select).",
+   "commit": "756075a",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -724,14 +737,14 @@
    ],
    "verify": "tests/financial-surface.test.mjs",
    "statement": "The personal budget is a table — category · kind · one figure — under a segmented unit toggle: $/second · $/minute · $/hour · per day · per week · per 33 days (the sheet, the default) · per month (the LTU table's month, 91 for now) · per year; every view is possible, $/min among them; the units come from the selected planet's LTU row; the net is the last row on the same unit; the sheet's figures stay seed data the person edits, never advice.",
-   "metric": "the toggle carries eight units; the 33-day column reproduces the sheet (Income $3,200 · Net −$200); $/min reads the sheet's ladder (144 $/D = 0.1 $/min); per week = 7 × per day; per month = the LTU table's 91 days; nothing wraps on a 390 px phone",
+   "metric": "SUPERSEDED by FIN-06.03 (addendum 20): the unit is picked from one dropdown, not a segmented pill toggle",
    "dtm": "the table on the phone with the toggle above it",
    "stretch": "actuals per category beside the plan, from the record",
    "in": "FIN-06.01.IN",
    "out": "FIN-06.01.OUT",
    "phase": "pilot",
    "mode": "Manual",
-   "status": "implemented"
+   "status": "superseded"
   },
   {
    "id": "FIN-01.03",
@@ -801,6 +814,24 @@
    "stretch": "a Mars perihelion epoch table (FIN-13's stretch)",
    "in": "FIN-13.03.IN",
    "out": "FIN-13.03.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
+  },
+  {
+   "id": "FIN-06.03",
+   "title": "The personal budget as a table under ONE unit dropdown",
+   "section": "I",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "The personal budget is a table — category (with its icon) · kind · one figure — under ONE labelled dropdown of eight units: $/second · $/minute · $/hour · per day · per week · per 33 days (the sheet, the default) · per month (the LTU table's month) · per year; week, month and year read the selected planet's LTU row; the same control on the phone and the desk, never a pill row that wraps.",
+   "metric": "the surface renders <select data-fin-budget-unit> with the eight UNITS as options and no role=group pill toggle; the default option is per 33 days and the 33-day column reproduces the sheet (Income $3,200 · Net −$200); $/min reads 0.0673 for Income; the label is fin.unit",
+   "dtm": "one dropdown reading 'per minute' above the table on the phone, the eight units in its list",
+   "stretch": "actuals per category beside the plan, from the record",
+   "in": "FIN-06.03.IN",
+   "out": "FIN-06.03.OUT",
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
@@ -938,6 +969,12 @@
    "decision": "Every category carries exactly one stroke icon, from ONE map keyed by the category (the seven the operator named and the three the sheet leaves unnamed), shown wherever the category is named on the glass — beside the word, never instead of it; the labels are not changed by this decision (Car / Food vs Auto / Groceries flagged for the operator's word).",
    "status": "OPERATOR",
    "basis": "addendum 19 (verbatim: 'Ensure all have icons · Income · Mortgage · Car · Insurance · Food · Fitness · Fun') with the PERSONAL sheet; reading item 27"
+  },
+  {
+   "id": "FD-23",
+   "decision": "The budget's unit is picked from ONE dropdown of the eight units — the same default (per 33 days) and the same conversions as the toggle it replaces; a control that wraps on the phone is not the control.",
+   "status": "OPERATOR",
+   "basis": "addendum 20 (verbatim: 'use drop down') with his phone view of the r.006 capture; reading item 28"
   }
  ],
  "reviews": [
