@@ -380,7 +380,8 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector }: { tx
         {withdrawals.map((w) => <line key={w.id} x1={x(w.atMs)} y1={P} x2={x(w.atMs)} y2={P + 12} stroke={C.evolution} strokeWidth={sw} />)}
         {inside(now) && <line x1={x(now)} y1={P} x2={x(now)} y2={H - P} stroke={C.blank} strokeWidth={hair} />}
       </svg>
-      <div data-fin-axis className="flex justify-between font-mono text-[10px] text-muted-foreground">{axis.map((a, i) => <span key={i}>{a}</span>)}</div>
+      {/* five marks; in A.B..C mode a mark is two lines (A · .BBBB..CCCC) so five of them fit a 390 px phone without overprinting */}
+      <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{axis.map((a, i) => <span key={i} className={`whitespace-pre-line ${i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}`}>{showAbc ? a.replace(".", "\n.") : a}</span>)}</div>
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
         <span style={{ color: C.abundance }}>— {t("fin.released")}</span><span style={{ color: C.consciousness }}>— {t("fin.withdrawable")}</span><span style={{ color: C.intelligence }}>— {t("fin.escrowed")}</span><span style={{ color: C.temporal }}>| {t("fin.hold_mark")}</span><span>| {t("fin.now")}</span><span style={{ color: C.evolution }}>| {t("fin.withdrawal")}</span>
       </p>
