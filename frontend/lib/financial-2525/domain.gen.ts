@@ -190,7 +190,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "The unit dropdown spans the full width of the panel in portrait (operator addendum 21, on the r.009 capture: 'thats full width of UX on portrait mode FOR PER HOUR ETC'). command-ux1.tsx: the label sits above a w-full select on a phone held upright, so every option — per hour, per month (91), per year — reads at the full line; in landscape the select keeps its own width beside the label (landscape:w-auto, min 14rem). Same options, default and conversions. FIN-06.03 → FIN-06.04, FD-24. No new lexicon key.",
    "commit": "0f842a9",
-   "shipped": "PENDING"
+   "shipped": "68c5c74"
   }
  ],
  "mot": {

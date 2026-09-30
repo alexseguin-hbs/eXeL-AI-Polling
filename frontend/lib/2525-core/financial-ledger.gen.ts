@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 20 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 21 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -149,6 +149,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.010 decided (operator addendum 21): the unit dropdown is the full width of the panel in portrait, its label above, so per hour / per month / per year read at the full line; landscape keeps it at its own width. FIN-06.03 → FIN-06.04 · FD-24.",
       "commit": "0f842a9"
+    },
+    {
+      "rev": 21,
+      "date": "2026-09-30",
+      "kind": "release",
+      "text": "v.000_r.010 SHIPPED — the unit dropdown is the panel's full width in portrait (label above) so per hour / per month / per year read at the full line; landscape keeps it at its own width. FIN-06.03 → FIN-06.04 · FD-24. Shipped as 68c5c74. Gates: financial-surface 63 · financial-crs 291 · full test:ci 0 · next build 0.",
+      "commit": "68c5c74"
     }
   ]
 };
