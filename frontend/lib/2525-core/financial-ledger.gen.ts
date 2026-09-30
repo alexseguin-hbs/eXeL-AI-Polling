@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 30 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 31 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -219,6 +219,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.015 decided (operator addendum 27): every section A–T has its own stroke — Q · Net worth takes CircleDollarSign (it shared Gauge with R · Credit), the twenty distinct and imported, U a rule with no icon by design, held by six surface asserts. FIN-06.07 · FD-30.",
       "commit": "d9054ef"
+    },
+    {
+      "rev": 31,
+      "date": "2026-09-30",
+      "kind": "release",
+      "text": "v.000_r.015 SHIPPED — twenty sections, twenty strokes: Q · Net worth takes its own icon, the twenty distinct and imported, U a rule with no icon by design, held by six surface asserts. FIN-06.07 · FD-30. Shipped as 7112170. Gates: financial-surface 75 · financial-crs 360 · full test:ci 0 · next build 0.",
+      "commit": "7112170"
     }
   ]
 };
