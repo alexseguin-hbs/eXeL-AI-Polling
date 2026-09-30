@@ -393,3 +393,9 @@ fr|fin.version|Version is the French word
 nl|fin.escrowed|In escrow — Dutch uses the English term for escrow
 id|fin.deposit|Deposit is the Indonesian word (also setoran)
 id|fin.ph.deposit|Deposit is the Indonesian word (also setoran)
+da|fin.version|Danish uses the identical word 'Version' for software versions
+da|fin.revision|Danish 'revision' is the same spelling and meaning (revision number)
+da|fin.cat.fitness|Danish uses 'Fitness' as the everyday word for gym training (fitnesscenter)
+fi|fin.cat.auto|Finnish 'auto' is the native word for car
+sv|fin.version|Swedish uses the identical word 'Version' for software versions
+sv|fin.cat.fitness|Swedish uses 'Fitness' as the everyday word for gym training (fitnesscenter)
