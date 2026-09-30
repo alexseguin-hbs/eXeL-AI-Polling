@@ -121,9 +121,18 @@ export function amortize(u: Amortization, to: Period): { fieldId: string; amount
 }
 
 /** A transaction's timeline (addendum 22): the length its money covers, from its date. `once` covers no length (an instant). */
-export type Recurrence = "once" | "weekly" | "days33" | "month91" | "yearly";
-export const RECURRENCES: readonly Recurrence[] = ["once", "weekly", "days33", "month91", "yearly"];
-export const recurrenceDays = (r: Recurrence | undefined): number => (r === "weekly" ? 7 : r === "days33" ? 33 : r === "month91" ? 91 : r === "yearly" ? 365 : 0);
+export type Recurrence = "once" | "weekly" | "paymot" | "days33" | "month91" | "yearly" | "other";
+export const RECURRENCES: readonly Recurrence[] = ["once", "weekly", "paymot", "days33", "month91", "yearly", "other"];
+/** The length a preset covers, in days; `paymot` is the sheet's 91 ÷ 3; `other` carries its own length (the entry's motDays, typed as a
+ *  number with its unit — years · days · hours · minutes — addendum 25); `once` covers no length. */
+export const PAY_MOT_DAYS = 91 / 3;
+export const recurrenceDays = (r: Recurrence | undefined): number => (r === "weekly" ? 7 : r === "paymot" ? PAY_MOT_DAYS : r === "days33" ? 33 : r === "month91" ? 91 : r === "yearly" ? 365 : 0);
+/** The units a manual length may be typed in (addendum 25: "MoT selectable to Year, Days, hrs, min"), each in days. */
+export type LengthUnit = "minutes" | "hours" | "days" | "years";
+export const LENGTH_UNITS: readonly LengthUnit[] = ["minutes", "hours", "days", "years"];
+export const LENGTH_UNIT_DAYS: Record<LengthUnit, number> = { minutes: 1 / 1440, hours: 1 / 24, days: 1, years: 365 };
+/** The length an entry covers, in days: a preset's, or — for `other` — the typed number in its unit. */
+export const lengthDays = (r: Recurrence, otherN: number, unit: LengthUnit): number => (r === "other" ? Math.max(0, otherN || 0) * LENGTH_UNIT_DAYS[unit] : recurrenceDays(r));
 
 /** The $/min a transaction runs at from its date for its length; `once` runs at nothing (it lands whole at its instant). */
 export const ratePerMinute = (amount: number, days: number): number => (days > 0 ? amount / (days * 1440) : 0);

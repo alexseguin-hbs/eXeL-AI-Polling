@@ -43,9 +43,9 @@ import { fmtMot, spanABC, fmtStampCST, parseStampCST } from "@/lib/financial-252
 import { positionInYear, frameOf } from "@/lib/financial-2525/calendar";
 import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
 import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
-import { balanceAt, series, validateWithdrawal, depositView, HOLD_MS, type FinTx } from "@/lib/financial-2525/accrual";
+import { balanceAt, series, validateWithdrawal, depositView, HOLD_MS, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { SHEET_LINES, type BudgetCategory } from "@/lib/financial-2525/budget";
-import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, RECURRENCES, type SectionId, type FlowSectionId, type Recurrence, type Period } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
+import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -142,14 +142,21 @@ export function FinancialCommandUX1() {
   const signIn = () => loginWithRedirect({ appState: { returnTo: `${SRC.project.route}/` } });
 
   // ── forms ──────────────────────────────────────────────────────────────────────────────────────────────────
-  const [dAmt, setDAmt] = useState(""); const [dAt, setDAt] = useState(""); const [dMot, setDMot] = useState(String(SRC.mot.payMotDays)); const [dMemo, setDMemo] = useState("");
-  const [wAmt, setWAmt] = useState(""); const [wAt, setWAt] = useState("");
+  // ONE transaction form (addendum 24 "there should be just transaction, with type on drop down"): the TYPE is the first dropdown;
+  // amount · day and time · section · field · timeline · memo are shared; the MoT length shows only for a deposit; one button.
+  const [txType, setTxType] = useState("deposit" as TxKind);
+  const [amt, setAmt] = useState(""); const [when, setWhen] = useState(""); const [memo, setMemo] = useState("");
+  // the LENGTH (addendum 25): a dropdown of presets with Other — a number in its unit (years · days · hours · minutes); ONE control for the MoT and the timeline
+  const [otherN, setOtherN] = useState(""); const [otherUnit, setOtherUnit] = useState("days" as LengthUnit);
   // the personal-finance element of the entry (addendum 16): a deposit is Income by default, a withdrawal Mortgage/Rent (the sheet's first fixed line)
   // addendum 22 (FD-26, the delegated decision): TWO dropdowns — the SECTION A–M, then the FIELD within it — and the TIMELINE the
   // transaction's money covers from its date; every picker the panel's full width in portrait (FD-24). A deposit starts on A ·
   // Income / Wages every 33 days (the pay MoT); a withdrawal on B · Rent / Mortgage, one time.
-  const [dSec, setDSec] = useState("A" as FlowSectionId); const [dField, setDField] = useState("A.income_wages"); const [dRec, setDRec] = useState("days33" as Recurrence);
-  const [wSec, setWSec] = useState("B" as FlowSectionId); const [wField, setWField] = useState("B.rent_mortgage"); const [wRec, setWRec] = useState("once" as Recurrence);
+  const [sec, setSec] = useState("A" as FlowSectionId); const [field, setField] = useState("A.income_wages"); const [rec, setRec] = useState("paymot" as Recurrence);
+  // choosing the type re-seats the picker on its default: a deposit on A · Income / Wages every 33 days, a withdrawal on B · Rent / Mortgage once
+  const chooseType = (k: TxKind) => { setTxType(k); if (k === "deposit") { setSec("A"); setField("A.income_wages"); setRec("paymot"); } else { setSec("B"); setField("B.rent_mortgage"); setRec("once"); } };
+  /** The guide card and the sticky bar open the ONE form on the kind they name (r.013) — the r.001 pair of panels is gone. */
+  const openForm = (k: TxKind) => { chooseType(k); goTo("fin-transaction-form"); };
   const catLabel = (c: BudgetCategory) => t(`fin.cat.${CAT_KEY[c]}`);   // the record's r.006–r.011 entries still print their category
   const fieldLabel = (id: string) => { const f = fieldOf(id); return f ? t(`fin.field.${f.key}`) : id; };
   const secLabel = (sec: SectionId) => t(`fin.sec.${sec.toLowerCase()}`);
@@ -166,11 +173,21 @@ export function FinancialCommandUX1() {
           {fieldsOf(section).map((f) => <option key={f.id} value={f.id}>{fieldLabel(f.id)}</option>)}
         </select>
       </label>
-      <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.timeline")}
-        <select data-fin-timeline={hook} className={PICK} value={rec} onChange={(e) => onRec(e.target.value as Recurrence)}>
+      <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.length")}
+        <select data-fin-length={hook} className={PICK} value={rec} onChange={(e) => onRec(e.target.value as Recurrence)}>
           {RECURRENCES.map((r) => <option key={r} value={r}>{t(`fin.rec.${r}`)}</option>)}
         </select>
       </label>
+      {rec === "other" && (
+        <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.rec.other")}
+          <span className="flex gap-2">
+            <input data-fin-length-n={hook} className={INPUT} inputMode="decimal" value={otherN} onChange={(e) => setOtherN(e.target.value)} />
+            <select data-fin-length-unit={hook} className={PICK} value={otherUnit} onChange={(e) => setOtherUnit(e.target.value as LengthUnit)}>
+              {LENGTH_UNITS.map((u) => <option key={u} value={u}>{t(`fin.u.${u}`)}</option>)}
+            </select>
+          </span>
+        </label>
+      )}
     </>
   );
   const [refusal, setRefusal] = useState<string | null>(null);
@@ -182,33 +199,34 @@ export function FinancialCommandUX1() {
     return null;
   };
   const recordDeposit = () => {
-    const cents = Math.round(Number(dAmt) * 100);
-    const when = dAt.trim() ? parseStampCST(dAt) : at;
+    const cents = Math.round(Number(amt) * 100);
+    const instant = when.trim() ? parseStampCST(when) : at;
     if (!(cents > 0)) return setRefusal(t("fin.reason_amount"));
-    if (when === null) return setRefusal(t("fin.reason_stamp"));
+    if (instant === null) return setRefusal(t("fin.reason_stamp"));
     setRefusal(null);
-    commit({ id: `d-${when}-${cents}`, kind: "deposit", amountCents: cents, atMs: when, motDays: Math.max(0, Number(dMot) || 0), memo: dMemo.trim() || undefined, field: dField, recurrence: dRec });
-    setDAmt(""); setDMemo("");
+    commit({ id: `d-${instant}-${cents}`, kind: "deposit", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec });
+    setAmt(""); setMemo("");
   };
   const recordWithdrawal = () => {
-    const cents = Math.round(Number(wAmt) * 100);
-    const when = wAt.trim() ? parseStampCST(wAt) : at;
-    if (when === null) return setRefusal(t("fin.reason_stamp"));
-    const w: FinTx = { id: `w-${when}-${cents}`, kind: "withdrawal", amountCents: cents, atMs: when, field: wField, recurrence: wRec };
+    const cents = Math.round(Number(amt) * 100);
+    const instant = when.trim() ? parseStampCST(when) : at;
+    if (instant === null) return setRefusal(t("fin.reason_stamp"));
+    const w: FinTx = { id: `w-${instant}-${cents}`, kind: "withdrawal", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec };
     const v = validateWithdrawal(txs, w);
     if (!v.ok) return setRefusal(v.reason === "HOLD" ? t("fin.reason_hold") : v.reason === "INSUFFICIENT" ? t("fin.reason_insufficient") : t("fin.reason_amount"));
-    setRefusal(null); commit(w); setWAmt("");
+    setRefusal(null); commit(w); setAmt(""); setMemo("");
   };
+  const recordTransaction = () => (txType === "deposit" ? recordDeposit() : recordWithdrawal());
   const goTo = (id: string) => { const el = typeof document !== "undefined" ? document.getElementById(id) : null; el?.scrollIntoView({ behavior: "smooth", block: "center" }); (el?.querySelector("input") as HTMLInputElement | null)?.focus(); };
 
   // ── the "your turn" guide — the Session's card, the financial next action ──────────────────────────────────
   const guide = (() => {
     if (!owner) return { state: "turn" as const, sentence: t("fin.guide.sign_in"), label: t("fin.sign_in"), action: signIn };
-    if (!focus) return { state: "turn" as const, sentence: t("fin.guide.first_deposit"), label: t("fin.deposit"), action: () => goTo("fin-deposit-form") };
+    if (!focus) return { state: "turn" as const, sentence: t("fin.guide.first_deposit"), label: t("fin.deposit"), action: () => openForm("deposit") };
     if (phase === "deposit") return { state: "waiting" as const, sentence: `${t("fin.guide.pending")} ${fmtStampCST(focus.atMs)}`, label: null, action: null };
     if (phase === "hold" && focusView) return { state: "waiting" as const, sentence: `${t("fin.guide.held")} ${hhmmss(Math.max(0, focusView.holdUntilMs - at))}`, label: null, action: null };
     if (phase === "record") return { state: "done" as const, sentence: t("fin.guide.done"), label: null, action: null };
-    return { state: "turn" as const, sentence: `${t("fin.guide.withdrawable")} ${usd(bal.availableCents)}`, label: t("fin.withdraw"), action: () => goTo("fin-withdraw-form") };
+    return { state: "turn" as const, sentence: `${t("fin.guide.withdrawable")} ${usd(bal.availableCents)}`, label: t("fin.withdraw"), action: () => openForm("withdrawal") };
   })();
   const rosterRows: PodRosterRow[] = deposits.map((d) => {
     const v = depositView(d, at);
@@ -296,25 +314,21 @@ export function FinancialCommandUX1() {
         {/* forms — only a signed-in person records; the example is read-only */}
         {owner ? (
           <div data-fin-forms>
-            <div id="fin-deposit-form" className={SUB} data-testid="fin-deposit-form">
-              <div className={LABEL}>{t("fin.deposit")}</div>
+            <div id="fin-transaction-form" className={SUB} data-testid="fin-transaction-form" data-fin-tx-type={txType}>
+              <div className={LABEL}>{t("fin.transaction")}</div>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <label className="text-xs text-muted-foreground">{t("fin.amount")}<input className={INPUT} inputMode="decimal" value={dAmt} onChange={(e) => setDAmt(e.target.value)} /></label>
-                <label className="text-xs text-muted-foreground">{t("fin.deposit_at")}<input className={INPUT} value={dAt} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setDAt(e.target.value)} /></label>
-                <label className="text-xs text-muted-foreground">{t("fin.mot_days")}<input className={INPUT} inputMode="decimal" value={dMot} onChange={(e) => setDMot(e.target.value)} /></label>
-                <label className="text-xs text-muted-foreground">{t("fin.memo")}<input className={INPUT} value={dMemo} onChange={(e) => setDMemo(e.target.value)} /></label>
-                <LadderPicker section={dSec} field={dField} rec={dRec} onSection={setDSec} onField={setDField} onRec={setDRec} hook="deposit" />
+                <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.type")}
+                  <select data-fin-type className={PICK} value={txType} onChange={(e) => chooseType(e.target.value as TxKind)}>
+                    <option value="deposit">{t("fin.deposit")}</option>
+                    <option value="withdrawal">{t("fin.withdrawal")}</option>
+                  </select>
+                </label>
+                <label className="text-xs text-muted-foreground">{t("fin.amount")}<input className={INPUT} inputMode="decimal" value={amt} onChange={(e) => setAmt(e.target.value)} /></label>
+                <label className="text-xs text-muted-foreground">{t("fin.when")}<input className={INPUT} value={when} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setWhen(e.target.value)} /></label>
+                <LadderPicker section={sec} field={field} rec={rec} onSection={setSec} onField={setField} onRec={setRec} hook="transaction" />
+                <label className="text-xs text-muted-foreground">{t("fin.memo")}<input className={INPUT} value={memo} onChange={(e) => setMemo(e.target.value)} /></label>
               </div>
-              <button type="button" className={`mt-2 ${PRIMARY}`} onClick={recordDeposit}>{t("fin.record_it")}</button>
-            </div>
-            <div id="fin-withdraw-form" className={SUB} data-testid="fin-withdraw-form">
-              <div className={LABEL}>{t("fin.withdrawal")}</div>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <label className="text-xs text-muted-foreground">{t("fin.amount")}<input className={INPUT} inputMode="decimal" value={wAmt} onChange={(e) => setWAmt(e.target.value)} /></label>
-                <label className="text-xs text-muted-foreground">{t("fin.deposit_at")}<input className={INPUT} value={wAt} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setWAt(e.target.value)} /></label>
-                <LadderPicker section={wSec} field={wField} rec={wRec} onSection={setWSec} onField={setWField} onRec={setWRec} hook="withdrawal" />
-              </div>
-              <button type="button" className={`mt-2 ${SECONDARY}`} onClick={recordWithdrawal}>{t("fin.withdraw")}</button>
+              <button type="button" data-fin-record className={`mt-2 ${txType === "deposit" ? PRIMARY : SECONDARY}`} onClick={recordTransaction}>{txType === "deposit" ? t("fin.record_it") : t("fin.withdraw")}</button>
               {refusal && <p className="mt-2 text-sm text-red-500">{t("fin.refused")} · {refusal}</p>}
               {saveFailed && <p className="mt-2 text-sm text-amber-500">{t("fin.save_failed")}</p>}
             </div>
@@ -391,7 +405,7 @@ export function FinancialCommandUX1() {
       <div className="fixed inset-x-0 bottom-14 z-[60] mx-auto flex max-w-3xl items-center gap-2 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:hidden" data-testid="fin-strip">
         <span className="min-w-0 flex-1 truncate font-mono tabular-nums">{usd(bal.releasedCents)} · {usd(bal.availableCents)}</span>
         <span className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] uppercase" style={{ borderColor: hue.bright, color: hue.bright }}>{t(phaseDef.labelKey)}</span>
-        {owner && <button type="button" onClick={() => goTo("fin-withdraw-form")} disabled={bal.availableCents <= 0} className="min-h-[36px] disabled:opacity-50 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.withdraw")}</button>}
+        {owner && <button type="button" onClick={() => openForm("withdrawal")} disabled={bal.availableCents <= 0} className="min-h-[36px] disabled:opacity-50 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.withdraw")}</button>}
       </div>
 
       <p className="mt-6 text-center text-[11px] text-muted-foreground">{SRC.project.stamp} · {stamp} · <TrinityGlyphs inline size="text-[11px]" /></p>

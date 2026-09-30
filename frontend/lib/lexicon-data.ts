@@ -3086,6 +3086,16 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.timeline", englishDefault: "Timeline", context: "Financial-2525: label of the recurrence dropdown on the transaction forms — one time, weekly, every 33 days, monthly, yearly", cubeId: 0 },
   { key: "fin.ladder_title", englishDefault: "Personal finance ladder A–M", context: "Financial-2525: heading of the budget table by ladder section, Net on the last row", cubeId: 0 },
   { key: "fin.stock_note", englishDefault: "Cash, investments, debts, net worth, credit, protection and goals live on the Balance view — never per minute", context: "Financial-2525: the one-line note under the ladder about the N–T sections kept off the ladder", cubeId: 0 },
+  { key: "fin.transaction", englishDefault: "Transaction", context: "Financial-2525: heading of the one transaction form (addendum 24) — a deposit or a withdrawal, chosen from its type dropdown", cubeId: 0 },
+  { key: "fin.type", englishDefault: "Type", context: "Financial-2525: label of the first dropdown on the transaction form — Deposit or Withdrawal", cubeId: 0 },
+  { key: "fin.when", englishDefault: "Day and time (CST)", context: "Financial-2525: label of the transaction's day-and-time field, written YYYY.MM.DD_HH.MM..SS in Central Standard Time", cubeId: 0 },
+  { key: "fin.length", englishDefault: "Length (MoT)", context: "Financial-2525: label of the length dropdown on the transaction form — how long the money covers, from its date (the Measure of Time); presets or Other", cubeId: 0 },
+  { key: "fin.rec.paymot", englishDefault: "30.333 days (pay MoT)", context: "Financial-2525: a length preset — the pay period of 91 ÷ 3 days from the operator's sheet; keep the number", cubeId: 0 },
+  { key: "fin.rec.other", englishDefault: "Other", context: "Financial-2525: the last option of the length dropdown — opens a manual entry (a number with its unit)", cubeId: 0 },
+  { key: "fin.u.minutes", englishDefault: "Minutes", context: "Financial-2525: a unit for a manually typed length", cubeId: 0 },
+  { key: "fin.u.hours", englishDefault: "Hours", context: "Financial-2525: a unit for a manually typed length", cubeId: 0 },
+  { key: "fin.u.days", englishDefault: "Days", context: "Financial-2525: a unit for a manually typed length", cubeId: 0 },
+  { key: "fin.u.years", englishDefault: "Years", context: "Financial-2525: a unit for a manually typed length", cubeId: 0 },
 ];
 const drone2525: TranslationEntry[] = [
   { key: "drone.back", englishDefault: "Back", context: "Drone-2525: button that leaves the arena and returns to the site", cubeId: 0 },
