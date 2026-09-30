@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 12 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 13 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -93,6 +93,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.006 decided (operator addenda 16–17, two phone screenshots): every transaction carries its personal-finance element from one grouped dropdown (Income · Fixed · Variable → Mortgage/Rent, Auto, Insurance, Utilities, Fitness, Fun, Groceries, Dining Out, Other), recorded inside the chain hash and shown on the roster and the record; the budget is a table with a unit toggle — $/second · $/minute · $/hour · per day · per week · per 33 days (default) · per month (the LTU table's 91) · per year — every view possible, $/min among them; the record's sentence names no vendor. FIN-03 → FIN-03.01 · FIN-06 → FIN-06.01 · FD-19 · FD-20.",
       "commit": "0f41042"
+    },
+    {
+      "rev": 13,
+      "date": "2026-09-30",
+      "kind": "release",
+      "text": "v.000_r.006 SHIPPED — every transaction carries its personal-finance element from ONE grouped dropdown (Income · Fixed · Variable → Mortgage/Rent, Auto, Insurance, Utilities, Fitness, Fun, Groceries, Dining Out, Other) on both forms, recorded inside the entry's chain hash and printed on the roster and the record; the budget is a TABLE under a unit toggle — $/second · $/minute · $/hour · per day · per week · per 33 days (default) · per month (the LTU table's 91) · per year — week, month and year read the selected planet's LTU row; the record's sentence names no vendor. FIN-03 → FIN-03.01 · FIN-06 → FIN-06.01 · FD-19 · FD-20; eight lexicon keys filled ×32 (two reviewed shared words on the identical-allowed list). Shipped as 419e85b. Gates: financial-crs 220 · financial-surface 56 · financial-mot 72 · planet-ltu 24 · financial-i18n 324 · lexicon-coverage 97 · full test:ci 0 · next build 0.",
+      "commit": "419e85b"
     }
   ]
 };

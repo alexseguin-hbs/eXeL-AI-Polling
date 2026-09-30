@@ -143,7 +143,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "Every transaction carries its personal-finance element (operator addendum 16, with his phone screenshot of the live forms): the deposit and withdrawal forms gain a dropdown grouped Income · Fixed · Variable over the sheet's categories — Mortgage/Rent (the sheet's Home, in the operator's word) · Auto · Insurance · Utilities · Fitness · Fun · Groceries · Dining Out · Other — recorded on the entry (FinTx.category, inside the chain hash), shown on the roster and the record; CATEGORY_KIND is the one map. The budget is a TABLE with a UNIT TOGGLE (addendum 17, with his screenshot of the wrapping ladder): category · kind · one figure in the unit the person picks — $/second · $/minute · $/hour · per day · per week · per 33 days (the sheet, the default) · per month (the LTU table's 91) · per year — the units read the selected planet's LTU row. The record's sentence stops naming a vendor (the lenses' owed item; the signer-voice law). FIN-03 → FIN-03.01, FIN-06 → FIN-06.01, FD-19, FD-20; eight lexicon keys staged (fin.category · fin.cat.home re-worded Mortgage/Rent · per_week · per_month · per_year · unit · kind · device_only re-worded) — ×32 fill follows.",
    "commit": "0f41042",
-   "shipped": "PENDING"
+   "shipped": "419e85b"
   }
  ],
  "mot": {
