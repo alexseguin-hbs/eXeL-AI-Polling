@@ -319,7 +319,7 @@ export function FinancialCommandUX1() {
             {/* the unit toggle (addendum 17): one figure per row in the unit the person picks — $/s · $/min · $/h · $/day · $/week · 33 days · month · year */}
             {/* the unit — ONE dropdown (addendum 20 "use drop down": the eight pills wrapped over three rows on the phone) */}
             {/* addendum 21: in portrait the select is the panel's full width (the label above it) so "per hour" etc. read at the full line; landscape keeps it at its own width */}
-            <label className="flex flex-col gap-1 text-xs text-muted-foreground landscape:flex-row landscape:items-center landscape:gap-2">{t("fin.unit")}
+            <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground landscape:w-auto landscape:flex-row landscape:items-center landscape:gap-2">{t("fin.unit")}
               <select data-fin-budget-unit value={budgetUnit} onChange={(e) => setBudgetUnit(e.target.value as BudgetUnit)} className="w-full rounded-md border border-border bg-background px-2 py-2 text-sm text-foreground landscape:w-auto landscape:min-w-[14rem] landscape:py-1 landscape:text-xs">
                 {UNITS.map((u) => <option key={u.key} value={u.key}>{u.label}</option>)}
               </select>

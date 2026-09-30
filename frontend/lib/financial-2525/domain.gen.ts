@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.010",
-  "stamp": "v.000_r.010",
+  "revision": "0.011",
+  "stamp": "v.000_r.011",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "7b7a9ab6412fec38e826bb338c80c85cdda5afe281666f04a2728550b890d9e5",
@@ -191,6 +191,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "The unit dropdown spans the full width of the panel in portrait (operator addendum 21, on the r.009 capture: 'thats full width of UX on portrait mode FOR PER HOUR ETC'). command-ux1.tsx: the label sits above a w-full select on a phone held upright, so every option — per hour, per month (91), per year — reads at the full line; in landscape the select keeps its own width beside the label (landscape:w-auto, min 14rem). Same options, default and conversions. FIN-06.03 → FIN-06.04, FD-24. No new lexicon key.",
    "commit": "0f842a9",
    "shipped": "68c5c74"
+  },
+  {
+   "revision": "0.011",
+   "date": "2026-09-30",
+   "kind": "correction",
+   "why": "r.010 claimed the unit dropdown was the panel's full width in portrait; its gate read class names (w-full on the select) and passed, while the r.010 capture measured the select at 145 px of the panel's 292 px — the label sits inside the panel's wrapping header row (title on the left, picker on the right), so a w-full select inside a content-width label was only as wide as its own text. Fix at the class: the LABEL takes the full line in portrait (w-full; landscape:w-auto), so its select fills the panel; landscape unchanged. FIN-06.04's statement stands and its metric is now met on the glass (the r.011 capture measures the select's width equal to the panel's inner width in portrait). Lesson on the record: a layout claim needs a measured capture, not a class-name gate — the r.010 gate was green while the layout was not.",
+   "commit": "68c5c74",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
