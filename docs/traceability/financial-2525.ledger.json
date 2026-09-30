@@ -135,6 +135,13 @@
    "kind": "release",
    "text": "v.000_r.009 SHIPPED — the budget's unit is picked from ONE dropdown of the eight units (per second … per year) instead of the pill toggle that wrapped on the phone; same default (per 33 days), same conversions. FIN-06.01 → FIN-06.03 · FD-23. Shipped as af028ab. Gates: financial-surface 62 · financial-crs 278 · financial-i18n 327 · full test:ci 0 · next build 0.",
    "commit": "af028ab"
+  },
+  {
+   "rev": 20,
+   "date": "2026-09-30",
+   "kind": "decision",
+   "text": "r.010 decided (operator addendum 21): the unit dropdown is the full width of the panel in portrait, its label above, so per hour / per month / per year read at the full line; landscape keeps it at its own width. FIN-06.03 → FIN-06.04 · FD-24.",
+   "commit": "0f842a9"
   }
  ]
 }

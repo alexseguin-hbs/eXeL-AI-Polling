@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.009",
-  "stamp": "v.000_r.009",
+  "revision": "0.010",
+  "stamp": "v.000_r.010",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "15c8e44b1db9df751ec7b3194b363c512d99650d88d127fb36bb8b9290be9f88",
+  "handoffSha256": "7b7a9ab6412fec38e826bb338c80c85cdda5afe281666f04a2728550b890d9e5",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -69,6 +69,11 @@
     "sha256": "15c8e44b1db9df751ec7b3194b363c512d99650d88d127fb36bb8b9290be9f88",
     "date": "2026-09-30",
     "note": "+ addendum 20 (\"use drop down\" — the budget's unit picker, with his phone view of the r.006 capture) — persisted 756075a; folded as r.009"
+   },
+   {
+    "sha256": "7b7a9ab6412fec38e826bb338c80c85cdda5afe281666f04a2728550b890d9e5",
+    "date": "2026-09-30",
+    "note": "+ addendum 21 (the unit dropdown is the full width of the panel in portrait — 'FOR PER HOUR ETC') — persisted 0f842a9; folded as r.010"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -151,6 +156,14 @@
    "why": "The budget's unit is picked from ONE dropdown (operator addendum 20 'use drop down', with his phone view of the r.006 capture: the eight unit pills wrapped over three rows above the table). command-ux1.tsx: the role=group pill toggle becomes a labelled <select data-fin-budget-unit> whose options are the same eight units — per second · per minute · per hour · per day · per week · per 33 days (the sheet, the default) · per month (the LTU table's 91) · per year — the same default, the same conversions, the same control on every width. FIN-06.01 → FIN-06.03 (the toggle's wording superseded; FIN-06.02's icons stand), FD-23. No new lexicon key (fin.unit labels the select).",
    "commit": "756075a",
    "shipped": "af028ab"
+  },
+  {
+   "revision": "0.010",
+   "date": "2026-09-30",
+   "kind": "decision",
+   "why": "The unit dropdown spans the full width of the panel in portrait (operator addendum 21, on the r.009 capture: 'thats full width of UX on portrait mode FOR PER HOUR ETC'). command-ux1.tsx: the label sits above a w-full select on a phone held upright, so every option — per hour, per month (91), per year — reads at the full line; in landscape the select keeps its own width beside the label (landscape:w-auto, min 14rem). Same options, default and conversions. FIN-06.03 → FIN-06.04, FD-24. No new lexicon key.",
+   "commit": "0f842a9",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -827,11 +840,29 @@
    ],
    "verify": "tests/financial-surface.test.mjs",
    "statement": "The personal budget is a table — category (with its icon) · kind · one figure — under ONE labelled dropdown of eight units: $/second · $/minute · $/hour · per day · per week · per 33 days (the sheet, the default) · per month (the LTU table's month) · per year; week, month and year read the selected planet's LTU row; the same control on the phone and the desk, never a pill row that wraps.",
-   "metric": "the surface renders <select data-fin-budget-unit> with the eight UNITS as options and no role=group pill toggle; the default option is per 33 days and the 33-day column reproduces the sheet (Income $3,200 · Net −$200); $/min reads 0.0673 for Income; the label is fin.unit",
+   "metric": "SUPERSEDED by FIN-06.04 (addendum 21): the dropdown is the panel's full width in portrait",
    "dtm": "one dropdown reading 'per minute' above the table on the phone, the eight units in its list",
    "stretch": "actuals per category beside the plan, from the record",
    "in": "FIN-06.03.IN",
    "out": "FIN-06.03.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "superseded"
+  },
+  {
+   "id": "FIN-06.04",
+   "title": "The unit dropdown — full width in portrait, its own width in landscape",
+   "section": "I",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "The personal budget is a table — category (with its icon) · kind · one figure — under ONE labelled dropdown of eight units; in portrait the dropdown stretches to the panel's full width with its label above it, so every option (per hour · per month (91) · per year …) reads at the full line; in landscape it sits at its own width beside the label. Same default (per 33 days) and conversions.",
+   "metric": "the select carries w-full with the landscape variants (landscape:w-auto landscape:min-w-[14rem]) and its label stacks (flex-col) in portrait, rows (landscape:flex-row) in landscape; at 390 × 844 the select's width equals the panel's inner width; the eight options and the m33 default unchanged",
+   "dtm": "on the phone upright the dropdown reads across the whole panel: 'per hour'",
+   "stretch": "actuals per category beside the plan, from the record",
+   "in": "FIN-06.04.IN",
+   "out": "FIN-06.04.OUT",
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
@@ -975,6 +1006,12 @@
    "decision": "The budget's unit is picked from ONE dropdown of the eight units — the same default (per 33 days) and the same conversions as the toggle it replaces; a control that wraps on the phone is not the control.",
    "status": "OPERATOR",
    "basis": "addendum 20 (verbatim: 'use drop down') with his phone view of the r.006 capture; reading item 28"
+  },
+  {
+   "id": "FD-24",
+   "decision": "In portrait every picker on the Financial-2525 panel is the panel's full width with its label above; in landscape a picker may sit beside its label at its own width. The unit dropdown is the first; the same rule reaches the category and planet pickers when the operator asks.",
+   "status": "OPERATOR",
+   "basis": "addendum 21 (verbatim: 'thats full width of UX on portrait mode FOR PER HOUR ETC'); reading item 29"
   }
  ],
  "reviews": [
