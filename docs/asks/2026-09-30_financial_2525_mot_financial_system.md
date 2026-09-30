@@ -92,6 +92,12 @@
 > Insurance
 > etc
 
+> (addendum 17, verbatim — with a phone screenshot of the live PERSONAL BUDGET ON THE LADDER panel, saved beside this file as `2026-09-30_financial_2525_budget_table_toggle.png`: the per-33-days · per-day · per-minute · per-second lines wrapping on the phone — Income $3,200.00 · $96.97 · $0.0673 · $0.0011 … Net −$200.00 · −$6.06 · −$0.0042 · −$0.0001 — and THE RECORD · CHAIN VERIFIED reading "On this device only — the cloud half waits on the login being wired into Supabase") Ensure table and toggle to finance
+>
+> View must be possible in $/min
+>
+> Day, Week, Month etc
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -188,6 +194,10 @@
     dropdown of the sheet's budget elements — the kinds Income · Fixed · Variable, and under them Mortgage/Rent (the
     sheet's Home), Auto, Insurance, Utilities, Fitness, Fun, Groceries, Dining Out, Other — recorded on the entry, shown
     on the roster and the record, so the budget ladder can meet the actuals.
+25. **The budget is a TABLE with a unit toggle (addendum 17):** one column of figures in ONE unit the person picks — $/second ·
+    $/minute · $/hour · $/day · $/week · $/month · $/quarter · $/year (the LTU ladder) — a segmented toggle like the MoT ⇄
+    Clock one; every view must be possible, $/min among them; the sheet's month stays the default. The record panel's
+    sentence stops naming a vendor (the signer-voice law): it says the copy is on this phone until sign-in carries it.
 12. **Trinity measures of time:** ♡ → M_LTU (local time) · 웃 → M_33 (the 33-day month) · ◬ → M_SS (sub-second / 3600 scale); project value: ♡ = minutes, 웃 = minutes × minimum wage, ◬ = minutes × efficiency gain → traded for $; `$3/day = $99/M33`.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
