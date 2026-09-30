@@ -105,6 +105,11 @@ y = P(p27.ms + 366 * M.MS_PER_DAY); ok(y.day === 367 && y.down && y.pastFull && 
 y = P(p28.ms - 60000); ok(y.year === 2027 && y.day === 368 && y.pastFull && y.abc.a === 3621, "the minute before the 2028 perihelion is day 368 of 2027 at 3621.…");
 y = P(p29.ms - 60000); ok(y.year === 2028 && y.day === 364 && y.quarter === 4 && y.dayInQuarter === 91 && !y.down, "2028 (a 363.24-day orbit) never reaches day 365 — recorded, FIN-02.01");
 ok(P(Date.UTC(2026, 0, 2)).year === 2025, "2026-01-02 (before the 2026 perihelion) still belongs to perihelion year 2025");
+// r.008 — a planet's positions are A-units of ITS revolution (FIN-13.03): Mars passes 686.98 d; the ratio is 365.259636 ÷ 686.98
+{ const e = C.positionInYear(at(100)), mrs = C.positionInYear(at(100), "perihelion", M.MARS_REVOLUTION_EARTH_DAYS);
+  const ve = M.abcToValue ? null : null; const vE = e.abc.a + e.abc.b / 3600 + e.abc.c / 3600 ** 2, vM = mrs.abc.a + mrs.abc.b / 3600 + mrs.abc.c / 3600 ** 2;
+  ok(near(vM / vE, M.FINANCIAL_YEAR_DAYS / M.MARS_REVOLUTION_EARTH_DAYS, 1e-6) && mrs.abc.a === 524 && e.abc.a === 985, `on Mars day 101 reads ${M.fmtMot(mrs.abc)} A of the Martian revolution (Earth ${M.fmtMot(e.abc)}) — the ratio of the two wholes`);
+  ok(C.frameOf(at(40), 33, "perihelion", M.MARS_REVOLUTION_EARTH_DAYS).index === 1, "the personal frame takes the planet's revolution too (same frame index — a frame is days, not A)"); }
 ok(near(P(p26.ms).lengthDays, 364.39, 0.01), `2026 runs 364.39 days perihelion to perihelion (the orbit, not a calendar) — got ${P(p26.ms).lengthDays.toFixed(3)}`);
 const f = C.frameOf(at(40), 33);
 ok(f.index === 1 && f.dayInFrame === 8 && f.frameDays === 33 && M.fmtMot(f.abc).startsWith("763."), "personal 33-day frames count from day 1: day 41 is frame 2, day 8 of it (its own 0→3600 progress, a display aid, not the A.B..C coordinate)");

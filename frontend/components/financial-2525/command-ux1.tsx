@@ -21,6 +21,7 @@
  */
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Clock, Orbit } from "lucide-react";
+import { CategoryIcon } from "@/components/financial-2525/category-icon";   // addendum 19: every category carries its icon
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
@@ -120,8 +121,8 @@ export function FinancialCommandUX1() {
   const phase = phaseOf(focus, withdrawals.length, at);
   const phaseDef = FIN_PHASES.find((p) => p.key === phase) ?? FIN_PHASES[0];
   const focusView = focus && now ? depositView(focus, at) : null;
-  const year = now ? positionInYear(now, planet.yearAnchor) : null;
-  const frame = now ? frameOf(now, 33, planet.yearAnchor) : null;
+  const year = now ? positionInYear(now, planet.yearAnchor, planet.yearDays) : null;
+  const frame = now ? frameOf(now, 33, planet.yearAnchor, planet.yearDays) : null;
   const budget = useMemo(() => summarize(SHEET_BUDGET, SHEET_MONTH_DAYS), []);
   // THE BUDGET TABLE'S UNIT (addendum 17: "View must be possible in $/min · Day, Week, Month etc") — a segmented toggle; the
   // sheet's 33-day month is the default; week · month · year come from the planet's LTU table (Month 91 for now).
@@ -152,7 +153,7 @@ export function FinancialCommandUX1() {
   const [dCat, setDCat] = useState("Income" as BudgetCategory); const [wCat, setWCat] = useState("Home" as BudgetCategory);
   const catLabel = (c: BudgetCategory) => t(`fin.cat.${CAT_KEY[c]}`);
   const CategorySelect = ({ value, onChange, hook }: { value: BudgetCategory; onChange: (c: BudgetCategory) => void; hook: string }) => (
-    <label className="text-xs text-muted-foreground">{t("fin.category")}
+    <label className="text-xs text-muted-foreground"><CategoryIcon category={value} className="mr-1" />{t("fin.category")}
       <select data-fin-category={hook} className={INPUT} value={value} onChange={(e) => onChange(e.target.value as BudgetCategory)}>
         {TRANSACTION_CATEGORIES.map((g) => (
           <optgroup key={g.kind} label={t(`fin.${g.kind}`)}>{g.categories.map((c) => <option key={c} value={c}>{catLabel(c)}</option>)}</optgroup>
@@ -330,7 +331,7 @@ export function FinancialCommandUX1() {
             </thead>
             <tbody>
               {budget.lines.map((l) => (
-                <tr key={l.id} data-fin-budget-row={l.id} className="border-t border-border/60"><td className="py-1 pr-2">{t(`fin.cat.${CAT_KEY[l.category]}`)}</td><td className="py-1 pr-2 text-muted-foreground">{l.kind === "income" ? t("fin.income") : l.kind === "fixed" ? t("fin.fixed") : t("fin.variable")}</td><td className="py-1 text-right tabular-nums">{usdUnit(inUnit(l.amountCents))}</td></tr>
+                <tr key={l.id} data-fin-budget-row={l.id} className="border-t border-border/60"><td className="py-1 pr-2"><CategoryIcon category={l.category} className="mr-1.5" />{t(`fin.cat.${CAT_KEY[l.category]}`)}</td><td className="py-1 pr-2 text-muted-foreground">{l.kind === "income" ? t("fin.income") : l.kind === "fixed" ? t("fin.fixed") : t("fin.variable")}</td><td className="py-1 text-right tabular-nums">{usdUnit(inUnit(l.amountCents))}</td></tr>
               ))}
               <tr className={`border-t border-border font-semibold ${budget.netCents < 0 ? "text-red-500" : "text-green-500"}`}><td className="py-1 pr-2">{t("fin.net")}</td><td /><td data-fin-budget-net className="py-1 text-right tabular-nums">{usdUnit(inUnit(budget.netCents))}</td></tr>
             </tbody>
@@ -344,7 +345,7 @@ export function FinancialCommandUX1() {
             {!owner && <li className="flex justify-between gap-2"><span>{fmtStampCST(EXAMPLE.atMs)} · {t("fin.deposit")} · {EXAMPLE.memo}</span><span>{usd(EXAMPLE.amountCents)} · {EXAMPLE.motDays}</span></li>}
             {owner && record.entries.length === 0 && <li>{t("fin.no_deposits")}</li>}
             {owner && record.entries.map((e) => (
-              <li key={e.hash} className="flex justify-between gap-2"><span>{e.rev} · {fmtStampCST(e.tx.atMs)} · {e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}{e.tx.category ? ` · ${catLabel(e.tx.category)}` : ""}{e.tx.memo ? ` · ${e.tx.memo}` : ""}</span><span className={e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}>{usd(e.tx.amountCents)}{e.tx.motDays ? ` · ${e.tx.motDays}` : ""} · {e.hash.slice(0, 8)}</span></li>
+              <li key={e.hash} className="flex justify-between gap-2"><span>{e.rev} · {fmtStampCST(e.tx.atMs)} · {e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}{e.tx.category ? <> · <CategoryIcon category={e.tx.category} className="mx-0.5" />{catLabel(e.tx.category)}</> : ""}{e.tx.memo ? ` · ${e.tx.memo}` : ""}</span><span className={e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}>{usd(e.tx.amountCents)}{e.tx.motDays ? ` · ${e.tx.motDays}` : ""} · {e.hash.slice(0, 8)}</span></li>
             ))}
           </ul>
           <p className="mt-2 text-xs text-muted-foreground">{t("fin.device_only")}</p>
@@ -404,7 +405,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector }: { tx
   const motAbc = spanABC(tx.motDays ?? 0, planet.yearDays);          // the whole MoT, in A-units (30.333 d = 298.3475..1826 A on the exact Earth year)
   const sw = VECTOR_LAW.stroke.normal, hair = VECTOR_LAW.stroke.hairline;
   // the x axis: five marks over the MoT — day · hour · minute by default; on reveal the revolution's A.B..C at each mark
-  const axis = [0, 0.25, 0.5, 0.75, 1].map((f) => (showAbc ? fmtMot(positionInYear(from + f * len, planet.yearAnchor).abc) : ltuLabel(f * len, len, planet)));
+  const axis = [0, 0.25, 0.5, 0.75, 1].map((f) => (showAbc ? fmtMot(positionInYear(from + f * len, planet.yearAnchor, planet.yearDays).abc) : ltuLabel(f * len, len, planet)));
   return (
     <div data-fin-chart className={SUB}>
       <div className="flex flex-wrap items-center justify-between gap-2">

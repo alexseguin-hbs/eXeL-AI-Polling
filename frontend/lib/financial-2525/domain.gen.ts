@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.007",
-  "stamp": "v.000_r.007",
+  "revision": "0.008",
+  "stamp": "v.000_r.008",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "f900715a5063928d9f80458cf77491babd624ee98567ef0f28b2fa7032218ac6",
@@ -157,6 +157,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "The year is the EXACT revolution, never a rounded 365 (operator addendum 18: '365 should be exact amount 365.25 etc. · remember perihelion exact time for Austin Texas CST is Standard'). mot.ts: FINANCIAL_YEAR_DAYS = EARTH_REVOLUTION_DAYS = 365.259636 (the anomalistic year, SOURCED, one primitive) = 3600 A, so one A = 8,766.23 s, one B = 2.4351 s, one C = 0.6764 ms, one D = 0.18789 µs; half 182.629818 d = 1800; the pay MoT (91 ÷ 3 d) reads 298.3475..1826 A (≈ 298.97, r.003's reading on the exact year — r.005's 299.0641..0345 on exactly 365 d superseded on the record); one day 9.3081..2196 A; 365 calendar days read 3597.1587..2508. calendar.ts: the PERIHELION is the default anchor again ('calendar' stays selectable in the Planet LTU table), and the perihelion instant is written in Austin CST STANDARD (UTC−6, never daylight) beside the sourced UTC (perihelionCst; 2026 opens 2026.01.03_11.15..00 CST) — printed on the year panel. planet-ltu.ts: the Earth seed row reads yearDays 365.259636 · anchor perihelion (the seed law carries it into every saved copy an operator has not edited). Month 91 and the Dec 31 offline day stay calendar dates. The A.B..C axis marks are three lines (A / .B / ..C — the r.006 Mars capture showed B and C overprinting at 390 px). FIN-01.02 → FIN-01.03, FIN-02.01 → FIN-02.02, FD-21 (supersedes FD-15's exact-365 whole and FD-17's calendar default); one lexicon key (fin.perihelion_cst) staged. r.005's numbers stay on the record in orbitUnitsEarth365 and the correction line.",
    "commit": "25ec03d",
    "shipped": "71935d2"
+  },
+  {
+   "revision": "0.008",
+   "date": "2026-09-30",
+   "kind": "decision",
+   "why": "Every category carries its icon (operator addendum 19, with his PERSONAL sheet photographed again: an icon drawn before every Fixed/Variable line — 'Ensure all have icons: Income · Mortgage · Car · Insurance · Food · Fitness · Fun'). components/financial-2525/category-icon.tsx: ONE map, CATEGORY_ICON, keyed by every BudgetCategory — the seven he named (Income banknote · Home/Mortgage house · Auto car · Insurance shield · Groceries/Food basket · Fitness dumbbell · Fun party) and the three the sheet does not name (Utilities = the sheet's Electric bolt · Dining Out crossed utensils · Other ellipsis) — strokes only (the vector law), aria-hidden, the word beside it always; shown on the budget table rows, before the category dropdown on both forms (the chosen category's icon), and on the record's lines. Labels unchanged: his Car and Food match the sheet's CAR and FOOD; the glass reads Auto and Groceries from the r.001 transcription — flagged for his word, not renamed. Also folded (fix the class): the year position now takes the planet's revolution — positionInYear/frameOf gain yearDays and the surface passes the selected row's — because the r.007 Mars capture showed the axis reading Earth positions (the head already read the Martian whole). FIN-06.02 (additive beside FIN-06.01), FIN-13.03 (the Mars position on its own revolution), FD-22.",
+   "commit": "589d223",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -182,7 +190,7 @@ export const FINANCIAL_DOMAIN = {
    "dSeconds": 1.8789e-7
   },
   "payMotInA": 298.97,
-  "correction": "r.001–r.002 read a pay period as its own whole (its end printed 3600.3600..3600). Superseded by this law; the record keeps both. · r.003 measured lengths on 365.259636 d and printed every whole as 3600.3600..3600; r.005: 365 d exactly, the true A printed, positions unclamped — the record keeps all three readings. · r.007 (addendum 18): the exact revolution 365.259636 d = 3600 A again — r.005's 365 superseded on the record; the perihelion the default anchor again, its instant written in Austin CST standard.",
+  "correction": "r.001–r.002 read a pay period as its own whole (its end printed 3600.3600..3600). Superseded by this law; the record keeps both. · r.003 measured lengths on 365.259636 d and printed every whole as 3600.3600..3600; r.005: 365 d exactly, the true A printed, positions unclamped — the record keeps all three readings. · r.007 (addendum 18): the exact revolution 365.259636 d = 3600 A again — r.005's 365 superseded on the record; the perihelion the default anchor again, its instant written in Austin CST standard. · r.008: the year position takes the planet's revolution (positionInYear yearDays) — until then the Mars axis read Earth positions (r.007 capture); found by the capture, fixed at its class.",
   "full": "3600.3600..3600",
   "equalWritings": [
    "3600.0000..0000",
@@ -787,6 +795,42 @@ export const FINANCIAL_DOMAIN = {
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-06.02",
+   "title": "Every category carries its icon",
+   "section": "I",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "Every personal-finance category on the glass carries one stroke icon — Income · Mortgage/Rent · Auto · Insurance · Utilities · Groceries · Dining Out · Fitness · Fun · Other — before its word on the budget table, before the category dropdown on both forms (the chosen category's), and on the record's lines; the icon never replaces the word and is never a fill; no category is ever bare.",
+   "metric": "CATEGORY_ICON's keys are exactly BUDGET_CATEGORIES (a category without an icon fails the gate); the table row, the dropdown label and the record line each render CategoryIcon; the icons are lucide strokes at strokeWidth 1.5, aria-hidden",
+   "dtm": "the sheet's icons on the phone: a house before Mortgage/Rent 700, a car before Auto 1,800, a bolt before Utilities 150, a basket before Groceries 300",
+   "stretch": "the operator's own glyphs (the sheet's drawings) as the icon set; Car / Food as the labels if he says so",
+   "in": "FIN-06.02.IN",
+   "out": "FIN-06.02.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
+  },
+  {
+   "id": "FIN-13.03",
+   "title": "A planet's positions are A-units of ITS revolution",
+   "section": "VIII",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-mot.test.mjs",
+   "statement": "The year position and the personal frame take the selected planet's revolution (the Planet LTU row's yearDays), not Earth's: on Mars an instant's A.B..C is elapsed ÷ 686.98 d × 3600 on the perihelion anchor (an Earth epoch table for now, DECLARED), so the axis, the year line and the frame read the Martian whole the head already read.",
+   "metric": "positionInYear(ms, 'perihelion', 686.98).abc differs from positionInYear(ms).abc by the ratio 365.259636 ÷ 686.98 (within one C); the surface passes planet.yearDays to positionInYear and frameOf at every call; the r.007 Mars capture (the axis equal to Earth's) cannot recur",
+   "dtm": "the Mars axis at 390 px reads A-units of the Martian revolution",
+   "stretch": "a Mars perihelion epoch table (FIN-13's stretch)",
+   "in": "FIN-13.03.IN",
+   "out": "FIN-13.03.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -915,6 +959,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The financial year's whole is the EXACT revolution — 365.259636 days (the anomalistic year, SOURCED) = 3600 A, one A = 8,766.23 s — never a rounded 365 ('365 should be exact amount 365.25 etc.'); the perihelion instant opens the year (the default anchor again; 'calendar' stays selectable) and its exact time is written in Austin, Texas CST STANDARD — UTC−6, never daylight. SUPERSEDES FD-15's exact-365 whole and FD-17's calendar default; Month 91, the Dec 31 offline day, the derived ladder, unclamped positions and tier D stand.",
    "status": "OPERATOR",
    "basis": "addendum 18 (verbatim: '365 should be exact amount 365.25 etc. · remember perihelion exact time for Austin Texas CST is Standard'); reading item 26 of the ask"
+  },
+  {
+   "id": "FD-22",
+   "decision": "Every category carries exactly one stroke icon, from ONE map keyed by the category (the seven the operator named and the three the sheet leaves unnamed), shown wherever the category is named on the glass — beside the word, never instead of it; the labels are not changed by this decision (Car / Food vs Auto / Groceries flagged for the operator's word).",
+   "status": "OPERATOR",
+   "basis": "addendum 19 (verbatim: 'Ensure all have icons · Income · Mortgage · Car · Insurance · Food · Fitness · Fun') with the PERSONAL sheet; reading item 27"
   }
  ],
  "reviews": [

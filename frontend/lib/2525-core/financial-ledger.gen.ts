@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 15 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 16 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -114,6 +114,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "v.000_r.007 SHIPPED — the year is the EXACT revolution: 365.259636 days = 3600 A (one A = 8,766.23 s; the pay MoT 298.3475..1826 A; a day 9.3081..2196 A; 365 calendar days 3597.1587..2508), the perihelion instant opens the year again (default anchor; the calendar year selectable) and is written in Austin CST STANDARD (UTC−6, never daylight) on the year panel — 2026 opens 2026.01.03_11.15..00 CST; the Earth seed row carries the primitive under the seed law; the A.B..C axis marks are three lines. r.005's exact-365 whole and calendar default superseded on the record (units kept). FIN-01.02 → FIN-01.03 · FIN-02.01 → FIN-02.02 · FD-21; one lexicon key filled ×32. Shipped as 71935d2. Gates: financial-mot 73 · planet-ltu 24 · financial-crs 245 · financial-surface 58 · financial-i18n 327 · lexicon-coverage 97 · full test:ci 0 · next build 0.",
       "commit": "71935d2"
+    },
+    {
+      "rev": 16,
+      "date": "2026-09-30",
+      "kind": "decision",
+      "text": "r.008 decided (operator addendum 19, the PERSONAL sheet photographed): every category carries its icon — one map, ten strokes (Income banknote · Mortgage/Rent house · Auto car · Insurance shield · Utilities bolt · Groceries basket · Dining Out utensils · Fitness dumbbell · Fun party · Other ellipsis) — on the budget table, before the dropdown on both forms, on the record; labels unchanged (Car / Food flagged). Folded: the year position takes the planet's revolution (the r.007 Mars capture read Earth positions). FIN-06.02 · FIN-13.03 · FD-22.",
+      "commit": "589d223"
     }
   ]
 };

@@ -86,7 +86,9 @@ export interface YearPosition {
   lengthDays: number;      // the actual length of this year on its anchor (365 / 366 calendar; 363–368 perihelion)
 }
 /** Where an instant sits in its financial year, on the given anchor (the LTU table's, "calendar" by default). */
-export function positionInYear(ms: number, anchor: YearAnchor = DEFAULT_ANCHOR): YearPosition {
+/** `yearDays` is the planet's revolution (the Planet LTU row) — 365.259636 for Earth; Mars passes 686.98 so its positions are
+ *  A-units of ITS revolution (r.008: the r.007 capture showed the Mars axis reading Earth positions). */
+export function positionInYear(ms: number, anchor: YearAnchor = DEFAULT_ANCHOR, yearDays: number = FINANCIAL_YEAR_DAYS): YearPosition {
   let year: number, start: { ms: number; status: "SOURCED" | "DECLARED" }, end: { ms: number; status: "SOURCED" | "DECLARED" };
   if (anchor === "calendar") {
     year = cstParts(ms).y;
@@ -106,8 +108,8 @@ export function positionInYear(ms: number, anchor: YearAnchor = DEFAULT_ANCHOR):
   return {
     year, anchor, startMs: start.ms, endMs: end.ms, status: start.status === "DECLARED" || end.status === "DECLARED" ? "DECLARED" : "SOURCED",
     day, quarter, dayInQuarter, down,
-    abc: motABC(elapsed, FINANCIAL_YEAR_DAYS * MS_PER_DAY),
-    pastFull: elapsed > FINANCIAL_YEAR_DAYS * MS_PER_DAY,
+    abc: motABC(elapsed, yearDays * MS_PER_DAY),
+    pastFull: elapsed > yearDays * MS_PER_DAY,
     lengthDays: (end.ms - start.ms) / MS_PER_DAY,
   };
 }
@@ -116,8 +118,8 @@ export function positionInYear(ms: number, anchor: YearAnchor = DEFAULT_ANCHOR):
 export type FrameDays = 33 | 66 | 99;
 export const FRAMES: FrameDays[] = [33, 66, 99];
 export interface Frame { frameDays: FrameDays; index: number; startMs: number; endMs: number; dayInFrame: number; abc: ABC }
-export function frameOf(ms: number, frameDays: FrameDays, anchor: YearAnchor = DEFAULT_ANCHOR): Frame {
-  const y = positionInYear(ms, anchor);
+export function frameOf(ms: number, frameDays: FrameDays, anchor: YearAnchor = DEFAULT_ANCHOR, yearDays: number = FINANCIAL_YEAR_DAYS): Frame {
+  const y = positionInYear(ms, anchor, yearDays);
   const index = Math.floor((y.day - 1) / frameDays);
   const startMs = y.startMs + index * frameDays * MS_PER_DAY, endMs = startMs + frameDays * MS_PER_DAY;
   return { frameDays, index, startMs, endMs, dayInFrame: ((y.day - 1) % frameDays) + 1, abc: motABC(ms - startMs, endMs - startMs) };
