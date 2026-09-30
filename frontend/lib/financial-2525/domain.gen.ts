@@ -79,7 +79,8 @@ export const FINANCIAL_DOMAIN = {
    "date": "2026-09-30",
    "kind": "decision",
    "why": "The UI/UX STARTS FROM the ◬ ♡ 웃 Session shell (operator addendum 7) and the chart's glass reads day · hour · minute with A.B..C behind the scenes (addendum 8, max R-CORE reuse): the surface is rebuilt on /soi-session's own root, header (globe + Trinity glyphs), card, phase rail (PodPhaseRail gains additive `phases`/`countFor` props — DEPOSIT ◬ · HOLD ♡ · RELEASE ♡ · WITHDRAW 웃 · RECORD 웃), guide card, roster (PodRosterList), ACTIVE clock block (the big mono number is money released), phone strip and folded Trinity (SoITrinity: ◬ M_SS · 웃 M_33 · ♡ M_LTU); sign-in returns the person here; the chart stays under the vector law. Decisions FD-10, FD-11.",
-   "commit": "d5d2b72"
+   "commit": "d5d2b72",
+   "shipped": "5838c67"
   }
  ],
  "mot": {

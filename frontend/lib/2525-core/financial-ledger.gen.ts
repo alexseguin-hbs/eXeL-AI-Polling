@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 4 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 5 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/main/Financial-2525",
@@ -37,6 +37,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.002 decided (operator addenda 7–8): the UI/UX starts from the ◬ ♡ 웃 Session shell — root, header (globe + Trinity glyphs), card, phase rail with the five financial phases DEPOSIT ◬ · HOLD ♡ · RELEASE ♡ · WITHDRAW 웃 · RECORD 웃 (PodPhaseRail gains additive phases/countFor props, the pod untouched), the guide card, the roster of deposits, the ACTIVE clock block whose big number is money released at $/min, the phone strip, the folded Trinity wheel seated the operator's way — HI 웃 on top, AI ◬ tokens bottom-left, SI ♡ minutes contribution bottom-right (addendum 9, FD-12) — sign-in returning the person here; A.B..C stays behind the scenes and the chart's glass reads day · hour · minute by default with A.B..C on reveal (FD-10, FD-11).",
       "commit": ""
+    },
+    {
+      "rev": 5,
+      "date": "2026-09-30",
+      "kind": "release",
+      "text": "v.000_r.002 SHIPPED — Financial-2525 on the ◬ ♡ 웃 Session shell: the Session's root, header (globe + Trinity glyphs), card and phase pill, PodPhaseRail railing DEPOSIT ◬ · HOLD ♡ · RELEASE ♡ · WITHDRAW 웃 · RECORD 웃 (additive props, the pod untouched), the guide card, the roster of deposits, the ACTIVE clock block with money released as the big number, the phone strip, the Trinity wheel seated HI 웃 top · AI ◬ tokens bottom-left · SI ♡ minutes bottom-right, sign-in returning here; the chart's glass in day · hour · minute with A.B..C on reveal; 23 more fin.* keys staged. Gates: financial-surface 42 · i18n 288 · crs 132 · pod-invariant 463 · full test:ci 0 · next build 0.",
+      "commit": "5838c67"
     }
   ]
 };
