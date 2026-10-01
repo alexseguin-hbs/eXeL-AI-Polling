@@ -444,6 +444,9 @@
 >
 > the record chain needs dollar and then spend category as front two columns; order by logic (as you are master of knowing humanity)
 
+> (addendum 64, verbatim — 2026-10-01 7:49 AM, screenshot 2026-10-01_financial_fb64_accrual_top.png, the r.029 Accrual Units card with the gear open)
+> Accrual field needs to be left to settings button on top line
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -731,6 +734,8 @@
     1st, its real length (October 31 days) — right before "per month (30.3̅ days)". r.031.
 66. **The Record's columns (addendum 63):** Amount (signed: + in, − out) and Category first; then the rest as a person reads an
     entry — Memo (who / what) · Day and time · Length (MoT) · Type · # · Hash (proof, last). r.032.
+67. **The accrual rate on the top line (addendum 64):** the $/min figure and its /hr selector sit on the Accrual Units title line,
+    immediately left of the gear; Available stays the big figure on the left below. r.033.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
