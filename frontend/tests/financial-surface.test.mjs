@@ -186,5 +186,8 @@ ok(/data-fin-accrual-defs/.test(ux) && /\(\["available", "escrowed", "released",
 
 ok(/\{ key: "calmonth", label: calDays \? `\$\{t\("fin\.per_cal_month"\)\} \(\$\{calName\} · \$\{calDays\} \$\{t\("fin\.days"\)\}\)` : t\("fin\.per_cal_month"\), period: "calmonth" \},\s*\{ key: "month"/.test(ux) && /setCalendarMonth\(now\)/.test(ux), "r.031 (addendum 62): the standard calendar month (its name and real length) sits in the unit list right before the 30.3̅-day month");
 
+{ const th = (ux.match(/data-fin-ledger-table[\s\S]*?<\/thead>/) || [""])[0]; const order = ["fin.amount", "fin.category", "fin.memo", "fin.when", "fin.length", "fin.type"].map((k) => th.indexOf(`t("${k}")`)); const hashAt = th.indexOf('t("fin.hash")');
+  ok(order.every((x, i) => x > 0 && (i === 0 || x > order[i - 1])) && hashAt > order[5] && /\{e\.tx\.kind === "deposit" \? "\+" : "−"\}\{usd\(e\.tx\.amountCents\)\}/.test(ux), "r.032 (addendum 63): the Record leads with the signed Amount, then Category; then Memo · Day and time · Length · Type; # and Hash last"); }
+
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

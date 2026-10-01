@@ -443,6 +443,13 @@
    "kind": "release",
    "text": "r.031 shipped — the standard calendar month (FD-48).",
    "commit": "82864ea"
+  },
+  {
+   "rev": 64,
+   "date": "2026-10-01",
+   "kind": "decision",
+   "text": "r.032 decision — the Record leads with signed Amount and Category (FD-49).",
+   "commit": "a57453d"
   }
  ]
 }

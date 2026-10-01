@@ -551,19 +551,22 @@ export function FinancialCommandUX1() {
           </summary>
           <div data-fin-ledger-scroll className="mt-2 overflow-x-auto">
             <table data-fin-ledger-table className="min-w-full whitespace-nowrap font-mono text-xs text-muted-foreground">
+              {/* r.032 (addendum 63): Amount and Category first, then as a person reads an entry — who/what, when, how long, which way —
+                  and the proof last (# and Hash). The amount is signed: + money in, − money out. */}
               <thead className="text-left text-[10px] uppercase tracking-wide">
-                <tr><th className="py-1 pr-3">#</th><th className="py-1 pr-3">{t("fin.when")}</th><th className="py-1 pr-3">{t("fin.type")}</th><th className="py-1 pr-3">{t("fin.field")}</th><th className="py-1 pr-3">{t("fin.memo")}</th><th className="py-1 pr-3 text-right">{t("fin.amount")}</th><th className="py-1 pr-3 text-right">{t("fin.length")}</th><th className="py-1">{t("fin.hash")}</th></tr>
+                <tr><th className="py-1 pr-3 text-right">{t("fin.amount")}</th><th className="py-1 pr-3">{t("fin.category")}</th><th className="py-1 pr-3">{t("fin.memo")}</th><th className="py-1 pr-3">{t("fin.when")}</th><th className="py-1 pr-3 text-right">{t("fin.length")}</th><th className="py-1 pr-3">{t("fin.type")}</th><th className="py-1 pr-3">#</th><th className="py-1">{t("fin.hash")}</th></tr>
               </thead>
               <tbody>
-                {!owner && <tr className="border-t border-border/60"><td className="py-1 pr-3">1</td><td className="py-1 pr-3">{fmtStampCST(EXAMPLE.atMs)}</td><td className="py-1 pr-3">{t("fin.deposit")}</td><td className="py-1 pr-3">{txWhat(EXAMPLE)}</td><td className="py-1 pr-3">{EXAMPLE.memo}</td><td className="py-1 pr-3 text-right text-green-500">{usd(EXAMPLE.amountCents)}</td><td className="py-1 pr-3 text-right">{fmtDays(EXAMPLE.motDays ?? 0)}</td><td className="py-1">—</td></tr>}
+                {!owner && <tr className="border-t border-border/60"><td className="py-1 pr-3 text-right tabular-nums text-green-500">+{usd(EXAMPLE.amountCents)}</td><td className="py-1 pr-3">{txWhat(EXAMPLE)}</td><td className="py-1 pr-3">{EXAMPLE.memo}</td><td className="py-1 pr-3">{fmtStampCST(EXAMPLE.atMs)}</td><td className="py-1 pr-3 text-right">{fmtDays(EXAMPLE.motDays ?? 0)}</td><td className="py-1 pr-3">{t("fin.deposit")}</td><td className="py-1 pr-3">1</td><td className="py-1">—</td></tr>}
                 {owner && record.entries.length === 0 && <tr><td colSpan={8} className="py-1">{t("fin.no_deposits")}</td></tr>}
                 {owner && record.entries.map((e) => (
                   <tr key={e.hash} className="border-t border-border/60">
-                    <td className="py-1 pr-3">{e.rev}</td><td className="py-1 pr-3">{fmtStampCST(e.tx.atMs)}</td>
-                    <td className="py-1 pr-3">{e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}</td>
+                    <td className={`py-1 pr-3 text-right tabular-nums ${e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}`}>{e.tx.kind === "deposit" ? "+" : "−"}{usd(e.tx.amountCents)}</td>
                     <td className="py-1 pr-3">{txWhat(e.tx)}</td><td className="py-1 pr-3">{e.tx.memo ?? ""}</td>
-                    <td className={`py-1 pr-3 text-right tabular-nums ${e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}`}>{usd(e.tx.amountCents)}</td>
-                    <td className="py-1 pr-3 text-right">{e.tx.motDays ? fmtDays(e.tx.motDays) : ""}</td><td className="py-1">{e.hash.slice(0, 8)}</td>
+                    <td className="py-1 pr-3">{fmtStampCST(e.tx.atMs)}</td>
+                    <td className="py-1 pr-3 text-right">{e.tx.motDays ? fmtDays(e.tx.motDays) : ""}</td>
+                    <td className="py-1 pr-3">{e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}</td>
+                    <td className="py-1 pr-3">{e.rev}</td><td className="py-1">{e.hash.slice(0, 8)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.031",
-  "stamp": "v.000_r.031",
+  "revision": "0.032",
+  "stamp": "v.000_r.032",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "d4799a5c471e7c2eb3f15a3f3d29d4d755c329d7514fa0959170e4df69e2fca3",
+  "handoffSha256": "d9a1935db1cd46a84fcf3f46528ec15e709d6d96a57beccb7445468afa23220a",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -164,6 +164,11 @@
     "sha256": "d4799a5c471e7c2eb3f15a3f3d29d4d755c329d7514fa0959170e4df69e2fca3",
     "date": "2026-10-01",
     "note": "+ addendum 62 (the standard month); reading item 65"
+   },
+   {
+    "sha256": "d9a1935db1cd46a84fcf3f46528ec15e709d6d96a57beccb7445468afa23220a",
+    "date": "2026-10-01",
+    "note": "+ addendum 63 (the Record columns); reading item 66"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -425,6 +430,14 @@
    "why": "Addendum 62: \"for personal budget we should also have standard month added before month 30.3 (1st day of Gregorian calendar, even though its not even nor does it reflect reality).\" The budget's unit list gains \"per calendar month (October · 31 days)\" right before \"per month (30.3̅ days)\": the Gregorian month the instant is in, from its 1st, its real length (28–31 days, read in Austin CST standard). It converts by that length — $3,924.49 per 30.3̅-day month reads $4,010.75 per October. It is not one of the nine fixed bases; the 30.3̅-day month stays the default.",
    "commit": "9aa2593",
    "shipped": "82864ea"
+  },
+  {
+   "revision": "0.032",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "Addendum 63: \"the record chain needs dollar and then spend category as front two columns; order by logic.\" The Record table now reads, left to right: Amount (signed — + money in, − money out) · Category · Memo (who or what) · Day and time · Length (MoT) · Type · # · Hash. What you want to know first comes first; the proof (entry number and chain hash) sits last.",
+   "commit": "a57453d",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1792,6 +1805,12 @@
    "decision": "The budget offers the standard calendar month (the month we are in, from its 1st, its real length) before the 30.3̅-day month; the 30.3̅-day month stays the default.",
    "status": "OPERATOR",
    "basis": "addendum 62 (verbatim)"
+  },
+  {
+   "id": "FD-49",
+   "decision": "The Record leads with the signed Amount and the Category; then Memo · Day and time · Length · Type; # and Hash last.",
+   "status": "OPERATOR",
+   "basis": "addendum 63 (verbatim) — the order after the first two delegated to Master of Thought"
   }
  ],
  "reviews": [
