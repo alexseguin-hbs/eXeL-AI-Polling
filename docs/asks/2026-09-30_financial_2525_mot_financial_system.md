@@ -460,6 +460,9 @@
 > (addendum 68, verbatim — 2026-10-01, screenshot 2026-10-01_financial_fb68_accrual_rate.jpg, the phone still on the r.029 build)
 > place text "Accrual Rate" above 5.3809 / hr
 
+> (addendum 69, verbatim — 2026-10-01, screenshot 2026-10-01_financial_fb69_spread.jpg, the three Accrual Units boxes)
+> spread 3 fields evenly full width of box
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -753,6 +756,8 @@
     every accent on the surface follows the selected colour — no fixed cyan; "eXeL AI" at the upper left takes the person to /main. r.034.
 69. **The rate is labelled (addendum 68):** the words "Accrual Rate" sit directly above the $/hr figure and its selector, which
     stay on the Accrual Units top line left of the gear (addendum 64). r.035.
+70. **The three boxes span the card (addendum 69):** In Escrow on the left edge, Released centred, Spent on the right edge —
+    evenly across the full width of the box. r.036.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
