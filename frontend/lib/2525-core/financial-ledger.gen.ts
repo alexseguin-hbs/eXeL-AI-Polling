@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 38 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 39 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -275,6 +275,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.019 decided (operator addenda 32–33): the Released card's four figures as a 2 × 2 table, word above figure; the shared R-CORE badge restored to the 2026-09-25 two-click order (rest on the small icon → icon with word art → Version History) — the 2026-09-30 toggle reversed as a misreading; the build refuses any translation of a staged key until the operator tests the functionality. FIN-07.02 · FD-34.",
       "commit": "fa1a190"
+    },
+    {
+      "rev": 39,
+      "date": "2026-10-01",
+      "kind": "release",
+      "text": "v.000_r.019 SHIPPED — the Released card's four figures as a 2 × 2 table; the shared R-CORE badge restored to icon → icon with word art → history; the build lock on translations. FIN-07.02 · FD-34. Shipped as 4efbcd4. Gates: financial-surface 93 · rcore-revisions 49 · lexicon-coverage 129 · financial-crs 400 · full test:ci 0 · next build 0.",
+      "commit": "4efbcd4"
     }
   ]
 };

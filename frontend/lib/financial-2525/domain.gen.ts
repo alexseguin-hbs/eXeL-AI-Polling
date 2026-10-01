@@ -314,7 +314,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "The Released card's four figures as a 2 × 2 table (operator addendum 33 'make table 2x2', with his phone screenshot of the r.018 card where In escrow · Withdrawable · Withdrawn ran on one wrapped line and Available on the next). command-ux1.tsx: a two-column definition grid — In escrow · Withdrawable on the first row, Withdrawn · Available on the second, each cell its word above its figure; the hold time, when a deposit is inside its 3-hour hold, sits as one small line beneath; the big Released figure, its line and the strip are unchanged (nothing removed that he did not name); no new word. With it, on the shared R-CORE badge every 2525 surface carries: the 2026-09-30 wordmark-first toggle was a misreading and is reversed — the badge rests on the small icon, a tap shows the icon with its word art, a tap opens the Version History panel (the 2026-09-25 two-click badge exactly; the panel header keeps its centring; docs/asks/2026-09-30_rcore_badge_toggle_centered.md addendum 1). And the build lock (addendum 32): lexicon-coverage now fails if any staged key carries a translation, so nothing is translated before the operator tests the functionality. FIN-07.02 · FD-34.",
    "commit": "fa1a190",
-   "shipped": "PENDING"
+   "shipped": "4efbcd4"
   }
  ],
  "mot": {
