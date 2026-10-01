@@ -452,6 +452,11 @@
 > (addendum 66, verbatim — 2026-10-01, screenshot 2026-10-01_financial_fb66_gear_only.jpg: the gear-open capture sent at r.029 — the four definitions and the elapsed / per-minute lines)
 > this should only show when settings button clicked
 
+> (addendum 67, verbatim — 2026-10-01 7:52 AM, screenshot 2026-10-01_financial_fb67_settings_colors.png, the live page on the r.028 build)
+> settings with colors selector (from eXeL Polling shpuld be in ipper right; master color is violet in this example, but some text is cyan; remember we stick to color per selector.
+>
+> also eXeL AI is missing on upper left to-take us back to /main
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -741,6 +746,8 @@
     entry — Memo (who / what) · Day and time · Length (MoT) · Type · # · Hash (proof, last). r.032.
 67. **The accrual rate on the top line (addendum 64):** the $/min figure and its /hr selector sit on the Accrual Units title line,
     immediately left of the gear; Available stays the big figure on the left below. r.033.
+68. **Settings + one colour + the way home (addendum 67):** the eXeL Polling Settings (its colour selector) at the upper right;
+    every accent on the surface follows the selected colour — no fixed cyan; "eXeL AI" at the upper left takes the person to /main. r.034.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
