@@ -1,0 +1,71 @@
+# Supabase keepalive (operator 2026-10-01: "you need to start updating Supabase; this is unacceptable").
+# The free tier pauses a project after 7 days with no activity. This job queries the project every day from a GitHub
+# runner (the Claude sandbox cannot reach supabase.co), so the database never goes 7 days without a request.
+# Credentials: the repo secrets NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY when set; otherwise the public
+# URL + anon key the live site already ships in its JavaScript (the anon key is public by design; nothing secret here).
+# It goes RED when the project is paused or unreachable, so a pause is seen the same day. It cannot UNPAUSE a project:
+# that is the operator's Restore button in the Supabase dashboard (docs/asks/2026-10-01_supabase_paused.md).
+name: Supabase keepalive
+on:
+  schedule:
+    - cron: "17 */12 * * *"   # twice a day: one missed run still leaves days of margin before the 7-day pause
+  workflow_dispatch:
+concurrency:
+  group: supabase-keepalive
+  cancel-in-progress: false
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SITE: https://exel-ai-polling.explore-096.workers.dev
+      SB_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SB_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+    steps:
+      - name: Find the project URL and public anon key
+        run: |
+          set -e
+          if [ -z "$SB_URL" ] || [ -z "$SB_KEY" ]; then
+            echo "secrets absent — reading the public URL + anon key the live site ships"
+            python3 - <<'PY'
+          import base64, json, os, re, urllib.request
+          site = os.environ["SITE"]
+          get = lambda u: urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "supabase-keepalive"}), timeout=30).read().decode("utf-8", "ignore")
+          html = get(site + "/")
+          chunks = sorted(set(re.findall(r'/_next/static/[^"\']+?\.js', html)))
+          url = key = None
+          for c in chunks:
+              js = get(site + c)
+              url = url or next(iter(re.findall(r'https://[a-z0-9]{20}\.supabase\.co', js)), None)
+              for t in re.findall(r'eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+', js):
+                  p = t.split(".")[1]; p += "=" * (-len(p) % 4)
+                  try:
+                      if json.loads(base64.urlsafe_b64decode(p)).get("role") == "anon": key = key or t
+                  except Exception: pass
+              if url and key: break
+          if not (url and key): raise SystemExit(f"::error::could not find the Supabase URL/anon key in {len(chunks)} chunks of {site}")
+          with open(os.environ["GITHUB_ENV"], "a") as f: f.write(f"SB_URL={url}\nSB_KEY={key}\n")
+          print("found", url, "(anon key from the served bundle)")
+          PY
+          fi
+      - name: Query the database (counts as activity)
+        run: |
+          set -u
+          echo "::add-mask::$SB_KEY"
+          ok=0; report=""
+          for path in "rest/v1/responses?select=id&limit=1" "rest/v1/arx_items?select=id&limit=1" "auth/v1/health"; do
+            code=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 30 -H "apikey: $SB_KEY" -H "Authorization: Bearer $SB_KEY" "$SB_URL/$path" || echo 000)
+            report="$report\n| \`/$path\` | $code |"
+            echo "/$path → $code · $(head -c 160 /tmp/body)"
+            case "$code" in 2*) ok=$((ok+1));; esac
+          done
+          {
+            echo "## Supabase keepalive · $(date -u +%Y-%m-%dT%H:%MZ)"
+            echo "| request | HTTP |"; echo "|---|---|"; printf "$report\n"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$ok" -eq 0 ]; then
+            echo "## PAUSED OR UNREACHABLE — Supabase dashboard → project eXeL-AI-Polling → Restore" >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Supabase answered no request — the project is paused or unreachable. Restore it in the Supabase dashboard; this job keeps it awake after that."
+            exit 1
+          fi
+          echo "awake: $ok of 3 requests answered"
