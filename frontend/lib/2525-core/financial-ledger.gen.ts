@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 40 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 41 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -289,6 +289,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.020 correction of r.006–r.019 (operator addendum 34 'use 91 day quarter which means 30.333 day month'): a 91-day span was called a month on the unit dropdown, the length presets and the planet table; it is a quarter, and the month is 30.333 days. Nine periods; three months make the quarter; the planet table's Month 30.333. FIN-06.10 · FD-35.",
       "commit": "a695ba6"
+    },
+    {
+      "rev": 41,
+      "date": "2026-10-01",
+      "kind": "release",
+      "text": "v.000_r.020 SHIPPED — 91 days is a quarter and a month is 30.333 days on the unit dropdown, the length presets and the planet table; nine periods, three months make the quarter. FIN-06.10 · FD-35. Shipped as 97731f2. Gates: financial-ladder 83 · planet-ltu 24 · financial-crs 410 · full test:ci 0 · next build 0.",
+      "commit": "97731f2"
     }
   ]
 };

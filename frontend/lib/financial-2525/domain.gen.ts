@@ -327,7 +327,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "correction",
    "why": "91 days is a QUARTER; a month is 30.333 days (operator addendum 34 'use 91 day quarter which means 30.333 day month', with his phone screenshot of the unit dropdown reading 'per month (91)'). The brief's 'month (91)' (FD-25's month factor) and addendum 13's 'Month 91 for now' are superseded by his word. ladder.ts: the time bases are nine — second · minute · hour · day · week · 33 days · month (91 ÷ 3 days) · quarter (91 days) · year; three months make the quarter exactly; the month is the same length as the pay MoT he gave on day one. The glass: the unit dropdown reads per month (30.333 days) and per quarter (91 days) — no '(91)' month left; the length presets read Monthly (30.333 days) and Quarterly (91 days) (the ids paymot and month91 stay, so every recorded entry keeps its meaning). The planet table: Month 30.333 (91 ÷ 3) on Earth and Mars under the seed law, shown as the operator writes it; the quarter 91 beside it. Words English only, staged (addendum 32). FIN-06.10 · FD-35.",
    "commit": "a695ba6",
-   "shipped": "PENDING",
+   "shipped": "97731f2",
    "correction": "r.006–r.019 called a 91-day span a month on the budget's unit dropdown, the length presets and the planet table; it is a quarter, and the month is a third of it."
   }
  ],
