@@ -405,6 +405,20 @@
 
 > (addendum 57, verbatim — 2026-10-01, full message in docs/asks/2026-10-01_conductor_overnight.md) there is no 180 min rule( that was just example).  if 2 hours later, 120 min at $/min should work.
 
+> (addendum 58, verbatim — 2026-10-01 morning, phone 6:57–7:05 AM, screenshots 2026-10-01_financial_fb58_01…09)
+> Measure of Time Financial System should be at top.  remove All Version info as it is at bottom alreadyZ
+> Settings sjpuld open up date format for table, and angle for chart text.  Notnsure why youbignored my input
+> place time and settings ton right with space between Planet Earth
+> How many transaction inputs buttons are there? seems like there should be one primary at top. did you do a UX REVIEW?
+> this is sloppy, either hide and click to expand with better table or make every entry on a single line with ability tonscroll to right.
+> Money as time — this MoT / i said to remove this phrase! / Use two lines / "Measure of Time" / "A Universal Standard"
+> make full table full width on phone portrait mode
+> remove gold top box, / purple second box should have settings button upper right and move $/min and selector to right side.  Call this "Accrual Units" / "Available:  " ### / Keep transaction, remove withdrawal (as the the in the down of transaction). / should be Current balance should be on left
+> THERE IS NO 180 min hold!
+> on Trinity logo; black text is perfect . / remove ghost / shadow pink text (same color of trinity).
+> this needs to be cleaned: / I said to remove all 33 day reference; inis 30.333 (30.3 repeating sign). / use table and place key info in order. perihelion is first
+> Not yet, non audits / fixe what I gave you: show me backlog / I SAID DO NOT AUDIT! Didnyou fix all feedback from this morning?!?
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
