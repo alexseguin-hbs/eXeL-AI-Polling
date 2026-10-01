@@ -2950,6 +2950,8 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.def.spent", englishDefault: "what your withdrawals have taken out so far", context: "Financial-2525: settings line explaining Spent", cubeId: 0 },
   { key: "fin.year_title", englishDefault: "Year position", context: "Financial-2525: title of the year card in standard (clock) mode", cubeId: 0 },
   { key: "fin.orbit_position", englishDefault: "Orbit position", context: "Financial-2525: year card row in MoT mode — where the planet is in its revolution, in A.B..C", cubeId: 0 },
+  { key: "fin.per_cal_month", englishDefault: "per calendar month", context: "Financial-2525: budget unit option — the Gregorian calendar month we are in, from its 1st (28 to 31 days); followed by the month name and its length", cubeId: 0 },
+  { key: "fin.days", englishDefault: "days", context: "Financial-2525: the word after a count of days, e.g. October · 31 days", cubeId: 0 },
   { key: "fin.hold_mark", englishDefault: "3-hour hold", context: "Financial-2525: the Released card's line naming when a deposit's accrued money becomes withdrawable (180 minutes after it lands; no longer drawn on the chart — r.025)", cubeId: 0 },
   { key: "fin.now", englishDefault: "NOW", context: "Financial-2525: chart legend for the vertical line at the present moment", cubeId: 0 },
   { key: "fin.chart_title", englishDefault: "Money as time — this MoT", context: "Financial-2525: heading of the real-time chart of one deposit over its length of time", cubeId: 0 },

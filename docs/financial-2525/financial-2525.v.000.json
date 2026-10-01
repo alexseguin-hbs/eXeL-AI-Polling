@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.030",
-  "stamp": "v.000_r.030",
+  "revision": "0.031",
+  "stamp": "v.000_r.031",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "80e01e83448835a887dbc3d3f5dff825de6e70f3afa122baba76b84ccc184dea",
+  "handoffSha256": "d4799a5c471e7c2eb3f15a3f3d29d4d755c329d7514fa0959170e4df69e2fca3",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -159,6 +159,11 @@
     "sha256": "80e01e83448835a887dbc3d3f5dff825de6e70f3afa122baba76b84ccc184dea",
     "date": "2026-10-01",
     "note": "+ addendum 61 (the year card toggle); reading item 64"
+   },
+   {
+    "sha256": "d4799a5c471e7c2eb3f15a3f3d29d4d755c329d7514fa0959170e4df69e2fca3",
+    "date": "2026-10-01",
+    "note": "+ addendum 62 (the standard month); reading item 65"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -412,6 +417,14 @@
    "why": "Addendum 61: \"year position should have time / MoT icon and default to standard, when MoT is clicked orbital info unlocks.\" The year card gets its own Clock ⇄ MoT toggle (the same component as the chart's, shared), standard by default: Now · Day N/365 · Quarter · Month · Year. The MoT icon unlocks the orbital rows: the perihelion that opened the year (first) and the orbit position in A.B..C. The chart's toggle no longer drives the year card.",
    "commit": "5f4f18d",
    "shipped": "6a7178d"
+  },
+  {
+   "revision": "0.031",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "Addendum 62: \"for personal budget we should also have standard month added before month 30.3 (1st day of Gregorian calendar, even though its not even nor does it reflect reality).\" The budget's unit list gains \"per calendar month (October · 31 days)\" right before \"per month (30.3̅ days)\": the Gregorian month the instant is in, from its 1st, its real length (28–31 days, read in Austin CST standard). It converts by that length — $3,924.49 per 30.3̅-day month reads $4,010.75 per October. It is not one of the nine fixed bases; the 30.3̅-day month stays the default.",
+   "commit": "9aa2593",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1773,6 +1786,12 @@
    "decision": "The year card has its own Clock / MoT toggle, standard by default; MoT unlocks the perihelion and the A.B..C orbit position.",
    "status": "OPERATOR",
    "basis": "addendum 61 (verbatim)"
+  },
+  {
+   "id": "FD-48",
+   "decision": "The budget offers the standard calendar month (the month we are in, from its 1st, its real length) before the 30.3̅-day month; the 30.3̅-day month stays the default.",
+   "status": "OPERATOR",
+   "basis": "addendum 62 (verbatim)"
   }
  ],
  "reviews": [

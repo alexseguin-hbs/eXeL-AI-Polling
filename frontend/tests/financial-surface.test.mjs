@@ -184,5 +184,7 @@ ok(!/t\("fin\.frame"\)|t\("fin\.per_33"\)|\/33</.test(ux) && !/key: "m33"/.test(
 
 ok(/data-fin-accrual-defs/.test(ux) && /\(\["available", "escrowed", "released", "spent"\] as const\)\.map/.test(ux) && /t\(`fin\.def\.\$\{k\}`\)/.test(ux), "r.029 (addendum 60 'what each does … in settings'): the Accrual Units gear explains Available, In Escrow, Released and Spent");
 
+ok(/\{ key: "calmonth", label: calDays \? `\$\{t\("fin\.per_cal_month"\)\} \(\$\{calName\} · \$\{calDays\} \$\{t\("fin\.days"\)\}\)` : t\("fin\.per_cal_month"\), period: "calmonth" \},\s*\{ key: "month"/.test(ux) && /setCalendarMonth\(now\)/.test(ux), "r.031 (addendum 62): the standard calendar month (its name and real length) sits in the unit list right before the 30.3̅-day month");
+
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

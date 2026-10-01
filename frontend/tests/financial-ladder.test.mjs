@@ -131,5 +131,10 @@ ok(near(L.ratePerMinute(360449, 91 / 3), 8.2520, 1e-3), "the worked paycheck run
   delete globalThis.localStorage;
 }
 
+// r.031 (addendum 62): the standard (Gregorian) month — the calendar month holding the instant, from its 1st, its real length
+ok(L.calendarMonthDays(Date.UTC(2026, 9, 15, 12)) === 31 && L.calendarMonthDays(Date.UTC(2026, 10, 15, 12)) === 30 && L.calendarMonthDays(Date.UTC(2028, 1, 10, 12)) === 29 && L.calendarMonthDays(Date.UTC(2027, 1, 10, 12)) === 28, "calendarMonthDays: October 31 · November 30 · February 2028 29 · February 2027 28");
+ok(L.calendarMonthDays(Date.UTC(2026, 10, 1, 3)) === 31, "the calendar month is read in Austin CST standard: 03:00 UTC on November 1 is still October 31 in Austin");
+ok(L.setCalendarMonth(Date.UTC(2026, 9, 15, 12)) === 31 && L.PERIOD_SECONDS.calmonth === 31 * 86400 && near(L.toPeriod(3924.49, "month", "calmonth"), 3924.49 * 31 / (91 / 3), 1e-9) && !L.PERIODS.includes("calmonth"), "in October the standard month is 31 days: $3,924.49 per 30.3̅-day month reads $4,010.75 per calendar month; calmonth is not one of the nine fixed bases");
+
 console.log(`financial-ladder: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

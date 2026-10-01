@@ -45,7 +45,7 @@ import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/p
 import { balanceAt, series, validateWithdrawal, depositView, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { type BudgetCategory } from "@/lib/financial-2525/budget";
 import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
-import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
+import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -197,11 +197,15 @@ export function FinancialCommandUX1() {
   // hour 3,600 · day 86,400 · week 7 d · 33 d · month 30.3̅ d · quarter 91 d · year 365 d. ONE SHARED UNIT (r.024, his answer "One, shared"):
   // in edit mode the amounts are typed in the unit picked; out of edit mode it converts the view. Per month (30.3̅ days) is the default
   // (addendum 41 "personal budget should be defaulted to 30.3 repeating").
-  type BudgetUnit = "sec" | "min" | "hour" | "day" | "week" | "m33" | "month" | "quarter" | "year";
+  type BudgetUnit = "sec" | "min" | "hour" | "day" | "week" | "m33" | "calmonth" | "month" | "quarter" | "year";
+  // r.031 (addendum 62): the standard month — the calendar month we are in, from its 1st, its real length — before the 30.3̅-day month
+  const calDays = now ? setCalendarMonth(now) : 0;
+  const calName = (() => { if (!now) return ""; const m = cstParts(now).mo; try { return new Intl.DateTimeFormat(activeLocale || "en", { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2026, m - 1, 15))); } catch { return ""; } })();
   const [budgetUnit, setBudgetUnit] = useState<BudgetUnit>("month");
   const UNITS: { key: BudgetUnit; label: string; period: Period }[] = [
     { key: "sec", label: t("fin.per_sec"), period: "second" }, { key: "min", label: t("fin.per_min"), period: "minute" }, { key: "hour", label: t("fin.per_hour"), period: "hour" },
     { key: "day", label: t("fin.per_day"), period: "day" }, { key: "week", label: t("fin.per_week"), period: "week" },
+    { key: "calmonth", label: calDays ? `${t("fin.per_cal_month")} (${calName} · ${calDays} ${t("fin.days")})` : t("fin.per_cal_month"), period: "calmonth" },
     { key: "month", label: t("fin.per_month"), period: "month" }, { key: "quarter", label: t("fin.per_quarter"), period: "quarter" }, { key: "year", label: t("fin.per_year"), period: "year" },
   ];
   const period: Period = UNITS.find((u) => u.key === budgetUnit)?.period ?? "month";   // r.028: no 33-day unit on the glass (addendum 58)

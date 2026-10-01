@@ -23,11 +23,23 @@ export type FieldKind = "Income" | "Fixed" | "Variable" | "Transfer" | "Stock" |
 /** The time bases (r.020, operator addendum 34 "use 91 day quarter which means 30.333 day month"): 91 days is a QUARTER and a month
  *  is one third of it — 91 ÷ 3 = 30.333… days, the pay MoT he gave on day one; three months make the quarter exactly. Supersedes the
  *  brief's "month (91)" (FD-25's month factor), by his word. */
-export type Period = "second" | "minute" | "hour" | "day" | "week" | "days33" | "month" | "quarter" | "year";
+export type Period = "second" | "minute" | "hour" | "day" | "week" | "days33" | "month" | "quarter" | "year" | "calmonth";
+/** The nine FIXED bases. `calmonth` (r.031) is not among them: its length is the calendar's, not a constant. */
 export const PERIODS: readonly Period[] = ["second", "minute", "hour", "day", "week", "days33", "month", "quarter", "year"];
 const DAY = 86400;
-/** The fixed factors — the brief's table with the operator's month (addendum 34). */
-export const PERIOD_SECONDS: Record<Period, number> = { second: 1, minute: 60, hour: 3600, day: DAY, week: 7 * DAY, days33: 33 * DAY, month: (91 / 3) * DAY, quarter: 91 * DAY, year: 365 * DAY };
+/** THE STANDARD (GREGORIAN) MONTH (r.031, operator addendum 62 "standard month added before month 30.3 (1st day of Gregorian
+ *  calendar, even though its not even nor does it reflect reality)"): the calendar month that holds the instant, from its 1st —
+ *  28, 29, 30 or 31 days, in Austin CST standard (UTC−6). Pure. */
+export function calendarMonthDays(ms: number): number {
+  const d = new Date(ms - 6 * 3600 * 1000);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+}
+let calMonthDays = 365.2425 / 12;            // the mean Gregorian month until the surface names the month it is in
+/** The surface sets the calendar month it is showing (the current one); the conversions below then use its real length. */
+export function setCalendarMonth(ms: number): number { calMonthDays = calendarMonthDays(ms); return calMonthDays; }
+/** The fixed factors — the brief's table with the operator's month (addendum 34) — and the calendar month, read when used. */
+export const PERIOD_SECONDS = { second: 1, minute: 60, hour: 3600, day: DAY, week: 7 * DAY, days33: 33 * DAY, month: (91 / 3) * DAY, quarter: 91 * DAY, year: 365 * DAY } as Record<Period, number>;
+Object.defineProperty(PERIOD_SECONDS, "calmonth", { get: () => calMonthDays * DAY, enumerable: false });
 
 export interface Section { id: SectionId; name: string; plane: Plane; /** the lexicon suffix: fin.sec.<key> */ key: string }
 /** A–M flow · N–P stock · Q–S status · T goal — in the brief's order; nothing past T here (U is a rule below). */
