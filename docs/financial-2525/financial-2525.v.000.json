@@ -398,7 +398,7 @@
    "kind": "decision",
    "why": "His question on the live Accrual Units card (addendum 60): \"doesn't this seem duplicative? … In Escrow · Released · Spent. Since available is at top; users will see and understand link to released … or tell me why 4 fields and what each does (which should be in settings).\" Available is the big figure at the top, so the grid is three boxes — In Escrow · Released · Spent (Withdrawn renamed Spent; the repeated Available box is gone). The gear explains each figure: Available = released minus spent; In Escrow = deposited, not yet released, releasing at $/min; Released = accrued so far; Spent = taken out by withdrawals.",
    "commit": "7d81445",
-   "shipped": "PENDING"
+   "shipped": "0add99b"
   }
  ],
  "mot": {

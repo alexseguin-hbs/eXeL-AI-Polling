@@ -408,6 +408,13 @@
    "kind": "decision",
    "text": "r.029 decision — Accrual Units: Available once, three boxes In Escrow · Released · Spent, each explained in the gear (FD-46).",
    "commit": "7d81445"
+  },
+  {
+   "rev": 59,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.029 shipped — three Accrual Units boxes (FD-46).",
+   "commit": "0add99b"
   }
  ]
 }
