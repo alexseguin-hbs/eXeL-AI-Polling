@@ -525,7 +525,7 @@
    "kind": "decision",
    "why": "No step rail; Accrual · Budget · Chart; the year card folded at the end, one system at a time. Addendum 72: \"year position is either Gregorian or A.B..C, not a mix of both.\" Addendum 73: \"get rid of this; adds no value; then reorder widgets: Accrual, Budget, Charts.\" His answers: the year card goes to the end, folded to its title (\"defaulted just title so one can open up menu for detail and see clock vs MoT icon and details\"); the Clock rows stay as they are; on MoT the rows are A.B..C only in equal parts of 3600 (perihelion 0.0000..0000 first, now out of 3600, quarter of 900 A, month of 300 A, revolution); and the same either/or rule everywhere: on MoT the chart line, the chart tap readout and the Accrual gear show A.B..C only, on Clock dates and hours only.",
    "commit": "cd4a33a",
-   "shipped": "PENDING"
+   "shipped": "ddedbe6"
   }
  ],
  "mot": {

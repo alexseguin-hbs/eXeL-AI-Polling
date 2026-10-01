@@ -534,6 +534,13 @@
    "kind": "decision",
    "text": "r.038 decision — no step rail; Accrual · Budget · Chart; the year card folded at the end; one system per view (FD-55).",
    "commit": "cd4a33a"
+  },
+  {
+   "rev": 77,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.038 shipped — no step rail; Accrual · Budget · Chart; the year card folded at the end; one system per view (FD-55).",
+   "commit": "ddedbe6"
   }
  ]
 }
