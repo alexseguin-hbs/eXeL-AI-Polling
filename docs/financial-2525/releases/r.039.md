@@ -24,8 +24,8 @@
  "recommendation": "none",
  "sha": "962d058",
  "verify": {
-  "run": "pending",
-  "state": "running"
+  "run": "#2152",
+  "state": "pass"
  },
  "images": {
   "before": "img/r.039-before.png",
@@ -59,7 +59,7 @@ Not changed: • Standard Month still converts by the real length of the month y
 Measured:   • Header text on the built page: Measure of Time: A Universal Standard (one line)
             • Unit list on the built page: … per week · Standard Month · per month (30.3̅ days) …
 My recommendation / question: none
-SHA 962d058 | committed ✓ | pushed ✓ | Verify Live pending running
+SHA 962d058 | committed ✓ | pushed ✓ | Verify Live #2152 ✓
 ```
 
 ![BEFORE r.039](img/r.039-before.png)

@@ -562,6 +562,13 @@
    "kind": "decision",
    "text": "r.040 decision — one line per budget entry, short names (FD-57).",
    "commit": "87e37c5"
+  },
+  {
+   "rev": 81,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.040 shipped and LIVE (Verify Live #2155 poll ✓) — one line per budget entry (FD-57).",
+   "commit": "61a563d"
   }
  ]
 }

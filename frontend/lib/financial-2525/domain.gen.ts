@@ -583,7 +583,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "One line per budget entry. Addendum 75: \"try reducing each entry on line (maybe make … or scroll to see rest of text) if you cant reduce text · for instance personal fitness should be fitness.\" Every budget line on the Personal budget table shows a short name on one row (46 short names, e.g. Mental Health / Physical Fitness → Fitness, Income / Wages (take-home) → Wages); a name that still overflows ends in …; the full name is the row title (hold / hover) and stays in the pickers and the record.",
    "commit": "87e37c5",
-   "shipped": "PENDING"
+   "shipped": "61a563d"
   }
  ],
  "mot": {
