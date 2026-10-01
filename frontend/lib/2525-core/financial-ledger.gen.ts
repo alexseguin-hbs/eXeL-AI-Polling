@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 69 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 70 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -492,6 +492,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.034 shipped — eXeL AI, Settings with the colour selector, one colour per selector (FD-51).",
       "commit": "8a54582"
+    },
+    {
+      "rev": 70,
+      "date": "2026-10-01",
+      "kind": "decision",
+      "text": "r.035 decision — \"Accrual Rate\" above the rate (FD-52).",
+      "commit": "5f34462"
     }
   ]
 };

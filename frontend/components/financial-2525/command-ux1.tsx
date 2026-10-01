@@ -381,11 +381,15 @@ export function FinancialCommandUX1() {
             <div className={LABEL}>{t("fin.accrual_units")}</div>
             <div className="flex shrink-0 items-center gap-2">
               {bal.ratePerMinCents > 0 && (
-                <div data-fin-rate-row className="flex items-center gap-1 text-primary">
-                  <span data-fin-rate className="font-mono tabular-nums">{rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit))}</span>
-                  <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-primary">
-                    {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
-                  </select>
+                /* r.035 (addendum 68): the words "Accrual Rate" directly above the figure and its unit selector */
+                <div data-fin-rate-block className="flex flex-col items-start">
+                  <span data-fin-rate-label className="text-xs text-muted-foreground">{t("fin.accrual_rate")}</span>
+                  <div data-fin-rate-row className="flex items-center gap-1 text-primary">
+                    <span data-fin-rate className="font-mono tabular-nums">{rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit))}</span>
+                    <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-primary">
+                      {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
+                    </select>
+                  </div>
                 </div>
               )}
               <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>

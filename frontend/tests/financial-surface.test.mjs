@@ -198,5 +198,7 @@ ok(!/cyan/.test(ux), "r.034 (addendum 67 'we stick to color per selector'): no f
 
 ok(!/p\.withdrawable\)/.test(ux) && !/C\.consciousness/.test(ux) && !/t\("fin\.withdrawable"\)/.test(ux), "r.034: no separate Withdrawable stroke or cyan legend word — with no hold it is the Released line; the tap line takes the theme colour");
 
+ok(/data-fin-accrual-top[\s\S]*?<div data-fin-rate-block className="flex flex-col items-start">\s*<span data-fin-rate-label[^>]*>\{t\("fin\.accrual_rate"\)\}<\/span>\s*<div data-fin-rate-row[\s\S]*?data-fin-accrual-gear/.test(ux), "r.035 (addendum 68): 'Accrual Rate' sits directly above the rate and its selector, on the top line left of the gear");
+
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

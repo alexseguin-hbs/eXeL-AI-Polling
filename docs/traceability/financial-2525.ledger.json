@@ -485,6 +485,13 @@
    "kind": "release",
    "text": "r.034 shipped — eXeL AI, Settings with the colour selector, one colour per selector (FD-51).",
    "commit": "8a54582"
+  },
+  {
+   "rev": 70,
+   "date": "2026-10-01",
+   "kind": "decision",
+   "text": "r.035 decision — \"Accrual Rate\" above the rate (FD-52).",
+   "commit": "5f34462"
   }
  ]
 }
