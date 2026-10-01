@@ -555,6 +555,13 @@
    "kind": "release",
    "text": "r.039 shipped — one header line; Standard Month (FD-56).",
    "commit": "962d058"
+  },
+  {
+   "rev": 80,
+   "date": "2026-10-01",
+   "kind": "decision",
+   "text": "r.040 decision — one line per budget entry, short names (FD-57).",
+   "commit": "87e37c5"
   }
  ]
 }

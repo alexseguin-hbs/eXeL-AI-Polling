@@ -35,7 +35,7 @@ const catList = /export const BUDGET_CATEGORIES[^=]*=\s*\[([^\]]+)\]/.exec(fs.re
 const cats = catList ? [...catList[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]) : [];
 ok(cats.length === 10 && cats.every((c) => new RegExp(`(^|\\n)\\s*"?${c.replace(/ /g, " ")}"?:\\s*[A-Z][A-Za-z]+,`).test(iconSrc)), `every one of the ${cats.length} categories has an icon in CATEGORY_ICON (a bare category fails here)`);
 ok(/strokeWidth=\{1\.5\}/.test(iconSrc) && /aria-hidden/.test(iconSrc) && !/fill=/.test(iconSrc), "the icons are strokes (1.5), aria-hidden — the word beside them carries the meaning");
-ok(/<SectionIcon section=\{section\} className="mr-1" \/>\{t\("fin\.section"\)\}/.test(ux) && /<SectionIcon section=\{fieldOf\(l\.fieldId\)\?\.section \?\? "L"\} className="mr-1\.5" \/>\{fieldLabel\(l\.fieldId\)\}/.test(ux) && /\{txWhat\(e\.tx\)\}/.test(ux) && /<SectionIcon section=\{sec\} className="mr-1" \/>\{fieldLabel\(tx\.field\)\}/.test(ux) && /<CategoryIcon category=\{tx\.category\} className="mr-1" \/>\{catLabel\(tx\.category\)\}/.test(ux), "the icon sits before the section dropdown's label, on every budget line and in the record table's field cell (an r.006–r.011 entry keeps its category icon)");
+ok(/<SectionIcon section=\{section\} className="mr-1" \/>\{t\("fin\.section"\)\}/.test(ux) && /<SectionIcon section=\{fieldOf\(l\.fieldId\)\?\.section \?\? "L"\} className="mr-1\.5" \/>\{shortLabel\(l\.fieldId\)\}/.test(ux) && /\{txWhat\(e\.tx\)\}/.test(ux) && /<SectionIcon section=\{sec\} className="mr-1" \/>\{fieldLabel\(tx\.field\)\}/.test(ux) && /<CategoryIcon category=\{tx\.category\} className="mr-1" \/>\{catLabel\(tx\.category\)\}/.test(ux), "the icon sits before the section dropdown's label, on every budget line and in the record table's field cell (an r.006–r.011 entry keeps its category icon)");
 ok(/positionInYear\(now, planet\.yearAnchor, planet\.yearDays\)/.test(ux) && /positionInYear\(from \+ f \* len, planet\.yearAnchor, planet\.yearDays\)/.test(ux), "every year position on the glass takes the selected planet's revolution (the r.007 Mars axis read Earth positions)");
 // r.007 (addendum 18) — the perihelion instant that opens the year is written on the glass in Austin CST standard; the axis marks are three lines
 ok(/\[t\("fin\.perihelion_abc"\), fmtMot\(\{ a: 0, b: 0, c: 0 \}\)\]/.test(ux) && ux.indexOf('t("fin.perihelion_abc")') < ux.indexOf('t("fin.now_abc")'), "r.038 (addendum 58 'perihelion is first' + addendum 72): on MoT the year table's first row is the perihelion, written as the A.B..C origin 0.0000..0000 — no date");
@@ -212,6 +212,16 @@ ok(/data-fin-cell="escrowed" className="text-left"/.test(ux) && /data-fin-cell="
   ok(mot.length > 50 && !/fmtStampCST|fmtDays|CST|\/ 91|year\.day\b/.test(mot) && /abcPart\(year\.abc, 900\)/.test(ux) && /abcPart\(year\.abc, 300\)/.test(ux) && /\/ 900`/.test(mot) && /\/ 300`/.test(mot) && /\/ 3600`/.test(mot), "r.038 (addendum 72 + 'Equal parts of 3600'): the MoT rows are A.B..C only — no date, no day count, no 91 / 30.3̅ — quarter of 900 A, month of 300 A, now out of 3600");
   ok(/data-fin-chart-line[^>]*>\{showAbc\s*\? `\$\{usd\(tx\.amountCents\)\} · \$\{fmtMot\(motAbc\)\}/.test(ux), "r.038 ('Yes, everywhere'): on MoT the chart's top line drops the date stamp and the 30.3̅ — amount, the MoT in A, start → end in A.B..C");
   ok(/<li data-fin-elapsed-line>\{showAbc \? `\$\{fmtMot\(spanABC\(/.test(ux) && /: `\$\{hhmmss\(Math\.max\(0, at - focus!\.atMs\)\)\} \$\{t\("fin\.elapsed"\)\}`\}<\/li>/.test(ux), "r.038 ('Yes, everywhere'): the Accrual gear's elapsed line is h:m:s on Clock, A.B..C on MoT — never both");
+}
+
+// ── r.040 (addendum 75): one line per budget entry — a short name, "…" if still long, the full name on hold ──
+{
+  const lexs = fs.readFileSync("lib/lexicon-data.ts", "utf8");
+  const flow = [...lexs.matchAll(/key: "fin\.field\.([a-m]_[a-z0-9_]+)"/g)].map((m) => m[1]);
+  const short = new Map([...lexs.matchAll(/key: "fin\.fshort\.([a-z0-9_]+)", englishDefault: "([^"]+)"/g)].map((m) => [m[1], m[2]]));
+  ok(flow.length === 46 && flow.every((k) => short.has(k)) && [...short.values()].every((v) => v.length <= 16), `every budget line (A–M, ${flow.length}) has a short name of 16 characters or fewer`);
+  ok(short.get("g_mental_physical") === "Fitness", "his example: 'Mental Health / Physical Fitness' reads 'Fitness'");
+  ok(/<td data-fin-line-name className="max-w-0 truncate whitespace-nowrap[^"]*" title=\{fieldLabel\(l\.fieldId\)\}>[^\n]*\{shortLabel\(l\.fieldId\)\}<\/td>/.test(ux), "the budget row shows the short name on one line, ends in … if it overflows, and carries the full name as its title");
 }
 
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);

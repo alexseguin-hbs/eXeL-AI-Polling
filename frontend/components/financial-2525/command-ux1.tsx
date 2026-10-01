@@ -248,6 +248,7 @@ export function FinancialCommandUX1() {
   const foldForm = () => { setFormOpen(false); setTxType(""); setRefusal(null); };
   const catLabel = (c: BudgetCategory) => t(`fin.cat.${CAT_KEY[c]}`);   // the record's r.006–r.011 entries still print their category
   const fieldLabel = (id: string) => { const f = fieldOf(id); return f ? t(`fin.field.${f.key}`) : id; };
+  const shortLabel = (id: string) => { const f = fieldOf(id); return f ? t(`fin.fshort.${f.key}`) : id; };   // r.040: one line per budget entry
   const secLabel = (sec: SectionId) => t(`fin.sec.${sec.toLowerCase()}`);
   const [refusal, setRefusal] = useState<string | null>(null);
   const commit = (tx: FinTx) => { const next = append(record, tx, at); setRecord(next); if (!saveRecord(next)) setSaveFailed(true); };
@@ -426,7 +427,7 @@ export function FinancialCommandUX1() {
               the chosen unit and a chevron; the lines beneath only when opened (edit mode opens all); Net last, red when negative; no letters */}
           <table className="mt-2 w-full font-mono text-xs">
             <thead className="text-left text-[10px] uppercase tracking-wide text-muted-foreground">
-              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}</th></tr>
+              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="whitespace-nowrap py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}</th></tr>
             </thead>
             <tbody>
               {groups.map((g) => (
@@ -439,9 +440,10 @@ export function FinancialCommandUX1() {
                     </td>
                     <td className="py-1 text-right tabular-nums">{usdDollars(g.total)}</td>
                   </tr>
+                  {/* r.040 (addendum 75): each line on ONE row — a short name, "…" if still long, the full name as the row title */}
                   {isOpen(g.kind) && g.lines.map((l) => (
-                    <tr key={l.fieldId} data-fin-ladder-field={l.fieldId} className="text-muted-foreground"><td className="py-0.5 pl-6 pr-2"><SectionIcon section={fieldOf(l.fieldId)?.section ?? "L"} className="mr-1.5" />{fieldLabel(l.fieldId)}</td>
-                      <td className="py-0.5 text-right tabular-nums">
+                    <tr key={l.fieldId} data-fin-ladder-field={l.fieldId} className="text-muted-foreground"><td data-fin-line-name className="max-w-0 truncate whitespace-nowrap py-0.5 pl-6 pr-2 w-full" title={fieldLabel(l.fieldId)}><SectionIcon section={fieldOf(l.fieldId)?.section ?? "L"} className="mr-1.5" />{shortLabel(l.fieldId)}</td>
+                      <td className="whitespace-nowrap py-0.5 text-right tabular-nums">
                         {editing ? (
                           <span className="flex items-center justify-end gap-1">
                             <input data-fin-plan-amount={l.fieldId} className="w-28 rounded-md border border-border bg-background px-2 py-1 text-right text-xs text-foreground" inputMode="decimal"
