@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.045",
-  "stamp": "v.000_r.045",
+  "revision": "0.046",
+  "stamp": "v.000_r.046",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "937b02924c028dd5ec089e0ce7750ce7400af108c83cf3ed0095948ccaf57b74",
+  "handoffSha256": "acf7324fecb081cdbd8c23af2af28727a4c222532775f4520735eb937604d4ae",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -299,6 +299,11 @@
     "sha256": "937b02924c028dd5ec089e0ce7750ce7400af108c83cf3ed0095948ccaf57b74",
     "date": "2026-10-01",
     "note": "+ addenda 98–99 (instant; auto mode — fix the whole backlog)"
+   },
+   {
+    "sha256": "acf7324fecb081cdbd8c23af2af28727a4c222532775f4520735eb937604d4ae",
+    "date": "2026-10-01",
+    "note": "+ addendum 100 (r.045 LIVE on his phone at 1ee1bc4)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -671,6 +676,14 @@
    "kind": "decision",
    "why": "The Net line names its sign. Addendum 94: \"Green positive: Show “Net • Upside / Savings” / Red negative: Show “Net • Downside / Risk”\". The budget's total line reads \"Net • Upside / Savings\" when income minus expenses is zero or more (green) and \"Net • Downside / Risk\" when it is negative (red). r.044 confirmed (\"all looks good for image 1-3\"). The month law (addendum 92) follows as r.046.",
    "commit": "c8ea94a",
+   "shipped": "6d898c3"
+  },
+  {
+   "revision": "0.046",
+   "date": "2026-10-01",
+   "kind": "correction",
+   "why": "The month law. Addenda 76 (\"remove all 33.3 mentions / quarter is 91 days where 30 day is month and 1 day is down day (no transactions)\") and 92 (\"remember all 30.3 changes to 30\"), with his answer \"switch to 30\" for old entries. A month is 30 days; a 91-day quarter is three months plus one down day (day 91, no transactions), as day 365 is the year's. The budget's per-month unit and the Monthly length preset read 30 days; the year card counts months 1–12 of 30 days with each quarter's day 91 as a down day; the planet LTU table's Month is 30 (the Admin panel's untouched rows follow the seed law). Old entries recorded with the Monthly preset read 30 days at replay — the record's bytes and hashes are unchanged. His two deposits ($3,924.49) now release at $5.4507/hr (was $5.3908 over 30.333 days). Supersedes r.020's 91 ÷ 3 month on the record.",
+   "commit": "8a870f9",
    "shipped": "PENDING"
   }
  ],
@@ -713,8 +726,8 @@
    "Q": 99,
    "Y": 365.259636,
    "minutesPerDay": 1440,
-   "analysisMonth": 30.333,
-   "analysisNote": "Month 30.333 = 91 ÷ 3 and the 91-day quarter (addendum 34, superseding 'Month 91 for now' of addendum 13) — the analysis ladder comes from the Admin panel's Planet LTU table (ltuDays(row)); D · W 7 · M 33 · Q 99 · Y remain the SHEET's personal frame · r.007: Y is the exact revolution 365.259636 d",
+   "analysisMonth": 30,
+   "analysisNote": "Month 30 and the 91-day quarter = 3 × 30 + 1 down day (r.046 month law, addenda 76/92; supersedes addendum 34's 91 ÷ 3) — the analysis ladder comes from the Admin panel's Planet LTU table (ltuDays(row)); D · W 7 · M 33 · Q 99 · Y remain the SHEET's personal frame · r.007: Y is the exact revolution 365.259636 d",
    "analysisQuarter": 91
   },
   "payMotDays": 30.333,
@@ -2123,6 +2136,12 @@
    "decision": "The budget's Net line reads \"Net • Upside / Savings\" when green (≥ 0) and \"Net • Downside / Risk\" when red (< 0).",
    "status": "OPERATOR",
    "basis": "addendum 94 (verbatim)"
+  },
+  {
+   "id": "FD-63",
+   "decision": "A month is 30 days; a 91-day quarter is three months plus one down day; old Monthly entries read 30 days at replay (record unchanged). Supersedes FD-35's 30.333-day month.",
+   "status": "OPERATOR",
+   "basis": "addenda 76, 92 + his answer 'switch to 30' (verbatim)"
   }
  ],
  "reviews": [

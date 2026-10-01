@@ -15,19 +15,19 @@ const near = (a, b, eps) => Math.abs(a - b) <= eps;
 const seed = P.PLANET_LTU_SEED;
 const earth = seed.find((r) => r.code === "earth"), mars = seed.find((r) => r.code === "mars");
 ok(seed.length === 2 && earth && mars && seed.every((r) => U.PLANETS.some((p) => p.id === r.code)), "two seeded planets, keyed by the UCRS-2525 PLANETS ids (earth · mars)");
-ok(earth.yearDays === M.FINANCIAL_YEAR_DAYS && earth.yearDays === 365.259636 && earth.revEarthDays === 365.259636 && Math.abs(earth.monthDays - 91 / 3) < 1e-12 && earth.offlineDay === "12-31" && earth.yearAnchor === "perihelion" && earth.hoursPerDay === 24 && earth.minPerHour === 60 && earth.secPerMin === 60 && earth.status === "OPERATOR", "Earth: the EXACT revolution 365.259636 days = 3600 A (addendum 18) · the perihelion opens the year · Month 91 for now · offline day Dec 31 · the year opens Jan 1 · 24 · 60 · 60 (OPERATOR)");
+ok(earth.yearDays === M.FINANCIAL_YEAR_DAYS && earth.yearDays === 365.259636 && earth.revEarthDays === 365.259636 && earth.monthDays === 30 && earth.offlineDay === "12-31" && earth.yearAnchor === "perihelion" && earth.hoursPerDay === 24 && earth.minPerHour === 60 && earth.secPerMin === 60 && earth.status === "OPERATOR", "Earth: the EXACT revolution 365.259636 days = 3600 A (addendum 18) · the perihelion opens the year · Month 30 (the month law) · offline day Dec 31 · the year opens Jan 1 · 24 · 60 · 60 (OPERATOR)");
 ok(mars.yearDays === M.MARS_REVOLUTION_EARTH_DAYS && mars.revLocalDays === M.MARS_REVOLUTION_SOLS && mars.localDaySec === M.SOL_SEC && mars.hoursPerDay === 24 && mars.yearAnchor === "perihelion" && mars.status === "DECLARED", "Mars: its own revolution as the whole (686.98 Earth days; 668.5991 sols the future form), Earth hours · minutes · seconds as LTU for now, opens at perihelion (DECLARED)");
 ok(mars.yearDays === U.PLANETS.find((p) => p.id === "mars").tDays, "Mars' revolution equals UCRS-2525's PLANETS mars.tDays — one primitive");
 
 // ── 2 · derived columns: Day in A.B..C beside hours · minutes · seconds ───────────────────────────────────────
 const dE = P.derive(earth);
 ok(near(dE.dayInA, 9.856003, 1e-6) && dE.dayABC === "9.3081..2196" && dE.hourABC === "0.1478..1442" && dE.minABC === "0.0024..2304" && dE.secABC === "0.0000..1478", `Earth: one day 9.3081..2196 A · one hour 0.1478..1442 · one minute 0.0024..2304 · one second 0.0000..1478 (got ${dE.dayABC} · ${dE.hourABC})`);
-ok(near(dE.aSeconds, 8766.231264, 1e-6) && near(dE.bSeconds, 2.43506, 1e-5) && near(dE.cSeconds, 0.000676407, 1e-9) && dE.monthABC === "298.3475..1826", "Earth: one A = 8,766.23 s · B 2.4351 s · C 0.6764 ms · the 91-day month is 896.3226..1878 A");
+ok(near(dE.aSeconds, 8766.231264, 1e-6) && near(dE.bSeconds, 2.43506, 1e-5) && near(dE.cSeconds, 0.000676407, 1e-9) && dE.monthABC === "295.2448..1094", "Earth: one A = 8,766.23 s · B 2.4351 s · C 0.6764 ms · the 30-day month is 295.2448..1094 A");
 ok(near(P.revolutionSec(earth), M.FINANCIAL_YEAR_SEC, 1e-6) && P.daySecOf(earth) === 86400, "the whole in seconds = 365.259636 × 86,400 = FINANCIAL_YEAR_SEC; a day is 86,400 s");
 const dM = P.derive(mars);
 ok(near(dM.aSeconds, 16487.52, 0.01) && near(dM.dayInA, 5.2403, 1e-3) && near(P.revolutionSec(mars), 686.98 * 86400, 1), "Mars on Earth hours: one A = 16,487.5 s; one Earth day is 5.2403 A of the Martian revolution");
 const L = P.ltuDays(earth);
-ok(L.D === 1 && L.W === 7 && Math.abs(L.M - 91 / 3) < 1e-12 && L.Q === 91 && Math.abs(L.M * 3 - L.Q) < 1e-9 && L.Y === 365.259636, "the analysis ladder from the row: D 1 · W 7 · M 30.333 (91 ÷ 3, addendum 34) · Q 91 · Y 365.259636 (the exact year); three months make the quarter");
+ok(L.D === 1 && L.W === 7 && L.M === 30 && L.Q === 91 && L.M * 3 + 1 === L.Q && L.Y === 365.259636, "the analysis ladder from the row: D 1 · W 7 · M 30 (the month law) · Q 91 · Y 365.259636 (the exact year); three months and one down day make the quarter");
 
 // ── 3 · editability: Day-in-A.B..C back-solves the year; a typed number makes the row DECLARED ─────────────────
 const e2 = P.withDayInA(earth, 10);

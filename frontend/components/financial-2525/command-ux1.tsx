@@ -44,7 +44,7 @@ import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/p
 import { balanceAt, series, validateWithdrawal, depositView, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { type BudgetCategory } from "@/lib/financial-2525/budget";
 import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
-import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
+import { FLOW_SECTIONS, withMonthLaw, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -170,7 +170,7 @@ export function FinancialCommandUX1() {
   const [saveFailed, setSaveFailed] = useState(false);
   useEffect(() => { if (!owner) return; const r = loadRecord(owner); setRecord(r.rec); setTampered(r.tampered); }, [owner]);
 
-  const txs: FinTx[] = owner ? replay(record) : [EXAMPLE];
+  const txs: FinTx[] = (owner ? replay(record) : [EXAMPLE]).map(withMonthLaw);   // r.046: old Monthly entries read 30 days (the month law)
   const at = now ?? 0;
   const bal = balanceAt(txs, at);
   const deposits = txs.filter((x) => x.kind === "deposit").sort((a, b) => b.atMs - a.atMs);
@@ -181,11 +181,11 @@ export function FinancialCommandUX1() {
   const focusView = focus && now ? depositView(focus, at) : null;
   const year = now ? positionInYear(now, planet.yearAnchor, planet.yearDays) : null;
   // THE LADDER'S UNIT (addendum 17 → 20 → 21 → 22): one dropdown of the brief's eight periods with FIXED factors — second · minute 60 ·
-  // hour 3,600 · day 86,400 · week 7 d · 33 d · month 30.3̅ d · quarter 91 d · year 365 d. ONE SHARED UNIT (r.024, his answer "One, shared"):
-  // in edit mode the amounts are typed in the unit picked; out of edit mode it converts the view. Per month (30.3̅ days) is the default
+  // hour 3,600 · day 86,400 · week 7 d · 33 d · month 30 d (r.046 month law) · quarter 91 d · year 365 d. ONE SHARED UNIT (r.024, his answer "One, shared"):
+  // in edit mode the amounts are typed in the unit picked; out of edit mode it converts the view. Per month (30 days — r.046) is the default
   // (addendum 41 "personal budget should be defaulted to 30.3 repeating").
   type BudgetUnit = "sec" | "min" | "hour" | "day" | "week" | "m33" | "calmonth" | "month" | "quarter" | "year";
-  // r.031 (addendum 62): the standard month — the calendar month we are in, from its 1st, its real length — before the 30.3̅-day month
+  // r.031 (addendum 62): the standard month — the calendar month we are in, from its 1st, its real length — before the 30-day month
   const calDays = now ? setCalendarMonth(now) : 0;
   const [budgetUnit, setBudgetUnit] = useState<BudgetUnit>("month");
   const UNITS: { key: BudgetUnit; label: string; period: Period }[] = [
@@ -521,14 +521,14 @@ export function FinancialCommandUX1() {
                 <tr><th className="py-1 pr-3">{t("fin.amount")}</th><th className="py-1 pr-3">{t("fin.category")}</th><th className="py-1 pr-3">{t("fin.memo")}</th><th className="py-1 pr-3">{t("fin.when")}</th><th className="py-1 pr-3 text-right">{t("fin.length")}</th><th className="py-1 pr-3">{t("fin.type")}</th><th className="py-1 pr-3">#</th><th className="py-1">{t("fin.hash")}</th></tr>
               </thead>
               <tbody>
-                {!owner && <tr className="border-t border-border/60"><td data-fin-amount className="py-1 pr-3 tabular-nums text-green-500"><span className="flex justify-between gap-4"><span>+</span><span>{num2(EXAMPLE.amountCents)}</span></span></td><td className="py-1 pr-3">{txWhat(EXAMPLE)}</td><td className="py-1 pr-3">{EXAMPLE.memo}</td><td className="py-1 pr-3">{fmtStampCST(EXAMPLE.atMs)}</td><td className="py-1 pr-3 text-right">{fmtDays(EXAMPLE.motDays ?? 0)}</td><td className="py-1 pr-3">{t("fin.deposit")}</td><td className="py-1 pr-3">1</td><td className="py-1">—</td></tr>}
+                {!owner && <tr className="border-t border-border/60"><td data-fin-amount className="py-1 pr-3 tabular-nums text-green-500"><span className="flex justify-between gap-4"><span>+</span><span>{num2(EXAMPLE.amountCents)}</span></span></td><td className="py-1 pr-3">{txWhat(EXAMPLE)}</td><td className="py-1 pr-3">{EXAMPLE.memo}</td><td className="py-1 pr-3">{fmtStampCST(EXAMPLE.atMs)}</td><td className="py-1 pr-3 text-right">{fmtDays(withMonthLaw(EXAMPLE).motDays ?? 0)}</td><td className="py-1 pr-3">{t("fin.deposit")}</td><td className="py-1 pr-3">1</td><td className="py-1">—</td></tr>}
                 {owner && record.entries.length === 0 && <tr><td colSpan={8} className="py-1">{t("fin.no_deposits")}</td></tr>}
                 {owner && record.entries.map((e) => (
                   <tr key={e.hash} className="border-t border-border/60">
                     <td data-fin-amount className={`py-1 pr-3 tabular-nums ${e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}`}><span className="flex justify-between gap-4"><span>{e.tx.kind === "deposit" ? "+" : "−"}</span><span>{num2(e.tx.amountCents)}</span></span></td>
                     <td className="py-1 pr-3">{txWhat(e.tx)}</td><td className="py-1 pr-3">{e.tx.memo ?? ""}</td>
                     <td className="py-1 pr-3">{fmtStampCST(e.tx.atMs)}</td>
-                    <td className="py-1 pr-3 text-right">{e.tx.motDays ? fmtDays(e.tx.motDays) : ""}</td>
+                    <td className="py-1 pr-3 text-right">{e.tx.motDays ? fmtDays(withMonthLaw(e.tx).motDays ?? 0) : ""}</td>
                     <td className="py-1 pr-3">{e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}</td>
                     <td className="py-1 pr-3">{e.rev}</td><td className="py-1">{e.hash.slice(0, 8)}</td>
                   </tr>
@@ -539,14 +539,17 @@ export function FinancialCommandUX1() {
           <p className="mt-2 text-xs text-muted-foreground">{t("fin.device_only")}</p>
         </details>
 
-        {/* the year as a TABLE, key info in order, PERIHELION FIRST (r.028, addendum 58); months of 30.3̅ days, no 33-day frame */}
+        {/* the year as a TABLE, key info in order, PERIHELION FIRST (r.028, addendum 58); months of 30 days (r.046 month law), no 33-day frame */}
         {year && (() => {
-          const monthDays = 91 / 3;
-          const dayIdx = year.day - 1;
-          const month = year.down ? null : Math.floor(dayIdx / monthDays) + 1;
-          const dayInMonth = year.down ? null : Math.floor(dayIdx - (month! - 1) * monthDays) + 1;
+          // r.046 THE MONTH LAW (addenda 76, 92): three 30-day months make days 1–90 of a quarter; day 91 is the quarter's down day (no
+          // transactions), as day 365 is the year's.
+          const monthDays = 30;
+          const qDown = !year.down && year.dayInQuarter === 91;
+          const mInQ = year.down || qDown ? 0 : Math.ceil(year.dayInQuarter / monthDays);
+          const month = year.down || qDown ? null : (year.quarter - 1) * 3 + mInQ;
+          const dayInMonth = month === null ? null : year.dayInQuarter - (mInQ - 1) * monthDays;
           // ONE SYSTEM AT A TIME (r.038, addendum 72 "year position is either Gregorian or A.B..C, not a mix of both"):
-          //  · Clock — the rows as they were (his answer "keep as is"): today's stamp, day, 91-day quarter, 30.3̅-day month, year.
+          //  · Clock — the rows as they were (his answer "keep as is"): today's stamp, day, 91-day quarter, 30-day month (r.046), year.
           //  · MoT — A.B..C only, no stamps, no day counts: the perihelion as the origin, then equal parts of 3600 (addendum 73:
           //    quarter 900 A, month 300 A), then the revolution.
           const q = abcPart(year.abc, 900), mo = abcPart(year.abc, 300);
@@ -560,7 +563,7 @@ export function FinancialCommandUX1() {
             [t("fin.year_today"), `${fmtStampCST(at)} CST`],
             [t("fin.day"), `${year.day} / ${Math.ceil(year.lengthDays)}${year.pastFull ? " ↑" : ""}`],
             [t("fin.quarter"), year.down ? t("fin.down_day") : `${year.quarter} · ${year.dayInQuarter} / 91`],
-            [t("fin.month"), month === null ? t("fin.down_day") : `${month} · ${dayInMonth} / ${fmtDays(monthDays)}`],
+            [t("fin.month"), month === null ? t("fin.down_day") : `${month} · ${dayInMonth} / ${monthDays}`],
             [t("fin.year"), `${year.year} · ${year.status}`],
           ];
           return (
@@ -641,7 +644,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   const poly = (pick: (p: (typeof pts)[number]) => number) => pts.map((p) => `${x(p.t).toFixed(1)},${y(pick(p)).toFixed(1)}`).join(" ");
   const elapsed = Math.max(0, Math.min(len, now - from));
   const elapsedAbc = spanABC(elapsed / dayMs, planet.yearDays);      // the elapsed LENGTH, in A-units of the planet's revolution
-  const motAbc = spanABC(tx.motDays ?? 0, planet.yearDays);          // the whole MoT, in A-units (30.333 d = 298.3475..1826 A on the exact Earth year)
+  const motAbc = spanABC(tx.motDays ?? 0, planet.yearDays);          // the whole MoT, in A-units (30 d = 295.2448..1094 A on the exact Earth year — the month law)
   const sw = VECTOR_LAW.stroke.normal, hair = VECTOR_LAW.stroke.hairline;
   // A.B..C mode keeps the five marks; Clock mode reads CALENDAR DATES at 30° (addendum 42), as many whole days as fit
   const axis = [0, 0.25, 0.5, 0.75, 1].map((f) => fmtMot(positionInYear(from + f * len, planet.yearAnchor, planet.yearDays).abc));

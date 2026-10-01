@@ -38,7 +38,7 @@ let calMonthDays = 365.2425 / 12;            // the mean Gregorian month until t
 /** The surface sets the calendar month it is showing (the current one); the conversions below then use its real length. */
 export function setCalendarMonth(ms: number): number { calMonthDays = calendarMonthDays(ms); return calMonthDays; }
 /** The fixed factors — the brief's table with the operator's month (addendum 34) — and the calendar month, read when used. */
-export const PERIOD_SECONDS = { second: 1, minute: 60, hour: 3600, day: DAY, week: 7 * DAY, days33: 33 * DAY, month: (91 / 3) * DAY, quarter: 91 * DAY, year: 365 * DAY } as Record<Period, number>;
+export const PERIOD_SECONDS = { second: 1, minute: 60, hour: 3600, day: DAY, week: 7 * DAY, days33: 33 * DAY, month: 30 * DAY, quarter: 91 * DAY, year: 365 * DAY } as Record<Period, number>;
 Object.defineProperty(PERIOD_SECONDS, "calmonth", { get: () => calMonthDays * DAY, enumerable: false });
 
 export interface Section { id: SectionId; name: string; plane: Plane; /** the lexicon suffix: fin.sec.<key> */ key: string }
@@ -157,7 +157,12 @@ export const RECURRENCES: readonly Recurrence[] = ["once", "weekly", "paymot", "
 /** The length a preset covers, in days; `paymot` is the MONTH — 91 ÷ 3 = 30.333 days — and `month91` the QUARTER of 91 days (r.020,
  *  addendum 34; the ids stay so every recorded entry keeps its meaning, only the words on the glass changed); `other` carries its own length (the entry's motDays, typed as a
  *  number with its unit — years · days · hours · minutes — addendum 25); `once` covers no length. */
-export const PAY_MOT_DAYS = 91 / 3;
+// r.046 THE MONTH LAW (operator addenda 76 + 92 "remember all 30.3 changes to 30"): a month is 30 days; a quarter is 91 = 3 × 30 + 1 down
+// day (no transactions), as the year has its down day. Supersedes the 91 ÷ 3 = 30.333 month of r.020 on the record.
+export const PAY_MOT_DAYS = 30;
+/** Old entries "switch to 30" (his answer, 2026-10-01): an entry recorded with the Monthly preset reads its length from the preset —
+ *  30 days — at replay; the record's bytes and hashes are untouched. */
+export const withMonthLaw = <T extends { recurrence?: string; motDays?: number }>(tx: T): T => (tx.recurrence === "paymot" ? { ...tx, motDays: PAY_MOT_DAYS } : tx);
 export const recurrenceDays = (r: Recurrence | undefined): number => (r === "weekly" ? 7 : r === "paymot" ? PAY_MOT_DAYS : r === "days33" ? 33 : r === "month91" ? 91 : r === "yearly" ? 365 : 0);
 /** The units a manual length may be typed in (addendum 25: "MoT selectable to Year, Days, hrs, min"), each in days. */
 export type LengthUnit = "minutes" | "hours" | "days" | "years";

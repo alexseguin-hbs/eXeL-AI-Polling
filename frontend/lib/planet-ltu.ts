@@ -47,13 +47,13 @@ export const PLANET_LTU_REMOVED_KEY = "innovation-planet-ltu-removed";
 export const PLANET_LTU_SEED: readonly PlanetLtuRow[] = [
   {
     code: "earth", name: "Earth", revLocalDays: FINANCIAL_YEAR_DAYS, revEarthDays: FINANCIAL_YEAR_DAYS, yearDays: FINANCIAL_YEAR_DAYS,
-    monthDays: 91 / 3, offlineDay: "12-31", yearAnchor: "perihelion", hoursPerDay: HOUR_PER_DAY, minPerHour: MIN_PER_HOUR, secPerMin: SEC_PER_MIN,
-    status: "OPERATOR", note: "the EXACT revolution 365.259636 days = 3600 A (addendum 18, '365.25 etc.'); the year opens at the perihelion instant, Austin CST standard; Month 30.333 = 91 ÷ 3, the quarter 91 (addendum 34), one offline day Dec 31 (addendum 13); hours · minutes · seconds",
+    monthDays: 30, offlineDay: "12-31", yearAnchor: "perihelion", hoursPerDay: HOUR_PER_DAY, minPerHour: MIN_PER_HOUR, secPerMin: SEC_PER_MIN,
+    status: "OPERATOR", note: "the EXACT revolution 365.259636 days = 3600 A (addendum 18, '365.25 etc.'); the year opens at the perihelion instant, Austin CST standard; Month 30 days, the quarter 91 = 3 × 30 + 1 down day (addenda 76, 92), one offline day Dec 31 (addendum 13); hours · minutes · seconds",
   },
   {
     code: "mars", name: "Mars", revLocalDays: MARS_REVOLUTION_SOLS, revEarthDays: MARS_REVOLUTION_EARTH_DAYS, yearDays: MARS_REVOLUTION_EARTH_DAYS,
-    monthDays: 91 / 3, offlineDay: "—", yearAnchor: "perihelion", hoursPerDay: HOUR_PER_DAY, minPerHour: MIN_PER_HOUR, secPerMin: SEC_PER_MIN, localDaySec: SOL_SEC,
-    status: "DECLARED", note: "3600 A perihelion to perihelion (addendum 12); LTU = Earth hours · minutes · seconds for now (FD-16); 668.5991 sols is the future form; Month 30.333 = 91 ÷ 3, the quarter 91 (addendum 34) mirrors Earth for now",
+    monthDays: 30, offlineDay: "—", yearAnchor: "perihelion", hoursPerDay: HOUR_PER_DAY, minPerHour: MIN_PER_HOUR, secPerMin: SEC_PER_MIN, localDaySec: SOL_SEC,
+    status: "DECLARED", note: "3600 A perihelion to perihelion (addendum 12); LTU = Earth hours · minutes · seconds for now (FD-16); 668.5991 sols is the future form; Month 30 days, the quarter 91 = 3 × 30 + 1 down day (addenda 76, 92) mirrors Earth for now",
   },
 ];
 
