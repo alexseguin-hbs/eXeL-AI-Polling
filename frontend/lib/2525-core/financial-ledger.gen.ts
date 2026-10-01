@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 34 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 35 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -247,6 +247,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.017 correction of r.002–r.016 (operator addendum 29 'your deposit withdrawal floats; very odd'): the phone strip was fixed 56 px above the viewport against the app bar's assumed height and hung mid-air when the bar slid away; it is now the Released card's last row in normal flow — nothing on the surface floats; the gate refuses any fixed or sticky element. FIN-07.01 · FD-32.",
       "commit": "5869220"
+    },
+    {
+      "rev": 35,
+      "date": "2026-09-30",
+      "kind": "release",
+      "text": "v.000_r.017 SHIPPED — nothing on the surface floats: the strip is the Released card's last row in normal flow; the gate refuses any fixed or sticky element. FIN-07.01 · FD-32. Shipped as 233417c. Gates: financial-surface 86 · financial-crs 380 · full test:ci 0 · next build 0.",
+      "commit": "233417c"
     }
   ]
 };

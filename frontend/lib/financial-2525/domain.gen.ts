@@ -287,7 +287,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "correction",
    "why": "Nothing on the surface floats (operator addendum 29 'your deposit withdrawal floats; very odd', with his phone screenshot of the strip hanging mid-air over the budget table). THE CLASS: r.002's phone strip (released · available · the phase · DEPOSIT · Withdraw) was a FIXED element positioned 56 px above the viewport's bottom against the app bar's ASSUMED height; when that bar slides away on a scroll the strip hangs over the content. Fix: the strip leaves the fixed layer and becomes the last row of the Released card in normal flow — the same words, the same two buttons; the surface's phone padding shrinks from the strip-plus-bar allowance to the bar's own height; the surface gate refuses any fixed or sticky element inside the surface. Measured on the export: the R-CORE icon beneath the badge is still the element under its own centre. FIN-07.01 · FD-32.",
    "commit": "5869220",
-   "shipped": "PENDING",
+   "shipped": "233417c",
    "correction": "r.002–r.016 shipped a fixed strip; r.014's lesson (a behaviour claim needs a measured probe) extends to layout against another element: an overlay positioned against an assumed height is a floating element waiting to happen."
   }
  ],
