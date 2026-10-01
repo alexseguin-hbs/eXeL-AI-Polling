@@ -147,7 +147,7 @@ ok(/<th className="py-1 pr-2">\{t\("fin\.category"\)\}<\/th>/.test(ux), "the tab
 // r.019 (addendum 33 "make table 2x2") — the Released card's four figures as a 2 × 2 table, each word above its figure
 {
   const order = ["escrowed", "released", "spent"];
-  const cellOk = (c) => new RegExp('data-fin-cell="' + c + '"><dt[^>]*>\\{t\\("fin\\.' + c + '"\\)\\}</dt><dd[^>]*>\\{usd\\(bal\\.' + (c === "spent" ? "withdrawn" : c) + 'Cents\\)\\}</dd>').test(ux);
+  const cellOk = (c) => new RegExp('data-fin-cell="' + c + '"(?: className="text-(?:left|center|right)")?><dt[^>]*>\\{t\\("fin\\.' + c + '"\\)\\}</dt><dd[^>]*>\\{usd\\(bal\\.' + (c === "spent" ? "withdrawn" : c) + 'Cents\\)\\}</dd>').test(ux);
   const pos = order.map((c) => ux.indexOf('data-fin-cell="' + c + '"'));
   ok(/<dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-3 gap-x-3">/.test(ux) && order.every(cellOk) && pos.every((x, i) => x > 0 && (i === 0 || x > pos[i - 1])) && !/data-fin-cell="available"/.test(ux) && !/data-fin-cell="withdrawable"/.test(ux), "r.029 (addendum 60): three boxes — In Escrow · Released · Spent — across the card; Available is the figure above, never repeated");
   ok(!/\{t\("fin\.escrowed"\)\}:<\/span>/.test(ux), "the run-on line of four figures is gone");
@@ -199,6 +199,8 @@ ok(!/cyan/.test(ux), "r.034 (addendum 67 'we stick to color per selector'): no f
 ok(!/p\.withdrawable\)/.test(ux) && !/C\.consciousness/.test(ux) && !/t\("fin\.withdrawable"\)/.test(ux), "r.034: no separate Withdrawable stroke or cyan legend word — with no hold it is the Released line; the tap line takes the theme colour");
 
 ok(/data-fin-accrual-top[\s\S]*?<div data-fin-rate-block className="flex flex-col items-start">\s*<span data-fin-rate-label[^>]*>\{t\("fin\.accrual_rate"\)\}<\/span>\s*<div data-fin-rate-row[\s\S]*?data-fin-accrual-gear/.test(ux), "r.035 (addendum 68): 'Accrual Rate' sits directly above the rate and its selector, on the top line left of the gear");
+
+ok(/data-fin-cell="escrowed" className="text-left"/.test(ux) && /data-fin-cell="released" className="text-center"/.test(ux) && /data-fin-cell="spent" className="text-right"/.test(ux), "r.036 (addendum 69): the three boxes spread evenly across the card — left edge · centre · right edge");
 
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

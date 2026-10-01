@@ -401,10 +401,11 @@ export function FinancialCommandUX1() {
           </div>
           {/* r.029 (addendum 60 "doesn't this seem duplicative?"): Available is the big figure above, so the grid is three boxes —
               In Escrow · Released · Spent; what each one means is in the gear */}
+          {/* r.036 (addendum 69 "spread 3 fields evenly full width of box"): In Escrow on the left edge, Released centred, Spent on the right edge */}
           <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-3 gap-x-3">
-            <div data-fin-cell="escrowed"><dt className="text-xs text-muted-foreground">{t("fin.escrowed")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.escrowedCents)}</dd></div>
-            <div data-fin-cell="released"><dt className="text-xs text-muted-foreground">{t("fin.released")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.releasedCents)}</dd></div>
-            <div data-fin-cell="spent"><dt className="text-xs text-muted-foreground">{t("fin.spent")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.withdrawnCents)}</dd></div>
+            <div data-fin-cell="escrowed" className="text-left"><dt className="text-xs text-muted-foreground">{t("fin.escrowed")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.escrowedCents)}</dd></div>
+            <div data-fin-cell="released" className="text-center"><dt className="text-xs text-muted-foreground">{t("fin.released")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.releasedCents)}</dd></div>
+            <div data-fin-cell="spent" className="text-right"><dt className="text-xs text-muted-foreground">{t("fin.spent")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.withdrawnCents)}</dd></div>
           </dl>
           {/* the gear (addendum 60 "tell me … what each does (which should be in settings)"): what each figure means, then the clock */}
           {accrualGear && (

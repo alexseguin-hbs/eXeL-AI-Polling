@@ -499,6 +499,13 @@
    "kind": "release",
    "text": "r.035 shipped — Accrual Rate label (FD-52).",
    "commit": "886cfcd"
+  },
+  {
+   "rev": 72,
+   "date": "2026-10-01",
+   "kind": "decision",
+   "text": "r.036 decision — the three boxes spread across the card (FD-53).",
+   "commit": "751b207"
   }
  ]
 }

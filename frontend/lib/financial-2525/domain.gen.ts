@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.035",
-  "stamp": "v.000_r.035",
+  "revision": "0.036",
+  "stamp": "v.000_r.036",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "73e5ea61ea70250909afe1252ec66aae255a0763adc3de55b236b85fb4cc4b79",
+  "handoffSha256": "f06b33e8880e86d93e1d9df9c30e915f7685e9e811ded6688a4eb550c9b88c5f",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -211,6 +211,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "73e5ea61ea70250909afe1252ec66aae255a0763adc3de55b236b85fb4cc4b79",
     "date": "2026-10-01",
     "note": "+ addendum 68 (Accrual Rate label); reading item 69"
+   },
+   {
+    "sha256": "f06b33e8880e86d93e1d9df9c30e915f7685e9e811ded6688a4eb550c9b88c5f",
+    "date": "2026-10-01",
+    "note": "+ addendum 69 (the boxes spread); reading item 70"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -504,6 +509,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "Addendum 68: \"place text Accrual Rate above 5.3809 / hr.\" The words \"Accrual Rate\" now sit directly above the rate figure and its /sec · /min · /hr · /day selector, which stay on the Accrual Units top line immediately left of the gear (addendum 64).",
    "commit": "5f34462",
    "shipped": "886cfcd"
+  },
+  {
+   "revision": "0.036",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "Addendum 69: \"spread 3 fields evenly full width of box.\" The three Accrual Units boxes now span the card: In Escrow on the left edge, Released centred, Spent on the right edge.",
+   "commit": "751b207",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1895,6 +1908,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The rate on the Accrual Units card is labelled \"Accrual Rate\", directly above the figure and its selector.",
    "status": "OPERATOR",
    "basis": "addendum 68 (verbatim)"
+  },
+  {
+   "id": "FD-53",
+   "decision": "The three Accrual Units boxes span the card evenly: left edge · centre · right edge.",
+   "status": "OPERATOR",
+   "basis": "addendum 69 (verbatim)"
   }
  ],
  "reviews": [
