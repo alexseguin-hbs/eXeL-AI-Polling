@@ -162,6 +162,19 @@ export const RECURRENCES: readonly Recurrence[] = ["once", "weekly", "paymot", "
 export const PAY_MOT_DAYS = 30;
 /** Old entries "switch to 30" (his answer, 2026-10-01): an entry recorded with the Monthly preset reads its length from the preset —
  *  30 days — at replay; the record's bytes and hashes are untouched. */
+/** r.048 INCOME FROM HIS RECORD (operator addendum 80, his answer "Income from my record"): every recorded deposit becomes an Income
+ *  line of the budget — its field (the Income field it was recorded under, wages when none), at its own rate: amount ÷ its length in
+ *  days, summed per field. A deposit with no length (One time) counts over one 30-day month (the month law). Pure; dollars per day. */
+export function recordIncomeLines(txs: readonly { kind: string; amountCents: number; motDays?: number; field?: string }[]): LadderLine[] {
+  const perDay = new Map<string, number>();
+  for (const x of txs) {
+    if (x.kind !== "deposit" || !(x.amountCents > 0)) continue;
+    const f = x.field && fieldOf(x.field)?.kind === "Income" ? x.field : "A.income_wages";
+    const days = x.motDays && x.motDays > 0 ? x.motDays : PAY_MOT_DAYS;
+    perDay.set(f, (perDay.get(f) ?? 0) + x.amountCents / 100 / days);
+  }
+  return Array.from(perDay.entries()).map(([fieldId, amount]) => ({ fieldId, amountNative: amount, nativePeriod: "day" as Period }));
+}
 export const withMonthLaw = <T extends { recurrence?: string; motDays?: number }>(tx: T): T => (tx.recurrence === "paymot" ? { ...tx, motDays: PAY_MOT_DAYS } : tx);
 export const recurrenceDays = (r: Recurrence | undefined): number => (r === "weekly" ? 7 : r === "paymot" ? PAY_MOT_DAYS : r === "days33" ? 33 : r === "month91" ? 91 : r === "yearly" ? 365 : 0);
 /** The units a manual length may be typed in (addendum 25: "MoT selectable to Year, Days, hrs, min"), each in days. */

@@ -44,7 +44,7 @@ import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/p
 import { balanceAt, series, validateWithdrawal, depositView, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { type BudgetCategory } from "@/lib/financial-2525/budget";
 import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
-import { FLOW_SECTIONS, withMonthLaw, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
+import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -212,11 +212,17 @@ export function FinancialCommandUX1() {
   // retyping the figure shown never moves the line (0.07 typed for $0.0673/min was +3.9%)
   const editFigure = (l: LadderLine) => { const v = toPeriod(l.amountNative, l.nativePeriod, period); return Math.abs(v) < 100 ? Math.round(v * 10000) / 10000 : lineInUnit(l, period); };
   const addable = fieldsOf(addSec).filter((f) => !plan.some((l) => l.fieldId === f.id));
-  const totals = useMemo(() => netLadder(plan, period), [plan, period]);
+  // r.048 (addendum 80 "Income from my record"): with deposits on his record, the Income lines ARE the record — each Income field at the
+  // rate its deposits release (amount ÷ length) — and the plan keeps Fixed · Variable · Transfers. No deposits: the plan as it was.
+  const recIncome = owner ? recordIncomeLines(txs) : [];
+  const recIncomeKey = recIncome.map((l) => `${l.fieldId}:${l.amountNative}`).join("|");
+  const budget = useMemo(() => (recIncome.length ? [...recIncome, ...plan.filter((l) => fieldOf(l.fieldId)?.kind !== "Income")] : plan), [plan, recIncomeKey]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const fromRecord = (fieldId: string) => recIncome.some((l) => l.fieldId === fieldId);
+  const totals = useMemo(() => netLadder(budget, period), [budget, period]);
   // THE GLASS GROUPS BY KIND, COLLAPSED (r.018, addendum 31 "order by fixed vs financial, and have expand button so this is not so busy.
   // Don't show A-U letters"): Income · Fixed · Variable (· Transfers) each one row with its total and a chevron; the lines show only
   // when a group is opened — or in edit mode, which opens every group so its fields are reachable. No letter reaches the glass.
-  const groups = useMemo(() => groupByKind(plan, period), [plan, period]);
+  const groups = useMemo(() => groupByKind(budget, period), [budget, period]);
   const [openKinds, setOpenKinds] = useState([] as FieldKind[]);
   const isOpen = (k: FieldKind) => editing || openKinds.includes(k);
   const toggleKind = (k: FieldKind) => setOpenKinds((o) => (o.includes(k) ? o.filter((x) => x !== k) : [...o, k]));
@@ -460,7 +466,7 @@ export function FinancialCommandUX1() {
                   {isOpen(g.kind) && g.lines.map((l) => (
                     <tr key={l.fieldId} data-fin-ladder-field={l.fieldId} className="text-muted-foreground"><td data-fin-line-name className="max-w-0 truncate whitespace-nowrap py-0.5 pl-6 pr-2 w-full" title={fieldLabel(l.fieldId)}><SectionIcon section={fieldOf(l.fieldId)?.section ?? "L"} className="mr-1.5" />{shortLabel(l.fieldId)}</td>
                       <td className="whitespace-nowrap py-0.5 text-right tabular-nums">
-                        {editing ? (
+                        {editing && !fromRecord(l.fieldId) ? (
                           <span className="flex items-center justify-end gap-1">
                             <input data-fin-plan-amount={l.fieldId} className="w-28 rounded-md border border-border bg-background px-2 py-1 text-right text-xs text-foreground" inputMode="decimal"
                               value={drafts[l.fieldId] ?? String(editFigure(l))} onChange={(e) => typeAmount(l.fieldId, e.target.value)} onBlur={() => setDrafts((d) => { const n = { ...d }; delete n[l.fieldId]; return n; })} />

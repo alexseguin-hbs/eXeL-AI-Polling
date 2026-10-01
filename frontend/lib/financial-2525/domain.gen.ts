@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.047",
-  "stamp": "v.000_r.047",
+  "revision": "0.048",
+  "stamp": "v.000_r.048",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "acf7324fecb081cdbd8c23af2af28727a4c222532775f4520735eb937604d4ae",
@@ -718,6 +718,14 @@ export const FINANCIAL_DOMAIN = {
    "date": "2026-10-01",
    "kind": "decision",
    "why": "The chart's span toggle. Addendum 95: \"remove this from charting … instead add toggle similar to 2D/3D … 1x , 1W, 1M, 30D, 91D, 365 /364 … all transactions get spread over 30D in terms of $/min\"; his answers (96): re-spread over the span · 1M = Standard Month · the year adjusts for leap year automatically; 97–98: \"1x is instant (no span)\". The line above the chart (stamp · amount · length · elapsed) is gone; a segmented toggle 1x · 1W · 1M · 30D · 91D · 365D (366D in a leap year) re-spreads every transaction from its entry time over the picked span as $/min — 1x lands each whole; the pick is remembered on the phone. The record, Available and the Accrual figures never change; only the picture does.",
+   "commit": "8a870f9",
+   "shipped": "d5fe7f8"
+  },
+  {
+   "revision": "0.048",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "Budget Income from his record. Addendum 80, his answer \"Income from my record\" (asked: the budget shows the example sheet — which should it use?). With deposits on his record, the Income lines of the budget are the record: each Income field at the rate its deposits release (amount ÷ length, a one-time deposit over a 30-day month), shown in the unit picked; Fixed · Variable · Transfers stay his plan. Record lines are not typed in edit mode. With no deposits the plan shows as before.",
    "commit": "8a870f9",
    "shipped": "PENDING"
   }
@@ -2183,6 +2191,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The chart has no top line; a span toggle 1x (instant) · 1W · 1M (Standard Month) · 30D · 91D · the year (365/366 automatic) re-spreads every transaction over the span as $/min. Picture only — the record and balances are unchanged.",
    "status": "OPERATOR",
    "basis": "addenda 95–98 (verbatim)"
+  },
+  {
+   "id": "FD-65",
+   "decision": "The budget's Income lines come from his recorded deposits (amount ÷ length per Income field); the plan keeps Fixed · Variable · Transfers.",
+   "status": "OPERATOR",
+   "basis": "addendum 80 (his answer, verbatim)"
   }
  ],
  "reviews": [
