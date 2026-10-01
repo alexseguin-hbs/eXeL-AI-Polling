@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 88 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 90 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -625,6 +625,20 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.043 shipped and LIVE (his phone at 13:45 served 71cff4b) — the Accrual gear on one line; \"Fitness & Health\" (FD-60).",
       "commit": "b8279b2"
+    },
+    {
+      "rev": 89,
+      "date": "2026-10-01",
+      "kind": "release",
+      "text": "r.044 shipped and LIVE (Verify Live #2171 ✓) — no currency symbol inside a table; the subtitle in the wordmark's colours; Available and Accrual Rate on one line (FD-61).",
+      "commit": "469a909"
+    },
+    {
+      "rev": 90,
+      "date": "2026-10-01",
+      "kind": "decision",
+      "text": "r.045 decision — the Net line names its sign (FD-62).",
+      "commit": "c8ea94a"
     }
   ]
 };

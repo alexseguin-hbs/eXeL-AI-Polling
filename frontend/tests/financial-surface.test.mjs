@@ -232,5 +232,6 @@ ok(/data-fin-cell="escrowed" className="text-left"/.test(ux) && /data-fin-cell="
 ok(/<span className=\{LABEL\}>\{t\("fin\.tx_record"\)\}/.test(ux) && !/t\("fin\.ledger_title"\)/.test(ux) && /"fin\.tx_record", englishDefault: "Transaction Record"/.test(fs.readFileSync("lib/lexicon-data.ts", "utf8")), "r.041 (his third ask): the record header reads TRANSACTION RECORD — no 'The record · Chain verified · 3'");
 ok(/<div className=\{LABEL\}>\{t\("fin\.realtime"\)\}<\/div>/.test(ux) && /"fin\.realtime", englishDefault: "Real-Time Financials"/.test(fs.readFileSync("lib/lexicon-data.ts", "utf8")), "r.041: the chart header reads REAL-TIME FINANCIALS");
 
+ok(/<td data-fin-budget-net-label className="py-1 pr-2">[^<]*\{totals\.net < 0 \? t\("fin\.net_down"\) : t\("fin\.net_up"\)\}<\/td>/.test(ux) && /"fin\.net_up", englishDefault: "Net • Upside \/ Savings"/.test(fs.readFileSync("lib/lexicon-data.ts", "utf8")) && /"fin\.net_down", englishDefault: "Net • Downside \/ Risk"/.test(fs.readFileSync("lib/lexicon-data.ts", "utf8")), "r.045 (addendum 94): green Net reads 'Net • Upside / Savings', red Net reads 'Net • Downside / Risk'");
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

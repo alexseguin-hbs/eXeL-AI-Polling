@@ -3014,6 +3014,8 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.fixed", englishDefault: "Fixed", context: "Financial-2525: budget total line for fixed expenses", cubeId: 0 },
   { key: "fin.variable", englishDefault: "Variable", context: "Financial-2525: budget total line for variable expenses", cubeId: 0 },
   { key: "fin.net", englishDefault: "Net", context: "Financial-2525: budget total line for income minus expenses", cubeId: 0 },
+  { key: "fin.net_up", englishDefault: "Net • Upside / Savings", context: "Financial-2525: the budget total line label when income minus expenses is zero or positive (shown in green)", cubeId: 0 },
+  { key: "fin.net_down", englishDefault: "Net • Downside / Risk", context: "Financial-2525: the budget total line label when income minus expenses is negative (shown in red)", cubeId: 0 },
   { key: "fin.per_33", englishDefault: "per 33 days", context: "Financial-2525: budget column header — the personal month is 33 days", cubeId: 0 },
   { key: "fin.per_week", englishDefault: "per week", context: "Financial-2525: budget unit toggle option — the amount per 7-day week", cubeId: 0 },
   { key: "fin.per_month", englishDefault: "per month (30.3̅ days)", context: "Financial-2525: budget unit option — the amount per month of 30.333 days, one third of the 91-day quarter (addendum 34); the day count is printed after it", cubeId: 0 },
