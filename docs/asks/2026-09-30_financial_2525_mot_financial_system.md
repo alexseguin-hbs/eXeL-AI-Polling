@@ -585,6 +585,15 @@
 >
 > 14:43:53 elapsed · $0.0898 /min · $0.0015 /sec
 
+> (addendum 85, verbatim — 2026-10-01)
+> change
+>
+> Fitness
+>
+> to
+>
+> Fitness & Health
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -916,6 +925,7 @@
     left of the settings gear on line 1, with Accrual Rate right of Available on line 2.
 84. **One line in the Accrual gear (addendum 84):** the open gear reads "14:43:53 elapsed · $0.0898 /min · $0.0015 /sec" on one
     line (was two). r.042 confirmed on his phone ("looks good now"). r.043.
+85. **"Fitness & Health" (addendum 85):** the budget line's short name "Fitness" reads "Fitness & Health". Folded into r.043.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
