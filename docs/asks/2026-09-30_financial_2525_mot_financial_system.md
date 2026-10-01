@@ -447,6 +447,8 @@
 > (addendum 64, verbatim — 2026-10-01 7:49 AM, screenshot 2026-10-01_financial_fb64_accrual_top.png, the r.029 Accrual Units card with the gear open)
 > Accrual field needs to be left to settings button on top line
 
+> (addendum 65, verbatim — 2026-10-01, clarifying addendum 64: the "accrual field" is the rate) meaning 5.3908 / hour
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
