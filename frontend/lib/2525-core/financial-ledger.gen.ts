@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 56 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 57 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -401,6 +401,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.028 correction — no hold (addendum 57); his twelve morning items (addendum 58): header two lines without version, the phrase gone, chart gear with angle, planet left / controls right, one + Transaction at top, gold box gone, Accrual Units, full width, Record folded table, year table perihelion first, no 33-day references (FD-45).",
       "commit": "2eddaee"
+    },
+    {
+      "rev": 57,
+      "date": "2026-10-01",
+      "kind": "release",
+      "text": "r.028 shipped — no hold; his twelve morning items (FD-45).",
+      "commit": "20dcfb5"
     }
   ]
 };

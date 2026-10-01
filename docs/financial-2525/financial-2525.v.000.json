@@ -385,7 +385,7 @@
    "kind": "correction",
    "why": "His morning feedback (addenda 57 + 58), every item in his table, no audit. (1) THERE IS NO HOLD — 'there is no 180 min rule (that was just example). if 2 hours later, 120 min at $/min should work': whatever has accrued at $/min is withdrawable at once; the hold line, the hold refusal and the HOLD step on the rail are gone (supersedes r.023/r.027's hold and FD-44's hold half). (2) No version line at the top — it is at the bottom. (3) 'Money as time — this MoT' removed everywhere; the header reads two lines, Measure of Time / A Universal Standard. (4) The chart's gear opens the date format AND the date text's angle (0° · 30° · 45° · 90°), both remembered on the phone. (5) Planet on the left, the Clock · MoT toggle and the gear on the right. (6) ONE + Transaction, primary, at the top; the other three doors are gone. (7) The gold YOUR TURN box is gone. (8) The card is Accrual Units: Available on the left, the $/min and its selector on the right, a gear upper right; no Withdraw pill or button (withdrawal is a choice inside + Transaction). (9) That card runs the full width on a phone in portrait. (10) The Record folds behind a chevron; opened, a table with one entry per line that scrolls sideways. (11) The Trinity wheel's pink centre glyphs were removed in r.027; black ring labels stay. (12) The year is a table, perihelion first, then now, day N/365, quarter, month of 30.3̅ days, year; no 33-day frame anywhere on the glass (the 33-day budget unit and length preset are no longer offered; old entries keep their meaning). (13) Supabase: the keepalive queries the project twice a day; he restored the project at 7:22 AM.",
    "commit": "2eddaee",
-   "shipped": "PENDING"
+   "shipped": "20dcfb5"
   }
  ],
  "mot": {
