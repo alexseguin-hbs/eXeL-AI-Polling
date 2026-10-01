@@ -202,6 +202,9 @@ export function FinancialCommandUX1() {
   // THE BUDGET AS HE ASKED (r.024, addenda 48 · 50: "don't change budget inplementetion; this is way too complicated and I never asked for
   // it"): the r.021–r.022 per-line MoT dropdowns are gone; a line's amount is typed in the unit showing and kept on the 33-day base.
   const typeAmount = (fieldId: string, text: string) => { setDrafts((d) => ({ ...d, [fieldId]: text })); const n = Number(text); if (text.trim() !== "" && Number.isFinite(n)) writePlan(setLineAmount(plan, fieldId, n, period)); };
+  // r.026: per second / minute / hour a line is a fraction of a dollar — edit mode shows four decimals there (cents elsewhere), so
+  // retyping the figure shown never moves the line (0.07 typed for $0.0673/min was +3.9%)
+  const editFigure = (l: LadderLine) => { const v = toPeriod(l.amountNative, l.nativePeriod, period); return Math.abs(v) < 100 ? Math.round(v * 10000) / 10000 : lineInUnit(l, period); };
   const addable = fieldsOf(addSec).filter((f) => !plan.some((l) => l.fieldId === f.id));
   const totals = useMemo(() => netLadder(plan, period), [plan, period]);
   // THE GLASS GROUPS BY KIND, COLLAPSED (r.018, addendum 31 "order by fixed vs financial, and have expand button so this is not so busy.
@@ -238,7 +241,7 @@ export function FinancialCommandUX1() {
   // choosing the type re-seats the picker on its default: a deposit on A · Income / Wages every 33 days, a withdrawal on B · Rent / Mortgage once
   const chooseType = (k: TxKind | "") => { setTxType(k); if (k === "") return; if (k === "deposit") { setSec("A"); setField("A.income_wages"); setRec("paymot"); } else { setSec("B"); setField("B.rent_mortgage"); setRec("once"); } };
   /** Every door opens the ONE folded form with the type blank (r.023); the scroll waits for the form to be on the page. */
-  const openForm = () => { setTxType(""); setRefusal(null); if (formOpen) goTo("fin-transaction-form"); else { scrollOnOpen.current = true; setFormOpen(true); } };
+  const openForm = () => { if (formOpen) { goTo("fin-transaction-form"); return; } setTxType(""); setRefusal(null); scrollOnOpen.current = true; setFormOpen(true); };
   const foldForm = () => { setFormOpen(false); setTxType(""); setRefusal(null); };
   const catLabel = (c: BudgetCategory) => t(`fin.cat.${CAT_KEY[c]}`);   // the record's r.006–r.011 entries still print their category
   const fieldLabel = (id: string) => { const f = fieldOf(id); return f ? t(`fin.field.${f.key}`) : id; };
@@ -257,18 +260,18 @@ export function FinancialCommandUX1() {
     if (!(cents > 0)) return setRefusal(t("fin.reason_amount"));
     if (instant === null) return setRefusal(t("fin.reason_stamp"));
     setRefusal(null);
-    commit({ id: `d-${instant}-${cents}`, kind: "deposit", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec });
-    setAmt(""); setMemo(""); foldForm();
+    commit({ id: `d-${instant}-${cents}-${record.entries.length + 1}`, kind: "deposit", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec });
+    setAmt(""); setMemo(""); setWhen(""); foldForm();
   };
   const recordWithdrawal = () => {
     const cents = Math.round(Number(amt) * 100);
     const instant = when.trim() ? parseStampCST(when) : at;
     if (instant === null) return setRefusal(t("fin.reason_stamp"));
-    const w: FinTx = { id: `w-${instant}-${cents}`, kind: "withdrawal", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec };
+    const w: FinTx = { id: `w-${instant}-${cents}-${record.entries.length + 1}`, kind: "withdrawal", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec };
     const v = validateWithdrawal(txs, w);
     // the refusal names the minute (r.023, addendum 39 "check refuse message"): when the money can first move, or when it would run short
     if (!v.ok) return setRefusal(v.reason === "HOLD" ? `${t("fin.reason_hold")}${v.atMs ? ` · ${fmtStampCST(v.atMs)}` : ""}` : v.reason === "INSUFFICIENT" ? `${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs ?? instant)}` : t("fin.reason_amount"));
-    setRefusal(null); commit(w); setAmt(""); setMemo(""); foldForm();
+    setRefusal(null); commit(w); setAmt(""); setMemo(""); setWhen(""); foldForm();
   };
   const recordTransaction = () => { if (txType === "deposit") recordDeposit(); else if (txType === "withdrawal") recordWithdrawal(); };
   // the form opens on its TYPE (the first choice), so focus lands on the type dropdown, not the amount
@@ -334,7 +337,7 @@ export function FinancialCommandUX1() {
                 /sec · /min · /hr · /day once picked; the figure is the live $/min times the planet's own units, never typed */}
             <div className="flex flex-wrap items-center gap-1 font-medium text-cyan-500">{t("fin.released")} · {bal.ratePerMinCents > 0 ? (
               <><span data-fin-rate className="tabular-nums">{rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit))}</span>
-                <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="rounded-md border border-border bg-background px-1 py-0.5 text-xs text-cyan-500">
+                <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-cyan-500">
                   {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
                 </select></>
             ) : t(phaseDef.labelKey)}</div>
@@ -474,7 +477,7 @@ export function FinancialCommandUX1() {
                         {editing ? (
                           <span className="flex items-center justify-end gap-1">
                             <input data-fin-plan-amount={l.fieldId} className="w-28 rounded-md border border-border bg-background px-2 py-1 text-right text-xs text-foreground" inputMode="decimal"
-                              value={drafts[l.fieldId] ?? String(lineInUnit(l, period))} onChange={(e) => typeAmount(l.fieldId, e.target.value)} onBlur={() => setDrafts((d) => { const n = { ...d }; delete n[l.fieldId]; return n; })} />
+                              value={drafts[l.fieldId] ?? String(editFigure(l))} onChange={(e) => typeAmount(l.fieldId, e.target.value)} onBlur={() => setDrafts((d) => { const n = { ...d }; delete n[l.fieldId]; return n; })} />
                             <button type="button" data-fin-plan-remove={l.fieldId} aria-label={t("fin.remove_line")} title={t("fin.remove_line")} onClick={() => writePlan(removeLine(plan, l.fieldId))} className="rounded-md border border-border p-1"><X size={12} strokeWidth={1.5} aria-hidden /></button>
                           </span>
                         ) : usdDollars(inPeriod(l))}
@@ -524,7 +527,7 @@ export function FinancialCommandUX1() {
             person), BOTTOM-LEFT = AI ◬ (AI tokens), BOTTOM-RIGHT = SI ♡ (minutes contribution — volunteer / time logged).
             SoITrinity's tuple order is [top, bottom-right, bottom-left]. */}
         <details className="mb-2" data-testid="fin-details-trinity">
-          <summary className="cursor-pointer text-xs text-muted-foreground" aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} />
+          <summary className="min-h-[36px] cursor-pointer py-2 text-xs text-muted-foreground" aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} />
           <div className="mt-2 flex flex-col items-center gap-1">
             <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} centerGlyphs={["웃", "♡", "◬"]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} />
           </div>
@@ -548,7 +551,7 @@ function ltuLabel(ms: number, wholeMs: number, p: PlanetLtuRow): string {
   return wholeMs >= dayMs && d > 0 ? `${d} d ${h} h` : `${h} h ${m} min`;
 }
 
-/** One deposit over its MoT: released / withdrawable / escrowed as strokes, NOW, the 3-hour hold, withdrawals as marks.
+/** One deposit over its MoT: released / withdrawable / escrowed as strokes, NOW and withdrawals as marks (the 180-minute mark is not drawn — his answer, r.025).
  *  BEHIND THE SCENES IS A.B..C — the revolution's coordinate (addendum 10) on the selected planet's whole (addendum 12):
  *  on reveal the axis reads the year position (positionInYear, the planet's anchor) at each mark and the elapsed span in
  *  A-units; the glass defaults to the planet's day · hour · minute (addendum 8). The toggle is the card's one state. */
@@ -601,7 +604,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
         </div>
       )}
       <p className="mt-1 font-mono text-xs text-muted-foreground">{fmtStampCST(tx.atMs)} · {usd(tx.amountCents)} · {fmtDays(tx.motDays ?? 0)} · {now < from ? `${t("fin.pending_from")} ${fmtStampCST(tx.atMs)}` : showAbc ? `${fmtMot(positionInYear(from, planet.yearAnchor).abc)} → ${fmtMot(positionInYear(to, planet.yearAnchor).abc)}` : `${ltuLabel(elapsed, len, planet)} ${t("fin.elapsed")}`}</p>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" className="mt-2 block touch-none" role="img" aria-label={t("fin.chart_tap")} data-fin-chart-svg onPointerDown={probeAt} onPointerMove={(e) => { if (e.buttons || e.pointerType === "touch") probeAt(e); }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" className="mt-2 block cursor-crosshair" role="img" aria-label={t("fin.chart_tap")} data-fin-chart-svg onClick={probeAt}>
         <rect x={PL} y={P} width={W - PL - P} height={H - 2 * P} fill="none" stroke="var(--border)" strokeWidth={hair} />
         {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={PL + f * (W - PL - P)} y1={P} x2={PL + f * (W - PL - P)} y2={H - P} stroke="var(--border)" strokeWidth={hair} />)}
         <polyline fill="none" stroke={C.intelligence} strokeWidth={hair} points={poly((p) => p.escrowed)} />
@@ -612,15 +615,16 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
         {probe !== null && <line data-fin-chart-probe-line x1={x(probe)} y1={P} x2={x(probe)} y2={H - P} stroke={C.consciousness} strokeWidth={hair} strokeDasharray="3 3" />}
         {!showAbc && ticks.map((tk) => <line key={tk} x1={x(tk)} y1={H - P} x2={x(tk)} y2={H - P + 4} stroke="var(--border)" strokeWidth={hair} />)}
       </svg>
-      {/* CALENDAR DATES AT 30° (addendum 42) — HTML under the strokes (the vector law: the chart paints no face), one per tick */}
-      {!showAbc && (
-        <div data-fin-date-axis aria-hidden className={`relative font-mono text-[10px] text-muted-foreground ${dateFmt === "full" ? "h-11" : "h-7"}`}>
-          {ticks.map((tk) => <span key={tk} className="absolute top-0.5 whitespace-nowrap" style={{ left: `${((x(tk) / W) * 100).toFixed(2)}%`, transform: "translateX(-100%) rotate(-30deg)", transformOrigin: "100% 0" }}>{dateLabel(tk, dateFmt)}</span>)}
+      {!showAbc && dateFmt === "month" && (
+        <div data-fin-date-months aria-hidden className="relative mt-1 h-4 text-[10px] text-muted-foreground">
+          {ticks.filter((tk, k) => k === 0 || cstParts(tk).mo !== cstParts(ticks[k - 1]).mo).map((tk) => <span key={tk} className="absolute top-0 whitespace-nowrap" style={{ left: `${(Math.max(0, (x(tk) - 12) / W) * 100).toFixed(2)}%` }}>{monthName(tk)}</span>)}
         </div>
       )}
-      {!showAbc && dateFmt === "month" && (
-        <div data-fin-date-months aria-hidden className="relative h-4 text-[10px] text-muted-foreground">
-          {ticks.filter((tk, k) => k === 0 || cstParts(tk).mo !== cstParts(ticks[k - 1]).mo).map((tk) => <span key={tk} className="absolute top-0 whitespace-nowrap" style={{ left: `${(Math.max(0, (x(tk) - 12) / W) * 100).toFixed(2)}%` }}>{monthName(tk)}</span>)}
+      {/* CALENDAR DATES AT 30° (addendum 42) — HTML under the strokes (the vector law: the chart paints no face), one per tick */}
+      {!showAbc && ticks.length === 0 && <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{[0, 0.25, 0.5, 0.75, 1].map((f, i) => <span key={i} className={i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}>{ltuLabel(f * len, len, planet)}</span>)}</div>}
+      {!showAbc && ticks.length > 0 && (
+        <div data-fin-date-axis aria-hidden className={`relative font-mono text-[10px] text-muted-foreground ${dateFmt === "full" ? "h-11" : "h-7"}`}>
+          {ticks.map((tk) => <span key={tk} className="absolute top-0.5 whitespace-nowrap" style={{ left: `${((x(tk) / W) * 100).toFixed(2)}%`, transform: "translateX(-100%) rotate(-30deg)", transformOrigin: "100% 0" }}>{dateLabel(tk, dateFmt)}</span>)}
         </div>
       )}
       {probe !== null && <p data-fin-chart-probe className="mt-1 font-mono text-xs text-foreground">{fmtStampCST(probe)} CST</p>}

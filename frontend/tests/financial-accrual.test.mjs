@@ -80,4 +80,19 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   const lumpOk = { id: "w5", kind: "withdrawal", amountCents: 25066, atMs: at("2026.10.15_07.00..00"), motDays: 0 };
   ok(A.validateWithdrawal([d1, d2], lumpOk).ok === true && A.validateWithdrawal([d1, d2, lumpOk], storage).ok === true, "a record accepted as a lump before r.023 (his $250.66 on 10.15) stays valid, and the $71 Monthly is still accepted beside it");
 }
+// r.026 — the refusal names the FIRST short minute exactly (the HI-intent check found r.023 could name a minute with money to spare).
+{
+  const at = (x) => M.parseStampCST(x);
+  const d1 = { id: "d1", kind: "deposit", amountCents: 360449, atMs: at("2026.09.30_19.54..35"), motDays: 91 / 3 };
+  const d2 = { id: "d2", kind: "deposit", amountCents: 32000, atMs: at("2026.09.30_19.56..04"), motDays: 91 / 3 };
+  const lump = { id: "w9-3", kind: "withdrawal", amountCents: 180000, atMs: at("2026.10.15_07.00..00"), motDays: 0 };
+  ok(A.validateWithdrawal([d1, d2], lump).ok === true, "an $1,800 One time on 2026.10.15 07:00 is accepted against his pay");
+  const w = { id: "wA-4", kind: "withdrawal", amountCents: 20000, atMs: at("2026.10.01_07.00..00"), motDays: 91 / 3 };
+  const v = A.validateWithdrawal([d1, d2, lump], w);
+  ok(v.ok === false && v.atMs === lump.atMs, `with the $1,800 planned, a new $200 Monthly from 10.01 runs short exactly when the lump lands (2026.10.15_07.00..00) — got ${v.atMs ? M.fmtStampCST(v.atMs) : v.reason}`);
+  const short = (txs, t) => { const b = A.balanceAt(txs, t); return b.withdrawnCents - b.withdrawableCents; };
+  const big = { id: "w4-3", kind: "withdrawal", amountCents: 400000, atMs: at("2026.10.01_07.00..00"), motDays: 91 / 3 };
+  const vb = A.validateWithdrawal([d1, d2], big);
+  ok(vb.ok === false && short([d1, d2, big], vb.atMs) > 0 && short([d1, d2, big], vb.atMs - 60000) <= 0 && vb.atMs % 60000 === 0, `$4,000 Monthly: the named minute is short and the minute before is not (${M.fmtStampCST(vb.atMs)})`);
+}
 console.log(`financial-accrual: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

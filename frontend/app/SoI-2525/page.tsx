@@ -7537,7 +7537,14 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
   const persistPlanets = (next: PlanetLtuRow[]) => { setPlanets(next); lsSet(PLANET_LTU_KEY, JSON.stringify(next)); };
   // a number a person types makes the row DECLARED (its provenance is now this panel, not the seed)
   const editPlanet = (i: number, patch: Partial<PlanetLtuRow>) => persistPlanets(planets.map((r, j) => (j === i ? { ...r, ...patch, status: "DECLARED" } : r)));
-  const numOf = (v: string, fallback: number) => (/^\d*\.?\d*$/.test(v) && v !== "" && v !== "." ? Number(v) : fallback);
+  // r.026 (Financial-2525, the HI-intent check): a number box keeps what is being typed ("30." stays "30.") and writes only a whole
+  // number > 0; the draft clears on leaving the box. Before, "30." redrew as "30" and 30.333 could not be typed one key at a time.
+  const [planetDraft, setPlanetDraft] = useState({} as Record<string, string>);
+  const numBox = (key: string, shown: string, onNum: (n: number) => void) => ({
+    value: planetDraft[key] ?? shown,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => { const v = e.target.value; setPlanetDraft((d) => ({ ...d, [key]: v })); if (/^\d*\.?\d*$/.test(v) && v !== "" && v !== "." && Number(v) > 0) onNum(Number(v)); },
+    onBlur: () => setPlanetDraft((d) => { const n = { ...d }; delete n[key]; return n; }),
+  });
   // AD · category colour + mask, same persistence path as the pillars (lsSet), so two people printing the
   // same deck get the same sheet rather than a per-device preference.
   const [devTypeStyles, setDevTypeStyles] = useState<Partial<Record<DevType, DevTypeStyle>>>({});
@@ -7770,8 +7777,8 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                 return (
                   <tr key={r.code} className="border-t border-slate-800/60" data-planet-row={r.code}>
                     <td className="px-2 py-1.5"><input value={r.name} onChange={(e) => editPlanet(i, { name: e.target.value })} className={`w-20 ${inp}`} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.yearDays)} onChange={(e) => editPlanet(i, { yearDays: numOf(e.target.value, r.yearDays) })} className={`w-20 text-right tabular-nums ${inp}`} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(Math.round(r.monthDays * 1000) / 1000)} onChange={(e) => editPlanet(i, { monthDays: numOf(e.target.value, r.monthDays) })} className={`w-14 text-right tabular-nums ${inp}`} /><span data-planet-month-repeat className="ml-1 font-mono text-muted-foreground">{fmtDays(r.monthDays)}</span></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" {...numBox(`${r.code}:yearDays`, String(r.yearDays), (n) => editPlanet(i, { yearDays: n }))} className={`w-20 text-right tabular-nums ${inp}`} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" {...numBox(`${r.code}:monthDays`, String(Math.round(r.monthDays * 1000) / 1000), (n) => editPlanet(i, { monthDays: n }))} className={`w-14 text-right tabular-nums ${inp}`} /><span data-planet-month-repeat className="ml-1 font-mono text-muted-foreground">{fmtDays(r.monthDays)}</span></td>
                     <td className="px-2 py-1.5"><input value={r.offlineDay} onChange={(e) => editPlanet(i, { offlineDay: e.target.value })} className={`w-16 ${inp}`} /></td>
                     <td className="px-2 py-1.5">
                       <select value={r.yearAnchor} onChange={(e) => editPlanet(i, { yearAnchor: e.target.value === "perihelion" ? "perihelion" : "calendar" })} className={inp}>
@@ -7779,10 +7786,10 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                         <option value="perihelion">{t("soi2525.planet_ltu_anchor_perihelion")}</option>
                       </select>
                     </td>
-                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={d.dayInA.toFixed(4)} onChange={(e) => { const v = Number(e.target.value); if (v > 0 && isFinite(v)) persistPlanets(planets.map((x, j) => (j === i ? withDayInA(x, v) : x))); }} className={`w-20 text-right tabular-nums ${inp}`} title={d.dayABC} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.hoursPerDay)} onChange={(e) => editPlanet(i, { hoursPerDay: numOf(e.target.value, r.hoursPerDay) })} className={`w-14 text-right tabular-nums ${inp}`} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.minPerHour)} onChange={(e) => editPlanet(i, { minPerHour: numOf(e.target.value, r.minPerHour) })} className={`w-14 text-right tabular-nums ${inp}`} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.secPerMin)} onChange={(e) => editPlanet(i, { secPerMin: numOf(e.target.value, r.secPerMin) })} className={`w-14 text-right tabular-nums ${inp}`} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" {...numBox(`${r.code}:dayInA`, d.dayInA.toFixed(4), (v) => persistPlanets(planets.map((x, j) => (j === i ? withDayInA(x, v) : x))))} className={`w-20 text-right tabular-nums ${inp}`} title={d.dayABC} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" {...numBox(`${r.code}:hoursPerDay`, String(r.hoursPerDay), (n) => editPlanet(i, { hoursPerDay: n }))} className={`w-14 text-right tabular-nums ${inp}`} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" {...numBox(`${r.code}:minPerHour`, String(r.minPerHour), (n) => editPlanet(i, { minPerHour: n }))} className={`w-14 text-right tabular-nums ${inp}`} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" {...numBox(`${r.code}:secPerMin`, String(r.secPerMin), (n) => editPlanet(i, { secPerMin: n }))} className={`w-14 text-right tabular-nums ${inp}`} /></td>
                     <td className="px-2 py-1.5 text-right font-mono tabular-nums text-slate-300">{d.aSeconds.toLocaleString("en-US", { maximumFractionDigits: 2 })}</td>
                     <td className="px-2 py-1.5 font-mono text-[10px] text-slate-400" title={r.note}>{r.status}</td>
                     <td className="px-2 py-1.5 text-right"><button onClick={() => { lsSet(PLANET_LTU_REMOVED_KEY, JSON.stringify(Array.from(new Set(listOf(lsGet(PLANET_LTU_REMOVED_KEY)).concat(r.code))))); persistPlanets(planets.filter((_, j) => j !== i)); pushConfigBundle(); }} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title={t("soi2525.delete")}>✕</button></td>

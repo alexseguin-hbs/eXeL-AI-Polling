@@ -143,19 +143,28 @@ export function validateWithdrawal(txs: readonly FinTx[], w: FinTx): { ok: true 
   for (const x of all) { marks.add(x.atMs); marks.add(x.atMs + motMs(x)); if (x.kind === "deposit") marks.add(x.atMs + HOLD_MS); }
   const over = (t: number) => { const b = balanceAt(all, t); return b.withdrawnCents - b.withdrawableCents; };
   const pts = Array.from(marks).filter((t) => t >= w.atMs).sort((a, b) => a - b);
-  let prev = w.atMs;
+  // walk the probes in time order, remembering the LAST probe that passed (r.026): between two probes the sides are linear unless the
+  // later probe is a breakpoint whose instant before it passed — then the shortfall is a jump at that breakpoint (a lump landing), and
+  // the refusal names that instant exactly. r.023 interpolated from the previous breakpoint across such a jump and could name a minute
+  // with money still to spare.
+  let okT = w.atMs, okD = over(w.atMs);
+  const refuse = (atMs: number) => ({ ok: false as const, reason: "INSUFFICIENT" as const, availableCents: balanceAt(others, w.atMs).availableCents, atMs });
+  if (okD > 0) return refuse(w.atMs);
   for (const t of pts) {
-    const probes = t > prev + 1 ? [t - 1, t] : [t];
-    for (const p of probes) {
-      if (over(p) > 0) {
-        // the first minute it fails: both sides are linear on (prev, p], so step back to the crossing, rounded up to a whole minute
-        const d0 = over(prev), d1 = over(p);
-        const cross = d1 > d0 && d0 <= 0 ? prev + ((p - prev) * (0 - d0)) / (d1 - d0) : p;
-        const atMs = Math.min(p, Math.ceil(cross / 60000) * 60000);
-        return { ok: false, reason: "INSUFFICIENT", availableCents: balanceAt(others, w.atMs).availableCents, atMs: Math.max(w.atMs, atMs) };
+    for (const p of t - 1 > okT ? [t - 1, t] : [t]) {
+      if (p <= okT) continue;
+      const d = over(p);
+      if (d > 0) {
+        // a jump at a breakpoint is named at its instant; otherwise the FIRST WHOLE MINUTE after the last passing probe that is short
+        // (both sides are linear there, so the shortfall only grows) — found by halving, never estimated across rounding
+        if (p === t && okT === t - 1) return refuse(p);
+        let a = Math.floor(okT / 60000) + 1, b = Math.floor(p / 60000);
+        if (b < a || over(b * 60000) <= 0) return refuse(p);
+        while (a < b) { const m = Math.floor((a + b) / 2); if (over(m * 60000) > 0) b = m; else a = m + 1; }
+        return refuse(a * 60000);
       }
+      okT = p; okD = d;
     }
-    prev = t;
   }
   return { ok: true };
 }

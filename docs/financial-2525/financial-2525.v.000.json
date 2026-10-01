@@ -4,8 +4,8 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.025",
-  "stamp": "v.000_r.025",
+  "revision": "0.026",
+  "stamp": "v.000_r.026",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "fb5bfc1e6b1427bac41b6a68b4e31c4ba2b2773151c568bd63c88bb038bf5538",
@@ -352,6 +352,14 @@
    "why": "The rest of his feedback of 2026-09-30 evening, built as he answered it (addendum 55). THE CHART (addendum 42): 'Place clock as left toggle and MoT symbol as right toggle' — the Clock on the left, the MoT on the right; 'remove transactions' — his answer: the 'Your deposits' list above the Released card goes (the Record keeps every entry); 'find way to click on to see day / time stamp' — a tap or drag on the chart draws a line there and reads its day and time; 'Date format for table is 2026.10.01 at 30 degree angle (or user defined via settings menu)' — in Clock mode the axis reads calendar dates at 30°, 2026.10.01 by default, as many whole CST days as fit, and a gear on the chart (his answer) offers 10.01 · the month named once over 01 02 03 · 2026.10.01, remembered on this phone; 'who … said 3 hr hold? for this chart?' — his answer 'Remove from chart': the yellow mark and its legend word are gone, the 180-minute rule stays in the accrual law. THE WHEEL (addendum 40): 'no descriptor; that is very AI literal vs HI simple' — his answer 'Folded, bare arrow': the caption is gone, a bare arrow folds the wheel (its accessible name stays for screen readers); 'Trinity Labels on circles 웃 HI ◬ AI ♡ SI' — the rings read exactly that. 30.3 REPEATING (addendum 37 + 'Everywhere'): every MoT-day count prints through fmtDays — 30.3̅ — on the Record, the chart, 'Monthly (30.3̅ days)', 'per month (30.3̅ days)' and beside the Admin panel's Month; never 30.333333333333332. MEASURE OF TIME (addendum 45 + 'Subtitle'): the line under FINANCIAL · 2525 reads 'the MoT (Measure of Time) Financial System'.",
    "commit": "a3edb5f",
    "shipped": "cf7c0f6"
+  },
+  {
+   "revision": "0.026",
+   "date": "2026-09-30",
+   "kind": "correction",
+   "why": "The plain bugs the HI-intent check found in r.023–r.025 (docs/assessments/2026-09-30_financial_2525_hi_intent_check.md, persisted e835b32) — run only after every item of his feedback was built and live, as he asked; none of these changes a design he chose. (1) A withdrawal refusal could name the wrong minute: r.023 estimated the crossing from the previous breakpoint across a lump that landed in between ($200 Monthly beside a planned $1,800 One time was refused 'by 2026.10.11_14.57..00' with $1,328.30 still to spare). Now the last passing probe is remembered, a jump is named at its instant (2026.10.15_07.00..00), and a linear shortfall is named at the first whole minute that is a cent short, found by halving. (2) Two entries with the same amount at the same typed day and time got the same id; the second was taken for the first and silently not recorded. The id now carries the record's next number. (3) After a save the form kept the last typed Day and time, so the next entry could land at the old instant unnoticed; it is cleared. (4) The chart captured every swipe on a phone (touch-none + drag), trapping the page scroll; it now reads the day and time on a tap only — his words were 'click on to see day / time stamp'. (5) A door pressed while the entry was open cleared the type already picked; it now only brings the form into view. (6) In the Admin panel a decimal could not be typed one key at a time ('30.' redrew as '30'), so 30.333 or 365.25 could not be entered; every number box there keeps what is typed until it leaves the box. (7) In budget edit mode at small units the box rounded to cents (0.07 for $0.0673/min; retyping it moved the line 3.9%); it shows four decimals there. (8) The month name sat under the day numbers; it sits over them, as his 'October / with / 01, 02, 03' reads. (9) A MoT crossing no midnight left the Clock axis empty; it keeps the day · hour · minute marks. (10) The rate dropdown and the wheel's arrow are 36 px touch targets. (11) The record's FIN-06.10 example had lost its dollar signs ($3,200 → $2,941.41 · $8,824.24); restored. (12) Two stale notes (the hold mark's translator context, the chart's docstring) updated. The eleven open choices the check raised are his — asked, not assumed.",
+   "commit": "e835b32",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1278,7 +1286,7 @@
    "verify": "tests/financial-ladder.test.mjs",
    "statement": "Every place the surface names a period, a month is 30.333 days (one third of the 91-day quarter) and 91 days is called a quarter: the budget's unit dropdown (per month · per quarter), the length presets (Monthly · Quarterly) and the planet table's Month; three months make the quarter at every figure.",
    "metric": "ladder.ts PERIODS = second · minute · hour · day · week · days33 · month · quarter · year; PERIOD_SECONDS.month = (91/3)·86400 = PAY_MOT_DAYS days and ×3 = quarter = 91·86400; no month91 period; toPeriod(x, days33, month) × 3 = toPeriod(x, days33, quarter); the dropdown carries fin.per_month and fin.per_quarter with no '(91)' month; the planet seed monthDays = 91/3 with ltuDays M × 3 = Q (gated in tests/planet-ltu and tests/financial-surface)",
-   "dtm": "on the phone: Unit → per month (30.333 days) shows ,200 per 33 days as ,941.41; per quarter (91 days) as ,824.24",
+   "dtm": "on the phone: Unit → per month (30.333 days) shows $3,200 per 33 days as $2,941.41; per quarter (91 days) as $8,824.24",
    "stretch": "the same month on the chart's clock ladder",
    "in": "FIN-06.10.IN",
    "out": "FIN-06.10.OUT",

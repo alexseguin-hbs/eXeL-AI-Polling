@@ -359,6 +359,13 @@
    "kind": "release",
    "text": "v.000_r.025 SHIPPED — the chart with the Clock left, calendar dates at 30° and a gear, a tap for the day and time, no 180-minute mark, the 'Your deposits' list removed; the Trinity wheel behind a bare arrow with rings 웃 HI · ◬ AI · ♡ SI; 30.3̅ everywhere; the subtitle names Measure of Time. FIN-07.04 · FIN-01.04 · FIN-10.01 · FD-41 · FD-42 · FD-43. Shipped as cf7c0f6. Gates: financial-mot 80 · financial-surface 105 · vector-law 29 · financial-crs 484 · full test:ci 0 · next build 0.",
    "commit": "cf7c0f6"
+  },
+  {
+   "rev": 52,
+   "date": "2026-09-30",
+   "kind": "correction",
+   "text": "r.026 correction — the plain bugs of the HI-intent check (e835b32): the refusal names the first short minute exactly; two same-time entries are both recorded; the Day and time clears after a save; the chart reads a tap and no longer traps the page scroll; reopening keeps the picked type; the Admin panel takes decimals; edit mode keeps small-unit precision; October over the days; the empty-axis fallback; 36 px targets; the record's lost dollar signs restored. No design he chose changes; the open choices are asked.",
+   "commit": "e835b32"
   }
  ]
 }
