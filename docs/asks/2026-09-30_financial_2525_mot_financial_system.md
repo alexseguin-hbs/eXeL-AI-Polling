@@ -539,6 +539,15 @@
 >
 > I ASKED 3 x now to redo text for attached header
 
+> (addendum 78, verbatim — 2026-10-01 10:29 AM, screenshots 2026-10-01_financial_fb78_01_glyphs.jpg (the header with ◬ ♡ 웃, r.039 build) and fb78_02_trinity.png (the Trinity wheel at the bottom, opened))
+> and replace ◬ ♡ 웃 with trinity logo (eithout any text) that is same color as selected color in setting selected
+>
+> smaller version must be 1/3rd size of existing and replace ◬ ♡ 웃
+>
+> when clicked, expand Trinity to current size with text exactly like image 2
+>
+> ask questions if ya have em
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
