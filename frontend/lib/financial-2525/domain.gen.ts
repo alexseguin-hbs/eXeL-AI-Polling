@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.016",
-  "stamp": "v.000_r.016",
+  "revision": "0.017",
+  "stamp": "v.000_r.017",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "9ee4f6e7a6ec41c1e9556caa6eb8f003640a789d85a8e49c7c0c3c167708fdfb",
+  "handoffSha256": "ffec2e50e958a7e0cc28df06eea72e6419bf686ce977da3e1e01b7c94a3ef063",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -136,6 +136,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "9ee4f6e7a6ec41c1e9556caa6eb8f003640a789d85a8e49c7c0c3c167708fdfb",
     "date": "2026-09-30",
     "note": "+ addendum 28 (\"add edit mode and icon on budget mode\"; reading item 36: the person's plan behind a pencil)"
+   },
+   {
+    "sha256": "ffec2e50e958a7e0cc28df06eea72e6419bf686ce977da3e1e01b7c94a3ef063",
+    "date": "2026-09-30",
+    "note": "+ addendum 29 (\"your deposit withdrawal floats; very odd\"; reading item 37: nothing on the surface floats)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -275,6 +280,15 @@ export const FINANCIAL_DOMAIN = {
    "why": "The budget has an EDIT mode behind an icon (operator addendum 28 'add edit mode and icon on budget mode', with his phone screenshot of the r.011 ladder). lib/financial-2525/plan.ts (pure): the person's plan starts as the sheet; an amount is typed in the unit the person has picked and STORED ON THE 33-DAY BASE (FD-25's fixed factors) — a non-number or a negative figure is refused; a line is added on any FLOW field A–M once (N–T refused: the Balance view, never per period); a line is removed; the plan is saved on the device under the person's own key (the record's scope, FD-18) and a malformed copy is dropped line by line; Reset clears it and the sheet stands. The surface: a pencil icon beside the budget's title (a signed-in person only; the check closes; the pressed state a stroke ring), every line's amount an input in edit mode held as a draft while typing so the once-a-second clock never eats a half-typed figure, × removes, an add row (section → a field not yet on the plan, full-width pickers, inline — the picker law), Reset to the sheet; every section total and Net follow the plan. Five keys staged (fin.edit · fin.done · fin.add_line · fin.remove_line · fin.reset_sheet). FIN-06.08 · FD-31.",
    "commit": "a1c4d30",
    "shipped": "8d73af3"
+  },
+  {
+   "revision": "0.017",
+   "date": "2026-09-30",
+   "kind": "correction",
+   "why": "Nothing on the surface floats (operator addendum 29 'your deposit withdrawal floats; very odd', with his phone screenshot of the strip hanging mid-air over the budget table). THE CLASS: r.002's phone strip (released · available · the phase · DEPOSIT · Withdraw) was a FIXED element positioned 56 px above the viewport's bottom against the app bar's ASSUMED height; when that bar slides away on a scroll the strip hangs over the content. Fix: the strip leaves the fixed layer and becomes the last row of the Released card in normal flow — the same words, the same two buttons; the surface's phone padding shrinks from the strip-plus-bar allowance to the bar's own height; the surface gate refuses any fixed or sticky element inside the surface. Measured on the export: the R-CORE icon beneath the badge is still the element under its own centre. FIN-07.01 · FD-32.",
+   "commit": "5869220",
+   "shipped": "PENDING",
+   "correction": "r.002–r.016 shipped a fixed strip; r.014's lesson (a behaviour claim needs a measured probe) extends to layout against another element: an overlay positioned against an assumed height is a floating element waiting to happen."
   }
  ],
  "mot": {
@@ -1121,6 +1135,25 @@ export const FINANCIAL_DOMAIN = {
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-07.01",
+   "title": "Nothing on the surface floats — the strip is the Released card's last row",
+   "section": "V",
+   "uwf": [
+    "U-WF-06",
+    "U-WF-09"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "No element of Financial-2525 is fixed or sticky over the content: the strip that reads released · available · the phase with the DEPOSIT and Withdraw buttons sits as the last row of the Released card in normal flow, on the phone and on the desk alike; the page's own bottom padding clears the app's bottom bar and nothing else.",
+   "metric": "source: no className with fixed or sticky and no position fixed inside command-ux1.tsx; the strip (data-testid fin-strip) is inside data-fin-balance with released · available and openForm(\"withdrawal\"); the root pads pb-20 on the phone. Glass: the R-CORE icon beneath the badge is the element at its own centre (the r.014 probe pattern)",
+   "dtm": "on the phone: scroll anywhere — nothing hovers over the table; the strip reads under the Released figure",
+   "stretch": "a sticky Released figure only if the operator asks for one, positioned against the viewport, never against another element",
+   "in": "FIN-07.01.IN",
+   "out": "FIN-07.01.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -1309,6 +1342,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The budget is the person's PLAN: edited behind an icon, typed in the unit on the glass and stored on the 33-day base, one line per FLOW field (N–T never), saved on the device under the person's key with Reset to the sheet. The sheet stays the read-only example for a visitor.",
    "status": "OPERATOR",
    "basis": "addendum 28 (verbatim: 'add edit mode and icon on budget mode'); reading item 36; FD-18 (the device scope), FD-25 (the fixed factors)"
+  },
+  {
+   "id": "FD-32",
+   "decision": "Nothing on the surface floats. No element of Financial-2525 is fixed or sticky over the content; a control that must be reachable sits in normal flow where its subject is. A fixed element positioned against another element's assumed height is refused by the surface gate.",
+   "status": "OPERATOR",
+   "basis": "addendum 29 (verbatim: 'your deposit withdrawal floats; very odd'); reading item 37"
   }
  ],
  "reviews": [

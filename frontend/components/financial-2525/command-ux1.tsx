@@ -266,10 +266,10 @@ export function FinancialCommandUX1() {
     return null;
   };
 
-  // pb-32 on the phone: the fixed strip (bottom-14, ~52 px) and the nav beneath it cover the page's last ~108 px, so the page's
-  // last element — the R-CORE badge and its maximized icon — must sit above them (measured 2026-09-30, the R-CORE toggle).
+  // pb-20 on the phone: the app's bottom bar (56 px) covers the page's last rows, so the page's last element — the R-CORE badge and
+  // its maximized icon — sits above it (measured 2026-09-30; r.017 took the fixed strip out of the way, nothing on this surface floats).
   return (
-    <div data-financial-ux1 className="mx-auto max-w-3xl px-4 pb-32 pt-10 sm:pb-10">
+    <div data-financial-ux1 className="mx-auto max-w-3xl px-4 pb-20 pt-10 sm:pb-10">
       {/* Header — the Session's: the globe, the Trinity glyphs, the title ───────────────────────── */}
       <header className="mb-8 text-center">
         <div className="mb-2 flex justify-end"><SoiGlobe /></div>
@@ -315,6 +315,14 @@ export function FinancialCommandUX1() {
               {focusView && <li>{hhmmss(Math.max(0, at - focus!.atMs))} {t("fin.elapsed")}{showAbc ? ` · ${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : ""}</li>}
             </ul>
           )}
+          {/* THE STRIP (r.002's CriticalStrip) IN NORMAL FLOW (r.017, operator addendum 29 "your deposit withdrawal floats; very odd"):
+              it was FIXED 56 px above the viewport's bottom against the app bar's assumed height and hung mid-air when that bar slid
+              away. Nothing on this surface floats: the same words and the same two buttons, the last row of the Released card. */}
+          <div className="mt-2 flex items-center gap-2 border-t border-border pt-2 text-xs" data-testid="fin-strip">
+        <span className="min-w-0 flex-1 truncate font-mono tabular-nums">{usd(bal.releasedCents)} · {usd(bal.availableCents)}</span>
+        <span className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] uppercase" style={{ borderColor: hue.bright, color: hue.bright }}>{t(phaseDef.labelKey)}</span>
+        {owner && <button type="button" onClick={() => openForm("withdrawal")} disabled={bal.availableCents <= 0} className="min-h-[36px] disabled:opacity-50 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.withdraw")}</button>}
+          </div>
         </div>
 
         {/* the chart — strokes only, day · hour · minute by default, A.B..C on reveal */}
@@ -467,12 +475,6 @@ export function FinancialCommandUX1() {
         </details>
       </section>
 
-      {/* the phone strip — the Session's CriticalStrip: what is released, the phase, Withdraw */}
-      <div className="fixed inset-x-0 bottom-14 z-[60] mx-auto flex max-w-3xl items-center gap-2 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:hidden" data-testid="fin-strip">
-        <span className="min-w-0 flex-1 truncate font-mono tabular-nums">{usd(bal.releasedCents)} · {usd(bal.availableCents)}</span>
-        <span className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] uppercase" style={{ borderColor: hue.bright, color: hue.bright }}>{t(phaseDef.labelKey)}</span>
-        {owner && <button type="button" onClick={() => openForm("withdrawal")} disabled={bal.availableCents <= 0} className="min-h-[36px] disabled:opacity-50 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.withdraw")}</button>}
-      </div>
 
       <p className="mt-6 text-center text-[11px] text-muted-foreground">{SRC.project.stamp} · {stamp} · <TrinityGlyphs inline size="text-[11px]" /></p>
 
