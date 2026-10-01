@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.040",
-  "stamp": "v.000_r.040",
+  "revision": "0.041",
+  "stamp": "v.000_r.041",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "52c2eaaa2cedc4cb1b5f81ccbecaad0dc550a64d16a5153855cc0d51875b5682",
+  "handoffSha256": "fa07f4f6b435f0063069d7a124c5e886ac4b3b0a6dc2a7af5a174bf9960b9b32",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -251,6 +251,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "52c2eaaa2cedc4cb1b5f81ccbecaad0dc550a64d16a5153855cc0d51875b5682",
     "date": "2026-10-01",
     "note": "+ addendum 76 (every message of 8:39–9:58 AM, his four answers); reading items 77–82"
+   },
+   {
+    "sha256": "fa07f4f6b435f0063069d7a124c5e886ac4b3b0a6dc2a7af5a174bf9960b9b32",
+    "date": "2026-10-01",
+    "note": "+ addendum 77 (TRANSACTION RECORD, his third ask)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -584,6 +589,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "One line per budget entry. Addendum 75: \"try reducing each entry on line (maybe make … or scroll to see rest of text) if you cant reduce text · for instance personal fitness should be fitness.\" Every budget line on the Personal budget table shows a short name on one row (46 short names, e.g. Mental Health / Physical Fitness → Fitness, Income / Wages (take-home) → Wages); a name that still overflows ends in …; the full name is the row title (hold / hover) and stays in the pickers and the record.",
    "commit": "87e37c5",
    "shipped": "61a563d"
+  },
+  {
+   "revision": "0.041",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "TRANSACTION RECORD and REAL-TIME FINANCIALS. Addenda 76–77: \"THE RECORD · CHAIN VERIFIED · 3 becomes TRANSACTION RECORD\" (asked three times) and \"call this: REAL-TIME FINANCIALS\". The record header reads Transaction Record (a broken chain is still said beside it); the chart header reads Real-Time Financials, the elapsed time staying in the line under it.",
+   "commit": "2230e15",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2005,6 +2018,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "Each budget line is one row: a short name (≤16 characters) on the table, … if it overflows, the full name as the row title and in the pickers and the record.",
    "status": "OPERATOR",
    "basis": "addendum 75 (verbatim); the short names are mine to check with him"
+  },
+  {
+   "id": "FD-58",
+   "decision": "The record header reads TRANSACTION RECORD; the chart header reads REAL-TIME FINANCIALS.",
+   "status": "OPERATOR",
+   "basis": "addenda 76–77 (verbatim)"
   }
  ],
  "reviews": [

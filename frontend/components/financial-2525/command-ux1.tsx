@@ -495,7 +495,7 @@ export function FinancialCommandUX1() {
         <details data-fin-ledger className={`group ${SUB}`}>
           <summary className="flex min-h-[36px] cursor-pointer list-none items-center gap-1" aria-label={t("fin.record_toggle")}>
             <ChevronRight size={14} strokeWidth={1.5} aria-hidden className="transition-transform group-open:rotate-90" />
-            <span className={LABEL}>{t("fin.ledger_title")} · {owner && tampered ? t("fin.chain_broken") : t("fin.chain_ok")} · {owner ? record.entries.length : 1}</span>
+            <span className={LABEL}>{t("fin.tx_record")}{owner && tampered ? ` · ${t("fin.chain_broken")}` : ""}</span>   {/* r.041 (addenda 76–77): "TRANSACTION RECORD"; a broken chain is still said */}
           </summary>
           <div data-fin-ledger-scroll className="mt-2 overflow-x-auto">
             <table data-fin-ledger-table className="min-w-full whitespace-nowrap font-mono text-xs text-muted-foreground">
@@ -649,7 +649,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   return (
     <div data-fin-chart className={SUB}>
       {/* r.028 (addendum 58): no "Money as time — this MoT" phrase; Planet on the LEFT, the Clock · MoT toggle and the gear on the RIGHT */}
-      <div className={LABEL}>{showAbc ? `${fmtMot(elapsedAbc)} / ${fmtMot(motAbc)} ${t("fin.a_units")}` : `${ltuLabel(elapsed, len, planet)} ${t("fin.elapsed")}`}</div>
+      <div className={LABEL}>{t("fin.realtime")}</div>   {/* r.041 (addendum 76 "call this: REAL-TIME FINANCIALS"); the elapsed time stays in the line below */}
       <div data-fin-chart-controls className="mt-2 flex items-center justify-between gap-2">
         {selector}
         <div className="flex items-center gap-2">

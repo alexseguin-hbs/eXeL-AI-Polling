@@ -224,5 +224,9 @@ ok(/data-fin-cell="escrowed" className="text-left"/.test(ux) && /data-fin-cell="
   ok(/<td data-fin-line-name className="max-w-0 truncate whitespace-nowrap[^"]*" title=\{fieldLabel\(l\.fieldId\)\}>[^\n]*\{shortLabel\(l\.fieldId\)\}<\/td>/.test(ux), "the budget row shows the short name on one line, ends in … if it overflows, and carries the full name as its title");
 }
 
+// ── r.041 (addenda 76–77): the record reads TRANSACTION RECORD; the chart reads REAL-TIME FINANCIALS ──
+ok(/<span className=\{LABEL\}>\{t\("fin\.tx_record"\)\}/.test(ux) && !/t\("fin\.ledger_title"\)/.test(ux) && /"fin\.tx_record", englishDefault: "Transaction Record"/.test(fs.readFileSync("lib/lexicon-data.ts", "utf8")), "r.041 (his third ask): the record header reads TRANSACTION RECORD — no 'The record · Chain verified · 3'");
+ok(/<div className=\{LABEL\}>\{t\("fin\.realtime"\)\}<\/div>/.test(ux) && /"fin\.realtime", englishDefault: "Real-Time Financials"/.test(fs.readFileSync("lib/lexicon-data.ts", "utf8")), "r.041: the chart header reads REAL-TIME FINANCIALS");
+
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

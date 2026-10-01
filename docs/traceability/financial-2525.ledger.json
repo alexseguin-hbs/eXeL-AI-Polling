@@ -569,6 +569,13 @@
    "kind": "release",
    "text": "r.040 shipped and LIVE (Verify Live #2155 poll ✓) — one line per budget entry (FD-57).",
    "commit": "61a563d"
+  },
+  {
+   "rev": 82,
+   "date": "2026-10-01",
+   "kind": "decision",
+   "text": "r.041 decision — TRANSACTION RECORD; REAL-TIME FINANCIALS (FD-58).",
+   "commit": "2230e15"
   }
  ]
 }
