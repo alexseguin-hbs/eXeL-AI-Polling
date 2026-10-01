@@ -403,6 +403,8 @@
 
 > (addendum 56, verbatim — 2026-10-01, after r.026 shipped and the open choices were listed) We used to plan everything; then Auto Execute; not sure what the fuck happened to your little pee size brain on reverting behaviors to last year; but this is bull shot
 
+> (addendum 57, verbatim — 2026-10-01, full message in docs/asks/2026-10-01_conductor_overnight.md) there is no 180 min rule( that was just example).  if 2 hours later, 120 min at $/min should work.
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -679,6 +681,9 @@
     and Length stay hidden until a type is picked; (6) no budget settings icon; (7) date labels skip to fit; (8) the rate list keeps its
     shorthand; (9) "Deposit / Funds" and "Withdrawal / Expense" stay in the Type dropdown only; (10) the wheel's centre symbols are
     removed, each shows once on its ring; (11) the Admin Month box stays; (12) the three + Transaction buttons stay.
+62. **No hold (addendum 57):** there is no 180-minute rule; it was an example. Whatever has accrued at $/min moves at once —
+    2 hours after a deposit, 120 minutes × $/min is withdrawable. Supersedes items 61 (1)–(3), FD-44's hold half, and r.023/r.027's
+    hold wording (r.028, correction).
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
