@@ -14,6 +14,10 @@
      repo files, commits or the app.
   5. **His feedback comes first.** When a message repeats, the last revision missed — list what is fixed and what is not before
      building anything, and ask only when a choice is genuinely his.
+  6. **AsM review BEFORE every push (operator 2026-10-01: "always test simulate and get feedback from AsM before wasting HI Thought
+     Master inputs").** Every revision is simulated on the built page and reviewed by the AsM reviewer lenses against his own words
+     before it is pushed; their findings are fixed first. The operator is the last check, never the first.
+  7. **Push and commit first; notes can come later — the operator must be able to check.** Release notes never delay a push.
 - **PERSIST FIRST, PLAN SECOND, APPROVE THIRD (AAR 2026-08-28, MoT-enforced).** Anything the operator hands
   over that he cannot easily reproduce — approved copy, a decision, a specification — is **written to a file
   before any analysis, planning, or request for approval**. Proof of persistence is a **hash the operator can

@@ -548,6 +548,12 @@
 >
 > ask questions if ya have em
 
+> (addendum 79, verbatim — 2026-10-01, after a Cloudflare Deployments screenshot and "Let me know when revision 40 is online")
+> see discrepancies in LIVE vs cloude flare
+> PUSH AND COMMIT; botes can come put later.  most inportant is HI CAN CHECK
+> master of Thought; did AsM s review before pushing?  if not commit and review and update due to your lack of fucking following past implementations
+> always test simulate and get feedback from AsM before wasting HI Thought Master inputs
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
