@@ -337,39 +337,6 @@ export function FinancialCommandUX1() {
         {/* r.028: "Money as time — this MoT" is gone everywhere (addendum 58); the two lines live in the header */}
         <PodPhaseRail phase={phase} phases={FIN_PHASES} countFor={countFor} />
 
-        {/* ONE + Transaction, primary, at the top (r.028, addendum 58 "there should be one primary at top"; the gold box is gone) */}
-        {owner && (
-          <div data-fin-tx-top>
-            {saveFailed && <p className="mb-2 text-sm text-amber-500">{t("fin.save_failed")}</p>}
-            {/* + Transaction (r.023): folded until pressed — the one door (r.028) */}
-            {!formOpen ? (
-            <button type="button" data-fin-tx-open aria-expanded={false} onClick={openForm} className={`mb-4 w-full ${PRIMARY}`}>{t("fin.tx_open")}</button>
-            ) : (
-            <div id="fin-transaction-form" className={SUB} data-testid="fin-transaction-form" data-fin-tx-type={txType || "none"}>
-              <div className="flex items-center justify-between gap-2">
-                <div className={LABEL}>{t("fin.transaction")}</div>
-                <button type="button" data-fin-tx-close aria-expanded={true} aria-label={t("fin.tx_close")} title={t("fin.tx_close")} onClick={foldForm} className="rounded-md border border-border p-1"><X size={14} strokeWidth={1.5} aria-hidden /></button>
-              </div>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.type")}
-                  <select data-fin-type className={PICK} value={txType} onChange={(e) => chooseType(e.target.value as TxKind | "")}>
-                    <option value="" disabled>{t("fin.type_select")}</option>
-                    <option value="deposit">{t("fin.type_deposit")}</option>
-                    <option value="withdrawal">{t("fin.type_withdrawal")}</option>
-                  </select>
-                </label>
-                <label className="text-xs text-muted-foreground">{t("fin.amount")}<input className={INPUT} inputMode="decimal" value={amt} onChange={(e) => setAmt(e.target.value)} /></label>
-                <label className="text-xs text-muted-foreground">{t("fin.when")}<input className={INPUT} value={when} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setWhen(e.target.value)} /></label>
-                {/* r.027 (decision 5): Section, Field and Length appear only once a type is picked — nothing is chosen for the person */}
-                {txType && <LadderPicker section={sec} field={field} rec={rec} onSection={setSec} onField={setField} onRec={setRec} otherN={otherN} onOtherN={setOtherN} otherUnit={otherUnit} onOtherUnit={setOtherUnit} t={t} hook="transaction" />}
-                <label className="text-xs text-muted-foreground">{t("fin.memo")}<input className={INPUT} value={memo} onChange={(e) => setMemo(e.target.value)} /></label>
-              </div>
-              <button type="button" data-fin-record disabled={!txType} className={`mt-2 ${txType === "withdrawal" ? SECONDARY : PRIMARY} disabled:opacity-50`} onClick={recordTransaction}>{txType === "withdrawal" ? t("fin.withdraw") : t("fin.record_it")}</button>
-              {refusal && <p className="mt-2 text-sm text-red-500">{t("fin.refused")} · {refusal}</p>}
-            </div>
-            )}
-          </div>
-        )}
         {!owner && <p className="mb-4 text-xs text-primary" data-fin-example>{t("fin.example_badge")}</p>}
 
         {/* ACCRUAL UNITS (r.028, addendum 58): the current balance on the LEFT; the $/min figure and its unit selector on the RIGHT; a
@@ -395,9 +362,14 @@ export function FinancialCommandUX1() {
               <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
             </div>
           </div>
-          <div data-fin-current className="mt-2 min-w-0">
-            <div className="text-xs text-muted-foreground">{t("fin.available")}:</div>
-            <div className="font-mono text-2xl tabular-nums text-primary" data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
+          {/* r.037 (addendum 70 "place smaller transaction button in box with accrual units. remove big pink transaction button"): the one
+              door, compact, on the Available row; the entry opens directly below this card */}
+          <div className="mt-2 flex items-end justify-between gap-3">
+            <div data-fin-current className="min-w-0">
+              <div className="text-xs text-muted-foreground">{t("fin.available")}:</div>
+              <div className="font-mono text-2xl tabular-nums text-primary" data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
+            </div>
+            {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} className="min-h-[36px] shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
           </div>
           {/* r.029 (addendum 60 "doesn't this seem duplicative?"): Available is the big figure above, so the grid is three boxes —
               In Escrow · Released · Spent; what each one means is in the gear */}
@@ -422,6 +394,38 @@ export function FinancialCommandUX1() {
             </ul>
           )}
         </div>
+
+        {/* the entry, folded until + Transaction is pressed (r.023), directly below the Accrual Units card (r.037); a failed save is said
+            outside the fold so folding never hides it */}
+        {owner && (
+          <div data-fin-tx-top>
+            {saveFailed && <p className="mb-2 text-sm text-amber-500">{t("fin.save_failed")}</p>}
+            {formOpen && (
+            <div id="fin-transaction-form" className={SUB} data-testid="fin-transaction-form" data-fin-tx-type={txType || "none"}>
+              <div className="flex items-center justify-between gap-2">
+                <div className={LABEL}>{t("fin.transaction")}</div>
+                <button type="button" data-fin-tx-close aria-expanded={true} aria-label={t("fin.tx_close")} title={t("fin.tx_close")} onClick={foldForm} className="rounded-md border border-border p-1"><X size={14} strokeWidth={1.5} aria-hidden /></button>
+              </div>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.type")}
+                  <select data-fin-type className={PICK} value={txType} onChange={(e) => chooseType(e.target.value as TxKind | "")}>
+                    <option value="" disabled>{t("fin.type_select")}</option>
+                    <option value="deposit">{t("fin.type_deposit")}</option>
+                    <option value="withdrawal">{t("fin.type_withdrawal")}</option>
+                  </select>
+                </label>
+                <label className="text-xs text-muted-foreground">{t("fin.amount")}<input className={INPUT} inputMode="decimal" value={amt} onChange={(e) => setAmt(e.target.value)} /></label>
+                <label className="text-xs text-muted-foreground">{t("fin.when")}<input className={INPUT} value={when} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setWhen(e.target.value)} /></label>
+                {/* r.027 (decision 5): Section, Field and Length appear only once a type is picked — nothing is chosen for the person */}
+                {txType && <LadderPicker section={sec} field={field} rec={rec} onSection={setSec} onField={setField} onRec={setRec} otherN={otherN} onOtherN={setOtherN} otherUnit={otherUnit} onOtherUnit={setOtherUnit} t={t} hook="transaction" />}
+                <label className="text-xs text-muted-foreground">{t("fin.memo")}<input className={INPUT} value={memo} onChange={(e) => setMemo(e.target.value)} /></label>
+              </div>
+              <button type="button" data-fin-record disabled={!txType} className={`mt-2 ${txType === "withdrawal" ? SECONDARY : PRIMARY} disabled:opacity-50`} onClick={recordTransaction}>{txType === "withdrawal" ? t("fin.withdraw") : t("fin.record_it")}</button>
+              {refusal && <p className="mt-2 text-sm text-red-500">{t("fin.refused")} · {refusal}</p>}
+            </div>
+            )}
+          </div>
+        )}
 
         {/* the chart — strokes only, day · hour · minute by default, A.B..C on reveal */}
         {focus && (

@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.036",
-  "stamp": "v.000_r.036",
+  "revision": "0.037",
+  "stamp": "v.000_r.037",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "f06b33e8880e86d93e1d9df9c30e915f7685e9e811ded6688a4eb550c9b88c5f",
+  "handoffSha256": "4a423a1376ab41e9f1402c81ecd82ad9918bda9b28b8ca2f597e52900dfb7510",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -189,6 +189,16 @@
     "sha256": "f06b33e8880e86d93e1d9df9c30e915f7685e9e811ded6688a4eb550c9b88c5f",
     "date": "2026-10-01",
     "note": "+ addendum 69 (the boxes spread); reading item 70"
+   },
+   {
+    "sha256": "16c80902eecc35d5979f0cb4b4006b40b8804cb355548f1328683c41beb58e23",
+    "date": "2026-10-01",
+    "note": "+ addendum 70 (the door in the card); reading item 71"
+   },
+   {
+    "sha256": "4a423a1376ab41e9f1402c81ecd82ad9918bda9b28b8ca2f597e52900dfb7510",
+    "date": "2026-10-01",
+    "note": "+ addendum 71 (release notes with before/after images every release); reading item 72"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -490,6 +500,14 @@
    "why": "Addendum 69: \"spread 3 fields evenly full width of box.\" The three Accrual Units boxes now span the card: In Escrow on the left edge, Released centred, Spent on the right edge.",
    "commit": "751b207",
    "shipped": "483401c"
+  },
+  {
+   "revision": "0.037",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "Addendum 70: \"place smaller transaction button in box with accrual units. remove big pink transaction button.\" The full-width + Transaction button above the card is removed; a compact + Transaction sits inside the Accrual Units card, on the Available row at the right. Pressing it opens the same entry directly below the card (type blank until picked; folds back after a save; the X folds it). Still one door.",
+   "commit": "e285b38",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1887,6 +1905,12 @@
    "decision": "The three Accrual Units boxes span the card evenly: left edge · centre · right edge.",
    "status": "OPERATOR",
    "basis": "addendum 69 (verbatim)"
+  },
+  {
+   "id": "FD-54",
+   "decision": "The one + Transaction door is compact and sits inside the Accrual Units card (Available row, right); the big button is gone; the entry opens below the card.",
+   "status": "OPERATOR",
+   "basis": "addendum 70 (verbatim)"
   }
  ],
  "reviews": [

@@ -513,6 +513,13 @@
    "kind": "release",
    "text": "r.036 shipped — the three boxes spread (FD-53).",
    "commit": "483401c"
+  },
+  {
+   "rev": 74,
+   "date": "2026-10-01",
+   "kind": "decision",
+   "text": "r.037 decision — the + Transaction door compact, inside the Accrual Units card (FD-54).",
+   "commit": "e285b38"
   }
  ]
 }
