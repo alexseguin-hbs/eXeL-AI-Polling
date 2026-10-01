@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 59 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 60 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -422,6 +422,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.029 shipped — three Accrual Units boxes (FD-46).",
       "commit": "0add99b"
+    },
+    {
+      "rev": 60,
+      "date": "2026-10-01",
+      "kind": "decision",
+      "text": "r.030 decision — the year card's own Clock / MoT toggle, standard by default, MoT unlocks the orbital rows (FD-47).",
+      "commit": "5f4f18d"
     }
   ]
 };

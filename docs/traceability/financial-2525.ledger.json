@@ -415,6 +415,13 @@
    "kind": "release",
    "text": "r.029 shipped — three Accrual Units boxes (FD-46).",
    "commit": "0add99b"
+  },
+  {
+   "rev": 60,
+   "date": "2026-10-01",
+   "kind": "decision",
+   "text": "r.030 decision — the year card's own Clock / MoT toggle, standard by default, MoT unlocks the orbital rows (FD-47).",
+   "commit": "5f4f18d"
   }
  ]
 }

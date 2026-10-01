@@ -110,6 +110,15 @@ function LadderPicker({ section, field, rec, onSection, onField, onRec, otherN, 
 /** The Released card's rate units (r.024, addendum 46): shorthand on the glass, per hour by default. */
 type RateUnit = "sec" | "min" | "hr" | "day";
 const RATE_UNITS: readonly RateUnit[] = ["sec", "min", "hr", "day"];
+/** The Clock ⇄ MoT pair (r.025 on the chart; r.030 the year card too, addendum 61): Clock = standard, MoT = the orbit's A.B..C. */
+function ClockMotToggle({ abc, onChange, t, hook }: { abc: boolean; onChange: (v: boolean) => void; t: (k: string) => string; hook: string }) {
+  return (
+    <div role="group" data-fin-abc-toggle={hook} className="flex overflow-hidden rounded-md border border-border">
+      <button type="button" aria-pressed={!abc} aria-label={t("fin.show_ltu")} title={t("fin.show_ltu")} onClick={() => onChange(false)} className={`flex h-8 w-9 items-center justify-center ${!abc ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}><Clock size={16} strokeWidth={1.5} aria-hidden /></button>
+      <button type="button" aria-pressed={abc} aria-label={t("fin.show_abc")} title={t("fin.show_abc")} onClick={() => onChange(true)} className={`flex h-8 w-9 items-center justify-center ${abc ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}><Orbit size={16} strokeWidth={1.5} aria-hidden /></button>
+    </div>
+  );
+}
 /** The chart's date-text angles (r.028, addendum 58): flat, 30° (default), 45°, upright. */
 const DATE_ANGLES = [0, 30, 45, 90] as const;
 type DateAngle = (typeof DATE_ANGLES)[number];
@@ -153,6 +162,7 @@ export function FinancialCommandUX1() {
   const dayMs = daySecOf(planet) * 1000;                       // one LTU day of the selected planet (Earth hours for every planet for now)
   // ONE reveal state for the whole card: the MoT icon (A.B..C) ⇄ the Clock icon (the planet's LTU) — addendum 13
   const [showAbc, setShowAbc] = useState(false);
+  const [yearAbc, setYearAbc] = useState(false);                 // r.030 (addendum 61): the year card's own toggle, standard by default
   const [rateUnit, setRateUnit] = useState("hr" as RateUnit);
   const [accrualGear, setAccrualGear] = useState(false);          // r.028: the Accrual Units settings, closed by default   // r.024: the Released card's rate, per hour by default (addendum 46)
   // r.025 (addendum 42 + his answer "Gear on the chart"): the chart's date format, 2026.10.01 by default, remembered on this phone
@@ -405,17 +415,22 @@ export function FinancialCommandUX1() {
           const dayIdx = year.day - 1;
           const month = year.down ? null : Math.floor(dayIdx / monthDays) + 1;
           const dayInMonth = year.down ? null : Math.floor(dayIdx - (month! - 1) * monthDays) + 1;
+          // standard by default; the MoT icon unlocks the orbital rows — the perihelion and the A.B..C position (addendum 61)
           const rows: [string, string][] = [
-            ...(planet.code === "earth" ? [[t("fin.perihelion_cst"), `${fmtStampCST(year.startMs)} CST`] as [string, string]] : []),
+            ...(yearAbc && planet.code === "earth" ? [[t("fin.perihelion_cst"), `${fmtStampCST(year.startMs)} CST`] as [string, string]] : []),
             [t("fin.year_today"), `${fmtStampCST(at)} CST`],
-            [t("fin.day"), showAbc ? fmtMot(year.abc) : `${year.day} / ${Math.ceil(year.lengthDays)}${year.pastFull ? " ↑" : ""}`],
+            ...(yearAbc ? [[t("fin.orbit_position"), fmtMot(year.abc)] as [string, string]] : []),
+            [t("fin.day"), `${year.day} / ${Math.ceil(year.lengthDays)}${year.pastFull ? " ↑" : ""}`],
             [t("fin.quarter"), year.down ? t("fin.down_day") : `${year.quarter} · ${year.dayInQuarter} / 91`],
             [t("fin.month"), month === null ? t("fin.down_day") : `${month} · ${dayInMonth} / ${fmtDays(monthDays)}`],
             [t("fin.year"), `${year.year} · ${year.status}`],
           ];
           return (
             <div data-fin-year className={SUB} data-fin-past-full={year.pastFull ? "1" : undefined}>
-              <div className={LABEL}>{t("fin.year_position")}</div>
+              <div className="flex items-center justify-between gap-2">
+                <div className={LABEL}>{yearAbc ? t("fin.year_position") : t("fin.year_title")}</div>
+                <ClockMotToggle abc={yearAbc} onChange={setYearAbc} t={t} hook="year" />
+              </div>
               <table data-fin-year-table className="mt-2 w-full text-xs">
                 <tbody>
                   {rows.map(([k, v], n) => (
@@ -621,10 +636,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
         {selector}
         <div className="flex items-center gap-2">
           {/* the Clock on the LEFT, the MoT on the RIGHT (addendum 42): two strokes, the pressed one ringed, never filled */}
-          <div role="group" data-fin-abc-toggle className="flex overflow-hidden rounded-md border border-border">
-            <button type="button" aria-pressed={!showAbc} aria-label={t("fin.show_ltu")} title={t("fin.show_ltu")} onClick={() => onToggle(false)} className={`flex h-8 w-9 items-center justify-center ${!showAbc ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}><Clock size={16} strokeWidth={1.5} aria-hidden /></button>
-            <button type="button" aria-pressed={showAbc} aria-label={t("fin.show_abc")} title={t("fin.show_abc")} onClick={() => onToggle(true)} className={`flex h-8 w-9 items-center justify-center ${showAbc ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}><Orbit size={16} strokeWidth={1.5} aria-hidden /></button>
-          </div>
+          <ClockMotToggle abc={showAbc} onChange={onToggle} t={t} hook="chart" />
           {/* the date format lives on the chart (his answer "Gear on the chart"), remembered on this phone */}
           <button type="button" data-fin-date-gear aria-expanded={gear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${gear ? "text-cyan-500" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
         </div>

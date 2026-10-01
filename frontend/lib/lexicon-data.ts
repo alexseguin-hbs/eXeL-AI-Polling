@@ -2948,6 +2948,8 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.def.escrowed", englishDefault: "deposited but not yet released; it releases at $/min over the deposit length", context: "Financial-2525: settings line explaining In Escrow", cubeId: 0 },
   { key: "fin.def.released", englishDefault: "what has accrued from your deposits so far, at $/min", context: "Financial-2525: settings line explaining Released", cubeId: 0 },
   { key: "fin.def.spent", englishDefault: "what your withdrawals have taken out so far", context: "Financial-2525: settings line explaining Spent", cubeId: 0 },
+  { key: "fin.year_title", englishDefault: "Year position", context: "Financial-2525: title of the year card in standard (clock) mode", cubeId: 0 },
+  { key: "fin.orbit_position", englishDefault: "Orbit position", context: "Financial-2525: year card row in MoT mode — where the planet is in its revolution, in A.B..C", cubeId: 0 },
   { key: "fin.hold_mark", englishDefault: "3-hour hold", context: "Financial-2525: the Released card's line naming when a deposit's accrued money becomes withdrawable (180 minutes after it lands; no longer drawn on the chart — r.025)", cubeId: 0 },
   { key: "fin.now", englishDefault: "NOW", context: "Financial-2525: chart legend for the vertical line at the present moment", cubeId: 0 },
   { key: "fin.chart_title", englishDefault: "Money as time — this MoT", context: "Financial-2525: heading of the real-time chart of one deposit over its length of time", cubeId: 0 },

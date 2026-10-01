@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.029",
-  "stamp": "v.000_r.029",
+  "revision": "0.030",
+  "stamp": "v.000_r.030",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "15f52dd5f09da09128e2066d1776d3b2d5d38deb5711b07bf9217560d10dd639",
+  "handoffSha256": "80e01e83448835a887dbc3d3f5dff825de6e70f3afa122baba76b84ccc184dea",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -181,6 +181,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "15f52dd5f09da09128e2066d1776d3b2d5d38deb5711b07bf9217560d10dd639",
     "date": "2026-10-01",
     "note": "+ addenda 59 (verbatim, screenshots on the r.027 build) and 60 (three boxes); reading item 63"
+   },
+   {
+    "sha256": "80e01e83448835a887dbc3d3f5dff825de6e70f3afa122baba76b84ccc184dea",
+    "date": "2026-10-01",
+    "note": "+ addendum 61 (the year card toggle); reading item 64"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -426,6 +431,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "His question on the live Accrual Units card (addendum 60): \"doesn't this seem duplicative? … In Escrow · Released · Spent. Since available is at top; users will see and understand link to released … or tell me why 4 fields and what each does (which should be in settings).\" Available is the big figure at the top, so the grid is three boxes — In Escrow · Released · Spent (Withdrawn renamed Spent; the repeated Available box is gone). The gear explains each figure: Available = released minus spent; In Escrow = deposited, not yet released, releasing at $/min; Released = accrued so far; Spent = taken out by withdrawals.",
    "commit": "7d81445",
    "shipped": "0add99b"
+  },
+  {
+   "revision": "0.030",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "Addendum 61: \"year position should have time / MoT icon and default to standard, when MoT is clicked orbital info unlocks.\" The year card gets its own Clock ⇄ MoT toggle (the same component as the chart's, shared), standard by default: Now · Day N/365 · Quarter · Month · Year. The MoT icon unlocks the orbital rows: the perihelion that opened the year (first) and the orbit position in A.B..C. The chart's toggle no longer drives the year card.",
+   "commit": "5f4f18d",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1781,6 +1794,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "Accrual Units shows Available once (the big figure) and three boxes: In Escrow · Released · Spent; the gear explains each figure.",
    "status": "OPERATOR",
    "basis": "addendum 60 (verbatim)"
+  },
+  {
+   "id": "FD-47",
+   "decision": "The year card has its own Clock / MoT toggle, standard by default; MoT unlocks the perihelion and the A.B..C orbit position.",
+   "status": "OPERATOR",
+   "basis": "addendum 61 (verbatim)"
   }
  ],
  "reviews": [
