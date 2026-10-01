@@ -1456,7 +1456,6 @@ const T: Record<string, string> = {
   "fin.section": "القسم",
   "fin.field": "الحقل",
   "fin.timeline": "المدة",
-  "fin.ladder_title": "سلّم المالية الشخصية A–M",
   "fin.stock_note": "النقد والاستثمارات والديون وصافي الثروة والائتمان والحماية والأهداف تظهر في عرض الميزانية — وليس بالدقيقة أبدًا",
   "fin.transaction": "معاملة",
   "fin.type": "النوع",

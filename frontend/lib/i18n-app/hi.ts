@@ -1457,7 +1457,6 @@ const T: Record<string, string> = {
   "fin.section": "अनुभाग",
   "fin.field": "फ़ील्ड",
   "fin.timeline": "अवधि",
-  "fin.ladder_title": "व्यक्तिगत वित्त सीढ़ी A–M",
   "fin.stock_note": "नकद, निवेश, ऋण, निवल संपत्ति, क्रेडिट, सुरक्षा और लक्ष्य बैलेंस दृश्य में रहते हैं — कभी प्रति मिनट नहीं",
   "fin.transaction": "लेन-देन",
   "fin.type": "प्रकार",

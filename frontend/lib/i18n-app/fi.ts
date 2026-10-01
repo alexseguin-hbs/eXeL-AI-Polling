@@ -1462,7 +1462,6 @@ const T: Record<string, string> = {
   "fin.section": "Osio",
   "fin.field": "Kenttä",
   "fin.timeline": "Aikajänne",
-  "fin.ladder_title": "Henkilökohtaisen talouden tikkaat A–M",
   "fin.stock_note": "Käteisvarat, sijoitukset, velat, nettovarallisuus, luotto, turva ja tavoitteet ovat Tase-näkymässä — eivät koskaan minuuttikohtaisia",
   "fin.transaction": "Tapahtuma",
   "fin.type": "Tyyppi",

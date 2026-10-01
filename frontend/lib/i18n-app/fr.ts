@@ -1399,7 +1399,6 @@ const T: Record<string, string> = {
   "fin.section": "Section",
   "fin.field": "Champ",
   "fin.timeline": "Périodicité",
-  "fin.ladder_title": "Échelle des finances personnelles A–M",
   "fin.stock_note": "Liquidités, placements, dettes, valeur nette, crédit, protection et objectifs vivent dans la vue Bilan — jamais à la minute",
   "fin.transaction": "Transaction",
   "fin.type": "Type",

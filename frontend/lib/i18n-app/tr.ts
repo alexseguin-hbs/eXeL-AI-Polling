@@ -1458,7 +1458,6 @@ const T: Record<string, string> = {
   "fin.section": "Bölüm",
   "fin.field": "Alan",
   "fin.timeline": "Periyot",
-  "fin.ladder_title": "Kişisel finans merdiveni A–M",
   "fin.stock_note": "Nakit, yatırımlar, borçlar, net varlık, kredi, koruma ve hedefler Bilanço görünümünde yer alır — asla dakika başına değil",
   "fin.transaction": "İşlem",
   "fin.type": "Tür",

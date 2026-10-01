@@ -1462,7 +1462,6 @@ const T: Record<string, string> = {
   "fin.section": "Sekcja",
   "fin.field": "Pole",
   "fin.timeline": "Okres",
-  "fin.ladder_title": "Drabina finansów osobistych A–M",
   "fin.stock_note": "Gotówka, inwestycje, długi, wartość netto, kredyt, ochrona i cele znajdują się w widoku Bilans — nigdy w ujęciu minutowym",
   "fin.transaction": "Transakcja",
   "fin.type": "Rodzaj",

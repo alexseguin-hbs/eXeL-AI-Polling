@@ -1460,7 +1460,6 @@ const T: Record<string, string> = {
   "fin.section": "Розділ",
   "fin.field": "Поле",
   "fin.timeline": "Період",
-  "fin.ladder_title": "Драбина особистих фінансів A–M",
   "fin.stock_note": "Готівка, інвестиції, борги, чисті активи, кредит, захист і цілі живуть у поданні «Баланс» — ніколи похвилинно",
   "fin.transaction": "Транзакція",
   "fin.type": "Тип",

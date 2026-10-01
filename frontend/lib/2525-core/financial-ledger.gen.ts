@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 35 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 36 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -254,6 +254,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "v.000_r.017 SHIPPED — nothing on the surface floats: the strip is the Released card's last row in normal flow; the gate refuses any fixed or sticky element. FIN-07.01 · FD-32. Shipped as 233417c. Gates: financial-surface 86 · financial-crs 380 · full test:ci 0 · next build 0.",
       "commit": "233417c"
+    },
+    {
+      "rev": 36,
+      "date": "2026-09-30",
+      "kind": "decision",
+      "text": "r.018 decided (operator addendum 31): the budget grouped by the sheet's kinds — Income · Fixed · Variable (· Transfers) — collapsed with a chevron per group, edit mode opens all, no A–U letter on the glass (table, pickers, heading 'Personal budget'); 'fixed vs financial' read as fixed vs variable, said on the record. FIN-06.09 · FD-33. Two chevron keys + the retitled heading staged English-only (addendum 30).",
+      "commit": "1819a98"
     }
   ]
 };

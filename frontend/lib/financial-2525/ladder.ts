@@ -86,6 +86,22 @@ export const alcoholSection = (target: AlcoholTarget = "F"): FlowSectionId => ta
 export interface LadderLine { fieldId: string; amountNative: number; nativePeriod: Period }
 /** An amount in one period, re-expressed in another — a constant multiplier, never a rounding step (round only to print). */
 export const toPeriod = (amount: number, from: Period, to: Period): number => (amount * PERIOD_SECONDS[to]) / PERIOD_SECONDS[from];
+
+/** THE GLASS GROUPS BY KIND (r.018, operator addendum 31 "order by fixed vs financial, and have expand button so this is not so busy.
+ *  Don't show A-U letters"): the budget's lines grouped by the sheet's own kinds — Income · Fixed · Variable · Transfer — in that
+ *  order, each group with its total in the chosen period; a kind with no line on the plan is absent (no $0 row). The sections A–M
+ *  and their letters stay in the model and the record; the glass shows a line's section by its icon and name only. */
+export const KIND_ORDER: readonly FieldKind[] = ["Income", "Fixed", "Variable", "Transfer"];
+export interface KindGroup { kind: FieldKind; lines: LadderLine[]; total: number }
+export function groupByKind(lines: readonly LadderLine[], period: Period): KindGroup[] {
+  const out: KindGroup[] = [];
+  for (const kind of KIND_ORDER) {
+    const ls = lines.filter((l) => fieldOf(l.fieldId)?.kind === kind);
+    if (!ls.length) continue;
+    out.push({ kind, lines: ls, total: ls.reduce((a, l) => a + toPeriod(l.amountNative, l.nativePeriod, period), 0) });
+  }
+  return out;
+}
 export const periodFactor = (from: Period, to: Period): number => PERIOD_SECONDS[to] / PERIOD_SECONDS[from];
 
 export interface LadderTotals {

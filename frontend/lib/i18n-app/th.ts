@@ -1465,7 +1465,6 @@ const T: Record<string, string> = {
   "fin.section": "หมวด",
   "fin.field": "รายการ",
   "fin.timeline": "ช่วงเวลา",
-  "fin.ladder_title": "บันไดการเงินส่วนบุคคล A–M",
   "fin.stock_note": "เงินสด การลงทุน หนี้สิน ความมั่งคั่งสุทธิ เครดิต การคุ้มครอง และเป้าหมาย อยู่ในมุมมองงบดุล — ไม่ใช่ต่อนาที",
   "fin.transaction": "ธุรกรรม",
   "fin.type": "ประเภท",

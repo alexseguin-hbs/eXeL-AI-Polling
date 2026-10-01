@@ -1455,7 +1455,6 @@ const T: Record<string, string> = {
   "fin.section": "Seção",
   "fin.field": "Campo",
   "fin.timeline": "Periodicidade",
-  "fin.ladder_title": "Escada de finanças pessoais A–M",
   "fin.stock_note": "Caixa, investimentos, dívidas, patrimônio líquido, crédito, proteção e metas ficam na visão Balanço — nunca por minuto",
   "fin.transaction": "Transação",
   "fin.type": "Tipo",

@@ -94,5 +94,22 @@ ok(near(L.ratePerMinute(360449, 91 / 3), 8.2520, 1e-3), "the worked paycheck run
   delete globalThis.localStorage;
 }
 
+// ── r.018 · THE GLASS GROUPS BY KIND (addendum 31 "order by fixed vs financial … Don't show A-U letters") — pure ───────────
+{
+  const B = await import("../lib/financial-2525/budget.ts");
+  const g33 = L.groupByKind(B.SHEET_LINES, "days33");
+  ok(L.KIND_ORDER.join(" ") === "Income Fixed Variable Transfer", "the kinds come in the brief's order: Income · Fixed · Variable · Transfer");
+  ok(g33.map((g) => g.kind).join(" ") === "Income Fixed Variable", `the sheet groups into Income · Fixed · Variable — no Transfer group when no transfer line is on the plan (got ${g33.map((g) => g.kind).join(" ")})`);
+  const tot = Object.fromEntries(g33.map((g) => [g.kind, g.total]));
+  ok(near(tot.Income, 3200) && near(tot.Fixed, 2750) && near(tot.Variable, 650), `the sheet's totals per 33 days: Income 3,200 · Fixed 2,750 (rent 700 + auto 1,800 + insurance 200 + health 50) · Variable 650 (electric 150 + groceries 300 + fun 200) — got ${JSON.stringify(tot)}`);
+  ok(near(tot.Income - tot.Fixed - tot.Variable, L.netLadder(B.SHEET_LINES, "days33").net), "the groups add up to the ladder's Net (−200 per 33 days)");
+  const gDay = L.groupByKind(B.SHEET_LINES, "day");
+  ok(near(gDay.find((g) => g.kind === "Fixed").total, 2750 / 33, 1e-9), "a group's total follows the period by the fixed factor (Fixed 2,750 / 33 per day)");
+  ok(g33.every((g) => g.lines.every((l) => L.fieldOf(l.fieldId).kind === g.kind)), "every line sits under its own field's kind — the brief's lock decides, never the glass");
+  const withTransfer = [...B.SHEET_LINES, { fieldId: "M.emergency_sinking", amountNative: 100, nativePeriod: "days33" }];
+  ok(L.groupByKind(withTransfer, "days33").map((g) => g.kind).join(" ") === "Income Fixed Variable Transfer", "a transfer line brings the Transfer group, last");
+  ok(L.groupByKind([], "days33").length === 0, "an empty plan has no groups (no $0 rows)");
+}
+
 console.log(`financial-ladder: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

@@ -1460,7 +1460,6 @@ const T: Record<string, string> = {
   "fin.section": "खण्ड",
   "fin.field": "फिल्ड",
   "fin.timeline": "समयरेखा",
-  "fin.ladder_title": "व्यक्तिगत वित्त सिँढी A–M",
   "fin.stock_note": "नगद, लगानी, ऋण, खुद सम्पत्ति, क्रेडिट, सुरक्षा र लक्ष्य ब्यालेन्स दृश्यमा रहन्छन् – कहिल्यै प्रति मिनेट होइन",
   "fin.transaction": "कारोबार",
   "fin.type": "प्रकार",

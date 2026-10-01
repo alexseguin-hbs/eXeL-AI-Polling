@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.017",
-  "stamp": "v.000_r.017",
+  "revision": "0.018",
+  "stamp": "v.000_r.018",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "ffec2e50e958a7e0cc28df06eea72e6419bf686ce977da3e1e01b7c94a3ef063",
+  "handoffSha256": "edc9659c0403525942fb65bbb5bb95e3f55816a88c91a19e27ccacd18c8b8403",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -114,6 +114,11 @@
     "sha256": "ffec2e50e958a7e0cc28df06eea72e6419bf686ce977da3e1e01b7c94a3ef063",
     "date": "2026-09-30",
     "note": "+ addendum 29 (\"your deposit withdrawal floats; very odd\"; reading item 37: nothing on the surface floats)"
+   },
+   {
+    "sha256": "edc9659c0403525942fb65bbb5bb95e3f55816a88c91a19e27ccacd18c8b8403",
+    "date": "2026-09-30",
+    "note": "+ addenda 30–31 (no fill before the English is final · the fleet re-aimed at simplicity · the budget grouped by kind, collapsed, no letters; reading items 38–40)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -262,6 +267,14 @@
    "commit": "5869220",
    "shipped": "233417c",
    "correction": "r.002–r.016 shipped a fixed strip; r.014's lesson (a behaviour claim needs a measured probe) extends to layout against another element: an overlay positioned against an assumed height is a floating element waiting to happen."
+  },
+  {
+   "revision": "0.018",
+   "date": "2026-09-30",
+   "kind": "decision",
+   "why": "The budget grouped by KIND, collapsed, no letters (operator addendum 31 'order by fixed vs financial, and have expand button so this is not so busy. Don't show A-U letters', with his phone screenshot of the r.016 ladder — thirteen section rows, five of them $0). ladder.ts groupByKind (pure): the plan's lines grouped by the sheet's own kinds — Income · Fixed · Variable · Transfer — in that order, each group with its total in the chosen period, a kind with no line absent (no $0 row); the sections and their letters stay in the model and the record. The glass: one row per kind with a chevron (Show the lines / Hide the lines) and the total; the groups start COLLAPSED — Income · Fixed · Variable · Net is the whole table at first sight — and edit mode opens every group so its fields are reachable; a line shows its section by icon and name, never a letter; the Section pickers (the transaction form, the add row) read the section's name alone; the panel's heading reads 'Personal budget' (the key's 32 stale fills removed, the key restaged — ENGLISH ONLY until the operator finalizes the English, addendum 30). READING on the record: 'fixed vs financial' is read as the sheet's FIXED vs VARIABLE columns, the kinds the brief locks per field; the groups are data and change in one place if another split was meant. FIN-06.09 · FD-33.",
+   "commit": "1819a98",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1127,6 +1140,25 @@
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-06.09",
+   "title": "The budget grouped by kind, collapsed, no letters on the glass",
+   "section": "V",
+   "uwf": [
+    "U-WF-06",
+    "U-WF-09"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "The budget table groups the plan's lines by the sheet's kinds — Income · Fixed · Variable (· Transfers when present) — in that order, one row per kind with its total in the chosen unit and a chevron; the groups start collapsed and edit mode opens them; a line shows its section by icon and name; no A–U letter reaches the glass anywhere (the table, the pickers, the heading); a kind with nothing on the plan prints no row.",
+   "metric": "ladder.ts: KIND_ORDER Income · Fixed · Variable · Transfer; groupByKind on the sheet → Income 3,200 · Fixed 2,750 · Variable 650 per 33 days, no Transfer group, the groups add up to Net, a group's total follows the period's fixed factor, an empty plan has no groups (gated in tests/financial-ladder.test.mjs). Surface: rows data-fin-kind with a data-fin-kind-toggle chevron carrying aria-expanded and fin.expand / fin.collapse; openKinds starts empty and isOpen is true in edit mode; no '{sec} · ' prefix remains in the file; the heading key reads Personal budget",
+   "dtm": "on the phone: the table reads Income · Fixed · Variable · Net; tap Fixed → its four lines open with their icons; tap again → closed",
+   "stretch": "a Balance view N–T beside it (r.019); the fleet's simplicity order",
+   "in": "FIN-06.09.IN",
+   "out": "FIN-06.09.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -1321,6 +1353,12 @@
    "decision": "Nothing on the surface floats. No element of Financial-2525 is fixed or sticky over the content; a control that must be reachable sits in normal flow where its subject is. A fixed element positioned against another element's assumed height is refused by the surface gate.",
    "status": "OPERATOR",
    "basis": "addendum 29 (verbatim: 'your deposit withdrawal floats; very odd'); reading item 37"
+  },
+  {
+   "id": "FD-33",
+   "decision": "The glass groups the budget by the sheet's kinds (Income · Fixed · Variable · Transfer), collapsed by default with an expand chevron per group; the A–U letters never reach the glass — the model and the record keep them. 'Fixed vs financial' read as fixed vs variable (the brief's per-field kinds).",
+   "status": "OPERATOR",
+   "basis": "addendum 31 (verbatim: 'order by fixed vs financial, and have expand button so this is not so busy. Don't show A-U letters'); reading item 40; addendum 22 (the kinds per field)"
   }
  ],
  "reviews": [

@@ -1465,7 +1465,6 @@ const T: Record<string, string> = {
   "fin.section": "Sectie",
   "fin.field": "Veld",
   "fin.timeline": "Tijdlijn",
-  "fin.ladder_title": "Persoonlijke financiële ladder A–M",
   "fin.stock_note": "Contanten, beleggingen, schulden, nettovermogen, krediet, bescherming en doelen staan in de Balans-weergave — nooit per minuut",
   "fin.transaction": "Transactie",
   "fin.type": "Type",

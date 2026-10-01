@@ -1463,7 +1463,6 @@ const T: Record<string, string> = {
   "fin.section": "Mục",
   "fin.field": "Trường",
   "fin.timeline": "Chu kỳ",
-  "fin.ladder_title": "Thang tài chính cá nhân A–M",
   "fin.stock_note": "Tiền mặt, đầu tư, nợ, giá trị tài sản ròng, tín dụng, bảo vệ và mục tiêu nằm ở màn hình Số dư — không bao giờ tính theo phút",
   "fin.transaction": "Giao dịch",
   "fin.type": "Loại",

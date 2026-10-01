@@ -1475,7 +1475,6 @@ const T: Record<string, string> = {
   "fin.section": "Bagian",
   "fin.field": "Kolom",
   "fin.timeline": "Periode",
-  "fin.ladder_title": "Tangga keuangan pribadi A–M",
   "fin.stock_note": "Kas, investasi, utang, kekayaan bersih, kredit, perlindungan, dan tujuan berada di tampilan Neraca — tidak pernah per menit",
   "fin.transaction": "Transaksi",
   "fin.type": "Jenis",

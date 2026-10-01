@@ -1459,7 +1459,6 @@ const T: Record<string, string> = {
   "fin.section": "Bahagian",
   "fin.field": "Medan",
   "fin.timeline": "Tempoh",
-  "fin.ladder_title": "Tangga kewangan peribadi A–M",
   "fin.stock_note": "Tunai, pelaburan, hutang, nilai bersih, kredit, perlindungan dan matlamat berada pada paparan Imbangan — bukan per minit",
   "fin.transaction": "Transaksi",
   "fin.type": "Jenis",

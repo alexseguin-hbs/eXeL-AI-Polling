@@ -1477,7 +1477,6 @@ const T: Record<string, string> = {
   "fin.section": "Sektion",
   "fin.field": "Felt",
   "fin.timeline": "Tidslinje",
-  "fin.ladder_title": "Privatøkonomisk stige A–M",
   "fin.stock_note": "Likvide midler, investeringer, gæld, nettoformue, kredit, beskyttelse og mål findes i Balance-visningen — aldrig pr. minut",
   "fin.transaction": "Transaktion",
   "fin.type": "Type",

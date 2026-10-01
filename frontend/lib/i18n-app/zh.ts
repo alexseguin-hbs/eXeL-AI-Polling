@@ -1461,7 +1461,6 @@ const T: Record<string, string> = {
   "fin.section": "板块",
   "fin.field": "项目",
   "fin.timeline": "周期",
-  "fin.ladder_title": "个人理财阶梯 A–M",
   "fin.stock_note": "现金、投资、债务、净资产、信用、保障和目标位于“资产负债”视图 — 从不按分钟计算",
   "fin.transaction": "交易",
   "fin.type": "类型",

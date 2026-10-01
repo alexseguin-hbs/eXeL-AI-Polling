@@ -20,7 +20,7 @@
  * modularly adjust"). A.B..C is the standard for all planets; the glass converts to the planet's LTU.
  */
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
-import { Check, Clock, Orbit, Pencil, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Clock, Orbit, Pencil, X } from "lucide-react";
 import { CategoryIcon, SectionIcon } from "@/components/financial-2525/category-icon";   // addendum 19: every category carries its icon; r.012: every section too
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -46,7 +46,7 @@ import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/p
 import { balanceAt, series, validateWithdrawal, depositView, HOLD_MS, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { type BudgetCategory } from "@/lib/financial-2525/budget";
 import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
-import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
+import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -79,7 +79,7 @@ function LadderPicker({ section, field, rec, onSection, onField, onRec, otherN, 
     <>
       <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground"><span><SectionIcon section={section} className="mr-1" />{t("fin.section")}</span>
         <select data-fin-section={hook} className={PICK} value={section} onChange={(e) => { const sec = e.target.value as FlowSectionId; onSection(sec); onField(fieldsOf(sec)[0].id); }}>
-          {FLOW_SECTIONS.map((sec) => <option key={sec} value={sec}>{sec} · {secLabel(sec)}</option>)}
+          {FLOW_SECTIONS.map((sec) => <option key={sec} value={sec}>{secLabel(sec)}</option>)}
         </select>
       </label>
       <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.field")}
@@ -191,6 +191,14 @@ export function FinancialCommandUX1() {
   const typeAmount = (fieldId: string, text: string) => { setDrafts((d) => ({ ...d, [fieldId]: text })); const n = Number(text); if (text.trim() !== "" && Number.isFinite(n)) writePlan(setLineAmount(plan, fieldId, n, period)); };
   const addable = fieldsOf(addSec).filter((f) => !plan.some((l) => l.fieldId === f.id));
   const totals = useMemo(() => netLadder(plan, period), [plan, period]);
+  // THE GLASS GROUPS BY KIND, COLLAPSED (r.018, addendum 31 "order by fixed vs financial, and have expand button so this is not so busy.
+  // Don't show A-U letters"): Income · Fixed · Variable (· Transfers) each one row with its total and a chevron; the lines show only
+  // when a group is opened — or in edit mode, which opens every group so its fields are reachable. No letter reaches the glass.
+  const groups = useMemo(() => groupByKind(plan, period), [plan, period]);
+  const [openKinds, setOpenKinds] = useState([] as FieldKind[]);
+  const isOpen = (k: FieldKind) => editing || openKinds.includes(k);
+  const toggleKind = (k: FieldKind) => setOpenKinds((o) => (o.includes(k) ? o.filter((x) => x !== k) : [...o, k]));
+  const kindLabel = (k: FieldKind) => (k === "Transfer" ? t("fin.sec.m") : t(`fin.${k.toLowerCase()}`));
   const inPeriod = (l: { amountNative: number; nativePeriod: Period }) => toPeriod(l.amountNative, l.nativePeriod, period);
   const usdDollars = (x: number) => usdUnit(x * 100);
   const usdUnit = (cents: number) => (Math.abs(cents) >= 100 ? usd(Math.round(cents)) : usd4(cents));
@@ -403,17 +411,25 @@ export function FinancialCommandUX1() {
               </select>
             </label>
           </div>
-          {/* the table (addenda 17 + 22): the ladder by SECTION A–M — the section's icon, its total in the chosen unit, its fields beneath; Net last, red when negative */}
+          {/* the table (addenda 17 + 22 → 31): the budget by KIND — Income · Fixed · Variable (· Transfers) — one row per kind with its total in
+              the chosen unit and a chevron; the lines beneath only when opened (edit mode opens all); Net last, red when negative; no letters */}
           <table className="mt-2 w-full font-mono text-xs">
             <thead className="text-left text-[10px] uppercase tracking-wide text-muted-foreground">
-              <tr><th className="py-1 pr-2">{t("fin.section")}</th><th className="py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}</th></tr>
+              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}</th></tr>
             </thead>
             <tbody>
-              {FLOW_SECTIONS.map((sec) => (
-                <Fragment key={sec}>
-                  <tr data-fin-budget-row={sec} className="border-t border-border/60 font-semibold"><td className="py-1 pr-2"><SectionIcon section={sec} className="mr-1.5" />{sec} · {secLabel(sec)}</td><td className="py-1 text-right tabular-nums">{usdDollars(totals.sections[sec])}</td></tr>
-                  {plan.filter((l) => fieldOf(l.fieldId)?.section === sec).map((l) => (
-                    <tr key={l.fieldId} data-fin-ladder-field={l.fieldId} className="text-muted-foreground"><td className="py-0.5 pl-6 pr-2">{fieldLabel(l.fieldId)}</td>
+              {groups.map((g) => (
+                <Fragment key={g.kind}>
+                  <tr data-fin-kind={g.kind} data-fin-kind-open={isOpen(g.kind) ? "1" : "0"} className="border-t border-border/60 font-semibold">
+                    <td className="py-1 pr-2">
+                      <button type="button" data-fin-kind-toggle={g.kind} aria-expanded={isOpen(g.kind)} aria-label={isOpen(g.kind) ? t("fin.collapse") : t("fin.expand")} onClick={() => toggleKind(g.kind)} className="inline-flex min-h-[32px] items-center gap-1 bg-transparent p-0 text-left">
+                        {isOpen(g.kind) ? <ChevronDown size={14} strokeWidth={1.5} aria-hidden /> : <ChevronRight size={14} strokeWidth={1.5} aria-hidden />}{kindLabel(g.kind)}
+                      </button>
+                    </td>
+                    <td className="py-1 text-right tabular-nums">{usdDollars(g.total)}</td>
+                  </tr>
+                  {isOpen(g.kind) && g.lines.map((l) => (
+                    <tr key={l.fieldId} data-fin-ladder-field={l.fieldId} className="text-muted-foreground"><td className="py-0.5 pl-6 pr-2"><SectionIcon section={fieldOf(l.fieldId)?.section ?? "L"} className="mr-1.5" />{fieldLabel(l.fieldId)}</td>
                       <td className="py-0.5 text-right tabular-nums">
                         {editing ? (
                           <span className="flex items-center justify-end gap-1">
@@ -434,7 +450,7 @@ export function FinancialCommandUX1() {
               {/* add a line: a FLOW field A–M not yet on the plan (the pickers are inline, never a nested component — the picker law, r.014) */}
               <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground"><span><SectionIcon section={addSec} className="mr-1" />{t("fin.section")}</span>
                 <select data-fin-plan-section className={PICK} value={addSec} onChange={(e) => { const sec = e.target.value as FlowSectionId; setAddSec(sec); setAddField(fieldsOf(sec)[0]?.id ?? ""); }}>
-                  {FLOW_SECTIONS.map((sec) => <option key={sec} value={sec}>{sec} · {secLabel(sec)}</option>)}
+                  {FLOW_SECTIONS.map((sec) => <option key={sec} value={sec}>{secLabel(sec)}</option>)}
                 </select>
               </label>
               <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.field")}

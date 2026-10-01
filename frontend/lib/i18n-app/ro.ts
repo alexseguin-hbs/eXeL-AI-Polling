@@ -1462,7 +1462,6 @@ const T: Record<string, string> = {
   "fin.section": "Secțiune",
   "fin.field": "Câmp",
   "fin.timeline": "Perioadă",
-  "fin.ladder_title": "Scara finanțelor personale A–M",
   "fin.stock_note": "Numerarul, investițiile, datoriile, averea netă, creditul, protecția și obiectivele se află în vizualizarea Bilanț — niciodată pe minut",
   "fin.transaction": "Tranzacție",
   "fin.type": "Tip",

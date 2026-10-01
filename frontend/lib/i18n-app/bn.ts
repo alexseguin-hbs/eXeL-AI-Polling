@@ -1460,7 +1460,6 @@ const T: Record<string, string> = {
   "fin.section": "বিভাগ",
   "fin.field": "ক্ষেত্র",
   "fin.timeline": "সময়রেখা",
-  "fin.ladder_title": "ব্যক্তিগত আর্থিক সিঁড়ি A–M",
   "fin.stock_note": "নগদ, বিনিয়োগ, ঋণ, নিট সম্পদ, ক্রেডিট, সুরক্ষা ও লক্ষ্য ব্যালেন্স ভিউতে থাকে — কখনও প্রতি মিনিটে নয়",
   "fin.transaction": "লেনদেন",
   "fin.type": "ধরন",
