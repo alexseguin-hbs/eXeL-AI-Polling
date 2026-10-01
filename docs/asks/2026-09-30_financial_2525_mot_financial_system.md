@@ -488,6 +488,11 @@
 > Year position on the MoT icon: how are quarters and months measured? → Equal parts of 3600 (Recommended)
 > Apply the same either/or rule to the chart's top line, tap readout and the Accrual gear? → Yes, everywhere on the page (Recommended)
 
+> (addendum 74, verbatim — 2026-10-01)
+> Change top header to single line:
+> Measure of Time: A Universal Standard
+> Say:  Standard Month (no extra text)
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -797,6 +802,8 @@
     The year card is closed to its title; opened it shows the Clock ⇄ MoT toggle and the rows. Clock rows stay as they are. MoT rows
     are A.B..C only, equal parts of 3600 (quarter 900 A, month 300 A), perihelion first as 0000.0000..0000. The same either/or rule
     holds on the chart's top line, its tap readout and the Accrual gear: MoT on → A.B..C only; Clock on → dates and hours only.
+75. **One header line; "Standard Month" (addendum 74):** the header subtitle reads one line, "Measure of Time: A Universal
+    Standard". The budget's calendar-month unit reads "Standard Month" — no month name, no day count beside it.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
