@@ -436,6 +436,13 @@
    "kind": "decision",
    "text": "r.031 decision — the standard calendar month in the budget units, before the 30.3̅-day month (FD-48).",
    "commit": "9aa2593"
+  },
+  {
+   "rev": 63,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.031 shipped — the standard calendar month (FD-48).",
+   "commit": "82864ea"
   }
  ]
 }

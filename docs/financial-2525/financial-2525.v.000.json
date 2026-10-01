@@ -424,7 +424,7 @@
    "kind": "decision",
    "why": "Addendum 62: \"for personal budget we should also have standard month added before month 30.3 (1st day of Gregorian calendar, even though its not even nor does it reflect reality).\" The budget's unit list gains \"per calendar month (October · 31 days)\" right before \"per month (30.3̅ days)\": the Gregorian month the instant is in, from its 1st, its real length (28–31 days, read in Austin CST standard). It converts by that length — $3,924.49 per 30.3̅-day month reads $4,010.75 per October. It is not one of the nine fixed bases; the 30.3̅-day month stays the default.",
    "commit": "9aa2593",
-   "shipped": "PENDING"
+   "shipped": "82864ea"
   }
  ],
  "mot": {
