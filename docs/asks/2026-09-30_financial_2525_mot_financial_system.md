@@ -678,6 +678,14 @@
 > (addendum 97, verbatim — 2026-10-01, correcting his first answer above)
 > 1x is instance (no span)
 
+> (addendum 98, verbatim — 2026-10-01)
+> instant
+
+> (addendum 99, verbatim — 2026-10-01)
+> fix all; auto mode while I see Avengers endgame encore
+>
+> all backlog must be fixed
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -1033,6 +1041,10 @@
     the chart shows the $/min each would release at; the record and Available are unchanged.
 95. **1x is the instant (addendum 97, corrects 94):** the toggle is 1x · 1W · 1M · 30D · 91D · year. 1x = no span: each transaction lands
     whole at its entry time (a step, not a ramp). There is no 1D button.
+96. **Auto mode: the whole backlog (addenda 98–99):** "instant" spells the 1x meaning (98). Every open backlog row is built, one
+    revision at a time, each gated, AsM-reviewed, pushed and Verify-Live-checked before the next — without waiting on him. The two
+    questions (footer ◬ ♡ 웃; open-logo label size) are decided by the reading of his earlier words: remove the footer glyphs ("get rid of
+    ◬ ♡ 웃"), and make the open labels legible.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
