@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.043",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "65ac57a6c730ab423909e1a717f3238cdcf6110af58abb600952bfabb6dda4e6",
+  "handoffSha256": "f7bf2800012aea1c755a47668fbff0d7f64d67a4a7d436ac4c2ea5d10eef6c06",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -286,6 +286,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "65ac57a6c730ab423909e1a717f3238cdcf6110af58abb600952bfabb6dda4e6",
     "date": "2026-10-01",
     "note": "+ addendum 85 (Fitness → Fitness & Health)"
+   },
+   {
+    "sha256": "f7bf2800012aea1c755a47668fbff0d7f64d67a4a7d436ac4c2ea5d10eef6c06",
+    "date": "2026-10-01",
+    "note": "+ addenda 86–89 (Record amount column; currency as a label; no symbol inside a table)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

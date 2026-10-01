@@ -15,6 +15,8 @@ Live URL: https://exel-ai-polling.explore-096.workers.dev/financial-2525
 
 | # | His words (verbatim, shortened only with …) | Addenda | Answer | State |
 |---|---|---|---|---|
+| B-19 | "add currency to drop down settings in Accrual section … ensure all financials with min wage exist in this" | 86 | A currency dropdown in the Accrual gear: every currency of a country in the minimum-wage table. His answer (87): label only — the symbol replaces $, else a gray label under ACCRUAL UNITS. r.044. | OPEN |
+| B-18 | "remove dollar sign … place $ in Amount, and place + and - at far left so numbers can right justify" | 86 | Record: header "Amount, $"; sign far left; number right-justified; green/red kept; no $ in any table cell (88, 89 — sent twice). Folded into r.043. | OPEN |
 | B-17 | "change Fitness to Fitness & Health" | 85 | r.043: the budget line reads "Fitness & Health". | OPEN |
 | B-16 | "make singgle line … 14:43:53 elapsed · $0.0898 /min · $0.0015 /sec" | 84 | r.043: the Accrual gear's two lines become one. | OPEN |
 | B-15 | "finally; how many times do I have to ask to move transactions button around" (his phone at 11:24 still served cce6905 = r.041) | 83 | Same answer as B-13: r.042 carries the swap. LIVE only when the footer reads r.042 or later. | LIVE (his "looks good now") |

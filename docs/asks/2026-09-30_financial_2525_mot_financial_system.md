@@ -594,6 +594,34 @@
 >
 > Fitness & Health
 
+> (addendum 86, verbatim — 2026-10-01 11:44–11:45, screenshots 2026-10-01_financial_fb86_record_amount.png (the Transaction Record) and
+> 2026-10-01_financial_fb86_r042_live.png (the page on r.042 · 15d9ee2, the Accrual gear open))
+> remove dollar sign from
+>
+> AMOUNT, $	CATEGORY	MEMO	DAY AND TIME (CST)	LENGTH (MOT)	TYPE	#	HASH
+> +$3,604.49
+>
+> place $ in Amount, and place + and - at far left so numbers can right justify with existing red va green like below
+>
+> Amount, $
+>
+> +      3,604.49
+>
+> then ensure all financials with min wage exist in this ; add currency to drop down settings in Accrual section
+> −          250.66
+
+> (addendum 87, verbatim — 2026-10-01, his answer to "when you pick a currency, what should happen to the dollar figures?")
+> $ changes to currency symbol if there is one, or have labelnof currency somewhere at top (Subscript to Accrual Units) in gray
+
+> (addendum 88, verbatim — 2026-10-01, rejecting the first plan for r.043–r.045)
+> rmeove $ from table as its in label header
+
+> (addendum 89, verbatim — 2026-10-01, rejecting the second plan; he pasted the live Transaction Record)
+> remove $AMOUNT, $	CATEGORY	MEMO	DAY AND TIME (CST)	LENGTH (MOT)	TYPE	#	HASH
+> +$3,604.49	Income / Wages (take-home)	State of Texas	2026.09.30_19.54..35	30.3̅	Deposit	1	ec25a66f
+> +$320.00	Upside: Overtime / Bonus / Gifts / Other	PROMISSORY NOTE	2026.09.30_19.56..04	30.3̅	Deposit	2	06f05166
+> −$250.66	Auto / Renters / Home
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -926,6 +954,13 @@
 84. **One line in the Accrual gear (addendum 84):** the open gear reads "14:43:53 elapsed · $0.0898 /min · $0.0015 /sec" on one
     line (was two). r.042 confirmed on his phone ("looks good now"). r.043.
 85. **"Fitness & Health" (addendum 85):** the budget line's short name "Fitness" reads "Fitness & Health". Folded into r.043.
+86. **The Record's Amount column (addendum 86):** the header reads "Amount, $"; each cell carries no $; the sign (+ / −) sits at the far
+    left and the number right-justifies, keeping green for in and red for out. Then a CURRENCY dropdown in the Accrual Units gear,
+    listing every currency of a jurisdiction in the minimum-wage table ("all financials with min wage").
+87. **The currency is a label, never a conversion (addendum 87):** the $ becomes the currency's symbol where one exists; otherwise a gray
+    label of the currency sits under ACCRUAL UNITS. The numbers stay as entered.
+88. **No currency symbol inside a table (addenda 88, 89):** the symbol is in the column header ("Amount, $"); every cell of the
+    Transaction Record and the Personal budget prints the bare number. The Record's amount is folded into r.043 now (sent twice).
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
