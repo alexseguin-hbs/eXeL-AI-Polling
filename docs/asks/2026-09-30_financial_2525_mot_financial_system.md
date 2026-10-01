@@ -309,6 +309,98 @@
 
 > (addendum 36, verbatim — 2026-10-01, after r.022, with his phone screenshot of the surface: a YOUR TURN card reading "Record your first deposit — amount, day and time, and the MoT it covers" with a yellow "Deposit ↓" button, over the Released card "Released · Deposit $0.00 · In escrow: $0.00 · Withdrawable: $0.00 · Withdrawn: $0.00 · Available: $0.00" (the pre-r.019 inline layout) and its strip "$0.00 · $0.00 DEPOSIT Withdraw", saved beside this file as `2026-10-01_financial_2525_deposit_is_transaction.jpg`) deposit should be transaction. and user selects deposit or withdrawal
 
+> (addendum 37, verbatim — 2026-09-30 evening, his screenshot of the Record, two deposits, the MoT shown as `30.333333333333332`, saved as `2026-09-30_financial_2525_fb37_record_repeating.jpg`)
+> show 33.3 with bar over using latex or basically any formatting to shown-repeating 3
+
+> (addendum 38, verbatim — 2026-09-30 evening, his phone 8:57 PM, the Transaction form open, saved as `2026-09-30_financial_2525_fb38_transaction_folded.png`)
+> Transaction should say + Transaction button so the full entry does not shown all the time.  Only expand when pressed
+
+> (addendum 39, verbatim — 2026-09-30 evening, his phone 9:03 PM, the Released card (In escrow $3,923.71, Withdrawable $0.00, HOLD) over the chart, and the form with a Withdrawal of $71 at 2026.10.01_07.00..00 · Housing · Other Fees · Monthly (30.333 days) · memo Storage Unit · "Refused · More than is withdrawable", saved as `2026-09-30_financial_2525_fb39_escrow_a.png` and `2026-09-30_financial_2525_fb39_withdrawal_refused_b.png`)
+> See escrow… if I have Escrow of ~3900 I should be able to plan withdrawals at certain times without refusal .  See error; basically I got paid, and 3600 +320 should accrue $/min for 30.333 days; therefore transactions are also 30.333 days should be possible.  check refuse message and I’ll ensure withdrawal is 30.3 days.
+>
+> It also may help to show Withdrawal / Expense versus Deposit / Funds
+
+> (addendum 40, verbatim — 2026-09-30 evening, his screenshot of the Trinity wheel open under "▼ The Trinity wheel — 웃 HI on top · ◬ AI tokens bottom-left · ♡ SI minutes contribution bottom-right", rings labelled HI · AI TOKENS · SI MINUTES, saved as `2026-09-30_financial_2525_fb40_trinity_labels.jpg`)
+> This should be with no descriptor; that is very AI literal vs HI simple
+>
+> Trinity Labels on circles
+> 웃 HI 
+> ◬ AI 
+> ♡ SI
+
+> (addendum 41, verbatim — 2026-09-30 evening, his phone 9:11 PM, the Personal budget collapsed (Unit per 33 days · Income $3,924.49 · Fixed $1,550.39 · Variable $1,140.00 · Net $1,234.10), saved as `2026-09-30_financial_2525_fb41_budget_default.png`)
+> personal budget should be defaulted to 30.3 repeating or have settings iconnthatvopens up MoT vs standard (1x / mth on first, Biweekly 1st and 15th, or Biweekly every two weeks).
+
+> (addendum 42, verbatim — 2026-09-30 evening, his phone 9:14 PM, the chart: Planet · the orbit and clock toggles · the line `2026.09.30_19.56..04 · $320.00 · 30.333333333333332 · 0 h 18 min elapsed` · axis `0 h 0 min … 30 d 8 h` · legend with 3-hour hold, saved as `2026-09-30_financial_2525_fb42_chart.jpg`)
+> Place clock as left toggle and MoT symbol as right toggle; remove transactions; find way to click on to see day / time stamp.  Date format for table  is 2026.10.01 at 30 degree angle (or user defined via settings menu).  shows 10.01 10.02 etc 
+> or October 
+> with 
+> 01, 02, 03 etc
+>
+> or full 2026.10.01, 2026.10.02, etc
+
+> (addendum 43, verbatim — 2026-09-30 evening, no screenshot)
+> check math:
+>
+> $3,924.49 income assigned to $/min seems like it should be 
+>
+> 129.38021296937328÷24 = 5.3908422070572 per hour
+>
+> 5.3908422070572195÷60 = 0.08984737011762 per min
+
+> (addendum 44, verbatim — 2026-09-30 evening, his screenshot of the Released card ($0.0898 per minute · $5.3908 per hour · $129.38 per day · $0.0015 per second), saved as `2026-09-30_financial_2525_fb44_math_right.jpg`)
+> seems right
+
+> (addendum 45, verbatim — 2026-09-30 evening, his phone 9:25 PM, the page header (SHA 2756088 · 2026.09.30 · 20:56 CST — the r.020 build — "the MoT Financial System · Version 000 · revision 0.020"), saved as `2026-09-30_financial_2525_fb45_measure_of_time.png`)
+> MoT stands for Measure of Time
+
+> (addendum 46, verbatim — 2026-09-30 evening, his screenshot of the Released card, saved as `2026-09-30_financial_2525_fb46_rate_dropdown.jpg`)
+> should have MoT dropdown to select per minute, per seccins, etc.  default is / hour
+>
+> one selected use shorthand (/hr, /min, /sec).
+
+> (addendum 47, verbatim — 2026-09-30 evening, no screenshot)
+> user puts in monthly or 30.3 days and can access budget with MoT toggle to quarter week, year etc
+
+> (addendum 48, verbatim — 2026-09-30 evening, his screenshot of the Released card, saved as `2026-09-30_financial_2525_fb48_dont_change_budget.jpg`)
+> don’t change budget; this is way too complicated and I never asked for it
+
+> (addendum 49, verbatim — 2026-09-30 evening, the r.022 budget edit-mode capture (per-line amount + MoT dropdowns + Other 30 Days), sent back to me with no words, saved as `2026-09-30_financial_2525_fb49_budget_edit.png`)
+> (image only)
+
+> (addendum 50, verbatim — 2026-09-30 evening, the same capture, saved as `2026-09-30_financial_2525_fb50_budget_too_complicated.png`)
+> don’t change budget inplementetion; this is way too complicated and I never asked for it
+
+> (addendum 51, verbatim — 2026-09-30 evening, no screenshot)
+> use HI feedback first and ask me on design choices before making assumptions per the old addage:
+>
+> assume and you make an ass out of you and me
+
+> (addendum 52, verbatim — 2026-09-30 evening, no screenshot)
+> review my fucking feedback from today; stop ignoring and only after all feedback is addressed do additional AsM review. Thought Master and HI inputs always take priority
+> AI AsM feedback should supplement feedback after understanding HI intent
+
+> (addendum 53, verbatim — 2026-09-30 evening, his phone 9:39 PM, the Released card (In Escrow $3,920.49, "3-hour hold 2026.09.30_22.56..04") over the chart legend "| 3-hour hold", saved as `2026-09-30_financial_2525_fb53_hold_who.png`)
+> and who the fuck said 3 hr hold? for this chart?
+
+> (addendum 54, verbatim — 2026-09-30 evening, no screenshot)
+> Catch up on my FEEDBACK; don’t perform AsM input until all shared intent is understood and completed
+
+> (addendum 55 — his answers to the design questions I asked after addendum 54, 2026-09-30 evening, each verbatim or the option he picked)
+> · How is a withdrawal with a Length (MoT) counted? → picked **"Spread at $/min"**: a withdrawal runs out over its MoT as a deposit runs in; refused only if the outflow would ever pass what has come in.
+> · The 3-hour hold (it came from his addendum 2: "for bainess they pay up frint financials of 2 weeks or one minth, and 3 hrs later individual can withdraw to their account if really in need of cash") → "I have no fucking clue.  ask next time. If a deposit is 30.33 days then $/min is allocated. using that $/min at 180 min should be in the bank to withdrawal only that amount , not the full deposit . this encourages stability and sustainable thinking"
+> · What the chart shows for the hold → picked **"Remove from chart"** (the rule stays; the chart drops the mark and the legend word).
+> · The budget → "see my note; use selects deop down once for budget in edit mode.  once off edit mode they should be able to view in $/min, quarterly, annually etc." · then picked **"One, shared"**: one Unit dropdown; in edit mode you type in the unit picked, out of edit mode it converts the view; default per month (30.3̅ days).
+> · The Released card's rate → picked **"One figure + dropdown"**: "Released · $5.3908 /hr ▾" with /sec /min /hr /day; the three-figure line removed.
+> · The Trinity wheel → picked **"Folded, bare arrow"**: a bare ▸ with no words; rings read 웃 HI · ◬ AI · ♡ SI.
+> · "remove transactions" on the chart → picked **"\"Your deposits\" list"** (the list of deposits above the Released card goes).
+> · Type when the form opens → picked **"Blank until picked"**: "Select…", the record button waits until "Deposit / Funds" or "Withdrawal / Expense" is picked.
+> · Where "Measure of Time" shows → picked **"Subtitle"**: "the MoT (Measure of Time) Financial System".
+> · The repeating 3 with a bar (30.3̅) → picked **"Everywhere"** 30.333 appears.
+> · Where the chart's date-format menu lives → picked **"Gear on the chart"**, remembered on this phone.
+> · The step named "Deposit" (rail step 1, the pill, "Released · Deposit") → picked **"Keep \"Deposit\""**: only the doors change.
+> · After a transaction is recorded → picked **"Folds back"** to the + Transaction button.
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -543,6 +635,41 @@
     card as it read before r.019 (four figures on wrapped lines, "In escrow" lower-case): the 2 × 2 table (r.019) and "In Escrow"
     (r.021) are what the live page serves since those revisions — if his phone still shows the old card, the page it holds is an
     older copy. Ships as r.023.
+47. **The process law (addenda 51, 52, 54):** HI and Thought Master input comes first; design choices are ASKED, never assumed; no AI
+    reviewer fleet runs until every item of his feedback is answered and built, and any later AI review supplements his intent, never
+    leads it. The two AI workflows running when he wrote this were stopped and their output is not used.
+48. **A withdrawal runs out at $/min over its MoT (addendum 39 + 55):** a withdrawal with a Length (Monthly 30.3̅ days, etc.) is spread
+    linearly over that length, exactly as a deposit is released; it is refused only if, at some minute, what has gone out would pass
+    what has been released and is past the 180-minute mark — and the refusal names that minute. "One time" still lands whole. His $71
+    Storage Unit (Monthly, from 2026.10.01_07.00..00) is accepted against his $3,924.49 coming in. Ships as r.023.
+49. **The 180-minute rule, in his words (addendum 55):** a deposit's $/min starts at its day and time; 180 minutes later the amount
+    accrued so far may be withdrawn — only that amount, never the full deposit ("this encourages stability and sustainable thinking").
+    The rule stays exactly as the code holds it; the chart no longer draws it (addendum 53 + 55). Ships as r.025 (the chart).
+50. **One door, + Transaction, folded (addenda 36, 38, 55):** the transaction entry is folded behind a "+ Transaction" button and opens
+    only when pressed; every door (the YOUR TURN button, the Released card's button) opens it; Type starts blank ("Select…") and the
+    record button waits until "Deposit / Funds" or "Withdrawal / Expense" is picked; after a recorded transaction it folds back. The
+    money's steps keep their names (Deposit → Hold → Release → Withdraw → Record). Ships as r.023.
+51. **The budget as he asked (addenda 41, 47, 48, 50, 55):** the per-line MoT dropdowns of r.021–r.022 are removed (he never asked for
+    them); one shared Unit dropdown — in edit mode the amounts are typed in the unit picked, out of edit mode it converts the view
+    ($/min, quarter, year …); the Unit starts at per month (30.3̅ days). The transaction form keeps its own Length (MoT). Ships as r.024.
+52. **The Released card's rate is one figure with a dropdown (addendum 46 + 55):** "Released · $5.3908 /hr ▾" — /sec · /min · /hr · /day,
+    default /hr, shorthand once picked; the three-figure line is removed. Ships as r.024.
+53. **The chart (addendum 42 + 55):** the Clock toggle on the left and the MoT toggle on the right; tapping the chart shows the day and
+    time at that point; in Clock mode the axis shows calendar dates at 30°, default 2026.10.01, and a gear on the chart offers 10.01 ·
+    October over 01 02 03 · 2026.10.01, remembered on the phone; the 3-hour-hold mark and its legend word are removed. "remove
+    transactions" = the "Your deposits" list above the Released card goes. Ships as r.025.
+54. **The Trinity wheel (addendum 40 + 55):** no descriptor — the caption line is gone, the wheel folds behind a bare ▸; the rings read
+    웃 HI · ◬ AI · ♡ SI. Ships as r.025.
+55. **A repeating decimal shows its bar (addendum 37 + 55):** 91 ÷ 3 days reads 30.3̅ everywhere it appears (the Record, the chart,
+    "Monthly (30.3̅ days)", "per month (30.3̅ days)"); never 30.333333333333332. Ships as r.025.
+56. **MoT = Measure of Time (addendum 45 + 55):** the subtitle reads "the MoT (Measure of Time) Financial System". Ships as r.025.
+57. **The math is right (addenda 43, 44):** $3,924.49 ÷ 30.3̅ days = $129.38 a day = $5.3908 an hour = $0.0898 a minute — what the card
+    shows. No change.
+58. **His phone was serving r.020 (addendum 45's header: SHA 2756088):** some of these screenshots predate r.021–r.022; a reload shows
+    what is live.
+59. **English only (addendum 32):** every new or changed word is English until he HI-tests it.
+60. **Order:** r.023 (the door + the withdrawal law) → r.024 (the budget + the rate) → r.025 (the chart, the wheel, 30.3̅, the
+    subtitle); each gated, shipped, verified live and shown to him before the next.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
