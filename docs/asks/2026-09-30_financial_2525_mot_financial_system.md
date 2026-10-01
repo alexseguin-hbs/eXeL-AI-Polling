@@ -707,6 +707,13 @@
 > Lines: "Net + Released + Escrow (Recommended)" — Net added as a third line; the y axis in $ spans negative to positive.
 > 1x + zoom: "Live window, pinch widens (Recommended)" — 1x opens on the last hour moving in real time, each transaction a step the moment it lands; pinch out (or +/− buttons) widens the x axis to hours, days, weeks.
 
+> (addendum 103, verbatim — 2026-10-01, his phone, a 10:39 screenshot of PERSONAL BUDGET per month (30.3̅ days) with the pencil:
+> Rent $643.43 · Car Payment $1,654.55 · Insurance $183.84 · Fitness $45.96 · Electricity $137.88 · Groceries $275.76 · Fun $183.84 ·
+> Wages $2,941.41 · Net −$183.84 — `docs/asks/2026-10-01_financial_2525_fb103_budget_approved.png`)
+> wheres my edit button on personal budget; see fixed expenses I already approved
+>
+> amounts and reestablish.  I asked to change rate of accrual from 30.3 to 30, .  the dollar amount does not change
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
