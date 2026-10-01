@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.042",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "ff7be2411286bd6b2846b591fff8c415ffadf19812290a69f79edf00a55e769c",
+  "handoffSha256": "92679e96a7d799cc285a9dd40774f6d346a2789dd8010914072da2759cfd75a7",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -276,6 +276,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "ff7be2411286bd6b2846b591fff8c415ffadf19812290a69f79edf00a55e769c",
     "date": "2026-10-01",
     "note": "+ addendum 83 (his phone still on r.041 at 11:24)"
+   },
+   {
+    "sha256": "92679e96a7d799cc285a9dd40774f6d346a2789dd8010914072da2759cfd75a7",
+    "date": "2026-10-01",
+    "note": "+ addendum 84 (r.042 looks good; the Accrual gear on one line)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

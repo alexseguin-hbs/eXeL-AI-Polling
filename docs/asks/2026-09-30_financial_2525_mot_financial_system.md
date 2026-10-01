@@ -573,6 +573,18 @@
 > "v.000_r.041 · eXeL v0.041-2026.10.01-11.16CST · cce6905" — the build before r.042, so the swap was not yet served)
 > finally; how many times do I have to ask to move transactions button around
 
+> (addendum 84, verbatim — 2026-10-01, after r.042 reached his phone; it also repeats "how many times do I have to ask to move transactions button around" twice before it)
+> looks good now:
+>
+> make singgle line
+> CURRENT
+> 14:43:53 elapsed
+> $0.0898 /min · $0.0015 /sec
+>
+> PROPOSED
+>
+> 14:43:53 elapsed · $0.0898 /min · $0.0015 /sec
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -902,6 +914,8 @@
     arrives — his words, the revision that answers it, and its state (OPEN · PUSHED · LIVE) — so no ask is asked twice. The + Transaction
     request (asked seven times: addenda 38, 66, 70, 76 ×2, 78, 81) is acknowledged as the record's longest miss; r.042 places it
     left of the settings gear on line 1, with Accrual Rate right of Available on line 2.
+84. **One line in the Accrual gear (addendum 84):** the open gear reads "14:43:53 elapsed · $0.0898 /min · $0.0015 /sec" on one
+    line (was two). r.042 confirmed on his phone ("looks good now"). r.043.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
