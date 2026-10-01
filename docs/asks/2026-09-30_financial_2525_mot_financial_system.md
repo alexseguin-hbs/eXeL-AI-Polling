@@ -307,6 +307,8 @@
 > (addendum 35, verbatim — 2026-10-01 ~08:5x CST) on input of transaction or budget, must be able to specify time (MoT of transaction)
 > Change In escrow to “In Escrow”
 
+> (addendum 36, verbatim — 2026-10-01, after r.022, with his phone screenshot of the surface: a YOUR TURN card reading "Record your first deposit — amount, day and time, and the MoT it covers" with a yellow "Deposit ↓" button, over the Released card "Released · Deposit $0.00 · In escrow: $0.00 · Withdrawable: $0.00 · Withdrawn: $0.00 · Available: $0.00" (the pre-r.019 inline layout) and its strip "$0.00 · $0.00 DEPOSIT Withdraw", saved beside this file as `2026-10-01_financial_2525_deposit_is_transaction.jpg`) deposit should be transaction. and user selects deposit or withdrawal
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -532,6 +534,15 @@
     converts it to whatever unit is showing; a new line is added with its amount and its MoT. The words already on the glass carry
     it — no new word.
 45. **"In escrow" reads "In Escrow" (addendum 35).** English only until the functionality is tested (addendum 32). Ships as r.021.
+46. **A deposit is a TRANSACTION; the person selects Deposit or Withdrawal (addendum 36):** the surface's calls to action name the
+    transaction, not one of its two types. The YOUR TURN card asks for a first transaction (not "your first deposit") and its
+    button reads Transaction, not "Deposit ↓"; every button that opens the form (the YOUR TURN button, the Released card's DEPOSIT
+    pill and Withdraw button) leads to the ONE transaction form, where the type picker r.013 put first — Deposit · Withdrawal — is
+    the person's choice. The record's two types are unchanged (a deposit and a withdrawal stay distinct entries with their own
+    rules); only the door changes. English only until the functionality is tested (addendum 32). His screenshot shows the Released
+    card as it read before r.019 (four figures on wrapped lines, "In escrow" lower-case): the 2 × 2 table (r.019) and "In Escrow"
+    (r.021) are what the live page serves since those revisions — if his phone still shows the old card, the page it holds is an
+    older copy. Ships as r.023.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
