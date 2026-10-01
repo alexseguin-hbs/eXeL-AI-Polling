@@ -686,6 +686,14 @@
 >
 > all backlog must be fixed
 
+> (addendum 100, verbatim — 2026-10-01 14:21, his phone)
+> you better complete, and ensure you checknif oush and commits are online
+>
+> LIVE NOW
+>
+> SHA: 1ee1bc4  |   Date: 2026.10.01  |   Time: 14:21 CST
+> v.000_r.045 · eXeL v0.045-2026.10.01-14.21CST · 1ee1bc4
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
