@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 50 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 51 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -359,6 +359,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.025 decided from his feedback and answers (addenda 37, 40, 42, 45, 53, 55): the chart with the Clock left, calendar dates at 30° and a gear, a tap for the day and time, no 180-minute mark, the 'Your deposits' list removed; the Trinity wheel behind a bare arrow, rings 웃 HI · ◬ AI · ♡ SI; 30.3̅ everywhere; the subtitle names Measure of Time. FIN-07.04 · FIN-01.04 · FIN-10.01 · FD-41 · FD-42 · FD-43.",
       "commit": "a3edb5f"
+    },
+    {
+      "rev": 51,
+      "date": "2026-10-01",
+      "kind": "release",
+      "text": "v.000_r.025 SHIPPED — the chart with the Clock left, calendar dates at 30° and a gear, a tap for the day and time, no 180-minute mark, the 'Your deposits' list removed; the Trinity wheel behind a bare arrow with rings 웃 HI · ◬ AI · ♡ SI; 30.3̅ everywhere; the subtitle names Measure of Time. FIN-07.04 · FIN-01.04 · FIN-10.01 · FD-41 · FD-42 · FD-43. Shipped as cf7c0f6. Gates: financial-mot 80 · financial-surface 105 · vector-law 29 · financial-crs 484 · full test:ci 0 · next build 0.",
+      "commit": "cf7c0f6"
     }
   ]
 };

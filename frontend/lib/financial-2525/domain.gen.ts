@@ -378,7 +378,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "The rest of his feedback of 2026-09-30 evening, built as he answered it (addendum 55). THE CHART (addendum 42): 'Place clock as left toggle and MoT symbol as right toggle' — the Clock on the left, the MoT on the right; 'remove transactions' — his answer: the 'Your deposits' list above the Released card goes (the Record keeps every entry); 'find way to click on to see day / time stamp' — a tap or drag on the chart draws a line there and reads its day and time; 'Date format for table is 2026.10.01 at 30 degree angle (or user defined via settings menu)' — in Clock mode the axis reads calendar dates at 30°, 2026.10.01 by default, as many whole CST days as fit, and a gear on the chart (his answer) offers 10.01 · the month named once over 01 02 03 · 2026.10.01, remembered on this phone; 'who … said 3 hr hold? for this chart?' — his answer 'Remove from chart': the yellow mark and its legend word are gone, the 180-minute rule stays in the accrual law. THE WHEEL (addendum 40): 'no descriptor; that is very AI literal vs HI simple' — his answer 'Folded, bare arrow': the caption is gone, a bare arrow folds the wheel (its accessible name stays for screen readers); 'Trinity Labels on circles 웃 HI ◬ AI ♡ SI' — the rings read exactly that. 30.3 REPEATING (addendum 37 + 'Everywhere'): every MoT-day count prints through fmtDays — 30.3̅ — on the Record, the chart, 'Monthly (30.3̅ days)', 'per month (30.3̅ days)' and beside the Admin panel's Month; never 30.333333333333332. MEASURE OF TIME (addendum 45 + 'Subtitle'): the line under FINANCIAL · 2525 reads 'the MoT (Measure of Time) Financial System'.",
    "commit": "a3edb5f",
-   "shipped": "PENDING"
+   "shipped": "cf7c0f6"
   }
  ],
  "mot": {
