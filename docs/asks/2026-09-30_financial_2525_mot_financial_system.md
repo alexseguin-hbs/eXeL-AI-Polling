@@ -436,6 +436,9 @@
 > (addendum 61, verbatim — 2026-10-01 7:45 AM, screenshot 2026-10-01_financial_fb61_year.png, the live r.028/029 year table showing A.B..C because the chart's toggle was on MoT)
 > year position should have time / MoT icon and default to standard , when MoT is clicked orbital info unlocks
 
+> (addendum 62, verbatim — 2026-10-01 7:46 AM, screenshot 2026-10-01_financial_fb62_calmonth.png, the budget's unit dropdown)
+> for personal budget we should also have standard month added before month 30.3 (1st day of Gregorian calendar , even though its not even nor does it reflect reality).
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -719,6 +722,8 @@
     renamed Spent); what each figure means is written in the Accrual Units settings (the gear). r.029.
 64. **The year card has its own Clock / MoT toggle (addendum 61):** standard by default (date, day N/365, quarter, month, year);
     MoT unlocks the orbital rows (perihelion, the A.B..C position). Its own state — the chart's toggle no longer drives it. r.030.
+65. **The standard month (addendum 62):** the budget's units gain "per calendar month" — the Gregorian month we are in, from its
+    1st, its real length (October 31 days) — right before "per month (30.3̅ days)". r.031.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
