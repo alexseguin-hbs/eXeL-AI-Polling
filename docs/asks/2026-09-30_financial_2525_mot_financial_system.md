@@ -433,6 +433,9 @@
 >
 > or you can tell me why 4 fields and whatveach does (which should be inn settings).
 
+> (addendum 61, verbatim — 2026-10-01 7:45 AM, screenshot 2026-10-01_financial_fb61_year.png, the live r.028/029 year table showing A.B..C because the chart's toggle was on MoT)
+> year position should have time / MoT icon and default to standard , when MoT is clicked orbital info unlocks
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -714,6 +717,8 @@
     hold wording (r.028, correction).
 63. **Three boxes, not four (addendum 60):** Available is at the top, so the grid is In Escrow · Released · Spent (Withdrawn
     renamed Spent); what each figure means is written in the Accrual Units settings (the gear). r.029.
+64. **The year card has its own Clock / MoT toggle (addendum 61):** standard by default (date, day N/365, quarter, month, year);
+    MoT unlocks the orbital rows (perihelion, the A.B..C position). Its own state — the chart's toggle no longer drives it. r.030.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
