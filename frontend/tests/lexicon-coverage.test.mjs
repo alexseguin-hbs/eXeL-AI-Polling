@@ -84,6 +84,11 @@ for (const code of codes) {
   const missing = keys.filter((k) => String(en[k].englishDefault ?? '').trim() && !AFTER_FILL.has(k) && !String(m[k] ?? '').trim());   // an empty English default is not a gap
   const pending = keys.filter((k) => AFTER_FILL.has(k) && !String(m[k] ?? '').trim());
   if (pending.length) console.log(`PENDING ${code}: ${pending.length} key(s) added after the last fill are English`);
+  // THE LOCK (operator 2026-09-30, addendum 32 "do not lexicon translate until functionality is tested with me"): a staged key carries
+  // NO translation in any language. A fill can land only in the commit that removes the key from AFTER_FILL — which happens only when
+  // the operator says the English is final. A translation that reaches a staged key fails the build.
+  const filledWhileStaged = keys.filter((k) => AFTER_FILL.has(k) && String(m[k] ?? '').trim());
+  ok(!filledWhileStaged.length, `${code}: ${filledWhileStaged.length} staged key(s) carry a translation before the operator finalized the English — ${filledWhileStaged.slice(0, 8).join(' ')}`);
   ok(missing.length === 0, `${code}: every master key has a value (missing ${missing.length}: ${missing.slice(0, 4).join(', ')})`);
   const badPh = keys.filter((k) => m[k] && ph(en[k].englishDefault) !== ph(m[k]));
   ok(badPh.length === 0, `${code}: placeholders kept (${badPh.length} differ: ${badPh.slice(0, 3).join(', ')})`);

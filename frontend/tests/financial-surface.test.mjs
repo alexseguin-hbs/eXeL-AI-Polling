@@ -140,5 +140,14 @@ ok(/const \[openKinds, setOpenKinds\] = useState\(\[\] as FieldKind\[\]\);/.test
 ok(/const kindLabel = \(k: FieldKind\) => \(k === "Transfer" \? t\("fin\.sec\.m"\) : t\(`fin\.\$\{k\.toLowerCase\(\)\}`\)\);/.test(ux), "the kinds read Income · Fixed · Variable (r.006's keys) and Transfers (the section's own name)");
 ok(/<th className="py-1 pr-2">\{t\("fin\.category"\)\}<\/th>/.test(ux), "the table's first column is headed Category, not Section");
 
+// r.019 (addendum 33 "make table 2x2") — the Released card's four figures as a 2 × 2 table, each word above its figure
+{
+  const order = ["escrowed", "withdrawable", "withdrawn", "available"];
+  const cellOk = (c) => new RegExp('data-fin-cell="' + c + '"><dt[^>]*>\\{t\\("fin\\.' + c + '"\\)\\}</dt><dd[^>]*>\\{usd\\(bal\\.' + c + 'Cents\\)\\}</dd>').test(ux);
+  const pos = order.map((c) => ux.indexOf('data-fin-cell="' + c + '"'));
+  ok(/<dl data-fin-balance-grid className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2">/.test(ux) && order.every(cellOk) && pos.every((x, i) => x > 0 && (i === 0 || x > pos[i - 1])), "the four figures sit in a two-column grid in the order In escrow · Withdrawable / Withdrawn · Available, each word above its figure");
+  ok(!/\{t\("fin\.escrowed"\)\}:<\/span>/.test(ux), "the run-on line of four figures is gone");
+}
+
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

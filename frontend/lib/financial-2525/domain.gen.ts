@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.018",
-  "stamp": "v.000_r.018",
+  "revision": "0.019",
+  "stamp": "v.000_r.019",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "edc9659c0403525942fb65bbb5bb95e3f55816a88c91a19e27ccacd18c8b8403",
+  "handoffSha256": "53ac616411da850cd271c3ae638af571968d6ea7921ef8219f9b843b6b3bc622",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -146,6 +146,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "edc9659c0403525942fb65bbb5bb95e3f55816a88c91a19e27ccacd18c8b8403",
     "date": "2026-09-30",
     "note": "+ addenda 30–31 (no fill before the English is final · the fleet re-aimed at simplicity · the budget grouped by kind, collapsed, no letters; reading items 38–40)"
+   },
+   {
+    "sha256": "53ac616411da850cd271c3ae638af571968d6ea7921ef8219f9b843b6b3bc622",
+    "date": "2026-10-01",
+    "note": "+ addenda 32–33 (no lexicon work until the functionality is tested with him; the Released card as a 2 × 2 table; continue with opus — reading items 41–42)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -302,6 +307,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "The budget grouped by KIND, collapsed, no letters (operator addendum 31 'order by fixed vs financial, and have expand button so this is not so busy. Don't show A-U letters', with his phone screenshot of the r.016 ladder — thirteen section rows, five of them $0). ladder.ts groupByKind (pure): the plan's lines grouped by the sheet's own kinds — Income · Fixed · Variable · Transfer — in that order, each group with its total in the chosen period, a kind with no line absent (no $0 row); the sections and their letters stay in the model and the record. The glass: one row per kind with a chevron (Show the lines / Hide the lines) and the total; the groups start COLLAPSED — Income · Fixed · Variable · Net is the whole table at first sight — and edit mode opens every group so its fields are reachable; a line shows its section by icon and name, never a letter; the Section pickers (the transaction form, the add row) read the section's name alone; the panel's heading reads 'Personal budget' (the key's 32 stale fills removed, the key restaged — ENGLISH ONLY until the operator finalizes the English, addendum 30). READING on the record: 'fixed vs financial' is read as the sheet's FIXED vs VARIABLE columns, the kinds the brief locks per field; the groups are data and change in one place if another split was meant. FIN-06.09 · FD-33.",
    "commit": "1819a98",
    "shipped": "c4eb2af"
+  },
+  {
+   "revision": "0.019",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "The Released card's four figures as a 2 × 2 table (operator addendum 33 'make table 2x2', with his phone screenshot of the r.018 card where In escrow · Withdrawable · Withdrawn ran on one wrapped line and Available on the next). command-ux1.tsx: a two-column definition grid — In escrow · Withdrawable on the first row, Withdrawn · Available on the second, each cell its word above its figure; the hold time, when a deposit is inside its 3-hour hold, sits as one small line beneath; the big Released figure, its line and the strip are unchanged (nothing removed that he did not name); no new word. With it, on the shared R-CORE badge every 2525 surface carries: the 2026-09-30 wordmark-first toggle was a misreading and is reversed — the badge rests on the small icon, a tap shows the icon with its word art, a tap opens the Version History panel (the 2026-09-25 two-click badge exactly; the panel header keeps its centring; docs/asks/2026-09-30_rcore_badge_toggle_centered.md addendum 1). And the build lock (addendum 32): lexicon-coverage now fails if any staged key carries a translation, so nothing is translated before the operator tests the functionality. FIN-07.02 · FD-34.",
+   "commit": "fa1a190",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1186,6 +1199,24 @@ export const FINANCIAL_DOMAIN = {
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-07.02",
+   "title": "The Released card's four figures as a 2 × 2 table",
+   "section": "V",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "Under the Released figure, the four balances read as a 2 × 2 table — In escrow and Withdrawable on the first row, Withdrawn and Available on the second — each cell its word above its figure, so no figure wraps into another on a 390 px phone; the hold time sits beneath when a deposit is inside its 3-hour hold.",
+   "metric": "data-fin-balance-grid is a two-column grid holding data-fin-cell escrowed · withdrawable · withdrawn · available in that order, each a dt with the existing word above a dd with its usd figure; the run-on line is gone; measured on the export at 390 px: the four cells form two rows of two",
+   "dtm": "on the phone: In escrow /bin/bash.00 · Withdrawable /bin/bash.00 over Withdrawn /bin/bash.00 · Available /bin/bash.00",
+   "stretch": "the same table filling with the person's own numbers after the first deposit",
+   "in": "FIN-07.02.IN",
+   "out": "FIN-07.02.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -1386,6 +1417,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The glass groups the budget by the sheet's kinds (Income · Fixed · Variable · Transfer), collapsed by default with an expand chevron per group; the A–U letters never reach the glass — the model and the record keep them. 'Fixed vs financial' read as fixed vs variable (the brief's per-field kinds).",
    "status": "OPERATOR",
    "basis": "addendum 31 (verbatim: 'order by fixed vs financial, and have expand button so this is not so busy. Don't show A-U letters'); reading item 40; addendum 22 (the kinds per field)"
+  },
+  {
+   "id": "FD-34",
+   "decision": "The Released card shows its four balances as a 2 × 2 table, word above figure; nothing else on the card changes. Words stay English only until the operator has tested the functionality (addendum 32); the build refuses a translation of any staged key.",
+   "status": "OPERATOR",
+   "basis": "addendum 33 (verbatim: 'make table 2x2'); addendum 32; reading items 41–42"
   }
  ],
  "reviews": [

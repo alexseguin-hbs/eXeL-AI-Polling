@@ -95,17 +95,16 @@ ok(soiCmp.crossed.length === soiH.revisions.length - 1, "SoI compare(first → c
 // ── 6 · the badge source wires the two-click states and opens the panel ────────────────────────────
 const badgeSrc = fs.readFileSync(new URL("../components/2525-core/rcore-badge.tsx", import.meta.url), "utf8");
 const panelSrc0 = fs.readFileSync(new URL("../components/2525-core/rcore-revision-panel.tsx", import.meta.url), "utf8");
-// operator 2026-09-30: REST = the R-CORE wordmark centred; a tap MAXIMIZES the single icon, a second tap MINIMIZES it (a toggle);
-// the icon opens the panel; the header shows no lone icon and centres the wordmark + its line.
-ok(/data-rcore-pill[\s\S]*onClick=\{toggleIcon\}/.test(badgeSrc) && /setShowIcon\(\(v\) => !v\)/.test(badgeSrc) && /aria-expanded=\{showIcon\}/.test(badgeSrc), "badge REST: the R-CORE wordmark is the toggle (a tap shows the icon, a second tap hides it)");
-ok(/data-rcore-icon[\s\S]*onClick=\{openPanel\}/.test(badgeSrc) && /setOpen\(true\)/.test(badgeSrc), "badge ICON: the single icon, when shown, opens the panel (setOpen(true))");
-ok(/transform: showIcon \? "scale\(1\)" : "scale\(0\)"/.test(badgeSrc) && /height: showIcon \? H : 0/.test(badgeSrc) && /pointerEvents: showIcon \? "auto" : "none"/.test(badgeSrc) && /aria-hidden=\{!showIcon\}/.test(badgeSrc), "the icon grows and shrinks the same way (maximize ↔ minimize) and is inert while hidden");
-ok(!/setStage\(/.test(badgeSrc) && /className="flex w-full flex-col items-center justify-center"/.test(badgeSrc), "no three-stage ladder remains; R-CORE and its icon sit on the centre line");
+// operator 2026-10-01 (restoring 2026-09-25): REST = the small reticle icon; CLICK 1 = the icon with its word art (the wordmark pill);
+// CLICK 2 = the Version History panel. The 2026-09-30 wordmark-first toggle was a misreading and is reversed. The header keeps its centring.
+ok(/data-rcore-icon/.test(badgeSrc) && /onClick=\{expand\}/.test(badgeSrc) && /setStage\(1\)/.test(badgeSrc), "badge CLICK 1: the rest icon expands to the pill (setStage(1))");
+ok(/data-rcore-pill/.test(badgeSrc) && /onClick=\{openPanel\}/.test(badgeSrc) && /setOpen\(true\)/.test(badgeSrc), "badge CLICK 2: the pill opens the panel (setOpen(true))");
+ok(/\{stage === 0 \? \(/.test(badgeSrc) && !/toggleIcon|setShowIcon/.test(badgeSrc), "the rest state is the small icon ALONE — the wordmark-first toggle of 2026-09-30 is gone (operator 2026-10-01)");
 ok(/data-rcore-header[^\n]*justifyContent: "center"/.test(panelSrc0) && /flexDirection: "column", alignItems: "center", textAlign: "center"/.test(panelSrc0), "the panel header centres the wordmark and its line");
 ok(!/data-rcore-header[\s\S]{0,1200}r-core-icon\.png/.test(panelSrc0), "the panel header shows no lone reticle icon (the wordmark carries the brand)");
 ok(/position: "absolute", right: 12, top: "50%"[\s\S]{0,400}data-rcore-download[\s\S]{0,900}data-rcore-close/.test(panelSrc0), "the download and close buttons keep the right edge");
 ok(/\{open && <RCoreRevisionPanel/.test(badgeSrc), "badge renders RCoreRevisionPanel when open");
-ok(/data-rcore-badge/.test(badgeSrc) && /flex w-full flex-col items-center justify-center/.test(badgeSrc) && !/fixed left-1\/2/.test(badgeSrc), "badge sits at the BOTTOM of the page in normal flow (mounted last, centred column: R-CORE, then its icon), never a fixed overlay on top of the image/slide (operator 2026-09-25)");
+ok(/data-rcore-badge/.test(badgeSrc) && /flex w-full justify-center/.test(badgeSrc) && !/fixed left-1\/2/.test(badgeSrc), "badge sits at the BOTTOM of the page in normal flow (mounted last, centred), never a fixed overlay on top of the image/slide (operator 2026-09-25)");
 
 // the panel is the version-history + compare tool, reusing compareRevisions
 const panelSrc = fs.readFileSync(new URL("../components/2525-core/rcore-revision-panel.tsx", import.meta.url), "utf8");

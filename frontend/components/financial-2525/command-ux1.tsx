@@ -315,8 +315,15 @@ export function FinancialCommandUX1() {
             <div className="font-medium text-cyan-500">{t("fin.released")} · {bal.ratePerMinCents > 0 ? `${usd4(bal.ratePerMinCents)} ${t("fin.per_min")}` : t(phaseDef.labelKey)}</div>
             <div className="font-mono text-2xl tabular-nums text-cyan-500" data-testid="fin-clock" aria-label={t("fin.released")}>{usd(bal.releasedCents)}</div>
           </div>
-          <p className="mt-1 text-muted-foreground"><span className="font-medium text-foreground">{t("fin.escrowed")}:</span> {usd(bal.escrowedCents)} · <span className="font-medium text-foreground">{t("fin.withdrawable")}:</span> {usd(bal.withdrawableCents)} · <span className="font-medium text-foreground">{t("fin.withdrawn")}:</span> {usd(bal.withdrawnCents)}</p>
-          <p className="text-muted-foreground"><span className="font-medium text-foreground">{t("fin.available")}:</span> {usd(bal.availableCents)}{focusView && focusView.state === "releasing" ? ` · ${t("fin.hold_mark")} ${fmtStampCST(focusView.holdUntilMs)}` : ""}</p>
+          {/* the four figures as a 2 × 2 table (r.019, operator addendum 33 "make table 2x2"): In escrow · Withdrawable over Withdrawn ·
+              Available, each cell its word above its figure — the same words and figures as before, laid out so none wraps into another */}
+          <dl data-fin-balance-grid className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2">
+            <div data-fin-cell="escrowed"><dt className="text-xs text-muted-foreground">{t("fin.escrowed")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.escrowedCents)}</dd></div>
+            <div data-fin-cell="withdrawable"><dt className="text-xs text-muted-foreground">{t("fin.withdrawable")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.withdrawableCents)}</dd></div>
+            <div data-fin-cell="withdrawn"><dt className="text-xs text-muted-foreground">{t("fin.withdrawn")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.withdrawnCents)}</dd></div>
+            <div data-fin-cell="available"><dt className="text-xs text-muted-foreground">{t("fin.available")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.availableCents)}</dd></div>
+          </dl>
+          {focusView && focusView.state === "releasing" ? <p className="mt-1 text-xs text-muted-foreground">{t("fin.hold_mark")} {fmtStampCST(focusView.holdUntilMs)}</p> : null}
           {bal.ratePerMinCents > 0 && (
             <ul className="mt-2 space-y-0.5 font-mono text-xs text-muted-foreground" data-testid="fin-ladder">
               <li>{usd4(bal.ratePerMinCents * planet.minPerHour)} {t("fin.per_hour")} · {usd(Math.round(bal.ratePerMinCents * planet.hoursPerDay * planet.minPerHour))} {t("fin.per_day")} · {usd4(bal.ratePerMinCents / planet.secPerMin)} {t("fin.per_sec")}</li>
