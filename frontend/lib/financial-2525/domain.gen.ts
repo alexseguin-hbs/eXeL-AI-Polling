@@ -749,9 +749,9 @@ export const FINANCIAL_DOMAIN = {
    "revision": "0.051",
    "date": "2026-10-01",
    "kind": "correction",
-   "why": "The rest of the backlog (addendum 99 'all backlog must be fixed'): the r.041 review defects and the two questions decided by his earlier words. The footer no longer ends with ◬ ♡ 웃 (addendum 76 'get rid of ◬ ♡ 웃'); the open logo's labels are larger (16); the chart's svg no longer carries an invalid height (a console error on every load); an unset chart date angle no longer reads as 0° — the 30° default holds; the tapped-point readout sits above the chart so on MoT it never reads as a sixth axis mark; the budget note no longer names a 'Balance view' that does not exist (its 32 stale translations removed — English until the fill). Not changed: the build stamp's CST/CDT label (site-wide, a separate decision).",
+   "why": "The rest of the backlog (addendum 99 'all backlog must be fixed'): the r.041 review defects and the two questions decided by his earlier words. The footer no longer ends with ◬ ♡ 웃 (addendum 76 'get rid of ◬ ♡ 웃'); the open logo's labels are larger (20); the chart's svg no longer carries an invalid height (a console error on every load); an unset chart date angle no longer reads as 0° — the 30° default holds; the tapped-point readout sits above the chart so on MoT it never reads as a sixth axis mark; the budget note no longer names a 'Balance view' that does not exist (its 32 stale translations removed — English until the fill). Not changed: the build stamp's CST/CDT label (site-wide, a separate decision).",
    "commit": "8a870f9",
-   "shipped": "PENDING"
+   "shipped": "b849da5"
   }
  ],
  "mot": {

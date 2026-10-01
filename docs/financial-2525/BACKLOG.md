@@ -15,7 +15,7 @@ Live URL: https://exel-ai-polling.explore-096.workers.dev/financial-2525
 
 | # | His words (verbatim, shortened only with …) | Addenda | Answer | State |
 |---|---|---|---|---|
-| B-25 | "fix all; auto mode … all backlog must be fixed" | 99 | Every open row built in order: r.046 month law · r.047 chart span toggle · r.048 budget Income from his record · r.049 currency label · r.050 non-Master settings · r.051 r.041 review defects + footer glyphs + open-logo labels. | OPEN |
+| B-25 | "fix all; auto mode … all backlog must be fixed" | 99 | Every open row built in order: r.046 month law · r.047 chart span toggle · r.048 budget Income from his record · r.049 currency label · r.050 non-Master settings · r.051 r.041 review defects + footer glyphs + open-logo labels. | LIVE (#2185) |
 | B-24 | "remove this from charting … add toggle similar to 2D/3D … 1x , 1W, 1M, 30D, 91D, 365 /364 … all transactions get spread over 30D in terms of $/min using A.B..C" | 95 | Chart: the top line goes; toggle 1x (instant, no span — 97) · 1W · 1M (Standard Month) · 30D · 91D · year (365/366 automatic); every transaction re-spread over the span (96). r.047, after the month law. | LIVE (#2181) |
 | B-23 | "Green positive: Show “Net • Upside / Savings” / Red negative: Show “Net • Downside / Risk”" | 94 | r.045: the Net label follows its sign. | LIVE (#2174) |
 | B-22 | "Available and Accrual Rate should be same line, same size text" (sent twice) | 93 | r.044: labels on one line; $ figures on the next, same size. | LIVE (Verify Live #2171) |
@@ -33,9 +33,9 @@ Live URL: https://exel-ai-polling.explore-096.workers.dev/financial-2525
 | B-10 | "Income from my record" (budget) | 80 | Next revision: budget Income reads his recorded deposits, not the example sheet. | LIVE (#2182) |
 | B-09 | "remove all 33.3 mentions / quarter is 91 days where 30 day is month and 1 day is down day … Standard Month (Gregorian) and Month • 30 day" · old entries "switch to 30" | 76 | The month law: 30-day month; quarter = 3 × 30 + 1 down day; 30.3̅ removed everywhere. His deposits then accrue at $5.4507/hr. | LIVE (#2180) |
 | B-08 | "On settings wheel non-eXeL AI, create Master and non-Master … non-Master needs 3 items / language /color / Atlantis Accords / Vision-2525 … Make sure Financial-2525 used non-Master settings wheel" | 76 | A non-Master settings panel with exactly those three items. Financial-2525 mounts it; the navbar keeps Master. | LIVE (#2184) |
-| B-07 | ◬ ♡ 웃 still at the footer's end (raised by the r.042 review, not by him) | — | Question to him: remove them from the footer too? | QUESTION |
-| B-06 | Open logo's ring labels are small (≈8 px) (raised by the r.042 review) | — | Question to him: make them larger? | QUESTION |
-| B-05 | r.041 review defects: CST vs CDT labels, date-axis clipping, svg `height="auto"` console error, the "Balance view" text | 79 | Fixed one revision at a time after B-08, each reviewed before push. | OPEN |
+| B-07 | ◬ ♡ 웃 still at the footer's end (raised by the r.042 review, not by him) | — | r.051: removed from the footer (his "fix all"). | LIVE (#2185) |
+| B-06 | Open logo's ring labels are small (≈8 px) (raised by the r.042 review) | — | r.051: labels at 20 px on the 190 px logo. | LIVE (#2185) |
+| B-05 | r.041 review defects: CST vs CDT labels, date-axis clipping, svg `height="auto"` console error, the "Balance view" text | 79 | Fixed one revision at a time after B-08, each reviewed before push. | LIVE (#2185) |
 
 ## Delivered (LIVE)
 

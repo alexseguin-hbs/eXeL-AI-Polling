@@ -716,6 +716,13 @@
    "kind": "correction",
    "text": "r.051 correction — the r.041 review defects, footer glyphs, open-logo labels (FD-68).",
    "commit": "8a870f9"
+  },
+  {
+   "rev": 103,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.051 shipped and LIVE (Verify Live #2185 ✓) — the r.041 review defects, footer glyphs, open-logo labels (FD-68).",
+   "commit": "b849da5"
   }
  ]
 }
