@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 54 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 55 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -387,6 +387,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.027 decision — plan once, then execute (addendum 56): the hold in his words naming the first deposit's mark; the pickers wait for a type; the wheel's centre symbols removed; nine choices stand unchanged (FD-44).",
       "commit": "1326df7"
+    },
+    {
+      "rev": 55,
+      "date": "2026-10-01",
+      "kind": "release",
+      "text": "r.027 shipped — the hold in his words, pickers wait for a type, the wheel centre symbols removed (FD-44).",
+      "commit": "1abe42c"
     }
   ]
 };

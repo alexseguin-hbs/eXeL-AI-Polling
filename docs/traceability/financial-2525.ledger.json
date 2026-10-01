@@ -380,6 +380,13 @@
    "kind": "decision",
    "text": "r.027 decision — plan once, then execute (addendum 56): the hold in his words naming the first deposit's mark; the pickers wait for a type; the wheel's centre symbols removed; nine choices stand unchanged (FD-44).",
    "commit": "1326df7"
+  },
+  {
+   "rev": 55,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.027 shipped — the hold in his words, pickers wait for a type, the wheel centre symbols removed (FD-44).",
+   "commit": "1abe42c"
   }
  ]
 }
