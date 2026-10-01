@@ -10,7 +10,7 @@ on:
   schedule:
     - cron: "17 */12 * * *"   # twice a day: one missed run still leaves days of margin before the 7-day pause
   workflow_dispatch:
-  push:                       # a change to this file proves itself at once
+  push:                       # a change to this file proves itself at once 
     branches: [main]
     paths: [".github/workflows/supabase-keepalive.yml"]
 concurrency:
@@ -57,14 +57,16 @@ jobs:
           echo "::add-mask::$SB_KEY"
           ok=0; report=""
           for path in "rest/v1/responses?select=id&limit=1" "rest/v1/arx_items?select=id&limit=1" "auth/v1/health"; do
-            code=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 30 -H "apikey: $SB_KEY" -H "Authorization: Bearer $SB_KEY" "$SB_URL/$path" || echo 000)
-            report="$report\n| \`/$path\` | $code |"
-            echo "/$path → $code · $(head -c 160 /tmp/body)"
+            : > /tmp/body
+            code=$(curl -sS -o /tmp/body -w "%{http_code}" --max-time 30 -H "apikey: $SB_KEY" -H "Authorization: Bearer $SB_KEY" "$SB_URL/$path" 2>/tmp/err); rc=$?
+            why=$( [ $rc -ne 0 ] && echo "curl exit $rc: $(head -c 160 /tmp/err)" || head -c 160 /tmp/body )
+            report="$report\n| \`/$path\` | $code | $why |"
+            echo "/$path → $code · $why"
             case "$code" in 2*) ok=$((ok+1));; esac
           done
           {
             echo "## Supabase keepalive · $(date -u +%Y-%m-%dT%H:%MZ)"
-            echo "| request | HTTP |"; echo "|---|---|"; printf "$report\n"
+            echo "| request | HTTP | detail |"; echo "|---|---|---|"; printf "$report\n"
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "$ok" -eq 0 ]; then
             echo "## PAUSED OR UNREACHABLE — Supabase dashboard → project eXeL-AI-Polling → Restore" >> "$GITHUB_STEP_SUMMARY"
