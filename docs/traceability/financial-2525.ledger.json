@@ -506,6 +506,13 @@
    "kind": "decision",
    "text": "r.036 decision — the three boxes spread across the card (FD-53).",
    "commit": "751b207"
+  },
+  {
+   "rev": 73,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.036 shipped — the three boxes spread (FD-53).",
+   "commit": "483401c"
   }
  ]
 }

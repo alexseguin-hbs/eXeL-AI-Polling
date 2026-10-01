@@ -516,7 +516,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "Addendum 69: \"spread 3 fields evenly full width of box.\" The three Accrual Units boxes now span the card: In Escrow on the left edge, Released centred, Spent on the right edge.",
    "commit": "751b207",
-   "shipped": "PENDING"
+   "shipped": "483401c"
   }
  ],
  "mot": {
