@@ -422,6 +422,17 @@
 > (addendum 59, verbatim — 2026-10-01 7:16 AM screenshots 2026-10-01_financial_fb59_01/02, taken on the r.027 build: the phone shows "180-min hold" and "revision 0.027"; r.028 was pushed at 12:31 UTC = 7:31 AM CDT)
 > STOP FUCKING SKIPPING HI FEEDBACK; this causes rework. youbhave t reduced tonine transaction button or remove top gold transaction box, or adjusted second box with accrual rates
 
+> (addendum 60, verbatim — 2026-10-01, screenshot 2026-10-01_financial_fb60_accrual.jpg, the live r.028 Accrual Units card)
+> doesn't this seem duplicative? Only have two versus 4 boxes:
+>
+> In Escrow
+> Released
+> Spent
+>
+> Since available is at top; users will see and understand link to released
+>
+> or you can tell me why 4 fields and whatveach does (which should be inn settings).
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -701,6 +712,8 @@
 62. **No hold (addendum 57):** there is no 180-minute rule; it was an example. Whatever has accrued at $/min moves at once —
     2 hours after a deposit, 120 minutes × $/min is withdrawable. Supersedes items 61 (1)–(3), FD-44's hold half, and r.023/r.027's
     hold wording (r.028, correction).
+63. **Three boxes, not four (addendum 60):** Available is at the top, so the grid is In Escrow · Released · Spent (Withdrawn
+    renamed Spent); what each figure means is written in the Accrual Units settings (the gear). r.029.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
