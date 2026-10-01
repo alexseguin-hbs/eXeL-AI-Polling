@@ -658,8 +658,9 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   const dayMs = daySecOf(planet) * 1000;
   // r.047: the span, remembered on this phone; every transaction re-spread over it from its entry time
   const [span, setSpan] = useState<ChartSpan>("30D");
+  const [probe, setProbe] = useState(null as number | null);
   useEffect(() => { try { const v = localStorage.getItem(SPAN_KEY) as ChartSpan | null; if (v && CHART_SPANS.includes(v)) setSpan(v); } catch { /* storage blocked: the default stands */ } }, []);
-  const pickSpan = (v: ChartSpan) => { setSpan(v); try { localStorage.setItem(SPAN_KEY, v); } catch { /* the pick still applies this visit */ } };
+  const pickSpan = (v: ChartSpan) => { setSpan(v); setProbe(null); try { localStorage.setItem(SPAN_KEY, v); } catch { /* the pick still applies this visit */ } };
   const all = respread(txs.length ? txs : [tx], span, now);
   const deps = all.filter((x) => x.kind === "deposit");
   const spanMs = spanDays(span, now) * dayMs;
@@ -681,7 +682,6 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   const ticks = showAbc ? [] : dayTicks(from, to, fit);
   const monthName = (ms: number) => { const m = cstParts(ms).mo; try { return new Intl.DateTimeFormat(locale || "en", { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2026, m - 1, 15))); } catch { return new Intl.DateTimeFormat("en", { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2026, m - 1, 15))); } };
   // TAP OR DRAG ON THE CHART → the day and time at that point (addendum 42 "find way to click on to see day / time stamp")
-  const [probe, setProbe] = useState(null as number | null);
   const probeAt = (e: { clientX: number; currentTarget: SVGSVGElement }) => { const r = e.currentTarget.getBoundingClientRect(); if (!(r.width > 0)) return; const vx = ((e.clientX - r.left) / r.width) * W; setProbe(from + Math.max(0, Math.min(1, (vx - PL) / (W - PL - P))) * len); };
   const [gear, setGear] = useState(false);
   const sample = dayTicks(from, to, 6)[0] ?? from;
@@ -740,7 +740,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
       {!showAbc && ticks.length === 0 && <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{[0, 0.25, 0.5, 0.75, 1].map((f, i) => <span key={i} className={i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}>{ltuLabel(f * len, len, planet)}</span>)}</div>}
       {!showAbc && ticks.length > 0 && (
         <div data-fin-date-axis data-fin-angle={angle} aria-hidden className={`relative font-mono text-[10px] text-muted-foreground ${angle === 0 ? "h-4" : angle === 90 ? (dateFmt === "full" ? "h-16" : "h-10") : dateFmt === "full" ? (angle === 45 ? "h-14" : "h-11") : "h-8"}`}>
-          {ticks.map((tk) => <span key={tk} className="absolute top-0.5 whitespace-nowrap" style={{ left: `${((x(tk) / W) * 100).toFixed(2)}%`, transform: angle === 0 ? "translateX(-50%)" : angle === 90 ? "translateX(-100%) rotate(-90deg)" : `translateX(-100%) rotate(-${angle}deg)`, transformOrigin: angle === 0 ? "50% 0" : "100% 0" }}>{dateLabel(tk, dateFmt)}</span>)}
+          {ticks.map((tk) => <span key={tk} className="absolute top-0.5 whitespace-nowrap" style={{ left: `${((x(tk) / W) * 100).toFixed(2)}%`, transform: angle === 0 ? (x(tk) / W < 0.12 ? "translateX(0)" : x(tk) / W > 0.88 ? "translateX(-100%)" : "translateX(-50%)") : angle === 90 ? "translateX(-100%) rotate(-90deg)" : `translateX(-100%) rotate(-${angle}deg)`, transformOrigin: angle === 0 ? "50% 0" : "100% 0" }}>{dateLabel(tk, dateFmt)}</span>)}
         </div>
       )}
       {probe !== null && <p data-fin-chart-probe className="mt-1 font-mono text-xs text-foreground">{showAbc ? fmtMot(positionInYear(probe, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(probe)} CST`}</p>}
