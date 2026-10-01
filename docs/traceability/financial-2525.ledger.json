@@ -324,6 +324,13 @@
    "kind": "decision",
    "text": "r.023 decided from his feedback and answers (addenda 36–55): one + Transaction door, folded, the type blank until he picks Deposit / Funds or Withdrawal / Expense, folding back after a save; a withdrawal runs out at $/min over its MoT and a refusal names the minute; the 180-minute rule in his words. FIN-03.05 · FIN-04.01 · FD-37 · FD-38.",
    "commit": "a3edb5f"
+  },
+  {
+   "rev": 47,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "v.000_r.023 SHIPPED — one + Transaction door, folded, the type blank until he picks Deposit / Funds or Withdrawal / Expense, folding back after a save; a withdrawal runs out at $/min over its MoT and a refusal names the minute (his $71 Storage Unit accepted). FIN-03.05 · FIN-04.01 · FD-37 · FD-38. Shipped as 245aaf5. Gates: financial-accrual 35 · financial-surface 102 · financial-crs 440 · full test:ci 0 · next build 0.",
+   "commit": "245aaf5"
   }
  ]
 }
