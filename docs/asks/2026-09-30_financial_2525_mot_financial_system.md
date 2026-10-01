@@ -498,6 +498,40 @@
 >
 > for instance personal fotness should be fitness
 
+> (addendum 76, verbatim — 2026-10-01 8:39–9:58 AM, while r.038–r.040 were being built; screenshots 2026-10-01_financial_fb76_01…18, most of them taken on earlier builds r.027–r.038. Each line is one message, in order; [image NN] names the screenshot that came with it.)
+> show me updated backlog
+> [images 01, 02] Keep image 1, and only move $/MoT is left of settings icon
+> [image 03] we are good
+> dont forget we are removing transaction button and placing smaller version at bottom of accrual section / then we place budget budget next / then visual finance chart last at bottom
+> [image 04]
+> [image 05] move globe first and settings to right
+> [images 06, 07] On settings wheel non-eXeL AI, create Master and non-Master / non-Master goes to non eXeL AI polling / non-Master needs 3 items / language /color / Atlantis Accords / Vision-2525
+> Make sure Financial - 2525 used non-Master settings wheel
+> [image 08] I asked to remove this section!!!  WTF
+> show backlog / for any release, way whats been changed and show screen shots of changes so I can review
+> [image 09] You had this right before / the $5.3908 needs to be same line as text to left (ACCRUAL UNITS) and aligned with settings wheel
+> [images 10, 11] the top takes up too much space; this is my third request / Measure of Time:   A Universal Standard / we will also get rid of / ◬ ♡ 웃 / and cut Trinity icon way below / Instead of ◬ ♡ 웃 / we will place smaller version of trinity above / if clicked it will enlarge to current size (but default is mini version, remember its okay you cant read ◬ AI, ♡ SI, 웃 HI for top. / As well entire header needs to be overall smaller, as it takes too much space on phone; focus is outcome / Accrual Section / Budget Section / Visual Section
+> [image 12] maybe you will understand this mother fucker!  listen to my feedback and of you are confused.
+> [image 13] this works, make ACCRUAL UNITS CENTERED
+> do inventory of whats been fixed first before updating backlog
+> [image 14] MASTER OF THOUGHT, / you have not FIXED MY ISSUES
+> switch Transaction button with Accrual rate and make same height as settings
+> THE RECORD · CHAIN VERIFIED · 3 / becomes / Transaction Record / TRANSACTION RECORD
+> remove all 33.3 mentions / quarter is 91 days where 30 day is month and 1 day is down day (no transactions) similar to how. we do 1 day at end of year no transactions / Two month measurements are / Standard Month (Gregorian) / and Month • 30 day
+> LIVE / 000_r.037 · eXeL v0.037-2026.10.01-09.32CST · cd4a33a · ◬ ♡ 웃
+> switch transaction button and accrual rate
+> [images 15, 16]
+> [image 17] I asked for text to change
+> TRANSACTION RECORD / LIVE / v.000_r.038 · eXeL v0.038-2026.10.01-09.45CST · a17b9ca · ◬ ♡ 웃
+> [image 18] call this: / REAL-TIME FINANCIALS
+> Push and commit; DONT EVER code until LIVE WEBSITE confirms version 40. We cant have you outpace deployments EVER. Update your AI DIRECTIVE FOR HI ALIGNMENT ALWAYS / SIGN ALL RELEASED WITH MASTER OF THOUGHT   (sent ten times)
+
+> (addendum 76, his answers verbatim — 2026-10-01, to four questions)
+> Accrual Units card layout? → Line 1: Accrual Unit, +Transaction, Settings Line 2: Available and accrual rate
+> Your two deposits recorded over 30.333 days — how should their length show? → switch to 30
+> "Sign all releases with Master of Thought" — where? → only here in Claude Code
+> Non-Master settings panel? → Exactly 3 items (Recommended)
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -812,6 +846,17 @@
 76. **One line per budget entry (addendum 75):** every budget line fits one row — a short name on the row ("Mental Health /
     Physical Fitness" → "Fitness"); where a name still runs long it ends in "…" and the full name shows on hold/hover. The full
     names stay in the pickers and the record (they are filled ×32; the short names are new English keys).
+77. **Never outpace the deploy (addendum 76):** no code for the next revision until the live website serves the previous one;
+    every release note in chat signed "— Master of Thought" (only in chat, never in repo files). The AI directive (CLAUDE.md) says so.
+78. **The Accrual Units card (addendum 76 + his answer):** line 1 = ACCRUAL UNITS · + Transaction · settings gear (button the
+    gear's height, all on one line, the title centred on that line); line 2 = Available (left) · Accrual Rate (right).
+79. **Titles (addendum 76):** the record reads "TRANSACTION RECORD"; the chart reads "REAL-TIME FINANCIALS".
+80. **The header (addendum 76, his third request):** globe first, settings to its right; no ◬ ♡ 웃 row; a mini Trinity at the top that
+    enlarges to today's size when tapped; the Trinity at the bottom removed; the whole header smaller. Focus: Accrual · Budget · Visual.
+81. **The month law (addendum 76):** a month is 30 days; a quarter is 91 days = 3 × 30 + 1 down day (no transactions), like the year's
+    down day; the two months are "Standard Month" (Gregorian) and "Month · 30 day"; no 30.3̅ anywhere; old entries "switch to 30".
+82. **Settings, Master and non-Master (addendum 76):** Master = eXeL AI Polling (as today); non-Master = every other app, exactly three
+    items: language / colour · Atlantis Accords · Vision-2525. Financial-2525 uses non-Master.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
