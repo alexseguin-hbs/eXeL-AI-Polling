@@ -291,23 +291,28 @@ export function FinancialCommandUX1() {
       <header data-fin-header className="mb-3 text-center">   {/* r.042 (addendum 76, his third request): the header is smaller — focus is the outcome */}
         {/* r.034 (addendum 67): "eXeL AI" upper left takes the person back to /main; the eXeL Polling Settings (the colour selector)
             and the globe upper right. Every accent on this surface follows the selected colour (Tailwind `primary` = the theme). */}
-        <div data-fin-topbar className="mb-2 flex items-center justify-between">
+        <div data-fin-topbar className="relative flex min-h-[64px] items-center justify-between">
           <a href="/main/" data-fin-home aria-label={t("fin.home")} title={t("fin.home")} className="inline-flex min-h-[36px] items-center gap-1 text-sm">
             <ExelWordmark exelClass="font-bold text-primary" aiClass="font-light text-muted-foreground" />
           </a>
+          {/* r.042 (addendum 78 + the AsM pre-push review "the header is not visibly smaller"): the mini Trinity sits IN the top bar,
+              centred between eXeL AI and the globe — one-third size, no text, the selected colour; a tap grows it in place below the bar */}
+          {!trinityBig && (
+            <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} onClick={() => setTrinityBig(true)} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full">
+              <SoITrinity labels={["", "", ""]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={63} />
+            </button>
+          )}
           <div className="flex items-center gap-2">
             {/* r.042 (addendum 76 "move globe first and settings to right") */}
             <SoiGlobe />
             <button type="button" data-fin-settings onClick={() => setSettingsOpen(true)} aria-label={t("fin.settings")} title={t("fin.settings")} className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-primary"><Settings size={18} strokeWidth={1.5} aria-hidden /></button>
           </div>
         </div>
-        {/* r.042 (addendum 78): the Trinity logo replaces ◬ ♡ 웃 — one-third of its full size, no text, the selected colour; a tap
-            grows it in place to full size with its labels (his answer "Grows in place at the top"); a second tap shrinks it */}
-        <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} onClick={() => setTrinityBig((v) => !v)} className="mx-auto mb-1 block rounded-full">
-          {trinityBig
-            ? <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} />
-            : <SoITrinity labels={["", "", ""]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={63} />}
-        </button>
+        {trinityBig && (
+          <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} onClick={() => setTrinityBig(false)} className="mx-auto block rounded-full">
+            <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} />
+          </button>
+        )}
         <h1 className="text-xl font-semibold leading-tight">FINANCIAL · 2525</h1>
         {/* no version line here — it is at the bottom (r.028); ONE line, "Measure of Time: A Universal Standard" (r.039, addendum 74) */}
         <p data-fin-subtitle className="text-sm text-foreground">{t("fin.title_l1")}</p>
@@ -324,12 +329,23 @@ export function FinancialCommandUX1() {
         <div data-fin-balance className="-mx-2 mb-4 rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm sm:mx-0">
           {/* r.033 (addendum 64 "Accrual field needs to be left to settings button on top line"): title left; the $/min figure and its
               unit selector on the SAME line, immediately left of the gear */}
+          {/* r.042 (addendum 81 "Move transaction left of settings and move accrual rate to right of Available · swap these two"):
+              line 1 = ACCRUAL UNITS · + Transaction (the gear's height) · gear; line 2 = Available (left) · Accrual Rate (right) */}
           <div data-fin-accrual-top className="flex items-center justify-between gap-2">
             <div className={LABEL}>{t("fin.accrual_units")}</div>
             <div className="flex shrink-0 items-center gap-2">
-              {bal.ratePerMinCents > 0 && (
+              {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} className="h-8 shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
+              <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
+            </div>
+          </div>
+          <div className="mt-2 flex items-end justify-between gap-3">
+            <div data-fin-current className="min-w-0">
+              <div className="text-xs text-muted-foreground">{t("fin.available")}:</div>
+              <div className="font-mono text-2xl tabular-nums text-primary" data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
+            </div>
+            {bal.ratePerMinCents > 0 && (
                 /* r.035 (addendum 68): the words "Accrual Rate" directly above the figure and its unit selector */
-                <div data-fin-rate-block className="flex flex-col items-start">
+                <div data-fin-rate-block className="flex flex-col items-end">
                   <span data-fin-rate-label className="text-xs text-muted-foreground">{t("fin.accrual_rate")}</span>
                   <div data-fin-rate-row className="flex items-center gap-1 text-primary">
                     <span data-fin-rate className="font-mono tabular-nums">{rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit))}</span>
@@ -339,17 +355,6 @@ export function FinancialCommandUX1() {
                   </div>
                 </div>
               )}
-              <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
-            </div>
-          </div>
-          {/* r.037 (addendum 70 "place smaller transaction button in box with accrual units. remove big pink transaction button"): the one
-              door, compact, on the Available row; the entry opens directly below this card */}
-          <div className="mt-2 flex items-end justify-between gap-3">
-            <div data-fin-current className="min-w-0">
-              <div className="text-xs text-muted-foreground">{t("fin.available")}:</div>
-              <div className="font-mono text-2xl tabular-nums text-primary" data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
-            </div>
-            {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} className="min-h-[36px] shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
           </div>
           {/* r.029 (addendum 60 "doesn't this seem duplicative?"): Available is the big figure above, so the grid is three boxes —
               In Escrow · Released · Spent; what each one means is in the gear */}

@@ -8,7 +8,7 @@
   "stamp": "v.000_r.042",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "27a7a74281377118b4df0d90c0d60fd04c95ddd0e5ea59e4cbf65bbeddc0cf90",
+  "handoffSha256": "1c79773cfe7bd94ef49bd60422e50445acd203743e3466966cc6302e1f14f789",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -234,6 +234,11 @@
     "sha256": "27a7a74281377118b4df0d90c0d60fd04c95ddd0e5ea59e4cbf65bbeddc0cf90",
     "date": "2026-10-01",
     "note": "+ addenda 78–80 (Trinity logo; AsM before push; his three answers)"
+   },
+   {
+    "sha256": "1c79773cfe7bd94ef49bd60422e50445acd203743e3466966cc6302e1f14f789",
+    "date": "2026-10-01",
+    "note": "+ addendum 81 (swap + Transaction and Accrual Rate)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -580,8 +585,8 @@
    "revision": "0.042",
    "date": "2026-10-01",
    "kind": "decision",
-   "why": "A smaller header with the Trinity logo. Addendum 78: \"replace ◬ ♡ 웃 with trinity logo (without any text) that is same color as selected color … smaller version must be 1/3rd size of existing … when clicked, expand Trinity to current size with text exactly like image 2\"; his answer \"Grows in place at the top\". Addendum 76: \"move globe first and settings to right\"; \"the top takes up too much space; this is my third request\"; \"cut Trinity icon way below\". The header shows a 63 px Trinity (one-third of 190) in the selected colour with no text; a tap grows it in place to 190 px with its labels, a second tap shrinks it; the globe comes before the settings gear; the header is smaller (top padding, title and subtitle sizes); the wheel at the bottom of the page is gone.",
-   "commit": "335d1ba",
+   "why": "A smaller header with the Trinity logo. Addendum 78: \"replace ◬ ♡ 웃 with trinity logo (without any text) that is same color as selected color … smaller version must be 1/3rd size of existing … when clicked, expand Trinity to current size with text exactly like image 2\"; his answer \"Grows in place at the top\". Addendum 76: \"move globe first and settings to right\"; \"the top takes up too much space; this is my third request\"; \"cut Trinity icon way below\". The header shows a 63 px Trinity (one-third of 190) in the selected colour with no text; a tap grows it in place to 190 px with its labels, a second tap shrinks it; the globe comes before the settings gear; the header is smaller (top padding, title and subtitle sizes); the wheel at the bottom of the page is gone. Addendum 81: \"Move transaction left of settings and move accrual rate to right of Available · swap these two\": the Accrual Units card reads ACCRUAL UNITS · + Transaction (the gear’s height) · gear on line 1, and Available (left) · Accrual Rate (right) on line 2.",
+   "commit": "985edda",
    "shipped": "PENDING"
   }
  ],
@@ -2013,9 +2018,9 @@
   },
   {
    "id": "FD-59",
-   "decision": "The header carries the Trinity logo at one-third size (no text, the selected colour) in place of ◬ ♡ 웃; a tap grows it in place to full size with its labels. Globe first, settings second. The header is smaller; no Trinity at the bottom of the page.",
+   "decision": "The header carries the Trinity logo at one-third size (no text, the selected colour) in place of ◬ ♡ 웃; a tap grows it in place to full size with its labels. Globe first, settings second. The header is smaller; no Trinity at the bottom of the page. Accrual Units: line 1 = ACCRUAL UNITS · + Transaction · gear; line 2 = Available · Accrual Rate.",
    "status": "OPERATOR",
-   "basis": "addenda 76, 78, 80 (verbatim)"
+   "basis": "addenda 76, 78, 80, 81 (verbatim)"
   }
  ],
  "reviews": [
