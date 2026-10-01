@@ -362,23 +362,25 @@ export function FinancialCommandUX1() {
         {/* ACCRUAL UNITS (r.028, addendum 58): the current balance on the LEFT; the $/min figure and its unit selector on the RIGHT; a
             settings gear upper right; "Available: $…"; no Withdraw button (withdrawal is a choice inside + Transaction); full width on the phone */}
         <div data-fin-balance className="-mx-2 mb-4 rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-3 text-sm sm:mx-0">
-          <div className="flex items-center justify-between gap-2">
+          {/* r.033 (addendum 64 "Accrual field needs to be left to settings button on top line"): title left; the $/min figure and its
+              unit selector on the SAME line, immediately left of the gear */}
+          <div data-fin-accrual-top className="flex items-center justify-between gap-2">
             <div className={LABEL}>{t("fin.accrual_units")}</div>
-            <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-cyan-500" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
-          </div>
-          <div className="mt-2 flex items-end justify-between gap-3">
-            <div data-fin-current className="min-w-0">
-              <div className="text-xs text-muted-foreground">{t("fin.available")}:</div>
-              <div className="font-mono text-2xl tabular-nums text-cyan-500" data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
+            <div className="flex shrink-0 items-center gap-2">
+              {bal.ratePerMinCents > 0 && (
+                <div data-fin-rate-row className="flex items-center gap-1 text-cyan-500">
+                  <span data-fin-rate className="font-mono tabular-nums">{rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit))}</span>
+                  <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-cyan-500">
+                    {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
+                  </select>
+                </div>
+              )}
+              <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-cyan-500" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
             </div>
-            {bal.ratePerMinCents > 0 && (
-              <div className="flex shrink-0 items-center gap-1 text-cyan-500">
-                <span data-fin-rate className="font-mono tabular-nums">{rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit))}</span>
-                <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-cyan-500">
-                  {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
-                </select>
-              </div>
-            )}
+          </div>
+          <div data-fin-current className="mt-2 min-w-0">
+            <div className="text-xs text-muted-foreground">{t("fin.available")}:</div>
+            <div className="font-mono text-2xl tabular-nums text-cyan-500" data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
           </div>
           {/* r.029 (addendum 60 "doesn't this seem duplicative?"): Available is the big figure above, so the grid is three boxes —
               In Escrow · Released · Spent; what each one means is in the gear */}

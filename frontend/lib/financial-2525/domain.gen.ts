@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.032",
-  "stamp": "v.000_r.032",
+  "revision": "0.033",
+  "stamp": "v.000_r.033",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "d9a1935db1cd46a84fcf3f46528ec15e709d6d96a57beccb7445468afa23220a",
+  "handoffSha256": "8f3266c4c44aab75a4d080649be7dfd272ba6aabc0641f7700c7bef082292511",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -196,6 +196,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "d9a1935db1cd46a84fcf3f46528ec15e709d6d96a57beccb7445468afa23220a",
     "date": "2026-10-01",
     "note": "+ addendum 63 (the Record columns); reading item 66"
+   },
+   {
+    "sha256": "8f3266c4c44aab75a4d080649be7dfd272ba6aabc0641f7700c7bef082292511",
+    "date": "2026-10-01",
+    "note": "+ addendum 64 (the rate on the top line); reading item 67"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -465,6 +470,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "Addendum 63: \"the record chain needs dollar and then spend category as front two columns; order by logic.\" The Record table now reads, left to right: Amount (signed — + money in, − money out) · Category · Memo (who or what) · Day and time · Length (MoT) · Type · # · Hash. What you want to know first comes first; the proof (entry number and chain hash) sits last.",
    "commit": "a57453d",
    "shipped": "2fa0ac1"
+  },
+  {
+   "revision": "0.033",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "Addendum 64: \"Accrual field needs to be left to settings button on top line.\" The $/min figure and its /sec · /min · /hr · /day selector move up onto the Accrual Units title line, immediately left of the gear; Available stays the big figure on the left below; the three boxes (In Escrow · Released · Spent) unchanged.",
+   "commit": "45c6f11",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1838,6 +1851,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The Record leads with the signed Amount and the Category; then Memo · Day and time · Length · Type; # and Hash last.",
    "status": "OPERATOR",
    "basis": "addendum 63 (verbatim) — the order after the first two delegated to Master of Thought"
+  },
+  {
+   "id": "FD-50",
+   "decision": "Accrual Units top line: title on the left; the rate and its unit selector immediately left of the gear.",
+   "status": "OPERATOR",
+   "basis": "addendum 64 (verbatim)"
   }
  ],
  "reviews": [
