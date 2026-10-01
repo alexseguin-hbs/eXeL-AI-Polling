@@ -463,6 +463,9 @@
 > (addendum 69, verbatim — 2026-10-01, screenshot 2026-10-01_financial_fb69_spread.jpg, the three Accrual Units boxes)
 > spread 3 fields evenly full width of box
 
+> (addendum 70, verbatim — 2026-10-01 7:57 AM, screenshot 2026-10-01_financial_fb70_tx_in_card.png)
+> place smaller transaction button in box with accrual units. remove big pink transaction button
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -758,6 +761,8 @@
     stay on the Accrual Units top line left of the gear (addendum 64). r.035.
 70. **The three boxes span the card (addendum 69):** In Escrow on the left edge, Released centred, Spent on the right edge —
     evenly across the full width of the box. r.036.
+71. **The one door moves into the card (addendum 70):** the big full-width + Transaction button is removed; a smaller
+    + Transaction sits inside the Accrual Units card (right of Available); the entry opens directly below the card. r.037.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
