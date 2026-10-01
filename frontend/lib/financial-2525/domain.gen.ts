@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.021",
-  "stamp": "v.000_r.021",
+  "revision": "0.022",
+  "stamp": "v.000_r.022",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "092e2ed8a787f9c99a8c65f6aad1785ad686b89ac64d7364f6de74acb33b55ed",
@@ -342,6 +342,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "Every amount carries its own MoT (operator addendum 35 'on input of transaction or budget, must be able to specify time (MoT of transaction)'). The transaction form already asked for it (Length (MoT)); the budget did not — its lines were typed in whatever unit the table showed. plan.ts: a line keeps the amount the person typed and the length it covers — the transaction form's presets (Weekly · Monthly (30.333 days) · Every 33 days · Quarterly (91 days) · Yearly), One time excepted because a budget line is a rate, and Other as a number in years · days · hours · minutes; the ladder still reads the line on the 33-day base, so the table, the groups and Net convert it to whatever unit is showing (Insurance $1,200 Yearly reads $1,200 per year, $108.49 per 33 days); a negative or non-number amount, One time or a zero-length Other changes nothing; a saved line with an impossible MoT keeps its figure and drops the bad spec. The glass: in edit mode each line shows its amount, its MoT select and (for Other) its number and unit, beside the ×; the add row takes the new line's amount and MoT (Monthly by default). And 'In escrow' reads 'In Escrow' (English only, addendum 32). No new word — the transaction form's words carry it. FIN-06.11 · FD-36.",
    "commit": "2756088",
    "shipped": "af6bfe3"
+  },
+  {
+   "revision": "0.022",
+   "date": "2026-10-01",
+   "kind": "correction",
+   "why": "r.021 shipped a budget line's MoT picker that could not pick Other: a line's Other count starts at 0, a zero-length MoT is refused by setLineSpec (correctly, so no wrong rate is ever written), and the refusal snapped the picker back to its old preset — the number field never opened. Found by the r.021 capture on the built export, not by the r.021 gates, which read the select's markup and the pure functions separately. The same class on the add row: picking Other with no count, or typing a non-number amount, added the line as a silent zero (Number(x) || 0). Fix at the class, in the pure model: switchRec(spec, rec) — picking Other carries the line's current length into the Other field in days (Monthly → 30.333 days, a sheet line → 33 days), so the rate is unchanged until the person types a new count; a count already typed is kept across presets. Both the line picker and the add row's picker go through it; the add row builds one spec, its button waits until isValidSpec(spec) holds, and it adds exactly that spec. FIN-06.11's statement stands and its metric is now met on the glass (the r.022 capture picks Other on Rent and reads the number field). Lesson on the record: a picker's every option is driven on the glass before a ship.",
+   "commit": "af6bfe3",
+   "shipped": "PENDING"
   }
  ],
  "mot": {

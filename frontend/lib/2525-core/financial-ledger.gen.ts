@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 43 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 44 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -309,6 +309,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-01",
       "kind": "release",
       "text": "v.000_r.021 SHIPPED — every budget line carries its own amount and MoT (the transaction form's presets, One time excepted, with Other), kept as typed and converted to the table's unit; the add row takes amount and MoT; the escrow line reads In Escrow. FIN-06.11 · FD-36. Shipped as af6bfe3. Gates: financial-ladder 92 · financial-surface 96 · financial-crs 420 · full test:ci 0 · next build 0.",
+      "commit": "af6bfe3"
+    },
+    {
+      "rev": 44,
+      "date": "2026-10-01",
+      "kind": "correction",
+      "text": "r.022 correction: on r.021 a budget line could not pick Other (a zero count was refused and the picker snapped back), and the add row turned a typed amount into a silent zero when Other had no count. switchRec carries the current length into Other (Monthly → 30.333 days); the add button waits on a valid spec and adds exactly it. Found by the r.021 capture; the r.021 gates were green.",
       "commit": "af6bfe3"
     }
   ]

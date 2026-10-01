@@ -135,6 +135,19 @@ ok(near(L.ratePerMinute(360449, 91 / 3), 8.2520, 1e-3), "the worked paycheck run
   store.set(P.planKey("eve"), JSON.stringify([{ fieldId: "F.groceries", amountNative: 300, nativePeriod: "days33", amount: 5, rec: "once" }]));
   const ev = P.loadPlan("eve");
   ok(ev.length === 1 && ev[0].rec === undefined && ev[0].amountNative === 300 && P.lineSpec(ev[0]).rec === "days33", "a saved line with an impossible MoT keeps its figure and drops the bad spec (reads every 33 days)");
+  // r.022 (correction of r.021): picking Other on a line must not snap back — the line's current length carries into the Other field.
+  const sw = P.switchRec(P.lineSpec(m), "other");
+  ok(sw.rec === "other" && near(sw.otherN, 30.333, 1e-9) && sw.otherUnit === "days" && P.isValidSpec(sw), `picking Other on Rent (Monthly) carries its length: Other 30.333 days, a valid spec (got ${JSON.stringify(sw)})`);
+  const swl = P.setLineSpec(P.setLineSpec(sheet, "B.rent_mortgage", P.lineSpec(m)), "B.rent_mortgage", sw).find((l) => l.fieldId === "B.rent_mortgage");
+  ok(swl.rec === "other" && near(L.toPeriod(swl.amountNative, swl.nativePeriod, "month"), 700 * (91 / 3) / 30.333, 1e-6), "the pick is accepted (rec other) and the rate is the same length to a thousandth of a day — no snap-back, no jump");
+  const sheetOther = P.switchRec(P.lineSpec(ins), "other");
+  ok(sheetOther.otherN === 33 && sheetOther.otherUnit === "days" && P.isValidSpec(sheetOther), "a sheet line (every 33 days) picks Other as 33 days");
+  const kept = P.switchRec({ amount: 30, rec: "other", otherN: 36, otherUnit: "hours" }, "yearly");
+  ok(kept.rec === "yearly" && kept.otherN === 36 && kept.otherUnit === "hours" && JSON.stringify(P.switchRec(kept, "other")) === JSON.stringify({ amount: 30, rec: "other", otherN: 36, otherUnit: "hours" }), "an Other count already typed is kept when the person goes to a preset and back");
+  ok(!P.isValidSpec({ amount: 10, rec: "other", otherN: 0, otherUnit: "days" }) && !P.isValidSpec({ amount: NaN, rec: "weekly", otherN: 0, otherUnit: "days" }) && P.isValidSpec({ amount: 0, rec: "weekly", otherN: 0, otherUnit: "days" }), "the add row's button waits on a zero-length Other or a non-number amount; an empty amount adds a zero line as before");
+  const addOther = P.switchRec({ amount: 60, rec: "paymot", otherN: 0, otherUnit: "days" }, "other");
+  const ao = P.addLine(sheet, "C.fuel", addOther).find((l) => l.fieldId === "C.fuel");
+  ok(ao && ao.amount === 60 && ao.rec === "other" && near(ao.otherN, 30.333, 1e-9) && ao.amountNative > 0, "the add row with Other picked adds the typed amount (never a silent zero line)");
   delete globalThis.localStorage;
 }
 

@@ -45,7 +45,7 @@ import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
 import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
 import { balanceAt, series, validateWithdrawal, depositView, HOLD_MS, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { type BudgetCategory } from "@/lib/financial-2525/budget";
-import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineSpec, lineSpec, addLine, removeLine, BUDGET_RECURRENCES, type PlanLine, type LineSpec } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
+import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineSpec, lineSpec, switchRec, isValidSpec, addLine, removeLine, BUDGET_RECURRENCES, type PlanLine, type LineSpec } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
 import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 
@@ -188,6 +188,7 @@ export function FinancialCommandUX1() {
   const [addSec, setAddSec] = useState("A" as FlowSectionId); const [addField, setAddField] = useState("A.income_wages");
   // the add row carries the new line's amount and MoT too (r.021, addendum 35) — a bill is monthly until the person says otherwise
   const [addAmt, setAddAmt] = useState(""); const [addRec, setAddRec] = useState("paymot" as Recurrence); const [addN, setAddN] = useState(""); const [addUnit, setAddUnit] = useState("days" as LengthUnit);
+  const addSpec: LineSpec = { amount: addAmt.trim() === "" ? 0 : Number(addAmt), rec: addRec, otherN: Number(addN) || 0, otherUnit: addUnit };   // r.022: one spec the button checks and adds — a typed amount is added as typed or the button waits
   useEffect(() => { if (!owner) { setPlan(sheetPlan()); setEditing(false); return; } setPlan(planOrSheet(loadPlan(owner))); }, [owner]);
   const writePlan = (next: PlanLine[]) => { setPlan(next); if (owner && !savePlan(owner, next)) setSaveFailed(true); };
   // a line is edited as TYPED — its amount and its MoT (r.021, addendum 35); the table converts it to the unit showing
@@ -448,7 +449,7 @@ export function FinancialCommandUX1() {
                           <span className="flex flex-wrap items-center justify-end gap-1">
                             <input data-fin-plan-amount={l.fieldId} aria-label={t("fin.amount")} className="w-20 rounded-md border border-border bg-background px-2 py-1 text-right text-xs text-foreground" inputMode="decimal"
                               value={drafts[`${l.fieldId}:amount`] ?? String(sp.amount)} onChange={(e) => typeDraft(l, "amount", e.target.value)} onBlur={() => dropDraft(l, "amount")} />
-                            <select data-fin-plan-rec={l.fieldId} aria-label={t("fin.length")} value={sp.rec} onChange={(e) => editSpec(l, { rec: e.target.value as Recurrence })} className="max-w-[9.5rem] rounded-md border border-border bg-background px-1 py-1 text-xs text-foreground">
+                            <select data-fin-plan-rec={l.fieldId} aria-label={t("fin.length")} value={sp.rec} onChange={(e) => writePlan(setLineSpec(plan, l.fieldId, switchRec(lineSpec(l), e.target.value as Recurrence)))} className="max-w-[9.5rem] rounded-md border border-border bg-background px-1 py-1 text-xs text-foreground">
                               {BUDGET_RECURRENCES.map((r) => <option key={r} value={r}>{t(`fin.rec.${r}`)}</option>)}
                             </select>
                             {sp.rec === "other" && (<>
@@ -486,7 +487,7 @@ export function FinancialCommandUX1() {
                 <input data-fin-plan-add-amount className={INPUT} inputMode="decimal" value={addAmt} onChange={(e) => setAddAmt(e.target.value)} />
               </label>
               <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.length")}
-                <select data-fin-plan-add-rec className={PICK} value={addRec} onChange={(e) => setAddRec(e.target.value as Recurrence)}>
+                <select data-fin-plan-add-rec className={PICK} value={addRec} onChange={(e) => { const nx = switchRec(addSpec, e.target.value as Recurrence); setAddRec(nx.rec); if (nx.otherN !== addSpec.otherN) setAddN(String(nx.otherN)); setAddUnit(nx.otherUnit); }}>
                   {BUDGET_RECURRENCES.map((r) => <option key={r} value={r}>{t(`fin.rec.${r}`)}</option>)}
                 </select>
               </label>
@@ -501,7 +502,7 @@ export function FinancialCommandUX1() {
                 </label>
               )}
               <span className="flex items-end gap-2">
-                <button type="button" data-fin-plan-add-btn disabled={!addable.length} onClick={() => { const id = addable.some((f) => f.id === addField) ? addField : addable[0]?.id; if (id) { writePlan(addLine(plan, id, { amount: Number(addAmt) || 0, rec: addRec, otherN: Number(addN) || 0, otherUnit: addUnit })); setAddAmt(""); setAddN(""); } }} className="min-h-[36px] rounded-md border border-border px-3 text-xs disabled:opacity-50">{t("fin.add_line")}</button>
+                <button type="button" data-fin-plan-add-btn disabled={!addable.length || !isValidSpec(addSpec)} onClick={() => { const id = addable.some((f) => f.id === addField) ? addField : addable[0]?.id; if (id && isValidSpec(addSpec)) { writePlan(addLine(plan, id, addSpec)); setAddAmt(""); } }} className="min-h-[36px] rounded-md border border-border px-3 text-xs disabled:opacity-50">{t("fin.add_line")}</button>
                 <button type="button" data-fin-plan-reset onClick={() => { if (owner) clearPlan(owner); setPlan(sheetPlan()); setDrafts({}); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs">{t("fin.reset_sheet")}</button>
               </span>
             </div>

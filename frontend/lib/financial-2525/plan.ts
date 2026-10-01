@@ -19,6 +19,18 @@ export interface LineSpec { amount: number; rec: Recurrence; otherN: number; oth
 export const BUDGET_RECURRENCES: readonly Recurrence[] = RECURRENCES.filter((r) => r !== "once");
 const specDays = (s: LineSpec) => lengthDays(s.rec, s.otherN, s.otherUnit);
 const specOk = (s: LineSpec) => Number.isFinite(s.amount) && s.amount >= 0 && BUDGET_RECURRENCES.includes(s.rec) && LENGTH_UNITS.includes(s.otherUnit) && Number.isFinite(specDays(s)) && specDays(s) > 0;
+/** A spec the plan would accept (the add row's button reads this, so a typed amount is never silently dropped — r.022). */
+export const isValidSpec = (s: LineSpec): boolean => specOk(s);
+/** CHANGE A LINE'S MoT (r.022, correction of r.021): picking Other on a line whose Other count is still 0 carried a zero length, so
+ *  setLineSpec refused it and the picker snapped back — a person could not choose Other at all. Picking Other now carries the line's
+ *  current length into the Other field, in days (Monthly → 30.333 days), so the rate is unchanged until the person types a new one;
+ *  every other pick just changes the preset. Pure; the same rule serves a budget line and the add row. */
+export function switchRec(s: LineSpec, rec: Recurrence): LineSpec {
+  const next: LineSpec = { ...s, rec };
+  if (rec !== "other" || lengthDays("other", s.otherN, s.otherUnit) > 0) return next;
+  const d = s.rec === "other" ? 0 : specDays(s);
+  return { ...next, otherN: Math.round((d > 0 ? d : 33) * 1000) / 1000, otherUnit: "days" };
+}
 /** The line as the person typed it; a line with no spec (the sheet, an r.016–r.020 copy) reads as its 33-day figure, every 33 days. */
 export function lineSpec(l: PlanLine): LineSpec {
   const s: LineSpec = { amount: Number(l.amount), rec: l.rec as Recurrence, otherN: Number(l.otherN ?? 0), otherUnit: (l.otherUnit ?? "days") as LengthUnit };
