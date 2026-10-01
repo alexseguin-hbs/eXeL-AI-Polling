@@ -286,6 +286,8 @@
 
 > (addendum 27, verbatim — with his phone screenshot at 16:52 CST, still the r.011 edition (stamp v.000_r.011 · d9b1a72): the PERSONAL BUDGET ON THE LADDER table with an icon before Income · Mortgage/Rent · Auto · Insurance · Utilities · Groceries · Fitness · Fun and Net −$200.00, saved beside this file as `2026-09-30_financial_2525_iconology_a_u.png`) well done on iconology; ensure for all A-U major categories icons exist
 
+> (addendum 28, verbatim — with the same phone screenshot of the r.011 PERSONAL BUDGET ON THE LADDER table, saved beside this file as `2026-09-30_financial_2525_budget_edit_mode.png`) add edit mode and icon on budget mode
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -458,6 +460,11 @@
     table, the picker and the record line draw one before every section; the gap is that Q · Net worth and R · Credit shared one
     stroke and no gate held the twenty — r.015 gives every section its own stroke and gates it. The phone in the screenshot still
     ran r.011.
+36. **The budget has an EDIT mode behind an icon (addendum 28):** the PERSONAL BUDGET ON THE LADDER panel carries a pencil
+    icon in its header; tapping it opens edit mode — every line's amount becomes a field (entered in the unit the person has
+    picked, stored on the 33-day base), a line can be removed, a line can be added (section → field → amount), and Done closes
+    it; the person's budget is saved on the device (the record's scope, FD-18 — cloud later) and Reset returns to the sheet; the
+    ladder's Net and every per-unit figure follow the edited plan at once. Ships as r.016.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
