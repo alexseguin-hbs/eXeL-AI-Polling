@@ -439,6 +439,11 @@
 > (addendum 62, verbatim — 2026-10-01 7:46 AM, screenshot 2026-10-01_financial_fb62_calmonth.png, the budget's unit dropdown)
 > for personal budget we should also have standard month added before month 30.3 (1st day of Gregorian calendar , even though its not even nor does it reflect reality).
 
+> (addendum 63, verbatim — 2026-10-01 7:48 AM, screenshots 2026-10-01_financial_fb63_01/02, the Record table scrolled left and right)
+> Master of Thought:
+>
+> the record chain needs dollar and then spend category as front two columns; order by logic (as you are master of knowing humanity)
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -724,6 +729,8 @@
     MoT unlocks the orbital rows (perihelion, the A.B..C position). Its own state — the chart's toggle no longer drives it. r.030.
 65. **The standard month (addendum 62):** the budget's units gain "per calendar month" — the Gregorian month we are in, from its
     1st, its real length (October 31 days) — right before "per month (30.3̅ days)". r.031.
+66. **The Record's columns (addendum 63):** Amount (signed: + in, − out) and Category first; then the rest as a person reads an
+    entry — Memo (who / what) · Day and time · Length (MoT) · Type · # · Hash (proof, last). r.032.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
