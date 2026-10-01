@@ -343,7 +343,7 @@
    "kind": "correction",
    "why": "THE BUDGET AS HE ASKED (addenda 41, 47, 48, 50 + his answers in addendum 55): 'don’t change budget inplementetion; this is way too complicated and I never asked for it' — the r.021–r.022 per-line MoT editor (a Length dropdown and an Other field on every line, an amount and MoT on the add row) is removed; plan.ts is r.020's again. 'use selects deop down once for budget in edit mode.  once off edit mode they should be able to view in $/min, quarterly, annually etc.' + his answer 'One, shared': ONE Unit dropdown — in edit mode the amounts are typed in the unit picked, out of edit mode it converts the view. 'personal budget should be defaulted to 30.3 repeating': the Unit starts at per month (30.3 repeating days). A plan saved by r.021–r.022 still loads at the same rate. The transaction form keeps its own Length (MoT) — addendum 35's first half stands. ONE RATE FIGURE (addendum 46 + his answer 'One figure + dropdown'): the Released card reads 'Released · $5.3908 /hr' with a /sec · /min · /hr · /day dropdown, per hour by default, shorthand once picked; the three-figure line is removed; the figure is the live $/min times the planet's own units. Lesson on the record: r.021 read 'must be able to specify time' as a per-line control nobody asked for — the questions are asked first now (addenda 51, 52, 54).",
    "commit": "a3edb5f",
-   "shipped": "PENDING"
+   "shipped": "4e86d21"
   }
  ],
  "mot": {
