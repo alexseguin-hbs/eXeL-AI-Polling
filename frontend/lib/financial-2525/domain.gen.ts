@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.042",
-  "stamp": "v.000_r.042",
+  "revision": "0.043",
+  "stamp": "v.000_r.043",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "92679e96a7d799cc285a9dd40774f6d346a2789dd8010914072da2759cfd75a7",
+  "handoffSha256": "65ac57a6c730ab423909e1a717f3238cdcf6110af58abb600952bfabb6dda4e6",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -281,6 +281,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "92679e96a7d799cc285a9dd40774f6d346a2789dd8010914072da2759cfd75a7",
     "date": "2026-10-01",
     "note": "+ addendum 84 (r.042 looks good; the Accrual gear on one line)"
+   },
+   {
+    "sha256": "65ac57a6c730ab423909e1a717f3238cdcf6110af58abb600952bfabb6dda4e6",
+    "date": "2026-10-01",
+    "note": "+ addendum 85 (Fitness → Fitness & Health)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -621,7 +626,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "TRANSACTION RECORD and REAL-TIME FINANCIALS. Addenda 76–77: \"THE RECORD · CHAIN VERIFIED · 3 becomes TRANSACTION RECORD\" (asked three times) and \"call this: REAL-TIME FINANCIALS\". The record header reads Transaction Record (a broken chain is still said beside it); the chart header reads Real-Time Financials, the elapsed time staying in the line under it.",
    "commit": "2230e15",
-   "shipped": "PENDING"
+   "shipped": "daace84"
   },
   {
    "revision": "0.042",
@@ -629,6 +634,14 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "A smaller header with the Trinity logo. Addendum 78: \"replace ◬ ♡ 웃 with trinity logo (without any text) that is same color as selected color … smaller version must be 1/3rd size of existing … when clicked, expand Trinity to current size with text exactly like image 2\"; his answer \"Grows in place at the top\". Addendum 76: \"move globe first and settings to right\"; \"the top takes up too much space; this is my third request\"; \"cut Trinity icon way below\". The header shows a 63 px Trinity (one-third of 190) in the selected colour with no text; a tap grows it in place to 190 px with its labels, a second tap shrinks it; the globe comes before the settings gear; the header is smaller (top padding, title and subtitle sizes); the wheel at the bottom of the page is gone. Addendum 81: \"Move transaction left of settings and move accrual rate to right of Available · swap these two\": the Accrual Units card reads ACCRUAL UNITS · + Transaction (the gear’s height) · gear on line 1, and Available (left) · Accrual Rate (right) on line 2.",
    "commit": "985edda",
+   "shipped": "15d9ee2"
+  },
+  {
+   "revision": "0.043",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "One line in the Accrual gear. Addendum 84: \"make singgle line … 14:43:53 elapsed · $0.0898 /min · $0.0015 /sec\". The open gear's elapsed time and the per-minute and per-second rates read on one line (were two). r.042 confirmed on his phone (\"looks good now\"). Addendum 85: \"change Fitness to Fitness & Health\" — the budget line's short name reads \"Fitness & Health\".",
+   "commit": "9dd39fd",
    "shipped": "PENDING"
   }
  ],
@@ -2063,6 +2076,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The header carries the Trinity logo at one-third size (no text, the selected colour) in place of ◬ ♡ 웃; a tap grows it in place to full size with its labels. Globe first, settings second. The header is smaller; no Trinity at the bottom of the page. Accrual Units: line 1 = ACCRUAL UNITS · + Transaction · gear; line 2 = Available · Accrual Rate.",
    "status": "OPERATOR",
    "basis": "addenda 76, 78, 80, 81 (verbatim)"
+  },
+  {
+   "id": "FD-60",
+   "decision": "The Accrual gear reads elapsed · $/min · $/sec on one line; the budget line \"Fitness\" reads \"Fitness & Health\".",
+   "status": "OPERATOR",
+   "basis": "addenda 84, 85 (verbatim)"
   }
  ],
  "reviews": [

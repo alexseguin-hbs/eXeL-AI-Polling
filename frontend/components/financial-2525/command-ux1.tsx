@@ -374,8 +374,8 @@ export function FinancialCommandUX1() {
           )}
           {accrualGear && focusView && (
             <ul data-fin-accrual-menu className="mt-2 space-y-0.5 border-t border-border pt-2 font-mono text-xs text-muted-foreground" data-testid="fin-ladder">
-              <li data-fin-elapsed-line>{showAbc ? `${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : `${hhmmss(Math.max(0, at - focus!.atMs))} ${t("fin.elapsed")}`}</li>
-              <li>{usd4(bal.ratePerMinCents)} {t("fin.rate.min")} · {usd4(bal.ratePerMinCents / planet.secPerMin)} {t("fin.rate.sec")}</li>
+              {/* r.043 (addendum 84): one line — elapsed · $/min · $/sec */}
+              <li data-fin-elapsed-line className="whitespace-nowrap">{showAbc ? `${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : `${hhmmss(Math.max(0, at - focus!.atMs))} ${t("fin.elapsed")}`} · {usd4(bal.ratePerMinCents)} {t("fin.rate.min")} · {usd4(bal.ratePerMinCents / planet.secPerMin)} {t("fin.rate.sec")}</li>
             </ul>
           )}
         </div>

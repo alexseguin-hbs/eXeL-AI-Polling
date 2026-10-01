@@ -15,6 +15,7 @@ Live URL: https://exel-ai-polling.explore-096.workers.dev/financial-2525
 
 | # | His words (verbatim, shortened only with …) | Addenda | Answer | State |
 |---|---|---|---|---|
+| B-17 | "change Fitness to Fitness & Health" | 85 | r.043: the budget line reads "Fitness & Health". | OPEN |
 | B-16 | "make singgle line … 14:43:53 elapsed · $0.0898 /min · $0.0015 /sec" | 84 | r.043: the Accrual gear's two lines become one. | OPEN |
 | B-15 | "finally; how many times do I have to ask to move transactions button around" (his phone at 11:24 still served cce6905 = r.041) | 83 | Same answer as B-13: r.042 carries the swap. LIVE only when the footer reads r.042 or later. | LIVE (his "looks good now") |
 | B-14 | "document new asks in backlog every ask" | 82 | This file. Every new ask gets a row in the same commit that persists it. | PUSHED |

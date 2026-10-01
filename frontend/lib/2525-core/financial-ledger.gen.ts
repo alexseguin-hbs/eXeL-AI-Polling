@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 83 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 86 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -590,6 +590,27 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.042 decision — the Trinity logo replaces ◬ ♡ 웃 (mini, grows on tap); globe first; smaller header (FD-59).",
       "commit": "335d1ba"
+    },
+    {
+      "rev": 84,
+      "date": "2026-10-01",
+      "kind": "release",
+      "text": "r.041 shipped and LIVE (Verify Live #2158 poll ✓) — TRANSACTION RECORD; REAL-TIME FINANCIALS (FD-58).",
+      "commit": "daace84"
+    },
+    {
+      "rev": 85,
+      "date": "2026-10-01",
+      "kind": "release",
+      "text": "r.042 shipped and LIVE (his \"looks good now\") — Trinity logo in the top bar; + Transaction left of the gear, Accrual Rate right of Available (FD-59).",
+      "commit": "15d9ee2"
+    },
+    {
+      "rev": 86,
+      "date": "2026-10-01",
+      "kind": "decision",
+      "text": "r.043 decision — the Accrual gear on one line (FD-60).",
+      "commit": "9dd39fd"
     }
   ]
 };
