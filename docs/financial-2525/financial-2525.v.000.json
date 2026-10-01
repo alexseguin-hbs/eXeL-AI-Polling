@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.033",
-  "stamp": "v.000_r.033",
+  "revision": "0.034",
+  "stamp": "v.000_r.034",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "8f3266c4c44aab75a4d080649be7dfd272ba6aabc0641f7700c7bef082292511",
+  "handoffSha256": "9715904738a4c3fc4e679cb6de36e4ce96649ec4251fc4d546761874ab985032",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -174,6 +174,11 @@
     "sha256": "8f3266c4c44aab75a4d080649be7dfd272ba6aabc0641f7700c7bef082292511",
     "date": "2026-10-01",
     "note": "+ addendum 64 (the rate on the top line); reading item 67"
+   },
+   {
+    "sha256": "9715904738a4c3fc4e679cb6de36e4ce96649ec4251fc4d546761874ab985032",
+    "date": "2026-10-01",
+    "note": "+ addenda 64–67 (rate on the top line, its meaning, gear-only content, Settings + one colour + eXeL AI); reading items 67–68"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -451,6 +456,14 @@
    "why": "Addendum 64: \"Accrual field needs to be left to settings button on top line.\" The $/min figure and its /sec · /min · /hr · /day selector move up onto the Accrual Units title line, immediately left of the gear; Available stays the big figure on the left below; the three boxes (In Escrow · Released · Spent) unchanged.",
    "commit": "45c6f11",
    "shipped": "ff3d8ff"
+  },
+  {
+   "revision": "0.034",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "Addendum 67: \"settings with colors selector (from eXeL Polling) should be in upper right; master color is violet in this example, but some text is cyan; remember we stick to color per selector. also eXeL AI is missing on upper left to take us back to /main.\" The header row now carries the eXeL AI wordmark at the upper left (a link to /main) and, at the upper right, the eXeL Polling Settings gear — the same panel the app navbar opens, with its colour selector — beside the globe. Every fixed cyan accent on the surface (headings, the Available figure, the rate and its selector, the toggles and their rings, the budget edit ring, the Accrual Units border) now uses the theme's primary colour, so the whole page follows the colour picked in Settings. The chart's cyan Withdrawable line and legend word are removed: with no hold (r.028) withdrawable always equals released, so the line sat hidden under the green Released line. The remaining data colours (deposits green, withdrawals red, Released green, In Escrow orange) are unchanged.",
+   "commit": "05f3f07",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1830,6 +1843,12 @@
    "decision": "Accrual Units top line: title on the left; the rate and its unit selector immediately left of the gear.",
    "status": "OPERATOR",
    "basis": "addendum 64 (verbatim)"
+  },
+  {
+   "id": "FD-51",
+   "decision": "The surface carries eXeL AI (to /main) upper left and the eXeL Polling Settings (colour selector) upper right; every accent follows the selected colour — no fixed cyan.",
+   "status": "OPERATOR",
+   "basis": "addendum 67 (verbatim)"
   }
  ],
  "reviews": [

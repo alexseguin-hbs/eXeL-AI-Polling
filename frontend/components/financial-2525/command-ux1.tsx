@@ -26,6 +26,8 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { SoiGlobe } from "@/components/soi-globe";
+import { ExelWordmark } from "@/components/exel-wordmark";
+import { ModeratorSettings } from "@/components/moderator-settings";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { SoITrinity } from "@/components/soi-trinity";
 import { PodPhaseRail } from "@/components/pod-phase-rail";
@@ -56,8 +58,8 @@ const CAT_KEY: Record<BudgetCategory, string> = { Income: "income", Home: "home"
 /** The Session's own classes, reused verbatim. */
 const CARD = "mt-8 rounded-xl border border-border bg-card p-5";
 const SUB = "mb-4 rounded-lg border border-border p-3 text-sm";
-const ACCENT_SUB = "mb-4 rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-3 text-sm";
-const LABEL = "text-xs font-semibold uppercase tracking-wide text-cyan-400";
+const ACCENT_SUB = "mb-4 rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm";
+const LABEL = "text-xs font-semibold uppercase tracking-wide text-primary";
 const PRIMARY = "min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50";
 const SECONDARY = "min-h-[44px] rounded-md border border-border px-4 py-2 text-sm";
 const INPUT = "w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring";
@@ -114,8 +116,8 @@ const RATE_UNITS: readonly RateUnit[] = ["sec", "min", "hr", "day"];
 function ClockMotToggle({ abc, onChange, t, hook }: { abc: boolean; onChange: (v: boolean) => void; t: (k: string) => string; hook: string }) {
   return (
     <div role="group" data-fin-abc-toggle={hook} className="flex overflow-hidden rounded-md border border-border">
-      <button type="button" aria-pressed={!abc} aria-label={t("fin.show_ltu")} title={t("fin.show_ltu")} onClick={() => onChange(false)} className={`flex h-8 w-9 items-center justify-center ${!abc ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}><Clock size={16} strokeWidth={1.5} aria-hidden /></button>
-      <button type="button" aria-pressed={abc} aria-label={t("fin.show_abc")} title={t("fin.show_abc")} onClick={() => onChange(true)} className={`flex h-8 w-9 items-center justify-center ${abc ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}><Orbit size={16} strokeWidth={1.5} aria-hidden /></button>
+      <button type="button" aria-pressed={!abc} aria-label={t("fin.show_ltu")} title={t("fin.show_ltu")} onClick={() => onChange(false)} className={`flex h-8 w-9 items-center justify-center ${!abc ? "text-primary ring-1 ring-inset ring-primary" : "text-muted-foreground"}`}><Clock size={16} strokeWidth={1.5} aria-hidden /></button>
+      <button type="button" aria-pressed={abc} aria-label={t("fin.show_abc")} title={t("fin.show_abc")} onClick={() => onChange(true)} className={`flex h-8 w-9 items-center justify-center ${abc ? "text-primary ring-1 ring-inset ring-primary" : "text-muted-foreground"}`}><Orbit size={16} strokeWidth={1.5} aria-hidden /></button>
     </div>
   );
 }
@@ -164,7 +166,8 @@ export function FinancialCommandUX1() {
   const [showAbc, setShowAbc] = useState(false);
   const [yearAbc, setYearAbc] = useState(false);                 // r.030 (addendum 61): the year card's own toggle, standard by default
   const [rateUnit, setRateUnit] = useState("hr" as RateUnit);
-  const [accrualGear, setAccrualGear] = useState(false);          // r.028: the Accrual Units settings, closed by default   // r.024: the Released card's rate, per hour by default (addendum 46)
+  const [accrualGear, setAccrualGear] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);          // r.034: the eXeL Polling Settings (colour selector), upper right          // r.028: the Accrual Units settings, closed by default   // r.024: the Released card's rate, per hour by default (addendum 46)
   // r.025 (addendum 42 + his answer "Gear on the chart"): the chart's date format, 2026.10.01 by default, remembered on this phone
   const [dateFmt, setDateFmt] = useState("full" as DateFmt);
   useEffect(() => { try { const v = localStorage.getItem("fin-date-fmt"); if (v && (DATE_FMTS as readonly string[]).includes(v)) setDateFmt(v as DateFmt); } catch { /* storage unreadable: the default stands */ } }, []);
@@ -312,7 +315,17 @@ export function FinancialCommandUX1() {
     <div data-financial-ux1 className="mx-auto max-w-3xl px-4 pb-20 pt-10 sm:pb-10">
       {/* Header — the Session's: the globe, the Trinity glyphs, the title ───────────────────────── */}
       <header className="mb-8 text-center">
-        <div className="mb-2 flex justify-end"><SoiGlobe /></div>
+        {/* r.034 (addendum 67): "eXeL AI" upper left takes the person back to /main; the eXeL Polling Settings (the colour selector)
+            and the globe upper right. Every accent on this surface follows the selected colour (Tailwind `primary` = the theme). */}
+        <div data-fin-topbar className="mb-2 flex items-center justify-between">
+          <a href="/main/" data-fin-home aria-label={t("fin.home")} title={t("fin.home")} className="inline-flex min-h-[36px] items-center gap-1 text-sm">
+            <ExelWordmark exelClass="font-bold text-primary" aiClass="font-light text-muted-foreground" />
+          </a>
+          <div className="flex items-center gap-2">
+            <button type="button" data-fin-settings onClick={() => setSettingsOpen(true)} aria-label={t("fin.settings")} title={t("fin.settings")} className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-primary"><Settings size={18} strokeWidth={1.5} aria-hidden /></button>
+            <SoiGlobe />
+          </div>
+        </div>
         <TrinityGlyphs size="text-3xl" className="mb-3" />
         <h1 className="text-2xl font-semibold">FINANCIAL · 2525</h1>
         {/* r.028 (addendum 58): no version line here — it is at the bottom; the header reads two lines, "Measure of Time" / "A Universal Standard" */}
@@ -357,30 +370,30 @@ export function FinancialCommandUX1() {
             )}
           </div>
         )}
-        {!owner && <p className="mb-4 text-xs text-cyan-400" data-fin-example>{t("fin.example_badge")}</p>}
+        {!owner && <p className="mb-4 text-xs text-primary" data-fin-example>{t("fin.example_badge")}</p>}
 
         {/* ACCRUAL UNITS (r.028, addendum 58): the current balance on the LEFT; the $/min figure and its unit selector on the RIGHT; a
             settings gear upper right; "Available: $…"; no Withdraw button (withdrawal is a choice inside + Transaction); full width on the phone */}
-        <div data-fin-balance className="-mx-2 mb-4 rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-3 text-sm sm:mx-0">
+        <div data-fin-balance className="-mx-2 mb-4 rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm sm:mx-0">
           {/* r.033 (addendum 64 "Accrual field needs to be left to settings button on top line"): title left; the $/min figure and its
               unit selector on the SAME line, immediately left of the gear */}
           <div data-fin-accrual-top className="flex items-center justify-between gap-2">
             <div className={LABEL}>{t("fin.accrual_units")}</div>
             <div className="flex shrink-0 items-center gap-2">
               {bal.ratePerMinCents > 0 && (
-                <div data-fin-rate-row className="flex items-center gap-1 text-cyan-500">
+                <div data-fin-rate-row className="flex items-center gap-1 text-primary">
                   <span data-fin-rate className="font-mono tabular-nums">{rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit))}</span>
-                  <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-cyan-500">
+                  <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-primary">
                     {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
                   </select>
                 </div>
               )}
-              <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-cyan-500" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
+              <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
             </div>
           </div>
           <div data-fin-current className="mt-2 min-w-0">
             <div className="text-xs text-muted-foreground">{t("fin.available")}:</div>
-            <div className="font-mono text-2xl tabular-nums text-cyan-500" data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
+            <div className="font-mono text-2xl tabular-nums text-primary" data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
           </div>
           {/* r.029 (addendum 60 "doesn't this seem duplicative?"): Available is the big figure above, so the grid is three boxes —
               In Escrow · Released · Spent; what each one means is in the gear */}
@@ -474,7 +487,7 @@ export function FinancialCommandUX1() {
               {owner && (
                 <button type="button" data-fin-budget-edit aria-pressed={editing} aria-label={editing ? t("fin.done") : t("fin.edit")} title={editing ? t("fin.done") : t("fin.edit")}
                   onClick={() => { setEditing((v) => !v); setDrafts({}); }}
-                  className={`rounded-md border p-1 ${editing ? "border-cyan-500 ring-1 ring-inset ring-cyan-500" : "border-border"}`}>
+                  className={`rounded-md border p-1 ${editing ? "border-primary ring-1 ring-inset ring-primary" : "border-border"}`}>
                   {editing ? <Check size={14} strokeWidth={1.5} aria-hidden /> : <Pencil size={14} strokeWidth={1.5} aria-hidden />}
                 </button>
               )}
@@ -591,6 +604,9 @@ export function FinancialCommandUX1() {
 
       <p className="mt-6 text-center text-[11px] text-muted-foreground">{SRC.project.stamp} · {stamp} · <TrinityGlyphs inline size="text-[11px]" /></p>
 
+      {/* the eXeL Polling Settings panel — the same one the app's navbar opens (theme colours, language, …) */}
+      <ModeratorSettings open={settingsOpen} onClose={() => setSettingsOpen(false)} userEmail={user?.email} isPollingUser={false} />
+
       {/* R-CORE — version history + compare, the bottom of every 2525 surface */}
       <RCoreBadge history={FINANCIAL_RCORE_HISTORY} accent={hue.bright} />
     </div>
@@ -605,7 +621,8 @@ function ltuLabel(ms: number, wholeMs: number, p: PlanetLtuRow): string {
   return wholeMs >= dayMs && d > 0 ? `${d} d ${h} h` : `${h} h ${m} min`;
 }
 
-/** One deposit over its MoT: released / withdrawable / escrowed as strokes, NOW and withdrawals as marks (the 180-minute mark is not drawn — his answer, r.025).
+/** One deposit over its MoT: released and escrowed as strokes, NOW and withdrawals as marks. With no hold (r.028) withdrawable IS released,
+ *  so its separate stroke and legend word are gone (r.034, addendum 67: one colour per selector).
  *  BEHIND THE SCENES IS A.B..C — the revolution's coordinate (addendum 10) on the selected planet's whole (addendum 12):
  *  on reveal the axis reads the year position (positionInYear, the planet's anchor) at each mark and the elapsed span in
  *  A-units; the glass defaults to the planet's day · hour · minute (addendum 8). The toggle is the card's one state. */
@@ -647,7 +664,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
           {/* the Clock on the LEFT, the MoT on the RIGHT (addendum 42): two strokes, the pressed one ringed, never filled */}
           <ClockMotToggle abc={showAbc} onChange={onToggle} t={t} hook="chart" />
           {/* the date format lives on the chart (his answer "Gear on the chart"), remembered on this phone */}
-          <button type="button" data-fin-date-gear aria-expanded={gear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${gear ? "text-cyan-500" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
+          <button type="button" data-fin-date-gear aria-expanded={gear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${gear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
         </div>
       </div>
       {gear && (
@@ -655,13 +672,13 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
           <div role="group" aria-label={t("fin.date_format")} className="flex flex-wrap items-center gap-2">
             <span className="w-full text-muted-foreground">{t("fin.date_format")}</span>
             {DATE_FMTS.map((f) => (
-              <button key={f} type="button" data-fin-date-fmt={f} aria-pressed={dateFmt === f} onClick={() => onDateFmt(f)} className={`min-h-[32px] rounded-md border px-2 font-mono ${dateFmt === f ? "border-cyan-500 text-cyan-500" : "border-border text-muted-foreground"}`}>{f === "month" ? `${monthName(sample)} ${dateLabel(sample, "month")}` : dateLabel(sample, f)}</button>
+              <button key={f} type="button" data-fin-date-fmt={f} aria-pressed={dateFmt === f} onClick={() => onDateFmt(f)} className={`min-h-[32px] rounded-md border px-2 font-mono ${dateFmt === f ? "border-primary text-primary" : "border-border text-muted-foreground"}`}>{f === "month" ? `${monthName(sample)} ${dateLabel(sample, "month")}` : dateLabel(sample, f)}</button>
             ))}
           </div>
           <div role="group" aria-label={t("fin.chart_angle")} data-fin-angle-menu className="flex flex-wrap items-center gap-2">
             <span className="w-full text-muted-foreground">{t("fin.chart_angle")}</span>
             {DATE_ANGLES.map((a) => (
-              <button key={a} type="button" data-fin-date-angle={a} aria-pressed={angle === a} onClick={() => onAngle(a)} className={`min-h-[32px] min-w-[44px] rounded-md border px-2 font-mono ${angle === a ? "border-cyan-500 text-cyan-500" : "border-border text-muted-foreground"}`}>{a}°</button>
+              <button key={a} type="button" data-fin-date-angle={a} aria-pressed={angle === a} onClick={() => onAngle(a)} className={`min-h-[32px] min-w-[44px] rounded-md border px-2 font-mono ${angle === a ? "border-primary text-primary" : "border-border text-muted-foreground"}`}>{a}°</button>
             ))}
           </div>
         </div>
@@ -671,11 +688,10 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
         <rect x={PL} y={P} width={W - PL - P} height={H - 2 * P} fill="none" stroke="var(--border)" strokeWidth={hair} />
         {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={PL + f * (W - PL - P)} y1={P} x2={PL + f * (W - PL - P)} y2={H - P} stroke="var(--border)" strokeWidth={hair} />)}
         <polyline fill="none" stroke={C.intelligence} strokeWidth={hair} points={poly((p) => p.escrowed)} />
-        <polyline fill="none" stroke={C.consciousness} strokeWidth={sw} points={poly((p) => p.withdrawable)} />
         <polyline fill="none" stroke={C.abundance} strokeWidth={sw} points={poly((p) => p.released)} />
         {withdrawals.map((w) => <line key={w.id} x1={x(w.atMs)} y1={P} x2={x(w.atMs)} y2={P + 12} stroke={C.evolution} strokeWidth={sw} />)}
         {inside(now) && <line x1={x(now)} y1={P} x2={x(now)} y2={H - P} stroke={C.blank} strokeWidth={hair} />}
-        {probe !== null && <line data-fin-chart-probe-line x1={x(probe)} y1={P} x2={x(probe)} y2={H - P} stroke={C.consciousness} strokeWidth={hair} strokeDasharray="3 3" />}
+        {probe !== null && <line data-fin-chart-probe-line x1={x(probe)} y1={P} x2={x(probe)} y2={H - P} stroke="hsl(var(--primary))" strokeWidth={hair} strokeDasharray="3 3" />}
         {!showAbc && ticks.map((tk) => <line key={tk} x1={x(tk)} y1={H - P} x2={x(tk)} y2={H - P + 4} stroke="var(--border)" strokeWidth={hair} />)}
       </svg>
       {!showAbc && dateFmt === "month" && (
@@ -694,7 +710,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
       {/* A.B..C mode: five marks; a mark is two lines (A · .BBBB..CCCC) so five of them fit a 390 px phone without overprinting */}
       {showAbc && <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{axis.map((a, i) => <span key={i} className={`whitespace-pre-line ${i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}`}>{a.replace(".", "\n.").replace("..", "\n..")}</span>)}</div>}
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
-        <span style={{ color: C.abundance }}>— {t("fin.released")}</span><span style={{ color: C.consciousness }}>— {t("fin.withdrawable")}</span><span style={{ color: C.intelligence }}>— {t("fin.escrowed")}</span><span>| {t("fin.now")}</span><span style={{ color: C.evolution }}>| {t("fin.withdrawal")}</span>
+        <span style={{ color: C.abundance }}>— {t("fin.released")}</span><span style={{ color: C.intelligence }}>— {t("fin.escrowed")}</span><span>| {t("fin.now")}</span><span style={{ color: C.evolution }}>| {t("fin.withdrawal")}</span>
       </p>
     </div>
   );
