@@ -1451,7 +1451,6 @@ const T: Record<string, string> = {
   "fin.section": "Bölüm",
   "fin.field": "Alan",
   "fin.timeline": "Periyot",
-  "fin.stock_note": "Nakit, yatırımlar, borçlar, net varlık, kredi, koruma ve hedefler Bilanço görünümünde yer alır — asla dakika başına değil",
   "fin.transaction": "İşlem",
   "fin.type": "Tür",
   "fin.when": "Gün ve saat (CST)",

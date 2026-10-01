@@ -1455,7 +1455,6 @@ const T: Record<string, string> = {
   "fin.section": "セクション",
   "fin.field": "項目",
   "fin.timeline": "期間",
-  "fin.stock_note": "現金、投資、負債、純資産、信用、備え、目標はバランス画面に表示されます。分単位では扱いません",
   "fin.transaction": "取引",
   "fin.type": "種類",
   "fin.when": "日付と時刻（CST）",

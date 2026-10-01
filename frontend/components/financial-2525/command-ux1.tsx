@@ -27,7 +27,6 @@ import { useThemeHue } from "@/lib/theme-hue";
 import { SoiGlobe } from "@/components/soi-globe";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { ModeratorSettings } from "@/components/moderator-settings";
-import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { SoITrinity } from "@/components/soi-trinity";
 import { hhmmss } from "@/lib/pod-clock";
 import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
@@ -171,7 +170,7 @@ export function FinancialCommandUX1() {
   const cur = currencyOf(curCode);
   CUR_SYM = cur.symbol ?? "";
   const curMark = currencyMark(cur);
-  useEffect(() => { try { const v = Number(localStorage.getItem("fin-date-angle")); if ((DATE_ANGLES as readonly number[]).includes(v)) setDateAngle(v as DateAngle); } catch { /* the default stands */ } }, []);
+  useEffect(() => { try { const raw = localStorage.getItem("fin-date-angle"); const v = raw === null || raw === "" ? NaN : Number(raw); if ((DATE_ANGLES as readonly number[]).includes(v)) setDateAngle(v as DateAngle); } catch { /* the default stands */ } }, []);
   const pickDateAngle = (a: DateAngle) => { setDateAngle(a); try { localStorage.setItem("fin-date-angle", String(a)); } catch { /* not remembered; still shown */ } };
 
   // The person's record on this device, under their own key — loaded on sign-in, verified before it is trusted.
@@ -328,7 +327,7 @@ export function FinancialCommandUX1() {
         </div>
         {trinityBig && (
           <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} onClick={() => setTrinityBig(false)} className="mx-auto block rounded-full">
-            <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} />
+            <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} fontSize={20} />
           </button>
         )}
         <h1 className="text-xl font-semibold leading-tight">FINANCIAL · 2525</h1>
@@ -629,7 +628,7 @@ export function FinancialCommandUX1() {
       </section>
 
 
-      <p className="mt-6 text-center text-[11px] text-muted-foreground">{SRC.project.stamp} · {stamp} · <TrinityGlyphs inline size="text-[11px]" /></p>
+      <p className="mt-6 text-center text-[11px] text-muted-foreground">{SRC.project.stamp} · {stamp}</p>
 
       {/* the eXeL Polling Settings panel — the same one the app's navbar opens (theme colours, language, …) */}
       <ModeratorSettings open={settingsOpen} onClose={() => setSettingsOpen(false)} userEmail={user?.email} isPollingUser={false} variant="nonMaster" />   {/* r.050 (addendum 76 + "Exactly 3 items"): the non-Master settings */}
@@ -745,7 +744,8 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
           <button key={sp} type="button" data-fin-span={sp} aria-pressed={span === sp} onClick={() => pickSpan(sp)} className={`min-h-[32px] flex-1 border-l border-border first:border-l-0 ${span === sp ? "ring-1 ring-inset ring-primary text-primary" : "text-muted-foreground"}`}>{spanLabel(sp, now)}</button>
         ))}
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" className="mt-2 block cursor-crosshair" role="img" aria-label={t("fin.chart_tap")} data-fin-chart-svg onClick={probeAt}>
+      <p data-fin-chart-probe className="mt-2 min-h-[16px] font-mono text-xs text-foreground">{probe !== null && (showAbc ? fmtMot(positionInYear(probe, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(probe)} CST`)}</p>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="mt-2 block h-auto cursor-crosshair" role="img" aria-label={t("fin.chart_tap")} data-fin-chart-svg onClick={probeAt}>
         <rect x={PL} y={P} width={W - PL - P} height={H - 2 * P} fill="none" stroke="var(--border)" strokeWidth={hair} />
         {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={PL + f * (W - PL - P)} y1={P} x2={PL + f * (W - PL - P)} y2={H - P} stroke="var(--border)" strokeWidth={hair} />)}
         <polyline fill="none" stroke={C.intelligence} strokeWidth={hair} points={poly((p) => p.escrowed)} />
@@ -767,7 +767,6 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
           {ticks.map((tk) => <span key={tk} className="absolute top-0.5 whitespace-nowrap" style={{ left: `${((x(tk) / W) * 100).toFixed(2)}%`, transform: angle === 0 ? (x(tk) / W < 0.12 ? "translateX(0)" : x(tk) / W > 0.88 ? "translateX(-100%)" : "translateX(-50%)") : angle === 90 ? "translateX(-100%) rotate(-90deg)" : `translateX(-100%) rotate(-${angle}deg)`, transformOrigin: angle === 0 ? "50% 0" : "100% 0" }}>{dateLabel(tk, dateFmt)}</span>)}
         </div>
       )}
-      {probe !== null && <p data-fin-chart-probe className="mt-1 font-mono text-xs text-foreground">{showAbc ? fmtMot(positionInYear(probe, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(probe)} CST`}</p>}
       {/* A.B..C mode: five marks; a mark is two lines (A · .BBBB..CCCC) so five of them fit a 390 px phone without overprinting */}
       {showAbc && <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{axis.map((a, i) => <span key={i} className={`whitespace-pre-line ${i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}`}>{a.replace(".", "\n.").replace("..", "\n..")}</span>)}</div>}
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">

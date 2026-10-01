@@ -1470,7 +1470,6 @@ const T: Record<string, string> = {
   "fin.section": "Sektion",
   "fin.field": "Felt",
   "fin.timeline": "Tidslinje",
-  "fin.stock_note": "Likvide midler, investeringer, gæld, nettoformue, kredit, beskyttelse og mål findes i Balance-visningen — aldrig pr. minut",
   "fin.transaction": "Transaktion",
   "fin.type": "Type",
   "fin.when": "Dag og klokkeslæt (CST)",

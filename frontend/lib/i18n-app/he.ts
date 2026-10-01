@@ -1452,7 +1452,6 @@ const T: Record<string, string> = {
   "fin.section": "סעיף",
   "fin.field": "שדה",
   "fin.timeline": "ציר זמן",
-  "fin.stock_note": "מזומן, השקעות, חובות, שווי נקי, אשראי, הגנה ויעדים נמצאים בתצוגת המאזן – לעולם לא לפי דקה",
   "fin.transaction": "עסקה",
   "fin.type": "סוג",
   "fin.when": "יום ושעה (CST)",

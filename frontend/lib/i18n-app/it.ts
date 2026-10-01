@@ -1453,7 +1453,6 @@ const T: Record<string, string> = {
   "fin.section": "Sezione",
   "fin.field": "Campo",
   "fin.timeline": "Periodicità",
-  "fin.stock_note": "Liquidità, investimenti, debiti, patrimonio netto, credito, protezione e obiettivi vivono nella vista Bilancio — mai al minuto",
   "fin.transaction": "Transazione",
   "fin.type": "Tipo",
   "fin.when": "Giorno e ora (CST)",

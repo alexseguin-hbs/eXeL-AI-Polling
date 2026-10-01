@@ -1454,7 +1454,6 @@ const T: Record<string, string> = {
   "fin.section": "Sekce",
   "fin.field": "Pole",
   "fin.timeline": "Časový rámec",
-  "fin.stock_note": "Hotovost, investice, dluhy, čisté jmění, bonita, ochrana a cíle žijí v zobrazení Bilance — nikdy po minutách",
   "fin.transaction": "Transakce",
   "fin.type": "Typ",
   "fin.when": "Den a čas (CST)",

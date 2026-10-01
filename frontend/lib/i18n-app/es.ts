@@ -1450,7 +1450,6 @@ const T: Record<string, string> = {
   "fin.section": "Sección",
   "fin.field": "Campo",
   "fin.timeline": "Periodicidad",
-  "fin.stock_note": "Efectivo, inversiones, deudas, patrimonio neto, crédito, protección y metas viven en la vista Balance — nunca por minuto",
   "fin.transaction": "Transacción",
   "fin.type": "Tipo",
   "fin.when": "Día y hora (CST)",

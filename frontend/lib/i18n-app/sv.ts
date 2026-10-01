@@ -1463,7 +1463,6 @@ const T: Record<string, string> = {
   "fin.section": "Sektion",
   "fin.field": "Fält",
   "fin.timeline": "Tidslinje",
-  "fin.stock_note": "Likvida medel, investeringar, skulder, nettoförmögenhet, kredit, skydd och mål finns i Balansvyn — aldrig per minut",
   "fin.transaction": "Transaktion",
   "fin.type": "Typ",
   "fin.when": "Dag och tid (CST)",

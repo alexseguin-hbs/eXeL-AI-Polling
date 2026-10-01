@@ -1458,7 +1458,6 @@ const T: Record<string, string> = {
   "fin.section": "Sectie",
   "fin.field": "Veld",
   "fin.timeline": "Tijdlijn",
-  "fin.stock_note": "Contanten, beleggingen, schulden, nettovermogen, krediet, bescherming en doelen staan in de Balans-weergave — nooit per minuut",
   "fin.transaction": "Transactie",
   "fin.type": "Type",
   "fin.when": "Dag en tijd (CST)",

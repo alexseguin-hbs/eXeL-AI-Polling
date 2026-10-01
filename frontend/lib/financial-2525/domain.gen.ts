@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.050",
-  "stamp": "v.000_r.050",
+  "revision": "0.051",
+  "stamp": "v.000_r.051",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "acf7324fecb081cdbd8c23af2af28727a4c222532775f4520735eb937604d4ae",
@@ -743,6 +743,14 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "Settings, Master and non-Master. Addendum 76: \"On settings wheel non-eXeL AI, create Master and non-Master / non-Master goes to non eXeL AI polling / non-Master needs 3 items / language /color / Atlantis Accords / Vision-2525 … Make sure Financial - 2525 used non-Master settings wheel\"; his answer \"Exactly 3 items\". The settings panel gains a non-Master form with exactly three items — language and colour · Atlantis Accords · Vision • 2525 — and Financial-2525's gear opens it. eXeL AI Polling keeps the Master panel unchanged.",
    "commit": "cce6905",
+   "shipped": "fa09e07"
+  },
+  {
+   "revision": "0.051",
+   "date": "2026-10-01",
+   "kind": "correction",
+   "why": "The rest of the backlog (addendum 99 'all backlog must be fixed'): the r.041 review defects and the two questions decided by his earlier words. The footer no longer ends with ◬ ♡ 웃 (addendum 76 'get rid of ◬ ♡ 웃'); the open logo's labels are larger (16); the chart's svg no longer carries an invalid height (a console error on every load); an unset chart date angle no longer reads as 0° — the 30° default holds; the tapped-point readout sits above the chart so on MoT it never reads as a sixth axis mark; the budget note no longer names a 'Balance view' that does not exist (its 32 stale translations removed — English until the fill). Not changed: the build stamp's CST/CDT label (site-wide, a separate decision).",
+   "commit": "8a870f9",
    "shipped": "PENDING"
   }
  ],
@@ -2225,6 +2233,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "Non-Master settings = exactly three items (language and colour · Atlantis Accords · Vision • 2525); Financial-2525 uses it; eXeL AI Polling keeps Master.",
    "status": "OPERATOR",
    "basis": "addendum 76 + his answer 'Exactly 3 items'"
+  },
+  {
+   "id": "FD-68",
+   "decision": "Footer without ◬ ♡ 웃; open-logo labels at 16; the r.041 review's console error, date-angle default, readout placement and 'Balance view' note fixed.",
+   "status": "OPERATOR",
+   "basis": "addenda 76, 99 + the r.041 AsM review"
   }
  ],
  "reviews": [

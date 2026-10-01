@@ -1453,7 +1453,6 @@ const T: Record<string, string> = {
   "fin.section": "Abschnitt",
   "fin.field": "Feld",
   "fin.timeline": "Turnus",
-  "fin.stock_note": "Bargeld, Geldanlagen, Schulden, Nettovermögen, Kredit, Absicherung und Ziele leben in der Bilanz-Ansicht — nie pro Minute",
   "fin.transaction": "Transaktion",
   "fin.type": "Art",
   "fin.when": "Tag und Uhrzeit (CST)",

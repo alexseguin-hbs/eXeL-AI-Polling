@@ -1457,7 +1457,6 @@ const T: Record<string, string> = {
   "fin.section": "Sehemu",
   "fin.field": "Kipengele",
   "fin.timeline": "Ratiba ya muda",
-  "fin.stock_note": "Fedha taslimu, uwekezaji, madeni, thamani halisi, mikopo, ulinzi na malengo yako kwenye mwonekano wa Mizania – kamwe si kwa dakika",
   "fin.transaction": "Muamala",
   "fin.type": "Aina",
   "fin.when": "Siku na saa (CST)",

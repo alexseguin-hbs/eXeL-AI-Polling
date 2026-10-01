@@ -1460,7 +1460,6 @@ const T: Record<string, string> = {
   "fin.section": "ਭਾਗ",
   "fin.field": "ਫੀਲਡ",
   "fin.timeline": "ਸਮਾਂ-ਰੇਖਾ",
-  "fin.stock_note": "ਨਕਦ, ਨਿਵੇਸ਼, ਕਰਜ਼ੇ, ਸ਼ੁੱਧ ਸੰਪਤੀ, ਕ੍ਰੈਡਿਟ, ਸੁਰੱਖਿਆ ਅਤੇ ਟੀਚੇ ਬੈਲੇਂਸ ਵਿਊ ਵਿੱਚ ਰਹਿੰਦੇ ਹਨ — ਕਦੇ ਵੀ ਪ੍ਰਤੀ ਮਿੰਟ ਨਹੀਂ",
   "fin.transaction": "ਲੈਣ-ਦੇਣ",
   "fin.type": "ਕਿਸਮ",
   "fin.when": "ਦਿਨ ਅਤੇ ਸਮਾਂ (CST)",

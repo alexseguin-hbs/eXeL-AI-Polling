@@ -1460,7 +1460,6 @@ const T: Record<string, string> = {
   "fin.section": "Seksjon",
   "fin.field": "Felt",
   "fin.timeline": "Tidslinje",
-  "fin.stock_note": "Kontanter, investeringer, gjeld, nettoformue, kreditt, beskyttelse og mål ligger i Balanse-visningen – aldri per minutt",
   "fin.transaction": "Transaksjon",
   "fin.type": "Type",
   "fin.when": "Dag og klokkeslett (CST)",

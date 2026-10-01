@@ -1600,7 +1600,6 @@ const T: Record<string, string> = {
   "fin.section": "Seksyon",
   "fin.field": "Patlang",
   "fin.timeline": "Panahon",
-  "fin.stock_note": "Ang cash, mga pamumuhunan, mga utang, netong halaga, kredito, proteksyon at mga layunin ay nasa view ng Balanse — hindi kailanman bawat minuto",
   "fin.transaction": "Transaksyon",
   "fin.type": "Uri",
   "fin.when": "Araw at oras (CST)",
