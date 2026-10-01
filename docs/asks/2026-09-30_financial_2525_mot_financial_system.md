@@ -401,6 +401,8 @@
 > · The step named "Deposit" (rail step 1, the pill, "Released · Deposit") → picked **"Keep \"Deposit\""**: only the doors change.
 > · After a transaction is recorded → picked **"Folds back"** to the + Transaction button.
 
+> (addendum 56, verbatim — 2026-10-01, after r.026 shipped and the open choices were listed) We used to plan everything; then Auto Execute; not sure what the fuck happened to your little pee size brain on reverting behaviors to last year; but this is bull shot
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -670,6 +672,13 @@
 59. **English only (addendum 32):** every new or changed word is English until he HI-tests it.
 60. **Order:** r.023 (the door + the withdrawal law) → r.024 (the budget + the rate) → r.025 (the chart, the wheel, 30.3̅, the
     subtitle); each gated, shipped, verified live and shown to him before the next.
+61. **Plan once, then auto-execute (addendum 56):** the twelve open choices from the HI-intent check were decided in one plan he approved
+    (2026-10-01) and executed as r.027 with no further stops: (1) a spread withdrawal stays refused inside a deposit's first 180 minutes;
+    (2) at 180 minutes everything accrued so far is withdrawable, then each minute as it accrues; (3) the card line and the hold refusal
+    say "180-min" in his words and name the first deposit's mark; (4) the budget's saved figures are not rewritten; (5) Section, Field
+    and Length stay hidden until a type is picked; (6) no budget settings icon; (7) date labels skip to fit; (8) the rate list keeps its
+    shorthand; (9) "Deposit / Funds" and "Withdrawal / Expense" stay in the Type dropdown only; (10) the wheel's centre symbols are
+    removed, each shows once on its ring; (11) the Admin Month box stays; (12) the three + Transaction buttons stay.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
