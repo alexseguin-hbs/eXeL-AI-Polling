@@ -657,13 +657,13 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "One line in the Accrual gear. Addendum 84: \"make singgle line … 14:43:53 elapsed · $0.0898 /min · $0.0015 /sec\". The open gear's elapsed time and the per-minute and per-second rates read on one line (were two). r.042 confirmed on his phone (\"looks good now\"). Addendum 85: \"change Fitness to Fitness & Health\" — the budget line's short name reads \"Fitness & Health\".",
    "commit": "9dd39fd",
-   "shipped": "PENDING"
+   "shipped": "b8279b2"
   },
   {
    "revision": "0.044",
    "date": "2026-10-01",
    "kind": "decision",
-   "why": "No currency symbol inside a table; the subtitle in the wordmark's colours. Addenda 86, 88, 89 (\"remove dollar sign … place $ in Amount, and place + and - at far left so numbers can right justify\"; \"rmeove $ from table as its in label header\", sent twice): the Transaction Record's header reads \"Amount, $\", each amount carries its sign at the far left and the bare number right-justified, green / red kept; the Personal budget's amount header reads \"…, $\" and its cells print bare numbers. Addendum 90: \"Measure of Time\" in the eXeL colour, \"A Universal Standard\" in the AI colour of the upper-left eXeL AI. The currency dropdown (addenda 86–87, a label never a conversion) follows as its own revision.",
+   "why": "No currency symbol inside a table; the subtitle in the wordmark's colours. Addenda 86, 88, 89 (\"remove dollar sign … place $ in Amount, and place + and - at far left so numbers can right justify\"; \"rmeove $ from table as its in label header\", sent twice): the Transaction Record's header reads \"Amount, $\", each amount carries its sign at the far left and the bare number right-justified, green / red kept; the Personal budget's amount header reads \"…, $\" and its cells print bare numbers. Addendum 90: \"Measure of Time\" in the eXeL colour, \"A Universal Standard\" in the AI colour of the upper-left eXeL AI. The currency dropdown (addenda 86–87, a label never a conversion) follows as its own revision. Addendum 93 (\"Available and Accrual Rate should be same line, same size text\", sent twice): the two labels share one line and the two figures share the next, both at the large size.",
    "commit": "c95b609",
    "shipped": "PENDING"
   }
@@ -2108,9 +2108,9 @@ export const FINANCIAL_DOMAIN = {
   },
   {
    "id": "FD-61",
-   "decision": "Tables carry no currency symbol — it lives once in the column header; the Record's amount reads sign far left, number right-justified. The subtitle reads \"Measure of Time\" in the eXeL colour and \"A Universal Standard\" in the AI colour.",
+   "decision": "Tables carry no currency symbol — it lives once in the column header; the Record's amount reads sign far left, number right-justified. The subtitle reads \"Measure of Time\" in the eXeL colour and \"A Universal Standard\" in the AI colour. \"Available:\" and \"Accrual Rate\" share one line; the two figures share the next, at the same size.",
    "status": "OPERATOR",
-   "basis": "addenda 86, 88, 89, 90, 91 (verbatim)"
+   "basis": "addenda 86, 88, 89, 90, 91, 93 (verbatim)"
   }
  ],
  "reviews": [

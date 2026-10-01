@@ -339,17 +339,19 @@ export function FinancialCommandUX1() {
               <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
             </div>
           </div>
-          <div className="mt-2 flex items-end justify-between gap-3">
+          {/* r.044 (addendum 93 "Available and Accrual Rate should be same line, same size text"): the two labels share one line,
+              the two figures share the next, at the same size */}
+          <div className="mt-2 flex items-start justify-between gap-3">
             <div data-fin-current className="min-w-0">
               <div className="text-xs text-muted-foreground">{t("fin.available")}:</div>
-              <div className="font-mono text-2xl tabular-nums text-primary" data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
+              <div className="flex h-9 items-center font-mono text-2xl tabular-nums text-primary" data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
             </div>
             {bal.ratePerMinCents > 0 && (
                 /* r.035 (addendum 68): the words "Accrual Rate" directly above the figure and its unit selector */
                 <div data-fin-rate-block className="flex flex-col items-end">
                   <span data-fin-rate-label className="text-xs text-muted-foreground">{t("fin.accrual_rate")}</span>
-                  <div data-fin-rate-row className="flex items-center gap-1 text-primary">
-                    <span data-fin-rate className="font-mono tabular-nums">{rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit))}</span>
+                  <div data-fin-rate-row className="flex h-9 items-center gap-1 text-primary">
+                    <span data-fin-rate className="font-mono text-2xl tabular-nums">{rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit))}</span>
                     <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-primary">
                       {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
                     </select>

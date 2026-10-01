@@ -611,6 +611,13 @@
    "kind": "decision",
    "text": "r.044 decision — no currency symbol inside a table; the subtitle in the wordmark's colours (FD-61).",
    "commit": "c95b609"
+  },
+  {
+   "rev": 88,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.043 shipped and LIVE (his phone at 13:45 served 71cff4b) — the Accrual gear on one line; \"Fitness & Health\" (FD-60).",
+   "commit": "b8279b2"
   }
  ]
 }
