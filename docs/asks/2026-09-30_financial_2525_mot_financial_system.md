@@ -449,6 +449,9 @@
 
 > (addendum 65, verbatim — 2026-10-01, clarifying addendum 64: the "accrual field" is the rate) meaning 5.3908 / hour
 
+> (addendum 66, verbatim — 2026-10-01, screenshot 2026-10-01_financial_fb66_gear_only.jpg: the gear-open capture sent at r.029 — the four definitions and the elapsed / per-minute lines)
+> this should only show when settings button clicked
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
