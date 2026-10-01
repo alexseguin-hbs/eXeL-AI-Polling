@@ -604,6 +604,13 @@
    "kind": "decision",
    "text": "r.043 decision — the Accrual gear on one line (FD-60).",
    "commit": "9dd39fd"
+  },
+  {
+   "rev": 87,
+   "date": "2026-10-01",
+   "kind": "decision",
+   "text": "r.044 decision — no currency symbol inside a table; the subtitle in the wordmark's colours (FD-61).",
+   "commit": "c95b609"
   }
  ]
 }

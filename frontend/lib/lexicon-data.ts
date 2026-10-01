@@ -2934,6 +2934,8 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.down_day", englishDefault: "DOWN day", context: "Financial-2525: the day of the year that no quarter owns (day 365)", cubeId: 0 },
   { key: "fin.frame", englishDefault: "33-day frame", context: "Financial-2525: label of the personal 33-day time frame", cubeId: 0 },
   { key: "fin.title_l1", englishDefault: "Measure of Time: A Universal Standard", context: "Financial-2525: the one-line page header under FINANCIAL · 2525 (MoT = Measure of Time)", cubeId: 0 },
+  { key: "fin.title_mot", englishDefault: "Measure of Time", context: "Financial-2525: first half of the page subtitle, drawn in the eXeL wordmark colour (before the colon)", cubeId: 0 },
+  { key: "fin.title_std", englishDefault: "A Universal Standard", context: "Financial-2525: second half of the page subtitle, after the colon, drawn in the AI wordmark colour", cubeId: 0 },
   { key: "fin.accrual_units", englishDefault: "Accrual Units", context: "Financial-2525: title of the card showing the balance and the rate money accrues at", cubeId: 0 },
   { key: "fin.settings", englishDefault: "Settings", context: "Financial-2525: accessible name of a gear button that opens settings", cubeId: 0 },
   { key: "fin.chart_angle", englishDefault: "Date text angle", context: "Financial-2525: settings row choosing the angle of the dates under the chart", cubeId: 0 },

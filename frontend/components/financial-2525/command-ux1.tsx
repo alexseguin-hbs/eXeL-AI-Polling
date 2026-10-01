@@ -51,6 +51,8 @@ const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
 const C = TRINITY_COLORS;
 const usd = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
 const usd4 = (cents: number) => (cents < 0 ? "-$" : "$") + Math.abs(cents / 100).toFixed(4);
+// r.043 (addenda 88–89 "rmeove $ from table as its in label header"): a table cell prints the bare number; the symbol is in the header.
+const num2 = (cents: number) => Math.abs(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const CAT_KEY: Record<BudgetCategory, string> = { Income: "income", Home: "home", Auto: "auto", Insurance: "insurance", Utilities: "utilities", Fitness: "fitness", Fun: "fun", Groceries: "groceries", "Dining Out": "dining_out", Other: "other" };
 /** The Session's own classes, reused verbatim. */
 const CARD = "mt-8 rounded-xl border border-border bg-card p-5";
@@ -220,8 +222,7 @@ export function FinancialCommandUX1() {
   const toggleKind = (k: FieldKind) => setOpenKinds((o) => (o.includes(k) ? o.filter((x) => x !== k) : [...o, k]));
   const kindLabel = (k: FieldKind) => (k === "Transfer" ? t("fin.sec.m") : t(`fin.${k.toLowerCase()}`));
   const inPeriod = (l: { amountNative: number; nativePeriod: Period }) => toPeriod(l.amountNative, l.nativePeriod, period);
-  const usdDollars = (x: number) => usdUnit(x * 100);
-  const usdUnit = (cents: number) => (Math.abs(cents) >= 100 ? usd(Math.round(cents)) : usd4(cents));
+  const numDollars = (x: number) => { const c = x * 100; return (c < 0 ? "−" : "") + (Math.abs(c) >= 100 ? num2(Math.round(c)) : Math.abs(c / 100).toFixed(4)); };
   const signIn = () => loginWithRedirect({ appState: { returnTo: `${SRC.project.route}/` } });
 
   // ── forms ──────────────────────────────────────────────────────────────────────────────────────────────────
@@ -315,7 +316,7 @@ export function FinancialCommandUX1() {
         )}
         <h1 className="text-xl font-semibold leading-tight">FINANCIAL · 2525</h1>
         {/* no version line here — it is at the bottom (r.028); ONE line, "Measure of Time: A Universal Standard" (r.039, addendum 74) */}
-        <p data-fin-subtitle className="text-sm text-foreground">{t("fin.title_l1")}</p>
+        <p data-fin-subtitle className="text-sm">{/* r.043 (addendum 90): "Measure of Time" in the eXeL colour, "A Universal Standard" in the AI colour (the upper-left wordmark) */}<span data-fin-subtitle-mot className="text-primary">{t("fin.title_mot")}</span><span className="text-muted-foreground">: {t("fin.title_std")}</span></p>
       </header>
 
       {/* The one card — Accrual Units (+ the entry) · Personal budget · Chart · Record · Year position · sign-in · Trinity (r.038) */}
@@ -440,7 +441,7 @@ export function FinancialCommandUX1() {
               the chosen unit and a chevron; the lines beneath only when opened (edit mode opens all); Net last, red when negative; no letters */}
           <table className="mt-2 w-full font-mono text-xs">
             <thead className="text-left text-[10px] uppercase tracking-wide text-muted-foreground">
-              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="whitespace-nowrap py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}</th></tr>
+              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="whitespace-nowrap py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}, $</th></tr>
             </thead>
             <tbody>
               {groups.map((g) => (
@@ -451,7 +452,7 @@ export function FinancialCommandUX1() {
                         {isOpen(g.kind) ? <ChevronDown size={14} strokeWidth={1.5} aria-hidden /> : <ChevronRight size={14} strokeWidth={1.5} aria-hidden />}{kindLabel(g.kind)}
                       </button>
                     </td>
-                    <td className="py-1 text-right tabular-nums">{usdDollars(g.total)}</td>
+                    <td className="py-1 text-right tabular-nums">{numDollars(g.total)}</td>
                   </tr>
                   {/* r.040 (addendum 75): each line on ONE row — a short name, "…" if still long, the full name as the row title */}
                   {isOpen(g.kind) && g.lines.map((l) => (
@@ -463,12 +464,12 @@ export function FinancialCommandUX1() {
                               value={drafts[l.fieldId] ?? String(editFigure(l))} onChange={(e) => typeAmount(l.fieldId, e.target.value)} onBlur={() => setDrafts((d) => { const n = { ...d }; delete n[l.fieldId]; return n; })} />
                             <button type="button" data-fin-plan-remove={l.fieldId} aria-label={t("fin.remove_line")} title={t("fin.remove_line")} onClick={() => writePlan(removeLine(plan, l.fieldId))} className="rounded-md border border-border p-1"><X size={12} strokeWidth={1.5} aria-hidden /></button>
                           </span>
-                        ) : usdDollars(inPeriod(l))}
+                        ) : numDollars(inPeriod(l))}
                       </td></tr>
                   ))}
                 </Fragment>
               ))}
-              <tr className={`border-t border-border font-semibold ${totals.net < 0 ? "text-red-500" : "text-green-500"}`}><td className="py-1 pr-2">{t("fin.net")}</td><td data-fin-budget-net className="py-1 text-right tabular-nums">{usdDollars(totals.net)}</td></tr>
+              <tr className={`border-t border-border font-semibold ${totals.net < 0 ? "text-red-500" : "text-green-500"}`}><td className="py-1 pr-2">{t("fin.net")}</td><td data-fin-budget-net className="py-1 text-right tabular-nums">{numDollars(totals.net)}</td></tr>
             </tbody>
           </table>
           {editing && (
@@ -515,14 +516,14 @@ export function FinancialCommandUX1() {
               {/* r.032 (addendum 63): Amount and Category first, then as a person reads an entry — who/what, when, how long, which way —
                   and the proof last (# and Hash). The amount is signed: + money in, − money out. */}
               <thead className="text-left text-[10px] uppercase tracking-wide">
-                <tr><th className="py-1 pr-3 text-right">{t("fin.amount")}</th><th className="py-1 pr-3">{t("fin.category")}</th><th className="py-1 pr-3">{t("fin.memo")}</th><th className="py-1 pr-3">{t("fin.when")}</th><th className="py-1 pr-3 text-right">{t("fin.length")}</th><th className="py-1 pr-3">{t("fin.type")}</th><th className="py-1 pr-3">#</th><th className="py-1">{t("fin.hash")}</th></tr>
+                <tr><th className="py-1 pr-3">{t("fin.amount")}</th><th className="py-1 pr-3">{t("fin.category")}</th><th className="py-1 pr-3">{t("fin.memo")}</th><th className="py-1 pr-3">{t("fin.when")}</th><th className="py-1 pr-3 text-right">{t("fin.length")}</th><th className="py-1 pr-3">{t("fin.type")}</th><th className="py-1 pr-3">#</th><th className="py-1">{t("fin.hash")}</th></tr>
               </thead>
               <tbody>
-                {!owner && <tr className="border-t border-border/60"><td className="py-1 pr-3 text-right tabular-nums text-green-500">+{usd(EXAMPLE.amountCents)}</td><td className="py-1 pr-3">{txWhat(EXAMPLE)}</td><td className="py-1 pr-3">{EXAMPLE.memo}</td><td className="py-1 pr-3">{fmtStampCST(EXAMPLE.atMs)}</td><td className="py-1 pr-3 text-right">{fmtDays(EXAMPLE.motDays ?? 0)}</td><td className="py-1 pr-3">{t("fin.deposit")}</td><td className="py-1 pr-3">1</td><td className="py-1">—</td></tr>}
+                {!owner && <tr className="border-t border-border/60"><td data-fin-amount className="py-1 pr-3 tabular-nums text-green-500"><span className="flex justify-between gap-4"><span>+</span><span>{num2(EXAMPLE.amountCents)}</span></span></td><td className="py-1 pr-3">{txWhat(EXAMPLE)}</td><td className="py-1 pr-3">{EXAMPLE.memo}</td><td className="py-1 pr-3">{fmtStampCST(EXAMPLE.atMs)}</td><td className="py-1 pr-3 text-right">{fmtDays(EXAMPLE.motDays ?? 0)}</td><td className="py-1 pr-3">{t("fin.deposit")}</td><td className="py-1 pr-3">1</td><td className="py-1">—</td></tr>}
                 {owner && record.entries.length === 0 && <tr><td colSpan={8} className="py-1">{t("fin.no_deposits")}</td></tr>}
                 {owner && record.entries.map((e) => (
                   <tr key={e.hash} className="border-t border-border/60">
-                    <td className={`py-1 pr-3 text-right tabular-nums ${e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}`}>{e.tx.kind === "deposit" ? "+" : "−"}{usd(e.tx.amountCents)}</td>
+                    <td data-fin-amount className={`py-1 pr-3 tabular-nums ${e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}`}><span className="flex justify-between gap-4"><span>{e.tx.kind === "deposit" ? "+" : "−"}</span><span>{num2(e.tx.amountCents)}</span></span></td>
                     <td className="py-1 pr-3">{txWhat(e.tx)}</td><td className="py-1 pr-3">{e.tx.memo ?? ""}</td>
                     <td className="py-1 pr-3">{fmtStampCST(e.tx.atMs)}</td>
                     <td className="py-1 pr-3 text-right">{e.tx.motDays ? fmtDays(e.tx.motDays) : ""}</td>
