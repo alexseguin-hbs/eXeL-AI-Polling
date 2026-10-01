@@ -8,7 +8,7 @@
   "stamp": "v.000_r.042",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "1c79773cfe7bd94ef49bd60422e50445acd203743e3466966cc6302e1f14f789",
+  "handoffSha256": "207154b42bdfddd16c87c689208bbe3672db2b4806cc9682d1f35805a067dfaa",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -239,6 +239,11 @@
     "sha256": "1c79773cfe7bd94ef49bd60422e50445acd203743e3466966cc6302e1f14f789",
     "date": "2026-10-01",
     "note": "+ addendum 81 (swap + Transaction and Accrual Rate)"
+   },
+   {
+    "sha256": "207154b42bdfddd16c87c689208bbe3672db2b4806cc9682d1f35805a067dfaa",
+    "date": "2026-10-01",
+    "note": "+ addendum 82 (the + Transaction ask acknowledged; every ask in docs/financial-2525/BACKLOG.md)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -694,7 +699,7 @@
    "aSeconds": 8760,
    "bSeconds": 2.4333,
    "cSeconds": 0.000675926,
-   "dSeconds": 1.8776e-7,
+   "dSeconds": 1.8776e-07,
    "note": "r.005's units on exactly 365 days (FD-15) — kept on the record, superseded by r.007"
   },
   "anchor": {

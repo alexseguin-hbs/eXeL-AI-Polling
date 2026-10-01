@@ -564,6 +564,11 @@
 >
 > swap these two
 
+> (addendum 82, verbatim — 2026-10-01, after r.042 was pushed; his phone still served r.041, the card with + Transaction under the rate)
+> awkowledge my transaction button request.  thisbis 7th time yo ask.  You failed Master of Thought
+> you need ton document new asks in backlog every ask
+> push and commit for my review
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -889,6 +894,10 @@
     down day; the two months are "Standard Month" (Gregorian) and "Month · 30 day"; no 30.3̅ anywhere; old entries "switch to 30".
 82. **Settings, Master and non-Master (addendum 76):** Master = eXeL AI Polling (as today); non-Master = every other app, exactly three
     items: language / colour · Atlantis Accords · Vision-2525. Financial-2525 uses non-Master.
+83. **Every ask goes in the backlog (addendum 82):** each operator ask is written to `docs/financial-2525/BACKLOG.md` the moment it
+    arrives — his words, the revision that answers it, and its state (OPEN · PUSHED · LIVE) — so no ask is asked twice. The + Transaction
+    request (asked seven times: addenda 38, 66, 70, 76 ×2, 78, 81) is acknowledged as the record's longest miss; r.042 places it
+    left of the settings gear on line 1, with Accrual Rate right of Available on line 2.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
