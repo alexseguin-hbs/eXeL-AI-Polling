@@ -45,7 +45,7 @@ import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
 import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
 import { balanceAt, series, validateWithdrawal, depositView, HOLD_MS, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { type BudgetCategory } from "@/lib/financial-2525/budget";
-import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineSpec, lineSpec, switchRec, isValidSpec, addLine, removeLine, BUDGET_RECURRENCES, type PlanLine, type LineSpec } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
+import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
 import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 
@@ -107,6 +107,9 @@ function LadderPicker({ section, field, rec, onSection, onField, onRec, otherN, 
 }
 
 /** The five phases of one deposit, on the Session's rail: DEPOSIT ◬ · HOLD ♡ · RELEASE ♡ · WITHDRAW 웃 · RECORD 웃. */
+/** The Released card's rate units (r.024, addendum 46): shorthand on the glass, per hour by default. */
+type RateUnit = "sec" | "min" | "hr" | "day";
+const RATE_UNITS: readonly RateUnit[] = ["sec", "min", "hr", "day"];
 export const FIN_PHASES: PodPhaseDef[] = [
   { key: "deposit", labelKey: "fin.ph.deposit", earnsKey: "fin.ph.deposit_earns", glyph: "◬" },
   { key: "hold", labelKey: "fin.ph.hold", earnsKey: "fin.ph.hold_earns", glyph: "♡" },
@@ -149,6 +152,7 @@ export function FinancialCommandUX1() {
   const dayMs = daySecOf(planet) * 1000;                       // one LTU day of the selected planet (Earth hours for every planet for now)
   // ONE reveal state for the whole card: the MoT icon (A.B..C) ⇄ the Clock icon (the planet's LTU) — addendum 13
   const [showAbc, setShowAbc] = useState(false);
+  const [rateUnit, setRateUnit] = useState("hr" as RateUnit);   // r.024: the Released card's rate, per hour by default (addendum 46)
 
   // The person's record on this device, under their own key — loaded on sign-in, verified before it is trusted.
   const owner = isAuthenticated && user?.sub ? user.sub : null;
@@ -165,13 +169,17 @@ export function FinancialCommandUX1() {
   const focus = deposits[0] ?? null;
   const phase = phaseOf(focus, withdrawals.length, at);
   const phaseDef = FIN_PHASES.find((p) => p.key === phase) ?? FIN_PHASES[0];
+  /** The live rate in the unit picked — the $/min times the planet's own seconds, hours and days (cents). */
+  const rateIn = (u: RateUnit): number => (u === "sec" ? bal.ratePerMinCents / planet.secPerMin : u === "min" ? bal.ratePerMinCents : u === "hr" ? bal.ratePerMinCents * planet.minPerHour : bal.ratePerMinCents * planet.hoursPerDay * planet.minPerHour);
   const focusView = focus && now ? depositView(focus, at) : null;
   const year = now ? positionInYear(now, planet.yearAnchor, planet.yearDays) : null;
   const frame = now ? frameOf(now, 33, planet.yearAnchor, planet.yearDays) : null;
   // THE LADDER'S UNIT (addendum 17 → 20 → 21 → 22): one dropdown of the brief's eight periods with FIXED factors — second · minute 60 ·
-  // hour 3,600 · day 86,400 · week 7 d · 33 d · month 91 d · year 365 d (FD-25; never a 30-day month). The sheet's 33 days is the default.
+  // hour 3,600 · day 86,400 · week 7 d · 33 d · month 30.3̅ d · quarter 91 d · year 365 d. ONE SHARED UNIT (r.024, his answer "One, shared"):
+  // in edit mode the amounts are typed in the unit picked; out of edit mode it converts the view. Per month (30.3̅ days) is the default
+  // (addendum 41 "personal budget should be defaulted to 30.3 repeating").
   type BudgetUnit = "sec" | "min" | "hour" | "day" | "week" | "m33" | "month" | "quarter" | "year";
-  const [budgetUnit, setBudgetUnit] = useState<BudgetUnit>("m33");
+  const [budgetUnit, setBudgetUnit] = useState<BudgetUnit>("month");
   const UNITS: { key: BudgetUnit; label: string; period: Period }[] = [
     { key: "sec", label: t("fin.per_sec"), period: "second" }, { key: "min", label: t("fin.per_min"), period: "minute" }, { key: "hour", label: t("fin.per_hour"), period: "hour" },
     { key: "day", label: t("fin.per_day"), period: "day" }, { key: "week", label: t("fin.per_week"), period: "week" }, { key: "m33", label: t("fin.per_33"), period: "days33" },
@@ -182,19 +190,15 @@ export function FinancialCommandUX1() {
   // THE PERSON'S PLAN (r.016, addendum 28): the sheet until the device holds the person's own; edit mode behind the pencil; every
   // figure, section total and Net below follows the plan. Drafts hold the typed text while editing so a half-typed "12." survives
   // the once-a-second clock; a figure is written on the 33-day base through setLineAmount, never read back into the input mid-type.
-  const [plan, setPlan] = useState(() => sheetPlan() as PlanLine[]);
+  const [plan, setPlan] = useState(() => sheetPlan() as LadderLine[]);
   const [editing, setEditing] = useState(false);
   const [drafts, setDrafts] = useState({} as Record<string, string>);
   const [addSec, setAddSec] = useState("A" as FlowSectionId); const [addField, setAddField] = useState("A.income_wages");
-  // the add row carries the new line's amount and MoT too (r.021, addendum 35) — a bill is monthly until the person says otherwise
-  const [addAmt, setAddAmt] = useState(""); const [addRec, setAddRec] = useState("paymot" as Recurrence); const [addN, setAddN] = useState(""); const [addUnit, setAddUnit] = useState("days" as LengthUnit);
-  const addSpec: LineSpec = { amount: addAmt.trim() === "" ? 0 : Number(addAmt), rec: addRec, otherN: Number(addN) || 0, otherUnit: addUnit };   // r.022: one spec the button checks and adds — a typed amount is added as typed or the button waits
   useEffect(() => { if (!owner) { setPlan(sheetPlan()); setEditing(false); return; } setPlan(planOrSheet(loadPlan(owner))); }, [owner]);
-  const writePlan = (next: PlanLine[]) => { setPlan(next); if (owner && !savePlan(owner, next)) setSaveFailed(true); };
-  // a line is edited as TYPED — its amount and its MoT (r.021, addendum 35); the table converts it to the unit showing
-  const editSpec = (l: PlanLine, patch: Partial<LineSpec>) => writePlan(setLineSpec(plan, l.fieldId, { ...lineSpec(l), ...patch }));
-  const typeDraft = (l: PlanLine, key: "amount" | "otherN", text: string) => { setDrafts((d) => ({ ...d, [`${l.fieldId}:${key}`]: text })); const n = Number(text); if (text.trim() !== "" && Number.isFinite(n)) editSpec(l, { [key]: n }); };
-  const dropDraft = (l: PlanLine, key: string) => setDrafts((d) => { const n = { ...d }; delete n[`${l.fieldId}:${key}`]; return n; });
+  const writePlan = (next: LadderLine[]) => { setPlan(next); if (owner && !savePlan(owner, next)) setSaveFailed(true); };
+  // THE BUDGET AS HE ASKED (r.024, addenda 48 · 50: "don't change budget inplementetion; this is way too complicated and I never asked for
+  // it"): the r.021–r.022 per-line MoT dropdowns are gone; a line's amount is typed in the unit showing and kept on the 33-day base.
+  const typeAmount = (fieldId: string, text: string) => { setDrafts((d) => ({ ...d, [fieldId]: text })); const n = Number(text); if (text.trim() !== "" && Number.isFinite(n)) writePlan(setLineAmount(plan, fieldId, n, period)); };
   const addable = fieldsOf(addSec).filter((f) => !plan.some((l) => l.fieldId === f.id));
   const totals = useMemo(() => netLadder(plan, period), [plan, period]);
   // THE GLASS GROUPS BY KIND, COLLAPSED (r.018, addendum 31 "order by fixed vs financial, and have expand button so this is not so busy.
@@ -328,7 +332,14 @@ export function FinancialCommandUX1() {
         {/* the clock — the Session's ACTIVE block; the big number is money released, ticking at $/min */}
         <div data-fin-balance className={ACCENT_SUB}>
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <div className="font-medium text-cyan-500">{t("fin.released")} · {bal.ratePerMinCents > 0 ? `${usd4(bal.ratePerMinCents)} ${t("fin.per_min")}` : t(phaseDef.labelKey)}</div>
+            {/* ONE RATE FIGURE WITH ITS UNIT (r.024, addendum 46 + his answer "One figure + dropdown"): per hour by default, the shorthand
+                /sec · /min · /hr · /day once picked; the figure is the live $/min times the planet's own units, never typed */}
+            <div className="flex flex-wrap items-center gap-1 font-medium text-cyan-500">{t("fin.released")} · {bal.ratePerMinCents > 0 ? (
+              <><span data-fin-rate className="tabular-nums">{rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit))}</span>
+                <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="rounded-md border border-border bg-background px-1 py-0.5 text-xs text-cyan-500">
+                  {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
+                </select></>
+            ) : t(phaseDef.labelKey)}</div>
             <div className="font-mono text-2xl tabular-nums text-cyan-500" data-testid="fin-clock" aria-label={t("fin.released")}>{usd(bal.releasedCents)}</div>
           </div>
           {/* the four figures as a 2 × 2 table (r.019, operator addendum 33 "make table 2x2"): In escrow · Withdrawable over Withdrawn ·
@@ -342,7 +353,6 @@ export function FinancialCommandUX1() {
           {focusView && focusView.state === "releasing" ? <p className="mt-1 text-xs text-muted-foreground">{t("fin.hold_mark")} {fmtStampCST(focusView.holdUntilMs)}</p> : null}
           {bal.ratePerMinCents > 0 && (
             <ul className="mt-2 space-y-0.5 font-mono text-xs text-muted-foreground" data-testid="fin-ladder">
-              <li>{usd4(bal.ratePerMinCents * planet.minPerHour)} {t("fin.per_hour")} · {usd(Math.round(bal.ratePerMinCents * planet.hoursPerDay * planet.minPerHour))} {t("fin.per_day")} · {usd4(bal.ratePerMinCents / planet.secPerMin)} {t("fin.per_sec")}</li>
               {focusView && <li>{hhmmss(Math.max(0, at - focus!.atMs))} {t("fin.elapsed")}{showAbc ? ` · ${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : ""}</li>}
             </ul>
           )}
@@ -463,24 +473,13 @@ export function FinancialCommandUX1() {
                   {isOpen(g.kind) && g.lines.map((l) => (
                     <tr key={l.fieldId} data-fin-ladder-field={l.fieldId} className="text-muted-foreground"><td className="py-0.5 pl-6 pr-2"><SectionIcon section={fieldOf(l.fieldId)?.section ?? "L"} className="mr-1.5" />{fieldLabel(l.fieldId)}</td>
                       <td className="py-0.5 text-right tabular-nums">
-                        {editing ? (() => { const sp = lineSpec(l); return (
-                          // the line as TYPED: its amount and its MoT (r.021, addendum 35) — the presets of the transaction form, One time excepted
-                          <span className="flex flex-wrap items-center justify-end gap-1">
-                            <input data-fin-plan-amount={l.fieldId} aria-label={t("fin.amount")} className="w-20 rounded-md border border-border bg-background px-2 py-1 text-right text-xs text-foreground" inputMode="decimal"
-                              value={drafts[`${l.fieldId}:amount`] ?? String(sp.amount)} onChange={(e) => typeDraft(l, "amount", e.target.value)} onBlur={() => dropDraft(l, "amount")} />
-                            <select data-fin-plan-rec={l.fieldId} aria-label={t("fin.length")} value={sp.rec} onChange={(e) => writePlan(setLineSpec(plan, l.fieldId, switchRec(lineSpec(l), e.target.value as Recurrence)))} className="max-w-[9.5rem] rounded-md border border-border bg-background px-1 py-1 text-xs text-foreground">
-                              {BUDGET_RECURRENCES.map((r) => <option key={r} value={r}>{t(`fin.rec.${r}`)}</option>)}
-                            </select>
-                            {sp.rec === "other" && (<>
-                              <input data-fin-plan-n={l.fieldId} aria-label={t("fin.rec.other")} className="w-14 rounded-md border border-border bg-background px-2 py-1 text-right text-xs text-foreground" inputMode="decimal"
-                                value={drafts[`${l.fieldId}:otherN`] ?? String(sp.otherN || "")} onChange={(e) => typeDraft(l, "otherN", e.target.value)} onBlur={() => dropDraft(l, "otherN")} />
-                              <select data-fin-plan-unit={l.fieldId} aria-label={t("fin.length")} value={sp.otherUnit} onChange={(e) => editSpec(l, { otherUnit: e.target.value as LengthUnit })} className="rounded-md border border-border bg-background px-1 py-1 text-xs text-foreground">
-                                {LENGTH_UNITS.map((u) => <option key={u} value={u}>{t(`fin.u.${u}`)}</option>)}
-                              </select>
-                            </>)}
+                        {editing ? (
+                          <span className="flex items-center justify-end gap-1">
+                            <input data-fin-plan-amount={l.fieldId} className="w-28 rounded-md border border-border bg-background px-2 py-1 text-right text-xs text-foreground" inputMode="decimal"
+                              value={drafts[l.fieldId] ?? String(lineInUnit(l, period))} onChange={(e) => typeAmount(l.fieldId, e.target.value)} onBlur={() => setDrafts((d) => { const n = { ...d }; delete n[l.fieldId]; return n; })} />
                             <button type="button" data-fin-plan-remove={l.fieldId} aria-label={t("fin.remove_line")} title={t("fin.remove_line")} onClick={() => writePlan(removeLine(plan, l.fieldId))} className="rounded-md border border-border p-1"><X size={12} strokeWidth={1.5} aria-hidden /></button>
                           </span>
-                        ); })() : usdDollars(inPeriod(l))}
+                        ) : usdDollars(inPeriod(l))}
                       </td></tr>
                   ))}
                 </Fragment>
@@ -501,27 +500,8 @@ export function FinancialCommandUX1() {
                   {addable.map((f) => <option key={f.id} value={f.id}>{fieldLabel(f.id)}</option>)}
                 </select>
               </label>
-              {/* the new line's amount and MoT (r.021, addendum 35) */}
-              <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.amount")}
-                <input data-fin-plan-add-amount className={INPUT} inputMode="decimal" value={addAmt} onChange={(e) => setAddAmt(e.target.value)} />
-              </label>
-              <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.length")}
-                <select data-fin-plan-add-rec className={PICK} value={addRec} onChange={(e) => { const nx = switchRec(addSpec, e.target.value as Recurrence); setAddRec(nx.rec); if (nx.otherN !== addSpec.otherN) setAddN(String(nx.otherN)); setAddUnit(nx.otherUnit); }}>
-                  {BUDGET_RECURRENCES.map((r) => <option key={r} value={r}>{t(`fin.rec.${r}`)}</option>)}
-                </select>
-              </label>
-              {addRec === "other" && (
-                <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.rec.other")}
-                  <span className="flex gap-2">
-                    <input data-fin-plan-add-n className={INPUT} inputMode="decimal" value={addN} onChange={(e) => setAddN(e.target.value)} />
-                    <select data-fin-plan-add-unit className={PICK} value={addUnit} onChange={(e) => setAddUnit(e.target.value as LengthUnit)}>
-                      {LENGTH_UNITS.map((u) => <option key={u} value={u}>{t(`fin.u.${u}`)}</option>)}
-                    </select>
-                  </span>
-                </label>
-              )}
               <span className="flex items-end gap-2">
-                <button type="button" data-fin-plan-add-btn disabled={!addable.length || !isValidSpec(addSpec)} onClick={() => { const id = addable.some((f) => f.id === addField) ? addField : addable[0]?.id; if (id && isValidSpec(addSpec)) { writePlan(addLine(plan, id, addSpec)); setAddAmt(""); } }} className="min-h-[36px] rounded-md border border-border px-3 text-xs disabled:opacity-50">{t("fin.add_line")}</button>
+                <button type="button" data-fin-plan-add-btn disabled={!addable.length} onClick={() => { const id = addable.some((f) => f.id === addField) ? addField : addable[0]?.id; if (id) writePlan(addLine(plan, id)); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs disabled:opacity-50">{t("fin.add_line")}</button>
                 <button type="button" data-fin-plan-reset onClick={() => { if (owner) clearPlan(owner); setPlan(sheetPlan()); setDrafts({}); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs">{t("fin.reset_sheet")}</button>
               </span>
             </div>

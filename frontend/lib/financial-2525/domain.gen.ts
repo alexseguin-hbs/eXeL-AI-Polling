@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.023",
-  "stamp": "v.000_r.023",
+  "revision": "0.024",
+  "stamp": "v.000_r.024",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "fb5bfc1e6b1427bac41b6a68b4e31c4ba2b2773151c568bd63c88bb038bf5538",
@@ -363,6 +363,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "His feedback of 2026-09-30 evening (addenda 36–54) and his answers to the design questions asked before any code (addendum 55). ONE DOOR: 'deposit should be transaction. and user selects deposit or withdrawal' · 'Transaction should say + Transaction button so the full entry does not shown all the time.  Only expand when pressed' — the entry is folded behind + Transaction; every door (the YOUR TURN button in both states, the Released card's button) opens it with the type BLANK (his answer: 'Blank until picked'); the type reads Deposit / Funds or Withdrawal / Expense (addendum 39); the record button waits until one is picked; after a recorded transaction the entry folds back (his answer); a failed save is said outside the fold. The money's steps keep their names (his answer: keep 'Deposit'). THE WITHDRAWAL LAW: 'if I have Escrow of ~3900 I should be able to plan withdrawals at certain times without refusal … therefore transactions are also 30.333 days should be possible' — his answer 'Spread at $/min': a withdrawal with a MoT runs out linearly over that length, as a deposit runs in; One time lands whole; it is refused only if, at some minute, what has gone out would pass what has been released and is past the 180-minute mark, and the refusal names that minute (addendum 39 'check refuse message'). The 180-minute rule stays as the code held it, now in his words (addendum 55): 'using that $/min at 180 min should be in the bank to withdrawal only that amount , not the full deposit'. His $71 Storage Unit (Monthly from 2026.10.01 07:00), refused on r.020–r.022, is accepted; every record accepted before stays valid (a spread outflow is never above a lump one).",
    "commit": "a3edb5f",
    "shipped": "245aaf5"
+  },
+  {
+   "revision": "0.024",
+   "date": "2026-09-30",
+   "kind": "correction",
+   "why": "THE BUDGET AS HE ASKED (addenda 41, 47, 48, 50 + his answers in addendum 55): 'don’t change budget inplementetion; this is way too complicated and I never asked for it' — the r.021–r.022 per-line MoT editor (a Length dropdown and an Other field on every line, an amount and MoT on the add row) is removed; plan.ts is r.020's again. 'use selects deop down once for budget in edit mode.  once off edit mode they should be able to view in $/min, quarterly, annually etc.' + his answer 'One, shared': ONE Unit dropdown — in edit mode the amounts are typed in the unit picked, out of edit mode it converts the view. 'personal budget should be defaulted to 30.3 repeating': the Unit starts at per month (30.3 repeating days). A plan saved by r.021–r.022 still loads at the same rate. The transaction form keeps its own Length (MoT) — addendum 35's first half stands. ONE RATE FIGURE (addendum 46 + his answer 'One figure + dropdown'): the Released card reads 'Released · $5.3908 /hr' with a /sec · /min · /hr · /day dropdown, per hour by default, shorthand once picked; the three-figure line is removed; the figure is the live $/min times the planet's own units. Lesson on the record: r.021 read 'must be able to specify time' as a per-line control nobody asked for — the questions are asked first now (addenda 51, 52, 54).",
+   "commit": "a3edb5f",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1306,14 +1314,14 @@ export const FINANCIAL_DOMAIN = {
    ],
    "verify": "tests/financial-surface.test.mjs",
    "statement": "In the budget's edit mode every line is entered as its amount and the time it covers — the transaction form's MoT presets (One time excepted) or Other as a number in years · days · hours · minutes — kept as typed and converted by the table to the unit showing; a new line is added with its amount and its MoT; the transaction form keeps its own MoT for every type.",
-   "metric": "plan.ts (gated in tests/financial-ladder.test.mjs): lineSpec of a sheet line = its 33-day figure every 33 days; setLineSpec Insurance 1,200 yearly → amountNative 1,200·33/365, reads 1,200 per year; Rent 700 monthly reads 700 per month and 2,100 per quarter; 30 every 36 hours reads 20 per day; refusals change nothing; addLine with a spec; save/load whole; a bad saved spec dropped. Surface: data-fin-plan-rec select of BUDGET_RECURRENCES labelled fin.length per line, data-fin-plan-n / data-fin-plan-unit on Other, data-fin-plan-add-amount and data-fin-plan-add-rec on the add row",
+   "metric": "SUPERSEDED by FIN-06.12 (r.024, addenda 48 · 50: 'don’t change budget inplementetion; this is way too complicated and I never asked for it'): the per-line MoT editor is removed; one shared Unit dropdown. Was: plan.ts (gated in tests/financial-ladder.test.mjs): lineSpec of a sheet line = its 33-day figure every 33 days; setLineSpec Insurance 1,200 yearly → amountNative 1,200·33/365, reads 1,200 per year; Rent 700 monthly reads 700 per month and 2,100 per quarter; 30 every 36 hours reads 20 per day; refusals change nothing; addLine with a spec; save/load whole; a bad saved spec dropped. Surface: data-fin-plan-rec select of BUDGET_RECURRENCES labelled fin.length per line, data-fin-plan-n / data-fin-plan-unit on Other, data-fin-plan-add-amount and data-fin-plan-add-rec on the add row",
    "dtm": "on the phone: pencil → Insurance 1200 · Yearly → the Fixed row adds $108.49 per 33 days, $1,200 per year",
    "stretch": "the plan's lines compared with the actual transactions over the same window (the actuals column)",
    "in": "FIN-06.11.IN",
    "out": "FIN-06.11.OUT",
    "phase": "pilot",
    "mode": "Manual",
-   "status": "implemented"
+   "status": "superseded"
   },
   {
    "id": "FIN-03.05",
@@ -1347,6 +1355,42 @@ export const FINANCIAL_DOMAIN = {
    "stretch": "the chart draws a withdrawal's run-out line beside the deposit's run-in",
    "in": "FIN-04.01.IN",
    "out": "FIN-04.01.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
+  },
+  {
+   "id": "FIN-06.12",
+   "title": "One shared Unit for the budget, per month by default",
+   "section": "V",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-ladder.test.mjs",
+   "statement": "The budget has ONE Unit dropdown: in edit mode the amounts are typed in the unit picked and kept on the 33-day base; out of edit mode the same dropdown converts the view ($/min, week, month, quarter, year …); it starts at per month (30.3 repeating days); no line carries its own MoT.",
+   "metric": "financial-ladder: plan.ts carries no lineSpec / setLineSpec / switchRec / isValidSpec; Rent typed 700 per month reads $700 per month and $2,100 per quarter; it reads per minute and per year from the one dropdown; a line is added at zero; a plan saved by r.021–r.022 loads at the same rate. financial-surface: no per-line rec select, Other field or add-row amount/MoT; one data-fin-budget-unit; default month",
+   "dtm": "on the phone: Personal budget opens per month (30.3 repeating days); pencil → type Rent 700 → Done → pick per quarter → $2,100",
+   "stretch": "the same entry unit chosen once for a business budget",
+   "in": "FIN-06.12.IN",
+   "out": "FIN-06.12.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
+  },
+  {
+   "id": "FIN-07.03",
+   "title": "The released rate is one figure with its unit",
+   "section": "VII",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "The Released card shows ONE rate figure with a /sec · /min · /hr · /day dropdown, per hour by default, in shorthand once picked; the figure is the live $/min times the planet's seconds, hours and days; the three-figure line is gone.",
+   "metric": "financial-surface: rateUnit starts 'hr'; RATE_UNITS sec · min · hr · day; the select is labelled Rate per; no 'per hour · per day · per second' line; the hour figure = ratePerMin × minPerHour",
+   "dtm": "on the phone, his two deposits: Released · $5.3908 /hr ▾ → /min → $0.0898 → /day → $129.38",
+   "stretch": "the same dropdown on the business frame's burn rate",
+   "in": "FIN-07.03.IN",
+   "out": "FIN-07.03.OUT",
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
@@ -1580,6 +1624,18 @@ export const FINANCIAL_DOMAIN = {
    "decision": "A withdrawal runs out at $/min over its MoT (One time lands whole), checked at every minute against what is released and past the 180-minute mark; a refusal names the minute. The 180-minute rule is his: at 180 minutes only the accrued amount can be withdrawn, never the full deposit.",
    "status": "OPERATOR",
    "basis": "addendum 39 (verbatim) + addendum 55 answers 'Spread at $/min' and the 180-minute rule in his words"
+  },
+  {
+   "id": "FD-39",
+   "decision": "The budget has ONE shared Unit dropdown, per month (30.3 repeating days) by default; amounts are typed in it in edit mode and converted by it out of edit mode; no line carries its own MoT. Supersedes FD-36's budget half (the transaction form keeps its Length).",
+   "status": "OPERATOR",
+   "basis": "addenda 41, 47, 48, 50 (verbatim) + addendum 55 answers 'see my note; use selects deop down once for budget in edit mode…' and 'One, shared'"
+  },
+  {
+   "id": "FD-40",
+   "decision": "The Released card shows one rate figure with a /sec · /min · /hr · /day dropdown, per hour by default; the three-figure line is removed.",
+   "status": "OPERATOR",
+   "basis": "addendum 46 (verbatim) + addendum 55 answer 'One figure + dropdown'"
   }
  ],
  "reviews": [

@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 47 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 48 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -338,6 +338,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "v.000_r.023 SHIPPED — one + Transaction door, folded, the type blank until he picks Deposit / Funds or Withdrawal / Expense, folding back after a save; a withdrawal runs out at $/min over its MoT and a refusal names the minute (his $71 Storage Unit accepted). FIN-03.05 · FIN-04.01 · FD-37 · FD-38. Shipped as 245aaf5. Gates: financial-accrual 35 · financial-surface 102 · financial-crs 440 · full test:ci 0 · next build 0.",
       "commit": "245aaf5"
+    },
+    {
+      "rev": 48,
+      "date": "2026-09-30",
+      "kind": "correction",
+      "text": "r.024 correction from his feedback and answers (addenda 41–55): the r.021–r.022 per-line MoT budget editor he never asked for is removed — one shared Unit dropdown, per month by default; the Released card's rate is one figure with a /sec · /min · /hr · /day dropdown, per hour by default. FIN-06.12 supersedes FIN-06.11 · FIN-07.03 · FD-39 · FD-40.",
+      "commit": "a3edb5f"
     }
   ]
 };

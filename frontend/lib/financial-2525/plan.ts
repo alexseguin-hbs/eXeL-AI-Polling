@@ -6,58 +6,27 @@
  * removed, a line added on any FLOW field A–M (one line per field; N–T never — they live on the Balance view, never per period).
  * The plan is saved on the device under the person's own key (the record's scope, FD-18 — the cloud copy follows the login);
  * Reset returns to the sheet. Pure: no React, no clock; the surface reads these and nothing else decides a figure.
+ *
+ * r.024 (operator addenda 48 · 50 · 55: "don't change budget inplementetion; this is way too complicated and I never asked for it" ·
+ * "use selects deop down once for budget in edit mode"): the r.021–r.022 per-line MoT (lineSpec · setLineSpec · switchRec ·
+ * isValidSpec) is removed and this file is r.020's again — ONE shared unit, the amount typed in it. A copy saved by r.021–r.022
+ * still loads: its amountNative is already on the 33-day base; the extra fields it carries are ignored.
  */
 import { SHEET_LINES } from "./budget";
-import { fieldOf, toPeriod, lengthDays, RECURRENCES, LENGTH_UNITS, type LadderLine, type Period, type Recurrence, type LengthUnit } from "./ladder";
-
-/** EVERY LINE CARRIES ITS OWN MoT (r.021, operator addendum 35 "on input of transaction or budget, must be able to specify time (MoT
- *  of transaction)"): a line keeps the amount the person typed and the length it covers — the transaction form's presets, One time
- *  excepted (a budget line is a rate), with Other as a number in years · days · hours · minutes — e.g. Insurance $1,200 Yearly. The
- *  ladder still reads the line on the 33-day base (amountNative), so every table, group and Net is unchanged in kind. */
-export interface PlanLine extends LadderLine { amount?: number; rec?: Recurrence; otherN?: number; otherUnit?: LengthUnit }
-export interface LineSpec { amount: number; rec: Recurrence; otherN: number; otherUnit: LengthUnit }
-export const BUDGET_RECURRENCES: readonly Recurrence[] = RECURRENCES.filter((r) => r !== "once");
-const specDays = (s: LineSpec) => lengthDays(s.rec, s.otherN, s.otherUnit);
-const specOk = (s: LineSpec) => Number.isFinite(s.amount) && s.amount >= 0 && BUDGET_RECURRENCES.includes(s.rec) && LENGTH_UNITS.includes(s.otherUnit) && Number.isFinite(specDays(s)) && specDays(s) > 0;
-/** A spec the plan would accept (the add row's button reads this, so a typed amount is never silently dropped — r.022). */
-export const isValidSpec = (s: LineSpec): boolean => specOk(s);
-/** CHANGE A LINE'S MoT (r.022, correction of r.021): picking Other on a line whose Other count is still 0 carried a zero length, so
- *  setLineSpec refused it and the picker snapped back — a person could not choose Other at all. Picking Other now carries the line's
- *  current length into the Other field, in days (Monthly → 30.333 days), so the rate is unchanged until the person types a new one;
- *  every other pick just changes the preset. Pure; the same rule serves a budget line and the add row. */
-export function switchRec(s: LineSpec, rec: Recurrence): LineSpec {
-  const next: LineSpec = { ...s, rec };
-  if (rec !== "other" || lengthDays("other", s.otherN, s.otherUnit) > 0) return next;
-  const d = s.rec === "other" ? 0 : specDays(s);
-  return { ...next, otherN: Math.round((d > 0 ? d : 33) * 1000) / 1000, otherUnit: "days" };
-}
-/** The line as the person typed it; a line with no spec (the sheet, an r.016–r.020 copy) reads as its 33-day figure, every 33 days. */
-export function lineSpec(l: PlanLine): LineSpec {
-  const s: LineSpec = { amount: Number(l.amount), rec: l.rec as Recurrence, otherN: Number(l.otherN ?? 0), otherUnit: (l.otherUnit ?? "days") as LengthUnit };
-  if (l.rec !== undefined && specOk(s)) return s;
-  return { amount: Math.round(toPeriod(l.amountNative, l.nativePeriod, "days33") * 100) / 100, rec: "days33", otherN: 0, otherUnit: "days" };
-}
-/** Set a line from what the person typed — its amount and its MoT; kept as typed, read on the 33-day base. A negative or non-number
- *  amount, One time, or a zero-length Other changes nothing (a refusal, never a wrong rate written by accident). */
-export function setLineSpec(lines: readonly PlanLine[], fieldId: string, spec: LineSpec): PlanLine[] {
-  if (!specOk(spec)) return [...lines];
-  const base = (spec.amount * 33) / specDays(spec);
-  return lines.map((l) => (l.fieldId === fieldId ? { ...l, amountNative: base, nativePeriod: BASE, amount: spec.amount, rec: spec.rec, otherN: spec.otherN, otherUnit: spec.otherUnit } : l));
-}
+import { fieldOf, toPeriod, type LadderLine, type Period } from "./ladder";
 
 const PREFIX = "fin-plan-";
-const cleanSpec = (l: PlanLine): PlanLine => { if (l.rec === undefined) return l; const s = { amount: Number(l.amount), rec: l.rec, otherN: Number(l.otherN ?? 0), otherUnit: (l.otherUnit ?? "days") as LengthUnit }; if (specOk(s)) return l; const { amount: _a, rec: _r, otherN: _n, otherUnit: _u, ...bare } = l; return bare; };
 export const planKey = (owner: string) => `${PREFIX}${owner}`;
 export const BASE: Period = "days33";
 
 /** The person's saved plan, or null when the device holds none (then the sheet is the plan). A malformed copy reads as none. */
-export function loadPlan(owner: string): PlanLine[] | null {
+export function loadPlan(owner: string): LadderLine[] | null {
   try {
     const raw = typeof localStorage !== "undefined" ? localStorage.getItem(planKey(owner)) : null;
     if (!raw) return null;
     const v = JSON.parse(raw) as unknown;
     if (!Array.isArray(v)) return null;
-    const lines = v.filter((l): l is LadderLine => !!l && typeof l === "object" && typeof (l as LadderLine).fieldId === "string" && Number.isFinite((l as LadderLine).amountNative) && (l as LadderLine).nativePeriod === BASE && !!fieldOf((l as LadderLine).fieldId)).map((l) => cleanSpec(l as PlanLine));
+    const lines = v.filter((l): l is LadderLine => !!l && typeof l === "object" && typeof (l as LadderLine).fieldId === "string" && Number.isFinite((l as LadderLine).amountNative) && (l as LadderLine).nativePeriod === BASE && !!fieldOf((l as LadderLine).fieldId));
     return lines;
   } catch { return null; }
 }
@@ -76,13 +45,11 @@ export function setLineAmount(lines: readonly LadderLine[], fieldId: string, amo
   const base = toPeriod(amountInUnit, unit, BASE);
   return lines.map((l) => (l.fieldId === fieldId ? { ...l, amountNative: base, nativePeriod: BASE } : l));
 }
-/** Add a FLOW field (A–M) — with its amount and MoT when given (r.021), else a zero amount; one line per field; N–T and unknown ids
- *  are refused (unchanged copy). */
-export function addLine(lines: readonly PlanLine[], fieldId: string, spec?: LineSpec): PlanLine[] {
+/** Add a FLOW field (A–M) with a zero amount; one line per field; N–T and unknown ids are refused (unchanged copy). */
+export function addLine(lines: readonly LadderLine[], fieldId: string): LadderLine[] {
   const f = fieldOf(fieldId);
   if (!f || f.plane !== "flow" || lines.some((l) => l.fieldId === fieldId)) return [...lines];
-  const added: PlanLine[] = [...lines, { fieldId, amountNative: 0, nativePeriod: BASE }];
-  return spec && specOk(spec) ? setLineSpec(added, fieldId, spec) : added;
+  return [...lines, { fieldId, amountNative: 0, nativePeriod: BASE }];
 }
 export function removeLine(lines: readonly LadderLine[], fieldId: string): LadderLine[] { return lines.filter((l) => l.fieldId !== fieldId); }
 /** What a line reads in the unit on the glass (the inverse of setLineAmount, to the cent). */
