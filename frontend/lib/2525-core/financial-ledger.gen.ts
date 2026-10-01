@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 32 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 33 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -233,6 +233,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.016 decided (operator addendum 28): the budget's edit mode behind a pencil icon — the person's plan (lib/financial-2525/plan.ts) typed in the picked unit on the 33-day base, lines added on A–M or removed, Reset to the sheet, saved on the device under their key; every figure and Net follow it. FIN-06.08 · FD-31; five keys staged.",
       "commit": "a1c4d30"
+    },
+    {
+      "rev": 33,
+      "date": "2026-09-30",
+      "kind": "release",
+      "text": "v.000_r.016 SHIPPED — the budget's edit mode behind a pencil: the person's plan typed in the picked unit on the 33-day base, lines added on A–M or removed, Reset to the sheet, saved on the device; every figure and Net follow it. FIN-06.08 · FD-31. Shipped as 8d73af3. Gates: financial-ladder 72 · financial-surface 84 · financial-crs 370 · full test:ci 0 · next build 0.",
+      "commit": "8d73af3"
     }
   ]
 };

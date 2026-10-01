@@ -274,7 +274,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "The budget has an EDIT mode behind an icon (operator addendum 28 'add edit mode and icon on budget mode', with his phone screenshot of the r.011 ladder). lib/financial-2525/plan.ts (pure): the person's plan starts as the sheet; an amount is typed in the unit the person has picked and STORED ON THE 33-DAY BASE (FD-25's fixed factors) — a non-number or a negative figure is refused; a line is added on any FLOW field A–M once (N–T refused: the Balance view, never per period); a line is removed; the plan is saved on the device under the person's own key (the record's scope, FD-18) and a malformed copy is dropped line by line; Reset clears it and the sheet stands. The surface: a pencil icon beside the budget's title (a signed-in person only; the check closes; the pressed state a stroke ring), every line's amount an input in edit mode held as a draft while typing so the once-a-second clock never eats a half-typed figure, × removes, an add row (section → a field not yet on the plan, full-width pickers, inline — the picker law), Reset to the sheet; every section total and Net follow the plan. Five keys staged (fin.edit · fin.done · fin.add_line · fin.remove_line · fin.reset_sheet). FIN-06.08 · FD-31.",
    "commit": "a1c4d30",
-   "shipped": "PENDING"
+   "shipped": "8d73af3"
   }
  ],
  "mot": {
