@@ -559,6 +559,11 @@
 > The chart charts only the $320 deposit — what should it chart? → TITLE NEEDS TO CHANGE OF THAT SECTION FOR VISUAL; thats it
 > The budget shows the example sheet — which should it use? → Income from my record (Recommended)
 
+> (addendum 81, verbatim — 2026-10-01, screenshot 2026-10-01_financial_fb81_swap.jpg, the r.041 Accrual Units card)
+> Move transaction left of settings and move accrual rate to right of Available
+>
+> swap these two
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
