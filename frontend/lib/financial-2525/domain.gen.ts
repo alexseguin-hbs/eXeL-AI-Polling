@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.045",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "b981bdfe076eb2a4a85c9fd7c290bdf5f88d77cd84ee892c64c1351abaf8153c",
+  "handoffSha256": "fe06551ca810ddedc33513b234215ea8179f2603b69585fde87b86fe273436a6",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -306,6 +306,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "b981bdfe076eb2a4a85c9fd7c290bdf5f88d77cd84ee892c64c1351abaf8153c",
     "date": "2026-10-01",
     "note": "+ addendum 94 (Net • Upside / Savings · Net • Downside / Risk)"
+   },
+   {
+    "sha256": "fe06551ca810ddedc33513b234215ea8179f2603b69585fde87b86fe273436a6",
+    "date": "2026-10-01",
+    "note": "+ addendum 95 (chart: the top line goes; a span toggle 1x · 1W · 1M · 30D · 91D · 365/364)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

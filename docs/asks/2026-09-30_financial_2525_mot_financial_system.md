@@ -656,6 +656,19 @@
 > Green positive: Show “Net • Upside / Savings”
 > Red negative: Show “Net • Downside / Risk”
 
+> (addendum 95, verbatim — 2026-10-01)
+> remove this from charting
+>
+> 2026.09.30_19.56..04 · $320.00 · 30.3̅ · 17 h 18 min elapsed
+>
+> instead add toggle similar to 2D/3D
+>
+> that shows for time icon units
+>  1x , 1W, 1M, 30D, 91D, 365 /364
+> this takes all transactions from input time to the MoT selected.  if 30D, all transactions get spread over 30D in terms of $/min using A.B..C where A B and C are always integers (that are then converted yo currency rate selected),
+>
+> The whole idea is get people thinking $/hr, $/ min and eventually $/sec finances for the day AI transactions get faster and more global
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -1002,6 +1015,10 @@
     share the next, both the large size. Folded into r.044.
 92. **The Net line names its sign (addendum 94):** a positive (green) Net reads "Net • Upside / Savings"; a negative (red) Net reads
     "Net • Downside / Risk". r.045 (the month law moves to r.046).
+93. **The chart's span toggle (addendum 95):** the line above the chart (stamp · amount · length · elapsed) goes; a segmented toggle
+    like 2D/3D picks the span — 1x · 1W · 1M · 30D · 91D · 365/364 — and every transaction is charted from its entry time across the
+    picked span as $/min, in A.B..C units with integer A, B, C, then shown in the picked currency. Purpose: thinking in $/hr, $/min and
+    eventually $/sec. Design questions asked before any code.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
