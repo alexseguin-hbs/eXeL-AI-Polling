@@ -288,6 +288,8 @@
 
 > (addendum 28, verbatim — with the same phone screenshot of the r.011 PERSONAL BUDGET ON THE LADDER table, saved beside this file as `2026-09-30_financial_2525_budget_edit_mode.png`) add edit mode and icon on budget mode
 
+> (addendum 29, verbatim — with his phone screenshot at 16:58 CST, the r.011 edition: the strip "$0.00 · $0.00 · DEPOSIT · Withdraw" hovering over the budget table's rows, a band of empty page beneath it where the app's bottom bar has slid away, saved beside this file as `2026-09-30_financial_2525_strip_floats.png`) your deposit withdrawal floats; very odd
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -465,6 +467,13 @@
     picked, stored on the 33-day base), a line can be removed, a line can be added (section → field → amount), and Done closes
     it; the person's budget is saved on the device (the record's scope, FD-18 — cloud later) and Reset returns to the sheet; the
     ladder's Net and every per-unit figure follow the edited plan at once. Ships as r.016.
+37. **Nothing on the surface floats (addendum 29):** the phone strip of r.002 (released · available · the phase · DEPOSIT ·
+    Withdraw) was FIXED 56 px above the viewport's bottom on the assumption that the app's bottom bar is always there; when that
+    bar slides away on a scroll the strip hangs mid-air over the table. THE CLASS: a fixed element positioned against another
+    element's assumed height. The fix: the strip leaves the fixed layer and becomes the last row of the Released card in normal
+    flow — the same words, the same two buttons — so nothing on Financial-2525 floats over the content; the surface's phone
+    padding shrinks back to the bottom bar's own height; gated (no fixed element inside the surface) and measured (the R-CORE icon
+    still reachable). Ships as r.017, a correction of r.002–r.016.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
