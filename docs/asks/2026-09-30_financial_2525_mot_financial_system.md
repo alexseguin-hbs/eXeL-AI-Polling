@@ -419,6 +419,9 @@
 > this needs to be cleaned: / I said to remove all 33 day reference; inis 30.333 (30.3 repeating sign). / use table and place key info in order. perihelion is first
 > Not yet, non audits / fixe what I gave you: show me backlog / I SAID DO NOT AUDIT! Didnyou fix all feedback from this morning?!?
 
+> (addendum 59, verbatim — 2026-10-01 7:16 AM screenshots 2026-10-01_financial_fb59_01/02, taken on the r.027 build: the phone shows "180-min hold" and "revision 0.027"; r.028 was pushed at 12:31 UTC = 7:31 AM CDT)
+> STOP FUCKING SKIPPING HI FEEDBACK; this causes rework. youbhave t reduced tonine transaction button or remove top gold transaction box, or adjusted second box with accrual rates
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
