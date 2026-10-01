@@ -647,6 +647,15 @@
 >
 > Available and Accrual Rate should be same line, same size text
 
+> (addendum 94, verbatim — 2026-10-01, after the r.044 captures; "image 1-3" = the card, the Record, the header; "last screen shot" =
+> the Personal budget)
+> all looks good for image 1-3. for last screen shot
+>
+> If
+>
+> Green positive: Show “Net • Upside / Savings”
+> Red negative: Show “Net • Downside / Risk”
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -991,6 +1000,8 @@
 90. **Every 30.3̅ becomes 30 (addendum 92):** the month law (reading item 81) — next revision, r.045.
 91. **Available and Accrual Rate on one line, same size (addendum 93):** "Available:" and "Accrual Rate" share one line; the two figures
     share the next, both the large size. Folded into r.044.
+92. **The Net line names its sign (addendum 94):** a positive (green) Net reads "Net • Upside / Savings"; a negative (red) Net reads
+    "Net • Downside / Risk". r.045 (the month law moves to r.046).
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
