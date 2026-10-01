@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 52 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 53 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -373,6 +373,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.026 correction — the plain bugs of the HI-intent check (e835b32): the refusal names the first short minute exactly; two same-time entries are both recorded; the Day and time clears after a save; the chart reads a tap and no longer traps the page scroll; reopening keeps the picked type; the Admin panel takes decimals; edit mode keeps small-unit precision; October over the days; the empty-axis fallback; 36 px targets; the record's lost dollar signs restored. No design he chose changes; the open choices are asked.",
       "commit": "e835b32"
+    },
+    {
+      "rev": 53,
+      "date": "2026-10-01",
+      "kind": "release",
+      "text": "v.000_r.026 SHIPPED — the plain bugs of the HI-intent check: the exact first short minute, both same-time entries kept, the Day and time cleared after a save, the chart read on a tap without trapping the page scroll, the picked type kept, the Admin panel's decimals, small-unit precision in edit mode, October over the days, 36 px targets, the record's dollar signs. Shipped as 922e79a. Gates: financial-accrual 38 · financial-surface 110 · financial-crs 486 · full test:ci 0 · next build 0.",
+      "commit": "922e79a"
     }
   ]
 };
