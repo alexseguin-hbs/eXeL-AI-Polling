@@ -317,6 +317,13 @@
    "kind": "release",
    "text": "v.000_r.022 SHIPPED — a budget line can pick Other (switchRec carries its current length into the Other field, so the rate holds until a new count is typed); the add row's button waits on a valid spec and adds exactly it, never a silent zero. Correction of r.021. Shipped as ed5edbc. Gates: financial-ladder 98 · financial-surface 97 · financial-crs 422 · full test:ci 0 · next build 0.",
    "commit": "ed5edbc"
+  },
+  {
+   "rev": 46,
+   "date": "2026-09-30",
+   "kind": "decision",
+   "text": "r.023 decided from his feedback and answers (addenda 36–55): one + Transaction door, folded, the type blank until he picks Deposit / Funds or Withdrawal / Expense, folding back after a save; a withdrawal runs out at $/min over its MoT and a refusal names the minute; the 180-minute rule in his words. FIN-03.05 · FIN-04.01 · FD-37 · FD-38.",
+   "commit": "a3edb5f"
   }
  ]
 }

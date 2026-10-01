@@ -61,4 +61,23 @@ const tampered = { ...rec, entries: rec.entries.map((e, i) => (i === 1 ? { ...e,
 ok(R.verify(tampered).ok === false && R.verify(tampered).brokenAt === 2, "a changed amount breaks the chain at that revision");
 ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, at) === rec.entries[0].hash, "hashes are 16 hex and deterministic");
 
+// r.023 — A WITHDRAWAL RUNS OUT AT $/min OVER ITS MoT (operator addendum 39 + 55), checked at every minute; his exact case.
+{
+  const at = (x) => M.parseStampCST(x);
+  const d1 = { id: "d1", kind: "deposit", amountCents: 360449, atMs: at("2026.09.30_19.54..35"), motDays: 91 / 3 };
+  const d2 = { id: "d2", kind: "deposit", amountCents: 32000, atMs: at("2026.09.30_19.56..04"), motDays: 91 / 3 };
+  const storage = { id: "w1", kind: "withdrawal", amountCents: 7100, atMs: at("2026.10.01_07.00..00"), motDays: 91 / 3, memo: "Storage Unit" };
+  ok(A.validateWithdrawal([d1, d2], storage).ok === true, "his $71 Storage Unit, Monthly (30.3 repeating days) from 2026.10.01 07:00, is ACCEPTED against $3,924.49 coming in — it runs out at $0.0016/min");
+  const once = A.validateWithdrawal([d1, d2], { ...storage, id: "w2", motDays: 0 });
+  ok(once.ok === false && once.reason === "INSUFFICIENT" && once.atMs === storage.atMs && once.availableCents === 5977, `the same $71 One time at 07:00 lands whole and is REFUSED, naming 07:00 (only $59.77 had come in) — got ${JSON.stringify(once)}`);
+  const early = A.validateWithdrawal([d1, d2], { ...storage, id: "w3", atMs: at("2026.09.30_20.30..00") });
+  ok(early.ok === false && early.reason === "HOLD" && early.atMs === d1.atMs + A.HOLD_MS, "a withdrawal before the 180-minute mark is refused HOLD and names when the first money can move (180 min after the first deposit)");
+  const big = A.validateWithdrawal([d1, d2], { ...storage, id: "w4", amountCents: 400000 });
+  ok(big.ok === false && big.reason === "INSUFFICIENT" && big.atMs > storage.atMs + 20 * 86400000 && big.atMs < storage.atMs + 28 * 86400000 && big.atMs % 60000 === 0, `$4,000 Monthly runs out faster than $3,924.49 comes in: refused at the whole minute it would pass (about 24 days in) — got ${big.atMs ? M.fmtStampCST(big.atMs) : big.reason}`);
+  ok(A.withdrawnAt(storage, storage.atMs) === 0 && A.withdrawnAt(storage, storage.atMs + (91 / 6) * 86400000) === 3550 && A.withdrawnAt(storage, storage.atMs + 40 * 86400000) === 7100 && A.withdrawnAt({ ...storage, motDays: 0 }, storage.atMs) === 7100, "withdrawnAt is linear over the MoT (half way = half), clamped to the amount; One time lands whole at its instant");
+  let neg = 0; for (let t = d1.atMs; t <= d1.atMs + 31 * 86400000; t += 3600000) { const b = A.balanceAt([d1, d2, storage], t); if (b.withdrawnCents > b.withdrawableCents) neg++; }
+  ok(neg === 0, "with the $71 Monthly on the record, what has gone out never passes what is withdrawable — every hour of the month");
+  const lumpOk = { id: "w5", kind: "withdrawal", amountCents: 25066, atMs: at("2026.10.15_07.00..00"), motDays: 0 };
+  ok(A.validateWithdrawal([d1, d2], lumpOk).ok === true && A.validateWithdrawal([d1, d2, lumpOk], storage).ok === true, "a record accepted as a lump before r.023 (his $250.66 on 10.15) stays valid, and the $71 Monthly is still accepted beside it");
+}
 console.log(`financial-accrual: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.022",
-  "stamp": "v.000_r.022",
+  "revision": "0.023",
+  "stamp": "v.000_r.023",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "092e2ed8a787f9c99a8c65f6aad1785ad686b89ac64d7364f6de74acb33b55ed",
+  "handoffSha256": "fb5bfc1e6b1427bac41b6a68b4e31c4ba2b2773151c568bd63c88bb038bf5538",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -161,6 +161,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "092e2ed8a787f9c99a8c65f6aad1785ad686b89ac64d7364f6de74acb33b55ed",
     "date": "2026-10-01",
     "note": "+ addendum 35 ('on input of transaction or budget, must be able to specify time (MoT of transaction)' · 'In Escrow'; reading items 44–45)"
+   },
+   {
+    "sha256": "fb5bfc1e6b1427bac41b6a68b4e31c4ba2b2773151c568bd63c88bb038bf5538",
+    "date": "2026-09-30",
+    "note": "+ addenda 36–55 (his feedback of 2026-09-30 evening, verbatim, and his answers to every design question; reading items 46–60)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -350,6 +355,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "r.021 shipped a budget line's MoT picker that could not pick Other: a line's Other count starts at 0, a zero-length MoT is refused by setLineSpec (correctly, so no wrong rate is ever written), and the refusal snapped the picker back to its old preset — the number field never opened. Found by the r.021 capture on the built export, not by the r.021 gates, which read the select's markup and the pure functions separately. The same class on the add row: picking Other with no count, or typing a non-number amount, added the line as a silent zero (Number(x) || 0). Fix at the class, in the pure model: switchRec(spec, rec) — picking Other carries the line's current length into the Other field in days (Monthly → 30.333 days, a sheet line → 33 days), so the rate is unchanged until the person types a new count; a count already typed is kept across presets. Both the line picker and the add row's picker go through it; the add row builds one spec, its button waits until isValidSpec(spec) holds, and it adds exactly that spec. FIN-06.11's statement stands and its metric is now met on the glass (the r.022 capture picks Other on Rent and reads the number field). Lesson on the record: a picker's every option is driven on the glass before a ship.",
    "commit": "af6bfe3",
    "shipped": "ed5edbc"
+  },
+  {
+   "revision": "0.023",
+   "date": "2026-09-30",
+   "kind": "decision",
+   "why": "His feedback of 2026-09-30 evening (addenda 36–54) and his answers to the design questions asked before any code (addendum 55). ONE DOOR: 'deposit should be transaction. and user selects deposit or withdrawal' · 'Transaction should say + Transaction button so the full entry does not shown all the time.  Only expand when pressed' — the entry is folded behind + Transaction; every door (the YOUR TURN button in both states, the Released card's button) opens it with the type BLANK (his answer: 'Blank until picked'); the type reads Deposit / Funds or Withdrawal / Expense (addendum 39); the record button waits until one is picked; after a recorded transaction the entry folds back (his answer); a failed save is said outside the fold. The money's steps keep their names (his answer: keep 'Deposit'). THE WITHDRAWAL LAW: 'if I have Escrow of ~3900 I should be able to plan withdrawals at certain times without refusal … therefore transactions are also 30.333 days should be possible' — his answer 'Spread at $/min': a withdrawal with a MoT runs out linearly over that length, as a deposit runs in; One time lands whole; it is refused only if, at some minute, what has gone out would pass what has been released and is past the 180-minute mark, and the refusal names that minute (addendum 39 'check refuse message'). The 180-minute rule stays as the code held it, now in his words (addendum 55): 'using that $/min at 180 min should be in the bank to withdrawal only that amount , not the full deposit'. His $71 Storage Unit (Monthly from 2026.10.01 07:00), refused on r.020–r.022, is accepted; every record accepted before stays valid (a spread outflow is never above a lump one).",
+   "commit": "a3edb5f",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1301,6 +1314,42 @@ export const FINANCIAL_DOMAIN = {
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-03.05",
+   "title": "One door: + Transaction, the type picked by the person",
+   "section": "III",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "The transaction entry is folded behind a + Transaction button and opens only when pressed; every door on the surface opens it with the type blank; the person picks Deposit / Funds or Withdrawal / Expense and the record button waits until then; after a recorded transaction the entry folds back; a failed save is said outside the fold.",
+   "metric": "financial-surface: formOpen starts false; the form renders only when open; both YOUR TURN actions and the strip's button call openForm, which blanks the type; no door names a deposit or a withdrawal; the type select starts on a disabled Select… option; the record button is disabled until a type is picked; foldForm runs after both record paths; save_failed renders outside the fold; a door focuses the type select",
+   "dtm": "on the phone: + Transaction → the entry opens on Type: Select… → pick Withdrawal / Expense → Withdraw → the entry folds and the Record shows the line",
+   "stretch": "the same one door on the business frame",
+   "in": "FIN-03.05.IN",
+   "out": "FIN-03.05.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
+  },
+  {
+   "id": "FIN-04.01",
+   "title": "A withdrawal runs out at $/min over its MoT",
+   "section": "IV",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-accrual.test.mjs",
+   "statement": "A withdrawal with a MoT is spread linearly over that length, exactly as a deposit is released; One time lands whole; it is accepted whenever, at every minute from its start, what all withdrawals have taken out stays within what has been released and is past the 180-minute mark, and a refusal names the first minute that would fail.",
+   "metric": "financial-accrual (his exact case): deposits $3,604.49 + $320.00 Monthly at 19:54/19:56 → $71 Monthly from 2026.10.01 07:00 ACCEPTED; the same $71 One time at 07:00 REFUSED naming 07:00 ($59.77 available); a withdrawal before the 180-minute mark refused HOLD naming the mark; $4,000 Monthly refused at the whole minute it passes the money coming in (~24 days); withdrawnAt linear and clamped; never overdrawn hour by hour; a pre-r.023 lump ($250.66 on 10.15) stays valid",
+   "dtm": "on the phone: Withdrawal / Expense · $71 · Monthly (30.333 days) · 2026.10.01_07.00..00 → recorded, not refused",
+   "stretch": "the chart draws a withdrawal's run-out line beside the deposit's run-in",
+   "in": "FIN-04.01.IN",
+   "out": "FIN-04.01.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -1519,6 +1568,18 @@ export const FINANCIAL_DOMAIN = {
    "decision": "Every amount the person enters carries its own MoT: the transaction form's Length, and on every budget line the same presets (One time excepted) with Other; a budget line is kept as typed and converted for display. 'In escrow' reads 'In Escrow'.",
    "status": "OPERATOR",
    "basis": "addendum 35 (verbatim: 'on input of transaction or budget, must be able to specify time (MoT of transaction)' · 'Change In escrow to “In Escrow”'); reading items 44–45"
+  },
+  {
+   "id": "FD-37",
+   "decision": "ONE DOOR: the transaction entry is folded behind + Transaction; every door opens it with the type blank; Deposit / Funds and Withdrawal / Expense; the record button waits for a type; it folds back after a recorded transaction; the steps keep their names (Deposit → Hold → Release → Withdraw → Record).",
+   "status": "OPERATOR",
+   "basis": "addenda 36, 38, 39 (verbatim) + addendum 55 answers 'Blank until picked', 'Folds back', 'Keep \"Deposit\"'"
+  },
+  {
+   "id": "FD-38",
+   "decision": "A withdrawal runs out at $/min over its MoT (One time lands whole), checked at every minute against what is released and past the 180-minute mark; a refusal names the minute. The 180-minute rule is his: at 180 minutes only the accrued amount can be withdrawn, never the full deposit.",
+   "status": "OPERATOR",
+   "basis": "addendum 39 (verbatim) + addendum 55 answers 'Spread at $/min' and the 180-minute rule in his words"
   }
  ],
  "reviews": [
