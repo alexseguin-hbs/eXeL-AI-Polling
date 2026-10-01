@@ -20,7 +20,7 @@
  * modularly adjust"). A.B..C is the standard for all planets; the glass converts to the planet's LTU.
  */
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Check, ChevronDown, ChevronRight, Clock, Orbit, Pencil, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Clock, Orbit, Pencil, Settings, X } from "lucide-react";
 import { CategoryIcon, SectionIcon } from "@/components/financial-2525/category-icon";   // addendum 19: every category carries its icon; r.012: every section too
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -29,7 +29,6 @@ import { SoiGlobe } from "@/components/soi-globe";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { SoITrinity } from "@/components/soi-trinity";
 import { PodPhaseRail } from "@/components/pod-phase-rail";
-import { PodRosterList, type PodRosterRow } from "@/components/pod-roster-list";
 import type { PodPhaseDef } from "@/lib/pod-phases";
 import { hhmmss } from "@/lib/pod-clock";
 import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
@@ -39,11 +38,11 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { FINANCIAL_LEDGER } from "@/lib/2525-core/financial-ledger.gen";
 import { FINANCIAL_DOMAIN as SRC } from "@/lib/financial-2525/domain.gen";
-import { fmtMot, spanABC, fmtStampCST, parseStampCST } from "@/lib/financial-2525/mot";
+import { fmtMot, spanABC, fmtStampCST, parseStampCST, fmtDays, dayTicks, dateLabel, cstParts, DATE_FMTS, type DateFmt } from "@/lib/financial-2525/mot";
 import { positionInYear, frameOf } from "@/lib/financial-2525/calendar";
 import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
 import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
-import { balanceAt, series, validateWithdrawal, depositView, HOLD_MS, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
+import { balanceAt, series, validateWithdrawal, depositView, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { type BudgetCategory } from "@/lib/financial-2525/budget";
 import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
 import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
@@ -133,7 +132,7 @@ const EXAMPLE: FinTx = {
 };
 
 export function FinancialCommandUX1() {
-  const { t } = useLexicon();
+  const { t, activeLocale } = useLexicon();
   const hue = useThemeHue();
   const { user, isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
   const stamp = useMemo(() => versionStamp(`v${SRC.project.revision}`), []);
@@ -153,6 +152,10 @@ export function FinancialCommandUX1() {
   // ONE reveal state for the whole card: the MoT icon (A.B..C) ⇄ the Clock icon (the planet's LTU) — addendum 13
   const [showAbc, setShowAbc] = useState(false);
   const [rateUnit, setRateUnit] = useState("hr" as RateUnit);   // r.024: the Released card's rate, per hour by default (addendum 46)
+  // r.025 (addendum 42 + his answer "Gear on the chart"): the chart's date format, 2026.10.01 by default, remembered on this phone
+  const [dateFmt, setDateFmt] = useState("full" as DateFmt);
+  useEffect(() => { try { const v = localStorage.getItem("fin-date-fmt"); if (v && (DATE_FMTS as readonly string[]).includes(v)) setDateFmt(v as DateFmt); } catch { /* storage unreadable: the default stands */ } }, []);
+  const pickDateFmt = (f: DateFmt) => { setDateFmt(f); try { localStorage.setItem("fin-date-fmt", f); } catch { /* not remembered; still shown */ } };
 
   // The person's record on this device, under their own key — loaded on sign-in, verified before it is trusted.
   const owner = isAuthenticated && user?.sub ? user.sub : null;
@@ -281,10 +284,6 @@ export function FinancialCommandUX1() {
     if (phase === "record") return { state: "done" as const, sentence: t("fin.guide.done"), label: null, action: null };
     return { state: "turn" as const, sentence: `${t("fin.guide.withdrawable")} ${usd(bal.availableCents)}`, label: t("fin.tx_open"), action: openForm };
   })();
-  const rosterRows: PodRosterRow[] = deposits.map((d) => {
-    const v = depositView(d, at);
-    return { name: `${fmtStampCST(d.atMs)}${d.field ? ` · ${fieldLabel(d.field)}` : d.category ? ` · ${catLabel(d.category)}` : ""}${d.memo ? ` · ${d.memo}` : ""}`, me: true, state: v.state === "released" ? "done" : v.state === "pending" ? "pending" : "turn", label: `${usd(d.amountCents)} · ${d.motDays}` };
-  });
   const countFor = (k: string): string | null => {
     if (k === "deposit") return String(deposits.length);
     if (k === "hold" && focusView && phase === "hold") return hhmmss(Math.max(0, focusView.holdUntilMs - at));
@@ -326,8 +325,7 @@ export function FinancialCommandUX1() {
           {!owner && <p className="mt-1 text-xs text-cyan-400">{t("fin.example_badge")}</p>}
         </div>
 
-        {/* who has done what — the Session's roster, one row per deposit */}
-        {rosterRows.length ? <PodRosterList rows={rosterRows} title={t("fin.roster_title")} you={t("soi.pod.guide.you")} /> : null}
+        {/* "remove transactions" (addendum 42) = the "Your deposits" list that stood here (his answer) — the Record below keeps every entry */}
 
         {/* the clock — the Session's ACTIVE block; the big number is money released, ticking at $/min */}
         <div data-fin-balance className={ACCENT_SUB}>
@@ -368,7 +366,7 @@ export function FinancialCommandUX1() {
 
         {/* the chart — strokes only, day · hour · minute by default, A.B..C on reveal */}
         {focus && (
-          <MotChart tx={focus} txs={txs} now={at} t={t} planet={planet} showAbc={showAbc} onToggle={setShowAbc}
+          <MotChart tx={focus} txs={txs} now={at} t={t} planet={planet} showAbc={showAbc} onToggle={setShowAbc} dateFmt={dateFmt} onDateFmt={pickDateFmt} locale={activeLocale}
             selector={<label className="flex items-center gap-1 text-xs text-muted-foreground">{t("fin.planet")}
               <select data-fin-planet value={planetCode} onChange={(e) => setPlanetCode(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-xs">
                 {planets.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
@@ -513,10 +511,10 @@ export function FinancialCommandUX1() {
         <div data-fin-ledger className={SUB}>
           <div className={LABEL}>{t("fin.ledger_title")} · {owner && tampered ? t("fin.chain_broken") : t("fin.chain_ok")}</div>
           <ul className="mt-2 space-y-0.5 font-mono text-xs text-muted-foreground">
-            {!owner && <li className="flex justify-between gap-2"><span>{fmtStampCST(EXAMPLE.atMs)} · {t("fin.deposit")} · {EXAMPLE.memo}</span><span>{usd(EXAMPLE.amountCents)} · {EXAMPLE.motDays}</span></li>}
+            {!owner && <li className="flex justify-between gap-2"><span>{fmtStampCST(EXAMPLE.atMs)} · {t("fin.deposit")} · {EXAMPLE.memo}</span><span>{usd(EXAMPLE.amountCents)} · {fmtDays(EXAMPLE.motDays ?? 0)}</span></li>}
             {owner && record.entries.length === 0 && <li>{t("fin.no_deposits")}</li>}
             {owner && record.entries.map((e) => (
-              <li key={e.hash} className="flex justify-between gap-2"><span>{e.rev} · {fmtStampCST(e.tx.atMs)} · {e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}{txWhat(e.tx)}{e.tx.memo ? ` · ${e.tx.memo}` : ""}</span><span className={e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}>{usd(e.tx.amountCents)}{e.tx.motDays ? ` · ${e.tx.motDays}` : ""} · {e.hash.slice(0, 8)}</span></li>
+              <li key={e.hash} className="flex justify-between gap-2"><span>{e.rev} · {fmtStampCST(e.tx.atMs)} · {e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}{txWhat(e.tx)}{e.tx.memo ? ` · ${e.tx.memo}` : ""}</span><span className={e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}>{usd(e.tx.amountCents)}{e.tx.motDays ? ` · ${fmtDays(e.tx.motDays)}` : ""} · {e.hash.slice(0, 8)}</span></li>
             ))}
           </ul>
           <p className="mt-2 text-xs text-muted-foreground">{t("fin.device_only")}</p>
@@ -526,7 +524,7 @@ export function FinancialCommandUX1() {
             person), BOTTOM-LEFT = AI ◬ (AI tokens), BOTTOM-RIGHT = SI ♡ (minutes contribution — volunteer / time logged).
             SoITrinity's tuple order is [top, bottom-right, bottom-left]. */}
         <details className="mb-2" data-testid="fin-details-trinity">
-          <summary className="cursor-pointer text-xs text-muted-foreground">{t("fin.trinity_caption")}</summary>
+          <summary className="cursor-pointer text-xs text-muted-foreground" aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} />
           <div className="mt-2 flex flex-col items-center gap-1">
             <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} centerGlyphs={["웃", "♡", "◬"]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} />
           </div>
@@ -554,51 +552,82 @@ function ltuLabel(ms: number, wholeMs: number, p: PlanetLtuRow): string {
  *  BEHIND THE SCENES IS A.B..C — the revolution's coordinate (addendum 10) on the selected planet's whole (addendum 12):
  *  on reveal the axis reads the year position (positionInYear, the planet's anchor) at each mark and the elapsed span in
  *  A-units; the glass defaults to the planet's day · hour · minute (addendum 8). The toggle is the card's one state. */
-function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector }: { tx: FinTx; txs: FinTx[]; now: number; t: (k: string) => string; planet: PlanetLtuRow; showAbc: boolean; onToggle: (v: boolean) => void; selector?: ReactNode }) {
+function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFmt, onDateFmt, locale }: { tx: FinTx; txs: FinTx[]; now: number; t: (k: string) => string; planet: PlanetLtuRow; showAbc: boolean; onToggle: (v: boolean) => void; selector?: ReactNode; dateFmt: DateFmt; onDateFmt: (f: DateFmt) => void; locale: string }) {
   const W = 360, H = 150, P = 10;
+  // the plot's LEFT edge moves in when dates show, so the first date at 30° never runs off the card (r.025)
+  const PL = showAbc ? P : dateFmt === "full" ? 48 : dateFmt === "mmdd" ? 26 : 14;
   const dayMs = daySecOf(planet) * 1000;
   const len = Math.max(1, (tx.motDays ?? 0) * dayMs);
   const from = tx.atMs, to = tx.atMs + len;
   function inside(ms: number) { return !(ms < from) && !(ms > to); }
   const withdrawals = txs.filter((x) => x.kind === "withdrawal" && inside(x.atMs));
   const pts = series([tx, ...withdrawals], from, to, len / 120);
-  const x = (ms: number) => P + ((ms - from) / len) * (W - 2 * P);
+  const x = (ms: number) => PL + ((ms - from) / len) * (W - PL - P);
   const y = (cents: number) => H - P - (Math.max(0, Math.min(1, cents / tx.amountCents)) * (H - 2 * P));
   const poly = (pick: (p: (typeof pts)[number]) => number) => pts.map((p) => `${x(p.t).toFixed(1)},${y(pick(p)).toFixed(1)}`).join(" ");
   const elapsed = Math.max(0, Math.min(len, now - from));
   const elapsedAbc = spanABC(elapsed / dayMs, planet.yearDays);      // the elapsed LENGTH, in A-units of the planet's revolution
   const motAbc = spanABC(tx.motDays ?? 0, planet.yearDays);          // the whole MoT, in A-units (30.333 d = 298.3475..1826 A on the exact Earth year)
   const sw = VECTOR_LAW.stroke.normal, hair = VECTOR_LAW.stroke.hairline;
-  // the x axis: five marks over the MoT — day · hour · minute by default; on reveal the revolution's A.B..C at each mark
-  const axis = [0, 0.25, 0.5, 0.75, 1].map((f) => (showAbc ? fmtMot(positionInYear(from + f * len, planet.yearAnchor, planet.yearDays).abc) : ltuLabel(f * len, len, planet)));
+  // A.B..C mode keeps the five marks; Clock mode reads CALENDAR DATES at 30° (addendum 42), as many whole days as fit
+  const axis = [0, 0.25, 0.5, 0.75, 1].map((f) => fmtMot(positionInYear(from + f * len, planet.yearAnchor, planet.yearDays).abc));
+  const ticks = showAbc ? [] : dayTicks(from, to, dateFmt === "full" ? 6 : dateFmt === "mmdd" ? 10 : 16);
+  const monthName = (ms: number) => { const m = cstParts(ms).mo; try { return new Intl.DateTimeFormat(locale || "en", { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2026, m - 1, 15))); } catch { return new Intl.DateTimeFormat("en", { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2026, m - 1, 15))); } };
+  // TAP OR DRAG ON THE CHART → the day and time at that point (addendum 42 "find way to click on to see day / time stamp")
+  const [probe, setProbe] = useState(null as number | null);
+  const probeAt = (e: { clientX: number; currentTarget: SVGSVGElement }) => { const r = e.currentTarget.getBoundingClientRect(); if (!(r.width > 0)) return; const vx = ((e.clientX - r.left) / r.width) * W; setProbe(from + Math.max(0, Math.min(1, (vx - PL) / (W - PL - P))) * len); };
+  const [gear, setGear] = useState(false);
+  const sample = dayTicks(from, to, 6)[0] ?? from;
   return (
     <div data-fin-chart className={SUB}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className={LABEL}>{t("fin.chart_title")} · {showAbc ? `${fmtMot(elapsedAbc)} / ${fmtMot(motAbc)} ${t("fin.a_units")}` : `${ltuLabel(elapsed, len, planet)} ${t("fin.elapsed")}`}</div>
         <div className="flex items-center gap-2">
           {selector}
-          {/* the MoT icon ⇄ the Clock icon (addendum 13): two strokes, the pressed one ringed, never filled; the names are the existing keys */}
+          {/* the Clock on the LEFT, the MoT on the RIGHT (addendum 42): two strokes, the pressed one ringed, never filled */}
           <div role="group" data-fin-abc-toggle className="flex overflow-hidden rounded-md border border-border">
-            <button type="button" aria-pressed={showAbc} aria-label={t("fin.show_abc")} title={t("fin.show_abc")} onClick={() => onToggle(true)} className={`flex h-8 w-9 items-center justify-center ${showAbc ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}><Orbit size={16} strokeWidth={1.5} aria-hidden /></button>
             <button type="button" aria-pressed={!showAbc} aria-label={t("fin.show_ltu")} title={t("fin.show_ltu")} onClick={() => onToggle(false)} className={`flex h-8 w-9 items-center justify-center ${!showAbc ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}><Clock size={16} strokeWidth={1.5} aria-hidden /></button>
+            <button type="button" aria-pressed={showAbc} aria-label={t("fin.show_abc")} title={t("fin.show_abc")} onClick={() => onToggle(true)} className={`flex h-8 w-9 items-center justify-center ${showAbc ? "text-cyan-500 ring-1 ring-inset ring-cyan-500" : "text-muted-foreground"}`}><Orbit size={16} strokeWidth={1.5} aria-hidden /></button>
           </div>
+          {/* the date format lives on the chart (his answer "Gear on the chart"), remembered on this phone */}
+          <button type="button" data-fin-date-gear aria-expanded={gear} aria-label={t("fin.date_format")} title={t("fin.date_format")} onClick={() => setGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${gear ? "text-cyan-500" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
         </div>
       </div>
-      <p className="mt-1 font-mono text-xs text-muted-foreground">{fmtStampCST(tx.atMs)} · {usd(tx.amountCents)} · {tx.motDays} · {now < from ? `${t("fin.pending_from")} ${fmtStampCST(tx.atMs)}` : showAbc ? `${fmtMot(positionInYear(from, planet.yearAnchor).abc)} → ${fmtMot(positionInYear(to, planet.yearAnchor).abc)}` : `${ltuLabel(elapsed, len, planet)} ${t("fin.elapsed")}`}</p>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" className="mt-2 block" aria-hidden>
-        <rect x={P} y={P} width={W - 2 * P} height={H - 2 * P} fill="none" stroke="var(--border)" strokeWidth={hair} />
-        {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={P + f * (W - 2 * P)} y1={P} x2={P + f * (W - 2 * P)} y2={H - P} stroke="var(--border)" strokeWidth={hair} />)}
+      {gear && (
+        <div role="group" aria-label={t("fin.date_format")} data-fin-date-menu className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+          {DATE_FMTS.map((f) => (
+            <button key={f} type="button" data-fin-date-fmt={f} aria-pressed={dateFmt === f} onClick={() => onDateFmt(f)} className={`min-h-[32px] rounded-md border px-2 font-mono ${dateFmt === f ? "border-cyan-500 text-cyan-500" : "border-border text-muted-foreground"}`}>{f === "month" ? `${monthName(sample)} ${dateLabel(sample, "month")}` : dateLabel(sample, f)}</button>
+          ))}
+        </div>
+      )}
+      <p className="mt-1 font-mono text-xs text-muted-foreground">{fmtStampCST(tx.atMs)} · {usd(tx.amountCents)} · {fmtDays(tx.motDays ?? 0)} · {now < from ? `${t("fin.pending_from")} ${fmtStampCST(tx.atMs)}` : showAbc ? `${fmtMot(positionInYear(from, planet.yearAnchor).abc)} → ${fmtMot(positionInYear(to, planet.yearAnchor).abc)}` : `${ltuLabel(elapsed, len, planet)} ${t("fin.elapsed")}`}</p>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" className="mt-2 block touch-none" role="img" aria-label={t("fin.chart_tap")} data-fin-chart-svg onPointerDown={probeAt} onPointerMove={(e) => { if (e.buttons || e.pointerType === "touch") probeAt(e); }}>
+        <rect x={PL} y={P} width={W - PL - P} height={H - 2 * P} fill="none" stroke="var(--border)" strokeWidth={hair} />
+        {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={PL + f * (W - PL - P)} y1={P} x2={PL + f * (W - PL - P)} y2={H - P} stroke="var(--border)" strokeWidth={hair} />)}
         <polyline fill="none" stroke={C.intelligence} strokeWidth={hair} points={poly((p) => p.escrowed)} />
         <polyline fill="none" stroke={C.consciousness} strokeWidth={sw} points={poly((p) => p.withdrawable)} />
         <polyline fill="none" stroke={C.abundance} strokeWidth={sw} points={poly((p) => p.released)} />
-        <line x1={x(from + HOLD_MS)} y1={H - P} x2={x(from + HOLD_MS)} y2={H - P - 10} stroke={C.temporal} strokeWidth={sw} />
         {withdrawals.map((w) => <line key={w.id} x1={x(w.atMs)} y1={P} x2={x(w.atMs)} y2={P + 12} stroke={C.evolution} strokeWidth={sw} />)}
         {inside(now) && <line x1={x(now)} y1={P} x2={x(now)} y2={H - P} stroke={C.blank} strokeWidth={hair} />}
+        {probe !== null && <line data-fin-chart-probe-line x1={x(probe)} y1={P} x2={x(probe)} y2={H - P} stroke={C.consciousness} strokeWidth={hair} strokeDasharray="3 3" />}
+        {!showAbc && ticks.map((tk) => <line key={tk} x1={x(tk)} y1={H - P} x2={x(tk)} y2={H - P + 4} stroke="var(--border)" strokeWidth={hair} />)}
       </svg>
-      {/* five marks; in A.B..C mode a mark is two lines (A · .BBBB..CCCC) so five of them fit a 390 px phone without overprinting */}
-      <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{axis.map((a, i) => <span key={i} className={`whitespace-pre-line ${i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}`}>{showAbc ? a.replace(".", "\n.").replace("..", "\n..") : a}</span>)}</div>
+      {/* CALENDAR DATES AT 30° (addendum 42) — HTML under the strokes (the vector law: the chart paints no face), one per tick */}
+      {!showAbc && (
+        <div data-fin-date-axis aria-hidden className={`relative font-mono text-[10px] text-muted-foreground ${dateFmt === "full" ? "h-11" : "h-7"}`}>
+          {ticks.map((tk) => <span key={tk} className="absolute top-0.5 whitespace-nowrap" style={{ left: `${((x(tk) / W) * 100).toFixed(2)}%`, transform: "translateX(-100%) rotate(-30deg)", transformOrigin: "100% 0" }}>{dateLabel(tk, dateFmt)}</span>)}
+        </div>
+      )}
+      {!showAbc && dateFmt === "month" && (
+        <div data-fin-date-months aria-hidden className="relative h-4 text-[10px] text-muted-foreground">
+          {ticks.filter((tk, k) => k === 0 || cstParts(tk).mo !== cstParts(ticks[k - 1]).mo).map((tk) => <span key={tk} className="absolute top-0 whitespace-nowrap" style={{ left: `${(Math.max(0, (x(tk) - 12) / W) * 100).toFixed(2)}%` }}>{monthName(tk)}</span>)}
+        </div>
+      )}
+      {probe !== null && <p data-fin-chart-probe className="mt-1 font-mono text-xs text-foreground">{fmtStampCST(probe)} CST</p>}
+      {/* A.B..C mode: five marks; a mark is two lines (A · .BBBB..CCCC) so five of them fit a 390 px phone without overprinting */}
+      {showAbc && <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{axis.map((a, i) => <span key={i} className={`whitespace-pre-line ${i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}`}>{a.replace(".", "\n.").replace("..", "\n..")}</span>)}</div>}
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
-        <span style={{ color: C.abundance }}>— {t("fin.released")}</span><span style={{ color: C.consciousness }}>— {t("fin.withdrawable")}</span><span style={{ color: C.intelligence }}>— {t("fin.escrowed")}</span><span style={{ color: C.temporal }}>| {t("fin.hold_mark")}</span><span>| {t("fin.now")}</span><span style={{ color: C.evolution }}>| {t("fin.withdrawal")}</span>
+        <span style={{ color: C.abundance }}>— {t("fin.released")}</span><span style={{ color: C.consciousness }}>— {t("fin.withdrawable")}</span><span style={{ color: C.intelligence }}>— {t("fin.escrowed")}</span><span>| {t("fin.now")}</span><span style={{ color: C.evolution }}>| {t("fin.withdrawal")}</span>
       </p>
     </div>
   );

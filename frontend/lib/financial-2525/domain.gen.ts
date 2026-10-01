@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.024",
-  "stamp": "v.000_r.024",
+  "revision": "0.025",
+  "stamp": "v.000_r.025",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "fb5bfc1e6b1427bac41b6a68b4e31c4ba2b2773151c568bd63c88bb038bf5538",
@@ -371,6 +371,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "THE BUDGET AS HE ASKED (addenda 41, 47, 48, 50 + his answers in addendum 55): 'don’t change budget inplementetion; this is way too complicated and I never asked for it' — the r.021–r.022 per-line MoT editor (a Length dropdown and an Other field on every line, an amount and MoT on the add row) is removed; plan.ts is r.020's again. 'use selects deop down once for budget in edit mode.  once off edit mode they should be able to view in $/min, quarterly, annually etc.' + his answer 'One, shared': ONE Unit dropdown — in edit mode the amounts are typed in the unit picked, out of edit mode it converts the view. 'personal budget should be defaulted to 30.3 repeating': the Unit starts at per month (30.3 repeating days). A plan saved by r.021–r.022 still loads at the same rate. The transaction form keeps its own Length (MoT) — addendum 35's first half stands. ONE RATE FIGURE (addendum 46 + his answer 'One figure + dropdown'): the Released card reads 'Released · $5.3908 /hr' with a /sec · /min · /hr · /day dropdown, per hour by default, shorthand once picked; the three-figure line is removed; the figure is the live $/min times the planet's own units. Lesson on the record: r.021 read 'must be able to specify time' as a per-line control nobody asked for — the questions are asked first now (addenda 51, 52, 54).",
    "commit": "a3edb5f",
    "shipped": "4e86d21"
+  },
+  {
+   "revision": "0.025",
+   "date": "2026-09-30",
+   "kind": "decision",
+   "why": "The rest of his feedback of 2026-09-30 evening, built as he answered it (addendum 55). THE CHART (addendum 42): 'Place clock as left toggle and MoT symbol as right toggle' — the Clock on the left, the MoT on the right; 'remove transactions' — his answer: the 'Your deposits' list above the Released card goes (the Record keeps every entry); 'find way to click on to see day / time stamp' — a tap or drag on the chart draws a line there and reads its day and time; 'Date format for table is 2026.10.01 at 30 degree angle (or user defined via settings menu)' — in Clock mode the axis reads calendar dates at 30°, 2026.10.01 by default, as many whole CST days as fit, and a gear on the chart (his answer) offers 10.01 · the month named once over 01 02 03 · 2026.10.01, remembered on this phone; 'who … said 3 hr hold? for this chart?' — his answer 'Remove from chart': the yellow mark and its legend word are gone, the 180-minute rule stays in the accrual law. THE WHEEL (addendum 40): 'no descriptor; that is very AI literal vs HI simple' — his answer 'Folded, bare arrow': the caption is gone, a bare arrow folds the wheel (its accessible name stays for screen readers); 'Trinity Labels on circles 웃 HI ◬ AI ♡ SI' — the rings read exactly that. 30.3 REPEATING (addendum 37 + 'Everywhere'): every MoT-day count prints through fmtDays — 30.3̅ — on the Record, the chart, 'Monthly (30.3̅ days)', 'per month (30.3̅ days)' and beside the Admin panel's Month; never 30.333333333333332. MEASURE OF TIME (addendum 45 + 'Subtitle'): the line under FINANCIAL · 2525 reads 'the MoT (Measure of Time) Financial System'.",
+   "commit": "a3edb5f",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1394,6 +1402,60 @@ export const FINANCIAL_DOMAIN = {
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-07.04",
+   "title": "The chart as he asked: Clock left, dates at 30°, tap for the day and time",
+   "section": "III",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "The chart's Clock toggle is on the left and the MoT toggle on the right; in Clock mode its axis reads calendar dates at 30° (2026.10.01 by default; a gear on the chart offers 10.01 or the month over 01 02 03, remembered on the phone); a tap or drag on the chart reads that point's day and time; the 180-minute mark is not drawn; the 'Your deposits' list above the Released card is removed.",
+   "metric": "financial-surface: the toggle group lists show_ltu (Clock) before show_abc (MoT); dayTicks feeds the axis with rotate(-30); the gear lists DATE_FMTS and persists fin-date-fmt; onPointerDown sets the probe and its stamp prints; no HOLD_MS on the surface; no PodRosterList. financial-mot: dayTicks falls on CST midnights, ≤ the labels that fit; dateLabel's three formats",
+   "dtm": "on the phone: Clock mode → 2026.10.01 … 2026.10.29 at 30° under the chart; tap the middle → '2026.10.15_…' appears; gear → 10.01",
+   "stretch": "the same axis and tap on the business frame's chart",
+   "in": "FIN-07.04.IN",
+   "out": "FIN-07.04.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
+  },
+  {
+   "id": "FIN-01.04",
+   "title": "A repeating day count shows its bar; MoT reads Measure of Time",
+   "section": "VII",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-mot.test.mjs",
+   "statement": "Every MoT-day count on the surface is written with its repeating digits under a bar — 91 ÷ 3 days reads 30.3̅ — and the subtitle names what MoT stands for: the MoT (Measure of Time) Financial System.",
+   "metric": "financial-mot: fmtDays(91/3) = '30.3' + U+0305; 33 → '33'; 30.25 → '30.25'; 1/6 → '0.16̅'; a typed 30.333 stays; financial-surface: the Record, the chart line and the example print through fmtDays; the Admin panel's Month shows fmtDays beside its input",
+   "dtm": "on the phone: the Record reads $3,604.49 · 30.3̅; the length dropdown reads Monthly (30.3̅ days); the subtitle names Measure of Time",
+   "stretch": "every repeating figure in the business frame written the same way",
+   "in": "FIN-01.04.IN",
+   "out": "FIN-01.04.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
+  },
+  {
+   "id": "FIN-10.01",
+   "title": "The Trinity wheel: no descriptor, rings 웃 HI · ◬ AI · ♡ SI",
+   "section": "X",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "The Trinity wheel folds behind a bare arrow with no words on the glass (an accessible name for screen readers), and its three rings read 웃 HI, ◬ AI and ♡ SI.",
+   "metric": "financial-surface: the wheel's summary has no text child, aria-label fin.trinity_aria; fin.trinity_caption is not rendered; the rings read fin.wheel.hi / .ai / .si whose English is '웃 HI' · '◬ AI' · '♡ SI'",
+   "dtm": "on the phone: a bare ▸ under the card; tap → the wheel with 웃 HI on top, ◬ AI bottom-left, ♡ SI bottom-right",
+   "stretch": "the same wheel on the SoI POD session",
+   "in": "FIN-10.01.IN",
+   "out": "FIN-10.01.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -1636,6 +1698,24 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The Released card shows one rate figure with a /sec · /min · /hr · /day dropdown, per hour by default; the three-figure line is removed.",
    "status": "OPERATOR",
    "basis": "addendum 46 (verbatim) + addendum 55 answer 'One figure + dropdown'"
+  },
+  {
+   "id": "FD-41",
+   "decision": "The chart: Clock on the left, MoT on the right; calendar dates at 30° in Clock mode, 2026.10.01 by default, a gear on the chart for 10.01 · month over 01 02 03, remembered on the phone; a tap reads the day and time; no 180-minute mark on the chart; the 'Your deposits' list removed.",
+   "status": "OPERATOR",
+   "basis": "addenda 42, 53 (verbatim) + addendum 55 answers ('\"Your deposits\" list', 'Remove from chart', 'Gear on the chart')"
+  },
+  {
+   "id": "FD-42",
+   "decision": "The Trinity wheel folds behind a bare arrow with no descriptor; its rings read 웃 HI · ◬ AI · ♡ SI.",
+   "status": "OPERATOR",
+   "basis": "addendum 40 (verbatim) + addendum 55 answer 'Folded, bare arrow'"
+  },
+  {
+   "id": "FD-43",
+   "decision": "A repeating day count is written with its bar (30.3̅) everywhere it appears; the subtitle reads 'the MoT (Measure of Time) Financial System'.",
+   "status": "OPERATOR",
+   "basis": "addenda 37, 45 (verbatim) + addendum 55 answers 'Everywhere' and 'Subtitle'"
   }
  ],
  "reviews": [

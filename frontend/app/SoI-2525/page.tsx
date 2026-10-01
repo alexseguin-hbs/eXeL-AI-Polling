@@ -8,6 +8,7 @@
  *
  * Gated behind an access code (369963) until fully tested — the "UNLOCK" tab.
  */
+import { fmtDays } from "@/lib/financial-2525/mot";   // r.025 (addendum 37 + his answer "Everywhere"): the Month reads 30.3̅ beside its typed number
 import ReactDOM from "react-dom";
 import { Vision2525Mark } from "@/components/vision-2525-mark";
 import React, { useMemo, useState, useEffect, useLayoutEffect, useRef, useCallback, useId, Fragment } from "react";
@@ -7770,7 +7771,7 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                   <tr key={r.code} className="border-t border-slate-800/60" data-planet-row={r.code}>
                     <td className="px-2 py-1.5"><input value={r.name} onChange={(e) => editPlanet(i, { name: e.target.value })} className={`w-20 ${inp}`} /></td>
                     <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.yearDays)} onChange={(e) => editPlanet(i, { yearDays: numOf(e.target.value, r.yearDays) })} className={`w-20 text-right tabular-nums ${inp}`} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(Math.round(r.monthDays * 1000) / 1000)} onChange={(e) => editPlanet(i, { monthDays: numOf(e.target.value, r.monthDays) })} className={`w-14 text-right tabular-nums ${inp}`} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(Math.round(r.monthDays * 1000) / 1000)} onChange={(e) => editPlanet(i, { monthDays: numOf(e.target.value, r.monthDays) })} className={`w-14 text-right tabular-nums ${inp}`} /><span data-planet-month-repeat className="ml-1 font-mono text-muted-foreground">{fmtDays(r.monthDays)}</span></td>
                     <td className="px-2 py-1.5"><input value={r.offlineDay} onChange={(e) => editPlanet(i, { offlineDay: e.target.value })} className={`w-16 ${inp}`} /></td>
                     <td className="px-2 py-1.5">
                       <select value={r.yearAnchor} onChange={(e) => editPlanet(i, { yearAnchor: e.target.value === "perihelion" ? "perihelion" : "calendar" })} className={inp}>

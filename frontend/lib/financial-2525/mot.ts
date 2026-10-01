@@ -157,6 +157,41 @@ export function fmtStampCST(ms: number): string {
   const p = cstParts(ms);
   return `${p.y}.${p2(p.mo)}.${p2(p.d)}_${p2(p.h)}.${p2(p.mi)}..${p2(p.s)}`;
 }
+/** A day count written the way the operator writes it — repeating digits under a bar (U+0305, addendum 37: "show 33.3 with bar over
+ *  using latex or basically any formatting to shown-repeating 3"; his answer: everywhere). 91 ÷ 3 → "30.3̅", 33 → "33", 30.25 →
+ *  "30.25", 1/6 → "0.16̅". A count that is no small fraction (denominator ≤ 99, a repeat of ≤ 3 digits) prints at most three decimals. */
+export function fmtDays(d: number): string {
+  if (!Number.isFinite(d)) return "";
+  const sign = d < 0 ? "-" : ""; const x = Math.abs(d);
+  for (let den = 1; den <= 99; den++) {
+    const num = Math.round(x * den);
+    if (Math.abs(num / den - x) >= 1e-9) continue;
+    const whole = Math.floor(num / den); let rem = num - whole * den;
+    if (rem === 0) return sign + String(whole);
+    const digits: number[] = []; const seen = new Map<number, number>();
+    while (rem !== 0 && !seen.has(rem)) { seen.set(rem, digits.length); rem *= 10; digits.push(Math.floor(rem / den)); rem %= den; }
+    if (rem === 0) return `${sign}${whole}.${digits.join("")}`;
+    const start = seen.get(rem) ?? 0; const rep = digits.slice(start);
+    if (rep.length > 3) break;
+    return `${sign}${whole}.${digits.slice(0, start).join("")}${rep.map((g) => `${g}\u0305`).join("")}`;
+  }
+  return sign + String(Math.round(x * 1000) / 1000);
+}
+/** The chart's calendar axis (addendum 42): CST midnights from `fromMs` to `toMs`, every 1 · 2 · 3 · … days so at most `maxLabels`
+ *  labels fit; CST standard has no daylight shift, so a day is always 24 h. */
+export function dayTicks(fromMs: number, toMs: number, maxLabels: number): number[] {
+  if (!(toMs > fromMs) || !(maxLabels >= 1)) return [];
+  const p = cstParts(fromMs); let first = cstMs(p.y, p.mo, p.d); if (first < fromMs) first += MS_PER_DAY;
+  const days = Math.floor((toMs - first) / MS_PER_DAY) + 1;
+  if (days <= 0) return [];
+  const step = [1, 2, 3, 4, 5, 7, 10, 14, 15, 30, 61, 91, 182, 365].find((n) => Math.ceil(days / n) <= maxLabels) ?? Math.ceil(days / maxLabels);
+  const out: number[] = []; for (let t = first; t <= toMs; t += step * MS_PER_DAY) out.push(t);
+  return out;
+}
+/** The three date formats the chart's gear offers (addendum 42): 2026.10.01 (the default) · 10.01 · the month named once over 01 02 03. */
+export type DateFmt = "full" | "mmdd" | "month";
+export const DATE_FMTS: readonly DateFmt[] = ["full", "mmdd", "month"];
+export function dateLabel(ms: number, fmt: DateFmt): string { const s = fmtStampCST(ms); return fmt === "full" ? s.slice(0, 10) : fmt === "mmdd" ? s.slice(5, 10) : s.slice(8, 10); }
 const STAMP_RE = /^(\d{4})\.(\d{2})\.(\d{2})_(\d{2})\.(\d{2})\.\.?(\d{2})$/;
 /** Parse the sheet's stamp back to an instant (CST); null when malformed. */
 export function parseStampCST(s: string): number | null {

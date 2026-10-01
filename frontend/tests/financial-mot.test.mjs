@@ -115,4 +115,16 @@ const f = C.frameOf(at(40), 33);
 ok(f.index === 1 && f.dayInFrame === 8 && f.frameDays === 33 && M.fmtMot(f.abc).startsWith("763."), "personal 33-day frames count from day 1: day 41 is frame 2, day 8 of it (its own 0→3600 progress, a display aid, not the A.B..C coordinate)");
 ok(C.FRAMES.join() === "33,66,99" && C.QUARTER_DAYS === 91 && C.GRID_DAYS === 364 && C.DOWN_DAY === 365 && C.unitDays("Q") === 99, "frames 33/66/99 · quarter 91 · grid 364 · down 365 · Q99 for analysis");
 
+// r.025 — A REPEATING DECIMAL SHOWS ITS BAR (addendum 37 + his answer "Everywhere"): 91 ÷ 3 days reads 30.3̅, never 30.333333333333332.
+{
+  const B = "\u0305";
+  ok(M.fmtDays(91 / 3) === "30.3" + B && M.fmtDays(30.333333333333332) === "30.3" + B, "91 ÷ 3 days reads 30.3 with a bar over the 3 (the float 30.333333333333332 too)");
+  ok(M.fmtDays(33) === "33" && M.fmtDays(91) === "91" && M.fmtDays(0) === "0" && M.fmtDays(30.25) === "30.25", "whole and terminating counts print as they are");
+  ok(M.fmtDays(1 / 3) === "0.3" + B && M.fmtDays(1 / 6) === "0.16" + B && M.fmtDays(30.333) === "30.333" && M.fmtDays(1 / 7) === "0.143", "a third and a sixth carry the bar; a typed 30.333 stays 30.333; a long repeat (1/7) prints three decimals");
+  const a = M.parseStampCST("2026.09.30_19.56..04"), z = a + (91 / 3) * 86400000;
+  const t6 = M.dayTicks(a, z, 6), t16 = M.dayTicks(a, z, 16);
+  ok(t6.length <= 6 && t6.length >= 4 && M.dateLabel(t6[0], "full") === "2026.10.01" && t6.every((t) => M.fmtStampCST(t).endsWith("_00.00..00")), `the chart's date ticks fall on CST midnights from the first whole day, as many as fit (${t6.map((t) => M.dateLabel(t, "mmdd")).join(" ")})`);
+  ok(t16.length <= 16 && M.dateLabel(t16[0], "month") === "01" && M.dateLabel(t16[0], "mmdd") === "10.01" && M.DATE_FMTS.join() === "full,mmdd,month", "three formats: 2026.10.01 · 10.01 · 01 under its month");
+}
+
 console.log(`financial-mot: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

@@ -345,6 +345,13 @@
    "kind": "release",
    "text": "v.000_r.024 SHIPPED — the budget as he asked: the per-line MoT editor removed, one shared Unit dropdown, per month by default; the Released card's rate is one figure with a /sec · /min · /hr · /day dropdown, per hour by default. FIN-06.12 · FIN-07.03 · FD-39 · FD-40. Shipped as 4e86d21. Gates: financial-ladder 88 · financial-surface 102 · financial-crs 458 · full test:ci 0 · next build 0.",
    "commit": "4e86d21"
+  },
+  {
+   "rev": 50,
+   "date": "2026-09-30",
+   "kind": "decision",
+   "text": "r.025 decided from his feedback and answers (addenda 37, 40, 42, 45, 53, 55): the chart with the Clock left, calendar dates at 30° and a gear, a tap for the day and time, no 180-minute mark, the 'Your deposits' list removed; the Trinity wheel behind a bare arrow, rings 웃 HI · ◬ AI · ♡ SI; 30.3̅ everywhere; the subtitle names Measure of Time. FIN-07.04 · FIN-01.04 · FIN-10.01 · FD-41 · FD-42 · FD-43.",
+   "commit": "a3edb5f"
   }
  ]
 }
