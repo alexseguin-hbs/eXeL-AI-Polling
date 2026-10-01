@@ -298,6 +298,10 @@
 > (addendum 32, verbatim — 2026-09-30 ~20:05 CST, after the r.018 report) I fucking said do not lexicon translate until functionality is tested with me!
 > keep testing usability with fleet
 
+> (addendum 33, verbatim — 2026-10-01 07:39 CST, with his phone screenshot of the r.018 Released card on its own: "Released · Deposit $0.00 · In escrow: $0.00 · Withdrawable: $0.00 · Withdrawn: $0.00 · Available: $0.00" running as two wrapped lines over the strip "$0.00 · $0.00 DEPOSIT Withdraw", saved beside this file as `2026-10-01_financial_2525_released_2x2.png`) make table 2x2
+
+> (operator 2026-10-01, verbatim, on switching the session's model) continue with opus
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -505,6 +509,10 @@
     (2) a mechanical lock in `lexicon-coverage` refuses any translation of a staged key, so a fill cannot land before he says the
     English is final; (3) the usability fleet keeps running — every revision that lands gets the next read-only round, and the
     findings fold in the fleet's order.
+42. **The Released card's four figures are a 2 × 2 table (addendum 33):** In escrow · Withdrawable on the first row, Withdrawn ·
+    Available on the second, each cell its word above its figure, on the phone and the desk alike; the big Released figure, its line
+    and the strip beneath are unchanged (nothing removed that he did not name). Uses the words already on the glass — no new word.
+    Ships as r.019.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 

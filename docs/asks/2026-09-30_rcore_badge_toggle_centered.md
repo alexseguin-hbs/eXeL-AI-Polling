@@ -21,3 +21,24 @@
 3. **One shared component, every 2525 surface** (Financial · Drone · SoI · Security · Architect · Manta · Celestial) —
    the badge and the panel are shared, so the change lands everywhere at once; the badge gate
    (`tests/rcore-*.test.mjs`) is re-pointed to the toggle, not deleted.
+
+## Addendum 1 — the toggle was the wrong reading (operator 2026-10-01 08:04 CST)
+
+> (verbatim — with two phone screenshots of the r.018 Financial-2525 page bottom: the R-CORE wordmark centred at rest with the lone
+> reticle icon beneath it after a tap, and the same page with the icon hidden; saved beside this file as
+> `2026-10-01_rcore_badge_wrong_icon_shown.png` and `2026-10-01_rcore_badge_wrong_rest.png`)
+>
+> expand at bottom for history is implemented wrong; it was right before.
+>
+> default is smaller icon only, when pressed, icon with word art appears, then when clicked history like vision 2525 shows
+
+### Reading (the correction)
+
+1. **The 2026-09-30 reading was wrong and is reversed.** "dont show single R-CORE icon … where R-CORE IS clicked, single Icon
+   appears … disappears in same way maximize shrinks to minimize" was read as "rest on the wordmark, toggle the icon". The operator
+   now states the intended order plainly, and it is the order shipped on 2026-09-25 (the two-click badge):
+   **REST = the small reticle icon only → TAP = the icon with its word art (the R-CORE wordmark pill) → TAP = the Version History
+   panel, like Vision 2525.** The badge returns to that behaviour exactly (dcba74b^ is the reference), on the page's centre line.
+2. **The panel header keeps the 2026-09-30 centring** (the wordmark and its line centred, no lone icon in the header) — the operator's
+   complaint names the bottom expand, not the open panel; the header is not touched.
+3. One shared component — every 2525 surface gets the restored badge at once; the badge gate returns to the two-click asserts.
