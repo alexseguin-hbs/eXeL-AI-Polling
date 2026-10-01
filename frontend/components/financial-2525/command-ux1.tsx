@@ -632,7 +632,7 @@ export function FinancialCommandUX1() {
       <p className="mt-6 text-center text-[11px] text-muted-foreground">{SRC.project.stamp} · {stamp} · <TrinityGlyphs inline size="text-[11px]" /></p>
 
       {/* the eXeL Polling Settings panel — the same one the app's navbar opens (theme colours, language, …) */}
-      <ModeratorSettings open={settingsOpen} onClose={() => setSettingsOpen(false)} userEmail={user?.email} isPollingUser={false} />
+      <ModeratorSettings open={settingsOpen} onClose={() => setSettingsOpen(false)} userEmail={user?.email} isPollingUser={false} variant="nonMaster" />   {/* r.050 (addendum 76 + "Exactly 3 items"): the non-Master settings */}
 
       {/* R-CORE — version history + compare, the bottom of every 2525 surface */}
       <RCoreBadge history={FINANCIAL_RCORE_HISTORY} accent={hue.bright} />

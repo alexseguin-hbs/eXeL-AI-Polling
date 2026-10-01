@@ -474,9 +474,14 @@ interface ModeratorSettingsProps {
   onClose: () => void;
   userEmail?: string;
   isPollingUser?: boolean;
+  /** MASTER and NON-MASTER (operator 2026-10-01, addendum 76: "On settings wheel non-eXeL AI, create Master and non-Master /
+   *  non-Master goes to non eXeL AI polling / non-Master needs 3 items / language /color / Atlantis Accords / Vision-2525"; his answer
+   *  "Exactly 3 items"). "master" (default) is eXeL AI Polling's full panel, unchanged; "nonMaster" is every other app's: exactly
+   *  three items — language and colour · Atlantis Accords · Vision • 2525. Financial-2525 mounts nonMaster. */
+  variant?: "master" | "nonMaster";
 }
 
-export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: ModeratorSettingsProps) {
+export function ModeratorSettings({ open, onClose, userEmail, isPollingUser, variant = "master" }: ModeratorSettingsProps) {
   const { t } = useLexicon();
 
   if (!open) return null;
@@ -494,7 +499,7 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
         {/* Header */}
         <div className="flex items-center justify-between border-b px-6 py-4">
           <h2 className="text-lg font-semibold">
-            {isPollingUser ? t("cube1.settings.title") : t("cube1.settings.moderator_title")}
+            {isPollingUser || variant === "nonMaster" ? t("cube1.settings.title") : t("cube1.settings.moderator_title")}
           </h2>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="h-5 w-5" />
@@ -507,6 +512,27 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
             never reach it. That stale reservation is exactly what made the defect invisible: the panel
             looked like it had a badge slot, so nobody checked whether a badge was in it. The badge is now a
             real row at the foot of this list, so the padding it was standing in for is gone with it. */}
+        {variant === "nonMaster" ? (
+          <div data-settings-variant="nonMaster" className="flex-1 overflow-y-auto px-6 pt-6 pb-6 space-y-6">
+            {/* 1 · language and colour */}
+            <div data-settings-item="language-colour" className="space-y-6"><SettingsLanguageSelector /><ThemeCustomizer /></div>
+            <Separator />
+            {/* 2 · Atlantis Accords */}
+            <div data-settings-item="atlantis"><AtlantisAccordViewer /></div>
+            <Separator />
+            {/* 3 · Vision • 2525 */}
+            <a data-settings-item="vision-2525" data-vision-2525-link href="/vision-2525/" className="flex w-full items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:bg-accent/50">
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-5 w-5 shrink-0 text-primary" />
+                <div>
+                  <div className="text-sm font-semibold text-foreground">Vision &bull; 2525</div>
+                  <div className="text-xs text-muted-foreground">{t("settings.humanitys_coordination_framework")}</div>
+                </div>
+              </div>
+              <span className="text-xs text-muted-foreground">→</span>
+            </a>
+          </div>
+        ) : (
         <div className="flex-1 overflow-y-auto px-6 pt-6 pb-6 space-y-6">
           {/* All users see language + theme; moderators also see admin sections */}
           <SettingsLanguageSelector />
@@ -580,6 +606,7 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
             <PoweredBadge docked badgeOnly />
           </div>
         </div>
+        )}
         {/* R-CORE · version-history badge — bottom of the Settings drawer, normal flow (mounted last), two-click; reads the Settings slide-over's own traceability ledger. */}
         <RCoreBadge history={SETTINGS_RCORE_HISTORY} accent="#22d3ee" />
       </div>

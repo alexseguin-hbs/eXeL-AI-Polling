@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 98 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 100 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -695,6 +695,20 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.049 decision — the currency label (FD-66).",
       "commit": "71cff4b"
+    },
+    {
+      "rev": 99,
+      "date": "2026-10-01",
+      "kind": "release",
+      "text": "r.049 shipped and LIVE (Verify Live #2183 ✓) — the currency label (FD-66).",
+      "commit": "6b15958"
+    },
+    {
+      "rev": 100,
+      "date": "2026-10-01",
+      "kind": "decision",
+      "text": "r.050 decision — non-Master settings, three items (FD-67).",
+      "commit": "cce6905"
     }
   ]
 };

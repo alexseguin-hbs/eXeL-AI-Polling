@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.049",
-  "stamp": "v.000_r.049",
+  "revision": "0.050",
+  "stamp": "v.000_r.050",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "acf7324fecb081cdbd8c23af2af28727a4c222532775f4520735eb937604d4ae",
@@ -735,6 +735,14 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "The currency label. Addendum 86: \"ensure all financials with min wage exist in this ; add currency to drop down settings in Accrual section\"; his answer (87): \"$ changes to currency symbol if there is one, or have label of currency somewhere at top (Subscript to Accrual Units) in gray\"; 88–89: no symbol inside a table — it lives in the header. A Currency picker in the Accrual Units settings lists every jurisdiction of the minimum-wage table (USD · NGN · NPR · KHR · MXN · THB · BRL · HNL · COP · CLP). Picking one changes the symbol on every figure and the table headers; a currency with no single symbol (Nepalese rupee) shows bare numbers and a gray 'NPR · Nepalese rupee' under ACCRUAL UNITS. A label, never a conversion — the numbers stay as entered. Remembered on the phone.",
    "commit": "71cff4b",
+   "shipped": "6b15958"
+  },
+  {
+   "revision": "0.050",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "Settings, Master and non-Master. Addendum 76: \"On settings wheel non-eXeL AI, create Master and non-Master / non-Master goes to non eXeL AI polling / non-Master needs 3 items / language /color / Atlantis Accords / Vision-2525 … Make sure Financial - 2525 used non-Master settings wheel\"; his answer \"Exactly 3 items\". The settings panel gains a non-Master form with exactly three items — language and colour · Atlantis Accords · Vision • 2525 — and Financial-2525's gear opens it. eXeL AI Polling keeps the Master panel unchanged.",
+   "commit": "cce6905",
    "shipped": "PENDING"
   }
  ],
@@ -2211,6 +2219,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "A currency picker in the Accrual gear lists every minimum-wage jurisdiction; its symbol replaces $ (or a gray code shows under ACCRUAL UNITS when there is none). Label only — no conversion.",
    "status": "OPERATOR",
    "basis": "addenda 86–89 (verbatim)"
+  },
+  {
+   "id": "FD-67",
+   "decision": "Non-Master settings = exactly three items (language and colour · Atlantis Accords · Vision • 2525); Financial-2525 uses it; eXeL AI Polling keeps Master.",
+   "status": "OPERATOR",
+   "basis": "addendum 76 + his answer 'Exactly 3 items'"
   }
  ],
  "reviews": [

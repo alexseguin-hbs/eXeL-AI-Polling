@@ -688,6 +688,20 @@
    "kind": "decision",
    "text": "r.049 decision — the currency label (FD-66).",
    "commit": "71cff4b"
+  },
+  {
+   "rev": 99,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.049 shipped and LIVE (Verify Live #2183 ✓) — the currency label (FD-66).",
+   "commit": "6b15958"
+  },
+  {
+   "rev": 100,
+   "date": "2026-10-01",
+   "kind": "decision",
+   "text": "r.050 decision — non-Master settings, three items (FD-67).",
+   "commit": "cce6905"
   }
  ]
 }
