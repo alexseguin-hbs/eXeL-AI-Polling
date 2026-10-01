@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.042",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "207154b42bdfddd16c87c689208bbe3672db2b4806cc9682d1f35805a067dfaa",
+  "handoffSha256": "ff7be2411286bd6b2846b591fff8c415ffadf19812290a69f79edf00a55e769c",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -271,6 +271,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "207154b42bdfddd16c87c689208bbe3672db2b4806cc9682d1f35805a067dfaa",
     "date": "2026-10-01",
     "note": "+ addendum 82 (the + Transaction ask acknowledged; every ask in docs/financial-2525/BACKLOG.md)"
+   },
+   {
+    "sha256": "ff7be2411286bd6b2846b591fff8c415ffadf19812290a69f79edf00a55e769c",
+    "date": "2026-10-01",
+    "note": "+ addendum 83 (his phone still on r.041 at 11:24)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

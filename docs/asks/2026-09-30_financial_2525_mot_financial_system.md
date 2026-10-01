@@ -569,6 +569,10 @@
 > you need ton document new asks in backlog every ask
 > push and commit for my review
 
+> (addendum 83, verbatim — 2026-10-01 11:24, screenshot 2026-10-01_financial_fb83_still_r041.png; its footer reads
+> "v.000_r.041 · eXeL v0.041-2026.10.01-11.16CST · cce6905" — the build before r.042, so the swap was not yet served)
+> finally; how many times do I have to ask to move transactions button around
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
