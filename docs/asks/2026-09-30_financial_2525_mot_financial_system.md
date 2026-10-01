@@ -293,6 +293,8 @@
 > (addendum 30, verbatim — 2026-09-30 19:4x CST, after r.017 shipped) dont do translators until english is finalized with HI tested UI/UX
 > USE 48 AsM Fleet to look at all comments and ensure UX is as user friendly and simple as possible to allow $/min personal finance engine
 
+> (addendum 31, verbatim — 2026-09-30 19:31 CST, with his phone screenshot of the r.016 PERSONAL FINANCE LADDER A–M: thirteen section rows A · Income … M · Transfers, each with its icon, letter and total, the sheet's eight lines beneath their sections, five sections at $0.0000, Net −$200.00, the strip still floating beneath, saved beside this file as `2026-09-30_financial_2525_ladder_grouped.png`) order by fixed vs financial, and have expand button so this is not so busy.  Don’t show A-U letters
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -486,6 +488,13 @@
     twelve-lens round-1 record, the first fleet's findings when they land) against the CURRENT build (r.017) and judge one thing:
     is the UX as user-friendly and simple as it can be for a $/min personal finance engine? Verdicts persisted verbatim as
     `docs/assessments/2026-10-01_financial_2525_fleet48_simplicity.md`; the real and small folds into r.018 in the fleet's order.
+40. **The ladder grouped by KIND, collapsed, no letters (addendum 31):** the budget table groups its lines by the sheet's own
+    kinds — Income · Fixed · Variable (· Transfers when present) — in that order, each group one row with its total and an
+    expand chevron; the groups start COLLAPSED (Income · Fixed · Variable · Net is the whole table at first sight) and edit mode
+    opens them; the A–U letters leave the glass everywhere (the group rows, the lines, the Section pickers, the panel title) — the
+    section's icon and name stay, the letters live in the record only; sections with nothing on the plan no longer print a $0
+    row. READING: "fixed vs financial" is read as the sheet's FIXED vs VARIABLE columns (the kinds the brief locks per field);
+    if a different split was meant, the groups are data and change in one place. Ships as r.018.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
