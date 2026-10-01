@@ -1,0 +1,4 @@
+# Supabase CLI config (operator 2026-10-01: "reconnect supabase and complete all github items").
+# Linked project: eXeL-AI-Polling · ref ppgfjplawtlrfqpnszyb (docs/supabase/PROJECT.md). The GitHub integration's working
+# directory is the repo root ("."), which holds this supabase/ folder. Everything not set here keeps the CLI's defaults.
+project_id = "eXeL-AI-Polling"

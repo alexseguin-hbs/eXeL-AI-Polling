@@ -1,0 +1,59 @@
+# Supabase migration history (operator 2026-10-01: "reconnect supabase and complete all github items").
+# Every file in supabase/migrations/ was applied by hand in the SQL editor, so Supabase's history table
+# (supabase_migrations.schema_migrations) does not know them. With the GitHub integration's "Deploy to production" ON, the next
+# merge to main would re-run all of them, and several contain DROP statements. This job records them as ALREADY APPLIED without
+# running any SQL ("supabase migration repair --status applied"), then lists local vs remote to prove they match. Run it once;
+# after it is green, "Deploy to production" can be turned on safely. It changes only the history table, never your data.
+# Credentials: the SUPABASE_DB_URL secret, or the project ref + database password typed into the run (masked, never stored).
+name: Supabase migration history
+on:
+  workflow_dispatch:
+    inputs:
+      project_ref:
+        description: "Supabase project ref"
+        required: true
+        default: "ppgfjplawtlrfqpnszyb"
+      db_password:
+        description: "(no secret set) the database password (Project Settings → Database); masked in the log, never stored"
+        required: false
+        default: ""
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Database URL
+        env:
+          DB: ${{ secrets.SUPABASE_DB_URL }}
+          REF: ${{ github.event.inputs.project_ref }}
+          PW: ${{ github.event.inputs.db_password }}
+        run: |
+          if [ -z "$DB" ] && [ -n "$PW" ]; then echo "::add-mask::$PW"; DB="postgresql://postgres:${PW}@db.${REF}.supabase.co:5432/postgres"; fi
+          if [ -z "$DB" ]; then echo "::error::Set the SUPABASE_DB_URL secret or type the database password into this run."; exit 1; fi
+          echo "::add-mask::$DB"; echo "SUPABASE_DB_URL=$DB" >> "$GITHUB_ENV"
+      - name: Before — local vs remote history
+        run: supabase migration list --db-url "$SUPABASE_DB_URL" || true
+      - name: Prove 036 · 037 · 038 from the database itself (the three uncertain Sign Doc migrations)
+        run: |
+          set -e
+          q() { psql "$SUPABASE_DB_URL" -Atc "$1"; }
+          P=""
+          [ "$(q "select count(*) from pg_proc where proname='sign_envelope_create'")" -ge 1 ] && P="$P 036"
+          [ "$(q "select count(*) from pg_proc where proname='sign_envelope_sign' and pronargs=8")" -ge 1 ] && P="$P 037"
+          [ "$(q "select count(*) from pg_proc where proname='sign_envelope_create' and array_to_string(proconfig, ',') like '%extensions%'")" -ge 1 ] && P="$P 038"
+          echo "proven present:$P"; echo "PROVEN=$P" >> "$GITHUB_ENV"
+          echo "036–038 proven present in the database:${P:- none} (unproven ones stay unrecorded, so a deploy applies them — they only replace or alter functions)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Record migrations as already applied (no SQL is run) — 001–035 + whichever of 036–038 were proven
+        run: |
+          set -e
+          OLD=$(ls supabase/migrations/*.sql | sed 's|.*/||; s|_.*||' | awk '$1 < 36' | tr '\n' ' ')
+          echo "marking applied: $OLD $PROVEN"
+          supabase migration repair --status applied $OLD $PROVEN --db-url "$SUPABASE_DB_URL"
+      - name: After — local and remote must match
+        run: |
+          supabase migration list --db-url "$SUPABASE_DB_URL" | tee /tmp/list.txt
+          echo "## Migration history recorded — 'Deploy to production' can now be turned on" >> "$GITHUB_STEP_SUMMARY"

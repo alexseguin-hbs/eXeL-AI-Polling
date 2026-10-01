@@ -12,9 +12,9 @@ on:
         required: true
         default: "036_sign_envelopes.sql"
       project_ref:
-        description: "(no secret set) Supabase project ref, e.g. ppgfjplawtlrfqpnszyb"
+        description: "(no secret set) Supabase project ref"
         required: false
-        default: ""
+        default: "ppgfjplawtlrfqpnszyb"
       db_password:
         description: "(no secret set) the database password (Project Settings → Database); masked in the log"
         required: false
