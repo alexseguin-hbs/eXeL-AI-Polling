@@ -532,6 +532,13 @@
 > "Sign all releases with Master of Thought" — where? → only here in Claude Code
 > Non-Master settings panel? → Exactly 3 items (Recommended)
 
+> (addendum 77, verbatim — 2026-10-01, screenshot 2026-10-01_financial_fb77_record_title.jpg, the record header still "THE RECORD · CHAIN VERIFIED · 3")
+> WHERE IS MY FUCKING
+>
+> TRANSACTION RECORD
+>
+> I ASKED 3 x now to redo text for attached header
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
