@@ -422,6 +422,13 @@
    "kind": "decision",
    "text": "r.030 decision — the year card's own Clock / MoT toggle, standard by default, MoT unlocks the orbital rows (FD-47).",
    "commit": "5f4f18d"
+  },
+  {
+   "rev": 61,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.030 shipped — the year card toggle (FD-47).",
+   "commit": "6a7178d"
   }
  ]
 }

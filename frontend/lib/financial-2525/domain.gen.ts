@@ -438,7 +438,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "Addendum 61: \"year position should have time / MoT icon and default to standard, when MoT is clicked orbital info unlocks.\" The year card gets its own Clock ⇄ MoT toggle (the same component as the chart's, shared), standard by default: Now · Day N/365 · Quarter · Month · Year. The MoT icon unlocks the orbital rows: the perihelion that opened the year (first) and the orbit position in A.B..C. The chart's toggle no longer drives the year card.",
    "commit": "5f4f18d",
-   "shipped": "PENDING"
+   "shipped": "6a7178d"
   }
  ],
  "mot": {
