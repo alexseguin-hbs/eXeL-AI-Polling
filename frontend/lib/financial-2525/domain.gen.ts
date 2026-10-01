@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.046",
-  "stamp": "v.000_r.046",
+  "revision": "0.047",
+  "stamp": "v.000_r.047",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "acf7324fecb081cdbd8c23af2af28727a4c222532775f4520735eb937604d4ae",
@@ -710,6 +710,14 @@ export const FINANCIAL_DOMAIN = {
    "date": "2026-10-01",
    "kind": "correction",
    "why": "The month law. Addenda 76 (\"remove all 33.3 mentions / quarter is 91 days where 30 day is month and 1 day is down day (no transactions)\") and 92 (\"remember all 30.3 changes to 30\"), with his answer \"switch to 30\" for old entries. A month is 30 days; a 91-day quarter is three months plus one down day (day 91, no transactions), as day 365 is the year's. The budget's per-month unit and the Monthly length preset read 30 days; the year card counts months 1–12 of 30 days with each quarter's day 91 as a down day; the planet LTU table's Month is 30 (the Admin panel's untouched rows follow the seed law). Old entries recorded with the Monthly preset read 30 days at replay — the record's bytes and hashes are unchanged. His two deposits ($3,924.49) now release at $5.4507/hr (was $5.3908 over 30.333 days). Supersedes r.020's 91 ÷ 3 month on the record.",
+   "commit": "8a870f9",
+   "shipped": "d0caeeb"
+  },
+  {
+   "revision": "0.047",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "The chart's span toggle. Addendum 95: \"remove this from charting … instead add toggle similar to 2D/3D … 1x , 1W, 1M, 30D, 91D, 365 /364 … all transactions get spread over 30D in terms of $/min\"; his answers (96): re-spread over the span · 1M = Standard Month · the year adjusts for leap year automatically; 97–98: \"1x is instant (no span)\". The line above the chart (stamp · amount · length · elapsed) is gone; a segmented toggle 1x · 1W · 1M · 30D · 91D · 365D (366D in a leap year) re-spreads every transaction from its entry time over the picked span as $/min — 1x lands each whole; the pick is remembered on the phone. The record, Available and the Accrual figures never change; only the picture does.",
    "commit": "8a870f9",
    "shipped": "PENDING"
   }
@@ -2169,6 +2177,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "A month is 30 days; a 91-day quarter is three months plus one down day; old Monthly entries read 30 days at replay (record unchanged). Supersedes FD-35's 30.333-day month.",
    "status": "OPERATOR",
    "basis": "addenda 76, 92 + his answer 'switch to 30' (verbatim)"
+  },
+  {
+   "id": "FD-64",
+   "decision": "The chart has no top line; a span toggle 1x (instant) · 1W · 1M (Standard Month) · 30D · 91D · the year (365/366 automatic) re-spreads every transaction over the span as $/min. Picture only — the record and balances are unchanged.",
+   "status": "OPERATOR",
+   "basis": "addenda 95–98 (verbatim)"
   }
  ],
  "reviews": [

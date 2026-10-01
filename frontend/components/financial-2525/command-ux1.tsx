@@ -44,7 +44,7 @@ import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/p
 import { balanceAt, series, validateWithdrawal, depositView, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { type BudgetCategory } from "@/lib/financial-2525/budget";
 import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
-import { FLOW_SECTIONS, withMonthLaw, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
+import { FLOW_SECTIONS, withMonthLaw, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -629,22 +629,50 @@ function ltuLabel(ms: number, wholeMs: number, p: PlanetLtuRow): string {
  *  BEHIND THE SCENES IS A.B..C — the revolution's coordinate (addendum 10) on the selected planet's whole (addendum 12):
  *  on reveal the axis reads the year position (positionInYear, the planet's anchor) at each mark and the elapsed span in
  *  A-units; the glass defaults to the planet's day · hour · minute (addendum 8). The toggle is the card's one state. */
+/** r.047 THE SPAN TOGGLE (addenda 95–98): the chart re-spreads every transaction over one span from its entry time, as $/min —
+ *  1x is the instant (no span: each lands whole), 1W 7 days, 1M the Standard Month (the calendar month of now), 30D the month law,
+ *  91D the quarter, Y the Gregorian year of now (365, or 366 in a leap year, chosen automatically). The record and Available never
+ *  change; only the picture does. */
+type ChartSpan = "1x" | "1W" | "1M" | "30D" | "91D" | "Y";
+const CHART_SPANS: readonly ChartSpan[] = ["1x", "1W", "1M", "30D", "91D", "Y"];
+const SPAN_KEY = "fin-chart-span";
+function spanDays(sp: ChartSpan, nowMs: number): number {
+  if (sp === "1x") return 0;
+  if (sp === "1W") return 7;
+  if (sp === "1M") return calendarMonthDays(nowMs);
+  if (sp === "30D") return 30;
+  if (sp === "91D") return 91;
+  const y = new Date(nowMs - 6 * 3600 * 1000).getUTCFullYear();
+  return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 366 : 365;
+}
+const spanLabel = (sp: ChartSpan, nowMs: number): string => (sp === "Y" ? `${spanDays(sp, nowMs)}D` : sp);
+/** Every transaction re-spread over the span (1x = the instant). Pure. */
+function respread(txs: readonly FinTx[], sp: ChartSpan, nowMs: number): FinTx[] {
+  const d = spanDays(sp, nowMs);
+  return txs.map((x) => ({ ...x, motDays: d }));
+}
 function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFmt, onDateFmt, angle, onAngle, locale }: { tx: FinTx; txs: FinTx[]; now: number; t: (k: string) => string; planet: PlanetLtuRow; showAbc: boolean; onToggle: (v: boolean) => void; selector?: ReactNode; dateFmt: DateFmt; onDateFmt: (f: DateFmt) => void; angle: DateAngle; onAngle: (a: DateAngle) => void; locale: string }) {
   const W = 360, H = 150, P = 10;
   // the plot's LEFT edge moves in when dates show, so the first date at 30° never runs off the card (r.025)
   const PL = showAbc || angle === 0 || angle === 90 ? P + 4 : dateFmt === "full" ? 48 : dateFmt === "mmdd" ? 26 : 14;
   const dayMs = daySecOf(planet) * 1000;
-  const len = Math.max(1, (tx.motDays ?? 0) * dayMs);
-  const from = tx.atMs, to = tx.atMs + len;
+  // r.047: the span, remembered on this phone; every transaction re-spread over it from its entry time
+  const [span, setSpan] = useState<ChartSpan>("30D");
+  useEffect(() => { try { const v = localStorage.getItem(SPAN_KEY) as ChartSpan | null; if (v && CHART_SPANS.includes(v)) setSpan(v); } catch { /* storage blocked: the default stands */ } }, []);
+  const pickSpan = (v: ChartSpan) => { setSpan(v); try { localStorage.setItem(SPAN_KEY, v); } catch { /* the pick still applies this visit */ } };
+  const all = respread(txs.length ? txs : [tx], span, now);
+  const deps = all.filter((x) => x.kind === "deposit");
+  const spanMs = spanDays(span, now) * dayMs;
+  const from = Math.min(...all.map((x) => x.atMs));
+  const to = Math.max(from + dayMs, now, ...all.map((x) => x.atMs + spanMs));
+  const len = to - from;
   function inside(ms: number) { return !(ms < from) && !(ms > to); }
-  const withdrawals = txs.filter((x) => x.kind === "withdrawal" && inside(x.atMs));
-  const pts = series([tx, ...withdrawals], from, to, len / 120);
+  const withdrawals = all.filter((x) => x.kind === "withdrawal" && inside(x.atMs));
+  const pts = series(all, from, to, len / 120);
+  const total = Math.max(1, deps.reduce((a, x) => a + x.amountCents, 0));
   const x = (ms: number) => PL + ((ms - from) / len) * (W - PL - P);
-  const y = (cents: number) => H - P - (Math.max(0, Math.min(1, cents / tx.amountCents)) * (H - 2 * P));
+  const y = (cents: number) => H - P - (Math.max(0, Math.min(1, cents / total)) * (H - 2 * P));
   const poly = (pick: (p: (typeof pts)[number]) => number) => pts.map((p) => `${x(p.t).toFixed(1)},${y(pick(p)).toFixed(1)}`).join(" ");
-  const elapsed = Math.max(0, Math.min(len, now - from));
-  const elapsedAbc = spanABC(elapsed / dayMs, planet.yearDays);      // the elapsed LENGTH, in A-units of the planet's revolution
-  const motAbc = spanABC(tx.motDays ?? 0, planet.yearDays);          // the whole MoT, in A-units (30 d = 295.2448..1094 A on the exact Earth year — the month law)
   const sw = VECTOR_LAW.stroke.normal, hair = VECTOR_LAW.stroke.hairline;
   // A.B..C mode keeps the five marks; Clock mode reads CALENDAR DATES at 30° (addendum 42), as many whole days as fit
   const axis = [0, 0.25, 0.5, 0.75, 1].map((f) => fmtMot(positionInYear(from + f * len, planet.yearAnchor, planet.yearDays).abc));
@@ -686,10 +714,13 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
           </div>
         </div>
       )}
-      {/* r.038 (addendum 72 + "Yes, everywhere"): MoT on → A.B..C only (no stamp, no days); Clock on → the date and hours, as before */}
-      <p data-fin-chart-line className="mt-1 font-mono text-xs text-muted-foreground">{showAbc
-        ? `${usd(tx.amountCents)} · ${fmtMot(motAbc)} ${t("fin.a_units")} · ${fmtMot(positionInYear(from, planet.yearAnchor, planet.yearDays).abc)} → ${fmtMot(positionInYear(to, planet.yearAnchor, planet.yearDays).abc)}`
-        : `${fmtStampCST(tx.atMs)} · ${usd(tx.amountCents)} · ${fmtDays(tx.motDays ?? 0)} · ${now < from ? `${t("fin.pending_from")} ${fmtStampCST(tx.atMs)}` : `${ltuLabel(elapsed, len, planet)} ${t("fin.elapsed")}`}`}</p>
+      {/* r.047 (addendum 95 "remove this from charting · instead add toggle similar to 2D/3D"): the span, a segmented row — the
+          line above the chart (stamp · amount · length · elapsed) is gone */}
+      <div role="group" aria-label={t("fin.chart_span")} data-fin-chart-span className="mt-2 flex w-full overflow-hidden rounded-md border border-border font-mono text-xs">
+        {CHART_SPANS.map((sp) => (
+          <button key={sp} type="button" data-fin-span={sp} aria-pressed={span === sp} onClick={() => pickSpan(sp)} className={`min-h-[32px] flex-1 border-l border-border first:border-l-0 ${span === sp ? "ring-1 ring-inset ring-primary text-primary" : "text-muted-foreground"}`}>{spanLabel(sp, now)}</button>
+        ))}
+      </div>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" className="mt-2 block cursor-crosshair" role="img" aria-label={t("fin.chart_tap")} data-fin-chart-svg onClick={probeAt}>
         <rect x={PL} y={P} width={W - PL - P} height={H - 2 * P} fill="none" stroke="var(--border)" strokeWidth={hair} />
         {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={PL + f * (W - PL - P)} y1={P} x2={PL + f * (W - PL - P)} y2={H - P} stroke="var(--border)" strokeWidth={hair} />)}
