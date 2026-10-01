@@ -475,6 +475,19 @@
 >
 > not a mix of both
 
+> (addendum 73, verbatim — 2026-10-01, screenshot 2026-10-01_financial_fb73_step_rail.jpg, the "Step 3 of 4 · Withdraw" rail)
+> get rid of this; adds no value; then reorder widgets:
+>
+> Accrual
+> Budget
+> Charts
+
+> (addendum 73, his answers verbatim — 2026-10-01, to four questions)
+> Where does the Year position card go? → With Charts, after the chart (Recommended)
+> Year position on the Clock icon: which rows? → keep as is, just move year secrion to end idefaulted just title so one can open up menubfor setail and see clock vs MoT icon and details
+> Year position on the MoT icon: how are quarters and months measured? → Equal parts of 3600 (Recommended)
+> Apply the same either/or rule to the chart's top line, tap readout and the Accrual gear? → Yes, everywhere on the page (Recommended)
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -779,6 +792,11 @@
 73. **The year card is one system at a time (addendum 72):** Clock shows the Gregorian calendar only; MoT shows A.B..C only.
     Today the Clock view prints a Gregorian timestamp beside perihelion-based day, 91-day quarter and 30.3̅-day month counts, and
     the MoT view prints Gregorian timestamps (perihelion, now) beside the A.B..C orbit position. Neither view may mix the two.
+74. **No step rail; Accrual → Budget → Chart; the year card folded at the end (addendum 73):** the "Step N of 4" rail and its
+    sentence go. Order: Accrual Units (+ the entry below it) · Personal budget · Chart · Record · Year position · sign-in · Trinity.
+    The year card is closed to its title; opened it shows the Clock ⇄ MoT toggle and the rows. Clock rows stay as they are. MoT rows
+    are A.B..C only, equal parts of 3600 (quarter 900 A, month 300 A), perihelion first as 0000.0000..0000. The same either/or rule
+    holds on the chart's top line, its tap readout and the Accrual gear: MoT on → A.B..C only; Clock on → dates and hours only.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
