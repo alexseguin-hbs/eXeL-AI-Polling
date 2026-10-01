@@ -314,7 +314,7 @@
    "kind": "decision",
    "why": "Every amount carries its own MoT (operator addendum 35 'on input of transaction or budget, must be able to specify time (MoT of transaction)'). The transaction form already asked for it (Length (MoT)); the budget did not — its lines were typed in whatever unit the table showed. plan.ts: a line keeps the amount the person typed and the length it covers — the transaction form's presets (Weekly · Monthly (30.333 days) · Every 33 days · Quarterly (91 days) · Yearly), One time excepted because a budget line is a rate, and Other as a number in years · days · hours · minutes; the ladder still reads the line on the 33-day base, so the table, the groups and Net convert it to whatever unit is showing (Insurance $1,200 Yearly reads $1,200 per year, $108.49 per 33 days); a negative or non-number amount, One time or a zero-length Other changes nothing; a saved line with an impossible MoT keeps its figure and drops the bad spec. The glass: in edit mode each line shows its amount, its MoT select and (for Other) its number and unit, beside the ×; the add row takes the new line's amount and MoT (Monthly by default). And 'In escrow' reads 'In Escrow' (English only, addendum 32). No new word — the transaction form's words carry it. FIN-06.11 · FD-36.",
    "commit": "2756088",
-   "shipped": "PENDING"
+   "shipped": "af6bfe3"
   }
  ],
  "mot": {
