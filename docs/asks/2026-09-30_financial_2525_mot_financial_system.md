@@ -302,6 +302,8 @@
 
 > (operator 2026-10-01, verbatim, on switching the session's model) continue with opus
 
+> (addendum 34, verbatim — 2026-10-01 08:22 CST, with his phone screenshot of the r.018/r.019 Unit dropdown open: per second · per minute · per hour · per day · per week · ✓ per 33 days · per month (91) · per year, over the budget with Net $204.49, saved beside this file as `2026-10-01_financial_2525_month_30333.png`) use 91 day quarter which means 30.333 day month
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -513,6 +515,12 @@
     Available on the second, each cell its word above its figure, on the phone and the desk alike; the big Released figure, its line
     and the strip beneath are unchanged (nothing removed that he did not name). Uses the words already on the glass — no new word.
     Ships as r.019.
+43. **91 days is a QUARTER; a month is 30.333 days (addendum 34, the operator's correction of the brief's "month (91)"):** the
+    budget's unit dropdown reads per second · per minute · per hour · per day · per week · per 33 days · per month (30.333 days) ·
+    per quarter (91 days) · per year — a month is one third of the 91-day quarter (91 ÷ 3 = 30.333…, the pay MoT he gave on day one);
+    the length dropdown on the transaction form reads Monthly (30.333 days) and Quarterly (91 days) for the same two lengths. Every
+    other place a 91-day span is called a month (the planet table's Month column) follows: Month 30.333, the 91-day quarter beside it.
+    Supersedes FD-25's month-91 factor and addendum 13's "Month 91 for now". Ships as r.020.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
