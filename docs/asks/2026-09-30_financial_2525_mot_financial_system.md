@@ -295,6 +295,9 @@
 
 > (addendum 31, verbatim — 2026-09-30 19:31 CST, with his phone screenshot of the r.016 PERSONAL FINANCE LADDER A–M: thirteen section rows A · Income … M · Transfers, each with its icon, letter and total, the sheet's eight lines beneath their sections, five sections at $0.0000, Net −$200.00, the strip still floating beneath, saved beside this file as `2026-09-30_financial_2525_ladder_grouped.png`) order by fixed vs financial, and have expand button so this is not so busy.  Don’t show A-U letters
 
+> (addendum 32, verbatim — 2026-09-30 ~20:05 CST, after the r.018 report) I fucking said do not lexicon translate until functionality is tested with me!
+> keep testing usability with fleet
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -495,6 +498,13 @@
     section's icon and name stay, the letters live in the record only; sections with nothing on the plan no longer print a $0
     row. READING: "fixed vs financial" is read as the sheet's FIXED vs VARIABLE columns (the kinds the brief locks per field);
     if a different split was meant, the groups are data and change in one place. Ships as r.018.
+41. **No lexicon work of any kind until the functionality is tested with the operator (addendum 32):** the last answer missed —
+    the r.018 report spoke of lexicon keys and of stale fills, and that is not what he wants to read while he is testing. Facts on the
+    record: no translation has been dispatched since addendum 30; the last fill (987e87d, the r.016 keys) ran before that instruction;
+    r.018 added no translation. From here: (1) a new or changed word on the glass is English only, staged, and NOT reported on;
+    (2) a mechanical lock in `lexicon-coverage` refuses any translation of a staged key, so a fill cannot land before he says the
+    English is final; (3) the usability fleet keeps running — every revision that lands gets the next read-only round, and the
+    findings fold in the fleet's order.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
