@@ -211,10 +211,10 @@ export function FinancialCommandUX1() {
   // r.026: per second / minute / hour a line is a fraction of a dollar — edit mode shows four decimals there (cents elsewhere), so
   // retyping the figure shown never moves the line (0.07 typed for $0.0673/min was +3.9%)
   const editFigure = (l: LadderLine) => { const v = toPeriod(l.amountNative, l.nativePeriod, period); return Math.abs(v) < 100 ? Math.round(v * 10000) / 10000 : lineInUnit(l, period); };
-  const addable = fieldsOf(addSec).filter((f) => !plan.some((l) => l.fieldId === f.id));
+  const addable = fieldsOf(addSec).filter((f) => !plan.some((l) => l.fieldId === f.id) && !(owner && f.kind === "Income" && recordIncomeLines(txs, at).length));   // r.048: Income comes from the record
   // r.048 (addendum 80 "Income from my record"): with deposits on his record, the Income lines ARE the record — each Income field at the
   // rate its deposits release (amount ÷ length) — and the plan keeps Fixed · Variable · Transfers. No deposits: the plan as it was.
-  const recIncome = owner ? recordIncomeLines(txs) : [];
+  const recIncome = owner ? recordIncomeLines(txs, at) : [];
   const recIncomeKey = recIncome.map((l) => `${l.fieldId}:${l.amountNative}`).join("|");
   const budget = useMemo(() => (recIncome.length ? [...recIncome, ...plan.filter((l) => fieldOf(l.fieldId)?.kind !== "Income")] : plan), [plan, recIncomeKey]);   // eslint-disable-line react-hooks/exhaustive-deps
   const fromRecord = (fieldId: string) => recIncome.some((l) => l.fieldId === fieldId);

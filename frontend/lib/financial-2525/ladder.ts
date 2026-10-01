@@ -164,13 +164,15 @@ export const PAY_MOT_DAYS = 30;
  *  30 days — at replay; the record's bytes and hashes are untouched. */
 /** r.048 INCOME FROM HIS RECORD (operator addendum 80, his answer "Income from my record"): every recorded deposit becomes an Income
  *  line of the budget — its field (the Income field it was recorded under, wages when none), at its own rate: amount ÷ its length in
- *  days, summed per field. A deposit with no length (One time) counts over one 30-day month (the month law). Pure; dollars per day. */
-export function recordIncomeLines(txs: readonly { kind: string; amountCents: number; motDays?: number; field?: string }[]): LadderLine[] {
+ *  days, summed per field. A deposit with no length (One time) counts over one 30-day month (the month law). Only deposits RELEASING
+ *  at `nowMs` count (entry ≤ now < entry + length) — so a new paycheck replaces the last one instead of piling on top. Pure; dollars per day. */
+export function recordIncomeLines(txs: readonly { kind: string; amountCents: number; motDays?: number; field?: string; atMs: number }[], nowMs: number): LadderLine[] {
   const perDay = new Map<string, number>();
   for (const x of txs) {
     if (x.kind !== "deposit" || !(x.amountCents > 0)) continue;
     const f = x.field && fieldOf(x.field)?.kind === "Income" ? x.field : "A.income_wages";
     const days = x.motDays && x.motDays > 0 ? x.motDays : PAY_MOT_DAYS;
+    if (!(x.atMs <= nowMs && nowMs < x.atMs + days * 86400000)) continue;
     perDay.set(f, (perDay.get(f) ?? 0) + x.amountCents / 100 / days);
   }
   return Array.from(perDay.entries()).map(([fieldId, amount]) => ({ fieldId, amountNative: amount, nativePeriod: "day" as Period }));
