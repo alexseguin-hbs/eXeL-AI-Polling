@@ -478,6 +478,13 @@
    "kind": "decision",
    "text": "r.034 decision — eXeL AI upper left (to /main), Settings with the colour selector upper right, every accent follows the selected colour (FD-51).",
    "commit": "05f3f07"
+  },
+  {
+   "rev": 69,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.034 shipped — eXeL AI, Settings with the colour selector, one colour per selector (FD-51).",
+   "commit": "8a54582"
   }
  ]
 }

@@ -490,7 +490,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "Addendum 67: \"settings with colors selector (from eXeL Polling) should be in upper right; master color is violet in this example, but some text is cyan; remember we stick to color per selector. also eXeL AI is missing on upper left to take us back to /main.\" The header row now carries the eXeL AI wordmark at the upper left (a link to /main) and, at the upper right, the eXeL Polling Settings gear — the same panel the app navbar opens, with its colour selector — beside the globe. Every fixed cyan accent on the surface (headings, the Available figure, the rate and its selector, the toggles and their rings, the budget edit ring, the Accrual Units border) now uses the theme's primary colour, so the whole page follows the colour picked in Settings. The chart's cyan Withdrawable line and legend word are removed: with no hold (r.028) withdrawable always equals released, so the line sat hidden under the green Released line. The remaining data colours (deposits green, withdrawals red, Released green, In Escrow orange) are unchanged.",
    "commit": "05f3f07",
-   "shipped": "PENDING"
+   "shipped": "8a54582"
   }
  ],
  "mot": {
