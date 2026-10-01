@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.041",
-  "stamp": "v.000_r.041",
+  "revision": "0.042",
+  "stamp": "v.000_r.042",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "fa07f4f6b435f0063069d7a124c5e886ac4b3b0a6dc2a7af5a174bf9960b9b32",
+  "handoffSha256": "27a7a74281377118b4df0d90c0d60fd04c95ddd0e5ea59e4cbf65bbeddc0cf90",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -256,6 +256,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "fa07f4f6b435f0063069d7a124c5e886ac4b3b0a6dc2a7af5a174bf9960b9b32",
     "date": "2026-10-01",
     "note": "+ addendum 77 (TRANSACTION RECORD, his third ask)"
+   },
+   {
+    "sha256": "27a7a74281377118b4df0d90c0d60fd04c95ddd0e5ea59e4cbf65bbeddc0cf90",
+    "date": "2026-10-01",
+    "note": "+ addenda 78–80 (Trinity logo; AsM before push; his three answers)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -596,6 +601,14 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "TRANSACTION RECORD and REAL-TIME FINANCIALS. Addenda 76–77: \"THE RECORD · CHAIN VERIFIED · 3 becomes TRANSACTION RECORD\" (asked three times) and \"call this: REAL-TIME FINANCIALS\". The record header reads Transaction Record (a broken chain is still said beside it); the chart header reads Real-Time Financials, the elapsed time staying in the line under it.",
    "commit": "2230e15",
+   "shipped": "PENDING"
+  },
+  {
+   "revision": "0.042",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "A smaller header with the Trinity logo. Addendum 78: \"replace ◬ ♡ 웃 with trinity logo (without any text) that is same color as selected color … smaller version must be 1/3rd size of existing … when clicked, expand Trinity to current size with text exactly like image 2\"; his answer \"Grows in place at the top\". Addendum 76: \"move globe first and settings to right\"; \"the top takes up too much space; this is my third request\"; \"cut Trinity icon way below\". The header shows a 63 px Trinity (one-third of 190) in the selected colour with no text; a tap grows it in place to 190 px with its labels, a second tap shrinks it; the globe comes before the settings gear; the header is smaller (top padding, title and subtitle sizes); the wheel at the bottom of the page is gone.",
+   "commit": "335d1ba",
    "shipped": "PENDING"
   }
  ],
@@ -2024,6 +2037,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The record header reads TRANSACTION RECORD; the chart header reads REAL-TIME FINANCIALS.",
    "status": "OPERATOR",
    "basis": "addenda 76–77 (verbatim)"
+  },
+  {
+   "id": "FD-59",
+   "decision": "The header carries the Trinity logo at one-third size (no text, the selected colour) in place of ◬ ♡ 웃; a tap grows it in place to full size with its labels. Globe first, settings second. The header is smaller; no Trinity at the bottom of the page.",
+   "status": "OPERATOR",
+   "basis": "addenda 76, 78, 80 (verbatim)"
   }
  ],
  "reviews": [

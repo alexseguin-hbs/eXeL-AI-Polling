@@ -150,6 +150,7 @@ export function FinancialCommandUX1() {
   const [yearAbc, setYearAbc] = useState(false);                 // r.030 (addendum 61): the year card's own toggle, standard by default
   const [rateUnit, setRateUnit] = useState("hr" as RateUnit);
   const [accrualGear, setAccrualGear] = useState(false);
+  const [trinityBig, setTrinityBig] = useState(false);          // r.042 (addendum 78): the header Trinity, mini by default
   const [settingsOpen, setSettingsOpen] = useState(false);          // r.034: the eXeL Polling Settings (colour selector), upper right          // r.028: the Accrual Units settings, closed by default   // r.024: the Released card's rate, per hour by default (addendum 46)
   // r.025 (addendum 42 + his answer "Gear on the chart"): the chart's date format, 2026.10.01 by default, remembered on this phone
   const [dateFmt, setDateFmt] = useState("full" as DateFmt);
@@ -285,9 +286,9 @@ export function FinancialCommandUX1() {
   // pb-20 on the phone: the app's bottom bar (56 px) covers the page's last rows, so the page's last element — the R-CORE badge and
   // its maximized icon — sits above it (measured 2026-09-30; r.017 took the fixed strip out of the way, nothing on this surface floats).
   return (
-    <div data-financial-ux1 className="mx-auto max-w-3xl px-4 pb-20 pt-10 sm:pb-10">
+    <div data-financial-ux1 className="mx-auto max-w-3xl px-4 pb-20 pt-3 sm:pb-10">
       {/* Header — the Session's: the globe, the Trinity glyphs, the title ───────────────────────── */}
-      <header className="mb-8 text-center">
+      <header data-fin-header className="mb-3 text-center">   {/* r.042 (addendum 76, his third request): the header is smaller — focus is the outcome */}
         {/* r.034 (addendum 67): "eXeL AI" upper left takes the person back to /main; the eXeL Polling Settings (the colour selector)
             and the globe upper right. Every accent on this surface follows the selected colour (Tailwind `primary` = the theme). */}
         <div data-fin-topbar className="mb-2 flex items-center justify-between">
@@ -295,14 +296,21 @@ export function FinancialCommandUX1() {
             <ExelWordmark exelClass="font-bold text-primary" aiClass="font-light text-muted-foreground" />
           </a>
           <div className="flex items-center gap-2">
-            <button type="button" data-fin-settings onClick={() => setSettingsOpen(true)} aria-label={t("fin.settings")} title={t("fin.settings")} className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-primary"><Settings size={18} strokeWidth={1.5} aria-hidden /></button>
+            {/* r.042 (addendum 76 "move globe first and settings to right") */}
             <SoiGlobe />
+            <button type="button" data-fin-settings onClick={() => setSettingsOpen(true)} aria-label={t("fin.settings")} title={t("fin.settings")} className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-primary"><Settings size={18} strokeWidth={1.5} aria-hidden /></button>
           </div>
         </div>
-        <TrinityGlyphs size="text-3xl" className="mb-3" />
-        <h1 className="text-2xl font-semibold">FINANCIAL · 2525</h1>
+        {/* r.042 (addendum 78): the Trinity logo replaces ◬ ♡ 웃 — one-third of its full size, no text, the selected colour; a tap
+            grows it in place to full size with its labels (his answer "Grows in place at the top"); a second tap shrinks it */}
+        <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} onClick={() => setTrinityBig((v) => !v)} className="mx-auto mb-1 block rounded-full">
+          {trinityBig
+            ? <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} />
+            : <SoITrinity labels={["", "", ""]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={63} />}
+        </button>
+        <h1 className="text-xl font-semibold leading-tight">FINANCIAL · 2525</h1>
         {/* no version line here — it is at the bottom (r.028); ONE line, "Measure of Time: A Universal Standard" (r.039, addendum 74) */}
-        <p data-fin-subtitle className="mt-1 text-base text-foreground">{t("fin.title_l1")}</p>
+        <p data-fin-subtitle className="text-sm text-foreground">{t("fin.title_l1")}</p>
       </header>
 
       {/* The one card — Accrual Units (+ the entry) · Personal budget · Chart · Record · Year position · sign-in · Trinity (r.038) */}
@@ -582,15 +590,7 @@ export function FinancialCommandUX1() {
           </div>
         )}
 
-        {/* the Trinity wheel — folded, as the Session folds it. The seats are the operator's (addendum 9): TOP = HI 웃 (the
-            person), BOTTOM-LEFT = AI ◬ (AI tokens), BOTTOM-RIGHT = SI ♡ (minutes contribution — volunteer / time logged).
-            SoITrinity's tuple order is [top, bottom-right, bottom-left]. */}
-        <details className="mb-2" data-testid="fin-details-trinity">
-          <summary className="min-h-[36px] cursor-pointer py-2 text-xs text-muted-foreground" aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} />
-          <div className="mt-2 flex flex-col items-center gap-1">
-            <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} />
-          </div>
-        </details>
+        {/* r.042 (addendum 76 "cut Trinity icon way below"): the wheel lives in the header now, not here */}
       </section>
 
 

@@ -576,6 +576,13 @@
    "kind": "decision",
    "text": "r.041 decision — TRANSACTION RECORD; REAL-TIME FINANCIALS (FD-58).",
    "commit": "2230e15"
+  },
+  {
+   "rev": 83,
+   "date": "2026-10-01",
+   "kind": "decision",
+   "text": "r.042 decision — the Trinity logo replaces ◬ ♡ 웃 (mini, grows on tap); globe first; smaller header (FD-59).",
+   "commit": "335d1ba"
   }
  ]
 }

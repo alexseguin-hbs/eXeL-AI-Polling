@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 82 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 83 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -583,6 +583,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.041 decision — TRANSACTION RECORD; REAL-TIME FINANCIALS (FD-58).",
       "commit": "2230e15"
+    },
+    {
+      "rev": 83,
+      "date": "2026-10-01",
+      "kind": "decision",
+      "text": "r.042 decision — the Trinity logo replaces ◬ ♡ 웃 (mini, grows on tap); globe first; smaller header (FD-59).",
+      "commit": "335d1ba"
     }
   ]
 };
