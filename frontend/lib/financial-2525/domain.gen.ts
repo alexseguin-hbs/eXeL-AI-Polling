@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.045",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "1fe966b95b6073ea64507c9781b8e8b69f2286d590957de9b889570e30a13fd5",
+  "handoffSha256": "a82948051abbcdc0ff443bf0c086a684b076fd1a43d75ee3fca55adbc2f41821",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -316,6 +316,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "1fe966b95b6073ea64507c9781b8e8b69f2286d590957de9b889570e30a13fd5",
     "date": "2026-10-01",
     "note": "+ addendum 96 (his four answers on the span toggle)"
+   },
+   {
+    "sha256": "a82948051abbcdc0ff443bf0c086a684b076fd1a43d75ee3fca55adbc2f41821",
+    "date": "2026-10-01",
+    "note": "+ addendum 97 (1x is the instant, no span)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

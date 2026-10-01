@@ -15,7 +15,7 @@ Live URL: https://exel-ai-polling.explore-096.workers.dev/financial-2525
 
 | # | His words (verbatim, shortened only with …) | Addenda | Answer | State |
 |---|---|---|---|---|
-| B-24 | "remove this from charting … add toggle similar to 2D/3D … 1x , 1W, 1M, 30D, 91D, 365 /364 … all transactions get spread over 30D in terms of $/min using A.B..C" | 95 | Chart: the top line goes; toggle 1D · 1W · 1M (Standard Month) · 30D · 91D · year (365/366 automatic); every transaction re-spread over the span (96). r.047, after the month law. | OPEN |
+| B-24 | "remove this from charting … add toggle similar to 2D/3D … 1x , 1W, 1M, 30D, 91D, 365 /364 … all transactions get spread over 30D in terms of $/min using A.B..C" | 95 | Chart: the top line goes; toggle 1x (instant, no span — 97) · 1W · 1M (Standard Month) · 30D · 91D · year (365/366 automatic); every transaction re-spread over the span (96). r.047, after the month law. | OPEN |
 | B-23 | "Green positive: Show “Net • Upside / Savings” / Red negative: Show “Net • Downside / Risk”" | 94 | r.045: the Net label follows its sign. | OPEN |
 | B-22 | "Available and Accrual Rate should be same line, same size text" (sent twice) | 93 | r.044: labels on one line; $ figures on the next, same size. | LIVE (Verify Live #2171) |
 | B-21 | "remember all 30.3 changes to 30" | 92 | r.046: the month law — 30-day month, quarter = 3 × 30 + 1 down day, no 30.3̅ anywhere. | OPEN |

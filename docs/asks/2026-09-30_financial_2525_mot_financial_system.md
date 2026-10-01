@@ -675,6 +675,9 @@
 > "1M" and "30D" both appear. What is 1M? → Standard Month
 > "365 /364": one button or two? → adjusts for leap year automatically
 
+> (addendum 97, verbatim — 2026-10-01, correcting his first answer above)
+> 1x is instance (no span)
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -1028,6 +1031,8 @@
 94. **The span toggle, decided (addendum 96):** 1D · 1W · 1M (the Standard Month, e.g. October = 31 days) · 30D · 91D · the year (365
     days, 366 in a leap year, chosen automatically). Picking a span re-spreads every transaction over that span from its entry time —
     the chart shows the $/min each would release at; the record and Available are unchanged.
+95. **1x is the instant (addendum 97, corrects 94):** the toggle is 1x · 1W · 1M · 30D · 91D · year. 1x = no span: each transaction lands
+    whole at its entry time (a step, not a ramp). There is no 1D button.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
