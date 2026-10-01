@@ -15,11 +15,13 @@ Live URL: https://exel-ai-polling.explore-096.workers.dev/financial-2525
 
 | # | His words (verbatim, shortened only with …) | Addenda | Answer | State |
 |---|---|---|---|---|
+| B-22 | "Available and Accrual Rate should be same line, same size text" (sent twice) | 93 | r.044: labels on one line; $ figures on the next, same size. | OPEN |
+| B-21 | "remember all 30.3 changes to 30" | 92 | r.045: the month law — 30-day month, quarter = 3 × 30 + 1 down day, no 30.3̅ anywhere. | OPEN |
 | B-20 | "have Measure of time same color as eXeL … A Universal Standard same color as AI" | 90 | r.043: the subtitle in the wordmark's two colours. | OPEN |
 | B-19 | "add currency to drop down settings in Accrual section … ensure all financials with min wage exist in this" | 86 | A currency dropdown in the Accrual gear: every currency of a country in the minimum-wage table. His answer (87): label only — the symbol replaces $, else a gray label under ACCRUAL UNITS. r.044. | OPEN |
 | B-18 | "remove dollar sign … place $ in Amount, and place + and - at far left so numbers can right justify" | 86 | Record: header "Amount, $"; sign far left; number right-justified; green/red kept; no $ in any table cell (88, 89 — sent twice). Folded into r.043. | OPEN |
-| B-17 | "change Fitness to Fitness & Health" | 85 | r.043: the budget line reads "Fitness & Health". | OPEN |
-| B-16 | "make singgle line … 14:43:53 elapsed · $0.0898 /min · $0.0015 /sec" | 84 | r.043: the Accrual gear's two lines become one. | OPEN |
+| B-17 | "change Fitness to Fitness & Health" | 85 | r.043: the budget line reads "Fitness & Health". | LIVE (71cff4b on his phone) |
+| B-16 | "make singgle line … 14:43:53 elapsed · $0.0898 /min · $0.0015 /sec" | 84 | r.043: the Accrual gear's two lines become one. | LIVE (71cff4b on his phone) |
 | B-15 | "finally; how many times do I have to ask to move transactions button around" (his phone at 11:24 still served cce6905 = r.041) | 83 | Same answer as B-13: r.042 carries the swap. LIVE only when the footer reads r.042 or later. | LIVE (his "looks good now") |
 | B-14 | "document new asks in backlog every ask" | 82 | This file. Every new ask gets a row in the same commit that persists it. | PUSHED |
 | B-13 | "Move transaction left of settings and move accrual rate to right of Available · swap these two". Asked seven times: "+ Transaction button" (38) · "one primary at top" (66) · "smaller transaction button in box with accrual units" (70) · "placing smaller version at bottom of accrual section" (76) · "switch Transaction button with Accrual rate and make same height as settings" (76) · "switch transaction button and accrual rate" (76) · "Line 1: Accrual Unit, +Transaction, Settings / Line 2: Available and accrual rate" (78) · the swap (81) | 38, 66, 70, 76, 78, 81, 82 | **r.042 (15d9ee2).** Line 1: ACCRUAL UNITS · + Transaction · gear, both 32 px tall. Line 2: Available left, Accrual Rate right. His phone screenshot of 2026-10-01 shows r.041, the build still served. | LIVE (his "looks good now") |

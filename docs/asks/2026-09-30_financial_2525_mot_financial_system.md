@@ -632,6 +632,21 @@
 > (addendum 91 — 2026-10-01 11:46, a screenshot with no words, saved as 2026-10-01_financial_fb91_budget_dollars.png: the Personal budget
 > with $ in every cell under "PER MONTH (30.3̅ DAYS)", served at 052e875 — read as addendum 88's law applied to the budget table too)
 
+> (addendum 92, verbatim — 2026-10-01)
+> remember all 30.3 changes to 30
+
+> (addendum 93, verbatim — 2026-10-01, sent twice with screenshots 2026-10-01_financial_fb93_same_line_a.jpg and _b.jpg; the second
+> served at 71cff4b, i.e. r.043 live on his phone at 13:45)
+> make same size text on same line
+>
+> Available:
+> $90.38
+>
+> Accrual Rate
+> $5.3908
+>
+> Available and Accrual Rate should be same line, same size text
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -972,7 +987,10 @@
 88. **No currency symbol inside a table (addenda 88, 89):** the symbol is in the column header ("Amount, $"); every cell of the
     Transaction Record and the Personal budget prints the bare number. The Record's amount is folded into r.043 now (sent twice).
 89. **The subtitle in the wordmark's two colours (addendum 90):** "Measure of Time" in the eXeL colour, "A Universal Standard" in the AI
-    colour of the upper-left eXeL AI. Folded into r.043.
+    colour of the upper-left eXeL AI. Folded into r.044.
+90. **Every 30.3̅ becomes 30 (addendum 92):** the month law (reading item 81) — next revision, r.045.
+91. **Available and Accrual Rate on one line, same size (addendum 93):** "Available:" and "Accrual Rate" share one line; the two figures
+    share the next, both the large size. Folded into r.044.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 

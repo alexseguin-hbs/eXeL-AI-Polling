@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.044",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "c6d2d2749685554284715a7511bb9569fe1aa28e7e73607e268f267831100fc9",
+  "handoffSha256": "301782d355798db242e1f338ca749c2f2e543dc731ff18f611a05273a0f40b1e",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -296,6 +296,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "c6d2d2749685554284715a7511bb9569fe1aa28e7e73607e268f267831100fc9",
     "date": "2026-10-01",
     "note": "+ addenda 90–91 (subtitle in the wordmark colours; the budget table without $)"
+   },
+   {
+    "sha256": "301782d355798db242e1f338ca749c2f2e543dc731ff18f611a05273a0f40b1e",
+    "date": "2026-10-01",
+    "note": "+ addenda 92–93 (30.3̅ becomes 30; Available and Accrual Rate on one line, same size)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
