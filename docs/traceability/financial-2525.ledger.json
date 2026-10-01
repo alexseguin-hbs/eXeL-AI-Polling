@@ -548,6 +548,13 @@
    "kind": "decision",
    "text": "r.039 decision — one header line; Standard Month (FD-56).",
    "commit": "a17b9ca"
+  },
+  {
+   "rev": 79,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.039 shipped — one header line; Standard Month (FD-56).",
+   "commit": "962d058"
   }
  ]
 }

@@ -538,7 +538,7 @@
    "kind": "decision",
    "why": "One header line and \"Standard Month\". Addendum 74: \"Change top header to single line: Measure of Time: A Universal Standard · Say: Standard Month (no extra text).\" The header subtitle is one line; the budget unit that was \"per calendar month (October · 31 days)\" reads \"Standard Month\" and still converts by the real length of the month we are in.",
    "commit": "a17b9ca",
-   "shipped": "PENDING"
+   "shipped": "962d058"
   }
  ],
  "mot": {
