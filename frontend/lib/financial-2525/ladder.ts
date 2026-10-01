@@ -20,11 +20,14 @@ export type Plane = "flow" | "stock" | "goal" | "status";
 export type SectionId = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T";
 export type FlowSectionId = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M";
 export type FieldKind = "Income" | "Fixed" | "Variable" | "Transfer" | "Stock" | "Goal";
-export type Period = "second" | "minute" | "hour" | "day" | "week" | "days33" | "month91" | "year";
-export const PERIODS: readonly Period[] = ["second", "minute", "hour", "day", "week", "days33", "month91", "year"];
+/** The time bases (r.020, operator addendum 34 "use 91 day quarter which means 30.333 day month"): 91 days is a QUARTER and a month
+ *  is one third of it — 91 ÷ 3 = 30.333… days, the pay MoT he gave on day one; three months make the quarter exactly. Supersedes the
+ *  brief's "month (91)" (FD-25's month factor), by his word. */
+export type Period = "second" | "minute" | "hour" | "day" | "week" | "days33" | "month" | "quarter" | "year";
+export const PERIODS: readonly Period[] = ["second", "minute", "hour", "day", "week", "days33", "month", "quarter", "year"];
 const DAY = 86400;
-/** The fixed factors — the brief's table. */
-export const PERIOD_SECONDS: Record<Period, number> = { second: 1, minute: 60, hour: 3600, day: DAY, week: 7 * DAY, days33: 33 * DAY, month91: 91 * DAY, year: 365 * DAY };
+/** The fixed factors — the brief's table with the operator's month (addendum 34). */
+export const PERIOD_SECONDS: Record<Period, number> = { second: 1, minute: 60, hour: 3600, day: DAY, week: 7 * DAY, days33: 33 * DAY, month: (91 / 3) * DAY, quarter: 91 * DAY, year: 365 * DAY };
 
 export interface Section { id: SectionId; name: string; plane: Plane; /** the lexicon suffix: fin.sec.<key> */ key: string }
 /** A–M flow · N–P stock · Q–S status · T goal — in the brief's order; nothing past T here (U is a rule below). */
@@ -139,7 +142,8 @@ export function amortize(u: Amortization, to: Period): { fieldId: string; amount
 /** A transaction's timeline (addendum 22): the length its money covers, from its date. `once` covers no length (an instant). */
 export type Recurrence = "once" | "weekly" | "paymot" | "days33" | "month91" | "yearly" | "other";
 export const RECURRENCES: readonly Recurrence[] = ["once", "weekly", "paymot", "days33", "month91", "yearly", "other"];
-/** The length a preset covers, in days; `paymot` is the sheet's 91 ÷ 3; `other` carries its own length (the entry's motDays, typed as a
+/** The length a preset covers, in days; `paymot` is the MONTH — 91 ÷ 3 = 30.333 days — and `month91` the QUARTER of 91 days (r.020,
+ *  addendum 34; the ids stay so every recorded entry keeps its meaning, only the words on the glass changed); `other` carries its own length (the entry's motDays, typed as a
  *  number with its unit — years · days · hours · minutes — addendum 25); `once` covers no length. */
 export const PAY_MOT_DAYS = 91 / 3;
 export const recurrenceDays = (r: Recurrence | undefined): number => (r === "weekly" ? 7 : r === "paymot" ? PAY_MOT_DAYS : r === "days33" ? 33 : r === "month91" ? 91 : r === "yearly" ? 365 : 0);

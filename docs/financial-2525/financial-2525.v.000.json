@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.019",
-  "stamp": "v.000_r.019",
+  "revision": "0.020",
+  "stamp": "v.000_r.020",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "53ac616411da850cd271c3ae638af571968d6ea7921ef8219f9b843b6b3bc622",
+  "handoffSha256": "513b75fc5b88136defc23738bd40da70f84fff5561796158607db87639c0ff15",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -124,6 +124,11 @@
     "sha256": "53ac616411da850cd271c3ae638af571968d6ea7921ef8219f9b843b6b3bc622",
     "date": "2026-10-01",
     "note": "+ addenda 32–33 (no lexicon work until the functionality is tested with him; the Released card as a 2 × 2 table; continue with opus — reading items 41–42)"
+   },
+   {
+    "sha256": "513b75fc5b88136defc23738bd40da70f84fff5561796158607db87639c0ff15",
+    "date": "2026-10-01",
+    "note": "+ addendum 34 ('use 91 day quarter which means 30.333 day month'; reading item 43)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -288,6 +293,15 @@
    "why": "The Released card's four figures as a 2 × 2 table (operator addendum 33 'make table 2x2', with his phone screenshot of the r.018 card where In escrow · Withdrawable · Withdrawn ran on one wrapped line and Available on the next). command-ux1.tsx: a two-column definition grid — In escrow · Withdrawable on the first row, Withdrawn · Available on the second, each cell its word above its figure; the hold time, when a deposit is inside its 3-hour hold, sits as one small line beneath; the big Released figure, its line and the strip are unchanged (nothing removed that he did not name); no new word. With it, on the shared R-CORE badge every 2525 surface carries: the 2026-09-30 wordmark-first toggle was a misreading and is reversed — the badge rests on the small icon, a tap shows the icon with its word art, a tap opens the Version History panel (the 2026-09-25 two-click badge exactly; the panel header keeps its centring; docs/asks/2026-09-30_rcore_badge_toggle_centered.md addendum 1). And the build lock (addendum 32): lexicon-coverage now fails if any staged key carries a translation, so nothing is translated before the operator tests the functionality. FIN-07.02 · FD-34.",
    "commit": "fa1a190",
    "shipped": "4efbcd4"
+  },
+  {
+   "revision": "0.020",
+   "date": "2026-10-01",
+   "kind": "correction",
+   "why": "91 days is a QUARTER; a month is 30.333 days (operator addendum 34 'use 91 day quarter which means 30.333 day month', with his phone screenshot of the unit dropdown reading 'per month (91)'). The brief's 'month (91)' (FD-25's month factor) and addendum 13's 'Month 91 for now' are superseded by his word. ladder.ts: the time bases are nine — second · minute · hour · day · week · 33 days · month (91 ÷ 3 days) · quarter (91 days) · year; three months make the quarter exactly; the month is the same length as the pay MoT he gave on day one. The glass: the unit dropdown reads per month (30.333 days) and per quarter (91 days) — no '(91)' month left; the length presets read Monthly (30.333 days) and Quarterly (91 days) (the ids paymot and month91 stay, so every recorded entry keeps its meaning). The planet table: Month 30.333 (91 ÷ 3) on Earth and Mars under the seed law, shown as the operator writes it; the quarter 91 beside it. Words English only, staged (addendum 32). FIN-06.10 · FD-35.",
+   "commit": "a695ba6",
+   "shipped": "PENDING",
+   "correction": "r.006–r.019 called a 91-day span a month on the budget's unit dropdown, the length presets and the planet table; it is a quarter, and the month is a third of it."
   }
  ],
  "mot": {
@@ -329,8 +343,9 @@
    "Q": 99,
    "Y": 365.259636,
    "minutesPerDay": 1440,
-   "analysisMonth": 91,
-   "analysisNote": "Month 91 for now (addendum 13) — the analysis ladder comes from the Admin panel's Planet LTU table (ltuDays(row)); D · W 7 · M 33 · Q 99 · Y 365 remain the SHEET's personal frame · r.007: Y is the exact revolution 365.259636 d"
+   "analysisMonth": 30.333,
+   "analysisNote": "Month 30.333 = 91 ÷ 3 and the 91-day quarter (addendum 34, superseding 'Month 91 for now' of addendum 13) — the analysis ladder comes from the Admin panel's Planet LTU table (ltuDays(row)); D · W 7 · M 33 · Q 99 · Y remain the SHEET's personal frame · r.007: Y is the exact revolution 365.259636 d",
+   "analysisQuarter": 91
   },
   "payMotDays": 30.333,
   "payMotNote": "one third of a 91-day quarter (91 ÷ 3 = 30.333…) — the operator's worked example; 299.0641..0345 A of the 365-day whole (r.003's 298.97 was on the mean anomalistic year) · r.007: 298.3475..1826 A of the exact 365.259636-day whole (≈ 298.97 — r.003's reading again; r.005's 299.0641..0345 superseded)",
@@ -511,6 +526,18 @@
    "net": "I − L − Ds − Tx − Tr",
    "u": "amortize rule → an A–M field (mapsTo); never a section",
    "source": "lib/financial-2525/ladder.ts (the brief, addendum 22)"
+  },
+  "periods_r020": {
+   "second": 1,
+   "minute": 60,
+   "hour": 3600,
+   "day": 86400,
+   "week": "7 d",
+   "days33": "33 d",
+   "month": "30.333 d (91 ÷ 3)",
+   "quarter": "91 d",
+   "year": "365 d",
+   "basis": "addendum 34 — supersedes ladder_r012.periods.month91"
   }
  },
  "tokenization": {
@@ -1190,6 +1217,24 @@
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-06.10",
+   "title": "A month is 30.333 days; 91 days is a quarter",
+   "section": "VII",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-ladder.test.mjs",
+   "statement": "Every place the surface names a period, a month is 30.333 days (one third of the 91-day quarter) and 91 days is called a quarter: the budget's unit dropdown (per month · per quarter), the length presets (Monthly · Quarterly) and the planet table's Month; three months make the quarter at every figure.",
+   "metric": "ladder.ts PERIODS = second · minute · hour · day · week · days33 · month · quarter · year; PERIOD_SECONDS.month = (91/3)·86400 = PAY_MOT_DAYS days and ×3 = quarter = 91·86400; no month91 period; toPeriod(x, days33, month) × 3 = toPeriod(x, days33, quarter); the dropdown carries fin.per_month and fin.per_quarter with no '(91)' month; the planet seed monthDays = 91/3 with ltuDays M × 3 = Q (gated in tests/planet-ltu and tests/financial-surface)",
+   "dtm": "on the phone: Unit → per month (30.333 days) shows ,200 per 33 days as ,941.41; per quarter (91 days) as ,824.24",
+   "stretch": "the same month on the chart's clock ladder",
+   "in": "FIN-06.10.IN",
+   "out": "FIN-06.10.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -1396,6 +1441,12 @@
    "decision": "The Released card shows its four balances as a 2 × 2 table, word above figure; nothing else on the card changes. Words stay English only until the operator has tested the functionality (addendum 32); the build refuses a translation of any staged key.",
    "status": "OPERATOR",
    "basis": "addendum 33 (verbatim: 'make table 2x2'); addendum 32; reading items 41–42"
+  },
+  {
+   "id": "FD-35",
+   "decision": "A month is 30.333 days (91 ÷ 3) and 91 days is a quarter, on every period the surface names; the record ids for the recorded presets stay unchanged so past entries keep their meaning. Supersedes FD-25's month-91 factor and addendum 13's 'Month 91 for now'.",
+   "status": "OPERATOR",
+   "basis": "addendum 34 (verbatim: 'use 91 day quarter which means 30.333 day month'); reading item 43"
   }
  ],
  "reviews": [

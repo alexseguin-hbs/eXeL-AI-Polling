@@ -28,6 +28,9 @@ const AFTER_FILL = new Set([
   // retitled heading (its 32 stale fills removed — "Personal finance ladder A–M" → "Personal budget"). ENGLISH ONLY until the operator
   // says the English is final (addendum 30, the CLAUDE.md rule) — no fill is dispatched for these:
   ...['expand', 'collapse', 'ladder_title'].map((k) => `fin.${k}`),
+  // Financial-2525 r.020 (addendum 34 — a month is 30.333 days, 91 is a quarter): per quarter added; per month and the two length
+  // presets reworded (their stale fills removed). ENGLISH ONLY until the operator has tested the functionality (addendum 32):
+  ...['per_quarter', 'per_month', 'rec.paymot', 'rec.month91'].map((k) => `fin.${k}`),
   // Financial-2525 r.016 (operator 2026-09-30, addendum 28 — the budget's edit mode): the pencil, Done, add, remove, reset — 5 keys FILLED ×32 (native-speaker agents, eight languages each); nothing left in AFTER_FILL for r.016.
   // Financial-2525 r.013 (operator 2026-09-30, addenda 24–25 — one transaction form, the length dropdown): 10 keys FILLED ×32 (native-speaker agents; six shared words — fr Transaction · Type · Minutes, da/nl/no Type — on the identical-allowed list).
   // Financial-2525 r.012 (operator 2026-09-30, addendum 22 — the A–U ladder): 20 sections · 60 fields · 5 timelines · 5 labels FILLED ×32

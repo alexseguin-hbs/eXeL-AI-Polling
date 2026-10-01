@@ -7770,7 +7770,7 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                   <tr key={r.code} className="border-t border-slate-800/60" data-planet-row={r.code}>
                     <td className="px-2 py-1.5"><input value={r.name} onChange={(e) => editPlanet(i, { name: e.target.value })} className={`w-20 ${inp}`} /></td>
                     <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.yearDays)} onChange={(e) => editPlanet(i, { yearDays: numOf(e.target.value, r.yearDays) })} className={`w-20 text-right tabular-nums ${inp}`} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.monthDays)} onChange={(e) => editPlanet(i, { monthDays: numOf(e.target.value, r.monthDays) })} className={`w-14 text-right tabular-nums ${inp}`} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(Math.round(r.monthDays * 1000) / 1000)} onChange={(e) => editPlanet(i, { monthDays: numOf(e.target.value, r.monthDays) })} className={`w-14 text-right tabular-nums ${inp}`} /></td>
                     <td className="px-2 py-1.5"><input value={r.offlineDay} onChange={(e) => editPlanet(i, { offlineDay: e.target.value })} className={`w-16 ${inp}`} /></td>
                     <td className="px-2 py-1.5">
                       <select value={r.yearAnchor} onChange={(e) => editPlanet(i, { yearAnchor: e.target.value === "perihelion" ? "perihelion" : "calendar" })} className={inp}>

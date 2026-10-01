@@ -84,7 +84,7 @@ ok(d.mot.anchor && d.mot.anchor.default === "perihelion" && /CST STANDARD/.test(
 ok(/298\.97/.test(d.mot.payMotNote) && d.mot.orbitUnitsEarthMean && d.mot.orbitUnitsEarthMean.aSeconds === 8766.2, "r.003's reading stays on the record (never edited away)");
 ok(d.mot.tierD && d.mot.tierD.notation === "A.BBBB..CCCC...DDDD" && /DECLARED/.test(d.mot.tierD.status), "the fourth tier D is declared, not on the glass");
 ok(d.mot.revolution.marsEarthDays === 686.98 && /Earth hours/.test(d.mot.revolution.marsLtu), "Mars: its own revolution in Earth days, Earth hours as LTU for now");
-ok(d.mot.planetLtuTable && d.mot.planetLtuTable.rows.join() === "earth,mars" && /Admin panel/.test(d.mot.planetLtuTable.where) && d.mot.ltu.analysisMonth === 91, "the per-planet LTU table is master data in the Admin panel; Month 91 for now");
+ok(d.mot.planetLtuTable && d.mot.planetLtuTable.rows.join() === "earth,mars" && /Admin panel/.test(d.mot.planetLtuTable.where) && Math.abs(d.mot.ltu.analysisMonth - 91 / 3) < 0.001 && d.mot.ltu.analysisQuarter === 91, "the per-planet LTU table is master data in the Admin panel; Month 91 for now");
 for (const [old, next] of [["FIN-01.01", "FIN-01.02"], ["FIN-02", "FIN-02.01"], ["FIN-13", "FIN-13.01"], ["FIN-01.02", "FIN-01.03"], ["FIN-02.01", "FIN-02.02"], ["FIN-06.01", "FIN-06.03"], ["FIN-06.03", "FIN-06.04"], ["FIN-06.04", "FIN-06.05"], ["FIN-03.01", "FIN-03.02"], ["FIN-03.02", "FIN-03.03"]]) {
   const o = d.crs.find((x) => x.id === old), n = d.crs.find((x) => x.id === next);
   ok(o && o.status === "superseded" && new RegExp(next.replace(/\./g, "\\.")).test(o.metric), `${old} is superseded and names its successor`);

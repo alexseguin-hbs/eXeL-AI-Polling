@@ -170,12 +170,12 @@ export function FinancialCommandUX1() {
   const frame = now ? frameOf(now, 33, planet.yearAnchor, planet.yearDays) : null;
   // THE LADDER'S UNIT (addendum 17 → 20 → 21 → 22): one dropdown of the brief's eight periods with FIXED factors — second · minute 60 ·
   // hour 3,600 · day 86,400 · week 7 d · 33 d · month 91 d · year 365 d (FD-25; never a 30-day month). The sheet's 33 days is the default.
-  type BudgetUnit = "sec" | "min" | "hour" | "day" | "week" | "m33" | "month" | "year";
+  type BudgetUnit = "sec" | "min" | "hour" | "day" | "week" | "m33" | "month" | "quarter" | "year";
   const [budgetUnit, setBudgetUnit] = useState<BudgetUnit>("m33");
   const UNITS: { key: BudgetUnit; label: string; period: Period }[] = [
     { key: "sec", label: t("fin.per_sec"), period: "second" }, { key: "min", label: t("fin.per_min"), period: "minute" }, { key: "hour", label: t("fin.per_hour"), period: "hour" },
     { key: "day", label: t("fin.per_day"), period: "day" }, { key: "week", label: t("fin.per_week"), period: "week" }, { key: "m33", label: t("fin.per_33"), period: "days33" },
-    { key: "month", label: `${t("fin.per_month")} (91)`, period: "month91" }, { key: "year", label: t("fin.per_year"), period: "year" },
+    { key: "month", label: t("fin.per_month"), period: "month" }, { key: "quarter", label: t("fin.per_quarter"), period: "quarter" }, { key: "year", label: t("fin.per_year"), period: "year" },
   ];
   const period: Period = UNITS.find((u) => u.key === budgetUnit)?.period ?? "days33";
   // the ladder in the chosen period: thirteen sections A–M and the locked Net = I − L − Ds − Tx − Tr (the sheet's lines on the fields)
