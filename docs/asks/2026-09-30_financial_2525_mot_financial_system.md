@@ -694,6 +694,14 @@
 > SHA: 1ee1bc4  |   Date: 2026.10.01  |   Time: 14:21 CST
 > v.000_r.045 · eXeL v0.045-2026.10.01-14.21CST · 1ee1bc4
 
+> (addendum 101, verbatim — 2026-10-01 18:45, his phone, two screenshots of REAL-TIME FINANCIALS at 30D and 1M:
+> `docs/asks/2026-10-01_financial_2525_fb101_chart_30d.png`, `docs/asks/2026-10-01_financial_2525_fb101_chart_1m.png`)
+> chart should so transactions for 1x real -time (Zoom chart should expand out x axis.
+>
+> i need $ on left y axis
+>
+> if 30 days $/min is shown over 30 days, so we can predict end of month NET • Upside or NET • Downside
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**

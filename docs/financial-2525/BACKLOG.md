@@ -15,6 +15,7 @@ Live URL: https://exel-ai-polling.explore-096.workers.dev/financial-2525
 
 | # | His words (verbatim, shortened only with …) | Addenda | Answer | State |
 |---|---|---|---|---|
+| B-26 | "chart should so transactions for 1x real -time (Zoom chart should expand out x axis." · "i need $ on left y axis" · "if 30 days $/min is shown over 30 days, so we can predict end of month NET • Upside or NET • Downside" | 101 | Next revision (r.052): 1x shows the transactions in real time and zooming widens the x axis; a $ scale on the left y axis; the span shows Net at $/min to its end, so the end-of-month Net • Upside / Downside can be read off the chart. Design questions asked before code. | OPEN |
 | B-25 | "fix all; auto mode … all backlog must be fixed" | 99 | Every open row built in order: r.046 month law · r.047 chart span toggle · r.048 budget Income from his record · r.049 currency label · r.050 non-Master settings · r.051 r.041 review defects + footer glyphs + open-logo labels. | LIVE (#2185) |
 | B-24 | "remove this from charting … add toggle similar to 2D/3D … 1x , 1W, 1M, 30D, 91D, 365 /364 … all transactions get spread over 30D in terms of $/min using A.B..C" | 95 | Chart: the top line goes; toggle 1x (instant, no span — 97) · 1W · 1M (Standard Month) · 30D · 91D · year (365/366 automatic); every transaction re-spread over the span (96). r.047, after the month law. | LIVE (#2181) |
 | B-23 | "Green positive: Show “Net • Upside / Savings” / Red negative: Show “Net • Downside / Risk”" | 94 | r.045: the Net label follows its sign. | LIVE (#2174) |
