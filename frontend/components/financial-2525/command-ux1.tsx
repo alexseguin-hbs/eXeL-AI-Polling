@@ -471,7 +471,7 @@ export function FinancialCommandUX1() {
                   ))}
                 </Fragment>
               ))}
-              <tr className={`border-t border-border font-semibold ${totals.net < 0 ? "text-red-500" : "text-green-500"}`}><td data-fin-budget-net-label className="py-1 pr-2">{/* r.045 (addendum 94): the Net line names its sign */}{totals.net < 0 ? t("fin.net_down") : t("fin.net_up")}</td><td data-fin-budget-net className="py-1 text-right tabular-nums">{numDollars(totals.net)}</td></tr>
+              <tr className={`border-t border-border font-semibold ${totals.net < 0 ? "text-red-500" : "text-green-500"}`}><td data-fin-budget-net-label className="whitespace-nowrap py-1 pr-2 text-[11px]">{/* r.045 (addendum 94): the Net line names its sign */}{totals.net < 0 ? t("fin.net_down") : t("fin.net_up")}</td><td data-fin-budget-net className="py-1 text-right tabular-nums">{numDollars(totals.net)}</td></tr>
             </tbody>
           </table>
           {editing && (
