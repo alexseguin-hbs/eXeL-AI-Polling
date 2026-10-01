@@ -466,6 +466,10 @@
 > (addendum 70, verbatim — 2026-10-01 7:57 AM, screenshot 2026-10-01_financial_fb70_tx_in_card.png)
 > place smaller transaction button in box with accrual units. remove big pink transaction button
 
+> (addendum 71, verbatim — 2026-10-01, two messages while the r.037 plan was open)
+> show whats been changed in images and list of items changed (recommendation on what changed).
+> show me how you'll notify me of release notes and images of changed in this plan from all releases moving forward
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -763,6 +767,10 @@
     evenly across the full width of the box. r.036.
 71. **The one door moves into the card (addendum 70):** the big full-width + Transaction button is removed; a smaller
     + Transaction sits inside the Accrual Units card (right of Available); the entry opens directly below the card. r.037.
+72. **Every release notifies with notes and images (addendum 71):** each r.NNN ships with (1) a message here: BEFORE / AFTER images
+    of exactly the changed area at 390 px plus the release note (his words · changed · not changed · measured · question · SHA);
+    (2) one cumulative private "Financial-2525 Release Notes" page, newest first, images side by side, a comment field per release;
+    (3) the record in the repo: docs/financial-2525/releases/r.NNN.md + img/. Back-filled r.028–r.037; r.037 is the first full run.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
