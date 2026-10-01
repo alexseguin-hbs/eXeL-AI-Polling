@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.026",
-  "stamp": "v.000_r.026",
+  "revision": "0.027",
+  "stamp": "v.000_r.027",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "fb5bfc1e6b1427bac41b6a68b4e31c4ba2b2773151c568bd63c88bb038bf5538",
+  "handoffSha256": "ff16ba8f30dbac28a28927fc22c296c4d34b72e652ebb9f269c097fc540467c6",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -166,6 +166,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "fb5bfc1e6b1427bac41b6a68b4e31c4ba2b2773151c568bd63c88bb038bf5538",
     "date": "2026-09-30",
     "note": "+ addenda 36–55 (his feedback of 2026-09-30 evening, verbatim, and his answers to every design question; reading items 46–60)"
+   },
+   {
+    "sha256": "ff16ba8f30dbac28a28927fc22c296c4d34b72e652ebb9f269c097fc540467c6",
+    "date": "2026-10-01",
+    "note": "+ addendum 56 (\"We used to plan everything; then Auto Execute\", verbatim) and reading item 61 (the twelve decisions of the approved plan)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -387,6 +392,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "The plain bugs the HI-intent check found in r.023–r.025 (docs/assessments/2026-09-30_financial_2525_hi_intent_check.md, persisted e835b32) — run only after every item of his feedback was built and live, as he asked; none of these changes a design he chose. (1) A withdrawal refusal could name the wrong minute: r.023 estimated the crossing from the previous breakpoint across a lump that landed in between ($200 Monthly beside a planned $1,800 One time was refused 'by 2026.10.11_14.57..00' with $1,328.30 still to spare). Now the last passing probe is remembered, a jump is named at its instant (2026.10.15_07.00..00), and a linear shortfall is named at the first whole minute that is a cent short, found by halving. (2) Two entries with the same amount at the same typed day and time got the same id; the second was taken for the first and silently not recorded. The id now carries the record's next number. (3) After a save the form kept the last typed Day and time, so the next entry could land at the old instant unnoticed; it is cleared. (4) The chart captured every swipe on a phone (touch-none + drag), trapping the page scroll; it now reads the day and time on a tap only — his words were 'click on to see day / time stamp'. (5) A door pressed while the entry was open cleared the type already picked; it now only brings the form into view. (6) In the Admin panel a decimal could not be typed one key at a time ('30.' redrew as '30'), so 30.333 or 365.25 could not be entered; every number box there keeps what is typed until it leaves the box. (7) In budget edit mode at small units the box rounded to cents (0.07 for $0.0673/min; retyping it moved the line 3.9%); it shows four decimals there. (8) The month name sat under the day numbers; it sits over them, as his 'October / with / 01, 02, 03' reads. (9) A MoT crossing no midnight left the Clock axis empty; it keeps the day · hour · minute marks. (10) The rate dropdown and the wheel's arrow are 36 px touch targets. (11) The record's FIN-06.10 example had lost its dollar signs ($3,200 → $2,941.41 · $8,824.24); restored. (12) Two stale notes (the hold mark's translator context, the chart's docstring) updated. The eleven open choices the check raised are his — asked, not assumed.",
    "commit": "e835b32",
    "shipped": "922e79a"
+  },
+  {
+   "revision": "0.027",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "His plan-once law (addendum 56, 'We used to plan everything; then Auto Execute'): the twelve open choices of the HI-intent check were decided in one approved plan and executed with no further stops. Three change the glass. (3) The hold speaks his words: the card line reads '180-min hold — only what has accrued can move · <stamp>' and names the FIRST deposit's mark; the refusal reads 'Held — only what has accrued can move, 180 minutes after the deposit · <stamp>'. (5) Section, Field and Length stay hidden until a type is picked, so a pick can no longer be reset by the type's defaults. (10) The wheel's centre symbols are gone; each of 웃 ◬ ♡ shows once, on its ring. The other nine are no change, on the record: (1) a spread withdrawal inside a deposit's first 180 min stays refused; (2) at 180 min everything accrued so far moves, then each minute as it accrues; (4) saved budget data is not rewritten; (6) no budget settings icon; (7) date labels skip to fit; (8) the rate list keeps shorthand; (9) Deposit / Funds and Withdrawal / Expense live in the Type dropdown only; (11) the Admin Month box keeps 30.333 with 30.3̅ beside it; (12) the three + Transaction doors stay.",
+   "commit": "1326df7",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1724,6 +1737,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "A repeating day count is written with its bar (30.3̅) everywhere it appears; the subtitle reads 'the MoT (Measure of Time) Financial System'.",
    "status": "OPERATOR",
    "basis": "addenda 37, 45 (verbatim) + addendum 55 answers 'Everywhere' and 'Subtitle'"
+  },
+  {
+   "id": "FD-44",
+   "decision": "The twelve open choices of the HI-intent check are decided as one plan: the hold is worded in his words and names the first deposit's mark (3); the entry's pickers wait for a type (5); the wheel's centre symbols are removed (10); the other nine stand unchanged.",
+   "status": "OPERATOR",
+   "basis": "addendum 56 (verbatim) + reading item 61 — approving the plan approved its decisions"
   }
  ],
  "reviews": [

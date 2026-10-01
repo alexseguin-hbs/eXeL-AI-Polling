@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 53 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 54 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -380,6 +380,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "v.000_r.026 SHIPPED — the plain bugs of the HI-intent check: the exact first short minute, both same-time entries kept, the Day and time cleared after a save, the chart read on a tap without trapping the page scroll, the picked type kept, the Admin panel's decimals, small-unit precision in edit mode, October over the days, 36 px targets, the record's dollar signs. Shipped as 922e79a. Gates: financial-accrual 38 · financial-surface 110 · financial-crs 486 · full test:ci 0 · next build 0.",
       "commit": "922e79a"
+    },
+    {
+      "rev": 54,
+      "date": "2026-10-01",
+      "kind": "decision",
+      "text": "r.027 decision — plan once, then execute (addendum 56): the hold in his words naming the first deposit's mark; the pickers wait for a type; the wheel's centre symbols removed; nine choices stand unchanged (FD-44).",
+      "commit": "1326df7"
     }
   ]
 };

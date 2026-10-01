@@ -270,7 +270,7 @@ export function FinancialCommandUX1() {
     const w: FinTx = { id: `w-${instant}-${cents}-${record.entries.length + 1}`, kind: "withdrawal", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec };
     const v = validateWithdrawal(txs, w);
     // the refusal names the minute (r.023, addendum 39 "check refuse message"): when the money can first move, or when it would run short
-    if (!v.ok) return setRefusal(v.reason === "HOLD" ? `${t("fin.reason_hold")}${v.atMs ? ` · ${fmtStampCST(v.atMs)}` : ""}` : v.reason === "INSUFFICIENT" ? `${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs ?? instant)}` : t("fin.reason_amount"));
+    if (!v.ok) return setRefusal(v.reason === "HOLD" ? `${t("fin.reason_hold_180")}${v.atMs ? ` · ${fmtStampCST(v.atMs)}` : ""}` : v.reason === "INSUFFICIENT" ? `${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs ?? instant)}` : t("fin.reason_amount"));
     setRefusal(null); commit(w); setAmt(""); setMemo(""); setWhen(""); foldForm();
   };
   const recordTransaction = () => { if (txType === "deposit") recordDeposit(); else if (txType === "withdrawal") recordWithdrawal(); };
@@ -351,7 +351,8 @@ export function FinancialCommandUX1() {
             <div data-fin-cell="withdrawn"><dt className="text-xs text-muted-foreground">{t("fin.withdrawn")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.withdrawnCents)}</dd></div>
             <div data-fin-cell="available"><dt className="text-xs text-muted-foreground">{t("fin.available")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.availableCents)}</dd></div>
           </dl>
-          {focusView && focusView.state === "releasing" ? <p className="mt-1 text-xs text-muted-foreground">{t("fin.hold_mark")} {fmtStampCST(focusView.holdUntilMs)}</p> : null}
+          {/* r.027 (decision 3): the 180-min line in his words, naming the FIRST deposit's mark — when money can first move */}
+          {focusView && focusView.state === "releasing" && bal.deposits.length ? <p data-fin-hold-line className="mt-1 text-xs text-muted-foreground">{t("fin.hold_180")} · {fmtStampCST(Math.min(...bal.deposits.map((d) => d.holdUntilMs)))}</p> : null}
           {bal.ratePerMinCents > 0 && (
             <ul className="mt-2 space-y-0.5 font-mono text-xs text-muted-foreground" data-testid="fin-ladder">
               {focusView && <li>{hhmmss(Math.max(0, at - focus!.atMs))} {t("fin.elapsed")}{showAbc ? ` · ${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : ""}</li>}
@@ -411,7 +412,8 @@ export function FinancialCommandUX1() {
                 </label>
                 <label className="text-xs text-muted-foreground">{t("fin.amount")}<input className={INPUT} inputMode="decimal" value={amt} onChange={(e) => setAmt(e.target.value)} /></label>
                 <label className="text-xs text-muted-foreground">{t("fin.when")}<input className={INPUT} value={when} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setWhen(e.target.value)} /></label>
-                <LadderPicker section={sec} field={field} rec={rec} onSection={setSec} onField={setField} onRec={setRec} otherN={otherN} onOtherN={setOtherN} otherUnit={otherUnit} onOtherUnit={setOtherUnit} t={t} hook="transaction" />
+                {/* r.027 (decision 5): Section, Field and Length appear only once a type is picked — nothing is chosen for the person */}
+                {txType && <LadderPicker section={sec} field={field} rec={rec} onSection={setSec} onField={setField} onRec={setRec} otherN={otherN} onOtherN={setOtherN} otherUnit={otherUnit} onOtherUnit={setOtherUnit} t={t} hook="transaction" />}
                 <label className="text-xs text-muted-foreground">{t("fin.memo")}<input className={INPUT} value={memo} onChange={(e) => setMemo(e.target.value)} /></label>
               </div>
               <button type="button" data-fin-record disabled={!txType} className={`mt-2 ${txType === "withdrawal" ? SECONDARY : PRIMARY} disabled:opacity-50`} onClick={recordTransaction}>{txType === "withdrawal" ? t("fin.withdraw") : t("fin.record_it")}</button>
@@ -529,7 +531,7 @@ export function FinancialCommandUX1() {
         <details className="mb-2" data-testid="fin-details-trinity">
           <summary className="min-h-[36px] cursor-pointer py-2 text-xs text-muted-foreground" aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} />
           <div className="mt-2 flex flex-col items-center gap-1">
-            <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} centerGlyphs={["웃", "♡", "◬"]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} />
+            <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} />
           </div>
         </details>
       </section>
