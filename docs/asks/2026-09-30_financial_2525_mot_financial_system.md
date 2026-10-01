@@ -470,6 +470,11 @@
 > show whats been changed in images and list of items changed (recommendation on what changed).
 > show me how you'll notify me of release notes and images of changed in this plan from all releases moving forward
 
+> (addendum 72, verbatim — 2026-10-01, screenshots 2026-10-01_financial_fb72_01_year_clock.png and fb72_02_year_mot.png, taken at 7:58 AM on an earlier build: the year card on Clock, then on MoT)
+> year position is either Gregorian or A.B..C
+>
+> not a mix of both
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -771,6 +776,9 @@
     of exactly the changed area at 390 px plus the release note (his words · changed · not changed · measured · question · SHA);
     (2) one cumulative private "Financial-2525 Release Notes" page, newest first, images side by side, a comment field per release;
     (3) the record in the repo: docs/financial-2525/releases/r.NNN.md + img/. Back-filled r.028–r.037; r.037 is the first full run.
+73. **The year card is one system at a time (addendum 72):** Clock shows the Gregorian calendar only; MoT shows A.B..C only.
+    Today the Clock view prints a Gregorian timestamp beside perihelion-based day, 91-day quarter and 30.3̅-day month counts, and
+    the MoT view prints Gregorian timestamps (perihelion, now) beside the A.B..C orbit position. Neither view may mix the two.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
