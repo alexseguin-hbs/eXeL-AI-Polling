@@ -3096,6 +3096,11 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.u.hours", englishDefault: "Hours", context: "Financial-2525: a unit for a manually typed length", cubeId: 0 },
   { key: "fin.u.days", englishDefault: "Days", context: "Financial-2525: a unit for a manually typed length", cubeId: 0 },
   { key: "fin.u.years", englishDefault: "Years", context: "Financial-2525: a unit for a manually typed length", cubeId: 0 },
+  { key: "fin.edit", englishDefault: "Edit the budget", context: "Financial-2525: accessible name of the pencil icon on the budget panel that opens edit mode (addendum 28)", cubeId: 0 },
+  { key: "fin.done", englishDefault: "Done", context: "Financial-2525: accessible name of the check icon that closes the budget's edit mode", cubeId: 0 },
+  { key: "fin.add_line", englishDefault: "Add a line", context: "Financial-2525: button in the budget's edit mode that adds the chosen ladder field as a new line", cubeId: 0 },
+  { key: "fin.remove_line", englishDefault: "Remove this line", context: "Financial-2525: accessible name of the × beside a budget line in edit mode", cubeId: 0 },
+  { key: "fin.reset_sheet", englishDefault: "Reset to the sheet", context: "Financial-2525: button in the budget's edit mode that discards the person's plan and restores the example sheet", cubeId: 0 },
 ];
 const drone2525: TranslationEntry[] = [
   { key: "drone.back", englishDefault: "Back", context: "Drone-2525: button that leaves the arena and returns to the site", cubeId: 0 },

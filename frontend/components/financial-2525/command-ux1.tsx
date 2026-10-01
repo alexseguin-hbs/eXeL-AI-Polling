@@ -20,7 +20,7 @@
  * modularly adjust"). A.B..C is the standard for all planets; the glass converts to the planet's LTU.
  */
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
-import { Clock, Orbit } from "lucide-react";
+import { Check, Clock, Orbit, Pencil, X } from "lucide-react";
 import { CategoryIcon, SectionIcon } from "@/components/financial-2525/category-icon";   // addendum 19: every category carries its icon; r.012: every section too
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -44,8 +44,9 @@ import { positionInYear, frameOf } from "@/lib/financial-2525/calendar";
 import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
 import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
 import { balanceAt, series, validateWithdrawal, depositView, HOLD_MS, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
-import { SHEET_LINES, type BudgetCategory } from "@/lib/financial-2525/budget";
-import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
+import { type BudgetCategory } from "@/lib/financial-2525/budget";
+import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
+import { FLOW_SECTIONS, fieldsOf, fieldOf, netLadder, toPeriod, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -178,7 +179,18 @@ export function FinancialCommandUX1() {
   ];
   const period: Period = UNITS.find((u) => u.key === budgetUnit)?.period ?? "days33";
   // the ladder in the chosen period: thirteen sections A–M and the locked Net = I − L − Ds − Tx − Tr (the sheet's lines on the fields)
-  const totals = useMemo(() => netLadder(SHEET_LINES, period), [period]);
+  // THE PERSON'S PLAN (r.016, addendum 28): the sheet until the device holds the person's own; edit mode behind the pencil; every
+  // figure, section total and Net below follows the plan. Drafts hold the typed text while editing so a half-typed "12." survives
+  // the once-a-second clock; a figure is written on the 33-day base through setLineAmount, never read back into the input mid-type.
+  const [plan, setPlan] = useState(() => sheetPlan() as LadderLine[]);
+  const [editing, setEditing] = useState(false);
+  const [drafts, setDrafts] = useState({} as Record<string, string>);
+  const [addSec, setAddSec] = useState("A" as FlowSectionId); const [addField, setAddField] = useState("A.income_wages");
+  useEffect(() => { if (!owner) { setPlan(sheetPlan()); setEditing(false); return; } setPlan(planOrSheet(loadPlan(owner))); }, [owner]);
+  const writePlan = (next: LadderLine[]) => { setPlan(next); if (owner && !savePlan(owner, next)) setSaveFailed(true); };
+  const typeAmount = (fieldId: string, text: string) => { setDrafts((d) => ({ ...d, [fieldId]: text })); const n = Number(text); if (text.trim() !== "" && Number.isFinite(n)) writePlan(setLineAmount(plan, fieldId, n, period)); };
+  const addable = fieldsOf(addSec).filter((f) => !plan.some((l) => l.fieldId === f.id));
+  const totals = useMemo(() => netLadder(plan, period), [plan, period]);
   const inPeriod = (l: { amountNative: number; nativePeriod: Period }) => toPeriod(l.amountNative, l.nativePeriod, period);
   const usdDollars = (x: number) => usdUnit(x * 100);
   const usdUnit = (cents: number) => (Math.abs(cents) >= 100 ? usd(Math.round(cents)) : usd4(cents));
@@ -362,7 +374,18 @@ export function FinancialCommandUX1() {
         {/* the budget — every line on the ladder (FIN-06) */}
         <div data-fin-budget className={SUB}>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className={LABEL}>{t("fin.ladder_title")}</div>
+            <div className="flex items-center gap-2">
+              <div className={LABEL}>{t("fin.ladder_title")}</div>
+              {/* EDIT MODE behind an icon (addendum 28 "add edit mode and icon on budget mode"): the pencil opens it, the check closes it;
+                  the pressed state is a stroke ring, never a fill (the vector law). Only a signed-in person edits — the plan is saved under their key. */}
+              {owner && (
+                <button type="button" data-fin-budget-edit aria-pressed={editing} aria-label={editing ? t("fin.done") : t("fin.edit")} title={editing ? t("fin.done") : t("fin.edit")}
+                  onClick={() => { setEditing((v) => !v); setDrafts({}); }}
+                  className={`rounded-md border p-1 ${editing ? "border-cyan-500 ring-1 ring-inset ring-cyan-500" : "border-border"}`}>
+                  {editing ? <Check size={14} strokeWidth={1.5} aria-hidden /> : <Pencil size={14} strokeWidth={1.5} aria-hidden />}
+                </button>
+              )}
+            </div>
             {/* the unit toggle (addendum 17): one figure per row in the unit the person picks — $/s · $/min · $/h · $/day · $/week · 33 days · month · year */}
             {/* the unit — ONE dropdown (addendum 20 "use drop down": the eight pills wrapped over three rows on the phone) */}
             {/* addendum 21: in portrait the select is the panel's full width (the label above it) so "per hour" etc. read at the full line; landscape keeps it at its own width */}
@@ -381,14 +404,42 @@ export function FinancialCommandUX1() {
               {FLOW_SECTIONS.map((sec) => (
                 <Fragment key={sec}>
                   <tr data-fin-budget-row={sec} className="border-t border-border/60 font-semibold"><td className="py-1 pr-2"><SectionIcon section={sec} className="mr-1.5" />{sec} · {secLabel(sec)}</td><td className="py-1 text-right tabular-nums">{usdDollars(totals.sections[sec])}</td></tr>
-                  {SHEET_LINES.filter((l) => fieldOf(l.fieldId)?.section === sec).map((l) => (
-                    <tr key={l.fieldId} data-fin-ladder-field={l.fieldId} className="text-muted-foreground"><td className="py-0.5 pl-6 pr-2">{fieldLabel(l.fieldId)}</td><td className="py-0.5 text-right tabular-nums">{usdDollars(inPeriod(l))}</td></tr>
+                  {plan.filter((l) => fieldOf(l.fieldId)?.section === sec).map((l) => (
+                    <tr key={l.fieldId} data-fin-ladder-field={l.fieldId} className="text-muted-foreground"><td className="py-0.5 pl-6 pr-2">{fieldLabel(l.fieldId)}</td>
+                      <td className="py-0.5 text-right tabular-nums">
+                        {editing ? (
+                          <span className="flex items-center justify-end gap-1">
+                            <input data-fin-plan-amount={l.fieldId} className="w-28 rounded-md border border-border bg-background px-2 py-1 text-right text-xs text-foreground" inputMode="decimal"
+                              value={drafts[l.fieldId] ?? String(lineInUnit(l, period))} onChange={(e) => typeAmount(l.fieldId, e.target.value)} onBlur={() => setDrafts((d) => { const n = { ...d }; delete n[l.fieldId]; return n; })} />
+                            <button type="button" data-fin-plan-remove={l.fieldId} aria-label={t("fin.remove_line")} title={t("fin.remove_line")} onClick={() => writePlan(removeLine(plan, l.fieldId))} className="rounded-md border border-border p-1"><X size={12} strokeWidth={1.5} aria-hidden /></button>
+                          </span>
+                        ) : usdDollars(inPeriod(l))}
+                      </td></tr>
                   ))}
                 </Fragment>
               ))}
               <tr className={`border-t border-border font-semibold ${totals.net < 0 ? "text-red-500" : "text-green-500"}`}><td className="py-1 pr-2">{t("fin.net")}</td><td data-fin-budget-net className="py-1 text-right tabular-nums">{usdDollars(totals.net)}</td></tr>
             </tbody>
           </table>
+          {editing && (
+            <div data-fin-plan-add className="mt-2 grid gap-2 sm:grid-cols-3">
+              {/* add a line: a FLOW field A–M not yet on the plan (the pickers are inline, never a nested component — the picker law, r.014) */}
+              <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground"><span><SectionIcon section={addSec} className="mr-1" />{t("fin.section")}</span>
+                <select data-fin-plan-section className={PICK} value={addSec} onChange={(e) => { const sec = e.target.value as FlowSectionId; setAddSec(sec); setAddField(fieldsOf(sec)[0]?.id ?? ""); }}>
+                  {FLOW_SECTIONS.map((sec) => <option key={sec} value={sec}>{sec} · {secLabel(sec)}</option>)}
+                </select>
+              </label>
+              <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.field")}
+                <select data-fin-plan-field className={PICK} value={addable.some((f) => f.id === addField) ? addField : (addable[0]?.id ?? "")} onChange={(e) => setAddField(e.target.value)}>
+                  {addable.map((f) => <option key={f.id} value={f.id}>{fieldLabel(f.id)}</option>)}
+                </select>
+              </label>
+              <span className="flex items-end gap-2">
+                <button type="button" data-fin-plan-add-btn disabled={!addable.length} onClick={() => { const id = addable.some((f) => f.id === addField) ? addField : addable[0]?.id; if (id) writePlan(addLine(plan, id)); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs disabled:opacity-50">{t("fin.add_line")}</button>
+                <button type="button" data-fin-plan-reset onClick={() => { if (owner) clearPlan(owner); setPlan(sheetPlan()); setDrafts({}); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs">{t("fin.reset_sheet")}</button>
+              </span>
+            </div>
+          )}
           <p className="mt-2 text-xs text-muted-foreground">{t("fin.stock_note")}</p>
         </div>
 

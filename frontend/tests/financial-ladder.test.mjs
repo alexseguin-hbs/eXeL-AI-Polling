@@ -70,5 +70,29 @@ ok(near(L.ratePerMinute(360449, 91 / 3), 8.2520, 1e-3), "the worked paycheck run
   const late = L.actualsByField(txs, t0 + 30 * day, t0 + 60 * day);
   ok(near(late["A.income_wages"].amount, 3200 * 3 / 33) && near(late["F.groceries"].amount, 80), "a window that catches the last three days of the paycheck and the later grocery only"); }
 
+// ── r.016 · THE PERSON'S PLAN (addendum 28 "add edit mode and icon on budget mode") — pure, on the 33-day base ──────────────
+{
+  const P = await import("../lib/financial-2525/plan.ts");
+  const store = new Map(); globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
+  const sheet = P.sheetPlan();
+  ok(sheet.length === 8 && sheet.every((l) => l.nativePeriod === "days33") && sheet !== P.sheetPlan(), "the sheet is the plan at first: eight lines on the 33-day base, a fresh copy every time");
+  ok(P.loadPlan("alice") === null && P.planOrSheet(null).length === 8, "a device with no plan reads the sheet");
+  // typed in the unit on the glass, stored on the base: $10/day on Groceries = $330 per 33 days; $0.0042/min back and forth within a cent
+  const a = P.setLineAmount(sheet, "F.groceries", 10, "day"); const g = a.find((l) => l.fieldId === "F.groceries");
+  ok(near(g.amountNative, 330, 1e-9) && g.nativePeriod === "days33" && P.lineInUnit(g, "day") === 10, "an amount typed per day is stored per 33 days (10/day → 330) and reads back per day exactly");
+  ok(near(P.lineInUnit(P.setLineAmount(sheet, "A.income_wages", 1.5, "hour").find((l) => l.fieldId === "A.income_wages"), "hour"), 1.5, 1e-9), "per hour round-trips (1.5/h)");
+  ok(P.setLineAmount(sheet, "F.groceries", -5, "day").find((l) => l.fieldId === "F.groceries").amountNative === 300 && P.setLineAmount(sheet, "F.groceries", NaN, "day").find((l) => l.fieldId === "F.groceries").amountNative === 300, "a negative or NaN figure changes nothing (a refusal, never an accidental zero)");
+  ok(L.netLadder(a, "days33").net === L.netLadder(sheet, "days33").net - 30, "Net follows the plan (330 instead of 300 on Groceries → Net 30 lower)");
+  const b = P.addLine(sheet, "C.fuel");
+  ok(b.length === 9 && b.at(-1).fieldId === "C.fuel" && b.at(-1).amountNative === 0 && P.addLine(b, "C.fuel").length === 9, "a FLOW field is added once with a zero amount; a second add is refused");
+  ok(P.addLine(sheet, "N.checking_savings_cash").length === 8 && P.addLine(sheet, "Z.nothing").length === 8, "N–T and unknown fields are refused (they live on the Balance view, never per period)");
+  ok(P.removeLine(b, "C.fuel").length === 8 && !P.removeLine(b, "C.fuel").some((l) => l.fieldId === "C.fuel"), "a line is removed");
+  ok(P.savePlan("alice", a) && JSON.stringify(P.loadPlan("alice")) === JSON.stringify(a), "the plan is saved on the device under the person's own key and reads back whole");
+  store.set(P.planKey("mallory"), JSON.stringify([{ fieldId: "F.groceries", amountNative: 1, nativePeriod: "day" }, { fieldId: "Q.net_worth", amountNative: 5, nativePeriod: "days33" }, 7]));
+  ok((P.loadPlan("mallory") ?? []).length === 0 && P.planOrSheet(P.loadPlan("mallory")).length === 8, "a malformed saved copy (wrong base, an N–T id, a non-line) is dropped line by line and the sheet stands");
+  P.clearPlan("alice"); ok(P.loadPlan("alice") === null, "Reset clears the device copy");
+  delete globalThis.localStorage;
+}
+
 console.log(`financial-ladder: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

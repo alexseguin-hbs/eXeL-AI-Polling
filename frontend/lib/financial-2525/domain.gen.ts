@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.015",
-  "stamp": "v.000_r.015",
+  "revision": "0.016",
+  "stamp": "v.000_r.016",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "fa4f8bc14a82b5a050b1e77c36c00fc5d7e008cef7a9c8eb4b0b4a34dd23a387",
+  "handoffSha256": "9ee4f6e7a6ec41c1e9556caa6eb8f003640a789d85a8e49c7c0c3c167708fdfb",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -131,6 +131,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "fa4f8bc14a82b5a050b1e77c36c00fc5d7e008cef7a9c8eb4b0b4a34dd23a387",
     "date": "2026-09-30",
     "note": "+ addendum 27 (\"well done on iconology; ensure for all A-U major categories icons exist\"; reading item 35: twenty distinct strokes A–T, U a rule)"
+   },
+   {
+    "sha256": "9ee4f6e7a6ec41c1e9556caa6eb8f003640a789d85a8e49c7c0c3c167708fdfb",
+    "date": "2026-09-30",
+    "note": "+ addendum 28 (\"add edit mode and icon on budget mode\"; reading item 36: the person's plan behind a pencil)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -262,6 +267,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "Every A–U major category carries an icon (operator addendum 27 'well done on iconology; ensure for all A-U major categories icons exist', with his phone screenshot of the r.011 ladder). Grep-verified before code (NO REWORK): r.012 already keyed SECTION_ICON A–T and drew it on the ladder rows, the picker and the record line; the gap was Q · Net worth and R · Credit sharing one stroke (Gauge) and no gate holding the twenty. r.015: Q takes its own stroke (CircleDollarSign), the twenty are distinct and all imported, U — the amortize rule, never a section or a chip — has no icon by design and the file says so; the surface gate holds all of it (six asserts). FIN-06.07 · FD-30.",
    "commit": "d9054ef",
    "shipped": "7112170"
+  },
+  {
+   "revision": "0.016",
+   "date": "2026-09-30",
+   "kind": "decision",
+   "why": "The budget has an EDIT mode behind an icon (operator addendum 28 'add edit mode and icon on budget mode', with his phone screenshot of the r.011 ladder). lib/financial-2525/plan.ts (pure): the person's plan starts as the sheet; an amount is typed in the unit the person has picked and STORED ON THE 33-DAY BASE (FD-25's fixed factors) — a non-number or a negative figure is refused; a line is added on any FLOW field A–M once (N–T refused: the Balance view, never per period); a line is removed; the plan is saved on the device under the person's own key (the record's scope, FD-18) and a malformed copy is dropped line by line; Reset clears it and the sheet stands. The surface: a pencil icon beside the budget's title (a signed-in person only; the check closes; the pressed state a stroke ring), every line's amount an input in edit mode held as a draft while typing so the once-a-second clock never eats a half-typed figure, × removes, an add row (section → a field not yet on the plan, full-width pickers, inline — the picker law), Reset to the sheet; every section total and Net follow the plan. Five keys staged (fin.edit · fin.done · fin.add_line · fin.remove_line · fin.reset_sheet). FIN-06.08 · FD-31.",
+   "commit": "a1c4d30",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1090,6 +1103,24 @@ export const FINANCIAL_DOMAIN = {
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-06.08",
+   "title": "The budget's edit mode behind an icon — the person's plan on the 33-day base",
+   "section": "V",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "A signed-in person opens the budget's edit mode from a pencil icon beside its title; in it every line's amount is a field in the unit they have picked (stored on the 33-day base), a line can be removed, a line can be added on any A–M field not yet on the plan, Reset returns to the sheet, and the check closes the mode; the plan is saved on the device under their key and loaded at sign-in; every section total, every figure and Net follow the plan at once.",
+   "metric": "plan.ts (gated in tests/financial-ladder.test.mjs): 10/day on Groceries stores 330 per 33 days and reads back 10/day; 1.5/h round-trips; a non-number or a negative changes nothing; Net follows the plan (330 for 300 → Net 30 lower); a FLOW field is added once with a zero amount, N–T and unknown ids refused; a line is removed; saved and read back whole under the person's key; a malformed copy is dropped line by line; Reset clears it. Surface: data-fin-budget-edit with aria-pressed (Pencil ⇄ Check, a stroke ring), data-fin-plan-amount inputs held as drafts, data-fin-plan-remove, data-fin-plan-add with section + field pickers, data-fin-plan-reset; totals = netLadder(plan, period); the sheet constant is never read on the surface",
+   "dtm": "on the phone: tap the pencil → change Groceries to 10 per day → the row reads 10, the section F and Net move → tap the check",
+   "stretch": "the cloud copy of the plan once the login carries the record (FD-18); the actuals column beside the plan (r.017)",
+   "in": "FIN-06.08.IN",
+   "out": "FIN-06.08.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -1272,6 +1303,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "Twenty sections, twenty strokes: every section A–T has its own icon from ONE map, distinct and imported, gated; U is a rule and has none. The r.008 icon law for the sheet's categories extends to the ladder's sections.",
    "status": "OPERATOR",
    "basis": "addendum 27 (verbatim: 'well done on iconology; ensure for all A-U major categories icons exist'); reading item 35"
+  },
+  {
+   "id": "FD-31",
+   "decision": "The budget is the person's PLAN: edited behind an icon, typed in the unit on the glass and stored on the 33-day base, one line per FLOW field (N–T never), saved on the device under the person's key with Reset to the sheet. The sheet stays the read-only example for a visitor.",
+   "status": "OPERATOR",
+   "basis": "addendum 28 (verbatim: 'add edit mode and icon on budget mode'); reading item 36; FD-18 (the device scope), FD-25 (the fixed factors)"
   }
  ],
  "reviews": [
