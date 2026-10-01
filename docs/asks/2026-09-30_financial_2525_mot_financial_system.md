@@ -669,6 +669,12 @@
 >
 > The whole idea is get people thinking $/hr, $/ min and eventually $/sec finances for the day AI transactions get faster and more global
 
+> (addendum 96, his answers verbatim — 2026-10-01, to four questions on addendum 95)
+> "1x" in the toggle: what span is it? → 1D (one day)
+> When a span is picked (e.g. 30D), how is each transaction charted? → Re-spread over the span
+> "1M" and "30D" both appear. What is 1M? → Standard Month
+> "365 /364": one button or two? → adjusts for leap year automatically
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -1019,6 +1025,9 @@
     like 2D/3D picks the span — 1x · 1W · 1M · 30D · 91D · 365/364 — and every transaction is charted from its entry time across the
     picked span as $/min, in A.B..C units with integer A, B, C, then shown in the picked currency. Purpose: thinking in $/hr, $/min and
     eventually $/sec. Design questions asked before any code.
+94. **The span toggle, decided (addendum 96):** 1D · 1W · 1M (the Standard Month, e.g. October = 31 days) · 30D · 91D · the year (365
+    days, 366 in a leap year, chosen automatically). Picking a span re-spreads every transaction over that span from its entry time —
+    the chart shows the $/min each would release at; the record and Available are unchanged.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
