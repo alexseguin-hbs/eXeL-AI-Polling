@@ -113,5 +113,30 @@ ok(near(L.ratePerMinute(360449, 91 / 3), 8.2520, 1e-3), "the worked paycheck run
   ok(L.groupByKind([], "days33").length === 0, "an empty plan has no groups (no $0 rows)");
 }
 
+// ── r.021 · EVERY BUDGET LINE CARRIES ITS OWN MoT (addendum 35 "on input of transaction or budget, must be able to specify time") ──
+{
+  const P = await import("../lib/financial-2525/plan.ts");
+  const store = new Map(); globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
+  const sheet = P.sheetPlan();
+  const ins = sheet.find((l) => l.fieldId === "D.auto_renters_home");
+  ok(JSON.stringify(P.lineSpec(ins)) === JSON.stringify({ amount: 200, rec: "days33", otherN: 0, otherUnit: "days" }), "a sheet line with no spec reads as typed: its 33-day figure, every 33 days");
+  ok(P.BUDGET_RECURRENCES.join() === "weekly,paymot,days33,month91,yearly,other", "a budget line's MoT comes from the transaction form's presets, One time excepted (a budget line is a rate)");
+  const y = P.setLineSpec(sheet, "D.auto_renters_home", { amount: 1200, rec: "yearly", otherN: 0, otherUnit: "days" }); const yl = y.find((l) => l.fieldId === "D.auto_renters_home");
+  ok(yl.amount === 1200 && yl.rec === "yearly" && near(yl.amountNative, 1200 * 33 / 365, 1e-9) && near(L.toPeriod(yl.amountNative, yl.nativePeriod, "year"), 1200, 1e-9) && JSON.stringify(P.lineSpec(yl)) === JSON.stringify({ amount: 1200, rec: "yearly", otherN: 0, otherUnit: "days" }), "Insurance $1,200 Yearly is kept as typed and reads $1,200 per year on the table, $108.49 per 33 days");
+  const m = P.setLineSpec(sheet, "B.rent_mortgage", { amount: 700, rec: "paymot", otherN: 0, otherUnit: "days" }).find((l) => l.fieldId === "B.rent_mortgage");
+  ok(near(L.toPeriod(m.amountNative, m.nativePeriod, "month"), 700, 1e-9) && near(L.toPeriod(m.amountNative, m.nativePeriod, "quarter"), 2100, 1e-9), "Rent $700 Monthly reads $700 per month and $2,100 per quarter");
+  const o = P.setLineSpec(sheet, "F.groceries", { amount: 30, rec: "other", otherN: 36, otherUnit: "hours" }).find((l) => l.fieldId === "F.groceries");
+  ok(near(L.toPeriod(o.amountNative, o.nativePeriod, "day"), 20, 1e-9) && o.otherN === 36 && o.otherUnit === "hours", "Other: $30 every 36 hours reads $20 per day");
+  const bad = [{ amount: -1, rec: "yearly" }, { amount: NaN, rec: "yearly" }, { amount: 10, rec: "once" }, { amount: 10, rec: "other", otherN: 0 }, { amount: 10, rec: "bogus" }];
+  ok(bad.every((b) => JSON.stringify(P.setLineSpec(sheet, "F.groceries", { otherN: 0, otherUnit: "days", ...b })) === JSON.stringify(sheet)), "a negative or non-number amount, One time, a zero-length Other or an unknown MoT changes nothing");
+  const a = P.addLine(sheet, "C.fuel", { amount: 60, rec: "weekly", otherN: 0, otherUnit: "days" }).find((l) => l.fieldId === "C.fuel");
+  ok(a && a.amount === 60 && a.rec === "weekly" && near(L.toPeriod(a.amountNative, a.nativePeriod, "week"), 60, 1e-9), "a new line is added with its amount and its MoT (Fuel $60 Weekly)");
+  ok(P.savePlan("ann", y) && JSON.stringify(P.loadPlan("ann")) === JSON.stringify(y), "the spec is saved on the device and reads back whole");
+  store.set(P.planKey("eve"), JSON.stringify([{ fieldId: "F.groceries", amountNative: 300, nativePeriod: "days33", amount: 5, rec: "once" }]));
+  const ev = P.loadPlan("eve");
+  ok(ev.length === 1 && ev[0].rec === undefined && ev[0].amountNative === 300 && P.lineSpec(ev[0]).rec === "days33", "a saved line with an impossible MoT keeps its figure and drops the bad spec (reads every 33 days)");
+  delete globalThis.localStorage;
+}
+
 console.log(`financial-ladder: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

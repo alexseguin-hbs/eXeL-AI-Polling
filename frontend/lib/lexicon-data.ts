@@ -2917,7 +2917,7 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.reason_insufficient", englishDefault: "More than is withdrawable", context: "Financial-2525: why a withdrawal was refused: the amount exceeds what has been released and is past the hold", cubeId: 0 },
   { key: "fin.reason_amount", englishDefault: "Enter an amount above zero", context: "Financial-2525: why a form was refused: the amount was empty or zero", cubeId: 0 },
   { key: "fin.reason_stamp", englishDefault: "The day and time must read YYYY.MM.DD_HH.MM..SS", context: "Financial-2525: why a form was refused: the timestamp did not match the stamp format", cubeId: 0 },
-  { key: "fin.escrowed", englishDefault: "In escrow", context: "Financial-2525: balance line: money deposited but not yet released", cubeId: 0 },
+  { key: "fin.escrowed", englishDefault: "In Escrow", context: "Financial-2525: balance line: money deposited but not yet released", cubeId: 0 },
   { key: "fin.released", englishDefault: "Released", context: "Financial-2525: balance line: money the escrow has released so far", cubeId: 0 },
   { key: "fin.withdrawable", englishDefault: "Withdrawable", context: "Financial-2525: balance line: released money past the 3-hour hold", cubeId: 0 },
   { key: "fin.withdrawn", englishDefault: "Withdrawn", context: "Financial-2525: balance line: money already taken out", cubeId: 0 },

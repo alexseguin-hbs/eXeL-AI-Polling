@@ -1277,7 +1277,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Çekilebilenden daha fazla",
   "fin.reason_amount": "Sıfırdan büyük bir miktar girin",
   "fin.reason_stamp": "Gün ve saat YYYY.MM.DD_HH.MM..SS şeklinde olmalıdır",
-  "fin.escrowed": "Emanette",
   "fin.released": "Serbest bırakılmış",
   "fin.withdrawable": "Çekilebilir",
   "fin.withdrawn": "Çekilen",

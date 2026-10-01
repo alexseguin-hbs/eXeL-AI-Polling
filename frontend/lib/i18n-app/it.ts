@@ -1279,7 +1279,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Più di quanto è prelevabile",
   "fin.reason_amount": "Inserisci un importo superiore a zero",
   "fin.reason_stamp": "Il giorno e l'ora devono essere nel formato YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "In deposito cauzionale",
   "fin.released": "Rilasciato",
   "fin.withdrawable": "Prelevabile",
   "fin.withdrawn": "Prelevato",

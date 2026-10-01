@@ -1281,7 +1281,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Enemmän kuin mitä on nostettavissa",
   "fin.reason_amount": "Anna summa, joka on suurempi kuin nolla",
   "fin.reason_stamp": "Päivän ja kellonajan on oltava muodossa YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "Sulkutilillä",
   "fin.released": "Vapautettu",
   "fin.withdrawable": "Nostettavissa",
   "fin.withdrawn": "Nostettu",

@@ -1290,7 +1290,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Περισσότερο από ό,τι είναι δυνατό να ληφθεί",
   "fin.reason_amount": "Εισαγάγετε ένα ποσό μεγαλύτερο του μηδενός",
   "fin.reason_stamp": "Η ημέρα και η ώρα πρέπει να έχουν τη μορφή YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "Σε μεσεγγύηση",
   "fin.released": "Απελευθερωμένο",
   "fin.withdrawable": "Δυνατή ανάληψη",
   "fin.withdrawn": "Αναληφθέν",

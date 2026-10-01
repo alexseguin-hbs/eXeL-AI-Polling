@@ -1278,7 +1278,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Больше, чем можно снять",
   "fin.reason_amount": "Введите сумму больше нуля",
   "fin.reason_stamp": "День и время должны быть YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "На эскроу",
   "fin.released": "Высвобождено",
   "fin.withdrawable": "К снятию",
   "fin.withdrawn": "Снято",

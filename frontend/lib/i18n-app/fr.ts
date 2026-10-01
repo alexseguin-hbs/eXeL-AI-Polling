@@ -1218,7 +1218,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Plus que ce qui est retirable",
   "fin.reason_amount": "Entrez un montant supérieur à zéro",
   "fin.reason_stamp": "Le jour et l'heure doivent s'écrire YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "En séquestre",
   "fin.released": "Libéré",
   "fin.withdrawable": "Retirable",
   "fin.withdrawn": "Retiré",

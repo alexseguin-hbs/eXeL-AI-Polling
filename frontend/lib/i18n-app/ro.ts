@@ -1281,7 +1281,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Mai mult decât se poate retrage",
   "fin.reason_amount": "Introduceți o sumă mai mare de zero",
   "fin.reason_stamp": "Ziua și ora trebuie să fie YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "În depozit de siguranță",
   "fin.released": "Eliberat",
   "fin.withdrawable": "Disponibil de retras",
   "fin.withdrawn": "Retras",

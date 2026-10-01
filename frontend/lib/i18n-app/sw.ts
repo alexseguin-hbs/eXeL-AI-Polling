@@ -1283,7 +1283,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Zaidi ya kile kinachoweza kutolewa",
   "fin.reason_amount": "Ingiza kiasi zaidi ya sifuri",
   "fin.reason_stamp": "Siku na wakati lazima ziandikwe kama YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "Katika amana",
   "fin.released": "Imeachiliwa",
   "fin.withdrawable": "Kinachoweza kutolewa",
   "fin.withdrawn": "Imetolewa",

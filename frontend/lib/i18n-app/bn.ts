@@ -1279,7 +1279,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "উত্তোলনযোগ্যের চেয়ে বেশি",
   "fin.reason_amount": "শূন্যের বেশি একটি পরিমাণ লিখুন",
   "fin.reason_stamp": "দিন এবং সময় অবশ্যই YYYY.MM.DD_HH.MM..SS বিন্যাসে হতে হবে",
-  "fin.escrowed": "এস্ক্রোতে",
   "fin.released": "মুক্তি দেওয়া হয়েছে",
   "fin.withdrawable": "উত্তোলনযোগ্য",
   "fin.withdrawn": "উত্তোলিত",

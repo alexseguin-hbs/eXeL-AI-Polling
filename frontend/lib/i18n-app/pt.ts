@@ -1274,7 +1274,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Mais do que é sacável",
   "fin.reason_amount": "Insira um valor acima de zero",
   "fin.reason_stamp": "O dia e hora devem estar em YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "Em caução",
   "fin.released": "Liberado",
   "fin.withdrawable": "Sacável",
   "fin.withdrawn": "Sacado",

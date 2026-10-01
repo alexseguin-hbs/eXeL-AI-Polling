@@ -1279,7 +1279,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "निकाल्न योग्यभन्दा बढी",
   "fin.reason_amount": "शून्य भन्दा माथिको रकम प्रविष्ट गर्नुहोस्",
   "fin.reason_stamp": "दिन र समय YYYY.MM.DD_HH.MM..SS को रूपमा हुनुपर्छ",
-  "fin.escrowed": "एस्क्रोमा",
   "fin.released": "मुक्त गरिएको",
   "fin.withdrawable": "निकाल्न योग्य",
   "fin.withdrawn": "निकालिएको",

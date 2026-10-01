@@ -1284,7 +1284,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "มากกว่าจำนวนที่สามารถถอนได้",
   "fin.reason_amount": "กรุณาป้อนจำนวนที่มากกว่าศูนย์",
   "fin.reason_stamp": "วันและเวลาต้องอยู่ในรูปแบบ YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "อยู่ในเอสโครว์",
   "fin.released": "ปล่อยแล้ว",
   "fin.withdrawable": "สามารถถอนได้",
   "fin.withdrawn": "ถูกถอนแล้ว",

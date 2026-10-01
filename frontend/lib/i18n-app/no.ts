@@ -1286,7 +1286,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Mer enn det som kan tas ut",
   "fin.reason_amount": "Oppgi et beløp større enn null",
   "fin.reason_stamp": "Datoen og tiden må være på formatet YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "I deponering",
   "fin.released": "Frigjort",
   "fin.withdrawable": "Kan tas ut",
   "fin.withdrawn": "Tatt ut",

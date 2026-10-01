@@ -1286,7 +1286,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "ਕਢਵਾਉਣ ਯੋਗ ਰਕਮ ਤੋਂ ਵੱਧ",
   "fin.reason_amount": "ਜ਼ੀਰੋ ਤੋਂ ਵੱਧ ਰਕਮ ਦਾਖਲ ਕਰੋ",
   "fin.reason_stamp": "ਦਿਨ ਅਤੇ ਸਮਾਂ YYYY.MM.DD_HH.MM..SS ਦੇ ਰੂਪ ਵਿੱਚ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ",
-  "fin.escrowed": "ਐਸਕ੍ਰੋ ਵਿੱਚ",
   "fin.released": "ਜਾਰੀ ਕੀਤਾ",
   "fin.withdrawable": "ਕਢਵਾਉਣ ਯੋਗ",
   "fin.withdrawn": "ਕਢਵਾਇਆ ਗਿਆ",

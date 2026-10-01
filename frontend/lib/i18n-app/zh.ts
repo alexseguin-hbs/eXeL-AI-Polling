@@ -1280,7 +1280,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "超过可提取金额",
   "fin.reason_amount": "输入大于零的金额",
   "fin.reason_stamp": "日期和时间必须为 YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "在托管中",
   "fin.released": "已释放",
   "fin.withdrawable": "可提取",
   "fin.withdrawn": "已提取",

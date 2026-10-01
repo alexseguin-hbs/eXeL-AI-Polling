@@ -1280,7 +1280,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Více, než je vybíratelné",
   "fin.reason_amount": "Zadejte částku větší než nula",
   "fin.reason_stamp": "Den a čas musí být ve formátu YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "V úschově",
   "fin.released": "Uvolněno",
   "fin.withdrawable": "Vybíratelné",
   "fin.withdrawn": "Vybráno",

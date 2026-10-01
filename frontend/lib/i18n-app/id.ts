@@ -1294,7 +1294,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Lebih dari yang dapat ditarik",
   "fin.reason_amount": "Masukkan jumlah di atas nol",
   "fin.reason_stamp": "Hari dan waktu harus berbentuk YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "Dalam penyimpanan",
   "fin.released": "Dilepaskan",
   "fin.withdrawable": "Dapat ditarik",
   "fin.withdrawn": "Ditarik",

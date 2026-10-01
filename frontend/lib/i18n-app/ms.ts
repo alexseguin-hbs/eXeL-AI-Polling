@@ -1278,7 +1278,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Lebih daripada yang boleh dikeluarkan",
   "fin.reason_amount": "Masukkan amaun lebih daripada sifar",
   "fin.reason_stamp": "Hari dan waktu mesti dalam format YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "Dalam escrow",
   "fin.released": "Dilepaskan",
   "fin.withdrawable": "Boleh dikeluarkan",
   "fin.withdrawn": "Telah dikeluarkan",

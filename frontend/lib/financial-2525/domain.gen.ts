@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.020",
-  "stamp": "v.000_r.020",
+  "revision": "0.021",
+  "stamp": "v.000_r.021",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "513b75fc5b88136defc23738bd40da70f84fff5561796158607db87639c0ff15",
+  "handoffSha256": "092e2ed8a787f9c99a8c65f6aad1785ad686b89ac64d7364f6de74acb33b55ed",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -156,6 +156,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "513b75fc5b88136defc23738bd40da70f84fff5561796158607db87639c0ff15",
     "date": "2026-10-01",
     "note": "+ addendum 34 ('use 91 day quarter which means 30.333 day month'; reading item 43)"
+   },
+   {
+    "sha256": "092e2ed8a787f9c99a8c65f6aad1785ad686b89ac64d7364f6de74acb33b55ed",
+    "date": "2026-10-01",
+    "note": "+ addendum 35 ('on input of transaction or budget, must be able to specify time (MoT of transaction)' · 'In Escrow'; reading items 44–45)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -329,6 +334,14 @@ export const FINANCIAL_DOMAIN = {
    "commit": "a695ba6",
    "shipped": "97731f2",
    "correction": "r.006–r.019 called a 91-day span a month on the budget's unit dropdown, the length presets and the planet table; it is a quarter, and the month is a third of it."
+  },
+  {
+   "revision": "0.021",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "Every amount carries its own MoT (operator addendum 35 'on input of transaction or budget, must be able to specify time (MoT of transaction)'). The transaction form already asked for it (Length (MoT)); the budget did not — its lines were typed in whatever unit the table showed. plan.ts: a line keeps the amount the person typed and the length it covers — the transaction form's presets (Weekly · Monthly (30.333 days) · Every 33 days · Quarterly (91 days) · Yearly), One time excepted because a budget line is a rate, and Other as a number in years · days · hours · minutes; the ladder still reads the line on the 33-day base, so the table, the groups and Net convert it to whatever unit is showing (Insurance $1,200 Yearly reads $1,200 per year, $108.49 per 33 days); a negative or non-number amount, One time or a zero-length Other changes nothing; a saved line with an impossible MoT keeps its figure and drops the bad spec. The glass: in edit mode each line shows its amount, its MoT select and (for Other) its number and unit, beside the ×; the add row takes the new line's amount and MoT (Monthly by default). And 'In escrow' reads 'In Escrow' (English only, addendum 32). No new word — the transaction form's words carry it. FIN-06.11 · FD-36.",
+   "commit": "2756088",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1262,6 +1275,24 @@ export const FINANCIAL_DOMAIN = {
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-06.11",
+   "title": "Every budget line carries its own amount and MoT",
+   "section": "V",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-surface.test.mjs",
+   "statement": "In the budget's edit mode every line is entered as its amount and the time it covers — the transaction form's MoT presets (One time excepted) or Other as a number in years · days · hours · minutes — kept as typed and converted by the table to the unit showing; a new line is added with its amount and its MoT; the transaction form keeps its own MoT for every type.",
+   "metric": "plan.ts (gated in tests/financial-ladder.test.mjs): lineSpec of a sheet line = its 33-day figure every 33 days; setLineSpec Insurance 1,200 yearly → amountNative 1,200·33/365, reads 1,200 per year; Rent 700 monthly reads 700 per month and 2,100 per quarter; 30 every 36 hours reads 20 per day; refusals change nothing; addLine with a spec; save/load whole; a bad saved spec dropped. Surface: data-fin-plan-rec select of BUDGET_RECURRENCES labelled fin.length per line, data-fin-plan-n / data-fin-plan-unit on Other, data-fin-plan-add-amount and data-fin-plan-add-rec on the add row",
+   "dtm": "on the phone: pencil → Insurance 1200 · Yearly → the Fixed row adds $108.49 per 33 days, $1,200 per year",
+   "stretch": "the plan's lines compared with the actual transactions over the same window (the actuals column)",
+   "in": "FIN-06.11.IN",
+   "out": "FIN-06.11.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -1474,6 +1505,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "A month is 30.333 days (91 ÷ 3) and 91 days is a quarter, on every period the surface names; the record ids for the recorded presets stay unchanged so past entries keep their meaning. Supersedes FD-25's month-91 factor and addendum 13's 'Month 91 for now'.",
    "status": "OPERATOR",
    "basis": "addendum 34 (verbatim: 'use 91 day quarter which means 30.333 day month'); reading item 43"
+  },
+  {
+   "id": "FD-36",
+   "decision": "Every amount the person enters carries its own MoT: the transaction form's Length, and on every budget line the same presets (One time excepted) with Other; a budget line is kept as typed and converted for display. 'In escrow' reads 'In Escrow'.",
+   "status": "OPERATOR",
+   "basis": "addendum 35 (verbatim: 'on input of transaction or budget, must be able to specify time (MoT of transaction)' · 'Change In escrow to “In Escrow”'); reading items 44–45"
   }
  ],
  "reviews": [

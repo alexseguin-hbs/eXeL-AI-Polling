@@ -1426,7 +1426,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Higit pa sa kung ano ang maaaring i-withdraw",
   "fin.reason_amount": "Magpasok ng halagang higit sa zero",
   "fin.reason_stamp": "Ang araw at oras ay dapat nakasulat bilang YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "Sa escrow",
   "fin.released": "Inilabas",
   "fin.withdrawable": "Maaaring i-withdraw",
   "fin.withdrawn": "Na-withdraw",

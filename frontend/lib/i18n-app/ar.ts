@@ -1275,7 +1275,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "أكثر مما يمكن سحبه",
   "fin.reason_amount": "أدخل مبلغاً أكبر من صفر",
   "fin.reason_stamp": "يجب أن يكون اليوم والوقت YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "في الضمان",
   "fin.released": "مُفرَج عنه",
   "fin.withdrawable": "قابل للسحب",
   "fin.withdrawn": "مسحوب",

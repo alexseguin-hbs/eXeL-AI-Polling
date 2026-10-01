@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 41 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 42 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -296,6 +296,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "v.000_r.020 SHIPPED — 91 days is a quarter and a month is 30.333 days on the unit dropdown, the length presets and the planet table; nine periods, three months make the quarter. FIN-06.10 · FD-35. Shipped as 97731f2. Gates: financial-ladder 83 · planet-ltu 24 · financial-crs 410 · full test:ci 0 · next build 0.",
       "commit": "97731f2"
+    },
+    {
+      "rev": 42,
+      "date": "2026-10-01",
+      "kind": "decision",
+      "text": "r.021 decided (operator addendum 35): every budget line carries its own amount and MoT — the transaction form's presets (One time excepted) with Other — kept as typed and converted to the table's unit; the add row takes amount and MoT; 'In Escrow'. FIN-06.11 · FD-36.",
+      "commit": "2756088"
     }
   ]
 };

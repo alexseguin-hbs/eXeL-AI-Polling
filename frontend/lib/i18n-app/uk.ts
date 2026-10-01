@@ -1279,7 +1279,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Більше, ніж можна зняти",
   "fin.reason_amount": "Введіть суму більше нуля",
   "fin.reason_stamp": "День та час мають бути у форматі YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "На умовному зберіганні",
   "fin.released": "Звільнено",
   "fin.withdrawable": "Можна зняти",
   "fin.withdrawn": "Знято",

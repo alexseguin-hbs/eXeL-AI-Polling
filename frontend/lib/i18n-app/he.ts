@@ -1278,7 +1278,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "יותר ממה שניתן למשוך",
   "fin.reason_amount": "הזן סכום מעל אפס",
   "fin.reason_stamp": "היום והזמן חייבים להיות YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "בפיקדון",
   "fin.released": "שוחרר",
   "fin.withdrawable": "ניתן למשיכה",
   "fin.withdrawn": "נמשך",

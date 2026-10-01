@@ -1281,7 +1281,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "引き出し可能な額を超えています",
   "fin.reason_amount": "ゼロより大きい金額を入力してください",
   "fin.reason_stamp": "日付と時刻はYYYY.MM.DD_HH.MM..SSである必要があります",
-  "fin.escrowed": "エスクロー中",
   "fin.released": "リリース済み",
   "fin.withdrawable": "引き出し可能",
   "fin.withdrawn": "引き出し済み",

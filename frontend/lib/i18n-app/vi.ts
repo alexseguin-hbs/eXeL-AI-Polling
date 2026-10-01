@@ -1282,7 +1282,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Vượt quá số tiền có thể rút",
   "fin.reason_amount": "Nhập số tiền lớn hơn 0",
   "fin.reason_stamp": "Ngày và giờ phải có dạng YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "Trong ký quỹ",
   "fin.released": "Đã giải ngân",
   "fin.withdrawable": "Có thể rút",
   "fin.withdrawn": "Đã rút",

@@ -1281,7 +1281,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Więcej niż można wypłacić",
   "fin.reason_amount": "Wpisz kwotę powyżej zera",
   "fin.reason_stamp": "Dzień i godzina muszą być w formacie YYYY.MM.DD_HH.MM..SS",
-  "fin.escrowed": "W depozycie",
   "fin.released": "Zwolniona",
   "fin.withdrawable": "Możliwa do wypłaty",
   "fin.withdrawn": "Wypłacona",

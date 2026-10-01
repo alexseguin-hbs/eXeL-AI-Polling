@@ -1284,7 +1284,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Meer dan opneembaar is",
   "fin.reason_amount": "Voer een bedrag groter dan nul in",
   "fin.reason_stamp": "De dag en tijd moeten YYYY.MM.DD_HH.MM..SS zijn",
-  "fin.escrowed": "In escrow",
   "fin.released": "Vrijgegeven",
   "fin.withdrawable": "Opneembaar",
   "fin.withdrawn": "Opgenomen",

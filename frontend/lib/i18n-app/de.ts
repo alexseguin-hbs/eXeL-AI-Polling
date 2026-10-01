@@ -1279,7 +1279,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "Mehr als abhebbar ist",
   "fin.reason_amount": "Geben Sie einen Betrag über Null ein",
   "fin.reason_stamp": "Der Tag und die Uhrzeit müssen YYYY.MM.DD_HH.MM..SS lauten",
-  "fin.escrowed": "In Treuhand",
   "fin.released": "Freigegeben",
   "fin.withdrawable": "Abhebbar",
   "fin.withdrawn": "Abgehoben",

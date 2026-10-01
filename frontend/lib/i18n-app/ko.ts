@@ -1279,7 +1279,6 @@ const T: Record<string, string> = {
   "fin.reason_insufficient": "출금 가능액 초과",
   "fin.reason_amount": "0보다 큰 금액을 입력하세요",
   "fin.reason_stamp": "날짜와 시간은 YYYY.MM.DD_HH.MM..SS 형식이어야 합니다",
-  "fin.escrowed": "에스크로 중",
   "fin.released": "해제됨",
   "fin.withdrawable": "출금 가능",
   "fin.withdrawn": "출금됨",
