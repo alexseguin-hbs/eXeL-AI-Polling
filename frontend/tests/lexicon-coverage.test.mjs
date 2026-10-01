@@ -43,7 +43,7 @@ const AFTER_FILL = new Set([
   ...['subtitle', 'wheel.hi', 'wheel.ai', 'wheel.si', 'trinity_aria', 'date_format', 'chart_tap'].map((k) => `fin.${k}`),
   // Financial-2525 r.028 (addenda 57 · 58 — no hold; the header's two lines; Accrual Units; the chart's settings with the text angle;
   // the Record folded as a table; the year as a table, perihelion first). The r.027 hold keys are retired. English only:
-  ...['title_l1', 'title_l2', 'accrual_units', 'settings', 'chart_angle', 'record_toggle', 'year_today', 'month', 'year', 'hash'].map((k) => `fin.${k}`),
+  ...['title_l1', 'accrual_units', 'settings', 'chart_angle', 'record_toggle', 'year_today', 'month', 'year', 'hash'].map((k) => `fin.${k}`),
   // r.029 (addendum 60 — three boxes, Spent, the figures explained in the gear). English only:
   ...['spent', 'def.available', 'def.escrowed', 'def.released', 'def.spent'].map((k) => `fin.${k}`),
   // r.030 (addendum 61 — the year card's own Clock / MoT toggle). English only:

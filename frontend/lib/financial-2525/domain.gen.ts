@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.038",
-  "stamp": "v.000_r.038",
+  "revision": "0.039",
+  "stamp": "v.000_r.039",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "16377096772a945c9b3841e15d093759774cdb9a47106915abec97c59cdc2c13",
+  "handoffSha256": "a93621c18b090eebdfe15fa9f5ad5ca9ffabc66148b1615e0e058419cfc814ca",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -236,6 +236,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "16377096772a945c9b3841e15d093759774cdb9a47106915abec97c59cdc2c13",
     "date": "2026-10-01",
     "note": "+ addendum 73 (no step rail; Accrual · Budget · Charts; the year card folded at the end) + his four answers; reading item 74"
+   },
+   {
+    "sha256": "a93621c18b090eebdfe15fa9f5ad5ca9ffabc66148b1615e0e058419cfc814ca",
+    "date": "2026-10-01",
+    "note": "+ addendum 74 (one header line; Standard Month); reading item 75"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -553,6 +558,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "No step rail; Accrual · Budget · Chart; the year card folded at the end, one system at a time. Addendum 72: \"year position is either Gregorian or A.B..C, not a mix of both.\" Addendum 73: \"get rid of this; adds no value; then reorder widgets: Accrual, Budget, Charts.\" His answers: the year card goes to the end, folded to its title (\"defaulted just title so one can open up menu for detail and see clock vs MoT icon and details\"); the Clock rows stay as they are; on MoT the rows are A.B..C only in equal parts of 3600 (perihelion 0.0000..0000 first, now out of 3600, quarter of 900 A, month of 300 A, revolution); and the same either/or rule everywhere: on MoT the chart line, the chart tap readout and the Accrual gear show A.B..C only, on Clock dates and hours only.",
    "commit": "cd4a33a",
    "shipped": "ddedbe6"
+  },
+  {
+   "revision": "0.039",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "One header line and \"Standard Month\". Addendum 74: \"Change top header to single line: Measure of Time: A Universal Standard · Say: Standard Month (no extra text).\" The header subtitle is one line; the budget unit that was \"per calendar month (October · 31 days)\" reads \"Standard Month\" and still converts by the real length of the month we are in.",
+   "commit": "a17b9ca",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -1962,6 +1975,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The step rail is gone; the cards read Accrual Units · Personal budget · Chart · Record · Year position (folded) · sign-in · Trinity. Every view shows one system: Clock = dates and hours, MoT = A.B..C only; MoT quarters and months are equal parts of 3600 (900 A, 300 A).",
    "status": "OPERATOR",
    "basis": "addenda 72 + 73 and his four answers (verbatim)"
+  },
+  {
+   "id": "FD-56",
+   "decision": "The header subtitle is one line, \"Measure of Time: A Universal Standard\"; the calendar-month budget unit reads \"Standard Month\", nothing beside it.",
+   "status": "OPERATOR",
+   "basis": "addendum 74 (verbatim)"
   }
  ],
  "reviews": [

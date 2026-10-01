@@ -184,12 +184,11 @@ export function FinancialCommandUX1() {
   type BudgetUnit = "sec" | "min" | "hour" | "day" | "week" | "m33" | "calmonth" | "month" | "quarter" | "year";
   // r.031 (addendum 62): the standard month — the calendar month we are in, from its 1st, its real length — before the 30.3̅-day month
   const calDays = now ? setCalendarMonth(now) : 0;
-  const calName = (() => { if (!now) return ""; const m = cstParts(now).mo; try { return new Intl.DateTimeFormat(activeLocale || "en", { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2026, m - 1, 15))); } catch { return ""; } })();
   const [budgetUnit, setBudgetUnit] = useState<BudgetUnit>("month");
   const UNITS: { key: BudgetUnit; label: string; period: Period }[] = [
     { key: "sec", label: t("fin.per_sec"), period: "second" }, { key: "min", label: t("fin.per_min"), period: "minute" }, { key: "hour", label: t("fin.per_hour"), period: "hour" },
     { key: "day", label: t("fin.per_day"), period: "day" }, { key: "week", label: t("fin.per_week"), period: "week" },
-    { key: "calmonth", label: calDays ? `${t("fin.per_cal_month")} (${calName} · ${calDays} ${t("fin.days")})` : t("fin.per_cal_month"), period: "calmonth" },
+    { key: "calmonth", label: t("fin.per_cal_month"), period: "calmonth" },   // r.039 (addendum 74): "Standard Month", no extra text
     { key: "month", label: t("fin.per_month"), period: "month" }, { key: "quarter", label: t("fin.per_quarter"), period: "quarter" }, { key: "year", label: t("fin.per_year"), period: "year" },
   ];
   const period: Period = UNITS.find((u) => u.key === budgetUnit)?.period ?? "month";   // r.028: no 33-day unit on the glass (addendum 58)
@@ -301,8 +300,8 @@ export function FinancialCommandUX1() {
         </div>
         <TrinityGlyphs size="text-3xl" className="mb-3" />
         <h1 className="text-2xl font-semibold">FINANCIAL · 2525</h1>
-        {/* r.028 (addendum 58): no version line here — it is at the bottom; the header reads two lines, "Measure of Time" / "A Universal Standard" */}
-        <p data-fin-subtitle className="mt-1 text-base text-foreground"><span className="block">{t("fin.title_l1")}</span><span className="block text-sm text-muted-foreground">{t("fin.title_l2")}</span></p>
+        {/* no version line here — it is at the bottom (r.028); ONE line, "Measure of Time: A Universal Standard" (r.039, addendum 74) */}
+        <p data-fin-subtitle className="mt-1 text-base text-foreground">{t("fin.title_l1")}</p>
       </header>
 
       {/* The one card — Accrual Units (+ the entry) · Personal budget · Chart · Record · Year position · sign-in · Trinity (r.038) */}
