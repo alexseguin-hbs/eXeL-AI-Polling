@@ -493,6 +493,11 @@
 > Measure of Time: A Universal Standard
 > Say:  Standard Month (no extra text)
 
+> (addendum 75, verbatim — 2026-10-01 8:03 AM, screenshot 2026-10-01_financial_fb75_budget_lines.png, the budget opened on an r.030 build, lines wrapping to two rows)
+> heres example to use also try reducing each entry on line (maybe make … or scroll ton-see rest of text) if you cant reduce text
+>
+> for instance personal fotness should be fitness
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -804,6 +809,9 @@
     holds on the chart's top line, its tap readout and the Accrual gear: MoT on → A.B..C only; Clock on → dates and hours only.
 75. **One header line; "Standard Month" (addendum 74):** the header subtitle reads one line, "Measure of Time: A Universal
     Standard". The budget's calendar-month unit reads "Standard Month" — no month name, no day count beside it.
+76. **One line per budget entry (addendum 75):** every budget line fits one row — a short name on the row ("Mental Health /
+    Physical Fitness" → "Fitness"); where a name still runs long it ends in "…" and the full name shows on hold/hover. The full
+    names stay in the pickers and the record (they are filled ×32; the short names are new English keys).
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
