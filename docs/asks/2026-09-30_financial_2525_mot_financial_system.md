@@ -554,6 +554,11 @@
 > master of Thought; did AsM s review before pushing?  if not commit and review and update due to your lack of fucking following past implementations
 > always test simulate and get feedback from AsM before wasting HI Thought Master inputs
 
+> (addendum 80, his answers verbatim — 2026-10-01, to three questions after the r.041 AsM review)
+> Mini Trinity — when tapped, where does the full wheel appear? → Grows in place at the top (Recommended)
+> The chart charts only the $320 deposit — what should it chart? → TITLE NEEDS TO CHANGE OF THAT SECTION FOR VISUAL; thats it
+> The budget shows the example sheet — which should it use? → Income from my record (Recommended)
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
