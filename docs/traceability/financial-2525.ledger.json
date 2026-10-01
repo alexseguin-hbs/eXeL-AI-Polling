@@ -450,6 +450,13 @@
    "kind": "decision",
    "text": "r.032 decision — the Record leads with signed Amount and Category (FD-49).",
    "commit": "a57453d"
+  },
+  {
+   "rev": 65,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.032 shipped — the Record leads with Amount and Category (FD-49).",
+   "commit": "2fa0ac1"
   }
  ]
 }

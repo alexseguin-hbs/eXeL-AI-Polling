@@ -464,7 +464,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "Addendum 63: \"the record chain needs dollar and then spend category as front two columns; order by logic.\" The Record table now reads, left to right: Amount (signed — + money in, − money out) · Category · Memo (who or what) · Day and time · Length (MoT) · Type · # · Hash. What you want to know first comes first; the proof (entry number and chain hash) sits last.",
    "commit": "a57453d",
-   "shipped": "PENDING"
+   "shipped": "2fa0ac1"
   }
  ],
  "mot": {
