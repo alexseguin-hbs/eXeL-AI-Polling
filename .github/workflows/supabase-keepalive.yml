@@ -10,6 +10,9 @@ on:
   schedule:
     - cron: "17 */12 * * *"   # twice a day: one missed run still leaves days of margin before the 7-day pause
   workflow_dispatch:
+  push:                       # a change to this file proves itself at once
+    branches: [main]
+    paths: [".github/workflows/supabase-keepalive.yml"]
 concurrency:
   group: supabase-keepalive
   cancel-in-progress: false
