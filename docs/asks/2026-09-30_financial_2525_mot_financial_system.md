@@ -290,6 +290,9 @@
 
 > (addendum 29, verbatim — with his phone screenshot at 16:58 CST, the r.011 edition: the strip "$0.00 · $0.00 · DEPOSIT · Withdraw" hovering over the budget table's rows, a band of empty page beneath it where the app's bottom bar has slid away, saved beside this file as `2026-09-30_financial_2525_strip_floats.png`) your deposit withdrawal floats; very odd
 
+> (addendum 30, verbatim — 2026-09-30 19:4x CST, after r.017 shipped) dont do translators until english is finalized with HI tested UI/UX
+> USE 48 AsM Fleet to look at all comments and ensure UX is as user friendly and simple as possible to allow $/min personal finance engine
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -474,6 +477,15 @@
     flow — the same words, the same two buttons — so nothing on Financial-2525 floats over the content; the surface's phone
     padding shrinks back to the bottom bar's own height; gated (no fixed element inside the surface) and measured (the R-CORE icon
     still reachable). Ships as r.017, a correction of r.002–r.016.
+38. **No translation fill before the English is final (addendum 30, a standing law):** new lexicon keys stay STAGED in
+    `AFTER_FILL` (listed, never silent — the gates stay green) and the ×32 native-speaker fill is dispatched only when the operator
+    says the English UI/UX is finalized and HI-tested; until then every new word on the glass is English only, and the record says
+    so. Written into CLAUDE.md as a Workflow Rule.
+39. **The 48-agent fleet re-aimed at simplicity (addendum 30):** twelve lenses × (a constructive walk · an adversarial pass · a
+    synthesis) + twelve MoT coordinators read EVERY operator comment on Financial-2525 (addenda 1–30 and the reading items, the
+    twelve-lens round-1 record, the first fleet's findings when they land) against the CURRENT build (r.017) and judge one thing:
+    is the UX as user-friendly and simple as it can be for a $/min personal finance engine? Verdicts persisted verbatim as
+    `docs/assessments/2026-10-01_financial_2525_fleet48_simplicity.md`; the real and small folds into r.018 in the fleet's order.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
