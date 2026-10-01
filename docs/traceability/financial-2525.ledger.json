@@ -401,6 +401,13 @@
    "kind": "release",
    "text": "r.028 shipped — no hold; his twelve morning items (FD-45).",
    "commit": "20dcfb5"
+  },
+  {
+   "rev": 58,
+   "date": "2026-10-01",
+   "kind": "decision",
+   "text": "r.029 decision — Accrual Units: Available once, three boxes In Escrow · Released · Spent, each explained in the gear (FD-46).",
+   "commit": "7d81445"
   }
  ]
 }

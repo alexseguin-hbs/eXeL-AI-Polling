@@ -366,12 +366,21 @@ export function FinancialCommandUX1() {
               </div>
             )}
           </div>
-          <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-4 gap-y-2">
-            <div data-fin-cell="released"><dt className="text-xs text-muted-foreground">{t("fin.released")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.releasedCents)}</dd></div>
+          {/* r.029 (addendum 60 "doesn't this seem duplicative?"): Available is the big figure above, so the grid is three boxes —
+              In Escrow · Released · Spent; what each one means is in the gear */}
+          <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-3 gap-x-3">
             <div data-fin-cell="escrowed"><dt className="text-xs text-muted-foreground">{t("fin.escrowed")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.escrowedCents)}</dd></div>
-            <div data-fin-cell="withdrawn"><dt className="text-xs text-muted-foreground">{t("fin.withdrawn")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.withdrawnCents)}</dd></div>
-            <div data-fin-cell="available"><dt className="text-xs text-muted-foreground">{t("fin.available")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.availableCents)}</dd></div>
+            <div data-fin-cell="released"><dt className="text-xs text-muted-foreground">{t("fin.released")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.releasedCents)}</dd></div>
+            <div data-fin-cell="spent"><dt className="text-xs text-muted-foreground">{t("fin.spent")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.withdrawnCents)}</dd></div>
           </dl>
+          {/* the gear (addendum 60 "tell me … what each does (which should be in settings)"): what each figure means, then the clock */}
+          {accrualGear && (
+            <dl data-fin-accrual-defs className="mt-2 space-y-1 border-t border-border pt-2 text-xs text-muted-foreground">
+              {(["available", "escrowed", "released", "spent"] as const).map((k) => (
+                <div key={k} data-fin-def={k}><dt className="inline font-semibold text-foreground">{t(k === "available" ? "fin.available" : `fin.${k}`)}</dt> — <dd className="inline">{t(`fin.def.${k}`)}</dd></div>
+              ))}
+            </dl>
+          )}
           {accrualGear && focusView && (
             <ul data-fin-accrual-menu className="mt-2 space-y-0.5 border-t border-border pt-2 font-mono text-xs text-muted-foreground" data-testid="fin-ladder">
               <li>{hhmmss(Math.max(0, at - focus!.atMs))} {t("fin.elapsed")}{showAbc ? ` · ${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : ""}</li>

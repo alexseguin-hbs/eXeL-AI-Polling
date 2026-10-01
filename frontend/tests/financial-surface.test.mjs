@@ -146,10 +146,10 @@ ok(/<th className="py-1 pr-2">\{t\("fin\.category"\)\}<\/th>/.test(ux), "the tab
 
 // r.019 (addendum 33 "make table 2x2") — the Released card's four figures as a 2 × 2 table, each word above its figure
 {
-  const order = ["released", "escrowed", "withdrawn", "available"];
-  const cellOk = (c) => new RegExp('data-fin-cell="' + c + '"><dt[^>]*>\\{t\\("fin\\.' + c + '"\\)\\}</dt><dd[^>]*>\\{usd\\(bal\\.' + c + 'Cents\\)\\}</dd>').test(ux);
+  const order = ["escrowed", "released", "spent"];
+  const cellOk = (c) => new RegExp('data-fin-cell="' + c + '"><dt[^>]*>\\{t\\("fin\\.' + c + '"\\)\\}</dt><dd[^>]*>\\{usd\\(bal\\.' + (c === "spent" ? "withdrawn" : c) + 'Cents\\)\\}</dd>').test(ux);
   const pos = order.map((c) => ux.indexOf('data-fin-cell="' + c + '"'));
-  ok(/<dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-4 gap-y-2">/.test(ux) && order.every(cellOk) && pos.every((x, i) => x > 0 && (i === 0 || x > pos[i - 1])), "r.028: the four figures span the card in a two-column grid — Released · In Escrow / Withdrawn · Available, each word above its figure");
+  ok(/<dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-3 gap-x-3">/.test(ux) && order.every(cellOk) && pos.every((x, i) => x > 0 && (i === 0 || x > pos[i - 1])) && !/data-fin-cell="available"/.test(ux) && !/data-fin-cell="withdrawable"/.test(ux), "r.029 (addendum 60): three boxes — In Escrow · Released · Spent — across the card; Available is the figure above, never repeated");
   ok(!/\{t\("fin\.escrowed"\)\}:<\/span>/.test(ux), "the run-on line of four figures is gone");
 }
 
@@ -181,6 +181,8 @@ ok(/data-fin-balance className="-mx-2 [^"]*sm:mx-0"/.test(ux), "r.028: the Accru
 ok(/data-fin-chart-controls className="mt-2 flex items-center justify-between gap-2">\s*\{selector\}/.test(ux), "r.028: Planet on the left, the Clock · MoT toggle and the gear on the right");
 ok(/<details data-fin-ledger/.test(ux) && /data-fin-ledger-scroll className="mt-2 overflow-x-auto"/.test(ux) && /data-fin-ledger-table className="min-w-full whitespace-nowrap/.test(ux), "r.028: the Record folds behind a chevron; opened, a table with one entry per line that scrolls sideways");
 ok(!/t\("fin\.frame"\)|t\("fin\.per_33"\)|\/33</.test(ux) && !/key: "m33"/.test(ux), "r.028 (addendum 58 'remove all 33 day reference'): no 33-day frame, unit or label on the glass");
+
+ok(/data-fin-accrual-defs/.test(ux) && /\(\["available", "escrowed", "released", "spent"\] as const\)\.map/.test(ux) && /t\(`fin\.def\.\$\{k\}`\)/.test(ux), "r.029 (addendum 60 'what each does … in settings'): the Accrual Units gear explains Available, In Escrow, Released and Spent");
 
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

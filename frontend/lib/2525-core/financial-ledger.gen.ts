@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 57 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 58 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -408,6 +408,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.028 shipped — no hold; his twelve morning items (FD-45).",
       "commit": "20dcfb5"
+    },
+    {
+      "rev": 58,
+      "date": "2026-10-01",
+      "kind": "decision",
+      "text": "r.029 decision — Accrual Units: Available once, three boxes In Escrow · Released · Spent, each explained in the gear (FD-46).",
+      "commit": "7d81445"
     }
   ]
 };

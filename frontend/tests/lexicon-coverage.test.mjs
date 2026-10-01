@@ -44,6 +44,8 @@ const AFTER_FILL = new Set([
   // Financial-2525 r.028 (addenda 57 · 58 — no hold; the header's two lines; Accrual Units; the chart's settings with the text angle;
   // the Record folded as a table; the year as a table, perihelion first). The r.027 hold keys are retired. English only:
   ...['title_l1', 'title_l2', 'accrual_units', 'settings', 'chart_angle', 'record_toggle', 'year_today', 'month', 'year', 'hash'].map((k) => `fin.${k}`),
+  // r.029 (addendum 60 — three boxes, Spent, the figures explained in the gear). English only:
+  ...['spent', 'def.available', 'def.escrowed', 'def.released', 'def.spent'].map((k) => `fin.${k}`),
   // Financial-2525 r.016 (operator 2026-09-30, addendum 28 — the budget's edit mode): the pencil, Done, add, remove, reset — 5 keys FILLED ×32 (native-speaker agents, eight languages each); nothing left in AFTER_FILL for r.016.
   // Financial-2525 r.013 (operator 2026-09-30, addenda 24–25 — one transaction form, the length dropdown): 10 keys FILLED ×32 (native-speaker agents; six shared words — fr Transaction · Type · Minutes, da/nl/no Type — on the identical-allowed list).
   // Financial-2525 r.012 (operator 2026-09-30, addendum 22 — the A–U ladder): 20 sections · 60 fields · 5 timelines · 5 labels FILLED ×32
