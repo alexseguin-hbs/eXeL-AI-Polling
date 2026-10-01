@@ -702,6 +702,11 @@
 >
 > if 30 days $/min is shown over 30 days, so we can predict end of month NET • Upside or NET • Downside
 
+> (addendum 102, his answers 2026-10-01, picked in Claude Code)
+> Net source: "Budget table (Recommended)" — Income from his record minus the budget's Fixed + Variable lines, at $/min; at 30D it ends on the table's Net.
+> Lines: "Net + Released + Escrow (Recommended)" — Net added as a third line; the y axis in $ spans negative to positive.
+> 1x + zoom: "Live window, pinch widens (Recommended)" — 1x opens on the last hour moving in real time, each transaction a step the moment it lands; pinch out (or +/− buttons) widens the x axis to hours, days, weeks.
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
