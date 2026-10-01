@@ -457,6 +457,9 @@
 >
 > also eXeL AI is missing on upper left to-take us back to /main
 
+> (addendum 68, verbatim — 2026-10-01, screenshot 2026-10-01_financial_fb68_accrual_rate.jpg, the phone still on the r.029 build)
+> place text "Accrual Rate" above 5.3809 / hr
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -748,6 +751,8 @@
     immediately left of the gear; Available stays the big figure on the left below. r.033.
 68. **Settings + one colour + the way home (addendum 67):** the eXeL Polling Settings (its colour selector) at the upper right;
     every accent on the surface follows the selected colour — no fixed cyan; "eXeL AI" at the upper left takes the person to /main. r.034.
+69. **The rate is labelled (addendum 68):** the words "Accrual Rate" sit directly above the $/hr figure and its selector, which
+    stay on the Accrual Units top line left of the gear (addendum 64). r.035.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
