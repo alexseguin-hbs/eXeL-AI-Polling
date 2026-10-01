@@ -1,6 +1,19 @@
 # Claude Code - Project Instructions
 
 ## Workflow Rules
+- **NEVER OUTPACE THE DEPLOY — HI ALIGNMENT FIRST (operator 2026-10-01: "DONT EVER code until LIVE WEBSITE confirms version 40.
+  We cant have you outpace deployments EVER. Update your AI DIRECTIVE FOR HI ALIGNMENT ALWAYS").** The operator tests on his
+  phone; a revision he cannot see yet is feedback he cannot give, and the next revision built on top of it is rework.
+  1. **One revision at a time.** Commit and push a revision, then STOP. No code for the next revision until the LIVE website
+     serves this one — proven by Verify Live (GitHub Actions) passing on its SHA, or the operator's own "LIVE" report.
+  2. **The bookkeeping commit waits too.** Push the bookkeeping commit (shipped SHA, ledger release) only after the ship SHA is
+     confirmed live, so it never overtakes the ship's own Verify Live run.
+  3. **Every release is reported with what changed and before/after screenshots**, in his words first (the release-note shape in
+     `docs/financial-2525/releases/README.md`).
+  4. **Sign every release note given in chat "— Master of Thought".** Only in chat (operator: "only here in Claude Code"), never in
+     repo files, commits or the app.
+  5. **His feedback comes first.** When a message repeats, the last revision missed — list what is fixed and what is not before
+     building anything, and ask only when a choice is genuinely his.
 - **PERSIST FIRST, PLAN SECOND, APPROVE THIRD (AAR 2026-08-28, MoT-enforced).** Anything the operator hands
   over that he cannot easily reproduce — approved copy, a decision, a specification — is **written to a file
   before any analysis, planning, or request for approval**. Proof of persistence is a **hash the operator can
