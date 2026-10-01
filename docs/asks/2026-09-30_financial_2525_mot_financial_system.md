@@ -622,6 +622,16 @@
 > +$320.00	Upside: Overtime / Bonus / Gifts / Other	PROMISSORY NOTE	2026.09.30_19.56..04	30.3̅	Deposit	2	06f05166
 > −$250.66	Auto / Renters / Home
 
+> (addendum 90, verbatim — 2026-10-01)
+> Measure of Time: A Universal Standard
+>
+> have Measure of time same color as eXeL in upper left
+>
+> have A Universal Standard same color as AI in upper left for eXeL AI
+
+> (addendum 91 — 2026-10-01 11:46, a screenshot with no words, saved as 2026-10-01_financial_fb91_budget_dollars.png: the Personal budget
+> with $ in every cell under "PER MONTH (30.3̅ DAYS)", served at 052e875 — read as addendum 88's law applied to the budget table too)
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -961,6 +971,8 @@
     label of the currency sits under ACCRUAL UNITS. The numbers stay as entered.
 88. **No currency symbol inside a table (addenda 88, 89):** the symbol is in the column header ("Amount, $"); every cell of the
     Transaction Record and the Personal budget prints the bare number. The Record's amount is folded into r.043 now (sent twice).
+89. **The subtitle in the wordmark's two colours (addendum 90):** "Measure of Time" in the eXeL colour, "A Universal Standard" in the AI
+    colour of the upper-left eXeL AI. Folded into r.043.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
