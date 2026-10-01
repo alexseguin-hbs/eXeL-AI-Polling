@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.048",
-  "stamp": "v.000_r.048",
+  "revision": "0.049",
+  "stamp": "v.000_r.049",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "acf7324fecb081cdbd8c23af2af28727a4c222532775f4520735eb937604d4ae",
@@ -727,6 +727,14 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "Budget Income from his record. Addendum 80, his answer \"Income from my record\" (asked: the budget shows the example sheet — which should it use?). With deposits on his record, the Income lines of the budget are the record: each Income field at the rate its deposits release (amount ÷ length, a one-time deposit over a 30-day month), shown in the unit picked; Fixed · Variable · Transfers stay his plan. Record lines are not typed in edit mode. With no deposits the plan shows as before.",
    "commit": "8a870f9",
+   "shipped": "3cf850e"
+  },
+  {
+   "revision": "0.049",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "The currency label. Addendum 86: \"ensure all financials with min wage exist in this ; add currency to drop down settings in Accrual section\"; his answer (87): \"$ changes to currency symbol if there is one, or have label of currency somewhere at top (Subscript to Accrual Units) in gray\"; 88–89: no symbol inside a table — it lives in the header. A Currency picker in the Accrual Units settings lists every jurisdiction of the minimum-wage table (USD · NGN · NPR · KHR · MXN · THB · BRL · HNL · COP · CLP). Picking one changes the symbol on every figure and the table headers; a currency with no single symbol (Nepalese rupee) shows bare numbers and a gray 'NPR · Nepalese rupee' under ACCRUAL UNITS. A label, never a conversion — the numbers stay as entered. Remembered on the phone.",
+   "commit": "71cff4b",
    "shipped": "PENDING"
   }
  ],
@@ -2197,6 +2205,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The budget's Income lines come from his recorded deposits (amount ÷ length per Income field); the plan keeps Fixed · Variable · Transfers.",
    "status": "OPERATOR",
    "basis": "addendum 80 (his answer, verbatim)"
+  },
+  {
+   "id": "FD-66",
+   "decision": "A currency picker in the Accrual gear lists every minimum-wage jurisdiction; its symbol replaces $ (or a gray code shows under ACCRUAL UNITS when there is none). Label only — no conversion.",
+   "status": "OPERATOR",
+   "basis": "addenda 86–89 (verbatim)"
   }
  ],
  "reviews": [

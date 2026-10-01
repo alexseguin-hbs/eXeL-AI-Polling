@@ -44,13 +44,17 @@ import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/p
 import { balanceAt, series, validateWithdrawal, depositView, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { type BudgetCategory } from "@/lib/financial-2525/budget";
 import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
+import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } from "@/lib/financial-2525/currency";   // r.049: the currency label
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
 const C = TRINITY_COLORS;
-const usd = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
-const usd4 = (cents: number) => (cents < 0 ? "-$" : "$") + Math.abs(cents / 100).toFixed(4);
+// r.049 (addenda 86–87): the picked currency's SYMBOL prefixes every figure — a label, never a conversion; none = bare numbers and a gray
+// code under ACCRUAL UNITS. Set once per render by the surface before its children draw.
+let CUR_SYM = "$";
+const usd = (cents: number) => (cents < 0 ? "-" : "") + CUR_SYM + Math.abs(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const usd4 = (cents: number) => (cents < 0 ? "-" : "") + CUR_SYM + Math.abs(cents / 100).toFixed(4);
 // r.043 (addenda 88–89 "rmeove $ from table as its in label header"): a table cell prints the bare number; the symbol is in the header.
 const num2 = (cents: number) => Math.abs(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const CAT_KEY: Record<BudgetCategory, string> = { Income: "income", Home: "home", Auto: "auto", Insurance: "insurance", Utilities: "utilities", Fitness: "fitness", Fun: "fun", Groceries: "groceries", "Dining Out": "dining_out", Other: "other" };
@@ -160,6 +164,13 @@ export function FinancialCommandUX1() {
   const pickDateFmt = (f: DateFmt) => { setDateFmt(f); try { localStorage.setItem("fin-date-fmt", f); } catch { /* not remembered; still shown */ } };
   // r.028 (addendum 58 "Settings should open up date format for table, and angle for chart text"): the date text's angle, remembered
   const [dateAngle, setDateAngle] = useState(30 as DateAngle);
+  // r.049 the currency (a label): remembered on this phone; the symbol is set before anything below draws a figure
+  const [curCode, setCurCode] = useState(DEFAULT_CURRENCY);
+  useEffect(() => { try { const v = localStorage.getItem(CURRENCY_KEY); if (v) setCurCode(currencyOf(v).code); } catch { /* storage blocked: USD */ } }, []);
+  const pickCurrency = (code: string) => { setCurCode(code); try { localStorage.setItem(CURRENCY_KEY, code); } catch { /* still applies this visit */ } };
+  const cur = currencyOf(curCode);
+  CUR_SYM = cur.symbol ?? "";
+  const curMark = currencyMark(cur);
   useEffect(() => { try { const v = Number(localStorage.getItem("fin-date-angle")); if ((DATE_ANGLES as readonly number[]).includes(v)) setDateAngle(v as DateAngle); } catch { /* the default stands */ } }, []);
   const pickDateAngle = (a: DateAngle) => { setDateAngle(a); try { localStorage.setItem("fin-date-angle", String(a)); } catch { /* not remembered; still shown */ } };
 
@@ -339,7 +350,7 @@ export function FinancialCommandUX1() {
           {/* r.042 (addendum 81 "Move transaction left of settings and move accrual rate to right of Available · swap these two"):
               line 1 = ACCRUAL UNITS · + Transaction (the gear's height) · gear; line 2 = Available (left) · Accrual Rate (right) */}
           <div data-fin-accrual-top className="flex items-center justify-between gap-2">
-            <div className={LABEL}>{t("fin.accrual_units")}</div>
+            <div><div className={LABEL}>{t("fin.accrual_units")}</div>{!cur.symbol && <div data-fin-currency-label className="text-[11px] text-muted-foreground">{cur.code} · {cur.name}</div>}</div>
             <div className="flex shrink-0 items-center gap-2">
               {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} className="h-8 shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
               <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
@@ -374,6 +385,13 @@ export function FinancialCommandUX1() {
             <div data-fin-cell="spent" className="text-right"><dt className="text-xs text-muted-foreground">{t("fin.spent")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.withdrawnCents)}</dd></div>
           </dl>
           {/* the gear (addendum 60 "tell me … what each does (which should be in settings)"): what each figure means, then the clock */}
+          {accrualGear && (
+            <label className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-2 text-xs text-muted-foreground">{t("fin.currency")}
+              <select data-fin-currency aria-label={t("fin.currency")} value={cur.code} onChange={(e) => pickCurrency(e.target.value)} className="min-h-[36px] rounded-md border border-border bg-background px-2 text-xs text-foreground">
+                {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.code}{c.symbol ? ` · ${c.symbol}` : ""} · {c.country}</option>)}
+              </select>
+            </label>
+          )}
           {accrualGear && (
             <dl data-fin-accrual-defs className="mt-2 space-y-1 border-t border-border pt-2 text-xs text-muted-foreground">
               {(["available", "escrowed", "released", "spent"] as const).map((k) => (
@@ -449,7 +467,7 @@ export function FinancialCommandUX1() {
               the chosen unit and a chevron; the lines beneath only when opened (edit mode opens all); Net last, red when negative; no letters */}
           <table className="mt-2 w-full font-mono text-xs">
             <thead className="text-left text-[10px] uppercase tracking-wide text-muted-foreground">
-              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="whitespace-nowrap py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}, $</th></tr>
+              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="whitespace-nowrap py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}, {curMark}</th></tr>
             </thead>
             <tbody>
               {groups.map((g) => (
@@ -524,7 +542,7 @@ export function FinancialCommandUX1() {
               {/* r.032 (addendum 63): Amount and Category first, then as a person reads an entry — who/what, when, how long, which way —
                   and the proof last (# and Hash). The amount is signed: + money in, − money out. */}
               <thead className="text-left text-[10px] uppercase tracking-wide">
-                <tr><th className="py-1 pr-3">{t("fin.amount")}</th><th className="py-1 pr-3">{t("fin.category")}</th><th className="py-1 pr-3">{t("fin.memo")}</th><th className="py-1 pr-3">{t("fin.when")}</th><th className="py-1 pr-3 text-right">{t("fin.length")}</th><th className="py-1 pr-3">{t("fin.type")}</th><th className="py-1 pr-3">#</th><th className="py-1">{t("fin.hash")}</th></tr>
+                <tr><th className="py-1 pr-3">{t("fin.amount_col")}, {curMark}</th><th className="py-1 pr-3">{t("fin.category")}</th><th className="py-1 pr-3">{t("fin.memo")}</th><th className="py-1 pr-3">{t("fin.when")}</th><th className="py-1 pr-3 text-right">{t("fin.length")}</th><th className="py-1 pr-3">{t("fin.type")}</th><th className="py-1 pr-3">#</th><th className="py-1">{t("fin.hash")}</th></tr>
               </thead>
               <tbody>
                 {!owner && <tr className="border-t border-border/60"><td data-fin-amount className="py-1 pr-3 tabular-nums text-green-500"><span className="flex justify-between gap-4"><span>+</span><span>{num2(EXAMPLE.amountCents)}</span></span></td><td className="py-1 pr-3">{txWhat(EXAMPLE)}</td><td className="py-1 pr-3">{EXAMPLE.memo}</td><td className="py-1 pr-3">{fmtStampCST(EXAMPLE.atMs)}</td><td className="py-1 pr-3 text-right">{fmtDays(withMonthLaw(EXAMPLE).motDays ?? 0)}</td><td className="py-1 pr-3">{t("fin.deposit")}</td><td className="py-1 pr-3">1</td><td className="py-1">—</td></tr>}
