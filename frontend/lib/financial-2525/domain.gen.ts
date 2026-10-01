@@ -349,7 +349,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "correction",
    "why": "r.021 shipped a budget line's MoT picker that could not pick Other: a line's Other count starts at 0, a zero-length MoT is refused by setLineSpec (correctly, so no wrong rate is ever written), and the refusal snapped the picker back to its old preset — the number field never opened. Found by the r.021 capture on the built export, not by the r.021 gates, which read the select's markup and the pure functions separately. The same class on the add row: picking Other with no count, or typing a non-number amount, added the line as a silent zero (Number(x) || 0). Fix at the class, in the pure model: switchRec(spec, rec) — picking Other carries the line's current length into the Other field in days (Monthly → 30.333 days, a sheet line → 33 days), so the rate is unchanged until the person types a new count; a count already typed is kept across presets. Both the line picker and the add row's picker go through it; the add row builds one spec, its button waits until isValidSpec(spec) holds, and it adds exactly that spec. FIN-06.11's statement stands and its metric is now met on the glass (the r.022 capture picks Other on Rent and reads the number field). Lesson on the record: a picker's every option is driven on the glass before a ship.",
    "commit": "af6bfe3",
-   "shipped": "PENDING"
+   "shipped": "ed5edbc"
   }
  ],
  "mot": {

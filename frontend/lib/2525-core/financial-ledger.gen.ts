@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 44 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 45 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -317,6 +317,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.022 correction: on r.021 a budget line could not pick Other (a zero count was refused and the picker snapped back), and the add row turned a typed amount into a silent zero when Other had no count. switchRec carries the current length into Other (Monthly → 30.333 days); the add button waits on a valid spec and adds exactly it. Found by the r.021 capture; the r.021 gates were green.",
       "commit": "af6bfe3"
+    },
+    {
+      "rev": 45,
+      "date": "2026-10-01",
+      "kind": "release",
+      "text": "v.000_r.022 SHIPPED — a budget line can pick Other (switchRec carries its current length into the Other field, so the rate holds until a new count is typed); the add row's button waits on a valid spec and adds exactly it, never a silent zero. Correction of r.021. Shipped as ed5edbc. Gates: financial-ladder 98 · financial-surface 97 · financial-crs 422 · full test:ci 0 · next build 0.",
+      "commit": "ed5edbc"
     }
   ]
 };
