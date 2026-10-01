@@ -1,5 +1,5 @@
 // financial-accrual — ESCROW RELEASES $/min (operator 2026-09-30, v.000_r.001): a deposit's money is released linearly
-// over its MoT, is withdrawable only from 3 h after the deposit, a withdrawal never overdraws, the record is append-only
+// over its MoT, is withdrawable as it accrues — no hold (r.028, addendum 57), a withdrawal never overdraws, the record is append-only
 // and chain-hashed; the personal budget lands on the $/min · $/sec ladder.
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/financial-accrual.test.mjs
 const A = await import("../lib/financial-2525/accrual.ts");
@@ -17,9 +17,11 @@ let v = A.depositView(dep, at);
 ok(v.state === "releasing" && v.releasedCents === 0 && v.escrowedCents === 360449 && near(v.ratePerMinCents, 8.252, 1e-3) && v.withdrawableCents === 0, "at the deposit instant: nothing released, all in escrow, the rate is 8.252 ¢/min");
 ok(A.depositView(dep, at - 1).state === "pending" && A.depositView(dep, at - 1).releasedCents === 0, "before the deposit day and time: pending, nothing released");
 v = A.depositView(dep, at + 3 * H);
-ok(v.releasedCents === 1485 && v.withdrawableCents === 1485 && v.holdUntilMs === at + 3 * H, `3 h later $14.85 is released AND withdrawable (the hold lifts exactly at +3 h) — got ${v.releasedCents}`);
+ok(v.releasedCents === 1485 && v.withdrawableCents === 1485 && !("holdUntilMs" in v), `3 h later $14.85 is released AND withdrawable — got ${v.releasedCents}`);
 v = A.depositView(dep, at + 3 * H - 60000);
-ok(v.releasedCents === 1477 && v.withdrawableCents === 0, "a minute before the hold lifts: released (visible) but not yet withdrawable");
+ok(v.releasedCents === 1477 && v.withdrawableCents === 1477, "no hold (r.028, addendum 57): whatever has accrued is withdrawable at every minute");
+v = A.depositView(dep, at + 2 * H);
+ok(v.withdrawableCents === 990, `his words (addendum 57): "if 2 hours later, 120 min at $/min should work" — 120 × 8.252 ¢ = $9.90 withdrawable at +2 h — got ${v.withdrawableCents}`);
 v = A.depositView(dep, at + (91 / 3) * M.MS_PER_DAY);
 ok(v.state === "released" && v.releasedCents === 360449 && v.escrowedCents === 0 && v.fraction === 1, "at the end of the MoT the whole amount is released and escrow is empty");
 ok(A.depositView(dep, at + 40 * M.MS_PER_DAY).releasedCents === 360449, "released money never exceeds the deposit, however long after");
@@ -28,7 +30,8 @@ ok(near(A.exampleRatePerMin(), 8.252, 1e-3), "the example's $/min helper agrees"
 
 // ── 2 · withdrawals: the hold, never overdrawn, on the record ─────────────────────────────────────────────────
 const w1 = { id: "w1", kind: "withdrawal", amountCents: 1000, atMs: at + 3 * H };
-ok(A.validateWithdrawal([dep], { ...w1, atMs: at + 2 * H }).ok === false && A.validateWithdrawal([dep], { ...w1, atMs: at + 2 * H }).reason === "HOLD", "a withdrawal before 3 h is refused: HOLD");
+ok(A.validateWithdrawal([dep], { ...w1, id: "w2h", amountCents: 990, atMs: at + 2 * H }).ok === true, "his case: 2 hours after the deposit, a $9.90 withdrawal (120 min × $/min) is ACCEPTED — there is no hold");
+{ const r = A.validateWithdrawal([dep], { ...w1, id: "w2h1", amountCents: 991, atMs: at + 2 * H }); ok(r.ok === false && r.reason === "INSUFFICIENT" && r.atMs === at + 2 * H, "one cent more than has accrued at +2 h is REFUSED, naming that minute"); }
 ok(A.validateWithdrawal([dep], w1).ok === true, "a withdrawal of $10 at +3 h is legal ($14.85 withdrawable)");
 ok(A.validateWithdrawal([dep], { ...w1, amountCents: 1486 }).ok === false && A.validateWithdrawal([dep], { ...w1, amountCents: 1486 }).reason === "INSUFFICIENT", "a withdrawal above what is withdrawable is refused: INSUFFICIENT — the balance never goes negative");
 ok(A.validateWithdrawal([dep], { ...w1, amountCents: 0 }).reason === "AMOUNT" && A.validateWithdrawal([dep], { ...dep }).reason === "NOT_A_WITHDRAWAL", "a zero amount and a non-withdrawal are refused by name");
@@ -40,8 +43,8 @@ const dep2 = { id: "d2", kind: "deposit", amountCents: 100000, atMs: at + 24 * H
 b = A.balanceAt([dep, dep2], at + 25 * H);
 ok(near(b.ratePerMinCents, 8.252 + 100000 / (14 * 1440), 1e-3) && b.deposits.length === 2 && b.depositedCents === 460449, "two overlapping deposits: the live rate is the sum; both are on the view");
 const s = A.series([dep, w1], at, at + 6 * H, H);
-ok(s.length === 7 && s.every((p, i) => i === 0 || p.released >= s[i - 1].released) && s[3].withdrawable === 1485 && s[2].withdrawable === 0 && s[3].available === 485, "the chart series samples the balance; released is monotonic; withdrawable appears at +3 h");
-ok(A.HOLD_HOURS === 3 && A.HOLD_MS === 3 * H, "the hold is 3 hours (operator)");
+ok(s.length === 7 && s.every((p, i) => i === 0 || p.released >= s[i - 1].released) && s[3].withdrawable === 1485 && s[2].withdrawable === 990 && s[3].available === 485, "the chart series samples the balance; released is monotonic; withdrawable follows released (no hold)");
+ok(!("HOLD_MS" in A) && !("HOLD_HOURS" in A), "there is no hold constant (r.028, addendum 57: 'there is no 180 min rule (that was just example)')");
 
 // ── 3 · the personal budget on the ladder ─────────────────────────────────────────────────────────────────────
 const sum = B.summarize(B.SHEET_BUDGET, B.SHEET_MONTH_DAYS);
@@ -71,7 +74,7 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   const once = A.validateWithdrawal([d1, d2], { ...storage, id: "w2", motDays: 0 });
   ok(once.ok === false && once.reason === "INSUFFICIENT" && once.atMs === storage.atMs && once.availableCents === 5977, `the same $71 One time at 07:00 lands whole and is REFUSED, naming 07:00 (only $59.77 had come in) — got ${JSON.stringify(once)}`);
   const early = A.validateWithdrawal([d1, d2], { ...storage, id: "w3", atMs: at("2026.09.30_20.30..00") });
-  ok(early.ok === false && early.reason === "HOLD" && early.atMs === d1.atMs + A.HOLD_MS, "a withdrawal before the 180-minute mark is refused HOLD and names when the first money can move (180 min after the first deposit)");
+  ok(early.ok === true, "no hold: a Monthly withdrawal starting 36 minutes after the deposit runs out at $/min and is accepted (r.028)");
   const big = A.validateWithdrawal([d1, d2], { ...storage, id: "w4", amountCents: 400000 });
   ok(big.ok === false && big.reason === "INSUFFICIENT" && big.atMs > storage.atMs + 20 * 86400000 && big.atMs < storage.atMs + 28 * 86400000 && big.atMs % 60000 === 0, `$4,000 Monthly runs out faster than $3,924.49 comes in: refused at the whole minute it would pass (about 24 days in) — got ${big.atMs ? M.fmtStampCST(big.atMs) : big.reason}`);
   ok(A.withdrawnAt(storage, storage.atMs) === 0 && A.withdrawnAt(storage, storage.atMs + (91 / 6) * 86400000) === 3550 && A.withdrawnAt(storage, storage.atMs + 40 * 86400000) === 7100 && A.withdrawnAt({ ...storage, motDays: 0 }, storage.atMs) === 7100, "withdrawnAt is linear over the MoT (half way = half), clamped to the amount; One time lands whole at its instant");

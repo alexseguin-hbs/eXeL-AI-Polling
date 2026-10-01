@@ -9,15 +9,14 @@
  *   ESCROWED  — the payer put the whole amount in at `atMs` (the deposit day and time, CST);
  *   RELEASING — from `atMs` the escrow releases amount ÷ (MoT × 1440) per minute, linearly, for the MoT;
  *   RELEASED  — at `atMs + MoT` the whole amount has been released (the A.B..C of the deposit reads 3600.3600..3600);
- *   WITHDRAWABLE — what has been released may be withdrawn to the person's own account only from `atMs + 3 h`
- *                  (HOLD_MS); before that the released money is visible but not yet movable;
+ *   WITHDRAWABLE — what has been released may be withdrawn at once (r.028, operator addendum 57: "there is no 180 min rule
+ *                  (that was just example). if 2 hours later, 120 min at $/min should work.");
  *   a WITHDRAWAL is its own transaction (amount, day and time, MoT). From r.023 (operator addendum 39 + 55: "3600 +320 should accrue
  *                  $/min for 30.333 days; therefore transactions are also 30.333 days should be possible") a withdrawal with a MoT
  *                  runs OUT at $/min over that length, exactly as a deposit runs in; "One time" (a zero length) lands whole. It can
  *                  never take, at any minute, more than is withdrawable then.
- * THE 180-MINUTE RULE, in the operator's words (addendum 55): "If a deposit is 30.33 days then $/min is allocated. using that $/min at
- * 180 min should be in the bank to withdrawal only that amount , not the full deposit . this encourages stability and sustainable
- * thinking." — HOLD_MS below; what is withdrawable is what has accrued, never the deposit.
+ * NO HOLD (r.028, addendum 57): what is withdrawable is exactly what has accrued at $/min so far — never the deposit, and never
+ * delayed. 2 hours after a deposit, 120 minutes × $/min can move.
  * INVARIANTS (in the operator's terms): money released is never more than money deposited; a withdrawal never makes
  * the available balance negative; the rate is amount ÷ MoT-minutes and nothing else; the record is append-only.
  * Pure — every function takes the instant `t`; nothing here reads a clock. Amounts are integer cents.
@@ -25,9 +24,6 @@
 import { MIN_PER_DAY, MS_PER_DAY, perMin } from "./mot";
 import type { Recurrence } from "./ladder";
 import type { BudgetCategory } from "./budget";
-
-export const HOLD_HOURS = 3;
-export const HOLD_MS = HOLD_HOURS * 3600 * 1000;
 
 export type TxKind = "deposit" | "withdrawal";
 export interface FinTx {
@@ -50,8 +46,7 @@ export interface DepositView {
   releasedCents: number;   // released so far at t
   escrowedCents: number;   // still in escrow at t
   ratePerMinCents: number; // amount ÷ (MoT × 1440)
-  holdUntilMs: number;     // atMs + 3 h — before this, released money is visible but not withdrawable
-  withdrawableCents: number; // released, if past the hold
+  withdrawableCents: number; // released so far — no hold (r.028)
   fraction: number;        // elapsed fraction of the MoT (0..1) — the A.B..C source
   endsMs: number;          // atMs + MoT
 }
@@ -81,15 +76,13 @@ export function depositView(tx: FinTx, t: number): DepositView {
   const releasedCents = releasedAt(tx, t);
   const len = motMs(tx);
   const fraction = t < tx.atMs ? 0 : len <= 0 ? 1 : Math.min(1, (t - tx.atMs) / len);
-  const holdUntilMs = tx.atMs + HOLD_MS;
   return {
     tx,
     state: t < tx.atMs ? "pending" : fraction >= 1 ? "released" : "releasing",
     releasedCents,
     escrowedCents: tx.amountCents - releasedCents,
     ratePerMinCents: tx.motDays && tx.motDays > 0 ? tx.amountCents / (tx.motDays * MIN_PER_DAY) : 0,
-    holdUntilMs,
-    withdrawableCents: t >= holdUntilMs ? releasedCents : 0,
+    withdrawableCents: releasedCents,
     fraction,
     endsMs: tx.atMs + len,
   };
@@ -99,7 +92,7 @@ export interface Balance {
   depositedCents: number;    // every deposit at or before t
   escrowedCents: number;     // not yet released
   releasedCents: number;     // released so far (visible)
-  withdrawableCents: number; // released AND past the 3 h hold
+  withdrawableCents: number; // released so far (no hold, r.028)
   withdrawnCents: number;    // what every withdrawal has taken out by t (at $/min over its MoT from r.023)
   availableCents: number;    // withdrawable − withdrawn (never negative on a valid record)
   ratePerMinCents: number;   // the live $/min: the sum over deposits still releasing
@@ -125,22 +118,17 @@ export function balanceAt(txs: readonly FinTx[], t: number): Balance {
 }
 
 /** A withdrawal is legal only if, at EVERY minute from its start, what all withdrawals have taken out stays within what has been
- *  released and is past the 180-minute mark (r.023). Both sides are piecewise linear between the record's breakpoints (each start, each
- *  180-minute mark, each end), and the withdrawable side only jumps UP (at a 180-minute mark), so checking each breakpoint and the
+ *  released (r.023; no hold since r.028). Both sides are piecewise linear between the record's breakpoints (each start, each end),
+ *  and the withdrawable side only jumps UP (a zero-length deposit landing whole), so checking each breakpoint and the
  *  instant just before it finds the first overdraw; the refusal names that instant (`atMs`) so the person can see when it would fail.
  *  Every record accepted before r.023 stays valid: a spread outflow is never above a lump one at any instant. */
-export function validateWithdrawal(txs: readonly FinTx[], w: FinTx): { ok: true } | { ok: false; reason: "NOT_A_WITHDRAWAL" | "AMOUNT" | "HOLD" | "INSUFFICIENT"; availableCents: number; atMs?: number } {
+export function validateWithdrawal(txs: readonly FinTx[], w: FinTx): { ok: true } | { ok: false; reason: "NOT_A_WITHDRAWAL" | "AMOUNT" | "INSUFFICIENT"; availableCents: number; atMs?: number } {
   if (w.kind !== "withdrawal") return { ok: false, reason: "NOT_A_WITHDRAWAL", availableCents: 0 };
   if (!(w.amountCents > 0)) return { ok: false, reason: "AMOUNT", availableCents: 0 };
   const others = txs.filter((x) => x.id !== w.id);
-  const b0 = balanceAt(others, w.atMs);
-  if (b0.releasedCents > 0 && b0.withdrawableCents === 0) {
-    const firstMark = Math.min(...b0.deposits.map((d) => d.holdUntilMs));
-    return { ok: false, reason: "HOLD", availableCents: 0, atMs: firstMark };
-  }
   const all = [...others, w];
   const marks = new Set<number>([w.atMs]);
-  for (const x of all) { marks.add(x.atMs); marks.add(x.atMs + motMs(x)); if (x.kind === "deposit") marks.add(x.atMs + HOLD_MS); }
+  for (const x of all) { marks.add(x.atMs); marks.add(x.atMs + motMs(x)); }
   const over = (t: number) => { const b = balanceAt(all, t); return b.withdrawnCents - b.withdrawableCents; };
   const pts = Array.from(marks).filter((t) => t >= w.atMs).sort((a, b) => a - b);
   // walk the probes in time order, remembering the LAST probe that passed (r.026): between two probes the sides are linear unless the

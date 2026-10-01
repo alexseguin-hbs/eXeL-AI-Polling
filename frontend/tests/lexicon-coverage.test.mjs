@@ -41,8 +41,9 @@ const AFTER_FILL = new Set([
   // Financial-2525 r.025 (addenda 37 · 40 · 42 · 45 — the subtitle names Measure of Time, the wheel's rings read 웃 HI · ◬ AI · ♡ SI
   // (their stale fills removed), the gear's Date format, the chart's tap, the wheel's accessible name). English only:
   ...['subtitle', 'wheel.hi', 'wheel.ai', 'wheel.si', 'trinity_aria', 'date_format', 'chart_tap'].map((k) => `fin.${k}`),
-  // Financial-2525 r.027 (addendum 56, decision 3 — the 180-min hold in his words). English only:
-  ...['hold_180', 'reason_hold_180'].map((k) => `fin.${k}`),
+  // Financial-2525 r.028 (addenda 57 · 58 — no hold; the header's two lines; Accrual Units; the chart's settings with the text angle;
+  // the Record folded as a table; the year as a table, perihelion first). The r.027 hold keys are retired. English only:
+  ...['title_l1', 'title_l2', 'accrual_units', 'settings', 'chart_angle', 'record_toggle', 'year_today', 'month', 'year', 'hash'].map((k) => `fin.${k}`),
   // Financial-2525 r.016 (operator 2026-09-30, addendum 28 — the budget's edit mode): the pencil, Done, add, remove, reset — 5 keys FILLED ×32 (native-speaker agents, eight languages each); nothing left in AFTER_FILL for r.016.
   // Financial-2525 r.013 (operator 2026-09-30, addenda 24–25 — one transaction form, the length dropdown): 10 keys FILLED ×32 (native-speaker agents; six shared words — fr Transaction · Type · Minutes, da/nl/no Type — on the identical-allowed list).
   // Financial-2525 r.012 (operator 2026-09-30, addendum 22 — the A–U ladder): 20 sections · 60 fields · 5 timelines · 5 labels FILLED ×32
