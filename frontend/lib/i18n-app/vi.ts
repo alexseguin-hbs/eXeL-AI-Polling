@@ -1475,5 +1475,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "Giờ",
   "fin.u.days": "Ngày",
   "fin.u.years": "Năm",
+  "fin.edit": "Chỉnh sửa ngân sách",
+  "fin.done": "Xong",
+  "fin.add_line": "Thêm dòng",
+  "fin.remove_line": "Xóa dòng này",
+  "fin.reset_sheet": "Khôi phục bảng mẫu",
 };
 export default T;

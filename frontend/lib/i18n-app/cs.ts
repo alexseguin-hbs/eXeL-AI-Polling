@@ -1473,5 +1473,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "Hodiny",
   "fin.u.days": "Dny",
   "fin.u.years": "Roky",
+  "fin.edit": "Upravit rozpočet",
+  "fin.done": "Hotovo",
+  "fin.add_line": "Přidat řádek",
+  "fin.remove_line": "Odebrat tento řádek",
+  "fin.reset_sheet": "Vrátit na vzorový list",
 };
 export default T;

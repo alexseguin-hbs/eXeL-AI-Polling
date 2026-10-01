@@ -1471,5 +1471,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "Jam",
   "fin.u.days": "Hari",
   "fin.u.years": "Tahun",
+  "fin.edit": "Edit bajet",
+  "fin.done": "Selesai",
+  "fin.add_line": "Tambah baris",
+  "fin.remove_line": "Buang baris ini",
+  "fin.reset_sheet": "Kembali ke helaian contoh",
 };
 export default T;

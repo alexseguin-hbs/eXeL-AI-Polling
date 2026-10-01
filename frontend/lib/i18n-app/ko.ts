@@ -1472,5 +1472,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "시간",
   "fin.u.days": "일",
   "fin.u.years": "년",
+  "fin.edit": "예산 편집",
+  "fin.done": "완료",
+  "fin.add_line": "항목 추가",
+  "fin.remove_line": "이 항목 삭제",
+  "fin.reset_sheet": "예시 시트로 되돌리기",
 };
 export default T;

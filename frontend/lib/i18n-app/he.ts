@@ -1471,5 +1471,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "שעות",
   "fin.u.days": "ימים",
   "fin.u.years": "שנים",
+  "fin.edit": "עריכת התקציב",
+  "fin.done": "סיום",
+  "fin.add_line": "הוספת שורה",
+  "fin.remove_line": "הסרת שורה זו",
+  "fin.reset_sheet": "חזרה לגיליון הדוגמה",
 };
 export default T;

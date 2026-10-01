@@ -1619,5 +1619,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "Oras",
   "fin.u.days": "Araw",
   "fin.u.years": "Taon",
+  "fin.edit": "I-edit ang budget",
+  "fin.done": "Tapos na",
+  "fin.add_line": "Magdagdag ng linya",
+  "fin.remove_line": "Alisin ang linyang ito",
+  "fin.reset_sheet": "Ibalik sa halimbawang sheet",
 };
 export default T;

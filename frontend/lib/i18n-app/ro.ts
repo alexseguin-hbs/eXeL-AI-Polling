@@ -1474,5 +1474,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "Ore",
   "fin.u.days": "Zile",
   "fin.u.years": "Ani",
+  "fin.edit": "Editează bugetul",
+  "fin.done": "Gata",
+  "fin.add_line": "Adaugă o linie",
+  "fin.remove_line": "Elimină această linie",
+  "fin.reset_sheet": "Resetează la foaie",
 };
 export default T;

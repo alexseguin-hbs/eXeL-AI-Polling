@@ -1472,5 +1472,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "Stunden",
   "fin.u.days": "Tage",
   "fin.u.years": "Jahre",
+  "fin.edit": "Budget bearbeiten",
+  "fin.done": "Fertig",
+  "fin.add_line": "Zeile hinzufügen",
+  "fin.remove_line": "Diese Zeile entfernen",
+  "fin.reset_sheet": "Auf das Blatt zurücksetzen",
 };
 export default T;

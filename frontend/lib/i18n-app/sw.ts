@@ -1476,5 +1476,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "Saa",
   "fin.u.days": "Siku",
   "fin.u.years": "Miaka",
+  "fin.edit": "Hariri bajeti",
+  "fin.done": "Nimemaliza",
+  "fin.add_line": "Ongeza mstari",
+  "fin.remove_line": "Ondoa mstari huu",
+  "fin.reset_sheet": "Rejesha laha ya mfano",
 };
 export default T;

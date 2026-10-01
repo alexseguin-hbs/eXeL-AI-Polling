@@ -1473,5 +1473,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "小时",
   "fin.u.days": "天",
   "fin.u.years": "年",
+  "fin.edit": "编辑预算",
+  "fin.done": "完成",
+  "fin.add_line": "添加一行",
+  "fin.remove_line": "删除此行",
+  "fin.reset_sheet": "恢复为示例表",
 };
 export default T;

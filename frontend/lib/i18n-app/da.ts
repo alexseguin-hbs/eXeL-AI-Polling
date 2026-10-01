@@ -1489,5 +1489,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "Timer",
   "fin.u.days": "Dage",
   "fin.u.years": "År",
+  "fin.edit": "Rediger budgettet",
+  "fin.done": "Færdig",
+  "fin.add_line": "Tilføj en linje",
+  "fin.remove_line": "Fjern denne linje",
+  "fin.reset_sheet": "Nulstil til arket",
 };
 export default T;

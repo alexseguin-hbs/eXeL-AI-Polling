@@ -1477,5 +1477,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "ชั่วโมง",
   "fin.u.days": "วัน",
   "fin.u.years": "ปี",
+  "fin.edit": "แก้ไขงบประมาณ",
+  "fin.done": "เสร็จสิ้น",
+  "fin.add_line": "เพิ่มรายการ",
+  "fin.remove_line": "ลบรายการนี้",
+  "fin.reset_sheet": "คืนค่าเป็นแผ่นตัวอย่าง",
 };
 export default T;

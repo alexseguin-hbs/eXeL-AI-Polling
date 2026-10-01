@@ -1483,5 +1483,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "Ώρες",
   "fin.u.days": "Ημέρες",
   "fin.u.years": "Έτη",
+  "fin.edit": "Επεξεργασία προϋπολογισμού",
+  "fin.done": "Τέλος",
+  "fin.add_line": "Προσθήκη γραμμής",
+  "fin.remove_line": "Αφαίρεση αυτής της γραμμής",
+  "fin.reset_sheet": "Επαναφορά στο φύλλο",
 };
 export default T;

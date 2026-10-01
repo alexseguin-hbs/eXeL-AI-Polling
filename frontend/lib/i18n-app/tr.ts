@@ -1470,5 +1470,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "Saat",
   "fin.u.days": "Gün",
   "fin.u.years": "Yıl",
+  "fin.edit": "Bütçeyi düzenle",
+  "fin.done": "Bitti",
+  "fin.add_line": "Satır ekle",
+  "fin.remove_line": "Bu satırı kaldır",
+  "fin.reset_sheet": "Örnek tabloya döndür",
 };
 export default T;

@@ -1469,5 +1469,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "घंटे",
   "fin.u.days": "दिन",
   "fin.u.years": "वर्ष",
+  "fin.edit": "बजट संपादित करें",
+  "fin.done": "हो गया",
+  "fin.add_line": "एक पंक्ति जोड़ें",
+  "fin.remove_line": "यह पंक्ति हटाएँ",
+  "fin.reset_sheet": "नमूना शीट पर वापस जाएँ",
 };
 export default T;

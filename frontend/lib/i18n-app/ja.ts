@@ -1474,5 +1474,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "時間",
   "fin.u.days": "日",
   "fin.u.years": "年",
+  "fin.edit": "予算を編集",
+  "fin.done": "完了",
+  "fin.add_line": "行を追加",
+  "fin.remove_line": "この行を削除",
+  "fin.reset_sheet": "サンプルシートに戻す",
 };
 export default T;

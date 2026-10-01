@@ -1472,5 +1472,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "Години",
   "fin.u.days": "Дні",
   "fin.u.years": "Роки",
+  "fin.edit": "Редагувати бюджет",
+  "fin.done": "Готово",
+  "fin.add_line": "Додати рядок",
+  "fin.remove_line": "Видалити цей рядок",
+  "fin.reset_sheet": "Скинути до зразка",
 };
 export default T;

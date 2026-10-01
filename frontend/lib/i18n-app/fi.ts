@@ -1474,5 +1474,10 @@ const T: Record<string, string> = {
   "fin.u.hours": "Tunnit",
   "fin.u.days": "Päivät",
   "fin.u.years": "Vuodet",
+  "fin.edit": "Muokkaa budjettia",
+  "fin.done": "Valmis",
+  "fin.add_line": "Lisää rivi",
+  "fin.remove_line": "Poista tämä rivi",
+  "fin.reset_sheet": "Palauta taulukkoon",
 };
 export default T;
