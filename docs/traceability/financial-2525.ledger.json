@@ -520,6 +520,13 @@
    "kind": "decision",
    "text": "r.037 decision — the + Transaction door compact, inside the Accrual Units card (FD-54).",
    "commit": "e285b38"
+  },
+  {
+   "rev": 75,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.037 shipped — a smaller + Transaction inside the Accrual Units card (FD-54).",
+   "commit": "fb04ec9"
   }
  ]
 }

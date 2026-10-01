@@ -507,7 +507,7 @@
    "kind": "decision",
    "why": "Addendum 70: \"place smaller transaction button in box with accrual units. remove big pink transaction button.\" The full-width + Transaction button above the card is removed; a compact + Transaction sits inside the Accrual Units card, on the Available row at the right. Pressing it opens the same entry directly below the card (type blank until picked; folds back after a save; the X folds it). Still one door.",
    "commit": "e285b38",
-   "shipped": "PENDING"
+   "shipped": "fb04ec9"
   }
  ],
  "mot": {
