@@ -304,6 +304,9 @@
 
 > (addendum 34, verbatim — 2026-10-01 08:22 CST, with his phone screenshot of the r.018/r.019 Unit dropdown open: per second · per minute · per hour · per day · per week · ✓ per 33 days · per month (91) · per year, over the budget with Net $204.49, saved beside this file as `2026-10-01_financial_2525_month_30333.png`) use 91 day quarter which means 30.333 day month
 
+> (addendum 35, verbatim — 2026-10-01 ~08:5x CST) on input of transaction or budget, must be able to specify time (MoT of transaction)
+> Change In escrow to “In Escrow”
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
@@ -521,6 +524,14 @@
     the length dropdown on the transaction form reads Monthly (30.333 days) and Quarterly (91 days) for the same two lengths. Every
     other place a 91-day span is called a month (the planet table's Month column) follows: Month 30.333, the 91-day quarter beside it.
     Supersedes FD-25's month-91 factor and addendum 13's "Month 91 for now". Ships as r.020.
+44. **Every amount carries its own MoT — on the transaction form AND on every budget line (addendum 35):** the transaction form
+    already asks for it (Length (MoT): One time · Weekly · Monthly (30.333 days) · Every 33 days · Quarterly (91 days) · Yearly ·
+    Other → a number in years · days · hours · minutes); the budget did not — its lines were typed in whatever unit the table was
+    showing. From r.021 each budget line in edit mode carries its amount AND the time it covers, from the same presets (One time
+    excepted — a budget line is a rate) with Other; the line is kept exactly as typed (e.g. Insurance $1,200 Yearly) and the table
+    converts it to whatever unit is showing; a new line is added with its amount and its MoT. The words already on the glass carry
+    it — no new word.
+45. **"In escrow" reads "In Escrow" (addendum 35).** English only until the functionality is tested (addendum 32). Ships as r.021.
 
 ## The attached screenshot (a phone banking "Transaction details" screen), transcribed as data
 
