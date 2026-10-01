@@ -189,5 +189,8 @@ ok(/\{ key: "calmonth", label: calDays \? `\$\{t\("fin\.per_cal_month"\)\} \(\$\
 { const th = (ux.match(/data-fin-ledger-table[\s\S]*?<\/thead>/) || [""])[0]; const order = ["fin.amount", "fin.category", "fin.memo", "fin.when", "fin.length", "fin.type"].map((k) => th.indexOf(`t("${k}")`)); const hashAt = th.indexOf('t("fin.hash")');
   ok(order.every((x, i) => x > 0 && (i === 0 || x > order[i - 1])) && hashAt > order[5] && /\{e\.tx\.kind === "deposit" \? "\+" : "−"\}\{usd\(e\.tx\.amountCents\)\}/.test(ux), "r.032 (addendum 63): the Record leads with the signed Amount, then Category; then Memo · Day and time · Length · Type; # and Hash last"); }
 
+{ const card = ux.slice(ux.indexOf("data-fin-balance className"), ux.indexOf("{/* the chart"));
+  ok(/const \[accrualGear, setAccrualGear\] = useState\(false\);/.test(ux) && /\{accrualGear && \(\s*<dl data-fin-accrual-defs/.test(card) && /\{accrualGear && focusView && \(\s*<ul data-fin-accrual-menu/.test(card) && !/elapsed/.test(card.replace(/\{accrualGear[\s\S]*$/, "")) && (card.match(/fin\.def\./g) || []).length === 1, "addendum 66: the four definitions and the elapsed / per-minute lines show ONLY when the Accrual Units gear is open; closed on load"); }
+
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
