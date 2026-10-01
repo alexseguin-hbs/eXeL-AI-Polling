@@ -22,8 +22,9 @@ jobs:
     timeout-minutes: 10
     env:
       SITE: https://exel-ai-polling.explore-096.workers.dev
-      SB_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-      SB_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      # public values saved by the operator 2026-10-01 (docs/supabase/PROJECT.md); repo secrets win when set
+      SB_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://ppgfjplawtlrfqpnszyb.supabase.co' }}
+      SB_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_OuwQNsFT59F2vzlaXnLIhg_7XrzeY2z' }}
     steps:
       - name: Find the project URL and public anon key
         run: |
