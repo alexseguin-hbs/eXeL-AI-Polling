@@ -477,7 +477,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "Addendum 64: \"Accrual field needs to be left to settings button on top line.\" The $/min figure and its /sec · /min · /hr · /day selector move up onto the Accrual Units title line, immediately left of the gear; Available stays the big figure on the left below; the three boxes (In Escrow · Released · Spent) unchanged.",
    "commit": "45c6f11",
-   "shipped": "PENDING"
+   "shipped": "ff3d8ff"
   }
  ],
  "mot": {

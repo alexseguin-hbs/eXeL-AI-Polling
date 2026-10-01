@@ -464,6 +464,13 @@
    "kind": "decision",
    "text": "r.033 decision — the accrual rate on the Accrual Units top line, left of the gear (FD-50).",
    "commit": "45c6f11"
+  },
+  {
+   "rev": 67,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.033 shipped — the rate on the Accrual Units top line (FD-50).",
+   "commit": "ff3d8ff"
   }
  ]
 }
