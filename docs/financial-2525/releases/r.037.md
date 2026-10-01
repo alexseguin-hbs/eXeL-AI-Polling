@@ -27,7 +27,7 @@
  "sha": "fb04ec9",
  "verify": {
   "run": "#2142",
-  "state": "running"
+  "state": "pass"
  },
  "images": {
   "before": "img/r.037-before.png",
@@ -57,7 +57,7 @@ Not changed: • Still one door
 Measured:   • Exactly one + Transaction on the page; its box lies inside the card's box
             • Pressed: the entry opens directly below the card with Type = Select…
 My recommendation / question: The step rail (Step 3 of 4 · Withdraw, with a WITHDRAW pill) still sits above the card. Keep it or remove it?
-SHA fb04ec9 | committed ✓ | pushed ✓ | Verify Live #2142 running
+SHA fb04ec9 | committed ✓ | pushed ✓ | Verify Live #2142 ✓
 ```
 
 ![BEFORE r.037](img/r.037-before.png)

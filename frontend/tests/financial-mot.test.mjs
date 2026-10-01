@@ -127,4 +127,15 @@ ok(C.FRAMES.join() === "33,66,99" && C.QUARTER_DAYS === 91 && C.GRID_DAYS === 36
   ok(t16.length <= 16 && M.dateLabel(t16[0], "month") === "01" && M.dateLabel(t16[0], "mmdd") === "10.01" && M.DATE_FMTS.join() === "full,mmdd,month", "three formats: 2026.10.01 · 10.01 · 01 under its month");
 }
 
+// ── r.038 (addendum 73 "Equal parts of 3600"): which quarter (900 A) and month (300 A) an orbit position is in ─────────────
+{
+  const p = { a: 2669, b: 796, c: 1328 };                       // his screenshot, 2026.10.01_06.58..30 CST
+  const q = M.abcPart(p, 900), m = M.abcPart(p, 300);
+  ok(q.n === 3 && M.fmtMot(q.within) === "869.0796..1328" && m.n === 9 && M.fmtMot(m.within) === "269.0796..1328", `2669.0796..1328 is quarter 3 at 869.0796..1328 and month 9 at 269.0796..1328 (got ${q.n} ${M.fmtMot(q.within)} · ${m.n} ${M.fmtMot(m.within)})`);
+  const z = { a: 0, b: 0, c: 0 };
+  ok(M.abcPart(z, 900).n === 1 && M.abcPart(z, 300).n === 1 && M.fmtMot(M.abcPart(z, 300).within) === "0.0000..0000", "the perihelion is quarter 1, month 1, at 0");
+  ok(M.abcPart({ a: 899, b: 3599, c: 3599 }, 900).n === 1 && M.abcPart({ a: 900, b: 0, c: 0 }, 900).n === 2 && M.fmtMot(M.abcPart({ a: 900, b: 0, c: 0 }, 900).within) === "0.0000..0000", "900 A opens quarter 2; one C before it is still quarter 1");
+  ok(M.abcPart({ a: 3599, b: 3599, c: 3599 }, 300).n === 12 && M.abcPart({ a: 3600, b: 0, c: 0 }, 900).n === 5, "the last C of the revolution is month 12; past the whole the count climbs (shown, never clamped)");
+}
+
 console.log(`financial-mot: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

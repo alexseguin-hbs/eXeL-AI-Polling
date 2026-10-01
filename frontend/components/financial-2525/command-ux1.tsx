@@ -7,8 +7,7 @@
  * REUSE · BEHIND SCENES IS A.B..C but UX IS DEFAULTED IN day hour, Min" (addendum 8).
  *
  * So this screen IS the Session's screen with money in it: the same root (mx-auto max-w-3xl), the same header (the
- * globe, the Trinity glyphs, a title), the same one card with the heading row and the phase pill, the same phase rail
- * (PodPhaseRail, railing DEPOSIT ◬ · HOLD ♡ · RELEASE ♡ · WITHDRAW 웃 · RECORD 웃), the same "your turn" guide card,
+ * globe, the Trinity glyphs, a title), the same one card (the step rail was removed in r.038, addendum 73), the same "your turn" guide card,
  * the same roster list, the same ACTIVE clock block (the big mono number is money released, ticking at $/min), the
  * same phone strip, the same folded Trinity logo, the same footer line — every piece imported from the Session's own
  * components or carrying its exact classes. Nothing here is drawn twice. Money and time come from the pure laws in
@@ -30,8 +29,6 @@ import { ExelWordmark } from "@/components/exel-wordmark";
 import { ModeratorSettings } from "@/components/moderator-settings";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { SoITrinity } from "@/components/soi-trinity";
-import { PodPhaseRail } from "@/components/pod-phase-rail";
-import type { PodPhaseDef } from "@/lib/pod-phases";
 import { hhmmss } from "@/lib/pod-clock";
 import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
@@ -40,7 +37,7 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { FINANCIAL_LEDGER } from "@/lib/2525-core/financial-ledger.gen";
 import { FINANCIAL_DOMAIN as SRC } from "@/lib/financial-2525/domain.gen";
-import { fmtMot, spanABC, fmtStampCST, parseStampCST, fmtDays, dayTicks, dateLabel, cstParts, DATE_FMTS, type DateFmt } from "@/lib/financial-2525/mot";
+import { fmtMot, abcPart, spanABC, fmtStampCST, parseStampCST, fmtDays, dayTicks, dateLabel, cstParts, DATE_FMTS, type DateFmt } from "@/lib/financial-2525/mot";
 import { positionInYear } from "@/lib/financial-2525/calendar";
 import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
 import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
@@ -108,7 +105,6 @@ function LadderPicker({ section, field, rec, onSection, onField, onRec, otherN, 
   );
 }
 
-/** The four phases of one deposit, on the Session's rail: DEPOSIT ◬ · RELEASE ♡ · WITHDRAW 웃 · RECORD 웃 (no hold since r.028 — addendum 57). */
 /** The Released card's rate units (r.024, addendum 46): shorthand on the glass, per hour by default. */
 type RateUnit = "sec" | "min" | "hr" | "day";
 const RATE_UNITS: readonly RateUnit[] = ["sec", "min", "hr", "day"];
@@ -124,19 +120,6 @@ function ClockMotToggle({ abc, onChange, t, hook }: { abc: boolean; onChange: (v
 /** The chart's date-text angles (r.028, addendum 58): flat, 30° (default), 45°, upright. */
 const DATE_ANGLES = [0, 30, 45, 90] as const;
 type DateAngle = (typeof DATE_ANGLES)[number];
-export const FIN_PHASES: PodPhaseDef[] = [
-  { key: "deposit", labelKey: "fin.ph.deposit", earnsKey: "fin.ph.deposit_earns", glyph: "◬" },
-  { key: "release", labelKey: "fin.ph.release", earnsKey: "fin.ph.release_earns", glyph: "♡" },
-  { key: "withdraw", labelKey: "fin.ph.withdraw", earnsKey: "fin.ph.withdraw_earns", glyph: "웃" },
-  { key: "record", labelKey: "fin.ph.record", earnsKey: "fin.ph.record_earns", glyph: "웃" },
-];
-/** Where one deposit stands at `now` — pure, from the accrual law. */
-export function phaseOf(focus: FinTx | null, withdrawals: number, now: number): string {
-  if (!focus || now < focus.atMs) return "deposit";
-  const v = depositView(focus, now);
-  if (v.fraction >= 1) return "record";
-  return withdrawals > 0 ? "withdraw" : "release";
-}
 
 /** The worked example as data — the operator's paycheck (amount · deposit day and time · MoT), never invented. */
 const EXAMPLE: FinTx = {
@@ -190,8 +173,6 @@ export function FinancialCommandUX1() {
   const deposits = txs.filter((x) => x.kind === "deposit").sort((a, b) => b.atMs - a.atMs);
   const withdrawals = txs.filter((x) => x.kind === "withdrawal");
   const focus = deposits[0] ?? null;
-  const phase = phaseOf(focus, withdrawals.length, at);
-  const phaseDef = FIN_PHASES.find((p) => p.key === phase) ?? FIN_PHASES[0];
   /** The live rate in the unit picked — the $/min times the planet's own seconds, hours and days (cents). */
   const rateIn = (u: RateUnit): number => (u === "sec" ? bal.ratePerMinCents / planet.secPerMin : u === "min" ? bal.ratePerMinCents : u === "hr" ? bal.ratePerMinCents * planet.minPerHour : bal.ratePerMinCents * planet.hoursPerDay * planet.minPerHour);
   const focusView = focus && now ? depositView(focus, at) : null;
@@ -301,14 +282,6 @@ export function FinancialCommandUX1() {
   const goTo = (id: string) => { const el = typeof document !== "undefined" ? document.getElementById(id) : null; el?.scrollIntoView({ behavior: "smooth", block: "center" }); (el?.querySelector("select[data-fin-type], input") as HTMLElement | null)?.focus(); };
   useEffect(() => { if (formOpen && scrollOnOpen.current) { scrollOnOpen.current = false; goTo("fin-transaction-form"); } }, [formOpen]);
 
-  const countFor = (k: string): string | null => {
-    if (k === "deposit") return String(deposits.length);
-    if (k === "release") return usd(bal.releasedCents);
-    if (k === "withdraw") return String(withdrawals.length);
-    if (k === "record") return String(owner ? record.entries.length : 1);
-    return null;
-  };
-
   // pb-20 on the phone: the app's bottom bar (56 px) covers the page's last rows, so the page's last element — the R-CORE badge and
   // its maximized icon — sits above it (measured 2026-09-30; r.017 took the fixed strip out of the way, nothing on this surface floats).
   return (
@@ -332,10 +305,9 @@ export function FinancialCommandUX1() {
         <p data-fin-subtitle className="mt-1 text-base text-foreground"><span className="block">{t("fin.title_l1")}</span><span className="block text-sm text-muted-foreground">{t("fin.title_l2")}</span></p>
       </header>
 
-      {/* The one card — heading row + phase pill, the rail, the guide, the roster, the clock, the chart, the forms … */}
+      {/* The one card — Accrual Units (+ the entry) · Personal budget · Chart · Record · Year position · sign-in · Trinity (r.038) */}
       <section className={CARD}>
-        {/* r.028: "Money as time — this MoT" is gone everywhere (addendum 58); the two lines live in the header */}
-        <PodPhaseRail phase={phase} phases={FIN_PHASES} countFor={countFor} />
+        {/* r.038 (addendum 73 "get rid of this; adds no value"): no step rail. Order: Accrual · Budget · Chart · Record · Year (folded) */}
 
         {!owner && <p className="mb-4 text-xs text-primary" data-fin-example>{t("fin.example_badge")}</p>}
 
@@ -389,7 +361,7 @@ export function FinancialCommandUX1() {
           )}
           {accrualGear && focusView && (
             <ul data-fin-accrual-menu className="mt-2 space-y-0.5 border-t border-border pt-2 font-mono text-xs text-muted-foreground" data-testid="fin-ladder">
-              <li>{hhmmss(Math.max(0, at - focus!.atMs))} {t("fin.elapsed")}{showAbc ? ` · ${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : ""}</li>
+              <li data-fin-elapsed-line>{showAbc ? `${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : `${hhmmss(Math.max(0, at - focus!.atMs))} ${t("fin.elapsed")}`}</li>
               <li>{usd4(bal.ratePerMinCents)} {t("fin.rate.min")} · {usd4(bal.ratePerMinCents / planet.secPerMin)} {t("fin.rate.sec")}</li>
             </ul>
           )}
@@ -424,65 +396,6 @@ export function FinancialCommandUX1() {
               {refusal && <p className="mt-2 text-sm text-red-500">{t("fin.refused")} · {refusal}</p>}
             </div>
             )}
-          </div>
-        )}
-
-        {/* the chart — strokes only, day · hour · minute by default, A.B..C on reveal */}
-        {focus && (
-          <MotChart tx={focus} txs={txs} now={at} t={t} planet={planet} showAbc={showAbc} onToggle={setShowAbc} dateFmt={dateFmt} onDateFmt={pickDateFmt} angle={dateAngle} onAngle={pickDateAngle} locale={activeLocale}
-            selector={<label className="flex items-center gap-1 text-xs text-muted-foreground">{t("fin.planet")}
-              <select data-fin-planet value={planetCode} onChange={(e) => setPlanetCode(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-xs">
-                {planets.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
-              </select>
-            </label>} />
-        )}
-
-        {/* the year as a TABLE, key info in order, PERIHELION FIRST (r.028, addendum 58); months of 30.3̅ days, no 33-day frame */}
-        {year && (() => {
-          const monthDays = 91 / 3;
-          const dayIdx = year.day - 1;
-          const month = year.down ? null : Math.floor(dayIdx / monthDays) + 1;
-          const dayInMonth = year.down ? null : Math.floor(dayIdx - (month! - 1) * monthDays) + 1;
-          // standard by default; the MoT icon unlocks the orbital rows — the perihelion and the A.B..C position (addendum 61)
-          const rows: [string, string][] = [
-            ...(yearAbc && planet.code === "earth" ? [[t("fin.perihelion_cst"), `${fmtStampCST(year.startMs)} CST`] as [string, string]] : []),
-            [t("fin.year_today"), `${fmtStampCST(at)} CST`],
-            ...(yearAbc ? [[t("fin.orbit_position"), fmtMot(year.abc)] as [string, string]] : []),
-            [t("fin.day"), `${year.day} / ${Math.ceil(year.lengthDays)}${year.pastFull ? " ↑" : ""}`],
-            [t("fin.quarter"), year.down ? t("fin.down_day") : `${year.quarter} · ${year.dayInQuarter} / 91`],
-            [t("fin.month"), month === null ? t("fin.down_day") : `${month} · ${dayInMonth} / ${fmtDays(monthDays)}`],
-            [t("fin.year"), `${year.year} · ${year.status}`],
-          ];
-          return (
-            <div data-fin-year className={SUB} data-fin-past-full={year.pastFull ? "1" : undefined}>
-              <div className="flex items-center justify-between gap-2">
-                <div className={LABEL}>{yearAbc ? t("fin.year_position") : t("fin.year_title")}</div>
-                <ClockMotToggle abc={yearAbc} onChange={setYearAbc} t={t} hook="year" />
-              </div>
-              <table data-fin-year-table className="mt-2 w-full text-xs">
-                <tbody>
-                  {rows.map(([k, v], n) => (
-                    <tr key={n} className="border-t border-border/60 first:border-t-0"><th scope="row" className="py-1 pr-3 text-left font-normal text-muted-foreground">{k}</th><td className="py-1 text-right font-mono tabular-nums text-foreground">{v}</td></tr>
-                  ))}
-                </tbody>
-              </table>
-              {planet.code !== "earth" && <p className="mt-1 text-xs text-muted-foreground">{t("fin.anchor_note")}</p>}
-            </div>
-          );
-        })()}
-
-        {/* forms — only a signed-in person records; the example is read-only */}
-        {owner ? (
-          <div data-fin-forms>
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground" data-fin-signin>
-              <span>{t("fin.signed_in_as")} {user?.name ?? user?.email ?? owner}</span>
-              <button type="button" className={SECONDARY} onClick={() => logout({ logoutParams: { returnTo: typeof window !== "undefined" ? window.location.origin : undefined } })}>{t("fin.sign_out")}</button>
-            </div>
-          </div>
-        ) : (
-          <div className={SUB} data-fin-signin>
-            <p className="text-muted-foreground">{t("fin.example_badge")}</p>
-            <button type="button" className={`mt-2 ${PRIMARY}`} disabled={isLoading} onClick={signIn}>{t("fin.sign_in")}</button>
           </div>
         )}
 
@@ -566,6 +479,16 @@ export function FinancialCommandUX1() {
           <p className="mt-2 text-xs text-muted-foreground">{t("fin.stock_note")}</p>
         </div>
 
+        {/* the chart — strokes only, day · hour · minute by default, A.B..C on reveal */}
+        {focus && (
+          <MotChart tx={focus} txs={txs} now={at} t={t} planet={planet} showAbc={showAbc} onToggle={setShowAbc} dateFmt={dateFmt} onDateFmt={pickDateFmt} angle={dateAngle} onAngle={pickDateAngle} locale={activeLocale}
+            selector={<label className="flex items-center gap-1 text-xs text-muted-foreground">{t("fin.planet")}
+              <select data-fin-planet value={planetCode} onChange={(e) => setPlanetCode(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-xs">
+                {planets.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
+              </select>
+            </label>} />
+        )}
+
         {/* the record — append-only, chain-hashed (FIN-05). r.028 (addendum 58 "sloppy · hide and click to expand with better table · every entry
             on a single line with ability to scroll to right"): folded behind a chevron; opened, a table, one entry per line, scrolling sideways */}
         <details data-fin-ledger className={`group ${SUB}`}>
@@ -598,6 +521,65 @@ export function FinancialCommandUX1() {
           </div>
           <p className="mt-2 text-xs text-muted-foreground">{t("fin.device_only")}</p>
         </details>
+
+        {/* the year as a TABLE, key info in order, PERIHELION FIRST (r.028, addendum 58); months of 30.3̅ days, no 33-day frame */}
+        {year && (() => {
+          const monthDays = 91 / 3;
+          const dayIdx = year.day - 1;
+          const month = year.down ? null : Math.floor(dayIdx / monthDays) + 1;
+          const dayInMonth = year.down ? null : Math.floor(dayIdx - (month! - 1) * monthDays) + 1;
+          // ONE SYSTEM AT A TIME (r.038, addendum 72 "year position is either Gregorian or A.B..C, not a mix of both"):
+          //  · Clock — the rows as they were (his answer "keep as is"): today's stamp, day, 91-day quarter, 30.3̅-day month, year.
+          //  · MoT — A.B..C only, no stamps, no day counts: the perihelion as the origin, then equal parts of 3600 (addendum 73:
+          //    quarter 900 A, month 300 A), then the revolution.
+          const q = abcPart(year.abc, 900), mo = abcPart(year.abc, 300);
+          const rows: [string, string][] = yearAbc ? [
+            [t("fin.perihelion_abc"), fmtMot({ a: 0, b: 0, c: 0 })],   // the origin, in the same writing as every A.B..C here
+            [t("fin.now_abc"), `${fmtMot(year.abc)} / 3600`],
+            [t("fin.quarter"), `${q.n} · ${fmtMot(q.within)} / 900`],
+            [t("fin.month"), `${mo.n} · ${fmtMot(mo.within)} / 300`],
+            [t("fin.revolution"), String(year.year)],
+          ] : [
+            [t("fin.year_today"), `${fmtStampCST(at)} CST`],
+            [t("fin.day"), `${year.day} / ${Math.ceil(year.lengthDays)}${year.pastFull ? " ↑" : ""}`],
+            [t("fin.quarter"), year.down ? t("fin.down_day") : `${year.quarter} · ${year.dayInQuarter} / 91`],
+            [t("fin.month"), month === null ? t("fin.down_day") : `${month} · ${dayInMonth} / ${fmtDays(monthDays)}`],
+            [t("fin.year"), `${year.year} · ${year.status}`],
+          ];
+          return (
+            // r.038 (addendum 73): at the END of the page, folded to its title; opened, the Clock ⇄ MoT toggle and the rows
+            <details data-fin-year className={`group ${SUB}`} data-fin-past-full={year.pastFull ? "1" : undefined}>
+              <summary className="flex min-h-[36px] cursor-pointer list-none items-center gap-1" aria-label={t("fin.year_title")}>
+                <ChevronRight size={14} strokeWidth={1.5} aria-hidden className="transition-transform group-open:rotate-90" />
+                <span className={LABEL}>{t("fin.year_title")}</span>
+              </summary>
+              <div className="mt-2 flex justify-end"><ClockMotToggle abc={yearAbc} onChange={setYearAbc} t={t} hook="year" /></div>
+              <table data-fin-year-table className="mt-2 w-full text-xs">
+                <tbody>
+                  {rows.map(([k, v], n) => (
+                    <tr key={n} className="border-t border-border/60 first:border-t-0"><th scope="row" className="py-1 pr-3 text-left font-normal text-muted-foreground">{k}</th><td className="py-1 text-right font-mono tabular-nums text-foreground">{v}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+              {planet.code !== "earth" && <p className="mt-1 text-xs text-muted-foreground">{t("fin.anchor_note")}</p>}
+            </details>
+          );
+        })()}
+
+        {/* forms — only a signed-in person records; the example is read-only */}
+        {owner ? (
+          <div data-fin-forms>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground" data-fin-signin>
+              <span>{t("fin.signed_in_as")} {user?.name ?? user?.email ?? owner}</span>
+              <button type="button" className={SECONDARY} onClick={() => logout({ logoutParams: { returnTo: typeof window !== "undefined" ? window.location.origin : undefined } })}>{t("fin.sign_out")}</button>
+            </div>
+          </div>
+        ) : (
+          <div className={SUB} data-fin-signin>
+            <p className="text-muted-foreground">{t("fin.example_badge")}</p>
+            <button type="button" className={`mt-2 ${PRIMARY}`} disabled={isLoading} onClick={signIn}>{t("fin.sign_in")}</button>
+          </div>
+        )}
 
         {/* the Trinity wheel — folded, as the Session folds it. The seats are the operator's (addendum 9): TOP = HI 웃 (the
             person), BOTTOM-LEFT = AI ◬ (AI tokens), BOTTOM-RIGHT = SI ♡ (minutes contribution — volunteer / time logged).
@@ -692,7 +674,10 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
           </div>
         </div>
       )}
-      <p className="mt-1 font-mono text-xs text-muted-foreground">{fmtStampCST(tx.atMs)} · {usd(tx.amountCents)} · {fmtDays(tx.motDays ?? 0)} · {now < from ? `${t("fin.pending_from")} ${fmtStampCST(tx.atMs)}` : showAbc ? `${fmtMot(positionInYear(from, planet.yearAnchor).abc)} → ${fmtMot(positionInYear(to, planet.yearAnchor).abc)}` : `${ltuLabel(elapsed, len, planet)} ${t("fin.elapsed")}`}</p>
+      {/* r.038 (addendum 72 + "Yes, everywhere"): MoT on → A.B..C only (no stamp, no days); Clock on → the date and hours, as before */}
+      <p data-fin-chart-line className="mt-1 font-mono text-xs text-muted-foreground">{showAbc
+        ? `${usd(tx.amountCents)} · ${fmtMot(motAbc)} ${t("fin.a_units")} · ${fmtMot(positionInYear(from, planet.yearAnchor, planet.yearDays).abc)} → ${fmtMot(positionInYear(to, planet.yearAnchor, planet.yearDays).abc)}`
+        : `${fmtStampCST(tx.atMs)} · ${usd(tx.amountCents)} · ${fmtDays(tx.motDays ?? 0)} · ${now < from ? `${t("fin.pending_from")} ${fmtStampCST(tx.atMs)}` : `${ltuLabel(elapsed, len, planet)} ${t("fin.elapsed")}`}`}</p>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" className="mt-2 block cursor-crosshair" role="img" aria-label={t("fin.chart_tap")} data-fin-chart-svg onClick={probeAt}>
         <rect x={PL} y={P} width={W - PL - P} height={H - 2 * P} fill="none" stroke="var(--border)" strokeWidth={hair} />
         {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={PL + f * (W - PL - P)} y1={P} x2={PL + f * (W - PL - P)} y2={H - P} stroke="var(--border)" strokeWidth={hair} />)}
@@ -715,7 +700,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
           {ticks.map((tk) => <span key={tk} className="absolute top-0.5 whitespace-nowrap" style={{ left: `${((x(tk) / W) * 100).toFixed(2)}%`, transform: angle === 0 ? "translateX(-50%)" : angle === 90 ? "translateX(-100%) rotate(-90deg)" : `translateX(-100%) rotate(-${angle}deg)`, transformOrigin: angle === 0 ? "50% 0" : "100% 0" }}>{dateLabel(tk, dateFmt)}</span>)}
         </div>
       )}
-      {probe !== null && <p data-fin-chart-probe className="mt-1 font-mono text-xs text-foreground">{fmtStampCST(probe)} CST</p>}
+      {probe !== null && <p data-fin-chart-probe className="mt-1 font-mono text-xs text-foreground">{showAbc ? fmtMot(positionInYear(probe, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(probe)} CST`}</p>}
       {/* A.B..C mode: five marks; a mark is two lines (A · .BBBB..CCCC) so five of them fit a 390 px phone without overprinting */}
       {showAbc && <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{axis.map((a, i) => <span key={i} className={`whitespace-pre-line ${i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}`}>{a.replace(".", "\n.").replace("..", "\n..")}</span>)}</div>}
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">

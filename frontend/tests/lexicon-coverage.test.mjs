@@ -54,6 +54,8 @@ const AFTER_FILL = new Set([
   ...['home'].map((k) => `fin.${k}`),
   // r.035 (addendum 68 — the label above the rate). English only:
   ...['accrual_rate'].map((k) => `fin.${k}`),
+  // Financial-2525 r.038 (addenda 72 + 73 — the year card's MoT view in A.B..C only): English only until he says the English is final
+  ...['perihelion_abc', 'now_abc', 'revolution'].map((k) => `fin.${k}`),
   // Financial-2525 r.016 (operator 2026-09-30, addendum 28 — the budget's edit mode): the pencil, Done, add, remove, reset — 5 keys FILLED ×32 (native-speaker agents, eight languages each); nothing left in AFTER_FILL for r.016.
   // Financial-2525 r.013 (operator 2026-09-30, addenda 24–25 — one transaction form, the length dropdown): 10 keys FILLED ×32 (native-speaker agents; six shared words — fr Transaction · Type · Minutes, da/nl/no Type — on the identical-allowed list).
   // Financial-2525 r.012 (operator 2026-09-30, addendum 22 — the A–U ladder): 20 sections · 60 fields · 5 timelines · 5 labels FILLED ×32

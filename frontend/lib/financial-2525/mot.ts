@@ -96,6 +96,13 @@ export const isFull = (abc: ABC): boolean => abc.a >= SUB || (abc.a === SUB - 1 
 /** Canonical text: A unpadded, B and C four digits — the abc-3600 grammar. Always the TRUE A (r.005): a whole prints
  *  3600.0000..0000, two wholes 7200.0000..0000; r.003 substituted 3600.3600..3600 for anything ≥ 3600 — superseded. */
 export const fmtMot = (abc: ABC): string => fmtABC(abc);
+/** Equal parts of the 3600 whole (r.038, addendum 73 "Equal parts of 3600"): which part an orbit position is in (1-based) and
+ *  where inside it — a quarter is 900 A, a month 300 A. A.B..C digits are base 3600, so only the A carries the subtraction;
+ *  B and C pass through unchanged. Past the whole (pastFull) the part count keeps climbing — shown, never clamped. */
+export function abcPart(abc: ABC, size: number): { n: number; within: ABC } {
+  const n = Math.floor(Math.max(0, abc.a) / size) + 1;
+  return { n, within: { a: abc.a - (n - 1) * size, b: abc.b, c: abc.c } };
+}
 /** The sheet's three Equal writings of ONE whole — 3600.0000..0000 · 3600.3600..3600 · 3599.3599..3599 — read exactly 1. */
 const isEqualWriting = (abc: ABC): boolean =>
   (abc.a === SUB && ((abc.b === 0 && abc.c === 0) || (abc.b >= SUB && abc.c >= SUB))) || (abc.a === SUB - 1 && abc.b === SUB - 1 && abc.c >= SUB - 1);

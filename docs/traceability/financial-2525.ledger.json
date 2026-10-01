@@ -527,6 +527,13 @@
    "kind": "release",
    "text": "r.037 shipped — a smaller + Transaction inside the Accrual Units card (FD-54).",
    "commit": "fb04ec9"
+  },
+  {
+   "rev": 76,
+   "date": "2026-10-01",
+   "kind": "decision",
+   "text": "r.038 decision — no step rail; Accrual · Budget · Chart; the year card folded at the end; one system per view (FD-55).",
+   "commit": "cd4a33a"
   }
  ]
 }

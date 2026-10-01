@@ -17,9 +17,10 @@
  *   --area    CSS selector of the changed area (the crop)
  *   --root    the built export to serve (default ./out). For a BEFORE of an area the previous release did not capture,
  *             build the previous ship SHA in a git worktree and point --root at its out/.
- *   --click   optional selector to press before the capture (e.g. open the entry form)
+ *   --click   optional selector(s) to press before the capture, in order: "sel1 >> then sel2"
  *   --extend  optional selector whose box is unioned with --area (e.g. the form that opens below the card)
  *   --inside  optional selector; prints whether its box lies inside the --area box (the measurement in the note)
+ *   --maxh    optional: crop the capture to this many CSS px from the top of the area (e.g. the top of the page)
  *   --suffix  optional name part for a second view of the same release (r.037-after-open.png)
  *
  * Prints one JSON line: { file, area:{w,h}, inside?, count?, errors }. Exit 1 when the area is missing or the page errored.
@@ -41,7 +42,7 @@ if (!/^\d{3}$/.test(REV || "") || !AREA || !["before", "after"].includes(AS)) {
 }
 const ROOT = resolve(arg("root", join(HERE, "..", "out")));
 const OUTDIR = resolve(arg("out", join(HERE, "..", "..", "docs", "financial-2525", "releases", "img")));
-const CLICK = arg("click"), EXTEND = arg("extend"), INSIDE = arg("inside"), SUFFIX = arg("suffix");
+const CLICK = arg("click"), EXTEND = arg("extend"), INSIDE = arg("inside"), SUFFIX = arg("suffix"), MAXH = Number(arg("maxh", "0"));
 
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".woff2": "font/woff2", ".txt": "text/plain" };
 const srv = createServer(async (req, res) => {
@@ -101,7 +102,7 @@ await enter("deposit", "3604.49", "2026.09.30_19.54..35", "paymot");
 await enter("deposit", "320", "2026.09.30_19.56..04", "paymot");
 await page.waitForTimeout(400);
 
-if (CLICK) { await page.click(CLICK); await page.waitForTimeout(400); }
+if (CLICK) for (const sel of CLICK.split(" >> then ")) { await page.click(sel); await page.waitForTimeout(400); }   // several presses: "a >> then b"
 const area = await page.$(AREA);
 if (!area) { console.log(JSON.stringify({ error: `area not found: ${AREA}`, errors })); await done(1); }
 await area.scrollIntoViewIfNeeded();
@@ -113,6 +114,7 @@ if (EXTEND) {
   const b = await box(EXTEND);
   if (b) { const x = Math.min(clip.x, b.x), y = Math.min(clip.y, b.y); clip = { x, y, w: Math.max(clip.x + clip.w, b.x + b.w) - x, h: Math.max(clip.y + clip.h, b.y + b.h) - y }; }
 }
+if (MAXH > 0) clip.h = Math.min(clip.h, MAXH);
 const result = { file: join(OUTDIR, `r.${REV}-${AS}${SUFFIX ? "-" + SUFFIX : ""}.png`), area: { w: Math.round(clip.w), h: Math.round(clip.h) } };
 if (INSIDE) {
   const a = await box(AREA), i = await box(INSIDE);
@@ -120,6 +122,8 @@ if (INSIDE) {
   result.inside = !!(a && i && i.x >= a.x - 0.5 && i.y >= a.y - 0.5 && i.x + i.w <= a.x + a.w + 0.5 && i.y + i.h <= a.y + a.h + 0.5);
 }
 await page.screenshot({ path: result.file, clip: { x: clip.x, y: clip.y, width: clip.w, height: clip.h }, fullPage: true });
+result.text = await page.evaluate((s) => document.querySelector(s)?.innerText ?? "", AREA);   // what the area reads (the note's measurement)
+result.order = await page.evaluate(() => ["data-fin-balance","data-fin-budget","data-fin-chart","data-fin-ledger","data-fin-year","data-fin-signin"].map((a) => [a, document.querySelector(`[${a}]`)?.getBoundingClientRect().top ?? null]));
 result.errors = errors;
 console.log(JSON.stringify(result));
 await done(errors.length ? 1 : 0);
