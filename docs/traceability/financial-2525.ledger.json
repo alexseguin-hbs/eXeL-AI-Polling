@@ -254,6 +254,13 @@
    "kind": "decision",
    "text": "r.018 decided (operator addendum 31): the budget grouped by the sheet's kinds — Income · Fixed · Variable (· Transfers) — collapsed with a chevron per group, edit mode opens all, no A–U letter on the glass (table, pickers, heading 'Personal budget'); 'fixed vs financial' read as fixed vs variable, said on the record. FIN-06.09 · FD-33. Two chevron keys + the retitled heading staged English-only (addendum 30).",
    "commit": "1819a98"
+  },
+  {
+   "rev": 37,
+   "date": "2026-09-30",
+   "kind": "release",
+   "text": "v.000_r.018 SHIPPED — the budget grouped by kind (Income · Fixed · Variable · Transfers), collapsed behind a chevron per group, edit mode opens all, no A–U letter on the glass; two chevron keys and the retitled heading staged English-only. FIN-06.09 · FD-33. Shipped as c4eb2af. Gates: financial-ladder 80 · financial-surface 91 · financial-crs 390 · full test:ci 0 · next build 0.",
+   "commit": "c4eb2af"
   }
  ]
 }

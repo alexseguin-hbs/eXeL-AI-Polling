@@ -274,7 +274,7 @@
    "kind": "decision",
    "why": "The budget grouped by KIND, collapsed, no letters (operator addendum 31 'order by fixed vs financial, and have expand button so this is not so busy. Don't show A-U letters', with his phone screenshot of the r.016 ladder — thirteen section rows, five of them $0). ladder.ts groupByKind (pure): the plan's lines grouped by the sheet's own kinds — Income · Fixed · Variable · Transfer — in that order, each group with its total in the chosen period, a kind with no line absent (no $0 row); the sections and their letters stay in the model and the record. The glass: one row per kind with a chevron (Show the lines / Hide the lines) and the total; the groups start COLLAPSED — Income · Fixed · Variable · Net is the whole table at first sight — and edit mode opens every group so its fields are reachable; a line shows its section by icon and name, never a letter; the Section pickers (the transaction form, the add row) read the section's name alone; the panel's heading reads 'Personal budget' (the key's 32 stale fills removed, the key restaged — ENGLISH ONLY until the operator finalizes the English, addendum 30). READING on the record: 'fixed vs financial' is read as the sheet's FIXED vs VARIABLE columns, the kinds the brief locks per field; the groups are data and change in one place if another split was meant. FIN-06.09 · FD-33.",
    "commit": "1819a98",
-   "shipped": "PENDING"
+   "shipped": "c4eb2af"
   }
  ],
  "mot": {
