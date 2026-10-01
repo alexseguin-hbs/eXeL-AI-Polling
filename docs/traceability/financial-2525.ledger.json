@@ -492,6 +492,13 @@
    "kind": "decision",
    "text": "r.035 decision — \"Accrual Rate\" above the rate (FD-52).",
    "commit": "5f34462"
+  },
+  {
+   "rev": 71,
+   "date": "2026-10-01",
+   "kind": "release",
+   "text": "r.035 shipped — Accrual Rate label (FD-52).",
+   "commit": "886cfcd"
   }
  ]
 }

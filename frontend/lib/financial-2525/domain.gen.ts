@@ -503,7 +503,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "Addendum 68: \"place text Accrual Rate above 5.3809 / hr.\" The words \"Accrual Rate\" now sit directly above the rate figure and its /sec · /min · /hr · /day selector, which stay on the Accrual Units top line immediately left of the gear (addendum 64).",
    "commit": "5f34462",
-   "shipped": "PENDING"
+   "shipped": "886cfcd"
   }
  ],
  "mot": {
