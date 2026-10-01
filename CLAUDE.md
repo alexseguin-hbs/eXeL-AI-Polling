@@ -25,6 +25,12 @@
   saved copy (local mirror and cloud), never replaced by it, and a deliberate removal leaves a tombstone a deploy never
   undoes.** One helper (`mergeMissingBy` → `mergeNewSeeds`, `mergeSetupSeeds` in `lib/innovation-data.ts`), every hydration
   path, gated in `tests/innovation-time.test.mjs`. When you seed a row, update the Admin panel in the same commit and say so.
+- **NO TRANSLATION FILL BEFORE THE ENGLISH IS FINAL (operator 2026-09-30: "dont do translators until english is finalized with
+  HI tested UI/UX").** A new lexicon key is STAGED in `AFTER_FILL` (listed, never silent — the gates stay green) and reads English
+  in every language until the operator says the English UI/UX is finalized and HI-tested; only then is the ×32 native-speaker fill
+  dispatched, as its own commit. Never dispatch a fill on a surface the operator is still shaping; a word that will change is a
+  fill that will be orphaned. The 33-language law (2026-09-13) is unchanged in scope — it governs WHAT is translated; this rule
+  governs WHEN.
 - **A NEW EDITION IS AN APPEND, NEVER AN EDIT (same AAR).** `replay()` picks the last ledger entry at or
   below the release being read. Changing an existing `L(v,…)` in place silently removes that block from every
   release that already shipped with it. Append `L(newer,"same.id",…)` instead — the past then replays what it
