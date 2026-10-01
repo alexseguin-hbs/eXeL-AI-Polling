@@ -62,7 +62,7 @@ ok(/import { SHEET_LINES, type BudgetCategory } from "@\/lib\/financial-2525\/bu
 ok(/useAuth0\(\)/.test(ux) && /loginWithRedirect\(\{ appState: \{ returnTo: /.test(ux) && /user\?\.sub/.test(ux), 'each user their own login: Auth0 gates recording, keys the record, and returns the person HERE after login');
 ok(/\{owner \? \(/.test(ux) && /data-fin-forms/.test(ux), 'the deposit / withdrawal forms render only for a signed-in person');
 // r.002 — the surface STARTS FROM the ◬ ♡ 웃 Session shell (operator addendum 7): its root, header, rail, guide, roster, clock, strip, Trinity
-ok(/className="mx-auto max-w-3xl px-4 py-10"/.test(ux) && /<SoiGlobe \/>/.test(ux) && /<TrinityGlyphs size="text-3xl"/.test(ux), 'the Session root and header: the globe and the Trinity glyphs');
+ok(/className="mx-auto max-w-3xl px-4 pb-32 pt-10 sm:pb-10"/.test(ux) && /<SoiGlobe \/>/.test(ux) && /<TrinityGlyphs size="text-3xl"/.test(ux), 'the Session root and header: the globe and the Trinity glyphs');
 ok(/<PodPhaseRail phase=\{phase\} phases=\{FIN_PHASES\} countFor=\{countFor\}/.test(ux) && /<PodRosterList rows=\{rosterRows\}/.test(ux), 'the Session rail (five financial phases) and roster, reused not redrawn');
 ok(/data-testid="fin-your-turn" data-state=\{guide\.state\}/.test(ux) && /font-mono text-2xl tabular-nums text-cyan-500/.test(ux) && /data-testid="fin-strip"/.test(ux) && /<SoITrinity /.test(ux), 'the guide card, the ACTIVE clock block, the phone strip and the folded Trinity carry the Session\'s classes');
 ok(/const CARD = "mt-8 rounded-xl border border-border bg-card p-5"/.test(ux) && !/VECTOR_LAW\.ground/.test(ux), 'the chrome is the app theme card (bg-card), not a fresh black console');
@@ -114,6 +114,10 @@ ok(/THE PICKER LAW \(r\.014/.test(ux), 'the law is written into the file beside 
   ok(entries.every(([, name]) => new RegExp(`\\b${name}\\b`).test(iconSrc.split("\n").find((l) => l.startsWith("import {")) ?? "")), "every section stroke is imported from lucide (a name that is not imported would render nothing)");
   ok(/data-fin-tx-field=\{tx\.field\}> · <SectionIcon section=\{sec\}/.test(ux) && /<tr data-fin-budget-row=\{sec\}[^\n]*<SectionIcon section=\{sec\}/.test(ux), "the record line and every ladder section row draw the section's stroke before its word");
 }
+
+// R-CORE toggle (operator 2026-09-30) — the page's last element must clear the phone strip: the maximized icon under the badge
+// measured UNDER the fixed strip (elementFromPoint returned the strip's span) until the surface gained phone bottom padding.
+ok(/<div data-financial-ux1 className="mx-auto max-w-3xl px-4 pb-32 pt-10 sm:pb-10">/.test(ux), "the surface pads its bottom on the phone (pb-32) so the R-CORE badge and its icon sit above the fixed strip");
 
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

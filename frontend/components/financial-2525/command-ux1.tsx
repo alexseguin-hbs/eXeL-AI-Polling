@@ -254,8 +254,10 @@ export function FinancialCommandUX1() {
     return null;
   };
 
+  // pb-32 on the phone: the fixed strip (bottom-14, ~52 px) and the nav beneath it cover the page's last ~108 px, so the page's
+  // last element — the R-CORE badge and its maximized icon — must sit above them (measured 2026-09-30, the R-CORE toggle).
   return (
-    <div data-financial-ux1 className="mx-auto max-w-3xl px-4 py-10">
+    <div data-financial-ux1 className="mx-auto max-w-3xl px-4 pb-32 pt-10 sm:pb-10">
       {/* Header — the Session's: the globe, the Trinity glyphs, the title ───────────────────────── */}
       <header className="mb-8 text-center">
         <div className="mb-2 flex justify-end"><SoiGlobe /></div>

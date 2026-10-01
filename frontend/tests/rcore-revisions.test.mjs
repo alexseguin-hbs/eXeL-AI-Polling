@@ -94,10 +94,18 @@ ok(soiCmp.crossed.length === soiH.revisions.length - 1, "SoI compare(first → c
 
 // ── 6 · the badge source wires the two-click states and opens the panel ────────────────────────────
 const badgeSrc = fs.readFileSync(new URL("../components/2525-core/rcore-badge.tsx", import.meta.url), "utf8");
-ok(/data-rcore-icon/.test(badgeSrc) && /onClick=\{expand\}/.test(badgeSrc) && /setStage\(1\)/.test(badgeSrc), "badge CLICK 1: the rest icon expands to the pill (setStage(1))");
-ok(/data-rcore-pill/.test(badgeSrc) && /onClick=\{openPanel\}/.test(badgeSrc) && /setOpen\(true\)/.test(badgeSrc), "badge CLICK 2: the pill opens the panel (setOpen(true))");
+const panelSrc0 = fs.readFileSync(new URL("../components/2525-core/rcore-revision-panel.tsx", import.meta.url), "utf8");
+// operator 2026-09-30: REST = the R-CORE wordmark centred; a tap MAXIMIZES the single icon, a second tap MINIMIZES it (a toggle);
+// the icon opens the panel; the header shows no lone icon and centres the wordmark + its line.
+ok(/data-rcore-pill[\s\S]*onClick=\{toggleIcon\}/.test(badgeSrc) && /setShowIcon\(\(v\) => !v\)/.test(badgeSrc) && /aria-expanded=\{showIcon\}/.test(badgeSrc), "badge REST: the R-CORE wordmark is the toggle (a tap shows the icon, a second tap hides it)");
+ok(/data-rcore-icon[\s\S]*onClick=\{openPanel\}/.test(badgeSrc) && /setOpen\(true\)/.test(badgeSrc), "badge ICON: the single icon, when shown, opens the panel (setOpen(true))");
+ok(/transform: showIcon \? "scale\(1\)" : "scale\(0\)"/.test(badgeSrc) && /height: showIcon \? H : 0/.test(badgeSrc) && /pointerEvents: showIcon \? "auto" : "none"/.test(badgeSrc) && /aria-hidden=\{!showIcon\}/.test(badgeSrc), "the icon grows and shrinks the same way (maximize ↔ minimize) and is inert while hidden");
+ok(!/setStage\(/.test(badgeSrc) && /className="flex w-full flex-col items-center justify-center"/.test(badgeSrc), "no three-stage ladder remains; R-CORE and its icon sit on the centre line");
+ok(/data-rcore-header[^\n]*justifyContent: "center"/.test(panelSrc0) && /flexDirection: "column", alignItems: "center", textAlign: "center"/.test(panelSrc0), "the panel header centres the wordmark and its line");
+ok(!/data-rcore-header[\s\S]{0,1200}r-core-icon\.png/.test(panelSrc0), "the panel header shows no lone reticle icon (the wordmark carries the brand)");
+ok(/position: "absolute", right: 12, top: "50%"[\s\S]{0,400}data-rcore-download[\s\S]{0,900}data-rcore-close/.test(panelSrc0), "the download and close buttons keep the right edge");
 ok(/\{open && <RCoreRevisionPanel/.test(badgeSrc), "badge renders RCoreRevisionPanel when open");
-ok(/data-rcore-badge/.test(badgeSrc) && /flex w-full justify-center/.test(badgeSrc) && !/fixed left-1\/2/.test(badgeSrc), "badge sits at the BOTTOM of the page in normal flow (mounted last, centred), never a fixed overlay on top of the image/slide (operator 2026-09-25)");
+ok(/data-rcore-badge/.test(badgeSrc) && /flex w-full flex-col items-center justify-center/.test(badgeSrc) && !/fixed left-1\/2/.test(badgeSrc), "badge sits at the BOTTOM of the page in normal flow (mounted last, centred column: R-CORE, then its icon), never a fixed overlay on top of the image/slide (operator 2026-09-25)");
 
 // the panel is the version-history + compare tool, reusing compareRevisions
 const panelSrc = fs.readFileSync(new URL("../components/2525-core/rcore-revision-panel.tsx", import.meta.url), "utf8");
@@ -115,7 +123,7 @@ ok(/export const RCORE_LOGO_H = \d+;/.test(revSrc), "RCORE_LOGO_H is exported on
 const badgeImgs = [...badgeSrc.matchAll(/<img src=\{(?:ICON|WORDMARK)\}[^>]*>/g)].map((m) => m[0]);
 const panelImgs = [...panelSrc.matchAll(/<img[^>]*\/r-core\/r-core-(?:icon|wordmark)\.png[^>]*>/g)].map((m) => m[0]);
 ok(badgeImgs.length === 2 && badgeImgs.every((s) => /height: H\b/.test(s) && /width: "auto"/.test(s)) && /const H = RCORE_LOGO_H;/.test(badgeSrc), "badge: icon + wordmark rasters at height H = RCORE_LOGO_H, natural width");
-ok(panelImgs.length === 2 && panelImgs.every((s) => /height: RCORE_LOGO_H\b/.test(s) && /width: "auto"/.test(s) && !/width=\{\d+\}|height=\{\d+\}/.test(s)), "panel header: icon + wordmark rasters at height RCORE_LOGO_H, natural width, never a forced width/height square");
+ok(panelImgs.length === 1 && panelImgs.every((s) => /height: RCORE_LOGO_H\b/.test(s) && /width: "auto"/.test(s) && !/width=\{\d+\}|height=\{\d+\}/.test(s)), "panel header: ONE raster — the wordmark — at height RCORE_LOGO_H, natural width, never a forced square (the lone icon left the header, operator 2026-09-30)");
 ok(!/height: \d+, width: "auto"/.test(panelSrc) && !/height: \d+, width: "auto"/.test(badgeSrc), "no hardcoded raster height remains in the badge or the panel — one size, one constant");
 
 // ── 7 · both Stage-1 surfaces mount RCoreBadge, each from its own source ────────────────────────────

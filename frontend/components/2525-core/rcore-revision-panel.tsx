@@ -151,19 +151,18 @@ export function RCoreRevisionPanel({
       >
         {/* Header — the R-CORE icon + wordmark RASTERS at the top when open (operator 2026-09-26 "place icon and
             word art raster at top when open"). Sticky, so the branding + close stay in view while the list scrolls. */}
-        <div style={{ position: "sticky", top: 0, background: PAL.bg, borderBottom: `1px solid ${PAL.line}`, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, zIndex: 1 }}>
-          {/* the operator's exact reticle raster, as-is */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          {/* the badge's default size, natural aspect — never a forced square (operator 2026-09-27 "the same size at top") */}
-          <img src="/r-core/r-core-icon.png" alt="" style={{ height: RCORE_LOGO_H, width: "auto", display: "block", flexShrink: 0 }} />
-          <div style={{ minWidth: 0, flex: 1 }}>
-            {/* the operator's exact "R-CORE" wordmark raster, as-is — the wordart at the top */}
+        {/* Operator 2026-09-30 ("center R-Core icon and text on center and dont show single R-CORE icon"): the wordmark and its
+            line sit on the panel's centre line; the lone reticle is gone from the header; the two buttons keep the right edge. */}
+        <div data-rcore-header style={{ position: "sticky", top: 0, background: PAL.bg, borderBottom: `1px solid ${PAL.line}`, padding: "12px 76px", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>
+          <div style={{ minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+            {/* the operator's exact "R-CORE" wordmark raster, as-is — the wordart at the top, the badge's default size (operator 2026-09-27) */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/r-core/r-core-wordmark.png" alt={t("rcore.brand")} style={{ height: RCORE_LOGO_H, width: "auto", display: "block" }} />
-            <div style={{ fontSize: 11, color: PAL.muted, fontFamily: "ui-monospace, monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 3 }}>
+            <div style={{ fontSize: 11, color: PAL.muted, fontFamily: "ui-monospace, monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 3, maxWidth: "100%" }}>
               {t("rcore.version_history")} · {history.surface || "—"}{history.route ? " · " + history.route : ""} · {n} {t("rcore.rev_short")}
             </div>
           </div>
+          <div style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", display: "flex", gap: 6 }}>
           {/* Self-contained HTML download — the living document's ↓ (operator 2026-09-26). */}
           <button
             data-rcore-download
@@ -184,6 +183,7 @@ export function RCoreRevisionPanel({
           >
             ×
           </button>
+          </div>
         </div>
 
         {n < 2 ? (
