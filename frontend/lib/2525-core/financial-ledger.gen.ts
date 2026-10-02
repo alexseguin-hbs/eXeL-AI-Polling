@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 127 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 128 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -898,6 +898,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.064 correction — our own canvas chart replaces TradingView; full-screen expand on the chart (FD-79); the Net-by figure removed (addendum 137).",
       "commit": "f112b36"
+    },
+    {
+      "rev": 128,
+      "date": "2026-10-02",
+      "kind": "release",
+      "text": "r.064 shipped and LIVE (Verify Live #2219) — our own canvas chart, no TradingView; full-screen expand; Net by removed (FD-79).",
+      "commit": "d418a89"
     }
   ]
 };

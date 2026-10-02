@@ -995,7 +995,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "correction",
    "why": "Addendum 135: \"i said dont use light wight trding view chart · wheres my expand for financial chart\" (his answer to the expand question: \"Full screen\"). The $/min chart is now drawn by our own canvas engine (components/2525-core/rcore-chart.tsx, no third-party chart library): the same three step lines on one left value scale, two-finger pinch and wheel zoom, drag to pan, a tap pins a day with its figures and boxed date, the dates tilted per Settings in their own strip, withdrawal marks; the lightweight-charts dependency and its credit line are removed. Addendum 137 (folded in before shipping): \"remove: Net by 07 +$3,893.14 · also remove light weight charts trading view label\" — the Net-by figure under the chart is removed (the credit label was already gone). An expand button at the top right of REAL-TIME FINANCIALS opens the card full screen (the chart grows to fill it); the same button, now an X, or Escape, puts it back. Correction of r.056: the TradingView pick recorded there is withdrawn by the operator. No budget figure changes.",
    "commit": "f112b36",
-   "shipped": "PENDING"
+   "shipped": "d418a89"
   }
  ],
  "mot": {
