@@ -46,3 +46,13 @@
   Content-Disposition: attachment
   Content-Type: text/html; charset=utf-8
   Cache-Control: no-cache, must-revalidate
+
+# Sensor Fusion asks for the camera on this page only. The rest of the site stays camera-off.
+/SensorFusion-2525
+  Permissions-Policy: camera=(self), microphone=(self), geolocation=()
+
+/SensorFusion-2525/
+  Permissions-Policy: camera=(self), microphone=(self), geolocation=()
+
+/SensorFusion-2525/*
+  Permissions-Policy: camera=(self), microphone=(self), geolocation=()

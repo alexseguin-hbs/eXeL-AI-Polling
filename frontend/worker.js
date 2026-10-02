@@ -120,7 +120,14 @@ export default {
       // fail open — never let the safety check take the site down
     }
 
-    return env.ASSETS.fetch(request);
+    const asset = await env.ASSETS.fetch(request);
+    const path = url.pathname;
+    if (path === "/SensorFusion-2525" || path.startsWith("/SensorFusion-2525/")) {
+      const headers = new Headers(asset.headers);
+      headers.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=()");
+      return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers });
+    }
+    return asset;
   },
 };
 

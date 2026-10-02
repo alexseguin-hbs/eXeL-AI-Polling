@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 import {
   COLORS,
@@ -40,11 +41,11 @@ function paint(id: SchemeId | "custom", hex: string) {
 }
 
 export default function SensorFusion() {
+  const { user, isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
+  const operator = user?.name || user?.email || "";
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [step, setStep] = useState<Step>("login");
-  const [operator, setOperator] = useState("");
-  const [draft, setDraft] = useState("");
   const [platform, setPlatform] = useState<PlatformId>("win");
   const [scheme, setScheme] = useState<SchemeId | "custom">("cyan");
   const [customHex, setCustomHex] = useState("#19c8cf");
@@ -73,17 +74,22 @@ export default function SensorFusion() {
     const known = PLATFORMS.some((item) => item.id === savedHost);
     const host = known && savedHost ? savedHost : detectPlatform(navigator.userAgent);
     setPlatform(host);
-    const who = window.localStorage.getItem("sf2525-operator") ?? "";
-    const ready = window.localStorage.getItem("sf2525-ready") === "1";
-    if (who) {
-      setOperator(who);
-      setDraft(who);
-      setStep(ready && known ? "work" : "device");
-    }
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (!isAuthenticated) {
+      setStep("login");
+      return;
+    }
+    const ready = window.localStorage.getItem("sf2525-ready") === "1";
+    const savedHost = window.localStorage.getItem("sf2525-host") as PlatformId | null;
+    const known = PLATFORMS.some((item) => item.id === savedHost);
+    setStep(ready && known ? "work" : "device");
+  }, [isAuthenticated, isLoading]);
 
   function chooseScheme(next: SchemeId | "custom", hex?: string) {
     const color = hex || customHex;
@@ -167,25 +173,17 @@ export default function SensorFusion() {
           <p className={styles.kicker}>MODULAR: EDGE</p>
           <h1>Sensor Fusion · 2525</h1>
           <p className={styles.muted}>
-            Accessible from multiple devices: a Windows PC, an Android phone, an iPhone, a Raspberry Pi, or Ubuntu. Sign in as the System Operator.
+            Accessible from multiple devices: a Windows PC, an Android phone, an iPhone, a Raspberry Pi, or Ubuntu. Sign in with the same eXeL AI account.
           </p>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              const who = draft.trim();
-              if (!who) return;
-              setOperator(who);
-              window.localStorage.setItem("sf2525-operator", who);
-              setStep("device");
-            }}
+          <button
+            className={styles.primary}
+            type="button"
+            disabled={isLoading}
+            onClick={() => loginWithRedirect({ appState: { returnTo: "/SensorFusion-2525/" } })}
           >
-            <label htmlFor="operator">System Operator</label>
-            <input id="operator" value={draft} autoComplete="name" onChange={(event) => setDraft(event.target.value)} />
-            <button className={styles.primary} type="submit" disabled={!draft.trim()}>
-              Log in
-            </button>
-          </form>
-          <p className={styles.muted}>Your name stays on this device. Next, pick the device.</p>
+            {isLoading ? "Checking sign in…" : "Log in"}
+          </button>
+          <p className={styles.muted}>Your password stays with that sign in. Next, pick the device.</p>
         </div>
       </main>,
       accent,
@@ -255,10 +253,8 @@ export default function SensorFusion() {
             type="button"
             onClick={() => {
               closeSensor();
-              window.localStorage.removeItem("sf2525-operator");
               window.localStorage.removeItem("sf2525-ready");
-              setOperator("");
-              setStep("login");
+              logout({ logoutParams: { returnTo: window.location.origin } });
             }}
           >
             Log out

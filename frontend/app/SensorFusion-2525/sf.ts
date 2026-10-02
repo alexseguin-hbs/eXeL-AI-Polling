@@ -72,7 +72,13 @@ export function applyTheme(bg: string, card: string, primary: string, line: stri
 
 export function explainCamera(err: unknown): string {
   const name = err instanceof DOMException ? err.name : "";
-  if (name === "NotAllowedError" || name === "PermissionDeniedError") return "The camera was not allowed. Say yes to the camera, then try again.";
+  const message = err instanceof Error ? err.message : "";
+  const lower = `${name} ${message}`.toLowerCase();
+  if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+    return lower.includes("policy")
+      ? "This page is not allowed to open the camera yet."
+      : "The camera was not allowed. Say yes when the browser asks, then try again.";
+  }
   if (name === "NotFoundError" || name === "DevicesNotFoundError") return "No camera was found here.";
   if (name === "NotReadableError" || name === "TrackStartError") return "The camera is busy with another app. Close that app and try again.";
   if (name === "SecurityError") return "The camera opens only on a safe page.";
