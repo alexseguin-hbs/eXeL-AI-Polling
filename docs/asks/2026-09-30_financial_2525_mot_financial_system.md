@@ -788,6 +788,18 @@
 > Available $87.03 · $5.4507/hr · Fixed 1,671.37 · Variable 1,140.00 · Net 1,113.12 — `docs/asks/2026-10-02_financial_2525_fb116_back_0722.png`)
 > my transactions are back now; thanks
 
+> (addendum 117, verbatim — 2026-10-02, his REAL-TIME FINANCIALS at 30D — `docs/asks/2026-10-02_financial_2525_fb117_chart_engine.jpg`)
+> use latest JS financial charting enging this is worse than 1983 starwars emulator in Drone-2525
+>
+> so the chart is missing a $ (use income symbol of dollar vs  $/ MoT
+>
+> default is $/min
+>
+> so we can see real-time cost structure of personal finaces on accrual system default 30D
+>
+> (his answers, picked in Claude Code) Engine: "TradingView Lightweight Charts (Recommended)". Lines: "Income vs spending (Recommended)" —
+> three lines in $/min: income coming in, spending going out, and Net (green above zero, red below).
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
