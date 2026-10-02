@@ -876,6 +876,27 @@
 >
 > (his answer, picked in Claude Code) Expand: "Full screen" — an expand button that opens the chart full screen, with a button to close it.
 
+> (addendum 136, verbatim — 2026-10-02 4:06–4:10, with three phone photos of the $/min chart (r.063 still served) —
+> `docs/asks/2026-10-02_financial_2525_fb136_marks_sec.png` · `…_fb136_marks_hr.png` · `…_fb136_marks_1w_overlap.png`)
+> if zoom out and labels overlap, just have these values lumped together as one.  merge 14.69 and 20.75 when zoomed out.
+>
+> Spend and deposits should also have vertical very thin vertical dotted lined at those transactions
+>
+> also have labels left of dot and right of dot for close transactions if two.
+>
+> for 3 close transactions have label, top left, bottom center, and  top right ,
+>
+> for 4 close transactions, have label top left, bottom left, bottom right top right labels
+>
+> if dots actually overlap on circle circumference;  thats when we show as one (usually when zoomed put).
+>
+> way to go, btw. Well done Master of Thought
+
+> (addendum 137, verbatim — 2026-10-02, folded into r.064 before it shipped)
+> remove: Net by 07 +$3,893.14
+>
+> wlso remove light weight charts trading view label
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
