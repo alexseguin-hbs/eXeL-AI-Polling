@@ -919,6 +919,13 @@
    "kind": "decision",
    "text": "r.066 decision — spend ahead of accrual up to all income recorded; the rate spread over the rest; chart labels kept whole (FD-81).",
    "commit": "b0ea01f"
+  },
+  {
+   "rev": 132,
+   "date": "2026-10-02",
+   "kind": "release",
+   "text": "r.066 shipped and LIVE (Verify Live #2223) — spend ahead of accrual up to all income recorded; the rate spread over the rest; chart labels kept whole (FD-81).",
+   "commit": "786ed1c"
   }
  ]
 }

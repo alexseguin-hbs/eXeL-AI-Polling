@@ -968,6 +968,18 @@
 > Master of Thought:
 > simulate 144 scenarios for AsM users and ensure transactions all pass. Show me 111 word overview of system for each AsM and a final summary in 333 words by Master of Thought
 
+> (addendum 147, verbatim — 2026-10-02 5:01, with a phone photo of the MoT Unit list open — per second … per year —
+> `docs/asks/2026-10-02_financial_2525_fb147_mot_unit_short.png`)
+> Keep ling description in drop down for MoT
+>
+> for display however show
+>  / 30D
+> / 7D
+> / 1M
+> etc
+>
+> should be shorthand
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).

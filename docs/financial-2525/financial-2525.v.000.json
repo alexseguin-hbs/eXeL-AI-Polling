@@ -8,7 +8,7 @@
   "stamp": "v.000_r.066",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "17f7f23c3201b847e880e750018877c0274e0e77178152602f4ba0dfadb9ccc8",
+  "handoffSha256": "49532b7452dd59172a7100cbf4bb4e4ef4ed6a68778820037a6c04512c116126",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -474,6 +474,11 @@
     "sha256": "17f7f23c3201b847e880e750018877c0274e0e77178152602f4ba0dfadb9ccc8",
     "date": "2026-10-02",
     "note": "addenda 144–146 (the cockpit + user-defined card warnings amber $1,500 / red $2,000; MoT beside $/hr on the legend line; simulate 144 AsM scenarios)"
+   },
+   {
+    "sha256": "49532b7452dd59172a7100cbf4bb4e4ef4ed6a68778820037a6c04512c116126",
+    "date": "2026-10-02",
+    "note": "addendum 147 (MoT dropdowns: long words in the list, shorthand on the closed box)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -1014,7 +1019,7 @@
    "kind": "decision",
    "why": "Addenda 142 · 143 (spend ahead of accrual) + the r.065 label defect. His answers: \"Up to all In Escrow\" and \"Spread over rest\". A withdrawal is no longer refused because it runs ahead of what has accrued — only when everything spent would pass every deposit recorded by then (released AND still in escrow); his $2,450 credit-card payment on 2026.10.01_07.00..00 is accepted. Available may go below zero by the advance, and the Accrual Rate shows what is left after the advance is spread over the rest of the releases (rate × (1 − advance ÷ escrow)): $5.4507/hr falls to about $2.05/hr after the $2,450. The $/min chart's spend labels are drawn outside the plot's clip and kept whole on the canvas (r.065 cut \"−$14.69\" to \"69\" at the left edge). Correction of r.023/r.028: 'a withdrawal never overdraws what has accrued' is superseded by 'never more than all income recorded'. The credit-card section and the paid-from selector (addendum 143) are r.067. No budget figure changes.",
    "commit": "b0ea01f",
-   "shipped": "PENDING"
+   "shipped": "786ed1c"
   }
  ],
  "mot": {
