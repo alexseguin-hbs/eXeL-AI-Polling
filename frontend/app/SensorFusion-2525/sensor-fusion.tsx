@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 import {
   COLORS,
   FRAMES,
@@ -13,8 +14,17 @@ import {
   type PlatformId,
   type SchemeId,
 } from "./sf";
+import { SENSOR_FUSION_RCORE_HISTORY } from "./ledger";
 import styles from "./sensor-fusion.module.css";
 
+function withHistory(node: ReactNode, accent: string) {
+  return (
+    <>
+      {node}
+      <RCoreBadge history={SENSOR_FUSION_RCORE_HISTORY} accent={accent} />
+    </>
+  );
+}
 type Step = "login" | "device" | "work";
 type Shot = { id: string; url: string };
 
@@ -145,8 +155,13 @@ export default function SensorFusion() {
     );
   }
 
+  const accent =
+    scheme === "custom"
+      ? customHex
+      : (COLORS.find((item) => item.id === scheme)?.primary ?? FRAMES.find((item) => item.id === scheme)?.primary ?? "#00e5ff");
+
   if (step === "login") {
-    return (
+    return withHistory(
       <main className={styles.page}>
         <div className={styles.wrap}>
           <p className={styles.kicker}>MODULAR: EDGE</p>
@@ -172,12 +187,13 @@ export default function SensorFusion() {
           </form>
           <p className={styles.muted}>Your name stays on this device. Next, pick the device.</p>
         </div>
-      </main>
+      </main>,
+      accent,
     );
   }
 
   if (step === "device") {
-    return (
+    return withHistory(
       <main className={styles.page}>
         <div className={styles.wrap}>
           <p className={styles.kicker}>MODULAR: EDGE</p>
@@ -212,13 +228,14 @@ export default function SensorFusion() {
             Continue
           </button>
         </div>
-      </main>
+      </main>,
+      accent,
     );
   }
 
   const current = MODELS.find((item) => item.id === model);
 
-  return (
+  return withHistory(
     <main className={styles.page}>
       <div className={styles.wrap}>
         <div className={styles.row}>
@@ -401,6 +418,7 @@ export default function SensorFusion() {
           </div>
         </div>
       )}
-    </main>
-  );
+    </main>,
+      accent,
+    );
 }
