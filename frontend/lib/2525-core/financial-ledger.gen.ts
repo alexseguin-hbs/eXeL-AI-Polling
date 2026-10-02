@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 129 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 130 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -912,6 +912,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.065 decision — chart marks (dotted lines, 2/3/4 label placement, merge on overlap); orbital spans in A.B..C only; + / − row removed; budget MoT Unit on the header line; edit pencil first in each record row; standard cloud icon; Dining fork-and-knife (FD-80).",
       "commit": "d8370da"
+    },
+    {
+      "rev": 130,
+      "date": "2026-10-02",
+      "kind": "release",
+      "text": "r.065 shipped and LIVE (Verify Live #2221) — chart marks, orbital spans, MoT Unit, edit pencil first, standard cloud, Dining icon (FD-80).",
+      "commit": "f21eaad"
     }
   ]
 };

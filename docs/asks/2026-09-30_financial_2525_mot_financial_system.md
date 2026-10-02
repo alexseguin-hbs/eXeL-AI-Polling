@@ -944,6 +944,11 @@
 > (addendum 143, verbatim — 2026-10-02 4:46, with a phone photo of the refused $2,450 credit-card payment on 2026.10.01_07.00..00 —
 > `docs/asks/2026-10-02_financial_2525_fb143_card_payment_refused.png`)
 > see current error with credit payment; which In added. Now is credit card section sonIncan manage by card limit (similar to financial chart) its just a read view where Incan see Capital One and USAA card and toggle between two.  this means payment and transaction must have payment selector added for Card vs Debit Account
+>
+> (his answers, picked in Claude Code) Card buys: "Both, right away" — a purchase paid from a card raises that card's balance AND counts
+> against Available / the accrual at once. · Card start: "$735.27 after payment" — the Capital One card starts at $735.27 as of now; the
+> $2,450 payment counts only against the Debit Account, not the card's balance. · Card view: "Figures + chart" — limit, balance and
+> available credit on top, and a chart of the balance over time drawn with the same chart as REAL-TIME FINANCIALS.
 
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)

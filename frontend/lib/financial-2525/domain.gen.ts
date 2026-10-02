@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.065",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "e84b7cc7d178b23edce86899f74fab01aa5af305da2ea7e32e1ec23a66b4bacd",
+  "handoffSha256": "67373d9b618627f7e1bb6c2fbbea48fc4246783dbb615d846319580ae4f5872c",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -491,6 +491,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "e84b7cc7d178b23edce86899f74fab01aa5af305da2ea7e32e1ec23a66b4bacd",
     "date": "2026-10-02",
     "note": "addendum 143 (the refused card payment; a read-only card section toggling Capital One / USAA; a paid-from selector Card vs Debit Account)"
+   },
+   {
+    "sha256": "67373d9b618627f7e1bb6c2fbbea48fc4246783dbb615d846319580ae4f5872c",
+    "date": "2026-10-02",
+    "note": "addendum 143 answers (card buys count against both; Capital One starts at $735.27; card view = figures + chart)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -1023,7 +1028,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "Addenda 136 · 138 · 139. (136) Every deposit and spend draws a very thin dotted vertical line on the $/min chart; spend dots that sit close keep their own dots and move their labels around them — two: left of the first, right of the second; three: top-left, bottom-centre, top-right; four: the four corners — and only dots that actually overlap (usually zoomed out) merge into one dot whose label is their sum (−$14.69 and −$20.75 → −$35.44). (138) In the orbital (A.B..C) view the span buttons are A.B..C only — 1X · 75 · 300 · 900 · 3600 A of the planet's revolution (week · month · quarter · year), never days or calendar words; the + 1 h − row under the spans is removed (two fingers still widen or narrow the live window). (139) The Personal Budget's unit dropdown sits on the header line at the upper right, labelled MoT Unit (supersedes addendum 21's full-width row). (140) The record's edit pencil (r.062) sat off the right edge of the phone — it now leads every row; the Supabase cloud mark is the standard cloud-with-check (saved to your account) / cloud-with-slash (not yet). (141) Dining wore the groceries basket; it now wears the fork and knife, the universal meal sign. No budget figure changes.",
    "commit": "d8370da",
-   "shipped": "PENDING"
+   "shipped": "f21eaad"
   }
  ],
  "mot": {
