@@ -1063,6 +1063,11 @@
 > reviewer lenses' findings are folded)
 > and we can review if SI was reached later
 
+> (addendum 163, verbatim — 2026-10-02, with a phone screenshot taken at 7:10 of the live Transaction Record scrolled to its right edge:
+> LENGTH (MOT) · TYPE · # · HASH, the cyan edit marks "✎16", "✎18", "✎10", "✎19", "✎12", "✎13" beside the entry numbers, the green
+> cloud-with-check — `docs/asks/2026-10-02_financial_2525_fb163_record_history.png`)
+> remove history in Cyan.  you can have history in supabase to see changes.
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).

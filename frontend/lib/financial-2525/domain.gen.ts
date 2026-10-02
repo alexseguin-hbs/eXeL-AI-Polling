@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.073",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "7d8615c2509b3760543de3177863a7edfc13ad76f378f1b4ce3258f132f1a75c",
+  "handoffSha256": "ba261e188d17714815f963b9e0a0caccf1cc948fd34cd45e0b082216d7b9d3ce",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -576,6 +576,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "7d8615c2509b3760543de3177863a7edfc13ad76f378f1b4ce3258f132f1a75c",
     "date": "2026-10-02",
     "note": "addendum 162 (\"and we can review if SI was reached later\" — Master of Thought keeps deciding; whether Shared Intent was reached is reviewed with him afterwards)"
+   },
+   {
+    "sha256": "ba261e188d17714815f963b9e0a0caccf1cc948fd34cd45e0b082216d7b9d3ce",
+    "date": "2026-10-02",
+    "note": "addendum 163 (\"remove history in Cyan. you can have history in supabase to see changes.\" — the cyan edit marks leave the Transaction Record; every correction stays on the record and in the account copy)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
