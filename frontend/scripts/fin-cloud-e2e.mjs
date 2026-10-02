@@ -84,15 +84,19 @@ try {
   const memo = f.locator("label").filter({ hasText: /memo/i }).locator("input").first();
   if (await memo.count()) await memo.fill(MEMO);
   await A.page.click("[data-fin-record]");
-  const saved = await A.page.waitForSelector('[data-fin-cloud="saved"]', { timeout: 30000 }).then(() => true, () => false);
+  // the page writes the account copy after a short pause (1.5 s) so a burst of typing is one write: poll the database for it
+  const t0 = Date.now(); let rec = null, entries = [], mine = null;
+  while (Date.now() - t0 < 20000) {
+    rec = await rpc("innovation_state_get", { p_owner: OWNER, p_name: "fin-record" });
+    entries = rec.json?.entries ?? [];
+    mine = entries.find((e) => JSON.stringify(e).includes(String(Math.round(Number(AMOUNT) * 100))));
+    if (mine) break;
+    await A.page.waitForTimeout(500);
+  }
   const mark = await A.page.$eval("[data-fin-cloud]", (e) => e.getAttribute("data-fin-cloud")).catch(() => "absent");
-  check('the page says "saved to your account"', saved, `cloud mark = ${mark}`);
-
+  check('the page says "saved to your account"', mark === "saved", `cloud mark = ${mark}`);
   // 3 · read the database directly
-  const rec = await rpc("innovation_state_get", { p_owner: OWNER, p_name: "fin-record" });
-  const entries = rec.json?.entries ?? [];
-  const mine = entries.find((e) => JSON.stringify(e).includes(String(Math.round(Number(AMOUNT) * 100))));
-  check("the transaction is in the database (fin-record row)", !!mine, `${entries.length} entr${entries.length === 1 ? "y" : "ies"} · HTTP ${rec.status}`);
+  check("the transaction is in the database (fin-record row)", !!mine, `${entries.length} entr${entries.length === 1 ? "y" : "ies"} · HTTP ${rec?.status} · ${mine ? ((Date.now() - t0) / 1000).toFixed(1) + " s after Record" : "not within 20 s"}`);
   check("the memo travelled with it", !!mine && JSON.stringify(mine).includes(MEMO), mine ? "" : "no entry");
   const plan = await rpc("innovation_state_get", { p_owner: OWNER, p_name: "fin-plan" });
   const lines = plan.json?.lines ?? [];
