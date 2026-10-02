@@ -8,7 +8,7 @@
   "stamp": "v.000_r.071",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "62a55b3d160d8f5892e25884ebb10404811fbf0180967313f785616c19326b3e",
+  "handoffSha256": "72ae3bf269ff4cec4fb9d9a8f6f376a0121fc2d9b5d125c35b77e93e4b0597ce",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -542,6 +542,11 @@
     "sha256": "62a55b3d160d8f5892e25884ebb10404811fbf0180967313f785616c19326b3e",
     "date": "2026-10-02",
     "note": "addendum 159 (spending ahead: escrow drops by what is spent ahead while the remaining funds keep releasing — or find a way to manage it)"
+   },
+   {
+    "sha256": "72ae3bf269ff4cec4fb9d9a8f6f376a0121fc2d9b5d125c35b77e93e4b0597ce",
+    "date": "2026-10-02",
+    "note": "addendum 160 (the Trinity logo's labels no longer render when it is opened — his screenshot shows them dark and cut off)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
