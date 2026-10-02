@@ -110,6 +110,21 @@ try {
   check("a new device signed in as the same account shows it (read back)", back);
   await B.ctx.close();
 
+  // addendum 128: feedback sent from a sub-site is logged as that sub-site (the row is written; a refusal shows the failure toast)
+  for (const [path, site] of [["/financial-2525/", "Financial-2525"], ["/drone-2525/", "Drone-2525"], ["/join/", "eXeL AI Polling"]]) {
+    const F = await signedInPage(); await F.page.goto(`${SITE}${path}`, { waitUntil: "networkidle", timeout: 60000 });
+    let note = "";
+    try {
+      await F.page.click("[data-feedback-fab]", { timeout: 15000 });
+      const shown = await F.page.$eval("[data-feedback-site]", (e) => e.textContent.trim()).catch(() => "");
+      await F.page.fill("[data-feedback-text]", `automated check · ${site} · run ${RUN} (safe to delete)`);
+      await F.page.click("[data-feedback-send]");
+      const thanks = await F.page.waitForFunction(() => /Thank you for your feedback/i.test(document.body.innerText), null, { timeout: 15000 }).then(() => true, () => false);
+      note = `panel says "${shown}"`;
+      check(`feedback from ${path} is logged as ${site}`, thanks && shown === site, note);
+    } catch (e) { check(`feedback from ${path} is logged as ${site}`, false, String(e.message || e).slice(0, 120)); }
+    await F.ctx.close();
+  }
   check("no page errors", errors.length === 0, errors.slice(0, 3).join(" | "));
 } catch (e) {
   check("run completed", false, String(e && e.message || e).slice(0, 200));

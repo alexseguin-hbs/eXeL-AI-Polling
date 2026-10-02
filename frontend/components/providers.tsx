@@ -9,6 +9,7 @@ import { LexiconProvider } from "@/lib/lexicon-context";
 import { TimerProvider } from "@/lib/timer-context";
 import { EasterEggProvider } from "@/lib/easter-egg-context";
 import { FeedbackWidget } from "@/components/feedback-widget";
+import { feedbackSite } from "@/lib/feedback-screen";
 import { PoweredBadge } from "@/components/powered-badge";
 import { HomeLauncher } from "@/components/home-launcher";
 import {
@@ -93,17 +94,7 @@ function SiteFooter() {
   const footerRef = useSiteChrome();
   // Use window.location since this runs client-side only
   const path = typeof window !== "undefined" ? window.location.pathname : "/";
-  const screen = path.startsWith("/dashboard")
-    ? "dashboard"
-    : path.startsWith("/session") || path.startsWith("/poll")
-    ? "polling"
-    : path.startsWith("/join")
-    ? "join"
-    : path.startsWith("/Celestial-2525") || path.startsWith("/main/Celestial-2525")
-    ? "celestial"
-    : path === "/"
-    ? "landing"
-    : "other";
+  const screen = feedbackSite(path).screen;   // addendum 128: one table names every sub-site (lib/feedback-screen.ts)
   return (
     <footer ref={footerRef} className="w-full border-t border-border/40 bg-background/60">
       {/* H5 · THE ROW SPANS THE VIEWPORT (operator, asked twice: "Ensure Feedback and eXeL AI are moved to

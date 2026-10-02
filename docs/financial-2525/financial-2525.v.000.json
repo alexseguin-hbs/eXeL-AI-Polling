@@ -4,8 +4,8 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.056",
-  "stamp": "v.000_r.056",
+  "revision": "0.057",
+  "stamp": "v.000_r.057",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "af802ea341384c82054cca5da0f01a0b423f06cdcedc5bff5d6daa4b0bc02967",
@@ -854,6 +854,14 @@
    "kind": "decision",
    "why": "The $/min chart (addendum 127 \"where is $/min chart?!?\"; addendum 122 \"$/min is main view\"; addendum 123 numbers upper right like Security-2525; addendum 124 \"RCORE RESUSE MAXIMIZE OF FINANCIAL CHART … way better charting engine\"; his picks: TradingView Lightweight Charts, income vs spending). The chart now opens on $/min: income, spending and net per minute from his own record (each deposit and withdrawal running over its own length, monthly ones repeating every 30 days across a longer span), drawn on the shared R-CORE chart engine (components/2525-core/rcore-chart.tsx, reusable by every 2525 app) with the numbers in the upper right following the finger, including the net by the span's end. A unit dropdown offers $/min · /sec · /hr · /day and $; $ keeps the balance view exactly as before. And (addendum 127 \"remove this line\") the legend line \"- - Net • Upside / Savings +… · date\" under the chart is gone. No budget figure changes.",
    "commit": "e6a1b45",
+   "shipped": "02235d7"
+  },
+  {
+   "revision": "0.057",
+   "date": "2026-10-02",
+   "kind": "correction",
+   "why": "Addendum 128, two corrections. (1) \"$/min takes all transaction records and divides by MoT selected (default 30D)\": the $/min view of r.056 divided each entry by its OWN length and repeated monthly ones; now every transaction — deposits and withdrawals, one-time ones too — is divided by the MoT picked on the chart from its entry time (lib/financial-2525/rate-series.ts overSpan), so at 30D his $3,924.49 reads $0.0908/min and at 91D $0.0299/min; withdrawals are marked where they were entered. (2) \"ensure feedback when operation Financial-2525 goes and gets logged for Financial-2525 · same holds true with eXeL Polling and other sub sites\": the footer Feedback button on the live site never logged anything — it posted to a server path the static site does not have, so every submission ended in 'Feedback failed' — and every 2525 page was filed as 'other'. Now one table (lib/feedback-screen.ts) names the sub-site of every route, and the widget writes the row straight into the product_feedback table (anyone may insert, only the operator reads) tagged with that sub-site, with the site name, the panel, the page and the build in its context line. Gates: feedback-site (24) in test:ci; financial-rate +4; the live database test also sends feedback from Financial-2525, Drone-2525 and Polling and requires the thank-you.",
+   "commit": "27cda30",
    "shipped": "PENDING"
   }
  ],
@@ -2390,6 +2398,12 @@
    "decision": "The chart's main view is $/min — income, spending and net per minute from the record — on the shared R-CORE chart engine, numbers upper right; $ keeps the balance view; the Net projection legend line is removed.",
    "status": "OPERATOR",
    "basis": "addenda 122 · 123 · 124 · 127 + his answers (Lightweight Charts · income vs spending)"
+  },
+  {
+   "id": "FD-77",
+   "decision": "The $/min chart divides every transaction by the MoT picked on the chart (default 30D) — not by its own length, no repeats. Feedback from every sub-site is written to the product_feedback table tagged with that sub-site.",
+   "status": "OPERATOR",
+   "basis": "addendum 128"
   }
  ],
  "reviews": [

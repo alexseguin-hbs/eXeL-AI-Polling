@@ -78,6 +78,12 @@ export function cycleStart(txs: readonly FinTx[], now: number): number {
   }
   return best;
 }
+/** THE CHART'S RULE (addendum 128: "$/min takes all transaction records and divides by MoT selected (default 30D)"): every transaction,
+ *  deposit or withdrawal, is spread over the MoT picked on the chart from its own entry time — its own length is not used, nothing
+ *  repeats. The record is untouched (a picture). Pure. */
+export function overSpan(txs: readonly FinTx[], spanDays: number): FinTx[] {
+  return txs.map((x) => ({ ...x, motDays: spanDays, recurrence: "once" as const }));
+}
 /** One-time withdrawals inside the window (no rate — drawn as marks). */
 export const lumpWithdrawals = (txs: readonly FinTx[], from: number, to: number): FinTx[] =>
   txs.filter((x) => x.kind === "withdrawal" && !(lengthMs(x) > 0) && x.atMs >= from && x.atMs <= to);

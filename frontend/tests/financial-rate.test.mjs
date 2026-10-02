@@ -1,7 +1,7 @@
 // financial-rate — the $/min series behind the chart's main view (r.056; addenda 117 · 122 · 127: "$/min is main view" ·
 // "where is $/min chart?!?"). Pure math on his own record shape: income, spending and net per minute, monthly repeats, the net by
 // the span's end, the current pay cycle.
-import { rateSeries, rateAtSeries, netBetween, occurrences, rateAt, cycleStart, lumpWithdrawals, rateIn } from "../lib/financial-2525/rate-series.ts";
+import { rateSeries, rateAtSeries, netBetween, occurrences, rateAt, cycleStart, lumpWithdrawals, rateIn, overSpan } from "../lib/financial-2525/rate-series.ts";
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL: " + m); } };
 const DAY = 86_400_000, MIN = 60_000;
@@ -37,5 +37,12 @@ ok(netBetween(pts, to, from) === 0, "an empty interval accrues nothing");
 // the current pay cycle
 ok(cycleStart(txs, t0 + 45 * DAY) === t0 + 89_000 + 30 * DAY, "the current pay cycle starts at the latest deposit start at or before now (repeats projected)");
 ok(Number.isNaN(cycleStart([], t0)), "no deposits: no cycle");
+// addendum 128: the chart divides EVERY transaction by the MoT picked (default 30D) — not by its own length, no repeats
+const at = t0 + 5 * DAY;
+const r30 = rateSeries(overSpan(txs, 30), t0, t0 + 30 * DAY), r91 = rateSeries(overSpan(txs, 91), t0, t0 + 91 * DAY);
+ok(Math.abs(rateAtSeries(r30, at).income - 392449 / (30 * 1440)) < 1e-9, "30D: income per minute = all deposits ÷ 30 days");
+ok(Math.abs(rateAtSeries(r91, at).income - 392449 / (91 * 1440)) < 1e-9, "91D: income per minute = all deposits ÷ 91 days (no monthly repeats)");
+ok(Math.abs(rateAtSeries(r30, at).spending - (25066 + 7100) / (30 * 1440)) < 1e-9, "30D: spending per minute = every withdrawal (the one-time one too) ÷ 30 days");
+ok(overSpan(txs, 30).every((x) => x.motDays === 30 && x.recurrence === "once") && txs[0].motDays === 30 && txs[3].motDays === 0, "overSpan sets the chart's MoT on a copy — the record itself is untouched");
 console.log(`\nfinancial-rate: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

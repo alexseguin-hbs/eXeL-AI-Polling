@@ -2,6 +2,7 @@
 # personal financials"). Runs frontend/scripts/fin-cloud-e2e.mjs on a GitHub runner against the LIVE site and the LIVE Supabase
 # project (the Claude sandbox cannot reach supabase.co): a signed-in browser records a transaction, the database row is read
 # directly, a second empty browser signed in as the same account must get it back, then the throwaway account's rows are deleted.
+# It runs after every successful Verify Live (so it always tests the site that is actually live) and on demand.
 # Red = a person's financials are not reaching the database (or not coming back on another device).
 name: Financial cloud e2e
 on:
@@ -10,9 +11,6 @@ on:
     workflows: ["Verify Live"]
     types: [completed]
     branches: [main]
-  push:
-    branches: [main]
-    paths: [".github/workflows/fin-cloud-e2e.yml", "frontend/scripts/fin-cloud-e2e.mjs"]
 concurrency:
   group: fin-cloud-e2e
   cancel-in-progress: false

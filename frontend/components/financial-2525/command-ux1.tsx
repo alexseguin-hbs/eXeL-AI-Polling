@@ -48,7 +48,7 @@ import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } 
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
-import { rateSeries, rateAtSeries, cycleStart, netBetween, lumpWithdrawals, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
+import { rateSeries, rateAtSeries, cycleStart, overSpan, netBetween, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, cloudGet, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -764,15 +764,18 @@ function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, planet, t
   const spanMs = span === "1x" ? liveHours * 3600 * 1000 : spanDays(span, now) * dayMs;
   // the window: from the start of the current pay cycle (the latest deposit start at or before now, inside one span), else a third back
   const minuteNow = Math.floor(now / 60_000) * 60_000;
-  const cycle = cycleStart(txs, minuteNow);
+  // addendum 128: "$/min takes all transaction records and divides by MoT selected (default 30D)" — every entry over the chart's MoT
+  const spread = useMemo(() => overSpan(txs, spanMs / dayMs), [txs, spanMs, dayMs]);
+  const cycle = cycleStart(spread, minuteNow);
   const from = span === "1x" ? minuteNow - spanMs : Number.isFinite(cycle) && cycle > minuteNow - spanMs ? cycle : minuteNow - spanMs / 3;
   const to = span === "1x" ? minuteNow : from + spanMs;
-  const pts = useMemo(() => rateSeries(txs, from, to), [txs, from, to]);
+  const pts = useMemo(() => rateSeries(spread, from, to), [spread, from, to]);
   const [at, setAt] = useState(null as number | null);
   const tAt = at ?? Math.min(Math.max(minuteNow, from), to);
   const p = rateAtSeries(pts, tAt) ?? { t: tAt, income: 0, spending: 0, net: 0 };
   const netEndCents = netBetween(pts, from, to);
   const nowInside = !(minuteNow < from) && !(minuteNow > to);
+  const marks = txs.filter((w) => w.kind === "withdrawal" && Math.min(Math.max(w.atMs, from), to) === w.atMs).map((w) => ({ t: w.atMs, color: C.evolution, text: `−${CUR_SYM}${num2(w.amountCents)}` }));   // each withdrawal's entry, marked
   const unitLabel = CHART_RATE_UNITS.find((u) => u.id === unit)?.label ?? "/min";
   const stamp = (ms: number) => (showAbc ? fmtMot(positionInYear(ms, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(ms)} CST`);
   const tick = (ms: number, intraday: boolean) => (showAbc ? fmtMot(positionInYear(ms, planet.yearAnchor, planet.yearDays).abc).split(".")[0] : intraday ? fmtStampCST(ms).slice(11, 16).replace(".", ":") : dateLabel(ms, "mmdd"));   // short marks on the axis; the full stamp is in the readout
@@ -791,7 +794,7 @@ function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, planet, t
       </div>
       <RCoreChart height={220} ariaLabel={t("fin.chart_tap")} now={nowInside ? minuteNow : undefined}
         lines={[{ id: "income", color: C.abundance, points: line("income"), step: true }, { id: "spending", color: C.evolution, points: line("spending"), step: true }, { id: "net", color: C.temporal, points: line("net"), step: true, width: 3 }]}
-        marks={lumpWithdrawals(txs, from, to).map((w) => ({ t: w.atMs, color: C.evolution, text: `−${CUR_SYM}${num2(w.amountCents)}` }))}
+        marks={marks}
         formatValue={(v) => rateMoney(v * 100)} formatTime={stamp} formatTick={tick} onCrosshair={setAt} />
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
         <span style={{ color: C.abundance }}>— {t("fin.income")}</span><span style={{ color: C.evolution }}>— {t("fin.spending")}</span><span style={{ color: C.temporal }}>— {t("fin.net")}</span>

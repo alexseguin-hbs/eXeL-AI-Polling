@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 111 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 113 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -786,6 +786,20 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.056 decision — the $/min chart on the shared R-CORE engine (income · spending · net, numbers upper right); the Net legend line removed (FD-76).",
       "commit": "e6a1b45"
+    },
+    {
+      "rev": 112,
+      "date": "2026-10-02",
+      "kind": "release",
+      "text": "r.056 shipped and LIVE (served on 02235d7) — the $/min chart on the shared R-CORE engine; the Net legend line removed (FD-76).",
+      "commit": "02235d7"
+    },
+    {
+      "rev": 113,
+      "date": "2026-10-02",
+      "kind": "correction",
+      "text": "r.057 correction — $/min divides every transaction by the chart's MoT; feedback from every sub-site is logged as that sub-site (FD-77).",
+      "commit": "27cda30"
     }
   ]
 };

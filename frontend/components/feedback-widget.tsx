@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useLexicon } from "@/lib/lexicon-context";
 import { api } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
+import { feedbackSite } from "@/lib/feedback-screen";   // addendum 128: feedback is logged as the sub-site it came from
 
 // Category options
 const CATEGORIES = [
@@ -92,20 +94,29 @@ export function FeedbackWidget({
         `At: ${new Date().toISOString()}`,
       ].join(" · ");
 
-      await api.post("/feedback", {
+      // addendum 128 ("ensure feedback when operation Financial-2525 goes and gets logged for Financial-2525 · same holds true with
+      // eXeL Polling and other sub sites"): the row is tagged with the SUB-SITE it was sent from (financial-2525, drone-2525,
+      // polling, …), and it is WRITTEN — straight into the product_feedback table (anyone may insert, only the operator reads),
+      // because the static site has no server behind POST /feedback and every submission used to fail there.
+      const where = feedbackSite(typeof location !== "undefined" ? location.pathname : "/");
+      const build = typeof document !== "undefined" ? (document.getElementById("site-build-banner")?.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 120) : "";
+      const row = {
         session_id: sessionId || null,
         feedback_text: [
           text.trim(),
           screenshot ? `[Screenshot attached: ${screenshot.length} bytes]` : null,
-          `[Context] ${ctx}`,
+          `[Context] Site: ${where.site} · Panel: ${screen} · ${ctx}${build ? ` · Build: ${build}` : ""}`,
         ]
           .filter(Boolean)
           .join("\n\n"),
-        screen,
+        screen: where.screen,
         category,
         device_type: deviceType,
         language_code: navigator.language?.split("-")[0] || "en",
-      });
+      };
+      let logged = false;
+      if (supabase) { const { error } = await supabase.from("product_feedback").insert(row); logged = !error; if (error) console.warn("[feedback] database insert refused:", error.message); }
+      if (!logged) await api.post("/feedback", row);   // a live backend, when one is configured; throws when there is none
 
       toast({ title: t("shared.feedback.thanks") });
       setText("");
@@ -207,6 +218,7 @@ export function FeedbackWidget({
 
             {/* Text area */}
             <textarea
+              data-feedback-text
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder={t("shared.feedback.placeholder")}
@@ -270,6 +282,7 @@ export function FeedbackWidget({
                 size="sm"
                 className="h-8 px-3 text-xs"
                 onClick={handleSubmit}
+                data-feedback-send
                 disabled={!text.trim() || submitting}
               >
                 {submitting ? (
@@ -285,7 +298,7 @@ export function FeedbackWidget({
 
             {/* Screen context badge */}
             <p className="text-[9px] text-muted-foreground text-center">
-              Feedback from: <span className="font-mono">{screen}</span>
+              Feedback from: <span className="font-mono" data-feedback-site>{feedbackSite(typeof location !== "undefined" ? location.pathname : "/").site}</span>
             </p>
           </div>
         </div>
