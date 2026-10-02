@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.062",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "c330f59fed85d82b07a938a5a017861b2b5c1c0c1b4b854d06b80b35f456d24b",
+  "handoffSha256": "97aa9035e7a8b316d622697872f7823611d2bec5de562a605730431572039300",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -446,6 +446,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "c330f59fed85d82b07a938a5a017861b2b5c1c0c1b4b854d06b80b35f456d24b",
     "date": "2026-10-02",
     "note": "addendum 133 — edit a transaction in the record"
+   },
+   {
+    "sha256": "97aa9035e7a8b316d622697872f7823611d2bec5de562a605730431572039300",
+    "date": "2026-10-02",
+    "note": "addendum 134 — tap the chart to see a specific day"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
