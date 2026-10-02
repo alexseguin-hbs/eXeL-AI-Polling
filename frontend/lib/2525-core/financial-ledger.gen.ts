@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 113 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 115 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -800,6 +800,20 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.057 correction — $/min divides every transaction by the chart's MoT; feedback from every sub-site is logged as that sub-site (FD-77).",
       "commit": "27cda30"
+    },
+    {
+      "rev": 114,
+      "date": "2026-10-02",
+      "kind": "release",
+      "text": "r.057 shipped and LIVE (Verify Live #2208 ✓) — $/min divides every transaction by the chart's MoT; feedback logged per sub-site (FD-77; the live test logged Financial-2525 and Polling feedback).",
+      "commit": "18733af"
+    },
+    {
+      "rev": 115,
+      "date": "2026-10-02",
+      "kind": "correction",
+      "text": "r.058 correction — the $/min chart's dates tilt per Settings; figures only, line-coloured, beside the selected date line.",
+      "commit": "5ce72cd"
     }
   ]
 };

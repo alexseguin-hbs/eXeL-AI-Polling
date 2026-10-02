@@ -84,6 +84,13 @@ export function cycleStart(txs: readonly FinTx[], now: number): number {
 export function overSpan(txs: readonly FinTx[], spanDays: number): FinTx[] {
   return txs.map((x) => ({ ...x, motDays: spanDays, recurrence: "once" as const }));
 }
+/** The chart window's start: the EARLIEST deposit still paying at now (so the window ends exactly when the first one runs out —
+ *  no false drop at the right edge); else the current pay cycle. Pure. */
+export function windowStart(txs: readonly FinTx[], now: number): number {
+  let best = NaN;
+  for (const x of txs) { if (x.kind !== "deposit" || x.atMs > now) continue; const len = lengthMs(x); if (len > 0 && now < x.atMs + len && !(x.atMs >= best)) best = x.atMs; }
+  return Number.isFinite(best) ? best : cycleStart(txs, now);
+}
 /** One-time withdrawals inside the window (no rate — drawn as marks). */
 export const lumpWithdrawals = (txs: readonly FinTx[], from: number, to: number): FinTx[] =>
   txs.filter((x) => x.kind === "withdrawal" && !(lengthMs(x) > 0) && x.atMs >= from && x.atMs <= to);

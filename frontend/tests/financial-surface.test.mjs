@@ -260,7 +260,8 @@ ok(/<p data-fin-budget-purpose[^\n]*\{t\("fin\.budget_purpose"\)\}/.test(ux) && 
 ok(/import \{ RCoreChart \} from "@\/components\/2525-core\/rcore-chart"/.test(ux) && /<RCoreChart /.test(ux), "r.056: the $/min view draws on the shared R-CORE chart engine");
 ok(/useState<ChartUnit>\("min"\)/.test(ux) && /const CHART_UNITS: readonly ChartUnit\[\] = \["min", "sec", "hr", "day", "usd"\]/.test(ux) && /data-fin-chart-unit/.test(ux), "r.056: the chart opens on $/min (unit dropdown $/min · /sec · /hr · /day · $), remembered on the phone");
 ok(/\{rate && <RateView /.test(ux) && /\{!rate && <>/.test(ux), "r.056: $/min shows the rate view; $ keeps the balance view of r.025–r.053 unchanged");
-ok(/data-fin-rate-hud[^\n]*absolute right-1 top-1/.test(ux) && /t\("fin\.income"\)/.test(ux) && /t\("fin\.spending"\)/.test(ux) && /data-fin-rate-net-by/.test(ux), "r.056: income · spending · net and Net by <span end> in the UPPER RIGHT, following the finger (addendum 123)");
+ok(!/data-fin-rate-hud/.test(ux) && /readout=\{figuresAt\}/.test(ux) && /const figuresAt = \(ms: number\) => \{[^\n]*color: C\.abundance, text: rateMoney[^\n]*color: C\.evolution, text: rateMoney[^\n]*color: C\.temporal, text: rateMoney/.test(ux) && !/const figuresAt[^\n]*fin\.income/.test(ux) && /data-fin-rate-net-by/.test(ux), "r.057 (addendum 129 'numbers only in same color as line … just figures near vertical line on selected date'): figures only, line-coloured, beside the selected date line — no box, no words; Net by moves to the legend");
+ok(/angle=\{angle\} tall=/.test(ux) && /ticks=\{ticks\} formatTick=\{tick\}/.test(ux), "r.057 (addendum 129 'remember text tilts per settings'): the $/min chart's dates tilt at the Settings angle");
 ok(/id: "income"[^\n]*id: "spending"[^\n]*id: "net"/.test(ux), "r.056: three lines — income, spending, net — per minute");
 
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);

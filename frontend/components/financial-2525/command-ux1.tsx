@@ -48,7 +48,7 @@ import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } 
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
-import { rateSeries, rateAtSeries, cycleStart, overSpan, netBetween, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
+import { rateSeries, rateAtSeries, windowStart, overSpan, netBetween, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, cloudGet, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -759,45 +759,41 @@ const rateMoney = (centsPerUnit: number): string => { const d = Math.abs(centsPe
 /** r.056 THE $/MIN VIEW (addenda 117 · 122 · 123 · 124 · 127): income, spending and net per minute on the shared R-CORE chart, the
  *  window the span's (starting at the current pay cycle so 30D reads the month to its end), the numbers in the upper right following
  *  the finger (Security-2525 style), one-time withdrawals as marks. Module-level (the picker law: the 1 s clock never remounts it). */
-function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, planet, t }: { txs: FinTx[]; now: number; span: ChartSpan; liveHours: number; unit: RateUnitId; showAbc: boolean; dateFmt: DateFmt; planet: PlanetLtuRow; t: (k: string) => string }) {
+function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, angle, planet, t }: { txs: FinTx[]; now: number; span: ChartSpan; liveHours: number; unit: RateUnitId; showAbc: boolean; dateFmt: DateFmt; angle: DateAngle; planet: PlanetLtuRow; t: (k: string) => string }) {
   const dayMs = daySecOf(planet) * 1000;
   const spanMs = span === "1x" ? liveHours * 3600 * 1000 : spanDays(span, now) * dayMs;
   // the window: from the start of the current pay cycle (the latest deposit start at or before now, inside one span), else a third back
   const minuteNow = Math.floor(now / 60_000) * 60_000;
   // addendum 128: "$/min takes all transaction records and divides by MoT selected (default 30D)" — every entry over the chart's MoT
   const spread = useMemo(() => overSpan(txs, spanMs / dayMs), [txs, spanMs, dayMs]);
-  const cycle = cycleStart(spread, minuteNow);
+  const cycle = windowStart(spread, minuteNow);
   const from = span === "1x" ? minuteNow - spanMs : Number.isFinite(cycle) && cycle > minuteNow - spanMs ? cycle : minuteNow - spanMs / 3;
   const to = span === "1x" ? minuteNow : from + spanMs;
   const pts = useMemo(() => rateSeries(spread, from, to), [spread, from, to]);
-  const [at, setAt] = useState(null as number | null);
-  const tAt = at ?? Math.min(Math.max(minuteNow, from), to);
-  const p = rateAtSeries(pts, tAt) ?? { t: tAt, income: 0, spending: 0, net: 0 };
   const netEndCents = netBetween(pts, from, to);
   const nowInside = !(minuteNow < from) && !(minuteNow > to);
   const marks = txs.filter((w) => w.kind === "withdrawal" && Math.min(Math.max(w.atMs, from), to) === w.atMs).map((w) => ({ t: w.atMs, color: C.evolution, text: `−${CUR_SYM}${num2(w.amountCents)}` }));   // each withdrawal's entry, marked
   const unitLabel = CHART_RATE_UNITS.find((u) => u.id === unit)?.label ?? "/min";
-  const stamp = (ms: number) => (showAbc ? fmtMot(positionInYear(ms, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(ms)} CST`);
-  const tick = (ms: number, intraday: boolean) => (showAbc ? fmtMot(positionInYear(ms, planet.yearAnchor, planet.yearDays).abc).split(".")[0] : intraday ? fmtStampCST(ms).slice(11, 16).replace(".", ":") : dateLabel(ms, "mmdd"));   // short marks on the axis; the full stamp is in the readout
+  // the date marks: as many whole days as fit at the Settings angle (the balance view's own rule); A.B..C mode: five marks
+  const fit = angle === 0 ? (dateFmt === "full" ? 4 : dateFmt === "mmdd" ? 6 : 10) : angle === 90 ? (dateFmt === "full" ? 14 : 18) : (dateFmt === "full" ? 6 : dateFmt === "mmdd" ? 10 : 16);
+  const ticks = showAbc ? [0, 0.25, 0.5, 0.75, 1].map((f) => from + f * (to - from)) : dayTicks(from, to, fit);
+  const tick = (ms: number) => (showAbc ? fmtMot(positionInYear(ms, planet.yearAnchor, planet.yearDays).abc).split(".")[0] : dateLabel(ms, dateFmt));
+  const figuresAt = (ms: number) => { const q = rateAtSeries(pts, ms) ?? { income: 0, spending: 0, net: 0 }; return [{ color: C.abundance, text: rateMoney(rateIn(q.income, unit)) + unitLabel }, { color: C.evolution, text: rateMoney(rateIn(q.spending, unit)) + unitLabel }, { color: C.temporal, text: rateMoney(rateIn(q.net, unit)) + unitLabel }]; };
   // the engine spaces points evenly, so the steps are sampled on an even clock (240 points across the window)
   const grid = useMemo(() => Array.from({ length: 241 }, (_, i) => from + ((to - from) * i) / 240), [from, to]);
-  const line = (key: "income" | "spending" | "net") => grid.map((g) => ({ t: g, v: rateIn(rateAtSeries(pts, g)?.[key] ?? 0, unit) / 100 }));
+  // the last sample reads the minute before the window closes (a span that ends exactly when its money runs out is not a drop to zero)
+  const line = (key: "income" | "spending" | "net") => grid.map((g) => ({ t: g, v: rateIn(rateAtSeries(pts, Math.min(g, to - 60_000))?.[key] ?? 0, unit) / 100 }));
   return (
     <div data-fin-rate-view className="relative mt-2">
-      {/* the numbers in the UPPER RIGHT (addendum 123 "if $ or currency selected i need numbers upper right (more futuristic). See security-2525 charting") */}
-      <div data-fin-rate-hud aria-live="polite" className="pointer-events-none absolute right-1 top-1 z-10 rounded-md border border-border bg-background/80 px-2 py-1 text-right font-mono text-[11px] leading-tight tabular-nums backdrop-blur-sm">
-        <div style={{ color: C.abundance }}>{t("fin.income")} {rateMoney(rateIn(p.income, unit))}{unitLabel}</div>
-        <div style={{ color: C.evolution }}>{t("fin.spending")} {rateMoney(rateIn(p.spending, unit))}{unitLabel}</div>
-        <div style={{ color: C.temporal }} className="font-semibold">{t("fin.net")} {rateMoney(rateIn(p.net, unit))}{unitLabel}</div>
-        {span !== "1x" && <div data-fin-rate-net-by className={netEndCents < 0 ? "text-red-500" : "text-green-500"}>{t("fin.net_by")} {showAbc ? fmtMot(positionInYear(to, planet.yearAnchor, planet.yearDays).abc).split(".")[0] : fmtStampCST(to).slice(0, 10)} {netEndCents < 0 ? "−" : "+"}{CUR_SYM}{num2(netEndCents)}</div>}
-        <div className="text-muted-foreground">{stamp(tAt)}</div>
-      </div>
-      <RCoreChart height={220} ariaLabel={t("fin.chart_tap")} now={nowInside ? minuteNow : undefined}
+      {/* addendum 129: FIGURES ONLY, in their lines' colours, beside the selected date's vertical line (now, or under the finger); the
+          dates tilt at the Settings angle */}
+      <RCoreChart height={220} ariaLabel={t("fin.chart_tap")} angle={angle} tall={!showAbc && dateFmt === "full"} ticks={ticks} formatTick={tick}
+        readoutAt={nowInside ? minuteNow : from} readout={figuresAt}
         lines={[{ id: "income", color: C.abundance, points: line("income"), step: true }, { id: "spending", color: C.evolution, points: line("spending"), step: true }, { id: "net", color: C.temporal, points: line("net"), step: true, width: 3 }]}
-        marks={marks}
-        formatValue={(v) => rateMoney(v * 100)} formatTime={stamp} formatTick={tick} onCrosshair={setAt} />
+        marks={marks} formatValue={(v) => rateMoney(v * 100)} />
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
         <span style={{ color: C.abundance }}>— {t("fin.income")}</span><span style={{ color: C.evolution }}>— {t("fin.spending")}</span><span style={{ color: C.temporal }}>— {t("fin.net")}</span>
+        {span !== "1x" && <span data-fin-rate-net-by className={netEndCents < 0 ? "text-red-500" : "text-green-500"}>{t("fin.net_by")} {showAbc ? fmtMot(positionInYear(to, planet.yearAnchor, planet.yearDays).abc).split(".")[0] : dateLabel(to, dateFmt)} {netEndCents < 0 ? "−" : "+"}{CUR_SYM}{num2(netEndCents)}</span>}
       </p>
     </div>
   );
@@ -919,7 +915,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
           <button type="button" data-fin-zoom="wide" aria-label={t("fin.zoom_wide")} title={t("fin.zoom_wide")} disabled={zoom === LIVE_WINDOWS.length - 1} onClick={() => widen(1)} className="flex h-8 w-9 items-center justify-center rounded-md border border-border disabled:opacity-40">−</button>
         </div>
       )}
-      {rate && <RateView txs={txs.length ? txs : [tx]} now={now} span={span} liveHours={LIVE_WINDOWS[zoom].h} unit={unit as RateUnitId} showAbc={showAbc} dateFmt={dateFmt} planet={planet} t={t} />}
+      {rate && <RateView txs={txs.length ? txs : [tx]} now={now} span={span} liveHours={LIVE_WINDOWS[zoom].h} unit={unit as RateUnitId} showAbc={showAbc} dateFmt={dateFmt} angle={angle} planet={planet} t={t} />}
       {!rate && <>
       <p data-fin-chart-probe className="mt-2 min-h-[16px] font-mono text-xs text-foreground">{probe !== null && (showAbc ? fmtMot(positionInYear(probe, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(probe)} CST`)}</p>
       {/* r.053 (addendum 110 "Like a stock chart I should be able to click and see values at that day/time"): the values at the tapped point */}

@@ -4,8 +4,8 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.057",
-  "stamp": "v.000_r.057",
+  "revision": "0.058",
+  "stamp": "v.000_r.058",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "a63b50092a4721f0eb3d169376cda040f227d8e645548822c081d7f40a8b41d5",
@@ -867,6 +867,14 @@
    "kind": "correction",
    "why": "Addendum 128, two corrections. (1) \"$/min takes all transaction records and divides by MoT selected (default 30D)\": the $/min view of r.056 divided each entry by its OWN length and repeated monthly ones; now every transaction — deposits and withdrawals, one-time ones too — is divided by the MoT picked on the chart from its entry time (lib/financial-2525/rate-series.ts overSpan), so at 30D his $3,924.49 reads $0.0908/min and at 91D $0.0299/min; withdrawals are marked where they were entered. (2) \"ensure feedback when operation Financial-2525 goes and gets logged for Financial-2525 · same holds true with eXeL Polling and other sub sites\": the footer Feedback button on the live site never logged anything — it posted to a server path the static site does not have, so every submission ended in 'Feedback failed' — and every 2525 page was filed as 'other'. Now one table (lib/feedback-screen.ts) names the sub-site of every route, and the widget writes the row straight into the product_feedback table (anyone may insert, only the operator reads) tagged with that sub-site, with the site name, the panel, the page and the build in its context line. Gates: feedback-site (24) in test:ci; financial-rate +4; the live database test also sends feedback from Financial-2525, Drone-2525 and Polling and requires the thank-you.",
    "commit": "27cda30",
+   "shipped": "18733af"
+  },
+  {
+   "revision": "0.058",
+   "date": "2026-10-02",
+   "kind": "correction",
+   "why": "Addendum 129 (his phone photo of the r.056 $/min chart): \"remember text tilts per settings · have numbers only in same color as line; no need to say Income Spending Net on text · just figures near vertical line on selected date\". The shared R-CORE chart now draws its own date axis under the plot, tilted at the Settings angle (0° · 30° · 45° · 90°, as many dates as fit — the balance view's own rule), and the readout is three figures only, each in its line's colour, beside the vertical line of the selected date (now, or under the finger), flipping to the line's left past the middle; the boxed 'Income / Spending / Net' readout is gone and 'Net by <end>' moved to the legend line. The window now starts at the earliest deposit still paying, so it no longer shows a false drop when the first deposit runs out a minute before the window ends. No budget figure changes.",
+   "commit": "5ce72cd",
    "shipped": "PENDING"
   }
  ],
