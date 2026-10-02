@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.051",
-  "stamp": "v.000_r.051",
+  "revision": "0.052",
+  "stamp": "v.000_r.052",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "acf7324fecb081cdbd8c23af2af28727a4c222532775f4520735eb937604d4ae",
+  "handoffSha256": "2151d97431643bd1c34b7efa0279f53d40aa593b780cf696cc6047fb184b2dda",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -304,6 +304,21 @@
     "sha256": "acf7324fecb081cdbd8c23af2af28727a4c222532775f4520735eb937604d4ae",
     "date": "2026-10-01",
     "note": "+ addendum 100 (r.045 LIVE on his phone at 1ee1bc4)"
+   },
+   {
+    "sha256": "ce11575f992383d5497ee06a08d9fe50a8fc12d189b74a2d292862b576872848",
+    "date": "2026-10-01",
+    "note": "addenda 101–102 — the chart: $ on the left y axis, Net at the budget $/min to the span end, 1x live window with pinch (r.052)"
+   },
+   {
+    "sha256": "279485c228b3ee0ccf3233a0765be964a6d722c3785b59d0ac0753e66897d401",
+    "date": "2026-10-01",
+    "note": "addendum 103 — the budget pencil signed in or not; the approved per-month dollars kept through 30.3 → 30 (r.052)"
+   },
+   {
+    "sha256": "2151d97431643bd1c34b7efa0279f53d40aa593b780cf696cc6047fb184b2dda",
+    "date": "2026-10-02",
+    "note": "addendum 104 — his input belongs in Supabase (r.053); the ask r.052 ships beside"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -725,6 +740,14 @@
    "why": "The rest of the backlog (addendum 99 'all backlog must be fixed'): the r.041 review defects and the two questions decided by his earlier words. The footer no longer ends with ◬ ♡ 웃 (addendum 76 'get rid of ◬ ♡ 웃'); the open logo's labels are larger (20); the chart's svg no longer carries an invalid height (a console error on every load); an unset chart date angle no longer reads as 0° — the 30° default holds; the tapped-point readout sits above the chart so on MoT it never reads as a sixth axis mark; the budget note no longer names a 'Balance view' that does not exist (its 32 stale translations removed — English until the fill). Not changed: the build stamp's CST/CDT label (site-wide, a separate decision).",
    "commit": "8a870f9",
    "shipped": "b849da5"
+  },
+  {
+   "revision": "0.052",
+   "date": "2026-10-01",
+   "kind": "decision",
+   "why": "The chart reads in dollars and predicts the month. Addendum 101: \"chart should so transactions for 1x real -time (Zoom chart should expand out x axis.\" · \"i need $ on left y axis\" · \"if 30 days $/min is shown over 30 days, so we can predict end of month NET • Upside or NET • Downside\"; his answers (102): Net from the budget table · Net + Released + Escrow · 1x a live window, pinch widens. A $ scale on the left in the picked currency (top · middle · zero · and the bottom when Net goes below zero); a dashed Net line at the budget table's $/s over the span's last stretch, from 0 to the span's end — at 30D its end is the table's Net — named in the legend as Net • Upside / Savings or Net • Downside / Risk with its value and end date; 1x is a live window ending now (1 h at first) where each transaction lands as a step, widened by spreading two fingers or −, narrowed by pinching or + (1 h · 6 h · 1 D · 1 W · 30 D · 91 D · 365 D). Not on 1x: the Net line (the live window looks back, Net looks ahead). The budget (addendum 103: \"wheres my edit button on personal budget; see fixed expenses I already approved amounts and reestablish. I asked to change rate of accrual from 30.3 to 30, . the dollar amount does not change\"): the pencil shows signed in or not (signed out the plan is this phone's own); the plan is stored per month, so the dollars he approved at the 30.3̅-day month are the 30-day month's dollars — Rent 643.43 · Car Payment 1,654.55 · Insurance 183.84 · Fitness 45.96 · Electricity 137.88 · Groceries 275.76 · Fun 183.84 · Wages 2,941.41 (totals as his screen: Fixed 2,527.78 · Variable 597.47 · Net −183.84) — and a plan saved on the old 33-day base loads as the per-month dollars it showed. The record and balances are unchanged.",
+   "commit": "e7112d2",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2212,6 +2235,18 @@
    "decision": "Footer without ◬ ♡ 웃; open-logo labels at 16; the r.041 review's console error, date-angle default, readout placement and 'Balance view' note fixed.",
    "status": "OPERATOR",
    "basis": "addenda 76, 99 + the r.041 AsM review"
+  },
+  {
+   "id": "FD-69",
+   "decision": "The chart has a $ scale on the left, a dashed Net line at the budget table's $/s to the span's end (end-of-month Net • Upside / Downside in the legend), and 1x is a live window ending now that pinching or +/− widens and narrows.",
+   "status": "OPERATOR",
+   "basis": "addenda 101–102 (verbatim)"
+  },
+  {
+   "id": "FD-70",
+   "decision": "Changing the month from 30.3̅ to 30 days changes no dollar amount: the budget is stored per month, the approved per-month dollars stand, and the budget pencil is there signed in or not.",
+   "status": "OPERATOR",
+   "basis": "addendum 103 (verbatim)"
   }
  ],
  "reviews": [

@@ -73,5 +73,14 @@ export const CATEGORY_FIELD: Record<BudgetCategory, string> = {
   Income: "A.income_wages", Home: "B.rent_mortgage", Auto: "C.auto_payment", Insurance: "D.auto_renters_home", Utilities: "E.electric_gas",
   Fitness: "G.mental_physical", Fun: "L.fun_hobbies_clothing", Groceries: "F.groceries", "Dining Out": "F.dining_work", Other: "L.fun_hobbies_clothing",
 };
-/** The sheet as ladder lines: dollars per 33 days (the sheet's month), one line per field. */
-export const SHEET_LINES: readonly LadderLine[] = SHEET_BUDGET.map((l) => ({ fieldId: CATEGORY_FIELD[l.category], amountNative: l.amountCents / 100, nativePeriod: "days33" as const }));
+/** The 30.3̅-day month the operator approved his budget in (r.020–r.045); a plan saved then is read through it (r.052). */
+export const APPROVED_MONTH_DAYS = 91 / 3;
+/** Dollars per 33 days → the dollars per month the operator approved (shown at the 30.3̅-day month). Kept unrounded, exactly as his
+ *  screen computed them, so every line AND every total reads what he approved (Variable 597.47, Net −183.84 — addendum 103's
+ *  screenshot), not a sum of rounded lines a cent away. Pure. */
+export const approvedMonthly = (per33: number): number => (per33 * APPROVED_MONTH_DAYS) / 33;
+/** The sheet as ladder lines, PER MONTH (r.052, addendum 103: "see fixed expenses I already approved amounts and reestablish. I
+ *  asked to change rate of accrual from 30.3 to 30, . the dollar amount does not change"): the dollars he approved per month —
+ *  Rent 643.43 · Car 1,654.55 · Insurance 183.84 · Fitness 45.96 · Electricity 137.88 · Groceries 275.76 · Fun 183.84 · Wages
+ *  2,941.41 — are the 30-day month's dollars now; the month's length changed, the dollars did not. */
+export const SHEET_LINES: readonly LadderLine[] = SHEET_BUDGET.map((l) => ({ fieldId: CATEGORY_FIELD[l.category], amountNative: approvedMonthly(l.amountCents / 100), nativePeriod: "month" as const }));

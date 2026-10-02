@@ -12,12 +12,17 @@
  * isValidSpec) is removed and this file is r.020's again — ONE shared unit, the amount typed in it. A copy saved by r.021–r.022
  * still loads: its amountNative is already on the 33-day base; the extra fields it carries are ignored.
  */
-import { SHEET_LINES } from "./budget";
+import { SHEET_LINES, approvedMonthly } from "./budget";
 import { fieldOf, toPeriod, type LadderLine, type Period } from "./ladder";
 
 const PREFIX = "fin-plan-";
 export const planKey = (owner: string) => `${PREFIX}${owner}`;
-export const BASE: Period = "days33";
+/** r.052 (addendum 103 "wheres my edit button"): signed out, the plan is this phone's own. */
+export const DEVICE_OWNER = "device";
+/** r.052 (addendum 103): the plan is stored PER MONTH — the dollars the person typed for a month stay those dollars whatever the
+ *  month's length becomes. A plan saved on the old 33-day base is read back as the per-month dollars it showed (the 30.3̅-day month). */
+export const BASE: Period = "month";
+const fromSaved = (l: LadderLine): LadderLine | null => (l.nativePeriod === BASE ? l : l.nativePeriod === "days33" ? { ...l, amountNative: approvedMonthly(l.amountNative), nativePeriod: BASE } : null);
 
 /** The person's saved plan, or null when the device holds none (then the sheet is the plan). A malformed copy reads as none. */
 export function loadPlan(owner: string): LadderLine[] | null {
@@ -26,7 +31,7 @@ export function loadPlan(owner: string): LadderLine[] | null {
     if (!raw) return null;
     const v = JSON.parse(raw) as unknown;
     if (!Array.isArray(v)) return null;
-    const lines = v.filter((l): l is LadderLine => !!l && typeof l === "object" && typeof (l as LadderLine).fieldId === "string" && Number.isFinite((l as LadderLine).amountNative) && (l as LadderLine).nativePeriod === BASE && !!fieldOf((l as LadderLine).fieldId));
+    const lines = v.filter((l): l is LadderLine => !!l && typeof l === "object" && typeof (l as LadderLine).fieldId === "string" && Number.isFinite((l as LadderLine).amountNative) && !!fieldOf((l as LadderLine).fieldId)).map(fromSaved).filter((l): l is LadderLine => l !== null);
     return lines;
   } catch { return null; }
 }

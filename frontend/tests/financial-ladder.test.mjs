@@ -77,16 +77,17 @@ ok(near(L.ratePerMinute(360449, 91 / 3), 8.2520, 1e-3), "the worked paycheck run
 // ── r.016 · THE PERSON'S PLAN (addendum 28 "add edit mode and icon on budget mode") — pure, on the 33-day base ──────────────
 {
   const P = await import("../lib/financial-2525/plan.ts");
+  const B = await import("../lib/financial-2525/budget.ts");
   const store = new Map(); globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
   const sheet = P.sheetPlan();
-  ok(sheet.length === 8 && sheet.every((l) => l.nativePeriod === "days33") && sheet !== P.sheetPlan(), "the sheet is the plan at first: eight lines on the 33-day base, a fresh copy every time");
+  ok(sheet.length === 8 && sheet.every((l) => l.nativePeriod === "month") && sheet !== P.sheetPlan(), "the sheet is the plan at first: eight lines PER MONTH (r.052), a fresh copy every time");
   ok(P.loadPlan("alice") === null && P.planOrSheet(null).length === 8, "a device with no plan reads the sheet");
   // typed in the unit on the glass, stored on the base: $10/day on Groceries = $330 per 33 days; $0.0042/min back and forth within a cent
   const a = P.setLineAmount(sheet, "F.groceries", 10, "day"); const g = a.find((l) => l.fieldId === "F.groceries");
-  ok(near(g.amountNative, 330, 1e-9) && g.nativePeriod === "days33" && P.lineInUnit(g, "day") === 10, "an amount typed per day is stored per 33 days (10/day → 330) and reads back per day exactly");
+  ok(near(g.amountNative, 300, 1e-9) && g.nativePeriod === "month" && P.lineInUnit(g, "day") === 10, "an amount typed per day is stored per 30-day month (10/day → 300) and reads back per day exactly (r.052)");
   ok(near(P.lineInUnit(P.setLineAmount(sheet, "A.income_wages", 1.5, "hour").find((l) => l.fieldId === "A.income_wages"), "hour"), 1.5, 1e-9), "per hour round-trips (1.5/h)");
-  ok(P.setLineAmount(sheet, "F.groceries", -5, "day").find((l) => l.fieldId === "F.groceries").amountNative === 300 && P.setLineAmount(sheet, "F.groceries", NaN, "day").find((l) => l.fieldId === "F.groceries").amountNative === 300, "a negative or NaN figure changes nothing (a refusal, never an accidental zero)");
-  ok(L.netLadder(a, "days33").net === L.netLadder(sheet, "days33").net - 30, "Net follows the plan (330 instead of 300 on Groceries → Net 30 lower)");
+  ok(P.setLineAmount(sheet, "F.groceries", -5, "day").find((l) => l.fieldId === "F.groceries").amountNative === B.approvedMonthly(300) && P.setLineAmount(sheet, "F.groceries", NaN, "day").find((l) => l.fieldId === "F.groceries").amountNative === B.approvedMonthly(300), "a negative or NaN figure changes nothing (a refusal, never an accidental zero)");
+  ok(near(L.netLadder(a, "month").net, L.netLadder(sheet, "month").net - (300 - B.approvedMonthly(300)), 1e-9), "Net follows the plan (300 instead of 275.76 per month on Groceries → Net 24.24 lower)");
   const b = P.addLine(sheet, "C.fuel");
   ok(b.length === 9 && b.at(-1).fieldId === "C.fuel" && b.at(-1).amountNative === 0 && P.addLine(b, "C.fuel").length === 9, "a FLOW field is added once with a zero amount; a second add is refused");
   ok(P.addLine(sheet, "N.checking_savings_cash").length === 8 && P.addLine(sheet, "Z.nothing").length === 8, "N–T and unknown fields are refused (they live on the Balance view, never per period)");
@@ -105,10 +106,13 @@ ok(near(L.ratePerMinute(360449, 91 / 3), 8.2520, 1e-3), "the worked paycheck run
   ok(L.KIND_ORDER.join(" ") === "Income Fixed Variable Transfer", "the kinds come in the brief's order: Income · Fixed · Variable · Transfer");
   ok(g33.map((g) => g.kind).join(" ") === "Income Fixed Variable", `the sheet groups into Income · Fixed · Variable — no Transfer group when no transfer line is on the plan (got ${g33.map((g) => g.kind).join(" ")})`);
   const tot = Object.fromEntries(g33.map((g) => [g.kind, g.total]));
-  ok(near(tot.Income, 3200) && near(tot.Fixed, 2750) && near(tot.Variable, 650), `the sheet's totals per 33 days: Income 3,200 · Fixed 2,750 (rent 700 + auto 1,800 + insurance 200 + health 50) · Variable 650 (electric 150 + groceries 300 + fun 200) — got ${JSON.stringify(tot)}`);
+  const tm = Object.fromEntries(L.groupByKind(B.SHEET_LINES, "month").map((g) => [g.kind, g.total]));
+  const c2 = (v) => Math.round(v * 100) / 100;
+  ok(c2(tm.Income) === 2941.41 && c2(tm.Fixed) === 2527.78 && c2(tm.Variable) === 597.47 && c2(L.netLadder(B.SHEET_LINES, "month").net) === -183.84, `r.052 (addendum 103 "the dollar amount does not change", his screenshot): the sheet per 30-day month reads exactly what he approved — Wages 2,941.41 · Fixed 2,527.78 · Variable 597.47 · Net −183.84 — got ${JSON.stringify(tm)}`);
+  ok(["B.rent_mortgage:643.43", "C.auto_payment:1654.55", "D.auto_renters_home:183.84", "G.mental_physical:45.96", "E.electric_gas:137.88", "F.groceries:275.76", "L.fun_hobbies_clothing:183.84", "A.income_wages:2941.41"].every((kv) => { const [f, v] = kv.split(":"); const l = B.SHEET_LINES.find((x) => x.fieldId === f); return Math.round(L.toPeriod(l.amountNative, l.nativePeriod, "month") * 100) / 100 === Number(v); }), "r.052: every approved line reads its exact approved dollars per month");
   ok(near(tot.Income - tot.Fixed - tot.Variable, L.netLadder(B.SHEET_LINES, "days33").net), "the groups add up to the ladder's Net (−200 per 33 days)");
   const gDay = L.groupByKind(B.SHEET_LINES, "day");
-  ok(near(gDay.find((g) => g.kind === "Fixed").total, 2750 / 33, 1e-9), "a group's total follows the period by the fixed factor (Fixed 2,750 / 33 per day)");
+  ok(near(gDay.find((g) => g.kind === "Fixed").total, B.approvedMonthly(2750) / 30, 1e-9), "a group's total follows the period by the fixed factor (Fixed 2,527.78 / 30 per day)");
   ok(g33.every((g) => g.lines.every((l) => L.fieldOf(l.fieldId).kind === g.kind)), "every line sits under its own field's kind — the brief's lock decides, never the glass");
   const withTransfer = [...B.SHEET_LINES, { fieldId: "M.emergency_sinking", amountNative: 100, nativePeriod: "days33" }];
   ok(L.groupByKind(withTransfer, "days33").map((g) => g.kind).join(" ") === "Income Fixed Variable Transfer", "a transfer line brings the Transfer group, last");
@@ -129,7 +133,7 @@ ok(near(L.ratePerMinute(360449, 91 / 3), 8.2520, 1e-3), "the worked paycheck run
   const added = P.addLine(sheet, "C.fuel"); ok(added.some((l) => l.fieldId === "C.fuel" && l.amountNative === 0), "a line is added at zero and its amount typed on the line in the unit showing (r.020's add row)");
   store.set(P.planKey("eve"), JSON.stringify([{ fieldId: "B.rent_mortgage", amountNative: 700 * 33 / 30, nativePeriod: "days33", amount: 700, rec: "other", otherN: 30, otherUnit: "days" }]));
   const ev = P.loadPlan("eve");
-  ok(ev.length === 1 && near(P.lineInUnit(ev[0], "days33"), 770, 0.01), "a plan saved by r.021–r.022 (Rent $700 every 30 days) still loads and reads the same rate — its extra fields are ignored");
+  ok(ev.length === 1 && ev[0].nativePeriod === "month" && near(P.lineInUnit(ev[0], "month"), Math.round(770 * (91 / 3) / 33 * 100) / 100, 0.006), "a plan saved on the old 33-day base loads as the per-month dollars it showed at the 30.3̅-day month (r.052: the dollars do not change) — its extra fields are ignored");
   delete globalThis.localStorage;
 }
 

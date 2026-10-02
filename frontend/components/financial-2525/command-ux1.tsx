@@ -42,7 +42,7 @@ import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
 import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
 import { balanceAt, series, validateWithdrawal, depositView, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { type BudgetCategory } from "@/lib/financial-2525/budget";
-import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
+import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, DEVICE_OWNER, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
 import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } from "@/lib/financial-2525/currency";   // r.049: the currency label
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
@@ -213,8 +213,11 @@ export function FinancialCommandUX1() {
   const [editing, setEditing] = useState(false);
   const [drafts, setDrafts] = useState({} as Record<string, string>);
   const [addSec, setAddSec] = useState("A" as FlowSectionId); const [addField, setAddField] = useState("A.income_wages");
-  useEffect(() => { if (!owner) { setPlan(sheetPlan()); setEditing(false); return; } setPlan(planOrSheet(loadPlan(owner))); }, [owner]);
-  const writePlan = (next: LadderLine[]) => { setPlan(next); if (owner && !savePlan(owner, next)) setSaveFailed(true); };
+  // r.052 (addendum 103 "wheres my edit button on personal budget"): the pencil is there signed in or not — signed out the plan is
+  // this phone's own (DEVICE_OWNER), signed in it is the person's
+  const planOwner = owner ?? DEVICE_OWNER;
+  useEffect(() => { setPlan(planOrSheet(loadPlan(planOwner))); }, [planOwner]);
+  const writePlan = (next: LadderLine[]) => { setPlan(next); if (!savePlan(planOwner, next)) setSaveFailed(true); };
   // THE BUDGET AS HE ASKED (r.024, addenda 48 · 50: "don't change budget inplementetion; this is way too complicated and I never asked for
   // it"): the r.021–r.022 per-line MoT dropdowns are gone; a line's amount is typed in the unit showing and kept on the 33-day base.
   const typeAmount = (fieldId: string, text: string) => { setDrafts((d) => ({ ...d, [fieldId]: text })); const n = Number(text); if (text.trim() !== "" && Number.isFinite(n)) writePlan(setLineAmount(plan, fieldId, n, period)); };
@@ -229,6 +232,7 @@ export function FinancialCommandUX1() {
   const budget = useMemo(() => (recIncome.length ? [...recIncome, ...plan.filter((l) => fieldOf(l.fieldId)?.kind !== "Income")] : plan), [plan, recIncomeKey]);   // eslint-disable-line react-hooks/exhaustive-deps
   const fromRecord = (fieldId: string) => recIncome.some((l) => l.fieldId === fieldId);
   const totals = useMemo(() => netLadder(budget, period), [budget, period]);
+  const totalsPerSec = useMemo(() => netLadder(budget, "second"), [budget]);   // r.052: the chart's Net line runs at the table's $/s
   // THE GLASS GROUPS BY KIND, COLLAPSED (r.018, addendum 31 "order by fixed vs financial, and have expand button so this is not so busy.
   // Don't show A-U letters"): Income · Fixed · Variable (· Transfers) each one row with its total and a chevron; the lines show only
   // when a group is opened — or in edit mode, which opens every group so its fields are reachable. No letter reaches the glass.
@@ -445,7 +449,7 @@ export function FinancialCommandUX1() {
               <div className={LABEL}>{t("fin.ladder_title")}</div>
               {/* EDIT MODE behind an icon (addendum 28 "add edit mode and icon on budget mode"): the pencil opens it, the check closes it;
                   the pressed state is a stroke ring, never a fill (the vector law). Only a signed-in person edits — the plan is saved under their key. */}
-              {owner && (
+              {(
                 <button type="button" data-fin-budget-edit aria-pressed={editing} aria-label={editing ? t("fin.done") : t("fin.edit")} title={editing ? t("fin.done") : t("fin.edit")}
                   onClick={() => { setEditing((v) => !v); setDrafts({}); }}
                   className={`rounded-md border p-1 ${editing ? "border-primary ring-1 ring-inset ring-primary" : "border-border"}`}>
@@ -512,7 +516,7 @@ export function FinancialCommandUX1() {
               </label>
               <span className="flex items-end gap-2">
                 <button type="button" data-fin-plan-add-btn disabled={!addable.length} onClick={() => { const id = addable.some((f) => f.id === addField) ? addField : addable[0]?.id; if (id) writePlan(addLine(plan, id)); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs disabled:opacity-50">{t("fin.add_line")}</button>
-                <button type="button" data-fin-plan-reset onClick={() => { if (owner) clearPlan(owner); setPlan(sheetPlan()); setDrafts({}); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs">{t("fin.reset_sheet")}</button>
+                <button type="button" data-fin-plan-reset onClick={() => { clearPlan(planOwner); setPlan(sheetPlan()); setDrafts({}); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs">{t("fin.reset_sheet")}</button>
               </span>
             </div>
           )}
@@ -521,7 +525,7 @@ export function FinancialCommandUX1() {
 
         {/* the chart — strokes only, day · hour · minute by default, A.B..C on reveal */}
         {focus && (
-          <MotChart tx={focus} txs={txs} now={at} t={t} planet={planet} showAbc={showAbc} onToggle={setShowAbc} dateFmt={dateFmt} onDateFmt={pickDateFmt} angle={dateAngle} onAngle={pickDateAngle} locale={activeLocale}
+          <MotChart tx={focus} netPerSec={totalsPerSec.net} txs={txs} now={at} t={t} planet={planet} showAbc={showAbc} onToggle={setShowAbc} dateFmt={dateFmt} onDateFmt={pickDateFmt} angle={dateAngle} onAngle={pickDateAngle} locale={activeLocale}
             selector={<label className="flex items-center gap-1 text-xs text-muted-foreground">{t("fin.planet")}
               <select data-fin-planet value={planetCode} onChange={(e) => setPlanetCode(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-xs">
                 {planets.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
@@ -669,33 +673,66 @@ function spanDays(sp: ChartSpan, nowMs: number): number {
   return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 366 : 365;
 }
 const spanLabel = (sp: ChartSpan, nowMs: number): string => (sp === "Y" ? `${spanDays(sp, nowMs)}D` : sp);
+/** r.052: the 1x live window's widths, narrowest first (addendum 101 "Zoom chart should expand out x axis"). */
+const LIVE_WINDOWS: readonly { h: number; label: string }[] = [{ h: 1, label: "1 h" }, { h: 6, label: "6 h" }, { h: 24, label: "1 D" }, { h: 168, label: "1 W" }, { h: 720, label: "30 D" }, { h: 2184, label: "91 D" }, { h: 8760, label: "365 D" }];
+/** r.052: the width the left $ scale takes in the chart's 360-unit viewBox. */
+const Y_AXIS_W = 50;
+/** r.052: the $ scale — the top, the middle, zero and (when Net goes below it) the bottom, in whole currency units. Pure. */
+function yAxisTicks(min: number, max: number): number[] {
+  const out = [max, max / 2, 0]; if (min < 0) out.push(min);
+  return Array.from(new Set(out.map((v) => Math.round(v))));
+}
+const yLabel = (c: number): string => (Math.sign(c) === -1 ? "−" : "") + CUR_SYM + Math.round(Math.abs(c) / 100).toLocaleString("en-US");
 /** Every transaction re-spread over the span (1x = the instant). Pure. */
 function respread(txs: readonly FinTx[], sp: ChartSpan, nowMs: number): FinTx[] {
   const d = spanDays(sp, nowMs);
   return txs.map((x) => ({ ...x, motDays: d }));
 }
-function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFmt, onDateFmt, angle, onAngle, locale }: { tx: FinTx; txs: FinTx[]; now: number; t: (k: string) => string; planet: PlanetLtuRow; showAbc: boolean; onToggle: (v: boolean) => void; selector?: ReactNode; dateFmt: DateFmt; onDateFmt: (f: DateFmt) => void; angle: DateAngle; onAngle: (a: DateAngle) => void; locale: string }) {
+function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFmt, onDateFmt, angle, onAngle, locale, netPerSec = 0 }: { tx: FinTx; txs: FinTx[]; now: number; t: (k: string) => string; netPerSec?: number; planet: PlanetLtuRow; showAbc: boolean; onToggle: (v: boolean) => void; selector?: ReactNode; dateFmt: DateFmt; onDateFmt: (f: DateFmt) => void; angle: DateAngle; onAngle: (a: DateAngle) => void; locale: string }) {
   const W = 360, H = 150, P = 10;
   // the plot's LEFT edge moves in when dates show, so the first date at 30° never runs off the card (r.025)
-  const PL = showAbc || angle === 0 || angle === 90 ? P + 4 : dateFmt === "full" ? 48 : dateFmt === "mmdd" ? 26 : 14;
+  // r.052 (addendum 101 "i need $ on left y axis"): the plot starts right of the $ scale, and never left of the first date at 30°
+  const PL = Math.max(Y_AXIS_W, showAbc || angle === 0 || angle === 90 ? P + 4 : dateFmt === "full" ? 48 : dateFmt === "mmdd" ? 26 : 14);
   const dayMs = daySecOf(planet) * 1000;
   // r.047: the span, remembered on this phone; every transaction re-spread over it from its entry time
   const [span, setSpan] = useState<ChartSpan>("30D");
   const [probe, setProbe] = useState(null as number | null);
   useEffect(() => { try { const v = localStorage.getItem(SPAN_KEY) as ChartSpan | null; if (v && CHART_SPANS.includes(v)) setSpan(v); } catch { /* storage blocked: the default stands */ } }, []);
   const pickSpan = (v: ChartSpan) => { setSpan(v); setProbe(null); try { localStorage.setItem(SPAN_KEY, v); } catch { /* the pick still applies this visit */ } };
+  // r.052 (addendum 101 "chart should show transactions for 1x real-time (Zoom chart should expand out x axis"; his answer "Live window,
+  // pinch widens"): 1x is a LIVE window ending now — 1 h at first — each transaction a step the moment it lands; spreading two fingers
+  // (or −) widens it to hours, days, weeks; pinching them together (or +) narrows it again.
+  const [zoom, setZoom] = useState(0);
+  const live = span === "1x";
+  const widen = (d: number) => { setZoom((z) => Math.max(0, Math.min(LIVE_WINDOWS.length - 1, z + d))); setProbe(null); };
+  const pinch = useRef({ ids: new Map<number, number>(), d0: 0 });
+  const onPDown = (e: { pointerId: number; clientX: number }) => { if (live) { pinch.current.ids.set(e.pointerId, e.clientX); if (pinch.current.ids.size === 2) { const [a, b] = Array.from(pinch.current.ids.values()); pinch.current.d0 = Math.abs(a - b); } } };
+  const onPMove = (e: { pointerId: number; clientX: number }) => {
+    const pc = pinch.current; if (!live || !pc.ids.has(e.pointerId)) return; pc.ids.set(e.pointerId, e.clientX);
+    if (pc.ids.size !== 2 || !(pc.d0 > 0)) return; const [a, b] = Array.from(pc.ids.values()); const d = Math.abs(a - b);
+    if (d > pc.d0 * 1.25) { widen(1); pc.d0 = d; } else if (d < pc.d0 / 1.25) { widen(-1); pc.d0 = d; }
+  };
+  const onPUp = (e: { pointerId: number }) => { pinch.current.ids.delete(e.pointerId); if (pinch.current.ids.size < 2) pinch.current.d0 = 0; };
   const all = respread(txs.length ? txs : [tx], span, now);
   const deps = all.filter((x) => x.kind === "deposit");
   const spanMs = spanDays(span, now) * dayMs;
-  const from = Math.min(...all.map((x) => x.atMs));
-  const to = Math.max(from + dayMs, now, ...all.map((x) => x.atMs + spanMs));
+  const from = live ? now - LIVE_WINDOWS[zoom].h * 3600 * 1000 : Math.min(...all.map((x) => x.atMs));
+  const to = live ? now : Math.max(from + dayMs, now, ...all.map((x) => x.atMs + spanMs));
   const len = to - from;
   function inside(ms: number) { return !(ms < from) && !(ms > to); }
   const withdrawals = all.filter((x) => x.kind === "withdrawal" && inside(x.atMs));
   const pts = series(all, from, to, len / 120);
   const total = Math.max(1, deps.reduce((a, x) => a + x.amountCents, 0));
+  // r.052 (addendum 101 "if 30 days $/min is shown over 30 days, so we can predict end of month NET • Upside or NET • Downside"; his
+  // answers "Budget table" · "Net + Released + Escrow"): Net runs at the budget table's $/min over the last span of the chart, from 0 to
+  // the span's end — at 30D its end IS the table's Net. Not on 1x (the live window looks back; Net looks ahead).
+  const netFrom = Math.max(from, to - spanMs);
+  const netAt = (ms: number) => netPerSec * 100 * (Math.max(0, ms - netFrom) / 1000);
+  const netEnd = live ? 0 : netAt(to);
+  const yMin = Math.min(0, netEnd), yMax = Math.max(total, netEnd);
   const x = (ms: number) => PL + ((ms - from) / len) * (W - PL - P);
-  const y = (cents: number) => H - P - (Math.max(0, Math.min(1, cents / total)) * (H - 2 * P));
+  const y = (cents: number) => H - P - (Math.max(0, Math.min(1, (cents - yMin) / (yMax - yMin))) * (H - 2 * P));
+  const yTicks = yAxisTicks(yMin, yMax);
   const poly = (pick: (p: (typeof pts)[number]) => number) => pts.map((p) => `${x(p.t).toFixed(1)},${y(pick(p)).toFixed(1)}`).join(" ");
   const sw = VECTOR_LAW.stroke.normal, hair = VECTOR_LAW.stroke.hairline;
   // A.B..C mode keeps the five marks; Clock mode reads CALENDAR DATES at 30° (addendum 42), as many whole days as fit
@@ -744,17 +781,32 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
           <button key={sp} type="button" data-fin-span={sp} aria-pressed={span === sp} onClick={() => pickSpan(sp)} className={`min-h-[32px] flex-1 border-l border-border first:border-l-0 ${span === sp ? "ring-1 ring-inset ring-primary text-primary" : "text-muted-foreground"}`}>{spanLabel(sp, now)}</button>
         ))}
       </div>
+      {live && (
+        <div data-fin-live-zoom className="mt-2 flex items-center justify-end gap-2 font-mono text-xs text-muted-foreground">
+          <button type="button" data-fin-zoom="narrow" aria-label={t("fin.zoom_narrow")} title={t("fin.zoom_narrow")} disabled={zoom === 0} onClick={() => widen(-1)} className="flex h-8 w-9 items-center justify-center rounded-md border border-border disabled:opacity-40">+</button>
+          <span data-fin-live-window className="min-w-[3.5rem] text-center text-foreground">{LIVE_WINDOWS[zoom].label}</span>
+          <button type="button" data-fin-zoom="wide" aria-label={t("fin.zoom_wide")} title={t("fin.zoom_wide")} disabled={zoom === LIVE_WINDOWS.length - 1} onClick={() => widen(1)} className="flex h-8 w-9 items-center justify-center rounded-md border border-border disabled:opacity-40">−</button>
+        </div>
+      )}
       <p data-fin-chart-probe className="mt-2 min-h-[16px] font-mono text-xs text-foreground">{probe !== null && (showAbc ? fmtMot(positionInYear(probe, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(probe)} CST`)}</p>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="mt-2 block h-auto cursor-crosshair" role="img" aria-label={t("fin.chart_tap")} data-fin-chart-svg onClick={probeAt}>
+      <div data-fin-chart-plot className="relative mt-2">
+      {/* the $ scale on the LEFT (addendum 101), HTML beside the strokes (the chart paints no face), in the picked currency */}
+      <div data-fin-y-axis aria-hidden className="pointer-events-none absolute inset-0 font-mono text-[10px] text-muted-foreground">
+        {yTicks.map((v) => <span key={v} className="absolute left-0 -translate-y-1/2 whitespace-nowrap tabular-nums" style={{ top: `${((y(v) / H) * 100).toFixed(2)}%` }}>{yLabel(v)}</span>)}
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="block h-auto cursor-crosshair" style={live ? { touchAction: "pan-y" } : undefined} role="img" aria-label={t("fin.chart_tap")} data-fin-chart-svg onClick={probeAt} onPointerDown={onPDown} onPointerMove={onPMove} onPointerUp={onPUp} onPointerCancel={onPUp} onPointerLeave={onPUp}>
         <rect x={PL} y={P} width={W - PL - P} height={H - 2 * P} fill="none" stroke="var(--border)" strokeWidth={hair} />
         {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={PL + f * (W - PL - P)} y1={P} x2={PL + f * (W - PL - P)} y2={H - P} stroke="var(--border)" strokeWidth={hair} />)}
         <polyline fill="none" stroke={C.intelligence} strokeWidth={hair} points={poly((p) => p.escrowed)} />
         <polyline fill="none" stroke={C.abundance} strokeWidth={sw} points={poly((p) => p.released)} />
+        {yMin < 0 && <line data-fin-zero x1={PL} y1={y(0)} x2={W - P} y2={y(0)} stroke="var(--border)" strokeWidth={hair} />}
+        {!live && netPerSec !== 0 && <polyline data-fin-net-line fill="none" stroke={netEnd < 0 ? C.evolution : C.abundance} strokeWidth={sw} strokeDasharray="5 3" points={`${x(netFrom).toFixed(1)},${y(0).toFixed(1)} ${x(to).toFixed(1)},${y(netEnd).toFixed(1)}`} />}
         {withdrawals.map((w) => <line key={w.id} x1={x(w.atMs)} y1={P} x2={x(w.atMs)} y2={P + 12} stroke={C.evolution} strokeWidth={sw} />)}
         {inside(now) && <line x1={x(now)} y1={P} x2={x(now)} y2={H - P} stroke={C.blank} strokeWidth={hair} />}
         {probe !== null && <line data-fin-chart-probe-line x1={x(probe)} y1={P} x2={x(probe)} y2={H - P} stroke="hsl(var(--primary))" strokeWidth={hair} strokeDasharray="3 3" />}
         {!showAbc && ticks.map((tk) => <line key={tk} x1={x(tk)} y1={H - P} x2={x(tk)} y2={H - P + 4} stroke="var(--border)" strokeWidth={hair} />)}
       </svg>
+      </div>
       {!showAbc && dateFmt === "month" && (
         <div data-fin-date-months aria-hidden className="relative mt-1 h-4 text-[10px] text-muted-foreground">
           {ticks.filter((tk, k) => k === 0 || cstParts(tk).mo !== cstParts(ticks[k - 1]).mo).map((tk) => <span key={tk} className="absolute top-0 whitespace-nowrap" style={{ left: `${(Math.max(0, (x(tk) - 12) / W) * 100).toFixed(2)}%` }}>{monthName(tk)}</span>)}
@@ -771,6 +823,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
       {showAbc && <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{axis.map((a, i) => <span key={i} className={`whitespace-pre-line ${i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}`}>{a.replace(".", "\n.").replace("..", "\n..")}</span>)}</div>}
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
         <span style={{ color: C.abundance }}>— {t("fin.released")}</span><span style={{ color: C.intelligence }}>— {t("fin.escrowed")}</span><span>| {t("fin.now")}</span><span style={{ color: C.evolution }}>| {t("fin.withdrawal")}</span>
+        {!live && netPerSec !== 0 && <span data-fin-net-end className={`font-semibold ${netEnd < 0 ? "text-red-500" : "text-green-500"}`}>- - {netEnd < 0 ? t("fin.net_down") : t("fin.net_up")} {netEnd < 0 ? "−" : "+"}{num2(netEnd)} · {fmtStampCST(to).slice(0, 10)}</span>}
       </p>
     </div>
   );
