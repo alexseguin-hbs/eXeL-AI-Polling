@@ -1207,6 +1207,9 @@
 > This matches for finance-2525
 >
 > Note how red dots are on top of eachother; if they overlap x-pixels at all, merge into one figure (we can't have two dots and text that gets blurred if zoomed way out.
+> (with it, a PC screenshot of the live 30D chart (r.072, legend still "Spending"): five red dots crowded at 2026.09.30–10.02, their labels
+> −$2,450.00 · −$370.00 · −$35.44 · −$32.94 printed over one another — the image reached the conversation only, not the upload folder;
+> the PC page screenshot is `docs/asks/2026-10-02_financial_2525_fb187_pc.png`)
 
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
