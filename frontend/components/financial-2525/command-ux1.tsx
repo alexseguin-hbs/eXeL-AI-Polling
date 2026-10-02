@@ -48,6 +48,7 @@ import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } 
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, correctTx, correctionsOf, type FinRecord } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
+import { fitFigures } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
 import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, newCard, uniqueCardId, applyCardSettings, looksLikeCardNumber, cardBalanceAt, cardLevel, cardSeries, cardMoves, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
 import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, cloudGet, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
@@ -198,6 +199,9 @@ export function FinancialCommandUX1() {
   /** The live rate in the unit picked — the $/min times the planet's own seconds, hours and days (cents). */
   // r.066 (addendum 142 + "Spread over rest"): the Accrual Rate is what is left after any spend ahead of accrual is spread over the rest
   const rateIn = (u: RateUnit): number => (u === "sec" ? bal.netRatePerMinCents / planet.secPerMin : u === "min" ? bal.netRatePerMinCents : u === "hr" ? bal.netRatePerMinCents * planet.minPerHour : bal.netRatePerMinCents * planet.hoursPerDay * planet.minPerHour);
+  // r.071 (addendum 158): the two figures' shared size, from the characters they show together (monospace → width = chars × advance)
+  const rateText = rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit));
+  const figFont = { fontSize: bal.ratePerMinCents > 0 ? fitFigures(usd(bal.availableCents).length + rateText.length) : fitFigures(usd(bal.availableCents).length, 8) };
   const focusView = focus && now ? depositView(focus, at) : null;
   const year = now ? positionInYear(now, planet.yearAnchor, planet.yearDays) : null;
   // THE LADDER'S UNIT (addendum 17 → 20 → 21 → 22): one dropdown of the brief's eight periods with FIXED factors — second · minute 60 ·
@@ -463,17 +467,19 @@ export function FinancialCommandUX1() {
           })}
           {/* r.044 (addendum 93 "Available and Accrual Rate should be same line, same size text"): the two labels share one line,
               the two figures share the next, at the same size */}
-          <div className="mt-2 flex items-start justify-between gap-3">
-            <div data-fin-current className="min-w-0">
+          {/* r.071 (addendum 158 "and fix this"): one size for both figures (r.044), fitted to the row — a long Available never runs into
+              the Accrual Rate; past the smallest size the rate wraps under it, never over it */}
+          <div data-fin-figures-row className="mt-2 flex flex-wrap items-start justify-between gap-x-3 gap-y-1" style={{ containerType: "inline-size" }}>
+            <div data-fin-current className="shrink-0">
               <div className="text-xs text-muted-foreground">{t("fin.available")}:</div>
-              <div className="flex h-9 items-center font-mono text-2xl tabular-nums text-primary" data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
+              <div className="flex h-9 items-center font-mono text-2xl tabular-nums text-primary" style={figFont} data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
             </div>
             {bal.ratePerMinCents > 0 && (
                 /* r.035 (addendum 68): the words "Accrual Rate" directly above the figure and its unit selector */
-                <div data-fin-rate-block className="flex flex-col items-end">
+                <div data-fin-rate-block className="ml-auto flex shrink-0 flex-col items-end">
                   <span data-fin-rate-label className="text-xs text-muted-foreground">{t("fin.accrual_rate")}</span>
                   <div data-fin-rate-row className="flex h-9 items-center gap-1 text-primary">
-                    <span data-fin-rate className="font-mono text-2xl tabular-nums">{rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit))}</span>
+                    <span data-fin-rate className="font-mono text-2xl tabular-nums" style={figFont}>{rateText}</span>
                     <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-primary">
                       {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
                     </select>

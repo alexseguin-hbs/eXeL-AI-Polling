@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.070",
-  "stamp": "v.000_r.070",
+  "revision": "0.071",
+  "stamp": "v.000_r.071",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "074ceedfd73af646fb95eb45ad433752933c62620186f8ff1ef0d5c3167344c0",
@@ -1129,6 +1129,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "Addendum 155 (\"put key for Alerts · Show Red - - - Red Alert · Show Amber - - - Amber Alert · move as much unneeded text from Credit cards · No more feedback for me; implement, SSSES, AsM, and Spiral test\"). An Alerts key under each card's chart — the red dashes read Red Alert, the amber dashes Amber Alert, drawn with the chart's own dash and colours, red first as he wrote it. Text removed from Credit cards: the level line (OK · % · Amber at … · Red at …) — the key, the Balance's colour and the cockpit warning carry it; the chart's resting figure and boxed date (the Balance above already says it — a tap or a finger still shows the value and its date; the dashed now line stays); 'Available credit' → 'Available' (his word, inside the Credit cards heading). His alert words everywhere: the cockpit warning reads Red Alert / Amber Alert; a screen reader hears the alert after the Balance (colour is never the only carrier). AsM: a card twin of the 144-scenario simulation (twelve AsM × twelve card scenarios on the real cards.ts + accrual.ts, 144/144; three planted defects caught at 132, 120, 108) and both simulations now run in test:ci. One key added (fin.card_alerts), fin.card_level_ok retired, three English words changed — all staged English-only (no fill). Folded before the push — addendum 156 (\"have CC default minimized\", with his photo of the live r.067 page): the Credit cards panel starts closed, a chevron and the title like the Transaction Record and the Year Position; opened, Pay card and the settings sit on its first row; the overspend alert stays at the top of the cockpit while it is closed. And addendum 157 (\"allow user to set up their own CC (don't default Capital One and USAA)\"): no card is seeded for anyone any more — every signed-in person sees the panel, an empty one offers Add card and a list ends in a +; a card is set up with a name (never a number — a name with more than six digits is refused), a limit, the balance as of now and the two alert levels (blank = half and two-thirds of the limit, his $1,500 / $2,000 on $3,000); the settings rename a card and remove it in two taps (its past transactions stay in the record; a row whose card is gone shows a dash, never another card). A card someone already saved stays theirs. AsM review before the push (three reviewers, twelve lenses, FIX-FIRST) — folded: the card chart lost a tap and a zoom at every 1-second tick on a phone (its window followed the clock): the window now moves once a day, and the shared chart keeps a tap and a zoom whenever its window only slides or grows (the class — the main chart lost them every minute); saving a card's levels with the balance untouched counted every move since the opening twice (a defect since r.067) — the save is now the pure applyCardSettings, gated in the card tests and the AsM simulation; a tapped figure takes its own moment's colour; the key is for the eye and the chart speaks the balance and both levels to a screen reader; the settings read Amber Alert at / Red Alert at; the card's red alert text is red-400 (AA contrast on his theme); five planted defects now fail the gates. The touch walk on the built page then caught one more: two cards set up within the same second shared an id (the second unreachable, a removal taking both) — every new card now gets a unique id (uniqueCardId, gated).",
    "commit": "c787095",
    "shipped": "b19c343"
+  },
+  {
+   "revision": "0.071",
+   "date": "2026-10-02",
+   "kind": "correction",
+   "why": "Addendum 158 (\"and fix this\", with his photo: \"Available: −$2,309.48\" crowding \"Accrual Rate $2.0900 /hr\") — the defect r.070's note listed as found, not changed. Both figures were fixed at text-2xl on one line (his r.044 rule: same line, same size) and the Available block could shrink under its own text, so a long negative figure ran into the rate (measured at 390 px: \"-$1,114.98$3.8255\"). Now the two keep one line and one size, but the size is fitted to the row: the row is a CSS size container and the figures are monospace, so width = characters × advance (lib/financial-2525/fit.ts); the size stays at the r.044 1.5rem when it fits and never drops below 0.875rem; past that floor the rate wraps under the Available figure — the two never overlap.",
+   "commit": "6d4854f",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2724,6 +2732,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "No credit card is seeded, for anyone: each person sets up their own (name · limit · balance as of now · amber · red, the levels defaulting to half and two-thirds of the limit), renames or removes it in its settings, and a name that looks like a card or account number is refused. Supersedes FD-82's operator-only seed; a saved card stays its owner's.",
    "status": "OPERATOR",
    "basis": "addendum 157"
+  },
+  {
+   "id": "FD-87",
+   "decision": "The Accrual Units figures (Available · Accrual Rate) share one size fitted to the row — 1.5rem when it fits, never below 0.875rem — and never overlap: past the floor the rate wraps under.",
+   "status": "OPERATOR",
+   "basis": "addendum 158 + his photo; keeps r.044 (same line, same size)"
   }
  ],
  "reviews": [

@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 140 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 141 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -989,6 +989,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.070 shipped and LIVE (Verify Live #2235) — the Alerts key, the least text on Credit cards, the panel minimized, each person's own cards (none seeded), every AsM finding folded (FD-85, FD-86).",
       "commit": "b19c343"
+    },
+    {
+      "rev": 141,
+      "date": "2026-10-02",
+      "kind": "correction",
+      "text": "r.071 correction — Available and the Accrual Rate share one size fitted to the row and never overlap (FD-87).",
+      "commit": "6d4854f"
     }
   ]
 };
