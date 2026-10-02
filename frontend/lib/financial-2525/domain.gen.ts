@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.055",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "1e43ef8b2bd95f52e209cff78e113e34155de5e721e66974e7ea73a6f67b5066",
+  "handoffSha256": "08b4449cfa80f66849110e476a4d32a6a8615331022adc89c214a9c50de765a1",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -411,6 +411,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "1e43ef8b2bd95f52e209cff78e113e34155de5e721e66974e7ea73a6f67b5066",
     "date": "2026-10-02",
     "note": "addendum 126 — the 33-round programme (SSSES · twelve-lens AAR · UX test · spiral forward/backward, each round fixes what it finds)"
+   },
+   {
+    "sha256": "08b4449cfa80f66849110e476a4d32a6a8615331022adc89c214a9c50de765a1",
+    "date": "2026-10-02",
+    "note": "addendum 127 — remove the chart Net projection line; where is the $/min chart"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
