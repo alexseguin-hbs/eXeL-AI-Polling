@@ -852,6 +852,11 @@
 >
 > just figures near vertical line on selected date
 
+> (addendum 130, verbatim — 2026-10-02, r.058 in Verify Live)
+> and if transaction occurs at a new date ; spending increases and income drops (remember pinch zoom on table shows more dates (30D means cost split into 30 days, not necessarily range of x axis )
+>
+> use more advanced table from html to js that best supports interactive nature of real-time charts
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
