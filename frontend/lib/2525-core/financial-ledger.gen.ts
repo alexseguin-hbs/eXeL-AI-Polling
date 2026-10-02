@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 137 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 138 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -968,6 +968,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.069 decision — the card shows Balance and Available credit; the Limit moves into the card's settings (FD-84).",
       "commit": "7da1df0"
+    },
+    {
+      "rev": 138,
+      "date": "2026-10-02",
+      "kind": "release",
+      "text": "r.069 shipped and LIVE (Verify Live #2232) — the card shows Balance and Available credit; the Limit is set in its settings (FD-84).",
+      "commit": "1a70004"
     }
   ]
 };
