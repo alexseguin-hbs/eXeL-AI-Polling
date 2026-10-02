@@ -1201,6 +1201,13 @@
 >
 > Just add; that way we can review Grok's implementation (to avoid overlap of work). You focus on financial-2525 for now
 
+> (addendum 187, verbatim — 2026-10-02 18:51, with a PC screenshot of the live page (SHA 08604a5, Grok's latest on main; Financial is
+> still r.072): Accrual Units $178.79, the budget Income 3,924.49 · Fixed 2,211.37 · Variable 1,213.12 · Net 500.00 — the same account
+> figures as his phone)
+> This matches for finance-2525
+>
+> Note how red dots are on top of eachother; if they overlap x-pixels at all, merge into one figure (we can't have two dots and text that gets blurred if zoomed way out.
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
