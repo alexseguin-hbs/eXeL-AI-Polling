@@ -745,6 +745,16 @@
 > 1,671.37 · Variable 1,140.00 · Net 1,113.12) — `docs/asks/2026-10-02_financial_2525_fb108_signedin_0703.png`)
 > issues was log in; edit button appears there; but yo ur amounts were updated.  FIX IT
 
+> (addendum 109, verbatim — 2026-10-02 7:09, his re-entered budget in the private-browsing tab: Wages 3,604.49 · Upside 320.00 ·
+> Rent 700.00 · Insurance 250.66 · Fitness & Health 270.00 · Subscriptions 89.73 · Electric 150.00 · Groceries 500.00 · Fun 100.00 ·
+> Dining 150.00 · Gifts / Travel 240.00 — Income 3,924.49 · Fixed 1,310.39 · Variable 1,140.00 · Net 1,474.10; record empty —
+> `docs/asks/2026-10-02_financial_2525_fb109_budget_fixed_0709.png`)
+> Fixed per the attached; now add my transactions back in!
+
+> (addendum 110, verbatim — 2026-10-02)
+> now enter my transactions back in
+> on financial chart, Like a stock chart I should be able to click and see values at that day/time
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
