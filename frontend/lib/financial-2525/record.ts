@@ -41,9 +41,11 @@ export function append(rec: FinRecord, tx: FinTx, at: number): FinRecord {
  *  transaction of its own: its values replace the corrected transaction's (the latest correction wins), in the original's place. */
 export function replay(rec: FinRecord, rev?: number): FinTx[] {
   const upTo = rec.entries.filter((e) => rev === undefined || e.rev <= rev);
-  const latest = new Map<string, FinTx>();
-  for (const e of upTo) if (e.tx.corrects) latest.set(e.tx.corrects, e.tx);
-  return upTo.filter((e) => !e.tx.corrects).map((e) => { const c = latest.get(e.tx.id); return c ? { ...c, id: e.tx.id, kind: e.tx.kind, corrects: undefined } : e.tx; });
+  // r.073 (round 1): the latest correction is the one RECORDED last (its entry's `at`), position breaking a tie — on one device the
+  // two always agree; after two copies are united (unionRecords) the newest edit still wins, whichever copy it came from
+  const latest = new Map<string, FinEntry>();
+  for (const e of upTo) if (e.tx.corrects) { const p = latest.get(e.tx.corrects); if (!p || e.at >= p.at) latest.set(e.tx.corrects, e); }
+  return upTo.filter((e) => !e.tx.corrects).map((e) => { const c = latest.get(e.tx.id)?.tx; return c ? { ...c, id: e.tx.id, kind: e.tx.kind, corrects: undefined } : e.tx; });
 }
 /** THE EDIT (r.062, addendum 133): what changed is appended as a correction — the original entry, its hash and every later link stay
  *  exactly as they were (NO CHANGE EVER DELETES AN ENTRY). The type (deposit / withdrawal) is not editable. Pure. */
@@ -51,9 +53,23 @@ export type TxEdit = Partial<Pick<FinTx, "amountCents" | "memo" | "atMs" | "motD
 export function correctTx(rec: FinRecord, id: string, edit: TxEdit, at: number): FinRecord {
   const current = replay(rec).find((x) => x.id === id);
   if (!current) return rec;
-  const n = rec.entries.filter((e) => e.tx.corrects === id).length + 1;
-  const tx: FinTx = { ...current, ...edit, id: `c-${id}-${n}`, kind: current.kind, corrects: id };
+  const tx: FinTx = { ...current, ...edit, id: nextCorrectionId(rec, id), kind: current.kind, corrects: id };
   return append(rec, tx, at);
+}
+/** The next free correction id for `id` — `c-<id>-<n>`, n one past the corrections already made, skipping any n a united copy
+ *  already holds (r.073: append is idempotent on the id, so a taken id would silently drop the edit). Pure. */
+export function nextCorrectionId(rec: FinRecord, id: string): string {
+  const ids = new Set(rec.entries.map((e) => e.tx.id));
+  let n = rec.entries.filter((e) => e.tx.corrects === id).length + 1;
+  while (ids.has(`c-${id}-${n}`)) n++;
+  return `c-${id}-${n}`;
+}
+/** A transaction id no entry holds yet: `base` itself, or `base~2`, `base~3`, … (r.073: a new entry is never dropped as a duplicate). */
+export function freshId(rec: FinRecord, base: string): string {
+  const ids = new Set(rec.entries.map((e) => e.tx.id));
+  if (!ids.has(base)) return base;
+  let k = 2; while (ids.has(`${base}~${k}`)) k++;
+  return `${base}~${k}`;
 }
 /** The corrections made to a transaction, oldest first (the record still holds every one). Pure. */
 export const correctionsOf = (rec: FinRecord, id: string): FinEntry[] => rec.entries.filter((e) => e.tx.corrects === id);
@@ -68,6 +84,54 @@ export function verify(rec: FinRecord): { ok: boolean; brokenAt: number | null }
   return { ok: true, brokenAt: null };
 }
 export const emptyRecord = (owner: string): FinRecord => ({ owner, entries: [] });
+/** True when the two copies are the same chain, link for link. Pure. */
+export const sameChain = (a: FinRecord, b: FinRecord): boolean => a.entries.length === b.entries.length && a.entries.every((e, i) => b.entries[i].hash === e.hash);
+/** A stored or received copy that can be trusted: the right shape, and every link holds. Pure. */
+export const isVerified = (v: unknown): v is FinRecord => !!v && typeof v === "object" && Array.isArray((v as FinRecord).entries) && verify(v as FinRecord).ok;
+
+/**
+ * THE UNION (r.073, round 1 of 33 — the reviewer lenses found two tabs and two devices each burying the other's entries):
+ * A FINISHED ENTRY IS NEVER LOST. Every transaction either copy holds is in the union: one copy keeps its chain exactly, and every
+ * transaction of the other that it lacks is appended after it, in the other's order, with fresh links — so the result verifies and
+ * nothing either copy recorded is missing from it.
+ *  · Which copy keeps its place is decided by the two copies alone (the one whose first differing entry was recorded first; a tie,
+ *    the smaller hash), so every tab and device that unites the same two copies writes the same chain.
+ *  · A transaction already held — word for word, or under the id an earlier union gave it — is not appended again, so uniting the
+ *    same copies twice changes nothing. Two DIFFERENT transactions that share an id (two tabs that each made "c-<id>-2", or two
+ *    entries typed for the same instant, amount and place in their records) are both kept: the appended one takes the next free id,
+ *    and every correction of it follows the new id. Two corrections of one transaction that say the same thing are one correction.
+ *  · A copy that fails its chain is never united (it is the caller's to keep whole).
+ * Pure; returns `a` itself (same object) when `b` adds nothing. The result carries `a`'s owner.
+ */
+export function unionRecords(a: FinRecord, b: FinRecord | null): FinRecord {
+  if (!b || !Array.isArray(b.entries) || b.entries.length === 0 || !isVerified(b)) return a;
+  if (a.entries.length === 0) return { ...b, owner: a.owner };
+  let i = 0; const n = Math.min(a.entries.length, b.entries.length);
+  while (i < n && a.entries[i].hash === b.entries[i].hash) i++;
+  let keep = a, add = b;
+  if (i < n) { const x = a.entries[i], y = b.entries[i]; if (y.at < x.at || (y.at === x.at && y.hash < x.hash)) { keep = b; add = a; } }
+  else if (b.entries.length > a.entries.length) { keep = b; add = a; }
+  let out: FinRecord = keep.owner === a.owner ? keep : { ...keep, owner: a.owner };
+  // a transaction's family: a correction belongs to the transaction it corrects; an entry to its id before any "~k" a union added
+  const family = (tx: FinTx) => (tx.corrects ? `c:${tx.corrects}` : `t:${tx.id.replace(/~\d+$/, "")}`);
+  const said = (tx: FinTx) => `${family(tx)}|${stableJson({ ...tx, id: "" })}`;
+  const held = new Map<string, string>(out.entries.map((e) => [said(e.tx), e.tx.id] as const));
+  const taken = new Set(out.entries.map((e) => e.tx.id));
+  const renamed = new Map<string, string>();   // an appended transaction's id → the id it is held under
+  for (const e of add.entries) {
+    let tx = e.tx;
+    if (tx.corrects && renamed.has(tx.corrects)) tx = { ...tx, corrects: renamed.get(tx.corrects) };
+    const known = held.get(said(tx));
+    if (known !== undefined) { if (known !== e.tx.id) renamed.set(e.tx.id, known); continue; }   // already held
+    if (taken.has(tx.id)) {   // the id belongs to a different transaction: this one takes the next free id
+      const id = tx.corrects ? nextCorrectionId(out, tx.corrects) : freshId(out, tx.id.replace(/~\d+$/, ""));
+      renamed.set(e.tx.id, id); tx = { ...tx, id };
+    }
+    out = append(out, tx, e.at);
+    held.set(said(tx), tx.id); taken.add(tx.id);
+  }
+  return out;
+}
 
 // ── the device half ───────────────────────────────────────────────────────────────────────────────────────────
 /** Read a person's record from this device; an unreadable or tampered store reads as empty AND says so. */
@@ -82,13 +146,10 @@ export function loadRecord(owner: string): { rec: FinRecord; tampered: boolean }
   } catch { return { rec: emptyRecord(owner), tampered: true }; }
 }
 /** NO CHANGE EVER DELETES AN ENTRY (r.053, addendum 106: "Where are my inputted transactions; no changes should delete entries").
- *  A save that would not carry every stored entry forward, in order (a store that failed to verify and read as empty, a copy
- *  from another tab, anything), first keeps the stored copy whole under its own key — never overwritten, never removed. */
+ *  r.073 (round 1): a save UNITES the record with the stored copy (unionRecords) — another tab's entries are carried forward, never
+ *  set aside where no screen reads them. Only a stored copy that cannot be trusted (it fails its chain, or cannot be read) is kept
+ *  whole under its own key before anything is written — never merged, never overwritten, never removed. */
 export const KEPT_PREFIX = "exel-fin-kept:";
-export function carriesForward(stored: FinRecord | null, next: FinRecord): boolean {
-  if (!stored || !Array.isArray(stored.entries)) return true;
-  return stored.entries.every((e, i) => next.entries[i] !== undefined && next.entries[i].hash === e.hash);
-}
 /** Every copy kept for a person, newest first — nothing in them is ever deleted by the app. */
 export function keptRecords(owner: string): { key: string; rec: FinRecord }[] {
   const out: { key: string; rec: FinRecord }[] = [];
@@ -101,13 +162,28 @@ export function keptRecords(owner: string): { key: string; rec: FinRecord }[] {
   } catch { /* unreadable: nothing listed, nothing touched */ }
   return out.sort((a, b) => (a.key < b.key ? 1 : -1));
 }
-/** Write the record to this device. Returns false when the device would not take it — the caller SAYS SO. */
-export function saveRecord(rec: FinRecord, nowMs = Date.now()): boolean {
+/** Write the record to this device, united with what the device already holds (r.073). Returns the record WRITTEN — the caller shows
+ *  it — or null when the device would not take it; the caller SAYS SO and keeps the entry where the person can see it. */
+export function saveRecord(rec: FinRecord, nowMs = Date.now()): FinRecord | null {
   try {
-    if (typeof localStorage === "undefined") return false;
+    if (typeof localStorage === "undefined") return null;
     const raw = localStorage.getItem(KEY(rec.owner));
-    let stored: FinRecord | null = null; try { stored = raw ? (JSON.parse(raw) as FinRecord) : null; } catch { stored = null; }
-    if (raw && !carriesForward(stored, rec)) localStorage.setItem(`${KEPT_PREFIX}${rec.owner}:${nowMs}`, raw);   // kept whole, before anything is written
-    localStorage.setItem(KEY(rec.owner), JSON.stringify(rec)); return true;
-  } catch { return false; }
+    let stored: unknown = null; try { stored = raw ? JSON.parse(raw) : null; } catch { stored = null; }
+    let next = rec;
+    if (raw) {
+      if (isVerified(stored) && (stored as FinRecord).owner === rec.owner) next = unionRecords(rec, stored as FinRecord);
+      else localStorage.setItem(`${KEPT_PREFIX}${rec.owner}:${nowMs}`, raw);   // cannot be trusted: kept whole, before anything is written
+    }
+    localStorage.setItem(KEY(rec.owner), JSON.stringify(next)); return next;
+  } catch { return null; }
 }
+/** The person's record as stored on this device right now, when it can be trusted (another tab may have written it). */
+export function readStored(owner: string): FinRecord | null {
+  try {
+    const raw = typeof localStorage !== "undefined" ? localStorage.getItem(KEY(owner)) : null;
+    const v: unknown = raw ? JSON.parse(raw) : null;
+    return isVerified(v) && (v as FinRecord).owner === owner ? (v as FinRecord) : null;
+  } catch { return null; }
+}
+/** The device key of a person's record (the storage event names it when another tab writes). */
+export const recordKey = KEY;

@@ -162,10 +162,16 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   let mine = R.append(R.emptyRecord(owner), d, 1); mine = R.append(mine, { ...d, id: "d2", amountCents: 32000 }, 2);
   ok(R.saveRecord(mine, 10) && R.loadRecord(owner).rec.entries.length === 2, "his record saves and loads (2 entries)");
   ok(R.saveRecord(R.append(mine, { ...d, id: "w1", kind: "withdrawal", amountCents: 25066 }, 3), 11) && R.keptRecords(owner).length === 0, "an append carries every stored entry forward — nothing kept aside, nothing lost");
+  // r.073 (round 1): a save from a copy that lacks the stored entries UNITES them — nothing is set aside where no screen reads it
   const stranger = R.append(R.emptyRecord(owner), { ...d, id: "x" }, 4);
-  ok(R.saveRecord(stranger, 12) && R.keptRecords(owner).length === 1 && R.keptRecords(owner)[0].rec.entries.length === 3, "a save that would drop stored entries first KEEPS the stored copy whole (3 entries) under its own key");
-  const before = store.get("exel-fin-kept:op-1:12"); R.saveRecord(R.emptyRecord(owner), 13);
-  ok(store.get("exel-fin-kept:op-1:12") === before && R.keptRecords(owner).length >= 1, "a kept copy is never overwritten or removed by a later save");
+  const united = R.saveRecord(stranger, 12);
+  ok(united && united.entries.length === 4 && ["d1", "d2", "w1", "x"].every((id) => R.replay(united).some((t) => t.id === id)) && R.verify(united).ok && R.keptRecords(owner).length === 0 && R.loadRecord(owner).rec.entries.length === 4, "a save from a copy that lacks the stored entries carries them forward — all four transactions on the record, nothing kept aside");
+  ok(R.saveRecord(R.emptyRecord(owner), 13)?.entries.length === 4, "saving an empty copy over a full record keeps every entry");
+  // only a stored copy that cannot be trusted is kept whole (never merged) — and a kept copy is never overwritten or removed
+  store.set("exel-fin:op-1", JSON.stringify({ ...united, entries: united.entries.map((e, i) => (i === 1 ? { ...e, tx: { ...e.tx, amountCents: 1 } } : e)) }));
+  ok(R.saveRecord(stranger, 14)?.entries.length === 1 && R.keptRecords(owner).length === 1 && R.keptRecords(owner)[0].rec.entries.length === 4, "a stored copy that fails its chain is kept whole under its own key before anything is written (never united)");
+  const before = store.get("exel-fin-kept:op-1:14"); R.saveRecord(R.emptyRecord(owner), 15);
+  ok(store.get("exel-fin-kept:op-1:14") === before && R.keptRecords(owner).length >= 1, "a kept copy is never overwritten or removed by a later save");
   ok(!/removeItem/.test(R.saveRecord.toString()) && !/removeItem/.test(R.keptRecords.toString()), "the record's save and keep paths contain no delete");
   delete globalThis.localStorage;
 }
@@ -186,7 +192,10 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   m = C.mergeRecords(two, null); ok(m.current === two && m.push && !m.keep, "device record + empty cloud → pushed");
   m = C.mergeRecords(two, one); ok(m.current === two && m.push && !m.keep, "device ahead of the cloud → device kept and pushed");
   m = C.mergeRecords(one, two); ok(m.current.entries.length === 2 && !m.push && !m.keep, "cloud ahead of the device → cloud taken");
-  m = C.mergeRecords(two, other); ok(m.current === two && m.keep === other && m.push, "diverged → the device copy stays and the cloud copy is KEPT whole (never dropped)");
+  m = C.mergeRecords(two, other); ok(m.current.entries.length === 3 && ["d1", "d2", "x"].every((id) => R.replay(m.current).some((t) => t.id === id)) && R.verify(m.current).ok && !m.keep && m.push, "r.073: diverged → UNITED — every entry of both copies, nothing kept aside, and the account is sent the union");
+  const altered = { ...two, entries: two.entries.map((e, i) => (i === 0 ? { ...e, tx: { ...e.tx, amountCents: 9 } } : e)) };
+  m = C.mergeRecords(one, altered); ok(m.current === one && m.keep === altered && m.push, "r.073: an account copy that fails its chain is never adopted — kept whole, the device copy stays");
+  m = C.mergeRecords(R.emptyRecord("o"), altered); ok(m.current.entries.length === 0 && m.keep === altered && !m.push, "…and an empty device never writes nothing over it");
   ok((await C.ownerKeyFor("auth0|abc"))?.length === 64 && (await C.ownerKeyFor("auth0|abc")) === (await C.ownerKeyFor("auth0|abc")) && (await C.ownerKeyFor("auth0|abc")) !== (await C.ownerKeyFor("auth0|abd")), "the account key is a stable 64-hex hash of the sign-in id");
   ok(C.PUSH_EVERY_MS === 12 * 3600 * 1000, "pushed again every 12 hours");
   ok(!/delete|remove/i.test(C.cloudPut.toString() + C.mergeRecords.toString()), "the cloud path has no delete");
@@ -263,5 +272,89 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
     const seriesBody = src.slice(src.indexOf("export function series("));
     ok(overBody.length > 50 && !/balanceAt|escrowAt|escrowRun/.test(overBody) && /escrowRun\(txs, times\)/.test(seriesBody) && !/balanceAt\(/.test(seriesBody),
       "r.071 AsM: the withdrawal check sums deposits and spends without the escrow run; the chart's series is one walk of the record"); }
+}
+// ── r.073 ROUND 1 OF 33 — A FINISHED ENTRY IS NEVER LOST. The reviewer lenses found three paths that lost one: a Monthly entry's length
+// edit (no effect), two tabs or two devices writing over each other (5 of 10 entries visible), and a page left open 12 hours pushing its
+// opening state back. Each member of the class is pinned here by a value only the right code produces.
+{
+  const C = await import("../lib/financial-2525/cloud.ts");
+  const L = await import("../lib/financial-2525/ladder.ts");
+  const T = await import("../lib/financial-2525/typed.ts");
+  const t0 = M.parseStampCST("2026.10.02_06.00..00"), D = 86400000;
+  const dep = (id, cents, ms, extra = {}) => ({ id, kind: "deposit", amountCents: cents, atMs: ms, motDays: 30, ...extra });
+  const ids = (rec) => R.replay(rec).map((x) => x.id).sort().join();
+  // (1) the union holds every transaction of both copies, verifies, and is the same chain whichever side unites
+  const base = R.append(R.append(R.emptyRecord("u"), dep("a", 1000, t0), t0), dep("b", 2000, t0 + D), t0 + 1);
+  const tabA = R.append(base, dep("c", 3000, t0 + 2 * D), t0 + 10), tabB = R.append(base, dep("d", 4000, t0 + 3 * D), t0 + 11);
+  const ab = R.unionRecords(tabA, tabB), ba = R.unionRecords(tabB, tabA);
+  ok(ids(ab) === "a,b,c,d" && R.verify(ab).ok && ab.entries.map((e) => e.hash).join() === ba.entries.map((e) => e.hash).join(), "r.073: the union holds every entry of both copies, verifies, and is the same chain whichever side unites");
+  ok(ab.entries.slice(0, 3).map((e) => e.hash).join() === tabA.entries.map((e) => e.hash).join(), "…the copy whose first new entry was recorded first keeps its chain exactly; the other's entries follow it");
+  ok(R.unionRecords(ab, tabB) === ab && R.unionRecords(ab, tabA) === ab && R.unionRecords(tabA, base) === tabA, "…uniting a copy already held changes nothing (same object): no growth, no duplicates");
+  ok(R.unionRecords(tabA, { ...tabB, entries: tabB.entries.map((e, i) => (i === 2 ? { ...e, at: e.at + 1 } : e)) }) === tabA, "…a copy that fails its chain is never united");
+  // (2) two tabs × 5 alternations, neither hearing the other (the worst case), every save from a stale copy → 10 entries after reload
+  { const store = new Map(); globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k), key: (i) => [...store.keys()][i] ?? null, get length() { return store.size; } };
+    let A1 = R.emptyRecord("tabs"), B1 = R.emptyRecord("tabs"), n = 0;
+    for (let k = 0; k < 5; k++) {
+      A1 = R.append(A1, dep(`ta${k}`, 100 + k, t0 + (n++) * 60000), t0 + n); A1 = R.saveRecord(A1, n) ?? A1;   // what tab A shows = what it saved
+      B1 = R.append(B1, dep(`tb${k}`, 200 + k, t0 + (n++) * 60000), t0 + n); B1 = R.saveRecord(B1, n) ?? B1;
+    }
+    const after = R.loadRecord("tabs");
+    ok(R.replay(after.rec).length === 10 && !after.tampered && R.keptRecords("tabs").length === 0, `r.073 (Krishna): two tabs × 5 alternations → all 10 entries on the record after reload (was 5, the rest in 8 hidden copies) — ${R.replay(after.rec).length}`);
+    ok(R.replay(R.unionRecords(A1, R.readStored("tabs"))).length === 10, "…and a tab that hears the other (the storage event) shows all 10 at once");
+    delete globalThis.localStorage; }
+  // (3) two devices and one account, each syncing get → unite → put, alternately: both end with every entry and the account holds them all
+  { let account = null; const devs = [R.emptyRecord("acct"), R.emptyRecord("acct")];
+    const sync = (i) => { const m = C.mergeRecords(devs[i], account); devs[i] = m.current; if (devs[i].entries.length && !(account && R.sameChain(devs[i], account))) account = devs[i]; };
+    for (let k = 0; k < 4; k++) { devs[k % 2] = R.append(devs[k % 2], dep(`dv${k}`, 500 + k, t0 + k * D), t0 + 100 + k); sync(k % 2); }
+    sync(0); sync(1);
+    ok(R.replay(account).length === 4 && R.replay(devs[0]).length === 4 && R.replay(devs[1]).length === 4 && R.sameChain(devs[0], devs[1]), "r.073 (Krishna): two devices alternately recording and syncing → each shows all 4 entries and so does the account (each used to see only its own)"); }
+  // (4) two tabs that each corrected the same entry: both corrections kept, the id collision renamed, the NEWEST edit wins in either order
+  { const x = R.append(R.emptyRecord("c"), dep("x", 1000, t0), t0);
+    const e1 = R.correctTx(x, "x", { amountCents: 1100 }, t0 + 50), e2 = R.correctTx(x, "x", { amountCents: 1200 }, t0 + 60);
+    const u1 = R.unionRecords(e1, e2), u2 = R.unionRecords(e2, e1);
+    ok(e1.entries[1].tx.id === e2.entries[1].tx.id && R.correctionsOf(u1, "x").length === 2 && new Set(u1.entries.map((e) => e.tx.id)).size === u1.entries.length, "r.073: two tabs each made correction c-x-2 — the union keeps both under distinct ids");
+    ok(R.replay(u1)[0].amountCents === 1200 && R.replay(u2)[0].amountCents === 1200, "…and the edit recorded last wins whichever copy kept its place (it used to be whichever came later in the chain)");
+    ok(R.unionRecords(u1, e2) === u1 && R.unionRecords(u1, e1) === u1, "…uniting again with either tab's copy adds nothing (a renamed correction is still recognised)");
+    ok(R.correctTx(u1, "x", { amountCents: 1300 }, t0 + 70).entries.length === u1.entries.length + 1 && R.replay(R.correctTx(u1, "x", { amountCents: 1300 }, t0 + 70))[0].amountCents === 1300, "…and the next edit takes a free id (an edit is never dropped as a duplicate)");
+    // the kept copy made a LATER edit after its first one: the newest edit wins, not the one appended last
+    const a2 = R.correctTx(e1, "x", { amountCents: 1500 }, t0 + 90), mix = R.unionRecords(a2, e2);
+    ok(mix.entries[mix.entries.length - 1].tx.amountCents === 1200 && R.replay(mix)[0].amountCents === 1500, "…the edit recorded last (1,500 at +90) wins even when an older edit (1,200 at +60) is appended after it");
+    const gappy = R.append(R.append(x, { ...dep("x", 1000, t0), id: "c-x-1", corrects: "x" }, t0 + 1), { ...dep("x", 900, t0), id: "c-x-3", corrects: "x" }, t0 + 2);
+    ok(R.nextCorrectionId(gappy, "x") === "c-x-4", "…and the next correction id skips any number a united copy already holds"); }
+  // (5) two different transactions that share an id are both kept; freshId never reuses an id
+  { const p = R.append(R.emptyRecord("i"), dep("dup", 100, t0, { memo: "coffee" }), t0), q = R.append(R.emptyRecord("i"), dep("dup", 100, t0, { memo: "lunch" }), t0 + 1);
+    const u = R.unionRecords(p, q);
+    ok(R.replay(u).length === 2 && R.replay(u).map((t) => t.memo).sort().join() === "coffee,lunch" && R.unionRecords(u, q) === u && R.unionRecords(u, p) === u, "r.073: two different entries with one id (same instant, amount and place) are both kept — and stay two");
+    ok(R.freshId(u, "dup") === "dup~3" && R.freshId(u, "new") === "new", "r.073: a new entry's id is one no entry holds"); }
+  // (6) THE MONTHLY LENGTH EDIT (Enlil): a correction that keeps "paymot" is read at 30 days whatever its length says — the pencil now
+  // takes a changed length off the preset; an untouched one keeps it
+  { const m0 = R.append(R.emptyRecord("m"), dep("mo", 300000, t0, { motDays: 30, recurrence: "paymot" }), t0);
+    const kept = R.correctTx(m0, "mo", { motDays: 7 }, t0 + 1), fixed = R.correctTx(m0, "mo", { motDays: 7, recurrence: "other" }, t0 + 1), once = R.correctTx(m0, "mo", { motDays: 0, recurrence: "once" }, t0 + 1);
+    ok(L.withMonthLaw(R.replay(kept)[0]).motDays === 30 && L.withMonthLaw(R.replay(fixed)[0]).motDays === 7 && L.withMonthLaw(R.replay(once)[0]).motDays === 0, "r.073 (Enlil): 30 → 7 on a Monthly entry is read as 7 only off the preset (it read 30 before — the edit had no effect); blank is one time");
+    const ux = (await import("node:fs")).readFileSync(new URL("../components/financial-2525/command-ux1.tsx", import.meta.url), "utf8");
+    ok(/\.\.\.\(typed\("days"\) && days !== \(withMonthLaw\(cur\)\.motDays \?\? 0\) \? \{ motDays: days, recurrence: days > 0 \? "other" : "once" \} : \{\}\),/.test(ux) && /const days = withMonthLaw\(x\)\.motDays;/.test(ux), "…the pencil shows the length the entry is counted at and takes a changed length off its preset");
+    ok(/if \(Object\.keys\(edit\)\.length === 0\) \{ setEditId\(null\); return; \}/.test(ux) && /const typed = \(k: keyof typeof ed\) => String\(ed\[k\]\)\.trim\(\) !== String\(ed0\[k\]\)\.trim\(\);/.test(ux), "r.073 (Christo): only what the person changed goes into the correction; Done with nothing changed appends nothing (an entry recorded at 'now' keeps its exact instant)");
+    // (7) Odin — the 12-hour timer, the return to the page and the network coming back call the LATEST sync, which reads the latest record,
+    // budget and cards (the old interval kept the opening render's push and wrote the opening state back over the account)
+    ok(/const syncRef = useRef\(sync\); syncRef\.current = sync;/.test(ux) && /setInterval\(\(\) => \{ void syncRef\.current\(\); \}, PUSH_EVERY_MS\)/.test(ux) && /const recordRef = useRef\(record\); recordRef\.current = record;/.test(ux) && /const planRef = useRef\(plan\); planRef\.current = plan;/.test(ux) && /const cardsRef = useRef\(cards\); cardsRef\.current = cards;/.test(ux) && !/\bpushAll\b/.test(ux), "r.073 (Odin): every timer calls the latest sync through a ref, which reads the latest record, budget and cards");
+    ok(/cloudPut\(key, "fin-plan", \{ lines: planRef\.current,/.test(ux) && /if \(cp && Array\.isArray\(cp\.lines\) && cp\.at > planAt\)/.test(ux) && /else if \(!cp \|\| planAt > cp\.at\)/.test(ux), "…the budget is sent only when this device's edit is newer than the account's, and taken from the account when it is older (a stale tab never puts an old budget back)");
+    ok(/window\.addEventListener\("pagehide", flush\); window\.addEventListener\("online", flush\);/.test(ux) && /else flush\(\); \};/.test(ux), "r.073: a change made just before the page is hidden or closed is sent at once; a send that failed offline is sent when the network returns");
+    ok(/if \(e\.key === recordKey\(owner\)\) \{ const s = readStored\(owner\); if \(s\) \{ const u = unionRecords\(recordRef\.current, s\);/.test(ux), "r.073 (Krishna): another tab's save is united into this tab at once");
+    ok(/if \(r\.state === "ok"\) \{/.test(ux) && /\} else out\.push\(r\.state\);/.test(ux), "r.073: a failed read writes nothing over the account (a failed read is never taken for an empty account)");
+    ok(/const lacks = recordRef\.current\.entries\.length > 0 && !\(cloudRec && sameChain\(recordRef\.current, cloudRec\)\);/.test(ux) && /const wrote = kept === "saved" && lacks;/.test(ux) && /out\.push\(kept !== "saved" \? kept : wrote \?/.test(ux), "r.073: the account record is written only when it lacks something, never with nothing, and never before a copy that fails its chain has been kept");
+    ok(/if \(wrote && out\[out\.length - 1\] === "saved"\) readBack\.current = true;/.test(ux) && /if \(readBack\.current\) \{ readBack\.current = false; setTimeout\(\(\) => \{ void syncRef\.current\(\); \}, 4000\); \}/.test(ux), "r.073: a record write is read back once a few seconds later — another device writing in the same moment never leaves an entry out of the account");
+    // (8) Thor — a full phone: the form stays open with what was typed, says so, and its button saves the same entry again (never a second one)
+    ok(/const retrying = unsaved !== null && unsaved === formKey;/.test(ux) && /onClick=\{retrying \? retrySave : recordTransaction\}/.test(ux) && /const retrySave = \(\) => \{ if \(persist\(recordRef\.current\)\)/.test(ux) && /\{retrying && <p role="alert" data-fin-save-retry/.test(ux), "r.073 (Thor): when the phone will not keep the entry the form stays open, says so, and tries the same save again — never a second copy");
+    ok(/\{owner && cloudReady && isOperator\(user\?\.email\) && record\.entries\.length === 0 && \(/.test(ux), "r.073 (Christo): Put back my entries waits until the account copy has been read");
+  }
+  // (9) Enki — one reader for what is typed
+  { const P = T.parseAmountCents;
+    ok(P("1,234.56") === 123456 && P("$50") === 5000 && P("R$ 12.00", ["R$"]) === 1200 && P(".55") === 55 && P("50.") === 5000 && P("1,234,567.89") === 123456789 && P("999,999,999,999.99") === T.MAX_AMOUNT_CENTS, "r.073 (Enki): 1,234.56 · $50 · R$ 12.00 · .55 · 50. are amounts");
+    ok(["Infinity", "1e400", "1e3", "0x10", "12,50", "1,23", "-5", "0", "0.00", "", "abc", "5.555", "1000000000000", "$"].every((x) => P(x) === null), "…Infinity, 1e400, 0x10, 12,50 (never read as 1,250), negatives, zero, three decimals and a trillion are not");
+    ok(T.amountProblem("") === "zero" && T.amountProblem("0.00") === "zero" && T.amountProblem("abc") === "form" && T.amountProblem("12,50") === "form" && T.amountProblem("$0") === "zero" && T.amountProblem("12") === null, "…and the refusal says which: nothing above zero, or not written as a figure");
+    ok(T.parseDaysText("") === 0 && T.parseDaysText("7") === 7 && T.parseDaysText("0.125") === 0.125 && ["abc", "-1", "1e3", "0x10", "Infinity"].every((x) => T.parseDaysText(x) === null) && T.parsePositive("0") === null && T.parsePositive("2") === 2 && T.parsePositive("") === null, "r.073 (Aset · Enki): a length is a plain number; Other needs one above zero (never a silent one-time)");
+    ok(T.lengthFits(t0, 36525) && !T.lengthFits(t0, 1e20) && !T.lengthFits(t0, Infinity) && !T.lengthFits(t0, -1), "r.073: a length the calendar cannot hold is refused (r.071's law, now one helper)");
+    ok(M.parseStampCST("2026.02.31_07.00..00") === null && M.parseStampCST("0050.01.01_00.00..00") === null && M.parseStampCST("2026.02.29_00.00..00") === null && M.parseStampCST("2028.02.29_00.00..00") !== null && M.fmtStampCST(M.parseStampCST("2026.10.02_07.00..00")) === "2026.10.02_07.00..00", "r.073 (Enki): a date the calendar does not have is refused (2026.02.31 recorded 2026.03.03, 0050 recorded 1950); a real one reads back as typed");
+    ok(M.stampProblem("2026.02.31_07.00..00") === "day" && M.stampProblem("2026.2.3") === "form" && M.stampProblem("2026.10.02_07.00..00") === null, "…and the refusal says which: a day the calendar does not have, or not written YYYY.MM.DD_HH.MM..SS"); }
 }
 console.log(`financial-accrual: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

@@ -37,21 +37,22 @@ import { RCoreChart } from "@/components/2525-core/rcore-chart";   // r.056 (add
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { FINANCIAL_LEDGER } from "@/lib/2525-core/financial-ledger.gen";
 import { FINANCIAL_DOMAIN as SRC } from "@/lib/financial-2525/domain.gen";
-import { fmtMot, abcPart, spanABC, fmtStampCST, parseStampCST, fmtDays, dayTicks, dateLabel, cstParts, DATE_FMTS, type DateFmt } from "@/lib/financial-2525/mot";
+import { fmtMot, abcPart, spanABC, fmtStampCST, parseStampCST, stampProblem, fmtDays, dayTicks, dateLabel, cstParts, DATE_FMTS, type DateFmt } from "@/lib/financial-2525/mot";
 import { positionInYear } from "@/lib/financial-2525/calendar";
 import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
 import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
 import { balanceAt, series, validateRecord, depositView, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { type BudgetCategory } from "@/lib/financial-2525/budget";
-import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, DEVICE_OWNER, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
+import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, planKey, DEVICE_OWNER, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
 import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } from "@/lib/financial-2525/currency";   // r.049: the currency label
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
-import { append, loadRecord, saveRecord, replay, emptyRecord, correctTx, correctionsOf, type FinRecord } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry
+import { append, loadRecord, saveRecord, readStored, recordKey, unionRecords, sameChain, freshId, replay, emptyRecord, correctTx, correctionsOf, type FinRecord, type TxEdit } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry; r.073: the union
+import { parseAmountCents, amountProblem, parseDaysText, parsePositive, lengthFits } from "@/lib/financial-2525/typed";   // r.073 (round 1): one reader for what a person types
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
 import { fitFigures, fitGrid, figReserve, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
 import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, newCard, uniqueCardId, applyCardSettings, looksLikeCardNumber, cardBalanceAt, cardLevel, cardSeries, cardMoves, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
 import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
-import { ownerKeyFor, cloudPut, cloudGet, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
+import { ownerKeyFor, cloudPut, readAll, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
 const C = TRINITY_COLORS;
@@ -72,6 +73,8 @@ const PRIMARY = "min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-mediu
 const SECONDARY = "min-h-[44px] rounded-md border border-border px-4 py-2 text-sm";
 const INPUT = "w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring";
 const PICK = "w-full rounded-md border border-border bg-background px-2 py-2 text-sm text-foreground landscape:py-1 landscape:text-xs";
+/** r.073: one account sync runs at a time; one more waits behind it (it reads everything latest when it starts). */
+type SyncQueue = { running: Promise<void> | null; queued: Promise<void> | null };
 
 /** THE PICKER LAW (r.014, operator addendum 26 "this drop down goes away quick!"): a dropdown stays open until the person picks.
  *  Every picker is a MODULE-LEVEL component with a stable identity. A component declared inside the surface's render body is a new
@@ -106,7 +109,7 @@ function LadderPicker({ section, field, rec, onSection, onField, onRec, otherN, 
         <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.rec.other")}
           <span className="flex gap-2">
             <input data-fin-length-n={hook} className={INPUT} inputMode="decimal" value={otherN} onChange={(e) => onOtherN(e.target.value)} />
-            <select data-fin-length-unit={hook} className={PICK} value={otherUnit} onChange={(e) => onOtherUnit(e.target.value as LengthUnit)}>
+            <select data-fin-length-unit={hook} aria-label={t("fin.unit")} className={PICK} value={otherUnit} onChange={(e) => onOtherUnit(e.target.value as LengthUnit)}>
               {LENGTH_UNITS.map((u) => <option key={u} value={u}>{t(`fin.u.${u}`)}</option>)}
             </select>
           </span>
@@ -187,6 +190,30 @@ export function FinancialCommandUX1() {
   const [tampered, setTampered] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   useEffect(() => { if (!owner) return; const r = loadRecord(owner); setRecord(r.rec); setTampered(r.tampered); }, [owner]);
+  // A FINISHED ENTRY IS NEVER LOST (r.073, round 1 of 33 — the reviewer lenses found a Monthly length edit with no effect, two tabs
+  // and two devices burying each other's entries, a page left open 12 hours pushing its opening state back, and a full phone folding
+  // the form over an entry it had not kept). Every save and every push reads the LATEST record (this ref) — never a copy captured
+  // when a timer or a request began — and every save is united with what the device holds (record.ts saveRecord).
+  const recordRef = useRef(record); recordRef.current = record;
+  const ownerRef = useRef(owner); ownerRef.current = owner;
+  /** Save to this device and show what was saved; a device that would not take it is SAID, and the entry stays on the page (and
+   *  goes to the account). Returns false when the device refused. A good save clears an earlier warning. */
+  const persist = (next: FinRecord): boolean => {
+    const saved = saveRecord(next), shown = saved ?? next;
+    recordRef.current = shown; setRecord(shown); setSaveFailed(!saved);
+    return !!saved;
+  };
+  // another tab's save reaches this one at once: its entries are united into what this tab shows (and so into its next save) — no tab
+  // ever writes from a stale copy; the budget and the cards are read back the same way (Krishna)
+  useEffect(() => {
+    if (!owner) return;
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === recordKey(owner)) { const s = readStored(owner); if (s) { const u = unionRecords(recordRef.current, s); if (u !== recordRef.current) { recordRef.current = u; setRecord(u); } } }
+      else if (e.key === planKey(owner)) setPlan(planOrSheet(loadPlan(owner)));
+      else if (e.key === CARDS_KEY(owner)) { try { setCards(mergeCards(JSON.parse(localStorage.getItem(CARDS_KEY(owner)) ?? "null"))); } catch { /* unreadable: this tab's cards stand */ } }
+    };
+    window.addEventListener("storage", onStorage); return () => window.removeEventListener("storage", onStorage);
+  }, [owner]);
 
   // r.071 AsM (Thoth): built once per record, not once per second — every memo downstream (the rate chart's series) can finally hold
   const recTxs: FinTx[] = useMemo(() => (owner ? replay(record) : [EXAMPLE]).map(withMonthLaw), [owner, record]);
@@ -246,47 +273,80 @@ export function FinancialCommandUX1() {
   const [cloudState, setCloudState] = useState("off" as CloudState);
   const [cloudAt, setCloudAt] = useState(0);
   const [cloudReady, setCloudReady] = useState(false);
+  const cloudKeyRef = useRef(cloudKey); cloudKeyRef.current = cloudKey;
+  const planRef = useRef(plan); planRef.current = plan;
+  const cardsRef = useRef(cards); cardsRef.current = cards;
+  const dirty = useRef(false);   // a change the account has not been sent yet
+  const readBack = useRef(false);   // a record write to confirm with one more read
   useEffect(() => { let live = true; setCloudReady(false); setCloudKey(null); if (owner) void ownerKeyFor(owner).then((k) => { if (live) setCloudKey(k); }); return () => { live = false; }; }, [owner]);
+  /** ONE SYNC (r.073, round 1 of 33 — the account is READ before it is written): read the record, the budget and the cards; unite the
+   *  record with this device's (nothing either holds is dropped; a copy that fails its chain is kept whole and never adopted); take the
+   *  budget and the cards from the account only when they were edited later; then write whatever the account still lacks. A read that
+   *  failed writes nothing over the account. Every value is read LATEST (refs) — the 12-hour timer used to push the page's OPENING
+   *  record, budget and cards back over the account (Odin). */
+  const syncOnce = async () => {
+    const who = ownerRef.current, key = cloudKeyRef.current;
+    if (!who || !key) return;
+    dirty.current = false; setCloudState("saving");
+    const { r, p, c } = await readAll(key);
+    if (ownerRef.current !== who) return;   // signed out or switched while reading: nothing of theirs is written here
+    const out: CloudState[] = [];
+    if (r.state === "ok") {
+      const m = mergeRecords(recordRef.current, r.data);
+      const kept = m.keep ? await cloudPut(key, `fin-record-kept-${Date.now()}`, m.keep) : "saved";   // an account copy that fails its chain: kept whole first
+      if (m.current !== recordRef.current) { const wasEmpty = recordRef.current.entries.length === 0; persist(m.current); if (wasEmpty && m.current.entries.length) setTampered(false); }   // Aset: the account put the record back
+      const cloudRec = r.data && Array.isArray(r.data.entries) ? r.data : null;
+      const lacks = recordRef.current.entries.length > 0 && !(cloudRec && sameChain(recordRef.current, cloudRec));   // never written over with nothing
+      const wrote = kept === "saved" && lacks;
+      out.push(kept !== "saved" ? kept : wrote ? await cloudPut(key, "fin-record", recordRef.current) : "saved");
+      // READ BACK AFTER A WRITE (r.073): the account store has no compare-and-set — another device writing in the same moment could
+      // replace this write; one more read a few seconds later unites whatever it holds again, so neither device's entry is left out
+      if (wrote && out[out.length - 1] === "saved") readBack.current = true;
+    } else out.push(r.state);
+    let planAt = 0; try { planAt = Number(localStorage.getItem(`fin-plan-at:${who}`) ?? 0) || 0; } catch { /* no time: the account's copy wins */ }
+    if (p.state === "ok") {
+      const cp = p.data;
+      if (cp && Array.isArray(cp.lines) && cp.at > planAt) { planRef.current = cp.lines; setPlan(cp.lines); savePlan(who, cp.lines); try { localStorage.setItem(`fin-plan-at:${who}`, String(cp.at)); } catch { /* hint only */ } out.push("saved"); }
+      else if (!cp || planAt > cp.at) { const at0 = planAt || Date.now(); const st = await cloudPut(key, "fin-plan", { lines: planRef.current, at: at0 } satisfies PlanDoc); out.push(st); if (st === "saved" && !planAt) { try { localStorage.setItem(`fin-plan-at:${who}`, String(at0)); } catch { /* hint only */ } } }
+      else out.push("saved");
+    } else out.push(p.state);
+    let cardsAt = 0; try { cardsAt = Number(localStorage.getItem(`fin-cards-at:${who}`) ?? 0) || 0; } catch { /* never edited here: the account's copy wins */ }
+    if (c.state === "ok") {
+      const cc = c.data;
+      if (cc && Array.isArray(cc.cards) && cc.at > cardsAt) { const m2 = mergeCards(cc.cards as Card[]); cardsRef.current = m2; setCards(m2); try { localStorage.setItem(CARDS_KEY(who), JSON.stringify(m2)); localStorage.setItem(`fin-cards-at:${who}`, String(cc.at)); } catch { /* hint only */ } out.push("saved"); }
+      else if (!cc || cardsAt > cc.at) out.push(await cloudPut(key, "fin-cards", { cards: cardsRef.current, at: cardsAt }));
+      else out.push("saved");
+    } else out.push(c.state);
+    const ok = out.every((x) => x === "saved");
+    setCloudState(ok ? "saved" : out.includes("offline") ? "offline" : "error");
+    if (ok) { const t0 = Date.now(); setCloudAt(t0); try { localStorage.setItem(LAST_PUSH_KEY, String(t0)); } catch { /* hint only */ } }
+    else dirty.current = true;   // retried on return, on the network coming back, or on the next change
+  };
+  // one sync at a time; a request during one waits for it and runs once more after it (it reads everything latest)
+  const syncQ = useRef({ running: null, queued: null } as SyncQueue);
+  const runSync = () => { const q = syncQ.current; const p = syncOnce().catch(() => { dirty.current = true; setCloudState("error"); }).finally(() => { if (q.running === p) q.running = null; if (readBack.current) { readBack.current = false; setTimeout(() => { void syncRef.current(); }, 4000); } }); q.running = p; return p; };
+  const sync = () => { const q = syncQ.current; if (!q.running) return runSync(); if (!q.queued) q.queued = q.running.then(() => { q.queued = null; return runSync(); }); return q.queued; };
+  const syncRef = useRef(sync); syncRef.current = sync;
+  // signed in: the account copy is read back and united before anything is written to it (cloudReady waits for that first sync)
   useEffect(() => {
     if (!owner || !cloudKey) return; let live = true;
-    void (async () => {
-      setCloudState("saving");
-      const [cRec, cPlan, cCards] = (await Promise.all([cloudGet(cloudKey, "fin-record"), cloudGet(cloudKey, "fin-plan"), cloudGet(cloudKey, "fin-cards")])) as [FinRecord | null, PlanDoc | null, { cards: Card[]; at: number } | null];
-      if (!live) return;
-      const m = mergeRecords(loadRecord(owner).rec, cRec);
-      if (m.keep) await cloudPut(cloudKey, `fin-record-kept-${Date.now()}`, m.keep);
-      if (m.current !== record) { setRecord(m.current); saveRecord(m.current); }
-      let localAt = 0; try { localAt = Number(localStorage.getItem(`fin-plan-at:${owner}`) ?? 0) || 0; } catch { /* no time: the device copy is older */ }
-      if (cPlan && Array.isArray(cPlan.lines) && cPlan.at > localAt) { setPlan(cPlan.lines); savePlan(owner, cPlan.lines); try { localStorage.setItem(`fin-plan-at:${owner}`, String(cPlan.at)); } catch { /* hint only */ } }
-      let cardsAt = 0; try { cardsAt = Number(localStorage.getItem(`fin-cards-at:${owner}`) ?? 0) || 0; } catch { /* the device copy is older */ }
-      if (cCards && Array.isArray(cCards.cards) && cCards.at > cardsAt) { const m2 = mergeCards(cCards.cards); setCards(m2); try { localStorage.setItem(CARDS_KEY(owner), JSON.stringify(m2)); localStorage.setItem(`fin-cards-at:${owner}`, String(cCards.at)); } catch { /* hint only */ } }
-      setCloudReady(true);
-    })();
+    void syncRef.current().then(() => { if (live) setCloudReady(true); });
     return () => { live = false; };
-  }, [owner, cloudKey]);   // eslint-disable-line react-hooks/exhaustive-deps
-  const pushAll = async () => {
-    if (!owner || !cloudKey || !cloudReady) return;
-    setCloudState("saving");
-    let planAt = Date.now(); try { planAt = Number(localStorage.getItem(`fin-plan-at:${owner}`) ?? planAt) || planAt; } catch { /* now */ }
-    const a = await cloudPut(cloudKey, "fin-record", record);
-    const b = await cloudPut(cloudKey, "fin-plan", { lines: plan, at: planAt } satisfies PlanDoc);
-    let cardsAt = 0; try { cardsAt = Number(localStorage.getItem(`fin-cards-at:${owner}`) ?? 0) || 0; } catch { /* never edited here: the cloud copy wins */ }
-    const c = await cloudPut(cloudKey, "fin-cards", { cards, at: cardsAt });
-    const ok = a === "saved" && b === "saved" && c === "saved";
-    setCloudState(ok ? "saved" : a === "offline" || b === "offline" || c === "offline" ? "offline" : "error");
-    if (ok) { const t0 = Date.now(); setCloudAt(t0); try { localStorage.setItem(LAST_PUSH_KEY, String(t0)); } catch { /* hint only */ } }
-  };
-  // every change to the record or the budget is pushed (a short pause so a burst of typing is one write)
-  useEffect(() => { if (!cloudReady) return; const id = setTimeout(() => { void pushAll(); }, 1500); return () => clearTimeout(id); }, [record, plan, cards, cloudReady]);   // eslint-disable-line react-hooks/exhaustive-deps
-  // and every 12 hours — while the page is open, and on return to it when 12 hours have passed (a phone pauses timers in the background)
+  }, [owner, cloudKey]);
+  // every change to the record, the budget or the cards is sent (a short pause so a burst of typing is one write)
+  useEffect(() => { if (!cloudReady) return; dirty.current = true; const id = setTimeout(() => { void syncRef.current(); }, 1500); return () => clearTimeout(id); }, [record, plan, cards, cloudReady]);
+  // and every 12 hours — while the page is open, and on return to it when 12 hours have passed (a phone pauses timers in the background).
+  // r.073: a change made in the last moments before the page is hidden or closed is sent at once (it used to wait for the next visit),
+  // and a send that failed offline is sent again when the network returns
   useEffect(() => {
     if (!cloudReady) return;
-    const due = () => { let last = 0; try { last = Number(localStorage.getItem(LAST_PUSH_KEY) ?? 0) || 0; } catch { /* push */ } if (Date.now() - last >= PUSH_EVERY_MS) void pushAll(); };
-    const id = setInterval(() => { void pushAll(); }, PUSH_EVERY_MS);
-    const onVis = () => { if (document.visibilityState === "visible") due(); };
-    document.addEventListener("visibilitychange", onVis); due();
-    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
-  }, [cloudReady]);   // eslint-disable-line react-hooks/exhaustive-deps
+    const due = () => { let last = 0; try { last = Number(localStorage.getItem(LAST_PUSH_KEY) ?? 0) || 0; } catch { /* send */ } if (Date.now() - last >= PUSH_EVERY_MS) void syncRef.current(); };
+    const id = setInterval(() => { void syncRef.current(); }, PUSH_EVERY_MS);
+    const flush = () => { if (dirty.current) void syncRef.current(); };
+    const onVis = () => { if (document.visibilityState === "visible") due(); else flush(); };
+    document.addEventListener("visibilitychange", onVis); window.addEventListener("pagehide", flush); window.addEventListener("online", flush); due();
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVis); window.removeEventListener("pagehide", flush); window.removeEventListener("online", flush); };
+  }, [cloudReady]);
   // THE BUDGET AS HE ASKED (r.024, addenda 48 · 50: "don't change budget inplementetion; this is way too complicated and I never asked for
   // it"): the r.021–r.022 per-line MoT dropdowns are gone; a line's amount is typed in the unit showing and kept on the 33-day base.
   const typeAmount = (fieldId: string, text: string) => { setDrafts((d) => ({ ...d, [fieldId]: text })); const n = Number(text); if (text.trim() !== "" && Number.isFinite(n)) writePlan(setLineAmount(plan, fieldId, n, period)); };
@@ -334,24 +394,30 @@ export function FinancialCommandUX1() {
   const [sec, setSec] = useState("A" as FlowSectionId); const [field, setField] = useState("A.income_wages"); const [rec, setRec] = useState("paymot" as Recurrence);
   // choosing the type re-seats the picker on its default: a deposit on A · Income / Wages every 33 days, a withdrawal on B · Rent / Mortgage once
   const [paidFrom, setPaidFrom] = useState(DEBIT); const [paysCard, setPaysCard] = useState("");   // r.067 (addendum 143)
-  const chooseType = (k: TxKind | "") => { setTxType(k); setPaidFrom(DEBIT); setPaysCard(""); if (k === "") return; if (k === "deposit") { setSec("A"); setField("A.income_wages"); setRec("paymot"); } else { setSec("B"); setField("B.rent_mortgage"); setRec("once"); } };
+  const chooseType = (k: TxKind | "") => { setTxType(k); setPaidFrom(DEBIT); setPaysCard(""); setRefusal(null); if (k === "") return; if (k === "deposit") { setSec("A"); setField("A.income_wages"); setRec("paymot"); } else { setSec("B"); setField("B.rent_mortgage"); setRec("once"); } };
   /** Every door opens the ONE folded form with the type blank (r.023); the scroll waits for the form to be on the page. */
   const openForm = () => { if (formOpen) { goTo("fin-transaction-form"); return; } setTxType(""); setRefusal(null); scrollOnOpen.current = true; setFormOpen(true); };
   // r.068 (addendum 153 + his answer "what reflects reality best"): Pay card opens the one form already set to a Debit-Account
   // payment in Debt service › Credit Cards that names this card — the amount and the time are his to enter
   const payCard = (id: string) => { setTxType("withdrawal"); setPaidFrom(DEBIT); setSec("I"); setField("I.cards_student"); setRec("once"); setPaysCard(id); setAmt(""); setRefusal(null); if (formOpen) { goTo("fin-transaction-form"); return; } scrollOnOpen.current = true; setFormOpen(true); };
-  const foldForm = () => { setFormOpen(false); setTxType(""); setRefusal(null); };
+  // r.073 (round 1, Athena): folding hands the focus back to + Transaction — a keyboard or screen-reader user never starts again at the top
+  const refocusDoor = useRef(false), doorRef = useRef(null as HTMLButtonElement | null);
+  const foldForm = () => { setFormOpen(false); setTxType(""); setRefusal(null); setUnsaved(null); refocusDoor.current = true; };
   const catLabel = (c: BudgetCategory) => t(`fin.cat.${CAT_KEY[c]}`);   // the record's r.006–r.011 entries still print their category
   const fieldLabel = (id: string) => { const f = fieldOf(id); return f ? t(`fin.field.${f.key}`) : id; };
   const shortLabel = (id: string) => { const f = fieldOf(id); return f ? t(`fin.fshort.${f.key}`) : id; };   // r.040: one line per budget entry
   const secLabel = (sec: SectionId) => t(`fin.sec.${sec.toLowerCase()}`);
   const [refusal, setRefusal] = useState<string | null>(null);
-  const commit = (tx: FinTx) => { const next = append(record, tx, at); setRecord(next); if (!saveRecord(next)) setSaveFailed(true); };
+  // r.073: an entry is appended to the LATEST record under an id no entry holds (two identical ids would drop the second), then saved;
+  // false when this phone would not keep it
+  const commit = (tx: FinTx): boolean => persist(append(recordRef.current, { ...tx, id: freshId(recordRef.current, tx.id) }, at));
   // r.053 (addendum 110 "now enter my transactions back in"): one tap appends his two deposits exactly as recorded and opens the
   // withdrawal form with 250.66 · Auto / Renters / Home — its day, time and length are his to enter (never invented). Append only.
+  // r.073 (round 1, Christo): offered only once the account copy has been read — tapped while it loaded, it used to set his four
+  // entries aside and write two over the account
   const restoreMine = () => {
-    let next = record; for (const d of operatorDeposits()) next = append(next, d, at);
-    setRecord(next); if (!saveRecord(next)) setSaveFailed(true);
+    let next = recordRef.current; for (const d of operatorDeposits()) next = append(next, d, at);
+    persist(next);
     setTxType("withdrawal"); setSec(OPERATOR_WITHDRAWAL.section); setField(OPERATOR_WITHDRAWAL.field); setRec("once"); setAmt(OPERATOR_WITHDRAWAL.amount);
     setRefusal(null); scrollOnOpen.current = true; setFormOpen(true);
   };
@@ -361,30 +427,48 @@ export function FinancialCommandUX1() {
     if (tx.category) return <span><CategoryIcon category={tx.category} className="mr-1" />{catLabel(tx.category)}</span>;
     return null;
   };
+  // ONE READER for what is typed (r.073, round 1, Enki): "1,234.56" and "$50" are amounts; "Infinity", "1e400" and "0x10" are not;
+  // a date the calendar does not have is refused (never moved); Other needs a number above zero (never a silent one-time)
+  const marks = cur.symbol ? [cur.symbol] : [];
+  const amountWhy = (text: string) => (amountProblem(text, marks) === "form" ? t("fin.reason_amount_form") : t("fin.reason_amount"));
+  const stampWhy = (text: string) => (stampProblem(text) === "day" ? t("fin.reason_stamp_day") : t("fin.reason_stamp"));
+  const lengthOf = (instant: number): { days: number } | { why: string } => {
+    const n = rec === "other" ? parsePositive(otherN) : 0;
+    if (n === null) return { why: t("fin.reason_length_other") };
+    const days = lengthDays(rec, n, otherUnit);
+    return lengthFits(instant, days) ? { days } : { why: t("fin.reason_length") };
+  };
+  // A FULL PHONE (r.073, round 1, Thor): when this phone will not keep the entry, the entry is still on the record on this page (and
+  // goes to the account), and the form STAYS OPEN with what was typed and says so; its button tries the save again — never a second
+  // copy of the same entry. Changing anything in the form makes it a new transaction again.
+  const formKey = JSON.stringify([txType, amt, when, memo, sec, field, rec, otherN, otherUnit, paidFrom, paysCard]);
+  const [unsaved, setUnsaved] = useState(null as string | null);
+  const retrying = unsaved !== null && unsaved === formKey;
+  const afterRecord = (saved: boolean) => { if (saved) { setAmt(""); setMemo(""); setWhen(""); foldForm(); } else setUnsaved(formKey); };
+  const retrySave = () => { if (persist(recordRef.current)) { setAmt(""); setMemo(""); setWhen(""); foldForm(); } };
   const recordDeposit = () => {
-    const cents = Math.round(Number(amt) * 100);
+    const cents = parseAmountCents(amt, marks);
     const instant = when.trim() ? parseStampCST(when) : at;
-    if (!(cents > 0)) return setRefusal(t("fin.reason_amount"));
-    if (instant === null) return setRefusal(t("fin.reason_stamp"));
-    // r.071 AsM (Thor): a length the calendar cannot hold ("1e400" years) is refused, never saved as a silent one-time
-    if (!Number.isFinite(lengthDays(rec, Number(otherN), otherUnit))) return setRefusal(t("fin.reason_length"));
+    if (cents === null) return setRefusal(amountWhy(amt));
+    if (instant === null) return setRefusal(stampWhy(when));
+    const len = lengthOf(instant); if ("why" in len) return setRefusal(len.why);
     setRefusal(null);
-    commit({ id: `d-${instant}-${cents}-${record.entries.length + 1}`, kind: "deposit", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec });
-    setAmt(""); setMemo(""); setWhen(""); foldForm();
+    afterRecord(commit({ id: `d-${instant}-${cents}-${recordRef.current.entries.length + 1}`, kind: "deposit", amountCents: cents, atMs: instant, motDays: len.days, memo: memo.trim() || undefined, field, recurrence: rec }));
   };
   const recordWithdrawal = () => {
-    const cents = Math.round(Number(amt) * 100);
+    const cents = parseAmountCents(amt, marks);
     const instant = when.trim() ? parseStampCST(when) : at;
-    if (instant === null) return setRefusal(t("fin.reason_stamp"));
-    if (!Number.isFinite(lengthDays(rec, Number(otherN), otherUnit))) return setRefusal(t("fin.reason_length"));
-    const w: FinTx = { id: `w-${instant}-${cents}-${record.entries.length + 1}`, kind: "withdrawal", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec, ...(paidFrom !== DEBIT ? { paidFrom } : {}), ...(paidFrom === DEBIT && paysCard ? { paysCard } : {}) };
+    // r.073 (Aset): the same order as a deposit — the amount is checked first
+    if (cents === null) return setRefusal(amountWhy(amt));
+    if (instant === null) return setRefusal(stampWhy(when));
+    const len = lengthOf(instant); if ("why" in len) return setRefusal(len.why);
+    const w: FinTx = { id: `w-${instant}-${cents}-${recordRef.current.entries.length + 1}`, kind: "withdrawal", amountCents: cents, atMs: instant, motDays: len.days, memo: memo.trim() || undefined, field, recurrence: rec, ...(paidFrom !== DEBIT ? { paidFrom } : {}), ...(paidFrom === DEBIT && paysCard ? { paysCard } : {}) };
     // the refusal names the minute (r.023, addendum 39 "check refuse message"): when the money can first move, or when it would run short.
     // r.071 (AsM review): checked over the record EXACTLY as the card counts it — a card payment whose purchases already counted is not
     // refused for money it never takes, and an entry that changes how purchases cover later payments is checked for those payments too
-    if (!(cents > 0)) return setRefusal(t("fin.reason_amount"));
     const v = validateRecord(accrualTxs([...recTxs, withMonthLaw(w)]), instant);
     if (!v.ok) return setRefusal(`${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs)}`);
-    setRefusal(null); commit(w); setAmt(""); setMemo(""); setWhen(""); foldForm();
+    setRefusal(null); afterRecord(commit(w));
   };
   const recordTransaction = () => { if (txType === "deposit") recordDeposit(); else if (txType === "withdrawal") recordWithdrawal(); };
   // r.062 THE EDIT (addendum 133 "add edit feature for transaction record"): the pencil on a row opens its amount, memo, day and time and
@@ -396,21 +480,46 @@ export function FinancialCommandUX1() {
   // r.070 (addendum 157): a row whose card was removed keeps that card as its payer, shown as a dash — never silently another card
   const payerGone = ed.paidFrom !== DEBIT && !cards.some((c) => c.id === ed.paidFrom);
   const [edRefusal, setEdRefusal] = useState(null as string | null);
-  const openEdit = (x: FinTx) => { setEditId(x.id); setEdRefusal(null); setEd({ amt: (x.amountCents / 100).toFixed(2), memo: x.memo ?? "", when: fmtStampCST(x.atMs), days: x.motDays ? String(Math.round(x.motDays * 1000) / 1000) : "", paidFrom: x.paidFrom ?? DEBIT, paysCard: x.paysCard ?? "" }); };
+  // r.073 (round 1): the editor opens SHOWING the length the entry is counted at (a Monthly entry reads 30 days by the month law), comes
+  // into view with the focus on its Amount (Athena: below a long record it opened off-screen and nothing seemed to happen), and remembers
+  // what it opened with, so only what the person changed is changed
+  const [ed0, setEd0] = useState({ amt: "", memo: "", when: "", days: "", paidFrom: DEBIT, paysCard: "" });
+  const scrollEdit = useRef(false);
+  const openEdit = (x: FinTx) => { const days = withMonthLaw(x).motDays; const v = { amt: (x.amountCents / 100).toFixed(2), memo: x.memo ?? "", when: fmtStampCST(x.atMs), days: days ? String(Math.round(days * 1000) / 1000) : "", paidFrom: x.paidFrom ?? DEBIT, paysCard: x.paysCard ?? "" }; setEditId(x.id); setEdRefusal(null); setEd(v); setEd0(v); scrollEdit.current = true; };
+  useEffect(() => { if (!editId || !scrollEdit.current) return; scrollEdit.current = false; const el = document.querySelector("[data-fin-edit-panel]"); el?.scrollIntoView({ behavior: "smooth", block: "center" }); (el?.querySelector("[data-fin-edit-amount]") as HTMLElement | null)?.focus({ preventScroll: true }); }, [editId]);
+  const edRefuse = (why: string) => setEdRefusal(`${t("fin.refused")} · ${why}`);
   const saveEdit = () => {
-    const cur = editId ? replay(record).find((x) => x.id === editId) : undefined; if (!cur) return;
-    const cents = Math.round(Number(ed.amt) * 100), instant = parseStampCST(ed.when.trim()), days = ed.days.trim() === "" ? 0 : Number(ed.days);
-    if (!(cents > 0)) return setEdRefusal(t("fin.reason_amount"));
-    if (!(Number.isFinite(days) && days >= 0)) return setEdRefusal(t("fin.reason_length"));
-    if (instant === null) return setEdRefusal(t("fin.reason_stamp"));
-    const next = correctTx(record, cur.id, { amountCents: cents, memo: ed.memo.trim() || undefined, atMs: instant, motDays: days, ...(cur.kind === "withdrawal" ? { paidFrom: ed.paidFrom === DEBIT ? undefined : ed.paidFrom, paysCard: ed.paidFrom === DEBIT && ed.paysCard ? ed.paysCard : undefined } : {}) }, at);
-    { const v = validateRecord(accrualTxs(replay(next).map(withMonthLaw)), Math.min(cur.atMs, instant));
-      if (!v.ok) return setEdRefusal(`${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs)}`); }
-    setRecord(next); if (!saveRecord(next)) setSaveFailed(true); setEditId(null);
+    const cur = editId ? replay(recordRef.current).find((x) => x.id === editId) : undefined; if (!cur) return;
+    const cents = parseAmountCents(ed.amt, marks), instant = parseStampCST(ed.when.trim()), days = parseDaysText(ed.days);
+    if (cents === null) return edRefuse(amountWhy(ed.amt));
+    if (instant === null) return edRefuse(stampWhy(ed.when));
+    if (days === null) return edRefuse(t("fin.reason_length_days"));   // r.073 (Aset): "abc" or "-1" is not "too long"
+    if (!lengthFits(instant, days)) return edRefuse(t("fin.reason_length"));
+    // ONLY WHAT THE PERSON CHANGED IS CHANGED (r.073, round 1): a field goes into the correction only when its text was edited and its
+    // value differs — an entry recorded at "now" keeps its exact instant (the stamp shows whole seconds), a retyped "3,604.49" is no edit.
+    // A CHANGED length takes the entry off its preset (Enlil): a Monthly entry read 30 days by the month law whatever its stored length
+    // said, so 30 → 7 used to append a correction with no effect; an untouched length keeps the preset exactly.
+    const typed = (k: keyof typeof ed) => String(ed[k]).trim() !== String(ed0[k]).trim();
+    const edit: TxEdit = {
+      ...(typed("amt") && cents !== cur.amountCents ? { amountCents: cents } : {}),
+      ...(typed("memo") && (ed.memo.trim() || undefined) !== cur.memo ? { memo: ed.memo.trim() || undefined } : {}),
+      ...(typed("when") && instant !== cur.atMs ? { atMs: instant } : {}),
+      ...(typed("days") && days !== (withMonthLaw(cur).motDays ?? 0) ? { motDays: days, recurrence: days > 0 ? "other" : "once" } : {}),
+      ...(cur.kind === "withdrawal" && (typed("paidFrom") || typed("paysCard")) ? { paidFrom: ed.paidFrom === DEBIT ? undefined : ed.paidFrom, paysCard: ed.paidFrom === DEBIT && ed.paysCard ? ed.paysCard : undefined } : {}),
+    };
+    // r.073 (Christo): Done with nothing changed closes the editor and appends nothing
+    if (Object.keys(edit).length === 0) { setEditId(null); return; }
+    const next = correctTx(recordRef.current, cur.id, edit, at);
+    { const v = validateRecord(accrualTxs(replay(next).map(withMonthLaw)), Math.min(cur.atMs, edit.atMs ?? cur.atMs));
+      if (!v.ok) return edRefuse(`${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs)}`); }
+    persist(next); setEditId(null);
   };
   // the form opens on its TYPE (the first choice), so focus lands on the type dropdown, not the amount
   const goTo = (id: string) => { const el = typeof document !== "undefined" ? document.getElementById(id) : null; el?.scrollIntoView({ behavior: "smooth", block: "center" }); (el?.querySelector("select[data-fin-type], input") as HTMLElement | null)?.focus(); };
-  useEffect(() => { if (formOpen && scrollOnOpen.current) { scrollOnOpen.current = false; goTo("fin-transaction-form"); } }, [formOpen]);
+  useEffect(() => {
+    if (formOpen && scrollOnOpen.current) { scrollOnOpen.current = false; goTo("fin-transaction-form"); }
+    if (!formOpen && refocusDoor.current) { refocusDoor.current = false; doorRef.current?.focus(); }
+  }, [formOpen]);
 
   // pb-20 on the phone: the app's bottom bar (56 px) covers the page's last rows, so the page's last element — the R-CORE badge and
   // its maximized icon — sits above it (measured 2026-09-30; r.017 took the fixed strip out of the way, nothing on this surface floats).
@@ -463,7 +572,7 @@ export function FinancialCommandUX1() {
           <div data-fin-accrual-top className="flex items-center justify-between gap-2">
             <div><div className={LABEL}>{t("fin.accrual_units")}</div>{!cur.symbol && <div data-fin-currency-label className="text-[11px] text-muted-foreground">{cur.code} · {cur.name}</div>}</div>
             <div className="flex shrink-0 items-center gap-2">
-              {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} className="h-8 shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
+              {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} ref={doorRef} className="h-8 shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
               <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
             </div>
           </div>
@@ -538,12 +647,12 @@ export function FinancialCommandUX1() {
             outside the fold so folding never hides it */}
         {owner && (
           <div data-fin-tx-top>
-            {saveFailed && <p className="mb-2 text-sm text-amber-500">{t("fin.save_failed")}</p>}
+            {saveFailed && !retrying && <p role="alert" data-fin-save-failed className="mb-2 text-sm text-amber-500">{cloudState === "saved" ? t("fin.save_failed_cloud") : t("fin.save_failed")}</p>}
             {formOpen && (
             <div id="fin-transaction-form" className={SUB} data-testid="fin-transaction-form" data-fin-tx-type={txType || "none"}>
               <div className="flex items-center justify-between gap-2">
                 <div className={LABEL}>{t("fin.transaction")}</div>
-                <button type="button" data-fin-tx-close aria-expanded={true} aria-label={t("fin.tx_close")} title={t("fin.tx_close")} onClick={foldForm} className="rounded-md border border-border p-1"><X size={14} strokeWidth={1.5} aria-hidden /></button>
+                <button type="button" data-fin-tx-close aria-expanded={true} aria-label={t("fin.tx_close")} title={t("fin.tx_close")} onClick={foldForm} className="flex h-8 w-9 items-center justify-center rounded-md border border-border"><X size={14} strokeWidth={1.5} aria-hidden /></button>
               </div>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.type")}
@@ -553,7 +662,7 @@ export function FinancialCommandUX1() {
                     <option value="withdrawal">{t("fin.type_withdrawal")}</option>
                   </select>
                 </label>
-                <label className="text-xs text-muted-foreground">{t("fin.amount")}<input className={INPUT} inputMode="decimal" value={amt} onChange={(e) => setAmt(e.target.value)} /></label>
+                <label className="text-xs text-muted-foreground">{t("fin.amount_col")}, {curMark}<input data-fin-amount-input className={INPUT} inputMode="decimal" value={amt} onChange={(e) => setAmt(e.target.value)} /></label>
                 <label className="text-xs text-muted-foreground">{t("fin.when")}<input className={INPUT} value={when} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setWhen(e.target.value)} /></label>
                 {/* r.027 (decision 5): Section, Field and Length appear only once a type is picked — nothing is chosen for the person */}
                 {txType && <LadderPicker section={sec} field={field} rec={rec} onSection={setSec} onField={setField} onRec={setRec} otherN={otherN} onOtherN={setOtherN} otherUnit={otherUnit} onOtherUnit={setOtherUnit} t={t} hook="transaction" />}
@@ -579,14 +688,15 @@ export function FinancialCommandUX1() {
                 )}
                 <label className="text-xs text-muted-foreground">{t("fin.memo")}<input className={INPUT} value={memo} onChange={(e) => setMemo(e.target.value)} /></label>
               </div>
-              <button type="button" data-fin-record disabled={!txType} className={`mt-2 ${txType === "withdrawal" ? SECONDARY : PRIMARY} disabled:opacity-50`} onClick={recordTransaction}>{txType === "withdrawal" ? t("fin.withdraw") : t("fin.record_it")}</button>
-              {refusal && <p className="mt-2 text-sm text-red-500">{t("fin.refused")} · {refusal}</p>}
+              <button type="button" data-fin-record disabled={!txType} data-fin-retry={retrying ? "1" : undefined} className={`mt-2 ${txType === "withdrawal" ? SECONDARY : PRIMARY} disabled:opacity-50`} onClick={retrying ? retrySave : recordTransaction}>{retrying ? t("fin.save_retry") : txType === "withdrawal" ? t("fin.withdraw") : t("fin.record_it")}</button>
+              {retrying && <p role="alert" data-fin-save-retry className="mt-2 text-sm text-amber-500">{t("fin.save_failed_form")}</p>}
+              {refusal && <p role="alert" className="mt-2 text-sm text-red-500">{t("fin.refused")} · {refusal}</p>}
             </div>
             )}
           </div>
         )}
 
-        {owner && isOperator(user?.email) && record.entries.length === 0 && (
+        {owner && cloudReady && isOperator(user?.email) && record.entries.length === 0 && (
           <div data-fin-restore className={`${SUB} flex flex-wrap items-center justify-between gap-2`}>
             <span className="text-xs text-muted-foreground">{t("fin.restore_note")}</span>
             <button type="button" data-fin-restore-btn onClick={restoreMine} className="min-h-[36px] rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.restore_mine")}</button>
@@ -695,11 +805,12 @@ export function FinancialCommandUX1() {
         {/* the record — append-only, chain-hashed (FIN-05). r.028 (addendum 58 "sloppy · hide and click to expand with better table · every entry
             on a single line with ability to scroll to right"): folded behind a chevron; opened, a table, one entry per line, scrolling sideways */}
         <details data-fin-ledger className={`group ${SUB}`}>
-          <summary className="flex min-h-[36px] cursor-pointer list-none items-center gap-1" aria-label={t("fin.record_toggle")}>
+          {/* r.073 (round 1, Sofia): the summary is read as what it shows — the title, a broken chain, the cloud — never a generic "show or hide" */}
+          <summary className="flex min-h-[36px] cursor-pointer list-none items-center gap-1">
             <ChevronRight size={14} strokeWidth={1.5} aria-hidden className="transition-transform group-open:rotate-90" />
             <span className={LABEL}>{t("fin.tx_record")}{owner && tampered ? ` · ${t("fin.chain_broken")}` : ""}</span>
             {/* r.055: a small cloud says the record is in his account (tap-hold shows when) — no sentence on the glass */}
-            {owner && <span data-fin-cloud={cloudState} title={cloudState === "saved" ? `${t("fin.cloud_saved")} · ${fmtStampCST(cloudAt)}` : t("fin.cloud_not_yet")} aria-label={cloudState === "saved" ? t("fin.cloud_saved") : t("fin.cloud_not_yet")} className={cloudState === "saved" ? "text-green-500" : "text-muted-foreground"}>{/* r.065 (addendum 140 "use better cloud icon … universally accepted"): cloud-with-check = saved to your account, cloud-with-slash = not yet */}{/* r.067 (addendum 150 "ensure cloud raster with checkmark looks like this"): his cloud — three rounded bumps, a flat base, a bold outline */}<CloudMark saved={cloudState === "saved"} /></span>}   {/* r.041 (addenda 76–77): "TRANSACTION RECORD"; a broken chain is still said */}
+            {owner && <span data-fin-cloud={cloudState} role="img" title={cloudState === "saved" ? `${t("fin.cloud_saved")} · ${fmtStampCST(cloudAt)}` : t("fin.cloud_not_yet")} aria-label={cloudState === "saved" ? t("fin.cloud_saved") : t("fin.cloud_not_yet")} className={cloudState === "saved" ? "text-green-500" : "text-muted-foreground"}>{/* r.065 (addendum 140 "use better cloud icon … universally accepted"): cloud-with-check = saved to your account, cloud-with-slash = not yet */}{/* r.067 (addendum 150 "ensure cloud raster with checkmark looks like this"): his cloud — three rounded bumps, a flat base, a bold outline */}<CloudMark saved={cloudState === "saved"} /></span>}   {/* r.041 (addenda 76–77): "TRANSACTION RECORD"; a broken chain is still said */}
           </summary>
           <div data-fin-ledger-scroll className="mt-2 overflow-x-auto">
             <table data-fin-ledger-table className="min-w-full whitespace-nowrap font-mono text-xs text-muted-foreground">
@@ -725,7 +836,7 @@ export function FinancialCommandUX1() {
                     <td className="py-1 pr-3">{e.rev}{!!fixes.length && <span data-fin-edited title={`${t("fin.edited")} · ${fixes.map((f) => `#${f.rev}`).join(" ")}`} className="ml-1 text-primary">✎{fixes[fixes.length - 1].rev}</span>}</td>
                     <td className="py-1 pr-3">{e.hash.slice(0, 8)}</td>
                     {/* r.067 (addendum 152 "I need edit button for individual transactions somewhere on right"): the pencil pinned to the RIGHT edge of every row — it stays in view while the table scrolls sideways */}
-                    <td data-fin-edit-cell className="sticky right-0 bg-card py-1 pl-2"><button type="button" data-fin-edit={e.rev} aria-label={t("fin.edit_tx")} title={t("fin.edit_tx")} aria-expanded={open} onClick={() => (open ? setEditId(null) : openEdit(x))} className={`flex h-8 w-8 items-center justify-center rounded-md border border-border ${open ? "text-primary" : ""}`}><Pencil size={13} strokeWidth={1.5} aria-hidden /></button></td>
+                    <td data-fin-edit-cell className="sticky right-0 bg-card py-1 pl-2"><button type="button" data-fin-edit={e.rev} aria-label={`${t("fin.edit_tx")} · #${e.rev} · ${x.kind === "deposit" ? "+" : "−"}${num2(x.amountCents)} · ${fmtStampCST(x.atMs)}`} title={t("fin.edit_tx")} aria-expanded={open} onClick={() => (open ? setEditId(null) : openEdit(x))} className={`flex h-8 w-8 items-center justify-center rounded-md border border-border ${open ? "text-primary" : ""}`}><Pencil size={13} strokeWidth={1.5} aria-hidden /></button></td>
                   </tr>
                   </Fragment>
                   );
@@ -738,16 +849,16 @@ export function FinancialCommandUX1() {
             <div data-fin-edit-panel={e.rev} className="mt-2 rounded-md border border-border p-2 text-xs">
               <p className="mb-2 font-mono text-muted-foreground">{t("fin.edit_tx")} · #{e.rev} · {e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}</p>
               <div className="grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap">
-                          <label className="text-[10px] uppercase">{t("fin.amount")}<input data-fin-edit-amount className={INPUT} inputMode="decimal" value={ed.amt} onChange={(v) => setEd({ ...ed, amt: v.target.value })} /></label>
+                          <label className="text-[10px] uppercase">{t("fin.amount_col")}, {curMark}<input data-fin-edit-amount className={INPUT} inputMode="decimal" value={ed.amt} onChange={(v) => setEd({ ...ed, amt: v.target.value })} /></label>
                           <label className="text-[10px] uppercase">{t("fin.memo")}<input data-fin-edit-memo className={INPUT} value={ed.memo} onChange={(v) => setEd({ ...ed, memo: v.target.value })} /></label>
-                          <label className="text-[10px] uppercase">{t("fin.when")}<input data-fin-edit-when className={INPUT} value={ed.when} onChange={(v) => setEd({ ...ed, when: v.target.value })} /></label>
+                          <label className="col-span-2 text-[10px] uppercase">{t("fin.when")}<input data-fin-edit-when className={INPUT} value={ed.when} onChange={(v) => setEd({ ...ed, when: v.target.value })} /></label>
                           <label className="text-[10px] uppercase">{t("fin.length")}<input data-fin-edit-days className={INPUT} inputMode="decimal" value={ed.days} onChange={(v) => setEd({ ...ed, days: v.target.value })} /></label>
                           {e.tx.kind === "withdrawal" && !!cards.length && <label className="text-[10px] uppercase">{t("fin.paid_from")}<select data-fin-edit-paid-from className={PICK} value={ed.paidFrom} onChange={(v) => setEd({ ...ed, paidFrom: v.target.value })}><option value={DEBIT}>{t("fin.debit_account")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}{payerGone && <option value={ed.paidFrom}>—</option>}</select></label>}
                           {e.tx.kind === "withdrawal" && !!cards.length && ed.paidFrom === DEBIT && <label className="text-[10px] uppercase">{t("fin.card_paid")}<select data-fin-edit-pays-card className={PICK} value={ed.paysCard} onChange={(v) => setEd({ ...ed, paysCard: v.target.value })}><option value="">{t("fin.card_none")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
                           <button type="button" data-fin-edit-save onClick={saveEdit} className="h-9 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground">{t("fin.done")}</button>
                           <button type="button" data-fin-edit-cancel onClick={() => setEditId(null)} className="h-9 rounded-md border border-border px-3 text-xs">{t("fin.edit_cancel")}</button>
                         </div>
-                        {edRefusal && <p data-fin-edit-refusal className="mt-1 whitespace-normal text-xs text-red-500">{edRefusal}</p>}
+                        {edRefusal && <p role="alert" data-fin-edit-refusal className="mt-1 whitespace-normal text-xs text-red-500">{edRefusal}</p>}
             </div>) : null; })()}
         </details>
 

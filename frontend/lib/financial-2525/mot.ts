@@ -201,12 +201,17 @@ export const DATE_FMTS: readonly DateFmt[] = ["full", "mmdd", "month"];
 export function dateLabel(ms: number, fmt: DateFmt): string { const s = fmtStampCST(ms); return fmt === "full" ? s.slice(0, 10) : fmt === "mmdd" ? s.slice(5, 10) : s.slice(8, 10); }
 const STAMP_RE = /^(\d{4})\.(\d{2})\.(\d{2})_(\d{2})\.(\d{2})\.\.?(\d{2})$/;
 /** Parse the sheet's stamp back to an instant (CST); null when malformed. */
+/** Why a typed stamp is refused (r.073): not written YYYY.MM.DD_HH.MM..SS ("form"), or a day the calendar does not have ("day"). */
+export const stampProblem = (s: string): "form" | "day" | null => (parseStampCST(s) !== null ? null : STAMP_RE.test(String(s).trim()) ? "day" : "form");
 export function parseStampCST(s: string): number | null {
   const m = STAMP_RE.exec(String(s).trim());
   if (!m) return null;
   const [y, mo, d, h, mi, sec] = m.slice(1).map(Number);
   if (mo < 1 || mo > 12 || d < 1 || d > 31 || h > 23 || mi > 59 || sec > 59) return null;
-  return cstMs(y, mo, d, h, mi, sec);
+  // r.073 (round 1, Enki): a date the calendar does not have is refused, never moved — 2026.02.31 used to record 2026.03.03 and the
+  // year 0050 recorded 1950; the stamp must read back as typed
+  const ms = cstMs(y, mo, d, h, mi, sec), back = cstParts(ms);
+  return back.y === y && back.mo === mo && back.d === d ? ms : null;
 }
 
 // ── Durations · 0000.00.DD_HH.MM..SS (a MoT length written the way the sheets write it) ─────────────────────────

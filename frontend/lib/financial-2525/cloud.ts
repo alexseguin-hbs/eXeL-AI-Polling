@@ -12,11 +12,13 @@
  * account-ID key he chose: anyone who learned his account id could read the rows (recorded, his decision, FD-74).
  * Namespaces: "fin-record" · "fin-plan" · "fin-prefs". Never throws; no Supabase env → "offline", the device copy stands.
  *
- * NO CHANGE EVER DELETES AN ENTRY (FD-72) holds across the wire: when the cloud record and the device record have diverged, the one
- * not kept as current is stored whole under "fin-record-kept-<time>" before anything is written.
+ * NO CHANGE EVER DELETES AN ENTRY (FD-72) holds across the wire. r.073 (round 1 of 33): when the account copy and the device copy have
+ * diverged they are UNITED (record.ts unionRecords) — every entry of both, the account read before every write (get → unite → put), so a
+ * second device's entries are never written over or set aside where no screen reads them. Only an account copy that fails its chain
+ * is kept whole under "fin-record-kept-<time>" (never adopted, never merged) before anything is written.
  */
 import { supabase } from "../supabase";
-import type { FinRecord } from "./record";
+import { unionRecords, sameChain, isVerified, type FinRecord } from "./record";
 import type { LadderLine } from "./ladder";
 
 export type CloudState = "off" | "saving" | "saved" | "offline" | "error";
@@ -35,20 +37,28 @@ export async function cloudPut(owner: string, name: string, payload: unknown): P
   try { const { error } = await supabase.rpc("innovation_state_put", { p_owner: owner, p_name: name, p_payload: payload }); return error ? "error" : "saved"; }
   catch { return "offline"; }
 }
-export async function cloudGet<T>(owner: string, name: string): Promise<T | null> {
-  if (!supabase) return null;
-  try { const { data, error } = await supabase.rpc("innovation_state_get", { p_owner: owner, p_name: name }); return error ? null : ((data ?? null) as T | null); }
-  catch { return null; }
+export async function cloudGet<T>(owner: string, name: string): Promise<T | null> { return (await cloudRead<T>(owner, name)).data; }
+/** A read that says whether it was READ (r.073): "ok" with the row (null when there is none), or "offline" / "error" — a failed read is
+ *  never mistaken for an empty account, so nothing is written over an account copy that could not be seen. */
+export async function cloudRead<T>(owner: string, name: string): Promise<{ state: "ok" | "offline" | "error"; data: T | null }> {
+  if (!supabase) return { state: "offline", data: null };
+  try { const { data, error } = await supabase.rpc("innovation_state_get", { p_owner: owner, p_name: name }); return error ? { state: "error", data: null } : { state: "ok", data: (data ?? null) as T | null }; }
+  catch { return { state: "offline", data: null }; }
 }
 export interface PlanDoc { lines: LadderLine[]; at: number }
+export interface CardsDoc { cards: unknown[]; at: number }
+/** The three rows of a person's account copy, each read with its state (r.073: get → unite → put). */
+export async function readAll(owner: string) {
+  const [r, p, c] = await Promise.all([cloudRead<FinRecord>(owner, "fin-record"), cloudRead<PlanDoc>(owner, "fin-plan"), cloudRead<CardsDoc>(owner, "fin-cards")]);
+  return { r, p, c };
+}
 export interface PrefsDoc { dateFmt?: string; currency?: string; angle?: number; span?: string; at: number }
 
-/** Which record is current, and which (if any) must be kept aside. Pure. */
+/** The record both copies make together (r.073: unionRecords — every entry of both), whether the account still lacks some of it
+ *  (push), and the account copy to keep whole when it fails its chain (keep: never adopted, never merged). Pure. */
 export function mergeRecords(device: FinRecord, cloud: FinRecord | null): { current: FinRecord; keep: FinRecord | null; push: boolean } {
   if (!cloud || !Array.isArray(cloud.entries) || cloud.entries.length === 0) return { current: device, keep: null, push: device.entries.length > 0 };
-  if (device.entries.length === 0) return { current: { ...cloud, owner: device.owner }, keep: null, push: false };
-  const prefix = (a: FinRecord, b: FinRecord) => a.entries.every((e, i) => b.entries[i] !== undefined && b.entries[i].hash === e.hash);
-  if (prefix(cloud, device)) return { current: device, keep: null, push: device.entries.length > cloud.entries.length };
-  if (prefix(device, cloud)) return { current: { ...cloud, owner: device.owner }, keep: null, push: false };
-  return { current: device, keep: cloud, push: true };   // diverged: the device copy stays current, the cloud copy is kept whole
+  if (!isVerified(cloud)) return { current: device, keep: cloud, push: device.entries.length > 0 };
+  const current = unionRecords(device, { ...cloud, owner: device.owner });
+  return { current, keep: null, push: !sameChain(current, cloud) };
 }

@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.072",
-  "stamp": "v.000_r.072",
+  "revision": "0.073",
+  "stamp": "v.000_r.073",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "425fa8842adde2aca9f1bbbcd3fd7bdbc8fe88c6be68b8d9edc333c701f3b67b",
@@ -1160,6 +1160,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "Addendum 161 (\"remove linit from CC; going back to sleep; address backlog, make your own decisions MoT\", with his 5:45 photo of the r.067 panel). The limit left the card's face in r.069 (FD-84: Balance · Available, the limit in the card's settings — his 5:45 photo is the r.067 page, stamp 929521e); the one place it still showed outside the settings was the cockpit warning, \"⚠ Amber Alert · Capital One $1,535.27 / $3,000.00\" — it now reads the balance alone. The budget's unit header (\"PER MONTH (30 DAYS), $\") was held to one line and pushed the page sideways at 320 px; it wraps on a narrow phone. And the three questions r.071 left him, decided by Master of Thought as he asked (FD-91): the Accrual Rate stays what escrow releases — his r.066 \"Spread over rest\" — and is never netted against running bills (bills show in the chart's Net); the chart's $ view keeps his addendum-96 re-spread picture, its readout included; and no \"Released early\" line is added — the gear's definition of Released already says it (\"plus anything released early by spending ahead\", addendum 60's settings). The review before the push (twelve lenses, FIX-FIRST) — folded: budget EDIT mode still pushed a 320 px phone 24 px sideways (the Net label and the amount boxes held their width) — below 360 px the Net label wraps and the amount box is narrower; the wrap left a lone \"$\" under the header at 390 px — from 360 px the header holds one line, and non-breaking spaces keep \"(30 days), $\" together below it; at 320 px \"MoT Unit\" printed over the budget title and its box covered the pencil (4 of 5 taps missed edit mode) — the title row wraps; a long single-word card name spilled out of the warning — it wraps there, a name is at most 40 characters, and a level crossed is announced to a screen reader; FD-90's gate now holds the rule (the limit read only by the settings and by Available), not one line; and a layout smoke on the built page (320 · 390 · 428 px, at rest, gear open, budget in edit mode, a long-named card past amber) fails any build that pushes the page sideways. The backlog (docs/financial-2525/BACKLOG.md, his addendum-82 rule) gains rows B-33 to B-58 for addenda 111–161, with their answers and states.",
    "commit": "c44b61f",
    "shipped": "73dbcbf"
+  },
+  {
+   "revision": "0.073",
+   "date": "2026-10-02",
+   "kind": "correction",
+   "why": "Round 1 of 33 (B-38, resumed under addendum 161 \"address backlog, make your own decisions MoT\"): the reviewer lenses walked the transaction journey on r.072 and found three paths that lost a finished entry — a Monthly entry's length edit had no effect (the correction kept the preset the month law reads as 30 days), two tabs or two devices set each other's entries aside where no screen reads them (5 of 10 visible after two tabs alternated), and a page left open 12 hours pushed its opening record, budget and cards back over the account. Now a save, a sync and another tab's save UNITE the copies (every transaction of both; the edit recorded last wins; ids that collide are renamed, never dropped); the account is read before it is written and a failed read writes nothing; every timer calls the latest sync; a change made just before the page is hidden is sent at once and a failed send is retried when the network returns; a full phone keeps the form open with what was typed and tries the same save again; Put back my entries waits for the account copy. One reader for typed amounts (1,234.56 and $50 are amounts; Infinity, 1e400, 0x10 and 12,50 are not) and strict dates (2026.02.31 is refused, never moved). The editor comes into view focused, shows the length the entry is counted at and appends nothing when nothing changed; refusals name the right fix and are announced; the Record and every pencil are read as what they show. No budget figure changes. Round record: docs/financial-2525/rounds/r073.md.",
+   "commit": "d8c7c36",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2237,6 +2245,24 @@ export const FINANCIAL_DOMAIN = {
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-05.01",
+   "title": "A finished entry is never lost — edits, tabs, devices, a page left open, a full phone",
+   "section": "II",
+   "uwf": [
+    "U-WF-06"
+   ],
+   "verify": "tests/financial-accrual.test.mjs",
+   "statement": "Every transaction recorded on any tab or device stays on the record: saves and syncs unite the copies (the edit recorded last wins), the account is read before it is written, every timer sends the latest record, budget and cards, a change before the page is hidden is sent at once, a full phone keeps the form open and never records twice, and a Monthly entry's length edit takes effect.",
+   "metric": "financial-accrual r.073: two tabs × 5 alternations → 10 entries after reload; two devices alternating → 4 on each and on the account; the union verifies, is the same chain from either side, adds nothing when re-united; two corrections of one entry both kept and the newest wins; a Monthly 30 → 7 edit reads 7; the mutation sweep turns a gate red for each guarantee removed",
+   "dtm": "two tabs open on his phone, an entry in each: both tabs and the reload show both; his budget edit on the desktop survives a phone tab left open overnight",
+   "stretch": "the same union on the account side (a server-side compare-and-set), so two devices writing at the same instant never race",
+   "in": "FIN-05.01.IN",
+   "out": "FIN-05.01.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -2785,6 +2811,24 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The three questions r.071 left open, decided by Master of Thought: the Accrual Rate stays what escrow releases (his r.066 'Spread over rest'), never netted against running bills — bills show in the chart's Net; the chart's $ view keeps the addendum-96 re-spread picture, its tap readout included; no 'Released early' line — the card keeps its five figures.",
    "status": "DECLARED",
    "basis": "addendum 161 ('address backlog, make your own decisions MoT'); his r.066 answers, addendum 96, addendum 60 and the gear's definition of Released"
+  },
+  {
+   "id": "FD-92",
+   "decision": "A save, an account sync and another tab's save UNITE the copies: every transaction either copy holds is kept (one copy keeps its chain exactly, the other's missing entries follow it with fresh links; the edit recorded last wins; two different entries that share an id are both kept under distinct ids). The keep-aside of FD-72 now applies only to a copy that fails its chain — it is kept whole and never merged or adopted.",
+   "status": "DECLARED",
+   "basis": "addendum 161 ('address backlog, make your own decisions MoT'); addendum 106 ('no changes should delete entries'); round 1 (Krishna: two tabs showed 5 of 10 entries, the rest in 8 hidden copies)"
+  },
+  {
+   "id": "FD-93",
+   "decision": "When this phone will not keep an entry, the entry stays on the record on the page (and goes to the account), and the transaction form stays open with what was typed, says so, and offers 'Try saving again' — which saves the same entry again, never a second copy. Changing anything in the form makes it a new transaction.",
+   "status": "DECLARED",
+   "basis": "addendum 161; round 1 (Thor: a full phone folded the form over an entry it had not kept). The words are the operator's to change (round record r073.md, question 5)"
+  },
+  {
+   "id": "FD-94",
+   "decision": "One reader for a typed amount on every form: digits with at most two decimals, thousands commas only where they group thousands, the currency's mark or '$' in front allowed; never an exponent, hex, Infinity, a sign, or a comma that is not a thousands separator (12,50 is refused, never read as 1,250); above zero and below one trillion. A typed date must read back as typed.",
+   "status": "DECLARED",
+   "basis": "addendum 161; round 1 (Enki: Infinity and 1e400 recorded as money, 0x10 as $16, 1,234.56 and $50 refused, 2026.02.31 recorded 2026.03.03)"
   }
  ],
  "reviews": [

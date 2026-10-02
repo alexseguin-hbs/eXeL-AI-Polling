@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 144 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 145 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1017,6 +1017,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.072 shipped and LIVE (Verify Live #2241) — the limit only in a card's settings; the budget fits a 320 px phone in view and edit mode, guarded by the layout smoke; r.071's three questions decided by Master of Thought; the backlog up to date (FD-90, FD-91).",
       "commit": "73dbcbf"
+    },
+    {
+      "rev": 145,
+      "date": "2026-10-02",
+      "kind": "correction",
+      "text": "r.073 correction — Round 1 of 33 (B-38, resumed under addendum 161 \"address backlog, make your own decisions MoT\"): the reviewer lenses walked the transaction journey on r.072 and found three paths that lost a finished entry — a Monthly entry's length edit ha",
+      "commit": "d8c7c36"
     }
   ]
 };
