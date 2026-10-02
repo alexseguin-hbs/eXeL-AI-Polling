@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.067",
-  "stamp": "v.000_r.067",
+  "revision": "0.068",
+  "stamp": "v.000_r.068",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "38afef8945c4709a9b2d047e45c119b5445c969111d5378892084fcb84741401",
@@ -1080,6 +1080,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "Addenda 142–145 · 147 — THE COCKPIT (\"a single place of all finances that gives warnings of credit card overspend · disjointed systems are bad for users · tools should be one with financials\"). A CREDIT CARDS card below the Transaction Record: a read view toggling Capital One / USAA, each with Limit · Balance · Available credit, the person's own amber and red levels (his: amber $1,500 = 50%, red $2,000 = 67% of the $3,000 Capital One; USAA $1,000 at the same proportions until he sets his own), and the balance over time on the same chart as REAL-TIME FINANCIALS (dashed amber and red lines, a dotted line at each card transaction); a gear edits limit, balance as of today, amber and red. A card at or past a level is named at the top of Accrual Units, in words as well as colour. Every withdrawal now says what paid it — Debit Account (default), Capital One or USAA; a card purchase raises that card's balance AND counts against Available at once (his answer \"Both, right away\"); a Debt-service payment from the Debit Account names the card it pays down. Capital One starts at $735.27 as of 2026.10.02_04.39 CST — the $2,450 payment before that counts only against the Debit Account (his answer). No account number is ever stored. (145) MoT beside $/hr on the same line as Income · Spending · Net, at its right. (147) The closed MoT Unit box shows shorthand (/30D · /7D · /1M · /91D · /1Y · /1D · /hr · /min · /sec); the open list keeps the words. Cards are saved on the device and to the account. (149) The boxed day label sits above the x axis with a 7 px gap. (150) The cloud mark is drawn to his reference — three bumps, a flat base, a bold outline — with a check (saved) or a slash (not yet). AsM review fixes before push: his two cards are seeded only for him (no other user sees his balances); a new balance-as-of-today re-bases at that moment; a hidden Card-paid choice is never recorded; the payer is editable on the record; card chart marks match the balance; an invalid card setting says why; the cloud copy never overwrites a newer edit with the seed; focus ring on the MoT Unit box; amber legible in light mode; MoT only on the legend line. His answer \"No, count once\": a Debit payment that names a card lowers Available only for balance no recorded purchase already counted (the opening $735.27). (151) The Transaction Record is always in chronological order, oldest first by (corrected) day and time. (152) The edit pencil is pinned to the right edge of every record row, in view while the table scrolls sideways (the r.017 no-floating gate narrowed to exactly this in-table column); his answer \"At purchase (once)\" confirms the card rule — a purchase lowers Available at once, a later payment restores the card's available credit without lowering Available again. No budget figure changes.",
    "commit": "55d4d30",
    "shipped": "111919f"
+  },
+  {
+   "revision": "0.068",
+   "date": "2026-10-02",
+   "kind": "decision",
+   "why": "Addendum 153 — the goal is paying off cards with low stress: a new card transaction raises the card balance (r.067, kept); a payment to a card lowers the card balance and Available (Available only for the part no recorded purchase already counted — his answer \"At purchase (r.067 now)\" keeps count-once). The payment was hard to find (its picker appeared only under Debt service › Credit Cards), so per his \"what reflects reality best\": a Pay card button on each card opens the one form set to a Debit-Account payment in Debt service › Credit Cards naming that card (amount and time his), and the Pays card picker shows on EVERY Debit withdrawal and is recorded whatever the field, in the form and in the edit row. One key staged English-only (fin.card_pay).",
+   "commit": "929521e",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2651,6 +2659,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The cockpit holds the credit cards: per card limit, balance, available credit, user-defined amber/red levels and a balance chart, below the record; level warnings at the top of Accrual Units; every withdrawal names its payer (Debit Account or a card) and a card purchase counts against both the card and Available; card balances start from the person's own balance-as-of-today; no account numbers.",
    "status": "OPERATOR",
    "basis": "addenda 142–144 + his answers (Both, right away · $735.27 after payment · Figures + chart · amber $1,500 / red $2,000)"
+  },
+  {
+   "id": "FD-83",
+   "decision": "A card payment is entered where a person pays a card: a Pay card button on each card (Debit Account · Debt service › Credit Cards · that card) and the Pays card picker on every Debit withdrawal, whatever its field. A card purchase still lowers Available at purchase; the payment lowers the card balance, and Available only for balance no recorded purchase counted.",
+   "status": "OPERATOR",
+   "basis": "addendum 153 + his answers (At purchase (r.067 now) · \"what reflects reality best\")"
   }
  ],
  "reviews": [

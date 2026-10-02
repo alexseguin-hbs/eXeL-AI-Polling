@@ -3041,6 +3041,7 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.card_paid", englishDefault: "Card paid", context: "Financial-2525: on a Debt-service payment from the Debit Account, the credit card it pays down", cubeId: 0 },
   { key: "fin.card_bad", englishDefault: "Check the numbers: amber must be at or below red, and red at or below the limit.", context: "Financial-2525: shown under the card settings when the levels do not make sense", cubeId: 0 },
   { key: "fin.card_none", englishDefault: "None", context: "Financial-2525: no credit card is paid by this payment", cubeId: 0 },
+  { key: "fin.card_pay", englishDefault: "Pay card", context: "Financial-2525: button on a credit card that opens a Debit-Account payment to that card", cubeId: 0 },
   { key: "fin.mot_unit", englishDefault: "MoT Unit", context: "Financial-2525: the label of the Personal Budget's unit dropdown, on the header line at the upper right (MoT = Measure of Time)", cubeId: 0 },
   { key: "fin.chart_expand", englishDefault: "Full screen", context: "Financial-2525: the button at the top right of the REAL-TIME FINANCIALS chart that opens the chart full screen", cubeId: 0 },
   { key: "fin.chart_close", englishDefault: "Close full screen", context: "Financial-2525: the same button while the chart fills the screen; it puts the chart back in the page", cubeId: 0 },

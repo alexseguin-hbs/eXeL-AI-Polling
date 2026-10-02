@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 134 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 135 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -947,6 +947,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.067 shipped and LIVE (Verify Live #2225) — the cockpit: Capital One and USAA cards with his amber/red warnings, paid-from on every withdrawal, card payoff counted once, MoT shorthand, chronological record, edit on the right (FD-82).",
       "commit": "111919f"
+    },
+    {
+      "rev": 135,
+      "date": "2026-10-02",
+      "kind": "decision",
+      "text": "r.068 decision — pay a card where you pay it: a Pay card button on each card and the Pays card picker on every Debit withdrawal; count-once kept (FD-83).",
+      "commit": "929521e"
     }
   ]
 };

@@ -331,6 +331,9 @@ export function FinancialCommandUX1() {
   const chooseType = (k: TxKind | "") => { setTxType(k); setPaidFrom(DEBIT); setPaysCard(""); if (k === "") return; if (k === "deposit") { setSec("A"); setField("A.income_wages"); setRec("paymot"); } else { setSec("B"); setField("B.rent_mortgage"); setRec("once"); } };
   /** Every door opens the ONE folded form with the type blank (r.023); the scroll waits for the form to be on the page. */
   const openForm = () => { if (formOpen) { goTo("fin-transaction-form"); return; } setTxType(""); setRefusal(null); scrollOnOpen.current = true; setFormOpen(true); };
+  // r.068 (addendum 153 + his answer "what reflects reality best"): Pay card opens the one form already set to a Debit-Account
+  // payment in Debt service › Credit Cards that names this card — the amount and the time are his to enter
+  const payCard = (id: string) => { setTxType("withdrawal"); setPaidFrom(DEBIT); setSec("I"); setField("I.cards_student"); setRec("once"); setPaysCard(id); setAmt(""); setRefusal(null); if (formOpen) { goTo("fin-transaction-form"); return; } scrollOnOpen.current = true; setFormOpen(true); };
   const foldForm = () => { setFormOpen(false); setTxType(""); setRefusal(null); };
   const catLabel = (c: BudgetCategory) => t(`fin.cat.${CAT_KEY[c]}`);   // the record's r.006–r.011 entries still print their category
   const fieldLabel = (id: string) => { const f = fieldOf(id); return f ? t(`fin.field.${f.key}`) : id; };
@@ -365,7 +368,7 @@ export function FinancialCommandUX1() {
     const cents = Math.round(Number(amt) * 100);
     const instant = when.trim() ? parseStampCST(when) : at;
     if (instant === null) return setRefusal(t("fin.reason_stamp"));
-    const w: FinTx = { id: `w-${instant}-${cents}-${record.entries.length + 1}`, kind: "withdrawal", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec, ...(paidFrom !== DEBIT ? { paidFrom } : {}), ...(paidFrom === DEBIT && paysCard && sec === "I" ? { paysCard } : {}) };
+    const w: FinTx = { id: `w-${instant}-${cents}-${record.entries.length + 1}`, kind: "withdrawal", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec, ...(paidFrom !== DEBIT ? { paidFrom } : {}), ...(paidFrom === DEBIT && paysCard ? { paysCard } : {}) };
     const v = validateWithdrawal(txs, w);
     // the refusal names the minute (r.023, addendum 39 "check refuse message"): when the money can first move, or when it would run short
     if (!v.ok) return setRefusal(v.reason === "INSUFFICIENT" ? `${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs ?? instant)}` : t("fin.reason_amount"));
@@ -384,8 +387,7 @@ export function FinancialCommandUX1() {
     const cents = Math.round(Number(ed.amt) * 100), instant = parseStampCST(ed.when.trim()), days = ed.days.trim() === "" ? 0 : Number(ed.days);
     if (!(cents > 0) || !(days >= 0)) return setEdRefusal(t("fin.reason_amount"));
     if (instant === null) return setEdRefusal(t("fin.reason_stamp"));
-    const isDebt = (cur.field ?? "").startsWith("I.");
-    const next = correctTx(record, cur.id, { amountCents: cents, memo: ed.memo.trim() || undefined, atMs: instant, motDays: days, ...(cur.kind === "withdrawal" ? { paidFrom: ed.paidFrom === DEBIT ? undefined : ed.paidFrom, paysCard: ed.paidFrom === DEBIT && isDebt && ed.paysCard ? ed.paysCard : undefined } : {}) }, at);
+    const next = correctTx(record, cur.id, { amountCents: cents, memo: ed.memo.trim() || undefined, atMs: instant, motDays: days, ...(cur.kind === "withdrawal" ? { paidFrom: ed.paidFrom === DEBIT ? undefined : ed.paidFrom, paysCard: ed.paidFrom === DEBIT && ed.paysCard ? ed.paysCard : undefined } : {}) }, at);
     if (cur.kind === "withdrawal") {
       const after = replay(next).map(withMonthLaw), mine = after.find((x) => x.id === cur.id)!;
       const v = validateWithdrawal(after.filter((x) => x.id !== cur.id), mine);
@@ -542,7 +544,9 @@ export function FinancialCommandUX1() {
                     </select>
                   </label>
                 )}
-                {txType === "withdrawal" && paidFrom === DEBIT && sec === "I" && (
+                {/* r.068 (addendum 153 "a payment towards CC should … reduce CC BALANCE"): on EVERY Debit withdrawal — you pay a card from
+                    checking whatever you call the line */}
+                {txType === "withdrawal" && paidFrom === DEBIT && !!cards.length && (
                   <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.card_paid")}
                     <select data-fin-pays-card className={PICK} value={paysCard} onChange={(e) => setPaysCard(e.target.value)}>
                       <option value="">{t("fin.card_none")}</option>
@@ -714,7 +718,7 @@ export function FinancialCommandUX1() {
                           <label className="text-[10px] uppercase">{t("fin.when")}<input data-fin-edit-when className={INPUT} value={ed.when} onChange={(v) => setEd({ ...ed, when: v.target.value })} /></label>
                           <label className="text-[10px] uppercase">{t("fin.length")}<input data-fin-edit-days className={INPUT} inputMode="decimal" value={ed.days} onChange={(v) => setEd({ ...ed, days: v.target.value })} /></label>
                           {e.tx.kind === "withdrawal" && !!cards.length && <label className="text-[10px] uppercase">{t("fin.paid_from")}<select data-fin-edit-paid-from className={PICK} value={ed.paidFrom} onChange={(v) => setEd({ ...ed, paidFrom: v.target.value })}><option value={DEBIT}>{t("fin.debit_account")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
-                          {e.tx.kind === "withdrawal" && !!cards.length && ed.paidFrom === DEBIT && (e.tx.field ?? "").startsWith("I.") && <label className="text-[10px] uppercase">{t("fin.card_paid")}<select data-fin-edit-pays-card className={PICK} value={ed.paysCard} onChange={(v) => setEd({ ...ed, paysCard: v.target.value })}><option value="">{t("fin.card_none")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
+                          {e.tx.kind === "withdrawal" && !!cards.length && ed.paidFrom === DEBIT && <label className="text-[10px] uppercase">{t("fin.card_paid")}<select data-fin-edit-pays-card className={PICK} value={ed.paysCard} onChange={(v) => setEd({ ...ed, paysCard: v.target.value })}><option value="">{t("fin.card_none")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
                           <button type="button" data-fin-edit-save onClick={saveEdit} className="h-9 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground">{t("fin.done")}</button>
                           <button type="button" data-fin-edit-cancel onClick={() => setEditId(null)} className="h-9 rounded-md border border-border px-3 text-xs">{t("fin.edit_cancel")}</button>
                         </div>
@@ -724,7 +728,7 @@ export function FinancialCommandUX1() {
 
         {/* r.067 CREDIT CARDS (addenda 142–144): a read view — toggle Capital One / USAA — limit, balance, available credit, the person's
             amber and red levels, and the balance over time on the same chart as REAL-TIME FINANCIALS */}
-        {owner && !!cards.length && <CardsPanel cards={cards} txs={recTxs} now={at} onSave={saveCards} t={t} />}
+        {owner && !!cards.length && <CardsPanel cards={cards} txs={recTxs} now={at} onSave={saveCards} onPay={payCard} t={t} />}
 
         {/* the year as a TABLE, key info in order, PERIHELION FIRST (r.028, addendum 58); months of 30 days (r.046 month law), no 33-day frame */}
         {year && (() => {
@@ -923,7 +927,7 @@ function CloudMark({ saved, size = 18 }: { saved: boolean; size?: number }) {
   );
 }
 /** r.067 THE CARDS PANEL (module-level: the picker law — the 1 s clock never remounts its selects). */
-function CardsPanel({ cards, txs, now, onSave, t }: { cards: Card[]; txs: FinTx[]; now: number; onSave: (c: Card[]) => void; t: (k: string) => string }) {
+function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs: FinTx[]; now: number; onSave: (c: Card[]) => void; onPay: (id: string) => void; t: (k: string) => string }) {
   const [pick, setPick] = useState(cards[0]?.id ?? "");
   const [gear, setGear] = useState(false);
   const [draft, setDraft] = useState({ limit: "", amber: "", red: "", opening: "" });
@@ -951,7 +955,10 @@ function CardsPanel({ cards, txs, now, onSave, t }: { cards: Card[]; txs: FinTx[
     <div data-fin-cards className={SUB}>
       <div className="flex items-center justify-between gap-2">
         <div className={LABEL}>{t("fin.cards_title")}</div>
+        <div className="flex items-center gap-2">
+        <button type="button" data-fin-card-pay onClick={() => onPay(card.id)} className="h-8 shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.card_pay")}</button>
         <button type="button" data-fin-cards-gear aria-expanded={gear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={openGear} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${gear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
+        </div>
       </div>
       <div role="group" aria-label={t("fin.cards_title")} data-fin-card-toggle className="mt-2 flex w-full overflow-hidden rounded-md border border-border text-xs">
         {cards.map((c) => <button key={c.id} type="button" data-fin-card={c.id} aria-pressed={c.id === card.id} onClick={() => { setPick(c.id); setGear(false); }} className={`min-h-[32px] flex-1 border-l border-border first:border-l-0 ${c.id === card.id ? "ring-1 ring-inset ring-primary text-primary" : "text-muted-foreground"}`}>{c.name}</button>)}
