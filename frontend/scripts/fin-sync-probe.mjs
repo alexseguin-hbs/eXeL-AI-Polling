@@ -109,6 +109,7 @@ try {
   }
 
   // ── 2 · KRISHNA: identical cards in jsonb order are not re-sent; a newer rename on another device reaches this one
+  store.rows.clear(); store.log.length = 0;   // a fresh account (rowOf reads the first row of a name)
   {
     const ctx = await context('auth0|sync-probe-krishna');
     const p = await open(ctx);

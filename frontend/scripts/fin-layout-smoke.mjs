@@ -102,7 +102,10 @@ try {
       ok(Math.abs(m.scale - scale) < 0.02, `${w}×${scale}: the page is zoomed as asked (scale ${m.scale.toFixed(2)}) — a check that cannot zoom is not evidence`);
       ok(m.fits, `${w}×${scale}: the full-screen layer is the visible screen (layer ${m.o.join(',')} · visible ${m.L},${m.W})`);
       ok(m.n === 0, `${w}×${scale}: every control of the full screen is inside the visible screen (${m.n} outside${m.out.length ? ' · ' + m.out.join(', ') : ''})`);
-      ok(m.nv === 0 && m.over <= 1, `${w0}×${hgt}×${scale}: nothing of the full screen is below the visible bottom (${m.nv} below · ${m.over} px to scroll${m.outv.length ? ' · ' + m.outv.join(', ') + ' · bottom ' + m.B : ''})`);
+      // under 250 px of visible height (a 320 px-tall landscape screen zoomed ×1.33) the chart sits at its 100 px floor and the rest scrolls inside the layer — said, not passed off as a fit
+      const short = hgt / scale < 250, ch = await p.evaluate(() => document.querySelector('[data-fin-chart-full="1"] canvas[data-rcore-chart]')?.getBoundingClientRect().height ?? 0);
+      if (short) ok(Math.round(ch) <= 101 && m.over > 0, `${w0}×${hgt}×${scale}: a screen under 250 px tall keeps the chart at its 100 px floor and scrolls the rest (chart ${Math.round(ch)} px · ${m.over} px to scroll)`);
+      else ok(m.nv === 0 && m.over <= 1, `${w0}×${hgt}×${scale}: nothing of the full screen is below the visible bottom (${m.nv} below · ${m.over} px to scroll${m.outv.length ? ' · ' + m.outv.join(', ') + ' · bottom ' + m.B : ''})`);
     }
     await ctx.close();
   }

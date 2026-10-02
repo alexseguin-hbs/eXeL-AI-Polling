@@ -1483,16 +1483,16 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   }, [full]);
   // r.073 second pre-push review (Athena — his addendum 165 again, in landscape): the chart takes the height LEFT in the visible screen, never a
   // fixed floor of 300 px (844×390 at rest showed the canvas at 136–436 px of a 390 px screen: dates cut, the legend and the unit picker gone).
-  // Measured after each paint: whatever does not fit comes off the chart, whatever room is left goes to it (floor 140 px, ceiling the screen).
+  // Measured after each paint: whatever does not fit comes off the chart, whatever room is left goes to it (floor 100 px, ceiling the screen).
   const [fitH, setFitH] = useState(0);
   useEffect(() => {
     if (!full) { if (fitH) setFitH(0); return; }
     const box = layerRef.current; if (!box) return;
-    const cur = fitH || Math.max(140, vh - 260);
-    const next = Math.max(140, Math.min(Math.round(vh), Math.round(cur - (box.scrollHeight - box.clientHeight))));
+    const cur = fitH || Math.max(100, vh - 260);
+    const next = Math.max(100, Math.min(Math.round(vh), Math.round(cur - (box.scrollHeight - box.clientHeight))));
     if (!fitH || Math.abs(next - cur) > 2) setFitH(next);
   });
-  const chartH = full ? fitH || Math.max(140, vh - 260) : 300;
+  const chartH = full ? fitH || Math.max(100, vh - 260) : 300;
   const sample = dayTicks(from, to, 6)[0] ?? from;
   return (
     <div ref={layerRef} data-fin-chart data-fin-chart-full={full ? "1" : "0"} role={full ? "dialog" : undefined} aria-modal={full || undefined} aria-label={full ? t("fin.realtime") : undefined} className={full ? "fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden bg-background p-3" : SUB} style={full && vv ? { left: vv.l, top: vv.t, width: vv.w, height: vv.h, right: "auto", bottom: "auto" } : undefined}>
