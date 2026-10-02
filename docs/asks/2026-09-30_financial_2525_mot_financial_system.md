@@ -1143,6 +1143,21 @@
 > "−$2,856.10" dot near 10.02, the tap line (dashed grey) at 2026.11.23 10.18 — `docs/asks/2026-10-02_financial_2525_fb175_span_line.png`)
 > also use solid grey vertical line show 30D when selected or 91D when selected
 
+> (addendum 176, verbatim — 2026-10-02, while r.073's second pre-push fold was being gated; no screenshot)
+> similar to divinity guide, experiences, show QR icon at top that expands into something ai can share.
+
+> (addendum 177, verbatim — 2026-10-02, the same message)
+> Also enable I can add email address (viewer) for sharing with family or friends so they can access read only) of entire financial (no edit mode).  Oauth will validate when they set up account and connect email address only.
+
+> (addendum 178, verbatim — 2026-10-02, the same message, quoting the second review's finding)
+> 2.	Credit-balance card: a card with a negative balance can no longer be edited at all. This regression came in with r.073's strict readers.
+>
+> regarding above, o cross amber alert or yellow alert requires extra approval step by user.  Say something tactful
+
+> (addendum 179, verbatim — 2026-10-02, the same message: his own draft, which he asked NOT to be used as written)
+> my draft (dont say like this)
+> Are you sure you want to go over ?  limits your chance to accrue upside-savungs
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
