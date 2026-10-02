@@ -980,6 +980,23 @@
 >
 > should be shorthand
 
+> (addendum 148, verbatim — 2026-10-02 5:07, with a phone photo of the r.066 chart at 1W: the $2,450 payment accepted, Net
+> $7.8515/hr, close labels −$134.69 left and −$2,470.75 right — `docs/asks/2026-10-02_financial_2525_fb148_r066_live.png`)
+> No this is looking great!
+
+> (addendum 149, verbatim — 2026-10-02, with a phone crop of the boxed day label 2026.10.02 04.06 covering the 10.02 axis label —
+> `docs/asks/2026-10-02_financial_2525_fb149_day_label.jpg`)
+> ensure day label does not cover x axis label.
+>
+> place above x axis with a 5-10 pixel gap above x axis
+
+> (addendum 150, verbatim — 2026-10-02, with the reference picture: a bold-outlined cloud, three rounded bumps, a flat base —
+> `docs/asks/2026-10-02_financial_2525_fb150_cloud.jpg`)
+> ensure cloud raster with checkmark looks like this.
+
+> (his answer, picked in Claude Code — the AsM review asked whether a card payment counts against Available a second time) "No, count
+> once" — the card payment moves money from Debit to the card but does not lower Available again for purchases already counted.
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
