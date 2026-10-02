@@ -772,6 +772,14 @@
 >
 > accrual was working and so was transaction records
 
+> (addendum 114, verbatim — 2026-10-02)
+> STOP WORKING BUDGET( I FIXED ALREADY).  only adjust transactions
+
+> (addendum 115, verbatim — 2026-10-02, the 7:18 screens again, the budget note "Cash, investments, debts, net worth, credit, protection
+> and goals are balances, not per-minute flows — they are not in this budget", the record's "No deposits on the record yet" and "On this
+> phone only — a cloud copy follows once sign-in carries it" — `docs/asks/2026-10-02_financial_2525_fb115_machine_text.png`)
+> and get rid of comouter language of LLM; should be relevant to Human: misc text needs to be adjusted
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
