@@ -728,6 +728,10 @@
 > `docs/asks/2026-10-01_financial_2525_fb104_my_budget_850.png`; asked which budget to re-establish, he answered:)
 > I'll upload mine; you need to add transactions backnin; and ensure oush to supabase
 
+> (addendum 105, verbatim — 2026-10-02)
+> 3924.24 is income plus 320; use that image
+> Update input budget (get numbers from revision before you update with out my knowledge).  ALSO WHERE THE FUCK IS MY EDIT BUTTON AND WHY DO YOU KEEP REMOVING ITEMS THAT ARE IMPLEMENTED ALREADY?
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
