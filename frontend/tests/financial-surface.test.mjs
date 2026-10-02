@@ -371,6 +371,16 @@ ok(/const v = validateRecord\(accrualTxs\(\[\.\.\.recTxs, withMonthLaw\(w\)\]\),
     && (ux.match(/if \(!Number\.isFinite\(lengthDays\(rec, Number\(otherN\), otherUnit\)\)\) return setRefusal\(t\("fin\.reason_length"\)\);/g) || []).length === 2
     && /if \(!\(Number\.isFinite\(days\) && days >= 0\)\) return setEdRefusal\(t\("fin\.reason_length"\)\);/.test(ux),
     "r.071 AsM: the gear line fits the card, the Available figure reads as its amount, the record is built once per record, impossible lengths are refused"); }
+// r.072 (addendum 161 "remove linit from CC", with his r.067 photo): the limit shows nowhere outside a card's settings — the card face
+// carries Balance and Available (r.068) and the cockpit warning now names the balance alone; and the budget's unit header wraps on a
+// narrow phone instead of pushing the page sideways at 320 px
+{ const warn = ux.slice(ux.indexOf("data-fin-card-warning={lv}"), ux.indexOf("</p>;", ux.indexOf("data-fin-card-warning={lv}")));
+  const face = ux.slice(ux.indexOf("function CardsPanel("), ux.indexOf("function CardChart("));
+  const faceNoSettings = face.replace(/\{gear && \([\s\S]*?\n\s{6}\)\}/g, "");
+  ok(/⚠ \{t\(ALERT_WORD\[lv\]\)\} · \{c\.name\} \{usd\(b\)\}$/.test(warn.trim()) && !/limitCents/.test(warn)
+    && /<th className="py-1 text-right">\{UNITS\.find\(\(u\) => u\.key === budgetUnit\)\?\.label\}, \{curMark\}<\/th>/.test(ux)
+    && !/t\("fin\.card_limit"\)\}<\/div><div data-fin-card-limit/.test(faceNoSettings),
+    "r.072 (addendum 161): no limit outside the card's settings — the warning names the balance alone; the budget header wraps at 320 px"); }
 // r.071 AsM fold (Enlil · Enki): the fit is PINNED — a reserve of 0 or 40, an em that ignores the advance, a unit word that grows without
 // widening the reserve, or the three grid figures left at a fixed size (they ran into each other at 320 px and with COP amounts) all go red
 { const fit = fs.readFileSync(path.join(process.cwd(), "lib/financial-2525/fit.ts"), "utf8");

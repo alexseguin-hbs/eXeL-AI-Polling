@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 142 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 143 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1003,6 +1003,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.071 shipped and LIVE (Verify Live #2238) — spending ahead releases early from escrow: Available never goes negative, a correction never brings a negative back, the four figures share one rounding; the figures fit their row and the gear line fits the card; the opened Trinity's labels fit their bands; all three escrow reviewers' findings folded (FD-87, FD-88, FD-89).",
       "commit": "34fa64b"
+    },
+    {
+      "rev": 143,
+      "date": "2026-10-02",
+      "kind": "decision",
+      "text": "r.072 decision — the limit only in a card's settings (the cockpit warning names the balance alone); the budget header wraps at 320 px; the three r.071 questions decided by Master of Thought (FD-90, FD-91).",
+      "commit": "c44b61f"
     }
   ]
 };

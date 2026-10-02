@@ -468,10 +468,11 @@ export function FinancialCommandUX1() {
             </div>
           </div>
           {/* r.067 THE COCKPIT WARNING (addendum 144 "warnings of credit card overspend"; his levels: amber $1,500 · red $2,000): a card at
-              or past a level the person set is named here, in words as well as colour, at the top of the one view */}
+              or past a level the person set is named here, in words as well as colour, at the top of the one view; r.072 (addendum 161
+              "remove limit from CC"): the balance alone — the limit lives only in the card's settings */}
           {owner && cards.map((c) => ({ c, b: cardBalanceAt(c, recTxs, at) })).filter(({ c, b }) => cardLevel(c, b) !== "ok").map(({ c, b }) => {
             const lv = cardLevel(c, b);
-            return <p key={c.id} data-fin-card-warning={lv} className={`mt-2 rounded-md border px-2 py-1 text-xs font-medium ${lv === "amber" ? "border-yellow-500/60 text-yellow-600 dark:text-yellow-400" : "border-red-500/60 text-red-400"}`}>⚠ {t(ALERT_WORD[lv])} · {c.name} {usd(b)} / {usd(c.limitCents)}</p>;
+            return <p key={c.id} data-fin-card-warning={lv} className={`mt-2 rounded-md border px-2 py-1 text-xs font-medium ${lv === "amber" ? "border-yellow-500/60 text-yellow-600 dark:text-yellow-400" : "border-red-500/60 text-red-400"}`}>⚠ {t(ALERT_WORD[lv])} · {c.name} {usd(b)}</p>;
           })}
           {/* r.044 (addendum 93 "Available and Accrual Rate should be same line, same size text"): the two labels share one line,
               the two figures share the next, at the same size */}
@@ -623,9 +624,10 @@ export function FinancialCommandUX1() {
           <p data-fin-budget-purpose className="mt-2 text-xs text-muted-foreground">{t("fin.budget_purpose")}</p>
           {/* the table (addenda 17 + 22 → 31): the budget by KIND — Income · Fixed · Variable (· Transfers) — one row per kind with its total in
               the chosen unit and a chevron; the lines beneath only when opened (edit mode opens all); Net last, red when negative; no letters */}
+          {/* r.072: the unit header wraps when the phone is narrow — at 320 px it no longer pushes the page sideways */}
           <table className="mt-2 w-full font-mono text-xs">
             <thead className="text-left text-[10px] uppercase tracking-wide text-muted-foreground">
-              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="whitespace-nowrap py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}, {curMark}</th></tr>
+              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}, {curMark}</th></tr>
             </thead>
             <tbody>
               {groups.map((g) => (
