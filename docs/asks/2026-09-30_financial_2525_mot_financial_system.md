@@ -732,6 +732,10 @@
 > 3924.24 is income plus 320; use that image
 > Update input budget (get numbers from revision before you update with out my knowledge).  ALSO WHERE THE FUCK IS MY EDIT BUTTON AND WHY DO YOU KEEP REMOVING ITEMS THAT ARE IMPLEMENTED ALREADY?
 
+> (addendum 106, verbatim — 2026-10-02, with a screenshot of THE RECORD · CHAIN VERIFIED · 3: +$3,604.49 Income / Wages (take-home) ·
+> +$320.00 Upside · −$250.66 Auto / Renters / Home — `docs/asks/2026-10-02_financial_2525_fb106_record_three.jpg`)
+> Where are my inputted transactions; no changes should delete entries
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
