@@ -1211,6 +1211,9 @@
 > −$2,450.00 · −$370.00 · −$35.44 · −$32.94 printed over one another — the image reached the conversation only, not the upload folder;
 > the PC page screenshot is `docs/asks/2026-10-02_financial_2525_fb187_pc.png`)
 
+> (addendum 188, verbatim — 2026-10-02)
+> Fix the push; after 12 AsM identify opportunities.  Also, landscape on PC is not full width; please fix just like we did for Security-2525 Mision Planning.  Landscape on phone should also work.
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).

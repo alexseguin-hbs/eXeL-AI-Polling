@@ -8,7 +8,7 @@
   "stamp": "v.000_r.073",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "b5a75b24c226c3a34a506d7bbe5f007c2a847aacee739c6d9d7aa49b0fc5a437",
+  "handoffSha256": "fa9fca3aa1ed58c773aeedfaeb13b48e0e4ef7742cf7d47c0e9e76ff98e24987",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -634,6 +634,11 @@
     "sha256": "d1e84138bffa6c0173b1b5e26e124c6bda0521d478e315d6e837b5fe4dc98c9e",
     "date": "2026-10-02",
     "note": "through addendum 186"
+   },
+   {
+    "sha256": "b5a75b24c226c3a34a506d7bbe5f007c2a847aacee739c6d9d7aa49b0fc5a437",
+    "date": "2026-10-02",
+    "note": "through addendum 187"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
