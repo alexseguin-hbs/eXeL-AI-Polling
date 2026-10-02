@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.067",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "674e3a2a106ca3a31a7394f43e2c376b4d325fbb7c5b995780623292f3433124",
+  "handoffSha256": "38afef8945c4709a9b2d047e45c119b5445c969111d5378892084fcb84741401",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -526,6 +526,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "674e3a2a106ca3a31a7394f43e2c376b4d325fbb7c5b995780623292f3433124",
     "date": "2026-10-02",
     "note": "addendum 153 (the goal: pay off cards, low stress; a card buy raises the card balance, a card payment lowers Available and the card balance; a real-time target)"
+   },
+   {
+    "sha256": "38afef8945c4709a9b2d047e45c119b5445c969111d5378892084fcb84741401",
+    "date": "2026-10-02",
+    "note": "addendum 153 answers (At purchase kept; Pay card button + the picker on every Debit withdrawal)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

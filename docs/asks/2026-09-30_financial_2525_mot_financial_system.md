@@ -1016,6 +1016,11 @@
 > AND a payment towards CC should reduce available and reduce CC BALANCE
 >
 > that way we have eyes on a real-time target of credit card spend (some cards wait 2-3 days to update balance).
+>
+> (his answers, picked in Claude Code — 2026-10-02) When money leaves Available for a card purchase: "At purchase (r.067 now)".
+> How a card payment is entered: "Don what you feel reflects reality best" — read as: a Pay card button on each card that opens
+> the form set to Debit · Debt service › Credit Cards · that card, AND the "Pays card" picker on every Debit withdrawal whatever
+> its field (you pay a card from checking whatever you call the line).
 
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
