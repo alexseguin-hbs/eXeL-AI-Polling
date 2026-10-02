@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.061",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "22d97b3545c0b00dbabbe3cec2431d5f33fbc9451e7d4a6fca41e83e8e8c48e2",
+  "handoffSha256": "198530824ed55724494a07bbd0eee5c3713b80c0dd2d56f911163be8deb60897",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -436,6 +436,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "22d97b3545c0b00dbabbe3cec2431d5f33fbc9451e7d4a6fca41e83e8e8c48e2",
     "date": "2026-10-02",
     "note": "addendum 131 — the Unit dropdown at the chart bottom right"
+   },
+   {
+    "sha256": "198530824ed55724494a07bbd0eee5c3713b80c0dd2d56f911163be8deb60897",
+    "date": "2026-10-02",
+    "note": "addendum 132 — feedback lives in Supabase, read in the easter-egg admin console as Feedback-2525"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

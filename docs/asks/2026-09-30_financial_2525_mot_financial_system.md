@@ -860,6 +860,9 @@
 > (addendum 131, verbatim — 2026-10-02, with the same phone photo of the chart — `docs/asks/2026-10-02_financial_2525_fb131_unit_bottom_right.png`)
 > also place unit drop down $/min on financial chart bottom right
 
+> (addendum 132, verbatim — 2026-10-02, answering where feedback is read)
+> supabase is repo of feedback; accessible by Easter egg unlock in admin console:  Feedback-2525
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
