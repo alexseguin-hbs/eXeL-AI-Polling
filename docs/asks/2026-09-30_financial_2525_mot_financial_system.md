@@ -918,6 +918,10 @@
 > cached page — `docs/asks/2026-10-02_financial_2525_fb140_record_cloud.png`)
 > use better cloud icon; and ensure anything in supabase has improved standard universally accepted icon for cloud icon .  We are still missing edit for transactions
 
+> (addendum 141, verbatim — 2026-10-02 4:31, with a phone photo of the budget's Variable lines —
+> `docs/asks/2026-10-02_financial_2525_fb141_dining_icon.png`)
+> dining and groceries icons are same; maybe generate dining icon with plate and fork/spoon or some other universally accepted meal
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
