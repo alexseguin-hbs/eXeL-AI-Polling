@@ -8,7 +8,7 @@
   "stamp": "v.000_r.073",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "1dd0552b99aebe72e36fe3d4caa743ff5e5dc62af3e23b392fd51f0dfd112559",
+  "handoffSha256": "83be03659fd682186c5324fb9f00cc9025d433b323feda5dded6fc24e54e3533",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -564,6 +564,11 @@
     "sha256": "1dd0552b99aebe72e36fe3d4caa743ff5e5dc62af3e23b392fd51f0dfd112559",
     "date": "2026-10-02",
     "note": "addendum 165 (\"full screen mode with financial chart messes up. not all is legible\" — his 7:20 photo: the full-screen chart cut at both edges)"
+   },
+   {
+    "sha256": "83be03659fd682186c5324fb9f00cc9025d433b323feda5dded6fc24e54e3533",
+    "date": "2026-10-02",
+    "note": "addendum 166 (\"k; thats my feedback for now; off for a morning swim\" — no new ask: addenda 163–165 are his feedback for this round)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
