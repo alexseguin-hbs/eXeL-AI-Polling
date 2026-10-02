@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.069",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "643d5fa6c0bda4ef5151882dadb0e03980ffcb188e7f109bb113f1c3343538f1",
+  "handoffSha256": "0b46963ec9f6547e7a4538bb81b360b04b8a942e2c10b24f433cd624e8da0d71",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -536,6 +536,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "643d5fa6c0bda4ef5151882dadb0e03980ffcb188e7f109bb113f1c3343538f1",
     "date": "2026-10-02",
     "note": "addendum 154 (the card shows Balance and Available; the Limit goes in the card's settings)"
+   },
+   {
+    "sha256": "0b46963ec9f6547e7a4538bb81b360b04b8a942e2c10b24f433cd624e8da0d71",
+    "date": "2026-10-02",
+    "note": "addendum 155 (an Alerts key: red dashes = Red Alert, amber dashes = Amber Alert; as little text on the cards as possible; implement without asking, then SSSES, AsM and Spiral tests)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
