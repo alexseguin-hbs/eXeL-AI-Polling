@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.059",
-  "stamp": "v.000_r.059",
+  "revision": "0.060",
+  "stamp": "v.000_r.060",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "22d97b3545c0b00dbabbe3cec2431d5f33fbc9451e7d4a6fca41e83e8e8c48e2",
@@ -920,6 +920,14 @@ export const FINANCIAL_DOMAIN = {
    "kind": "correction",
    "why": "Addendum 130: \"if transaction occurs at a new date; spending increases and income drops (remember pinch zoom on table shows more dates (30D means cost split into 30 days, not necessarily range of x axis) · use more advanced table from html to js that best supports interactive nature of real-time charts\". The $/min lines now run over a wide range — a split before his first entry to a split past his last — and the chart OPENS on the split window; pinching (or the mouse wheel) shows more or fewer dates and dragging pans, with no figure re-computed: 30D is how each cost is split, not the width of the axis. A transaction on a later date steps the lines at that date (a withdrawal raises spending and lowers net — shown with a $250.66 withdrawal on 10.08). And everything written on the plot is now drawn BY THE CHART ENGINE on its own canvas (a series primitive): the date marks, tilted at the Settings angle and re-chosen for whatever range is in view, and the line-coloured figures beside the selected date's line — so they follow pinch, drag and the finger every frame; the HTML axis and overlay are gone. A tilted date that would run off the left edge is skipped, never cut. No budget figure changes.",
    "commit": "fa17d71",
+   "shipped": "a8e300b"
+  },
+  {
+   "revision": "0.060",
+   "date": "2026-10-02",
+   "kind": "decision",
+   "why": "Addendum 131 (with his phone photo of the chart): \"also place unit drop down $/min on financial chart bottom right\". The chart's Unit dropdown ($/min · /sec · /hr · /day · $) moved from above the span buttons to the bottom right of the chart card, after both the $/min and the $ views; its word lives on as the dropdown's accessible name. Nothing else moved.",
+   "commit": "ac4ba7b",
    "shipped": "PENDING"
   }
  ],

@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 117 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 119 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -828,6 +828,20 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.059 correction — 30D is the split, not the x range: pinch shows more dates; the dates and figures drawn by the chart engine on its canvas.",
       "commit": "fa17d71"
+    },
+    {
+      "rev": 118,
+      "date": "2026-10-02",
+      "kind": "release",
+      "text": "r.059 shipped and LIVE (Verify Live #2211 ✓) — 30D is the split; pinch shows more dates; dates and figures drawn by the chart engine.",
+      "commit": "a8e300b"
+    },
+    {
+      "rev": 119,
+      "date": "2026-10-02",
+      "kind": "decision",
+      "text": "r.060 decision — the chart's Unit dropdown at the card's bottom right (addendum 131).",
+      "commit": "ac4ba7b"
     }
   ]
 };

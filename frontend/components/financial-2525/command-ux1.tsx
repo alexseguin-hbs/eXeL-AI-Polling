@@ -902,11 +902,6 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
       )}
       {/* r.047 (addendum 95 "remove this from charting · instead add toggle similar to 2D/3D"): the span, a segmented row — the
           line above the chart (stamp · amount · length · elapsed) is gone */}
-      <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">{t("fin.unit")}
-        <select data-fin-chart-unit value={unit} onChange={(e) => pickUnit(e.target.value as ChartUnit)} className="h-8 rounded-md border border-border bg-background px-2 font-mono text-xs text-foreground">
-          {CHART_UNITS.map((u) => <option key={u} value={u}>{u === "usd" ? CUR_SYM : `${CUR_SYM}${CHART_RATE_UNITS.find((r) => r.id === u)?.label ?? ""}`}</option>)}
-        </select>
-      </label>
       <div role="group" aria-label={t("fin.chart_span")} data-fin-chart-span className="mt-2 flex w-full overflow-hidden rounded-md border border-border font-mono text-xs">
         {CHART_SPANS.map((sp) => (
           <button key={sp} type="button" data-fin-span={sp} aria-pressed={span === sp} onClick={() => pickSpan(sp)} className={`min-h-[32px] flex-1 border-l border-border first:border-l-0 ${span === sp ? "ring-1 ring-inset ring-primary text-primary" : "text-muted-foreground"}`}>{spanLabel(sp, now)}</button>
@@ -960,6 +955,12 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
         <span style={{ color: C.abundance }}>— {t("fin.released")}</span><span style={{ color: C.intelligence }}>— {t("fin.escrowed")}</span><span>| {t("fin.now")}</span><span style={{ color: C.evolution }}>| {t("fin.withdrawal")}</span>
       </p>
       </>}
+      {/* r.060 (addendum 131 "also place unit drop down $/min on financial chart bottom right"): the unit, at the card's bottom right */}
+      <div data-fin-chart-unit-row className="mt-2 flex justify-end">
+        <select data-fin-chart-unit aria-label={t("fin.unit")} title={t("fin.unit")} value={unit} onChange={(e) => pickUnit(e.target.value as ChartUnit)} className="h-8 rounded-md border border-border bg-background px-2 font-mono text-xs text-foreground">
+          {CHART_UNITS.map((u) => <option key={u} value={u}>{u === "usd" ? CUR_SYM : `${CUR_SYM}${CHART_RATE_UNITS.find((r) => r.id === u)?.label ?? ""}`}</option>)}
+        </select>
+      </div>
     </div>
   );
 }
