@@ -997,6 +997,10 @@
 > (his answer, picked in Claude Code — the AsM review asked whether a card payment counts against Available a second time) "No, count
 > once" — the card payment moves money from Debit to the card but does not lower Available again for purchases already counted.
 
+> (addendum 151, verbatim — 2026-10-02 5:12, with a phone photo of the Transaction Record rows out of date order —
+> `docs/asks/2026-10-02_financial_2525_fb151_chronological.png`)
+> always order transactions in chronological order
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
