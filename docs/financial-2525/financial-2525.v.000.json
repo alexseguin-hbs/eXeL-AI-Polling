@@ -8,7 +8,7 @@
   "stamp": "v.000_r.073",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "2f554477733c454df8da0cbf47d741e9b1da7c96316ee52b3d50ecc30f8bcbba",
+  "handoffSha256": "3e7f715c7e78b40a10d8d59df93591976f64b33c54e9eaee1b91f93e79f91db3",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -604,6 +604,11 @@
     "sha256": "b554851464b7253924e64c8d7d72c4421ec50b331c411534ea19c2285ededfce",
     "date": "2026-10-02",
     "note": "through addendum 175 — what r.073's second pre-push fold was built against"
+   },
+   {
+    "sha256": "2f554477733c454df8da0cbf47d741e9b1da7c96316ee52b3d50ecc30f8bcbba",
+    "date": "2026-10-02",
+    "note": "through addendum 179"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

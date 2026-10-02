@@ -1158,6 +1158,16 @@
 > my draft (dont say like this)
 > Are you sure you want to go over ?  limits your chance to accrue upside-savungs
 
+> (addendum 180, verbatim — 2026-10-02, he repeated addenda 176–177 and then answered two questions)
+> similar to divinity guide, experiences, show QR icon at top that expands into something ai can share.
+>
+> Also enable I can add email address (viewer) for sharing with family or friends so they can access read only) of entire financial (no edit mode).  Oauth will validate when they set up account and connect email address only.
+>
+> His answers: the QR card shares "Link + short summary (Recommended)" — a QR to the page, a copy-link button, and a few plain lines
+> from his figures (Available, accrual rate, budget Net), no account details or transactions · viewer access "Server-checked
+> (Recommended)" — a viewers list in the account store, his page shown only to a signed-in verified email on his list, every write
+> refused; a database change in its own revision.
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
