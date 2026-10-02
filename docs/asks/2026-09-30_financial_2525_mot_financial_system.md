@@ -941,6 +941,10 @@
 > balance and available credit; a payment from Financial lowers the balance, a card purchase raises it; seeded with his $3,000 card
 > at $735.27 and his $1,000 card at $0. · Placement: "Below the record" — its own card under the Transaction Record.
 
+> (addendum 143, verbatim — 2026-10-02 4:46, with a phone photo of the refused $2,450 credit-card payment on 2026.10.01_07.00..00 —
+> `docs/asks/2026-10-02_financial_2525_fb143_card_payment_refused.png`)
+> see current error with credit payment; which In added. Now is credit card section sonIncan manage by card limit (similar to financial chart) its just a read view where Incan see Capital One and USAA card and toggle between two.  this means payment and transaction must have payment selector added for Card vs Debit Account
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).

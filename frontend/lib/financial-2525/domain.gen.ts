@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.065",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "a3c8eaad0b25d1faa2eb5f5907353ea88091ed44fdb8203cbc65383520fc2c39",
+  "handoffSha256": "e84b7cc7d178b23edce86899f74fab01aa5af305da2ea7e32e1ec23a66b4bacd",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -486,6 +486,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "a3c8eaad0b25d1faa2eb5f5907353ea88091ed44fdb8203cbc65383520fc2c39",
     "date": "2026-10-02",
     "note": "addendum 142 + his answers (spend ahead of accrual up to all In Escrow, the rate spread over the rest of the month; a credit-card widget below the record)"
+   },
+   {
+    "sha256": "e84b7cc7d178b23edce86899f74fab01aa5af305da2ea7e32e1ec23a66b4bacd",
+    "date": "2026-10-02",
+    "note": "addendum 143 (the refused card payment; a read-only card section toggling Capital One / USAA; a paid-from selector Card vs Debit Account)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
