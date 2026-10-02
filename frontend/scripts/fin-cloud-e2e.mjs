@@ -27,6 +27,7 @@ const RUN = process.env.RUN_ID || String(Date.now());
 const SUB = `auth0|fin-cloud-e2e-${RUN}`;
 const OWNER = createHash("sha256").update(`fin2525:${SUB}`).digest("hex");   // = ownerKeyFor() in lib/financial-2525/cloud.ts
 const MEMO = `cloud e2e ${RUN}`;
+const CARD = `E2E Card ${[...RUN.slice(-6)].map((d) => 'abcdefghij'[Number(d)] ?? 'x').join('')}`;   // letters only: a name with more than six digits is refused as a card number   // addendum 182: a card added on one device comes back on the next
 const AMOUNT = "123.45";
 const CLIENT = "H8wuT6P2nfm87bvbRjaegoOliLyhPw4K";
 
@@ -101,6 +102,27 @@ try {
   const plan = await rpc("innovation_state_get", { p_owner: OWNER, p_name: "fin-plan" });
   const lines = plan.json?.lines ?? [];
   check("the budget is in the database (fin-plan row)", Array.isArray(lines) && lines.length > 0, `${lines.length} lines`);
+  // 3b · addendum 182 ("ensure these are available on login via supabase to be pushed on PC under same OAuth account"): a budget line he
+  // types and a card he adds reach the account too, and come back on the second device below
+  await A.page.click("[data-fin-budget-edit]");
+  const rent = A.page.locator('[data-fin-plan-amount="B.rent_mortgage"]');
+  await rent.click(); await rent.press("Control+A"); await rent.press("Backspace"); await rent.pressSequentially("777", { delay: 20 }); await rent.blur();
+  await A.page.click("[data-fin-budget-edit]");
+  await A.page.click("[data-fin-cards] summary");
+  await A.page.click("[data-fin-card-add]"); await A.page.waitForSelector("[data-fin-card-add-form]");
+  await A.page.fill('[data-fin-card-new="name"]', CARD); await A.page.fill('[data-fin-card-new="limit"]', "1,000");
+  await A.page.click("[data-fin-card-add-save]");
+  const t1 = Date.now(); let rentAcct = null, cardAcct = false;
+  while (Date.now() - t1 < 20000) {
+    const pl = await rpc("innovation_state_get", { p_owner: OWNER, p_name: "fin-plan" });
+    rentAcct = (pl.json?.lines ?? []).find((l) => l.fieldId === "B.rent_mortgage")?.amountNative ?? null;
+    const cd = await rpc("innovation_state_get", { p_owner: OWNER, p_name: "fin-cards" });
+    cardAcct = (cd.json?.cards ?? []).some((c) => c.name === CARD);
+    if (rentAcct === 777 && cardAcct) break;
+    await A.page.waitForTimeout(500);
+  }
+  check("a typed budget line is in the database (fin-plan · Rent 777)", rentAcct === 777, `Rent reads ${rentAcct}`);
+  check("an added card is in the database (fin-cards row)", cardAcct, cardAcct ? "" : "not within 20 s");
   await A.ctx.close();
 
   // 4 · a new, empty browser, same account: the transaction comes back from the database
@@ -108,6 +130,12 @@ try {
   await B.page.waitForSelector("[data-fin-tx-open]", { timeout: 20000 }).catch(() => {});
   const back = await B.page.waitForFunction((m) => document.body.textContent.includes(m), MEMO, { timeout: 30000 }).then(() => true, () => false);
   check("a new device signed in as the same account shows it (read back)", back);
+  await B.page.click("[data-fin-budget-edit]").catch(() => {});
+  const rentB = await B.page.locator('[data-fin-plan-amount="B.rent_mortgage"]').inputValue().catch(() => "absent");
+  check("…and the budget line typed on the first device (Rent 777)", rentB.replace(/,/g, "") === "777", `reads ${rentB}`);
+  await B.page.click("[data-fin-cards] summary").catch(() => {});
+  const cardB = await B.page.waitForFunction((n) => (document.querySelector("[data-fin-card-toggle]")?.textContent ?? "").includes(n), CARD, { timeout: 15000 }).then(() => true, () => false);
+  check("…and the card added on the first device", cardB);
   await B.ctx.close();
 
   // addendum 128: feedback sent from a sub-site is logged as that sub-site (the row is written; a refusal shows the failure toast)
@@ -130,7 +158,7 @@ try {
   check("run completed", false, String(e && e.message || e).slice(0, 200));
 } finally {
   // 5 · leave nothing behind
-  for (const n of ["fin-record", "fin-plan", "fin-prefs"]) await rpc("innovation_state_del", { p_owner: OWNER, p_name: n }).catch(() => {});
+  for (const n of ["fin-record", "fin-plan", "fin-cards", "fin-prefs"]) await rpc("innovation_state_del", { p_owner: OWNER, p_name: n }).catch(() => {});
   const gone = await rpc("innovation_state_get", { p_owner: OWNER, p_name: "fin-record" }).catch(() => ({ json: "?" }));
   check("test account removed afterwards", gone.json === null);
   await browser.close();
