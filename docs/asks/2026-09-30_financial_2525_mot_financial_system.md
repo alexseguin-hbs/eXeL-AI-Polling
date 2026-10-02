@@ -761,6 +761,10 @@
 > `docs/asks/2026-10-02_financial_2525_fb111_budget_0714.jpg`)
 > here are numbers on budget; I already fixed.  HI IS BETTER
 
+> (addendum 112, verbatim — 2026-10-02)
+> FIX MY LOGGED TRANSACTIONS
+> SAVE AN PUSH TO SUPABASE.  Identify all saving functions and make sure push is made automatically as well as every 12 hours
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
