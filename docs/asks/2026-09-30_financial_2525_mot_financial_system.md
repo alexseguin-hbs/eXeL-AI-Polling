@@ -1178,6 +1178,15 @@
 > `docs/asks/2026-10-02_financial_2525_fb182_1.png` … `_7.png`)
 > ensure these are available on login via supabase to be pushed on PC under same OAuth account
 
+> (addendum 183, verbatim — 2026-10-02, no screenshot)
+> Financial must adjust to full PC OR PHONE in oortrait or landscape similar to security-2525
+
+> (addendum 184, verbatim — 2026-10-02, the same ask repeated with the typo corrected, then his answer to one question)
+> Financial must adjust to full PC OR PHONE in portrait or landscape similar to security-2525
+>
+> His answer (wide layout): "Same column, full width" — keep the single column, every card stretches to the full screen width on a PC
+> and on a phone held either way.
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
