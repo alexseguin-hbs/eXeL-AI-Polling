@@ -1172,6 +1172,12 @@
 > NPR · KHR · MXN · THB · BRL · HNL · COP · CLP — `docs/asks/2026-10-02_financial_2525_fb181_currencies.png`)
 > are these the only currencies we have for 33 language lexicon? If not, add others.
 
+> (addendum 182, verbatim — 2026-10-02 5:16–5:17, with seven phone screenshots of the live r.072 page (SHA d8c7c36): Accrual Units
+> ($176.53 Available, $5.4507/hr), the Personal budget opened (Income 3,924.49 · Fixed 2,211.37 · Variable 1,213.12 · Net 500.00), the
+> Transaction Record (12 rows, scrolled across all columns, the cloud mark green), and the Credit cards (Capital One $735.27, USAA) —
+> `docs/asks/2026-10-02_financial_2525_fb182_1.png` … `_7.png`)
+> ensure these are available on login via supabase to be pushed on PC under same OAuth account
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
