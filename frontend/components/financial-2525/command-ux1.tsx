@@ -208,7 +208,7 @@ export function FinancialCommandUX1() {
   useEffect(() => {
     if (!owner) return;
     const onStorage = (e: StorageEvent) => {
-      if (e.key === recordKey(owner)) { const s = readStored(owner); if (s) { const u = unionRecords(recordRef.current, s); if (u !== recordRef.current) { recordRef.current = u; setRecord(u); } } }
+      if (e.key === recordKey(owner)) { const s = readStored(owner); if (s) { const u = recordRef.current.owner === owner ? unionRecords(recordRef.current, s) : s; if (u !== recordRef.current) { recordRef.current = u; setRecord(u); } } }
       else if (e.key === planKey(owner)) setPlan(planOrSheet(loadPlan(owner)));
       else if (e.key === CARDS_KEY(owner)) { try { setCards(mergeCards(JSON.parse(localStorage.getItem(CARDS_KEY(owner)) ?? "null"))); } catch { /* unreadable: this tab's cards stand */ } }
     };
@@ -289,7 +289,7 @@ export function FinancialCommandUX1() {
     if (!who || !key) return;
     dirty.current = false; setCloudState("saving");
     const { r, p, c } = await readAll(key);
-    if (ownerRef.current !== who) return;   // signed out or switched while reading: nothing of theirs is written here
+    if (ownerRef.current !== who || recordRef.current.owner !== who) return;   // signed out or switched while reading: nothing of theirs is written here
     const out: CloudState[] = [];
     if (r.state === "ok") {
       const m = mergeRecords(recordRef.current, r.data);
