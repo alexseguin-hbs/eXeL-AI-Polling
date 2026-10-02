@@ -39,6 +39,14 @@ export const SECTION_ICON: Record<SectionId, LucideIcon> = {
   A: Banknote, B: House, C: Car, D: ShieldCheck, E: Zap, F: ShoppingBasket, G: HeartPulse, H: Users, I: CreditCard, J: Landmark, K: Briefcase, L: PartyPopper, M: ArrowLeftRight,
   N: Wallet, O: TrendingUp, P: Scale, Q: CircleDollarSign, R: Gauge, S: FileCheck, T: Target,
 };
+/** r.065 (addendum 141 "dining and groceries icons are same; maybe generate dining icon with plate and fork/spoon"): a field may wear
+ *  its own stroke where its section's would read the same as a sibling's — Dining wears the fork and knife (the universal meal sign). */
+export const FIELD_ICON: Record<string, LucideIcon> = { "F.dining_work": UtensilsCrossed };
+export function FieldIcon({ field, section, size = 14, className = "" }: { field: string; section: SectionId; size?: number; className?: string }) {
+  const Icon = FIELD_ICON[field];
+  if (!Icon) return <SectionIcon section={section} size={size} className={className} />;
+  return <Icon size={size} strokeWidth={1.5} aria-hidden className={`inline-block shrink-0 align-[-2px] ${className}`} data-fin-field-icon={field} />;
+}
 export function SectionIcon({ section, size = 14, className = "" }: { section: SectionId; size?: number; className?: string }) {
   const Icon = SECTION_ICON[section] ?? CircleEllipsis;
   return <Icon size={size} strokeWidth={1.5} aria-hidden className={`inline-block shrink-0 align-[-2px] ${className}`} data-fin-sec-icon={section} />;

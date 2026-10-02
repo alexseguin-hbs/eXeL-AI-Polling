@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.064",
-  "stamp": "v.000_r.064",
+  "revision": "0.065",
+  "stamp": "v.000_r.065",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "22c755f393d7d0b22e6add953fdf7a972aa3755794b2d9bb5f783a613d5aea0e",
+  "handoffSha256": "bea72331237b2347f5f5a43362c652f36168e6765ca655132c91efa599bdc2ed",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -471,6 +471,16 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "22c755f393d7d0b22e6add953fdf7a972aa3755794b2d9bb5f783a613d5aea0e",
     "date": "2026-10-02",
     "note": "addendum 139 (the budget unit on the header line, upper right, called MoT Unit)"
+   },
+   {
+    "sha256": "9841c4dfbf89c285deff6abb73982ed4a0e53a19bc3566175b26ab559525ef83",
+    "date": "2026-10-02",
+    "note": "addendum 140 (the standard cloud icon for Supabase saving; the transaction edit is missing on the phone)"
+   },
+   {
+    "sha256": "bea72331237b2347f5f5a43362c652f36168e6765ca655132c91efa599bdc2ed",
+    "date": "2026-10-02",
+    "note": "addendum 141 (Dining needs its own meal icon — fork and knife)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -996,6 +1006,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "Addendum 135: \"i said dont use light wight trding view chart · wheres my expand for financial chart\" (his answer to the expand question: \"Full screen\"). The $/min chart is now drawn by our own canvas engine (components/2525-core/rcore-chart.tsx, no third-party chart library): the same three step lines on one left value scale, two-finger pinch and wheel zoom, drag to pan, a tap pins a day with its figures and boxed date, the dates tilted per Settings in their own strip, withdrawal marks; the lightweight-charts dependency and its credit line are removed. Addendum 137 (folded in before shipping): \"remove: Net by 07 +$3,893.14 · also remove light weight charts trading view label\" — the Net-by figure under the chart is removed (the credit label was already gone). An expand button at the top right of REAL-TIME FINANCIALS opens the card full screen (the chart grows to fill it); the same button, now an X, or Escape, puts it back. Correction of r.056: the TradingView pick recorded there is withdrawn by the operator. No budget figure changes.",
    "commit": "f112b36",
    "shipped": "d418a89"
+  },
+  {
+   "revision": "0.065",
+   "date": "2026-10-02",
+   "kind": "decision",
+   "why": "Addenda 136 · 138 · 139. (136) Every deposit and spend draws a very thin dotted vertical line on the $/min chart; spend dots that sit close keep their own dots and move their labels around them — two: left of the first, right of the second; three: top-left, bottom-centre, top-right; four: the four corners — and only dots that actually overlap (usually zoomed out) merge into one dot whose label is their sum (−$14.69 and −$20.75 → −$35.44). (138) In the orbital (A.B..C) view the span buttons are A.B..C only — 1X · 75 · 300 · 900 · 3600 A of the planet's revolution (week · month · quarter · year), never days or calendar words; the + 1 h − row under the spans is removed (two fingers still widen or narrow the live window). (139) The Personal Budget's unit dropdown sits on the header line at the upper right, labelled MoT Unit (supersedes addendum 21's full-width row). (140) The record's edit pencil (r.062) sat off the right edge of the phone — it now leads every row; the Supabase cloud mark is the standard cloud-with-check (saved to your account) / cloud-with-slash (not yet). (141) Dining wore the groceries basket; it now wears the fork and knife, the universal meal sign. No budget figure changes.",
+   "commit": "d8370da",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2549,6 +2567,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The R-CORE chart is our own canvas engine — no TradingView / lightweight-charts; the chart card has a full-screen expand with a close button (and Escape).",
    "status": "OPERATOR",
    "basis": "addendum 135 + his answer \"Full screen\"; supersedes the engine pick of r.056"
+  },
+  {
+   "id": "FD-80",
+   "decision": "Chart marks: a thin dotted line at every transaction; close spend labels placed around their dots (2: left/right · 3: top-left/bottom-centre/top-right · 4: the four corners); merged into one summed label only when the dots overlap. Orbital spans are A.B..C only (1X · 75 · 300 · 900 · 3600). The budget unit is MoT Unit on the header line. The record's edit pencil leads each row; the cloud mark is cloud-with-check / cloud-with-slash.",
+   "status": "OPERATOR",
+   "basis": "addenda 136 · 138 · 139 · 140 · 141"
   }
  ],
  "reviews": [

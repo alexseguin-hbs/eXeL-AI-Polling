@@ -3024,6 +3024,7 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.chart_span", englishDefault: "Span", context: "Financial-2525: accessible name of the chart's span toggle (1x instant · 1W · 1M standard month · 30D · 91D · the year); every transaction is drawn spread over the picked span as $/min", cubeId: 0 },
   { key: "fin.currency", englishDefault: "Currency", context: "Financial-2525: label of the currency picker in the Accrual Units settings — a label only, the amounts are not converted", cubeId: 0 },
   { key: "fin.amount_col", englishDefault: "Amount", context: "Financial-2525: Transaction Record column header before the currency mark (\"Amount, $\")", cubeId: 0 },
+  { key: "fin.mot_unit", englishDefault: "MoT Unit", context: "Financial-2525: the label of the Personal Budget's unit dropdown, on the header line at the upper right (MoT = Measure of Time)", cubeId: 0 },
   { key: "fin.chart_expand", englishDefault: "Full screen", context: "Financial-2525: the button at the top right of the REAL-TIME FINANCIALS chart that opens the chart full screen", cubeId: 0 },
   { key: "fin.chart_close", englishDefault: "Close full screen", context: "Financial-2525: the same button while the chart fills the screen; it puts the chart back in the page", cubeId: 0 },
   { key: "fin.edit_tx", englishDefault: "Edit transaction", context: "Financial-2525: the pencil on a recorded transaction, and the title of its editor (the change is appended; the original stays)", cubeId: 0 },

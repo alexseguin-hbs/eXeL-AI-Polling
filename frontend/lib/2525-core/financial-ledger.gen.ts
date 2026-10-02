@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 128 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 129 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -905,6 +905,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.064 shipped and LIVE (Verify Live #2219) — our own canvas chart, no TradingView; full-screen expand; Net by removed (FD-79).",
       "commit": "d418a89"
+    },
+    {
+      "rev": 129,
+      "date": "2026-10-02",
+      "kind": "decision",
+      "text": "r.065 decision — chart marks (dotted lines, 2/3/4 label placement, merge on overlap); orbital spans in A.B..C only; + / − row removed; budget MoT Unit on the header line; edit pencil first in each record row; standard cloud icon; Dining fork-and-knife (FD-80).",
+      "commit": "d8370da"
     }
   ]
 };

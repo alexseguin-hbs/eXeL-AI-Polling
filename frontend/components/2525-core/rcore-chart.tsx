@@ -17,7 +17,9 @@
 import { useEffect, useRef } from "react";
 
 export interface RCoreLine { id: string; color: string; points: { t: number; v: number }[]; step?: boolean; dashed?: boolean; width?: 1 | 2 | 3 }
-export interface RCoreMark { t: number; color: string; text?: string }
+/** A transaction on the chart (addendum 136): every one draws a very thin dotted vertical line; `dot: false` draws only the line
+ *  (deposits), otherwise a dot with its label. `value` lets dots that overlap be summed into one label (`formatMarkSum`). */
+export interface RCoreMark { t: number; color: string; text?: string; value?: number; dot?: boolean }
 export interface RCoreFigure { color: string; text: string }
 export type RCoreAngle = 0 | 30 | 45 | 90;
 export interface RCoreChartProps {
@@ -33,6 +35,7 @@ export interface RCoreChartProps {
   readout?: (ms: number) => RCoreFigure[];
   readoutAt?: number;
   formatSelected?: (ms: number) => string;  // the selected instant's own label, boxed on the date strip (addendum 134)
+  formatMarkSum?: (sum: number) => string;  // the label of dots merged because they overlap (addendum 136)
   ariaLabel: string;
 }
 
@@ -83,15 +86,58 @@ export function valueAt(points: { t: number; v: number }[], ms: number, step = t
   return step || !b ? a.v : a.v + ((ms - a.t) / (b.t - a.t)) * (b.v - a.v);
 }
 
+export interface MarkDot { x: number; y: number; text: string; w: number; value?: number; color: string }
+export interface MarkLabel { x: number; y: number; dotX: number; dotY: number; text: string; color: string; align: "left" | "right" | "center"; base: "bottom" | "top" | "middle"; merged: number }
+/** THE MARK LAYOUT (addendum 136), pure. Dots that actually overlap (centres closer than two radii — usually zoomed out) become ONE
+ *  dot with one label (their values summed). Dots that are only close (their centred labels would collide) keep their own dots and
+ *  their labels move around them: two → left of the first, right of the second; three → top-left, bottom-centre, top-right; four →
+ *  top-left, bottom-left, bottom-right, top-right (a longer run is laid out four at a time). One alone sits centred above its dot. */
+export function layoutMarks(dots: MarkDot[], r: number, sum?: (v: number) => string): MarkLabel[] {
+  const sorted = [...dots].sort((a, b) => a.x - b.x);
+  // 1 · merge the dots that overlap
+  const merged: (MarkDot & { n: number })[] = [];
+  for (const d of sorted) {
+    const last = merged[merged.length - 1];
+    if (last && Math.hypot(d.x - last.x, d.y - last.y) < 2 * r) {
+      const n = last.n + 1, both = last.value !== undefined && d.value !== undefined && !!sum;
+      const value = both ? (last.value as number) + (d.value as number) : undefined;
+      merged[merged.length - 1] = { x: (last.x * last.n + d.x) / n, y: Math.min(last.y, d.y), w: last.w, color: last.color, n, value,
+        text: both ? (sum as (v: number) => string)(value as number) : `${last.text} ${d.text}` };
+    } else merged.push({ ...d, n: 1 });
+  }
+  // 2 · runs of dots whose centred labels would touch
+  const runs: (typeof merged)[] = [];
+  for (const d of merged) {
+    const run = runs[runs.length - 1], prev = run?.[run.length - 1];
+    if (prev && d.x - prev.x < (prev.w + d.w) / 2 + 4 && run.length < 4) run.push(d); else runs.push([d]);
+  }
+  const g = r + 2;
+  const at = (d: (typeof merged)[number], where: "top" | "left" | "right" | "tl" | "tr" | "bc" | "bl" | "br"): MarkLabel => {
+    const base = { dotX: d.x, dotY: d.y, text: d.text, color: d.color, merged: d.n };
+    switch (where) {
+      case "left": return { ...base, x: d.x - g - 1, y: d.y, align: "right", base: "middle" };
+      case "right": return { ...base, x: d.x + g + 1, y: d.y, align: "left", base: "middle" };
+      case "tl": return { ...base, x: d.x - g, y: d.y - r, align: "right", base: "bottom" };
+      case "tr": return { ...base, x: d.x + g, y: d.y - r, align: "left", base: "bottom" };
+      case "bc": return { ...base, x: d.x, y: d.y + g, align: "center", base: "top" };
+      case "bl": return { ...base, x: d.x - g, y: d.y + r, align: "right", base: "top" };
+      case "br": return { ...base, x: d.x + g, y: d.y + r, align: "left", base: "top" };
+      default: return { ...base, x: d.x, y: d.y - g - 1, align: "center", base: "bottom" };
+    }
+  };
+  const SLOTS: Record<number, ("top" | "left" | "right" | "tl" | "tr" | "bc" | "bl" | "br")[]> = { 1: ["top"], 2: ["left", "right"], 3: ["tl", "bc", "tr"], 4: ["tl", "bl", "br", "tr"] };
+  return runs.flatMap((run) => run.map((d, i) => at(d, SLOTS[run.length][i])));
+}
+
 function cssColor(el: HTMLElement, prop: string, fallback: string): string {
   try { const v = getComputedStyle(el).getPropertyValue(prop).trim(); return v ? (v.startsWith("#") || v.startsWith("rgb") || v.startsWith("hsl") ? v : `hsl(${v})`) : fallback; } catch { return fallback; }
 }
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
-export function RCoreChart({ lines, marks = [], height = 280, initialRange, formatValue, ticksFor, formatTick, angle = 0, tall = false, readout, readoutAt, formatSelected, ariaLabel }: RCoreChartProps) {
+export function RCoreChart({ lines, marks = [], height = 280, initialRange, formatValue, ticksFor, formatTick, angle = 0, tall = false, readout, readoutAt, formatSelected, formatMarkSum, ariaLabel }: RCoreChartProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const live = useRef({ lines, marks, height, formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt, formatSelected });
-  live.current = { lines, marks, height, formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt, formatSelected };
+  const live = useRef({ lines, marks, height, formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt, formatSelected, formatMarkSum });
+  live.current = { lines, marks, height, formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt, formatSelected, formatMarkSum };
   const view = useRef<{ from: number; to: number } | null>(null);
   const cross = useRef<number | null>(null);
   const pinned = useRef<number | null>(null);   // addendum 134 "click on map to see a specific day": a tap pins the day until the next tap
@@ -158,13 +204,26 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
         g.stroke();
       }
       g.setLineDash([]);
-      // the marks (one-time withdrawals): a dot above the first line at that instant
+      // the transactions (addendum 136): a very thin dotted vertical line at every one, deposits and spends alike
+      g.save(); g.lineWidth = 0.75; g.setLineDash([1, 3]); g.globalAlpha = 0.7;
       for (const m of p.marks) {
         if (m.t < v.from || m.t > v.to) continue;
+        const x = Math.round(X(m.t)) + 0.5;
+        g.strokeStyle = m.color; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, plotH); g.stroke();
+      }
+      g.restore();
+      // their dots and labels: overlapping dots merge into one, close ones place their labels around them
+      g.font = `10px ${MONO}`;
+      const R = 3.5, dots: MarkDot[] = [];
+      for (const m of p.marks) {
+        if (m.dot === false || m.t < v.from || m.t > v.to) continue;
         const val = valueAt(pts, m.t, p.lines[0]?.step !== false); if (val === null) continue;
-        const x = X(m.t), y = Math.max(6, Y(val) - 10);
-        g.fillStyle = m.color; g.beginPath(); g.arc(x, y, 3.5, 0, Math.PI * 2); g.fill();
-        if (m.text) { g.font = `10px ${MONO}`; g.textAlign = "center"; g.textBaseline = "bottom"; g.fillText(m.text, x, y - 5); }
+        const text = m.text ?? "";
+        dots.push({ x: X(m.t), y: Math.max(16, Y(val) - 10), text, w: g.measureText(text).width, value: m.value, color: m.color });
+      }
+      for (const lb of layoutMarks(dots, R, p.formatMarkSum)) {
+        g.fillStyle = lb.color; g.beginPath(); g.arc(lb.dotX, lb.dotY, R, 0, Math.PI * 2); g.fill();
+        if (lb.text) { g.textAlign = lb.align; g.textBaseline = lb.base; g.fillText(lb.text, lb.x, lb.y); }
       }
       g.restore();
       // the selected instant: the finger's (solid), the tapped day or now (dashed) — and its figures beside the line
