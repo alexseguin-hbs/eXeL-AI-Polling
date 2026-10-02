@@ -4,11 +4,11 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.063",
-  "stamp": "v.000_r.063",
+  "revision": "0.064",
+  "stamp": "v.000_r.064",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "7b25e80c17145981e35568b36c6769c62cb3e459d642857f698cc78bed116e1b",
+  "handoffSha256": "6009cc3e3851f3312396fb0b3d23454d6d7ae1bf23bca5737117df82549ac1b4",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -429,6 +429,11 @@
     "sha256": "7b25e80c17145981e35568b36c6769c62cb3e459d642857f698cc78bed116e1b",
     "date": "2026-10-02",
     "note": "addendum 135 — no TradingView chart; full-screen expand; feedback on every sub-site tagged to its page"
+   },
+   {
+    "sha256": "6009cc3e3851f3312396fb0b3d23454d6d7ae1bf23bca5737117df82549ac1b4",
+    "date": "2026-10-02",
+    "note": "addenda 136 (chart marks: dotted lines, label placement, merge when dots overlap) + 137 (remove Net by)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -945,6 +950,14 @@
    "kind": "decision",
    "why": "Addendum 134 (with his 9:09 photo of the chart): \"i need to be able to click on map to see a specific day\". A tap (or click) on the $/min chart now PINS that day: its three figures stay beside the line and its date and time (CST, or the A.B..C position in MoT mode) are drawn boxed on the date strip under the line, until the next tap moves it; dragging a finger still reads any instant live. Drawn by the chart engine on its canvas, so it follows pinch and pan. (His photo shows an earlier build — the boxed Income/Spending/Net readout was retired in r.058; a reload brings the current page.)",
    "commit": "da61bdc",
+   "shipped": "1970121"
+  },
+  {
+   "revision": "0.064",
+   "date": "2026-10-02",
+   "kind": "correction",
+   "why": "Addendum 135: \"i said dont use light wight trding view chart · wheres my expand for financial chart\" (his answer to the expand question: \"Full screen\"). The $/min chart is now drawn by our own canvas engine (components/2525-core/rcore-chart.tsx, no third-party chart library): the same three step lines on one left value scale, two-finger pinch and wheel zoom, drag to pan, a tap pins a day with its figures and boxed date, the dates tilted per Settings in their own strip, withdrawal marks; the lightweight-charts dependency and its credit line are removed. Addendum 137 (folded in before shipping): \"remove: Net by 07 +$3,893.14 · also remove light weight charts trading view label\" — the Net-by figure under the chart is removed (the credit label was already gone). An expand button at the top right of REAL-TIME FINANCIALS opens the card full screen (the chart grows to fill it); the same button, now an X, or Escape, puts it back. Correction of r.056: the TradingView pick recorded there is withdrawn by the operator. No budget figure changes.",
+   "commit": "f112b36",
    "shipped": "PENDING"
   }
  ],
@@ -2493,6 +2506,12 @@
    "decision": "A recorded transaction is edited by appending a correction entry (amount, memo, day and time, length); the original stays on the record and the latest correction is what every figure reads; the type cannot change.",
    "status": "OPERATOR",
    "basis": "addendum 133 + the r.057 plan (append-only correction, original kept)"
+  },
+  {
+   "id": "FD-79",
+   "decision": "The R-CORE chart is our own canvas engine — no TradingView / lightweight-charts; the chart card has a full-screen expand with a close button (and Escape).",
+   "status": "OPERATOR",
+   "basis": "addendum 135 + his answer \"Full screen\"; supersedes the engine pick of r.056"
   }
  ],
  "reviews": [

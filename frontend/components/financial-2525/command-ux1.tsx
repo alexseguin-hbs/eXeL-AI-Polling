@@ -19,7 +19,7 @@
  * modularly adjust"). A.B..C is the standard for all planets; the glass converts to the planet's LTU.
  */
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Check, ChevronDown, ChevronRight, Clock, Cloud, CloudOff, Orbit, Pencil, Settings, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Clock, Cloud, CloudOff, Maximize2, Orbit, Pencil, Settings, X } from "lucide-react";
 import { CategoryIcon, SectionIcon } from "@/components/financial-2525/category-icon";   // addendum 19: every category carries its icon; r.012: every section too
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -33,7 +33,7 @@ import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { versionStamp } from "@/lib/2525-core/version-stamp";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
-import { RCoreChart } from "@/components/2525-core/rcore-chart";   // r.056 (addenda 124 · 127): the shared R-CORE chart engine — the $/min view
+import { RCoreChart } from "@/components/2525-core/rcore-chart";   // r.056 (addenda 124 · 127): the shared R-CORE chart; r.064 (addendum 135): our own canvas engine, no TradingView
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { FINANCIAL_LEDGER } from "@/lib/2525-core/financial-ledger.gen";
 import { FINANCIAL_DOMAIN as SRC } from "@/lib/financial-2525/domain.gen";
@@ -48,7 +48,7 @@ import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } 
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, correctTx, correctionsOf, type FinRecord } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
-import { rateSeries, rateAtSeries, windowStart, overSpan, netBetween, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
+import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, cloudGet, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -801,7 +801,7 @@ const rateMoney = (centsPerUnit: number): string => { const d = Math.abs(centsPe
 /** r.056 THE $/MIN VIEW (addenda 117 · 122 · 123 · 124 · 127): income, spending and net per minute on the shared R-CORE chart, the
  *  window the span's (starting at the current pay cycle so 30D reads the month to its end), the numbers in the upper right following
  *  the finger (Security-2525 style), one-time withdrawals as marks. Module-level (the picker law: the 1 s clock never remounts it). */
-function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, angle, planet, t }: { txs: FinTx[]; now: number; span: ChartSpan; liveHours: number; unit: RateUnitId; showAbc: boolean; dateFmt: DateFmt; angle: DateAngle; planet: PlanetLtuRow; t: (k: string) => string }) {
+function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, angle, planet, t, height = 300 }: { txs: FinTx[]; now: number; span: ChartSpan; liveHours: number; unit: RateUnitId; showAbc: boolean; dateFmt: DateFmt; angle: DateAngle; planet: PlanetLtuRow; t: (k: string) => string; height?: number }) {
   const dayMs = daySecOf(planet) * 1000;
   const spanMs = span === "1x" ? liveHours * 3600 * 1000 : spanDays(span, now) * dayMs;
   // the window: from the start of the current pay cycle (the latest deposit start at or before now, inside one span), else a third back
@@ -817,7 +817,6 @@ function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, angle, pl
   const firstAt = txs.length ? Math.min(...txs.map((x) => x.atMs)) : from, lastAt = txs.length ? Math.max(...txs.map((x) => x.atMs)) : to;
   const dataFrom = Math.min(from, firstAt) - spanMs, dataTo = Math.max(to, lastAt + spanMs) + spanMs;
   const pts = useMemo(() => rateSeries(spread, dataFrom, dataTo), [spread, dataFrom, dataTo]);
-  const netEndCents = netBetween(pts, from, to);
   const nowInside = !(minuteNow < from) && !(minuteNow > to);
   const marks = txs.filter((w) => w.kind === "withdrawal").map((w) => ({ t: w.atMs, color: C.evolution, text: `−${CUR_SYM}${num2(w.amountCents)}` }));   // each withdrawal's entry, marked
   const unitLabel = CHART_RATE_UNITS.find((u) => u.id === unit)?.label ?? "/min";
@@ -833,13 +832,13 @@ function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, angle, pl
     <div data-fin-rate-view className="relative mt-2">
       {/* addendum 129: FIGURES ONLY, in their lines' colours, beside the selected date's vertical line (now, or under the finger); the
           dates tilt at the Settings angle */}
-      <RCoreChart height={300} ariaLabel={t("fin.chart_tap")} angle={angle} tall={!showAbc && dateFmt === "full"} ticksFor={ticksFor} formatTick={tick}
+      <RCoreChart height={height} ariaLabel={t("fin.chart_tap")} angle={angle} tall={!showAbc && dateFmt === "full"} ticksFor={ticksFor} formatTick={tick}
         initialRange={{ from, to }} readoutAt={nowInside ? minuteNow : from} readout={figuresAt} formatSelected={(ms) => (showAbc ? fmtMot(positionInYear(ms, planet.yearAnchor, planet.yearDays).abc) : fmtStampCST(ms).slice(0, 16).replace("_", " "))}
         lines={[{ id: "income", color: C.abundance, points: line("income"), step: true }, { id: "spending", color: C.evolution, points: line("spending"), step: true }, { id: "net", color: C.temporal, points: line("net"), step: true, width: 3 }]}
         marks={marks} formatValue={(v) => rateMoney(v * 100)} />
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
         <span style={{ color: C.abundance }}>— {t("fin.income")}</span><span style={{ color: C.evolution }}>— {t("fin.spending")}</span><span style={{ color: C.temporal }}>— {t("fin.net")}</span>
-        {span !== "1x" && <span data-fin-rate-net-by className={netEndCents < 0 ? "text-red-500" : "text-green-500"}>{t("fin.net_by")} {showAbc ? fmtMot(positionInYear(to, planet.yearAnchor, planet.yearDays).abc).split(".")[0] : dateLabel(to, dateFmt)} {netEndCents < 0 ? "−" : "+"}{CUR_SYM}{num2(netEndCents)}</span>}
+        {/* r.064 (addendum 137 "remove: Net by 07 +$3,893.14"): the Net-by figure is gone from the legend */}
       </p>
     </div>
   );
@@ -912,11 +911,25 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   // TAP OR DRAG ON THE CHART → the day and time at that point (addendum 42 "find way to click on to see day / time stamp")
   const probeAt = (e: { clientX: number; currentTarget: SVGSVGElement }) => { const r = e.currentTarget.getBoundingClientRect(); if (!(r.width > 0)) return; const vx = ((e.clientX - r.left) / r.width) * W; setProbe(from + Math.max(0, Math.min(1, (vx - PL) / (W - PL - P))) * len); };
   const [gear, setGear] = useState(false);
+  // r.064 (addendum 135 "wheres my expand for financial chart"; his answer "Full screen"): the card fills the screen, a ✕ brings it back
+  const [full, setFull] = useState(false);
+  const [vh, setVh] = useState(800);
+  useEffect(() => {
+    if (!full) return;
+    const size = () => setVh(window.innerHeight || 800); size();
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setFull(false); };
+    const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
+    window.addEventListener("resize", size); window.addEventListener("keydown", esc);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("resize", size); window.removeEventListener("keydown", esc); };
+  }, [full]);
   const sample = dayTicks(from, to, 6)[0] ?? from;
   return (
-    <div data-fin-chart className={SUB}>
+    <div data-fin-chart data-fin-chart-full={full ? "1" : "0"} className={full ? "fixed inset-0 z-[60] overflow-y-auto bg-background p-3" : SUB}>
       {/* r.028 (addendum 58): no "Money as time — this MoT" phrase; Planet on the LEFT, the Clock · MoT toggle and the gear on the RIGHT */}
-      <div className={LABEL}>{t("fin.realtime")}</div>   {/* r.041 (addendum 76 "call this: REAL-TIME FINANCIALS"); the elapsed time stays in the line below */}
+      <div className="flex items-center justify-between gap-2">
+        <div className={LABEL}>{t("fin.realtime")}</div>
+        <button type="button" data-fin-chart-expand aria-pressed={full} aria-label={full ? t("fin.chart_close") : t("fin.chart_expand")} title={full ? t("fin.chart_close") : t("fin.chart_expand")} onClick={() => setFull((f) => !f)} className="flex h-8 w-9 items-center justify-center rounded-md border border-border text-muted-foreground">{full ? <X size={16} strokeWidth={1.5} aria-hidden /> : <Maximize2 size={16} strokeWidth={1.5} aria-hidden />}</button>
+      </div>   {/* r.041 (addendum 76 "call this: REAL-TIME FINANCIALS"); the elapsed time stays in the line below */}
       <div data-fin-chart-controls className="mt-2 flex items-center justify-between gap-2">
         {selector}
         <div className="flex items-center gap-2">
@@ -956,7 +969,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
           <button type="button" data-fin-zoom="wide" aria-label={t("fin.zoom_wide")} title={t("fin.zoom_wide")} disabled={zoom === LIVE_WINDOWS.length - 1} onClick={() => widen(1)} className="flex h-8 w-9 items-center justify-center rounded-md border border-border disabled:opacity-40">−</button>
         </div>
       )}
-      {rate && <RateView txs={txs.length ? txs : [tx]} now={now} span={span} liveHours={LIVE_WINDOWS[zoom].h} unit={unit as RateUnitId} showAbc={showAbc} dateFmt={dateFmt} angle={angle} planet={planet} t={t} />}
+      {rate && <RateView txs={txs.length ? txs : [tx]} now={now} span={span} liveHours={LIVE_WINDOWS[zoom].h} unit={unit as RateUnitId} showAbc={showAbc} dateFmt={dateFmt} angle={angle} planet={planet} t={t} height={full ? Math.max(300, vh - 260) : 300} />}
       {!rate && <>
       <p data-fin-chart-probe className="mt-2 min-h-[16px] font-mono text-xs text-foreground">{probe !== null && (showAbc ? fmtMot(positionInYear(probe, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(probe)} CST`)}</p>
       {/* r.053 (addendum 110 "Like a stock chart I should be able to click and see values at that day/time"): the values at the tapped point */}
