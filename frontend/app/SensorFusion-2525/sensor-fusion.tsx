@@ -109,7 +109,7 @@ export default function SensorFusion() {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
-        video: { facingMode: nextFacing },
+        video: true,
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -168,7 +168,7 @@ export default function SensorFusion() {
 
   if (step === "login") {
     return withHistory(
-      <main className={styles.page}>
+      <main className={`${styles.page} mx-auto w-full max-w-3xl px-4 pb-20 pt-3 sm:pb-10 lg:max-w-none`}>
         <div className={styles.wrap}>
           <p className={styles.kicker}>MODULAR: EDGE</p>
           <h1>Sensor Fusion · 2525</h1>
@@ -192,7 +192,7 @@ export default function SensorFusion() {
 
   if (step === "device") {
     return withHistory(
-      <main className={styles.page}>
+      <main className={`${styles.page} mx-auto w-full max-w-3xl px-4 pb-20 pt-3 sm:pb-10 lg:max-w-none`}>
         <div className={styles.wrap}>
           <p className={styles.kicker}>MODULAR: EDGE</p>
           <h1>Sensor Fusion · 2525</h1>
@@ -234,7 +234,7 @@ export default function SensorFusion() {
   const current = MODELS.find((item) => item.id === model);
 
   return withHistory(
-    <main className={styles.page}>
+    <main className={`${styles.page} mx-auto w-full max-w-3xl px-4 pb-20 pt-3 sm:pb-10 lg:max-w-none`}>
       <div className={styles.wrap}>
         <div className={styles.row}>
           <div style={{ flex: 1 }}>

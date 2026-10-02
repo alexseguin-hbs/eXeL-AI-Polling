@@ -77,7 +77,7 @@ export function explainCamera(err: unknown): string {
   if (name === "NotAllowedError" || name === "PermissionDeniedError") {
     return lower.includes("policy")
       ? "This page is not allowed to open the camera yet."
-      : "The camera was not allowed. Say yes when the browser asks, then try again.";
+      : "This PC blocked the camera. Click the lock icon in the address bar, set Camera to Allow, then press SENSOR 1 again.";
   }
   if (name === "NotFoundError" || name === "DevicesNotFoundError") return "No camera was found here.";
   if (name === "NotReadableError" || name === "TrackStartError") return "The camera is busy with another app. Close that app and try again.";
