@@ -1075,6 +1075,11 @@
 >
 > Im trying to change 11.01 transaction of 320 upside va wages, but cant edit that field
 
+> (addendum 165, verbatim — 2026-10-02, with a phone screenshot taken at 7:20 of the chart in full-screen mode (REAL-TIME FINANCIALS ·
+> 91D · $/day): the title, "Planet", the "1x" button, the y-axis figures and "— Income" are cut at the left edge; "365D", the top-right
+> button, the "$/day" box and the "2027.02.08 20…" day label are cut at the right — `docs/asks/2026-10-02_financial_2525_fb165_fullscreen_chart.png`)
+> full screen mode with financial chart messes up. not all is legible
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).

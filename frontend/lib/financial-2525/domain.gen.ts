@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.073",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "810b88d9ba3cc8e34d784d18bd38936eb820d13ec7356a37aa6fa5a7c367f1ce",
+  "handoffSha256": "1dd0552b99aebe72e36fe3d4caa743ff5e5dc62af3e23b392fd51f0dfd112559",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -586,6 +586,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "810b88d9ba3cc8e34d784d18bd38936eb820d13ec7356a37aa6fa5a7c367f1ce",
     "date": "2026-10-02",
     "note": "addendum 164 (\"all fields in edit of Transaction record should be possible to edit\" — he could not change a 320 deposit from Upside to Wages; his phone still showed r.070)"
+   },
+   {
+    "sha256": "1dd0552b99aebe72e36fe3d4caa743ff5e5dc62af3e23b392fd51f0dfd112559",
+    "date": "2026-10-02",
+    "note": "addendum 165 (\"full screen mode with financial chart messes up. not all is legible\" — his 7:20 photo: the full-screen chart cut at both edges)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
