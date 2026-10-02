@@ -714,6 +714,20 @@
 >
 > amounts and reestablish.  I asked to change rate of accrual from 30.3 to 30, .  the dollar amount does not change
 
+> (addendum 104, verbatim — 2026-10-02, after the 10:39 screenshot again)
+> heres my budget
+>
+> why did you change my input; this should be in Supabase
+>
+> (his answers, picked in Claude Code) Supabase holds: "Budget + record (Recommended)" — saved under his sign-in, the same on every
+> device. Order: "r.052 now, Supabase r.053 (Recommended)".
+>
+> (then a screenshot of his own edited budget, 8:50, per 33 days: Wages 3,604.49 · Upside 320.00 · Rent 700.00 · Auto / Renters /
+> Home 250.66 · Mental Health / Physical Fitness 50.00 · Subscriptions / AI / Cloud 49.73 · Electric / Gas 150.00 · Groceries 500.00 ·
+> Fun / Hobbies / Clothing 100.00 · Dining / Work 150.00 · Gifts / Holidays / Travel 240.00 · Net 1,734.10 —
+> `docs/asks/2026-10-01_financial_2525_fb104_my_budget_850.png`; asked which budget to re-establish, he answered:)
+> I'll upload mine; you need to add transactions backnin; and ensure oush to supabase
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
