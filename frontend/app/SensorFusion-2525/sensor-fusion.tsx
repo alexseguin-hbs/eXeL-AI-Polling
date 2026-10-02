@@ -349,7 +349,7 @@ export default function SensorFusion() {
             </button>
             <button type="button" className={`${styles.frame} ${scheme === "vision" ? styles.swatchOn : ""}`} onClick={() => chooseScheme("vision")}>
               Vision • 2525
-              <small className={styles.muted}> Humanity's Coordination Framework</small>
+              <small className={styles.muted}> Humanity’s Coordination Framework</small>
             </button>
           </aside>
         </div>

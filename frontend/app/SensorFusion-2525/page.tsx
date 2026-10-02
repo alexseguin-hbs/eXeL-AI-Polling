@@ -1,7 +1,7 @@
 "use client";
 
-// Route: /main/SensorFusion-2525
-// This folder is the only path for this work. Do not add files outside it.
+// Route: /SensorFusion-2525
+// https://exel-ai-polling.explore-096.workers.dev/SensorFusion-2525
 import SensorFusion from "./sensor-fusion";
 
 export default function Page() {
