@@ -1068,6 +1068,13 @@
 > cloud-with-check — `docs/asks/2026-10-02_financial_2525_fb163_record_history.png`)
 > remove history in Cyan.  you can have history in supabase to see changes.
 
+> (addendum 164, verbatim — 2026-10-02, with a phone screenshot taken at 7:17 of the Transaction Record — two 320.00 entries, one
+> "Upside: Overtime / Bonus", one "Income / Wages (take-home)", every row with its pencil; the footer reads "v.000_r.070 · eXeL
+> v0.070-2026.10.02-06.58CST · 6d4854f", so the phone was still showing r.070 — `docs/asks/2026-10-02_financial_2525_fb164_edit_all_fields.png`)
+> all fields in edit of Transaction record should be possible to edit.
+>
+> Im trying to change 11.01 transaction of 320 upside va wages, but cant edit that field
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).

@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.073",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "ba261e188d17714815f963b9e0a0caccf1cc948fd34cd45e0b082216d7b9d3ce",
+  "handoffSha256": "810b88d9ba3cc8e34d784d18bd38936eb820d13ec7356a37aa6fa5a7c367f1ce",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -581,6 +581,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "ba261e188d17714815f963b9e0a0caccf1cc948fd34cd45e0b082216d7b9d3ce",
     "date": "2026-10-02",
     "note": "addendum 163 (\"remove history in Cyan. you can have history in supabase to see changes.\" — the cyan edit marks leave the Transaction Record; every correction stays on the record and in the account copy)"
+   },
+   {
+    "sha256": "810b88d9ba3cc8e34d784d18bd38936eb820d13ec7356a37aa6fa5a7c367f1ce",
+    "date": "2026-10-02",
+    "note": "addendum 164 (\"all fields in edit of Transaction record should be possible to edit\" — he could not change a 320 deposit from Upside to Wages; his phone still showed r.070)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
