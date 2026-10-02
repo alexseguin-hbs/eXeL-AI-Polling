@@ -45,5 +45,20 @@ ok(Math.abs(rateAtSeries(r91, at).income - 392449 / (91 * 1440)) < 1e-9, "91D: i
 ok(Math.abs(rateAtSeries(r30, at).spending - (25066 + 7100) / (30 * 1440)) < 1e-9, "30D: spending per minute = every withdrawal (the one-time one too) ÷ 30 days");
 ok(overSpan(txs, 30).every((x) => x.motDays === 30 && x.recurrence === "once") && txs[0].motDays === 30 && txs[3].motDays === 0, "overSpan sets the chart's MoT on a copy — the record itself is untouched");
 ok(windowStart(overSpan(txs, 30), t0 + 5 * DAY) === t0, "the window starts at the earliest deposit still paying (his wages), so it ends when they run out — no false drop");
+// r.073 (addendum 171 "if the expense circle overlaps (left or right edge overlaps with another expense, merge). 2700.66 and 155.44 should
+// merge (sum up) as one red dot since they are overlapping"): dots merge when their circles reach each other SIDE TO SIDE, whatever their
+// heights — his two dots sat 4 px apart across and 12 px apart up and down (12.6 px diagonally, more than the 7 px the old rule needed)
+{ const { layoutMarks } = await import("../lib/2525-core/mark-layout.ts");
+  const R = 3.5, money = (v) => "−$" + (v / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const dot = (x, y, cents) => ({ x, y, text: money(cents), w: 60, value: cents, color: "red" });
+  const his = layoutMarks([dot(100, 60, 270066), dot(104, 48, 15544)], R, money);
+  ok(Math.hypot(4, 12) > 2 * R && his.length === 1 && his[0].merged === 2 && his[0].text === "−$2,856.10",
+    `r.073 (addendum 171): his −$2,700.66 and −$155.44, side by side at different heights, read as one dot −$2,856.10 (got ${his.map((l) => l.text).join(" · ")})`);
+  const touch = layoutMarks([dot(100, 60, 100), dot(107, 30, 200)], R, money), apart = layoutMarks([dot(100, 60, 100), dot(107.5, 60, 200)], R, money);
+  ok(touch.length === 1 && touch[0].text === "−$3.00" && apart.length === 2 && apart[0].align === "right" && apart[1].align === "left",
+    "…edges that touch merge (7 px apart with 3.5 px dots); 7.5 px apart they stay two dots, their labels left and right");
+  const chain = layoutMarks([dot(0, 50, 100), dot(6, 40, 100), dot(12, 50, 100)], R, money);
+  ok(chain.length === 1 && chain[0].merged === 3 && chain[0].text === "−$3.00", "…and a chain merges whole: a dot touching the last dot of a merged group joins it");
+}
 console.log(`\nfinancial-rate: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
