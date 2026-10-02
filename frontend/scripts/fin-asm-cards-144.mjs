@@ -66,5 +66,5 @@ for (const [ai, who] of ASM.entries()) {
 const passed = results.filter((r) => r.pass).length;
 for (const who of ASM) { const s = results.filter((r) => r.asm === who); console.log(`${who.padEnd(8)} ${s.filter((r) => r.pass).length}/12  ${s.filter((r) => !r.pass).map((r) => "FAIL#" + r.n + " " + r.name + " " + r.note).join(" · ")}`); }
 console.log(`\nfin-asm-cards-144: ${passed}/${results.length} card scenarios behaved exactly as stated`);
-const j = process.argv.indexOf("--json"); if (j > 0) { const fs = await import("node:fs"); fs.writeFileSync(process.argv[j + 1], JSON.stringify({ revision: "0.070", passed, total: results.length, results }, null, 1)); }
+const j = process.argv.indexOf("--json"); if (j > 0) { const fs = await import("node:fs"); fs.writeFileSync(process.argv[j + 1], JSON.stringify({ revision: "0.071", passed, total: results.length, results }, null, 1)); }
 process.exit(passed === results.length ? 0 : 1);

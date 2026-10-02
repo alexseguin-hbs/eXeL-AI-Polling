@@ -136,7 +136,9 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
       if (ex.availableCents < 0) worst = Infinity;
     }
   }
-  ok(worst <= 25, `the exact engine matches an independent minute-by-minute run within 25¢ across ${cases} probes of 6 seeded records (worst ${worst === Infinity ? "a NEGATIVE Available" : worst.toFixed(2) + "¢"})`);
+  // r.071 AsM review (Enlil): 25¢ let three planted defects through (a draw from the first deposit only, an Available that runs out ignoring
+  // the release, escrow drained while money is still available); the real engine measures 0.5¢, so the bound is 1¢
+  ok(worst <= 1, `the exact engine matches an independent minute-by-minute run within 1¢ across ${cases} probes of 6 seeded records (worst ${worst === Infinity ? "a NEGATIVE Available" : worst.toFixed(2) + "¢"})`);
 }
 // r.026 — the refusal names the FIRST short minute exactly (the HI-intent check found r.023 could name a minute with money to spare).
 {
@@ -206,5 +208,60 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   ok(R.replay(ed2, 2)[1].amountCents === 7100, "replaying to the revision before the edit shows the original");
   ok(R.correctTx(ed2, "nope", { amountCents: 1 }, t0 + 4) === ed2, "an edit of a transaction that is not on the record changes nothing");
   ok(R.replay(R.correctTx(rec, "d1", { kind: "withdrawal" }, t0 + 5))[0].kind === "deposit", "the type cannot be edited");
+}
+// ── r.071 AsM review folds — every finding pinned by a value that only the right engine produces ──
+{
+  const K = await import("../lib/financial-2525/cards.ts");
+  const D = 86400000, t0 = M.parseStampCST("2026.11.02_06.00..00");
+  const dep = (id, cents, at, days) => ({ id, kind: "deposit", amountCents: cents, atMs: at, motDays: days });
+  const out = (id, cents, at, days = 0, extra = {}) => ({ id, kind: "withdrawal", amountCents: cents, atMs: at, motDays: days, ...extra });
+  // (1) Athena · Krishna — a deposit that lands while Available is short covers the shortfall from its escrow AT ONCE (a corrected record
+  //     must never leave −$2,014.84 beside a full escrow); and the record check refuses the correction that would create the shortfall
+  { const txs = [dep("d1", 100000, t0, 0), out("w1", 150000, t0 + 3600000), dep("d2", 300000, t0 + 2 * 3600000, 30)];
+    const before = A.balanceAt(txs, t0 + 5400000), landed = A.balanceAt(txs, t0 + 2 * 3600000), later = A.balanceAt(txs, t0 + 2 * 3600000 + D);
+    ok(before.availableCents === -50000 && landed.availableCents === 0 && landed.escrowedCents === 250000 && near(later.availableCents, 250000 / 30, 1) && A.validateRecord(txs, t0).ok === false && A.validateRecord(txs, t0).atMs === t0 + 3600000,
+      `r.071 AsM: a late deposit covers the shortfall the instant it lands (before ${before.availableCents} · landed ${landed.availableCents}/${landed.escrowedCents} · +1 d ${later.availableCents}) and the record check names the short minute`); }
+  // (2) Enki — ONE rounding: In Escrow + Released = Deposited and Released − Spent = Available to the cent, every 10 minutes of a month of
+  //     his pay with four Monthly bills (rounded one by one they drifted 1–2¢ in 45% of minutes); the minimal record from the review too
+  { const p0 = M.parseStampCST("2026.09.30_19.54..35");
+    const txs = [dep("p1", 360449, p0, 30), dep("p2", 32000, p0 + 89000, 30), out("s", 248822, p0 + 0.5 * D), out("b1", 7100, p0 + D, 30), out("b2", 4599, p0 + 1.3 * D, 30), out("b3", 1299, p0 + 2.1 * D, 30), out("b4", 999, p0 + 3.7 * D, 30)];
+    let bad = 0, neg = 0, n = 0;
+    for (let t = p0; t <= p0 + 31 * D; t += 600000) { const b = A.balanceAt(txs, t); n++; if (b.escrowedCents + b.releasedCents !== b.depositedCents || b.releasedCents - b.withdrawnCents !== b.availableCents) bad++; if (b.availableCents < 0) neg++; }
+    const mini = [dep("m", 100000, t0, 0), out("r1", 1000, t0, 1), out("r2", 1001, t0, 1), out("r3", 1002, t0, 1), out("r4", 1003, t0, 1)], mb = A.balanceAt(mini, t0 + 33000);
+    ok(bad === 0 && neg === 0 && mb.escrowedCents + mb.releasedCents === 100000 && mb.withdrawnCents === 2,
+      `r.071 AsM: one rounding — ${n} probes, ${bad} identity breaks, ${neg} negative; the review's minimal record reads Spent ${mb.withdrawnCents}¢ · Released ${mb.releasedCents}¢`); }
+  // (3) Enlil X1 — a spend at a deposit's very first instant: money in before money out, the rest comes out of its escrow
+  { const txs = [dep("d", 100000, t0, 10), out("w", 60000, t0)], a0 = A.balanceAt(txs, t0), a5 = A.balanceAt(txs, t0 + 5 * D);
+    ok(a0.availableCents === 0 && a0.escrowedCents === 40000 && a5.escrowedCents === 20000 && a5.availableCents === 20000, `r.071 AsM: a spend at the deposit's first instant (at 0: ${a0.availableCents}/${a0.escrowedCents}; +5 d: ${a5.availableCents}/${a5.escrowedCents})`); }
+  // (3b) Enlil X1, the member that still matters: a one-time deposit and a spend at the SAME instant while another deposit releases — money
+  //      in first, so the spend comes out of the new money and the releasing deposit's escrow is never touched
+  { const txs = [dep("live", 300000, t0, 30), dep("one", 50000, t0 + D, 0), out("w", 30000, t0 + D)], b = A.balanceAt(txs, t0 + D);
+    ok(b.availableCents === 30000 && b.escrowedCents === 290000, `r.071 AsM: money in before money out at one instant (Available ${b.availableCents} · escrow ${b.escrowedCents})`); }
+  // (4) Enlil X3 — a spread deficit across TWO live deposits keeps each one's share (worked by hand: after the $3,300 draw both release
+  //     $18.4211/day; the $500 over 3 days leaves them $162.50 and $37.50; at +10 d the short one has ended): Available $75.00 · escrow $125.00 · $0.2604/hr
+  { const txs = [dep("a", 300000, t0, 30), dep("b", 100000, t0, 10), out("l", 330000, t0 + D), out("r", 50000, t0 + D, 3)];
+    const b4 = A.balanceAt(txs, t0 + 4 * D), b10 = A.balanceAt(txs, t0 + 10 * D);
+    ok(b4.availableCents === 0 && b4.escrowedCents === 20000 && near(b4.netRatePerMinCents * 1440, 1250, 1e-6) && b10.availableCents === 7500 && b10.escrowedCents === 12500 && near(b10.netRatePerMinCents * 60, 26.0417, 1e-3),
+      `r.071 AsM: the two-deposit deficit (+4 d ${b4.availableCents}/${b4.escrowedCents}/${(b4.netRatePerMinCents * 1440).toFixed(2)}¢ a day; +10 d ${b10.availableCents}/${b10.escrowedCents}/${(b10.netRatePerMinCents * 60).toFixed(4)}¢ an hour)`); }
+  // (5) Enlil X8/X12 — a shortfall past every cent in escrow SHOWS (never hidden as $0.00): a lump and a spread bill that outrun everything
+  { const lump = A.balanceAt([dep("d", 10000, t0, 0), out("w", 15000, t0 + 1000)], t0 + 2000), spread = A.balanceAt([dep("d", 10000, t0, 1), out("w", 30000, t0, 1)], t0 + D);
+    ok(lump.availableCents === -5000 && lump.escrowedCents === 0 && spread.availableCents === -20000 && spread.escrowedCents === 0, `r.071 AsM: the shortfall shows (lump ${lump.availableCents} · spread ${spread.availableCents})`); }
+  // (6) Enki — a length too small to move a millisecond timestamp is one-time; its money never vanishes
+  { const b = A.balanceAt([dep("d", 100000, t0, 1e-15), out("w", 50000, t0 + 60000)], t0 + 120000);
+    ok(b.availableCents === 50000 && b.escrowedCents === 0, `r.071 AsM: a vanishing length is one-time (Available ${b.availableCents})`); }
+  // (7) Krishna — the check reads the record EXACTLY as the card counts it: paying a card's $3,000 purchase in full is never refused for
+  //     money a counted purchase already took, and a new payment that steals coverage from a later one is checked for that later one
+  { const pay = dep("pay", 400000, t0, 30), buy = out("buy", 300000, t0 + 3600000, 0, { paidFrom: "c1" });
+    const full = out("full", 300000, t0 + 2 * 3600000, 0, { field: "I.cards_student", paysCard: "c1" });
+    const okFull = A.validateRecord(K.accrualTxs([pay, buy, full]), full.atMs).ok;
+    const mid = out("mid", 300000, t0 + 1.5 * 3600000, 0, { field: "I.cards_student", paysCard: "c1" });
+    const stolen = A.validateRecord(K.accrualTxs([pay, buy, full, mid]), mid.atMs);
+    ok(okFull === true && stolen.ok === false, `r.071 AsM: a covered card payment passes (${okFull}); one that takes another's coverage is checked for it (${stolen.ok ? "accepted" : "refused at " + M.fmtStampCST(stolen.atMs)})`); }
+  // (8) Thoth · Odin — the check never replays the escrow (plain sums; it made every Save 8–10× slower) and the chart walks the record once
+  { const src = (await import("node:fs")).readFileSync(new URL("../lib/financial-2525/accrual.ts", import.meta.url), "utf8");
+    const overBody = src.slice(src.indexOf("const overAt = "), src.indexOf("export function firstShortfall"));
+    const seriesBody = src.slice(src.indexOf("export function series("));
+    ok(overBody.length > 50 && !/balanceAt|escrowAt|escrowRun/.test(overBody) && /escrowRun\(txs, times\)/.test(seriesBody) && !/balanceAt\(/.test(seriesBody),
+      "r.071 AsM: the withdrawal check sums deposits and spends without the escrow run; the chart's series is one walk of the record"); }
 }
 console.log(`financial-accrual: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

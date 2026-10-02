@@ -994,7 +994,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "rev": 141,
       "date": "2026-10-02",
       "kind": "correction",
-      "text": "r.071 correction — spending ahead releases early from escrow (escrow drops, the rest keeps releasing, Available never negative); Available and the Accrual Rate share one fitted size and never overlap, and the three figures under them fit their thirds of the row; the opened Trinity's labels fit their bands again (FD-87, FD-88, FD-89).",
+      "text": "r.071 correction — spending ahead releases early from escrow (escrow drops, the rest keeps releasing, Available never negative); Available and the Accrual Rate share one fitted size and never overlap, and the three figures under them fit their thirds of the row; the opened Trinity's labels fit their bands again; the escrow review folded — a correction never brings a negative back, one rounding for the four figures, the check reads what the card counts and costs what it did (FD-87, FD-88, FD-89).",
       "commit": "6d4854f"
     }
   ]

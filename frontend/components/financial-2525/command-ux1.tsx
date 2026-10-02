@@ -41,7 +41,7 @@ import { fmtMot, abcPart, spanABC, fmtStampCST, parseStampCST, fmtDays, dayTicks
 import { positionInYear } from "@/lib/financial-2525/calendar";
 import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
 import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
-import { balanceAt, series, validateWithdrawal, depositView, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
+import { balanceAt, series, validateRecord, depositView, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { type BudgetCategory } from "@/lib/financial-2525/budget";
 import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, DEVICE_OWNER, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
 import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } from "@/lib/financial-2525/currency";   // r.049: the currency label
@@ -374,15 +374,19 @@ export function FinancialCommandUX1() {
     const instant = when.trim() ? parseStampCST(when) : at;
     if (instant === null) return setRefusal(t("fin.reason_stamp"));
     const w: FinTx = { id: `w-${instant}-${cents}-${record.entries.length + 1}`, kind: "withdrawal", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec, ...(paidFrom !== DEBIT ? { paidFrom } : {}), ...(paidFrom === DEBIT && paysCard ? { paysCard } : {}) };
-    const v = validateWithdrawal(txs, w);
-    // the refusal names the minute (r.023, addendum 39 "check refuse message"): when the money can first move, or when it would run short
-    if (!v.ok) return setRefusal(v.reason === "INSUFFICIENT" ? `${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs ?? instant)}` : t("fin.reason_amount"));
+    // the refusal names the minute (r.023, addendum 39 "check refuse message"): when the money can first move, or when it would run short.
+    // r.071 (AsM review): checked over the record EXACTLY as the card counts it — a card payment whose purchases already counted is not
+    // refused for money it never takes, and an entry that changes how purchases cover later payments is checked for those payments too
+    if (!(cents > 0)) return setRefusal(t("fin.reason_amount"));
+    const v = validateRecord(accrualTxs([...recTxs, withMonthLaw(w)]), instant);
+    if (!v.ok) return setRefusal(`${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs)}`);
     setRefusal(null); commit(w); setAmt(""); setMemo(""); setWhen(""); foldForm();
   };
   const recordTransaction = () => { if (txType === "deposit") recordDeposit(); else if (txType === "withdrawal") recordWithdrawal(); };
   // r.062 THE EDIT (addendum 133 "add edit feature for transaction record"): the pencil on a row opens its amount, memo, day and time and
   // length; Save APPENDS a correction (correctTx) — the original entry, its hash and every link after it stay on the record, the table
-  // and every figure read the corrected values. A withdrawal edit passes the same refusal as a new withdrawal.
+  // and every figure read the corrected values. Every edit — a deposit's too (r.071 AsM review: a deposit moved later or made smaller
+  // could leave a spend already on the record with nothing under it) — passes the same refusal as a new withdrawal.
   const [editId, setEditId] = useState(null as string | null);
   const [ed, setEd] = useState({ amt: "", memo: "", when: "", days: "", paidFrom: DEBIT, paysCard: "" });
   // r.070 (addendum 157): a row whose card was removed keeps that card as its payer, shown as a dash — never silently another card
@@ -395,11 +399,8 @@ export function FinancialCommandUX1() {
     if (!(cents > 0) || !(days >= 0)) return setEdRefusal(t("fin.reason_amount"));
     if (instant === null) return setEdRefusal(t("fin.reason_stamp"));
     const next = correctTx(record, cur.id, { amountCents: cents, memo: ed.memo.trim() || undefined, atMs: instant, motDays: days, ...(cur.kind === "withdrawal" ? { paidFrom: ed.paidFrom === DEBIT ? undefined : ed.paidFrom, paysCard: ed.paidFrom === DEBIT && ed.paysCard ? ed.paysCard : undefined } : {}) }, at);
-    if (cur.kind === "withdrawal") {
-      const after = replay(next).map(withMonthLaw), mine = after.find((x) => x.id === cur.id)!;
-      const v = validateWithdrawal(after.filter((x) => x.id !== cur.id), mine);
-      if (!v.ok) return setEdRefusal(v.reason === "INSUFFICIENT" ? `${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs ?? instant)}` : t("fin.reason_amount"));
-    }
+    { const v = validateRecord(accrualTxs(replay(next).map(withMonthLaw)), Math.min(cur.atMs, instant));
+      if (!v.ok) return setEdRefusal(`${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs)}`); }
     setRecord(next); if (!saveRecord(next)) setSaveFailed(true); setEditId(null);
   };
   // the form opens on its TYPE (the first choice), so focus lands on the type dropdown, not the amount
@@ -1109,7 +1110,8 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   const len = to - from;
   function inside(ms: number) { return !(ms < from) && !(ms > to); }
   const withdrawals = all.filter((x) => x.kind === "withdrawal" && inside(x.atMs));
-  const pts = series(all, from, to, len / 120);
+  // r.071 AsM review: the balance series is drawn only in the $ view — the $/min view (the default) never pays for it; one walk either way
+  const pts = rate ? [] : series(all, from, to, len / 120);
   const total = Math.max(1, deps.reduce((a, x) => a + x.amountCents, 0));
   // r.052 (addendum 101 "if 30 days $/min is shown over 30 days, so we can predict end of month NET • Upside or NET • Downside"; his
   // answers "Budget table" · "Net + Released + Escrow"): Net runs at the budget table's $/min over the last span of the chart, from 0 to
@@ -1121,7 +1123,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   const x = (ms: number) => PL + ((ms - from) / len) * (W - PL - P);
   const y = (cents: number) => H - P - (Math.max(0, Math.min(1, (cents - yMin) / (yMax - yMin))) * (H - 2 * P));
   const yTicks = yAxisTicks(yMin, yMax);
-  const probeBal = probe === null ? null : balanceAt(all, probe);   // r.053: the stock-chart readout
+  const probeBal = probe === null || rate ? null : balanceAt(all, probe);   // r.053: the stock-chart readout ($ view only)
   const probeNet = probe === null || live || netPerSec === 0 ? null : netAt(probe);
   const poly = (pick: (p: (typeof pts)[number]) => number) => pts.map((p) => `${x(p.t).toFixed(1)},${y(pick(p)).toFixed(1)}`).join(" ");
   const sw = VECTOR_LAW.stroke.normal, hair = VECTOR_LAW.stroke.hairline;
