@@ -48,7 +48,7 @@ import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } 
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, correctTx, correctionsOf, type FinRecord } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
-import { fitFigures, fitGrid, figReserve } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
+import { fitFigures, fitGrid, figReserve, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
 import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, newCard, uniqueCardId, applyCardSettings, looksLikeCardNumber, cardBalanceAt, cardLevel, cardSeries, cardMoves, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
 import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, cloudGet, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
@@ -188,8 +188,9 @@ export function FinancialCommandUX1() {
   const [saveFailed, setSaveFailed] = useState(false);
   useEffect(() => { if (!owner) return; const r = loadRecord(owner); setRecord(r.rec); setTampered(r.tampered); }, [owner]);
 
-  const recTxs: FinTx[] = (owner ? replay(record) : [EXAMPLE]).map(withMonthLaw);
-  const txs: FinTx[] = accrualTxs(recTxs);   // r.067 (his answer "No, count once"): a card payment counts against Available only for what no purchase already counted
+  // r.071 AsM (Thoth): built once per record, not once per second — every memo downstream (the rate chart's series) can finally hold
+  const recTxs: FinTx[] = useMemo(() => (owner ? replay(record) : [EXAMPLE]).map(withMonthLaw), [owner, record]);
+  const txs: FinTx[] = useMemo(() => accrualTxs(recTxs), [recTxs]);   // r.067 (his answer "No, count once"): a card payment counts against Available only for what no purchase already counted
   const effective = useMemo(() => new Map(replay(record).map((x) => [x.id, x] as const)), [record]);   // r.062: each row reads its corrected values   // r.046: old Monthly entries read 30 days (the month law)
   const at = now ?? 0;
   const bal = balanceAt(txs, at);
@@ -365,6 +366,8 @@ export function FinancialCommandUX1() {
     const instant = when.trim() ? parseStampCST(when) : at;
     if (!(cents > 0)) return setRefusal(t("fin.reason_amount"));
     if (instant === null) return setRefusal(t("fin.reason_stamp"));
+    // r.071 AsM (Thor): a length the calendar cannot hold ("1e400" years) is refused, never saved as a silent one-time
+    if (!Number.isFinite(lengthDays(rec, Number(otherN), otherUnit))) return setRefusal(t("fin.reason_length"));
     setRefusal(null);
     commit({ id: `d-${instant}-${cents}-${record.entries.length + 1}`, kind: "deposit", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec });
     setAmt(""); setMemo(""); setWhen(""); foldForm();
@@ -373,6 +376,7 @@ export function FinancialCommandUX1() {
     const cents = Math.round(Number(amt) * 100);
     const instant = when.trim() ? parseStampCST(when) : at;
     if (instant === null) return setRefusal(t("fin.reason_stamp"));
+    if (!Number.isFinite(lengthDays(rec, Number(otherN), otherUnit))) return setRefusal(t("fin.reason_length"));
     const w: FinTx = { id: `w-${instant}-${cents}-${record.entries.length + 1}`, kind: "withdrawal", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec, ...(paidFrom !== DEBIT ? { paidFrom } : {}), ...(paidFrom === DEBIT && paysCard ? { paysCard } : {}) };
     // the refusal names the minute (r.023, addendum 39 "check refuse message"): when the money can first move, or when it would run short.
     // r.071 (AsM review): checked over the record EXACTLY as the card counts it — a card payment whose purchases already counted is not
@@ -396,7 +400,8 @@ export function FinancialCommandUX1() {
   const saveEdit = () => {
     const cur = editId ? replay(record).find((x) => x.id === editId) : undefined; if (!cur) return;
     const cents = Math.round(Number(ed.amt) * 100), instant = parseStampCST(ed.when.trim()), days = ed.days.trim() === "" ? 0 : Number(ed.days);
-    if (!(cents > 0) || !(days >= 0)) return setEdRefusal(t("fin.reason_amount"));
+    if (!(cents > 0)) return setEdRefusal(t("fin.reason_amount"));
+    if (!(Number.isFinite(days) && days >= 0)) return setEdRefusal(t("fin.reason_length"));
     if (instant === null) return setEdRefusal(t("fin.reason_stamp"));
     const next = correctTx(record, cur.id, { amountCents: cents, memo: ed.memo.trim() || undefined, atMs: instant, motDays: days, ...(cur.kind === "withdrawal" ? { paidFrom: ed.paidFrom === DEBIT ? undefined : ed.paidFrom, paysCard: ed.paidFrom === DEBIT && ed.paysCard ? ed.paysCard : undefined } : {}) }, at);
     { const v = validateRecord(accrualTxs(replay(next).map(withMonthLaw)), Math.min(cur.atMs, instant));
@@ -475,7 +480,7 @@ export function FinancialCommandUX1() {
           <div data-fin-figures-row className="mt-2 flex flex-wrap items-start justify-between gap-x-3 gap-y-1" style={{ containerType: "inline-size" }}>
             <div data-fin-current className="shrink-0">
               <div className="text-xs text-muted-foreground">{t("fin.available")}:</div>
-              <div className="flex h-9 items-center font-mono text-2xl tabular-nums text-primary" style={figFont} data-testid="fin-clock" aria-label={t("fin.available")}>{usd(bal.availableCents)}</div>
+              <div className="flex h-9 items-center font-mono text-2xl tabular-nums text-primary" style={figFont} data-testid="fin-clock">{usd(bal.availableCents)}</div>
             </div>
             {bal.ratePerMinCents > 0 && (
                 /* r.035 (addendum 68): the words "Accrual Rate" directly above the figure and its unit selector */
@@ -514,9 +519,14 @@ export function FinancialCommandUX1() {
             </dl>
           )}
           {accrualGear && focusView && (
-            <ul data-fin-accrual-menu className="mt-2 space-y-0.5 border-t border-border pt-2 font-mono text-xs text-muted-foreground" data-testid="fin-ladder">
-              {/* r.043 (addendum 84): one line — elapsed · $/min · $/sec */}
-              <li data-fin-elapsed-line className="whitespace-nowrap">{showAbc ? `${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : `${hhmmss(Math.max(0, at - focus!.atMs))} ${t("fin.elapsed")}`} · {usd4(bal.netRatePerMinCents)} {t("fin.rate.min")} · {usd4(bal.netRatePerMinCents / planet.secPerMin)} {t("fin.rate.sec")}</li>
+            <ul data-fin-accrual-menu className="mt-2 space-y-0.5 border-t border-border pt-2 font-mono text-xs text-muted-foreground" data-testid="fin-ladder" style={{ containerType: "inline-size" }}>
+              {/* r.043 (addendum 84): one line — elapsed · $/min · $/sec; r.071 AsM (Sofia): fitted to the card, the $/sec part wrapping
+                  under only past the smallest size — never off the card */}
+              {(() => {
+                const parts = [showAbc ? `${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : `${hhmmss(Math.max(0, at - focus!.atMs))} ${t("fin.elapsed")}`,
+                  `· ${usd4(bal.netRatePerMinCents)} ${t("fin.rate.min")}`, `· ${usd4(bal.netRatePerMinCents / planet.secPerMin)} ${t("fin.rate.sec")}`];
+                return <li data-fin-elapsed-line className="flex flex-wrap gap-x-1" style={{ fontSize: fitLine(parts.join("").length) }}>{parts.map((p, i) => <span key={i} className="whitespace-nowrap">{p}</span>)}</li>;
+              })()}
             </ul>
           )}
         </div>

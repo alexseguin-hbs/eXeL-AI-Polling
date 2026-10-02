@@ -216,7 +216,7 @@ ok(/data-fin-cell="escrowed" className="text-left"/.test(ux) && /data-fin-cell="
   const mot = ux.slice(ux.indexOf("const rows: [string, string][] = yearAbc ? ["), ux.indexOf("] : [", ux.indexOf("const rows: [string, string][] = yearAbc ? [")));
   ok(mot.length > 50 && !/fmtStampCST|fmtDays|CST|\/ 91|year\.day\b/.test(mot) && /abcPart\(year\.abc, 900\)/.test(ux) && /abcPart\(year\.abc, 300\)/.test(ux) && /\/ 900`/.test(mot) && /\/ 300`/.test(mot) && /\/ 3600`/.test(mot), "r.038 (addendum 72 + 'Equal parts of 3600'): the MoT rows are A.B..C only — no date, no day count, no 91 / 30.3̅ — quarter of 900 A, month of 300 A, now out of 3600");
   ok(!/data-fin-chart-line/.test(ux) && /data-fin-chart-span/.test(ux), "r.047 (addendum 95 'remove this from charting'): the chart's top line is gone in both modes; the span toggle stands in its place");
-  ok(/<li data-fin-elapsed-line className="whitespace-nowrap">\{showAbc \? `\$\{fmtMot\(spanABC\(/.test(ux) && /: `\$\{hhmmss\(Math\.max\(0, at - focus!\.atMs\)\)\} \$\{t\("fin\.elapsed"\)\}`\} · \{usd4\(bal\.netRatePerMinCents\)\} \{t\("fin\.rate\.min"\)\} · \{usd4\(bal\.netRatePerMinCents \/ planet\.secPerMin\)\} \{t\("fin\.rate\.sec"\)\}<\/li>/.test(ux), "r.038 ('Yes, everywhere'): the Accrual gear's elapsed line is h:m:s on Clock, A.B..C on MoT — never both; r.043 (addendum 84): elapsed · $/min · $/sec on ONE line");
+  ok(/const parts = \[showAbc \? `\$\{fmtMot\(spanABC\(/.test(ux) && /: `\$\{hhmmss\(Math\.max\(0, at - focus!\.atMs\)\)\} \$\{t\("fin\.elapsed"\)\}`,/.test(ux) && /`· \$\{usd4\(bal\.netRatePerMinCents\)\} \$\{t\("fin\.rate\.min"\)\}`, `· \$\{usd4\(bal\.netRatePerMinCents \/ planet\.secPerMin\)\} \$\{t\("fin\.rate\.sec"\)\}`\];/.test(ux) && /<li data-fin-elapsed-line className="flex flex-wrap gap-x-1" style=\{\{ fontSize: fitLine\(parts\.join\(""\)\.length\) \}\}>\{parts\.map\(\(p, i\) => <span key=\{i\} className="whitespace-nowrap">\{p\}<\/span>\)\}<\/li>/.test(ux), "r.038 ('Yes, everywhere'): the Accrual gear's elapsed line is h:m:s on Clock, A.B..C on MoT — never both; r.043 (addendum 84): elapsed · $/min · $/sec on ONE line, fitted to the card (r.071 AsM)");
 }
 
 // ── r.040 (addendum 75): one line per budget entry — a short name, "…" if still long, the full name on hold ──
@@ -361,6 +361,16 @@ ok(/<details data-fin-cards className=\{`group \$\{SUB\}`\}>\s*<summary classNam
 // the entry), so a covered card payment is never refused for money it never takes; the $ view alone pays for the balance series
 ok(/const v = validateRecord\(accrualTxs\(\[\.\.\.recTxs, withMonthLaw\(w\)\]\), instant\);/.test(ux) && !/validateWithdrawal\(/.test(ux),
   "r.071 AsM: every withdrawal and every edit is checked over the record as the card counts it — no check reads a different record");
+// r.071 AsM (Sofia · Thoth · Thor): the gear line never leaves the card (fitted like the figures; it was cut off at 390 px and scrolled the
+// page at 320); the Available figure is read as its amount (a generic element named "Available" hid the number from screen readers);
+// the record is built once per record, not once per second; a length the calendar cannot hold is refused, never saved as one-time
+{ const fit = fs.readFileSync(path.join(process.cwd(), "lib/financial-2525/fit.ts"), "utf8");
+  ok(/<ul data-fin-accrual-menu [^>]*style=\{\{ containerType: "inline-size" \}\}>/.test(ux) && /return `min\(0\.75rem, max\(0\.5625rem, calc\(\(100cqw - 8px\) \/ \$\{em\}\)\)\)`;/.test(fit)
+    && !/data-testid="fin-clock" aria-label/.test(ux)
+    && /const recTxs: FinTx\[\] = useMemo\(\(\) => \(owner \? replay\(record\) : \[EXAMPLE\]\)\.map\(withMonthLaw\), \[owner, record\]\);/.test(ux) && /const txs: FinTx\[\] = useMemo\(\(\) => accrualTxs\(recTxs\), \[recTxs\]\);/.test(ux)
+    && (ux.match(/if \(!Number\.isFinite\(lengthDays\(rec, Number\(otherN\), otherUnit\)\)\) return setRefusal\(t\("fin\.reason_length"\)\);/g) || []).length === 2
+    && /if \(!\(Number\.isFinite\(days\) && days >= 0\)\) return setEdRefusal\(t\("fin\.reason_length"\)\);/.test(ux),
+    "r.071 AsM: the gear line fits the card, the Available figure reads as its amount, the record is built once per record, impossible lengths are refused"); }
 // r.071 AsM fold (Enlil · Enki): the fit is PINNED — a reserve of 0 or 40, an em that ignores the advance, a unit word that grows without
 // widening the reserve, or the three grid figures left at a fixed size (they ran into each other at 320 px and with COP amounts) all go red
 { const fit = fs.readFileSync(path.join(process.cwd(), "lib/financial-2525/fit.ts"), "utf8");
@@ -380,8 +390,7 @@ ok(/const v = validateRecord\(accrualTxs\(\[\.\.\.recTxs, withMonthLaw\(w\)\]\),
     "r.071 AsM fold: In Escrow · Released · Spent share one size fitted to a third of the row, and past the floor a figure wraps in its own cell"); }
 // r.071 (addendum 159): the gear's $/min · $/sec line is the rate escrow is releasing NOW — the same lower rate as the Accrual Rate after a
 // spend ahead, never the deposit's original schedule
-ok(/· \{usd4\(bal\.netRatePerMinCents\)\} \{t\("fin\.rate\.min"\)\} · \{usd4\(bal\.netRatePerMinCents \/ planet\.secPerMin\)\} \{t\("fin\.rate\.sec"\)\}<\/li>/.test(ux) && /const rateIn = \(u: RateUnit\): number => \(u === "sec" \? bal\.netRatePerMinCents/.test(ux),
-  "r.071 (addendum 159): the gear's rate line and the Accrual Rate show the same live rate");
+ok(/`· \$\{usd4\(bal\.netRatePerMinCents\)\} \$\{t\("fin\.rate\.min"\)\}`/.test(ux) && /const rateIn = \(u: RateUnit\): number => \(u === "sec" \? bal\.netRatePerMinCents/.test(ux), "r.071 (addendum 159): the gear's rate line and the Accrual Rate show the same live rate");
 // r.068 (addendum 153): a card payment is found where a person pays a card — a Pay card button on the card (Debit · Debt service ›
 // Credit Cards · that card, amount and time his) and the Pays card picker on EVERY Debit withdrawal, recorded whatever the field
 ok(/data-fin-card-pay onClick=\{\(\) => onPay\(card\.id\)\}/.test(ux) && /\{t\("fin\.card_pay"\)\}/.test(ux) && /const payCard = \(id: string\) => \{ setTxType\("withdrawal"\); setPaidFrom\(DEBIT\); setSec\("I"\); setField\("I\.cards_student"\); setRec\("once"\); setPaysCard\(id\); setAmt\(""\);/.test(ux) && !/sec === "I"/.test(ux) && !/isDebt/.test(ux) && /ed\.paidFrom === DEBIT && <label/.test(ux), "r.068 (addendum 153): Pay card on each card opens a Debit payment to that card; the Pays card picker shows on every Debit withdrawal and is recorded whatever the field");

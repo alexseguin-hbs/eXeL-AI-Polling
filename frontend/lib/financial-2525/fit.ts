@@ -35,3 +35,10 @@ export function fitGrid(maxChars: number, cols: number = 3, gapPx: number = 12):
   const em = (Math.max(1, Math.round(maxChars)) * FIG_ADVANCE_EM).toFixed(2);
   return `min(0.875rem, max(0.6875rem, calc(((100cqw - ${Math.max(0, cols - 1) * gapPx}px) / ${Math.max(1, cols)} - 4px) / ${em})))`;
 }
+/** r.071 AsM fold (Sofia): the gear's one line — elapsed · $/min · $/sec, his r.043 rule — fitted to the card the same way: the card's
+ *  0.75rem when it fits, never below 0.5625rem; past that floor the $/sec part wraps under it, never off the card or the page (it was cut
+ *  off at 390 px and scrolled the page sideways at 320). `chars` counts the three parts; the row keeps 8 px for the two gaps. */
+export function fitLine(chars: number): string {
+  const em = (Math.max(1, Math.round(chars)) * FIG_ADVANCE_EM).toFixed(2);
+  return `min(0.75rem, max(0.5625rem, calc((100cqw - 8px) / ${em})))`;
+}
