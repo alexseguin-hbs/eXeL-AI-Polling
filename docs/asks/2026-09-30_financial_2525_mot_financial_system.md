@@ -1084,6 +1084,19 @@
 > build running, the push held until the second reviewer pass; no new ask — addenda 163–165 are his feedback for this round)
 > k; thats my feedback for now; off for a morning swim
 
+> (addendum 167, verbatim — 2026-10-02, with a phone screenshot taken at 7:21 of Supabase's email from Tuesday "Your Supabase Project
+> eXeL-AI-Polling is going to be paused." (no activity for more than 7 days; not paused yet; unpause from the dashboard within 90 days)
+> — `docs/asks/2026-10-02_financial_2525_fb167_supabase_email.png`)
+> are we good on Supabase updates now to address attached?
+
+> (addendum 168, verbatim — 2026-10-02, while r.073 waited for its second review; the line breaks are his)
+> the trinity logo should be method from Main and already use right text sizes
+> make red spending on chart:
+>
+> Spending
+>
+> Change to : Expenses
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).

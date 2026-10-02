@@ -8,7 +8,7 @@
   "stamp": "v.000_r.073",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "83be03659fd682186c5324fb9f00cc9025d433b323feda5dded6fc24e54e3533",
+  "handoffSha256": "e3a2f06267fc86b47838829409ff4923231d2b4498d94391a47127bd2491686b",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -569,6 +569,11 @@
     "sha256": "83be03659fd682186c5324fb9f00cc9025d433b323feda5dded6fc24e54e3533",
     "date": "2026-10-02",
     "note": "addendum 166 (\"k; thats my feedback for now; off for a morning swim\" — no new ask: addenda 163–165 are his feedback for this round)"
+   },
+   {
+    "sha256": "e3a2f06267fc86b47838829409ff4923231d2b4498d94391a47127bd2491686b",
+    "date": "2026-10-02",
+    "note": "addenda 167 (\"are we good on Supabase updates now to address attached?\" — Supabase's Tuesday pause warning; answered: awake, keep-alive 3/3, the live save test's database checks all pass) and 168 (the Trinity logo the Main way with Main's text sizes; the chart's red \"Spending\" reads \"Expenses\")"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
