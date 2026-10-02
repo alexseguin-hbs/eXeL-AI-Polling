@@ -46,7 +46,7 @@ import { type BudgetCategory } from "@/lib/financial-2525/budget";
 import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, planKey, DEVICE_OWNER, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
 import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } from "@/lib/financial-2525/currency";   // r.049: the currency label
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
-import { append, loadRecord, saveRecord, readStored, recordKey, unionRecords, sameChain, freshId, replay, emptyRecord, correctTx, correctionsOf, type FinRecord, type TxEdit } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry; r.073: the union
+import { append, loadRecord, saveRecord, readStored, recordKey, unionRecords, sameChain, freshId, replay, emptyRecord, correctTx, type FinRecord, type TxEdit } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry; r.073: the union
 import { parseAmountCents, amountProblem, parseDaysText, parsePositive, lengthFits } from "@/lib/financial-2525/typed";   // r.073 (round 1): one reader for what a person types
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
 import { fitFigures, fitGrid, figReserve, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
@@ -824,7 +824,7 @@ export function FinancialCommandUX1() {
                 {owner && record.entries.length === 0 && <tr><td colSpan={9} className="py-1">{t("fin.no_deposits")}</td></tr>}
                 {/* r.067 (addendum 151 "always order transactions in chronological order"): oldest first by day and time (an edited date re-sorts) */}
                 {owner && record.entries.filter((e) => !e.tx.corrects).sort((a, b) => (effective.get(a.tx.id)?.atMs ?? a.tx.atMs) - (effective.get(b.tx.id)?.atMs ?? b.tx.atMs) || a.rev - b.rev).map((e) => {
-                  const x = effective.get(e.tx.id) ?? e.tx, fixes = correctionsOf(record, e.tx.id), open = editId === e.tx.id;
+                  const x = effective.get(e.tx.id) ?? e.tx, open = editId === e.tx.id;
                   return (
                   <Fragment key={e.hash}>
                   <tr data-fin-ledger-row={e.rev} className="border-t border-border/60">
@@ -833,7 +833,9 @@ export function FinancialCommandUX1() {
                     <td className="py-1 pr-3">{fmtStampCST(x.atMs)}</td>
                     <td className="py-1 pr-3 text-right">{x.motDays ? fmtDays(withMonthLaw(x).motDays ?? 0) : ""}</td>
                     <td className="py-1 pr-3">{x.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}</td>
-                    <td className="py-1 pr-3">{e.rev}{!!fixes.length && <span data-fin-edited title={`${t("fin.edited")} · ${fixes.map((f) => `#${f.rev}`).join(" ")}`} className="ml-1 text-primary">✎{fixes[fixes.length - 1].rev}</span>}</td>
+                    {/* r.073 (addendum 163 "remove history in Cyan. you can have history in supabase to see changes."): the entry number only —
+                        every correction stays on the record and in the account copy, where the changes can be read; none is shown on the glass */}
+                    <td className="py-1 pr-3">{e.rev}</td>
                     <td className="py-1 pr-3">{e.hash.slice(0, 8)}</td>
                     {/* r.067 (addendum 152 "I need edit button for individual transactions somewhere on right"): the pencil pinned to the RIGHT edge of every row — it stays in view while the table scrolls sideways */}
                     <td data-fin-edit-cell className="sticky right-0 bg-card py-1 pl-2"><button type="button" data-fin-edit={e.rev} aria-label={`${t("fin.edit_tx")} · #${e.rev} · ${x.kind === "deposit" ? "+" : "−"}${num2(x.amountCents)} · ${fmtStampCST(x.atMs)}`} title={t("fin.edit_tx")} aria-expanded={open} onClick={() => (open ? setEditId(null) : openEdit(x))} className={`flex h-8 w-8 items-center justify-center rounded-md border border-border ${open ? "text-primary" : ""}`}><Pencil size={13} strokeWidth={1.5} aria-hidden /></button></td>
