@@ -897,6 +897,19 @@
 >
 > wlso remove light weight charts trading view label
 
+> (addendum 138, verbatim — 2026-10-02 4:20, with two photos: the orbital chart at 1M showing day spans and Gregorian
+> span words — `docs/asks/2026-10-02_financial_2525_fb138_orbital.png` — and the "+ 91 D −" control —
+> `docs/asks/2026-10-02_financial_2525_fb138_zoom.jpg`)
+> and remember in orbital timeline view, nonGregorian calendar references, just A.B..C
+>
+> 3600 is 365
+> quarter is 900
+> month is 300
+> week is 75
+> 1X
+>
+> also get rid of +- map guidance in image 2
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).

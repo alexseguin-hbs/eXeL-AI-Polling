@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.064",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "6009cc3e3851f3312396fb0b3d23454d6d7ae1bf23bca5737117df82549ac1b4",
+  "handoffSha256": "40945f575b099592bd8231aa0fd5fdf69f36654f357ead1014c5ebc6747edcf3",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -461,6 +461,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "6009cc3e3851f3312396fb0b3d23454d6d7ae1bf23bca5737117df82549ac1b4",
     "date": "2026-10-02",
     "note": "addenda 136 (chart marks: dotted lines, label placement, merge when dots overlap) + 137 (remove Net by)"
+   },
+   {
+    "sha256": "40945f575b099592bd8231aa0fd5fdf69f36654f357ead1014c5ebc6747edcf3",
+    "date": "2026-10-02",
+    "note": "addendum 138 (orbital view in A.B..C only: 1X · 75 · 300 · 900 · 3600; remove the + / − zoom control)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
