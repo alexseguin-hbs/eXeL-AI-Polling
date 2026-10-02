@@ -914,6 +914,10 @@
 > `docs/asks/2026-10-02_financial_2525_fb139_budget_unit.png`)
 > place unit block onna single line to right of header on personal budget upper right.  call MoT Unit,
 
+> (addendum 140, verbatim — 2026-10-02 4:29, with a phone photo of the Transaction Record — the footer reads v.000_r.063 · 1970121, a
+> cached page — `docs/asks/2026-10-02_financial_2525_fb140_record_cloud.png`)
+> use better cloud icon; and ensure anything in supabase has improved standard universally accepted icon for cloud icon .  We are still missing edit for transactions
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
