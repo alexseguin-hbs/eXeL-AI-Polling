@@ -828,6 +828,11 @@
 > (addendum 125, verbatim — 2026-10-02, r.055 live)
 > test login via oauth actually saves into database  all personal financials
 
+> (addendum 126, verbatim — 2026-10-02, after the database test passed 10/10)
+> SSSES, 12 AsM AAR and UX TEST, and Spiral test forward and backward implementation of Financial-2525
+>
+> EACH ROUND YOU FIND GAPS; fix code .  go 33 rounds
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
