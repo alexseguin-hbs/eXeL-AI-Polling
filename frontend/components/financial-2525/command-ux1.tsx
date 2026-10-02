@@ -834,7 +834,7 @@ function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, angle, pl
       {/* addendum 129: FIGURES ONLY, in their lines' colours, beside the selected date's vertical line (now, or under the finger); the
           dates tilt at the Settings angle */}
       <RCoreChart height={300} ariaLabel={t("fin.chart_tap")} angle={angle} tall={!showAbc && dateFmt === "full"} ticksFor={ticksFor} formatTick={tick}
-        initialRange={{ from, to }} readoutAt={nowInside ? minuteNow : from} readout={figuresAt}
+        initialRange={{ from, to }} readoutAt={nowInside ? minuteNow : from} readout={figuresAt} formatSelected={(ms) => (showAbc ? fmtMot(positionInYear(ms, planet.yearAnchor, planet.yearDays).abc) : fmtStampCST(ms).slice(0, 16).replace("_", " "))}
         lines={[{ id: "income", color: C.abundance, points: line("income"), step: true }, { id: "spending", color: C.evolution, points: line("spending"), step: true }, { id: "net", color: C.temporal, points: line("net"), step: true, width: 3 }]}
         marks={marks} formatValue={(v) => rateMoney(v * 100)} />
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">

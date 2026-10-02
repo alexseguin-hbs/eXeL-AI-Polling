@@ -32,6 +32,7 @@ export interface RCoreChartProps {
   tall?: boolean;                           // long labels (a full date) need more room when tilted
   readout?: (ms: number) => RCoreFigure[];
   readoutAt?: number;
+  formatSelected?: (ms: number) => string;  // the selected instant's own label, boxed on the date strip (addendum 134)
   ariaLabel: string;
 }
 
@@ -60,11 +61,11 @@ function cssColor(el: HTMLElement, prop: string, fallback: string): string {
   try { const v = getComputedStyle(el).getPropertyValue(prop).trim(); return v ? (v.startsWith("#") || v.startsWith("rgb") || v.startsWith("hsl") ? v : `hsl(${v})`) : fallback; } catch { return fallback; }
 }
 
-export function RCoreChart({ lines, marks = [], height = 280, initialRange, formatValue, ticksFor, formatTick, angle = 0, tall = false, readout, readoutAt, ariaLabel }: RCoreChartProps) {
+export function RCoreChart({ lines, marks = [], height = 280, initialRange, formatValue, ticksFor, formatTick, angle = 0, tall = false, readout, readoutAt, formatSelected, ariaLabel }: RCoreChartProps) {
   const box = useRef<HTMLDivElement>(null);
   // the latest props, read by the canvas painter every frame (so a new format or figure set never rebuilds the chart)
-  const live = useRef({ formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt });
-  live.current = { formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt };
+  const live = useRef({ formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt, formatSelected });
+  live.current = { formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt, formatSelected };
   const redraw = useRef<() => void>(() => {});
   useEffect(() => { redraw.current(); });
   const key = JSON.stringify([lines.map((l) => [l.id, l.color, l.step, l.dashed, l.width, l.points.length, l.points[0]?.t, l.points[l.points.length - 1]?.t, l.points.reduce((a, p) => a + p.v, 0)]), marks, height, initialRange, angle, tall]);
@@ -100,6 +101,7 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
       else ts.fitContent();
       // THE PAINTER — the date marks and the figures, drawn by the engine inside its own frame on every pan, pinch and finger move
       let cross: number | null = null;
+      let pinned: number | null = null;   // addendum 134 "click on map to see a specific day": a tap pins the day until the next tap
       let request = () => {};
       // instant → x: the nearest sample's own coordinate, plus the fraction of a bar (time-to-coordinate is exact for a sampled instant)
       const secs = toSeconds(lines[0]?.points ?? []).map((q) => q.time);
@@ -117,7 +119,7 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
             if (!vr) return;
             // the selected instant: the finger's, else now — a thin line (the engine draws its own under the finger) and the figures
             const base = H;
-            const sel = cross ?? p.readoutAt ?? null; if (sel === null || !p.readout) return;
+            const sel = cross ?? pinned ?? p.readoutAt ?? null; if (sel === null || !p.readout) return;
             const x = xAt(sel); if (x === null || x < 0 || x > W) return;
             if (cross === null) { g.save(); g.strokeStyle = text; g.globalAlpha = 0.6; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, base - 8); g.stroke(); g.restore(); }
             const figs = p.readout(sel);
@@ -149,6 +151,20 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
               g.restore();
             }
             g.restore();
+            // the selected instant's date, boxed and upright on the strip — the finger's, the tapped day, else now
+            const sel = cross ?? pinned ?? p.readoutAt ?? null;
+            if (sel !== null && p.formatSelected) {
+              const x = xAt(sel);
+              if (x !== null && x >= 0 && x <= W) {
+                g.save(); g.font = "600 10px ui-monospace, SFMono-Regular, Menlo, monospace";
+                const label = p.formatSelected(sel), w = g.measureText(label).width + 8, h = 15;
+                const left = Math.max(0, Math.min(W - w, x - w / 2));
+                g.fillStyle = cssColor(el, "--background", "#0b0f14"); g.fillRect(left, 2, w, h);
+                g.strokeStyle = text; g.lineWidth = 1; g.strokeRect(left + 0.5, 2.5, w - 1, h - 1);
+                g.fillStyle = cssColor(el, "--foreground", "#e5e7eb"); g.textAlign = "left"; g.textBaseline = "middle"; g.fillText(label, left + 4, 2 + h / 2);
+                g.restore();
+              }
+            }
           });
         },
       };
@@ -163,6 +179,7 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
       redraw.current = () => request();
       chart.subscribeCrosshairMove((pr: { time?: unknown; logical?: number }) => { cross = typeof pr.logical === "number" ? clock.toMs(pr.logical) : typeof pr.time === "number" ? pr.time * 1000 : null; request(); });
       ts.subscribeVisibleLogicalRangeChange(() => request());
+      chart.subscribeClick((pr: { logical?: number; time?: unknown }) => { pinned = typeof pr.logical === "number" ? clock.toMs(pr.logical) : typeof pr.time === "number" ? pr.time * 1000 : pinned; request(); });
       const ro = new ResizeObserver(() => { if (box.current) chart.applyOptions({ width: box.current.clientWidth }); });
       ro.observe(el);
       cleanup = () => { ro.disconnect(); redraw.current = () => {}; chart.remove(); };

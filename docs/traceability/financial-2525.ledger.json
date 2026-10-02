@@ -863,6 +863,20 @@
    "kind": "decision",
    "text": "r.062 decision — edit a recorded transaction: an appended correction entry; the original stays (FD-78).",
    "commit": "53d3c69"
+  },
+  {
+   "rev": 124,
+   "date": "2026-10-02",
+   "kind": "decision",
+   "text": "r.063 decision — a tap on the $/min chart pins that day: its figures and its boxed date stay until the next tap.",
+   "commit": "da61bdc"
+  },
+  {
+   "rev": 125,
+   "date": "2026-10-02",
+   "kind": "release",
+   "text": "r.062 shipped and LIVE — edit a recorded transaction; the original stays (FD-78).",
+   "commit": "38a1d5c"
   }
  ]
 }

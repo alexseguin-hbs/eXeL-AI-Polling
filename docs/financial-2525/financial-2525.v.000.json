@@ -4,8 +4,8 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.062",
-  "stamp": "v.000_r.062",
+  "revision": "0.063",
+  "stamp": "v.000_r.063",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "97aa9035e7a8b316d622697872f7823611d2bec5de562a605730431572039300",
@@ -932,6 +932,14 @@
    "kind": "decision",
    "why": "Addendum 133 (with his photo of the Transaction Record): \"add edit feature for transaction record\". Every row of the record now has a pencil: it opens the entry's amount, memo, day and time and length (MoT); Save APPENDS a correction entry that names the transaction it corrects — the original entry, its hash and every link after it stay on the record exactly as they were (no change ever deletes an entry), and the table, the balance and the charts read the corrected values in the original's place. A corrected row carries a small ✎ with the correction's number (its tooltip lists every correction). The type (deposit / withdrawal) is not editable; an edited withdrawal passes the same never-overdraw refusal as a new one. Replaying the record to an earlier revision shows the values as they were then. No budget figure changes.",
    "commit": "53d3c69",
+   "shipped": "38a1d5c"
+  },
+  {
+   "revision": "0.063",
+   "date": "2026-10-02",
+   "kind": "decision",
+   "why": "Addendum 134 (with his 9:09 photo of the chart): \"i need to be able to click on map to see a specific day\". A tap (or click) on the $/min chart now PINS that day: its three figures stay beside the line and its date and time (CST, or the A.B..C position in MoT mode) are drawn boxed on the date strip under the line, until the next tap moves it; dragging a finger still reads any instant live. Drawn by the chart engine on its canvas, so it follows pinch and pan. (His photo shows an earlier build — the boxed Income/Spending/Net readout was retired in r.058; a reload brings the current page.)",
+   "commit": "da61bdc",
    "shipped": "PENDING"
   }
  ],
