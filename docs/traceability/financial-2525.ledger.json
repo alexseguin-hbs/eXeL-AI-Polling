@@ -1003,6 +1003,13 @@
    "kind": "decision",
    "text": "r.072 decision — the limit only in a card's settings (the cockpit warning names the balance alone); the budget fits a 320 px phone in view and edit mode, guarded by a layout smoke on the built page; the three r.071 questions decided by Master of Thought; the backlog brought up to date (FD-90, FD-91).",
    "commit": "c44b61f"
+  },
+  {
+   "rev": 144,
+   "date": "2026-10-02",
+   "kind": "release",
+   "text": "r.072 shipped and LIVE (Verify Live #2241) — the limit only in a card's settings; the budget fits a 320 px phone in view and edit mode, guarded by the layout smoke; r.071's three questions decided by Master of Thought; the backlog up to date (FD-90, FD-91).",
+   "commit": "73dbcbf"
   }
  ]
 }

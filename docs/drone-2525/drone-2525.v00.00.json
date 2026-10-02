@@ -286,7 +286,7 @@
    "kind": "release",
    "why": "Operator deck r.153 — the browser tab reads \"eXeL Drone-2525\" (operator 2026-09-26, docs/asks/2026-09-26_drone_tab_name.md: \"make drone-2525 tab name / eXeL Drone-2525 / not sure why ECO IS IN NAME\" and the follow-up dropping the \"· MoT · SSSES\" suffix). Title-only: play.html <title> \"eXeL ECO-2525 · MoT · SSSES\" → \"eXeL Drone-2525\" + the revision stamps. No logic, layout or QA row changes (a browser title carries no runtime behaviour); drone-playable holds play.html byte-identical to the carried r.153 snapshot, which is the proof the title shipped. Patch patches/r152_to_r153.py (3 asserted edits).",
    "commit": "c65d719",
-   "shipped": "PENDING"
+   "shipped": "ecbb262"
   }
  ],
  "arena": {

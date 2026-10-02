@@ -344,7 +344,7 @@
    "kind": "release",
    "text": "Operator deck r.153 served at /drone-2525/play.html (sha256 3c3de521...). THE BROWSER TAB READS \"eXeL Drone-2525\" — the <title> was the last place the stale early deck name \"eXeL ECO-2525 · MoT · SSSES\" survived, so the phone tab said ECO; now exactly \"eXeL Drone-2525\" (operator 2026-09-26, docs/asks/2026-09-26_drone_tab_name.md). Title-only, byte-gated: patch patches/r152_to_r153.py, byte-identical play.html, no QA-row or logic change.",
    "commit": "c65d719",
-   "shipped": "PENDING"
+   "shipped": "ecbb262"
   }
  ]
 }
