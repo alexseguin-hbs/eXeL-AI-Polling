@@ -15,7 +15,7 @@
   letter-spacing: 0.12em;
   font-family: ui-monospace, monospace;
 }
-h1 {
+.page h1 {
   font-size: 28px;
   line-height: 1.2;
   margin: 8px 0;
@@ -25,13 +25,13 @@ h1 {
   font-size: 14px;
   line-height: 1.45;
 }
-label {
+.page label {
   display: block;
   font-size: 14px;
   margin-top: 16px;
 }
-input,
-select {
+.page input,
+.page select {
   width: 100%;
   min-height: 44px;
   margin-top: 6px;
