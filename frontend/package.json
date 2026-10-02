@@ -122,6 +122,7 @@
     "test:feedback-site": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/feedback-site.test.mjs",
     "test:financial-rate": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/financial-rate.test.mjs",
     "test:drone-render-smoke": "node scripts/drone-render-smoke.mjs",
+    "test:fin-layout-smoke": "node scripts/fin-layout-smoke.mjs",
     "test:build-stamp": "node tests/build-stamp.test.mjs",
     "test:drone-swarm": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/drone-swarm.test.mjs",
     "test:drone-authority": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/drone-authority.test.mjs",

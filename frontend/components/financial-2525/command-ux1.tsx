@@ -470,10 +470,12 @@ export function FinancialCommandUX1() {
           {/* r.067 THE COCKPIT WARNING (addendum 144 "warnings of credit card overspend"; his levels: amber $1,500 · red $2,000): a card at
               or past a level the person set is named here, in words as well as colour, at the top of the one view; r.072 (addendum 161
               "remove limit from CC"): the balance alone — the limit lives only in the card's settings */}
+          <div data-fin-card-warnings aria-live="polite">
           {owner && cards.map((c) => ({ c, b: cardBalanceAt(c, recTxs, at) })).filter(({ c, b }) => cardLevel(c, b) !== "ok").map(({ c, b }) => {
             const lv = cardLevel(c, b);
-            return <p key={c.id} data-fin-card-warning={lv} className={`mt-2 rounded-md border px-2 py-1 text-xs font-medium ${lv === "amber" ? "border-yellow-500/60 text-yellow-600 dark:text-yellow-400" : "border-red-500/60 text-red-400"}`}>⚠ {t(ALERT_WORD[lv])} · {c.name} {usd(b)}</p>;
+            return <p key={c.id} data-fin-card-warning={lv} className={`mt-2 break-words rounded-md border px-2 py-1 text-xs font-medium ${lv === "amber" ? "border-yellow-500/60 text-yellow-600 dark:text-yellow-400" : "border-red-500/60 text-red-400"}`}>⚠ {t(ALERT_WORD[lv])} · {c.name} {usd(b)}</p>;
           })}
+          </div>
           {/* r.044 (addendum 93 "Available and Accrual Rate should be same line, same size text"): the two labels share one line,
               the two figures share the next, at the same size */}
           {/* r.071 (addenda 158–159 "and fix this"): one size for both figures (r.044), fitted to the row — a long figure never runs into
@@ -592,7 +594,8 @@ export function FinancialCommandUX1() {
         )}
         {/* the budget — every line on the ladder (FIN-06) */}
         <div data-fin-budget className={SUB}>
-          <div className="flex flex-nowrap items-center justify-between gap-2">
+          {/* r.072 AsM: the title row WRAPS on a narrow phone — at 320 px "MoT Unit" printed over "PERSONAL BUDGET" and its box covered the pencil */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex shrink-0 items-center gap-2">
               <div className={LABEL}>{t("fin.ladder_title")}</div>
               {/* EDIT MODE behind an icon (addendum 28 "add edit mode and icon on budget mode"): the pencil opens it, the check closes it;
@@ -609,7 +612,7 @@ export function FinancialCommandUX1() {
             {/* the unit — ONE dropdown (addendum 20 "use drop down": the eight pills wrapped over three rows on the phone) */}
             {/* addendum 21: in portrait the select is the panel's full width (the label above it) so "per hour" etc. read at the full line; landscape keeps it at its own width */}
             {/* r.065 (addendum 139 "place unit block on a single line to right of header on personal budget upper right · call MoT Unit") */}
-            <label data-fin-mot-unit-row className="flex min-w-0 items-center justify-end gap-1.5 whitespace-nowrap text-xs text-muted-foreground">{t("fin.mot_unit")}
+            <label data-fin-mot-unit-row className="ml-auto flex min-w-0 items-center justify-end gap-1.5 whitespace-nowrap text-xs text-muted-foreground">{t("fin.mot_unit")}
               {/* r.067 (addendum 147 "Keep long description in drop down for MoT · for display however show /30D /7D /1M … shorthand"):
                   the list keeps the words; the closed box shows the shorthand over an invisible select that still takes the tap */}
               <span className="relative inline-flex rounded-md focus-within:ring-2 focus-within:ring-primary">
@@ -627,7 +630,7 @@ export function FinancialCommandUX1() {
           {/* r.072: the unit header wraps when the phone is narrow — at 320 px it no longer pushes the page sideways */}
           <table className="mt-2 w-full font-mono text-xs">
             <thead className="text-left text-[10px] uppercase tracking-wide text-muted-foreground">
-              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="py-1 text-right">{UNITS.find((u) => u.key === budgetUnit)?.label}, {curMark}</th></tr>
+              <tr><th className="py-1 pr-2">{t("fin.category")}</th><th className="py-1 text-right min-[360px]:whitespace-nowrap">{unitHead(UNITS.find((u) => u.key === budgetUnit)?.label ?? "", curMark)}</th></tr>
             </thead>
             <tbody>
               {groups.map((g) => (
@@ -646,7 +649,7 @@ export function FinancialCommandUX1() {
                       <td className="whitespace-nowrap py-0.5 text-right tabular-nums">
                         {editing && !fromRecord(l.fieldId) ? (
                           <span className="flex items-center justify-end gap-1">
-                            <input data-fin-plan-amount={l.fieldId} className="w-28 rounded-md border border-border bg-background px-2 py-1 text-right text-xs text-foreground" inputMode="decimal"
+                            <input data-fin-plan-amount={l.fieldId} className="w-24 min-[360px]:w-28 rounded-md border border-border bg-background px-2 py-1 text-right text-xs text-foreground" inputMode="decimal"
                               value={drafts[l.fieldId] ?? String(editFigure(l))} onChange={(e) => typeAmount(l.fieldId, e.target.value)} onBlur={() => setDrafts((d) => { const n = { ...d }; delete n[l.fieldId]; return n; })} />
                             <button type="button" data-fin-plan-remove={l.fieldId} aria-label={t("fin.remove_line")} title={t("fin.remove_line")} onClick={() => writePlan(removeLine(plan, l.fieldId))} className="rounded-md border border-border p-1"><X size={12} strokeWidth={1.5} aria-hidden /></button>
                           </span>
@@ -655,7 +658,7 @@ export function FinancialCommandUX1() {
                   ))}
                 </Fragment>
               ))}
-              <tr className={`border-t border-border font-semibold ${totals.net < 0 ? "text-red-500" : "text-green-500"}`}><td data-fin-budget-net-label className="whitespace-nowrap py-1 pr-2 text-[11px]">{/* r.045 (addendum 94): the Net line names its sign */}{totals.net < 0 ? t("fin.net_down") : t("fin.net_up")}</td><td data-fin-budget-net className="py-1 text-right tabular-nums">{numDollars(totals.net)}</td></tr>
+              <tr className={`border-t border-border font-semibold ${totals.net < 0 ? "text-red-500" : "text-green-500"}`}><td data-fin-budget-net-label className="py-1 pr-2 text-[11px] min-[360px]:whitespace-nowrap">{/* r.045 (addendum 94): the Net line names its sign */}{totals.net < 0 ? t("fin.net_down") : t("fin.net_up")}</td><td data-fin-budget-net className="py-1 text-right tabular-nums">{numDollars(totals.net)}</td></tr>
             </tbody>
           </table>
           {editing && (
@@ -949,6 +952,11 @@ function CloudMark({ saved, size = 18 }: { saved: boolean; size?: number }) {
   );
 }
 /** r.070 (addendum 155): the alert words — the key's "Red Alert" / "Amber Alert", the cockpit warning and the Balance's spoken state. */
+/** r.072 AsM: a card's name is a name — long enough for "Capital One Venture X Rewards", never a pasted paragraph that pushes the page */
+const CARD_NAME_MAX = 40;
+/** r.072 AsM: the budget's unit header — from 360 px up it stays on one line; below it the one break is after "per", so the "$" never
+ *  stands alone (non-breaking spaces inside "(30 days)" and before the currency). */
+const unitHead = (label: string, cur: string): string => `${label.replace(/ \(/g, "\u00a0(").replace(/(\d) /g, "$1\u00a0")},\u00a0${cur}`;
 const ALERT_WORD: Record<CardLevel, string> = { ok: "", amber: "fin.card_level_amber", red: "fin.card_level_red", over: "fin.card_level_over" };
 /** r.067 THE CARDS PANEL (module-level: the picker law — the 1 s clock never remounts its selects). */
 function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs: FinTx[]; now: number; onSave: (c: Card[]) => void; onPay: (id: string) => void; t: (k: string) => string }) {
@@ -1011,7 +1019,7 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
       )}
       {adding && (
         <div data-fin-card-add-form className="mt-2 grid grid-cols-2 gap-2 rounded-md border border-border p-2 text-xs">
-          <label className="col-span-2 flex flex-col gap-1 text-muted-foreground">{t("fin.card_name")}<input data-fin-card-new="name" autoComplete="off" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={FIELD} /></label>
+          <label className="col-span-2 flex flex-col gap-1 text-muted-foreground">{t("fin.card_name")}<input data-fin-card-new="name" autoComplete="off" maxLength={CARD_NAME_MAX} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={FIELD} /></label>
           {([["limit", "fin.card_limit"], ["opening", "fin.card_opening"], ["amber", "fin.card_amber_at"], ["red", "fin.card_red_at"]] as const).map(([k, key]) => (
             <label key={k} className="flex flex-col gap-1 text-muted-foreground">{t(key)}<input data-fin-card-new={k} inputMode="decimal" value={draft[k]} placeholder={k === "amber" ? hint(0.5) : k === "red" ? hint(2 / 3) : undefined} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} className={FIELD} /></label>
           ))}
@@ -1029,7 +1037,7 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
       </div>
       {gear && (
         <div data-fin-cards-menu className="mt-2 grid grid-cols-2 gap-2 rounded-md border border-border p-2 text-xs">
-          <label className="col-span-2 flex flex-col gap-1 text-muted-foreground">{t("fin.card_name")}<input data-fin-card-input="name" autoComplete="off" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={FIELD} /></label>
+          <label className="col-span-2 flex flex-col gap-1 text-muted-foreground">{t("fin.card_name")}<input data-fin-card-input="name" autoComplete="off" maxLength={CARD_NAME_MAX} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={FIELD} /></label>
           {([["limit", "fin.card_limit"], ["opening", "fin.card_opening"], ["amber", "fin.card_amber_at"], ["red", "fin.card_red_at"]] as const).map(([k, key]) => (
             <label key={k} className="flex flex-col gap-1 text-muted-foreground">{t(key)}<input data-fin-card-input={k} inputMode="decimal" value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} className={FIELD} /></label>
           ))}

@@ -1008,7 +1008,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "rev": 143,
       "date": "2026-10-02",
       "kind": "decision",
-      "text": "r.072 decision — the limit only in a card's settings (the cockpit warning names the balance alone); the budget header wraps at 320 px; the three r.071 questions decided by Master of Thought (FD-90, FD-91).",
+      "text": "r.072 decision — the limit only in a card's settings (the cockpit warning names the balance alone); the budget fits a 320 px phone in view and edit mode, guarded by a layout smoke on the built page; the three r.071 questions decided by Master of Thought; the backlog brought up to date (FD-90, FD-91).",
       "commit": "c44b61f"
     }
   ]

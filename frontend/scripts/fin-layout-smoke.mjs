@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+/**
+ * LAYOUT SMOKE — the Financial-2525 page never pushes a phone sideways (r.072, the AsM review of addendum 161).
+ *
+ * Three revisions in a row a phone-width defect shipped behind green source gates: a figure running into its neighbour (r.071), the
+ * gear's rate line off the card (r.071), the budget header and then budget EDIT mode pushing the page 24 px at 320 (r.072). A source
+ * regex cannot see a layout; a browser can. This serves the built export, signs a TEST browser in (the Auth0 SPA cache — nothing in
+ * the product is bypassed), seeds one credit card already past its amber level under a long single-word name (so the cockpit warning
+ * shows the worst name a person can type), and at 320 · 390 · 428 px measures the page at rest, with the Accrual gear open and with
+ * the budget in edit mode: the document is never wider than the screen. A probe that cannot go red is not evidence — the run also
+ * asserts each state was reached (the warning shown, the gear open, the edit inputs present).
+ *
+ *   node scripts/fin-layout-smoke.mjs        (needs `next build` first; reads out/)
+ */
+import { createServer } from 'node:http';
+import { readFile, stat } from 'node:fs/promises';
+import { extname, join, resolve } from 'node:path';
+const OUT = resolve(new URL('..', import.meta.url).pathname, 'out');
+const PORT = Number(process.env.FIN_SMOKE_PORT || 4723);
+const MIME = { '.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2','.ico':'image/x-icon' };
+const srv = createServer(async (req,res)=>{
+  try { let f=join(OUT,decodeURIComponent(req.url.split('?')[0]));
+    try{ if((await stat(f)).isDirectory()) f=join(f,'index.html'); }catch{ f=extname(f)?f:join(f,'index.html'); }
+    res.writeHead(200,{'content-type':MIME[extname(f)]||'application/octet-stream'}); res.end(await readFile(f));
+  } catch { if(!res.headersSent) res.writeHead(404); res.end(); }
+}).listen(PORT);
+let pass=0, fail=0; const ok=(c,m)=>{ if(c) pass++; else { fail++; console.log('FAIL:',m); } };
+// the TEST browser's seed: a signed-in person (Auth0 SPA cache, unsigned token — the app only reads the cache), the operator's cyan
+// theme, and one card past amber whose name is the longest the form allows, as one unbroken word
+const CLIENT = 'H8wuT6P2nfm87bvbRjaegoOliLyhPw4K', SUB = 'auth0|layout-smoke';
+const INIT = `try { localStorage.setItem("exel-active-locale","en"); localStorage.setItem("exel-theme-id","exel-cyan"); const clientId=${JSON.stringify(CLIENT)};
+  const user={ sub:${JSON.stringify(SUB)}, name:"Layout Smoke", email:"smoke@example.invalid", email_verified:true, updated_at:new Date().toISOString() };
+  const b64=(o)=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/,"").replace(/\\+/g,"-").replace(/\\//g,"_"); const now=Math.floor(Date.now()/1000);
+  const claims={...user, iss:"https://exel-ai-polling.us.auth0.com/", aud:clientId, iat:now, exp:now+86400}; const idToken=b64({alg:"none",typ:"JWT"})+"."+b64(claims)+".sig";
+  const decodedToken={ encoded:{header:"",payload:"",signature:""}, header:{alg:"none",typ:"JWT"}, claims:{__raw:idToken,...claims}, user };
+  localStorage.setItem("@@auth0spajs@@::"+clientId+"::@@user@@", JSON.stringify({id_token:idToken, decodedToken}));
+  localStorage.setItem("@@auth0spajs@@::"+clientId+"::default::openid profile email", JSON.stringify({ body:{client_id:clientId, access_token:"smoke", id_token:idToken, scope:"openid profile email", oauthTokenScope:"openid profile email", expires_in:86400, decodedToken, audience:"default"}, expiresAt: now+86400 }));
+  localStorage.setItem("fin-cards:" + ${JSON.stringify(SUB)}, JSON.stringify([{ id:"c-smoke", name:"Supercalifragilisticexpialidociouscardna", limitCents:300000, openingCents:160000, openingAtMs:Date.now()-60000, amberCents:150000, redCents:200000 }])); } catch {}`;
+try {
+  const { chromium } = await import('playwright');
+  const cands=[process.env.CHROMIUM_PATH,'/opt/pw-browsers/chromium-1194/chrome-linux/chrome','/opt/pw-browsers/chromium/chrome-linux/chrome','/usr/bin/chromium'].filter(Boolean);
+  let executablePath; for(const x of cands){ try{ await stat(x); executablePath=x; break; }catch{} }
+  const b = await chromium.launch(executablePath?{executablePath}:{});
+  const errors=[];
+  const wide = (p) => p.evaluate(() => ({ doc: document.documentElement.scrollWidth, w: window.innerWidth, by: Array.from(document.querySelectorAll('body *')).filter((el) => { const r = el.getBoundingClientRect(); if (!(r.width && r.right > window.innerWidth + 1)) return false; for (let q = el.parentElement; q; q = q.parentElement) if (/(auto|scroll|hidden)/.test(getComputedStyle(q).overflowX)) return false; return true; }).slice(0, 2).map((el) => el.tagName.toLowerCase() + (Array.from(el.attributes).find((a) => a.name.startsWith('data-'))?.name ? '[' + Array.from(el.attributes).find((a) => a.name.startsWith('data-')).name + ']' : '')) }));
+  for (const w of [320, 390, 428]) {
+    const ctx = await b.newContext({ viewport: { width: w, height: 900 } });
+    await ctx.addInitScript(INIT);
+    const p = await ctx.newPage();
+    p.on('pageerror', e=>errors.push(`${w}: ${e.message}`));
+    await p.goto(`http://127.0.0.1:${PORT}/financial-2525/`, { waitUntil:'networkidle', timeout:30000 });
+    await p.waitForSelector('[data-fin-tx-open]', { timeout: 15000 });
+    ok(await p.locator('[data-fin-card-warning]').count() > 0, `${w}: the seeded card's warning shows (the long-name state is exercised)`);
+    let m = await wide(p); ok(m.doc <= m.w + 1, `${w}: the page at rest fits (${m.doc} of ${m.w}${m.by.length ? ' · ' + m.by.join(', ') : ''})`);
+    await p.click('[data-fin-accrual-gear]'); await p.waitForTimeout(200);
+    ok(await p.locator('[data-fin-accrual-defs]').count() > 0, `${w}: the Accrual gear opens`);
+    m = await wide(p); ok(m.doc <= m.w + 1, `${w}: the page with the gear open fits (${m.doc} of ${m.w}${m.by.length ? ' · ' + m.by.join(', ') : ''})`);
+    await p.click('[data-fin-budget-edit]'); await p.waitForTimeout(200);
+    ok(await p.locator('[data-fin-plan-amount]').count() > 0, `${w}: the budget opens in edit mode`);
+    m = await wide(p); ok(m.doc <= m.w + 1, `${w}: the page with the budget in edit mode fits (${m.doc} of ${m.w}${m.by.length ? ' · ' + m.by.join(', ') : ''})`);
+    await ctx.close();
+  }
+  ok(errors.length===0, `no page errors (${errors.length}${errors.length?': '+errors.slice(0,3).join(' | '):''})`);
+  await b.close();
+} catch (e) {
+  console.log('FAIL: layout smoke could not run —', e.message); fail++;
+} finally { srv.close(); }
+console.log(`\nfin-layout-smoke: ${pass} passed, ${fail} failed · nothing on the Financial page pushes a phone sideways`);
+process.exit(fail?1:0);

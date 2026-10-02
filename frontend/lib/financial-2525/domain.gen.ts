@@ -1157,7 +1157,7 @@ export const FINANCIAL_DOMAIN = {
    "revision": "0.072",
    "date": "2026-10-02",
    "kind": "decision",
-   "why": "Addendum 161 (\"remove linit from CC; going back to sleep; address backlog, make your own decisions MoT\", with his 5:45 photo of the r.067 panel). The limit left the card's face in r.068 (Balance · Available, the limit in the card's settings — his photo is the page before that); the one place it still showed outside the settings was the cockpit warning, \"⚠ Amber Alert · Capital One $1,535.27 / $3,000.00\" — it now reads the balance alone. The budget's unit header (\"PER MONTH (30 DAYS), $\") was held to one line and pushed the page sideways at 320 px; it wraps on a narrow phone. And the three questions r.071 left him, decided by Master of Thought as he asked (FD-91): the Accrual Rate stays what escrow releases — his r.066 \"Spread over rest\" — and is never netted against running bills (bills show in the chart's Net); the chart's $ view keeps his addendum-96 re-spread picture, its readout included; and no \"Released early\" line is added — the card keeps its five figures (his addendum-155 rule: as little text as possible).",
+   "why": "Addendum 161 (\"remove linit from CC; going back to sleep; address backlog, make your own decisions MoT\", with his 5:45 photo of the r.067 panel). The limit left the card's face in r.069 (FD-84: Balance · Available, the limit in the card's settings — his 5:45 photo is the r.067 page, stamp 929521e); the one place it still showed outside the settings was the cockpit warning, \"⚠ Amber Alert · Capital One $1,535.27 / $3,000.00\" — it now reads the balance alone. The budget's unit header (\"PER MONTH (30 DAYS), $\") was held to one line and pushed the page sideways at 320 px; it wraps on a narrow phone. And the three questions r.071 left him, decided by Master of Thought as he asked (FD-91): the Accrual Rate stays what escrow releases — his r.066 \"Spread over rest\" — and is never netted against running bills (bills show in the chart's Net); the chart's $ view keeps his addendum-96 re-spread picture, its readout included; and no \"Released early\" line is added — the gear's definition of Released already says it (\"plus anything released early by spending ahead\", addendum 60's settings). The review before the push (twelve lenses, FIX-FIRST) — folded: budget EDIT mode still pushed a 320 px phone 24 px sideways (the Net label and the amount boxes held their width) — below 360 px the Net label wraps and the amount box is narrower; the wrap left a lone \"$\" under the header at 390 px — from 360 px the header holds one line, and non-breaking spaces keep \"(30 days), $\" together below it; at 320 px \"MoT Unit\" printed over the budget title and its box covered the pencil (4 of 5 taps missed edit mode) — the title row wraps; a long single-word card name spilled out of the warning — it wraps there, a name is at most 40 characters, and a level crossed is announced to a screen reader; FD-90's gate now holds the rule (the limit read only by the settings and by Available), not one line; and a layout smoke on the built page (320 · 390 · 428 px, at rest, gear open, budget in edit mode, a long-named card past amber) fails any build that pushes the page sideways. The backlog (docs/financial-2525/BACKLOG.md, his addendum-82 rule) gains rows B-33 to B-58 for addenda 111–161, with their answers and states.",
    "commit": "c44b61f",
    "shipped": "PENDING"
   }
@@ -2778,13 +2778,13 @@ export const FINANCIAL_DOMAIN = {
    "id": "FD-90",
    "decision": "A credit card's limit lives only in its settings (and the form that sets a card up): no screen shows it outside them — the card's face carries Balance and Available, and the cockpit warning names the balance alone.",
    "status": "OPERATOR",
-   "basis": "addendum 161 + his photo; completes addendum 154 (r.068)"
+   "basis": "addendum 161 + his photo; completes addendum 154 (r.069, FD-84)"
   },
   {
    "id": "FD-91",
    "decision": "The three questions r.071 left open, decided by Master of Thought: the Accrual Rate stays what escrow releases (his r.066 'Spread over rest'), never netted against running bills — bills show in the chart's Net; the chart's $ view keeps the addendum-96 re-spread picture, its tap readout included; no 'Released early' line — the card keeps its five figures.",
    "status": "DECLARED",
-   "basis": "addendum 161 ('address backlog, make your own decisions MoT'); his r.066 answers, addendum 96, addendum 155"
+   "basis": "addendum 161 ('address backlog, make your own decisions MoT'); his r.066 answers, addendum 96, addendum 60 and the gear's definition of Released"
   }
  ],
  "reviews": [
