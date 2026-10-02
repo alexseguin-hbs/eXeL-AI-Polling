@@ -22,7 +22,9 @@ function withHistory(node: ReactNode, accent: string) {
   return (
     <>
       {node}
-      <RCoreBadge history={SENSOR_FUSION_RCORE_HISTORY} accent={accent} />
+      <div className={styles.badge}>
+        <RCoreBadge history={SENSOR_FUSION_RCORE_HISTORY} accent={accent} />
+      </div>
     </>
   );
 }
@@ -168,8 +170,8 @@ export default function SensorFusion() {
 
   if (step === "login") {
     return withHistory(
-      <main className={`${styles.page} mx-auto w-full max-w-3xl px-4 pb-20 pt-3 sm:pb-10 lg:max-w-none`}>
-        <div className={styles.wrap}>
+      <main className={styles.screen}>
+        <div className={styles.fill}>
           <p className={styles.kicker}>MODULAR: EDGE</p>
           <h1>Sensor Fusion · 2525</h1>
           <p className={styles.muted}>
@@ -192,8 +194,8 @@ export default function SensorFusion() {
 
   if (step === "device") {
     return withHistory(
-      <main className={`${styles.page} mx-auto w-full max-w-3xl px-4 pb-20 pt-3 sm:pb-10 lg:max-w-none`}>
-        <div className={styles.wrap}>
+      <main className={styles.screen}>
+        <div className={styles.fill}>
           <p className={styles.kicker}>MODULAR: EDGE</p>
           <h1>Sensor Fusion · 2525</h1>
           <p className={styles.muted}>
@@ -234,17 +236,17 @@ export default function SensorFusion() {
   const current = MODELS.find((item) => item.id === model);
 
   return withHistory(
-    <main className={`${styles.page} mx-auto w-full max-w-3xl px-4 pb-20 pt-3 sm:pb-10 lg:max-w-none`}>
-      <div className={styles.wrap}>
+    <main className={styles.screen}>
+      <header className={styles.top}>
+        <div>
+          <p className={styles.kicker}>MODULAR: EDGE</p>
+          <h1>
+            System Operator <span style={{ color: "var(--sf-primary, #00e5ff)" }}>{operator}</span>
+          </h1>
+          <p className={styles.muted}>{PLATFORMS.find((item) => item.id === platform)?.label}</p>
+          <p className={styles.path}>{sensorPath(platform, [current?.label ?? "Demo.90"])}</p>
+        </div>
         <div className={styles.row}>
-          <div style={{ flex: 1 }}>
-            <p className={styles.kicker}>MODULAR: EDGE</p>
-            <h1>
-              System Operator <span style={{ color: "var(--sf-primary, #00e5ff)" }}>{operator}</span>
-            </h1>
-            <p className={styles.muted}>{PLATFORMS.find((item) => item.id === platform)?.label}</p>
-            <p className={styles.path}>{sensorPath(platform, [current?.label ?? "Demo.90"])}</p>
-          </div>
           <button className={styles.ghost} type="button" onClick={() => setStep("device")}>
             Device
           </button>
@@ -263,11 +265,13 @@ export default function SensorFusion() {
             Settings
           </button>
         </div>
-
+      </header>
+      <div className={styles.body}>
         <section className={styles.stage}>
           <video ref={videoRef} autoPlay muted playsInline aria-label="Camera" />
           {!sensorOn && <div className={styles.idle}>Turn SENSOR 1 on to use the camera.</div>}
         </section>
+        <aside className={styles.side}>
         <div className={styles.tools}>
           {error && <p className={`${styles.alert} ${styles.wide}`}>{error}</p>}
           <button className={`${styles.primary} ${styles.wide}`} type="button" disabled={busy} onClick={() => (sensorOn ? closeSensor() : void openSensor())}>
@@ -313,6 +317,7 @@ export default function SensorFusion() {
             </div>
           </>
         )}
+        </aside>
       </div>
 
       {settings && (
