@@ -8,7 +8,7 @@
   "stamp": "v.000_r.071",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "72ae3bf269ff4cec4fb9d9a8f6f376a0121fc2d9b5d125c35b77e93e4b0597ce",
+  "handoffSha256": "425fa8842adde2aca9f1bbbcd3fd7bdbc8fe88c6be68b8d9edc333c701f3b67b",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -547,6 +547,11 @@
     "sha256": "72ae3bf269ff4cec4fb9d9a8f6f376a0121fc2d9b5d125c35b77e93e4b0597ce",
     "date": "2026-10-02",
     "note": "addendum 160 (the Trinity logo's labels no longer render when it is opened — his screenshot shows them dark and cut off)"
+   },
+   {
+    "sha256": "425fa8842adde2aca9f1bbbcd3fd7bdbc8fe88c6be68b8d9edc333c701f3b67b",
+    "date": "2026-10-02",
+    "note": "addendum 161 (remove the limit from the credit cards; address the backlog — Master of Thought makes the decisions while he sleeps)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

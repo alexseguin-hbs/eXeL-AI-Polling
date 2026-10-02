@@ -1054,6 +1054,11 @@
 > `docs/asks/2026-10-02_financial_2525_fb160_trinity_labels.jpg`)
 > also for some reason Trinity text does not render anymore when clicked
 
+> (addendum 161, verbatim — 2026-10-02, with a phone screenshot taken at 5:45 of the r.067 page (929521e): the Credit cards panel with
+> "Limit $3,000.00 · Balance $735.27 · Available credit $2,264.73", the level line and the card chart —
+> `docs/asks/2026-10-02_financial_2525_fb161_cc_limit.png`)
+> remove linit from CC; going back to sleep; address backlog, make your own decisions MoT.
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
