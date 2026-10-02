@@ -46,6 +46,7 @@ import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, DEVICE_OWNER, se
 import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } from "@/lib/financial-2525/currency";   // r.049: the currency label
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
+import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";   // r.053 (addenda 106 · 110): his entries put back
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
 const C = TRINITY_COLORS;
@@ -274,6 +275,14 @@ export function FinancialCommandUX1() {
   const secLabel = (sec: SectionId) => t(`fin.sec.${sec.toLowerCase()}`);
   const [refusal, setRefusal] = useState<string | null>(null);
   const commit = (tx: FinTx) => { const next = append(record, tx, at); setRecord(next); if (!saveRecord(next)) setSaveFailed(true); };
+  // r.053 (addendum 110 "now enter my transactions back in"): one tap appends his two deposits exactly as recorded and opens the
+  // withdrawal form with 250.66 · Auto / Renters / Home — its day, time and length are his to enter (never invented). Append only.
+  const restoreMine = () => {
+    let next = record; for (const d of operatorDeposits()) next = append(next, d, at);
+    setRecord(next); if (!saveRecord(next)) setSaveFailed(true);
+    setTxType("withdrawal"); setSec(OPERATOR_WITHDRAWAL.section); setField(OPERATOR_WITHDRAWAL.field); setRec("once"); setAmt(OPERATOR_WITHDRAWAL.amount);
+    setRefusal(null); scrollOnOpen.current = true; setFormOpen(true);
+  };
   /** What an entry is for — its ladder field (r.012) or, for the r.006–r.011 entries, its category; icon before the word. */
   const txWhat = (tx: FinTx): ReactNode => {
     if (tx.field) { const sec = fieldOf(tx.field)?.section ?? "L"; return <span data-fin-tx-field={tx.field}><SectionIcon section={sec} className="mr-1" />{fieldLabel(tx.field)}</span>; }
@@ -442,6 +451,12 @@ export function FinancialCommandUX1() {
           </div>
         )}
 
+        {owner && isOperator(user?.email) && record.entries.length === 0 && (
+          <div data-fin-restore className={`${SUB} flex flex-wrap items-center justify-between gap-2`}>
+            <span className="text-xs text-muted-foreground">{t("fin.restore_note")}</span>
+            <button type="button" data-fin-restore-btn onClick={restoreMine} className="min-h-[36px] rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.restore_mine")}</button>
+          </div>
+        )}
         {/* the budget — every line on the ladder (FIN-06) */}
         <div data-fin-budget className={SUB}>
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -682,6 +697,8 @@ function yAxisTicks(min: number, max: number): number[] {
   const out = [max, max / 2, 0]; if (min < 0) out.push(min);
   return Array.from(new Set(out.map((v) => Math.round(v))));
 }
+/** r.053: a value at the tapped point, to the cent, in the picked currency. */
+const money2 = (c: number): string => (Math.sign(c) === -1 ? "−" : "") + CUR_SYM + num2(c);
 const yLabel = (c: number): string => (Math.sign(c) === -1 ? "−" : "") + CUR_SYM + Math.round(Math.abs(c) / 100).toLocaleString("en-US");
 /** Every transaction re-spread over the span (1x = the instant). Pure. */
 function respread(txs: readonly FinTx[], sp: ChartSpan, nowMs: number): FinTx[] {
@@ -733,6 +750,8 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   const x = (ms: number) => PL + ((ms - from) / len) * (W - PL - P);
   const y = (cents: number) => H - P - (Math.max(0, Math.min(1, (cents - yMin) / (yMax - yMin))) * (H - 2 * P));
   const yTicks = yAxisTicks(yMin, yMax);
+  const probeBal = probe === null ? null : balanceAt(all, probe);   // r.053: the stock-chart readout
+  const probeNet = probe === null || live || netPerSec === 0 ? null : netAt(probe);
   const poly = (pick: (p: (typeof pts)[number]) => number) => pts.map((p) => `${x(p.t).toFixed(1)},${y(pick(p)).toFixed(1)}`).join(" ");
   const sw = VECTOR_LAW.stroke.normal, hair = VECTOR_LAW.stroke.hairline;
   // A.B..C mode keeps the five marks; Clock mode reads CALENDAR DATES at 30° (addendum 42), as many whole days as fit
@@ -789,6 +808,8 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
         </div>
       )}
       <p data-fin-chart-probe className="mt-2 min-h-[16px] font-mono text-xs text-foreground">{probe !== null && (showAbc ? fmtMot(positionInYear(probe, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(probe)} CST`)}</p>
+      {/* r.053 (addendum 110 "Like a stock chart I should be able to click and see values at that day/time"): the values at the tapped point */}
+      {probeBal && <p data-fin-chart-values className="flex flex-wrap gap-x-3 font-mono text-xs tabular-nums"><span style={{ color: C.abundance }}>{t("fin.released")} {money2(probeBal.releasedCents)}</span><span style={{ color: C.intelligence }}>{t("fin.escrowed")} {money2(probeBal.escrowedCents)}</span><span className="text-foreground">{t("fin.available")} {money2(probeBal.availableCents)}</span>{probeNet !== null && <span className={probeNet < 0 ? "text-red-500" : "text-green-500"}>{t("fin.net")} {money2(probeNet)}</span>}</p>}
       <div data-fin-chart-plot className="relative mt-2">
       {/* the $ scale on the LEFT (addendum 101), HTML beside the strokes (the chart paints no face), in the picked currency */}
       <div data-fin-y-axis aria-hidden className="pointer-events-none absolute inset-0 font-mono text-[10px] text-muted-foreground">

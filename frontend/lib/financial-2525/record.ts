@@ -65,7 +65,33 @@ export function loadRecord(owner: string): { rec: FinRecord; tampered: boolean }
     return { rec: ok ? v : emptyRecord(owner), tampered: !ok };
   } catch { return { rec: emptyRecord(owner), tampered: true }; }
 }
+/** NO CHANGE EVER DELETES AN ENTRY (r.053, addendum 106: "Where are my inputted transactions; no changes should delete entries").
+ *  A save that would not carry every stored entry forward, in order (a store that failed to verify and read as empty, a copy
+ *  from another tab, anything), first keeps the stored copy whole under its own key — never overwritten, never removed. */
+export const KEPT_PREFIX = "exel-fin-kept:";
+export function carriesForward(stored: FinRecord | null, next: FinRecord): boolean {
+  if (!stored || !Array.isArray(stored.entries)) return true;
+  return stored.entries.every((e, i) => next.entries[i] !== undefined && next.entries[i].hash === e.hash);
+}
+/** Every copy kept for a person, newest first — nothing in them is ever deleted by the app. */
+export function keptRecords(owner: string): { key: string; rec: FinRecord }[] {
+  const out: { key: string; rec: FinRecord }[] = [];
+  try {
+    if (typeof localStorage === "undefined") return out;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i); if (!k || !k.startsWith(`${KEPT_PREFIX}${owner}:`)) continue;
+      const v = JSON.parse(localStorage.getItem(k) ?? "null") as FinRecord; if (v && Array.isArray(v.entries)) out.push({ key: k, rec: v });
+    }
+  } catch { /* unreadable: nothing listed, nothing touched */ }
+  return out.sort((a, b) => (a.key < b.key ? 1 : -1));
+}
 /** Write the record to this device. Returns false when the device would not take it — the caller SAYS SO. */
-export function saveRecord(rec: FinRecord): boolean {
-  try { if (typeof localStorage === "undefined") return false; localStorage.setItem(KEY(rec.owner), JSON.stringify(rec)); return true; } catch { return false; }
+export function saveRecord(rec: FinRecord, nowMs = Date.now()): boolean {
+  try {
+    if (typeof localStorage === "undefined") return false;
+    const raw = localStorage.getItem(KEY(rec.owner));
+    let stored: FinRecord | null = null; try { stored = raw ? (JSON.parse(raw) as FinRecord) : null; } catch { stored = null; }
+    if (raw && !carriesForward(stored, rec)) localStorage.setItem(`${KEPT_PREFIX}${rec.owner}:${nowMs}`, raw);   // kept whole, before anything is written
+    localStorage.setItem(KEY(rec.owner), JSON.stringify(rec)); return true;
+  } catch { return false; }
 }

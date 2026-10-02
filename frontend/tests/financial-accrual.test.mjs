@@ -98,4 +98,26 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   const vb = A.validateWithdrawal([d1, d2], big);
   ok(vb.ok === false && short([d1, d2, big], vb.atMs) > 0 && short([d1, d2, big], vb.atMs - 60000) <= 0 && vb.atMs % 60000 === 0, `$4,000 Monthly: the named minute is short and the minute before is not (${M.fmtStampCST(vb.atMs)})`);
 }
+// ── r.053 (addendum 106 "no changes should delete entries"): a save never discards a stored entry ──
+{
+  const store = new Map(); globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k), key: (i) => [...store.keys()][i] ?? null, get length() { return store.size; } };
+  const owner = "op-1"; const d = { id: "d1", kind: "deposit", amountCents: 360449, atMs: Date.UTC(2026, 8, 30, 1, 54), motDays: 30 };
+  let mine = R.append(R.emptyRecord(owner), d, 1); mine = R.append(mine, { ...d, id: "d2", amountCents: 32000 }, 2);
+  ok(R.saveRecord(mine, 10) && R.loadRecord(owner).rec.entries.length === 2, "his record saves and loads (2 entries)");
+  ok(R.saveRecord(R.append(mine, { ...d, id: "w1", kind: "withdrawal", amountCents: 25066 }, 3), 11) && R.keptRecords(owner).length === 0, "an append carries every stored entry forward — nothing kept aside, nothing lost");
+  const stranger = R.append(R.emptyRecord(owner), { ...d, id: "x" }, 4);
+  ok(R.saveRecord(stranger, 12) && R.keptRecords(owner).length === 1 && R.keptRecords(owner)[0].rec.entries.length === 3, "a save that would drop stored entries first KEEPS the stored copy whole (3 entries) under its own key");
+  const before = store.get("exel-fin-kept:op-1:12"); R.saveRecord(R.emptyRecord(owner), 13);
+  ok(store.get("exel-fin-kept:op-1:12") === before && R.keptRecords(owner).length >= 1, "a kept copy is never overwritten or removed by a later save");
+  ok(!/removeItem/.test(R.saveRecord.toString()) && !/removeItem/.test(R.keptRecords.toString()), "the record's save and keep paths contain no delete");
+  delete globalThis.localStorage;
+}
+// ── r.053 (addendum 110): his two deposits, exactly as his record showed them ──
+{
+  const X = await import("../lib/financial-2525/restore.ts");
+  const ds = X.operatorDeposits();
+  ok(ds.length === 2 && ds[0].amountCents === 360449 && ds[1].amountCents === 32000 && M.fmtStampCST(ds[0].atMs) === "2026.09.30_19.54..35" && M.fmtStampCST(ds[1].atMs) === "2026.09.30_19.56..04" && ds[0].memo === "State of Texas" && ds[1].memo === "PROMISSORY NOTE" && ds.every((d) => d.kind === "deposit" && d.motDays === 30), "his deposits put back exactly: 3,604.49 State of Texas 2026.09.30_19.54..35 and 320.00 PROMISSORY NOTE 2026.09.30_19.56..04, monthly");
+  ok(X.isOperator("Explore@eXeL-AI.com ") && !X.isOperator("someone@else.com") && !X.isOperator(undefined), "offered only to his account");
+  ok(X.OPERATOR_WITHDRAWAL.amount === "250.66" && X.OPERATOR_WITHDRAWAL.field === "D.auto_renters_home", "the withdrawal is prefilled, never invented (its day, time and length are his)");
+}
 console.log(`financial-accrual: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

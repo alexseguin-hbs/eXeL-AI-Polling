@@ -12,7 +12,7 @@
  * isValidSpec) is removed and this file is r.020's again — ONE shared unit, the amount typed in it. A copy saved by r.021–r.022
  * still loads: its amountNative is already on the 33-day base; the extra fields it carries are ignored.
  */
-import { SHEET_LINES, approvedMonthly } from "./budget";
+import { SHEET_LINES, shownMonthly } from "./budget";
 import { fieldOf, toPeriod, type LadderLine, type Period } from "./ladder";
 
 const PREFIX = "fin-plan-";
@@ -20,9 +20,10 @@ export const planKey = (owner: string) => `${PREFIX}${owner}`;
 /** r.052 (addendum 103 "wheres my edit button"): signed out, the plan is this phone's own. */
 export const DEVICE_OWNER = "device";
 /** r.052 (addendum 103): the plan is stored PER MONTH — the dollars the person typed for a month stay those dollars whatever the
- *  month's length becomes. A plan saved on the old 33-day base is read back as the per-month dollars it showed (the 30.3̅-day month). */
+ *  month's length becomes. A plan saved on the old 33-day base reads exactly the per-month dollars it showed him at the 30.3̅-day
+ *  month (addenda 103 + 108: his 1:49 screen, Fixed 1,671.37 · Variable 1,140.00 — the same dollars at the 30-day month). */
 export const BASE: Period = "month";
-const fromSaved = (l: LadderLine): LadderLine | null => (l.nativePeriod === BASE ? l : l.nativePeriod === "days33" ? { ...l, amountNative: approvedMonthly(l.amountNative), nativePeriod: BASE } : null);
+const fromSaved = (l: LadderLine): LadderLine | null => (l.nativePeriod === BASE ? l : l.nativePeriod === "days33" ? { ...l, amountNative: shownMonthly(l.amountNative), nativePeriod: BASE } : null);
 
 /** The person's saved plan, or null when the device holds none (then the sheet is the plan). A malformed copy reads as none. */
 export function loadPlan(owner: string): LadderLine[] | null {

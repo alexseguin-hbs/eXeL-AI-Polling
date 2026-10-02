@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.052",
-  "stamp": "v.000_r.052",
+  "revision": "0.053",
+  "stamp": "v.000_r.053",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "2151d97431643bd1c34b7efa0279f53d40aa593b780cf696cc6047fb184b2dda",
+  "handoffSha256": "21e0629e3b6dceea6efd3eeb331682011cc7e8707aa995c422cb70395a5e2e27",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -346,6 +346,46 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "2151d97431643bd1c34b7efa0279f53d40aa593b780cf696cc6047fb184b2dda",
     "date": "2026-10-02",
     "note": "addendum 104 — his input belongs in Supabase (r.053); the ask r.052 ships beside"
+   },
+   {
+    "sha256": "3b5ed3d031217d3cfe1f2b6a7e6fa687f324ac32e86d5530ff23378cd92ddb32",
+    "date": "2026-10-02",
+    "note": "addendum 105 — his 8:50 budget is the budget; numbers never changed without him (r.053)"
+   },
+   {
+    "sha256": "528a56167e0019ce52351621691863c2eb28e3d30bdfab302f8e1098e769dd40",
+    "date": "2026-10-02",
+    "note": "addendum 106 — no change should delete entries (r.053)"
+   },
+   {
+    "sha256": "c71cb036977cf4f94a60cd6b4d09af4cb604b9d6e945cc1fb12d1145f63de739",
+    "date": "2026-10-02",
+    "note": "addenda 107–108 — his amounts as his 1:49 screen showed them (r.053)"
+   },
+   {
+    "sha256": "3371e5184ddf1430fa17363f04251a97a0c5208c714c3537e68fe6ef5be4b625",
+    "date": "2026-10-02",
+    "note": "addenda 109–110 — his entries back in; a stock-chart readout (r.053)"
+   },
+   {
+    "sha256": "4a3a050786147f49f8fb3784ae32d429c779cc554ae04ff0a2ad7febd510e8e5",
+    "date": "2026-10-02",
+    "note": "addendum 111 — his fixed budget numbers (r.053)"
+   },
+   {
+    "sha256": "f9e3568221690de246568136e6fe4370324f6047566ce79d61e7bd8af24daf66",
+    "date": "2026-10-02",
+    "note": "addendum 112 — Supabase on every save and every 12 hours (r.054, after r.053)"
+   },
+   {
+    "sha256": "1a7b177ead55879685feb4dd448fe8f516c3a0f95917fcd249e96e236acb2b72",
+    "date": "2026-10-02",
+    "note": "addendum 113 — r.052 read his 30-day-typed lines through the 30.3̅ month (r.053 corrects)"
+   },
+   {
+    "sha256": "21e0629e3b6dceea6efd3eeb331682011cc7e8707aa995c422cb70395a5e2e27",
+    "date": "2026-10-02",
+    "note": "addenda 114–115 — transactions only; unneeded text out (r.054)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -774,6 +814,14 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "The chart reads in dollars and predicts the month. Addendum 101: \"chart should so transactions for 1x real -time (Zoom chart should expand out x axis.\" · \"i need $ on left y axis\" · \"if 30 days $/min is shown over 30 days, so we can predict end of month NET • Upside or NET • Downside\"; his answers (102): Net from the budget table · Net + Released + Escrow · 1x a live window, pinch widens. A $ scale on the left in the picked currency (top · middle · zero · and the bottom when Net goes below zero); a dashed Net line at the budget table's $/s over the span's last stretch, from 0 to the span's end — at 30D its end is the table's Net — named in the legend as Net • Upside / Savings or Net • Downside / Risk with its value and end date; 1x is a live window ending now (1 h at first) where each transaction lands as a step, widened by spreading two fingers or −, narrowed by pinching or + (1 h · 6 h · 1 D · 1 W · 30 D · 91 D · 365 D). Not on 1x: the Net line (the live window looks back, Net looks ahead). The budget (addendum 103: \"wheres my edit button on personal budget; see fixed expenses I already approved amounts and reestablish. I asked to change rate of accrual from 30.3 to 30, . the dollar amount does not change\"): the pencil shows signed in or not (signed out the plan is this phone's own); the plan is stored per month, so the dollars he approved at the 30.3̅-day month are the 30-day month's dollars — Rent 643.43 · Car Payment 1,654.55 · Insurance 183.84 · Fitness 45.96 · Electricity 137.88 · Groceries 275.76 · Fun 183.84 · Wages 2,941.41 (totals as his screen: Fixed 2,527.78 · Variable 597.47 · Net −183.84) — and a plan saved on the old 33-day base loads as the per-month dollars it showed. The record and balances are unchanged.",
    "commit": "e7112d2",
+   "shipped": "b015846"
+  },
+  {
+   "revision": "0.053",
+   "date": "2026-10-02",
+   "kind": "correction",
+   "why": "His budget is the budget. Addendum 105: \"3924.24 is income plus 320; use that image / Update input budget (get numbers from revision before you update with out my knowledge). ALSO WHERE THE FUCK IS MY EDIT BUTTON AND WHY DO YOU KEEP REMOVING ITEMS THAT ARE IMPLEMENTED ALREADY?\" The starting budget is his own 8:50 budget, line for line, the same dollars per month: Wages 3,604.49 · Upside 320.00 · Rent 700.00 · Auto / Renters / Home 250.66 · Fitness & Health 270.00 · Subscriptions 89.73 · Electric / Gas 150.00 · Groceries 500.00 · Fun / Hobbies 100.00 · Dining 150.00 · Gifts / Travel 240.00 — Income 3,924.49 · Fixed 1,310.39 · Variable 1,140.00 · Net 1,474.10 (his own 7:14 numbers, addendum 111 \"here are numbers on budget; I already fixed. HI IS BETTER\"). Correction of r.052: the example sheet re-computed at the 30.3̅-day month (643.43 …) was not his budget. A plan he saved per 33 days reads back exactly the dollars he typed at the 30-day month (addendum 113: r.052 read them through the 30.3̅-day month and showed 3,968.10 for his 3,924.49 — a correction of r.052); the 7:03 screen was a private-browsing tab, its own empty storage. The pencil shows signed in or not (r.052) and its gate refuses its removal. No change ever deletes an entry (addendum 106: \"Where are my inputted transactions; no changes should delete entries\"): the one path that could — a stored record that failed its check read as empty, and the next save wrote over it — is closed; a save that would not carry every stored entry forward first keeps the stored copy whole under its own key, never overwritten, never removed. His entries are under his sign-in; signed out the page shows the example. His entries back in (addendum 110: \"now enter my transactions back in\"): signed in as him with an empty record on the device, one tap — Put back my entries — appends his two deposits exactly as his record showed them (3,604.49 Income / Wages · State of Texas · 2026.09.30_19.54..35 · 320.00 Upside · PROMISSORY NOTE · 2026.09.30_19.56..04, monthly) and opens the withdrawal form at 250.66 · Auto / Renters / Home for his day, time and length (never invented). A stock-chart readout (addendum 110: \"Like a stock chart I should be able to click and see values at that day/time\"): a tap shows Released · In Escrow · Available · Net at that point.",
+   "commit": "5254bbe",
    "shipped": "PENDING"
   }
  ],
@@ -2274,6 +2322,24 @@ export const FINANCIAL_DOMAIN = {
    "decision": "Changing the month from 30.3̅ to 30 days changes no dollar amount: the budget is stored per month, the approved per-month dollars stand, and the budget pencil is there signed in or not.",
    "status": "OPERATOR",
    "basis": "addendum 103 (verbatim)"
+  },
+  {
+   "id": "FD-71",
+   "decision": "The starting budget is the operator's own (his 8:50 screenshot), the same dollars per month; no budget figure is ever re-computed without him.",
+   "status": "OPERATOR",
+   "basis": "addenda 104–105 (verbatim)"
+  },
+  {
+   "id": "FD-72",
+   "decision": "No change ever deletes a recorded entry: a save that would drop stored entries first keeps the stored copy whole; kept copies are never overwritten or removed.",
+   "status": "OPERATOR",
+   "basis": "addendum 106 (verbatim)"
+  },
+  {
+   "id": "FD-73",
+   "decision": "His two deposits are put back by one tap offered only to his signed-in account on an empty record (append only, the withdrawal's day and time his); a tap on the chart reads Released · In Escrow · Available · Net at that point.",
+   "status": "OPERATOR",
+   "basis": "addenda 109–110 (verbatim)"
   }
  ],
  "reviews": [

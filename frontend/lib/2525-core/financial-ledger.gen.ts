@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 104 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 106 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -737,6 +737,20 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.052 decision — the chart in dollars ($ on the left y axis, Net to the span end, 1x live window with pinch; FD-69) and the budget's approved dollars kept through 30.3 → 30, pencil signed in or not (FD-70).",
       "commit": "e7112d2"
+    },
+    {
+      "rev": 105,
+      "date": "2026-10-02",
+      "kind": "release",
+      "text": "r.052 shipped and LIVE (Verify Live #2191 ✓) — the chart in dollars and the budget pencil (FD-69, FD-70).",
+      "commit": "b015846"
+    },
+    {
+      "rev": 106,
+      "date": "2026-10-02",
+      "kind": "correction",
+      "text": "r.053 correction — his budget and saved lines at the dollars they showed (FD-71); no change ever deletes an entry (FD-72); his entries put back + a stock-chart readout (FD-73).",
+      "commit": "5254bbe"
     }
   ]
 };

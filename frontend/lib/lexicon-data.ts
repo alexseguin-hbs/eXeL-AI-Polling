@@ -3014,6 +3014,8 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.fixed", englishDefault: "Fixed", context: "Financial-2525: budget total line for fixed expenses", cubeId: 0 },
   { key: "fin.variable", englishDefault: "Variable", context: "Financial-2525: budget total line for variable expenses", cubeId: 0 },
   { key: "fin.net", englishDefault: "Net", context: "Financial-2525: budget total line for income minus expenses", cubeId: 0 },
+  { key: "fin.restore_mine", englishDefault: "Put back my entries", context: "Financial-2525: button shown to the operator when his record on this device is empty — appends his two recorded deposits and opens the withdrawal form", cubeId: 0 },
+  { key: "fin.restore_note", englishDefault: "Your record on this device is empty", context: "Financial-2525: line beside the Put back my entries button", cubeId: 0 },
   { key: "fin.zoom_wide", englishDefault: "Widen the time window", context: "Financial-2525: chart button on the 1x live view — widens the time window (1 h → 6 h → 1 day → 1 week …); the same as spreading two fingers on the chart", cubeId: 0 },
   { key: "fin.zoom_narrow", englishDefault: "Narrow the time window", context: "Financial-2525: chart button on the 1x live view — narrows the time window back toward the last hour; the same as pinching two fingers together", cubeId: 0 },
   { key: "fin.chart_span", englishDefault: "Span", context: "Financial-2525: accessible name of the chart's span toggle (1x instant · 1W · 1M standard month · 30D · 91D · the year); every transaction is drawn spread over the picked span as $/min", cubeId: 0 },
