@@ -1059,6 +1059,10 @@
 > `docs/asks/2026-10-02_financial_2525_fb161_cc_limit.png`)
 > remove linit from CC; going back to sleep; address backlog, make your own decisions MoT.
 
+> (addendum 162, verbatim — 2026-10-02, in reply to the r.073 status: round 1 of 33 built and committed, the push held until the
+> reviewer lenses' findings are folded)
+> and we can review if SI was reached later
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
