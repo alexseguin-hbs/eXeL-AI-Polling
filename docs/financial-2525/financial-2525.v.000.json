@@ -8,7 +8,7 @@
   "stamp": "v.000_r.065",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "bea72331237b2347f5f5a43362c652f36168e6765ca655132c91efa599bdc2ed",
+  "handoffSha256": "a3c8eaad0b25d1faa2eb5f5907353ea88091ed44fdb8203cbc65383520fc2c39",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -454,6 +454,11 @@
     "sha256": "bea72331237b2347f5f5a43362c652f36168e6765ca655132c91efa599bdc2ed",
     "date": "2026-10-02",
     "note": "addendum 141 (Dining needs its own meal icon — fork and knife)"
+   },
+   {
+    "sha256": "a3c8eaad0b25d1faa2eb5f5907353ea88091ed44fdb8203cbc65383520fc2c39",
+    "date": "2026-10-02",
+    "note": "addendum 142 + his answers (spend ahead of accrual up to all In Escrow, the rate spread over the rest of the month; a credit-card widget below the record)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

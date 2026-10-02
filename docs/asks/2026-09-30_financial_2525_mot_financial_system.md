@@ -922,6 +922,25 @@
 > `docs/asks/2026-10-02_financial_2525_fb141_dining_icon.png`)
 > dining and groceries icons are same; maybe generate dining icon with plate and fork/spoon or some other universally accepted meal
 
+> (addendum 142, verbatim — 2026-10-02 4:34–4:39, with a phone photo of the Accrual Units card and two photos of his card app
+> (transcribed, not stored: the card's Transactions list and its balance screen — current balance $735.27, available credit
+> $2,264.73) — `docs/asks/2026-10-02_financial_2525_fb142_accrual.png`)
+> if my accrual is based off income 5.4507
+>
+> then I should be able to spend % of that in advance (with accrual rate dropping)
+>
+> for example In paid off credit cards and bills at beginning of month. that will drop $/min accrual rate.  I will place $2450 payment at beginning of month October 1 with one credit card.  After payment new balance is $735
+>
+> in think we credit card widget.  thatvway all real time transactions help keep ip with balances
+>
+> inhave a 3000 and 1000 limit card; the one thousand limit card has zero balancethe other balance is attwched
+>
+> (his answers, picked in Claude Code) Advance cap: "Up to all In Escrow" — any spend is allowed while the month's total income still
+> covers it; Available may go below zero against money still coming in. · Rate drop: "Spread over rest" — the rate becomes (income
+> still to come − the advance) ÷ minutes left in the month. · Card widget: "Limit, balance, avail" — each card shows limit, current
+> balance and available credit; a payment from Financial lowers the balance, a card purchase raises it; seeded with his $3,000 card
+> at $735.27 and his $1,000 card at $0. · Placement: "Below the record" — its own card under the Transaction Record.
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
