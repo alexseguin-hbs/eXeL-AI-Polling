@@ -38,6 +38,8 @@ export interface FinTx {
   field?: string;            // the A–U ladder field (addendum 22: "B.rent_mortgage") — the category's successor; recorded, never required to accrue
   corrects?: string;         // r.062 (addendum 133 "add edit feature for transaction record"): this entry CORRECTS the transaction with that id — the original stays on the record
   recurrence?: Recurrence;   // the transaction's timeline chosen at entry (addendum 22): once · weekly · days33 · month91 · yearly — its $/min runs from atMs for that length
+  paidFrom?: string;         // r.067 (addendum 143 "payment selector … Card vs Debit Account"): a card id, or absent / "debit" = the Debit Account
+  paysCard?: string;         // r.067: a Debit-Account payment that pays down that card (lowers its balance)
 }
 
 export type DepositState = "pending" | "releasing" | "released";

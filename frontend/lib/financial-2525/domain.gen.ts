@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.066",
-  "stamp": "v.000_r.066",
+  "revision": "0.067",
+  "stamp": "v.000_r.067",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "49532b7452dd59172a7100cbf4bb4e4ef4ed6a68778820037a6c04512c116126",
+  "handoffSha256": "f3d5d9bc502706ec8d448ccb06af72267b9c37d37832881f94ac62aabefc5f5b",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -506,6 +506,21 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "49532b7452dd59172a7100cbf4bb4e4ef4ed6a68778820037a6c04512c116126",
     "date": "2026-10-02",
     "note": "addendum 147 (MoT dropdowns: long words in the list, shorthand on the closed box)"
+   },
+   {
+    "sha256": "c815a35fade780269c93c9971f642cdb777629767c8fb47460a934853501393f",
+    "date": "2026-10-02",
+    "note": "addenda 148–150 + \"No, count once\" (day label above the axis; his cloud; a card payment counts once)"
+   },
+   {
+    "sha256": "0abaeb2a7cfa190f628c631b01efb25a68b4dc7ff79974d3f9dac513061821c0",
+    "date": "2026-10-02",
+    "note": "addendum 151 (the record always chronological)"
+   },
+   {
+    "sha256": "f3d5d9bc502706ec8d448ccb06af72267b9c37d37832881f94ac62aabefc5f5b",
+    "date": "2026-10-02",
+    "note": "addendum 152 + \"At purchase (once)\" (edit on the right of each row; card payments restore available credit)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -1047,6 +1062,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "Addenda 142 · 143 (spend ahead of accrual) + the r.065 label defect. His answers: \"Up to all In Escrow\" and \"Spread over rest\". A withdrawal is no longer refused because it runs ahead of what has accrued — only when everything spent would pass every deposit recorded by then (released AND still in escrow); his $2,450 credit-card payment on 2026.10.01_07.00..00 is accepted. Available may go below zero by the advance, and the Accrual Rate shows what is left after the advance is spread over the rest of the releases (rate × (1 − advance ÷ escrow)): $5.4507/hr falls to about $2.05/hr after the $2,450. The $/min chart's spend labels are drawn outside the plot's clip and kept whole on the canvas (r.065 cut \"−$14.69\" to \"69\" at the left edge). Correction of r.023/r.028: 'a withdrawal never overdraws what has accrued' is superseded by 'never more than all income recorded'. The credit-card section and the paid-from selector (addendum 143) are r.067. No budget figure changes.",
    "commit": "b0ea01f",
    "shipped": "786ed1c"
+  },
+  {
+   "revision": "0.067",
+   "date": "2026-10-02",
+   "kind": "decision",
+   "why": "Addenda 142–145 · 147 — THE COCKPIT (\"a single place of all finances that gives warnings of credit card overspend · disjointed systems are bad for users · tools should be one with financials\"). A CREDIT CARDS card below the Transaction Record: a read view toggling Capital One / USAA, each with Limit · Balance · Available credit, the person's own amber and red levels (his: amber $1,500 = 50%, red $2,000 = 67% of the $3,000 Capital One; USAA $1,000 at the same proportions until he sets his own), and the balance over time on the same chart as REAL-TIME FINANCIALS (dashed amber and red lines, a dotted line at each card transaction); a gear edits limit, balance as of today, amber and red. A card at or past a level is named at the top of Accrual Units, in words as well as colour. Every withdrawal now says what paid it — Debit Account (default), Capital One or USAA; a card purchase raises that card's balance AND counts against Available at once (his answer \"Both, right away\"); a Debt-service payment from the Debit Account names the card it pays down. Capital One starts at $735.27 as of 2026.10.02_04.39 CST — the $2,450 payment before that counts only against the Debit Account (his answer). No account number is ever stored. (145) MoT beside $/hr on the same line as Income · Spending · Net, at its right. (147) The closed MoT Unit box shows shorthand (/30D · /7D · /1M · /91D · /1Y · /1D · /hr · /min · /sec); the open list keeps the words. Cards are saved on the device and to the account. (149) The boxed day label sits above the x axis with a 7 px gap. (150) The cloud mark is drawn to his reference — three bumps, a flat base, a bold outline — with a check (saved) or a slash (not yet). AsM review fixes before push: his two cards are seeded only for him (no other user sees his balances); a new balance-as-of-today re-bases at that moment; a hidden Card-paid choice is never recorded; the payer is editable on the record; card chart marks match the balance; an invalid card setting says why; the cloud copy never overwrites a newer edit with the seed; focus ring on the MoT Unit box; amber legible in light mode; MoT only on the legend line. His answer \"No, count once\": a Debit payment that names a card lowers Available only for balance no recorded purchase already counted (the opening $735.27). (151) The Transaction Record is always in chronological order, oldest first by (corrected) day and time. (152) The edit pencil is pinned to the right edge of every record row, in view while the table scrolls sideways (the r.017 no-floating gate narrowed to exactly this in-table column); his answer \"At purchase (once)\" confirms the card rule — a purchase lowers Available at once, a later payment restores the card's available credit without lowering Available again. No budget figure changes.",
+   "commit": "55d4d30",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2612,6 +2635,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "A spend may run ahead of accrual up to all income recorded (released + in escrow); Available may go below zero; the Accrual Rate shown is rate × (1 − advance ÷ escrow). Supersedes the never-overdraw-accrual half of FD-38/FD-45.",
    "status": "OPERATOR",
    "basis": "addenda 142 · 143 + his answers \"Up to all In Escrow\" · \"Spread over rest\""
+  },
+  {
+   "id": "FD-82",
+   "decision": "The cockpit holds the credit cards: per card limit, balance, available credit, user-defined amber/red levels and a balance chart, below the record; level warnings at the top of Accrual Units; every withdrawal names its payer (Debit Account or a card) and a card purchase counts against both the card and Available; card balances start from the person's own balance-as-of-today; no account numbers.",
+   "status": "OPERATOR",
+   "basis": "addenda 142–144 + his answers (Both, right away · $735.27 after payment · Figures + chart · amber $1,500 / red $2,000)"
   }
  ],
  "reviews": [

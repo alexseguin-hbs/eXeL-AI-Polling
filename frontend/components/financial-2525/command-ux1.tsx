@@ -19,7 +19,7 @@
  * modularly adjust"). A.B..C is the standard for all planets; the glass converts to the planet's LTU.
  */
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Check, ChevronDown, ChevronRight, Clock, CloudCheck, CloudOff, Maximize2, Orbit, Pencil, Settings, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Clock, Maximize2, Orbit, Pencil, Settings, X } from "lucide-react";
 import { CategoryIcon, FieldIcon, SectionIcon } from "@/components/financial-2525/category-icon";   // addendum 19: every category carries its icon; r.012: every section too
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -48,6 +48,7 @@ import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } 
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, correctTx, correctionsOf, type FinRecord } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
+import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, seedFor, cardBalanceAt, cardLevel, cardSeries, cardMoves, validCard, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
 import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, cloudGet, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
 
@@ -117,6 +118,8 @@ function LadderPicker({ section, field, rec, onSection, onField, onRec, otherN, 
 /** The Released card's rate units (r.024, addendum 46): shorthand on the glass, per hour by default. */
 type RateUnit = "sec" | "min" | "hr" | "day";
 const RATE_UNITS: readonly RateUnit[] = ["sec", "min", "hr", "day"];
+/** r.067 (addendum 147): the budget units' shorthand for the closed MoT Unit box (the open list keeps the words). */
+const UNIT_SHORT: Record<string, string> = { sec: "/sec", min: "/min", hour: "/hr", day: "/1D", week: "/7D", calmonth: "/1M", month: "/30D", quarter: "/91D", year: "/1Y" };
 /** The Clock ⇄ MoT pair (r.025 on the chart; r.030 the year card too, addendum 61): Clock = standard, MoT = the orbit's A.B..C. */
 function ClockMotToggle({ abc, onChange, t, hook }: { abc: boolean; onChange: (v: boolean) => void; t: (k: string) => string; hook: string }) {
   return (
@@ -184,7 +187,8 @@ export function FinancialCommandUX1() {
   const [saveFailed, setSaveFailed] = useState(false);
   useEffect(() => { if (!owner) return; const r = loadRecord(owner); setRecord(r.rec); setTampered(r.tampered); }, [owner]);
 
-  const txs: FinTx[] = (owner ? replay(record) : [EXAMPLE]).map(withMonthLaw);
+  const recTxs: FinTx[] = (owner ? replay(record) : [EXAMPLE]).map(withMonthLaw);
+  const txs: FinTx[] = accrualTxs(recTxs);   // r.067 (his answer "No, count once"): a card payment counts against Available only for what no purchase already counted
   const effective = useMemo(() => new Map(replay(record).map((x) => [x.id, x] as const)), [record]);   // r.062: each row reads its corrected values   // r.046: old Monthly entries read 30 days (the month law)
   const at = now ?? 0;
   const bal = balanceAt(txs, at);
@@ -216,6 +220,11 @@ export function FinancialCommandUX1() {
   // figure, section total and Net below follows the plan. Drafts hold the typed text while editing so a half-typed "12." survives
   // the once-a-second clock; a figure is written on the 33-day base through setLineAmount, never read back into the input mid-type.
   const [plan, setPlan] = useState(() => sheetPlan() as LadderLine[]);
+  // r.067 THE COCKPIT'S CARDS (addenda 142–144): his Capital One and USAA, saved on the device and to the account like the budget
+  const [cards, setCards] = useState(() => [] as Card[]);
+  const cardSeed = seedFor(isOperator(user?.email));   // AsM review (Thor): his two cards only for him; everyone else starts with none
+  useEffect(() => { if (!owner) { setCards([]); return; } try { setCards(mergeCards(JSON.parse(localStorage.getItem(CARDS_KEY(owner)) ?? "null"), cardSeed)); } catch { setCards(cardSeed); } }, [owner, user?.email]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const saveCards = (next: Card[]) => { setCards(next); if (owner) { try { localStorage.setItem(CARDS_KEY(owner), JSON.stringify(next)); localStorage.setItem(`fin-cards-at:${owner}`, String(Date.now())); } catch { /* kept for this visit */ } } };
   const [editing, setEditing] = useState(false);
   const [drafts, setDrafts] = useState({} as Record<string, string>);
   const [addSec, setAddSec] = useState("A" as FlowSectionId); const [addField, setAddField] = useState("A.income_wages");
@@ -236,13 +245,15 @@ export function FinancialCommandUX1() {
     if (!owner || !cloudKey) return; let live = true;
     void (async () => {
       setCloudState("saving");
-      const [cRec, cPlan] = (await Promise.all([cloudGet(cloudKey, "fin-record"), cloudGet(cloudKey, "fin-plan")])) as [FinRecord | null, PlanDoc | null];
+      const [cRec, cPlan, cCards] = (await Promise.all([cloudGet(cloudKey, "fin-record"), cloudGet(cloudKey, "fin-plan"), cloudGet(cloudKey, "fin-cards")])) as [FinRecord | null, PlanDoc | null, { cards: Card[]; at: number } | null];
       if (!live) return;
       const m = mergeRecords(loadRecord(owner).rec, cRec);
       if (m.keep) await cloudPut(cloudKey, `fin-record-kept-${Date.now()}`, m.keep);
       if (m.current !== record) { setRecord(m.current); saveRecord(m.current); }
       let localAt = 0; try { localAt = Number(localStorage.getItem(`fin-plan-at:${owner}`) ?? 0) || 0; } catch { /* no time: the device copy is older */ }
       if (cPlan && Array.isArray(cPlan.lines) && cPlan.at > localAt) { setPlan(cPlan.lines); savePlan(owner, cPlan.lines); try { localStorage.setItem(`fin-plan-at:${owner}`, String(cPlan.at)); } catch { /* hint only */ } }
+      let cardsAt = 0; try { cardsAt = Number(localStorage.getItem(`fin-cards-at:${owner}`) ?? 0) || 0; } catch { /* the device copy is older */ }
+      if (cCards && Array.isArray(cCards.cards) && cCards.at > cardsAt) { const m2 = mergeCards(cCards.cards, seedFor(isOperator(user?.email))); setCards(m2); try { localStorage.setItem(CARDS_KEY(owner), JSON.stringify(m2)); localStorage.setItem(`fin-cards-at:${owner}`, String(cCards.at)); } catch { /* hint only */ } }
       setCloudReady(true);
     })();
     return () => { live = false; };
@@ -253,12 +264,14 @@ export function FinancialCommandUX1() {
     let planAt = Date.now(); try { planAt = Number(localStorage.getItem(`fin-plan-at:${owner}`) ?? planAt) || planAt; } catch { /* now */ }
     const a = await cloudPut(cloudKey, "fin-record", record);
     const b = await cloudPut(cloudKey, "fin-plan", { lines: plan, at: planAt } satisfies PlanDoc);
-    const ok = a === "saved" && b === "saved";
-    setCloudState(ok ? "saved" : a === "offline" || b === "offline" ? "offline" : "error");
+    let cardsAt = 0; try { cardsAt = Number(localStorage.getItem(`fin-cards-at:${owner}`) ?? 0) || 0; } catch { /* never edited here: the cloud copy wins */ }
+    const c = await cloudPut(cloudKey, "fin-cards", { cards, at: cardsAt });
+    const ok = a === "saved" && b === "saved" && c === "saved";
+    setCloudState(ok ? "saved" : a === "offline" || b === "offline" || c === "offline" ? "offline" : "error");
     if (ok) { const t0 = Date.now(); setCloudAt(t0); try { localStorage.setItem(LAST_PUSH_KEY, String(t0)); } catch { /* hint only */ } }
   };
   // every change to the record or the budget is pushed (a short pause so a burst of typing is one write)
-  useEffect(() => { if (!cloudReady) return; const id = setTimeout(() => { void pushAll(); }, 1500); return () => clearTimeout(id); }, [record, plan, cloudReady]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!cloudReady) return; const id = setTimeout(() => { void pushAll(); }, 1500); return () => clearTimeout(id); }, [record, plan, cards, cloudReady]);   // eslint-disable-line react-hooks/exhaustive-deps
   // and every 12 hours — while the page is open, and on return to it when 12 hours have passed (a phone pauses timers in the background)
   useEffect(() => {
     if (!cloudReady) return;
@@ -314,7 +327,8 @@ export function FinancialCommandUX1() {
   // Income / Wages every 33 days (the pay MoT); a withdrawal on B · Rent / Mortgage, one time.
   const [sec, setSec] = useState("A" as FlowSectionId); const [field, setField] = useState("A.income_wages"); const [rec, setRec] = useState("paymot" as Recurrence);
   // choosing the type re-seats the picker on its default: a deposit on A · Income / Wages every 33 days, a withdrawal on B · Rent / Mortgage once
-  const chooseType = (k: TxKind | "") => { setTxType(k); if (k === "") return; if (k === "deposit") { setSec("A"); setField("A.income_wages"); setRec("paymot"); } else { setSec("B"); setField("B.rent_mortgage"); setRec("once"); } };
+  const [paidFrom, setPaidFrom] = useState(DEBIT); const [paysCard, setPaysCard] = useState("");   // r.067 (addendum 143)
+  const chooseType = (k: TxKind | "") => { setTxType(k); setPaidFrom(DEBIT); setPaysCard(""); if (k === "") return; if (k === "deposit") { setSec("A"); setField("A.income_wages"); setRec("paymot"); } else { setSec("B"); setField("B.rent_mortgage"); setRec("once"); } };
   /** Every door opens the ONE folded form with the type blank (r.023); the scroll waits for the form to be on the page. */
   const openForm = () => { if (formOpen) { goTo("fin-transaction-form"); return; } setTxType(""); setRefusal(null); scrollOnOpen.current = true; setFormOpen(true); };
   const foldForm = () => { setFormOpen(false); setTxType(""); setRefusal(null); };
@@ -351,7 +365,7 @@ export function FinancialCommandUX1() {
     const cents = Math.round(Number(amt) * 100);
     const instant = when.trim() ? parseStampCST(when) : at;
     if (instant === null) return setRefusal(t("fin.reason_stamp"));
-    const w: FinTx = { id: `w-${instant}-${cents}-${record.entries.length + 1}`, kind: "withdrawal", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec };
+    const w: FinTx = { id: `w-${instant}-${cents}-${record.entries.length + 1}`, kind: "withdrawal", amountCents: cents, atMs: instant, motDays: lengthDays(rec, Number(otherN), otherUnit), memo: memo.trim() || undefined, field, recurrence: rec, ...(paidFrom !== DEBIT ? { paidFrom } : {}), ...(paidFrom === DEBIT && paysCard && sec === "I" ? { paysCard } : {}) };
     const v = validateWithdrawal(txs, w);
     // the refusal names the minute (r.023, addendum 39 "check refuse message"): when the money can first move, or when it would run short
     if (!v.ok) return setRefusal(v.reason === "INSUFFICIENT" ? `${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs ?? instant)}` : t("fin.reason_amount"));
@@ -362,15 +376,16 @@ export function FinancialCommandUX1() {
   // length; Save APPENDS a correction (correctTx) — the original entry, its hash and every link after it stay on the record, the table
   // and every figure read the corrected values. A withdrawal edit passes the same refusal as a new withdrawal.
   const [editId, setEditId] = useState(null as string | null);
-  const [ed, setEd] = useState({ amt: "", memo: "", when: "", days: "" });
+  const [ed, setEd] = useState({ amt: "", memo: "", when: "", days: "", paidFrom: DEBIT, paysCard: "" });
   const [edRefusal, setEdRefusal] = useState(null as string | null);
-  const openEdit = (x: FinTx) => { setEditId(x.id); setEdRefusal(null); setEd({ amt: (x.amountCents / 100).toFixed(2), memo: x.memo ?? "", when: fmtStampCST(x.atMs), days: x.motDays ? String(Math.round(x.motDays * 1000) / 1000) : "" }); };
+  const openEdit = (x: FinTx) => { setEditId(x.id); setEdRefusal(null); setEd({ amt: (x.amountCents / 100).toFixed(2), memo: x.memo ?? "", when: fmtStampCST(x.atMs), days: x.motDays ? String(Math.round(x.motDays * 1000) / 1000) : "", paidFrom: x.paidFrom ?? DEBIT, paysCard: x.paysCard ?? "" }); };
   const saveEdit = () => {
     const cur = editId ? replay(record).find((x) => x.id === editId) : undefined; if (!cur) return;
     const cents = Math.round(Number(ed.amt) * 100), instant = parseStampCST(ed.when.trim()), days = ed.days.trim() === "" ? 0 : Number(ed.days);
     if (!(cents > 0) || !(days >= 0)) return setEdRefusal(t("fin.reason_amount"));
     if (instant === null) return setEdRefusal(t("fin.reason_stamp"));
-    const next = correctTx(record, cur.id, { amountCents: cents, memo: ed.memo.trim() || undefined, atMs: instant, motDays: days }, at);
+    const isDebt = (cur.field ?? "").startsWith("I.");
+    const next = correctTx(record, cur.id, { amountCents: cents, memo: ed.memo.trim() || undefined, atMs: instant, motDays: days, ...(cur.kind === "withdrawal" ? { paidFrom: ed.paidFrom === DEBIT ? undefined : ed.paidFrom, paysCard: ed.paidFrom === DEBIT && isDebt && ed.paysCard ? ed.paysCard : undefined } : {}) }, at);
     if (cur.kind === "withdrawal") {
       const after = replay(next).map(withMonthLaw), mine = after.find((x) => x.id === cur.id)!;
       const v = validateWithdrawal(after.filter((x) => x.id !== cur.id), mine);
@@ -437,6 +452,12 @@ export function FinancialCommandUX1() {
               <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
             </div>
           </div>
+          {/* r.067 THE COCKPIT WARNING (addendum 144 "warnings of credit card overspend"; his levels: amber $1,500 · red $2,000): a card at
+              or past a level the person set is named here, in words as well as colour, at the top of the one view */}
+          {owner && cards.map((c) => ({ c, b: cardBalanceAt(c, recTxs, at) })).filter(({ c, b }) => cardLevel(c, b) !== "ok").map(({ c, b }) => {
+            const lv = cardLevel(c, b);
+            return <p key={c.id} data-fin-card-warning={lv} className={`mt-2 rounded-md border px-2 py-1 text-xs font-medium ${lv === "amber" ? "border-yellow-500/60 text-yellow-600 dark:text-yellow-400" : "border-red-500/60 text-red-500"}`}>⚠ {t(`fin.card_level_${lv}`)} · {c.name} {usd(b)} / {usd(c.limitCents)}</p>;
+          })}
           {/* r.044 (addendum 93 "Available and Accrual Rate should be same line, same size text"): the two labels share one line,
               the two figures share the next, at the same size */}
           <div className="mt-2 flex items-start justify-between gap-3">
@@ -511,6 +532,24 @@ export function FinancialCommandUX1() {
                 <label className="text-xs text-muted-foreground">{t("fin.when")}<input className={INPUT} value={when} placeholder={now ? fmtStampCST(now) : t("fin.stamp_hint")} onChange={(e) => setWhen(e.target.value)} /></label>
                 {/* r.027 (decision 5): Section, Field and Length appear only once a type is picked — nothing is chosen for the person */}
                 {txType && <LadderPicker section={sec} field={field} rec={rec} onSection={setSec} onField={setField} onRec={setRec} otherN={otherN} onOtherN={setOtherN} otherUnit={otherUnit} onOtherUnit={setOtherUnit} t={t} hook="transaction" />}
+                {/* r.067 (addendum 143 "payment selector added for Card vs Debit Account"): what a withdrawal was paid from; a Debit-Account
+                    payment in Debt service names the card it pays down */}
+                {txType === "withdrawal" && (
+                  <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.paid_from")}
+                    <select data-fin-paid-from className={PICK} value={paidFrom} onChange={(e) => { setPaidFrom(e.target.value); if (e.target.value !== DEBIT) setPaysCard(""); }}>
+                      <option value={DEBIT}>{t("fin.debit_account")}</option>
+                      {cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </label>
+                )}
+                {txType === "withdrawal" && paidFrom === DEBIT && sec === "I" && (
+                  <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground">{t("fin.card_paid")}
+                    <select data-fin-pays-card className={PICK} value={paysCard} onChange={(e) => setPaysCard(e.target.value)}>
+                      <option value="">{t("fin.card_none")}</option>
+                      {cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </label>
+                )}
                 <label className="text-xs text-muted-foreground">{t("fin.memo")}<input className={INPUT} value={memo} onChange={(e) => setMemo(e.target.value)} /></label>
               </div>
               <button type="button" data-fin-record disabled={!txType} className={`mt-2 ${txType === "withdrawal" ? SECONDARY : PRIMARY} disabled:opacity-50`} onClick={recordTransaction}>{txType === "withdrawal" ? t("fin.withdraw") : t("fin.record_it")}</button>
@@ -546,9 +585,14 @@ export function FinancialCommandUX1() {
             {/* addendum 21: in portrait the select is the panel's full width (the label above it) so "per hour" etc. read at the full line; landscape keeps it at its own width */}
             {/* r.065 (addendum 139 "place unit block on a single line to right of header on personal budget upper right · call MoT Unit") */}
             <label data-fin-mot-unit-row className="flex min-w-0 items-center justify-end gap-1.5 whitespace-nowrap text-xs text-muted-foreground">{t("fin.mot_unit")}
-              <select data-fin-budget-unit value={budgetUnit} onChange={(e) => setBudgetUnit(e.target.value as BudgetUnit)} className="min-w-0 max-w-[10rem] rounded-md border border-border bg-background px-1.5 py-1 text-xs text-foreground landscape:max-w-[14rem]">
-                {UNITS.map((u) => <option key={u.key} value={u.key}>{u.label}</option>)}
-              </select>
+              {/* r.067 (addendum 147 "Keep long description in drop down for MoT · for display however show /30D /7D /1M … shorthand"):
+                  the list keeps the words; the closed box shows the shorthand over an invisible select that still takes the tap */}
+              <span className="relative inline-flex rounded-md focus-within:ring-2 focus-within:ring-primary">
+                <span data-fin-unit-short aria-hidden className="pointer-events-none rounded-md border border-border bg-background px-2 py-1 font-mono text-xs text-foreground">{UNIT_SHORT[budgetUnit] ?? budgetUnit} ▾</span>
+                <select data-fin-budget-unit value={budgetUnit} onChange={(e) => setBudgetUnit(e.target.value as BudgetUnit)} aria-label={t("fin.mot_unit")} className="absolute inset-0 h-full w-full cursor-pointer opacity-0">
+                  {UNITS.map((u) => <option key={u.key} value={u.key}>{u.label}</option>)}
+                </select>
+              </span>
             </label>
           </div>
           {/* r.055 (addendum 119 + his answer "Short"): what the budget is for, in one plain line */}
@@ -626,32 +670,33 @@ export function FinancialCommandUX1() {
             <ChevronRight size={14} strokeWidth={1.5} aria-hidden className="transition-transform group-open:rotate-90" />
             <span className={LABEL}>{t("fin.tx_record")}{owner && tampered ? ` · ${t("fin.chain_broken")}` : ""}</span>
             {/* r.055: a small cloud says the record is in his account (tap-hold shows when) — no sentence on the glass */}
-            {owner && <span data-fin-cloud={cloudState} title={cloudState === "saved" ? `${t("fin.cloud_saved")} · ${fmtStampCST(cloudAt)}` : t("fin.cloud_not_yet")} aria-label={cloudState === "saved" ? t("fin.cloud_saved") : t("fin.cloud_not_yet")} className={cloudState === "saved" ? "text-green-500" : "text-muted-foreground"}>{/* r.065 (addendum 140 "use better cloud icon … universally accepted"): cloud-with-check = saved to your account, cloud-with-slash = not yet */}{cloudState === "saved" ? <CloudCheck size={16} strokeWidth={1.75} aria-hidden /> : <CloudOff size={16} strokeWidth={1.75} aria-hidden />}</span>}   {/* r.041 (addenda 76–77): "TRANSACTION RECORD"; a broken chain is still said */}
+            {owner && <span data-fin-cloud={cloudState} title={cloudState === "saved" ? `${t("fin.cloud_saved")} · ${fmtStampCST(cloudAt)}` : t("fin.cloud_not_yet")} aria-label={cloudState === "saved" ? t("fin.cloud_saved") : t("fin.cloud_not_yet")} className={cloudState === "saved" ? "text-green-500" : "text-muted-foreground"}>{/* r.065 (addendum 140 "use better cloud icon … universally accepted"): cloud-with-check = saved to your account, cloud-with-slash = not yet */}{/* r.067 (addendum 150 "ensure cloud raster with checkmark looks like this"): his cloud — three rounded bumps, a flat base, a bold outline */}<CloudMark saved={cloudState === "saved"} /></span>}   {/* r.041 (addenda 76–77): "TRANSACTION RECORD"; a broken chain is still said */}
           </summary>
           <div data-fin-ledger-scroll className="mt-2 overflow-x-auto">
             <table data-fin-ledger-table className="min-w-full whitespace-nowrap font-mono text-xs text-muted-foreground">
               {/* r.032 (addendum 63): Amount and Category first, then as a person reads an entry — who/what, when, how long, which way —
                   and the proof last (# and Hash). The amount is signed: + money in, − money out. */}
               <thead className="text-left text-[10px] uppercase tracking-wide">
-                <tr><th className="py-1 pr-2"><span className="sr-only">{t("fin.edit_tx")}</span></th><th className="py-1 pr-3">{t("fin.amount_col")}, {curMark}</th><th className="py-1 pr-3">{t("fin.category")}</th><th className="py-1 pr-3">{t("fin.memo")}</th><th className="py-1 pr-3">{t("fin.when")}</th><th className="py-1 pr-3 text-right">{t("fin.length")}</th><th className="py-1 pr-3">{t("fin.type")}</th><th className="py-1 pr-3">#</th><th className="py-1">{t("fin.hash")}</th></tr>
+                <tr><th className="py-1 pr-3">{t("fin.amount_col")}, {curMark}</th><th className="py-1 pr-3">{t("fin.category")}</th><th className="py-1 pr-3">{t("fin.memo")}</th><th className="py-1 pr-3">{t("fin.when")}</th><th className="py-1 pr-3 text-right">{t("fin.length")}</th><th className="py-1 pr-3">{t("fin.type")}</th><th className="py-1 pr-3">#</th><th className="py-1 pr-3">{t("fin.hash")}</th><th className="sticky right-0 bg-card py-1 pl-2"><span className="sr-only">{t("fin.edit_tx")}</span></th></tr>
               </thead>
               <tbody>
-                {!owner && <tr className="border-t border-border/60"><td /><td data-fin-amount className="py-1 pr-3 tabular-nums text-green-500"><span className="flex justify-between gap-4"><span>+</span><span>{num2(EXAMPLE.amountCents)}</span></span></td><td className="py-1 pr-3">{txWhat(EXAMPLE)}</td><td className="py-1 pr-3">{EXAMPLE.memo}</td><td className="py-1 pr-3">{fmtStampCST(EXAMPLE.atMs)}</td><td className="py-1 pr-3 text-right">{fmtDays(withMonthLaw(EXAMPLE).motDays ?? 0)}</td><td className="py-1 pr-3">{t("fin.deposit")}</td><td className="py-1 pr-3">1</td><td className="py-1">—</td></tr>}
+                {!owner && <tr className="border-t border-border/60"><td data-fin-amount className="py-1 pr-3 tabular-nums text-green-500"><span className="flex justify-between gap-4"><span>+</span><span>{num2(EXAMPLE.amountCents)}</span></span></td><td className="py-1 pr-3">{txWhat(EXAMPLE)}</td><td className="py-1 pr-3">{EXAMPLE.memo}</td><td className="py-1 pr-3">{fmtStampCST(EXAMPLE.atMs)}</td><td className="py-1 pr-3 text-right">{fmtDays(withMonthLaw(EXAMPLE).motDays ?? 0)}</td><td className="py-1 pr-3">{t("fin.deposit")}</td><td className="py-1 pr-3">1</td><td className="py-1 pr-3">—</td><td className="sticky right-0 bg-card" /></tr>}
                 {owner && record.entries.length === 0 && <tr><td colSpan={9} className="py-1">{t("fin.no_deposits")}</td></tr>}
-                {owner && record.entries.filter((e) => !e.tx.corrects).map((e) => {
+                {/* r.067 (addendum 151 "always order transactions in chronological order"): oldest first by day and time (an edited date re-sorts) */}
+                {owner && record.entries.filter((e) => !e.tx.corrects).sort((a, b) => (effective.get(a.tx.id)?.atMs ?? a.tx.atMs) - (effective.get(b.tx.id)?.atMs ?? b.tx.atMs) || a.rev - b.rev).map((e) => {
                   const x = effective.get(e.tx.id) ?? e.tx, fixes = correctionsOf(record, e.tx.id), open = editId === e.tx.id;
                   return (
                   <Fragment key={e.hash}>
                   <tr data-fin-ledger-row={e.rev} className="border-t border-border/60">
-                    {/* r.065 (addendum 140 "We are still missing edit for transactions"): the pencil leads the row — it sat off the right edge of the phone */}
-                    <td className="py-1 pr-2"><button type="button" data-fin-edit={e.rev} aria-label={t("fin.edit_tx")} title={t("fin.edit_tx")} aria-expanded={open} onClick={() => (open ? setEditId(null) : openEdit(x))} className={`flex h-8 w-8 items-center justify-center rounded-md border border-border ${open ? "text-primary" : ""}`}><Pencil size={13} strokeWidth={1.5} aria-hidden /></button></td>
-                    <td data-fin-amount className={`py-1 pr-3 tabular-nums ${x.kind === "deposit" ? "text-green-500" : "text-red-500"}`}><span className="flex justify-between gap-4"><span>{x.kind === "deposit" ? "+" : "−"}</span><span>{num2(x.amountCents)}</span></span></td>
+                                        <td data-fin-amount className={`py-1 pr-3 tabular-nums ${x.kind === "deposit" ? "text-green-500" : "text-red-500"}`}><span className="flex justify-between gap-4"><span>{x.kind === "deposit" ? "+" : "−"}</span><span>{num2(x.amountCents)}</span></span></td>
                     <td className="py-1 pr-3">{txWhat(x)}</td><td className="py-1 pr-3">{x.memo ?? ""}</td>
                     <td className="py-1 pr-3">{fmtStampCST(x.atMs)}</td>
                     <td className="py-1 pr-3 text-right">{x.motDays ? fmtDays(withMonthLaw(x).motDays ?? 0) : ""}</td>
                     <td className="py-1 pr-3">{x.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}</td>
                     <td className="py-1 pr-3">{e.rev}{!!fixes.length && <span data-fin-edited title={`${t("fin.edited")} · ${fixes.map((f) => `#${f.rev}`).join(" ")}`} className="ml-1 text-primary">✎{fixes[fixes.length - 1].rev}</span>}</td>
-                    <td className="py-1">{e.hash.slice(0, 8)}</td>
+                    <td className="py-1 pr-3">{e.hash.slice(0, 8)}</td>
+                    {/* r.067 (addendum 152 "I need edit button for individual transactions somewhere on right"): the pencil pinned to the RIGHT edge of every row — it stays in view while the table scrolls sideways */}
+                    <td data-fin-edit-cell className="sticky right-0 bg-card py-1 pl-2"><button type="button" data-fin-edit={e.rev} aria-label={t("fin.edit_tx")} title={t("fin.edit_tx")} aria-expanded={open} onClick={() => (open ? setEditId(null) : openEdit(x))} className={`flex h-8 w-8 items-center justify-center rounded-md border border-border ${open ? "text-primary" : ""}`}><Pencil size={13} strokeWidth={1.5} aria-hidden /></button></td>
                   </tr>
                   </Fragment>
                   );
@@ -668,12 +713,18 @@ export function FinancialCommandUX1() {
                           <label className="text-[10px] uppercase">{t("fin.memo")}<input data-fin-edit-memo className={INPUT} value={ed.memo} onChange={(v) => setEd({ ...ed, memo: v.target.value })} /></label>
                           <label className="text-[10px] uppercase">{t("fin.when")}<input data-fin-edit-when className={INPUT} value={ed.when} onChange={(v) => setEd({ ...ed, when: v.target.value })} /></label>
                           <label className="text-[10px] uppercase">{t("fin.length")}<input data-fin-edit-days className={INPUT} inputMode="decimal" value={ed.days} onChange={(v) => setEd({ ...ed, days: v.target.value })} /></label>
+                          {e.tx.kind === "withdrawal" && !!cards.length && <label className="text-[10px] uppercase">{t("fin.paid_from")}<select data-fin-edit-paid-from className={PICK} value={ed.paidFrom} onChange={(v) => setEd({ ...ed, paidFrom: v.target.value })}><option value={DEBIT}>{t("fin.debit_account")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
+                          {e.tx.kind === "withdrawal" && !!cards.length && ed.paidFrom === DEBIT && (e.tx.field ?? "").startsWith("I.") && <label className="text-[10px] uppercase">{t("fin.card_paid")}<select data-fin-edit-pays-card className={PICK} value={ed.paysCard} onChange={(v) => setEd({ ...ed, paysCard: v.target.value })}><option value="">{t("fin.card_none")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
                           <button type="button" data-fin-edit-save onClick={saveEdit} className="h-9 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground">{t("fin.done")}</button>
                           <button type="button" data-fin-edit-cancel onClick={() => setEditId(null)} className="h-9 rounded-md border border-border px-3 text-xs">{t("fin.edit_cancel")}</button>
                         </div>
                         {edRefusal && <p data-fin-edit-refusal className="mt-1 whitespace-normal text-xs text-red-500">{edRefusal}</p>}
             </div>) : null; })()}
         </details>
+
+        {/* r.067 CREDIT CARDS (addenda 142–144): a read view — toggle Capital One / USAA — limit, balance, available credit, the person's
+            amber and red levels, and the balance over time on the same chart as REAL-TIME FINANCIALS */}
+        {owner && !!cards.length && <CardsPanel cards={cards} txs={recTxs} now={at} onSave={saveCards} t={t} />}
 
         {/* the year as a TABLE, key info in order, PERIHELION FIRST (r.028, addendum 58); months of 30 days (r.046 month law), no 33-day frame */}
         {year && (() => {
@@ -811,7 +862,7 @@ const rateMoney = (centsPerUnit: number): string => { const d = Math.abs(centsPe
 /** r.056 THE $/MIN VIEW (addenda 117 · 122 · 123 · 124 · 127): income, spending and net per minute on the shared R-CORE chart, the
  *  window the span's (starting at the current pay cycle so 30D reads the month to its end), the numbers in the upper right following
  *  the finger (Security-2525 style), one-time withdrawals as marks. Module-level (the picker law: the 1 s clock never remounts it). */
-function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, angle, planet, t, height = 300 }: { txs: FinTx[]; now: number; span: ChartSpan; liveHours: number; unit: RateUnitId; showAbc: boolean; dateFmt: DateFmt; angle: DateAngle; planet: PlanetLtuRow; t: (k: string) => string; height?: number }) {
+function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, angle, planet, t, height = 300, tail }: { txs: FinTx[]; now: number; span: ChartSpan; liveHours: number; unit: RateUnitId; showAbc: boolean; dateFmt: DateFmt; angle: DateAngle; planet: PlanetLtuRow; t: (k: string) => string; height?: number; tail?: ReactNode }) {
   const dayMs = daySecOf(planet) * 1000;
   const spanMs = span === "1x" ? liveHours * 3600 * 1000 : spanDaysIn(span, now, showAbc, planet.yearDays) * dayMs;
   // the window: from the start of the current pay cycle (the latest deposit start at or before now, inside one span), else a third back
@@ -847,8 +898,11 @@ function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, angle, pl
         initialRange={{ from, to }} readoutAt={nowInside ? minuteNow : from} readout={figuresAt} formatSelected={(ms) => (showAbc ? fmtMot(positionInYear(ms, planet.yearAnchor, planet.yearDays).abc) : fmtStampCST(ms).slice(0, 16).replace("_", " "))}
         lines={[{ id: "income", color: C.abundance, points: line("income"), step: true }, { id: "spending", color: C.evolution, points: line("spending"), step: true }, { id: "net", color: C.temporal, points: line("net"), step: true, width: 3 }]}
         marks={marks} formatMarkSum={(c) => `−${CUR_SYM}${num2(c)}`} formatValue={(v) => rateMoney(v * 100)} />
-      <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+      {/* r.067 (addendum 145 "Add MoT next to $/hr and place in line with text on left" · "$/hr is right of income spending and net"):
+          the legend left, MoT + the unit at the right of the SAME line */}
+      <p data-fin-rate-legend className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
         <span style={{ color: C.abundance }}>— {t("fin.income")}</span><span style={{ color: C.evolution }}>— {t("fin.spending")}</span><span style={{ color: C.temporal }}>— {t("fin.net")}</span>
+        {tail && <span className="ml-auto">{tail}</span>}
         {/* r.064 (addendum 137 "remove: Net by 07 +$3,893.14"): the Net-by figure is gone from the legend */}
       </p>
     </div>
@@ -857,6 +911,75 @@ function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, angle, pl
 function respread(txs: readonly FinTx[], sp: ChartSpan, nowMs: number, orbital = false, yearDays = 365): FinTx[] {
   const d = spanDaysIn(sp, nowMs, orbital, yearDays);
   return txs.map((x) => ({ ...x, motDays: d }));
+}
+/** r.067 (addendum 150): the cloud mark drawn to his reference — a small left bump, a large middle bump, a right bump, a FLAT base and a
+ *  bold outline; a check inside when saved to the account, a slash across when not yet. Strokes only (the vector law). */
+function CloudMark({ saved, size = 18 }: { saved: boolean; size?: number }) {
+  return (
+    <svg data-fin-cloud-mark={saved ? "saved" : "not-yet"} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="inline-block align-[-3px]">
+      <path d="M6.6 19.5h10.9a4.5 4.5 0 0 0 .55-8.97 5.9 5.9 0 0 0-11.25-1.6A4.2 4.2 0 0 0 2.6 13.6c0 3.3 1.9 5.9 4 5.9z" />
+      {saved ? <path d="M8.6 14.4l2.3 2.3 4.6-4.6" /> : <path d="M3.5 3.5l17 17" />}
+    </svg>
+  );
+}
+/** r.067 THE CARDS PANEL (module-level: the picker law — the 1 s clock never remounts its selects). */
+function CardsPanel({ cards, txs, now, onSave, t }: { cards: Card[]; txs: FinTx[]; now: number; onSave: (c: Card[]) => void; t: (k: string) => string }) {
+  const [pick, setPick] = useState(cards[0]?.id ?? "");
+  const [gear, setGear] = useState(false);
+  const [draft, setDraft] = useState({ limit: "", amber: "", red: "", opening: "" });
+  const [bad, setBad] = useState(false);
+  const card = cards.find((c) => c.id === pick) ?? cards[0];
+  if (!card) return null;
+  const bal = cardBalanceAt(card, txs, now), lv: CardLevel = cardLevel(card, bal);
+  const openGear = () => { setDraft({ limit: (card.limitCents / 100).toFixed(2), amber: (card.amberCents / 100).toFixed(2), red: (card.redCents / 100).toFixed(2), opening: (bal / 100).toFixed(2) }); setBad(false); setGear((g) => !g); };
+  const save = () => {
+    const opening = Math.round(Number(draft.opening) * 100);
+    // AsM review (Thoth): a new "balance as of today" is as of NOW — purchases before now are already inside it, never added again
+    const c2: Card = { ...card, limitCents: Math.round(Number(draft.limit) * 100), amberCents: Math.round(Number(draft.amber) * 100), redCents: Math.round(Number(draft.red) * 100), openingCents: opening, openingAtMs: opening === bal ? card.openingAtMs : now };
+    if (!validCard(c2)) { setBad(true); return; }
+    setBad(false);
+    onSave(cards.map((c) => (c.id === card.id ? c2 : c))); setGear(false);
+  };
+  const pts = cardSeries(card, txs, now);
+  const from = card.openingAtMs - 86_400_000, to = Math.max(now, card.openingAtMs) + 7 * 86_400_000;
+  const N = 400, grid = Array.from({ length: N }, (_, i) => from + ((to - from) * i) / (N - 1));
+  const at = (g: number) => { let v = pts[0].v; for (const p of pts) { if (p.t <= g) v = p.v; else break; } return g < card.openingAtMs ? card.openingCents : v; };
+  const flat = (cents: number) => grid.map((g) => ({ t: g, v: cents / 100 }));
+  const pct = (c: number) => `${Math.round((c / card.limitCents) * 100)}%`;
+  const LV = { ok: "text-green-500", amber: "text-yellow-600 dark:text-yellow-400", red: "text-red-500", over: "text-red-500" }[lv];
+  return (
+    <div data-fin-cards className={SUB}>
+      <div className="flex items-center justify-between gap-2">
+        <div className={LABEL}>{t("fin.cards_title")}</div>
+        <button type="button" data-fin-cards-gear aria-expanded={gear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={openGear} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${gear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
+      </div>
+      <div role="group" aria-label={t("fin.cards_title")} data-fin-card-toggle className="mt-2 flex w-full overflow-hidden rounded-md border border-border text-xs">
+        {cards.map((c) => <button key={c.id} type="button" data-fin-card={c.id} aria-pressed={c.id === card.id} onClick={() => { setPick(c.id); setGear(false); }} className={`min-h-[32px] flex-1 border-l border-border first:border-l-0 ${c.id === card.id ? "ring-1 ring-inset ring-primary text-primary" : "text-muted-foreground"}`}>{c.name}</button>)}
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+        <div><div className="text-muted-foreground">{t("fin.card_limit")}</div><div data-fin-card-limit className="font-mono text-sm tabular-nums text-foreground">{usd(card.limitCents)}</div></div>
+        <div className="text-center"><div className="text-muted-foreground">{t("fin.card_balance")}</div><div data-fin-card-balance className={`font-mono text-sm tabular-nums ${LV}`}>{usd(bal)}</div></div>
+        <div className="text-right"><div className="text-muted-foreground">{t("fin.card_available")}</div><div data-fin-card-available className="font-mono text-sm tabular-nums text-foreground">{usd(card.limitCents - bal)}</div></div>
+      </div>
+      <p data-fin-card-level={lv} className={`mt-2 text-xs ${LV}`}>{t(`fin.card_level_${lv}`)} · {pct(bal)} · {t("fin.card_amber_at")} {usd(card.amberCents)} ({pct(card.amberCents)}) · {t("fin.card_red_at")} {usd(card.redCents)} ({pct(card.redCents)})</p>
+      {gear && (
+        <div data-fin-cards-menu className="mt-2 grid grid-cols-2 gap-2 rounded-md border border-border p-2 text-xs">
+          {([["limit", "fin.card_limit"], ["opening", "fin.card_opening"], ["amber", "fin.card_amber_at"], ["red", "fin.card_red_at"]] as const).map(([k, key]) => (
+            <label key={k} className="flex flex-col gap-1 text-muted-foreground">{t(key)}<input data-fin-card-input={k} inputMode="decimal" value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} className="h-9 rounded-md border border-border bg-background px-2 font-mono text-sm text-foreground" /></label>
+          ))}
+          {bad && <p data-fin-cards-bad className="col-span-2 text-xs text-red-500">{t("fin.card_bad")}</p>}
+          <button type="button" data-fin-cards-save onClick={save} className="col-span-2 h-9 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.done")}</button>
+        </div>
+      )}
+      <div className="mt-2">
+        <RCoreChart height={200} ariaLabel={t("fin.cards_title")} ticksFor={(a, b) => dayTicks(a, b, 6)} formatTick={(ms) => dateLabel(ms, "mmdd")} initialRange={{ from, to }} readoutAt={now} readout={(ms) => [{ color: lv === "ok" ? C.abundance : lv === "amber" ? C.temporal : C.evolution, text: usd(Math.round(at(ms) * 1) ) }]}
+          formatSelected={(ms) => fmtStampCST(ms).slice(0, 16).replace("_", " ")}
+          lines={[{ id: "red", color: C.evolution, points: flat(card.redCents), step: true, dashed: true, width: 1 }, { id: "amber", color: C.temporal, points: flat(card.amberCents), step: true, dashed: true, width: 1 }, { id: "balance", color: C.abundance, points: grid.map((g) => ({ t: g, v: at(g) / 100 })), step: true, width: 3 }]}
+          marks={cardMoves(card, txs).map((m) => ({ t: m.t, color: m.deltaCents > 0 ? C.evolution : C.abundance, dot: false }))}
+          formatValue={(v) => `${CUR_SYM}${Math.round(v).toLocaleString("en-US")}`} />
+      </div>
+    </div>
+  );
 }
 function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFmt, onDateFmt, angle, onAngle, locale, netPerSec = 0 }: { tx: FinTx; txs: FinTx[]; now: number; t: (k: string) => string; netPerSec?: number; planet: PlanetLtuRow; showAbc: boolean; onToggle: (v: boolean) => void; selector?: ReactNode; dateFmt: DateFmt; onDateFmt: (f: DateFmt) => void; angle: DateAngle; onAngle: (a: DateAngle) => void; locale: string }) {
   const W = 360, H = 150, P = 10;
@@ -922,6 +1045,13 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   // TAP OR DRAG ON THE CHART → the day and time at that point (addendum 42 "find way to click on to see day / time stamp")
   const probeAt = (e: { clientX: number; currentTarget: SVGSVGElement }) => { const r = e.currentTarget.getBoundingClientRect(); if (!(r.width > 0)) return; const vx = ((e.clientX - r.left) / r.width) * W; setProbe(from + Math.max(0, Math.min(1, (vx - PL) / (W - PL - P))) * len); };
   const [gear, setGear] = useState(false);
+  const unitPicker = (
+    <label data-fin-chart-unit-label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">{rate && t("fin.mot")}
+      <select data-fin-chart-unit aria-label={t("fin.unit")} title={t("fin.unit")} value={unit} onChange={(e) => pickUnit(e.target.value as ChartUnit)} className="h-8 rounded-md border border-border bg-background px-2 font-mono text-xs text-foreground">
+        {CHART_UNITS.map((u) => <option key={u} value={u}>{u === "usd" ? CUR_SYM : `${CUR_SYM}${CHART_RATE_UNITS.find((r) => r.id === u)?.label ?? ""}`}</option>)}
+      </select>
+    </label>
+  );
   // r.064 (addendum 135 "wheres my expand for financial chart"; his answer "Full screen"): the card fills the screen, a ✕ brings it back
   const [full, setFull] = useState(false);
   const [vh, setVh] = useState(800);
@@ -974,7 +1104,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
         ))}
       </div>
       {/* r.065 (addendum 138 "get rid of +- map guidance"): the + 1 h − row is gone; the chart pinches and drags on its own */}
-      {rate && <RateView txs={txs.length ? txs : [tx]} now={now} span={span} liveHours={LIVE_WINDOWS[zoom].h} unit={unit as RateUnitId} showAbc={showAbc} dateFmt={dateFmt} angle={angle} planet={planet} t={t} height={full ? Math.max(300, vh - 260) : 300} />}
+      {rate && <RateView txs={txs.length ? txs : [tx]} now={now} span={span} liveHours={LIVE_WINDOWS[zoom].h} unit={unit as RateUnitId} showAbc={showAbc} dateFmt={dateFmt} angle={angle} planet={planet} t={t} height={full ? Math.max(300, vh - 260) : 300} tail={unitPicker} />}
       {!rate && <>
       <p data-fin-chart-probe className="mt-2 min-h-[16px] font-mono text-xs text-foreground">{probe !== null && (showAbc ? fmtMot(positionInYear(probe, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(probe)} CST`)}</p>
       {/* r.053 (addendum 110 "Like a stock chart I should be able to click and see values at that day/time"): the values at the tapped point */}
@@ -1015,12 +1145,8 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
         <span style={{ color: C.abundance }}>— {t("fin.released")}</span><span style={{ color: C.intelligence }}>— {t("fin.escrowed")}</span><span>| {t("fin.now")}</span><span style={{ color: C.evolution }}>| {t("fin.withdrawal")}</span>
       </p>
       </>}
-      {/* r.060 (addendum 131 "also place unit drop down $/min on financial chart bottom right"): the unit, at the card's bottom right */}
-      <div data-fin-chart-unit-row className="mt-2 flex justify-end">
-        <select data-fin-chart-unit aria-label={t("fin.unit")} title={t("fin.unit")} value={unit} onChange={(e) => pickUnit(e.target.value as ChartUnit)} className="h-8 rounded-md border border-border bg-background px-2 font-mono text-xs text-foreground">
-          {CHART_UNITS.map((u) => <option key={u} value={u}>{u === "usd" ? CUR_SYM : `${CUR_SYM}${CHART_RATE_UNITS.find((r) => r.id === u)?.label ?? ""}`}</option>)}
-        </select>
-      </div>
+      {/* r.060 → r.067: in the $ view the unit keeps its own row at the bottom right; in the $/MoT view it sits on the legend line */}
+      {!rate && <div data-fin-chart-unit-row className="mt-2 flex justify-end">{unitPicker}</div>}
     </div>
   );
 }

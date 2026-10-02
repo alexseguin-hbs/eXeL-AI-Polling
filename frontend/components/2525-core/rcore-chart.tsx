@@ -266,9 +266,12 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
         if (x >= x0 && x <= x1) {
           g.save(); g.font = `600 10px ${MONO}`;
           const label = p.formatSelected(sel), w = g.measureText(label).width + 8, h = 15, left = Math.max(0, Math.min(W - w, x - w / 2));
-          g.fillStyle = cssColor(cv, "--background", "#0b0f14"); g.fillRect(left, plotH + 2, w, h);
-          g.strokeStyle = text; g.strokeRect(left + 0.5, plotH + 2.5, w - 1, h - 1);
-          g.fillStyle = cssColor(cv, "--foreground", "#e5e7eb"); g.textAlign = "left"; g.textBaseline = "middle"; g.fillText(label, left + 4, plotH + 2 + h / 2);
+          // r.067 (addendum 149 "ensure day label does not cover x axis label · place above x axis with a 5-10 pixel gap"): the box sits
+          // ABOVE the axis line, 7 px clear of it — the date marks in the strip below stay readable
+          const top = plotH - 7 - h;
+          g.fillStyle = cssColor(cv, "--background", "#0b0f14"); g.fillRect(left, top, w, h);
+          g.strokeStyle = text; g.strokeRect(left + 0.5, top + 0.5, w - 1, h - 1);
+          g.fillStyle = cssColor(cv, "--foreground", "#e5e7eb"); g.textAlign = "left"; g.textBaseline = "middle"; g.fillText(label, left + 4, top + h / 2);
           g.restore();
         }
       }

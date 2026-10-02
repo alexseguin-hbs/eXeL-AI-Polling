@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 132 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 133 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -933,6 +933,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.066 shipped and LIVE (Verify Live #2223) — spend ahead of accrual up to all income recorded; the rate spread over the rest; chart labels kept whole (FD-81).",
       "commit": "786ed1c"
+    },
+    {
+      "rev": 133,
+      "date": "2026-10-02",
+      "kind": "decision",
+      "text": "r.067 decision — the cockpit: credit cards (Capital One / USAA) with user amber/red warnings, paid-from on every withdrawal, MoT shorthand, MoT on the legend line (FD-82).",
+      "commit": "55d4d30"
     }
   ]
 };

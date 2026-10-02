@@ -926,6 +926,13 @@
    "kind": "release",
    "text": "r.066 shipped and LIVE (Verify Live #2223) — spend ahead of accrual up to all income recorded; the rate spread over the rest; chart labels kept whole (FD-81).",
    "commit": "786ed1c"
+  },
+  {
+   "rev": 133,
+   "date": "2026-10-02",
+   "kind": "decision",
+   "text": "r.067 decision — the cockpit: credit cards (Capital One / USAA) with user amber/red warnings, paid-from on every withdrawal, MoT shorthand, MoT on the legend line (FD-82).",
+   "commit": "55d4d30"
   }
  ]
 }

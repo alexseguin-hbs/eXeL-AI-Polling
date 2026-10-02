@@ -47,7 +47,7 @@ export function replay(rec: FinRecord, rev?: number): FinTx[] {
 }
 /** THE EDIT (r.062, addendum 133): what changed is appended as a correction — the original entry, its hash and every later link stay
  *  exactly as they were (NO CHANGE EVER DELETES AN ENTRY). The type (deposit / withdrawal) is not editable. Pure. */
-export type TxEdit = Partial<Pick<FinTx, "amountCents" | "memo" | "atMs" | "motDays" | "field" | "recurrence">>;
+export type TxEdit = Partial<Pick<FinTx, "amountCents" | "memo" | "atMs" | "motDays" | "field" | "recurrence" | "paidFrom" | "paysCard">>;
 export function correctTx(rec: FinRecord, id: string, edit: TxEdit, at: number): FinRecord {
   const current = replay(rec).find((x) => x.id === id);
   if (!current) return rec;
