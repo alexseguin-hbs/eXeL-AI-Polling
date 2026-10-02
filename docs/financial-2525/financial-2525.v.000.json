@@ -8,7 +8,7 @@
   "stamp": "v.000_r.054",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "b85f416fe57a70cd5bc81a7b6f207d62b5beffd84ae61994369e775425e4f08b",
+  "handoffSha256": "208f36a49b11dc110fac1290ffd22fac317c1e36e3da51a644bdc623fefddf47",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -369,6 +369,11 @@
     "sha256": "b85f416fe57a70cd5bc81a7b6f207d62b5beffd84ae61994369e775425e4f08b",
     "date": "2026-10-02",
     "note": "addendum 117 — the chart engine (r.056)"
+   },
+   {
+    "sha256": "208f36a49b11dc110fac1290ffd22fac317c1e36e3da51a644bdc623fefddf47",
+    "date": "2026-10-02",
+    "note": "addenda 118–123 — the evening backlog (r.055–r.057)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -813,7 +818,7 @@
    "kind": "correction",
    "why": "His budget is never changed by a revision. Addendum 114: \"STOP WORKING BUDGET( I FIXED ALREADY).  only adjust transactions\"; addendum 116 (7:22, his normal tab): \"my transactions are back now; thanks\" with Fixed 1,671.37 · Variable 1,140.00 · Net 1,113.12. Correction of r.053: r.053 read a budget saved per 33 days through the 30-day month, which would have moved his screen by about 1% (Fixed 1,652.98) — r.054 reads it exactly as r.052 showed it, so every figure he sees stays. The two lines of machine language are gone (addendum 115 + his answer \"Current implementation looks good accept unneeded text\"): the note under the budget (\"Cash, investments, debts … not in this budget\") and the line under the record (\"On this phone only — a cloud copy follows once sign-in carries it\"). Nothing else changed.",
    "commit": "d9e0f4d",
-   "shipped": "PENDING"
+   "shipped": "7d6e1ea"
   }
  ],
  "mot": {

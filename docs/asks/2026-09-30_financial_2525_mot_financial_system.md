@@ -812,6 +812,16 @@
 >
 > (his answer, picked in Claude Code) Purpose line: "Short" — under the budget: "Plan the month. Watch spending by the minute. Keep your savings on track."
 
+> (addendum 121, verbatim — 2026-10-02)
+> fix and SSSES Spiral and AsM test all execution (I’ll not provide any new feedback until you resolve all backlog from this evening).
+
+> (addendum 122, verbatim — 2026-10-02 7:40, r.053 live: Fixed 1,653.00 · Variable 1,127.47 · Net 1,144.01; the chart readout at
+> 2026.10.15 in $ — `docs/asks/2026-10-02_financial_2525_fb122_permin_main.png`)
+> remember I said $/min is main view
+
+> (addendum 123, verbatim — 2026-10-02)
+> if $ or currency selected i need numbers upper right (more futuristic).  See security-2525 charting
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).

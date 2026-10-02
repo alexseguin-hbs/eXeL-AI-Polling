@@ -751,6 +751,13 @@
    "kind": "correction",
    "text": "r.054 correction — his budget figures stay exactly as he sees them; the two machine-language lines removed (FD-74).",
    "commit": "d9e0f4d"
+  },
+  {
+   "rev": 108,
+   "date": "2026-10-02",
+   "kind": "release",
+   "text": "r.054 shipped and LIVE (Verify Live #2200 ✓) — his budget figures stay as he sees them; the two machine-language lines removed (FD-74).",
+   "commit": "7d6e1ea"
   }
  ]
 }
