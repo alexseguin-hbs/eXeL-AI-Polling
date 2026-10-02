@@ -1097,6 +1097,23 @@
 >
 > Change to : Expenses
 
+> (addendum 169, verbatim — 2026-10-02, with a phone screenshot taken at 10:03 of the live chart (r.072) at 30D in $/hr: Income
+> $5.4507/hr, Spending $3.9668/hr, Net $1.4839/hr at the 2026.10.20 13.41 probe; the yellow Net line drops below $0 around 10.30–11.01,
+> then rises to ~$5.5/hr after 11.02 — `docs/asks/2026-10-02_financial_2525_fb169_net_below_zero.png`)
+> why does escrow go below Zero Nov 1?
+>
+> when in 30D view all transactions are split X/30 down to minute level if $/min is selcted. Escrow ect should show this on financial chart.
+>
+> only of 1x (real time lump sum view is selcted do we see actual dollar amounts). tool is designed to build minute and hlurly sensitivity yo raise awareness ton-user
+
+> (addendum 170, verbatim — 2026-10-02, his answers to the four design questions asked on addendum 169, as picked)
+> Chart lines (rate views 1W · 1M · 30D · 91D · 365D): "Add Escrow, keep Net (Recommended)" — Income · Expenses · Net · Escrow; escrow is
+> what is still in escrow split X/30 per minute, falling to 0 as it releases, never below 0.
+> Payday gap: "Keep it — it's true (Recommended)" — the dip shows the days no pay covers.
+> 1x and $: "Yes: 1x = $, others = rates (Recommended)" — 1x shows Available · In Escrow · Released · Spent in dollars; 1W–365D show
+> everything per minute/hour/day.
+> Colours: "Escrow gets its own colour (Recommended)" — Net stays yellow; Escrow uses the colour it already has on the dollar view.
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).

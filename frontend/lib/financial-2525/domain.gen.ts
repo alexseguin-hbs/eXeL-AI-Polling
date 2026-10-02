@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.073",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "e3a2f06267fc86b47838829409ff4923231d2b4498d94391a47127bd2491686b",
+  "handoffSha256": "064bae03dc44c953389fab0eda39dee45bc26bd6128a6ecc9b0792c3cff38d4b",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -601,6 +601,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "e3a2f06267fc86b47838829409ff4923231d2b4498d94391a47127bd2491686b",
     "date": "2026-10-02",
     "note": "addenda 167 (\"are we good on Supabase updates now to address attached?\" — Supabase's Tuesday pause warning; answered: awake, keep-alive 3/3, the live save test's database checks all pass) and 168 (the Trinity logo the Main way with Main's text sizes; the chart's red \"Spending\" reads \"Expenses\")"
+   },
+   {
+    "sha256": "064bae03dc44c953389fab0eda39dee45bc26bd6128a6ecc9b0792c3cff38d4b",
+    "date": "2026-10-02",
+    "note": "addenda 169 (\"why does escrow go below Zero Nov 1?\" — the line is Net; the 30-day split leaves the Oct 30–Nov 1 payday gap; escrow etc. on the chart in the rate views; only 1x in dollars) and 170 (his answers: add Escrow and keep Net, keep the gap, 1x = $ and the other spans rates, escrow its own colour) — r.074"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
