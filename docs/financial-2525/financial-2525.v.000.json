@@ -8,7 +8,7 @@
   "stamp": "v.000_r.067",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "f3d5d9bc502706ec8d448ccb06af72267b9c37d37832881f94ac62aabefc5f5b",
+  "handoffSha256": "674e3a2a106ca3a31a7394f43e2c376b4d325fbb7c5b995780623292f3433124",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -494,6 +494,12 @@
     "sha256": "f3d5d9bc502706ec8d448ccb06af72267b9c37d37832881f94ac62aabefc5f5b",
     "date": "2026-10-02",
     "note": "addendum 152 + \"At purchase (once)\" (edit on the right of each row; card payments restore available credit)"
+   }
+,
+   {
+    "sha256": "674e3a2a106ca3a31a7394f43e2c376b4d325fbb7c5b995780623292f3433124",
+    "date": "2026-10-02",
+    "note": "addendum 153 (the goal: pay off cards, low stress; a card buy raises the card balance, a card payment lowers Available and the card balance; a real-time target)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

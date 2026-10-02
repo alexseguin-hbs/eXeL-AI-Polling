@@ -1009,6 +1009,14 @@
 > right away; the later payment restores the card's available credit and does not lower Available again (except for the opening
 > balance no recorded purchase counted).
 
+> (addendum 153, verbatim — 2026-10-02, after r.067 went live)
+> system goal is to pay off credit cards and bring awareness sonthat human gets lownstress (big balances above limit!of income is stressful)
+> basically a new CC transaction should increase CC BALANCE
+>
+> AND a payment towards CC should reduce available and reduce CC BALANCE
+>
+> that way we have eyes on a real-time target of credit card spend (some cards wait 2-3 days to update balance).
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
