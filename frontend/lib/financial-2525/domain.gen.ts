@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.071",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "074ceedfd73af646fb95eb45ad433752933c62620186f8ff1ef0d5c3167344c0",
+  "handoffSha256": "62a55b3d160d8f5892e25884ebb10404811fbf0180967313f785616c19326b3e",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -556,6 +556,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "074ceedfd73af646fb95eb45ad433752933c62620186f8ff1ef0d5c3167344c0",
     "date": "2026-10-02",
     "note": "addendum 158 (fix the Accrual Units row: a long Available must never run into the Accrual Rate)"
+   },
+   {
+    "sha256": "62a55b3d160d8f5892e25884ebb10404811fbf0180967313f785616c19326b3e",
+    "date": "2026-10-02",
+    "note": "addendum 159 (spending ahead: escrow drops by what is spent ahead while the remaining funds keep releasing — or find a way to manage it)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

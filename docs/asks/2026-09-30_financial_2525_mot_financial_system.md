@@ -1046,6 +1046,9 @@
 > sent after the r.070 note that listed "a large negative Available runs into the Accrual Rate" as found, not changed)
 > and fix this:
 
+> (addendum 159, verbatim — 2026-10-02, about the same photo: In Escrow $3,745.75 · Released $178.74 · Spent $2,488.22 · Available −$2,309.48)
+> escrow should drop, while remaining funds get released … or find way to manage.
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
