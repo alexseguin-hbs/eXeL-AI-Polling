@@ -1168,6 +1168,10 @@
 > (Recommended)" — a viewers list in the account store, his page shown only to a signed-in verified email on his list, every write
 > refused; a database change in its own revision.
 
+> (addendum 181, verbatim — 2026-10-02 1:20, with a phone screenshot of the live currency dropdown (r.072, SHA d8c7c36): USD · NGN ·
+> NPR · KHR · MXN · THB · BRL · HNL · COP · CLP — `docs/asks/2026-10-02_financial_2525_fb181_currencies.png`)
+> are these the only currencies we have for 33 language lexicon? If not, add others.
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
