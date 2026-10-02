@@ -1187,6 +1187,20 @@
 > His answer (wide layout): "Same column, full width" — keep the single column, every card stretches to the full screen width on a PC
 > and on a phone held either way.
 
+> (addendum 185, verbatim — 2026-10-02)
+> Refactor Financial-2525
+>
+> His answer (which refactor): "Layout (full width)" — the full-screen layout of addenda 183–184 (B-76), not a code split.
+
+> (addendum 186, verbatim — 2026-10-02, three messages about work beside this one)
+> Be aware I have Grok working on adding a /SensorFusion-2525 section (he will not address any ClaudeCode progress.
+>
+> He's working to inlcude raspberry pi application from Public Repo:
+>
+> Also access this: https://github.com/De-Risking-Strategies/SensorFusion
+>
+> Just add; that way we can review Grok's implementation (to avoid overlap of work). You focus on financial-2525 for now
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
