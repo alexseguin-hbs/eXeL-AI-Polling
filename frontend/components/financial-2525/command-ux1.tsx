@@ -535,7 +535,6 @@ export function FinancialCommandUX1() {
               </span>
             </div>
           )}
-          <p className="mt-2 text-xs text-muted-foreground">{t("fin.stock_note")}</p>
         </div>
 
         {/* the chart — strokes only, day · hour · minute by default, A.B..C on reveal */}
@@ -578,7 +577,6 @@ export function FinancialCommandUX1() {
               </tbody>
             </table>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">{t("fin.device_only")}</p>
         </details>
 
         {/* the year as a TABLE, key info in order, PERIHELION FIRST (r.028, addendum 58); months of 30 days (r.046 month law), no 33-day frame */}

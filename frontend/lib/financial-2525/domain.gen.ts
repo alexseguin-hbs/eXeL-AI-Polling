@@ -31,11 +31,11 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.053",
-  "stamp": "v.000_r.053",
+  "revision": "0.054",
+  "stamp": "v.000_r.054",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "21e0629e3b6dceea6efd3eeb331682011cc7e8707aa995c422cb70395a5e2e27",
+  "handoffSha256": "b85f416fe57a70cd5bc81a7b6f207d62b5beffd84ae61994369e775425e4f08b",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -386,6 +386,16 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "21e0629e3b6dceea6efd3eeb331682011cc7e8707aa995c422cb70395a5e2e27",
     "date": "2026-10-02",
     "note": "addenda 114–115 — transactions only; unneeded text out (r.054)"
+   },
+   {
+    "sha256": "66be5116660b822528698d54ed3bd835a1512bff8db243b90ec4f3b7e19a5ae2",
+    "date": "2026-10-02",
+    "note": "addendum 116 — his transactions back; his budget screen is the reference (r.054)"
+   },
+   {
+    "sha256": "b85f416fe57a70cd5bc81a7b6f207d62b5beffd84ae61994369e775425e4f08b",
+    "date": "2026-10-02",
+    "note": "addendum 117 — the chart engine (r.056)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -822,6 +832,14 @@ export const FINANCIAL_DOMAIN = {
    "kind": "correction",
    "why": "His budget is the budget. Addendum 105: \"3924.24 is income plus 320; use that image / Update input budget (get numbers from revision before you update with out my knowledge). ALSO WHERE THE FUCK IS MY EDIT BUTTON AND WHY DO YOU KEEP REMOVING ITEMS THAT ARE IMPLEMENTED ALREADY?\" The starting budget is his own 8:50 budget, line for line, the same dollars per month: Wages 3,604.49 · Upside 320.00 · Rent 700.00 · Auto / Renters / Home 250.66 · Fitness & Health 270.00 · Subscriptions 89.73 · Electric / Gas 150.00 · Groceries 500.00 · Fun / Hobbies 100.00 · Dining 150.00 · Gifts / Travel 240.00 — Income 3,924.49 · Fixed 1,310.39 · Variable 1,140.00 · Net 1,474.10 (his own 7:14 numbers, addendum 111 \"here are numbers on budget; I already fixed. HI IS BETTER\"). Correction of r.052: the example sheet re-computed at the 30.3̅-day month (643.43 …) was not his budget. A plan he saved per 33 days reads back exactly the dollars he typed at the 30-day month (addendum 113: r.052 read them through the 30.3̅-day month and showed 3,968.10 for his 3,924.49 — a correction of r.052); the 7:03 screen was a private-browsing tab, its own empty storage. The pencil shows signed in or not (r.052) and its gate refuses its removal. No change ever deletes an entry (addendum 106: \"Where are my inputted transactions; no changes should delete entries\"): the one path that could — a stored record that failed its check read as empty, and the next save wrote over it — is closed; a save that would not carry every stored entry forward first keeps the stored copy whole under its own key, never overwritten, never removed. His entries are under his sign-in; signed out the page shows the example. His entries back in (addendum 110: \"now enter my transactions back in\"): signed in as him with an empty record on the device, one tap — Put back my entries — appends his two deposits exactly as his record showed them (3,604.49 Income / Wages · State of Texas · 2026.09.30_19.54..35 · 320.00 Upside · PROMISSORY NOTE · 2026.09.30_19.56..04, monthly) and opens the withdrawal form at 250.66 · Auto / Renters / Home for his day, time and length (never invented). A stock-chart readout (addendum 110: \"Like a stock chart I should be able to click and see values at that day/time\"): a tap shows Released · In Escrow · Available · Net at that point.",
    "commit": "5254bbe",
+   "shipped": "2ab4ff3"
+  },
+  {
+   "revision": "0.054",
+   "date": "2026-10-02",
+   "kind": "correction",
+   "why": "His budget is never changed by a revision. Addendum 114: \"STOP WORKING BUDGET( I FIXED ALREADY).  only adjust transactions\"; addendum 116 (7:22, his normal tab): \"my transactions are back now; thanks\" with Fixed 1,671.37 · Variable 1,140.00 · Net 1,113.12. Correction of r.053: r.053 read a budget saved per 33 days through the 30-day month, which would have moved his screen by about 1% (Fixed 1,652.98) — r.054 reads it exactly as r.052 showed it, so every figure he sees stays. The two lines of machine language are gone (addendum 115 + his answer \"Current implementation looks good accept unneeded text\"): the note under the budget (\"Cash, investments, debts … not in this budget\") and the line under the record (\"On this phone only — a cloud copy follows once sign-in carries it\"). Nothing else changed.",
+   "commit": "d9e0f4d",
    "shipped": "PENDING"
   }
  ],
@@ -2340,6 +2358,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "His two deposits are put back by one tap offered only to his signed-in account on an empty record (append only, the withdrawal's day and time his); a tap on the chart reads Released · In Escrow · Available · Net at that point.",
    "status": "OPERATOR",
    "basis": "addenda 109–110 (verbatim)"
+  },
+  {
+   "id": "FD-74",
+   "decision": "No revision changes a budget figure he sees; the two machine-language lines (budget note, record footer) are removed.",
+   "status": "OPERATOR",
+   "basis": "addenda 114–116 (verbatim)"
   }
  ],
  "reviews": [

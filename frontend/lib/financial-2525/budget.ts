@@ -82,10 +82,8 @@ export const HIS_BUDGET: readonly { fieldId: string; dollars: number }[] = [
   { fieldId: "B.rent_mortgage", dollars: 700.0 }, { fieldId: "D.auto_renters_home", dollars: 250.66 }, { fieldId: "G.mental_physical", dollars: 270.0 }, { fieldId: "E.subscriptions_ai_cloud", dollars: 89.73 },
   { fieldId: "E.electric_gas", dollars: 150.0 }, { fieldId: "F.groceries", dollars: 500.0 }, { fieldId: "L.fun_hobbies_clothing", dollars: 100.0 }, { fieldId: "F.dining_work", dollars: 150.0 }, { fieldId: "L.gifts_holidays_travel", dollars: 240.0 },
 ];
-/** The month his last saved budget was TYPED in. r.046–r.051 stored the plan per 33 days while the glass showed the 30-day month;
- *  his latest numbers were typed there (addenda 109 · 111 · 113: 7:09/7:14 — Wages 3,604.49 … Net 1,474.10). r.052 read those lines
- *  through the older 30.3̅-day month and showed 3,968.10 for his 3,924.49 (his 7:18 screen) — corrected: a line saved per 33 days reads
- *  back exactly the dollars he typed at the 30-day month. Unrounded, so totals match his screen to the cent. Pure. */
-export const SHOWN_MONTH_DAYS = 30;
+/** A budget saved per 33 days reads back exactly as r.052 showed it — the screen he confirmed (addendum 116, 7:22: Fixed 1,671.37 ·
+ *  Variable 1,140.00 · Net 1,113.12) under "STOP WORKING BUDGET (I FIXED ALREADY)" (addendum 114): no revision changes a figure he sees. */
+export const SHOWN_MONTH_DAYS = 91 / 3;
 export const shownMonthly = (per33: number): number => (per33 * SHOWN_MONTH_DAYS) / 33;
 export const SHEET_LINES: readonly LadderLine[] = HIS_BUDGET.map((l) => ({ fieldId: l.fieldId, amountNative: l.dollars, nativePeriod: "month" as const }));

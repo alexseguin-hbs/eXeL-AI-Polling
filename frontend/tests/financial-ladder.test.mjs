@@ -133,9 +133,9 @@ ok(near(L.ratePerMinute(360449, 91 / 3), 8.2520, 1e-3), "the worked paycheck run
   const added = P.addLine(sheet, "C.fuel"); ok(added.some((l) => l.fieldId === "C.fuel" && l.amountNative === 0), "a line is added at zero and its amount typed on the line in the unit showing (r.020's add row)");
   store.set(P.planKey("eve"), JSON.stringify([{ fieldId: "B.rent_mortgage", amountNative: 700 * 33 / 30, nativePeriod: "days33", amount: 700, rec: "other", otherN: 30, otherUnit: "days" }]));
   const ev = P.loadPlan("eve");
-  ok(ev.length === 1 && ev[0].nativePeriod === "month" && near(P.lineInUnit(ev[0], "month"), 700, 1e-9), "a plan saved on the old 33-day base reads back the per-month dollars he typed at the 30-day month (770 per 33 days = 700 per month; addendum 113) — its extra fields are ignored");
-  store.set(P.planKey("his"), JSON.stringify([{ fieldId: "A.income_wages", amountNative: 3604.49 * 33 / 30, nativePeriod: "days33" }, { fieldId: "F.groceries", amountNative: 500 * 33 / 30, nativePeriod: "days33" }, { fieldId: "B.rent_mortgage", amountNative: 700 * 33 / 30, nativePeriod: "days33" }]));
-  ok(P.loadPlan("his").map((l) => Math.round(P.lineInUnit(l, "month") * 100) / 100).join(" ") === "3604.49 500 700", "his saved lines (typed 3,604.49 · 500 · 700 per 30-day month in r.046–r.051) read exactly those dollars — never 3,644.54 as r.052 showed (addendum 113)");
+  ok(ev.length === 1 && ev[0].nativePeriod === "month" && near(P.lineInUnit(ev[0], "month"), Math.round(770 * (91 / 3) / 33 * 100) / 100, 1e-9), "a plan saved on the old 33-day base reads exactly as r.052 showed it — his confirmed screen (addenda 114 · 116) — its extra fields are ignored");
+  store.set(P.planKey("his"), JSON.stringify([{ fieldId: "F.groceries", amountNative: 500 * 33 / (91 / 3), nativePeriod: "days33" }, { fieldId: "B.rent_mortgage", amountNative: 700 * 33 / (91 / 3), nativePeriod: "days33" }]));
+  ok(P.loadPlan("his").map((l) => Math.round(P.lineInUnit(l, "month") * 100) / 100).join(" ") === "500 700", "his saved lines read exactly what his screen shows now (addendum 116: Variable 1,140.00) — no revision changes a figure he sees");
   delete globalThis.localStorage;
 }
 
