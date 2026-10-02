@@ -83,3 +83,9 @@ Sections:
 0. Before shipping: `scripts/fin-round.sh wait-live` until HEAD is LIVE (never outpace the deploy).
 4. `scripts/fin-round.sh wait 0.NNN` repeatedly, until it exits 0 (LIVE) or 1 (RED). A RED gate means fix and run
    `ship` again. Nothing was pushed.
+
+## Resumed 2026-10-02 (addendum 161: "address backlog, make your own decisions MoT")
+The programme paused at addendum 127; revisions r.056–r.072 then answered asks 128–161, so the numbering above no longer holds.
+From here **round N = revision 0.(072+N)**: round 1 = r.073, round 33 = r.105. A round still runs the four checks, folds what they
+find, ships, and waits for LIVE before the next one starts. Its review is kept verbatim as `rounds/rNNN_review.md` (with its
+sha256) before any code changes; the fold's record is `rounds/rNNN.md`. Every other law above is unchanged.
