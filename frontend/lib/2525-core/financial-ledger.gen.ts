@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 135 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 136 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -954,6 +954,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.068 decision — pay a card where you pay it: a Pay card button on each card and the Pays card picker on every Debit withdrawal; count-once kept (FD-83).",
       "commit": "929521e"
+    },
+    {
+      "rev": 136,
+      "date": "2026-10-02",
+      "kind": "release",
+      "text": "r.068 shipped and LIVE (Verify Live #2229) — Pay card on each card; the Pays card picker on every Debit withdrawal; count-once kept (FD-83).",
+      "commit": "98d7dd1"
     }
   ]
 };

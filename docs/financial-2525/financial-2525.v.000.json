@@ -1062,7 +1062,7 @@
    "kind": "decision",
    "why": "Addendum 153 — the goal is paying off cards with low stress: a new card transaction raises the card balance (r.067, kept); a payment to a card lowers the card balance and Available (Available only for the part no recorded purchase already counted — his answer \"At purchase (r.067 now)\" keeps count-once). The payment was hard to find (its picker appeared only under Debt service › Credit Cards), so per his \"what reflects reality best\": a Pay card button on each card opens the one form set to a Debit-Account payment in Debt service › Credit Cards naming that card (amount and time his), and the Pays card picker shows on EVERY Debit withdrawal and is recorded whatever the field, in the form and in the edit row. One key staged English-only (fin.card_pay).",
    "commit": "929521e",
-   "shipped": "PENDING"
+   "shipped": "98d7dd1"
   }
  ],
  "mot": {
