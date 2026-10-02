@@ -800,6 +800,22 @@
 > (his answers, picked in Claude Code) Engine: "TradingView Lightweight Charts (Recommended)". Lines: "Income vs spending (Recommended)" —
 > three lines in $/min: income coming in, spending going out, and Net (green above zero, red below).
 
+> (addendum 118, verbatim — 2026-10-02)
+> use Security-2525 for better graphical toggled or Architect-2525 for inspiration.  this is state of the art
+> SPIRAL TEAT 9x and AsM TEST, then SSSES TEST TO IDENTIFY GAPS AND RISKS; so a user never looses their info ever again and financial charts help them get to the end of a time frame with less risk and better chance for Upside (savings etc).
+> Basically pressure TEST all financial-2525 so this is worthy for using when $/min and eventually $/sec optimizations of platform is useful (assuming this entire eXeL sight updates it self one day per Cube 1-27
+> add edit of transaction record (naming and amount)
+
+> (addendum 119, verbatim — 2026-10-02, after the 91D screenshot)
+> again your red highlighted sections are not user friendly to UX to indicate what budget is for
+> the goal of this is to show financial budget and real-time accrual to ensure users better are aware of overspend on a minute level so they high their monthly spending and savings objectives
+>
+> (his answer, picked in Claude Code) Purpose line: "Short" — under the budget: "Plan the month. Watch spending by the minute. Keep your savings on track."
+
+> (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
+> 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
+> Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
