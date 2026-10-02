@@ -765,6 +765,13 @@
 > FIX MY LOGGED TRANSACTIONS
 > SAVE AN PUSH TO SUPABASE.  Identify all saving functions and make sure push is made automatically as well as every 12 hours
 
+> (addendum 113, verbatim — 2026-10-02 7:18, r.052 (b015846) in the private tab: Available $0.00 · Income 3,968.10 · Fixed 1,324.95 ·
+> Variable 1,152.67 · Net 1,490.48 · record "No deposits on the record yet" — `docs/asks/2026-10-02_financial_2525_fb113_r052_private_0718.png`;
+> before it, a 1:41 screenshot of his normal tab showing the three entries)
+> YES I AM TELLING YOU YOU DELETEDY FUCKING EMTRIES.
+>
+> accrual was working and so was transaction records
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
