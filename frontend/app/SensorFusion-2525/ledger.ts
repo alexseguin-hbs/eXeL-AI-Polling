@@ -34,6 +34,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The R-CORE target sits at the bottom of Sensor Fusion · 2525. The first click shows the icon with the word art. The second click opens version history for SensorFusion-2525 only.",
       commit: "",
     },
+    {
+      rev: 5,
+      date: "2026-10-02",
+      kind: "release",
+      text: "The page uses the Raspberry Pi screen: SENSOR 1 in the top bar, one camera, and the model list as a dropdown. The menu starts Sensor Fusion or Check ID with Coral or without it. Pose is not in the app. The same downloadable app runs on a Raspberry Pi, Ubuntu, or a Windows PC. The phone uses this page.",
+      commit: "",
+    },
   ],
 };
 

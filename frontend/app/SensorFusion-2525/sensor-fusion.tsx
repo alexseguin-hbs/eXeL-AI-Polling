@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { Settings } from "lucide-react";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 import {
   COLORS,
   FRAMES,
   MODELS,
+  MENU,
   PLATFORMS,
   applyTheme,
   detectPlatform,
   explainCamera,
+  modelFile,
   sensorPath,
   type PlatformId,
   type SchemeId,
@@ -18,17 +21,82 @@ import {
 import { SENSOR_FUSION_RCORE_HISTORY } from "./ledger";
 import styles from "./sensor-fusion.module.css";
 
-function withHistory(node: ReactNode, accent: string) {
+function Foot({ accent }: { accent: string }) {
   return (
-    <>
-      {node}
-      <div className={styles.badge}>
-        <RCoreBadge history={SENSOR_FUSION_RCORE_HISTORY} accent={accent} />
-      </div>
-    </>
+    <footer className={styles.foot}>
+      <RCoreBadge history={SENSOR_FUSION_RCORE_HISTORY} accent={accent} />
+    </footer>
   );
 }
-type Step = "login" | "device" | "work";
+
+function SettingsSheet({
+  open,
+  scheme,
+  customHex,
+  onClose,
+  onScheme,
+}: {
+  open: boolean;
+  scheme: SchemeId | "custom";
+  customHex: string;
+  onClose: () => void;
+  onScheme: (next: SchemeId | "custom", hex?: string) => void;
+}) {
+  if (!open) return null;
+  return (
+    <div className={styles.shade} onClick={onClose}>
+      <aside className={styles.drawer} onClick={(event) => event.stopPropagation()} role="dialog" aria-label="Settings">
+        <div className={styles.row}>
+          <h2 style={{ flex: 1 }}>Settings</h2>
+          <button className={styles.ghost} type="button" onClick={onClose} aria-label="Close settings">
+            Close
+          </button>
+        </div>
+        <p>SESSION COLOR SCHEME</p>
+        <p className={styles.muted}>Applies to all participants in this session.</p>
+        <div className={styles.swatches}>
+          {COLORS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`${styles.swatch} ${scheme === item.id ? styles.swatchOn : ""}`}
+              onClick={() => onScheme(item.id)}
+            >
+              {scheme === item.id && <span className={styles.check}>✓</span>}
+              <span className={styles.dot} style={{ background: item.swatch }} />
+              {item.mark ? `${item.mark} ` : ""}
+              {item.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            className={`${styles.swatch} ${scheme === "custom" ? styles.swatchOn : ""}`}
+            onClick={() => onScheme("custom")}
+          >
+            {scheme === "custom" && <span className={styles.check}>✓</span>}
+            <span className={styles.dot} style={{ background: customHex }} />
+            Custom
+          </button>
+        </div>
+        {scheme === "custom" && (
+          <label>
+            Custom color
+            <input type="color" value={customHex} aria-label="Custom session color" onChange={(event) => onScheme("custom", event.target.value)} />
+          </label>
+        )}
+        <button type="button" className={`${styles.frame} ${scheme === "atlantis" ? styles.swatchOn : ""}`} onClick={() => onScheme("atlantis")}>
+          The Atlantis Accords
+          <small className={styles.muted}> 7 sections</small>
+        </button>
+        <button type="button" className={`${styles.frame} ${scheme === "vision" ? styles.swatchOn : ""}`} onClick={() => onScheme("vision")}>
+          Vision • 2525
+          <small className={styles.muted}> Humanity’s Coordination Framework</small>
+        </button>
+      </aside>
+    </div>
+  );
+}
+type Step = "login" | "menu" | "work";
 type Shot = { id: string; url: string };
 
 function paint(id: SchemeId | "custom", hex: string) {
@@ -57,7 +125,13 @@ export default function SensorFusion() {
   const [error, setError] = useState("");
   const [facing, setFacing] = useState<"user" | "environment">("environment");
   const [model, setModel] = useState("demo90");
-  const [faster, setFaster] = useState(false);
+  const [coral, setCoral] = useState(false);
+  const [guest, setGuest] = useState(false);
+  const [showScores, setShowScores] = useState(true);
+  const [showLabels, setShowLabels] = useState(true);
+  const [showFps, setShowFps] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [poseNote, setPoseNote] = useState(false);
   const [annotate, setAnnotate] = useState(false);
   const [savedNote, setSavedNote] = useState(false);
   const [name, setName] = useState("");
@@ -84,14 +158,22 @@ export default function SensorFusion() {
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) {
-      setStep("login");
+      const skipped = window.localStorage.getItem("sf2525-guest") === "1";
+      setGuest(skipped);
+      setStep(skipped ? "menu" : "login");
       return;
     }
-    const ready = window.localStorage.getItem("sf2525-ready") === "1";
-    const savedHost = window.localStorage.getItem("sf2525-host") as PlatformId | null;
-    const known = PLATFORMS.some((item) => item.id === savedHost);
-    setStep(ready && known ? "work" : "device");
+    setGuest(false);
+    setStep("menu");
   }, [isAuthenticated, isLoading]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "f" || event.key === "F") setShowFps((on) => !on);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   function chooseScheme(next: SchemeId | "custom", hex?: string) {
     const color = hex || customHex;
@@ -163,230 +245,224 @@ export default function SensorFusion() {
     );
   }
 
+  function pickMenu(item: (typeof MENU)[number]) {
+    setPoseNote(false);
+    if (item.go === "stop") {
+      closeSensor();
+      setStep("menu");
+      return;
+    }
+    if (item.go === "pose") {
+      setPoseNote(true);
+      return;
+    }
+    setCoral(item.coral);
+    if (item.model) setModel(item.model);
+    window.localStorage.setItem("sf2525-host", platform);
+    if (item.go === "label") setAnnotate(true);
+    setStep("work");
+  }
+
+  const who = operator || (guest ? "GUEST" : "");
   const accent =
     scheme === "custom"
       ? customHex
       : (COLORS.find((item) => item.id === scheme)?.primary ?? FRAMES.find((item) => item.id === scheme)?.primary ?? "#00e5ff");
 
   if (step === "login") {
-    return withHistory(
+    return (
       <main className={styles.screen}>
         <div className={styles.fill}>
-          <p className={styles.kicker}>MODULAR: EDGE</p>
-          <h1>Sensor Fusion · 2525</h1>
-          <p className={styles.muted}>
-            Accessible from multiple devices: a Windows PC, an Android phone, an iPhone, a Raspberry Pi, or Ubuntu. Sign in with the same eXeL AI account.
-          </p>
+          <img className={styles.logo} src="/sensor-fusion/sensor_fusion_logo_001.png" alt="sensor fusion" />
+          <h1>Sensor Fusion</h1>
+          <p className={styles.muted}>Sign in with the eXeL account. If that sign-in is down, skip it and stay on this device.</p>
           <button
             className={styles.primary}
             type="button"
             disabled={isLoading}
             onClick={() => loginWithRedirect({ appState: { returnTo: "/SensorFusion-2525/" } })}
           >
-            {isLoading ? "Checking sign in…" : "Log in"}
-          </button>
-          <p className={styles.muted}>Your password stays with that sign in. Next, pick the device.</p>
-        </div>
-      </main>,
-      accent,
-    );
-  }
-
-  if (step === "device") {
-    return withHistory(
-      <main className={styles.screen}>
-        <div className={styles.fill}>
-          <p className={styles.kicker}>MODULAR: EDGE</p>
-          <h1>Sensor Fusion · 2525</h1>
-          <p className={styles.muted}>
-            System Operator {operator}. Accessible from multiple devices. Pick the one you are using. The folder is Home/SensorFusion. Windows uses a backslash.
-          </p>
-          <div className={`${styles.grid} ${styles.grid2}`}>
-            {PLATFORMS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={`${styles.card} ${platform === item.id ? styles.cardOn : ""}`}
-                onClick={() => setPlatform(item.id)}
-              >
-                {item.label}
-                <small>{item.detail}</small>
-              </button>
-            ))}
-          </div>
-          <p className={styles.muted}>Folder</p>
-          <p className={styles.path}>{sensorPath(platform)}</p>
-          <button
-            className={styles.primary}
-            type="button"
-            onClick={() => {
-              window.localStorage.setItem("sf2525-host", platform);
-              window.localStorage.setItem("sf2525-ready", "1");
-              setStep("work");
-            }}
-          >
-            Continue
-          </button>
-        </div>
-      </main>,
-      accent,
-    );
-  }
-
-  const current = MODELS.find((item) => item.id === model);
-
-  return withHistory(
-    <main className={styles.screen}>
-      <header className={styles.top}>
-        <div>
-          <p className={styles.kicker}>MODULAR: EDGE</p>
-          <h1>
-            System Operator <span style={{ color: "var(--sf-primary, #00e5ff)" }}>{operator}</span>
-          </h1>
-          <p className={styles.muted}>{PLATFORMS.find((item) => item.id === platform)?.label}</p>
-          <p className={styles.path}>{sensorPath(platform, [current?.label ?? "Demo.90"])}</p>
-        </div>
-        <div className={styles.row}>
-          <button className={styles.ghost} type="button" onClick={() => setStep("device")}>
-            Device
+            {isLoading ? "Checking sign in…" : "SIGN IN"}
           </button>
           <button
             className={styles.ghost}
             type="button"
             onClick={() => {
-              closeSensor();
-              window.localStorage.removeItem("sf2525-ready");
-              logout({ logoutParams: { returnTo: window.location.origin } });
+              window.localStorage.setItem("sf2525-guest", "1");
+              setGuest(true);
+              setStep("menu");
             }}
           >
-            Log out
+            SKIP TO SENSOR FUSION
           </button>
-          <button className={styles.ghost} type="button" onClick={() => setSettings(true)} aria-label="Settings">
-            Settings
+        </div>
+        <Foot accent={accent} />
+      </main>
+    );
+  }
+
+  if (step === "menu") {
+    return (
+      <main className={styles.screen}>
+        <header className={styles.piTop}>
+          <img className={styles.logo} src="/sensor-fusion/sensor_fusion_logo_001.png" alt="sensor fusion" />
+          <span className={styles.who}>{who}</span>
+          <button type="button" className={styles.iconBtn} onClick={() => setSettings(true)} aria-label="Settings">
+            <Settings aria-hidden />
+          </button>
+        </header>
+        <div className={styles.fill}>
+          <h1>Menu</h1>
+          <label>
+            This computer
+            <select value={platform} onChange={(event) => setPlatform(event.target.value as PlatformId)}>
+              {PLATFORMS.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className={styles.menu}>
+            {MENU.map((item) => (
+              <button key={item.id} type="button" className={styles.menuItem} onClick={() => pickMenu(item)}>
+                <span>{item.n}</span>
+                {item.label}
+              </button>
+            ))}
+          </div>
+          {poseNote && (
+            <p className={styles.alert}>Pose is not in the app yet. It does not have the three files the other models use.</p>
+          )}
+          <p className={styles.muted}>
+            The app for a Raspberry Pi, Ubuntu, or a Windows PC runs the model on that computer. The phone uses this page for now.
+          </p>
+          <a className={styles.primary} href="/sensor-fusion/edge/sensor_fusion_edge.py" download>
+            Download the app
+          </a>
+        </div>
+        <SettingsSheet open={settings} scheme={scheme} customHex={customHex} onClose={() => setSettings(false)} onScheme={chooseScheme} />
+        <Foot accent={accent} />
+      </main>
+    );
+  }
+
+  const current = MODELS.find((item) => item.id === model) ?? MODELS[0];
+  const file = modelFile(coral);
+
+  return (
+    <main className={styles.screen}>
+      <header className={styles.piTop}>
+        <button type="button" className={styles.logoBtn} onClick={() => setStep("menu")} title="Menu">
+          <img className={styles.logo} src="/sensor-fusion/sensor_fusion_logo_001.png" alt="sensor fusion" />
+        </button>
+        <button
+          type="button"
+          className={styles.sensorSwitch}
+          onClick={() => (sensorOn ? closeSensor() : void openSensor())}
+          disabled={busy}
+        >
+          SENSOR 1: {busy ? "…" : sensorOn ? "ON" : "OFF"}
+        </button>
+        <div className={styles.row}>
+          <button type="button" className={styles.iconBtn} aria-label="Info" onClick={() => setInfoOpen((open) => !open)}>
+            i
+          </button>
+          <button type="button" className={styles.iconBtn} aria-label="Settings" onClick={() => setSettings(true)}>
+            <Settings aria-hidden />
+          </button>
+          <button
+            type="button"
+            className={styles.iconBtn}
+            aria-label="Profile"
+            onClick={() => {
+              closeSensor();
+              window.localStorage.removeItem("sf2525-guest");
+              if (isAuthenticated) logout({ logoutParams: { returnTo: window.location.origin } });
+              else setStep("login");
+            }}
+          >
+            {who ? who.slice(0, 1) : "?"}
+          </button>
+          <button
+            type="button"
+            className={styles.iconBtn}
+            aria-label="Full screen"
+            onClick={() => {
+              if (document.fullscreenElement) void document.exitFullscreen();
+              else void document.documentElement.requestFullscreen();
+            }}
+          >
+            ⛶
           </button>
         </div>
       </header>
-      <div className={styles.body}>
-        <section className={styles.stage}>
-          <video ref={videoRef} autoPlay muted playsInline aria-label="Camera" />
-          {!sensorOn && <div className={styles.idle}>Turn SENSOR 1 on to use the camera.</div>}
-        </section>
-        <aside className={styles.side}>
-        <div className={styles.tools}>
-          {error && <p className={`${styles.alert} ${styles.wide}`}>{error}</p>}
-          <button className={`${styles.primary} ${styles.wide}`} type="button" disabled={busy} onClick={() => (sensorOn ? closeSensor() : void openSensor())}>
-            {busy ? "Opening…" : sensorOn ? "SENSOR 1: ON" : "SENSOR 1: OFF"}
-          </button>
-          <button className={styles.ghost} type="button" disabled={!sensorOn} onClick={() => void openSensor(facing === "user" ? "environment" : "user")}>
-            Other side
-          </button>
-          <button className={styles.ghost} type="button" onClick={() => setAnnotate(true)}>
-            Annotate
-          </button>
-        </div>
-
-        <h2>Choose a model</h2>
-        <p className={styles.muted}>The previous model stops before the next one starts.</p>
-        <div className={styles.models}>
-          {MODELS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`${styles.card} ${model === item.id ? styles.cardOn : ""}`}
-              onClick={() => setModel(item.id)}
-            >
-              {item.label}
-              <small>{item.sees}</small>
-            </button>
-          ))}
-        </div>
-
-        <h2>This device</h2>
-        <p className={styles.muted}>Optional. This can make the computer faster. It is not a camera.</p>
-        <button className={styles.ghost} type="button" onClick={() => setFaster((value) => !value)} aria-pressed={faster}>
-          See faster {faster ? "on" : "off"}
-        </button>
-
-        {shots.length > 0 && (
-          <>
-            <h2>Saved pictures</h2>
-            <div className={styles.shots}>
-              {shots.map((shot) => (
-                <img key={shot.id} src={shot.url} alt="Saved picture" />
-              ))}
-            </div>
-          </>
+      <section className={styles.stage}>
+        <video ref={videoRef} autoPlay muted playsInline aria-label="Camera" />
+        {!sensorOn && (
+          <div className={styles.idle}>
+            <p>Camera Sensor 1 is OFF</p>
+            <p>1. Make sure the camera is connected</p>
+            <p>2. Toggle SENSOR 1 to ON</p>
+          </div>
         )}
-        </aside>
-      </div>
-
-      {settings && (
-        <div className={styles.shade} onClick={() => setSettings(false)}>
-          <aside className={styles.drawer} onClick={(event) => event.stopPropagation()} role="dialog" aria-label="Settings">
-            <div className={styles.row}>
-              <h2 style={{ flex: 1 }}>Settings</h2>
-              <button className={styles.ghost} type="button" onClick={() => setSettings(false)} aria-label="Close settings">
-                Close
-              </button>
-            </div>
-            <p>SESSION COLOR SCHEME</p>
-            <p className={styles.muted}>Applies to all participants in this session.</p>
-            <div className={styles.swatches}>
-              {COLORS.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={`${styles.swatch} ${scheme === item.id ? styles.swatchOn : ""}`}
-                  onClick={() => chooseScheme(item.id)}
-                >
-                  {scheme === item.id && <span className={styles.check}>✓</span>}
-                  <span className={styles.dot} style={{ background: item.swatch }} />
-                  {item.mark ? `${item.mark} ` : ""}
-                  {item.label}
-                </button>
-              ))}
-              <button
-                type="button"
-                className={`${styles.swatch} ${scheme === "custom" ? styles.swatchOn : ""}`}
-                onClick={() => chooseScheme("custom")}
-              >
-                {scheme === "custom" && <span className={styles.check}>✓</span>}
-                <span className={styles.dot} style={{ background: customHex }} />
-                Custom
-              </button>
-            </div>
-            {scheme === "custom" && (
-              <label>
-                Custom color
-                <input type="color" value={customHex} aria-label="Custom session color" onChange={(event) => chooseScheme("custom", event.target.value)} />
-              </label>
-            )}
-            <button type="button" className={`${styles.frame} ${scheme === "atlantis" ? styles.swatchOn : ""}`} onClick={() => chooseScheme("atlantis")}>
-              The Atlantis Accords
-              <small className={styles.muted}> 7 sections</small>
-            </button>
-            <button type="button" className={`${styles.frame} ${scheme === "vision" ? styles.swatchOn : ""}`} onClick={() => chooseScheme("vision")}>
-              Vision • 2525
-              <small className={styles.muted}> Humanity’s Coordination Framework</small>
-            </button>
-          </aside>
-        </div>
-      )}
-
+        {showFps && <p className={styles.fps}>FPS — measured by the app on this computer</p>}
+        {infoOpen && (
+          <p className={styles.note}>
+            {coral ? "With Coral" : "No Coral"}. This folder uses {file}. Press F to show or hide FPS.
+          </p>
+        )}
+        {error && <p className={styles.alert}>{error}</p>}
+      </section>
+      <nav className={styles.piBot}>
+        <button type="button" className={showScores ? styles.botOn : styles.bot} onClick={() => setShowScores((on) => !on)}>
+          %
+        </button>
+        <button type="button" className={showLabels ? styles.botOn : styles.bot} onClick={() => setShowLabels((on) => !on)}>
+          Labels
+        </button>
+        <label className={styles.pick}>
+          Model
+          <select
+            value={model}
+            onChange={(event) => {
+              closeSensor();
+              setModel(event.target.value);
+            }}
+          >
+            {MODELS.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="button" className={styles.annotate} onClick={() => setAnnotate(true)}>
+          Annotate
+        </button>
+        <button type="button" className={styles.bot} onClick={() => setSavedNote(true)}>
+          Upload Images
+        </button>
+      </nav>
+      <p className={styles.path}>
+        {sensorPath(platform, [current.folder, "Sample_TFLite_model", file])}
+        {showLabels ? ` · ${current.sees}` : ""}
+        {showScores ? " · %" : ""}
+      </p>
       {annotate && (
         <div className={styles.modalWrap}>
-          <div className={styles.modal} role="dialog" aria-label="Capture images">
-            <h2>Capture images for annotation.</h2>
+          <div className={styles.modal} role="dialog" aria-label="Annotate">
+            <h2>Save pictures</h2>
             <label>
-              Custom trained model name
+              Name
               <input value={name} onChange={(event) => setName(event.target.value)} />
             </label>
             <label>
-              Images to capture
-              <input inputMode="numeric" value={count} onChange={(event) => setCount(event.target.value)} />
+              How many
+              <input value={count} onChange={(event) => setCount(event.target.value)} />
             </label>
             <label>
-              Custom trained model description
+              Note
               <input value={note} onChange={(event) => setNote(event.target.value)} />
             </label>
             <div className={styles.actions}>
@@ -400,26 +476,23 @@ export default function SensorFusion() {
           </div>
         </div>
       )}
-
       {savedNote && (
         <div className={styles.modalWrap}>
           <div className={styles.modal} role="dialog" aria-label="Upload">
-            <h2>File saved. Upload to start training.</h2>
+            <h2>Pictures stay on this computer until you upload them.</h2>
             <p className={styles.muted}>
-              {shots.length} pictures are on this device in {sensorPath(platform, [name || "capture"])}. Training starts when a trainer is connected. Nothing was sent yet.
+              {shots.length} pictures in {sensorPath(platform, [name || "capture"])}.
             </p>
             <div className={styles.actions}>
               <button type="button" onClick={() => setSavedNote(false)}>
-                UPLOAD
-              </button>
-              <button type="button" onClick={() => setSavedNote(false)}>
-                CANCEL
+                CLOSE
               </button>
             </div>
           </div>
         </div>
       )}
-    </main>,
-      accent,
-    );
+      <SettingsSheet open={settings} scheme={scheme} customHex={customHex} onClose={() => setSettings(false)} onScheme={chooseScheme} />
+      <Foot accent={accent} />
+    </main>
+  );
 }

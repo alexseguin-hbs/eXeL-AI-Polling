@@ -20,15 +20,32 @@ export const PLATFORMS: { id: PlatformId; label: string; detail: string }[] = [
 ];
 
 export const MODELS = [
-  { id: "demo90", label: "Demo.90", sees: "Everyday things" },
-  { id: "checkid", label: "Check.ID", sees: "Someone we know" },
-  { id: "deer", label: "Deer", sees: "A night yard" },
-  { id: "head", label: "Head", sees: "People" },
-  { id: "eyes", label: "Eyes", sees: "A close look" },
-  { id: "tree", label: "Tree", sees: "Trees and plants" },
-  { id: "pose", label: "Pose", sees: "How a body moves" },
-  { id: "custom", label: "Custom", sees: "What we just saw" },
+  { id: "demo90", label: "Demo.90", folder: "Demo90", sees: "person, bicycle, car" },
+  { id: "deer", label: "Deer", folder: "Model01.Deer", sees: "deer" },
+  { id: "head", label: "Head", folder: "Model02.Head", sees: "head" },
+  { id: "eyes", label: "Eyes", folder: "Model03.Eyes", sees: "eyes" },
+  { id: "tree", label: "Tree", folder: "Model04.Tree", sees: "tree" },
+  { id: "custom01", label: "Custom.01", folder: "Custom.01", sees: "the everyday list" },
+  { id: "custom02", label: "Custom.02", folder: "Custom.02", sees: "the everyday list" },
+  { id: "custom03", label: "Custom.03", folder: "Custom.03", sees: "the everyday list" },
+  { id: "custom04", label: "Custom.04", folder: "Custom.04", sees: "the everyday list" },
+  { id: "checkid", label: "Check ID", folder: "checkid", sees: "Alex, Dara, Nick" },
+  { id: "thermal01", label: "Thermal.01", folder: "thermal01", sees: "dog, person" },
 ];
+
+export const MENU = [
+  { n: "1", id: "fusion-coral", label: "Sensor Fusion, with Coral", coral: true, model: "demo90", go: "work" as const },
+  { n: "2", id: "fusion-cpu", label: "Sensor Fusion, no Coral", coral: false, model: "demo90", go: "work" as const },
+  { n: "3", id: "stop", label: "Stop", coral: false, model: "", go: "stop" as const },
+  { n: "4", id: "labeler", label: "Image labeler", coral: false, model: "demo90", go: "label" as const },
+  { n: "5", id: "check-coral", label: "Check ID, with Coral", coral: true, model: "checkid", go: "work" as const },
+  { n: "6", id: "check-cpu", label: "Check ID, no Coral", coral: false, model: "checkid", go: "work" as const },
+  { n: "7", id: "pose", label: "Pose", coral: false, model: "", go: "pose" as const },
+];
+
+export function modelFile(coral: boolean) {
+  return coral ? "edgetpu.tflite" : "detect.tflite";
+}
 
 export const COLORS: { id: SchemeId; label: string; mark: string; swatch: string; bg: string; card: string; primary: string; line: string }[] = [
   { id: "violet", label: "Violet", mark: "웃", swatch: "#ff00ff", bg: "#140014", card: "#210021", primary: "#ff00ff", line: "#3a143a" },
