@@ -8,7 +8,7 @@
   "stamp": "v.000_r.056",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "08b4449cfa80f66849110e476a4d32a6a8615331022adc89c214a9c50de765a1",
+  "handoffSha256": "af802ea341384c82054cca5da0f01a0b423f06cdcedc5bff5d6daa4b0bc02967",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -389,6 +389,11 @@
     "sha256": "08b4449cfa80f66849110e476a4d32a6a8615331022adc89c214a9c50de765a1",
     "date": "2026-10-02",
     "note": "addendum 127 — remove the chart Net projection line; where is the $/min chart"
+   },
+   {
+    "sha256": "af802ea341384c82054cca5da0f01a0b423f06cdcedc5bff5d6daa4b0bc02967",
+    "date": "2026-10-02",
+    "note": "addendum 128 — $/min divides every transaction by the chart MoT; feedback logged per sub-site"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

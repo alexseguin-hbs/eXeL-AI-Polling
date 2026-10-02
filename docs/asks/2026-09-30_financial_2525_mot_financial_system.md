@@ -839,6 +839,12 @@
 > - - Net • Upside / Savings +1,000.00 · 2026.11.14
 > also where is $/min chart?!?
 
+> (addendum 128, verbatim — 2026-10-02, r.056 in Verify Live)
+> remember $ /min takes all transaction records and divides by MoT selected (default 30D)
+> ensure feedback when operation Financial-2525 gors and gets logged for Financial-2525.
+>
+> same holds true with eXeL Polling and other sub sites
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
