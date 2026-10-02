@@ -736,6 +736,15 @@
 > +$320.00 Upside · −$250.66 Auto / Renters / Home — `docs/asks/2026-10-02_financial_2525_fb106_record_three.jpg`)
 > Where are my inputted transactions; no changes should delete entries
 
+> (addendum 107, verbatim — 2026-10-02, a 1:49 PM screenshot of r.043 (13:45 CST build): Income 3,924.49 · Fixed 1,671.37 · Variable
+> 1,140.00 · Net 1,113.12 — `docs/asks/2026-10-02_financial_2525_fb107_budget_1349.png`)
+> budget shoulda been closer to this; but once reinstated I’ll edit to correct
+
+> (addendum 108, verbatim — 2026-10-02, a 7:03 screenshot signed in (Available $0.00, the example sheet at the 30-day month: Rent
+> 636.36 · Car Payment 1,636.36 … Net −181.82; the address bar shows the private-browsing mask) beside the 1:49 screenshot (Fixed
+> 1,671.37 · Variable 1,140.00 · Net 1,113.12) — `docs/asks/2026-10-02_financial_2525_fb108_signedin_0703.png`)
+> issues was log in; edit button appears there; but yo ur amounts were updated.  FIX IT
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
