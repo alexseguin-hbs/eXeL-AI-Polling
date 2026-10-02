@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.068",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "38afef8945c4709a9b2d047e45c119b5445c969111d5378892084fcb84741401",
+  "handoffSha256": "643d5fa6c0bda4ef5151882dadb0e03980ffcb188e7f109bb113f1c3343538f1",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -531,6 +531,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "38afef8945c4709a9b2d047e45c119b5445c969111d5378892084fcb84741401",
     "date": "2026-10-02",
     "note": "addendum 153 answers (At purchase kept; Pay card button + the picker on every Debit withdrawal)"
+   },
+   {
+    "sha256": "643d5fa6c0bda4ef5151882dadb0e03980ffcb188e7f109bb113f1c3343538f1",
+    "date": "2026-10-02",
+    "note": "addendum 154 (the card shows Balance and Available; the Limit goes in the card's settings)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

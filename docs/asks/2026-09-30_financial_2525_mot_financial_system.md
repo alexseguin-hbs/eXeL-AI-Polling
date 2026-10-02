@@ -1022,6 +1022,10 @@
 > the form set to Debit · Debt service › Credit Cards · that card, AND the "Pays card" picker on every Debit withdrawal whatever
 > its field (you pay a card from checking whatever you call the line).
 
+> (addendum 154, verbatim — 2026-10-02 5:32, with a phone photo of the r.067 Credit Cards panel: Limit · Balance · Available credit
+> on one row — `docs/asks/2026-10-02_financial_2525_fb154_card_limit_setting.png`)
+> show balance and available , place limit insetting for credit card
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
