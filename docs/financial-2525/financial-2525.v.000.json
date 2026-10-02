@@ -8,7 +8,7 @@
   "stamp": "v.000_r.073",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "8153bab3b91751ab4c26394cad1cb72989ddf515b660ee4449157bf9564c79a1",
+  "handoffSha256": "b9388c8bf2b4b034af8e1462032ffa3fe8c7a79cde432b410b94dbc214d54b8f",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -584,6 +584,11 @@
     "sha256": "8153bab3b91751ab4c26394cad1cb72989ddf515b660ee4449157bf9564c79a1",
     "date": "2026-10-02",
     "note": "addendum 171 (\"if the expense circle overlaps (left or right edge overlaps with another expense, merge). 2700.66 and 155.44 should merge (sum up) as one red dot\") — folded into r.073 before its push"
+   },
+   {
+    "sha256": "b9388c8bf2b4b034af8e1462032ffa3fe8c7a79cde432b410b94dbc214d54b8f",
+    "date": "2026-10-02",
+    "note": "addenda 172 (\"change spending to Expenses\" — already built in r.073, his phone on r.072) and 173 (\"have red dots on red expense line centered on it; ensure no text is on line but above or below line\" — r.074)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

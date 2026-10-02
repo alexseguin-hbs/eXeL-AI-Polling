@@ -1118,6 +1118,22 @@
 > near 10.01 labelled "−$2,700.66" (left) and "−$155.44" (right), touching — `docs/asks/2026-10-02_financial_2525_fb171_dots_merge.png`)
 > if the expense circle overlaps (left or right edge overlaps with another expense, merge). 2700.66 and 155.44 should merge (sum up) as one red dot since they are overlapping
 
+> (addendum 172, verbatim — 2026-10-02, his phone still on r.072 (live); "Spending → Expenses" is already built in r.073 (addendum 168), not
+> yet live — the line breaks are his)
+> change spending to Expenses to
+>
+> — Income
+> — Spending
+> — Net
+> MoT
+>
+> financial chart
+
+> (addendum 173, verbatim — 2026-10-02, with a phone screenshot taken at 11:20 of the live chart (r.072) at 1M in $/day: the red expense
+> dots drawn on the green income line's level, not on the red line, and "−$120.00" / "−$14.69" printed over the lines —
+> `docs/asks/2026-10-02_financial_2525_fb173_dots_on_expense_line.png`)
+> have red dots on red expense line centered on it; ensure no text is on line but above or below line
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
