@@ -163,7 +163,7 @@ function assertSource() {
     if (r.kind === "release" && !/^[0-9a-f]{7,40}$/.test(r.commit ?? "")) fail(`release ${r.revision} must cite a real commit`);
   }
   if (d.revisions[d.revisions.length - 1].revision !== d.project.revision) fail(`project.revision ${d.project.revision} is not the last entry in revisions[]`);
-  for (const x of d.decisions) if (!/^FD-\d{2}$/.test(x.id) || !["DECLARED", "OPERATOR", "SOURCED"].includes(x.status) || !x.basis) fail(`decision ${x.id} malformed`);
+  for (const x of d.decisions) if (!/^FD-\d{2,3}$/.test(x.id) || !["DECLARED", "OPERATOR", "SOURCED"].includes(x.status) || !x.basis) fail(`decision ${x.id} malformed`);
   // FIN-09: a review round that is no longer PENDING must be on disk — 12 lens sections, the synthesis, and the bytes
   // hashing to reviews[].sha256 (a round is appended, never edited; the hash is what the operator can check).
   for (const r of d.reviews ?? []) {

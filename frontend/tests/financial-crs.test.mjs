@@ -64,7 +64,7 @@ ok(d.accrual.holdHours === 3 && d.calendar.quarterDays === 91 && d.calendar.grid
 ok(d.calendar.personalFrames.join() === "33,66,99" && d.mot.ltu.M === 33 && d.mot.ltu.Q === 99, "personal frames 33/66/99; M 33 · Q 99");
 ok(d.tokenization.yugCeiling === 9999 && /YUG_CEILING/.test(fs.readFileSync(path.join(process.cwd(), "lib/pod-yug.ts"), "utf8")), "the 9,999 웃 cap is the pod's YUG_CEILING, reused (operator addendum 4)");
 ok(d.business.status.startsWith("TEST LATER") && d.project.tenant.startsWith("personal"), "personal first; business declared, tested after feedback (operator addendum 5)");
-ok(Array.isArray(d.decisions) && d.decisions.length >= 9 && d.decisions.every((x) => /^FD-\d{2}$/.test(x.id) && x.basis), "≥ 9 decisions on the record, each with a basis");
+ok(Array.isArray(d.decisions) && d.decisions.length >= 9 && d.decisions.every((x) => /^FD-\d{2,3}$/.test(x.id) && x.basis), "≥ 9 decisions on the record, each with a basis");
 ok(Array.isArray(d.reviews) && d.reviews.length >= 1 && d.reviews[0].lenses === 12 && d.reviews[0].record, "the twelve-lens review round is named on the record (FIN-09)");
 // FIN-09, the second half: the round is ON DISK, whole, and hashes to the ledger — the gap the lenses themselves named.
 const rec = path.join(ROOT, d.reviews[0].record);
@@ -92,6 +92,11 @@ for (const [old, next] of [["FIN-01.01", "FIN-01.02"], ["FIN-02", "FIN-02.01"], 
 }
 ok(d.crs.find((x) => x.id === "FIN-13.02")?.verify === "tests/planet-ltu.test.mjs", "FIN-13.02 (the LTU table) is gated by planet-ltu");
 ok(d.crs.find((x) => x.id === "FIN-06.02")?.status === "implemented" && d.crs.find((x) => x.id === "FIN-06.05")?.status === "implemented" && d.crs.find((x) => x.id === "FIN-03.03")?.status === "implemented" && d.crs.find((x) => x.id === "FIN-06.06")?.status === "draft" && d.crs.find((x) => x.id === "FIN-13.03")?.status === "implemented", "r.008–r.012: FIN-06.02 (icons) additive; FIN-06.05 (the A–M ladder) and FIN-03.03 (one form, the length dropdown) implemented; FIN-06.06 (the Balance view) draft; FIN-13.03 (a planet's positions on its own revolution) implemented");
+// r.073 (FD-100): the record ran past FD-99 — decision ids are numbers, unique, and only ever increase (an id is never reused or re-ordered)
+// (one historical swap stays as it was appended — FD-28 was recorded before FD-27 in r.013/r.014; the record is never re-ordered)
+{ const n = d.decisions.map((x) => Number(x.id.slice(3))), swap = n.indexOf(27);
+  const inOrder = n.every((v, i) => i === 0 || v > n[i - 1] || (i === swap && n[i - 1] === 28)) && n.slice(swap + 1).every((v, i, a) => v > Math.max(...n.slice(0, swap + 1 + i)));
+  ok(inOrder && new Set(n).size === n.length && Math.max(...n) === n[n.length - 1], `decision ids unique and increasing, the newest the highest (FD-${String(n[0]).padStart(2, "0")} … FD-${n[n.length - 1]}, ${n.length} decisions)`); }
 for (const id of ["FD-15", "FD-16", "FD-17", "FD-18", "FD-21", "FD-22", "FD-23", "FD-24", "FD-25", "FD-26", "FD-27", "FD-28"]) ok(d.decisions.some((x) => x.id === id && x.basis.length > 10), `${id} is on the record with a basis`);
 ok(d.reviews[1] && d.reviews[1].round === 2 && d.reviews[1].revision === "0.007" && /^PENDING/.test(d.reviews[1].status), "round 2 of the twelve lenses is named on r.007 (PENDING until it returns)");
 

@@ -637,7 +637,10 @@ export function FinancialCommandUX1() {
         </div>
         {trinityBig && (
           <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} onClick={() => setTrinityBig(false)} className="mx-auto block rounded-full">
-            <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} fontSize={16} centerLabels />
+            {/* r.073 (addendum 168 "the trinity logo should be method from Main and already use right text sizes"): drawn exactly the way
+                Main (the home page) draws it — the same call, Main's size, the component's own text size and offsets (FD-89's
+                Financial-only font and centring retired); the ring follows the selected colour like every accent here */}
+            <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} color={hue.bright} size={240} />
           </button>
         )}
         <h1 className="text-xl font-semibold leading-tight">FINANCIAL · 2525</h1>

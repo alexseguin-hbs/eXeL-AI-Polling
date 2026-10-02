@@ -3053,7 +3053,7 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.edit_tx", englishDefault: "Edit transaction", context: "Financial-2525: the pencil on a recorded transaction, and the title of its editor (the change is appended; the original stays)", cubeId: 0 },
   { key: "fin.edit_cancel", englishDefault: "Cancel", context: "Financial-2525: closes the edit of a recorded transaction without saving", cubeId: 0 },
   { key: "fin.edited", englishDefault: "Edited — the original stays on the record", context: "Financial-2525: tooltip on a recorded transaction that was corrected; followed by the correction entry numbers", cubeId: 0 },
-  { key: "fin.spending", englishDefault: "Spending", context: "Financial-2525: the $/min chart line and readout for money going out per minute (withdrawals running out over their length)", cubeId: 0 },
+  { key: "fin.spending", englishDefault: "Expenses", context: "Financial-2525: the red $/min chart line and readout for money going out per minute (withdrawals running out over their length) — the operator's word, addendum 168 (was 'Spending')", cubeId: 0 },
   { key: "fin.net_by", englishDefault: "Net by", context: "Financial-2525: $/min chart readout, followed by a date and an amount: the net money accumulated by the end of the chart span", cubeId: 0 },
   { key: "fin.net_up", englishDefault: "Net • Upside / Savings", context: "Financial-2525: the budget total line label when income minus expenses is zero or positive (shown in green)", cubeId: 0 },
   { key: "fin.net_down", englishDefault: "Net • Downside / Risk", context: "Financial-2525: the budget total line label when income minus expenses is negative (shown in red)", cubeId: 0 },
