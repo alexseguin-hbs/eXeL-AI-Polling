@@ -42,12 +42,12 @@ import { positionInYear } from "@/lib/financial-2525/calendar";
 import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
 import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
 import { balanceAt, series, validateRecord, depositView, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
-import { type BudgetCategory } from "@/lib/financial-2525/budget";
+import { CATEGORY_FIELD, type BudgetCategory } from "@/lib/financial-2525/budget";
 import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, planKey, DEVICE_OWNER, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
 import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } from "@/lib/financial-2525/currency";   // r.049: the currency label
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, readStored, recordKey, unionRecords, sameChain, freshId, replay, emptyRecord, correctTx, type FinRecord, type TxEdit } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry; r.073: the union
-import { parseAmountCents, amountProblem, parseDaysText, parsePositive, lengthFits } from "@/lib/financial-2525/typed";   // r.073 (round 1): one reader for what a person types
+import { parseAmountCents, amountProblem, parsePositive, lengthFits } from "@/lib/financial-2525/typed";   // r.073 (round 1): one reader for what a person types
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
 import { fitFigures, fitGrid, figReserve, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
 import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, newCard, uniqueCardId, applyCardSettings, looksLikeCardNumber, cardBalanceAt, cardLevel, cardSeries, cardMoves, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
@@ -476,36 +476,55 @@ export function FinancialCommandUX1() {
   // and every figure read the corrected values. Every edit — a deposit's too (r.071 AsM review: a deposit moved later or made smaller
   // could leave a spend already on the record with nothing under it) — passes the same refusal as a new withdrawal.
   const [editId, setEditId] = useState(null as string | null);
-  const [ed, setEd] = useState({ amt: "", memo: "", when: "", days: "", paidFrom: DEBIT, paysCard: "" });
+  // r.073 (addendum 164 "all fields in edit of Transaction record should be possible to edit"): the pencil carries every field the form
+  // has — the type, the amount, the day and time, the section and field, the length (its presets, Other with its unit), the memo, and
+  // what a withdrawal was paid from
+  const ED0 = { kind: "deposit" as TxKind, amt: "", memo: "", when: "", sec: "A" as FlowSectionId, field: "A.income_wages", rec: "once" as Recurrence, otherN: "", otherUnit: "days" as LengthUnit, paidFrom: DEBIT, paysCard: "" };
+  const [ed, setEd] = useState(ED0);
   // r.070 (addendum 157): a row whose card was removed keeps that card as its payer, shown as a dash — never silently another card
   const payerGone = ed.paidFrom !== DEBIT && !cards.some((c) => c.id === ed.paidFrom);
   const [edRefusal, setEdRefusal] = useState(null as string | null);
   // r.073 (round 1): the editor opens SHOWING the length the entry is counted at (a Monthly entry reads 30 days by the month law), comes
   // into view with the focus on its Amount (Athena: below a long record it opened off-screen and nothing seemed to happen), and remembers
   // what it opened with, so only what the person changed is changed
-  const [ed0, setEd0] = useState({ amt: "", memo: "", when: "", days: "", paidFrom: DEBIT, paysCard: "" });
+  const [ed0, setEd0] = useState(ED0);
   const scrollEdit = useRef(false);
-  const openEdit = (x: FinTx) => { const days = withMonthLaw(x).motDays; const v = { amt: (x.amountCents / 100).toFixed(2), memo: x.memo ?? "", when: fmtStampCST(x.atMs), days: days ? String(Math.round(days * 1000) / 1000) : "", paidFrom: x.paidFrom ?? DEBIT, paysCard: x.paysCard ?? "" }; setEditId(x.id); setEdRefusal(null); setEd(v); setEd0(v); scrollEdit.current = true; };
+  /** The editor's starting values, read from the entry as it is counted: its preset (a Monthly entry reads Monthly), else Other with the
+   *  days it covers (an entry from before the presets), else One time; its field (an r.006–r.011 entry's category mapped to its field). */
+  const editValues = (x: FinTx): typeof ED0 => {
+    const r = x.recurrence as Recurrence | undefined, d = x.motDays ?? 0;
+    const len = r && r !== "other" && RECURRENCES.includes(r) ? { rec: r, otherN: "" } : d > 0 ? { rec: "other" as Recurrence, otherN: String(Math.round(d * 1000) / 1000) } : { rec: "once" as Recurrence, otherN: "" };
+    const field = x.field && fieldOf(x.field) ? x.field : x.category ? CATEGORY_FIELD[x.category] : x.kind === "deposit" ? "A.income_wages" : "B.rent_mortgage";
+    return { kind: x.kind, amt: (x.amountCents / 100).toFixed(2), memo: x.memo ?? "", when: fmtStampCST(x.atMs), sec: (fieldOf(field)?.section ?? "A") as FlowSectionId, field, ...len, otherUnit: "days", paidFrom: x.paidFrom ?? DEBIT, paysCard: x.paysCard ?? "" };
+  };
+  const openEdit = (x: FinTx) => { const v = editValues(x); setEditId(x.id); setEdRefusal(null); setEd(v); setEd0(v); scrollEdit.current = true; };
   useEffect(() => { if (!editId || !scrollEdit.current) return; scrollEdit.current = false; const el = document.querySelector("[data-fin-edit-panel]"); el?.scrollIntoView({ behavior: "smooth", block: "center" }); (el?.querySelector("[data-fin-edit-amount]") as HTMLElement | null)?.focus({ preventScroll: true }); }, [editId]);
   const edRefuse = (why: string) => setEdRefusal(`${t("fin.refused")} · ${why}`);
   const saveEdit = () => {
     const cur = editId ? replay(recordRef.current).find((x) => x.id === editId) : undefined; if (!cur) return;
-    const cents = parseAmountCents(ed.amt, marks), instant = parseStampCST(ed.when.trim()), days = parseDaysText(ed.days);
+    const cents = parseAmountCents(ed.amt, marks), instant = parseStampCST(ed.when.trim());
     if (cents === null) return edRefuse(amountWhy(ed.amt));
     if (instant === null) return edRefuse(stampWhy(ed.when));
-    if (days === null) return edRefuse(t("fin.reason_length_days"));   // r.073 (Aset): "abc" or "-1" is not "too long"
+    const n = ed.rec === "other" ? parsePositive(ed.otherN) : 0;
+    if (n === null) return edRefuse(t("fin.reason_length_other"));   // never a silent one-time
+    const days = lengthDays(ed.rec, n, ed.otherUnit);
     if (!lengthFits(instant, days)) return edRefuse(t("fin.reason_length"));
-    // ONLY WHAT THE PERSON CHANGED IS CHANGED (r.073, round 1): a field goes into the correction only when its text was edited and its
-    // value differs — an entry recorded at "now" keeps its exact instant (the stamp shows whole seconds), a retyped "3,604.49" is no edit.
-    // A CHANGED length takes the entry off its preset (Enlil): a Monthly entry read 30 days by the month law whatever its stored length
-    // said, so 30 → 7 used to append a correction with no effect; an untouched length keeps the preset exactly.
-    const typed = (k: keyof typeof ed) => String(ed[k]).trim() !== String(ed0[k]).trim();
+    // ONLY WHAT THE PERSON CHANGED IS CHANGED (r.073, round 1): a field goes into the correction only when it was changed in the editor and
+    // its value differs — an entry recorded at "now" keeps its exact instant (the stamp shows whole seconds), a retyped "3,604.49" is no
+    // edit. A changed LENGTH carries its preset (Enlil: a Monthly entry read 30 days by the month law whatever its stored length said, so
+    // 30 → 7 used to append a correction with no effect); an untouched one keeps the entry's own.
+    const moved = (k: keyof typeof ED0) => String(ed[k]).trim() !== String(ed0[k]).trim();
+    const lengthMoved = moved("rec") || (ed.rec === "other" && (moved("otherN") || moved("otherUnit")));
+    const out = ed.kind === "withdrawal";
     const edit: TxEdit = {
-      ...(typed("amt") && cents !== cur.amountCents ? { amountCents: cents } : {}),
-      ...(typed("memo") && (ed.memo.trim() || undefined) !== cur.memo ? { memo: ed.memo.trim() || undefined } : {}),
-      ...(typed("when") && instant !== cur.atMs ? { atMs: instant } : {}),
-      ...(typed("days") && days !== (withMonthLaw(cur).motDays ?? 0) ? { motDays: days, recurrence: days > 0 ? "other" : "once" } : {}),
-      ...(cur.kind === "withdrawal" && (typed("paidFrom") || typed("paysCard")) ? { paidFrom: ed.paidFrom === DEBIT ? undefined : ed.paidFrom, paysCard: ed.paidFrom === DEBIT && ed.paysCard ? ed.paysCard : undefined } : {}),
+      ...(moved("kind") && ed.kind !== cur.kind ? { kind: ed.kind } : {}),
+      ...(moved("amt") && cents !== cur.amountCents ? { amountCents: cents } : {}),
+      ...(moved("memo") && (ed.memo.trim() || undefined) !== cur.memo ? { memo: ed.memo.trim() || undefined } : {}),
+      ...(moved("when") && instant !== cur.atMs ? { atMs: instant } : {}),
+      ...(moved("field") && ed.field !== cur.field ? { field: ed.field } : {}),
+      ...(lengthMoved && (days !== (withMonthLaw(cur).motDays ?? 0) || ed.rec !== cur.recurrence) ? { motDays: days, recurrence: ed.rec } : {}),
+      ...(out && (moved("paidFrom") || moved("paysCard")) ? { paidFrom: ed.paidFrom === DEBIT ? undefined : ed.paidFrom, paysCard: ed.paidFrom === DEBIT && ed.paysCard ? ed.paysCard : undefined } : {}),
+      ...(!out && (cur.paidFrom || cur.paysCard) ? { paidFrom: undefined, paysCard: undefined } : {}),   // a deposit is not paid from a card
     };
     // r.073 (Christo): Done with nothing changed closes the editor and appends nothing
     if (Object.keys(edit).length === 0) { setEditId(null); return; }
@@ -849,14 +868,23 @@ export function FinancialCommandUX1() {
           {/* r.062: the editor opens UNDER the table, full width (inside the sideways-scrolling table it sat off-screen on a phone) */}
           {owner && editId && (() => { const e = record.entries.find((q) => q.tx.id === editId); return e ? (
             <div data-fin-edit-panel={e.rev} className="mt-2 rounded-md border border-border p-2 text-xs">
-              <p className="mb-2 font-mono text-muted-foreground">{t("fin.edit_tx")} · #{e.rev} · {e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}</p>
+              <p className="mb-2 font-mono text-muted-foreground">{t("fin.edit_tx")} · #{e.rev}</p>
+              {/* r.073 (addendum 164 "all fields in edit of Transaction record should be possible to edit"): every field the form has */}
               <div className="grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap">
+                          <label className="col-span-2 text-[10px] uppercase">{t("fin.type")}
+                            <select data-fin-edit-type className={PICK} value={ed.kind} onChange={(v) => setEd({ ...ed, kind: v.target.value as TxKind })}>
+                              <option value="deposit">{t("fin.type_deposit")}</option>
+                              <option value="withdrawal">{t("fin.type_withdrawal")}</option>
+                            </select>
+                          </label>
                           <label className="text-[10px] uppercase">{t("fin.amount_col")}, {curMark}<input data-fin-edit-amount className={INPUT} inputMode="decimal" value={ed.amt} onChange={(v) => setEd({ ...ed, amt: v.target.value })} /></label>
                           <label className="text-[10px] uppercase">{t("fin.memo")}<input data-fin-edit-memo className={INPUT} value={ed.memo} onChange={(v) => setEd({ ...ed, memo: v.target.value })} /></label>
                           <label className="col-span-2 text-[10px] uppercase">{t("fin.when")}<input data-fin-edit-when className={INPUT} value={ed.when} onChange={(v) => setEd({ ...ed, when: v.target.value })} /></label>
-                          <label className="text-[10px] uppercase">{t("fin.length")}<input data-fin-edit-days className={INPUT} inputMode="decimal" value={ed.days} onChange={(v) => setEd({ ...ed, days: v.target.value })} /></label>
-                          {e.tx.kind === "withdrawal" && !!cards.length && <label className="text-[10px] uppercase">{t("fin.paid_from")}<select data-fin-edit-paid-from className={PICK} value={ed.paidFrom} onChange={(v) => setEd({ ...ed, paidFrom: v.target.value })}><option value={DEBIT}>{t("fin.debit_account")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}{payerGone && <option value={ed.paidFrom}>—</option>}</select></label>}
-                          {e.tx.kind === "withdrawal" && !!cards.length && ed.paidFrom === DEBIT && <label className="text-[10px] uppercase">{t("fin.card_paid")}<select data-fin-edit-pays-card className={PICK} value={ed.paysCard} onChange={(v) => setEd({ ...ed, paysCard: v.target.value })}><option value="">{t("fin.card_none")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
+                          <div data-fin-edit-pickers className="col-span-2 grid gap-2 sm:basis-full sm:grid-cols-3">
+                            <LadderPicker section={ed.sec} field={ed.field} rec={ed.rec} onSection={(sec) => setEd((d) => ({ ...d, sec }))} onField={(field) => setEd((d) => ({ ...d, field }))} onRec={(rec) => setEd((d) => ({ ...d, rec }))} otherN={ed.otherN} onOtherN={(otherN) => setEd((d) => ({ ...d, otherN }))} otherUnit={ed.otherUnit} onOtherUnit={(otherUnit) => setEd((d) => ({ ...d, otherUnit }))} t={t} hook="edit" />
+                          </div>
+                          {ed.kind === "withdrawal" && !!cards.length && <label className="text-[10px] uppercase">{t("fin.paid_from")}<select data-fin-edit-paid-from className={PICK} value={ed.paidFrom} onChange={(v) => setEd({ ...ed, paidFrom: v.target.value })}><option value={DEBIT}>{t("fin.debit_account")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}{payerGone && <option value={ed.paidFrom}>—</option>}</select></label>}
+                          {ed.kind === "withdrawal" && !!cards.length && ed.paidFrom === DEBIT && <label className="text-[10px] uppercase">{t("fin.card_paid")}<select data-fin-edit-pays-card className={PICK} value={ed.paysCard} onChange={(v) => setEd({ ...ed, paysCard: v.target.value })}><option value="">{t("fin.card_none")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
                           <button type="button" data-fin-edit-save onClick={saveEdit} className="h-9 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground">{t("fin.done")}</button>
                           <button type="button" data-fin-edit-cancel onClick={() => setEditId(null)} className="h-9 rounded-md border border-border px-3 text-xs">{t("fin.edit_cancel")}</button>
                         </div>

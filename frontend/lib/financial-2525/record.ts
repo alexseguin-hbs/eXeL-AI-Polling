@@ -45,15 +45,18 @@ export function replay(rec: FinRecord, rev?: number): FinTx[] {
   // two always agree; after two copies are united (unionRecords) the newest edit still wins, whichever copy it came from
   const latest = new Map<string, FinEntry>();
   for (const e of upTo) if (e.tx.corrects) { const p = latest.get(e.tx.corrects); if (!p || e.at >= p.at) latest.set(e.tx.corrects, e); }
-  return upTo.filter((e) => !e.tx.corrects).map((e) => { const c = latest.get(e.tx.id)?.tx; return c ? { ...c, id: e.tx.id, kind: e.tx.kind, corrects: undefined } : e.tx; });
+  // r.073 (addendum 164 "all fields in edit of Transaction record should be possible to edit"): the type is one of them — the correction's
+  // kind wins (every earlier correction carries the original's kind, so a record written before reads exactly as it did)
+  return upTo.filter((e) => !e.tx.corrects).map((e) => { const c = latest.get(e.tx.id)?.tx; return c ? { ...c, id: e.tx.id, kind: c.kind ?? e.tx.kind, corrects: undefined } : e.tx; });
 }
 /** THE EDIT (r.062, addendum 133): what changed is appended as a correction — the original entry, its hash and every later link stay
- *  exactly as they were (NO CHANGE EVER DELETES AN ENTRY). The type (deposit / withdrawal) is not editable. Pure. */
-export type TxEdit = Partial<Pick<FinTx, "amountCents" | "memo" | "atMs" | "motDays" | "field" | "recurrence" | "paidFrom" | "paysCard">>;
+ *  exactly as they were (NO CHANGE EVER DELETES AN ENTRY). r.073 (addendum 164): every field is editable, the type (deposit /
+ *  withdrawal) included — supersedes FD-78's "the type cannot change". Pure. */
+export type TxEdit = Partial<Pick<FinTx, "kind" | "amountCents" | "memo" | "atMs" | "motDays" | "field" | "recurrence" | "paidFrom" | "paysCard">>;
 export function correctTx(rec: FinRecord, id: string, edit: TxEdit, at: number): FinRecord {
   const current = replay(rec).find((x) => x.id === id);
   if (!current) return rec;
-  const tx: FinTx = { ...current, ...edit, id: nextCorrectionId(rec, id), kind: current.kind, corrects: id };
+  const tx: FinTx = { ...current, ...edit, id: nextCorrectionId(rec, id), kind: edit.kind ?? current.kind, corrects: id };
   return append(rec, tx, at);
 }
 /** The next free correction id for `id` — `c-<id>-<n>`, n one past the corrections already made, skipping any n a united copy
