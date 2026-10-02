@@ -8,7 +8,7 @@
   "stamp": "v.000_r.073",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "b9388c8bf2b4b034af8e1462032ffa3fe8c7a79cde432b410b94dbc214d54b8f",
+  "handoffSha256": "ab1739b7c8ea23d7525ebafb406a8a006afab909c8db3b90a6819f82d27cb34e",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -589,6 +589,11 @@
     "sha256": "b9388c8bf2b4b034af8e1462032ffa3fe8c7a79cde432b410b94dbc214d54b8f",
     "date": "2026-10-02",
     "note": "addenda 172 (\"change spending to Expenses\" — already built in r.073, his phone on r.072) and 173 (\"have red dots on red expense line centered on it; ensure no text is on line but above or below line\" — r.074)"
+   },
+   {
+    "sha256": "ab1739b7c8ea23d7525ebafb406a8a006afab909c8db3b90a6819f82d27cb34e",
+    "date": "2026-10-02",
+    "note": "addendum 174 (\"mo more inlut till you tell me all backlog items are done with AsM 111 word report per AsM, Spiral Test, and SSSES TEST / display AsM 11 word summary each / tell me when you complete push and commit all backlog items\")"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

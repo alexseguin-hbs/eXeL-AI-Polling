@@ -1134,6 +1134,11 @@
 > `docs/asks/2026-10-02_financial_2525_fb173_dots_on_expense_line.png`)
 > have red dots on red expense line centered on it; ensure no text is on line but above or below line
 
+> (addendum 174, verbatim — 2026-10-02, after r.073 was built and in its second review; the line breaks are his)
+> mo more inlut till you tell me all backlog items are done with AsM 111 word report per AsM, Spiral Test, and SSSES TEST
+> display AsM 11 word summary each
+> tell me when you complete push and commit all backlog items
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
