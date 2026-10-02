@@ -1139,6 +1139,10 @@
 > display AsM 11 word summary each
 > tell me when you complete push and commit all backlog items
 
+> (addendum 175, verbatim — 2026-10-02, with a phone screenshot taken at 12:35 of the live chart (r.072) at 91D in $/day: one merged
+> "−$2,856.10" dot near 10.02, the tap line (dashed grey) at 2026.11.23 10.18 — `docs/asks/2026-10-02_financial_2525_fb175_span_line.png`)
+> also use solid grey vertical line show 30D when selected or 91D when selected
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
