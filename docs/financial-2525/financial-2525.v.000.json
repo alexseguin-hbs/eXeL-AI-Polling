@@ -4,8 +4,8 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.068",
-  "stamp": "v.000_r.068",
+  "revision": "0.069",
+  "stamp": "v.000_r.069",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "643d5fa6c0bda4ef5151882dadb0e03980ffcb188e7f109bb113f1c3343538f1",
@@ -1069,6 +1069,14 @@
    "why": "Addendum 153 — the goal is paying off cards with low stress: a new card transaction raises the card balance (r.067, kept); a payment to a card lowers the card balance and Available (Available only for the part no recorded purchase already counted — his answer \"At purchase (r.067 now)\" keeps count-once). The payment was hard to find (its picker appeared only under Debt service › Credit Cards), so per his \"what reflects reality best\": a Pay card button on each card opens the one form set to a Debit-Account payment in Debt service › Credit Cards naming that card (amount and time his), and the Pays card picker shows on EVERY Debit withdrawal and is recorded whatever the field, in the form and in the edit row. One key staged English-only (fin.card_pay).",
    "commit": "929521e",
    "shipped": "98d7dd1"
+  },
+  {
+   "revision": "0.069",
+   "date": "2026-10-02",
+   "kind": "decision",
+   "why": "Addendum 154 (\"show balance and available, place limit in setting for credit card\", with his photo of the r.067 panel): the card's face shows Balance on the left and Available credit on the right (two columns, so neither label wraps); the Limit leaves the face and is set only in the card's gear, where it was already the first field. The level line (OK · % · amber · red), the chart, the warnings and every number are unchanged; no new word.",
+   "commit": "7da1df0",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2646,6 +2654,12 @@
    "decision": "A card payment is entered where a person pays a card: a Pay card button on each card (Debit Account · Debt service › Credit Cards · that card) and the Pays card picker on every Debit withdrawal, whatever its field. A card purchase still lowers Available at purchase; the payment lowers the card balance, and Available only for balance no recorded purchase counted.",
    "status": "OPERATOR",
    "basis": "addendum 153 + his answers (At purchase (r.067 now) · \"what reflects reality best\")"
+  },
+  {
+   "id": "FD-84",
+   "decision": "A card's face shows Balance and Available credit; its Limit is set in the card's settings (the gear), not shown on the face.",
+   "status": "OPERATOR",
+   "basis": "addendum 154 + his photo"
   }
  ],
  "reviews": [

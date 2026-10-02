@@ -963,9 +963,10 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
       <div role="group" aria-label={t("fin.cards_title")} data-fin-card-toggle className="mt-2 flex w-full overflow-hidden rounded-md border border-border text-xs">
         {cards.map((c) => <button key={c.id} type="button" data-fin-card={c.id} aria-pressed={c.id === card.id} onClick={() => { setPick(c.id); setGear(false); }} className={`min-h-[32px] flex-1 border-l border-border first:border-l-0 ${c.id === card.id ? "ring-1 ring-inset ring-primary text-primary" : "text-muted-foreground"}`}>{c.name}</button>)}
       </div>
-      <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-        <div><div className="text-muted-foreground">{t("fin.card_limit")}</div><div data-fin-card-limit className="font-mono text-sm tabular-nums text-foreground">{usd(card.limitCents)}</div></div>
-        <div className="text-center"><div className="text-muted-foreground">{t("fin.card_balance")}</div><div data-fin-card-balance className={`font-mono text-sm tabular-nums ${LV}`}>{usd(bal)}</div></div>
+      {/* r.069 (addendum 154 "show balance and available, place limit in setting for credit card"): Balance on the left, Available
+          credit on the right; the Limit lives in the gear's settings, its first field */}
+      <div data-fin-card-figures className="mt-3 grid grid-cols-2 gap-2 text-xs">
+        <div><div className="text-muted-foreground">{t("fin.card_balance")}</div><div data-fin-card-balance className={`font-mono text-sm tabular-nums ${LV}`}>{usd(bal)}</div></div>
         <div className="text-right"><div className="text-muted-foreground">{t("fin.card_available")}</div><div data-fin-card-available className="font-mono text-sm tabular-nums text-foreground">{usd(card.limitCents - bal)}</div></div>
       </div>
       <p data-fin-card-level={lv} className={`mt-2 text-xs ${LV}`}>{t(`fin.card_level_${lv}`)} · {pct(bal)} · {t("fin.card_amber_at")} {usd(card.amberCents)} ({pct(card.amberCents)}) · {t("fin.card_red_at")} {usd(card.redCents)} ({pct(card.redCents)})</p>
