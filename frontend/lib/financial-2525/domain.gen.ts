@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.061",
-  "stamp": "v.000_r.061",
+  "revision": "0.062",
+  "stamp": "v.000_r.062",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "c330f59fed85d82b07a938a5a017861b2b5c1c0c1b4b854d06b80b35f456d24b",
@@ -947,6 +947,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "Found on the r.060 capture: with no negative figure in view, the value scale still printed −$0.02 … −$0.06 down into the band where the tilted dates sit (the band was carved out of the plot). The dates now have their own strip under the plot — the engine's time-axis strip, sized for the Settings angle, its own labels off — and the chart engine draws the tilted dates in it (a time-axis primitive), so the value scale ends at the plot and never runs into them. Nothing else moved.",
    "commit": "ac4ba7b",
    "shipped": "ab00c1b"
+  },
+  {
+   "revision": "0.062",
+   "date": "2026-10-02",
+   "kind": "decision",
+   "why": "Addendum 133 (with his photo of the Transaction Record): \"add edit feature for transaction record\". Every row of the record now has a pencil: it opens the entry's amount, memo, day and time and length (MoT); Save APPENDS a correction entry that names the transaction it corrects — the original entry, its hash and every link after it stay on the record exactly as they were (no change ever deletes an entry), and the table, the balance and the charts read the corrected values in the original's place. A corrected row carries a small ✎ with the correction's number (its tooltip lists every correction). The type (deposit / withdrawal) is not editable; an edited withdrawal passes the same never-overdraw refusal as a new one. Replaying the record to an earlier revision shows the values as they were then. No budget figure changes.",
+   "commit": "53d3c69",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2488,6 +2496,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "The $/min chart divides every transaction by the MoT picked on the chart (default 30D) — not by its own length, no repeats. Feedback from every sub-site is written to the product_feedback table tagged with that sub-site.",
    "status": "OPERATOR",
    "basis": "addendum 128"
+  },
+  {
+   "id": "FD-78",
+   "decision": "A recorded transaction is edited by appending a correction entry (amount, memo, day and time, length); the original stays on the record and the latest correction is what every figure reads; the type cannot change.",
+   "status": "OPERATOR",
+   "basis": "addendum 133 + the r.057 plan (append-only correction, original kept)"
   }
  ],
  "reviews": [

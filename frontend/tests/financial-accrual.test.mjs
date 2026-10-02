@@ -134,4 +134,22 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   ok(C.PUSH_EVERY_MS === 12 * 3600 * 1000, "pushed again every 12 hours");
   ok(!/delete|remove/i.test(C.cloudPut.toString() + C.mergeRecords.toString()), "the cloud path has no delete");
 }
+// ── r.062 THE EDIT (addendum 133 "add edit feature for transaction record"): an edit is a correction ENTRY — the original stays
+{
+  const t0 = Date.UTC(2026, 9, 1, 1, 54, 35);
+  let rec = R.emptyRecord("edit-test");
+  rec = R.append(rec, { id: "d1", kind: "deposit", amountCents: 360449, atMs: t0, motDays: 30, memo: "State of Texas" }, t0);
+  rec = R.append(rec, { id: "w1", kind: "withdrawal", amountCents: 7100, atMs: t0 + 86400000, motDays: 0, memo: "Storage" }, t0 + 1);
+  const before = rec.entries.map((e) => e.hash).join();
+  const ed1 = R.correctTx(rec, "w1", { amountCents: 25066, memo: "Storage unit" }, t0 + 2);
+  ok(ed1.entries.length === 3 && ed1.entries.slice(0, 2).map((e) => e.hash).join() === before, "an edit appends one entry; every earlier entry and hash is untouched");
+  ok(R.verify(ed1).ok, "the chain still verifies after an edit");
+  const eff = R.replay(ed1);
+  ok(eff.length === 2 && eff[1].id === "w1" && eff[1].amountCents === 25066 && eff[1].memo === "Storage unit" && eff[1].kind === "withdrawal" && !eff[1].corrects, "the record reads the corrected values in the original's place (same id, same type) — the correction is not a second transaction");
+  const ed2 = R.correctTx(ed1, "w1", { amountCents: 25000 }, t0 + 3);
+  ok(R.replay(ed2)[1].amountCents === 25000 && R.replay(ed2)[1].memo === "Storage unit" && R.correctionsOf(ed2, "w1").length === 2, "a second edit wins and keeps the first edit's other fields; both corrections stay on the record");
+  ok(R.replay(ed2, 2)[1].amountCents === 7100, "replaying to the revision before the edit shows the original");
+  ok(R.correctTx(ed2, "nope", { amountCents: 1 }, t0 + 4) === ed2, "an edit of a transaction that is not on the record changes nothing");
+  ok(R.replay(R.correctTx(rec, "d1", { kind: "withdrawal" }, t0 + 5))[0].kind === "deposit", "the type cannot be edited");
+}
 console.log(`financial-accrual: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

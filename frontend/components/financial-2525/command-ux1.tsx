@@ -46,7 +46,7 @@ import { type BudgetCategory } from "@/lib/financial-2525/budget";
 import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, DEVICE_OWNER, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
 import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } from "@/lib/financial-2525/currency";   // r.049: the currency label
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
-import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
+import { append, loadRecord, saveRecord, replay, emptyRecord, correctTx, correctionsOf, type FinRecord } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
 import { rateSeries, rateAtSeries, windowStart, overSpan, netBetween, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, cloudGet, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
@@ -184,7 +184,8 @@ export function FinancialCommandUX1() {
   const [saveFailed, setSaveFailed] = useState(false);
   useEffect(() => { if (!owner) return; const r = loadRecord(owner); setRecord(r.rec); setTampered(r.tampered); }, [owner]);
 
-  const txs: FinTx[] = (owner ? replay(record) : [EXAMPLE]).map(withMonthLaw);   // r.046: old Monthly entries read 30 days (the month law)
+  const txs: FinTx[] = (owner ? replay(record) : [EXAMPLE]).map(withMonthLaw);
+  const effective = useMemo(() => new Map(replay(record).map((x) => [x.id, x] as const)), [record]);   // r.062: each row reads its corrected values   // r.046: old Monthly entries read 30 days (the month law)
   const at = now ?? 0;
   const bal = balanceAt(txs, at);
   const deposits = txs.filter((x) => x.kind === "deposit").sort((a, b) => b.atMs - a.atMs);
@@ -356,6 +357,26 @@ export function FinancialCommandUX1() {
     setRefusal(null); commit(w); setAmt(""); setMemo(""); setWhen(""); foldForm();
   };
   const recordTransaction = () => { if (txType === "deposit") recordDeposit(); else if (txType === "withdrawal") recordWithdrawal(); };
+  // r.062 THE EDIT (addendum 133 "add edit feature for transaction record"): the pencil on a row opens its amount, memo, day and time and
+  // length; Save APPENDS a correction (correctTx) — the original entry, its hash and every link after it stay on the record, the table
+  // and every figure read the corrected values. A withdrawal edit passes the same refusal as a new withdrawal.
+  const [editId, setEditId] = useState(null as string | null);
+  const [ed, setEd] = useState({ amt: "", memo: "", when: "", days: "" });
+  const [edRefusal, setEdRefusal] = useState(null as string | null);
+  const openEdit = (x: FinTx) => { setEditId(x.id); setEdRefusal(null); setEd({ amt: (x.amountCents / 100).toFixed(2), memo: x.memo ?? "", when: fmtStampCST(x.atMs), days: x.motDays ? String(Math.round(x.motDays * 1000) / 1000) : "" }); };
+  const saveEdit = () => {
+    const cur = editId ? replay(record).find((x) => x.id === editId) : undefined; if (!cur) return;
+    const cents = Math.round(Number(ed.amt) * 100), instant = parseStampCST(ed.when.trim()), days = ed.days.trim() === "" ? 0 : Number(ed.days);
+    if (!(cents > 0) || !(days >= 0)) return setEdRefusal(t("fin.reason_amount"));
+    if (instant === null) return setEdRefusal(t("fin.reason_stamp"));
+    const next = correctTx(record, cur.id, { amountCents: cents, memo: ed.memo.trim() || undefined, atMs: instant, motDays: days }, at);
+    if (cur.kind === "withdrawal") {
+      const after = replay(next).map(withMonthLaw), mine = after.find((x) => x.id === cur.id)!;
+      const v = validateWithdrawal(after.filter((x) => x.id !== cur.id), mine);
+      if (!v.ok) return setEdRefusal(v.reason === "INSUFFICIENT" ? `${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs ?? instant)}` : t("fin.reason_amount"));
+    }
+    setRecord(next); if (!saveRecord(next)) setSaveFailed(true); setEditId(null);
+  };
   // the form opens on its TYPE (the first choice), so focus lands on the type dropdown, not the amount
   const goTo = (id: string) => { const el = typeof document !== "undefined" ? document.getElementById(id) : null; el?.scrollIntoView({ behavior: "smooth", block: "center" }); (el?.querySelector("select[data-fin-type], input") as HTMLElement | null)?.focus(); };
   useEffect(() => { if (formOpen && scrollOnOpen.current) { scrollOnOpen.current = false; goTo("fin-transaction-form"); } }, [formOpen]);
@@ -610,24 +631,45 @@ export function FinancialCommandUX1() {
               {/* r.032 (addendum 63): Amount and Category first, then as a person reads an entry — who/what, when, how long, which way —
                   and the proof last (# and Hash). The amount is signed: + money in, − money out. */}
               <thead className="text-left text-[10px] uppercase tracking-wide">
-                <tr><th className="py-1 pr-3">{t("fin.amount_col")}, {curMark}</th><th className="py-1 pr-3">{t("fin.category")}</th><th className="py-1 pr-3">{t("fin.memo")}</th><th className="py-1 pr-3">{t("fin.when")}</th><th className="py-1 pr-3 text-right">{t("fin.length")}</th><th className="py-1 pr-3">{t("fin.type")}</th><th className="py-1 pr-3">#</th><th className="py-1">{t("fin.hash")}</th></tr>
+                <tr><th className="py-1 pr-3">{t("fin.amount_col")}, {curMark}</th><th className="py-1 pr-3">{t("fin.category")}</th><th className="py-1 pr-3">{t("fin.memo")}</th><th className="py-1 pr-3">{t("fin.when")}</th><th className="py-1 pr-3 text-right">{t("fin.length")}</th><th className="py-1 pr-3">{t("fin.type")}</th><th className="py-1 pr-3">#</th><th className="py-1 pr-3">{t("fin.hash")}</th><th className="py-1"><span className="sr-only">{t("fin.edit_tx")}</span></th></tr>
               </thead>
               <tbody>
-                {!owner && <tr className="border-t border-border/60"><td data-fin-amount className="py-1 pr-3 tabular-nums text-green-500"><span className="flex justify-between gap-4"><span>+</span><span>{num2(EXAMPLE.amountCents)}</span></span></td><td className="py-1 pr-3">{txWhat(EXAMPLE)}</td><td className="py-1 pr-3">{EXAMPLE.memo}</td><td className="py-1 pr-3">{fmtStampCST(EXAMPLE.atMs)}</td><td className="py-1 pr-3 text-right">{fmtDays(withMonthLaw(EXAMPLE).motDays ?? 0)}</td><td className="py-1 pr-3">{t("fin.deposit")}</td><td className="py-1 pr-3">1</td><td className="py-1">—</td></tr>}
-                {owner && record.entries.length === 0 && <tr><td colSpan={8} className="py-1">{t("fin.no_deposits")}</td></tr>}
-                {owner && record.entries.map((e) => (
-                  <tr key={e.hash} className="border-t border-border/60">
-                    <td data-fin-amount className={`py-1 pr-3 tabular-nums ${e.tx.kind === "deposit" ? "text-green-500" : "text-red-500"}`}><span className="flex justify-between gap-4"><span>{e.tx.kind === "deposit" ? "+" : "−"}</span><span>{num2(e.tx.amountCents)}</span></span></td>
-                    <td className="py-1 pr-3">{txWhat(e.tx)}</td><td className="py-1 pr-3">{e.tx.memo ?? ""}</td>
-                    <td className="py-1 pr-3">{fmtStampCST(e.tx.atMs)}</td>
-                    <td className="py-1 pr-3 text-right">{e.tx.motDays ? fmtDays(withMonthLaw(e.tx).motDays ?? 0) : ""}</td>
-                    <td className="py-1 pr-3">{e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}</td>
-                    <td className="py-1 pr-3">{e.rev}</td><td className="py-1">{e.hash.slice(0, 8)}</td>
+                {!owner && <tr className="border-t border-border/60"><td data-fin-amount className="py-1 pr-3 tabular-nums text-green-500"><span className="flex justify-between gap-4"><span>+</span><span>{num2(EXAMPLE.amountCents)}</span></span></td><td className="py-1 pr-3">{txWhat(EXAMPLE)}</td><td className="py-1 pr-3">{EXAMPLE.memo}</td><td className="py-1 pr-3">{fmtStampCST(EXAMPLE.atMs)}</td><td className="py-1 pr-3 text-right">{fmtDays(withMonthLaw(EXAMPLE).motDays ?? 0)}</td><td className="py-1 pr-3">{t("fin.deposit")}</td><td className="py-1 pr-3">1</td><td className="py-1 pr-3">—</td><td /></tr>}
+                {owner && record.entries.length === 0 && <tr><td colSpan={9} className="py-1">{t("fin.no_deposits")}</td></tr>}
+                {owner && record.entries.filter((e) => !e.tx.corrects).map((e) => {
+                  const x = effective.get(e.tx.id) ?? e.tx, fixes = correctionsOf(record, e.tx.id), open = editId === e.tx.id;
+                  return (
+                  <Fragment key={e.hash}>
+                  <tr data-fin-ledger-row={e.rev} className="border-t border-border/60">
+                    <td data-fin-amount className={`py-1 pr-3 tabular-nums ${x.kind === "deposit" ? "text-green-500" : "text-red-500"}`}><span className="flex justify-between gap-4"><span>{x.kind === "deposit" ? "+" : "−"}</span><span>{num2(x.amountCents)}</span></span></td>
+                    <td className="py-1 pr-3">{txWhat(x)}</td><td className="py-1 pr-3">{x.memo ?? ""}</td>
+                    <td className="py-1 pr-3">{fmtStampCST(x.atMs)}</td>
+                    <td className="py-1 pr-3 text-right">{x.motDays ? fmtDays(withMonthLaw(x).motDays ?? 0) : ""}</td>
+                    <td className="py-1 pr-3">{x.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}</td>
+                    <td className="py-1 pr-3">{e.rev}{!!fixes.length && <span data-fin-edited title={`${t("fin.edited")} · ${fixes.map((f) => `#${f.rev}`).join(" ")}`} className="ml-1 text-primary">✎{fixes[fixes.length - 1].rev}</span>}</td>
+                    <td className="py-1 pr-3">{e.hash.slice(0, 8)}</td>
+                    <td className="py-1"><button type="button" data-fin-edit={e.rev} aria-label={t("fin.edit_tx")} title={t("fin.edit_tx")} aria-expanded={open} onClick={() => (open ? setEditId(null) : openEdit(x))} className={`flex h-8 w-8 items-center justify-center rounded-md border border-border ${open ? "text-primary" : ""}`}><Pencil size={13} strokeWidth={1.5} aria-hidden /></button></td>
                   </tr>
-                ))}
+                  </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
+          {/* r.062: the editor opens UNDER the table, full width (inside the sideways-scrolling table it sat off-screen on a phone) */}
+          {owner && editId && (() => { const e = record.entries.find((q) => q.tx.id === editId); return e ? (
+            <div data-fin-edit-panel={e.rev} className="mt-2 rounded-md border border-border p-2 text-xs">
+              <p className="mb-2 font-mono text-muted-foreground">{t("fin.edit_tx")} · #{e.rev} · {e.tx.kind === "deposit" ? t("fin.deposit") : t("fin.withdrawal")}</p>
+              <div className="grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap">
+                          <label className="text-[10px] uppercase">{t("fin.amount")}<input data-fin-edit-amount className={INPUT} inputMode="decimal" value={ed.amt} onChange={(v) => setEd({ ...ed, amt: v.target.value })} /></label>
+                          <label className="text-[10px] uppercase">{t("fin.memo")}<input data-fin-edit-memo className={INPUT} value={ed.memo} onChange={(v) => setEd({ ...ed, memo: v.target.value })} /></label>
+                          <label className="text-[10px] uppercase">{t("fin.when")}<input data-fin-edit-when className={INPUT} value={ed.when} onChange={(v) => setEd({ ...ed, when: v.target.value })} /></label>
+                          <label className="text-[10px] uppercase">{t("fin.length")}<input data-fin-edit-days className={INPUT} inputMode="decimal" value={ed.days} onChange={(v) => setEd({ ...ed, days: v.target.value })} /></label>
+                          <button type="button" data-fin-edit-save onClick={saveEdit} className="h-9 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground">{t("fin.done")}</button>
+                          <button type="button" data-fin-edit-cancel onClick={() => setEditId(null)} className="h-9 rounded-md border border-border px-3 text-xs">{t("fin.edit_cancel")}</button>
+                        </div>
+                        {edRefusal && <p data-fin-edit-refusal className="mt-1 whitespace-normal text-xs text-red-500">{edRefusal}</p>}
+            </div>) : null; })()}
         </details>
 
         {/* the year as a TABLE, key info in order, PERIHELION FIRST (r.028, addendum 58); months of 30 days (r.046 month law), no 33-day frame */}

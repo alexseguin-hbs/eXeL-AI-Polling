@@ -37,10 +37,26 @@ export function append(rec: FinRecord, tx: FinTx, at: number): FinRecord {
   const prev = rec.entries.length ? rec.entries[rec.entries.length - 1].hash : GENESIS;
   return { ...rec, entries: [...rec.entries, { rev, at, tx, prev, hash: chainHash(prev, tx, rev, at) }] };
 }
-/** The record at or below `rev` (omit for the latest) — the ledger's own render rule. */
+/** The record at or below `rev` (omit for the latest) — the ledger's own render rule. A correction entry (r.062) is not a
+ *  transaction of its own: its values replace the corrected transaction's (the latest correction wins), in the original's place. */
 export function replay(rec: FinRecord, rev?: number): FinTx[] {
-  return rec.entries.filter((e) => rev === undefined || e.rev <= rev).map((e) => e.tx);
+  const upTo = rec.entries.filter((e) => rev === undefined || e.rev <= rev);
+  const latest = new Map<string, FinTx>();
+  for (const e of upTo) if (e.tx.corrects) latest.set(e.tx.corrects, e.tx);
+  return upTo.filter((e) => !e.tx.corrects).map((e) => { const c = latest.get(e.tx.id); return c ? { ...c, id: e.tx.id, kind: e.tx.kind, corrects: undefined } : e.tx; });
 }
+/** THE EDIT (r.062, addendum 133): what changed is appended as a correction — the original entry, its hash and every later link stay
+ *  exactly as they were (NO CHANGE EVER DELETES AN ENTRY). The type (deposit / withdrawal) is not editable. Pure. */
+export type TxEdit = Partial<Pick<FinTx, "amountCents" | "memo" | "atMs" | "motDays" | "field" | "recurrence">>;
+export function correctTx(rec: FinRecord, id: string, edit: TxEdit, at: number): FinRecord {
+  const current = replay(rec).find((x) => x.id === id);
+  if (!current) return rec;
+  const n = rec.entries.filter((e) => e.tx.corrects === id).length + 1;
+  const tx: FinTx = { ...current, ...edit, id: `c-${id}-${n}`, kind: current.kind, corrects: id };
+  return append(rec, tx, at);
+}
+/** The corrections made to a transaction, oldest first (the record still holds every one). Pure. */
+export const correctionsOf = (rec: FinRecord, id: string): FinEntry[] => rec.entries.filter((e) => e.tx.corrects === id);
 /** True when every link holds — hashes recompute, prev pointers chain, revs run 1..n. */
 export function verify(rec: FinRecord): { ok: boolean; brokenAt: number | null } {
   let prev = GENESIS;
