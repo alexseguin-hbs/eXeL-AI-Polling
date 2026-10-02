@@ -4,6 +4,7 @@
 #
 #   scripts/fin-round.sh ship <0.NNN> <commit-message-file>   start the gate→commit→push→Verify Live chain in the background
 #   scripts/fin-round.sh wait <0.NNN>                          wait (≤ 9 min per call) and print the state; call again while RUNNING
+#   scripts/fin-round.sh wait-live                             wait (≤ 9 min) until Verify Live passes on HEAD; exit 0/1/2 as wait
 #   scripts/fin-round.sh live                                  is HEAD LIVE? (Verify Live passed on HEAD)
 # Exit of `wait`: 0 = LIVE (shipped and Verify Live passed) · 1 = RED (nothing pushed, or Verify Live failed) · 2 = still running.
 # Chain: tsc → financial gates → full test:ci → next build → commit (the message file) → push both refs → prove the remote
@@ -35,6 +36,10 @@ wait)
     sleep 10
   done
   echo "STILL $(cat "$ST")"; tail -3 "$DIR/$REV.log"; exit 2
+  ;;
+wait-live)
+  for i in $(seq 1 27); do V=$(vl "$(git rev-parse HEAD)"); case "$V" in completed:success:*) echo "HEAD $(git rev-parse --short HEAD) LIVE $V"; exit 0;; completed:*) echo "HEAD $(git rev-parse --short HEAD) RED $V"; exit 1;; esac; sleep 20; done
+  echo "HEAD $(git rev-parse --short HEAD) STILL $V"; exit 2
   ;;
 live)
   V=$(vl "$(git rev-parse HEAD)"); echo "HEAD $(git rev-parse --short HEAD) Verify Live $V"; case "$V" in completed:success:*) exit 0;; *) exit 1;; esac

@@ -80,5 +80,6 @@ Sections:
    - `Claude-Session: https://claude.ai/code/session_01GKmyWeWf1CfBrFKiFUHzGf`
 3. `scripts/fin-round.sh ship 0.NNN /tmp/fin-round/0.NNN.msg`
    Runs tsc → render → full test:ci → build → commit → push both refs → Verify Live, in the background.
+0. Before shipping: `scripts/fin-round.sh wait-live` until HEAD is LIVE (never outpace the deploy).
 4. `scripts/fin-round.sh wait 0.NNN` repeatedly, until it exits 0 (LIVE) or 1 (RED). A RED gate means fix and run
    `ship` again. Nothing was pushed.
