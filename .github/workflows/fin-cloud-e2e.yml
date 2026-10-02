@@ -1,0 +1,40 @@
+# Financial-2525 · sign-in saves to the database (operator 2026-10-02: "test login via oauth actually saves into database all
+# personal financials"). Runs frontend/scripts/fin-cloud-e2e.mjs on a GitHub runner against the LIVE site and the LIVE Supabase
+# project (the Claude sandbox cannot reach supabase.co): a signed-in browser records a transaction, the database row is read
+# directly, a second empty browser signed in as the same account must get it back, then the throwaway account's rows are deleted.
+# Red = a person's financials are not reaching the database (or not coming back on another device).
+name: Financial cloud e2e
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Verify Live"]
+    types: [completed]
+    branches: [main]
+  push:
+    branches: [main]
+    paths: [".github/workflows/fin-cloud-e2e.yml", "frontend/scripts/fin-cloud-e2e.mjs"]
+concurrency:
+  group: fin-cloud-e2e
+  cancel-in-progress: false
+jobs:
+  e2e:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SITE: https://exel-ai-polling.explore-096.workers.dev
+      SB_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://ppgfjplawtlrfqpnszyb.supabase.co' }}
+      SB_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_OuwQNsFT59F2vzlaXnLIhg_7XrzeY2z' }}
+      RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: npm ci && npx playwright install --with-deps chromium
+      - name: Sign in, record, read the database, read back on a new device
+        run: node scripts/fin-cloud-e2e.mjs
