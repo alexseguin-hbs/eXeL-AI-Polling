@@ -869,6 +869,13 @@
 > (addendum 134, verbatim — 2026-10-02 9:09, with a phone photo of the $/min chart at 1W — `docs/asks/2026-10-02_financial_2525_fb134_tap_day.png`)
 > i need to be able to click on map to see a specific day
 
+> (addendum 135, verbatim — 2026-10-02)
+> i said dont use light wight trding view chart
+> wheres my expand for financial chart; for fucks sakeZ. Tell me who isnMaster of Thought and Vision-2525 and R-Core in 33 words for each
+> add Feedback that uses same method as eXeL AI and Financial-2525; just remember feedback should tagbto existing page
+>
+> (his answer, picked in Claude Code) Expand: "Full screen" — an expand button that opens the chart full screen, with a button to close it.
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
