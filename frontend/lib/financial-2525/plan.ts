@@ -14,6 +14,7 @@
  */
 import { SHEET_LINES, shownMonthly } from "./budget";
 import { fieldOf, toPeriod, type LadderLine, type Period } from "./ladder";
+import { parseBudgetAmount } from "./typed";
 
 const PREFIX = "fin-plan-";
 export const planKey = (owner: string) => `${PREFIX}${owner}`;
@@ -58,5 +59,16 @@ export function addLine(lines: readonly LadderLine[], fieldId: string): LadderLi
   return [...lines, { fieldId, amountNative: 0, nativePeriod: BASE }];
 }
 export function removeLine(lines: readonly LadderLine[], fieldId: string): LadderLine[] { return lines.filter((l) => l.fieldId !== fieldId); }
+/** The line as it was when its box took the focus, put back (its amount and its period exactly). Pure. */
+export const restoreLine = (lines: readonly LadderLine[], was: LadderLine): LadderLine[] => lines.map((l) => (l.fieldId === was.fieldId ? { ...was } : l));
+/** ONE KEYSTROKE IN A BUDGET LINE'S BOX (r.073 second pre-push review, Enki: every keystroke that read was written, so a refused final
+ *  figure left its last readable prefix on the line — "1e3" → 1.00, "0x10" → 0.00, "12,50" → 12.00, a cleared box → its first digit — and
+ *  that figure survived a reload and went to the account). The text is applied when it reads as a figure; when it does not (half-typed,
+ *  refused or blank) the line is what it was when the box took the focus. `bad`: a non-blank text was refused, so the box says why. Pure. */
+export function typeIntoLine(lines: readonly LadderLine[], fieldId: string, text: string, unit: Period, was: LadderLine | null, marks: readonly string[] = []): { lines: LadderLine[]; bad: boolean } {
+  const n = parseBudgetAmount(text, marks);
+  if (n !== null) return { lines: setLineAmount(lines, fieldId, n, unit), bad: false };
+  return { lines: was && was.fieldId === fieldId ? restoreLine(lines, was) : [...lines], bad: String(text ?? "").trim() !== "" };
+}
 /** What a line reads in the unit on the glass (the inverse of setLineAmount, to the cent). */
 export const lineInUnit = (l: LadderLine, unit: Period): number => Math.round(toPeriod(l.amountNative, l.nativePeriod, unit) * 100) / 100;

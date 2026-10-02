@@ -43,16 +43,16 @@ import { readPlanetLtu, PLANET_LTU_KEYS } from "@/lib/financial-2525/planets";
 import { planetRow, daySecOf, PLANET_LTU_SEED, type PlanetLtuRow } from "@/lib/planet-ltu";
 import { balanceAt, series, validateRecord, depositView, type FinTx, type TxKind } from "@/lib/financial-2525/accrual";
 import { CATEGORY_FIELD, type BudgetCategory } from "@/lib/financial-2525/budget";
-import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, planKey, DEVICE_OWNER, setLineAmount, addLine, removeLine, lineInUnit } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
+import { loadPlan, savePlan, sheetPlan, planOrSheet, planKey, DEVICE_OWNER, addLine, removeLine, typeIntoLine } from "@/lib/financial-2525/plan";   // r.016: the person's plan — edit mode on the budget (addendum 28)
 import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } from "@/lib/financial-2525/currency";   // r.049: the currency label
-import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
-import { append, loadRecord, saveRecord, readStored, recordKey, unionRecords, sameChain, chainFingerprint, freshId, nextAt, txIdentity, followId, replay, emptyRecord, correctTx, type FinRecord, type TxEdit } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry; r.073: the union
-import { parseAmountCents, amountProblem, parsePositive, lengthFits, parseBudgetAmount, parseCardCents } from "@/lib/financial-2525/typed";   // r.073 (round 1): one reader for what a person types
+import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, LENGTH_UNIT_DAYS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
+import { append, loadRecord, saveRecord, readStored, recordKey, unionRecords, sameChain, chainFingerprint, freshId, nextAt, txIdentity, followId, replay, emptyRecord, correctTx, stableJson, type FinRecord, type TxEdit } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry; r.073: the union
+import { parseAmountCents, amountProblem, parsePositive, lengthFits, parseBudgetAmount, parseCardCents, budgetFigure, smallDollars } from "@/lib/financial-2525/typed";   // r.073 (round 1): one reader for what a person types
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
 import { fitFigures, fitGrid, figReserve, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
 import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, newCard, uniqueCardId, applyCardSettings, looksLikeCardNumber, cardBalanceAt, cardLevel, cardSeries, cardMoves, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
 import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
-import { ownerKeyFor, cloudPut, readAll, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
+import { ownerKeyFor, cloudPut, readAll, mergeRecords, syncChoice, nextStamp, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
 const C = TRINITY_COLORS;
@@ -63,6 +63,8 @@ const usd = (cents: number) => (cents < 0 ? "-" : "") + CUR_SYM + Math.abs(cents
 const usd4 = (cents: number) => (cents < 0 ? "-" : "") + CUR_SYM + Math.abs(cents / 100).toFixed(4);
 // r.043 (addenda 88–89 "rmeove $ from table as its in label header"): a table cell prints the bare number; the symbol is in the header.
 const num2 = (cents: number) => Math.abs(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/** The time a budget or card list was edited, as this device stored it (0 when none or unreadable). */
+const readStamp = (key: string): number => { try { return Number(localStorage.getItem(key) ?? 0) || 0; } catch { return 0; } };
 const CAT_KEY: Record<BudgetCategory, string> = { Income: "income", Home: "home", Auto: "auto", Insurance: "insurance", Utilities: "utilities", Fitness: "fitness", Fun: "fun", Groceries: "groceries", "Dining Out": "dining_out", Other: "other" };
 /** The Session's own classes, reused verbatim. */
 const CARD = "mt-8 rounded-xl border border-border bg-card p-5";
@@ -127,7 +129,7 @@ const UNIT_SHORT: Record<string, string> = { sec: "/sec", min: "/min", hour: "/h
 /** The Clock ⇄ MoT pair (r.025 on the chart; r.030 the year card too, addendum 61): Clock = standard, MoT = the orbit's A.B..C. */
 function ClockMotToggle({ abc, onChange, t, hook }: { abc: boolean; onChange: (v: boolean) => void; t: (k: string) => string; hook: string }) {
   return (
-    <div role="group" data-fin-abc-toggle={hook} className="flex overflow-hidden rounded-md border border-border">
+    <div role="group" aria-label={`${t("fin.show_ltu")} · ${t("fin.show_abc")}`} data-fin-abc-toggle={hook} className="flex overflow-hidden rounded-md border border-border">
       <button type="button" aria-pressed={!abc} aria-label={t("fin.show_ltu")} title={t("fin.show_ltu")} onClick={() => onChange(false)} className={`flex h-8 w-9 items-center justify-center ${!abc ? "text-primary ring-1 ring-inset ring-primary" : "text-muted-foreground"}`}><Clock size={16} strokeWidth={1.5} aria-hidden /></button>
       <button type="button" aria-pressed={abc} aria-label={t("fin.show_abc")} title={t("fin.show_abc")} onClick={() => onChange(true)} className={`flex h-8 w-9 items-center justify-center ${abc ? "text-primary ring-1 ring-inset ring-primary" : "text-muted-foreground"}`}><Orbit size={16} strokeWidth={1.5} aria-hidden /></button>
     </div>
@@ -167,6 +169,9 @@ export function FinancialCommandUX1() {
   const [rateUnit, setRateUnit] = useState("hr" as RateUnit);
   const [accrualGear, setAccrualGear] = useState(false);
   const [trinityBig, setTrinityBig] = useState(false);          // r.042 (addendum 78): the header Trinity, mini by default
+  // r.073 second pre-push review (Sofia): the two Trinity buttons swap — the focus follows to the one now showing, never dropped on the page
+  const trinityBtn = useRef(null as HTMLButtonElement | null), trinityMoved = useRef(false);
+  useEffect(() => { if (trinityMoved.current) { trinityMoved.current = false; trinityBtn.current?.focus(); } }, [trinityBig]);
   const [settingsOpen, setSettingsOpen] = useState(false);          // r.034: the eXeL Polling Settings (colour selector), upper right          // r.028: the Accrual Units settings, closed by default   // r.024: the Released card's rate, per hour by default (addendum 46)
   // r.025 (addendum 42 + his answer "Gear on the chart"): the chart's date format, 2026.10.01 by default, remembered on this phone
   const [dateFmt, setDateFmt] = useState("full" as DateFmt);
@@ -190,6 +195,7 @@ export function FinancialCommandUX1() {
   const [tampered, setTampered] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [planFailed, setPlanFailed] = useState(false);
+  const [cardsFailed, setCardsFailed] = useState(false);   // r.073 second pre-push review (Thor): the cards say so too, in their own words
   useEffect(() => { if (!owner) return; const r = loadRecord(owner); setRecord(r.rec); setTampered(r.tampered); }, [owner]);
   // A FINISHED ENTRY IS NEVER LOST (r.073, round 1 of 33 — the reviewer lenses found a Monthly length edit with no effect, two tabs
   // and two devices burying each other's entries, a page left open 12 hours pushing its opening state back, and a full phone folding
@@ -201,8 +207,7 @@ export function FinancialCommandUX1() {
    *  goes to the account). Returns false when the device refused. A good save clears an earlier warning. */
   const persist = (next: FinRecord): boolean => {
     const saved = saveRecord(next), shown = saved ?? next;
-    recordRef.current = shown; setRecord(shown); setSaveFailed(!saved);
-    if (!saved) setCloudState((c) => (c === "saved" ? "saving" : c));   // the account has not got this entry yet: it says so until a sync that holds it
+    recordRef.current = shown; setRecord(shown); setSaveFailed(!saved);   // "saved to your account" is read from what the account holds (holds, below)
     return !!saved;
   };
   // another tab's save reaches this one at once: its entries are united into what this tab shows (and so into its next save) — no tab
@@ -212,7 +217,9 @@ export function FinancialCommandUX1() {
     const onStorage = (e: StorageEvent) => {
       if (e.key === recordKey(owner)) { const s = readStored(owner); if (s) { const u = recordRef.current.owner === owner ? unionRecords(recordRef.current, s) : s; if (u !== recordRef.current) { recordRef.current = u; setRecord(u); } } }
       else if (e.key === planKey(owner)) setPlan(planOrSheet(loadPlan(owner)));
+      else if (e.key === `fin-plan-at:${owner}`) planAtRef.current = readStamp(`fin-plan-at:${owner}`);
       else if (e.key === CARDS_KEY(owner)) { try { setCards(mergeCards(JSON.parse(localStorage.getItem(CARDS_KEY(owner)) ?? "null"))); } catch { /* unreadable: this tab's cards stand */ } }
+      else if (e.key === `fin-cards-at:${owner}`) cardsAtRef.current = readStamp(`fin-cards-at:${owner}`);
     };
     window.addEventListener("storage", onStorage); return () => window.removeEventListener("storage", onStorage);
   }, [owner]);
@@ -258,41 +265,65 @@ export function FinancialCommandUX1() {
   const [plan, setPlan] = useState(() => sheetPlan() as LadderLine[]);
   // r.067 THE COCKPIT'S CARDS (addenda 142–144): his Capital One and USAA, saved on the device and to the account like the budget
   const [cards, setCards] = useState(() => [] as Card[]);
-  useEffect(() => { if (!owner) { setCards([]); return; } try { setCards(mergeCards(JSON.parse(localStorage.getItem(CARDS_KEY(owner)) ?? "null"))); } catch { setCards([]); } }, [owner, user?.email]);   // eslint-disable-line react-hooks/exhaustive-deps
-  const saveCards = (next: Card[]) => { setCards(next); if (owner) { try { localStorage.setItem(CARDS_KEY(owner), JSON.stringify(next)); localStorage.setItem(`fin-cards-at:${owner}`, String(Date.now())); } catch { /* kept for this visit */ } } };
+  // THE TIME TRAVELS WITH WHAT IT DATES (r.073 second pre-push review — Thor, Krishna). The budget and the cards carry the time they were
+  // edited, and a sync takes whichever copy was edited later. Three ways that went wrong, fixed together: (1) a full phone refused the
+  // content but took its 13-character time, so it held OLD lines under a NEW time and the next sync sent them over the account's newer copy
+  // (every device lost the typed line) — a time is now written only after the content it dates was kept, content first; (2) the account
+  // hands keys back in jsonb order, so identical cards read as different and went up again on every sync, beating a newer edit made on
+  // another device — copies are compared without regard to key order (syncChoice); (3) a phone whose clock runs behind dated an edit
+  // before the account copy it had just taken — an edit's time is never at or before the newest time this device has seen (nextStamp).
+  // The times live in memory (these refs) and on the device; the sync reads memory, so an edit a full phone could not store still counts.
+  const planAtRef = useRef(0), cardsAtRef = useRef(0);
+  useEffect(() => { if (!owner) { setCards([]); cardsAtRef.current = 0; return; } cardsAtRef.current = readStamp(`fin-cards-at:${owner}`); try { setCards(mergeCards(JSON.parse(localStorage.getItem(CARDS_KEY(owner)) ?? "null"))); } catch { setCards([]); } }, [owner, user?.email]);   // eslint-disable-line react-hooks/exhaustive-deps
+  /** The cards and their time on this device, content first; a device that will not keep them says so (Thor: on a full phone a card added
+   *  there vanished from every device after one reload, and nothing was said). */
+  const keepCardsHere = (who: string, list: Card[], at: number) => { try { localStorage.setItem(CARDS_KEY(who), JSON.stringify(list)); localStorage.setItem(`fin-cards-at:${who}`, String(at)); setCardsFailed(false); } catch { setCardsFailed(true); } };
+  const saveCards = (next: Card[]) => { const at = nextStamp(cardsAtRef.current, Date.now()); setCards(next); cardsRef.current = next; cardsAtRef.current = at; if (owner) keepCardsHere(owner, next, at); };
   const [editing, setEditing] = useState(false);
   const [drafts, setDrafts] = useState({} as Record<string, string>);
+  // r.073 second pre-push review (Enki): the line as it was when its box took the focus, and the box whose text was refused (it says why)
+  const focusLine = useRef(null as LadderLine | null);
+  const [budgetBad, setBudgetBad] = useState("");
   const [addSec, setAddSec] = useState("A" as FlowSectionId); const [addField, setAddField] = useState("A.income_wages");
   // r.052 (addendum 103 "wheres my edit button on personal budget"): the pencil is there signed in or not — signed out the plan is
   // this phone's own (DEVICE_OWNER), signed in it is the person's
   const planOwner = owner ?? DEVICE_OWNER;
-  useEffect(() => { setPlan(planOrSheet(loadPlan(planOwner))); }, [planOwner]);
+  useEffect(() => { planAtRef.current = readStamp(`fin-plan-at:${planOwner}`); setPlan(planOrSheet(loadPlan(planOwner))); }, [planOwner]);
   // r.073 pre-push review (Thor): a budget this device would not keep says so in the BUDGET's words, on its own flag — the record's warning
   // ("the entry is kept in memory only") was wrong for a budget, and the next good record save used to hide it
-  const writePlan = (next: LadderLine[]) => { setPlan(next); setPlanFailed(!savePlan(planOwner, next)); try { localStorage.setItem(`fin-plan-at:${planOwner}`, String(Date.now())); } catch { /* the time is a hint only */ } };
+  /** The budget and its time on this device, content first — the time only when the lines it dates were kept (Thor). */
+  const keepPlanHere = (who: string, lines: LadderLine[], at: number): boolean => { const kept = savePlan(who, lines); if (kept) { try { localStorage.setItem(`fin-plan-at:${who}`, String(at)); } catch { /* the lines hold; their time is a hint */ } } setPlanFailed(!kept); return kept; };
+  // a change only (a keystroke that leaves the lines as they were writes nothing and dates nothing)
+  const writePlan = (next: LadderLine[]) => { if (stableJson(next) === stableJson(planRef.current)) return; const at = nextStamp(planAtRef.current, Date.now()); planRef.current = next; setPlan(next); planAtRef.current = at; keepPlanHere(planOwner, next, at); };
   // THE CLOUD COPY (r.055, addendum 112 "SAVE AN PUSH TO [the account store]. Identify all saving functions and make sure push is made automatically as
   // well as every 12 hours"; his answer "Account-ID key"). Signed in: the record and the budget are read back from the account once, merged
   // without ever dropping an entry (a diverged copy is kept whole), then every change is pushed, and again every 12 hours.
-  const [cloudKey, setCloudKey] = useState(null as string | null);
+  const [cloudKey, setCloudKey] = useState(null as { owner: string; key: string } | null);   // r.073 second review (Thor): the key names its person
   const [cloudState, setCloudState] = useState("off" as CloudState);
   const [cloudAt, setCloudAt] = useState(0);
   const [cloudReady, setCloudReady] = useState(false);
   const cloudKeyRef = useRef(cloudKey); cloudKeyRef.current = cloudKey;
   const planRef = useRef(plan); planRef.current = plan;
   const cardsRef = useRef(cards); cardsRef.current = cards;
+  const keptFp = useRef("");   // r.073 second review (Thor): a copy kept aside once per page even when the phone cannot store its fingerprint
+  // "SAVED TO YOUR ACCOUNT" ONLY WHEN THE ACCOUNT HOLDS WHAT THE PAGE SHOWS (r.073 second pre-push review, Thor): the record, the budget and the
+  // cards the account was last known to hold. Any change makes the claim false at once (a new entry read "saved" for 1.2 s, and for 12.5 s
+  // while a budget line was being typed); a sync that only confirms it no longer flips it to "kept in memory only" while it runs.
+  const [holds, setHolds] = useState(null as null | { record: FinRecord | null; plan: LadderLine[] | null; cards: Card[] | null });
   const dirty = useRef(false);   // a change the account has not been sent yet
   const readBack = useRef(false);   // a record write to confirm with one more read
-  useEffect(() => { let live = true; setCloudReady(false); setCloudKey(null); if (owner) void ownerKeyFor(owner).then((k) => { if (live) setCloudKey(k); }); return () => { live = false; }; }, [owner]);
+  useEffect(() => { let live = true; setCloudReady(false); setCloudKey(null); if (owner) void ownerKeyFor(owner).then((k) => { if (live && k) setCloudKey({ owner, key: k }); }); return () => { live = false; }; }, [owner]);
   /** ONE SYNC (r.073, round 1 of 33 — the account is READ before it is written): read the record, the budget and the cards; unite the
    *  record with this device's (nothing either holds is dropped; a copy that fails its chain is kept whole and never adopted); take the
    *  budget and the cards from the account only when they were edited later; then write whatever the account still lacks. A read that
    *  failed writes nothing over the account. Every value is read LATEST (refs) — the 12-hour timer used to push the page's OPENING
    *  record, budget and cards back over the account (Odin). */
   const syncOnce = async (): Promise<boolean> => {
-    const who = ownerRef.current, key = cloudKeyRef.current;
-    if (!who || !key) return false;
+    const who = ownerRef.current, ck = cloudKeyRef.current;
+    if (!who || !ck || ck.owner !== who) return false;   // never one person's data under another's key, even in the instant of a switch
+    const key = ck.key;
     // r.073 pre-push review (Thor): every step re-checks the sign-in after it waits — nothing of one person is written while another is here
-    const here = () => ownerRef.current === who && recordRef.current.owner === who;
+    const here = () => ownerRef.current === who && recordRef.current.owner === who && cloudKeyRef.current?.key === key;
     dirty.current = false; setCloudState("saving");
     const { r, p, c } = await readAll(key);
     if (!here()) return false;   // signed out or switched while reading: nothing of theirs is written here
@@ -307,7 +338,7 @@ export function FinancialCommandUX1() {
       let kept: CloudState = "saved";
       if (m.keep) {
         const fp = chainFingerprint(m.keep); let last = ""; try { last = localStorage.getItem(`fin-kept-cloud:${who}`) ?? ""; } catch { /* keep it */ }
-        if (fp !== last) { kept = await cloudPut(key, `fin-record-kept-${Date.now()}`, m.keep); if (kept === "saved") { try { localStorage.setItem(`fin-kept-cloud:${who}`, fp); } catch { /* kept again next time */ } } }
+        if (fp !== last && fp !== keptFp.current) { kept = await cloudPut(key, `fin-record-kept-${Date.now()}`, m.keep); if (kept === "saved") { keptFp.current = fp; try { localStorage.setItem(`fin-kept-cloud:${who}`, fp); } catch { /* remembered in memory for this page */ } } }
         if (!here()) return readOk;
       }
       if (m.current !== recordRef.current) { const wasEmpty = recordRef.current.entries.length === 0; persist(m.current); if (wasEmpty && m.current.entries.length) setTampered(false); }   // Aset: the account put the record back
@@ -322,35 +353,43 @@ export function FinancialCommandUX1() {
       // replace this write; one more read a few seconds later unites whatever it holds again, so neither device's entry is left out
       if (wrote && out[out.length - 1] === "saved") readBack.current = true;
     } else out.push(r.state === "off" ? "offline" : r.state);
-    let planAt = 0; try { planAt = Number(localStorage.getItem(`fin-plan-at:${who}`) ?? 0) || 0; } catch { /* no time: the account's copy wins */ }
+    // THE BUDGET AND THE CARDS (syncChoice): the copy edited later wins; the same time with other content goes up again under a new time; a
+    // copy is never written here, or its time stamped, unless the content it dates was kept (keepPlanHere / keepCardsHere)
+    let heldPlan: LadderLine[] | null = null, heldCards: Card[] | null = null;   // what the account is known to hold after this sync
     if (p.state === "ok") {
-      const cp = p.data;
-      if (cp && Array.isArray(cp.lines) && cp.at > planAt) { planRef.current = cp.lines; setPlan(cp.lines); savePlan(who, cp.lines); try { localStorage.setItem(`fin-plan-at:${who}`, String(cp.at)); } catch { /* hint only */ } out.push("saved"); }
-      else if (!cp || planAt > cp.at || (cp.at === planAt && JSON.stringify(cp.lines) !== JSON.stringify(planRef.current))) {
+      const cp = p.data, planAt = planAtRef.current, mine = planRef.current;
+      const remote = cp && Array.isArray(cp.lines) && Number.isFinite(cp.at) ? { doc: cp.lines, at: cp.at } : null;
+      const ch = syncChoice({ doc: mine, at: planAt }, remote);
+      if (ch === "take" && remote) { planRef.current = remote.doc; setPlan(remote.doc); planAtRef.current = remote.at; keepPlanHere(who, remote.doc, remote.at); heldPlan = remote.doc; out.push("saved"); }
+      else if (ch === "same") { heldPlan = mine; out.push("saved"); }
+      else {
         // r.073 pre-push review (Odin): the same time with different lines is the row r.072's stale 12-hour push reverted (its old lines under
         // the newest edit's time) — this device's lines go up under a new time, so every device takes them
-        const tie = !!cp && cp.at === planAt, at0 = tie || !planAt ? Date.now() : planAt;
-        const st = await cloudPut(key, "fin-plan", { lines: planRef.current, at: at0 } satisfies PlanDoc); out.push(st);
-        if (st === "saved" && at0 !== planAt) { try { localStorage.setItem(`fin-plan-at:${who}`, String(at0)); } catch { /* hint only */ } }
+        const at0 = ch === "send" && planAt > 0 ? planAt : nextStamp(Math.max(planAt, remote?.at ?? 0), Date.now());
+        const st = await cloudPut(key, "fin-plan", { lines: mine, at: at0 } satisfies PlanDoc); out.push(st);
         if (!here()) return readOk;
+        if (st === "saved") { heldPlan = mine; if (at0 !== planAt && planRef.current === mine) { planAtRef.current = at0; keepPlanHere(who, mine, at0); } }
       }
-      else out.push("saved");
     } else out.push(p.state === "off" ? "offline" : p.state);
-    let cardsAt = 0; try { cardsAt = Number(localStorage.getItem(`fin-cards-at:${who}`) ?? 0) || 0; } catch { /* never edited here: the account's copy wins */ }
     if (c.state === "ok") {
-      const cc = c.data;
-      if (cc && Array.isArray(cc.cards) && cc.at > cardsAt) { const m2 = mergeCards(cc.cards as Card[]); cardsRef.current = m2; setCards(m2); try { localStorage.setItem(CARDS_KEY(who), JSON.stringify(m2)); localStorage.setItem(`fin-cards-at:${who}`, String(cc.at)); } catch { /* hint only */ } out.push("saved"); }
-      else if (!cc || cardsAt > cc.at || (cc.at === cardsAt && cardsAt > 0 && JSON.stringify(cc.cards) !== JSON.stringify(cardsRef.current))) {
-        const tie = !!cc && cc.at === cardsAt, at1 = tie ? Date.now() : cardsAt;   // the same repair for the cards (Odin)
-        const st = await cloudPut(key, "fin-cards", { cards: cardsRef.current, at: at1 }); out.push(st);
-        if (st === "saved" && tie) { try { localStorage.setItem(`fin-cards-at:${who}`, String(at1)); } catch { /* hint only */ } }
+      const cc = c.data, cardsAt = cardsAtRef.current, mine = cardsRef.current;
+      const remote = cc && Array.isArray(cc.cards) && Number.isFinite(cc.at) ? { doc: cc.cards, at: cc.at } : null;
+      const ch = syncChoice({ doc: mine, at: cardsAt }, remote, true);   // the same repair for the cards (Odin) — only for cards this device edited
+      if (ch === "take" && remote) { const m2 = mergeCards(remote.doc as Card[]); cardsRef.current = m2; setCards(m2); cardsAtRef.current = remote.at; keepCardsHere(who, m2, remote.at); heldCards = m2; out.push("saved"); }
+      else if (ch === "same") { heldCards = mine; out.push("saved"); }
+      else {
+        const at1 = ch === "send" ? cardsAt : nextStamp(Math.max(cardsAt, remote?.at ?? 0), Date.now());
+        const st = await cloudPut(key, "fin-cards", { cards: mine, at: at1 }); out.push(st);
+        if (!here()) return readOk;
+        if (st === "saved") { heldCards = mine; if (at1 !== cardsAt && cardsRef.current === mine) { cardsAtRef.current = at1; keepCardsHere(who, mine, at1); } }
       }
-      else out.push("saved");
     } else out.push(c.state === "off" ? "offline" : c.state);
     // "saved" only when the account holds the record as it is NOW (Thor: an entry made during the sync — or one this device would not
     // keep — was told "saved to your account" before any sync had sent it); a newer record waits for the sync its change starts
-    const ok = out.every((x) => x === "saved"), behind = ok && r.state === "ok" && held !== recordRef.current;
+    const ok = out.every((x) => x === "saved");
+    const behind = ok && (held !== recordRef.current || heldPlan !== planRef.current || heldCards !== cardsRef.current);
     setCloudState(behind ? "saving" : ok ? "saved" : out.includes("offline") ? "offline" : "error");
+    if (ok) setHolds({ record: held, plan: heldPlan, cards: heldCards });   // a newer change on the page reads "not yet" until its own sync
     if (behind) dirty.current = true;
     else if (ok) { const t0 = Date.now(); setCloudAt(t0); try { localStorage.setItem(LAST_PUSH_KEY, String(t0)); } catch { /* hint only */ } }
     else dirty.current = true;   // retried on return, on the network coming back, or on the next change
@@ -364,7 +403,7 @@ export function FinancialCommandUX1() {
   // signed in: the account copy is read back and united before anything is written to it. cloudReady waits for a READ that succeeded (or
   // a site with no account store) — offline at sign-in, the first sync is tried again every 30 s and when the network returns (Christo)
   useEffect(() => {
-    if (!owner || !cloudKey) return; let live = true, timer = 0;
+    if (!owner || !cloudKey || cloudKey.owner !== owner) return; let live = true, timer = 0;
     const first = () => { void syncRef.current().then((ok) => { if (!live) return; if (ok) setCloudReady(true); else timer = window.setTimeout(first, 30000); }); };
     const onOnline = () => { window.clearTimeout(timer); first(); };
     first(); window.addEventListener("online", onOnline);
@@ -387,10 +426,13 @@ export function FinancialCommandUX1() {
   // THE BUDGET AS HE ASKED (r.024, addenda 48 · 50: "don't change budget inplementetion; this is way too complicated and I never asked for
   // it"): the r.021–r.022 per-line MoT dropdowns are gone; a line's amount is typed in the unit showing and kept on the 33-day base.
   // r.073 pre-push review (Enki): the budget reads a figure with its own strict reader — "0x10" or "1e3" never set a line; "1,234.56" applies
-  const typeAmount = (fieldId: string, text: string) => { setDrafts((d) => ({ ...d, [fieldId]: text })); const n = parseBudgetAmount(text, cur.symbol ? [cur.symbol] : []); if (n !== null) writePlan(setLineAmount(plan, fieldId, n, period)); };
+  // r.073 second pre-push review (Enki): a keystroke that does not read as a figure puts the line back as it was when the box took the focus —
+  // the last readable prefix of a refused figure ("1e3" → 1.00, "0x10" → 0.00, a cleared box → its first digit) is never left on the line
+  const typeAmount = (fieldId: string, text: string) => { setDrafts((d) => ({ ...d, [fieldId]: text })); const r = typeIntoLine(plan, fieldId, text, period, focusLine.current, cur.symbol ? [cur.symbol] : []); setBudgetBad((b) => (r.bad ? fieldId : b === fieldId ? "" : b)); writePlan(r.lines); };
   // r.026: per second / minute / hour a line is a fraction of a dollar — edit mode shows four decimals there (cents elsewhere), so
   // retyping the figure shown never moves the line (0.07 typed for $0.0673/min was +3.9%)
-  const editFigure = (l: LadderLine) => { const v = toPeriod(l.amountNative, l.nativePeriod, period); return Math.abs(v) < 100 ? Math.round(v * 10000) / 10000 : lineInUnit(l, period); };
+  // r.073 second pre-push review (Enki): under a dollar the box shows as many decimals as it takes to keep the line (budgetFigure)
+  const editFigure = (l: LadderLine) => budgetFigure(toPeriod(l.amountNative, l.nativePeriod, period));
   const addable = fieldsOf(addSec).filter((f) => !plan.some((l) => l.fieldId === f.id) && !(owner && f.kind === "Income" && recordIncomeLines(txs, at).length));   // r.048: Income comes from the record
   // r.048 (addendum 80 "Income from my record"): with deposits on his record, the Income lines ARE the record — each Income field at the
   // rate its deposits release (amount ÷ length) — and the plan keeps Fixed · Variable · Transfers. No deposits: the plan as it was.
@@ -409,8 +451,11 @@ export function FinancialCommandUX1() {
   const toggleKind = (k: FieldKind) => setOpenKinds((o) => (o.includes(k) ? o.filter((x) => x !== k) : [...o, k]));
   const kindLabel = (k: FieldKind) => (k === "Transfer" ? t("fin.sec.m") : t(`fin.${k.toLowerCase()}`));
   const inPeriod = (l: { amountNative: number; nativePeriod: Period }) => toPeriod(l.amountNative, l.nativePeriod, period);
-  const numDollars = (x: number) => { const c = x * 100; return (c < 0 ? "−" : "") + (Math.abs(c) >= 100 ? num2(Math.round(c)) : Math.abs(c / 100).toFixed(4)); };
+  const numDollars = (x: number) => { const c = x * 100; return (c < 0 ? "−" : "") + (Math.abs(c) >= 100 ? num2(Math.round(c)) : smallDollars(c / 100)); };   // r.073 (Enki): a line per second never reads 0.0000
   const signIn = () => loginWithRedirect({ appState: { returnTo: `${SRC.project.route}/` } });
+  // the account holds exactly what this page shows (the cloud mark), and the record in particular (the save warning's words)
+  const holdsRecord = !!holds && holds.record === record, acctHolds = holdsRecord && holds?.plan === plan && holds?.cards === cards;
+  const cloudMark = acctHolds ? "saved" : cloudState === "saved" ? "saving" : cloudState;
 
   // ── forms ──────────────────────────────────────────────────────────────────────────────────────────────────
   // ONE transaction form (addendum 24 "there should be just transaction, with type on drop down"): the TYPE is the first dropdown;
@@ -471,7 +516,7 @@ export function FinancialCommandUX1() {
   // ONE READER for what is typed (r.073, round 1, Enki): "1,234.56" and "$50" are amounts; "Infinity", "1e400" and "0x10" are not;
   // a date the calendar does not have is refused (never moved); Other needs a number above zero (never a silent one-time)
   const marks = cur.symbol ? [cur.symbol] : [];
-  const amountWhy = (text: string) => (amountProblem(text, marks) === "form" ? t("fin.reason_amount_form") : t("fin.reason_amount"));
+  const amountWhy = (text: string) => { const p = amountProblem(text, marks); return t(p === "form" ? "fin.reason_amount_form" : p === "large" ? "fin.reason_amount_large" : "fin.reason_amount"); };   // r.073 (Enki): a trillion is "too large", not "not digits"
   const stampWhy = (text: string) => (stampProblem(text) === "day" ? t("fin.reason_stamp_day") : t("fin.reason_stamp"));
   const lengthOf = (instant: number): { days: number } | { why: string } => {
     const n = rec === "other" ? parsePositive(otherN) : 0;
@@ -486,8 +531,9 @@ export function FinancialCommandUX1() {
   // phone would not keep (a correction), then the save is tried again
   const formKey = JSON.stringify([txType, amt, when, memo, sec, field, rec, otherN, otherUnit, paidFrom, paysCard]);
   const [unsaved, setUnsaved] = useState(null as null | { id: string; ident: string; key: string });
+  const [retryN, setRetryN] = useState(0);   // r.073 second pre-push review (Sofia): each failed attempt is a new alert, so it is announced again
   const retrying = unsaved !== null;
-  const afterRecord = (r: { ok: boolean; id: string; ident: string }) => { if (r.ok) { setAmt(""); setMemo(""); setWhen(""); foldForm(); } else setUnsaved({ id: r.id, ident: r.ident, key: formKey }); };
+  const afterRecord = (r: { ok: boolean; id: string; ident: string }) => { if (r.ok) { setAmt(""); setMemo(""); setWhen(""); foldForm(); } else { setUnsaved({ id: r.id, ident: r.ident, key: formKey }); setRetryN((n) => n + 1); } };
   const retrySave = () => {
     const u = unsaved; if (!u) return;
     let next = recordRef.current;
@@ -509,7 +555,7 @@ export function FinancialCommandUX1() {
         if (!v.ok) return refuse(`${t("fin.reason_insufficient_by")} ${fmtStampCST(v.atMs)}`);
       }
     }
-    if (persist(next)) { setAmt(""); setMemo(""); setWhen(""); foldForm(); } else setUnsaved({ id: uid, ident: u.ident, key: formKey });
+    if (persist(next)) { setAmt(""); setMemo(""); setWhen(""); foldForm(); } else { setUnsaved({ id: uid, ident: u.ident, key: formKey }); setRetryN((n) => n + 1); }
   };
   const recordDeposit = () => {
     const cents = parseAmountCents(amt, marks);
@@ -559,13 +605,24 @@ export function FinancialCommandUX1() {
    *  days it covers (an entry from before the presets), else One time; its field (an r.006–r.011 entry's category mapped to its field). */
   const editValues = (x: FinTx): typeof ED0 => {
     const r = x.recurrence as Recurrence | undefined, d = x.motDays ?? 0;
-    const len = r && r !== "other" && RECURRENCES.includes(r) ? { rec: r, otherN: "" } : d > 0 ? { rec: "other" as Recurrence, otherN: String(Math.round(d * 1000) / 1000) } : { rec: "once" as Recurrence, otherN: "" };
+    // r.073 second pre-push review (Enki): an Other length under a day opens in hours or minutes — a 0.5-minute length opened as "0" days and
+    // changing only its unit was refused
+    const ou: LengthUnit = d >= LENGTH_UNIT_DAYS.days ? "days" : d >= LENGTH_UNIT_DAYS.hours ? "hours" : "minutes", on = d / LENGTH_UNIT_DAYS[ou];
+    const len = r && r !== "other" && RECURRENCES.includes(r) ? { rec: r, otherN: "", otherUnit: "days" as LengthUnit } : d > 0 ? { rec: "other" as Recurrence, otherN: String(Math.round(on * 1000) / 1000), otherUnit: ou } : { rec: "once" as Recurrence, otherN: "", otherUnit: "days" as LengthUnit };
     const field = x.field && fieldOf(x.field) ? x.field : x.category ? CATEGORY_FIELD[x.category] : x.kind === "deposit" ? "A.income_wages" : "B.rent_mortgage";
-    return { kind: x.kind, amt: (x.amountCents / 100).toFixed(2), memo: x.memo ?? "", when: fmtStampCST(x.atMs), sec: (fieldOf(field)?.section ?? "A") as FlowSectionId, field, ...len, otherUnit: "days", paidFrom: x.paidFrom ?? DEBIT, paysCard: x.paysCard ?? "" };
+    return { kind: x.kind, amt: (x.amountCents / 100).toFixed(2), memo: x.memo ?? "", when: fmtStampCST(x.atMs), sec: (fieldOf(field)?.section ?? "A") as FlowSectionId, field, ...len, paidFrom: x.paidFrom ?? DEBIT, paysCard: x.paysCard ?? "" };
   };
   const openEdit = (x: FinTx) => { const v = editValues(x), root = recordRef.current.entries.find((e) => e.tx.id === x.id && !e.tx.corrects); setEditId(x.id); setEditIdent(root ? txIdentity(root.tx) : ""); setEdRefusal(null); setEd(v); setEd0(v); scrollEdit.current = true; };
   // a union that renamed the entry under the pencil moves the pencil with it; an entry no longer on the record closes the editor
   useEffect(() => { if (!editId) return; const id = followId(record, editId, editIdent); if (id !== editId) setEditId(id); }, [record, editId, editIdent]);
+  // r.073 second pre-push review (Sofia): when the editor closes (Done, Cancel, the pencil) the focus goes back to that row's pencil — it was
+  // dropped on the page (3 of 3); the form already hands it back to + Transaction
+  const editRev = useRef(null as number | null);
+  useEffect(() => {
+    if (editId) { const e = recordRef.current.entries.find((q) => q.tx.id === editId); editRev.current = e ? e.rev : null; return; }
+    const rev = editRev.current; editRev.current = null;
+    if (rev !== null) (document.querySelector(`[data-fin-edit="${rev}"]`) as HTMLElement | null)?.focus({ preventScroll: true });
+  }, [editId]);
   useEffect(() => { if (!editId || !scrollEdit.current) return; scrollEdit.current = false; const el = document.querySelector("[data-fin-edit-panel]"); el?.scrollIntoView({ behavior: "smooth", block: "center" }); (el?.querySelector("[data-fin-edit-amount]") as HTMLElement | null)?.focus({ preventScroll: true }); }, [editId]);
   const [edRefusalN, setEdRefusalN] = useState(0);
   const edRefuse = (why: string) => { setEdRefusal(`${t("fin.refused")} · ${why}`); setEdRefusalN((n) => n + 1); };
@@ -625,7 +682,7 @@ export function FinancialCommandUX1() {
           {/* r.042 (addendum 78 + the AsM pre-push review "the header is not visibly smaller"): the mini Trinity sits IN the top bar,
               centred between eXeL AI and the globe — one-third size, no text, the selected colour; a tap grows it in place below the bar */}
           {!trinityBig && (
-            <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} onClick={() => setTrinityBig(true)} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full">
+            <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} ref={trinityBtn} onClick={() => { trinityMoved.current = true; setTrinityBig(true); }} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full">
               <SoITrinity labels={["", "", ""]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={63} />
             </button>
           )}
@@ -636,7 +693,7 @@ export function FinancialCommandUX1() {
           </div>
         </div>
         {trinityBig && (
-          <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} onClick={() => setTrinityBig(false)} className="mx-auto block rounded-full">
+          <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} ref={trinityBtn} onClick={() => { trinityMoved.current = true; setTrinityBig(false); }} className="mx-auto block rounded-full">
             {/* r.073 (addendum 168 "the trinity logo should be method from Main and already use right text sizes"): drawn exactly the way
                 Main (the home page) draws it — the same call, Main's size, the component's own text size and offsets (FD-89's
                 Financial-only font and centring retired); the ring follows the selected colour like every accent here */}
@@ -739,9 +796,9 @@ export function FinancialCommandUX1() {
             outside the fold so folding never hides it */}
         {owner && (
           <div data-fin-tx-top>
-            {saveFailed && !retrying && <p role="alert" data-fin-save-failed className="mb-2 text-sm text-amber-500">{cloudState === "saved" ? t("fin.save_failed_cloud") : t("fin.save_failed")}</p>}
+            {saveFailed && !retrying && <p role="alert" data-fin-save-failed className="mb-2 text-sm text-amber-500">{holdsRecord ? t("fin.save_failed_cloud") : t("fin.save_failed")}</p>}
             {formOpen && (
-            <div id="fin-transaction-form" className={SUB} data-testid="fin-transaction-form" data-fin-tx-type={txType || "none"}>
+            <div id="fin-transaction-form" role="group" aria-label={t("fin.transaction")} className={SUB} data-testid="fin-transaction-form" data-fin-tx-type={txType || "none"}>
               <div className="flex items-center justify-between gap-2">
                 <div className={LABEL}>{t("fin.transaction")}</div>
                 <button type="button" data-fin-tx-close aria-expanded={true} aria-label={t("fin.tx_close")} title={t("fin.tx_close")} onClick={foldForm} className="flex h-8 w-9 items-center justify-center rounded-md border border-border"><X size={14} strokeWidth={1.5} aria-hidden /></button>
@@ -781,7 +838,7 @@ export function FinancialCommandUX1() {
                 <label className="text-xs text-muted-foreground">{t("fin.memo")}<input className={INPUT} value={memo} onChange={(e) => setMemo(e.target.value)} /></label>
               </div>
               <button type="button" data-fin-record disabled={!txType} data-fin-retry={retrying ? "1" : undefined} className={`mt-2 ${txType === "withdrawal" ? SECONDARY : PRIMARY} disabled:opacity-50`} onClick={retrying ? retrySave : recordTransaction}>{retrying ? t("fin.save_retry") : txType === "withdrawal" ? t("fin.withdraw") : t("fin.record_it")}</button>
-              {retrying && <p role="alert" data-fin-save-retry className="mt-2 text-sm text-amber-500">{t("fin.save_failed_form")}</p>}
+              {retrying && <p key={retryN} role="alert" data-fin-save-retry className="mt-2 text-sm text-amber-500">{t("fin.save_failed_form")}</p>}
               {refusal && <p role="alert" key={refusalN} className="mt-2 text-sm text-red-500">{t("fin.refused")} · {refusal}</p>}
             </div>
             )}
@@ -804,7 +861,7 @@ export function FinancialCommandUX1() {
                   the pressed state is a stroke ring, never a fill (the vector law). Only a signed-in person edits — the plan is saved under their key. */}
               {(
                 <button type="button" data-fin-budget-edit aria-pressed={editing} aria-label={editing ? t("fin.done") : t("fin.edit")} title={editing ? t("fin.done") : t("fin.edit")}
-                  onClick={() => { setEditing((v) => !v); setDrafts({}); }}
+                  onClick={() => { setEditing((v) => !v); setDrafts({}); setBudgetBad(""); }}
                   className={`rounded-md border p-1 ${editing ? "border-primary ring-1 ring-inset ring-primary" : "border-border"}`}>
                   {editing ? <Check size={14} strokeWidth={1.5} aria-hidden /> : <Pencil size={14} strokeWidth={1.5} aria-hidden />}
                 </button>
@@ -853,7 +910,8 @@ export function FinancialCommandUX1() {
                         {editing && !fromRecord(l.fieldId) ? (
                           <span className="flex items-center justify-end gap-1">
                             <input data-fin-plan-amount={l.fieldId} className="w-24 min-[360px]:w-28 rounded-md border border-border bg-background px-2 py-1 text-right text-xs text-foreground" inputMode="decimal"
-                              value={drafts[l.fieldId] ?? String(editFigure(l))} onChange={(e) => typeAmount(l.fieldId, e.target.value)} onBlur={() => setDrafts((d) => { const n = { ...d }; delete n[l.fieldId]; return n; })} />
+                              value={drafts[l.fieldId] ?? editFigure(l)} onFocus={() => { focusLine.current = plan.find((x) => x.fieldId === l.fieldId) ?? null; }} onChange={(e) => typeAmount(l.fieldId, e.target.value)}
+                              onBlur={() => setDrafts((d) => { const v = d[l.fieldId]; if (v !== undefined && v.trim() !== "" && parseBudgetAmount(v, marks) === null) return d; const n = { ...d }; delete n[l.fieldId]; return n; })} aria-invalid={budgetBad === l.fieldId || undefined} />
                             <button type="button" data-fin-plan-remove={l.fieldId} aria-label={t("fin.remove_line")} title={t("fin.remove_line")} onClick={() => writePlan(removeLine(plan, l.fieldId))} className="rounded-md border border-border p-1"><X size={12} strokeWidth={1.5} aria-hidden /></button>
                           </span>
                         ) : numDollars(inPeriod(l))}
@@ -864,6 +922,8 @@ export function FinancialCommandUX1() {
               <tr className={`border-t border-border font-semibold ${totals.net < 0 ? "text-red-500" : "text-green-500"}`}><td data-fin-budget-net-label className="py-1 pr-2 text-[11px] min-[360px]:whitespace-nowrap">{/* r.045 (addendum 94): the Net line names its sign */}{totals.net < 0 ? t("fin.net_down") : t("fin.net_up")}</td><td data-fin-budget-net className="py-1 text-right tabular-nums">{numDollars(totals.net)}</td></tr>
             </tbody>
           </table>
+          {/* r.073 second pre-push review (Enki): a refused figure is said — its own row, so a 320 px table never widens; the line kept its figure */}
+          {editing && budgetBad && <p key={budgetBad} role="alert" data-fin-budget-bad className="mt-2 text-xs text-red-400">{t(amountProblem(drafts[budgetBad] ?? "", marks) === "large" ? "fin.reason_amount_large" : "fin.reason_amount_form")}</p>}
           {editing && (
             <div data-fin-plan-add className="mt-2 grid gap-2 sm:grid-cols-3">
               {/* add a line: a FLOW field A–M not yet on the plan (the pickers are inline, never a nested component — the picker law, r.014) */}
@@ -879,7 +939,7 @@ export function FinancialCommandUX1() {
               </label>
               <span className="flex items-end gap-2">
                 <button type="button" data-fin-plan-add-btn disabled={!addable.length} onClick={() => { const id = addable.some((f) => f.id === addField) ? addField : addable[0]?.id; if (id) writePlan(addLine(plan, id)); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs disabled:opacity-50">{t("fin.add_line")}</button>
-                <button type="button" data-fin-plan-reset onClick={() => { clearPlan(planOwner); setPlan(sheetPlan()); setDrafts({}); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs">{t("fin.reset_sheet")}</button>
+                <button type="button" data-fin-plan-reset onClick={() => { writePlan(sheetPlan()); setDrafts({}); setBudgetBad(""); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs">{t("fin.reset_sheet")}</button>
               </span>
             </div>
           )}
@@ -903,7 +963,7 @@ export function FinancialCommandUX1() {
             <ChevronRight size={14} strokeWidth={1.5} aria-hidden className="transition-transform group-open:rotate-90" />
             <span className={LABEL}>{t("fin.tx_record")}{owner && tampered ? ` · ${t("fin.chain_broken")}` : ""}</span>
             {/* r.055: a small cloud says the record is in his account (tap-hold shows when) — no sentence on the glass */}
-            {owner && <span data-fin-cloud={cloudState} role="img" title={cloudState === "saved" ? `${t("fin.cloud_saved")} · ${fmtStampCST(cloudAt)}` : t("fin.cloud_not_yet")} aria-label={cloudState === "saved" ? t("fin.cloud_saved") : t("fin.cloud_not_yet")} className={cloudState === "saved" ? "text-green-500" : "text-muted-foreground"}>{/* r.065 (addendum 140 "use better cloud icon … universally accepted"): cloud-with-check = saved to your account, cloud-with-slash = not yet */}{/* r.067 (addendum 150 "ensure cloud raster with checkmark looks like this"): his cloud — three rounded bumps, a flat base, a bold outline */}<CloudMark saved={cloudState === "saved"} /></span>}   {/* r.041 (addenda 76–77): "TRANSACTION RECORD"; a broken chain is still said */}
+            {owner && <span data-fin-cloud={cloudMark} role="img" title={acctHolds ? `${t("fin.cloud_saved")} · ${fmtStampCST(cloudAt)}` : t("fin.cloud_not_yet")} aria-label={acctHolds ? t("fin.cloud_saved") : t("fin.cloud_not_yet")} className={acctHolds ? "text-green-500" : "text-muted-foreground"}>{/* r.065 (addendum 140 "use better cloud icon … universally accepted"): cloud-with-check = saved to your account, cloud-with-slash = not yet */}{/* r.067 (addendum 150 "ensure cloud raster with checkmark looks like this"): his cloud — three rounded bumps, a flat base, a bold outline */}<CloudMark saved={acctHolds} /></span>}   {/* r.041 (addenda 76–77): "TRANSACTION RECORD"; a broken chain is still said */}
           </summary>
           <div data-fin-ledger-scroll className="mt-2 overflow-x-auto">
             <table data-fin-ledger-table className="min-w-full whitespace-nowrap font-mono text-xs text-muted-foreground">
@@ -941,8 +1001,8 @@ export function FinancialCommandUX1() {
           </div>
           {/* r.062: the editor opens UNDER the table, full width (inside the sideways-scrolling table it sat off-screen on a phone) */}
           {owner && editId && (() => { const e = record.entries.find((q) => q.tx.id === editId); return e ? (
-            <div data-fin-edit-panel={e.rev} className="mt-2 rounded-md border border-border p-2 text-xs">
-              <p className="mb-2 font-mono text-muted-foreground">{t("fin.edit_tx")} · #{e.rev}</p>
+            <div data-fin-edit-panel={e.rev} role="group" aria-labelledby="fin-edit-title" className="mt-2 rounded-md border border-border p-2 text-xs">
+              <p id="fin-edit-title" className="mb-2 font-mono text-muted-foreground">{t("fin.edit_tx")} · #{e.rev}</p>
               {/* r.073 (addendum 164 "all fields in edit of Transaction record should be possible to edit"): every field the form has */}
               <div className="grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap">
                           <label className="col-span-2 text-[10px] uppercase">{t("fin.type")}
@@ -968,7 +1028,7 @@ export function FinancialCommandUX1() {
 
         {/* r.067 CREDIT CARDS (addenda 142–144) as of r.070 (addenda 154–157): the person's own cards — balance, available, the balance over
             time with the Red / Amber Alert lines; Add card, rename and remove; folded until opened */}
-        {owner && <CardsPanel cards={cards} txs={recTxs} now={at} onSave={saveCards} onPay={payCard} t={t} />}
+        {owner && <CardsPanel cards={cards} txs={recTxs} now={at} onSave={saveCards} onPay={payCard} t={t} marks={marks} failed={cardsFailed} />}
 
         {/* the year as a TABLE, key info in order, PERIHELION FIRST (r.028, addendum 58); months of 30 days (r.046 month law), no 33-day frame */}
         {year && (() => {
@@ -1174,22 +1234,26 @@ const CARD_NAME_MAX = 40;
 const unitHead = (label: string, cur: string): string => `${label.replace(/ \(/g, "\u00a0(").replace(/(\d) /g, "$1\u00a0")},\u00a0${cur}`;
 const ALERT_WORD: Record<CardLevel, string> = { ok: "", amber: "fin.card_level_amber", red: "fin.card_level_red", over: "fin.card_level_over" };
 /** r.067 THE CARDS PANEL (module-level: the picker law — the 1 s clock never remounts its selects). */
-function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs: FinTx[]; now: number; onSave: (c: Card[]) => void; onPay: (id: string) => void; t: (k: string) => string }) {
+function CardsPanel({ cards, txs, now, onSave, onPay, t, marks, failed }: { cards: Card[]; txs: FinTx[]; now: number; onSave: (c: Card[]) => void; onPay: (id: string) => void; t: (k: string) => string; marks: readonly string[]; failed: boolean }) {
   const [pick, setPick] = useState(cards[0]?.id ?? "");
   const [gear, setGear] = useState(false);
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [draft, setDraft] = useState({ name: "", limit: "", amber: "", red: "", opening: "" });
-  const [bad, setBad] = useState("" as "" | "levels" | "name");
+  const [bad, setBad] = useState("" as "" | "levels" | "name" | "amount");
   const card = cards.find((c) => c.id === pick) ?? cards[0];
   const bal = card ? cardBalanceAt(card, txs, now) : 0, lv: CardLevel = card ? cardLevel(card, bal) : "ok";
-  const cents = (v: string) => parseCardCents(v);   // r.073 pre-push review (Enki): "1e400" or "0x10" never make a card — the card's check refuses NaN
+  // r.073 pre-push review (Enki): "1e400" or "0x10" never make a card — the card's check refuses NaN; r.073 second review (Enki): the currency's
+  // own mark is read here as on every other form ("R$ 3,000" under BRL), and a figure that does not read is said as such, never as a levels problem
+  const cents = (v: string) => parseCardCents(v, marks);
+  const unread = (...vals: string[]) => vals.some((v) => Number.isNaN(cents(v)));
   // r.070 (addendum 157 "allow user to set up their own CC"): a card the person sets up — a name (never a number), a limit and the balance as
   // of now; an amber or red level left blank takes his proportions, half and two-thirds of the limit (shown as the field's hint)
   const openAdd = () => { setDraft({ name: "", limit: "", amber: "", red: "", opening: "" }); setBad(""); setGear(false); setRemoving(false); setAdding((v) => !v); };
   const hint = (f: number) => (cents(draft.limit) > 0 ? ((cents(draft.limit) * f) / 100).toFixed(2) : "");
   const add = () => {
     if (!draft.name.trim() || looksLikeCardNumber(draft.name)) { setBad("name"); return; }
+    if (unread(draft.limit, draft.opening, draft.amber, draft.red)) { setBad("amount"); return; }
     const c = newCard({ name: draft.name, limitCents: cents(draft.limit), openingCents: draft.opening.trim() ? cents(draft.opening) : 0, amberCents: draft.amber.trim() ? cents(draft.amber) : undefined, redCents: draft.red.trim() ? cents(draft.red) : undefined }, now, uniqueCardId(cards, now));
     if (!c) { setBad("levels"); return; }
     setBad(""); setAdding(false); setPick(c.id); onSave([...cards, c]);
@@ -1198,8 +1262,12 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
   const save = () => {
     if (!card) return;
     if (!draft.name.trim() || looksLikeCardNumber(draft.name)) { setBad("name"); return; }
-    // r.070 (AsM review, Enki): a balance left as shown keeps the opening and its date; only a changed one re-bases at now (cards.ts)
-    const c2 = applyCardSettings(card, { name: draft.name, limitCents: cents(draft.limit), amberCents: cents(draft.amber), redCents: cents(draft.red), openingCents: cents(draft.opening) }, bal, now);
+    if (unread(draft.limit, draft.opening, draft.amber, draft.red)) { setBad("amount"); return; }
+    // r.070 (AsM review, Enki): a balance left as shown keeps the opening and its date; only a changed one re-bases at now (cards.ts). r.073 second
+    // review (Enki): "left as shown" is read from the text itself — a card in credit shows "-264.73", which no reader takes, and every edit of it
+    // was refused. A level left blank takes the add form's proportions (half and two-thirds of the limit), never 0.00 (a permanent amber alert).
+    const lim = cents(draft.limit);
+    const c2 = applyCardSettings(card, { name: draft.name, limitCents: lim, amberCents: draft.amber.trim() ? cents(draft.amber) : Math.round(lim * 0.5), redCents: draft.red.trim() ? cents(draft.red) : Math.round((lim * 2) / 3), openingCents: draft.opening.trim() === (bal / 100).toFixed(2) ? bal : cents(draft.opening) }, bal, now);
     if (!c2) { setBad("levels"); return; }
     setBad("");
     onSave(cards.map((c) => (c.id === card.id ? c2 : c))); setGear(false);
@@ -1208,11 +1276,14 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
   const remove = () => { if (!card) return; const next = cards.filter((c) => c.id !== card.id); setGear(false); setRemoving(false); setPick(next[0]?.id ?? ""); onSave(next); };
   const LV = { ok: "text-green-500", amber: "text-yellow-600 dark:text-yellow-400", red: "text-red-400", over: "text-red-400" }[lv];   // r.070 (AsM, Sofia): red-400 holds AA contrast on his theme
   const FIELD = "h-9 rounded-md border border-border bg-background px-2 font-mono text-sm text-foreground";
-  const badLine = bad && <p data-fin-cards-bad className="col-span-2 text-xs text-red-400">{t(bad === "name" ? "fin.card_name_bad" : "fin.card_bad")}</p>;
+  const badLine = bad && <p data-fin-cards-bad className="col-span-2 text-xs text-red-400">{t(bad === "name" ? "fin.card_name_bad" : bad === "amount" ? "fin.reason_amount_form" : "fin.card_bad")}</p>;
   return (
     /* r.070 (addendum 156 "have CC default minimized"): folded to its title like the Transaction Record and the Year Position; opened,
        Pay card and the settings sit on the first row (the Year card's pattern — no button inside the summary). An alert still shows at the
        top of the cockpit while the panel is closed. */
+    <>
+    {/* r.073 second pre-push review (Thor): cards this device would not keep are said — above the folded panel, so it is seen */}
+    {failed && <p role="alert" data-fin-cards-save-failed className="mb-2 text-sm text-amber-500">{t("fin.save_failed_cards")}</p>}
     <details data-fin-cards className={`group ${SUB}`}>
       <summary className="flex min-h-[36px] cursor-pointer list-none items-center gap-1" aria-label={t("fin.cards_title")}>
         <ChevronRight size={14} strokeWidth={1.5} aria-hidden className="transition-transform group-open:rotate-90" />
@@ -1274,6 +1345,7 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
       <CardChart card={card} txs={txs} now={now} t={t} />
       </>)}
     </details>
+    </>
   );
 }
 /** The card's balance chart and its Alerts key (r.067 · r.070) — only ever drawn for a card that exists. */
@@ -1386,23 +1458,48 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   // the focus) showed only part of a layout-sized view: cut at both edges (measured at ×1.14: 8 controls past the right edge; at ×1.33 the
   // left edge too). Sized and placed to the visual viewport, everything fits whatever the zoom.
   const [vv, setVv] = useState(null as null | { l: number; t: number; w: number; h: number });
+  const layerRef = useRef(null as HTMLDivElement | null);
   useEffect(() => {
     if (!full) return;
     const v = typeof window !== "undefined" ? window.visualViewport : null;
     const size = () => { setVh((v ? v.height : window.innerHeight) || 800); setVv(v ? { l: v.offsetLeft, t: v.offsetTop, w: v.width, h: v.height } : null); };
     size();
-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setFull(false); };
+    // r.073 second pre-push review (Sofia): the full screen is a dialog — Tab stays inside it (it used to walk on to the hidden panels behind)
+    const keys = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setFull(false); return; }
+      const box = layerRef.current; if (e.key !== "Tab" || !box) return;
+      const f = Array.from(box.querySelectorAll<HTMLElement>("button, select, input, [tabindex]:not([tabindex='-1'])")).filter((el) => !el.hasAttribute("disabled") && el.getClientRects().length > 0);
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1], inBox = box.contains(document.activeElement);
+      if (!inBox || (e.shiftKey && document.activeElement === first)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    // r.073 second pre-push review (Athena): the page comes back where it was — the layer takes the chart out of the page, the page grew shorter
+    // and its scroll was clamped (the chart came back 273 px lower at 390 px)
+    const y0 = window.scrollY;
     const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
-    window.addEventListener("resize", size); window.addEventListener("keydown", esc); v?.addEventListener("resize", size); v?.addEventListener("scroll", size);
-    return () => { document.body.style.overflow = prev; window.removeEventListener("resize", size); window.removeEventListener("keydown", esc); v?.removeEventListener("resize", size); v?.removeEventListener("scroll", size); };
+    window.addEventListener("resize", size); window.addEventListener("keydown", keys); v?.addEventListener("resize", size); v?.addEventListener("scroll", size);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("resize", size); window.removeEventListener("keydown", keys); v?.removeEventListener("resize", size); v?.removeEventListener("scroll", size); requestAnimationFrame(() => window.scrollTo(0, y0)); };
   }, [full]);
+  // r.073 second pre-push review (Athena — his addendum 165 again, in landscape): the chart takes the height LEFT in the visible screen, never a
+  // fixed floor of 300 px (844×390 at rest showed the canvas at 136–436 px of a 390 px screen: dates cut, the legend and the unit picker gone).
+  // Measured after each paint: whatever does not fit comes off the chart, whatever room is left goes to it (floor 140 px, ceiling the screen).
+  const [fitH, setFitH] = useState(0);
+  useEffect(() => {
+    if (!full) { if (fitH) setFitH(0); return; }
+    const box = layerRef.current; if (!box) return;
+    const cur = fitH || Math.max(140, vh - 260);
+    const next = Math.max(140, Math.min(Math.round(vh), Math.round(cur - (box.scrollHeight - box.clientHeight))));
+    if (!fitH || Math.abs(next - cur) > 2) setFitH(next);
+  });
+  const chartH = full ? fitH || Math.max(140, vh - 260) : 300;
   const sample = dayTicks(from, to, 6)[0] ?? from;
   return (
-    <div data-fin-chart data-fin-chart-full={full ? "1" : "0"} className={full ? "fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden bg-background p-3" : SUB} style={full && vv ? { left: vv.l, top: vv.t, width: vv.w, height: vv.h, right: "auto", bottom: "auto" } : undefined}>
+    <div ref={layerRef} data-fin-chart data-fin-chart-full={full ? "1" : "0"} role={full ? "dialog" : undefined} aria-modal={full || undefined} aria-label={full ? t("fin.realtime") : undefined} className={full ? "fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden bg-background p-3" : SUB} style={full && vv ? { left: vv.l, top: vv.t, width: vv.w, height: vv.h, right: "auto", bottom: "auto" } : undefined}>
       {/* r.028 (addendum 58): no "Money as time — this MoT" phrase; Planet on the LEFT, the Clock · MoT toggle and the gear on the RIGHT */}
       <div className="flex items-center justify-between gap-2">
         <div className={LABEL}>{t("fin.realtime")}</div>
-        <button type="button" data-fin-chart-expand aria-pressed={full} aria-label={full ? t("fin.chart_close") : t("fin.chart_expand")} title={full ? t("fin.chart_close") : t("fin.chart_expand")} onClick={() => setFull((f) => !f)} className="flex h-8 w-9 items-center justify-center rounded-md border border-border text-muted-foreground">{full ? <X size={16} strokeWidth={1.5} aria-hidden /> : <Maximize2 size={16} strokeWidth={1.5} aria-hidden />}</button>
+        <button type="button" data-fin-chart-expand aria-label={full ? t("fin.chart_close") : t("fin.chart_expand")} title={full ? t("fin.chart_close") : t("fin.chart_expand")} onClick={() => setFull((f) => !f)} className="flex h-8 w-9 items-center justify-center rounded-md border border-border text-muted-foreground">{full ? <X size={16} strokeWidth={1.5} aria-hidden /> : <Maximize2 size={16} strokeWidth={1.5} aria-hidden />}</button>
       </div>   {/* r.041 (addendum 76 "call this: REAL-TIME FINANCIALS"); the elapsed time stays in the line below */}
       {/* r.073 (addendum 165): the row wraps when the screen he sees is narrower than the controls (a zoomed phone at 320 px shows ~241 px) —
           the Clock · MoT toggle and the gear drop to a second line, still on the right, never past the edge */}
@@ -1439,11 +1536,12 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
         ))}
       </div>
       {/* r.065 (addendum 138 "get rid of +- map guidance"): the + 1 h − row is gone; the chart pinches and drags on its own */}
-      {rate && <RateView txs={txs.length ? txs : [tx]} now={now} span={span} liveHours={LIVE_WINDOWS[zoom].h} unit={unit as RateUnitId} showAbc={showAbc} dateFmt={dateFmt} angle={angle} planet={planet} t={t} height={full ? Math.max(300, vh - 260) : 300} tail={unitPicker} />}
+      {rate && <RateView txs={txs.length ? txs : [tx]} now={now} span={span} liveHours={LIVE_WINDOWS[zoom].h} unit={unit as RateUnitId} showAbc={showAbc} dateFmt={dateFmt} angle={angle} planet={planet} t={t} height={chartH} tail={unitPicker} />}
       {!rate && <>
       <p data-fin-chart-probe className="mt-2 min-h-[16px] font-mono text-xs text-foreground">{probe !== null && (showAbc ? fmtMot(positionInYear(probe, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(probe)} CST`)}</p>
       {/* r.053 (addendum 110 "Like a stock chart I should be able to click and see values at that day/time"): the values at the tapped point */}
       {probeBal && <p data-fin-chart-values className="flex flex-wrap gap-x-3 font-mono text-xs tabular-nums"><span style={{ color: C.abundance }}>{t("fin.released")} {money2(probeBal.releasedCents)}</span><span style={{ color: C.intelligence }}>{t("fin.escrowed")} {money2(probeBal.escrowedCents)}</span><span className="text-foreground">{t("fin.available")} {money2(probeBal.availableCents)}</span>{probeNet !== null && <span className={probeNet < 0 ? "text-red-500" : "text-green-500"}>{t("fin.net")} {money2(probeNet)}</span>}</p>}
+      <div data-fin-usd-fit style={full ? { maxWidth: Math.round((chartH * W) / H) } : undefined}>
       <div data-fin-chart-plot className="relative mt-2">
       {/* the $ scale on the LEFT (addendum 101), HTML beside the strokes (the chart paints no face), in the picked currency */}
       <div data-fin-y-axis aria-hidden className="pointer-events-none absolute inset-0 font-mono text-[10px] text-muted-foreground">
@@ -1476,6 +1574,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
       )}
       {/* A.B..C mode: five marks; a mark is two lines (A · .BBBB..CCCC) so five of them fit a 390 px phone without overprinting */}
       {showAbc && <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{axis.map((a, i) => <span key={i} className={`whitespace-pre-line ${i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}`}>{a.replace(".", "\n.").replace("..", "\n..")}</span>)}</div>}
+      </div>
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
         <span style={{ color: C.abundance }}>— {t("fin.released")}</span><span style={{ color: C.intelligence }}>— {t("fin.escrowed")}</span><span>| {t("fin.now")}</span><span style={{ color: C.evolution }}>| {t("fin.withdrawal")}</span>
       </p>

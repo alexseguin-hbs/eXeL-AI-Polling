@@ -18,8 +18,9 @@ export interface FinRecord { owner: string; entries: FinEntry[] }
 const PREFIX = "exel-fin:";
 const KEY = (owner: string) => `${PREFIX}${owner}`;
 
-/** Key-sorted JSON, so the same transaction always hashes the same. */
-const stableJson = (v: unknown): string =>
+/** Key-sorted JSON, so the same transaction always hashes the same — and, r.073 second pre-push review (Krishna), so two copies of the same
+ *  budget or cards compare equal whatever order the account store hands their keys back in (it keeps jsonb: shortest key first). */
+export const stableJson = (v: unknown): string =>
   JSON.stringify(v, (_k, x) => (x && typeof x === "object" && !Array.isArray(x) ? Object.fromEntries(Object.keys(x as object).sort().map((k) => [k, (x as Record<string, unknown>)[k]])) : x)) ?? "null";
 /** FNV-1a, two 32-bit lanes → 16 hex chars. A tamper-evidence chain for a phone, not a signature. */
 export function chainHash(prev: string, tx: FinTx, rev: number, at: number): string {

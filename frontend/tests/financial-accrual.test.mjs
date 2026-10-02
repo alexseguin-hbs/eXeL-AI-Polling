@@ -336,19 +336,19 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
     const kept = R.correctTx(m0, "mo", { motDays: 7 }, t0 + 1), fixed = R.correctTx(m0, "mo", { motDays: 7, recurrence: "other" }, t0 + 1), once = R.correctTx(m0, "mo", { motDays: 0, recurrence: "once" }, t0 + 1);
     ok(L.withMonthLaw(R.replay(kept)[0]).motDays === 30 && L.withMonthLaw(R.replay(fixed)[0]).motDays === 7 && L.withMonthLaw(R.replay(once)[0]).motDays === 0, "r.073 (Enlil): 30 → 7 on a Monthly entry is read as 7 only off the preset (it read 30 before — the edit had no effect); blank is one time");
     const ux = (await import("node:fs")).readFileSync(new URL("../components/financial-2525/command-ux1.tsx", import.meta.url), "utf8");
-    ok(/\.\.\.\(lengthMoved && \(days !== \(withMonthLaw\(cur\)\.motDays \?\? 0\) \|\| ed\.rec !== cur\.recurrence\) \? \{ motDays: days, recurrence: ed\.rec \} : \{\}\),/.test(ux) && /const len = r && r !== "other" && RECURRENCES\.includes\(r\) \? \{ rec: r, otherN: "" \}/.test(ux), "…the pencil opens on the entry's own preset (Monthly reads Monthly) and a changed length carries its preset");
+    ok(/\.\.\.\(lengthMoved && \(days !== \(withMonthLaw\(cur\)\.motDays \?\? 0\) \|\| ed\.rec !== cur\.recurrence\) \? \{ motDays: days, recurrence: ed\.rec \} : \{\}\),/.test(ux) && /const len = r && r !== "other" && RECURRENCES\.includes\(r\) \? \{ rec: r, otherN: "", otherUnit: "days" as LengthUnit \}/.test(ux), "…the pencil opens on the entry's own preset (Monthly reads Monthly) and a changed length carries its preset");
     ok(/if \(Object\.keys\(edit\)\.length === 0\) \{ setEditId\(null\); return; \}/.test(ux) && /const moved = \(k: keyof typeof ED0\) => String\(ed\[k\]\)\.trim\(\) !== String\(ed0\[k\]\)\.trim\(\);/.test(ux), "r.073 (Christo): only what the person changed goes into the correction; Done with nothing changed appends nothing (an entry recorded at 'now' keeps its exact instant)");
     // (7) Odin — the 12-hour timer, the return to the page and the network coming back call the LATEST sync, which reads the latest record,
     // budget and cards (the old interval kept the opening render's push and wrote the opening state back over the account)
     ok(/const syncRef = useRef\(sync\); syncRef\.current = sync;/.test(ux) && /setInterval\(\(\) => \{ void syncRef\.current\(\); \}, PUSH_EVERY_MS\)/.test(ux) && /const recordRef = useRef\(record\); recordRef\.current = record;/.test(ux) && /const planRef = useRef\(plan\); planRef\.current = plan;/.test(ux) && /const cardsRef = useRef\(cards\); cardsRef\.current = cards;/.test(ux) && !/\bpushAll\b/.test(ux), "r.073 (Odin): every timer calls the latest sync through a ref, which reads the latest record, budget and cards");
-    ok(/cloudPut\(key, "fin-plan", \{ lines: planRef\.current,/.test(ux) && /if \(cp && Array\.isArray\(cp\.lines\) && cp\.at > planAt\)/.test(ux) && /else if \(!cp \|\| planAt > cp\.at \|\| \(cp\.at === planAt && JSON\.stringify\(cp\.lines\) !== JSON\.stringify\(planRef\.current\)\)\)/.test(ux), "…the budget is sent only when this device's edit is newer than the account's, and taken from the account when it is older (a stale tab never puts an old budget back)");
+    ok(/cloudPut\(key, "fin-plan", \{ lines: mine, at: at0 \} satisfies PlanDoc\)/.test(ux) && /const cp = p\.data, planAt = planAtRef\.current, mine = planRef\.current;/.test(ux) && /const ch = syncChoice\(\{ doc: mine, at: planAt \}, remote\);/.test(ux) && /if \(ch === "take" && remote\) \{ planRef\.current = remote\.doc;/.test(ux), "…the budget is sent only when this device's edit is newer than the account's, and taken from the account when it is older (a stale tab never puts an old budget back)");
     ok(/window\.addEventListener\("pagehide", flush\); window\.addEventListener\("online", flush\);/.test(ux) && /else flush\(\); \};/.test(ux), "r.073: a change made just before the page is hidden or closed is sent at once; a send that failed offline is sent when the network returns");
     ok(/if \(e\.key === recordKey\(owner\)\) \{ const s = readStored\(owner\); if \(s\) \{ const u = recordRef\.current\.owner === owner \? unionRecords\(recordRef\.current, s\) : s;/.test(ux), "r.073 (Krishna): another tab's save is united into this tab at once (and never under another sign-in's name)");
     ok(/if \(r\.state === "ok"\) \{/.test(ux) && /\} else out\.push\(r\.state === "off" \? "offline" : r\.state\);/.test(ux), "r.073: a failed read writes nothing over the account (a failed read is never taken for an empty account)");
     ok(/const lacks = recordRef\.current\.entries\.length > 0 && !\(cloudRec && sameChain\(recordRef\.current, cloudRec\)\);/.test(ux) && /const wrote = kept === "saved" && lacks;/.test(ux) && /const st = kept !== "saved" \? kept : wrote \? await cloudPut\(key, "fin-record", sent\) : "saved";/.test(ux), "r.073: the account record is written only when it lacks something, never with nothing, and never before a copy that fails its chain has been kept");
     ok(/if \(wrote && out\[out\.length - 1\] === "saved"\) readBack\.current = true;/.test(ux) && /if \(readBack\.current\) \{ readBack\.current = false; setTimeout\(\(\) => \{ void syncRef\.current\(\); \}, 4000\); \}/.test(ux), "r.073: a record write is read back once a few seconds later — another device writing in the same moment never leaves an entry out of the account");
     // (8) Thor — a full phone: the form stays open with what was typed, says so, and its button saves the same entry again (never a second one)
-    ok(/const retrying = unsaved !== null;/.test(ux) && /onClick=\{retrying \? retrySave : recordTransaction\}/.test(ux) && /const retrySave = \(\) => \{\s*const u = unsaved; if \(!u\) return;/.test(ux) && /if \(persist\(next\)\) \{ setAmt\(""\); setMemo\(""\); setWhen\(""\); foldForm\(\); \} else setUnsaved\(\{ id: uid, ident: u\.ident, key: formKey \}\);/.test(ux) && /\{retrying && <p role="alert" data-fin-save-retry/.test(ux), "r.073 (Thor): when the phone will not keep the entry the form stays open, says so, and tries the same save again — never a second copy");
+    ok(/const retrying = unsaved !== null;/.test(ux) && /onClick=\{retrying \? retrySave : recordTransaction\}/.test(ux) && /const retrySave = \(\) => \{\s*const u = unsaved; if \(!u\) return;/.test(ux) && /if \(persist\(next\)\) \{ setAmt\(""\); setMemo\(""\); setWhen\(""\); foldForm\(\); \} else \{ setUnsaved\(\{ id: uid, ident: u\.ident, key: formKey \}\); setRetryN\(\(n\) => n \+ 1\); \}/.test(ux) && /\{retrying && <p key=\{retryN\} role="alert" data-fin-save-retry/.test(ux), "r.073 (Thor): when the phone will not keep the entry the form stays open, says so, and tries the same save again — never a second copy");
     ok(/\{owner && cloudReady && isOperator\(user\?\.email\) && record\.entries\.length === 0 && \(/.test(ux), "r.073 (Christo): Put back my entries waits until the account copy has been read");
   }
   // (9) Enki — one reader for what is typed
@@ -396,8 +396,8 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
       "r.073 pre-push (Enlil): an entry a union renamed (x → x~2) is found by what it is — the open editor and the retry never change another entry under the id they remembered"); }
   // (E) Enki: the budget and the card settings read what is typed with strict readers (Number() took "0x10" as 16, "1e3" as 1,000 and "1e400" as Infinity)
   { const PB = T.parseBudgetAmount, PC = T.parseCardCents;
-    ok(PB("1,234.56") === 1234.56 && PB("0") === 0 && PB(".5") === 0.5 && PB("0.067300") === 0.0673 && PB("$12") === 12 && PB("R$ 3", ["R$"]) === 3 && ["0x10", "1e3", "12,50", "-1", "Infinity", "1e400", "abc", "", "1000000000000", "1.0000001"].every((x) => PB(x) === null),
-      "r.073 pre-push (Enki): a budget figure — 1,234.56 applies, a per-second fraction keeps its six decimals; 0x10, 1e3, 12,50, a sign, Infinity and one trillion never set a line");
+    ok(PB("1,234.56") === 1234.56 && PB("0") === 0 && PB(".5") === 0.5 && PB("0.067300") === 0.0673 && PB("$12") === 12 && PB("R$ 3", ["R$"]) === 3 && ["0x10", "1e3", "12,50", "-1", "Infinity", "1e400", "abc", "", "1000000000000", "1.00000000001"].every((x) => PB(x) === null) && PB("0.0000390008") === 0.0000390008,
+      "r.073 pre-push (Enki): a budget figure — 1,234.56 applies, a per-second fraction keeps its decimals (ten since the second review); 0x10, 1e3, 12,50, a sign, Infinity and one trillion never set a line");
     ok(PC("") === 0 && PC("0") === 0 && PC("0.00") === 0 && PC("1,500") === 150000 && PC("2000.5") === 200050 && ["1e400", "0x10", "abc", "-5", "12,50", "Infinity"].every((x) => Number.isNaN(PC(x))),
       "…a card figure — blank or zero reads zero (the form's rule); 1e400 and 0x10 are not a number, never Infinity");
     const card = { id: "c", name: "Visa", limitCents: 300000, openingCents: 1000, openingAtMs: t0, amberCents: 150000, redCents: 200000 };
@@ -411,21 +411,89 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   const ux = fs.readFileSync(new URL("../components/financial-2525/command-ux1.tsx", import.meta.url), "utf8");
   ok(/const readOk = r\.state === "ok" \|\| r\.state === "off";/.test(ux) && /if \(ok\) setCloudReady\(true\); else timer = window\.setTimeout\(first, 30000\);/.test(ux) && /window\.addEventListener\("online", onOnline\);/.test(ux) && (ux.match(/\.state === "off" \? "offline" : [rpc]\.state/g) || []).length === 3,
     "r.073 pre-push (Christo): the account features wait for a read that SUCCEEDED (or a site with no account store); offline at sign-in, the first read is tried again every 30 s and when the network returns");
-  ok(/const here = \(\) => ownerRef\.current === who && recordRef\.current\.owner === who;/.test(ux) && (ux.match(/if \(!here\(\)\) return (readOk|false);/g) || []).length >= 4,
+  ok(/const here = \(\) => ownerRef\.current === who && recordRef\.current\.owner === who && cloudKeyRef\.current\?\.key === key;/.test(ux) && (ux.match(/if \(!here\(\)\) return (readOk|false);/g) || []).length >= 4,
     "r.073 pre-push (Thor): the sign-in is checked again after every wait of a sync — nothing of one person is written while another is signed in");
-  ok(/const fp = chainFingerprint\(m\.keep\); let last = ""; try \{ last = localStorage\.getItem\(`fin-kept-cloud:\$\{who\}`\)/.test(ux) && /if \(fp !== last\) \{ kept = await cloudPut\(key, `fin-record-kept-\$\{Date\.now\(\)\}`, m\.keep\); if \(kept === "saved"\) \{ try \{ localStorage\.setItem\(`fin-kept-cloud:\$\{who\}`, fp\);/.test(ux),
+  ok(/const fp = chainFingerprint\(m\.keep\); let last = ""; try \{ last = localStorage\.getItem\(`fin-kept-cloud:\$\{who\}`\)/.test(ux) && /if \(fp !== last && fp !== keptFp\.current\) \{ kept = await cloudPut\(key, `fin-record-kept-\$\{Date\.now\(\)\}`, m\.keep\); if \(kept === "saved"\) \{ keptFp\.current = fp; try \{ localStorage\.setItem\(`fin-kept-cloud:\$\{who\}`, fp\);/.test(ux),
     "r.073 pre-push (Thor): an account copy that fails its chain is kept aside ONCE per copy (a new phone wrote another kept row on every sync)");
-  ok(/if \(!saved\) setCloudState\(\(c\) => \(c === "saved" \? "saving" : c\)\);/.test(ux) && /const ok = out\.every\(\(x\) => x === "saved"\), behind = ok && r\.state === "ok" && held !== recordRef\.current;/.test(ux) && /setCloudState\(behind \? "saving" : ok \? "saved"/.test(ux) && /out\.push\(st\); if \(st === "saved"\) held = sent;/.test(ux),
+  ok(!/if \(!saved\) setCloudState/.test(ux) && /const behind = ok && \(held !== recordRef\.current \|\| heldPlan !== planRef\.current \|\| heldCards !== cardsRef\.current\);/.test(ux) && /setCloudState\(behind \? "saving" : ok \? "saved"/.test(ux) && /out\.push\(st\); if \(st === "saved"\) held = sent;/.test(ux) && /if \(ok\) setHolds\(\{ record: held, plan: heldPlan, cards: heldCards \}\);/.test(ux),
     "r.073 pre-push (Thor): \"saved to your account\" only after a sync that holds the record as it is now — an entry this device would not keep, or one made during a sync, waits for the next");
   ok(/const uid = followId\(next, u\.id, u\.ident\);/.test(ux) && /next = correctTx\(next, cur\.id, edit, at\);/.test(ux) && /for \(const k of Object\.keys\(edit\) as \(keyof TxEdit\)\[\]\) if \(\(edit\[k\] \?\? null\) === \(cur\[k\] \?\? null\)\) delete edit\[k\];/.test(ux) && !/setUnsaved\(formKey\)/.test(ux),
     "r.073 pre-push (Thor): after a failed save, a change in the form is applied to the entry the phone would not keep (a correction) and the save is tried again — fixing a typo never records a second entry");
   ok(/useEffect\(\(\) => \{ if \(!editId\) return; const id = followId\(record, editId, editIdent\); if \(id !== editId\) setEditId\(id\); \}, \[record, editId, editIdent\]\);/.test(ux) && /const eid = editId \? followId\(recordRef\.current, editId, editIdent\) : null;/.test(ux),
     "r.073 pre-push (Enlil): the pencil follows the entry it opened on when a union renames it; Done never edits another entry");
-  ok(/const \[planFailed, setPlanFailed\] = useState\(false\);/.test(ux) && /setPlanFailed\(!savePlan\(planOwner, next\)\)/.test(ux) && /\{planFailed && <p role="alert" data-fin-plan-save-failed/.test(ux) && !/if \(!savePlan\(planOwner, next\)\) setSaveFailed\(true\)/.test(ux),
+  ok(/const \[planFailed, setPlanFailed\] = useState\(false\);/.test(ux) && /const kept = savePlan\(who, lines\);[^\n]*setPlanFailed\(!kept\); return kept; \};/.test(ux) && /\{planFailed && <p role="alert" data-fin-plan-save-failed/.test(ux) && !/if \(!savePlan\(planOwner, next\)\) setSaveFailed\(true\)/.test(ux),
     "r.073 pre-push (Thor): a budget this device would not keep says so in the budget's own words, on its own flag (a good record save no longer hides it)");
-  ok(/const n = parseBudgetAmount\(text, cur\.symbol \? \[cur\.symbol\] : \[\]\); if \(n !== null\) writePlan/.test(ux) && /const cents = \(v: string\) => parseCardCents\(v\);/.test(ux),
+  ok(/const r = typeIntoLine\(plan, fieldId, text, period, focusLine\.current, cur\.symbol \? \[cur\.symbol\] : \[\]\);/.test(ux) && /const n = parseBudgetAmount\(text, marks\);/.test(fs.readFileSync(new URL("../lib/financial-2525/plan.ts", import.meta.url), "utf8")) && /const cents = \(v: string\) => parseCardCents\(v, marks\);/.test(ux),
     "r.073 pre-push (Enki): the budget line and the card settings read through the strict readers");
-  ok(/const tie = !!cp && cp\.at === planAt, at0 = tie \|\| !planAt \? Date\.now\(\) : planAt;/.test(ux) && /const tie = !!cc && cc\.at === cardsAt, at1 = tie \? Date\.now\(\) : cardsAt;/.test(ux),
+  ok(/const at0 = ch === "send" && planAt > 0 \? planAt : nextStamp\(Math\.max\(planAt, remote\?\.at \?\? 0\), Date\.now\(\)\);/.test(ux) && /const at1 = ch === "send" \? cardsAt : nextStamp\(Math\.max\(cardsAt, remote\?\.at \?\? 0\), Date\.now\(\)\);/.test(ux),
     "r.073 pre-push (Odin): an account budget or card list that r.072's stale push reverted (the same time, other lines) is repaired — this device's copy goes up under a new time");
+}
+// ── r.073 SECOND PRE-PUSH REVIEW (FIX-FIRST — 2 blockers / 9 should-fix, kept verbatim in docs/financial-2525/rounds/r073_prepush_review2.md):
+// each fold pinned by the reviewer's own scenario, run as behaviour where the code is pure; the page-level halves run on the built page
+// (scripts/fin-sync-probe.mjs, after every build)
+{
+  const C = await import("../lib/financial-2525/cloud.ts");
+  const T = await import("../lib/financial-2525/typed.ts");
+  const K = await import("../lib/financial-2525/cards.ts");
+  const P = await import("../lib/financial-2525/plan.ts");
+  const fs = await import("node:fs");
+  const ux = fs.readFileSync(new URL("../components/financial-2525/command-ux1.tsx", import.meta.url), "utf8");
+  const T0 = M.parseStampCST("2026.10.02_09.00..00"), MIN = 60000;
+  // (A) Krishna's blocker: the account store keeps jsonb and hands keys back shortest-first. The cards as the page saves them and as the store
+  // returns them are the SAME cards — no write; a sync loop of five never writes; a rename made later on another device reaches everyone.
+  const sent = [{ id: "c-1", name: "Capital One", limitCents: 300000, openingCents: 73527, openingAtMs: T0, amberCents: 150000, redCents: 200000 }];
+  const jsonb = (v) => JSON.parse(JSON.stringify(v, (_k, x) => (x && typeof x === "object" && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).sort((a, b) => a.length - b.length || (a < b ? -1 : 1)).map((k) => [k, x[k]])) : x)));
+  const back = jsonb(sent);
+  ok(JSON.stringify(back) !== JSON.stringify(sent) && C.syncChoice({ doc: sent, at: T0 }, { doc: back, at: T0 }, true) === "same",
+    "r.073 second review (Krishna, the blocker): identical cards handed back in jsonb key order are the same cards — no write (r.073's tie test re-sent them on every sync)");
+  { let acct = { doc: back, at: T0 }, phone = { doc: sent, at: T0 }, laptop = { doc: sent, at: T0 }, writes = 0;
+    laptop = { doc: [{ ...sent[0], name: "Capital One Quicksilver" }], at: C.nextStamp(laptop.at, T0 + 5 * MIN) };   // renamed offline
+    for (let i = 0; i < 5; i++) { const ch = C.syncChoice(phone, acct, true); if (ch === "send" || ch === "resend") { acct = { doc: jsonb(phone.doc), at: ch === "resend" ? C.nextStamp(Math.max(phone.at, acct.at), T0 + i) : phone.at }; writes++; } }
+    { const ch = C.syncChoice(laptop, acct, true); if (ch === "send" || ch === "resend") { acct = { doc: jsonb(laptop.doc), at: laptop.at }; writes++; } }
+    { const ch = C.syncChoice(phone, acct, true); if (ch === "take") phone = { doc: acct.doc, at: acct.at }; }
+    ok(writes === 1 && acct.doc[0].name === "Capital One Quicksilver" && phone.doc[0].name === "Capital One Quicksilver",
+      `…his walk: 5 phone syncs, then the laptop's offline rename comes back — ${writes} write(s), and every copy reads "${phone.doc[0].name}" (r.073: 6 writes, the rename lost)`); }
+  { const line = [{ fieldId: "B.rent_mortgage", amountNative: 700, nativePeriod: "month", amount: "700", rec: "month", otherN: "", otherUnit: "days" }];
+    ok(C.syncChoice({ doc: line, at: T0 }, { doc: jsonb(line), at: T0 }) === "same" && C.syncChoice({ doc: line, at: T0 }, { doc: [{ ...line[0], amountNative: 701 }], at: T0 }) === "resend",
+      "…the same class on the budget: a line still carrying r.021's keys reads the same in any key order; other content at the same time is still repaired"); }
+  ok(C.syncChoice({ doc: 1, at: 5 }, { doc: 2, at: 6 }) === "take" && C.syncChoice({ doc: 1, at: 6 }, { doc: 2, at: 5 }) === "send" && C.syncChoice({ doc: 1, at: 5 }, null) === "send" && C.syncChoice({ doc: [], at: 0 }, { doc: [1], at: 0 }, true) === "same",
+    "…the rule: the copy edited later wins; no account copy → send; a tie only repairs cards this device edited");
+  // (B) Krishna's should-fix: the phone sets rent to 1,500; the laptop, its clock 5 minutes behind, takes it and types 1,550 — its edit is dated
+  // after the copy it took, so it goes up (r.073 dated it 5 minutes earlier: the laptop's next sync took 1,500 back and 1,550 was lost)
+  { const took = T0, typed = C.nextStamp(took, T0 - 5 * MIN + 1000);
+    ok(typed === took + 1 && C.syncChoice({ doc: 1550, at: typed }, { doc: 1500, at: took }) === "send" && C.syncChoice({ doc: 1550, at: T0 - 5 * MIN + 1000 }, { doc: 1500, at: took }) === "take",
+      "r.073 second review (Krishna): an edit is never dated at or before the newest time this device has seen — a clock 5 minutes behind no longer loses 1,550"); }
+  ok((ux.match(/localStorage\.setItem\(`fin-plan-at:/g) || []).length === 1 && (ux.match(/localStorage\.setItem\(`fin-cards-at:/g) || []).length === 1
+    && /const keepPlanHere = \(who: string, lines: LadderLine\[\], at: number\): boolean => \{ const kept = savePlan\(who, lines\); if \(kept\) \{ try \{ localStorage\.setItem\(`fin-plan-at:\$\{who\}`, String\(at\)\);/.test(ux)
+    && /const keepCardsHere = \(who: string, list: Card\[\], at: number\) => \{ try \{ localStorage\.setItem\(CARDS_KEY\(who\), JSON\.stringify\(list\)\); localStorage\.setItem\(`fin-cards-at:\$\{who\}`, String\(at\)\);/.test(ux)
+    && /const at = nextStamp\(planAtRef\.current, Date\.now\(\)\);/.test(ux) && /const at = nextStamp\(cardsAtRef\.current, Date\.now\(\)\);/.test(ux) && !/String\(Date\.now\(\)\)\); \} catch/.test(ux),
+    "r.073 second review (Thor, the blocker): a budget's or the cards' time is written in exactly one place each, after the content it dates was kept (a full phone took the 13-character time and refused the lines, then sent its old lines over the account's newer ones)");
+  ok(/\{failed && <p role="alert" data-fin-cards-save-failed/.test(ux) && /failed=\{cardsFailed\}/.test(ux),
+    "…and cards a device would not keep are said, in their own words, above the folded panel");
+  ok(/const holdsRecord = !!holds && holds\.record === record, acctHolds = holdsRecord && holds\?\.plan === plan && holds\?\.cards === cards;/.test(ux) && /<CloudMark saved=\{acctHolds\} \/>/.test(ux) && /if \(!who \|\| !ck \|\| ck\.owner !== who\) return false;/.test(ux),
+    "r.073 second review (Thor): \"saved to your account\" is shown only while the account holds exactly what the page shows; the account key names its person");
+  // (C) Enki: the budget box — every prefix of a refused figure puts the line back; a readable figure applies; a cleared box restores it
+  { const lines = [{ fieldId: "B.rent_mortgage", amountNative: 700, nativePeriod: "month" }, { fieldId: "F.groceries", amountNative: 400, nativePeriod: "month" }];
+    const type = (word, keys = [...word].map((_, i) => word.slice(0, i + 1))) => keys.reduce((st, k) => { const r = P.typeIntoLine(st.lines, "B.rent_mortgage", k, "month", lines[0]); return { lines: r.lines, bad: r.bad }; }, { lines, bad: false });
+    const refused = ["1e3", "12,50", "1000000000000", "0x10", "-50", "1e400", "abc"].map((w) => [w, type(w)]);
+    ok(refused.every(([, r]) => r.lines[0].amountNative === 700 && r.bad && r.lines[1].amountNative === 400),
+      `r.073 second review (Enki): typed one key at a time, every refused figure leaves the line at 700 and says so (${refused.map(([w, r]) => `${w}→${r.lines[0].amountNative}`).join(" · ")})`);
+    const good = type("1,234.56"), cleared = type("", ["70", "7", ""]);
+    ok(good.lines[0].amountNative === 1234.56 && !good.bad && cleared.lines[0].amountNative === 700 && !cleared.bad,
+      "…1,234.56 applies; a box backspaced to nothing puts the line back (it used to keep the first digit, 7.00)"); }
+  { const per = 2592000, vals = [101.09 / per, 1000.512 / per, 89.73 / per, 0.0673, 0.1404, 12.5, 123.46];
+    const rt = vals.map((v) => { const f = T.budgetFigure(v); return { f, back: T.parseBudgetAmount(f), v }; });
+    ok(rt.every((r) => r.back !== null && Math.abs(r.back - r.v) <= Math.abs(r.v) * 1e-4 + 0.005 * (Math.abs(r.v) >= 100) && !/e/i.test(r.f)) && T.budgetFigure(0) === "0" && T.smallDollars(89.73 / per) !== "0.0000",
+      `…per second the box shows enough decimals to keep the line (${rt.slice(0, 3).map((r) => r.f).join(" · ")}), never an exponent; the table never reads 0.0000 for a real line`); }
+  // (D) Enki: a card in credit can be edited (its balance shows "-264.73", which no reader takes); the currency's mark is read; levels left blank
+  { const card = { id: "c", name: "Visa", limitCents: 300000, openingCents: 73527, openingAtMs: T0, amberCents: 150000, redCents: 200000 }, bal = -26473;
+    const c2 = K.applyCardSettings(card, { name: "Visa Gold", limitCents: 300000, amberCents: 100000, redCents: 200000, openingCents: bal }, bal, T0 + MIN);
+    ok(!!c2 && c2.name === "Visa Gold" && c2.amberCents === 100000 && c2.openingCents === 73527 && c2.openingAtMs === T0 && T.parseCardCents("R$ 3,000", ["R$"]) === 300000,
+      "r.073 second review (Enki): a card in credit is renamed and re-levelled, its opening kept; \"R$ 3,000\" reads under BRL");
+    ok(/openingCents: draft\.opening\.trim\(\) === \(bal \/ 100\)\.toFixed\(2\) \? bal : cents\(draft\.opening\)/.test(ux) && /if \(unread\(draft\.limit, draft\.opening, draft\.amber, draft\.red\)\) \{ setBad\("amount"\); return; \}/.test(ux) && (ux.match(/setBad\("amount"\)/g) || []).length === 2 && /amberCents: draft\.amber\.trim\(\) \? cents\(draft\.amber\) : Math\.round\(lim \* 0\.5\)/.test(ux),
+      "…the gear reads its balance from the text shown, says \"enter the amount in digits\" for a figure that does not read (never a levels problem), and a blank level takes the add form's half / two-thirds"); }
+  // (E) Enki's nits
+  ok(T.amountProblem("1000000000000") === "large" && T.amountProblem("1,000,000,000,000") === "large" && T.amountProblem("1e3") === "form" && T.amountProblem("") === "zero" && T.parseDaysText("1,000") === 1000 && T.parseDaysText("12,50") === null && M.fmtDays(0.5 / 1440) === "0.00035" && !/e/.test(M.fmtDays(6.9e-11)),
+    "r.073 second review (Enki): a trillion is \"too large\" (not \"not digits\"); the Other length takes 1,000; a 0.5-minute length reads 0.00035 days, never 0");
 }
 console.log(`financial-accrual: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

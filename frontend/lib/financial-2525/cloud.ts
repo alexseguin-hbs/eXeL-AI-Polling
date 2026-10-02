@@ -18,7 +18,7 @@
  * is kept whole under "fin-record-kept-<time>" (never adopted, never merged) before anything is written.
  */
 import { supabase } from "../supabase";
-import { unionRecords, sameChain, isVerified, type FinRecord } from "./record";
+import { unionRecords, sameChain, isVerified, stableJson, type FinRecord } from "./record";
 import type { LadderLine } from "./ladder";
 
 export type CloudState = "off" | "saving" | "saved" | "offline" | "error";
@@ -47,6 +47,21 @@ export async function cloudRead<T>(owner: string, name: string): Promise<{ state
 }
 export interface PlanDoc { lines: LadderLine[]; at: number }
 export interface CardsDoc { cards: unknown[]; at: number }
+/** A budget or cards edit's time (r.073 second pre-push review, Krishna): never at or before the time this device last saw — the account's
+ *  included — so an edit made after taking the account's copy is never older than it on a phone whose clock runs behind. */
+export const nextStamp = (seen: number, now: number): number => Math.max(now, (Number.isFinite(seen) ? seen : 0) + 1);
+/** THE BUDGET'S AND THE CARDS' ACCOUNT RULE — what one sync does with this device's copy (its content and the time it was edited) and the
+ *  account's (null when the account holds none, or none that reads): "take" the account's when it was edited later; "send" this device's when
+ *  it was edited later; "resend" it under a new time when the times are equal but the content is not (the row r.072's stale 12-hour push
+ *  reverted); "same" when there is nothing to do. Content is compared WITHOUT regard to key order — the account store keeps jsonb and hands
+ *  keys back shortest-first, so identical cards used to read as "other content" and went up again on every sync, beating a newer edit made
+ *  on another device (Krishna). `needsTime`: a tie only repairs a copy this device has actually edited (the cards' rule). Pure. */
+export function syncChoice(local: { doc: unknown; at: number }, remote: { doc: unknown; at: number } | null, needsTime = false): "take" | "send" | "resend" | "same" {
+  if (remote && remote.at > local.at) return "take";
+  if (!remote || local.at > remote.at) return "send";
+  if (stableJson(remote.doc) === stableJson(local.doc) || (needsTime && !(local.at > 0))) return "same";
+  return "resend";
+}
 /** The three rows of a person's account copy, each read with its state (r.073: get → unite → put). */
 export async function readAll(owner: string) {
   const [r, p, c] = await Promise.all([cloudRead<FinRecord>(owner, "fin-record"), cloudRead<PlanDoc>(owner, "fin-plan"), cloudRead<CardsDoc>(owner, "fin-cards")]);

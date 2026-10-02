@@ -170,6 +170,9 @@ export function fmtStampCST(ms: number): string {
 export function fmtDays(d: number): string {
   if (!Number.isFinite(d)) return "";
   const sign = d < 0 ? "-" : ""; const x = Math.abs(d);
+  // r.073 second pre-push review (Enki): a length under a thousandth of a day (a 0.5-minute Other length) read "0" — two significant digits
+  // there, never an exponent
+  if (x > 0 && x < 0.001) return sign + x.toFixed(Math.min(20, Math.ceil(-Math.log10(x)) + 1)).replace(/0+$/, "");
   for (let den = 1; den <= 99; den++) {
     const num = Math.round(x * den);
     if (Math.abs(num / den - x) >= 1e-9) continue;

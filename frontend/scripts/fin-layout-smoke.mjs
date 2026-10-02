@@ -66,9 +66,11 @@ try {
     m = await wide(p); ok(m.doc <= m.w + 1, `${w}: the page with the budget in edit mode fits (${m.doc} of ${m.w}${m.by.length ? ' · ' + m.by.join(', ') : ''})`);
     await ctx.close();
   }
-  // r.073 (addendum 165): the full-screen chart, at rest and zoomed — a mobile context, so a page scale applies as it does on a phone
-  for (const w of [320, 390, 428]) for (const scale of [1, 1.14, 1.33]) {
-    const ctx = await b.newContext({ viewport: { width: w, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  // r.073 (addendum 165): the full-screen chart, at rest and zoomed — a mobile context, so a page scale applies as it does on a phone.
+  // r.073 second pre-push review (Athena): and in LANDSCAPE (844×390, 568×320) — his complaint came back there at rest, the bottom cut; the
+  // check now covers the bottom edge too (every control inside the visible screen vertically, nothing left below it)
+  for (const [w, hgt] of [[320, 844], [390, 844], [428, 844], [844, 390], [568, 320]]) for (const scale of [1, 1.14, 1.33]) {
+    const w0 = w; const ctx = await b.newContext({ viewport: { width: w, height: hgt }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
     await ctx.addInitScript(INIT);
     const p = await ctx.newPage();
     p.on('pageerror', e=>errors.push(`${w}×${scale}: ${e.message}`));
@@ -86,17 +88,21 @@ try {
     const m = await p.evaluate(() => {
       const v = window.visualViewport, o = document.querySelector('[data-fin-chart-full="1"]');
       if (!v || !o) return null;
-      const L = v.offsetLeft, R = L + v.width, ob = o.getBoundingClientRect();
-      const out = Array.from(o.querySelectorAll('button, select, label, p, span, canvas')).filter((el) => { const r = el.getBoundingClientRect(); return r.width && r.height && (r.left < L - 1 || r.right > R + 1); })
-        .slice(0, 3).map((el) => el.tagName.toLowerCase() + (Array.from(el.attributes).find((a) => a.name.startsWith('data-'))?.name ? '[' + Array.from(el.attributes).find((a) => a.name.startsWith('data-')).name + ']' : '') + ' ' + Math.round(el.getBoundingClientRect().left) + '…' + Math.round(el.getBoundingClientRect().right));
-      const n = Array.from(o.querySelectorAll('button, select, label, p, span, canvas')).filter((el) => { const r = el.getBoundingClientRect(); return r.width && r.height && (r.left < L - 1 || r.right > R + 1); }).length;
-      return { scale: v.scale, n, out, fits: Math.abs(ob.left - L) <= 1 && Math.abs(ob.width - v.width) <= 1 && Math.abs(ob.top - v.offsetTop) <= 1 && Math.abs(ob.height - v.height) <= 1, L: Math.round(L), W: Math.round(v.width), o: [Math.round(ob.left), Math.round(ob.width), Math.round(ob.top), Math.round(ob.height)] };
+      const L = v.offsetLeft, R = L + v.width, T = v.offsetTop, B = T + v.height, ob = o.getBoundingClientRect();
+      const tag = (el) => el.tagName.toLowerCase() + (Array.from(el.attributes).find((a) => a.name.startsWith('data-'))?.name ? '[' + Array.from(el.attributes).find((a) => a.name.startsWith('data-')).name + ']' : '');
+      const all = Array.from(o.querySelectorAll('button, select, label, p, span, canvas')).filter((el) => { const r = el.getBoundingClientRect(); return r.width && r.height; });
+      const side = all.filter((el) => { const r = el.getBoundingClientRect(); return r.left < L - 1 || r.right > R + 1; });
+      const below = all.filter((el) => { const r = el.getBoundingClientRect(); return r.bottom > B + 1 || r.top < T - 1; });
+      return { scale: v.scale, n: side.length, out: side.slice(0, 3).map((el) => tag(el) + ' ' + Math.round(el.getBoundingClientRect().left) + '…' + Math.round(el.getBoundingClientRect().right)),
+        nv: below.length, outv: below.slice(0, 3).map((el) => tag(el) + ' ' + Math.round(el.getBoundingClientRect().top) + '…' + Math.round(el.getBoundingClientRect().bottom)), over: o.scrollHeight - o.clientHeight, B: Math.round(B),
+        fits: Math.abs(ob.left - L) <= 1 && Math.abs(ob.width - v.width) <= 1 && Math.abs(ob.top - v.offsetTop) <= 1 && Math.abs(ob.height - v.height) <= 1, L: Math.round(L), W: Math.round(v.width), o: [Math.round(ob.left), Math.round(ob.width), Math.round(ob.top), Math.round(ob.height)] };
     });
     ok(!!m, `${w}×${scale}: the chart opens full screen (the state is reached)`);
     if (m) {
       ok(Math.abs(m.scale - scale) < 0.02, `${w}×${scale}: the page is zoomed as asked (scale ${m.scale.toFixed(2)}) — a check that cannot zoom is not evidence`);
       ok(m.fits, `${w}×${scale}: the full-screen layer is the visible screen (layer ${m.o.join(',')} · visible ${m.L},${m.W})`);
       ok(m.n === 0, `${w}×${scale}: every control of the full screen is inside the visible screen (${m.n} outside${m.out.length ? ' · ' + m.out.join(', ') : ''})`);
+      ok(m.nv === 0 && m.over <= 1, `${w0}×${hgt}×${scale}: nothing of the full screen is below the visible bottom (${m.nv} below · ${m.over} px to scroll${m.outv.length ? ' · ' + m.outv.join(', ') + ' · bottom ' + m.B : ''})`);
     }
     await ctx.close();
   }
