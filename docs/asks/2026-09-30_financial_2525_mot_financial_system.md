@@ -755,6 +755,12 @@
 > now enter my transactions back in
 > on financial chart, Like a stock chart I should be able to click and see values at that day/time
 
+> (addendum 111, verbatim — 2026-10-02 7:14, his budget: Wages 3,604.49 · Upside 320.00 · Rent / Mortgage 700.00 · Insurance 250.66 ·
+> Fitness & Health 270.00 · Subscriptions 89.73 · Electric / Gas 150.00 · Groceries 500.00 · Fun / Hobbies 100.00 · Dining 150.00 ·
+> Gifts / Travel 240.00 — Income 3,924.49 · Fixed 1,310.39 · Variable 1,140.00 · Net 1,474.10 —
+> `docs/asks/2026-10-02_financial_2525_fb111_budget_0714.jpg`)
+> here are numbers on budget; I already fixed.  HI IS BETTER
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
