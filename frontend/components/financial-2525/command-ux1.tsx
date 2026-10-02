@@ -433,7 +433,7 @@ export function FinancialCommandUX1() {
         </div>
         {trinityBig && (
           <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} onClick={() => setTrinityBig(false)} className="mx-auto block rounded-full">
-            <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} fontSize={20} />
+            <SoITrinity labels={[t("fin.wheel.hi"), t("fin.wheel.si"), t("fin.wheel.ai")]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={190} fontSize={16} centerLabels />
           </button>
         )}
         <h1 className="text-xl font-semibold leading-tight">FINANCIAL · 2525</h1>

@@ -23,6 +23,12 @@
 
 import { useId } from "react";
 
+/** A label's glyphs run from about −0.12 em to +0.92 em around its baseline (Hangul — 웃 — is the tallest script these labels use), so
+ *  its middle sits LABEL_MID_EM of the font above the baseline; a centred label puts its baseline that far below the band's centre line,
+ *  on the side its glyphs stand away from. LABEL_FIT caps the font at nine-tenths of the band's coloured width. */
+export const LABEL_MID_EM = 0.4;
+export const LABEL_FIT = 0.9;
+
 export interface SoITrinityProps {
   labels?: [string, string, string];
   colors?: [string, string, string];   // optional per-ring colour [top, bottom-right, bottom-left] — default: monochrome `color`
@@ -46,6 +52,10 @@ export interface SoITrinityProps {
   rightTextOffset?: number;
   className?: string;
   onClick?: () => void;
+  /** Centre each label across its ring's band and never let it be larger than the band (Financial-2525 addendum 160: a label bigger
+   *  than its band, in a colour that reads only on the band, is cut off where it leaves it). Off by default — every other surface keeps
+   *  its tuned offsets. */
+  centerLabels?: boolean;
   /** Optional glyph drawn at each ring's centre — [top, bottom-right, bottom-left]. */
   centerGlyphs?: [string, string, string];
   /** Optional per-ring hit targets (top, bottom-right, bottom-left). Each ring becomes a button. */
@@ -76,6 +86,7 @@ export function SoITrinity({
   centerGlyphs,
   onRingClick,
   ringAriaLabels,
+  centerLabels = false,
 }: SoITrinityProps) {
   const uid = useId().replace(/:/g, "");
 
@@ -84,7 +95,10 @@ export function SoITrinity({
   const outerR = spread + ringR + gap + outerWidth;
   const ringMidR = ringR - ringWidth / 2;
   // Per-ring text radius: ringMidR + offset (- inward toward Unity center, + outward)
-  const textRadii = [
+  // centerLabels: the top ring's glyphs stand outward, the bottom rings' inward, so the baseline moves the other way by half a glyph
+  const fs = centerLabels ? Math.min(fontSize, (ringWidth - borderWidth * 2) * LABEL_FIT) : fontSize;
+  const mid = centerLabels ? fs * LABEL_MID_EM : 0;
+  const textRadii = centerLabels ? [ringMidR - mid, ringMidR + mid, ringMidR + mid] : [
     ringMidR + topTextOffset,    // [0] WISDOM (top)
     ringMidR + rightTextOffset,  // [1] HARMONY (bottom-right)
     ringMidR + leftTextOffset,   // [2] CONNECTION (bottom-left)
@@ -179,7 +193,7 @@ export function SoITrinity({
 
       {/* 5. WORDS — ABSOLUTE LAST */}
       {rings.map((ring, i) => (
-        <text key={`t-${i}`} fill={textColor} fontSize={fontSize} fontWeight="bold"
+        <text key={`t-${i}`} fill={textColor} fontSize={fs} fontWeight="bold"
           fontFamily="system-ui, sans-serif" letterSpacing={letterSpacing}>
           <textPath href={`#${uid}-t-${i}`} startOffset="50%" textAnchor="middle">
             {ring.label}
