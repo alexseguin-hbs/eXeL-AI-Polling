@@ -1001,6 +1001,14 @@
 > `docs/asks/2026-10-02_financial_2525_fb151_chronological.png`)
 > always order transactions in chronological order
 
+> (addendum 152, verbatim — 2026-10-02)
+> I need edit button for individual transactions somewhere on right for Transaction Record
+> payment of card later should reduce from available and increase credit cards limit
+>
+> (his answer, picked in Claude Code — when a card purchase lowers Available) "At purchase (once)" — the purchase lowers Available
+> right away; the later payment restores the card's available credit and does not lower Available again (except for the opening
+> balance no recorded purchase counted).
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
