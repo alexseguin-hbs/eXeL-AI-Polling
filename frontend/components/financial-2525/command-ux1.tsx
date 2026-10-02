@@ -953,13 +953,17 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
   const flat = (cents: number) => grid.map((g) => ({ t: g, v: cents / 100 }));
   const LV = { ok: "text-green-500", amber: "text-yellow-600 dark:text-yellow-400", red: "text-red-500", over: "text-red-500" }[lv];
   return (
-    <div data-fin-cards className={SUB}>
-      <div className="flex items-center justify-between gap-2">
-        <div className={LABEL}>{t("fin.cards_title")}</div>
-        <div className="flex items-center gap-2">
+    /* r.070 (addendum 156 "have CC default minimized"): folded to its title like the Transaction Record and the Year Position; opened,
+       Pay card and the settings sit on the first row (the Year card's pattern — no button inside the summary). An alert still shows at the
+       top of the cockpit while the panel is closed. */
+    <details data-fin-cards className={`group ${SUB}`}>
+      <summary className="flex min-h-[36px] cursor-pointer list-none items-center gap-1" aria-label={t("fin.cards_title")}>
+        <ChevronRight size={14} strokeWidth={1.5} aria-hidden className="transition-transform group-open:rotate-90" />
+        <span className={LABEL}>{t("fin.cards_title")}</span>
+      </summary>
+      <div className="mt-2 flex items-center justify-end gap-2">
         <button type="button" data-fin-card-pay onClick={() => onPay(card.id)} className="h-8 shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.card_pay")}</button>
         <button type="button" data-fin-cards-gear aria-expanded={gear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={openGear} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${gear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
-        </div>
       </div>
       <div role="group" aria-label={t("fin.cards_title")} data-fin-card-toggle className="mt-2 flex w-full overflow-hidden rounded-md border border-border text-xs">
         {cards.map((c) => <button key={c.id} type="button" data-fin-card={c.id} aria-pressed={c.id === card.id} onClick={() => { setPick(c.id); setGear(false); }} className={`min-h-[32px] flex-1 border-l border-border first:border-l-0 ${c.id === card.id ? "ring-1 ring-inset ring-primary text-primary" : "text-muted-foreground"}`}>{c.name}</button>)}
@@ -994,7 +998,7 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
           <span key={k} data-fin-card-alert={k} className="inline-flex items-center gap-1.5"><svg width="22" height="6" aria-hidden="true"><line x1="0" y1="3" x2="22" y2="3" stroke={color} strokeWidth="1.5" strokeDasharray="5 4" /></svg>{t(key)}</span>
         ))}
       </div>
-    </div>
+    </details>
   );
 }
 function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFmt, onDateFmt, angle, onAngle, locale, netPerSec = 0 }: { tx: FinTx; txs: FinTx[]; now: number; t: (k: string) => string; netPerSec?: number; planet: PlanetLtuRow; showAbc: boolean; onToggle: (v: boolean) => void; selector?: ReactNode; dateFmt: DateFmt; onDateFmt: (f: DateFmt) => void; angle: DateAngle; onAngle: (a: DateAngle) => void; locale: string }) {
