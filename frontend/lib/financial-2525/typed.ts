@@ -45,3 +45,19 @@ export function parsePositive(text: string): number | null {
 }
 /** A length the calendar can hold from its date: the end is a real date (r.071: "1e400 years" is refused, never saved as one time). Pure. */
 export const lengthFits = (atMs: number, days: number): boolean => Number.isFinite(days) && days >= 0 && Math.abs(atMs + days * 86400000) <= 8.64e15;
+/** A budget figure as typed (r.073 pre-push review, Enki: the budget used Number() — "0x10" set a line to 16.00, "1e3" to 1,000.00 and
+ *  "1,234.56" was silently not applied): digits, thousands commas only where they group thousands, up to six decimals (a line per
+ *  second is a fraction of a cent), zero allowed (an emptied line), below one trillion; the currency mark or "$" may lead. Dollars or null. */
+export function parseBudgetAmount(text: string, marks: readonly string[] = []): number | null {
+  let s = unmarked(text, marks);
+  if (/^\d{1,3}(,\d{3})+(\.\d{0,6})?$/.test(s)) s = s.replace(/,/g, "");
+  if (!/^(\d+(\.\d{0,6})?|\.\d{1,6})$/.test(s)) return null;
+  const n = Number(s);
+  return Number.isFinite(n) && n >= 0 && n < 1e12 ? n : null;
+}
+/** A card figure as typed (limit, levels, balance): an amount, or zero — blank reads as zero (the card form's rule); anything else NaN, which
+ *  the card's own check refuses (never an Infinity card that reads 0 after a reload). Cents. */
+export const parseCardCents = (text: string, marks: readonly string[] = []): number => {
+  const s = unmarked(text, marks);
+  return s === "" || /^0*(\.0*)?$/.test(s) ? 0 : parseAmountCents(text, marks) ?? NaN;
+};

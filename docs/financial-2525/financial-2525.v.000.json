@@ -1158,7 +1158,7 @@
    "revision": "0.073",
    "date": "2026-10-02",
    "kind": "correction",
-   "why": "Round 1 of 33 (B-38, resumed under addendum 161 \"address backlog, make your own decisions MoT\"): the reviewer lenses walked the transaction journey on r.072 and found three paths that lost a finished entry — a Monthly entry's length edit had no effect (the correction kept the preset the month law reads as 30 days), two tabs or two devices set each other's entries aside where no screen reads them (5 of 10 visible after two tabs alternated), and a page left open 12 hours pushed its opening record, budget and cards back over the account. Now a save, a sync and another tab's save UNITE the copies (every transaction of both; the edit recorded last wins; ids that collide are renamed, never dropped); the account is read before it is written and a failed read writes nothing; every timer calls the latest sync; a change made just before the page is hidden is sent at once and a failed send is retried when the network returns; a full phone keeps the form open with what was typed and tries the same save again; Put back my entries waits for the account copy. One reader for typed amounts (1,234.56 and $50 are amounts; Infinity, 1e400, 0x10 and 12,50 are not) and strict dates (2026.02.31 is refused, never moved). The editor comes into view focused, shows the length the entry is counted at and appends nothing when nothing changed; refusals name the right fix and are announced; the Record and every pencil are read as what they show. And addendum 163 (\"remove history in Cyan. you can have history in supabase to see changes.\"): the cyan edit marks leave the Transaction Record — the # column shows the entry number only; every correction stays on the record and in the account copy (FD-95). And addendum 164 (\"all fields in edit of Transaction record should be possible to edit\" — he could not move a 320 deposit from Upside to Wages): the pencil carries every field the form has — Type, Amount, Day and time, Section, Field, Length, Memo, Paid from, Card paid — each saved as a correction (FD-96). No budget figure changes. Round record: docs/financial-2525/rounds/r073.md.",
+   "why": "Round 1 of 33 (B-38, resumed under addendum 161 \"address backlog, make your own decisions MoT\"): the reviewer lenses walked the transaction journey on r.072 and found three paths that lost a finished entry — a Monthly entry's length edit had no effect (the correction kept the preset the month law reads as 30 days), two tabs or two devices set each other's entries aside where no screen reads them (5 of 10 visible after two tabs alternated), and a page left open 12 hours pushed its opening record, budget and cards back over the account. Now a save, a sync and another tab's save UNITE the copies (every transaction of both; the edit recorded last wins; ids that collide are renamed, never dropped); the account is read before it is written and a failed read writes nothing; every timer calls the latest sync; a change made just before the page is hidden is sent at once and a failed send is retried when the network returns; a full phone keeps the form open with what was typed and tries the same save again; Put back my entries waits for the account copy. One reader for typed amounts (1,234.56 and $50 are amounts; Infinity, 1e400, 0x10 and 12,50 are not) and strict dates (2026.02.31 is refused, never moved). The editor comes into view focused, shows the length the entry is counted at and appends nothing when nothing changed; refusals name the right fix and are announced; the Record and every pencil are read as what they show. And addendum 163 (\"remove history in Cyan. you can have history in supabase to see changes.\"): the cyan edit marks leave the Transaction Record — the # column shows the entry number only; every correction stays on the record and in the account copy (FD-95). And addendum 164 (\"all fields in edit of Transaction record should be possible to edit\" — he could not move a 320 deposit from Upside to Wages): the pencil carries every field the form has — Type, Amount, Day and time, Section, Field, Length, Memo, Paid from, Card paid — each saved as a correction (FD-96). And addendum 165 (\"full screen mode with financial chart messes up. not all is legible\" — his 7:20 photo): the chart's full screen covers the screen the person SEES — placed and sized to the visual viewport and following it — so a phone that zoomed the page in (iOS does when a box under 16 px gets the focus) no longer cuts it at both edges (measured on r.072's layer: 8 controls past the right edge at ×1.14, the left edge too at ×1.33; 0 after, at 320 · 390 · 428 px) (FD-99). And the reviewer lenses' pre-push review (FIX-FIRST, 1 blocker / 7 should-fix, kept verbatim) folded before the push: a correction is identified by what it says AND when it was made, so an edit back to an earlier value is never taken for the first one (100 → 120 → 150 → 120 united with a phone copy read 150.00 and Available 145.00; now 120.00 and 115.00); every new entry or correction is stamped after the record's latest, so a clock set back never makes a later edit lose (FD-97); an account row r.072's stale push reverted (the same time, other lines) is repaired; an account copy that fails its chain is kept aside once, not on every sync; the account features wait for a read that succeeded, retried every 30 s and when the network returns; 'saved to your account' only after a sync that holds the record as it is now; after a failed save, a change in the form corrects the entry the device would not keep instead of recording a second one (FD-98); the editor and the retry follow an entry a union renamed; the budget and the card settings read typed figures with strict readers (0x10, 1e3 and 1e400 never set a line or a card); a budget the device would not keep says so in its own words; a repeated refusal is announced again; the unit beside a typed length has its own name; the save warnings name the device one way. No budget figure changes. Round record: docs/financial-2525/rounds/r073.md.",
    "commit": "d8c7c36",
    "shipped": "PENDING"
   }
@@ -2204,6 +2204,25 @@
    "status": "implemented"
   },
   {
+   "id": "FIN-07.05",
+   "title": "The full-screen chart fits the screen the person sees, zoomed or not",
+   "section": "III",
+   "uwf": [
+    "U-WF-07",
+    "U-WF-09"
+   ],
+   "verify": "scripts/fin-layout-smoke.mjs",
+   "statement": "Opened full screen, the chart covers exactly the visible screen — the visual viewport, placed and sized to it and following it as it moves — so a phone that zoomed the page in sees every control of the full screen, none past either edge, and nothing scrolls sideways.",
+   "metric": "fin-layout-smoke (built page, mobile browser): at 320 · 390 · 428 px, at rest and with the page zoomed ×1.14 and ×1.33 — the zoom proven by visualViewport.scale — the full-screen layer equals the visual viewport within 1 px and 0 controls lie outside it (r.072's layer: 8–11 outside at every zoomed width). financial-surface: the layer reads window.visualViewport, follows its resize and scroll, and is overflow-x-hidden",
+   "dtm": "on his phone: focus the editor's Amount (the page zooms in), close the editor, tap the chart's expand — the full screen shows Planet, the toggles, the spans, the chart and ✕, all inside the screen",
+   "stretch": "16 px inputs so a phone never zooms the page in the first place (a question for the operator — it changes how the forms look)",
+   "in": "FIN-07.05.IN",
+   "out": "FIN-07.05.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
+  },
+  {
    "id": "FIN-01.04",
    "title": "A repeating day count shows its bar; MoT reads Measure of Time",
    "section": "VII",
@@ -2248,7 +2267,7 @@
    ],
    "verify": "tests/financial-accrual.test.mjs",
    "statement": "Every transaction recorded on any tab or device stays on the record: saves and syncs unite the copies (the edit recorded last wins), the account is read before it is written, every timer sends the latest record, budget and cards, a change before the page is hidden is sent at once, a full phone keeps the form open and never records twice, and a Monthly entry's length edit takes effect.",
-   "metric": "financial-accrual r.073: two tabs × 5 alternations → 10 entries after reload; two devices alternating → 4 on each and on the account; the union verifies, is the same chain from either side, adds nothing when re-united; two corrections of one entry both kept and the newest wins; a Monthly 30 → 7 edit reads 7; the mutation sweep turns a gate red for each guarantee removed",
+   "metric": "financial-accrual r.073: two tabs × 5 alternations → 10 entries after reload; two devices alternating → 4 on each and on the account; the union verifies, is the same chain from either side, adds nothing when re-united; two corrections of one entry both kept and the newest wins; a Monthly 30 → 7 edit reads 7; the mutation sweep turns a gate red for each guarantee removed; pre-push fold: 100 → 120 → 150 → 120 united with a phone copy reads 120.00 in both orders with all three corrections kept (it read 150.00), a clock set back between two edits — the later still wins, an entry a union renamed (x → x~2) is followed by the editor and the retry",
    "dtm": "two tabs open on his phone, an entry in each: both tabs and the reload show both; his budget edit on the desktop survives a phone tab left open overnight",
    "stretch": "the same union on the account side (a server-side compare-and-set), so two devices writing at the same instant never race",
    "in": "FIN-05.01.IN",
@@ -2834,6 +2853,24 @@
    "decision": "Every field of a recorded transaction is editable in the pencil — Type, Amount, Day and time, Section, Field, Length (the presets, Other with its unit), Memo, Paid from and Card paid — each change appended as a correction, the original kept on the record. Supersedes FD-78's list and its 'the type cannot change'.",
    "status": "OPERATOR",
    "basis": "addendum 164 ('all fields in edit of Transaction record should be possible to edit. Im trying to change 11.01 transaction of 320 upside va wages, but cant edit that field') with his 7:17 photo"
+  },
+  {
+   "id": "FD-97",
+   "decision": "A correction is identified by what it says and by when it was made (its entry's time, which a union keeps): an edit back to an earlier value is a new correction, and the newest correction still wins after any union. Every new entry or correction is stamped at the later of now and just after the record's latest entry, so a clock that moved back, or a device that lags, never makes an edit made after seeing another one lose to it. An account budget or card list with the same time as this device's but different lines (the rows r.072's stale push reverted) is repaired by sending this device's copy under a new time.",
+   "status": "DECLARED",
+   "basis": "addendum 161 ('address backlog, make your own decisions MoT'); r.073 pre-push review — Krishna (the blocker: 100 → 120 → 150 → 120 read 150.00 after a union) and Odin (clock moved back; reverted account rows never repaired)"
+  },
+  {
+   "id": "FD-98",
+   "decision": "After this device would not keep an entry, the form stays on 'Try saving again' while anything is changed: the change is applied to that same entry as a correction (checked like any edit) and the save is tried again — a typo fixed after the failure never records a second entry. Supersedes FD-93's last sentence ('Changing anything in the form makes it a new transaction'). The note says the entry is saved to the account only after a sync that holds the record as it is now.",
+   "status": "DECLARED",
+   "basis": "addendum 161; r.073 pre-push review — Thor (a field changed after the failed save turned the button back into Record it and both entries counted; the note said 'saved to your account' before any sync had sent it)"
+  },
+  {
+   "id": "FD-99",
+   "decision": "The chart's full screen covers the screen the person sees — placed and sized to the visual viewport and following it as it moves — so it is whole at any zoom; nothing in it scrolls sideways.",
+   "status": "OPERATOR",
+   "basis": "addendum 165 ('full screen mode with financial chart messes up. not all is legible') with his 7:20 photo; cause measured: iOS zooms the page when a box under 16 px gets the focus, and the r.064 layer was sized to the page's layout width"
   }
  ],
  "reviews": [

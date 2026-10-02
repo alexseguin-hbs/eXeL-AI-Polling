@@ -40,8 +40,8 @@ export async function cloudPut(owner: string, name: string, payload: unknown): P
 export async function cloudGet<T>(owner: string, name: string): Promise<T | null> { return (await cloudRead<T>(owner, name)).data; }
 /** A read that says whether it was READ (r.073): "ok" with the row (null when there is none), or "offline" / "error" — a failed read is
  *  never mistaken for an empty account, so nothing is written over an account copy that could not be seen. */
-export async function cloudRead<T>(owner: string, name: string): Promise<{ state: "ok" | "offline" | "error"; data: T | null }> {
-  if (!supabase) return { state: "offline", data: null };
+export async function cloudRead<T>(owner: string, name: string): Promise<{ state: "ok" | "off" | "offline" | "error"; data: T | null }> {
+  if (!supabase) return { state: "off", data: null };   // no account store set up on this site: nothing to read, nothing lost
   try { const { data, error } = await supabase.rpc("innovation_state_get", { p_owner: owner, p_name: name }); return error ? { state: "error", data: null } : { state: "ok", data: (data ?? null) as T | null }; }
   catch { return { state: "offline", data: null }; }
 }

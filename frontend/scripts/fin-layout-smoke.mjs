@@ -10,6 +10,12 @@
  * the budget in edit mode: the document is never wider than the screen. A probe that cannot go red is not evidence — the run also
  * asserts each state was reached (the warning shown, the gear open, the edit inputs present).
  *
+ * r.073 (addendum 165, "full screen mode with financial chart messes up. not all is legible"): the chart's full screen must cover the screen
+ * the person SEES. iOS zooms a page in when a box under 16 px gets the focus, and a full-screen layer sized to the page's layout width then
+ * runs past both edges of what is visible (measured on r.072's layer: 8 controls past the right edge at ×1.14, the left edge too at ×1.33).
+ * At 320 · 390 · 428 px, at rest and zoomed ×1.14 and ×1.33 (a mobile browser's page scale, emulated), a deposit is recorded, the chart is
+ * opened full screen, and every control of the layer must lie inside the visual viewport, with the layer itself the visual viewport's size.
+ *
  *   node scripts/fin-layout-smoke.mjs        (needs `next build` first; reads out/)
  */
 import { createServer } from 'node:http';
@@ -60,10 +66,44 @@ try {
     m = await wide(p); ok(m.doc <= m.w + 1, `${w}: the page with the budget in edit mode fits (${m.doc} of ${m.w}${m.by.length ? ' · ' + m.by.join(', ') : ''})`);
     await ctx.close();
   }
+  // r.073 (addendum 165): the full-screen chart, at rest and zoomed — a mobile context, so a page scale applies as it does on a phone
+  for (const w of [320, 390, 428]) for (const scale of [1, 1.14, 1.33]) {
+    const ctx = await b.newContext({ viewport: { width: w, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+    await ctx.addInitScript(INIT);
+    const p = await ctx.newPage();
+    p.on('pageerror', e=>errors.push(`${w}×${scale}: ${e.message}`));
+    await p.goto(`http://127.0.0.1:${PORT}/financial-2525/`, { waitUntil:'networkidle', timeout:30000 });
+    await p.waitForSelector('[data-fin-tx-open]', { timeout: 15000 });
+    await p.click('[data-fin-tx-open]'); await p.waitForSelector('#fin-transaction-form');
+    await p.selectOption('[data-fin-type]', 'deposit'); await p.fill('[data-fin-amount-input]', '3604.49');
+    await p.locator('#fin-transaction-form').getByLabel('Day and time (CST)').fill('2026.10.01_08.00..00');
+    await p.selectOption('[data-fin-length="transaction"]', 'paymot'); await p.click('[data-fin-record]');
+    await p.waitForSelector('[data-fin-chart-expand]', { timeout: 10000 });
+    await p.locator('[data-fin-chart]').scrollIntoViewIfNeeded();
+    if (scale !== 1) { const cdp = await ctx.newCDPSession(p); await cdp.send('Emulation.setPageScaleFactor', { pageScaleFactor: scale }); }
+    await p.waitForTimeout(300);
+    await p.click('[data-fin-chart-expand]', { force: true }); await p.waitForTimeout(500);
+    const m = await p.evaluate(() => {
+      const v = window.visualViewport, o = document.querySelector('[data-fin-chart-full="1"]');
+      if (!v || !o) return null;
+      const L = v.offsetLeft, R = L + v.width, ob = o.getBoundingClientRect();
+      const out = Array.from(o.querySelectorAll('button, select, label, p, span, canvas')).filter((el) => { const r = el.getBoundingClientRect(); return r.width && r.height && (r.left < L - 1 || r.right > R + 1); })
+        .slice(0, 3).map((el) => el.tagName.toLowerCase() + (Array.from(el.attributes).find((a) => a.name.startsWith('data-'))?.name ? '[' + Array.from(el.attributes).find((a) => a.name.startsWith('data-')).name + ']' : '') + ' ' + Math.round(el.getBoundingClientRect().left) + '…' + Math.round(el.getBoundingClientRect().right));
+      const n = Array.from(o.querySelectorAll('button, select, label, p, span, canvas')).filter((el) => { const r = el.getBoundingClientRect(); return r.width && r.height && (r.left < L - 1 || r.right > R + 1); }).length;
+      return { scale: v.scale, n, out, fits: Math.abs(ob.left - L) <= 1 && Math.abs(ob.width - v.width) <= 1 && Math.abs(ob.top - v.offsetTop) <= 1 && Math.abs(ob.height - v.height) <= 1, L: Math.round(L), W: Math.round(v.width), o: [Math.round(ob.left), Math.round(ob.width), Math.round(ob.top), Math.round(ob.height)] };
+    });
+    ok(!!m, `${w}×${scale}: the chart opens full screen (the state is reached)`);
+    if (m) {
+      ok(Math.abs(m.scale - scale) < 0.02, `${w}×${scale}: the page is zoomed as asked (scale ${m.scale.toFixed(2)}) — a check that cannot zoom is not evidence`);
+      ok(m.fits, `${w}×${scale}: the full-screen layer is the visible screen (layer ${m.o.join(',')} · visible ${m.L},${m.W})`);
+      ok(m.n === 0, `${w}×${scale}: every control of the full screen is inside the visible screen (${m.n} outside${m.out.length ? ' · ' + m.out.join(', ') : ''})`);
+    }
+    await ctx.close();
+  }
   ok(errors.length===0, `no page errors (${errors.length}${errors.length?': '+errors.slice(0,3).join(' | '):''})`);
   await b.close();
 } catch (e) {
   console.log('FAIL: layout smoke could not run —', e.message); fail++;
 } finally { srv.close(); }
-console.log(`\nfin-layout-smoke: ${pass} passed, ${fail} failed · nothing on the Financial page pushes a phone sideways`);
+console.log(`\nfin-layout-smoke: ${pass} passed, ${fail} failed · nothing on the Financial page pushes a phone sideways; the full-screen chart fits the visible screen at rest and zoomed`);
 process.exit(fail?1:0);

@@ -56,7 +56,7 @@ const ANY_DIGIT = new RegExp("\\p{Nd}", "gu");   // every script's digits, not o
 export const looksLikeCardNumber = (name: string): boolean => (name.match(ANY_DIGIT)?.length ?? 0) > 6;
 /** A card is valid when its numbers make sense: a name (not a number), a positive limit, amber ≤ red ≤ limit, levels and opening not negative. */
 export function validCard(c: Card): boolean {
-  return !!c.name.trim() && !looksLikeCardNumber(c.name) && c.limitCents > 0 && c.openingCents >= 0 && c.amberCents >= 0 && c.amberCents <= c.redCents && c.redCents <= c.limitCents && Number.isFinite(c.openingAtMs);
+  return !!c.name.trim() && !looksLikeCardNumber(c.name) && [c.limitCents, c.openingCents, c.amberCents, c.redCents].every(Number.isFinite) && c.limitCents > 0 && c.openingCents >= 0 && c.amberCents >= 0 && c.amberCents <= c.redCents && c.redCents <= c.limitCents && Number.isFinite(c.openingAtMs);
 }
 /** r.070 (addendum 157): a card the person sets up — name, limit and balance as of now; an amber or red level left out takes his proportions —
  *  half the limit and two-thirds of it (his $1,500 and $2,000 on a $3,000 card; "67 %" was his rounding of two-thirds). Returns null when the card would not be valid (nothing half-made is ever saved). Pure. */

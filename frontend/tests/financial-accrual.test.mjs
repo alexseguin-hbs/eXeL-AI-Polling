@@ -341,14 +341,14 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
     // (7) Odin — the 12-hour timer, the return to the page and the network coming back call the LATEST sync, which reads the latest record,
     // budget and cards (the old interval kept the opening render's push and wrote the opening state back over the account)
     ok(/const syncRef = useRef\(sync\); syncRef\.current = sync;/.test(ux) && /setInterval\(\(\) => \{ void syncRef\.current\(\); \}, PUSH_EVERY_MS\)/.test(ux) && /const recordRef = useRef\(record\); recordRef\.current = record;/.test(ux) && /const planRef = useRef\(plan\); planRef\.current = plan;/.test(ux) && /const cardsRef = useRef\(cards\); cardsRef\.current = cards;/.test(ux) && !/\bpushAll\b/.test(ux), "r.073 (Odin): every timer calls the latest sync through a ref, which reads the latest record, budget and cards");
-    ok(/cloudPut\(key, "fin-plan", \{ lines: planRef\.current,/.test(ux) && /if \(cp && Array\.isArray\(cp\.lines\) && cp\.at > planAt\)/.test(ux) && /else if \(!cp \|\| planAt > cp\.at\)/.test(ux), "…the budget is sent only when this device's edit is newer than the account's, and taken from the account when it is older (a stale tab never puts an old budget back)");
+    ok(/cloudPut\(key, "fin-plan", \{ lines: planRef\.current,/.test(ux) && /if \(cp && Array\.isArray\(cp\.lines\) && cp\.at > planAt\)/.test(ux) && /else if \(!cp \|\| planAt > cp\.at \|\| \(cp\.at === planAt && JSON\.stringify\(cp\.lines\) !== JSON\.stringify\(planRef\.current\)\)\)/.test(ux), "…the budget is sent only when this device's edit is newer than the account's, and taken from the account when it is older (a stale tab never puts an old budget back)");
     ok(/window\.addEventListener\("pagehide", flush\); window\.addEventListener\("online", flush\);/.test(ux) && /else flush\(\); \};/.test(ux), "r.073: a change made just before the page is hidden or closed is sent at once; a send that failed offline is sent when the network returns");
     ok(/if \(e\.key === recordKey\(owner\)\) \{ const s = readStored\(owner\); if \(s\) \{ const u = recordRef\.current\.owner === owner \? unionRecords\(recordRef\.current, s\) : s;/.test(ux), "r.073 (Krishna): another tab's save is united into this tab at once (and never under another sign-in's name)");
-    ok(/if \(r\.state === "ok"\) \{/.test(ux) && /\} else out\.push\(r\.state\);/.test(ux), "r.073: a failed read writes nothing over the account (a failed read is never taken for an empty account)");
-    ok(/const lacks = recordRef\.current\.entries\.length > 0 && !\(cloudRec && sameChain\(recordRef\.current, cloudRec\)\);/.test(ux) && /const wrote = kept === "saved" && lacks;/.test(ux) && /out\.push\(kept !== "saved" \? kept : wrote \?/.test(ux), "r.073: the account record is written only when it lacks something, never with nothing, and never before a copy that fails its chain has been kept");
+    ok(/if \(r\.state === "ok"\) \{/.test(ux) && /\} else out\.push\(r\.state === "off" \? "offline" : r\.state\);/.test(ux), "r.073: a failed read writes nothing over the account (a failed read is never taken for an empty account)");
+    ok(/const lacks = recordRef\.current\.entries\.length > 0 && !\(cloudRec && sameChain\(recordRef\.current, cloudRec\)\);/.test(ux) && /const wrote = kept === "saved" && lacks;/.test(ux) && /const st = kept !== "saved" \? kept : wrote \? await cloudPut\(key, "fin-record", sent\) : "saved";/.test(ux), "r.073: the account record is written only when it lacks something, never with nothing, and never before a copy that fails its chain has been kept");
     ok(/if \(wrote && out\[out\.length - 1\] === "saved"\) readBack\.current = true;/.test(ux) && /if \(readBack\.current\) \{ readBack\.current = false; setTimeout\(\(\) => \{ void syncRef\.current\(\); \}, 4000\); \}/.test(ux), "r.073: a record write is read back once a few seconds later — another device writing in the same moment never leaves an entry out of the account");
     // (8) Thor — a full phone: the form stays open with what was typed, says so, and its button saves the same entry again (never a second one)
-    ok(/const retrying = unsaved !== null && unsaved === formKey;/.test(ux) && /onClick=\{retrying \? retrySave : recordTransaction\}/.test(ux) && /const retrySave = \(\) => \{ if \(persist\(recordRef\.current\)\)/.test(ux) && /\{retrying && <p role="alert" data-fin-save-retry/.test(ux), "r.073 (Thor): when the phone will not keep the entry the form stays open, says so, and tries the same save again — never a second copy");
+    ok(/const retrying = unsaved !== null;/.test(ux) && /onClick=\{retrying \? retrySave : recordTransaction\}/.test(ux) && /const retrySave = \(\) => \{\s*const u = unsaved; if \(!u\) return;/.test(ux) && /if \(persist\(next\)\) \{ setAmt\(""\); setMemo\(""\); setWhen\(""\); foldForm\(\); \} else setUnsaved\(\{ id: uid, ident: u\.ident, key: formKey \}\);/.test(ux) && /\{retrying && <p role="alert" data-fin-save-retry/.test(ux), "r.073 (Thor): when the phone will not keep the entry the form stays open, says so, and tries the same save again — never a second copy");
     ok(/\{owner && cloudReady && isOperator\(user\?\.email\) && record\.entries\.length === 0 && \(/.test(ux), "r.073 (Christo): Put back my entries waits until the account copy has been read");
   }
   // (9) Enki — one reader for what is typed
@@ -360,5 +360,72 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
     ok(T.lengthFits(t0, 36525) && !T.lengthFits(t0, 1e20) && !T.lengthFits(t0, Infinity) && !T.lengthFits(t0, -1), "r.073: a length the calendar cannot hold is refused (r.071's law, now one helper)");
     ok(M.parseStampCST("2026.02.31_07.00..00") === null && M.parseStampCST("0050.01.01_00.00..00") === null && M.parseStampCST("2026.02.29_00.00..00") === null && M.parseStampCST("2028.02.29_00.00..00") !== null && M.fmtStampCST(M.parseStampCST("2026.10.02_07.00..00")) === "2026.10.02_07.00..00", "r.073 (Enki): a date the calendar does not have is refused (2026.02.31 recorded 2026.03.03, 0050 recorded 1950); a real one reads back as typed");
     ok(M.stampProblem("2026.02.31_07.00..00") === "day" && M.stampProblem("2026.2.3") === "form" && M.stampProblem("2026.10.02_07.00..00") === null, "…and the refusal says which: a day the calendar does not have, or not written YYYY.MM.DD_HH.MM..SS"); }
+}
+// ── r.073 PRE-PUSH REVIEW (FIX-FIRST — 1 blocker / 7 should-fix, kept verbatim in docs/financial-2525/rounds/r073_prepush_review.md): each
+// fold pinned by a value only the folded code produces, starting from the reviewers' own scenarios
+{
+  const C = await import("../lib/financial-2525/cloud.ts");
+  const T = await import("../lib/financial-2525/typed.ts");
+  const K = await import("../lib/financial-2525/cards.ts");
+  const fs = await import("node:fs");
+  const t0 = M.parseStampCST("2026.10.02_06.00..00"), MIN = 60000;
+  const dep = (id, cents, ms) => ({ id, kind: "deposit", amountCents: cents, atMs: ms, motDays: 30 });
+  const amount = (rec, id) => R.replay(rec).find((x) => x.id === id)?.amountCents;
+  // (B) Krishna's blocker, his numbers: a laptop edits 100 → 120 → 150 → 120; a phone recorded a 5.00 withdrawal just before the first edit.
+  // The edit back to 120 is a NEW correction (it was taken for the first one and dropped — 150.00 and Available 145.00 after the union)
+  const base = R.append(R.emptyRecord("k"), dep("d", 10000, t0), t0);
+  let lap = R.correctTx(base, "d", { amountCents: 12000 }, t0 + 2 * MIN);
+  lap = R.correctTx(lap, "d", { amountCents: 15000 }, t0 + 3 * MIN);
+  lap = R.correctTx(lap, "d", { amountCents: 12000 }, t0 + 4 * MIN);
+  const phone = R.append(base, { id: "w", kind: "withdrawal", amountCents: 500, atMs: t0 + MIN, motDays: 0 }, t0 + MIN);
+  const u1 = R.unionRecords(lap, phone), u2 = R.unionRecords(phone, lap);
+  ok(amount(lap, "d") === 12000 && amount(u1, "d") === 12000 && amount(u2, "d") === 12000 && R.correctionsOf(u1, "d").length === 3 && R.correctionsOf(u2, "d").length === 3 && R.verify(u1).ok && R.sameChain(u1, u2),
+    `r.073 pre-push (Krishna, the blocker): 100 → 120 → 150 → 120 united with the phone's copy reads 120.00 in both orders, all three corrections kept (read ${amount(u1, "d")} · ${amount(u2, "d")})`);
+  { const bal = (rec) => A.balanceAt(R.replay(rec), t0 + 40 * 86400000).availableCents;
+    ok(bal(u1) === 12000 - 500 && bal(u2) === 12000 - 500, `…and the money follows: Available ${(bal(u1) / 100).toFixed(2)} (120.00 − 5.00), never 145.00`); }
+  ok(R.unionRecords(u1, lap) === u1 && R.unionRecords(u1, phone) === u1 && R.unionRecords(u2, u1) === u2, "…uniting a copy already held still changes nothing: the same correction made at the same time is the same correction");
+  // (C) Odin: two edits in one tab with the clock set back a minute between them — the later edit wins (r.072 showed 300; r.073 showed 200)
+  { let r = R.correctTx(base, "d", { amountCents: 20000 }, t0 + 10 * MIN);
+    r = R.correctTx(r, "d", { amountCents: 30000 }, t0 + 9 * MIN);
+    ok(amount(r, "d") === 30000 && r.entries[2].at === r.entries[1].at + 1 && R.nextAt(base, t0 + 5 * MIN) === t0 + 5 * MIN && R.nextAt(r, 0) === r.entries[2].at + 1,
+      "r.073 pre-push (Odin): a clock moved back between two edits — the later edit still wins (every new entry or correction is stamped after the record's latest)"); }
+  // (D) Enlil: a union gives an entry a new id (another device's different entry holds x) — whatever remembered x follows the entry, never the other one
+  { const a = R.append(R.emptyRecord("e"), dep("x", 100, t0), t0 + 5), b = R.append(R.emptyRecord("e"), dep("x", 200, t0), t0 + 1);
+    const u = R.unionRecords(a, b), ia = R.txIdentity(dep("x", 100, t0)), ib = R.txIdentity(dep("x", 200, t0));
+    ok(R.followId(u, "x", ib) === "x" && R.followId(u, "x", ia) === "x~2" && amount(u, "x~2") === 100 && R.followId(a, "x", ia) === "x" && R.followId(R.emptyRecord("e"), "x", ia) === null && R.followId(u, "x", "deposit|999|0") === null,
+      "r.073 pre-push (Enlil): an entry a union renamed (x → x~2) is found by what it is — the open editor and the retry never change another entry under the id they remembered"); }
+  // (E) Enki: the budget and the card settings read what is typed with strict readers (Number() took "0x10" as 16, "1e3" as 1,000 and "1e400" as Infinity)
+  { const PB = T.parseBudgetAmount, PC = T.parseCardCents;
+    ok(PB("1,234.56") === 1234.56 && PB("0") === 0 && PB(".5") === 0.5 && PB("0.067300") === 0.0673 && PB("$12") === 12 && PB("R$ 3", ["R$"]) === 3 && ["0x10", "1e3", "12,50", "-1", "Infinity", "1e400", "abc", "", "1000000000000", "1.0000001"].every((x) => PB(x) === null),
+      "r.073 pre-push (Enki): a budget figure — 1,234.56 applies, a per-second fraction keeps its six decimals; 0x10, 1e3, 12,50, a sign, Infinity and one trillion never set a line");
+    ok(PC("") === 0 && PC("0") === 0 && PC("0.00") === 0 && PC("1,500") === 150000 && PC("2000.5") === 200050 && ["1e400", "0x10", "abc", "-5", "12,50", "Infinity"].every((x) => Number.isNaN(PC(x))),
+      "…a card figure — blank or zero reads zero (the form's rule); 1e400 and 0x10 are not a number, never Infinity");
+    const card = { id: "c", name: "Visa", limitCents: 300000, openingCents: 1000, openingAtMs: t0, amberCents: 150000, redCents: 200000 };
+    ok(K.validCard(card) && !K.validCard({ ...card, openingCents: Infinity }) && !K.validCard({ ...card, openingCents: PC("1e400") }) && !K.validCard({ ...card, limitCents: Infinity, redCents: Infinity, amberCents: 0 }),
+      "…and a card whose figure is not a finite number is never valid (an Infinity balance saved as null and read back as 0)"); }
+  // (F) Christo: a site with no account store says "off" (nothing to read, nothing lost) — distinct from a read that failed, which never opens
+  // the account features
+  { const r = await C.cloudRead("o", "fin-record"), all = await C.readAll("o");
+    ok(r.state === "off" && r.data === null && ["r", "p", "c"].every((k) => all[k].state === "off"), "r.073 pre-push (Christo): no account store set up → the read says \"off\", never \"offline\" (an unreachable account is \"offline\" or \"error\")"); }
+  // (G) the folded component, read as source: each fold where the reviewers said it was missing
+  const ux = fs.readFileSync(new URL("../components/financial-2525/command-ux1.tsx", import.meta.url), "utf8");
+  ok(/const readOk = r\.state === "ok" \|\| r\.state === "off";/.test(ux) && /if \(ok\) setCloudReady\(true\); else timer = window\.setTimeout\(first, 30000\);/.test(ux) && /window\.addEventListener\("online", onOnline\);/.test(ux) && (ux.match(/\.state === "off" \? "offline" : [rpc]\.state/g) || []).length === 3,
+    "r.073 pre-push (Christo): the account features wait for a read that SUCCEEDED (or a site with no account store); offline at sign-in, the first read is tried again every 30 s and when the network returns");
+  ok(/const here = \(\) => ownerRef\.current === who && recordRef\.current\.owner === who;/.test(ux) && (ux.match(/if \(!here\(\)\) return (readOk|false);/g) || []).length >= 4,
+    "r.073 pre-push (Thor): the sign-in is checked again after every wait of a sync — nothing of one person is written while another is signed in");
+  ok(/const fp = chainFingerprint\(m\.keep\); let last = ""; try \{ last = localStorage\.getItem\(`fin-kept-cloud:\$\{who\}`\)/.test(ux) && /if \(fp !== last\) \{ kept = await cloudPut\(key, `fin-record-kept-\$\{Date\.now\(\)\}`, m\.keep\); if \(kept === "saved"\) \{ try \{ localStorage\.setItem\(`fin-kept-cloud:\$\{who\}`, fp\);/.test(ux),
+    "r.073 pre-push (Thor): an account copy that fails its chain is kept aside ONCE per copy (a new phone wrote another kept row on every sync)");
+  ok(/if \(!saved\) setCloudState\(\(c\) => \(c === "saved" \? "saving" : c\)\);/.test(ux) && /const ok = out\.every\(\(x\) => x === "saved"\), behind = ok && r\.state === "ok" && held !== recordRef\.current;/.test(ux) && /setCloudState\(behind \? "saving" : ok \? "saved"/.test(ux) && /out\.push\(st\); if \(st === "saved"\) held = sent;/.test(ux),
+    "r.073 pre-push (Thor): \"saved to your account\" only after a sync that holds the record as it is now — an entry this device would not keep, or one made during a sync, waits for the next");
+  ok(/const uid = followId\(next, u\.id, u\.ident\);/.test(ux) && /next = correctTx\(next, cur\.id, edit, at\);/.test(ux) && /for \(const k of Object\.keys\(edit\) as \(keyof TxEdit\)\[\]\) if \(\(edit\[k\] \?\? null\) === \(cur\[k\] \?\? null\)\) delete edit\[k\];/.test(ux) && !/setUnsaved\(formKey\)/.test(ux),
+    "r.073 pre-push (Thor): after a failed save, a change in the form is applied to the entry the phone would not keep (a correction) and the save is tried again — fixing a typo never records a second entry");
+  ok(/useEffect\(\(\) => \{ if \(!editId\) return; const id = followId\(record, editId, editIdent\); if \(id !== editId\) setEditId\(id\); \}, \[record, editId, editIdent\]\);/.test(ux) && /const eid = editId \? followId\(recordRef\.current, editId, editIdent\) : null;/.test(ux),
+    "r.073 pre-push (Enlil): the pencil follows the entry it opened on when a union renames it; Done never edits another entry");
+  ok(/const \[planFailed, setPlanFailed\] = useState\(false\);/.test(ux) && /setPlanFailed\(!savePlan\(planOwner, next\)\)/.test(ux) && /\{planFailed && <p role="alert" data-fin-plan-save-failed/.test(ux) && !/if \(!savePlan\(planOwner, next\)\) setSaveFailed\(true\)/.test(ux),
+    "r.073 pre-push (Thor): a budget this device would not keep says so in the budget's own words, on its own flag (a good record save no longer hides it)");
+  ok(/const n = parseBudgetAmount\(text, cur\.symbol \? \[cur\.symbol\] : \[\]\); if \(n !== null\) writePlan/.test(ux) && /const cents = \(v: string\) => parseCardCents\(v\);/.test(ux),
+    "r.073 pre-push (Enki): the budget line and the card settings read through the strict readers");
+  ok(/const tie = !!cp && cp\.at === planAt, at0 = tie \|\| !planAt \? Date\.now\(\) : planAt;/.test(ux) && /const tie = !!cc && cc\.at === cardsAt, at1 = tie \? Date\.now\(\) : cardsAt;/.test(ux),
+    "r.073 pre-push (Odin): an account budget or card list that r.072's stale push reverted (the same time, other lines) is repaired — this device's copy goes up under a new time");
 }
 console.log(`financial-accrual: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

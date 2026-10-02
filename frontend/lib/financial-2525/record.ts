@@ -57,8 +57,11 @@ export function correctTx(rec: FinRecord, id: string, edit: TxEdit, at: number):
   const current = replay(rec).find((x) => x.id === id);
   if (!current) return rec;
   const tx: FinTx = { ...current, ...edit, id: nextCorrectionId(rec, id), kind: edit.kind ?? current.kind, corrects: id };
-  return append(rec, tx, at);
+  return append(rec, tx, nextAt(rec, at));
 }
+/** The time a NEW entry or correction is recorded at: now, or just after the record's latest entry when the clock reads earlier (r.073
+ *  pre-push review, Odin: a clock moved back, or a device that lags, must not make an edit made after seeing another one lose to it). */
+export const nextAt = (rec: FinRecord, now: number): number => rec.entries.reduce((m, e) => Math.max(m, e.at + 1), now);
 /** The next free correction id for `id` — `c-<id>-<n>`, n one past the corrections already made, skipping any n a united copy
  *  already holds (r.073: append is idempotent on the id, so a taken id would silently drop the edit). Pure. */
 export function nextCorrectionId(rec: FinRecord, id: string): string {
@@ -74,6 +77,17 @@ export function freshId(rec: FinRecord, base: string): string {
   let k = 2; while (ids.has(`${base}~${k}`)) k++;
   return `${base}~${k}`;
 }
+/** The identity a union matches a transaction by (its kind, amount and instant — r.073): what an entry keeps when a union renames it. Pure. */
+export const txIdentity = (tx: FinTx): string => `${tx.kind}|${tx.amountCents}|${tx.atMs}`;
+/** The id an entry is held under NOW (r.073 pre-push review, Enlil): `id` itself while its original still says `identity`, else the
+ *  original a union renamed (`id~n`, same root, same identity), else null — a page that remembered an id never edits another entry. Pure. */
+export function followId(rec: FinRecord, id: string, identity: string): string | null {
+  const root = id.replace(/~\d+$/, "");
+  const own = rec.entries.find((e) => e.tx.id === id && !e.tx.corrects);
+  if (own && txIdentity(own.tx) === identity) return id;
+  const moved = rec.entries.find((e) => !e.tx.corrects && e.tx.id.replace(/~\d+$/, "") === root && txIdentity(e.tx) === identity);
+  return moved ? moved.tx.id : null;
+}
 /** The corrections made to a transaction, oldest first (the record still holds every one). Pure. */
 export const correctionsOf = (rec: FinRecord, id: string): FinEntry[] => rec.entries.filter((e) => e.tx.corrects === id);
 /** True when every link holds — hashes recompute, prev pointers chain, revs run 1..n. */
@@ -87,6 +101,13 @@ export function verify(rec: FinRecord): { ok: boolean; brokenAt: number | null }
   return { ok: true, brokenAt: null };
 }
 export const emptyRecord = (owner: string): FinRecord => ({ owner, entries: [] });
+/** A short fingerprint of any stored copy, readable or not (r.073: a copy kept aside is kept once). Pure. */
+export function chainFingerprint(v: unknown): string {
+  const s = JSON.stringify(v) ?? "";
+  let h1 = 0x811c9dc5, h2 = 0x01000193 ^ 0x9e3779b9;
+  for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 0x01000193) >>> 0; h2 = Math.imul(h2 ^ c, 0x0100019b) >>> 0; }
+  return h1.toString(16).padStart(8, "0") + h2.toString(16).padStart(8, "0");
+}
 /** True when the two copies are the same chain, link for link. Pure. */
 export const sameChain = (a: FinRecord, b: FinRecord): boolean => a.entries.length === b.entries.length && a.entries.every((e, i) => b.entries[i].hash === e.hash);
 /** A stored or received copy that can be trusted: the right shape, and every link holds. Pure. */
@@ -120,21 +141,23 @@ export function unionRecords(a: FinRecord, b: FinRecord | null): FinRecord {
   // id (the id is built from the instant, the amount and the place in the record, so the same id with the same money at the same
   // instant is the same transaction recorded twice — a re-entry or "Put back my entries" — even when a memo or a length differs)
   const family = (tx: FinTx) => (tx.corrects ? `c:${tx.corrects}` : `t:${tx.id.replace(/~\d+$/, "")}`);
-  const said = (tx: FinTx) => `${family(tx)}|${tx.corrects ? stableJson({ ...tx, id: "" }) : `${tx.kind}|${tx.amountCents}|${tx.atMs}`}`;
-  const held = new Map<string, string>(out.entries.map((e) => [said(e.tx), e.tx.id] as const));
+  // a correction is also WHEN it was made (its entry's `at`, which a union keeps): an edit back to an earlier value (A → B → A) is a new
+  // correction, never mistaken for the first one (r.073 pre-push review, Krishna: the older edit won and the money changed)
+  const said = (tx: FinTx, at: number) => `${family(tx)}|${tx.corrects ? `${at}|${stableJson({ ...tx, id: "" })}` : `${tx.kind}|${tx.amountCents}|${tx.atMs}`}`;
+  const held = new Map<string, string>(out.entries.map((e) => [said(e.tx, e.at), e.tx.id] as const));
   const taken = new Set(out.entries.map((e) => e.tx.id));
   const renamed = new Map<string, string>();   // an appended transaction's id → the id it is held under
   for (const e of add.entries) {
     let tx = e.tx;
     if (tx.corrects && renamed.has(tx.corrects)) tx = { ...tx, corrects: renamed.get(tx.corrects) };
-    const known = held.get(said(tx));
+    const known = held.get(said(tx, e.at));
     if (known !== undefined) { if (known !== e.tx.id) renamed.set(e.tx.id, known); continue; }   // already held
     if (taken.has(tx.id)) {   // the id belongs to a different transaction: this one takes the next free id
       const id = tx.corrects ? nextCorrectionId(out, tx.corrects) : freshId(out, tx.id.replace(/~\d+$/, ""));
       renamed.set(e.tx.id, id); tx = { ...tx, id };
     }
     out = append(out, tx, e.at);
-    held.set(said(tx), tx.id); taken.add(tx.id);
+    held.set(said(tx, e.at), tx.id); taken.add(tx.id);
   }
   return out;
 }
