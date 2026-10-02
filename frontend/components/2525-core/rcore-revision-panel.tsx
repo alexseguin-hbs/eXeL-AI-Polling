@@ -77,8 +77,8 @@ export function RCoreRevisionPanel({
   const display = useMemo(() => revs.map((r, i) => ({ r, i })).reverse(), [revs]);
 
   // The compare is driven by INDICES into the chronological array (the scrubber domain), with the
-  // guardrail aIdx < bIdx. Default: Before = previous, After = latest (the operator's "vs previous").
-  const [aIdx, setAIdx] = useState(n >= 2 ? n - 2 : 0);
+  // guardrail aIdx < bIdx. Default: top is r.001 (the first revision), bottom is the latest r.###.
+  const [aIdx, setAIdx] = useState(0);
   const [bIdx, setBIdx] = useState(n >= 1 ? n - 1 : 0);
   const [diffMode, setDiffMode] = useState<"unified" | "side">("unified");
   const [filter, setFilter] = useState<"added" | "revised" | "removed" | null>(null);
@@ -210,8 +210,8 @@ export function RCoreRevisionPanel({
                 onStep={(d) => setB(bIdx + d)}
               />
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                <PresetBtn hook="prev" label={t("rcore.vs_previous")} onClick={() => { setAIdx(n - 2); setBIdx(n - 1); setNavIdx(0); }} accent={accent} />
-                <PresetBtn hook="first" label={t("rcore.first_vs_latest")} onClick={() => { setAIdx(0); setBIdx(n - 1); setNavIdx(0); }} accent={accent} />
+                <PresetBtn hook="prev" label={t("rcore.vs_previous")} active={aIdx === n - 2 && bIdx === n - 1 && aIdx !== 0} onClick={() => { setAIdx(n - 2); setBIdx(n - 1); setNavIdx(0); }} accent={accent} />
+                <PresetBtn hook="first" label={t("rcore.first_vs_latest")} active={aIdx === 0 && bIdx === n - 1} onClick={() => { setAIdx(0); setBIdx(n - 1); setNavIdx(0); }} accent={accent} />
               </div>
             </div>
 
@@ -427,9 +427,9 @@ function Scrubber({ side, testid, label, revs, value, min, max, accent, onChange
   );
 }
 
-function PresetBtn({ hook, label, onClick, accent }: { hook: string; label: string; onClick: () => void; accent: string }) {
+function PresetBtn({ hook, label, onClick, accent, active = false }: { hook: string; label: string; onClick: () => void; accent: string; active?: boolean }) {
   return (
-    <button data-rcore-preset={hook} type="button" onClick={onClick} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 999, border: `1px solid ${PAL.line}`, background: PAL.raised, color: accent, cursor: "pointer" }}>{label}</button>
+    <button data-rcore-preset={hook} type="button" aria-pressed={active} onClick={onClick} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 999, border: `1px solid ${active ? accent : PAL.line}`, background: active ? `${accent}22` : PAL.raised, color: accent, cursor: "pointer" }}>{label}</button>
   );
 }
 
