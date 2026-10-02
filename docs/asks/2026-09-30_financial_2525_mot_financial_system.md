@@ -1041,6 +1041,11 @@
 > (addendum 157, verbatim — 2026-10-02)
 > and allow user to set up their own CC (don’t default Capital One and USAA).
 
+> (addendum 158, verbatim — 2026-10-02, with a phone photo of the Accrual Units card at 929521e: "Available: −$2,309.48" and "Accrual Rate
+> $2.0900 /hr" side by side with almost no room between them — `docs/asks/2026-10-02_financial_2525_fb158_available_rate_crowd.jpg`;
+> sent after the r.070 note that listed "a large negative Available runs into the Accrual Rate" as found, not changed)
+> and fix this:
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).

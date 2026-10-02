@@ -8,7 +8,7 @@
   "stamp": "v.000_r.070",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "e9391af250b36c7ff091a71ea10ad4c290a4f4074cefe105221772adc102ccf9",
+  "handoffSha256": "074ceedfd73af646fb95eb45ad433752933c62620186f8ff1ef0d5c3167344c0",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -530,6 +530,12 @@
     "sha256": "e9391af250b36c7ff091a71ea10ad4c290a4f4074cefe105221772adc102ccf9",
     "date": "2026-10-02",
     "note": "addendum 157 (each person sets up their own credit cards; Capital One and USAA are no longer seeded by default)"
+   }
+,
+   {
+    "sha256": "074ceedfd73af646fb95eb45ad433752933c62620186f8ff1ef0d5c3167344c0",
+    "date": "2026-10-02",
+    "note": "addendum 158 (fix the Accrual Units row: a long Available must never run into the Accrual Rate)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
