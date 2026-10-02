@@ -267,6 +267,7 @@ ok(/id: "income"[^\n]*id: "spending"[^\n]*id: "net"/.test(ux), "r.056: three lin
 const rc = fs.readFileSync(path.join(process.cwd(), "components/2525-core/rcore-chart.tsx"), "utf8");
 ok(/attachPrimitive\(primitive/.test(rc) && /useMediaCoordinateSpace/.test(rc) && /g\.rotate\(-a\)/.test(rc) && /handleScale: \{ pinch: true/.test(rc) && !/data-rcore-date-axis/.test(rc), "r.059 (addendum 130 'use more advanced table from html to js'): the dates (tilted) and the figures are drawn by the chart engine on its canvas — they follow pinch and drag every frame; no HTML axis left");
 ok(/data-fin-chart-unit-row className="mt-2 flex justify-end"/.test(ux) && ux.indexOf("data-fin-chart-unit-row") > ux.indexOf("{rate && <RateView") && ux.indexOf("data-fin-chart-unit-row") > ux.indexOf("{!rate && <>"), "r.060 (addendum 131): the Unit dropdown sits at the chart card's bottom right, after both views");
+ok(/timeAxisPaneViews: \(\) => \[\{ zOrder: \(\) => "top", renderer: \(\) => axisPainter \}\]/.test(rc) && /minimumHeight: axisPx\(angle, tall\), tickMarkFormatter: \(\) => ""/.test(rc), "r.061: the tilted dates live in their own strip under the plot (the engine's time-axis strip, drawn by our painter) — the value scale never runs into them");
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
 

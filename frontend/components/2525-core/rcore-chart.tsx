@@ -51,9 +51,9 @@ export function clockOf(points: { t: number }[]): { t0: number; step: number; to
   const step = points.length > 1 ? (points[points.length - 1].t - t0) / (points.length - 1) : 1;
   return { t0, step, toLogical: (ms) => (ms - t0) / step, toMs: (l) => t0 + l * step };
 }
-/** How much of the plot's height the tilted date marks need (a fraction of the pane). Pure. */
-export function axisShare(angle: RCoreAngle, tall: boolean): number {
-  return angle === 0 ? 0.1 : angle === 90 ? (tall ? 0.34 : 0.26) : tall ? (angle === 45 ? 0.3 : 0.26) : 0.2;
+/** The height (px) of the date strip under the plot the tilted marks need — their own strip, so the value scale never runs into it. Pure. */
+export function axisPx(angle: RCoreAngle, tall: boolean): number {
+  return angle === 0 ? 22 : angle === 90 ? (tall ? 84 : 56) : tall ? (angle === 45 ? 74 : 62) : 46;
 }
 
 function cssColor(el: HTMLElement, prop: string, fallback: string): string {
@@ -74,14 +74,13 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
     void import("lightweight-charts").then((lw) => {
       if (dead || !box.current) return;
       const text = cssColor(el, "--muted-foreground", "#94a3b8"), grid = cssColor(el, "--border", "#334155");
-      const share = axisShare(angle, tall);
       const chart = lw.createChart(el, {
         width: el.clientWidth || 340, height,
         layout: { background: { type: lw.ColorType.Solid, color: "transparent" }, attributionLogo: false, textColor: text, fontSize: 10, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" },
         grid: { vertLines: { visible: false }, horzLines: { color: grid } },
-        leftPriceScale: { visible: true, borderColor: grid, scaleMargins: { top: 0.3, bottom: share + 0.04 } },   // the top for the figures, the bottom for the dates
+        leftPriceScale: { visible: true, borderColor: grid, scaleMargins: { top: 0.3, bottom: 0.08 } },   // the top third for the figures
         rightPriceScale: { visible: false },
-        timeScale: { visible: false, minBarSpacing: 0.05, rightOffset: 0 },
+        timeScale: { visible: true, borderColor: grid, minimumHeight: axisPx(angle, tall), tickMarkFormatter: () => "", minBarSpacing: 0.05, rightOffset: 0 },   // the strip is ours: the engine draws no labels in it, our painter draws the tilted dates
         localization: { priceFormatter: (v: number) => live.current.formatValue(v) },
         crosshair: { mode: lw.CrosshairMode.Normal, horzLine: { visible: false, labelVisible: false }, vertLine: { labelVisible: false } },
         handleScroll: { vertTouchDrag: false, horzTouchDrag: true, mouseWheel: true, pressedMouseMove: true },
@@ -116,23 +115,8 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
           target.useMediaCoordinateSpace(({ context: g, mediaSize: { width: W, height: H } }) => {
             const p = live.current, vr = ts.getVisibleLogicalRange();
             if (!vr) return;
-            const from = clock.toMs(Number(vr.from)), to = clock.toMs(Number(vr.to));
-            // the dates, tilted per Settings
-            const base = H - H * axisShare(p.angle, p.tall) + 4, a = (p.angle * Math.PI) / 180;
-            g.save(); g.font = "10px ui-monospace, SFMono-Regular, Menlo, monospace"; g.fillStyle = text; g.strokeStyle = grid; g.lineWidth = 1;
-            const tks = p.ticksFor(from, to);
-            for (const tk of tks) {
-              const x = xAt(tk); if (x === null || x < -2 || x > W + 2) continue;
-              g.beginPath(); g.moveTo(x + 0.5, base - 6); g.lineTo(x + 0.5, base - 2); g.stroke();
-              const label = p.formatTick(tk);
-              if (p.angle !== 0 && x - g.measureText(label).width * Math.cos(a) < 0) continue;   // a tilted date that would run off the left edge is skipped, never cut
-              g.save(); g.translate(x, base);
-              if (p.angle === 0) { const w = g.measureText(label).width; g.textAlign = x - w / 2 < 0 ? "left" : x + w / 2 > W ? "right" : "center"; g.textBaseline = "top"; g.fillText(label, 0, 0); }
-              else { g.rotate(-a); g.textAlign = "right"; g.textBaseline = "middle"; g.fillText(label, 0, 0); }
-              g.restore();
-            }
-            g.restore();
             // the selected instant: the finger's, else now — a thin line (the engine draws its own under the finger) and the figures
+            const base = H;
             const sel = cross ?? p.readoutAt ?? null; if (sel === null || !p.readout) return;
             const x = xAt(sel); if (x === null || x < 0 || x > W) return;
             if (cross === null) { g.save(); g.strokeStyle = text; g.globalAlpha = 0.6; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, base - 8); g.stroke(); g.restore(); }
@@ -144,11 +128,36 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
           });
         },
       };
+      const axisPainter = {
+        draw(target: { useMediaCoordinateSpace: <T>(f: (s: { context: CanvasRenderingContext2D; mediaSize: { width: number; height: number } }) => T) => T }) {
+          target.useMediaCoordinateSpace(({ context: g, mediaSize: { width: W } }) => {
+            const p = live.current, vr = ts.getVisibleLogicalRange();
+            if (!vr) return;
+            const from = clock.toMs(Number(vr.from)), to = clock.toMs(Number(vr.to));
+            // the dates, tilted per Settings
+            const base = 6, a = (p.angle * Math.PI) / 180;
+            g.save(); g.font = "10px ui-monospace, SFMono-Regular, Menlo, monospace"; g.fillStyle = text; g.strokeStyle = grid; g.lineWidth = 1;
+            const tks = p.ticksFor(from, to);
+            for (const tk of tks) {
+              const x = xAt(tk); if (x === null || x < -2 || x > W + 2) continue;
+              g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, 4); g.stroke();
+              const label = p.formatTick(tk);
+              if (p.angle !== 0 && x - g.measureText(label).width * Math.cos(a) < 0) continue;   // a tilted date that would run off the left edge is skipped, never cut
+              g.save(); g.translate(x, base);
+              if (p.angle === 0) { const w = g.measureText(label).width; g.textAlign = x - w / 2 < 0 ? "left" : x + w / 2 > W ? "right" : "center"; g.textBaseline = "top"; g.fillText(label, 0, 0); }
+              else { g.rotate(-a); g.textAlign = "right"; g.textBaseline = "middle"; g.fillText(label, 0, 0); }
+              g.restore();
+            }
+            g.restore();
+          });
+        },
+      };
       const primitive = {
         attached: (prm: { requestUpdate: () => void }) => { request = prm.requestUpdate; },
         detached: () => { request = () => {}; },
         updateAllViews: () => {},
         paneViews: () => [{ zOrder: () => "top", renderer: () => painter }],
+        timeAxisPaneViews: () => [{ zOrder: () => "top", renderer: () => axisPainter }],
       };
       anchor?.attachPrimitive(primitive as never);
       redraw.current = () => request();

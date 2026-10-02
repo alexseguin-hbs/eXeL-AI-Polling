@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 119 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 121 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -841,6 +841,20 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-02",
       "kind": "decision",
       "text": "r.060 decision — the chart's Unit dropdown at the card's bottom right (addendum 131).",
+      "commit": "ac4ba7b"
+    },
+    {
+      "rev": 120,
+      "date": "2026-10-02",
+      "kind": "release",
+      "text": "r.060 shipped and LIVE (Verify Live #2212 ✓) — the chart's Unit dropdown at the card's bottom right.",
+      "commit": "436decc"
+    },
+    {
+      "rev": 121,
+      "date": "2026-10-02",
+      "kind": "correction",
+      "text": "r.061 correction — the tilted dates in their own strip under the plot; the value scale no longer runs into them.",
       "commit": "ac4ba7b"
     }
   ]

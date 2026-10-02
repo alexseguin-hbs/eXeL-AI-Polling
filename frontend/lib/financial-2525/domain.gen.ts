@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.060",
-  "stamp": "v.000_r.060",
+  "revision": "0.061",
+  "stamp": "v.000_r.061",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "22d97b3545c0b00dbabbe3cec2431d5f33fbc9451e7d4a6fca41e83e8e8c48e2",
@@ -927,6 +927,14 @@ export const FINANCIAL_DOMAIN = {
    "date": "2026-10-02",
    "kind": "decision",
    "why": "Addendum 131 (with his phone photo of the chart): \"also place unit drop down $/min on financial chart bottom right\". The chart's Unit dropdown ($/min · /sec · /hr · /day · $) moved from above the span buttons to the bottom right of the chart card, after both the $/min and the $ views; its word lives on as the dropdown's accessible name. Nothing else moved.",
+   "commit": "ac4ba7b",
+   "shipped": "436decc"
+  },
+  {
+   "revision": "0.061",
+   "date": "2026-10-02",
+   "kind": "correction",
+   "why": "Found on the r.060 capture: with no negative figure in view, the value scale still printed −$0.02 … −$0.06 down into the band where the tilted dates sit (the band was carved out of the plot). The dates now have their own strip under the plot — the engine's time-axis strip, sized for the Settings angle, its own labels off — and the chart engine draws the tilted dates in it (a time-axis primitive), so the value scale ends at the plot and never runs into them. Nothing else moved.",
    "commit": "ac4ba7b",
    "shipped": "PENDING"
   }
