@@ -769,26 +769,30 @@ function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, angle, pl
   const cycle = windowStart(spread, minuteNow);
   const from = span === "1x" ? minuteNow - spanMs : Number.isFinite(cycle) && cycle > minuteNow - spanMs ? cycle : minuteNow - spanMs / 3;
   const to = span === "1x" ? minuteNow : from + spanMs;
-  const pts = useMemo(() => rateSeries(spread, from, to), [spread, from, to]);
+  // addendum 130 ("30D means cost split into 30 days, not necessarily range of x axis · pinch zoom shows more dates"): the lines run over
+  // a WIDE range — a split before the first entry to a split past the last one — and the chart OPENS on the window above; pinching or
+  // dragging shows more or fewer dates without changing a figure. Sampled on one even clock (≤ 2,000 points).
+  const firstAt = txs.length ? Math.min(...txs.map((x) => x.atMs)) : from, lastAt = txs.length ? Math.max(...txs.map((x) => x.atMs)) : to;
+  const dataFrom = Math.min(from, firstAt) - spanMs, dataTo = Math.max(to, lastAt + spanMs) + spanMs;
+  const pts = useMemo(() => rateSeries(spread, dataFrom, dataTo), [spread, dataFrom, dataTo]);
   const netEndCents = netBetween(pts, from, to);
   const nowInside = !(minuteNow < from) && !(minuteNow > to);
-  const marks = txs.filter((w) => w.kind === "withdrawal" && Math.min(Math.max(w.atMs, from), to) === w.atMs).map((w) => ({ t: w.atMs, color: C.evolution, text: `−${CUR_SYM}${num2(w.amountCents)}` }));   // each withdrawal's entry, marked
+  const marks = txs.filter((w) => w.kind === "withdrawal").map((w) => ({ t: w.atMs, color: C.evolution, text: `−${CUR_SYM}${num2(w.amountCents)}` }));   // each withdrawal's entry, marked
   const unitLabel = CHART_RATE_UNITS.find((u) => u.id === unit)?.label ?? "/min";
-  // the date marks: as many whole days as fit at the Settings angle (the balance view's own rule); A.B..C mode: five marks
+  // the date marks for whatever range is in view: as many whole days as fit at the Settings angle; A.B..C mode: five marks
   const fit = angle === 0 ? (dateFmt === "full" ? 4 : dateFmt === "mmdd" ? 6 : 10) : angle === 90 ? (dateFmt === "full" ? 14 : 18) : (dateFmt === "full" ? 6 : dateFmt === "mmdd" ? 10 : 16);
-  const ticks = showAbc ? [0, 0.25, 0.5, 0.75, 1].map((f) => from + f * (to - from)) : dayTicks(from, to, fit);
+  const ticksFor = (a: number, b: number) => (showAbc ? [0.1, 0.3, 0.5, 0.7, 0.9].map((f) => a + f * (b - a)) : dayTicks(a, b, fit));
   const tick = (ms: number) => (showAbc ? fmtMot(positionInYear(ms, planet.yearAnchor, planet.yearDays).abc).split(".")[0] : dateLabel(ms, dateFmt));
   const figuresAt = (ms: number) => { const q = rateAtSeries(pts, ms) ?? { income: 0, spending: 0, net: 0 }; return [{ color: C.abundance, text: rateMoney(rateIn(q.income, unit)) + unitLabel }, { color: C.evolution, text: rateMoney(rateIn(q.spending, unit)) + unitLabel }, { color: C.temporal, text: rateMoney(rateIn(q.net, unit)) + unitLabel }]; };
-  // the engine spaces points evenly, so the steps are sampled on an even clock (240 points across the window)
-  const grid = useMemo(() => Array.from({ length: 241 }, (_, i) => from + ((to - from) * i) / 240), [from, to]);
-  // the last sample reads the minute before the window closes (a span that ends exactly when its money runs out is not a drop to zero)
-  const line = (key: "income" | "spending" | "net") => grid.map((g) => ({ t: g, v: rateIn(rateAtSeries(pts, Math.min(g, to - 60_000))?.[key] ?? 0, unit) / 100 }));
+  const N = Math.min(2000, Math.max(241, Math.ceil((dataTo - dataFrom) / 60_000) + 1));
+  const grid = useMemo(() => Array.from({ length: N }, (_, i) => dataFrom + ((dataTo - dataFrom) * i) / (N - 1)), [dataFrom, dataTo, N]);
+  const line = (key: "income" | "spending" | "net") => grid.map((g) => ({ t: g, v: rateIn(rateAtSeries(pts, g)?.[key] ?? 0, unit) / 100 }));
   return (
     <div data-fin-rate-view className="relative mt-2">
       {/* addendum 129: FIGURES ONLY, in their lines' colours, beside the selected date's vertical line (now, or under the finger); the
           dates tilt at the Settings angle */}
-      <RCoreChart height={220} ariaLabel={t("fin.chart_tap")} angle={angle} tall={!showAbc && dateFmt === "full"} ticks={ticks} formatTick={tick}
-        readoutAt={nowInside ? minuteNow : from} readout={figuresAt}
+      <RCoreChart height={300} ariaLabel={t("fin.chart_tap")} angle={angle} tall={!showAbc && dateFmt === "full"} ticksFor={ticksFor} formatTick={tick}
+        initialRange={{ from, to }} readoutAt={nowInside ? minuteNow : from} readout={figuresAt}
         lines={[{ id: "income", color: C.abundance, points: line("income"), step: true }, { id: "spending", color: C.evolution, points: line("spending"), step: true }, { id: "net", color: C.temporal, points: line("net"), step: true, width: 3 }]}
         marks={marks} formatValue={(v) => rateMoney(v * 100)} />
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">

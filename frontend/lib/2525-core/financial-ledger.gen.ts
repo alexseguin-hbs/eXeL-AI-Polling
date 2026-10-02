@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 115 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 117 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -814,6 +814,20 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.058 correction — the $/min chart's dates tilt per Settings; figures only, line-coloured, beside the selected date line.",
       "commit": "5ce72cd"
+    },
+    {
+      "rev": 116,
+      "date": "2026-10-02",
+      "kind": "release",
+      "text": "r.058 shipped and LIVE (Verify Live #2209 ✓) — dates tilt per Settings; figures only, line-coloured, beside the selected date line.",
+      "commit": "e3e6acd"
+    },
+    {
+      "rev": 117,
+      "date": "2026-10-02",
+      "kind": "correction",
+      "text": "r.059 correction — 30D is the split, not the x range: pinch shows more dates; the dates and figures drawn by the chart engine on its canvas.",
+      "commit": "fa17d71"
     }
   ]
 };

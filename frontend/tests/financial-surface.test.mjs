@@ -261,9 +261,11 @@ ok(/import \{ RCoreChart \} from "@\/components\/2525-core\/rcore-chart"/.test(u
 ok(/useState<ChartUnit>\("min"\)/.test(ux) && /const CHART_UNITS: readonly ChartUnit\[\] = \["min", "sec", "hr", "day", "usd"\]/.test(ux) && /data-fin-chart-unit/.test(ux), "r.056: the chart opens on $/min (unit dropdown $/min · /sec · /hr · /day · $), remembered on the phone");
 ok(/\{rate && <RateView /.test(ux) && /\{!rate && <>/.test(ux), "r.056: $/min shows the rate view; $ keeps the balance view of r.025–r.053 unchanged");
 ok(!/data-fin-rate-hud/.test(ux) && /readout=\{figuresAt\}/.test(ux) && /const figuresAt = \(ms: number\) => \{[^\n]*color: C\.abundance, text: rateMoney[^\n]*color: C\.evolution, text: rateMoney[^\n]*color: C\.temporal, text: rateMoney/.test(ux) && !/const figuresAt[^\n]*fin\.income/.test(ux) && /data-fin-rate-net-by/.test(ux), "r.057 (addendum 129 'numbers only in same color as line … just figures near vertical line on selected date'): figures only, line-coloured, beside the selected date line — no box, no words; Net by moves to the legend");
-ok(/angle=\{angle\} tall=/.test(ux) && /ticks=\{ticks\} formatTick=\{tick\}/.test(ux), "r.057 (addendum 129 'remember text tilts per settings'): the $/min chart's dates tilt at the Settings angle");
+ok(/angle=\{angle\} tall=/.test(ux) && /ticksFor=\{ticksFor\} formatTick=\{tick\}/.test(ux) && /initialRange=\{\{ from, to \}\}/.test(ux) && /const dataFrom = Math\.min\(from, firstAt\) - spanMs, dataTo = Math\.max\(to, lastAt \+ spanMs\) \+ spanMs/.test(ux), "r.057–r.059 (addenda 129 · 130): the dates tilt at the Settings angle; the lines run over a wide range and the chart OPENS on the split window — pinch shows more dates (30D is the split, not the x range)");
 ok(/id: "income"[^\n]*id: "spending"[^\n]*id: "net"/.test(ux), "r.056: three lines — income, spending, net — per minute");
 
+const rc = fs.readFileSync(path.join(process.cwd(), "components/2525-core/rcore-chart.tsx"), "utf8");
+ok(/attachPrimitive\(primitive/.test(rc) && /useMediaCoordinateSpace/.test(rc) && /g\.rotate\(-a\)/.test(rc) && /handleScale: \{ pinch: true/.test(rc) && !/data-rcore-date-axis/.test(rc), "r.059 (addendum 130 'use more advanced table from html to js'): the dates (tilted) and the figures are drawn by the chart engine on its canvas — they follow pinch and drag every frame; no HTML axis left");
 console.log(`\nfinancial-surface: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
 

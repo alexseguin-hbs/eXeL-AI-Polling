@@ -4,31 +4,34 @@
  * OF FINANCIAL CHART; you need … way better charting engine"; his pick: TradingView Lightweight Charts). Financial-2525 is the first
  * consumer ($/min). Loaded in the browser only (a dynamic import inside an effect: the static export never touches a canvas).
  *
- * Contract: lines of { t (ms), v } sampled on an EVEN clock (the engine spaces points evenly), on ONE left value scale (addendum 101
- * "$ on left y axis"), drawn as steps or straight, with optional marks. The date axis is the surface's own — HTML under the plot,
- * tilted at the angle the person picked in Settings (addendum 129 "remember text tilts per settings"). The readout is FIGURES ONLY,
- * each in its line's colour, beside the vertical line of the selected instant (addendum 129 "have numbers only in same color as line
- * … just figures near vertical line on selected date"): the finger's instant while touching, else `readoutAt` (now).
- * Colours come from the caller (the 13-colour palette); the ground is transparent so the card's theme shows through.
+ * Contract:
+ * - lines of { t (ms), v } sampled on ONE EVEN clock over a WIDE range (addendum 130 "pinch zoom on table shows more dates · 30D means
+ *   cost split into 30 days, not necessarily range of x axis"): the chart opens on `initialRange` and the person pinches / drags to see
+ *   more or fewer dates; nothing is re-computed, the engine just moves its window.
+ * - everything written on the plot is drawn BY THE ENGINE on its canvas, inside its own frame (addendum 130 "use more advanced table
+ *   from html to js that best supports interactive nature of real-time charts"): the date marks, tilted at the Settings angle
+ *   (addendum 129 "remember text tilts per settings"), re-chosen for whatever range is in view; and the figures — numbers only, each in
+ *   its line's colour, beside the vertical line of the selected instant (addendum 129) — the finger's instant, else `readoutAt` (now).
+ * - ONE left value scale (addendum 101 "$ on left y axis"). Colours from the caller (the 13-colour palette); transparent ground.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export interface RCoreLine { id: string; color: string; points: { t: number; v: number }[]; step?: boolean; dashed?: boolean; width?: 1 | 2 | 3 }
 export interface RCoreMark { t: number; color: string; text?: string }
 export interface RCoreFigure { color: string; text: string }
 export type RCoreAngle = 0 | 30 | 45 | 90;
 export interface RCoreChartProps {
-  lines: RCoreLine[];
+  lines: RCoreLine[];                       // every line on the SAME even clock (same first instant, same step, same count)
   marks?: RCoreMark[];
   height?: number;
+  initialRange?: { from: number; to: number };
   formatValue: (v: number) => string;
-  ticks: number[];                         // the instants the date axis labels (the surface chooses how many fit)
+  ticksFor: (from: number, to: number) => number[];   // the date marks for the range in view
   formatTick: (ms: number) => string;
-  angle?: RCoreAngle;                      // the Settings angle for the date text
-  tall?: boolean;                          // long labels (a full date) need more room when tilted
-  readout?: (ms: number) => RCoreFigure[]; // the figures beside the selected instant's line
-  readoutAt?: number;                      // the instant shown when nothing is touched (now)
-  onCrosshair?: (ms: number | null) => void;
+  angle?: RCoreAngle;
+  tall?: boolean;                           // long labels (a full date) need more room when tilted
+  readout?: (ms: number) => RCoreFigure[];
+  readoutAt?: number;
   ariaLabel: string;
 }
 
@@ -42,89 +45,124 @@ export function toSeconds(points: { t: number; v: number }[]): { time: number; v
   }
   return out;
 }
-/** x of an instant between two known (instant, x) anchors — the points are on an even clock, so time maps linearly. Pure. */
-export function xBetween(ms: number, a: { t: number; x: number }, b: { t: number; x: number }): number {
-  return b.t === a.t ? a.x : a.x + ((ms - a.t) / (b.t - a.t)) * (b.x - a.x);
+/** The even clock: instant ↔ logical index (fractional allowed), so any instant maps to the engine's x. Pure. */
+export function clockOf(points: { t: number }[]): { t0: number; step: number; toLogical: (ms: number) => number; toMs: (l: number) => number } {
+  const t0 = points.length ? points[0].t : 0;
+  const step = points.length > 1 ? (points[points.length - 1].t - t0) / (points.length - 1) : 1;
+  return { t0, step, toLogical: (ms) => (ms - t0) / step, toMs: (l) => t0 + l * step };
+}
+/** How much of the plot's height the tilted date marks need (a fraction of the pane). Pure. */
+export function axisShare(angle: RCoreAngle, tall: boolean): number {
+  return angle === 0 ? 0.1 : angle === 90 ? (tall ? 0.34 : 0.26) : tall ? (angle === 45 ? 0.3 : 0.26) : 0.2;
 }
 
 function cssColor(el: HTMLElement, prop: string, fallback: string): string {
   try { const v = getComputedStyle(el).getPropertyValue(prop).trim(); return v ? (v.startsWith("#") || v.startsWith("rgb") || v.startsWith("hsl") ? v : `hsl(${v})`) : fallback; } catch { return fallback; }
 }
 
-export function RCoreChart({ lines, marks = [], height = 200, formatValue, ticks, formatTick, angle = 0, tall = false, readout, readoutAt, onCrosshair, ariaLabel }: RCoreChartProps) {
+export function RCoreChart({ lines, marks = [], height = 280, initialRange, formatValue, ticksFor, formatTick, angle = 0, tall = false, readout, readoutAt, ariaLabel }: RCoreChartProps) {
   const box = useRef<HTMLDivElement>(null);
-  const fmt = useRef({ formatValue, onCrosshair });
-  fmt.current = { formatValue, onCrosshair };
-  // the two anchors that map time → x (first and last sample), re-read whenever the plot moves or resizes
-  const [geo, setGeo] = useState(null as null | { a: { t: number; x: number }; b: { t: number; x: number }; w: number });
-  const [cross, setCross] = useState(null as null | { ms: number; x: number });
-  const key = JSON.stringify([lines.map((l) => [l.id, l.color, l.step, l.dashed, l.width, l.points.length, l.points[0]?.t, l.points[l.points.length - 1]?.t, l.points.reduce((a, p) => a + p.v, 0)]), marks, height]);
+  // the latest props, read by the canvas painter every frame (so a new format or figure set never rebuilds the chart)
+  const live = useRef({ formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt });
+  live.current = { formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt };
+  const redraw = useRef<() => void>(() => {});
+  useEffect(() => { redraw.current(); });
+  const key = JSON.stringify([lines.map((l) => [l.id, l.color, l.step, l.dashed, l.width, l.points.length, l.points[0]?.t, l.points[l.points.length - 1]?.t, l.points.reduce((a, p) => a + p.v, 0)]), marks, height, initialRange, angle, tall]);
   useEffect(() => {
     const el = box.current; if (!el) return;
     let dead = false; let cleanup = () => {};
     void import("lightweight-charts").then((lw) => {
       if (dead || !box.current) return;
       const text = cssColor(el, "--muted-foreground", "#94a3b8"), grid = cssColor(el, "--border", "#334155");
+      const share = axisShare(angle, tall);
       const chart = lw.createChart(el, {
         width: el.clientWidth || 340, height,
         layout: { background: { type: lw.ColorType.Solid, color: "transparent" }, attributionLogo: false, textColor: text, fontSize: 10, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" },
-        grid: { vertLines: { color: grid }, horzLines: { color: grid } },
-        leftPriceScale: { visible: true, borderColor: grid, scaleMargins: { top: 0.32, bottom: 0.08 } },   // the top third stays clear for the figures beside the selected line
+        grid: { vertLines: { visible: false }, horzLines: { color: grid } },
+        leftPriceScale: { visible: true, borderColor: grid, scaleMargins: { top: 0.3, bottom: share + 0.04 } },   // the top for the figures, the bottom for the dates
         rightPriceScale: { visible: false },
-        timeScale: { visible: false, fixLeftEdge: true, fixRightEdge: true, minBarSpacing: 0.2 },   // the date axis is ours (tilts per Settings)
-        localization: { priceFormatter: (v: number) => fmt.current.formatValue(v) },
+        timeScale: { visible: false, minBarSpacing: 0.05, rightOffset: 0 },
+        localization: { priceFormatter: (v: number) => live.current.formatValue(v) },
         crosshair: { mode: lw.CrosshairMode.Normal, horzLine: { visible: false, labelVisible: false }, vertLine: { labelVisible: false } },
-        handleScroll: { vertTouchDrag: false },
+        handleScroll: { vertTouchDrag: false, horzTouchDrag: true, mouseWheel: true, pressedMouseMove: true },
+        handleScale: { pinch: true, mouseWheel: true, axisPressedMouseMove: false },
       } as never);
+      const clock = clockOf(lines[0]?.points ?? []);
       const made: ReturnType<typeof chart.addSeries>[] = [];
-      const all = lines.flatMap((l) => toSeconds(l.points));
       for (const l of lines) {
-        const s = chart.addSeries(lw.LineSeries, { color: l.color, lineWidth: l.width ?? 2, lineType: l.step ? lw.LineType.WithSteps : lw.LineType.Simple, lineStyle: l.dashed ? lw.LineStyle.Dashed : lw.LineStyle.Solid, priceScaleId: "left", lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: true } as never);
+        const s = chart.addSeries(lw.LineSeries, { color: l.color, lineWidth: l.width ?? 2, lineType: l.step ? lw.LineType.WithSteps : lw.LineType.Simple, lineStyle: l.dashed ? lw.LineStyle.Dashed : lw.LineStyle.Solid, priceScaleId: "left", lastValueVisible: false, priceLineVisible: false } as never);
         s.setData(toSeconds(l.points) as never);
         made.push(s);
       }
       const anchor = made[0];
       if (anchor && marks.length) lw.createSeriesMarkers(anchor, marks.map((m) => ({ time: Math.floor(m.t / 1000), position: "aboveBar", color: m.color, shape: "circle", text: m.text })).sort((a, b) => a.time - b.time) as never);
-      chart.timeScale().fitContent();
-      const t0 = all.length ? Math.min(...all.map((p) => p.time)) : 0, t1 = all.length ? Math.max(...all.map((p) => p.time)) : 0;
-      const measure = () => {
-        const ts = chart.timeScale(); const x0 = ts.timeToCoordinate(t0 as never), x1 = ts.timeToCoordinate(t1 as never);
-        const off = chart.priceScale("left").width();
-        if (x0 !== null && x1 !== null) setGeo({ a: { t: t0 * 1000, x: Number(x0) + off }, b: { t: t1 * 1000, x: Number(x1) + off }, w: el.clientWidth });
+      const ts = chart.timeScale();
+      if (initialRange) ts.setVisibleLogicalRange({ from: clock.toLogical(initialRange.from), to: clock.toLogical(initialRange.to) });
+      else ts.fitContent();
+      // THE PAINTER — the date marks and the figures, drawn by the engine inside its own frame on every pan, pinch and finger move
+      let cross: number | null = null;
+      let request = () => {};
+      // instant → x: the nearest sample's own coordinate, plus the fraction of a bar (time-to-coordinate is exact for a sampled instant)
+      const secs = toSeconds(lines[0]?.points ?? []).map((q) => q.time);
+      const xAt = (ms: number) => {
+        if (!secs.length) return null;
+        const l = clock.toLogical(ms), i = Math.max(0, Math.min(secs.length - 2, Math.floor(l)));
+        const a = ts.timeToCoordinate(secs[i] as never), b = ts.timeToCoordinate(secs[i + 1] as never);
+        if (a === null || b === null) return null;
+        return Number(a) + (l - i) * (Number(b) - Number(a));
       };
-      requestAnimationFrame(measure);
-      chart.timeScale().subscribeVisibleLogicalRangeChange(() => requestAnimationFrame(measure));
-      chart.subscribeCrosshairMove((p: { time?: unknown; point?: { x: number } }) => {
-        const ms = typeof p.time === "number" ? p.time * 1000 : null;
-        setCross(ms !== null && p.point ? { ms, x: p.point.x + chart.priceScale("left").width() } : null);
-        fmt.current.onCrosshair?.(ms);
-      });
-      const ro = new ResizeObserver(() => { if (box.current) { chart.applyOptions({ width: box.current.clientWidth }); requestAnimationFrame(measure); } });
+      const painter = {
+        draw(target: { useMediaCoordinateSpace: <T>(f: (s: { context: CanvasRenderingContext2D; mediaSize: { width: number; height: number } }) => T) => T }) {
+          target.useMediaCoordinateSpace(({ context: g, mediaSize: { width: W, height: H } }) => {
+            const p = live.current, vr = ts.getVisibleLogicalRange();
+            if (!vr) return;
+            const from = clock.toMs(Number(vr.from)), to = clock.toMs(Number(vr.to));
+            // the dates, tilted per Settings
+            const base = H - H * axisShare(p.angle, p.tall) + 4, a = (p.angle * Math.PI) / 180;
+            g.save(); g.font = "10px ui-monospace, SFMono-Regular, Menlo, monospace"; g.fillStyle = text; g.strokeStyle = grid; g.lineWidth = 1;
+            const tks = p.ticksFor(from, to);
+            for (const tk of tks) {
+              const x = xAt(tk); if (x === null || x < -2 || x > W + 2) continue;
+              g.beginPath(); g.moveTo(x + 0.5, base - 6); g.lineTo(x + 0.5, base - 2); g.stroke();
+              const label = p.formatTick(tk);
+              if (p.angle !== 0 && x - g.measureText(label).width * Math.cos(a) < 0) continue;   // a tilted date that would run off the left edge is skipped, never cut
+              g.save(); g.translate(x, base);
+              if (p.angle === 0) { const w = g.measureText(label).width; g.textAlign = x - w / 2 < 0 ? "left" : x + w / 2 > W ? "right" : "center"; g.textBaseline = "top"; g.fillText(label, 0, 0); }
+              else { g.rotate(-a); g.textAlign = "right"; g.textBaseline = "middle"; g.fillText(label, 0, 0); }
+              g.restore();
+            }
+            g.restore();
+            // the selected instant: the finger's, else now — a thin line (the engine draws its own under the finger) and the figures
+            const sel = cross ?? p.readoutAt ?? null; if (sel === null || !p.readout) return;
+            const x = xAt(sel); if (x === null || x < 0 || x > W) return;
+            if (cross === null) { g.save(); g.strokeStyle = text; g.globalAlpha = 0.6; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, base - 8); g.stroke(); g.restore(); }
+            const figs = p.readout(sel);
+            g.save(); g.font = "600 11px ui-monospace, SFMono-Regular, Menlo, monospace"; g.textBaseline = "top";
+            const flip = x > W * 0.55; g.textAlign = flip ? "right" : "left";
+            figs.forEach((f, i) => { g.fillStyle = f.color; g.fillText(f.text, flip ? x - 6 : x + 6, 4 + i * 14); });
+            g.restore();
+          });
+        },
+      };
+      const primitive = {
+        attached: (prm: { requestUpdate: () => void }) => { request = prm.requestUpdate; },
+        detached: () => { request = () => {}; },
+        updateAllViews: () => {},
+        paneViews: () => [{ zOrder: () => "top", renderer: () => painter }],
+      };
+      anchor?.attachPrimitive(primitive as never);
+      redraw.current = () => request();
+      chart.subscribeCrosshairMove((pr: { time?: unknown; logical?: number }) => { cross = typeof pr.logical === "number" ? clock.toMs(pr.logical) : typeof pr.time === "number" ? pr.time * 1000 : null; request(); });
+      ts.subscribeVisibleLogicalRangeChange(() => request());
+      const ro = new ResizeObserver(() => { if (box.current) chart.applyOptions({ width: box.current.clientWidth }); });
       ro.observe(el);
-      cleanup = () => { ro.disconnect(); chart.remove(); };
+      cleanup = () => { ro.disconnect(); redraw.current = () => {}; chart.remove(); };
     }).catch(() => { /* the engine failed to load: the surface's own numbers still stand */ });
     return () => { dead = true; cleanup(); };
   }, [key]);   // eslint-disable-line react-hooks/exhaustive-deps
-  const xOf = (ms: number): number | null => (geo ? xBetween(ms, geo.a, geo.b) : null);
-  const selMs = cross?.ms ?? readoutAt ?? null;
-  const selX = cross?.x ?? (readoutAt !== undefined ? xOf(readoutAt) : null);
-  const figures = readout && selMs !== null ? readout(selMs) : [];
-  const flip = !!geo && selX !== null && selX > geo.w * 0.55;   // past the middle, the figures sit on the line's LEFT
-  const axisH = angle === 0 ? 16 : angle === 90 ? (tall ? 64 : 40) : tall ? (angle === 45 ? 56 : 44) : 32;
   return (
     <div data-rcore-chart-wrap className="relative">
-      <div ref={box} data-rcore-chart role="img" aria-label={ariaLabel} style={{ height, width: "100%" }} />
-      {/* the selected instant: a thin line when nothing is touched (the engine draws its own while the finger is down) */}
-      {!cross && selX !== null && <div data-rcore-sel-line aria-hidden className="pointer-events-none absolute top-0 w-px bg-muted-foreground" style={{ left: selX, height, opacity: 0.6 }} />}
-      {figures.length > 0 && selX !== null && (
-        <div data-rcore-figures aria-live="polite" className="pointer-events-none absolute top-1 z-10 font-mono text-[11px] font-semibold leading-tight tabular-nums" style={flip ? { right: `calc(100% - ${selX - 6}px)`, textAlign: "right" } : { left: selX + 6 }}>
-          {figures.map((f, i) => <div key={i} style={{ color: f.color }}>{f.text}</div>)}
-        </div>
-      )}
-      {/* the date axis, tilted per Settings (0° · 30° · 45° · 90°) */}
-      <div data-rcore-date-axis data-rcore-angle={angle} aria-hidden className="relative font-mono text-[10px] text-muted-foreground" style={{ height: axisH }}>
-        {geo && ticks.map((tk) => { const x = xOf(tk); if (x === null) return null; const f = x / Math.max(1, geo.w); return <span key={tk} className="absolute top-0.5 whitespace-nowrap" style={{ left: x, transform: angle === 0 ? (f < 0.12 ? "translateX(0)" : f > 0.88 ? "translateX(-100%)" : "translateX(-50%)") : angle === 90 ? "translateX(-100%) rotate(-90deg)" : `translateX(-100%) rotate(-${angle}deg)`, transformOrigin: angle === 0 ? "50% 0" : "100% 0" }}>{formatTick(tk)}</span>; })}
-      </div>
+      <div ref={box} data-rcore-chart role="img" aria-label={ariaLabel} style={{ height, width: "100%", touchAction: "pan-y" }} />
       {/* the engine's licence asks for its attribution on the page: a quiet credit line instead of a logo over the lines */}
       <a data-rcore-chart-credit href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer" className="block text-right font-mono text-[9px] text-muted-foreground opacity-60">Lightweight Charts™ · TradingView</a>
     </div>

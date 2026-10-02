@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.058",
-  "stamp": "v.000_r.058",
+  "revision": "0.059",
+  "stamp": "v.000_r.059",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "70f2d024168586a42c8fab3e0aa69dc4b2a901ccc0054a8c46adadc5ce98b33b",
@@ -907,6 +907,14 @@ export const FINANCIAL_DOMAIN = {
    "kind": "correction",
    "why": "Addendum 129 (his phone photo of the r.056 $/min chart): \"remember text tilts per settings · have numbers only in same color as line; no need to say Income Spending Net on text · just figures near vertical line on selected date\". The shared R-CORE chart now draws its own date axis under the plot, tilted at the Settings angle (0° · 30° · 45° · 90°, as many dates as fit — the balance view's own rule), and the readout is three figures only, each in its line's colour, beside the vertical line of the selected date (now, or under the finger), flipping to the line's left past the middle; the boxed 'Income / Spending / Net' readout is gone and 'Net by <end>' moved to the legend line. The window now starts at the earliest deposit still paying, so it no longer shows a false drop when the first deposit runs out a minute before the window ends. No budget figure changes.",
    "commit": "5ce72cd",
+   "shipped": "e3e6acd"
+  },
+  {
+   "revision": "0.059",
+   "date": "2026-10-02",
+   "kind": "correction",
+   "why": "Addendum 130: \"if transaction occurs at a new date; spending increases and income drops (remember pinch zoom on table shows more dates (30D means cost split into 30 days, not necessarily range of x axis) · use more advanced table from html to js that best supports interactive nature of real-time charts\". The $/min lines now run over a wide range — a split before his first entry to a split past his last — and the chart OPENS on the split window; pinching (or the mouse wheel) shows more or fewer dates and dragging pans, with no figure re-computed: 30D is how each cost is split, not the width of the axis. A transaction on a later date steps the lines at that date (a withdrawal raises spending and lowers net — shown with a $250.66 withdrawal on 10.08). And everything written on the plot is now drawn BY THE CHART ENGINE on its own canvas (a series primitive): the date marks, tilted at the Settings angle and re-chosen for whatever range is in view, and the line-coloured figures beside the selected date's line — so they follow pinch, drag and the finger every frame; the HTML axis and overlay are gone. A tilted date that would run off the left edge is skipped, never cut. No budget figure changes.",
+   "commit": "fa17d71",
    "shipped": "PENDING"
   }
  ],
