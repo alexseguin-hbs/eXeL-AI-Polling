@@ -19,7 +19,7 @@
  * modularly adjust"). A.B..C is the standard for all planets; the glass converts to the planet's LTU.
  */
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Check, ChevronDown, ChevronRight, Clock, Maximize2, Orbit, Pencil, Settings, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Clock, Maximize2, Orbit, Pencil, Plus, Settings, X } from "lucide-react";
 import { CategoryIcon, FieldIcon, SectionIcon } from "@/components/financial-2525/category-icon";   // addendum 19: every category carries its icon; r.012: every section too
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -48,7 +48,7 @@ import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } 
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, correctTx, correctionsOf, type FinRecord } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
-import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, seedFor, cardBalanceAt, cardLevel, cardSeries, cardMoves, validCard, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
+import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, newCard, uniqueCardId, applyCardSettings, looksLikeCardNumber, cardBalanceAt, cardLevel, cardSeries, cardMoves, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
 import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, cloudGet, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
 
@@ -222,8 +222,7 @@ export function FinancialCommandUX1() {
   const [plan, setPlan] = useState(() => sheetPlan() as LadderLine[]);
   // r.067 THE COCKPIT'S CARDS (addenda 142–144): his Capital One and USAA, saved on the device and to the account like the budget
   const [cards, setCards] = useState(() => [] as Card[]);
-  const cardSeed = seedFor(isOperator(user?.email));   // AsM review (Thor): his two cards only for him; everyone else starts with none
-  useEffect(() => { if (!owner) { setCards([]); return; } try { setCards(mergeCards(JSON.parse(localStorage.getItem(CARDS_KEY(owner)) ?? "null"), cardSeed)); } catch { setCards(cardSeed); } }, [owner, user?.email]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!owner) { setCards([]); return; } try { setCards(mergeCards(JSON.parse(localStorage.getItem(CARDS_KEY(owner)) ?? "null"))); } catch { setCards([]); } }, [owner, user?.email]);   // eslint-disable-line react-hooks/exhaustive-deps
   const saveCards = (next: Card[]) => { setCards(next); if (owner) { try { localStorage.setItem(CARDS_KEY(owner), JSON.stringify(next)); localStorage.setItem(`fin-cards-at:${owner}`, String(Date.now())); } catch { /* kept for this visit */ } } };
   const [editing, setEditing] = useState(false);
   const [drafts, setDrafts] = useState({} as Record<string, string>);
@@ -253,7 +252,7 @@ export function FinancialCommandUX1() {
       let localAt = 0; try { localAt = Number(localStorage.getItem(`fin-plan-at:${owner}`) ?? 0) || 0; } catch { /* no time: the device copy is older */ }
       if (cPlan && Array.isArray(cPlan.lines) && cPlan.at > localAt) { setPlan(cPlan.lines); savePlan(owner, cPlan.lines); try { localStorage.setItem(`fin-plan-at:${owner}`, String(cPlan.at)); } catch { /* hint only */ } }
       let cardsAt = 0; try { cardsAt = Number(localStorage.getItem(`fin-cards-at:${owner}`) ?? 0) || 0; } catch { /* the device copy is older */ }
-      if (cCards && Array.isArray(cCards.cards) && cCards.at > cardsAt) { const m2 = mergeCards(cCards.cards, seedFor(isOperator(user?.email))); setCards(m2); try { localStorage.setItem(CARDS_KEY(owner), JSON.stringify(m2)); localStorage.setItem(`fin-cards-at:${owner}`, String(cCards.at)); } catch { /* hint only */ } }
+      if (cCards && Array.isArray(cCards.cards) && cCards.at > cardsAt) { const m2 = mergeCards(cCards.cards); setCards(m2); try { localStorage.setItem(CARDS_KEY(owner), JSON.stringify(m2)); localStorage.setItem(`fin-cards-at:${owner}`, String(cCards.at)); } catch { /* hint only */ } }
       setCloudReady(true);
     })();
     return () => { live = false; };
@@ -380,6 +379,8 @@ export function FinancialCommandUX1() {
   // and every figure read the corrected values. A withdrawal edit passes the same refusal as a new withdrawal.
   const [editId, setEditId] = useState(null as string | null);
   const [ed, setEd] = useState({ amt: "", memo: "", when: "", days: "", paidFrom: DEBIT, paysCard: "" });
+  // r.070 (addendum 157): a row whose card was removed keeps that card as its payer, shown as a dash — never silently another card
+  const payerGone = ed.paidFrom !== DEBIT && !cards.some((c) => c.id === ed.paidFrom);
   const [edRefusal, setEdRefusal] = useState(null as string | null);
   const openEdit = (x: FinTx) => { setEditId(x.id); setEdRefusal(null); setEd({ amt: (x.amountCents / 100).toFixed(2), memo: x.memo ?? "", when: fmtStampCST(x.atMs), days: x.motDays ? String(Math.round(x.motDays * 1000) / 1000) : "", paidFrom: x.paidFrom ?? DEBIT, paysCard: x.paysCard ?? "" }); };
   const saveEdit = () => {
@@ -458,7 +459,7 @@ export function FinancialCommandUX1() {
               or past a level the person set is named here, in words as well as colour, at the top of the one view */}
           {owner && cards.map((c) => ({ c, b: cardBalanceAt(c, recTxs, at) })).filter(({ c, b }) => cardLevel(c, b) !== "ok").map(({ c, b }) => {
             const lv = cardLevel(c, b);
-            return <p key={c.id} data-fin-card-warning={lv} className={`mt-2 rounded-md border px-2 py-1 text-xs font-medium ${lv === "amber" ? "border-yellow-500/60 text-yellow-600 dark:text-yellow-400" : "border-red-500/60 text-red-500"}`}>⚠ {t(ALERT_WORD[lv])} · {c.name} {usd(b)} / {usd(c.limitCents)}</p>;
+            return <p key={c.id} data-fin-card-warning={lv} className={`mt-2 rounded-md border px-2 py-1 text-xs font-medium ${lv === "amber" ? "border-yellow-500/60 text-yellow-600 dark:text-yellow-400" : "border-red-500/60 text-red-400"}`}>⚠ {t(ALERT_WORD[lv])} · {c.name} {usd(b)} / {usd(c.limitCents)}</p>;
           })}
           {/* r.044 (addendum 93 "Available and Accrual Rate should be same line, same size text"): the two labels share one line,
               the two figures share the next, at the same size */}
@@ -717,7 +718,7 @@ export function FinancialCommandUX1() {
                           <label className="text-[10px] uppercase">{t("fin.memo")}<input data-fin-edit-memo className={INPUT} value={ed.memo} onChange={(v) => setEd({ ...ed, memo: v.target.value })} /></label>
                           <label className="text-[10px] uppercase">{t("fin.when")}<input data-fin-edit-when className={INPUT} value={ed.when} onChange={(v) => setEd({ ...ed, when: v.target.value })} /></label>
                           <label className="text-[10px] uppercase">{t("fin.length")}<input data-fin-edit-days className={INPUT} inputMode="decimal" value={ed.days} onChange={(v) => setEd({ ...ed, days: v.target.value })} /></label>
-                          {e.tx.kind === "withdrawal" && !!cards.length && <label className="text-[10px] uppercase">{t("fin.paid_from")}<select data-fin-edit-paid-from className={PICK} value={ed.paidFrom} onChange={(v) => setEd({ ...ed, paidFrom: v.target.value })}><option value={DEBIT}>{t("fin.debit_account")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
+                          {e.tx.kind === "withdrawal" && !!cards.length && <label className="text-[10px] uppercase">{t("fin.paid_from")}<select data-fin-edit-paid-from className={PICK} value={ed.paidFrom} onChange={(v) => setEd({ ...ed, paidFrom: v.target.value })}><option value={DEBIT}>{t("fin.debit_account")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}{payerGone && <option value={ed.paidFrom}>—</option>}</select></label>}
                           {e.tx.kind === "withdrawal" && !!cards.length && ed.paidFrom === DEBIT && <label className="text-[10px] uppercase">{t("fin.card_paid")}<select data-fin-edit-pays-card className={PICK} value={ed.paysCard} onChange={(v) => setEd({ ...ed, paysCard: v.target.value })}><option value="">{t("fin.card_none")}</option>{cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
                           <button type="button" data-fin-edit-save onClick={saveEdit} className="h-9 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground">{t("fin.done")}</button>
                           <button type="button" data-fin-edit-cancel onClick={() => setEditId(null)} className="h-9 rounded-md border border-border px-3 text-xs">{t("fin.edit_cancel")}</button>
@@ -726,9 +727,9 @@ export function FinancialCommandUX1() {
             </div>) : null; })()}
         </details>
 
-        {/* r.067 CREDIT CARDS (addenda 142–144): a read view — toggle Capital One / USAA — limit, balance, available credit, the person's
-            amber and red levels, and the balance over time on the same chart as REAL-TIME FINANCIALS */}
-        {owner && !!cards.length && <CardsPanel cards={cards} txs={recTxs} now={at} onSave={saveCards} onPay={payCard} t={t} />}
+        {/* r.067 CREDIT CARDS (addenda 142–144) as of r.070 (addenda 154–157): the person's own cards — balance, available, the balance over
+            time with the Red / Amber Alert lines; Add card, rename and remove; folded until opened */}
+        {owner && <CardsPanel cards={cards} txs={recTxs} now={at} onSave={saveCards} onPay={payCard} t={t} />}
 
         {/* the year as a TABLE, key info in order, PERIHELION FIRST (r.028, addendum 58); months of 30 days (r.046 month law), no 33-day frame */}
         {year && (() => {
@@ -926,32 +927,44 @@ function CloudMark({ saved, size = 18 }: { saved: boolean; size?: number }) {
     </svg>
   );
 }
-/** r.067 THE CARDS PANEL (module-level: the picker law — the 1 s clock never remounts its selects). */
 /** r.070 (addendum 155): the alert words — the key's "Red Alert" / "Amber Alert", the cockpit warning and the Balance's spoken state. */
 const ALERT_WORD: Record<CardLevel, string> = { ok: "", amber: "fin.card_level_amber", red: "fin.card_level_red", over: "fin.card_level_over" };
+/** r.067 THE CARDS PANEL (module-level: the picker law — the 1 s clock never remounts its selects). */
 function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs: FinTx[]; now: number; onSave: (c: Card[]) => void; onPay: (id: string) => void; t: (k: string) => string }) {
   const [pick, setPick] = useState(cards[0]?.id ?? "");
   const [gear, setGear] = useState(false);
-  const [draft, setDraft] = useState({ limit: "", amber: "", red: "", opening: "" });
-  const [bad, setBad] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [draft, setDraft] = useState({ name: "", limit: "", amber: "", red: "", opening: "" });
+  const [bad, setBad] = useState("" as "" | "levels" | "name");
   const card = cards.find((c) => c.id === pick) ?? cards[0];
-  if (!card) return null;
-  const bal = cardBalanceAt(card, txs, now), lv: CardLevel = cardLevel(card, bal);
-  const openGear = () => { setDraft({ limit: (card.limitCents / 100).toFixed(2), amber: (card.amberCents / 100).toFixed(2), red: (card.redCents / 100).toFixed(2), opening: (bal / 100).toFixed(2) }); setBad(false); setGear((g) => !g); };
+  const bal = card ? cardBalanceAt(card, txs, now) : 0, lv: CardLevel = card ? cardLevel(card, bal) : "ok";
+  const cents = (v: string) => Math.round(Number(v) * 100);
+  // r.070 (addendum 157 "allow user to set up their own CC"): a card the person sets up — a name (never a number), a limit and the balance as
+  // of now; an amber or red level left blank takes his proportions, half and two-thirds of the limit (shown as the field's hint)
+  const openAdd = () => { setDraft({ name: "", limit: "", amber: "", red: "", opening: "" }); setBad(""); setGear(false); setRemoving(false); setAdding((v) => !v); };
+  const hint = (f: number) => (cents(draft.limit) > 0 ? ((cents(draft.limit) * f) / 100).toFixed(2) : "");
+  const add = () => {
+    if (!draft.name.trim() || looksLikeCardNumber(draft.name)) { setBad("name"); return; }
+    const c = newCard({ name: draft.name, limitCents: cents(draft.limit), openingCents: draft.opening.trim() ? cents(draft.opening) : 0, amberCents: draft.amber.trim() ? cents(draft.amber) : undefined, redCents: draft.red.trim() ? cents(draft.red) : undefined }, now, uniqueCardId(cards, now));
+    if (!c) { setBad("levels"); return; }
+    setBad(""); setAdding(false); setPick(c.id); onSave([...cards, c]);
+  };
+  const openGear = () => { if (!card) return; setDraft({ name: card.name, limit: (card.limitCents / 100).toFixed(2), amber: (card.amberCents / 100).toFixed(2), red: (card.redCents / 100).toFixed(2), opening: (bal / 100).toFixed(2) }); setBad(""); setAdding(false); setRemoving(false); setGear((g) => !g); };
   const save = () => {
-    const opening = Math.round(Number(draft.opening) * 100);
-    // AsM review (Thoth): a new "balance as of today" is as of NOW — purchases before now are already inside it, never added again
-    const c2: Card = { ...card, limitCents: Math.round(Number(draft.limit) * 100), amberCents: Math.round(Number(draft.amber) * 100), redCents: Math.round(Number(draft.red) * 100), openingCents: opening, openingAtMs: opening === bal ? card.openingAtMs : now };
-    if (!validCard(c2)) { setBad(true); return; }
-    setBad(false);
+    if (!card) return;
+    if (!draft.name.trim() || looksLikeCardNumber(draft.name)) { setBad("name"); return; }
+    // r.070 (AsM review, Enki): a balance left as shown keeps the opening and its date; only a changed one re-bases at now (cards.ts)
+    const c2 = applyCardSettings(card, { name: draft.name, limitCents: cents(draft.limit), amberCents: cents(draft.amber), redCents: cents(draft.red), openingCents: cents(draft.opening) }, bal, now);
+    if (!c2) { setBad("levels"); return; }
+    setBad("");
     onSave(cards.map((c) => (c.id === card.id ? c2 : c))); setGear(false);
   };
-  const pts = cardSeries(card, txs, now);
-  const from = card.openingAtMs - 86_400_000, to = Math.max(now, card.openingAtMs) + 7 * 86_400_000;
-  const N = 400, grid = Array.from({ length: N }, (_, i) => from + ((to - from) * i) / (N - 1));
-  const at = (g: number) => { let v = pts[0].v; for (const p of pts) { if (p.t <= g) v = p.v; else break; } return g < card.openingAtMs ? card.openingCents : v; };
-  const flat = (cents: number) => grid.map((g) => ({ t: g, v: cents / 100 }));
-  const LV = { ok: "text-green-500", amber: "text-yellow-600 dark:text-yellow-400", red: "text-red-500", over: "text-red-500" }[lv];
+  // r.070 (addendum 157): a card can be removed — two taps, the second naming the card; its past transactions stay in the record
+  const remove = () => { if (!card) return; const next = cards.filter((c) => c.id !== card.id); setGear(false); setRemoving(false); setPick(next[0]?.id ?? ""); onSave(next); };
+  const LV = { ok: "text-green-500", amber: "text-yellow-600 dark:text-yellow-400", red: "text-red-400", over: "text-red-400" }[lv];   // r.070 (AsM, Sofia): red-400 holds AA contrast on his theme
+  const FIELD = "h-9 rounded-md border border-border bg-background px-2 font-mono text-sm text-foreground";
+  const badLine = bad && <p data-fin-cards-bad className="col-span-2 text-xs text-red-400">{t(bad === "name" ? "fin.card_name_bad" : "fin.card_bad")}</p>;
   return (
     /* r.070 (addendum 156 "have CC default minimized"): folded to its title like the Transaction Record and the Year Position; opened,
        Pay card and the settings sit on the first row (the Year card's pattern — no button inside the summary). An alert still shows at the
@@ -962,12 +975,31 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
         <span className={LABEL}>{t("fin.cards_title")}</span>
       </summary>
       <div className="mt-2 flex items-center justify-end gap-2">
+        {card ? (<>
         <button type="button" data-fin-card-pay onClick={() => onPay(card.id)} className="h-8 shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.card_pay")}</button>
         <button type="button" data-fin-cards-gear aria-expanded={gear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={openGear} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${gear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
+        </>) : (
+        <button type="button" data-fin-card-add aria-expanded={adding} onClick={openAdd} className="inline-flex h-8 shrink-0 items-center gap-1 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground"><Plus size={14} strokeWidth={1.5} aria-hidden />{t("fin.card_add")}</button>
+        )}
       </div>
+      {card && (
       <div role="group" aria-label={t("fin.cards_title")} data-fin-card-toggle className="mt-2 flex w-full overflow-hidden rounded-md border border-border text-xs">
-        {cards.map((c) => <button key={c.id} type="button" data-fin-card={c.id} aria-pressed={c.id === card.id} onClick={() => { setPick(c.id); setGear(false); }} className={`min-h-[32px] flex-1 border-l border-border first:border-l-0 ${c.id === card.id ? "ring-1 ring-inset ring-primary text-primary" : "text-muted-foreground"}`}>{c.name}</button>)}
+        {cards.map((c) => <button key={c.id} type="button" data-fin-card={c.id} aria-pressed={c.id === card.id} onClick={() => { setPick(c.id); setGear(false); setAdding(false); }} className={`min-h-[32px] min-w-0 flex-1 truncate border-l border-border px-1 first:border-l-0 ${c.id === card.id ? "ring-1 ring-inset ring-primary text-primary" : "text-muted-foreground"}`}>{c.name}</button>)}
+        <button type="button" data-fin-card-add aria-expanded={adding} aria-label={t("fin.card_add")} title={t("fin.card_add")} onClick={openAdd} className={`flex min-h-[32px] w-10 shrink-0 items-center justify-center border-l border-border ${adding ? "text-primary" : "text-muted-foreground"}`}><Plus size={16} strokeWidth={1.5} aria-hidden /></button>
       </div>
+      )}
+      {adding && (
+        <div data-fin-card-add-form className="mt-2 grid grid-cols-2 gap-2 rounded-md border border-border p-2 text-xs">
+          <label className="col-span-2 flex flex-col gap-1 text-muted-foreground">{t("fin.card_name")}<input data-fin-card-new="name" autoComplete="off" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={FIELD} /></label>
+          {([["limit", "fin.card_limit"], ["opening", "fin.card_opening"], ["amber", "fin.card_amber_at"], ["red", "fin.card_red_at"]] as const).map(([k, key]) => (
+            <label key={k} className="flex flex-col gap-1 text-muted-foreground">{t(key)}<input data-fin-card-new={k} inputMode="decimal" value={draft[k]} placeholder={k === "amber" ? hint(0.5) : k === "red" ? hint(2 / 3) : undefined} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} className={FIELD} /></label>
+          ))}
+          {badLine}
+          <button type="button" data-fin-card-add-save onClick={add} className="h-9 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.card_add")}</button>
+          <button type="button" data-fin-card-add-cancel onClick={() => { setAdding(false); setBad(""); }} className="h-9 rounded-md border border-border px-3 text-xs">{t("fin.edit_cancel")}</button>
+        </div>
+      )}
+      {card && (<>
       {/* r.069 (addendum 154 "show balance and available, place limit in setting for credit card"): Balance on the left, Available
           credit on the right; the Limit lives in the gear's settings, its first field */}
       <div data-fin-card-figures className="mt-3 grid grid-cols-2 gap-2 text-xs">
@@ -976,30 +1008,59 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
       </div>
       {gear && (
         <div data-fin-cards-menu className="mt-2 grid grid-cols-2 gap-2 rounded-md border border-border p-2 text-xs">
+          <label className="col-span-2 flex flex-col gap-1 text-muted-foreground">{t("fin.card_name")}<input data-fin-card-input="name" autoComplete="off" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={FIELD} /></label>
           {([["limit", "fin.card_limit"], ["opening", "fin.card_opening"], ["amber", "fin.card_amber_at"], ["red", "fin.card_red_at"]] as const).map(([k, key]) => (
-            <label key={k} className="flex flex-col gap-1 text-muted-foreground">{t(key)}<input data-fin-card-input={k} inputMode="decimal" value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} className="h-9 rounded-md border border-border bg-background px-2 font-mono text-sm text-foreground" /></label>
+            <label key={k} className="flex flex-col gap-1 text-muted-foreground">{t(key)}<input data-fin-card-input={k} inputMode="decimal" value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} className={FIELD} /></label>
           ))}
-          {bad && <p data-fin-cards-bad className="col-span-2 text-xs text-red-500">{t("fin.card_bad")}</p>}
+          {badLine}
           <button type="button" data-fin-cards-save onClick={save} className="col-span-2 h-9 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.done")}</button>
+          {removing ? (
+            <div data-fin-card-remove-ask className="col-span-2 flex items-center justify-between gap-2">
+              <span className="min-w-0 truncate text-sm text-red-400">{card.name}</span>
+              <span className="flex shrink-0 gap-2">
+                <button type="button" data-fin-card-remove-yes onClick={remove} className="h-9 rounded-md border border-red-500 px-3 text-xs font-medium text-red-400">{t("fin.card_remove")}</button>
+                <button type="button" data-fin-card-remove-no onClick={() => setRemoving(false)} className="h-9 rounded-md border border-border px-3 text-xs">{t("fin.edit_cancel")}</button>
+              </span>
+            </div>
+          ) : (
+            <button type="button" data-fin-card-remove onClick={() => setRemoving(true)} className="col-span-2 h-9 rounded-md border border-border px-3 text-xs text-red-400">{t("fin.card_remove")}</button>
+          )}
         </div>
       )}
+      <CardChart card={card} txs={txs} now={now} t={t} />
+      </>)}
+    </details>
+  );
+}
+/** The card's balance chart and its Alerts key (r.067 · r.070) — only ever drawn for a card that exists. */
+function CardChart({ card, txs, now, t }: { card: Card; txs: FinTx[]; now: number; t: (k: string) => string }) {
+  const pts = cardSeries(card, txs, now), D = 86_400_000;
+  // r.070 (AsM review — all three reviewers): the window moves once a day, never with the 1-second clock, so a tap or a zoom stays put
+  const from = card.openingAtMs - D, to = Math.floor(Math.max(now, card.openingAtMs) / D) * D + 8 * D;
+  const N = 400, grid = Array.from({ length: N }, (_, i) => from + ((to - from) * i) / (N - 1));
+  const at = (g: number) => { let v = pts[0].v; for (const p of pts) { if (p.t <= g) v = p.v; else break; } return g < card.openingAtMs ? card.openingCents : v; };
+  const flat = (cents: number) => grid.map((g) => ({ t: g, v: cents / 100 }));
+  // r.070 (AsM review): a tapped figure takes the colour of ITS moment's level, not today's
+  const tone = (cents: number) => { const l = cardLevel(card, cents); return l === "ok" ? C.abundance : l === "amber" ? C.temporal : C.evolution; };
+  // r.070 (AsM review, Sofia/Aset): the chart speaks the balance and both alert levels — the key itself is for the eye only
+  const spoken = `${t("fin.cards_title")} · ${card.name} · ${t("fin.card_balance")} ${usd(Math.round(at(now)))} · ${t("fin.card_level_amber")} ${usd(card.amberCents)} · ${t("fin.card_level_red")} ${usd(card.redCents)}`;
+  return (<>
       <div className="mt-2">
-        <RCoreChart height={200} ariaLabel={t("fin.cards_title")} ticksFor={(a, b) => dayTicks(a, b, 6)} formatTick={(ms) => dateLabel(ms, "mmdd")} initialRange={{ from, to }} readoutAt={now} readout={(ms) => (ms === now ? [] : [{ color: lv === "ok" ? C.abundance : lv === "amber" ? C.temporal : C.evolution, text: usd(Math.round(at(ms))) }])}
-          formatSelected={(ms) => (ms === now ? "" : fmtStampCST(ms).slice(0, 16).replace("_", " "))}
-          lines={[{ id: "red", color: C.evolution, points: flat(card.redCents), step: true, dashed: true, width: 1 }, { id: "amber", color: C.temporal, points: flat(card.amberCents), step: true, dashed: true, width: 1 }, { id: "balance", color: C.abundance, points: grid.map((g) => ({ t: g, v: at(g) / 100 })), step: true, width: 3 }]}
+        <RCoreChart height={200} ariaLabel={spoken} ticksFor={(a, b) => dayTicks(a, b, 6)} formatTick={(ms) => dateLabel(ms, "mmdd")} initialRange={{ from, to }} quietAtRest readoutAt={now} readout={(ms) => [{ color: tone(Math.round(at(ms))), text: usd(Math.round(at(ms))) }]}
+          formatSelected={(ms) => fmtStampCST(ms).slice(0, 16).replace("_", " ")}
+          lines={[{ id: "amber", color: C.temporal, points: flat(card.amberCents), step: true, dashed: true, width: 1 }, { id: "red", color: C.evolution, points: flat(card.redCents), step: true, dashed: true, width: 1 }, { id: "balance", color: C.abundance, points: grid.map((g) => ({ t: g, v: at(g) / 100 })), step: true, width: 3 }]}
           marks={cardMoves(card, txs).map((m) => ({ t: m.t, color: m.deltaCents > 0 ? C.evolution : C.abundance, dot: false }))}
           formatValue={(v) => `${CUR_SYM}${Math.round(v).toLocaleString("en-US")}`} />
       </div>
       {/* r.070 (addendum 155 "put key for Alerts · Show Red - - - Red Alert · Show Amber - - - Amber Alert"): the key to the two dashed
           lines, drawn with the chart's own dash and colours */}
-      <div data-fin-card-alerts className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+      <div data-fin-card-alerts aria-hidden="true" className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <span className="font-medium">{t("fin.card_alerts")}</span>
         {([["red", C.evolution, "fin.card_level_red"], ["amber", C.temporal, "fin.card_level_amber"]] as const).map(([k, color, key]) => (
           <span key={k} data-fin-card-alert={k} className="inline-flex items-center gap-1.5"><svg width="22" height="6" aria-hidden="true"><line x1="0" y1="3" x2="22" y2="3" stroke={color} strokeWidth="1.5" strokeDasharray="5 4" /></svg>{t(key)}</span>
         ))}
       </div>
-    </details>
-  );
+  </>);
 }
 function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFmt, onDateFmt, angle, onAngle, locale, netPerSec = 0 }: { tx: FinTx; txs: FinTx[]; now: number; t: (k: string) => string; netPerSec?: number; planet: PlanetLtuRow; showAbc: boolean; onToggle: (v: boolean) => void; selector?: ReactNode; dateFmt: DateFmt; onDateFmt: (f: DateFmt) => void; angle: DateAngle; onAngle: (a: DateAngle) => void; locale: string }) {
   const W = 360, H = 150, P = 10;

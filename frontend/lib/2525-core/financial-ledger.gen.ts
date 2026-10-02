@@ -980,7 +980,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "rev": 139,
       "date": "2026-10-02",
       "kind": "decision",
-      "text": "r.070 decision — an Alerts key on each card (Red Alert · Amber Alert); the least text on Credit cards; the panel starts minimized; the AsM card simulation in test:ci (FD-85).",
+      "text": "r.070 decision — an Alerts key on each card (Red Alert · Amber Alert); the least text on Credit cards; the panel starts minimized; each person sets up their own cards, none seeded; the AsM card simulation in test:ci (FD-85, FD-86).",
       "commit": "c787095"
     }
   ]

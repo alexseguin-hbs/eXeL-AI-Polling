@@ -55,8 +55,10 @@ for (const [ai, who] of ASM.entries()) {
     const merged = K.mergeCards([edited], [card, { ...card, id: `${who}-cc2` }]);
     const ok = K.validCard(card) && !K.validCard({ ...card, amberCents: card.redCents + 1 }) && !K.validCard({ ...card, redCents: L + 1 }) && !K.validCard({ ...card, openingCents: -1 })
       && K.cardBalanceAt(reb, [pay, b1, p1], t0 + 5 * HOUR) === 5000
-      && merged.length === 2 && merged[0].limitCents === L + 50000 && K.seedFor(false).length === 0;
-    add("settings refuse, re-base and merge", "out of order refused · re-base counts nothing before · edit wins · non-operator empty", ok); }
+      && merged.length === 2 && merged[0].limitCents === L + 50000 && K.mergeCards(null).length === 0 && K.seedFor === undefined
+      && K.newCard({ name: `${who} new`, limitCents: L }, t0, "n1")?.amberCents === Math.round(L * 0.5) && K.newCard({ name: "4111 1111 1111 1111", limitCents: L }, t0, "n2") === null
+      && (() => { const txs = [pay, b1, p1], now = t0 + 3 * HOUR, bal = K.cardBalanceAt(card, txs, now); const k = K.applyCardSettings(card, { name: card.name, limitCents: L, amberCents: card.amberCents, redCents: card.redCents, openingCents: bal }, bal, now); return !!k && K.cardBalanceAt(k, txs, now) === bal; })();
+    add("settings refuse, re-base, merge and set up", "out of order refused · re-base counts nothing before · edit wins · nobody starts with a card · a new card takes 50 % amber · a card number is refused as a name · saving the levels never counts a move twice", ok); }
   results.push(...S);
 }
 const passed = results.filter((r) => r.pass).length;

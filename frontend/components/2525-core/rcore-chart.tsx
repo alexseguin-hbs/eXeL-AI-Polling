@@ -36,6 +36,7 @@ export interface RCoreChartProps {
   readoutAt?: number;
   formatSelected?: (ms: number) => string;  // the selected instant's own label, boxed on the date strip (addendum 134)
   formatMarkSum?: (sum: number) => string;  // the label of dots merged because they overlap (addendum 136)
+  quietAtRest?: boolean;                    // r.070 (addendum 155): nothing written at rest — a finger, a hover or a tap still shows the figures and the date
   ariaLabel: string;
 }
 
@@ -134,10 +135,10 @@ function cssColor(el: HTMLElement, prop: string, fallback: string): string {
 }
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
-export function RCoreChart({ lines, marks = [], height = 280, initialRange, formatValue, ticksFor, formatTick, angle = 0, tall = false, readout, readoutAt, formatSelected, formatMarkSum, ariaLabel }: RCoreChartProps) {
+export function RCoreChart({ lines, marks = [], height = 280, initialRange, formatValue, ticksFor, formatTick, angle = 0, tall = false, readout, readoutAt, formatSelected, formatMarkSum, quietAtRest = false, ariaLabel }: RCoreChartProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const live = useRef({ lines, marks, height, formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt, formatSelected, formatMarkSum });
-  live.current = { lines, marks, height, formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt, formatSelected, formatMarkSum };
+  const live = useRef({ lines, marks, height, formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt, formatSelected, formatMarkSum, quietAtRest });
+  live.current = { lines, marks, height, formatValue, ticksFor, formatTick, angle, tall, readout, readoutAt, formatSelected, formatMarkSum, quietAtRest };
   const view = useRef<{ from: number; to: number } | null>(null);
   const cross = useRef<number | null>(null);
   const pinned = useRef<number | null>(null);   // addendum 134 "click on map to see a specific day": a tap pins the day until the next tap
@@ -148,8 +149,22 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
   const minSpan = pts0.length > 1 ? Math.max(60_000, ((dataHi - dataLo) / (pts0.length - 1)) * 4) : 60_000;
   // a new data range or a new opening window puts the view back where the caller asked
   const viewKey = JSON.stringify([dataLo, dataHi, initialRange?.from, initialRange?.to]);
+  const lastRange = useRef<{ from: number; to: number } | null>(null);
+  const userView = useRef(false);   // the person moved or zoomed the view
   useEffect(() => {
-    view.current = clampView(initialRange?.from ?? dataLo, initialRange?.to ?? dataHi, dataLo, dataHi, minSpan);
+    const nf = initialRange?.from ?? dataLo, nt = initialRange?.to ?? dataHi, prev = lastRange.current;
+    lastRange.current = { from: nf, to: nt };
+    // r.070 (AsM review — the class of the clock reset: the card chart lost a tap every second, the main chart every minute): a window
+    // that only slides or grows with time keeps what the person did — their tapped day and their zoom; another span or card starts fresh
+    const drift = !!prev && (Math.abs((nt - nf) - (prev.to - prev.from)) < 1 || (nf === prev.from && nt >= prev.to));
+    if (drift && view.current && (userView.current || pinned.current !== null)) {
+      view.current = clampView(view.current.from, view.current.to, dataLo, dataHi, minSpan);
+      if (pinned.current !== null && (pinned.current < dataLo || pinned.current > dataHi)) pinned.current = null;
+      draw.current();
+      return;
+    }
+    userView.current = false;
+    view.current = clampView(nf, nt, dataLo, dataHi, minSpan);
     pinned.current = null;
     draw.current();
   }, [viewKey]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -235,6 +250,7 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
       }
       // the selected instant: the finger's (solid), the tapped day or now (dashed) — and its figures beside the line
       const sel = cross.current ?? pinned.current ?? p.readoutAt ?? null;
+      const quiet = p.quietAtRest && cross.current === null && pinned.current === null;   // r.070: at rest, the line only
       if (sel !== null && p.readout) {
         const x = X(sel);
         if (x >= x0 && x <= x1) {
@@ -242,7 +258,7 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
           g.beginPath(); g.moveTo(Math.round(x) + 0.5, 0); g.lineTo(Math.round(x) + 0.5, plotH); g.stroke(); g.restore();
           g.save(); g.font = `600 11px ${MONO}`; g.textBaseline = "top";
           const flip = x > x0 + (x1 - x0) * 0.55; g.textAlign = flip ? "right" : "left";
-          p.readout(sel).forEach((f, i) => { g.fillStyle = f.color; g.fillText(f.text, flip ? x - 6 : x + 6, 4 + i * 14); });
+          if (!quiet) p.readout(sel).forEach((f, i) => { g.fillStyle = f.color; g.fillText(f.text, flip ? x - 6 : x + 6, 4 + i * 14); });
           g.restore();
         }
       }
@@ -261,8 +277,7 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
       }
       g.restore();
       // the selected instant's date, boxed and upright on the strip
-      // r.070 (addendum 155): an empty label draws no box — the card chart's resting "now" carries no text
-      if (sel !== null && p.formatSelected && p.formatSelected(sel)) {
+      if (sel !== null && p.formatSelected && !quiet) {
         const x = X(sel);
         if (x >= x0 && x <= x1) {
           g.save(); g.font = `600 10px ${MONO}`;
@@ -305,7 +320,7 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
     const cv = canvas.current; if (!cv) return;
     const onWheel = (e: WheelEvent) => {
       const at = msAt(e.clientX); if (at === null || !view.current) return;
-      e.preventDefault();
+      e.preventDefault(); userView.current = true;
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
         const v = view.current, shift = (e.deltaX / Math.max(1, plot.current.x1 - plot.current.x0)) * (v.to - v.from);
         view.current = clampView(v.from + shift, v.to + shift, dataLo, dataHi, minSpan); draw.current();
@@ -328,6 +343,7 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
     ptrs.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     const ps = Array.from(ptrs.current.values()), span = plot.current.x1 - plot.current.x0;
     if (gs.kind === "pinch" && ps.length >= 2) {
+      userView.current = true;
       const d = Math.max(8, Math.abs(ps[0].x - ps[1].x)), mid = (ps[0].x + ps[1].x) / 2;
       const anchor = gs.from + ((gs.x - (canvas.current?.getBoundingClientRect().left ?? 0) - plot.current.x0) / span) * (gs.to - gs.from);
       const pan = ((mid - gs.x) / span) * ((gs.to - gs.from) * (gs.d / d));
@@ -335,7 +351,7 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
     } else if (gs.kind === "pan") {
       const dx = e.clientX - gs.x;
       if (Math.abs(dx) > 6) gs.moved = true;
-      if (gs.moved) { const shift = (-dx / span) * (gs.to - gs.from); view.current = clampView(gs.from + shift, gs.to + shift, dataLo, dataHi, minSpan); }
+      if (gs.moved) { userView.current = true; const shift = (-dx / span) * (gs.to - gs.from); view.current = clampView(gs.from + shift, gs.to + shift, dataLo, dataHi, minSpan); }
       if (e.pointerType === "mouse") cross.current = msAt(e.clientX);
       draw.current();
     }

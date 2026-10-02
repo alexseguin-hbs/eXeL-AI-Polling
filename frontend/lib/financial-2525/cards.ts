@@ -16,13 +16,8 @@ export interface Card { id: string; name: string; limitCents: number; openingCen
 export type CardLevel = "ok" | "amber" | "red" | "over";
 export const DEBIT = "debit";
 
-/** His two cards as of addendum 142/143 (2026-10-02 04:39 CST): Capital One $735.27 of $3,000 (amber $1,500 · red $2,000, his levels);
- *  USAA $0 of $1,000 (amber 50% · red 67%, the same proportions until he sets his own). */
-export const OPENING_AT = Date.UTC(2026, 9, 2, 10, 39, 0);   // 2026.10.02_04.39..00 CST
-export const CARD_SEED: readonly Card[] = [
-  { id: "capone", name: "Capital One", limitCents: 300000, openingCents: 73527, openingAtMs: OPENING_AT, amberCents: 150000, redCents: 200000 },
-  { id: "usaa", name: "USAA", limitCents: 100000, openingCents: 0, openingAtMs: OPENING_AT, amberCents: 50000, redCents: 67000 },
-];
+/** r.070 (addendum 157 "allow user to set up their own CC (don't default Capital One and USAA)"): NO card is seeded, for anyone — each person
+ *  adds their own. A card someone already saved stays theirs (a saved copy is never discarded); nothing in the code puts a card on a device. */
 
 /** Charges and payments that move a card, in time order. */
 export function cardMoves(card: Card, txs: readonly FinTx[]): { t: number; deltaCents: number; tx: FinTx }[] {
@@ -55,19 +50,42 @@ export function cardSeries(card: Card, txs: readonly FinTx[], to: number): { t: 
   pts.push({ t: Math.max(to, card.openingAtMs + 60_000), v: b });
   return pts;
 }
-/** A card is valid when its numbers make sense: a name, a positive limit, amber ≤ red ≤ limit, levels and opening not negative. */
+/** r.070 (addendum 157, AsM Thor): a card is named, never numbered — a "name" carrying more than six digits looks like a card or account
+ *  number and is refused (a last-four such as "Chase 1234" is fine). */
+const ANY_DIGIT = new RegExp("\\p{Nd}", "gu");   // every script's digits, not only 0–9 (AsM, Thor)
+export const looksLikeCardNumber = (name: string): boolean => (name.match(ANY_DIGIT)?.length ?? 0) > 6;
+/** A card is valid when its numbers make sense: a name (not a number), a positive limit, amber ≤ red ≤ limit, levels and opening not negative. */
 export function validCard(c: Card): boolean {
-  return !!c.name.trim() && c.limitCents > 0 && c.openingCents >= 0 && c.amberCents >= 0 && c.amberCents <= c.redCents && c.redCents <= c.limitCents && Number.isFinite(c.openingAtMs);
+  return !!c.name.trim() && !looksLikeCardNumber(c.name) && c.limitCents > 0 && c.openingCents >= 0 && c.amberCents >= 0 && c.amberCents <= c.redCents && c.redCents <= c.limitCents && Number.isFinite(c.openingAtMs);
 }
-/** Saved cards merged with the seed by id (a seed card the person never touched still arrives; his edits win). */
-export function mergeCards(saved: unknown, seed: readonly Card[] = CARD_SEED): Card[] {
+/** r.070 (addendum 157): a card the person sets up — name, limit and balance as of now; an amber or red level left out takes his proportions —
+ *  half the limit and two-thirds of it (his $1,500 and $2,000 on a $3,000 card; "67 %" was his rounding of two-thirds). Returns null when the card would not be valid (nothing half-made is ever saved). Pure. */
+export function newCard(input: { name: string; limitCents: number; openingCents?: number; amberCents?: number; redCents?: number }, nowMs: number, id: string): Card | null {
+  const limitCents = Math.round(input.limitCents);
+  const c: Card = { id, name: input.name.trim(), limitCents, openingCents: Math.round(input.openingCents ?? 0), openingAtMs: nowMs, amberCents: Math.round(input.amberCents ?? limitCents * 0.5), redCents: Math.round(input.redCents ?? (limitCents * 2) / 3) };
+  return Number.isFinite(limitCents) && validCard(c) ? c : null;
+}
+/** r.070 (found by the touch walk): a new card's id is unique among the person's cards — two cards set up within the same second never share
+ *  one (a shared id made the second card unreachable and a removal take both). Pure. */
+export function uniqueCardId(cards: readonly Card[], nowMs: number): string {
+  const base = `c-${Math.round(nowMs).toString(36)}`;
+  let id = base, n = 1;
+  while (cards.some((c) => c.id === id)) id = `${base}-${n++}`;
+  return id;
+}
+/** r.070 (AsM review, Enki — a real defect since r.067): the card's settings saved. A balance left exactly as shown keeps the card's opening
+ *  AND its date, so no purchase or payment since the opening is ever counted twice; only a balance the person changed re-bases the card at
+ *  now. Returns null when the result would not be a valid card. Pure. */
+export function applyCardSettings(card: Card, edit: { name: string; limitCents: number; amberCents: number; redCents: number; openingCents: number }, balanceNowCents: number, nowMs: number): Card | null {
+  const c: Card = { ...card, name: edit.name.trim(), limitCents: edit.limitCents, amberCents: edit.amberCents, redCents: edit.redCents, ...(edit.openingCents === balanceNowCents ? {} : { openingCents: edit.openingCents, openingAtMs: nowMs }) };
+  return validCard(c) ? c : null;
+}
+/** Saved cards, validated, merged with a seed by id when one is passed (none is, from r.070: addendum 157). */
+export function mergeCards(saved: unknown, seed: readonly Card[] = []): Card[] {
   const list = Array.isArray(saved) ? (saved as Card[]).filter((c) => c && typeof c.id === "string" && validCard(c)) : [];
   const ids = new Set(list.map((c) => c.id));
   return [...list, ...seed.filter((c) => !ids.has(c.id))];
 }
-/** The seed a person starts from: HIS two cards only for the operator (his balances are never shown to anyone else — AsM review r.067,
- *  Thor); everyone else starts with none. */
-export const seedFor = (operator: boolean): Card[] => (operator ? CARD_SEED.map((c) => ({ ...c })) : []);
 /** COUNT ONCE (his answer 2026-10-02, AsM review #5): a card purchase already counted against Available when it was made, so a later
  *  Debit-Account payment that names the card counts only for the part that pays down balance no recorded purchase has counted yet (the
  *  opening balance, his $735.27). The accrual view of the record: each such payment's amount reduced to that uncounted part (dropped

@@ -70,4 +70,45 @@ Both simulations now run inside `test:ci` (`test:fin-asm-144`, `test:fin-asm-car
 
 ## AsM reviewer lenses (twelve lenses, three read-only reviewers, before the push)
 
-_(filled in from the reviewers' reports below)_
+All three reviewers returned **FIX-FIRST**. They agreed on the blockers, and every blocker and should-fix below was folded before the push.
+
+| Reviewer · lenses | Grades | Verdict |
+|---|---|---|
+| Flow and meaning · Athena · Christo · Aset · Asar | C · B · B · C | FIX-FIRST |
+| Correctness and edges · Enki · Enlil · Krishna · Odin | D · C · A · B | FIX-FIRST |
+| Quality and risk · Thor · Thoth · Sofia · Pangu | B · C · C · B | FIX-FIRST |
+
+**Folded:**
+- **The 1-second reset (blocker; all three reviewers found it).** On a phone the card chart lost a tapped value, and reset a zoom, at every 1-second tick, because its window followed the clock. It is fixed in two places:
+  - the card chart's window now moves once a day;
+  - the shared chart keeps a tap and a zoom whenever its window only slides or grows. That fixes the whole class: the main chart lost them once a minute.
+  - "Quiet at rest" is now an explicit flag, not an `ms === now` comparison.
+- **Saving a card's levels double-counted (blocker, Enki; a defect since r.067).** Saving with the balance untouched counted every move since the opening twice, which could raise a false "Over limit". The save is now the pure `applyCardSettings`, gated in the card tests and the AsM simulation.
+- **Tapped colour (Thoth, Enki, Aset).** A tapped figure takes its own moment's colour.
+- **Screen readers (Aset, Sofia).** The key is hidden from screen readers. The chart speaks the balance and both alert levels.
+- **Settings words (Christo, Aset).** The settings read **Amber Alert at** / **Red Alert at**.
+- **Contrast (Sofia).** The card's red alert text is red-400: 5.40:1 and 6.07:1 on his theme. Red-500 measured 3.97:1 and 4.46:1.
+- **Gate gaps (Enlil).** Five planted defects now fail the gates: the alert words swapped, the chart dash changed, the warning limited to amber, the r.067 double count, and the quiet flag removed.
+- **Card names (Thor).**
+  - The operator's card figures no longer ship in the public bundle, because no card is seeded.
+  - Digits of every script count toward the card-number refusal.
+- **Comment drift (Enlil, Asar).** The panel comment and the ALERT_WORD placement are corrected.
+
+**Found by the touch walk after the folds:** two cards set up within the same second shared an id. The second card was unreachable, and a removal took both. Every new card now gets a unique id (`uniqueCardId`, gated).
+
+**Touch walk on the final candidate** (built page, phone 390 × 844, touch emulation, his cyan theme):
+- Closed, the panel reads only "CREDIT CARDS". Opened with no cards, it shows only "Add card".
+- Capital One set up with the alerts blank shows the hints $1,500.00 / $2,000.00. "4111 1111 1111 1111" as a name is refused.
+- USAA set up blank gets $500.00 / $666.67.
+- Purchases raise "⚠ Amber Alert · Capital One $1,535.27 / $3,000.00", then "⚠ Red Alert … $2,035.27" in rgb(248,113,113).
+- Saving the levels only keeps $2,035.27.
+- A touch tap on the card chart is still drawn at 250 ms, 1.6 s and 3 s. A zoom is unchanged after 2.5 s.
+- A tap on the main chart is unchanged across a minute boundary.
+- Remove asks once more ("Capital One · Remove card · Cancel") and leaves USAA.
+- No sideways scroll, no page errors.
+
+**Left for the operator (not built; his call):**
+- Show the alert amounts in the key ("Red Alert $670"). That adds text back.
+- "Available" now names both cash and card credit on one view.
+- A payoff runway, and the distance to the next alert.
+- An older layout bug at phone width: a large negative Available runs into the Accrual Rate (Sofia, c4 capture). It is outside this revision.
