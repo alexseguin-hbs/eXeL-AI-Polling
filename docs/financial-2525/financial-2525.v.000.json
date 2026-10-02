@@ -8,7 +8,7 @@
   "stamp": "v.000_r.070",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "0b46963ec9f6547e7a4538bb81b360b04b8a942e2c10b24f433cd624e8da0d71",
+  "handoffSha256": "8b44327194ebb894f7622cd733925c4a9f375a2e2f92024a46b27587d6716641",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -518,6 +518,12 @@
     "sha256": "0b46963ec9f6547e7a4538bb81b360b04b8a942e2c10b24f433cd624e8da0d71",
     "date": "2026-10-02",
     "note": "addendum 155 (an Alerts key: red dashes = Red Alert, amber dashes = Amber Alert; as little text on the cards as possible; implement without asking, then SSSES, AsM and Spiral tests)"
+   }
+,
+   {
+    "sha256": "8b44327194ebb894f7622cd733925c4a9f375a2e2f92024a46b27587d6716641",
+    "date": "2026-10-02",
+    "note": "addendum 156 (the Credit cards panel starts minimized, like the Transaction Record and the Year Position)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
