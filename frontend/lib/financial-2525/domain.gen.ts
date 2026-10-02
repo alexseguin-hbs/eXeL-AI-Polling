@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.055",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "208f36a49b11dc110fac1290ffd22fac317c1e36e3da51a644bdc623fefddf47",
+  "handoffSha256": "84a3cd98c1bd3c78206b65c41938520563b09078bf0a7e193b46fc30c0933b0f",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -401,6 +401,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "208f36a49b11dc110fac1290ffd22fac317c1e36e3da51a644bdc623fefddf47",
     "date": "2026-10-02",
     "note": "addenda 118–123 — the evening backlog (r.055–r.057)"
+   },
+   {
+    "sha256": "84a3cd98c1bd3c78206b65c41938520563b09078bf0a7e193b46fc30c0933b0f",
+    "date": "2026-10-02",
+    "note": "addenda 124–125 — the charting engine (R-CORE reuse) and the sign-in-saves-to-the-database test"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
@@ -853,7 +858,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "His record and budget live in his account, not only on one phone. Addendum 112: \"SAVE AN PUSH TO SUPABASE. Identify all saving functions and make sure push is made automatically as well as every 12 hours\"; his answer: \"Account-ID key (fastest)\". The saving functions: the record (each transaction · Put back my entries) and the budget (every edit · Reset). Signed in, both are read back from the account once and merged without ever dropping an entry (a diverged copy is kept whole under its own name); every change after that is pushed (a short pause so a burst of typing is one write), and again every 12 hours while the page is open and on return when 12 hours have passed. Stored through the existing account table's guarded functions (no public table access), keyed by a SHA-256 of his sign-in id — the account-ID key he chose: anyone who learned his sign-in id could read it (recorded, his decision). A small cloud beside Transaction Record turns green when the account copy is written (its time on hold); crossed until then. Under the budget, his line (addendum 119, \"Short\"): \"Plan the month. Watch spending by the minute. Keep your savings on track.\" No budget figure changes.",
    "commit": "e040250",
-   "shipped": "PENDING"
+   "shipped": "1029dbe"
   }
  ],
  "mot": {
