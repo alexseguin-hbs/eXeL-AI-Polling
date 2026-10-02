@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.066",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "67373d9b618627f7e1bb6c2fbbea48fc4246783dbb615d846319580ae4f5872c",
+  "handoffSha256": "17f7f23c3201b847e880e750018877c0274e0e77178152602f4ba0dfadb9ccc8",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -496,6 +496,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "67373d9b618627f7e1bb6c2fbbea48fc4246783dbb615d846319580ae4f5872c",
     "date": "2026-10-02",
     "note": "addendum 143 answers (card buys count against both; Capital One starts at $735.27; card view = figures + chart)"
+   },
+   {
+    "sha256": "17f7f23c3201b847e880e750018877c0274e0e77178152602f4ba0dfadb9ccc8",
+    "date": "2026-10-02",
+    "note": "addenda 144–146 (the cockpit + user-defined card warnings amber $1,500 / red $2,000; MoT beside $/hr on the legend line; simulate 144 AsM scenarios)"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",

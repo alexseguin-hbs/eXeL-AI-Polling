@@ -5,7 +5,7 @@
 
 > A personal pilot on the operator's own figures. Money on this surface is a RECORD of what a person typed, never advice, never a bank; the cloud half is best-effort and says so.
 
-Handoff: `docs/asks/2026-09-30_financial_2525_mot_financial_system.md` `sha256 67373d9b618627f7e1bb6c2fbbea48fc4246783dbb615d846319580ae4f5872c`
+Handoff: `docs/asks/2026-09-30_financial_2525_mot_financial_system.md` `sha256 17f7f23c3201b847e880e750018877c0274e0e77178152602f4ba0dfadb9ccc8`
 
 Id law (docs/vision-2525/CRS-GOVERNANCE-PLAN.md): `FIN-##.##`, two digits never letters; parents are permanent; sub-ids append only; a changed requirement is **superseded**, never rewritten.
 
