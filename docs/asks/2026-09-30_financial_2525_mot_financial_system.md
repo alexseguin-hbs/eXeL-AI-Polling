@@ -845,6 +845,13 @@
 >
 > same holds true with eXeL Polling and other sub sites
 
+> (addendum 129, verbatim — 2026-10-02 8:52, with a phone photo of the r.056 $/min chart — `docs/asks/2026-10-02_financial_2525_fb129_rate_readout.png`)
+> remember text tilts per settings
+>
+> have numbers only in same color as line; no need to say Income Spending Net on text
+>
+> just figures near vertical line on selected date
+
 > (addendum 120, verbatim — 2026-10-02 7:33, the chart in the orbital (A.B..C) mode at 365D with day-based spans and axis marks
 > 2664.2437..1972 … 2813.0908..0615 — `docs/asks/2026-10-02_financial_2525_fb120_orbital.png`)
 > Orbital System should have non- gregorian system (900,1800,2700,3600), and 1/12 of 3600 as month not use days etc.  future is real time $/ MoT where MoT is A.B..C and eventually for other planets).
