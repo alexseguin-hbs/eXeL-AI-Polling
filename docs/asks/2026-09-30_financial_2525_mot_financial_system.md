@@ -780,6 +780,14 @@
 > phone only — a cloud copy follows once sign-in carries it" — `docs/asks/2026-10-02_financial_2525_fb115_machine_text.png`)
 > and get rid of comouter language of LLM; should be relevant to Human: misc text needs to be adjusted
 
+> (his answers 2026-10-02, to "what should the text under the budget / in the record say") "show me a fucking oic; don’t know what you are
+> referring to.  Current implementation looks good accept unneeded text" · "The add transaction works fine.  you previously deleted
+> records; they are back now"
+
+> (addendum 116, verbatim — 2026-10-02 7:22, his normal tab on r.052: five entries (+3,604.49 · +320.00 · −250.66 · −14.69 · −20.75),
+> Available $87.03 · $5.4507/hr · Fixed 1,671.37 · Variable 1,140.00 · Net 1,113.12 — `docs/asks/2026-10-02_financial_2525_fb116_back_0722.png`)
+> my transactions are back now; thanks
+
 ### The three sheets, transcribed (the photographs did not reach the container's upload folder; read from the message)
 
 **Sheet 1 — "Example Range · 11 days" (the MoT card):**
