@@ -452,8 +452,17 @@
   max-width: 420px;
   font-weight: 500;
 }
-a.primary {
-  display: inline-block;
-  text-decoration: none;
-  margin-top: 12px;
+.pick img {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+.links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 8px 12px 0;
+}
+.links a {
+  color: #9be7ff;
 }

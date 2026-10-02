@@ -41,6 +41,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The page uses the Raspberry Pi screen: SENSOR 1 in the top bar, one camera, and the model list as a dropdown. The menu starts Sensor Fusion or Check ID with Coral or without it. Pose is not in the app. The same downloadable app runs on a Raspberry Pi, Ubuntu, or a Windows PC. The phone uses this page.",
       commit: "",
     },
+    {
+      rev: 6,
+      date: "2026-10-02",
+      kind: "release",
+      text: "Download is the same full-screen file as the page you can open. It runs on a Raspberry Pi, Ubuntu, a Windows PC, an iPhone, or an Android phone. Pose is not designed yet.",
+      commit: "",
+    },
   ],
 };
 

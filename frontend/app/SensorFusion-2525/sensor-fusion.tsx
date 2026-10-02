@@ -21,6 +21,21 @@ import {
 import { SENSOR_FUSION_RCORE_HISTORY } from "./ledger";
 import styles from "./sensor-fusion.module.css";
 
+const UI = "/sensor-fusion/ui";
+
+function Downloads() {
+  return (
+    <p className={styles.links}>
+      <a href="/sensor-fusion/download/SensorFusion-2525.html" download="SensorFusion-2525.html">
+        Download
+      </a>
+      <a href="/sensor-fusion/SensorFusion-2525.html" target="_blank" rel="noreferrer">
+        Open full screen
+      </a>
+    </p>
+  );
+}
+
 function Foot({ accent }: { accent: string }) {
   return (
     <footer className={styles.foot}>
@@ -332,14 +347,12 @@ export default function SensorFusion() {
             ))}
           </div>
           {poseNote && (
-            <p className={styles.alert}>Pose is not in the app yet. It does not have the three files the other models use.</p>
+            <p className={styles.alert}>Pose is not designed yet. It does not have the three files the other models use.</p>
           )}
           <p className={styles.muted}>
-            The app for a Raspberry Pi, Ubuntu, or a Windows PC runs the model on that computer. The phone uses this page for now.
+            Download is the same screen, and it opens full screen. It runs on a Raspberry Pi, Ubuntu, a Windows PC, an iPhone, or an Android phone.
           </p>
-          <a className={styles.primary} href="/sensor-fusion/edge/sensor_fusion_edge.py" download>
-            Download the app
-          </a>
+          <Downloads />
         </div>
         <SettingsSheet open={settings} scheme={scheme} customHex={customHex} onClose={() => setSettings(false)} onScheme={chooseScheme} />
         <Foot accent={accent} />
@@ -362,14 +375,15 @@ export default function SensorFusion() {
           onClick={() => (sensorOn ? closeSensor() : void openSensor())}
           disabled={busy}
         >
+          <img src={sensorOn ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
           SENSOR 1: {busy ? "…" : sensorOn ? "ON" : "OFF"}
         </button>
         <div className={styles.row}>
           <button type="button" className={styles.iconBtn} aria-label="Info" onClick={() => setInfoOpen((open) => !open)}>
-            i
+            <img src={`${UI}/info_002.png`} alt="" />
           </button>
           <button type="button" className={styles.iconBtn} aria-label="Settings" onClick={() => setSettings(true)}>
-            <Settings aria-hidden />
+            <img src={`${UI}/settings_002.png`} alt="" />
           </button>
           <button
             type="button"
@@ -382,7 +396,7 @@ export default function SensorFusion() {
               else setStep("login");
             }}
           >
-            {who ? who.slice(0, 1) : "?"}
+            <img src={`${UI}/profile_icon_001.png`} alt="" />
           </button>
           <button
             type="button"
@@ -393,7 +407,7 @@ export default function SensorFusion() {
               else void document.documentElement.requestFullscreen();
             }}
           >
-            ⛶
+            <img src={`${UI}/icon-navigation-fullscreen_001.png`} alt="" />
           </button>
         </div>
       </header>
@@ -416,13 +430,14 @@ export default function SensorFusion() {
       </section>
       <nav className={styles.piBot}>
         <button type="button" className={showScores ? styles.botOn : styles.bot} onClick={() => setShowScores((on) => !on)}>
-          %
+          <img src={showScores ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />%
         </button>
         <button type="button" className={showLabels ? styles.botOn : styles.bot} onClick={() => setShowLabels((on) => !on)}>
+          <img src={showLabels ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
           Labels
         </button>
         <label className={styles.pick}>
-          Model
+          <img src={`${UI}/models_icon_001.png`} alt="" />
           <select
             value={model}
             onChange={(event) => {
@@ -438,9 +453,11 @@ export default function SensorFusion() {
           </select>
         </label>
         <button type="button" className={styles.annotate} onClick={() => setAnnotate(true)}>
+          <img src={`${UI}/capture_images_001.png`} alt="" />
           Annotate
         </button>
         <button type="button" className={styles.bot} onClick={() => setSavedNote(true)}>
+          <img src={`${UI}/train_model_001.png`} alt="" />
           Upload Images
         </button>
       </nav>
@@ -449,6 +466,7 @@ export default function SensorFusion() {
         {showLabels ? ` · ${current.sees}` : ""}
         {showScores ? " · %" : ""}
       </p>
+      <Downloads />
       {annotate && (
         <div className={styles.modalWrap}>
           <div className={styles.modal} role="dialog" aria-label="Annotate">
