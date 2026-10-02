@@ -35,7 +35,7 @@ export const FINANCIAL_DOMAIN = {
   "stamp": "v.000_r.073",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
-  "handoffSha256": "064bae03dc44c953389fab0eda39dee45bc26bd6128a6ecc9b0792c3cff38d4b",
+  "handoffSha256": "8153bab3b91751ab4c26394cad1cb72989ddf515b660ee4449157bf9564c79a1",
   "handoffHistory": [
    {
     "sha256": "5880abb0cbe60208c87073e24d9b7ec8d3b5ad807af6049fa4b68c2b5318dd6d",
@@ -606,6 +606,11 @@ export const FINANCIAL_DOMAIN = {
     "sha256": "064bae03dc44c953389fab0eda39dee45bc26bd6128a6ecc9b0792c3cff38d4b",
     "date": "2026-10-02",
     "note": "addenda 169 (\"why does escrow go below Zero Nov 1?\" — the line is Net; the 30-day split leaves the Oct 30–Nov 1 payday gap; escrow etc. on the chart in the rate views; only 1x in dollars) and 170 (his answers: add Escrow and keep Net, keep the gap, 1x = $ and the other spans rates, escrow its own colour) — r.074"
+   },
+   {
+    "sha256": "8153bab3b91751ab4c26394cad1cb72989ddf515b660ee4449157bf9564c79a1",
+    "date": "2026-10-02",
+    "note": "addendum 171 (\"if the expense circle overlaps (left or right edge overlaps with another expense, merge). 2700.66 and 155.44 should merge (sum up) as one red dot\") — folded into r.073 before its push"
    }
   ],
   "ledger": "docs/traceability/financial-2525.ledger.json",
