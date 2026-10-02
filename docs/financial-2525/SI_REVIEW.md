@@ -20,6 +20,7 @@ The page grows with every round: each new DECLARED decision and each new questio
 | FD-98 | After a failed save, a change in the form corrects that same entry (never a second one), and "saved to your account" shows only after a sync that really holds it | The pre-push review of r.073 (a typo fixed after the failure recorded two entries) | keep / change |
 | FD-103 | Your budget and your cards: the copy edited later wins on every device; a copy is dated only once your phone has really kept it; two copies that differ only in the order the account stores them are the same copy; a phone whose clock runs behind never dates an edit before the copy it just took | The second pre-push review of r.073: a full phone sent its old budget over your newer one (22222 → 111 everywhere), and identical cards were re-sent on every sync, losing a newer rename | keep / change |
 | FD-104 | The green "saved to your account" cloud shows only while your account holds exactly what the page shows; any change turns it grey at once | The same review: it stayed green over a new entry, and for 12.5 s while a budget line was being typed | keep / change |
+| FD-106 | A budget you never edited never overwrites one you did; every time you come back to the page it reads your account first | The twelve-lens review of r.073 (an untouched device's budget beat an offline edit) | keep / change |
 | FD-105 | A budget box that does not read as a figure leaves the line as it was and says why; per second it shows every decimal the line needs | The same review: "1e3" set a line to 1.00 (and a cleared box to its first digit) and that survived a reload | keep / change |
 
 ## B · Questions waiting for your word
@@ -33,6 +34,8 @@ The page grows with every round: each new DECLARED decision and each new questio
 | Q5 | Two devices writing in the same instant are covered by a read-back 4 seconds later. A version check on the account store would make every write safe, but needs a database change. Do it? | Yes, in its own revision | yes / no |
 | Q6 | Boxes under 16 px make an iPhone zoom the page in when tapped (the cause of addendum 165). Make the form's boxes 16 px so it never zooms? It changes how the forms look | Yes | yes / no |
 | Q7 | A budget line typed per Standard Month is stored on the 30-day month, so 1,000 typed in October reads 967.74 in November and 903.23 in February. Should a figure typed per calendar month stay the same every month? | Yes — keep what you typed per calendar month | yes / no |
+| Q9 | The red line reads Expenses (your addendum 168). Should the red chart marks ("Withdrawal") and the box "Spent" use the same word? | Keep Spent (a total), rename the marks to Expenses | yes / no |
+| Q10 | Should a deposit offer only Income fields, and a withdrawal only expense fields, in the form and the pencil? | Yes | yes / no |
 | Q8 | Two devices change different fields of one entry before they sync (the phone the memo, the laptop the amount): the newest correction restates every field, so the phone's memo disappears from the screen (both corrections stay on the record). Keep "the newest correction wins whole", or merge field by field? | Merge field by field | whole / by field |
 
 Rounds that add decisions or questions append here, under the same two headings.

@@ -341,7 +341,7 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
     // (7) Odin — the 12-hour timer, the return to the page and the network coming back call the LATEST sync, which reads the latest record,
     // budget and cards (the old interval kept the opening render's push and wrote the opening state back over the account)
     ok(/const syncRef = useRef\(sync\); syncRef\.current = sync;/.test(ux) && /setInterval\(\(\) => \{ void syncRef\.current\(\); \}, PUSH_EVERY_MS\)/.test(ux) && /const recordRef = useRef\(record\); recordRef\.current = record;/.test(ux) && /const planRef = useRef\(plan\); planRef\.current = plan;/.test(ux) && /const cardsRef = useRef\(cards\); cardsRef\.current = cards;/.test(ux) && !/\bpushAll\b/.test(ux), "r.073 (Odin): every timer calls the latest sync through a ref, which reads the latest record, budget and cards");
-    ok(/cloudPut\(key, "fin-plan", \{ lines: mine, at: at0 \} satisfies PlanDoc\)/.test(ux) && /const cp = p\.data, planAt = planAtRef\.current, mine = planRef\.current;/.test(ux) && /const ch = syncChoice\(\{ doc: mine, at: planAt \}, remote\);/.test(ux) && /if \(ch === "take" && remote\) \{ planRef\.current = remote\.doc;/.test(ux), "…the budget is sent only when this device's edit is newer than the account's, and taken from the account when it is older (a stale tab never puts an old budget back)");
+    ok(/cloudPut\(key, "fin-plan", \{ lines: mine, at: at0 \} satisfies PlanDoc\)/.test(ux) && /const cp = p\.data, planAt = planAtRef\.current, mine = planRef\.current;/.test(ux) && /const ch = syncChoice\(\{ doc: mine, at: planAt \}, remote, true\);/.test(ux) && /if \(ch === "take" && remote\) \{ planRef\.current = remote\.doc;/.test(ux), "…the budget is sent only when this device's edit is newer than the account's, and taken from the account when it is older (a stale tab never puts an old budget back)");
     ok(/window\.addEventListener\("pagehide", flush\); window\.addEventListener\("online", flush\);/.test(ux) && /else flush\(\); \};/.test(ux), "r.073: a change made just before the page is hidden or closed is sent at once; a send that failed offline is sent when the network returns");
     ok(/if \(e\.key === recordKey\(owner\)\) \{ const s = readStored\(owner\); if \(s\) \{ const u = recordRef\.current\.owner === owner \? unionRecords\(recordRef\.current, s\) : s;/.test(ux), "r.073 (Krishna): another tab's save is united into this tab at once (and never under another sign-in's name)");
     ok(/if \(r\.state === "ok"\) \{/.test(ux) && /\} else out\.push\(r\.state === "off" \? "offline" : r\.state\);/.test(ux), "r.073: a failed read writes nothing over the account (a failed read is never taken for an empty account)");
@@ -425,7 +425,7 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
     "r.073 pre-push (Thor): a budget this device would not keep says so in the budget's own words, on its own flag (a good record save no longer hides it)");
   ok(/const r = typeIntoLine\(plan, fieldId, text, period, focusLine\.current, cur\.symbol \? \[cur\.symbol\] : \[\]\);/.test(ux) && /const n = parseBudgetAmount\(text, marks\);/.test(fs.readFileSync(new URL("../lib/financial-2525/plan.ts", import.meta.url), "utf8")) && /const cents = \(v: string\) => parseCardCents\(v, marks\);/.test(ux),
     "r.073 pre-push (Enki): the budget line and the card settings read through the strict readers");
-  ok(/const at0 = ch === "send" && planAt > 0 \? planAt : nextStamp\(Math\.max\(planAt, remote\?\.at \?\? 0\), Date\.now\(\)\);/.test(ux) && /const at1 = ch === "send" \? cardsAt : nextStamp\(Math\.max\(cardsAt, remote\?\.at \?\? 0\), Date\.now\(\)\);/.test(ux),
+  ok(/const at0 = ch === "send" \? planAt : nextStamp\(Math\.max\(planAt, remote\?\.at \?\? 0\), Date\.now\(\)\);/.test(ux) && /const at1 = ch === "send" \? cardsAt : nextStamp\(Math\.max\(cardsAt, remote\?\.at \?\? 0\), Date\.now\(\)\);/.test(ux),
     "r.073 pre-push (Odin): an account budget or card list that r.072's stale push reverted (the same time, other lines) is repaired — this device's copy goes up under a new time");
 }
 // ── r.073 SECOND PRE-PUSH REVIEW (FIX-FIRST — 2 blockers / 9 should-fix, kept verbatim in docs/financial-2525/rounds/r073_prepush_review2.md):
@@ -490,10 +490,32 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
     const c2 = K.applyCardSettings(card, { name: "Visa Gold", limitCents: 300000, amberCents: 100000, redCents: 200000, openingCents: bal }, bal, T0 + MIN);
     ok(!!c2 && c2.name === "Visa Gold" && c2.amberCents === 100000 && c2.openingCents === 73527 && c2.openingAtMs === T0 && T.parseCardCents("R$ 3,000", ["R$"]) === 300000,
       "r.073 second review (Enki): a card in credit is renamed and re-levelled, its opening kept; \"R$ 3,000\" reads under BRL");
-    ok(/openingCents: draft\.opening\.trim\(\) === \(bal \/ 100\)\.toFixed\(2\) \? bal : cents\(draft\.opening\)/.test(ux) && /if \(unread\(draft\.limit, draft\.opening, draft\.amber, draft\.red\)\) \{ setBad\("amount"\); return; \}/.test(ux) && (ux.match(/setBad\("amount"\)/g) || []).length === 2 && /amberCents: draft\.amber\.trim\(\) \? cents\(draft\.amber\) : Math\.round\(lim \* 0\.5\)/.test(ux),
+    ok(/openingCents: same \? bal : cents\(draft\.opening\)/.test(ux) && /if \(unread\(draft\.limit, draft\.amber, draft\.red\) \|\| \(!same && unread\(draft\.opening\)\)\)/.test(ux) && (ux.match(/\? "large" : "amount"\)/g) || []).length === 2 && /amberCents: draft\.amber\.trim\(\) \? cents\(draft\.amber\) : Math\.round\(lim \* 0\.5\)/.test(ux),
       "…the gear reads its balance from the text shown, says \"enter the amount in digits\" for a figure that does not read (never a levels problem), and a blank level takes the add form's half / two-thirds"); }
   // (E) Enki's nits
   ok(T.amountProblem("1000000000000") === "large" && T.amountProblem("1,000,000,000,000") === "large" && T.amountProblem("1e3") === "form" && T.amountProblem("") === "zero" && T.parseDaysText("1,000") === 1000 && T.parseDaysText("12,50") === null && M.fmtDays(0.5 / 1440) === "0.00035" && !/e/.test(M.fmtDays(6.9e-11)),
     "r.073 second review (Enki): a trillion is \"too large\" (not \"not digits\"); the Other length takes 1,000; a 0.5-minute length reads 0.00035 days, never 0");
+}
+// ── r.073 TWELVE-LENS REVIEW (rounds/r073_asm12.md — 4 blockers): the untouched budget is never dated; every return reads the account;
+// a card in credit saves; the small half-fixed classes closed
+{
+  const C = await import("../lib/financial-2525/cloud.ts");
+  const fs = await import("node:fs");
+  const ux = fs.readFileSync(new URL("../components/financial-2525/command-ux1.tsx", import.meta.url), "utf8");
+  // Christo / Krishna, their walk as behaviour: B edits offline (rent 2000 at T); A is a fresh device with the untouched sheet and writes first;
+  // B reconnects — B's edit must win on every copy (r.073 dated A's sheet "now" and B's edit lost)
+  const T = 1790984134775, sheet = [{ fieldId: "B.rent_mortgage", amountNative: 700, nativePeriod: "month" }], edit = [{ ...sheet[0], amountNative: 2000 }];
+  let acct = null; const a = { doc: sheet, at: 0 }, b = { doc: edit, at: T };
+  { const ch = C.syncChoice(a, acct, true); if (ch === "send") acct = { doc: a.doc, at: a.at }; }   // A's first sync: the sheet goes up at 0
+  { const ch = C.syncChoice(b, acct, true); if (ch === "send" || ch === "resend") acct = { doc: b.doc, at: ch === "send" ? b.at : C.nextStamp(b.at, T) }; }
+  const aNext = C.syncChoice(a, acct, true);
+  ok(acct.at === T && acct.doc[0].amountNative === 2000 && aNext === "take" && C.syncChoice({ doc: sheet, at: 0 }, { doc: edit, at: 0 }, true) === "same",
+    "r.073 twelve-lens (Christo, Krishna — blocker): an untouched budget goes up at 0 and never beats a real edit — the offline device's 2000 reaches the account and the fresh device takes it");
+  ok(/const onVis = \(\) => \{ if \(document\.visibilityState === "visible"\) void syncRef\.current\(\); else flush\(\); \};/.test(ux),
+    "r.073 twelve-lens (Odin — blocker): every return to the page reads the account first (a phone back within 12 hours sent its stale budget over another device's line)");
+  ok(/if \(unread\(draft\.limit, draft\.amber, draft\.red\) \|\| \(!same && unread\(draft\.opening\)\)\)/.test(ux) && /bad === "large" \? "fin\.reason_amount_large"/.test(ux),
+    "r.073 twelve-lens (Enki — blocker; Aset): a card in credit saves — its balance left as shown is never read; a trillion on a card is \"too large\"");
+  ok(/kind === "withdrawal" && inc \? \{ \.\.\.ed, kind, sec: "B", field: "B\.rent_mortgage" \}/.test(ux) && /useEffect\(\(\) => \{ setFitH\(0\); \}, \[vh\]\);/.test(ux) && /CUR_SYM \+ smallDollars\(cents \/ 100\)/.test(ux) && /\{holdsRecord && <> \{t\("fin\.save_failed_cloud"\)\}<\/>\}/.test(ux),
+    "r.073 twelve-lens (Athena, Enlil, Thoth, Thor): the pencil's type change re-seats a field of the wrong kind; the full-screen chart grows back after rotating; a per-second rate never reads $0.0000; the retry line says what the account holds");
 }
 console.log(`financial-accrual: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

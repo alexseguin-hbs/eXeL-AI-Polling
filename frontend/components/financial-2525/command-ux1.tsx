@@ -60,7 +60,7 @@ const C = TRINITY_COLORS;
 // code under ACCRUAL UNITS. Set once per render by the surface before its children draw.
 let CUR_SYM = "$";
 const usd = (cents: number) => (cents < 0 ? "-" : "") + CUR_SYM + Math.abs(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const usd4 = (cents: number) => (cents < 0 ? "-" : "") + CUR_SYM + Math.abs(cents / 100).toFixed(4);
+const usd4 = (cents: number) => (cents < 0 ? "-" : "") + CUR_SYM + smallDollars(cents / 100);   // r.073 twelve-lens (Thoth): never $0.0000 for a real rate
 // r.043 (addenda 88–89 "rmeove $ from table as its in label header"): a table cell prints the bare number; the symbol is in the header.
 const num2 = (cents: number) => Math.abs(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 /** The time a budget or card list was edited, as this device stored it (0 when none or unreadable). */
@@ -359,13 +359,15 @@ export function FinancialCommandUX1() {
     if (p.state === "ok") {
       const cp = p.data, planAt = planAtRef.current, mine = planRef.current;
       const remote = cp && Array.isArray(cp.lines) && Number.isFinite(cp.at) ? { doc: cp.lines, at: cp.at } : null;
-      const ch = syncChoice({ doc: mine, at: planAt }, remote);
+      // r.073 twelve-lens review (Christo, Krishna — blocker): a budget this device never edited (planAt 0, the sheet) is never dated now —
+      // it went up as "newest" and a real edit made on a device that was offline lost to it. Like the cards: no tie repair, no stamp, at 0.
+      const ch = syncChoice({ doc: mine, at: planAt }, remote, true);
       if (ch === "take" && remote) { planRef.current = remote.doc; setPlan(remote.doc); planAtRef.current = remote.at; keepPlanHere(who, remote.doc, remote.at); heldPlan = remote.doc; out.push("saved"); }
       else if (ch === "same") { heldPlan = mine; out.push("saved"); }
       else {
         // r.073 pre-push review (Odin): the same time with different lines is the row r.072's stale 12-hour push reverted (its old lines under
         // the newest edit's time) — this device's lines go up under a new time, so every device takes them
-        const at0 = ch === "send" && planAt > 0 ? planAt : nextStamp(Math.max(planAt, remote?.at ?? 0), Date.now());
+        const at0 = ch === "send" ? planAt : nextStamp(Math.max(planAt, remote?.at ?? 0), Date.now());
         const st = await cloudPut(key, "fin-plan", { lines: mine, at: at0 } satisfies PlanDoc); out.push(st);
         if (!here()) return readOk;
         if (st === "saved") { heldPlan = mine; if (at0 !== planAt && planRef.current === mine) { planAtRef.current = at0; keepPlanHere(who, mine, at0); } }
@@ -419,7 +421,9 @@ export function FinancialCommandUX1() {
     const due = () => { let last = 0; try { last = Number(localStorage.getItem(LAST_PUSH_KEY) ?? 0) || 0; } catch { /* send */ } if (Date.now() - last >= PUSH_EVERY_MS) void syncRef.current(); };
     const id = setInterval(() => { void syncRef.current(); }, PUSH_EVERY_MS);
     const flush = () => { if (dirty.current) void syncRef.current(); };
-    const onVis = () => { if (document.visibilityState === "visible") due(); else flush(); };
+    // r.073 twelve-lens review (Odin — blocker): every return to the page reads the account first — a phone back within 12 hours showed a stale
+    // budget, and its next edit (even to another line) went up as the newest whole copy over a line typed on another device
+    const onVis = () => { if (document.visibilityState === "visible") void syncRef.current(); else flush(); };
     document.addEventListener("visibilitychange", onVis); window.addEventListener("pagehide", flush); window.addEventListener("online", flush); due();
     return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVis); window.removeEventListener("pagehide", flush); window.removeEventListener("online", flush); };
   }, [cloudReady]);
@@ -838,7 +842,7 @@ export function FinancialCommandUX1() {
                 <label className="text-xs text-muted-foreground">{t("fin.memo")}<input className={INPUT} value={memo} onChange={(e) => setMemo(e.target.value)} /></label>
               </div>
               <button type="button" data-fin-record disabled={!txType} data-fin-retry={retrying ? "1" : undefined} className={`mt-2 ${txType === "withdrawal" ? SECONDARY : PRIMARY} disabled:opacity-50`} onClick={retrying ? retrySave : recordTransaction}>{retrying ? t("fin.save_retry") : txType === "withdrawal" ? t("fin.withdraw") : t("fin.record_it")}</button>
-              {retrying && <p key={retryN} role="alert" data-fin-save-retry className="mt-2 text-sm text-amber-500">{t("fin.save_failed_form")}</p>}
+              {retrying && <p key={retryN} role="alert" data-fin-save-retry className="mt-2 text-sm text-amber-500">{t("fin.save_failed_form")}{holdsRecord && <> {t("fin.save_failed_cloud")}</>}</p>}
               {refusal && <p role="alert" key={refusalN} className="mt-2 text-sm text-red-500">{t("fin.refused")} · {refusal}</p>}
             </div>
             )}
@@ -1006,7 +1010,7 @@ export function FinancialCommandUX1() {
               {/* r.073 (addendum 164 "all fields in edit of Transaction record should be possible to edit"): every field the form has */}
               <div className="grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap">
                           <label className="col-span-2 text-[10px] uppercase">{t("fin.type")}
-                            <select data-fin-edit-type className={PICK} value={ed.kind} onChange={(v) => setEd({ ...ed, kind: v.target.value as TxKind })}>
+                            <select data-fin-edit-type className={PICK} value={ed.kind} onChange={(v) => { const kind = v.target.value as TxKind, inc = fieldOf(ed.field)?.kind === "Income"; setEd(kind === "withdrawal" && inc ? { ...ed, kind, sec: "B", field: "B.rent_mortgage" } : kind === "deposit" && !inc ? { ...ed, kind, sec: "A", field: "A.income_wages" } : { ...ed, kind }); }}>
                               <option value="deposit">{t("fin.type_deposit")}</option>
                               <option value="withdrawal">{t("fin.type_withdrawal")}</option>
                             </select>
@@ -1240,20 +1244,21 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t, marks, failed }: { card
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [draft, setDraft] = useState({ name: "", limit: "", amber: "", red: "", opening: "" });
-  const [bad, setBad] = useState("" as "" | "levels" | "name" | "amount");
+  const [bad, setBad] = useState("" as "" | "levels" | "name" | "amount" | "large");
   const card = cards.find((c) => c.id === pick) ?? cards[0];
   const bal = card ? cardBalanceAt(card, txs, now) : 0, lv: CardLevel = card ? cardLevel(card, bal) : "ok";
   // r.073 pre-push review (Enki): "1e400" or "0x10" never make a card — the card's check refuses NaN; r.073 second review (Enki): the currency's
   // own mark is read here as on every other form ("R$ 3,000" under BRL), and a figure that does not read is said as such, never as a levels problem
   const cents = (v: string) => parseCardCents(v, marks);
   const unread = (...vals: string[]) => vals.some((v) => Number.isNaN(cents(v)));
+  const tooLarge = (...vals: string[]) => vals.some((v) => amountProblem(v, marks) === "large");   // r.073 twelve-lens (Aset): the forms' own sentence
   // r.070 (addendum 157 "allow user to set up their own CC"): a card the person sets up — a name (never a number), a limit and the balance as
   // of now; an amber or red level left blank takes his proportions, half and two-thirds of the limit (shown as the field's hint)
   const openAdd = () => { setDraft({ name: "", limit: "", amber: "", red: "", opening: "" }); setBad(""); setGear(false); setRemoving(false); setAdding((v) => !v); };
   const hint = (f: number) => (cents(draft.limit) > 0 ? ((cents(draft.limit) * f) / 100).toFixed(2) : "");
   const add = () => {
     if (!draft.name.trim() || looksLikeCardNumber(draft.name)) { setBad("name"); return; }
-    if (unread(draft.limit, draft.opening, draft.amber, draft.red)) { setBad("amount"); return; }
+    if (unread(draft.limit, draft.opening, draft.amber, draft.red)) { setBad(tooLarge(draft.limit, draft.opening, draft.amber, draft.red) ? "large" : "amount"); return; }
     const c = newCard({ name: draft.name, limitCents: cents(draft.limit), openingCents: draft.opening.trim() ? cents(draft.opening) : 0, amberCents: draft.amber.trim() ? cents(draft.amber) : undefined, redCents: draft.red.trim() ? cents(draft.red) : undefined }, now, uniqueCardId(cards, now));
     if (!c) { setBad("levels"); return; }
     setBad(""); setAdding(false); setPick(c.id); onSave([...cards, c]);
@@ -1262,12 +1267,14 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t, marks, failed }: { card
   const save = () => {
     if (!card) return;
     if (!draft.name.trim() || looksLikeCardNumber(draft.name)) { setBad("name"); return; }
-    if (unread(draft.limit, draft.opening, draft.amber, draft.red)) { setBad("amount"); return; }
+    // r.073 twelve-lens review (Enki — blocker): the balance left as shown ("-264.73" on a card in credit) is never read, so it is never refused
+    const same = draft.opening.trim() === (bal / 100).toFixed(2);
+    if (unread(draft.limit, draft.amber, draft.red) || (!same && unread(draft.opening))) { setBad(tooLarge(draft.limit, draft.opening, draft.amber, draft.red) ? "large" : "amount"); return; }
     // r.070 (AsM review, Enki): a balance left as shown keeps the opening and its date; only a changed one re-bases at now (cards.ts). r.073 second
     // review (Enki): "left as shown" is read from the text itself — a card in credit shows "-264.73", which no reader takes, and every edit of it
     // was refused. A level left blank takes the add form's proportions (half and two-thirds of the limit), never 0.00 (a permanent amber alert).
     const lim = cents(draft.limit);
-    const c2 = applyCardSettings(card, { name: draft.name, limitCents: lim, amberCents: draft.amber.trim() ? cents(draft.amber) : Math.round(lim * 0.5), redCents: draft.red.trim() ? cents(draft.red) : Math.round((lim * 2) / 3), openingCents: draft.opening.trim() === (bal / 100).toFixed(2) ? bal : cents(draft.opening) }, bal, now);
+    const c2 = applyCardSettings(card, { name: draft.name, limitCents: lim, amberCents: draft.amber.trim() ? cents(draft.amber) : Math.round(lim * 0.5), redCents: draft.red.trim() ? cents(draft.red) : Math.round((lim * 2) / 3), openingCents: same ? bal : cents(draft.opening) }, bal, now);
     if (!c2) { setBad("levels"); return; }
     setBad("");
     onSave(cards.map((c) => (c.id === card.id ? c2 : c))); setGear(false);
@@ -1276,7 +1283,7 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t, marks, failed }: { card
   const remove = () => { if (!card) return; const next = cards.filter((c) => c.id !== card.id); setGear(false); setRemoving(false); setPick(next[0]?.id ?? ""); onSave(next); };
   const LV = { ok: "text-green-500", amber: "text-yellow-600 dark:text-yellow-400", red: "text-red-400", over: "text-red-400" }[lv];   // r.070 (AsM, Sofia): red-400 holds AA contrast on his theme
   const FIELD = "h-9 rounded-md border border-border bg-background px-2 font-mono text-sm text-foreground";
-  const badLine = bad && <p data-fin-cards-bad className="col-span-2 text-xs text-red-400">{t(bad === "name" ? "fin.card_name_bad" : bad === "amount" ? "fin.reason_amount_form" : "fin.card_bad")}</p>;
+  const badLine = bad && <p data-fin-cards-bad className="col-span-2 text-xs text-red-400">{t(bad === "name" ? "fin.card_name_bad" : bad === "amount" ? "fin.reason_amount_form" : bad === "large" ? "fin.reason_amount_large" : "fin.card_bad")}</p>;
   return (
     /* r.070 (addendum 156 "have CC default minimized"): folded to its title like the Transaction Record and the Year Position; opened,
        Pay card and the settings sit on the first row (the Year card's pattern — no button inside the summary). An alert still shows at the
@@ -1485,6 +1492,7 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   // fixed floor of 300 px (844×390 at rest showed the canvas at 136–436 px of a 390 px screen: dates cut, the legend and the unit picker gone).
   // Measured after each paint: whatever does not fit comes off the chart, whatever room is left goes to it (floor 100 px, ceiling the screen).
   const [fitH, setFitH] = useState(0);
+  useEffect(() => { setFitH(0); }, [vh]);   // r.073 twelve-lens (Enlil): a taller screen after rotating starts again from its own height
   useEffect(() => {
     if (!full) { if (fitH) setFitH(0); return; }
     const box = layerRef.current; if (!box) return;
