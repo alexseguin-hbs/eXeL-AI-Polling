@@ -192,7 +192,8 @@ export function FinancialCommandUX1() {
   const withdrawals = txs.filter((x) => x.kind === "withdrawal");
   const focus = deposits[0] ?? null;
   /** The live rate in the unit picked — the $/min times the planet's own seconds, hours and days (cents). */
-  const rateIn = (u: RateUnit): number => (u === "sec" ? bal.ratePerMinCents / planet.secPerMin : u === "min" ? bal.ratePerMinCents : u === "hr" ? bal.ratePerMinCents * planet.minPerHour : bal.ratePerMinCents * planet.hoursPerDay * planet.minPerHour);
+  // r.066 (addendum 142 + "Spread over rest"): the Accrual Rate is what is left after any spend ahead of accrual is spread over the rest
+  const rateIn = (u: RateUnit): number => (u === "sec" ? bal.netRatePerMinCents / planet.secPerMin : u === "min" ? bal.netRatePerMinCents : u === "hr" ? bal.netRatePerMinCents * planet.minPerHour : bal.netRatePerMinCents * planet.hoursPerDay * planet.minPerHour);
   const focusView = focus && now ? depositView(focus, at) : null;
   const year = now ? positionInYear(now, planet.yearAnchor, planet.yearDays) : null;
   // THE LADDER'S UNIT (addendum 17 → 20 → 21 → 22): one dropdown of the brief's eight periods with FIXED factors — second · minute 60 ·

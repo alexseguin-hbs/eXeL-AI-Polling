@@ -95,8 +95,10 @@ export interface Balance {
   releasedCents: number;     // released so far (visible)
   withdrawableCents: number; // released so far (no hold, r.028)
   withdrawnCents: number;    // what every withdrawal has taken out by t (at $/min over its MoT from r.023)
-  availableCents: number;    // withdrawable − withdrawn (never negative on a valid record)
+  availableCents: number;    // withdrawable − withdrawn; below zero when spent AHEAD of accrual (r.066, addendum 142 "Up to all In Escrow")
   ratePerMinCents: number;   // the live $/min: the sum over deposits still releasing
+  advanceCents: number;      // spent ahead of accrual: max(0, withdrawn − withdrawable) (r.066)
+  netRatePerMinCents: number; // the rate left after the advance is spread over the rest of the releases: rate × (1 − advance ÷ escrow) (r.066, "Spread over rest")
   deposits: DepositView[];
 }
 /** The whole record at `t`. */
@@ -106,14 +108,18 @@ export function balanceAt(txs: readonly FinTx[], t: number): Balance {
   const depositedCents = deposits.reduce((s, d) => s + d.tx.amountCents, 0);
   const releasedCents = deposits.reduce((s, d) => s + d.releasedCents, 0);
   const withdrawableCents = deposits.reduce((s, d) => s + d.withdrawableCents, 0);
+  const rate = deposits.filter((d) => d.state === "releasing").reduce((s, d) => s + d.ratePerMinCents, 0);
+  const advance = Math.max(0, withdrawnCents - withdrawableCents), escrowed = depositedCents - releasedCents;
   return {
     depositedCents,
     escrowedCents: depositedCents - releasedCents,
     releasedCents,
     withdrawableCents,
     withdrawnCents,
-    availableCents: Math.max(0, withdrawableCents - withdrawnCents),
-    ratePerMinCents: deposits.filter((d) => d.state === "releasing").reduce((s, d) => s + d.ratePerMinCents, 0),
+    availableCents: withdrawableCents - withdrawnCents,
+    ratePerMinCents: rate,
+    advanceCents: advance,
+    netRatePerMinCents: escrowed > 0 ? rate * Math.max(0, 1 - advance / escrowed) : rate,
     deposits,
   };
 }
@@ -130,14 +136,16 @@ export function validateWithdrawal(txs: readonly FinTx[], w: FinTx): { ok: true 
   const all = [...others, w];
   const marks = new Set<number>([w.atMs]);
   for (const x of all) { marks.add(x.atMs); marks.add(x.atMs + motMs(x)); }
-  const over = (t: number) => { const b = balanceAt(all, t); return b.withdrawnCents - b.withdrawableCents; };
+  // r.066 (addendum 142 + his answer "Up to all In Escrow"): a spend may run AHEAD of accrual — it is refused only when, at some instant,
+  // everything spent would pass every deposit recorded by then (released AND still in escrow); the accrual rate drops instead
+  const over = (t: number) => { const b = balanceAt(all, t); return b.withdrawnCents - b.depositedCents; };
   const pts = Array.from(marks).filter((t) => t >= w.atMs).sort((a, b) => a - b);
   // walk the probes in time order, remembering the LAST probe that passed (r.026): between two probes the sides are linear unless the
   // later probe is a breakpoint whose instant before it passed — then the shortfall is a jump at that breakpoint (a lump landing), and
   // the refusal names that instant exactly. r.023 interpolated from the previous breakpoint across such a jump and could name a minute
   // with money still to spare.
   let okT = w.atMs, okD = over(w.atMs);
-  const refuse = (atMs: number) => ({ ok: false as const, reason: "INSUFFICIENT" as const, availableCents: balanceAt(others, w.atMs).availableCents, atMs });
+  const refuse = (atMs: number) => ({ ok: false as const, reason: "INSUFFICIENT" as const, availableCents: Math.max(0, balanceAt(others, w.atMs).depositedCents - balanceAt(others, w.atMs).withdrawnCents), atMs });
   if (okD > 0) return refuse(w.atMs);
   for (const t of pts) {
     for (const p of t - 1 > okT ? [t - 1, t] : [t]) {

@@ -4,8 +4,8 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.065",
-  "stamp": "v.000_r.065",
+  "revision": "0.066",
+  "stamp": "v.000_r.066",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "67373d9b618627f7e1bb6c2fbbea48fc4246783dbb615d846319580ae4f5872c",
@@ -1002,6 +1002,14 @@
    "why": "Addenda 136 · 138 · 139. (136) Every deposit and spend draws a very thin dotted vertical line on the $/min chart; spend dots that sit close keep their own dots and move their labels around them — two: left of the first, right of the second; three: top-left, bottom-centre, top-right; four: the four corners — and only dots that actually overlap (usually zoomed out) merge into one dot whose label is their sum (−$14.69 and −$20.75 → −$35.44). (138) In the orbital (A.B..C) view the span buttons are A.B..C only — 1X · 75 · 300 · 900 · 3600 A of the planet's revolution (week · month · quarter · year), never days or calendar words; the + 1 h − row under the spans is removed (two fingers still widen or narrow the live window). (139) The Personal Budget's unit dropdown sits on the header line at the upper right, labelled MoT Unit (supersedes addendum 21's full-width row). (140) The record's edit pencil (r.062) sat off the right edge of the phone — it now leads every row; the Supabase cloud mark is the standard cloud-with-check (saved to your account) / cloud-with-slash (not yet). (141) Dining wore the groceries basket; it now wears the fork and knife, the universal meal sign. No budget figure changes.",
    "commit": "d8370da",
    "shipped": "f21eaad"
+  },
+  {
+   "revision": "0.066",
+   "date": "2026-10-02",
+   "kind": "decision",
+   "why": "Addenda 142 · 143 (spend ahead of accrual) + the r.065 label defect. His answers: \"Up to all In Escrow\" and \"Spread over rest\". A withdrawal is no longer refused because it runs ahead of what has accrued — only when everything spent would pass every deposit recorded by then (released AND still in escrow); his $2,450 credit-card payment on 2026.10.01_07.00..00 is accepted. Available may go below zero by the advance, and the Accrual Rate shows what is left after the advance is spread over the rest of the releases (rate × (1 − advance ÷ escrow)): $5.4507/hr falls to about $2.05/hr after the $2,450. The $/min chart's spend labels are drawn outside the plot's clip and kept whole on the canvas (r.065 cut \"−$14.69\" to \"69\" at the left edge). Correction of r.023/r.028: 'a withdrawal never overdraws what has accrued' is superseded by 'never more than all income recorded'. The credit-card section and the paid-from selector (addendum 143) are r.067. No budget figure changes.",
+   "commit": "b0ea01f",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2561,6 +2569,12 @@
    "decision": "Chart marks: a thin dotted line at every transaction; close spend labels placed around their dots (2: left/right · 3: top-left/bottom-centre/top-right · 4: the four corners); merged into one summed label only when the dots overlap. Orbital spans are A.B..C only (1X · 75 · 300 · 900 · 3600). The budget unit is MoT Unit on the header line. The record's edit pencil leads each row; the cloud mark is cloud-with-check / cloud-with-slash.",
    "status": "OPERATOR",
    "basis": "addenda 136 · 138 · 139 · 140 · 141"
+  },
+  {
+   "id": "FD-81",
+   "decision": "A spend may run ahead of accrual up to all income recorded (released + in escrow); Available may go below zero; the Accrual Rate shown is rate × (1 − advance ÷ escrow). Supersedes the never-overdraw-accrual half of FD-38/FD-45.",
+   "status": "OPERATOR",
+   "basis": "addenda 142 · 143 + his answers \"Up to all In Escrow\" · \"Spread over rest\""
   }
  ],
  "reviews": [

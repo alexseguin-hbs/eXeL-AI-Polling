@@ -912,6 +912,13 @@
    "kind": "release",
    "text": "r.065 shipped and LIVE (Verify Live #2221) — chart marks, orbital spans, MoT Unit, edit pencil first, standard cloud, Dining icon (FD-80).",
    "commit": "f21eaad"
+  },
+  {
+   "rev": 131,
+   "date": "2026-10-02",
+   "kind": "decision",
+   "text": "r.066 decision — spend ahead of accrual up to all income recorded; the rate spread over the rest; chart labels kept whole (FD-81).",
+   "commit": "b0ea01f"
   }
  ]
 }

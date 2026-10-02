@@ -221,11 +221,18 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
         const text = m.text ?? "";
         dots.push({ x: X(m.t), y: Math.max(16, Y(val) - 10), text, w: g.measureText(text).width, value: m.value, color: m.color });
       }
-      for (const lb of layoutMarks(dots, R, p.formatMarkSum)) {
-        g.fillStyle = lb.color; g.beginPath(); g.arc(lb.dotX, lb.dotY, R, 0, Math.PI * 2); g.fill();
-        if (lb.text) { g.textAlign = lb.align; g.textBaseline = lb.base; g.fillText(lb.text, lb.x, lb.y); }
-      }
+      const placed = layoutMarks(dots, R, p.formatMarkSum);
+      for (const lb of placed) { g.fillStyle = lb.color; g.beginPath(); g.arc(lb.dotX, lb.dotY, R, 0, Math.PI * 2); g.fill(); }
       g.restore();
+      // r.066: the labels are drawn OUTSIDE the plot's clip and kept on the canvas — r.065 cut "−$14.69" to "69" at the left edge
+      g.font = `10px ${MONO}`;
+      for (const lb of placed) {
+        if (!lb.text) continue;
+        const w = g.measureText(lb.text).width;
+        const left = lb.align === "right" ? lb.x - w : lb.align === "center" ? lb.x - w / 2 : lb.x;
+        const shift = Math.max(2 - left, Math.min(0, W - 2 - (left + w)));
+        g.fillStyle = lb.color; g.textAlign = lb.align; g.textBaseline = lb.base; g.fillText(lb.text, lb.x + shift, lb.y);
+      }
       // the selected instant: the finger's (solid), the tapped day or now (dashed) — and its figures beside the line
       const sel = cross.current ?? pinned.current ?? p.readoutAt ?? null;
       if (sel !== null && p.readout) {

@@ -31,13 +31,14 @@ ok(near(A.exampleRatePerMin(), 8.252, 1e-3), "the example's $/min helper agrees"
 // ── 2 · withdrawals: the hold, never overdrawn, on the record ─────────────────────────────────────────────────
 const w1 = { id: "w1", kind: "withdrawal", amountCents: 1000, atMs: at + 3 * H };
 ok(A.validateWithdrawal([dep], { ...w1, id: "w2h", amountCents: 990, atMs: at + 2 * H }).ok === true, "his case: 2 hours after the deposit, a $9.90 withdrawal (120 min × $/min) is ACCEPTED — there is no hold");
-{ const r = A.validateWithdrawal([dep], { ...w1, id: "w2h1", amountCents: 991, atMs: at + 2 * H }); ok(r.ok === false && r.reason === "INSUFFICIENT" && r.atMs === at + 2 * H, "one cent more than has accrued at +2 h is REFUSED, naming that minute"); }
+{ const r = A.validateWithdrawal([dep], { ...w1, id: "w2h1", amountCents: 991, atMs: at + 2 * H }); ok(r.ok === true, "r.066 (addendum 142 'Up to all In Escrow'): one cent more than has accrued at +2 h is now ACCEPTED — a spend may run ahead of accrual"); }
+{ const r = A.validateWithdrawal([dep], { ...w1, id: "w2h2", amountCents: 360450, atMs: at + 2 * H }); ok(r.ok === false && r.reason === "INSUFFICIENT" && r.atMs === at + 2 * H, "r.066: one cent more than the whole deposit ($3,604.50 against $3,604.49) is REFUSED, naming that minute"); }
 ok(A.validateWithdrawal([dep], w1).ok === true, "a withdrawal of $10 at +3 h is legal ($14.85 withdrawable)");
-ok(A.validateWithdrawal([dep], { ...w1, amountCents: 1486 }).ok === false && A.validateWithdrawal([dep], { ...w1, amountCents: 1486 }).reason === "INSUFFICIENT", "a withdrawal above what is withdrawable is refused: INSUFFICIENT — the balance never goes negative");
+ok(A.validateWithdrawal([dep], { ...w1, amountCents: 1486 }).ok === true && A.validateWithdrawal([dep], { ...w1, amountCents: 360450 }).reason === "INSUFFICIENT", "r.066: above what has accrued is accepted (spent ahead); above every deposit recorded is refused: INSUFFICIENT");
 ok(A.validateWithdrawal([dep], { ...w1, amountCents: 0 }).reason === "AMOUNT" && A.validateWithdrawal([dep], { ...dep }).reason === "NOT_A_WITHDRAWAL", "a zero amount and a non-withdrawal are refused by name");
 let b = A.balanceAt([dep, w1], at + 3 * H);
 ok(b.releasedCents === 1485 && b.withdrawnCents === 1000 && b.availableCents === 485 && b.escrowedCents === 358964 && near(b.ratePerMinCents, 8.252, 1e-3), "the balance after the $10 withdrawal: released 1485 · withdrawn 1000 · available 485 · escrow 358,964 · rate live");
-ok(A.validateWithdrawal([dep, w1], { id: "w2", kind: "withdrawal", amountCents: 486, atMs: at + 3 * H + 1 }).ok === false, "a second withdrawal cannot take more than what the first left");
+ok(A.validateWithdrawal([dep, w1], { id: "w2", kind: "withdrawal", amountCents: 359449, atMs: at + 3 * H + 1 }).ok === true && A.validateWithdrawal([dep, w1], { id: "w2", kind: "withdrawal", amountCents: 359450, atMs: at + 3 * H + 1 }).ok === false, "r.066: a second withdrawal may take the rest of the deposit ($3,594.49 after the $10) and not one cent more");
 ok(A.validateWithdrawal([dep, w1], w1).ok === true, "validating a withdrawal already on the record excludes itself (idempotent check)");
 const dep2 = { id: "d2", kind: "deposit", amountCents: 100000, atMs: at + 24 * H, motDays: 14 };
 b = A.balanceAt([dep, dep2], at + 25 * H);
@@ -72,11 +73,13 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   const storage = { id: "w1", kind: "withdrawal", amountCents: 7100, atMs: at("2026.10.01_07.00..00"), motDays: 91 / 3, memo: "Storage Unit" };
   ok(A.validateWithdrawal([d1, d2], storage).ok === true, "his $71 Storage Unit, Monthly (30.3 repeating days) from 2026.10.01 07:00, is ACCEPTED against $3,924.49 coming in — it runs out at $0.0016/min");
   const once = A.validateWithdrawal([d1, d2], { ...storage, id: "w2", motDays: 0 });
-  ok(once.ok === false && once.reason === "INSUFFICIENT" && once.atMs === storage.atMs && once.availableCents === 5977, `the same $71 One time at 07:00 lands whole and is REFUSED, naming 07:00 (only $59.77 had come in) — got ${JSON.stringify(once)}`);
+  ok(once.ok === true, `r.066: the same $71 One time at 07:00 lands whole and is now ACCEPTED ahead of accrual (only $59.77 had come in) — got ${JSON.stringify(once)}`);
+  { const b = A.balanceAt([d1, d2, { ...storage, id: "w2", motDays: 0 }], storage.atMs); ok(b.availableCents === 5977 - 7100 && b.advanceCents === 7100 - 5977 && b.netRatePerMinCents < b.ratePerMinCents && near(b.netRatePerMinCents, b.ratePerMinCents * (1 - b.advanceCents / b.escrowedCents), 1e-9), "r.066: Available goes below zero by the advance and the accrual rate drops by advance ÷ escrow ('Spread over rest')"); }
+  { const pay = { id: "cc", kind: "withdrawal", amountCents: 245000, atMs: at("2026.10.01_07.00..00"), motDays: 0, memo: "Credit Card Payment" }; const v = A.validateWithdrawal([d1, d2], pay); const b = A.balanceAt([d1, d2, pay], pay.atMs); ok(v.ok === true && b.netRatePerMinCents * 60 / 100 > 1.9 && b.netRatePerMinCents * 60 / 100 < 2.2, `his $2,450 credit-card payment on 2026.10.01_07.00..00 is ACCEPTED (addendum 143) and the accrual falls from $5.45/hr to about $2.05/hr — got $${(b.netRatePerMinCents * 60 / 100).toFixed(4)}/hr`); }
   const early = A.validateWithdrawal([d1, d2], { ...storage, id: "w3", atMs: at("2026.09.30_20.30..00") });
   ok(early.ok === true, "no hold: a Monthly withdrawal starting 36 minutes after the deposit runs out at $/min and is accepted (r.028)");
   const big = A.validateWithdrawal([d1, d2], { ...storage, id: "w4", amountCents: 400000 });
-  ok(big.ok === false && big.reason === "INSUFFICIENT" && big.atMs > storage.atMs + 20 * 86400000 && big.atMs < storage.atMs + 28 * 86400000 && big.atMs % 60000 === 0, `$4,000 Monthly runs out faster than $3,924.49 comes in: refused at the whole minute it would pass (about 24 days in) — got ${big.atMs ? M.fmtStampCST(big.atMs) : big.reason}`);
+  ok(big.ok === false && big.reason === "INSUFFICIENT" && big.atMs > storage.atMs + 28 * 86400000 && big.atMs < storage.atMs + 30.4 * 86400000 && big.atMs % 60000 === 0, `r.066: $4,000 Monthly passes the $3,924.49 coming in only near the month's end: refused at the whole minute it would pass (about 29.8 days in) — got ${big.atMs ? M.fmtStampCST(big.atMs) : big.reason}`);
   ok(A.withdrawnAt(storage, storage.atMs) === 0 && A.withdrawnAt(storage, storage.atMs + (91 / 6) * 86400000) === 3550 && A.withdrawnAt(storage, storage.atMs + 40 * 86400000) === 7100 && A.withdrawnAt({ ...storage, motDays: 0 }, storage.atMs) === 7100, "withdrawnAt is linear over the MoT (half way = half), clamped to the amount; One time lands whole at its instant");
   let neg = 0; for (let t = d1.atMs; t <= d1.atMs + 31 * 86400000; t += 3600000) { const b = A.balanceAt([d1, d2, storage], t); if (b.withdrawnCents > b.withdrawableCents) neg++; }
   ok(neg === 0, "with the $71 Monthly on the record, what has gone out never passes what is withdrawable — every hour of the month");
@@ -92,8 +95,8 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   ok(A.validateWithdrawal([d1, d2], lump).ok === true, "an $1,800 One time on 2026.10.15 07:00 is accepted against his pay");
   const w = { id: "wA-4", kind: "withdrawal", amountCents: 20000, atMs: at("2026.10.01_07.00..00"), motDays: 91 / 3 };
   const v = A.validateWithdrawal([d1, d2, lump], w);
-  ok(v.ok === false && v.atMs === lump.atMs, `with the $1,800 planned, a new $200 Monthly from 10.01 runs short exactly when the lump lands (2026.10.15_07.00..00) — got ${v.atMs ? M.fmtStampCST(v.atMs) : v.reason}`);
-  const short = (txs, t) => { const b = A.balanceAt(txs, t); return b.withdrawnCents - b.withdrawableCents; };
+  ok(v.ok === true, `r.066: with the $1,800 planned, a new $200 Monthly from 10.01 is ACCEPTED — $2,000 in all stays under the $3,924.49 coming in — got ${v.atMs ? M.fmtStampCST(v.atMs) : "ok"}`);
+  const short = (txs, t) => { const b = A.balanceAt(txs, t); return b.withdrawnCents - b.depositedCents; };
   const big = { id: "w4-3", kind: "withdrawal", amountCents: 400000, atMs: at("2026.10.01_07.00..00"), motDays: 91 / 3 };
   const vb = A.validateWithdrawal([d1, d2], big);
   ok(vb.ok === false && short([d1, d2, big], vb.atMs) > 0 && short([d1, d2, big], vb.atMs - 60000) <= 0 && vb.atMs % 60000 === 0, `$4,000 Monthly: the named minute is short and the minute before is not (${M.fmtStampCST(vb.atMs)})`);
