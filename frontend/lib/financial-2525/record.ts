@@ -96,10 +96,10 @@ export const isVerified = (v: unknown): v is FinRecord => !!v && typeof v === "o
  * nothing either copy recorded is missing from it.
  *  · Which copy keeps its place is decided by the two copies alone (the one whose first differing entry was recorded first; a tie,
  *    the smaller hash), so every tab and device that unites the same two copies writes the same chain.
- *  · A transaction already held — word for word, or under the id an earlier union gave it — is not appended again, so uniting the
- *    same copies twice changes nothing. Two DIFFERENT transactions that share an id (two tabs that each made "c-<id>-2", or two
- *    entries typed for the same instant, amount and place in their records) are both kept: the appended one takes the next free id,
- *    and every correction of it follows the new id. Two corrections of one transaction that say the same thing are one correction.
+ *  · A transaction already held is not appended again — so uniting the same copies twice changes nothing. An entry is held when one
+ *    with its id (or the id an earlier union gave it) has the same kind, amount and instant; a correction when one of the same entry
+ *    says the same thing. Two DIFFERENT transactions that share an id (two tabs that each made "c-<id>-2"; two entries with one id
+ *    but different money or instants) are both kept: the appended one takes the next free id, and every correction of it follows.
  *  · A copy that fails its chain is never united (it is the caller's to keep whole).
  * Pure; returns `a` itself (same object) when `b` adds nothing. The result carries `a`'s owner.
  */
@@ -112,9 +112,12 @@ export function unionRecords(a: FinRecord, b: FinRecord | null): FinRecord {
   if (i < n) { const x = a.entries[i], y = b.entries[i]; if (y.at < x.at || (y.at === x.at && y.hash < x.hash)) { keep = b; add = a; } }
   else if (b.entries.length > a.entries.length) { keep = b; add = a; }
   let out: FinRecord = keep.owner === a.owner ? keep : { ...keep, owner: a.owner };
-  // a transaction's family: a correction belongs to the transaction it corrects; an entry to its id before any "~k" a union added
+  // a transaction's family: a correction belongs to the transaction it corrects; an entry to its id before any "~k" a union added.
+  // What makes two entries ONE transaction: a correction — everything it says; an entry — its kind, amount and instant under the same
+  // id (the id is built from the instant, the amount and the place in the record, so the same id with the same money at the same
+  // instant is the same transaction recorded twice — a re-entry or "Put back my entries" — even when a memo or a length differs)
   const family = (tx: FinTx) => (tx.corrects ? `c:${tx.corrects}` : `t:${tx.id.replace(/~\d+$/, "")}`);
-  const said = (tx: FinTx) => `${family(tx)}|${stableJson({ ...tx, id: "" })}`;
+  const said = (tx: FinTx) => `${family(tx)}|${tx.corrects ? stableJson({ ...tx, id: "" }) : `${tx.kind}|${tx.amountCents}|${tx.atMs}`}`;
   const held = new Map<string, string>(out.entries.map((e) => [said(e.tx), e.tx.id] as const));
   const taken = new Set(out.entries.map((e) => e.tx.id));
   const renamed = new Map<string, string>();   // an appended transaction's id → the id it is held under

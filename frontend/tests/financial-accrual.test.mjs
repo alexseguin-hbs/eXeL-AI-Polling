@@ -321,11 +321,14 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
     ok(mix.entries[mix.entries.length - 1].tx.amountCents === 1200 && R.replay(mix)[0].amountCents === 1500, "…the edit recorded last (1,500 at +90) wins even when an older edit (1,200 at +60) is appended after it");
     const gappy = R.append(R.append(x, { ...dep("x", 1000, t0), id: "c-x-1", corrects: "x" }, t0 + 1), { ...dep("x", 900, t0), id: "c-x-3", corrects: "x" }, t0 + 2);
     ok(R.nextCorrectionId(gappy, "x") === "c-x-4", "…and the next correction id skips any number a united copy already holds"); }
-  // (5) two different transactions that share an id are both kept; freshId never reuses an id
-  { const p = R.append(R.emptyRecord("i"), dep("dup", 100, t0, { memo: "coffee" }), t0), q = R.append(R.emptyRecord("i"), dep("dup", 100, t0, { memo: "lunch" }), t0 + 1);
+  // (5) one id: the same money at the same instant is ONE transaction (a re-entry, "Put back my entries"); different money or a different
+  // instant under one id is two, both kept; freshId never reuses an id
+  { const p = R.append(R.emptyRecord("i"), dep("dup", 100, t0, { memo: "State of Texas", motDays: 30.333 }), t0), q = R.append(R.emptyRecord("i"), dep("dup", 100, t0, { memo: "State of Texas", motDays: 30, recurrence: "paymot" }), t0 + 1);
     const u = R.unionRecords(p, q);
-    ok(R.replay(u).length === 2 && R.replay(u).map((t) => t.memo).sort().join() === "coffee,lunch" && R.unionRecords(u, q) === u && R.unionRecords(u, p) === u, "r.073: two different entries with one id (same instant, amount and place) are both kept — and stay two");
-    ok(R.freshId(u, "dup") === "dup~3" && R.freshId(u, "new") === "new", "r.073: a new entry's id is one no entry holds"); }
+    ok(R.replay(u).length === 1 && R.unionRecords(q, p).entries.length === 1, "r.073: the same deposit recorded on two devices (one id, the same amount and instant; a length that differs) is one entry — never doubled");
+    const q2 = R.append(R.emptyRecord("i"), dep("dup", 150, t0, { memo: "lunch" }), t0 + 1), u2 = R.unionRecords(p, q2);
+    ok(R.replay(u2).length === 2 && R.replay(u2).map((t) => t.amountCents).sort().join() === "100,150" && R.unionRecords(u2, q2) === u2 && R.unionRecords(u2, p) === u2, "r.073: two different entries under one id (different amounts) are both kept — and stay two");
+    ok(R.freshId(u2, "dup") === "dup~3" && R.freshId(u2, "new") === "new", "r.073: a new entry's id is one no entry holds"); }
   // (6) THE MONTHLY LENGTH EDIT (Enlil): a correction that keeps "paymot" is read at 30 days whatever its length says — the pencil now
   // takes a changed length off the preset; an untouched one keeps it
   { const m0 = R.append(R.emptyRecord("m"), dep("mo", 300000, t0, { motDays: 30, recurrence: "paymot" }), t0);
