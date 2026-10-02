@@ -1401,9 +1401,11 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
         <div className={LABEL}>{t("fin.realtime")}</div>
         <button type="button" data-fin-chart-expand aria-pressed={full} aria-label={full ? t("fin.chart_close") : t("fin.chart_expand")} title={full ? t("fin.chart_close") : t("fin.chart_expand")} onClick={() => setFull((f) => !f)} className="flex h-8 w-9 items-center justify-center rounded-md border border-border text-muted-foreground">{full ? <X size={16} strokeWidth={1.5} aria-hidden /> : <Maximize2 size={16} strokeWidth={1.5} aria-hidden />}</button>
       </div>   {/* r.041 (addendum 76 "call this: REAL-TIME FINANCIALS"); the elapsed time stays in the line below */}
-      <div data-fin-chart-controls className="mt-2 flex items-center justify-between gap-2">
+      {/* r.073 (addendum 165): the row wraps when the screen he sees is narrower than the controls (a zoomed phone at 320 px shows ~241 px) —
+          the Clock · MoT toggle and the gear drop to a second line, still on the right, never past the edge */}
+      <div data-fin-chart-controls className="mt-2 flex flex-wrap items-center justify-between gap-2">
         {selector}
-        <div className="flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2">
           {/* the Clock on the LEFT, the MoT on the RIGHT (addendum 42): two strokes, the pressed one ringed, never filled */}
           <ClockMotToggle abc={showAbc} onChange={onToggle} t={t} hook="chart" />
           {/* the date format lives on the chart (his answer "Gear on the chart"), remembered on this phone */}
