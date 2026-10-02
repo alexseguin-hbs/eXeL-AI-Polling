@@ -941,7 +941,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "correction",
    "why": "Found on the r.060 capture: with no negative figure in view, the value scale still printed −$0.02 … −$0.06 down into the band where the tilted dates sit (the band was carved out of the plot). The dates now have their own strip under the plot — the engine's time-axis strip, sized for the Settings angle, its own labels off — and the chart engine draws the tilted dates in it (a time-axis primitive), so the value scale ends at the plot and never runs into them. Nothing else moved.",
    "commit": "ac4ba7b",
-   "shipped": "PENDING"
+   "shipped": "ab00c1b"
   }
  ],
  "mot": {

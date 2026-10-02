@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Easter-Egg append-only traceability ledger — 5 entries, extracted at build time. */
+/** Easter-Egg append-only traceability ledger — 6 entries, extracted at build time. */
 export const EASTER_EGG_LEDGER: LedgerInput = {
   "section": "Easter-Egg",
   "route": "/sim",
@@ -44,6 +44,13 @@ export const EASTER_EGG_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "R-CORE version-history badge mounted on the EASTER-EGG / SIM console (Stage 2): the bottom-centre two-click badge opens the R-CORE · Version History compare panel over this surface's own append-only ledger, so the evolution of the SIM / easter-egg menu is traceable through the same compare tool as more features land (operator 2026-09-25).",
       "commit": ""
+    },
+    {
+      "rev": 6,
+      "date": "2026-10-02",
+      "kind": "decision",
+      "text": "Feedback-2525 — a tab of the easter-egg admin console (shown only for the admin unlock) that reads the feedback repository in Supabase: every Feedback button on every sub-site, newest first, filter by sub-site, mark resolved, download CSV (operator 2026-10-02: \"supabase is repo of feedback; accessible by Easter egg unlock in admin console: Feedback-2525\"). Reads only through key-guarded database functions (migration 039); the database keeps the key's hash, never the key.",
+      "commit": "b3c3466"
     }
   ]
 };

@@ -11,6 +11,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useLexicon } from "@/lib/lexicon-context";
 import { CubeDevSim } from "@/components/cube-dev-sim";
 import { SimAdminConsole } from "@/components/sim-admin-console";
+import { Feedback2525 } from "@/components/feedback-2525";   // addendum 132: the feedback repository, read here (admin unlock only)
 import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { EASTER_EGG_LEDGER } from "@/lib/2525-core/easter-egg-ledger.gen"; // Easter-egg / SIM append-only traceability ledger
@@ -41,7 +42,7 @@ function SimSplitScreen() {
   }, [gated, router]);
 
   const [origin, setOrigin] = useState<string>("");
-  const [view, setView] = useState<"dev" | "split" | "admin">("dev");
+  const [view, setView] = useState<"dev" | "split" | "admin" | "feedback">("dev");
   const isAdmin = cube10Access === "admin";
   useEffect(() => {
     if (typeof window !== "undefined") setOrigin(window.location.origin);
@@ -104,9 +105,16 @@ function SimSplitScreen() {
             Admin Console
           </Button>
         )}
+        {isAdmin && (
+          <Button variant={view === "feedback" ? "default" : "outline"} size="sm" onClick={() => setView("feedback")} data-sim-feedback-tab>
+            Feedback-2525
+          </Button>
+        )}
       </div>
 
       {view === "admin" && isAdmin && <SimAdminConsole />}
+
+      {view === "feedback" && isAdmin && <Feedback2525 />}
 
       {view === "dev" && <CubeDevSim />}
 

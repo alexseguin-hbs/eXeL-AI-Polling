@@ -19,6 +19,10 @@ on:
         description: "(no secret set) the database password (Project Settings → Database); masked in the log"
         required: false
         default: ""
+      expect:
+        description: "functions that must exist after the apply (comma list)"
+        required: false
+        default: "sign_envelope_create,sign_envelope_get,sign_envelope_sign"
 jobs:
   apply:
     runs-on: ubuntu-latest
@@ -49,7 +53,12 @@ jobs:
       - name: Prove the functions exist
         env:
           DB: ${{ secrets.SUPABASE_DB_URL }}
+          EXPECT: ${{ inputs.expect }}
         run: |
-          psql "$DB" -Atc "select proname from pg_proc where proname like 'sign_envelope_%' order by 1" | tee /tmp/fns.txt
-          grep -q sign_envelope_create /tmp/fns.txt && grep -q sign_envelope_get /tmp/fns.txt && grep -q sign_envelope_sign /tmp/fns.txt || { echo "::error::sign_envelope_* functions not found after apply"; exit 1; }
-          echo "036 applied: sign_envelope_create / get / sign / revoke present. Reload Sign Doc → 'Why can't I sign?' shows 'answers — migration 036 is applied'."
+          set -e
+          for fn in $(echo "$EXPECT" | tr ',' ' '); do
+            n=$(psql "$DB" -Atc "select count(*) from pg_proc where proname = '$fn'")
+            [ "$n" -ge 1 ] || { echo "::error::$fn not found after applying ${{ inputs.file }}"; exit 1; }
+            echo "present: $fn"
+          done
+          echo "${{ inputs.file }} applied; expected functions present."

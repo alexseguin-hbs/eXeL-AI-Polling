@@ -1,0 +1,32 @@
+# Feedback-2525 · add an admin key (operator 2026-10-02, addendum 132: "supabase is repo of feedback; accessible by Easter egg
+# unlock in admin console: Feedback-2525"). The run receives only the SHA-256 HASH of the key (64 hex), never the key: the hash is
+# useless without the key, so it is safe in the run's inputs and logs. The key itself is kept by the operator and typed once into
+# the Feedback-2525 tab of the admin console. Needs migration 039 applied and the SUPABASE_DB_URL secret.
+name: Feedback-2525 admin key
+on:
+  workflow_dispatch:
+    inputs:
+      key_hash:
+        description: "SHA-256 of the admin key, 64 lowercase hex"
+        required: true
+      label:
+        description: "who holds it"
+        required: false
+        default: "operator"
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Add the key hash
+        env:
+          DB: ${{ secrets.SUPABASE_DB_URL }}
+          H: ${{ inputs.key_hash }}
+          LBL: ${{ inputs.label }}
+        run: |
+          set -e
+          [ -n "$DB" ] || { echo "::error::SUPABASE_DB_URL secret is missing"; exit 1; }
+          echo "$H" | grep -Eq '^[0-9a-f]{64}$' || { echo "::error::key_hash must be 64 lowercase hex"; exit 1; }
+          echo "$LBL" | grep -Eq '^[A-Za-z0-9 ._-]{1,40}$' || { echo "::error::label: letters, digits, space . _ - only"; exit 1; }
+          psql "$DB" -v ON_ERROR_STOP=1 -c "insert into feedback_admin_keys(key_hash, label) values ('$H', '$LBL') on conflict (key_hash) do nothing;"
+          psql "$DB" -Atc "select count(*) from feedback_admin_keys" | sed 's/^/keys on file: /'
