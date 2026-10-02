@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.069",
-  "stamp": "v.000_r.069",
+  "revision": "0.070",
+  "stamp": "v.000_r.070",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "0b46963ec9f6547e7a4538bb81b360b04b8a942e2c10b24f433cd624e8da0d71",
@@ -1106,6 +1106,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "Addendum 154 (\"show balance and available, place limit in setting for credit card\", with his photo of the r.067 panel): the card's face shows Balance on the left and Available credit on the right (two columns, so neither label wraps); the Limit leaves the face and is set only in the card's gear, where it was already the first field. The level line (OK · % · amber · red), the chart, the warnings and every number are unchanged; no new word.",
    "commit": "7da1df0",
    "shipped": "1a70004"
+  },
+  {
+   "revision": "0.070",
+   "date": "2026-10-02",
+   "kind": "decision",
+   "why": "Addendum 155 (\"put key for Alerts · Show Red - - - Red Alert · Show Amber - - - Amber Alert · move as much unneeded text from Credit cards · No more feedback for me; implement, SSSES, AsM, and Spiral test\"). An Alerts key under each card's chart — the red dashes read Red Alert, the amber dashes Amber Alert, drawn with the chart's own dash and colours, red first as he wrote it. Text removed from Credit cards: the level line (OK · % · Amber at … · Red at …) — the key, the Balance's colour and the cockpit warning carry it; the chart's resting figure and boxed date (the Balance above already says it — a tap or a finger still shows the value and its date; the dashed now line stays); 'Available credit' → 'Available' (his word, inside the Credit cards heading). His alert words everywhere: the cockpit warning reads Red Alert / Amber Alert; a screen reader hears the alert after the Balance (colour is never the only carrier). AsM: a card twin of the 144-scenario simulation (twelve AsM × twelve card scenarios on the real cards.ts + accrual.ts, 144/144; three planted defects caught at 132, 120, 108) and both simulations now run in test:ci. One key added (fin.card_alerts), fin.card_level_ok retired, three English words changed — all staged English-only (no fill).",
+   "commit": "c787095",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2689,6 +2697,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "A card's face shows Balance and Available credit; its Limit is set in the card's settings (the gear), not shown on the face.",
    "status": "OPERATOR",
    "basis": "addendum 154 + his photo"
+  },
+  {
+   "id": "FD-85",
+   "decision": "Each card carries an Alerts key (red dashes Red Alert, amber dashes Amber Alert) and no other explanatory text: no level line, no resting chart figures, 'Available' for available credit. The alert words are his everywhere (key, cockpit warning, the spoken Balance state). The AsM card simulation (144 scenarios) and the transaction simulation (144) run in test:ci.",
+   "status": "OPERATOR",
+   "basis": "addendum 155 (\"No more feedback for me; implement\" — the remaining choices made by Claude Code and recorded here)"
   }
  ],
  "reviews": [

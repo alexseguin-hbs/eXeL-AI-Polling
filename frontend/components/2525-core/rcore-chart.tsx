@@ -261,7 +261,8 @@ export function RCoreChart({ lines, marks = [], height = 280, initialRange, form
       }
       g.restore();
       // the selected instant's date, boxed and upright on the strip
-      if (sel !== null && p.formatSelected) {
+      // r.070 (addendum 155): an empty label draws no box — the card chart's resting "now" carries no text
+      if (sel !== null && p.formatSelected && p.formatSelected(sel)) {
         const x = X(sel);
         if (x >= x0 && x <= x1) {
           g.save(); g.font = `600 10px ${MONO}`;

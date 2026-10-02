@@ -458,7 +458,7 @@ export function FinancialCommandUX1() {
               or past a level the person set is named here, in words as well as colour, at the top of the one view */}
           {owner && cards.map((c) => ({ c, b: cardBalanceAt(c, recTxs, at) })).filter(({ c, b }) => cardLevel(c, b) !== "ok").map(({ c, b }) => {
             const lv = cardLevel(c, b);
-            return <p key={c.id} data-fin-card-warning={lv} className={`mt-2 rounded-md border px-2 py-1 text-xs font-medium ${lv === "amber" ? "border-yellow-500/60 text-yellow-600 dark:text-yellow-400" : "border-red-500/60 text-red-500"}`}>⚠ {t(`fin.card_level_${lv}`)} · {c.name} {usd(b)} / {usd(c.limitCents)}</p>;
+            return <p key={c.id} data-fin-card-warning={lv} className={`mt-2 rounded-md border px-2 py-1 text-xs font-medium ${lv === "amber" ? "border-yellow-500/60 text-yellow-600 dark:text-yellow-400" : "border-red-500/60 text-red-500"}`}>⚠ {t(ALERT_WORD[lv])} · {c.name} {usd(b)} / {usd(c.limitCents)}</p>;
           })}
           {/* r.044 (addendum 93 "Available and Accrual Rate should be same line, same size text"): the two labels share one line,
               the two figures share the next, at the same size */}
@@ -927,6 +927,8 @@ function CloudMark({ saved, size = 18 }: { saved: boolean; size?: number }) {
   );
 }
 /** r.067 THE CARDS PANEL (module-level: the picker law — the 1 s clock never remounts its selects). */
+/** r.070 (addendum 155): the alert words — the key's "Red Alert" / "Amber Alert", the cockpit warning and the Balance's spoken state. */
+const ALERT_WORD: Record<CardLevel, string> = { ok: "", amber: "fin.card_level_amber", red: "fin.card_level_red", over: "fin.card_level_over" };
 function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs: FinTx[]; now: number; onSave: (c: Card[]) => void; onPay: (id: string) => void; t: (k: string) => string }) {
   const [pick, setPick] = useState(cards[0]?.id ?? "");
   const [gear, setGear] = useState(false);
@@ -949,7 +951,6 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
   const N = 400, grid = Array.from({ length: N }, (_, i) => from + ((to - from) * i) / (N - 1));
   const at = (g: number) => { let v = pts[0].v; for (const p of pts) { if (p.t <= g) v = p.v; else break; } return g < card.openingAtMs ? card.openingCents : v; };
   const flat = (cents: number) => grid.map((g) => ({ t: g, v: cents / 100 }));
-  const pct = (c: number) => `${Math.round((c / card.limitCents) * 100)}%`;
   const LV = { ok: "text-green-500", amber: "text-yellow-600 dark:text-yellow-400", red: "text-red-500", over: "text-red-500" }[lv];
   return (
     <div data-fin-cards className={SUB}>
@@ -966,10 +967,9 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
       {/* r.069 (addendum 154 "show balance and available, place limit in setting for credit card"): Balance on the left, Available
           credit on the right; the Limit lives in the gear's settings, its first field */}
       <div data-fin-card-figures className="mt-3 grid grid-cols-2 gap-2 text-xs">
-        <div><div className="text-muted-foreground">{t("fin.card_balance")}</div><div data-fin-card-balance className={`font-mono text-sm tabular-nums ${LV}`}>{usd(bal)}</div></div>
+        <div><div className="text-muted-foreground">{t("fin.card_balance")}</div><div data-fin-card-balance className={`font-mono text-sm tabular-nums ${LV}`}>{usd(bal)}{lv !== "ok" && <span className="sr-only"> · {t(ALERT_WORD[lv])}</span>}</div></div>
         <div className="text-right"><div className="text-muted-foreground">{t("fin.card_available")}</div><div data-fin-card-available className="font-mono text-sm tabular-nums text-foreground">{usd(card.limitCents - bal)}</div></div>
       </div>
-      <p data-fin-card-level={lv} className={`mt-2 text-xs ${LV}`}>{t(`fin.card_level_${lv}`)} · {pct(bal)} · {t("fin.card_amber_at")} {usd(card.amberCents)} ({pct(card.amberCents)}) · {t("fin.card_red_at")} {usd(card.redCents)} ({pct(card.redCents)})</p>
       {gear && (
         <div data-fin-cards-menu className="mt-2 grid grid-cols-2 gap-2 rounded-md border border-border p-2 text-xs">
           {([["limit", "fin.card_limit"], ["opening", "fin.card_opening"], ["amber", "fin.card_amber_at"], ["red", "fin.card_red_at"]] as const).map(([k, key]) => (
@@ -980,11 +980,19 @@ function CardsPanel({ cards, txs, now, onSave, onPay, t }: { cards: Card[]; txs:
         </div>
       )}
       <div className="mt-2">
-        <RCoreChart height={200} ariaLabel={t("fin.cards_title")} ticksFor={(a, b) => dayTicks(a, b, 6)} formatTick={(ms) => dateLabel(ms, "mmdd")} initialRange={{ from, to }} readoutAt={now} readout={(ms) => [{ color: lv === "ok" ? C.abundance : lv === "amber" ? C.temporal : C.evolution, text: usd(Math.round(at(ms) * 1) ) }]}
-          formatSelected={(ms) => fmtStampCST(ms).slice(0, 16).replace("_", " ")}
+        <RCoreChart height={200} ariaLabel={t("fin.cards_title")} ticksFor={(a, b) => dayTicks(a, b, 6)} formatTick={(ms) => dateLabel(ms, "mmdd")} initialRange={{ from, to }} readoutAt={now} readout={(ms) => (ms === now ? [] : [{ color: lv === "ok" ? C.abundance : lv === "amber" ? C.temporal : C.evolution, text: usd(Math.round(at(ms))) }])}
+          formatSelected={(ms) => (ms === now ? "" : fmtStampCST(ms).slice(0, 16).replace("_", " "))}
           lines={[{ id: "red", color: C.evolution, points: flat(card.redCents), step: true, dashed: true, width: 1 }, { id: "amber", color: C.temporal, points: flat(card.amberCents), step: true, dashed: true, width: 1 }, { id: "balance", color: C.abundance, points: grid.map((g) => ({ t: g, v: at(g) / 100 })), step: true, width: 3 }]}
           marks={cardMoves(card, txs).map((m) => ({ t: m.t, color: m.deltaCents > 0 ? C.evolution : C.abundance, dot: false }))}
           formatValue={(v) => `${CUR_SYM}${Math.round(v).toLocaleString("en-US")}`} />
+      </div>
+      {/* r.070 (addendum 155 "put key for Alerts · Show Red - - - Red Alert · Show Amber - - - Amber Alert"): the key to the two dashed
+          lines, drawn with the chart's own dash and colours */}
+      <div data-fin-card-alerts className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <span className="font-medium">{t("fin.card_alerts")}</span>
+        {([["red", C.evolution, "fin.card_level_red"], ["amber", C.temporal, "fin.card_level_amber"]] as const).map(([k, color, key]) => (
+          <span key={k} data-fin-card-alert={k} className="inline-flex items-center gap-1.5"><svg width="22" height="6" aria-hidden="true"><line x1="0" y1="3" x2="22" y2="3" stroke={color} strokeWidth="1.5" strokeDasharray="5 4" /></svg>{t(key)}</span>
+        ))}
       </div>
     </div>
   );
