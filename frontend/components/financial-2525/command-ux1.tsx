@@ -33,6 +33,7 @@ import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { versionStamp } from "@/lib/2525-core/version-stamp";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
+import { RCoreChart } from "@/components/2525-core/rcore-chart";   // r.056 (addenda 124 · 127): the shared R-CORE chart engine — the $/min view
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { FINANCIAL_LEDGER } from "@/lib/2525-core/financial-ledger.gen";
 import { FINANCIAL_DOMAIN as SRC } from "@/lib/financial-2525/domain.gen";
@@ -47,6 +48,7 @@ import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } 
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
+import { rateSeries, rateAtSeries, cycleStart, netBetween, lumpWithdrawals, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, cloudGet, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
@@ -748,6 +750,55 @@ function yAxisTicks(min: number, max: number): number[] {
 const money2 = (c: number): string => (Math.sign(c) === -1 ? "−" : "") + CUR_SYM + num2(c);
 const yLabel = (c: number): string => (Math.sign(c) === -1 ? "−" : "") + CUR_SYM + Math.round(Math.abs(c) / 100).toLocaleString("en-US");
 /** Every transaction re-spread over the span (1x = the instant). Pure. */
+/** r.056: the chart's unit — $/min first (addendum 122 "$/min is main view"), then /sec /hr /day, then $ (the balance view). */
+type ChartUnit = RateUnitId | "usd";
+const CHART_UNITS: readonly ChartUnit[] = ["min", "sec", "hr", "day", "usd"];
+const UNIT_KEY = "fin-chart-unit";
+/** r.056: a rate in the picked currency — four decimals under a dollar a minute (his $0.0898/min), two above. */
+const rateMoney = (centsPerUnit: number): string => { const d = Math.abs(centsPerUnit) / 100; return (Math.sign(centsPerUnit) === -1 && Math.round(d * 10000) !== 0 ? "−" : "") + CUR_SYM + (d < 10 ? d.toFixed(4) : d.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })); };
+/** r.056 THE $/MIN VIEW (addenda 117 · 122 · 123 · 124 · 127): income, spending and net per minute on the shared R-CORE chart, the
+ *  window the span's (starting at the current pay cycle so 30D reads the month to its end), the numbers in the upper right following
+ *  the finger (Security-2525 style), one-time withdrawals as marks. Module-level (the picker law: the 1 s clock never remounts it). */
+function RateView({ txs, now, span, liveHours, unit, showAbc, dateFmt, planet, t }: { txs: FinTx[]; now: number; span: ChartSpan; liveHours: number; unit: RateUnitId; showAbc: boolean; dateFmt: DateFmt; planet: PlanetLtuRow; t: (k: string) => string }) {
+  const dayMs = daySecOf(planet) * 1000;
+  const spanMs = span === "1x" ? liveHours * 3600 * 1000 : spanDays(span, now) * dayMs;
+  // the window: from the start of the current pay cycle (the latest deposit start at or before now, inside one span), else a third back
+  const minuteNow = Math.floor(now / 60_000) * 60_000;
+  const cycle = cycleStart(txs, minuteNow);
+  const from = span === "1x" ? minuteNow - spanMs : Number.isFinite(cycle) && cycle > minuteNow - spanMs ? cycle : minuteNow - spanMs / 3;
+  const to = span === "1x" ? minuteNow : from + spanMs;
+  const pts = useMemo(() => rateSeries(txs, from, to), [txs, from, to]);
+  const [at, setAt] = useState(null as number | null);
+  const tAt = at ?? Math.min(Math.max(minuteNow, from), to);
+  const p = rateAtSeries(pts, tAt) ?? { t: tAt, income: 0, spending: 0, net: 0 };
+  const netEndCents = netBetween(pts, from, to);
+  const nowInside = !(minuteNow < from) && !(minuteNow > to);
+  const unitLabel = CHART_RATE_UNITS.find((u) => u.id === unit)?.label ?? "/min";
+  const stamp = (ms: number) => (showAbc ? fmtMot(positionInYear(ms, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(ms)} CST`);
+  const tick = (ms: number, intraday: boolean) => (showAbc ? fmtMot(positionInYear(ms, planet.yearAnchor, planet.yearDays).abc).split(".")[0] : intraday ? fmtStampCST(ms).slice(11, 16).replace(".", ":") : dateLabel(ms, "mmdd"));   // short marks on the axis; the full stamp is in the readout
+  // the engine spaces points evenly, so the steps are sampled on an even clock (240 points across the window)
+  const grid = useMemo(() => Array.from({ length: 241 }, (_, i) => from + ((to - from) * i) / 240), [from, to]);
+  const line = (key: "income" | "spending" | "net") => grid.map((g) => ({ t: g, v: rateIn(rateAtSeries(pts, g)?.[key] ?? 0, unit) / 100 }));
+  return (
+    <div data-fin-rate-view className="relative mt-2">
+      {/* the numbers in the UPPER RIGHT (addendum 123 "if $ or currency selected i need numbers upper right (more futuristic). See security-2525 charting") */}
+      <div data-fin-rate-hud aria-live="polite" className="pointer-events-none absolute right-1 top-1 z-10 rounded-md border border-border bg-background/80 px-2 py-1 text-right font-mono text-[11px] leading-tight tabular-nums backdrop-blur-sm">
+        <div style={{ color: C.abundance }}>{t("fin.income")} {rateMoney(rateIn(p.income, unit))}{unitLabel}</div>
+        <div style={{ color: C.evolution }}>{t("fin.spending")} {rateMoney(rateIn(p.spending, unit))}{unitLabel}</div>
+        <div style={{ color: C.temporal }} className="font-semibold">{t("fin.net")} {rateMoney(rateIn(p.net, unit))}{unitLabel}</div>
+        {span !== "1x" && <div data-fin-rate-net-by className={netEndCents < 0 ? "text-red-500" : "text-green-500"}>{t("fin.net_by")} {showAbc ? fmtMot(positionInYear(to, planet.yearAnchor, planet.yearDays).abc).split(".")[0] : fmtStampCST(to).slice(0, 10)} {netEndCents < 0 ? "−" : "+"}{CUR_SYM}{num2(netEndCents)}</div>}
+        <div className="text-muted-foreground">{stamp(tAt)}</div>
+      </div>
+      <RCoreChart height={220} ariaLabel={t("fin.chart_tap")} now={nowInside ? minuteNow : undefined}
+        lines={[{ id: "income", color: C.abundance, points: line("income"), step: true }, { id: "spending", color: C.evolution, points: line("spending"), step: true }, { id: "net", color: C.temporal, points: line("net"), step: true, width: 3 }]}
+        marks={lumpWithdrawals(txs, from, to).map((w) => ({ t: w.atMs, color: C.evolution, text: `−${CUR_SYM}${num2(w.amountCents)}` }))}
+        formatValue={(v) => rateMoney(v * 100)} formatTime={stamp} formatTick={tick} onCrosshair={setAt} />
+      <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+        <span style={{ color: C.abundance }}>— {t("fin.income")}</span><span style={{ color: C.evolution }}>— {t("fin.spending")}</span><span style={{ color: C.temporal }}>— {t("fin.net")}</span>
+      </p>
+    </div>
+  );
+}
 function respread(txs: readonly FinTx[], sp: ChartSpan, nowMs: number): FinTx[] {
   const d = spanDays(sp, nowMs);
   return txs.map((x) => ({ ...x, motDays: d }));
@@ -760,6 +811,12 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   const dayMs = daySecOf(planet) * 1000;
   // r.047: the span, remembered on this phone; every transaction re-spread over it from its entry time
   const [span, setSpan] = useState<ChartSpan>("30D");
+  // r.056 (addenda 122 · 127 "remember I said $/min is main view" · "where is $/min chart?!?"): the chart's unit — $/min by default
+  // (/sec /min /hr /day) or $ (the balance view of r.025–r.053, unchanged); remembered on this phone
+  const [unit, setUnit] = useState<ChartUnit>("min");
+  useEffect(() => { try { const v = localStorage.getItem(UNIT_KEY) as ChartUnit | null; if (v && CHART_UNITS.includes(v)) setUnit(v); } catch { /* storage blocked: $/min stands */ } }, []);
+  const pickUnit = (v: ChartUnit) => { setUnit(v); setProbe(null); try { localStorage.setItem(UNIT_KEY, v); } catch { /* the pick still applies this visit */ } };
+  const rate = unit !== "usd";
   const [probe, setProbe] = useState(null as number | null);
   useEffect(() => { try { const v = localStorage.getItem(SPAN_KEY) as ChartSpan | null; if (v && CHART_SPANS.includes(v)) setSpan(v); } catch { /* storage blocked: the default stands */ } }, []);
   const pickSpan = (v: ChartSpan) => { setSpan(v); setProbe(null); try { localStorage.setItem(SPAN_KEY, v); } catch { /* the pick still applies this visit */ } };
@@ -842,6 +899,11 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
       )}
       {/* r.047 (addendum 95 "remove this from charting · instead add toggle similar to 2D/3D"): the span, a segmented row — the
           line above the chart (stamp · amount · length · elapsed) is gone */}
+      <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">{t("fin.unit")}
+        <select data-fin-chart-unit value={unit} onChange={(e) => pickUnit(e.target.value as ChartUnit)} className="h-8 rounded-md border border-border bg-background px-2 font-mono text-xs text-foreground">
+          {CHART_UNITS.map((u) => <option key={u} value={u}>{u === "usd" ? CUR_SYM : `${CUR_SYM}${CHART_RATE_UNITS.find((r) => r.id === u)?.label ?? ""}`}</option>)}
+        </select>
+      </label>
       <div role="group" aria-label={t("fin.chart_span")} data-fin-chart-span className="mt-2 flex w-full overflow-hidden rounded-md border border-border font-mono text-xs">
         {CHART_SPANS.map((sp) => (
           <button key={sp} type="button" data-fin-span={sp} aria-pressed={span === sp} onClick={() => pickSpan(sp)} className={`min-h-[32px] flex-1 border-l border-border first:border-l-0 ${span === sp ? "ring-1 ring-inset ring-primary text-primary" : "text-muted-foreground"}`}>{spanLabel(sp, now)}</button>
@@ -854,6 +916,8 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
           <button type="button" data-fin-zoom="wide" aria-label={t("fin.zoom_wide")} title={t("fin.zoom_wide")} disabled={zoom === LIVE_WINDOWS.length - 1} onClick={() => widen(1)} className="flex h-8 w-9 items-center justify-center rounded-md border border-border disabled:opacity-40">−</button>
         </div>
       )}
+      {rate && <RateView txs={txs.length ? txs : [tx]} now={now} span={span} liveHours={LIVE_WINDOWS[zoom].h} unit={unit as RateUnitId} showAbc={showAbc} dateFmt={dateFmt} planet={planet} t={t} />}
+      {!rate && <>
       <p data-fin-chart-probe className="mt-2 min-h-[16px] font-mono text-xs text-foreground">{probe !== null && (showAbc ? fmtMot(positionInYear(probe, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(probe)} CST`)}</p>
       {/* r.053 (addendum 110 "Like a stock chart I should be able to click and see values at that day/time"): the values at the tapped point */}
       {probeBal && <p data-fin-chart-values className="flex flex-wrap gap-x-3 font-mono text-xs tabular-nums"><span style={{ color: C.abundance }}>{t("fin.released")} {money2(probeBal.releasedCents)}</span><span style={{ color: C.intelligence }}>{t("fin.escrowed")} {money2(probeBal.escrowedCents)}</span><span className="text-foreground">{t("fin.available")} {money2(probeBal.availableCents)}</span>{probeNet !== null && <span className={probeNet < 0 ? "text-red-500" : "text-green-500"}>{t("fin.net")} {money2(probeNet)}</span>}</p>}
@@ -891,8 +955,8 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
       {showAbc && <div data-fin-axis className="grid grid-cols-5 font-mono text-[10px] leading-tight text-muted-foreground">{axis.map((a, i) => <span key={i} className={`whitespace-pre-line ${i === 0 ? "text-left" : i === 4 ? "text-right" : "text-center"}`}>{a.replace(".", "\n.").replace("..", "\n..")}</span>)}</div>}
       <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
         <span style={{ color: C.abundance }}>— {t("fin.released")}</span><span style={{ color: C.intelligence }}>— {t("fin.escrowed")}</span><span>| {t("fin.now")}</span><span style={{ color: C.evolution }}>| {t("fin.withdrawal")}</span>
-        {!live && netPerSec !== 0 && <span data-fin-net-end className={`font-semibold ${netEnd < 0 ? "text-red-500" : "text-green-500"}`}>- - {netEnd < 0 ? t("fin.net_down") : t("fin.net_up")} {netEnd < 0 ? "−" : "+"}{num2(netEnd)} · {fmtStampCST(to).slice(0, 10)}</span>}
       </p>
+      </>}
     </div>
   );
 }

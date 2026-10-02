@@ -3024,6 +3024,8 @@ const financial2525: TranslationEntry[] = [
   { key: "fin.chart_span", englishDefault: "Span", context: "Financial-2525: accessible name of the chart's span toggle (1x instant · 1W · 1M standard month · 30D · 91D · the year); every transaction is drawn spread over the picked span as $/min", cubeId: 0 },
   { key: "fin.currency", englishDefault: "Currency", context: "Financial-2525: label of the currency picker in the Accrual Units settings — a label only, the amounts are not converted", cubeId: 0 },
   { key: "fin.amount_col", englishDefault: "Amount", context: "Financial-2525: Transaction Record column header before the currency mark (\"Amount, $\")", cubeId: 0 },
+  { key: "fin.spending", englishDefault: "Spending", context: "Financial-2525: the $/min chart line and readout for money going out per minute (withdrawals running out over their length)", cubeId: 0 },
+  { key: "fin.net_by", englishDefault: "Net by", context: "Financial-2525: $/min chart readout, followed by a date and an amount: the net money accumulated by the end of the chart span", cubeId: 0 },
   { key: "fin.net_up", englishDefault: "Net • Upside / Savings", context: "Financial-2525: the budget total line label when income minus expenses is zero or positive (shown in green)", cubeId: 0 },
   { key: "fin.net_down", englishDefault: "Net • Downside / Risk", context: "Financial-2525: the budget total line label when income minus expenses is negative (shown in red)", cubeId: 0 },
   { key: "fin.per_33", englishDefault: "per 33 days", context: "Financial-2525: budget column header — the personal month is 33 days", cubeId: 0 },

@@ -4,8 +4,8 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.055",
-  "stamp": "v.000_r.055",
+  "revision": "0.056",
+  "stamp": "v.000_r.056",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "08b4449cfa80f66849110e476a4d32a6a8615331022adc89c214a9c50de765a1",
@@ -842,6 +842,14 @@
    "why": "His record and budget live in his account, not only on one phone. Addendum 112: \"SAVE AN PUSH TO SUPABASE. Identify all saving functions and make sure push is made automatically as well as every 12 hours\"; his answer: \"Account-ID key (fastest)\". The saving functions: the record (each transaction · Put back my entries) and the budget (every edit · Reset). Signed in, both are read back from the account once and merged without ever dropping an entry (a diverged copy is kept whole under its own name); every change after that is pushed (a short pause so a burst of typing is one write), and again every 12 hours while the page is open and on return when 12 hours have passed. Stored through the existing account table's guarded functions (no public table access), keyed by a SHA-256 of his sign-in id — the account-ID key he chose: anyone who learned his sign-in id could read it (recorded, his decision). A small cloud beside Transaction Record turns green when the account copy is written (its time on hold); crossed until then. Under the budget, his line (addendum 119, \"Short\"): \"Plan the month. Watch spending by the minute. Keep your savings on track.\" No budget figure changes.",
    "commit": "e040250",
    "shipped": "1029dbe"
+  },
+  {
+   "revision": "0.056",
+   "date": "2026-10-02",
+   "kind": "decision",
+   "why": "The $/min chart (addendum 127 \"where is $/min chart?!?\"; addendum 122 \"$/min is main view\"; addendum 123 numbers upper right like Security-2525; addendum 124 \"RCORE RESUSE MAXIMIZE OF FINANCIAL CHART … way better charting engine\"; his picks: TradingView Lightweight Charts, income vs spending). The chart now opens on $/min: income, spending and net per minute from his own record (each deposit and withdrawal running over its own length, monthly ones repeating every 30 days across a longer span), drawn on the shared R-CORE chart engine (components/2525-core/rcore-chart.tsx, reusable by every 2525 app) with the numbers in the upper right following the finger, including the net by the span's end. A unit dropdown offers $/min · /sec · /hr · /day and $; $ keeps the balance view exactly as before. And (addendum 127 \"remove this line\") the legend line \"- - Net • Upside / Savings +… · date\" under the chart is gone. No budget figure changes.",
+   "commit": "e6a1b45",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2371,6 +2379,12 @@
    "decision": "The record and budget are pushed to his account on every change and every 12 hours and read back on sign-in, merged without dropping an entry; keyed by a hash of his sign-in id (his pick: account-ID key, weaker than verified sign-in — recorded).",
    "status": "OPERATOR",
    "basis": "addendum 112 + his answer; addendum 119 (purpose line)"
+  },
+  {
+   "id": "FD-76",
+   "decision": "The chart's main view is $/min — income, spending and net per minute from the record — on the shared R-CORE chart engine, numbers upper right; $ keeps the balance view; the Net projection legend line is removed.",
+   "status": "OPERATOR",
+   "basis": "addenda 122 · 123 · 124 · 127 + his answers (Lightweight Charts · income vs spending)"
   }
  ],
  "reviews": [
