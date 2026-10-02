@@ -93,35 +93,113 @@ export function depositView(tx: FinTx, t: number): DepositView {
 
 export interface Balance {
   depositedCents: number;    // every deposit at or before t
-  escrowedCents: number;     // not yet released
-  releasedCents: number;     // released so far (visible)
-  withdrawableCents: number; // released so far (no hold, r.028)
+  escrowedCents: number;     // still in escrow — it DROPS at once by whatever is spent ahead (r.071, addendum 159)
+  releasedCents: number;     // out of escrow so far: by time at $/min, and early when a spend runs ahead (r.071) — Available = Released − Spent
+  withdrawableCents: number; // = released (no hold, r.028)
   withdrawnCents: number;    // what every withdrawal has taken out by t (at $/min over its MoT from r.023)
-  availableCents: number;    // withdrawable − withdrawn; below zero when spent AHEAD of accrual (r.066, addendum 142 "Up to all In Escrow")
-  ratePerMinCents: number;   // the live $/min: the sum over deposits still releasing
-  advanceCents: number;      // spent ahead of accrual: max(0, withdrawn − withdrawable) (r.066)
-  netRatePerMinCents: number; // the rate left after the advance is spread over the rest of the releases: rate × (1 − advance ÷ escrow) (r.066, "Spread over rest")
+  availableCents: number;    // released − withdrawn; never below zero from r.071 (a spend ahead draws on escrow instead)
+  ratePerMinCents: number;   // the schedule's $/min: the sum over deposits still releasing (amount ÷ MoT)
+  advanceCents: number;      // released EARLY by spending ahead, so far: released − what time alone would have released (r.071)
+  netRatePerMinCents: number; // the $/min escrow is releasing NOW — what is left of each deposit over the rest of its length (r.066 "Spread over rest", exact from r.071)
   deposits: DepositView[];
 }
+
+/** r.071 (addendum 159 "escrow should drop, while remaining funds get released … or find way to manage", with his r.066 answers "Up to all
+ *  In Escrow" + "Spread over rest"): SPENDING AHEAD RELEASES EARLY FROM ESCROW. Whatever a withdrawal takes beyond what is available is drawn
+ *  at once from the escrow of the deposits still releasing (in proportion to what each still holds), so In Escrow drops by it and Available
+ *  never goes below zero; every deposit then releases what it has left over the rest of its own length — the lower $/min the card shows. A
+ *  spread withdrawal running while nothing is available keeps drawing at its own rate. EXACT, not stepped: the record's events in time order,
+ *  closed form between them — with nothing available and a spread outflow w above the release ρ, the total escrow falls at exactly w and
+ *  every deposit keeps its share (its own linear run × the common factor (E₀ − wΔ) ÷ (E₀ − ρΔ)). Pure; cents (float) in, cents out. */
+export function escrowAt(txs: readonly FinTx[], t: number): { escrowCents: number; availableCents: number; releasePerMinCents: number } {
+  type Ev = { at: number; order: number; tx: FinTx; edge: "start" | "end" };
+  const evs: Ev[] = [];
+  for (const x of txs) {
+    if (x.atMs > t || !(x.amountCents > 0)) continue;
+    const len = motMs(x);
+    // at one instant: money in before money out; a run's end before anything starts (its last cent is released or spent first)
+    evs.push({ at: x.atMs, order: x.kind === "deposit" ? 1 : 2, tx: x, edge: "start" });
+    if (len > 0 && x.atMs + len <= t) evs.push({ at: x.atMs + len, order: 0, tx: x, edge: "end" });
+  }
+  evs.sort((a, b) => a.at - b.at || a.order - b.order);
+  const deps = new Map<string, { e: number; f: number }>();   // escrow left, and the instant its run ends
+  const outs = new Map<string, number>();                     // spread withdrawals running: cents per ms
+  let a = 0, cur = evs.length ? evs[0].at : t;
+  const releasing = () => Array.from(deps.values()).filter((d) => d.e > 0 && d.f > cur);
+  const advance = (to: number) => {
+    while (cur < to) {
+      const live = releasing();
+      const rho = live.reduce((s, d) => s + d.e / (d.f - cur), 0);
+      const w = Array.from(outs.values()).reduce((s, v) => s + v, 0);
+      if (a > 1e-9 || w <= rho) {
+        let end = to;
+        if (w > rho) { const tz = cur + a / (w - rho); if (tz < to) end = tz; }   // what is available runs out before `to`
+        for (const d of live) d.e *= (d.f - end) / (d.f - cur);
+        a += (rho - w) * (end - cur);
+        if (end < to) a = 0;
+        cur = end;
+      } else {
+        // nothing available and the outflow above the release: escrow falls at w; each deposit keeps its share of what is left
+        const dt = to - cur, E0 = live.reduce((s, d) => s + d.e, 0), G = E0 - rho * dt, E1 = E0 - w * dt;
+        const k = G > 0 && E1 > 0 ? E1 / G : 0;
+        for (const d of live) d.e *= ((d.f - to) / (d.f - cur)) * k;
+        if (E1 < 0) a += E1;   // past every cent in escrow (a record the gate would have refused): the shortfall shows, never hides
+        cur = to;
+      }
+    }
+  };
+  for (const ev of evs) {
+    advance(ev.at);
+    const x = ev.tx, len = motMs(x);
+    if (ev.edge === "end") {
+      if (x.kind === "deposit") { const d = deps.get(x.id); if (d) { a += d.e; deps.delete(x.id); } }   // a float crumb at the run's end is released
+      else outs.delete(x.id);
+      continue;
+    }
+    if (x.kind === "deposit") {
+      if (len > 0) deps.set(x.id, { e: x.amountCents, f: x.atMs + len }); else a += x.amountCents;
+    } else if (len > 0) {
+      outs.set(x.id, x.amountCents / len);
+    } else {
+      a -= x.amountCents;
+      if (a < 0) {
+        // a one-time spend beyond what is available: the rest comes out of escrow NOW, from every deposit still releasing, by its share
+        const live = releasing(), E = live.reduce((s, d) => s + d.e, 0), need = -a;
+        if (E >= need) { for (const d of live) d.e *= 1 - need / E; a = 0; }
+        else { for (const d of live) d.e = 0; a = E - need; }
+      }
+    }
+  }
+  advance(t);
+  const live = releasing();
+  return {
+    escrowCents: live.reduce((s, d) => s + d.e, 0),
+    availableCents: a,
+    releasePerMinCents: live.reduce((s, d) => s + d.e / (d.f - t), 0) * 60_000,
+  };
+}
+
 /** The whole record at `t`. */
 export function balanceAt(txs: readonly FinTx[], t: number): Balance {
   const deposits = txs.filter((x) => x.kind === "deposit" && x.atMs <= t).map((x) => depositView(x, t));
   const withdrawnCents = txs.filter((x) => x.kind === "withdrawal" && x.atMs <= t).reduce((s, x) => s + withdrawnAt(x, t), 0);
   const depositedCents = deposits.reduce((s, d) => s + d.tx.amountCents, 0);
-  const releasedCents = deposits.reduce((s, d) => s + d.releasedCents, 0);
-  const withdrawableCents = deposits.reduce((s, d) => s + d.withdrawableCents, 0);
+  const byTime = deposits.reduce((s, d) => s + d.releasedCents, 0);
   const rate = deposits.filter((d) => d.state === "releasing").reduce((s, d) => s + d.ratePerMinCents, 0);
-  const advance = Math.max(0, withdrawnCents - withdrawableCents), escrowed = depositedCents - releasedCents;
+  // r.071: escrow and available from the exact spend-ahead run; Released is what has left escrow, so Available = Released − Spent exactly
+  const run = escrowAt(txs, t);
+  const availableCents = Math.round(run.availableCents) === 0 ? 0 : Math.round(run.availableCents);   // never a "−$0.00"
+  const releasedCents = availableCents + withdrawnCents;
   return {
     depositedCents,
-    escrowedCents: depositedCents - releasedCents,
+    escrowedCents: Math.max(0, Math.round(run.escrowCents)),
     releasedCents,
-    withdrawableCents,
+    withdrawableCents: releasedCents,
     withdrawnCents,
-    availableCents: withdrawableCents - withdrawnCents,
+    availableCents,
     ratePerMinCents: rate,
-    advanceCents: advance,
-    netRatePerMinCents: escrowed > 0 ? rate * Math.max(0, 1 - advance / escrowed) : rate,
+    advanceCents: Math.max(0, releasedCents - byTime),
+    netRatePerMinCents: run.releasePerMinCents,
     deposits,
   };
 }

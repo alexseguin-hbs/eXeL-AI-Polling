@@ -149,7 +149,7 @@ ok(/<th className="py-1 pr-2">\{t\("fin\.category"\)\}<\/th>/.test(ux), "the tab
   const order = ["escrowed", "released", "spent"];
   const cellOk = (c) => new RegExp('data-fin-cell="' + c + '"(?: className="text-(?:left|center|right)")?><dt[^>]*>\\{t\\("fin\\.' + c + '"\\)\\}</dt><dd[^>]*>\\{usd\\(bal\\.' + (c === "spent" ? "withdrawn" : c) + 'Cents\\)\\}</dd>').test(ux);
   const pos = order.map((c) => ux.indexOf('data-fin-cell="' + c + '"'));
-  ok(/<dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-3 gap-x-3">/.test(ux) && order.every(cellOk) && pos.every((x, i) => x > 0 && (i === 0 || x > pos[i - 1])) && !/data-fin-cell="available"/.test(ux) && !/data-fin-cell="withdrawable"/.test(ux), "r.029 (addendum 60): three boxes — In Escrow · Released · Spent — across the card; Available is the figure above, never repeated");
+  ok(/<dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-3 gap-x-3"(?: style=\{\{ containerType: "inline-size" \}\})?>/.test(ux) && order.every(cellOk) && pos.every((x, i) => x > 0 && (i === 0 || x > pos[i - 1])) && !/data-fin-cell="available"/.test(ux) && !/data-fin-cell="withdrawable"/.test(ux), "r.029 (addendum 60): three boxes — In Escrow · Released · Spent — across the card; Available is the figure above, never repeated");
   ok(!/\{t\("fin\.escrowed"\)\}:<\/span>/.test(ux), "the run-on line of four figures is gone");
 }
 
@@ -215,7 +215,7 @@ ok(/data-fin-cell="escrowed" className="text-left"/.test(ux) && /data-fin-cell="
   const mot = ux.slice(ux.indexOf("const rows: [string, string][] = yearAbc ? ["), ux.indexOf("] : [", ux.indexOf("const rows: [string, string][] = yearAbc ? [")));
   ok(mot.length > 50 && !/fmtStampCST|fmtDays|CST|\/ 91|year\.day\b/.test(mot) && /abcPart\(year\.abc, 900\)/.test(ux) && /abcPart\(year\.abc, 300\)/.test(ux) && /\/ 900`/.test(mot) && /\/ 300`/.test(mot) && /\/ 3600`/.test(mot), "r.038 (addendum 72 + 'Equal parts of 3600'): the MoT rows are A.B..C only — no date, no day count, no 91 / 30.3̅ — quarter of 900 A, month of 300 A, now out of 3600");
   ok(!/data-fin-chart-line/.test(ux) && /data-fin-chart-span/.test(ux), "r.047 (addendum 95 'remove this from charting'): the chart's top line is gone in both modes; the span toggle stands in its place");
-  ok(/<li data-fin-elapsed-line className="whitespace-nowrap">\{showAbc \? `\$\{fmtMot\(spanABC\(/.test(ux) && /: `\$\{hhmmss\(Math\.max\(0, at - focus!\.atMs\)\)\} \$\{t\("fin\.elapsed"\)\}`\} · \{usd4\(bal\.ratePerMinCents\)\} \{t\("fin\.rate\.min"\)\} · \{usd4\(bal\.ratePerMinCents \/ planet\.secPerMin\)\} \{t\("fin\.rate\.sec"\)\}<\/li>/.test(ux), "r.038 ('Yes, everywhere'): the Accrual gear's elapsed line is h:m:s on Clock, A.B..C on MoT — never both; r.043 (addendum 84): elapsed · $/min · $/sec on ONE line");
+  ok(/<li data-fin-elapsed-line className="whitespace-nowrap">\{showAbc \? `\$\{fmtMot\(spanABC\(/.test(ux) && /: `\$\{hhmmss\(Math\.max\(0, at - focus!\.atMs\)\)\} \$\{t\("fin\.elapsed"\)\}`\} · \{usd4\(bal\.netRatePerMinCents\)\} \{t\("fin\.rate\.min"\)\} · \{usd4\(bal\.netRatePerMinCents \/ planet\.secPerMin\)\} \{t\("fin\.rate\.sec"\)\}<\/li>/.test(ux), "r.038 ('Yes, everywhere'): the Accrual gear's elapsed line is h:m:s on Clock, A.B..C on MoT — never both; r.043 (addendum 84): elapsed · $/min · $/sec on ONE line");
 }
 
 // ── r.040 (addendum 75): one line per budget entry — a short name, "…" if still long, the full name on hold ──
@@ -335,15 +335,36 @@ ok(/<details data-fin-cards className=\{`group \$\{SUB\}`\}>\s*<summary classNam
     && /\.filter\(\(\{ c, b \}\) => cardLevel\(c, b\) !== "ok"\)/.test(ux)
     && ux.indexOf('{ id: "amber", color: C.temporal') < ux.indexOf('{ id: "red", color: C.evolution'),
     "r.070 AsM folds: a tap survives the clock (both charts), the settings save never double-counts, a tapped figure has its own moment's colour, the key is for the eye and the chart speaks, his alert words in the settings, contrast, and the gate gaps closed"); }
-// r.071 (addendum 158 "and fix this", his photo: −$2,309.48 crowding $2.0900 /hr): the two figures keep one line and one size (r.044) but the
+// r.071 (addendum 158 "and fix this", his photo: −$2,309.48 beside $2.0900 /hr): the two figures keep one line and one size (r.044) but the
 // size is fitted to the row (a CSS size container; monospace width = characters × advance), between 0.875rem and the r.044 1.5rem; past the
 // floor the rate wraps under — the Available block never shrinks under its own text, so the two never overlap
 { const fit = fs.readFileSync(path.join(process.cwd(), "lib/financial-2525/fit.ts"), "utf8");
   ok(/<div data-fin-figures-row className="mt-2 flex flex-wrap items-start justify-between gap-x-3 gap-y-1" style=\{\{ containerType: "inline-size" \}\}>\s*<div data-fin-current className="shrink-0">/.test(ux)
     && /data-fin-current[\s\S]{0,400}style=\{figFont\} data-testid="fin-clock"/.test(ux) && /<span data-fin-rate className="font-mono text-2xl tabular-nums" style=\{figFont\}>\{rateText\}<\/span>/.test(ux)
-    && /const figFont = \{ fontSize: bal\.ratePerMinCents > 0 \? fitFigures\(usd\(bal\.availableCents\)\.length \+ rateText\.length\) : fitFigures\(usd\(bal\.availableCents\)\.length, 8\) \};/.test(ux)
+    && /const figFont = \{ fontSize: bal\.ratePerMinCents > 0 \? fitFigures\(usd\(bal\.availableCents\)\.length \+ rateText\.length, figReserve\(RATE_UNITS\.map\(\(u\) => t\(`fin\.rate\.\$\{u\}`\)\)\)\) : fitFigures\(usd\(bal\.availableCents\)\.length, 8\) \};/.test(ux)
     && /return `min\(1\.5rem, max\(0\.875rem, calc\(\(100cqw - \$\{Math\.max\(0, Math\.round\(reservePx\)\)\}px\) \/ \$\{em\}\)\)\)`;/.test(fit) && /export const FIG_ADVANCE_EM = 0\.62;/.test(fit),
     "r.071 (addendum 158): Available and the Accrual Rate share one fitted size and never overlap (wrap as the last resort)"); }
+// r.071 AsM fold (Enlil · Enki): the fit is PINNED — a reserve of 0 or 40, an em that ignores the advance, a unit word that grows without
+// widening the reserve, or the three grid figures left at a fixed size (they ran into each other at 320 px and with COP amounts) all go red
+{ const fit = fs.readFileSync(path.join(process.cwd(), "lib/financial-2525/fit.ts"), "utf8");
+  const num = (re) => { const m = fit.match(re); return m ? Number(m[1]) : NaN; };
+  const reserve = num(/export const FIG_RESERVE_PX = (\d+);/), adv = num(/export const FIG_ADVANCE_EM = ([\d.]+);/);
+  const perChar = num(/export const FIG_UNIT_PX_PER_CHAR = (\d+);/), baseChars = num(/export const FIG_UNIT_BASE_CHARS = (\d+);/);
+  // what is not a figure on the row measured 69–73 px with the English picker (57 px): the reserve must cover it and not starve the figures
+  ok(reserve >= 80 && reserve <= 120 && adv >= 0.60 && adv <= 0.66 && perChar >= 6 && baseChars === 4
+    && /const em = \(Math\.max\(1, Math\.round\(chars\)\) \* FIG_ADVANCE_EM\)\.toFixed\(2\);/.test(fit)
+    && /return reservePx \+ FIG_UNIT_PX_PER_CHAR \* Math\.max\(0, widest - FIG_UNIT_BASE_CHARS\);/.test(fit)
+    && /const labelChars = \(s: string\): number => Array\.from\(s\)\.reduce\(\(n, ch\) => n \+ \(WIDE_CHAR\.test\(ch\) \? 2 : 1\), 0\);/.test(fit),
+    "r.071 AsM fold: the row's reserve is pinned (80–120 px, advance 0.60–0.66 em) and grows ~7 px per unit character past four");
+  ok(/<dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-3 gap-x-3" style=\{\{ containerType: "inline-size" \}\}>/.test(ux)
+    && (ux.match(/<dd className="break-words font-mono tabular-nums text-foreground" style=\{gridFont\}>/g) || []).length === 3
+    && /const gridFont = \{ fontSize: fitGrid\(Math\.max\(usd\(bal\.escrowedCents\)\.length, usd\(bal\.releasedCents\)\.length, usd\(bal\.withdrawnCents\)\.length\)\) \};/.test(ux)
+    && /return `min\(0\.875rem, max\(0\.6875rem, calc\(\(\(100cqw - \$\{Math\.max\(0, cols - 1\) \* gapPx\}px\) \/ \$\{Math\.max\(1, cols\)\} - 4px\) \/ \$\{em\}\)\)\)`;/.test(fit),
+    "r.071 AsM fold: In Escrow · Released · Spent share one size fitted to a third of the row, and past the floor a figure wraps in its own cell"); }
+// r.071 (addendum 159): the gear's $/min · $/sec line is the rate escrow is releasing NOW — the same lower rate as the Accrual Rate after a
+// spend ahead, never the deposit's original schedule
+ok(/· \{usd4\(bal\.netRatePerMinCents\)\} \{t\("fin\.rate\.min"\)\} · \{usd4\(bal\.netRatePerMinCents \/ planet\.secPerMin\)\} \{t\("fin\.rate\.sec"\)\}<\/li>/.test(ux) && /const rateIn = \(u: RateUnit\): number => \(u === "sec" \? bal\.netRatePerMinCents/.test(ux),
+  "r.071 (addendum 159): the gear's rate line and the Accrual Rate show the same live rate");
 // r.068 (addendum 153): a card payment is found where a person pays a card — a Pay card button on the card (Debit · Debt service ›
 // Credit Cards · that card, amount and time his) and the Pays card picker on EVERY Debit withdrawal, recorded whatever the field
 ok(/data-fin-card-pay onClick=\{\(\) => onPay\(card\.id\)\}/.test(ux) && /\{t\("fin\.card_pay"\)\}/.test(ux) && /const payCard = \(id: string\) => \{ setTxType\("withdrawal"\); setPaidFrom\(DEBIT\); setSec\("I"\); setField\("I\.cards_student"\); setRec\("once"\); setPaysCard\(id\); setAmt\(""\);/.test(ux) && !/sec === "I"/.test(ux) && !/isDebt/.test(ux) && /ed\.paidFrom === DEBIT && <label/.test(ux), "r.068 (addendum 153): Pay card on each card opens a Debit payment to that card; the Pays card picker shows on every Debit withdrawal and is recorded whatever the field");

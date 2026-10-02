@@ -74,7 +74,9 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   ok(A.validateWithdrawal([d1, d2], storage).ok === true, "his $71 Storage Unit, Monthly (30.3 repeating days) from 2026.10.01 07:00, is ACCEPTED against $3,924.49 coming in — it runs out at $0.0016/min");
   const once = A.validateWithdrawal([d1, d2], { ...storage, id: "w2", motDays: 0 });
   ok(once.ok === true, `r.066: the same $71 One time at 07:00 lands whole and is now ACCEPTED ahead of accrual (only $59.77 had come in) — got ${JSON.stringify(once)}`);
-  { const b = A.balanceAt([d1, d2, { ...storage, id: "w2", motDays: 0 }], storage.atMs); ok(b.availableCents === 5977 - 7100 && b.advanceCents === 7100 - 5977 && b.netRatePerMinCents < b.ratePerMinCents && near(b.netRatePerMinCents, b.ratePerMinCents * (1 - b.advanceCents / b.escrowedCents), 1e-9), "r.066: Available goes below zero by the advance and the accrual rate drops by advance ÷ escrow ('Spread over rest')"); }
+  { const before = A.balanceAt([d1, d2], storage.atMs), b = A.balanceAt([d1, d2, { ...storage, id: "w2", motDays: 0 }], storage.atMs);
+    ok(b.availableCents === 0 && b.advanceCents === 7100 - 5977 && b.escrowedCents === before.escrowedCents - (7100 - 5977) && b.releasedCents === 7100 && near(b.netRatePerMinCents / (before.netRatePerMinCents * (1 - (7100 - 5977) / before.escrowedCents)), 1, 1e-4),
+      `r.071 (addendum 159, as of r.066 "Up to all In Escrow" + "Spread over rest"): the $71 lands ahead of the $59.77 accrued — Available stays at $0.00, escrow drops by the $11.23 spent ahead, the rate drops by that share — got available ${b.availableCents} escrow ${b.escrowedCents} (was ${before.escrowedCents})`); }
   { const pay = { id: "cc", kind: "withdrawal", amountCents: 245000, atMs: at("2026.10.01_07.00..00"), motDays: 0, memo: "Credit Card Payment" }; const v = A.validateWithdrawal([d1, d2], pay); const b = A.balanceAt([d1, d2, pay], pay.atMs); ok(v.ok === true && b.netRatePerMinCents * 60 / 100 > 1.9 && b.netRatePerMinCents * 60 / 100 < 2.2, `his $2,450 credit-card payment on 2026.10.01_07.00..00 is ACCEPTED (addendum 143) and the accrual falls from $5.45/hr to about $2.05/hr — got $${(b.netRatePerMinCents * 60 / 100).toFixed(4)}/hr`); }
   const early = A.validateWithdrawal([d1, d2], { ...storage, id: "w3", atMs: at("2026.09.30_20.30..00") });
   ok(early.ok === true, "no hold: a Monthly withdrawal starting 36 minutes after the deposit runs out at $/min and is accepted (r.028)");
@@ -85,6 +87,56 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   ok(neg === 0, "with the $71 Monthly on the record, what has gone out never passes what is withdrawable — every hour of the month");
   const lumpOk = { id: "w5", kind: "withdrawal", amountCents: 25066, atMs: at("2026.10.15_07.00..00"), motDays: 0 };
   ok(A.validateWithdrawal([d1, d2], lumpOk).ok === true && A.validateWithdrawal([d1, d2, lumpOk], storage).ok === true, "a record accepted as a lump before r.023 (his $250.66 on 10.15) stays valid, and the $71 Monthly is still accepted beside it");
+}
+// r.071 (addendum 159 "escrow should drop, while remaining funds get released"): SPENDING AHEAD RELEASES EARLY FROM ESCROW — exact engine
+{
+  const at = (x) => M.parseStampCST(x), H = 3600000, D = 86400000;
+  const d1 = { id: "d1", kind: "deposit", amountCents: 360449, atMs: at("2026.09.30_19.54..35"), motDays: 30 };
+  const d2 = { id: "d2", kind: "deposit", amountCents: 32000, atMs: at("2026.09.30_19.56..04"), motDays: 30 };
+  const pay = { id: "cc", kind: "withdrawal", amountCents: 245000, atMs: at("2026.10.01_07.00..00"), motDays: 0 };
+  const b0 = A.balanceAt([d1, d2, pay], pay.atMs), b1 = A.balanceAt([d1, d2, pay], pay.atMs + H), bEnd = A.balanceAt([d1, d2, pay], d2.atMs + 30 * D);
+  ok(b0.availableCents === 0 && b0.escrowedCents === 392449 - 245000 && b0.releasedCents === 245000 && b0.withdrawnCents === 245000, `his $2,450 card payment: Available $0.00 (never negative), In Escrow drops to $1,474.49, Released $2,450.00 — got ${b0.availableCents} · ${b0.escrowedCents} · ${b0.releasedCents}`);
+  ok(Math.abs(b1.availableCents - Math.round(b0.netRatePerMinCents * 60)) <= 1 && b1.escrowedCents === b0.escrowedCents - b1.availableCents && b0.netRatePerMinCents * 60 / 100 > 1.9 && b0.netRatePerMinCents * 60 / 100 < 2.2, `an hour later the rest has released at the lower rate (~$2.05/hr): Available ${b1.availableCents}¢ — escrow keeps falling by exactly that`);
+  ok(bEnd.escrowedCents === 0 && bEnd.availableCents === 392449 - 245000 && bEnd.netRatePerMinCents === 0, "at the end of the month escrow is empty and everything left is available");
+  // a spread outflow while nothing is available: escrow falls at exactly its rate (closed form)
+  const t0 = at("2026.11.01_00.00..00");
+  const dep = { id: "x", kind: "deposit", amountCents: 300000, atMs: t0, motDays: 30 };
+  const lump = { id: "l", kind: "withdrawal", amountCents: 200000, atMs: t0 + D, motDays: 0 };
+  const run = { id: "r", kind: "withdrawal", amountCents: 60000, atMs: t0 + D, motDays: 10 };
+  const e1 = A.balanceAt([dep, lump, run], t0 + D).escrowedCents, e6 = A.balanceAt([dep, lump, run], t0 + 6 * D);
+  ok(e1 === 100000 && Math.abs(e6.escrowedCents - (100000 - 30000)) <= 1 && e6.availableCents === 0, `with nothing available a $600 run over 10 days takes $60/day straight from escrow: $1,000 → $700 after 5 days — got ${e6.escrowedCents}`);
+  // the exact engine against an independent minute-by-minute run, on seeded records (lumps, runs, several deposits ending at different times)
+  let seed = 2525; const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+  const euler = (txs, t, step = 60000) => {
+    const deps = [], outs = []; let a = 0;
+    const evs = txs.filter((x) => x.atMs <= t).sort((p, q) => p.atMs - q.atMs || (p.kind === "deposit" ? -1 : 1));
+    let k = 0, cur = evs.length ? evs[0].atMs : t;
+    while (cur < t) {
+      while (k < evs.length && evs[k].atMs <= cur) { const x = evs[k++]; const len = (x.motDays ?? 0) * D; if (x.kind === "deposit") { if (len > 0) deps.push({ e: x.amountCents, f: x.atMs + len }); else a += x.amountCents; } else if (len > 0) outs.push({ w: x.amountCents / len, end: x.atMs + len }); else { a -= x.amountCents; if (a < 0) { const live = deps.filter((d) => d.e > 0 && d.f > cur), E = live.reduce((q, d) => q + d.e, 0); for (const d of live) d.e *= 1 - Math.min(1, -a / E); a = 0; } } }
+      const dt = Math.min(step, t - cur), live = deps.filter((d) => d.e > 0 && d.f > cur);
+      let inflow = 0; for (const d of live) { const r = d.e * Math.min(1, dt / (d.f - cur)); d.e -= r; inflow += r; }
+      const w = outs.filter((o) => o.end > cur).reduce((q, o) => q + o.w, 0);
+      a += inflow - w * dt;
+      if (a < 0) { const l2 = deps.filter((d) => d.e > 0 && d.f > cur + dt), E = l2.reduce((q, d) => q + d.e, 0); if (E > 0) { const take = Math.min(E, -a); for (const d of l2) d.e *= 1 - take / E; a += take; } }
+      cur += dt;
+    }
+    while (k < evs.length && evs[k].atMs <= t) { const x = evs[k++]; const len = (x.motDays ?? 0) * D; if (x.kind === "deposit") { if (len > 0) deps.push({ e: x.amountCents, f: x.atMs + len }); else a += x.amountCents; } else if (len > 0) outs.push({ w: x.amountCents / len, end: x.atMs + len }); else { a -= x.amountCents; if (a < 0) { const live = deps.filter((d) => d.e > 0 && d.f > t), E = live.reduce((q, d) => q + d.e, 0); for (const d of live) d.e *= 1 - Math.min(1, -a / E); a = 0; } } }
+    return { escrow: deps.reduce((q, d) => q + d.e, 0), available: a };
+  };
+  let worst = 0, cases = 0;
+  for (let c = 0; c < 6; c++) {
+    const base = at("2026.12.01_00.00..00") + c * 40 * D;
+    const txs = [{ id: `a${c}`, kind: "deposit", amountCents: 200000 + Math.round(rnd() * 300000), atMs: base, motDays: 30 }, { id: `b${c}`, kind: "deposit", amountCents: 50000 + Math.round(rnd() * 100000), atMs: base + Math.round(rnd() * 5) * D, motDays: 14 }];
+    const total = txs.reduce((q, x) => q + x.amountCents, 0);
+    txs.push({ id: `l${c}`, kind: "withdrawal", amountCents: Math.round(total * (0.3 + rnd() * 0.3)), atMs: base + D + Math.round(rnd() * 3) * H, motDays: 0 });
+    txs.push({ id: `r${c}`, kind: "withdrawal", amountCents: Math.round(total * 0.15), atMs: base + 2 * D, motDays: 10 });
+    for (const day of [1.5, 3, 6, 10, 15, 25, 31]) {
+      const t = base + day * D, ex = A.balanceAt(txs, t), eu = euler(txs, t);
+      worst = Math.max(worst, Math.abs(ex.escrowedCents - eu.escrow), Math.abs(ex.availableCents - eu.available)); cases++;
+      if (ex.availableCents < 0) worst = Infinity;
+    }
+  }
+  ok(worst <= 25, `the exact engine matches an independent minute-by-minute run within 25¢ across ${cases} probes of 6 seeded records (worst ${worst === Infinity ? "a NEGATIVE Available" : worst.toFixed(2) + "¢"})`);
 }
 // r.026 — the refusal names the FIRST short minute exactly (the HI-intent check found r.023 could name a minute with money to spare).
 {

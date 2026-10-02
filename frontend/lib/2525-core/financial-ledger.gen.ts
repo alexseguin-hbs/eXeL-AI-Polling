@@ -994,7 +994,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "rev": 141,
       "date": "2026-10-02",
       "kind": "correction",
-      "text": "r.071 correction — Available and the Accrual Rate share one size fitted to the row and never overlap (FD-87).",
+      "text": "r.071 correction — spending ahead releases early from escrow (escrow drops, the rest keeps releasing, Available never negative); Available and the Accrual Rate share one fitted size and never overlap, and the three figures under them fit their thirds of the row (FD-87, FD-88).",
       "commit": "6d4854f"
     }
   ]

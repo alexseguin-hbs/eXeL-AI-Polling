@@ -1139,7 +1139,7 @@ export const FINANCIAL_DOMAIN = {
    "revision": "0.071",
    "date": "2026-10-02",
    "kind": "correction",
-   "why": "Addendum 158 (\"and fix this\", with his photo: \"Available: −$2,309.48\" crowding \"Accrual Rate $2.0900 /hr\") — the defect r.070's note listed as found, not changed. Both figures were fixed at text-2xl on one line (his r.044 rule: same line, same size) and the Available block could shrink under its own text, so a long negative figure ran into the rate (measured at 390 px: \"-$1,114.98$3.8255\"). Now the two keep one line and one size, but the size is fitted to the row: the row is a CSS size container and the figures are monospace, so width = characters × advance (lib/financial-2525/fit.ts); the size stays at the r.044 1.5rem when it fits and never drops below 0.875rem; past that floor the rate wraps under the Available figure — the two never overlap.",
+   "why": "Addendum 158 (\"and fix this\", with his photo: \"Available: −$2,309.48\" beside \"Accrual Rate $2.0900 /hr\" while $3,745.75 sat in escrow — sent after r.070's note listed \"a large negative Available runs into the Accrual Rate\" as found, not changed); addendum 159 names the fix for the negative itself (below), and the row is made safe for any long figure. Both figures were fixed at text-2xl on one line (his r.044 rule: same line, same size) and the Available block could shrink under its own text, so a long negative figure ran into the rate (measured at 390 px: \"-$1,114.98$3.8255\"). Now the two keep one line and one size, but the size is fitted to the row: the row is a CSS size container and the figures are monospace, so width = characters × advance (lib/financial-2525/fit.ts); the size stays at the r.044 1.5rem when it fits and never drops below 0.875rem; past that floor the rate wraps under the Available figure — the two never overlap. The AsM review folded two more members of the class: the room kept beside the figures grows ~7 px for every character a translated unit word adds past four (lib/financial-2525/fit.ts figReserve), and the three figures under them (In Escrow · Released · Spent), fixed at 0.875rem, overlapped at 320 px and with COP-scale amounts — now one size fitted to a third of the row (fitGrid, floor 0.6875rem), wrapping inside their own cell past it; the gate pins the reserve and the advance. And addendum 159 (\"escrow should drop, while remaining funds get released … or find way to manage\", about the same photo: In Escrow $3,745.75 beside Available −$2,309.48): r.066's answers (\"Up to all In Escrow\" · \"Spread over rest\") were half-shown — the rate dropped, but escrow never did and Available went negative, climbing back at the full rate the card did not show. Now SPENDING AHEAD RELEASES EARLY FROM ESCROW: whatever a withdrawal takes beyond Available comes out of the escrow of the deposits still releasing at once (by each one's share), so In Escrow drops by it and Available never goes below zero; every deposit releases what it has left over the rest of its own length — the lower rate the card shows; Released counts what left escrow early, so Available = Released − Spent on the card. Exact, not stepped (escrowAt: events in time order, closed form between them; a spread bill running with nothing available draws escrow at exactly its rate), matched by an independent minute-by-minute run within 0.5¢ on seeded records. His $2,450 payment: Available $0.00, In Escrow $1,474.49, the rate ~$2.05/hr. The withdrawal limit is unchanged: never more than deposited.",
    "commit": "6d4854f",
    "shipped": "PENDING"
   }
@@ -2740,9 +2740,15 @@ export const FINANCIAL_DOMAIN = {
   },
   {
    "id": "FD-87",
-   "decision": "The Accrual Units figures (Available · Accrual Rate) share one size fitted to the row — 1.5rem when it fits, never below 0.875rem — and never overlap: past the floor the rate wraps under.",
+   "decision": "The Accrual Units figures (Available · Accrual Rate) share one size fitted to the row — 1.5rem when it fits, never below 0.875rem — and never overlap: past the floor the rate wraps under; the room kept beside them grows with the unit word. The three figures under them (In Escrow · Released · Spent) share one size fitted to a third of the row, and past their floor a figure wraps inside its own cell.",
+   "status": "DECLARED",
+   "basis": "addendum 158 + his photo, sent after r.070's note listed 'a large negative Available runs into the Accrual Rate'; keeps r.044 (same line, same size); the floors, the wrap-under and the grid's fit chosen by the build (the r.071 AsM review)"
+  },
+  {
+   "id": "FD-88",
+   "decision": "Spending ahead releases early from escrow: a withdrawal beyond Available draws on the escrow of the deposits still releasing (by share), In Escrow drops at once, Available never goes below zero, and each deposit releases the rest over its remaining length (the lower rate). Released includes what left escrow early, so Available = Released − Spent. Completes r.066's \"Up to all In Escrow\" + \"Spread over rest\".",
    "status": "OPERATOR",
-   "basis": "addendum 158 + his photo; keeps r.044 (same line, same size)"
+   "basis": "addendum 159 + his r.066 answers ('Up to all In Escrow' · 'Spread over rest'); the draw by each deposit's share chosen by the build"
   }
  ],
  "reviews": [

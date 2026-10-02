@@ -30,7 +30,7 @@ for (const [ai, who] of ASM.entries()) {
   // 3 · a one-time spend inside what has accrued
   { const w = W("w3", Math.floor(pay / MONTH / 2), t0 + DAY); add("spend within accrued", "accepted", A.validateWithdrawal(inc, w).ok === true); }
   // 4 · a spend AHEAD of accrual (addendum 142)
-  { const w = W("w4", Math.round(total * 0.4), t0 + 3600000); add("spend ahead of accrual", "accepted; Available below zero", A.validateWithdrawal(inc, w).ok === true && A.balanceAt([...inc, w], w.atMs).availableCents < 0); }
+  { const w = W("w4", Math.round(total * 0.4), t0 + 3600000); const pre = A.balanceAt(inc, w.atMs), b = A.balanceAt([...inc, w], w.atMs); add("spend ahead of accrual", "accepted; Available stays $0.00; escrow drops by what is spent ahead (r.071)", A.validateWithdrawal(inc, w).ok === true && b.availableCents === 0 && Math.abs(b.escrowedCents - (pre.escrowedCents - (w.amountCents - pre.availableCents))) <= 1, `escrow ${pre.escrowedCents} → ${b.escrowedCents}`); }
   // 5 · the card payment at the start of the month (addendum 143)
   { const w = W("w5", 245000 > total ? Math.round(total * 0.9) : 245000, t0 + 60000); const b = A.balanceAt([...inc, w], w.atMs + 1); add("card payment at month start", "accepted; rate drops", A.validateWithdrawal(inc, w).ok === true && b.netRatePerMinCents < b.ratePerMinCents, `${(b.netRatePerMinCents * 60 / 100).toFixed(4)} $/hr net`); }
   // 6 · a Monthly bill spread at $/min
@@ -52,5 +52,5 @@ for (const [ai, who] of ASM.entries()) {
 const passed = results.filter((r) => r.pass).length;
 for (const who of ASM) { const s = results.filter((r) => r.asm === who); console.log(`${who.padEnd(8)} ${s.filter((r) => r.pass).length}/12  ${s.filter((r) => !r.pass).map((r) => "FAIL#" + r.n + " " + r.name).join(" · ")}`); }
 console.log(`\nfin-asm-144: ${passed}/${results.length} scenarios behaved exactly as stated`);
-const j = process.argv.indexOf("--json"); if (j > 0) { const fs = await import("node:fs"); fs.writeFileSync(process.argv[j + 1], JSON.stringify({ revision: "0.066", passed, total: results.length, results }, null, 1)); }
+const j = process.argv.indexOf("--json"); if (j > 0) { const fs = await import("node:fs"); fs.writeFileSync(process.argv[j + 1], JSON.stringify({ revision: "0.071", passed, total: results.length, results }, null, 1)); }
 process.exit(passed === results.length ? 0 : 1);

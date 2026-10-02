@@ -23,22 +23,24 @@ for (const [ai, who] of ASM.entries()) {
   const pay = { id: `${who}-d1`, kind: "deposit", amountCents: 380000 + ai * 9999, atMs: t0 - 24 * HOUR, motDays: MONTH };
   const buy = (id, cents, ms) => ({ id: `${who}-${id}`, kind: "withdrawal", amountCents: cents, atMs: ms, motDays: 0, paidFrom: card.id });
   const payCard = (id, cents, ms, field = "I.cards_student") => ({ id: `${who}-${id}`, kind: "withdrawal", amountCents: cents, atMs: ms, motDays: 0, field, paysCard: card.id });
-  const avail = (txs, ms) => A.balanceAt(K.accrualTxs(txs), ms).availableCents;
+  // r.071 (addendum 159): a spend ahead draws on escrow instead of pushing Available below zero, so "counted once" is measured on what is LEFT —
+  // Available + In Escrow (= deposited − counted spending) — never on Available alone
+  const avail = (txs, ms) => { const b = A.balanceAt(K.accrualTxs(txs), ms); return b.availableCents + b.escrowedCents; };
   const S = [];
   const add = (name, expect, pass, note = "") => S.push({ asm: who, n: S.length + 1, name, expect, pass: !!pass, note });
   const b1 = buy("b1", P, t0 + HOUR), p1 = payCard("p1", Y, t0 + 2 * HOUR);
   // 1 · a card purchase raises the card balance (addendum 153 "a new CC transaction should increase CC BALANCE")
   { const v = K.cardBalanceAt(card, [pay, b1], t0 + 90 * 60000); add("purchase raises the card balance", "balance = opening + purchase", v === O + P, `${v}¢`); }
   // 2 · it counts against Available once, at purchase (his answer "At purchase (once)")
-  { const d = avail([pay], t0 + 90 * 60000) - avail([pay, b1], t0 + 90 * 60000); add("purchase lowers Available once", "Available drops by the purchase", d === P, `${d}¢`); }
+  { const d = avail([pay], t0 + 90 * 60000) - avail([pay, b1], t0 + 90 * 60000); add("purchase lowers what is left once", "Available + In Escrow drops by the purchase", Math.abs(d - P) <= 1, `${d}¢`); }
   // 3 · a Debit-Account payment that names the card lowers the card balance (addendum 153)
   { const v = K.cardBalanceAt(card, [pay, b1, p1], t0 + 3 * HOUR); add("payment lowers the card balance", "balance = opening + purchase − payment", v === O + P - Y, `${v}¢`); }
   // 4 · count once: a payment covered by recorded purchases does not lower Available again
-  { const d = avail([pay, b1], t0 + 3 * HOUR) - avail([pay, b1, p1], t0 + 3 * HOUR); add("covered payment counted once", "Available unchanged by the payment", d === 0, `${d}¢`); }
+  { const d = avail([pay, b1], t0 + 3 * HOUR) - avail([pay, b1, p1], t0 + 3 * HOUR); add("covered payment counted once", "what is left unchanged by the payment", Math.abs(d) <= 1, `${d}¢`); }
   // 5 · paying the opening balance (no recorded purchase counted it) lowers Available (addendum 153 "reduce available")
-  { const p = payCard("p5", O, t0 + HOUR); const d = avail([pay], t0 + 2 * HOUR) - avail([pay, p], t0 + 2 * HOUR); add("paying the opening balance lowers Available", "Available drops by the opening", d === O && K.cardBalanceAt(card, [pay, p], t0 + 2 * HOUR) === 0, `${d}¢`); }
+  { const p = payCard("p5", O, t0 + HOUR); const d = avail([pay], t0 + 2 * HOUR) - avail([pay, p], t0 + 2 * HOUR); add("paying the opening balance lowers what is left", "Available + In Escrow drops by the opening", Math.abs(d - O) <= 1 && K.cardBalanceAt(card, [pay, p], t0 + 2 * HOUR) === 0, `${d}¢`); }
   // 6 · a payment larger than the recorded purchases lowers Available only by the excess
-  { const X = 1234 + ai, p = payCard("p6", P + X, t0 + 2 * HOUR); const d = avail([pay, b1], t0 + 3 * HOUR) - avail([pay, b1, p], t0 + 3 * HOUR); add("payment beyond purchases counts the excess", "Available drops by the excess only", d === X, `${d}¢`); }
+  { const X = 1234 + ai, p = payCard("p6", P + X, t0 + 2 * HOUR); const d = avail([pay, b1], t0 + 3 * HOUR) - avail([pay, b1, p], t0 + 3 * HOUR); add("payment beyond purchases counts the excess", "what is left drops by the excess only", Math.abs(d - X) <= 1, `${d}¢`); }
   // 7 · a payment on any field still pays the card (r.068: the picker on every Debit withdrawal)
   { const p = payCard("p7", Y, t0 + 2 * HOUR, "B.rent_mortgage"); const v = K.cardBalanceAt(card, [pay, b1, p], t0 + 3 * HOUR); add("payment on any field pays the card", "balance = opening + purchase − payment", v === O + P - Y, `${v}¢`); }
   // 8 · below the amber line there is no alert

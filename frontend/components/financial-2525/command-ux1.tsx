@@ -48,7 +48,7 @@ import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } 
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, correctTx, correctionsOf, type FinRecord } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
-import { fitFigures } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
+import { fitFigures, fitGrid, figReserve } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
 import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, newCard, uniqueCardId, applyCardSettings, looksLikeCardNumber, cardBalanceAt, cardLevel, cardSeries, cardMoves, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
 import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, cloudGet, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
@@ -201,7 +201,9 @@ export function FinancialCommandUX1() {
   const rateIn = (u: RateUnit): number => (u === "sec" ? bal.netRatePerMinCents / planet.secPerMin : u === "min" ? bal.netRatePerMinCents : u === "hr" ? bal.netRatePerMinCents * planet.minPerHour : bal.netRatePerMinCents * planet.hoursPerDay * planet.minPerHour);
   // r.071 (addendum 158): the two figures' shared size, from the characters they show together (monospace → width = chars × advance)
   const rateText = rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit));
-  const figFont = { fontSize: bal.ratePerMinCents > 0 ? fitFigures(usd(bal.availableCents).length + rateText.length) : fitFigures(usd(bal.availableCents).length, 8) };
+  const figFont = { fontSize: bal.ratePerMinCents > 0 ? fitFigures(usd(bal.availableCents).length + rateText.length, figReserve(RATE_UNITS.map((u) => t(`fin.rate.${u}`)))) : fitFigures(usd(bal.availableCents).length, 8) };
+  // r.071 AsM fold (Enki): the three figures under it fit their thirds of the row the same way — never one over its neighbour
+  const gridFont = { fontSize: fitGrid(Math.max(usd(bal.escrowedCents).length, usd(bal.releasedCents).length, usd(bal.withdrawnCents).length)) };
   const focusView = focus && now ? depositView(focus, at) : null;
   const year = now ? positionInYear(now, planet.yearAnchor, planet.yearDays) : null;
   // THE LADDER'S UNIT (addendum 17 → 20 → 21 → 22): one dropdown of the brief's eight periods with FIXED factors — second · minute 60 ·
@@ -467,7 +469,7 @@ export function FinancialCommandUX1() {
           })}
           {/* r.044 (addendum 93 "Available and Accrual Rate should be same line, same size text"): the two labels share one line,
               the two figures share the next, at the same size */}
-          {/* r.071 (addendum 158 "and fix this"): one size for both figures (r.044), fitted to the row — a long Available never runs into
+          {/* r.071 (addenda 158–159 "and fix this"): one size for both figures (r.044), fitted to the row — a long figure never runs into
               the Accrual Rate; past the smallest size the rate wraps under it, never over it */}
           <div data-fin-figures-row className="mt-2 flex flex-wrap items-start justify-between gap-x-3 gap-y-1" style={{ containerType: "inline-size" }}>
             <div data-fin-current className="shrink-0">
@@ -490,10 +492,10 @@ export function FinancialCommandUX1() {
           {/* r.029 (addendum 60 "doesn't this seem duplicative?"): Available is the big figure above, so the grid is three boxes —
               In Escrow · Released · Spent; what each one means is in the gear */}
           {/* r.036 (addendum 69 "spread 3 fields evenly full width of box"): In Escrow on the left edge, Released centred, Spent on the right edge */}
-          <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-3 gap-x-3">
-            <div data-fin-cell="escrowed" className="text-left"><dt className="text-xs text-muted-foreground">{t("fin.escrowed")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.escrowedCents)}</dd></div>
-            <div data-fin-cell="released" className="text-center"><dt className="text-xs text-muted-foreground">{t("fin.released")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.releasedCents)}</dd></div>
-            <div data-fin-cell="spent" className="text-right"><dt className="text-xs text-muted-foreground">{t("fin.spent")}</dt><dd className="font-mono tabular-nums text-foreground">{usd(bal.withdrawnCents)}</dd></div>
+          <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-3 gap-x-3" style={{ containerType: "inline-size" }}>
+            <div data-fin-cell="escrowed" className="text-left"><dt className="text-xs text-muted-foreground">{t("fin.escrowed")}</dt><dd className="break-words font-mono tabular-nums text-foreground" style={gridFont}>{usd(bal.escrowedCents)}</dd></div>
+            <div data-fin-cell="released" className="text-center"><dt className="text-xs text-muted-foreground">{t("fin.released")}</dt><dd className="break-words font-mono tabular-nums text-foreground" style={gridFont}>{usd(bal.releasedCents)}</dd></div>
+            <div data-fin-cell="spent" className="text-right"><dt className="text-xs text-muted-foreground">{t("fin.spent")}</dt><dd className="break-words font-mono tabular-nums text-foreground" style={gridFont}>{usd(bal.withdrawnCents)}</dd></div>
           </dl>
           {/* the gear (addendum 60 "tell me … what each does (which should be in settings)"): what each figure means, then the clock */}
           {accrualGear && (
@@ -513,7 +515,7 @@ export function FinancialCommandUX1() {
           {accrualGear && focusView && (
             <ul data-fin-accrual-menu className="mt-2 space-y-0.5 border-t border-border pt-2 font-mono text-xs text-muted-foreground" data-testid="fin-ladder">
               {/* r.043 (addendum 84): one line — elapsed · $/min · $/sec */}
-              <li data-fin-elapsed-line className="whitespace-nowrap">{showAbc ? `${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : `${hhmmss(Math.max(0, at - focus!.atMs))} ${t("fin.elapsed")}`} · {usd4(bal.ratePerMinCents)} {t("fin.rate.min")} · {usd4(bal.ratePerMinCents / planet.secPerMin)} {t("fin.rate.sec")}</li>
+              <li data-fin-elapsed-line className="whitespace-nowrap">{showAbc ? `${fmtMot(spanABC(Math.max(0, at - focus!.atMs) / dayMs, planet.yearDays))} ${t("fin.a_units")}` : `${hhmmss(Math.max(0, at - focus!.atMs))} ${t("fin.elapsed")}`} · {usd4(bal.netRatePerMinCents)} {t("fin.rate.min")} · {usd4(bal.netRatePerMinCents / planet.secPerMin)} {t("fin.rate.sec")}</li>
             </ul>
           )}
         </div>
