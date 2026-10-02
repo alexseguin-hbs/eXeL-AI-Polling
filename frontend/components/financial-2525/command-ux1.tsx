@@ -19,7 +19,7 @@
  * modularly adjust"). A.B..C is the standard for all planets; the glass converts to the planet's LTU.
  */
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Check, ChevronDown, ChevronRight, Clock, Orbit, Pencil, Settings, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Clock, Cloud, CloudOff, Orbit, Pencil, Settings, X } from "lucide-react";
 import { CategoryIcon, SectionIcon } from "@/components/financial-2525/category-icon";   // addendum 19: every category carries its icon; r.012: every section too
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -46,7 +46,8 @@ import { loadPlan, savePlan, clearPlan, sheetPlan, planOrSheet, DEVICE_OWNER, se
 import { CURRENCIES, CURRENCY_KEY, DEFAULT_CURRENCY, currencyOf, currencyMark } from "@/lib/financial-2525/currency";   // r.049: the currency label
 import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fieldsOf, fieldOf, netLadder, toPeriod, groupByKind, setCalendarMonth, RECURRENCES, LENGTH_UNITS, lengthDays, type SectionId, type FlowSectionId, type Recurrence, type LengthUnit, type Period, type LadderLine, type FieldKind } from "@/lib/financial-2525/ladder";   // addendum 22: the Personal Finance Ladder A–U — the lock
 import { append, loadRecord, saveRecord, replay, emptyRecord, type FinRecord } from "@/lib/financial-2525/record";
-import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";   // r.053 (addenda 106 · 110): his entries put back
+import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
+import { ownerKeyFor, cloudPut, cloudGet, mergeRecords, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
 
 const FINANCIAL_RCORE_HISTORY = fromLedgerJson(FINANCIAL_LEDGER);
 const C = TRINITY_COLORS;
@@ -218,7 +219,51 @@ export function FinancialCommandUX1() {
   // this phone's own (DEVICE_OWNER), signed in it is the person's
   const planOwner = owner ?? DEVICE_OWNER;
   useEffect(() => { setPlan(planOrSheet(loadPlan(planOwner))); }, [planOwner]);
-  const writePlan = (next: LadderLine[]) => { setPlan(next); if (!savePlan(planOwner, next)) setSaveFailed(true); };
+  const writePlan = (next: LadderLine[]) => { setPlan(next); if (!savePlan(planOwner, next)) setSaveFailed(true); try { localStorage.setItem(`fin-plan-at:${planOwner}`, String(Date.now())); } catch { /* the time is a hint only */ } };
+  // THE CLOUD COPY (r.055, addendum 112 "SAVE AN PUSH TO [the account store]. Identify all saving functions and make sure push is made automatically as
+  // well as every 12 hours"; his answer "Account-ID key"). Signed in: the record and the budget are read back from the account once, merged
+  // without ever dropping an entry (a diverged copy is kept whole), then every change is pushed, and again every 12 hours.
+  const [cloudKey, setCloudKey] = useState(null as string | null);
+  const [cloudState, setCloudState] = useState("off" as CloudState);
+  const [cloudAt, setCloudAt] = useState(0);
+  const [cloudReady, setCloudReady] = useState(false);
+  useEffect(() => { let live = true; setCloudReady(false); setCloudKey(null); if (owner) void ownerKeyFor(owner).then((k) => { if (live) setCloudKey(k); }); return () => { live = false; }; }, [owner]);
+  useEffect(() => {
+    if (!owner || !cloudKey) return; let live = true;
+    void (async () => {
+      setCloudState("saving");
+      const [cRec, cPlan] = (await Promise.all([cloudGet(cloudKey, "fin-record"), cloudGet(cloudKey, "fin-plan")])) as [FinRecord | null, PlanDoc | null];
+      if (!live) return;
+      const m = mergeRecords(loadRecord(owner).rec, cRec);
+      if (m.keep) await cloudPut(cloudKey, `fin-record-kept-${Date.now()}`, m.keep);
+      if (m.current !== record) { setRecord(m.current); saveRecord(m.current); }
+      let localAt = 0; try { localAt = Number(localStorage.getItem(`fin-plan-at:${owner}`) ?? 0) || 0; } catch { /* no time: the device copy is older */ }
+      if (cPlan && Array.isArray(cPlan.lines) && cPlan.at > localAt) { setPlan(cPlan.lines); savePlan(owner, cPlan.lines); try { localStorage.setItem(`fin-plan-at:${owner}`, String(cPlan.at)); } catch { /* hint only */ } }
+      setCloudReady(true);
+    })();
+    return () => { live = false; };
+  }, [owner, cloudKey]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const pushAll = async () => {
+    if (!owner || !cloudKey || !cloudReady) return;
+    setCloudState("saving");
+    let planAt = Date.now(); try { planAt = Number(localStorage.getItem(`fin-plan-at:${owner}`) ?? planAt) || planAt; } catch { /* now */ }
+    const a = await cloudPut(cloudKey, "fin-record", record);
+    const b = await cloudPut(cloudKey, "fin-plan", { lines: plan, at: planAt } satisfies PlanDoc);
+    const ok = a === "saved" && b === "saved";
+    setCloudState(ok ? "saved" : a === "offline" || b === "offline" ? "offline" : "error");
+    if (ok) { const t0 = Date.now(); setCloudAt(t0); try { localStorage.setItem(LAST_PUSH_KEY, String(t0)); } catch { /* hint only */ } }
+  };
+  // every change to the record or the budget is pushed (a short pause so a burst of typing is one write)
+  useEffect(() => { if (!cloudReady) return; const id = setTimeout(() => { void pushAll(); }, 1500); return () => clearTimeout(id); }, [record, plan, cloudReady]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // and every 12 hours — while the page is open, and on return to it when 12 hours have passed (a phone pauses timers in the background)
+  useEffect(() => {
+    if (!cloudReady) return;
+    const due = () => { let last = 0; try { last = Number(localStorage.getItem(LAST_PUSH_KEY) ?? 0) || 0; } catch { /* push */ } if (Date.now() - last >= PUSH_EVERY_MS) void pushAll(); };
+    const id = setInterval(() => { void pushAll(); }, PUSH_EVERY_MS);
+    const onVis = () => { if (document.visibilityState === "visible") due(); };
+    document.addEventListener("visibilitychange", onVis); due();
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
+  }, [cloudReady]);   // eslint-disable-line react-hooks/exhaustive-deps
   // THE BUDGET AS HE ASKED (r.024, addenda 48 · 50: "don't change budget inplementetion; this is way too complicated and I never asked for
   // it"): the r.021–r.022 per-line MoT dropdowns are gone; a line's amount is typed in the unit showing and kept on the 33-day base.
   const typeAmount = (fieldId: string, text: string) => { setDrafts((d) => ({ ...d, [fieldId]: text })); const n = Number(text); if (text.trim() !== "" && Number.isFinite(n)) writePlan(setLineAmount(plan, fieldId, n, period)); };
@@ -481,6 +526,8 @@ export function FinancialCommandUX1() {
               </select>
             </label>
           </div>
+          {/* r.055 (addendum 119 + his answer "Short"): what the budget is for, in one plain line */}
+          <p data-fin-budget-purpose className="mt-2 text-xs text-muted-foreground">{t("fin.budget_purpose")}</p>
           {/* the table (addenda 17 + 22 → 31): the budget by KIND — Income · Fixed · Variable (· Transfers) — one row per kind with its total in
               the chosen unit and a chevron; the lines beneath only when opened (edit mode opens all); Net last, red when negative; no letters */}
           <table className="mt-2 w-full font-mono text-xs">
@@ -552,7 +599,9 @@ export function FinancialCommandUX1() {
         <details data-fin-ledger className={`group ${SUB}`}>
           <summary className="flex min-h-[36px] cursor-pointer list-none items-center gap-1" aria-label={t("fin.record_toggle")}>
             <ChevronRight size={14} strokeWidth={1.5} aria-hidden className="transition-transform group-open:rotate-90" />
-            <span className={LABEL}>{t("fin.tx_record")}{owner && tampered ? ` · ${t("fin.chain_broken")}` : ""}</span>   {/* r.041 (addenda 76–77): "TRANSACTION RECORD"; a broken chain is still said */}
+            <span className={LABEL}>{t("fin.tx_record")}{owner && tampered ? ` · ${t("fin.chain_broken")}` : ""}</span>
+            {/* r.055: a small cloud says the record is in his account (tap-hold shows when) — no sentence on the glass */}
+            {owner && <span data-fin-cloud={cloudState} title={cloudState === "saved" ? `${t("fin.cloud_saved")} · ${fmtStampCST(cloudAt)}` : t("fin.cloud_not_yet")} aria-label={cloudState === "saved" ? t("fin.cloud_saved") : t("fin.cloud_not_yet")} className={cloudState === "saved" ? "text-green-500" : "text-muted-foreground"}>{cloudState === "saved" ? <Cloud size={14} strokeWidth={1.5} aria-hidden /> : <CloudOff size={14} strokeWidth={1.5} aria-hidden />}</span>}   {/* r.041 (addenda 76–77): "TRANSACTION RECORD"; a broken chain is still said */}
           </summary>
           <div data-fin-ledger-scroll className="mt-2 overflow-x-auto">
             <table data-fin-ledger-table className="min-w-full whitespace-nowrap font-mono text-xs text-muted-foreground">

@@ -120,4 +120,18 @@ ok(/^[0-9a-f]{16}$/.test(rec.entries[0].hash) && R.chainHash(R.GENESIS, dep, 1, 
   ok(X.isOperator("Explore@eXeL-AI.com ") && !X.isOperator("someone@else.com") && !X.isOperator(undefined), "offered only to his account");
   ok(X.OPERATOR_WITHDRAWAL.amount === "250.66" && X.OPERATOR_WITHDRAWAL.field === "D.auto_renters_home", "the withdrawal is prefilled, never invented (its day, time and length are his)");
 }
+// ── r.055 (addendum 112): the cloud copy merges without ever dropping an entry ──
+{
+  const C = await import("../lib/financial-2525/cloud.ts");
+  const d = { id: "d1", kind: "deposit", amountCents: 360449, atMs: 1, motDays: 30 };
+  const one = R.append(R.emptyRecord("o"), d, 1), two = R.append(one, { ...d, id: "d2" }, 2), other = R.append(R.emptyRecord("o"), { ...d, id: "x" }, 3);
+  let m = C.mergeRecords(R.emptyRecord("o"), two); ok(m.current.entries.length === 2 && !m.keep && !m.push, "empty device + cloud record → the cloud record is taken whole");
+  m = C.mergeRecords(two, null); ok(m.current === two && m.push && !m.keep, "device record + empty cloud → pushed");
+  m = C.mergeRecords(two, one); ok(m.current === two && m.push && !m.keep, "device ahead of the cloud → device kept and pushed");
+  m = C.mergeRecords(one, two); ok(m.current.entries.length === 2 && !m.push && !m.keep, "cloud ahead of the device → cloud taken");
+  m = C.mergeRecords(two, other); ok(m.current === two && m.keep === other && m.push, "diverged → the device copy stays and the cloud copy is KEPT whole (never dropped)");
+  ok((await C.ownerKeyFor("auth0|abc"))?.length === 64 && (await C.ownerKeyFor("auth0|abc")) === (await C.ownerKeyFor("auth0|abc")) && (await C.ownerKeyFor("auth0|abc")) !== (await C.ownerKeyFor("auth0|abd")), "the account key is a stable 64-hex hash of the sign-in id");
+  ok(C.PUSH_EVERY_MS === 12 * 3600 * 1000, "pushed again every 12 hours");
+  ok(!/delete|remove/i.test(C.cloudPut.toString() + C.mergeRecords.toString()), "the cloud path has no delete");
+}
 console.log(`financial-accrual: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

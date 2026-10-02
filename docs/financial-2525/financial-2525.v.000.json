@@ -4,8 +4,8 @@
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.054",
-  "stamp": "v.000_r.054",
+  "revision": "0.055",
+  "stamp": "v.000_r.055",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "208f36a49b11dc110fac1290ffd22fac317c1e36e3da51a644bdc623fefddf47",
@@ -819,6 +819,14 @@
    "why": "His budget is never changed by a revision. Addendum 114: \"STOP WORKING BUDGET( I FIXED ALREADY).  only adjust transactions\"; addendum 116 (7:22, his normal tab): \"my transactions are back now; thanks\" with Fixed 1,671.37 · Variable 1,140.00 · Net 1,113.12. Correction of r.053: r.053 read a budget saved per 33 days through the 30-day month, which would have moved his screen by about 1% (Fixed 1,652.98) — r.054 reads it exactly as r.052 showed it, so every figure he sees stays. The two lines of machine language are gone (addendum 115 + his answer \"Current implementation looks good accept unneeded text\"): the note under the budget (\"Cash, investments, debts … not in this budget\") and the line under the record (\"On this phone only — a cloud copy follows once sign-in carries it\"). Nothing else changed.",
    "commit": "d9e0f4d",
    "shipped": "7d6e1ea"
+  },
+  {
+   "revision": "0.055",
+   "date": "2026-10-02",
+   "kind": "decision",
+   "why": "His record and budget live in his account, not only on one phone. Addendum 112: \"SAVE AN PUSH TO SUPABASE. Identify all saving functions and make sure push is made automatically as well as every 12 hours\"; his answer: \"Account-ID key (fastest)\". The saving functions: the record (each transaction · Put back my entries) and the budget (every edit · Reset). Signed in, both are read back from the account once and merged without ever dropping an entry (a diverged copy is kept whole under its own name); every change after that is pushed (a short pause so a burst of typing is one write), and again every 12 hours while the page is open and on return when 12 hours have passed. Stored through the existing account table's guarded functions (no public table access), keyed by a SHA-256 of his sign-in id — the account-ID key he chose: anyone who learned his sign-in id could read it (recorded, his decision). A small cloud beside Transaction Record turns green when the account copy is written (its time on hold); crossed until then. Under the budget, his line (addendum 119, \"Short\"): \"Plan the month. Watch spending by the minute. Keep your savings on track.\" No budget figure changes.",
+   "commit": "e040250",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2342,6 +2350,12 @@
    "decision": "No revision changes a budget figure he sees; the two machine-language lines (budget note, record footer) are removed.",
    "status": "OPERATOR",
    "basis": "addenda 114–116 (verbatim)"
+  },
+  {
+   "id": "FD-75",
+   "decision": "The record and budget are pushed to his account on every change and every 12 hours and read back on sign-in, merged without dropping an entry; keyed by a hash of his sign-in id (his pick: account-ID key, weaker than verified sign-in — recorded).",
+   "status": "OPERATOR",
+   "basis": "addendum 112 + his answer; addendum 119 (purpose line)"
   }
  ],
  "reviews": [
