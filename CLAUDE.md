@@ -18,6 +18,10 @@
      Master inputs").** Every revision is simulated on the built page and reviewed by the AsM reviewer lenses against his own words
      before it is pushed; their findings are fixed first. The operator is the last check, never the first.
   7. **Push and commit first; notes can come later — the operator must be able to check.** Release notes never delay a push.
+- **FEEDBACK FILES ARE TIME-STAMPED; FEEDBACK IS METHODS, NOT CODE (operator 2026-10-03: "dont code; just identify methods for grok;
+  any feedback should be time stamped in file name for md file 2026.10.03_HH.MM..ss").** Every feedback .md written for Grok or the
+  operator is named `YYYY.MM.DD_HH.MM..SS_<topic>.md` (CST, -6), the stamp taken when the file is written. When the work is feedback,
+  name the methods, files and tests for Grok to build; do not write the code.
 - **PERSIST FIRST, PLAN SECOND, APPROVE THIRD (AAR 2026-08-28, MoT-enforced).** Anything the operator hands
   over that he cannot easily reproduce — approved copy, a decision, a specification — is **written to a file
   before any analysis, planning, or request for approval**. Proof of persistence is a **hash the operator can
