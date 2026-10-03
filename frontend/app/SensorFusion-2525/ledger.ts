@@ -123,7 +123,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "release",
       text: "Training uses the six icons from the original training video: capture video, add annotations, upload images, develop models, download the model, and run live. Develop, download, and run live are not connected yet.",
-      commit: "",
+      commit: "95f8156",
     },
   ],
 };
