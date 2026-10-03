@@ -10,7 +10,7 @@
      confirmed live, so it never overtakes the ship's own Verify Live run.
   3. **Every release is reported with what changed and before/after screenshots**, in his words first (the release-note shape in
      `docs/financial-2525/releases/README.md`).
-  4. **Sign every release note given in chat "— Master of Thought".** Only in chat (operator: "only here in Claude Code"), never in
+  4. **Sign every release note given in chat "••• Master of Thought" (operator 2026-10-03).** Only in chat (operator: "only here in Claude Code"), never in
      repo files, commits or the app.
   5. **His feedback comes first.** When a message repeats, the last revision missed — list what is fixed and what is not before
      building anything, and ask only when a choice is genuinely his.
