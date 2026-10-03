@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sensor Fusion</title>
 <style>
   html,body { margin:0; height:100%; background:#3E505C; color:#fff; font-family:Roboto,system-ui,sans-serif; }
@@ -20,9 +20,9 @@
   header img.logo { height:22px; width:auto; max-width:120px; object-fit:contain; }
   #sensor { display:flex; align-items:center; gap:8px; background:none; border:0; color:#fff; font-size:clamp(14px, 4vw, 22px); font-weight:700; cursor:pointer; }
   .icons { margin-left:auto; display:flex; gap:10px; align-items:center; }
-  a.dl { width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #9be7ff; color:#9be7ff; border-radius:8px; text-decoration:none; }
+  a.dl { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #9be7ff; color:#9be7ff; border-radius:8px; text-decoration:none; }
   a.dl svg { width:16px; height:16px; }
-  .icons button, footer button { background:none; border:0; color:#fff; cursor:pointer; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:32px; min-height:32px; }
+  .icons button, footer button { background:none; border:0; color:#fff; cursor:pointer; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:44px; min-height:44px; }
   .icons img, #sensor img, footer img, .annotate img { height:16px; width:16px; object-fit:contain; }
   main { position:relative; background:#3E505C; min-height:0; }
   video, #boxes { width:100%; height:100%; object-fit:cover; background:#000; }
@@ -310,6 +310,23 @@ document.addEventListener("keydown", (e) => {
 fillModels();
 paint();
 showMenu();
+function fitScreen() {
+  var view = window.visualViewport;
+  var grid = document.querySelector(".grid");
+  if (!view || !grid) return;
+  grid.style.position = "fixed";
+  grid.style.left = Math.round(view.offsetLeft) + "px";
+  grid.style.top = Math.round(view.offsetTop) + "px";
+  grid.style.width = Math.round(view.width) + "px";
+  grid.style.height = Math.round(view.height) + "px";
+}
+fitScreen();
+window.addEventListener("resize", fitScreen);
+window.addEventListener("orientationchange", fitScreen);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", fitScreen);
+  window.visualViewport.addEventListener("scroll", fitScreen);
+}
 </script>
 </body>
 </html>

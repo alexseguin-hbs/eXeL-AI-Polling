@@ -166,8 +166,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 6px;
   border: 1px solid var(--sf-line, #143a3a);
   background: transparent;
@@ -405,8 +405,8 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-width: 32px;
-  min-height: 32px;
+  min-width: 44px;
+  min-height: 44px;
   border: 0;
   background: transparent;
   color: #fff;
@@ -489,9 +489,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
   border-radius: 8px;
   border: 1px solid var(--sf-primary, #00e5ff);
   color: var(--sf-primary, #00e5ff);

@@ -261,6 +261,7 @@ export default function SensorFusion() {
         const session = await cnn.load(model);
         if (stop) return;
         setCnnNote("Running detect.tflite");
+        let failed = false;
         const loop = async () => {
           if (stop) return;
           const video = videoRef.current;
@@ -269,10 +270,16 @@ export default function SensorFusion() {
             try {
               const result = await cnn.detect(session, video);
               cnn.draw(canvas, video, result, showScoresRef.current, showLabelsRef.current, showFpsRef.current);
+              if (failed) {
+                failed = false;
+                setCnnNote("Running detect.tflite");
+              }
             } catch (err) {
               console.error(err);
-              if (!stop) setCnnNote("The detector could not start on this device.");
-              stop = true;
+              if (!failed && !stop) {
+                failed = true;
+                setCnnNote("The detector could not start on this device.");
+              }
             }
           }
           if (!stop) window.setTimeout(loop, 40);
