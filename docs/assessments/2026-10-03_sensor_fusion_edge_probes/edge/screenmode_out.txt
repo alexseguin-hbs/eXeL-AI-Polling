@@ -1,0 +1,9 @@
+http://192.0.2.2:8525/ {
+ "isSecureContext": false,
+ "camera_api": false,
+ "crypto_subtle": false,
+ "wasm": true,
+ "browser_cnn": "DETECT 5 boxes, 63.4 ms, hash a7ddedd6fdc4e664",
+ "node_cnn": "DETECT 4 boxes, 141.5 ms, hash f9ec36c21ba39e2f"
+}
+page errors: []

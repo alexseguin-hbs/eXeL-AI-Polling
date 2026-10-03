@@ -58,3 +58,12 @@
 - A dropped download: urlretrieve writes straight onto the model file. A link that drops after 1 MB left 1,000,000 of 4,183,312 bytes and the model would not open (grok/short_download.py). Write to a temp name, check the size, then rename.
 - fetch() downloads 2 of the 3 files (labelmap + the one .tflite in use), so a folder fetched on a no-Coral machine has no edgetpu.tflite and cannot simply be carried to a Coral machine (addendum 1: the folder is the unit that moves).
 - The model list is typed three times (sensor_fusion_edge.py:35-47, cnn.js:9-21, sf.ts:23-35); the folder could be the list, as edge_node.py does.
+## The phone as a SCREEN for a Pi camera (edge/screenmode.mjs) - no certificate, no internet
+- The node's own page opened over plain http at its LAN address (192.0.2.2:8525): isSecureContext false, no camera API, no crypto.subtle - and still: the browser CNN ran (DETECT 5 boxes, 63 ms), the node CNN answered same-origin (DETECT 4 boxes, 141 ms).
+- The same page from loopback (a secure context): the same two hashes, a7ddedd6fdc4e664 and f9ec36c21ba39e2f. The envelope hash is identical with and without WebCrypto.
+- That needed one fix in the reference page: crypto.subtle does not exist on an http page, so the first run died at sha16(). A plain-JS SHA-256 (checked equal to Node's crypto on 4 inputs) now runs there. Same class for any HMAC/room-key signing in the browser: keep a plain-JS fallback or serve HTTPS.
+- => Camera on the Pi (turret, manta): the phone needs no HTTPS and no internet - it is only a screen. Camera on the phone: the page must be HTTPS (the live site is).
+## Grok's cnn.js with the two fixes, over time and on an older browser (grok/cnn_leak_simd.mjs)
+- 300 detections of Head on one picture: tf.memory() 0 tensors / 0 kB after 0, 100 and 300 calls - nothing leaks. Median 70 ms.
+- With WASM SIMD refused (an older phone or browser): the runtime picks its plain build by itself (tflite_web_api_cc.js) and still finds the head, still 0 tensors leaked - median 269 ms, 3.8x slower, about 3.7 FPS on this CPU, just under the 4-6 FPS bar. On such a device the start-up chooser should hand the CNN to the node.
+- Each load first asks dist/ for the runtime (one 404) and then wasm/ - harmless, one wasted request.
