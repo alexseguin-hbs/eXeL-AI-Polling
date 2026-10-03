@@ -195,6 +195,22 @@ export default function SensorFusion() {
   }, []);
 
   useEffect(() => {
+    const fit = () => {
+      const height = window.visualViewport?.height ?? window.innerHeight;
+      document.documentElement.style.setProperty("--sf-h", `${Math.round(height)}px`);
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    window.addEventListener("orientationchange", fit);
+    window.visualViewport?.addEventListener("resize", fit);
+    return () => {
+      window.removeEventListener("resize", fit);
+      window.removeEventListener("orientationchange", fit);
+      window.visualViewport?.removeEventListener("resize", fit);
+    };
+  }, []);
+
+  useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) {
       const skipped = window.localStorage.getItem("sf2525-guest") === "1";
@@ -423,7 +439,7 @@ export default function SensorFusion() {
   const file = modelFile(coral);
 
   return (
-    <main className={styles.screen}>
+    <main className={`${styles.screen} ${styles.work}`}>
       <header className={styles.piTop}>
         <button type="button" className={styles.logoBtn} onClick={() => setStep("menu")} title="Menu">
           <img className={styles.logo} src="/sensor-fusion/sensor_fusion_logo_001.png" alt="sensor fusion" />
@@ -488,6 +504,7 @@ export default function SensorFusion() {
         )}
         {error && <p className={styles.alert}>{error}</p>}
       </section>
+      <div className={styles.dock}>
       <nav className={styles.piBot}>
         <button type="button" className={showScores ? styles.botOn : styles.bot} onClick={() => setShowScores((on) => !on)}>
           <img src={showScores ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />%
@@ -524,6 +541,7 @@ export default function SensorFusion() {
         {showScores ? " · %" : ""}
       </p>
       <Downloads />
+      </div>
       {annotate && (
         <div className={styles.modalWrap}>
           <div className={styles.modal} role="dialog" aria-label="Annotate">

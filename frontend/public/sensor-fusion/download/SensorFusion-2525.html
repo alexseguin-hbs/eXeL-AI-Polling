@@ -6,7 +6,14 @@
 <title>Sensor Fusion</title>
 <style>
   html,body { margin:0; height:100%; background:#3E505C; color:#fff; font-family:Roboto,system-ui,sans-serif; }
-  .grid { display:grid; grid-template-rows:8vh 1fr 11vh auto; height:100%; }
+  .grid { display:grid; grid-template-rows:auto minmax(0,1fr) auto auto; height:100dvh; height:100svh; }
+  @media (orientation: landscape) and (max-height: 520px) {
+    .grid { grid-template-columns: 1fr minmax(200px, 34vw); grid-template-rows: auto minmax(0,1fr) auto; }
+    header { grid-column: 1 / -1; }
+    main { grid-column: 1; grid-row: 2; }
+    footer { grid-column: 2; grid-row: 2; flex-direction: column; align-items: stretch; overflow: auto; }
+    .path { grid-column: 1 / -1; }
+  }
   header, footer { background:#212121; display:flex; align-items:center; gap:12px; padding:0 12px; }
   header img.logo { height:70%; }
   #sensor { display:flex; align-items:center; gap:8px; background:none; border:0; color:#fff; font-size:22px; font-weight:700; cursor:pointer; }

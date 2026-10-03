@@ -55,6 +55,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "A phone or a PC runs detect.tflite in the browser, the same way the Python script does: resize the frame, run the model, draw the box and the name. Coral's file stays on a computer that has the chip.",
       commit: "",
     },
+    {
+      rev: 8,
+      date: "2026-10-03",
+      kind: "release",
+      text: "Held upright, the controls stay under the camera. Turned sideways, the camera keeps the height and the controls sit beside it.",
+      commit: "",
+    },
   ],
 };
 
