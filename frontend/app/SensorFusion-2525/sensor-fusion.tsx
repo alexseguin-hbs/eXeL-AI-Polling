@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Settings } from "lucide-react";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
@@ -143,8 +143,248 @@ function SettingsSheet({
     </div>
   );
 }
-type Step = "login" | "menu" | "work";
+type Step = "login" | "menu" | "work" | "label";
 type Shot = { id: string; url: string };
+type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number };
+
+function clampPct(value: number) {
+  return Math.min(100, Math.max(0, Math.round(value)));
+}
+
+function Labeler({
+  shots,
+  operator,
+  onBack,
+}: {
+  shots: Shot[];
+  operator: string;
+  onBack: () => void;
+}) {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const drag = useRef<"tl" | "br" | null>(null);
+  const [pics, setPics] = useState<Shot[]>(shots);
+  const [index, setIndex] = useState(0);
+  const [labelName, setLabelName] = useState("deer");
+  const [left, setLeft] = useState(20);
+  const [top, setTop] = useState(15);
+  const [right, setRight] = useState(70);
+  const [bottom, setBottom] = useState(80);
+  const [marks, setMarks] = useState<Record<string, Mark[]>>({});
+  const [note, setNote] = useState("");
+  const pic = pics[index];
+
+  useEffect(() => {
+    if (!supabase) return;
+    let stop = false;
+    void supabase
+      .from("sensor_fusion_pictures")
+      .select("id,name,jpeg")
+      .order("created_at", { ascending: false })
+      .limit(40)
+      .then(({ data }) => {
+        if (stop || !data?.length) return;
+        setPics((current) => {
+          const seen = new Set(current.map((item) => item.id));
+          const extra = data
+            .filter((row) => row.jpeg && !seen.has(String(row.id)))
+            .map((row) => ({ id: String(row.id), url: String(row.jpeg) }));
+          return extra.length ? [...extra, ...current] : current;
+        });
+      });
+    return () => {
+      stop = true;
+    };
+  }, []);
+
+  function point(event: ReactPointerEvent) {
+    const box = stageRef.current?.getBoundingClientRect();
+    if (!box || !box.width || !box.height) return null;
+    return {
+      x: clampPct(((event.clientX - box.left) / box.width) * 100),
+      y: clampPct(((event.clientY - box.top) / box.height) * 100),
+    };
+  }
+
+  function onMove(event: ReactPointerEvent) {
+    if (!drag.current) return;
+    const at = point(event);
+    if (!at) return;
+    if (drag.current === "tl") {
+      setLeft(at.x);
+      setTop(at.y);
+    } else {
+      setRight(at.x);
+      setBottom(at.y);
+    }
+  }
+
+  function addFiles(files: FileList | null) {
+    if (!files?.length) return;
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const url = String(reader.result || "");
+        if (!url) return;
+        setPics((current) => [{ id: `${Date.now()}-${file.name}`, url }, ...current]);
+        setIndex(0);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function saveBox() {
+    if (!pic) return;
+    const mark: Mark = {
+      id: `${Date.now()}`,
+      name: labelName.trim() || "deer",
+      left,
+      top,
+      right,
+      bottom,
+    };
+    const next = { ...marks, [pic.id]: [...(marks[pic.id] || []), mark] };
+    setMarks(next);
+    const rows = Object.entries(next).flatMap(([picture, list]) =>
+      list.map((item) => ({ picture, ...item })),
+    );
+    window.localStorage.setItem("sf2525-labels", JSON.stringify(rows));
+    const file = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(file);
+    link.download = "sensor-fusion-labels.json";
+    link.click();
+    URL.revokeObjectURL(link.href);
+    setNote("The box is saved on this phone. Share it with the team?");
+  }
+
+  async function shareTeam() {
+    const rows = Object.entries(marks).flatMap(([picture, list]) => list.map((item) => ({ picture, ...item })));
+    if (!rows.length) {
+      setNote("Draw a box and save it first.");
+      return;
+    }
+    if (!supabase) {
+      setNote("The labels stay on this phone. The cloud is not connected.");
+      return;
+    }
+    const { error } = await supabase.from("sensor_fusion_labels").insert(
+      rows.map((item) => ({
+        owner_key: operator || "guest",
+        picture_id: item.picture,
+        name: item.name,
+        x1: item.left,
+        y1: item.top,
+        x2: item.right,
+        y2: item.bottom,
+      })),
+    );
+    setNote(error ? "The labels stayed on this phone. The team copy was not saved." : "The team can see these labels.");
+  }
+
+  const boxLeft = Math.min(left, right);
+  const boxTop = Math.min(top, bottom);
+  const boxWidth = Math.abs(right - left);
+  const boxHeight = Math.abs(bottom - top);
+
+  return (
+    <main className={styles.screen}>
+      <header className={styles.piTop}>
+        <button type="button" className={styles.ghost} onClick={onBack}>
+          Menu
+        </button>
+        <span className={styles.who}>Image labeler</span>
+      </header>
+      <div className={styles.fill}>
+        <p className={styles.muted}>Pictures collected by the team show here after they are uploaded. Add more from this device.</p>
+        <label className={styles.file}>
+          Add pictures
+          <input type="file" accept="image/*" multiple onChange={(event) => addFiles(event.target.files)} />
+        </label>
+        {pics.length > 1 && (
+          <div className={styles.film}>
+            {pics.map((item, itemIndex) => (
+              <button key={item.id} type="button" className={itemIndex === index ? styles.filmOn : styles.filmItem} onClick={() => setIndex(itemIndex)}>
+                <img src={item.url} alt="" />
+              </button>
+            ))}
+          </div>
+        )}
+        {pic ? (
+          <div
+            className={styles.labelStage}
+            ref={stageRef}
+            onPointerMove={onMove}
+            onPointerUp={() => {
+              drag.current = null;
+            }}
+          >
+            <img src={pic.url} alt="" />
+            <div className={styles.markBox} style={{ left: `${boxLeft}%`, top: `${boxTop}%`, width: `${boxWidth}%`, height: `${boxHeight}%` }} />
+            <button
+              type="button"
+              className={styles.handle}
+              style={{ left: `${left}%`, top: `${top}%` }}
+              aria-label="Left top corner"
+              onPointerDown={(event) => {
+                drag.current = "tl";
+                event.currentTarget.setPointerCapture(event.pointerId);
+              }}
+            />
+            <button
+              type="button"
+              className={styles.handle}
+              style={{ left: `${right}%`, top: `${bottom}%` }}
+              aria-label="Bottom right corner"
+              onPointerDown={(event) => {
+                drag.current = "br";
+                event.currentTarget.setPointerCapture(event.pointerId);
+              }}
+            />
+          </div>
+        ) : (
+          <p className={styles.muted}>No pictures yet. Turn the camera on and save some, or add pictures from this device.</p>
+        )}
+        <label>
+          Label name
+          <input value={labelName} onChange={(event) => setLabelName(event.target.value)} />
+        </label>
+        <div className={styles.corners}>
+          <label>
+            Left
+            <input type="number" min={0} max={100} value={left} onChange={(event) => setLeft(clampPct(Number(event.target.value)))} />
+          </label>
+          <label>
+            Top
+            <input type="number" min={0} max={100} value={top} onChange={(event) => setTop(clampPct(Number(event.target.value)))} />
+          </label>
+          <label>
+            Right
+            <input type="number" min={0} max={100} value={right} onChange={(event) => setRight(clampPct(Number(event.target.value)))} />
+          </label>
+          <label>
+            Bottom
+            <input type="number" min={0} max={100} value={bottom} onChange={(event) => setBottom(clampPct(Number(event.target.value)))} />
+          </label>
+        </div>
+        <div className={styles.actions}>
+          <button type="button" onClick={saveBox} disabled={!pic}>
+            SAVE BOX
+          </button>
+          <button type="button" onClick={() => void shareTeam()} disabled={!pic}>
+            SHARE WITH TEAM
+          </button>
+        </div>
+        {note && <p className={styles.muted}>{note}</p>}
+        {pic && (marks[pic.id] || []).map((mark) => (
+          <p key={mark.id} className={styles.path}>
+            {mark.name} · left {mark.left} top {mark.top} right {mark.right} bottom {mark.bottom}
+          </p>
+        ))}
+      </div>
+      <Foot accent="#00e5ff" />
+    </main>
+  );
+}
 
 function paint(id: SchemeId | "custom", hex: string) {
   if (id === "custom") {
@@ -427,10 +667,13 @@ export default function SensorFusion() {
       setPoseNote(true);
       return;
     }
+    if (item.go === "label") {
+      setStep("label");
+      return;
+    }
     setCoral(item.coral);
     if (item.model) setModel(item.model);
     window.localStorage.setItem("sf2525-host", platform);
-    if (item.go === "label") setAnnotate(true);
     setStep("work");
   }
 
@@ -470,6 +713,10 @@ export default function SensorFusion() {
         <Foot accent={accent} />
       </main>
     );
+  }
+
+  if (step === "label") {
+    return <Labeler shots={shots} operator={operator} onBack={() => setStep("menu")} />;
   }
 
   if (step === "menu") {

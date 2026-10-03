@@ -615,3 +615,66 @@
     grid-row: 1 / -1;
   }
 }
+.labelStage {
+  position: relative;
+  width: min(100%, 720px);
+  margin: 12px auto;
+  touch-action: none;
+  background: #000;
+}
+.labelStage img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.markBox {
+  position: absolute;
+  border: 2px solid #0cff00;
+  pointer-events: none;
+}
+.handle {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  margin-top: -14px;
+  border-radius: 50%;
+  border: 2px solid #0cff00;
+  background: #fff;
+  padding: 0;
+  touch-action: none;
+}
+.corners {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.corners input,
+.file input,
+.fill input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+.film {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+.filmItem,
+.filmOn {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 48px;
+  padding: 0;
+  border: 2px solid transparent;
+  background: #000;
+}
+.filmOn {
+  border-color: #0cff00;
+}
+.film img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

@@ -264,7 +264,51 @@ function pick(item){
   fillModels();
   closeSheet();
   paint();
-  if (item[4] === "label") showAnnotate();
+  if (item[4] === "label") { showLabel(); return; }
+}
+function showLabel(){
+  openSheet("Image labeler",
+    '<p>Add a picture the team collected. Name it, then set the left, top, right and bottom of the box. 0 is the edge. 100 is the far edge.</p>'+
+    '<input id="labFile" type="file" accept="image/*">'+
+    '<div id="labStage" style="position:relative;margin-top:8px"><img id="labPic" alt="" style="width:100%;display:none"><div id="labBox" style="position:absolute;border:2px solid #0cff00;display:none"></div></div>'+
+    '<label>Label name <input id="labName" value="deer"></label>'+
+    '<label>Left <input id="labL" type="number" min="0" max="100" value="20"></label>'+
+    '<label>Top <input id="labT" type="number" min="0" max="100" value="15"></label>'+
+    '<label>Right <input id="labR" type="number" min="0" max="100" value="70"></label>'+
+    '<label>Bottom <input id="labB" type="number" min="0" max="100" value="80"></label>',
+    '<button type="button" id="labSave">SAVE BOX</button><button type="button" id="backMenu">Menu</button>');
+  const draw = () => {
+    const pic = $("labPic");
+    const box = $("labBox");
+    if (!pic.src) return;
+    const l = Math.min(+$("labL").value, +$("labR").value);
+    const t = Math.min(+$("labT").value, +$("labB").value);
+    const w = Math.abs(+$("labR").value - +$("labL").value);
+    const h = Math.abs(+$("labB").value - +$("labT").value);
+    box.style.display = "block";
+    box.style.left = l + "%";
+    box.style.top = t + "%";
+    box.style.width = w + "%";
+    box.style.height = h + "%";
+  };
+  ["labL","labT","labR","labB"].forEach(id => { $(id).oninput = draw; });
+  $("labFile").onchange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => { $("labPic").src = reader.result; $("labPic").style.display = "block"; draw(); };
+    reader.readAsDataURL(file);
+  };
+  $("labSave").onclick = () => {
+    const row = { name: $("labName").value || "deer", left: +$("labL").value, top: +$("labT").value, right: +$("labR").value, bottom: +$("labB").value };
+    const blob = new Blob([JSON.stringify(row, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = (row.name || "label") + "-box.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  $("backMenu").onclick = showMenu;
 }
 function showAnnotate(){
   $("sheetTitle").textContent = "Save pictures";
