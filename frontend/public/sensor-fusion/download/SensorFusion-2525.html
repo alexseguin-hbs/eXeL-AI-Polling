@@ -6,7 +6,7 @@
 <title>Sensor Fusion</title>
 <style>
   html,body { margin:0; height:100%; background:#3E505C; color:#fff; font-family:Roboto,system-ui,sans-serif; }
-  .grid { display:grid; grid-template-rows:auto minmax(0,1fr) auto auto; height:100dvh; height:100svh; }
+  .grid { display:grid; grid-template-rows:auto minmax(0,1fr) auto auto; height:100dvh; height:100svh; width:100%; box-sizing:border-box; padding-left:env(safe-area-inset-left,0px); padding-right:env(safe-area-inset-right,0px); }
   @media (orientation: landscape) and (max-height: 520px) {
     .grid { grid-template-columns: 1fr minmax(200px, 34vw); grid-template-rows: auto minmax(0,1fr) auto; }
     header { grid-column: 1 / -1; }
@@ -14,9 +14,11 @@
     footer { grid-column: 2; grid-row: 2; flex-direction: column; align-items: stretch; overflow: auto; }
     .path { grid-column: 1 / -1; }
   }
-  header, footer { background:#212121; display:flex; align-items:center; gap:12px; padding:0 12px; }
+  header, footer { background:#212121; display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; min-width:0; padding:8px 12px; }
+  header { padding-top:max(8px, env(safe-area-inset-top, 0px)); }
+  footer { padding-bottom:max(8px, env(safe-area-inset-bottom, 0px)); justify-content:space-around; }
   header img.logo { height:22px; width:auto; max-width:120px; object-fit:contain; }
-  #sensor { display:flex; align-items:center; gap:8px; background:none; border:0; color:#fff; font-size:22px; font-weight:700; cursor:pointer; }
+  #sensor { display:flex; align-items:center; gap:8px; background:none; border:0; color:#fff; font-size:clamp(14px, 4vw, 22px); font-weight:700; cursor:pointer; }
   .icons { margin-left:auto; display:flex; gap:10px; align-items:center; }
   a.dl { width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #9be7ff; color:#9be7ff; border-radius:8px; text-decoration:none; }
   a.dl svg { width:16px; height:16px; }
@@ -27,7 +29,6 @@
   #boxes { position:absolute; inset:0; background:transparent; pointer-events:none; }
   .off { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; }
   .fps { position:absolute; left:16px; top:16px; color:#ffe600; font-weight:700; margin:0; }
-  footer { justify-content:space-around; }
   footer select, .sheet select, .sheet input { font-size:16px; }
   .path { background:#212121; margin:0; padding:4px 12px 8px; font-size:12px; color:#d0d0d0; }
   .on { color:#b6ffb0; }

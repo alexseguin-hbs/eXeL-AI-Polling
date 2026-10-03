@@ -1,14 +1,17 @@
 .screen {
   position: fixed;
-  inset: 0;
+  left: var(--sf-x, 0px);
+  top: var(--sf-y, 0px);
   z-index: 70;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
-  width: 100%;
+  width: var(--sf-w, 100%);
   height: var(--sf-h, 100dvh);
   max-height: var(--sf-h, 100dvh);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
   background: #3e505c;
   color: #fff;
   font-family: Roboto, system-ui, sans-serif;
@@ -363,15 +366,20 @@
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  min-width: 0;
   padding: 8px 12px;
   background: #212121;
   color: #fff;
 }
+.piTop {
+  padding-top: max(8px, env(safe-area-inset-top, 0px));
+}
 .piBot {
   justify-content: space-around;
-  flex-wrap: wrap;
-  min-height: 11vh;
+  min-height: 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
   background: #212121;
 }
 .who {
@@ -385,7 +393,7 @@
   border: 0;
   background: transparent;
   color: #fff;
-  font-size: 22px;
+  font-size: clamp(14px, 4vw, 22px);
   font-weight: 700;
   cursor: pointer;
 }

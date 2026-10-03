@@ -211,17 +211,23 @@ export default function SensorFusion() {
 
   useEffect(() => {
     const fit = () => {
-      const height = window.visualViewport?.height ?? window.innerHeight;
-      document.documentElement.style.setProperty("--sf-h", `${Math.round(height)}px`);
+      const view = window.visualViewport;
+      const root = document.documentElement.style;
+      root.setProperty("--sf-h", `${Math.round(view?.height ?? window.innerHeight)}px`);
+      root.setProperty("--sf-w", `${Math.round(view?.width ?? window.innerWidth)}px`);
+      root.setProperty("--sf-x", `${Math.round(view?.offsetLeft ?? 0)}px`);
+      root.setProperty("--sf-y", `${Math.round(view?.offsetTop ?? 0)}px`);
     };
     fit();
     window.addEventListener("resize", fit);
     window.addEventListener("orientationchange", fit);
     window.visualViewport?.addEventListener("resize", fit);
+    window.visualViewport?.addEventListener("scroll", fit);
     return () => {
       window.removeEventListener("resize", fit);
       window.removeEventListener("orientationchange", fit);
       window.visualViewport?.removeEventListener("resize", fit);
+      window.visualViewport?.removeEventListener("scroll", fit);
     };
   }, []);
 
