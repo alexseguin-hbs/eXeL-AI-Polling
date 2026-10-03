@@ -127,8 +127,67 @@ function SettingsSheet({
   );
 }
 type Step = "login" | "menu" | "work" | "label";
-type Shot = { id: string; url: string };
+type Shot = { id: string; url: string; name?: string };
 type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number };
+type Edge = "l" | "r" | "t" | "b";
+
+function pictureName(shot: Shot) {
+  return shot.name || `${shot.id}.jpg`;
+}
+
+function xmlName(fileName: string) {
+  return fileName.replace(/\.[^.]+$/, "") + ".xml";
+}
+
+function escapeXml(value: string) {
+  return value
+    .replace(/&/g, "&" + "amp;")
+    .replace(/</g, "&" + "lt;")
+    .replace(/>/g, "&" + "gt;")
+    .replace(/"/g, "&" + "quot;");
+}
+
+function vocXml(fileName: string, width: number, height: number, objects: Mark[]) {
+  const boxes = objects
+    .map((item) => {
+      const xmin = Math.round((Math.min(item.left, item.right) / 100) * width);
+      const xmax = Math.round((Math.max(item.left, item.right) / 100) * width);
+      const ymin = Math.round((Math.min(item.top, item.bottom) / 100) * height);
+      const ymax = Math.round((Math.max(item.top, item.bottom) / 100) * height);
+      return `  <object>
+    <name>${escapeXml(item.name)}</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>${xmin}</xmin>
+      <ymin>${ymin}</ymin>
+      <xmax>${xmax}</xmax>
+      <ymax>${ymax}</ymax>
+    </bndbox>
+  </object>`;
+    })
+    .join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<annotation>
+  <folder>Pictures</folder>
+  <filename>${escapeXml(fileName)}</filename>
+  <size>
+    <width>${width}</width>
+    <height>${height}</height>
+    <depth>3</depth>
+  </size>
+${boxes}
+</annotation>
+`;
+}
+
+function downloadBlob(fileName: string, href: string) {
+  const link = document.createElement("a");
+  link.href = href;
+  link.download = fileName;
+  link.click();
+}
 
 function clampPct(value: number) {
   return Math.min(100, Math.max(0, Math.round(value)));
@@ -144,7 +203,9 @@ function Labeler({
   onBack: () => void;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
-  const drag = useRef<"tl" | "br" | null>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const drag = useRef<Edge | null>(null);
+  const edges = useRef({ left: 20, top: 15, right: 70, bottom: 80 });
   const [pics, setPics] = useState<Shot[]>(shots);
   const [index, setIndex] = useState(0);
   const [labelName, setLabelName] = useState("deer");
@@ -155,6 +216,7 @@ function Labeler({
   const [marks, setMarks] = useState<Record<string, Mark[]>>({});
   const [note, setNote] = useState("");
   const pic = pics[index];
+  edges.current = { left, top, right, bottom };
 
   useEffect(() => {
     if (!supabase) return;
@@ -170,7 +232,11 @@ function Labeler({
           const seen = new Set(current.map((item) => item.id));
           const extra = data
             .filter((row) => row.jpeg && !seen.has(String(row.id)))
-            .map((row) => ({ id: String(row.id), url: String(row.jpeg) }));
+            .map((row) => ({
+              id: String(row.id),
+              url: String(row.jpeg),
+              name: row.name ? String(row.name) : undefined,
+            }));
           return extra.length ? [...extra, ...current] : current;
         });
       });
@@ -192,13 +258,11 @@ function Labeler({
     if (!drag.current) return;
     const at = point(event);
     if (!at) return;
-    if (drag.current === "tl") {
-      setLeft(at.x);
-      setTop(at.y);
-    } else {
-      setRight(at.x);
-      setBottom(at.y);
-    }
+    const edge = edges.current;
+    if (drag.current === "l") setLeft(clampPct(Math.min(at.x, edge.right - 1)));
+    if (drag.current === "r") setRight(clampPct(Math.max(at.x, edge.left + 1)));
+    if (drag.current === "t") setTop(clampPct(Math.min(at.y, edge.bottom - 1)));
+    if (drag.current === "b") setBottom(clampPct(Math.max(at.y, edge.top + 1)));
   }
 
   function addFiles(files: FileList | null) {
@@ -208,14 +272,14 @@ function Labeler({
       reader.onload = () => {
         const url = String(reader.result || "");
         if (!url) return;
-        setPics((current) => [{ id: `${Date.now()}-${file.name}`, url }, ...current]);
+        setPics((current) => [{ id: `${Date.now()}-${file.name}`, url, name: file.name }, ...current]);
         setIndex(0);
       };
       reader.readAsDataURL(file);
     });
   }
 
-  function saveBox() {
+  async function saveBox() {
     if (!pic) return;
     const mark: Mark = {
       id: `${Date.now()}`,
@@ -225,19 +289,20 @@ function Labeler({
       right,
       bottom,
     };
-    const next = { ...marks, [pic.id]: [...(marks[pic.id] || []), mark] };
+    const list = [...(marks[pic.id] || []), mark];
+    const next = { ...marks, [pic.id]: list };
     setMarks(next);
-    const rows = Object.entries(next).flatMap(([picture, list]) =>
-      list.map((item) => ({ picture, ...item })),
-    );
+    const rows = Object.entries(next).flatMap(([picture, items]) => items.map((item) => ({ picture, ...item })));
     window.localStorage.setItem("sf2525-labels", JSON.stringify(rows));
-    const file = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(file);
-    link.download = "sensor-fusion-labels.json";
-    link.click();
-    URL.revokeObjectURL(link.href);
-    setNote("The box is saved on this phone. Share it with the team?");
+    const fileName = pictureName(pic);
+    const image = imgRef.current;
+    const width = image?.naturalWidth || image?.width || 1;
+    const height = image?.naturalHeight || image?.height || 1;
+    const xml = vocXml(fileName, width, height, list);
+    const xmlFile = xmlName(fileName);
+    downloadBlob(xmlFile, URL.createObjectURL(new Blob([xml], { type: "application/xml" })));
+    if (pic.url.startsWith("data:")) downloadBlob(fileName, pic.url);
+    setNote(`Saved ${fileName} and ${xmlFile}.`);
   }
 
   async function shareTeam() {
@@ -301,25 +366,45 @@ function Labeler({
               drag.current = null;
             }}
           >
-            <img src={pic.url} alt="" />
+            <img ref={imgRef} src={pic.url} alt="" />
             <div className={styles.markBox} style={{ left: `${boxLeft}%`, top: `${boxTop}%`, width: `${boxWidth}%`, height: `${boxHeight}%` }} />
             <button
               type="button"
-              className={styles.handle}
-              style={{ left: `${left}%`, top: `${top}%` }}
-              aria-label="Left top corner"
+              className={`${styles.edge} ${styles.edgeX}`}
+              style={{ left: `${boxLeft}%`, top: `${boxTop + boxHeight * 0.15}%`, height: `${boxHeight * 0.7}%` }}
+              aria-label="Move the left side"
               onPointerDown={(event) => {
-                drag.current = "tl";
+                drag.current = "l";
                 event.currentTarget.setPointerCapture(event.pointerId);
               }}
             />
             <button
               type="button"
-              className={styles.handle}
-              style={{ left: `${right}%`, top: `${bottom}%` }}
-              aria-label="Bottom right corner"
+              className={`${styles.edge} ${styles.edgeX}`}
+              style={{ left: `${boxLeft + boxWidth}%`, top: `${boxTop + boxHeight * 0.15}%`, height: `${boxHeight * 0.7}%` }}
+              aria-label="Move the right side"
               onPointerDown={(event) => {
-                drag.current = "br";
+                drag.current = "r";
+                event.currentTarget.setPointerCapture(event.pointerId);
+              }}
+            />
+            <button
+              type="button"
+              className={`${styles.edge} ${styles.edgeY}`}
+              style={{ left: `${boxLeft + boxWidth * 0.15}%`, top: `${boxTop}%`, width: `${boxWidth * 0.7}%` }}
+              aria-label="Move the top side"
+              onPointerDown={(event) => {
+                drag.current = "t";
+                event.currentTarget.setPointerCapture(event.pointerId);
+              }}
+            />
+            <button
+              type="button"
+              className={`${styles.edge} ${styles.edgeY}`}
+              style={{ left: `${boxLeft + boxWidth * 0.15}%`, top: `${boxTop + boxHeight}%`, width: `${boxWidth * 0.7}%` }}
+              aria-label="Move the bottom side"
+              onPointerDown={(event) => {
+                drag.current = "b";
                 event.currentTarget.setPointerCapture(event.pointerId);
               }}
             />
@@ -327,6 +412,7 @@ function Labeler({
         ) : (
           <p className={styles.muted}>No pictures yet. Turn the camera on and save some, or add pictures from this device.</p>
         )}
+        {pic && <p className={styles.fileName}>{pictureName(pic)}</p>}
         <label>
           Label name
           <input value={labelName} onChange={(event) => setLabelName(event.target.value)} />
@@ -584,7 +670,7 @@ export default function SensorFusion() {
       if (!ctx) continue;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const url = canvas.toDataURL("image/jpeg", 0.7);
-      next.push({ id: `${Date.now()}-${i}`, url });
+      next.push({ id: `${Date.now()}-${i}`, url, name: `${(name || "capture").replace(/[^\w.-]+/g, "-")}-${i + 1}.jpg` });
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((file) => resolve(file), "image/jpeg", 0.7));
       if (blob) {
         const link = document.createElement("a");

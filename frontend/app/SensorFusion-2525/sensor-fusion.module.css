@@ -684,20 +684,32 @@
 }
 .markBox {
   position: absolute;
+  box-sizing: border-box;
   border: 2px solid #0cff00;
   pointer-events: none;
 }
-.handle {
+.edge {
   position: absolute;
-  width: 28px;
-  height: 28px;
-  margin-left: -14px;
-  margin-top: -14px;
-  border-radius: 50%;
-  border: 2px solid #0cff00;
-  background: #fff;
+  border: 0;
   padding: 0;
+  background: transparent;
   touch-action: none;
+}
+.edgeX {
+  width: 44px;
+  margin-left: -22px;
+  cursor: ew-resize;
+}
+.edgeY {
+  height: 44px;
+  margin-top: -22px;
+  cursor: ns-resize;
+}
+.fileName {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  color: #d7dde0;
+  word-break: break-all;
 }
 .corners {
   display: grid;
