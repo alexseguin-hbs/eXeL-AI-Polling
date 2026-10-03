@@ -14,7 +14,6 @@ import {
   applyTheme,
   detectPlatform,
   explainCamera,
-  modelFile,
   sensorPath,
   type PlatformId,
   type SchemeId,
@@ -49,22 +48,6 @@ function ProgramDownload() {
         <path d="M5 21h14" />
       </svg>
     </a>
-  );
-}
-
-function Downloads() {
-  return (
-    <p className={styles.links}>
-      <a href="/sensor-fusion/download/sensor_fusion_edge.py">
-        Download the program
-      </a>
-      <a href="/sensor-fusion/download/SensorFusion-2525.html" download="SensorFusion-2525.html">
-        Download
-      </a>
-      <a href="/sensor-fusion/SensorFusion-2525.html" target="_blank" rel="noreferrer">
-        Open full screen
-      </a>
-    </p>
   );
 }
 
@@ -753,10 +736,6 @@ export default function SensorFusion() {
           {poseNote && (
             <p className={styles.alert}>Pose is not designed yet. It does not have the three files the other models use.</p>
           )}
-          <p className={styles.muted}>
-            Download the program. Each time it runs, it pulls the latest copy into Home/SensorFusion, then runs that copy. It uses detect.tflite on a Mac, Ubuntu, a Raspberry Pi, or Windows. A phone uses this page.
-          </p>
-          <Downloads />
         </div>
         <SettingsSheet open={settings} scheme={scheme} customHex={customHex} onClose={() => setSettings(false)} onScheme={chooseScheme} />
         <Foot accent={accent} />
@@ -765,7 +744,6 @@ export default function SensorFusion() {
   }
 
   const current = MODELS.find((item) => item.id === model) ?? MODELS[0];
-  const file = modelFile(coral);
 
   return (
     <main className={`${styles.screen} ${styles.work}`}>
@@ -885,12 +863,6 @@ export default function SensorFusion() {
           )}
         </button>
       </nav>
-      <p className={styles.path}>
-        {sensorPath(platform, [current.folder, "Sample_TFLite_model", file])}
-        {showLabels ? ` · ${current.sees}` : ""}
-        {showScores ? " · %" : ""}
-      </p>
-      <Downloads />
       </div>
       {annotate && (
         <div className={styles.modalWrap}>

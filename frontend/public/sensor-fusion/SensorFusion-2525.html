@@ -83,7 +83,6 @@
     <button type="button" id="annotate" class="annotate" aria-label="Annotate"><img id="annImg" alt=""></button>
     <button type="button" id="upload"><img id="upImg" alt=""><span>Upload Images</span></button>
   </footer>
-  <p class="path" id="path"></p>
 </div>
 <div class="sheet hide" id="sheet">
   <div class="card" role="dialog" aria-label="Sensor Fusion">
@@ -181,8 +180,6 @@ function paint(){
   $("fps").classList.toggle("hide", !showFps);
   $("scores").classList.toggle("on", showScores);
   $("labels").classList.toggle("on", showLabels);
-  const m = current();
-  $("path").textContent = folderPath() + (showLabels ? " · " + m[3] : "") + (showScores ? " · %" : "") + (coral ? " · Coral" : " · no Coral");
 }
 function fillModels(){
   const list = $("modelList");
@@ -232,7 +229,7 @@ async function runCnn(){
     };
     loop();
   } catch (err) {
-    $("path").textContent = (err && err.message) || "The model did not start.";
+    alert((err && err.message) || "The model did not start.");
   }
 }
 function openSheet(title, html, links){
