@@ -31,8 +31,8 @@ export const FINANCIAL_DOMAIN = {
   "name": "Financial-2525",
   "family": "Vision • 2525 Level-3 Domain Play — the MoT Financial System",
   "version": "000",
-  "revision": "0.073",
-  "stamp": "v.000_r.073",
+  "revision": "0.074",
+  "stamp": "v.000_r.074",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-30_financial_2525_mot_financial_system.md",
   "handoffSha256": "fa9fca3aa1ed58c773aeedfaeb13b48e0e4ef7742cf7d47c0e9e76ff98e24987",
@@ -1263,6 +1263,14 @@ export const FINANCIAL_DOMAIN = {
    "why": "Round 1 of 33 (B-38, resumed under addendum 161 \"address backlog, make your own decisions MoT\"): the reviewer lenses walked the transaction journey on r.072 and found three paths that lost a finished entry — a Monthly entry's length edit had no effect (the correction kept the preset the month law reads as 30 days), two tabs or two devices set each other's entries aside where no screen reads them (5 of 10 visible after two tabs alternated), and a page left open 12 hours pushed its opening record, budget and cards back over the account. Now a save, a sync and another tab's save UNITE the copies (every transaction of both; the edit recorded last wins; ids that collide are renamed, never dropped); the account is read before it is written and a failed read writes nothing; every timer calls the latest sync; a change made just before the page is hidden is sent at once and a failed send is retried when the network returns; a full phone keeps the form open with what was typed and tries the same save again; Put back my entries waits for the account copy. One reader for typed amounts (1,234.56 and $50 are amounts; Infinity, 1e400, 0x10 and 12,50 are not) and strict dates (2026.02.31 is refused, never moved). The editor comes into view focused, shows the length the entry is counted at and appends nothing when nothing changed; refusals name the right fix and are announced; the Record and every pencil are read as what they show. And addendum 163 (\"remove history in Cyan. you can have history in supabase to see changes.\"): the cyan edit marks leave the Transaction Record — the # column shows the entry number only; every correction stays on the record and in the account copy (FD-95). And addendum 164 (\"all fields in edit of Transaction record should be possible to edit\" — he could not move a 320 deposit from Upside to Wages): the pencil carries every field the form has — Type, Amount, Day and time, Section, Field, Length, Memo, Paid from, Card paid — each saved as a correction (FD-96). And addendum 165 (\"full screen mode with financial chart messes up. not all is legible\" — his 7:20 photo): the chart's full screen covers the screen the person SEES — placed and sized to the visual viewport and following it — so a phone that zoomed the page in (iOS does when a box under 16 px gets the focus) no longer cuts it at both edges (measured on r.072's layer: 8 controls past the right edge at ×1.14, the left edge too at ×1.33; 0 after, at 320 · 390 · 428 px) (FD-99). And the reviewer lenses' pre-push review (FIX-FIRST, 1 blocker / 7 should-fix, kept verbatim) folded before the push: a correction is identified by what it says AND when it was made, so an edit back to an earlier value is never taken for the first one (100 → 120 → 150 → 120 united with a phone copy read 150.00 and Available 145.00; now 120.00 and 115.00); every new entry or correction is stamped after the record's latest, so a clock set back never makes a later edit lose (FD-97); an account row r.072's stale push reverted (the same time, other lines) is repaired; an account copy that fails its chain is kept aside once, not on every sync; the account features wait for a read that succeeded, retried every 30 s and when the network returns; 'saved to your account' only after a sync that holds the record as it is now; after a failed save, a change in the form corrects the entry the device would not keep instead of recording a second one (FD-98); the editor and the retry follow an entry a union renamed; the budget and the card settings read typed figures with strict readers (0x10, 1e3 and 1e400 never set a line or a card); a budget the device would not keep says so in its own words; a repeated refusal is announced again; the unit beside a typed length has its own name; the save warnings name the device one way. And addendum 168 (\"the trinity logo should be method from Main and already use right text sizes\" · \"make red spending on chart: Spending — Change to : Expenses\"): the opened Trinity logo is drawn exactly the way Main draws it — the same component call at Main's 240 px with the component's own text size, so its labels sit inside their rings (FD-100, retiring FD-89's Financial-only font) — and the chart's red line reads Expenses (FD-101). And addendum 171 (\"if the expense circle overlaps (left or right edge overlaps with another expense, merge). 2700.66 and 155.44 should merge (sum up) as one red dot\"): expense dots merge into one summed dot whenever their circles reach each other side to side, whatever their heights — a chain merges whole (FD-102). Then the second pre-push review (rounds/r073_prepush_review2.md: four lenses on the BUILT page — 2 blockers / 9 should-fix), folded before the push: a really full phone refused the budget's lines but took their time and sent its old lines over the account's newer copy, and identical cards handed back in the account store's own key order went up again on every sync and beat a newer rename made on another device — the time now travels with what it dates, copies are compared without regard to key order, and an edit is never dated before the newest time the device has seen (FD-103); \"saved to your account\" is shown only while the account holds exactly what the page shows (FD-104); a budget figure that does not read puts the line back and says why, and per second the box keeps every decimal the line needs (FD-105); a card in credit can be edited again; the full-screen chart fits a landscape phone. The page-level halves run on the built page after every build (scripts/fin-sync-probe.mjs, fin-layout-smoke in landscape). Then the twelve-lens review (rounds/r073_asm12.md: 7 PUSH, 5 FIX-FIRST, 4 blockers), folded before the push: an untouched budget is never dated and every return to the page reads the account first (FD-106); a card in credit saves; five small classes closed. No budget figure changes. Round record: docs/financial-2525/rounds/r073.md.",
    "commit": "d8c7c36",
    "shipped": "28541b7"
+  },
+  {
+   "revision": "0.074",
+   "date": "2026-10-03",
+   "kind": "decision",
+   "why": "Addendum 188 (\"landscape on PC is not full width; please fix just like we did for Security-2525 Mision Planning. Landscape on phone should also work\") with his answer to addenda 183–184 (\"Same column, full width\"): the 768 px column cap is gone — the one column spans the screen on a PC and on a phone held sideways, every card within the 16 px gutters. The $ chart's drawing widens with its card instead of growing taller (its height stops at 300 px at rest; full screen uses the height the screen leaves, now across the whole width); a phone held upright still draws the same 360 × 150 picture; strokes keep their size at any width. Nothing else moved: same order, same cards, same figures.",
+   "commit": "a4e303c",
+   "shipped": "PENDING"
   }
  ],
  "mot": {
@@ -2377,6 +2385,25 @@ export const FINANCIAL_DOMAIN = {
    "phase": "pilot",
    "mode": "Manual",
    "status": "implemented"
+  },
+  {
+   "id": "FIN-07.06",
+   "title": "One column, the full width of a PC and of a phone held sideways",
+   "section": "V",
+   "uwf": [
+    "U-WF-07",
+    "U-WF-09"
+   ],
+   "verify": "scripts/fin-layout-smoke.mjs",
+   "statement": "The Financial surface keeps its one column and spans the screen: on a PC (1280–1920 px wide) and on a phone in landscape every card is the screen's width less the 16 px gutters, nothing scrolls sideways, and the $ chart stretches across its card at a readable height (100–300 px).",
+   "metric": "fin-layout-smoke: at 1440×900 · 1280×720 · 1920×1080 · 844×390 the column spans the screen, every card ≥ screen − 34 px, page width = screen, the $ chart ≥ card − 40 px wide and 100–300 px tall; financial-surface: no max-w column class on the surface",
+   "dtm": "the column is the screen's width on a PC and on a phone held sideways",
+   "stretch": "a two-column wide layout once he asks for one (not asked)",
+   "in": "FIN-07.06.IN",
+   "out": "FIN-07.06.OUT",
+   "phase": "pilot",
+   "mode": "Manual",
+   "status": "implemented"
   }
  ],
  "decisions": [
@@ -3015,6 +3042,12 @@ export const FINANCIAL_DOMAIN = {
    "decision": "A budget this device never edited (the sheet) is never dated: it goes to the account at time 0 and never repairs a tie, so any real edit from any device wins over it. Every return to the page reads the account before anything is sent.",
    "status": "DECLARED",
    "basis": "r.073 twelve-lens review — Christo and Krishna (an untouched device's sheet beat an offline edit: 2000 → 700 everywhere) and Odin (a phone back within 12 hours sent its stale budget over another device's line)"
+  },
+  {
+   "id": "FD-107",
+   "decision": "One column, full width: the Financial surface has no width cap; on a PC and on a phone in landscape every card is the screen's width less the 16 px gutters, as Security-2525 Mission Planning fills its screen. The $ chart gains width, never height beyond 300 px at rest.",
+   "status": "OPERATOR",
+   "basis": "Addendum 184 (his answer \"Same column, full width\") and addendum 188 (\"fix just like we did for Security-2525 Mision Planning. Landscape on phone should also work\")"
   }
  ],
  "reviews": [

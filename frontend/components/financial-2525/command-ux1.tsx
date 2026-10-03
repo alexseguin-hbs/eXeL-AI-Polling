@@ -6,7 +6,7 @@
  * "financial 2525 uses shell from as UI/UX STARTING POINT FROM ◬ ♡ 웃 Session" (addendum 7) · "remember max R-CORE
  * REUSE · BEHIND SCENES IS A.B..C but UX IS DEFAULTED IN day hour, Min" (addendum 8).
  *
- * So this screen IS the Session's screen with money in it: the same root (mx-auto max-w-3xl), the same header (the
+ * So this screen IS the Session's screen with money in it: the same root (one column — r.074, addendum 188: full width on a PC and a phone in landscape, the Mission Planning way), the same header (the
  * globe, the Trinity glyphs, a title), the same one card (the step rail was removed in r.038, addendum 73), the same "your turn" guide card,
  * the same roster list, the same ACTIVE clock block (the big mono number is money released, ticking at $/min), the
  * same phone strip, the same folded Trinity logo, the same footer line — every piece imported from the Session's own
@@ -18,7 +18,9 @@
  * whole (its revolution = 3600 A), its day, hours, minutes, seconds and year anchor (addendum 12 — "everything should
  * modularly adjust"). A.B..C is the standard for all planets; the glass converts to the planet's LTU.
  */
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+// r.074 review: measure before paint in the browser (no one-frame jump to a tall chart), a plain effect while the page is pre-rendered
+const useBeforePaint = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 import { Check, ChevronDown, ChevronRight, Clock, Maximize2, Orbit, Pencil, Plus, Settings, X } from "lucide-react";
 import { CategoryIcon, FieldIcon, SectionIcon } from "@/components/financial-2525/category-icon";   // addendum 19: every category carries its icon; r.012: every section too
 import { useAuth0 } from "@auth0/auth0-react";
@@ -674,7 +676,7 @@ export function FinancialCommandUX1() {
   // pb-20 on the phone: the app's bottom bar (56 px) covers the page's last rows, so the page's last element — the R-CORE badge and
   // its maximized icon — sits above it (measured 2026-09-30; r.017 took the fixed strip out of the way, nothing on this surface floats).
   return (
-    <div data-financial-ux1 className="mx-auto max-w-3xl px-4 pb-20 pt-3 sm:pb-10">
+    <div data-financial-ux1 className="w-full px-4 pb-20 pt-3 sm:pb-10">
       {/* Header — the Session's: the globe, the Trinity glyphs, the title ───────────────────────── */}
       <header data-fin-header className="mb-3 text-center">   {/* r.042 (addendum 76, his third request): the header is smaller — focus is the outcome */}
         {/* r.034 (addendum 67): "eXeL AI" upper left takes the person back to /main; the eXeL Polling Settings (the colour selector)
@@ -1386,7 +1388,18 @@ function CardChart({ card, txs, now, t }: { card: Card; txs: FinTx[]; now: numbe
   </>);
 }
 function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFmt, onDateFmt, angle, onAngle, locale, netPerSec = 0 }: { tx: FinTx; txs: FinTx[]; now: number; t: (k: string) => string; netPerSec?: number; planet: PlanetLtuRow; showAbc: boolean; onToggle: (v: boolean) => void; selector?: ReactNode; dateFmt: DateFmt; onDateFmt: (f: DateFmt) => void; angle: DateAngle; onAngle: (a: DateAngle) => void; locale: string }) {
-  const W = 360, H = 150, P = 10;
+  // r.074 (addendum 188 "landscape on PC is not full width"): the $ view spans the card's full width. The drawing keeps 150 units of height
+  // and gains width as the card widens, so a wide screen draws a longer chart instead of a taller one (the height stops at 300 px; in full
+  // screen it is the height the screen leaves, r.073); a phone held upright still draws the 360 × 150 it always did. Strokes keep their size.
+  const H = 150, P = 10;
+  const plotRef = useRef<HTMLDivElement | null>(null);
+  const [plotW, setPlotW] = useState(0);
+  // r.064 (addendum 135 "wheres my expand for financial chart"; his answer "Full screen"): the card fills the screen, a ✕ brings it back
+  const [full, setFull] = useState(false);
+  const [vh, setVh] = useState(800);
+  const [fitH, setFitH] = useState(0);   // r.073: the full-screen chart's measured height (fitted below)
+  const usdH = full ? fitH || Math.max(100, vh - 260) : Math.min(300, (plotW * H) / 360);
+  const W = plotW > 0 && usdH > 0 ? Math.max(360, Math.round((H * plotW) / usdH)) : 360;
   // the plot's LEFT edge moves in when dates show, so the first date at 30° never runs off the card (r.025)
   // r.052 (addendum 101 "i need $ on left y axis"): the plot starts right of the $ scale, and never left of the first date at 30°
   const PL = Math.max(Y_AXIS_W, showAbc || angle === 0 || angle === 90 ? P + 4 : dateFmt === "full" ? 48 : dateFmt === "mmdd" ? 26 : 14);
@@ -1457,9 +1470,6 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
       </select>
     </label>
   );
-  // r.064 (addendum 135 "wheres my expand for financial chart"; his answer "Full screen"): the card fills the screen, a ✕ brings it back
-  const [full, setFull] = useState(false);
-  const [vh, setVh] = useState(800);
   // r.073 (addendum 165 "full screen mode with financial chart messes up. not all is legible"): the full-screen view covers the screen the
   // person SEES — the visual viewport — not the page's layout width. A phone that zoomed the page in (iOS does when a box under 16 px gets
   // the focus) showed only part of a layout-sized view: cut at both edges (measured at ×1.14: 8 controls past the right edge; at ×1.33 the
@@ -1491,7 +1501,6 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
   // r.073 second pre-push review (Athena — his addendum 165 again, in landscape): the chart takes the height LEFT in the visible screen, never a
   // fixed floor of 300 px (844×390 at rest showed the canvas at 136–436 px of a 390 px screen: dates cut, the legend and the unit picker gone).
   // Measured after each paint: whatever does not fit comes off the chart, whatever room is left goes to it (floor 100 px, ceiling the screen).
-  const [fitH, setFitH] = useState(0);
   useEffect(() => { setFitH(0); }, [vh]);   // r.073 twelve-lens (Enlil): a taller screen after rotating starts again from its own height
   useEffect(() => {
     if (!full) { if (fitH) setFitH(0); return; }
@@ -1501,6 +1510,12 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
     if (!fitH || Math.abs(next - cur) > 2) setFitH(next);
   });
   const chartH = full ? fitH || Math.max(100, vh - 260) : 300;
+  useBeforePaint(() => {
+    const el = plotRef.current; if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => setPlotW(Math.round(el.clientWidth)));
+    ro.observe(el); setPlotW(Math.round(el.clientWidth));
+    return () => ro.disconnect();
+  }, [rate]);
   const sample = dayTicks(from, to, 6)[0] ?? from;
   return (
     <div ref={layerRef} data-fin-chart data-fin-chart-full={full ? "1" : "0"} role={full ? "dialog" : undefined} aria-modal={full || undefined} aria-label={full ? t("fin.realtime") : undefined} className={full ? "fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden bg-background p-3" : SUB} style={full && vv ? { left: vv.l, top: vv.t, width: vv.w, height: vv.h, right: "auto", bottom: "auto" } : undefined}>
@@ -1549,13 +1564,13 @@ function MotChart({ tx, txs, now, t, planet, showAbc, onToggle, selector, dateFm
       <p data-fin-chart-probe className="mt-2 min-h-[16px] font-mono text-xs text-foreground">{probe !== null && (showAbc ? fmtMot(positionInYear(probe, planet.yearAnchor, planet.yearDays).abc) : `${fmtStampCST(probe)} CST`)}</p>
       {/* r.053 (addendum 110 "Like a stock chart I should be able to click and see values at that day/time"): the values at the tapped point */}
       {probeBal && <p data-fin-chart-values className="flex flex-wrap gap-x-3 font-mono text-xs tabular-nums"><span style={{ color: C.abundance }}>{t("fin.released")} {money2(probeBal.releasedCents)}</span><span style={{ color: C.intelligence }}>{t("fin.escrowed")} {money2(probeBal.escrowedCents)}</span><span className="text-foreground">{t("fin.available")} {money2(probeBal.availableCents)}</span>{probeNet !== null && <span className={probeNet < 0 ? "text-red-500" : "text-green-500"}>{t("fin.net")} {money2(probeNet)}</span>}</p>}
-      <div data-fin-usd-fit style={full ? { maxWidth: Math.round((chartH * W) / H) } : undefined}>
-      <div data-fin-chart-plot className="relative mt-2">
+      <div data-fin-usd-fit>
+      <div ref={plotRef} data-fin-chart-plot className="relative mt-2">
       {/* the $ scale on the LEFT (addendum 101), HTML beside the strokes (the chart paints no face), in the picked currency */}
       <div data-fin-y-axis aria-hidden className="pointer-events-none absolute inset-0 font-mono text-[10px] text-muted-foreground">
         {yTicks.map((v) => <span key={v} className="absolute left-0 -translate-y-1/2 whitespace-nowrap tabular-nums" style={{ top: `${((y(v) / H) * 100).toFixed(2)}%` }}>{yLabel(v)}</span>)}
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="block h-auto cursor-crosshair" style={live ? { touchAction: "pan-y" } : undefined} role="img" aria-label={t("fin.chart_tap")} data-fin-chart-svg onClick={probeAt} onPointerDown={onPDown} onPointerMove={onPMove} onPointerUp={onPUp} onPointerCancel={onPUp} onPointerLeave={onPUp}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" className={`block h-auto cursor-crosshair${W > 360 ? " [&_*]:[vector-effect:non-scaling-stroke]" : ""}`} style={live ? { touchAction: "pan-y" } : undefined} role="img" aria-label={t("fin.chart_tap")} data-fin-chart-svg onClick={probeAt} onPointerDown={onPDown} onPointerMove={onPMove} onPointerUp={onPUp} onPointerCancel={onPUp} onPointerLeave={onPUp}>
         <rect x={PL} y={P} width={W - PL - P} height={H - 2 * P} fill="none" stroke="var(--border)" strokeWidth={hair} />
         {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={PL + f * (W - PL - P)} y1={P} x2={PL + f * (W - PL - P)} y2={H - P} stroke="var(--border)" strokeWidth={hair} />)}
         <polyline fill="none" stroke={C.intelligence} strokeWidth={hair} points={poly((p) => p.escrowed)} />

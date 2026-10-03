@@ -21,6 +21,7 @@
  *   --extend  optional selector whose box is unioned with --area (e.g. the form that opens below the card)
  *   --inside  optional selector; prints whether its box lies inside the --area box (the measurement in the note)
  *   --maxh    optional: crop the capture to this many CSS px from the top of the area (e.g. the top of the page)
+ *   --vw/--vh optional viewport (default 390 × 844; r.074 shoots 1440 × 900 and 844 × 390)
  *   --suffix  optional name part for a second view of the same release (r.037-after-open.png)
  *
  * Prints one JSON line: { file, area:{w,h}, inside?, count?, errors }. Exit 1 when the area is missing or the page errored.
@@ -76,7 +77,9 @@ const INIT = `try { localStorage.setItem("exel-active-locale","en"); localStorag
 const { chromium } = await import("playwright");
 await mkdir(OUTDIR, { recursive: true });
 const browser = await chromium.launch({ executablePath: exe });
-const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+// r.074: --vw/--vh for a release about a wider screen (a PC 1440 × 900, a phone held sideways 844 × 390); the phone upright is the default
+const VW = Number(arg("vw", "390")), VH = Number(arg("vh", "844"));
+const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: VW > 900 ? 1 : 2 });
 await ctx.addInitScript(INIT);
 const page = await ctx.newPage();
 const errors = [];

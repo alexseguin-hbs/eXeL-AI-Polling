@@ -111,10 +111,59 @@ try {
     }
     await ctx.close();
   }
+  // r.074 review: a phone held upright keeps the very drawing it had — the $ chart's viewBox stays 0 0 360 150
+  {
+    const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+    await ctx.addInitScript(INIT);
+    const p = await ctx.newPage();
+    p.on('pageerror', e=>errors.push(`390 upright: ${e.message}`));
+    await p.goto(`http://127.0.0.1:${PORT}/financial-2525/`, { waitUntil:'networkidle', timeout:30000 });
+    await p.waitForSelector('[data-fin-tx-open]', { timeout: 15000 });
+    await p.click('[data-fin-tx-open]'); await p.waitForSelector('#fin-transaction-form');
+    await p.selectOption('[data-fin-type]', 'deposit'); await p.fill('[data-fin-amount-input]', '3604.49');
+    await p.locator('#fin-transaction-form').getByLabel('Day and time (CST)').fill('2026.10.01_08.00..00');
+    await p.selectOption('[data-fin-length="transaction"]', 'paymot'); await p.click('[data-fin-record]');
+    await p.waitForSelector('[data-fin-chart]', { timeout: 10000 });
+    await p.selectOption('[data-fin-chart-unit]', 'usd'); await p.waitForTimeout(300);
+    const vb = await p.evaluate(() => document.querySelector('[data-fin-chart-svg]')?.getAttribute('viewBox'));
+    ok(vb === '0 0 360 150', `390 upright: the $ chart keeps its 360 × 150 drawing (viewBox ${vb})`);
+    await ctx.close();
+  }
+  // r.074 (addendum 188 "landscape on PC is not full width; please fix just like we did for Security-2525 Mision Planning. Landscape on phone
+  // should also work"; his answer "Same column, full width"): on a PC and on a phone held sideways the one column spans the screen — every card
+  // within the 16 px gutters — and the $ chart stretches with it, never taller than 300 px at rest.
+  for (const [w, hgt, mobile] of [[1440, 900, false], [1280, 720, false], [1920, 1080, false], [844, 390, true]]) {
+    const ctx = await b.newContext({ viewport: { width: w, height: hgt }, ...(mobile ? { deviceScaleFactor: 2, isMobile: true, hasTouch: true } : {}) });
+    await ctx.addInitScript(INIT);
+    const p = await ctx.newPage();
+    p.on('pageerror', e=>errors.push(`${w}×${hgt}: ${e.message}`));
+    await p.goto(`http://127.0.0.1:${PORT}/financial-2525/`, { waitUntil:'networkidle', timeout:30000 });
+    await p.waitForSelector('[data-fin-tx-open]', { timeout: 15000 });
+    // the chart and the Record appear once a transaction is recorded — record one through the real form
+    await p.click('[data-fin-tx-open]'); await p.waitForSelector('#fin-transaction-form');
+    await p.selectOption('[data-fin-type]', 'deposit'); await p.fill('[data-fin-amount-input]', '3604.49');
+    await p.locator('#fin-transaction-form').getByLabel('Day and time (CST)').fill('2026.10.01_08.00..00');
+    await p.selectOption('[data-fin-length="transaction"]', 'paymot'); await p.click('[data-fin-record]');
+    await p.waitForSelector('[data-fin-chart]', { timeout: 10000 });
+    const r = await p.evaluate(() => {
+      const W = document.documentElement.clientWidth, root = document.querySelector('[data-financial-ux1]').getBoundingClientRect();
+      const cards = ['[data-fin-chart]', '[data-fin-ledger]', '[data-fin-tx-open]'].map((q) => document.querySelector(q)?.closest('[data-financial-ux1] > *')).filter(Boolean);
+      const narrow = cards.filter((el) => el.getBoundingClientRect().width < W - 2 * 16 - 2).map((el) => Math.round(el.getBoundingClientRect().width));
+      return { W, l: Math.round(root.left), r: Math.round(root.right), n: cards.length, narrow, doc: document.documentElement.scrollWidth };
+    });
+    ok(r.l <= 1 && r.r >= r.W - 1, `${w}×${hgt}: the column spans the screen (${r.l}…${r.r} of ${r.W})`);
+    ok(r.n >= 2 && r.narrow.length === 0, `${w}×${hgt}: every card is the screen's width less the 16 px gutters (${r.n} cards${r.narrow.length ? ' · narrow ' + r.narrow.join(', ') : ''})`);
+    ok(r.doc <= r.W + 1, `${w}×${hgt}: nothing pushes the page sideways (${r.doc} of ${r.W})`);
+    await p.locator('[data-fin-chart]').scrollIntoViewIfNeeded();
+    await p.selectOption('[data-fin-chart-unit]', 'usd'); await p.waitForTimeout(300);
+    const u = await p.evaluate(() => { const card = document.querySelector('[data-fin-chart]').getBoundingClientRect(), svg = document.querySelector('[data-fin-chart-svg]')?.getBoundingClientRect(); return svg ? { cw: Math.round(card.width), sw: Math.round(svg.width), sh: Math.round(svg.height) } : null; });
+    ok(!!u && u.sw >= u.cw - 40 && u.sh <= 301 && u.sh >= 100, `${w}×${hgt}: the $ chart stretches across its card and keeps a readable height (${u ? u.sw + ' of ' + u.cw + ' wide · ' + u.sh + ' px tall' : 'no chart'})`);
+    await ctx.close();
+  }
   ok(errors.length===0, `no page errors (${errors.length}${errors.length?': '+errors.slice(0,3).join(' | '):''})`);
   await b.close();
 } catch (e) {
   console.log('FAIL: layout smoke could not run —', e.message); fail++;
 } finally { srv.close(); }
-console.log(`\nfin-layout-smoke: ${pass} passed, ${fail} failed · nothing on the Financial page pushes a phone sideways; the full-screen chart fits the visible screen at rest and zoomed`);
+console.log(`\nfin-layout-smoke: ${pass} passed, ${fail} failed · nothing on the Financial page pushes a phone sideways; the column spans a PC and a phone held sideways; the full-screen chart fits the visible screen at rest and zoomed`);
 process.exit(fail?1:0);

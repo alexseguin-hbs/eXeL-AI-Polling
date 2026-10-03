@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 146 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 147 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1031,6 +1031,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.073 shipped and LIVE (Verify Live #2258) — round 1 of 33: a finished entry is never lost (two tabs and two devices united, a full phone keeps the form and retries, an edit is a correction); his addenda 163–171 (no cyan history, every field editable, the full-screen chart legible, the Trinity logo as Main draws it, Expenses, overlapping dots merged); three reviews folded before the push — the budget and the cards never go back to an older copy, \"saved to your account\" only when it is (FD-92–FD-106). Rebased onto the Sensor Fusion work on main.",
       "commit": "28541b7"
+    },
+    {
+      "rev": 147,
+      "date": "2026-10-03",
+      "kind": "decision",
+      "text": "r.074 decision — addendum 188 with his answer \"Same column, full width\": the 768 px column cap is gone; on a PC and on a phone held sideways every card is the screen's width less the 16 px gutters, the $ chart gains width (never more than 300 px tall at rest), a phone held upright draws as before (FD-107, FIN-07.06).",
+      "commit": "a4e303c"
     }
   ]
 };
