@@ -39,10 +39,22 @@ function loadCnn(): Promise<{
   });
 }
 
+function ProgramDownload() {
+  return (
+    <a className={styles.dl} href="/sensor-fusion/download/sensor_fusion_edge.py" title="Download the program" aria-label="Download the program">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 3v12" />
+        <path d="M6 9l6 6 6-6" />
+        <path d="M5 21h14" />
+      </svg>
+    </a>
+  );
+}
+
 function Downloads() {
   return (
     <p className={styles.links}>
-      <a href="/sensor-fusion/edge/sensor_fusion_edge.py" download="sensor_fusion_edge.py">
+      <a href="/sensor-fusion/download/sensor_fusion_edge.py">
         Download the program
       </a>
       <a href="/sensor-fusion/download/SensorFusion-2525.html" download="SensorFusion-2525.html">
@@ -400,6 +412,7 @@ export default function SensorFusion() {
         <header className={styles.piTop}>
           <img className={styles.logo} src="/sensor-fusion/sensor_fusion_logo_001.png" alt="sensor fusion" />
           <span className={styles.who}>{who}</span>
+          <ProgramDownload />
           <button type="button" className={styles.iconBtn} onClick={() => setSettings(true)} aria-label="Settings">
             <Settings aria-hidden />
           </button>
@@ -457,6 +470,7 @@ export default function SensorFusion() {
           SENSOR 1: {busy ? "…" : sensorOn ? "ON" : "OFF"}
         </button>
         <div className={styles.row}>
+          <ProgramDownload />
           <button type="button" className={styles.iconBtn} aria-label="Info" onClick={() => setInfoOpen((open) => !open)}>
             <img src={`${UI}/info_002.png`} alt="" />
           </button>

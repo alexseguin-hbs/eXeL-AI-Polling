@@ -68,3 +68,9 @@
   Cache-Control: no-cache, must-revalidate
   Content-Type: text/html; charset=utf-8
   Content-Disposition: attachment; filename="SensorFusion-2525.html"
+
+# Same save function as Vision-2525. The phone saves the program instead of showing it.
+/sensor-fusion/download/sensor_fusion_edge.py
+  Cache-Control: no-cache, must-revalidate
+  Content-Type: text/plain; charset=utf-8
+  Content-Disposition: attachment; filename="sensor_fusion_edge.py"

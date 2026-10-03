@@ -66,7 +66,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       rev: 9,
       date: "2026-10-03",
       kind: "release",
-      text: "Download the program. Each time it runs, it pulls the latest copy into Home/SensorFusion and then runs that copy. The label file stays in order. Coral stays on a computer that has the chip.",
+      text: "The download button saves the program the same way Vision-2525 saves its page. The phone stores the file. Each run pulls the latest copy into Home/SensorFusion.",
       commit: "",
     },
   ],

@@ -474,6 +474,18 @@
 .links a {
   color: #9be7ff;
 }
+.dl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--sf-primary, #00e5ff);
+  color: var(--sf-primary, #00e5ff);
+  text-decoration: none;
+  flex: 0 0 auto;
+}
 .dock {
   flex: 0 0 auto;
   min-height: 0;

@@ -17,7 +17,8 @@
   header, footer { background:#212121; display:flex; align-items:center; gap:12px; padding:0 12px; }
   header img.logo { height:70%; }
   #sensor { display:flex; align-items:center; gap:8px; background:none; border:0; color:#fff; font-size:22px; font-weight:700; cursor:pointer; }
-  .icons { margin-left:auto; display:flex; gap:10px; }
+  .icons { margin-left:auto; display:flex; gap:10px; align-items:center; }
+  a.dl { width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #9be7ff; color:#9be7ff; border-radius:8px; text-decoration:none; }
   .icons button, footer button { background:none; border:0; color:#fff; cursor:pointer; font-size:12px; display:flex; flex-direction:column; align-items:center; }
   .icons img, #sensor img, footer img { height:36px; width:auto; }
   main { position:relative; background:#3E505C; min-height:0; }
@@ -46,6 +47,7 @@
     <img class="logo" id="logo" alt="sensor fusion">
     <button id="sensor" type="button"><img id="tog" alt=""><span id="sensorLabel">SENSOR 1: OFF</span></button>
     <div class="icons">
+      <a class="dl" href="/sensor-fusion/download/sensor_fusion_edge.py" title="Download the program" aria-label="Download the program"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M6 9l6 6 6-6"/><path d="M5 21h14"/></svg></a>
       <button type="button" id="infoBtn" aria-label="Info"><img id="infoImg" alt=""></button>
       <button type="button" id="setBtn" aria-label="Settings"><img id="setImg" alt=""></button>
       <button type="button" id="fullBtn" aria-label="Full screen"><img id="fullImg" alt=""></button>
