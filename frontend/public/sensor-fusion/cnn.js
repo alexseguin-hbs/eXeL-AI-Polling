@@ -81,8 +81,8 @@
     var pixels = tf.browser.fromPixels(video);
     var resized = tf.image.resizeBilinear(pixels, [session.height, session.width]);
     var input = session.dtype.indexOf("float") >= 0
-      ? resized.sub(127.5).div(127.5).expandDims(0)
-      : resized.round().clipByValue(0, 255).cast("int32").expandDims(0);
+      ? tf.tidy(function () { return tf.expandDims(tf.div(tf.sub(resized, 127.5), 127.5), 0); })
+      : tf.tidy(function () { return tf.expandDims(tf.cast(tf.clipByValue(tf.round(resized), 0, 255), "int32"), 0); });
     var output = session.model.predict(input);
     pixels.dispose();
     resized.dispose();
@@ -91,9 +91,14 @@
     var boxes = await tensors[0].data();
     var classes = await tensors[1].data();
     var scores = await tensors[2].data();
+    var count = scores.length;
+    if (tensors[3]) {
+      var counted = await tensors[3].data();
+      var found = Math.round(counted[0]);
+      if (found > 0 && found < count) count = found;
+    }
     tensors.forEach(function (tensor) { if (tensor && tensor.dispose) tensor.dispose(); });
     var hits = [];
-    var count = scores.length;
     for (var i = 0; i < count; i += 1) {
       var score = scores[i];
       if (score > 0.5 && score <= 1) {

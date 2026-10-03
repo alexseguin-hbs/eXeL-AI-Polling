@@ -264,14 +264,17 @@ export default function SensorFusion() {
               const result = await cnn.detect(session, video);
               cnn.draw(canvas, video, result, showScoresRef.current, showLabelsRef.current, showFpsRef.current);
             } catch (err) {
-              setCnnNote(err instanceof Error ? err.message : "The model stopped.");
+              console.error(err);
+              if (!stop) setCnnNote("The detector could not start on this device.");
+              stop = true;
             }
           }
           if (!stop) window.setTimeout(loop, 40);
         };
         void loop();
       } catch (err) {
-        if (!stop) setCnnNote(err instanceof Error ? err.message : "The model did not start.");
+        console.error(err);
+        if (!stop) setCnnNote("The detector could not start on this device.");
       }
     };
     void run();

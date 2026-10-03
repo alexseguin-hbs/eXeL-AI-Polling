@@ -108,23 +108,36 @@ def fetch(folder, coral):
         return
     folder_path = os.path.join(home(), folder, "Sample_TFLite_model")
     os.makedirs(folder_path, exist_ok=True)
-    names = ["labelmap.txt", "edgetpu.tflite" if coral else "detect.tflite"]
-    for name in names:
+    for name in ("labelmap.txt", "detect.tflite", "edgetpu.tflite"):
         dest = os.path.join(folder_path, name)
-        url = BASE + remote + name
-        print(f"Updating {name}")
-        urllib.request.urlretrieve(url, dest)
+        temporary = dest + ".part"
+        try:
+            print(f"Updating {name}")
+            urllib.request.urlretrieve(BASE + remote + name, temporary)
+            os.replace(temporary, dest)
+        except Exception as err:
+            if os.path.isfile(temporary):
+                os.remove(temporary)
+            if os.path.isfile(dest) and os.path.getsize(dest) > 0:
+                print(f"Keeping the copy already here: {name}")
+            else:
+                print(f"Could not update {name}: {err}")
 
 
 def interpreter_for(path, coral):
+    try:
+        from ai_edge_litert.interpreter import Interpreter, load_delegate
+    except ImportError:
+        try:
+            from tflite_runtime.interpreter import Interpreter, load_delegate
+        except ImportError:
+            from tensorflow.lite.python.interpreter import Interpreter
+            load_delegate = None
     if coral:
-        from tflite_runtime.interpreter import Interpreter, load_delegate
+        if load_delegate is None:
+            raise RuntimeError("Coral needs LiteRT or tflite-runtime on this computer.")
         lib = {"windows": "edgetpu.dll", "mac": "libedgetpu.1.dylib"}.get(platform_name(), "libedgetpu.so.1")
         return Interpreter(model_path=path, experimental_delegates=[load_delegate(lib)])
-    try:
-        from tflite_runtime.interpreter import Interpreter
-    except ImportError:
-        from tensorflow.lite.python.interpreter import Interpreter
     return Interpreter(model_path=path)
 
 
