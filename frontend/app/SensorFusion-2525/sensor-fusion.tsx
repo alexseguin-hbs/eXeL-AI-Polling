@@ -1039,7 +1039,7 @@ export default function SensorFusion() {
         </button>
         <div className={styles.modelWrap}>
           <button type="button" className={styles.botOn} aria-expanded={modelsOpen} aria-haspopup="listbox" aria-label="Run Live" onClick={() => setModelsOpen((open) => !open)}>
-            <StepIcon id="live" />
+            <img src={`${UI}/models_icon_001.png`} alt="" />
             {current.label}
           </button>
           {modelsOpen && (
