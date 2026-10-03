@@ -54,7 +54,7 @@ def labels(folder):
     if not os.path.isfile(path):
         return []
     with open(path, encoding="utf-8", errors="replace") as handle:
-        return [line.strip() for line in handle if line.strip() and line.strip() != "???"]
+        return [line.strip() for line in handle]
 
 
 def choose_model():

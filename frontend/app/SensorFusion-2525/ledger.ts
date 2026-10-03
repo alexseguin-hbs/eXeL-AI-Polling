@@ -66,7 +66,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       rev: 9,
       date: "2026-10-03",
       kind: "release",
-      text: "CPU detection uses detect.tflite. Demo.90 names a person instead of a blank line. Head keeps its own name. Coral stays on a computer that has the chip.",
+      text: "CPU detection uses detect.tflite. The label file is used in order, including ??? for anything that is not one of the 90 names. Coral stays on a computer that has the chip.",
       commit: "",
     },
   ],

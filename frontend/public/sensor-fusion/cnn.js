@@ -62,9 +62,8 @@
     if (!folder) throw new Error("That model is not in the list.");
     await ready();
     var labelText = await (await fetch(BASE + folder + "labelmap.txt")).text();
-    var labels = labelText.replace(/\r/g, "").split("\n");
-    while (labels.length && labels[labels.length - 1] === "") labels.pop();
-    if (labels[0] === "???") labels.shift();
+    var labels = labelText.replace(/\r/g, "").split("\n").map(function (line) { return line.trim(); });
+    if (labels.length && labels[labels.length - 1] === "") labels.pop();
     var model = await window.tflite.loadTFLiteModel(BASE + folder + "detect.tflite");
     var shape = model.inputs[0].shape;
     return {
@@ -105,7 +104,7 @@
           ymax: boxes[i * 4 + 2],
           xmax: boxes[i * 4 + 3],
           score: score,
-          name: session.labels[classId] || ""
+          name: session.labels[classId] || "???"
         });
       }
     }
