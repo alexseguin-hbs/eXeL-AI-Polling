@@ -405,10 +405,14 @@
   display: block;
 }
 .piBot {
-  justify-content: space-around;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 4px;
   min-height: 0;
-  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+  padding: 4px 6px;
+  padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
   background: #212121;
+  overflow-x: auto;
 }
 .who {
   margin-left: auto;
@@ -463,10 +467,25 @@
   background: #3ec96b;
   color: #fff;
   border-radius: 8px;
-  padding: 6px 10px;
+  padding: 4px 8px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.piBot .bot,
+.piBot .botOn,
+.piBot .annotate {
+  min-width: 0;
+  min-height: 0;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.piBot .annotate {
+  padding: 6px 10px;
+  font-size: 12px;
 }
 .modelWrap {
   position: relative;
