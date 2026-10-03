@@ -182,6 +182,63 @@ ${boxes}
 `;
 }
 
+function phoneKind() {
+  const agent = navigator.userAgent || "";
+  if (/iPad|iPhone|iPod/.test(agent)) return "ios";
+  if (/Android/i.test(agent)) return "android";
+  return "other";
+}
+
+function setNameOf(raw: string) {
+  const clean = raw.trim().replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "");
+  return clean || "capture";
+}
+
+type Writable = { write: (data: Blob) => Promise<void>; close: () => Promise<void> };
+type Folder = {
+  name: string;
+  getDirectoryHandle: (name: string, options: { create: boolean }) => Promise<Folder>;
+  getFileHandle: (name: string, options: { create: boolean }) => Promise<{ createWritable: () => Promise<Writable> }>;
+};
+
+async function chooseSensorFusionFolder() {
+  const picker = (window as Window & { showDirectoryPicker?: (options: { mode: "readwrite"; id: string }) => Promise<Folder> }).showDirectoryPicker;
+  if (!picker) return null;
+  if (phoneKind() === "android") {
+    window.alert("Create a folder named SensorFusion, then choose that folder.");
+    const picked = await picker({ mode: "readwrite", id: "sensor-fusion-android" });
+    if (picked.name.toLowerCase() !== "sensorfusion") {
+      throw new Error("Choose the folder named SensorFusion.");
+    }
+    return picked;
+  }
+  const parent = await picker({ mode: "readwrite", id: "sensor-fusion" });
+  if (parent.name.toLowerCase() === "sensorfusion") return parent;
+  return parent.getDirectoryHandle("SensorFusion", { create: true });
+}
+
+async function saveNumberedJpegs(setName: string, files: { name: string; blob: Blob }[]) {
+  const folder = await chooseSensorFusionFolder();
+  if (folder) {
+    const setFolder = await folder.getDirectoryHandle(setName, { create: true });
+    for (const file of files) {
+      const handle = await setFolder.getFileHandle(file.name, { create: true });
+      const writable = await handle.createWritable();
+      await writable.write(file.blob);
+      await writable.close();
+    }
+    return `SensorFusion/${setName}`;
+  }
+  const shared = files.map((file) => new File([file.blob], file.name, { type: "image/jpeg" }));
+  const share = navigator as Navigator & { canShare?: (data: { files: File[] }) => boolean };
+  if (share.canShare?.({ files: shared }) && navigator.share) {
+    await navigator.share({ files: shared, title: "SensorFusion" });
+    return `SensorFusion/${setName}`;
+  }
+  files.forEach((file) => downloadBlob(file.name, URL.createObjectURL(file.blob)));
+  return `SensorFusion/${setName}`;
+}
+
 function downloadBlob(fileName: string, href: string) {
   const link = document.createElement("a");
   link.href = href;
@@ -490,6 +547,7 @@ export default function SensorFusion() {
   const [poseNote, setPoseNote] = useState(false);
   const [annotate, setAnnotate] = useState(false);
   const [savedNote, setSavedNote] = useState(false);
+  const [shotFolder, setShotFolder] = useState("");
   const [cloudSaved, setCloudSaved] = useState(false);
   const [cloudBusy, setCloudBusy] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
@@ -656,9 +714,11 @@ export default function SensorFusion() {
 
   async function framesFromVideo() {
     const video = videoRef.current;
-    const howMany = Math.min(6, Math.max(1, Number(count) || 1));
-    if (!video || !sensorOn || video.readyState < 2) return [];
-    const next: Shot[] = [];
+    const howMany = Math.min(12, Math.max(1, Number(count) || 4));
+    if (!video || !sensorOn || video.readyState < 2) return { shots: [] as Shot[], files: [] as { name: string; blob: Blob }[] };
+    const setName = setNameOf(name);
+    const shotsOut: Shot[] = [];
+    const files: { name: string; blob: Blob }[] = [];
     for (let i = 0; i < howMany; i += 1) {
       const canvas = document.createElement("canvas");
       const width = video.videoWidth || 640;
@@ -669,26 +729,32 @@ export default function SensorFusion() {
       const ctx = canvas.getContext("2d");
       if (!ctx) continue;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const fileName = `${setName}-sf-img-${i + 1}.jpg`;
       const url = canvas.toDataURL("image/jpeg", 0.7);
-      next.push({ id: `${Date.now()}-${i}`, url, name: `${(name || "capture").replace(/[^\w.-]+/g, "-")}-${i + 1}.jpg` });
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((file) => resolve(file), "image/jpeg", 0.7));
-      if (blob) {
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `${(name || "capture").replace(/[^\w.-]+/g, "-")}-${i + 1}.jpg`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-      }
+      if (!blob) continue;
+      shotsOut.push({ id: `${Date.now()}-${i}`, url, name: fileName });
+      files.push({ name: fileName, blob });
       await new Promise((resolve) => window.setTimeout(resolve, 120));
     }
-    return next;
+    return { shots: shotsOut, files };
   }
 
   async function takeShots() {
-    const next = await framesFromVideo();
+    const { shots: next, files } = await framesFromVideo();
     if (!next.length) {
       setError("Turn SENSOR 1 on before you save pictures.");
       setAnnotate(false);
+      return;
+    }
+    const setName = setNameOf(name);
+    try {
+      const folder = await saveNumberedJpegs(setName, files);
+      setShotFolder(folder);
+      setError("");
+    } catch (err) {
+      setShotFolder("");
+      setError(err instanceof Error ? err.message : "The pictures were not saved.");
       return;
     }
     setShots(next);
@@ -697,7 +763,7 @@ export default function SensorFusion() {
     setSavedNote(true);
     window.localStorage.setItem(
       "sf2525-capture",
-      JSON.stringify({ operator, platform, model, name, note, count: next.length, folder: sensorPath(platform, [name || "capture"]) }),
+      JSON.stringify({ operator, platform, model, name: setName, note, count: next.length, folder: `SensorFusion/${setName}` }),
     );
   }
 
@@ -942,7 +1008,7 @@ export default function SensorFusion() {
           <img src={`${UI}/capture_images_001.png`} alt="" />
           Annotate
         </button>
-        <button type="button" className={styles.bot} onClick={() => void takeShots()}>
+        <button type="button" className={styles.bot} onClick={() => setAnnotate(true)}>
           <img src={`${UI}/train_model_001.png`} alt="" />
           Upload Images
           {cloudSaved && (
@@ -960,6 +1026,11 @@ export default function SensorFusion() {
         <div className={styles.modalWrap}>
           <div className={styles.modal} role="dialog" aria-label="Annotate">
             <h2>Save pictures</h2>
+            <p className={styles.muted}>
+              {phoneKind() === "android"
+                ? "Create a folder named SensorFusion, then choose it. Pictures are numbered 1, 2, 3…"
+                : "Pictures are numbered 1, 2, 3… and saved in a SensorFusion folder."}
+            </p>
             <label>
               Name
               <input value={name} onChange={(event) => setName(event.target.value)} />
@@ -986,9 +1057,11 @@ export default function SensorFusion() {
       {savedNote && (
         <div className={styles.modalWrap}>
           <div className={styles.modal} role="dialog" aria-label="Upload">
-            <h2>Pictures saved on this phone.</h2>
+            <h2>Pictures saved.</h2>
             <p className={styles.muted}>
-              {shots.length} pictures in {sensorPath(platform, [name || "capture"])}. Upload them?
+              {shots.length} pictures in {shotFolder || "SensorFusion"}.
+              {" "}
+              {shots.map((shot) => shot.name).filter(Boolean).join(", ")}
             </p>
             <div className={styles.actions}>
               <button type="button" onClick={() => void pushCloud()} disabled={cloudBusy}>
