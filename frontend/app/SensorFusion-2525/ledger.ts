@@ -137,7 +137,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "release",
       text: "The training icons are the buttons. There is no text card around them. Capture, Annotate, and Upload are the first three icons on the bar. The Train icon opens all six.",
-      commit: "",
+      commit: "ff59939",
     },
   ],
 };
