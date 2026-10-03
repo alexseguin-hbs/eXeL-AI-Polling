@@ -1,0 +1,8 @@
+  'person' box [0.043, 0.563, 0.978, 0.877]  seen by 2: {'cam-A': 0.72, 'cam-B': 0.68}  combined 0.91
+  'person' box [0.268, 0.303, 0.989, 0.553]  seen by 2: {'cam-B': 0.62, 'cam-A': 0.61}  combined 0.852
+  'person' box [0.048, 0.59, 0.612, 0.86]  seen by 2: {'cam-A': 0.56, 'cam-B': 0.55}  combined 0.802
+  'person' box [0.313, 0.845, 0.991, 0.998]  seen by 1: {'cam-A': 0.5}  combined 0.5
+  'tie'   box [0.42, 0.777, 0.575, 0.816]  seen by 1: {'cam-B': 0.5}  combined 0.5
+signed sig 51d3c9e3f6c19d14c7f6cd9d8cd71a2c verify True
+forged combined=0.99 verify False
+other room key verify False

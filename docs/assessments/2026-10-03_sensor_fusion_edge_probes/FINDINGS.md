@@ -29,3 +29,22 @@
 - machine mark -> designate amber (by SF:Model02.Head); canFire refuses AMBER_NO_APPROVE. Good.
 - RISK PROVEN: slots.approve(st,1,"SF:edge-node") -> red, approvalKind "two-person" (names differ), canFire ok. The gate is name-based; ai-crew resolveRequest is name-based too ("an unnamed approval is not an approval"). Safe while only human seat buttons call approve(); Sensor Fusion is the first machine-generated stream into the room.
 - Guarded approve (only HI:pilot / HI:targeteer) refuses the machine (stays amber) and accepts the human (red, two-person). Record: AI DESIGNATE · HI APPROVE · HI SIM-ACTION; decisions DEC-0001 SF:Model02.Head, DEC-0002 HI:targeteer; replay hash f0d61ca146860f25.
+## Start-up chooser (edge/page.html window.choosePath, edge/choose.mjs)
+- The page times 3 frames each way on the device in hand and keeps the browser path unless the node is at least 10% faster (no video leaves the device on a tie).
+- Run 1: x1 browser 47.6 / edge 171.5 -> browser · x2 104.4 / 166.9 -> browser · x4 195 / 169 -> edge · x6 279.3 / 183.6 -> edge.
+- Run 3 (after the fix below): x1 47.7 / 158.1 -> browser · x2 104.7 / 163.4 -> browser · x4 195.6 / 179.3 -> browser (inside the 10% margin) · x6 315.3 / 186.6 -> edge.
+- => fast phones and PCs keep the CNN on the device; a slow device hands it to the node. Near the crossover (x4 here) the pick follows load, so the page should re-time now and then, not once.
+- Run 2 read edge null at x6 and fell back to the browser: the node had crashed (next item). Falling back was right; not saying why was wrong.
+## Two devices at once (edge/concurrent.py) - a real defect found and fixed
+- The node is a threaded HTTP server and shared ONE tflite Interpreter per model across threads. Two frames at the same moment: "RuntimeError: There is at least 1 reference to internal data in the interpreter" and the connection dropped with no answer.
+- Before: 8 peers x 5 frames at once -> answered 3/40, 37 RemoteDisconnected.
+- Fix: one lock per model around set_tensor/invoke/get_tensor, one lock on the seq counter, and a 500 answer (never a dropped connection) if the model stops.
+- After: answered 40/40, 0 failed, unique seq 40/40 (run twice).
+- Grok's own sensor_fusion_edge.py is a single-threaded camera loop and is not affected; any node that serves more than one phone is.
+- Also seen: a node started without its browser runtime folder serves a page that dies with "tflite is not defined". The page should say the runtime is missing.
+## Two sensors, one object (bench/fusion2.py + fusion2_demo.py) - the patent's "two or more sensors" running
+- cam-A sees the whole frame; cam-B sees the right 70% (a second camera, mapped into A's frame with (0, 0.30, 1, 0.70)).
+- Boxes are matched by label and IoU >= 0.5 in the shared frame; each keeps its per-sensor score; combined = 1 - (1-pA)(1-pB).
+- Result: 3 person boxes seen by both - the photo has two people and the model boxes the right-hand one twice, full and upper body (0.72+0.68 -> 0.91 · 0.62+0.61 -> 0.852 · 0.56+0.55 -> 0.802); a person seen only by A and a tie seen only by B stay at 0.5.
+- The envelope is signed with a room key (HMAC-SHA256, first 32 hex): verify True; the same envelope with combined forged to 0.99 -> False; the right envelope under another room's key -> False.
+- Authority stays "MARK" after fusion: a higher combined score is a better mark, never permission (Drone-2525 fire law).

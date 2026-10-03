@@ -1,0 +1,4 @@
+CPU x1: {"browserMs":47.7,"edgeMs":158.1,"pick":"browser"}
+CPU x2: {"browserMs":104.7,"edgeMs":163.4,"pick":"browser"}
+CPU x4: {"browserMs":195.6,"edgeMs":179.3,"pick":"browser"}
+CPU x6: {"browserMs":315.3,"edgeMs":186.6,"pick":"edge"}

@@ -10,7 +10,7 @@ The envelope is the SAME whether the CNN ran here (Python) or in the browser (WA
 read only up to the model's own count, a replay hash, and a Light Codex caption for the frame.
 Stdlib HTTP + tflite-runtime (numpy<2) + Pillow. No framework, no second model store.
 """
-import io, json, os, sys, time, hashlib
+import io, json, os, sys, time, hashlib, threading
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import numpy as np
@@ -24,6 +24,7 @@ HOME = os.path.realpath(os.environ.get("SF_HOME") or "") if os.environ.get("SF_H
 PAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "page.html")
 SESSION = hashlib.sha1(str(time.time()).encode()).hexdigest()[:8]
 _cache, _seq = {}, [0]
+_guard = threading.Lock()   # one interpreter is NOT thread-safe; the server is threaded: one lock per model, one for the seq
 
 def models():
     out = []
@@ -38,11 +39,15 @@ def load(name):
         d = os.path.join(HOME, name, "Sample_TFLite_model")
         it = Interpreter(model_path=os.path.join(d, "detect.tflite")); it.allocate_tensors()
         labels = [l.rstrip("\n") for l in open(os.path.join(d, "labelmap.txt"), encoding="utf-8")]
-        _cache[name] = (it, labels)
+        _cache[name] = (it, labels, threading.Lock())
     return _cache[name]
 
 def detect(name, img, min_score=0.5):
-    it, labels = load(name)
+    with _guard: it, labels, mlock = load(name)
+    with mlock:                  # two peers at once queue here instead of crashing invoke()
+        return _detect(it, labels, img, min_score)
+
+def _detect(it, labels, img, min_score):
     d = it.get_input_details()[0]; h, w = int(d["shape"][1]), int(d["shape"][2])
     x = np.expand_dims(np.asarray(img.convert("RGB").resize((w, h)), dtype=np.uint8), 0)
     it.set_tensor(d["index"], x); t0 = time.perf_counter(); it.invoke(); ms = (time.perf_counter() - t0) * 1000
@@ -60,8 +65,8 @@ def caption(env):   # Light Codex alphabet: A-Z 0-9 space . - _ • :  (the fram
     return "".join(ch for ch in txt.replace(".", " ").replace("_", "-") if ch.isalnum() or ch in " -:")[:32]
 
 def envelope(peer, verb, layers, ms):
-    _seq[0] += 1
-    env = {"v": 1, "session": SESSION, "peer": peer, "seq": _seq[0], "at": int(time.time() * 1000), "verb": verb,
+    with _guard: _seq[0] += 1; seq = _seq[0]
+    env = {"v": 1, "session": SESSION, "peer": peer, "seq": seq, "at": int(time.time() * 1000), "verb": verb,
            "authority": "MARK",   # a detection is a mark, never permission to act (Drone-2525 fire law)
            "payload": {"layers": layers, "ms": round(ms, 1)}}
     env["hash"] = hashlib.sha256(json.dumps({"verb": verb, "layers": layers}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:16]
@@ -99,7 +104,9 @@ class H(BaseHTTPRequestHandler):
         except Exception: return self._send(400, {"error": "not a picture"})
         name = q.get("model", ["Demo90"])[0]; then = q.get("then", [None])[0]
         if name not in [m["name"] for m in models()]: return self._send(404, {"error": f"no folder {name}"})
-        boxes, ms = detect(name, img); layers = [{"layer": 1, "model": name, "boxes": boxes}]
+        try: boxes, ms = detect(name, img)
+        except Exception as e: return self._send(500, {"error": "model stopped", "detail": str(e)[:200]})   # never drop the peer without an answer
+        layers = [{"layer": 1, "model": name, "boxes": boxes}]
         if then and boxes:   # the patent's layered identification: a later, more specific model runs on the early layer's box
             y0, x0, y1, x1 = boxes[0]["box"]; W, Hh = img.size
             crop = img.crop((int(max(0, x0) * W), int(max(0, y0) * Hh), int(min(1, x1) * W), int(min(1, y1) * Hh)))
