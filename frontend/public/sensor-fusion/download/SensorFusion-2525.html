@@ -17,11 +17,13 @@
     .annotate { width:auto; align-self:center; padding:4px 8px; font-size:11px; }
     .off { padding:8px; font-size:13px; }
     .path, .links { font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    footer { overflow-x:auto; justify-content:space-between; }
+    footer { overflow:visible; justify-content:space-between; }
   }
   header, footer { background:#212121; display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; min-width:0; padding:8px 12px; }
   header { flex-wrap:nowrap; padding-top:max(8px, env(safe-area-inset-top, 0px)); }
-  footer { padding-bottom:max(4px, env(safe-area-inset-bottom, 0px)); justify-content:space-between; flex-wrap:nowrap; gap:4px; overflow-x:auto; }
+  footer { padding-bottom:max(4px, env(safe-area-inset-bottom, 0px)); justify-content:space-between; flex-wrap:nowrap; gap:4px; overflow:visible; position:relative; z-index:8; }
+  .modelWrap { position:relative; z-index:9; }
+  .modelList { position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); z-index:30; min-width:180px; max-height:50vh; overflow:auto; margin:0; padding:6px 0; list-style:none; background:#2c2c2c; color:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.45); }
   header img.logo { height:22px; width:auto; max-width:120px; object-fit:contain; }
   #sensor { display:flex; align-items:center; gap:8px; background:none; border:0; color:#fff; font-size:12px; font-weight:700; cursor:pointer; }
   .icons { margin-left:auto; display:flex; gap:10px; align-items:center; }
@@ -38,7 +40,6 @@
   .fps { position:absolute; left:16px; top:16px; color:#ffe600; font-weight:700; font-size:12px; margin:0; }
   .links, .path { font-size:12px; }
   .modelWrap { position:relative; }
-  .modelList { position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); z-index:6; min-width:180px; max-height:50vh; overflow:auto; margin:0; padding:6px 0; list-style:none; background:#2c2c2c; color:#fff; border-radius:12px; }
   .modelList button { display:block; width:100%; border:0; background:transparent; color:inherit; text-align:left; padding:10px 16px; font-size:16px; }
   .path { background:#212121; margin:0; padding:4px 12px 8px; font-size:12px; color:#d0d0d0; }
   .on { color:#b6ffb0; }
