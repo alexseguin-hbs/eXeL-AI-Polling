@@ -399,7 +399,7 @@ export default function SensorFusion() {
   const [guest, setGuest] = useState(false);
   const [showScores, setShowScores] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
-  const [showFps, setShowFps] = useState(true);
+  const [showFps, setShowFps] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [poseNote, setPoseNote] = useState(false);
   const [annotate, setAnnotate] = useState(false);
@@ -474,7 +474,10 @@ export default function SensorFusion() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "f" || event.key === "F") setShowFps((on) => !on);
+      if (event.key !== "f" && event.key !== "F") return;
+      const field = event.target as HTMLElement | null;
+      if (field && (field.tagName === "INPUT" || field.tagName === "TEXTAREA" || field.tagName === "SELECT")) return;
+      setShowFps((on) => !on);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -790,7 +793,13 @@ export default function SensorFusion() {
           </button>
         </div>
       </header>
-      <section className={styles.stage}>
+      <section
+        className={styles.stage}
+        onClick={(event) => {
+          if ((event.target as HTMLElement).closest("button")) return;
+          setShowFps((on) => !on);
+        }}
+      >
         <video ref={videoRef} autoPlay muted playsInline aria-label="Camera" />
         <canvas ref={canvasRef} className={styles.boxes} />
         {!sensorOn && (

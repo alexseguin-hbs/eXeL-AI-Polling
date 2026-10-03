@@ -223,7 +223,7 @@ async function runCnn(){
       const video = $("cam");
       if (video.readyState >= 2) {
         const result = await window.SFCnn.detect(session, video);
-        window.SFCnn.draw($("boxes"), video, result, showScores, showLabels, true);
+        window.SFCnn.draw($("boxes"), video, result, showScores, showLabels, showFps);
       }
       if (token === cnnToken) setTimeout(loop, 40);
     };
@@ -357,8 +357,14 @@ $("fullBtn").onclick = () => {
   else document.documentElement.requestFullscreen().catch(()=>{});
 };
 $("sheet").onclick = (e) => { if (e.target === $("sheet")) closeSheet(); };
+$("cam").onclick = () => { showFps = !showFps; paint(); };
 document.addEventListener("keydown", (e) => {
-  if (e.key === "f" || e.key === "F") { showFps = !showFps; paint(); }
+  if (e.key === "f" || e.key === "F") {
+    var field = e.target;
+    if (field && (field.tagName === "INPUT" || field.tagName === "TEXTAREA" || field.tagName === "SELECT")) return;
+    showFps = !showFps;
+    paint();
+  }
 });
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
   navigator.serviceWorker.register("/sf-offline-sw.js").catch(function () {});
