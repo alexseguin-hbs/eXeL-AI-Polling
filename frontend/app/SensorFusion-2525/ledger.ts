@@ -165,7 +165,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "decision",
       text: "Each picture is edited as its own XML. JSON is written only after every box on those files is Level 2, and that JSON is for training.",
-      commit: "",
+      commit: "02872b9",
     },
   ],
 };
