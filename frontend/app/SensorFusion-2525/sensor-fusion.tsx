@@ -1038,17 +1038,14 @@ export default function SensorFusion() {
             </ul>
           )}
         </div>
-        <button type="button" className={styles.annotate} aria-label="Capture images" onClick={() => setAnnotate(true)}>
+        <button type="button" className={styles.annotate} aria-label="Capture Video" onClick={() => setAnnotate(true)}>
           <img className={styles.trainIcon} src="/sensor-fusion/train/capture-video.png" alt="" />
-          Capture
         </button>
-        <button type="button" className={styles.bot} aria-label="Annotate images" onClick={() => setStep("label")}>
+        <button type="button" className={styles.bot} aria-label="Add Annotations" onClick={() => setStep("label")}>
           <img className={styles.trainIcon} src="/sensor-fusion/train/add-annotations.png" alt="" />
-          Annotate
         </button>
-        <button type="button" className={styles.bot} aria-label="Training steps" onClick={() => setTrainOpen(true)}>
+        <button type="button" className={styles.bot} aria-label="Training" onClick={() => setTrainOpen(true)}>
           <img className={styles.trainIcon} src="/sensor-fusion/train/upload-images.png" alt="" />
-          Train
           {cloudSaved && (
             <span className={styles.cloudOn} role="img" aria-label="Uploaded">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1065,29 +1062,23 @@ export default function SensorFusion() {
           <div className={styles.modal} role="dialog" aria-label="Training">
             <h2>Training</h2>
             <div className={styles.trainSteps}>
-              <button type="button" onClick={() => { setTrainOpen(false); setAnnotate(true); }}>
+              <button type="button" aria-label="1. Capture Video" onClick={() => { setTrainOpen(false); setAnnotate(true); }}>
                 <img src="/sensor-fusion/train/capture-video.png" alt="" />
-                <span><strong>1. Capture Video</strong>Record a short video with the camera.</span>
               </button>
-              <button type="button" onClick={() => { setTrainOpen(false); setStep("label"); }}>
+              <button type="button" aria-label="2. Add Annotations" onClick={() => { setTrainOpen(false); setStep("label"); }}>
                 <img src="/sensor-fusion/train/add-annotations.png" alt="" />
-                <span><strong>2. Add Annotations</strong>Turn the video into pictures and draw the boxes.</span>
               </button>
-              <button type="button" onClick={() => { setTrainOpen(false); uploadSet(); }}>
+              <button type="button" aria-label="3. Upload Images" onClick={() => { setTrainOpen(false); uploadSet(); }}>
                 <img src="/sensor-fusion/train/upload-images.png" alt="" />
-                <span><strong>3. Upload Images</strong>Review the pictures, then keep the set on this device.</span>
               </button>
-              <button type="button" onClick={() => setError("Develop models is not connected yet.")}>
+              <button type="button" aria-label="4. Develop Models" onClick={() => setError("Develop models is not connected yet.")}>
                 <img src="/sensor-fusion/train/develop-models.png" alt="" />
-                <span><strong>4. Develop Models</strong>Not connected yet.</span>
               </button>
-              <button type="button" onClick={() => setError("Download is not connected yet.")}>
+              <button type="button" aria-label="5. Download ML Files" onClick={() => setError("Download is not connected yet.")}>
                 <img src="/sensor-fusion/train/download-ml.png" alt="" />
-                <span><strong>5. Download ML Files</strong>Not connected yet.</span>
               </button>
-              <button type="button" onClick={() => setError("Run live on a new model is not connected yet.")}>
+              <button type="button" aria-label="6. Run Live" onClick={() => setError("Run live on a new model is not connected yet.")}>
                 <img src="/sensor-fusion/train/run-live.png" alt="" />
-                <span><strong>6. Run Live</strong>Not connected yet.</span>
               </button>
             </div>
             <div className={styles.actions}>

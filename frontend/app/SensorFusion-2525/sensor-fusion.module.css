@@ -226,41 +226,28 @@
 .trainSteps {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 62vh;
+  align-items: flex-start;
+  gap: 18px;
+  max-height: 70vh;
   overflow: auto;
+  padding: 8px 4px;
 }
 .trainSteps button {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  width: 100%;
+  display: block;
+  width: 72px;
+  height: 72px;
   margin: 0;
-  padding: 8px;
-  border: 1px solid #1c3a3a;
+  padding: 0;
+  border: 0;
   border-radius: 8px;
-  background: #061414;
-  color: #d7ffff;
-  text-align: left;
+  background: transparent;
   cursor: pointer;
 }
 .trainSteps img {
-  width: 48px;
-  height: 48px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
-  flex: 0 0 auto;
-}
-.trainSteps strong,
-.trainSteps span {
   display: block;
-}
-.trainSteps span {
-  color: #9fb8b8;
-  font-size: 12px;
-}
-.trainSteps strong {
-  color: #19c8cf;
-  font-size: 15px;
 }
 .meter i {
   position: absolute;
@@ -528,9 +515,9 @@
 }
 .bot img.trainIcon,
 .annotate img.trainIcon {
-  height: 22px;
+  height: 32px;
   width: auto;
-  max-width: 28px;
+  max-width: 36px;
 }
 .botOn {
   color: #b6ffb0;
@@ -558,8 +545,9 @@
   font-size: 9px;
 }
 .piBot .annotate {
-  padding: 4px 6px;
+  padding: 0;
   font-size: 10px;
+  background: transparent;
 }
 .modelList button {
   display: block;
@@ -723,9 +711,9 @@
   }
   .work .piBot img.trainIcon,
   .work .annotate img.trainIcon {
-    height: 18px;
+    height: 28px;
     width: auto;
-    max-width: 22px;
+    max-width: 32px;
   }
   .work .path,
   .work .links {
