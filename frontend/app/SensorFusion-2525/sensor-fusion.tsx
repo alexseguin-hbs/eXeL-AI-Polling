@@ -631,11 +631,8 @@ export default function SensorFusion() {
   }, []);
 
   useEffect(() => {
-    const sees = (MODELS.find((item) => item.id === model)?.sees || "person")
-      .split(",")
-      .map((item) => item.trim())
-      .filter((item) => item && !item.startsWith("the "));
-    if (sees[0]) setLabelPick(sees[0]);
+    const labels = MODELS.find((item) => item.id === model)?.labels || ["person"];
+    if (labels[0]) setLabelPick(labels[0]);
   }, [model]);
 
   useEffect(() => {
@@ -1094,11 +1091,7 @@ export default function SensorFusion() {
             <label>
               Label
               <select value={labelPick} onChange={(event) => setLabelPick(event.target.value)}>
-                {(current.sees || "person")
-                  .split(",")
-                  .map((item) => item.trim())
-                  .filter((item) => item && !item.startsWith("the "))
-                  .map((item) => (
+                {(current.labels.length ? current.labels : ["person"]).map((item) => (
                     <option key={item} value={item}>
                       {item}
                     </option>

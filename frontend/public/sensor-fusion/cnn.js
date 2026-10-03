@@ -6,19 +6,7 @@
   var TFLITE = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.10/dist/tf-tflite.min.js";
   var WASM = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.10/wasm/";
   var BASE = "https://raw.githubusercontent.com/De-Risking-Strategies/SensorFusion/master/";
-  var FOLDERS = {
-    demo90: "Demo90/Sample_TFLite_model/",
-    deer: "PreLoadedModels/Model01.Deer/Sample_TFLite_model/",
-    head: "PreLoadedModels/Model02.Head/Sample_TFLite_model/",
-    eyes: "PreLoadedModels/Model03.Eyes/Sample_TFLite_model/",
-    tree: "PreLoadedModels/Model04.Tree/Sample_TFLite_model/",
-    custom01: "PreLoadedModels/Custom.01/Sample_TFLite_model/",
-    custom02: "PreLoadedModels/Custom.02/Sample_TFLite_model/",
-    custom03: "PreLoadedModels/Custom.03/Sample_TFLite_model/",
-    custom04: "PreLoadedModels/Custom.04/Sample_TFLite_model/",
-    checkid: "checkid/Sample_TFLite_model/",
-    thermal01: "thermal01/Sample_TFLite_model/"
-  };
+  var catalogPromise = null;
   var readyPromise = null;
 
   function script(src) {
@@ -57,9 +45,21 @@
     return Object.keys(output).map(function (key) { return output[key]; });
   }
 
+  function catalog() {
+    if (!catalogPromise) {
+      catalogPromise = fetch("/sensor-fusion/models.json").then(function (res) {
+        if (!res.ok) throw new Error("The model list did not open.");
+        return res.json();
+      });
+    }
+    return catalogPromise;
+  }
+
   async function load(id) {
-    var folder = FOLDERS[id];
-    if (!folder) throw new Error("That model is not in the list.");
+    var data = await catalog();
+    var row = (data.models || []).filter(function (item) { return item.id === id; })[0];
+    if (!row || !row.remote) throw new Error("That model is not in the list.");
+    var folder = row.remote;
     await ready();
     var labelText = await (await fetch(BASE + folder + "labelmap.txt")).text();
     var labels = labelText.replace(/\r/g, "").split("\n").map(function (line) { return line.trim(); });

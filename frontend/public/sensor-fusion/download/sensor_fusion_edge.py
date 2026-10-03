@@ -25,6 +25,7 @@ CPU wheel:    pip install tflite-runtime
 If that wheel is missing, pip install tensorflow
 """
 
+import json
 import os
 import sys
 import time
@@ -32,19 +33,29 @@ import urllib.request
 
 BASE = "https://raw.githubusercontent.com/De-Risking-Strategies/SensorFusion/master/"
 APP = "https://raw.githubusercontent.com/alexseguin-hbs/eXeL-AI-Polling/main/frontend/public/sensor-fusion/edge/sensor_fusion_edge.py"
-MODELS = [
-    ("Demo.90", "Demo90", "Demo90/Sample_TFLite_model/"),
-    ("Deer", "Model01.Deer", "PreLoadedModels/Model01.Deer/Sample_TFLite_model/"),
-    ("Head", "Model02.Head", "PreLoadedModels/Model02.Head/Sample_TFLite_model/"),
-    ("Eyes", "Model03.Eyes", "PreLoadedModels/Model03.Eyes/Sample_TFLite_model/"),
-    ("Tree", "Model04.Tree", "PreLoadedModels/Model04.Tree/Sample_TFLite_model/"),
-    ("Custom.01", "Custom.01", "PreLoadedModels/Custom.01/Sample_TFLite_model/"),
-    ("Custom.02", "Custom.02", "PreLoadedModels/Custom.02/Sample_TFLite_model/"),
-    ("Custom.03", "Custom.03", "PreLoadedModels/Custom.03/Sample_TFLite_model/"),
-    ("Custom.04", "Custom.04", "PreLoadedModels/Custom.04/Sample_TFLite_model/"),
-    ("Check ID", "checkid", "checkid/Sample_TFLite_model/"),
-    ("Thermal.01", "thermal01", "thermal01/Sample_TFLite_model/"),
-]
+LIST = "https://raw.githubusercontent.com/alexseguin-hbs/eXeL-AI-Polling/main/frontend/public/sensor-fusion/models.json"
+
+
+def model_rows():
+    here = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.path.join(home(), "models.json"),
+        os.path.join(here, "models.json"),
+        os.path.join(here, "..", "models.json"),
+    ]
+    for path in candidates:
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8") as handle:
+                return json.load(handle)["models"]
+    try:
+        os.makedirs(home(), exist_ok=True)
+        dest = os.path.join(home(), "models.json")
+        urllib.request.urlretrieve(LIST, dest)
+        with open(dest, encoding="utf-8") as handle:
+            return json.load(handle)["models"]
+    except Exception:
+        print("The model list is not on this computer.")
+        return []
 
 
 def platform_name():
@@ -76,9 +87,9 @@ def home():
 
 
 def remote_for(folder):
-    for _label, name, remote in MODELS:
-        if name == folder:
-            return remote
+    for row in model_rows():
+        if row.get("folder") == folder:
+            return row.get("remote")
     return None
 
 
@@ -252,13 +263,15 @@ def run_camera(folder, coral):
 
 
 def choose_model():
+    rows = model_rows()
     print("\nModels")
-    for index, (label, _folder, _remote) in enumerate(MODELS, start=1):
-        print(f"  {index}) {label}")
+    for index, row in enumerate(rows, start=1):
+        print(f"  {index}) {row.get('label')}")
     raw = input("Model number: ").strip()
     try:
-        return MODELS[int(raw) - 1]
-    except (ValueError, IndexError):
+        row = rows[int(raw) - 1]
+        return row.get("label"), row.get("folder"), row.get("remote")
+    except (ValueError, IndexError, AttributeError):
         print("That number is not in the list.")
         return None
 

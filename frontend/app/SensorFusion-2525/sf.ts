@@ -20,19 +20,30 @@ export const PLATFORMS: { id: PlatformId; label: string; detail: string }[] = [
   { id: "ubuntu", label: "Ubuntu", detail: "A shared computer" },
 ];
 
-export const MODELS = [
-  { id: "demo90", label: "Demo.90", folder: "Demo90", sees: "person, bicycle, car" },
-  { id: "deer", label: "Deer", folder: "Model01.Deer", sees: "deer" },
-  { id: "head", label: "Head", folder: "Model02.Head", sees: "head" },
-  { id: "eyes", label: "Eyes", folder: "Model03.Eyes", sees: "eyes" },
-  { id: "tree", label: "Tree", folder: "Model04.Tree", sees: "tree" },
-  { id: "custom01", label: "Custom.01", folder: "Custom.01", sees: "the everyday list" },
-  { id: "custom02", label: "Custom.02", folder: "Custom.02", sees: "the everyday list" },
-  { id: "custom03", label: "Custom.03", folder: "Custom.03", sees: "the everyday list" },
-  { id: "custom04", label: "Custom.04", folder: "Custom.04", sees: "the everyday list" },
-  { id: "checkid", label: "Check ID", folder: "checkid", sees: "Alex, Dara, Nick" },
-  { id: "thermal01", label: "Thermal.01", folder: "thermal01", sees: "dog, person" },
-];
+import catalog from "../../public/sensor-fusion/models.json";
+
+type ModelFile = {
+  id: string;
+  label: string;
+  folder: string;
+  remote: string;
+  labels: string[];
+};
+
+function usable(labels: string[]) {
+  return labels.map((item) => item.trim()).filter((item) => item && item !== "???");
+}
+
+export const MODELS = (catalog.models as ModelFile[]).map((item) => {
+  const labels = usable(item.labels);
+  return {
+    id: item.id,
+    label: item.label,
+    folder: item.folder,
+    sees: labels.slice(0, 3).join(", "),
+    labels,
+  };
+});
 
 export const MENU = [
   { n: "1", id: "fusion-coral", label: "Sensor Fusion, with Coral", coral: true, model: "demo90", go: "work" as const },

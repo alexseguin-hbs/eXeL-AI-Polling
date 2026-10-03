@@ -120,19 +120,13 @@ const PLATFORMS = [
   { id:"iphone", label:"iPhone", sep:"/" },
   { id:"android", label:"Android", sep:"/" }
 ];
-const MODELS = [
-  ["demo90","Demo.90","Demo90","person, bicycle, car"],
-  ["deer","Deer","Model01.Deer","deer"],
-  ["head","Head","Model02.Head","head"],
-  ["eyes","Eyes","Model03.Eyes","eyes"],
-  ["tree","Tree","Model04.Tree","tree"],
-  ["custom01","Custom.01","Custom.01","the everyday list"],
-  ["custom02","Custom.02","Custom.02","the everyday list"],
-  ["custom03","Custom.03","Custom.03","the everyday list"],
-  ["custom04","Custom.04","Custom.04","the everyday list"],
-  ["checkid","Check ID","checkid","Alex, Dara, Nick"],
-  ["thermal01","Thermal.01","thermal01","dog, person"]
-];
+const MODELS = [];
+fetch("/sensor-fusion/models.json").then(function (res) { return res.json(); }).then(function (data) {
+  (data.models || []).forEach(function (item) {
+    var labels = (item.labels || []).filter(function (name) { return name && name !== "???"; }).slice(0, 3).join(", ");
+    MODELS.push([item.id, item.label, item.folder, labels]);
+  });
+}).catch(function () {});
 const MENU = [
   ["1","Sensor Fusion, with Coral", true, "demo90", "work"],
   ["2","Sensor Fusion, no Coral", false, "demo90", "work"],
