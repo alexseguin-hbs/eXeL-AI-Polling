@@ -412,7 +412,6 @@ export default function SensorFusion() {
   const [note, setNote] = useState("");
   const [shots, setShots] = useState<Shot[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [cnnNote, setCnnNote] = useState("");
   const showScoresRef = useRef(showScores);
   const showLabelsRef = useRef(showLabels);
   const showFpsRef = useRef(showFps);
@@ -485,12 +484,10 @@ export default function SensorFusion() {
     if (!sensorOn || step !== "work") return;
     let stop = false;
     const run = async () => {
-      setCnnNote("Loading detect.tflite…");
       try {
         const cnn = await loadCnn();
         const session = await cnn.load(model);
         if (stop) return;
-        setCnnNote("Running detect.tflite");
         let failed = false;
         const loop = async () => {
           if (stop) return;
@@ -502,13 +499,13 @@ export default function SensorFusion() {
               cnn.draw(canvas, video, result, showScoresRef.current, showLabelsRef.current, showFpsRef.current);
               if (failed) {
                 failed = false;
-                setCnnNote("Running detect.tflite");
+                setError("");
               }
             } catch (err) {
               console.error(err);
               if (!failed && !stop) {
                 failed = true;
-                setCnnNote("The detector could not start on this device.");
+                setError("The detector could not start on this device.");
               }
             }
           }
@@ -517,7 +514,7 @@ export default function SensorFusion() {
         void loop();
       } catch (err) {
         console.error(err);
-        if (!stop) setCnnNote("The detector could not start on this device.");
+        if (!stop) setError("The detector could not start on this device.");
       }
     };
     void run();
@@ -803,7 +800,6 @@ export default function SensorFusion() {
             <p>2. Toggle SENSOR 1 to ON</p>
           </div>
         )}
-        {showFps && <p className={styles.fps}>{cnnNote || "FPS"}</p>}
         {infoOpen && (
           <button type="button" className={styles.tutorial} onClick={() => setInfoOpen(false)} aria-label="Close the menu labels">
             <img src={`${UI}/MVP0_Tutorial_001.png`} alt="Camera ON/OFF, AI Detection Box, Profile Menu, Full Screen, AI Accuracy percent, Object ID, Switch Basic Models, Annotate, Switch Custom Models, Train New Custom Model, Future Feature" />
