@@ -298,3 +298,16 @@ This is not legal advice.
   left is the tensor calls.
 - **Envelope rate.** The probe's "16.5 envelopes/s" was a floor: the log kept only 200 entries. A counter gives about
   20/s.
+
+## Update — proven on a phone (2026-10-03, 04:46 CST)
+
+- Grok applied the first change as `d76ec50` ("Run the browser model with the tensor calls that runtime supports"),
+  the same lines as `grok/cnn_remaining_fix.diff`.
+- The operator's iPhone, on LTE, on the live page: SENSOR 1 on, model Head, the page reads "Running detect.tflite"
+  and draws a green box with `head 100%` on the live front camera. Capture:
+  `docs/assessments/2026-10-03_sensor_fusion_edge_probes/grok/iphone_head_live_d76ec50.png`.
+- So the browser path now runs on Safari's engine on a real phone. The iPhone line in section 3 moves from
+  UNVERIFIED to proven for Head. Android, a Pi, and the frame rate on the phone are still to be measured.
+- Still open from section 7: the Python program's offline start and safe download, the folder as the model list,
+  the back camera, and the downloaded HTML opened from the phone's Files.
+- Seen in the capture: the yellow status line still prints over the box label (section 13).
