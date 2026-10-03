@@ -31,6 +31,7 @@ import time
 import urllib.request
 
 BASE = "https://raw.githubusercontent.com/De-Risking-Strategies/SensorFusion/master/"
+APP = "https://raw.githubusercontent.com/alexseguin-hbs/eXeL-AI-Polling/main/frontend/public/sensor-fusion/edge/sensor_fusion_edge.py"
 MODELS = [
     ("Demo.90", "Demo90", "Demo90/Sample_TFLite_model/"),
     ("Deer", "Model01.Deer", "PreLoadedModels/Model01.Deer/Sample_TFLite_model/"),
@@ -110,10 +111,8 @@ def fetch(folder, coral):
     names = ["labelmap.txt", "edgetpu.tflite" if coral else "detect.tflite"]
     for name in names:
         dest = os.path.join(folder_path, name)
-        if os.path.isfile(dest) and os.path.getsize(dest) > 0:
-            continue
         url = BASE + remote + name
-        print(f"Downloading {name}")
+        print(f"Updating {name}")
         urllib.request.urlretrieve(url, dest)
 
 
@@ -251,7 +250,32 @@ def choose_model():
         return None
 
 
+def pull_program():
+    if "--fresh" in sys.argv:
+        return
+    os.makedirs(home(), exist_ok=True)
+    dest = os.path.join(home(), "sensor_fusion_edge.py")
+    try:
+        with urllib.request.urlopen(APP, timeout=30) as response:
+            latest = response.read()
+    except Exception as err:
+        print(f"Could not pull the latest program: {err}")
+        return
+    current = b""
+    try:
+        with open(os.path.abspath(__file__), "rb") as handle:
+            current = handle.read()
+    except OSError:
+        pass
+    with open(dest, "wb") as handle:
+        handle.write(latest)
+    if latest != current:
+        print(f"Pulled the latest program into {dest}")
+        os.execv(sys.executable, [sys.executable, dest, "--fresh", *sys.argv[1:]])
+
+
 def main():
+    pull_program()
     if "--check" in sys.argv:
         folder = "Demo90"
         if "--head" in sys.argv:

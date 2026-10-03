@@ -42,6 +42,9 @@ function loadCnn(): Promise<{
 function Downloads() {
   return (
     <p className={styles.links}>
+      <a href="/sensor-fusion/edge/sensor_fusion_edge.py" download="sensor_fusion_edge.py">
+        Download the program
+      </a>
       <a href="/sensor-fusion/download/SensorFusion-2525.html" download="SensorFusion-2525.html">
         Download
       </a>
@@ -425,12 +428,7 @@ export default function SensorFusion() {
             <p className={styles.alert}>Pose is not designed yet. It does not have the three files the other models use.</p>
           )}
           <p className={styles.muted}>
-            The program runs the CPU model on a Mac, Ubuntu, a Raspberry Pi, or Windows. A phone uses this page. Coral only runs on a computer that has the chip.
-          </p>
-          <p className={styles.links}>
-            <a href="/sensor-fusion/edge/sensor_fusion_edge.py" download="sensor_fusion_edge.py">
-              Download the program
-            </a>
+            Download the program. Each time it runs, it pulls the latest copy into Home/SensorFusion, then runs that copy. It uses detect.tflite on a Mac, Ubuntu, a Raspberry Pi, or Windows. A phone uses this page.
           </p>
           <Downloads />
         </div>
