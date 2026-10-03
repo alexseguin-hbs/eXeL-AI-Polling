@@ -374,7 +374,35 @@
   color: #fff;
 }
 .piTop {
+  flex-wrap: nowrap;
+  gap: 6px;
   padding-top: max(8px, env(safe-area-inset-top, 0px));
+}
+.tools {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 0 0 auto;
+}
+.tools .iconBtn {
+  min-width: 36px;
+  min-height: 36px;
+}
+.tutorial {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border: 0;
+  padding: 0;
+  background: #000;
+  cursor: pointer;
+}
+.tutorial img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 .piBot {
   justify-content: space-around;
@@ -395,6 +423,7 @@
   color: #fff;
   font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 }
 .iconBtn,

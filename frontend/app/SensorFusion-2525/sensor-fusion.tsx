@@ -488,8 +488,7 @@ export default function SensorFusion() {
           <img src={sensorOn ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
           SENSOR 1: {busy ? "…" : sensorOn ? "ON" : "OFF"}
         </button>
-        <div className={styles.row}>
-          <ProgramDownload />
+        <div className={styles.tools}>
           <button type="button" className={styles.iconBtn} aria-label="Info" onClick={() => setInfoOpen((open) => !open)}>
             <img src={`${UI}/info_002.png`} alt="" />
           </button>
@@ -534,9 +533,9 @@ export default function SensorFusion() {
         )}
         {showFps && <p className={styles.fps}>{cnnNote || "FPS"}</p>}
         {infoOpen && (
-          <p className={styles.note}>
-            {coral ? "With Coral" : "No Coral"}. This folder uses {file}. Press F to show or hide FPS.
-          </p>
+          <button type="button" className={styles.tutorial} onClick={() => setInfoOpen(false)} aria-label="Close the menu labels">
+            <img src={`${UI}/MVP0_Tutorial_001.png`} alt="Camera ON/OFF, AI Detection Box, Profile Menu, Full Screen, AI Accuracy percent, Object ID, Switch Basic Models, Annotate, Switch Custom Models, Train New Custom Model, Future Feature" />
+          </button>
         )}
         {error && <p className={styles.alert}>{error}</p>}
       </section>
