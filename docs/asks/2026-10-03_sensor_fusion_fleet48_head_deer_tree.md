@@ -24,3 +24,22 @@ The work is feedback only: no Sensor Fusion code is changed. The answer goes to
    (`Model04.Tree`) — on pictures sourced online, run through the CPU file `detect.tflite` the way the program runs it.
 4. Feedback only. No file under `frontend/app/SensorFusion-2525/`, `frontend/public/sensor-fusion/`, a model folder or a
    label file is changed. Test pictures stay in the session scratchpad and are not committed.
+
+## Verbatim — addendum 1 (with three phone screenshots, 9:15)
+
+> heres how we modularly and easily transfer files (by regulating folder with same infrastructure).
+
+Screenshots, saved beside this file:
+- `2026-10-03_sensor_fusion_fb1_preloadedmodels.png` — `PreLoadedModels/`: Custom.01 · Custom.02 · Custom.03 · Custom.04 · Model01.Deer ·
+  Model02.Head · Model03.Eyes · Model04.Tree.
+- `2026-10-03_sensor_fusion_fb2_model01_deer.png` — `PreLoadedModels/Model01.Deer/`: Android · Sample_TFLite_model · doc · README.md ·
+  Raspberry_Pi_Guide.md · TFLite_detection_image.py · TFLite_detection_stream.py · TFLite_detection_video.py ·
+  TFLite_detection_webcam.py · get_pi_requirements.sh · test.mp4 · test1.jpg.
+- `2026-10-03_sensor_fusion_fb3_sample_tflite_model.png` — `PreLoadedModels/Model01.Deer/Sample_TFLite_model/`: detect.tflite ·
+  edgetpu.tflite · labelmap.txt.
+
+## Reading of record — addendum 1
+
+5. The unit that moves between machines is the whole model folder (`ModelNN.Name`), regulated to one shared infrastructure:
+   the same sub-folders and files in every model folder, with `Sample_TFLite_model/` holding exactly `detect.tflite`,
+   `edgetpu.tflite`, `labelmap.txt`. A new model (a student's next set, a manta model) is a new folder of that same shape.
