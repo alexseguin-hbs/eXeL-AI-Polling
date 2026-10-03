@@ -571,14 +571,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
+  width: 31px;
+  height: 31px;
+  min-width: 31px;
+  min-height: 31px;
+  box-sizing: border-box;
+  padding: 6px;
   border-radius: 8px;
-  border: 1px solid var(--sf-primary, #00e5ff);
-  color: var(--sf-primary, #00e5ff);
+  border: 1px solid #d18be0;
+  color: #d18be0;
   text-decoration: none;
   flex: 0 0 auto;
+}
+.dl:hover {
+  background: #1e1125;
 }
 .dl svg {
   width: 16px;

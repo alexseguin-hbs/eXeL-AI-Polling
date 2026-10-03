@@ -25,7 +25,8 @@
   header img.logo { height:22px; width:auto; max-width:120px; object-fit:contain; }
   #sensor { display:flex; align-items:center; gap:8px; background:none; border:0; color:#fff; font-size:12px; font-weight:700; cursor:pointer; }
   .icons { margin-left:auto; display:flex; gap:10px; align-items:center; }
-  a.dl { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #9be7ff; color:#9be7ff; border-radius:8px; text-decoration:none; }
+  a.dl { display:inline-flex; align-items:center; justify-content:center; width:31px; height:31px; box-sizing:border-box; padding:6px; border-radius:8px; border:1px solid #d18be0; color:#d18be0; text-decoration:none; }
+  a.dl:hover { background:#1e1125; }
   a.dl svg { width:16px; height:16px; }
   .icons button, footer button { background:none; border:0; color:#fff; cursor:pointer; font-size:11px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:0; min-height:0; white-space:nowrap; padding:2px 4px; }
   .icons img, #sensor img, footer img, .annotate img { height:16px; width:16px; object-fit:contain; }
@@ -57,6 +58,7 @@
     <img class="logo" id="logo" alt="sensor fusion">
     <button id="sensor" type="button"><img id="tog" alt=""><span id="sensorLabel">SENSOR 1: OFF</span></button>
     <div class="icons">
+      <a class="dl" href="/sensor-fusion/download/SensorFusion-2525.html" download="SensorFusion-2525.html" title="Download" aria-label="Download"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M6 9l6 6 6-6"/><path d="M5 21h14"/></svg></a>
       <button type="button" id="infoBtn" aria-label="Info"><img id="infoImg" alt=""></button>
       <button type="button" id="setBtn" aria-label="Settings"><img id="setImg" alt=""></button>
       <button type="button" id="fullBtn" aria-label="Full screen"><img id="fullImg" alt=""></button>
