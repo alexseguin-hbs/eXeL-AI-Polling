@@ -393,7 +393,7 @@
   border: 0;
   background: transparent;
   color: #fff;
-  font-size: clamp(14px, 4vw, 22px);
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -434,7 +434,8 @@
   background: #3ec96b;
   color: #fff;
   border-radius: 8px;
-  padding: 8px 18px;
+  padding: 6px 10px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -467,6 +468,7 @@
   top: 16px;
   margin: 0;
   color: #ffe600;
+  font-size: 12px;
   font-weight: 700;
   text-shadow: 0 1px 2px #000;
 }
@@ -481,6 +483,7 @@
   gap: 16px;
   flex-wrap: wrap;
   margin: 8px 12px 0;
+  font-size: 12px;
 }
 .links a {
   color: #9be7ff;
@@ -542,7 +545,7 @@
     gap: 8px;
   }
   .work .sensorSwitch {
-    font-size: 16px;
+    font-size: 12px;
   }
   .work .piTop {
     padding: 4px 8px;

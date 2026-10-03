@@ -124,8 +124,8 @@
     var pen = canvas.getContext("2d");
     if (!pen) return;
     pen.clearRect(0, 0, width, height);
-    pen.lineWidth = 3;
-    pen.font = "24px sans-serif";
+    pen.lineWidth = 2;
+    pen.font = "16px sans-serif";
     result.hits.forEach(function (hit) {
       var x = Math.max(1, hit.xmin * width);
       var y = Math.max(1, hit.ymin * height);
@@ -137,9 +137,9 @@
       if (text) {
         pen.fillStyle = "#ffffff";
         var pad = pen.measureText(text).width + 8;
-        pen.fillRect(x, Math.max(0, y - 28), pad, 28);
+        pen.fillRect(x, Math.max(0, y - 18), pad, 18);
         pen.fillStyle = "#000000";
-        pen.fillText(text, x + 4, Math.max(20, y - 6));
+        pen.fillText(text, x + 4, Math.max(14, y - 4));
       }
     });
     if (showFps) {
