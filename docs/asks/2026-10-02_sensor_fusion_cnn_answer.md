@@ -311,3 +311,18 @@ This is not legal advice.
 - Still open from section 7: the Python program's offline start and safe download, the folder as the model list,
   the back camera, and the downloaded HTML opened from the phone's Files.
 - Seen in the capture: the yellow status line still prints over the box label (section 13).
+
+## Update — going offline (2026-10-03)
+
+- **Python program: mostly done by Grok (d76ec50).** With no internet and the files already on the machine, it keeps
+  them, opens the model and goes to the camera. One gap: when the network hangs instead of refusing (Wi-Fi up, no
+  internet behind it), the model download has no timeout and the program waits forever. Give every download a
+  timeout (for example 10 s), or skip the refresh when the three files are present.
+- **The page: not offline today.** Once loaded, a reload with no network fails outright; nothing is kept on the phone.
+- **Proven fix (scratch, not applied):** serve the runtime and the model folders from the site itself (five URLs in
+  `cnn.js`) and add one small service worker that keeps the page, the runtime and the chosen model folders on the
+  device. After one online visit, the browser was closed and reopened with no network: the page, the camera and the
+  detector all ran and drew boxes. Files: `docs/assessments/2026-10-03_sensor_fusion_edge_probes/offline/`.
+- **On a phone:** open the page once online, then Share → Add to Home Screen, so the phone keeps the files.
+  UNVERIFIED on a real phone until the operator tries it in airplane mode.
+- **Camera on a Pi, no internet at all:** already proven — the phone opens the Pi's own page over the local Wi-Fi.
