@@ -1,0 +1,22 @@
+--- frontend/public/sensor-fusion/cnn.js (as shipped)
++++ frontend/public/sensor-fusion/cnn.js (two fixes, proposed — not applied)
+@@ -4,7 +4,7 @@
+   var CORE = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@4.22.0/dist/tf-core.min.js";
+   var CPU = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu@4.22.0/dist/tf-backend-cpu.min.js";
+   var TFLITE = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.10/dist/tf-tflite.min.js";
+-  var WASM = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.10/dist/";
++  var WASM = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.10/wasm/";
+   var BASE = "https://raw.githubusercontent.com/De-Risking-Strategies/SensorFusion/master/";
+   var FOLDERS = {
+     demo90: "Demo90/Sample_TFLite_model/",
+@@ -81,8 +81,8 @@
+     var pixels = tf.browser.fromPixels(video);
+     var resized = tf.image.resizeBilinear(pixels, [session.height, session.width]);
+     var input = session.dtype.indexOf("float") >= 0
+-      ? resized.sub(127.5).div(127.5).expandDims(0)
+-      : resized.round().clipByValue(0, 255).cast("int32").expandDims(0);
++      ? tf.tidy(function () { return tf.expandDims(tf.div(tf.sub(resized, 127.5), 127.5), 0); })
++      : tf.tidy(function () { return tf.expandDims(tf.cast(tf.clipByValue(tf.round(resized), 0, 255), "int32"), 0); });
+     var output = session.model.predict(input);
+     pixels.dispose();
+     resized.dispose();
