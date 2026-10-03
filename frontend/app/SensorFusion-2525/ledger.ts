@@ -158,7 +158,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "release",
       text: "R1. One model list, models.json, version 1. The page, the browser detector, and both copies of the computer program read it. The name picker shows only that model's labels. Group projects, upload, and paid time wait on your decision.",
-      commit: "c25d3be",
+      commit: "c336aff",
     },
   ],
 };
