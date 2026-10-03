@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 147 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 148 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1038,6 +1038,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "r.074 decision — addendum 188 with his answer \"Same column, full width\": the 768 px column cap is gone; on a PC and on a phone held sideways every card is the screen's width less the 16 px gutters, the $ chart gains width (never more than 300 px tall at rest), a phone held upright draws as before (FD-107, FIN-07.06).",
       "commit": "a4e303c"
+    },
+    {
+      "rev": 148,
+      "date": "2026-10-03",
+      "kind": "release",
+      "text": "r.074 shipped and LIVE (Verify Live #2261) — one column, full width on a PC and on a phone held sideways (addendum 188, his answer \"Same column, full width\"): every card spans the screen less the 16 px gutters; the $ chart gains width, never more than 300 px tall at rest; a phone held upright keeps its exact drawing (FD-107, FIN-07.06).",
+      "commit": "b96a632"
     }
   ]
 };

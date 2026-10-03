@@ -1270,7 +1270,7 @@ export const FINANCIAL_DOMAIN = {
    "kind": "decision",
    "why": "Addendum 188 (\"landscape on PC is not full width; please fix just like we did for Security-2525 Mision Planning. Landscape on phone should also work\") with his answer to addenda 183–184 (\"Same column, full width\"): the 768 px column cap is gone — the one column spans the screen on a PC and on a phone held sideways, every card within the 16 px gutters. The $ chart's drawing widens with its card instead of growing taller (its height stops at 300 px at rest; full screen uses the height the screen leaves, now across the whole width); a phone held upright still draws the same 360 × 150 picture; strokes keep their size at any width. Nothing else moved: same order, same cards, same figures.",
    "commit": "a4e303c",
-   "shipped": "PENDING"
+   "shipped": "b96a632"
   }
  ],
  "mot": {
