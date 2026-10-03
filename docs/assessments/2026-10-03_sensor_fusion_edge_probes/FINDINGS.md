@@ -25,10 +25,9 @@
 ## Light Codex caption round trip (repo lib/light-codex.ts, block 2, Double Helix, 640x360 frame)
 - PNG: verified (both strands). Lossless WebP: verified. JPEG q95: verified via bottom strand (Single Helix fallback). JPEG q85: verified (bottom strand). JPEG q60: null.
 - => captions survive camera JPEG at q>=85 with block 2; correction of E14 ("PNG only").
-## Sensor Fusion mark through Drone-2525's own fire law (repo slots.ts + decisions.ts)
-- machine mark -> designate amber (by SF:Model02.Head); canFire refuses AMBER_NO_APPROVE. Good.
-- RISK PROVEN: slots.approve(st,1,"SF:edge-node") -> red, approvalKind "two-person" (names differ), canFire ok. The gate is name-based; ai-crew resolveRequest is name-based too ("an unnamed approval is not an approval"). Safe while only human seat buttons call approve(); Sensor Fusion is the first machine-generated stream into the room.
-- Guarded approve (only HI:pilot / HI:targeteer) refuses the machine (stays amber) and accepts the human (red, two-person). Record: AI DESIGNATE · HI APPROVE · HI SIM-ACTION; decisions DEC-0001 SF:Model02.Head, DEC-0002 HI:targeteer; replay hash f0d61ca146860f25.
+## (withdrawn) Sensor Fusion into Drone-2525 targeting
+- The earlier probe of this integration is withdrawn from the tree: wiring person detection into turret targeting is not engineered here (see the answer, section 9).
+
 ## Start-up chooser (edge/page.html window.choosePath, edge/choose.mjs)
 - The page times 3 frames each way on the device in hand and keeps the browser path unless the node is at least 10% faster (no video leaves the device on a tie).
 - Run 1: x1 browser 47.6 / edge 171.5 -> browser · x2 104.4 / 166.9 -> browser · x4 195 / 169 -> edge · x6 279.3 / 183.6 -> edge.
@@ -47,7 +46,7 @@
 - Boxes are matched by label and IoU >= 0.5 in the shared frame; each keeps its per-sensor score; combined = 1 - (1-pA)(1-pB).
 - Result: 3 person boxes seen by both - the photo has two people and the model boxes the right-hand one twice, full and upper body (0.72+0.68 -> 0.91 · 0.62+0.61 -> 0.852 · 0.56+0.55 -> 0.802); a person seen only by A and a tie seen only by B stay at 0.5.
 - The envelope is signed with a room key (HMAC-SHA256, first 32 hex): verify True; the same envelope with combined forged to 0.99 -> False; the right envelope under another room's key -> False.
-- Authority stays "MARK" after fusion: a higher combined score is a better mark, never permission (Drone-2525 fire law).
+- Authority stays "MARK" after fusion: a higher combined score is a better result, never permission.
 ## Grok's own code, run as it ships (grok/) - feedback only, nothing applied
 - cnn.js, unmodified, the way /SensorFusion-2525 calls it (SFCnn.load(id) then SFCnn.detect), CDN and model hosts answered from local copies of the same versions and folders: every model fails - "Cannot read properties of undefined (reading '_malloc')". Cause: setWasmPath points at dist/; the runtime lives in wasm/ (tflite_web_api_cc_simd.js 404).
 - With only that line changed: "resized.round is not a function". Cause: the tf-core bundle has no chained ops; the functional form (tf.round, tf.clipByValue, tf.cast, tf.expandDims) works.

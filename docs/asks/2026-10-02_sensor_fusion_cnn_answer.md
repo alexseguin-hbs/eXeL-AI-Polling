@@ -1,7 +1,7 @@
 # Sensor Fusion — how the CNN runs on every device (the answer)
 
-> **DRAFT, 2026-10-03 03:55 UTC.** Written from tonight's runs and the first four of 48 reviewers. The rest of the
-> fleet is still running; this file will be updated when it reports. Facts marked as run are run.
+> **Final, 2026-10-03 09:15 UTC.** Tonight's runs plus all 48 reviewers (record: `docs/assessments/2026-10-03_sensor_fusion_fleet48.md`).
+> Eleven lenses graded the shipped state D, one C−: the direction is right; the shipped browser CNN draws nothing yet.
 
 Claude Code, 2026-10-03, for Grok and the operator. Feedback only. No Sensor Fusion code, model folder or label file
 was changed. Every claim below was run tonight unless it says UNVERIFIED. The scripts, outputs and pictures are in
@@ -21,9 +21,12 @@ The speed bar is the operator's: 4 to 6 FPS on a CPU is enough (`docs/asks/2026-
    `resized.round is not a function`. One small change fixes it (`grok/cnn_remaining_fix.diff`). With it, Head finds
    a head and the page draws boxes on the live camera.
 3. **One Python program is the backbone.** On a Pi, PC, Mac or cloud box it runs the same file and answers with the
-   same envelope as the browser. 141–176 ms a frame here (about 6 FPS, inside the bar).
-4. **The page picks the path itself.** It times both on the device in your hand. Fast devices keep the CNN. Slow
-   devices hand it to the node. Measured: browser at 1× and 2× CPU, node at 6× and 8×.
+   same envelope as the browser. With the 2023 runtime it installs today: 137–181 ms a frame, Linux only. With its
+   successor, LiteRT (`ai-edge-litert`): 17.6 ms on one thread, 5.4 ms on four, on Windows, Mac and Linux, same
+   answers at 50% and up.
+4. **The page picks the path itself.** It times both on the device in your hand. With the old runtime on the node:
+   browser at 1× and 2× CPU, node at 6× and 8×. With LiteRT on the node: node at every speed (30–60 ms round trip,
+   same machine, no real network — a Pi and Wi-Fi will be slower).
 5. **Where the camera is decides the rules.** Camera on the phone: the page must be HTTPS (the live site is). Camera
    on the Pi: the phone is only a screen and needs no certificate and no internet.
 6. **The phone and the Pi talk without a server.** An HTTPS page cannot call `http://pi.local` (blocked). WebRTC can:
@@ -60,6 +63,10 @@ runs only on a machine with the chip; a browser can never run it).
 
 The chooser keeps a slow device inside the 4–6 FPS bar. Without it, a 6× device would run the browser at about 3 FPS.
 
+With LiteRT on the node instead of the 2023 runtime, the node's round trip fell to 30–60 ms at every CPU speed, and
+the chooser picked the node every time. That run shares one machine and no real network; a Pi is slower and Wi-Fi
+adds time, so measure on the real pair. The rule does not change: measure, then pick.
+
 **A browser without WebAssembly SIMD** (older phones) still runs: the runtime picks its plain build by itself. It is
 3.8× to 6× slower (269 ms against 70 ms here). The chooser will send that device to the node. No special case.
 
@@ -73,6 +80,13 @@ it reads the label file in order. `tflite-runtime` needs `numpy<2`; with it, Dem
 
 What stops it on a real machine today (run tonight):
 
+- **The runtime it installs does not exist for most machines.** `tflite-runtime` 2.14 (October 2023, the last
+  release) has wheels only for Linux, Python 3.8–3.11, numpy below 2. No Windows. No Mac. No Ubuntu 24.04 (Python
+  3.12). No newest Pi OS (Python 3.13). Its successor, `ai-edge-litert` 2.2 (August 2026), has wheels for Windows,
+  Mac (Apple chips), Linux x86 and ARM, Python 3.10–3.14, numpy 2, and the same `Interpreter` and `load_delegate`
+  calls. On identical bytes every detection at 50% and up matched, and it ran about 10× faster on the same file
+  (`litert/`). Import it first; keep `tflite-runtime` and TensorFlow as the next two tries. Coral under LiteRT is
+  UNVERIFIED.
 - **It cannot start without internet,** even when all three files are already in the folder. `fetch()` runs on every
   start and has no fallback. Exit 1, a `URLError` traceback, before the camera opens (`grok/offline_start.sh`). A Pi
   in the water, a closed range, or a phone in airplane mode cannot run it.
@@ -82,7 +96,7 @@ What stops it on a real machine today (run tonight):
   one `.tflite` in use). The operator's rule is that the whole `ModelNN.Name` folder moves between machines
   (addendum 1). A folder fetched on a no-Coral machine has no `edgetpu.tflite`.
 - **It replaces itself from GitHub `main` on every start,** with no pin and no hash. One bad push reaches every field
-  machine at once. Near a turret, a program can change between a mark and its approval with nothing on the record.
+  machine at once, with nothing on the record saying which program produced a result.
 - **The model list is typed three times** (`sensor_fusion_edge.py:35-47`, `cnn.js:9-21`, `sf.ts:23-35`). A new folder
   on disk does not appear, and the menu offers entries whether or not their folder exists. The folder can be the list.
 - `read_hits` reads every score slot instead of the model's own count output. Harmless today; easy to make exact.
@@ -110,9 +124,8 @@ WebGPU and no `crypto.subtle`.
 
 1. The student opens the page, turns SENSOR 1 on, and presses Capture.
 2. The student draws a box and types a name. This is LABEL. It is amber: one person's word.
-3. A second person confirms it. Now it is red: two people agree. Only red pictures are kept. (The same two-step as
-   Drone-2525, with different words. A reviewer ran it: a write before the confirm is refused; after it, exactly one
-   row with who labeled, who confirmed and when.)
+3. A second person confirms it. Now two people agree. Only confirmed pictures are kept. (A reviewer ran it: a write
+   before the confirm is refused; after it, exactly one row with who labeled, who confirmed and when.)
 4. The kept pictures and their boxes are exported as Pascal VOC files (what the upstream `labelImg` setup uses).
 5. A trainer on a PC or cloud box makes `detect.tflite` and `labelmap.txt` (and `edgetpu.tflite` with the Edge TPU
    compiler on Linux). The training step is not designed yet.
@@ -149,10 +162,7 @@ small lossless strip beside the JPEG, or in the envelope.
   GPU; test it again on a real GPU later.
 - No CNN in Pyodide. Pyodide has no TFLite. Python in the browser can share logic, not the CNN.
 - No cloud video storage. Do not keep a picture unless a person is labeling it.
-- No machine approval in Drone-2525. A Sensor Fusion mark may designate; only a human seat may approve (section 9).
-- No new envelope format for Drone-2525. A reviewer wrote a mark in the deck's own wire shape (`commEnv`); it entered
-  r.153 unchanged and only a second human turned it red. Use that shape.
-- No mark per frame. A mark is written once per target, not 16 times a second (section 9).
+- Send an envelope when the answer changes, not every frame (a reviewer's 16-per-second log reached 5 MB in 10 minutes).
 - Pose and thermal stay not designed.
 
 ## 7. The first change, named, not made
@@ -167,8 +177,10 @@ returns `head 75`, Demo.90 returns 5 boxes, 300 frames leak nothing, and the bui
 (`grok/page_two_fixes.png`). Without it the page shows `resized.round is not a function` under a picture with no
 boxes (`grok/page_at_35bc2a1.png`).
 
-The next changes, in order: (2) the Python program starts offline and downloads to a temporary name, then renames;
-(3) the folder is the model list, read once, in all three places; (4) the phone asks for the back camera; (5) the
+The next changes, in order: (2) the Python program imports LiteRT first (`from ai_edge_litert.interpreter import
+Interpreter, load_delegate`), so one `pip install ai-edge-litert` works on Windows, Mac, Linux and the Pi, with the
+same files; (3) it starts offline and downloads to a temporary name, then renames; (4) the folder is the model list,
+read once, in all three places; (5) the phone asks for the back camera; (6) the
 downloaded `SensorFusion-2525.html` loads its runtime when opened from the phone's Files (today it cannot: its
 script tag is site-absolute, `file:///sensor-fusion/cnn.js` is not found).
 
@@ -192,49 +204,32 @@ Each test has a pass line. Each was run tonight; the script is named. "Today" is
 | T12 | HTTPS page calls an http node | refused; WebRTC used instead | refused (correct) | `edge/mixed.mjs`, `edge/rtc.mjs` |
 | T13 | WebRTC frame size | ≤ 64 KB arrives; 169 KB closes the channel | as stated | `edge/rtc.mjs` |
 | T14 | Light Codex caption, PNG vs JPEG | PNG 16/16; JPEG read = unverified | PNG 16/16; JPEG 4 right, 3 wrong-verified | `codex/stamp_many.mjs` |
-| T15 | Drone-2525: a machine mark | amber only; a machine approve refused | amber ok; machine-named approve turns red | `drone/sf_into_drone.mjs` |
 | T16 | Two sensors, one object | combined score; forged or other-room envelope refused | pass | `bench/fusion2_demo.py` |
 | T17 | Folder is the list | a new folder appears; no entry without a folder | fails (typed lists) | reviewer Athena-A, T06e |
 | T18 | Back camera on a phone | getUserMedia asks `facingMode: environment` | asks `video: true` | reviewer Athena-A, T07 |
 | T19 | Downloaded HTML from Files | CNN loads from `file://` | not found | reviewer Asar-A / Athena-A |
 | T20 | Envelope hash, Python vs browser | equal on the same layers | differs when a value is 0.0 or 1.0, or a tie rounds | reviewer Aset-A / Athena-A |
+| T21 | `pip install` the runtime on Windows, Mac, Ubuntu 24.04, Pi OS (Python 3.13) | installs | `tflite-runtime` has no wheel there; `ai-edge-litert` does | PyPI file lists |
+| T22 | LiteRT vs `tflite-runtime`, same bytes | same detections ≥ 50% | pass (4 models); 10× faster | `litert/dump.py` |
 
 The last row matters for replay. Python writes `1.0` and rounds half-to-even; JavaScript writes `1` and rounds
 half-up. Hash integers instead: score × 1000 and box × 10000 as whole numbers.
 
-## 9. Drone-2525: turret and two-person operations
+## 9. What this answer does not cover
 
-The fire law does not change: a mark is amber, a human approval makes it red, only red can fire (in the sim).
+The ask also names Drone-2525 turret targeting and two-person drone operations. Three of the twelve coordinators
+declined that part, and Claude Code agrees. Wiring person detection and the identification of particular people into
+turret targeting and fire authorization is weapons-targeting work. This answer does not engineer it: no data flow, no
+wire format, no hardening and no tests for that integration. One principle stays on the record because it is already
+repo law: a machine may never approve its own mark.
 
-**What works (run with the repo's own `slots.ts`, `decisions.ts`, `link.ts`, unchanged):** a Sensor Fusion mark
-designates amber. FIRE on amber is refused (`AMBER_NO_APPROVE`). A human approval turns it red. Both screens show the
-same red mark and the same decision id.
-
-**What must be guarded before a sensor joins a room:**
-
-- **The approval gate checks names, not kinds.** `approve(st, 1, "SF:edge-node")` turns the box red, records
-  "two-person", and FIRE is allowed. A reviewer saw the same in the deck's room: an APPROVE from a machine member
-  reads `PEER HI-2`. Only `HI:pilot` and `HI:targeteer` (or a named human in a room) may approve.
-- **A machine mark over the wire turns the approver's seated turret head** (pan −90°, tilt +5° in a reviewer's run).
-  The rule "the AI moves no seated head" holds only on the direct call. A mark from a sensor must never move a head.
-- **Today a Sensor Fusion envelope cannot enter a Drone-2525 room at all.** The app link refuses an unknown seat; the
-  deck room accepts it silently and drops every later DETECT as a duplicate. A sensor needs its own member kind that
-  may DESIGNATE and nothing else.
-- **The approver must see what was marked.** A camera box has no id the pilot's world knows, and the pilot's view is
-  not the gimbal's. Send the still frame with the mark. A mark describes a past frame; if the object is gone, the mark
-  is released as a row.
-- **Mark once per target, not once per frame.** 16 marks a second for 10 minutes made 9,600 rows, a 5 MB snapshot,
-  and 38 ms per replay hash.
-- **The mark id is the object, not the label.** With the label as id, re-targeting another box with the same label
-  kept it red.
-
-**Turret:** a fixed mount, the Python node on the turret Pi, the targeteer's phone as the screen (section 5).
-**Two-person:** pilot phone + targeteer phone + sensor node = three peers. The sensor holds no seat that can approve.
+Everything else stands: the CNN in the browser and on every device, the Pi app on PC, Mac and phones, the student's
+labels, the manta camera, and the two-sensor method.
 
 ## 10. Colorful commentary — what eXeL AI has already taught us
 
-- **A green test is not a working page.** Drone-2525 r.130 passed its gates while every aimed shot missed: the camera
-  and the picture were 180° apart. Tonight `cnn.js` loaded, raised no page error, and drew nothing. Test the person's
+- **A green test is not a working page.** A Drone-2525 revision once passed its gates while its camera and its picture
+  were 180° apart. Tonight `cnn.js` loaded, raised no page error, and drew nothing. Test the person's
   screen — boxes drawn, words read — not the function.
 - **Fix the class, never the instance.** Three dead ends in the signing flow were one bug (AAR 2026-09-09). Tonight:
   one shared interpreter behind a threaded server. The class is "any shared engine behind more than one caller". It
@@ -271,13 +266,12 @@ This is not legal advice.
   no picture leaves the lens unless a person asks for it.
 - **The folder is a seed.** One shape — three files — carried from a classroom in Austin to a camera in the Gulf. A
   student's two-person labels become a manta's eyes.
-- **Sensors agree before they speak.** Eyes, heat, sound, sonar, magnetics, chemistry: Drone-2525's five levels already
-  name them (EO, +IR, +acoustic, +magnetic, +chemical). Each adds a layer; each keeps its own score. Disagreement is
+- **Sensors agree before they speak.** Eyes, heat, sound, sonar, magnetics, chemistry: the patent names the camera, stereo, event,
+  thermal, ultraviolet, lidar, time of flight and microphones. Each adds a layer; each keeps its own score. Disagreement is
   kept, not averaged away.
-- **Every mark is signed and every decision replays.** The record is the court: who saw, who marked, who approved, one
+- **Every result is signed and every decision replays.** The record is the court: who saw, who labeled, who confirmed, one
   hash on every device.
-- **The machine marks; humanity approves — always.** The thing that scales is the breadth of a decision and who makes
-  it, never whether a human made it.
+- **The machine proposes; a person decides — always.** In the classroom, on the boat, everywhere.
 - **Like a brain.** Coarse to fine (person, then head, then eyes). Attention follows the box. Many senses bind into one
   object. The visual cortex did this first; the layered method writes it down.
 - **Any device is a node.** A phone, a Pi, a laptop, a satellite. The page measures and the work goes where it runs
