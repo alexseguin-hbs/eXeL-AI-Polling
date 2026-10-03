@@ -130,7 +130,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "release",
       text: "Each training step is a button with the icon from the original training video. Capture, Annotate, and Upload run. Develop, Download, and Run Live say they are not connected yet.",
-      commit: "",
+      commit: "fb56262",
     },
   ],
 };
