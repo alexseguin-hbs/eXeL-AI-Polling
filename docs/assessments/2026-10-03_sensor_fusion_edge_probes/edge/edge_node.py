@@ -26,6 +26,10 @@ SESSION = hashlib.sha1(str(time.time()).encode()).hexdigest()[:8]
 _cache, _seq = {}, [0]
 _guard = threading.Lock()   # one interpreter is NOT thread-safe; the server is threaded: one lock per model, one for the seq
 
+def inside(p, root):   # "/x/home_sibling".startswith("/x/home") is True; commonpath is the real test
+    p, root = os.path.realpath(p), os.path.realpath(root)
+    return os.path.commonpath([p, root]) == root
+
 def models():
     out = []
     for name in sorted(os.listdir(HOME)) if os.path.isdir(HOME) else []:
@@ -84,12 +88,12 @@ class H(BaseHTTPRequestHandler):
         if u.path == "/models": return self._send(200, {"home": HOME, "models": models()})
         if u.path.startswith("/m/"):   # the browser path fetches the SAME files from the same folders
             p = os.path.normpath(os.path.join(HOME, u.path[3:]))
-            if p.startswith(HOME) and os.path.isfile(p): return self._send(200, open(p, "rb").read(), "application/octet-stream")
+            if inside(p, HOME) and os.path.isfile(p): return self._send(200, open(p, "rb").read(), "application/octet-stream")
             return self._send(404, {"error": "no such file"})
         lib = os.path.realpath(os.environ["SF_WEBLIB"]) if os.environ.get("SF_WEBLIB") else None   # the browser runtime files, served by the node itself (no CDN needed on a closed network)
         if lib and u.path.startswith("/lib/"):
             p = os.path.normpath(os.path.join(lib, u.path[5:]))
-            if p.startswith(lib) and os.path.isfile(p):
+            if inside(p, lib) and os.path.isfile(p):
                 ct = "application/wasm" if p.endswith(".wasm") else "text/javascript" if p.endswith(".js") else "application/octet-stream"
                 return self._send(200, open(p, "rb").read(), ct)
         if u.path in ("/", "/index.html") and os.path.isfile(PAGE): return self._send(200, open(PAGE, "rb").read(), "text/html")

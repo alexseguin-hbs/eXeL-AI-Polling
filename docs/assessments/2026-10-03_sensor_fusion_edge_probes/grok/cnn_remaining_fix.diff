@@ -1,0 +1,13 @@
+--- frontend/public/sensor-fusion/cnn.js (main at 35bc2a1)
++++ frontend/public/sensor-fusion/cnn.js (the one remaining fix, proposed — not applied)
+@@ -81,8 +81,8 @@
+     var pixels = tf.browser.fromPixels(video);
+     var resized = tf.image.resizeBilinear(pixels, [session.height, session.width]);
+     var input = session.dtype.indexOf("float") >= 0
+-      ? resized.sub(127.5).div(127.5).expandDims(0)
+-      : resized.round().clipByValue(0, 255).cast("int32").expandDims(0);
++      ? tf.tidy(function () { return tf.expandDims(tf.div(tf.sub(resized, 127.5), 127.5), 0); })
++      : tf.tidy(function () { return tf.expandDims(tf.cast(tf.clipByValue(tf.round(resized), 0, 255), "int32"), 0); });
+     var output = session.model.predict(input);
+     pixels.dispose();
+     resized.dispose();
