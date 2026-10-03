@@ -1,0 +1,11 @@
+import { createServer } from "node:http"; import { readFile } from "node:fs/promises"; import { join, extname } from "node:path";
+import { chromium } from "/home/user/eXeL-AI-Polling/frontend/node_modules/playwright/index.mjs";
+const SP = "$SCRATCH";
+const MIME = { ".js": "text/javascript", ".mjs": "text/javascript", ".html": "text/html", ".wasm": "application/wasm", ".json": "application/json", ".py": "text/plain", ".jpg": "image/jpeg" };
+const srv = createServer(async (req, res) => { const p = decodeURIComponent(new URL(req.url, "http://x").pathname);
+  const f = p.startsWith("/nm/") ? join(SP, "tfjsprobe/node_modules", p.slice(4)) : p.startsWith("/b/") ? join(SP, "bench", p.slice(3)) : join(SP, "bench/pyfusion.html");
+  try { const b = await readFile(f); res.writeHead(200, { "content-type": MIME[extname(f)] || "application/octet-stream" }); res.end(b); } catch { res.writeHead(404).end("nf"); } });
+await new Promise((ok) => srv.listen(0, "127.0.0.1", ok));
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" }); const p = await b.newPage();
+await p.goto(`http://127.0.0.1:${srv.address().port}/`); await p.waitForFunction(() => document.title === "done", null, { timeout: 120000 }).catch(() => {});
+console.log(JSON.stringify(await p.evaluate(() => window.__OUT))); await b.close(); srv.close();

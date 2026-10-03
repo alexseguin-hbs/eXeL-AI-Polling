@@ -1,0 +1,246 @@
+<title>Sensor Fusion Device Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script type="importmap">{"imports":{"@litertjs/wasm-utils":"./lib/litert/wasm-utils.js"}}</script>
+<style>
+/* Layout: one instrument column — verdict strip, capability readout, run panel, report line. */
+:root {
+  --bg: #f3f6f7; --panel: #ffffff; --ink: #0d1c22; --mute: #4f6670; --line: #d4e0e4;
+  --accent: #00727f; --good: #16794a; --warn: #9a6200; --bad: #b3261e;
+  --display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #071317; --panel: #0d1f25; --ink: #e2f2f4; --mute: #8fa9b1; --line: #1f3a42;
+  --accent: #33d6e6; --good: #4cd98f; --warn: #f2b84b; --bad: #ff7a70; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #071317; --panel: #0d1f25; --ink: #e2f2f4; --mute: #8fa9b1; --line: #1f3a42;
+  --accent: #33d6e6; --good: #4cd98f; --warn: #f2b84b; --bad: #ff7a70; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); padding: 20px 16px 40px }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 18px }
+h1 { font: 600 clamp(24px, 5vw, 32px)/1.15 var(--display); letter-spacing: .01em; margin: 0; text-wrap: balance }
+h2 { font: 600 13px/1.2 var(--display); text-transform: uppercase; letter-spacing: .12em; color: var(--mute); margin: 0 0 10px }
+p { margin: 0; max-width: 65ch }
+.lede { color: var(--mute) }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px }
+.verdict { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; border-left: 4px solid var(--line) }
+.verdict[data-state="yes"] { border-left-color: var(--good) } .verdict[data-state="no"] { border-left-color: var(--bad) } .verdict[data-state="run"] { border-left-color: var(--accent) }
+.verdict .big { font: 600 22px/1.2 var(--display) } .verdict .sub { color: var(--mute); font-size: 14px }
+.caps { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px }
+.cap { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; min-width: 0 }
+.cap span:first-child { color: var(--mute); font-size: 13px }
+.pill { font: 500 12px/1 var(--mono); padding: 4px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap }
+.pill.yes { color: var(--good) } .pill.no { color: var(--bad) } .pill.maybe { color: var(--warn) } .pill.info { color: var(--accent) }
+button { font: 600 15px var(--display); letter-spacing: .04em; background: var(--accent); color: var(--bg); border: 0; border-radius: 8px; padding: 12px 18px; cursor: pointer; min-height: 44px }
+button.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent) }
+button:disabled { opacity: .55; cursor: progress }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center }
+.tablewrap { overflow-x: auto }
+table { width: 100%; border-collapse: collapse; font: 13px/1.4 var(--mono); font-variant-numeric: tabular-nums }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top }
+th { color: var(--mute); font-weight: 500; font-family: var(--body) }
+td.num { text-align: right; white-space: nowrap }
+.ref td { color: var(--mute) }
+.report { font: 13px/1.5 var(--mono); background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; padding: 10px 12px; word-break: break-word; user-select: all }
+.log { font: 12px/1.5 var(--mono); color: var(--mute); max-height: 9em; overflow: auto; white-space: pre-wrap }
+.photo { display: flex; gap: 14px; align-items: center; flex-wrap: wrap }
+.photo img { width: 160px; border-radius: 6px; border: 1px solid var(--line) }
+small, .note { color: var(--mute); font-size: 13px }
+@media (prefers-reduced-motion: no-preference) { .verdict[data-state="run"] .big::after { content: " …"; animation: blink 1s steps(2) infinite } @keyframes blink { 50% { opacity: 0 } } }
+</style>
+
+<main>
+  <header style="display:grid;gap:8px">
+    <h1>Sensor Fusion Device Check</h1>
+    <p class="lede">Can this phone, tablet, PC, Mac or Raspberry Pi run the Sensor Fusion CNN inside its own browser? This page runs the folder's own <code>detect.tflite</code> (the same bytes) on a still photo and times it. Nothing leaves the device.</p>
+  </header>
+
+  <section class="panel verdict" id="verdict" data-state="idle" aria-live="polite">
+    <div>
+      <div class="big" id="vbig">Not run yet</div>
+      <div class="sub" id="vsub">Press the button below. It loads about 28 MB once (the runtime and two model folders), then runs Demo.90 and Head ten times each.</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>What this browser offers</h2>
+    <div class="caps" id="caps"></div>
+    <p class="note" style="margin-top:10px">Read without running anything heavy. A browser needs WebAssembly to run the CNN. SIMD makes it fast. WebGPU and JSPI unlock the GPU path (LiteRT.js).</p>
+  </section>
+
+  <section class="panel" style="display:grid;gap:12px">
+    <h2>The test</h2>
+    <div class="photo"><img id="photoImg" src="photo.jpg" alt="Test photo: two men in suits, the stock photo the Sensor Fusion helper used"><p class="note">The same photo the Sensor Fusion helper used. Demo.90 looks for people; Head looks for heads. Labels are read from each folder's <code>labelmap.txt</code> in order, unchanged.</p></div>
+    <div class="row"><button id="run" type="button">Run the CNN test</button><span class="note" id="runnote"></span></div>
+    <div class="tablewrap"><table id="results" aria-label="CNN timings">
+      <thead><tr><th>Runtime</th><th>Model</th><th>Load</th><th>Per frame</th><th>fps</th><th>Found (<th>Per frame (median of 10)</th><th>Frames / s</th><th>Found (score &gt; 0.5)</th>gt; 0.5)</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="6" class="note" style="font-family:var(--body)">Results appear here, one row per runtime and model.</td></tr></tbody>
+      <tbody class="ref"><tr><td>tfjs-tflite</td><td>Demo90</td><td class="num">86 ms</td><td class="num">43 ms</td><td class="num">23</td><td>cloud sandbox, for comparison</td></tr>
+      <tr><td>tfjs-tflite</td><td>Model02.Head</td><td class="num">49 ms</td><td class="num">41 ms</td><td class="num">24</td><td>cloud sandbox, for comparison</td></tr></tbody>
+    </table></div>
+    <div class="log" id="log" aria-label="Test log"></div>
+  </section>
+
+  <section class="panel" style="display:grid;gap:10px">
+    <h2>Report for Grok</h2>
+    <p class="note">One line that says what this device did. Copy it and paste it to Grok or Claude Code.</p>
+    <div class="report" id="report">SF-DEVICE · not run yet</div>
+    <div class="row"><button class="ghost" id="copy" type="button">Copy report</button><span class="note" id="copied" aria-live="polite"></span></div>
+  </section>
+
+  <p class="note">Reference probe by Claude Code for the Sensor Fusion R-CORE EDGE review, 2026-10-03. Runtimes: tfjs-tflite 0.0.1-alpha.10 (loader fixed: runtime files from <code>/wasm/</code>, functional tensor calls, only the boxes the model counts) and LiteRT.js 2.5.3 on WebGPU with JSPI. This page cannot open the camera; the camera path is tested separately.</p>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const caps = {};
+const logLine = (s) => { $("log").textContent += s + "\n"; $("log").scrollTop = 1e9; };
+const pill = (state, text) => `<span class="pill ${state}">${text}</span>`;
+function deviceName() {
+  const ua = navigator.userAgent;
+  if (/iPhone/.test(ua)) return "iPhone"; if (/iPad|Macintosh.*Mobile/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return "iPad";
+  if (/Android/.test(ua)) return "Android"; if (/CrOS/.test(ua)) return "Chromebook"; if (/Windows/.test(ua)) return "Windows PC";
+  if (/Macintosh/.test(ua)) return "Mac"; if (/aarch64|armv7|armv8/.test(ua) && /Linux/.test(ua)) return "Linux ARM (Raspberry Pi?)"; if (/Linux/.test(ua)) return "Linux PC"; return "Unknown device";
+}
+function browserName() {
+  const ua = navigator.userAgent;
+  const m = ua.match(/(Edg|OPR|Firefox|FxiOS|CriOS|Chrome|Version)\/([\d.]+)/);
+  if (!m) return "Unknown browser";
+  const n = { Edg: "Edge", OPR: "Opera", Firefox: "Firefox", FxiOS: "Firefox iOS", CriOS: "Chrome iOS", Chrome: "Chrome", Version: "Safari" }[m[1]];
+  return `${n} ${m[2].split(".")[0]}`;
+}
+async function readCaps() {
+  caps.device = deviceName(); caps.browser = browserName();
+  caps.secure = self.isSecureContext === true;
+  caps.wasm = typeof WebAssembly === "object";
+  caps.wasmCompile = false;
+  try { new WebAssembly.Module(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0])); caps.wasmCompile = true; } catch (e) { caps.wasmCompileErr = e && e.name; }
+  // a module that uses one v128 instruction: valid only where WebAssembly SIMD exists
+  caps.simd = caps.wasm && WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10, 1, 8, 0, 65, 0, 253, 15, 253, 98, 11]));
+  caps.threads = self.crossOriginIsolated === true && typeof SharedArrayBuffer === "function";
+  caps.jspi = caps.wasm && (typeof WebAssembly.Suspending === "function" || typeof WebAssembly.promising === "function");
+  caps.webgpu = false;
+  try { if (navigator.gpu) { const a = await navigator.gpu.requestAdapter(); caps.webgpu = !!a; } } catch { caps.webgpu = false; }
+  caps.cameraApi = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  caps.cores = navigator.hardwareConcurrency || null; caps.memory = navigator.deviceMemory || null;
+  const items = [
+    ["Device", pill("info", caps.device)], ["Browser", pill("info", caps.browser)],
+    ["Secure page", pill(caps.secure ? "yes" : "no", caps.secure ? "yes" : "no")],
+    ["WebAssembly", pill(caps.wasm && caps.wasmCompile ? "yes" : "no", caps.wasm ? (caps.wasmCompile ? "yes" : "blocked here") : "no")],
+    ["SIMD", pill(caps.simd ? "yes" : "maybe", caps.simd ? "yes" : "no")],
+    ["Threads", pill(caps.threads ? "yes" : "maybe", caps.threads ? "yes" : "not here")],
+    ["WebGPU", pill(caps.webgpu ? "yes" : "maybe", caps.webgpu ? "yes" : "no")],
+    ["JSPI", pill(caps.jspi ? "yes" : "maybe", caps.jspi ? "yes" : "no")],
+    ["Camera API", pill(caps.cameraApi ? "yes" : "maybe", caps.cameraApi ? "present" : "absent")],
+    ["CPU cores", pill("info", caps.cores ?? "not told")], ["Memory", pill("info", caps.memory ? caps.memory + " GB" : "not told")],
+  ];
+  $("caps").innerHTML = items.map(([k, v]) => `<div class="cap"><span>${k}</span>${v}</div>`).join("");
+  report();
+}
+function loadScript(src) {
+  return new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => no(new Error("could not load " + src)); document.head.appendChild(s); });
+}
+async function photoBytes(w, h) {
+  const img = $("photoImg") || Object.assign(new Image(), { id: "photoImg", src: "photo.jpg" });
+  if (!img.complete) await img.decode();
+  const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d"); g.drawImage(img, 0, 0, w, h);
+  const px = g.getImageData(0, 0, w, h).data, rgb = new Uint8Array(w * h * 3);
+  for (let i = 0, j = 0; i < px.length; i += 4) { rgb[j++] = px[i]; rgb[j++] = px[i + 1]; rgb[j++] = px[i + 2]; }
+  return rgb;
+}
+async function modelBytes(model) {
+  // the folder's detect.tflite, byte for byte; shipped as base64 in a .js file only because this host does not serve .tflite
+  if (!(window.SF_MODEL_BYTES && window.SF_MODEL_BYTES[model])) await loadScript(`models/${model}/detect.tflite.js`);
+  const e = window.SF_MODEL_BYTES[model], bin = atob(e.b64), u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u;
+}
+async function labels(model) { return (await (await fetch(`models/${model}/labelmap.txt`)).text()).split("\n").map((l) => l.replace(/\r$/, "")); }
+const median = (a) => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+const results = [];
+function addRow(r) {
+  results.push(r);
+  if (results.length === 1) $("rows").innerHTML = "";
+  const tr = document.createElement("tr");
+  tr.innerHTML = r.error
+    ? `<td>${r.runtime}</td><td>${r.model}</td><td colspan="4" style="color:var(--bad)">${r.error}</td>`
+    : `<td>${r.runtime}</td><td>${r.model}</td><td class="num">${Math.round(r.load)} ms</td><td class="num">${r.ms.toFixed(1)} ms</td><td class="num">${(1000 / r.ms).toFixed(1)}</td><td>${r.found}</td>`;
+  $("rows").appendChild(tr); report();
+}
+function found(names, b, c, s, n) {
+  const out = []; for (let i = 0; i < n; i++) if (s[i] > 0.5) out.push(`${names[Math.round(c[i])] ?? "?"} ${Math.round(s[i] * 100)}%`);
+  return out.length ? out.slice(0, 4).join(", ") : "nothing over 0.5";
+}
+async function runTfjs() {
+  logLine("tfjs-tflite: loading the runtime");
+  await loadScript("lib/tf-core.min.js"); await loadScript("lib/tf-backend-cpu.min.js"); await loadScript("lib/tf-tflite.min.js");
+  tflite.setWasmPath(new URL("lib/tfjs-tflite/wasm/", location.href).href);
+  await tf.setBackend("cpu"); await tf.ready();
+  const rgb = Int32Array.from(await photoBytes(300, 300));
+  for (const model of ["Demo90", "Model02.Head"]) {
+    try {
+      const t0 = performance.now(); const bytes = await modelBytes(model); const m = await tflite.loadTFLiteModel(bytes.buffer); const load = performance.now() - t0;
+      const names = await labels(model); const times = []; let last = null;
+      for (let k = 0; k < 11; k++) {
+        const x = tf.tensor(rgb, [1, 300, 300, 3], "int32"); const t1 = performance.now(); const o = m.predict(x);
+        const outs = Array.isArray(o) ? o : m.outputs.map((d) => o[d.name]); const data = await Promise.all(outs.map((t) => t.data()));
+        if (k > 0) times.push(performance.now() - t1); last = data; x.dispose(); outs.forEach((t) => t.dispose());
+      }
+      const [b, c, s, n] = last; addRow({ runtime: "tfjs-tflite (CPU)", model, load, ms: median(times), found: found(names, b, c, s, Math.round(n[0])) });
+      logLine(`tfjs-tflite ${model}: ${median(times).toFixed(1)} ms`);
+    } catch (e) { addRow({ runtime: "tfjs-tflite (CPU)", model, error: String(e && e.message || e).slice(0, 160) }); logLine("tfjs-tflite error: " + e); }
+  }
+}
+async function runLiteRt() {
+  if (!(caps.webgpu && caps.jspi)) { addRow({ runtime: "LiteRT.js (WebGPU)", model: "both", error: `skipped: this browser has ${caps.webgpu ? "" : "no WebGPU"}${!caps.webgpu && !caps.jspi ? " and " : ""}${caps.jspi ? "" : "no JSPI"}` }); return; }
+  logLine("LiteRT.js: loading the runtime");
+  try {
+    const L = await import("./lib/litert/litert.js");
+    await L.loadLiteRt(new URL("lib/litert/wasm/", location.href).href, { jspi: true });
+    const rgb = await photoBytes(300, 300);
+    for (const model of ["Demo90", "Model02.Head"]) {
+      try {
+        const t0 = performance.now(); const m = await L.loadAndCompile(await modelBytes(model), { accelerator: "webgpu" }); const load = performance.now() - t0;
+        const names = await labels(model); const times = []; let last = null;
+        for (let k = 0; k < 11; k++) {
+          const x = new L.Tensor(new Uint8Array(rgb), [1, 300, 300, 3]); const t1 = performance.now(); const res = await m.run([x]); const arrs = [];
+          for (const t of res) { const w = t.accelerator === "wasm" ? t : await t.moveTo("wasm"); arrs.push(w.toTypedArray()); if (w !== t) w.delete(); t.delete(); }
+          if (k > 0) times.push(performance.now() - t1); last = arrs; x.delete();
+        }
+        const [b, c, s, n] = last; addRow({ runtime: "LiteRT.js (WebGPU)", model, load, ms: median(times), found: found(names, b, c, s, Math.round(n[0])) });
+        logLine(`LiteRT.js ${model}: ${median(times).toFixed(1)} ms`);
+      } catch (e) { addRow({ runtime: "LiteRT.js (WebGPU)", model, error: String(e && e.message || e).slice(0, 160) }); }
+    }
+  } catch (e) { addRow({ runtime: "LiteRT.js (WebGPU)", model: "both", error: String(e && e.message || e).slice(0, 160) }); }
+}
+function verdict() {
+  const ok = results.filter((r) => !r.error);
+  const v = $("verdict");
+  if (!results.length) return;
+  if (!ok.length) { v.dataset.state = "no"; $("vbig").textContent = "The CNN did not run in this browser"; $("vsub").textContent = caps.wasmCompile ? "See the error in the table. Copy the report for Grok." : "This viewer blocks WebAssembly. Open the same test from the Sensor Fusion edge node or the live site instead."; return; }
+  const best = ok.reduce((a, b) => (a.ms < b.ms ? a : b));
+  v.dataset.state = "yes"; $("vbig").textContent = `Yes. The CNN runs here at ${best.ms.toFixed(0)} ms a frame`;
+  $("vsub").textContent = `About ${(1000 / best.ms).toFixed(1)} frames a second with ${best.runtime} on ${best.model}. The same detect.tflite the Raspberry Pi uses.`;
+}
+function report() {
+  const parts = [`SF-DEVICE ${new Date().toISOString().slice(0, 16)}Z`, `${caps.device || "?"} · ${caps.browser || "?"}`,
+    `secure:${caps.secure ? "Y" : "N"} wasm:${caps.wasmCompile ? "Y" : "N"} simd:${caps.simd ? "Y" : "N"} threads:${caps.threads ? "Y" : "N"} webgpu:${caps.webgpu ? "Y" : "N"} jspi:${caps.jspi ? "Y" : "N"} cores:${caps.cores ?? "?"}`];
+  for (const r of results) parts.push(r.error ? `${r.runtime} ${r.model}: ERROR ${r.error}` : `${r.runtime} ${r.model}: ${r.ms.toFixed(1)} ms (load ${Math.round(r.load)} ms)`);
+  if (!results.length) parts.push("not run yet");
+  $("report").textContent = parts.join(" · ");
+}
+$("run").addEventListener("click", async () => {
+  $("run").disabled = true; $("verdict").dataset.state = "run"; $("vbig").textContent = "Running"; $("vsub").textContent = "Loading the runtime and two model folders, then timing ten frames each.";
+  $("runnote").textContent = "";
+  try { await runTfjs(); await runLiteRt(); } finally { verdict(); report(); $("run").disabled = false; $("run").textContent = "Run again"; }
+});
+$("copy").addEventListener("click", async () => {
+  const text = $("report").textContent;
+  try { await navigator.clipboard.writeText(text); $("copied").textContent = "Copied"; }
+  catch { const r = document.createRange(); r.selectNodeContents($("report")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("copied").textContent = "Selected. Use your device's Copy."; }
+});
+readCaps();
+</script>

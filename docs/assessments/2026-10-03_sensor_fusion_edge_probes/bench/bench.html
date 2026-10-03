@@ -1,0 +1,66 @@
+<!doctype html><html><head><meta charset="utf-8"><title>bench</title><script type="importmap">{"imports":{"@litertjs/wasm-utils":"/nm/@litertjs/wasm-utils/dist/index.js"}}</script></head><body>
+<script src="/nm/@tensorflow/tfjs-core/dist/tf-core.min.js"></script>
+<script src="/nm/@tensorflow/tfjs-backend-cpu/dist/tf-backend-cpu.min.js"></script>
+<script src="/nm/@tensorflow/tfjs-tflite/dist/tf-tflite.min.js"></script>
+<script type="module">
+const q = new URLSearchParams(location.search), RT = q.get('rt'), MODELS = (q.get('models') || 'Demo90,Head,Deer,Tree').split(',');
+const out = { rt: RT, coi: self.crossOriginIsolated, ua: navigator.userAgent, webgpu: !!navigator.gpu, models: {} };
+async function bytes(u) { return new Uint8Array(await (await fetch(u)).arrayBuffer()); }
+const ref = await (await fetch('/b/ref.json')).json();
+const inputs = {}; for (const id of ref.ids) inputs[id] = await bytes(`/b/in/${id}.bin`);
+function rec(m, id, n, b, c, s) { (out.models[m].res[id] = { n, b, c, s }); }
+try {
+  if (RT.startsWith('tfjs')) {
+    tflite.setWasmPath('/nm/@tensorflow/tfjs-tflite/wasm/');
+    if (RT === 'tfjs-1t') { /* single thread: only when not isolated */ }
+    await tf.setBackend('cpu'); await tf.ready();
+    for (const m of MODELS) {
+      const t0 = performance.now(); const model = await tflite.loadTFLiteModel(`/b/models/${m}/detect.tflite`, { numThreads: RT === 'tfjs-mt' ? 4 : 1 }); const load = performance.now() - t0;
+      out.models[m] = { load_ms: Math.round(load), res: {}, ms: [] };
+      for (const id of ref.ids) {
+        const x = tf.tensor(Int32Array.from(inputs[id]), [1, 300, 300, 3], 'int32');
+        const t1 = performance.now(); const o = model.predict(x); 
+        const outs = Array.isArray(o) ? o : (o.shape ? [o] : model.outputs.map((d) => o[d.name]));
+        const [b, c, s, n] = await Promise.all(outs.map((t) => t.data())); out.models[m].ms.push(performance.now() - t1);
+        const N = Math.round(n[0]); rec(m, id, N, Array.from(b).slice(0, N * 4), Array.from(c).slice(0, N), Array.from(s).slice(0, N));
+        x.dispose(); outs.forEach((t) => t.dispose());
+      }
+    }
+  } else if (RT.startsWith('litert')) {
+    const L = await import('/nm/@litertjs/core/dist/index.js');
+    const acc = RT.split('-')[1] || 'wasm';
+    await L.loadLiteRt('/nm/@litertjs/core/wasm/', { jspi: q.get('jspi') === '1' });
+    for (const m of MODELS) {
+      const t0 = performance.now(); let model;
+      try { model = await L.loadAndCompile(`/b/models/${m}/detect.tflite`, { accelerator: acc }); }
+      catch (e) { out.models[m] = { error: 'compile: ' + (e && e.message || e) }; continue; }
+      out.models[m] = { load_ms: Math.round(performance.now() - t0), res: {}, ms: [], inputs: model.getInputDetails().map((d) => ({ name: d.name, dtype: d.dtype, shape: Array.from(d.shape) })), outputs: model.getOutputDetails().map((d) => ({ name: d.name, dtype: d.dtype, shape: Array.from(d.shape) })) };
+      for (const id of ref.ids) {
+        const x = new L.Tensor(new Uint8Array(inputs[id]), [1, 300, 300, 3]);
+        const t1 = performance.now(); let res;
+        try { res = await model.run([x]); } catch (e) { out.models[m].error = 'run: ' + (e && e.message || e); x.delete(); break; }
+        const arrs = []; for (const t of res) { const w = t.accelerator === 'wasm' ? t : await t.moveTo('wasm'); arrs.push(Array.from(w.toTypedArray())); if (w !== t) w.delete(); t.delete(); }
+        out.models[m].ms.push(performance.now() - t1); x.delete();
+        const [b, c, s, n] = arrs; const N = Math.round(n[0]); rec(m, id, N, b.slice(0, N * 4), c.slice(0, N), s.slice(0, N));
+      }
+    }
+  } else if (RT === 'mediapipe') {
+    const V = await import('/nm/@mediapipe/tasks-vision/vision_bundle.mjs');
+    const fs = await V.FilesetResolver.forVisionTasks('/nm/@mediapipe/tasks-vision/wasm');
+    for (const m of MODELS) {
+      try {
+        const t0 = performance.now();
+        const det = await V.ObjectDetector.createFromOptions(fs, { baseOptions: { modelAssetBuffer: await bytes(`/b/models/${m}/detect.tflite`), delegate: 'CPU' }, scoreThreshold: 0.0, maxResults: 10, runningMode: 'IMAGE' });
+        out.models[m] = { load_ms: Math.round(performance.now() - t0), res: {}, ms: [] };
+        for (const id of ref.ids) {
+          const rgba = new Uint8ClampedArray(300 * 300 * 4); const src = inputs[id]; for (let i = 0, j = 0; i < src.length; i += 3, j += 4) { rgba[j] = src[i]; rgba[j + 1] = src[i + 1]; rgba[j + 2] = src[i + 2]; rgba[j + 3] = 255; }
+          const img = new ImageData(rgba, 300, 300); const t1 = performance.now(); const r = det.detect(img); out.models[m].ms.push(performance.now() - t1);
+          const d = r.detections || []; rec(m, id, d.length, d.flatMap((x) => [x.boundingBox.originY / 300, x.boundingBox.originX / 300, (x.boundingBox.originY + x.boundingBox.height) / 300, (x.boundingBox.originX + x.boundingBox.width) / 300]), d.map((x) => x.categories[0] && x.categories[0].index), d.map((x) => x.categories[0] && x.categories[0].score));
+        }
+      } catch (e) { out.models[m] = { error: String(e && e.message || e).slice(0, 300) }; }
+    }
+  }
+} catch (e) { out.error = String(e && e.stack || e).slice(0, 600); }
+for (const m of Object.keys(out.models)) { const ms = (out.models[m].ms || []).slice(1).sort((a, b) => a - b); out.models[m].ms_median = ms.length ? Math.round(ms[Math.floor(ms.length / 2)] * 10) / 10 : null; delete out.models[m].ms; }
+window.__OUT = out; document.title = 'done';
+</script></body></html>

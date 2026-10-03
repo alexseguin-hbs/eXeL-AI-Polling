@@ -1,0 +1,17 @@
+<!doctype html><html><body><script type="module">
+const out = {};
+try {
+  const { loadPyodide } = await import('/nm/pyodide/pyodide.mjs');
+  const t0 = performance.now(); const py = await loadPyodide({ indexURL: '/nm/pyodide/' }); out.load_ms = Math.round(performance.now() - t0);
+  out.version = py.version;
+  // Python as the backbone in the browser: it decides, the CNN runs in JS (the same detect.tflite), results come back as Python lists
+  window.jsDetect = async () => ({ boxes: [[0.1, 0.2, 0.5, 0.6]], scores: [0.87], labels: ['head'] });
+  out.python = await py.runPythonAsync(`
+import js, json, platform
+r = (await js.jsDetect()).to_py()
+layers = [{"layer": 1, "model": "Model02.Head", "boxes": [{"label": l, "score": s, "box": b} for l, s, b in zip(r["labels"], r["scores"], r["boxes"])]}]
+json.dumps({"platform": platform.system(), "machine": platform.machine(), "layers": layers})`);
+  try { await py.loadPackage('numpy'); out.numpy = 'loaded'; } catch (e) { out.numpy = 'FAILED: ' + String(e.message || e).slice(0, 160); }
+} catch (e) { out.error = String(e && e.stack || e).slice(0, 400); }
+window.__OUT = out; document.title = 'done';
+</script></body></html>

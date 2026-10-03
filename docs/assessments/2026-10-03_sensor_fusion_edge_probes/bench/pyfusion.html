@@ -1,0 +1,32 @@
+<!doctype html><html><body>
+<script src="/nm/@tensorflow/tfjs-core/dist/tf-core.min.js"></script><script src="/nm/@tensorflow/tfjs-backend-cpu/dist/tf-backend-cpu.min.js"></script><script src="/nm/@tensorflow/tfjs-tflite/dist/tf-tflite.min.js"></script>
+<script type="module">
+const out = {};
+try {
+  tflite.setWasmPath('/nm/@tensorflow/tfjs-tflite/wasm/');
+  const img = new Image(); img.src = '/b/img/zidane.jpg'; await img.decode();
+  const S = {};
+  async function sess(name) { if (!S[name]) S[name] = { model: await tflite.loadTFLiteModel(`/b/models/${name}/detect.tflite`), labels: (await (await fetch(`/b/models/${name}/labelmap.txt`)).text()).split('\n').map((l) => l.replace(/\r$/, '')) }; return S[name]; }
+  // the only host-specific piece: detect(model, region) with the JS CNN
+  window.jsDetect = async (name, region) => {
+    const s = await sess(name); const [y0, x0, y1, x1] = region.toJs ? region.toJs() : region; const W = img.naturalWidth, H = img.naturalHeight;
+    const c = document.createElement('canvas'); c.width = 300; c.height = 300; c.getContext('2d').drawImage(img, x0 * W, y0 * H, (x1 - x0) * W, (y1 - y0) * H, 0, 0, 300, 300);
+    const px = c.getContext('2d').getImageData(0, 0, 300, 300).data, rgb = new Int32Array(270000); for (let i = 0, j = 0; i < px.length; i += 4) { rgb[j++] = px[i]; rgb[j++] = px[i + 1]; rgb[j++] = px[i + 2]; }
+    const x = tf.tensor(rgb, [1, 300, 300, 3], 'int32'), o = s.model.predict(x), outs = Array.isArray(o) ? o : s.model.outputs.map((d) => o[d.name]);
+    const [b, cl, sc, n] = await Promise.all(outs.map((t) => t.data())); x.dispose(); outs.forEach((t) => t.dispose());
+    const r = []; for (let i = 0; i < Math.round(n[0]); i++) r.push({ label: s.labels[Math.round(cl[i])], score: sc[i], box: [b[i * 4], b[i * 4 + 1], b[i * 4 + 2], b[i * 4 + 3]] });
+    return r;
+  };
+  const { loadPyodide } = await import('/nm/pyodide/pyodide.mjs'); const py = await loadPyodide({ indexURL: '/nm/pyodide/' });
+  py.FS.writeFile('/home/pyodide/fusion.py', await (await fetch('/b/fusion.py')).text());
+  out.envelope = JSON.parse(await py.runPythonAsync(`
+import sys, json, js
+sys.path.insert(0, '/home/pyodide')
+from fusion import identify
+async def detect(name, region):
+    r = await js.jsDetect(name, region)
+    return r.to_py()
+json.dumps(await identify(detect, ['Demo90', 'Head']))`));
+} catch (e) { out.error = String(e && e.stack || e).slice(0, 500); }
+window.__OUT = out; document.title = 'done';
+</script></body></html>

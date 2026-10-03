@@ -1,0 +1,74 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Edge probe</title>
+<style>body{margin:0;background:#07141a;color:#e6f3f4;font:14px system-ui}main{max-width:100%;padding:12px}#stage{position:relative}video,canvas{width:100%;max-width:640px;display:block}#ov{position:absolute;left:0;top:0}#bar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}button,select{font:inherit;padding:8px 12px}#log{font:12px ui-monospace,monospace;white-space:pre-wrap}</style></head>
+<body><main>
+<div id="bar"><select id="model"></select><select id="then"><option value="">no second layer</option></select>
+<select id="mode"><option value="browser">CNN in this browser</option><option value="edge">CNN on the edge node</option></select>
+<button id="go">Camera on</button></div>
+<div id="stage"><video id="v" playsinline muted></video><canvas id="ov"></canvas></div>
+<div id="log"></div>
+<script src="/lib/tfjs-core/dist/tf-core.min.js"></script><script src="/lib/tfjs-backend-cpu/dist/tf-backend-cpu.min.js"></script><script src="/lib/tfjs-tflite/dist/tf-tflite.min.js"></script>
+<script>
+// REFERENCE PROBE — not Sensor Fusion app code. One page, two paths, one envelope.
+const $ = (id) => document.getElementById(id), v = $('v'), ov = $('ov');
+const SESSION = Math.random().toString(16).slice(2, 10); let seq = 0, running = false;
+window.__LOG = [];
+const stable = (x) => Array.isArray(x) ? '[' + x.map(stable).join(',') + ']' : x && typeof x === 'object' ? '{' + Object.keys(x).sort().map((k) => JSON.stringify(k) + ':' + stable(x[k])).join(',') + '}' : JSON.stringify(x);
+async function sha16(s) { const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(h)).slice(0, 8).map((b) => b.toString(16).padStart(2, '0')).join(''); }
+const r = (x, d) => Math.round(x * 10 ** d) / 10 ** d;
+const sessions = {};
+async function session(name) {
+  if (sessions[name]) return sessions[name];
+  tflite.setWasmPath('/lib/tfjs-tflite/wasm/');                    // the runtime lives in /wasm/, not /dist/
+  const [model, labels] = await Promise.all([tflite.loadTFLiteModel(`/m/${name}/Sample_TFLite_model/detect.tflite`),
+    fetch(`/m/${name}/Sample_TFLite_model/labelmap.txt`).then((x) => x.text()).then((t) => t.split('\n').map((l) => l.replace(/\r$/, '')))]);
+  const shp = model.inputs[0].shape; return (sessions[name] = { model, labels, h: shp[1], w: shp[2] });
+}
+async function detectBrowser(name, src, min = 0.5) {
+  const s = await session(name);
+  const c = document.createElement('canvas'); c.width = s.w; c.height = s.h; c.getContext('2d').drawImage(src, 0, 0, s.w, s.h);
+  const px = c.getContext('2d').getImageData(0, 0, s.w, s.h).data, rgb = new Int32Array(s.w * s.h * 3);
+  for (let i = 0, j = 0; i < px.length; i += 4) { rgb[j++] = px[i]; rgb[j++] = px[i + 1]; rgb[j++] = px[i + 2]; }
+  const x = tf.tensor(rgb, [1, s.h, s.w, 3], 'int32'), t0 = performance.now(), o = s.model.predict(x);   // functional ops only: no chained calls
+  const outs = Array.isArray(o) ? o : s.model.outputs.map((d) => o[d.name]);
+  const [b, cl, sc, n] = await Promise.all(outs.map((t) => t.data())); const ms = performance.now() - t0; x.dispose(); outs.forEach((t) => t.dispose());
+  const boxes = []; for (let i = 0; i < Math.round(n[0]); i++) if (sc[i] >= min) boxes.push({ label: s.labels[Math.round(cl[i])] ?? '?', cls: Math.round(cl[i]), score: r(sc[i], 3), box: [r(b[i * 4], 4), r(b[i * 4 + 1], 4), r(b[i * 4 + 2], 4), r(b[i * 4 + 3], 4)] });
+  return { boxes, ms };
+}
+async function envelope(verb, layers, ms) {
+  const env = { v: 1, session: SESSION, peer: 'browser', seq: ++seq, at: Date.now(), verb, authority: 'MARK', payload: { layers, ms: r(ms, 1) } };
+  env.hash = await sha16(stable({ verb, layers })); return env;
+}
+async function runBrowser(src, name, then) {
+  const a = await detectBrowser(name, src); const layers = [{ layer: 1, model: name, boxes: a.boxes }]; let ms = a.ms;
+  if (then && a.boxes.length) { const [y0, x0, y1, x1] = a.boxes[0].box, W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
+    const c = document.createElement('canvas'); c.width = Math.max(1, (x1 - x0) * W); c.height = Math.max(1, (y1 - y0) * H); c.getContext('2d').drawImage(src, Math.max(0, x0) * W, Math.max(0, y0) * H, c.width, c.height, 0, 0, c.width, c.height);
+    const b = await detectBrowser(then, c); ms += b.ms; layers.push({ layer: 2, model: then, within: 0, boxes: b.boxes }); }
+  return envelope(layers.length > 1 ? 'IDENTIFY' : 'DETECT', layers, ms);
+}
+async function runEdge(src, name, then) {
+  const W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
+  const c = document.createElement('canvas'); c.width = W; c.height = H; c.getContext('2d').drawImage(src, 0, 0);
+  const blob = await new Promise((ok) => c.toBlob(ok, 'image/jpeg', 0.85)); const t0 = performance.now();
+  const res = await fetch(`/infer?model=${encodeURIComponent(name)}${then ? '&then=' + encodeURIComponent(then) : ''}&peer=browser`, { method: 'POST', body: blob });
+  const env = await res.json(); env.round_trip_ms = r(performance.now() - t0, 1); env.bytes_up = blob.size; return env;
+}
+function draw(env) {
+  const W = v.videoWidth, H = v.videoHeight; ov.width = W; ov.height = H; ov.style.width = v.clientWidth + 'px'; const g = ov.getContext('2d'); g.clearRect(0, 0, W, H);
+  g.lineWidth = 3; g.font = '20px system-ui'; for (const L of env.payload.layers) for (const bx of L.boxes) { if (L.layer > 1) continue; const [y0, x0, y1, x1] = bx.box; g.strokeStyle = '#f0a020'; g.strokeRect(x0 * W, y0 * H, (x1 - x0) * W, (y1 - y0) * H); g.fillStyle = '#f0a020'; g.fillText(`${bx.label} ${Math.round(bx.score * 100)}% · MARK`, x0 * W + 4, Math.max(20, y0 * H - 6)); }
+}
+window.runBoth = async (url, name, then) => { const img = new Image(); img.src = url; await img.decode(); return { browser: await runBrowser(img, name, then), edge: await runEdge(img, name, then) }; };
+async function loop() {
+  if (!running) return; const name = $('model').value, then = $('then').value;
+  try { const env = $('mode').value === 'edge' ? await runEdge(v, name, then) : await runBrowser(v, name, then); window.__LOG.push(env); if (window.__LOG.length > 200) window.__LOG.shift(); draw(env);
+    $('log').textContent = `${env.verb} · ${env.payload.layers.map((l) => l.model + ' ' + l.boxes.length).join(' → ')} · CNN ${env.payload.ms} ms${env.round_trip_ms ? ' · round trip ' + env.round_trip_ms + ' ms' : ''} · #${env.seq} ${env.hash}`; }
+  catch (e) { $('log').textContent = String(e); }
+  requestAnimationFrame(loop);
+}
+fetch('/models').then((x) => x.json()).then((m) => { for (const it of m.models) { $('model').add(new Option(it.name, it.name)); $('then').add(new Option('then ' + it.name, it.name)); } window.__MODELS = m; });
+$('go').onclick = async () => {
+  try { v.srcObject = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' } } }); }   // the back camera on a phone
+  catch { v.srcObject = await navigator.mediaDevices.getUserMedia({ audio: false, video: true }); }
+  await v.play(); running = true; loop();
+};
+</script></main></body></html>

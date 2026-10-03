@@ -1,0 +1,14 @@
+import { createServer } from "node:http"; import { readFile } from "node:fs/promises"; import { join, extname } from "node:path";
+import { chromium } from "/home/user/eXeL-AI-Polling/frontend/node_modules/playwright/index.mjs";
+const D = "$SCRATCH/devicecheck";
+const MIME = { ".js": "text/javascript", ".html": "text/html", ".wasm": "application/wasm", ".jpg": "image/jpeg", ".txt": "text/plain" };
+const srv = createServer(async (req, res) => { let p = decodeURIComponent(new URL(req.url, "http://x").pathname); if (p === "/") p = "/index.html";
+  try { let b = await readFile(join(D, p)); if (p === "/index.html") b = Buffer.from("<!doctype html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'></head><body>" + b + "</body></html>"); res.writeHead(200, { "content-type": MIME[extname(p)] || "application/octet-stream" }); res.end(b); } catch { res.writeHead(404).end("nf"); } });
+await new Promise((ok) => srv.listen(0, "127.0.0.1", ok));
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: ["--enable-unsafe-webgpu", "--enable-features=Vulkan,WebAssemblyJSPromiseIntegration", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+const p = await b.newPage({ viewport: { width: 390, height: 844 } }); const errs = []; p.on("pageerror", (e) => errs.push(e.message));
+await p.goto(`http://127.0.0.1:${srv.address().port}/`); await p.waitForTimeout(1500);
+await p.click("#run"); await p.waitForFunction(() => document.querySelector("#run").textContent === "Run again", null, { timeout: 240000 }).catch(() => {});
+console.log("verdict:", await p.textContent("#vbig")); console.log("report:", await p.textContent("#report")); console.log("errors:", errs.slice(0, 3));
+const w = await p.evaluate(() => [document.documentElement.scrollWidth, innerWidth]); console.log("width", w);
+await p.screenshot({ path: D + "/../devicecheck.png", fullPage: true }); await b.close(); srv.close();
