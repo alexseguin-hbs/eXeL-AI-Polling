@@ -373,7 +373,7 @@
 .logo {
   height: 22px;
   width: auto;
-  max-width: 120px;
+  max-width: 88px;
   object-fit: contain;
   display: block;
 }
@@ -408,8 +408,8 @@
   flex: 0 0 auto;
 }
 .tools .iconBtn {
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 28px;
+  min-height: 28px;
 }
 .tutorial {
   position: absolute;
@@ -443,11 +443,12 @@
 .sensorSwitch {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  min-width: 0;
   border: 0;
   background: transparent;
   color: #fff;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
@@ -501,13 +502,13 @@
 .piBot .annotate {
   min-width: 0;
   min-height: 0;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 9px;
 }
 .piBot .annotate {
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 4px 6px;
+  font-size: 10px;
 }
 .modelList button {
   display: block;
@@ -718,13 +719,23 @@
 }
 .edgeX {
   width: 44px;
-  margin-left: -22px;
   cursor: ew-resize;
 }
 .edgeY {
   height: 44px;
-  margin-top: -22px;
   cursor: ns-resize;
+}
+.edgeOutL {
+  margin-left: -48px;
+}
+.edgeOutR {
+  margin-left: 4px;
+}
+.edgeOutT {
+  margin-top: -48px;
+}
+.edgeOutB {
+  margin-top: 4px;
 }
 .edge::after {
   content: "";

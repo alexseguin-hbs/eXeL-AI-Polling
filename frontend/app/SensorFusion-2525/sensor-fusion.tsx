@@ -127,7 +127,7 @@ function SettingsSheet({
   );
 }
 type Step = "login" | "menu" | "work" | "label";
-type Shot = { id: string; url: string; name?: string };
+type Shot = { id: string; url: string; name?: string; source?: "sensor" | "device"; original?: string };
 type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number };
 type Edge = "l" | "r" | "t" | "b";
 
@@ -187,6 +187,22 @@ function phoneKind() {
   if (/iPad|iPhone|iPod/.test(agent)) return "ios";
   if (/Android/i.test(agent)) return "android";
   return "other";
+}
+
+function classKey(raw: string) {
+  const clean = raw.trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
+  return clean || "picture";
+}
+
+function peekNames(label: string, count: number) {
+  const used = Number(window.localStorage.getItem(`sf2525-seq-${classKey(label)}`) || "0") || 0;
+  return Array.from({ length: count }, (_, index) => `${classKey(label)}.${String(used + index + 1).padStart(4, "0")}.jpg`);
+}
+
+function commitNames(label: string, count: number) {
+  const key = `sf2525-seq-${classKey(label)}`;
+  const used = Number(window.localStorage.getItem(key) || "0") || 0;
+  window.localStorage.setItem(key, String(used + count));
 }
 
 function setNameOf(raw: string) {
@@ -275,33 +291,6 @@ function Labeler({
   const pic = pics[index];
   edges.current = { left, top, right, bottom };
 
-  useEffect(() => {
-    if (!supabase) return;
-    let stop = false;
-    void supabase
-      .from("sensor_fusion_pictures")
-      .select("id,name,jpeg")
-      .order("created_at", { ascending: false })
-      .limit(40)
-      .then(({ data }) => {
-        if (stop || !data?.length) return;
-        setPics((current) => {
-          const seen = new Set(current.map((item) => item.id));
-          const extra = data
-            .filter((row) => row.jpeg && !seen.has(String(row.id)))
-            .map((row) => ({
-              id: String(row.id),
-              url: String(row.jpeg),
-              name: row.name ? String(row.name) : undefined,
-            }));
-          return extra.length ? [...extra, ...current] : current;
-        });
-      });
-    return () => {
-      stop = true;
-    };
-  }, []);
-
   function point(event: ReactPointerEvent) {
     const box = stageRef.current?.getBoundingClientRect();
     if (!box || !box.width || !box.height) return null;
@@ -351,15 +340,7 @@ function Labeler({
     setMarks(next);
     const rows = Object.entries(next).flatMap(([picture, items]) => items.map((item) => ({ picture, ...item })));
     window.localStorage.setItem("sf2525-labels", JSON.stringify(rows));
-    const fileName = pictureName(pic);
-    const image = imgRef.current;
-    const width = image?.naturalWidth || image?.width || 1;
-    const height = image?.naturalHeight || image?.height || 1;
-    const xml = vocXml(fileName, width, height, list);
-    const xmlFile = xmlName(fileName);
-    downloadBlob(xmlFile, URL.createObjectURL(new Blob([xml], { type: "application/xml" })));
-    if (pic.url.startsWith("data:")) downloadBlob(fileName, pic.url);
-    setNote(`Saved ${fileName} and ${xmlFile}.`);
+    setNote("This box is on this screen only. It is not saved yet.");
   }
 
   async function shareTeam() {
@@ -427,7 +408,7 @@ function Labeler({
             <div className={styles.markBox} style={{ left: `${boxLeft}%`, top: `${boxTop}%`, width: `${boxWidth}%`, height: `${boxHeight}%` }} />
             <button
               type="button"
-              className={`${styles.edge} ${styles.edgeX}`}
+              className={`${styles.edge} ${styles.edgeX} ${styles.edgeOutL}`}
               style={{ left: `${boxLeft}%`, top: `${boxTop + boxHeight * 0.15}%`, height: `${boxHeight * 0.7}%` }}
               aria-label="Move the left side"
               onPointerDown={(event) => {
@@ -437,7 +418,7 @@ function Labeler({
             />
             <button
               type="button"
-              className={`${styles.edge} ${styles.edgeX}`}
+              className={`${styles.edge} ${styles.edgeX} ${styles.edgeOutR}`}
               style={{ left: `${boxLeft + boxWidth}%`, top: `${boxTop + boxHeight * 0.15}%`, height: `${boxHeight * 0.7}%` }}
               aria-label="Move the right side"
               onPointerDown={(event) => {
@@ -447,7 +428,7 @@ function Labeler({
             />
             <button
               type="button"
-              className={`${styles.edge} ${styles.edgeY}`}
+              className={`${styles.edge} ${styles.edgeY} ${styles.edgeOutT}`}
               style={{ left: `${boxLeft + boxWidth * 0.15}%`, top: `${boxTop}%`, width: `${boxWidth * 0.7}%` }}
               aria-label="Move the top side"
               onPointerDown={(event) => {
@@ -457,7 +438,7 @@ function Labeler({
             />
             <button
               type="button"
-              className={`${styles.edge} ${styles.edgeY}`}
+              className={`${styles.edge} ${styles.edgeY} ${styles.edgeOutB}`}
               style={{ left: `${boxLeft + boxWidth * 0.15}%`, top: `${boxTop + boxHeight}%`, width: `${boxWidth * 0.7}%` }}
               aria-label="Move the bottom side"
               onPointerDown={(event) => {
@@ -551,6 +532,7 @@ export default function SensorFusion() {
   const [cloudSaved, setCloudSaved] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
   const [name, setName] = useState("");
+  const [labelPick, setLabelPick] = useState("person");
   const [count, setCount] = useState("4");
   const [note, setNote] = useState("");
   const [shots, setShots] = useState<Shot[]>([]);
@@ -626,6 +608,14 @@ export default function SensorFusion() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    const sees = (MODELS.find((item) => item.id === model)?.sees || "person")
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item && !item.startsWith("the "));
+    if (sees[0]) setLabelPick(sees[0]);
+  }, [model]);
 
   useEffect(() => {
     if (!sensorOn || step !== "work") return;
@@ -723,8 +713,9 @@ export default function SensorFusion() {
   async function framesFromVideo() {
     const video = videoRef.current;
     const howMany = Math.min(12, Math.max(1, Number(count) || 4));
-    if (!video || !sensorOn || video.readyState < 2) return { shots: [] as Shot[], files: [] as { name: string; blob: Blob }[] };
-    const setName = setNameOf(name);
+    if (!video || !sensorOn || video.readyState < 2) return { shots: [] as Shot[], files: [] as { name: string; blob: Blob }[], label: classKey(labelPick) };
+    const label = classKey(labelPick);
+    const names = peekNames(label, howMany);
     const shotsOut: Shot[] = [];
     const files: { name: string; blob: Blob }[] = [];
     for (let i = 0; i < howMany; i += 1) {
@@ -737,65 +728,71 @@ export default function SensorFusion() {
       const ctx = canvas.getContext("2d");
       if (!ctx) continue;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const fileName = `${setName}-sf-img-${i + 1}.jpg`;
+      const fileName = names[i];
       const url = canvas.toDataURL("image/jpeg", 0.7);
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((file) => resolve(file), "image/jpeg", 0.7));
       if (!blob) continue;
-      shotsOut.push({ id: `${Date.now()}-${i}`, url, name: fileName });
+      shotsOut.push({ id: `${Date.now()}-${i}`, url, name: fileName, source: "sensor" });
       files.push({ name: fileName, blob });
       await new Promise((resolve) => window.setTimeout(resolve, 120));
     }
-    return { shots: shotsOut, files };
+    return { shots: shotsOut, files, label };
   }
 
   async function takeShots() {
-    const { shots: next, files } = await framesFromVideo();
+    const { shots: next, files, label } = await framesFromVideo();
     if (!next.length) {
       setError("Turn SENSOR 1 on before you save pictures.");
       setAnnotate(false);
       return;
     }
-    const setName = setNameOf(name);
     try {
-      const folder = await saveNumberedJpegs(setName, files);
+      const folder = await saveNumberedJpegs(label, files);
+      commitNames(label, files.length);
       setShotFolder(folder);
       setError("");
     } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
       setShotFolder("");
       setError(err instanceof Error ? err.message : "The pictures were not saved.");
       return;
     }
-    setShots(next);
+    setShots((current) => [...current, ...next]);
     setCloudSaved(false);
     setAnnotate(false);
     setSavedNote(true);
     window.localStorage.setItem(
       "sf2525-capture",
-      JSON.stringify({ operator, platform, model, name: setName, note, count: next.length, folder: `SensorFusion/${setName}` }),
+      JSON.stringify({ operator, platform, model, name: label, note, count: next.length, folder: `SensorFusion/${label}` }),
     );
   }
 
   async function addFromDevice(list: FileList | null) {
     if (!list?.length) return;
-    const setName = setNameOf(name || "capture");
+    const label = classKey(labelPick);
+    const names = peekNames(label, list.length);
     const files: { name: string; blob: Blob }[] = [];
     const added: Shot[] = [];
-    let number = shots.length;
-    for (const file of Array.from(list)) {
-      number += 1;
-      const fileName = `${setName}-sf-img-${number}.jpg`;
-      const url = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result || ""));
-        reader.readAsDataURL(file);
-      });
-      if (!url) continue;
-      added.push({ id: `${Date.now()}-${number}`, url, name: fileName });
+    Array.from(list).forEach((file, index) => {
+      const fileName = names[index];
+      added.push({ id: `${Date.now()}-${index}`, url: "", name: fileName, source: "device", original: file.name });
       files.push({ name: fileName, blob: file });
-    }
-    if (!added.length) return;
+    });
+    const ready = await Promise.all(
+      added.map(
+        (shot, index) =>
+          new Promise<Shot>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve({ ...shot, url: String(reader.result || "") });
+            reader.readAsDataURL(list[index]);
+          }),
+      ),
+    );
+    const kept = ready.filter((shot) => shot.url);
+    if (!kept.length) return;
     try {
-      const folder = await saveNumberedJpegs(setName, files);
+      const folder = await saveNumberedJpegs(label, files);
+      commitNames(label, files.length);
       setShotFolder(folder);
       setError("");
     } catch (err) {
@@ -803,9 +800,23 @@ export default function SensorFusion() {
       setError(err instanceof Error ? err.message : "The pictures were not saved.");
       return;
     }
-    setShots((current) => [...current, ...added]);
+    setShots((current) => [...current, ...kept]);
     setAnnotate(false);
     setSavedNote(true);
+  }
+
+  function uploadSet() {
+    if (!shots.length) {
+      setError("Capture images before you upload a set.");
+      return;
+    }
+    const lines = [
+      "Sensor Fusion set",
+      "These pictures stay on this device. A training destination has not been chosen.",
+      ...shots.map((shot) => [shot.name || "", shot.source || "sensor", shot.original || ""].join("\t")),
+    ];
+    downloadBlob(`${classKey(labelPick)}.set.txt`, URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/plain" })));
+    setError("");
   }
 
   function pickMenu(item: (typeof MENU)[number]) {
@@ -1030,9 +1041,13 @@ export default function SensorFusion() {
           <img src={`${UI}/capture_images_001.png`} alt="" />
           Capture
         </button>
-        <button type="button" className={styles.bot} onClick={() => setAnnotate(true)}>
+        <button type="button" className={styles.bot} aria-label="Annotate images" onClick={() => setStep("label")}>
+          <img src={`${UI}/annotate_button_001.png`} alt="" />
+          Annotate
+        </button>
+        <button type="button" className={styles.bot} aria-label="Upload a finished set" onClick={() => void uploadSet()}>
           <img src={`${UI}/train_model_001.png`} alt="" />
-          Upload Images
+          Upload
           {cloudSaved && (
             <span className={styles.cloudOn} role="img" aria-label="Uploaded">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1050,8 +1065,18 @@ export default function SensorFusion() {
             <h2>Capture images</h2>
             <p className={styles.muted}>From the sensor, or from this device. Then annotate them.</p>
             <label>
-              Name
-              <input value={name} onChange={(event) => setName(event.target.value)} />
+              Label
+              <select value={labelPick} onChange={(event) => setLabelPick(event.target.value)}>
+                {(current.sees || "person")
+                  .split(",")
+                  .map((item) => item.trim())
+                  .filter((item) => item && !item.startsWith("the "))
+                  .map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+              </select>
             </label>
             <label>
               How many
