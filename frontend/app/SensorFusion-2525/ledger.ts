@@ -146,6 +146,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The six training steps are line icons in the page colour. Capture Images, Annotate, Upload, and Run Live use them. A strip shows the current step. A 45–60 second capture keeps one frame every half second. Training does not start until a server is chosen.",
       commit: "d67072a",
     },
+    {
+      rev: 21,
+      date: "2026-10-03",
+      kind: "correction",
+      text: "The model button uses the original cube icon again. The line icon stays on the training steps.",
+      commit: "",
+    },
   ],
 };
 
