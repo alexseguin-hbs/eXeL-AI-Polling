@@ -574,45 +574,69 @@
 }
 @media (orientation: landscape) and (max-height: 520px) {
   .work {
-    display: grid;
-    grid-template-columns: 1fr minmax(220px, 34vw);
-    grid-template-rows: auto minmax(0, 1fr) auto;
-  }
-  .work .piTop,
-  .work .foot {
-    grid-column: 1 / -1;
-  }
-  .work .stage {
-    grid-column: 1;
-    grid-row: 2;
-    min-height: 0;
-    height: 100%;
-  }
-  .work .dock {
-    grid-column: 2;
-    grid-row: 2;
-    overflow: auto;
     display: flex;
     flex-direction: column;
   }
-  .work .piBot {
-    flex-direction: column;
-    align-items: stretch;
-    flex-wrap: nowrap;
-    min-height: 0;
-    justify-content: flex-start;
-    gap: 8px;
+  .work .piTop {
+    padding: 2px 8px;
+  }
+  .work .logo {
+    height: 16px;
+    max-width: 88px;
   }
   .work .sensorSwitch {
-    font-size: 12px;
+    font-size: 11px;
+    gap: 4px;
   }
-  .work .piTop {
+  .work .tools .iconBtn,
+  .work .piBot .bot,
+  .work .piBot .botOn {
+    min-width: 0;
+    min-height: 0;
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+  .work .piBot {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 2px 6px 2px;
+    overflow-x: auto;
+  }
+  .work .annotate {
+    align-self: center;
+    width: auto;
     padding: 4px 8px;
+    font-size: 11px;
   }
-  .work .shade,
-  .work .modalWrap {
-    grid-column: 1 / -1;
-    grid-row: 1 / -1;
+  .work .sensorSwitch img,
+  .work .piBot img,
+  .work .annotate img,
+  .work .tools img {
+    height: 12px;
+    width: 12px;
+    max-width: 12px;
+  }
+  .work .path,
+  .work .links {
+    font-size: 10px;
+    line-height: 1.2;
+    margin: 0 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .work .links {
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding-bottom: 2px;
+  }
+  .work .idle {
+    padding: 8px;
+    font-size: 13px;
+  }
+  .work .idle p {
+    margin: 2px 0;
   }
 }
 .labelStage {
