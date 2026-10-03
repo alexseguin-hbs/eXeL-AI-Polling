@@ -1,4 +1,4 @@
-export type PlatformId = "win" | "android" | "iphone" | "pi" | "ubuntu";
+export type PlatformId = "win" | "mac" | "android" | "iphone" | "pi" | "ubuntu";
 export type SchemeId =
   | "violet"
   | "ocean"
@@ -13,6 +13,7 @@ export type SchemeId =
 
 export const PLATFORMS: { id: PlatformId; label: string; detail: string }[] = [
   { id: "win", label: "PC-WIN", detail: "A computer at a desk" },
+  { id: "mac", label: "Mac", detail: "An Apple computer" },
   { id: "android", label: "Android", detail: "A phone" },
   { id: "iphone", label: "iPhone", detail: "A phone" },
   { id: "pi", label: "Raspberry Pi", detail: "A small computer" },
@@ -75,6 +76,7 @@ export function detectPlatform(ua: string): PlatformId {
   if (/Android/i.test(ua)) return "android";
   if (/iPhone|iPad/i.test(ua)) return "iphone";
   if (/Windows/i.test(ua)) return "win";
+  if (/Macintosh|Mac OS/i.test(ua)) return "mac";
   if (/Linux/i.test(ua)) return "ubuntu";
   return "win";
 }

@@ -66,7 +66,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       rev: 9,
       date: "2026-10-03",
       kind: "release",
-      text: "CPU detection uses detect.tflite. The label file is used in order, including ??? for anything that is not one of the 90 names. Coral stays on a computer that has the chip.",
+      text: "The label file is used in order, including ??? for anything that is not one of the 90 names. The downloaded program runs detect.tflite on a Mac, Ubuntu, a Raspberry Pi, or Windows. A phone uses this page. Coral stays on a computer that has the chip.",
       commit: "",
     },
   ],

@@ -425,7 +425,12 @@ export default function SensorFusion() {
             <p className={styles.alert}>Pose is not designed yet. It does not have the three files the other models use.</p>
           )}
           <p className={styles.muted}>
-            Download is the same screen, and it opens full screen. It runs on a Raspberry Pi, Ubuntu, a Windows PC, an iPhone, or an Android phone.
+            The program runs the CPU model on a Mac, Ubuntu, a Raspberry Pi, or Windows. A phone uses this page. Coral only runs on a computer that has the chip.
+          </p>
+          <p className={styles.links}>
+            <a href="/sensor-fusion/edge/sensor_fusion_edge.py" download="sensor_fusion_edge.py">
+              Download the program
+            </a>
           </p>
           <Downloads />
         </div>
