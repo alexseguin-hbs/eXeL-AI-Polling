@@ -23,6 +23,22 @@ import styles from "./sensor-fusion.module.css";
 
 const UI = "/sensor-fusion/ui";
 
+function loadCnn(): Promise<{
+  load: (id: string) => Promise<unknown>;
+  detect: (session: unknown, video: HTMLVideoElement) => Promise<{ hits: unknown[]; fps: number }>;
+  draw: (canvas: HTMLCanvasElement, video: HTMLVideoElement, result: { hits: unknown[]; fps: number }, showScores: boolean, showLabels: boolean, showFps: boolean) => void;
+}> {
+  const host = window as Window & { SFCnn?: Awaited<ReturnType<typeof loadCnn>> };
+  if (host.SFCnn) return Promise.resolve(host.SFCnn);
+  return new Promise((resolve, reject) => {
+    const tag = document.createElement("script");
+    tag.src = "/sensor-fusion/cnn.js";
+    tag.onload = () => (host.SFCnn ? resolve(host.SFCnn) : reject(new Error("The model runner did not start.")));
+    tag.onerror = () => reject(new Error("The model runner did not load."));
+    document.head.appendChild(tag);
+  });
+}
+
 function Downloads() {
   return (
     <p className={styles.links}>
@@ -144,7 +160,7 @@ export default function SensorFusion() {
   const [guest, setGuest] = useState(false);
   const [showScores, setShowScores] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
-  const [showFps, setShowFps] = useState(false);
+  const [showFps, setShowFps] = useState(true);
   const [infoOpen, setInfoOpen] = useState(false);
   const [poseNote, setPoseNote] = useState(false);
   const [annotate, setAnnotate] = useState(false);
@@ -153,6 +169,14 @@ export default function SensorFusion() {
   const [count, setCount] = useState("4");
   const [note, setNote] = useState("");
   const [shots, setShots] = useState<Shot[]>([]);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [cnnNote, setCnnNote] = useState("");
+  const showScoresRef = useRef(showScores);
+  const showLabelsRef = useRef(showLabels);
+  const showFpsRef = useRef(showFps);
+  showScoresRef.current = showScores;
+  showLabelsRef.current = showLabels;
+  showFpsRef.current = showFps;
 
   useEffect(() => {
     const savedScheme = window.localStorage.getItem("sf2525-scheme");
@@ -189,6 +213,41 @@ export default function SensorFusion() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    if (!sensorOn || step !== "work") return;
+    let stop = false;
+    const run = async () => {
+      setCnnNote("Loading detect.tflite…");
+      try {
+        const cnn = await loadCnn();
+        const session = await cnn.load(model);
+        if (stop) return;
+        setCnnNote("Running detect.tflite");
+        const loop = async () => {
+          if (stop) return;
+          const video = videoRef.current;
+          const canvas = canvasRef.current;
+          if (video && canvas && video.readyState >= 2) {
+            try {
+              const result = await cnn.detect(session, video);
+              cnn.draw(canvas, video, result, showScoresRef.current, showLabelsRef.current, showFpsRef.current);
+            } catch (err) {
+              setCnnNote(err instanceof Error ? err.message : "The model stopped.");
+            }
+          }
+          if (!stop) window.setTimeout(loop, 40);
+        };
+        void loop();
+      } catch (err) {
+        if (!stop) setCnnNote(err instanceof Error ? err.message : "The model did not start.");
+      }
+    };
+    void run();
+    return () => {
+      stop = true;
+    };
+  }, [sensorOn, model, step]);
 
   function chooseScheme(next: SchemeId | "custom", hex?: string) {
     const color = hex || customHex;
@@ -413,6 +472,7 @@ export default function SensorFusion() {
       </header>
       <section className={styles.stage}>
         <video ref={videoRef} autoPlay muted playsInline aria-label="Camera" />
+        <canvas ref={canvasRef} className={styles.boxes} />
         {!sensorOn && (
           <div className={styles.idle}>
             <p>Camera Sensor 1 is OFF</p>
@@ -420,7 +480,7 @@ export default function SensorFusion() {
             <p>2. Toggle SENSOR 1 to ON</p>
           </div>
         )}
-        {showFps && <p className={styles.fps}>FPS — measured by the app on this computer</p>}
+        {showFps && <p className={styles.fps}>{cnnNote || "FPS"}</p>}
         {infoOpen && (
           <p className={styles.note}>
             {coral ? "With Coral" : "No Coral"}. This folder uses {file}. Press F to show or hide FPS.
@@ -440,10 +500,7 @@ export default function SensorFusion() {
           <img src={`${UI}/models_icon_001.png`} alt="" />
           <select
             value={model}
-            onChange={(event) => {
-              closeSensor();
-              setModel(event.target.value);
-            }}
+            onChange={(event) => setModel(event.target.value)}
           >
             {MODELS.map((item) => (
               <option key={item.id} value={item.id}>

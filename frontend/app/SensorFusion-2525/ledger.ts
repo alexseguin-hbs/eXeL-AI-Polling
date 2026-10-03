@@ -48,6 +48,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Download is the same full-screen file as the page you can open. It runs on a Raspberry Pi, Ubuntu, a Windows PC, an iPhone, or an Android phone. Pose is not designed yet.",
       commit: "",
     },
+    {
+      rev: 7,
+      date: "2026-10-03",
+      kind: "release",
+      text: "A phone or a PC runs detect.tflite in the browser, the same way the Python script does: resize the frame, run the model, draw the box and the name. Coral's file stays on a computer that has the chip.",
+      commit: "",
+    },
   ],
 };
 
