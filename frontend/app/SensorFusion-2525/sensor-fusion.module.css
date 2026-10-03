@@ -545,9 +545,58 @@
   font-size: 9px;
 }
 .piBot .annotate {
+  padding: 4px 6px;
+  font-size: 9px;
+  background: #3ec96b;
+  color: #fff;
+  white-space: normal;
+  line-height: 1.05;
+  text-align: center;
+}
+.piBot svg,
+.stepStrip svg,
+.statusLine svg,
+.piTop svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+.stepStrip {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  list-style: none;
+  margin: 0 0 8px;
   padding: 0;
+}
+.stepStrip li {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+}
+.stepOn {
+  color: var(--sf-primary, #19c8cf);
+}
+.stepDone {
+  color: #3ec96b;
+}
+.stepDim {
+  color: #5c7070;
+  opacity: 0.45;
+}
+.tick {
+  position: absolute;
+  right: 2px;
+  bottom: 0;
   font-size: 10px;
-  background: transparent;
+  line-height: 1;
+}
+.statusLine {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 .modelList button {
   display: block;

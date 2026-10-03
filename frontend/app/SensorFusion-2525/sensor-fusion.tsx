@@ -19,9 +19,28 @@ import {
   type SchemeId,
 } from "./sf";
 import { SENSOR_FUSION_RCORE_HISTORY } from "./ledger";
+import { TRAIN_STEPS, StepIcon, type TrainStepId } from "./steps";
 import styles from "./sensor-fusion.module.css";
 
 const UI = "/sensor-fusion/ui";
+
+function StepStrip({ current }: { current: number }) {
+  return (
+    <ol className={styles.stepStrip} aria-label="Training steps">
+      {TRAIN_STEPS.map((step) => (
+        <li
+          key={step.id}
+          className={step.n < current ? styles.stepDone : step.n === current ? styles.stepOn : styles.stepDim}
+          aria-current={step.n === current ? "step" : undefined}
+          title={step.line}
+        >
+          <StepIcon id={step.id as TrainStepId} />
+          {step.n < current ? <span className={styles.tick}>✓</span> : null}
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 function loadCnn(): Promise<{
   load: (id: string) => Promise<unknown>;
@@ -378,10 +397,11 @@ function Labeler({
         <button type="button" className={styles.ghost} onClick={onBack}>
           Menu
         </button>
-        <span className={styles.who}>Image labeler</span>
+        <StepIcon id="annotate" />
+        <span className={styles.who}>Annotate Images</span>
       </header>
       <div className={styles.fill}>
-        <p className={styles.muted}>Pictures collected by the team show here after they are uploaded. Add more from this device.</p>
+        <StepStrip current={2} />
         <label className={styles.file}>
           Add pictures
           <input type="file" accept="image/*" multiple onChange={(event) => addFiles(event.target.files)} />
@@ -527,9 +547,9 @@ export default function SensorFusion() {
   const [infoOpen, setInfoOpen] = useState(false);
   const [poseNote, setPoseNote] = useState(false);
   const [annotate, setAnnotate] = useState(false);
-  const [trainOpen, setTrainOpen] = useState(false);
   const [savedNote, setSavedNote] = useState(false);
   const [shotFolder, setShotFolder] = useState("");
+  const [trainStatus, setTrainStatus] = useState("");
   const [cloudSaved, setCloudSaved] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
   const [name, setName] = useState("");
@@ -711,9 +731,10 @@ export default function SensorFusion() {
     setSensorOn(false);
   }
 
-  async function framesFromVideo() {
+  async function framesFromVideo(long = false) {
     const video = videoRef.current;
-    const howMany = Math.min(12, Math.max(1, Number(count) || 4));
+    const howMany = long ? 90 : Math.min(12, Math.max(1, Number(count) || 4));
+    const wait = long ? 500 : 120;
     if (!video || !sensorOn || video.readyState < 2) return { shots: [] as Shot[], files: [] as { name: string; blob: Blob }[], label: classKey(labelPick) };
     const label = classKey(labelPick);
     const names = peekNames(label, howMany);
@@ -735,13 +756,13 @@ export default function SensorFusion() {
       if (!blob) continue;
       shotsOut.push({ id: `${Date.now()}-${i}`, url, name: fileName, source: "sensor" });
       files.push({ name: fileName, blob });
-      await new Promise((resolve) => window.setTimeout(resolve, 120));
+      await new Promise((resolve) => window.setTimeout(resolve, wait));
     }
     return { shots: shotsOut, files, label };
   }
 
-  async function takeShots() {
-    const { shots: next, files, label } = await framesFromVideo();
+  async function takeShots(long = false) {
+    const { shots: next, files, label } = await framesFromVideo(long);
     if (!next.length) {
       setError("Turn SENSOR 1 on before you save pictures.");
       setAnnotate(false);
@@ -761,6 +782,7 @@ export default function SensorFusion() {
     setShots((current) => [...current, ...next]);
     setCloudSaved(false);
     setAnnotate(false);
+    setTrainStatus("");
     setSavedNote(true);
     window.localStorage.setItem(
       "sf2525-capture",
@@ -803,6 +825,7 @@ export default function SensorFusion() {
     }
     setShots((current) => [...current, ...kept]);
     setAnnotate(false);
+    setTrainStatus("");
     setSavedNote(true);
   }
 
@@ -818,6 +841,8 @@ export default function SensorFusion() {
     ];
     downloadBlob(`${classKey(labelPick)}.set.txt`, URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/plain" })));
     setError("");
+    setTrainStatus("This set is on this device. Training has not started.");
+    setSavedNote(true);
   }
 
   function pickMenu(item: (typeof MENU)[number]) {
@@ -1013,8 +1038,8 @@ export default function SensorFusion() {
           Labels
         </button>
         <div className={styles.modelWrap}>
-          <button type="button" className={styles.botOn} aria-expanded={modelsOpen} aria-haspopup="listbox" onClick={() => setModelsOpen((open) => !open)}>
-            <img src={`${UI}/models_icon_001.png`} alt="" />
+          <button type="button" className={styles.botOn} aria-expanded={modelsOpen} aria-haspopup="listbox" aria-label="Run Live" onClick={() => setModelsOpen((open) => !open)}>
+            <StepIcon id="live" />
             {current.label}
           </button>
           {modelsOpen && (
@@ -1038,14 +1063,17 @@ export default function SensorFusion() {
             </ul>
           )}
         </div>
-        <button type="button" className={styles.annotate} aria-label="Capture Video" onClick={() => setAnnotate(true)}>
-          <img className={styles.trainIcon} src="/sensor-fusion/train/capture-video.png" alt="" />
+        <button type="button" className={styles.annotate} aria-label="Capture Images" onClick={() => setAnnotate(true)}>
+          <StepIcon id="capture" />
+          Capture Images
         </button>
-        <button type="button" className={styles.bot} aria-label="Add Annotations" onClick={() => setStep("label")}>
-          <img className={styles.trainIcon} src="/sensor-fusion/train/add-annotations.png" alt="" />
+        <button type="button" className={styles.bot} aria-label="Annotate Images" onClick={() => setStep("label")}>
+          <StepIcon id="annotate" />
+          Annotate
         </button>
-        <button type="button" className={styles.bot} aria-label="Training" onClick={() => setTrainOpen(true)}>
-          <img className={styles.trainIcon} src="/sensor-fusion/train/upload-images.png" alt="" />
+        <button type="button" className={styles.bot} aria-label="Upload Images" onClick={() => void uploadSet()}>
+          <StepIcon id="upload" />
+          Upload
           {cloudSaved && (
             <span className={styles.cloudOn} role="img" aria-label="Uploaded">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1057,40 +1085,11 @@ export default function SensorFusion() {
         </button>
       </nav>
       </div>
-      {trainOpen && (
-        <div className={styles.modalWrap}>
-          <div className={styles.modal} role="dialog" aria-label="Training">
-            <h2>Training</h2>
-            <div className={styles.trainSteps}>
-              <button type="button" aria-label="1. Capture Video" onClick={() => { setTrainOpen(false); setAnnotate(true); }}>
-                <img src="/sensor-fusion/train/capture-video.png" alt="" />
-              </button>
-              <button type="button" aria-label="2. Add Annotations" onClick={() => { setTrainOpen(false); setStep("label"); }}>
-                <img src="/sensor-fusion/train/add-annotations.png" alt="" />
-              </button>
-              <button type="button" aria-label="3. Upload Images" onClick={() => { setTrainOpen(false); uploadSet(); }}>
-                <img src="/sensor-fusion/train/upload-images.png" alt="" />
-              </button>
-              <button type="button" aria-label="4. Develop Models" onClick={() => setError("Develop models is not connected yet.")}>
-                <img src="/sensor-fusion/train/develop-models.png" alt="" />
-              </button>
-              <button type="button" aria-label="5. Download ML Files" onClick={() => setError("Download is not connected yet.")}>
-                <img src="/sensor-fusion/train/download-ml.png" alt="" />
-              </button>
-              <button type="button" aria-label="6. Run Live" onClick={() => setError("Run live on a new model is not connected yet.")}>
-                <img src="/sensor-fusion/train/run-live.png" alt="" />
-              </button>
-            </div>
-            <div className={styles.actions}>
-              <button type="button" onClick={() => setTrainOpen(false)}>CLOSE</button>
-            </div>
-          </div>
-        </div>
-      )}
       {annotate && (
         <div className={styles.modalWrap}>
           <div className={styles.modal} role="dialog" aria-label="Capture images">
-            <h2>Capture images</h2>
+            <StepStrip current={1} />
+            <h2>Capture Images</h2>
             <p className={styles.muted}>From the sensor, or from this device. Then annotate them.</p>
             <label>
               Label
@@ -1122,6 +1121,9 @@ export default function SensorFusion() {
               <button type="button" onClick={() => void takeShots()}>
                 FROM SENSOR
               </button>
+              <button type="button" onClick={() => void takeShots(true)}>
+                45–60 SEC
+              </button>
               <button type="button" onClick={() => setAnnotate(false)}>
                 CANCEL
               </button>
@@ -1132,7 +1134,14 @@ export default function SensorFusion() {
       {savedNote && (
         <div className={styles.modalWrap}>
           <div className={styles.modal} role="dialog" aria-label="Upload">
-            <h2>Pictures saved.</h2>
+            <StepStrip current={trainStatus ? 4 : 2} />
+            <h2>{trainStatus ? "Develop Models" : "Pictures saved."}</h2>
+            {trainStatus ? (
+              <p className={styles.statusLine}>
+                <StepIcon id="develop" />
+                {trainStatus}
+              </p>
+            ) : null}
             <p className={styles.muted}>
               {shots.length} pictures in {shotFolder || "SensorFusion"}.
               {" "}

@@ -139,6 +139,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The training icons are the buttons. There is no text card around them. Capture, Annotate, and Upload are the first three icons on the bar. The Train icon opens all six.",
       commit: "ff59939",
     },
+    {
+      rev: 20,
+      date: "2026-10-03",
+      kind: "release",
+      text: "The six training steps are line icons in the page colour. Capture Images, Annotate, Upload, and Run Live use them. A strip shows the current step. A 45–60 second capture keeps one frame every half second. Training does not start until a server is chosen.",
+      commit: "",
+    },
   ],
 };
 

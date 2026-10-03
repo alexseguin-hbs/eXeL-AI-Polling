@@ -307,6 +307,7 @@ def main():
     print("6) Check ID, no Coral")
     print("7) Pose")
     print("q) Quit")
+    print("Training: 1 Capture Images, 2 Annotate Images, 3 Upload Images, 4 Develop Models, 5 Download ML Files, 6 Run Live")
     while True:
         choice = input("\nMenu: ").strip().lower()
         if choice in ("q", "x"):
