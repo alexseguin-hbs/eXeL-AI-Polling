@@ -705,6 +705,19 @@
   margin-top: -22px;
   cursor: ns-resize;
 }
+.edge::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #0cff00;
+  background: #fff;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
 .fileName {
   margin: 4px 0 8px;
   font-size: 12px;
