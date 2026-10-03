@@ -1,0 +1,4 @@
+// What the page would write: one Pascal VOC XML per picture, the format the upstream labelImg reads and writes.
+const voc = (file, w, h, objs, set) => `<annotation>\n\t<folder>${set}</folder>\n\t<filename>${file}</filename>\n\t<path>${file}</path>\n\t<source>\n\t\t<database>Unknown</database>\n\t</source>\n\t<size>\n\t\t<width>${w}</width>\n\t\t<height>${h}</height>\n\t\t<depth>3</depth>\n\t</size>\n\t<segmented>0</segmented>\n` +
+  objs.map((o) => `\t<object>\n\t\t<name>${o.name}</name>\n\t\t<pose>Unspecified</pose>\n\t\t<truncated>0</truncated>\n\t\t<difficult>0</difficult>\n\t\t<bndbox>\n\t\t\t<xmin>${o.x0}</xmin>\n\t\t\t<ymin>${o.y0}</ymin>\n\t\t\t<xmax>${o.x1}</xmax>\n\t\t\t<ymax>${o.y1}</ymax>\n\t\t</bndbox>\n\t</object>\n`).join("") + `</annotation>\n`;
+process.stdout.write(voc("manta_0001.jpg", 640, 360, [{ name: "manta", x0: 120, y0: 80, x1: 400, y1: 300 }, { name: "head", x0: 410, y0: 20, x1: 470, y1: 90 }], "Manta.Set01"));
