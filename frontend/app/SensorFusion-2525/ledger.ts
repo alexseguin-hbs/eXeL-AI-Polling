@@ -125,6 +125,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Training uses the six icons from the original training video: capture video, add annotations, upload images, develop models, download the model, and run live. Develop, download, and run live are not connected yet.",
       commit: "95f8156",
     },
+    {
+      rev: 18,
+      date: "2026-10-03",
+      kind: "release",
+      text: "Each training step is a button with the icon from the original training video. Capture, Annotate, and Upload run. Develop, Download, and Run Live say they are not connected yet.",
+      commit: "",
+    },
   ],
 };
 
