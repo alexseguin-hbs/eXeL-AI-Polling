@@ -1,0 +1,5 @@
+runtime A ai-edge-litert (numpy 2.4.6) vs B tflite-runtime (numpy 1.26.4), same 300x300 bytes
+Demo90  matched 7/10 (IoU>0.9, same class)  max score diff 0.0117  >=0.5: A [(0, 0.72), (0, 0.61), (0, 0.55), (0, 0.51), (0, 0.5)] B [(0, 0.72), (0, 0.61), (0, 0.56), (0, 0.5)]  ms A 17.8 B 136.8
+Head    matched 9/10 (IoU>0.9, same class)  max score diff 0.0039  >=0.5: A [(0, 0.87)] B [(0, 0.87)]  ms A 17.6 B 178.4
+Deer    matched 10/10 (IoU>0.9, same class)  max score diff 0.0625  >=0.5: A [] B []  ms A 18.2 B 181.0
+Tree    matched 4/10 (IoU>0.9, same class)  max score diff 0.0078  >=0.5: A [] B []  ms A 17.4 B 177.9

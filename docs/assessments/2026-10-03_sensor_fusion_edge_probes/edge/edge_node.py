@@ -15,10 +15,13 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import numpy as np
 from PIL import Image
-try:
-    from tflite_runtime.interpreter import Interpreter
+try:      # LiteRT: wheels for Windows, Mac (Apple), Linux x86/ARM, Python 3.10-3.14, numpy 2 - the same .tflite file
+    from ai_edge_litert.interpreter import Interpreter; RUNTIME = "ai-edge-litert"
 except ImportError:
-    from tensorflow.lite.python.interpreter import Interpreter
+    try:  # tflite-runtime 2.14 (Oct 2023): Linux only, Python 3.8-3.11, numpy<2
+        from tflite_runtime.interpreter import Interpreter; RUNTIME = "tflite-runtime"
+    except ImportError:
+        from tensorflow.lite.python.interpreter import Interpreter; RUNTIME = "tensorflow"
 
 HOME = os.path.realpath(os.environ.get("SF_HOME") or "") if os.environ.get("SF_HOME") else os.path.join(os.path.expanduser("~"), "Home", "SensorFusion")
 PAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "page.html")
@@ -85,7 +88,7 @@ class H(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data))); self.end_headers(); self.wfile.write(data)
     def do_GET(self):
         u = urlparse(self.path)
-        if u.path == "/models": return self._send(200, {"home": HOME, "models": models()})
+        if u.path == "/models": return self._send(200, {"home": HOME, "runtime": RUNTIME, "models": models()})
         if u.path.startswith("/m/"):   # the browser path fetches the SAME files from the same folders
             p = os.path.normpath(os.path.join(HOME, u.path[3:]))
             if inside(p, HOME) and os.path.isfile(p): return self._send(200, open(p, "rb").read(), "application/octet-stream")
