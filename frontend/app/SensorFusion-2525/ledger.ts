@@ -62,6 +62,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Held upright, the controls stay under the camera. Turned sideways, the camera keeps the height and the controls sit beside it.",
       commit: "",
     },
+    {
+      rev: 9,
+      date: "2026-10-03",
+      kind: "release",
+      text: "CPU detection uses detect.tflite. Demo.90 names a person instead of a blank line. Head keeps its own name. Coral stays on a computer that has the chip.",
+      commit: "",
+    },
   ],
 };
 

@@ -64,6 +64,7 @@
     var labelText = await (await fetch(BASE + folder + "labelmap.txt")).text();
     var labels = labelText.replace(/\r/g, "").split("\n");
     while (labels.length && labels[labels.length - 1] === "") labels.pop();
+    if (labels[0] === "???") labels.shift();
     var model = await window.tflite.loadTFLiteModel(BASE + folder + "detect.tflite");
     var shape = model.inputs[0].shape;
     return {
@@ -82,7 +83,7 @@
     var resized = tf.image.resizeBilinear(pixels, [session.height, session.width]);
     var input = session.dtype.indexOf("float") >= 0
       ? resized.sub(127.5).div(127.5).expandDims(0)
-      : resized.cast("int32").expandDims(0);
+      : resized.round().clipByValue(0, 255).cast("int32").expandDims(0);
     var output = session.model.predict(input);
     pixels.dispose();
     resized.dispose();
