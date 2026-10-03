@@ -468,9 +468,39 @@
   font-weight: 700;
   cursor: pointer;
 }
-.pick {
+.modelWrap {
+  position: relative;
+}
+.modelList {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 6;
+  min-width: 180px;
+  max-height: 50vh;
+  overflow: auto;
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  transform: translateX(-50%);
+  background: #2c2c2c;
   color: #fff;
-  font-size: 12px;
+  border-radius: 12px;
+}
+.modelList button {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.cloudOn {
+  color: #3ec96b;
+  display: inline-flex;
 }
 .menu {
   display: flex;

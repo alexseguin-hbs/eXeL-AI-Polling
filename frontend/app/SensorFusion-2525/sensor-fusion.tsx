@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Settings } from "lucide-react";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
+import { supabase } from "@/lib/supabase";
 import {
   COLORS,
   FRAMES,
@@ -180,6 +181,9 @@ export default function SensorFusion() {
   const [poseNote, setPoseNote] = useState(false);
   const [annotate, setAnnotate] = useState(false);
   const [savedNote, setSavedNote] = useState(false);
+  const [cloudSaved, setCloudSaved] = useState(false);
+  const [cloudBusy, setCloudBusy] = useState(false);
+  const [modelsOpen, setModelsOpen] = useState(false);
   const [name, setName] = useState("");
   const [count, setCount] = useState("4");
   const [note, setNote] = useState("");
@@ -341,32 +345,75 @@ export default function SensorFusion() {
     setSensorOn(false);
   }
 
-  async function takeShots() {
+  async function framesFromVideo() {
     const video = videoRef.current;
-    const howMany = Math.min(12, Math.max(1, Number(count) || 1));
-    if (!video || !sensorOn) {
+    const howMany = Math.min(6, Math.max(1, Number(count) || 1));
+    if (!video || !sensorOn || video.readyState < 2) return [];
+    const next: Shot[] = [];
+    for (let i = 0; i < howMany; i += 1) {
+      const canvas = document.createElement("canvas");
+      const width = video.videoWidth || 640;
+      const height = video.videoHeight || 480;
+      const scale = Math.min(1, 640 / width);
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      const ctx = canvas.getContext("2d");
+      if (!ctx) continue;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const url = canvas.toDataURL("image/jpeg", 0.7);
+      next.push({ id: `${Date.now()}-${i}`, url });
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((file) => resolve(file), "image/jpeg", 0.7));
+      if (blob) {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${(name || "capture").replace(/[^\w.-]+/g, "-")}-${i + 1}.jpg`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, 120));
+    }
+    return next;
+  }
+
+  async function takeShots() {
+    const next = await framesFromVideo();
+    if (!next.length) {
       setError("Turn SENSOR 1 on before you save pictures.");
       setAnnotate(false);
       return;
     }
-    const next: Shot[] = [];
-    for (let i = 0; i < howMany; i += 1) {
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) continue;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      next.push({ id: `${Date.now()}-${i}`, url: canvas.toDataURL("image/jpeg", 0.8) });
-      await new Promise((resolve) => window.setTimeout(resolve, 120));
-    }
     setShots(next);
+    setCloudSaved(false);
     setAnnotate(false);
     setSavedNote(true);
     window.localStorage.setItem(
       "sf2525-capture",
       JSON.stringify({ operator, platform, model, name, note, count: next.length, folder: sensorPath(platform, [name || "capture"]) }),
     );
+  }
+
+  async function pushCloud() {
+    if (!supabase) {
+      setError("The cloud is not connected on this copy. The pictures stay on this phone.");
+      return;
+    }
+    setCloudBusy(true);
+    const owner = operator || "guest";
+    const { error: cloudError } = await supabase.from("sensor_fusion_pictures").insert(
+      shots.map((shot, index) => ({
+        owner_key: owner,
+        name: `${name || "capture"}-${index + 1}.jpg`,
+        model,
+        jpeg: shot.url,
+      })),
+    );
+    setCloudBusy(false);
+    if (cloudError) {
+      setError("The pictures stayed on this phone. The cloud did not take them.");
+      setCloudSaved(false);
+      return;
+    }
+    setCloudSaved(true);
   }
 
   function pickMenu(item: (typeof MENU)[number]) {
@@ -548,26 +595,47 @@ export default function SensorFusion() {
           <img src={showLabels ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
           Labels
         </button>
-        <label className={styles.pick}>
-          <img src={`${UI}/models_icon_001.png`} alt="" />
-          <select
-            value={model}
-            onChange={(event) => setModel(event.target.value)}
-          >
-            {MODELS.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className={styles.modelWrap}>
+          <button type="button" className={styles.botOn} aria-expanded={modelsOpen} aria-haspopup="listbox" onClick={() => setModelsOpen((open) => !open)}>
+            <img src={`${UI}/models_icon_001.png`} alt="" />
+            {current.label}
+          </button>
+          {modelsOpen && (
+            <ul className={styles.modelList} role="listbox">
+              {MODELS.map((item) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={item.id === model}
+                    onClick={() => {
+                      setModel(item.id);
+                      setModelsOpen(false);
+                    }}
+                  >
+                    {item.id === model ? "✓ " : ""}
+                    {item.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <button type="button" className={styles.annotate} onClick={() => setAnnotate(true)}>
           <img src={`${UI}/capture_images_001.png`} alt="" />
           Annotate
         </button>
-        <button type="button" className={styles.bot} onClick={() => setSavedNote(true)}>
+        <button type="button" className={styles.bot} onClick={() => void takeShots()}>
           <img src={`${UI}/train_model_001.png`} alt="" />
           Upload Images
+          {cloudSaved && (
+            <span className={styles.cloudOn} role="img" aria-label="Uploaded">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M6.6 19.5h10.9a4.5 4.5 0 0 0 .55-8.97 5.9 5.9 0 0 0-11.25-1.6A4.2 4.2 0 0 0 2.6 13.6c0 3.3 1.9 5.9 4 5.9z" />
+                <path d="M8.6 14.4l2.3 2.3 4.6-4.6" />
+              </svg>
+            </span>
+          )}
         </button>
       </nav>
       <p className={styles.path}>
@@ -607,13 +675,16 @@ export default function SensorFusion() {
       {savedNote && (
         <div className={styles.modalWrap}>
           <div className={styles.modal} role="dialog" aria-label="Upload">
-            <h2>Pictures stay on this computer until you upload them.</h2>
+            <h2>Pictures saved on this phone.</h2>
             <p className={styles.muted}>
-              {shots.length} pictures in {sensorPath(platform, [name || "capture"])}.
+              {shots.length} pictures in {sensorPath(platform, [name || "capture"])}. Upload them?
             </p>
             <div className={styles.actions}>
+              <button type="button" onClick={() => void pushCloud()} disabled={cloudBusy}>
+                {cloudBusy ? "UPLOADING" : "UPLOAD"}
+              </button>
               <button type="button" onClick={() => setSavedNote(false)}>
-                CLOSE
+                NOT NOW
               </button>
             </div>
           </div>

@@ -31,7 +31,9 @@
   .off { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; }
   .fps { position:absolute; left:16px; top:16px; color:#ffe600; font-weight:700; font-size:12px; margin:0; }
   .links, .path { font-size:12px; }
-  footer select, .sheet select, .sheet input { font-size:16px; }
+  .modelWrap { position:relative; }
+  .modelList { position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); z-index:6; min-width:180px; max-height:50vh; overflow:auto; margin:0; padding:6px 0; list-style:none; background:#2c2c2c; color:#fff; border-radius:12px; }
+  .modelList button { display:block; width:100%; border:0; background:transparent; color:inherit; text-align:left; padding:10px 16px; font-size:16px; }
   .path { background:#212121; margin:0; padding:4px 12px 8px; font-size:12px; color:#d0d0d0; }
   .on { color:#b6ffb0; }
   .sheet { position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; }
@@ -69,7 +71,10 @@
   <footer>
     <button type="button" id="scores"><img id="scoresImg" alt=""><span>%</span></button>
     <button type="button" id="labels"><img id="labelsImg" alt=""><span>Labels</span></button>
-    <label>Model<br><select id="model"></select></label>
+    <div class="modelWrap">
+      <button type="button" id="modelBtn" class="on"><img id="modelImg" alt=""><span id="modelName">Demo.90</span></button>
+      <ul id="modelList" class="modelList hide"></ul>
+    </div>
     <button type="button" id="annotate" class="annotate" aria-label="Annotate"><img id="annImg" alt=""></button>
     <button type="button" id="upload"><img id="upImg" alt=""><span>Upload Images</span></button>
   </footer>
@@ -164,6 +169,7 @@ function paint(){
   $("scoresImg").src = showScores ? IMG.on : IMG.off;
   $("labelsImg").src = showLabels ? IMG.on : IMG.off;
   $("annImg").src = IMG.capture;
+  $("modelImg").src = IMG.models;
   $("upImg").src = IMG.train;
   $("sensorLabel").textContent = "SENSOR 1: " + (sensorOn ? "ON" : "OFF");
   $("off").classList.toggle("hide", sensorOn);
@@ -174,9 +180,13 @@ function paint(){
   $("path").textContent = folderPath() + (showLabels ? " · " + m[3] : "") + (showScores ? " · %" : "") + (coral ? " · Coral" : " · no Coral");
 }
 function fillModels(){
-  const sel = $("model");
-  sel.innerHTML = MODELS.map(m => '<option value="'+m[0]+'">'+m[1]+'</option>').join("");
-  sel.value = model;
+  const list = $("modelList");
+  list.innerHTML = MODELS.map(m => '<li><button type="button" data-id="'+m[0]+'">'+(m[0]===model?"✓ ":"")+m[1]+'</button></li>').join("");
+  list.querySelectorAll("button").forEach(btn => {
+    btn.onclick = () => { model = btn.getAttribute("data-id"); $("modelList").classList.add("hide"); paint(); if (sensorOn) runCnn(); };
+  });
+  const m = current();
+  $("modelName").textContent = m[1];
 }
 async function openCam(){
   try {
@@ -251,7 +261,7 @@ function pick(item){
   }
   coral = item[2];
   if (item[3]) model = item[3];
-  $("model").value = model;
+  fillModels();
   closeSheet();
   paint();
   if (item[4] === "label") showAnnotate();
@@ -283,19 +293,16 @@ async function saveShots(){
     shots.push(name);
     await new Promise(r => setTimeout(r, 150));
   }
-  openSheet("Pictures stay on this device", "<p>"+shots.length+" pictures were saved here. Nothing was sent.</p>", '<button type="button" id="closeSheet">Close</button>');
+  openSheet("Pictures saved on this phone", "<p>"+shots.length+" pictures were saved here. On the website you can send them.</p>", '<button type="button" id="closeSheet">Close</button>');
   $("closeSheet").onclick = closeSheet;
 }
 $("logo").onclick = showMenu;
 $("sensor").onclick = () => sensorOn ? closeCam() : openCam();
 $("scores").onclick = () => { showScores = !showScores; paint(); };
 $("labels").onclick = () => { showLabels = !showLabels; paint(); };
-$("model").onchange = (e) => { model = e.target.value; paint(); if (sensorOn) runCnn(); };
+$("modelBtn").onclick = () => $("modelList").classList.toggle("hide");
 $("annotate").onclick = showAnnotate;
-$("upload").onclick = () => {
-  openSheet("Upload", "<p>Pictures stay on this device until you choose to send them. The folder is "+folderPath()+".</p>", '<button type="button" id="closeSheet">Close</button>');
-  $("closeSheet").onclick = closeSheet;
-};
+$("upload").onclick = saveShots;
 $("infoBtn").onclick = () => { $("tutorial").classList.toggle("hide"); };
 $("tutorial").onclick = () => $("tutorial").classList.add("hide");
 $("setBtn").onclick = showMenu;
