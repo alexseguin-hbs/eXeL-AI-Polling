@@ -204,6 +204,27 @@
   background: transparent;
   pointer-events: none;
 }
+.meter {
+  position: absolute;
+  left: 8px;
+  top: 16%;
+  width: 8px;
+  height: 68%;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: #141414;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+.meter i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0;
+  background: #ff3b30;
+}
 .idle {
   position: absolute;
   inset: 0;

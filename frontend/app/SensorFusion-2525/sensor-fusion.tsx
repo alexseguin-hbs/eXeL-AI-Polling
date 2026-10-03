@@ -549,13 +549,13 @@ export default function SensorFusion() {
   const [savedNote, setSavedNote] = useState(false);
   const [shotFolder, setShotFolder] = useState("");
   const [cloudSaved, setCloudSaved] = useState(false);
-  const [cloudBusy, setCloudBusy] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
   const [name, setName] = useState("");
   const [count, setCount] = useState("4");
   const [note, setNote] = useState("");
   const [shots, setShots] = useState<Shot[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const meterRef = useRef<HTMLDivElement>(null);
   const showScoresRef = useRef(showScores);
   const showLabelsRef = useRef(showLabels);
   const showFpsRef = useRef(showFps);
@@ -644,6 +644,14 @@ export default function SensorFusion() {
             try {
               const result = await cnn.detect(session, video);
               cnn.draw(canvas, video, result, showScoresRef.current, showLabelsRef.current, showFpsRef.current);
+              const hits = (result.hits || []) as { score?: number }[];
+              const top = hits.reduce((best, hit) => Math.max(best, Number(hit.score) || 0), 0);
+              const fill = meterRef.current?.querySelector("i");
+              if (fill instanceof HTMLElement) {
+                const pct = Math.round(top * 100);
+                fill.style.height = `${pct}%`;
+                fill.style.background = pct >= 80 ? "#3ec96b" : pct >= 50 ? "#ffe600" : "#ff3b30";
+              }
               if (failed) {
                 failed = false;
                 setError("");
@@ -767,28 +775,37 @@ export default function SensorFusion() {
     );
   }
 
-  async function pushCloud() {
-    if (!supabase) {
-      setError("The cloud is not connected on this copy. The pictures stay on this phone.");
+  async function addFromDevice(list: FileList | null) {
+    if (!list?.length) return;
+    const setName = setNameOf(name || "capture");
+    const files: { name: string; blob: Blob }[] = [];
+    const added: Shot[] = [];
+    let number = shots.length;
+    for (const file of Array.from(list)) {
+      number += 1;
+      const fileName = `${setName}-sf-img-${number}.jpg`;
+      const url = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.readAsDataURL(file);
+      });
+      if (!url) continue;
+      added.push({ id: `${Date.now()}-${number}`, url, name: fileName });
+      files.push({ name: fileName, blob: file });
+    }
+    if (!added.length) return;
+    try {
+      const folder = await saveNumberedJpegs(setName, files);
+      setShotFolder(folder);
+      setError("");
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setError(err instanceof Error ? err.message : "The pictures were not saved.");
       return;
     }
-    setCloudBusy(true);
-    const owner = operator || "guest";
-    const { error: cloudError } = await supabase.from("sensor_fusion_pictures").insert(
-      shots.map((shot, index) => ({
-        owner_key: owner,
-        name: `${name || "capture"}-${index + 1}.jpg`,
-        model,
-        jpeg: shot.url,
-      })),
-    );
-    setCloudBusy(false);
-    if (cloudError) {
-      setError("The pictures stayed on this phone. The cloud did not take them.");
-      setCloudSaved(false);
-      return;
-    }
-    setCloudSaved(true);
+    setShots((current) => [...current, ...added]);
+    setAnnotate(false);
+    setSavedNote(true);
   }
 
   function pickMenu(item: (typeof MENU)[number]) {
@@ -955,6 +972,11 @@ export default function SensorFusion() {
       >
         <video ref={videoRef} autoPlay muted playsInline aria-label="Camera" />
         <canvas ref={canvasRef} className={styles.boxes} />
+        {sensorOn && (
+          <div className={styles.meter} ref={meterRef} aria-hidden="true">
+            <i />
+          </div>
+        )}
         {!sensorOn && (
           <div className={styles.idle}>
             <p>Camera Sensor 1 is OFF</p>
@@ -1004,9 +1026,9 @@ export default function SensorFusion() {
             </ul>
           )}
         </div>
-        <button type="button" className={styles.annotate} onClick={() => setAnnotate(true)}>
+        <button type="button" className={styles.annotate} aria-label="Capture images" onClick={() => setAnnotate(true)}>
           <img src={`${UI}/capture_images_001.png`} alt="" />
-          Annotate
+          Capture
         </button>
         <button type="button" className={styles.bot} onClick={() => setAnnotate(true)}>
           <img src={`${UI}/train_model_001.png`} alt="" />
@@ -1024,13 +1046,9 @@ export default function SensorFusion() {
       </div>
       {annotate && (
         <div className={styles.modalWrap}>
-          <div className={styles.modal} role="dialog" aria-label="Annotate">
-            <h2>Save pictures</h2>
-            <p className={styles.muted}>
-              {phoneKind() === "android"
-                ? "Create a folder named SensorFusion, then choose it. Pictures are numbered 1, 2, 3…"
-                : "Pictures are numbered 1, 2, 3… and saved in a SensorFusion folder."}
-            </p>
+          <div className={styles.modal} role="dialog" aria-label="Capture images">
+            <h2>Capture images</h2>
+            <p className={styles.muted}>From the sensor, or from this device. Then annotate them.</p>
             <label>
               Name
               <input value={name} onChange={(event) => setName(event.target.value)} />
@@ -1043,9 +1061,13 @@ export default function SensorFusion() {
               Note
               <input value={note} onChange={(event) => setNote(event.target.value)} />
             </label>
+            <label className={styles.file}>
+              From this device
+              <input type="file" accept="image/*" multiple onChange={(event) => void addFromDevice(event.target.files)} />
+            </label>
             <div className={styles.actions}>
               <button type="button" onClick={() => void takeShots()}>
-                SUBMIT
+                FROM SENSOR
               </button>
               <button type="button" onClick={() => setAnnotate(false)}>
                 CANCEL
@@ -1064,8 +1086,14 @@ export default function SensorFusion() {
               {shots.map((shot) => shot.name).filter(Boolean).join(", ")}
             </p>
             <div className={styles.actions}>
-              <button type="button" onClick={() => void pushCloud()} disabled={cloudBusy}>
-                {cloudBusy ? "UPLOADING" : "UPLOAD"}
+              <button
+                type="button"
+                onClick={() => {
+                  setSavedNote(false);
+                  setStep("label");
+                }}
+              >
+                ANNOTATE
               </button>
               <button type="button" onClick={() => setSavedNote(false)}>
                 NOT NOW
