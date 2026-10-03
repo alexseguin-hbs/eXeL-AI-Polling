@@ -147,7 +147,7 @@ function SettingsSheet({
 }
 type Step = "login" | "menu" | "work" | "label";
 type Shot = { id: string; url: string; name?: string; source?: "sensor" | "device"; original?: string };
-type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number };
+type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number; level: 1 | 2 };
 type Edge = "l" | "r" | "t" | "b";
 
 function pictureName(shot: Shot) {
@@ -175,6 +175,7 @@ function vocXml(fileName: string, width: number, height: number, objects: Mark[]
       const ymax = Math.round((Math.max(item.top, item.bottom) / 100) * height);
       return `  <object>
     <name>${escapeXml(item.name)}</name>
+    <level>${item.level}</level>
     <pose>Unspecified</pose>
     <truncated>0</truncated>
     <difficult>0</difficult>
@@ -199,6 +200,41 @@ function vocXml(fileName: string, width: number, height: number, objects: Mark[]
 ${boxes}
 </annotation>
 `;
+}
+
+function readXmlStore(): Record<string, string> {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem("sf2525-xml") || "{}") as Record<string, string>;
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeXml(fileName: string, xml: string) {
+  const stored = readXmlStore();
+  stored[fileName] = xml;
+  window.localStorage.setItem("sf2525-xml", JSON.stringify(stored));
+}
+
+function readVoc(xml: string) {
+  const file = /<filename>([^<]*)<\/filename>/.exec(xml)?.[1] || "";
+  const width = Number(/<width>(\d+)<\/width>/.exec(xml)?.[1] || 0);
+  const height = Number(/<height>(\d+)<\/height>/.exec(xml)?.[1] || 0);
+  const boxes: { name: string; xmin: number; ymin: number; xmax: number; ymax: number; level: number }[] = [];
+  const blocks = xml.match(/<object>[\s\S]*?<\/object>/g) || [];
+  for (const chunk of blocks) {
+    const num = (tag: string) => Number(new RegExp(`<${tag}>(\\d+)</${tag}>`).exec(chunk)?.[1] || 0);
+    boxes.push({
+      name: /<name>([^<]*)<\/name>/.exec(chunk)?.[1] || "",
+      xmin: num("xmin"),
+      ymin: num("ymin"),
+      xmax: num("xmax"),
+      ymax: num("ymax"),
+      level: num("level") || 1,
+    });
+  }
+  return { file, width, height, boxes };
 }
 
 function phoneKind() {
@@ -353,13 +389,54 @@ function Labeler({
       top,
       right,
       bottom,
+      level: 1,
     };
     const list = [...(marks[pic.id] || []), mark];
     const next = { ...marks, [pic.id]: list };
     setMarks(next);
-    const rows = Object.entries(next).flatMap(([picture, items]) => items.map((item) => ({ picture, ...item })));
-    window.localStorage.setItem("sf2525-labels", JSON.stringify(rows));
-    setNote("This box is on this screen only. It is not saved yet.");
+    const fileName = pictureName(pic);
+    const image = imgRef.current;
+    const width = image?.naturalWidth || image?.width || 1;
+    const height = image?.naturalHeight || image?.height || 1;
+    writeXml(fileName, vocXml(fileName, width, height, list));
+    setNote(`Saved ${xmlName(fileName)} on this device.`);
+  }
+
+  function markLevel2() {
+    if (!pic) return;
+    const list = (marks[pic.id] || []).map((item) => ({ ...item, level: 2 as const }));
+    if (!list.length) {
+      setNote("Save a box before Level 2.");
+      return;
+    }
+    const next = { ...marks, [pic.id]: list };
+    setMarks(next);
+    const fileName = pictureName(pic);
+    const image = imgRef.current;
+    const width = image?.naturalWidth || image?.width || 1;
+    const height = image?.naturalHeight || image?.height || 1;
+    writeXml(fileName, vocXml(fileName, width, height, list));
+    setNote("Level 2 is written in this picture's XML.");
+  }
+
+  function mergeTraining() {
+    const pages = Object.values(readXmlStore()).map(readVoc).filter((page) => page.file);
+    if (!pages.length) {
+      setNote("Save a box as XML first.");
+      return;
+    }
+    if (pages.some((page) => page.boxes.some((box) => box.level !== 2))) {
+      setNote("Level 2 is not finished. JSON is not written.");
+      return;
+    }
+    const images = pages.filter((page) => page.boxes.length);
+    if (!images.length) {
+      setNote("No reviewed boxes to merge.");
+      return;
+    }
+    const body = JSON.stringify({ version: 1, purpose: "training", images }, null, 2);
+    downloadBlob("training.json", URL.createObjectURL(new Blob([body], { type: "application/json" })));
+    setNote("Merged the Level 2 XML into training JSON.");
   }
 
   async function shareTeam() {
@@ -497,6 +574,12 @@ function Labeler({
           <button type="button" onClick={saveBox} disabled={!pic}>
             SAVE BOX
           </button>
+          <button type="button" onClick={markLevel2} disabled={!pic}>
+            LEVEL 2
+          </button>
+          <button type="button" onClick={mergeTraining}>
+            MERGE JSON
+          </button>
           <button type="button" onClick={() => void shareTeam()} disabled={!pic}>
             SHARE WITH TEAM
           </button>
@@ -504,7 +587,7 @@ function Labeler({
         {note && <p className={styles.muted}>{note}</p>}
         {pic && (marks[pic.id] || []).map((mark) => (
           <p key={mark.id} className={styles.path}>
-            {mark.name} · left {mark.left} top {mark.top} right {mark.right} bottom {mark.bottom}
+            {mark.level === 2 ? "L2" : "L1"} · {mark.name} · left {mark.left} top {mark.top} right {mark.right} bottom {mark.bottom}
           </p>
         ))}
       </div>

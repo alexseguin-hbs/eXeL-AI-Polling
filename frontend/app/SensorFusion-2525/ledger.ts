@@ -160,6 +160,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "R1. One model list, models.json, version 1. The page, the browser detector, and both copies of the computer program read it. The name picker shows only that model's labels. Group projects, upload, and paid time wait on your decision.",
       commit: "c336aff",
     },
+    {
+      rev: 23,
+      date: "2026-10-03",
+      kind: "decision",
+      text: "Each picture is edited as its own XML. JSON is written only after every box on those files is Level 2, and that JSON is for training.",
+      commit: "",
+    },
   ],
 };
 
