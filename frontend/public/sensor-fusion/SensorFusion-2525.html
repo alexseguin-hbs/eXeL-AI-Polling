@@ -308,6 +308,9 @@ $("sheet").onclick = (e) => { if (e.target === $("sheet")) closeSheet(); };
 document.addEventListener("keydown", (e) => {
   if (e.key === "f" || e.key === "F") { showFps = !showFps; paint(); }
 });
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  navigator.serviceWorker.register("/sf-offline-sw.js").catch(function () {});
+}
 fillModels();
 paint();
 showMenu();

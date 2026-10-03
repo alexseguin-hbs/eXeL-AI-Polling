@@ -204,6 +204,9 @@ export default function SensorFusion() {
     const known = PLATFORMS.some((item) => item.id === savedHost);
     const host = known && savedHost ? savedHost : detectPlatform(navigator.userAgent);
     setPlatform(host);
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sf-offline-sw.js").catch(() => undefined);
+    }
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
     };
