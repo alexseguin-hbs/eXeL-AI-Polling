@@ -217,6 +217,50 @@
   pointer-events: none;
   z-index: 2;
 }
+.trainIcon {
+  height: 22px;
+  width: auto;
+  max-width: 28px;
+  object-fit: contain;
+}
+.trainSteps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 60vh;
+  overflow: auto;
+}
+.trainSteps li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.trainSteps img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+.trainSteps strong,
+.trainSteps span {
+  display: block;
+}
+.trainSteps span {
+  color: #9fb8b8;
+  font-size: 12px;
+}
+.trainSteps button {
+  margin-top: 4px;
+  border: 0;
+  background: transparent;
+  color: #19c8cf;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
 .meter i {
   position: absolute;
   left: 0;
@@ -481,6 +525,12 @@
   object-fit: contain;
   display: block;
 }
+.bot img.trainIcon,
+.annotate img.trainIcon {
+  height: 22px;
+  width: auto;
+  max-width: 28px;
+}
 .botOn {
   color: #b6ffb0;
   font-weight: 700;
@@ -669,6 +719,12 @@
     height: 12px;
     width: 12px;
     max-width: 12px;
+  }
+  .work .piBot img.trainIcon,
+  .work .annotate img.trainIcon {
+    height: 18px;
+    width: auto;
+    max-width: 22px;
   }
   .work .path,
   .work .links {

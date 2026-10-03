@@ -527,6 +527,7 @@ export default function SensorFusion() {
   const [infoOpen, setInfoOpen] = useState(false);
   const [poseNote, setPoseNote] = useState(false);
   const [annotate, setAnnotate] = useState(false);
+  const [trainOpen, setTrainOpen] = useState(false);
   const [savedNote, setSavedNote] = useState(false);
   const [shotFolder, setShotFolder] = useState("");
   const [cloudSaved, setCloudSaved] = useState(false);
@@ -1038,16 +1039,16 @@ export default function SensorFusion() {
           )}
         </div>
         <button type="button" className={styles.annotate} aria-label="Capture images" onClick={() => setAnnotate(true)}>
-          <img src={`${UI}/capture_images_001.png`} alt="" />
+          <img className={styles.trainIcon} src="/sensor-fusion/train/capture-video.png" alt="" />
           Capture
         </button>
         <button type="button" className={styles.bot} aria-label="Annotate images" onClick={() => setStep("label")}>
-          <img src={`${UI}/annotate_button_001.png`} alt="" />
+          <img className={styles.trainIcon} src="/sensor-fusion/train/add-annotations.png" alt="" />
           Annotate
         </button>
-        <button type="button" className={styles.bot} aria-label="Upload a finished set" onClick={() => void uploadSet()}>
-          <img src={`${UI}/train_model_001.png`} alt="" />
-          Upload
+        <button type="button" className={styles.bot} aria-label="Training steps" onClick={() => setTrainOpen(true)}>
+          <img className={styles.trainIcon} src="/sensor-fusion/train/upload-images.png" alt="" />
+          Train
           {cloudSaved && (
             <span className={styles.cloudOn} role="img" aria-label="Uploaded">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1059,6 +1060,63 @@ export default function SensorFusion() {
         </button>
       </nav>
       </div>
+      {trainOpen && (
+        <div className={styles.modalWrap}>
+          <div className={styles.modal} role="dialog" aria-label="Training">
+            <h2>Training</h2>
+            <ol className={styles.trainSteps}>
+              <li>
+                <img src="/sensor-fusion/train/capture-video.png" alt="" />
+                <div>
+                  <strong>1. Capture video</strong>
+                  <span>Record with the camera, or choose pictures already on this device.</span>
+                  <button type="button" onClick={() => { setTrainOpen(false); setAnnotate(true); }}>Capture</button>
+                </div>
+              </li>
+              <li>
+                <img src="/sensor-fusion/train/add-annotations.png" alt="" />
+                <div>
+                  <strong>2. Add annotations</strong>
+                  <span>Draw a box around what the model should learn.</span>
+                  <button type="button" onClick={() => { setTrainOpen(false); setStep("label"); }}>Annotate</button>
+                </div>
+              </li>
+              <li>
+                <img src="/sensor-fusion/train/upload-images.png" alt="" />
+                <div>
+                  <strong>3. Upload images</strong>
+                  <span>Review the pictures. They stay on this device until a training server is connected.</span>
+                  <button type="button" onClick={() => { setTrainOpen(false); uploadSet(); }}>Save set</button>
+                </div>
+              </li>
+              <li>
+                <img src="/sensor-fusion/train/develop-models.png" alt="" />
+                <div>
+                  <strong>4. Develop models</strong>
+                  <span>The pictures are used to train the model. Not connected yet.</span>
+                </div>
+              </li>
+              <li>
+                <img src="/sensor-fusion/train/download-ml.png" alt="" />
+                <div>
+                  <strong>5. Download the model</strong>
+                  <span>When a model is ready, it downloads to the kit. Not connected yet.</span>
+                </div>
+              </li>
+              <li>
+                <img src="/sensor-fusion/train/run-live.png" alt="" />
+                <div>
+                  <strong>6. Run live</strong>
+                  <span>Pick the new model and run it on the camera. Not connected yet.</span>
+                </div>
+              </li>
+            </ol>
+            <div className={styles.actions}>
+              <button type="button" onClick={() => setTrainOpen(false)}>CLOSE</button>
+            </div>
+          </div>
+        </div>
+      )}
       {annotate && (
         <div className={styles.modalWrap}>
           <div className={styles.modal} role="dialog" aria-label="Capture images">

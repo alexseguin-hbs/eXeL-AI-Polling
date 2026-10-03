@@ -118,6 +118,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Capture, Annotate, and Upload are separate. Sensor pictures and phone pictures go in one set. Names continue, such as head.0001.jpg, and do not start over. Upload does not send the pictures anywhere.",
       commit: "538de1a",
     },
+    {
+      rev: 17,
+      date: "2026-10-03",
+      kind: "release",
+      text: "Training uses the six icons from the original training video: capture video, add annotations, upload images, develop models, download the model, and run live. Develop, download, and run live are not connected yet.",
+      commit: "",
+    },
   ],
 };
 
