@@ -151,7 +151,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "correction",
       text: "The model button uses the original cube icon again. The line icon stays on the training steps.",
-      commit: "846dc61",
+      commit: "0be3cc9",
     },
   ],
 };
