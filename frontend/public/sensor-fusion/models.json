@@ -5,6 +5,12 @@
     "edgetpu.tflite",
     "labelmap.txt"
   ],
+  "menu": [
+    { "n": "1", "id": "fusion", "label": "Sensor Fusion", "go": "work" },
+    { "n": "2", "id": "stop", "label": "Stop", "go": "stop" },
+    { "n": "3", "id": "labeler", "label": "Image labeler", "go": "label" },
+    { "n": "4", "id": "pose", "label": "Pose", "go": "pose" }
+  ],
   "models": [
     {
       "id": "demo90",

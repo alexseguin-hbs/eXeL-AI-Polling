@@ -47,7 +47,14 @@ export const MODELS = (catalog.models as ModelFile[]).map((item) => {
 
 type MenuFile = { n: string; id: string; label: string; go: "work" | "stop" | "label" | "pose" };
 
-export const MENU = ((catalog as { menu?: MenuFile[] }).menu ?? []).map((item) => ({
+const FILE_MENU: MenuFile[] = [
+  { n: "1", id: "fusion", label: "Sensor Fusion", go: "work" },
+  { n: "2", id: "stop", label: "Stop", go: "stop" },
+  { n: "3", id: "labeler", label: "Image labeler", go: "label" },
+  { n: "4", id: "pose", label: "Pose", go: "pose" },
+];
+
+export const MENU = ((catalog as { menu?: MenuFile[] }).menu?.length ? (catalog as { menu: MenuFile[] }).menu : FILE_MENU).map((item) => ({
   n: item.n,
   id: item.id,
   label: item.label,

@@ -237,6 +237,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "A box named ??? is not drawn. Annotate starts on the open model's names. Capture from the sensor turns the camera on. Save, Level 2, Merge, and Share stay on one line.",
       commit: "37df2c1",
     },
+    {
+      rev: 34,
+      date: "2026-10-04",
+      kind: "release",
+      text: "The menu shows four rows again: Sensor Fusion, Stop, Image labeler, and Pose. An empty model list can no longer hide them.",
+      commit: "",
+    },
   ],
 };
 
