@@ -1,11 +1,14 @@
-# Sensor Fusion — the plan for Grok (revision 0.20)
+# Sensor Fusion — the plan for Grok (revision 0.21)
 
 > The operator removed control loops from this plan on 2026-10-04.
 > Do not build a loop for Drone-2525, Manta-2525, MASS-AI, or the eXeL AI robot.
 > Do not build a detection that steers, slows, holds, or stops a vehicle.
-> Do not build school-camera alerts, signed approval for a driving model, or a shared detection record for those loops.
+> Do not build a signed approval for a driving model, or a shared detection record for those loops.
+> **Alerts are all on.** There is no school-alert mode. "School alerts" does not mean anything. A place does not turn an alert off.
 > Capture, labels, the model files, and the Sensor Fusion page stay.
-> The round records `r01.md`–`r19.md` stay as history. `loop-spec.draft.json`, `ALERTS.md`, `SIGNING.md`, and the Part C tests in `TESTS.md` are archive. Do not build from them.
+> The round records `r01.md`–`r19.md` stay as history. `loop-spec.draft.json`, `SIGNING.md`, and the Part C tests in `TESTS.md` are archive. Do not build a vehicle from them.
+
+**Alerts.** Every alert is enabled: a blocked exit, a spill, smoke or fire, a fall, a crowd, a door open after hours, and a person in the way. None of these is a school alert. An alert tells a person. It does not drive anything.
 
 **Next, and nothing else first:** wire `frontend/tests/sensor-fusion-coral.test.mjs` as `test:sf-coral` into `test:ci`, beside `test:sf-r4a`.
 
@@ -26,6 +29,7 @@ You are Grok. Methods and files for the page. No control-loop code.
 | 0.18 | 18 | Every ladder in build order (R9 and first trained card, Gate 1, C5, C5b, C5a) with a week-2 CODEOWNERS rung; derived run counts; Manta current pass line, card line, child row; pole and tree refused; `sizeTruth`; `seedClassMap`; custom01 fixed; Ground row split; decisions in order; setpoint parameters and order; signed size in the outcome line. |
 | 0.19 | 19 | Moved signing, crew and registry to `SIGNING.md`, roles to `GLOSSARY.md`. Added: command rate split from frame rate plus a measured jitter bench; detector-lost pass line and frozen-camera stratum; family-keyed `HumanAxes`; `blur-01` card; air rungs for `decelMs2`, `maxBankDeg` and `VEHICLE_MODELS`; exelRobot CODEOWNERS; C5b comparator; status word rule; loop panel off `round.tsx`; `standOffFraction`, `anchorFitted`. |
 | 0.20 | — | Operator: control loops removed from the build plan. Part C is not a build step. Archive files stay as history. |
+| 0.21 | — | Operator: all alerts are on. There is no school-alert mode. A place does not turn an alert off. |
 
 ## The chain (read this first)
 capture → Level 1 boxes → Level 2 review → XML and a Light Codex strip beside the picture → one training file after Level 2 → a model folder on the device.
@@ -101,7 +105,7 @@ Python. Strip GPS and EXIF; respect rotation; HEIC and JPEG uploads become PNG.
 depth later) and tags the conditions a loop needs: glare, turbidity, spray, night, rain, lens fouling, dust or mud, motion blur, child
 height (consent only). The R6 set check warns when a needed condition has zero pictures.
 **People in pictures.** `person` is for avoidance, search and rescue, alerts and blurring only, never for engagement. Faces in shared sets
-are blurred unless consent is recorded; school pictures need a consent id each (`ALERTS.md`). **Identity models** (`checkid`, any
+are blurred unless consent is recorded. There is no school-alert rule. **Identity models** (`checkid`, any
 face or named-person labelmap) are never loop- or camera-eligible and never shared without recorded consent.
 **Quotas per domain** (the capture spec): minutes per class = (held-out + replay + 300 train boxes) ÷ (kept picks/min on the R2 pinned
 clip × boxes per pick); replay equals held-out; each needs **at least 30 distinct clips per class, and never fewer than ceil(quota ÷ m)**, scored with a clip-cluster bound. **Capture
@@ -274,7 +278,8 @@ member who did not review; the operator signs the gate]
 
 ## Out of scope
 Control loops. Drone-2525, Manta-2525, MASS-AI, the eXeL AI robot, and any detection that drives a vehicle.
-School-camera alerts and a signed card that lets a model drive.
+A signed card that lets a model drive.
+A school-alert mode. It does not exist.
 DETECT hardware (`DETECT.md`) stays a later note. It is not a build step.
 Any change to existing model files or label files.
 

@@ -1,3 +1,11 @@
+# Sensor Fusion plan — alerts
+
+The operator said on 2026-10-04: all alerts are enabled. School alerts does not mean anything.
+There is no school mode, and a place does not turn an alert off.
+An alert tells a person. It does not drive a vehicle.
+
+The notes below are the old school-camera draft. They do not turn any alert off.
+
 # Sensor Fusion plan — risk alerts, schools and camera values (Addendum 1)
 
 Moved verbatim out of `PLAN.md` in revision 0.17 (the Addendum 1 alert and school bullets, and the EdTech camera values).
