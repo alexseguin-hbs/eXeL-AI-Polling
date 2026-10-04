@@ -256,7 +256,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-04",
       kind: "release",
       text: "Cameras read 0.5x, Wide, 2.5x, and Front. Capture asks where to save. The annotate box fits on the screen.",
-      commit: "a47969d",
+      commit: "bac70a6",
     },
   ],
 };
