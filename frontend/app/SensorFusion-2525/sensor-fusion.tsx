@@ -151,7 +151,7 @@ type Mark = { id: string; name: string; left: number; top: number; right: number
 type Edge = "l" | "r" | "t" | "b";
 
 function pictureName(shot: Shot) {
-  return shot.name || `${shot.id}.jpg`;
+  return shot.name || `${shot.id}.png`;
 }
 
 function xmlName(fileName: string) {
@@ -251,7 +251,7 @@ function classKey(raw: string) {
 
 function peekNames(label: string, count: number) {
   const used = Number(window.localStorage.getItem(`sf2525-seq-${classKey(label)}`) || "0") || 0;
-  return Array.from({ length: count }, (_, index) => `${classKey(label)}.${String(used + index + 1).padStart(4, "0")}.jpg`);
+  return Array.from({ length: count }, (_, index) => `${classKey(label)}.${String(used + index + 1).padStart(4, "0")}.png`);
 }
 
 function commitNames(label: string, count: number) {
@@ -288,7 +288,7 @@ async function chooseSensorFusionFolder() {
   return parent.getDirectoryHandle("SensorFusion", { create: true });
 }
 
-async function saveNumberedJpegs(setName: string, files: { name: string; blob: Blob }[]) {
+async function saveNumberedPictures(setName: string, files: { name: string; blob: Blob }[]) {
   const folder = await chooseSensorFusionFolder();
   if (folder) {
     const setFolder = await folder.getDirectoryHandle(setName, { create: true });
@@ -300,7 +300,7 @@ async function saveNumberedJpegs(setName: string, files: { name: string; blob: B
     }
     return `SensorFusion/${setName}`;
   }
-  const shared = files.map((file) => new File([file.blob], file.name, { type: "image/jpeg" }));
+  const shared = files.map((file) => new File([file.blob], file.name, { type: "image/png" }));
   const share = navigator as Navigator & { canShare?: (data: { files: File[] }) => boolean };
   if (share.canShare?.({ files: shared }) && navigator.share) {
     await navigator.share({ files: shared, title: "SensorFusion" });
@@ -308,6 +308,29 @@ async function saveNumberedJpegs(setName: string, files: { name: string; blob: B
   }
   files.forEach((file) => downloadBlob(file.name, URL.createObjectURL(file.blob)));
   return `SensorFusion/${setName}`;
+}
+
+async function fileToPng(file: File, name: string): Promise<{ name: string; blob: Blob; url: string } | null> {
+  const url = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error("That picture did not open."));
+      el.src = url;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth || 1;
+    canvas.height = image.naturalHeight || 1;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(image, 0, 0);
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((item) => resolve(item), "image/png"));
+    if (!blob) return null;
+    return { name, blob, url: canvas.toDataURL("image/png") };
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 function downloadBlob(fileName: string, href: string) {
@@ -831,8 +854,8 @@ export default function SensorFusion() {
       if (!ctx) continue;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const fileName = names[i];
-      const url = canvas.toDataURL("image/jpeg", 0.7);
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((file) => resolve(file), "image/jpeg", 0.7));
+      const url = canvas.toDataURL("image/png");
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((file) => resolve(file), "image/png"));
       if (!blob) continue;
       shotsOut.push({ id: `${Date.now()}-${i}`, url, name: fileName, source: "sensor" });
       files.push({ name: fileName, blob });
@@ -849,7 +872,7 @@ export default function SensorFusion() {
       return;
     }
     try {
-      const folder = await saveNumberedJpegs(label, files);
+      const folder = await saveNumberedPictures(label, files);
       commitNames(label, files.length);
       setShotFolder(folder);
       setError("");
@@ -874,27 +897,21 @@ export default function SensorFusion() {
     if (!list?.length) return;
     const label = classKey(labelPick);
     const names = peekNames(label, list.length);
-    const files: { name: string; blob: Blob }[] = [];
-    const added: Shot[] = [];
-    Array.from(list).forEach((file, index) => {
-      const fileName = names[index];
-      added.push({ id: `${Date.now()}-${index}`, url: "", name: fileName, source: "device", original: file.name });
-      files.push({ name: fileName, blob: file });
-    });
-    const ready = await Promise.all(
-      added.map(
-        (shot, index) =>
-          new Promise<Shot>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve({ ...shot, url: String(reader.result || "") });
-            reader.readAsDataURL(list[index]);
-          }),
-      ),
-    );
-    const kept = ready.filter((shot) => shot.url);
-    if (!kept.length) return;
+    const made = (await Promise.all(Array.from(list).map((file, index) => fileToPng(file, names[index])))).filter((item): item is { name: string; blob: Blob; url: string } => Boolean(item));
+    if (!made.length) {
+      setError("Those pictures did not open.");
+      return;
+    }
+    const files = made.map((item) => ({ name: item.name, blob: item.blob }));
+    const added: Shot[] = made.map((item, index) => ({
+      id: `${Date.now()}-${index}`,
+      url: item.url,
+      name: item.name,
+      source: "device",
+      original: list[index]?.name,
+    }));
     try {
-      const folder = await saveNumberedJpegs(label, files);
+      const folder = await saveNumberedPictures(label, files);
       commitNames(label, files.length);
       setShotFolder(folder);
       setError("");
@@ -903,7 +920,7 @@ export default function SensorFusion() {
       setError(err instanceof Error ? err.message : "The pictures were not saved.");
       return;
     }
-    setShots((current) => [...current, ...kept]);
+    setShots((current) => [...current, ...added]);
     setAnnotate(false);
     setTrainStatus("");
     setSavedNote(true);

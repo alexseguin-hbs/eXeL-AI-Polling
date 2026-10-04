@@ -167,6 +167,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Each picture is edited as its own XML. JSON is written only after every box on those files is Level 2, and that JSON is for training.",
       commit: "02872b9",
     },
+    {
+      rev: 24,
+      date: "2026-10-03",
+      kind: "decision",
+      text: "Pictures from the sensor and from this device are saved as PNG. JPEG changes the colours, so Light Codex cannot ride on it. The colour strip is still not painted onto the training picture.",
+      commit: "",
+    },
   ],
 };
 
