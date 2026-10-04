@@ -228,7 +228,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "release",
       text: "CPU is the default and the switch reads CPU CORAL. A new screen starts on the original Sensor Fusion green. A color choice changes the screen.",
-      commit: "",
+      commit: "d3335cb",
     },
   ],
 };
