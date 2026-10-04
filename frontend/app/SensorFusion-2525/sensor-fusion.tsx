@@ -13,8 +13,10 @@ import {
   applyTheme,
   detectPlatform,
   explainCamera,
+  lensZoom,
   runPlan,
   sensorPath,
+  type Lens,
   type PlatformId,
   type SchemeId,
 } from "./sf";
@@ -106,8 +108,8 @@ function SettingsSheet({
           </button>
         </div>
         <div className={styles.edgeBox}>
-          <p>Edge Compute</p>
-          <div className={styles.edgePick} role="group" aria-label="Edge Compute">
+          <p>CPU CORAL</p>
+          <div className={styles.edgePick} role="group" aria-label="CPU CORAL">
             <button type="button" aria-pressed={!coral} className={!coral ? styles.swatchOn : ""} onClick={() => onCoral(false)}>
               CPU
             </button>
@@ -250,6 +252,15 @@ function readVoc(xml: string) {
     });
   }
   return { file, width, height, boxes };
+}
+
+function lensName(label: string): Lens | null {
+  const name = label.toLowerCase();
+  if (/front|face|selfie|user/.test(name)) return "front";
+  if (/ultra/.test(name)) return "ultra";
+  if (/tele/.test(name)) return "tele";
+  if (/back|rear|environment|wide/.test(name)) return "wide";
+  return null;
 }
 
 function phoneKind() {
@@ -624,7 +635,7 @@ function paint(id: SchemeId | "custom", hex: string) {
   }
   const color = COLORS.find((item) => item.id === id);
   const frame = FRAMES.find((item) => item.id === id);
-  const picked = color ?? frame ?? COLORS[2];
+  const picked = color ?? frame ?? COLORS.find((item) => item.id === "green") ?? COLORS[0];
   applyTheme(picked.bg, picked.card, picked.primary, picked.line);
 }
 
@@ -635,13 +646,13 @@ export default function SensorFusion() {
   const streamRef = useRef<MediaStream | null>(null);
   const [step, setStep] = useState<Step>("login");
   const [platform, setPlatform] = useState<PlatformId>("win");
-  const [scheme, setScheme] = useState<SchemeId | "custom">("cyan");
+  const [scheme, setScheme] = useState<SchemeId | "custom">("green");
   const [customHex, setCustomHex] = useState("#19c8cf");
   const [settings, setSettings] = useState(false);
   const [sensorOn, setSensorOn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [facing, setFacing] = useState<"user" | "environment">("environment");
+  const [lens, setLens] = useState<Lens>("wide");
   const [model, setModel] = useState("demo90");
   const [coral, setCoral] = useState(false);
   const [guest, setGuest] = useState(false);
@@ -673,7 +684,7 @@ export default function SensorFusion() {
   useEffect(() => {
     const savedScheme = window.localStorage.getItem("sf2525-scheme");
     const savedHex = window.localStorage.getItem("sf2525-custom") || "#19c8cf";
-    const nextScheme = (savedScheme as SchemeId | "custom") || "cyan";
+    const nextScheme = (savedScheme as SchemeId | "custom") || "green";
     setCustomHex(savedHex);
     setScheme(nextScheme);
     paint(nextScheme, savedHex);
@@ -810,21 +821,42 @@ export default function SensorFusion() {
     window.localStorage.setItem("sf2525-coral", on ? "1" : "0");
   }
 
-  async function openSensor(nextFacing = facing) {
+  async function streamForLens(next: Lens) {
+    const first = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: next === "front" ? { facingMode: "user" } : { facingMode: "environment" },
+    });
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const match = devices.find((device) => device.kind === "videoinput" && lensName(device.label) === next && device.deviceId);
+    if (match) {
+      first.getTracks().forEach((track) => track.stop());
+      return navigator.mediaDevices.getUserMedia({ audio: false, video: { deviceId: { exact: match.deviceId } } });
+    }
+    const track = first.getVideoTracks()[0];
+    const caps = track?.getCapabilities?.() as { zoom?: { min: number; max: number } } | undefined;
+    const zoom = lensZoom(next, caps?.zoom);
+    if (track && zoom != null) {
+      try {
+        await track.applyConstraints({ advanced: [{ zoom }] } as unknown as MediaTrackConstraints);
+      } catch {
+        /* The phone kept the closest back camera it can open. */
+      }
+    }
+    return first;
+  }
+
+  async function openSensor(next: Lens = lens) {
     setBusy(true);
     setError("");
     try {
       streamRef.current?.getTracks().forEach((track) => track.stop());
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: true,
-      });
+      const stream = await streamForLens(next);
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
-      setFacing(nextFacing);
+      setLens(next);
       setSensorOn(true);
     } catch (err) {
       setSensorOn(false);
@@ -1071,6 +1103,21 @@ export default function SensorFusion() {
           <img src={sensorOn ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
           SENSOR 1: {busy ? "…" : sensorOn ? "ON" : "OFF"}
         </button>
+        <select
+          className={styles.lens}
+          aria-label="Camera"
+          value={lens}
+          onChange={(event) => {
+            const next = event.target.value as Lens;
+            setLens(next);
+            if (sensorOn) void openSensor(next);
+          }}
+        >
+          <option value="wide">1 Back wide</option>
+          <option value="ultra">2 Back ultra</option>
+          <option value="tele">3 Back tele</option>
+          <option value="front">Front</option>
+        </select>
         <div className={styles.tools}>
           <ProgramDownload />
           <button type="button" className={styles.iconBtn} aria-label="Info" onClick={() => setInfoOpen((open) => !open)}>
@@ -1263,7 +1310,7 @@ export default function SensorFusion() {
       <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} onCoral={chooseCoral} onClose={() => setSettings(false)} onScheme={chooseScheme} />
       {infoOpen && (
         <button type="button" className={styles.guide} onClick={() => setInfoOpen(false)} aria-label="Close the screen labels">
-          <span>Sensor 1 is the camera. Download, info, the gear (Edge Compute), profile, and full screen are on the top.</span>
+          <span>Sensor 1 is the camera. Download, info, the gear (CPU or Coral), profile, and full screen are on the top.</span>
           <span>The bar on the left is the strongest box. Tap the picture to show frames per second.</span>
           <span>% · Labels · the model, including Check ID · Capture Images · Annotate · Upload</span>
           <small>Tap to close</small>

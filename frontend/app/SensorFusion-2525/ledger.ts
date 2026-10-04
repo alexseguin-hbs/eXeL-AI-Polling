@@ -216,6 +216,20 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Edge Compute sits at the top of Settings. The choices are CPU and CORAL. CPU is the default.",
       commit: "80e6a1c",
     },
+    {
+      rev: 31,
+      date: "2026-10-03",
+      kind: "release",
+      text: "Sensor 1 can use the iPhone 12 Pro Max back cameras: 1 wide, 2 ultra, 3 tele. Front stays available.",
+      commit: "",
+    },
+    {
+      rev: 32,
+      date: "2026-10-03",
+      kind: "release",
+      text: "CPU is the default and the switch reads CPU CORAL. A new screen starts on the original Sensor Fusion green. A color choice changes the screen.",
+      commit: "",
+    },
   ],
 };
 

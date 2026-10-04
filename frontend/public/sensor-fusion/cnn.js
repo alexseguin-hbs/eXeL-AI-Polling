@@ -131,7 +131,7 @@
       var y = Math.max(1, hit.ymin * height);
       var w = Math.max(1, (hit.xmax - hit.xmin) * width);
       var h = Math.max(1, (hit.ymax - hit.ymin) * height);
-      pen.strokeStyle = "#0cff00";
+      pen.strokeStyle = (getComputedStyle(document.documentElement).getPropertyValue("--sf-primary") || "#0cff00").trim() || "#0cff00";
       pen.strokeRect(x, y, w, h);
       var text = (showLabels ? hit.name : "") + (showScores ? (showLabels && hit.name ? " " : "") + Math.round(hit.score * 100) + "%" : "");
       if (text) {

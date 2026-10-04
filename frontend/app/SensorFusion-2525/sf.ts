@@ -45,12 +45,14 @@ export const MODELS = (catalog.models as ModelFile[]).map((item) => {
   };
 });
 
-export const MENU = [
-  { n: "1", id: "fusion", label: "Sensor Fusion", go: "work" as const },
-  { n: "2", id: "stop", label: "Stop", go: "stop" as const },
-  { n: "3", id: "labeler", label: "Image labeler", go: "label" as const },
-  { n: "4", id: "pose", label: "Pose", go: "pose" as const },
-];
+type MenuFile = { n: string; id: string; label: string; go: "work" | "stop" | "label" | "pose" };
+
+export const MENU = ((catalog as { menu?: MenuFile[] }).menu ?? []).map((item) => ({
+  n: item.n,
+  id: item.id,
+  label: item.label,
+  go: item.go,
+}));
 
 export function modelFile(coral: boolean) {
   return coral ? "edgetpu.tflite" : "detect.tflite";
@@ -63,11 +65,27 @@ export function runPlan(coralOn: boolean, modelId: string) {
   return { coral: coralOn, model, file: modelFile(coralOn) };
 }
 
+export type Lens = "wide" | "ultra" | "tele" | "front";
+
+/** iPhone 12 Pro Max: 1 wide, 2 ultra, 3 tele. Zoom is used when the browser offers one back camera. */
+export function lensZoom(lens: Lens, range?: { min: number; max: number } | null) {
+  if (lens === "front" || !range) return null;
+  if (lens === "ultra") return range.min;
+  if (lens === "tele") return Math.min(range.max, Math.max(range.min, 2.5));
+  return Math.min(range.max, Math.max(range.min, 1));
+}
+
+/** The browser always uses detect.tflite. Coral runs only on the computer, and only when the chip is there. */
+export function decideRun(where: "browser" | "edge", coral: boolean, chip: boolean) {
+  if (where === "browser" || !(coral && chip)) return { file: "detect.tflite", engine: "processor" as const };
+  return { file: "edgetpu.tflite", engine: "Coral" as const };
+}
+
 export const COLORS: { id: SchemeId; label: string; mark: string; swatch: string; bg: string; card: string; primary: string; line: string }[] = [
   { id: "violet", label: "Violet", mark: "웃", swatch: "#ff00ff", bg: "#140014", card: "#210021", primary: "#ff00ff", line: "#3a143a" },
   { id: "ocean", label: "Ocean Blue", mark: "", swatch: "#3b82f6", bg: "#081018", card: "#0c1824", primary: "#3c83f6", line: "#1c3148" },
   { id: "cyan", label: "Cyan", mark: "△", swatch: "#00e5ff", bg: "#001414", card: "#082121", primary: "#00e5ff", line: "#143a3a" },
-  { id: "green", label: "Green", mark: "", swatch: "#00ff00", bg: "#001400", card: "#082108", primary: "#00ff00", line: "#143a14" },
+  { id: "green", label: "Green", mark: "", swatch: "#0cff00", bg: "#3e505c", card: "#212121", primary: "#0cff00", line: "#2f6a38" },
   { id: "emerald", label: "Emerald", mark: "", swatch: "#10b981", bg: "#02110c", card: "#0c1c16", primary: "#10b981", line: "#143028" },
   { id: "sunset", label: "Sunset", mark: "♡", swatch: "#ffe600", bg: "#141400", card: "#212108", primary: "#ffe600", line: "#3a3a14" },
   { id: "orange", label: "Burnt Orange", mark: "", swatch: "#f97316", bg: "#140a04", card: "#21140c", primary: "#f97316", line: "#3a2414" },

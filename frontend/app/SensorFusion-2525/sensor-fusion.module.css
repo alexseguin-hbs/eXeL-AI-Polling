@@ -12,7 +12,7 @@
   max-height: var(--sf-h, 100dvh);
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
-  background: #3e505c;
+  background: var(--sf-bg, #3e505c);
   color: #fff;
   font-family: Roboto, system-ui, sans-serif;
 }
@@ -424,7 +424,7 @@
   gap: 8px 12px;
   min-width: 0;
   padding: 8px 12px;
-  background: #212121;
+  background: var(--sf-card, #212121);
   color: #fff;
 }
 .piTop {
@@ -459,10 +459,15 @@
 }
 .edgePick button {
   min-height: 36px;
-  border: 1px solid var(--sf-line, #1c3148);
+  border: 1px solid var(--sf-line, #2f6a38);
   border-radius: 8px;
   background: transparent;
   color: inherit;
+}
+.edgePick button[aria-pressed="true"] {
+  background: var(--sf-primary, #0cff00);
+  color: #111;
+  border-color: var(--sf-primary, #0cff00);
 }
 .guide {
   position: absolute;
@@ -516,7 +521,7 @@
   min-height: 0;
   padding: 4px 6px;
   padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
-  background: #212121;
+  background: var(--sf-card, #212121);
   overflow: visible;
 }
 .who {
@@ -535,6 +540,15 @@
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
+}
+.screen select.lens {
+  width: auto;
+  max-width: 7.5rem;
+  min-height: 28px;
+  margin-top: 0;
+  padding: 0 4px;
+  font-size: 11px;
+  flex: 0 0 auto;
 }
 .iconBtn,
 .bot,
@@ -571,13 +585,13 @@
   max-width: 36px;
 }
 .botOn {
-  color: #b6ffb0;
+  color: var(--sf-primary, #0cff00);
   font-weight: 700;
 }
 .annotate {
   border: 0;
-  background: #3ec96b;
-  color: #fff;
+  background: var(--sf-primary, #0cff00);
+  color: #111;
   border-radius: 8px;
   padding: 4px 8px;
   font-size: 12px;
@@ -598,8 +612,8 @@
 .piBot .annotate {
   padding: 4px 6px;
   font-size: 9px;
-  background: #3ec96b;
-  color: #fff;
+  background: var(--sf-primary, #0cff00);
+  color: #111;
   white-space: normal;
   line-height: 1.05;
   text-align: center;
@@ -735,7 +749,7 @@
 .dock {
   flex: 0 0 auto;
   min-height: 0;
-  background: #212121;
+  background: var(--sf-card, #212121);
   position: relative;
   z-index: 8;
   overflow: visible;

@@ -4,7 +4,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { MENU, MODELS, runPlan } from "../app/SensorFusion-2525/sf.ts";
+import { MENU, MODELS, lensZoom, runPlan } from "../app/SensorFusion-2525/sf.ts";
 
 let pass = 0;
 let fail = 0;
@@ -41,14 +41,20 @@ ok(runPlan(true, "missing").model === "demo90" && runPlan(true, "missing").file 
 
 const page = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8");
 const py = fs.readFileSync(path.resolve(import.meta.dirname, "../public/sensor-fusion/edge/sensor_fusion_edge.py"), "utf8");
-ok(/<p>Edge Compute<\/p>/.test(page) && />[\s\n]*CPU[\s\n]*</.test(page) && />[\s\n]*CORAL[\s\n]*</.test(page), "Edge Compute offers CPU and CORAL");
-ok(page.indexOf("<p>Edge Compute</p>") < page.indexOf("SESSION COLOR SCHEME"), "Edge Compute sits above the color scheme");
+ok(/<p>CPU CORAL<\/p>/.test(page) && />[\s\n]*CPU[\s\n]*</.test(page) && />[\s\n]*CORAL[\s\n]*</.test(page), "the switch reads CPU CORAL");
+ok(page.indexOf("<p>CPU CORAL</p>") < page.indexOf("SESSION COLOR SCHEME"), "CPU CORAL sits above the color scheme");
+ok(/useState<SchemeId \| "custom">\("green"\)/.test(page), "a new screen starts on the original green");
 ok(/const \[coral, setCoral\] = useState\(false\)/.test(page), "CPU is the default");
 ok(/const plan = runPlan\(coral, model\)/.test(page), "Sensor Fusion uses the switch, not a menu flag");
 ok(!/setCoral\(item\.coral\)/.test(page), "the menu no longer sets Coral");
 ok(!/Check ID, with Coral/.test(py) && !/Check ID, no Coral/.test(py), "the computer menu dropped Check ID rows");
 ok(/Coral on\? y\/n/.test(py), "the computer asks the Coral switch");
 ok(/choose_model\(\)/.test(py), "Check ID is chosen from the model list");
+
+const zoom = { min: 0.5, max: 6 };
+ok(lensZoom("wide", zoom) === 1 && lensZoom("ultra", zoom) === 0.5 && lensZoom("tele", zoom) === 2.5, "the three back cameras pick wide, ultra, and tele");
+ok(lensZoom("front", zoom) === null, "the front camera is not a zoom of the back");
+ok(lensZoom("ultra", { min: 1, max: 5 }) === 1 && lensZoom("tele", { min: 1, max: 5 }) === 2.5, "one back camera uses the closest zoom");
 
 console.log(fail ? `${pass} passed, ${fail} failed` : `${pass} passed`);
 process.exit(fail ? 1 : 0);
