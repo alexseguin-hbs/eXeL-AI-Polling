@@ -207,7 +207,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "release",
       text: "The member rule runs with the site build. The screen says only that the boxes stay on this device. Only the server can add a member. A live guest check runs once that rule is on the database.",
-      commit: "",
+      commit: "6be6853",
     },
   ],
 };
