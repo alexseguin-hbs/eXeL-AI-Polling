@@ -352,7 +352,7 @@
    "kind": "release",
    "text": "Operator deck r.154 served at /drone-2525/play.html (sha256 ccb4fe73...). THE QUAL · 40 CLOCK COUNTS REAL SECONDS; 10 S BETWEEN POSITIONS — below 20 fps the range clock ran on the loop's 50 ms-capped step, so the exposure windows and gaps stretched (5 s → 16.58 s at ~160 ms frames); the range now counts wall time (capped 0.25 s per frame), physics keeps 50 ms, and the phase gap is the sourced 10 s (operator 2026-10-04, docs/asks/2026.10.04_03.56..35_drone2525_qual40_exposure_times.md). Patch patches/r153_to_r154.py, byte-identical play.html, QA row QUAL_CLOCK_IS_WALL_TIME added (178 rows, 177/178 both orientations); drone-range-all-lanes slow-frame timing on lane 21.",
    "commit": "fc0fddf",
-   "shipped": "PENDING"
+   "shipped": "37035b6"
   }
  ]
 }

@@ -345,7 +345,7 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck r.154 — the QUAL · 40 clock counts real seconds; 10 s between positions (operator 2026-10-04, docs/asks/2026.10.04_03.56..35_drone2525_qual40_exposure_times.md: \"make sure times for multiple targets on qual40 are accurate\"; confirmed \"3-4 seconds per target. fine qual\"). Measured defect in r.153: the frame loop caps each step at 50 ms and rangeTick ran on that step, so below 20 fps the exposure windows, the 3 s gap, the phase gap and the TRAINING · RESET return stretched (5 s → 16.58 s at ~160 ms frames). The range clock now counts wall time (rangeDt, capped 0.25 s per frame so a backgrounded tab cannot skip an engagement); physics keeps its 50 ms step. The phase gap becomes the sourced 10 s (iwtsexplained.com/table-vi; the 2019 Infantry magazine, via search results); exposure values 5/8/12/16 s unchanged. Patch patches/r153_to_r154.py; boot-QA row QUAL_CLOCK_IS_WALL_TIME (178 rows, 177/178 both orientations); drone-range-all-lanes times lane 21 at normal and ~120 ms frames within ±0.35 s (r.153 fails, r.154 passes).",
    "commit": "fc0fddf",
-   "shipped": "PENDING"
+   "shipped": "37035b6"
   }
  ],
  "arena": {
