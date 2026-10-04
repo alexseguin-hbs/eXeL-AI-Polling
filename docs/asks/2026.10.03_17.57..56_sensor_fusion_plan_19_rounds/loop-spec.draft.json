@@ -248,7 +248,8 @@
         "rangefinder misses wire",
         "blind or fouled frame health (fog, spray)",
         "loop_runner process killed mid-run (pass: the autopilot reaches its configured safe action inside B + its setpoint-loss timeout)",
-        "setpoint stream lost"
+        "setpoint stream lost",
+        "camera frozen, runner alive (pass: slow within A of the last fresh frame, safe action within H; see gate2.detectorLostPass)"
       ],
       "water": [
         "current drift",
@@ -260,7 +261,8 @@
         "blind or fouled frame health (spray, glare-out)",
         "stuck stick or operator link lag",
         "loop_runner process killed mid-run (pass: the autopilot reaches its configured safe action inside B + its setpoint-loss timeout)",
-        "setpoint stream lost"
+        "setpoint stream lost",
+        "camera frozen, runner alive (pass: slow within A of the last fresh frame, safe action within H; see gate2.detectorLostPass)"
       ],
       "groundSafety": [
         "drop-off",
@@ -270,7 +272,8 @@
         "GNSS drift (geofence is the independent minimum)",
         "blind or night frame health",
         "loop_runner process killed mid-run (pass: the autopilot reaches its configured safe action inside B + its setpoint-loss timeout)",
-        "setpoint stream lost"
+        "setpoint stream lost",
+        "camera frozen, runner alive (pass: slow within A of the last fresh frame, safe action within H; see gate2.detectorLostPass)"
       ],
       "groundGoal": [
         "dock loss",
@@ -283,7 +286,7 @@
         "peer corridor (waits on decision 23)"
       ]
     },
-    "computeRule": "0.18: derived, never typed: runs = len(strataByFamily list) x runsPerStratum (300). Today: air 10 = 3,000; water 10 = 3,000; mass-droid groundSafety 8 = 2,400; exel-robot groundSafety + groundGoal 12 = 3,600. Test 40 recomputes from the list lengths and never reads a typed total",
+    "computeRule": "0.19: derived, never typed: runs = len(strataByFamily list) x runsPerStratum (300). Today: air 11 = 3,300; water 11 = 3,300; mass-droid groundSafety 9 = 2,700; exel-robot groundSafety + groundGoal 13 = 3,900. Test 40 recomputes from the list lengths and never reads a typed total",
     "cardValues": [
       {
         "loop": "Drone-2525",
@@ -346,7 +349,14 @@
       "_new": "0.18",
       "stratum": "water: current at 1.2x the hull's rated station-keeping thrust",
       "pass": "an alert and a field event are written within H; drift before cut thrust or anchor stays under standOffFraction (water parameter file) of the stand-off and inside the geofence; zero collisions is required only where anchorFitted is true in the water parameter file",
-      "goldens": "test 40: one golden with anchorFitted true, one with false"
+      "goldens": "test 40: one golden with anchorFitted true, one with false; one at drift = standOffFraction x stand-off (boundary passes), one just over (fails)",
+      "fields": "0.19: standOffFraction (proposed 0.5, decision 9) and anchorFitted (true or false, per hull) are fields of the water parameter file and GLOSSARY.md; the citations test refuses a field a pass rule names that no parameter-file list or glossary defines"
+    },
+    "detectorLostPass": {
+      "_new": "0.19",
+      "why": "H > B on every loop by construction (Drone 200 > 155 ms, Manta 850 > 480, MASS-AI 450 > 285), so 'safe action within B' can never pass a detector-lost stratum",
+      "pass": "slow within A of the last fresh box (failureModes 'Box older than A'), then the safe action within H; zero collisions and the minimum clearance still hold",
+      "test": "test 40 recomputes A, B and H from each loops.rows cell and refuses a row where neither this rule nor H <= B holds"
     }
   },
   "cameraValues": {
@@ -423,13 +433,14 @@
     "air": [
       "week 1 kit smoke replay: the pinned clip's record stream gives the golden decisions (test 5); citations test and C1 golden vectors green",
       "week 2 .github/CODEOWNERS and branch protection (owner: contract owner)",
-      "week 3 obstacle layer in replay.ts",
+      "week 3 obstacle layer in replay.ts; decelMs2 and maxBankDeg added to the docs/drone-2525 airframe source, domain.gen.ts regenerated, test:airframe-truth green (owner: air loop integrator; test 31 refuses the week-5 Gate 2 rung while speedEnvelope air rows are literals)",
+      "week 4 VEHICLE_MODELS entry for vtol-quadwing (the airframe record path in domain.gen.ts; no second parameter file)",
       "week 5 Gate 2 in the arena: controller-proven (provisional), needs replay.ts and loop-actions.ts air FlightAxes",
       "week 6 first trained card: the model builder runs recipes/recipe.json on a named region machine on an R9 merge of tree plus COCO car, bus, truck, motorcycle (seedClassMap vehicle) into drone-avoid-01 v1; model files stay unchanged",
       "week 6 Gate 1 runs and reports on the trained classes (tree, vehicle); other classes on provisional floors",
       "week 10 Gate 1 on the full Drone class list: R9 merge with 300 boxes per class over at least 30 clips",
-      "week 11 C5 signed card and gate: loop-ready in the civic simulation (the finish line)",
-      "week 12 C5b shadow minutes with zero safety-relevant disagreement",
+      "week 11 C5 signed card and gate: loop-ready in the civic simulation (the finish line; blocked on decisions 8, 9 until answered)",
+      "week 12 C5b shadow minutes with zero safety-relevant disagreement (comparator: the previous signed card; for a first card, the provisional card and the independent minimum)",
       "week 13 C5a Copter SITL, including the runner-killed and setpoint-lost strata",
       "week 14 C6 bench: coverReachM measured (p5, n >= 30); branch-protection check green",
       "week 18 fenced field with a named safety pilot"
@@ -446,7 +457,7 @@
       "week 10 Gate 2 controller-proven (provisional card)",
       "week 12 first trained card on an R9 merge (model builder), then Gate 1 on its classes",
       "week 14 C5 signed card: simulation-loop-ready (blocked on decisions 8, 9 until answered)",
-      "week 15 C5b shadow minutes with zero safety-relevant disagreement",
+      "week 15 C5b shadow minutes with zero safety-relevant disagreement (comparator: the provisional card and the independent minimum, since it is the first card)",
       "week 16 C5a SITL, including the runner-killed and setpoint-lost strata",
       "week 18 C6 bench: coverReachM measured (p5, n >= 30); branch-protection check green",
       "week 22 fenced field with a named safety pilot"
@@ -461,7 +472,7 @@
       "date of decision 21 + 4 weeks: groundGoal strata for mass-droid (placeholder; test 31 prints 'blocked on decision 21')",
       "week 12 first trained card on an R9 merge (model builder), then Gate 1 on its classes",
       "week 14 C5 signed card: simulation-loop-ready (blocked on decisions 8, 9 until answered)",
-      "week 15 C5b shadow minutes with zero safety-relevant disagreement",
+      "week 15 C5b shadow minutes with zero safety-relevant disagreement (comparator: the provisional card and the independent minimum, since it is the first card)",
       "week 16 C5a SITL, including the runner-killed and setpoint-lost strata",
       "week 18 C6 bench: coverReachM measured (p5, n >= 30); branch-protection check green",
       "week 22 fenced field with a named safety pilot"
@@ -470,13 +481,14 @@
     "exelRobot": [
       "date decision 17 is answered: VEHICLES id and stick set (rungs below count from it)",
       "+1 week kit smoke replay from kits/ground (test 5)",
+      "+2 weeks .github/CODEOWNERS and branch protection covers kits/ground for exel-robot (owner: contract owner)",
       "+4 weeks parameter file",
       "+6 weeks kinematic step",
       "+8 weeks VEHICLE_MODELS entry",
       "+10 weeks Gate 2 groundSafety and groundGoal (dock): controller-proven (provisional)",
       "+12 weeks first trained card on an R9 merge, then Gate 1",
       "+14 weeks C5 signed card: simulation-loop-ready (blocked on decisions 8, 9 until answered)",
-      "+15 weeks C5b shadow",
+      "+15 weeks C5b shadow (comparator: the provisional card and the independent minimum)",
       "+16 weeks C5a ROS 2 Jazzy + Nav2 SITL"
     ],
     "decisionDefaults": {
@@ -484,7 +496,17 @@
       "_new": "0.17"
     },
     "_about": "0.18 (moved from PLAN.md 'Done at build week N'): week 1 the citations test is green at its pin with no test-number gaps, and each region's kit passes a smoke replay (test 5). Gate 1 needs 300 boxes per class over at least 30 clips, so it follows an R9 merge. Every ladder runs in build order: smoke replay, Gate 2 controller-proven, R9 merge, Gate 1, C5 signed card, C5b shadow, C5a SITL, C6 bench, field. Test 31 refuses a rung that needs a later build step, a Gate 1 rung before an R9 rung, a Gate 1 claim for a class no trained card has, a signed or loop-ready rung with no earlier Gate 1 and R9 rung, any break of the C5, C5b, C5a order, and a finish-line status with no rung. It joins decisionDefaults to every C5 rung and prints 'blocked on decisions 8, 9 (default, unsigned)' until answered, and 'blocked on decision N' instead of omitting a robot",
-    "_changed18": "0.18: water, ground and exelRobot copy the air ladder's structure (smoke replay, Gate 2, R9 merge and first trained card, Gate 1, C5, C5b, C5a); air gains week-2 CODEOWNERS and a week-6 first-trained-card rung; every ladder gains the CODEOWNERS rung"
+    "_changed18": "0.18: water, ground and exelRobot copy the air ladder's structure (smoke replay, Gate 2, R9 merge and first trained card, Gate 1, C5, C5b, C5a); air gains week-2 CODEOWNERS and a week-6 first-trained-card rung; every ladder gains the CODEOWNERS rung",
+    "statusWordRule": {
+      "_new": "0.19",
+      "rule": "the status word on a C5 rung is a function of the ladder: 'loop-ready (civic simulation)' only when an earlier rung adds the vehicle to VEHICLE_MODELS; otherwise 'simulation-loop-ready'. Air has its week-4 VEHICLE_MODELS rung, so week 11 reads loop-ready; water, ground and exelRobot keep simulation-loop-ready until a vehicle model passes the readiness ladder",
+      "test": "test 29 checks that ladders and the readiness ladder agree; test 31 refuses a loop-ready rung with no earlier VEHICLE_MODELS rung and a C5b rung with no named comparator"
+    },
+    "rungShape": {
+      "_new": "0.19",
+      "rule": "at C1 each rung moves to contract.json as an object {week or offsetFrom, stepId (an R or C number), ownerRole, blockedBy[], status}; test 31 then reads fields only and refuses a free-text rung, so a new region adds rows, not prose"
+    },
+    "_changed19": "0.19: air gains week-3 decelMs2/maxBankDeg and week-4 vtol-quadwing VEHICLE_MODELS rungs and the decisions-8,9 marker on week 11; exelRobot gains its +2-week CODEOWNERS rung (0.18 _changed18 claimed it for every ladder; now true); every C5b names its comparator; statusWordRule and rungShape added"
   },
   "failureModes": {
     "_moved": "0.15, the failure-mode table from PLAN.md, cells verbatim (Markdown backticks kept)",

@@ -39,7 +39,7 @@
       "heldOutPerClass": 109,
       "swimmer": 628,
       "clearMinutes": 50,
-      "conditions": "turbidity, glare, spray; medium and current speed recorded per clip",
+      "conditions": "turbidity, glare, spray; medium and current speed recorded per clip; drift-distance truth (GNSS track while thrust is cut, 0.19) on every current clip, binned by standOffFraction",
       "blockingDecisions": [
         9,
         14

@@ -54,7 +54,7 @@
 - **Time to controller-proven:** per region, the Gate 2 pass date minus the date the region's kit was first published; recorded in `kit.json`.
 - **humanRole:** per family in the spec file, the human's role (collision backup or supervisory), arm rule and drill size.
 - **VehicleCommand:** the arbiter's output, a union keyed by vehicle family (air `FlightAxes`; ground speed, turn rate, brake; water surge, sway, hold).
-- **HumanAxes:** the core type for human input (fwd, lat, climb, yaw, plus family fields); `StickAxes` satisfies it, so core never imports drone-2525.
+- **HumanAxes:** the core type for human input, a union keyed by family: air {fwd, lat, climb, yaw}, water {surge, sway, yaw}, ground {linear, angular}; `StickAxes` satisfies it, so core never imports drone-2525.
 - **Readiness ladder:** replay-ready (Gate 1) → controller-proven (provisional) (Gate 2 on a provisional card) → simulation-loop-ready
   (both gates, signed, minimal world) → loop-ready (vehicle model exists). Every card status word is a rung.
 - **Smoke replay:** the week-1 check that a kit's pinned clip record stream gives the golden decisions; it is not Gate 1.
@@ -63,3 +63,17 @@
 - **replayFps:** the lowest frame rate a replay or held-out clip is kept at, at least the loop's fps (Drone 20, ground 8, Manta 4).
 - **Setpoint-loss timeout:** the autopilot's own timeout and action when the loop's command stream stops; read at arm, the authority when the runner dies.
 The citation test checks that every glossary term used in Part C is in this list.
+- **standOffFraction:** water parameter-file field (proposed 0.5, decision 9): the share of the stand-off a hull may drift before cut thrust or anchor when the current wins.
+- **anchorFitted:** water parameter-file field (true or false per hull): whether the hull can anchor; it decides the Manta card's safe-action line and whether zero collisions is required under current over thrust.
+- **blur-01:** the face and person blur model, carded in `models.json` v2 with its own recall floor; every person, swimmer or child-height kit frame depends on it.
+
+## Roles (moved from PLAN.md at 0.19, unchanged)
+
+| Role | Picks up |
+|---|---|
+| Labeler | R2 capture, R3 Level 1 boxes |
+| Reviewer (never the labeler) | R6 Level 2, R9 merge |
+| Model builder | the training hand-off: train.json in, three files + model card out |
+| Loop integrator (one per region: air, water, ground) | Part C replay gate, HAL fit, its world in `replay.ts` |
+| Contract owner (one, cross-domain) | `detect-contract.ts`, the spec file, `actuators.json`, golden vectors |
+| Camera integrator (school region) | camera values, consent status, the local alert screen |
