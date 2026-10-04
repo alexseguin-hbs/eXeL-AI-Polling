@@ -193,7 +193,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "release",
       text: "The info button labels the Sensor Fusion screen that is open: camera, meter, model including Check ID, Capture, Annotate, and Upload. The old tutorial picture is gone.",
-      commit: "",
+      commit: "f426967",
     },
   ],
 };
