@@ -179,7 +179,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "release",
       text: "R4a. A guest cannot read or add pictures or labels. A signed-in person can do so only for a project they belong to. A member of one project cannot see another.",
-      commit: "4ffd0cb",
+      commit: "0c25475",
     },
   ],
 };
