@@ -52,6 +52,35 @@ const out = await page.evaluate(() => {
     if (engs.length !== 18) r.issues.push('engagements ' + engs.length);
     if (r.targets !== 40) r.issues.push('targets ' + r.targets);
     if (!engs[0] || engs[0].ids.length !== 1 || !engs[0].ids[0].startsWith('C-50-')) r.issues.push('first is not the 50 R alone');
+    // QUAL MAGAZINES (operator 2026-10-04: "10 rounds per magazine out of 4 total; user must reload"): a second full QUAL on this lane with
+    // a shooter who fires at every standing target and presses the real RELOAD button only when empty. Lane 1 also runs a shooter who never
+    // reloads: 10 shots, then every pull refused, and the tower never reloads for him.
+    const reloadBtn = document.getElementById('btnReload');
+    for (const doReload of (L === 0 ? [true, false] : [true])) {
+      state.rangeMode = 'qual40'; goRange(); state.lane = L; state.qualDone = false;
+      if (typeof qualResetTower === 'function') qualResetTower(); rangeReset(); rangeRunReset(L);
+      const m = { shots: 0, refused: 0, reloads: 0, auto: false, cap: state.mag && state.mag.cap, start: state.mag && state.mag.rounds };
+      let g = 0, le = -1;
+      while (!state.qualDone && g++ < 30000) {
+        const n0 = state.mag.n; rangeTick(0.05); if (state.mag.n !== n0) m.auto = true;
+        const R = rangeRun(L);
+        if (R.phase === 'up' && R.eng && R.eng.n !== le) { le = R.eng.n;
+          for (const id of R.cur) { const q = PLATES.find((x) => x.id === id); if (!q || !q.up) continue;
+            if (doReload && state.mag.rounds <= 0) { reloadBtn.click(); m.reloads++; }
+            const u = unitNow(); aimUnitAt(u, q, -40, 40); state.tgtSlot = {}; state.desig = null; state.hiApproved = false;
+            designate({ id: q.id, kind: 'pop', ref: q }, 'QA'); approveDesig('HI-2');
+            const r0 = state.mag.rounds; fireN(1); if (state.mag.rounds === r0 - 1) m.shots++; else m.refused++; } }
+      }
+      const tag = doReload ? 'MAG' : 'MAG no-reload';
+      if (m.cap !== 10 || m.start !== 10) r.issues.push(`${tag}: magazine holds ${m.cap}/${m.start}, not 10`);
+      if (m.auto) r.issues.push(`${tag}: the tower reloaded without the shooter`);
+      if (doReload) {
+        if (m.shots !== 40 || m.refused !== 0) r.issues.push(`MAG: ${m.shots} fired, ${m.refused} refused (want 40/0)`);
+        if (m.reloads !== 3 || state.mag.n !== 4) r.issues.push(`MAG: ${m.reloads} reloads, magazine ${state.mag.n} (want 3 reloads, 4 magazines)`);
+        const n0 = state.mag.n; state.mag.rounds = 0; reloadBtn.click();
+        if (state.mag.n !== n0 || state.mag.rounds !== 0) r.issues.push('MAG: a fifth magazine was allowed');
+      } else if (m.shots !== 10 || m.refused !== 30) r.issues.push(`MAG no-reload: ${m.shots} fired, ${m.refused} refused (want 10/30)`);
+    }
     // TRAINING · RESET: all up; an aimed hit at 50 m and 300 m drops it; it comes back after 3 s
     state.rangeMode = 'bounce'; goRange(); state.lane = L; rangeReset();
     const tr = PLATES.filter((q) => q.lane === L);
