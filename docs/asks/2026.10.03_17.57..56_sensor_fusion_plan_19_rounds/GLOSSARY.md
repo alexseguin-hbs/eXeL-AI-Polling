@@ -49,6 +49,17 @@
 - **coverReachM:** the covering sensor's reach for one class on one speed row; a datasheet value marked "provisional" until the C6 bench measures the p5 reach (at least 30 trials).
 - **minBoxPx:** the smallest box, in model-input pixels, a class needs; a capture passes only at minBoxPx × 1.1 or more for the tier on the card.
 - **tierInput:** the model input size each HAL tier runs (pi 320 px; edge and accel 640 px), joined to each loop's chosen tier.
+  Since 0.17 it is derived from the card, which records each file's input px read from its input tensor; never typed.
 - **usedBy:** for one first-week quota, the loop id and output kind (action, alert, advisory or report) that consume it.
 - **Time to controller-proven:** per region, the Gate 2 pass date minus the date the region's kit was first published; recorded in `kit.json`.
+- **humanRole:** per family in the spec file, the human's role (collision backup or supervisory), arm rule and drill size.
+- **VehicleCommand:** the arbiter's output, a union keyed by vehicle family (air `FlightAxes`; ground speed, turn rate, brake; water surge, sway, hold).
+- **HumanAxes:** the core type for human input (fwd, lat, climb, yaw, plus family fields); `StickAxes` satisfies it, so core never imports drone-2525.
+- **Readiness ladder:** replay-ready (Gate 1) → controller-proven (provisional) (Gate 2 on a provisional card) → simulation-loop-ready
+  (both gates, signed, minimal world) → loop-ready (vehicle model exists). Every card status word is a rung.
+- **Smoke replay:** the week-1 check that a kit's pinned clip record stream gives the golden decisions; it is not Gate 1.
+- **Size truth:** a measured object size per class captured in R2; a known size is its small end (p5).
+- **Margin (pixel):** px ÷ (minBoxPx × 1.1); a pass under 1.10 states the field of view and range tolerance it holds at.
+- **replayFps:** the lowest frame rate a replay or held-out clip is kept at, at least the loop's fps (Drone 20, ground 8, Manta 4).
+- **Setpoint-loss timeout:** the autopilot's own timeout and action when the loop's command stream stops; read at arm, the authority when the runner dies.
 The citation test checks that every glossary term used in Part C is in this list.

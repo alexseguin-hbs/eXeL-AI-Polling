@@ -112,3 +112,20 @@ its revision ships.
     the human stand-off time is (covering-sensor reach − minimum detection range) ÷ v, generated; reach = range gives 0 s; a supervisory
     Drone pilot at 1.4 s arms with a rangefinder and is refused without one; a ground drill over the stand-off time caps speed; arm is
     refused when the running `loop_runner.py` sha256 differs from the signed one; `kit.json` carries no raw consent id.
+
+
+## Citations test — what it fails on (moved verbatim out of PLAN.md in revision 0.17)
+**It fails on:** a missing path or anchor; a comment line or type line cited as a value; a bare file name matching two paths; a step
+  marked open whose migration exists; a Part C term not in `GLOSSARY.md`, or a symbol defined there twice; an `ASK.md` addendum named in
+  no section; class lists, quotas or purposes that differ from the spec files; a gap or duplicate in a numbered test list; a region row
+  with no kit path; a member id, email or name under `public/sensor-fusion/`; a second start list; a version tag such as "(0.13)"
+  outside the history table; the bare old spec-file name; a "Measured N" word count in PLAN.md or
+  HISTORY.md that differs from its own `wc -w`; a partner name under `public/sensor-fusion/`.
+
+## Tests file and runners (moved verbatim out of PLAN.md in revision 0.17)
+Labeler tests: `frontend/tests/sensor-fusion-labeler.test.mjs` (plain Node: R1, R3, R5, R6, R8, R9). SQL-parse (R4a, R4c):
+`sensor-fusion-r4a.test.mjs`. Citations: `test:sf-plan-cites`; coral: `test:sf-coral`. Part C: own files. Browser (Playwright,
+preinstalled Chromium): R10, R2 page side, R3 pixels, 390 px layout, R8 cards. **Python runner:** `test:sensor-fusion-py` runs R2 picks and
+the golden vectors in a named job of `.github/workflows/deploy.yml` with a pinned `actions/setup-python` and requirements file (stdlib for
+the vectors; today only `setup-node`, `deploy.yml:49`), outside `test:ci` until C1 ships. Page and Python picks compare on one shared
+decoder output (pinned clip + frame hashes), never each side's own JPEG decode.

@@ -10,14 +10,13 @@
         "Classes (first set)": "wire, pole, tree, bird, person (avoid only), vehicle",
         "Latency budget": "≤ 155 ms end to end, ≥ 20 fps (frame 50 ms), p99 ≤ 50 ms",
         "Max detection age": "120 ms (actuation ≤ 35 ms; heartbeat H = 3P + p50, ≤ 200 ms; dwell 1,000 ms, C 5; slack 8 ms; wing-to-quad transition 4 s is its own term)",
-        "HAL tier": "edge or accel",
+        "Allowed tiers": "edge or accel",
         "Recall floor (proposed)": "0.90; person 0.97; false tracks per clear minute ≤ the loop's cap",
         "Safe action": "quad mode: hover; wing mode: loiter on a circle of radius ≥ the turn radius, checked clear inside the wing range, then transition to quad and hover; then land if the return path is not known clear, else return",
         "Independent minimum": "altitude + geofence holding mapped wire spans (the obstacle layer as data)",
         "World": "arena + detection emulator — closed loop (C4)",
         "Human role": "pilot watches, takes over, stops",
-        "Chosen tier (0.16)": "edge",
-        "Input px (0.16)": 640
+        "Chosen tier": "edge"
       },
       {
         "Vehicle": "Manta-2525 (water; `manta-mini-66-33` first, `manta-99-66`)",
@@ -25,14 +24,13 @@
         "Classes (first set)": "hull, pier, buoy, swimmer (avoid only), marine animal",
         "Latency budget": "≤ 480 ms, ≥ 4 fps (frame 250 ms), p99 ≤ 100 ms",
         "Max detection age": "420 ms (actuation ≤ 60 ms; heartbeat H = 3P + p50, ≤ 850 ms; dwell 2,000 ms, C 3; slack 28 ms)",
-        "HAL tier": "edge",
+        "Allowed tiers": "edge",
         "Recall floor (proposed)": "0.85; swimmer 0.97; false tracks per clear minute ≤ the loop's cap",
         "Safe action": "hold station; if position is lost, cut thrust (or anchor where fitted); never surface or dive (surfaced-only, changed 0.15)",
         "Independent minimum": "proximity hold + GNSS geofence (surface row, changed 0.16); depth only on the later underwater row",
         "World": "minimal 2D water world with current drift in `replay.ts` — controller gate only",
-        "Human role": "remote operator (the hull is unmanned) watches, takes over, stops; drills in simulation until the hull is built (`pod-projects.ts:88`)",
-        "Chosen tier (0.16)": "edge",
-        "Input px (0.16)": 640
+        "Human role": "remote operator watches, takes over, stops; drills in simulation until the hull is built; crew status is decision 25 (pod-projects.ts:91 budgets life support for 5 people), so 'unmanned' is not assumed",
+        "Chosen tier": "edge"
       },
       {
         "Vehicle": "MASS-AI (ground; `mass-droid`)",
@@ -40,14 +38,13 @@
         "Classes (first set)": "obstacle, step, person (avoid only), vehicle",
         "Latency budget": "≤ 285 ms, ≥ 8 fps (frame 125 ms), p99 ≤ 75 ms",
         "Max detection age": "235 ms (actuation ≤ 50 ms; heartbeat H = 3P + p50, ≤ 450 ms; dwell 1,000 ms, C 4; slack 11.5 ms)",
-        "HAL tier": "pi or edge",
+        "Allowed tiers": "pi or edge",
         "Recall floor (proposed)": "0.90; person 0.97; false tracks per clear minute ≤ the loop's cap",
         "Safe action": "stop, brake held (also on a slope)",
         "Independent minimum": "rangefinder + downward cliff sensor + geofence",
         "World": "minimal 2D ground world with an obstacle grid in `replay.ts` — controller gate only",
         "Human role": "robot team watches, takes over, stops",
-        "Chosen tier (0.16)": "pi",
-        "Input px (0.16)": 320
+        "Chosen tier": "pi"
       },
       {
         "Vehicle": "eXeL AI robot (ground; `exel-robot`, decision 17)",
@@ -55,14 +52,13 @@
         "Classes (first set)": "dock marker, obstacle, step, door, person (avoid only)",
         "Latency budget": "≤ 285 ms, ≥ 8 fps (frame 125 ms), p99 ≤ 75 ms",
         "Max detection age": "235 ms (actuation ≤ 50 ms; heartbeat ≤ 450 ms; dwell 1,000 ms, C 4; slack 11.5 ms)",
-        "HAL tier": "pi or edge",
+        "Allowed tiers": "pi or edge",
         "Recall floor (proposed)": "0.90; dock marker 0.95; person 0.97",
         "Safe action": "stop, brake held",
         "Independent minimum": "bumper + rangefinder + downward cliff sensor + geofence",
         "World": "minimal 2D ground world with a dock marker in `replay.ts` — controller gate only",
         "Human role": "robot team watches, takes over, stops; staff get its alerts",
-        "Chosen tier (0.16)": "pi",
-        "Input px (0.16)": 320
+        "Chosen tier": "pi"
       }
     ],
     "tierInput": {
@@ -70,7 +66,9 @@
       "pi": 320,
       "edge": 640,
       "accel": 640,
-      "test": "test 40 refuses a loop whose chosen tier's input px gives 'refused' in pixelExtent for any of its classes, unless that class names its covering sensor"
+      "test": "test 40 refuses a loop whose chosen tier's input px gives 'refused' in pixelExtent for any of its classes, unless that class names its covering sensor",
+      "status": "claim until checked: the card records each file's input px read from its input tensor (cnn.js:72 shape[1]; sensor_fusion_edge.py:159); tierInput is derived from the card, never typed",
+      "_changed": "0.17: loops.rows carry only 'Chosen tier' (the typed 'Input px' cell is gone; test 40 refuses one); 'HAL tier' renamed 'Allowed tiers'"
     }
   },
   "speedEnvelope": {
@@ -87,6 +85,14 @@
       "transitionMinAglM": {
         "value": 20,
         "cite": "domain.gen.ts:1313; canTransition flight.ts:123"
+      },
+      "decelMs2": {
+        "value": 4,
+        "status": "to add to the docs/drone-2525 airframe source that generates domain.gen.ts (0.17); until then the stop distance is refused as a literal"
+      },
+      "maxBankDeg": {
+        "value": 30,
+        "status": "to add to the same airframe source (0.17); turn radii 51.0 m and 36.5 m are computed from it"
       }
     },
     "rows": [
@@ -235,7 +241,9 @@
         "stuck stick",
         "GNSS drift",
         "rangefinder misses wire",
-        "blind or fouled frame health (fog, spray)"
+        "blind or fouled frame health (fog, spray)",
+        "loop_runner process killed mid-run (pass: the autopilot reaches its configured safe action inside B + its setpoint-loss timeout)",
+        "setpoint stream lost"
       ],
       "water": [
         "current drift",
@@ -245,7 +253,9 @@
         "link loss",
         "GNSS drift",
         "blind or fouled frame health (spray, glare-out)",
-        "stuck stick or operator link lag"
+        "stuck stick or operator link lag",
+        "loop_runner process killed mid-run (pass: the autopilot reaches its configured safe action inside B + its setpoint-loss timeout)",
+        "setpoint stream lost"
       ],
       "groundSafety": [
         "drop-off",
@@ -253,7 +263,9 @@
         "link loss",
         "stuck stick",
         "GNSS drift (geofence is the independent minimum)",
-        "blind or night frame health"
+        "blind or night frame health",
+        "loop_runner process killed mid-run (pass: the autopilot reaches its configured safe action inside B + its setpoint-loss timeout)",
+        "setpoint stream lost"
       ],
       "groundGoal": [
         "dock loss",
@@ -323,7 +335,8 @@
         },
         "dockLineUpMaxRangeM": "0.16: lateral error = range x tan(bearing ceiling) must be <= dockLineUpCm; 2 cm / tan(1 deg) gives line-up at most 1.15 m (computed by test 40, never typed)"
       }
-    ]
+    ],
+    "_changed": "0.17: runner-killed and setpoint-stream-lost strata in every family; the same strata run in C5a SITL"
   },
   "cameraValues": {
     "rule": "alerts only; no timing law; Gate 1 refuses a card above a hazard's time-to-alert ceiling; >= 59 scored alerts per p95; false alerts <= 0.1 per camera per hour (about 30 clear hours from >= 30 distinct clips); card max age 90 days",
@@ -392,24 +405,27 @@
       "shadowMinutesBeforePromotion": "C5b value per loop"
     },
     "test": "test 31 reports 'late' when the trigger has passed with no new card",
-    "dependencyEndOfLife": "0.15: when a contract.json dependency (ROS 2 distro, firmware major, LiteRT, base-model digest) is within 90 days of end of life, open a re-certification task; test 31 reports late"
+    "dependencyEndOfLife": "0.15: when a contract.json dependency (ROS 2 distro, firmware major, LiteRT, base-model digest) is within 90 days of end of life, open a re-certification task; test 31 reports late. 0.17, moved verbatim from PLAN.md: (5) **Dependency lifetime:** `contract.json` lists the ROS 2 distro and its end of life (Jazzy, May 2029), the autopilot firmware majors, the LiteRT version and the base-model digest; a card pinning a dependency past its end of life lapses to replay-ready, and 90 days before an end of life the retrain cadence opens a re-certification task (test 31 reports \"late\")."
   },
   "ladders": {
     "_new": "0.15",
     "air": [
-      "week 1 kit replays: Gate 1 on the pinned clip from kits/air (citations test and C1 golden vectors green)",
+      "week 1 kit smoke replay: the pinned clip's record stream gives the golden decisions (test 5); citations test and C1 golden vectors green",
       "week 3 obstacle layer in replay.ts",
       "week 5 Gate 2 in the arena: controller-proven (provisional), needs replay.ts and loop-actions.ts air FlightAxes",
-      "week 8 C5a Copter SITL",
-      "week 12 C6 bench",
-      "week 12 coverReachM measured on the bench (p5, n >= 30); branch-protection check green",
-      "week 16 fenced field with a named safety pilot"
+      "week 6 Gate 1 runs and reports on the seeded classes (tree, vehicle) after an R9 merge; other classes on provisional floors",
+      "week 10 Gate 1 on the full Drone class list: R9 merge with 300 boxes per class over at least 30 clips",
+      "week 11 C5 signed card and gate: loop-ready in the civic simulation (the finish line)",
+      "week 12 C5b shadow minutes with zero safety-relevant disagreement",
+      "week 13 C5a Copter SITL, including the runner-killed and setpoint-lost strata",
+      "week 14 C6 bench: coverReachM measured (p5, n >= 30); branch-protection check green",
+      "week 18 fenced field with a named safety pilot"
     ],
     "airOwner": "air loop integrator",
     "test": "test 31 reads only this key, reports each rung late (never failed) and refuses a rung that needs a step later in the build order",
-    "_changed": "0.16: week 1 is kit replays (Gate 1 on the pinned clip); controller-proven means Gate 2 passed, so it sits at air week 5 and water and ground week 10; water and ground rungs moved here from PLAN.md, the only home test 31 reads",
+    "_changed": "0.17: week 1 is a kit smoke replay (Gate 1 needs 300 boxes per class over 30 clips, so it moves after an R9 merge); air gains C5 and C5b rungs before C5a, so loop-ready is dated; exelRobot ladder and a decision-21 placeholder; test 31 refuses a Gate 1 rung dated before an R9 rung and a ladder whose finish-line status has no rung",
     "water": [
-      "week 1 kit replays from kits/water: Gate 1 on the pinned clip",
+      "week 1 kit smoke replay from kits/water: the pinned clip's record stream gives the golden decisions (test 5)",
       "week 4 parameter file",
       "week 6 kinematic step",
       "week 8 VEHICLE_MODELS entry",
@@ -419,16 +435,29 @@
       "week 20 fenced field with a named safety pilot"
     ],
     "ground": [
-      "week 1 kit replays from kits/ground: Gate 1 on the pinned clip",
+      "week 1 kit smoke replay from kits/ground: the pinned clip's record stream gives the golden decisions (test 5)",
       "week 4 parameter file",
       "week 6 kinematic step",
       "week 8 VEHICLE_MODELS entry",
       "week 10 Gate 2: controller-proven (provisional), then simulation-loop-ready on a signed card",
+      "date of decision 21 + 4 weeks: groundGoal strata for mass-droid (placeholder; test 31 prints 'blocked on decision 21')",
       "week 12 C5a SITL",
       "week 16 C6 bench: coverReachM measured (p5, n >= 30); branch-protection check green",
       "week 20 fenced field with a named safety pilot"
     ],
-    "waterAndGroundOwner": "that region's loop integrator"
+    "waterAndGroundOwner": "that region's loop integrator",
+    "exelRobot": [
+      "date decision 17 is answered: VEHICLES id and stick set",
+      "+4 weeks parameter file",
+      "+6 weeks kinematic step",
+      "+8 weeks VEHICLE_MODELS entry",
+      "+10 weeks Gate 2 groundSafety and groundGoal (dock): controller-proven (provisional)",
+      "+12 weeks C5a ROS 2 Jazzy + Nav2 SITL"
+    ],
+    "decisionDefaults": {
+      "rule": "decisions 8, 9 and 14 block arm, never simulation; if unanswered at the round-19 hand-off their one-tap defaults apply as 'proposed' and test 31 marks them 'default, unsigned'; card signing still waits on the answer",
+      "_new": "0.17"
+    }
   },
   "failureModes": {
     "_moved": "0.15, the failure-mode table from PLAN.md, cells verbatim (Markdown backticks kept)",
@@ -483,7 +512,7 @@
       },
       {
         "Event": "Loop process stalled (no output for one budget B)",
-        "Action": "a watchdog in `loop-actions.ts` gives the safe action and writes a field event"
+        "Action": "the autopilot's own setpoint-loss timeout (off-process, read at arm from actuators.json) gives the safe action; the in-process watchdog in `loop-actions.ts` only writes the field event (changed 0.17)"
       },
       {
         "Event": "Model id, labelmap hash or any file sha256 differs from the signed card, or the model is not cleared for this loop",
