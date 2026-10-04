@@ -202,6 +202,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Settings opens with a Sensor Fusion section. Inside it, Edge Compute is CPU or Coral.",
       commit: "26d9d12",
     },
+    {
+      rev: 29,
+      date: "2026-10-03",
+      kind: "release",
+      text: "The member rule runs with the site build. The screen says only that the boxes stay on this device. Only the server can add a member. A live guest check runs once that rule is on the database.",
+      commit: "",
+    },
   ],
 };
 

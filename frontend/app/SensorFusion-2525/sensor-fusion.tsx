@@ -368,11 +368,9 @@ function clampPct(value: number) {
 
 function Labeler({
   shots,
-  signedIn,
   onBack,
 }: {
   shots: Shot[];
-  signedIn: boolean;
   onBack: () => void;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -490,11 +488,7 @@ function Labeler({
       setNote("Draw a box and save it first.");
       return;
     }
-    if (!signedIn) {
-      setNote("These boxes stay on this device. Sign in as a project member before a team copy is saved.");
-      return;
-    }
-    setNote("These boxes stay on this device. A team copy is saved only for a project you belong to.");
+    setNote("These boxes stay on this device.");
   }
 
   const boxLeft = Math.min(left, right);
@@ -1023,7 +1017,7 @@ export default function SensorFusion() {
   }
 
   if (step === "label") {
-    return <Labeler shots={shots} signedIn={isAuthenticated} onBack={() => setStep("menu")} />;
+    return <Labeler shots={shots} onBack={() => setStep("menu")} />;
   }
 
   if (step === "menu") {

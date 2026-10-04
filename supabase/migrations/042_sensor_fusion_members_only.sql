@@ -1,5 +1,7 @@
 -- R4a. A guest cannot read or add Sensor Fusion pictures or labels.
 -- A signed-in person can read and add a row only when they are a member of that project.
+-- Nobody can join a project from the page. Only the server adds a row to sensor_fusion_members.
+-- There is no insert rule on that table. That is on purpose until a project home is chosen. It is not a bug.
 
 CREATE TABLE IF NOT EXISTS sensor_fusion_members (
   project_id TEXT NOT NULL,

@@ -41,6 +41,30 @@ ok(/CREATE POLICY "Members add pictures to their project"[\s\S]*TO authenticated
 ok(/CREATE POLICY "Members read their project labels"[\s\S]*TO authenticated[\s\S]*sensor_fusion_is_member\(project_id\)/.test(sql), "a label read requires membership");
 ok(/CREATE POLICY "Members add labels to their project"[\s\S]*TO authenticated[\s\S]*WITH CHECK \(sensor_fusion_is_member\(project_id\)\)/.test(sql), "a label write requires membership");
 ok(/member_id = auth\.uid\(\)/.test(sql), "a seat is the signed-in person");
+ok(/Only the server adds a row to sensor_fusion_members/.test(sql), "only the server can add a member, and that is written down");
+ok(!/ON sensor_fusion_members FOR INSERT/.test(sql), "the page has no way to join a project");
+
+const page = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8");
+ok(page.includes('setNote("These boxes stay on this device.")'), "the screen says the boxes stay on this device");
+ok(!page.includes("team copy"), "the screen does not promise a team save");
+
+const probeUrl = process.env.RLS_PROBE_URL || "";
+const probeKey = process.env.RLS_PROBE_ANON_KEY || "";
+if (probeUrl && probeKey) {
+  const headers = { apikey: probeKey, Authorization: `Bearer ${probeKey}`, "Content-Type": "application/json", Prefer: "return=minimal" };
+  const root = probeUrl.replace(/\/$/, "");
+  const read = await fetch(`${root}/rest/v1/sensor_fusion_pictures?select=id`, { headers });
+  const rows = read.ok ? await read.json() : [];
+  ok(read.ok && Array.isArray(rows) && rows.length === 0, "LIVE a guest read returns nothing");
+  const write = await fetch(`${root}/rest/v1/sensor_fusion_labels`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ owner_key: "guest", picture_id: "probe", name: "probe", x1: 0, y1: 0, x2: 1, y2: 1, project_id: "probe" }),
+  });
+  ok(!write.ok, "LIVE a guest insert is refused");
+} else {
+  console.log("live check waiting: set RLS_PROBE_URL and RLS_PROBE_ANON_KEY after the rule is applied");
+}
 
 console.log(fail ? `${pass} passed, ${fail} failed` : `${pass} passed`);
 process.exit(fail ? 1 : 0);
