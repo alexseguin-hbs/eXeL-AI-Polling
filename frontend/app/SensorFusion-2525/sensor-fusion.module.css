@@ -579,11 +579,11 @@
 }
 .screen select.lens {
   width: auto;
-  max-width: 7.5rem;
+  max-width: 4.6rem;
   min-height: 28px;
   margin-top: 0;
-  padding: 0 4px;
-  font-size: 11px;
+  padding: 0 2px;
+  font-size: 12px;
   flex: 0 0 auto;
 }
 .iconBtn,
@@ -886,6 +886,44 @@
   .work .idle p {
     margin: 2px 0;
   }
+}
+.labelFill {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 8px;
+}
+.labelFill .labelBar {
+  position: static;
+  flex: 0 0 auto;
+}
+.labelFit {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 160px;
+  padding: 22px 8px 4px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.labelFrame {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  max-height: 100%;
+  line-height: 0;
+  touch-action: none;
+  background: #000;
+}
+.labelFrame img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(var(--sf-h, 100dvh) - 420px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 .labelStage {
   position: relative;

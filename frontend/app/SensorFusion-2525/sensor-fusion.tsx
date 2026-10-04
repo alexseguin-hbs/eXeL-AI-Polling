@@ -313,24 +313,18 @@ type Folder = {
   getFileHandle: (name: string, options: { create: boolean }) => Promise<{ createWritable: () => Promise<Writable> }>;
 };
 
-async function chooseSensorFusionFolder() {
+let chosenFolder: Folder | null = null;
+
+async function chooseSaveFolder() {
   const picker = (window as Window & { showDirectoryPicker?: (options: { mode: "readwrite"; id: string }) => Promise<Folder> }).showDirectoryPicker;
   if (!picker) return null;
-  if (phoneKind() === "android") {
-    window.alert("Create a folder named SensorFusion, then choose that folder.");
-    const picked = await picker({ mode: "readwrite", id: "sensor-fusion-android" });
-    if (picked.name.toLowerCase() !== "sensorfusion") {
-      throw new Error("Choose the folder named SensorFusion.");
-    }
-    return picked;
-  }
-  const parent = await picker({ mode: "readwrite", id: "sensor-fusion" });
-  if (parent.name.toLowerCase() === "sensorfusion") return parent;
-  return parent.getDirectoryHandle("SensorFusion", { create: true });
+  const picked = await picker({ mode: "readwrite", id: "sensor-fusion-save" });
+  chosenFolder = picked;
+  return picked;
 }
 
 async function saveNumberedPictures(setName: string, files: { name: string; blob: Blob }[]) {
-  const folder = await chooseSensorFusionFolder();
+  const folder = chosenFolder || (await chooseSaveFolder());
   if (folder) {
     const setFolder = await folder.getDirectoryHandle(setName, { create: true });
     for (const file of files) {
@@ -339,16 +333,16 @@ async function saveNumberedPictures(setName: string, files: { name: string; blob
       await writable.write(file.blob);
       await writable.close();
     }
-    return `SensorFusion/${setName}`;
+    return `${folder.name}/${setName}`;
   }
   const shared = files.map((file) => new File([file.blob], file.name, { type: "image/png" }));
   const share = navigator as Navigator & { canShare?: (data: { files: File[] }) => boolean };
   if (share.canShare?.({ files: shared }) && navigator.share) {
     await navigator.share({ files: shared, title: "SensorFusion" });
-    return `SensorFusion/${setName}`;
+    return `Files/${setName}`;
   }
   files.forEach((file) => downloadBlob(file.name, URL.createObjectURL(file.blob)));
-  return `SensorFusion/${setName}`;
+  return `Downloads/${setName}`;
 }
 
 async function fileToPng(file: File, name: string): Promise<{ name: string; blob: Blob; url: string } | null> {
@@ -526,7 +520,7 @@ function Labeler({
         <StepIcon id="annotate" />
         <span className={styles.who}>Annotate Images</span>
       </header>
-      <div className={styles.fill}>
+      <div className={`${styles.fill} ${styles.labelFill}`}>
         <StepStrip current={2} />
         <label className={styles.file}>
           Add pictures
@@ -542,8 +536,9 @@ function Labeler({
           </div>
         )}
         {pic ? (
+          <div className={styles.labelFit}>
           <div
-            className={styles.labelStage}
+            className={styles.labelFrame}
             ref={stageRef}
             onPointerMove={onMove}
             onPointerUp={() => {
@@ -592,6 +587,7 @@ function Labeler({
                 event.currentTarget.setPointerCapture(event.pointerId);
               }}
             />
+          </div>
           </div>
         ) : (
           <p className={styles.muted}>No pictures yet. Turn the camera on and save some, or add pictures from this device.</p>
@@ -689,6 +685,7 @@ export default function SensorFusion() {
   const [annotate, setAnnotate] = useState(false);
   const [savedNote, setSavedNote] = useState(false);
   const [shotFolder, setShotFolder] = useState("");
+  const [saveFolder, setSaveFolder] = useState("");
   const [trainStatus, setTrainStatus] = useState("");
   const [cloudSaved, setCloudSaved] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
@@ -955,6 +952,17 @@ export default function SensorFusion() {
   }
 
   async function takeShots(long = false) {
+    try {
+      if (!chosenFolder) {
+        const picked = await chooseSaveFolder();
+        if (picked) setSaveFolder(picked.name);
+        else if (phoneKind() !== "ios") setSaveFolder("Files");
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setError(err instanceof Error ? err.message : "Choose a folder for the pictures.");
+      return;
+    }
     if (!videoRef.current?.srcObject) {
       await openSensor();
     }
@@ -1171,9 +1179,9 @@ export default function SensorFusion() {
             if (sensorOn) void openSensor(next);
           }}
         >
-          <option value="wide">1 Back wide</option>
-          <option value="ultra">2 Back ultra</option>
-          <option value="tele">3 Back tele</option>
+          <option value="ultra">0.5x</option>
+          <option value="wide">Wide</option>
+          <option value="tele">2.5x</option>
           <option value="front">Front</option>
         </select>
         <div className={styles.tools}>
@@ -1296,7 +1304,24 @@ export default function SensorFusion() {
           <div className={styles.modal} role="dialog" aria-label="Capture images">
             <StepStrip current={1} />
             <h2>Capture Images</h2>
-            <p className={styles.muted}>From the sensor, or from this device. Then annotate them.</p>
+            <p className={styles.muted}>From the sensor, or from this device. Choose the folder first.</p>
+            <div className={styles.row}>
+              <span className={styles.muted}>Save to {saveFolder || (phoneKind() === "ios" ? "Files" : "a folder")}</span>
+              <button
+                type="button"
+                className={styles.ghost}
+                onClick={() => {
+                  void chooseSaveFolder()
+                    .then((picked) => setSaveFolder(picked ? picked.name : "Files"))
+                    .catch((err: unknown) => {
+                      if (err instanceof DOMException && err.name === "AbortError") return;
+                      setError(err instanceof Error ? err.message : "Choose a folder for the pictures.");
+                    });
+                }}
+              >
+                Choose folder
+              </button>
+            </div>
             <label>
               Label
               <select value={labelPick} onChange={(event) => setLabelPick(event.target.value)}>
