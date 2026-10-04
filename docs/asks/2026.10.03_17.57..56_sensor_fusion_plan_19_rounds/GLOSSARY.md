@@ -40,4 +40,9 @@
 - **Slow:** move at the row's creep speed (its parameter file), reached at the row's deceleration limit; the setpoint table in `loop-spec.json` holds it.
 - **Creep:** the slowest controlled speed a row allows (m/s), used by slow, the false-cliff override and docking.
 - **Covering sensor:** the independent sensor that catches what a class's detector misses.
+- **A_track:** the worst-case time to confirm a track, (N + `burstLen`) × P, never K × P.
+- **burstLen:** the longest run of missed frames for a class, measured on the replay split and kept on the card.
+- **Minimum detection range:** v × B + stop (or turn radius) + v × A_track + max(clearance, stand-off); defined once, in PLAN.md's speed envelope.
+- **Wire ceiling:** per region, max(the airframe's `transitionMinAglM`, the highest mapped wire + clearance); below it, unmapped wire needs a rangefinder.
+- **Reaction-time ceiling:** (range − stop − clearance) ÷ v; a crew's takeover-drill p95 must be under it to arm.
 The citation test checks that every glossary term used in Part C is in this list.
