@@ -1,4 +1,4 @@
-# Sensor Fusion → DETECT → control loops — the plan for Grok (revision 0.01)
+# Sensor Fusion → DETECT → control loops — the plan for Grok (revision 0.02)
 
 > Living plan, revised once per round of the 19-round SSSES · SPIRAL · AsM simulation (see `ASK.md`, `rNN.md`).
 > Goal (operator): create Drone-2525, Manta-2525 and MASS-AI detection quickly as a global team — our models, introduced into control loops.
@@ -10,6 +10,7 @@
 |---|---|---|
 | 0.00 | — | Consolidated v3 FINAL (R1–R10) + DETECT note. |
 | 0.01 | 1 | Chain overview with owner roles; Today-vs-gap re-verified (R1 shipped, citations fixed); R1 reduced to its test; local vs server tracks; R4 split, guest read **and write** closed first (R4a); R2 domain conditions and numbers; R9 class floors + model card hand-off; new Part C (control loops, safe actions, HAL, sim-first, safety gate); one merged decision list; Part B citation + salt fix. |
+| 0.02 | 2 | Glossary; Part C no longer waits on DETECT hardware (neutral versioned Detection record, adapters for cnn.js and the Python edge script, shared `loop-spec.json`); staleness in ms, heartbeat splits "clear" from "detector lost"; per-vehicle action sets; floor and world columns; open-loop vs closed-loop replay; card lives in `models.json` v2 with file sha256s and measured ms per tier; HAL fit corrected; train / held-out / replay split by clip; identity models never loop-eligible; false-negative row over an independent minimum; Part C build steps C1–C5 and a first loop-ready deliverable; gate re-cited; decisions 9 and 14. |
 
 ## The whole chain in one line (read this first)
 capture (R2) → Level 1 (R3, R6) → Level 2 (R6) → XML (R9) → `<Set>.train.json` (R9) → model folder + model card (hand-off, R9) →
@@ -23,6 +24,13 @@ edge or DETECT (Part B) → display → **control loop** (Part C: Drone-2525 air
 | Loop integrator | Part C contracts, replay gate, HAL fit |
 
 The R numbers are build steps, not plan revisions (0.NN) and not Sensor Fusion ledger releases.
+
+**Five words, in plain terms.**
+- **Band:** a thin strip of Light Codex blocks written into a video frame by the DETECT box (Part B). Future hardware.
+- **Card:** the model's record — what it was trained on, how well it does per class, how fast it runs, and the hashes of its three files.
+- **HAL tier:** the class of computer on the vehicle — pi, edge (a system-on-chip, not an Edge TPU) or accel (`lib/wire-core/hal.ts`).
+- **Loop-ready:** a model version passed closed-loop replay for one named loop, and a named human signed it. Open-loop only = **replay-ready**.
+- **Safe action:** what a vehicle does when it cannot trust what it sees — hover, hold station, stop. Never "continue".
 
 ---
 
@@ -56,10 +64,11 @@ Short sentences in the app. **One revision at a time:** commit R1, wait until th
 | Picture + label tables | `supabase/migrations/040_sensor_fusion_pictures.sql`, `041_sensor_fusion_labels.sql` | **guests can read and insert today** (INSERT `040:15-16`, `041:18-19`; SELECT `040:22`, `041:25`) — close first (R4a) |
 | Model list | **SHIPPED:** `public/sensor-fusion/models.json`; `sf.ts:23` imports it; `cnn.js:50` fetches it; both `sensor_fusion_edge.py` copies read it (`:36-52`) | only the R1 test is missing |
 | Names `head.0001.jpg` that continue | built by `peekNames` / `commitNames`, `sensor-fusion.tsx:252-258` | dot form → `<label>_<NNNN>` (R5), with migration |
-| Fixed detection threshold | `cnn.js:104` (`score > 0.5`) | per-class thresholds from the model card (Part C) |
+| Fixed detection threshold | `cnn.js:104` (`score > 0.5`); also `sensor_fusion_edge.py:176` in both `edge/` and `download/` | per-class thresholds from the model card (Part C) |
 | Invite codes | `lib/drone-2525/si-pod.ts:119` `inviteCode` = seeded hash fed to `randomPodCode`; `admits` `:149` runs in the browser | live codes from crypto bytes + a server check (R4b) |
-| Vehicles | `lib/2525-core/controls.ts:21` (`manta-99-66`, `manta-mini-66-33`, `mass-droid`); Manta project `lib/pod-projects.ts:86`; shared core `lib/2525-core/MANIFEST.md` | no detection contract yet (Part C) |
-| Compute tiers | `lib/wire-core/hal.ts` `HAL_PROFILES` (pi/edge/accel), `halCnnMs`, `sensorFits`; gated by `tests/drone-hal.test.mjs` | not tied to any model (Part C) |
+| Vehicles | `lib/2525-core/controls.ts:20-21` (`vtol-quadwing`, `manta-99-66`, `manta-mini-66-33`, `ark-sail-33`, `mass-droid`); `controls.ts:19`: "Only `turret` and `vtol-quadwing` exist in this repo today"; sea and droid platforms listed and dated (`lib/drone-2525/platform.ts:10`); Manta project `lib/pod-projects.ts:86`; shared core `lib/2525-core/MANIFEST.md` | no detection contract yet; **no water or ground world** — Manta and MASS-AI replay is open-loop until one exists (Part C, decision 14) |
+| Compute tiers | `lib/wire-core/hal.ts` `HAL_PROFILES` (pi/edge/accel), `halCnnMs`, `sensorFits`; gated by `tests/drone-hal.test.mjs` | `cnnMs` prices a render-ladder rung and `frameBudgetMs` is a render budget — neither is model time; the card carries measured model ms (Part C) |
+| Shipped labelmaps | `public/sensor-fusion/models.json`: `demo90` (COCO), `thermal01` (`:553`, dog and person, a thermal sensor), `checkid` (`:541`, four named people) | no labelmap has the Part C classes (wire, pole, hull, pier, buoy, step); `checkid` is an identity model — never loop-eligible (R2, Part C) |
 | Detection payload | `lib/light-codex-detect.ts` — **does not exist yet** | Part B method 1 |
 | Pod clock | `lib/pod-clock.ts` | wire to project elements (R8) |
 | Trinity cards (♡ SI · 웃 HI · ◬ AI) | `app/vision-2525/page.tsx:168-195`, data `lib/soi-framework.ts:32-34` | reuse as one shared component (R8) |
@@ -67,7 +76,7 @@ Short sentences in the app. **One revision at a time:** commit R1, wait until th
 ## Revisions, in order (each: its done line, its tests, then wait for LIVE)
 
 **Two tracks, so nothing sits idle.** *Local track* (no operator decision needed): R1 test, R2, R3, R4a, R5 alone, R6 on one device,
-R7 Save set (folder or zip, manifest), R8 clock with `measure()` (`lib/pod-clock.ts:56`), R9, R10, Part C replay. *Server track* (waits on
+R7 Save set (folder or zip, manifest), R8 clock with `measure()` (`lib/pod-clock.ts:56`), R9, R10, Part C steps C1–C5. *Server track* (waits on
 decision 1): R4b group join, R5 group blocks, shared queues, Upload, shared time records.
 
 **R1 · One model list — SHIPPED.** `models.json` exists and all four readers use it (see Today vs gap). Do not rebuild it.
@@ -84,7 +93,11 @@ Strip GPS and EXIF; respect EXIF rotation; turn HEIC into JPEG.
 depth later), and tags pictures with the conditions a loop needs: glare, turbidity, spray, night, rain, lens fouling, dust or mud,
 motion blur at cruise speed. The R6 set check warns when a needed condition has zero pictures.
 **People in pictures.** The `person` class is for avoidance, search and rescue and blurring only — never for engagement. Faces in shared
-sets are blurred unless consent is recorded.
+sets are blurred unless consent is recorded. **Identity models** (`checkid`, and any face or named-person labelmap) are never loop-eligible
+and never shared without recorded consent.
+**Per-domain capture checklist and quota** (in `capture-spec.json`, so one region can own one domain): air — thin wires at range, sky glare;
+water — turbidity, glare, spray; ground — night, dust. Each list names its loop's classes and floors; minutes of video per class follow from
+the R9 box floor and the 40-per-minute cap, so each time zone knows its quota. Thermal is already a sensor (`thermal01`), not only "later".
 *Test (browser + Python runner):* a pinned 60 s clip gives ≤ 40 pictures, no near-copies, the same picks in both.
 
 **R3 · Annotate.** Four edge grips (left/right move sideways only, top/bottom up and down only) placed **outside** the box so a finger
@@ -162,14 +175,23 @@ card component (source check); no card string is printed without `t()`.
   COCO layout is recommended, since it is the common training format; the operator confirms.
 - **Regenerated, never patched.** Any later edit goes back to the XML, a new Level 2 review, then a fresh merge. A JSON whose XML hash
   no longer matches the set is marked out of date and is not used for training.
-- **Training hand-off (named, not out of scope).** Out: `<Set>.train.json` + labelmap hash. Back: the three model files + a **model card**
-  (train.json hash, per-class precision and recall on a held-out set, per-class thresholds, `unknown` rate, domain, sensor, the HAL tiers it
-  was measured on). The card is signed by a named member who did not do the Level 2 review. Where training runs is decision 7.
+- **Three splits, fixed before merging.** Each domain's pictures go to train, held-out or replay **by clip or session, never by frame**,
+  so near-copies cannot leak. The manifest (R7) records the split by picture sha256. `mergeToJson` refuses a held-out or replay hash.
+  Minimum held-out count per class is in the shared spec (proposed 50 instances).
+- **Training hand-off (named, not out of scope).** Out: `<Set>.train.json` + labelmap hash. Back: the three model files + a **model card**.
+  The card is **not a fourth file**: it is a `card` object on the model's entry in `models.json`, which moves to version 2 with a schema check.
+  It holds: train.json hash; sha256 of `detect.tflite`, `edgetpu.tflite` and `labelmap.txt`; per-class precision and recall on the held-out
+  split; per-class thresholds; `unknown` rate; domain; sensor (rgb, thermal; sonar and depth declared); measured model ms per HAL tier
+  (`tierMs.{pi,edge,accel}` with device, input size, p50 and p95); and `clearedLoops[]`. The card is signed by a named member who did not
+  do the Level 2 review. Where training runs is decision 7.
+- **First labelmap per loop (R9.5).** Name the new model ids in `models.json` (e.g. `drone-avoid-01`, `manta-dock-01`, `mass-nav-01`). Seed
+  them from shipped classes (bird, boat, person, car); new classes (wire, hull, buoy, step) start at zero and the class-balance report counts them up.
 - **Save set (R7)** carries the XMLs always, and the JSON only when it exists and is current. The page and the Python edge script merge
   the same way (one shared spec).
 *Tests (plain Node):* merging is refused while any picture is short of Level 2; merging the same XMLs twice gives byte-identical JSON;
 the box counts in the JSON equal the accepted plus fixed boxes in the XMLs; a rejected box never appears; editing one XML marks the JSON
-out of date; a class under the floor is reported "not ready"; a box with no Level 2 sign-off is refused by the merge.
+out of date; a class under the floor is reported "not ready"; a box with no Level 2 sign-off is refused by the merge; no held-out or
+replay hash appears in train.json and no clip has frames in two splits; every `models.json` v2 card has all its fields.
 
 **R10 · Light Codex as each picture's metadata (operator, 2026.10.03_17.51..01 CST).**
 > Operator, verbatim: "within organizing workloads ; feel free to use LightCodex on image for level 1 and level 2 annotations; while also
@@ -209,11 +231,12 @@ Needs a browser (Playwright, preinstalled Chromium): R2 page side, R3 pixel chec
 6. The training JSON's layout. [COCO]
 7. Where training runs and who may sign a model card. [operator's machine; a named member who did not review]
 8. Which loop gets the first model. [Drone-2525 collision avoidance in the civic simulation]
-9. The compute tier each vehicle carries and the per-class floors per loop. [the Part C table; floors proposed there]
+9. The compute tier, max detection age and per-class floors per loop. [the Part C table's proposed values: tier, age column, recall-floor column]
 10. DETECT: band, HDMI side channel, or both. [band first]
 11. DETECT: which video links count. [HDMI only]
 12. DETECT: code per person or per pair of boxes, and how a lost code is replaced. [per pair; re-pair to replace]
 13. DETECT: protected content (HDCP). [unprotected sources only, unless licensed]
+14. Who builds the water and ground worlds, and when; whether `ark-sail-33` joins Manta. [Manta and MASS-AI stay replay-ready until a world exists; `ark-sail-33` later]
 
 ## Out of scope
 Running the training itself (the hand-off in R9 is in scope). Any change to existing model files or label files.
@@ -247,7 +270,8 @@ code sees an ordinary picture plus a thin coloured band.
   - a video call;
   - a stream to the internet.
 - **So DETECT and the display box must be the two ends of the uncompressed link.** A third device in between voids the band.
-- Rule for the screen: when the band does not verify, draw **nothing** and say "no detections". Never draw a guessed box.
+- Rule for the screen: when the band does not verify, draw **nothing** and say "not verified". Never draw a guessed box. A verified band
+  with zero objects is different: it says "no detections" (a clear scene).
 
 ## Methods to build (when the hardware exists)
 1. **One payload format, shared by both boxes** — `lib/light-codex-detect.ts` (pure).
@@ -266,7 +290,7 @@ code sees an ordinary picture plus a thin coloured band.
    - The band is never on the training data (same rule as R10).
 3. **Timing.** Inference on an Edge TPU takes a frame or two.
    - DETECT stamps every band with the frame number it describes.
-   - The display box draws a box only on that frame, or holds it for at most a stated number of frames (e.g. 2), then clears it.
+   - The display box draws a box only on that frame, or holds it for at most the max age in ms from `loop-spec.json`, then clears it.
    - The delay is shown in `?diag=1`, never on the picture.
 4. **The 6-digit code — a pairing code, not the key.** Six digits are only 1,000,000 choices. Someone who records the stream can try them
    all offline in seconds, so the code must never be the encryption key itself.
@@ -306,54 +330,95 @@ reads and rewrites the picture cannot carry copy-protected video such as streami
 
 > **Scope boundary (hard).** A detection steers, slows, holds or stops a vehicle — for navigation, collision avoidance, station keeping,
 > inspection, wildlife, search and rescue, and the Drone-2525 civic simulation. It never marks, approves or fires anything. The
-> Drone-2525 two-step named-human gate (TARGET amber → APPROVE red → FIRE, simulation only; see `lib/drone-2525/challenge.ts:16-20`) is
+> Drone-2525 two-step named-human gate (TARGET amber → APPROVE red → FIRE, simulation only; amber → red two-step at
+> `lib/drone-2525/challenge.ts:17`, CH5 two-person rule at `:103`, slot-box rule r.149 at `lib/drone-2525/domain.gen.ts:306`) is
 > untouched. Real-world weapon targeting and detecting people for engagement are out of scope.
 
-Methods, files and tests for Grok; no code. Part C builds on the local track; it needs no server.
+Methods, files and tests for Grok; no code. **Loops take detections from the on-board model today** (`cnn.js` in the browser,
+`sensor_fusion_edge.py` on a vehicle) **and from the DETECT band later.** Part C does not wait for the cable hardware. It builds on the
+local track and needs no server.
+
+**Build steps (local track; each: done line, test, then wait for LIVE).**
+- **C1 · Contract + spec.** `detect-contract.ts` and `loop-spec.json`, pure. *Done:* golden vectors pass in Node and Python.
+- **C2 · Adapters.** `fromCnnHits` and the Python edge adapter. *Done:* one pinned frame gives identical Detection lists in both.
+- **C3 · Open-loop replay per domain.** *Done:* decisions scored against ground truth for air, water and ground.
+- **C4 · Closed loop in the Drone-2525 arena.** *Done:* the first loop-ready box below is met in simulation.
+- **C5 · Signed safety gate + rollback.** *Done:* a live loop refuses any model without a signed, hash-matched card.
 
 ## One loop contract, shared — never three copies
 - **`lib/2525-core/detect-contract.ts`** (pure, new). Registered in `lib/2525-core/MANIFEST.md`. Drone-2525 is the first consumer;
   Manta-2525 and MASS-AI are declared consumers.
-- **Input:** the `decodeDetections` output of `lib/light-codex-detect.ts` (Part B method 1 — same shape, no second format) plus the
-  frame number, a capture time stamp the loop can align with its own state, the model id and the labelmap hash.
-- **Output:** one of the loop's actions — continue, slow, hold, stop, return — and the reason, for `?diag=1`.
-- **Per-class thresholds** come from the model card. They replace the fixed `score > 0.5` (`cnn.js:104`).
+- **Input: one neutral Detection record**, versioned like `CONTROLS_SCHEMA` (`controls.ts:17`): label index (from `labelmap.txt`), box
+  x, y, w, h as 0–9999, confidence, capture time stamp (ms), frame number, model id, labelmap hash. A payload with zero objects is a valid
+  **heartbeat** ("alive, clear"). Part B's `encodeDetections`/`decodeDetections` carry this same record later — no second format.
+- **Adapters:** `fromCnnHits` turns `cnn.js` hits (normalized ymin/xmin/ymax/xmax + label name, `cnn.js:105-113`) into the record; the
+  Python edge script gets the same adapter. `decodeDetections` is the third producer when DETECT exists.
+- **One shared spec, two runtimes:** `public/sensor-fusion/loop-spec.json` holds the actions, failure rows, budgets, age limits, floors and
+  thresholds. TypeScript and Python both read it. Golden vectors (input → action) run in both. Registered in `MANIFEST.md` with
+  domain-neutral ids (actions as ids, labels by property).
+- **Output:** one action from the **vehicle's own set**, plus the reason for `?diag=1`. Air: continue, slow, hover, land, return. Water:
+  continue, slow, hold station, surface. Ground: continue, slow, stop (brake held). An unknown contract or spec major version → safe action.
+- **Per-class thresholds** come from the model card. They replace the fixed `score > 0.5` (`cnn.js:104`, `sensor_fusion_edge.py:176`).
+- **Takeover:** the human's input comes from the existing `StickBinding` sets (`controls.ts:25`) and overrides any loop action within one
+  tick. The screen says one plain sentence that fits 390 px ("You have control."); the reason goes only to `?diag=1`. New words stay English in `AFTER_FILL`.
 
 ## The loops (bound to the vehicle ids in `lib/2525-core/controls.ts:21`)
-| Vehicle | Loop purposes | Classes (first set) | Latency budget | HAL tier | Safe action | Human role |
-|---|---|---|---|---|---|---|
-| Drone-2525 (air) | collision avoidance, wires and terrain, inspection, wildlife, search and rescue, civic simulation | wire, pole, tree, bird, person (avoid only), vehicle | ≤ 100 ms end to end, ≥ 10 fps | edge or accel | hover, then return | pilot watches, takes over, stops |
-| Manta-2525 (water; `manta-99-66`, `manta-mini-66-33`) | station keeping, hull and pier inspection, marine wildlife | hull, pier, buoy, swimmer (avoid only), marine animal | ≤ 250 ms, ≥ 4 fps | edge | hold station, then surface | boat crew watches, takes over, stops |
-| MASS-AI (ground; `mass-droid`) | ground navigation, obstacle stop, search and rescue | obstacle, step, person (avoid only), vehicle | ≤ 150 ms, ≥ 8 fps | pi or edge | stop | robot team watches, takes over, stops |
+| Vehicle | Loop purposes | Classes (first set) | Latency budget | Max detection age | HAL tier | Recall floor (proposed) | Safe action | Independent minimum | World | Human role |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Drone-2525 (air; `vtol-quadwing`) | collision avoidance, wires and terrain, inspection, wildlife, search and rescue, civic simulation | wire, pole, tree, bird, person (avoid only), vehicle | ≤ 100 ms end to end, ≥ 10 fps | 100 ms | edge or accel | 0.90; person 0.97 (precision ≥ 0.80) | hover; land if the return path is not known clear; else return | altitude + geofence | `world.ts`/`flight.ts` — closed loop, fed recorded detections + ground truth, not pixels | pilot watches, takes over, stops |
+| Manta-2525 (water; `manta-mini-66-33` first, `manta-99-66`) | station keeping, hull and pier inspection, marine wildlife | hull, pier, buoy, swimmer (avoid only), marine animal | ≤ 250 ms, ≥ 4 fps | 250 ms | edge | 0.85; swimmer 0.97 | hold station, then surface | depth + proximity hold | none yet — open-loop, **replay-ready** only | boat crew watches, takes over, stops |
+| MASS-AI (ground; `mass-droid`) | ground navigation, obstacle stop, search and rescue | obstacle, step, person (avoid only), vehicle | ≤ 150 ms, ≥ 8 fps | 150 ms | pi or edge | 0.90; person 0.97 | stop, brake held (also on a slope) | rangefinder + geofence | none yet — open-loop, **replay-ready** only | robot team watches, takes over, stops |
 
-The numbers are proposals for decision 9. They live in the shared spec, not in code.
+The numbers are proposals for decision 9. They live in `loop-spec.json`, not in code. Every age limit is in **milliseconds since the
+capture time stamp**, never in frames, and is at most the loop budget minus the model's measured p95. Each floor applies to the replay and
+held-out splits and needs at least the R9 box floor (300) per class. `ark-sail-33` is the operator's call (decision 14). Detection is
+**advisory**: it can only make a vehicle more careful than its independent minimum, never less. `person` and `swimmer` can only produce
+slow, hover, hold station or stop.
+
+**First loop-ready deliverable (decision 8 default).** Drone-2525 collision avoidance in the civic simulation · model `drone-avoid-01`, one
+named version · classes wire, pole, tree, bird, person (avoid only) · the pinned air replay clip set · pass line: every class at its floor
+and p95 within the edge-tier budget, closed loop through `world.ts` · signed card and signed gate · owner: loop integrator. This is the
+finish line the 19 rounds converge on.
 
 ## Failure modes — none of them maps to "continue"
 | Event | Action |
 |---|---|
-| Detection older than the loop's frame limit (e.g. a band for frame N arriving at N+3) | the vehicle's safe action |
+| Detection older than the loop's max age in ms (e.g. 101 ms at Drone-2525) | the vehicle's safe action |
 | Band or payload does not verify | safe action |
-| Confidence under the class floor in the loop's path | slow, then safe action |
-| Model id or labelmap hash differs from the loaded card | safe action; the loop refuses the model |
-| No detections for longer than the loop allows | safe action; control goes to the named human |
+| Verified heartbeat with zero objects | continue as clear — this is not a failure |
+| No verified heartbeat for longer than the max age | safe action; control goes to the named human ("detector lost") |
+| Unknown or under-floor object in the loop's path | slow, then safe action |
+| Model id, labelmap hash or any file sha256 differs from the signed card, or the model is not cleared for this loop | safe action; the loop refuses the model and runs only in simulation |
+| Identity model (`checkid`, named-person labels, deny list) | refused, never loaded |
+| Missed object (false negative) — not detectable live | covered by the independent minimum; an avoid-only class under its floor on replay blocks loop-ready |
+| Spoofing on replay (printed patch, glare flash, band from another session) | safe action, never continue |
 
 ## Model selection, sim first, then a signed gate
-- **HAL fit:** each model card lists its measured time per tier. Reuse `HAL_PROFILES`, `halCnnMs` and `sensorFits` (`lib/wire-core/hal.ts`).
-  A model whose time on a tier exceeds the loop budget cannot be selected for that loop.
+- **HAL fit:** the card's measured `tierMs` p95 on a tier, plus capture and actuation, must fit the loop's end-to-end budget — that gates
+  selection. A tier with no measured p95 cannot be selected. `hal.ts` stays a render helper: `frameBudgetMs` and `sensorFits` still hold
+  for the display; `halCnnMs` is only a fallback estimate, never a pass.
 - **Sim-first replay:** `lib/sensor-fusion/replay.ts` (new, pure) feeds a pinned clip set per domain (air, water, ground; frames from the
-  R2 shared decoder, with frame hashes) plus the train.json ground truth into the loop contract. For air it also drives the Drone-2525
-  world and flight code (`lib/drone-2525/world.ts`, `lib/drone-2525/flight.ts`). A model is **loop-ready** only when it meets the loop's
-  per-class recall floor and latency budget on that set.
-- **Model safety gate:** before a live loop loads a model, a named human signs the model card hash, the train.json hash and the replay
-  pass. If any is missing, the loop runs only in simulation. Rollback is one step back to the previous signed card.
+  R2 shared decoder, with frame hashes, from the replay split only) plus ground truth into the loop contract. For air it drives the
+  Drone-2525 door arena (`lib/drone-2525/world.ts`, `lib/drone-2525/flight.ts`) with recorded detections, not pixels; rendering synthetic
+  camera frames from the arena is a later, optional step. Water and ground are open-loop: a minimal pure kinematic placeholder in
+  `replay.ts` scores decisions against ground truth until a world exists. A model is **loop-ready** only closed-loop; otherwise replay-ready.
+- **Model safety gate:** before a live loop loads a model, a named human signs the card hash, the three file sha256s, the train.json hash
+  and the replay pass. The signer is recorded by member id, in the loop-integrator role, append-only, and is never the card's signer. Loop
+  models are pinned to a signed card, never to the main-branch URL the edge script reads today (`sensor_fusion_edge.py:36`). If anything is
+  missing, the loop runs only in simulation. Rollback is one step back to the previous signed card.
 
 ## Tests (when built)
 In `frontend/tests/sensor-fusion-loop.test.mjs` and `frontend/tests/sensor-fusion-loop-replay.test.mjs` (both plain Node). Each joins
 `test:ci` only when its revision ships.
-1. A band for frame N decoded at frame N+3 yields the safe action, never the last box.
+1. At every loop's fps, no allowed age exceeds its budget; at 10 fps a detection 101 ms old gives the safe action, never the last box.
 2. Each failure-mode row gives its action; no row gives "continue".
 3. A model with no card, or a card whose hash does not match, is refused.
 4. A model too slow for a loop's budget on a HAL tier cannot be selected for it.
 5. A pinned clip gives the same loop decisions twice; an injected detection dropout makes the loop take its safe action.
 6. Browser and Python edge give the same detections at the same per-class thresholds on one pinned frame set.
 7. No loop action changes a Drone-2525 slot, approval or fire state (extends Part B test 7 to every loop).
+8. 60 s of verified empty heartbeats never trips the safe action; 1 s of no heartbeat does.
+9. Every safe-action cell in the table belongs to that vehicle's action set in `loop-spec.json`; `person`/`swimmer` never widen past slow, hover, hold or stop.
+10. One changed byte in `edgetpu.tflite` is refused; an unknown contract major version gives the safe action; `checkid` is refused.
+11. A takeover input overrides any loop action within one tick; the same member cannot sign both the card and the gate.
+12. Golden vectors give the same action in Node and Python.
