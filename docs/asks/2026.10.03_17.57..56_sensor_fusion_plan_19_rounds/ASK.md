@@ -15,6 +15,10 @@ PLAN.md revision 0.NN + `rNN.md` (the round record) → commit + push. Methods o
 > Operator, verbatim: "control looks of for targeting, obstacle avoidance, risk identification, etc for eXeL AI robot and Mass-AI robot
 > (CNNs will be be able to be jointly developed for execution on EdTech security cameras, etc)."
 
+> Restated by the operator (2026.10.03_18.56..06 CST), verbatim — the typo corrected, same ask:
+> "control loops of for targeting, obstacle avoidance, risk identification, etc for eXeL AI robot and Mass-AI robot (CNNs will be be
+> able to be jointly developed for execution on EdTech security cameras, etc)."
+
 How the rounds read it (Claude Code's reading, stated so the operator can correct it):
 - **Vehicles:** a second ground robot, the **eXeL AI robot**, joins **MASS-AI** in Part C. Both use the ground loop's action set
   (continue · slow · stop with the brake held) and the same contract, spec and gate. Each robot gets its own row with its own HAL tier
