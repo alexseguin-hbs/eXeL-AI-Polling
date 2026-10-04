@@ -200,7 +200,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "release",
       text: "Settings opens with a Sensor Fusion section. Inside it, Edge Compute is CPU or Coral.",
-      commit: "",
+      commit: "26d9d12",
     },
   ],
 };
