@@ -40,3 +40,13 @@ Records: `rNN.md` per round and `SCORES.md` in this folder.
   the light carries "WAIT" / "READY" / "FIRE" under it.
 - Gates: a deck QA row walks a QUAL start and checks red → yellow → green → (between engagements) yellow → green, and red at the end; one
   checks the light's words; the light never covers the magazine line, the stick or the buttons in portrait or landscape.
+
+## Addendum 2 (2026.10.04_17.19..39 CST) — round 1 also carries this
+
+> Operator, verbatim (2026.10.04, phone screenshot of r.154 QUAL on lane 21 after "HIT · IN THE AIMING CIRCLE", beside this file as
+> `addendum2_splash_screenshot.png`): "make sure splash on drone originates from center of hit target"
+
+- The hit effect (the splash/burst drawn when a target is hit, on the range and on drone/Capitol targets) starts at the centre of the
+  target that was hit (its projected centre of mass). It does not start at the pip, the shot ray's end or the plate's base.
+- The splash moves with the target as it falls, and does not appear on a miss.
+- Gate: a deck QA row hits a 50 m and a 300 m plate and checks that the splash origin projects within 2 px of the plate's projected centre.
