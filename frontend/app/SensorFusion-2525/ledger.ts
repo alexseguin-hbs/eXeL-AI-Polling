@@ -270,7 +270,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-04",
       kind: "release",
       text: "Nineteen review passes. The picture fits in landscape. A fix updates the same box. Files save once. A review must be a different person. Added pictures use the same names as capture.",
-      commit: "",
+      commit: "862252b",
     },
   ],
 };
