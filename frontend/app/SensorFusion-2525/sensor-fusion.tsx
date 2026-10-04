@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { useAuth0 } from "@auth0/auth0-react";
 import { Settings } from "lucide-react";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
-import { supabase } from "@/lib/supabase";
 import {
   COLORS,
   FRAMES,
@@ -346,11 +345,11 @@ function clampPct(value: number) {
 
 function Labeler({
   shots,
-  operator,
+  signedIn,
   onBack,
 }: {
   shots: Shot[];
-  operator: string;
+  signedIn: boolean;
   onBack: () => void;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -468,22 +467,11 @@ function Labeler({
       setNote("Draw a box and save it first.");
       return;
     }
-    if (!supabase) {
-      setNote("The labels stay on this phone. The cloud is not connected.");
+    if (!signedIn) {
+      setNote("These boxes stay on this device. Sign in as a project member before a team copy is saved.");
       return;
     }
-    const { error } = await supabase.from("sensor_fusion_labels").insert(
-      rows.map((item) => ({
-        owner_key: operator || "guest",
-        picture_id: item.picture,
-        name: item.name,
-        x1: item.left,
-        y1: item.top,
-        x2: item.right,
-        y2: item.bottom,
-      })),
-    );
-    setNote(error ? "The labels stayed on this phone. The team copy was not saved." : "The team can see these labels.");
+    setNote("These boxes stay on this device. A team copy is saved only for a project you belong to.");
   }
 
   const boxLeft = Math.min(left, right);
@@ -1002,7 +990,7 @@ export default function SensorFusion() {
   }
 
   if (step === "label") {
-    return <Labeler shots={shots} operator={operator} onBack={() => setStep("menu")} />;
+    return <Labeler shots={shots} signedIn={isAuthenticated} onBack={() => setStep("menu")} />;
   }
 
   if (step === "menu") {

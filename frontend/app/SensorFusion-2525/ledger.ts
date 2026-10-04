@@ -174,6 +174,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Pictures from the sensor and from this device are saved as PNG. JPEG changes the colours, so Light Codex cannot ride on it. The colour strip is still not painted onto the training picture.",
       commit: "c49a9d4",
     },
+    {
+      rev: 25,
+      date: "2026-10-03",
+      kind: "release",
+      text: "R4a. A guest cannot read or add pictures or labels. A signed-in person can do so only for a project they belong to. A member of one project cannot see another.",
+      commit: "",
+    },
   ],
 };
 
