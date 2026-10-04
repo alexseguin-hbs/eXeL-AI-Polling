@@ -413,6 +413,19 @@
   padding: 8px 10px;
   margin-top: 8px;
 }
+.liveAlert {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  margin: 0;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  border-left: 3px solid var(--sf-primary, #0cff00);
+  font-size: 13px;
+  font-weight: 700;
+}
 .shots {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

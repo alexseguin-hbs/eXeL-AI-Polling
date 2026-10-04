@@ -244,6 +244,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The menu shows four rows again: Sensor Fusion, Stop, Image labeler, and Pose. An empty model list can no longer hide them.",
       commit: "b86dc67",
     },
+    {
+      rev: 35,
+      date: "2026-10-04",
+      kind: "release",
+      text: "Alerts are a setting. They start on. A found object shows only while Alerts is on. There is no school-alert mode.",
+      commit: "",
+    },
   ],
 };
 

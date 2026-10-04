@@ -85,7 +85,9 @@ function SettingsSheet({
   scheme,
   customHex,
   coral,
+  alerts,
   onCoral,
+  onAlerts,
   onClose,
   onScheme,
 }: {
@@ -93,7 +95,9 @@ function SettingsSheet({
   scheme: SchemeId | "custom";
   customHex: string;
   coral: boolean;
+  alerts: boolean;
   onCoral: (on: boolean) => void;
+  onAlerts: (on: boolean) => void;
   onClose: () => void;
   onScheme: (next: SchemeId | "custom", hex?: string) => void;
 }) {
@@ -115,6 +119,17 @@ function SettingsSheet({
             </button>
             <button type="button" aria-pressed={coral} className={coral ? styles.swatchOn : ""} onClick={() => onCoral(true)}>
               CORAL
+            </button>
+          </div>
+        </div>
+        <div className={styles.edgeBox}>
+          <p>ALERTS</p>
+          <div className={styles.edgePick} role="group" aria-label="Alerts">
+            <button type="button" aria-pressed={alerts} className={alerts ? styles.swatchOn : ""} onClick={() => onAlerts(true)}>
+              ON
+            </button>
+            <button type="button" aria-pressed={!alerts} className={!alerts ? styles.swatchOn : ""} onClick={() => onAlerts(false)}>
+              OFF
             </button>
           </div>
         </div>
@@ -663,6 +678,8 @@ export default function SensorFusion() {
   const [lens, setLens] = useState<Lens>("wide");
   const [model, setModel] = useState("demo90");
   const [coral, setCoral] = useState(false);
+  const [alerts, setAlerts] = useState(true);
+  const [alert, setAlert] = useState("");
   const [guest, setGuest] = useState(false);
   const [showScores, setShowScores] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
@@ -685,9 +702,12 @@ export default function SensorFusion() {
   const showScoresRef = useRef(showScores);
   const showLabelsRef = useRef(showLabels);
   const showFpsRef = useRef(showFps);
+  const alertsRef = useRef(alerts);
+  const lastAlert = useRef("");
   showScoresRef.current = showScores;
   showLabelsRef.current = showLabels;
   showFpsRef.current = showFps;
+  alertsRef.current = alerts;
 
   useEffect(() => {
     const savedScheme = window.localStorage.getItem("sf2525-scheme");
@@ -755,6 +775,7 @@ export default function SensorFusion() {
 
   useEffect(() => {
     setCoral(window.localStorage.getItem("sf2525-coral") === "1");
+    setAlerts(window.localStorage.getItem("sf2525-alerts") !== "0");
   }, []);
 
   useEffect(() => {
@@ -779,8 +800,21 @@ export default function SensorFusion() {
             try {
               const result = await cnn.detect(session, video);
               cnn.draw(canvas, video, result, showScoresRef.current, showLabelsRef.current, showFpsRef.current);
-              const hits = (result.hits || []) as { score?: number }[];
+              const hits = (result.hits || []) as { score?: number; name?: string }[];
               const top = hits.reduce((best, hit) => Math.max(best, Number(hit.score) || 0), 0);
+              let line = "";
+              if (alertsRef.current) {
+                const named = hits.filter((hit) => hit.name && hit.name !== "???");
+                const best = named.reduce<(typeof named)[number] | undefined>(
+                  (pick, hit) => ((Number(hit.score) || 0) > (Number(pick?.score) || 0) ? hit : pick),
+                  undefined,
+                );
+                if (best?.name) line = `${best.name} ${Math.round((Number(best.score) || 0) * 100)}%`;
+              }
+              if (line !== lastAlert.current) {
+                lastAlert.current = line;
+                setAlert(line);
+              }
               const fill = meterRef.current?.querySelector("i");
               if (fill instanceof HTMLElement) {
                 const pct = Math.round(top * 100);
@@ -827,6 +861,15 @@ export default function SensorFusion() {
   function chooseCoral(on: boolean) {
     setCoral(on);
     window.localStorage.setItem("sf2525-coral", on ? "1" : "0");
+  }
+
+  function chooseAlerts(on: boolean) {
+    setAlerts(on);
+    window.localStorage.setItem("sf2525-alerts", on ? "1" : "0");
+    if (!on) {
+      lastAlert.current = "";
+      setAlert("");
+    }
   }
 
   async function streamForLens(next: Lens) {
@@ -1095,7 +1138,7 @@ export default function SensorFusion() {
             <p className={styles.alert}>Pose is not designed yet. It does not have the three files the other models use.</p>
           )}
         </div>
-        <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} onCoral={chooseCoral} onClose={() => setSettings(false)} onScheme={chooseScheme} />
+        <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} alerts={alerts} onCoral={chooseCoral} onAlerts={chooseAlerts} onClose={() => setSettings(false)} onScheme={chooseScheme} />
         <Foot accent={accent} />
       </main>
     );
@@ -1189,6 +1232,7 @@ export default function SensorFusion() {
           </div>
         )}
         {error && <p className={styles.alert}>{error}</p>}
+        {alert && <p className={styles.liveAlert}>{alert}</p>}
       </section>
       <div className={styles.dock}>
       <nav className={styles.piBot}>
@@ -1322,7 +1366,7 @@ export default function SensorFusion() {
           </div>
         </div>
       )}
-      <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} onCoral={chooseCoral} onClose={() => setSettings(false)} onScheme={chooseScheme} />
+      <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} alerts={alerts} onCoral={chooseCoral} onAlerts={chooseAlerts} onClose={() => setSettings(false)} onScheme={chooseScheme} />
       {infoOpen && (
         <button type="button" className={styles.guide} onClick={() => setInfoOpen(false)} aria-label="Close the screen labels">
           <span>Sensor 1 is the camera. Download, info, the gear (CPU or Coral), profile, and full screen are on the top.</span>
