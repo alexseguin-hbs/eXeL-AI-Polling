@@ -22,3 +22,21 @@
 Each later round takes its fixes from the reviewers and from the 12-shooter range round, which is
 `docs/assessments/`, once persisted.
 Records: `rNN.md` per round and `SCORES.md` in this folder.
+
+## Addendum 1 (2026.10.04_09.21..12 CST) — round 1 also carries this
+
+> Operator, verbatim (2026.10.04): "ensure selection of qual and lane selection is all understood; add red green yellow light upper right on when to start"
+
+- **Picking QUAL and the lane must be obvious.** The range menu (Train Up · Train Down · Qual 40, Restart, lane) shows what each pick does in
+  plain words. Examples: "QUAL 40 · 40 targets · 4 magazines · starts on green" and "LANE 21". Picking a lane or mode says once what
+  happens next.
+- **A start light at the upper right,** like a range tower:
+  - **RED** — wait (not started, between positions, or finished);
+  - **YELLOW** — get ready (the round is armed, targets coming up in a few seconds; in QUAL, the 3 s before each engagement and the phase
+    rest's last seconds);
+  - **GREEN** — targets are up, fire.
+
+  In Train Up and Train Down it is green whenever targets stand. It is not a button. It is redundant with words for colour-blind players:
+  the light carries "WAIT" / "READY" / "FIRE" under it.
+- Gates: a deck QA row walks a QUAL start and checks red → yellow → green → (between engagements) yellow → green, and red at the end; one
+  checks the light's words; the light never covers the magazine line, the stick or the buttons in portrait or landscape.
