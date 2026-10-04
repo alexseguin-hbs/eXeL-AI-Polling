@@ -372,9 +372,11 @@ function clampPct(value: number) {
 
 function Labeler({
   shots,
+  names,
   onBack,
 }: {
   shots: Shot[];
+  names: string[];
   onBack: () => void;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -383,7 +385,7 @@ function Labeler({
   const edges = useRef({ left: 20, top: 15, right: 70, bottom: 80 });
   const [pics, setPics] = useState<Shot[]>(shots);
   const [index, setIndex] = useState(0);
-  const [labelName, setLabelName] = useState("deer");
+  const [labelName, setLabelName] = useState(names[0] || "person");
   const [left, setLeft] = useState(20);
   const [top, setTop] = useState(15);
   const [right, setRight] = useState(70);
@@ -431,7 +433,7 @@ function Labeler({
     if (!pic) return;
     const mark: Mark = {
       id: `${Date.now()}`,
-      name: labelName.trim() || "deer",
+      name: labelName.trim() || names[0] || "person",
       left,
       top,
       right,
@@ -582,7 +584,13 @@ function Labeler({
         {pic && <p className={styles.fileName}>{pictureName(pic)}</p>}
         <label>
           Label name
-          <input value={labelName} onChange={(event) => setLabelName(event.target.value)} />
+          <select value={names.includes(labelName) ? labelName : names[0] || "person"} onChange={(event) => setLabelName(event.target.value)}>
+            {(names.length ? names : ["person"]).map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
         </label>
         <div className={styles.corners}>
           <label>
@@ -602,7 +610,7 @@ function Labeler({
             <input type="number" min={0} max={100} value={bottom} onChange={(event) => setBottom(clampPct(Number(event.target.value)))} />
           </label>
         </div>
-        <div className={styles.actions}>
+        <div className={styles.labelBar}>
           <button type="button" onClick={saveBox} disabled={!pic}>
             SAVE BOX
           </button>
@@ -610,10 +618,10 @@ function Labeler({
             LEVEL 2
           </button>
           <button type="button" onClick={mergeTraining}>
-            MERGE JSON
+            MERGE
           </button>
-          <button type="button" onClick={() => void shareTeam()} disabled={!pic}>
-            SHARE WITH TEAM
+          <button type="button" aria-label="Share with team" onClick={() => void shareTeam()} disabled={!pic}>
+            SHARE
           </button>
         </div>
         {note && <p className={styles.muted}>{note}</p>}
@@ -877,7 +885,7 @@ export default function SensorFusion() {
     const video = videoRef.current;
     const howMany = long ? 90 : Math.min(12, Math.max(1, Number(count) || 4));
     const wait = long ? 500 : 120;
-    if (!video || !sensorOn || video.readyState < 2) return { shots: [] as Shot[], files: [] as { name: string; blob: Blob }[], label: classKey(labelPick) };
+    if (!video || video.readyState < 2) return { shots: [] as Shot[], files: [] as { name: string; blob: Blob }[], label: classKey(labelPick) };
     const label = classKey(labelPick);
     const names = peekNames(label, howMany);
     const shotsOut: Shot[] = [];
@@ -904,6 +912,13 @@ export default function SensorFusion() {
   }
 
   async function takeShots(long = false) {
+    if (!videoRef.current?.srcObject) {
+      await openSensor();
+    }
+    const video = videoRef.current;
+    for (let i = 0; i < 30 && video && video.readyState < 2; i += 1) {
+      await new Promise((resolve) => window.setTimeout(resolve, 100));
+    }
     const { shots: next, files, label } = await framesFromVideo(long);
     if (!next.length) {
       setError("Turn SENSOR 1 on before you save pictures.");
@@ -1042,7 +1057,7 @@ export default function SensorFusion() {
   }
 
   if (step === "label") {
-    return <Labeler shots={shots} onBack={() => setStep("menu")} />;
+    return <Labeler shots={shots} names={(MODELS.find((item) => item.id === model)?.labels || ["person"]).filter((item) => item && item !== "???")} onBack={() => setStep("menu")} />;
   }
 
   if (step === "menu") {

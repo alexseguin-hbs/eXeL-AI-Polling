@@ -103,13 +103,15 @@
       var score = scores[i];
       if (score > 0.5 && score <= 1) {
         var classId = Math.round(classes[i]);
+        var name = session.labels[classId] || "";
+        if (!name || name === "???") continue;
         hits.push({
           ymin: boxes[i * 4],
           xmin: boxes[i * 4 + 1],
           ymax: boxes[i * 4 + 2],
           xmax: boxes[i * 4 + 3],
           score: score,
-          name: session.labels[classId] || "???"
+          name: name
         });
       }
     }

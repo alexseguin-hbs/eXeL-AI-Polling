@@ -370,10 +370,33 @@
   font-size: 18px;
   margin: 0 0 8px;
 }
+.labelBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 8px;
+  padding: 6px 0;
+  background: var(--sf-bg, #3e505c);
+}
+.labelBar button {
+  min-height: 36px;
+  padding: 4px 2px;
+  border: 0;
+  background: none;
+  color: var(--sf-primary, #0cff00);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
 .actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 8px;
   margin-top: 12px;
 }
 .actions button {

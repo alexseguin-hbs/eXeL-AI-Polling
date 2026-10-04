@@ -230,6 +230,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "CPU is the default and the switch reads CPU CORAL. A new screen starts on the original Sensor Fusion green. A color choice changes the screen.",
       commit: "0140439",
     },
+    {
+      rev: 33,
+      date: "2026-10-03",
+      kind: "release",
+      text: "A box named ??? is not drawn. Annotate starts on the open model's names. Capture from the sensor turns the camera on. Save, Level 2, Merge, and Share stay on one line.",
+      commit: "",
+    },
   ],
 };
 
