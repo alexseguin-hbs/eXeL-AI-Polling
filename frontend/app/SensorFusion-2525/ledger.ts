@@ -235,7 +235,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "release",
       text: "A box named ??? is not drawn. Annotate starts on the open model's names. Capture from the sensor turns the camera on. Save, Level 2, Merge, and Share stay on one line.",
-      commit: "",
+      commit: "37df2c1",
     },
   ],
 };
