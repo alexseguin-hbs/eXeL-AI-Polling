@@ -17,7 +17,7 @@ its revision ships.
 7. No loop action changes a Drone-2525 slot, approval or fire state (extends Part B test 7).
 8. 60 s of black or smeared frames with zero boxes never returns continue; 60 s of healthy empty heartbeats never trips; for every row, 1, 2 and 3 drops at p50 and p99: fewer than k never trip, k always do;
    a frame with its left third smeared fails the occluded-tile rule; a thermal night clip is scored on the thermal floor, not RGB.
-9. Every family shows its own status words from `loop-spec.json`; `components/sensor-fusion/loop-panel.tsx` reads the same Detection and command record types as `round.tsx`; every safe action belongs to its vehicle's set; `person`/`swimmer` never widen past slow, hover, hold or stop; every action word in Part C
+9. Every family shows its own status words from the spec file; `components/sensor-fusion/loop-panel.tsx` reads the same Detection and command record types as `round.tsx`; every safe action belongs to its vehicle's set; `person`/`swimmer` never widen past slow, hover, hold or stop; every action word in Part C
    prose belongs to its vehicle's set (the citations test scans it).
 10. One changed byte in `edgetpu.tflite` is refused; an unknown contract major gives the safe action; `checkid` is refused.
 11. A takeover overrides any loop action within one tick, except a family clamp in the precedence table; the test reads that table; one member cannot sign both card and gate.

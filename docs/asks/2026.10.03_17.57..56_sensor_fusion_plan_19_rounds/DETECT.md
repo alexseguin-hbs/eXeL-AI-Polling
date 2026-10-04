@@ -30,7 +30,7 @@ reads the band, unlocks it with the person's 6-digit code and draws the boxes. W
 2. **Band:** the bottom rows, `placeSignature(..., blockSize 2)`; at 1920 px, 10 objects + header + tag fit in two lines (~6 px). The display
    box crops it before showing the picture; the model never sees it; never on training data (R10).
 3. **Timing:** each band carries the frame number it describes; the display draws it on that frame or holds it up to the loop's max age
-   from `loop-spec.json`, then clears it. The delay shows only in `?diag=1`.
+   from the spec file, then clears it. The delay shows only in `?diag=1`.
 4. **The 6-digit code is a pairing code, never the key.** Six digits are 1,000,000 choices, tried offline in seconds. The code authorizes a
    one-time ECDH P-256 → HKDF → AES-GCM-256 pairing, as Drone-2525 does (`frontend/public/drone-2525/play.html:3225-3239`, anchor `deriveKey`). The code comes from
    `generateSealCode` (`frontend/lib/atlantis-package.ts:141`). Each frame: a nonce (frame number + a random per-pairing salt, never reused

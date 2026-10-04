@@ -15,7 +15,9 @@
         "Safe action": "quad mode: hover; wing mode: loiter on a circle of radius ≥ the turn radius, checked clear inside the wing range, then transition to quad and hover; then land if the return path is not known clear, else return",
         "Independent minimum": "altitude + geofence holding mapped wire spans (the obstacle layer as data)",
         "World": "arena + detection emulator — closed loop (C4)",
-        "Human role": "pilot watches, takes over, stops"
+        "Human role": "pilot watches, takes over, stops",
+        "Chosen tier (0.16)": "edge",
+        "Input px (0.16)": 640
       },
       {
         "Vehicle": "Manta-2525 (water; `manta-mini-66-33` first, `manta-99-66`)",
@@ -26,9 +28,11 @@
         "HAL tier": "edge",
         "Recall floor (proposed)": "0.85; swimmer 0.97; false tracks per clear minute ≤ the loop's cap",
         "Safe action": "hold station; if position is lost, cut thrust (or anchor where fitted); never surface or dive (surfaced-only, changed 0.15)",
-        "Independent minimum": "depth + proximity hold",
+        "Independent minimum": "proximity hold + GNSS geofence (surface row, changed 0.16); depth only on the later underwater row",
         "World": "minimal 2D water world with current drift in `replay.ts` — controller gate only",
-        "Human role": "remote operator (the hull is unmanned) watches, takes over, stops; drills in simulation until the hull is built (`pod-projects.ts:88`)"
+        "Human role": "remote operator (the hull is unmanned) watches, takes over, stops; drills in simulation until the hull is built (`pod-projects.ts:88`)",
+        "Chosen tier (0.16)": "edge",
+        "Input px (0.16)": 640
       },
       {
         "Vehicle": "MASS-AI (ground; `mass-droid`)",
@@ -41,7 +45,9 @@
         "Safe action": "stop, brake held (also on a slope)",
         "Independent minimum": "rangefinder + downward cliff sensor + geofence",
         "World": "minimal 2D ground world with an obstacle grid in `replay.ts` — controller gate only",
-        "Human role": "robot team watches, takes over, stops"
+        "Human role": "robot team watches, takes over, stops",
+        "Chosen tier (0.16)": "pi",
+        "Input px (0.16)": 320
       },
       {
         "Vehicle": "eXeL AI robot (ground; `exel-robot`, decision 17)",
@@ -54,9 +60,18 @@
         "Safe action": "stop, brake held",
         "Independent minimum": "bumper + rangefinder + downward cliff sensor + geofence",
         "World": "minimal 2D ground world with a dock marker in `replay.ts` — controller gate only",
-        "Human role": "robot team watches, takes over, stops; staff get its alerts"
+        "Human role": "robot team watches, takes over, stops; staff get its alerts",
+        "Chosen tier (0.16)": "pi",
+        "Input px (0.16)": 320
       }
-    ]
+    ],
+    "tierInput": {
+      "_new": "0.16",
+      "pi": 320,
+      "edge": 640,
+      "accel": 640,
+      "test": "test 40 refuses a loop whose chosen tier's input px gives 'refused' in pixelExtent for any of its classes, unless that class names its covering sensor"
+    }
   },
   "speedEnvelope": {
     "formula": "range = v*B + stop + v*A_track + max(clearance, stand-off for the class); A_track = (N + burstLen) * P with N = 5 and provisional burstLen 2",
@@ -89,14 +104,21 @@
           "person": 22.0,
           "standOffM": 10
         },
-        "coverReachM": null
+        "coverReachM": {
+          "forwardRangefinder": 40,
+          "status": "provisional (datasheet); the C6 bench p5 reach (n >= 30 trials, covering sensor against the class target, owner: region integrator) replaces it"
+        }
       },
       {
         "row": "Drone quad, unmapped, below the wire ceiling",
         "speedMs": "refused without a forward rangefinder",
         "aTrackMs": 350,
         "note": "camera-only wire cover is impossible",
-        "coverReachM": null
+        "coverReachM": {
+          "forwardRangefinder": 40,
+          "status": "provisional (datasheet); the C6 bench p5 reach (n >= 30 trials, covering sensor against the class target, owner: region integrator) replaces it",
+          "note": "wire detection rate at rated reach unmeasured until c6-bench.json; until then the row stays refused for arm, Gate 2 may run"
+        }
       },
       {
         "row": "Drone wing",
@@ -114,7 +136,11 @@
           "birdAndVehicleAtCruise": 62.6,
           "atStall": 46.8
         },
-        "coverReachM": null
+        "coverReachM": {
+          "forwardRangefinder": 40,
+          "status": "provisional (datasheet); the C6 bench p5 reach (n >= 30 trials, covering sensor against the class target, owner: region integrator) replaces it",
+          "note": "short of the 46.8 m stall range: wing near unmapped bird or traffic zones stays refused"
+        }
       },
       {
         "row": "Manta-2525 (surface)",
@@ -130,7 +156,10 @@
           "swimmer": 8.2,
           "standOffM": 5
         },
-        "coverReachM": null
+        "coverReachM": {
+          "sonarOrProximity": 10,
+          "status": "provisional (datasheet); the C6 bench p5 reach (n >= 30 trials, covering sensor against the class target, owner: region integrator) replaces it"
+        }
       },
       {
         "row": "MASS-AI",
@@ -146,7 +175,11 @@
           "person": 3.5,
           "standOffM": 2
         },
-        "coverReachM": null
+        "coverReachM": {
+          "forwardRangefinder": 8,
+          "downwardCliff": 0.8,
+          "status": "provisional (datasheet); the C6 bench p5 reach (n >= 30 trials, covering sensor against the class target, owner: region integrator) replaces it"
+        }
       },
       {
         "row": "eXeL AI robot",
@@ -162,10 +195,14 @@
           "person": 2.6,
           "standOffM": 1.5
         },
-        "coverReachM": null
+        "coverReachM": {
+          "forwardRangefinder": 8,
+          "downwardCliff": 0.8,
+          "status": "provisional (datasheet); the C6 bench p5 reach (n >= 30 trials, covering sensor against the class target, owner: region integrator) replaces it"
+        }
       }
     ],
-    "coverReachRule": "0.15: every row gives coverReachM per loop class from the vehicle parameter file (the covering sensor measured reach); test 41 refuses null"
+    "coverReachRule": "0.15: every row gives coverReachM per loop class from the vehicle parameter file (the covering sensor measured reach); test 41 refuses null; 0.16: every row carries a provisional datasheet reach so the stand-off time, the drill cap and Gate 2 compute in simulation; test 41 refuses a provisional reach only at the C6 arm, never in Gate 2"
   },
   "humanRole": {
     "_new": "0.14",
@@ -197,7 +234,8 @@
         "link loss",
         "stuck stick",
         "GNSS drift",
-        "rangefinder misses wire"
+        "rangefinder misses wire",
+        "blind or fouled frame health (fog, spray)"
       ],
       "water": [
         "current drift",
@@ -205,25 +243,30 @@
         "swimmer stand-off",
         "glare",
         "link loss",
-        "GNSS drift"
+        "GNSS drift",
+        "blind or fouled frame health (spray, glare-out)",
+        "stuck stick or operator link lag"
       ],
-      "ground": [
-        "dock loss",
+      "groundSafety": [
         "drop-off",
         "person stand-off",
         "link loss",
         "stuck stick",
         "GNSS drift (geofence is the independent minimum)",
-        "blind or night frame health",
+        "blind or night frame health"
+      ],
+      "groundGoal": [
+        "dock loss",
         "goal lost",
         "two goal candidates",
         "follow leaving the geofence"
       ],
+      "groundGoalAppliesTo": "exel-robot; mass-droid only after decision 21",
       "groundLater": [
         "peer corridor (waits on decision 23)"
       ]
     },
-    "computeRule": "runs = strata x 300 per family (air 7 = 2,100; water 6 = 1,800; ground 10 = 3,000, changed 0.15); test 40 checks the product",
+    "computeRule": "0.16: runs = strata x 300 per vehicle, not per family: air 8 = 2,400; water 8 = 2,400; mass-droid groundSafety 6 = 1,800; exel-robot groundSafety + groundGoal 10 = 3,000; test 40 recomputes each product",
     "cardValues": [
       {
         "loop": "Drone-2525",
@@ -277,7 +320,8 @@
         "cardMaxAgeDays": 90,
         "otherFloors": {
           "door": 0.9
-        }
+        },
+        "dockLineUpMaxRangeM": "0.16: lateral error = range x tan(bearing ceiling) must be <= dockLineUpCm; 2 cm / tan(1 deg) gives line-up at most 1.15 m (computed by test 40, never typed)"
       }
     ]
   },
@@ -353,16 +397,38 @@
   "ladders": {
     "_new": "0.15",
     "air": [
-      "week 1 controller-proven (provisional) from kits/air",
+      "week 1 kit replays: Gate 1 on the pinned clip from kits/air (citations test and C1 golden vectors green)",
       "week 3 obstacle layer in replay.ts",
-      "week 5 Gate 2 in the arena",
+      "week 5 Gate 2 in the arena: controller-proven (provisional), needs replay.ts and loop-actions.ts air FlightAxes",
       "week 8 C5a Copter SITL",
       "week 12 C6 bench",
+      "week 12 coverReachM measured on the bench (p5, n >= 30); branch-protection check green",
       "week 16 fenced field with a named safety pilot"
     ],
     "airOwner": "air loop integrator",
-    "waterAndGround": "C4b ladder in PLAN.md",
-    "test": "test 31 reads each rung and reports late, never failed"
+    "test": "test 31 reads only this key, reports each rung late (never failed) and refuses a rung that needs a step later in the build order",
+    "_changed": "0.16: week 1 is kit replays (Gate 1 on the pinned clip); controller-proven means Gate 2 passed, so it sits at air week 5 and water and ground week 10; water and ground rungs moved here from PLAN.md, the only home test 31 reads",
+    "water": [
+      "week 1 kit replays from kits/water: Gate 1 on the pinned clip",
+      "week 4 parameter file",
+      "week 6 kinematic step",
+      "week 8 VEHICLE_MODELS entry",
+      "week 10 Gate 2: controller-proven (provisional), then simulation-loop-ready on a signed card",
+      "week 12 C5a SITL",
+      "week 16 C6 bench: coverReachM measured (p5, n >= 30); branch-protection check green",
+      "week 20 fenced field with a named safety pilot"
+    ],
+    "ground": [
+      "week 1 kit replays from kits/ground: Gate 1 on the pinned clip",
+      "week 4 parameter file",
+      "week 6 kinematic step",
+      "week 8 VEHICLE_MODELS entry",
+      "week 10 Gate 2: controller-proven (provisional), then simulation-loop-ready on a signed card",
+      "week 12 C5a SITL",
+      "week 16 C6 bench: coverReachM measured (p5, n >= 30); branch-protection check green",
+      "week 20 fenced field with a named safety pilot"
+    ],
+    "waterAndGroundOwner": "that region's loop integrator"
   },
   "failureModes": {
     "_moved": "0.15, the failure-mode table from PLAN.md, cells verbatim (Markdown backticks kept)",
@@ -392,7 +458,7 @@
         "Action": "the autopilot's own failsafe; the loop never commands continue. The status line names it (\"Link lost: returning home\" or \"Link lost: holding\"), read from the arm-time failsafe check and written as a field event; words in `AFTER_FILL`"
       },
       {
-        "Event": "Stick held past the dead-band, unchanged, for T s (`loop-spec.json`)",
+        "Event": "Stick held past the dead-band, unchanged, for T s (the spec file)",
         "Action": "flagged as stuck or drifting; the shipped stick calibration runs again; never a silent permanent takeover"
       },
       {
@@ -412,7 +478,7 @@
         "Action": "safe action; the loop refuses to arm"
       },
       {
-        "Event": "Dock marker lost inside the blind final approach distance (`loop-spec.json`, per vehicle)",
+        "Event": "Dock marker lost inside the blind final approach distance (the spec file, per vehicle)",
         "Action": "finish on odometry at creep speed with bumper and rangefinder active; any contact or range breach gives stop"
       },
       {
@@ -484,7 +550,7 @@
         "Action": "no action; alert only"
       },
       {
-        "Event": "Drift: live `unknown` rate or confidence drop above the card's held-out value by the margin in `loop-spec.json`",
+        "Event": "Drift: live `unknown` rate or confidence drop above the card's held-out value by the margin in the spec file",
         "Action": "slow, and log a field event"
       }
     ]

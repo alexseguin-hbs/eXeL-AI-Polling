@@ -37,7 +37,7 @@
 - **Cool-down:** the quiet time after one alert per hazard track. **Escalation:** the alert goes to a second named person if unacknowledged.
 - **Report:** a third output kind — a sighting or finding sent to a named human. It drives nothing.
 - **Pose:** the vehicle's attitude, gimbal angles and an IMU sample, stamped in the capture's clock domain.
-- **Slow:** move at the row's creep speed (its parameter file), reached at the row's deceleration limit; the setpoint table in `loop-spec.json` holds it.
+- **Slow:** move at the row's creep speed (its parameter file), reached at the row's deceleration limit; the setpoint table in the spec file holds it.
 - **Creep:** the slowest controlled speed a row allows (m/s), used by slow, the false-cliff override and docking.
 - **Covering sensor:** the independent sensor that catches what a class's detector misses.
 - **A_track:** the worst-case time to confirm a track, (N + `burstLen`) × P, never K × P.
@@ -46,4 +46,9 @@
 - **Wire ceiling:** per region, max(the airframe's `transitionMinAglM`, the highest mapped wire + clearance); below it, unmapped wire needs a rangefinder.
 - **Reaction-time ceiling (retired in 0.14):** (range − stop − clearance) ÷ v, which always equals B + A_track, the loop's own detection time.
 - **Human stand-off time:** (the covering sensor's measured reach − the minimum detection range) ÷ v; the time a human gets beyond what the loop uses. It gates arm only where the human is the collision backup.
+- **coverReachM:** the covering sensor's reach for one class on one speed row; a datasheet value marked "provisional" until the C6 bench measures the p5 reach (at least 30 trials).
+- **minBoxPx:** the smallest box, in model-input pixels, a class needs; a capture passes only at minBoxPx × 1.1 or more for the tier on the card.
+- **tierInput:** the model input size each HAL tier runs (pi 320 px; edge and accel 640 px), joined to each loop's chosen tier.
+- **usedBy:** for one first-week quota, the loop id and output kind (action, alert, advisory or report) that consume it.
+- **Time to controller-proven:** per region, the Gate 2 pass date minus the date the region's kit was first published; recorded in `kit.json`.
 The citation test checks that every glossary term used in Part C is in this list.

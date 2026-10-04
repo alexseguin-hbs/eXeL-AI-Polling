@@ -4,7 +4,8 @@
   "designEffect": {
     "value": 1.6,
     "status": "assumed prior",
-    "method": "intra-clip correlation from the pilot 30 clips"
+    "method": "intra-clip correlation from the pilot 30 clips",
+    "reMeasure": "0.16: after the pilot 30 clips, compute the intra-clip correlation and re-size every quota; test 40 prints 'assumed' beside each quota until status reads 'measured'"
   },
   "firstWeek": [
     {
@@ -20,7 +21,12 @@
         9
       ],
       "day1": "the labeler has 10 wire clips at range in R2; the integrator starts the obstacle layer and synthetic frames",
-      "usedBy": "each quota names its loop row and output kind (action, alert or advisory); test 40 refuses a quota with no consumer",
+      "usedBy": {
+        "heldOutPerClass": "drone-avoid-01 Gate 1 per class",
+        "unmappedWire": "advisory + Gate 2 wire stratum (rangefinder covers)",
+        "person": "drone-avoid-01 slow or hover",
+        "clearMinutes": "drone-avoid-01 false-track cap"
+      },
       "usedByNote": "unmappedWire 628 feeds an advisory and the Gate 2 wire stratum only: the rangefinder is the covering sensor, and the camera is refused for unmapped wire at every tier"
     },
     {
@@ -41,7 +47,11 @@
         ],
         "note": "surfaced-only first loop; R2 refuses a water clip whose medium is not water-surface (underwater clips wait for the underwater row)"
       },
-      "usedBy": "each quota names its loop row and output kind (action, alert or advisory); test 40 refuses a quota with no consumer"
+      "usedBy": {
+        "heldOutPerClass": "manta-hold-01 Gate 1 per class",
+        "swimmer": "manta-hold-01 hold station",
+        "clearMinutes": "manta-hold-01 false-track cap"
+      }
     },
     {
       "domain": "Camera",
@@ -61,7 +71,10 @@
         20
       ],
       "day1": "the camera integrator commits the values and the consent check; capture waits for consent",
-      "usedBy": "each quota names its loop row and output kind (action, alert or advisory); test 40 refuses a quota with no consumer"
+      "usedBy": {
+        "heldOutPerClass": "edtech-hazard-01 alert",
+        "clearHours": "edtech-hazard-01 false-alert cap"
+      }
     },
     {
       "domain": "Ground",
@@ -79,7 +92,12 @@
         23
       ],
       "day1": "the labeler has 10 night step clips; the integrator starts the ground step and dock marker",
-      "usedBy": "each quota names its loop row and output kind (action, alert or advisory); test 40 refuses a quota with no consumer"
+      "usedBy": {
+        "heldOutPerClass": "mass-nav-01 and exel-nav-01 Gate 1 per class",
+        "dockMarker": "exel-nav-01 goal",
+        "person": "mass-nav-01 stop",
+        "clearMinutes": "mass-nav-01 false-track cap"
+      }
     }
   ],
   "pixelExtent": {
@@ -178,9 +196,154 @@
         "minBoxPx": 8,
         "result640": "pass",
         "result320": "pass"
+      },
+      {
+        "class": "pole",
+        "loop": "Drone quad",
+        "knownSizeM": 0.3,
+        "rangeM": 15.0,
+        "px640": 9.1,
+        "px320": 4.6,
+        "minBoxPx": 8,
+        "result640": "pass",
+        "result320": "refused",
+        "added": "0.16 (proposed size)"
+      },
+      {
+        "class": "tree (trunk)",
+        "loop": "Drone quad",
+        "knownSizeM": 0.3,
+        "rangeM": 15.0,
+        "px640": 9.1,
+        "px320": 4.6,
+        "minBoxPx": 8,
+        "result640": "pass",
+        "result320": "refused",
+        "added": "0.16 (proposed size)"
+      },
+      {
+        "class": "vehicle",
+        "loop": "Drone quad",
+        "knownSizeM": 1.8,
+        "rangeM": 15.0,
+        "px640": 54.8,
+        "px320": 27.4,
+        "minBoxPx": 8,
+        "result640": "pass",
+        "result320": "pass",
+        "added": "0.16 (proposed size)"
+      },
+      {
+        "class": "pier",
+        "loop": "Manta-2525",
+        "knownSizeM": 1.0,
+        "rangeM": 5.2,
+        "px640": 87.9,
+        "px320": 43.9,
+        "minBoxPx": 8,
+        "result640": "pass",
+        "result320": "pass",
+        "added": "0.16 (proposed size)"
+      },
+      {
+        "class": "buoy",
+        "loop": "Manta-2525",
+        "knownSizeM": 0.3,
+        "rangeM": 5.2,
+        "px640": 26.4,
+        "px320": 13.2,
+        "minBoxPx": 8,
+        "result640": "pass",
+        "result320": "pass",
+        "added": "0.16 (proposed size)"
+      },
+      {
+        "class": "marine animal",
+        "loop": "Manta-2525",
+        "knownSizeM": 0.5,
+        "rangeM": 5.2,
+        "px640": 43.9,
+        "px320": 22.0,
+        "minBoxPx": 8,
+        "result640": "pass",
+        "result320": "pass",
+        "added": "0.16 (proposed size)"
+      },
+      {
+        "class": "obstacle",
+        "loop": "MASS-AI",
+        "knownSizeM": 0.3,
+        "rangeM": 2.5,
+        "px640": 54.8,
+        "px320": 27.4,
+        "minBoxPx": 8,
+        "result640": "pass",
+        "result320": "pass",
+        "added": "0.16 (proposed size)"
+      },
+      {
+        "class": "vehicle",
+        "loop": "MASS-AI",
+        "knownSizeM": 1.8,
+        "rangeM": 2.5,
+        "px640": 329.0,
+        "px320": 164.5,
+        "minBoxPx": 8,
+        "result640": "pass",
+        "result320": "pass",
+        "added": "0.16 (proposed size)"
+      },
+      {
+        "class": "obstacle",
+        "loop": "eXeL AI robot",
+        "knownSizeM": 0.3,
+        "rangeM": 1.6,
+        "px640": 85.7,
+        "px320": 42.8,
+        "minBoxPx": 8,
+        "result640": "pass",
+        "result320": "pass",
+        "added": "0.16 (proposed size)"
+      },
+      {
+        "class": "step (edge height)",
+        "loop": "eXeL AI robot",
+        "knownSizeM": 0.15,
+        "rangeM": 1.6,
+        "px640": 42.8,
+        "px320": 21.4,
+        "minBoxPx": 8,
+        "result640": "pass",
+        "result320": "pass",
+        "added": "0.16 (proposed size)"
+      },
+      {
+        "class": "door",
+        "loop": "eXeL AI robot",
+        "knownSizeM": 0.9,
+        "rangeM": 1.6,
+        "px640": 257.1,
+        "px320": 128.5,
+        "minBoxPx": 8,
+        "result640": "pass",
+        "result320": "pass",
+        "added": "0.16 (proposed size)"
+      },
+      {
+        "class": "person",
+        "loop": "eXeL AI robot",
+        "knownSizeM": 0.5,
+        "rangeM": 2.6,
+        "px640": 87.9,
+        "px320": 43.9,
+        "minBoxPx": 8,
+        "result640": "pass",
+        "result320": "pass",
+        "added": "0.16 (proposed size)"
       }
     ],
-    "test": "test 40 recomputes every px value and result from the parameter files and refuses a row with no minBoxPx or no result per tier; R2 refuses a capture under its class floor for the loop tier named on the card",
+    "test": "test 40 recomputes every px value and result from the parameter files and refuses a row with no minBoxPx or no result per tier; R2 refuses a capture under its class floor for the loop tier named on the card; 0.16: test 40 refuses any class in a loops.rows Classes cell with no pixel row",
     "_changed": "0.15: minBoxPx and a result per tier on every row"
-  }
+  },
+  "firstWeekUsedByRule": "0.16: usedBy is per quota key, a loop id plus an output kind (action, alert, advisory, report); test 40 refuses a quota whose usedBy is not a loops.rows purpose"
 }
