@@ -186,7 +186,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "release",
       text: "Sensor Fusion is one menu row. Coral is a switch under Settings. Check ID stays a model inside that run, so the old with-Coral and no-Coral rows are gone.",
-      commit: "",
+      commit: "058d065",
     },
   ],
 };
