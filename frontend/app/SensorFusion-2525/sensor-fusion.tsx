@@ -1126,11 +1126,6 @@ export default function SensorFusion() {
             <p>2. Toggle SENSOR 1 to ON</p>
           </div>
         )}
-        {infoOpen && (
-          <button type="button" className={styles.tutorial} onClick={() => setInfoOpen(false)} aria-label="Close the menu labels">
-            <img src={`${UI}/MVP0_Tutorial_001.png`} alt="Camera ON/OFF, AI Detection Box, Profile Menu, Full Screen, AI Accuracy percent, Object ID, Switch Basic Models, Annotate, Switch Custom Models, Train New Custom Model, Future Feature" />
-          </button>
-        )}
         {error && <p className={styles.alert}>{error}</p>}
       </section>
       <div className={styles.dock}>
@@ -1266,6 +1261,14 @@ export default function SensorFusion() {
         </div>
       )}
       <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} onCoral={chooseCoral} onClose={() => setSettings(false)} onScheme={chooseScheme} />
+      {infoOpen && (
+        <button type="button" className={styles.guide} onClick={() => setInfoOpen(false)} aria-label="Close the screen labels">
+          <span>Sensor 1 is the camera. Download, info, the gear (Coral), profile, and full screen are on the top.</span>
+          <span>The bar on the left is the strongest box. Tap the picture to show frames per second.</span>
+          <span>% · Labels · the model, including Check ID · Capture Images · Annotate · Upload</span>
+          <small>Tap to close</small>
+        </button>
+      )}
       <Foot accent={accent} />
     </main>
   );

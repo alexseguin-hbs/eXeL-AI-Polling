@@ -188,6 +188,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Sensor Fusion is one menu row. Coral is a switch under Settings. Check ID stays a model inside that run, so the old with-Coral and no-Coral rows are gone.",
       commit: "3acb1d5",
     },
+    {
+      rev: 27,
+      date: "2026-10-03",
+      kind: "release",
+      text: "The info button labels the Sensor Fusion screen that is open: camera, meter, model including Check ID, Capture, Annotate, and Upload. The old tutorial picture is gone.",
+      commit: "",
+    },
   ],
 };
 

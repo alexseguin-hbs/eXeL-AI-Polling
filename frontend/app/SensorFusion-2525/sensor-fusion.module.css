@@ -443,20 +443,50 @@
   min-width: 28px;
   min-height: 28px;
 }
-.tutorial {
+.guide {
   position: absolute;
   inset: 0;
-  z-index: 4;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px 12px;
   border: 0;
-  padding: 0;
-  background: #000;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  text-align: left;
   cursor: pointer;
 }
-.tutorial img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+.guide span,
+.guide small {
   display: block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #0cff00;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.guide small {
+  align-self: center;
+  border-color: transparent;
+  font-size: 11px;
+}
+@media (orientation: landscape) {
+  .guide {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+  .guide span,
+  .guide small {
+    font-size: 11px;
+    padding: 4px 6px;
+  }
 }
 .piBot {
   justify-content: space-between;
