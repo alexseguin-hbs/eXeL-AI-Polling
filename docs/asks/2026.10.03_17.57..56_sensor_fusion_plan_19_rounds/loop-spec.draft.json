@@ -1,0 +1,338 @@
+{
+  "_about": "Draft values moved out of PLAN.md in revision 0.14 (no new values except where marked). Proposed for decision 9; test 40 recomputes every derived number from the vehicle parameter files and refuses a typed one. Grok splits this into public/sensor-fusion/loop-spec/<region>.json plus contract.json when C1 ships.",
+  "status": "proposed",
+  "loops": {
+    "_moved": "0.14, the loop table from PLAN.md, cells verbatim (Markdown backticks kept)",
+    "rows": [
+      {
+        "Vehicle": "Drone-2525 (air; `vtol-quadwing`)",
+        "Loop purposes": "collision avoidance, wires and terrain, civic simulation; reports (later, until class lists and floors exist): inspection, wildlife, search and rescue",
+        "Classes (first set)": "wire, pole, tree, bird, person (avoid only), vehicle",
+        "Latency budget": "≤ 155 ms end to end, ≥ 20 fps (frame 50 ms), p99 ≤ 50 ms",
+        "Max detection age": "120 ms (actuation ≤ 35 ms; heartbeat H = 3P + p50, ≤ 200 ms; dwell 1,000 ms, C 5; slack 8 ms; wing-to-quad transition 4 s is its own term)",
+        "HAL tier": "edge or accel",
+        "Recall floor (proposed)": "0.90; person 0.97; false tracks per clear minute ≤ the loop's cap",
+        "Safe action": "quad mode: hover; wing mode: loiter on a circle of radius ≥ the turn radius, checked clear inside the wing range, then transition to quad and hover; then land if the return path is not known clear, else return",
+        "Independent minimum": "altitude + geofence holding mapped wire spans (the obstacle layer as data)",
+        "World": "arena + detection emulator — closed loop (C4)",
+        "Human role": "pilot watches, takes over, stops"
+      },
+      {
+        "Vehicle": "Manta-2525 (water; `manta-mini-66-33` first, `manta-99-66`)",
+        "Loop purposes": "station keeping; reports (later, until class lists and floors exist): hull and pier inspection, marine wildlife",
+        "Classes (first set)": "hull, pier, buoy, swimmer (avoid only), marine animal",
+        "Latency budget": "≤ 480 ms, ≥ 4 fps (frame 250 ms), p99 ≤ 100 ms",
+        "Max detection age": "420 ms (actuation ≤ 60 ms; heartbeat H = 3P + p50, ≤ 850 ms; dwell 2,000 ms, C 3; slack 28 ms)",
+        "HAL tier": "edge",
+        "Recall floor (proposed)": "0.85; swimmer 0.97; false tracks per clear minute ≤ the loop's cap",
+        "Safe action": "hold station (surface only for a submerged hull and never within the swimmer stand-off; to confirm for `manta-mini-66-33`)",
+        "Independent minimum": "depth + proximity hold",
+        "World": "minimal 2D water world with current drift in `replay.ts` — controller gate only",
+        "Human role": "remote operator (the hull is unmanned) watches, takes over, stops; drills in simulation until the hull is built (`pod-projects.ts:88`)"
+      },
+      {
+        "Vehicle": "MASS-AI (ground; `mass-droid`)",
+        "Loop purposes": "ground navigation, obstacle stop; goal layer and search-and-rescue reports after decision 21",
+        "Classes (first set)": "obstacle, step, person (avoid only), vehicle",
+        "Latency budget": "≤ 285 ms, ≥ 8 fps (frame 125 ms), p99 ≤ 75 ms",
+        "Max detection age": "235 ms (actuation ≤ 50 ms; heartbeat H = 3P + p50, ≤ 450 ms; dwell 1,000 ms, C 4; slack 11.5 ms)",
+        "HAL tier": "pi or edge",
+        "Recall floor (proposed)": "0.90; person 0.97; false tracks per clear minute ≤ the loop's cap",
+        "Safe action": "stop, brake held (also on a slope)",
+        "Independent minimum": "rangefinder + downward cliff sensor + geofence",
+        "World": "minimal 2D ground world with an obstacle grid in `replay.ts` — controller gate only",
+        "Human role": "robot team watches, takes over, stops"
+      },
+      {
+        "Vehicle": "eXeL AI robot (ground; `exel-robot`, decision 17)",
+        "Loop purposes": "goal targeting (approach, follow, dock, line up on a marked object), obstacle stop, risk alerts",
+        "Classes (first set)": "dock marker, obstacle, step, door, person (avoid only)",
+        "Latency budget": "≤ 285 ms, ≥ 8 fps (frame 125 ms), p99 ≤ 75 ms",
+        "Max detection age": "235 ms (actuation ≤ 50 ms; heartbeat ≤ 450 ms; dwell 1,000 ms, C 4; slack 11.5 ms)",
+        "HAL tier": "pi or edge",
+        "Recall floor (proposed)": "0.90; dock marker 0.95; person 0.97",
+        "Safe action": "stop, brake held",
+        "Independent minimum": "bumper + rangefinder + downward cliff sensor + geofence",
+        "World": "minimal 2D ground world with a dock marker in `replay.ts` — controller gate only",
+        "Human role": "robot team watches, takes over, stops; staff get its alerts"
+      }
+    ]
+  },
+  "speedEnvelope": {
+    "formula": "range = v*B + stop + v*A_track + max(clearance, stand-off for the class); A_track = (N + burstLen) * P with N = 5 and provisional burstLen 2",
+    "droneAirframe": {
+      "cruiseMs": {
+        "value": 17,
+        "cite": "lib/drone-2525/domain.gen.ts:1307"
+      },
+      "stallMs": {
+        "value": 14.38,
+        "cite": "flight.ts:38-39 stallSpeedMs over domain.gen.ts:1302-1314"
+      },
+      "transitionMinAglM": {
+        "value": 20,
+        "cite": "domain.gen.ts:1313; canTransition flight.ts:123"
+      }
+    },
+    "rows": [
+      {
+        "row": "Drone quad, mapped areas",
+        "speedMs": {
+          "cruise": 8,
+          "creep": 1
+        },
+        "stop": "v^2 / 2a, a = 4 m/s^2 (8 m)",
+        "aTrackMs": 350,
+        "rangeM": {
+          "obstacle": 15.0,
+          "clearanceM": 3,
+          "person": 22.0,
+          "standOffM": 10
+        }
+      },
+      {
+        "row": "Drone quad, unmapped, below the wire ceiling",
+        "speedMs": "refused without a forward rangefinder",
+        "aTrackMs": 350,
+        "note": "camera-only wire cover is impossible"
+      },
+      {
+        "row": "Drone wing",
+        "speedMs": {
+          "cruise": 17,
+          "stallGolden": 14.38
+        },
+        "turnRadiusM": {
+          "cruise": 51.0,
+          "stall": 36.5,
+          "formula": "v^2 / (g tan 30deg)"
+        },
+        "aTrackMs": 350,
+        "rangeM": {
+          "birdAndVehicleAtCruise": 62.6,
+          "atStall": 46.8
+        }
+      },
+      {
+        "row": "Manta-2525 (surface)",
+        "speedMs": {
+          "cruise": 1.0,
+          "creep": 0.2
+        },
+        "stop": "a = 0.5 m/s^2 (1.0 m)",
+        "aTrackMs": 1750,
+        "rangeM": {
+          "obstacle": 5.2,
+          "clearanceM": 2,
+          "swimmer": 8.2,
+          "standOffM": 5
+        }
+      },
+      {
+        "row": "MASS-AI",
+        "speedMs": {
+          "cruise": 1.0,
+          "creep": 0.2
+        },
+        "stop": "a = 1.5 m/s^2 (0.33 m)",
+        "aTrackMs": 875,
+        "rangeM": {
+          "obstacle": 2.5,
+          "clearanceM": 1,
+          "person": 3.5,
+          "standOffM": 2
+        }
+      },
+      {
+        "row": "eXeL AI robot",
+        "speedMs": {
+          "cruise": 0.8,
+          "creep": 0.08
+        },
+        "stop": "a = 1.5 m/s^2 (0.21 m)",
+        "aTrackMs": 875,
+        "rangeM": {
+          "obstacle": 1.6,
+          "clearanceM": 0.5,
+          "person": 2.6,
+          "standOffM": 1.5
+        }
+      }
+    ]
+  },
+  "humanRole": {
+    "_new": "0.14",
+    "standOffTime": "(covering sensor's measured reach - minimum detection range) / v; reach equal to the minimum range gives 0 s and refuses the human as a collision layer",
+    "families": {
+      "air": {
+        "atCruise": "supervisory",
+        "armRule": "drill completes its takeovers and re-arms; no time ceiling; the covering sensor must be present"
+      },
+      "ground": {
+        "role": "collision backup at creep",
+        "armRule": "drill p95 under the stand-off time, else the speed cap is solved down from the drill"
+      },
+      "water": {
+        "role": "collision backup at creep",
+        "armRule": "drill p95 under the stand-off time, else the speed cap is solved down from the drill"
+      }
+    }
+  },
+  "gate2": {
+    "runsPerStratum": 300,
+    "strataByFamily": {
+      "air": [
+        "unmapped-wire burst miss",
+        "glare",
+        "person stand-off",
+        "link loss",
+        "stuck stick",
+        "GNSS drift",
+        "rangefinder misses wire"
+      ],
+      "water": [
+        "current drift",
+        "current over rated station-keeping thrust (1.2x)",
+        "swimmer stand-off",
+        "glare",
+        "link loss",
+        "GNSS drift"
+      ],
+      "ground": [
+        "dock loss",
+        "drop-off",
+        "person stand-off",
+        "link loss",
+        "stuck stick"
+      ],
+      "groundLater": [
+        "peer corridor (waits on decision 23)"
+      ]
+    },
+    "computeRule": "runs = strata x 300 per family (air 2,100; water 1,800; ground 1,500); test 40 checks the product",
+    "cardValues": [
+      {
+        "loop": "Drone-2525",
+        "falseTracksPerClearMinCap": 0.12,
+        "clearMinutes": 25,
+        "clearFramesPlanning": "30,000 at 20 fps",
+        "minClearanceM": 3,
+        "standOffM": 10,
+        "bearingCeilingP95Deg": 2,
+        "cardMaxAgeDays": 90,
+        "otherFloors": {
+          "bird": 0.9,
+          "vehicle": 0.9
+        }
+      },
+      {
+        "loop": "Manta-2525",
+        "falseTracksPerClearMinCap": 0.06,
+        "clearMinutes": 50,
+        "clearFramesPlanning": "12,000 at 4 fps",
+        "minClearanceM": 2,
+        "standOffM": 5,
+        "bearingCeilingP95Deg": 3,
+        "cardMaxAgeDays": 90,
+        "otherFloors": {
+          "marine animal": 0.85
+        }
+      },
+      {
+        "loop": "MASS-AI",
+        "falseTracksPerClearMinCap": 0.12,
+        "clearMinutes": 25,
+        "clearFramesPlanning": "12,000 at 8 fps",
+        "minClearanceM": 1,
+        "standOffM": 2,
+        "bearingCeilingP95Deg": 3,
+        "cardMaxAgeDays": 90,
+        "otherFloors": {
+          "vehicle": 0.9
+        }
+      },
+      {
+        "loop": "eXeL AI robot",
+        "falseTracksPerClearMinCap": 0.12,
+        "clearMinutes": 25,
+        "clearFramesPlanning": "12,000 at 8 fps",
+        "minClearanceM": 0.5,
+        "standOffM": 1.5,
+        "bearingCeilingP95Deg": 1,
+        "dockLineUpCm": 2,
+        "cardMaxAgeDays": 90,
+        "otherFloors": {
+          "door": 0.9
+        }
+      }
+    ]
+  },
+  "cameraValues": {
+    "rule": "alerts only; no timing law; Gate 1 refuses a card above a hazard's time-to-alert ceiling; >= 59 scored alerts per p95; false alerts <= 0.1 per camera per hour (about 30 clear hours from >= 30 distinct clips); card max age 90 days",
+    "hazards": [
+      {
+        "hazard": "smoke or fire",
+        "precisionFloor": 0.9,
+        "recallFloor": 0.95,
+        "trueAssumed": 0.99,
+        "heldOut": 199,
+        "timeToAlertP95S": 10,
+        "escalationMin": 1,
+        "coolDownS": 300
+      },
+      {
+        "hazard": "blocked exit",
+        "precisionFloor": 0.9,
+        "recallFloor": 0.9,
+        "trueAssumed": 0.96,
+        "heldOut": 228,
+        "timeToAlertP95S": 60,
+        "escalationMin": 3,
+        "coolDownS": 600
+      },
+      {
+        "hazard": "spill",
+        "precisionFloor": 0.85,
+        "recallFloor": 0.85,
+        "trueAssumed": 0.95,
+        "heldOut": 109,
+        "timeToAlertP95S": 60,
+        "escalationMin": 5,
+        "coolDownS": 600
+      },
+      {
+        "hazard": "door open after hours",
+        "precisionFloor": 0.9,
+        "recallFloor": 0.9,
+        "trueAssumed": 0.96,
+        "heldOut": 228,
+        "timeToAlertP95S": 120,
+        "escalationMin": 5,
+        "coolDownS": 900
+      },
+      {
+        "hazard": "person in the robot's path (robot place)",
+        "precisionFloor": 0.9,
+        "recallFloor": 0.97,
+        "trueAssumed": 0.99,
+        "heldOut": 628,
+        "timeToAlertP95S": 2,
+        "escalationMin": 1,
+        "coolDownS": 60
+      },
+      {
+        "hazard": "fall, crowd building up",
+        "status": "off until decision 20"
+      }
+    ]
+  },
+  "retrainCadence": {
+    "_new": "0.14",
+    "perRegion": {
+      "trigger": "hard-case count >= 30 or 60 days since the last card, whichever first (proposed)",
+      "next": "R9 merge",
+      "shadowMinutesBeforePromotion": "C5b value per loop"
+    },
+    "test": "test 31 reports 'late' when the trigger has passed with no new card"
+  }
+}

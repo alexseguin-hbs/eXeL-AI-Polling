@@ -44,5 +44,6 @@
 - **burstLen:** the longest run of missed frames for a class, measured on the replay split and kept on the card.
 - **Minimum detection range:** v × B + stop (or turn radius) + v × A_track + max(clearance, stand-off); defined once, in PLAN.md's speed envelope.
 - **Wire ceiling:** per region, max(the airframe's `transitionMinAglM`, the highest mapped wire + clearance); below it, unmapped wire needs a rangefinder.
-- **Reaction-time ceiling:** (range − stop − clearance) ÷ v; a crew's takeover-drill p95 must be under it to arm.
+- **Reaction-time ceiling (retired in 0.14):** (range − stop − clearance) ÷ v, which always equals B + A_track, the loop's own detection time.
+- **Human stand-off time:** (the covering sensor's measured reach − the minimum detection range) ÷ v; the time a human gets beyond what the loop uses. It gates arm only where the human is the collision backup.
 The citation test checks that every glossary term used in Part C is in this list.

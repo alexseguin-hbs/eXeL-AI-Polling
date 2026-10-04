@@ -1,0 +1,27 @@
+{
+  "_about": "Draft capture values moved out of PLAN.md in revision 0.14. Quotas carry the clip design effect x1.6, an assumed prior until measured from the pilot 30 clips (intra-clip correlation, re-sized as for recall); test 40 pins the golden 392 x 1.6 -> 628.",
+  "status": "proposed",
+  "designEffect": { "value": 1.6, "status": "assumed prior", "method": "intra-clip correlation from the pilot 30 clips" },
+  "firstWeek": [
+    { "domain": "Air", "classes": "the Drone list; tree seeded from tree, vehicle from custom01", "heldOutPerClass": 228, "unmappedWire": 628, "person": 628, "clearMinutes": 25, "conditions": "thin wires at range (wire height recorded), sky glare, motion blur", "blockingDecisions": [8, 9], "day1": "the labeler has 10 wire clips at range in R2; the integrator starts the obstacle layer and synthetic frames" },
+    { "domain": "Water", "classes": "the Manta list", "heldOutPerClass": 109, "swimmer": 628, "clearMinutes": 50, "conditions": "turbidity, glare, spray; medium and current speed recorded per clip", "blockingDecisions": [9, 14], "day1": "the labeler has 10 hull or pier clips in glare; the remote operator runs the takeover drill in simulation; the integrator starts the water step" },
+    { "domain": "Camera", "classes": "spill, smoke or fire, blocked exit, door open after hours", "heldOutPerClass": "109 to 228", "clearHours": 30, "conditions": "indoor light, night corridor; consented pictures only", "blockingDecisions": [3, 18, 19, 20], "day1": "the camera integrator commits the values and the consent check; capture waits for consent" },
+    { "domain": "Ground", "classes": "the MASS-AI and eXeL AI robot lists", "heldOutPerClass": 228, "dockMarker": 199, "person": 628, "clearMinutes": 25, "conditions": "night (visible + IR, or thermal seeded from thermal01), dust or mud; child height only with consent", "blockingDecisions": [9, 14, 17, 22, 23], "day1": "the labeler has 10 night step clips; the integrator starts the ground step and dock marker" }
+  ],
+  "pixelExtent": {
+    "_new": "0.14",
+    "formula": "extent_px = known size (m) x focal (px at the model input size) / minimum detection range (m); focal 457 px at 640, 228.5 px at 320 (70 deg)",
+    "floor": "wire width >= 2 px; every other class its own minimum box width in this file, plus a 10% margin",
+    "rows": [
+      { "class": "wire", "loop": "Drone quad", "knownSizeM": 0.01, "rangeM": 3.6, "px640": 1.3, "px320": 0.6, "result": "refused at every tier: covering sensor required" },
+      { "class": "bird", "loop": "Drone wing", "knownSizeM": 0.3, "rangeM": 62.6, "px640": 2.19, "px320": 1.10, "result": "refused without a wing speed cap" },
+      { "class": "person", "loop": "Drone quad", "knownSizeM": 0.5, "rangeM": 22.0, "px640": 10.4, "px320": 5.2 },
+      { "class": "swimmer (head)", "loop": "Manta-2525", "knownSizeM": 0.25, "rangeM": 8.2, "px640": 13.9, "px320": 7.0 },
+      { "class": "hull", "loop": "Manta-2525", "knownSizeM": 2.0, "rangeM": 5.2, "px640": 175.8, "px320": 87.9 },
+      { "class": "step (edge height)", "loop": "MASS-AI", "knownSizeM": 0.15, "rangeM": 2.5, "px640": 27.4, "px320": 13.7 },
+      { "class": "person", "loop": "MASS-AI", "knownSizeM": 0.5, "rangeM": 3.5, "px640": 65.3, "px320": 32.6 },
+      { "class": "dock marker", "loop": "eXeL AI robot", "knownSizeM": 0.2, "rangeM": 1.6, "px640": 57.1, "px320": 28.6 }
+    ],
+    "test": "test 40 recomputes every row from the parameter files; R2 refuses a capture under its class's extent"
+  }
+}

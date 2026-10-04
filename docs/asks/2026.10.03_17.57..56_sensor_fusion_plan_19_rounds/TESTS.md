@@ -62,7 +62,7 @@ its revision ships.
     wing loiter circle radius is at least the turn radius.
 28. A foreign domain with a fresh offset inside m is accepted, a stale one is not; a pre-reboot stamp is refused; a polar record and a
     two-camera disagreement give the golden action; a record with no medium is refused.
-29. Every vehicle id in `controls.ts:20-21` gets a `VehicleCommand` of its own family, and only air gets `FlightInput`; a pinned record
+29. Every vehicle id in `controls.ts:20-21` that `contract.json` does not mark no-loop (`turret` is no-loop: no command family, actuator row, `clearedLoops` entry or bridge output) gets a `VehicleCommand` of its own family; a `PlatformId` kind and its loop medium agree; and only air gets `FlightInput`; a pinned record
     stream gives identical command sequences from `loop-actions.ts` and `loop_runner.py`; `actuators.json` in `edge/` and `download/` match
     byte for byte; an unsigned MAVLink or ROS 2 link refuses to arm; a v2 spec read by a v1 runner gives the safe action; Gate 2 and C6
     refuse without the takeover drill records; every loop class names a covering sensor, and an unmapped-wire burst miss is a Gate 2 scenario;
@@ -78,7 +78,7 @@ its revision ships.
 32. With Coral on and a card measured on `detect.tflite`, an armed loop refuses (extends `sensor-fusion-coral.test.mjs`); flipping the
     switch while armed changes nothing and logs one field event; a failed load never falls back to the other file.
 33. 300 runs on one layout are refused as N; an unmapped-wire stratum with 30 runs cannot carry a 1% claim (0.11); a provisional card can never be signed.
-34. A card lapses to replay-ready when its own `loop-spec.json` section, the edge script or `detect-contract.ts` changes hash, or past its
+34. A card lapses to replay-ready when the region's spec file, or `contract.json`, the edge script or `detect-contract.ts` changes hash, or past its
     max age; adding a camera hazard leaves the Drone's card loop-ready, and changing a Drone threshold lapses it; a spec hash changed mid-run leaves the armed loop's command stream unchanged until the
     next arm (0.11).
 35. A takeover's hard-case task lands in the named store; no clip from region A's held-out appears in region B's train.
@@ -108,4 +108,7 @@ its revision ships.
     unmapped wire carries its own 628 quota at the 0.97 floor.
 41. A provisional card reaches only controller-proven; no signature or roster commit carries a personal email; no file under
     `public/sensor-fusion/` holds the salt; one member id hashes differently in two projects; signing keys are non-extractable; a roster change with one root-holder signature is refused (0.11). (0.13) The reaction-time ceiling
-    is (range − stop − clearance) ÷ v per row, and a MASS-AI drill p95 of 1.2 s against its 1.17 s refuses arm.
+    is (range − stop − clearance) ÷ v per row, and a MASS-AI drill p95 of 1.2 s against its 1.17 s refuses arm. (0.14 supersedes this:)
+    the human stand-off time is (covering-sensor reach − minimum detection range) ÷ v, generated; reach = range gives 0 s; a supervisory
+    Drone pilot at 1.4 s arms with a rangefinder and is refused without one; a ground drill over the stand-off time caps speed; arm is
+    refused when the running `loop_runner.py` sha256 differs from the signed one; `kit.json` carries no raw consent id.
