@@ -37,3 +37,12 @@ How the rounds read it (Claude Code's reading, stated so the operator can correc
   - faces blurred in stored pictures;
   - training pictures only with recorded consent (decision 3);
   - alerts go to named staff, never to a public screen.
+
+## Addendum 2 (2026.10.04_03.14..53 CST) — supersedes the control-loop scope
+
+> Operator, verbatim: "remove all control loop from plan"
+
+Effect: revision 0.20 removes every control-loop part (Part C, loop contract and spec, vehicles, gates and ladders, SITL, field and
+bench stages, loop-only decisions and tests, `loop-spec.draft.json`). The plan's scope is now Sensor Fusion capture, labelling, review,
+training hand-off, time, Light Codex, and DETECT detection and display. Addendum 1's robot and camera ask is kept on record only where
+it is not a control loop: cameras alert people and never drive anything. Revisions 0.01–0.19 stay in git history and `r01`–`r19`.
