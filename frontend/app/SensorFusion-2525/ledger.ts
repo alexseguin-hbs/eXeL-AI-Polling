@@ -263,7 +263,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-04",
       kind: "release",
       text: "The XML is saved next to the picture. A saved box comes back. A name with & reads back correctly. Level 2 is Accept, Fix, or Reject by a different person. The first box is smaller.",
-      commit: "",
+      commit: "8e16176",
     },
   ],
 };
