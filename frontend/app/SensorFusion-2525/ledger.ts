@@ -284,7 +284,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-04",
       kind: "release",
       text: "Info opens one still picture with five Demo.90 objects: person, bicycle, car, dog, and traffic light. The tool line stays short. The gear stays in settings.",
-      commit: "",
+      commit: "ea2ef6d",
     },
   ],
 };
