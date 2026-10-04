@@ -95,7 +95,6 @@ function SettingsSheet({
   onClose: () => void;
   onScheme: (next: SchemeId | "custom", hex?: string) => void;
 }) {
-  const [edgeOpen, setEdgeOpen] = useState(true);
   if (!open) return null;
   return (
     <div className={styles.shade} onClick={onClose}>
@@ -106,23 +105,17 @@ function SettingsSheet({
             Close
           </button>
         </div>
-        <button type="button" className={styles.frame} aria-expanded={edgeOpen} onClick={() => setEdgeOpen((open) => !open)}>
-          Sensor Fusion
-        </button>
-        {edgeOpen && (
-          <div className={styles.edgeBox}>
-            <p>EDGE COMPUTE</p>
-            <div className={styles.edgePick} role="group" aria-label="Edge Compute">
-              <button type="button" aria-pressed={!coral} className={!coral ? styles.swatchOn : ""} onClick={() => onCoral(false)}>
-                CPU
-              </button>
-              <button type="button" aria-pressed={coral} className={coral ? styles.swatchOn : ""} onClick={() => onCoral(true)}>
-                Coral
-              </button>
-            </div>
-            <p className={styles.muted}>CPU uses this device. Coral uses the chip. Check ID stays a model.</p>
+        <div className={styles.edgeBox}>
+          <p>Edge Compute</p>
+          <div className={styles.edgePick} role="group" aria-label="Edge Compute">
+            <button type="button" aria-pressed={!coral} className={!coral ? styles.swatchOn : ""} onClick={() => onCoral(false)}>
+              CPU
+            </button>
+            <button type="button" aria-pressed={coral} className={coral ? styles.swatchOn : ""} onClick={() => onCoral(true)}>
+              CORAL
+            </button>
           </div>
-        )}
+        </div>
         <p>SESSION COLOR SCHEME</p>
         <p className={styles.muted}>Applies to all participants in this session.</p>
         <div className={styles.swatches}>

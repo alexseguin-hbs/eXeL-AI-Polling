@@ -41,8 +41,9 @@ ok(runPlan(true, "missing").model === "demo90" && runPlan(true, "missing").file 
 
 const page = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8");
 const py = fs.readFileSync(path.resolve(import.meta.dirname, "../public/sensor-fusion/edge/sensor_fusion_edge.py"), "utf8");
-ok(/aria-expanded=\{edgeOpen\}/.test(page) && /EDGE COMPUTE/.test(page), "settings opens with Sensor Fusion and Edge Compute");
-ok(/CPU uses this device/.test(page) && />[\s\n]*Coral[\s\n]*</.test(page), "Edge Compute is CPU or Coral");
+ok(/<p>Edge Compute<\/p>/.test(page) && />[\s\n]*CPU[\s\n]*</.test(page) && />[\s\n]*CORAL[\s\n]*</.test(page), "Edge Compute offers CPU and CORAL");
+ok(page.indexOf("<p>Edge Compute</p>") < page.indexOf("SESSION COLOR SCHEME"), "Edge Compute sits above the color scheme");
+ok(/const \[coral, setCoral\] = useState\(false\)/.test(page), "CPU is the default");
 ok(/const plan = runPlan\(coral, model\)/.test(page), "Sensor Fusion uses the switch, not a menu flag");
 ok(!/setCoral\(item\.coral\)/.test(page), "the menu no longer sets Coral");
 ok(!/Check ID, with Coral/.test(py) && !/Check ID, no Coral/.test(py), "the computer menu dropped Check ID rows");
