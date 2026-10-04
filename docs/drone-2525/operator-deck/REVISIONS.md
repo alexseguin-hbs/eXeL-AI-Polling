@@ -34,6 +34,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.151 | 2026-09-24 | Claude Code (pop-up targets fire again) | 367557 | 3c4d297eec612261a699a899eea7efe489178fb3c6fd8784e50fb7f72b231020 | PENDING (Verify Live) | 1069141c979f4e412750c90d38445c32d357e0c4bc449f3db2cd19e23e86f959 |
 | r.152 | 2026-09-24 | Claude Code (the full-screen control is an icon) | 368979 | e15cd3993aa378c958b9469831b87f50317ee98b47bdfcc112c11980c9e2eebd | PENDING (Verify Live) | 28e068d9d57b8ee6e2b42a697b95c0d65a0d0f577955895d5a51ff3daf78bb29 |
 | r.153 | 2026-09-26 | Claude Code (the tab reads eXeL Drone-2525) | 368965 | 3c3de52165ea9138569c2901b5f1a9207ed3ab0a3cb0fd103c8c6fee8148b318 | PENDING (Verify Live) | 4e7b234595851c7538ced56f81165efa2c7442777e50ecc19be8bebbe699907e |
+| r.154 | 2026-10-04 | Claude Code (the QUAL · 40 clock counts real seconds) | 370119 | ccb4fe73f3fe09b2fb12a3d3442cdba5569e2ab49f8586b11aaca84f08d7e467 | PENDING (Verify Live) | bd180f511f84e17460ef0c3018277f5a9a3e8ba36df36e53a78920ec3b11e342 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -682,3 +683,24 @@ commit that put its bytes on `main` and the served HEAD).
   range behaviour carry over untouched.
 - **Note on the numbering.** The previously-planned r.153 "record & wire" work (the fleet's items 9–11) shifts to **r.154**;
   this title fix takes r.153, per the operator's 2026-09-26 ask.
+
+## r.154 — Claude Code: the QUAL · 40 clock counts real seconds; 10 s between positions (2026-10-04)
+Operator (`docs/asks/2026.10.04_03.56..35_drone2525_qual40_exposure_times.md`): **"make sure times for multiple targets on qual40 are accurate"**, and the confirmation: **"depending on
+number of targets, you get kore time.  3-4 seconds per target. fine qual"**. Notes: `CLAUDE_CODE_NOTES_r154.md`. Patch:
+`patches/r153_to_r154.py` (8 asserted edits). Artefact commit `fc0fddf`; shipped in: PENDING until Verify Live (the ledger and
+the domain JSON carry `shipped`).
+- **The defect, measured on the served r.153.** The frame loop caps every step at 50 ms (`dt=Math.min(.05,…)`) and `rangeTick`
+  runs inside `phys → spawn` on that capped step, so below 20 fps the qualification clock ran slower than real time: at ~160 ms
+  frames a 5 s exposure lasted 16.58 s; at ~120 ms frames (8 fps) the first 3 s gap lasted 7.57 s and the 5 s exposure 12.53 s.
+  At 60 fps every window was already right (5.02 / 12.02 / 16.02 s, gaps 3.02 s).
+- **The fix.** The range clock counts wall time: `rangeDt(ms)` = elapsed seconds capped at 0.25 s per frame (a backgrounded tab
+  cannot skip an engagement). The loop takes the raw elapsed BEFORE `last=now`, hands it to `rangeTick` for its own `phys()` call
+  only (`state.rangeDtNow`, cleared after, so the QA's and STEP's synthetic `phys(dt)` keep their own step), and physics keeps its
+  50 ms step. This covers the QUAL · 40 windows (5/8/12/16 s), the 3 s gap, the phase gap and the TRAINING · RESET 3 s return.
+- **The phase gap is 10 s** (was the declared midpoint 9 s): the sourced "ten second transition delay to allow the shooter time to
+  reload and assume the next position" (iwtsexplained.com/table-vi; the 2019 Infantry magazine — via search results). The
+  exposure values are unchanged (the operator: "fine qual"; 3–4 s per target is what 5/8/12/16 gives).
+- **Gates.** Boot-QA row `QUAL_CLOCK_IS_WALL_TIME` (rangeDt 160 ms → 0.16, 5000 ms → 0.25, −5 ms → 0; the loop and spawn carry the
+  wall step); `QUAL_EXPOSURE_BY_COUNT` now holds `PHASE_GAP_S===10`. `drone-range-all-lanes` times lane 21 with the real frame loop
+  at normal frames and with every frame slowed to ~120 ms: first gap and engagement 1 within ±0.35 s — r.153 FAILS it (7.57 s /
+  12.53 s), r.154 PASSES (3.10 s / 5.09 s slow; 3.00 s / 5.00 s normal). 178 rows, 177/178 in portrait and landscape.
