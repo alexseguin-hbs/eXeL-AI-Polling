@@ -242,7 +242,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-04",
       kind: "release",
       text: "The menu shows four rows again: Sensor Fusion, Stop, Image labeler, and Pose. An empty model list can no longer hide them.",
-      commit: "",
+      commit: "b86dc67",
     },
   ],
 };
