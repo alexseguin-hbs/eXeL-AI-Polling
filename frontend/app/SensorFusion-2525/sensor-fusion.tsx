@@ -283,19 +283,19 @@ function setFolderOf(fileName: string) {
   return base.replace(/\.\d+$/, "") || "capture";
 }
 
-async function saveXmlFile(fileName: string, xml: string) {
+async function saveXmlFile(fileName: string, xml: string, download = false) {
   writeXml(fileName, xml);
   const xmlFile = xmlName(fileName);
-  if (!chosenFolder) {
-    downloadBlob(xmlFile, URL.createObjectURL(new Blob([xml], { type: "text/xml" })));
-    return xmlFile;
+  if (chosenFolder) {
+    const setFolder = await chosenFolder.getDirectoryHandle(setFolderOf(fileName), { create: true });
+    const handle = await setFolder.getFileHandle(xmlFile, { create: true });
+    const writable = await handle.createWritable();
+    await writable.write(new Blob([xml], { type: "application/xml" }));
+    await writable.close();
+    return `${chosenFolder.name}/${setFolderOf(fileName)}/${xmlFile}`;
   }
-  const setFolder = await chosenFolder.getDirectoryHandle(setFolderOf(fileName), { create: true });
-  const handle = await setFolder.getFileHandle(xmlFile, { create: true });
-  const writable = await handle.createWritable();
-  await writable.write(new Blob([xml], { type: "application/xml" }));
-  await writable.close();
-  return `${chosenFolder.name}/${setFolderOf(fileName)}/${xmlFile}`;
+  if (download) downloadBlob(xmlFile, URL.createObjectURL(new Blob([xml], { type: "text/xml" })));
+  return xmlFile;
 }
 
 function lensName(label: string): Lens | null {
@@ -431,12 +431,15 @@ function Labeler({
   const [right, setRight] = useState(60);
   const [bottom, setBottom] = useState(65);
   const [marks, setMarks] = useState<Record<string, Mark[]>>({});
+  const [editing, setEditing] = useState("");
   const [note, setNote] = useState("");
   const pic = pics[index];
+  const picId = pic?.id || "";
   edges.current = { left, top, right, bottom };
 
   useEffect(() => {
     if (!pic) return;
+    setEditing("");
     const stored = readXmlStore()[pictureName(pic)];
     if (!stored) {
       setLeft(40);
@@ -460,12 +463,13 @@ function Labeler({
     setMarks((current) => ({ ...current, [pic.id]: list }));
     const first = list[0];
     if (!first) return;
+    setEditing(first.id);
     setLeft(first.left);
     setTop(first.top);
     setRight(first.right);
     setBottom(first.bottom);
     if (first.name) setLabelName(first.name);
-  }, [pic]);
+  }, [picId]);
 
   function point(event: ReactPointerEvent) {
     const box = stageRef.current?.getBoundingClientRect();
@@ -487,36 +491,48 @@ function Labeler({
     if (drag.current === "b") setBottom(clampPct(Math.max(at.y, edge.top + 1)));
   }
 
-  function addFiles(files: FileList | null) {
+  async function addFiles(files: FileList | null) {
     if (!files?.length) return;
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const url = String(reader.result || "");
-        if (!url) return;
-        setPics((current) => [{ id: `${Date.now()}-${file.name}`, url, name: file.name }, ...current]);
-        setIndex(0);
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function pageSize() {
-    const image = imgRef.current;
-    return { width: image?.naturalWidth || image?.width || 1, height: image?.naturalHeight || image?.height || 1 };
+    const label = classKey(labelName);
+    const names = peekNames(label, files.length);
+    const made = (await Promise.all(Array.from(files).map((file, fileIndex) => fileToPng(file, names[fileIndex])))).filter(
+      (item): item is { name: string; blob: Blob; url: string } => Boolean(item),
+    );
+    if (!made.length) {
+      setNote("Those pictures did not open.");
+      return;
+    }
+    commitNames(label, made.length);
+    if (chosenFolder) {
+      try {
+        await saveNumberedPictures(label, made.map((item) => ({ name: item.name, blob: item.blob })));
+      } catch {
+        /* The pictures still open here if the folder stops. */
+      }
+    }
+    setPics((current) => [
+      ...made.map((item, fileIndex) => ({ id: `${Date.now()}-${fileIndex}`, url: item.url, name: item.name, source: "device" as const })),
+      ...current,
+    ]);
+    setIndex(0);
   }
 
   async function writePicture(fileName: string, list: Mark[]) {
-    const { width, height } = pageSize();
-    const xml = vocXml(fileName, width, height, list);
-    const where = await saveXmlFile(fileName, xml);
-    return where;
+    const image = imgRef.current;
+    const width = image?.naturalWidth || 0;
+    const height = image?.naturalHeight || 0;
+    if (!width || !height) {
+      setNote("The picture is still opening.");
+      return "";
+    }
+    return saveXmlFile(fileName, vocXml(fileName, width, height, list));
   }
 
   async function saveBox() {
     if (!pic) return;
+    const prior = marks[pic.id] || [];
     const mark: Mark = {
-      id: `${Date.now()}`,
+      id: editing || `${Date.now()}`,
       name: labelName.trim() || names[0] || "person",
       left,
       top,
@@ -525,14 +541,19 @@ function Labeler({
       level: 1,
       by: who || "guest",
     };
-    const list = [...(marks[pic.id] || []), mark];
+    const list = editing ? prior.map((item) => (item.id === editing ? mark : item)) : [...prior, mark];
+    if (!editing) setEditing(mark.id);
     setMarks({ ...marks, [pic.id]: list });
     const where = await writePicture(pictureName(pic), list);
-    setNote(`Saved ${where}`);
+    if (where) setNote(`Saved ${where}`);
   }
 
   async function acceptBox(mark: Mark) {
     if (!pic) return;
+    if (mark.level === 2 && mark.reviewer && mark.reviewer !== mark.by) {
+      setNote("This box is already reviewed.");
+      return;
+    }
     if (!who || who === (mark.by || "guest")) {
       setNote("A different person must review this box.");
       return;
@@ -540,10 +561,11 @@ function Labeler({
     const list = (marks[pic.id] || []).map((item) => (item.id === mark.id ? { ...item, level: 2 as const, reviewer: who } : item));
     setMarks({ ...marks, [pic.id]: list });
     const where = await writePicture(pictureName(pic), list);
-    setNote(`Reviewed. ${where}`);
+    if (where) setNote(`Reviewed. ${where}`);
   }
 
   function fixBox(mark: Mark) {
+    setEditing(mark.id);
     setLeft(mark.left);
     setTop(mark.top);
     setRight(mark.right);
@@ -555,9 +577,21 @@ function Labeler({
   async function rejectBox(mark: Mark) {
     if (!pic) return;
     const list = (marks[pic.id] || []).filter((item) => item.id !== mark.id);
+    if (editing === mark.id) setEditing("");
     setMarks({ ...marks, [pic.id]: list });
     const where = await writePicture(pictureName(pic), list);
-    setNote(`Removed. ${where}`);
+    if (where) setNote(`Removed. ${where}`);
+  }
+
+  async function reviewOpen() {
+    if (!pic) return;
+    const list = marks[pic.id] || [];
+    const mark = list.find((item) => item.id === editing) || list.find((item) => item.level !== 2);
+    if (!mark) {
+      setNote(list.length ? "This box is already reviewed." : "Save a box first.");
+      return;
+    }
+    await acceptBox(mark);
   }
 
   function mergeTraining() {
@@ -566,7 +600,7 @@ function Labeler({
       setNote("Save a box first.");
       return;
     }
-    if (pages.some((page) => page.boxes.some((box) => box.level !== 2))) {
+    if (pages.some((page) => page.boxes.some((box) => box.level !== 2 || !box.reviewer || box.reviewer === box.by))) {
       setNote("Level 2 is not finished.");
       return;
     }
@@ -580,13 +614,22 @@ function Labeler({
     setNote("The reviewed pictures are in one training file.");
   }
 
-  async function shareTeam() {
-    const rows = Object.entries(marks).flatMap(([picture, list]) => list.map((item) => ({ picture, ...item })));
-    if (!rows.length) {
-      setNote("Draw a box and save it first.");
+  async function saveFiles() {
+    if (!pic) return;
+    const list = marks[pic.id] || [];
+    if (!list.length) {
+      setNote("Save a box first.");
       return;
     }
-    setNote("These boxes stay on this device.");
+    const image = imgRef.current;
+    const width = image?.naturalWidth || 0;
+    const height = image?.naturalHeight || 0;
+    if (!width || !height) {
+      setNote("The picture is still opening.");
+      return;
+    }
+    const where = await saveXmlFile(pictureName(pic), vocXml(pictureName(pic), width, height, list), true);
+    setNote(`Saved ${where}`);
   }
 
   const boxLeft = Math.min(left, right);
@@ -627,8 +670,25 @@ function Labeler({
             onPointerUp={() => {
               drag.current = null;
             }}
+            onPointerCancel={() => {
+              drag.current = null;
+            }}
           >
             <img ref={imgRef} src={pic.url} alt="" />
+            {(marks[pic.id] || [])
+              .filter((mark) => mark.id !== editing)
+              .map((mark) => (
+                <div
+                  key={mark.id}
+                  className={styles.markOld}
+                  style={{
+                    left: `${Math.min(mark.left, mark.right)}%`,
+                    top: `${Math.min(mark.top, mark.bottom)}%`,
+                    width: `${Math.abs(mark.right - mark.left)}%`,
+                    height: `${Math.abs(mark.bottom - mark.top)}%`,
+                  }}
+                />
+              ))}
             <div className={styles.markBox} style={{ left: `${boxLeft}%`, top: `${boxTop}%`, width: `${boxWidth}%`, height: `${boxHeight}%` }} />
             <button
               type="button"
@@ -686,7 +746,8 @@ function Labeler({
             ))}
           </select>
         </label>
-        <div className={styles.corners}>
+        <details className={styles.corners}>
+          <summary>Box numbers</summary>
           <label>
             Left
             <input type="number" min={0} max={100} value={left} onChange={(event) => setLeft(clampPct(Number(event.target.value)))} />
@@ -703,25 +764,25 @@ function Labeler({
             Bottom
             <input type="number" min={0} max={100} value={bottom} onChange={(event) => setBottom(clampPct(Number(event.target.value)))} />
           </label>
-        </div>
+        </details>
         <div className={styles.labelBar}>
           <button type="button" onClick={saveBox} disabled={!pic}>
             SAVE BOX
           </button>
-          <button type="button" onClick={() => setNote("Use Accept on one box. A different person must review it.")} disabled={!pic}>
+          <button type="button" onClick={() => void reviewOpen()} disabled={!pic}>
             LEVEL 2
           </button>
           <button type="button" onClick={mergeTraining}>
             MERGE
           </button>
-          <button type="button" aria-label="Share with team" onClick={() => void shareTeam()} disabled={!pic}>
-            SHARE
+          <button type="button" onClick={() => void saveFiles()} disabled={!pic}>
+            FILES
           </button>
         </div>
         {note && <p className={styles.muted}>{note}</p>}
         {pic && (marks[pic.id] || []).map((mark) => (
-          <div key={mark.id} className={styles.boxRow}>
-            <span>{mark.level === 2 ? "L2" : "L1"} · {mark.name}</span>
+          <div key={mark.id} className={editing === mark.id ? styles.boxOn : styles.boxRow}>
+            <span>{mark.level === 2 ? "Reviewed" : "Labeled"} · {mark.name}</span>
             <button type="button" onClick={() => void acceptBox(mark)}>Accept</button>
             <button type="button" onClick={() => fixBox(mark)}>Fix</button>
             <button type="button" onClick={() => void rejectBox(mark)}>Reject</button>
@@ -1062,10 +1123,11 @@ export default function SensorFusion() {
       setAnnotate(false);
       return;
     }
+    let saved = "";
     try {
-      const folder = await saveNumberedPictures(label, files);
+      saved = await saveNumberedPictures(label, files);
       commitNames(label, files.length);
-      setShotFolder(folder);
+      setShotFolder(saved);
       setError("");
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
@@ -1080,7 +1142,7 @@ export default function SensorFusion() {
     setSavedNote(true);
     window.localStorage.setItem(
       "sf2525-capture",
-      JSON.stringify({ operator, platform, model, name: label, note, count: next.length, folder: `SensorFusion/${label}` }),
+      JSON.stringify({ operator, platform, model, name: label, note, count: next.length, folder: saved }),
     );
   }
 

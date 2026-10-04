@@ -265,6 +265,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The XML is saved next to the picture. A saved box comes back. A name with & reads back correctly. Level 2 is Accept, Fix, or Reject by a different person. The first box is smaller.",
       commit: "fea6971",
     },
+    {
+      rev: 38,
+      date: "2026-10-04",
+      kind: "release",
+      text: "Nineteen review passes. The picture fits in landscape. A fix updates the same box. Files save once. A review must be a different person. Added pictures use the same names as capture.",
+      commit: "",
+    },
   ],
 };
 

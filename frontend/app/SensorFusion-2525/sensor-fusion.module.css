@@ -920,10 +920,15 @@
 .labelFrame img {
   display: block;
   max-width: 100%;
-  max-height: calc(var(--sf-h, 100dvh) - 420px);
+  max-height: min(62dvh, 640px);
   width: auto;
   height: auto;
   object-fit: contain;
+}
+@media (orientation: landscape) {
+  .labelFrame img {
+    max-height: min(46dvh, 240px);
+  }
 }
 .labelStage {
   position: relative;
@@ -941,6 +946,12 @@
   position: absolute;
   box-sizing: border-box;
   border: 2px solid #0cff00;
+  pointer-events: none;
+}
+.markOld {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px dashed #0cff00;
   pointer-events: none;
 }
 .edge {
@@ -983,7 +994,8 @@
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
-.boxRow {
+.boxRow,
+.boxOn {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -991,7 +1003,13 @@
   margin: 6px 0;
   font-size: 13px;
 }
-.boxRow button {
+.boxOn {
+  outline: 1px solid var(--sf-primary, #0cff00);
+  border-radius: 6px;
+  padding: 0 6px;
+}
+.boxRow button,
+.boxOn button {
   min-height: 32px;
   border: 0;
   background: none;
@@ -1009,6 +1027,10 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
+}
+.corners summary {
+  grid-column: 1 / -1;
+  cursor: pointer;
 }
 .corners input,
 .file input,
