@@ -443,6 +443,27 @@
   min-width: 28px;
   min-height: 28px;
 }
+.edgeBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 8px;
+  border: 1px solid var(--sf-line, #1c3148);
+  border-radius: 8px;
+}
+.edgePick {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.edgePick button {
+  min-height: 36px;
+  border: 1px solid var(--sf-line, #1c3148);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+}
 .guide {
   position: absolute;
   inset: 0;

@@ -95,6 +95,7 @@ function SettingsSheet({
   onClose: () => void;
   onScheme: (next: SchemeId | "custom", hex?: string) => void;
 }) {
+  const [edgeOpen, setEdgeOpen] = useState(true);
   if (!open) return null;
   return (
     <div className={styles.shade} onClick={onClose}>
@@ -105,6 +106,23 @@ function SettingsSheet({
             Close
           </button>
         </div>
+        <button type="button" className={styles.frame} aria-expanded={edgeOpen} onClick={() => setEdgeOpen((open) => !open)}>
+          Sensor Fusion
+        </button>
+        {edgeOpen && (
+          <div className={styles.edgeBox}>
+            <p>EDGE COMPUTE</p>
+            <div className={styles.edgePick} role="group" aria-label="Edge Compute">
+              <button type="button" aria-pressed={!coral} className={!coral ? styles.swatchOn : ""} onClick={() => onCoral(false)}>
+                CPU
+              </button>
+              <button type="button" aria-pressed={coral} className={coral ? styles.swatchOn : ""} onClick={() => onCoral(true)}>
+                Coral
+              </button>
+            </div>
+            <p className={styles.muted}>CPU uses this device. Coral uses the chip. Check ID stays a model.</p>
+          </div>
+        )}
         <p>SESSION COLOR SCHEME</p>
         <p className={styles.muted}>Applies to all participants in this session.</p>
         <div className={styles.swatches}>
@@ -145,11 +163,6 @@ function SettingsSheet({
           Vision • 2525
           <small className={styles.muted}> Humanity’s Coordination Framework</small>
         </button>
-        <p>CORAL</p>
-        <button type="button" role="switch" aria-checked={coral} className={coral ? styles.botOn : styles.bot} onClick={() => onCoral(!coral)}>
-          {coral ? "ON" : "OFF"}
-        </button>
-        <p className={styles.muted}>On uses the Coral chip. Off uses this device. Check ID is a model inside Sensor Fusion.</p>
       </aside>
     </div>
   );
@@ -1263,7 +1276,7 @@ export default function SensorFusion() {
       <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} onCoral={chooseCoral} onClose={() => setSettings(false)} onScheme={chooseScheme} />
       {infoOpen && (
         <button type="button" className={styles.guide} onClick={() => setInfoOpen(false)} aria-label="Close the screen labels">
-          <span>Sensor 1 is the camera. Download, info, the gear (Coral), profile, and full screen are on the top.</span>
+          <span>Sensor 1 is the camera. Download, info, the gear (Edge Compute), profile, and full screen are on the top.</span>
           <span>The bar on the left is the strongest box. Tap the picture to show frames per second.</span>
           <span>% · Labels · the model, including Check ID · Capture Images · Annotate · Upload</span>
           <small>Tap to close</small>

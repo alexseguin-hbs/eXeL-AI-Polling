@@ -195,6 +195,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The info button labels the Sensor Fusion screen that is open: camera, meter, model including Check ID, Capture, Annotate, and Upload. The old tutorial picture is gone.",
       commit: "f59aae1",
     },
+    {
+      rev: 28,
+      date: "2026-10-03",
+      kind: "release",
+      text: "Settings opens with a Sensor Fusion section. Inside it, Edge Compute is CPU or Coral.",
+      commit: "",
+    },
   ],
 };
 
