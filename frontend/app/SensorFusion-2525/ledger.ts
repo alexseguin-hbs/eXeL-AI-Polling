@@ -249,7 +249,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-04",
       kind: "release",
       text: "Alerts are a setting. They start on. A found object shows only while Alerts is on. There is no school-alert mode.",
-      commit: "49e08c6",
+      commit: "4be0652",
     },
   ],
 };
