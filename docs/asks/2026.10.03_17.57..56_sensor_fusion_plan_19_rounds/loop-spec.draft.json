@@ -63,12 +63,17 @@
     ],
     "tierInput": {
       "_new": "0.16",
-      "pi": 320,
-      "edge": 640,
-      "accel": 640,
       "test": "test 40 refuses a loop whose chosen tier's input px gives 'refused' in pixelExtent for any of its classes, unless that class names its covering sensor",
       "status": "claim until checked: the card records each file's input px read from its input tensor (cnn.js:72 shape[1]; sensor_fusion_edge.py:159); tierInput is derived from the card, never typed",
-      "_changed": "0.17: loops.rows carry only 'Chosen tier' (the typed 'Input px' cell is gone; test 40 refuses one); 'HAL tier' renamed 'Allowed tiers'"
+      "_changed": "0.17: loops.rows carry only 'Chosen tier' (the typed 'Input px' cell is gone; test 40 refuses one); 'HAL tier' renamed 'Allowed tiers'",
+      "source": "models.json v2 file entry inputPx (read from the input tensor); never typed",
+      "provisional": {
+        "status": "proposed until a card has a file entry with inputPx",
+        "pi": 320,
+        "edge": 640,
+        "accel": 640
+      },
+      "_changed18": "0.18: typed numbers moved under 'provisional'; test 40 refuses a numeric tierInput once any card has a file entry with inputPx"
     }
   },
   "speedEnvelope": {
@@ -278,7 +283,7 @@
         "peer corridor (waits on decision 23)"
       ]
     },
-    "computeRule": "0.16: runs = strata x 300 per vehicle, not per family: air 8 = 2,400; water 8 = 2,400; mass-droid groundSafety 6 = 1,800; exel-robot groundSafety + groundGoal 10 = 3,000; test 40 recomputes each product",
+    "computeRule": "0.18: derived, never typed: runs = len(strataByFamily list) x runsPerStratum (300). Today: air 10 = 3,000; water 10 = 3,000; mass-droid groundSafety 8 = 2,400; exel-robot groundSafety + groundGoal 12 = 3,600. Test 40 recomputes from the list lengths and never reads a typed total",
     "cardValues": [
       {
         "loop": "Drone-2525",
@@ -336,7 +341,13 @@
         "dockLineUpMaxRangeM": "0.16: lateral error = range x tan(bearing ceiling) must be <= dockLineUpCm; 2 cm / tan(1 deg) gives line-up at most 1.15 m (computed by test 40, never typed)"
       }
     ],
-    "_changed": "0.17: runner-killed and setpoint-stream-lost strata in every family; the same strata run in C5a SITL"
+    "_changed": "0.17: runner-killed and setpoint-stream-lost strata in every family; the same strata run in C5a SITL",
+    "currentOverThrustPass": {
+      "_new": "0.18",
+      "stratum": "water: current at 1.2x the hull's rated station-keeping thrust",
+      "pass": "an alert and a field event are written within H; drift before cut thrust or anchor stays under standOffFraction (water parameter file) of the stand-off and inside the geofence; zero collisions is required only where anchorFitted is true in the water parameter file",
+      "goldens": "test 40: one golden with anchorFitted true, one with false"
+    }
   },
   "cameraValues": {
     "rule": "alerts only; no timing law; Gate 1 refuses a card above a hazard's time-to-alert ceiling; >= 59 scored alerts per p95; false alerts <= 0.1 per camera per hour (about 30 clear hours from >= 30 distinct clips); card max age 90 days",
@@ -411,9 +422,11 @@
     "_new": "0.15",
     "air": [
       "week 1 kit smoke replay: the pinned clip's record stream gives the golden decisions (test 5); citations test and C1 golden vectors green",
+      "week 2 .github/CODEOWNERS and branch protection (owner: contract owner)",
       "week 3 obstacle layer in replay.ts",
       "week 5 Gate 2 in the arena: controller-proven (provisional), needs replay.ts and loop-actions.ts air FlightAxes",
-      "week 6 Gate 1 runs and reports on the seeded classes (tree, vehicle) after an R9 merge; other classes on provisional floors",
+      "week 6 first trained card: the model builder runs recipes/recipe.json on a named region machine on an R9 merge of tree plus COCO car, bus, truck, motorcycle (seedClassMap vehicle) into drone-avoid-01 v1; model files stay unchanged",
+      "week 6 Gate 1 runs and reports on the trained classes (tree, vehicle); other classes on provisional floors",
       "week 10 Gate 1 on the full Drone class list: R9 merge with 300 boxes per class over at least 30 clips",
       "week 11 C5 signed card and gate: loop-ready in the civic simulation (the finish line)",
       "week 12 C5b shadow minutes with zero safety-relevant disagreement",
@@ -426,38 +439,52 @@
     "_changed": "0.17: week 1 is a kit smoke replay (Gate 1 needs 300 boxes per class over 30 clips, so it moves after an R9 merge); air gains C5 and C5b rungs before C5a, so loop-ready is dated; exelRobot ladder and a decision-21 placeholder; test 31 refuses a Gate 1 rung dated before an R9 rung and a ladder whose finish-line status has no rung",
     "water": [
       "week 1 kit smoke replay from kits/water: the pinned clip's record stream gives the golden decisions (test 5)",
+      "week 2 .github/CODEOWNERS and branch protection (owner: contract owner)",
       "week 4 parameter file",
       "week 6 kinematic step",
       "week 8 VEHICLE_MODELS entry",
-      "week 10 Gate 2: controller-proven (provisional), then simulation-loop-ready on a signed card",
-      "week 12 C5a SITL",
-      "week 16 C6 bench: coverReachM measured (p5, n >= 30); branch-protection check green",
-      "week 20 fenced field with a named safety pilot"
+      "week 10 Gate 2 controller-proven (provisional card)",
+      "week 12 first trained card on an R9 merge (model builder), then Gate 1 on its classes",
+      "week 14 C5 signed card: simulation-loop-ready (blocked on decisions 8, 9 until answered)",
+      "week 15 C5b shadow minutes with zero safety-relevant disagreement",
+      "week 16 C5a SITL, including the runner-killed and setpoint-lost strata",
+      "week 18 C6 bench: coverReachM measured (p5, n >= 30); branch-protection check green",
+      "week 22 fenced field with a named safety pilot"
     ],
     "ground": [
       "week 1 kit smoke replay from kits/ground: the pinned clip's record stream gives the golden decisions (test 5)",
+      "week 2 .github/CODEOWNERS and branch protection (owner: contract owner)",
       "week 4 parameter file",
       "week 6 kinematic step",
       "week 8 VEHICLE_MODELS entry",
-      "week 10 Gate 2: controller-proven (provisional), then simulation-loop-ready on a signed card",
+      "week 10 Gate 2 controller-proven (provisional card)",
       "date of decision 21 + 4 weeks: groundGoal strata for mass-droid (placeholder; test 31 prints 'blocked on decision 21')",
-      "week 12 C5a SITL",
-      "week 16 C6 bench: coverReachM measured (p5, n >= 30); branch-protection check green",
-      "week 20 fenced field with a named safety pilot"
+      "week 12 first trained card on an R9 merge (model builder), then Gate 1 on its classes",
+      "week 14 C5 signed card: simulation-loop-ready (blocked on decisions 8, 9 until answered)",
+      "week 15 C5b shadow minutes with zero safety-relevant disagreement",
+      "week 16 C5a SITL, including the runner-killed and setpoint-lost strata",
+      "week 18 C6 bench: coverReachM measured (p5, n >= 30); branch-protection check green",
+      "week 22 fenced field with a named safety pilot"
     ],
     "waterAndGroundOwner": "that region's loop integrator",
     "exelRobot": [
-      "date decision 17 is answered: VEHICLES id and stick set",
+      "date decision 17 is answered: VEHICLES id and stick set (rungs below count from it)",
+      "+1 week kit smoke replay from kits/ground (test 5)",
       "+4 weeks parameter file",
       "+6 weeks kinematic step",
       "+8 weeks VEHICLE_MODELS entry",
       "+10 weeks Gate 2 groundSafety and groundGoal (dock): controller-proven (provisional)",
-      "+12 weeks C5a ROS 2 Jazzy + Nav2 SITL"
+      "+12 weeks first trained card on an R9 merge, then Gate 1",
+      "+14 weeks C5 signed card: simulation-loop-ready (blocked on decisions 8, 9 until answered)",
+      "+15 weeks C5b shadow",
+      "+16 weeks C5a ROS 2 Jazzy + Nav2 SITL"
     ],
     "decisionDefaults": {
       "rule": "decisions 8, 9 and 14 block arm, never simulation; if unanswered at the round-19 hand-off their one-tap defaults apply as 'proposed' and test 31 marks them 'default, unsigned'; card signing still waits on the answer",
       "_new": "0.17"
-    }
+    },
+    "_about": "0.18 (moved from PLAN.md 'Done at build week N'): week 1 the citations test is green at its pin with no test-number gaps, and each region's kit passes a smoke replay (test 5). Gate 1 needs 300 boxes per class over at least 30 clips, so it follows an R9 merge. Every ladder runs in build order: smoke replay, Gate 2 controller-proven, R9 merge, Gate 1, C5 signed card, C5b shadow, C5a SITL, C6 bench, field. Test 31 refuses a rung that needs a later build step, a Gate 1 rung before an R9 rung, a Gate 1 claim for a class no trained card has, a signed or loop-ready rung with no earlier Gate 1 and R9 rung, any break of the C5, C5b, C5a order, and a finish-line status with no rung. It joins decisionDefaults to every C5 rung and prints 'blocked on decisions 8, 9 (default, unsigned)' until answered, and 'blocked on decision N' instead of omitting a robot",
+    "_changed18": "0.18: water, ground and exelRobot copy the air ladder's structure (smoke replay, Gate 2, R9 merge and first trained card, Gate 1, C5, C5b, C5a); air gains week-2 CODEOWNERS and a week-6 first-trained-card rung; every ladder gains the CODEOWNERS rung"
   },
   "failureModes": {
     "_moved": "0.15, the failure-mode table from PLAN.md, cells verbatim (Markdown backticks kept)",
@@ -500,7 +527,7 @@
       },
       {
         "Event": "Independent minimum lost (rangefinder, altitude, depth or geofence source silent)",
-        "Action": "safe action and a human alert; the loop refuses to arm. The safe action never needs the source that was lost: Manta without a position or depth source cannot hold station, so it cuts thrust or anchors, holds depth if it can and alerts"
+        "Action": "safe action and a human alert; the loop refuses to arm. The safe action never needs the source that was lost: Manta without a position or depth source cannot hold station, so it stays surfaced, cuts thrust or anchors and alerts"
       },
       {
         "Event": "Command link unsigned or unauthenticated (MAVLink 2 without message signing, ROS 2 without SROS2)",
@@ -582,6 +609,10 @@
         "Event": "Drift: live `unknown` rate or confidence drop above the card's held-out value by the margin in the spec file",
         "Action": "slow, and log a field event"
       }
-    ]
+    ],
+    "failsafeOrder": {
+      "_new": "0.18",
+      "rule": "per family: the autopilot setpoint-loss timeout trips first, the in-process H then writes the field event, the link-loss failsafe comes last; a C5a golden kills loop_runner and checks this order of events"
+    }
   }
 }

@@ -128,7 +128,8 @@
         "result640": "refused",
         "result320": "refused",
         "note": "refused at every tier: covering sensor required (rangefinder)",
-        "margin640": 0.59
+        "margin640": 0.591,
+        "sizeTruth": "nominal"
       },
       {
         "class": "bird",
@@ -141,7 +142,8 @@
         "result640": "refused",
         "result320": "refused",
         "note": "refused at every tier without a wing speed cap",
-        "margin640": 1.0
+        "margin640": 0.995,
+        "sizeTruth": "nominal"
       },
       {
         "class": "person",
@@ -154,7 +156,8 @@
         "result640": "pass",
         "result320": "refused",
         "note": "a 320 px card cannot carry Drone person: 640 tier or a covering sensor",
-        "margin640": 1.18
+        "margin640": 1.182,
+        "sizeTruth": "nominal"
       },
       {
         "class": "swimmer (head)",
@@ -167,7 +170,8 @@
         "result640": "pass",
         "result320": "refused",
         "note": "a 320 px card cannot carry swimmer: 640 tier or the hull sonar/proximity sensor",
-        "margin640": 1.58
+        "margin640": 1.58,
+        "sizeTruth": "nominal"
       },
       {
         "class": "hull",
@@ -179,7 +183,8 @@
         "minBoxPx": 8,
         "result640": "pass",
         "result320": "pass",
-        "margin640": 19.98
+        "margin640": 19.977,
+        "sizeTruth": "nominal"
       },
       {
         "class": "step (edge height)",
@@ -191,7 +196,8 @@
         "minBoxPx": 8,
         "result640": "pass",
         "result320": "pass",
-        "margin640": 3.11
+        "margin640": 3.114,
+        "sizeTruth": "nominal"
       },
       {
         "class": "person",
@@ -203,7 +209,8 @@
         "minBoxPx": 8,
         "result640": "pass",
         "result320": "pass",
-        "margin640": 7.42
+        "margin640": 7.42,
+        "sizeTruth": "nominal"
       },
       {
         "class": "dock marker",
@@ -215,7 +222,8 @@
         "minBoxPx": 8,
         "result640": "pass",
         "result320": "pass",
-        "margin640": 6.49
+        "margin640": 6.489,
+        "sizeTruth": "nominal"
       },
       {
         "class": "pole",
@@ -225,11 +233,12 @@
         "px640": 9.1,
         "px320": 4.6,
         "minBoxPx": 8,
-        "result640": "pass",
+        "result640": "refused until p5 size truth or a covering sensor (forward rangefinder)",
         "result320": "refused",
         "added": "0.16 (proposed size)",
-        "margin640": 1.03,
-        "note": "nominal 0.3 m passes by margin 1.03, under 1.10; at a p5 size of 0.25 m it gives 7.6 px and is refused, so the row needs measured p5 size truth or a covering sensor (round 17)"
+        "margin640": 1.034,
+        "note": "nominal 0.3 m gives margin 1.034, under 1.10 with no field-of-view or range tolerance; refused until R2 measures a p5 or the forward rangefinder is named as its covering sensor (round 18)",
+        "sizeTruth": "nominal"
       },
       {
         "class": "tree (trunk)",
@@ -239,11 +248,12 @@
         "px640": 9.1,
         "px320": 4.6,
         "minBoxPx": 8,
-        "result640": "pass",
+        "result640": "refused until p5 size truth or a covering sensor (forward rangefinder)",
         "result320": "refused",
         "added": "0.16 (proposed size)",
-        "margin640": 1.03,
-        "note": "nominal 0.3 m passes by margin 1.03, under 1.10; at a p5 size of 0.25 m it gives 7.6 px and is refused, so the row needs measured p5 size truth or a covering sensor (round 17)"
+        "margin640": 1.034,
+        "note": "nominal 0.3 m gives margin 1.034, under 1.10 with no field-of-view or range tolerance; refused until R2 measures a p5 or the forward rangefinder is named as its covering sensor (round 18)",
+        "sizeTruth": "nominal"
       },
       {
         "class": "vehicle",
@@ -256,7 +266,8 @@
         "result640": "pass",
         "result320": "pass",
         "added": "0.16 (proposed size)",
-        "margin640": 6.23
+        "margin640": 6.227,
+        "sizeTruth": "nominal"
       },
       {
         "class": "pier",
@@ -269,7 +280,8 @@
         "result640": "pass",
         "result320": "pass",
         "added": "0.16 (proposed size)",
-        "margin640": 9.99
+        "margin640": 9.989,
+        "sizeTruth": "nominal"
       },
       {
         "class": "buoy",
@@ -282,7 +294,8 @@
         "result640": "pass",
         "result320": "pass",
         "added": "0.16 (proposed size)",
-        "margin640": 3.0
+        "margin640": 3.0,
+        "sizeTruth": "nominal"
       },
       {
         "class": "marine animal",
@@ -295,7 +308,8 @@
         "result640": "pass",
         "result320": "pass",
         "added": "0.16 (proposed size)",
-        "margin640": 4.99
+        "margin640": 4.989,
+        "sizeTruth": "nominal"
       },
       {
         "class": "obstacle",
@@ -308,7 +322,8 @@
         "result640": "pass",
         "result320": "pass",
         "added": "0.16 (proposed size)",
-        "margin640": 6.23
+        "margin640": 6.227,
+        "sizeTruth": "nominal"
       },
       {
         "class": "vehicle",
@@ -321,7 +336,8 @@
         "result640": "pass",
         "result320": "pass",
         "added": "0.16 (proposed size)",
-        "margin640": 37.39
+        "margin640": 37.386,
+        "sizeTruth": "nominal"
       },
       {
         "class": "obstacle",
@@ -334,7 +350,8 @@
         "result640": "pass",
         "result320": "pass",
         "added": "0.16 (proposed size)",
-        "margin640": 9.74
+        "margin640": 9.739,
+        "sizeTruth": "nominal"
       },
       {
         "class": "step (edge height)",
@@ -347,7 +364,8 @@
         "result640": "pass",
         "result320": "pass",
         "added": "0.16 (proposed size)",
-        "margin640": 4.86
+        "margin640": 4.864,
+        "sizeTruth": "nominal"
       },
       {
         "class": "door",
@@ -360,7 +378,8 @@
         "result640": "pass",
         "result320": "pass",
         "added": "0.16 (proposed size)",
-        "margin640": 29.22
+        "margin640": 29.216,
+        "sizeTruth": "nominal"
       },
       {
         "class": "person",
@@ -373,7 +392,8 @@
         "result640": "pass",
         "result320": "pass",
         "added": "0.16 (proposed size)",
-        "margin640": 9.99
+        "margin640": 9.989,
+        "sizeTruth": "nominal"
       },
       {
         "class": "bird",
@@ -387,7 +407,8 @@
         "result320": "pass",
         "note": "quad bird keyed by its own loop row (round 17)",
         "added": "0.17",
-        "margin640": 4.14
+        "margin640": 4.136,
+        "sizeTruth": "nominal"
       },
       {
         "class": "person (child width)",
@@ -401,7 +422,8 @@
         "result320": "refused",
         "note": "refused at every tier: the forward rangefinder or stand-off geofence covers a child, never the camera alone",
         "added": "0.17",
-        "margin640": 0.7
+        "margin640": 0.705,
+        "sizeTruth": "nominal"
       },
       {
         "class": "person (child width)",
@@ -415,7 +437,8 @@
         "result320": "pass",
         "note": "child row for a place that may see minors",
         "added": "0.17",
-        "margin640": 4.45
+        "margin640": 4.455,
+        "sizeTruth": "nominal"
       },
       {
         "class": "person (child width)",
@@ -429,7 +452,23 @@
         "result320": "pass",
         "note": "child row for a place that may see minors",
         "added": "0.17",
-        "margin640": 5.99
+        "margin640": 5.989,
+        "sizeTruth": "nominal"
+      },
+      {
+        "class": "swimmer (child head)",
+        "loop": "Manta-2525",
+        "knownSizeM": 0.15,
+        "rangeM": 8.2,
+        "px640": 8.36,
+        "px320": 4.18,
+        "minBoxPx": 8,
+        "result640": "refused",
+        "result320": "refused",
+        "margin640": 0.95,
+        "sizeTruth": "nominal",
+        "added": "0.18",
+        "note": "refused at every size: the hull sonar or proximity sensor covers a child swimmer, never the camera alone"
       }
     ],
     "test": "test 40 recomputes every px value and result from the parameter files and refuses a row with no minBoxPx or no result per tier; R2 refuses a capture under its class floor for the loop tier named on the card; 0.16: test 40 refuses any class in a loops.rows Classes cell with no pixel row",
@@ -438,12 +477,30 @@
     "sizeRule": "knownSizeM is the class's small end (p5 of R2 size truth per class), not a nominal; until measured the nominal is marked 'provisional'; test 40 recomputes it",
     "marginRule": "margin640 = px640 / (minBoxPx x 1.1); test 40 refuses a pass under 1.10 unless the row states the field-of-view and range tolerance it was computed at",
     "childRule": "every loop whose place may see minors (Drone, MASS-AI, eXeL robot) has a child-width (0.3 m) person row; test 40 refuses a person floor scored only on adult-width rows",
-    "_changed17": "0.17: keyed by class and loop row; quad bird and child-width rows; margin column; small-end size rule"
+    "_changed17": "0.17: keyed by class and loop row; quad bird and child-width rows; margin column; small-end size rule",
+    "_changed18": "0.18: sizeTruth per row ('nominal' or 'p5 measured, n'); test 40 refuses 'nominal' on a class a loop-ready card claims; margins kept to 3 decimals (bird wing 0.995, never 1.0); pole and tree refused until p5 or a covering sensor; Manta child-swimmer row; rows to be keyed by inputW x inputH from the card file entry (focal from width at the declared field of view), never px640/px320 columns, at C1; test 40 refuses a 'pass' under margin 1.10 with no fovToleranceDeg and rangeTolerancePct"
   },
   "firstWeekUsedByRule": "0.16: usedBy is per quota key, a loop id plus an output kind (action, alert, advisory, report); test 40 refuses a quota whose usedBy is not a loops.rows purpose",
   "replayRule": {
     "_new": "0.17",
     "rule": "replay and held-out clips are stored whole at no less than the loop's replayFps (Drone 20, MASS-AI and eXeL robot 8, Manta 4); only training picks are decimated to 4 frames/s; every frame of a full-rate clip with a person, swimmer or child-height frame is blurred, and one unblurred frame refuses the whole clip",
-    "goldens": "R2 test: a 10 fps clip is refused for the air replay set; one unblurred frame in a 20 fps clip refuses the clip"
+    "goldens": "R2 test: a 10 fps clip is refused for the air replay set; one unblurred frame in a 20 fps clip refuses the clip",
+    "codec": {
+      "_new": "0.18",
+      "rule": "name the clip storage codec (lossless or a fixed-decoder codec), bytes per frame and decoder version; storageEstimate uses those bytes; R2 golden: the same clip decoded by the browser and Python runners gives identical frame hashes"
+    }
+  },
+  "seedClassMap": {
+    "_new": "0.18",
+    "vehicle": {
+      "from": "custom01 (models.json:145, the 91-label COCO map, same as demo90)",
+      "labels": [
+        "car",
+        "bus",
+        "truck",
+        "motorcycle"
+      ]
+    },
+    "test": "test 40 refuses a seeded class whose source labels are missing from that model's labels array; each contributor's class page shows the same map (vehicle <- car, bus, truck, motorcycle)"
   }
 }
