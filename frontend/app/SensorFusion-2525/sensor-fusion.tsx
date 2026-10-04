@@ -179,7 +179,7 @@ function SettingsSheet({
 }
 type Step = "login" | "menu" | "work" | "label";
 type Shot = { id: string; url: string; name?: string; source?: "sensor" | "device"; original?: string };
-type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number; level: 1 | 2 };
+type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number; level: 1 | 2; by?: string; reviewer?: string };
 type Edge = "l" | "r" | "t" | "b";
 
 function pictureName(shot: Shot) {
@@ -198,6 +198,10 @@ function escapeXml(value: string) {
     .replace(/"/g, "&" + "quot;");
 }
 
+function unescapeXml(value: string) {
+  return value.replace(/"/g, '"').replace(/>/g, ">").replace(/</g, "<").replace(/&/g, "&");
+}
+
 function vocXml(fileName: string, width: number, height: number, objects: Mark[]) {
   const boxes = objects
     .map((item) => {
@@ -205,8 +209,10 @@ function vocXml(fileName: string, width: number, height: number, objects: Mark[]
       const xmax = Math.round((Math.max(item.left, item.right) / 100) * width);
       const ymin = Math.round((Math.min(item.top, item.bottom) / 100) * height);
       const ymax = Math.round((Math.max(item.top, item.bottom) / 100) * height);
+      const who = item.by ? `\n    <labeledby>${escapeXml(item.by)}</labeledby>` : "";
+      const reviewer = item.reviewer ? `\n    <reviewedby>${escapeXml(item.reviewer)}</reviewedby>` : "";
       return `  <object>
-    <name>${escapeXml(item.name)}</name>
+    <name>${escapeXml(item.name)}</name>${who}${reviewer}
     <level>${item.level}</level>
     <pose>Unspecified</pose>
     <truncated>0</truncated>
@@ -250,23 +256,46 @@ function writeXml(fileName: string, xml: string) {
 }
 
 function readVoc(xml: string) {
-  const file = /<filename>([^<]*)<\/filename>/.exec(xml)?.[1] || "";
+  const text = (value: string) => unescapeXml(value);
+  const file = text(/<filename>([^<]*)<\/filename>/.exec(xml)?.[1] || "");
   const width = Number(/<width>(\d+)<\/width>/.exec(xml)?.[1] || 0);
   const height = Number(/<height>(\d+)<\/height>/.exec(xml)?.[1] || 0);
-  const boxes: { name: string; xmin: number; ymin: number; xmax: number; ymax: number; level: number }[] = [];
+  const boxes: { name: string; xmin: number; ymin: number; xmax: number; ymax: number; level: number; by: string; reviewer: string }[] = [];
   const blocks = xml.match(/<object>[\s\S]*?<\/object>/g) || [];
   for (const chunk of blocks) {
     const num = (tag: string) => Number(new RegExp(`<${tag}>(\\d+)</${tag}>`).exec(chunk)?.[1] || 0);
     boxes.push({
-      name: /<name>([^<]*)<\/name>/.exec(chunk)?.[1] || "",
+      name: text(/<name>([^<]*)<\/name>/.exec(chunk)?.[1] || ""),
       xmin: num("xmin"),
       ymin: num("ymin"),
       xmax: num("xmax"),
       ymax: num("ymax"),
       level: num("level") || 1,
+      by: text(/<labeledby>([^<]*)<\/labeledby>/.exec(chunk)?.[1] || ""),
+      reviewer: text(/<reviewedby>([^<]*)<\/reviewedby>/.exec(chunk)?.[1] || ""),
     });
   }
   return { file, width, height, boxes };
+}
+
+function setFolderOf(fileName: string) {
+  const base = fileName.replace(/\.[^.]+$/, "");
+  return base.replace(/\.\d+$/, "") || "capture";
+}
+
+async function saveXmlFile(fileName: string, xml: string) {
+  writeXml(fileName, xml);
+  const xmlFile = xmlName(fileName);
+  if (!chosenFolder) {
+    downloadBlob(xmlFile, URL.createObjectURL(new Blob([xml], { type: "text/xml" })));
+    return xmlFile;
+  }
+  const setFolder = await chosenFolder.getDirectoryHandle(setFolderOf(fileName), { create: true });
+  const handle = await setFolder.getFileHandle(xmlFile, { create: true });
+  const writable = await handle.createWritable();
+  await writable.write(new Blob([xml], { type: "application/xml" }));
+  await writable.close();
+  return `${chosenFolder.name}/${setFolderOf(fileName)}/${xmlFile}`;
 }
 
 function lensName(label: string): Lens | null {
@@ -382,27 +411,61 @@ function clampPct(value: number) {
 function Labeler({
   shots,
   names,
+  who,
   onBack,
 }: {
   shots: Shot[];
   names: string[];
+  who: string;
   onBack: () => void;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const drag = useRef<Edge | null>(null);
-  const edges = useRef({ left: 20, top: 15, right: 70, bottom: 80 });
+  const edges = useRef({ left: 40, top: 35, right: 60, bottom: 65 });
   const [pics, setPics] = useState<Shot[]>(shots);
   const [index, setIndex] = useState(0);
   const [labelName, setLabelName] = useState(names[0] || "person");
-  const [left, setLeft] = useState(20);
-  const [top, setTop] = useState(15);
-  const [right, setRight] = useState(70);
-  const [bottom, setBottom] = useState(80);
+  const [left, setLeft] = useState(40);
+  const [top, setTop] = useState(35);
+  const [right, setRight] = useState(60);
+  const [bottom, setBottom] = useState(65);
   const [marks, setMarks] = useState<Record<string, Mark[]>>({});
   const [note, setNote] = useState("");
   const pic = pics[index];
   edges.current = { left, top, right, bottom };
+
+  useEffect(() => {
+    if (!pic) return;
+    const stored = readXmlStore()[pictureName(pic)];
+    if (!stored) {
+      setLeft(40);
+      setTop(35);
+      setRight(60);
+      setBottom(65);
+      return;
+    }
+    const page = readVoc(stored);
+    const list: Mark[] = page.boxes.map((box, boxIndex) => ({
+      id: `${pic.id}-${boxIndex}`,
+      name: box.name,
+      left: page.width ? Math.round((box.xmin / page.width) * 100) : 40,
+      top: page.height ? Math.round((box.ymin / page.height) * 100) : 35,
+      right: page.width ? Math.round((box.xmax / page.width) * 100) : 60,
+      bottom: page.height ? Math.round((box.ymax / page.height) * 100) : 65,
+      level: box.level === 2 ? 2 : 1,
+      by: box.by,
+      reviewer: box.reviewer,
+    }));
+    setMarks((current) => ({ ...current, [pic.id]: list }));
+    const first = list[0];
+    if (!first) return;
+    setLeft(first.left);
+    setTop(first.top);
+    setRight(first.right);
+    setBottom(first.bottom);
+    if (first.name) setLabelName(first.name);
+  }, [pic]);
 
   function point(event: ReactPointerEvent) {
     const box = stageRef.current?.getBoundingClientRect();
@@ -438,6 +501,18 @@ function Labeler({
     });
   }
 
+  function pageSize() {
+    const image = imgRef.current;
+    return { width: image?.naturalWidth || image?.width || 1, height: image?.naturalHeight || image?.height || 1 };
+  }
+
+  async function writePicture(fileName: string, list: Mark[]) {
+    const { width, height } = pageSize();
+    const xml = vocXml(fileName, width, height, list);
+    const where = await saveXmlFile(fileName, xml);
+    return where;
+  }
+
   async function saveBox() {
     if (!pic) return;
     const mark: Mark = {
@@ -448,43 +523,51 @@ function Labeler({
       right,
       bottom,
       level: 1,
+      by: who || "guest",
     };
     const list = [...(marks[pic.id] || []), mark];
-    const next = { ...marks, [pic.id]: list };
-    setMarks(next);
-    const fileName = pictureName(pic);
-    const image = imgRef.current;
-    const width = image?.naturalWidth || image?.width || 1;
-    const height = image?.naturalHeight || image?.height || 1;
-    writeXml(fileName, vocXml(fileName, width, height, list));
-    setNote(`Saved ${xmlName(fileName)} on this device.`);
+    setMarks({ ...marks, [pic.id]: list });
+    const where = await writePicture(pictureName(pic), list);
+    setNote(`Saved ${where}`);
   }
 
-  function markLevel2() {
+  async function acceptBox(mark: Mark) {
     if (!pic) return;
-    const list = (marks[pic.id] || []).map((item) => ({ ...item, level: 2 as const }));
-    if (!list.length) {
-      setNote("Save a box before Level 2.");
+    if (!who || who === (mark.by || "guest")) {
+      setNote("A different person must review this box.");
       return;
     }
-    const next = { ...marks, [pic.id]: list };
-    setMarks(next);
-    const fileName = pictureName(pic);
-    const image = imgRef.current;
-    const width = image?.naturalWidth || image?.width || 1;
-    const height = image?.naturalHeight || image?.height || 1;
-    writeXml(fileName, vocXml(fileName, width, height, list));
-    setNote("Level 2 is written in this picture's XML.");
+    const list = (marks[pic.id] || []).map((item) => (item.id === mark.id ? { ...item, level: 2 as const, reviewer: who } : item));
+    setMarks({ ...marks, [pic.id]: list });
+    const where = await writePicture(pictureName(pic), list);
+    setNote(`Reviewed. ${where}`);
+  }
+
+  function fixBox(mark: Mark) {
+    setLeft(mark.left);
+    setTop(mark.top);
+    setRight(mark.right);
+    setBottom(mark.bottom);
+    setLabelName(mark.name);
+    setNote("Move the box, then save it again.");
+  }
+
+  async function rejectBox(mark: Mark) {
+    if (!pic) return;
+    const list = (marks[pic.id] || []).filter((item) => item.id !== mark.id);
+    setMarks({ ...marks, [pic.id]: list });
+    const where = await writePicture(pictureName(pic), list);
+    setNote(`Removed. ${where}`);
   }
 
   function mergeTraining() {
     const pages = Object.values(readXmlStore()).map(readVoc).filter((page) => page.file);
     if (!pages.length) {
-      setNote("Save a box as XML first.");
+      setNote("Save a box first.");
       return;
     }
     if (pages.some((page) => page.boxes.some((box) => box.level !== 2))) {
-      setNote("Level 2 is not finished. JSON is not written.");
+      setNote("Level 2 is not finished.");
       return;
     }
     const images = pages.filter((page) => page.boxes.length);
@@ -494,7 +577,7 @@ function Labeler({
     }
     const body = JSON.stringify({ version: 1, purpose: "training", images }, null, 2);
     downloadBlob("training.json", URL.createObjectURL(new Blob([body], { type: "application/json" })));
-    setNote("Merged the Level 2 XML into training JSON.");
+    setNote("The reviewed pictures are in one training file.");
   }
 
   async function shareTeam() {
@@ -625,7 +708,7 @@ function Labeler({
           <button type="button" onClick={saveBox} disabled={!pic}>
             SAVE BOX
           </button>
-          <button type="button" onClick={markLevel2} disabled={!pic}>
+          <button type="button" onClick={() => setNote("Use Accept on one box. A different person must review it.")} disabled={!pic}>
             LEVEL 2
           </button>
           <button type="button" onClick={mergeTraining}>
@@ -637,9 +720,12 @@ function Labeler({
         </div>
         {note && <p className={styles.muted}>{note}</p>}
         {pic && (marks[pic.id] || []).map((mark) => (
-          <p key={mark.id} className={styles.path}>
-            {mark.level === 2 ? "L2" : "L1"} · {mark.name} · left {mark.left} top {mark.top} right {mark.right} bottom {mark.bottom}
-          </p>
+          <div key={mark.id} className={styles.boxRow}>
+            <span>{mark.level === 2 ? "L2" : "L1"} · {mark.name}</span>
+            <button type="button" onClick={() => void acceptBox(mark)}>Accept</button>
+            <button type="button" onClick={() => fixBox(mark)}>Fix</button>
+            <button type="button" onClick={() => void rejectBox(mark)}>Reject</button>
+          </div>
         ))}
       </div>
       <Foot accent="#00e5ff" />
@@ -1108,7 +1194,7 @@ export default function SensorFusion() {
   }
 
   if (step === "label") {
-    return <Labeler shots={shots} names={(MODELS.find((item) => item.id === model)?.labels || ["person"]).filter((item) => item && item !== "???")} onBack={() => setStep("menu")} />;
+    return <Labeler shots={shots} names={(MODELS.find((item) => item.id === model)?.labels || ["person"]).filter((item) => item && item !== "???")} who={operator} onBack={() => setStep("menu")} />;
   }
 
   if (step === "menu") {

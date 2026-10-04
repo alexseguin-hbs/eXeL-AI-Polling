@@ -983,6 +983,22 @@
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
+.boxRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 6px 0;
+  font-size: 13px;
+}
+.boxRow button {
+  min-height: 32px;
+  border: 0;
+  background: none;
+  color: var(--sf-primary, #0cff00);
+  font-weight: 700;
+  cursor: pointer;
+}
 .fileName {
   margin: 4px 0 8px;
   font-size: 12px;
