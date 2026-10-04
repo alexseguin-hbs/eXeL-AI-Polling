@@ -312,41 +312,34 @@ def main():
     print(f"Folder: {home()}")
     if platform_name() == "android":
         print("A phone can run this file when Python is installed. An iPhone uses the website.")
-    print("1) Sensor Fusion, with Coral")
-    print("2) Sensor Fusion, no Coral")
-    print("3) Stop")
-    print("4) Image labeler")
-    print("5) Check ID, with Coral")
-    print("6) Check ID, no Coral")
-    print("7) Pose")
+    print("1) Sensor Fusion")
+    print("2) Stop")
+    print("3) Image labeler")
+    print("4) Pose")
     print("q) Quit")
+    print("Coral is a switch. Check ID is a model in the list.")
     print("Training: 1 Capture Images, 2 Annotate Images, 3 Upload Images, 4 Develop Models, 5 Download ML Files, 6 Run Live")
     while True:
         choice = input("\nMenu: ").strip().lower()
         if choice in ("q", "x"):
             return
-        if choice == "3":
+        if choice == "2":
             print("Stopped.")
             continue
-        if choice == "7":
+        if choice == "4":
             print("Pose is not designed yet. It does not have the three files.")
             continue
-        if choice in ("1", "2", "4"):
+        if choice in ("1", "3"):
+            coral_on = input("Coral on? y/n: ").strip().lower() in ("y", "yes", "on")
             picked = choose_model()
             if not picked:
                 continue
             _label, folder, _remote = picked
-            if choice == "4":
+            if choice == "3":
                 print("Pictures stay in", os.path.join(home(), "Pictures"))
-            run_camera(folder, coral=(choice == "1"))
+            run_camera(folder, coral=coral_on)
             continue
-        if choice == "5":
-            run_camera("checkid", coral=True)
-            continue
-        if choice == "6":
-            run_camera("checkid", coral=False)
-            continue
-        print("Choose 1 to 7, or q.")
+        print("Choose 1 to 4, or q.")
 
 
 if __name__ == "__main__":

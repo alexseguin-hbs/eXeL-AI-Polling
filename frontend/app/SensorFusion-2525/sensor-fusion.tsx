@@ -13,6 +13,7 @@ import {
   applyTheme,
   detectPlatform,
   explainCamera,
+  runPlan,
   sensorPath,
   type PlatformId,
   type SchemeId,
@@ -81,12 +82,16 @@ function SettingsSheet({
   open,
   scheme,
   customHex,
+  coral,
+  onCoral,
   onClose,
   onScheme,
 }: {
   open: boolean;
   scheme: SchemeId | "custom";
   customHex: string;
+  coral: boolean;
+  onCoral: (on: boolean) => void;
   onClose: () => void;
   onScheme: (next: SchemeId | "custom", hex?: string) => void;
 }) {
@@ -140,6 +145,11 @@ function SettingsSheet({
           Vision • 2525
           <small className={styles.muted}> Humanity’s Coordination Framework</small>
         </button>
+        <p>CORAL</p>
+        <button type="button" role="switch" aria-checked={coral} className={coral ? styles.botOn : styles.bot} onClick={() => onCoral(!coral)}>
+          {coral ? "ON" : "OFF"}
+        </button>
+        <p className={styles.muted}>On uses the Coral chip. Off uses this device. Check ID is a model inside Sensor Fusion.</p>
       </aside>
     </div>
   );
@@ -725,6 +735,10 @@ export default function SensorFusion() {
   }, []);
 
   useEffect(() => {
+    setCoral(window.localStorage.getItem("sf2525-coral") === "1");
+  }, []);
+
+  useEffect(() => {
     const labels = MODELS.find((item) => item.id === model)?.labels || ["person"];
     if (labels[0]) setLabelPick(labels[0]);
   }, [model]);
@@ -789,6 +803,11 @@ export default function SensorFusion() {
       window.localStorage.setItem("sf2525-custom", color);
     }
     paint(next, color);
+  }
+
+  function chooseCoral(on: boolean) {
+    setCoral(on);
+    window.localStorage.setItem("sf2525-coral", on ? "1" : "0");
   }
 
   async function openSensor(nextFacing = facing) {
@@ -945,8 +964,9 @@ export default function SensorFusion() {
       setStep("label");
       return;
     }
-    setCoral(item.coral);
-    if (item.model) setModel(item.model);
+    const plan = runPlan(coral, model);
+    setCoral(plan.coral);
+    setModel(plan.model);
     window.localStorage.setItem("sf2525-host", platform);
     setStep("work");
   }
@@ -1028,7 +1048,7 @@ export default function SensorFusion() {
             <p className={styles.alert}>Pose is not designed yet. It does not have the three files the other models use.</p>
           )}
         </div>
-        <SettingsSheet open={settings} scheme={scheme} customHex={customHex} onClose={() => setSettings(false)} onScheme={chooseScheme} />
+        <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} onCoral={chooseCoral} onClose={() => setSettings(false)} onScheme={chooseScheme} />
         <Foot accent={accent} />
       </main>
     );
@@ -1245,7 +1265,7 @@ export default function SensorFusion() {
           </div>
         </div>
       )}
-      <SettingsSheet open={settings} scheme={scheme} customHex={customHex} onClose={() => setSettings(false)} onScheme={chooseScheme} />
+      <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} onCoral={chooseCoral} onClose={() => setSettings(false)} onScheme={chooseScheme} />
       <Foot accent={accent} />
     </main>
   );

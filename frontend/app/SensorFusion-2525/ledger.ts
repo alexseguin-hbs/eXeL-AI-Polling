@@ -181,6 +181,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "R4a. A guest cannot read or add pictures or labels. A signed-in person can do so only for a project they belong to. A member of one project cannot see another.",
       commit: "0c25475",
     },
+    {
+      rev: 26,
+      date: "2026-10-03",
+      kind: "release",
+      text: "Sensor Fusion is one menu row. Coral is a switch under Settings. Check ID stays a model inside that run, so the old with-Coral and no-Coral rows are gone.",
+      commit: "",
+    },
   ],
 };
 

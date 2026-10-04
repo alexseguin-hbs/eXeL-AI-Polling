@@ -128,13 +128,10 @@ fetch("/sensor-fusion/models.json").then(function (res) { return res.json(); }).
   });
 }).catch(function () {});
 const MENU = [
-  ["1","Sensor Fusion, with Coral", true, "demo90", "work"],
-  ["2","Sensor Fusion, no Coral", false, "demo90", "work"],
-  ["3","Stop", false, "", "stop"],
-  ["4","Image labeler", false, "demo90", "label"],
-  ["5","Check ID, with Coral", true, "checkid", "work"],
-  ["6","Check ID, no Coral", false, "checkid", "work"],
-  ["7","Pose", false, "", "pose"]
+  ["1","Sensor Fusion","work"],
+  ["2","Stop","stop"],
+  ["3","Image labeler","label"],
+  ["4","Pose","pose"]
 ];
 let platform = detect();
 let model = "demo90";
@@ -242,28 +239,28 @@ function showMenu(){
   const opts = PLATFORMS.map(p => '<option value="'+p.id+'"'+(p.id===platform?' selected':'')+'>'+p.label+'</option>').join("");
   const items = MENU.map(item => '<button type="button" data-n="'+item[0]+'" style="display:block;width:100%;text-align:left;margin:6px 0;padding:8px">'+item[0]+'  '+item[1]+'</button>').join("");
   openSheet("Menu",
-    '<label>This device <select id="plat">'+opts+'</select></label>'+items+
+    '<label>This device <select id="plat">'+opts+'</select></label>'+
+    '<label><input id="coralSwitch" type="checkbox"'+(coral?' checked':'')+'> Coral</label>'+items+
     '<p>This file is the screen. It runs on a Raspberry Pi, Ubuntu, a Windows PC, an iPhone, or an Android phone. The model stays in the folder on that device.</p>',
     '<button type="button" id="closeSheet">Close</button>');
   $("plat").onchange = (e) => { platform = e.target.value; paint(); };
+  $("coralSwitch").onchange = (e) => { coral = e.target.checked; };
   $("menuBody").querySelectorAll("button[data-n]").forEach(btn => {
     btn.onclick = () => pick(MENU.find(m => m[0] === btn.getAttribute("data-n")));
   });
   $("closeSheet").onclick = closeSheet;
 }
 function pick(item){
-  if (item[4] === "stop") { closeCam(); closeSheet(); return; }
-  if (item[4] === "pose") {
+  if (item[2] === "stop") { closeCam(); closeSheet(); return; }
+  if (item[2] === "pose") {
     openSheet("Pose", "<p>Pose is not designed yet. It does not have the three files the other models use.</p>", '<button type="button" id="backMenu">Back</button>');
     $("backMenu").onclick = showMenu;
     return;
   }
-  coral = item[2];
-  if (item[3]) model = item[3];
   fillModels();
   closeSheet();
   paint();
-  if (item[4] === "label") { showLabel(); return; }
+  if (item[2] === "label") { showLabel(); return; }
 }
 function showLabel(){
   openSheet("Image labeler",

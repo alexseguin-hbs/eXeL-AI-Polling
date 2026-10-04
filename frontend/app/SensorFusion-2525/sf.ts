@@ -20,7 +20,7 @@ export const PLATFORMS: { id: PlatformId; label: string; detail: string }[] = [
   { id: "ubuntu", label: "Ubuntu", detail: "A shared computer" },
 ];
 
-import catalog from "../../public/sensor-fusion/models.json";
+import catalog from "../../public/sensor-fusion/models.json" with { type: "json" };
 
 type ModelFile = {
   id: string;
@@ -46,17 +46,21 @@ export const MODELS = (catalog.models as ModelFile[]).map((item) => {
 });
 
 export const MENU = [
-  { n: "1", id: "fusion-coral", label: "Sensor Fusion, with Coral", coral: true, model: "demo90", go: "work" as const },
-  { n: "2", id: "fusion-cpu", label: "Sensor Fusion, no Coral", coral: false, model: "demo90", go: "work" as const },
-  { n: "3", id: "stop", label: "Stop", coral: false, model: "", go: "stop" as const },
-  { n: "4", id: "labeler", label: "Image labeler", coral: false, model: "demo90", go: "label" as const },
-  { n: "5", id: "check-coral", label: "Check ID, with Coral", coral: true, model: "checkid", go: "work" as const },
-  { n: "6", id: "check-cpu", label: "Check ID, no Coral", coral: false, model: "checkid", go: "work" as const },
-  { n: "7", id: "pose", label: "Pose", coral: false, model: "", go: "pose" as const },
+  { n: "1", id: "fusion", label: "Sensor Fusion", go: "work" as const },
+  { n: "2", id: "stop", label: "Stop", go: "stop" as const },
+  { n: "3", id: "labeler", label: "Image labeler", go: "label" as const },
+  { n: "4", id: "pose", label: "Pose", go: "pose" as const },
 ];
 
 export function modelFile(coral: boolean) {
   return coral ? "edgetpu.tflite" : "detect.tflite";
+}
+
+/** Coral is a switch. Check ID is a model, not its own menu row. */
+export function runPlan(coralOn: boolean, modelId: string) {
+  const known = MODELS.some((item) => item.id === modelId);
+  const model = known ? modelId : "demo90";
+  return { coral: coralOn, model, file: modelFile(coralOn) };
 }
 
 export const COLORS: { id: SchemeId; label: string; mark: string; swatch: string; bg: string; card: string; primary: string; line: string }[] = [
