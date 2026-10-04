@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.039",
+  "revision": "0.040",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -295,6 +295,14 @@
    "why": "Operator deck r.154 — the QUAL · 40 clock counts real seconds; 10 s between positions (operator 2026-10-04, docs/asks/2026.10.04_03.56..35_drone2525_qual40_exposure_times.md: \"make sure times for multiple targets on qual40 are accurate\"; confirmed \"3-4 seconds per target. fine qual\"). Measured defect in r.153: the frame loop caps each step at 50 ms and rangeTick ran on that step, so below 20 fps the exposure windows, the 3 s gap, the phase gap and the TRAINING · RESET return stretched (5 s → 16.58 s at ~160 ms frames). The range clock now counts wall time (rangeDt, capped 0.25 s per frame so a backgrounded tab cannot skip an engagement); physics keeps its 50 ms step. The phase gap becomes the sourced 10 s (iwtsexplained.com/table-vi; the 2019 Infantry magazine, via search results); exposure values 5/8/12/16 s unchanged. Patch patches/r153_to_r154.py; boot-QA row QUAL_CLOCK_IS_WALL_TIME (178 rows, 177/178 both orientations); drone-range-all-lanes times lane 21 at normal and ~120 ms frames within ±0.35 s (r.153 fails, r.154 passes).",
    "commit": "fc0fddf",
    "shipped": "37035b6"
+  },
+  {
+   "revision": "0.040",
+   "date": "2026-10-04",
+   "kind": "release",
+   "why": "Operator deck r.155 — TARGET · APPROVE · FIRE left of the stick on the turret, centred between the sticks on a drone (operator 2026-10-04, docs/asks/2026.10.04_08.50..02_drone2525_face_left_of_stick_turret.md: \"target approve fire needs to be left of joystick for turret (and centered between two joysticks when operating drone).\"). Measured defect in r.154: the cluster was centred on the screen (left:50%), so on the turret at 390×844 it floated at 656–696 px above a HEAD stick at 716–788 px on the right edge. placeFace() measures #stage, #joyR and #joyL and writes inline left/top: turret — one row, right edge 10 px left of the stick at its height, shrinking gap and pills on narrow screens, never over the stick or off the stage; drone — centred on the midpoint between the sticks at their height (one row if it clears 6 px each side, else two rows). Called from layout(), syncSticks(), applyMode(), boot, fonts.ready and a MutationObserver on #app's class and the sticks' style. In landscape the HUD's unit · SPIRAL / FPS lines step above the face and the stick label when the face covers them, and the toast rises above the face so it never lies on a pill or takes its tap. Boot-QA row FACE_BESIDE_STICK. Patch patches/r154_to_r155.py (11 asserted edits).",
+   "commit": "51547f4",
+   "shipped": "PENDING"
   }
  ],
  "arena": {

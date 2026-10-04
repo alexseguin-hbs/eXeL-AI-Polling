@@ -35,6 +35,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.152 | 2026-09-24 | Claude Code (the full-screen control is an icon) | 368979 | e15cd3993aa378c958b9469831b87f50317ee98b47bdfcc112c11980c9e2eebd | PENDING (Verify Live) | 28e068d9d57b8ee6e2b42a697b95c0d65a0d0f577955895d5a51ff3daf78bb29 |
 | r.153 | 2026-09-26 | Claude Code (the tab reads eXeL Drone-2525) | 368965 | 3c3de52165ea9138569c2901b5f1a9207ed3ab0a3cb0fd103c8c6fee8148b318 | PENDING (Verify Live) | 4e7b234595851c7538ced56f81165efa2c7442777e50ecc19be8bebbe699907e |
 | r.154 | 2026-10-04 | Claude Code (the QUAL · 40 clock counts real seconds) | 370119 | ccb4fe73f3fe09b2fb12a3d3442cdba5569e2ab49f8586b11aaca84f08d7e467 | PENDING (Verify Live) | bd180f511f84e17460ef0c3018277f5a9a3e8ba36df36e53a78920ec3b11e342 |
+| r.155 | 2026-10-04 | Claude Code (TARGET · APPROVE · FIRE beside the stick) | 376178 | 300ceb93683c2ea638f03794ec0a9dfe9d73bc51a84b5b05fe2cf7c465f8a3b4 | PENDING (Verify Live) | d7ac891a9a0821588036445638a81e894274c92f4567f1d7180e7189cff6d0bf |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -704,3 +705,28 @@ the domain JSON carry `shipped`).
   wall step); `QUAL_EXPOSURE_BY_COUNT` now holds `PHASE_GAP_S===10`. `drone-range-all-lanes` times lane 21 with the real frame loop
   at normal frames and with every frame slowed to ~120 ms: first gap and engagement 1 within ±0.35 s — r.153 FAILS it (7.57 s /
   12.53 s), r.154 PASSES (3.10 s / 5.09 s slow; 3.00 s / 5.00 s normal). 178 rows, 177/178 in portrait and landscape.
+
+## r.155 — Claude Code: TARGET · APPROVE · FIRE left of the stick on the turret, centred between the sticks on a drone (2026-10-04)
+Operator (`docs/asks/2026.10.04_08.50..02_drone2525_face_left_of_stick_turret.md`, with his phone screenshot of r.154 on lane 21):
+**"target approve fire needs to be left of joystick for turret (and centered between two joysticks when operating drone)."**
+Notes: `CLAUDE_CODE_NOTES_r155.md`. Patch: `patches/r154_to_r155.py` (8 asserted edits). Artefact commit `51547f4`; shipped in:
+PENDING until Verify Live (the ledger and the domain JSON carry `shipped`).
+- **The defect, measured on the served r.154.** The cluster was centred on the SCREEN (`left:50%; translateX(-50%)`). On the turret
+  at 390×844 it sat at 81–309 × 656–696 px while the HEAD stick sat at 310–382 × 716–788 px on the right edge — above the stick and
+  across the screen from the thumb. On a desk the centre was the window's (614–825 px) while the gap between the sticks ran 72–1068.
+- **The fix.** `placeFace()` measures `#stage`, `#joyR` and (when visible) `#joyL` with `getBoundingClientRect` and writes inline
+  `left`/`top` (transform none), clearing its inline styles first so each call starts from the CSS. TURRET: one row, right edge 10 px
+  left of the stick, vertical centre = the stick's; on narrow screens the gap shrinks to 4 px and then the pill padding/min-width, never
+  over the stick, never off the stage (320 px: 4–232 against a stick at 240). DRONE: centred on the midpoint between L's right edge and
+  R's left edge at the sticks' height — one row if it clears 6 px each side (compact pills before two rows), else two rows, else above
+  the sticks. It runs from `layout()` (resize, orientation, FULL), `syncSticks()`, `applyMode()`, boot, `fonts.ready`, and a
+  MutationObserver on `#app`'s class and the sticks' style — so every path that toggles `.turret`/`.full`/`.desk` re-places it.
+- **What the move must not cover** (found on the r.155 captures before push). In landscape the face now sat on the HUD's right-hand
+  `unit · SPIRAL` / `FPS` canvas lines: `hudStatusY()` steps both above the face and the stick's label only when the face box covers
+  them (portrait is unchanged). The toast (z 41, left 10 px, bottom 92 px) would have lain over TARGET/APPROVE for up to 4.2 s and
+  taken their taps: `placeFace()` raises it above the face and the stick labels (bottom ≥ 92 px, as before).
+- **Measured on r.155** (headless): 390×844 turret 72–300 × 732–772 beside a stick at 310–382 × 716–788; quad 114–276 centred between
+  80 and 310 (off 0 px); 844×390 turret 551–762 × 326–370 beside 772–836 × 316–380; quad 316–527 between 72 and 772; FULL identical.
+- **Gates.** Boot-QA row `FACE_BESIDE_STICK` (turret: face right ≤ stick left − 4, vertical overlap ≥ 60 % of the face, inside the
+  stage; drone: |face centre − gap midpoint| ≤ 4 px, touching neither stick, inside the stage). 179 rows, 178/179 in portrait and
+  landscape (SYNC_DIRECT, red by construction on one device).
