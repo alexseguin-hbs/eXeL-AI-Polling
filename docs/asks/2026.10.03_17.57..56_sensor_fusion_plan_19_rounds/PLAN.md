@@ -1,4 +1,4 @@
-# Sensor Fusion → DETECT → control loops — the plan for Grok (revision 0.10)
+# Sensor Fusion → DETECT → control loops — the plan for Grok (revision 0.11)
 
 > Living plan, revised once per round of the 19-round SSSES · SPIRAL · AsM simulation (see `ASK.md`, `rNN.md`).
 > Goal (operator): create Drone-2525, Manta-2525 and MASS-AI detection quickly as a global team — our models, introduced into control loops.
@@ -17,7 +17,9 @@
 8. Every human who takes over has a recorded drill.
 9. The plan meets its word budget, with the per-region tables generated from data.
 10. The citations test is green at its pin, with no test-number gaps.
-**Answer first** (decisions ranked by the teams each one blocks): 9, then 8, then 14 (17 and 21 next).
+**Answer first** (decisions ranked by the teams each one blocks): 9, then 8, then 14 (17 and 21 next). One-tap defaults:
+9 = the proposed values in Part C (speed table included) · 8 = Drone-2525 collision avoidance in the civic simulation ·
+14 = each region's integrator owns its minimal world now, on the dated C4b ladder.
 > You are Grok. Methods, files and tests for you to build; no code here. Each revision is listed in the history below; 0.00 was the merge of the two sources.
 > Sources: `2026.10.03_17.43..08_sensor_fusion_ask_to_grok_capture_label_projects_v3_FINAL.md` (body, appendix omitted) ·
 `2026.10.03_17.55..31_detect_cable_light_codex_video_for_grok.md`.
@@ -36,6 +38,7 @@
 | 0.08 | 8 | Re-pinned at `026c2ed`: R3 and R9 import the unused `voc.ts`; `37df2c1` a regression, unnamed classes become `unknown`; citations test fails on drift from its pin; quotas 392, 142, 68, dock marker 124, 30 distinct clear clips; alerts off `lib/notify.ts`, local-only first (decision 19), no picture leaves the site, acknowledgement as a field event; camera values, role and week-one row; fall and crowd off (decision 20); MASS-AI safety-only (decision 21); goal speed, geofence and corridor rows; one ground action set; `actuators.json`; shadow (C5b); runtime format; cuts. |
 | 0.09 | 9 | Arbiter returns a `VehicleCommand` per family (air, ground, water); one on-vehicle loop host `edge/loop_runner.py` held to `loop-actions.ts` by golden vectors; `actuators.json` moves to `public/sensor-fusion/`, keyed by autopilot and firmware major, signed links required; Detection record v1.2 pose block, one tracker (`track.ts`), range fusion rule; every loop class names the sensor that covers its misses (Drone wire, ground drop-off); `report` output kind; MASS-AI row and decision 21 match the operator's words; n_eff, percentile event minimums, precision quotas and pilot re-size; per-section spec hashes and a spec version handshake; staff devices pair through the shipped ECDH pairing; takeover drill; blind final approach; Manta loss split by source; per-tier input size; C1 bench named; tests renumbered without gaps; glossary terms; For schools card drafted; Done at round 19 list. |
 | 0.10 | 10 | Frame health splits "clear" from "blind" (record v1.3); pose from the autopilot link; nuisance scored on false confirmed tracks per clear minute (Poisson), per-frame cap and n_eff dropped from Gate 2; speed envelope and worked minimum detection range per vehicle; covering sensor for Drone person and Manta swimmer; arbiter precedence (safety, human, AI pilot or goal) with core-owned command types and a per-family human-over-safety rule; stuck stick; link-lost and peer-corridor rows; report values and staff line; pairing hardened (non-extractable role keys, single-use code with expiry and lockout, Python port with interop vectors); link keys on the vehicle; clip tombstones; `VEHICLE_MODELS` data, replay R-CORE check, synthetic-floor contradiction resolved; test 9 pointer fixed; C1 bench ≥ 299 frames per tier. |
+| 0.11 | 11 | Cut: the 41 tests moved to `TESTS.md`; citations test dated and owned ("will check" until built); one-tap defaults for 9, 8, 14; registry and test 31 read `VEHICLE_MODELS`, dated C4b ladder per region; one precedence table per family, air authority line, false-cliff creep override; nuisance terms aligned (false tracks per clear minute); speed table with worked ranges, wire optics at model input size, wing mode refused below the wire ceiling unmapped; card `burstLen` and `falseTracksPerClearMin`, clip design effect, Gate 2 N per stratum, C6 sim-to-real check; arm-time snapshot, failsafe check, CODEOWNERS, offline root key, live anti-spoofing; four loop cards drafted, non-air loop panel, refusal reasons; `FlightAxes` return, Drone replay reuse, ROS 2 and MAVLink bridges, frame-health floors per sensor with 3 × 3 tiles. |
 
 ## The whole chain in one line (read this first)
 capture (R2) → Level 1 boxes (R3) → Level 2 review (R6) → XML + Light Codex strip (R3, R10) → `<Set>.train.json` (R9) → model folder +
@@ -73,7 +76,7 @@ The R numbers are build steps, not plan revisions (0.NN) and not Sensor Fusion l
 - **Risk alert:** a message to a named staff role: one plain sentence, the reason and a link to the blurred picture. It drives nothing.
 - **Place:** where a model version runs: a robot (by vehicle id), a camera or a computer. The card lists its cleared places.
 - **K-of-N:** a track counts once the object is seen in K of the last N frames.
-- **False-positive rate:** false boxes per clear frame at the card threshold, after track confirmation. It drives nuisance stops.
+- **False-track rate:** false confirmed tracks per clear minute at the card threshold (Gate 2's unit). It drives nuisance stops.
 - **Safe action:** what a vehicle does when it cannot trust what it sees — air: hover (quad) or loiter then transition to quad (wing), then
   land or return; water: hold station; ground: stop. Never "continue". The loop table holds the rule per mode.
 - **p99:** the capture-to-output time 99 of 100 frames beat. **Margin m:** spare time under the max age (proposed 10%), so a fresh box never clears on arrival.
@@ -97,7 +100,7 @@ The R numbers are build steps, not plan revisions (0.NN) and not Sensor Fusion l
 - **Slack:** A − m − p99 − P, the time left over in the timing law. **Stale share:** the fraction of boxes older than A on arrival.
 - **Cool-down:** the quiet time after one alert per hazard track. **Escalation:** the alert goes to a second named person if unacknowledged.
 - **Report:** a third output kind — a sighting or finding sent to a named human. It drives nothing.
-- **n_eff:** the effective number of independent frames when frames in one clip look alike; used only with a stated prior ρ.
+- **n_eff:** a planning prior only (frames that look alike in one clip); Gate 2 never scores it.
 - **Pose:** the vehicle's attitude, gimbal angles and an IMU sample, stamped in the capture's clock domain.
 - **Covering sensor:** the independent sensor that catches what a class's detector misses.
 The citation test checks that every glossary term used in Part C is in this list.
@@ -120,7 +123,10 @@ revision at a time:** commit R1, wait until the live site serves it, then start 
   `frontend/tests/lexicon-coverage.test.mjs:19`. It stays English until the operator says the English is final. No translation fill.
 - A test for a later revision does not enter `test:ci` before that revision ships.
 - **Citations are checked, not trusted.** `frontend/tests/sensor-fusion-plan-citations.test.mjs` (plain Node, script `test:sf-plan-cites`)
-  is **the literal next commit, before any other R or C step**. The same commit adds `test:sf-coral` for the existing coral test; both join
+  is **the literal next commit, before any other R or C step**. **Status at 19cd2ea: not built** (absent from `package.json:10`,
+`:192`). Owner: contract owner. Due: week 1 of the critical path, its pin SHA recorded in the test. Until it exists, every
+"the citations test checks" in this plan means "will check". It also tells **today** citations (code that exists) from **to build**
+citations (a method not yet written) and refuses a citation that points at a comment line as data. The same commit adds `test:sf-coral` for the existing coral test; both join
   `test:ci` beside `test:sf-r4a` (`package.json:10`, `:192`); `test:sf-coral` runs with `node --experimental-strip-types`, since
   the coral test imports `sf.ts` (`sensor-fusion-coral.test.mjs:3`). Each citation is **path + anchor string**; the line number is only a hint.
   It fails if a path is missing, an anchor is absent, a step marked open names a migration that exists, a Part C status or term
@@ -155,7 +161,7 @@ revision at a time:** commit R1, wait until the live site serves it, then start 
 | Names `head.0001.png` that continue | built by `function peekNames` / `function commitNames` (~:267-272) | dot form → `<label>_<NNNN>.png` (R5), with migration |
 | Fixed detection threshold | `cnn.js:104` (`score > 0.5`); also `sensor_fusion_edge.py:176` in both `edge/` and `download/` | per-class thresholds from the model card (Part C) |
 | Invite codes | `lib/drone-2525/si-pod.ts:119` `inviteCode` = seeded hash fed to `randomPodCode`; `admits` `:149` runs in the browser | live codes from crypto bytes + a server check (R4b) |
-| Vehicles | `lib/2525-core/controls.ts:20-21` (`vtol-quadwing`, `manta-99-66`, `manta-mini-66-33`, `ark-sail-33`, `mass-droid`); `:19`: only `turret` and `vtol-quadwing` exist today; `lib/drone-2525/platform.ts:10`; Manta project `lib/pod-projects.ts:86`; `lib/2525-core/MANIFEST.md` | no detection contract; no water or ground world, so Manta and MASS-AI replay is open-loop until one exists (decision 14) |
+| Vehicles | `lib/2525-core/controls.ts:20-21` (`vtol-quadwing`, `manta-99-66`, `manta-mini-66-33`, `ark-sail-33`, `mass-droid`); the comment at `:19` is prose, never a gate; `lib/drone-2525/platform.ts:10`; Manta project `lib/pod-projects.ts:86`; `lib/2525-core/MANIFEST.md` | no detection contract; no water or ground world, so Manta and MASS-AI replay is open-loop until one exists (decision 14) |
 | Compute tiers | `lib/wire-core/hal.ts` `HAL_PROFILES` (pi/edge/accel), `halCnnMs`, `sensorFits`; `tests/drone-hal.test.mjs` | render budgets, not model time; the card carries measured ms (Part C) |
 | Shipped labelmaps | `models.json`: `demo90` (COCO), `thermal01` (`:553`, dog, person), `checkid` (`:541`, four named people), `tree` (`:136`), `deer` (`:109`), `custom01` (`:145`, boat, car, bird), `head` (`:118`), `eyes` (`:127`) | no wire, pole, hull, pier, buoy or step; seed `drone-avoid-01` from `tree`, wildlife from `deer` (R9.5); `checkid`, `head`, `eyes` on the deny list |
 | Model bytes source | `BASE`, a third-party master branch (`cnn.js:8`, `sensor_fusion_edge.py:34`); no browser hash check (`cnn.js:64`, `:67`); Python fetches at `:127`, installs by `os.replace` (`:128`), updates itself from `APP` (`:35`, `:285`) | pinned, hash-listed copies named by the signed card |
@@ -290,9 +296,11 @@ members, the same in two time zones; both pages import one card component; no ca
   refuses a held-out or replay hash. **Held-out size, by power:** the card reports the one-sided 95% exact (Clopper-Pearson) lower bound;
   n is the smallest count where **every n' ≥ n** clears the floor at the assumed true recall with power ≥ 0.8 (decimal proofs as comments
   in `capture-spec.json`). Proposed: 392 for 0.97 at a true 0.99; 142 for 0.90 at 0.96; 68 for 0.85 at 0.95; 124 for 0.95 at 0.99 (dock
-  marker). Every class a loop or camera names has a floor, an assumed true recall and its quota in `capture-spec.json`; the schema refuses
-  a class missing any of the three. A bound under its floor is "not ready". **Nuisance stops come from false positives per clear frame,
-  not precision:** the cap is in the Part C values table, scored on **whole clear replay clips**, never R2's picks. The card also reports
+  marker). **One rule for sizing and scoring:** boxes in one clip are not independent, so each quota is multiplied by the clip design
+  effect 1 + (m − 1)ρ, with m boxes per clip and ρ a stated prior in `capture-spec.json`. At m = 13 and ρ = 0.05 (×1.6) the quotas
+  are 628, 228, 109 and 199, scored with the same clip-cluster bound. Every class a loop or camera names has a floor, an assumed true recall and its quota in `capture-spec.json`; the schema refuses
+  a class missing any of the three. A bound under its floor is "not ready". **Nuisance stops come from false confirmed tracks per clear
+  minute, not precision** (Part C events rule): the cap is in the Part C values table, scored on **whole clear replay clips**, never R2's picks. The card also reports
   recall per class per condition, bearing error and the longest run of missed frames.
   **Blur parity:** person and swimmer recall is measured unblurred with consent or with the runtime's blur; the card says which, and they
   must agree for loop-ready. **One label source:** the `labelmap.txt` bytes (UTF-8, LF) are what every hash covers; `models.json` labels
@@ -306,8 +314,10 @@ members, the same in two time zones; both pages import one card component; no ca
   Out: `<Set>.train.json` + labelmap hash. Back: the three files + a **model card**, a `card` object on the entry in `models.json` v2
   (schema-checked), never a fourth file. It holds: train.json hash; sha256 of the three files; per-class precision, recall and thresholds
   on held-out; `unknown` rate; domain; sensor (rgb, thermal; sonar and depth declared); `tierMs.{pi,edge,accel}` (device, file, runtime
-  format `tflite` or `edgetpu` — a new format is refused until declared, decision 16 — input size, p50, p95, p99, longest delay, a soak of
-  at least 10 minutes under load); `clearedLoops[]`, `clearedPlaces[]`; per-class bearing error. A named member who did not review signs it (decision 7).
+  format from a versioned registry in `loop-spec.json` (`tflite`, also read as `litert`; `edgetpu`; `onnx` declared but refused
+  until decision 16) — input size, p50, p95, p99, longest delay, a soak of
+  at least 10 minutes under load); `clearedLoops[]`, `clearedPlaces[]`; per-class bearing error; **`burstLen`** (per class per condition, two-state model) and
+  **`falseTracksPerClearMin`** (with the clear minutes and distinct clips behind it). Gate 2 and the provisional card read only these two. A named member who did not review signs it (decision 7).
 - **First labelmap per loop (R9.5):** `drone-avoid-01`, `manta-dock-01`, `mass-nav-01`, seeded from shipped classes (bird, boat, person,
   car); new classes (wire, hull, buoy, step) start at zero. **Save set (R7)** carries the XMLs always, the JSON only when current. Page and
   Python merge the same way.
@@ -406,7 +416,8 @@ Methods, files and tests for Grok; no code. **Loops take detections from the on-
 **Build steps (local track; each: done line, test, then wait for LIVE).**
 - **C1 · Contract + spec.** `detect-contract.ts` and `loop-spec.json`, pure. *Done:* golden vectors pass in Node and Python.
   **C1 bench** (owner: contract owner): `cnn.js` and the edge script, capture to output, on one pi and one edge device, over a pinned frame
-  set of at least 299 frames per tier (the p99 event minimum), written to `public/sensor-fusion/bench/c1-bench.json`. Decision 9 values stay "proposed" until that file exists; the citations test checks it.
+  set of at least 299 frames per tier (the p99 event minimum), written to `public/sensor-fusion/bench/c1-bench.json`.
+  Decision 9 values stay "proposed" until that file exists; the citations test will check it.
 - **One on-vehicle loop host.** `public/sensor-fusion/edge/loop_runner.py` (pi and edge tiers, C2 and C6) reads `loop-spec.json` and
   `actuators.json`, takes Detection records from the edge script, and runs a Python port of the arbiter and tracker. It passes the same golden
   vectors as `loop-actions.ts`: a pinned record stream gives identical command sequences in both (test 12). `test:sensor-fusion-py` is the
@@ -423,7 +434,9 @@ Methods, files and tests for Grok; no code. **Loops take detections from the on-
   actuates. Promote it only after the shadow minutes in `loop-spec.json` with zero safety-relevant disagreement. *Test:* no shadow output
   reaches `loop-actions.ts` (source check); its disagreements land in `field-events.jsonl`.
 - **C6 · Bench, then fenced field.** First a hardware-in-the-loop bench: recorded frames feed the real edge script, and the actuator-table
-  output is read, not flown. Then a geofenced trial with a named safety pilot and the independent minimum active. *Done:* the C6 record
+  output is read, not flown. **Sim-to-real check:** the same recorded frames run through the Gate 2 emulator and the real edge script;
+  both miss-burst lengths and false-track rates go to `public/sensor-fusion/bench/c6-bench.json`. A bench burst longer than the card's
+  lapses Gate 2 to controller-proven. Then a geofenced trial with a named safety pilot and the independent minimum active. *Done:* the C6 record
   carries the signed gate hash and the safety pilot's salted member id. Until a vehicle model exists, Manta and MASS-AI stop at C5.
   **Takeover drill:** before arming (Gate 2 and C6), the named human (pilot, boat crew or robot team) performs the takeovers and re-arms set in
   `loop-spec.json` in simulation, each written as a field event. Their measured reaction time is its own term in the actuator table,
@@ -431,7 +444,10 @@ Methods, files and tests for Grok; no code. **Loops take detections from the on-
 - **C4b · Vehicle model per region.** A parameter file and kinematic model for `manta-mini-66-33` and `mass-droid` (later `exel-robot`),
   owned by the region's loop integrator. *Done:* the vehicle is in `VEHICLE_MODELS` (vehicle id → parameter-file path), a data export of `lib/2525-core/controls.ts` with a
   `CONTROLS_SCHEMA` minor bump; the registry, this line and test 31 read that set, never a comment. This is the only path from simulation-loop-ready to
-  loop-ready, so decision 14 gets a date.
+  loop-ready. **Dated ladder per region** (decision 14 default; owner: that region's loop integrator), held in `loop-spec.json` and
+  read by test 31: week 1 controller-proven (provisional) · week 4 parameter file · week 6 kinematic step · week 8 `VEHICLE_MODELS`
+  entry · week 10 simulation-loop-ready. Water (`manta-mini-66-33`) and ground (`mass-droid`) run it in parallel; `exel-robot` follows
+  decision 17.
 - Each C step ships as its own Sensor Fusion ledger revision (`app/SensorFusion-2525/ledger.ts`; it is at rev 33, `:234`, so C steps take rev 34 or later).
 
 ## One loop contract, shared — never three copies
@@ -451,7 +467,11 @@ Methods, files and tests for Grok; no code. **Loops take detections from the on-
   A browser `cnn.js` record has no IMU, so it stays replay-ready only.
   **v1.3** adds a **frame-health** block: Laplacian sharpness, mean luma and occluded fraction. Floors per medium live in `loop-spec.json`,
   reusing the R2 Laplacian floor in `capture-spec.json`. A heartbeat below a floor means **blind**, never clear (mud, spray, a hand, night).
-  R2 tags fouled clips into a Gate 1 "blind" bin, so the floors are set from captured frames.
+  R2 tags fouled clips into a Gate 1 "blind" bin, so the floors are set from captured frames. Floors are keyed by **sensor and medium**
+  (rgb, thermal, IR night). Occluded fraction is computed per tile on a 3 × 3 grid; one blind tile in the swept corridor counts as blind.
+  **Bridges** (in `detect-contract.ts`, versioned, with golden round-trips): record → ROS 2 `vision_msgs/Detection2DArray`, and → MAVLink
+  `OBSTACLE_DISTANCE` (or `_3D`), so a partner's autopilot avoidance becomes one more independent layer without a fork. Geometry kinds
+  are a versioned registry: `frame-box`, `polar`, and `grid` (free space or occupancy) declared but refused until decided.
 - **Spec version handshake.** `loop-spec.json` carries a schema major and minor, and each loop, camera and policy section its own content
   hash. A reader refuses an unknown spec major with the safe action and ignores unknown minor fields, as for the record. Golden vector: a v2
   spec read by a v1 runner gives the safe action.
@@ -498,9 +518,17 @@ Methods, files and tests for Grok; no code. **Loops take detections from the on-
   air carries `FlightInput` (`flight.ts:87`); ground carries speed, turn rate and brake; water carries surge, sway and hold. Each family has
   its own kinematic step and its own `actuators.json` rows; no non-air vehicle ever gets a `FlightInput`. The family types live in
   `lib/2525-core` (a `FlightAxes` type that `FlightInput` satisfies), so no core file imports `@/lib/drone-2525` (source check).
-  **Precedence:** safety layer, then human, then AI crew pilot (`round.tsx:464`, `crew.pilot`) or goal layer; the AI pilot never overrides a
-  human deflection or a safety slow. **Human over safety, per family** (`loop-spec.json`): on ground and water the independent minimum
-  (cliff sensor, bumper, depth) still clamps human input toward a hazard it senses; on air the human has full authority, logged as a field event.
+  **Precedence — one table per family** in `loop-spec.json` (first wins; this replaces earlier wording):
+
+  | Family | Order |
+  |---|---|
+  | Air | human past the dead-band → safety layer → AI crew pilot (`round.tsx:464`, `crew.pilot`) or goal |
+  | Ground, water | independent minimum (cliff sensor, bumper, depth) → human → safety layer → AI crew pilot or goal |
+
+  The AI pilot never overrides a human deflection or a safety slow. In the air the human has full authority; the status line reads
+  "You have full control; the loop is only advising" and a field event is written. On ground and water a clamped stick shows
+  "Stopped: drop-off ahead" (or the sensed hazard). **False cliff recovery (ground):** a press-and-hold creep override moves at creep
+  speed, logs a field event and is refused while the downward range shows a real drop.
   Its dead-band is `DEFAULT_SETS.dead`
   (`lib/2525-core/stick-sets.ts:31`) within `SETS_LIMITS` (`:35`), never a second threshold. `components/drone-2525/round.tsx` (the one
   caller of `useControls`, `:465`) calls it every tick; a deflection past the dead-band wins that tick. Other vehicles get stick sets by
@@ -516,7 +544,20 @@ Methods, files and tests for Grok; no code. **Loops take detections from the on-
 **Your vehicle in one line.** Drone-2525: the air team's drone slows, hovers or lands for wires, trees, people. Manta-2525: the water
 team's boat holds station near hulls, piers and swimmers. MASS-AI: the ground team's robot stops for obstacles and people. eXeL AI robot:
 a second ground robot that also drives to, follows and docks with marked objects. EdTech camera: a school camera that only alerts named staff.
-Each also gets a loop card of at most 8 plain lines on the 390 px project page (what it sees, may do, does when unsure, who takes over), words in `AFTER_FILL`.
+Each also gets a loop card of at most 8 plain lines on the 390 px project page, words English-only in `AFTER_FILL` for the operator to
+approve. Drafts, one line per point (sees · may do · when unsure · takes over · never):
+- **Drone-2525:** It looks for wires, poles, trees, birds, people and vehicles. It may slow, hover, land or return. When unsure, it
+  hovers. The pilot takes over with one stick move. It never marks, approves or fires anything.
+- **Manta-2525:** It looks for hulls, piers, buoys, swimmers and marine animals. It may slow or hold station. When unsure, it holds
+  station. The boat crew takes over at any time. It never marks, approves or fires anything.
+- **MASS-AI:** It looks for obstacles, steps, people and vehicles. It may slow or stop. When unsure, it stops with the brake held. The
+  robot team takes over at any time. It never marks, approves or fires anything.
+- **eXeL AI robot:** It drives to, follows or docks with a marked object a person picked, never a person. It may slow or stop. When
+  unsure, it stops. The robot team takes over at any time. It never marks, approves or fires anything.
+**Non-air screen:** a 390 px loop panel on the project page reads the same record and shows each family's status words from
+`loop-spec.json` ("Robot is driving", "Boat is holding", "You have control") with its re-arm control. **Refused pictures:** the
+contributor's page gives one plain sentence per reason (no consent id, blur failed, class over quota, held-out clash, below the pixel
+extent), words in `AFTER_FILL`.
 
 | Vehicle | Loop purposes | Classes (first set) | Latency budget | Max detection age | HAL tier | Recall floor (proposed) | Safe action | Independent minimum | World | Human role |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -530,9 +571,24 @@ sensor that covers its misses; the schema refuses a class with none. Drone wire 
 areas wire keeps its 0.90 floor; outside them the wire floor is 0.97. Ground step and drop-off are covered by the downward cliff
 sensor; a forward rangefinder never counts for them. Gate 2 adds an unmapped-wire scenario with a burst miss. **Drone person:** a forward rangefinder plus a stand-off geofence; with neither,
 the loop flies at the slow speed the floor allows. **Manta swimmer:** sonar or a proximity sensor, named per hull in `loop-spec.json`.
-**Speed envelope.** Each vehicle parameter file carries cruise, max and creep speed, and each row a worked minimum detection range.
-Optics set a ceiling no floor can fix: a 1 cm wire on a 640 px, 70° camera spans 0.5 px only inside about 9 m. So outside mapped spans
-the Drone's speed is capped until its minimum detection range is under 9 m, and R2's pixel-extent refusal reads the same range.
+**Speed envelope (proposed, decision 9; held in each vehicle parameter file; test 40 refuses a row until it is filled).** Range =
+v × B + stop + v × A_track, with A_track = K-of-N confirm frames × P. The Drone reuses `cruiseMs` (`flight.ts:19`, 17 m/s) and
+`stallSpeedMs` (`flight.ts:39`, 14.4 m/s); no second Drone parameter file.
+
+| Row | Speed used (m/s) | Stop or turn | A_track (K-of-N) | Min detection range |
+|---|---|---|---|---|
+| Drone quad, mapped areas | cruise 8, creep 1 | v² ÷ 2a, a = 4 m/s² (8 m) | 3 of 5 · 150 ms | 10.4 m |
+| Drone quad, unmapped (wire cap) | 3 | 1.1 m | 150 ms | 2.0 m |
+| Drone wing | stall 14.4, cruise 17 | turn radius about 36 m at 30° bank | 150 ms | refused below the wire ceiling outside mapped spans |
+| Manta-2525 | cruise 1.0, creep 0.2 | a = 0.5 m/s² (1.0 m) | 3 of 5 · 750 ms | 2.2 m |
+| MASS-AI | cruise 1.0, creep 0.2 | a = 1.5 m/s² (0.33 m) | 3 of 5 · 375 ms | 1.0 m |
+| eXeL AI robot | cruise 0.8, creep 0.1 | a = 1.5 m/s² (0.21 m) | 3 of 5 · 375 ms | 0.74 m |
+
+**Wire optics, at the model's input size per tier** (never the camera's 640 px). A detector needs at least 2 px of width. A 1 cm wire on
+a 640 px, 70° input (focal about 457 px) gives 2 px only inside about 2.3 m; a 320 px input halves that to 1.1 m. So unmapped wire is
+covered only by mapped spans plus the 3 m/s cap. Wing mode cannot slow below 14.4 m/s, so below the wire ceiling outside mapped spans
+it is refused and the Drone flies in quad mode. `capture-spec.json` holds each class's minimum pixel extent (box width; polyline width
+and length), and R2's refusal reads it.
 **Goal-layer timing (ground robots).** A row gives control rate, tracker lag A_track, max follow speed and dock creep speed. The dock is
 refused when creep speed × (p99 + P) exceeds the 2 cm line-up ceiling.
 The numbers are proposals for decision 9. They live in `loop-spec.json`, not in code. One class
@@ -547,7 +603,7 @@ listed for capture planning only. **Percentile claims need events:** a p95 claim
 ceiling (0.95^59 < 0.05); a p99 claim needs 299. **Precision floors** get a quota of predicted positives, sized like recall (one-sided 95%
 Clopper-Pearson, power 0.8). **Re-size:** if pilot recall on the first 30 clips is under the assumed true value, the quota is recomputed
 from the pilot estimate before capture continues (golden: assumed 0.96, measured 0.93 raises the 142 quota).
-| Loop | Nuisance stops / min | Clear minutes (zero false tracks) | Clear frames (planning) | Min clearance | Person / swimmer stand-off | Bearing ceiling (p95) | Card max age | Other class floors |
+| Loop | False tracks per clear minute (cap) | Clear minutes (zero false tracks) | Clear frames (planning) | Min clearance | Person / swimmer stand-off | Bearing ceiling (p95) | Card max age | Other class floors |
 |---|---|---|---|---|---|---|---|---|
 | Drone-2525 | 0.12 | 25 | 30,000 at 20 fps | 3 m | 10 m | 2° | 90 days | bird 0.90, vehicle 0.90 |
 | Manta-2525 | 0.06 | 50 | 12,000 at 4 fps | 2 m | 5 m | 3° | 90 days | marine animal 0.85 |
@@ -696,7 +752,9 @@ Each contributor's page shows which classes they can help with today and that cl
 - **Gate 1 (model) · Gate 2 (controller) · signed release — loop-ready needs all three.**
   - **R-CORE first.** `lib/2525-core/MANIFEST.md:17` names a Security-2525 replay engine to extract next. Before C3, grep
     `components/security-2525/` (`rcore.ts`, `play-test.ts`, `mission-support.ts`) and extend it into `lib/2525-core/replay`, or record
-    why it cannot serve, with file:line. `replay.ts` below is that module.
+    why it cannot serve, with file:line. Drone-2525 already ships a seeded replay: `ReplayBundle` (`lib/drone-2525/game.ts:108`: seed,
+    modelHash, events) and `replayHash` (`decisions.ts:136`, FNV-1a canonical rows). Gate 2 seeds reuse that shape and hash, so
+    N = 300 seeds replay byte-identically and a failed seed ties back to hard-case capture by one hash. `replay.ts` below is that module.
   - **Gate 1, open-loop.** `lib/sensor-fusion/replay.ts` (new, pure) replays a pinned clip set per domain (R2 shared decoder, frame hashes,
     replay split only) and scores per-class precision, recall per condition, bearing error and capture-to-output p99. Alone = **replay-ready**.
   - **Gate 2, closed-loop.** A **detection emulator** in `replay.ts` projects world obstacles into the camera (card intrinsics), hides what
@@ -707,7 +765,9 @@ Each contributor's page shows which classes they can help with today and that cl
     minimum clearance, the nuisance-stop cap, and time to the safe action ≤ B. The hard-case list is sized from N. **Synthetic frames:**
     `replay.ts` renders labelled obstacle-layer views from the same projection, tagged `synthetic`, never counted in held-out or replay.
   - **Scenario generator** (per loop, in `loop-spec.json`): each seed draws obstacle placement, wire height and sag, approach angle, wind or
-    current, light and burst-miss state from stated ranges. Runs that share one layout are refused as N.
+    current, light and burst-miss state from stated ranges. Runs that share one layout are refused as N. **N per stratum:** unmapped wire with a burst miss, glare,
+    person stand-off, current drift and dock loss each need N ≥ 300 for a 1% claim, or state the weaker bound (30 runs supports only
+    under 10%). The command-link loss, stale peer corridor and stuck-stick rows are drawn as strata too.
   - **Provisional card per loop:** precision, recall, burst length and p99 assumed at the floors, so Gate 2 runs with zero pictures. It
     reaches only controller-proven and is never signed.
 - **Worlds.** Air: the Drone-2525 arena (`lib/drone-2525/arena-model.ts`; `world.ts` is its cache), which holds doors, buildings and tree
@@ -715,7 +775,8 @@ Each contributor's page shows which classes they can help with today and that cl
   and person-avoid markers. The Arena output gains the prisms `lineOfSight` needs (`los.ts:13`, `:39`), kept out of the wire model so the
   arena stamp and `test:drone-arena` stay unchanged. Water and ground: minimal pure 2D worlds in `replay.ts` (current drift; an obstacle
   grid and a dock marker). Fuller worlds are decision 14.
-- **Actions to the vehicle.** `lib/2525-core/loop-actions.ts` (new, pure) turns each air action into a `FlightInput` (`flight.ts:87`):
+- **Actions to the vehicle.** `lib/2525-core/loop-actions.ts` (new, pure) returns the core `FlightAxes` type for each air action, which
+  `FlightInput` (`flight.ts:87`) satisfies; it never imports `FlightInput` (test 15 source check):
   hover = zero input, altitude held, quad mode only; wing mode loiters on a fixed circle, then `toggleMode` (`flight.ts:97`, `:139`) into
   quad; land = `takeoffInput` (`:78`) in reverse; return = heading home, then forward. Water and ground get kinematic steps shaped like
   `stepFlight` (`:135`), fed by their own `VehicleCommand` family. The actuator table is one file, `public/sensor-fusion/actuators.json`,
@@ -725,12 +786,23 @@ Each contributor's page shows which classes they can help with today and that cl
   `MAV_CMD_NAV_RETURN_TO_LAUNCH` are preferred where they exist. ROS 2 is pinned to Jazzy (LTS) with Nav2 `NavigateToPose` and its cancel.
   A required column says how the link is authenticated (MAVLink 2 signing or SROS2). A loop refuses an autopilot whose declared version is
   not in the table. Simulation only until C6; no action id left unmapped.
+- **Arm-time integrity.** At arm, `loop_runner.py` and the browser loop verify `loop-spec.json`, `actuators.json`, the edge script and
+  the card against the signed record, then run only that copy until disarm. A lapse or a new hash applies at the next arm, never
+  mid-mission; fetches from `main` (`sensor_fusion_edge.py:35-36`) are refused while armed. Before arming, the runner reads the
+  autopilot's link-loss failsafe, named per row in `actuators.json` (ArduPilot `FS_GCS_ENABLE`; PX4 `COM_DL_LOSS_T`, `NAV_DLL_ACT`);
+  off, or set to continue, refuses to arm. A new `.github/CODEOWNERS` (today `.github/` holds only workflows) plus branch protection
+  covers `public/sensor-fusion/{loop-spec,actuators,loop-signers}.json`, `loop-signatures.jsonl` and
+  `lib/2525-core/{detect-contract,loop-actions,track}.ts`: the contract owner plus the owner region, signed commits. The operator's
+  root key that signs `loop-signers.json` stays offline, never in CI or a browser; a roster change needs 2 of 3 named holders, and a
+  written recovery path covers a lost root key. **Live anti-spoofing:** a sudden class flip or a box that jumps past the tracker gate
+  gives slow and a field event; R2's patch and glare clips form a Gate 1 "adversarial" bin.
 - **Signed release:** before a live loop loads a model, a named human in the loop-integrator role, never the card's signer, signs the card
   hash, the three file sha256s, the train.json hash and the replay pass. Loop models pin to a signed card, never the main-branch URL
   (`sensor_fusion_edge.py:36`). Anything missing: simulation only. Rollback is one step to the previous signed card.
 - **The gate covers the bytes and the runtime.** Loop models load only from the pinned, hash-listed copy the card names, never `BASE`
   (`cnn.js:8`, `sensor_fusion_edge.py:34`). `fetch()` (`:116-131`) checks each sha256 before `os.replace` (`:128`). The signed record holds
-  the sha256 of `sensor_fusion_edge.py` (`edge/` the source, `download/` byte-identical or refused) and of `loop-spec.json`. `cnn.js` hashes
+  the sha256 of `sensor_fusion_edge.py` (`edge/` the source, `download/` byte-identical or refused) and of `loop-spec.json`. **To build**
+(today `:64`, `:67` fetch by URL with no hash): `cnn.js` hashes
   `labelmap.txt` and `detect.tflite` (`:64`, `:67`) with SubtleCrypto and passes **the same `ArrayBuffer`** to `loadTFLiteModel`, never the
   URL, so nothing is fetched twice. `models.json` v2 stays readable by v1 readers (`sf.ts:23`, `cnn.js:50`, both edge scripts ignore
   `card`); for a loop or a camera place, the edge script refuses a v1 or hash-mismatched cached `home()` copy (`:39-47`), the self-update (`:35`,
@@ -747,8 +819,9 @@ Each contributor's page shows which classes they can help with today and that cl
 - **Deny list as data** in `loop-spec.json`, per place: `checkid`, `head`, `eyes`, and any personal-name, face or eye label. Refused for
   loops and cameras; the display-only demo is unaffected.
 - **Registry status:** each `models.json` v2 entry has an owner region and a status (draft · replay-ready · controller-proven (provisional) ·
-  simulation-loop-ready · loop-ready · retired). The registry refuses `loop-ready` for a vehicle with no model in `controls.ts` (`:19`
-  lists only `turret` and `vtol-quadwing`), so Manta-2525, MASS-AI and the eXeL AI robot stop at simulation-loop-ready. **Card lifetime:**
+  simulation-loop-ready · loop-ready · retired). The registry refuses `loop-ready` for a vehicle absent from the `VEHICLE_MODELS` data export (C4b),
+  never a comment. Golden: `manta-mini-66-33` is in `VEHICLES` but not in `VEHICLE_MODELS`, so it is refused. Manta-2525, MASS-AI and
+  the eXeL AI robot stop at simulation-loop-ready until their ladder reaches week 8. **Card lifetime:**
   loop-ready lapses to replay-ready when **that loop's section** of `loop-spec.json` (plus the shared contract fields), its `actuators.json`
   rows, the edge script or `detect-contract.ts` changes hash, or past the card max age. A new camera hazard never lapses the Drone's card.
   Retiring never deletes a signed card; rollback reads only non-retired cards.
@@ -758,86 +831,8 @@ Each contributor's page shows which classes they can help with today and that cl
   sets:** R9 merges two regions' sets by roster, keeps each clip split, and the card lists the contributing set hashes.
 
 ## Tests (when built)
-In `frontend/tests/sensor-fusion-loop.test.mjs` and `sensor-fusion-loop-replay.test.mjs` (plain Node). Each joins `test:ci` only when
-its revision ships.
-1. Every row holds p99 + P ≤ A − m ≤ B (exact equality and P ≥ A refused); a 121 ms Drone box is cleared; an unmapped tier is refused.
-2. Each failure row gives its action; none gives "continue".
-3. A model with no card, or a mismatched card hash, is refused.
-4. A model too slow for a loop's budget on a tier cannot be selected.
-5. A pinned clip gives the same decisions twice; an injected dropout gives the safe action.
-6. Browser and Python give the same detections at the same per-class thresholds on one pinned frame set, with the same count when one class id is out of range.
-7. No loop action changes a Drone-2525 slot, approval or fire state (extends Part B test 7).
-8. 60 s of black or smeared frames with zero boxes never returns continue; 60 s of healthy empty heartbeats never trips; for every row, 1, 2 and 3 drops at p50 and p99: fewer than k never trip, k always do.
-9. Every safe action belongs to its vehicle's set; `person`/`swimmer` never widen past slow, hover, hold or stop; every action word in Part C
-   prose belongs to its vehicle's set (the citations test scans it).
-10. One changed byte in `edgetpu.tflite` is refused; an unknown contract major gives the safe action; `checkid` is refused.
-11. A takeover overrides any loop action within one tick; one member cannot sign both card and gate.
-12. Golden vectors give the same action in Node and Python.
-13. A v1.1 record acts like v1.0; no capture ms, a future stamp or a skewed domain gives the safe action; a pinned tensor with class id 999
-    gives `unknown` in Node and Python, and the loop gives slow.
-14. Alternating good and bad frames never return "continue"; a 10 fps flicker never beats the dwell; after a takeover or "detector lost"
-    only a human re-arm restarts the loop.
-15. A stick past the dead-band on tick t voids the loop output on tick t (arbiter; keys and analogue sticks; all vehicles); the dead-band
-    is read from `stick-sets.ts` (source check); with `crew.pilot` set to AI a human stick still wins and a loop slow caps the AI; a stick
-    toward a sensed drop-off on `mass-droid` gives stop; no `lib/2525-core` file imports `@/lib/drone-2525`.
-16. At recall 1 the emulator's boxes match the projected obstacles within 1 unit; every `drone-avoid-01` class has an arena object.
-17. Each air action, through `stepFlight` from quad, wing and transition mode, ends inside the budget (wing: "begin loiter" inside B − A);
-    water and ground actions end inside B; no action lacks an actuator mapping.
-18. Bytes and roster: a right-named file with another sha256 is never loaded (one buffer, no second fetch); one changed edge-script byte
-    drops the loop to simulation; a forged entry breaks the chain; a revoked key or unsigned roster fails; a stale cached `models.json` is
-    refused; v1 readers parse v2; edge copies and the `play.html` bundle hash equal; no plain member id under `public/sensor-fusion/`; a
-    camera place refuses the self-update and `BASE`.
-19. One injected takeover adds one hard-case task with its clip hash; an off-domain clip set trips the drift row.
-20. A retired card cannot be selected; its history still replays.
-21. Gate 2: one obstacle hit in N runs fails; a glare burst of K frames, or a miss run longer than H, gives the safe action; synthetic
-    frames never enter held-out or replay, and match the emulator at recall 1.
-22. The arena hash is unchanged by an empty obstacle layer.
-23. Pose, tracker and range: a 20° bank with a level-camera box gives the world bearing; a pose older than m is refused; Node and Python
-    give the same track ids over a pinned 40-frame clip; a 2× range disagreement never returns continue; a record with no pose is
-    replay-ready only; a skewed flight-controller clock without a fresh offset is refused.
-24. A 4-frame camera buffer never reports an age under the real one; a browser with no stamp source is never loop-ready; a clip replays
-    in its own domain and the same records are refused live.
-25. The citations test fails if a later migration re-grants `anon` on 040 or 041, or a step marked open names an existing migration.
-26. Every row has ≥ 5 ms slack; a soak with 2% of boxes over A refuses the row; a Gate 2 row missing N, clearance or cap is refused.
-27. A wire across the loiter circle makes the Drone climb to the ceiling; nothing surfaces or approaches inside a stand-off; stopping
-    distance and turn radius come from the vehicle parameter file.
-28. A foreign domain with a fresh offset inside m is accepted, a stale one is not; a pre-reboot stamp is refused; a polar record and a
-    two-camera disagreement give the golden action; a record with no medium is refused.
-29. Every vehicle id in `controls.ts:20-21` gets a `VehicleCommand` of its own family, and only air gets `FlightInput`; a pinned record
-    stream gives identical command sequences from `loop-actions.ts` and `loop_runner.py`; `actuators.json` in `edge/` and `download/` match
-    byte for byte; an unsigned MAVLink or ROS 2 link refuses to arm; a v2 spec read by a v1 runner gives the safe action; Gate 2 and C6
-    refuse without the takeover drill records; every loop class names a covering sensor, and an unmapped-wire burst miss is a Gate 2 scenario.
-30. A single tap never re-arms; each re-arm and takeover writes a field event with a salted id; 60 s without input after "detector lost"
-    keeps the safe action and repeats "You have control".
-31. `loop-ready` is refused for a vehicle absent from `controls.ts`; C6 needs the signed gate hash and the safety pilot's salted id; every
-    action maps to a protocol action for every family in `actuators.json`; an undeclared autopilot version is refused; golden vectors per family.
-32. With Coral on and a card measured on `detect.tflite`, an armed loop refuses (extends `sensor-fusion-coral.test.mjs`); flipping the
-    switch while armed changes nothing and logs one field event; a failed load never falls back to the other file.
-33. 300 runs on one layout are refused as N; a provisional card can never be signed.
-34. A card lapses to replay-ready when its own `loop-spec.json` section, the edge script or `detect-contract.ts` changes hash, or past its
-    max age; adding a camera hazard leaves the Drone's card loop-ready, and changing a Drone threshold lapses it.
-35. A takeover's hard-case task lands in the named store; no clip from region A's held-out appears in region B's train.
-36. A person or swimmer can never be a goal; a person in the corridor during approach gives stop within one tick; a lost goal, a goal
-    inside a stand-off and two candidates each give stop, never approach; a follow target faster than max speed, outside the geofence or in
-    another robot's corridor gives stop and clears the goal; a dock marker lost at 3 cm docks on odometry, the same loss at 50 cm stops.
-37. A camera-cleared card is refused by a loop; a loop-ready card on a camera only alerts; an unknown place gives no action; the camera
-    path imports nothing from `loop-actions.ts`, writes no `FlightInput` and sends no image bytes to `/api/notify` (source check); no alert route is public.
-38. 100 frames of one spill give one alert; an unacknowledged alert escalates on time; an offline recipient's alert is queued; a
-    failed-blur stub stores nothing; an acknowledgement stops escalation and a second is a no-op; an alert with an image and no consent id is
-    refused; an unpaired device never receives an alert; the eleventh pairing guess and an expired code are refused;
-    reports get the staff line, acknowledgement and escalation; Node and Python pairing derive the same key from one transcript; an unacknowledged smoke alert sounds the local audible alert within its budget.
-39. A camera card listing `checkid`, `head`, `eyes` or a face label is refused; an unconsented school picture blocks the merge and the
-    camera clearance; removing one consented clip lapses every card that used it; retention equals decision 18; fall and crowd ids are refused
-    while decision 20 is open; no camera alert or field event carries a track id older than the cool-down; camera field events and hard
-    cases keep 7 days, and a camera hard case without a consent id never enters R2.
-40. A row missing a Gate 2 or card value, or a class with no floor, is refused; 3 clear clips are refused; a card over its bearing ceiling is not ready; the three class lists match; a camera place
-    missing any value, or a robot alert purpose with no values row, is refused; a smoke clip scored above 10 s, or scored on fewer than
-    59 alerts, is not ready; a p99 claim on fewer than 299 events is refused; measured pilot recall 0.93 against an assumed 0.96 raises the
-    142 quota; every purpose has an output kind (action, alert or report); zero false confirmed tracks pass at 25 Drone clear minutes and
-    fail at 24, pass at 50 Manta minutes and fail at 49; a report purpose with no class list is refused; a row with no speed envelope or
-    covering sensor (Drone person, Manta swimmer) is refused; a `c1-bench.json` under 299 frames per tier is refused.
-41. A provisional card reaches only controller-proven; no signature or roster commit carries a personal email; no file under
-    `public/sensor-fusion/` holds the salt; one member id hashes differently in two projects; signing keys are non-extractable.
+The 41 numbered Part C tests live in `TESTS.md` beside this plan (moved in 0.11 to meet the word budget).
+Grok copies that list into the header of `frontend/tests/sensor-fusion-loop.test.mjs` when C1 ships. Test numbers below point there.
 
 ---
 
