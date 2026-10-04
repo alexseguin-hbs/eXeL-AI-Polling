@@ -214,7 +214,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-03",
       kind: "release",
       text: "Edge Compute sits at the top of Settings. The choices are CPU and CORAL. CPU is the default.",
-      commit: "",
+      commit: "80e6a1c",
     },
   ],
 };
