@@ -279,6 +279,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The next picture is one past the last file in the folder. head_1111.png is followed by head_1112.png. head_3333.png is followed by head_3334.png.",
       commit: "5dd25c8",
     },
+    {
+      rev: 40,
+      date: "2026-10-04",
+      kind: "release",
+      text: "Info opens one still picture with five Demo.90 objects: person, bicycle, car, dog, and traffic light. The tool line stays short. The gear stays in settings.",
+      commit: "",
+    },
   ],
 };
 

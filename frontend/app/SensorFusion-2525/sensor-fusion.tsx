@@ -1604,12 +1604,48 @@ export default function SensorFusion() {
       )}
       <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} alerts={alerts} onCoral={chooseCoral} onAlerts={chooseAlerts} onClose={() => setSettings(false)} onScheme={chooseScheme} />
       {infoOpen && (
-        <button type="button" className={styles.guide} onClick={() => setInfoOpen(false)} aria-label="Close the screen labels">
-          <span>Sensor 1 is the camera. Download, info, the gear (CPU or Coral), profile, and full screen are on the top.</span>
-          <span>The bar on the left is the strongest box. Tap the picture to show frames per second.</span>
-          <span>% · Labels · the model, including Check ID · Capture Images · Annotate · Upload</span>
-          <small>Tap to close</small>
-        </button>
+        <div className={styles.guideShade} onClick={() => setInfoOpen(false)}>
+          <div className={styles.guideCard} role="dialog" aria-label="Toolset" onClick={(event) => event.stopPropagation()}>
+            <div className={styles.still}>
+              <svg viewBox="0 0 320 180" aria-hidden="true">
+                <rect width="320" height="180" fill="#1a2430" />
+                <rect y="108" width="320" height="72" fill="#2a3340" />
+                <rect x="248" y="18" width="16" height="46" rx="2" fill="#111" />
+                <circle cx="256" cy="30" r="4" fill="#d44" />
+                <circle cx="256" cy="41" r="4" fill="#ca0" />
+                <circle cx="256" cy="52" r="4" fill="#3c3" />
+                <rect x="28" y="118" width="78" height="32" rx="6" fill="#3d5a73" />
+                <circle cx="46" cy="150" r="8" fill="#111" />
+                <circle cx="90" cy="150" r="8" fill="#111" />
+                <circle cx="168" cy="78" r="12" fill="#d7c4a3" />
+                <rect x="156" y="90" width="24" height="36" rx="4" fill="#2f6a38" />
+                <circle cx="196" cy="132" r="10" fill="#111" />
+                <circle cx="228" cy="132" r="10" fill="#111" />
+                <path d="M196 132 H228 M206 116 H222 L228 132" stroke="#cfd6dc" strokeWidth="3" fill="none" />
+                <ellipse cx="118" cy="148" rx="16" ry="8" fill="#c4a574" />
+                <circle cx="130" cy="144" r="5" fill="#c4a574" />
+              </svg>
+              {[
+                { name: "person", score: 96, left: 46, top: 28, width: 14, height: 48 },
+                { name: "bicycle", score: 91, left: 58, top: 58, width: 18, height: 28 },
+                { name: "car", score: 88, left: 6, top: 60, width: 28, height: 28 },
+                { name: "dog", score: 84, left: 32, top: 72, width: 14, height: 18 },
+                { name: "traffic light", score: 79, left: 74, top: 6, width: 12, height: 32 },
+              ].map((box) => (
+                <div key={box.name} className={styles.stillBox} style={{ left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%` }}>
+                  <b>
+                    {box.name} {box.score}%
+                  </b>
+                </div>
+              ))}
+            </div>
+            <p className={styles.stillNote}>Demo.90 · 5 objects</p>
+            <p className={styles.toolLine}>Sensor 1 · bar · % · Labels · model · Capture · Annotate · Upload</p>
+            <button type="button" className={styles.ghost} onClick={() => setInfoOpen(false)}>
+              Close
+            </button>
+          </div>
+        </div>
       )}
       <Foot accent={accent} />
     </main>
