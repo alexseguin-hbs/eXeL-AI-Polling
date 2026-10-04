@@ -280,7 +280,7 @@ function readVoc(xml: string) {
 
 function setFolderOf(fileName: string) {
   const base = fileName.replace(/\.[^.]+$/, "");
-  return base.replace(/\.\d+$/, "") || "capture";
+  return base.replace(/[._]\d+$/, "") || "capture";
 }
 
 async function saveXmlFile(fileName: string, xml: string, download = false) {
@@ -319,9 +319,57 @@ function classKey(raw: string) {
   return clean || "picture";
 }
 
-function peekNames(label: string, count: number) {
-  const used = Number(window.localStorage.getItem(`sf2525-seq-${classKey(label)}`) || "0") || 0;
-  return Array.from({ length: count }, (_, index) => `${classKey(label)}.${String(used + index + 1).padStart(4, "0")}.png`);
+function pictureFile(label: string, number: number) {
+  return `${classKey(label)}_${String(number).padStart(4, "0")}.png`;
+}
+
+function highestNumber(label: string, names: string[]) {
+  const key = classKey(label).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`^${key}[_\\.](\\d+)\\.(png|jpe?g|xml)$`, "i");
+  let max = 0;
+  for (const name of names) {
+    const match = pattern.exec(name);
+    if (match) max = Math.max(max, Number(match[1]));
+  }
+  return max;
+}
+
+async function namesIn(folder: Folder) {
+  if (!folder.entries) return [] as string[];
+  const names: string[] = [];
+  for await (const [name, handle] of folder.entries()) {
+    names.push(name);
+    if (handle.kind !== "directory") continue;
+    try {
+      const child = await folder.getDirectoryHandle(name, { create: false });
+      if (!child.entries) continue;
+      for await (const [childName] of child.entries()) names.push(childName);
+    } catch {
+      /* A folder we cannot read does not change the next number. */
+    }
+  }
+  return names;
+}
+
+async function lastUsed(label: string) {
+  const key = `sf2525-seq-${classKey(label)}`;
+  const local = Number(window.localStorage.getItem(key) || "0") || 0;
+  let fromFolder = 0;
+  if (chosenFolder) {
+    try {
+      fromFolder = highestNumber(label, await namesIn(chosenFolder));
+    } catch {
+      fromFolder = 0;
+    }
+  }
+  const used = Math.max(local, fromFolder);
+  if (used !== local) window.localStorage.setItem(key, String(used));
+  return used;
+}
+
+async function peekNames(label: string, count: number) {
+  const used = await lastUsed(label);
+  return Array.from({ length: count }, (_, index) => pictureFile(label, used + index + 1));
 }
 
 function commitNames(label: string, count: number) {
@@ -340,6 +388,7 @@ type Folder = {
   name: string;
   getDirectoryHandle: (name: string, options: { create: boolean }) => Promise<Folder>;
   getFileHandle: (name: string, options: { create: boolean }) => Promise<{ createWritable: () => Promise<Writable> }>;
+  entries?: () => AsyncIterable<[string, { kind?: string }]>;
 };
 
 let chosenFolder: Folder | null = null;
@@ -494,7 +543,7 @@ function Labeler({
   async function addFiles(files: FileList | null) {
     if (!files?.length) return;
     const label = classKey(labelName);
-    const names = peekNames(label, files.length);
+    const names = await peekNames(label, files.length);
     const made = (await Promise.all(Array.from(files).map((file, fileIndex) => fileToPng(file, names[fileIndex])))).filter(
       (item): item is { name: string; blob: Blob; url: string } => Boolean(item),
     );
@@ -833,6 +882,7 @@ export default function SensorFusion() {
   const [savedNote, setSavedNote] = useState(false);
   const [shotFolder, setShotFolder] = useState("");
   const [saveFolder, setSaveFolder] = useState("");
+  const [nextFile, setNextFile] = useState("");
   const [trainStatus, setTrainStatus] = useState("");
   const [cloudSaved, setCloudSaved] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
@@ -921,6 +971,16 @@ export default function SensorFusion() {
     setCoral(window.localStorage.getItem("sf2525-coral") === "1");
     setAlerts(window.localStorage.getItem("sf2525-alerts") !== "0");
   }, []);
+
+  useEffect(() => {
+    let stop = false;
+    void lastUsed(labelPick).then((used) => {
+      if (!stop) setNextFile(pictureFile(labelPick, used + 1));
+    });
+    return () => {
+      stop = true;
+    };
+  }, [labelPick, saveFolder]);
 
   useEffect(() => {
     const labels = MODELS.find((item) => item.id === model)?.labels || ["person"];
@@ -1074,7 +1134,7 @@ export default function SensorFusion() {
     const wait = long ? 500 : 120;
     if (!video || video.readyState < 2) return { shots: [] as Shot[], files: [] as { name: string; blob: Blob }[], label: classKey(labelPick) };
     const label = classKey(labelPick);
-    const names = peekNames(label, howMany);
+    const names = await peekNames(label, howMany);
     const shotsOut: Shot[] = [];
     const files: { name: string; blob: Blob }[] = [];
     for (let i = 0; i < howMany; i += 1) {
@@ -1128,6 +1188,7 @@ export default function SensorFusion() {
       saved = await saveNumberedPictures(label, files);
       commitNames(label, files.length);
       setShotFolder(saved);
+      setNextFile(pictureFile(label, (Number(window.localStorage.getItem(`sf2525-seq-${classKey(label)}`)) || 0) + 1));
       setError("");
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
@@ -1149,7 +1210,7 @@ export default function SensorFusion() {
   async function addFromDevice(list: FileList | null) {
     if (!list?.length) return;
     const label = classKey(labelPick);
-    const names = peekNames(label, list.length);
+    const names = await peekNames(label, list.length);
     const made = (await Promise.all(Array.from(list).map((file, index) => fileToPng(file, names[index])))).filter((item): item is { name: string; blob: Blob; url: string } => Boolean(item));
     if (!made.length) {
       setError("Those pictures did not open.");
@@ -1167,6 +1228,7 @@ export default function SensorFusion() {
       const folder = await saveNumberedPictures(label, files);
       commitNames(label, files.length);
       setShotFolder(folder);
+      setNextFile(pictureFile(label, (Number(window.localStorage.getItem(`sf2525-seq-${classKey(label)}`)) || 0) + 1));
       setError("");
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
@@ -1470,6 +1532,7 @@ export default function SensorFusion() {
                 Choose folder
               </button>
             </div>
+            {nextFile && <p className={styles.muted}>Next picture: {nextFile}</p>}
             <label>
               Label
               <select value={labelPick} onChange={(event) => setLabelPick(event.target.value)}>
