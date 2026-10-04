@@ -1,4 +1,4 @@
-# Sensor Fusion — the plan for Grok (revision 0.21)
+# Sensor Fusion — the plan for Grok (revision 0.22)
 
 > The operator removed control loops from this plan on 2026-10-04.
 > Do not build a loop for Drone-2525, Manta-2525, MASS-AI, or the eXeL AI robot.
@@ -8,7 +8,7 @@
 > Capture, labels, the model files, and the Sensor Fusion page stay.
 > The round records `r01.md`–`r19.md` stay as history. `loop-spec.draft.json`, `SIGNING.md`, and the Part C tests in `TESTS.md` are archive. Do not build a vehicle from them.
 
-**Alerts.** Every alert is enabled: a blocked exit, a spill, smoke or fire, a fall, a crowd, a door open after hours, and a person in the way. None of these is a school alert. An alert tells a person. It does not drive anything.
+**Alerts.** Every alert is enabled: a blocked exit, a spill, smoke or fire, a fall, a crowd, a door open after hours, and a person in the way. None of these is a school alert. An alert tells a person. It does not drive anything. They live behind one Sensor Fusion setting (R11).
 
 **Next, and nothing else first:** wire `frontend/tests/sensor-fusion-coral.test.mjs` as `test:sf-coral` into `test:ci`, beside `test:sf-r4a`.
 
@@ -17,6 +17,7 @@
 2. File names that are never reused.
 3. Capture settings. GPS and EXIF removed. Pictures stay PNG.
 4. Level 1, Level 2, the Light Codex strip beside the picture, then one training file after Level 2.
+5. R11, the Alerts setting.
 
 You are Grok. Methods and files for the page. No control-loop code.
 
@@ -30,6 +31,7 @@ You are Grok. Methods and files for the page. No control-loop code.
 | 0.19 | 19 | Moved signing, crew and registry to `SIGNING.md`, roles to `GLOSSARY.md`. Added: command rate split from frame rate plus a measured jitter bench; detector-lost pass line and frozen-camera stratum; family-keyed `HumanAxes`; `blur-01` card; air rungs for `decelMs2`, `maxBankDeg` and `VEHICLE_MODELS`; exelRobot CODEOWNERS; C5b comparator; status word rule; loop panel off `round.tsx`; `standOffFraction`, `anchorFitted`. |
 | 0.20 | — | Operator: control loops removed from the build plan. Part C is not a build step. Archive files stay as history. |
 | 0.21 | — | Operator: all alerts are on. There is no school-alert mode. A place does not turn an alert off. |
+| 0.22 | — | Operator: alerting is a Sensor Fusion setting. Adds R11: one Alerts switch; on = every alert on; a self-test must pass first; alerts tell a person only. |
 
 ## The chain (read this first)
 capture → Level 1 boxes → Level 2 review → XML and a Light Codex strip beside the picture → one training file after Level 2 → a model folder on the device.
@@ -250,6 +252,35 @@ Python compute the same labelmap hash.
 - The R6 queues read the strips to show each picture's state, who and when; stamps match the pod clock (R8). **The XML wins** a disagreement.
 *Tests:* a PNG strip reads back exactly (16 of 16); through JPEG it never reads verified; an unsupported character is refused; L1 and L2
 appear only after sign-off, by different ids; a stale XML hash is flagged; training pixels are unchanged.
+
+**R11 · Alerts — one Sensor Fusion setting (operator, 2026.10.04_03.38..50 CST).**
+> Operator, verbatim: "Alerting if works should be a SF setting"
+- **One switch in Settings**, "Alerts", under Edge Compute. Remembered on the device as \`sf2525-alerts\` (reads and writes in
+  try/catch). **On means every alert is on:** a blocked exit, a spill, smoke or fire, a fall, a crowd, a door open after hours, a person in
+  the way. There are no categories to pick and no place-based mode.
+- **"If it works" is a self-test.** The switch can only be on after **Test alert** fires a sample end to end on this device: the banner
+  shows, and sound or vibration plays if allowed. The row then reads "Alerts on · tested <YYYY.MM.DD_HH.MM..SS>". If the test fails, the
+  switch stays off with one plain sentence saying why.
+- **When an alert fires:** an alert class from the open model is seen in at least 3 frames in a row, above the existing confidence
+  threshold. Each class alerts at most once per 30 s.
+- **What an alert is:** a banner on this screen, plus sound or vibration if allowed. A local list keeps the time, the class and the %.
+  The picture is kept only if the person turns that on, with faces blurred unless consent is recorded. Nothing leaves the device until
+  decision 1 is answered.
+- **What it never does:** drive, steer or stop anything; mark, approve or fire; name a person. Identity models (\`checkid\`) are never an
+  alert source.
+- New words stay English in \`AFTER_FILL\`.
+
+*Tests:*
+- A pure \`alertDecide(frames, settings, now)\` in \`lib/sensor-fusion/alerts.ts\` gives an alert or none:
+  - it alerts only after 3 frames in a row, and the 30 s cooldown holds per class;
+  - a detection below the threshold never alerts;
+  - with the switch on, every alert class is live, and there is no per-category or per-place filter;
+  - \`checkid\` is refused as a source.
+- Headless at 390 px:
+  - the switch cannot turn on before Test alert passes;
+  - it survives a reload;
+  - Test alert shows the banner;
+  - an alert makes no network request.
 
 ## Tests file and runners
 The test files, runners and the Python CI job are listed in `TESTS.md` (moved in 0.17).

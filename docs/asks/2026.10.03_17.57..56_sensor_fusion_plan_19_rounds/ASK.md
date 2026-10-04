@@ -46,3 +46,11 @@ Effect: revision 0.20 removes every control-loop part (Part C, loop contract and
 bench stages, loop-only decisions and tests, `loop-spec.draft.json`). The plan's scope is now Sensor Fusion capture, labelling, review,
 training hand-off, time, Light Codex, and DETECT detection and display. Addendum 1's robot and camera ask is kept on record only where
 it is not a control loop: cameras alert people and never drive anything. Revisions 0.01–0.19 stay in git history and `r01`–`r19`.
+
+## Addendum 3 (2026.10.04_03.38..50 CST) — alerting becomes a Sensor Fusion setting
+
+> Operator, verbatim (asked whether school-camera alerts were meant to be dropped): "Alerting if works should be a SF setting"
+
+Read together with the operator's revision 0.21 ("Alerts are all on. There is no school-alert mode."): revision 0.22 adds R11, one
+**Alerts** setting in Sensor Fusion Settings. When it is on, every alert is on together. There are no categories and no place-based
+mode. "If works" means a self-test must pass before the setting can be on. Alerts tell a person; they never drive anything.
