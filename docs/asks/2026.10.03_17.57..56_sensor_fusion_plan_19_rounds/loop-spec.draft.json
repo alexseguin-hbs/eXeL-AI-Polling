@@ -25,7 +25,7 @@
         "Max detection age": "420 ms (actuation ≤ 60 ms; heartbeat H = 3P + p50, ≤ 850 ms; dwell 2,000 ms, C 3; slack 28 ms)",
         "HAL tier": "edge",
         "Recall floor (proposed)": "0.85; swimmer 0.97; false tracks per clear minute ≤ the loop's cap",
-        "Safe action": "hold station (surface only for a submerged hull and never within the swimmer stand-off; to confirm for `manta-mini-66-33`)",
+        "Safe action": "hold station; if position is lost, cut thrust (or anchor where fitted); never surface or dive (surfaced-only, changed 0.15)",
         "Independent minimum": "depth + proximity hold",
         "World": "minimal 2D water world with current drift in `replay.ts` — controller gate only",
         "Human role": "remote operator (the hull is unmanned) watches, takes over, stops; drills in simulation until the hull is built (`pod-projects.ts:88`)"
@@ -88,13 +88,15 @@
           "clearanceM": 3,
           "person": 22.0,
           "standOffM": 10
-        }
+        },
+        "coverReachM": null
       },
       {
         "row": "Drone quad, unmapped, below the wire ceiling",
         "speedMs": "refused without a forward rangefinder",
         "aTrackMs": 350,
-        "note": "camera-only wire cover is impossible"
+        "note": "camera-only wire cover is impossible",
+        "coverReachM": null
       },
       {
         "row": "Drone wing",
@@ -111,7 +113,8 @@
         "rangeM": {
           "birdAndVehicleAtCruise": 62.6,
           "atStall": 46.8
-        }
+        },
+        "coverReachM": null
       },
       {
         "row": "Manta-2525 (surface)",
@@ -126,7 +129,8 @@
           "clearanceM": 2,
           "swimmer": 8.2,
           "standOffM": 5
-        }
+        },
+        "coverReachM": null
       },
       {
         "row": "MASS-AI",
@@ -141,7 +145,8 @@
           "clearanceM": 1,
           "person": 3.5,
           "standOffM": 2
-        }
+        },
+        "coverReachM": null
       },
       {
         "row": "eXeL AI robot",
@@ -156,9 +161,11 @@
           "clearanceM": 0.5,
           "person": 2.6,
           "standOffM": 1.5
-        }
+        },
+        "coverReachM": null
       }
-    ]
+    ],
+    "coverReachRule": "0.15: every row gives coverReachM per loop class from the vehicle parameter file (the covering sensor measured reach); test 41 refuses null"
   },
   "humanRole": {
     "_new": "0.14",
@@ -176,7 +183,9 @@
         "role": "collision backup at creep",
         "armRule": "drill p95 under the stand-off time, else the speed cap is solved down from the drill"
       }
-    }
+    },
+    "minTakeoversPerHuman": 59,
+    "drillSpeedCap": "0.15: v_cap is the positive root of reach = v(B + A_track + t_drill_p95) + v^2/(2a) + clearance, solved per row from coverReachM"
   },
   "gate2": {
     "runsPerStratum": 300,
@@ -203,13 +212,18 @@
         "drop-off",
         "person stand-off",
         "link loss",
-        "stuck stick"
+        "stuck stick",
+        "GNSS drift (geofence is the independent minimum)",
+        "blind or night frame health",
+        "goal lost",
+        "two goal candidates",
+        "follow leaving the geofence"
       ],
       "groundLater": [
         "peer corridor (waits on decision 23)"
       ]
     },
-    "computeRule": "runs = strata x 300 per family (air 2,100; water 1,800; ground 1,500); test 40 checks the product",
+    "computeRule": "runs = strata x 300 per family (air 7 = 2,100; water 6 = 1,800; ground 10 = 3,000, changed 0.15); test 40 checks the product",
     "cardValues": [
       {
         "loop": "Drone-2525",
@@ -333,6 +347,146 @@
       "next": "R9 merge",
       "shadowMinutesBeforePromotion": "C5b value per loop"
     },
-    "test": "test 31 reports 'late' when the trigger has passed with no new card"
+    "test": "test 31 reports 'late' when the trigger has passed with no new card",
+    "dependencyEndOfLife": "0.15: when a contract.json dependency (ROS 2 distro, firmware major, LiteRT, base-model digest) is within 90 days of end of life, open a re-certification task; test 31 reports late"
+  },
+  "ladders": {
+    "_new": "0.15",
+    "air": [
+      "week 1 controller-proven (provisional) from kits/air",
+      "week 3 obstacle layer in replay.ts",
+      "week 5 Gate 2 in the arena",
+      "week 8 C5a Copter SITL",
+      "week 12 C6 bench",
+      "week 16 fenced field with a named safety pilot"
+    ],
+    "airOwner": "air loop integrator",
+    "waterAndGround": "C4b ladder in PLAN.md",
+    "test": "test 31 reads each rung and reports late, never failed"
+  },
+  "failureModes": {
+    "_moved": "0.15, the failure-mode table from PLAN.md, cells verbatim (Markdown backticks kept)",
+    "rows": [
+      {
+        "Event": "Box older than the loop's max age A (e.g. 121 ms at Drone-2525)",
+        "Action": "the box is cleared; with no fresh heartbeat, slow"
+      },
+      {
+        "Event": "Capture stamp missing, in the future, or from another clock domain",
+        "Action": "safe action"
+      },
+      {
+        "Event": "Band or payload does not verify",
+        "Action": "safe action"
+      },
+      {
+        "Event": "Verified heartbeat with zero objects and frame health above every floor",
+        "Action": "continue as clear — this is not a failure"
+      },
+      {
+        "Event": "Heartbeat with zero objects and frame health below a floor (fouled, dark, covered lens)",
+        "Action": "treated as \"detector lost\": safe action, never continue"
+      },
+      {
+        "Event": "Command or telemetry link lost (RC, MAVLink or ROS 2 heartbeat) longer than the timeout in `actuators.json`",
+        "Action": "the autopilot's own failsafe; the loop never commands continue. The status line names it (\"Link lost: returning home\" or \"Link lost: holding\"), read from the arm-time failsafe check and written as a field event; words in `AFTER_FILL`"
+      },
+      {
+        "Event": "Stick held past the dead-band, unchanged, for T s (`loop-spec.json`)",
+        "Action": "flagged as stuck or drifting; the shipped stick calibration runs again; never a silent permanent takeover"
+      },
+      {
+        "Event": "No verified heartbeat for longer than H = kP + p50 (Drone ≤ 200 ms, Manta ≤ 850 ms, MASS-AI ≤ 450 ms at the p99 ceiling)",
+        "Action": "safe action; control goes to the named human (\"detector lost\"). With no human input, the safe action holds indefinitely and the screen and an alert repeat \"You have control\" until a stick moves or someone presses stop; the loop never re-arms itself"
+      },
+      {
+        "Event": "Unknown or under-floor object in the loop's path",
+        "Action": "slow, then safe action"
+      },
+      {
+        "Event": "Independent minimum lost (rangefinder, altitude, depth or geofence source silent)",
+        "Action": "safe action and a human alert; the loop refuses to arm. The safe action never needs the source that was lost: Manta without a position or depth source cannot hold station, so it cuts thrust or anchors, holds depth if it can and alerts"
+      },
+      {
+        "Event": "Command link unsigned or unauthenticated (MAVLink 2 without message signing, ROS 2 without SROS2)",
+        "Action": "safe action; the loop refuses to arm"
+      },
+      {
+        "Event": "Dock marker lost inside the blind final approach distance (`loop-spec.json`, per vehicle)",
+        "Action": "finish on odometry at creep speed with bumper and rangefinder active; any contact or range breach gives stop"
+      },
+      {
+        "Event": "Loop process stalled (no output for one budget B)",
+        "Action": "a watchdog in `loop-actions.ts` gives the safe action and writes a field event"
+      },
+      {
+        "Event": "Model id, labelmap hash or any file sha256 differs from the signed card, or the model is not cleared for this loop",
+        "Action": "safe action; the loop refuses the model and runs only in simulation"
+      },
+      {
+        "Event": "Identity or body-part model (`checkid`, `head`, `eyes`, named-person labels — the deny list)",
+        "Action": "refused for any loop, never loaded"
+      },
+      {
+        "Event": "Missed object (false negative) — not detectable live",
+        "Action": "covered by the independent minimum; an avoid-only class under its floor on replay blocks loop-ready"
+      },
+      {
+        "Event": "Spoofing on replay (printed patch, glare flash, band from another session)",
+        "Action": "safe action, never continue"
+      },
+      {
+        "Event": "Leaving a safe action",
+        "Action": "only after the dwell and C clear verified heartbeats; after \"detector lost\" or \"model refused\", only on a human re-arm"
+      },
+      {
+        "Event": "Goal target lost or hidden longer than H, outside the blind final approach",
+        "Action": "stop, brake held; the goal clears until a named human picks again"
+      },
+      {
+        "Event": "Goal target inside any person stand-off, or two goal candidates above threshold",
+        "Action": "stop; the named human chooses (the model never picks a goal)"
+      },
+      {
+        "Event": "Stored picture whose face blur fails",
+        "Action": "nothing is stored"
+      },
+      {
+        "Event": "Alert recipient offline",
+        "Action": "the alert is queued on the camera computer and repeated, never dropped"
+      },
+      {
+        "Event": "Follow target faster than the robot's max speed, leaving the geofence, or entering another robot's corridor",
+        "Action": "stop, brake held; the goal clears"
+      },
+      {
+        "Event": "Peer corridor (later, decision 23 — robot-to-robot pairing is not defined, so no robot trusts another's corridor yet; when defined it reuses the ECDH, HKDF and AES-GCM pairing steps with a robot role key, a stamped message and an interop vector in test 38)",
+        "Action": "until then every shared area counts as occupied: slow; a corridor message that fails authentication always counts as occupied, never clear"
+      },
+      {
+        "Event": "GNSS or EKF innovation over the bound, or a position jump (spoofing or drift)",
+        "Action": "the safe action and a field event; mapped spans and stand-off geofences are not trusted until the bound recovers"
+      },
+      {
+        "Event": "Report with no retention class",
+        "Action": "refused; search-and-rescue and wildlife reports take decision 18's 7 days where the place sees minors, else decision 15's; the picture link opens only on a paired device"
+      },
+      {
+        "Event": "Report recipient offline or unacknowledged",
+        "Action": "queued and escalated like an alert, never dropped"
+      },
+      {
+        "Event": "Current over the hull's rated station-keeping thrust (parameter file), seen as growing position-hold error",
+        "Action": "anchor or cut thrust, alert the remote operator, write a field event; never continue"
+      },
+      {
+        "Event": "Unknown place kind",
+        "Action": "no action; alert only"
+      },
+      {
+        "Event": "Drift: live `unknown` rate or confidence drop above the card's held-out value by the margin in `loop-spec.json`",
+        "Action": "slow, and log a field event"
+      }
+    ]
   }
 }
