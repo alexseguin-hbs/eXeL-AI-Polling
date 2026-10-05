@@ -218,3 +218,13 @@ timed against the all-human best — a measured comparison of HI-only vs AI-mark
 
 Reading: the R key does exactly what the RELOAD button does (magReload — refused when the magazine is full, a fifth QUAL magazine refused on the
 record), and like T / Space / F it reaches the game even when a button or picker holds focus.
+
+## Addendum 18 — T-numbers in marking order; approve and fire by number; voice words (operator 2026-10-05, verbatim)
+
+> Let me know when you figure out best option for voice to text of specific words to enable during speech (Target, Approve, Fire)
+>
+> As well, we need T1, T2, T3 as order of targets gets labeled.  So I can Approve T3 and Fire T3, or Approve T1, Approve T3 and Fire 1
+
+Reading (r.163, after r.162 is LIVE): T-numbers count up in the order targets are marked (T1 first) and restart at T1 on RESTART; "approve N" approves
+TN wherever it is; "fire N" turns the head onto TN and fires it only if it is red — keys and voice alike. Voice: research the best way to recognise
+exactly TARGET / APPROVE / FIRE (Web Speech API vs an on-device keyword model) and report before building.
