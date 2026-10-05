@@ -976,9 +976,7 @@ export default function SensorFusion() {
     setCustomHex(savedHex);
     setScheme(nextScheme);
     paint(nextScheme, savedHex);
-    const savedHost = window.localStorage.getItem("sf2525-host") as PlatformId | null;
-    const known = PLATFORMS.some((item) => item.id === savedHost);
-    const host = known && savedHost ? savedHost : detectPlatform(navigator.userAgent);
+    const host = detectPlatform(navigator.userAgent);
     setPlatform(host);
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sf-offline-sw.js").catch(() => undefined);
@@ -1590,6 +1588,7 @@ export default function SensorFusion() {
         </header>
         <div className={styles.fill}>
           <h1>This device</h1>
+          <p className={styles.muted}>Found {PLATFORMS.find((item) => item.id === platform)?.label}. Tap another only if that is wrong.</p>
           <div className={styles.picks}>
             {PLATFORMS.map((item) => (
               <button

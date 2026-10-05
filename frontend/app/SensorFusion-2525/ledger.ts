@@ -377,6 +377,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The opening menu is this device, then Sensor Fusion, Stop, and Pose. Annotate stays on the camera screen. A label is a name you type. Capture shows the camera only, with no boxes. The picture fills the annotate screen.",
       commit: "2ad2183",
     },
+    {
+      rev: 54,
+      date: "2026-10-05",
+      kind: "release",
+      text: "The device card keeps its name and its line apart when it is selected. The page picks the device from the computer or phone in your hand.",
+      commit: "",
+    },
   ],
 };
 

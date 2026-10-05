@@ -4,7 +4,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { MENU, MODELS, coralNote, decideRun, lensZoom, runPlan } from "../app/SensorFusion-2525/sf.ts";
+import { MENU, MODELS, coralNote, decideRun, detectPlatform, lensZoom, runPlan } from "../app/SensorFusion-2525/sf.ts";
 
 let pass = 0;
 let fail = 0;
@@ -36,6 +36,10 @@ for (const [coral, model, file] of cases) {
 
 ok(MENU.map((item) => item.label).join("|") === "Sensor Fusion|Stop|Pose", "the opening menu is the camera, stop, and pose");
 ok(!MENU.some((item) => /label|coral|check id/i.test(item.label)), "Annotate, Coral, and Check ID are not opening-menu rows");
+ok(detectPlatform("Mozilla/5.0 (Windows NT 10.0)") === "win", "a Windows computer is PC-WIN");
+ok(detectPlatform("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0)") === "iphone", "an iPhone is found");
+ok(detectPlatform("Mozilla/5.0 (Linux; Android 14)") === "android", "an Android phone is found");
+ok(detectPlatform("Mozilla/5.0 (Macintosh; Intel Mac OS X)") === "mac", "a Mac is found");
 ok(MODELS.some((item) => item.id === "checkid"), "Check ID remains a model");
 ok(runPlan(true, "missing").model === "demo90" && runPlan(true, "missing").file === "edgetpu.tflite", "an unknown model falls back without dropping Coral");
 

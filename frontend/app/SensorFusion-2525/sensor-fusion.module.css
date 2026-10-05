@@ -913,12 +913,14 @@
   font-size: 16px;
 }
 .menuItem b,
-.pick b {
+.pick b,
+.pickOn b {
   display: block;
   font-weight: 700;
 }
 .menuItem small,
-.pick span {
+.pick span,
+.pickOn span {
   display: block;
   margin-top: 2px;
   color: #c9d4d4;
