@@ -1786,6 +1786,7 @@ export default function SensorFusion() {
           </header>
           <section className={styles.stage}>
             <div className={styles.still}>
+              <div className={styles.stillFrame}>
               <img src={INFO_STILL.src} width={840} height={840} alt="A street with two people, a bicycle, a car, a dog and a traffic light" />
               {INFO_STILL.boxes.map((box) => {
                 const [width, height] = INFO_STILL.size;
@@ -1806,6 +1807,7 @@ export default function SensorFusion() {
                   </div>
                 );
               })}
+              </div>
             </div>
             <p className={styles.fpsRead}>FPS</p>
             <div className={styles.meter} aria-hidden="true">

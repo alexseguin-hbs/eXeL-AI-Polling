@@ -524,18 +524,28 @@
   flex-direction: column;
   background: #000;
 }
+.lesson .stage {
+  container-type: size;
+}
 .lesson .still {
   position: absolute;
   inset: 0;
+  display: grid;
+  place-items: center;
   width: 100%;
   height: 100%;
   border-radius: 0;
+}
+.stillFrame {
+  position: relative;
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
 }
 .lesson .still img {
   width: 100%;
   height: 100%;
   aspect-ratio: auto;
-  object-fit: contain;
+  object-fit: fill;
   background: #000;
 }
 .lensRead {
