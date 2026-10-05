@@ -77,6 +77,7 @@ export function mergeFitDays(a: FitDay, b: FitDay | null): FitDay {
     tz: newer.tz ?? older.tz,
     weight: newer.weight !== undefined ? newer.weight : older.weight,
     steps: newer.steps !== undefined && newer.steps !== null ? newer.steps : older.steps ?? null,
+    // Prefer newer when it has an explicit number; otherwise keep older. Undefined on newer clears only if newer.at is newer AND field was explicitly set — keep simple: newer wins when defined (incl. null).
     calories_in:
       newer.calories_in !== undefined ? newer.calories_in : older.calories_in ?? null,
     calories_out:
