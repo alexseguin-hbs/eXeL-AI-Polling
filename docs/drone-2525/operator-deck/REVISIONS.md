@@ -40,6 +40,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.157 | 2026-10-05 | Claude Code (round 1 of 19: the splash at the bottom of the target, labels only while marked, mode · Restart · lane, boards on both edges, 15 m lanes, the lit next step, the start light) | 415943 | 5d65ee2b5af886040a8d4d58ae556a4107ae43a189463d6e55666602f33d5e68 | PENDING (Verify Live) | 4eeff8536a4badbb3589870c398f9e43d09b04a5fd86b53d211dbe60b9ea9453 |
 | r.158 | 2026-10-05 | Claude Code (no grey phantom targets; the lane numbers on a real sign board; faded dotted lane lines sign to sign) | 419540 | 62f9fd1f0121c21da790d9f68713df2aa49b6ccca6f9b4f70a1694d2d15af37d | PENDING (Verify Live) | 040727fe8428286b54344773149a67d70dfe250519aedf1ba43ebe4573fcf604 |
 | r.159 | 2026-10-05 | Claude Code (real-size white lane signs that never cover a target; PC keys and mouse) | 423674 | d30d2ca9d0cc9d05c22b1c98cebcb1072c3f963a6a8fb71f6a0a8d41766644cb | PENDING (Verify Live) | 2c1cdd94fffe718bb085d4b2fa5c0e156f57d0da08dd87f3b9f10190315218b7 |
+| r.160 | 2026-10-05 | Claude Code (the lane signs readable: short numbers, black on white, ≥ 9 px) | 424082 | 1fbc365f84c43bb895289fed5f5d4343152cec4a8e49b6fb45ff3d5cf2398105 | PENDING (Verify Live) | a1f0236e5995ca44eedfc0b03fc2128dcc60a1ec11c7dc83ec3d23c916fb7787 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -834,3 +835,12 @@ Twelve-lens review of r.158 (SSSES 74.3, MoT C+): `docs/assessments/2026.10.05_1
 - **Gates.** 198 boot rows, 197/198 portrait and landscape (SYNC_DIRECT by construction).
 - **Correction (append).** r.158's artefact commit is `ad2b2b0` (its pre-rebase sha `fb8829f` was cited); r.158 shipped in `20454e2`, served live
   per the operator's own screenshot of its signs; Verify Live runs #2459–#2465 failed with "The job was not acquired by Runner" (GitHub capacity).
+
+
+## r.160 — Claude Code: the lane signs readable (2026-10-05)
+Operator (round folder ASK.md Addendum 11, verbatim): **"I can't read signs"** — r.159 drew real-size boards and wrote no numbers under 5 px, so
+every board in his view was blank white. Notes: `CLAUDE_CODE_NOTES_r160.md`. Patch: `patches/r159_to_r160.py` (10 asserted edits). Artefact commit `5a8a161`.
+- Each sign keeps the photo's look (small white board on a post, black numbers) and always carries its numbers: the short form like the photo's
+  "5 6" ("21 22"; "1" and "42" outside), at least 9 px, the board never smaller than its real 0.6 × 0.35 m and just big enough for the numbers.
+  Still never over a target. `LANE_NUMBERS_ON_THE_SIGN` rewritten (legible numbers inside every written sign, centred on its real board).
+- r.159 shipped in `980dede`, LIVE per Verify Live #2467.

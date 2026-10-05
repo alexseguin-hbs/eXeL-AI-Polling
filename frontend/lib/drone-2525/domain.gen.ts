@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.044",
+  "revision": "0.045",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -385,6 +385,14 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck r.159 — Addenda 9–10 (operator 2026-10-05, verbatim in the round folder ASK.md): the lane signs at their real 0.6 × 0.35 m size, white with black numbers, never drawn over a standing target; PC keys and mouse — arrows aim the turret, WASD moves a drone, SPACE or right click = TARGET then APPROVE (one door, never fires), F or left click = FIRE (fireN refuses anything not red). QA LANE_NUMBERS_ON_THE_SIGN, SIGNS_NEVER_COVER_TARGETS, PC_KEYS_AND_MOUSE. Twelve-lens review of r.158 in docs/assessments.",
    "commit": "09f78aa",
+   "shipped": "980dede"
+  },
+  {
+   "revision": "0.045",
+   "date": "2026-10-05",
+   "kind": "release",
+   "why": "Operator deck r.160 — Addendum 11 (operator 2026-10-05, verbatim: \"I can't read signs\"): every lane sign carries its numbers in the photo's short form (\"21 22\"), black on a small white board, at least 9 px; the board never smaller than its real 0.6 × 0.35 m and just big enough for the numbers; still never over a target. QA LANE_NUMBERS_ON_THE_SIGN rewritten.",
+   "commit": "5a8a161",
    "shipped": "PENDING"
   }
  ],

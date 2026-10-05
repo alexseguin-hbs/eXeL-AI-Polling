@@ -392,6 +392,14 @@
    "kind": "release",
    "text": "Operator deck r.159 served at /drone-2525/play.html (sha256 d30d2ca9...). REAL-SIZE WHITE LANE SIGNS WITH BLACK NUMBERS THAT NEVER COVER A TARGET; PC KEYS AND MOUSE (SPACE / RIGHT CLICK = TARGET THEN APPROVE, F / LEFT CLICK = FIRE, ARROWS / WASD) — operator Addenda 9–10.",
    "commit": "09f78aa",
+   "shipped": "980dede"
+  },
+  {
+   "rev": 55,
+   "date": "2026-10-05",
+   "kind": "release",
+   "text": "Operator deck r.160 served at /drone-2525/play.html (sha256 1fbc365f...). THE LANE SIGNS READABLE — SHORT NUMBERS LIKE THE PHOTO (\"21 22\"), BLACK ON A SMALL WHITE BOARD, AT LEAST 9 PX, NEVER OVER A TARGET — operator Addendum 11.",
+   "commit": "5a8a161",
    "shipped": "PENDING"
   }
  ]

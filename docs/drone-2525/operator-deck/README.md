@@ -1,6 +1,6 @@
 # Drone-2525 · operator deck — the carried package
 
-**HEAD is `drone-2525_r.159.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.159 (Claude Code, 2026-10-05, sha256 d30d2ca9d0cc9d05…, `HASHES_r159.sha256`): **real-size white lane signs with black numbers that never cover a target; PC keys and mouse — Space or right click = TARGET then APPROVE, F or left click = FIRE, arrows/WASD aim and move** — operator Addenda 9–10. r.158 is below in REVISIONS.md.
+**HEAD is `drone-2525_r.160.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.160 (Claude Code, 2026-10-05, sha256 1fbc365f84c43bb8…, `HASHES_r160.sha256`): **the lane signs are readable — short numbers like the photo ("21 22"), black on a small white board, at least 9 px, never over a target** — operator Addendum 11. r.159 (real-size signs, PC keys and mouse) is below in REVISIONS.md.
 is ticked in live play (it was dead code behind a working button), spots from the seated pit and fires only on a red box through the
 one fire path; the score strip wraps instead of clipping the count and the QUAL clock off a phone; the approver's device tallies and
 takes the box down from the same canonical row; one sentence for an empty range; no lapse before the round starts; TARGET aims as
