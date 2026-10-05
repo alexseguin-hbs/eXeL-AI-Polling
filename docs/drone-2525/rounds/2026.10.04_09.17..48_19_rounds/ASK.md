@@ -211,3 +211,10 @@ two-person room keeps its per-shot approval until that team mode is designed wit
 
 Reading (direction, not built in r.162): after the human team round, the same course with the AI marking and the humans approving every mark,
 timed against the all-human best — a measured comparison of HI-only vs AI-marks-HI-approves time to FIRE ALL.
+
+## Addendum 17 — R reloads on a PC (operator 2026-10-05, verbatim)
+
+> also add R for reload on PC computer.
+
+Reading: the R key does exactly what the RELOAD button does (magReload — refused when the magazine is full, a fifth QUAL magazine refused on the
+record), and like T / Space / F it reaches the game even when a button or picker holds focus.
