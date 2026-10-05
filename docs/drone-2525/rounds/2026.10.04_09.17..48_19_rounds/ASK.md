@@ -50,3 +50,17 @@ Records: `rNN.md` per round and `SCORES.md` in this folder.
   target that was hit (its projected centre of mass). It does not start at the pip, the shot ray's end or the plate's base.
 - The splash moves with the target as it falls, and does not appear on a miss.
 - Gate: a deck QA row hits a 50 m and a 300 m plate and checks that the splash origin projects within 2 px of the plate's projected centre.
+
+## Addendum 3 — three phone screenshots, no words (operator 2026-10-04 7:48 PM CDT, phone serving r0.152)
+
+`addendum3_qual_eng3.png` · `addendum3_qual_eng4.png` · `addendum3_qual_not_engaged.png` — QUAL · 40 on lane 21 DOWN at MoT 1.1.
+He sent no words, so this is Claude's reading (given to him in chat; he did not correct it). Round 1 treats each as an ask:
+- Raw ids on the glass: `LAST T1 C-100C-L21 DOWN` → plain words ("Last: 100 m centre, down").
+- Captions on unmarked targets ("150M E · 1s", "200M E · 7s") → label only while marked (his earlier pick, 4b9a6ca).
+- Lane numbers print on top of each other ("21 21", "20 20", "22 22") → one marker per lane edge, "◂ 21 · 22 ▸" (db50303).
+- Coloured lines (green / orange / blue) cut across the range picture → the range shows lanes and targets only.
+- QUAL · 40 and CH0 TRAIN both lit, plus the Lady Bird Lake scene chip on the range → menu = Mode (Train Up · Train Down · Qual 40) +
+  Restart + Lane; the rest behind MORE (bfbedad).
+- No start light yet → red / yellow / green upper right (Addendum 1).
+- What works and must not regress: engagements pop together (1 up, then 2 up with 7 s), hits count, an unshot target is an unfired miss,
+  rounds leave the magazine.

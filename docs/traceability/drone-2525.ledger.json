@@ -368,7 +368,7 @@
    "kind": "release",
    "text": "Operator deck r.156 served at /drone-2525/play.html (sha256 92eb716a...). THE HIT SPLASH STARTS AT THE CENTRE OF THE HIT TARGET — the ring was placed at the plate's lane-local point (beside and above the plate), flashed on a miss, and at MoT 1 was dropped whole by the segment budget; a hit now keeps the target and splashCentre() draws the ring on its centre of mass (worldOf) every frame, lowering with the fall, never on a miss, outside the world budget (operator 2026-10-04, docs/drone-2525/rounds/2026.10.04_09.17..48_19_rounds/ASK.md Addendum 2). Patch patches/r155_to_r156.py, byte-identical play.html, QA row SPLASH_FROM_TARGET_CENTRE added.",
    "commit": "aa66c46",
-   "shipped": "PENDING"
+   "shipped": "828e80a"
   }
  ]
 }
