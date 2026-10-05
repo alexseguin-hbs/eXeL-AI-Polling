@@ -1,0 +1,310 @@
+{
+ "what": "Demo.90 (detect.tflite, SSD MobileNet COCO, 300x300, top-10 per pass) on the operator's Austin test card",
+ "model_sha256": "e4b118e5e4531945de2e659742c7c590f7536f8d0ed26d135abcfe83b4779d13",
+ "image_sha256": "7b6b49137f9eb291c20a606d3cf3415ceb12fb55f4665194bf6d4a16eeff6e19",
+ "image": [
+  1254,
+  1254
+ ],
+ "passes": [
+  "full frame",
+  "tile 0: (0, 0, 787, 787)",
+  "tile 1: (467, 0, 1254, 787)",
+  "tile 2: (0, 467, 787, 1254)",
+  "tile 3: (467, 467, 1254, 1254)"
+ ],
+ "keep_threshold": 0.5,
+ "nms_iou": 0.4,
+ "full_frame_only_finds": [
+  "bicycle",
+  "car",
+  "person",
+  "traffic light"
+ ],
+ "full_plus_tiles_finds": [
+  "bicycle",
+  "car",
+  "dog",
+  "person",
+  "traffic light"
+ ],
+ "headline": [
+  {
+   "label": "person",
+   "score": 0.766,
+   "box_px": [
+    98,
+    595,
+    223,
+    1005
+   ],
+   "pass": "full"
+  },
+  {
+   "label": "person",
+   "score": 0.68,
+   "box_px": [
+    476,
+    697,
+    607,
+    874
+   ],
+   "pass": "tile2"
+  },
+  {
+   "label": "bicycle",
+   "score": 0.688,
+   "box_px": [
+    456,
+    765,
+    647,
+    894
+   ],
+   "pass": "tile2"
+  },
+  {
+   "label": "car",
+   "score": 0.75,
+   "box_px": [
+    807,
+    729,
+    1177,
+    899
+   ],
+   "pass": "tile3"
+  },
+  {
+   "label": "dog",
+   "score": 0.766,
+   "box_px": [
+    189,
+    822,
+    355,
+    1004
+   ],
+   "pass": "tile2"
+  },
+  {
+   "label": "traffic light",
+   "score": 0.766,
+   "box_px": [
+    1056,
+    218,
+    1108,
+    331
+   ],
+   "pass": "full"
+  }
+ ],
+ "all": [
+  {
+   "label": "traffic light",
+   "score": 0.766,
+   "box_px": [
+    1056,
+    218,
+    1108,
+    331
+   ],
+   "pass": "full"
+  },
+  {
+   "label": "person",
+   "score": 0.766,
+   "box_px": [
+    98,
+    595,
+    223,
+    1005
+   ],
+   "pass": "full"
+  },
+  {
+   "label": "dog",
+   "score": 0.766,
+   "box_px": [
+    189,
+    822,
+    355,
+    1004
+   ],
+   "pass": "tile2"
+  },
+  {
+   "label": "car",
+   "score": 0.758,
+   "box_px": [
+    1158,
+    757,
+    1240,
+    811
+   ],
+   "pass": "tile3"
+  },
+  {
+   "label": "car",
+   "score": 0.75,
+   "box_px": [
+    807,
+    729,
+    1177,
+    899
+   ],
+   "pass": "tile3"
+  },
+  {
+   "label": "car",
+   "score": 0.699,
+   "box_px": [
+    618,
+    757,
+    686,
+    807
+   ],
+   "pass": "tile3"
+  },
+  {
+   "label": "bicycle",
+   "score": 0.688,
+   "box_px": [
+    456,
+    765,
+    647,
+    894
+   ],
+   "pass": "tile2"
+  },
+  {
+   "label": "car",
+   "score": 0.68,
+   "box_px": [
+    409,
+    763,
+    460,
+    802
+   ],
+   "pass": "tile2"
+  },
+  {
+   "label": "person",
+   "score": 0.68,
+   "box_px": [
+    476,
+    697,
+    607,
+    874
+   ],
+   "pass": "tile2"
+  },
+  {
+   "label": "car",
+   "score": 0.633,
+   "box_px": [
+    710,
+    763,
+    740,
+    797
+   ],
+   "pass": "tile2"
+  },
+  {
+   "label": "car",
+   "score": 0.621,
+   "box_px": [
+    669,
+    764,
+    704,
+    802
+   ],
+   "pass": "tile2"
+  },
+  {
+   "label": "car",
+   "score": 0.598,
+   "box_px": [
+    434,
+    759,
+    505,
+    805
+   ],
+   "pass": "tile2"
+  },
+  {
+   "label": "car",
+   "score": 0.586,
+   "box_px": [
+    753,
+    763,
+    774,
+    798
+   ],
+   "pass": "tile2"
+  },
+  {
+   "label": "car",
+   "score": 0.586,
+   "box_px": [
+    1212,
+    756,
+    1252,
+    810
+   ],
+   "pass": "tile3"
+  },
+  {
+   "label": "car",
+   "score": 0.562,
+   "box_px": [
+    661,
+    761,
+    700,
+    780
+   ],
+   "pass": "tile0"
+  },
+  {
+   "label": "person",
+   "score": 0.512,
+   "box_px": [
+    228,
+    708,
+    267,
+    833
+   ],
+   "pass": "full"
+  },
+  {
+   "label": "person",
+   "score": 0.512,
+   "box_px": [
+    336,
+    745,
+    361,
+    807
+   ],
+   "pass": "full"
+  },
+  {
+   "label": "car",
+   "score": 0.512,
+   "box_px": [
+    586,
+    731,
+    654,
+    779
+   ],
+   "pass": "full"
+  },
+  {
+   "label": "car",
+   "score": 0.5,
+   "box_px": [
+    793,
+    759,
+    813,
+    793
+   ],
+   "pass": "tile3"
+  }
+ ]
+}
