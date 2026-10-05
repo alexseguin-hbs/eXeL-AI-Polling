@@ -389,7 +389,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "A tap does not change what the page found. A Windows computer stays a Windows computer. Raspberry Pi is chosen only when the machine says it is one.",
-      commit: "",
+      commit: "fbae0d4",
     },
   ],
 };
