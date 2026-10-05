@@ -45,6 +45,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.162 | 2026-10-05 | Claude Code (QUAL timer + vertical light; marks remembered — mark many, approve each, fire only approved; R reloads) | 440719 | 10c900f74b9482ebfb7b5adc10fcee3b8e3330293ce040ac2ad711a7630cc46e | PENDING (Verify Live) | fea7fc43e6eeefd44f5faadabbe7ed447a35f4a0010695e0c0a092c0df06716b |
 | r.163 | 2026-10-05 | Claude Code (T-numbers in marking order; approve and fire by number; the splash 0.3 s) | 446713 | a725cdbab0ffda175e071f5c12ef6441256b284fa59107c2d5dfd2f465e1c9a4 | PENDING (Verify Live) | 8d7ee3f4aed5eeca6e09480aaabeefec86c5520db3bdcf111af5e3f981be03e2 |
 | r.164 | 2026-10-05 | Claude Code (Settings → VOICE: Browser · Vosk · My Voice; test and train my voice) | 460296 | 567f6ef3b983f8e9fc6084db88ed9fba37f39027dbde920a68aa82cc59e84d1a | PENDING (Verify Live) | d02b3b81ce1723f4a571881a80602c1e94d891e403f7247edf00fc8b7136f566 |
+| r.165 | 2026-10-05 | Claude Code (reselect to approve by every door; no ring on a down target; TRAIN DOWN remembers marks) | 465812 | 76961252036595df49cb8c55b7cc0731b00a81375675b670015edda548cba822 | PENDING (Verify Live) | 7f15dd33b49f06f569f7b6d3117d520f98779ba08dfb443a0da0c3871419cb6f |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -928,3 +929,20 @@ Notes: `CLAUDE_CODE_NOTES_r164.md`. Patch: `patches/r163_to_r164.py` (10 asserte
 - QA `VOICE_SETTINGS`, `VOICE_PHRASE_ASSEMBLER`, `VOICE_TEST_SCORES` (a scripted voice through the whole test: 4 of 7 heard, "five" scored CONFUSED for
   FIRE); `VOICE_NEGATION_HOLDS` re-pointed to `voiceAct`. Not testable headless: a real microphone, the Vosk model download, the MY VOICE training.
 - r.163 shipped `0699abf`, LIVE in Verify Live #2495.
+
+## r.165 — Claude Code: reselect to approve, and a shot target goes away (2026-10-05)
+Operator (round folder ASK.md Addenda 22–23, verbatim): **"target is not allowing to be reselected to approve ; test throughally"**, **"Splash stays way too long"**,
+**"targets do not disappear when shot."**
+Notes: `CLAUDE_CODE_NOTES_r165.md`. Patch: `patches/r164_to_r165.py` (12 asserted edits). Artefact commit `47f66e2`.
+- **The "splash" that stayed was the damage ring** over the current mark (drawn while lifePct < 100). It was drawn on a target that was DOWN, and since
+  r.162 the mark stays — a ~2.6 m red ring sat on the fallen target until it stood again 3 s later. The ring now shows only on a standing target.
+  Measured: 145 red pixels on the fallen 100 M LEFT 1.5 s after the hit in r.164, 0 in r.165 (the real splash shows at 0.1 s and is gone by 0.5 s).
+- **Reselect to approve:** SPACE and RIGHT CLICK first make the mark under the bullseye (or the clicked target) the current one, then approve it — they
+  stopped at "RED · FIRE" when the current mark was a different red target. A right click approves exactly the target clicked. A TAP on a marked target
+  focuses it (it re-marked it, demoting red to amber); a DOUBLE-TAP fires any red mark it lands on.
+- **TRAIN DOWN remembers marks** as TRAIN UP and QUAL 40 do; only the hit target's mark ends there.
+- QA `RESELECT_TO_APPROVE` (SPACE on T2 after T1 is red, right click, APPROVE button, voice "approve", re-mark keeps red, fire — in TRAIN UP, TRAIN DOWN and
+  QUAL 40), `NO_RING_ON_A_DOWN_TARGET`.
+- **Correction:** `MARKS_ARE_REMEMBERED`'s TRAIN DOWN half passed vacuously in r.162–r.164 (the first mark had been dropped before the shot, and the check
+  only looked for its absence); it now requires both marks red and the shot to land.
+- r.164 shipped `a5764e1`, LIVE in Verify Live #2504 (a33863d; #2503 had caught the edge mid-update).

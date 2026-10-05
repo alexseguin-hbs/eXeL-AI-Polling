@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.049",
+  "revision": "0.050",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -374,6 +374,14 @@
    "kind": "release",
    "why": "Operator deck r.164 — Addenda 19–20 (verbatim: \"choose top 3, and lets have option to select in settings, once settings, we can test for our specific voice quality of detection.\" · \"Voice calibration should be a separate mode (under settings) to test key words for one's voice profile and allow for acoustic modeling to enhance detection to a specfiic voice locally\"): Settings → VOICE — engine picker BROWSER (Web Speech, on-device where offered) · VOSK (on-device closed word list, loaded when picked) · MY VOICE (TF.js speech-commands head trained on the player's clips, kept in the browser); TEST MY VOICE scores TARGET · APPROVE · FIRE · RELOAD · ONE · TWO · THREE as HEARD / MISSED / CONFUSED per engine; TRAIN / RESET MY VOICE; one door voiceHeard → voiceAct for every engine; single-word phrase assembler. Voice stays a request. QA VOICE_SETTINGS, VOICE_PHRASE_ASSEMBLER, VOICE_TEST_SCORES; VOICE_NEGATION_HOLDS re-pointed to voiceAct.",
    "commit": "bf8cb7c",
+   "shipped": "a5764e1"
+  },
+  {
+   "revision": "0.050",
+   "date": "2026-10-05",
+   "kind": "release",
+   "why": "Operator deck r.165 — Addendum 22 (verbatim: \"target is not allowing to be reselected to approve ; test throughally\") and Addendum 23 (\"Splash stays way too long\" · \"targets do not disappear when shot.\"): the red damage ring over the current mark was drawn on a target that was down (since r.162 the mark stays) — now only on a standing target; SPACE and RIGHT CLICK focus the mark under the bullseye / the clicked one before approving (they stopped at RED · FIRE when another mark was red); a tap focuses a marked target (it re-marked it, demoting red), a double-tap fires any red mark; TRAIN DOWN remembers marks like TRAIN UP and QUAL 40 (only the hit target's mark ends). QA RESELECT_TO_APPROVE (every door × all three modes), NO_RING_ON_A_DOWN_TARGET; MARKS_ARE_REMEMBERED's TRAIN DOWN half made strict (correction: it passed vacuously in r.162–r.164).",
+   "commit": "47f66e2",
    "shipped": "PENDING"
   }
  ],

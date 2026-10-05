@@ -432,6 +432,14 @@
    "kind": "release",
    "text": "Operator deck r.164 served at /drone-2525/play.html (sha256 567f6ef3...). SETTINGS → VOICE: BROWSER · VOSK · MY VOICE, TEST MY VOICE (HEARD / MISSED / CONFUSED per word), TRAIN MY VOICE kept on the device — operator Addenda 19–20.",
    "commit": "bf8cb7c",
+   "shipped": "a5764e1"
+  },
+  {
+   "rev": 60,
+   "date": "2026-10-05",
+   "kind": "release",
+   "text": "Operator deck r.165 served at /drone-2525/play.html (sha256 76961252...). RESELECT TO APPROVE BY EVERY DOOR; A SHOT TARGET GOES AWAY (NO RING ON A DOWN TARGET); TRAIN DOWN REMEMBERS MARKS — operator Addenda 22–23.",
+   "commit": "47f66e2",
    "shipped": "PENDING"
   }
  ]
