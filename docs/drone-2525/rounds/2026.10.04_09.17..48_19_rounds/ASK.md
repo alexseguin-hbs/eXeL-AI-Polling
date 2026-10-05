@@ -206,3 +206,8 @@ per-shot approval from the other seat (unchanged this revision).
 Reading (recorded as the direction, not built in r.162): the remembered marks of Addendum 15 are the first step toward a team engagement — the
 team's humans mark and approve every target (H.I.), and once all are marked and approved the team fires together, scored on the best time. The
 two-person room keeps its per-shot approval until that team mode is designed with the operator.
+
+> (operator 2026-10-05, verbatim, the next step of the same goal) Then we will enable AI targeting, with HI approval, to see if we can beat time to FIRE all.
+
+Reading (direction, not built in r.162): after the human team round, the same course with the AI marking and the humans approving every mark,
+timed against the all-human best — a measured comparison of HI-only vs AI-marks-HI-approves time to FIRE ALL.
