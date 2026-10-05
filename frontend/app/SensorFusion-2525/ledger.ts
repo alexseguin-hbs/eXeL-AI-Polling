@@ -473,7 +473,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "CORAL sends the camera to a program on this PC, which loads the model on the Coral chip. CPU still runs the model in the page. If the program is not running, the page says so and does not pretend.",
-      commit: "",
+      commit: "fd9b09e",
     },
   ],
 };
