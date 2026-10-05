@@ -155,3 +155,15 @@ a picker or button holding keyboard focus (the browser gives Space to a focused 
 keys always reach the game, whatever has focus, with e.key as a fallback; (2) a LEFT CLICK on the picture moves the bullseye centre to
 the clicked point (the head turns there); a left click on the red-marked target already under the bullseye fires; a RIGHT CLICK aims
 there and marks / approves.
+
+## Addendum 13 — QUAL timer and a vertical red · yellow · green light on the right (operator 2026-10-05 16.24 CST, verbatim)
+
+> On qual, add timer and have red yellow green light on right vertical, with Red, Yellow, green as time to next set of targets (1 second per each light). if 3 targets are up, 3 seconds per target (thats 9 second for group), so Red light should indicate at 7, yellow at 8, and green at 9 (if that's the qual actual time sequence).
+
+Reading: in QUAL · 40 only, (1) a timer that counts the seconds left on the group that is up, and the seconds to the next group while the
+targets are down; (2) the start light becomes three lamps stacked vertically on the right — red on top, yellow, green at the bottom — and
+counts the last three seconds of the group's window, one second each: red at window − 2, yellow at window − 1, green at the window's end
+(the group is done; the next set is coming). (3) The window itself: the operator's "3 s per target, 9 s for three" is offered conditionally
+("if that's the qual actual time sequence"); the program of record he supplied on 2026-09-23 (IWQ Table VI) is 1 = 5 s · 2 = 8 s ·
+3 = 12 s · 4 = 16 s, so the windows stay as supplied and the lights follow whatever the window is (three targets: red 10, yellow 11,
+green 12). Switching to 3 s per target is his call, flagged in the release note. Training modes keep the r.157 light.
