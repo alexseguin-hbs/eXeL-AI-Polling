@@ -1036,11 +1036,15 @@ export default function SensorFusion() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const meterRef = useRef<HTMLDivElement>(null);
   const showScoresRef = useRef(showScores);
+  const coralRef = useRef(coral);
+  const modelRef = useRef(model);
   const showLabelsRef = useRef(showLabels);
   const showFpsRef = useRef(showFps);
   const alertsRef = useRef(alerts);
   const lastAlert = useRef("");
   showScoresRef.current = showScores;
+  coralRef.current = coral;
+  modelRef.current = model;
   showLabelsRef.current = showLabels;
   showFpsRef.current = showFps;
   alertsRef.current = alerts;
@@ -1150,9 +1154,11 @@ export default function SensorFusion() {
     const run = async () => {
       try {
         const cnn = await loadCnn();
-        const session = await cnn.load(model);
+        let session: unknown = null;
+        if (!coralRef.current) session = await cnn.load(modelRef.current);
         if (stop) return;
         let failed = false;
+        let coralLive = false;
         const loop = async () => {
           if (stop) return;
           const video = videoRef.current;
@@ -1167,7 +1173,72 @@ export default function SensorFusion() {
               }
               const quietFill = meterRef.current?.querySelector("i");
               if (quietFill instanceof HTMLElement) quietFill.style.height = "0%";
+            } else if (coralRef.current) {
+              try {
+                if (!coralLive) {
+                  const health = await fetch("http://127.0.0.1:8765/health", { cache: "no-store" });
+                  const body = (await health.json()) as { engine?: string };
+                  if (body.engine !== "Coral") {
+                    setError(body.engine === "missing" ? "The program is running, but Coral did not start." : "The Coral program is not running on this computer.");
+                    if (!stop) window.setTimeout(loop, 1500);
+                    return;
+                  }
+                  coralLive = true;
+                  setError("");
+                }
+                const shot = document.createElement("canvas");
+                const width = 640;
+                const height = Math.max(1, Math.round((width * video.videoHeight) / (video.videoWidth || width)));
+                shot.width = width;
+                shot.height = height;
+                shot.getContext("2d")?.drawImage(video, 0, 0, width, height);
+                const blob = await new Promise<Blob | null>((resolve) => shot.toBlob(resolve, "image/jpeg", 0.7));
+                if (!blob) throw new Error("no frame");
+                const folder = MODELS.find((item) => item.id === modelRef.current)?.folder || "Demo90";
+                const sent = await fetch(`http://127.0.0.1:8765/frame?model=${encodeURIComponent(folder)}`, {
+                  method: "POST",
+                  headers: { "Content-Type": "image/jpeg" },
+                  body: blob,
+                });
+                if (!sent.ok) throw new Error("coral");
+                const result = (await sent.json()) as { hits: { score?: number; name?: string }[]; fps: number; engine?: string };
+                if (result.engine !== "Coral") throw new Error("not coral");
+                cnn.draw(canvas, video, result, showScoresRef.current, showLabelsRef.current, showFpsRef.current);
+                const hits = result.hits || [];
+                const top = hits.reduce((best, hit) => Math.max(best, Number(hit.score) || 0), 0);
+                let line = "";
+                if (alertsRef.current) {
+                  const named = hits.filter((hit) => hit.name && hit.name !== "???");
+                  const best = named.reduce<(typeof named)[number] | undefined>(
+                    (pick, hit) => ((Number(hit.score) || 0) > (Number(pick?.score) || 0) ? hit : pick),
+                    undefined,
+                  );
+                  if (best?.name) line = `${best.name} ${Math.round((Number(best.score) || 0) * 100)}%`;
+                }
+                if (line !== lastAlert.current) {
+                  lastAlert.current = line;
+                  setAlert(line);
+                }
+                const fill = meterRef.current?.querySelector("i");
+                if (fill instanceof HTMLElement) {
+                  const pct = Math.round(top * 100);
+                  fill.style.height = `${pct}%`;
+                  fill.style.background = pct >= 80 ? "#3ec96b" : pct >= 50 ? "#ffe600" : "#ff3b30";
+                }
+                if (failed) {
+                  failed = false;
+                  setError("");
+                }
+              } catch (err) {
+                console.error(err);
+                coralLive = false;
+                if (!failed && !stop) {
+                  failed = true;
+                  setError("The Coral program is not running on this computer.");
+                }
+              }
             } else try {
+              if (!session) session = await cnn.load(modelRef.current);
               const result = await cnn.detect(session, video);
               cnn.draw(canvas, video, result, showScoresRef.current, showLabelsRef.current, showFpsRef.current);
               const hits = (result.hits || []) as { score?: number; name?: string }[];
@@ -1208,7 +1279,7 @@ export default function SensorFusion() {
         void loop();
       } catch (err) {
         console.error(err);
-        if (!stop) setError("The detector could not start on this device.");
+        if (!stop) setError(coralRef.current ? "The Coral program is not running on this computer." : "The detector could not start on this device.");
       }
     };
     void run();
@@ -1217,7 +1288,7 @@ export default function SensorFusion() {
       lastAlert.current = "";
       setAlert("");
     };
-  }, [sensorOn, model, step]);
+  }, [sensorOn, model, step, coral]);
 
   useEffect(() => {
     // Back on the camera screen, the new video gets the stream that is still open, so SENSOR 1: ON shows the picture.

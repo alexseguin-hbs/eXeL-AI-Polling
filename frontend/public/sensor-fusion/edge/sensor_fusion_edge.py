@@ -29,6 +29,7 @@ If that wheel is missing, pip install tensorflow
 import json
 import os
 import sys
+import threading
 import time
 import urllib.request
 
@@ -305,8 +306,122 @@ def pull_program():
         os.execv(sys.executable, [sys.executable, dest, "--fresh", *sys.argv[1:]])
 
 
+def serve(coral):
+    """The page sends camera pictures here. Coral loads edgetpu.tflite. Without it, this uses detect.tflite."""
+    import io
+    from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+    from urllib.parse import parse_qs, urlparse
+    from PIL import Image
+
+    cache = {}
+    lock = threading.Lock()
+    engine = "Coral" if coral else "processor"
+
+    def get_interpreter(folder):
+        key = (folder, coral)
+        if key not in cache:
+            fetch(folder, coral)
+            path = model_file(folder, coral)
+            if not os.path.isfile(path):
+                raise FileNotFoundError(path)
+            interpreter = interpreter_for(path, coral)
+            interpreter.allocate_tensors()
+            cache[key] = (interpreter, labels(folder), path)
+        return cache[key]
+
+    if coral:
+        try:
+            get_interpreter("Demo90")
+            print("Coral is on. Demo.90 is loaded on the chip.")
+        except Exception as err:
+            print("No Coral found.", err)
+            engine = "missing"
+    else:
+        print("This program is using the processor, not Coral.")
+
+    class Handler(BaseHTTPRequestHandler):
+        def cors(self):
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Private-Network", "true")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+        def do_OPTIONS(self):
+            self.send_response(204)
+            self.cors()
+            self.end_headers()
+
+        def do_GET(self):
+            if urlparse(self.path).path != "/health":
+                self.send_error(404)
+                return
+            body = json.dumps({"ok": engine != "missing", "engine": engine}).encode()
+            self.send_response(200)
+            self.cors()
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_POST(self):
+            parsed = urlparse(self.path)
+            if parsed.path != "/frame":
+                self.send_error(404)
+                return
+            if engine == "missing":
+                body = json.dumps({"error": "No Coral found."}).encode()
+                self.send_response(503)
+                self.cors()
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            length = int(self.headers.get("Content-Length") or 0)
+            raw = self.rfile.read(length) if length else b""
+            folder = parse_qs(parsed.query).get("model", ["Demo90"])[0]
+            try:
+                image = Image.open(io.BytesIO(raw)).convert("RGB")
+                with lock:
+                    interpreter, names, _path = get_interpreter(folder)
+                    hits, fps = read_hits(interpreter, image, names)
+            except Exception as err:
+                body = json.dumps({"error": str(err), "engine": engine}).encode()
+                self.send_response(500)
+                self.cors()
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            packed = []
+            for score, name, box in hits:
+                if not name or name == "???":
+                    continue
+                ymin, xmin, ymax, xmax = [float(value) for value in box]
+                packed.append({"name": name, "score": score, "ymin": ymin, "xmin": xmin, "ymax": ymax, "xmax": xmax})
+            body = json.dumps({"hits": packed, "fps": fps, "engine": engine}).encode()
+            self.send_response(200)
+            self.cors()
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, _format, *_args):
+            return
+
+    print("Listening on http://127.0.0.1:8765")
+    print("Leave this window open. The page sends the camera here.")
+    try:
+        ThreadingHTTPServer(("127.0.0.1", 8765), Handler).serve_forever()
+    except OSError as err:
+        print("Could not listen on port 8765.", err)
+
+
 def main():
     pull_program()
+    if "--page" in sys.argv:
+        serve("--coral" in sys.argv)
+        return
     if "--check" in sys.argv:
         folder = "Demo90"
         if "--head" in sys.argv:

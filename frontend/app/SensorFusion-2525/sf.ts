@@ -227,9 +227,7 @@ export function decideRun(where: "browser" | "edge", coral: boolean, chip: boole
  */
 export function coralNote(coral: boolean): string {
   if (!coral) return "";
-  return decideRun("browser", coral, false).engine === "processor"
-    ? "Coral runs on a computer with the Coral chip. This page uses the processor."
-    : "";
+  return "CORAL sends the camera to the program on this PC. CPU runs the model in this page.";
 }
 
 export const COLORS: { id: SchemeId; label: string; mark: string; swatch: string; bg: string; card: string; primary: string; line: string }[] = [

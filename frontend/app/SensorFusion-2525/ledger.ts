@@ -468,6 +468,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Capture uses the same dark button as Annotate and Upload. The camera mark stays cyan, and the words sit centered under it.",
       commit: "8c81059",
     },
+    {
+      rev: 67,
+      date: "2026-10-05",
+      kind: "release",
+      text: "CORAL sends the camera to a program on this PC, which loads the model on the Coral chip. CPU still runs the model in the page. If the program is not running, the page says so and does not pretend.",
+      commit: "",
+    },
   ],
 };
 
