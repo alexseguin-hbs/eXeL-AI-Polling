@@ -383,7 +383,15 @@
    "date": "2026-10-05",
    "kind": "release",
    "text": "Operator deck r.158 served at /drone-2525/play.html (sha256 62f9fd1f...). NO GREY PHANTOM TARGETS (only my lane's targets drawn on the range) and THE LANE NUMBERS ON A REAL SIGN BOARD (\"◂ 20 · 21 ▸\" on a 1.2 × 0.6 m board on its post) AND FADED DOTTED LANE LINES SIGN TO SIGN — operator Addenda 6–7.",
-   "commit": "fb8829f",
+   "commit": "ad2b2b0",
+   "shipped": "20454e2"
+  },
+  {
+   "rev": 54,
+   "date": "2026-10-05",
+   "kind": "release",
+   "text": "Operator deck r.159 served at /drone-2525/play.html (sha256 d30d2ca9...). REAL-SIZE WHITE LANE SIGNS WITH BLACK NUMBERS THAT NEVER COVER A TARGET; PC KEYS AND MOUSE (SPACE / RIGHT CLICK = TARGET THEN APPROVE, F / LEFT CLICK = FIRE, ARROWS / WASD) — operator Addenda 9–10.",
+   "commit": "09f78aa",
    "shipped": "PENDING"
   }
  ]

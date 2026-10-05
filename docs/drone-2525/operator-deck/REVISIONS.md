@@ -39,6 +39,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.156 | 2026-10-05 | Claude Code (the hit splash starts at the target's centre) | 378675 | 92eb716a8bec23dffa111f523d5e5ca8e764cd0009c7c8571e33671fd75f6b4d | PENDING (Verify Live) | a9d63598383a7bdfad849a95fe533124a10aad24c0ade1d8bec79be6ecabcc5c |
 | r.157 | 2026-10-05 | Claude Code (round 1 of 19: the splash at the bottom of the target, labels only while marked, mode · Restart · lane, boards on both edges, 15 m lanes, the lit next step, the start light) | 415943 | 5d65ee2b5af886040a8d4d58ae556a4107ae43a189463d6e55666602f33d5e68 | PENDING (Verify Live) | 4eeff8536a4badbb3589870c398f9e43d09b04a5fd86b53d211dbe60b9ea9453 |
 | r.158 | 2026-10-05 | Claude Code (no grey phantom targets; the lane numbers on a real sign board; faded dotted lane lines sign to sign) | 419540 | 62f9fd1f0121c21da790d9f68713df2aa49b6ccca6f9b4f70a1694d2d15af37d | PENDING (Verify Live) | 040727fe8428286b54344773149a67d70dfe250519aedf1ba43ebe4573fcf604 |
+| r.159 | 2026-10-05 | Claude Code (real-size white lane signs that never cover a target; PC keys and mouse) | 423674 | d30d2ca9d0cc9d05c22b1c98cebcb1072c3f963a6a8fb71f6a0a8d41766644cb | PENDING (Verify Live) | 2c1cdd94fffe718bb085d4b2fa5c0e156f57d0da08dd87f3b9f10190315218b7 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -808,7 +809,7 @@ Artefact commit `f6cf582`; shipped in: PENDING until Verify Live (the ledger and
 ## r.158 — Claude Code: no grey phantom targets; the lane numbers on a real sign board (2026-10-05)
 Operator (`docs/drone-2525/rounds/2026.10.04_09.17..48_19_rounds/ASK.md` Addendum 6, verbatim): **"for Range on Qual and Train Up and
 Train Down, there are grey phantom targets. Also the lane markers need to be on the actual "sign" <-- 20 21 --> like attached"** (a
-pop-up course photo: a white board on a post, "5 6"). Notes: `CLAUDE_CODE_NOTES_r158.md`. Patch: `patches/r157_to_r158.py` (14 asserted edits). Artefact commit `fb8829f`; shipped in: PENDING until Verify Live.
+pop-up course photo: a white board on a post, "5 6"). Notes: `CLAUDE_CODE_NOTES_r158.md`. Patch: `patches/r157_to_r158.py` (14 asserted edits). Artefact commit `ad2b2b0`; shipped in: PENDING until Verify Live.
 - **No phantoms.** On the range only my lane's standing targets are drawn. r.144 drew the neighbouring lanes' (±1) silhouettes dim grey — those
   were the phantoms. Every lane still carries its targets (`EVERY_LANE_HAS_THE_TARGETS`). `NO_PHANTOM_TARGETS` replaces `NEIGHBOUR_LANES_DRAWN`.
 - **The sign.** Each marker is a post with a 1.2 × 0.6 m board, and the numbers ("◂ 20 · 21 ▸") are written on the board, centred; the
@@ -816,3 +817,20 @@ pop-up course photo: a white board on a post, "5 6"). Notes: `CLAUDE_CODE_NOTES_
 - **The lane lines** (Addendum 7, verbatim: "also show line of lanes from sign to sign at 100 200 and 300 markers... very faded dotted grey line"):
   along each lane edge in view, a 35% grey dotted line (dash 2/7) from post to post, 100 → 200 → 300 m. `LANE_LINES_SIGN_TO_SIGN`.
 - **Gates.** 197 boot rows, 196/197 in portrait and landscape (SYNC_DIRECT, red by construction on one device).
+
+
+## r.159 — Claude Code: the signs like the photo; PC keys and mouse (2026-10-05)
+Operator (round folder ASK.md Addenda 9–10, verbatim there): "Signs need to be smaller like uploaded images (realistic as photo uploaded)",
+"DO not cover targets with signs", "And have White/Black like uploaded image"; "PC operations must be able to use arrows for turret and arrows
+and asdw for drone operations. Once should also be able to operate mouse. Right click should target approve, left click fire. or T or space
+for target, space for approve, and F for fire." Notes: `CLAUDE_CODE_NOTES_r159.md`. Patch: `patches/r158_to_r159.py` (11 asserted edits). Artefact commit `09f78aa`.
+Twelve-lens review of r.158 (SSSES 74.3, MoT C+): `docs/assessments/2026.10.05_14.27..25_drone2525_r158_twelve_lenses.md`.
+- **Signs.** A 0.6 × 0.35 m board drawn at its real projected size (never enlarged to fit its words), white with black numbers sized to the board
+  (no numbers when too small to read); a sign that would touch a standing target of my lane is not drawn (`signCoversTarget`). `LANE_NUMBERS_ON_THE_SIGN`
+  (rewritten), `SIGNS_NEVER_COVER_TARGETS`.
+- **PC controls.** Arrows aim the turret; WASD moves a drone and the arrows aim its head (unchanged, now proven); RIGHT CLICK and SPACE share one door
+  (`pcTargetApprove`): nothing marked → TARGET, amber → APPROVE, red → "RED · LEFT CLICK OR F TO FIRE" (never fires); LEFT CLICK and F call `fireN`,
+  which refuses anything not red. The browser menu no longer opens on the picture. `PC_KEYS_AND_MOUSE`.
+- **Gates.** 198 boot rows, 197/198 portrait and landscape (SYNC_DIRECT by construction).
+- **Correction (append).** r.158's artefact commit is `ad2b2b0` (its pre-rebase sha `fb8829f` was cited); r.158 shipped in `20454e2`, served live
+  per the operator's own screenshot of its signs; Verify Live runs #2459–#2465 failed with "The job was not acquired by Runner" (GitHub capacity).
