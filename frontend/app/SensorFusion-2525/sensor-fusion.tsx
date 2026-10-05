@@ -10,6 +10,7 @@ import {
   COLORS,
   FRAMES,
   INFO_STILL,
+  EXTRA_SENSORS,
   MODELS,
   MENU,
   PLATFORMS,
@@ -32,6 +33,7 @@ import {
   savedLine,
   sensorPath,
   type Lens,
+  type ExtraSensorId,
   type PlatformId,
   type SchemeId,
 } from "./sf";
@@ -987,7 +989,8 @@ export default function SensorFusion() {
   const [sensor2On, setSensor2On] = useState(false);
   const [sensor2Name, setSensor2Name] = useState("Camera");
   const [sensor2Note, setSensor2Note] = useState("");
-  const [thermalOn, setThermalOn] = useState(false);
+  const [extra, setExtra] = useState<ExtraSensorId | "">("");
+  const [extraOpen, setExtraOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [busy2, setBusy2] = useState(false);
   const [error, setError] = useState("");
@@ -1225,7 +1228,7 @@ export default function SensorFusion() {
 
   useEffect(() => {
     // Every dialog closes with Escape, so no screen traps the person. rev 43: Settings and the model list too (rev 42 said so).
-    if (!annotate && !savedNote && !infoOpen && !settings && !modelsOpen && !lensOpen) return;
+    if (!annotate && !savedNote && !infoOpen && !settings && !modelsOpen && !lensOpen && !extraOpen) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       setAnnotate(false);
@@ -1235,10 +1238,11 @@ export default function SensorFusion() {
       setSettings(false);
       setModelsOpen(false);
       setLensOpen(false);
+      setExtraOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [annotate, savedNote, infoOpen, settings, modelsOpen, lensOpen]);
+  }, [annotate, savedNote, infoOpen, settings, modelsOpen, lensOpen, extraOpen]);
 
   function placeTip(id: string, event: React.MouseEvent<HTMLElement>) {
     const host = lessonRef.current?.getBoundingClientRect();
@@ -1351,13 +1355,22 @@ export default function SensorFusion() {
     if (fill instanceof HTMLElement) fill.style.height = "0%";
   }
 
-  function closeThermal() {
-    setThermalOn(false);
-  }
-
-  function openThermal() {
+  function chooseExtra(id: ExtraSensorId | "") {
+    setExtraOpen(false);
+    if (!id) {
+      closeSensor2();
+      setExtra("");
+      return;
+    }
+    const sensor = EXTRA_SENSORS.find((item) => item.id === id);
+    if (!sensor) return;
+    if (sensor.live) {
+      setExtra("camera");
+      void openSensor2();
+      return;
+    }
     closeSensor2();
-    setThermalOn(true);
+    setExtra(id);
   }
 
   function closeSensor2() {
@@ -1369,7 +1382,7 @@ export default function SensorFusion() {
   }
 
   async function openSensor2() {
-    setThermalOn(false);
+    setExtra("camera");
     setBusy2(true);
     setError("");
     setSensor2Note("");
@@ -1812,19 +1825,36 @@ export default function SensorFusion() {
           <img src={sensorOn ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
           SENSOR 1: {busy ? "…" : sensorOn ? "ON" : "OFF"}
         </button>
-        <button
-          type="button"
-          className={styles.sensorSwitch}
-          onClick={() => (sensor2On ? closeSensor2() : void openSensor2())}
-          disabled={busy2}
-        >
-          <img src={sensor2On ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
-          SENSOR 2: {busy2 ? "…" : sensor2On ? "ON" : "OFF"}
-        </button>
-        <button type="button" className={styles.sensorSwitch} onClick={() => (thermalOn ? closeThermal() : openThermal())}>
-          <img src={thermalOn ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
-          THERMAL: {thermalOn ? "ON" : "OFF"}
-        </button>
+        <div className={styles.lensWrap}>
+          <button
+            type="button"
+            className={styles.sensorSwitch}
+            aria-expanded={extraOpen}
+            aria-haspopup="listbox"
+            onClick={() => setExtraOpen((open) => !open)}
+            disabled={busy2}
+          >
+            <img src={extra ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
+            SENSOR 2: {busy2 ? "…" : extra ? EXTRA_SENSORS.find((item) => item.id === extra)?.label : "OFF"}
+          </button>
+          {extraOpen && (
+            <ul className={`${styles.lensList} ${styles.sensorMenu}`} role="listbox" aria-label="Second sensor">
+              <li>
+                <button type="button" role="option" aria-selected={extra === ""} onClick={() => chooseExtra("")}>
+                  Off
+                </button>
+              </li>
+              {EXTRA_SENSORS.map((item) => (
+                <li key={item.id}>
+                  <button type="button" role="option" aria-selected={extra === item.id} onClick={() => chooseExtra(item.id)}>
+                    {item.label}
+                    {item.live ? "" : " · not yet"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <div className={styles.lensWrap}>
           <button
             type="button"
@@ -1899,7 +1929,7 @@ export default function SensorFusion() {
         </div>
       </header>
       <section
-        className={`${styles.stage} ${sensor2On || thermalOn ? styles.split : ""}`}
+        className={`${styles.stage} ${extra ? styles.split : ""}`}
         onClick={(event) => {
           if ((event.target as HTMLElement).closest("button")) return;
           setShowFps((on) => !on);
@@ -1908,7 +1938,7 @@ export default function SensorFusion() {
         <div className={styles.pane}>
         <video ref={videoRef} autoPlay muted playsInline aria-label="SENSOR 1" />
         <canvas ref={canvasRef} className={styles.boxes} />
-        {(sensor2On || thermalOn) && <span className={styles.paneTag}>SENSOR 1</span>}
+        {extra && <span className={styles.paneTag}>SENSOR 1</span>}
         {sensorOn && !annotate && !capturing && (
           <div className={styles.meter} ref={meterRef} aria-hidden="true">
             <i />
@@ -1925,17 +1955,9 @@ export default function SensorFusion() {
         {alert && !showLabels && <p className={styles.liveAlert}>{alert}</p>}
         {capturing && <p className={styles.captureCount}>{capturing}</p>}
         </div>
-        {(sensor2On || thermalOn) && (
+        {extra && (
           <div className={styles.pane}>
-            {thermalOn ? (
-              <>
-                <span className={styles.paneTag}>THERMAL</span>
-                <div className={styles.idle}>
-                  <p>Thermal camera is not connected.</p>
-                  <p>This side is ready. It will show heat when a thermal camera is attached.</p>
-                </div>
-              </>
-            ) : (
+            {extra === "camera" ? (
               <>
             <video ref={video2Ref} autoPlay muted playsInline aria-label="SENSOR 2" />
             <span className={styles.paneTag}>SENSOR 2 · {sensor2Name}</span>
@@ -1944,6 +1966,14 @@ export default function SensorFusion() {
                 <p>{sensor2Note}</p>
               </div>
             )}
+              </>
+            ) : (
+              <>
+                <span className={styles.paneTag}>{EXTRA_SENSORS.find((item) => item.id === extra)?.label}</span>
+                <div className={styles.idle}>
+                  <p>{EXTRA_SENSORS.find((item) => item.id === extra)?.line}</p>
+                  <p>{EXTRA_SENSORS.find((item) => item.id === extra)?.where}. It will show here when that sensor is attached.</p>
+                </div>
               </>
             )}
           </div>

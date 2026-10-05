@@ -433,6 +433,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "THERMAL takes the second view and says the thermal camera is not connected. It does not use the phone camera as heat.",
       commit: "70f74be",
     },
+    {
+      rev: 62,
+      date: "2026-10-05",
+      kind: "release",
+      text: "SENSOR 2 is one list: Camera, Thermal, Lidar, Ultrasonic, Radar, and Sonar. Only Camera opens a picture. The others say they are not connected, and name Phone, MASS-AI, or Manta.",
+      commit: "",
+    },
   ],
 };
 

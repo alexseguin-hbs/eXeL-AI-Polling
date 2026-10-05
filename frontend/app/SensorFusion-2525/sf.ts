@@ -20,6 +20,18 @@ export const PLATFORMS: { id: PlatformId; label: string; detail: string }[] = [
   { id: "ubuntu", label: "Ubuntu", detail: "A shared computer" },
 ];
 
+/** SENSOR 2 kinds. Only Camera opens a picture today. The rest keep a pane until that sensor is attached. */
+export type ExtraSensorId = "camera" | "thermal" | "lidar" | "ultrasonic" | "radar" | "sonar";
+
+export const EXTRA_SENSORS: { id: ExtraSensorId; label: string; live: boolean; line: string; where: string }[] = [
+  { id: "camera", label: "Camera", live: true, line: "A second camera on this phone.", where: "Phone" },
+  { id: "thermal", label: "Thermal", live: false, line: "Thermal is not connected.", where: "Phone, MASS-AI, Manta" },
+  { id: "lidar", label: "Lidar", live: false, line: "Lidar is not connected.", where: "MASS-AI" },
+  { id: "ultrasonic", label: "Ultrasonic", live: false, line: "Ultrasonic is not connected.", where: "MASS-AI" },
+  { id: "radar", label: "Radar", live: false, line: "Radar is not connected.", where: "MASS-AI, Manta" },
+  { id: "sonar", label: "Sonar", live: false, line: "Sonar is not connected.", where: "Manta" },
+];
+
 import catalog from "../../public/sensor-fusion/models.json" with { type: "json" };
 
 type ModelFile = {
