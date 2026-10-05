@@ -417,7 +417,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "An info note sits next to the control you tap. SENSOR 2 opens a second camera beside SENSOR 1 when the phone allows two at once.",
-      commit: "",
+      commit: "5285e1b",
     },
   ],
 };
