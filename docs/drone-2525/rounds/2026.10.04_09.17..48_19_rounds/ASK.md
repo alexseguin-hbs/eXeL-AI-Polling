@@ -107,3 +107,10 @@ a berm, and above/behind it a small WHITE rectangular board on a post carrying t
 Reading: (1) no grey ghost silhouettes on the range in Qual · 40, Train Up or Train Down — a target is either up (drawn) or not drawn;
 (2) the lane marker is a drawn sign board (a rectangle on a post, like the photo) with the numbers ON the board, "◂ 20 · 21 ▸", not
 floating text beside a post.
+
+## Addendum 7 — the lane lines (operator 2026-10-05 morning, verbatim)
+
+> also show line of lanes from sign to sign at 100 200 and 300 markers... very faded dotted grey line.
+
+Reading: along each lane edge, a very faded dotted grey line runs from sign to sign — 100 m → 200 m → 300 m — so the lane boundaries
+read as lines on the ground. Folded into r.158 (not yet shipped when this arrived).
