@@ -18,10 +18,13 @@ import {
   coralNote,
   detectPlatform,
   explainCamera,
+  captureSeconds,
   everyNthFrame,
   howManyFrames,
   howManyPictures,
   lensZoom,
+  LIVE_PACE,
+  livePace,
   nameList,
   placeBox,
   refuseBox,
@@ -945,6 +948,7 @@ export default function SensorFusion() {
   const [labelPick, setLabelPick] = useState("person");
   const [count, setCount] = useState("4");
   const [every, setEvery] = useState("2");
+  const [pace, setPace] = useState("e2");
   const [captureMode, setCaptureMode] = useState<"live" | "video">("live");
   const [note, setNote] = useState("");
   const [shots, setShots] = useState<Shot[]>([]);
@@ -1233,7 +1237,7 @@ export default function SensorFusion() {
 
   async function framesFromVideo(long: boolean, howMany: number) {
     const video = videoRef.current;
-    const wait = long ? 500 : 120;
+    const wait = long ? 500 : livePace(pace).gap;
     if (!video || video.readyState < 2) return { shots: [] as Shot[], files: [] as { name: string; blob: Blob }[], label: classKey(labelPick) };
     const label = classKey(labelPick);
     const names = await peekNames(label, howMany);
@@ -1256,7 +1260,7 @@ export default function SensorFusion() {
       if (!blob) continue;
       shotsOut.push({ id: `${Date.now()}-${i}`, url, name: fileName, source: "sensor" });
       files.push({ name: fileName, blob });
-      await new Promise((resolve) => window.setTimeout(resolve, wait));
+      if (i < howMany - 1) await new Promise((resolve) => window.setTimeout(resolve, wait));
     }
     return { shots: shotsOut, files, label };
   }
@@ -1830,6 +1834,19 @@ export default function SensorFusion() {
             {(captureMode === "video" ? howManyFrames(count).note : howManyPictures(count).note) && (
               <p className={styles.alert}>{captureMode === "video" ? howManyFrames(count).note : howManyPictures(count).note}</p>
             )}
+            {captureMode === "live" && howManyPictures(count).n > 0 && (
+              <label>
+                How often <span className={styles.muted}>2 or 3 seconds apart gives a different picture.</span>
+                <select value={pace} onChange={(event) => setPace(event.target.value)}>
+                  {LIVE_PACE.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {captureMode === "live" && howManyPictures(count).n > 0 && <p className={styles.muted}>{captureSeconds(howManyPictures(count).n, pace).line}</p>}
             {captureMode === "video" && (
               <label>
                 Keep every <span className={styles.muted}>2 is every other frame. 3 is every third.</span>

@@ -6,7 +6,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { everyNthFrame, howManyFrames, howManyPictures, nameList, savedLine } from "../app/SensorFusion-2525/sf.ts";
+import { captureSeconds, everyNthFrame, howManyFrames, howManyPictures, nameList, savedLine } from "../app/SensorFusion-2525/sf.ts";
 
 let pass = 0;
 let fail = 0;
@@ -50,6 +50,11 @@ ok(/captureMode === "live"/.test(src) && /useState<"live" \| "video">\("live"\)/
 ok(/accept="video\/\*"/.test(src) && /addFromVideo/.test(src) && /image\/jpeg/.test(src), "a video can be turned into JPEG pictures");
 ok(everyNthFrame("2").n === 2 && everyNthFrame("3").n === 3 && everyNthFrame("0").n === 0, "every other frame is 2, every third is 3, 0 is refused");
 ok(howManyFrames("40").n === 40 && howManyFrames("121").n === 0, "a video takes 1 to 120 frames");
+ok(captureSeconds(4, "e3").line === "4 pictures, every 3 seconds, takes 9 seconds.", "4 pictures, one every 3 seconds, takes 9 seconds");
+ok(captureSeconds(6, "2").line === "6 pictures, 2 per second, takes 2.5 seconds.", "6 pictures at 2 per second takes 2.5 seconds");
+ok(captureSeconds(1, "6").line === "1 picture. No wait.", "one picture does not invent a wait");
+ok(/How often/.test(src) && /LIVE_PACE\.map/.test(src) && /captureSeconds\(howManyPictures\(count\)\.n, pace\)/.test(src), "after How many, Live asks how often and shows the seconds");
+ok(/livePace\(pace\)\.gap/.test(src) && /i < howMany - 1/.test(src), "the camera waits that long between pictures, not after the last");
 
 // 2. How many on the glass.
 ok(/max=\{captureMode === "video" \? 120 : 12\}/.test(src), "How many is 12 on Live and 120 on a video");

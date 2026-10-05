@@ -113,6 +113,33 @@ export function howManyFrames(raw: string): { n: number; note: string } {
   return { n: value, note: "" };
 }
 
+/** How far apart live pictures are. 1–6 per second, or one picture every 2 or 3 seconds. */
+export const LIVE_PACE: { id: string; label: string; gap: number }[] = [
+  { id: "6", label: "6 per second", gap: 1000 / 6 },
+  { id: "5", label: "5 per second", gap: 200 },
+  { id: "4", label: "4 per second", gap: 250 },
+  { id: "3", label: "3 per second", gap: 1000 / 3 },
+  { id: "2", label: "2 per second", gap: 500 },
+  { id: "1", label: "1 per second", gap: 1000 },
+  { id: "e2", label: "Every 2 seconds", gap: 2000 },
+  { id: "e3", label: "Every 3 seconds", gap: 3000 },
+];
+
+export function livePace(id: string) {
+  return LIVE_PACE.find((item) => item.id === id) ?? LIVE_PACE[6];
+}
+
+/** How long the camera stays on. The first picture is now. Each later picture waits. */
+export function captureSeconds(pictures: number, paceId: string): { seconds: number; line: string } {
+  const pace = livePace(paceId);
+  const count = Math.max(0, Math.floor(pictures));
+  const seconds = Math.round(((Math.max(0, count - 1) * pace.gap) / 1000) * 10) / 10;
+  const shown = Number.isInteger(seconds) ? String(seconds) : seconds.toFixed(1);
+  const picturesWord = count === 1 ? "1 picture" : `${count} pictures`;
+  if (count <= 1) return { seconds: 0, line: "1 picture. No wait." };
+  return { seconds, line: `${picturesWord}, ${pace.label.toLowerCase()}, takes ${shown} seconds.` };
+}
+
 /** What the save really did, in one sentence (rev 43). Never a folder the app did not make. */
 export function savedLine(how: "folder" | "shared" | "downloaded", count: number, where = ""): string {
   const pictures = `${count} ${count === 1 ? "picture" : "pictures"}`;
