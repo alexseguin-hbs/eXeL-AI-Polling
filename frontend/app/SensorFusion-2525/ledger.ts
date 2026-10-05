@@ -440,6 +440,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "SENSOR 2 is one list: Camera, Thermal, Lidar, Ultrasonic, Radar, and Sonar. Only Camera opens a picture. The others say they are not connected, and name Phone, MASS-AI, or Manta.",
       commit: "cb2d9f7",
     },
+    {
+      rev: 63,
+      date: "2026-10-05",
+      kind: "release",
+      text: "On a phone held upright, the sensor names wrap onto a second line instead of sitting on top of each other. A note on the second camera sits along the bottom of that picture.",
+      commit: "",
+    },
   ],
 };
 

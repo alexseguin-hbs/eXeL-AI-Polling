@@ -1961,11 +1961,7 @@ export default function SensorFusion() {
               <>
             <video ref={video2Ref} autoPlay muted playsInline aria-label="SENSOR 2" />
             <span className={styles.paneTag}>SENSOR 2 · {sensor2Name}</span>
-            {sensor2Note && (
-              <div className={styles.idle}>
-                <p>{sensor2Note}</p>
-              </div>
-            )}
+            {sensor2Note && <p className={styles.paneNote}>{sensor2Note}</p>}
               </>
             ) : (
               <>
