@@ -461,6 +461,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The six training marks are the original pictures: capture, annotate, upload, develop, download, and run live. The annotate mark is the corner box with the plus.",
       commit: "5614877",
     },
+    {
+      rev: 66,
+      date: "2026-10-05",
+      kind: "release",
+      text: "Capture uses the same dark button as Annotate and Upload. The camera mark stays cyan, and the words sit centered under it.",
+      commit: "",
+    },
   ],
 };
 

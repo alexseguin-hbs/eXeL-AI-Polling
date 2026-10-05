@@ -2079,7 +2079,7 @@ export default function SensorFusion() {
             </ul>
           )}
         </div>
-        <button type="button" className={styles.annotate} aria-label="Capture Images" onClick={() => setAnnotate(true)}>
+        <button type="button" className={styles.bot} aria-label="Capture Images" onClick={() => setAnnotate(true)}>
           <StepIcon id="capture" />
           Capture Images
         </button>
@@ -2336,7 +2336,7 @@ export default function SensorFusion() {
                 <img src={`${UI}/models_icon_001.png`} alt="" />
                 Demo.90
               </button>
-              <button type="button" className={`${styles.annotate} ${tip === "capture" ? styles.tipOn : ""}`} onClick={(event) => placeTip("capture", event)}>
+              <button type="button" className={`${styles.bot} ${tip === "capture" ? styles.tipOn : ""}`} onClick={(event) => placeTip("capture", event)}>
                 <StepIcon id="capture" />
                 Capture Images
               </button>
