@@ -1195,6 +1195,12 @@
   font-size: 13px;
   line-height: 1.35;
 }
+.rule {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--sf-muted, #9bb);
+}
 .boxList {
   flex: 0 0 auto;
   max-height: 88px;

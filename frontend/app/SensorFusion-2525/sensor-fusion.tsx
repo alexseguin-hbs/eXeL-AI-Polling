@@ -657,7 +657,7 @@ function Labeler({
     const where = await writePicture(pictureName(pic), list);
     if (where) {
       const kept = chosenFolder ? `Saved ${where}.` : `Box ${list.length} kept on this device. FILES saves ${where}.`;
-      setNote(`${kept} Next: another box, or LEVEL 2 by a second person.`);
+      setNote(`${kept} Level 1 is XML. A second person marks Level 2, still as XML.`);
     }
   }
 
@@ -674,7 +674,7 @@ function Labeler({
     const list = (marks[pic.id] || []).map((item) => (item.id === mark.id ? { ...item, level: 2 as const, reviewer: who } : item));
     setMarks({ ...marks, [pic.id]: list });
     const where = await writePicture(pictureName(pic), list);
-    if (where) setNote(`Reviewed. ${where}`);
+    if (where) setNote(`Level 2 saved as XML. ${where}`);
   }
 
   function fixBox(mark: Mark) {
@@ -709,23 +709,30 @@ function Labeler({
   }
 
   function mergeTraining() {
-    const pages = Object.values(readXmlStore()).map(readVoc).filter((page) => page.file);
-    if (!pages.length) {
-      setNote("Save a box first.");
+    const project = pics.filter((shot) => pictureName(shot));
+    if (!project.length) {
+      setNote("Open the project's pictures first. Level 1 and Level 2 stay XML.");
       return;
     }
-    if (pages.some((page) => page.boxes.some((box) => box.level !== 2 || !box.reviewer || box.reviewer === box.by))) {
-      setNote("Level 2 is not finished.");
+    const store = readXmlStore();
+    const pages = project.map((shot) => {
+      const xml = store[pictureName(shot)];
+      return xml ? readVoc(xml) : null;
+    });
+    if (pages.some((page) => !page || !page.boxes.length)) {
+      setNote("Every picture needs a Level 1 box first. Both levels stay XML.");
       return;
     }
-    const images = pages.filter((page) => page.boxes.length);
-    if (!images.length) {
-      setNote("No reviewed boxes to merge.");
+    const ready = pages.flatMap((page) => page?.boxes || []);
+    if (ready.some((box) => box.level !== 2 || !box.reviewer || box.reviewer === box.by)) {
+      setNote("JSON waits. Every picture in this project still needs Level 2, saved as XML.");
       return;
     }
+    const images = pages.filter((page): page is NonNullable<typeof page> => !!page && page.boxes.length > 0);
     const body = JSON.stringify({ version: 1, purpose: "training", images }, null, 2);
-    downloadBlob("training.json", URL.createObjectURL(new Blob([body], { type: "application/json" })));
-    setNote("The reviewed pictures are in one training file.");
+    const packet = `${setFolderOf(pictureName(project[0]))}-training.json`;
+    downloadBlob(packet, URL.createObjectURL(new Blob([body], { type: "application/json" })));
+    setNote(`Every picture is double labeled. ${packet} is the one packet for training.`);
   }
 
   async function saveFiles() {
@@ -915,6 +922,7 @@ function Labeler({
             {note}
           </p>
         )}
+        <p className={styles.rule}>Level 1 is XML. Level 2 is XML. One JSON packet is made only after every picture in the project has both.</p>
         </div>
         {pic && (marks[pic.id] || []).length > 0 && (
           <div className={styles.boxList}>
