@@ -312,7 +312,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "Info keeps the Austin picture and the Demo.90 boxes. The words under it are the Sensor Fusion menu: Sensor Fusion, Stop, Image labeler, Pose, Coral as a switch, Check ID in the list, and the six training steps.",
-      commit: "",
+      commit: "8e12609",
     },
   ],
 };
