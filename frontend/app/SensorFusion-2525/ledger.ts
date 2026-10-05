@@ -419,6 +419,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "An info note sits next to the control you tap. SENSOR 2 opens a second camera beside SENSOR 1 when the phone allows two at once.",
       commit: "5285e1b",
     },
+    {
+      rev: 60,
+      date: "2026-10-05",
+      kind: "release",
+      text: "Two cameras stack top and bottom when the phone is upright, and sit side by side when the phone or the computer is sideways.",
+      commit: "",
+    },
   ],
 };
 
