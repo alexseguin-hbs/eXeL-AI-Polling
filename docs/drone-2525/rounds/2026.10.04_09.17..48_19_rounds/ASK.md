@@ -183,3 +183,18 @@ every shot needed TARGET → APPROVE → FIRE. A MISS already keeps the red box.
 mark and its approval through the hit and the return — F fires again as soon as it stands; while it is down F holds ("COMING BACK UP") and costs
 no round. The mark ends on RESTART, a lane or mode change, or a new mark. TRAINING · DOWN (the target stays down) and QUAL (each target once per
 engagement) are unchanged.
+
+## Addendum 15 — marks are remembered, several at once (operator 2026-10-05, verbatim)
+
+> Ensure Train-Up, Train-Down, and Qual-40 are all checked without resetting
+
+Asked what that means per mode, the operator answered (verbatim):
+
+> If something is marked Target, it stays target.  I should be able to target all 3-4 or all pop ups, then go to each one to approve, system remembers.  I can only shoot targets approved.
+
+Found (r.161/r.162 source): one designation at a time — a new TARGET released the shooter's own unapproved mark (r.148 "HOLD RE-MARK"), and the
+slot list stopped at three. Reading: in all three range modes a shooter may mark any number of standing targets (each keeps its amber box and its
+T-number); moving the bullseye onto any marked target and pressing APPROVE turns that one red; FIRE fires only the red target under the bullseye; a
+mark is never dropped by another mark, an approval or a miss. A mark ends only when its target is down for good in that mode (Train-Down after a hit),
+on RESTART, or on a lane change. Train-Up and Qual-40: a hit target's mark stays and waits for it to stand again. The two-person room keeps its
+per-shot approval from the other seat (unchanged this revision).
