@@ -181,8 +181,11 @@
 .foot {
   flex: 0 0 auto;
 }
+.work .foot {
+  background: var(--sf-card, #212121);
+}
 .work .foot [data-rcore-badge] {
-  padding: 2px 0;
+  padding: 2px 0 !important;
 }
 .work .foot [data-rcore-icon] img,
 .work .foot [data-rcore-pill] img {
