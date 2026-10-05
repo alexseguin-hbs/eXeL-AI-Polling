@@ -70,7 +70,10 @@ ok(/\{box\.label\} · \{Math\.round\(box\.score \* 100\)\}%/.test(page), "each t
 ok(!page.includes('viewBox="0 0 320 180"'), "the drawn street is gone");
 ok(!/score: 96|score: 91|score: 88|score: 84|score: 79/.test(page), "the typed scores 96/91/88/84/79 are gone");
 ok(/kinds · \{INFO_STILL\.boxes\.length\} boxes/.test(page), "the note counts kinds and boxes from the run");
-ok(page.includes("Sensor 1 · bar · % · Labels · model · Capture · Annotate · Upload"), "the short tool line stays as he chose");
+ok(page.includes("Sensor Fusion. This picture."), "the info menu starts with Sensor Fusion on this picture");
+ok(page.includes("Image labeler. Annotate."), "the info menu names the image labeler");
+ok(page.includes("Coral is a switch. Check ID is a model in the list."), "Coral and Check ID match the computer menu");
+ok(page.includes("Capture Images · Annotate Images · Upload Images"), "the training steps match the computer menu");
 
 // 5. Tags fit their words and stay inside the picture.
 const tagRule = /\.stillTag \{([^}]*)\}/.exec(css)?.[1] || "";

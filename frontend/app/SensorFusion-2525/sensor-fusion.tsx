@@ -1761,7 +1761,14 @@ export default function SensorFusion() {
             <p className={styles.stillNote}>
               Demo.90 · {new Set(INFO_STILL.boxes.map((box) => box.label)).size} kinds · {INFO_STILL.boxes.length} boxes
             </p>
-            <p className={styles.toolLine}>Sensor 1 · bar · % · Labels · model · Capture · Annotate · Upload</p>
+            <ol className={styles.menuExplain}>
+              <li>Sensor Fusion. This picture. Demo.90 is the model. The left bar is the strongest box. Tap the picture for FPS.</li>
+              <li>Stop. The camera turns off.</li>
+              <li>Image labeler. Annotate. Draw the box. A different person reviews it.</li>
+              <li>Pose. Not on this picture.</li>
+            </ol>
+            <p className={styles.toolLine}>Coral is a switch. Check ID is a model in the list.</p>
+            <p className={styles.toolLine}>Capture Images · Annotate Images · Upload Images · Develop Models · Download ML Files · Run Live</p>
             <button type="button" className={styles.ghost} onClick={() => setInfoOpen(false)}>
               Close
             </button>

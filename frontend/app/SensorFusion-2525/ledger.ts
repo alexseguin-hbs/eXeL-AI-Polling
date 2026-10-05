@@ -307,6 +307,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The labeler scrolls. Every box row, the film strip and SAVE BOX can be reached on a phone held upright or sideways. SAVE BOX, LEVEL 2, MERGE and FILES stay at the bottom while the rest scrolls. SAVE BOX refuses a box that is already saved. Each saved box shows its number and name on the picture, and its row reads Box 3 · person · labeled. A tap on a row lights its box. Accept, Fix and Reject are big enough for a thumb. One capture runs at a time, so a double tap no longer saves the same names twice. How many takes 1 to 12 and says so. The saved note says what happened, such as Shared 4 pictures, and lists at most three names. Upload keeps its own title and is not ticked, because nothing is uploaded yet. With CORAL picked, Settings says Coral runs on a computer with the Coral chip and this page uses the processor. Settings and the model list close with Escape.",
       commit: "3f9bc4e",
     },
+    {
+      rev: 44,
+      date: "2026-10-05",
+      kind: "release",
+      text: "Info keeps the Austin picture and the Demo.90 boxes. The words under it are the Sensor Fusion menu: Sensor Fusion, Stop, Image labeler, Pose, Coral as a switch, Check ID in the list, and the six training steps.",
+      commit: "",
+    },
   ],
 };
 
