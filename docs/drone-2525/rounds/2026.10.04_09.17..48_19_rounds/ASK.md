@@ -114,3 +114,15 @@ floating text beside a post.
 
 Reading: along each lane edge, a very faded dotted grey line runs from sign to sign — 100 m → 200 m → 300 m — so the lane boundaries
 read as lines on the ground. Folded into r.158 (not yet shipped when this arrived).
+
+## Addendum 8 — test with twelve lenses, then improve (operator 2026-10-05, verbatim)
+
+> Are we live?  Test with 12 AsM provide 111 words per AsM feedback. then improve per all 12 AsM and MoT.
+
+## Addendum 9 — PC keyboard and mouse (operator 2026-10-05, verbatim)
+
+> PC operations must be able to use arrows for turret and arrows and asdw for drone operations.  Once should also be able to operate mouse.  Right click should target approve, left click fire.  or T or space for target, space for approve, and F for fire.
+
+Reading: on a PC — turret: the arrow keys aim the head; drone: WASD moves the body and the arrows aim the head; the mouse also aims
+(drag/move on the picture). RIGHT CLICK = TARGET, and a right click on the amber mark = APPROVE; LEFT CLICK = FIRE. Keys: T or SPACE
+= TARGET, SPACE on an amber mark = APPROVE, F = FIRE. The two-step doctrine is unchanged: nothing fires without TARGET then APPROVE.
