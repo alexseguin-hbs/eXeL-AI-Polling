@@ -319,7 +319,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "Info is one screen, the same as the camera. The Austin picture sits in the center with the Demo.90 boxes. Sensor 1, the bar, FPS, and the bottom buttons stay. Held sideways, the badge is hidden and the picture uses the room that is left.",
-      commit: "",
+      commit: "8d2e855",
     },
   ],
 };
