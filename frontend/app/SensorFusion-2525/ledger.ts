@@ -445,7 +445,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "On a phone held upright, the sensor names wrap onto a second line instead of sitting on top of each other. A note on the second camera sits along the bottom of that picture.",
-      commit: "",
+      commit: "08a1d13",
     },
   ],
 };
