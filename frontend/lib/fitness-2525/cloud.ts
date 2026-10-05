@@ -77,7 +77,6 @@ export function mergeFitDays(a: FitDay, b: FitDay | null): FitDay {
     tz: newer.tz ?? older.tz,
     weight: newer.weight !== undefined ? newer.weight : older.weight,
     steps: newer.steps !== undefined && newer.steps !== null ? newer.steps : older.steps ?? null,
-    // Prefer newer when it has an explicit number; otherwise keep older. Undefined on newer clears only if newer.at is newer AND field was explicitly set — keep simple: newer wins when defined (incl. null).
     calories_in:
       newer.calories_in !== undefined ? newer.calories_in : older.calories_in ?? null,
     calories_out:
@@ -86,6 +85,12 @@ export function mergeFitDays(a: FitDay, b: FitDay | null): FitDay {
     checkins: Array.from(checkins.values()),
     deficit_note: newer.deficit_note ?? older.deficit_note,
     energy_cost_per_kcal: newer.energy_cost_per_kcal !== undefined ? newer.energy_cost_per_kcal : older.energy_cost_per_kcal ?? null,
+    height_cm: newer.height_cm !== undefined ? newer.height_cm : older.height_cm ?? null,
+    age_yr: newer.age_yr !== undefined ? newer.age_yr : older.age_yr ?? null,
+    sex: newer.sex !== undefined ? newer.sex : older.sex ?? null,
+    sugar_out_g: newer.sugar_out_g !== undefined ? newer.sugar_out_g : older.sugar_out_g ?? null,
+    window_intake_kcal: { ...(older.window_intake_kcal ?? {}), ...(newer.window_intake_kcal ?? {}) },
+    day_type: newer.day_type !== undefined ? newer.day_type : older.day_type ?? null,
     coach_note: newer.coach_note !== undefined ? newer.coach_note : older.coach_note ?? null,
     source: newer.source ?? older.source,
     at: Math.max(a.at ?? 0, b.at ?? 0),
