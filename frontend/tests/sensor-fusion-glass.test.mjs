@@ -36,7 +36,7 @@ ok(/event\.key !== "Escape"[\s\S]{0,80}setAnnotate\(false\);\s*setSavedNote\(fal
 // rev 43: rev 42's ledger said every dialog closes with Escape; Settings and the model list did not (Aset, Athena, Enlil).
 const esc = /useEffect\(\(\) => \{\n    \/\/ Every dialog closes with Escape([\s\S]*?)\}, \[([^\]]*)\]\);/.exec(src);
 ok(esc && /setSettings\(false\);/.test(esc[1]) && /setModelsOpen\(false\);/.test(esc[1]), "Escape closes Settings and the model list");
-ok(esc && /!settings && !modelsOpen\) return;/.test(esc[1]) && /settings, modelsOpen/.test(esc[2]), "the Escape listener is on while Settings or the model list is open");
+ok(esc && /!settings && !modelsOpen(?: && ![A-Za-z]+)*\) return;/.test(esc[1]) && /settings, modelsOpen/.test(esc[2]), "the Escape listener is on while Settings or the model list is open");
 
 // 2b. The labeler never hides its own controls (rev 43; Asar, Athena, Enki, Pangu). The rendered check is scripts/sf-layout-smoke.mjs.
 const block = (sel) => [...css.matchAll(new RegExp("(^|\\n)" + sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + " \\{([^}]*)\\}", "g"))].map((m) => m[2]).join("\n");
