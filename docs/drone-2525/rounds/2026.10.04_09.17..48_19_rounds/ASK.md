@@ -137,3 +137,11 @@ Screenshots (not saved by the chat): r.158's sign "◂ 20 · 21 ▸" (a large ou
 signs are big boxes overlapping the targets. Reading: (1) the sign is drawn at its real size, like the photo's small lane board — no
 screen-space enlargement to fit the words; (2) a sign never covers a target: if its words would overlap a target's silhouette, the
 words are not written (the board stays, small); (3) white board, black digits, like the photo.
+
+## Addendum 11 — "I can't read signs" (operator 2026-10-05, verbatim, screenshot of r.159 saved as addendum11_signs_unreadable_r159.png)
+
+> I can't read signs
+
+r.159 drew the boards at real size and wrote no numbers when they would be under 5 px, so every board in his view was blank white.
+Reading: keep the signs small and white like the photo, but always readable — short numbers like the photo's "5 6" ("20 21"), black on
+white at a legible minimum size; still never over a target.
