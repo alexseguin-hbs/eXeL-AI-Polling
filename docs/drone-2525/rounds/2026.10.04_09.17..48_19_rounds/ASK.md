@@ -198,3 +198,11 @@ T-number); moving the bullseye onto any marked target and pressing APPROVE turns
 mark is never dropped by another mark, an approval or a miss. A mark ends only when its target is down for good in that mode (Train-Down after a hit),
 on RESTART, or on a lane change. Train-Up and Qual-40: a hit target's mark stays and waits for it to stand again. The two-person room keeps its
 per-shot approval from the other seat (unchanged this revision).
+
+## Addendum 16 — the team goal (operator 2026-10-05, verbatim)
+
+> Remember, goal one day is as a team, Target and Approve as H.I. once all targeted , we can as a team FIRE ( best time works).
+
+Reading (recorded as the direction, not built in r.162): the remembered marks of Addendum 15 are the first step toward a team engagement — the
+team's humans mark and approve every target (H.I.), and once all are marked and approved the team fires together, scored on the best time. The
+two-person room keeps its per-shot approval until that team mode is designed with the operator.
