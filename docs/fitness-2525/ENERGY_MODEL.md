@@ -69,3 +69,15 @@ MoT rates on workout burn: **cal/min**, **cal/sec**, **cal/hr** (calories only).
 
 - Do not invent weight, calories, or sugar logs.
 - Do not price energy in `$` / `$/kcal`.
+
+## Sources
+- Mifflin–St Jeor (Medscape calculator / Mifflin et al. 1990): https://reference.medscape.com/calculator/846/mifflin-st-jeor-equation-calculator
+- Adult Compendium of Physical Activities (METs, corrected METs): https://pacompendium.com/corrected-mets/
+- ACSM/AND/DC Joint Position, Nutrition and Athletic Performance (2016): https://sky.sausport.com/wp-content/uploads/2021/02/American-College-of-Sports-Medicine_Joint-Position_Nutrition_and_Athletic_Performance_2016.pdf
+- ACSM Position Stand, Exercise and Fluid Replacement (30–60 g CHO/h >1 h): https://www.researchgate.net/publication/232208129_ACSM_Position_Stand_Exercise_and_Fluid_Replacement
+- ISSN Position Stand, Nutrient Timing (2017): https://link.springer.com/article/10.1186/s12970-017-0189-4
+- GSSI, Dietary Carbohydrate and the Endurance Athlete (30–90 g/h): https://www.gssiweb.org/sports-science-exchange/article/dietary-carbohydrate-and-the-endurance-athlete-contemporary-perspectives
+- WHO sugars guideline (2015): https://www.who.int/news/item/04-03-2015-who-calls-on-countries-to-reduce-sugars-intake-among-adults-and-children
+- AHA added sugars: https://www.heart.org/en/healthy-living/healthy-eating/eat-smart/sugar/how-much-sugar-is-too-much
+
+Notes: 3500 kcal/lb is a planning heuristic (real loss is non-linear). The sugar cap applies the WHO 10% rule only against a full-day intake target, never against partial burn.
