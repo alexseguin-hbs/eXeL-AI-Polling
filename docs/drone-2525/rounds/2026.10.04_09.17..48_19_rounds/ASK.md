@@ -82,3 +82,18 @@ projects as a long flat oval many times the target's width. **First item of Dron
 - Same for every target kind (plates, pop-ups, doors, aircraft); a miss still draws nothing; it stays outside the world budget (r.156).
 - Gate: QA row SPLASH_FACES_THE_CAMERA — at 50 m and 300 m the drawn burst is round on the screen (bounding box w/h 0.9–1.1), its
   centre within 2 px of the target's projected centre, its radius ≥ 6 px and ≤ 1.5× the target's projected size; a miss draws none.
+
+## Addendum 5 — "splash-ring as oval from bottom of target works" (operator 2026-10-04 evening CDT, verbatim) — SUPERSEDES Addendum 4
+
+> splash-ring as oval from bottom of target works
+
+He keeps the oval. The flat ground ring is right; what was wrong in his r.154 picture was where it sat (beside the target, r.154's
+lane-local coordinates). So the camera-facing burst of Addendum 4 is NOT built. Round 1 instead:
+- The splash stays the flat ring that reads as an oval on the screen (same ring, same 0.45 s growth, LOCK red, outside the world
+  budget as r.156 made it).
+- It starts at the BOTTOM of the hit target: centred under the target, at its base on the ground (the plate's foot / riser base;
+  for a pop-up its base; for a door or an aircraft the ground point under it) — not at the centre of mass (r.156) and not beside it.
+- It never appears on a miss.
+- Gate: QA row SPLASH_FROM_TARGET_BASE replaces SPLASH_FROM_TARGET_CENTRE — at 50 m and 300 m the ring's centre is the target's base
+  point (world distance ≤ 0.05 m, projected ≤ 2 px horizontally under the target), it is an oval on the screen (projected width >
+  height), and a miss draws none.
