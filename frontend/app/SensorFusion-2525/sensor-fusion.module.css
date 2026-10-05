@@ -604,6 +604,45 @@
   font-size: 16px;
   font-weight: 700;
 }
+.tips {
+  display: none;
+}
+@container (min-aspect-ratio: 3/2) {
+  .tips {
+    position: absolute;
+    inset: 8px 8px 8px 28px;
+    z-index: 3;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    pointer-events: none;
+  }
+  .tips ul {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: min(14cqw, 210px);
+    margin: 52px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .tips ul:last-child {
+    margin-top: 8px;
+  }
+  .tips li {
+    margin: 0;
+    padding: 3px 6px;
+    background: rgba(0, 0, 0, 0.72);
+    color: #fff;
+    border-left: 3px solid var(--sf-primary, #0cff00);
+    font-size: 12px;
+    line-height: 1.25;
+  }
+  .tips b {
+    font-weight: 700;
+  }
+}
 .stillBox {
   position: absolute;
   box-sizing: border-box;

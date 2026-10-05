@@ -74,6 +74,8 @@ ok(page.includes("SENSOR 1: ON"), "the lesson shows Sensor 1 on, as on the camer
 ok(page.includes(">Capture Images<"), "the lesson keeps Capture Images on the bottom bar");
 ok(page.includes("Demo.90"), "the lesson names the Demo.90 model");
 ok(!page.includes("Sensor Fusion. This picture."), "the lesson does not put a paragraph under the picture");
+ok(page.includes("Turns the camera on or off.") && page.includes("You draw the boxes.") && page.includes("Sends a finished set."), "the lesson names what each control does");
+ok(/className=\{styles\.tips\}/.test(page), "the notes sit beside the picture, not under it");
 ok(/alert && !showLabels && <p className=\{styles\.liveAlert\}>/.test(page), "a label on the box is not repeated on a bottom bar");
 ok(!page.includes('<p className={styles.liveAlert}>person 77%</p>'), "the lesson does not add a second person label");
 

@@ -363,6 +363,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "When the name is already on the box, it is not repeated on a bar across the picture. With names off, the one name being read sits under the meter, only as wide as the words.",
       commit: "bd5c35e",
     },
+    {
+      rev: 52,
+      date: "2026-10-05",
+      kind: "release",
+      text: "The info picture points at each control. SENSOR 1, the camera name, the bar, FPS, the box, %, Labels, the model, Capture, Annotate, and Upload each say what they do. On a narrow screen the notes stay off the picture.",
+      commit: "",
+    },
   ],
 };
 

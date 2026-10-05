@@ -1990,6 +1990,23 @@ export default function SensorFusion() {
             <div className={styles.meter} aria-hidden="true">
               <i style={{ height: "77%", background: "#ffe600" }} />
             </div>
+            <div className={styles.tips} aria-label="What each part does">
+              <ul>
+                <li><b>SENSOR 1.</b> Turns the camera on or off.</li>
+                <li><b>Front.</b> Which camera. Wide sees more.</li>
+                <li><b>Bar.</b> How sure the strongest box is.</li>
+                <li><b>FPS.</b> Pictures a second. Tap the picture.</li>
+              </ul>
+              <ul>
+                <li><b>Box.</b> What the model sees, and the name.</li>
+                <li><b>%.</b> Shows or hides the number.</li>
+                <li><b>Labels.</b> Shows or hides the name.</li>
+                <li><b>Demo.90.</b> The model. Tap it to pick another.</li>
+                <li><b>Capture.</b> Saves pictures from the camera.</li>
+                <li><b>Annotate.</b> You draw the boxes.</li>
+                <li><b>Upload.</b> Sends a finished set.</li>
+              </ul>
+            </div>
           </section>
           <div className={styles.dock}>
             <nav className={styles.piBot}>
