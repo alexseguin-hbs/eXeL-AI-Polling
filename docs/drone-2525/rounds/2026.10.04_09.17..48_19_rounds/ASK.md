@@ -256,3 +256,12 @@ by marking order + approve/fire by number (Addendum 18); r.164 = the voice engin
 ## Addendum 22 — a marked target cannot be reselected to approve (operator 2026-10-05, verbatim, with a PC screenshot: T1 50 M LEFT · T4 100 M LEFT · T5 100 M CENTRE red, T2 50 M RIGHT · T3 100 M RIGHT amber, the bullseye on T2) — `addendum22_reselect_to_approve_r163.png`
 
 > target is not allowing to be reselected to approve ; test throughally
+
+## Addendum 23 — the splash stays, targets do not disappear (operator 2026-10-05, verbatim, with a PC screenshot: a red oval under the bullseye where the 100 M LEFT had been hit)
+
+> Splash stays way too long
+
+> targets do not disappear when shot.
+
+Found (headless, r.164, `addendum23_ring_on_down_target_r164.png`): not the splash (0.3 s, gone) — the damage ring over the current mark (lifePct < 100) was
+drawn on a target that was down, and since r.162 the mark stays, so a ~2.6 m red ring sat on the fallen target until it stood again 3 s later.
