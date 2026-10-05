@@ -4,7 +4,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { MENU, MODELS, lensZoom, runPlan } from "../app/SensorFusion-2525/sf.ts";
+import { MENU, MODELS, coralNote, decideRun, lensZoom, runPlan } from "../app/SensorFusion-2525/sf.ts";
 
 let pass = 0;
 let fail = 0;
@@ -50,6 +50,19 @@ ok(!/setCoral\(item\.coral\)/.test(page), "the menu no longer sets Coral");
 ok(!/Check ID, with Coral/.test(py) && !/Check ID, no Coral/.test(py), "the computer menu dropped Check ID rows");
 ok(/Coral on\? y\/n/.test(py), "the computer asks the Coral switch");
 ok(/choose_model\(\)/.test(py), "Check ID is chosen from the model list");
+
+// rev 43: CORAL picked in a browser says where Coral really runs, in one line under the switch (spec 2026.10.03_18.37..22, change 2).
+const CORAL_LINE = "Coral runs on a computer with the Coral chip. This page uses the processor.";
+ok(coralNote(true) === CORAL_LINE, "with CORAL on, the line says this page uses the processor");
+ok(coralNote(false) === "", "with CPU on, there is no line");
+ok(decideRun("browser", true, false).engine === "processor" && decideRun("browser", true, true).file === "detect.tflite", "the browser always runs detect.tflite on the processor");
+ok(decideRun("edge", true, true).engine === "Coral" && decideRun("edge", true, false).engine === "processor", "only the computer with the chip runs Coral");
+const sfSrc = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sf.ts"), "utf8");
+ok(/export function coralNote\(coral: boolean\)[\s\S]{0,200}decideRun\("browser", coral, false\)/.test(sfSrc), "the line is driven by decideRun, the one rule");
+ok(/\bcoralNote,/.test(page.slice(0, page.indexOf('from "./sf"'))), "the page imports coralNote");
+const sheet = page.slice(page.indexOf("function SettingsSheet("), page.indexOf("type Step ="));
+ok(/\{coralNote\(coral\) && <p className=\{styles\.muted\}>\{coralNote\(coral\)\}<\/p>\}/.test(sheet), "Settings shows the line only when there is one");
+ok(sheet.indexOf("CORAL\n            </button>") < sheet.indexOf("coralNote(coral) &&") && sheet.indexOf("coralNote(coral) &&") < sheet.indexOf("<p>ALERTS</p>"), "the line sits under the CPU CORAL switch, above ALERTS");
 
 const zoom = { min: 0.5, max: 6 };
 ok(lensZoom("wide", zoom) === 1 && lensZoom("ultra", zoom) === 0.5 && lensZoom("tele", zoom) === 2.5, "the three back cameras pick wide, ultra, and tele");

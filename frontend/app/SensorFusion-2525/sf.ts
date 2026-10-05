@@ -70,6 +70,48 @@ export function placeBox<T extends { id: string }>(list: T[], mark: T, editing: 
   return [...list, mark];
 }
 
+/** Where the movable box starts on every picture and after every save. */
+export const START_BOX = { left: 40, top: 35, right: 60, bottom: 65 } as const;
+
+type BoxLike = { id: string; name: string; left: number; top: number; right: number; bottom: number };
+
+/**
+ * SAVE BOX refuses a box that is already there (rev 43). Six taps without moving gave six identical boxes on the sky.
+ * Returns "" when the box may be saved, else the one sentence the person reads. A Fix (editing) is never refused.
+ */
+export function refuseBox(list: BoxLike[], mark: BoxLike, editing: string): string {
+  if (editing && list.some((item) => item.id === editing)) return "";
+  const same = (item: BoxLike) =>
+    item.left === mark.left && item.top === mark.top && item.right === mark.right && item.bottom === mark.bottom;
+  if (list.some((item) => item.name === mark.name && same(item))) return "That box is already saved. Move the box onto the next object first.";
+  const untouched = mark.left === START_BOX.left && mark.top === START_BOX.top && mark.right === START_BOX.right && mark.bottom === START_BOX.bottom;
+  if (untouched && list.length) return "Move the box onto the next object first.";
+  return "";
+}
+
+/** "How many" takes a whole number from 1 to 12. Anything else is refused with a sentence, never changed quietly (rev 43). */
+export function howManyPictures(raw: string): { n: number; note: string } {
+  const text = String(raw ?? "").trim();
+  const value = Number(text);
+  if (!/^\d+$/.test(text) || value < 1 || value > 12) return { n: 0, note: "How many takes a number from 1 to 12." };
+  return { n: value, note: "" };
+}
+
+/** What the save really did, in one sentence (rev 43). Never a folder the app did not make. */
+export function savedLine(how: "folder" | "shared" | "downloaded", count: number, where = ""): string {
+  const pictures = `${count} ${count === 1 ? "picture" : "pictures"}`;
+  if (how === "folder") return `Saved ${pictures} in ${where}.`;
+  if (how === "shared") return `Shared ${pictures}.`;
+  return `Downloaded ${pictures}.`;
+}
+
+/** At most three names, then "and N more." */
+export function nameList(names: string[], max = 3): string {
+  const list = names.filter(Boolean);
+  if (list.length <= max) return list.join(", ");
+  return `${list.slice(0, max).join(", ")} and ${list.length - max} more.`;
+}
+
 type MenuFile = { n: string; id: string; label: string; go: "work" | "stop" | "label" | "pose" };
 
 const FILE_MENU: MenuFile[] = [
@@ -111,6 +153,17 @@ export function lensZoom(lens: Lens, range?: { min: number; max: number } | null
 export function decideRun(where: "browser" | "edge", coral: boolean, chip: boolean) {
   if (where === "browser" || !(coral && chip)) return { file: "detect.tflite", engine: "processor" as const };
   return { file: "edgetpu.tflite", engine: "Coral" as const };
+}
+
+/**
+ * The one line under the CPU CORAL switch (spec 2026.10.03_18.37..22, change 2; rev 43). Shown only with CORAL picked,
+ * and only while the page itself runs on the processor — decideRun is the one rule.
+ */
+export function coralNote(coral: boolean): string {
+  if (!coral) return "";
+  return decideRun("browser", coral, false).engine === "processor"
+    ? "Coral runs on a computer with the Coral chip. This page uses the processor."
+    : "";
 }
 
 export const COLORS: { id: SchemeId; label: string; mark: string; swatch: string; bg: string; card: string; primary: string; line: string }[] = [

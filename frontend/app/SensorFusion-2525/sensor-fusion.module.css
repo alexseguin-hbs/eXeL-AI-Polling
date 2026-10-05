@@ -936,22 +936,48 @@
     margin: 2px 0;
   }
 }
+/* rev 43: the labeler never hides its own controls. It scrolls (rev 36 had overflow: hidden, so rows 4-6, the film strip
+   and, held sideways, SAVE BOX were out of reach), no part shrinks to nothing, and the button row stays at the bottom of
+   the pane while the rest scrolls under it. */
 .labelFill {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  padding-bottom: 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  /* No bottom padding: the docked buttons sit flush on the pane's edge, so nothing peeks out under them. */
+  padding-bottom: 0;
+}
+.labelFill > * {
+  flex-shrink: 0;
 }
 .labelFill .labelBar {
   position: static;
   flex: 0 0 auto;
+}
+.labelDock {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: 8px;
+  background: var(--sf-bg, #3e505c);
+}
+.labelDock .labelBar {
+  margin-top: 0;
+}
+.labelNote {
+  margin: 0 0 4px;
+  font-size: 13px;
+  line-height: 1.35;
 }
 .labelFit {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  flex: 1 1 auto;
+  /* rev 43: grows to fill a short pane, never shrinks below the picture (the pane scrolls instead). */
+  flex: 1 0 auto;
   min-height: 160px;
   padding: 22px 8px 4px;
   box-sizing: border-box;
@@ -979,6 +1005,29 @@
     max-height: min(46dvh, 240px);
   }
 }
+/* rev 43: a phone held sideways. The picture fits above the docked buttons, and the note sits beside the buttons
+   instead of under them, so the whole picture and SAVE BOX are in one view once the picture is scrolled to. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .labelFrame img {
+    max-height: min(46dvh, 240px, calc(var(--sf-h, 100dvh) - 220px));
+  }
+  .labelDock {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .labelDock .labelBar {
+    flex: 0 0 auto;
+    grid-template-columns: repeat(4, auto);
+    column-gap: 20px;
+  }
+  .labelDock .labelNote {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 12px;
+  }
+}
 .labelStage {
   position: relative;
   width: min(100%, 720px);
@@ -1002,6 +1051,14 @@
   box-sizing: border-box;
   border: 1px dashed #0cff00;
   pointer-events: none;
+}
+.markLit {
+  border: 2px solid var(--sf-primary, #0cff00);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.55);
+}
+.markTag {
+  line-height: 1.2;
+  opacity: 0.9;
 }
 .edge {
   position: absolute;
@@ -1047,7 +1104,7 @@
 .boxOn {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
   align-items: center;
   margin: 6px 0;
   font-size: 13px;
@@ -1059,12 +1116,21 @@
 }
 .boxRow button,
 .boxOn button {
-  min-height: 32px;
+  min-height: 44px;
+  min-width: 44px;
   border: 0;
   background: none;
   color: var(--sf-primary, #0cff00);
   font-weight: 700;
   cursor: pointer;
+}
+.boxRow .rowName,
+.boxOn .rowName {
+  min-width: 0;
+  padding: 0;
+  color: #fff;
+  font-weight: 400;
+  text-align: left;
 }
 .fileName {
   margin: 4px 0 8px;
@@ -1090,6 +1156,8 @@
 }
 .film {
   display: flex;
+  flex: 0 0 auto;
+  min-height: 52px;
   gap: 8px;
   overflow-x: auto;
 }

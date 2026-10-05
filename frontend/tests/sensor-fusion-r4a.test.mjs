@@ -48,6 +48,10 @@ const page = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFus
 // The save note may lead with where the file went (2f58089), but it must still say the boxes stay on this device.
 ok(/setNote\([`"][^`"]*These boxes stay on this device\.[`"]\)/.test(page), "the screen says the boxes stay on this device");
 ok(!page.includes("team copy"), "the screen does not promise a team save");
+// rev 43: nothing is uploaded yet, so the Upload dialog never ticks Upload and never titles itself 'Develop Models' (Athena, Enlil, Sofia, Thor).
+ok(/<StepStrip current=\{trainStatus \? 3 : 2\} \/>/.test(page) && !/<StepStrip current=\{trainStatus \? 4/.test(page), "Upload is lit, never ticked, until a real upload exists");
+ok(/<h2>\{trainStatus \? "Upload Images" : lastSave\.title\}<\/h2>/.test(page) && !/<h2>[^<]*Develop Models/.test(page), "the Upload dialog keeps the step's own title, not 'Develop Models'");
+ok(!/`(Files|Downloads)\/\$\{setName\}`/.test(page), "a share or a download never names a folder the app did not make");
 
 const probeUrl = process.env.RLS_PROBE_URL || "";
 const probeKey = process.env.RLS_PROBE_ANON_KEY || "";

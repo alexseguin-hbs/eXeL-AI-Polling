@@ -13,12 +13,18 @@ import {
   MODELS,
   MENU,
   PLATFORMS,
+  START_BOX,
   applyTheme,
+  coralNote,
   detectPlatform,
   explainCamera,
+  howManyPictures,
   lensZoom,
+  nameList,
   placeBox,
+  refuseBox,
   runPlan,
+  savedLine,
   sensorPath,
   type Lens,
   type PlatformId,
@@ -125,6 +131,8 @@ function SettingsSheet({
               CORAL
             </button>
           </div>
+          {/* rev 43: CORAL picked in a browser says where Coral really runs (decideRun via coralNote). */}
+          {coralNote(coral) && <p className={styles.muted}>{coralNote(coral)}</p>}
         </div>
         <div className={styles.edgeBox}>
           <p>ALERTS</p>
@@ -393,7 +401,10 @@ async function chooseSaveFolder() {
   return picked;
 }
 
-async function saveNumberedPictures(setName: string, files: { name: string; blob: Blob }[]) {
+type SaveResult = { how: "folder" | "shared" | "downloaded"; where: string };
+
+// rev 43: the result says what really happened. A share or a download names no folder, because the app made none.
+async function saveNumberedPictures(setName: string, files: { name: string; blob: Blob }[]): Promise<SaveResult> {
   const folder = chosenFolder || (await chooseSaveFolder());
   if (folder) {
     const setFolder = await folder.getDirectoryHandle(setName, { create: true });
@@ -403,17 +414,19 @@ async function saveNumberedPictures(setName: string, files: { name: string; blob
       await writable.write(file.blob);
       await writable.close();
     }
-    return `${folder.name}/${setName}`;
+    return { how: "folder", where: `${folder.name}/${setName}` };
   }
   const shared = files.map((file) => new File([file.blob], file.name, { type: "image/png" }));
   const share = navigator as Navigator & { canShare?: (data: { files: File[] }) => boolean };
   if (share.canShare?.({ files: shared }) && navigator.share) {
     await navigator.share({ files: shared, title: "SensorFusion" });
-    return `Files/${setName}`;
+    return { how: "shared", where: "" };
   }
   files.forEach((file) => downloadBlob(file.name, URL.createObjectURL(file.blob)));
-  return `Downloads/${setName}`;
+  return { how: "downloaded", where: "" };
 }
+
+const SAVED_TITLE: Record<SaveResult["how"], string> = { folder: "Pictures saved.", shared: "Pictures shared.", downloaded: "Pictures downloaded." };
 
 async function fileToPng(file: File, name: string): Promise<{ name: string; blob: Blob; url: string } | null> {
   const url = URL.createObjectURL(file);
@@ -463,30 +476,37 @@ function Labeler({
   const stageRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const drag = useRef<Edge | null>(null);
-  const edges = useRef({ left: 40, top: 35, right: 60, bottom: 65 });
+  const edges = useRef<{ left: number; top: number; right: number; bottom: number }>({ ...START_BOX });
   const [pics, setPics] = useState<Shot[]>(shots);
   const [index, setIndex] = useState(0);
   const [labelName, setLabelName] = useState(names[0] || "person");
-  const [left, setLeft] = useState(40);
-  const [top, setTop] = useState(35);
-  const [right, setRight] = useState(60);
-  const [bottom, setBottom] = useState(65);
+  const [left, setLeft] = useState<number>(START_BOX.left);
+  const [top, setTop] = useState<number>(START_BOX.top);
+  const [right, setRight] = useState<number>(START_BOX.right);
+  const [bottom, setBottom] = useState<number>(START_BOX.bottom);
   const [marks, setMarks] = useState<Record<string, Mark[]>>({});
   const [editing, setEditing] = useState("");
   const [note, setNote] = useState("");
+  // The saved box whose row was tapped: its outline lights up (rev 43).
+  const [lit, setLit] = useState("");
   const pic = pics[index];
   const picId = pic?.id || "";
   edges.current = { left, top, right, bottom };
 
+  function resetBox() {
+    setLeft(START_BOX.left);
+    setTop(START_BOX.top);
+    setRight(START_BOX.right);
+    setBottom(START_BOX.bottom);
+  }
+
   useEffect(() => {
     if (!pic) return;
     setEditing("");
+    setLit("");
     const stored = readXmlStore()[pictureName(pic)];
     if (!stored) {
-      setLeft(40);
-      setTop(35);
-      setRight(60);
-      setBottom(65);
+      resetBox();
       return;
     }
     const page = readVoc(stored);
@@ -504,10 +524,7 @@ function Labeler({
     setMarks((current) => ({ ...current, [pic.id]: list }));
     // The saved boxes come back as rows and outlines. The movable box starts fresh, so SAVE BOX adds the next one.
     // Fix on a row is the only way to move a saved box.
-    setLeft(40);
-    setTop(35);
-    setRight(60);
-    setBottom(65);
+    resetBox();
   }, [picId]);
 
   function point(event: ReactPointerEvent) {
@@ -584,13 +601,16 @@ function Labeler({
       level: 1,
       by: who || "guest",
     };
+    // rev 43: a box that is already saved, or the untouched start box after a save, is refused with one sentence.
+    const refused = refuseBox(prior, mark, editing);
+    if (refused) {
+      setNote(refused);
+      return;
+    }
     // One picture holds many boxes: SAVE BOX adds one, unless Fix opened a saved box (rev 38: a fix updates the same box).
     const list = placeBox(prior, mark, editing);
     setEditing("");
-    setLeft(40);
-    setTop(35);
-    setRight(60);
-    setBottom(65);
+    resetBox();
     setMarks({ ...marks, [pic.id]: list });
     const where = await writePicture(pictureName(pic), list);
     if (where) {
@@ -629,6 +649,7 @@ function Labeler({
     if (!pic) return;
     const list = (marks[pic.id] || []).filter((item) => item.id !== mark.id);
     if (editing === mark.id) setEditing("");
+    if (lit === mark.id) setLit("");
     setMarks({ ...marks, [pic.id]: list });
     const where = await writePicture(pictureName(pic), list);
     if (where) setNote(`Removed. ${where}`);
@@ -727,20 +748,34 @@ function Labeler({
             }}
           >
             <img ref={imgRef} src={pic.url} alt="" />
-            {(marks[pic.id] || [])
-              .filter((mark) => mark.id !== editing)
-              .map((mark) => (
+            {(marks[pic.id] || []).map((mark, markIndex) =>
+              mark.id === editing ? null : (
                 <div
                   key={mark.id}
-                  className={styles.markOld}
+                  className={`${styles.markOld} ${lit === mark.id ? styles.markLit : ""}`}
                   style={{
                     left: `${Math.min(mark.left, mark.right)}%`,
                     top: `${Math.min(mark.top, mark.bottom)}%`,
                     width: `${Math.abs(mark.right - mark.left)}%`,
                     height: `${Math.abs(mark.bottom - mark.top)}%`,
                   }}
-                />
-              ))}
+                >
+                  {/* rev 43: each saved box shows its number and name, the same words as its row. */}
+                  <b
+                    className={[
+                      styles.stillTag,
+                      styles.markTag,
+                      Math.max(mark.left, mark.right) > 75 ? styles.stillTagEnd : "",
+                      Math.min(mark.top, mark.bottom) < 8 ? styles.stillTagIn : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
+                    {markIndex + 1} {mark.name}
+                  </b>
+                </div>
+              ),
+            )}
             <div className={styles.markBox} style={{ left: `${boxLeft}%`, top: `${boxTop}%`, width: `${boxWidth}%`, height: `${boxHeight}%` }} />
             <button
               type="button"
@@ -817,6 +852,9 @@ function Labeler({
             <input type="number" min={0} max={100} value={bottom} onChange={(event) => setBottom(clampPct(Number(event.target.value)))} />
           </label>
         </details>
+        {/* rev 43: the buttons and the last note stay at the bottom of the pane while the picture and the rows scroll,
+            so SAVE BOX is always in reach and a refused save is never silent. */}
+        <div className={styles.labelDock}>
         <div className={styles.labelBar}>
           <button type="button" onClick={saveBox} disabled={!pic}>
             SAVE BOX
@@ -831,10 +869,18 @@ function Labeler({
             FILES
           </button>
         </div>
-        {note && <p className={styles.muted}>{note}</p>}
-        {pic && (marks[pic.id] || []).map((mark) => (
-          <div key={mark.id} className={editing === mark.id ? styles.boxOn : styles.boxRow}>
-            <span>{mark.level === 2 ? "Reviewed" : "Labeled"} · {mark.name}</span>
+        {note && (
+          <p className={`${styles.muted} ${styles.labelNote}`} aria-live="polite">
+            {note}
+          </p>
+        )}
+        </div>
+        {pic && (marks[pic.id] || []).map((mark, markIndex) => (
+          <div key={mark.id} className={editing === mark.id || lit === mark.id ? styles.boxOn : styles.boxRow}>
+            {/* rev 43: the row names its box; a tap lights that box's outline on the picture. */}
+            <button type="button" className={styles.rowName} aria-pressed={lit === mark.id} onClick={() => setLit(lit === mark.id ? "" : mark.id)}>
+              Box {markIndex + 1} · {mark.name} · {mark.level === 2 ? "reviewed" : "labeled"}
+            </button>
             <button type="button" onClick={() => void acceptBox(mark)}>Accept</button>
             <button type="button" onClick={() => fixBox(mark)}>Fix</button>
             <button type="button" onClick={() => void rejectBox(mark)}>Reject</button>
@@ -883,7 +929,10 @@ export default function SensorFusion() {
   const [poseNote, setPoseNote] = useState(false);
   const [annotate, setAnnotate] = useState(false);
   const [savedNote, setSavedNote] = useState(false);
-  const [shotFolder, setShotFolder] = useState("");
+  const [lastSave, setLastSave] = useState<{ title: string; line: string; names: string[] }>({ title: "Pictures saved.", line: "", names: [] });
+  // One capture at a time (rev 43): the ref stops a second tap at once; the text is what the dialog shows meanwhile.
+  const captureBusy = useRef(false);
+  const [capturing, setCapturing] = useState("");
   const [saveFolder, setSaveFolder] = useState("");
   const [nextFile, setNextFile] = useState("");
   const [trainStatus, setTrainStatus] = useState("");
@@ -1074,17 +1123,19 @@ export default function SensorFusion() {
   }, [step]);
 
   useEffect(() => {
-    // Every dialog closes with Escape, so no screen traps the person.
-    if (!annotate && !savedNote && !infoOpen) return;
+    // Every dialog closes with Escape, so no screen traps the person. rev 43: Settings and the model list too (rev 42 said so).
+    if (!annotate && !savedNote && !infoOpen && !settings && !modelsOpen) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       setAnnotate(false);
       setSavedNote(false);
       setInfoOpen(false);
+      setSettings(false);
+      setModelsOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [annotate, savedNote, infoOpen]);
+  }, [annotate, savedNote, infoOpen, settings, modelsOpen]);
 
   function chooseScheme(next: SchemeId | "custom", hex?: string) {
     const color = hex || customHex;
@@ -1174,9 +1225,8 @@ export default function SensorFusion() {
     setSensorOn(false);
   }
 
-  async function framesFromVideo(long = false) {
+  async function framesFromVideo(long: boolean, howMany: number) {
     const video = videoRef.current;
-    const howMany = long ? 90 : Math.min(12, Math.max(1, Number(count) || 4));
     const wait = long ? 500 : 120;
     if (!video || video.readyState < 2) return { shots: [] as Shot[], files: [] as { name: string; blob: Blob }[], label: classKey(labelPick) };
     const label = classKey(labelPick);
@@ -1184,6 +1234,7 @@ export default function SensorFusion() {
     const shotsOut: Shot[] = [];
     const files: { name: string; blob: Blob }[] = [];
     for (let i = 0; i < howMany; i += 1) {
+      setCapturing(`Picture ${i + 1} of ${howMany}`);
       const canvas = document.createElement("canvas");
       const width = video.videoWidth || 640;
       const height = video.videoHeight || 480;
@@ -1205,6 +1256,21 @@ export default function SensorFusion() {
   }
 
   async function takeShots(long = false) {
+    // A double tap wrote person_0001–0004 twice (rev 43): one capture at a time, and How many is never changed quietly.
+    if (captureBusy.current) return;
+    const total = long ? 90 : howManyPictures(count).n;
+    if (!total) return;
+    captureBusy.current = true;
+    setCapturing("Starting…");
+    try {
+      await captureFrames(long, total);
+    } finally {
+      captureBusy.current = false;
+      setCapturing("");
+    }
+  }
+
+  async function captureFrames(long: boolean, total: number) {
     try {
       if (!chosenFolder) {
         const picked = await chooseSaveFolder();
@@ -1223,22 +1289,22 @@ export default function SensorFusion() {
     for (let i = 0; i < 30 && video && video.readyState < 2; i += 1) {
       await new Promise((resolve) => window.setTimeout(resolve, 100));
     }
-    const { shots: next, files, label } = await framesFromVideo(long);
+    const { shots: next, files, label } = await framesFromVideo(long, total);
     if (!next.length) {
       setError("Turn SENSOR 1 on before you save pictures.");
       setAnnotate(false);
       return;
     }
-    let saved = "";
+    let saved: SaveResult = { how: "downloaded", where: "" };
+    setCapturing("Saving…");
     try {
       saved = await saveNumberedPictures(label, files);
       commitNames(label, files.length);
-      setShotFolder(saved);
+      setLastSave({ title: SAVED_TITLE[saved.how], line: savedLine(saved.how, files.length, saved.where), names: files.map((file) => file.name) });
       setNextFile(pictureFile(label, (Number(window.localStorage.getItem(`sf2525-seq-${classKey(label)}`)) || 0) + 1));
       setError("");
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
-      setShotFolder("");
       setError(err instanceof Error ? err.message : "The pictures were not saved.");
       return;
     }
@@ -1249,12 +1315,23 @@ export default function SensorFusion() {
     setSavedNote(true);
     window.localStorage.setItem(
       "sf2525-capture",
-      JSON.stringify({ operator, platform, model, name: label, note, count: next.length, folder: saved }),
+      JSON.stringify({ operator, platform, model, name: label, note, count: next.length, folder: saved.where || saved.how }),
     );
   }
 
   async function addFromDevice(list: FileList | null) {
-    if (!list?.length) return;
+    if (!list?.length || captureBusy.current) return;
+    captureBusy.current = true;
+    setCapturing("Saving…");
+    try {
+      await addDeviceFiles(list);
+    } finally {
+      captureBusy.current = false;
+      setCapturing("");
+    }
+  }
+
+  async function addDeviceFiles(list: FileList) {
     const label = classKey(labelPick);
     const names = await peekNames(label, list.length);
     const made = (await Promise.all(Array.from(list).map((file, index) => fileToPng(file, names[index])))).filter((item): item is { name: string; blob: Blob; url: string } => Boolean(item));
@@ -1271,9 +1348,9 @@ export default function SensorFusion() {
       original: list[index]?.name,
     }));
     try {
-      const folder = await saveNumberedPictures(label, files);
+      const saved = await saveNumberedPictures(label, files);
       commitNames(label, files.length);
-      setShotFolder(folder);
+      setLastSave({ title: SAVED_TITLE[saved.how], line: savedLine(saved.how, files.length, saved.where), names: files.map((file) => file.name) });
       setNextFile(pictureFile(label, (Number(window.localStorage.getItem(`sf2525-seq-${classKey(label)}`)) || 0) + 1));
       setError("");
     } catch (err) {
@@ -1590,22 +1667,28 @@ export default function SensorFusion() {
               </select>
             </label>
             <label>
-              How many
-              <input value={count} onChange={(event) => setCount(event.target.value)} />
+              How many <span className={styles.muted}>Up to 12.</span>
+              <input type="number" inputMode="numeric" min={1} max={12} step={1} value={count} onChange={(event) => setCount(event.target.value)} />
             </label>
+            {howManyPictures(count).note && <p className={styles.alert}>{howManyPictures(count).note}</p>}
             <label>
               Note
               <input value={note} onChange={(event) => setNote(event.target.value)} />
             </label>
             <label className={styles.file}>
               From this device
-              <input type="file" accept="image/*" multiple onChange={(event) => void addFromDevice(event.target.files)} />
+              <input type="file" accept="image/*" multiple disabled={Boolean(capturing)} onChange={(event) => void addFromDevice(event.target.files)} />
             </label>
+            {capturing && (
+              <p className={styles.muted} aria-live="polite">
+                {capturing}
+              </p>
+            )}
             <div className={styles.actions}>
-              <button type="button" onClick={() => void takeShots()}>
+              <button type="button" disabled={Boolean(capturing)} onClick={() => void takeShots()}>
                 FROM SENSOR
               </button>
-              <button type="button" onClick={() => void takeShots(true)}>
+              <button type="button" disabled={Boolean(capturing)} onClick={() => void takeShots(true)}>
                 45–60 SEC
               </button>
               <button type="button" onClick={() => setAnnotate(false)}>
@@ -1618,8 +1701,9 @@ export default function SensorFusion() {
       {savedNote && (
         <div className={styles.modalWrap} onClick={() => setSavedNote(false)}>
           <div className={styles.modal} role="dialog" aria-label="Upload" onClick={(event) => event.stopPropagation()}>
-            <StepStrip current={trainStatus ? 4 : 2} />
-            <h2>{trainStatus ? "Develop Models" : "Pictures saved."}</h2>
+            {/* rev 43: nothing is uploaded yet, so Upload is lit, never ticked, and the title is the step's own name. */}
+            <StepStrip current={trainStatus ? 3 : 2} />
+            <h2>{trainStatus ? "Upload Images" : lastSave.title}</h2>
             {trainStatus ? (
               <p className={styles.statusLine}>
                 <StepIcon id="develop" />
@@ -1627,9 +1711,9 @@ export default function SensorFusion() {
               </p>
             ) : null}
             <p className={styles.muted}>
-              {shots.length} pictures in {shotFolder || "SensorFusion"}.
+              {trainStatus ? `${shots.length} ${shots.length === 1 ? "picture" : "pictures"} in this set.` : lastSave.line}
               {" "}
-              {shots.map((shot) => shot.name).filter(Boolean).join(", ")}
+              {nameList(trainStatus ? shots.map((shot) => shot.name || "") : lastSave.names)}
             </p>
             <div className={styles.actions}>
               <button

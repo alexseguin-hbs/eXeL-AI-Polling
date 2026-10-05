@@ -9,8 +9,10 @@ const exe = candidates.find((p) => existsSync(p));
 if (!exe && !process.env.SMOKE_REQUIRED) { console.log('render-smoke: SKIPPED — no Chromium on this builder (set SMOKE_REQUIRED=1 to make that a failure; deploy.yml runs it as a required step)'); process.exit(0); }
 // r.072: the Financial layout smoke runs beside the drone render smoke — nothing on the Financial page may push a phone sideways.
 // r.073 (second pre-push review): and the sync probe — the budget and the cards against a store that behaves like the real one
+// SF rev 43: and the Sensor Fusion labeler smoke — the labeler scrolls, SAVE BOX and every row's buttons can be reached upright and
+// sideways, and Settings and the model list close with Escape (a regex could not see rev 42's labeler that could not scroll).
 let status = 0;
-for (const script of ['./drone-render-smoke.mjs', './fin-layout-smoke.mjs', './fin-sync-probe.mjs']) {
+for (const script of ['./drone-render-smoke.mjs', './fin-layout-smoke.mjs', './fin-sync-probe.mjs', './sf-layout-smoke.mjs']) {
   const r = spawnSync(process.execPath, [new URL(script, import.meta.url).pathname], { stdio: 'inherit', env: { ...process.env, CHROMIUM_PATH: exe || '' } });
   if ((r.status ?? 1) !== 0) status = r.status ?? 1;
 }
