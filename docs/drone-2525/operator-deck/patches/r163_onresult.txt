@@ -1,0 +1,11 @@
+  r.onresult=ev=>{
+    const t=(ev.results[ev.results.length-1][0].transcript||'').toLowerCase();
+    log('VOICE','',t); if(voiceCmd(t)) return; /* r.163: numbered phrases first; the rest below as before */
+    if(/\b(?:hold|cease|check|stop|don'?t|do not|no|not)\b/.test(t)){ toast('VOICE HOLD'); log('VOICE','HOLD',t); return; } /* r.134: a negation is heard BEFORE consent — "don't approve" used to approve */
+    const m=t.match(/\b(?:target|t)\s*(one|two|three|1|2|3)\b/);
+    if(m){const map={one:1,two:2,three:3,'1':1,'2':2,'3':3}; targetN(map[m[1]]); return;} /* r.148: voice 'target N' is key N */
+    if(/\b(?:target|lock)\b/.test(t)){ state.slot=state.slot||1; markLock(lockOn(),'VOICE'); return;}
+    if(/\b(?:approve|approved|cleared)\b/.test(t)){ approveDesig('HI-2'); toast('VOICE APPROVE'); return; }
+    const f=t.trim().match(/^(?:fire|f)\s*(one|two|three|1|2|3)?$/); /* r.135: the whole utterance, not a substring ("the fire alarm" fired — Enki B) */ /* r.134: a lone 'f' in ambient speech no longer fires */ if(f){fireN(f[1]?({one:1,two:2,three:3,'1':1,'2':2,'3':3}[f[1]]):state.slot||1);return;}
+    if(/capture|photo/.test(t))capture();
+  };
