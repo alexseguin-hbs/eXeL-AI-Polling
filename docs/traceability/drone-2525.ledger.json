@@ -415,7 +415,15 @@
    "date": "2026-10-05",
    "kind": "release",
    "text": "Operator deck r.162 served at /drone-2525/play.html (sha256 10c900f7...). QUAL TIMER AND A VERTICAL RED · YELLOW · GREEN LIGHT ON THE RIGHT — THE LAST THREE SECONDS OF EACH GROUP, ONE SECOND A LAMP — operator Addendum 13. A MARKED, APPROVED TARGET KEEPS ITS MARK THROUGH THE HIT AND THE RETURN IN TRAINING · RESET — operator Addendum 14. MARKS ARE REMEMBERED — MARK MANY, APPROVE EACH, FIRE ONLY APPROVED — operator Addendum 15. R RELOADS ON A PC — operator Addendum 17. r.161 artefact commit corrected to 0b45687.",
-   "commit": "9222164",
+   "commit": "0e6d329",
+   "shipped": "6fe15e4"
+  },
+  {
+   "rev": 58,
+   "date": "2026-10-05",
+   "kind": "release",
+   "text": "Operator deck r.163 served at /drone-2525/play.html (sha256 a725cdba...). T-NUMBERS IN MARKING ORDER; APPROVE AND FIRE BY NUMBER — KEYS 1–9 AND VOICE — operator Addendum 18. THE SPLASH IS 0.3 S OF REAL TIME — operator Addendum 21. r.162 artefact commit corrected to 0e6d329.",
+   "commit": "921ce8a",
    "shipped": "PENDING"
   }
  ]

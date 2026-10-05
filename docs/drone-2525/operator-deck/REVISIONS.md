@@ -43,6 +43,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.160 | 2026-10-05 | Claude Code (the lane signs readable: short numbers, black on white, ≥ 9 px) | 424082 | 1fbc365f84c43bb895289fed5f5d4343152cec4a8e49b6fb45ff3d5cf2398105 | PENDING (Verify Live) | a1f0236e5995ca44eedfc0b03fc2128dcc60a1ec11c7dc83ec3d23c916fb7787 |
 | r.161 | 2026-10-05 | Claude Code (T marks what the bullseye is on; keys beat focus; a left click centres the bullseye on the target) | 428373 | 543ed59859ab6c17329cf082d5fd22d6cf3f3305eb85179ca1ae7c61c9121403 | PENDING (Verify Live) | 10ef6640d7e7f7b8cc213d7056eafea1965a11a0101b40abc15b47c1c3b02774 |
 | r.162 | 2026-10-05 | Claude Code (QUAL timer + vertical light; marks remembered — mark many, approve each, fire only approved; R reloads) | 440719 | 10c900f74b9482ebfb7b5adc10fcee3b8e3330293ce040ac2ad711a7630cc46e | PENDING (Verify Live) | fea7fc43e6eeefd44f5faadabbe7ed447a35f4a0010695e0c0a092c0df06716b |
+| r.163 | 2026-10-05 | Claude Code (T-numbers in marking order; approve and fire by number; the splash 0.3 s) | 446713 | a725cdbab0ffda175e071f5c12ef6441256b284fa59107c2d5dfd2f465e1c9a4 | PENDING (Verify Live) | 8d7ee3f4aed5eeca6e09480aaabeefec86c5520db3bdcf111af5e3f981be03e2 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -894,3 +895,18 @@ Notes: `CLAUDE_CODE_NOTES_r162.md`. Patch: `patches/r161_to_r162.py` (41 asserte
 - QA `KEY_R_RELOADS`, `MARKS_ARE_REMEMBERED`, `MARK_SURVIVES_THE_RETURN`, `QUAL_LIGHT_LAST_THREE_SECONDS`, `QUAL_TIMER_COUNTS`; `START_LIGHT_SEQUENCE` re-pointed to the new law.
 - **Correction:** the r.161 section names artefact commit `af6b541`; the sync before the push rewrote it to `0b45687`. r.161 shipped `cafdd9f`, LIVE in
   Verify Live #2477.
+
+## r.163 — Claude Code: T-numbers by marking order, approve and fire by number, a short splash (2026-10-05)
+Operator (round folder ASK.md Addendum 18, verbatim): **"As well, we need T1, T2, T3 as order of targets gets labeled.  So I can Approve T3 and Fire T3,
+or Approve T1, Approve T3 and Fire 1"**; Addendum 21: **"Note: Splash now stays too long after firing."**
+Notes: `CLAUDE_CODE_NOTES_r163.md`. Patch: `patches/r162_to_r163.py` (15 asserted edits). Artefact commit `921ce8a`.
+- **T-numbers count up in the order targets are marked** (T1 first); a marked target keeps its number; RESTART starts again at T1.
+- **Keys 1–9 go to TN** — the head turns onto it and it becomes the mark SPACE approves and F fires (3 · SPACE · F = approve T3, fire T3). With no TN,
+  keys 1–3 keep their r.148 meaning.
+- **Voice by number** (one parser, `voiceCmd`): "approve 3" / "approve T3" approves T3 wherever it is; "fire 1" turns onto T1 and fires only if it is red;
+  "target 3" goes to T3; "target" marks what the bullseye is on; "reload" reloads; a negation ("don't fire three") holds.
+- **The splash is 0.3 s of real time.** It was 0.45 s of game time, and the game clock runs slow when the frame rate drops below 20 fps (each frame
+  counts at most 0.05 s), so on a busy PC it hung for seconds.
+- QA `T_NUMBERS_IN_MARKING_ORDER`, `VOICE_BY_NUMBER`, `SPLASH_IS_SHORT`.
+- **Correction:** the r.162 section names artefact commit `9222164`; the sync before the push rewrote it to `0e6d329`. r.162 shipped `6fe15e4`, LIVE in
+  Verify Live #2485.
