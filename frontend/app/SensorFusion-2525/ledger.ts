@@ -454,6 +454,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Thermal, lidar, ultrasonic, radar, and sonar stay hidden until a device with that name is connected. On a phone, two cameras are kept only if both stay on at a small size and a slow rate. If not, SENSOR 2 goes away and the phone stays on one camera.",
       commit: "6208434",
     },
+    {
+      rev: 65,
+      date: "2026-10-05",
+      kind: "release",
+      text: "The six training marks are the original pictures: capture, annotate, upload, develop, download, and run live. The annotate mark is the corner box with the plus.",
+      commit: "",
+    },
   ],
 };
 
