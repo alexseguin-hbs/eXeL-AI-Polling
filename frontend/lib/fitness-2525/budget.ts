@@ -192,7 +192,8 @@ export function buildDayBudget(opts: {
   const dayClass = classifyDay(dayType, day.workouts);
   const { deficit, noDeficit } = deficitTargetKcal(burnForPlan, bmr, dayClass);
   const intakeTarget = burnForPlan != null && deficit != null ? Math.round(burnForPlan - deficit) : null;
-  const sugarCap = sugarCapG(a.sex, intakeTarget ?? burnForPlan);
+  // WHO 10% rule only against a full-day intake target — never a partial 'so far' burn.
+  const sugarCap = sugarCapG(a.sex, intakeTarget);
   const windows: WindowBudget[] = [];
   for (const w of day.workouts) {
     const minutes = estimateMinutes(w);
