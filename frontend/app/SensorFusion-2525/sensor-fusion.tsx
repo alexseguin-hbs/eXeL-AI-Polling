@@ -974,7 +974,9 @@ export default function SensorFusion() {
   const { user, isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
   const operator = user?.name || user?.email || "";
   const videoRef = useRef<HTMLVideoElement>(null);
+  const video2Ref = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const stream2Ref = useRef<MediaStream | null>(null);
   const [step, setStep] = useState<Step>("login");
   const [platform, setPlatform] = useState<PlatformId>("win");
   const [found, setFound] = useState<PlatformId>("win");
@@ -982,7 +984,11 @@ export default function SensorFusion() {
   const [customHex, setCustomHex] = useState("#19c8cf");
   const [settings, setSettings] = useState(false);
   const [sensorOn, setSensorOn] = useState(false);
+  const [sensor2On, setSensor2On] = useState(false);
+  const [sensor2Name, setSensor2Name] = useState("Camera");
+  const [sensor2Note, setSensor2Note] = useState("");
   const [busy, setBusy] = useState(false);
+  const [busy2, setBusy2] = useState(false);
   const [error, setError] = useState("");
   const [lens, setLens] = useState<Lens>("wide");
   const [model, setModel] = useState("demo90");
@@ -995,6 +1001,8 @@ export default function SensorFusion() {
   const [showFps, setShowFps] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [tip, setTip] = useState("");
+  const [tipAt, setTipAt] = useState({ left: 12, top: 12 });
+  const lessonRef = useRef<HTMLDivElement>(null);
   const [poseNote, setPoseNote] = useState(false);
   const [annotate, setAnnotate] = useState(false);
   const [savedNote, setSavedNote] = useState(false);
@@ -1045,8 +1053,17 @@ export default function SensorFusion() {
     }
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
+      stream2Ref.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
+
+  useEffect(() => {
+    const video = video2Ref.current;
+    const stream = stream2Ref.current;
+    if (!sensor2On || !video || !stream) return;
+    video.srcObject = stream;
+    void video.play().catch(() => undefined);
+  }, [sensor2On]);
 
   useEffect(() => {
     const fit = () => {
@@ -1222,6 +1239,38 @@ export default function SensorFusion() {
     return () => window.removeEventListener("keydown", onKey);
   }, [annotate, savedNote, infoOpen, settings, modelsOpen, lensOpen]);
 
+  function placeTip(id: string, event: React.MouseEvent<HTMLElement>) {
+    const host = lessonRef.current?.getBoundingClientRect();
+    const box = event.currentTarget.getBoundingClientRect();
+    if (!host) {
+      setTip(id);
+      return;
+    }
+    const noteW = 230;
+    const noteH = 44;
+    let left = box.left - host.left;
+    let top = box.bottom - host.top + 6;
+    const inDock = box.bottom > host.bottom - 88;
+    if (inDock) {
+      top = box.top - host.top - noteH - 4;
+      left = box.left - host.left;
+    } else if (box.top < host.top + 64) {
+      top = box.bottom - host.top + 6;
+      left = box.left - host.left;
+    } else if (box.left < host.left + host.width * 0.22) {
+      left = box.right - host.left + 10;
+      top = box.top - host.top;
+    } else {
+      left = box.right - host.left + 8;
+      top = box.top - host.top;
+      if (left + noteW > host.width - 8) left = box.left - host.left - noteW - 8;
+    }
+    left = Math.max(8, Math.min(left, host.width - noteW - 8));
+    top = Math.max(8, Math.min(top, host.height - noteH - 8));
+    setTip(id);
+    setTipAt({ left, top });
+  }
+
   function chooseScheme(next: SchemeId | "custom", hex?: string) {
     const color = hex || customHex;
     setScheme(next);
@@ -1299,6 +1348,47 @@ export default function SensorFusion() {
     canvas?.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
     const fill = meterRef.current?.querySelector("i");
     if (fill instanceof HTMLElement) fill.style.height = "0%";
+  }
+
+  function closeSensor2() {
+    stream2Ref.current?.getTracks().forEach((track) => track.stop());
+    stream2Ref.current = null;
+    if (video2Ref.current) video2Ref.current.srcObject = null;
+    setSensor2On(false);
+    setSensor2Note("");
+  }
+
+  async function openSensor2() {
+    setBusy2(true);
+    setError("");
+    setSensor2Note("");
+    try {
+      if (!streamRef.current) await openSensor();
+      const devices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "videoinput" && device.deviceId);
+      const used = streamRef.current?.getVideoTracks()[0]?.getSettings().deviceId || "";
+      const ranked = devices
+        .filter((device) => device.deviceId !== used)
+        .sort((a, b) => Number(lensName(a.label) === "front") - Number(lensName(b.label) === "front"));
+      const pick = ranked[0];
+      if (!pick) {
+        setSensor2On(true);
+        setSensor2Note("Only one camera showed up.");
+        return;
+      }
+      stream2Ref.current?.getTracks().forEach((track) => track.stop());
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { deviceId: { exact: pick.deviceId } } });
+      stream2Ref.current = stream;
+      const kind = lensName(pick.label);
+      setSensor2Name(kind === "ultra" ? "0.5x" : kind === "tele" ? "2.5x" : kind === "front" ? "Front" : kind === "wide" ? "Wide" : "Camera");
+      setSensor2On(true);
+      const first = streamRef.current?.getVideoTracks()[0];
+      if (first && first.readyState === "ended") setSensor2Note("This phone kept one camera. SENSOR 1 stopped when SENSOR 2 opened.");
+    } catch {
+      setSensor2On(true);
+      setSensor2Note("This phone can show one camera at a time.");
+    } finally {
+      setBusy2(false);
+    }
   }
 
   function closeSensor() {
@@ -1711,6 +1801,15 @@ export default function SensorFusion() {
           <img src={sensorOn ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
           SENSOR 1: {busy ? "…" : sensorOn ? "ON" : "OFF"}
         </button>
+        <button
+          type="button"
+          className={styles.sensorSwitch}
+          onClick={() => (sensor2On ? closeSensor2() : void openSensor2())}
+          disabled={busy2}
+        >
+          <img src={sensor2On ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
+          SENSOR 2: {busy2 ? "…" : sensor2On ? "ON" : "OFF"}
+        </button>
         <div className={styles.lensWrap}>
           <button
             type="button"
@@ -1785,14 +1884,16 @@ export default function SensorFusion() {
         </div>
       </header>
       <section
-        className={styles.stage}
+        className={`${styles.stage} ${sensor2On ? styles.split : ""}`}
         onClick={(event) => {
           if ((event.target as HTMLElement).closest("button")) return;
           setShowFps((on) => !on);
         }}
       >
-        <video ref={videoRef} autoPlay muted playsInline aria-label="Camera" />
+        <div className={styles.pane}>
+        <video ref={videoRef} autoPlay muted playsInline aria-label="SENSOR 1" />
         <canvas ref={canvasRef} className={styles.boxes} />
+        {sensor2On && <span className={styles.paneTag}>SENSOR 1</span>}
         {sensorOn && !annotate && !capturing && (
           <div className={styles.meter} ref={meterRef} aria-hidden="true">
             <i />
@@ -1808,6 +1909,18 @@ export default function SensorFusion() {
         {error && <p className={styles.alert}>{error}</p>}
         {alert && !showLabels && <p className={styles.liveAlert}>{alert}</p>}
         {capturing && <p className={styles.captureCount}>{capturing}</p>}
+        </div>
+        {sensor2On && (
+          <div className={styles.pane}>
+            <video ref={video2Ref} autoPlay muted playsInline aria-label="SENSOR 2" />
+            <span className={styles.paneTag}>SENSOR 2 · {sensor2Name}</span>
+            {sensor2Note && (
+              <div className={styles.idle}>
+                <p>{sensor2Note}</p>
+              </div>
+            )}
+          </div>
+        )}
         <Foot accent={accent} />
       </section>
       <div className={styles.dock}>
@@ -2027,14 +2140,14 @@ export default function SensorFusion() {
       )}
       <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} alerts={alerts} onCoral={chooseCoral} onAlerts={chooseAlerts} onClose={() => setSettings(false)} onScheme={chooseScheme} />
       {infoOpen && (
-        <div className={`${styles.lesson} ${styles.work}`} role="dialog" aria-label="Sensor Fusion">
+        <div className={`${styles.lesson} ${styles.work}`} role="dialog" aria-label="Sensor Fusion" ref={lessonRef}>
           <header className={styles.piTop}>
             <img className={styles.logo} src="/sensor-fusion/sensor_fusion_logo_001.png" alt="sensor fusion" />
-            <button type="button" className={`${styles.sensorSwitch} ${tip === "sensor" ? styles.tipOn : ""}`} onClick={() => setTip("sensor")}>
+            <button type="button" className={`${styles.sensorSwitch} ${tip === "sensor" ? styles.tipOn : ""}`} onClick={(event) => placeTip("sensor", event)}>
               <img src={`${UI}/toggle_switch_on_001.png`} alt="" />
               SENSOR 1: ON
             </button>
-            <button type="button" className={`${styles.lensRead} ${tip === "lens" ? styles.tipOn : ""}`} onClick={() => setTip("lens")}>
+            <button type="button" className={`${styles.lensRead} ${tip === "lens" ? styles.tipOn : ""}`} onClick={(event) => placeTip("lens", event)}>
               Front
             </button>
             <div className={styles.tools}>
@@ -2071,7 +2184,7 @@ export default function SensorFusion() {
                     className={`${styles.stillBox} ${tip === "box" ? styles.tipOn : ""}`}
                     style={{ left: `${left}%`, top: `${top}%`, width: `${right - left}%`, height: `${((y2 - y1) / height) * 100}%` }}
                     aria-label={`${box.label} ${Math.round(box.score * 100)} percent`}
-                    onClick={() => setTip("box")}
+                    onClick={(event) => placeTip("box", event)}
                   >
                     <b className={tagClass}>
                       {box.label} · {Math.round(box.score * 100)}%
@@ -2081,45 +2194,46 @@ export default function SensorFusion() {
               })}
               </div>
             </div>
-            <button type="button" className={`${styles.fpsRead} ${tip === "fps" ? styles.tipOn : ""}`} onClick={() => setTip("fps")}>
+            <button type="button" className={`${styles.fpsRead} ${tip === "fps" ? styles.tipOn : ""}`} onClick={(event) => placeTip("fps", event)}>
               FPS
             </button>
-            <button type="button" className={`${styles.meter} ${tip === "bar" ? styles.tipOn : ""}`} aria-label="Bar" onClick={() => setTip("bar")}>
+            <button type="button" className={`${styles.meter} ${tip === "bar" ? styles.tipOn : ""}`} aria-label="Bar" onClick={(event) => placeTip("bar", event)}>
               <i style={{ height: "77%", background: "#ffe600" }} />
             </button>
-            {tip && INFO_NOTES[tip] ? (
-              <p className={`${styles.tipNote} ${INFO_NOTES[tip].side === "left" ? styles.tipLeft : styles.tipRight}`}>{INFO_NOTES[tip].text}</p>
-            ) : (
-              <p className={styles.tipHint}>Tap a control.</p>
-            )}
+            {!tip && <p className={styles.tipHint}>Tap a control.</p>}
           </section>
           <div className={styles.dock}>
             <nav className={styles.piBot}>
-              <button type="button" className={`${styles.botOn} ${tip === "pct" ? styles.tipOn : ""}`} onClick={() => setTip("pct")}>
+              <button type="button" className={`${styles.botOn} ${tip === "pct" ? styles.tipOn : ""}`} onClick={(event) => placeTip("pct", event)}>
                 <img src={`${UI}/toggle_switch_on_001.png`} alt="" />%
               </button>
-              <button type="button" className={`${styles.botOn} ${tip === "labels" ? styles.tipOn : ""}`} onClick={() => setTip("labels")}>
+              <button type="button" className={`${styles.botOn} ${tip === "labels" ? styles.tipOn : ""}`} onClick={(event) => placeTip("labels", event)}>
                 <img src={`${UI}/toggle_switch_on_001.png`} alt="" />
                 Labels
               </button>
-              <button type="button" className={`${styles.botOn} ${tip === "model" ? styles.tipOn : ""}`} onClick={() => setTip("model")}>
+              <button type="button" className={`${styles.botOn} ${tip === "model" ? styles.tipOn : ""}`} onClick={(event) => placeTip("model", event)}>
                 <img src={`${UI}/models_icon_001.png`} alt="" />
                 Demo.90
               </button>
-              <button type="button" className={`${styles.annotate} ${tip === "capture" ? styles.tipOn : ""}`} onClick={() => setTip("capture")}>
+              <button type="button" className={`${styles.annotate} ${tip === "capture" ? styles.tipOn : ""}`} onClick={(event) => placeTip("capture", event)}>
                 <StepIcon id="capture" />
                 Capture Images
               </button>
-              <button type="button" className={`${styles.bot} ${tip === "annotate" ? styles.tipOn : ""}`} onClick={() => setTip("annotate")}>
+              <button type="button" className={`${styles.bot} ${tip === "annotate" ? styles.tipOn : ""}`} onClick={(event) => placeTip("annotate", event)}>
                 <StepIcon id="annotate" />
                 Annotate
               </button>
-              <button type="button" className={`${styles.bot} ${tip === "upload" ? styles.tipOn : ""}`} onClick={() => setTip("upload")}>
+              <button type="button" className={`${styles.bot} ${tip === "upload" ? styles.tipOn : ""}`} onClick={(event) => placeTip("upload", event)}>
                 <StepIcon id="upload" />
                 Upload
               </button>
             </nav>
           </div>
+          {tip && INFO_NOTES[tip] && (
+            <p className={styles.tipNote} style={{ left: tipAt.left, top: tipAt.top }}>
+              {INFO_NOTES[tip].text}
+            </p>
+          )}
         </div>
       )}
     </main>

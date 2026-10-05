@@ -220,6 +220,35 @@
   object-fit: cover;
   background: #000;
 }
+.pane {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+.split {
+  display: flex;
+  flex-direction: row;
+}
+.split .pane {
+  position: relative;
+  flex: 1 1 50%;
+  height: 100%;
+}
+.split .pane + .pane {
+  border-left: 1px solid rgba(255, 255, 255, 0.35);
+}
+.paneTag {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  z-index: 3;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
 .boxes {
   position: absolute;
   inset: 0;
@@ -623,10 +652,9 @@
   outline: 2px solid var(--sf-primary, #0cff00);
   outline-offset: 2px;
 }
-.tipNote,
-.tipHint {
+.tipNote {
   position: absolute;
-  z-index: 4;
+  z-index: 20;
   max-width: min(240px, 34%);
   margin: 0;
   padding: 8px 10px;
@@ -635,6 +663,7 @@
   border-left: 3px solid var(--sf-primary, #0cff00);
   font-size: 13px;
   line-height: 1.3;
+  pointer-events: none;
 }
 .tipLeft {
   left: 28px;
@@ -645,6 +674,7 @@
   top: 16px;
 }
 .tipHint {
+  position: absolute;
   left: 50%;
   bottom: 12px;
   transform: translateX(-50%);
