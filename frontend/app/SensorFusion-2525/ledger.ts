@@ -466,7 +466,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "Capture uses the same dark button as Annotate and Upload. The camera mark stays cyan, and the words sit centered under it.",
-      commit: "",
+      commit: "1a4d3a1",
     },
   ],
 };
