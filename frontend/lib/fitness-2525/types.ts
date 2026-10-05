@@ -1,6 +1,5 @@
 /**
- * Fitness-2525 · FitDay payload types (fit-day-YYYY-MM-DD namespaces on innovation_state).
- * Schema mirrors docs/fitness-2525 and /workspace/fitness-2525/exel-api-map.md.
+ * Fitness-2525 · FitDay payload types.
  * Weight and calorie fields stay blank until the athlete sets them — never invent defaults.
  */
 
@@ -8,6 +7,7 @@ export type FitDistanceUnit = "m" | "mi" | "km" | "yd";
 export type FitWeightUnit = "lb" | "kg";
 export type FitWorkoutStatus = "planned" | "completed" | "skipped" | "adjusted";
 export type FitCheckinChannel = "sms" | "ui" | "agent" | "device" | string;
+export type FitSex = "male" | "female" | "unspecified";
 
 export interface FitDistance {
   value: number;
@@ -20,6 +20,19 @@ export interface FitWeight {
   at?: string;
 }
 
+/** Optional Garmin / device summary attached to a session. */
+export interface FitGarminStats {
+  start?: string; // HH:MM local
+  end?: string;
+  duration?: string; // e.g. 1:22:33
+  pace?: string; // e.g. 1:37/100yd
+  avg_hr?: number | null;
+  zone?: string; // e.g. Base (Low Aerobic)
+  kcal?: number | null;
+  cal_per_min?: number | null;
+  cal_per_sec?: number | null;
+}
+
 export interface FitWorkout {
   id: string;
   type: string;
@@ -30,6 +43,7 @@ export interface FitWorkout {
   calories?: number | null;
   notes?: string;
   timing?: string;
+  garmin?: FitGarminStats | null;
 }
 
 export interface FitCheckin {
@@ -44,25 +58,25 @@ export interface FitCheckin {
 
 export interface FitDay {
   v: 1;
-  date: string; // YYYY-MM-DD
+  date: string;
   tz?: string;
   weight?: FitWeight | null;
-  /** Daily steps — blank/undefined until measured. */
+  height_cm?: number | null;
+  age_yr?: number | null;
+  sex?: FitSex | null;
   steps?: number | null;
-  /** Calories in — blank until set. */
   calories_in?: number | null;
-  /** Calories out / TDEE — blank until set. */
   calories_out?: number | null;
+  sugar_out_g?: number | null;
+  window_intake_kcal?: Record<string, number | null>;
+  day_type?: string | null;
   workouts: FitWorkout[];
   checkins: FitCheckin[];
-  /** Free-text deficit / fueling note (never invent numbers here). */
   deficit_note?: string;
-  /** Optional $/kcal basis for energy methodology charts — blank until set. */
+  /** @deprecated Calories-only — leftover cloud field; UI ignores. */
   energy_cost_per_kcal?: number | null;
-  /** Latest editable AI coach note (also mirrored into checkins when saved). */
   coach_note?: string | null;
   source?: string;
-  /** Epoch ms stamp for sync (newest scalar wins). */
   at: number;
 }
 
@@ -77,7 +91,6 @@ export function dayNamespace(date: string): string {
 
 export const FIT_INDEX_NAME = "fit-index";
 
-/** True when both intake and burn are present and intake < burn. */
 export function isDeficit(day: Pick<FitDay, "calories_in" | "calories_out">): boolean {
   const inn = day.calories_in;
   const out = day.calories_out;

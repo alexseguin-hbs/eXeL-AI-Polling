@@ -1,81 +1,62 @@
 /**
- * Fitness-2525 · energy methodology rates ($/min · $/sec).
- * Cost-of-energy framing: dollars of fuel cost per unit time for burn vs intake.
- * Pure — no invented athlete calories. Rates are null until the athlete supplies
- * both a calorie figure and a $/kcal basis (optional; blank by default).
+ * Fitness-2525 · energy rates (cal/min · cal/sec · cal/hr). Calories only — no $/kcal.
+ * Rates are null until the athlete supplies a calorie figure (never invent defaults).
  */
 
-export type EnergyRateUnit = "per_min" | "per_sec";
+export type EnergyRateUnit = "per_min" | "per_sec" | "per_hr";
 
 export interface EnergyRates {
-  /** $/min when both kcal and $/kcal are known; else null. */
   perMin: number | null;
-  /** $/sec when both known; else null. */
   perSec: number | null;
-  /** Underlying kcal/min when kcal + duration known (chart scaffolding). */
-  kcalPerMin: number | null;
-  kcalPerSec: number | null;
+  perHr: number | null;
 }
 
-/** Spread `kcal` evenly over `minutes` (>0). Optional `usdPerKcal` yields $/min · $/sec. */
 export function ratesFromKcal(
   kcal: number | null | undefined,
   minutes: number | null | undefined,
-  usdPerKcal: number | null | undefined,
 ): EnergyRates {
-  const empty: EnergyRates = { perMin: null, perSec: null, kcalPerMin: null, kcalPerSec: null };
+  const empty: EnergyRates = { perMin: null, perSec: null, perHr: null };
   if (typeof kcal !== "number" || !Number.isFinite(kcal) || typeof minutes !== "number" || !(minutes > 0)) {
     return empty;
   }
-  const kcalPerMin = kcal / minutes;
-  const kcalPerSec = kcalPerMin / 60;
-  const cost =
-    typeof usdPerKcal === "number" && Number.isFinite(usdPerKcal) && usdPerKcal >= 0 ? usdPerKcal : null;
-  return {
-    kcalPerMin,
-    kcalPerSec,
-    perMin: cost != null ? kcalPerMin * cost : null,
-    perSec: cost != null ? kcalPerSec * cost : null,
-  };
+  const perMin = kcal / minutes;
+  return { perMin, perSec: perMin / 60, perHr: perMin * 60 };
 }
 
-/** Day-long intake rate: calories_in spread over 24 h (1440 min). */
-export function intakeDayRates(
-  caloriesIn: number | null | undefined,
-  usdPerKcal: number | null | undefined,
-): EnergyRates {
-  return ratesFromKcal(caloriesIn, 1440, usdPerKcal);
+export function intakeDayRates(caloriesIn: number | null | undefined): EnergyRates {
+  return ratesFromKcal(caloriesIn, 1440);
 }
 
-/** Day-long expenditure rate: calories_out over 24 h. */
-export function burnDayRates(
-  caloriesOut: number | null | undefined,
-  usdPerKcal: number | null | undefined,
-): EnergyRates {
-  return ratesFromKcal(caloriesOut, 1440, usdPerKcal);
+export function burnDayRates(caloriesOut: number | null | undefined): EnergyRates {
+  return ratesFromKcal(caloriesOut, 1440);
 }
 
-/** Workout burn: prefer workout.calories over day calories_out; duration from minutes. */
 export function workoutBurnRates(
   workoutCalories: number | null | undefined,
   minutes: number | null | undefined,
-  usdPerKcal: number | null | undefined,
 ): EnergyRates {
-  return ratesFromKcal(workoutCalories, minutes, usdPerKcal);
+  return ratesFromKcal(workoutCalories, minutes);
 }
 
 export function pickRate(r: EnergyRates, unit: EnergyRateUnit): number | null {
-  return unit === "per_sec" ? r.perSec : r.perMin;
+  if (unit === "per_sec") return r.perSec;
+  if (unit === "per_hr") return r.perHr;
+  return r.perMin;
 }
 
-export function formatUsdRate(n: number | null, unit: EnergyRateUnit): string {
+function unitSuffix(unit: EnergyRateUnit): string {
+  if (unit === "per_sec") return "sec";
+  if (unit === "per_hr") return "hr";
+  return "min";
+}
+
+export function formatCalRate(n: number | null, unit: EnergyRateUnit): string {
   if (n == null || !Number.isFinite(n)) return "—";
   const abs = Math.abs(n);
-  const digits = unit === "per_sec" ? (abs < 0.01 ? 6 : 4) : abs < 0.1 ? 4 : 2;
-  return `$${n.toFixed(digits)}/${unit === "per_sec" ? "sec" : "min"}`;
+  const digits = unit === "per_sec" ? (abs < 0.01 ? 4 : 3) : unit === "per_hr" ? (abs < 10 ? 2 : 1) : abs < 1 ? 3 : 2;
+  return `${n.toFixed(digits)} cal/${unitSuffix(unit)}`;
 }
 
 export function formatKcalRate(n: number | null, unit: EnergyRateUnit): string {
-  if (n == null || !Number.isFinite(n)) return "—";
-  return `${n.toFixed(unit === "per_sec" ? 4 : 2)} kcal/${unit === "per_sec" ? "sec" : "min"}`;
+  return formatCalRate(n, unit);
 }
