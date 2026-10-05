@@ -1734,8 +1734,31 @@ export default function SensorFusion() {
       )}
       <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} alerts={alerts} onCoral={chooseCoral} onAlerts={chooseAlerts} onClose={() => setSettings(false)} onScheme={chooseScheme} />
       {infoOpen && (
-        <div className={styles.guideShade} onClick={() => setInfoOpen(false)}>
-          <div className={styles.guideCard} role="dialog" aria-label="Toolset" onClick={(event) => event.stopPropagation()}>
+        <div className={`${styles.lesson} ${styles.work}`} role="dialog" aria-label="Sensor Fusion">
+          <header className={styles.piTop}>
+            <img className={styles.logo} src="/sensor-fusion/sensor_fusion_logo_001.png" alt="sensor fusion" />
+            <span className={styles.sensorSwitch}>
+              <img src={`${UI}/toggle_switch_on_001.png`} alt="" />
+              SENSOR 1: ON
+            </span>
+            <span className={styles.lensRead}>Front</span>
+            <div className={styles.tools}>
+              <ProgramDownload />
+              <button type="button" className={styles.iconBtn} aria-label="Close info" onClick={() => setInfoOpen(false)}>
+                <img src={`${UI}/info_002.png`} alt="" />
+              </button>
+              <span className={styles.iconBtn} aria-hidden="true">
+                <img src={`${UI}/settings_002.png`} alt="" />
+              </span>
+              <span className={styles.iconBtn} aria-hidden="true">
+                <img src={`${UI}/profile_icon_001.png`} alt="" />
+              </span>
+              <span className={styles.iconBtn} aria-hidden="true">
+                <img src={`${UI}/icon-navigation-fullscreen_001.png`} alt="" />
+              </span>
+            </div>
+          </header>
+          <section className={styles.stage}>
             <div className={styles.still}>
               <img src={INFO_STILL.src} width={840} height={840} alt="A street with two people, a bicycle, a car, a dog and a traffic light" />
               {INFO_STILL.boxes.map((box) => {
@@ -1758,20 +1781,38 @@ export default function SensorFusion() {
                 );
               })}
             </div>
-            <p className={styles.stillNote}>
-              Demo.90 · {new Set(INFO_STILL.boxes.map((box) => box.label)).size} kinds · {INFO_STILL.boxes.length} boxes
-            </p>
-            <ol className={styles.menuExplain}>
-              <li>Sensor Fusion. This picture. Demo.90 is the model. The left bar is the strongest box. Tap the picture for FPS.</li>
-              <li>Stop. The camera turns off.</li>
-              <li>Image labeler. Annotate. Draw the box. A different person reviews it.</li>
-              <li>Pose. Not on this picture.</li>
-            </ol>
-            <p className={styles.toolLine}>Coral is a switch. Check ID is a model in the list.</p>
-            <p className={styles.toolLine}>Capture Images · Annotate Images · Upload Images · Develop Models · Download ML Files · Run Live</p>
-            <button type="button" className={styles.ghost} onClick={() => setInfoOpen(false)}>
-              Close
-            </button>
+            <p className={styles.fpsRead}>FPS</p>
+            <div className={styles.meter} aria-hidden="true">
+              <i style={{ height: "77%", background: "#ffe600" }} />
+            </div>
+            <p className={styles.liveAlert}>person 77%</p>
+          </section>
+          <div className={styles.dock}>
+            <nav className={styles.piBot}>
+              <span className={styles.botOn}>
+                <img src={`${UI}/toggle_switch_on_001.png`} alt="" />%
+              </span>
+              <span className={styles.botOn}>
+                <img src={`${UI}/toggle_switch_on_001.png`} alt="" />
+                Labels
+              </span>
+              <span className={styles.botOn}>
+                <img src={`${UI}/models_icon_001.png`} alt="" />
+                Demo.90
+              </span>
+              <span className={styles.annotate}>
+                <StepIcon id="capture" />
+                Capture Images
+              </span>
+              <span className={styles.bot}>
+                <StepIcon id="annotate" />
+                Annotate
+              </span>
+              <span className={styles.bot}>
+                <StepIcon id="upload" />
+                Upload
+              </span>
+            </nav>
           </div>
         </div>
       )}

@@ -69,11 +69,11 @@ ok(/INFO_STILL\.boxes\.map\(/.test(page), "the info still draws every box from I
 ok(/\{box\.label\} · \{Math\.round\(box\.score \* 100\)\}%/.test(page), "each tag reads 'class · score'");
 ok(!page.includes('viewBox="0 0 320 180"'), "the drawn street is gone");
 ok(!/score: 96|score: 91|score: 88|score: 84|score: 79/.test(page), "the typed scores 96/91/88/84/79 are gone");
-ok(/kinds · \{INFO_STILL\.boxes\.length\} boxes/.test(page), "the note counts kinds and boxes from the run");
-ok(page.includes("Sensor Fusion. This picture."), "the info menu starts with Sensor Fusion on this picture");
-ok(page.includes("Image labeler. Annotate."), "the info menu names the image labeler");
-ok(page.includes("Coral is a switch. Check ID is a model in the list."), "Coral and Check ID match the computer menu");
-ok(page.includes("Capture Images · Annotate Images · Upload Images"), "the training steps match the computer menu");
+ok(page.includes('className={`${styles.lesson} ${styles.work}`}'), "info is one full screen, the same layout as the camera");
+ok(page.includes("SENSOR 1: ON"), "the lesson shows Sensor 1 on, as on the camera screen");
+ok(page.includes(">Capture Images<"), "the lesson keeps Capture Images on the bottom bar");
+ok(page.includes("Demo.90"), "the lesson names the Demo.90 model");
+ok(!page.includes("Sensor Fusion. This picture."), "the lesson does not put a paragraph under the picture");
 
 // 5. Tags fit their words and stay inside the picture.
 const tagRule = /\.stillTag \{([^}]*)\}/.exec(css)?.[1] || "";

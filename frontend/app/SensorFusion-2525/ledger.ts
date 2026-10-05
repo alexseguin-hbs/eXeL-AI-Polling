@@ -314,6 +314,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Info keeps the Austin picture and the Demo.90 boxes. The words under it are the Sensor Fusion menu: Sensor Fusion, Stop, Image labeler, Pose, Coral as a switch, Check ID in the list, and the six training steps.",
       commit: "8e12609",
     },
+    {
+      rev: 45,
+      date: "2026-10-05",
+      kind: "release",
+      text: "Info is one screen, the same as the camera. The Austin picture sits in the center with the Demo.90 boxes. Sensor 1, the bar, FPS, and the bottom buttons stay. Held sideways, the badge is hidden and the picture uses the room that is left.",
+      commit: "",
+    },
   ],
 };
 
