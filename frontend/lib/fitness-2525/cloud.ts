@@ -7,8 +7,8 @@
  * Merges: scalars from the newest `at` win; workouts[] / checkins[] are unioned by id — nothing is deleted.
  */
 import { supabase } from "../supabase";
-import type { FitCheckin, FitDay, FitIndex, FitWorkout } from "./types";
-import { FIT_INDEX_NAME, dayNamespace } from "./types";
+import type { FitCheckin, FitDay, FitIndex, FitProfile, FitRecovery, FitWorkout } from "./types";
+import { FIT_INDEX_NAME, FIT_PROFILE_NAME, dayNamespace } from "./types";
 
 export type CloudState = "off" | "saving" | "saved" | "offline" | "error";
 export const PUSH_EVERY_MS = 12 * 3600 * 1000;
@@ -93,6 +93,9 @@ export function mergeFitDays(a: FitDay, b: FitDay | null): FitDay {
     window_intake_kcal: { ...(older.window_intake_kcal ?? {}), ...(newer.window_intake_kcal ?? {}) },
     day_type: newer.day_type !== undefined ? newer.day_type : older.day_type ?? null,
     coach_note: newer.coach_note !== undefined ? newer.coach_note : older.coach_note ?? null,
+    weigh_ins: { ...(older.weigh_ins ?? {}), ...(newer.weigh_ins ?? {}) },
+    recovery: mergeRecovery(older.recovery, newer.recovery),
+    sleep_hrs: newer.sleep_hrs !== undefined ? newer.sleep_hrs : older.sleep_hrs ?? null,
     source: newer.source ?? older.source,
     at: Math.max(a.at ?? 0, b.at ?? 0),
   };
@@ -118,4 +121,39 @@ export async function putDay(owner: string, day: FitDay): Promise<CloudState> {
 
 export async function putIndex(owner: string, index: FitIndex): Promise<CloudState> {
   return cloudPut(owner, FIT_INDEX_NAME, index);
+}
+
+/** Per-session recovery entries: union by session id, newest `at` wins per entry. */
+export function mergeRecovery(
+  a: Record<string, FitRecovery> | undefined,
+  b: Record<string, FitRecovery> | undefined,
+): Record<string, FitRecovery> {
+  const out: Record<string, FitRecovery> = { ...(a ?? {}) };
+  for (const [k, v] of Object.entries(b ?? {})) {
+    const cur = out[k];
+    out[k] = !cur || (v?.at ?? 0) >= (cur.at ?? 0) ? v : cur;
+  }
+  return out;
+}
+
+/** Profile: newest `at` wins for scalars; settings merged with the newer side on top. */
+export function mergeProfile(a: FitProfile, b: FitProfile | null): FitProfile {
+  if (!b) return a;
+  const newer = (a.at ?? 0) >= (b.at ?? 0) ? a : b;
+  const older = newer === a ? b : a;
+  return {
+    ...older,
+    ...newer,
+    settings: { ...(older.settings ?? {}), ...(newer.settings ?? {}) },
+    at: Math.max(a.at ?? 0, b.at ?? 0),
+  };
+}
+
+/** Read → merge → write the fit-profile record (incl. settings.rate_unit). Null when cloud unavailable. */
+export async function syncProfile(owner: string, local: FitProfile): Promise<FitProfile | null> {
+  const remote = await cloudRead<FitProfile>(owner, FIT_PROFILE_NAME);
+  if (remote.state !== "ok") return null;
+  const merged = mergeProfile(local, remote.data);
+  const put = await cloudPut(owner, FIT_PROFILE_NAME, merged);
+  return put === "saved" ? merged : null;
 }

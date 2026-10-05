@@ -70,6 +70,12 @@ export interface FitDay {
   sugar_out_g?: number | null;
   window_intake_kcal?: Record<string, number | null>;
   day_type?: string | null;
+  /** Daily weigh-ins (never prefilled). Trend uses MORNING only. */
+  weigh_ins?: FitWeighIns | null;
+  /** Post-workout recovery + hydration log keyed by workout id. */
+  recovery?: Record<string, FitRecovery>;
+  /** Sleep hours (logged the next morning). */
+  sleep_hrs?: number | null;
   workouts: FitWorkout[];
   checkins: FitCheckin[];
   deficit_note?: string;
@@ -102,4 +108,58 @@ export function deficitDelta(day: Pick<FitDay, "calories_in" | "calories_out">):
   const out = day.calories_out;
   if (typeof inn !== "number" || typeof out !== "number" || !Number.isFinite(inn) || !Number.isFinite(out)) return null;
   return out - inn;
+}
+
+// ── Athlete profile (fit-profile record) ────────────────────────────────
+export type FitUnitSystem = "imperial" | "metric";
+export type FitRateUnitSetting = "per_hr" | "per_min" | "per_sec";
+export type FitFluidUnit = "oz" | "ml";
+
+export interface FitFluid {
+  value: number;
+  unit: FitFluidUnit;
+}
+
+export interface FitProfileSettings {
+  rate_unit?: FitRateUnitSetting;
+  show_all_rates?: boolean;
+}
+
+export interface FitProfile {
+  v: 1;
+  name?: string | null;
+  sex?: FitSex | null;
+  age_yr?: number | null;
+  /** Height in the profile unit system: inches (imperial) or cm (metric). */
+  height?: number | null;
+  units: FitUnitSystem;
+  resting_hr?: number | null;
+  /** Goal weight in profile units (lb or kg). */
+  goal_weight?: number | null;
+  goal_date?: string | null;
+  settings?: FitProfileSettings;
+  at: number;
+}
+
+export const FIT_PROFILE_NAME = "fit-profile";
+
+export interface FitWeighIns {
+  /** Fasted morning weight — the ONLY weight used for the goal trend + BMR. */
+  morning?: FitWeight | null;
+  evening?: FitWeight | null;
+}
+
+export interface FitRecovery {
+  session_id: string;
+  pre_weight?: FitWeight | null;
+  post_weight?: FitWeight | null;
+  fluids?: FitFluid | null;
+  rpe?: number | null;
+  soreness?: number | null;
+  feel?: number | null;
+  protein_g?: number | null;
+  carbs_g?: number | null;
+  fuel_done?: boolean;
+  notes?: string;
+  at: number;
 }
