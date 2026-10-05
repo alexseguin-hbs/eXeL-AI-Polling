@@ -356,6 +356,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "After you choose how many pictures, Live asks how often: 1 to 6 a second, or one every 2 or 3 seconds. It says how many seconds that takes. The camera waits that long, so the pictures are not all the same.",
       commit: "2f9903a",
     },
+    {
+      rev: 51,
+      date: "2026-10-05",
+      kind: "release",
+      text: "When the name is already on the box, it is not repeated on a bar across the picture. With names off, the one name being read sits under the meter, only as wide as the words.",
+      commit: "",
+    },
   ],
 };
 

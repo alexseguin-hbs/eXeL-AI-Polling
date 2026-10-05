@@ -450,10 +450,11 @@
 .liveAlert {
   position: absolute;
   left: 8px;
-  right: 8px;
   bottom: 8px;
+  width: max-content;
+  max-width: 46%;
   margin: 0;
-  padding: 6px 8px;
+  padding: 4px 8px;
   background: rgba(0, 0, 0, 0.72);
   color: #fff;
   border-left: 3px solid var(--sf-primary, #0cff00);

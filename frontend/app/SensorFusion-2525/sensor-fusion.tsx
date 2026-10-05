@@ -1716,7 +1716,7 @@ export default function SensorFusion() {
           </div>
         )}
         {error && <p className={styles.alert}>{error}</p>}
-        {alert && <p className={styles.liveAlert}>{alert}</p>}
+        {alert && !showLabels && <p className={styles.liveAlert}>{alert}</p>}
         {capturing && <p className={styles.captureCount}>{capturing}</p>}
         <Foot accent={accent} />
       </section>
@@ -1990,7 +1990,6 @@ export default function SensorFusion() {
             <div className={styles.meter} aria-hidden="true">
               <i style={{ height: "77%", background: "#ffe600" }} />
             </div>
-            <p className={styles.liveAlert}>person 77%</p>
           </section>
           <div className={styles.dock}>
             <nav className={styles.piBot}>
