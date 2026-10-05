@@ -195,6 +195,20 @@ function SettingsSheet({
   );
 }
 type Step = "login" | "menu" | "work" | "label";
+const INFO_NOTES: Record<string, { text: string; side: "left" | "right" }> = {
+  sensor: { text: "SENSOR 1. Turns the camera on or off.", side: "left" },
+  lens: { text: "Front. Which camera. Wide sees more.", side: "left" },
+  bar: { text: "Bar. How sure the strongest box is.", side: "left" },
+  fps: { text: "FPS. Pictures a second. Tap the picture.", side: "left" },
+  box: { text: "Box. What the model sees, and the name.", side: "right" },
+  pct: { text: "%. Shows or hides the number.", side: "right" },
+  labels: { text: "Labels. Shows or hides the name.", side: "right" },
+  model: { text: "Demo.90. The model. Tap it to pick another.", side: "right" },
+  capture: { text: "Capture. Saves pictures from the camera.", side: "right" },
+  annotate: { text: "Annotate. You draw the boxes.", side: "right" },
+  upload: { text: "Upload. Sends a finished set.", side: "right" },
+};
+
 type Shot = { id: string; url: string; name?: string; source?: "sensor" | "device" | "video"; original?: string };
 type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number; level: 1 | 2; by?: string; reviewer?: string };
 type Edge = "l" | "r" | "t" | "b";
@@ -980,6 +994,7 @@ export default function SensorFusion() {
   const [showLabels, setShowLabels] = useState(true);
   const [showFps, setShowFps] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [tip, setTip] = useState("");
   const [poseNote, setPoseNote] = useState(false);
   const [annotate, setAnnotate] = useState(false);
   const [savedNote, setSavedNote] = useState(false);
@@ -1198,6 +1213,7 @@ export default function SensorFusion() {
       setAnnotate(false);
       setSavedNote(false);
       setInfoOpen(false);
+      setTip("");
       setSettings(false);
       setModelsOpen(false);
       setLensOpen(false);
@@ -2014,14 +2030,16 @@ export default function SensorFusion() {
         <div className={`${styles.lesson} ${styles.work}`} role="dialog" aria-label="Sensor Fusion">
           <header className={styles.piTop}>
             <img className={styles.logo} src="/sensor-fusion/sensor_fusion_logo_001.png" alt="sensor fusion" />
-            <span className={styles.sensorSwitch}>
+            <button type="button" className={`${styles.sensorSwitch} ${tip === "sensor" ? styles.tipOn : ""}`} onClick={() => setTip("sensor")}>
               <img src={`${UI}/toggle_switch_on_001.png`} alt="" />
               SENSOR 1: ON
-            </span>
-            <span className={styles.lensRead}>Front</span>
+            </button>
+            <button type="button" className={`${styles.lensRead} ${tip === "lens" ? styles.tipOn : ""}`} onClick={() => setTip("lens")}>
+              Front
+            </button>
             <div className={styles.tools}>
               <ProgramDownload />
-              <button type="button" className={styles.iconBtn} aria-label="Close info" onClick={() => setInfoOpen(false)}>
+              <button type="button" className={styles.iconBtn} aria-label="Close info" onClick={() => { setInfoOpen(false); setTip(""); }}>
                 <img src={`${UI}/info_002.png`} alt="" />
               </button>
               <span className={styles.iconBtn} aria-hidden="true">
@@ -2047,66 +2065,59 @@ export default function SensorFusion() {
                 const right = (x2 / width) * 100;
                 const tagClass = [styles.stillTag, right > 75 ? styles.stillTagEnd : "", top < 8 ? styles.stillTagIn : ""].filter(Boolean).join(" ");
                 return (
-                  <div
+                  <button
                     key={box.box_px.join("-")}
-                    className={styles.stillBox}
+                    type="button"
+                    className={`${styles.stillBox} ${tip === "box" ? styles.tipOn : ""}`}
                     style={{ left: `${left}%`, top: `${top}%`, width: `${right - left}%`, height: `${((y2 - y1) / height) * 100}%` }}
+                    aria-label={`${box.label} ${Math.round(box.score * 100)} percent`}
+                    onClick={() => setTip("box")}
                   >
                     <b className={tagClass}>
                       {box.label} · {Math.round(box.score * 100)}%
                     </b>
-                  </div>
+                  </button>
                 );
               })}
               </div>
             </div>
-            <p className={styles.fpsRead}>FPS</p>
-            <div className={styles.meter} aria-hidden="true">
+            <button type="button" className={`${styles.fpsRead} ${tip === "fps" ? styles.tipOn : ""}`} onClick={() => setTip("fps")}>
+              FPS
+            </button>
+            <button type="button" className={`${styles.meter} ${tip === "bar" ? styles.tipOn : ""}`} aria-label="Bar" onClick={() => setTip("bar")}>
               <i style={{ height: "77%", background: "#ffe600" }} />
-            </div>
-            <div className={styles.tips} aria-label="What each part does">
-              <ul>
-                <li><b>SENSOR 1.</b> Turns the camera on or off.</li>
-                <li><b>Front.</b> Which camera. Wide sees more.</li>
-                <li><b>Bar.</b> How sure the strongest box is.</li>
-                <li><b>FPS.</b> Pictures a second. Tap the picture.</li>
-              </ul>
-              <ul>
-                <li><b>Box.</b> What the model sees, and the name.</li>
-                <li><b>%.</b> Shows or hides the number.</li>
-                <li><b>Labels.</b> Shows or hides the name.</li>
-                <li><b>Demo.90.</b> The model. Tap it to pick another.</li>
-                <li><b>Capture.</b> Saves pictures from the camera.</li>
-                <li><b>Annotate.</b> You draw the boxes.</li>
-                <li><b>Upload.</b> Sends a finished set.</li>
-              </ul>
-            </div>
+            </button>
+            {tip && INFO_NOTES[tip] ? (
+              <p className={`${styles.tipNote} ${INFO_NOTES[tip].side === "left" ? styles.tipLeft : styles.tipRight}`}>{INFO_NOTES[tip].text}</p>
+            ) : (
+              <p className={styles.tipHint}>Tap a control.</p>
+            )}
           </section>
           <div className={styles.dock}>
             <nav className={styles.piBot}>
-              <span className={styles.botOn}>
+              <button type="button" className={`${styles.botOn} ${tip === "pct" ? styles.tipOn : ""}`} onClick={() => setTip("pct")}>
                 <img src={`${UI}/toggle_switch_on_001.png`} alt="" />%
-              </span>
-              <span className={styles.botOn}>
+              </button>
+              <button type="button" className={`${styles.botOn} ${tip === "labels" ? styles.tipOn : ""}`} onClick={() => setTip("labels")}>
                 <img src={`${UI}/toggle_switch_on_001.png`} alt="" />
                 Labels
-              </span>
-              <span className={styles.botOn}>
+              </button>
+              <button type="button" className={`${styles.botOn} ${tip === "model" ? styles.tipOn : ""}`} onClick={() => setTip("model")}>
                 <img src={`${UI}/models_icon_001.png`} alt="" />
                 Demo.90
-              </span>
-              <span className={styles.annotate}>
+              </button>
+              <button type="button" className={`${styles.annotate} ${tip === "capture" ? styles.tipOn : ""}`} onClick={() => setTip("capture")}>
                 <StepIcon id="capture" />
                 Capture Images
-              </span>
-              <span className={styles.bot}>
+              </button>
+              <button type="button" className={`${styles.bot} ${tip === "annotate" ? styles.tipOn : ""}`} onClick={() => setTip("annotate")}>
                 <StepIcon id="annotate" />
                 Annotate
-              </span>
-              <span className={styles.bot}>
+              </button>
+              <button type="button" className={`${styles.bot} ${tip === "upload" ? styles.tipOn : ""}`} onClick={() => setTip("upload")}>
                 <StepIcon id="upload" />
                 Upload
-              </span>
+              </button>
             </nav>
           </div>
         </div>
