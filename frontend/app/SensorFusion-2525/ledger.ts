@@ -396,7 +396,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "Annotate fits the whole picture in the window, the way LabelImg does. A picture that already has a box opens with the corners on that box.",
-      commit: "106f690",
+      commit: "8274729",
     },
   ],
 };
