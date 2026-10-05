@@ -44,6 +44,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.161 | 2026-10-05 | Claude Code (T marks what the bullseye is on; keys beat focus; a left click centres the bullseye on the target) | 428373 | 543ed59859ab6c17329cf082d5fd22d6cf3f3305eb85179ca1ae7c61c9121403 | PENDING (Verify Live) | 10ef6640d7e7f7b8cc213d7056eafea1965a11a0101b40abc15b47c1c3b02774 |
 | r.162 | 2026-10-05 | Claude Code (QUAL timer + vertical light; marks remembered — mark many, approve each, fire only approved; R reloads) | 440719 | 10c900f74b9482ebfb7b5adc10fcee3b8e3330293ce040ac2ad711a7630cc46e | PENDING (Verify Live) | fea7fc43e6eeefd44f5faadabbe7ed447a35f4a0010695e0c0a092c0df06716b |
 | r.163 | 2026-10-05 | Claude Code (T-numbers in marking order; approve and fire by number; the splash 0.3 s) | 446713 | a725cdbab0ffda175e071f5c12ef6441256b284fa59107c2d5dfd2f465e1c9a4 | PENDING (Verify Live) | 8d7ee3f4aed5eeca6e09480aaabeefec86c5520db3bdcf111af5e3f981be03e2 |
+| r.164 | 2026-10-05 | Claude Code (Settings → VOICE: Browser · Vosk · My Voice; test and train my voice) | 460296 | 567f6ef3b983f8e9fc6084db88ed9fba37f39027dbde920a68aa82cc59e84d1a | PENDING (Verify Live) | d02b3b81ce1723f4a571881a80602c1e94d891e403f7247edf00fc8b7136f566 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -910,3 +911,20 @@ Notes: `CLAUDE_CODE_NOTES_r163.md`. Patch: `patches/r162_to_r163.py` (15 asserte
 - QA `T_NUMBERS_IN_MARKING_ORDER`, `VOICE_BY_NUMBER`, `SPLASH_IS_SHORT`.
 - **Correction:** the r.162 section names artefact commit `9222164`; the sync before the push rewrote it to `0e6d329`. r.162 shipped `6fe15e4`, LIVE in
   Verify Live #2485.
+
+## r.164 — Claude Code: Settings → VOICE, three engines, a per-voice test (2026-10-05)
+Operator (round folder ASK.md Addenda 19–20, verbatim): **"choose top 3, and lets have option to select in settings, once settings, we can test for our
+specific voice quality of detection."** and **"Voice calibration should be a separate mode (under settings) to test key words for one's voice profile and
+allow for acoustic modeling to enhance detection to a specfiic voice locally to feed model for maximizing chance of detection)."**
+Notes: `CLAUDE_CODE_NOTES_r164.md`. Patch: `patches/r163_to_r164.py` (10 asserted edits; the replaced voice block kept verbatim in `patches/r163_onresult.txt`). Artefact commit `243be0b`.
+- **ENGINE** (Settings → VOICE, remembered on the device): BROWSER — Web Speech, on the device where the browser offers it · VOSK — on-device Kaldi with a
+  closed word list, loaded only when picked (~40 MB once, from the Vosk author's site; unverified from the sandbox) · MY VOICE — TF.js speech-commands with
+  a head trained on the player's own clips (~6 MB base once; the trained head stays in this browser).
+- **TEST MY VOICE** asks TARGET · APPROVE · FIRE · RELOAD · ONE · TWO · THREE in turn and scores each HEARD / MISSED / CONFUSED (with the word it heard);
+  the table and "N OF 7 HEARD" stay on the device per engine.
+- **TRAIN MY VOICE** (MY VOICE): 8 clips per word and room noise, trained in the browser, saved in this browser only; **RESET MY VOICE** clears it.
+- **One door:** every engine hears through `voiceHeard` → `voiceAct` (r.163's `voiceCmd` first); single-word engines go through a phrase assembler
+  ("approve" … "three" within 1.6 s = "approve three"). Voice stays a request: FIRE fires only a red box under the bullseye.
+- QA `VOICE_SETTINGS`, `VOICE_PHRASE_ASSEMBLER`, `VOICE_TEST_SCORES` (a scripted voice through the whole test: 4 of 7 heard, "five" scored CONFUSED for
+  FIRE); `VOICE_NEGATION_HOLDS` re-pointed to `voiceAct`. Not testable headless: a real microphone, the Vosk model download, the MY VOICE training.
+- r.163 shipped `0699abf`, LIVE in Verify Live #2495.

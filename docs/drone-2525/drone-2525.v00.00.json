@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.048",
+  "revision": "0.049",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -366,6 +366,14 @@
    "kind": "release",
    "why": "Operator deck r.163 — Addendum 18 (verbatim: \"we need T1, T2, T3 as order of targets gets labeled.  So I can Approve T3 and Fire T3, or Approve T1, Approve T3 and Fire 1\"): T-numbers count up in marking order and a marked target keeps its number; keys 1–9 go to TN (3 · SPACE · F = approve T3, fire T3); voice \"approve N\", \"fire N\" (turns onto TN, fires only if red), \"target N\", \"reload\", one parser, negations hold. Addendum 21 (verbatim: \"Splash now stays too long after firing.\"): the splash was timed on the game clock, which runs slow below 20 fps; now 0.3 s of wall-clock time. Correction: r.162's artefact commit is 0e6d329 (the 9222164 cited was rewritten by the sync before push); r.162 shipped 6fe15e4. QA T_NUMBERS_IN_MARKING_ORDER, VOICE_BY_NUMBER, SPLASH_IS_SHORT.",
    "commit": "921ce8a",
+   "shipped": "0699abf"
+  },
+  {
+   "revision": "0.049",
+   "date": "2026-10-05",
+   "kind": "release",
+   "why": "Operator deck r.164 — Addenda 19–20 (verbatim: \"choose top 3, and lets have option to select in settings, once settings, we can test for our specific voice quality of detection.\" · \"Voice calibration should be a separate mode (under settings) to test key words for one's voice profile and allow for acoustic modeling to enhance detection to a specfiic voice locally\"): Settings → VOICE — engine picker BROWSER (Web Speech, on-device where offered) · VOSK (on-device closed word list, loaded when picked) · MY VOICE (TF.js speech-commands head trained on the player's clips, kept in the browser); TEST MY VOICE scores TARGET · APPROVE · FIRE · RELOAD · ONE · TWO · THREE as HEARD / MISSED / CONFUSED per engine; TRAIN / RESET MY VOICE; one door voiceHeard → voiceAct for every engine; single-word phrase assembler. Voice stays a request. QA VOICE_SETTINGS, VOICE_PHRASE_ASSEMBLER, VOICE_TEST_SCORES; VOICE_NEGATION_HOLDS re-pointed to voiceAct.",
+   "commit": "243be0b",
    "shipped": "PENDING"
   }
  ],

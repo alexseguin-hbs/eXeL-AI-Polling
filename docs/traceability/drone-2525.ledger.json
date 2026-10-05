@@ -424,6 +424,14 @@
    "kind": "release",
    "text": "Operator deck r.163 served at /drone-2525/play.html (sha256 a725cdba...). T-NUMBERS IN MARKING ORDER; APPROVE AND FIRE BY NUMBER — KEYS 1–9 AND VOICE — operator Addendum 18. THE SPLASH IS 0.3 S OF REAL TIME — operator Addendum 21. r.162 artefact commit corrected to 0e6d329.",
    "commit": "921ce8a",
+   "shipped": "0699abf"
+  },
+  {
+   "rev": 59,
+   "date": "2026-10-05",
+   "kind": "release",
+   "text": "Operator deck r.164 served at /drone-2525/play.html (sha256 567f6ef3...). SETTINGS → VOICE: BROWSER · VOSK · MY VOICE, TEST MY VOICE (HEARD / MISSED / CONFUSED per word), TRAIN MY VOICE kept on the device — operator Addenda 19–20.",
+   "commit": "243be0b",
    "shipped": "PENDING"
   }
  ]

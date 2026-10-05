@@ -1,6 +1,6 @@
 # Drone-2525 · operator deck — the carried package
 
-**HEAD is `drone-2525_r.163.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.163 (Claude Code, 2026-10-05, sha256 a725cdbab0ffda17…, `HASHES_r163.sha256`): **T1, T2, T3 follow the order targets are marked; approve and fire by number (keys 1–9, voice "approve 3" / "fire 1"); the splash is 0.3 s** — operator Addenda 18 and 21. r.162 (QUAL light, remembered marks, R reload) is below in REVISIONS.md.
+**HEAD is `drone-2525_r.164.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.164 (Claude Code, 2026-10-05, sha256 567f6ef3b983f8e9…, `HASHES_r164.sha256`): **Settings → VOICE: pick BROWSER · VOSK · MY VOICE, TEST MY VOICE scores each word, TRAIN MY VOICE stays on the device** — operator Addenda 19–20. r.163 (T-numbers, approve/fire by number, short splash) is below in REVISIONS.md.
 is ticked in live play (it was dead code behind a working button), spots from the seated pit and fires only on a red box through the
 one fire path; the score strip wraps instead of clipping the count and the QUAL clock off a phone; the approver's device tallies and
 takes the box down from the same canonical row; one sentence for an empty range; no lapse before the round starts; TARGET aims as
