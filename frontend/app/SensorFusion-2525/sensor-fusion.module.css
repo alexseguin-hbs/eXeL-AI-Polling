@@ -902,6 +902,7 @@
 .menuItem {
   display: flex;
   gap: 12px;
+  align-items: center;
   text-align: left;
   background: var(--sf-card, #082121);
   color: inherit;
@@ -910,6 +911,57 @@
   padding: 12px;
   cursor: pointer;
   font-size: 16px;
+}
+.menuItem b,
+.pick b {
+  display: block;
+  font-weight: 700;
+}
+.menuItem small,
+.pick span {
+  display: block;
+  margin-top: 2px;
+  color: #c9d4d4;
+  font-size: 13px;
+  font-weight: 400;
+}
+.picks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+.pick,
+.pickOn {
+  min-height: 64px;
+  text-align: left;
+  background: var(--sf-card, #082121);
+  color: inherit;
+  border: 1px solid var(--sf-line, #143a3a);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.pickOn {
+  border-color: var(--sf-primary, #0cff00);
+  box-shadow: inset 0 0 0 1px var(--sf-primary, #0cff00);
+}
+.nameLine {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+}
+.nameLine input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 1px solid var(--sf-primary, #0cff00);
+  border-radius: 8px;
+  background: #061416;
+  color: #fff;
+  font: inherit;
 }
 .fps,
 .note {
@@ -1108,15 +1160,19 @@
 .labelFill {
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  /* No bottom padding: the docked buttons sit flush on the pane's edge, so nothing peeks out under them. */
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
   padding-bottom: 0;
 }
 .labelFill > * {
   flex-shrink: 0;
+}
+.labelFill > .labelFit {
+  flex: 1 1 auto;
+  flex-shrink: 1;
+  min-height: 0;
+  align-self: stretch;
 }
 .labelFill .labelBar {
   position: static;
@@ -1137,15 +1193,19 @@
   font-size: 13px;
   line-height: 1.35;
 }
+.boxList {
+  flex: 0 0 auto;
+  max-height: 88px;
+  overflow: auto;
+}
 .labelFit {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  /* rev 43: grows to fill a short pane, never shrinks below the picture (the pane scrolls instead). */
-  flex: 1 0 auto;
-  min-height: 160px;
-  padding: 22px 8px 4px;
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 0;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -1161,22 +1221,14 @@
 .labelFrame img {
   display: block;
   max-width: 100%;
-  max-height: min(62dvh, 640px);
+  max-height: 100%;
   width: auto;
   height: auto;
   object-fit: contain;
 }
-@media (orientation: landscape) {
-  .labelFrame img {
-    max-height: min(46dvh, 240px);
-  }
-}
 /* rev 43: a phone held sideways. The picture fits above the docked buttons, and the note sits beside the buttons
    instead of under them, so the whole picture and SAVE BOX are in one view once the picture is scrolled to. */
 @media (orientation: landscape) and (max-height: 520px) {
-  .labelFrame img {
-    max-height: min(46dvh, 240px, calc(var(--sf-h, 100dvh) - 220px));
-  }
   .labelDock {
     display: flex;
     align-items: center;

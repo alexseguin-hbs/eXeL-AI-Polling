@@ -34,8 +34,8 @@ for (const [coral, model, file] of cases) {
   ok(plan.file === file && plan.file === again && plan.model === model, `pass 2 ${model} coral ${coral}`);
 }
 
-ok(MENU.map((item) => item.label).join("|") === "Sensor Fusion|Stop|Image labeler|Pose", "menu is four rows");
-ok(!MENU.some((item) => /coral|check id/i.test(item.label)), "Coral and Check ID are not menu rows");
+ok(MENU.map((item) => item.label).join("|") === "Sensor Fusion|Stop|Pose", "the opening menu is the camera, stop, and pose");
+ok(!MENU.some((item) => /label|coral|check id/i.test(item.label)), "Annotate, Coral, and Check ID are not opening-menu rows");
 ok(MODELS.some((item) => item.id === "checkid"), "Check ID remains a model");
 ok(runPlan(true, "missing").model === "demo90" && runPlan(true, "missing").file === "edgetpu.tflite", "an unknown model falls back without dropping Coral");
 

@@ -828,15 +828,14 @@ function Labeler({
           <p className={styles.muted}>No pictures yet. Turn the camera on and save some, or add pictures from this device.</p>
         )}
         {pic && <p className={styles.fileName}>{pictureName(pic)}</p>}
-        <label>
+        <label className={styles.nameLine}>
           Label name
-          <select value={names.includes(labelName) ? labelName : names[0] || "person"} onChange={(event) => setLabelName(event.target.value)}>
-            {(names.length ? names : ["person"]).map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
+          <input
+            type="text"
+            value={labelName}
+            placeholder="Type a name"
+            onChange={(event) => setLabelName(event.target.value)}
+          />
         </label>
         <details className={styles.corners}>
           <summary>Box numbers</summary>
@@ -880,7 +879,9 @@ function Labeler({
           </p>
         )}
         </div>
-        {pic && (marks[pic.id] || []).map((mark, markIndex) => (
+        {pic && (marks[pic.id] || []).length > 0 && (
+          <div className={styles.boxList}>
+            {(marks[pic.id] || []).map((mark, markIndex) => (
           <div key={mark.id} className={editing === mark.id || lit === mark.id ? styles.boxOn : styles.boxRow}>
             {/* rev 43: the row names its box; a tap lights that box's outline on the picture. */}
             <button type="button" className={styles.rowName} aria-pressed={lit === mark.id} onClick={() => setLit(lit === mark.id ? "" : mark.id)}>
@@ -890,7 +891,9 @@ function Labeler({
             <button type="button" onClick={() => fixBox(mark)}>Fix</button>
             <button type="button" onClick={() => void rejectBox(mark)}>Reject</button>
           </div>
-        ))}
+            ))}
+          </div>
+        )}
       </div>
       <Foot accent="#00e5ff" />
     </main>
@@ -937,7 +940,9 @@ export default function SensorFusion() {
   const [lastSave, setLastSave] = useState<{ title: string; line: string; names: string[] }>({ title: "Pictures saved.", line: "", names: [] });
   // One capture at a time (rev 43): the ref stops a second tap at once; the text is what the dialog shows meanwhile.
   const captureBusy = useRef(false);
+  const quietRef = useRef(false);
   const [capturing, setCapturing] = useState("");
+  quietRef.current = annotate || Boolean(capturing);
   const [saveFolder, setSaveFolder] = useState("");
   const [nextFile, setNextFile] = useState("");
   const [trainStatus, setTrainStatus] = useState("");
@@ -1062,7 +1067,16 @@ export default function SensorFusion() {
           const video = videoRef.current;
           const canvas = canvasRef.current;
           if (video && canvas && video.readyState >= 2) {
-            try {
+            if (quietRef.current) {
+              const ctx = canvas.getContext("2d");
+              if (ctx && canvas.width) ctx.clearRect(0, 0, canvas.width, canvas.height);
+              if (lastAlert.current) {
+                lastAlert.current = "";
+                setAlert("");
+              }
+              const quietFill = meterRef.current?.querySelector("i");
+              if (quietFill instanceof HTMLElement) quietFill.style.height = "0%";
+            } else try {
               const result = await cnn.detect(session, video);
               cnn.draw(canvas, video, result, showScoresRef.current, showLabelsRef.current, showFpsRef.current);
               const hits = (result.hits || []) as { score?: number; name?: string }[];
@@ -1575,22 +1589,32 @@ export default function SensorFusion() {
           </button>
         </header>
         <div className={styles.fill}>
-          <h1>Menu</h1>
-          <label>
-            This computer
-            <select value={platform} onChange={(event) => setPlatform(event.target.value as PlatformId)}>
-              {PLATFORMS.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <h1>This device</h1>
+          <div className={styles.picks}>
+            {PLATFORMS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={platform === item.id ? styles.pickOn : styles.pick}
+                aria-pressed={platform === item.id}
+                onClick={() => setPlatform(item.id)}
+              >
+                <b>{item.label}</b>
+                <span>{item.detail}</span>
+              </button>
+            ))}
+          </div>
+          <h1>Open</h1>
           <div className={styles.menu}>
             {MENU.map((item) => (
               <button key={item.id} type="button" className={styles.menuItem} onClick={() => pickMenu(item)}>
                 <span>{item.n}</span>
-                {item.label}
+                <span>
+                  <b>{item.label}</b>
+                  <small>
+                    {item.id === "fusion" ? "Open the camera." : item.id === "stop" ? "Turn the camera off." : "Not ready yet."}
+                  </small>
+                </span>
               </button>
             ))}
           </div>
@@ -1703,7 +1727,7 @@ export default function SensorFusion() {
       >
         <video ref={videoRef} autoPlay muted playsInline aria-label="Camera" />
         <canvas ref={canvasRef} className={styles.boxes} />
-        {sensorOn && (
+        {sensorOn && !annotate && !capturing && (
           <div className={styles.meter} ref={meterRef} aria-hidden="true">
             <i />
           </div>

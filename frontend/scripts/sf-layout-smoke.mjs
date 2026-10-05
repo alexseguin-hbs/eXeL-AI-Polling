@@ -65,9 +65,9 @@ try {
     await p.goto(`${BASE}/SensorFusion-2525/`, { waitUntil: 'networkidle', timeout: 30000 });
     // With no sign-in configured (the gate build has no secrets) the page waits on the login screen: SKIP, as a guest does.
     const skip = p.getByRole('button', { name: 'SKIP TO SENSOR FUSION' });
-    await p.getByRole('button', { name: 'Image labeler' }).or(skip).first().waitFor({ timeout: 15000 });
+    await p.getByRole('button', { name: 'Sensor Fusion' }).or(skip).first().waitFor({ timeout: 15000 });
     if (await skip.isVisible().catch(() => false)) await skip.click();
-    await p.getByRole('button', { name: 'Image labeler' }).waitFor({ timeout: 15000 });
+    await p.getByRole('button', { name: 'Sensor Fusion' }).first().waitFor({ timeout: 15000 });
     // Escape closes Settings (menu screen).
     await p.getByRole('button', { name: 'Settings' }).click();
     ok(await p.locator('[role=dialog][aria-label=Settings]').count() === 1, `${tag}: Settings opens`);
@@ -91,7 +91,7 @@ try {
     if (!(await details.evaluate((el) => el.open))) await p.locator('details summary').click();
     const nums = p.locator('details input[type=number]');
     for (const [label, l, t, r, b] of SIX) {
-      await p.locator('main select').last().selectOption(label);
+      await p.locator('main input[type=text]').fill(label);
       await nums.nth(0).fill(String(l)); await nums.nth(1).fill(String(t)); await nums.nth(2).fill(String(r)); await nums.nth(3).fill(String(b));
       await p.getByRole('button', { name: 'SAVE BOX' }).click(); await sleep(120);
     }

@@ -370,6 +370,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The info picture points at each control. SENSOR 1, the camera name, the bar, FPS, the box, %, Labels, the model, Capture, Annotate, and Upload each say what they do. On a narrow screen the notes stay off the picture.",
       commit: "a50a32a",
     },
+    {
+      rev: 53,
+      date: "2026-10-05",
+      kind: "release",
+      text: "The opening menu is this device, then Sensor Fusion, Stop, and Pose. Annotate stays on the camera screen. A label is a name you type. Capture shows the camera only, with no boxes. The picture fills the annotate screen.",
+      commit: "",
+    },
   ],
 };
 
