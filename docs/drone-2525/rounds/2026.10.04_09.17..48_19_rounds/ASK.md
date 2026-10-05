@@ -64,3 +64,21 @@ He sent no words, so this is Claude's reading (given to him in chat; he did not 
 - No start light yet → red / yellow / green upper right (Addendum 1).
 - What works and must not regress: engagements pop together (1 up, then 2 up with 7 s), hits count, an unshot target is an unfired miss,
   rounds leave the magazine.
+
+## Addendum 4 — "and fix this splash issue captured on image" (operator 2026-10-04 7:55 PM CDT, verbatim)
+
+> and fix this splash issue captured on image
+
+`addendum4_splash_r154.png` — his phone on r0.154 (taken before r.156 reached the site), QUAL lane 21, 150 m E hit "IN THE AIMING
+CIRCLE": the splash is a wide, flat red oval lying on the ground to the right of the target.
+
+r.156 fixed WHERE it starts (the hit target's centre, following its fall). What his picture still shows, and r.156 still draws, is
+the SHAPE: `ring(c.x,c.y,c.z,1.2+3*(1-k),16)` is a horizontal circle on the ground 1.2 → 4.2 m wide around a 0.5 m plate, so at range it
+projects as a long flat oval many times the target's width. **First item of Drone round 1 (r.157):**
+- The splash is a burst that FACES THE CAMERA, drawn in screen space at the projected centre of the hit target (splashCentre): one
+  expanding circle plus 8 short radial strokes, in LOCK red, fading over the same 0.45 s; strokes only (vector law).
+- Its size follows the hit target on the screen: radius grows from about 0.3× to 1.2× the target's projected height, never below 6 px
+  (so a 300 m plate's hit is still seen at MoT 1.1) and never above 1.5× the target's projected size. It never lies on the ground.
+- Same for every target kind (plates, pop-ups, doors, aircraft); a miss still draws nothing; it stays outside the world budget (r.156).
+- Gate: QA row SPLASH_FACES_THE_CAMERA — at 50 m and 300 m the drawn burst is round on the screen (bounding box w/h 0.9–1.1), its
+  centre within 2 px of the target's projected centre, its radius ≥ 6 px and ≤ 1.5× the target's projected size; a miss draws none.
