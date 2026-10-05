@@ -424,7 +424,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "Two cameras stack top and bottom when the phone is upright, and sit side by side when the phone or the computer is sideways.",
-      commit: "",
+      commit: "3ba620c",
     },
   ],
 };
