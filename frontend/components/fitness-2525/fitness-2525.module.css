@@ -15,7 +15,16 @@
 @media (max-width: 900px) {
   .root > .bodyGrid {
     grid-template-columns: 1fr !important;
+    grid-auto-rows: auto;
     overflow-y: auto !important;
+  }
+  /* panes grow to content; center (LIVE TODAY / energy) first on phones */
+  .root > .bodyGrid > * {
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+  .root > .bodyGrid > *:nth-child(2) {
+    order: -1;
   }
 }
 .budgetTrack {
