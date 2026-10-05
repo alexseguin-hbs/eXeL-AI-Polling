@@ -286,6 +286,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Info opens one still picture with five Demo.90 objects: person, bicycle, car, dog, and traffic light. The tool line stays short. The gear stays in settings.",
       commit: "fdd707e",
     },
+    {
+      rev: 41,
+      date: "2026-10-04",
+      kind: "correction",
+      text: "Saving an annotated picture says where the file went and that the boxes stay on this device. Revision 38 had dropped the second half, so the build check stopped every deploy.",
+      commit: "61644a0",
+    },
   ],
 };
 

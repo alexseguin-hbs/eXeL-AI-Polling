@@ -678,7 +678,8 @@ function Labeler({
       return;
     }
     const where = await saveXmlFile(pictureName(pic), vocXml(pictureName(pic), width, height, list), true);
-    setNote(`Saved ${where}`);
+    // R4a: nothing is written to the cloud yet (042 members-only) — the save says where the file is AND that it stays here.
+    setNote(`Saved ${where}. These boxes stay on this device.`);
   }
 
   const boxLeft = Math.min(left, right);

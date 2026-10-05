@@ -45,7 +45,8 @@ ok(/Only the server adds a row to sensor_fusion_members/.test(sql), "only the se
 ok(!/ON sensor_fusion_members FOR INSERT/.test(sql), "the page has no way to join a project");
 
 const page = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8");
-ok(page.includes('setNote("These boxes stay on this device.")'), "the screen says the boxes stay on this device");
+// The save note may lead with where the file went (2f58089), but it must still say the boxes stay on this device.
+ok(/setNote\([`"][^`"]*These boxes stay on this device\.[`"]\)/.test(page), "the screen says the boxes stay on this device");
 ok(!page.includes("team copy"), "the screen does not promise a team save");
 
 const probeUrl = process.env.RLS_PROBE_URL || "";
