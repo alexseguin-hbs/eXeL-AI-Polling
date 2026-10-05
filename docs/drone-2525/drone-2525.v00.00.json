@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.045",
+  "revision": "0.046",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -342,6 +342,14 @@
    "kind": "release",
    "why": "Operator deck r.160 — Addendum 11 (operator 2026-10-05, verbatim: \"I can't read signs\"): every lane sign carries its numbers in the photo's short form (\"21 22\"), black on a small white board, at least 9 px; the board never smaller than its real 0.6 × 0.35 m and just big enough for the numbers; still never over a target. QA LANE_NUMBERS_ON_THE_SIGN rewritten.",
    "commit": "5a8a161",
+   "shipped": "1d9ea29"
+  },
+  {
+   "revision": "0.046",
+   "date": "2026-10-05",
+   "kind": "release",
+   "why": "Operator deck r.161 — Addendum 12 (operator 2026-10-05, verbatim: \"T for Target, Space for Approve, and F for fire do not work. Also if I click with mouse on target, the center of bulleye to move to that location\"): T is the TARGET button (it stepped slots and marked another target); game keys beat a focused button or picker; a left click centres the bullseye on the clicked target and fires on the red mark under it; right click aims then marks/approves. QA MOUSE_CLICK_CENTRES_THE_BULLSEYE, KEYS_BEAT_FOCUS.",
+   "commit": "af6b541",
    "shipped": "PENDING"
   }
  ],

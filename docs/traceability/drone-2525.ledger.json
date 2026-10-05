@@ -400,6 +400,14 @@
    "kind": "release",
    "text": "Operator deck r.160 served at /drone-2525/play.html (sha256 1fbc365f...). THE LANE SIGNS READABLE — SHORT NUMBERS LIKE THE PHOTO (\"21 22\"), BLACK ON A SMALL WHITE BOARD, AT LEAST 9 PX, NEVER OVER A TARGET — operator Addendum 11.",
    "commit": "5a8a161",
+   "shipped": "1d9ea29"
+  },
+  {
+   "rev": 56,
+   "date": "2026-10-05",
+   "kind": "release",
+   "text": "Operator deck r.161 served at /drone-2525/play.html (sha256 543ed598...). T MARKS WHAT THE BULLSEYE IS ON (it stepped slots), SPACE APPROVES, F FIRES, KEYS BEAT A FOCUSED BUTTON; A LEFT CLICK CENTRES THE BULLSEYE ON THE CLICKED TARGET — operator Addendum 12.",
+   "commit": "af6b541",
    "shipped": "PENDING"
   }
  ]

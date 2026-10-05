@@ -41,6 +41,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.158 | 2026-10-05 | Claude Code (no grey phantom targets; the lane numbers on a real sign board; faded dotted lane lines sign to sign) | 419540 | 62f9fd1f0121c21da790d9f68713df2aa49b6ccca6f9b4f70a1694d2d15af37d | PENDING (Verify Live) | 040727fe8428286b54344773149a67d70dfe250519aedf1ba43ebe4573fcf604 |
 | r.159 | 2026-10-05 | Claude Code (real-size white lane signs that never cover a target; PC keys and mouse) | 423674 | d30d2ca9d0cc9d05c22b1c98cebcb1072c3f963a6a8fb71f6a0a8d41766644cb | PENDING (Verify Live) | 2c1cdd94fffe718bb085d4b2fa5c0e156f57d0da08dd87f3b9f10190315218b7 |
 | r.160 | 2026-10-05 | Claude Code (the lane signs readable: short numbers, black on white, ≥ 9 px) | 424082 | 1fbc365f84c43bb895289fed5f5d4343152cec4a8e49b6fb45ff3d5cf2398105 | PENDING (Verify Live) | a1f0236e5995ca44eedfc0b03fc2128dcc60a1ec11c7dc83ec3d23c916fb7787 |
+| r.161 | 2026-10-05 | Claude Code (T marks what the bullseye is on; keys beat focus; a left click centres the bullseye on the target) | 428373 | 543ed59859ab6c17329cf082d5fd22d6cf3f3305eb85179ca1ae7c61c9121403 | PENDING (Verify Live) | 10ef6640d7e7f7b8cc213d7056eafea1965a11a0101b40abc15b47c1c3b02774 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -844,3 +845,17 @@ every board in his view was blank white. Notes: `CLAUDE_CODE_NOTES_r160.md`. Pat
   "5 6" ("21 22"; "1" and "42" outside), at least 9 px, the board never smaller than its real 0.6 × 0.35 m and just big enough for the numbers.
   Still never over a target. `LANE_NUMBERS_ON_THE_SIGN` rewritten (legible numbers inside every written sign, centred on its real board).
 - r.159 shipped in `980dede`, LIVE per Verify Live #2467.
+
+
+## r.161 — Claude Code: the PC keys and mouse, as he plays (2026-10-05)
+Operator (round folder ASK.md Addendum 12, verbatim): **"T for Target, Space for Approve, and F for fire do not work. Also if I click with mouse on
+target, the center of bulleye to move to that location for max use of mouse."** and **"ensure click on mouse moves position of turret to center bulleye on target."**
+Notes: `CLAUDE_CODE_NOTES_r161.md`. Patch: `patches/r160_to_r161.py` (14 asserted edits). Artefact commit `af6b541`.
+- **T was the defect.** The T key stepped to the next target slot on every press (T1, T2, …), so it marked a different target from the one under the
+  bullseye. T is now the TARGET button: it marks what the bullseye is on. Space approves an amber mark; F fires (whether or not a slot number was set).
+- **Keys beat focus.** With a button or picker holding focus, T / Space / F / arrows / WASD let go of it and reach the game (a focused button took Space).
+- **Left click aims.** A left click on a target turns the turret / gimbal so the bullseye centres on it; on blank ground it turns toward the point; on the
+  red mark already under the bullseye it fires (fireN, which refuses anything not red). Right click aims first, then marks / approves. The target the
+  mouse centred is the one T and Space mark (overlapping plates at 1× had chosen the far one).
+- The mark toast says "MARKED 150 M RIGHT", not the target id. QA `MOUSE_CLICK_CENTRES_THE_BULLSEYE`, `KEYS_BEAT_FOCUS`; `PC_KEYS_AND_MOUSE` re-pointed.
+- Gates: 200 boot rows, 199/200 portrait and landscape (SYNC_DIRECT by construction); team e2e 10/0. r.160 shipped `1d9ea29`, LIVE in Verify Live #2473 (ce92c30).
