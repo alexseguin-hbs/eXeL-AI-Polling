@@ -376,7 +376,7 @@
    "kind": "release",
    "text": "Operator deck r.157 served at /drone-2525/play.html (sha256 5d65ee2b...). DRONE ROUND 1 OF 19 — THE SPLASH RINGS THE BOTTOM OF THE HIT TARGET (Addendum 5: \"splash-ring as oval from bottom of target works\"; a plate's foot, the ground under anything else), LABELS ONLY WHILE MARKED, THE RANGE MENU (TRAIN UP · TRAIN DOWN · QUAL 40 + RESTART + LANE, the rest behind MORE), LANE BOARDS ON BOTH EDGES (\"◂ 40 · 41 ▸\") ON 15 M LANES, THE LIT NEXT BUTTON, RELOAD THAT CALLS, ONE PLAIN STATUS LINE, THE START LIGHT (RED WAIT · YELLOW READY · GREEN FIRE), the range showing lanes and targets only, my lane never dropped by the draw budget, rooms scored by lane, and QUAL ending with its scorecard and PRESS RESTART (operator 2026-10-04, docs/drone-2525/rounds/2026.10.04_09.17..48_19_rounds/ASK.md + Addenda 1–5). Patch patches/r156_to_r157.py, byte-identical play.html, 17 QA rows added or rewritten (SPLASH_FROM_TARGET_BASE replaces SPLASH_FROM_TARGET_CENTRE).",
    "commit": "f6cf582",
-   "shipped": "PENDING"
+   "shipped": "8e362be"
   }
  ]
 }
