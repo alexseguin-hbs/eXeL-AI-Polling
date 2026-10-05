@@ -76,7 +76,7 @@ function SectionLabel({ children, color = CYAN }: { children: React.ReactNode; c
 }
 
 /** The Download on this page: VISION • 2525 · Humanity's Coordination Framework (operator 2026-10-05). */
-const FRAMEWORK_DOWNLOAD = "https://drive.google.com/uc?export=download&id=1NKlswkP17KJsluq_vbqTFMX_gmBnN9nO";
+const FRAMEWORK_DOWNLOAD = "https://github.com/alexseguin-hbs/eXeL-AI-Polling/raw/main/docs/whitepaper/VISION-2525.pdf";
 
 export default function Vision2525Page() {
   const { t } = useLexicon();
@@ -291,26 +291,19 @@ export default function Vision2525Page() {
               in ten years with no network — this is the link that lets a reader do
               that without hunting through a Save As dialog. Outside the card above,
               because tapping "download" should never be a mis-tap on "open". */}
-          <p className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-slate-400">
+          <p className="mt-4">
             <a
-              /* r143 · the attachment path: Cloudflare serves this one with
-                 Content-Disposition, so it saves as an HTML document on every
-                 browser instead of relying on the download attribute alone. */
-              /* 2026-10-05 · operator: "Download needs to highlight download this file, not white
-                 paper" — the button delivers VISION • 2525 · Humanity's Coordination Framework,
-                 held on Google Drive (the sandbox cannot copy it into Supabase); the white paper
-                 stays one tap away on the card above. */
               href={FRAMEWORK_DOWNLOAD}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Download VISION • 2525 · Humanity's Coordination Framework"
+              download="VISION-2525.pdf"
+              title="Download VISION • 2525"
+              aria-label="Download VISION • 2525"
               data-vision-download="framework"
-              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:border-cyan-400 hover:text-cyan-300"
-              style={{ borderColor: "rgba(34,211,238,0.45)", color: CYAN }}
+              className="inline-flex items-center justify-center rounded-lg border px-3"
+              style={{ borderColor: VIOLET, color: VIOLET, minHeight: 34 }}
             >
-              {/* r145 · icon is sufficient (operator) — verbose meta removed; the
-                 identity proof lives in the document's own Settings drawer. */}
-              &darr; Download
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+              </svg>
             </a>
           </p>
         </section>
