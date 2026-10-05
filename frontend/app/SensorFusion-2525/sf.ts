@@ -97,6 +97,22 @@ export function howManyPictures(raw: string): { n: number; note: string } {
   return { n: value, note: "" };
 }
 
+/** A video keeps every Nth frame. 2 is every other frame. 1 to 30, or a sentence. */
+export function everyNthFrame(raw: string): { n: number; note: string } {
+  const text = String(raw ?? "").trim();
+  const value = Number(text);
+  if (!/^\d+$/.test(text) || value < 1 || value > 30) return { n: 0, note: "Keep every takes a number from 1 to 30." };
+  return { n: value, note: "" };
+}
+
+/** Frames pulled from one video. 1 to 120, or a sentence. */
+export function howManyFrames(raw: string): { n: number; note: string } {
+  const text = String(raw ?? "").trim();
+  const value = Number(text);
+  if (!/^\d+$/.test(text) || value < 1 || value > 120) return { n: 0, note: "How many frames takes a number from 1 to 120." };
+  return { n: value, note: "" };
+}
+
 /** What the save really did, in one sentence (rev 43). Never a folder the app did not make. */
 export function savedLine(how: "folder" | "shared" | "downloaded", count: number, where = ""): string {
   const pictures = `${count} ${count === 1 ? "picture" : "pictures"}`;

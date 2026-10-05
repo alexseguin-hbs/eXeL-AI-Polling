@@ -182,10 +182,22 @@
   flex: 0 0 auto;
 }
 .work .foot {
-  background: var(--sf-card, #212121);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  z-index: 5;
+  background: transparent;
+  pointer-events: none;
 }
 .work .foot [data-rcore-badge] {
-  padding: 2px 0 !important;
+  width: auto;
+  margin: 0 auto;
+  padding: 0 !important;
+}
+.work .foot button,
+.work .foot a {
+  pointer-events: auto;
 }
 .work .foot [data-rcore-icon] img,
 .work .foot [data-rcore-pill] img {
@@ -213,6 +225,7 @@
   inset: 0;
   background: transparent;
   pointer-events: none;
+  object-fit: fill;
 }
 .meter {
   position: absolute;
@@ -445,6 +458,18 @@
   color: #fff;
   border-left: 3px solid var(--sf-primary, #0cff00);
   font-size: 13px;
+  font-weight: 700;
+}
+.captureCount {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 4;
+  margin: 0;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: 22px;
   font-weight: 700;
 }
 .shots {

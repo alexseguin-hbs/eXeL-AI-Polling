@@ -127,40 +127,47 @@
   }
 
   function draw(canvas, video, result, showScores, showLabels, showFps) {
-    var width = video.videoWidth || canvas.clientWidth || 640;
-    var height = video.videoHeight || canvas.clientHeight || 480;
+    var frameW = video.videoWidth || 640;
+    var frameH = video.videoHeight || 480;
+    var cssW = video.clientWidth || canvas.clientWidth || frameW;
+    var cssH = video.clientHeight || canvas.clientHeight || frameH;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var width = Math.max(1, Math.round(cssW * dpr));
+    var height = Math.max(1, Math.round(cssH * dpr));
     if (canvas.width !== width) canvas.width = width;
     if (canvas.height !== height) canvas.height = height;
     var pen = canvas.getContext("2d");
     if (!pen) return;
+    pen.setTransform(1, 0, 0, 1, 0, 0);
     pen.clearRect(0, 0, width, height);
-    var shownW = video.clientWidth || canvas.clientWidth || width;
-    var shownH = video.clientHeight || canvas.clientHeight || height;
-    var cover = Math.max(shownW / width, shownH / height) || 1;
-    var fontPx = Math.max(1, Math.round(13 / cover));
-    pen.lineWidth = Math.max(1, Math.round(2 / cover));
-    pen.font = fontPx + "px sans-serif";
+    var scale = Math.max(width / frameW, height / frameH);
+    var originX = (width - frameW * scale) / 2;
+    var originY = (height - frameH * scale) / 2;
+    var fontPx = Math.round(15 * dpr);
+    pen.lineWidth = Math.max(1, 2 * dpr);
+    pen.font = "600 " + fontPx + "px sans-serif";
     var labelH = Math.round(fontPx * 1.25);
     result.hits.forEach(function (hit) {
-      var x = Math.max(1, hit.xmin * width);
-      var y = Math.max(1, hit.ymin * height);
-      var w = Math.max(1, (hit.xmax - hit.xmin) * width);
-      var h = Math.max(1, (hit.ymax - hit.ymin) * height);
+      var x = originX + hit.xmin * frameW * scale;
+      var y = originY + hit.ymin * frameH * scale;
+      var w = Math.max(1, (hit.xmax - hit.xmin) * frameW * scale);
+      var h = Math.max(1, (hit.ymax - hit.ymin) * frameH * scale);
       pen.strokeStyle = (getComputedStyle(document.documentElement).getPropertyValue("--sf-primary") || "#0cff00").trim() || "#0cff00";
       pen.strokeRect(x, y, w, h);
       var text = (showLabels ? hit.name : "") + (showScores ? (showLabels && hit.name ? " " : "") + Math.round(hit.score * 100) + "%" : "");
       if (text) {
         pen.fillStyle = "#ffffff";
-        var pad = pen.measureText(text).width + Math.round(fontPx * 0.5);
-        pen.fillRect(x, Math.max(0, y - labelH), pad, labelH);
+        var pad = pen.measureText(text).width + Math.round(fontPx * 0.6);
+        var top = Math.max(0, y - labelH);
+        pen.fillRect(x, top, pad, labelH);
         pen.fillStyle = "#000000";
-        pen.fillText(text, x + Math.round(fontPx * 0.25), Math.max(labelH - Math.round(fontPx * 0.25), y - Math.round(fontPx * 0.25)));
+        pen.fillText(text, x + Math.round(fontPx * 0.3), top + Math.round(fontPx * 0.95));
       }
     });
     if (showFps) {
       pen.fillStyle = "#ffe600";
-      pen.font = fontPx + "px sans-serif";
-      pen.fillText("FPS: " + result.fps.toFixed(2), Math.round(fontPx), Math.round(fontPx * 2));
+      pen.font = "600 " + fontPx + "px sans-serif";
+      pen.fillText("FPS: " + result.fps.toFixed(2), fontPx, fontPx * 2);
     }
   }
 

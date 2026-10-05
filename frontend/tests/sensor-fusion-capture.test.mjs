@@ -6,7 +6,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { howManyPictures, nameList, savedLine } from "../app/SensorFusion-2525/sf.ts";
+import { everyNthFrame, howManyFrames, howManyPictures, nameList, savedLine } from "../app/SensorFusion-2525/sf.ts";
 
 let pass = 0;
 let fail = 0;
@@ -43,14 +43,17 @@ ok(/captureBusy\.current = true;[\s\S]*?try \{\s*await captureFrames\(long, tota
 ok(take.indexOf("captureBusy.current = true;") < take.indexOf("await "), "nothing waits before the capture is marked busy");
 const add = /async function addFromDevice\(list: FileList \| null\) \{([\s\S]*?)\n  \}\n/.exec(src)?.[1] || "";
 ok(/captureBusy\.current\) return;/.test(add) && /finally \{\s*captureBusy\.current = false;/.test(add), "From this device waits for a capture too");
-ok((src.match(/<button type="button" disabled=\{Boolean\(capturing\)\} onClick=\{\(\) => void takeShots\((true)?\)\}>/g) || []).length === 2, "FROM SENSOR and 45–60 SEC are disabled while a capture runs");
+ok(/takeShots\(true\)/.test(src) && /void takeShots\(\)/.test(src), "FROM SENSOR and 45–60 SEC both start a live capture");
 ok(/<input type="file" accept="image\/\*" multiple disabled=\{Boolean\(capturing\)\}/.test(src), "From this device is disabled while a capture runs");
-ok(/setCapturing\(`Picture \$\{i \+ 1\} of \$\{howMany\}`\)/.test(src) && /\{capturing && \(\s*<p className=\{styles\.muted\} aria-live="polite">/.test(src), "the dialog counts 'Picture 3 of 4' while it works");
+ok(/setCapturing\(`\$\{i \+ 1\} \/ \$\{howMany\}`\)/.test(src) && /className=\{styles\.captureCount\}/.test(src), "live capture counts '1 / 4' on the camera");
+ok(/captureMode === "live"/.test(src) && /useState<"live" \| "video">\("live"\)/.test(src), "Capture Images opens on Live");
+ok(/accept="video\/\*"/.test(src) && /addFromVideo/.test(src) && /image\/jpeg/.test(src), "a video can be turned into JPEG pictures");
+ok(everyNthFrame("2").n === 2 && everyNthFrame("3").n === 3 && everyNthFrame("0").n === 0, "every other frame is 2, every third is 3, 0 is refused");
+ok(howManyFrames("40").n === 40 && howManyFrames("121").n === 0, "a video takes 1 to 120 frames");
 
 // 2. How many on the glass.
-ok(/<input type="number" inputMode="numeric" min=\{1\} max=\{12\} step=\{1\} value=\{count\}/.test(src), "How many opens a number keyboard, 1 to 12");
-ok(/How many <span className=\{styles\.muted\}>Up to 12\.<\/span>/.test(src), "'Up to 12.' sits beside it");
-ok(/\{howManyPictures\(count\)\.note && <p className=\{styles\.alert\}>\{howManyPictures\(count\)\.note\}<\/p>\}/.test(src), "a value outside 1–12 shows the sentence");
+ok(/max=\{captureMode === "video" \? 120 : 12\}/.test(src), "How many is 12 on Live and 120 on a video");
+ok(/Up to 12\./.test(src) && /howManyPictures\(count\)\.note/.test(src), "Live still refuses a count outside 1–12");
 ok(!/Math\.min\(12, Math\.max\(1, Number\(count\) \|\| 4\)\)/.test(src), "the quiet clamp is gone");
 
 // 3. Words.

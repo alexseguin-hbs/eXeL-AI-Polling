@@ -335,6 +335,20 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The R-CORE icon sits on its own row, just above the buttons. On a computer the button words and the box names stay one size, so they do not grow with the picture.",
       commit: "9a04962",
     },
+    {
+      rev: 48,
+      date: "2026-10-05",
+      kind: "release",
+      text: "The buttons sit at the bottom of the screen. The R-CORE icon lies on the picture, just above them. Box names are drawn at the screen's own size, so they stay sharp on a computer.",
+      commit: "",
+    },
+    {
+      rev: 49,
+      date: "2026-10-05",
+      kind: "release",
+      text: "Capture Images opens on Live. The camera shows 1 / 4 as each picture is saved. A video can be chosen instead, and the person says every other frame or every third, and how many pictures to keep.",
+      commit: "",
+    },
   ],
 };
 

@@ -18,6 +18,8 @@ import {
   coralNote,
   detectPlatform,
   explainCamera,
+  everyNthFrame,
+  howManyFrames,
   howManyPictures,
   lensZoom,
   nameList,
@@ -190,7 +192,7 @@ function SettingsSheet({
   );
 }
 type Step = "login" | "menu" | "work" | "label";
-type Shot = { id: string; url: string; name?: string; source?: "sensor" | "device"; original?: string };
+type Shot = { id: string; url: string; name?: string; source?: "sensor" | "device" | "video"; original?: string };
 type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number; level: 1 | 2; by?: string; reviewer?: string };
 type Edge = "l" | "r" | "t" | "b";
 
@@ -319,8 +321,8 @@ function classKey(raw: string) {
   return clean || "picture";
 }
 
-function pictureFile(label: string, number: number) {
-  return `${classKey(label)}_${String(number).padStart(4, "0")}.png`;
+function pictureFile(label: string, number: number, ext = "png") {
+  return `${classKey(label)}_${String(number).padStart(4, "0")}.${ext}`;
 }
 
 function highestNumber(label: string, names: string[]) {
@@ -367,9 +369,9 @@ async function lastUsed(label: string) {
   return used;
 }
 
-async function peekNames(label: string, count: number) {
+async function peekNames(label: string, count: number, ext = "png") {
   const used = await lastUsed(label);
-  return Array.from({ length: count }, (_, index) => pictureFile(label, used + index + 1));
+  return Array.from({ length: count }, (_, index) => pictureFile(label, used + index + 1, ext));
 }
 
 function commitNames(label: string, count: number) {
@@ -942,6 +944,8 @@ export default function SensorFusion() {
   const [name, setName] = useState("");
   const [labelPick, setLabelPick] = useState("person");
   const [count, setCount] = useState("4");
+  const [every, setEvery] = useState("2");
+  const [captureMode, setCaptureMode] = useState<"live" | "video">("live");
   const [note, setNote] = useState("");
   const [shots, setShots] = useState<Shot[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1236,7 +1240,7 @@ export default function SensorFusion() {
     const shotsOut: Shot[] = [];
     const files: { name: string; blob: Blob }[] = [];
     for (let i = 0; i < howMany; i += 1) {
-      setCapturing(`Picture ${i + 1} of ${howMany}`);
+      setCapturing(`${i + 1} / ${howMany}`);
       const canvas = document.createElement("canvas");
       const width = video.videoWidth || 640;
       const height = video.videoHeight || 480;
@@ -1291,6 +1295,7 @@ export default function SensorFusion() {
     for (let i = 0; i < 30 && video && video.readyState < 2; i += 1) {
       await new Promise((resolve) => window.setTimeout(resolve, 100));
     }
+    setAnnotate(false);
     const { shots: next, files, label } = await framesFromVideo(long, total);
     if (!next.length) {
       setError("Turn SENSOR 1 on before you save pictures.");
@@ -1364,6 +1369,114 @@ export default function SensorFusion() {
     setAnnotate(false);
     setTrainStatus("");
     setSavedNote(true);
+  }
+
+  async function addFromVideo(file: File | undefined) {
+    const step = everyNthFrame(every);
+    const total = howManyFrames(count);
+    if (!file || !step.n || !total.n || captureBusy.current) return;
+    captureBusy.current = true;
+    setCapturing("Opening the video…");
+    try {
+      const label = classKey(labelPick);
+      const names = await peekNames(label, total.n, "jpg");
+      const url = URL.createObjectURL(file);
+      const video = document.createElement("video");
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = "auto";
+      video.src = url;
+      await new Promise<void>((resolve, reject) => {
+        video.onloadeddata = () => resolve();
+        video.onerror = () => reject(new Error("That video did not open."));
+      });
+      const made: { name: string; blob: Blob; url: string }[] = [];
+      const keep = async (index: number) => {
+        const canvas = document.createElement("canvas");
+        const width = video.videoWidth || 640;
+        const height = video.videoHeight || 480;
+        const scale = Math.min(1, 1280 / width);
+        canvas.width = Math.max(1, Math.round(width * scale));
+        canvas.height = Math.max(1, Math.round(height * scale));
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((item) => resolve(item), "image/jpeg", 0.92));
+        if (!blob) return;
+        made.push({ name: names[index], blob, url: URL.createObjectURL(blob) });
+        setCapturing(`${made.length} / ${total.n}`);
+      };
+      const stepped = video as HTMLVideoElement & { requestVideoFrameCallback?: (cb: () => void) => void };
+      if (stepped.requestVideoFrameCallback) {
+        await video.play();
+        await new Promise<void>((resolve) => {
+          let seen = 0;
+          let saved = 0;
+          let busy = false;
+          const finish = () => {
+            video.pause();
+            resolve();
+          };
+          video.onended = finish;
+          const onFrame = () => {
+            if (saved >= total.n || video.ended) return finish();
+            seen += 1;
+            if ((seen - 1) % step.n !== 0) {
+              stepped.requestVideoFrameCallback?.(onFrame);
+              return;
+            }
+            if (busy) return;
+            busy = true;
+            const index = saved;
+            saved += 1;
+            void keep(index).then(() => {
+              busy = false;
+              if (saved >= total.n || video.ended) finish();
+              else stepped.requestVideoFrameCallback?.(onFrame);
+            });
+          };
+          stepped.requestVideoFrameCallback(onFrame);
+        });
+      } else {
+        const gap = step.n / 30;
+        for (let index = 0; index < total.n; index += 1) {
+          const at = Math.min(Math.max(0, video.duration - 0.05), index * gap);
+          video.currentTime = at;
+          await new Promise<void>((resolve) => {
+            video.onseeked = () => resolve();
+          });
+          await keep(index);
+        }
+      }
+      URL.revokeObjectURL(url);
+      if (!made.length) {
+        setError("That video did not give any pictures.");
+        return;
+      }
+      const files = made.map((item) => ({ name: item.name, blob: item.blob }));
+      const added: Shot[] = made.map((item, index) => ({
+        id: `${Date.now()}-${index}`,
+        url: item.url,
+        name: item.name,
+        source: "video",
+        original: file.name,
+      }));
+      const saved = await saveNumberedPictures(label, files);
+      commitNames(label, files.length);
+      setLastSave({ title: SAVED_TITLE[saved.how], line: savedLine(saved.how, files.length, saved.where), names: files.map((item) => item.name) });
+      setNextFile(pictureFile(label, (Number(window.localStorage.getItem(`sf2525-seq-${classKey(label)}`)) || 0) + 1));
+      setShots((current) => [...current, ...added]);
+      setError("");
+      setAnnotate(false);
+      setTrainStatus("");
+      setSavedNote(true);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setError(err instanceof Error ? err.message : "That video did not open.");
+    } finally {
+      captureBusy.current = false;
+      setCapturing("");
+    }
   }
 
   function uploadSet() {
@@ -1600,8 +1713,9 @@ export default function SensorFusion() {
         )}
         {error && <p className={styles.alert}>{error}</p>}
         {alert && <p className={styles.liveAlert}>{alert}</p>}
+        {capturing && <p className={styles.captureCount}>{capturing}</p>}
+        <Foot accent={accent} />
       </section>
-      <Foot accent={accent} />
       <div className={styles.dock}>
       <nav className={styles.piBot}>
         <button type="button" className={showScores ? styles.botOn : styles.bot} onClick={() => setShowScores((on) => !on)}>
@@ -1664,7 +1778,15 @@ export default function SensorFusion() {
           <div className={styles.modal} role="dialog" aria-label="Capture images" onClick={(event) => event.stopPropagation()}>
             <StepStrip current={1} />
             <h2>Capture Images</h2>
-            <p className={styles.muted}>From the sensor, or from this device. Choose the folder first.</p>
+            <p className={styles.muted}>Live is the camera. Video keeps pictures from a file.</p>
+            <div className={styles.row}>
+              <button type="button" className={captureMode === "live" ? styles.botOn : styles.ghost} onClick={() => setCaptureMode("live")}>
+                Live
+              </button>
+              <button type="button" className={captureMode === "video" ? styles.botOn : styles.ghost} onClick={() => setCaptureMode("video")}>
+                Video
+              </button>
+            </div>
             <div className={styles.row}>
               <span className={styles.muted}>Save to {saveFolder || (phoneKind() === "ios" ? "Files" : "a folder")}</span>
               <button
@@ -1694,30 +1816,67 @@ export default function SensorFusion() {
               </select>
             </label>
             <label>
-              How many <span className={styles.muted}>Up to 12.</span>
-              <input type="number" inputMode="numeric" min={1} max={12} step={1} value={count} onChange={(event) => setCount(event.target.value)} />
+              How many <span className={styles.muted}>{captureMode === "video" ? "Up to 120." : "Up to 12."}</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={captureMode === "video" ? 120 : 12}
+                step={1}
+                value={count}
+                onChange={(event) => setCount(event.target.value)}
+              />
             </label>
-            {howManyPictures(count).note && <p className={styles.alert}>{howManyPictures(count).note}</p>}
+            {(captureMode === "video" ? howManyFrames(count).note : howManyPictures(count).note) && (
+              <p className={styles.alert}>{captureMode === "video" ? howManyFrames(count).note : howManyPictures(count).note}</p>
+            )}
+            {captureMode === "video" && (
+              <label>
+                Keep every <span className={styles.muted}>2 is every other frame. 3 is every third.</span>
+                <input type="number" inputMode="numeric" min={1} max={30} step={1} value={every} onChange={(event) => setEvery(event.target.value)} />
+              </label>
+            )}
+            {captureMode === "video" && everyNthFrame(every).note && <p className={styles.alert}>{everyNthFrame(every).note}</p>}
             <label>
               Note
               <input value={note} onChange={(event) => setNote(event.target.value)} />
             </label>
-            <label className={styles.file}>
-              From this device
-              <input type="file" accept="image/*" multiple disabled={Boolean(capturing)} onChange={(event) => void addFromDevice(event.target.files)} />
-            </label>
+            {captureMode === "video" ? (
+              <label className={styles.file}>
+                Choose a video
+                <input
+                  type="file"
+                  accept="video/*"
+                  disabled={Boolean(capturing) || !howManyFrames(count).n || !everyNthFrame(every).n}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    void addFromVideo(file);
+                  }}
+                />
+              </label>
+            ) : (
+              <label className={styles.file}>
+                Or pictures from this device
+                <input type="file" accept="image/*" multiple disabled={Boolean(capturing)} onChange={(event) => void addFromDevice(event.target.files)} />
+              </label>
+            )}
             {capturing && (
               <p className={styles.muted} aria-live="polite">
                 {capturing}
               </p>
             )}
             <div className={styles.actions}>
-              <button type="button" disabled={Boolean(capturing)} onClick={() => void takeShots()}>
-                FROM SENSOR
-              </button>
-              <button type="button" disabled={Boolean(capturing)} onClick={() => void takeShots(true)}>
-                45–60 SEC
-              </button>
+              {captureMode === "live" && (
+                <button type="button" disabled={Boolean(capturing) || !howManyPictures(count).n} onClick={() => void takeShots()}>
+                  FROM SENSOR
+                </button>
+              )}
+              {captureMode === "live" && (
+                <button type="button" disabled={Boolean(capturing)} onClick={() => void takeShots(true)}>
+                  45–60 SEC
+                </button>
+              )}
               <button type="button" onClick={() => setAnnotate(false)}>
                 CANCEL
               </button>
