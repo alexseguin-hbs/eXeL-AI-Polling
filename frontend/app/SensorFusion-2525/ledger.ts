@@ -410,7 +410,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "Info starts quiet. Tap a control and only that note appears.",
-      commit: "",
+      commit: "7d9a98c",
     },
   ],
 };
