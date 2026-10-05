@@ -382,7 +382,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "The device card keeps its name and its line apart when it is selected. The page picks the device from the computer or phone in your hand.",
-      commit: "",
+      commit: "f28bee6",
     },
   ],
 };
