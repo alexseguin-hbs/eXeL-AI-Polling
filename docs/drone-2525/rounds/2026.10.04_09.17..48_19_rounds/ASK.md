@@ -145,3 +145,13 @@ words are not written (the board stays, small); (3) white board, black digits, l
 r.159 drew the boards at real size and wrote no numbers when they would be under 5 px, so every board in his view was blank white.
 Reading: keep the signs small and white like the photo, but always readable — short numbers like the photo's "5 6" ("20 21"), black on
 white at a legible minimum size; still never over a target.
+
+## Addendum 12 — keys and mouse aim (operator 2026-10-05, verbatim, with a PC screenshot)
+
+> T for Target, Space for Approve, and F for fire do not work.  Also if I click with mouse on target, the center of bulleye to move to that location for max use of mouse.
+
+Found: on the built r.160 in headless Chromium, with the bullseye on a target, T → amber, Space → red, F → HIT. The likely failures on his PC:
+a picker or button holding keyboard focus (the browser gives Space to a focused button), or a build before r.159. Reading: (1) the game
+keys always reach the game, whatever has focus, with e.key as a fallback; (2) a LEFT CLICK on the picture moves the bullseye centre to
+the clicked point (the head turns there); a left click on the red-marked target already under the bullseye fires; a RIGHT CLICK aims
+there and marks / approves.
