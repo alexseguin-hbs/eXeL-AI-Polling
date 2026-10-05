@@ -76,7 +76,7 @@ function SectionLabel({ children, color = CYAN }: { children: React.ReactNode; c
 }
 
 /** The Download on this page: VISION • 2525 · Humanity's Coordination Framework (operator 2026-10-05). */
-const FRAMEWORK_DOWNLOAD = "https://github.com/alexseguin-hbs/eXeL-AI-Polling/raw/main/docs/whitepaper/VISION-2525.pdf";
+const FRAMEWORK_DOWNLOAD = "https://ppgfjplawtlrfqpnszyb.supabase.co/storage/v1/object/public/whitepaper/VISION-2525.pdf";
 
 export default function Vision2525Page() {
   const { t } = useLexicon();
@@ -298,8 +298,8 @@ export default function Vision2525Page() {
               title="Download VISION • 2525"
               aria-label="Download VISION • 2525"
               data-vision-download="framework"
-              className="inline-flex items-center justify-center rounded-lg border px-3"
-              style={{ borderColor: VIOLET, color: VIOLET, minHeight: 34 }}
+              className="inline-flex items-center justify-center border px-3"
+              style={{ borderColor: "#D18BE0", color: "#D18BE0", minHeight: 34, borderRadius: 8, paddingTop: 6, paddingBottom: 6 }}
             >
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />

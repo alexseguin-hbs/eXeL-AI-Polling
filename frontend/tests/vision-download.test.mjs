@@ -3,8 +3,9 @@
 import { readFileSync } from "node:fs";
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 const src = readFileSync(new URL("../app/vision-2525/page.tsx", import.meta.url), "utf8");
-ok(/const FRAMEWORK_DOWNLOAD = "https:\/\/github\.com\/alexseguin-hbs\/eXeL-AI-Polling\/raw\/main\/docs\/whitepaper\/VISION-2525\.pdf";/.test(src), "the Download is the Vision PDF in the repo");
-ok(/href=\{FRAMEWORK_DOWNLOAD\}[\s\S]{0,400}data-vision-download="framework"/.test(src), "the download button uses it");
+ok(/const FRAMEWORK_DOWNLOAD = "https:\/\/ppgfjplawtlrfqpnszyb\.supabase\.co\/storage\/v1\/object\/public\/whitepaper\/VISION-2525\.pdf";/.test(src), "the Download is the Vision PDF on Supabase");
+ok(/href=\{FRAMEWORK_DOWNLOAD\}[\s\S]{0,500}data-vision-download="framework"/.test(src), "the download button uses it");
+ok(/#D18BE0/.test(src), "the download mark is the violet icon");
 ok(!/download="SOI_VISION2525_v\.\d+_LIVING_DOCUMENT\.html"/.test(src), "the button no longer downloads the white paper");
 ok(/href="\/vision-2525\/white-paper\/"/.test(src), "the white paper is still one tap away");
 console.log(`\nvision-download: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

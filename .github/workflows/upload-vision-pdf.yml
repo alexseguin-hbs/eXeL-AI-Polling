@@ -1,0 +1,44 @@
+# Puts VISION-2525.pdf in the public Supabase bucket and checks the public URL answers.
+name: Upload Vision PDF
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - docs/whitepaper/VISION-2525.pdf
+      - supabase/migrations/043_whitepaper_pdf_bucket.sql
+      - .github/workflows/upload-vision-pdf.yml
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SB_URL: https://ppgfjplawtlrfqpnszyb.supabase.co
+      SB_KEY: sb_publishable_OuwQNsFT59F2vzlaXnLIhg_7XrzeY2z
+      DB: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Open the bucket
+        run: |
+          set -e
+          if [ -z "$DB" ]; then
+            echo "::error::SUPABASE_DB_URL is not set, so the bucket cannot be opened from here."
+            exit 1
+          fi
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+          psql "$DB" -v ON_ERROR_STOP=1 -f supabase/migrations/043_whitepaper_pdf_bucket.sql
+      - name: Upload the PDF
+        run: |
+          set -e
+          code=$(curl -sS -o /tmp/up.json -w "%{http_code}" --max-time 180 \
+            -X POST "$SB_URL/storage/v1/object/whitepaper/VISION-2525.pdf" \
+            -H "apikey: $SB_KEY" -H "Authorization: Bearer $SB_KEY" \
+            -H "Content-Type: application/pdf" -H "x-upsert: true" \
+            --data-binary @docs/whitepaper/VISION-2525.pdf)
+          echo "upload $code"
+          head -c 300 /tmp/up.json; echo
+          case "$code" in 2*) ;; *) exit 1;; esac
+          pub="$SB_URL/storage/v1/object/public/whitepaper/VISION-2525.pdf"
+          got=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 60 -I "$pub")
+          echo "public $got $pub"
+          [ "$got" = "200" ]
