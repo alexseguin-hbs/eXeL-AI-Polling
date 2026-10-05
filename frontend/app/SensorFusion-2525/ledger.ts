@@ -426,6 +426,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Two cameras stack top and bottom when the phone is upright, and sit side by side when the phone or the computer is sideways.",
       commit: "df3db25",
     },
+    {
+      rev: 61,
+      date: "2026-10-05",
+      kind: "release",
+      text: "THERMAL takes the second view and says the thermal camera is not connected. It does not use the phone camera as heat.",
+      commit: "",
+    },
   ],
 };
 

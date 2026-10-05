@@ -987,6 +987,7 @@ export default function SensorFusion() {
   const [sensor2On, setSensor2On] = useState(false);
   const [sensor2Name, setSensor2Name] = useState("Camera");
   const [sensor2Note, setSensor2Note] = useState("");
+  const [thermalOn, setThermalOn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [busy2, setBusy2] = useState(false);
   const [error, setError] = useState("");
@@ -1350,6 +1351,15 @@ export default function SensorFusion() {
     if (fill instanceof HTMLElement) fill.style.height = "0%";
   }
 
+  function closeThermal() {
+    setThermalOn(false);
+  }
+
+  function openThermal() {
+    closeSensor2();
+    setThermalOn(true);
+  }
+
   function closeSensor2() {
     stream2Ref.current?.getTracks().forEach((track) => track.stop());
     stream2Ref.current = null;
@@ -1359,6 +1369,7 @@ export default function SensorFusion() {
   }
 
   async function openSensor2() {
+    setThermalOn(false);
     setBusy2(true);
     setError("");
     setSensor2Note("");
@@ -1810,6 +1821,10 @@ export default function SensorFusion() {
           <img src={sensor2On ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
           SENSOR 2: {busy2 ? "…" : sensor2On ? "ON" : "OFF"}
         </button>
+        <button type="button" className={styles.sensorSwitch} onClick={() => (thermalOn ? closeThermal() : openThermal())}>
+          <img src={thermalOn ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
+          THERMAL: {thermalOn ? "ON" : "OFF"}
+        </button>
         <div className={styles.lensWrap}>
           <button
             type="button"
@@ -1884,7 +1899,7 @@ export default function SensorFusion() {
         </div>
       </header>
       <section
-        className={`${styles.stage} ${sensor2On ? styles.split : ""}`}
+        className={`${styles.stage} ${sensor2On || thermalOn ? styles.split : ""}`}
         onClick={(event) => {
           if ((event.target as HTMLElement).closest("button")) return;
           setShowFps((on) => !on);
@@ -1893,7 +1908,7 @@ export default function SensorFusion() {
         <div className={styles.pane}>
         <video ref={videoRef} autoPlay muted playsInline aria-label="SENSOR 1" />
         <canvas ref={canvasRef} className={styles.boxes} />
-        {sensor2On && <span className={styles.paneTag}>SENSOR 1</span>}
+        {(sensor2On || thermalOn) && <span className={styles.paneTag}>SENSOR 1</span>}
         {sensorOn && !annotate && !capturing && (
           <div className={styles.meter} ref={meterRef} aria-hidden="true">
             <i />
@@ -1910,14 +1925,26 @@ export default function SensorFusion() {
         {alert && !showLabels && <p className={styles.liveAlert}>{alert}</p>}
         {capturing && <p className={styles.captureCount}>{capturing}</p>}
         </div>
-        {sensor2On && (
+        {(sensor2On || thermalOn) && (
           <div className={styles.pane}>
+            {thermalOn ? (
+              <>
+                <span className={styles.paneTag}>THERMAL</span>
+                <div className={styles.idle}>
+                  <p>Thermal camera is not connected.</p>
+                  <p>This side is ready. It will show heat when a thermal camera is attached.</p>
+                </div>
+              </>
+            ) : (
+              <>
             <video ref={video2Ref} autoPlay muted playsInline aria-label="SENSOR 2" />
             <span className={styles.paneTag}>SENSOR 2 · {sensor2Name}</span>
             {sensor2Note && (
               <div className={styles.idle}>
                 <p>{sensor2Note}</p>
               </div>
+            )}
+              </>
             )}
           </div>
         )}
