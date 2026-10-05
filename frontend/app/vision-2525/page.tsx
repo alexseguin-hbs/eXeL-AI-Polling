@@ -75,6 +75,9 @@ function SectionLabel({ children, color = CYAN }: { children: React.ReactNode; c
   return <p className="text-[11px] font-semibold uppercase tracking-[0.28em]" style={{ color }}>{children}</p>;
 }
 
+/** The Download on this page: VISION • 2525 · Humanity's Coordination Framework (operator 2026-10-05). */
+const FRAMEWORK_DOWNLOAD = "https://drive.google.com/uc?export=download&id=1NKlswkP17KJsluq_vbqTFMX_gmBnN9nO";
+
 export default function Vision2525Page() {
   const { t } = useLexicon();
   return (
@@ -293,8 +296,15 @@ export default function Vision2525Page() {
               /* r143 · the attachment path: Cloudflare serves this one with
                  Content-Disposition, so it saves as an HTML document on every
                  browser instead of relying on the download attribute alone. */
-              href="/whitepaper/SOI_VISION2525_v.19_LIVING_DOCUMENT.html"
-              download="SOI_VISION2525_v.19_LIVING_DOCUMENT.html"
+              /* 2026-10-05 · operator: "Download needs to highlight download this file, not white
+                 paper" — the button delivers VISION • 2525 · Humanity's Coordination Framework,
+                 held on Google Drive (the sandbox cannot copy it into Supabase); the white paper
+                 stays one tap away on the card above. */
+              href={FRAMEWORK_DOWNLOAD}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Download VISION • 2525 · Humanity's Coordination Framework"
+              data-vision-download="framework"
               className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:border-cyan-400 hover:text-cyan-300"
               style={{ borderColor: "rgba(34,211,238,0.45)", color: CYAN }}
             >
