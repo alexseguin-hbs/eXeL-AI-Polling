@@ -37,6 +37,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.154 | 2026-10-04 | Claude Code (the QUAL · 40 clock counts real seconds) | 370119 | ccb4fe73f3fe09b2fb12a3d3442cdba5569e2ab49f8586b11aaca84f08d7e467 | PENDING (Verify Live) | bd180f511f84e17460ef0c3018277f5a9a3e8ba36df36e53a78920ec3b11e342 |
 | r.155 | 2026-10-04 | Claude Code (TARGET · APPROVE · FIRE beside the stick) | 376178 | 300ceb93683c2ea638f03794ec0a9dfe9d73bc51a84b5b05fe2cf7c465f8a3b4 | PENDING (Verify Live) | d7ac891a9a0821588036445638a81e894274c92f4567f1d7180e7189cff6d0bf |
 | r.156 | 2026-10-05 | Claude Code (the hit splash starts at the target's centre) | 378675 | 92eb716a8bec23dffa111f523d5e5ca8e764cd0009c7c8571e33671fd75f6b4d | PENDING (Verify Live) | a9d63598383a7bdfad849a95fe533124a10aad24c0ade1d8bec79be6ecabcc5c |
+| r.157 | 2026-10-05 | Claude Code (round 1 of 19: the splash at the bottom of the target, labels only while marked, mode · Restart · lane, boards on both edges, 15 m lanes, the lit next step, the start light) | 415943 | 5d65ee2b5af886040a8d4d58ae556a4107ae43a189463d6e55666602f33d5e68 | PENDING (Verify Live) | 4eeff8536a4badbb3589870c398f9e43d09b04a5fd86b53d211dbe60b9ea9453 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -755,3 +756,49 @@ then **"fix splash"**. Notes: `CLAUDE_CODE_NOTES_r156.md`. Patch: `patches/r155_
   hit has already started the fall); a miss 40 px beside a 300 m plate, scored through `applyHit` itself, leaves no new splash; one
   synchronous `draw()` after the 300 m hit puts 16/16 splash segments on the canvas. 180 rows, 179/180 in portrait and landscape
   (SYNC_DIRECT, red by construction on one device).
+
+## r.157 — Claude Code: Drone round 1 of 19 — the splash at the bottom of the hit target, and the five queued asks (2026-10-05)
+Operator (`docs/drone-2525/rounds/2026.10.04_09.17..48_19_rounds/ASK.md`, round 1 and Addenda 1–5; the Drone-2525 asks of 2026.10.04
+in `docs/asks/`). Addendum 5, verbatim, first: **"splash-ring as oval from bottom of target works"** (it supersedes Addendum 4; the
+camera-facing burst is not built). Notes: `CLAUDE_CODE_NOTES_r157.md`. Patch: `patches/r156_to_r157.py` (76 asserted edits).
+Artefact commit `f6cf582`; shipped in: PENDING until Verify Live (the ledger and the domain JSON carry `shipped`).
+- **The splash.** The same flat ring (1.2 → 4.2 m, 16 segments, LOCK red, 0.45 s, outside the world budget, nothing on a miss) is
+  centred on `baseOf(target)`: a plate's foot (`qWorld`, moving back with the fold exactly as `silMesh` draws it); for a door, a pop-up,
+  a drone or an aircraft the ground under it (y 0). Measured on lane 21 at 3× (390×844): ring (195, 370) on the 150 m plate's foot
+  (195, 370); r.156 put it 0.44 m higher, at the centre of mass. Boot-QA `SPLASH_FROM_TARGET_BASE` replaces
+  `SPLASH_FROM_TARGET_CENTRE` (50 m and 300 m: 0.000 m from the foot, 0.0 px across, at the bottom edge, ≥ 0.15 m below the centre of
+  mass, an oval 87×7 / 15×0 px; door and drone on the ground; a miss draws none; 16/16 segments drawn).
+- **Labels only while marked** (his pick, 4b9a6ca): no caption on a standing target in any mode; the marked one reads in plain words
+  ("T1 · 150 M RIGHT · AMBER"). `LABELS_ONLY_WHILE_MARKED` replaces `LABELS_DO_NOT_OVERLAP`.
+- **The range menu** (his pick "Mode + Restart + Lane"): TRAIN UP · TRAIN DOWN · QUAL 40, RESTART and LANE 21 on one row in both
+  orientations (r.156 had 11 range controls on four rows and RESTART at x 849 on an 844 px screen); scenario, platform, water, MoT,
+  targets, CH, DIFF and HAL behind MORE. goRange says the one sentence ("LANE 21 · QUAL 40 · 40 TARGETS · 4 MAGAZINES · STARTS ON
+  GREEN"); the platform picker says TURRET on the range. `RANGE_MENU_ON_SCREEN`.
+- **Lane boards on both edges and 15 m lanes.** One `LANE_W=15` drives the lane centres and the lines; every lane has a board on each
+  edge at 100/200/300 m reading "◂ 40 · 41 ▸" ("1 ▸" and "◂ 42" outside) — 252 boards on 129 posts, each on its own lane's ground;
+  the widest target stands 6.65 m from its lane centre against the line at 7.5 m (r.156: 150/250/300 m outside the 10 m lane). Board
+  words sit above the board, nearest first, and never overprint each other, a caption, the strip, the light or the bullseye.
+  `LANE_MARKERS_100_200_300` (rewritten), `TARGETS_INSIDE_LANE`, `BOARD_LABELS_NEVER_OVERPRINT`.
+- **The next step is lit; RELOAD calls; one plain line** (ask 2026.10.04_09.16..32): exactly the button that will work glows
+  (TARGET, then APPROVE, then FIRE; an empty magazine lights none and RELOAD calls; dimmed buttons stay tappable and refuse as
+  before); RELOAD glows when empty and at the QUAL phase rest with a part-used magazine, never full; the strip, the LOCK line, the
+  label, the board and the approval toast use plain words (no `C-150R-L21`, no "CH0 D3", no slope word; the corner says "LANE 21",
+  SPIRAL only with `?diag=1`). `NEXT_BUTTON_LIT`, `RELOAD_CALLS`, `NO_RAW_IDS_ON_GLASS`.
+- **The start light** (Addendum 1), upper right under the magazine line: RED WAIT before the round, between positions and when done;
+  YELLOW READY in the 3 s before each QUAL engagement and the last 3 s of the phase rest; GREEN FIRE while my targets stand (training:
+  whenever targets stand). Not a button. `START_LIGHT_SEQUENCE` (R → Y → G → Y → G …, R then Y across the rest, R at the end),
+  `START_LIGHT_WORDS`, `START_LIGHT_CLEAR` (portrait 320,116 62×35; landscape 774,110).
+- **The range shows lanes and targets only** (Addendum 3): the slope-coloured lane rays, the firing line, the distance lines, the berm
+  and the MoT 1 blue ground grid are gone from the range picture (the dim grid stays on the MAP).
+- **From the reviews.** My lane's targets, boards and marked box never enter the world budget — at MoT 1.1 on lane 21 the neighbour
+  lane's silhouettes had spent the 280 segments and the player saw captions with no silhouettes (`MY_LANE_NEVER_DROPPED`: 305/305).
+  Rooms score by lane: another lane's Restart row restarts only that lane ("LANE 6 RESTARTED"), another lane's HIT/MISS rows drop its
+  plate but never touch my strip, a joiner on a lane the host does not sit on books its own unfired misses, my lane's peer HIT draws
+  the same splash (`ROOM_RESET_IS_MY_LANE`, `FOREIGN_LANE_HIT_NOT_MY_STRIP`, `ROOM_LAPSE_ON_EVERY_LANE`). QUAL ends with the
+  scorecard and the next step, RESTART lit, the light red (`QUAL_DONE_SAYS_RESTART`).
+- **Gates.** 194 rows, 193/194 in portrait and landscape (SYNC_DIRECT, red by construction on one device); drone-range-lanes 42/42
+  and the QUAL clock both within ±0.35 s; team e2e 10/0 with one hash on both phones.
+- **Correction of the record (append, not edit).** Commit `ece1828` said the reload and three-step ask (2026.10.04_09.16..32) was
+  folded into r.156; it was not — r.156 shipped only the splash. It is in r.157 (above). The live column of r.151–r.156 above still
+  reads PENDING (Verify Live): r.155 shipped in `7db2b8b` and r.156 in `828e80a`, both served LIVE per Verify Live #2436
+  on `ed4af60` (recorded in `359a060`); the domain JSON and the ledger carry those ship commits.
