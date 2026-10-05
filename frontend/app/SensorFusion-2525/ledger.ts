@@ -333,7 +333,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "The R-CORE icon sits on its own row, just above the buttons. On a computer the button words and the box names stay one size, so they do not grow with the picture.",
-      commit: "",
+      commit: "9a04962",
     },
   ],
 };
