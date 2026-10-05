@@ -81,3 +81,14 @@ MoT rates on workout burn: **cal/min**, **cal/sec**, **cal/hr** (calories only).
 - AHA added sugars: https://www.heart.org/en/healthy-living/healthy-eating/eat-smart/sugar/how-much-sugar-is-too-much
 
 Notes: 3500 kcal/lb is a planning heuristic (real loss is non-linear). The sugar cap applies the WHO 10% rule only against a full-day intake target, never against partial burn.
+
+## Hydration, weigh-ins & recovery (ATHLETE PROFILE)
+
+- **Weigh-ins per fit-day:** morning (fasted), evening, optional pre- and post-session weights. Never prefilled.
+- **Goal trend + BMR use MORNING weight only.** Evening / post-workout weights mostly reflect water and gut content.
+- **Day water swing** = morning − evening.
+- **Sweat loss per session** = pre (or morning, if no pre) − post + fluids drunk (1 L ≈ 1 kg; 1 oz ≈ 29.57 ml).
+- **% body mass** = (pre − post) / pre × 100. **Amber warning at ≥ 2%** — ACSM: losses &gt; 2% of body mass degrade aerobic performance.
+- **Rehydration target** = **1.25–1.5 ×** the body-mass deficit (≈ 1.25–1.5 L per kg lost), with sodium/electrolytes — ACSM Position Stand *Exercise and Fluid Replacement* (Sawka et al., *Med Sci Sports Exerc* 2007;39(2):377–390). https://pubmed.ncbi.nlm.nih.gov/17277604/
+- **Recovery log per session:** RPE, soreness and feel (1–10), recovery fuel within 30–60 min (protein g, carbs g, done ✓), fluids, notes; sleep hours logged the next morning. Timing guidance per ISSN nutrient-timing position stand (Kerksick et al. 2017).
+- **Storage:** day fields (`weigh_ins`, `recovery`, `sleep_hrs`) sync inside `fit-day-YYYY-MM-DD`. The profile (name, sex, age, height, unit system, resting HR, goal weight/date, `settings.rate_unit`, `settings.show_all_rates`) syncs as the `fit-profile` record.

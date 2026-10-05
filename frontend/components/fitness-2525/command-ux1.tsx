@@ -14,136 +14,212 @@
  * AI coach: Worker /api/ai task=draft (OpenAI / Grok / Gemini / Claude).
  * Never invent calorie or weight defaults — leave blank until the athlete sets them.
  */
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ComponentType, type ReactNode } from "react";
-import {
-  Activity, ArrowLeft, Bike, Check, Cloud, CloudOff, Droplets, Footprints,
-  LayoutDashboard, Map, Moon, Plus, RefreshCw, Settings, Waves, Zap,
-} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { ExelWordmark } from "@/components/exel-wordmark";
-import {
-  ownerKeyFor, cloudRead, mergeFitDays, mergeFitIndex, putDay, putIndex,
-  nextStamp, PUSH_EVERY_MS, LAST_PUSH_KEY, DEVICE_DAY_KEY, DEVICE_INDEX_KEY,
-  type CloudState,
-} from "@/lib/fitness-2525/cloud";
-import {
-  type FitCheckin, type FitDay, type FitIndex, type FitWorkout,
-  FIT_INDEX_NAME, dayNamespace, isDeficit, deficitDelta,
-} from "@/lib/fitness-2525/types";
-import {
-  type EnergyRateUnit, intakeDayRates, burnDayRates, workoutBurnRates,
-  pickRate, formatCalRate, ratesFromKcal,
-} from "@/lib/fitness-2525/energy";
-import {
-  buildDayBudget, weightToKg, rideFuelingNote, EXAMPLE_ANTHRO, EXAMPLE_STEPS, EXAMPLE_SUGAR_G,
-  EXAMPLE_CALORIES_IN, EXAMPLE_CALORIES_OUT, EXAMPLE_WINDOW_INTAKE,
-  type OverrunLevel, type WindowBudget, type Anthropometrics,
-} from "@/lib/fitness-2525/budget";
-import { requestCoachFeedback, aiStatus, anyAi } from "@/lib/fitness-2525/ai";
+import { isDeficit, deficitDelta } from "@/lib/fitness-2525/types";
+import { intakeDayRates, burnDayRates, workoutBurnRates, pickRate } from "@/lib/fitness-2525/energy";
 import styles from "./fitness-2525.module.css";
+import { ConnectionsCard } from "./connections";
+import { AthleteProfile } from "./athlete-profile";
+import { C, TAB_IDS, BTN_GHOST, BTN_PRIMARY, INPUT_STYLE, computeBudget, type TabId } from "./ux-helpers";
+import { useFitDay } from "./ux-day-state";
+import { useFitProfile } from "./ux-profile-state";
+import { useFitActions } from "./ux-actions";
+import { TopStrip, SessionsRail } from "./ux-shell";
+import { ActiveItemsRail } from "./ux-active-items";
+import { LiveTodayBoard } from "./ux-live-today";
+import { EnergyUnitsCard, RealtimeEnergyPanel, type ChartSpan } from "./ux-energy";
+import { EnergyBudgetPanel } from "./ux-budget";
+import { SessionPanel } from "./ux-planning";
+import { NutritionPanel } from "./ux-nutrition";
+import { CoachPanel } from "./ux-coach";
 
-/** Security-2525 Mission Planning palette (exact). */
-const C = {
-  bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
-  text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf",
-  green: "#22c55e", amber: "#f59e0b", red: "#ef4444", gold: "#ffd400", magenta: "#d946ef",
-};
+/**
+ * Modules (each < 12 KB): ux-helpers (constants · seed · device storage · styles), ux-widgets,
+ * ux-shell (top strip + SESSIONS rail), ux-active-items, ux-live-today, ux-energy, ux-budget,
+ * ux-planning, ux-nutrition, ux-coach, hooks ux-day-state / ux-profile-state / ux-actions.
+ * PROFILE → athlete-profile.tsx · CONNECTIONS → connections.tsx.
+ */
+export function FitnessCommandUX1() {
+  const { user, isAuthenticated, isLoading, loginWithRedirect, logout, getAccessTokenSilently, getIdTokenClaims } = useAuth0();
+  const owner = isAuthenticated && user?.sub ? user.sub : null;
+  const getFitToken = useCallback(async (): Promise<string | null> => {
+    try {
+      if (getAccessTokenSilently) {
+        const t = await getAccessTokenSilently();
+        if (t) return t;
+      }
+    } catch { /* fall through to id token */ }
+    try {
+      const claims = await getIdTokenClaims();
+      const raw = claims && (claims as { __raw?: string }).__raw;
+      return raw || null;
+    } catch {
+      return null;
+    }
+  }, [getAccessTokenSilently, getIdTokenClaims]);
 
-const ROUTE = "/Fitness-2525";
-const TODAY = "2026-10-05";
-const TZ = "America/Chicago";
+  // Tab starts at TODAY on server + first client render; ?tab= is applied after mount
+  // (reading window in the initializer caused a hydration mismatch → Next.js "1 error" toast).
+  const [tab, setTab] = useState<TabId>("TODAY");
+  useEffect(() => {
+    try {
+      const t = new URL(window.location.href).searchParams.get("tab");
+      if (t && TAB_IDS.includes(t as TabId)) setTab(t as TabId);
+    } catch { /* ignore */ }
+  }, []);
+  const {
+    day, applyDay, exampleMode, setExampleMode, hydrated, cloudKey, cloudState,
+    planStatus, shareMsg, setShareMsg, coachDraft, setCoachDraft, aiReady, syncOnce,
+  } = useFitDay(owner);
+  const { profile, updateProfile, history, rateUnit, showAllRates, setRateUnit, setShowAllRates } =
+    useFitProfile({ cloudKey, day, hydrated });
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [chartSpan, setChartSpan] = useState<ChartSpan>("1D");
+  const [selectedId, setSelectedId] = useState<string | null>("w-2026-10-05-bike");
+  const act = useFitActions({
+    day, applyDay, exampleMode, setExampleMode, setTab, aiReady, coachDraft, setCoachDraft, setShareMsg, syncOnce, loginWithRedirect,
+  });
+  const { signIn, setField, runCoach, addCheckin, toggleWorkout, coachBusy } = act;
 
-const NAV: [string, ComponentType<{ className?: string; style?: CSSProperties }>][] = [
-  ["TODAY", LayoutDashboard],
-  ["ENERGY", Zap],
-  ["PLANNING", Map],
-  ["NUTRITION", Droplets],
-  ["COACH", Activity],
-];
+  const fuelRates = intakeDayRates(day.calories_in);
+  const burnRates = burnDayRates(day.calories_out);
+  const fuelPer = pickRate(fuelRates, rateUnit);
+  const burnPer = pickRate(burnRates, rateUnit);
+  const netPer = fuelPer != null && burnPer != null ? fuelPer - burnPer : null;
+  const deficit = isDeficit(day);
+  const delta = deficitDelta(day);
+  const completed = day.workouts.filter((w) => w.status === "completed").length;
+  const selected = day.workouts.find((w) => w.id === selectedId) ?? day.workouts[0] ?? null;
+  const selectedBurn = selected
+    ? workoutBurnRates(selected.calories ?? null, selected.minutes ?? null)
+    : null;
 
-type TabId = "TODAY" | "ENERGY" | "PLANNING" | "NUTRITION" | "COACH";
-type PlanStatus = "draft" | "pending" | "synced";
+  const { anthro, budget } = computeBudget(day, profile, exampleMode);
 
-function Panel({ title, children, accent, right }: { title: string; children: ReactNode; accent?: string; right?: ReactNode }) {
+  const statusColor = planStatus === "synced" ? C.green : planStatus === "pending" ? C.amber : C.dim;
+  const linkLabel = owner
+    ? (cloudState === "saved" ? "LINK: SECURE" : cloudState === "saving" ? "LINK: SYNC…" : cloudState === "offline" ? "LINK: OFFLINE" : "LINK: READY")
+    : "LINK: LOCAL";
+  const linkColor = owner && cloudState === "saved" ? C.green : owner ? C.amber : C.dim;
+  const inputStyle = INPUT_STYLE;
+  const btnGhost = BTN_GHOST;
+  const btnPrimary = BTN_PRIMARY;
+
   return (
-    <div className="rounded-lg border p-3" style={{ background: C.panel, borderColor: C.border }}>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent ?? C.dim }}>{title}</div>
-        {right}
-      </div>
-      {children}
-    </div>
-  );
-}
+    <div className={`fixed inset-0 z-[70] flex flex-col overflow-hidden ${styles.root}`} style={{ background: C.bg, color: C.text }} data-fit-surface>
+      {/* ── Top status strip (Security) ─────────────────────────────── */}
+      <TopStrip
+        tab={tab} setTab={setTab} user={user} owner={owner} isLoading={isLoading}
+        linkLabel={linkLabel} linkColor={linkColor} signIn={signIn}
+        onSignOut={() => logout({ logoutParams: { returnTo: typeof window !== "undefined" ? window.location.origin : undefined } })}
+        btnGhost={btnGhost} btnPrimary={btnPrimary}
+      />
 
+      {/* ── Body: 3-pane PLANNING layout ────────────────────────────── */}
+      <div className={`grid min-h-0 flex-1 gap-2 overflow-hidden p-2 ${styles.bodyGrid}`} style={{ gridTemplateColumns: "minmax(200px,240px) minmax(0,1fr) minmax(200px,240px)" }}>
+        {/* LEFT — SESSIONS (ASSETS-style) */}
+        <SessionsRail tab={tab} setTab={setTab} day={day} selected={selected} setSelectedId={setSelectedId} syncOnce={syncOnce} applyDay={applyDay} />
 
-function overrunClass(level: OverrunLevel): string {
-  if (level === "over") return styles.budgetOver;
-  if (level === "near") return styles.budgetNear;
-  if (level === "ok") return styles.budgetOk;
-  return styles.budgetUnknown;
-}
-
-function BudgetBar({ w }: { w: WindowBudget }) {
-  const pct =
-    w.planned != null && w.planned > 0 && w.logged != null
-      ? Math.min(140, Math.round((w.logged / w.planned) * 100))
-      : null;
-  const alert =
-    w.overrun === "over" ? "OVERRUN" : w.overrun === "near" ? "NEAR LIMIT" : null;
-  const alertColor = w.overrun === "over" ? C.red : C.amber;
-  return (
-    <div className="mb-2 rounded border p-2" style={{ borderColor: C.border, background: "#0b1119" }}>
-      <div className="mb-1 flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <div className="truncate text-[10px] font-semibold uppercase" style={{ color: C.text }}>{w.label}</div>
-          <div className={`text-[9px] ${styles.mono}`} style={{ color: C.dim }}>
-            planned {w.planned != null ? `${w.planned} ${w.unit}` : "—"}
-            {" · "}
-            logged {w.logged != null ? `${w.logged} ${w.unit}` : "—"}
-            {w.burnKcal != null ? ` · burn ${w.burnKcal} kcal` : ""}
-            {w.burnRates?.perMin != null ? ` · ${formatCalRate(w.burnRates.perMin, "per_min")} / ${formatCalRate(w.burnRates.perSec, "per_sec")}` : ""}
+        {/* CENTER — PROFILE · CONNECTIONS · LIVE TODAY timeline · energy Accrual hero + chart */}
+        {tab === "PROFILE" ? (
+          <AthleteProfile
+            profile={profile}
+            onProfile={updateProfile}
+            day={day}
+            onDay={applyDay}
+            history={history}
+            bmrKcal={budget.bmrKcal}
+          />
+        ) : tab === "CONNECTIONS" ? (
+          <div className="flex min-h-0 flex-col gap-2 overflow-y-auto">
+            <ConnectionsCard
+              isAuthenticated={!!owner}
+              isLoading={isLoading}
+              onSignIn={signIn}
+              getToken={getFitToken}
+              onSynced={() => { void syncOnce(); }}
+            />
           </div>
+        ) : tab === "TODAY" ? (
+          <LiveTodayBoard
+            day={day}
+            budget={budget}
+            rateUnit={rateUnit}
+            showAllRates={showAllRates}
+            anthroUnknown={anthro.weightKg == null}
+            btnPrimary={btnPrimary}
+            btnGhost={btnGhost}
+            inputStyle={inputStyle}
+            setField={setField}
+            onStartRide={() => {
+              setSelectedId("w-2026-10-05-bike");
+              setShareMsg("Ride started — timer local; sync Garmin when done.");
+              addCheckin("Started bike trainer tempo", "ui", "Start ride");
+            }}
+            onLogGarmin={() => {
+              setSelectedId("w-2026-10-05-bike");
+              setShareMsg("Log from Garmin — paste activity when available (no invented kcal).");
+              setTab("ENERGY");
+            }}
+          />
+        ) : (
+        <div className="flex min-h-0 flex-col gap-2 overflow-y-auto">
+          <EnergyUnitsCard
+            day={day} owner={owner} rateUnit={rateUnit} setRateUnit={setRateUnit}
+            showAllRates={showAllRates} setShowAllRates={setShowAllRates}
+            settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen}
+            fuelPer={fuelPer} burnPer={burnPer} netPer={netPer} deficit={deficit} delta={delta}
+            coachBusy={coachBusy} runCoach={runCoach} btnPrimary={btnPrimary}
+          />
+
+          {exampleMode && (
+            <div className={styles.exampleBanner} data-fit-example>
+              EXAMPLE DATA — demo numbers for review only · not athlete measurements
+            </div>
+          )}
+
+          <EnergyBudgetPanel
+            day={day} budget={budget} exampleMode={exampleMode} toggleExample={act.toggleExample}
+            setField={setField} setWeightLb={act.setWeightLb} setWindowIntake={act.setWindowIntake}
+            applyDay={applyDay} inputStyle={inputStyle} btnGhost={btnGhost}
+          />
+
+          <RealtimeEnergyPanel
+            day={day} rateUnit={rateUnit} setRateUnit={setRateUnit} chartSpan={chartSpan} setChartSpan={setChartSpan}
+            fuelPer={fuelPer} burnPer={burnPer} fuelRates={fuelRates} burnRates={burnRates}
+            setField={setField} inputStyle={inputStyle}
+          />
+
+          {(tab === "PLANNING" || tab === "ENERGY") && selected && (
+            <SessionPanel selected={selected} selectedBurn={selectedBurn} rateUnit={rateUnit} toggleWorkout={toggleWorkout} btnGhost={btnGhost} />
+          )}
+
+          {tab === "NUTRITION" && <NutritionPanel coachBusy={coachBusy} runCoach={runCoach} btnGhost={btnGhost} />}
+          {tab === "COACH" && (
+            <CoachPanel
+              coachDraft={coachDraft} setCoachDraft={setCoachDraft} coachBusy={coachBusy} coachErr={act.coachErr}
+              aiReady={aiReady} runCoach={runCoach} saveCoach={act.saveCoach}
+              inputStyle={inputStyle} btnPrimary={btnPrimary} btnGhost={btnGhost}
+            />
+          )}
+
+          <div className={`min-h-[80px] flex-1 rounded-lg border ${styles.stageGrid}`} style={{ borderColor: C.border, background: "#070b12" }} />
         </div>
-        {alert && (
-          <span className="shrink-0 rounded px-1.5 py-0.5 text-[8px] font-bold tracking-wide" style={{ color: alertColor, background: `${alertColor}22`, border: `1px solid ${alertColor}66` }}>
-            {alert}
-          </span>
         )}
-      </div>
-      <div className={styles.budgetTrack}>
-        <div
-          className={`${styles.budgetFill} ${overrunClass(w.overrun)}`}
-          style={{ width: pct != null ? `${pct}%` : "0%" }}
+
+        {/* RIGHT — ACTIVE ITEMS */}
+        <ActiveItemsRail
+          day={day} selected={selected} setSelectedId={setSelectedId} toggleWorkout={toggleWorkout}
+          checkinDraft={act.checkinDraft} setCheckinDraft={act.setCheckinDraft} addCheckin={() => addCheckin()}
+          owner={owner} planStatus={planStatus} statusColor={statusColor} shareMsg={shareMsg}
+          cloudState={cloudState} completed={completed} onShare={act.onShare} onSubmit={act.onSubmit}
+          inputStyle={inputStyle}
         />
       </div>
-      {w.note && <div className="mt-1 text-[8px]" style={{ color: C.dim }}>{w.note}</div>}
+
     </div>
   );
 }
 
-function seedToday(now = Date.now()): FitDay {
-  return {
-    v: 1,
-    date: TODAY,
-    tz: TZ,
-    weight: null,
-    height_cm: null,
-    age_yr: null,
-    sex: null,
-    steps: null,
-    calories_in: null,
-    /** Logged so far from Garmin swim — real. */
-    calories_out: 672,
-    sugar_out_g: null,
-    window_intake_kcal: {},
-    day_type: "work",
-    coach_note: null,
-    workouts: [
-      {
-        id: "w-2026-10-05-swim",
-        type: "swim",
-        title: "Pool swim 4050 yd",
-        status: "completed",
-        minutes: 83, // 1:22:33
-        distanc
+export default FitnessCommandUX1;

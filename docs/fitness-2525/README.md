@@ -30,14 +30,19 @@ RPCs: `innovation_state_get` / `_put` / `_list` / `_del` (migration 030). Until 
 - Calorie and `$/kcal` fields stay **blank** until the athlete sets them — no invented defaults.
 - Deficit banner when both calories are present and intake < burn.
 
+## Connections (Strava / Garmin)
+
+Per-user OAuth via Worker `/api/fitness-2525/{strava,garmin}/*`. UI: CONNECTIONS tab → `components/fitness-2525/connections.tsx`. Setup: [INTEGRATIONS.md](./INTEGRATIONS.md).
+
 ## AI coaching
 
 Same-origin Worker `POST /api/ai` with `task: "draft"` via `lib/ai.ts` → `lib/fitness-2525/ai.ts`. Providers: OpenAI, Grok/xAI, Gemini, Claude (Worker secrets). Notes are editable and can be saved into the day's `checkins` / `coach_note`.
 
 ## Key files
 
-- `frontend/lib/fitness-2525/{cloud,types,energy,ai}.ts`
-- `frontend/components/fitness-2525/command-ux1.tsx`
+- `frontend/lib/fitness-2525/{cloud,types,energy,ai,integrations}.ts`
+- `frontend/components/fitness-2525/{command-ux1,connections}.tsx`
+- `frontend/fitness-2525-core.js` (+ minimal `worker.js` route)
 - `frontend/app/Fitness-2525/page.tsx` (+ aliases)
 
 ## Local
