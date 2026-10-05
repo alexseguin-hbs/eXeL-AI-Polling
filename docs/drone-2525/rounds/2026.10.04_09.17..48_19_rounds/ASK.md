@@ -167,3 +167,19 @@ counts the last three seconds of the group's window, one second each: red at win
 ("if that's the qual actual time sequence"); the program of record he supplied on 2026-09-23 (IWQ Table VI) is 1 = 5 s · 2 = 8 s ·
 3 = 12 s · 4 = 16 s, so the windows stay as supplied and the lights follow whatever the window is (three targets: red 10, yellow 11,
 green 12). Switching to 3 s per target is his call, flagged in the release note. Training modes keep the r.157 light.
+
+## Addendum 14 — the mark and the approval are forgotten after each shot (operator 2026-10-05, verbatim, with a PC screenshot of T1 · 50 M RIGHT · AMBER)
+
+> buttons for target, T
+> approve, Space
+> Fire, F
+>
+> seem to work now:
+> but system forgets target was targeted or approved, having to recreate 3 step process to fire each time.  review and update
+
+Found (r.161 source): on a HIT the fire path clears the mark and the slot (`state.desig=null`, the T-slot deleted), and the training tick releases
+the box again when the target finishes falling (`rangeRelease`). In TRAINING · RESET the same target stands up again 3 s later, unmarked, so
+every shot needed TARGET → APPROVE → FIRE. A MISS already keeps the red box. Reading: in TRAINING · RESET a marked and approved target keeps its
+mark and its approval through the hit and the return — F fires again as soon as it stands; while it is down F holds ("COMING BACK UP") and costs
+no round. The mark ends on RESTART, a lane or mode change, or a new mark. TRAINING · DOWN (the target stays down) and QUAL (each target once per
+engagement) are unchanged.
