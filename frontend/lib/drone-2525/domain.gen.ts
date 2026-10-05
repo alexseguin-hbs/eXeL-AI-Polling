@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.040",
+  "revision": "0.041",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -352,7 +352,15 @@ export const DRONE_DOMAIN = {
    "date": "2026-10-04",
    "kind": "release",
    "why": "Operator deck r.155 — TARGET · APPROVE · FIRE left of the stick on the turret, centred between the sticks on a drone (operator 2026-10-04, docs/asks/2026.10.04_08.50..02_drone2525_face_left_of_stick_turret.md: \"target approve fire needs to be left of joystick for turret (and centered between two joysticks when operating drone).\"). Measured defect in r.154: the cluster was centred on the screen (left:50%), so on the turret at 390×844 it floated at 656–696 px above a HEAD stick at 716–788 px on the right edge. placeFace() measures #stage, #joyR and #joyL and writes inline left/top: turret — one row, right edge 10 px left of the stick at its height, shrinking gap and pills on narrow screens, never over the stick or off the stage; drone — centred on the midpoint between the sticks at their height (one row if it clears 6 px each side, else two rows). Called from layout(), syncSticks(), applyMode(), boot, fonts.ready and a MutationObserver on #app's class and the sticks' style. In landscape the HUD's unit · SPIRAL / FPS lines step above the face and the stick label when the face covers them, and the toast rises above the face so it never lies on a pill or takes its tap. Boot-QA row FACE_BESIDE_STICK. Patch patches/r154_to_r155.py (11 asserted edits).",
-   "commit": "51547f4",
+   "commit": "d2d2431",
+   "shipped": "7db2b8b"
+  },
+  {
+   "revision": "0.041",
+   "date": "2026-10-05",
+   "kind": "release",
+   "why": "Operator deck r.156 — the hit splash starts at the centre of the hit target (operator 2026-10-04, docs/drone-2525/rounds/2026.10.04_09.17..48_19_rounds/ASK.md Addendum 2: \"make sure splash on drone originates from center of hit target\", then \"fix splash\"). Measured defect in r.155: applyHit copied the target's raw x/y/z into the splash, but a range plate keeps lane-local x and y=0, so the ring sat beside and above the plate (lane 21, 300 m at 3×: 91 px right, 135 px above); it flashed on a miss; and drawn through the budgeted segs() after the world wire it was dropped whole at MoT 1. Fix: a hit keeps the target, splashCentre() draws the ring on worldOf (qWorld + plateDims, the aim's centre of mass) every frame, lowering with the fall; no splash on a miss; the 16 segments are stroked outside the world budget. Boot-QA row SPLASH_FROM_TARGET_CENTRE (50 m off 0.4 px · 300 m off 0.1 px · miss: no splash · drawn 16/16).",
+   "commit": "aa66c46",
    "shipped": "PENDING"
   }
  ],

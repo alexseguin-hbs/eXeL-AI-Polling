@@ -36,6 +36,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.153 | 2026-09-26 | Claude Code (the tab reads eXeL Drone-2525) | 368965 | 3c3de52165ea9138569c2901b5f1a9207ed3ab0a3cb0fd103c8c6fee8148b318 | PENDING (Verify Live) | 4e7b234595851c7538ced56f81165efa2c7442777e50ecc19be8bebbe699907e |
 | r.154 | 2026-10-04 | Claude Code (the QUAL · 40 clock counts real seconds) | 370119 | ccb4fe73f3fe09b2fb12a3d3442cdba5569e2ab49f8586b11aaca84f08d7e467 | PENDING (Verify Live) | bd180f511f84e17460ef0c3018277f5a9a3e8ba36df36e53a78920ec3b11e342 |
 | r.155 | 2026-10-04 | Claude Code (TARGET · APPROVE · FIRE beside the stick) | 376178 | 300ceb93683c2ea638f03794ec0a9dfe9d73bc51a84b5b05fe2cf7c465f8a3b4 | PENDING (Verify Live) | d7ac891a9a0821588036445638a81e894274c92f4567f1d7180e7189cff6d0bf |
+| r.156 | 2026-10-05 | Claude Code (the hit splash starts at the target's centre) | 378675 | 92eb716a8bec23dffa111f523d5e5ca8e764cd0009c7c8571e33671fd75f6b4d | PENDING (Verify Live) | a9d63598383a7bdfad849a95fe533124a10aad24c0ade1d8bec79be6ecabcc5c |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -709,7 +710,7 @@ the domain JSON carry `shipped`).
 ## r.155 — Claude Code: TARGET · APPROVE · FIRE left of the stick on the turret, centred between the sticks on a drone (2026-10-04)
 Operator (`docs/asks/2026.10.04_08.50..02_drone2525_face_left_of_stick_turret.md`, with his phone screenshot of r.154 on lane 21):
 **"target approve fire needs to be left of joystick for turret (and centered between two joysticks when operating drone)."**
-Notes: `CLAUDE_CODE_NOTES_r155.md`. Patch: `patches/r154_to_r155.py` (8 asserted edits). Artefact commit `51547f4`; shipped in:
+Notes: `CLAUDE_CODE_NOTES_r155.md`. Patch: `patches/r154_to_r155.py` (8 asserted edits). Artefact commit `d2d2431`; shipped in:
 PENDING until Verify Live (the ledger and the domain JSON carry `shipped`).
 - **The defect, measured on the served r.154.** The cluster was centred on the SCREEN (`left:50%; translateX(-50%)`). On the turret
   at 390×844 it sat at 81–309 × 656–696 px while the HEAD stick sat at 310–382 × 716–788 px on the right edge — above the stick and
@@ -730,3 +731,27 @@ PENDING until Verify Live (the ledger and the domain JSON carry `shipped`).
 - **Gates.** Boot-QA row `FACE_BESIDE_STICK` (turret: face right ≤ stick left − 4, vertical overlap ≥ 60 % of the face, inside the
   stage; drone: |face centre − gap midpoint| ≤ 4 px, touching neither stick, inside the stage). 179 rows, 178/179 in portrait and
   landscape (SYNC_DIRECT, red by construction on one device).
+
+## r.156 — Claude Code: the hit splash starts at the centre of the hit target (2026-10-05)
+Operator (`docs/drone-2525/rounds/2026.10.04_09.17..48_19_rounds/ASK.md`, Addendum 2, with his phone screenshot
+`addendum2_splash_screenshot.png` of r.154 QUAL on lane 21): **"make sure splash on drone originates from center of hit target"**,
+then **"fix splash"**. Notes: `CLAUDE_CODE_NOTES_r156.md`. Patch: `patches/r155_to_r156.py` (6 asserted edits). Artefact commit
+`aa66c46`; shipped in: PENDING until Verify Live (the ledger and the domain JSON carry `shipped`).
+- **The defect, measured on the served r.155.** `applyHit` copied the target's raw `x/y/z` into `state.fx` and the draw ringed
+  `(f.x, f.y||1.2, f.z)`. A range plate keeps lane-local `x` and `y=0` (its world place is `qWorld`: + the lane's x, + its ground
+  height, + its slope), so on lane 21, 300 m E at 3× (390×844) the ring sat at world (6.4, 1.20, 300) against the plate's centre
+  (1.4, −6.16, 300) — 91 px right of and 135 px above the plate (lane 1: 205 m to the side). It also flashed on a miss. And it was
+  drawn through the budgeted `segs()` after the world wire: at MoT 1 (280 segments) the wire had spent the budget (segs 280,
+  dropped 499), so the ring was dropped whole — no splash where he hit.
+- **The fix.** A hit sets `state.fx={t,id,direct:true,ref}` (the target itself); a miss sets nothing. `splashCentre(f)` returns
+  `worldOf(ref)` — the one centre of mass the aim and the hit test use (`qWorld` + `plateDims` for a plate; the craft's own place
+  for a drone) — lowered toward the base as a plate falls (`y = base + (centre − base)·(1 − fall)`, the silhouette's own fold). The
+  draw asks it every frame (same 0.45 s ring, LOCK red) and strokes the 16 segments outside the world budget (still counted in
+  `state.segs`). `state.fx` has no other reader.
+- **Measured on r.156** (headless, same seat): the ring projects at (195, 307) on the plate's (195, 305) at 0.1 s, 2 px lower
+  because the plate is already 29 % folded; 16/16 segments drawn while the wire drops 483.
+- **Gates.** Boot-QA row `SPLASH_FROM_TARGET_CENTRE`: a 50 m and a 300 m hit on the seated lane through the one fire path, the
+  splash centre projected with the draw's projector within 2 px of the plate's projected `worldOf` centre (0.4 px · 0.1 px — the
+  hit has already started the fall); a miss 40 px beside a 300 m plate, scored through `applyHit` itself, leaves no new splash; one
+  synchronous `draw()` after the 300 m hit puts 16/16 splash segments on the canvas. 180 rows, 179/180 in portrait and landscape
+  (SYNC_DIRECT, red by construction on one device).

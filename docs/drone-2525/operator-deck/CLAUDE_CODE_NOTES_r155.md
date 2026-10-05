@@ -64,5 +64,5 @@ FULL gives the same placements; a 390×844 → 844×390 rotation on one page re-
 - `HASHES_r155.sha256` (deck sha `300ceb93…`, 376,178 B, + patch sha); `public/drone-2525/play.html` byte copy.
 - `REVISIONS.md` r.155 row (chain `d7ac891a…`) + section; README HEAD `drone-2525_r.155.html`; `deck-rev.ts` +
   `tests/deck-head.mjs` DECK_REV `155`.
-- Domain JSON `project.revision` 0.040; release 0.040 (r.155) `commit 51547f4` (artefact) / `shipped PENDING`. Ledger rev 50
+- Domain JSON `project.revision` 0.040; release 0.040 (r.155) `commit d2d2431` (artefact) / `shipped PENDING`. Ledger rev 50
   (r.155) `shipped PENDING`. `domain.gen.ts`, CRS / README / ASSUMPTIONS and the foil exports regenerated (stamp 0.040).
