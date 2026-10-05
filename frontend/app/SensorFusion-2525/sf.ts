@@ -32,6 +32,18 @@ export const EXTRA_SENSORS: { id: ExtraSensorId; label: string; live: boolean; l
   { id: "sonar", label: "Sonar", live: false, line: "Sonar is not connected.", where: "Manta" },
 ];
 
+/** A kind is listed only when a connected device says its name. Camera is decided separately. */
+export function sensorsFromLabels(labels: string[]): ExtraSensorId[] {
+  const text = labels.join("\n").toLowerCase();
+  const found: ExtraSensorId[] = [];
+  if (/thermal|flir|lepton|\bseek\b/.test(text)) found.push("thermal");
+  if (/lidar|livox|velodyne|ouster/.test(text)) found.push("lidar");
+  if (/ultrasonic/.test(text)) found.push("ultrasonic");
+  if (/\bradar\b/.test(text)) found.push("radar");
+  if (/sonar/.test(text)) found.push("sonar");
+  return found;
+}
+
 import catalog from "../../public/sensor-fusion/models.json" with { type: "json" };
 
 type ModelFile = {

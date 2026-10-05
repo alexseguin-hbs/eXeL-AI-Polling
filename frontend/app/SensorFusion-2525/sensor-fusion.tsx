@@ -11,6 +11,7 @@ import {
   FRAMES,
   INFO_STILL,
   EXTRA_SENSORS,
+  sensorsFromLabels,
   MODELS,
   MENU,
   PLATFORMS,
@@ -991,6 +992,8 @@ export default function SensorFusion() {
   const [sensor2Note, setSensor2Note] = useState("");
   const [extra, setExtra] = useState<ExtraSensorId | "">("");
   const [extraOpen, setExtraOpen] = useState(false);
+  const [dualOk, setDualOk] = useState(true);
+  const [detected, setDetected] = useState<ExtraSensorId[]>([]);
   const [busy, setBusy] = useState(false);
   const [busy2, setBusy2] = useState(false);
   const [error, setError] = useState("");
@@ -1052,6 +1055,13 @@ export default function SensorFusion() {
     const host = detectPlatform(navigator.userAgent, navigator.platform || "");
     setFound(host);
     setPlatform(host);
+    if (phoneKind() !== "other") {
+      try {
+        if (sessionStorage.getItem("sf2525-one-camera") === "1") setDualOk(false);
+      } catch {
+        /* A private tab still starts with one try. */
+      }
+    }
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sf-offline-sw.js").catch(() => undefined);
     }
@@ -1338,6 +1348,8 @@ export default function SensorFusion() {
       }
       setLens(next);
       setSensorOn(true);
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      setDetected(sensorsFromLabels(devices.filter((device) => device.kind === "videoinput").map((device) => device.label)));
     } catch (err) {
       setSensorOn(false);
       setError(explainCamera(err));
@@ -1381,35 +1393,89 @@ export default function SensorFusion() {
     setSensor2Note("");
   }
 
+  function oneCameraOnly() {
+    try {
+      sessionStorage.setItem("sf2525-one-camera", "1");
+    } catch {
+      /* The rest of this visit still stays on one camera. */
+    }
+    stream2Ref.current?.getTracks().forEach((track) => track.stop());
+    stream2Ref.current = null;
+    if (video2Ref.current) video2Ref.current.srcObject = null;
+    setSensor2On(false);
+    setSensor2Note("");
+    setExtra("");
+    setDualOk(false);
+    setError("This phone runs one camera.");
+  }
+
   async function openSensor2() {
+    const phone = phoneKind() !== "other";
+    if (phone && !dualOk) return;
     setExtra("camera");
     setBusy2(true);
     setError("");
     setSensor2Note("");
+    const small = { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 15, max: 15 } };
     try {
       if (!streamRef.current) await openSensor();
       const devices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "videoinput" && device.deviceId);
+      setDetected(sensorsFromLabels(devices.map((device) => device.label)));
       const used = streamRef.current?.getVideoTracks()[0]?.getSettings().deviceId || "";
       const ranked = devices
         .filter((device) => device.deviceId !== used)
         .sort((a, b) => Number(lensName(a.label) === "front") - Number(lensName(b.label) === "front"));
       const pick = ranked[0];
       if (!pick) {
-        setSensor2On(true);
-        setSensor2Note("Only one camera showed up.");
+        if (phone) oneCameraOnly();
+        else {
+          setSensor2On(true);
+          setSensor2Note("Only one camera showed up.");
+        }
         return;
       }
+      if (phone) {
+        const firstTrack = streamRef.current?.getVideoTracks()[0];
+        try {
+          await firstTrack?.applyConstraints(small);
+        } catch {
+          /* The first camera stays at the size it already has. */
+        }
+      }
       stream2Ref.current?.getTracks().forEach((track) => track.stop());
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { deviceId: { exact: pick.deviceId } } });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: phone ? { deviceId: { exact: pick.deviceId }, ...small } : { deviceId: { exact: pick.deviceId } },
+      });
       stream2Ref.current = stream;
+      if (phone) await new Promise((resolve) => window.setTimeout(resolve, 400));
+      const first = streamRef.current?.getVideoTracks()[0];
+      const second = stream.getVideoTracks()[0];
+      if (phone && (first?.readyState !== "live" || second?.readyState !== "live")) {
+        stream.getTracks().forEach((track) => track.stop());
+        stream2Ref.current = null;
+        if (!first || first.readyState !== "live") await openSensor();
+        oneCameraOnly();
+        return;
+      }
       const kind = lensName(pick.label);
       setSensor2Name(kind === "ultra" ? "0.5x" : kind === "tele" ? "2.5x" : kind === "front" ? "Front" : kind === "wide" ? "Wide" : "Camera");
       setSensor2On(true);
-      const first = streamRef.current?.getVideoTracks()[0];
-      if (first && first.readyState === "ended") setSensor2Note("This phone kept one camera. SENSOR 1 stopped when SENSOR 2 opened.");
+      if (phone) {
+        try {
+          sessionStorage.setItem("sf2525-one-camera", "0");
+        } catch {
+          /* A working pair still stays on for this visit. */
+        }
+      }
     } catch {
-      setSensor2On(true);
-      setSensor2Note("This phone can show one camera at a time.");
+      if (phone) {
+        if (!streamRef.current?.getVideoTracks().some((track) => track.readyState === "live")) await openSensor();
+        oneCameraOnly();
+      } else {
+        setSensor2On(true);
+        setSensor2Note("This phone can show one camera at a time.");
+      }
     } finally {
       setBusy2(false);
     }
@@ -1809,6 +1875,7 @@ export default function SensorFusion() {
   }
 
   const current = MODELS.find((item) => item.id === model) ?? MODELS[0];
+  const showSecond = phoneKind() === "other" || dualOk || detected.length > 0;
 
   return (
     <main className={`${styles.screen} ${styles.work}`}>
@@ -1825,6 +1892,7 @@ export default function SensorFusion() {
           <img src={sensorOn ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
           SENSOR 1: {busy ? "…" : sensorOn ? "ON" : "OFF"}
         </button>
+        {showSecond && (
         <div className={styles.lensWrap}>
           <button
             type="button"
@@ -1844,17 +1912,17 @@ export default function SensorFusion() {
                   Off
                 </button>
               </li>
-              {EXTRA_SENSORS.map((item) => (
+              {EXTRA_SENSORS.filter((item) => (item.id === "camera" ? phoneKind() === "other" || dualOk : detected.includes(item.id))).map((item) => (
                 <li key={item.id}>
                   <button type="button" role="option" aria-selected={extra === item.id} onClick={() => chooseExtra(item.id)}>
                     {item.label}
-                    {item.live ? "" : " · not yet"}
                   </button>
                 </li>
               ))}
             </ul>
           )}
         </div>
+        )}
         <div className={styles.lensWrap}>
           <button
             type="button"

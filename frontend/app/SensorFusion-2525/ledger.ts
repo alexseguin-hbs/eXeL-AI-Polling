@@ -447,6 +447,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "On a phone held upright, the sensor names wrap onto a second line instead of sitting on top of each other. A note on the second camera sits along the bottom of that picture.",
       commit: "d7963ec",
     },
+    {
+      rev: 64,
+      date: "2026-10-05",
+      kind: "release",
+      text: "Thermal, lidar, ultrasonic, radar, and sonar stay hidden until a device with that name is connected. On a phone, two cameras are kept only if both stay on at a small size and a slow rate. If not, SENSOR 2 goes away and the phone stays on one camera.",
+      commit: "",
+    },
   ],
 };
 
