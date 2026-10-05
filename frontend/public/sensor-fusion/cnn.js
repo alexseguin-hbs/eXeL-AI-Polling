@@ -55,15 +55,23 @@
     return catalogPromise;
   }
 
+  /* One label rule for every reader: a first line of ??? is dropped before the class number is looked up,
+     as TFLite_detection_webcam.py does (del labels[0]). Class 0 is then person on Demo.90.
+     A label map with no ??? first line is used as it is. */
+  function labelList(text) {
+    var labels = String(text || "").replace(/\r/g, "").split("\n").map(function (line) { return line.trim(); });
+    if (labels.length && labels[labels.length - 1] === "") labels.pop();
+    if (labels.length && labels[0] === "???") labels.shift();
+    return labels;
+  }
+
   async function load(id) {
     var data = await catalog();
     var row = (data.models || []).filter(function (item) { return item.id === id; })[0];
     if (!row || !row.remote) throw new Error("That model is not in the list.");
     var folder = row.remote;
     await ready();
-    var labelText = await (await fetch(BASE + folder + "labelmap.txt")).text();
-    var labels = labelText.replace(/\r/g, "").split("\n").map(function (line) { return line.trim(); });
-    if (labels.length && labels[labels.length - 1] === "") labels.pop();
+    var labels = labelList(await (await fetch(BASE + folder + "labelmap.txt")).text());
     var model = await window.tflite.loadTFLiteModel(BASE + folder + "detect.tflite");
     var shape = model.inputs[0].shape;
     return {
@@ -150,5 +158,5 @@
     }
   }
 
-  window.SFCnn = { load: load, detect: detect, draw: draw };
+  window.SFCnn = { load: load, detect: detect, draw: draw, labelList: labelList };
 })();

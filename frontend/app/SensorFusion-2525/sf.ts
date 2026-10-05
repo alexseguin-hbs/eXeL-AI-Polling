@@ -45,6 +45,31 @@ export const MODELS = (catalog.models as ModelFile[]).map((item) => {
   };
 });
 
+/**
+ * The info still: the operator's Austin test card with the REAL Demo.90 boxes and scores.
+ * Source of every box: docs/asks/2026.10.04_19.32..14_sensor_fusion_info_default_image_demo90_detections.json ("headline").
+ * Pixel boxes are in the 1254 px original; the page divides by `size`, so the 840 px copy lines up.
+ * Full frame plus 4 tiles found all five kinds. tests/sensor-fusion-info.test.mjs holds this list equal to that file.
+ */
+export const INFO_STILL = {
+  src: "/sensor-fusion/info-default.webp",
+  size: [1254, 1254] as const,
+  boxes: [
+    { label: "person", score: 0.766, box_px: [98, 595, 223, 1005], pass: "full" },
+    { label: "person", score: 0.68, box_px: [476, 697, 607, 874], pass: "tile2" },
+    { label: "bicycle", score: 0.688, box_px: [456, 765, 647, 894], pass: "tile2" },
+    { label: "car", score: 0.75, box_px: [807, 729, 1177, 899], pass: "tile3" },
+    { label: "dog", score: 0.766, box_px: [189, 822, 355, 1004], pass: "tile2" },
+    { label: "traffic light", score: 0.766, box_px: [1056, 218, 1108, 331], pass: "full" },
+  ] as { label: string; score: number; box_px: [number, number, number, number]; pass: string }[],
+};
+
+/** SAVE BOX adds a new box. Only a box opened with Fix (its id in `editing`) is replaced in place. */
+export function placeBox<T extends { id: string }>(list: T[], mark: T, editing: string): T[] {
+  if (editing && list.some((item) => item.id === editing)) return list.map((item) => (item.id === editing ? mark : item));
+  return [...list, mark];
+}
+
 type MenuFile = { n: string; id: string; label: string; go: "work" | "stop" | "label" | "pose" };
 
 const FILE_MENU: MenuFile[] = [

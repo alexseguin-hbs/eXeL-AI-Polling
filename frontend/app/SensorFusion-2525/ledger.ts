@@ -293,6 +293,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Saving an annotated picture says where the file went and that the boxes stay on this device. Revision 38 had dropped the second half, so the build check stopped every deploy.",
       commit: "ed4af60",
     },
+    {
+      rev: 42,
+      date: "2026-10-05",
+      kind: "release",
+      text: "Info opens the Austin street photo. Each Demo.90 object has a box and a tag from the real model run: person 77%, person 68%, bicycle 69%, car 75%, dog 77%, traffic light 77%. The live camera now names objects right. A traffic light no longer reads boat. SAVE BOX adds a new box each time. Fix still changes the same box. A name with & or quotes reads back as written. Every dialog fits a phone held sideways and closes with Escape or a tap outside. With SENSOR 1 off, the alert and the boxes leave the screen. Back on the camera screen, the picture shows again.",
+      commit: "PENDING",
+    },
   ],
 };
 

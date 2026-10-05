@@ -4,9 +4,12 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { useAuth0 } from "@auth0/auth0-react";
 import { Settings } from "lucide-react";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
+// One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
+import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import {
   COLORS,
   FRAMES,
+  INFO_STILL,
   MODELS,
   MENU,
   PLATFORMS,
@@ -14,6 +17,7 @@ import {
   detectPlatform,
   explainCamera,
   lensZoom,
+  placeBox,
   runPlan,
   sensorPath,
   type Lens,
@@ -188,18 +192,6 @@ function pictureName(shot: Shot) {
 
 function xmlName(fileName: string) {
   return fileName.replace(/\.[^.]+$/, "") + ".xml";
-}
-
-function escapeXml(value: string) {
-  return value
-    .replace(/&/g, "&" + "amp;")
-    .replace(/</g, "&" + "lt;")
-    .replace(/>/g, "&" + "gt;")
-    .replace(/"/g, "&" + "quot;");
-}
-
-function unescapeXml(value: string) {
-  return value.replace(/"/g, '"').replace(/>/g, ">").replace(/</g, "<").replace(/&/g, "&");
 }
 
 function vocXml(fileName: string, width: number, height: number, objects: Mark[]) {
@@ -510,14 +502,12 @@ function Labeler({
       reviewer: box.reviewer,
     }));
     setMarks((current) => ({ ...current, [pic.id]: list }));
-    const first = list[0];
-    if (!first) return;
-    setEditing(first.id);
-    setLeft(first.left);
-    setTop(first.top);
-    setRight(first.right);
-    setBottom(first.bottom);
-    if (first.name) setLabelName(first.name);
+    // The saved boxes come back as rows and outlines. The movable box starts fresh, so SAVE BOX adds the next one.
+    // Fix on a row is the only way to move a saved box.
+    setLeft(40);
+    setTop(35);
+    setRight(60);
+    setBottom(65);
   }, [picId]);
 
   function point(event: ReactPointerEvent) {
@@ -579,6 +569,10 @@ function Labeler({
 
   async function saveBox() {
     if (!pic) return;
+    if (!imgRef.current?.naturalWidth || !imgRef.current?.naturalHeight) {
+      setNote("The picture is still opening.");
+      return;
+    }
     const prior = marks[pic.id] || [];
     const mark: Mark = {
       id: editing || `${Date.now()}`,
@@ -590,11 +584,19 @@ function Labeler({
       level: 1,
       by: who || "guest",
     };
-    const list = editing ? prior.map((item) => (item.id === editing ? mark : item)) : [...prior, mark];
-    if (!editing) setEditing(mark.id);
+    // One picture holds many boxes: SAVE BOX adds one, unless Fix opened a saved box (rev 38: a fix updates the same box).
+    const list = placeBox(prior, mark, editing);
+    setEditing("");
+    setLeft(40);
+    setTop(35);
+    setRight(60);
+    setBottom(65);
     setMarks({ ...marks, [pic.id]: list });
     const where = await writePicture(pictureName(pic), list);
-    if (where) setNote(`Saved ${where}`);
+    if (where) {
+      const kept = chosenFolder ? `Saved ${where}.` : `Box ${list.length} kept on this device. FILES saves ${where}.`;
+      setNote(`${kept} Next: another box, or LEVEL 2 by a second person.`);
+    }
   }
 
   async function acceptBox(mark: Mark) {
@@ -1049,8 +1051,40 @@ export default function SensorFusion() {
     void run();
     return () => {
       stop = true;
+      lastAlert.current = "";
+      setAlert("");
     };
   }, [sensorOn, model, step]);
+
+  useEffect(() => {
+    // Back on the camera screen, the new video gets the stream that is still open, so SENSOR 1: ON shows the picture.
+    if (step !== "work") return;
+    const stream = streamRef.current;
+    const video = videoRef.current;
+    if (!stream || !video) return;
+    if (stream.getVideoTracks().every((track) => track.readyState === "ended")) {
+      streamRef.current = null;
+      setSensorOn(false);
+      return;
+    }
+    if (video.srcObject !== stream) {
+      video.srcObject = stream;
+      void video.play().catch(() => undefined);
+    }
+  }, [step]);
+
+  useEffect(() => {
+    // Every dialog closes with Escape, so no screen traps the person.
+    if (!annotate && !savedNote && !infoOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setAnnotate(false);
+      setSavedNote(false);
+      setInfoOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [annotate, savedNote, infoOpen]);
 
   function chooseScheme(next: SchemeId | "custom", hex?: string) {
     const color = hex || customHex;
@@ -1122,10 +1156,21 @@ export default function SensorFusion() {
     }
   }
 
+  function clearReadout() {
+    lastAlert.current = "";
+    setAlert("");
+    const canvas = canvasRef.current;
+    canvas?.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+    const fill = meterRef.current?.querySelector("i");
+    if (fill instanceof HTMLElement) fill.style.height = "0%";
+  }
+
   function closeSensor() {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
+    // An alert is only what this frame sees: with the camera off, nothing stays on screen.
+    clearReadout();
     setSensorOn(false);
   }
 
@@ -1511,8 +1556,8 @@ export default function SensorFusion() {
       </nav>
       </div>
       {annotate && (
-        <div className={styles.modalWrap}>
-          <div className={styles.modal} role="dialog" aria-label="Capture images">
+        <div className={styles.modalWrap} onClick={() => setAnnotate(false)}>
+          <div className={styles.modal} role="dialog" aria-label="Capture images" onClick={(event) => event.stopPropagation()}>
             <StepStrip current={1} />
             <h2>Capture Images</h2>
             <p className={styles.muted}>From the sensor, or from this device. Choose the folder first.</p>
@@ -1571,8 +1616,8 @@ export default function SensorFusion() {
         </div>
       )}
       {savedNote && (
-        <div className={styles.modalWrap}>
-          <div className={styles.modal} role="dialog" aria-label="Upload">
+        <div className={styles.modalWrap} onClick={() => setSavedNote(false)}>
+          <div className={styles.modal} role="dialog" aria-label="Upload" onClick={(event) => event.stopPropagation()}>
             <StepStrip current={trainStatus ? 4 : 2} />
             <h2>{trainStatus ? "Develop Models" : "Pictures saved."}</h2>
             {trainStatus ? (
@@ -1608,39 +1653,30 @@ export default function SensorFusion() {
         <div className={styles.guideShade} onClick={() => setInfoOpen(false)}>
           <div className={styles.guideCard} role="dialog" aria-label="Toolset" onClick={(event) => event.stopPropagation()}>
             <div className={styles.still}>
-              <svg viewBox="0 0 320 180" aria-hidden="true">
-                <rect width="320" height="180" fill="#1a2430" />
-                <rect y="108" width="320" height="72" fill="#2a3340" />
-                <rect x="248" y="18" width="16" height="46" rx="2" fill="#111" />
-                <circle cx="256" cy="30" r="4" fill="#d44" />
-                <circle cx="256" cy="41" r="4" fill="#ca0" />
-                <circle cx="256" cy="52" r="4" fill="#3c3" />
-                <rect x="28" y="118" width="78" height="32" rx="6" fill="#3d5a73" />
-                <circle cx="46" cy="150" r="8" fill="#111" />
-                <circle cx="90" cy="150" r="8" fill="#111" />
-                <circle cx="168" cy="78" r="12" fill="#d7c4a3" />
-                <rect x="156" y="90" width="24" height="36" rx="4" fill="#2f6a38" />
-                <circle cx="196" cy="132" r="10" fill="#111" />
-                <circle cx="228" cy="132" r="10" fill="#111" />
-                <path d="M196 132 H228 M206 116 H222 L228 132" stroke="#cfd6dc" strokeWidth="3" fill="none" />
-                <ellipse cx="118" cy="148" rx="16" ry="8" fill="#c4a574" />
-                <circle cx="130" cy="144" r="5" fill="#c4a574" />
-              </svg>
-              {[
-                { name: "person", score: 96, left: 46, top: 28, width: 14, height: 48 },
-                { name: "bicycle", score: 91, left: 58, top: 58, width: 18, height: 28 },
-                { name: "car", score: 88, left: 6, top: 60, width: 28, height: 28 },
-                { name: "dog", score: 84, left: 32, top: 72, width: 14, height: 18 },
-                { name: "traffic light", score: 79, left: 74, top: 6, width: 12, height: 32 },
-              ].map((box) => (
-                <div key={box.name} className={styles.stillBox} style={{ left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%` }}>
-                  <b>
-                    {box.name} {box.score}%
-                  </b>
-                </div>
-              ))}
+              <img src={INFO_STILL.src} width={840} height={840} alt="A street with two people, a bicycle, a car, a dog and a traffic light" />
+              {INFO_STILL.boxes.map((box) => {
+                const [width, height] = INFO_STILL.size;
+                const [x1, y1, x2, y2] = box.box_px;
+                const left = (x1 / width) * 100;
+                const top = (y1 / height) * 100;
+                const right = (x2 / width) * 100;
+                const tagClass = [styles.stillTag, right > 75 ? styles.stillTagEnd : "", top < 8 ? styles.stillTagIn : ""].filter(Boolean).join(" ");
+                return (
+                  <div
+                    key={box.box_px.join("-")}
+                    className={styles.stillBox}
+                    style={{ left: `${left}%`, top: `${top}%`, width: `${right - left}%`, height: `${((y2 - y1) / height) * 100}%` }}
+                  >
+                    <b className={tagClass}>
+                      {box.label} · {Math.round(box.score * 100)}%
+                    </b>
+                  </div>
+                );
+              })}
             </div>
-            <p className={styles.stillNote}>Demo.90 · 5 objects</p>
+            <p className={styles.stillNote}>
+              Demo.90 · {new Set(INFO_STILL.boxes.map((box) => box.label)).size} kinds · {INFO_STILL.boxes.length} boxes
+            </p>
             <p className={styles.toolLine}>Sensor 1 · bar · % · Labels · model · Capture · Annotate · Upload</p>
             <button type="button" className={styles.ghost} onClick={() => setInfoOpen(false)}>
               Close

@@ -13,7 +13,8 @@ Each model is a folder:
 
 No Coral: detect.tflite on the CPU.
 Coral: edgetpu.tflite, only if that computer has the chip.
-The label file is used in order. ??? means it is not one of the 90 names.
+The label file is used in order, after a first ??? line is dropped.
+??? anywhere else means it is not one of the 90 names.
 
 First run:
   python3 sensor_fusion_edge.py --check
@@ -110,6 +111,10 @@ def labels(folder):
         lines = [line.strip() for line in handle]
     if lines and lines[-1] == "":
         lines.pop()
+    # One label rule for every reader: a first line of ??? is dropped, as TFLite_detection_webcam.py does.
+    # Class 0 is then person on Demo.90. A label map with no ??? first line is used as it is.
+    if lines and lines[0] == "???":
+        del lines[0]
     return lines
 
 

@@ -365,6 +365,17 @@
   width: min(100%, 420px);
   border-radius: 12px;
   padding: 16px;
+  /* Every dialog fits the screen: at 844x390 the buttons stay reachable (rev 42). */
+  max-height: calc(var(--sf-h, 100dvh) - 32px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.modal .actions {
+  position: sticky;
+  bottom: -16px;
+  margin-bottom: -16px;
+  padding: 4px 0 12px;
+  background: var(--sf-bg, #001414);
 }
 .modal h2 {
   font-size: 18px;
@@ -531,27 +542,53 @@
   border-radius: 8px;
   overflow: hidden;
 }
-.still svg {
+.still img {
   display: block;
   width: 100%;
   height: auto;
+  aspect-ratio: 1;
 }
 .stillBox {
   position: absolute;
   box-sizing: border-box;
   border: 2px solid #0cff00;
 }
-.stillBox b {
+/* The tag grows to fit its words and sits on the box's top edge, inside the picture. */
+.stillTag {
   position: absolute;
-  left: 0;
-  top: 0;
-  max-width: 140%;
+  left: -2px;
+  bottom: 100%;
   padding: 0 3px;
   background: #0cff00;
   color: #111;
   font-size: 10px;
-  line-height: 1.2;
+  line-height: 1.3;
   white-space: nowrap;
+}
+.stillTagEnd {
+  left: auto;
+  right: -2px;
+}
+.stillTagIn {
+  bottom: auto;
+  top: 0;
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .guideCard {
+    width: auto;
+    display: grid;
+    grid-template-columns: auto minmax(150px, 240px);
+    column-gap: 12px;
+    align-content: start;
+  }
+  .still {
+    grid-row: 1 / span 4;
+    width: calc(var(--sf-h, 100dvh) - 44px);
+    max-width: 60vw;
+  }
+  .guideCard > button {
+    justify-self: start;
+  }
 }
 .stillNote,
 .toolLine {

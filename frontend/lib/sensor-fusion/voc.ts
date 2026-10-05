@@ -15,7 +15,8 @@ export type VocPage = {
   renamedFrom?: string;
 };
 
-function escapeXml(value: string) {
+/** The one XML escape for Sensor Fusion. The page and this file use it, so a name reads back as it was written. */
+export function escapeXml(value: string) {
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -23,7 +24,7 @@ function escapeXml(value: string) {
     .replace(/"/g, "&quot;");
 }
 
-function unescapeXml(value: string) {
+export function unescapeXml(value: string) {
   return value
     .replace(/&quot;/g, "\"")
     .replace(/&gt;/g, ">")
