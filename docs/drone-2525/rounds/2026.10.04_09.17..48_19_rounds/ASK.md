@@ -126,3 +126,14 @@ read as lines on the ground. Folded into r.158 (not yet shipped when this arrive
 Reading: on a PC — turret: the arrow keys aim the head; drone: WASD moves the body and the arrows aim the head; the mouse also aims
 (drag/move on the picture). RIGHT CLICK = TARGET, and a right click on the amber mark = APPROVE; LEFT CLICK = FIRE. Keys: T or SPACE
 = TARGET, SPACE on an amber mark = APPROVE, F = FIRE. The two-step doctrine is unchanged: nothing fires without TARGET then APPROVE.
+
+## Addendum 10 — the signs, as in the photo (operator 2026-10-05, verbatim, three messages with two screenshots of r.158)
+
+> Signs need to be smaller like uploaded images (realistic as photo uploaded)
+> DO not cover targets with signs
+> And have White/Black like uploaded image
+
+Screenshots (not saved by the chat): r.158's sign "◂ 20 · 21 ▸" (a large outlined box on a post), and the range at 3× where the
+signs are big boxes overlapping the targets. Reading: (1) the sign is drawn at its real size, like the photo's small lane board — no
+screen-space enlargement to fit the words; (2) a sign never covers a target: if its words would overlap a target's silhouette, the
+words are not written (the board stays, small); (3) white board, black digits, like the photo.
