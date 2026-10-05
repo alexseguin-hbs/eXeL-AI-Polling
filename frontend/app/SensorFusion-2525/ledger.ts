@@ -368,7 +368,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "The info picture points at each control. SENSOR 1, the camera name, the bar, FPS, the box, %, Labels, the model, Capture, Annotate, and Upload each say what they do. On a narrow screen the notes stay off the picture.",
-      commit: "",
+      commit: "016b9b8",
     },
   ],
 };
