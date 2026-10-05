@@ -431,7 +431,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "THERMAL takes the second view and says the thermal camera is not connected. It does not use the phone camera as heat.",
-      commit: "",
+      commit: "70f74be",
     },
   ],
 };
