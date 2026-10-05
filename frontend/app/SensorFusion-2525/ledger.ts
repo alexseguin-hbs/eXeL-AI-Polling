@@ -326,7 +326,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "On a computer, and with the phone sideways, the camera fills the screen. The camera list and the model list are short, so the boxes stay visible.",
-      commit: "",
+      commit: "8fcdbf7",
     },
   ],
 };
