@@ -459,7 +459,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "The six training marks are the original pictures: capture, annotate, upload, develop, download, and run live. The annotate mark is the corner box with the plus.",
-      commit: "",
+      commit: "5614877",
     },
   ],
 };
