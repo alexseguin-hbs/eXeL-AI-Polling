@@ -248,3 +248,7 @@ Choice (from research/2026.10.05_16.59..59): (1) BROWSER — Web Speech API, on 
 (3) MY VOICE — TF.js speech-commands with a small head trained on the player's own clips in Settings. Settings → Voice: pick the engine, then a
 test that says a word, listens, and scores each word for that voice (heard / missed / confused-with), kept on the device. Order: r.163 = T-numbers
 by marking order + approve/fire by number (Addendum 18); r.164 = the voice engine picker + per-voice test + calibration.
+
+## Addendum 21 — the splash stays too long (operator 2026-10-05, verbatim, with a PC screenshot of r.162: T1 · 100 M RIGHT and T2 · 100 M LEFT red, a red splash oval under the bullseye)
+
+> Note: Splash now stays too long after firing.
