@@ -5,6 +5,9 @@
 #     The windows stay the program of record the operator supplied (1 = 5 s · 2 = 8 s · 3 = 12 s · 4 = 16 s); three targets light red
 #     at 10, yellow at 11, green at 12. His "3 s per target" is offered as his call in the release note.
 #  3. A timer under the lamps: the seconds left on the group that is up ("12 S"), or the seconds to the next group ("NEXT 3 S").
+#  4. (Addendum 14: "system forgets target was targeted or approved") In TRAINING · RESET a marked and approved target keeps its mark and
+#     its approval through the hit and the return: F fires again as soon as it stands; while it is down F holds (no round). The mark ends on
+#     RESTART, a lane or mode change, or a new mark. TRAINING · DOWN and QUAL unchanged. QA MARK_SURVIVES_THE_RETURN.
 #  Training keeps the r.157 light (green while targets stand) and shows no timer. QA QUAL_LIGHT_LAST_THREE_SECONDS, QUAL_TIMER_COUNTS;
 #  START_LIGHT_SEQUENCE re-pointed. The fire doctrine is untouched.
 import hashlib,os
@@ -43,6 +46,21 @@ ROW=r'''    { /* r.162 · QUAL_LIGHT_LAST_THREE_SECONDS + QUAL_TIMER_COUNTS (Add
       push('QUAL_TIMER_COUNTS', tm0==='12 S'&&/^NEXT [123] S$/.test(tGap), 'half a second into the group the timer reads '+tm0+'; in the rest it reads '+tGap); }
 '''
 rep("    { /* r.157 · START_LIGHT_WORDS", ROW+"    { /* r.157 · START_LIGHT_WORDS")
+rep("if(hit.dead){const sn=(state.desig&&state.desig.slot)||n||state.slot||1; state.hiApproved=false;state.hiLock=false;state.desig=null; if(state.tgtSlot) delete state.tgtSlot[sn];}",
+    "if(hit.dead&&keepsMark(s.ref)){ toast('HIT · '+plateWord(s.id)+' · STILL RED · F WHEN IT STANDS'); } else if(hit.dead){const sn=(state.desig&&state.desig.slot)||n||state.slot||1; state.hiApproved=false;state.hiLock=false;state.desig=null; if(state.tgtSlot) delete state.tgtSlot[sn];} /* r.162 (Addendum 14): in TRAINING · RESET the mark and the approval ride the target down and back up */")
+rep("  if(state.desig&&state.desig.ref&&(state.desig.ref.up===false||state.desig.ref.lifePct<=0)){ decide('REJECT',state.desig.id,{reason:'TARGET_GONE'});",
+    "  if(state.desig&&state.desig.ref&&(state.desig.ref.up===false||state.desig.ref.lifePct<=0)&&keepsMark(state.desig.ref)){ decide('HOLD',state.desig.id,{reason:'TARGET_RETURNING'}); toast(plateWord(state.desig.id)+' IS COMING BACK UP · STILL RED · F WHEN IT STANDS'); return; } /* r.162: a held mark waits for its target; no round, no release */\n  if(state.desig&&state.desig.ref&&(state.desig.ref.up===false||state.desig.ref.lifePct<=0)){ decide('REJECT',state.desig.id,{reason:'TARGET_GONE'});")
+rep("q._ret=0; rangeRelease(q); } anyUp=true;","q._ret=0; if(!keepsMark(q)) rangeRelease(q); } anyUp=true;")
+rep("function roundOpen(){","function keepsMark(q){ return !!q&&!!q.form&&chNum()===0&&(state.rangeMode||'bounce')==='bounce'&&rangeTraining(); } /* r.162 (Addendum 14): TRAINING · RESET — the target comes back, so its mark and approval stay */\nfunction roundOpen(){")
+ROW2=r'''    { /* r.162 · MARK_SURVIVES_THE_RETURN (Addendum 14) — TRAINING · RESET: mark + approve once, then F, F, F */
+      const l0=state.lane, z0=state.zoom, s0=state.unit, qaA=state.qaArmed, S0=state._qaSilent, sd0=state.simDirect; state._qaSilent=true; state.qaArmed=true; state.lane=20; parkRangeTurrets(); state.rangeMode='bounce'; rangeReset(); state.unit='T21'; const uu=units['T21']; state.zoom=1; state.desig=null; state.tgtSlot={}; state.simDirect=false;
+      const q=plateOf(20,'C-150R'); aimUnitAt(uu,q,-40,40); designate({id:q.id,kind:'pop',ref:q},'QA'); approveDesig('HI-2'); const h0=state.rangeHit|0; fireN(1); const hit1=(state.rangeHit|0)===h0+1; const red1=!!state.desig&&state.desig.id===q.id&&state.desig.phase==='red';
+      for(let i=0;i<20&&q.up;i++) rangeTick(0.05); const r0=state.mag.rounds; fireN(1); const held=!q.up&&state.mag.rounds===r0&&!!state.desig&&state.desig.phase==='red';
+      for(let i=0;i<(RETURN_S+1)*20&&!q.up;i++) rangeTick(0.05); aimUnitAt(uu,q,-40,40); const back=!!q.up&&!!state.desig&&state.desig.id===q.id&&state.desig.phase==='red'; fireN(1); const hit2=(state.rangeHit|0)===h0+2;
+      state.desig=null; state.tgtSlot={}; state.unit=s0; state.lane=l0; state.zoom=z0; state.qaArmed=qaA; state._qaSilent=S0; state.simDirect=sd0; parkRangeTurrets(); rangeReset();
+      push('MARK_SURVIVES_THE_RETURN', hit1&&red1&&held&&back&&hit2, 'one mark, one approval: hit '+hit1+' · still red '+red1+' · F while down holds, no round '+held+' · back up still red '+back+' · second hit '+hit2); }
+'''
+rep("    { /* r.157 · START_LIGHT_WORDS", ROW2+"    { /* r.157 · START_LIGHT_WORDS")
 c=s.count("revision:'0.161'"); rep("revision:'0.161'","revision:'0.162'",c)
 h=s.count("r0.161"); rep("r0.161","r0.162",h)
 for dead in ["revision:'0.161'","r0.161","if(chNum()!==0||!rangeArmed()) return 'R';"]:

@@ -886,7 +886,7 @@ function rangeTick(dt){
   if(mode!=='qual40'){ /* TRAINING: every target stands; a hit target falls, then returns (RESET) or stays down (DOWN) */
     let anyUp=false;
     platesHere().forEach(q=>{
-      if(q.up&&q.lifePct<=0){ q.fall=Math.min(1,(q.fall||0)+dt*2.4); if(q.fall>=1){ q.up=false; q._down=true; q._ret=0; rangeRelease(q); } anyUp=true; return; }
+      if(q.up&&q.lifePct<=0){ q.fall=Math.min(1,(q.fall||0)+dt*2.4); if(q.fall>=1){ q.up=false; q._down=true; q._ret=0; if(!keepsMark(q)) rangeRelease(q); } anyUp=true; return; }
       if(!q.up){ if(mode==='bounce'&&(!onSheet()||sheetHas(q))){ q._ret=(q._ret||0)+dt; if(q._ret>=RETURN_S){ q.up=true;q.lifePct=100;q.life=1e9;q.fall=0;q._eng=false;q._down=false;q._ret=0;q.mist=false; anyUp=true; } } return; }
       anyUp=true;
     });
@@ -2455,6 +2455,7 @@ function applyHit(ref,id){
   if(hit) return {dead:true,direct:true,pts:100,result:'HIT'};
   return {dead:false,direct:false,pts:0,result:'MISS'};
 }
+function keepsMark(q){ return !!q&&!!q.form&&chNum()===0&&(state.rangeMode||'bounce')==='bounce'&&rangeTraining(); } /* r.162 (Addendum 14): TRAINING · RESET — the target comes back, so its mark and approval stay */
 function roundOpen(){ const ph=state.lobby&&state.lobby.phase; return ph==='PRACTICE'||ph==='LIVE'||!!state.qaArmed; } /* r.135: nothing marks, approves or fires before PRACTICE or START (a room in WAITING fired from behind the intro — Thor B) */
 function fireN(n){
   if(!roundOpen()){ decide('REJECT',(state.desig&&state.desig.id)||'NONE',{reason:'ROUND_NOT_OPEN'}); toast('PRESS PRACTICE, OR START THE ROOM, BEFORE YOU FIRE'); return; }
@@ -2462,6 +2463,7 @@ function fireN(n){
   if(s&&s.ref&&(s.kind==='obj'||!s.kind)) s.kind=kindOfRef(s.ref); /* r.130: the kind is the target's, never a placeholder */
   if(n&&state.desig&&state.desig.slot&&n!==state.desig.slot&&state.tgtSlot&&state.tgtSlot[n]&&state.tgtSlot[n].id!==state.desig.id){ decide('REJECT',state.tgtSlot[n].id,{reason:'NOT_THE_RED_TARGET',slot:n}); toast('T'+n+' IS NOT THE RED TARGET'); return; } /* r.132: the slot you name is the slot you fire */
   { const markerSeat=String(state.desig&&state.desig.by||'').replace(/^ASM@/,''); if(state.desig&&state.desig.how&&/^PEER/.test(String(state.desig.how))&&markerSeat&&markerSeat!==SID&&state.lobby&&state.lobby.phase==='LIVE'){ decide('REJECT',state.desig.id,{reason:'NOT_THE_MARKERS_SEAT'}); toast('THE SEAT THAT MARKED IT FIRES · YOU APPROVED'); return; } } /* r.136: the marker's seat is the human or its own AI — r.135 cut the rule one token too wide and no seat could fire an AI mark in a room (Thor/Asar/Christo syntheses) */ /* r.135: the approver's seat never fires the marker's box (Thor B: one approval, two shooters) */
+  if(state.desig&&state.desig.ref&&(state.desig.ref.up===false||state.desig.ref.lifePct<=0)&&keepsMark(state.desig.ref)){ decide('HOLD',state.desig.id,{reason:'TARGET_RETURNING'}); toast(plateWord(state.desig.id)+' IS COMING BACK UP · STILL RED · F WHEN IT STANDS'); return; } /* r.162: a held mark waits for its target; no round, no release */
   if(state.desig&&state.desig.ref&&(state.desig.ref.up===false||state.desig.ref.lifePct<=0)){ decide('REJECT',state.desig.id,{reason:'TARGET_GONE'}); releaseAuthority('TARGET GONE'); toast('THAT TARGET IS GONE · MARK THE NEXT'); return; } /* r.135: an expired pop or UAV scores nothing */
   if(!state.desig||!s||s.id!==state.desig.id||state.desig.phase!=='red'){decide('REJECT',s&&s.id||'NONE',{reason:state.desig&&state.desig.phase==='amber'?'AMBER_NO_APPROVE':'NO_RED_BOX'});toast(state.desig&&state.desig.phase==='amber'?(state.lobby&&state.lobby.phase==='LIVE'?'AMBER · THE OTHER SEAT MUST APPROVE':'AMBER · PRESS APPROVE FIRST'):(state.lastLapse&&state.clock-state.lastLapse.t<6?'YOUR TARGET LAPSED · MARK THE NEXT':'NO RED BOX · MARK A TARGET FIRST')); /* r.135: FIRE after a lapse says the lapse (Athena B) */sample({ev:'NODEST',n});log('FIRE','NO DESIG');return;}
   if(s.ref&&s.ref.lane!=null&&s.ref.lane!==(state.lane||0)){toast('WRONG LANE');decide('REJECT',s.id,{reason:'WRONG_LANE'});return;}
@@ -2496,7 +2498,7 @@ function fireN(n){
     const hit=applyHit(s.ref,s.id); if(hit.result!=='REFUSED') magSpend();
     state.lastShot={id:s.id,slot:n||state.slot||1,life:s.ref.lifePct||0,direct:!!hit.direct,dead:!!hit.dead,t:state.clock};
     if(hit.dead){state.hits++;const pts=s.kind==='uav'?250:100;state.score+=pts;if(state.team==='RED')state.red+=pts;else state.blu+=pts;decide('SIM-ACTION',s.id,{pts,direct:hit.direct}); const last=(state.events||[])[(state.events||[]).length-1]; if(last) linkSend(Object.assign(commEnv('SIM-ACTION',{id:s.id,event:last}),{id:s.id,event:last})); netEvent('SCORE','','BLU '+state.blu+' · RED '+state.red);}
-    if(hit.dead){const sn=(state.desig&&state.desig.slot)||n||state.slot||1; state.hiApproved=false;state.hiLock=false;state.desig=null; if(state.tgtSlot) delete state.tgtSlot[sn];} else if(state.desig){ if(chNum()===5){ state.desig.phase='amber'; state.desig.approvedBy=null; Object.keys(state.tgtSlot||{}).forEach(k=>{ if(state.tgtSlot[k]&&state.tgtSlot[k].id===state.desig.id) state.tgtSlot[k].phase='amber'; }); toast('MISS · CH5 · GET IT APPROVED AGAIN'); } else state.desig.phase='red'; state.hiApproved=false; /* r.131: red holds for THIS exposure · r.135: at CH5 a miss goes back to amber so the other seat CAN re-approve (the popup's removal had left CH5 rooms unable to fire after one miss — Thor B) */}
+    if(hit.dead&&keepsMark(s.ref)){ toast('HIT · '+plateWord(s.id)+' · STILL RED · F WHEN IT STANDS'); } else if(hit.dead){const sn=(state.desig&&state.desig.slot)||n||state.slot||1; state.hiApproved=false;state.hiLock=false;state.desig=null; if(state.tgtSlot) delete state.tgtSlot[sn];} /* r.162 (Addendum 14): in TRAINING · RESET the mark and the approval ride the target down and back up */ else if(state.desig){ if(chNum()===5){ state.desig.phase='amber'; state.desig.approvedBy=null; Object.keys(state.tgtSlot||{}).forEach(k=>{ if(state.tgtSlot[k]&&state.tgtSlot[k].id===state.desig.id) state.tgtSlot[k].phase='amber'; }); toast('MISS · CH5 · GET IT APPROVED AGAIN'); } else state.desig.phase='red'; state.hiApproved=false; /* r.131: red holds for THIS exposure · r.135: at CH5 a miss goes back to amber so the other seat CAN re-approve (the popup's removal had left CH5 rooms unable to fire after one miss — Thor B) */}
     log('FIRE',s.id,hit.dead?'DOWN':hit.life);sample({ev:'FIRE',n,kind:s.kind,life:s.ref.lifePct});list();return;}
   if(!s.ref.photo){capture(); if(!s.ref.photo){toast('NO EDGE');return;}}
   if(state.mode==='watch'){state.pending=s.ref;document.getElementById('approve').classList.add('show');log('REQ',s.id,'T'+n);toast('HI APPROVE T'+n);return;}
@@ -4404,6 +4406,13 @@ function toolSelfTest(){
       const near=(a,b)=>a!=null&&Math.abs(a-b)<=0.06;
       push('QUAL_LIGHT_LAST_THREE_SECONDS', n3===3&&sec===12&&near(first.R,10)&&near(first.Y,11)&&near(first.G,12)&&near(first.O,0), 'three targets, '+sec+' s up: red at '+first.R+' s, yellow at '+first.Y+' s, green at '+first.G+' s, dark from '+first.O+' s');
       push('QUAL_TIMER_COUNTS', tm0==='12 S'&&/^NEXT [123] S$/.test(tGap), 'half a second into the group the timer reads '+tm0+'; in the rest it reads '+tGap); }
+    { /* r.162 · MARK_SURVIVES_THE_RETURN (Addendum 14) — TRAINING · RESET: mark + approve once, then F, F, F */
+      const l0=state.lane, z0=state.zoom, s0=state.unit, qaA=state.qaArmed, S0=state._qaSilent, sd0=state.simDirect; state._qaSilent=true; state.qaArmed=true; state.lane=20; parkRangeTurrets(); state.rangeMode='bounce'; rangeReset(); state.unit='T21'; const uu=units['T21']; state.zoom=1; state.desig=null; state.tgtSlot={}; state.simDirect=false;
+      const q=plateOf(20,'C-150R'); aimUnitAt(uu,q,-40,40); designate({id:q.id,kind:'pop',ref:q},'QA'); approveDesig('HI-2'); const h0=state.rangeHit|0; fireN(1); const hit1=(state.rangeHit|0)===h0+1; const red1=!!state.desig&&state.desig.id===q.id&&state.desig.phase==='red';
+      for(let i=0;i<20&&q.up;i++) rangeTick(0.05); const r0=state.mag.rounds; fireN(1); const held=!q.up&&state.mag.rounds===r0&&!!state.desig&&state.desig.phase==='red';
+      for(let i=0;i<(RETURN_S+1)*20&&!q.up;i++) rangeTick(0.05); aimUnitAt(uu,q,-40,40); const back=!!q.up&&!!state.desig&&state.desig.id===q.id&&state.desig.phase==='red'; fireN(1); const hit2=(state.rangeHit|0)===h0+2;
+      state.desig=null; state.tgtSlot={}; state.unit=s0; state.lane=l0; state.zoom=z0; state.qaArmed=qaA; state._qaSilent=S0; state.simDirect=sd0; parkRangeTurrets(); rangeReset();
+      push('MARK_SURVIVES_THE_RETURN', hit1&&red1&&held&&back&&hit2, 'one mark, one approval: hit '+hit1+' · still red '+red1+' · F while down holds, no round '+held+' · back up still red '+back+' · second hit '+hit2); }
     { /* r.157 · START_LIGHT_WORDS — the light carries its word for colour-blind players */
       const got=['R','Y','G'].map(L=>{ paintLight(L); const sl=document.getElementById('startLight'), w=document.getElementById('startWord'); const lamp=sl&&sl.querySelector('i.'+({R:'r',Y:'y',G:'g'})[L]); return L+':'+(w?w.textContent:'')+':'+(sl?sl.className:'')+':'+(lamp?getComputedStyle(lamp).opacity:''); }); paintCues();
       push('START_LIGHT_WORDS', got.join(' ')==='R:WAIT:R:1 Y:READY:Y:1 G:FIRE:G:1', got.join(' · ')+' — RED WAIT · YELLOW READY · GREEN FIRE, the lit lamp full and the others dim'); }
