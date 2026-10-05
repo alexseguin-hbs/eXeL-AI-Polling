@@ -64,4 +64,86 @@ const NAV: [string, ComponentType<{ className?: string; style?: CSSProperties }>
 type TabId = "TODAY" | "ENERGY" | "PLANNING" | "NUTRITION" | "COACH";
 type PlanStatus = "draft" | "pending" | "synced";
 
-function Panel({ title, children, accent, right }: { title: string; children: ReactN
+function Panel({ title, children, accent, right }: { title: string; children: ReactNode; accent?: string; right?: ReactNode }) {
+  return (
+    <div className="rounded-lg border p-3" style={{ background: C.panel, borderColor: C.border }}>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent ?? C.dim }}>{title}</div>
+        {right}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+
+function overrunClass(level: OverrunLevel): string {
+  if (level === "over") return styles.budgetOver;
+  if (level === "near") return styles.budgetNear;
+  if (level === "ok") return styles.budgetOk;
+  return styles.budgetUnknown;
+}
+
+function BudgetBar({ w }: { w: WindowBudget }) {
+  const pct =
+    w.planned != null && w.planned > 0 && w.logged != null
+      ? Math.min(140, Math.round((w.logged / w.planned) * 100))
+      : null;
+  const alert =
+    w.overrun === "over" ? "OVERRUN" : w.overrun === "near" ? "NEAR LIMIT" : null;
+  const alertColor = w.overrun === "over" ? C.red : C.amber;
+  return (
+    <div className="mb-2 rounded border p-2" style={{ borderColor: C.border, background: "#0b1119" }}>
+      <div className="mb-1 flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="truncate text-[10px] font-semibold uppercase" style={{ color: C.text }}>{w.label}</div>
+          <div className={`text-[9px] ${styles.mono}`} style={{ color: C.dim }}>
+            planned {w.planned != null ? `${w.planned} ${w.unit}` : "—"}
+            {" · "}
+            logged {w.logged != null ? `${w.logged} ${w.unit}` : "—"}
+            {w.burnKcal != null ? ` · burn ${w.burnKcal} kcal` : ""}
+            {w.burnRates?.perMin != null ? ` · ${formatCalRate(w.burnRates.perMin, "per_min")} / ${formatCalRate(w.burnRates.perSec, "per_sec")}` : ""}
+          </div>
+        </div>
+        {alert && (
+          <span className="shrink-0 rounded px-1.5 py-0.5 text-[8px] font-bold tracking-wide" style={{ color: alertColor, background: `${alertColor}22`, border: `1px solid ${alertColor}66` }}>
+            {alert}
+          </span>
+        )}
+      </div>
+      <div className={styles.budgetTrack}>
+        <div
+          className={`${styles.budgetFill} ${overrunClass(w.overrun)}`}
+          style={{ width: pct != null ? `${pct}%` : "0%" }}
+        />
+      </div>
+      {w.note && <div className="mt-1 text-[8px]" style={{ color: C.dim }}>{w.note}</div>}
+    </div>
+  );
+}
+
+function seedToday(now = Date.now()): FitDay {
+  return {
+    v: 1,
+    date: TODAY,
+    tz: TZ,
+    weight: null,
+    height_cm: null,
+    age_yr: null,
+    sex: null,
+    steps: null,
+    calories_in: null,
+    /** Logged so far from Garmin swim — real. */
+    calories_out: 672,
+    sugar_out_g: null,
+    window_intake_kcal: {},
+    day_type: "work",
+    coach_note: null,
+    workouts: [
+      {
+        id: "w-2026-10-05-swim",
+        type: "swim",
+        title: "Pool swim 4050 yd",
+        status: "completed",
+        minutes: 83, // 1:22:33
+        distanc
