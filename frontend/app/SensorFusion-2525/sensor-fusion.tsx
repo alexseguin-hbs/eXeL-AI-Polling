@@ -918,6 +918,7 @@ export default function SensorFusion() {
   const streamRef = useRef<MediaStream | null>(null);
   const [step, setStep] = useState<Step>("login");
   const [platform, setPlatform] = useState<PlatformId>("win");
+  const [found, setFound] = useState<PlatformId>("win");
   const [scheme, setScheme] = useState<SchemeId | "custom">("green");
   const [customHex, setCustomHex] = useState("#19c8cf");
   const [settings, setSettings] = useState(false);
@@ -976,7 +977,8 @@ export default function SensorFusion() {
     setCustomHex(savedHex);
     setScheme(nextScheme);
     paint(nextScheme, savedHex);
-    const host = detectPlatform(navigator.userAgent);
+    const host = detectPlatform(navigator.userAgent, navigator.platform || "");
+    setFound(host);
     setPlatform(host);
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sf-offline-sw.js").catch(() => undefined);
@@ -1588,7 +1590,11 @@ export default function SensorFusion() {
         </header>
         <div className={styles.fill}>
           <h1>This device</h1>
-          <p className={styles.muted}>Found {PLATFORMS.find((item) => item.id === platform)?.label}. Tap another only if that is wrong.</p>
+          <p className={styles.muted}>
+            {platform === found
+              ? `This is ${PLATFORMS.find((item) => item.id === found)?.label}.`
+              : `Using ${PLATFORMS.find((item) => item.id === platform)?.label}. This machine is ${PLATFORMS.find((item) => item.id === found)?.label}.`}
+          </p>
           <div className={styles.picks}>
             {PLATFORMS.map((item) => (
               <button

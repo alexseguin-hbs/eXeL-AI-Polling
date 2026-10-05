@@ -36,10 +36,12 @@ for (const [coral, model, file] of cases) {
 
 ok(MENU.map((item) => item.label).join("|") === "Sensor Fusion|Stop|Pose", "the opening menu is the camera, stop, and pose");
 ok(!MENU.some((item) => /label|coral|check id/i.test(item.label)), "Annotate, Coral, and Check ID are not opening-menu rows");
-ok(detectPlatform("Mozilla/5.0 (Windows NT 10.0)") === "win", "a Windows computer is PC-WIN");
+ok(detectPlatform("Mozilla/5.0 (Windows NT 10.0)", "Win32") === "win", "a Windows computer is PC-WIN");
 ok(detectPlatform("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0)") === "iphone", "an iPhone is found");
 ok(detectPlatform("Mozilla/5.0 (Linux; Android 14)") === "android", "an Android phone is found");
-ok(detectPlatform("Mozilla/5.0 (Macintosh; Intel Mac OS X)") === "mac", "a Mac is found");
+ok(detectPlatform("Mozilla/5.0 (Macintosh; Intel Mac OS X)", "MacIntel") === "mac", "a Mac is found");
+ok(detectPlatform("Mozilla/5.0 (X11; Linux aarch64) Raspberry Pi", "Linux aarch64") === "pi", "a Raspberry Pi is found only when it says so");
+ok(detectPlatform("Mozilla/5.0 (X11; Ubuntu; Linux x86_64)", "Linux x86_64") === "ubuntu", "a Linux computer is Ubuntu, not a Pi");
 ok(MODELS.some((item) => item.id === "checkid"), "Check ID remains a model");
 ok(runPlan(true, "missing").model === "demo90" && runPlan(true, "missing").file === "edgetpu.tflite", "an unknown model falls back without dropping Coral");
 

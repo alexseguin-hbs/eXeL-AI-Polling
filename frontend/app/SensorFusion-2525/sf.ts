@@ -232,12 +232,14 @@ export function sensorPath(platform: PlatformId, parts: string[] = []): string {
   return ["Home", "SensorFusion", ...parts].join(pathSep(platform));
 }
 
-export function detectPlatform(ua: string): PlatformId {
-  if (/Android/i.test(ua)) return "android";
-  if (/iPhone|iPad/i.test(ua)) return "iphone";
-  if (/Windows/i.test(ua)) return "win";
-  if (/Macintosh|Mac OS/i.test(ua)) return "mac";
-  if (/Linux/i.test(ua)) return "ubuntu";
+export function detectPlatform(ua: string, platform = ""): PlatformId {
+  const blob = `${ua} ${platform}`;
+  if (/Android/i.test(blob)) return "android";
+  if (/iPhone|iPad/i.test(blob)) return "iphone";
+  if (/Win/i.test(platform) || /Windows/i.test(ua)) return "win";
+  if (/Mac/i.test(platform) || /Macintosh|Mac OS/i.test(ua)) return "mac";
+  if (/Raspberry/i.test(blob)) return "pi";
+  if (/Linux|Ubuntu/i.test(blob)) return "ubuntu";
   return "win";
 }
 
