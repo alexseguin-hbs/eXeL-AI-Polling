@@ -38,6 +38,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.155 | 2026-10-04 | Claude Code (TARGET · APPROVE · FIRE beside the stick) | 376178 | 300ceb93683c2ea638f03794ec0a9dfe9d73bc51a84b5b05fe2cf7c465f8a3b4 | PENDING (Verify Live) | d7ac891a9a0821588036445638a81e894274c92f4567f1d7180e7189cff6d0bf |
 | r.156 | 2026-10-05 | Claude Code (the hit splash starts at the target's centre) | 378675 | 92eb716a8bec23dffa111f523d5e5ca8e764cd0009c7c8571e33671fd75f6b4d | PENDING (Verify Live) | a9d63598383a7bdfad849a95fe533124a10aad24c0ade1d8bec79be6ecabcc5c |
 | r.157 | 2026-10-05 | Claude Code (round 1 of 19: the splash at the bottom of the target, labels only while marked, mode · Restart · lane, boards on both edges, 15 m lanes, the lit next step, the start light) | 415943 | 5d65ee2b5af886040a8d4d58ae556a4107ae43a189463d6e55666602f33d5e68 | PENDING (Verify Live) | 4eeff8536a4badbb3589870c398f9e43d09b04a5fd86b53d211dbe60b9ea9453 |
+| r.158 | 2026-10-05 | Claude Code (no grey phantom targets; the lane numbers on a real sign board; faded dotted lane lines sign to sign) | 419540 | 62f9fd1f0121c21da790d9f68713df2aa49b6ccca6f9b4f70a1694d2d15af37d | PENDING (Verify Live) | 040727fe8428286b54344773149a67d70dfe250519aedf1ba43ebe4573fcf604 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -444,7 +445,7 @@ Ask: `docs/asks/2026-09-23_eye_scale_12in_fifty_at_edges.md` (verbatim, hashed).
 
 ## r.142 — Claude Code: reload by hand on QUAL, the same order as the actual test (2026-09-23)
 Ask: `docs/asks/2026-09-23_qual_reload_fixed_order.md` (verbatim, hashed: "key is we reload on Qual and have same order as actual test so user
-memorizes order"). Notes: `CLAUDE_CODE_NOTES_r142.md`. Patch: `patches/r141_to_r142.py` (12 asserted edits).
+memorizes order"). Notes: `CLAUDE_CODE_NOTES_r142.md`. Patch: `patches/r141_to_r142.py` (14 asserted edits).
 - **The program names its silhouettes and is the same on every lane, every time.** Ranges per engagement are the operator's IWQ Table VI
   (1–14 verbatim, 15–18 DECLARED); which of left / centre / right stands is DECLARED once (per silhouette 3/3/3/2/2/4/4/4/4/6/5 = 50 × 6 ·
   100 × 7 · 150 × 8 · 200 × 8 · 250 × 6 · 300 × 5) and never seeded. **Operator decision on the record:** r.137's per-lane seed ("each lane
@@ -802,3 +803,16 @@ Artefact commit `f6cf582`; shipped in: PENDING until Verify Live (the ledger and
   folded into r.156; it was not — r.156 shipped only the splash. It is in r.157 (above). The live column of r.151–r.156 above still
   reads PENDING (Verify Live): r.155 shipped in `7db2b8b` and r.156 in `828e80a`, both served LIVE per Verify Live #2436
   on `ed4af60` (recorded in `359a060`); the domain JSON and the ledger carry those ship commits.
+
+
+## r.158 — Claude Code: no grey phantom targets; the lane numbers on a real sign board (2026-10-05)
+Operator (`docs/drone-2525/rounds/2026.10.04_09.17..48_19_rounds/ASK.md` Addendum 6, verbatim): **"for Range on Qual and Train Up and
+Train Down, there are grey phantom targets. Also the lane markers need to be on the actual "sign" <-- 20 21 --> like attached"** (a
+pop-up course photo: a white board on a post, "5 6"). Notes: `CLAUDE_CODE_NOTES_r158.md`. Patch: `patches/r157_to_r158.py` (14 asserted edits). Artefact commit `fb8829f`; shipped in: PENDING until Verify Live.
+- **No phantoms.** On the range only my lane's standing targets are drawn. r.144 drew the neighbouring lanes' (±1) silhouettes dim grey — those
+  were the phantoms. Every lane still carries its targets (`EVERY_LANE_HAS_THE_TARGETS`). `NO_PHANTOM_TARGETS` replaces `NEIGHBOUR_LANES_DRAWN`.
+- **The sign.** Each marker is a post with a 1.2 × 0.6 m board, and the numbers ("◂ 20 · 21 ▸") are written on the board, centred; the
+  board on the screen is never smaller than its words. r.157 wrote the words in the air above a 0.5 m square. `LANE_NUMBERS_ON_THE_SIGN`.
+- **The lane lines** (Addendum 7, verbatim: "also show line of lanes from sign to sign at 100 200 and 300 markers... very faded dotted grey line"):
+  along each lane edge in view, a 35% grey dotted line (dash 2/7) from post to post, 100 → 200 → 300 m. `LANE_LINES_SIGN_TO_SIGN`.
+- **Gates.** 197 boot rows, 196/197 in portrait and landscape (SYNC_DIRECT, red by construction on one device).
