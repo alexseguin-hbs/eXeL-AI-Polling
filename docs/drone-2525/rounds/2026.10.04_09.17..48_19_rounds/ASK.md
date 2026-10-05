@@ -228,3 +228,13 @@ record), and like T / Space / F it reaches the game even when a button or picker
 Reading (r.163, after r.162 is LIVE): T-numbers count up in the order targets are marked (T1 first) and restart at T1 on RESTART; "approve N" approves
 TN wherever it is; "fire N" turns the head onto TN and fires it only if it is red — keys and voice alike. Voice: research the best way to recognise
 exactly TARGET / APPROVE / FIRE (Web Speech API vs an on-device keyword model) and report before building.
+
+## Addendum 19 — voice: a small off-the-shelf keyword model, and voice calibration in Settings (operator 2026-10-05, verbatim)
+
+> Great, for voice, see what off the shelf models will best integrate like we did the TFLIte CNN (file for acoustic Voice to TEXT should be smaller).
+
+> Voice calibration should be a separate mode (under settings) to test key words for one's voice profile and allow for acoustic modeling to enhance detection to a specfiic voice locally to feed model for maximizing chance of detection).
+
+Reading: research first (no build until reported): an on-device keyword model small enough for the deck (smaller than the vision CNN), integrated the
+way Sensor Fusion carries its TFLite model; and a VOICE CALIBRATION mode under Settings where a player says TARGET / APPROVE / FIRE (and the numbers)
+to test detection and train a local, per-voice layer that stays on the device. Voice stays a request, never authority — "fire" fires only a red box.
