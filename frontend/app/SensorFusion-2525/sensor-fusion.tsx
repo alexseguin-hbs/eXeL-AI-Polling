@@ -1601,6 +1601,7 @@ export default function SensorFusion() {
         {error && <p className={styles.alert}>{error}</p>}
         {alert && <p className={styles.liveAlert}>{alert}</p>}
       </section>
+      <Foot accent={accent} />
       <div className={styles.dock}>
       <nav className={styles.piBot}>
         <button type="button" className={showScores ? styles.botOn : styles.bot} onClick={() => setShowScores((on) => !on)}>
@@ -1844,7 +1845,6 @@ export default function SensorFusion() {
           </div>
         </div>
       )}
-      <Foot accent={accent} />
     </main>
   );
 }

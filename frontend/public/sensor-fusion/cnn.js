@@ -134,8 +134,13 @@
     var pen = canvas.getContext("2d");
     if (!pen) return;
     pen.clearRect(0, 0, width, height);
-    pen.lineWidth = 2;
-    pen.font = "16px sans-serif";
+    var shownW = video.clientWidth || canvas.clientWidth || width;
+    var shownH = video.clientHeight || canvas.clientHeight || height;
+    var cover = Math.max(shownW / width, shownH / height) || 1;
+    var fontPx = Math.max(1, Math.round(13 / cover));
+    pen.lineWidth = Math.max(1, Math.round(2 / cover));
+    pen.font = fontPx + "px sans-serif";
+    var labelH = Math.round(fontPx * 1.25);
     result.hits.forEach(function (hit) {
       var x = Math.max(1, hit.xmin * width);
       var y = Math.max(1, hit.ymin * height);
@@ -146,15 +151,16 @@
       var text = (showLabels ? hit.name : "") + (showScores ? (showLabels && hit.name ? " " : "") + Math.round(hit.score * 100) + "%" : "");
       if (text) {
         pen.fillStyle = "#ffffff";
-        var pad = pen.measureText(text).width + 8;
-        pen.fillRect(x, Math.max(0, y - 18), pad, 18);
+        var pad = pen.measureText(text).width + Math.round(fontPx * 0.5);
+        pen.fillRect(x, Math.max(0, y - labelH), pad, labelH);
         pen.fillStyle = "#000000";
-        pen.fillText(text, x + 4, Math.max(14, y - 4));
+        pen.fillText(text, x + Math.round(fontPx * 0.25), Math.max(labelH - Math.round(fontPx * 0.25), y - Math.round(fontPx * 0.25)));
       }
     });
     if (showFps) {
       pen.fillStyle = "#ffe600";
-      pen.fillText("FPS: " + result.fps.toFixed(2), 30, 50);
+      pen.font = fontPx + "px sans-serif";
+      pen.fillText("FPS: " + result.fps.toFixed(2), Math.round(fontPx), Math.round(fontPx * 2));
     }
   }
 

@@ -181,6 +181,13 @@
 .foot {
   flex: 0 0 auto;
 }
+.work .foot [data-rcore-badge] {
+  padding: 2px 0;
+}
+.work .foot [data-rcore-icon] img,
+.work .foot [data-rcore-pill] img {
+  height: 26px !important;
+}
 .stage {
   position: relative;
   flex: 1 1 auto;
@@ -983,8 +990,9 @@
     gap: 8px;
     padding-bottom: 2px;
   }
-  .work .foot {
-    display: none;
+  .work .foot [data-rcore-icon] img,
+  .work .foot [data-rcore-pill] img {
+    height: 20px !important;
   }
   .work .stage {
     flex: 1 1 0;
@@ -1012,24 +1020,18 @@
     height: 22px;
     max-width: 26px;
   }
+  .work .piBot .bot,
+  .work .piBot .botOn,
+  .work .piBot .annotate,
+  .work .sensorSwitch,
+  .work .liveAlert {
+    font-size: 12px;
+  }
   .work .stage {
     flex: 1 1 0;
   }
   .work .stage video {
     object-fit: cover;
-  }
-  .work .foot {
-    position: absolute;
-    left: 50%;
-    bottom: 4px;
-    z-index: 6;
-    transform: translateX(-50%);
-    background: transparent;
-    pointer-events: none;
-  }
-  .work .foot a,
-  .work .foot button {
-    pointer-events: auto;
   }
 }
 /* rev 43: the labeler never hides its own controls. It scrolls (rev 36 had overflow: hidden, so rows 4-6, the film strip

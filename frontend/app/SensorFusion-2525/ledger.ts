@@ -328,6 +328,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "On a computer, and with the phone sideways, the camera fills the screen. The camera list and the model list are short, so the boxes stay visible. The info picture keeps its boxes on the objects when the screen is wide.",
       commit: "8fcdbf7",
     },
+    {
+      rev: 47,
+      date: "2026-10-05",
+      kind: "release",
+      text: "The R-CORE icon sits on its own row, just above the buttons. On a computer the button words and the box names stay one size, so they do not grow with the picture.",
+      commit: "",
+    },
   ],
 };
 
