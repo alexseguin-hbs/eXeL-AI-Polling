@@ -12,6 +12,7 @@
 #     remembers. I can only shoot targets approved.") Solo, TRAIN UP and QUAL 40: any number of marks; TARGET on a marked target focuses it, APPROVE and
 #     FIRE act on the mark under the bullseye; a new mark never drops another; a mark outlives its target going down. TRAIN DOWN: a hit ends that mark
 #     only. A room keeps its per-shot approval. QA MARKS_ARE_REMEMBERED.
+#  6. (Addendum 17: "also add R for reload on PC computer.") R is the RELOAD button, through focus like T / Space / F. QA KEY_R_RELOADS.
 #  Training keeps the r.157 light (green while targets stand) and shows no timer. QA QUAL_LIGHT_LAST_THREE_SECONDS, QUAL_TIMER_COUNTS;
 #  START_LIGHT_SEQUENCE re-pointed. The fire doctrine is untouched.
 import hashlib,os
@@ -105,6 +106,16 @@ rep("(q1.holes||[]).length===1 && !state.desig &&","(q1.holes||[]).length===1 &&
 rep("push('PEER_HIT_TALLIES_AND_CLEARS', (state.rangeHit|0)===h0+1&&!state.desig&&","push('PEER_HIT_TALLIES_AND_CLEARS', (state.rangeHit|0)===h0+1&&(!state.desig||keepsMark(q))&&")
 rep("{ const e0=(state.events||[]).length; rangeResetOnRecord('QA');","{ state.desig=null; state.tgtSlot={}; state.hiApproved=false; const e0=(state.events||[]).length; rangeResetOnRecord('QA');")
 rep("/^(LAST · 150 M RIGHT · DOWN|RED · T1 · 150 M RIGHT · PRESS FIRE)$/","/^(LAST · 150 M RIGHT · DOWN|RED · T\\d+ · 150 M RIGHT · PRESS FIRE)$/")
+# ── Addendum 17: R reloads on a PC ──
+rep("const GAME_KEYS=new Set(['Space','KeyT','KeyF','ArrowUp'","const GAME_KEYS=new Set(['Space','KeyT','KeyF','KeyR','ArrowUp'")
+rep("  if(e.code==='KeyF'){e.preventDefault();fireN(state.slot||1);}","  if(e.code==='KeyR'){e.preventDefault();magReload();} /* r.162 (Addendum 17): R is the RELOAD button */\n  if(e.code==='KeyF'){e.preventDefault();fireN(state.slot||1);}")
+ROW4=r'''    { /* r.162 · KEY_R_RELOADS (Addendum 17) — R is the RELOAD button, even with a button holding focus */
+      const m0=state.rangeMode, it=document.getElementById('intro'), itD=it?it.style.display:null; if(it) it.style.display='none'; state.rangeMode='bounce'; rangeReset(); state.mag.rounds=3; const b=document.getElementById('btnRangeReset')||document.querySelector('button'); if(b) b.focus();
+      window.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyR',key:'r',bubbles:true})); const full=state.mag.rounds===state.mag.cap; const r1=state.mag.rounds; window.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyR',key:'r',bubbles:true})); const refusedFull=state.mag.rounds===r1;
+      if(it) it.style.display=itD; if(b) b.blur(); state.rangeMode=m0; rangeReset();
+      push('KEY_R_RELOADS', full&&refusedFull, 'with a button focused, R with 3 rounds left loaded a full magazine ('+r1+' RDS); R again on a full magazine changed nothing'); }
+'''
+rep("    { /* r.157 · START_LIGHT_WORDS", ROW4+"    { /* r.157 · START_LIGHT_WORDS")
 c=s.count("revision:'0.161'"); rep("revision:'0.161'","revision:'0.162'",c)
 h=s.count("r0.161"); rep("r0.161","r0.162",h)
 for dead in ["revision:'0.161'","r0.161","if(chNum()!==0||!rangeArmed()) return 'R';"]:

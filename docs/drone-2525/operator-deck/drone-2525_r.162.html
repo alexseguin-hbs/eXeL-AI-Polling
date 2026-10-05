@@ -3740,7 +3740,7 @@ const rs=document.getElementById('btnSets');
 if(rs) rs.onclick=()=>{state.sets={l:1,r:1,dead:0.08,lx:0,ly:0,rx:0,ry:0};syncSetsUI();saveSets();toast('SETS RESET');};
 syncSetsUI();
 document.getElementById('menu').onclick=()=>document.getElementById('side').classList.toggle('open');
-const GAME_KEYS=new Set(['Space','KeyT','KeyF','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD']);
+const GAME_KEYS=new Set(['Space','KeyT','KeyF','KeyR','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD']);
 window.addEventListener('keydown',e=>{
   { const ae=document.activeElement; if(ae&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)) return; if(ae&&(ae.tagName==='SELECT'||ae.tagName==='BUTTON')&&GAME_KEYS.has(e.code)){ e.preventDefault(); ae.blur(); } else if(ae&&ae.tagName==='SELECT') ae.blur(); /* r.161: the game keys always reach the game — a focused button took Space, a picker took the letters */ const it=document.getElementById('intro'); if(it&&it.style.display!=='none'&&getComputedStyle(it).display!=='none') return; } /* r.134: typing a room code behind the intro marked a target and sent it down the wire (Thor A) */
   state.keys[e.code]=true;
@@ -3751,6 +3751,7 @@ window.addEventListener('keydown',e=>{
   if(e.code==='Digit1'||e.code==='Numpad1')targetN(1);
   if(e.code==='Digit2'||e.code==='Numpad2')targetN(2);
   if(e.code==='Digit3'||e.code==='Numpad3')targetN(3);
+  if(e.code==='KeyR'){e.preventDefault();magReload();} /* r.162 (Addendum 17): R is the RELOAD button */
   if(e.code==='KeyF'){e.preventDefault();fireN(state.slot||1);} /* r.161: F fires whether or not a slot number was set */
   if(e.code==='KeyP')spiralTest();
   if(e.code==='KeyK')saveAll();
@@ -4433,6 +4434,11 @@ function toolSelfTest(){
       state.rangeMode='qual40'; rangeReset(); qualResetTower(); state.desig=null; state.tgtSlot={}; const qq=rangeExpose(20,'C-150L'); aimUnitAt(uu,qq,-40,40); state.aimRef=qq; markLock(lockOn(),'QA'); for(let i=0;i<(EXPOSURE_BY_COUNT[1]+0.5)*20;i++) rangeTick(0.05); const qualKept=!qq.up&&!!markSlotOf(qq.id);
       state.desig=null; state.tgtSlot={}; state.aimRef=null; state.unit=s0; state.lane=l0; state.zoom=z0; state.qaArmed=qaA; state._qaSilent=S0; state.simDirect=sd0; state.rangeMode=m0; qualResetTower(); parkRangeTurrets(); rangeReset();
       push('MARKS_ARE_REMEMBERED', three&&twoRed&&hitA&&refused&&hitB&&keptUp&&downGone&&qualKept, 'TRAIN UP: three marked '+three+' · two approved, one still amber '+twoRed+' · hit an approved one '+hitA+' · the amber one refused, no round '+refused+' · the other approved one hit '+hitB+' · marks kept '+keptUp+' · TRAIN DOWN: the hit one gone, the other still red '+downGone+' · QUAL 40: the mark outlives the group '+qualKept); }
+    { /* r.162 · KEY_R_RELOADS (Addendum 17) — R is the RELOAD button, even with a button holding focus */
+      const m0=state.rangeMode, it=document.getElementById('intro'), itD=it?it.style.display:null; if(it) it.style.display='none'; state.rangeMode='bounce'; rangeReset(); state.mag.rounds=3; const b=document.getElementById('btnRangeReset')||document.querySelector('button'); if(b) b.focus();
+      window.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyR',key:'r',bubbles:true})); const full=state.mag.rounds===state.mag.cap; const r1=state.mag.rounds; window.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyR',key:'r',bubbles:true})); const refusedFull=state.mag.rounds===r1;
+      if(it) it.style.display=itD; if(b) b.blur(); state.rangeMode=m0; rangeReset();
+      push('KEY_R_RELOADS', full&&refusedFull, 'with a button focused, R with 3 rounds left loaded a full magazine ('+r1+' RDS); R again on a full magazine changed nothing'); }
     { /* r.157 · START_LIGHT_WORDS — the light carries its word for colour-blind players */
       const got=['R','Y','G'].map(L=>{ paintLight(L); const sl=document.getElementById('startLight'), w=document.getElementById('startWord'); const lamp=sl&&sl.querySelector('i.'+({R:'r',Y:'y',G:'g'})[L]); return L+':'+(w?w.textContent:'')+':'+(sl?sl.className:'')+':'+(lamp?getComputedStyle(lamp).opacity:''); }); paintCues();
       push('START_LIGHT_WORDS', got.join(' ')==='R:WAIT:R:1 Y:READY:Y:1 G:FIRE:G:1', got.join(' · ')+' — RED WAIT · YELLOW READY · GREEN FIRE, the lit lamp full and the others dim'); }
