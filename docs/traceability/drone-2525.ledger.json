@@ -431,7 +431,7 @@
    "date": "2026-10-05",
    "kind": "release",
    "text": "Operator deck r.164 served at /drone-2525/play.html (sha256 567f6ef3...). SETTINGS → VOICE: BROWSER · VOSK · MY VOICE, TEST MY VOICE (HEARD / MISSED / CONFUSED per word), TRAIN MY VOICE kept on the device — operator Addenda 19–20.",
-   "commit": "243be0b",
+   "commit": "bf8cb7c",
    "shipped": "PENDING"
   }
  ]

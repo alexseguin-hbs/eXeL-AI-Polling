@@ -373,7 +373,7 @@
    "date": "2026-10-05",
    "kind": "release",
    "why": "Operator deck r.164 — Addenda 19–20 (verbatim: \"choose top 3, and lets have option to select in settings, once settings, we can test for our specific voice quality of detection.\" · \"Voice calibration should be a separate mode (under settings) to test key words for one's voice profile and allow for acoustic modeling to enhance detection to a specfiic voice locally\"): Settings → VOICE — engine picker BROWSER (Web Speech, on-device where offered) · VOSK (on-device closed word list, loaded when picked) · MY VOICE (TF.js speech-commands head trained on the player's clips, kept in the browser); TEST MY VOICE scores TARGET · APPROVE · FIRE · RELOAD · ONE · TWO · THREE as HEARD / MISSED / CONFUSED per engine; TRAIN / RESET MY VOICE; one door voiceHeard → voiceAct for every engine; single-word phrase assembler. Voice stays a request. QA VOICE_SETTINGS, VOICE_PHRASE_ASSEMBLER, VOICE_TEST_SCORES; VOICE_NEGATION_HOLDS re-pointed to voiceAct.",
-   "commit": "243be0b",
+   "commit": "bf8cb7c",
    "shipped": "PENDING"
   }
  ],

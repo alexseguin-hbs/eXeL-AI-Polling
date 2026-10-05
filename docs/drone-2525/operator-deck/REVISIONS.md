@@ -916,7 +916,7 @@ Notes: `CLAUDE_CODE_NOTES_r163.md`. Patch: `patches/r162_to_r163.py` (15 asserte
 Operator (round folder ASK.md Addenda 19–20, verbatim): **"choose top 3, and lets have option to select in settings, once settings, we can test for our
 specific voice quality of detection."** and **"Voice calibration should be a separate mode (under settings) to test key words for one's voice profile and
 allow for acoustic modeling to enhance detection to a specfiic voice locally to feed model for maximizing chance of detection)."**
-Notes: `CLAUDE_CODE_NOTES_r164.md`. Patch: `patches/r163_to_r164.py` (10 asserted edits; the replaced voice block kept verbatim in `patches/r163_onresult.txt`). Artefact commit `243be0b`.
+Notes: `CLAUDE_CODE_NOTES_r164.md`. Patch: `patches/r163_to_r164.py` (10 asserted edits; the replaced voice block kept verbatim in `patches/r163_onresult.txt`). Artefact commit `bf8cb7c`.
 - **ENGINE** (Settings → VOICE, remembered on the device): BROWSER — Web Speech, on the device where the browser offers it · VOSK — on-device Kaldi with a
   closed word list, loaded only when picked (~40 MB once, from the Vosk author's site; unverified from the sandbox) · MY VOICE — TF.js speech-commands with
   a head trained on the player's own clips (~6 MB base once; the trained head stays in this browser).
