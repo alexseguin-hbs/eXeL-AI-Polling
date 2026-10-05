@@ -479,6 +479,7 @@ function Labeler({
   onBack: () => void;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
+  const fitRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const drag = useRef<Edge | null>(null);
   const edges = useRef<{ left: number; top: number; right: number; bottom: number }>({ ...START_BOX });
@@ -527,9 +528,45 @@ function Labeler({
       reviewer: box.reviewer,
     }));
     setMarks((current) => ({ ...current, [pic.id]: list }));
-    // The saved boxes come back as rows and outlines. The movable box starts fresh, so SAVE BOX adds the next one.
-    // Fix on a row is the only way to move a saved box.
+    const box = list[list.length - 1];
+    if (box) {
+      setLeft(box.left);
+      setTop(box.top);
+      setRight(box.right);
+      setBottom(box.bottom);
+      setLabelName(box.name);
+      setEditing(box.id);
+      return;
+    }
     resetBox();
+  }, [picId]);
+
+  useEffect(() => {
+    const fit = fitRef.current;
+    const frame = stageRef.current;
+    const image = imgRef.current;
+    if (!fit || !frame || !image) return;
+    const place = () => {
+      const width = image.naturalWidth;
+      const height = image.naturalHeight;
+      if (!width || !height) return;
+      const scale = Math.min(fit.clientWidth / width, fit.clientHeight / height);
+      if (!Number.isFinite(scale) || scale <= 0) return;
+      const nextW = Math.max(1, Math.floor(width * scale));
+      const nextH = Math.max(1, Math.floor(height * scale));
+      frame.style.width = `${nextW}px`;
+      frame.style.height = `${nextH}px`;
+      image.style.width = `${nextW}px`;
+      image.style.height = `${nextH}px`;
+    };
+    place();
+    const watch = new ResizeObserver(place);
+    watch.observe(fit);
+    image.addEventListener("load", place);
+    return () => {
+      watch.disconnect();
+      image.removeEventListener("load", place);
+    };
   }, [picId]);
 
   function point(event: ReactPointerEvent) {
@@ -740,7 +777,7 @@ function Labeler({
           </div>
         )}
         {pic ? (
-          <div className={styles.labelFit}>
+          <div className={styles.labelFit} ref={fitRef}>
           <div
             className={styles.labelFrame}
             ref={stageRef}

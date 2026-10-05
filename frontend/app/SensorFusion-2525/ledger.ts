@@ -391,6 +391,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "A tap does not change what the page found. A Windows computer stays a Windows computer. Raspberry Pi is chosen only when the machine says it is one.",
       commit: "fbae0d4",
     },
+    {
+      rev: 56,
+      date: "2026-10-05",
+      kind: "release",
+      text: "Annotate fits the whole picture in the window, the way LabelImg does. A picture that already has a box opens with the corners on that box.",
+      commit: "",
+    },
   ],
 };
 
