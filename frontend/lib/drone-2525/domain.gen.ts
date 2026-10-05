@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.046",
+  "revision": "0.047",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -400,7 +400,15 @@ export const DRONE_DOMAIN = {
    "date": "2026-10-05",
    "kind": "release",
    "why": "Operator deck r.161 — Addendum 12 (operator 2026-10-05, verbatim: \"T for Target, Space for Approve, and F for fire do not work. Also if I click with mouse on target, the center of bulleye to move to that location\"): T is the TARGET button (it stepped slots and marked another target); game keys beat a focused button or picker; a left click centres the bullseye on the clicked target and fires on the red mark under it; right click aims then marks/approves. QA MOUSE_CLICK_CENTRES_THE_BULLSEYE, KEYS_BEAT_FOCUS.",
-   "commit": "af6b541",
+   "commit": "0b45687",
+   "shipped": "cafdd9f"
+  },
+  {
+   "revision": "0.047",
+   "date": "2026-10-05",
+   "kind": "release",
+   "why": "Operator deck r.162 — Addendum 13 (operator 2026-10-05, verbatim: \"On qual, add timer and have red yellow green light on right vertical ... Red light should indicate at 7, yellow at 8, and green at 9 (if that's the qual actual time sequence)\"): in QUAL · 40 the start light stands vertical on the right (red top, green bottom) and lights the last three seconds of each group, one second a lamp — red at window − 2, yellow at window − 1, green at the end; a timer reads the seconds left on the group or to the next one. Windows stay the program of record (5/8/12/16 s); three targets light red 10, yellow 11, green 12. Addendum 14 (verbatim: \"system forgets target was targeted or approved, having to recreate 3 step process to fire each time\"): in TRAINING · RESET a marked and approved target keeps its mark and approval through the hit and the return — F fires again as soon as it stands, F while it is down holds and costs no round; TRAINING · DOWN and QUAL unchanged. QA MARK_SURVIVES_THE_RETURN. Addendum 15 (verbatim: \"If something is marked Target, it stays target. I should be able to target all 3-4 or all pop ups, then go to each one to approve, system remembers. I can only shoot targets approved.\"): solo, in TRAIN UP and QUAL 40 any number of marks are kept — TARGET on a marked target focuses it, APPROVE and FIRE act on the mark under the bullseye, a new mark never drops another, a mark outlives its target going down; TRAIN DOWN ends only the hit target's mark; a room keeps per-shot approval. QA MARKS_ARE_REMEMBERED. Addendum 16 (the team goal, then AI marks with HI approval, timed) recorded as direction. Addendum 17 (verbatim: \"also add R for reload on PC computer.\"): R is the RELOAD button, through focus. QA KEY_R_RELOADS. Correction: r.161's artefact commit is 0b45687 (the af6b541 cited was rewritten by the sync before push). QA QUAL_LIGHT_LAST_THREE_SECONDS, QUAL_TIMER_COUNTS.",
+   "commit": "9222164",
    "shipped": "PENDING"
   }
  ],

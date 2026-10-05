@@ -42,6 +42,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.159 | 2026-10-05 | Claude Code (real-size white lane signs that never cover a target; PC keys and mouse) | 423674 | d30d2ca9d0cc9d05c22b1c98cebcb1072c3f963a6a8fb71f6a0a8d41766644cb | PENDING (Verify Live) | 2c1cdd94fffe718bb085d4b2fa5c0e156f57d0da08dd87f3b9f10190315218b7 |
 | r.160 | 2026-10-05 | Claude Code (the lane signs readable: short numbers, black on white, ≥ 9 px) | 424082 | 1fbc365f84c43bb895289fed5f5d4343152cec4a8e49b6fb45ff3d5cf2398105 | PENDING (Verify Live) | a1f0236e5995ca44eedfc0b03fc2128dcc60a1ec11c7dc83ec3d23c916fb7787 |
 | r.161 | 2026-10-05 | Claude Code (T marks what the bullseye is on; keys beat focus; a left click centres the bullseye on the target) | 428373 | 543ed59859ab6c17329cf082d5fd22d6cf3f3305eb85179ca1ae7c61c9121403 | PENDING (Verify Live) | 10ef6640d7e7f7b8cc213d7056eafea1965a11a0101b40abc15b47c1c3b02774 |
+| r.162 | 2026-10-05 | Claude Code (QUAL timer + vertical light; marks remembered — mark many, approve each, fire only approved; R reloads) | 440719 | 10c900f74b9482ebfb7b5adc10fcee3b8e3330293ce040ac2ad711a7630cc46e | PENDING (Verify Live) | fea7fc43e6eeefd44f5faadabbe7ed447a35f4a0010695e0c0a092c0df06716b |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -859,3 +860,37 @@ Notes: `CLAUDE_CODE_NOTES_r161.md`. Patch: `patches/r160_to_r161.py` (14 asserte
   mouse centred is the one T and Space mark (overlapping plates at 1× had chosen the far one).
 - The mark toast says "MARKED 150 M RIGHT", not the target id. QA `MOUSE_CLICK_CENTRES_THE_BULLSEYE`, `KEYS_BEAT_FOCUS`; `PC_KEYS_AND_MOUSE` re-pointed.
 - Gates: 200 boot rows, 199/200 portrait and landscape (SYNC_DIRECT by construction); team e2e 10/0. r.160 shipped `1d9ea29`, LIVE in Verify Live #2473 (ce92c30).
+
+## r.162 — Claude Code: the QUAL timer and the range light (2026-10-05)
+Operator (round folder ASK.md Addendum 13, verbatim): **"On qual, add timer and have red yellow green light on right vertical, with Red, Yellow, green
+as time to next set of targets (1 second per each light). if 3 targets are up, 3 seconds per target (thats 9 second for group), so Red light should
+indicate at 7, yellow at 8, and green at 9 (if that's the qual actual time sequence)."**
+Notes: `CLAUDE_CODE_NOTES_r162.md`. Patch: `patches/r161_to_r162.py` (41 asserted edits). Artefact commit `9222164`.
+- **The light stands vertical on the right** — red on top, yellow, green at the bottom, like a range light (it was three lamps in a row).
+- **QUAL · 40 counts the last three seconds of each group, one second a lamp:** red at window − 2, yellow at window − 1, green at the window's end (the
+  group is done, the next set is coming; green holds one second). Dark otherwise. Training keeps the r.157 light (green while targets stand).
+- **The timer** under the lamps reads the seconds left on the group that is up ("12 S"), or the seconds to the next group ("NEXT 3 S").
+- **The windows are unchanged** — the program of record the operator supplied on 2026-09-23 (1 = 5 s · 2 = 8 s · 3 = 12 s · 4 = 16 s). His "3 s per
+  target, 9 s for three" was offered conditionally; three targets therefore light red at 10, yellow at 11, green at 12. Changing to 3 s per target is his call.
+- **Addendum 14 (verbatim): "buttons for target, T / approve, Space / Fire, F seem to work now: but system forgets target was targeted or approved,
+  having to recreate 3 step process to fire each time.  review and update".** Cause: a HIT cleared the mark and the slot, and the training tick
+  released the box again when the target finished falling; in TRAIN UP the same target stands up 3 s later, unmarked. Now in TRAIN UP
+  a marked and approved target keeps its mark and approval through the hit and the return — F fires again as soon as it stands; F while it is
+  down holds ("COMING BACK UP") and costs no round. The mark ends on RESTART, a lane or mode change, or a new mark. TRAIN DOWN and QUAL unchanged.
+- **Addendum 15 (verbatim): "If something is marked Target, it stays target.  I should be able to target all 3-4 or all pop ups, then go to each one
+  to approve, system remembers.  I can only shoot targets approved."** Cause: one designation at a time — a new TARGET released the shooter's own
+  unapproved mark (r.148 RE-MARK). Now, solo, in TRAIN UP and QUAL 40: any number of marks keep their boxes and T-numbers; TARGET on a marked target
+  focuses it (never re-makes it); APPROVE and FIRE act on the mark under the bullseye; only a red one fires; a mark outlives its target going down.
+  TRAIN DOWN ends only the hit target's mark. A two-person room keeps its per-shot approval from the other seat.
+- **Correction of r.148:** "a new mark releases my own unfinished mark (HOLD RE-MARK)" now holds only where marks do not persist (TRAIN DOWN, a room).
+- Addendum 16 (the team marks and approves as H.I., then fires together on best time; then AI marks with HI approval, timed against it) is recorded
+  as the direction, not built here.
+- Older rows re-pointed to the new law, each named: TARGET_FOLLOWS_THE_EYE, TARGET_BUTTON_FOLLOWS_THE_EYE, RANGE_HIT_50/300, SHEET_HIT_IS_A_HOLE,
+  PEER_HIT_TALLIES_AND_CLEARS, LAPSE_RELEASES_THE_BOX, EXPIRED_TARGET_SCORES_NOTHING (run in TRAIN DOWN), NEXT_BUTTON_LIT (run in TRAIN DOWN),
+  NO_RAW_IDS_ON_GLASS, RESET_ON_RECORD (starts clean); START_LIGHT_SEQUENCE / QUAL_DONE_SAYS_RESTART: red when QUAL is done.
+- **Addendum 17 (verbatim): "also add R for reload on PC computer."** R is the RELOAD button, and like T / Space / F it reaches the game through a
+  focused button. QA `KEY_R_RELOADS`.
+- Addendum 18 (T-numbers in marking order; approve and fire by number; voice words) is the next revision, r.163.
+- QA `KEY_R_RELOADS`, `MARKS_ARE_REMEMBERED`, `MARK_SURVIVES_THE_RETURN`, `QUAL_LIGHT_LAST_THREE_SECONDS`, `QUAL_TIMER_COUNTS`; `START_LIGHT_SEQUENCE` re-pointed to the new law.
+- **Correction:** the r.161 section names artefact commit `af6b541`; the sync before the push rewrote it to `0b45687`. r.161 shipped `cafdd9f`, LIVE in
+  Verify Live #2477.

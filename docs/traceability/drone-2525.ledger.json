@@ -407,7 +407,15 @@
    "date": "2026-10-05",
    "kind": "release",
    "text": "Operator deck r.161 served at /drone-2525/play.html (sha256 543ed598...). T MARKS WHAT THE BULLSEYE IS ON (it stepped slots), SPACE APPROVES, F FIRES, KEYS BEAT A FOCUSED BUTTON; A LEFT CLICK CENTRES THE BULLSEYE ON THE CLICKED TARGET — operator Addendum 12.",
-   "commit": "af6b541",
+   "commit": "0b45687",
+   "shipped": "cafdd9f"
+  },
+  {
+   "rev": 57,
+   "date": "2026-10-05",
+   "kind": "release",
+   "text": "Operator deck r.162 served at /drone-2525/play.html (sha256 10c900f7...). QUAL TIMER AND A VERTICAL RED · YELLOW · GREEN LIGHT ON THE RIGHT — THE LAST THREE SECONDS OF EACH GROUP, ONE SECOND A LAMP — operator Addendum 13. A MARKED, APPROVED TARGET KEEPS ITS MARK THROUGH THE HIT AND THE RETURN IN TRAINING · RESET — operator Addendum 14. MARKS ARE REMEMBERED — MARK MANY, APPROVE EACH, FIRE ONLY APPROVED — operator Addendum 15. R RELOADS ON A PC — operator Addendum 17. r.161 artefact commit corrected to 0b45687.",
+   "commit": "9222164",
    "shipped": "PENDING"
   }
  ]

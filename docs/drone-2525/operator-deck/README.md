@@ -1,6 +1,6 @@
 # Drone-2525 · operator deck — the carried package
 
-**HEAD is `drone-2525_r.161.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.161 (Claude Code, 2026-10-05, sha256 543ed59859ab6c17…, `HASHES_r161.sha256`): **T marks what the bullseye is on, Space approves, F fires — even with a button or picker focused; a left click centres the bullseye on the clicked target (a second click on the red mark fires), right click aims then marks** — operator Addendum 12. r.160 (readable signs) is below in REVISIONS.md.
+**HEAD is `drone-2525_r.162.html` — SERVED AS THE PLAYABLE at `/drone-2525/play.html`.** r.162 (Claude Code, 2026-10-05, sha256 10c900f74b9482eb…, `HASHES_r162.sha256`): **QUAL · 40 has a timer and a vertical red · yellow · green light on the right that lights the last three seconds of each group, one second a lamp; marks are remembered — mark many targets, approve each, fire only the approved, and a mark rides its target down and back up; R reloads on a PC** — operator Addenda 13–17. r.161 (PC keys and mouse) is below in REVISIONS.md.
 is ticked in live play (it was dead code behind a working button), spots from the seated pit and fires only on a red box through the
 one fire path; the score strip wraps instead of clipping the count and the QUAL clock off a phone; the approver's device tallies and
 takes the box down from the same canonical row; one sentence for an empty range; no lapse before the round starts; TARGET aims as
