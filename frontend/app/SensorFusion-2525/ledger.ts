@@ -403,7 +403,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "Level 1 is XML. Level 2 is XML. One JSON packet is written only after every picture in the open project has both.",
-      commit: "",
+      commit: "15a3136",
     },
   ],
 };
