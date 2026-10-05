@@ -252,3 +252,7 @@ by marking order + approve/fire by number (Addendum 18); r.164 = the voice engin
 ## Addendum 21 — the splash stays too long (operator 2026-10-05, verbatim, with a PC screenshot of r.162: T1 · 100 M RIGHT and T2 · 100 M LEFT red, a red splash oval under the bullseye)
 
 > Note: Splash now stays too long after firing.
+
+## Addendum 22 — a marked target cannot be reselected to approve (operator 2026-10-05, verbatim, with a PC screenshot: T1 50 M LEFT · T4 100 M LEFT · T5 100 M CENTRE red, T2 50 M RIGHT · T3 100 M RIGHT amber, the bullseye on T2) — `addendum22_reselect_to_approve_r163.png`
+
+> target is not allowing to be reselected to approve ; test throughally
