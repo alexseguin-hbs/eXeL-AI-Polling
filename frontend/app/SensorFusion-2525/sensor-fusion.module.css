@@ -632,14 +632,52 @@
   white-space: nowrap;
   cursor: pointer;
 }
-.screen select.lens {
+.screen select.lens,
+.lensBtn {
   width: auto;
   max-width: 4.6rem;
-  min-height: 28px;
+  min-height: 26px;
   margin-top: 0;
-  padding: 0 2px;
+  padding: 0 8px;
   font-size: 12px;
   flex: 0 0 auto;
+  border: 1px solid var(--sf-line, #2f6a38);
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+.lensWrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+.lensList {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  min-width: 88px;
+  margin: 0;
+  padding: 2px 0;
+  list-style: none;
+  background: #1c1c1c;
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+.lensList button {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.lensList button[aria-selected="true"] {
+  background: #0a4ea3;
 }
 .iconBtn,
 .bot,
@@ -761,8 +799,9 @@
   background: transparent;
   color: inherit;
   text-align: left;
-  padding: 10px 16px;
-  font-size: 16px;
+  padding: 4px 12px;
+  font-size: 13px;
+  line-height: 1.2;
   cursor: pointer;
 }
 .cloudOn {
@@ -851,19 +890,19 @@
 }
 .modelList {
   position: absolute;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 4px);
   left: 50%;
   z-index: 30;
-  min-width: 180px;
-  max-height: 50vh;
+  min-width: 148px;
+  max-height: min(220px, 34vh);
   overflow: auto;
   margin: 0;
-  padding: 6px 0;
+  padding: 2px 0;
   list-style: none;
   transform: translateX(-50%);
   background: #2c2c2c;
   color: #fff;
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 .work {
@@ -941,10 +980,46 @@
     flex: 1 1 0;
   }
   .work .stage video {
-    object-fit: contain;
+    object-fit: cover;
   }
   .work .idle p {
     margin: 2px 0;
+  }
+}
+@media (min-width: 900px) {
+  .work .piTop {
+    padding: 2px 10px;
+  }
+  .work .logo {
+    height: 18px;
+    max-width: 100px;
+  }
+  .work .piBot {
+    padding: 2px 8px;
+  }
+  .work .piBot img.trainIcon,
+  .work .annotate img.trainIcon {
+    height: 22px;
+    max-width: 26px;
+  }
+  .work .stage {
+    flex: 1 1 0;
+  }
+  .work .stage video {
+    object-fit: cover;
+  }
+  .work .foot {
+    position: absolute;
+    left: 50%;
+    bottom: 4px;
+    z-index: 6;
+    transform: translateX(-50%);
+    background: transparent;
+    pointer-events: none;
+  }
+  .work .foot a,
+  .work .foot button {
+    pointer-events: auto;
   }
 }
 /* rev 43: the labeler never hides its own controls. It scrolls (rev 36 had overflow: hidden, so rows 4-6, the film strip

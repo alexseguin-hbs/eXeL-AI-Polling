@@ -938,6 +938,7 @@ export default function SensorFusion() {
   const [trainStatus, setTrainStatus] = useState("");
   const [cloudSaved, setCloudSaved] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
+  const [lensOpen, setLensOpen] = useState(false);
   const [name, setName] = useState("");
   const [labelPick, setLabelPick] = useState("person");
   const [count, setCount] = useState("4");
@@ -1124,7 +1125,7 @@ export default function SensorFusion() {
 
   useEffect(() => {
     // Every dialog closes with Escape, so no screen traps the person. rev 43: Settings and the model list too (rev 42 said so).
-    if (!annotate && !savedNote && !infoOpen && !settings && !modelsOpen) return;
+    if (!annotate && !savedNote && !infoOpen && !settings && !modelsOpen && !lensOpen) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       setAnnotate(false);
@@ -1132,10 +1133,11 @@ export default function SensorFusion() {
       setInfoOpen(false);
       setSettings(false);
       setModelsOpen(false);
+      setLensOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [annotate, savedNote, infoOpen, settings, modelsOpen]);
+  }, [annotate, savedNote, infoOpen, settings, modelsOpen, lensOpen]);
 
   function chooseScheme(next: SchemeId | "custom", hex?: string) {
     const color = hex || customHex;
@@ -1502,21 +1504,45 @@ export default function SensorFusion() {
           <img src={sensorOn ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
           SENSOR 1: {busy ? "…" : sensorOn ? "ON" : "OFF"}
         </button>
-        <select
-          className={styles.lens}
-          aria-label="Camera"
-          value={lens}
-          onChange={(event) => {
-            const next = event.target.value as Lens;
-            setLens(next);
-            if (sensorOn) void openSensor(next);
-          }}
-        >
-          <option value="ultra">0.5x</option>
-          <option value="wide">Wide</option>
-          <option value="tele">2.5x</option>
-          <option value="front">Front</option>
-        </select>
+        <div className={styles.lensWrap}>
+          <button
+            type="button"
+            className={styles.lensBtn}
+            aria-label="Camera"
+            aria-expanded={lensOpen}
+            aria-haspopup="listbox"
+            onClick={() => setLensOpen((open) => !open)}
+          >
+            {lens === "ultra" ? "0.5x" : lens === "tele" ? "2.5x" : lens === "front" ? "Front" : "Wide"}
+          </button>
+          {lensOpen && (
+            <ul className={styles.lensList} role="listbox">
+              {(
+                [
+                  ["ultra", "0.5x"],
+                  ["wide", "Wide"],
+                  ["tele", "2.5x"],
+                  ["front", "Front"],
+                ] as const
+              ).map(([id, label]) => (
+                <li key={id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={lens === id}
+                    onClick={() => {
+                      setLens(id);
+                      setLensOpen(false);
+                      if (sensorOn) void openSensor(id);
+                    }}
+                  >
+                    {label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <div className={styles.tools}>
           <ProgramDownload />
           <button type="button" className={styles.iconBtn} aria-label="Info" onClick={() => setInfoOpen((open) => !open)}>
