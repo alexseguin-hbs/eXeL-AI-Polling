@@ -361,7 +361,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "When the name is already on the box, it is not repeated on a bar across the picture. With names off, the one name being read sits under the meter, only as wide as the words.",
-      commit: "",
+      commit: "4377b06",
     },
   ],
 };
