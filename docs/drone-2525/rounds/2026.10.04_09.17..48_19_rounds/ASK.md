@@ -97,3 +97,13 @@ lane-local coordinates). So the camera-facing burst of Addendum 4 is NOT built. 
 - Gate: QA row SPLASH_FROM_TARGET_BASE replaces SPLASH_FROM_TARGET_CENTRE — at 50 m and 300 m the ring's centre is the target's base
   point (world distance ≤ 0.05 m, projected ≤ 2 px horizontally under the target), it is an oval on the screen (projected width >
   height), and a miss draws none.
+
+## Addendum 6 — phantom targets and real lane signs (operator 2026-10-05 morning, verbatim; addressed "Grok", sent to Claude Code)
+
+> Grok, for Range on Qual and Train Up and Train Down, there are grey phantom targets.  Also the lane markers need to be on the actual "sign"   <-- 20 21 --> like attached
+
+Attached (not saved by the chat — described here): an Army National Guard "POP-UP COURSE" photo — a green E-type pop-up silhouette on
+a berm, and above/behind it a small WHITE rectangular board on a post carrying the lane numbers in big black digits, "5 6".
+Reading: (1) no grey ghost silhouettes on the range in Qual · 40, Train Up or Train Down — a target is either up (drawn) or not drawn;
+(2) the lane marker is a drawn sign board (a rectangle on a post, like the photo) with the numbers ON the board, "◂ 20 · 21 ▸", not
+floating text beside a post.
