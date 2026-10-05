@@ -238,3 +238,13 @@ exactly TARGET / APPROVE / FIRE (Web Speech API vs an on-device keyword model) a
 Reading: research first (no build until reported): an on-device keyword model small enough for the deck (smaller than the vision CNN), integrated the
 way Sensor Fusion carries its TFLite model; and a VOICE CALIBRATION mode under Settings where a player says TARGET / APPROVE / FIRE (and the numbers)
 to test detection and train a local, per-voice layer that stays on the device. Voice stays a request, never authority — "fire" fires only a red box.
+
+## Addendum 20 — top 3 voice engines, selectable in Settings, tested per voice (operator 2026-10-05, verbatim)
+
+> choose top 3, and lets have option to select in settings, once settings, we can test for our specific voice quality of detection.
+
+Choice (from research/2026.10.05_16.59..59): (1) BROWSER — Web Speech API, on the device where the browser allows, matched only against our words;
+(2) VOSK — on-device Kaldi in the browser with a closed grammar (target · approve · fire · reload · one…nine), works with no training;
+(3) MY VOICE — TF.js speech-commands with a small head trained on the player's own clips in Settings. Settings → Voice: pick the engine, then a
+test that says a word, listens, and scores each word for that voice (heard / missed / confused-with), kept on the device. Order: r.163 = T-numbers
+by marking order + approve/fire by number (Addendum 18); r.164 = the voice engine picker + per-voice test + calibration.
