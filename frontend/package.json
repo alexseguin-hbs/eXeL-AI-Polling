@@ -6,7 +6,7 @@
     "guard": "node scripts/integrity-guard.mjs",
     "predev": "node scripts/integrity-guard.mjs && node scripts/copy-pdf-worker.mjs && node scripts/copy-migration.mjs && node scripts/gen-i18n-index.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/lockcheck.mjs && node scripts/integrity-guard.mjs && node scripts/gen-seal-html.mjs && node scripts/copy-pdf-worker.mjs && node scripts/copy-migration.mjs && node scripts/gen-i18n-index.mjs && node tests/sign-invariant.test.mjs && node tests/sign-lexicon-voice.test.mjs && node tests/sensor-fusion-r4a.test.mjs",
+    "prebuild": "node scripts/lockcheck.mjs && node scripts/integrity-guard.mjs && node scripts/gen-seal-html.mjs && node scripts/copy-pdf-worker.mjs && node scripts/copy-migration.mjs && node scripts/gen-i18n-index.mjs && node tests/sign-invariant.test.mjs && node tests/sign-lexicon-voice.test.mjs && node tests/sensor-fusion-r4a.test.mjs && node tests/financial-surface.test.mjs",
     "test:sf-r4a": "node tests/sensor-fusion-r4a.test.mjs",
     "test:sf-capture": "node --experimental-strip-types tests/sensor-fusion-capture.test.mjs",
     "test:sf-layout-smoke": "node scripts/sf-layout-smoke.mjs",

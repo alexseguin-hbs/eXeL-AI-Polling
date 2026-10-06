@@ -741,12 +741,12 @@ export function FinancialCommandUX1() {
               unit selector on the SAME line, immediately left of the gear */}
           {/* r.042 (addendum 81 "Move transaction left of settings and move accrual rate to right of Available · swap these two"):
               line 1 = ACCRUAL UNITS · + Transaction (the gear's height) · gear; line 2 = Available (left) · Accrual Rate (right) */}
-          <div data-fin-accrual-top className="flex items-center gap-2 whitespace-nowrap">
-            <div className="flex min-w-0 items-center gap-2">
-              <span className={LABEL}>{t("fin.accrual_rate")}:</span>
+          <div data-fin-accrual-top className="flex items-center gap-1 whitespace-nowrap">
+            <div className="flex min-w-0 items-center gap-1">
+              <span className="text-xs font-bold text-primary">{t("fin.accrual_rate")}:</span>
               {bal.ratePerMinCents > 0 && (
                 <div data-fin-rate-block className="flex items-center gap-1 text-primary">
-                  <span data-fin-rate className="font-mono text-base tabular-nums">{rateText}</span>
+                  <span data-fin-rate className="font-mono text-sm tabular-nums">{rateText}</span>
                   <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-primary">
                     {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
                   </select>
@@ -754,8 +754,8 @@ export function FinancialCommandUX1() {
               )}
               {!cur.symbol && <div data-fin-currency-label className="text-[11px] text-muted-foreground">{cur.code} · {cur.name}</div>}
             </div>
-            <div className="ml-auto flex shrink-0 items-center gap-2">
-              {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} ref={doorRef} className="h-8 shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
+            <div className="ml-auto flex shrink-0 items-center gap-1">
+              {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} ref={doorRef} className="h-8 shrink-0 rounded-md bg-primary px-2 text-xs font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
               <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => { setAccrualGear((g) => !g); setDefOpen(null); }} className={`flex h-8 w-9 shrink-0 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
             </div>
           </div>
