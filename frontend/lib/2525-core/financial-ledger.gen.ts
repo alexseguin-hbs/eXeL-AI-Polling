@@ -1163,7 +1163,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-05",
       "kind": "correction",
       "text": "r.090 correction — the black rate box matches the height of + Transaction and the gear, and it is only as wide as /day.",
-      "commit": ""
+      "commit": "7ec82c4"
     }
   ]
 };
