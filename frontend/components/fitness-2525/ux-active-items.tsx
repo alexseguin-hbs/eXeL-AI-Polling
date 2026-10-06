@@ -7,10 +7,12 @@ import type { CloudState } from "@/lib/fitness-2525/cloud";
 import type { FitDay, FitWorkout } from "@/lib/fitness-2525/types";
 import styles from "./fitness-2525.module.css";
 import { C, ROUTE, type PlanStatus } from "./ux-helpers";
+import { AuthGate } from "./auth-gate";
 
 export function ActiveItemsRail({
   day, selected, setSelectedId, toggleWorkout, checkinDraft, setCheckinDraft, addCheckin,
   owner, planStatus, statusColor, shareMsg, cloudState, completed, onShare, onSubmit, inputStyle,
+  onSignIn, authLoading,
 }: {
   day: FitDay;
   selected: FitWorkout | null;
@@ -28,6 +30,8 @@ export function ActiveItemsRail({
   onShare: () => void;
   onSubmit: () => void;
   inputStyle: CSSProperties;
+  onSignIn: () => void;
+  authLoading?: boolean;
 }) {
   return (
     <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border" style={{ background: C.panel, borderColor: C.border }}>
@@ -45,7 +49,7 @@ export function ActiveItemsRail({
               <span style={{ color: w.status === "completed" ? C.green : C.text }}>{(w.title || w.type).slice(0, 22)}{w.status === "completed" ? "" : ""}</span>
               <span className={`font-mono ${styles.mono}`} style={{ color: C.gold }}>{w.timing || w.type}</span>
             </button>
-            <button type="button" title="Toggle done" onClick={() => toggleWorkout(w.id)} className="shrink-0 p-0.5 opacity-70 hover:opacity-100">
+            <button type="button" title={owner ? "Toggle done" : "Sign in to edit"} disabled={!owner} onClick={() => owner && toggleWorkout(w.id)} className="shrink-0 p-0.5 opacity-70 hover:opacity-100">
               {w.status === "completed" ? <Check className="h-3 w-3" style={{ color: C.green }} /> : <span style={{ color: C.dim }}>○</span>}
             </button>
           </div>
@@ -64,16 +68,23 @@ export function ActiveItemsRail({
         )}
       </div>
       <div className="shrink-0 space-y-1 border-t p-1.5" style={{ borderColor: C.border }}>
-        <input
-          style={inputStyle}
-          placeholder="Quick check-in…"
-          value={checkinDraft}
-          onChange={(e) => setCheckinDraft(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") addCheckin(); }}
-        />
-        <button type="button" className="w-full rounded border px-1 py-1 text-[8px] font-semibold" style={{ borderColor: C.border, color: C.cyan }} onClick={() => addCheckin()} disabled={!checkinDraft.trim()}>
-          <Plus className="mr-0.5 inline h-3 w-3" /> LOG CHECK-IN
-        </button>
+        {owner ? (
+          <>
+            <input
+              style={inputStyle}
+              placeholder="Quick check-in…"
+              value={checkinDraft}
+              onChange={(e) => setCheckinDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") addCheckin(); }}
+            />
+            <button type="button" className="w-full rounded border px-1 py-1 text-[8px] font-semibold" style={{ borderColor: C.border, color: C.cyan }} onClick={() => addCheckin()} disabled={!checkinDraft.trim()}>
+              <Plus className="mr-0.5 inline h-3 w-3" /> LOG CHECK-IN
+            </button>
+          </>
+        ) : (
+          <AuthGate compact onSignIn={onSignIn} isLoading={authLoading}
+            message="Sign in with Auth0 to log check-ins and mark workouts done." />
+        )}
         <div className="flex items-center justify-between pt-1">
           <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Plan</span>
           <span className="rounded px-1 text-[8px] font-bold uppercase" style={{ color: statusColor, background: `${statusColor}18` }}>{planStatus}</span>
@@ -87,7 +98,7 @@ export function ActiveItemsRail({
             ? (planStatus === "synced" ? "Cloud synced — human authority retained"
               : planStatus === "pending" ? "Awaiting cloud write"
               : "Draft on device — Submit pushes fit-day-*")
-            : "Local / device only — cloud needs Auth0 (fit2525: + sub)")}
+            : "Sign in with Auth0 to save plans and workouts to your account")}
         </div>
         <div className="flex items-center gap-1 text-[8px]" style={{ color: C.dim }}>
           {owner && cloudState === "saved" ? <Cloud className="h-3 w-3" style={{ color: C.green }} /> : <CloudOff className="h-3 w-3" />}

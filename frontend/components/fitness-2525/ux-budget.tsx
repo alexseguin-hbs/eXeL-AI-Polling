@@ -7,9 +7,11 @@ import type { buildDayBudget } from "@/lib/fitness-2525/budget";
 import styles from "./fitness-2525.module.css";
 import { C, blankNum, type DayField } from "./ux-helpers";
 import { BudgetBar, Panel } from "./ux-widgets";
+import { AuthGate } from "./auth-gate";
 
 export function EnergyBudgetPanel({
   day, budget, exampleMode, toggleExample, setField, setWeightLb, setWindowIntake, applyDay, inputStyle, btnGhost,
+  signedIn, onSignIn, authLoading,
 }: {
   day: FitDay;
   budget: ReturnType<typeof buildDayBudget>;
@@ -21,6 +23,9 @@ export function EnergyBudgetPanel({
   applyDay: (updater: (prev: FitDay) => FitDay) => void;
   inputStyle: CSSProperties;
   btnGhost: CSSProperties;
+  signedIn: boolean;
+  onSignIn: () => void;
+  authLoading?: boolean;
 }) {
   return (
     <Panel
@@ -55,42 +60,50 @@ export function EnergyBudgetPanel({
         <span>· Full-day target: <span className={styles.mono} style={{ color: C.text }}>{budget.projectedIntakeTargetKcal != null ? `${budget.projectedIntakeTargetKcal} kcal` : "—"}</span>{budget.projectedBurnKcal != null ? ` (projected burn ${budget.projectedBurnKcal})` : ""}</span>
         <span>· Sugar cap (full day): <span className={styles.mono} style={{ color: C.text }}>{budget.sugarCapG != null ? `${budget.sugarCapG} g` : "—"}</span></span>
       </div>
-      <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-5">
-        <label className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
-          Weight (lb)
-          <input style={inputStyle} className={styles.mono} inputMode="decimal" placeholder="—" value={day.weight?.value != null ? String(day.weight.value) : ""} onChange={(e) => setWeightLb(e.target.value)} />
-        </label>
-        <label className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
-          Height (cm)
-          <input style={inputStyle} className={styles.mono} inputMode="decimal" placeholder="—" value={blankNum(day.height_cm)} onChange={(e) => setField("height_cm", e.target.value)} />
-        </label>
-        <label className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
-          Age (yr)
-          <input style={inputStyle} className={styles.mono} inputMode="decimal" placeholder="—" value={blankNum(day.age_yr)} onChange={(e) => setField("age_yr", e.target.value)} />
-        </label>
-        <label className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
-          Sex
-          <select
-            aria-label="Sex"
-            value={day.sex ?? ""}
-            onChange={(e) => applyDay((prev) => ({ ...prev, sex: (e.target.value || null) as FitDay["sex"] }))}
-            style={{ ...inputStyle, color: C.cyan }}
-          >
-            <option value="">—</option>
-            <option value="male">male</option>
-            <option value="female">female</option>
-            <option value="unspecified">unspecified</option>
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
-          Sugar out (g)
-          <input style={inputStyle} className={styles.mono} inputMode="decimal" placeholder="—" value={blankNum(day.sugar_out_g)} onChange={(e) => setField("sugar_out_g", e.target.value)} />
-        </label>
-      </div>
+      {signedIn || exampleMode ? (
+        <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <label className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
+            Weight (lb)
+            <input style={inputStyle} className={styles.mono} inputMode="decimal" placeholder="—" disabled={!signedIn} value={day.weight?.value != null ? String(day.weight.value) : ""} onChange={(e) => setWeightLb(e.target.value)} />
+          </label>
+          <label className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
+            Height (cm)
+            <input style={inputStyle} className={styles.mono} inputMode="decimal" placeholder="—" disabled={!signedIn} value={blankNum(day.height_cm)} onChange={(e) => setField("height_cm", e.target.value)} />
+          </label>
+          <label className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
+            Age (yr)
+            <input style={inputStyle} className={styles.mono} inputMode="decimal" placeholder="—" disabled={!signedIn} value={blankNum(day.age_yr)} onChange={(e) => setField("age_yr", e.target.value)} />
+          </label>
+          <label className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
+            Sex
+            <select
+              aria-label="Sex"
+              value={day.sex ?? ""}
+              disabled={!signedIn}
+              onChange={(e) => applyDay((prev) => ({ ...prev, sex: (e.target.value || null) as FitDay["sex"] }))}
+              style={{ ...inputStyle, color: C.cyan }}
+            >
+              <option value="">—</option>
+              <option value="male">male</option>
+              <option value="female">female</option>
+              <option value="unspecified">unspecified</option>
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
+            Sugar out (g)
+            <input style={inputStyle} className={styles.mono} inputMode="decimal" placeholder="—" disabled={!signedIn} value={blankNum(day.sugar_out_g)} onChange={(e) => setField("sugar_out_g", e.target.value)} />
+          </label>
+        </div>
+      ) : (
+        <div className="mb-2">
+          <AuthGate compact onSignIn={onSignIn} isLoading={authLoading}
+            message="Sign in with Auth0 to enter personal weight, height, age, and sugar — or load labeled EXAMPLE DATA." />
+        </div>
+      )}
       {budget.windows.map((w) => (
         <div key={w.id}>
           <BudgetBar w={w} />
-          {w.kind === "workout" && (
+          {w.kind === "workout" && signedIn && (
             <label className="mb-2 flex items-center gap-2 text-[9px]" style={{ color: C.dim }}>
               Logged intake (kcal) · {w.label.slice(0, 28)}
               <input
