@@ -38,7 +38,7 @@ r = await J(await handleAi(req({ task: "draft", prompt: "A promissory note: Dann
 const di = JSON.parse(calls.at(-1).init.body);
 ok(r.status === 200 && r.body.model === "grok-2-latest" && r.body.result.title === "Pagaré" && r.body.result.signers.length === 2 && /Spanish/.test(di.messages[0].content), "grok draft → title, body, signers; the language rides in the prompt");
 
-// auto picks the first configured; out-of-range fractions are clamped; a bad model reply is a 502, not a crash
+// auto picks the cheapest configured (gemini→openai→grok→claude); out-of-range fractions are clamped; a bad model reply is a 502, not a crash
 mock({ choices: [{ message: { content: '{"x":1.4,"y":-0.2,"w":0.3,"h":0.03,"confidence":2}' } }] });
 r = await J(await handleAi(req({ task: "place", image: PNG, signer: "A" }), { XAI_API_KEY: "x", OPENAI_API_KEY: "o" })); ok(r.body.provider === "openai" && r.body.result.x === 1 && r.body.result.y === 0 && r.body.result.confidence === 1, "auto → openai first; fractions clamped to 0..1");
 mock({ choices: [{ message: { content: "sorry, no" } }] });
@@ -47,12 +47,16 @@ r = await J(await handleAi(req({ task: "draft", prompt: "hi" }), { OPENAI_API_KE
 globalThis.fetch = realFetch;
 
 // Claude (Anthropic Messages API): x-api-key + anthropic-version headers, claude-opus-5, text blocks read back; a refusal is an error;
-// Claude is first in the auto order; the typed names ride into the prompt and win over the model's own list (operator 2026-09-09)
+// Auto prefers cheapest; Claude-only still works. Typed names ride into the prompt and win over the model's own list (operator 2026-09-09)
 { calls.length = 0;
   mock({ id: "msg_1", stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify({ title: "Study Agreement", body: "## Recitals\n\nAlex Seguin (Parent) and Lucas Seguin (Child) agree...\n\n## Signatures\n\nParent: Alex Seguin ____ Date: ____", signers: [{ role: "Parent", name: "Model Guess" }] }) }] });
-  const d = await J(await handleAi(req({ task: "draft", prompt: "A child and a parent agree the child studies 60 minutes a day", signers: [{ role: "Parent", name: "Alex Seguin" }, { role: "Child", name: "Lucas Seguin" }] }), { ANTHROPIC_API_KEY: "sk-ant-x", OPENAI_API_KEY: "k" }));
+  // auto = cheapest configured (gemini → openai → grok → claude). Claude-only env still reaches Claude.
+  const d = await J(await handleAi(req({ task: "draft", prompt: "A child and a parent agree the child studies 60 minutes a day", signers: [{ role: "Parent", name: "Alex Seguin" }, { role: "Child", name: "Lucas Seguin" }] }), { ANTHROPIC_API_KEY: "sk-ant-x" }));
   const c = calls[0]; const sent = JSON.parse(c.init.body);
-  ok(d.status === 200 && d.body.provider === "claude" && d.body.model === "claude-opus-5", `auto picks Claude first and names the model (${d.body.provider} ${d.body.model})`);
+  ok(d.status === 200 && d.body.provider === "claude" && d.body.model === "claude-opus-5", `auto with only Claude configured uses Claude (${d.body.provider} ${d.body.model})`);
+  mock({ candidates: [{ content: { parts: [{ text: '{"title":"T","body":"B","signers":[]}' }] } }] });
+  const cheap = await J(await handleAi(req({ task: "draft", prompt: "A child and a parent agree the child studies 60 minutes a day" }), { ANTHROPIC_API_KEY: "sk-ant-x", OPENAI_API_KEY: "k", GEMINI_API_KEY: "gk" }));
+  ok(cheap.status === 200 && cheap.body.provider === "gemini" && cheap.body.model === "gemini-1.5-flash", `auto picks cheapest configured (gemini) when several keys exist (got ${cheap.body.provider})`);
   ok(c.url === "https://api.anthropic.com/v1/messages" && c.init.headers["x-api-key"] === "sk-ant-x" && c.init.headers["anthropic-version"] === "2023-06-01" && sent.model === "claude-opus-5" && sent.max_tokens >= 4000 && sent.messages[0].role === "user", "the Messages API request has the right endpoint, headers, model and shape");
   const promptText = sent.messages[0].content[0].text;
   ok(/Parent: Alex Seguin; Child: Lucas Seguin/.test(promptText) && /WHOLE document/.test(promptText) && /Signatures/.test(promptText) && /governing law/i.test(promptText), "the draft prompt asks for a complete legal document and carries the typed names and roles");
