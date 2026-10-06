@@ -13,10 +13,10 @@ export async function aiPlace(image: string, signer: string, provider: AiProvide
   if (d.configured === false) return null; if (d.error) throw new Error(String(d.error));
   return { provider: String(d.provider ?? ""), result: (d.result as AiPlace | null) ?? null };
 }
-export async function aiDraft(prompt: string, lang: string, provider: AiProvider = "auto", signers: { role: string; name: string }[] = []): Promise<{ provider: string; result: AiDraft } | null> {
+export async function aiDraft(prompt: string, lang: string, provider: AiProvider = "auto", signers: { role: string; name: string }[] = []): Promise<{ provider: string; model: string; result: AiDraft } | null> {
   const d = await jsonOf(await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ task: "draft", prompt, lang, provider, signers }), signal: AbortSignal.timeout(45_000) }));
   if (d.configured === false) return null; if (d.error) throw new Error(String(d.error));
-  return { provider: String(d.provider ?? ""), result: d.result as AiDraft };
+  return { provider: String(d.provider ?? ""), model: String(d.model ?? ""), result: d.result as AiDraft };
 }
 
 /** Facts the pod hands the model. Everything here was measured or witnessed; nothing is inferred. */
