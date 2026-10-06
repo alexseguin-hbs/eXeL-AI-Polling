@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 154 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 155 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1087,6 +1087,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.079 correction — the Rate line in the gear follows the unit on the card. /sec, /min, /hr, or /day changes the live equation. The 30-day result stays the month plan and is not added into Income.",
       "commit": "85c43e2"
+    },
+    {
+      "rev": 155,
+      "date": "2026-10-05",
+      "kind": "correction",
+      "text": "r.080 correction — the Accrual header is one line. Accrual Rate and the amount sit on the left. + Transaction and the gear sit on the right edge of the card.",
+      "commit": ""
     }
   ]
 };
