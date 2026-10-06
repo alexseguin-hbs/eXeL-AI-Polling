@@ -112,9 +112,7 @@ export function EnergyUnitsCard({
           </dd>
         </div>
         <div>
-          <dt className="text-[9px] uppercase" style={{ color: C.red }}>
-            Burn (out)
-          </dt>
+          <dt className="text-[9px] uppercase" style={{ color: C.dim }}>Burn (out)</dt>
           <dd className={`text-sm font-semibold tabular-nums ${styles.mono}`} style={{ color: C.red }}>
             {burnOutKcal != null ? `${burnOutKcal} kcal` : "—"}
           </dd>
