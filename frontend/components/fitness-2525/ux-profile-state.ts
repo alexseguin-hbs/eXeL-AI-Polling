@@ -27,6 +27,11 @@ export function useFitProfile({ cloudKey, day, hydrated }: { cloudKey: string | 
   }, []);
   const setRateUnit = useCallback((u: EnergyRateUnit) => updateProfile({ settings: { rate_unit: u } }), [updateProfile]);
   const setShowAllRates = useCallback((on: boolean) => updateProfile({ settings: { show_all_rates: on } }), [updateProfile]);
+  const _ap = profile.settings?.ai_provider;
+  const aiProvider = (_ap === "openai" || _ap === "gemini" || _ap === "grok" || _ap === "claude" || _ap === "auto") ? _ap : "auto";
+  const setAiProvider = useCallback((p: "auto" | "openai" | "gemini" | "grok" | "claude") => {
+    updateProfile({ settings: { ai_provider: p } });
+  }, [updateProfile]);
 
   useEffect(() => { setProfile(loadDeviceProfile()); setProfileHydrated(true); }, []);
   useEffect(() => { if (profileHydrated) saveDeviceProfile(profile); }, [profile, profileHydrated]);
@@ -51,5 +56,5 @@ export function useFitProfile({ cloudKey, day, hydrated }: { cloudKey: string | 
     setHistory(pts);
   }, [day, hydrated]);
 
-  return { profile, updateProfile, history, rateUnit, showAllRates, setRateUnit, setShowAllRates };
+  return { profile, updateProfile, history, rateUnit, showAllRates, setRateUnit, setShowAllRates, aiProvider, setAiProvider };
 }
