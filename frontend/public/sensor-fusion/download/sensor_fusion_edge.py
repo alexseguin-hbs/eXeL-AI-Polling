@@ -38,6 +38,7 @@ import urllib.request
 BASE = "https://raw.githubusercontent.com/De-Risking-Strategies/SensorFusion/master/"
 APP = "https://raw.githubusercontent.com/alexseguin-hbs/eXeL-AI-Polling/main/frontend/public/sensor-fusion/edge/sensor_fusion_edge.py"
 LIST = "https://raw.githubusercontent.com/alexseguin-hbs/eXeL-AI-Polling/main/frontend/public/sensor-fusion/models.json"
+EDGE = "https://raw.githubusercontent.com/alexseguin-hbs/eXeL-AI-Polling/main/frontend/public/sensor-fusion/edge-contract.json"
 
 
 def model_rows():
@@ -60,6 +61,55 @@ def model_rows():
     except Exception:
         print("The model list is not on this computer.")
         return []
+
+
+def edge_contract():
+    global _EDGE
+    if _EDGE is not None:
+        return _EDGE
+    here = os.path.dirname(os.path.abspath(__file__))
+    names = [
+        os.path.join(here, "edge-contract.json"),
+        os.path.join(here, "..", "edge-contract.json"),
+        os.path.join(os.path.expanduser("~"), "Home", "SensorFusion", "edge-contract.json"),
+    ]
+    if os.environ.get("USERPROFILE"):
+        names.insert(2, os.path.join(os.environ["USERPROFILE"], "Home", "SensorFusion", "edge-contract.json"))
+    for path in names:
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8") as handle:
+                _EDGE = json.load(handle)
+                return _EDGE
+    _EDGE = {"folder": ["Home", "SensorFusion"], "platforms": []}
+    try:
+        dest = names[-1]
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        urllib.request.urlretrieve(EDGE, dest)
+        with open(dest, encoding="utf-8") as handle:
+            _EDGE = json.load(handle)
+    except Exception:
+        pass
+    return _EDGE
+
+
+_EDGE = None
+
+
+def folder_parts():
+    parts = edge_contract().get("folder")
+    if isinstance(parts, list) and parts and all(isinstance(part, str) and part for part in parts):
+        return parts
+    return ["Home", "SensorFusion"]
+
+
+def shown_folder():
+    data = edge_contract()
+    name = platform_name()
+    for row in data.get("platforms", []):
+        if row.get("py") == name or row.get("id") == name:
+            show = row.get("show") or folder_parts()
+            return str(row.get("sep") or "/").join(show)
+    return os.path.join(*folder_parts())
 
 
 def platform_name():
@@ -86,21 +136,22 @@ def platform_name():
 
 
 def home():
+    parts = folder_parts()
     name = platform_name()
     if name == "windows":
-        return os.path.join(os.environ.get("USERPROFILE", "C:\\"), "Home", "SensorFusion")
+        return os.path.join(os.environ.get("USERPROFILE", "C:\\"), *parts)
     if name == "android":
         for root in ("/sdcard", "/storage/emulated/0"):
             if os.path.isdir(root) and os.access(root, os.W_OK):
-                return os.path.join(root, "Home", "SensorFusion")
+                return os.path.join(root, *parts)
         shared = os.path.expanduser("~/storage/shared")
         if os.path.isdir(shared):
-            return os.path.join(shared, "Home", "SensorFusion")
+            return os.path.join(shared, *parts)
     if name == "iphone":
         documents = os.path.expanduser("~/Documents")
         base = documents if os.path.isdir(documents) else os.path.expanduser("~")
-        return os.path.join(base, "Home", "SensorFusion")
-    return os.path.join(os.path.expanduser("~"), "Home", "SensorFusion")
+        return os.path.join(base, *parts)
+    return os.path.join(os.path.expanduser("~"), *parts)
 
 
 def remote_for(folder):
@@ -520,8 +571,7 @@ def main():
     print("Sensor Fusion")
     print(f"This computer: {platform_name()}")
     print(f"Folder: {home()}")
-    if platform_name() == "iphone":
-        print("On this iPhone that folder is On My iPhone/Home/SensorFusion.")
+    print(f"Same folder: {shown_folder()}")
     print("1) Sensor Fusion")
     print("2) Stop")
     print("3) Image labeler")

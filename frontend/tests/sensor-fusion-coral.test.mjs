@@ -58,10 +58,10 @@ ok(/Coral on\? y\/n/.test(py), "the computer asks the Coral switch");
 ok(/choose_model\(\)/.test(py), "Check ID is chosen from the model list");
 const download = fs.readFileSync(path.resolve(import.meta.dirname, "../public/sensor-fusion/download/SensorFusion-2525.html"), "utf8");
 ok(/Macintosh\|Mac OS/.test(download) && /Raspberry/.test(download), "the download tells a Mac from a Raspberry Pi");
-ok(/On My iPhone\/Home\/SensorFusion/.test(download) && /\/sdcard\/Home\/SensorFusion/.test(download), "the iPhone and Android folders keep Home/SensorFusion");
+ok(/"On My iPhone"/.test(download) && /"\/sdcard"/.test(download) && /"Home"/.test(download) && /"SensorFusion"/.test(download), "the iPhone and Android folders keep Home/SensorFusion");
 ok(/function sensorTitle/.test(download) && /Imaging sensor/.test(download), "the download names the imaging sensor");
 ok(/def imaging_sensors\(/.test(py) && /def choose_sensor\(/.test(py), "the computer program lists imaging sensors");
-ok(/On My iPhone\/Home\/SensorFusion/.test(py) && !/\/home\/pi\/SensorFusion"/.test(py), "the computer folder is Home/SensorFusion on a Pi too");
+ok(/edge-contract\.json/.test(py) && /def folder_parts\(/.test(py) && !/\/home\/pi\/SensorFusion"/.test(py), "the computer folder comes from the shared list");
 
 // rev 43: CORAL picked in a browser says where Coral really runs, in one line under the switch (spec 2026.10.03_18.37..22, change 2).
 const CORAL_LINE = "CORAL sends the camera to the program on this PC. CPU runs the model in this page.";

@@ -11,40 +11,36 @@ export type SchemeId =
   | "atlantis"
   | "vision";
 
-export const PLATFORMS: { id: PlatformId; label: string; detail: string }[] = [
-  { id: "win", label: "PC-WIN", detail: "A computer at a desk" },
-  { id: "mac", label: "Mac", detail: "An Apple computer" },
-  { id: "android", label: "Android", detail: "A phone" },
-  { id: "iphone", label: "iPhone", detail: "A phone" },
-  { id: "pi", label: "Raspberry Pi", detail: "A small computer" },
-  { id: "ubuntu", label: "Ubuntu", detail: "A shared computer" },
-];
+export const PLATFORMS: { id: PlatformId; label: string; detail: string }[] = edge.platforms.map((item) => ({
+  id: item.id as PlatformId,
+  label: item.label,
+  detail: item.detail,
+}));
 
 /** SENSOR 2 kinds. Only Camera opens a picture today. The rest keep a pane until that sensor is attached. */
 export type ExtraSensorId = "camera" | "thermal" | "lidar" | "ultrasonic" | "radar" | "sonar";
 
-export const EXTRA_SENSORS: { id: ExtraSensorId; label: string; live: boolean; line: string; where: string }[] = [
-  { id: "camera", label: "Camera", live: true, line: "A second camera on this phone.", where: "Phone" },
-  { id: "thermal", label: "Thermal", live: false, line: "Thermal is not connected.", where: "Phone, MASS-AI, Manta" },
-  { id: "lidar", label: "Lidar", live: false, line: "Lidar is not connected.", where: "MASS-AI" },
-  { id: "ultrasonic", label: "Ultrasonic", live: false, line: "Ultrasonic is not connected.", where: "MASS-AI" },
-  { id: "radar", label: "Radar", live: false, line: "Radar is not connected.", where: "MASS-AI, Manta" },
-  { id: "sonar", label: "Sonar", live: false, line: "Sonar is not connected.", where: "Manta" },
-];
+export const EXTRA_SENSORS: { id: ExtraSensorId; label: string; live: boolean; line: string; where: string }[] = edge.extra.map((item) => ({
+  id: item.id as ExtraSensorId,
+  label: item.label,
+  live: item.live,
+  line: item.line,
+  where: item.where,
+}));
 
 /** A kind is listed only when a connected device says its name. Camera is decided separately. */
 export function sensorsFromLabels(labels: string[]): ExtraSensorId[] {
-  const text = labels.join("\n").toLowerCase();
+  const text = labels.join("\n");
   const found: ExtraSensorId[] = [];
-  if (/thermal|flir|lepton|\bseek\b/.test(text)) found.push("thermal");
-  if (/lidar|livox|velodyne|ouster/.test(text)) found.push("lidar");
-  if (/ultrasonic/.test(text)) found.push("ultrasonic");
-  if (/\bradar\b/.test(text)) found.push("radar");
-  if (/sonar/.test(text)) found.push("sonar");
+  for (const row of edge.extra) {
+    if (!row.match) continue;
+    if (new RegExp(row.match, "i").test(text)) found.push(row.id as ExtraSensorId);
+  }
   return found;
 }
 
 import catalog from "../../public/sensor-fusion/models.json" with { type: "json" };
+import edge from "../../public/sensor-fusion/edge-contract.json" with { type: "json" };
 
 type ModelFile = {
   id: string;
@@ -247,22 +243,22 @@ export const FRAMES: { id: SchemeId; label: string; note: string; bg: string; ca
 ];
 
 export function pathSep(platform: PlatformId): "/" | "\\" {
-  return platform === "win" ? "\\" : "/";
+  const row = edge.platforms.find((item) => item.id === platform);
+  return row?.sep === "\\" ? "\\" : "/";
 }
 
 export function sensorPath(platform: PlatformId, parts: string[] = []): string {
-  return ["Home", "SensorFusion", ...parts].join(pathSep(platform));
+  const row = edge.platforms.find((item) => item.id === platform);
+  const show = row?.show?.length ? row.show : edge.folder;
+  return [...show, ...parts].join(pathSep(platform));
 }
 
 export function detectPlatform(ua: string, platform = ""): PlatformId {
   const blob = `${ua} ${platform}`;
-  if (/Android/i.test(blob)) return "android";
-  if (/iPhone|iPad/i.test(blob)) return "iphone";
-  if (/Win/i.test(platform) || /Windows/i.test(ua)) return "win";
-  if (/Mac/i.test(platform) || /Macintosh|Mac OS/i.test(ua)) return "mac";
-  if (/Raspberry/i.test(blob)) return "pi";
-  if (/Linux|Ubuntu/i.test(blob)) return "ubuntu";
-  return "win";
+  for (const row of edge.platforms) {
+    if (new RegExp(row.match, "i").test(blob)) return row.id as PlatformId;
+  }
+  return edge.fallback as PlatformId;
 }
 
 export function applyTheme(bg: string, card: string, primary: string, line: string) {

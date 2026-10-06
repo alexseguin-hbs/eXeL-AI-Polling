@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "folder": ["Home", "SensorFusion"],
+  "fallback": "win",
+  "platforms": [
+    { "id": "android", "py": "android", "label": "Android", "detail": "A phone", "sep": "/", "show": ["/sdcard", "Home", "SensorFusion"], "match": "Android" },
+    { "id": "iphone", "py": "iphone", "label": "iPhone", "detail": "A phone", "sep": "/", "show": ["On My iPhone", "Home", "SensorFusion"], "match": "iPhone|iPad" },
+    { "id": "win", "py": "windows", "label": "PC-WIN", "detail": "A computer at a desk", "sep": "\\", "show": ["Home", "SensorFusion"], "match": "Windows|Win32|Win64" },
+    { "id": "mac", "py": "mac", "label": "Mac", "detail": "An Apple computer", "sep": "/", "show": ["Home", "SensorFusion"], "match": "Macintosh|Mac OS|MacIntel" },
+    { "id": "pi", "py": "pi", "label": "Raspberry Pi", "detail": "A small computer", "sep": "/", "show": ["Home", "SensorFusion"], "match": "Raspberry" },
+    { "id": "ubuntu", "py": "ubuntu", "label": "Ubuntu", "detail": "A shared computer", "sep": "/", "show": ["Home", "SensorFusion"], "match": "Linux|Ubuntu" }
+  ],
+  "lenses": [
+    { "name": "Front", "match": "front|face|selfie|user" },
+    { "name": "0.5x", "match": "ultra|0\\.5" },
+    { "name": "2.5x", "match": "tele|2\\.5" },
+    { "name": "Wide", "match": "back|rear|environment|wide" }
+  ],
+  "extra": [
+    { "id": "camera", "label": "Camera", "live": true, "line": "A second camera on this phone.", "where": "Phone", "match": "" },
+    { "id": "thermal", "label": "Thermal", "live": false, "line": "Thermal is not connected.", "where": "Phone, MASS-AI, Manta", "match": "thermal|flir|lepton|\\bseek\\b" },
+    { "id": "lidar", "label": "Lidar", "live": false, "line": "Lidar is not connected.", "where": "MASS-AI", "match": "lidar|livox|velodyne|ouster" },
+    { "id": "ultrasonic", "label": "Ultrasonic", "live": false, "line": "Ultrasonic is not connected.", "where": "MASS-AI", "match": "ultrasonic" },
+    { "id": "radar", "label": "Radar", "live": false, "line": "Radar is not connected.", "where": "MASS-AI, Manta", "match": "\\bradar\\b" },
+    { "id": "sonar", "label": "Sonar", "live": false, "line": "Sonar is not connected.", "where": "Manta", "match": "sonar" }
+  ]
+}
