@@ -1143,6 +1143,13 @@
    "kind": "correction",
    "text": "r.088 correction — the top line is one line again. + Transaction and the gear stay on the right of the rate, the same height as /hr. They no longer drop onto a second line.",
    "commit": "05d7e87"
+  },
+  {
+   "rev": 164,
+   "date": "2026-10-05",
+   "kind": "correction",
+   "text": "r.089 correction — each column of figures is centered. The $ stays on the left and the decimals line up inside the column. The size follows the card, so portrait and landscape both fit.",
+   "commit": ""
   }
  ]
 }

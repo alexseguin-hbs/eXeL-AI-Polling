@@ -221,9 +221,9 @@ ok(!/cyan/.test(ux), "r.034 (addendum 67 'we stick to color per selector'): no f
 ok(!/p\.withdrawable\)/.test(ux) && !/C\.consciousness/.test(ux) && !/t\("fin\.withdrawable"\)/.test(ux), "r.034: no separate Withdrawable stroke or cyan legend word — with no hold it is the Released line; the tap line takes the theme colour");
 
 ok(/<div data-fin-rate-block className="flex shrink-0 items-center gap-1 text-primary">\s*<span data-fin-rate className="font-mono tabular-nums">\{rateText\}<\/span>/.test(ux) && /data-fin-rate-full>\{t\("fin\.accrual_rate"\)\}/.test(ux) && /data-fin-rate-short>\{t\("fin\.rate_name"\)\}/.test(ux) && /fontSize: fitHeader\(/.test(ux) && /export function fitHeader\(/.test(fs.readFileSync("lib/financial-2525/fit.ts", "utf8")), "The header is one line fitted to the card. A narrow phone keeps Rate, the amount, + Transaction, and the gear inside the card.");
-ok(/data-fin-income className="mx-auto grid w-fit font-mono text-lg font-bold tabular-nums text-foreground" style=\{leftFig\.style\}>\{money\(incomeCents, leftFig\.sign\)\}/.test(ux) && /style=\{rightFig\.style\}>\{money\(bal\.availableCents, rightFig\.sign\)\}/.test(ux) && /const leftFig = figureCols\(\[incomeCents, bal\.escrowedCents, bal\.withdrawnCents\]\);/.test(ux) && /const rightFig = figureCols\(\[bal\.releasedCents, bal\.availableCents\]\);/.test(ux), "Each column sizes to its own longest amount. The $ stays left and the decimals line up. Income stays bold.");
+ok(/data-fin-income className="mx-auto grid w-fit font-mono text-lg font-bold tabular-nums text-foreground" style=\{\{ \.\.\.leftFig\.style, fontSize: figSize \}\}>\{money\(incomeCents, leftFig\.sign\)\}/.test(ux) && /style=\{\{ \.\.\.rightFig\.style, fontSize: figSize \}\}>\{money\(bal\.availableCents, rightFig\.sign\)\}/.test(ux) && /const leftFig = figureCols\(\[incomeCents, bal\.escrowedCents, bal\.withdrawnCents\]\);/.test(ux) && /const rightFig = figureCols\(\[bal\.releasedCents, bal\.availableCents\]\);/.test(ux) && /mx-auto grid w-fit/.test(ux) && /const figSize = fitGrid\(/.test(ux), "Each column is centered. The $ stays left and the decimals line up inside that column. The size follows the card, portrait or landscape. Income stays bold.");
 
-ok(/data-fin-cell="escrowed"/.test(ux) && /data-fin-cell="released" className="border-l border-border pl-3"/.test(ux) && /data-fin-released-nest/.test(ux) && /data-fin-cell="spent"/.test(ux) && /data-fin-cell="available" className="border-l border-border pl-3"/.test(ux), "Escrow and Released share one row. Spent and Available sit in the box under Released.");
+ok(/data-fin-cell="escrowed" className="text-center"/.test(ux) && /data-fin-cell="released" className="border-l border-border text-center"/.test(ux) && /data-fin-released-nest/.test(ux) && /data-fin-cell="spent" className="text-center"/.test(ux) && /data-fin-cell="available" className="border-l border-border text-center"/.test(ux), "Escrow and Released share one row. Spent and Available sit under them. Each pair is centered, and the $ and decimals still line up.");
 
 // ── r.038 (addenda 72 + 73): no rail; Accrual · Budget · Chart · Record · Year; the year card folded; one system at a time ──
 {
@@ -358,7 +358,7 @@ ok(/<details data-fin-cards className=\{`group \$\{SUB\}`\}>\s*<summary classNam
 // size is fitted to the row (a CSS size container; monospace width = characters × advance), between 0.875rem and the r.044 1.5rem; past the
 // floor the rate wraps under — the Available block never shrinks under its own text, so the two never overlap
 { const fit = fs.readFileSync(path.join(process.cwd(), "lib/financial-2525/fit.ts"), "utf8");
-  ok(/data-fin-income className="mx-auto grid w-fit font-mono text-lg font-bold tabular-nums text-foreground" style=\{leftFig\.style\}>\{money\(incomeCents, leftFig\.sign\)\}/.test(ux)
+  ok(/data-fin-income className="mx-auto grid w-fit font-mono text-lg font-bold tabular-nums text-foreground" style=\{\{ \.\.\.leftFig\.style, fontSize: figSize \}\}>\{money\(incomeCents, leftFig\.sign\)\}/.test(ux)
     && /const leftFig = figureCols\(\[incomeCents, bal\.escrowedCents, bal\.withdrawnCents\]\);/.test(ux)
     && /<span data-fin-rate className="font-mono tabular-nums">\{rateText\}<\/span>/.test(ux)
     && /return `min\(1\.5rem, max\(0\.875rem, calc\(\(100cqw - \$\{Math\.max\(0, Math\.round\(reservePx\)\)\}px\) \/ \$\{em\}\)\)\)`;/.test(fit) && /export const FIG_ADVANCE_EM = 0\.62;/.test(fit),
@@ -434,7 +434,7 @@ ok(/<th className="py-1 text-right min-\[360px\]:whitespace-nowrap">\{unitHead\(
     && /return reservePx \+ FIG_UNIT_PX_PER_CHAR \* Math\.max\(0, widest - FIG_UNIT_BASE_CHARS\);/.test(fit)
     && /const labelChars = \(s: string\): number => Array\.from\(s\)\.reduce\(\(n, ch\) => n \+ \(WIDE_CHAR\.test\(ch\) \? 2 : 1\), 0\);/.test(fit),
     "r.071 AsM fold: the row's reserve is pinned (80–120 px, advance 0.60–0.66 em) and grows ~7 px per unit character past four");
-  ok(/<div data-fin-figures>/.test(ux)
+  ok(/<div data-fin-figures style=\{\{ containerType: "inline-size" \}\}>/.test(ux)
     && /const rightFig = figureCols\(\[bal\.releasedCents, bal\.availableCents\]\);/.test(ux)
     && /return `min\(1\.5rem, max\(0\.6875rem, calc\(\(\(100cqw - \$\{Math\.max\(0, cols - 1\) \* gapPx\}px\) \/ \$\{Math\.max\(1, cols\)\} - 4px\) \/ \$\{em\}\)\)\)`;/.test(fit),
     "Each column sizes to its own longest amount. The $ is left and the decimals line up."); }

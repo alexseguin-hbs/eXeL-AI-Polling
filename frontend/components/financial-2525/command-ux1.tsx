@@ -51,7 +51,7 @@ import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fiel
 import { append, loadRecord, saveRecord, readStored, recordKey, unionRecords, sameChain, chainFingerprint, freshId, nextAt, txIdentity, followId, replay, emptyRecord, correctTx, stableJson, type FinRecord, type TxEdit } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry; r.073: the union
 import { parseAmountCents, amountProblem, parsePositive, lengthFits, parseBudgetAmount, parseCardCents, budgetFigure, smallDollars } from "@/lib/financial-2525/typed";   // r.073 (round 1): one reader for what a person types
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
-import { fitHeader, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
+import { fitGrid, fitHeader, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
 import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, newCard, uniqueCardId, applyCardSettings, looksLikeCardNumber, cardBalanceAt, cardLevel, cardSeries, cardMoves, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
 import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, readAll, mergeRecords, syncChoice, nextStamp, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
@@ -254,6 +254,7 @@ export function FinancialCommandUX1() {
   };
   const leftFig = figureCols([incomeCents, bal.escrowedCents, bal.withdrawnCents]);
   const rightFig = figureCols([bal.releasedCents, bal.availableCents]);
+  const figSize = fitGrid(Math.max(wholeLen(incomeCents), wholeLen(bal.escrowedCents), wholeLen(bal.releasedCents), wholeLen(bal.withdrawnCents), wholeLen(bal.availableCents)) + 4, 2);
   const money = (cents: number, sign: boolean) => {
     const body = moneyBody(cents);
     const dot = body.lastIndexOf(".");
@@ -774,19 +775,19 @@ export function FinancialCommandUX1() {
               Row 2: Escrow | Released. Escrow cannot be spent. Released has cleared escrow and is still part of Income.
               Row 3, nested under Released only: Spent | Available. Spent = drawn from Released. Available = Released − Spent. Available is the only spendable figure.
               Invariants: escrow + released === income. spent + available === released. Available is not summed into Income. Spent is not summed into Income. */}
-          <div data-fin-figures>
+          <div data-fin-figures style={{ containerType: "inline-size" }}>
           <div data-fin-income-row className="mt-3 border-b border-border pb-3 text-center">
             <div className="text-lg font-bold text-foreground">{t("fin.income")}</div>
-            <div data-fin-income className="mx-auto grid w-fit font-mono text-lg font-bold tabular-nums text-foreground" style={leftFig.style}>{money(incomeCents, leftFig.sign)}</div>
+            <div data-fin-income className="mx-auto grid w-fit font-mono text-lg font-bold tabular-nums text-foreground" style={{ ...leftFig.style, fontSize: figSize }}>{money(incomeCents, leftFig.sign)}</div>
           </div>
           <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-3">
-            <div data-fin-cell="escrowed"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.escrowed")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-foreground" style={leftFig.style}>{money(bal.escrowedCents, leftFig.sign)}</dd></div>
-            <div data-fin-cell="released" className="border-l border-border pl-3"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.released")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-foreground" style={rightFig.style}>{money(bal.releasedCents, rightFig.sign)}</dd></div>
+            <div data-fin-cell="escrowed" className="text-center"><dt className="text-base font-bold text-foreground">{t("fin.escrowed")}</dt><dd className="mx-auto grid w-fit font-mono text-lg tabular-nums text-foreground" style={{ ...leftFig.style, fontSize: figSize }}>{money(bal.escrowedCents, leftFig.sign)}</dd></div>
+            <div data-fin-cell="released" className="border-l border-border text-center"><dt className="text-base font-bold text-foreground">{t("fin.released")}</dt><dd className="mx-auto grid w-fit font-mono text-lg tabular-nums text-foreground" style={{ ...rightFig.style, fontSize: figSize }}>{money(bal.releasedCents, rightFig.sign)}</dd></div>
           </dl>
           <div data-fin-released-nest className="mt-3 border-t border-border pt-3">
             <dl className="grid w-full grid-cols-2 gap-x-3">
-              <div data-fin-cell="spent"><dt className="block w-full text-left text-base font-bold text-primary">{t("fin.spent")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-primary" style={leftFig.style}>{money(bal.withdrawnCents, leftFig.sign)}</dd></div>
-              <div data-fin-cell="available" className="border-l border-border pl-3"><dt className="block w-full text-left text-base font-bold text-primary">{t("fin.available")}</dt><dd data-testid="fin-clock" className="grid justify-start text-left font-mono text-lg tabular-nums text-primary" style={rightFig.style}>{money(bal.availableCents, rightFig.sign)}</dd></div>
+              <div data-fin-cell="spent" className="text-center"><dt className="text-base font-bold text-primary">{t("fin.spent")}</dt><dd className="mx-auto grid w-fit font-mono text-lg tabular-nums text-primary" style={{ ...leftFig.style, fontSize: figSize }}>{money(bal.withdrawnCents, leftFig.sign)}</dd></div>
+              <div data-fin-cell="available" className="border-l border-border text-center"><dt className="text-base font-bold text-primary">{t("fin.available")}</dt><dd data-testid="fin-clock" className="mx-auto grid w-fit font-mono text-lg tabular-nums text-primary" style={{ ...rightFig.style, fontSize: figSize }}>{money(bal.availableCents, rightFig.sign)}</dd></div>
             </dl>
           </div>
           </div>
