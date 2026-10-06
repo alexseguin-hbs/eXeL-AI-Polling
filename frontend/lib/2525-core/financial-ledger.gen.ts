@@ -1170,7 +1170,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-06",
       "kind": "correction",
       "text": "r.091 correction — Income lines are editable in edit mode, the same box as Fixed and Variable. A number you type replaces the record for that line. The other Income lines still come from the record.",
-      "commit": ""
+      "commit": "bf9e821"
     }
   ]
 };
