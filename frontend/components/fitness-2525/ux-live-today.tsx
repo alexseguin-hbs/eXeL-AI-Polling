@@ -9,9 +9,11 @@ import { durationToMinutes } from "@/lib/fitness-2525/profile";
 import styles from "./fitness-2525.module.css";
 import { C, type DayField } from "./ux-helpers";
 import { Panel } from "./ux-widgets";
+import { AuthGate } from "./auth-gate";
 
 export function LiveTodayBoard({
   day, budget, rateUnit, showAllRates, anthroUnknown, onStartRide, onLogGarmin, btnPrimary, btnGhost, inputStyle, setField,
+  signedIn, onSignIn, authLoading,
 }: {
   day: FitDay;
   budget: ReturnType<typeof buildDayBudget>;
@@ -24,6 +26,9 @@ export function LiveTodayBoard({
   btnGhost: CSSProperties;
   inputStyle: CSSProperties;
   setField: (field: DayField, raw: string) => void;
+  signedIn: boolean;
+  onSignIn: () => void;
+  authLoading?: boolean;
 }) {
   const swim = day.workouts.find((w) => w.type === "swim");
   const bike = day.workouts.find((w) => w.type === "bike");
@@ -86,16 +91,23 @@ export function LiveTodayBoard({
             <div className="text-[8px]" style={{ color: C.dim }}>{net == null ? "needs intake" : "kcal"}</div>
           </div>
         </dl>
-        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <label className="flex flex-col gap-1 text-[9px] uppercase" style={{ color: C.dim }}>
-            Log calories in
-            <input style={inputStyle} className={styles.mono} inputMode="decimal" placeholder="—" value={typeof day.calories_in === "number" ? String(day.calories_in) : ""} onChange={(e) => setField("calories_in", e.target.value)} />
-          </label>
-          <label className="flex flex-col gap-1 text-[9px] uppercase" style={{ color: C.dim }}>
-            Steps
-            <input style={inputStyle} className={styles.mono} inputMode="decimal" placeholder="—" value={typeof day.steps === "number" ? String(day.steps) : ""} onChange={(e) => setField("steps", e.target.value)} />
-          </label>
-        </div>
+        {signedIn ? (
+          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <label className="flex flex-col gap-1 text-[9px] uppercase" style={{ color: C.dim }}>
+              Log calories in
+              <input style={inputStyle} className={styles.mono} inputMode="decimal" placeholder="—" value={typeof day.calories_in === "number" ? String(day.calories_in) : ""} onChange={(e) => setField("calories_in", e.target.value)} />
+            </label>
+            <label className="flex flex-col gap-1 text-[9px] uppercase" style={{ color: C.dim }}>
+              Steps
+              <input style={inputStyle} className={styles.mono} inputMode="decimal" placeholder="—" value={typeof day.steps === "number" ? String(day.steps) : ""} onChange={(e) => setField("steps", e.target.value)} />
+            </label>
+          </div>
+        ) : (
+          <div className="mt-2">
+            <AuthGate compact onSignIn={onSignIn} isLoading={authLoading}
+              message="Sign in with Auth0 to log calories in, steps, and other personal day fields." />
+          </div>
+        )}
       </div>
 
       <Panel title="TIMELINE · TODAY" accent={C.cyan}>
