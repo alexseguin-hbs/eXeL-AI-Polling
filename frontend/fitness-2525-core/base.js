@@ -1,4 +1,5 @@
-// Fitness-2525 worker core — helpers, storage, Auth0, OAuth state (split from fitness-2525-core.js; < 12KB per module for the GitHub connector)
+// Fitness-2525 worker core — helpers + fit-day record store (split from fitness-2525-core.js; < 12KB per module for the GitHub connector).
+// Auth0 JWT + OAuth state → auth.js · encrypted token store (KV only) → tokens.js. Tokens NEVER go through this file.
 
 export const json = (o, status = 200, extra = {}) =>
   new Response(JSON.stringify(o), { status, headers: { "content-type": "application/json", "cache-control": "no-store", ...extra } });
@@ -45,11 +46,9 @@ export const hmacOk = async (secret, msg, sig) => {
 };
 
 export const auth0Domain = (env) => String(env.AUTH0_DOMAIN || "exel-ai-polling.us.auth0.com").replace(/^https?:\/\//, "").replace(/\/$/, "");
-export const stateSecret = (env) =>
-  env.FIT_OAUTH_STATE_SECRET || env.STRAVA_CLIENT_SECRET || env.GARMIN_CLIENT_SECRET || env.STRAVA_VERIFY_TOKEN || "fit2525-dev-state";
 
-/** Prefer Fitness KV, then existing Worker KV bindings. */
-export const kvOf = (env) => env.FITNESS_STORE || env.SIGN_FILES || env.RESPONSES || env.SITE_STATE || null;
+/** fit-day records (NOT tokens): the dedicated Fitness KV only — never another feature's KV (SITE_STATE is the pause switch). */
+export const kvOf = (env) => (env.FITNESS_STORE && typeof env.FITNESS_STORE.get === "function" ? env.FITNESS_STORE : null);
 
 export const supabaseCfg = (env) => {
   const url = String(env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || "").replace(/\/$/, "");
@@ -109,90 +108,5 @@ export async function rpcDel(env, owner, name) {
   return true;
 }
 
-export const tokOwner = (sub) => sha256Hex(`fit2525tok:${sub}`);
+/** fit-day owner key (same hash the browser uses for its cloud day records). */
 export const dayOwner = (sub) => sha256Hex(`fit2525:${sub}`);
-export const mapOwner = (provider) => sha256Hex(`fit2525map:${provider}`);
-
-export let jwksCache = { at: 0, keys: null };
-export async function auth0Jwks(env) {
-  const now = Date.now();
-  if (jwksCache.keys && now - jwksCache.at < 3600_000) return jwksCache.keys;
-  const res = await fetch(`https://${auth0Domain(env)}/.well-known/jwks.json`);
-  if (!res.ok) throw new Error(`jwks ${res.status}`);
-  const body = await res.json();
-  jwksCache = { at: now, keys: body.keys || [] };
-  return jwksCache.keys;
-}
-
-export function parseJwtParts(token) {
-  const parts = String(token || "").split(".");
-  if (parts.length !== 3) return null;
-  const header = JSON.parse(new TextDecoder().decode(fromB64url(parts[0])));
-  const payload = JSON.parse(new TextDecoder().decode(fromB64url(parts[1])));
-  return { header, payload, signed: `${parts[0]}.${parts[1]}`, sig: parts[2] };
-}
-
-export async function importJwk(jwk) {
-  return crypto.subtle.importKey("jwk", jwk, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
-}
-
-export async function verifyAuth0Jwt(env, token) {
-  const parts = parseJwtParts(token);
-  if (!parts) return null;
-  const { header, payload, signed, sig } = parts;
-  if (header.alg !== "RS256") return null;
-  const domain = auth0Domain(env);
-  const issOk = payload.iss === `https://${domain}/` || payload.iss === `https://${domain}`;
-  if (!issOk) return null;
-  if (payload.exp && payload.exp * 1000 < Date.now() - 30_000) return null;
-  const keys = await auth0Jwks(env);
-  const jwk = keys.find((k) => k.kid === header.kid) || keys[0];
-  if (!jwk) return null;
-  const key = await importJwk(jwk);
-  const ok = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, fromB64url(sig), new TextEncoder().encode(signed));
-  if (!ok) return null;
-  if (!payload.sub) return null;
-  return { sub: String(payload.sub), name: payload.name || payload.nickname || null, email: payload.email || null };
-}
-
-export async function requireUser(request, env) {
-  const h = request.headers.get("Authorization") || "";
-  const m = /^Bearer\s+(.+)$/i.exec(h);
-  if (!m) return { error: json({ error: "Sign in required" }, 401) };
-  try {
-    const user = await verifyAuth0Jwt(env, m[1].trim());
-    if (!user) return { error: json({ error: "Invalid or expired Auth0 token" }, 401) };
-    return { user };
-  } catch (e) {
-    return { error: json({ error: `Auth verify failed: ${String(e && e.message || e)}` }, 401) };
-  }
-}
-
-export async function mintState(env, payload) {
-  const body = b64url(JSON.stringify({ ...payload, exp: Date.now() + 15 * 60_000 }));
-  const sig = await hmacSign(stateSecret(env), body);
-  return `${body}.${sig}`;
-}
-
-export async function readState(env, state) {
-  const [body, sig] = String(state || "").split(".");
-  if (!body || !sig) return null;
-  if (!(await hmacOk(stateSecret(env), body, sig))) return null;
-  try {
-    const p = JSON.parse(new TextDecoder().decode(fromB64url(body)));
-    if (!p || !p.sub || (p.exp && p.exp < Date.now())) return null;
-    return p;
-  } catch {
-    return null;
-  }
-}
-
-export function pkcePair() {
-  const verifierBytes = new Uint8Array(32);
-  crypto.getRandomValues(verifierBytes);
-  const verifier = b64url(verifierBytes);
-  return crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)).then((dig) => ({
-    verifier,
-    challenge: b64url(new Uint8Array(dig)),
-  }));
-}

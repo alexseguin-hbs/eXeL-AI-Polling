@@ -1,5 +1,6 @@
 // Fitness-2525 worker core — activity mapping, day merge, token refresh, status (split from fitness-2525-core.js; < 12KB per module for the GitHub connector)
-import { json, STRAVA_TOKEN, GARMIN_TOKEN, rpcPut, rpcGet, tokOwner, dayOwner } from "./base.js";
+import { json, STRAVA_TOKEN, GARMIN_TOKEN, rpcPut, rpcGet, dayOwner } from "./base.js";
+import { tokOwner, tokenPut } from "./tokens.js";
 
 export function athleteName(athlete) {
   if (!athlete || typeof athlete !== "object") return null;
@@ -115,7 +116,7 @@ export async function stravaRefresh(env, record) {
     updated_at: Date.now(),
   };
   const owner = await tokOwner(record.auth0_sub);
-  await rpcPut(env, owner, "strava", next);
+  await tokenPut(env, owner, "strava", next);
   return next;
 }
 
@@ -142,7 +143,7 @@ export async function garminRefresh(env, record) {
     updated_at: Date.now(),
   };
   const owner = await tokOwner(record.auth0_sub);
-  await rpcPut(env, owner, "garmin", next);
+  await tokenPut(env, owner, "garmin", next);
   return next;
 }
 
