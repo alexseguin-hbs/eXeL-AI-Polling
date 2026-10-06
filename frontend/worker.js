@@ -30,6 +30,7 @@ import { handleDonate, handleDonateVerify } from "./donate-core.js";
 import { handleNotify } from "./notify-core.js";
 import { handleTmp } from "./tmp-core.js";
 import { handleAi } from "./ai-core.js";
+import { handleFitness2525 } from "./fitness-2525-core.js";
 
 export default {
   async fetch(request, env) {
@@ -49,6 +50,12 @@ export default {
     if (url.pathname === "/api/ai" || url.pathname === "/api/ai/") {
       if (await isPaused(env)) return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
       try { return await handleAi(request, env); }
+      catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
+    }
+    // --- /api/fitness-2525 — Strava + Garmin OAuth/sync (fitness-2525-core.js) ---
+    if (url.pathname === "/api/fitness-2525" || url.pathname.startsWith("/api/fitness-2525/")) {
+      if (await isPaused(env)) return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
+      try { return await handleFitness2525(request, env); }
       catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
     }
     // --- /api/tmp — a partly-signed PDF handed over by a 24-hour link (tmp-core.js; KV SIGN_FILES) ---------
@@ -76,6 +83,10 @@ export default {
       }
     }
 
+    // --- Fitness-2525 lowercase alias: /fitness-2525/* -> /Fitness-2525/* (one app route; avoids the case-duplicate build clash) ---
+    if (url.pathname === "/fitness-2525" || url.pathname.startsWith("/fitness-2525/")) {
+      return Response.redirect(url.origin + "/Fitness-2525" + url.pathname.slice("/fitness-2525".length) + url.search, 301);
+    }
     // --- Atlantis short link (unchanged) ---
     const m = url.pathname.match(/^\/Atlantis-Accords\/([^/]+)\/?$/);
     if (m) {
