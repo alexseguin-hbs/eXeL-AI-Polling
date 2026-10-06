@@ -81,6 +81,10 @@ function loadCnn(): Promise<{
   });
 }
 
+function Glyph({ src, className }: { src: string; className?: string }) {
+  return <span className={[styles.glyph, className].filter(Boolean).join(" ")} style={{ WebkitMaskImage: `url(${src})`, maskImage: `url(${src})` }} aria-hidden="true" />;
+}
+
 function ProgramDownload() {
   return (
     <a className={styles.dl} href="/sensor-fusion/download/SensorFusion-2525.html" download="SensorFusion-2525.html" title="Download" aria-label="Download">
@@ -142,7 +146,7 @@ function SettingsSheet({
             </button>
             <button type="button" aria-pressed={coral} className={coral ? styles.swatchOn : ""} onClick={() => onCoral(true)}>
               <span className={styles.coralSlot}>
-                <img className={styles.coralIcon} src={`${UI}/coral_icon.png`} alt="" />
+                <Glyph className={styles.coralIcon} src={`${UI}/coral_icon.png`} />
                 {coralLive === "loaded" && <i className={styles.coralTick} />}
               </span>
               CORAL
@@ -615,11 +619,13 @@ function Labeler({
   shots,
   names,
   who,
+  accent,
   onBack,
 }: {
   shots: Shot[];
   names: string[];
   who: string;
+  accent: string;
   onBack: () => void;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -1088,7 +1094,7 @@ function Labeler({
           </div>
         )}
       </div>
-      <Foot accent="#00e5ff" />
+      <Foot accent={accent} />
     </main>
   );
 }
@@ -2152,7 +2158,7 @@ export default function SensorFusion() {
   const accent =
     scheme === "custom"
       ? customHex
-      : (COLORS.find((item) => item.id === scheme)?.primary ?? FRAMES.find((item) => item.id === scheme)?.primary ?? "#00e5ff");
+      : (COLORS.find((item) => item.id === scheme)?.primary ?? FRAMES.find((item) => item.id === scheme)?.primary ?? "#0cff00");
 
   if (step === "login") {
     return (
@@ -2187,7 +2193,7 @@ export default function SensorFusion() {
   }
 
   if (step === "label") {
-    return <Labeler shots={shots} names={(MODELS.find((item) => item.id === model)?.labels || ["person"]).filter((item) => item && item !== "???")} who={operator} onBack={() => setStep("menu")} />;
+    return <Labeler shots={shots} names={(MODELS.find((item) => item.id === model)?.labels || ["person"]).filter((item) => item && item !== "???")} who={operator} accent={accent} onBack={() => setStep("menu")} />;
   }
 
   if (step === "menu") {
@@ -2281,7 +2287,7 @@ export default function SensorFusion() {
           onClick={() => (sensorOn ? closeSensor() : void openSensor())}
           disabled={busy}
         >
-          <img src={sensorOn ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
+          <Glyph src={sensorOn ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} />
           SENSOR 1: {busy ? "…" : sensorOn ? "ON" : "OFF"}
         </button>
         {showSecond && (
@@ -2294,7 +2300,7 @@ export default function SensorFusion() {
             onClick={() => setExtraOpen((open) => !open)}
             disabled={busy2}
           >
-            <img src={extra ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
+            <Glyph src={extra ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} />
             SENSOR 2: {busy2 ? "…" : extra ? EXTRA_SENSORS.find((item) => item.id === extra)?.label : "OFF"}
           </button>
           {extraOpen && (
@@ -2359,10 +2365,10 @@ export default function SensorFusion() {
         <div className={styles.tools}>
           <ProgramDownload />
           <button type="button" className={styles.iconBtn} aria-label="Info" onClick={() => setInfoOpen((open) => !open)}>
-            <img src={`${UI}/info_002.png`} alt="" />
+            <Glyph src={`${UI}/info_002.png`} />
           </button>
           <button type="button" className={styles.iconBtn} aria-label="Settings" onClick={() => setSettings(true)}>
-            <img src={`${UI}/settings_002.png`} alt="" />
+            <Glyph src={`${UI}/settings_002.png`} />
           </button>
           <button
             type="button"
@@ -2375,7 +2381,7 @@ export default function SensorFusion() {
               else setStep("login");
             }}
           >
-            <img src={`${UI}/profile_icon_001.png`} alt="" />
+            <Glyph src={`${UI}/profile_icon_001.png`} />
           </button>
           <button
             type="button"
@@ -2386,7 +2392,7 @@ export default function SensorFusion() {
               else void document.documentElement.requestFullscreen();
             }}
           >
-            <img src={`${UI}/icon-navigation-fullscreen_001.png`} alt="" />
+            <Glyph src={`${UI}/icon-navigation-fullscreen_001.png`} />
           </button>
         </div>
       </header>
@@ -2448,16 +2454,16 @@ export default function SensorFusion() {
       <nav className={styles.piBot}>
         <div className={styles.pair}>
           <button type="button" className={showScores ? styles.botOn : styles.bot} onClick={() => setShowScores((on) => !on)}>
-            <img src={showScores ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />%
+            <Glyph src={showScores ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} />%
           </button>
           <button type="button" className={showLabels ? styles.botOn : styles.bot} onClick={() => setShowLabels((on) => !on)}>
-            <img src={showLabels ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
+            <Glyph src={showLabels ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} />
             Labels
           </button>
         </div>
         <div className={styles.modelWrap}>
           <button type="button" className={styles.botOn} aria-expanded={modelsOpen} aria-haspopup="listbox" aria-label="Run Live" onClick={() => setModelsOpen((open) => !open)}>
-            <img src={`${UI}/models_icon_001.png`} alt="" />
+            <Glyph src={`${UI}/models_icon_001.png`} />
             {current.label}
           </button>
           {modelsOpen && (
@@ -2687,7 +2693,7 @@ export default function SensorFusion() {
           <header className={styles.piTop}>
             <img className={styles.logo} src="/sensor-fusion/sensor_fusion_logo_001.png" alt="sensor fusion" />
             <button type="button" className={`${styles.sensorSwitch} ${tip === "sensor" ? styles.tipOn : ""}`} onClick={(event) => placeTip("sensor", event)}>
-              <img src={`${UI}/toggle_switch_on_001.png`} alt="" />
+              <Glyph src={`${UI}/toggle_switch_on_001.png`} />
               SENSOR 1: ON
             </button>
             <button type="button" className={`${styles.lensRead} ${tip === "lens" ? styles.tipOn : ""}`} onClick={(event) => placeTip("lens", event)}>
@@ -2696,16 +2702,16 @@ export default function SensorFusion() {
             <div className={styles.tools}>
               <ProgramDownload />
               <button type="button" className={styles.iconBtn} aria-label="Close info" onClick={() => { setInfoOpen(false); setTip(""); }}>
-                <img src={`${UI}/info_002.png`} alt="" />
+                <Glyph src={`${UI}/info_002.png`} />
               </button>
               <span className={styles.iconBtn} aria-hidden="true">
-                <img src={`${UI}/settings_002.png`} alt="" />
+                <Glyph src={`${UI}/settings_002.png`} />
               </span>
               <span className={styles.iconBtn} aria-hidden="true">
-                <img src={`${UI}/profile_icon_001.png`} alt="" />
+                <Glyph src={`${UI}/profile_icon_001.png`} />
               </span>
               <span className={styles.iconBtn} aria-hidden="true">
-                <img src={`${UI}/icon-navigation-fullscreen_001.png`} alt="" />
+                <Glyph src={`${UI}/icon-navigation-fullscreen_001.png`} />
               </span>
             </div>
           </header>
@@ -2749,15 +2755,15 @@ export default function SensorFusion() {
             <nav className={styles.piBot}>
               <div className={styles.pair}>
               <button type="button" className={`${styles.botOn} ${tip === "pct" ? styles.tipOn : ""}`} onClick={(event) => placeTip("pct", event)}>
-                <img src={`${UI}/toggle_switch_on_001.png`} alt="" />%
+                <Glyph src={`${UI}/toggle_switch_on_001.png`} />%
               </button>
               <button type="button" className={`${styles.botOn} ${tip === "labels" ? styles.tipOn : ""}`} onClick={(event) => placeTip("labels", event)}>
-                <img src={`${UI}/toggle_switch_on_001.png`} alt="" />
+                <Glyph src={`${UI}/toggle_switch_on_001.png`} />
                 Labels
               </button>
               </div>
               <button type="button" className={`${styles.botOn} ${tip === "model" ? styles.tipOn : ""}`} onClick={(event) => placeTip("model", event)}>
-                <img src={`${UI}/models_icon_001.png`} alt="" />
+                <Glyph src={`${UI}/models_icon_001.png`} />
                 Demo.90
               </button>
               <button type="button" className={`${styles.bot} ${tip === "capture" ? styles.tipOn : ""}`} onClick={(event) => placeTip("capture", event)}>

@@ -47,7 +47,7 @@
   padding: 0;
 }
 .kicker {
-  color: var(--sf-primary, #00e5ff);
+  color: var(--sf-primary, #0cff00);
   font-size: 12px;
   letter-spacing: 0.12em;
   font-family: ui-monospace, monospace;
@@ -72,7 +72,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--sf-primary, #19c8cf);
+  color: var(--sf-primary, #0cff00);
   font: inherit;
   font-size: 14px;
   cursor: pointer;
@@ -106,7 +106,7 @@
   width: 100%;
   margin-top: 16px;
   border: 0;
-  background: var(--sf-primary, #00e5ff);
+  background: var(--sf-primary, #0cff00);
   color: #041014;
   font-weight: 600;
 }
@@ -139,9 +139,9 @@
   cursor: pointer;
 }
 .cardOn {
-  background: var(--sf-primary, #00e5ff);
+  background: var(--sf-primary, #0cff00);
   color: #041014;
-  border-color: var(--sf-primary, #00e5ff);
+  border-color: var(--sf-primary, #0cff00);
 }
 .card small,
 .path {
@@ -151,7 +151,7 @@
 .path {
   margin-top: 12px;
   font-family: ui-monospace, monospace;
-  color: var(--sf-primary, #00e5ff);
+  color: var(--sf-primary, #0cff00);
 }
 .row {
   display: flex;
@@ -167,7 +167,7 @@
 }
 .exel {
   font-weight: 700;
-  color: var(--sf-primary, #00e5ff);
+  color: var(--sf-primary, #0cff00);
 }
 .ai {
   font-weight: 300;
@@ -182,7 +182,7 @@
   border-radius: 6px;
   border: 1px solid var(--sf-line, #143a3a);
   background: transparent;
-  color: var(--sf-primary, #00e5ff);
+  color: var(--sf-primary, #0cff00);
   cursor: pointer;
 }
 .gear svg {
@@ -231,13 +231,14 @@
   object-fit: cover;
   background: #000;
 }
-.coralIcon {
+.iconBtn {
+  color: var(--sf-primary, #0cff00);
+}
+.coralIcon.glyph {
   width: 22px;
   height: 22px;
   max-width: 22px;
-  max-height: 22px;
-  object-fit: contain;
-  object-position: center;
+  background-color: var(--sf-primary, #0cff00);
 }
 .edgePick button[aria-pressed="true"] .coralIcon {
   filter: none;
@@ -456,7 +457,7 @@
   position: relative;
 }
 .swatchOn {
-  border-color: var(--sf-primary, #00e5ff);
+  border-color: var(--sf-primary, #0cff00);
 }
 .dot {
   width: 32px;
@@ -469,7 +470,7 @@
   position: absolute;
   top: 6px;
   right: 8px;
-  color: var(--sf-primary, #00e5ff);
+  color: var(--sf-primary, #0cff00);
   font-size: 12px;
 }
 .frame {
@@ -547,7 +548,7 @@
   min-height: 44px;
   background: none;
   border: 0;
-  color: var(--sf-primary, #00e5ff);
+  color: var(--sf-primary, #0cff00);
   font-weight: 700;
   cursor: pointer;
 }
@@ -817,7 +818,7 @@
 .stillBox {
   position: absolute;
   box-sizing: border-box;
-  border: 2px solid #0cff00;
+  border: 2px solid var(--sf-primary, #0cff00);
 }
 /* The tag grows to fit its words and sits on the box's top edge, inside the picture. */
 .stillTag {
@@ -897,7 +898,7 @@
   padding: 0 8px;
   font-size: 12px;
   flex: 0 0 auto;
-  border: 1px solid var(--sf-line, #2f6a38);
+  border: 1px solid var(--sf-primary, #0cff00);
   border-radius: 8px;
   background: transparent;
   color: #fff;
@@ -936,7 +937,8 @@
   cursor: pointer;
 }
 .lensList button[aria-selected="true"] {
-  background: #0a4ea3;
+  background: var(--sf-primary, #0cff00);
+  color: #111;
 }
 .iconBtn,
 .bot,
@@ -954,22 +956,42 @@
   cursor: pointer;
   font-size: 12px;
 }
+.iconBtn {
+  color: var(--sf-primary, #0cff00);
+}
 .iconBtn img,
+.iconBtn .glyph,
 .bot img,
+.bot .glyph,
 .botOn img,
+.botOn .glyph,
 .sensorSwitch img,
+.sensorSwitch .glyph,
 .annotate img,
-.pick img {
+.annotate .glyph,
+.pick img,
+.pick .glyph {
   height: 16px;
   width: 16px;
   max-width: 16px;
   object-fit: contain;
   display: block;
 }
+.glyph {
+  background-color: var(--sf-primary, #0cff00);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
 .bot img.trainIcon,
-.annotate img.trainIcon {
+.bot .trainIcon,
+.annotate img.trainIcon,
+.annotate .trainIcon {
   height: 32px;
-  width: auto;
+  width: 32px;
   max-width: 36px;
 }
 .botOn {
@@ -1033,7 +1055,7 @@
   height: 24px;
   display: block;
 }
-.stepStrip img.trainIcon {
+.stepStrip .trainIcon {
   width: 32px;
   height: 32px;
   max-width: 32px;
@@ -1054,7 +1076,7 @@
   place-items: center;
 }
 .stepOn {
-  color: var(--sf-primary, #19c8cf);
+  color: var(--sf-primary, #0cff00);
 }
 .stepDone {
   color: #3ec96b;
@@ -1201,13 +1223,13 @@
   box-sizing: border-box;
   padding: 6px;
   border-radius: 8px;
-  border: 1px solid #d18be0;
-  color: #d18be0;
+  border: 1px solid var(--sf-primary, #0cff00);
+  color: var(--sf-primary, #0cff00);
   text-decoration: none;
   flex: 0 0 auto;
 }
 .dl:hover {
-  background: #1e1125;
+  background: color-mix(in srgb, var(--sf-primary, #0cff00) 16%, transparent);
 }
 .dl svg {
   width: 16px;
@@ -1283,9 +1305,13 @@
     font-size: 11px;
   }
   .work .sensorSwitch img,
+  .work .sensorSwitch .glyph,
   .work .piBot img,
+  .work .piBot .glyph,
   .work .annotate img,
-  .work .tools img {
+  .work .annotate .glyph,
+  .work .tools img,
+  .work .tools .glyph {
     height: 12px;
     width: 12px;
     max-width: 12px;
@@ -1296,9 +1322,11 @@
     max-width: 22px;
   }
   .work .piBot img.trainIcon,
-  .work .annotate img.trainIcon {
+  .work .piBot .trainIcon,
+  .work .annotate img.trainIcon,
+  .work .annotate .trainIcon {
     height: 28px;
-    width: auto;
+    width: 28px;
     max-width: 32px;
   }
   .work .path,
@@ -1341,8 +1369,11 @@
     padding: 2px 8px;
   }
   .work .piBot img.trainIcon,
-  .work .annotate img.trainIcon {
+  .work .piBot .trainIcon,
+  .work .annotate img.trainIcon,
+  .work .annotate .trainIcon {
     height: 22px;
+    width: 22px;
     max-width: 26px;
   }
   .work .piBot .bot,
@@ -1472,13 +1503,13 @@
 .markBox {
   position: absolute;
   box-sizing: border-box;
-  border: 2px solid #0cff00;
+  border: 2px solid var(--sf-primary, #0cff00);
   pointer-events: none;
 }
 .markOld {
   position: absolute;
   box-sizing: border-box;
-  border: 1px dashed #0cff00;
+  border: 1px dashed var(--sf-primary, #0cff00);
   pointer-events: none;
 }
 .markLit {
@@ -1524,7 +1555,7 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 2px solid #0cff00;
+  border: 2px solid var(--sf-primary, #0cff00);
   background: #fff;
   transform: translate(-50%, -50%);
   pointer-events: none;

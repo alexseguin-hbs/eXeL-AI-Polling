@@ -21,5 +21,6 @@ const RASTER: Record<TrainStepId, string> = {
 };
 
 export function StepIcon({ id }: { id: TrainStepId }) {
-  return <img className={styles.trainIcon} src={RASTER[id]} alt="" />;
+  const src = RASTER[id];
+  return <span className={`${styles.trainIcon} ${styles.glyph}`} style={{ WebkitMaskImage: `url(${src})`, maskImage: `url(${src})` }} aria-hidden="true" />;
 }

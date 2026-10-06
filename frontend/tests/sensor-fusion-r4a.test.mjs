@@ -52,7 +52,9 @@ ok(!page.includes("team copy"), "the screen does not promise a team save");
 ok(/<StepStrip current=\{trainStatus \? 3 : 2\} \/>/.test(page) && !/<StepStrip current=\{trainStatus \? 4/.test(page), "Upload is lit, never ticked, until a real upload exists");
 ok(/<h2>\{trainStatus \? "Upload Images" : lastSave\.title\}<\/h2>/.test(page) && !/<h2>[^<]*Develop Models/.test(page), "the Upload dialog keeps the step's own title, not 'Develop Models'");
 ok(/aria-label="Save the set"/.test(page) && />\s*PROJECT\s*</.test(page) && />\s*NEW FOLDER\s*</.test(page), "Upload asks for the project or a new folder");
-ok(/setUploadOpen\(true\)/.test(page), "the Upload button opens that choice");
+ok(/useState<SchemeId \| "custom">\("green"\)/.test(page), "Sensor Fusion starts on green");
+ok(/styles\.glyph/.test(page) && /background-color:\s*var\(--sf-primary, #0cff00\)/.test(fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.module.css"), "utf8")), "icons take the color chosen in Settings");
+ok(!fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.module.css"), "utf8").includes("#d18be0"), "the download icon is no longer a fixed purple");
 ok(!/`(Files|Downloads)\/\$\{setName\}`/.test(page), "a share or a download never names a folder the app did not make");
 
 const probeUrl = process.env.RLS_PROBE_URL || "";
