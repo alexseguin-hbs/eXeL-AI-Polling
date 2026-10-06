@@ -1086,7 +1086,7 @@
    "date": "2026-10-05",
    "kind": "correction",
    "text": "r.080 correction — the Accrual header is one line. Accrual Rate and the amount sit on the left. + Transaction and the gear sit on the right edge of the card.",
-   "commit": ""
+   "commit": "da36479"
   }
  ]
 }
