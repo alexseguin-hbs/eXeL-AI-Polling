@@ -47,10 +47,14 @@
 
   function catalog() {
     if (!catalogPromise) {
-      catalogPromise = fetch("/sensor-fusion/models.json").then(function (res) {
-        if (!res.ok) throw new Error("The model list did not open.");
-        return res.json();
-      });
+      if (window.SF_CATALOG && window.SF_CATALOG.models) {
+        catalogPromise = Promise.resolve(window.SF_CATALOG);
+      } else {
+        catalogPromise = fetch("/sensor-fusion/models.json").then(function (res) {
+          if (!res.ok) throw new Error("The model list did not open.");
+          return res.json();
+        });
+      }
     }
     return catalogPromise;
   }
