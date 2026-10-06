@@ -759,7 +759,6 @@ export function FinancialCommandUX1() {
               <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => { setAccrualGear((g) => !g); setDefOpen(null); }} className={`flex h-8 w-9 shrink-0 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
             </div>
           </div>
-          </div>
           {/* r.067 THE COCKPIT WARNING (addendum 144 "warnings of credit card overspend"; his levels: amber $1,500 · red $2,000): a card at
               or past a level the person set is named here, in words as well as colour, at the top of the one view; r.072 (addendum 161
               "remove limit from CC"): the balance alone — the limit lives only in the card's settings */}
