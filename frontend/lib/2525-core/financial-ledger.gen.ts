@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 148 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 150 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1045,6 +1045,20 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.074 shipped and LIVE (Verify Live #2261) — one column, full width on a PC and on a phone held sideways (addendum 188, his answer \"Same column, full width\"): every card spans the screen less the 16 px gutters; the $ chart gains width, never more than 300 px tall at rest; a phone held upright keeps its exact drawing (FD-107, FIN-07.06).",
       "commit": "b96a632"
+    },
+    {
+      "rev": 149,
+      "date": "2026-10-05",
+      "kind": "decision",
+      "text": "r.075 decision — the Accrual card is one identity. Income is the headline and equals Escrow plus Released. Escrow and Released sit side by side. Spent and Available sit under Released only, and Available is the only spendable figure. The rate stays in the header and is not added into any balance. The gear explains each figure in plain words.",
+      "commit": "5b4579b"
+    },
+    {
+      "rev": 150,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "r.075 pushed — Income is the headline, not Available (5b4579b). The Accrual card glows on the same 3-second cycle as the 3, 6, and 9 theme rings (00938b8). Income, Escrow, Released, Spent, and Available share one size, and the titles and Income are bold (3b6d7f8). Opening the Trinity logo no longer adds a ring; the logo drawing is unchanged (ee340a3). Not marked LIVE until the banner shows this commit.",
+      "commit": "ee340a3"
     }
   ]
 };
