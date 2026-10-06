@@ -2199,13 +2199,15 @@ export default function SensorFusion() {
       </section>
       <div className={styles.dock}>
       <nav className={styles.piBot}>
-        <button type="button" className={showScores ? styles.botOn : styles.bot} onClick={() => setShowScores((on) => !on)}>
-          <img src={showScores ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />%
-        </button>
-        <button type="button" className={showLabels ? styles.botOn : styles.bot} onClick={() => setShowLabels((on) => !on)}>
-          <img src={showLabels ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
-          Labels
-        </button>
+        <div className={styles.pair}>
+          <button type="button" className={showScores ? styles.botOn : styles.bot} onClick={() => setShowScores((on) => !on)}>
+            <img src={showScores ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />%
+          </button>
+          <button type="button" className={showLabels ? styles.botOn : styles.bot} onClick={() => setShowLabels((on) => !on)}>
+            <img src={showLabels ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} alt="" />
+            Labels
+          </button>
+        </div>
         <div className={styles.modelWrap}>
           <button type="button" className={styles.botOn} aria-expanded={modelsOpen} aria-haspopup="listbox" aria-label="Run Live" onClick={() => setModelsOpen((open) => !open)}>
             <img src={`${UI}/models_icon_001.png`} alt="" />
@@ -2478,6 +2480,7 @@ export default function SensorFusion() {
           </section>
           <div className={styles.dock}>
             <nav className={styles.piBot}>
+              <div className={styles.pair}>
               <button type="button" className={`${styles.botOn} ${tip === "pct" ? styles.tipOn : ""}`} onClick={(event) => placeTip("pct", event)}>
                 <img src={`${UI}/toggle_switch_on_001.png`} alt="" />%
               </button>
@@ -2485,6 +2488,7 @@ export default function SensorFusion() {
                 <img src={`${UI}/toggle_switch_on_001.png`} alt="" />
                 Labels
               </button>
+              </div>
               <button type="button" className={`${styles.botOn} ${tip === "model" ? styles.tipOn : ""}`} onClick={(event) => placeTip("model", event)}>
                 <img src={`${UI}/models_icon_001.png`} alt="" />
                 Demo.90

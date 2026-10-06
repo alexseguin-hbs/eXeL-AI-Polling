@@ -508,6 +508,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "Coral is off the bottom bar. The outline with the check sits on the live picture, and only when the selected model is running on Coral.",
+      commit: "55cbe5c",
+    },
+    {
+      rev: 73,
+      date: "2026-10-05",
+      kind: "release",
+      text: "The % and Labels toggles sit together as one control. The other bottom buttons share the remaining space evenly.",
       commit: "",
     },
   ],

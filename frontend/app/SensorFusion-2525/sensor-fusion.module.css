@@ -988,6 +988,23 @@
   text-align: center;
   font-size: 9px;
 }
+.pair {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+.piBot > .pair,
+.piBot > .modelWrap,
+.piBot > .bot,
+.piBot > .botOn {
+  flex: 1 1 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+}
 .piBot .annotate {
   padding: 4px 6px;
   font-size: 9px;
