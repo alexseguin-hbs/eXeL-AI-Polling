@@ -1073,6 +1073,13 @@
    "kind": "correction",
    "text": "r.078 correction — the photo on 006bbc1 showed a hole between the $ and the shorter amounts. One width, taken from Income, had been forced onto every figure. Each column now sizes to its own longest amount, and a positive column no longer reserves a blank before the $.",
    "commit": "71eb9b3"
+  },
+  {
+   "rev": 154,
+   "date": "2026-10-05",
+   "kind": "correction",
+   "text": "r.079 correction — the Rate line in the gear follows the unit on the card. /sec, /min, /hr, or /day changes the live equation. The 30-day result stays the month plan and is not added into Income.",
+   "commit": ""
   }
  ]
 }

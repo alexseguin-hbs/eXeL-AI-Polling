@@ -198,7 +198,7 @@ ok(/data-fin-chart-controls className="mt-2 flex flex-wrap items-center justify-
 ok(/<details data-fin-ledger/.test(ux) && /data-fin-ledger-scroll className="mt-2 overflow-x-auto"/.test(ux) && /data-fin-ledger-table className="min-w-full whitespace-nowrap/.test(ux), "r.028: the Record folds behind a chevron; opened, a table with one entry per line that scrolls sideways");
 ok(!/t\("fin\.frame"\)|t\("fin\.per_33"\)|\/33</.test(ux) && !/key: "m33"/.test(ux), "r.028 (addendum 58 'remove all 33 day reference'): no 33-day frame, unit or label on the glass");
 
-ok(/data-fin-accrual-defs/.test(ux) && /\(\["income", "escrowed", "released", "spent", "available", "rate"\] as const\)\.map/.test(ux) && /t\(`fin\.def\.\$\{k\}`\)/.test(ux), "the Accrual gear explains Income, In Escrow, Released, Spent, Available, and the rate, in that order");
+ok(/data-fin-accrual-defs/.test(ux) && /\(\["income", "escrowed", "released", "spent", "available", "rate"\] as const\)\.map/.test(ux) && /t\(`fin\.def\.\$\{k\}`\)/.test(ux) && /const rateEq = `\$\{rateText\} \$\{t\(`fin\.rate\.\$\{rateUnit\}`\)\}/.test(ux) && !/rateIn\("hr"\) \* 24 \* 30/.test(ux), "the Accrual gear explains the six lines, and the Rate equation follows the unit you pick");
 
 ok(/\{ key: "calmonth", label: t\("fin\.per_cal_month"\), period: "calmonth" \},[^\n]*\n\s*\{ key: "month"/.test(ux) && /setCalendarMonth\(now\)/.test(ux) && /"fin\.per_cal_month", englishDefault: "Standard Month"/.test(fs.readFileSync("lib/lexicon-data.ts", "utf8")), "r.031 + r.039 (addenda 62, 74): the standard calendar month sits right before the 30.3̅-day month and reads 'Standard Month' — no extra text; it still converts by the real month's length");
 

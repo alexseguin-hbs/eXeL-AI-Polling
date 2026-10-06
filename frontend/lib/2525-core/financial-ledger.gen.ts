@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 153 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 154 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1080,6 +1080,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.078 correction — the photo on 006bbc1 showed a hole between the $ and the shorter amounts. One width, taken from Income, had been forced onto every figure. Each column now sizes to its own longest amount, and a positive column no longer reserves a blank before the $.",
       "commit": "71eb9b3"
+    },
+    {
+      "rev": 154,
+      "date": "2026-10-05",
+      "kind": "correction",
+      "text": "r.079 correction — the Rate line in the gear follows the unit on the card. /sec, /min, /hr, or /day changes the live equation. The 30-day result stays the month plan and is not added into Income.",
+      "commit": ""
     }
   ]
 };

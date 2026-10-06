@@ -241,6 +241,8 @@ export function FinancialCommandUX1() {
   const rateIn = (u: RateUnit): number => (u === "sec" ? bal.netRatePerMinCents / planet.secPerMin : u === "min" ? bal.netRatePerMinCents : u === "hr" ? bal.netRatePerMinCents * planet.minPerHour : bal.netRatePerMinCents * planet.hoursPerDay * planet.minPerHour);
   // r.071 (addendum 158): the two figures' shared size, from the characters they show together (monospace → width = chars × advance)
   const rateText = rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit));
+  const rateSteps = rateUnit === "sec" ? [planet.secPerMin, planet.minPerHour, planet.hoursPerDay, 30] : rateUnit === "min" ? [planet.minPerHour, planet.hoursPerDay, 30] : rateUnit === "hr" ? [planet.hoursPerDay, 30] : [30];
+  const rateEq = `${rateText} ${t(`fin.rate.${rateUnit}`)} × ${rateSteps.join(" × ")} = ${usd(Math.round(rateIn(rateUnit) * rateSteps.reduce((a, b) => a * b, 1)))}`;
   // Income is escrow plus released. It is not Available, and the rate is not added into it.
   const incomeCents = bal.escrowedCents + bal.releasedCents;
   const moneyBody = (cents: number) => Math.abs(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -804,7 +806,7 @@ export function FinancialCommandUX1() {
                   : k === "released" ? `${spent} + ${avail} = ${rel}`
                   : k === "spent" ? `${rel} − ${avail} = ${spent}`
                   : k === "available" ? `${rel} − ${spent} = ${avail}`
-                  : `${usd4(rateIn("hr"))} /hr × 24 × 30 = ${usd(Math.round(rateIn("hr") * 24 * 30))}`;
+                  : rateEq;
                 const open = defOpen === k;
                 return (
                   <div key={k} data-fin-def={k}>
