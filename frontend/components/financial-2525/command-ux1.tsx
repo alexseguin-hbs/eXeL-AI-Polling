@@ -51,7 +51,7 @@ import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fiel
 import { append, loadRecord, saveRecord, readStored, recordKey, unionRecords, sameChain, chainFingerprint, freshId, nextAt, txIdentity, followId, replay, emptyRecord, correctTx, stableJson, type FinRecord, type TxEdit } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry; r.073: the union
 import { parseAmountCents, amountProblem, parsePositive, lengthFits, parseBudgetAmount, parseCardCents, budgetFigure, smallDollars } from "@/lib/financial-2525/typed";   // r.073 (round 1): one reader for what a person types
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
-import { fitGrid, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
+import { fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
 import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, newCard, uniqueCardId, applyCardSettings, looksLikeCardNumber, cardBalanceAt, cardLevel, cardSeries, cardMoves, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
 import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, readAll, mergeRecords, syncChoice, nextStamp, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
@@ -243,11 +243,13 @@ export function FinancialCommandUX1() {
   const rateText = rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit));
   // Income is escrow plus released. It is not Available, and the rate is not added into it.
   const incomeCents = bal.escrowedCents + bal.releasedCents;
-  const numFont = { fontSize: fitGrid(Math.max(usd(incomeCents).length, usd(bal.escrowedCents).length, usd(bal.releasedCents).length, usd(bal.withdrawnCents).length, usd(bal.availableCents).length), 2) };
+  const moneyBody = (cents: number) => Math.abs(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const intW = Math.max(1, ...[incomeCents, bal.escrowedCents, bal.releasedCents, bal.withdrawnCents, bal.availableCents].map((c) => { const b = moneyBody(c); return b.slice(0, b.lastIndexOf(".")).length; }));
+  const amtCols = { gridTemplateColumns: `1ch auto ${intW}ch auto` };
   const money = (cents: number) => {
-    const body = Math.abs(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const body = moneyBody(cents);
     const dot = body.lastIndexOf(".");
-    return (<><span>{cents < 0 ? "-" : ""}</span><span>{CUR_SYM}</span><span className="text-right">{body.slice(0, dot)}</span><span>{body.slice(dot)}</span></>);
+    return (<><span>{cents < 0 ? "−" : ""}</span><span>{CUR_SYM}</span><span className="text-right">{body.slice(0, dot)}</span><span>{body.slice(dot)}</span></>);
   };
   const focusView = focus && now ? depositView(focus, at) : null;
   const year = now ? positionInYear(now, planet.yearAnchor, planet.yearDays) : null;
@@ -736,7 +738,7 @@ export function FinancialCommandUX1() {
             <div className="flex flex-wrap items-center justify-end gap-2">
               {bal.ratePerMinCents > 0 && (
                 <div data-fin-rate-block className="flex items-center gap-1 text-primary">
-                  <span data-fin-rate className="font-mono text-sm tabular-nums">{rateText}</span>
+                  <span data-fin-rate className="font-mono text-lg tabular-nums">{rateText}</span>
                   <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-primary">
                     {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
                   </select>
@@ -761,21 +763,21 @@ export function FinancialCommandUX1() {
               Row 2: Escrow | Released. Escrow cannot be spent. Released has cleared escrow and is still part of Income.
               Row 3, nested under Released only: Spent | Available. Spent = drawn from Released. Available = Released − Spent. Available is the only spendable figure.
               Invariants: escrow + released === income. spent + available === released. Available is not summed into Income. Spent is not summed into Income. */}
-          <div data-fin-figures style={{ containerType: "inline-size" }}>
+          <div data-fin-figures>
           <div data-fin-income-row className="mt-3 grid grid-cols-2 gap-x-3 border-b border-border pb-3">
             <div>
-              <div className="block w-full text-left text-2xl font-bold text-foreground">{t("fin.income")}</div>
-              <div data-fin-income className="grid w-full text-left font-mono text-2xl font-bold tabular-nums text-foreground [grid-template-columns:1ch_auto_1fr_auto]" style={numFont}>{money(incomeCents)}</div>
+              <div className="block w-full text-left text-lg font-bold text-foreground">{t("fin.income")}</div>
+              <div data-fin-income className="grid justify-start text-left font-mono text-lg font-bold tabular-nums text-foreground" style={amtCols}>{money(incomeCents)}</div>
             </div>
           </div>
           <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-3">
-            <div data-fin-cell="escrowed"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.escrowed")}</dt><dd className="grid w-full text-left font-mono text-2xl tabular-nums text-foreground [grid-template-columns:1ch_auto_1fr_auto]" style={numFont}>{money(bal.escrowedCents)}</dd></div>
-            <div data-fin-cell="released" className="border-l border-border pl-3"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.released")}</dt><dd className="grid w-full text-left font-mono text-2xl tabular-nums text-foreground [grid-template-columns:1ch_auto_1fr_auto]" style={numFont}>{money(bal.releasedCents)}</dd></div>
+            <div data-fin-cell="escrowed"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.escrowed")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-foreground" style={amtCols}>{money(bal.escrowedCents)}</dd></div>
+            <div data-fin-cell="released" className="border-l border-border pl-3"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.released")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-foreground" style={amtCols}>{money(bal.releasedCents)}</dd></div>
           </dl>
           <div data-fin-released-nest className="mt-3 border-t border-border pt-3">
             <dl className="grid w-full grid-cols-2 gap-x-3">
-              <div data-fin-cell="spent"><dt className="block w-full text-left text-base font-bold text-primary">{t("fin.spent")}</dt><dd className="grid w-full text-left font-mono text-2xl tabular-nums text-primary [grid-template-columns:1ch_auto_1fr_auto]" style={numFont}>{money(bal.withdrawnCents)}</dd></div>
-              <div data-fin-cell="available" className="border-l border-border pl-3"><dt className="block w-full text-left text-base font-bold text-primary">{t("fin.available")}</dt><dd data-testid="fin-clock" className="grid w-full text-left font-mono text-2xl tabular-nums text-primary [grid-template-columns:1ch_auto_1fr_auto]" style={numFont}>{money(bal.availableCents)}</dd></div>
+              <div data-fin-cell="spent"><dt className="block w-full text-left text-base font-bold text-primary">{t("fin.spent")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-primary" style={amtCols}>{money(bal.withdrawnCents)}</dd></div>
+              <div data-fin-cell="available" className="border-l border-border pl-3"><dt className="block w-full text-left text-base font-bold text-primary">{t("fin.available")}</dt><dd data-testid="fin-clock" className="grid justify-start text-left font-mono text-lg tabular-nums text-primary" style={amtCols}>{money(bal.availableCents)}</dd></div>
             </dl>
           </div>
           </div>

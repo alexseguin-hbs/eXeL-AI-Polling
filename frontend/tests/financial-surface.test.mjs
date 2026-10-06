@@ -66,7 +66,7 @@ ok(/\{owner \? \(/.test(ux) && /data-fin-forms/.test(ux), 'the deposit / withdra
 // r.002 — the surface STARTS FROM the ◬ ♡ 웃 Session shell (operator addendum 7): its root, header, rail, guide, roster, clock, strip, Trinity
 ok(/className="w-full px-4 pb-20 pt-3 sm:pb-10"/.test(ux) && /<SoiGlobe \/>/.test(ux) && !/<TrinityGlyphs size="text-3xl"/.test(ux), 'r.042: the Session root, a smaller header, the globe; no ◬ ♡ 웃 row (the Trinity logo replaces it)');
 ok(!/PodPhaseRail|FIN_PHASES|phaseOf|countFor/.test(ux) && !/PodRosterList/.test(ux), "r.038 (addendum 73 'get rid of this; adds no value'): no step rail on the surface; the \"Your deposits\" list stays gone (r.025)");
-ok(!/data-testid="fin-your-turn"/.test(ux) && /font-mono text-2xl tabular-nums text-primary/.test(ux) && !/data-testid="fin-strip"/.test(ux) && /<SoITrinity /.test(ux), "r.028 (addendum 58 'remove gold top box'): no YOUR TURN card, no strip; the Accrual Units figure and the folded Trinity keep the Session's classes");
+ok(!/data-testid="fin-your-turn"/.test(ux) && /font-mono text-lg tabular-nums text-primary/.test(ux) && !/data-testid="fin-strip"/.test(ux) && /<SoITrinity /.test(ux), "r.028 (addendum 58 'remove gold top box'): no YOUR TURN card, no strip; the Accrual Units figure and the folded Trinity keep the Session's classes");
 ok(/const CARD = "mt-8 rounded-xl border border-border bg-card p-5"/.test(ux) && !/VECTOR_LAW\.ground/.test(ux), 'the chrome is the app theme card (bg-card), not a fresh black console');
 ok(/<SoITrinity labels=\{\[t\("fin\.wheel\.hi"\), t\("fin\.wheel\.si"\), t\("fin\.wheel\.ai"\)\]\}/.test(ux), 'the Trinity wheel seats the operator\'s way: TOP HI 웃 · BOTTOM-RIGHT SI ♡ minutes · BOTTOM-LEFT AI ◬ tokens (addendum 9; SoITrinity tuple = [top, bottom-right, bottom-left])');
 ok(/const ticks = showAbc \? \[\] : dayTicks\(from, to, fit\);/.test(ux) && /rotate\(-\$\{angle\}deg\)/.test(ux) && !/<g data-fin-date-axis/.test(ux) && /\{dateLabel\(tk, dateFmt\)\}/.test(ux) && /\{showAbc && <div data-fin-axis/.test(ux), "the chart's Clock mode reads CALENDAR DATES at the chosen angle — as many whole days as fit at that angle; A.B..C is the reveal");
@@ -214,8 +214,8 @@ ok(!/cyan/.test(ux), "r.034 (addendum 67 'we stick to color per selector'): no f
 
 ok(!/p\.withdrawable\)/.test(ux) && !/C\.consciousness/.test(ux) && !/t\("fin\.withdrawable"\)/.test(ux), "r.034: no separate Withdrawable stroke or cyan legend word — with no hold it is the Released line; the tap line takes the theme colour");
 
-ok(/<div data-fin-rate-block className="flex items-center gap-1 text-primary">\s*<span data-fin-rate className="font-mono text-sm tabular-nums">\{rateText\}<\/span>/.test(ux) && !/data-fin-rate-label/.test(ux) && !/t\("fin\.accrual_rate"\)/.test(ux), "The rate sits in the Accrual header with its unit. It is not labelled a second time and it is not a balance.");
-ok(/data-fin-income className="grid w-full text-left font-mono text-2xl font-bold tabular-nums text-foreground \[grid-template-columns:1ch_auto_1fr_auto\]" style=\{numFont\}>\{money\(incomeCents\)\}/.test(ux) && /data-testid="fin-clock"/.test(ux) && ux.indexOf("data-fin-income") < ux.indexOf('data-testid="fin-clock"') && (ux.match(/\[grid-template-columns:1ch_auto_1fr_auto\]/g) || []).length === 5, "The $ sits left, the decimals line up, and the labels share a left start. Income stays bold.");
+ok(/<div data-fin-rate-block className="flex items-center gap-1 text-primary">\s*<span data-fin-rate className="font-mono text-lg tabular-nums">\{rateText\}<\/span>/.test(ux) && !/data-fin-rate-label/.test(ux) && !/t\("fin\.accrual_rate"\)/.test(ux), "The rate sits in the Accrual header with its unit, at the same size as the totals. It is not labelled a second time and it is not a balance.");
+ok(/data-fin-income className="grid justify-start text-left font-mono text-lg font-bold tabular-nums text-foreground" style=\{amtCols\}>\{money\(incomeCents\)\}/.test(ux) && /data-testid="fin-clock"/.test(ux) && ux.indexOf("data-fin-income") < ux.indexOf('data-testid="fin-clock"') && (ux.match(/style=\{amtCols\}>/g) || []).length === 5 && /const amtCols = \{ gridTemplateColumns: `1ch auto \$\{intW\}ch auto` \};/.test(ux), "The $ sits left, the decimals share one line, and every amount starts at the same place. Income stays bold.");
 
 ok(/data-fin-cell="escrowed"/.test(ux) && /data-fin-cell="released" className="border-l border-border pl-3"/.test(ux) && /data-fin-released-nest/.test(ux) && /data-fin-cell="spent"/.test(ux) && /data-fin-cell="available" className="border-l border-border pl-3"/.test(ux), "Escrow and Released share one row. Spent and Available sit in the box under Released.");
 
@@ -352,11 +352,11 @@ ok(/<details data-fin-cards className=\{`group \$\{SUB\}`\}>\s*<summary classNam
 // size is fitted to the row (a CSS size container; monospace width = characters × advance), between 0.875rem and the r.044 1.5rem; past the
 // floor the rate wraps under — the Available block never shrinks under its own text, so the two never overlap
 { const fit = fs.readFileSync(path.join(process.cwd(), "lib/financial-2525/fit.ts"), "utf8");
-  ok(/data-fin-income className="grid w-full text-left font-mono text-2xl font-bold tabular-nums text-foreground \[grid-template-columns:1ch_auto_1fr_auto\]" style=\{numFont\}>\{money\(incomeCents\)\}/.test(ux)
-    && /const numFont = \{ fontSize: fitGrid\(Math\.max\(usd\(incomeCents\)\.length, usd\(bal\.escrowedCents\)\.length, usd\(bal\.releasedCents\)\.length, usd\(bal\.withdrawnCents\)\.length, usd\(bal\.availableCents\)\.length\), 2\) \};/.test(ux)
-    && /<span data-fin-rate className="font-mono text-sm tabular-nums">\{rateText\}<\/span>/.test(ux)
+  ok(/data-fin-income className="grid justify-start text-left font-mono text-lg font-bold tabular-nums text-foreground" style=\{amtCols\}>\{money\(incomeCents\)\}/.test(ux)
+    && /const intW = Math\.max\(1, \.\.\.\[incomeCents, bal\.escrowedCents, bal\.releasedCents, bal\.withdrawnCents, bal\.availableCents\]/.test(ux)
+    && /<span data-fin-rate className="font-mono text-lg tabular-nums">\{rateText\}<\/span>/.test(ux)
     && /return `min\(1\.5rem, max\(0\.875rem, calc\(\(100cqw - \$\{Math\.max\(0, Math\.round\(reservePx\)\)\}px\) \/ \$\{em\}\)\)\)`;/.test(fit) && /export const FIG_ADVANCE_EM = 0\.62;/.test(fit),
-    "Every Accrual amount shares one size. Income is bold. The rate stays small in the header."); }
+    "The rate and the five amounts are one size. The $ stays left and the decimals share one line."); }
 // r.071 (addendum 160 "Trinity text does not render anymore when clicked"): r.051 recorded the opened logo's labels at 16 but shipped 20
 // — taller than the ring's 18-unit coloured band — so the dark labels vanished where they left it. Every label now fits its band:
 // 16 units, centred across the band (the top ring's glyphs stand outward, the bottom rings' inward). Proven on the glyph envelope.
@@ -428,11 +428,11 @@ ok(/<th className="py-1 text-right min-\[360px\]:whitespace-nowrap">\{unitHead\(
     && /return reservePx \+ FIG_UNIT_PX_PER_CHAR \* Math\.max\(0, widest - FIG_UNIT_BASE_CHARS\);/.test(fit)
     && /const labelChars = \(s: string\): number => Array\.from\(s\)\.reduce\(\(n, ch\) => n \+ \(WIDE_CHAR\.test\(ch\) \? 2 : 1\), 0\);/.test(fit),
     "r.071 AsM fold: the row's reserve is pinned (80–120 px, advance 0.60–0.66 em) and grows ~7 px per unit character past four");
-  ok(/<div data-fin-figures style=\{\{ containerType: "inline-size" \}\}>/.test(ux)
-    && (ux.match(/style=\{numFont\}>/g) || []).length === 5
-    && /const numFont = \{ fontSize: fitGrid\(Math\.max\(usd\(incomeCents\)\.length, usd\(bal\.escrowedCents\)\.length, usd\(bal\.releasedCents\)\.length, usd\(bal\.withdrawnCents\)\.length, usd\(bal\.availableCents\)\.length\), 2\) \};/.test(ux)
+  ok(/<div data-fin-figures>/.test(ux)
+    && (ux.match(/style=\{amtCols\}>/g) || []).length === 5
+    && /const amtCols = \{ gridTemplateColumns: `1ch auto \$\{intW\}ch auto` \};/.test(ux)
     && /return `min\(1\.5rem, max\(0\.6875rem, calc\(\(\(100cqw - \$\{Math\.max\(0, cols - 1\) \* gapPx\}px\) \/ \$\{Math\.max\(1, cols\)\} - 4px\) \/ \$\{em\}\)\)\)`;/.test(fit),
-    "Income, Escrow, Released, Spent and Available share one size. The $ is left and the decimals line up."); }
+    "Income, Escrow, Released, Spent and Available share one left start. The $ is left and the decimals line up."); }
 // r.071 (addendum 159): the gear's $/min · $/sec line is the rate escrow is releasing NOW — the same lower rate as the Accrual Rate after a
 // spend ahead, never the deposit's original schedule
 ok(/`· \$\{usd4\(bal\.netRatePerMinCents\)\} \$\{t\("fin\.rate\.min"\)\}`/.test(ux) && /const rateIn = \(u: RateUnit\): number => \(u === "sec" \? bal\.netRatePerMinCents/.test(ux), "r.071 (addendum 159): the gear's rate line and the Accrual Rate show the same live rate");
