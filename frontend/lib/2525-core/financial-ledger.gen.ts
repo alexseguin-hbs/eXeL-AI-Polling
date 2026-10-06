@@ -1149,7 +1149,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-05",
       "kind": "correction",
       "text": "r.088 correction — the top line is one line again. + Transaction and the gear stay on the right of the rate, the same height as /hr. They no longer drop onto a second line.",
-      "commit": ""
+      "commit": "05d7e87"
     }
   ]
 };
