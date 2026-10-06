@@ -4,10 +4,12 @@
  * Owner key: SHA-256 hex of `fit2525:` + Auth0 user.sub (mirrors fin2525:).
  * Namespaces: fit-day-YYYY-MM-DD · fit-index.
  * Never throws; no Supabase env → "offline", the device copy stands.
- * Merges: scalars from the newest `at` win; workouts[] / checkins[] are unioned by id — nothing is deleted.
+ * Merges: scalars from the newest `at` win; workouts[] / checkins[] / meals[] are unioned by id, then
+ * tombstones (`deleted`, unioned, earliest delete kept) remove deleted items so they never come back.
  */
 import { supabase } from "../supabase";
-import type { FitCheckin, FitDay, FitIndex, FitProfile, FitRecovery, FitWorkout } from "./types";
+import type { FitCheckin, FitDay, FitIndex, FitMeal, FitProfile, FitRecovery, FitWorkout } from "./types";
+import { applyTombstones, withMealTotals } from "./log";
 import { FIT_INDEX_NAME, FIT_PROFILE_NAME, dayNamespace } from "./types";
 
 export type CloudState = "off" | "saving" | "saved" | "offline" | "error";
@@ -71,7 +73,11 @@ export function mergeFitDays(a: FitDay, b: FitDay | null): FitDay {
   const older = newer === a ? b : a;
   const workouts = byId<FitWorkout>([...(older.workouts ?? []), ...(newer.workouts ?? [])]);
   const checkins = byId<FitCheckin>([...(older.checkins ?? []), ...(newer.checkins ?? [])]);
-  return {
+  const meals = byId<FitMeal>([...(older.meals ?? []), ...(newer.meals ?? [])]);
+  const deleted: Record<string, number> = { ...(older.deleted ?? {}) };
+  for (const [k, v] of Object.entries(newer.deleted ?? {})) deleted[k] = deleted[k] ? Math.min(deleted[k], v) : v;
+  const hasLog = meals.size > 0 || Object.keys(deleted).length > 0;
+  const merged: FitDay = {
     v: 1,
     date: newer.date || older.date,
     tz: newer.tz ?? older.tz,
@@ -97,8 +103,12 @@ export function mergeFitDays(a: FitDay, b: FitDay | null): FitDay {
     recovery: mergeRecovery(older.recovery, newer.recovery),
     sleep_hrs: newer.sleep_hrs !== undefined ? newer.sleep_hrs : older.sleep_hrs ?? null,
     source: newer.source ?? older.source,
+    ...(meals.size ? { meals: Array.from(meals.values()) } : {}),
+    energy: newer.energy !== undefined ? newer.energy : older.energy ?? null,
+    ...(Object.keys(deleted).length ? { deleted } : {}),
     at: Math.max(a.at ?? 0, b.at ?? 0),
   };
+  return hasLog ? withMealTotals(applyTombstones(merged)) : merged;
 }
 
 export function mergeFitIndex(local: FitIndex, remote: FitIndex | null): FitIndex {
