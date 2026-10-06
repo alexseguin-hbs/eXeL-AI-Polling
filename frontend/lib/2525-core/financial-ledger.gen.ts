@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 151 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 152 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1066,6 +1066,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.076 pushed — each Accrual amount keeps the $ on the left and the decimal in one line down the column, and the labels share one left start. In the gear, a tap on a line shows the live math: Escrow plus Released, Released minus Spent, and the rate times 24 times 30. Not marked LIVE until the banner shows this commit.",
       "commit": "2b79abe"
+    },
+    {
+      "rev": 152,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "r.077 pushed — the Accrual amounts are left justified from one start: the $ stays left and the decimals share one line down each column. The rate and the five totals are one slightly smaller size. Income stays bold. Not marked LIVE until the banner shows this commit.",
+      "commit": "6d45999"
     }
   ]
 };
