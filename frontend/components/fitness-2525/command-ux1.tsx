@@ -42,17 +42,22 @@ import { CoachPanel } from "./ux-coach";
 export function FitnessCommandUX1() {
   const { user, isAuthenticated, isLoading, loginWithRedirect, logout, getAccessTokenSilently, getIdTokenClaims } = useAuth0();
   const owner = isAuthenticated && user?.sub ? user.sub : null;
+  // Worker /api/fitness-2525 verifies RS256 JWTs whose aud = AUTH0_AUDIENCE or AUTH0_CLIENT_ID. Without an API
+  // audience the access token is opaque/userinfo-only, so send the ID token (aud = client id); refresh it if stale.
   const getFitToken = useCallback(async (): Promise<string | null> => {
+    const apiAudience = process.env.NEXT_PUBLIC_AUTH0_AUDIENCE || "";
+    if (apiAudience) {
+      try { const t = await getAccessTokenSilently(); if (t) return t; } catch { /* fall back to the ID token */ }
+    }
+    const idToken = async () => {
+      const c = (await getIdTokenClaims()) as { __raw?: string; exp?: number } | undefined;
+      return c?.__raw && (!c.exp || c.exp * 1000 > Date.now() + 60_000) ? c.__raw : null;
+    };
     try {
-      if (getAccessTokenSilently) {
-        const t = await getAccessTokenSilently();
-        if (t) return t;
-      }
-    } catch { /* fall through to id token */ }
-    try {
-      const claims = await getIdTokenClaims();
-      const raw = claims && (claims as { __raw?: string }).__raw;
-      return raw || null;
+      const fresh = await idToken();
+      if (fresh) return fresh;
+      await getAccessTokenSilently({ cacheMode: "off" }); // renews the session → new ID token
+      return await idToken();
     } catch {
       return null;
     }
@@ -192,11 +197,15 @@ export function FitnessCommandUX1() {
             setField={setField} inputStyle={inputStyle}
           />
 
-          {(tab === "PLANNING" || tab === "ENERGY") && selected && (
-            <SessionPanel selected={selected} selectedBurn={selectedBurn} rateUnit={rateUnit} toggleWorkout={toggleWorkout} btnGhost={btnGhost} />
+          {(tab === "PLANNING" || tab === "ENERGY") && (
+            <SessionPanel selected={selected} selectedBurn={selectedBurn} rateUnit={rateUnit} toggleWorkout={toggleWorkout} btnGhost={btnGhost}
+              applyDay={applyDay} inputStyle={inputStyle} onSelect={setSelectedId} />
           )}
 
-          {tab === "NUTRITION" && <NutritionPanel coachBusy={coachBusy} runCoach={runCoach} btnGhost={btnGhost} />}
+          {tab === "NUTRITION" && (
+            <NutritionPanel day={day} applyDay={applyDay} sugarCapG={budget.sugarCapG} coachBusy={coachBusy} runCoach={runCoach}
+              btnGhost={btnGhost} btnPrimary={btnPrimary} inputStyle={inputStyle} />
+          )}
           {tab === "COACH" && (
             <CoachPanel
               coachDraft={coachDraft} setCoachDraft={setCoachDraft} coachBusy={coachBusy} coachErr={act.coachErr}
