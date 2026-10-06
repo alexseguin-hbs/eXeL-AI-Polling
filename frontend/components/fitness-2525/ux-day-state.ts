@@ -1,12 +1,18 @@
 /**
  * FITNESS-2525 · Command UX 1 — fit-day state hook: device hydrate, example overlay,
  * owner key (fit2525: + sub), cloud pull / merge / push of fit-day-* + fit-index.
+ * AsM #14: every edit autosaves (debounced AUTOSAVE_MS) once signed in; signed out the device copy stands and
+ * every device day is pushed on sign-in. fit-index is written once per sync and only when its day list changed.
+ * The EXAMPLE overlay is never written to the cloud.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ownerKeyFor, cloudRead, mergeFitDays, mergeFitIndex, putDay, putIndex,
   nextStamp, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState,
 } from "@/lib/fitness-2525/cloud";
+import { pushDeviceDays, sameDays } from "@/lib/fitness-2525/autosave";
+
+export const AUTOSAVE_MS = 2000;
 import { type FitDay, type FitIndex, FIT_INDEX_NAME, dayNamespace } from "@/lib/fitness-2525/types";
 import {
   EXAMPLE_ANTHRO, EXAMPLE_STEPS, EXAMPLE_SUGAR_G, EXAMPLE_CALORIES_IN, EXAMPLE_CALORIES_OUT, EXAMPLE_WINDOW_INTAKE,
@@ -28,6 +34,11 @@ export function useFitDay(owner: string | null) {
   const [aiReady, setAiReady] = useState(false);
   const dirty = useRef(false);
   const syncing = useRef(false);
+  const dayRef = useRef(day);
+  dayRef.current = day;
+  const [saveTick, setSaveTick] = useState(0);
+  const exampleRef = useRef(exampleMode);
+  exampleRef.current = exampleMode;
 
   useEffect(() => {
     const wantExample =
@@ -75,11 +86,11 @@ export function useFitDay(owner: string | null) {
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || exampleMode) return; // the EXAMPLE overlay never lands on the device copy either
     saveDeviceDay(day);
     const idx = loadDeviceIndex();
     if (!idx.days.includes(day.date)) saveDeviceIndex({ days: [...idx.days, day.date].sort(), at: Date.now() });
-  }, [day, hydrated]);
+  }, [day, hydrated, exampleMode]);
 
   useEffect(() => {
     let live = true;
@@ -104,42 +115,48 @@ export function useFitDay(owner: string | null) {
   const syncOnce = useCallback(async (): Promise<boolean> => {
     if (!cloudKey || !owner) {
       setCloudState("off");
-      setShareMsg("Sign in with Auth0 for cloud (owner key fit2525: + sub).");
+      setShareMsg("Saved on this device — sign in to save to your account.");
+      return false;
+    }
+    if (exampleRef.current || dayRef.current.source === "fitness-2525-example") {
+      setShareMsg("EXAMPLE DATA is never saved — turn the example off to save your own entries.");
       return false;
     }
     if (syncing.current) return false;
     syncing.current = true;
+    const snap = dayRef.current;
     setCloudState("saving");
     setPlanStatus("pending");
     try {
-      const remote = await cloudRead<FitDay>(cloudKey, dayNamespace(day.date));
+      const remote = await cloudRead<FitDay>(cloudKey, dayNamespace(snap.date));
       if (remote.state === "offline" || remote.state === "error") {
         setCloudState(remote.state);
         setPlanStatus("draft");
         return false;
       }
-      const merged = mergeFitDays(day, remote.data);
+      const merged = mergeFitDays(snap, remote.data);
       const put = await putDay(cloudKey, merged);
       if (put !== "saved") {
         setCloudState(put);
         setPlanStatus("draft");
         return false;
       }
+      // fit-index: once per sync, and only when the day list actually changed.
       const idxRemote = await cloudRead<FitIndex>(cloudKey, FIT_INDEX_NAME);
       const localIdx = loadDeviceIndex();
-      const idxMerged = mergeFitIndex(
-        { days: Array.from(new Set([...localIdx.days, merged.date])), at: Date.now() },
-        idxRemote.state === "ok" ? idxRemote.data : null,
-      );
-      await putIndex(cloudKey, idxMerged);
+      const remoteIdx = idxRemote.state === "ok" ? idxRemote.data : null;
+      const idxMerged = mergeFitIndex({ days: Array.from(new Set([...localIdx.days, merged.date])), at: Date.now() }, remoteIdx);
+      if (idxRemote.state === "ok" && !sameDays(remoteIdx, idxMerged)) await putIndex(cloudKey, idxMerged);
       saveDeviceIndex(idxMerged);
-      setDay(merged);
-      saveDeviceDay(merged);
-      dirty.current = false;
+      // Keep any edit typed while this sync was in flight (it autosaves next).
+      setDay((prev) => (prev.at > snap.at ? mergeFitDays(prev, merged) : merged));
+      saveDeviceDay(dayRef.current.at > snap.at ? mergeFitDays(dayRef.current, merged) : merged);
+      dirty.current = dayRef.current.at > snap.at;
+      if (dirty.current) setSaveTick((t) => t + 1);
       setCloudState("saved");
       setPlanStatus("synced");
       try { localStorage.setItem(LAST_PUSH_KEY, String(Date.now())); } catch { /* ignore */ }
-      setShareMsg(`Synced ${dayNamespace(merged.date)} + fit-index`);
+      setShareMsg(`Saved to your account · ${dayNamespace(merged.date)}`);
       return true;
     } catch {
       setCloudState("error");
@@ -148,7 +165,14 @@ export function useFitDay(owner: string | null) {
     } finally {
       syncing.current = false;
     }
-  }, [cloudKey, owner, day]);
+  }, [cloudKey, owner]);
+
+  // Debounced autosave: every edit (applyDay) saves AUTOSAVE_MS after the last keystroke — not only on Submit.
+  useEffect(() => {
+    if (!cloudKey || !hydrated || !dirty.current) return;
+    const id = window.setTimeout(() => { void syncOnce(); }, AUTOSAVE_MS);
+    return () => window.clearTimeout(id);
+  }, [day.at, cloudKey, hydrated, syncOnce, saveTick]);
 
   useEffect(() => {
     if (!cloudKey || !hydrated) return;
@@ -166,7 +190,9 @@ export function useFitDay(owner: string | null) {
         });
         setCloudState("saved");
         dirty.current = true;
-        void syncOnce();
+        // Push every other day this device logged while signed out, then today.
+        await pushDeviceDays(cloudKey, TODAY);
+        if (!cancelled) void syncOnce();
       } else if (remote.state === "off") setCloudState("off");
       else setCloudState(remote.state);
     })();

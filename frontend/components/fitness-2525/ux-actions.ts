@@ -8,7 +8,7 @@ import {
   EXAMPLE_ANTHRO, EXAMPLE_STEPS, EXAMPLE_SUGAR_G, EXAMPLE_CALORIES_IN, EXAMPLE_CALORIES_OUT, EXAMPLE_WINDOW_INTAKE,
 } from "@/lib/fitness-2525/budget";
 import { requestCoachFeedback } from "@/lib/fitness-2525/ai";
-import { ROUTE, seedToday, parseOptionalNum, type DayField, type TabId } from "./ux-helpers";
+import { ROUTE, TODAY, seedToday, loadDeviceDay, parseOptionalNum, type DayField, type TabId } from "./ux-helpers";
 
 export function useFitActions({
   day, applyDay, exampleMode, setExampleMode, setTab, aiReady, coachDraft, setCoachDraft, setShareMsg, syncOnce, loginWithRedirect,
@@ -78,7 +78,8 @@ export function useFitActions({
         source: "fitness-2525-example",
       }));
     } else {
-      applyDay(() => seedToday());
+      // Back to the athlete's own entries (the device copy never holds the example overlay).
+      applyDay(() => loadDeviceDay(TODAY) ?? seedToday());
     }
   };
 
