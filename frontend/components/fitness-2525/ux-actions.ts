@@ -11,7 +11,7 @@ import { requestCoachFeedback } from "@/lib/fitness-2525/ai";
 import { ROUTE, TODAY, seedToday, loadDeviceDay, parseOptionalNum, type DayField, type TabId } from "./ux-helpers";
 
 export function useFitActions({
-  day, applyDay, exampleMode, setExampleMode, setTab, aiReady, coachDraft, setCoachDraft, setShareMsg, syncOnce, loginWithRedirect,
+  day, applyDay, exampleMode, setExampleMode, setTab, aiReady, coachDraft, setCoachDraft, setShareMsg, syncOnce, loginWithRedirect, aiProvider, onCoachResult,
 }: {
   day: FitDay;
   applyDay: (updater: (prev: FitDay) => FitDay) => void;
@@ -24,6 +24,8 @@ export function useFitActions({
   setShareMsg: Dispatch<SetStateAction<string>>;
   syncOnce: () => Promise<boolean>;
   loginWithRedirect: (opts: { appState: { returnTo: string } }) => Promise<void> | void;
+  aiProvider: import("@/lib/fitness-2525/ai").AiProvider;
+  onCoachResult?: (r: { provider: string; model: string; costUsd: number | null }) => void;
 }) {
   const [checkinDraft, setCheckinDraft] = useState("");
   const [coachBusy, setCoachBusy] = useState(false);
@@ -99,12 +101,12 @@ export function useFitActions({
     if (!reply) setCheckinDraft("");
   };
 
-  const runCoach = async (focus: "workout" | "nutrition" | "both") => {
+    const runCoach = async (focus: "workout" | "nutrition" | "both") => {
     setCoachBusy(true);
     setCoachErr("");
     setTab("COACH");
     try {
-      const out = await requestCoachFeedback(day, focus);
+      const out = await requestCoachFeedback(day, focus, aiProvider);
       if (!out) {
         setCoachErr(aiReady ? "AI returned empty — try again." : "No AI provider configured on Worker (/api/ai).");
         return;
@@ -112,6 +114,7 @@ export function useFitActions({
       const note = `${out.title}\n\n${out.body}`.trim();
       setCoachDraft(note);
       applyDay((prev) => ({ ...prev, coach_note: note }));
+      onCoachResult?.({ provider: out.provider, model: out.model, costUsd: out.costUsd });
     } catch (e) {
       setCoachErr(e instanceof Error ? e.message : "AI request failed");
     } finally {
