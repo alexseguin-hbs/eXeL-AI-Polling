@@ -503,13 +503,27 @@
   max-height: calc(var(--sf-h, 100dvh) - 32px);
   overflow: auto;
   overscroll-behavior: contain;
+  padding-bottom: 20px;
 }
 .modal .actions {
   position: sticky;
-  bottom: -16px;
-  margin-bottom: -16px;
-  padding: 4px 0 12px;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 8px 0 4px;
   background: var(--sf-bg, #001414);
+}
+.modal .actions button {
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--sf-primary, #0cff00);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sf-primary, #0cff00);
 }
 .modal h2 {
   font-size: 18px;
