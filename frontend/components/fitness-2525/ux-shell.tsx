@@ -73,7 +73,7 @@ export function TopStrip({
 }
 
 export function SessionsRail({
-  tab, setTab, day, selected, setSelectedId, syncOnce, applyDay,
+  tab, setTab, day, selected, setSelectedId, syncOnce, applyDay, signedIn, onSignIn,
 }: {
   tab: TabId;
   setTab: (t: TabId) => void;
@@ -82,6 +82,8 @@ export function SessionsRail({
   setSelectedId: (id: string | null) => void;
   syncOnce: () => Promise<boolean>;
   applyDay: (updater: (prev: FitDay) => FitDay) => void;
+  signedIn: boolean;
+  onSignIn: () => void;
 }) {
   return (
     <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border" style={{ background: C.panel, borderColor: C.border }}>
@@ -131,10 +133,10 @@ export function SessionsRail({
         <div className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Ironman Cozumel</div>
         <div className="text-[9px]" style={{ color: C.text }}>Lose ~10 lb by 2026-11-05 · vitamin-rich fueling</div>
         <div className="flex gap-1 pt-1">
-          <button type="button" className="flex-1 rounded border px-1 py-1 text-[8px] font-semibold" style={{ borderColor: C.border, color: C.cyan }} onClick={() => void syncOnce()}>
+          <button type="button" className="flex-1 rounded border px-1 py-1 text-[8px] font-semibold" style={{ borderColor: C.border, color: C.cyan }} onClick={() => { if (!signedIn) { onSignIn(); return; } void syncOnce(); }}>
             <RefreshCw className="mr-0.5 inline h-3 w-3" /> SYNC
           </button>
-          <button type="button" className="flex-1 rounded border px-1 py-1 text-[8px] font-semibold" style={{ borderColor: C.border, color: C.dim }} onClick={() => applyDay(() => seedToday())}>
+          <button type="button" className="flex-1 rounded border px-1 py-1 text-[8px] font-semibold" style={{ borderColor: C.border, color: signedIn ? C.dim : C.dim, opacity: signedIn ? 1 : 0.45 }} disabled={!signedIn} title={signedIn ? "Reset to seed plan" : "Sign in to edit plans"} onClick={() => signedIn && applyDay(() => seedToday())}>
             RESET SEED
           </button>
         </div>
