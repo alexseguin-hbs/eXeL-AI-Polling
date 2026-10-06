@@ -1884,7 +1884,7 @@ export default function SensorFusion() {
     setCapturing("Opening the video…");
     try {
       const label = classKey(labelPick);
-      const names = await peekNames(label, total.n, "jpg");
+      const names = await peekNames(label, total.n, "png");
       const url = URL.createObjectURL(file);
       const video = document.createElement("video");
       video.muted = true;
@@ -1906,7 +1906,7 @@ export default function SensorFusion() {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((item) => resolve(item), "image/jpeg", 0.92));
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((item) => resolve(item), "image/png"));
         if (!blob) return;
         made.push({ name: names[index], blob, url: URL.createObjectURL(blob) });
         setCapturing(`${made.length} / ${total.n}`);

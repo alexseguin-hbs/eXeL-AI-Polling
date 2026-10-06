@@ -1167,9 +1167,9 @@ async function saveShots(){
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
     canvas.getContext("2d").drawImage(video, 0, 0);
-    const name = ($("name").value || "capture") + "-" + (i+1) + ".jpg";
+    const name = ($("name").value || "capture") + "-" + (i+1) + ".png";
     const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/jpeg", 0.8);
+    a.href = canvas.toDataURL("image/png");
     a.download = name;
     a.click();
     shots.push(name);
