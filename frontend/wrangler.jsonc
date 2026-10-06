@@ -27,4 +27,7 @@
   // Sign Doc's 24-hour file links (tmp-core.js): bind a KV namespace as SIGN_FILES — the files expire on their own
   // (expirationTtl 86400). Without it /api/tmp answers {configured:false} and the page hands files over by the share sheet.
   // "kv_namespaces": [{ "binding": "SIGN_FILES", "id": "<paste-real-32-hex-kv-id>" }]
+  // Fitness-2525 (AsM #2): encrypted Strava/Garmin token store + fit-day records (fitness-2525-core/tokens.js, base.js).
+  // Fitness-only binding; if another KV above is re-enabled, add it to this same array.
+  "kv_namespaces": [{ "binding": "FITNESS_STORE", "id": "53a35eefbebe4a50a6056865c0b11748" }]
 }
