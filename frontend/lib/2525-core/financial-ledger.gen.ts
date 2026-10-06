@@ -1107,7 +1107,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-05",
       "kind": "correction",
       "text": "r.082 correction — the one-line Accrual header was wider than a phone. The label, the amount, and + Transaction are tightened so the row stays inside the card. The site build now runs the Accrual card checks, including that its tags open and close in pairs.",
-      "commit": ""
+      "commit": "6890379"
     }
   ]
 };
