@@ -12,40 +12,31 @@ import { C, NAV, seedToday, type TabId } from "./ux-helpers";
 import { sportIcon } from "./ux-widgets";
 
 export function TopStrip({
-  tab, setTab, user, owner, isLoading, linkLabel, linkColor, signIn, onSignOut, btnGhost, btnPrimary,
+  tab, setTab, user, owner, isLoading, signIn, onSignOut, btnGhost, btnPrimary,
 }: {
   tab: TabId;
   setTab: (t: TabId) => void;
   user: { name?: string; email?: string } | undefined;
   owner: string | null;
   isLoading: boolean;
-  linkLabel: string;
-  linkColor: string;
   signIn: () => void;
   onSignOut: () => void;
   btnGhost: CSSProperties;
   btnPrimary: CSSProperties;
 }) {
+  // Header shows only the Auth0 display name (or email) when signed in — never invent a name, never Security-2525 chrome.
+  const oauthName = owner ? (user?.name?.trim() || user?.email?.trim() || null) : null;
   return (
-    <div className="shrink-0 border-b" style={{ borderColor: C.border, background: C.bg }}>
+    <div className="shrink-0 border-b" style={{ borderColor: C.border, background: C.bg }} data-fit-topstrip>
       <div className="flex items-center gap-2 px-3 py-2">
         <a href="/main/" className="flex shrink-0 items-center gap-2 rounded p-1 hover:bg-white/5" title="Home">
           <ArrowLeft className="h-4 w-4" style={{ color: C.dim }} />
           <ExelWordmark exelClass="font-bold" exelStyle={{ color: C.cyan }} aiClass="font-light" aiStyle={{ color: C.dim }} />
         </a>
-        <div className="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto whitespace-nowrap"
-          style={{ maskImage: "linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%)", WebkitMaskImage: "linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%)" }}>
-          <span className="text-[10px] tracking-widest" style={{ color: C.dim }}>AUTONOMOUS COMMAND NETWORK</span>
-          <span className="rounded px-1.5 py-0.5 text-[9px]" style={{ background: "#1a2436", color: C.amber }}>PRELIMINARY</span>
-          <span className="rounded border px-1.5 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.border, color: C.cyan }}>MIL-STD-2525</span>
-          <span className="rounded border px-1.5 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.border, color: C.dim }}>eXeL-STD-2525</span>
-          <span className="text-[10px] font-semibold tracking-wide" style={{ color: C.dim }}>
-            CLEARANCE: <span style={{ color: C.gold }}>LEVEL 3</span>
-          </span>
-          <span className="text-[10px]" style={{ color: C.dim }}>OPERATOR: {user?.name ?? user?.email ?? "ATHLETE-1"}</span>
+        <div className="min-w-0 flex-1 truncate px-2 text-[12px] font-semibold" style={{ color: C.text }} data-fit-oauth-name>
+          {oauthName ?? ""}
         </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <span className="text-[10px] font-semibold" style={{ color: linkColor }}>{linkLabel}</span>
+        <div className="flex shrink-0 items-center gap-2">
           {owner ? (
             <button type="button" style={btnGhost} onClick={onSignOut}>SIGN OUT</button>
           ) : (
