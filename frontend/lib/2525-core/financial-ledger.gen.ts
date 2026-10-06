@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 165 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 166 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1164,6 +1164,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.090 correction — the black rate box matches the height of + Transaction and the gear, and it is only as wide as /day.",
       "commit": "7ec82c4"
+    },
+    {
+      "rev": 166,
+      "date": "2026-10-06",
+      "kind": "correction",
+      "text": "r.091 correction — Income lines are editable in edit mode, the same box as Fixed and Variable. A number you type replaces the record for that line. The other Income lines still come from the record.",
+      "commit": ""
     }
   ]
 };

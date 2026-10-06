@@ -451,18 +451,34 @@ export function FinancialCommandUX1() {
   // r.073 pre-push review (Enki): the budget reads a figure with its own strict reader — "0x10" or "1e3" never set a line; "1,234.56" applies
   // r.073 second pre-push review (Enki): a keystroke that does not read as a figure puts the line back as it was when the box took the focus —
   // the last readable prefix of a refused figure ("1e3" → 1.00, "0x10" → 0.00, a cleared box → its first digit) is never left on the line
-  const typeAmount = (fieldId: string, text: string) => { setDrafts((d) => ({ ...d, [fieldId]: text })); const r = typeIntoLine(plan, fieldId, text, period, focusLine.current, cur.symbol ? [cur.symbol] : []); setBudgetBad((b) => (r.bad ? fieldId : b === fieldId ? "" : b)); writePlan(r.lines); };
+  // A number the person types on an Income line replaces the record's figure for that line. The rest of Income still comes from the record.
+  const [ownIncome, setOwnIncome] = useState([] as string[]);
+  useEffect(() => { try { const raw = localStorage.getItem(`fin-income-own:${planOwner}`); const v = raw ? JSON.parse(raw) : []; setOwnIncome(Array.isArray(v) ? v.filter((x) => typeof x === "string") : []); } catch { setOwnIncome([]); } }, [planOwner]);
+  const markOwnIncome = (fieldId: string) => setOwnIncome((cur) => { if (cur.includes(fieldId)) return cur; const next = [...cur, fieldId]; try { localStorage.setItem(`fin-income-own:${planOwner}`, JSON.stringify(next)); } catch { /* the page keeps it */ } return next; });
+  const typeAmount = (fieldId: string, text: string) => {
+    setDrafts((d) => ({ ...d, [fieldId]: text }));
+    let lines = plan;
+    if (!lines.some((l) => l.fieldId === fieldId) && focusLine.current?.fieldId === fieldId) lines = [...lines, { ...focusLine.current }];
+    const r = typeIntoLine(lines, fieldId, text, period, focusLine.current, cur.symbol ? [cur.symbol] : []);
+    if (fieldOf(fieldId)?.kind === "Income") markOwnIncome(fieldId);
+    setBudgetBad((b) => (r.bad ? fieldId : b === fieldId ? "" : b));
+    writePlan(r.lines);
+  };
   // r.026: per second / minute / hour a line is a fraction of a dollar — edit mode shows four decimals there (cents elsewhere), so
   // retyping the figure shown never moves the line (0.07 typed for $0.0673/min was +3.9%)
   // r.073 second pre-push review (Enki): under a dollar the box shows as many decimals as it takes to keep the line (budgetFigure)
   const editFigure = (l: LadderLine) => budgetFigure(toPeriod(l.amountNative, l.nativePeriod, period));
-  const addable = fieldsOf(addSec).filter((f) => !plan.some((l) => l.fieldId === f.id) && !(owner && f.kind === "Income" && recordIncomeLines(txs, at).length));   // r.048: Income comes from the record
-  // r.048 (addendum 80 "Income from my record"): with deposits on his record, the Income lines ARE the record — each Income field at the
-  // rate its deposits release (amount ÷ length) — and the plan keeps Fixed · Variable · Transfers. No deposits: the plan as it was.
   const recIncome = owner ? recordIncomeLines(txs, at) : [];
   const recIncomeKey = recIncome.map((l) => `${l.fieldId}:${l.amountNative}`).join("|");
-  const budget = useMemo(() => (recIncome.length ? [...recIncome, ...plan.filter((l) => fieldOf(l.fieldId)?.kind !== "Income")] : plan), [plan, recIncomeKey]);   // eslint-disable-line react-hooks/exhaustive-deps
-  const fromRecord = (fieldId: string) => recIncome.some((l) => l.fieldId === fieldId);
+  const budget = useMemo(() => {
+    if (!recIncome.length) return plan;
+    const own = new Set(ownIncome);
+    const planIncome = plan.filter((l) => own.has(l.fieldId) && fieldOf(l.fieldId)?.kind === "Income");
+    const rec = recIncome.filter((l) => !own.has(l.fieldId));
+    return [...rec, ...planIncome, ...plan.filter((l) => fieldOf(l.fieldId)?.kind !== "Income")];
+  }, [plan, recIncomeKey, ownIncome]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const fromRecord = (fieldId: string) => recIncome.some((l) => l.fieldId === fieldId) && !ownIncome.includes(fieldId);
+  const addable = fieldsOf(addSec).filter((f) => !budget.some((l) => l.fieldId === f.id));
   const totals = useMemo(() => netLadder(budget, period), [budget, period]);
   const totalsPerSec = useMemo(() => netLadder(budget, "second"), [budget]);   // r.052: the chart's Net line runs at the table's $/s
   // THE GLASS GROUPS BY KIND, COLLAPSED (r.018, addendum 31 "order by fixed vs financial, and have expand button so this is not so busy.
@@ -949,12 +965,12 @@ export function FinancialCommandUX1() {
                   {isOpen(g.kind) && g.lines.map((l) => (
                     <tr key={l.fieldId} data-fin-ladder-field={l.fieldId} className="text-muted-foreground"><td data-fin-line-name className="max-w-0 truncate whitespace-nowrap py-0.5 pl-6 pr-2 w-full" title={fieldLabel(l.fieldId)}><FieldIcon field={l.fieldId} section={fieldOf(l.fieldId)?.section ?? "L"} className="mr-1.5" />{shortLabel(l.fieldId)}</td>
                       <td className="whitespace-nowrap py-0.5 text-right tabular-nums">
-                        {editing && !fromRecord(l.fieldId) ? (
+                        {editing ? (
                           <span className="flex items-center justify-end gap-1">
                             <input data-fin-plan-amount={l.fieldId} className="w-24 min-[360px]:w-28 rounded-md border border-border bg-background px-2 py-1 text-right text-xs text-foreground" inputMode="decimal"
-                              value={drafts[l.fieldId] ?? editFigure(l)} onFocus={() => { focusLine.current = plan.find((x) => x.fieldId === l.fieldId) ?? null; }} onChange={(e) => typeAmount(l.fieldId, e.target.value)}
+                              value={drafts[l.fieldId] ?? editFigure(l)} onFocus={() => { focusLine.current = plan.find((x) => x.fieldId === l.fieldId) ?? { fieldId: l.fieldId, amountNative: l.amountNative, nativePeriod: l.nativePeriod }; }} onChange={(e) => typeAmount(l.fieldId, e.target.value)}
                               onBlur={() => setDrafts((d) => { const v = d[l.fieldId]; if (v !== undefined && v.trim() !== "" && parseBudgetAmount(v, marks) === null) return d; const n = { ...d }; delete n[l.fieldId]; return n; })} aria-invalid={budgetBad === l.fieldId || undefined} />
-                            <button type="button" data-fin-plan-remove={l.fieldId} aria-label={t("fin.remove_line")} title={t("fin.remove_line")} onClick={() => writePlan(removeLine(plan, l.fieldId))} className="rounded-md border border-border p-1"><X size={12} strokeWidth={1.5} aria-hidden /></button>
+                            <button type="button" data-fin-plan-remove={l.fieldId} aria-label={t("fin.remove_line")} title={t("fin.remove_line")} onClick={() => { if (fieldOf(l.fieldId)?.kind === "Income") markOwnIncome(l.fieldId); writePlan(removeLine(plan, l.fieldId)); }} className="rounded-md border border-border p-1"><X size={12} strokeWidth={1.5} aria-hidden /></button>
                           </span>
                         ) : numDollars(inPeriod(l))}
                       </td></tr>
@@ -980,8 +996,8 @@ export function FinancialCommandUX1() {
                 </select>
               </label>
               <span className="flex items-end gap-2">
-                <button type="button" data-fin-plan-add-btn disabled={!addable.length} onClick={() => { const id = addable.some((f) => f.id === addField) ? addField : addable[0]?.id; if (id) writePlan(addLine(plan, id)); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs disabled:opacity-50">{t("fin.add_line")}</button>
-                <button type="button" data-fin-plan-reset onClick={() => { writePlan(sheetPlan()); setDrafts({}); setBudgetBad(""); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs">{t("fin.reset_sheet")}</button>
+                <button type="button" data-fin-plan-add-btn disabled={!addable.length} onClick={() => { const id = addable.some((f) => f.id === addField) ? addField : addable[0]?.id; if (id) { if (fieldOf(id)?.kind === "Income") markOwnIncome(id); writePlan(addLine(plan, id)); } }} className="min-h-[36px] rounded-md border border-border px-3 text-xs disabled:opacity-50">{t("fin.add_line")}</button>
+                <button type="button" data-fin-plan-reset onClick={() => { writePlan(sheetPlan()); try { localStorage.removeItem(`fin-income-own:${planOwner}`); } catch { /* the sheet returns */ } setOwnIncome([]); setDrafts({}); setBudgetBad(""); }} className="min-h-[36px] rounded-md border border-border px-3 text-xs">{t("fin.reset_sheet")}</button>
               </span>
             </div>
           )}
