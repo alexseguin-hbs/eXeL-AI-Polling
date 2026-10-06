@@ -1,18 +1,7 @@
 "use client";
 
 /**
- * FITNESS-2525 · Command UX 1
- * ===========================
- * Chrome/layout: Security-2525 Mission PLANNING (dark tactical command network —
- * top status strip, tab rail, left ASSETS-style rail, center stage, right ACTIVE ITEMS,
- * footer PLAN · DRAFT / SHARE / SUBMIT, MIL/eXeL-STD-2525 badges).
- * Energy methodology: Financial Accrual Units hero + REAL-TIME chart pattern
- * (fuel≈income / burn≈expenses / deficit≈net; MoT toggle cal/min · cal/sec · cal/hr).
- * Calories only — no $/kcal pricing. Energy budget: BMR + NEAT + MET workouts;
- * ACSM/ISSN carb windows; WHO/AHA sugar cap; ~10 lb/mo deficit with safety floor.
- * Cloud: innovation_state via fit2525: owner key · fit-day-* · fit-index.
- * AI coach: Worker /api/ai task=draft (OpenAI / Grok / Gemini / Claude).
- * Never invent calorie or weight defaults — leave blank until the athlete sets them.
+ * FITNESS-2525 · Command UX 1 — Auth0 gates personal input; EXAMPLE stays labeled.
  */
 import { useCallback, useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -32,18 +21,14 @@ import { EnergyBudgetPanel } from "./ux-budget";
 import { SessionPanel } from "./ux-planning";
 import { NutritionPanel } from "./ux-nutrition";
 import { CoachPanel } from "./ux-coach";
+import { RequireAuth } from "./auth-gate";
+import { aiStatus } from "@/lib/fitness-2525/ai";
 
-/**
- * Modules (each < 12 KB): ux-helpers (constants · seed · device storage · styles), ux-widgets,
- * ux-shell (top strip + SESSIONS rail), ux-active-items, ux-live-today, ux-energy, ux-budget,
- * ux-planning, ux-nutrition, ux-coach, hooks ux-day-state / ux-profile-state / ux-actions.
- * PROFILE → athlete-profile.tsx · CONNECTIONS → connections.tsx.
- */
+/** Modules: ux-* panels + hooks; PROFILE/CONNECTIONS separate. Auth gates in auth-gate.tsx. */
 export function FitnessCommandUX1() {
   const { user, isAuthenticated, isLoading, loginWithRedirect, logout, getAccessTokenSilently, getIdTokenClaims } = useAuth0();
   const owner = isAuthenticated && user?.sub ? user.sub : null;
-  // Worker /api/fitness-2525 verifies RS256 JWTs whose aud = AUTH0_AUDIENCE or AUTH0_CLIENT_ID. Without an API
-  // audience the access token is opaque/userinfo-only, so send the ID token (aud = client id); refresh it if stale.
+  // Prefer API access token when audience set; else ID token (aud = client id), refresh if stale.
   const getFitToken = useCallback(async (): Promise<string | null> => {
     const apiAudience = process.env.NEXT_PUBLIC_AUTH0_AUDIENCE || "";
     if (apiAudience) {
@@ -63,8 +48,7 @@ export function FitnessCommandUX1() {
     }
   }, [getAccessTokenSilently, getIdTokenClaims]);
 
-  // Tab starts at TODAY on server + first client render; ?tab= is applied after mount
-  // (reading window in the initializer caused a hydration mismatch → Next.js "1 error" toast).
+  // Tab TODAY first; apply ?tab= after mount (avoids hydration mismatch).
   const [tab, setTab] = useState<TabId>("TODAY");
   useEffect(() => {
     try {
@@ -76,13 +60,19 @@ export function FitnessCommandUX1() {
     day, applyDay, exampleMode, setExampleMode, hydrated, cloudKey, cloudState,
     planStatus, shareMsg, setShareMsg, coachDraft, setCoachDraft, aiReady, syncOnce,
   } = useFitDay(owner);
-  const { profile, updateProfile, history, rateUnit, showAllRates, setRateUnit, setShowAllRates } =
+  const { profile, updateProfile, history, rateUnit, showAllRates, setRateUnit, setShowAllRates, aiProvider, setAiProvider } =
     useFitProfile({ cloudKey, day, hydrated });
+  const [haveKeys, setHaveKeys] = useState<{ openai?: boolean; gemini?: boolean; grok?: boolean; claude?: boolean } | null>(null);
+  const [lastCost, setLastCost] = useState<{ provider: string; model: string; costUsd: number | null } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [chartSpan, setChartSpan] = useState<ChartSpan>("1D");
   const [selectedId, setSelectedId] = useState<string | null>("w-2026-10-05-bike");
+  useEffect(() => {
+    void aiStatus().then((c) => setHaveKeys(c ? { openai: !!c.openai, gemini: !!c.gemini, grok: !!c.grok, claude: !!c.claude } : null));
+  }, []);
   const act = useFitActions({
     day, applyDay, exampleMode, setExampleMode, setTab, aiReady, coachDraft, setCoachDraft, setShareMsg, syncOnce, loginWithRedirect,
+    aiProvider, onCoachResult: setLastCost,
   });
   const { signIn, setField, runCoach, addCheckin, toggleWorkout, coachBusy } = act;
 
@@ -98,16 +88,12 @@ export function FitnessCommandUX1() {
     : null;
 
   const { anthro, budget } = computeBudget(day, profile, exampleMode);
-  // Burn (out) = modeled BMR + NEAT + COMPLETED workouts (device day kcal is never the day burn).
+  // Burn = BMR + NEAT + completed workouts (device day kcal is never the day burn).
   const burnOutKcal = budget.totalBurnKcal;
   const delta = burnOutKcal != null && typeof day.calories_in === "number" && Number.isFinite(day.calories_in) ? burnOutKcal - day.calories_in : null;
   const deficit = delta != null && delta > 0;
 
   const statusColor = planStatus === "synced" ? C.green : planStatus === "pending" ? C.amber : C.dim;
-  const linkLabel = owner
-    ? (cloudState === "saved" ? "LINK: SECURE" : cloudState === "saving" ? "LINK: SYNC…" : cloudState === "offline" ? "LINK: OFFLINE" : "LINK: READY")
-    : "LINK: LOCAL";
-  const linkColor = owner && cloudState === "saved" ? C.green : owner ? C.amber : C.dim;
   const inputStyle = INPUT_STYLE;
   const btnGhost = BTN_GHOST;
   const btnPrimary = BTN_PRIMARY;
@@ -117,7 +103,7 @@ export function FitnessCommandUX1() {
       {/* ── Top status strip (Security) ─────────────────────────────── */}
       <TopStrip
         tab={tab} setTab={setTab} user={user} owner={owner} isLoading={isLoading}
-        linkLabel={linkLabel} linkColor={linkColor} signIn={signIn}
+        signIn={signIn}
         onSignOut={() => logout({ logoutParams: { returnTo: typeof window !== "undefined" ? window.location.origin : undefined } })}
         btnGhost={btnGhost} btnPrimary={btnPrimary}
       />
@@ -125,18 +111,25 @@ export function FitnessCommandUX1() {
       {/* ── Body: 3-pane PLANNING layout ──────────────────────────── */}
       <div className={`grid min-h-0 flex-1 gap-2 overflow-hidden p-2 ${styles.bodyGrid}`} style={{ gridTemplateColumns: "minmax(200px,240px) minmax(0,1fr) minmax(200px,240px)" }}>
         {/* LEFT — SESSIONS (ASSETS-style) */}
-        <SessionsRail tab={tab} setTab={setTab} day={day} selected={selected} setSelectedId={setSelectedId} syncOnce={syncOnce} applyDay={applyDay} />
+        <SessionsRail tab={tab} setTab={setTab} day={day} selected={selected} setSelectedId={setSelectedId} syncOnce={syncOnce} applyDay={applyDay} signedIn={!!owner} onSignIn={signIn} />
 
         {/* CENTER — PROFILE · CONNECTIONS · LIVE TODAY timeline · energy Accrual hero + chart */}
         {tab === "PROFILE" ? (
-          <AthleteProfile
-            profile={profile}
-            onProfile={updateProfile}
-            day={day}
-            onDay={applyDay}
-            history={history}
-            bmrKcal={budget.bmrKcal}
-          />
+          <RequireAuth
+            signedIn={!!owner}
+            onSignIn={signIn}
+            isLoading={isLoading}
+            message="Sign in with Auth0 to view and save your athlete profile."
+          >
+            <AthleteProfile
+              profile={profile}
+              onProfile={updateProfile}
+              day={day}
+              onDay={applyDay}
+              history={history}
+              bmrKcal={budget.bmrKcal}
+            />
+          </RequireAuth>
         ) : tab === "CONNECTIONS" ? (
           <div className="flex min-h-0 flex-col gap-2 overflow-y-auto">
             <ConnectionsCard
@@ -158,6 +151,9 @@ export function FitnessCommandUX1() {
             btnGhost={btnGhost}
             inputStyle={inputStyle}
             setField={setField}
+            signedIn={!!owner}
+            onSignIn={signIn}
+            authLoading={isLoading}
             onStartRide={() => {
               setSelectedId("w-2026-10-05-bike");
               setShareMsg("Ride started — timer local; sync Garmin when done.");
@@ -189,28 +185,45 @@ export function FitnessCommandUX1() {
             day={day} budget={budget} exampleMode={exampleMode} toggleExample={act.toggleExample}
             setField={setField} setWeightLb={act.setWeightLb} setWindowIntake={act.setWindowIntake}
             applyDay={applyDay} inputStyle={inputStyle} btnGhost={btnGhost}
+            signedIn={!!owner} onSignIn={signIn} authLoading={isLoading}
           />
 
           <RealtimeEnergyPanel
             day={day} rateUnit={rateUnit} setRateUnit={setRateUnit} chartSpan={chartSpan} setChartSpan={setChartSpan}
             fuelPer={fuelPer} burnPer={burnPer} fuelRates={fuelRates} burnRates={burnRates}
             setField={setField} inputStyle={inputStyle}
+            signedIn={!!owner} onSignIn={signIn} authLoading={isLoading}
           />
 
           {(tab === "PLANNING" || tab === "ENERGY") && (
-            <SessionPanel selected={selected} selectedBurn={selectedBurn} rateUnit={rateUnit} toggleWorkout={toggleWorkout} btnGhost={btnGhost}
-              applyDay={applyDay} inputStyle={inputStyle} onSelect={setSelectedId} />
+            <RequireAuth
+              signedIn={!!owner}
+              onSignIn={signIn}
+              isLoading={isLoading}
+              message="Sign in with Auth0 to add or save training plans and workouts."
+            >
+              <SessionPanel selected={selected} selectedBurn={selectedBurn} rateUnit={rateUnit} toggleWorkout={toggleWorkout} btnGhost={btnGhost}
+                applyDay={applyDay} inputStyle={inputStyle} onSelect={setSelectedId} />
+            </RequireAuth>
           )}
 
           {tab === "NUTRITION" && (
-            <NutritionPanel day={day} applyDay={applyDay} sugarCapG={budget.sugarCapG} coachBusy={coachBusy} runCoach={runCoach}
-              btnGhost={btnGhost} btnPrimary={btnPrimary} inputStyle={inputStyle} />
+            <RequireAuth
+              signedIn={!!owner}
+              onSignIn={signIn}
+              isLoading={isLoading}
+              message="Sign in with Auth0 to log meals and nutrition."
+            >
+              <NutritionPanel day={day} applyDay={applyDay} sugarCapG={budget.sugarCapG} coachBusy={coachBusy} runCoach={runCoach}
+                btnGhost={btnGhost} btnPrimary={btnPrimary} inputStyle={inputStyle} />
+            </RequireAuth>
           )}
           {tab === "COACH" && (
             <CoachPanel
               coachDraft={coachDraft} setCoachDraft={setCoachDraft} coachBusy={coachBusy} coachErr={act.coachErr}
               aiReady={aiReady} runCoach={runCoach} saveCoach={act.saveCoach}
               inputStyle={inputStyle} btnPrimary={btnPrimary} btnGhost={btnGhost}
+              aiProvider={aiProvider} setAiProvider={setAiProvider} haveKeys={haveKeys} lastCost={lastCost}
             />
           )}
 
@@ -224,7 +237,7 @@ export function FitnessCommandUX1() {
           checkinDraft={act.checkinDraft} setCheckinDraft={act.setCheckinDraft} addCheckin={() => addCheckin()}
           owner={owner} planStatus={planStatus} statusColor={statusColor} shareMsg={shareMsg}
           cloudState={cloudState} completed={completed} onShare={act.onShare} onSubmit={act.onSubmit}
-          inputStyle={inputStyle}
+          inputStyle={inputStyle} onSignIn={signIn} authLoading={isLoading}
         />
       </div>
 
