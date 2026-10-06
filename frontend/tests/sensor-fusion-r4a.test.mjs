@@ -51,6 +51,8 @@ ok(!page.includes("team copy"), "the screen does not promise a team save");
 // rev 43: nothing is uploaded yet, so the Upload dialog never ticks Upload and never titles itself 'Develop Models' (Athena, Enlil, Sofia, Thor).
 ok(/<StepStrip current=\{trainStatus \? 3 : 2\} \/>/.test(page) && !/<StepStrip current=\{trainStatus \? 4/.test(page), "Upload is lit, never ticked, until a real upload exists");
 ok(/<h2>\{trainStatus \? "Upload Images" : lastSave\.title\}<\/h2>/.test(page) && !/<h2>[^<]*Develop Models/.test(page), "the Upload dialog keeps the step's own title, not 'Develop Models'");
+ok(/aria-label="Save the set"/.test(page) && />\s*PROJECT\s*</.test(page) && />\s*NEW FOLDER\s*</.test(page), "Upload asks for the project or a new folder");
+ok(/setUploadOpen\(true\)/.test(page), "the Upload button opens that choice");
 ok(!/`(Files|Downloads)\/\$\{setName\}`/.test(page), "a share or a download never names a folder the app did not make");
 
 const probeUrl = process.env.RLS_PROBE_URL || "";

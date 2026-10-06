@@ -504,6 +504,44 @@ async function ecosystemRoot(folder: Folder) {
   return home.getDirectoryHandle("SensorFusion", { create: true });
 }
 
+async function pickFreshFolder() {
+  const picker = (window as Window & { showDirectoryPicker?: (options: { mode: "readwrite"; id: string }) => Promise<Folder> }).showDirectoryPicker;
+  if (!picker) return null;
+  const picked = await picker({ mode: "readwrite", id: "sensor-fusion-new-folder" });
+  chosenFolder = picked;
+  return picked;
+}
+
+async function filesOf(list: Shot[]) {
+  const store = readXmlStore();
+  const files: { name: string; blob: Blob }[] = [];
+  for (const shot of list) {
+    const name = pictureName(shot);
+    const response = await fetch(shot.url);
+    files.push({ name, blob: await response.blob() });
+    const xml = store[name] || emptyPairXml(name);
+    files.push({ name: pairNames(name).xml, blob: new Blob([xml], { type: "application/xml" }) });
+    const page = store[name] ? readVoc(store[name]) : null;
+    if (page) {
+      const marks: Mark[] = page.boxes.map((box, index) => ({
+        id: String(index),
+        name: box.name,
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        level: box.level === 2 ? 2 : 1,
+        by: box.by,
+        at: box.at,
+        reviewer: box.reviewer,
+        reviewedAt: box.reviewedAt,
+      }));
+      files.push(...(await codexFiles(name, marks)));
+    }
+  }
+  return files;
+}
+
 async function chooseSaveFolder() {
   const picker = (window as Window & { showDirectoryPicker?: (options: { mode: "readwrite"; id: string }) => Promise<Folder> }).showDirectoryPicker;
   if (!picker) return null;
@@ -1118,6 +1156,8 @@ export default function SensorFusion() {
   const [saveFolder, setSaveFolder] = useState("");
   const [nextFile, setNextFile] = useState("");
   const [trainStatus, setTrainStatus] = useState("");
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploadNote, setUploadNote] = useState("");
   const [cloudSaved, setCloudSaved] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
   const [lensOpen, setLensOpen] = useState(false);
@@ -1986,7 +2026,7 @@ export default function SensorFusion() {
 
   async function uploadSet() {
     if (!shots.length) {
-      setError("Capture images before you upload a set.");
+      setUploadNote("Capture images before you upload a set.");
       return;
     }
     const store = readXmlStore();
@@ -1995,19 +2035,18 @@ export default function SensorFusion() {
       return xml ? readVoc(xml) : null;
     });
     if (!pages.every((page) => page && readyForProject(page.boxes))) {
-      setError("Level 2 is still needed. A different person reviews each box before the project can take this set.");
+      setUploadNote("Level 2 is still needed. A different person reviews each box before the project can take this set.");
       setTrainStatus("");
-      setSavedNote(true);
       return;
     }
     if (!supabase) {
-      setError("The project is not connected from this page. The pictures and XML stayed in the folder.");
+      setUploadNote("The project is not connected from this page. The pictures and XML stayed in the folder.");
       return;
     }
     const { data: session } = await supabase.auth.getSession();
     const owner = session.session?.user?.id || "";
     if (!owner) {
-      setError("Sign in as a member of the sensor-fusion project. The pictures and XML stayed in the folder.");
+      setUploadNote("Sign in as a member of the sensor-fusion project. The pictures and XML stayed in the folder.");
       return;
     }
     let sent = 0;
@@ -2030,7 +2069,7 @@ export default function SensorFusion() {
         codex_l2: l2,
       }).select("id").single();
       if (picture.error || !picture.data) {
-        setError(picture.error?.message || "The project did not take this set. The pictures and XML stayed in the folder.");
+        setUploadNote(picture.error?.message || "The project did not take this set. The pictures and XML stayed in the folder.");
         return;
       }
       const labels = page.boxes.map((box) => ({
@@ -2051,15 +2090,40 @@ export default function SensorFusion() {
       }));
       const written = await supabase.from("sensor_fusion_labels").insert(labels);
       if (written.error) {
-        setError(written.error.message);
+        setUploadNote(written.error.message);
         return;
       }
       sent += 1;
     }
     setCloudSaved(true);
     setError("");
-    setTrainStatus(`${sent} pictures are in the sensor-fusion project. Level 2 and Light Codex went with them.`);
-    setSavedNote(true);
+    const line = `${sent} pictures are in the sensor-fusion project. Level 2 and Light Codex went with them.`;
+    setTrainStatus(line);
+    setUploadNote(line);
+  }
+
+  async function saveToNewFolder() {
+    if (!shots.length) {
+      setUploadNote("Capture images before you save a set.");
+      return;
+    }
+    try {
+      const files = await filesOf(shots);
+      const picked = await pickFreshFolder();
+      const setName = setFolderOf(pictureName(shots[0]));
+      if (!picked) {
+        downloadNamed(files);
+        setUploadNote(`Downloaded ${files.length} files. Put them in ${deviceSavePath([setName])}.`);
+        return;
+      }
+      const setFolder = await (await ecosystemRoot(picked)).getDirectoryHandle(setName, { create: true });
+      await writeNamed(setFolder, files);
+      setError("");
+      setUploadNote(`Saved in ${deviceSavePath([setName])}.`);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setUploadNote(err instanceof Error ? err.message : "The folder was not saved.");
+    }
   }
 
   function pickMenu(item: (typeof MENU)[number]) {
@@ -2425,7 +2489,7 @@ export default function SensorFusion() {
           <StepIcon id="annotate" />
           Annotate
         </button>
-        <button type="button" className={styles.bot} aria-label="Upload Images" onClick={() => void uploadSet()}>
+        <button type="button" className={styles.bot} aria-label="Upload Images" onClick={() => { setUploadNote(""); setUploadOpen(true); }}>
           <StepIcon id="upload" />
           Upload
           {cloudSaved && (
@@ -2591,6 +2655,26 @@ export default function SensorFusion() {
                 ANNOTATE
               </button>
               <button type="button" onClick={() => setSavedNote(false)}>
+                NOT NOW
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {uploadOpen && (
+        <div className={styles.modalWrap} onClick={() => setUploadOpen(false)}>
+          <div className={styles.modal} role="dialog" aria-label="Save the set" onClick={(event) => event.stopPropagation()}>
+            <h2>Upload Images</h2>
+            <p className={styles.muted}>Save to the sensor-fusion project, or to a new folder on this device. The project takes a set only after Level 2.</p>
+            {uploadNote ? <p className={styles.statusLine}>{uploadNote}</p> : null}
+            <div className={styles.actions}>
+              <button type="button" onClick={() => void uploadSet()}>
+                PROJECT
+              </button>
+              <button type="button" onClick={() => void saveToNewFolder()}>
+                NEW FOLDER
+              </button>
+              <button type="button" onClick={() => setUploadOpen(false)}>
                 NOT NOW
               </button>
             </div>
