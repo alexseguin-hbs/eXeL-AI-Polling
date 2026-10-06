@@ -2,9 +2,11 @@
 """Sensor Fusion on this computer.
 
 One program. It picks the machine it is on:
-  Mac, Ubuntu, Raspberry Pi, Windows, or a phone.
+  Raspberry Pi, Ubuntu, Windows PC, Mac, iPhone, or Android.
 
-Each model is a folder:
+Each model is a folder named Home/SensorFusion.
+Windows uses a backslash. The other five use a slash.
+Android writes under /sdcard. An iPhone writes under On My iPhone.
 
     Home/SensorFusion/<Folder>/Sample_TFLite_model/
         detect.tflite
@@ -61,19 +63,25 @@ def model_rows():
 
 
 def platform_name():
-    if os.environ.get("ANDROID_ROOT") or os.environ.get("ANDROID_DATA"):
+    if os.environ.get("ANDROID_ROOT") or os.environ.get("ANDROID_DATA") or hasattr(sys, "getandroidapilevel"):
         return "android"
+    machine = ""
+    try:
+        machine = os.uname().machine
+    except AttributeError:
+        machine = ""
+    if sys.platform == "ios" or machine.startswith(("iPhone", "iPad")):
+        return "iphone"
     if sys.platform == "darwin":
         return "mac"
     if sys.platform == "win32":
         return "windows"
-    if os.path.isdir("/home/pi") or os.path.exists("/proc/device-tree/model"):
-        try:
-            with open("/proc/device-tree/model", "rb") as handle:
-                if b"Raspberry" in handle.read():
-                    return "pi"
-        except OSError:
-            pass
+    try:
+        with open("/proc/device-tree/model", "rb") as handle:
+            if b"Raspberry" in handle.read():
+                return "pi"
+    except OSError:
+        pass
     return "ubuntu"
 
 
@@ -82,9 +90,16 @@ def home():
     if name == "windows":
         return os.path.join(os.environ.get("USERPROFILE", "C:\\"), "Home", "SensorFusion")
     if name == "android":
-        return "/sdcard/Home/SensorFusion"
-    if name == "pi" and os.path.isdir("/home/pi"):
-        return "/home/pi/SensorFusion"
+        for root in ("/sdcard", "/storage/emulated/0"):
+            if os.path.isdir(root) and os.access(root, os.W_OK):
+                return os.path.join(root, "Home", "SensorFusion")
+        shared = os.path.expanduser("~/storage/shared")
+        if os.path.isdir(shared):
+            return os.path.join(shared, "Home", "SensorFusion")
+    if name == "iphone":
+        documents = os.path.expanduser("~/Documents")
+        base = documents if os.path.isdir(documents) else os.path.expanduser("~")
+        return os.path.join(base, "Home", "SensorFusion")
     return os.path.join(os.path.expanduser("~"), "Home", "SensorFusion")
 
 
@@ -209,6 +224,80 @@ def check(folder="Demo90"):
     return 0
 
 
+def imaging_sensors():
+    """The cameras this machine can open. Linux reads the device name. The others are Camera 1, Camera 2."""
+    found = []
+    if platform_name() in ("pi", "ubuntu"):
+        root = "/sys/class/video4linux"
+        if os.path.isdir(root):
+            for entry in sorted(os.listdir(root)):
+                if not entry.startswith("video"):
+                    continue
+                try:
+                    with open(os.path.join(root, entry, "name"), encoding="utf-8", errors="replace") as handle:
+                        label = handle.read().strip() or entry
+                except OSError:
+                    label = entry
+                lowered = label.lower()
+                if "metadata" in lowered or "codec" in lowered:
+                    continue
+                try:
+                    index = int(entry.replace("video", "") or "0")
+                except ValueError:
+                    continue
+                found.append((index, label))
+    if found:
+        return found
+    try:
+        import cv2
+    except ImportError:
+        return [(0, "Camera")]
+    name = platform_name()
+    flag = {
+        "windows": getattr(cv2, "CAP_DSHOW", 0),
+        "mac": getattr(cv2, "CAP_AVFOUNDATION", 0),
+        "pi": getattr(cv2, "CAP_V4L2", 0),
+        "ubuntu": getattr(cv2, "CAP_V4L2", 0),
+    }.get(name, 0)
+    for index in range(4):
+        camera = cv2.VideoCapture(index, flag) if flag else cv2.VideoCapture(index)
+        if camera.isOpened():
+            found.append((index, f"Camera {index + 1}"))
+        camera.release()
+    return found or [(0, "Camera")]
+
+
+def choose_sensor():
+    found = imaging_sensors()
+    print("Imaging sensors")
+    for number, (_index, label) in enumerate(found, start=1):
+        print(f"  {number}) {label}")
+    if len(found) == 1:
+        return found[0]
+    raw = input("Sensor number: ").strip()
+    try:
+        return found[int(raw) - 1]
+    except (ValueError, IndexError):
+        print("That number is not in the list. Using the first sensor.")
+        return found[0]
+
+
+def open_capture(index):
+    import cv2
+
+    flag = {
+        "windows": getattr(cv2, "CAP_DSHOW", 0),
+        "mac": getattr(cv2, "CAP_AVFOUNDATION", 0),
+        "pi": getattr(cv2, "CAP_V4L2", 0),
+        "ubuntu": getattr(cv2, "CAP_V4L2", 0),
+    }.get(platform_name(), 0)
+    camera = cv2.VideoCapture(index, flag) if flag else cv2.VideoCapture(index)
+    if not camera.isOpened() and flag:
+        camera.release()
+        camera = cv2.VideoCapture(index)
+    return camera
+
+
 def run_camera(folder, coral):
     fetch(folder, coral)
     path = model_file(folder, coral)
@@ -230,13 +319,14 @@ def run_camera(folder, coral):
         print(f"The model did not start: {err}")
         print(path)
         return
-    camera = cv2.VideoCapture(0)
+    index, sensor_label = choose_sensor()
+    camera = open_capture(index)
     if not camera.isOpened():
-        print("The camera did not open.")
+        print(f"The camera did not open: {sensor_label}")
         return
     names = labels(folder)
     show_fps = True
-    print("Camera is on. Press f for FPS. Press q to stop.")
+    print(f"{sensor_label} is on. Press f for FPS. Press q to stop.")
     while True:
         ok, frame = camera.read()
         if not ok:
@@ -258,7 +348,7 @@ def run_camera(folder, coral):
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
         if show_fps:
             cv2.putText(frame, f"FPS: {fps:.2f}", (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
-        cv2.imshow("Sensor Fusion", frame)
+        cv2.imshow(f"Sensor Fusion — {sensor_label}", frame)
         key = cv2.waitKey(1) & 0xFF
         if key in (ord("q"), 27):
             break
@@ -430,8 +520,8 @@ def main():
     print("Sensor Fusion")
     print(f"This computer: {platform_name()}")
     print(f"Folder: {home()}")
-    if platform_name() == "android":
-        print("A phone can run this file when Python is installed. An iPhone uses the website.")
+    if platform_name() == "iphone":
+        print("On this iPhone that folder is On My iPhone/Home/SensorFusion.")
     print("1) Sensor Fusion")
     print("2) Stop")
     print("3) Image labeler")

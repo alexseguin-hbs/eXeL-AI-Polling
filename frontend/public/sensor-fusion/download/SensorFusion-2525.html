@@ -26,6 +26,7 @@
   .modelList { position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); z-index:30; min-width:180px; max-height:50vh; overflow:auto; margin:0; padding:6px 0; list-style:none; background:#2c2c2c; color:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.45); }
   header img.logo { height:22px; width:auto; max-width:120px; object-fit:contain; }
   #sensor { display:flex; align-items:center; gap:8px; background:none; border:0; color:#fff; font-size:12px; font-weight:700; cursor:pointer; }
+  #sensorPick { max-width:7.5rem; background:#212121; color:#fff; border:1px solid #0cff00; border-radius:8px; font-size:11px; padding:2px 4px; }
   .icons { margin-left:auto; display:flex; gap:10px; align-items:center; }
   a.dl { display:inline-flex; align-items:center; justify-content:center; width:31px; height:31px; box-sizing:border-box; padding:6px; border-radius:8px; border:1px solid #d18be0; color:#d18be0; text-decoration:none; }
   a.dl:hover { background:#1e1125; }
@@ -58,6 +59,7 @@
   <header>
     <img class="logo" id="logo" alt="sensor fusion">
     <button id="sensor" type="button"><img id="tog" alt=""><span id="sensorLabel">SENSOR 1: OFF</span></button>
+    <select id="sensorPick" class="hide" aria-label="Imaging sensor"></select>
     <div class="icons">
       <a class="dl" href="/sensor-fusion/download/SensorFusion-2525.html" download="SensorFusion-2525.html" title="Download" aria-label="Download"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M6 9l6 6 6-6"/><path d="M5 21h14"/></svg></a>
       <button type="button" id="infoBtn" aria-label="Info"><img id="infoImg" alt=""></button>
@@ -143,20 +145,43 @@ let showFps = false;
 let stream = null;
 let shots = [];
 const $ = (id) => document.getElementById(id);
+let sensors = [];
+let sensorId = "";
 function detect(){
   const ua = navigator.userAgent || "";
-  if (/Android/i.test(ua)) return "android";
-  if (/iPhone|iPad/i.test(ua)) return "iphone";
-  if (/Windows/i.test(ua)) return "win";
-  if (/Linux/i.test(ua)) return "ubuntu";
+  const plat = navigator.platform || "";
+  const blob = ua + " " + plat;
+  if (/Android/i.test(blob)) return "android";
+  if (/iPhone|iPad/i.test(blob)) return "iphone";
+  if (/Win/i.test(plat) || /Windows/i.test(ua)) return "win";
+  if (/Mac/i.test(plat) || /Macintosh|Mac OS/i.test(ua)) return "mac";
+  if (/Raspberry/i.test(blob)) return "pi";
+  if (/Linux|Ubuntu/i.test(blob)) return "ubuntu";
   return "win";
 }
 function sep(){ return PLATFORMS.find(p => p.id === platform).sep; }
 function current(){ return MODELS.find(m => m[0] === model); }
 function fileName(){ return coral ? "edgetpu.tflite" : "detect.tflite"; }
+function homeFolder(){
+  if (platform === "android") return "/sdcard/Home/SensorFusion";
+  if (platform === "iphone") return "On My iPhone/Home/SensorFusion";
+  return ["Home", "SensorFusion"].join(sep());
+}
 function folderPath(){
   const m = current();
-  return ["Home","SensorFusion", m[2], "Sample_TFLite_model", fileName()].join(sep());
+  const tail = m ? [m[2], "Sample_TFLite_model", fileName()] : [];
+  if (platform === "android") return ["/sdcard", "Home", "SensorFusion"].concat(tail).join("/");
+  if (platform === "iphone") return ["On My iPhone", "Home", "SensorFusion"].concat(tail).join("/");
+  return ["Home", "SensorFusion"].concat(tail).join(sep());
+}
+function sensorTitle(label, index, total){
+  const name = (label || "").toLowerCase();
+  if (/front|face|selfie|user/.test(name)) return "Front";
+  if (/ultra|0\.5/.test(name)) return "0.5x";
+  if (/tele|2\.5/.test(name)) return "2.5x";
+  if (/back|rear|environment|wide/.test(name)) return "Wide";
+  if (!label) return total > 1 ? "Camera " + (index + 1) : "Camera";
+  return label.replace(/\s*\([^)]*\)\s*/g, "").trim() || ("Camera " + (index + 1));
 }
 function paint(){
   $("logo").src = IMG.logo;
@@ -169,7 +194,9 @@ function paint(){
   $("annImg").src = IMG.capture;
   $("modelImg").src = IMG.models;
   $("upImg").src = IMG.train;
-  $("sensorLabel").textContent = "SENSOR 1: " + (sensorOn ? "ON" : "OFF");
+  const picked = sensors.find(function (item) { return item.id === sensorId; });
+  const name = picked ? " · " + picked.name : "";
+  $("sensorLabel").textContent = "SENSOR 1: " + (sensorOn ? "ON" : "OFF") + name;
   $("off").classList.toggle("hide", sensorOn);
   $("fps").classList.toggle("hide", !showFps);
   $("scores").classList.toggle("on", showScores);
@@ -184,13 +211,44 @@ function fillModels(){
   const m = current();
   $("modelName").textContent = m[1];
 }
-async function openCam(){
+async function listSensors(){
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return [];
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const cams = devices.filter(function (device) { return device.kind === "videoinput"; });
+  return cams.map(function (device, index) {
+    return { id: device.deviceId, name: sensorTitle(device.label, index, cams.length) };
+  });
+}
+function paintSensors(){
+  const box = $("sensorPick");
+  if (!box) return;
+  if (sensors.length < 2) { box.classList.add("hide"); return; }
+  box.classList.remove("hide");
+  box.innerHTML = sensors.map(function (item) {
+    return '<option value="' + item.id + '"' + (item.id === sensorId ? " selected" : "") + ">" + item.name + "</option>";
+  }).join("");
+}
+async function openCam(deviceId){
+  if (location.protocol === "file:" && (platform === "iphone" || platform === "android")) {
+    alert("This phone opens the camera from the Sensor Fusion link, not from a saved file.");
+    return;
+  }
   try {
-    if (stream) stream.getTracks().forEach(t => t.stop());
-    stream = await navigator.mediaDevices.getUserMedia({ audio:false, video:true });
+    if (stream) stream.getTracks().forEach(function (track) { track.stop(); });
+    const video = deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" };
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: video });
+    } catch (err) {
+      if (deviceId) throw err;
+      stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+    }
     $("cam").srcObject = stream;
     await $("cam").play();
+    sensors = await listSensors();
+    const trackId = stream.getVideoTracks()[0] && stream.getVideoTracks()[0].getSettings().deviceId;
+    sensorId = deviceId || trackId || (sensors[0] && sensors[0].id) || "";
     sensorOn = true;
+    paintSensors();
     runCnn();
   } catch (err) {
     sensorOn = false;
@@ -241,9 +299,15 @@ function showMenu(){
   openSheet("Menu",
     '<label>This device <select id="plat">'+opts+'</select></label>'+
     '<label><input id="coralSwitch" type="checkbox"'+(coral?' checked':'')+'> Coral</label>'+items+
-    '<p>This file is the screen. It runs on a Raspberry Pi, Ubuntu, a Windows PC, an iPhone, or an Android phone. The model stays in the folder on that device.</p>',
+    '<p>This file runs on a Raspberry Pi, Ubuntu, a Windows PC, a Mac, an iPhone, or an Android phone. Files stay in ' + homeFolder() + '.</p>'+
+    '<p id="folderLine">Files: ' + folderPath() + '</p>',
     '<button type="button" id="closeSheet">Close</button>');
-  $("plat").onchange = (e) => { platform = e.target.value; paint(); };
+  $("plat").onchange = (e) => {
+    platform = e.target.value;
+    const line = $("folderLine");
+    if (line) line.textContent = "Files: " + folderPath();
+    paint();
+  };
   $("coralSwitch").onchange = (e) => { coral = e.target.checked; };
   $("menuBody").querySelectorAll("button[data-n]").forEach(btn => {
     btn.onclick = () => pick(MENU.find(m => m[0] === btn.getAttribute("data-n")));
@@ -338,6 +402,7 @@ async function saveShots(){
 }
 $("logo").onclick = showMenu;
 $("sensor").onclick = () => sensorOn ? closeCam() : openCam();
+$("sensorPick").onchange = (e) => { sensorId = e.target.value; openCam(sensorId); };
 $("scores").onclick = () => { showScores = !showScores; paint(); };
 $("labels").onclick = () => { showLabels = !showLabels; paint(); };
 $("modelBtn").onclick = () => $("modelList").classList.toggle("hide");
