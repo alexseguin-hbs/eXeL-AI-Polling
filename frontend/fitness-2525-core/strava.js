@@ -109,7 +109,19 @@ export async function handleStrava(request, env, action, url) {
 
   if (action === "connect") {
     if (request.method !== "GET" && request.method !== "POST") return json({ error: "Method not allowed" }, 405);
-    if (!stravaConfigured(env)) return json({ configured: false, error: "STRAVA_CLIENT_ID/SECRET not set" }, 200);
+    if (!stravaConfigured(env)) {
+      const missing = [];
+      if (!env.STRAVA_CLIENT_ID) missing.push("STRAVA_CLIENT_ID");
+      if (!env.STRAVA_CLIENT_SECRET) missing.push("STRAVA_CLIENT_SECRET");
+      return json({
+        configured: false,
+        connected: false,
+        missing,
+        error: "Strava OAuth is not configured on the Worker",
+        setup: "Add Worker secrets STRAVA_CLIENT_ID and STRAVA_CLIENT_SECRET (from https://www.strava.com/settings/api). Authorization Callback Domain / redirect URI must be exactly: " + `${url.origin}/api/fitness-2525/strava/callback` + ". Optional later: STRAVA_VERIFY_TOKEN + STRAVA_SUBSCRIPTION_ID for webhooks.",
+        redirect_uri: `${url.origin}/api/fitness-2525/strava/callback`,
+      }, 200);
+    }
     const notReady = oauthNotReady(env);
     if (notReady) return notReady;
     const auth = await requireUser(request, env);
@@ -132,8 +144,25 @@ export async function handleStrava(request, env, action, url) {
     const auth = await requireUser(request, env);
     if (auth.error) return auth.error;
     const record = await tokenGet(env, await tokOwner(auth.user.sub), "strava");
+    const configured = stravaConfigured(env);
+    if (!configured) {
+      const missing = [];
+      if (!env.STRAVA_CLIENT_ID) missing.push("STRAVA_CLIENT_ID");
+      if (!env.STRAVA_CLIENT_SECRET) missing.push("STRAVA_CLIENT_SECRET");
+      return json({
+        configured: false,
+        tokens: tokenStoreReady(env) ? "kv-encrypted" : "unconfigured",
+        connected: false,
+        name: null,
+        last_sync: null,
+        missing,
+        message: "Worker needs STRAVA_CLIENT_ID + STRAVA_CLIENT_SECRET before Connect Strava can open real OAuth",
+        setup: "Set secrets via wrangler secret put. Callback URL: " + `${url.origin}/api/fitness-2525/strava/callback`,
+        redirect_uri: `${url.origin}/api/fitness-2525/strava/callback`,
+      });
+    }
     return json({
-      configured: stravaConfigured(env),
+      configured: true,
       tokens: tokenStoreReady(env) ? "kv-encrypted" : "unconfigured",
       ...publicStatus(record, false),
     });
