@@ -163,6 +163,8 @@ export interface FitFluid {
 export interface FitProfileSettings {
   rate_unit?: FitRateUnitSetting;
   show_all_rates?: boolean;
+  /** Coach AI provider: auto (cheapest configured) | gemini | openai | grok | claude */
+  ai_provider?: "auto" | "openai" | "gemini" | "grok" | "claude";
 }
 
 export interface FitProfile {
