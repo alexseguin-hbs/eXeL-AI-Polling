@@ -22,7 +22,7 @@ type Demo = { labelKey: string; codeKey: string; openKey: string; href: string }
 type CardImage = { src: string; altKey: string };
 // Small label/value stats shown under the image (e.g. Build effort · estimated Value).
 type Stat = { labelKey: string; valueKey: string };
-type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; tagKey?: string; icon?: LucideIcon; secret?: Secret; demo?: Demo; image?: CardImage; stats?: Stat[]; defaultOpen?: boolean };
+type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; tagKey?: string; icon?: LucideIcon; secret?: Secret; demo?: Demo; image?: CardImage; stats?: Stat[]; defaultOpen?: boolean; appHref?: string; appLabel?: string };
 
 // ── Presentation & Writeup — the AI/ML strategy documents ───────────────────────────────────
 const WRITEUPS: Item[] = [
@@ -149,7 +149,16 @@ const EDTECH_PRESENTATION: Item = {
 };
 
 const EDTECH_VIDEOS: Item[] = [
-  { kind: "video", titleKey: "experiences.card.edvid1.title", blurbKey: "experiences.card.edvid1.blurb", href: "https://tinyurl.com/eXeL-AI-Launch-Video" },
+  {
+    kind: "video",
+    titleKey: "experiences.card.edvid1.title",
+    blurbKey: "experiences.card.edvid1.blurb",
+    href: "https://tinyurl.com/eXeL-AI-Launch-Video",
+    appHref: "https://exel-ai-polling.explore-096.workers.dev/SensorFusion-2525/",
+    appLabel: "Sensor Fusion",
+    image: { src: "/experiences/sensor-fusion-live.jpg", altKey: "experiences.card.edvid1.title" },
+    defaultOpen: true,
+  },
   { kind: "video", titleKey: "experiences.card.edvid2.title", blurbKey: "experiences.card.edvid2.blurb", href: "https://youtu.be/1hqutudJXF0?si=Nbzex0K0JT775Etu" },
   { kind: "video", titleKey: "experiences.card.edvid3.title", blurbKey: "experiences.card.edvid3.blurb", href: "https://tinyurl.com/27999v63" },
 ];
@@ -226,6 +235,12 @@ function Card({ item }: { item: Item }) {
           {open && (
             <div className="mt-3">
               <p className="text-[13px] leading-relaxed text-muted-foreground">{t(item.blurbKey)}</p>
+              {item.appHref && (
+                <a href={item.appHref} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline underline-offset-2">
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  {item.appLabel}
+                </a>
+              )}
               {/* Inline image — shown under the text by default; click opens it full-screen */}
               {item.image && (
                 <button
