@@ -2452,19 +2452,18 @@ export default function SensorFusion() {
       </section>
       <div className={styles.dock}>
       <nav className={styles.piBot}>
-        <div className={styles.pair}>
           <button type="button" className={showScores ? styles.botOn : styles.bot} onClick={() => setShowScores((on) => !on)}>
-            <Glyph src={showScores ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} />%
+            <Glyph src={showScores ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} />
+            <span className={styles.botLabel}>%</span>
           </button>
           <button type="button" className={showLabels ? styles.botOn : styles.bot} onClick={() => setShowLabels((on) => !on)}>
             <Glyph src={showLabels ? `${UI}/toggle_switch_on_001.png` : `${UI}/toggle_switch_off_001.png`} />
-            Labels
+            <span className={styles.botLabel}>Labels</span>
           </button>
-        </div>
         <div className={styles.modelWrap}>
           <button type="button" className={styles.botOn} aria-expanded={modelsOpen} aria-haspopup="listbox" aria-label="Run Live" onClick={() => setModelsOpen((open) => !open)}>
             <Glyph src={`${UI}/models_icon_001.png`} />
-            {current.label}
+            <span className={styles.botLabel}>{current.label}</span>
           </button>
           {modelsOpen && (
             <ul className={styles.modelList} role="listbox">
@@ -2489,15 +2488,15 @@ export default function SensorFusion() {
         </div>
         <button type="button" className={styles.bot} aria-label="Capture Images" onClick={() => setAnnotate(true)}>
           <StepIcon id="capture" />
-          Capture Images
+          <span className={styles.botLabel}>Capture Images</span>
         </button>
         <button type="button" className={styles.bot} aria-label="Annotate Images" onClick={() => setStep("label")}>
           <StepIcon id="annotate" />
-          Annotate
+          <span className={styles.botLabel}>Annotate</span>
         </button>
         <button type="button" className={styles.bot} aria-label="Upload Images" onClick={() => { setUploadNote(""); setUploadOpen(true); }}>
           <StepIcon id="upload" />
-          Upload
+          <span className={styles.botLabel}>Upload</span>
           {cloudSaved && (
             <span className={styles.cloudOn} role="img" aria-label="Uploaded">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -2753,30 +2752,29 @@ export default function SensorFusion() {
           </section>
           <div className={styles.dock}>
             <nav className={styles.piBot}>
-              <div className={styles.pair}>
               <button type="button" className={`${styles.botOn} ${tip === "pct" ? styles.tipOn : ""}`} onClick={(event) => placeTip("pct", event)}>
-                <Glyph src={`${UI}/toggle_switch_on_001.png`} />%
+                <Glyph src={`${UI}/toggle_switch_on_001.png`} />
+                <span className={styles.botLabel}>%</span>
               </button>
               <button type="button" className={`${styles.botOn} ${tip === "labels" ? styles.tipOn : ""}`} onClick={(event) => placeTip("labels", event)}>
                 <Glyph src={`${UI}/toggle_switch_on_001.png`} />
-                Labels
+                <span className={styles.botLabel}>Labels</span>
               </button>
-              </div>
               <button type="button" className={`${styles.botOn} ${tip === "model" ? styles.tipOn : ""}`} onClick={(event) => placeTip("model", event)}>
                 <Glyph src={`${UI}/models_icon_001.png`} />
-                Demo.90
+                <span className={styles.botLabel}>Demo.90</span>
               </button>
               <button type="button" className={`${styles.bot} ${tip === "capture" ? styles.tipOn : ""}`} onClick={(event) => placeTip("capture", event)}>
                 <StepIcon id="capture" />
-                Capture Images
+                <span className={styles.botLabel}>Capture Images</span>
               </button>
               <button type="button" className={`${styles.bot} ${tip === "annotate" ? styles.tipOn : ""}`} onClick={(event) => placeTip("annotate", event)}>
                 <StepIcon id="annotate" />
-                Annotate
+                <span className={styles.botLabel}>Annotate</span>
               </button>
               <button type="button" className={`${styles.bot} ${tip === "upload" ? styles.tipOn : ""}`} onClick={(event) => placeTip("upload", event)}>
                 <StepIcon id="upload" />
-                Upload
+                <span className={styles.botLabel}>Upload</span>
               </button>
             </nav>
           </div>
