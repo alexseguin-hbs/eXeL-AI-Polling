@@ -30,6 +30,7 @@ function mint(claims = {}, { kid = "k1", key = K1, alg = "RS256", drop = [] } = 
 let jwksKeys = [jwkOf(K1, "k1")];
 let jwksFetches = 0;
 const fetchLog = [];
+const sbRows = new Map(); // mocked Supabase innovation_state rows (fit-day records)
 globalThis.fetch = async (input, init = {}) => {
   const u = String(input && input.url || input);
   fetchLog.push(u);
@@ -42,6 +43,12 @@ globalThis.fetch = async (input, init = {}) => {
     return new Response(JSON.stringify({ id: 1, type: "Run", sport_type: "Run", start_date_local: "2026-10-05T07:00:00Z", moving_time: 1800, distance: 5000, calories: 300, name: "AM run" }));
   }
   if (u.startsWith("https://www.strava.com/oauth/deauthorize")) return new Response("{}");
+  if (u.startsWith("https://sb.example/rest/v1/rpc/innovation_state_")) {
+    const b = JSON.parse(init.body || "{}"), k = `${b.p_owner}/${b.p_name}`;
+    if (u.endsWith("_put")) { sbRows.set(k, b.p_payload); return new Response("null"); }
+    if (u.endsWith("_del")) { sbRows.delete(k); return new Response("null"); }
+    return new Response(JSON.stringify(sbRows.get(k) ?? null));
+  }
   return new Response(JSON.stringify({ unexpected: u }), { status: 500 });
 };
 const kv = () => {
@@ -146,7 +153,7 @@ for (const [label, extra, name] of [
   ok(c.status === 503 && c.j.missing.some((s) => s.startsWith(name)), `${label} → connect 503 naming ${name}`);
   const cb = await call(env, "/api/fitness-2525/strava/callback?code=x&state=y");
   ok(cb.status === 503, `${label} → callback 503`);
-  ok(!fetchLog.some((u) => u.includes("sb.example")), `${label} → no Supabase call (no fallback)`);
+  ok(!fetchLog.some((u) => u.includes("sb.example")), `${label} → no Supabase call (no token fallback)`);
   if (extra.SIGN_FILES) ok(extra.SIGN_FILES.m.size === 0 && extra.SITE_STATE.m.size === 0, "legacy shared KVs never written");
   const s = await call(env, "/api/fitness-2525/strava/status", { token: T });
   ok(s.status === 200 && s.j.connected === false && s.j.tokens === "unconfigured", `${label} → status 200 disconnected, tokens unconfigured`);
@@ -163,6 +170,7 @@ fetchLog.length = 0;
 const cb = await call(env, `/api/fitness-2525/strava/callback?code=good&state=${encodeURIComponent(state)}`);
 ok(cb.status === 302 && /strava=connected/.test(cb.loc), "callback → connected");
 ok(!fetchLog.some((u) => u.includes("sb.example")), "callback never touches Supabase for tokens");
+ok(sbRows.size === 0, "no token rows in Supabase");
 const dump = [...store.entries()].map(([k, v]) => `${k}=${v}`).join("\n");
 ok(store.size === 2 && [...store.keys()].every((k) => k.startsWith("fittok:")), `exactly token + athlete map in KV (got ${store.size})`);
 ok(!/ACCESS-SECRET|REFRESH-SECRET|auth0\|tester|Ann Runner/.test(dump), "KV holds no plaintext token, sub or athlete name");
@@ -193,7 +201,8 @@ ok([...store.entries()].map(([k, v]) => `${k}=${v}`).join("\n") === before, "rej
 ok((await call(env, "/api/fitness-2525/strava/webhook?hub.mode=subscribe&hub.verify_token=vt&hub.challenge=abc")).j["hub.challenge"] === "abc", "GET subscription handshake still works");
 const act = await wh(env, { subscription_id: 4242, object_type: "activity", aspect_type: "create", object_id: 1, owner_id: 777 });
 ok(act.status === 200 && fetchLog.some((u) => u.endsWith("/activities/1")), "valid activity event → fetched with stored token");
-ok([...store.keys()].some((k) => k.startsWith("fit:")), "activity merged into a fit-day record");
+ok([...sbRows.keys()].some((k) => k.endsWith("/fit-day-2026-10-05")) && [...sbRows.keys()].some((k) => k.endsWith("/fit-index")), "activity merged into the Supabase fit-day row + fit-index");
+ok(![...store.keys()].some((k) => k.startsWith("fit:")), "fit-day records never land in KV");
 const de = await wh(env, { subscription_id: "4242", object_type: "athlete", aspect_type: "update", object_id: 777, owner_id: 777, updates: { authorized: "false" } });
 ok(de.status === 200 && de.j.deauthorized === true, "athlete deauthorization → 200 deauthorized");
 ok(![...store.keys()].some((k) => k.startsWith("fittok:")), "deauth deleted the athlete's tokens + athlete map");
