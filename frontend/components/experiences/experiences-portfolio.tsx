@@ -156,7 +156,7 @@ const EDTECH_VIDEOS: Item[] = [
     href: "https://tinyurl.com/eXeL-AI-Launch-Video",
     appHref: "https://exel-ai-polling.explore-096.workers.dev/SensorFusion-2525/",
     appLabel: "Sensor Fusion",
-    image: { src: "/experiences/sensor-fusion-live.jpg", altKey: "experiences.card.edvid1.title" },
+    image: { src: "/experiences/sensor-fusion-live-2.jpg", altKey: "experiences.card.edvid1.title" },
     defaultOpen: true,
   },
   { kind: "video", titleKey: "experiences.card.edvid2.title", blurbKey: "experiences.card.edvid2.blurb", href: "https://youtu.be/1hqutudJXF0?si=Nbzex0K0JT775Etu" },
