@@ -775,11 +775,9 @@ export function FinancialCommandUX1() {
               Row 3, nested under Released only: Spent | Available. Spent = drawn from Released. Available = Released − Spent. Available is the only spendable figure.
               Invariants: escrow + released === income. spent + available === released. Available is not summed into Income. Spent is not summed into Income. */}
           <div data-fin-figures>
-          <div data-fin-income-row className="mt-3 grid grid-cols-2 gap-x-3 border-b border-border pb-3">
-            <div>
-              <div className="block w-full text-left text-lg font-bold text-foreground">{t("fin.income")}</div>
-              <div data-fin-income className="grid justify-start text-left font-mono text-lg font-bold tabular-nums text-foreground" style={leftFig.style}>{money(incomeCents, leftFig.sign)}</div>
-            </div>
+          <div data-fin-income-row className="mt-3 border-b border-border pb-3 text-center">
+            <div className="text-lg font-bold text-foreground">{t("fin.income")}</div>
+            <div data-fin-income className="mx-auto grid w-fit font-mono text-lg font-bold tabular-nums text-foreground" style={leftFig.style}>{money(incomeCents, leftFig.sign)}</div>
           </div>
           <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-3">
             <div data-fin-cell="escrowed"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.escrowed")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-foreground" style={leftFig.style}>{money(bal.escrowedCents, leftFig.sign)}</dd></div>
