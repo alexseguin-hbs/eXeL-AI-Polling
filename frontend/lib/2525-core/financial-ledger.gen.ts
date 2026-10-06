@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 157 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 158 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1108,6 +1108,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.082 correction — the one-line Accrual header was wider than a phone. The label, the amount, and + Transaction are tightened so the row stays inside the card. The site build now runs the Accrual card checks, including that its tags open and close in pairs.",
       "commit": "6890379"
+    },
+    {
+      "rev": 158,
+      "date": "2026-10-05",
+      "kind": "correction",
+      "text": "r.083 correction — the Accrual header sizes itself to the card, so the one line fits a phone. A narrow phone shows Rate instead of Accrual Rate. The build now parses the file, so a broken tag fails before the site build.",
+      "commit": ""
     }
   ]
 };

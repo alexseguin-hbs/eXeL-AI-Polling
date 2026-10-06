@@ -51,7 +51,7 @@ import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fiel
 import { append, loadRecord, saveRecord, readStored, recordKey, unionRecords, sameChain, chainFingerprint, freshId, nextAt, txIdentity, followId, replay, emptyRecord, correctTx, stableJson, type FinRecord, type TxEdit } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry; r.073: the union
 import { parseAmountCents, amountProblem, parsePositive, lengthFits, parseBudgetAmount, parseCardCents, budgetFigure, smallDollars } from "@/lib/financial-2525/typed";   // r.073 (round 1): one reader for what a person types
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
-import { fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
+import { fitHeader, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
 import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, newCard, uniqueCardId, applyCardSettings, looksLikeCardNumber, cardBalanceAt, cardLevel, cardSeries, cardMoves, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
 import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, readAll, mergeRecords, syncChoice, nextStamp, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
@@ -735,19 +735,19 @@ export function FinancialCommandUX1() {
 
         {/* ACCRUAL UNITS (r.028, addendum 58): the current balance on the LEFT; the $/min figure and its unit selector on the RIGHT; a
             settings gear upper right; "Available: $…"; no Withdraw button (withdrawal is a choice inside + Transaction); full width on the phone */}
-        <style>{`@keyframes fin-accrual-glow{0%,100%{box-shadow:0 0 8px -2px hsl(var(--primary) / .35)}50%{box-shadow:0 0 22px 1px hsl(var(--primary) / .8)}}@media (prefers-reduced-motion:reduce){[data-fin-balance]{animation:none;box-shadow:0 0 16px -2px hsl(var(--primary) / .55)}}`}</style>
+        <style>{`@keyframes fin-accrual-glow{0%,100%{box-shadow:0 0 8px -2px hsl(var(--primary) / .35)}50%{box-shadow:0 0 22px 1px hsl(var(--primary) / .8)}}@media (prefers-reduced-motion:reduce){[data-fin-balance]{animation:none;box-shadow:0 0 16px -2px hsl(var(--primary) / .55)}}[data-fin-accrual-top]{container-name:finhead}[data-fin-rate-short]{display:none}@container finhead (max-width:330px){[data-fin-rate-full]{display:none}[data-fin-rate-short]{display:inline}}`}</style>
         <div data-fin-balance className="-mx-2 mb-4 rounded-lg border border-primary/70 bg-primary/5 p-3 text-sm sm:mx-0" style={{ animation: "fin-accrual-glow 3s ease-in-out infinite" }}>
           {/* r.033 (addendum 64 "Accrual field needs to be left to settings button on top line"): title left; the $/min figure and its
               unit selector on the SAME line, immediately left of the gear */}
           {/* r.042 (addendum 81 "Move transaction left of settings and move accrual rate to right of Available · swap these two"):
               line 1 = ACCRUAL UNITS · + Transaction (the gear's height) · gear; line 2 = Available (left) · Accrual Rate (right) */}
-          <div data-fin-accrual-top className="flex items-center gap-1 whitespace-nowrap">
+          <div data-fin-accrual-top className="flex w-full items-center gap-1 whitespace-nowrap" style={{ containerType: "inline-size", fontSize: fitHeader(`${t("fin.accrual_rate")}:`.length + rateText.length + t("fin.tx_open").length, 120) }}>
             <div className="flex min-w-0 items-center gap-1">
-              <span className="text-xs font-bold text-primary">{t("fin.accrual_rate")}:</span>
+              <span className="font-bold text-primary"><span data-fin-rate-full>{t("fin.accrual_rate")}</span><span data-fin-rate-short>{t("fin.rate_name")}</span>:</span>
               {bal.ratePerMinCents > 0 && (
                 <div data-fin-rate-block className="flex items-center gap-1 text-primary">
-                  <span data-fin-rate className="font-mono text-sm tabular-nums">{rateText}</span>
-                  <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-primary">
+                  <span data-fin-rate className="font-mono tabular-nums">{rateText}</span>
+                  <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-[1em] text-primary">
                     {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
                   </select>
                 </div>
@@ -755,7 +755,7 @@ export function FinancialCommandUX1() {
               {!cur.symbol && <div data-fin-currency-label className="text-[11px] text-muted-foreground">{cur.code} · {cur.name}</div>}
             </div>
             <div className="ml-auto flex shrink-0 items-center gap-1">
-              {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} ref={doorRef} className="h-8 shrink-0 rounded-md bg-primary px-2 text-xs font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
+              {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} ref={doorRef} className="h-8 shrink-0 rounded-md bg-primary px-2 text-[1em] font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
               <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => { setAccrualGear((g) => !g); setDefOpen(null); }} className={`flex h-8 w-9 shrink-0 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
             </div>
           </div>

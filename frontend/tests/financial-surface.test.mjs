@@ -6,6 +6,8 @@
 // one reveal, carries the R-CORE badge last, and the export (when out/ exists) emits both routes. The pure laws
 // themselves are gated in financial-mot / financial-accrual / planet-ltu.
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 import path from 'node:path';
 
 let pass = 0, fail = 0;
@@ -178,7 +180,7 @@ ok(/querySelector\("select\[data-fin-type\], input"\)/.test(ux), "r.023: a door 
 ok(/id: `d-\$\{instant\}-\$\{cents\}-\$\{recordRef\.current\.entries\.length \+ 1\}`/.test(ux) && /id: `w-\$\{instant\}-\$\{cents\}-\$\{recordRef\.current\.entries\.length \+ 1\}`/.test(ux) && /const id = freshId\(recordRef\.current, tx\.id\)/.test(ux), "r.026: two entries with the same amount at the same typed day and time are two entries — the id carries the record's next number, so the second is never taken for the first and silently dropped");
 ok(ux.indexOf("data-fin-date-months") > 0 && ux.indexOf("data-fin-date-months") < ux.indexOf("<div data-fin-date-axis data-fin-angle"), "r.026: the month name sits OVER the day numbers (his \"October / with / 01, 02, 03\")");
 ok(/\{!showAbc && ticks\.length === 0 && <div data-fin-axis/.test(ux), "r.026: a MoT that crosses no midnight keeps the day · hour · minute marks instead of an empty axis");
-ok(/className="min-h-\[36px\] rounded-md border border-border bg-background px-1 py-0\.5 text-xs text-primary"/.test(ux), "r.026: the rate dropdown is a 36 px touch target (mobile rule)");
+ok(/className="min-h-\[36px\] rounded-md border border-border bg-background px-1 py-0\.5 text-\[1em\] text-primary"/.test(ux), "r.026: the rate dropdown is a 36 px touch target (mobile rule)");
 { const pg = fs.readFileSync(new URL("../app/SoI-2525/page.tsx", import.meta.url), "utf8");
   ok(/const numBox = \(key: string, shown: string, onNum: \(n: number\) => void\) => \(\{/.test(pg) && /\{\.\.\.numBox\(`\$\{r\.code\}:monthDays`/.test(pg) && /\{\.\.\.numBox\(`\$\{r\.code\}:yearDays`/.test(pg) && !/numOf\(/.test(pg) && /<span data-planet-month-repeat[^>]*>\{fmtDays\(r\.monthDays\)\}<\/span>/.test(pg), "r.026: the Admin panel's planet number boxes keep what is typed (\"30.\" stays) so 30.333 and 365.25 can be typed; the Month shows 30.3 repeating beside it"); }
 ok(/\{txType && <LadderPicker section=\{sec\}/.test(ux), "r.027 (decision 5): Section, Field and Length appear only once a type is picked");
@@ -194,6 +196,9 @@ ok(!/fin\.version|SRC\.project\.revision\}<\/p>/.test(ux.slice(ux.indexOf("<head
 ok(!/t\("fin\.chart_title"\)/.test(ux), "r.028: 'Money as time — this MoT' is gone from every place on the surface");
 { const top = ux.slice(ux.indexOf("<div data-fin-accrual-top"), ux.indexOf("<div data-fin-income-row")); ok(top.indexOf("fin.accrual_rate") >= 0 && top.indexOf("data-fin-rate") > top.indexOf("fin.accrual_rate") && top.indexOf("data-fin-tx-open") > top.indexOf("data-fin-rate") && top.indexOf("data-fin-accrual-gear") > top.indexOf("data-fin-tx-open") && /whitespace-nowrap/.test(top) && /ml-auto flex shrink-0/.test(top) && !/fin\.withdraw_open|data-fin-withdraw/.test(top) && !/data-fin-current/.test(ux), "Accrual header is one line: Accrual Rate, the amount, then + Transaction and the gear on the right. No Withdraw pill."); }
 { const card = ux.slice(ux.indexOf('<div data-fin-balance'), ux.indexOf("{/* the entry, folded")); let n = 0, neg = false; for (const m of card.matchAll(/<div\b|<\/div>/g)) { n += m[0] === "<div" ? 1 : -1; if (n < 0) neg = true; } ok(n === 0 && !neg, "the Accrual card's tags open and close in pairs, and the card is not closed before its figures"); }
+{ const ts = require("typescript"); const sf = ts.createSourceFile("command-ux1.tsx", ux, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX); ok((sf.parseDiagnostics || []).length === 0, "Stability: the Accrual file parses. A broken tag fails here, not only after the site build."); }
+{ const used = (container, budgetChars, shownChars, reserve = 120) => { const em = Math.max(1, Math.round(budgetChars)) * 0.58; const px = Math.min(14, Math.max(10, (container - reserve) / em)); return px * Math.max(1, Math.round(shownChars)) * 0.58 + reserve; };
+  ok(used(388, 34, 34) <= 388 && used(348, 34, 34) <= 348 && used(278, 34, 26) <= 278, "Scalability: the header fits a 428 px phone and a 390 px phone with the full label, and a 320 px phone once Accrual is hidden."); }
 ok(/data-fin-balance className="-mx-2 [^"]*sm:mx-0"/.test(ux), "r.028: the Accrual Units card runs the full width on a phone in portrait");
 ok(/data-fin-chart-controls className="mt-2 flex flex-wrap items-center justify-between gap-2">\s*\{selector\}\s*<div className="ml-auto flex items-center gap-2">/.test(ux), "r.028: Planet on the left, the Clock · MoT toggle and the gear on the right — r.073 (addendum 165): the row wraps on a narrow screen and the toggle and gear stay right");
 ok(/<details data-fin-ledger/.test(ux) && /data-fin-ledger-scroll className="mt-2 overflow-x-auto"/.test(ux) && /data-fin-ledger-table className="min-w-full whitespace-nowrap/.test(ux), "r.028: the Record folds behind a chevron; opened, a table with one entry per line that scrolls sideways");
@@ -215,7 +220,7 @@ ok(!/cyan/.test(ux), "r.034 (addendum 67 'we stick to color per selector'): no f
 
 ok(!/p\.withdrawable\)/.test(ux) && !/C\.consciousness/.test(ux) && !/t\("fin\.withdrawable"\)/.test(ux), "r.034: no separate Withdrawable stroke or cyan legend word — with no hold it is the Released line; the tap line takes the theme colour");
 
-ok(/<div data-fin-rate-block className="flex items-center gap-1 text-primary">\s*<span data-fin-rate className="font-mono text-sm tabular-nums">\{rateText\}<\/span>/.test(ux) && !/data-fin-rate-label/.test(ux) && /text-xs font-bold text-primary">\{t\("fin\.accrual_rate"\)\}:/.test(ux) && /data-fin-tx-open[^\n]*px-2 text-xs/.test(ux), "The header is one line that fits a phone: Accrual Rate, a smaller amount, then + Transaction and the gear on the right.");
+ok(/<div data-fin-rate-block className="flex items-center gap-1 text-primary">\s*<span data-fin-rate className="font-mono tabular-nums">\{rateText\}<\/span>/.test(ux) && /data-fin-rate-full>\{t\("fin\.accrual_rate"\)\}/.test(ux) && /data-fin-rate-short>\{t\("fin\.rate_name"\)\}/.test(ux) && /fontSize: fitHeader\(/.test(ux) && /export function fitHeader\(/.test(fs.readFileSync("lib/financial-2525/fit.ts", "utf8")), "The header is one line fitted to the card. A narrow phone keeps Rate, the amount, + Transaction, and the gear inside the card.");
 ok(/data-fin-income className="grid justify-start text-left font-mono text-lg font-bold tabular-nums text-foreground" style=\{leftFig\.style\}>\{money\(incomeCents, leftFig\.sign\)\}/.test(ux) && /style=\{rightFig\.style\}>\{money\(bal\.availableCents, rightFig\.sign\)\}/.test(ux) && /const leftFig = figureCols\(\[incomeCents, bal\.escrowedCents, bal\.withdrawnCents\]\);/.test(ux) && /const rightFig = figureCols\(\[bal\.releasedCents, bal\.availableCents\]\);/.test(ux), "Each column sizes to its own longest amount. The $ stays left and the decimals line up. Income stays bold.");
 
 ok(/data-fin-cell="escrowed"/.test(ux) && /data-fin-cell="released" className="border-l border-border pl-3"/.test(ux) && /data-fin-released-nest/.test(ux) && /data-fin-cell="spent"/.test(ux) && /data-fin-cell="available" className="border-l border-border pl-3"/.test(ux), "Escrow and Released share one row. Spent and Available sit in the box under Released.");
@@ -355,7 +360,7 @@ ok(/<details data-fin-cards className=\{`group \$\{SUB\}`\}>\s*<summary classNam
 { const fit = fs.readFileSync(path.join(process.cwd(), "lib/financial-2525/fit.ts"), "utf8");
   ok(/data-fin-income className="grid justify-start text-left font-mono text-lg font-bold tabular-nums text-foreground" style=\{leftFig\.style\}>\{money\(incomeCents, leftFig\.sign\)\}/.test(ux)
     && /const leftFig = figureCols\(\[incomeCents, bal\.escrowedCents, bal\.withdrawnCents\]\);/.test(ux)
-    && /<span data-fin-rate className="font-mono text-sm tabular-nums">\{rateText\}<\/span>/.test(ux)
+    && /<span data-fin-rate className="font-mono tabular-nums">\{rateText\}<\/span>/.test(ux)
     && /return `min\(1\.5rem, max\(0\.875rem, calc\(\(100cqw - \$\{Math\.max\(0, Math\.round\(reservePx\)\)\}px\) \/ \$\{em\}\)\)\)`;/.test(fit) && /export const FIG_ADVANCE_EM = 0\.62;/.test(fit),
     "The header rate is one size smaller so the line holds. The five amounts stay one size, with the $ left and the decimals lined up."); }
 // r.071 (addendum 160 "Trinity text does not render anymore when clicked"): r.051 recorded the opened logo's labels at 16 but shipped 20

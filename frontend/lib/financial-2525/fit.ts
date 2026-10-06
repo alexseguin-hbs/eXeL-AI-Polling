@@ -35,6 +35,13 @@ export function fitGrid(maxChars: number, cols: number = 3, gapPx: number = 12):
   const em = (Math.max(1, Math.round(maxChars)) * FIG_ADVANCE_EM).toFixed(2);
   return `min(1.5rem, max(0.6875rem, calc(((100cqw - ${Math.max(0, cols - 1) * gapPx}px) / ${Math.max(1, cols)} - 4px) / ${em})))`;
 }
+/** r.082: the Accrual header is one line. The label, the amount, and + Transaction share one size fitted to the card.
+ *  The gear and the unit picker stay a fixed width (reservePx). The size never grows past 0.875rem and never drops below 0.625rem.
+ *  Below that floor the card hides the word Accrual, so a 320 px phone still holds the line. */
+export function fitHeader(chars: number, reservePx: number = 120): string {
+  const em = (Math.max(1, Math.round(chars)) * 0.58).toFixed(2);
+  return `min(0.875rem, max(0.625rem, calc((100cqw - ${Math.max(0, Math.round(reservePx))}px) / ${em})))`;
+}
 /** r.071 AsM fold (Sofia): the gear's one line — elapsed · $/min · $/sec, his r.043 rule — fitted to the card the same way: the card's
  *  0.75rem when it fits, never below 0.5625rem; past that floor the $/sec part wraps under it, never off the card or the page (it was cut
  *  off at 390 px and scrolled the page sideways at 320). `chars` counts the three parts; the row keeps 8 px for the two gaps. */
