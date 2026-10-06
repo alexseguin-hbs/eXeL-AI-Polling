@@ -16,7 +16,6 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { isDeficit, deficitDelta } from "@/lib/fitness-2525/types";
 import { intakeDayRates, burnDayRates, workoutBurnRates, pickRate } from "@/lib/fitness-2525/energy";
 import styles from "./fitness-2525.module.css";
 import { ConnectionsCard } from "./connections";
@@ -87,8 +86,6 @@ export function FitnessCommandUX1() {
   const fuelPer = pickRate(fuelRates, rateUnit);
   const burnPer = pickRate(burnRates, rateUnit);
   const netPer = fuelPer != null && burnPer != null ? fuelPer - burnPer : null;
-  const deficit = isDeficit(day);
-  const delta = deficitDelta(day);
   const completed = day.workouts.filter((w) => w.status === "completed").length;
   const selected = day.workouts.find((w) => w.id === selectedId) ?? day.workouts[0] ?? null;
   const selectedBurn = selected
@@ -96,6 +93,10 @@ export function FitnessCommandUX1() {
     : null;
 
   const { anthro, budget } = computeBudget(day, profile, exampleMode);
+  // Burn (out) = modeled BMR + NEAT + COMPLETED workouts (device day kcal is never the day burn).
+  const burnOutKcal = budget.totalBurnKcal;
+  const delta = burnOutKcal != null && typeof day.calories_in === "number" && Number.isFinite(day.calories_in) ? burnOutKcal - day.calories_in : null;
+  const deficit = delta != null && delta > 0;
 
   const statusColor = planStatus === "synced" ? C.green : planStatus === "pending" ? C.amber : C.dim;
   const linkLabel = owner
@@ -116,7 +117,7 @@ export function FitnessCommandUX1() {
         btnGhost={btnGhost} btnPrimary={btnPrimary}
       />
 
-      {/* ── Body: 3-pane PLANNING layout ────────────────────────────── */}
+      {/* ── Body: 3-pane PLANNING layout ──────────────────────────── */}
       <div className={`grid min-h-0 flex-1 gap-2 overflow-hidden p-2 ${styles.bodyGrid}`} style={{ gridTemplateColumns: "minmax(200px,240px) minmax(0,1fr) minmax(200px,240px)" }}>
         {/* LEFT — SESSIONS (ASSETS-style) */}
         <SessionsRail tab={tab} setTab={setTab} day={day} selected={selected} setSelectedId={setSelectedId} syncOnce={syncOnce} applyDay={applyDay} />
@@ -169,7 +170,7 @@ export function FitnessCommandUX1() {
             day={day} owner={owner} rateUnit={rateUnit} setRateUnit={setRateUnit}
             showAllRates={showAllRates} setShowAllRates={setShowAllRates}
             settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen}
-            fuelPer={fuelPer} burnPer={burnPer} netPer={netPer} deficit={deficit} delta={delta}
+            fuelPer={fuelPer} burnPer={burnPer} netPer={netPer} deficit={deficit} delta={delta} burnOutKcal={burnOutKcal}
             coachBusy={coachBusy} runCoach={runCoach} btnPrimary={btnPrimary}
           />
 

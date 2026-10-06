@@ -32,12 +32,13 @@ export function EnergyBudgetPanel({
         </button>
       }
     >
-      <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4 text-center">
+      <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-5 text-center" data-fit-burn-tiles>
         {([
           ["BMR", budget.bmrKcal, "kcal"],
           ["NEAT", budget.neatKcal, "kcal"],
-          ["Workouts", budget.workoutBurnKcal, "kcal"],
-          ["Burn Σ", budget.totalBurnKcal, "kcal"],
+          ["Workouts done", budget.workoutBurnKcal, "kcal"],
+          ["Burn Σ so far", budget.totalBurnKcal, "kcal"],
+          ["Projected (planned)", budget.projectedWorkoutKcal, "kcal · not burned yet"],
         ] as const).map(([lb, v, u]) => (
           <div key={lb} className="rounded border px-1 py-1" style={{ borderColor: C.border }}>
             <div className="text-[8px] uppercase" style={{ color: C.dim }}>{lb}</div>
@@ -50,8 +51,9 @@ export function EnergyBudgetPanel({
       </div>
       <div className="mb-2 flex flex-wrap gap-2 text-[9px]" style={{ color: C.dim }}>
         <span>Deficit target: <span className={styles.mono} style={{ color: budget.noDeficitToday ? C.amber : C.green }}>{budget.deficitTargetKcal != null ? `${budget.deficitTargetKcal} kcal` : "—"}</span>{budget.noDeficitToday ? " · NO DEFICIT (key/long)" : ""}</span>
-        <span>· Intake target: <span className={styles.mono} style={{ color: C.text }}>{budget.intakeTargetKcal != null ? `${budget.intakeTargetKcal} kcal` : "—"}</span></span>
-        <span>· Sugar cap: <span className={styles.mono} style={{ color: C.text }}>{budget.sugarCapG != null ? `${budget.sugarCapG} g` : "—"}</span></span>
+        <span>· Intake target (so far): <span className={styles.mono} style={{ color: C.text }} data-fit-intake-target>{budget.intakeTargetKcal != null ? `${budget.intakeTargetKcal} kcal` : "—"}</span>{budget.bmrKcal != null ? ` (≥ BMR ${budget.bmrKcal}${budget.intakeFloorApplied ? " · floor applied" : ""})` : ""}</span>
+        <span>· Full-day target: <span className={styles.mono} style={{ color: C.text }}>{budget.projectedIntakeTargetKcal != null ? `${budget.projectedIntakeTargetKcal} kcal` : "—"}</span>{budget.projectedBurnKcal != null ? ` (projected burn ${budget.projectedBurnKcal})` : ""}</span>
+        <span>· Sugar cap (full day): <span className={styles.mono} style={{ color: C.text }}>{budget.sugarCapG != null ? `${budget.sugarCapG} g` : "—"}</span></span>
       </div>
       <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-5">
         <label className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
@@ -104,7 +106,7 @@ export function EnergyBudgetPanel({
         </div>
       ))}
       <p className="mt-1 text-[8px]" style={{ color: C.dim }}>
-        BMR needs weight+height+age. Workout burn needs weight (or device kcal). Bars: amber ≥85%, red ≥100% of planned. See docs/fitness-2525/ENERGY_MODEL.md.
+        Burn = BMR + NEAT (steps) + COMPLETED workouts. Device/Garmin kcal = that workout&apos;s subtotal, never the day total. Planned sessions are projected only. Intake target never below BMR. BMR needs weight+height+age. Bars: amber ≥85%, red ≥100% of planned. See docs/fitness-2525/ENERGY_MODEL.md.
       </p>
     </Panel>
   );
