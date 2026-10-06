@@ -259,7 +259,7 @@ const T: Record<string, string> = {
   "innovation.notes.cm": "Motåtgärd",
   "soi.tricoin": "Tri-Coin",
   "soi.qis.spine": "R | GP | OI | QRD → ERD → QIS → ΔQIS",
-  "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
+  "innovation.gate.eyebrow": "Vision • 2525 · eXeL AI",
   "innovation.alloc.perMin": "$/min",
   "innovation.veq.colDriver": "Differentiator",
   "innovation.dogtag.load": "AI·SI·HI",

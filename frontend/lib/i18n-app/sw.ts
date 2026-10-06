@@ -261,7 +261,7 @@ const T: Record<string, string> = {
   "innovation.notes.cm": "Hatua ya kukabiliana",
   "soi.tricoin": "Tri-Coin",
   "soi.qis.spine": "R | GP | OI | QRD → ERD → QIS → ΔQIS",
-  "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
+  "innovation.gate.eyebrow": "Vision • 2525 · eXeL AI",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
   "shared.tokens.heart": "♡ Tokeni",

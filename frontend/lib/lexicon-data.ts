@@ -1859,7 +1859,7 @@ const experiences: TranslationEntry[] = [
 // translation → English → key). Slice 0 seats the chrome; each Bridge slice adds its own keys.
 const innovation: TranslationEntry[] = [
   // Unlock gate
-  { key: "innovation.gate.eyebrow", englishDefault: "Vision • 2525 · Harmattan AI", context: "Innovation unlock-gate eyebrow", cubeId: 60 },
+  { key: "innovation.gate.eyebrow", englishDefault: "Vision • 2525 · eXeL AI", context: "Innovation unlock-gate eyebrow", cubeId: 60 },
   { key: "innovation.gate.title", englishDefault: "Project Innovation — Unlock to Pillars", context: "Innovation unlock-gate title", cubeId: 60 },
   { key: "innovation.gate.blurb", englishDefault: "Access-gated preview. Enter the code to open the portfolio-prioritization board across the four strategic pillars.", context: "Innovation unlock-gate blurb", cubeId: 60 },
   { key: "innovation.gate.codePlaceholder", englishDefault: "Access code", context: "Innovation unlock-gate code input placeholder", cubeId: 60 },

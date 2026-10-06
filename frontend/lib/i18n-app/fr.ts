@@ -200,7 +200,7 @@ const T: Record<string, string> = {
   "innovation.notes.risk": "Risque",
   "innovation.notes.cm": "Contre-mesure",
   "soi.qis.spine": "R | GP | OI | QRD → ERD → QIS → ΔQIS",
-  "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
+  "innovation.gate.eyebrow": "Vision • 2525 · eXeL AI",
   "innovation.header.title": "System of Innovation",
   "innovation.alloc.perMin": "$/min",
   "innovation.dogtag.load": "AI·SI·HI",

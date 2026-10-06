@@ -260,7 +260,7 @@ const T: Record<string, string> = {
   "soi.tricoin": "Tri-Coin",
   "soi.qis.spine": "R | GP | OI | QRD → ERD → QIS → ΔQIS",
   "cube10.sim.tier_manual": "Manual",
-  "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
+  "innovation.gate.eyebrow": "Vision • 2525 · eXeL AI",
   "innovation.alloc.perMin": "$/min",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",

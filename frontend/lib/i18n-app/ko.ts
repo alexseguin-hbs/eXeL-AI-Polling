@@ -261,7 +261,7 @@ const T: Record<string, string> = {
   "innovation.notes.risk": "리스크",
   "innovation.notes.cm": "대책",
   "soi.qis.spine": "R | GP | OI | QRD → ERD → QIS → ΔQIS",
-  "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
+  "innovation.gate.eyebrow": "Vision • 2525 · eXeL AI",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
   "shared.landing.security2525_link": "임무 계획",

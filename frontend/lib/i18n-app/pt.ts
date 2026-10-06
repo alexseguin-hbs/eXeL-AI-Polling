@@ -259,7 +259,7 @@ const T: Record<string, string> = {
   "soi.tricoin": "Tri-Coin",
   "soi.qis.spine": "R | GP | OI | QRD → ERD → QIS → ΔQIS",
   "soi.qis.equation": "QIS = (R + GP + OI + ERD) ÷ 4 · growth = ΔQIS",
-  "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
+  "innovation.gate.eyebrow": "Vision • 2525 · eXeL AI",
   "innovation.alloc.perMin": "$/min",
   "innovation.role.editor": "Editor",
   "innovation.dogtag.load": "AI·SI·HI",

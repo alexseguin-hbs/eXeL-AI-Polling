@@ -331,7 +331,7 @@ function Board() {
   // every tab switch — spurious localStorage re-read + full state replace on each navigation, Stability).
   const [setup, setSetup] = useState<BizSetup>(() => seedBizSetup(DEMO_PROJECTS));
   // Editable company brand shown in the header eyebrow. Admin renames it live via onCompanyRename (below);
-  // seeded/hydrated from the master Business Setup (setup.company), default "Harmattan AI".
+  // seeded/hydrated from the master Business Setup (setup.company), default "eXeL AI".
   const [companyName, setCompanyName] = useState(DEFAULT_COMPANY_NAME);
   const _prevViewForSetup = useRef<typeof view | null>(null);
   useEffect(() => {
@@ -7436,14 +7436,15 @@ function loadBizSetup(): BizSetup {
   if (saved) {
     try {
       const parsed = JSON.parse(saved) as BizSetup;
-      // Coerce the legacy generic company label (or an empty value) to the brand so existing demo
-      // localStorage shows "Harmattan AI"; any operator-chosen custom name is preserved as-is.
-      if (!parsed.company?.trim() || parsed.company === COMPANY_NAME) parsed.company = DEFAULT_COMPANY_NAME;
+      // Coerce the legacy generic company label (or an empty value, or the old Harmattan default) to the
+      // brand so existing demo localStorage shows "eXeL AI"; any operator-chosen custom name is preserved as-is.
+      const legacyCompany = !parsed.company?.trim() || parsed.company === COMPANY_NAME || parsed.company === "Harmattan AI";
+      if (legacyCompany) parsed.company = DEFAULT_COMPANY_NAME;
       // ADMIN PANEL ALWAYS UPDATED (operator 2026-09-24): master data seeded after this device saved its Setup
       // (DR › DRC › CR1 › CR1D · 70034 for PRJ-34) joins the saved Setup; a seeded node's untouched fields follow the
       // seed; saved edits are untouched; a code the admin deleted (tombstone) never returns.
       const merged = mergeSetupSeeds(parsed, seedBizSetup(DEMO_PROJECTS), readSetupRemoved());
-      if (merged !== parsed) lsSet(BIZ_KEY, JSON.stringify(merged)); // THE SEED LAW: written back, so the cloud bundle carries it
+      if (merged !== parsed || legacyCompany) lsSet(BIZ_KEY, JSON.stringify(merged)); // THE SEED LAW: written back, so the cloud bundle carries it
       return merged;
     } catch { /* fall through to seed */ }
   }

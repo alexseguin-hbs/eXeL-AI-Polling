@@ -2100,7 +2100,7 @@ export interface HierPath { bu: string; sbu: string; pgroup: string; alpha: stri
 export const COMPANY_NAME = "Company (All BUs)";
 // Editable brand shown in the header eyebrow (Vision • 2525 · <brand>) and seeded into BizSetup.company.
 // Distinct from COMPANY_NAME (the drill-down rollup aggregate label, which stays "Company (All BUs)").
-export const DEFAULT_COMPANY_NAME = "Harmattan AI";
+export const DEFAULT_COMPANY_NAME = "eXeL AI";
 // BU (2-letter) — aka LOB. SBU (3-letter) rolls up to a BU. Codes + human labels.
 export const BU_LABEL: Record<string, string> = { MS: "Mission System", DS: "Drone Swarm", AP: "Advanced Programs", DR: "De-Risking Strategies" };
 // Trinity color per BU (SoI: AI cyan · SI sunset · HI violet) — the ONE hierarchy color source shared by the

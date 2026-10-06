@@ -263,7 +263,7 @@ const T: Record<string, string> = {
   "innovation.notes.risk": "Риск",
   "innovation.notes.cm": "Контрмера",
   "soi.qis.spine": "R | GP | OI | QRD → ERD → QIS → ΔQIS",
-  "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
+  "innovation.gate.eyebrow": "Vision • 2525 · eXeL AI",
   "shared.landing.security2525_link": "Планирование миссии",
   "trinity.ooda.title": "Цикл OODA",
   "sdk.embed.headless": "Безголовый API",

@@ -263,7 +263,7 @@ const T: Record<string, string> = {
   "innovation.notes.cm": "对策",
   "soi.qis.spine": "R | GP | OI | QRD → ERD → QIS → ΔQIS",
   "soi.qis.equation": "QIS = (R + GP + OI + ERD) ÷ 4 · growth = ΔQIS",
-  "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
+  "innovation.gate.eyebrow": "Vision • 2525 · eXeL AI",
   "shared.landing.security2525_link": "任务规划",
   "trinity.ooda.title": "OODA 循环",
   "sdk.embed.headless": "无头 API",
