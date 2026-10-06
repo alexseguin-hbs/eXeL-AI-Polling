@@ -69,8 +69,10 @@ export async function handleGarmin(request, env, action, url) {
       return json({
         configured: false,
         pending: true,
-        message: "Garmin pending developer approval — connect Garmin to Strava meanwhile",
+        interim: "strava",
+        message: "Garmin Connect API pending developer approval. Interim: connect Strava (real OAuth), then link Garmin→Strava at https://www.strava.com/settings/apps so activities sync via Strava.",
         apply_url: "https://developerportal.garmin.com/developer-programs/connect-developer-api",
+        strava_link: "https://www.strava.com/settings/apps",
       });
     }
     const notReady = oauthNotReady(env);
@@ -102,8 +104,10 @@ export async function handleGarmin(request, env, action, url) {
         connected: false,
         name: null,
         last_sync: null,
-        message: "Garmin pending developer approval — connect Garmin to Strava meanwhile",
+        interim: "strava",
+        message: "Garmin pending developer approval — use Connect Strava for now, then link Garmin→Strava",
         apply_url: "https://developerportal.garmin.com/developer-programs/connect-developer-api",
+        strava_link: "https://www.strava.com/settings/apps",
       });
     }
     const record = await tokenGet(env, await tokOwner(auth.user.sub), "garmin");
