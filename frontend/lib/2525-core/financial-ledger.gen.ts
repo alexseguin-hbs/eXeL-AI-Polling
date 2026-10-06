@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 160 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 161 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1129,6 +1129,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.085 correction — portrait. + Transaction was covering /hr. The rate stays whole. On a phone the button and the gear drop to the next line, on the right. A wide screen stays one line. The unit control is wide enough to show /hr.",
       "commit": "8936f29"
+    },
+    {
+      "rev": 161,
+      "date": "2026-10-05",
+      "kind": "correction",
+      "text": "r.086 correction — portrait. + Transaction and the gear are the same height as the rate box, and they sit slightly further right so /hr stays clear on the top row.",
+      "commit": ""
     }
   ]
 };

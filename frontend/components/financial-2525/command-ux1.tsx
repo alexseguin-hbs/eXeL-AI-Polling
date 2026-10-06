@@ -741,22 +741,22 @@ export function FinancialCommandUX1() {
               unit selector on the SAME line, immediately left of the gear */}
           {/* r.042 (addendum 81 "Move transaction left of settings and move accrual rate to right of Available · swap these two"):
               line 1 = ACCRUAL UNITS · + Transaction (the gear's height) · gear; line 2 = Available (left) · Accrual Rate (right) */}
-          <div data-fin-accrual-top className="flex w-full flex-wrap items-center gap-x-1 gap-y-1" style={{ containerType: "inline-size", fontSize: fitHeader(`${t("fin.accrual_rate")}:`.length + rateText.length + t("fin.tx_open").length, 120) }}>
-            <div className="flex min-w-0 items-center gap-1 whitespace-nowrap">
-              <span className="font-bold text-primary"><span data-fin-rate-full>{t("fin.accrual_rate")}</span><span data-fin-rate-short>{t("fin.rate_name")}</span>:</span>
+          <div data-fin-accrual-top className="flex w-full flex-nowrap items-center gap-2" style={{ containerType: "inline-size", fontSize: fitHeader(`${t("fin.accrual_rate")}:`.length + rateText.length + t("fin.tx_open").length, 120) }}>
+            <div className="flex min-w-0 flex-1 items-center gap-1 whitespace-nowrap">
+              <span className="min-w-0 truncate font-bold text-primary"><span data-fin-rate-full>{t("fin.accrual_rate")}</span><span data-fin-rate-short>{t("fin.rate_name")}</span>:</span>
               {bal.ratePerMinCents > 0 && (
-                <div data-fin-rate-block className="flex items-center gap-1 text-primary">
+                <div data-fin-rate-block className="flex shrink-0 items-center gap-1 text-primary">
                   <span data-fin-rate className="font-mono tabular-nums">{rateText}</span>
-                  <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] min-w-[4.25rem] rounded-md border border-border bg-background px-1 py-0.5 text-[1em] text-primary">
+                  <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="h-7 min-w-[4.25rem] shrink-0 rounded-md border border-border bg-background px-1 text-[1em] leading-none text-primary">
                     {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
                   </select>
                 </div>
               )}
               {!cur.symbol && <div data-fin-currency-label className="text-[11px] text-muted-foreground">{cur.code} · {cur.name}</div>}
             </div>
-            <div className="ml-auto flex shrink-0 items-center gap-1">
-              {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} ref={doorRef} className="h-8 shrink-0 rounded-md bg-primary px-2 text-[1em] font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
-              <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => { setAccrualGear((g) => !g); setDefOpen(null); }} className={`flex h-8 w-9 shrink-0 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
+            <div className="ml-auto -mr-1 flex shrink-0 items-center gap-1">
+              {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} ref={doorRef} className="h-7 shrink-0 rounded-md bg-primary px-2 text-xs font-medium leading-none text-primary-foreground">{t("fin.tx_open")}</button>}
+              <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => { setAccrualGear((g) => !g); setDefOpen(null); }} className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={14} strokeWidth={1.5} aria-hidden /></button>
             </div>
           </div>
           {/* r.067 THE COCKPIT WARNING (addendum 144 "warnings of credit card overspend"; his levels: amber $1,500 · red $2,000): a card at
