@@ -33,6 +33,25 @@ export interface FitGarminStats {
   cal_per_sec?: number | null;
 }
 
+/**
+ * One leg of a multi-leg window (e.g. Ironman swim 2.4 mi · bike 112 mi · run 26.2 mi).
+ * Burn is modeled per leg from Compendium METs × profile weight × duration unless the device logged kcal.
+ * Intake plan fields are optional and only filled from a fueling plan — never invented.
+ */
+export interface FitWorkoutLeg {
+  id: string;
+  sport: string; // swim | bike | run | transition …
+  minutes?: number | null;
+  distance?: FitDistance | null;
+  met?: number | null; // override the Compendium MET for this leg
+  calories?: number | null; // device kcal for this leg (subtotal)
+  carb_g_per_hr?: number | null; // planned CHO rate (ACSM/ISSN ranges)
+  fluid_ml_per_hr?: number | null;
+  sodium_mg_per_hr?: number | null;
+  consumed_kcal?: number | null; // logged intake during the leg
+  status?: FitWorkoutStatus;
+}
+
 export interface FitWorkout {
   id: string;
   type: string;
@@ -44,6 +63,8 @@ export interface FitWorkout {
   notes?: string;
   timing?: string;
   garmin?: FitGarminStats | null;
+  /** Multi-leg window (race / brick). When present, burn and fueling are accrued per leg. */
+  legs?: FitWorkoutLeg[] | null;
 }
 
 export interface FitCheckin {

@@ -2,7 +2,7 @@
  * Fitness-2525 · energy budget model (calories only).
  * See docs/fitness-2525/ENERGY_MODEL.md.
  */
-import type { FitDay, FitWeight, FitWorkout } from "./types";
+import type { FitDay, FitWeight, FitWorkout, FitWorkoutLeg } from "./types";
 import { ratesFromKcal, type EnergyRates } from "./energy";
 
 export type FitSex = "male" | "female" | "unspecified";
@@ -28,19 +28,50 @@ export interface WindowBudget {
   burnRates?: EnergyRates;
   overrun: OverrunLevel;
   note?: string;
+  /** Planned (not completed) workout: burn shown as projected, never counted as burned. */
+  projected?: boolean;
+  /** Multi-leg window (race / brick): per-leg burn vs consumed accrual. */
+  legs?: LegBudget[];
+}
+
+export interface LegBudget {
+  id: string;
+  sport: string;
+  minutes: number | null;
+  burnKcal: number | null; // device kcal, else Compendium MET × profile weight × minutes
+  carbGPerHr: number | null; // from the leg plan, else ACSM/ISSN by duration
+  plannedCarbG: number | null;
+  plannedKcal: number | null;
+  fluidMlPerHr: number | null;
+  sodiumMgPerHr: number | null;
+  consumedKcal: number | null;
+  netKcal: number | null; // burned − consumed (accrual)
 }
 
 export interface DayEnergyBudget {
   anthropometrics: Anthropometrics;
   bmrKcal: number | null;
   neatKcal: number | null;
+  /** COMPLETED workouts only (device/Garmin kcal used as each workout's subtotal). */
   workoutBurnKcal: number | null;
+  /** Burned so far = BMR + NEAT + completed workouts. Null until BMR is known (needs profile). */
   totalBurnKcal: number | null;
+  /** Planned/unfinished workouts — projected, not burned. */
+  projectedWorkoutKcal: number | null;
+  /** Full-day projection = burned so far + projected workouts. */
+  projectedBurnKcal: number | null;
   deficitTargetKcal: number | null;
+  /** Intake target from burned-so-far, never below BMR. */
   intakeTargetKcal: number | null;
+  /** Full-day intake target (projected burn − deficit, ≥ BMR). Drives the sugar cap. */
+  projectedIntakeTargetKcal: number | null;
+  /** True when the BMR floor lifted the target. */
+  intakeFloorApplied: boolean;
+  /** Device day total (e.g. Garmin calories_out) — informational only, never the day burn. */
+  deviceDayKcal: number | null;
   sugarCapG: number | null;
   noDeficitToday: boolean;
-  dayClass: "work" | "key" | "long" | "rest" | "other";
+  dayClass: "work" | "key" | "long" | "race" | "rest" | "other";
   windows: WindowBudget[];
   example: boolean;
 }
@@ -106,9 +137,54 @@ export function estimateMinutes(w: FitWorkout): number | null {
   return null;
 }
 
+export function isCompleted(w: FitWorkout): boolean {
+  return w.status === "completed";
+}
+export function isProjected(w: FitWorkout): boolean {
+  return w.status !== "completed" && w.status !== "skipped";
+}
+
+export function legMinutes(l: FitWorkoutLeg): number | null {
+  if (typeof l.minutes === "number" && l.minutes > 0) return l.minutes;
+  return estimateMinutes({ id: l.id, type: l.sport, distance: l.distance ?? null });
+}
+
+/** One leg's burn: device kcal, else Compendium MET × profile weight × minutes (no invented weight). */
+export function legBurnKcal(l: FitWorkoutLeg, weightKg: number | null): number | null {
+  if (typeof l.calories === "number" && Number.isFinite(l.calories) && l.calories >= 0) return Math.round(l.calories);
+  if (weightKg == null) return null;
+  const minutes = legMinutes(l);
+  if (minutes == null) return null;
+  const met = typeof l.met === "number" && l.met > 0 ? l.met : metForSport(l.sport);
+  return Math.round(metKcal(met, weightKg, minutes));
+}
+
+export function legBudgets(w: FitWorkout, weightKg: number | null): LegBudget[] {
+  return (w.legs ?? []).map((l) => {
+    const minutes = legMinutes(l);
+    const carbRate = typeof l.carb_g_per_hr === "number" && l.carb_g_per_hr >= 0 ? l.carb_g_per_hr : carbGPerHour(minutes);
+    const plannedCarbG = carbRate != null && minutes != null ? Math.round(carbRate * (minutes / 60)) : null;
+    const burn = legBurnKcal(l, weightKg);
+    const consumed = typeof l.consumed_kcal === "number" && Number.isFinite(l.consumed_kcal) ? l.consumed_kcal : null;
+    return {
+      id: l.id, sport: l.sport, minutes, burnKcal: burn, carbGPerHr: carbRate, plannedCarbG,
+      plannedKcal: carbKcal(plannedCarbG),
+      fluidMlPerHr: typeof l.fluid_ml_per_hr === "number" ? l.fluid_ml_per_hr : null,
+      sodiumMgPerHr: typeof l.sodium_mg_per_hr === "number" ? l.sodium_mg_per_hr : null,
+      consumedKcal: consumed,
+      netKcal: burn != null && consumed != null ? burn - consumed : null,
+    };
+  });
+}
+
+/** A workout's kcal subtotal: device/Garmin kcal first, then per-leg sum, then MET model. */
 export function workoutBurnKcal(w: FitWorkout, weightKg: number | null): number | null {
   if (typeof w.calories === "number" && Number.isFinite(w.calories) && w.calories >= 0) return Math.round(w.calories);
   if (w.garmin?.kcal != null && Number.isFinite(w.garmin.kcal)) return Math.round(w.garmin.kcal);
+  if (w.legs && w.legs.length) {
+    const burns = w.legs.map((l) => legBurnKcal(l, weightKg));
+    return burns.some((b) => b == null) ? null : burns.reduce<number>((a, b) => a + (b ?? 0), 0);
+  }
   if (weightKg == null) return null;
   const minutes = estimateMinutes(w);
   if (minutes == null) return null;
@@ -120,6 +196,14 @@ export function carbGPerHour(minutes: number | null | undefined): number | null 
   if (minutes < 60) return 15;
   if (minutes <= 150) return 45;
   return 75;
+}
+
+export function workoutMinutes(w: FitWorkout): number | null {
+  if (w.legs && w.legs.length) {
+    const ms = w.legs.map(legMinutes);
+    if (ms.every((m) => m != null)) return ms.reduce<number>((a, b) => a + (b ?? 0), 0);
+  }
+  return estimateMinutes(w);
 }
 
 export function workoutCarbBudgetG(minutes: number | null | undefined): number | null {
@@ -140,8 +224,9 @@ export function sugarCapG(sex: FitSex, dailyKcal: number | null): number | null 
 
 export function classifyDay(dayType?: string | null, workouts: FitWorkout[] = []): DayEnergyBudget["dayClass"] {
   const t = (dayType ?? "").toLowerCase();
+  if (t.includes("race") || workouts.some((w) => /race/i.test(w.type))) return "race";
   if (t.includes("long")) return "long";
-  if (t.includes("key") || t.includes("race")) return "key";
+  if (t.includes("key")) return "key";
   if (workouts.some((w) => { const m = estimateMinutes(w); return m != null && m >= 150; })) return "long";
   if (t.includes("rest") || t.includes("off")) return "rest";
   if (t.includes("work")) return "work";
@@ -149,7 +234,7 @@ export function classifyDay(dayType?: string | null, workouts: FitWorkout[] = []
 }
 
 export function deficitTargetKcal(totalBurn: number | null, bmr: number | null, dayClass: DayEnergyBudget["dayClass"]) {
-  const noDeficit = dayClass === "key" || dayClass === "long";
+  const noDeficit = dayClass === "key" || dayClass === "long" || dayClass === "race";
   if (noDeficit) return { deficit: 0, noDeficit: true as const };
   if (totalBurn == null || bmr == null) return { deficit: null, noDeficit: false as const };
   const capped = Math.min(RAW_DAILY_DEFICIT, MAX_DEFICIT_KCAL, Math.round(totalBurn * MAX_DEFICIT_FRACTION));
@@ -183,20 +268,34 @@ export function buildDayBudget(opts: {
   const { day, anthropometrics: a, dayType, sugarLoggedG = null, windowIntakeKcal = {}, example = false } = opts;
   const bmr = mifflinStJeorKcal(a);
   const neat = neatFromSteps(day.steps, a.weightKg);
-  const burns = day.workouts.map((w) => workoutBurnKcal(w, a.weightKg));
-  const workoutBurn = burns.every((b) => b == null) ? null : burns.reduce<number>((s, b) => s + (b ?? 0), 0);
-  const modeled =
-    bmr == null && neat == null && workoutBurn == null ? null : (bmr ?? 0) + (neat ?? 0) + (workoutBurn ?? 0);
-  const burnForPlan =
-    typeof day.calories_out === "number" && Number.isFinite(day.calories_out) ? day.calories_out : modeled;
+  const sumKnown = (ws: FitWorkout[]) => {
+    if (!ws.length) return 0;
+    const burns = ws.map((w) => workoutBurnKcal(w, a.weightKg));
+    return burns.every((b) => b == null) ? null : burns.reduce<number>((acc, b) => acc + (b ?? 0), 0);
+  };
+  // Burned = BMR + NEAT + COMPLETED workouts. Device kcal is each workout's subtotal — never the day total.
+  const workoutBurn = sumKnown(day.workouts.filter(isCompleted));
+  const projectedWorkouts = sumKnown(day.workouts.filter((w) => !isCompleted(w) && isProjected(w)));
+  const burned = bmr == null ? null : bmr + (neat ?? 0) + (workoutBurn ?? 0);
+  const projectedBurn = burned == null ? null : burned + (projectedWorkouts ?? 0);
+  const deviceDayKcal = typeof day.calories_out === "number" && Number.isFinite(day.calories_out) ? day.calories_out : null;
   const dayClass = classifyDay(dayType, day.workouts);
-  const { deficit, noDeficit } = deficitTargetKcal(burnForPlan, bmr, dayClass);
-  const intakeTarget = burnForPlan != null && deficit != null ? Math.round(burnForPlan - deficit) : null;
-  // WHO 10% rule only against a full-day intake target — never a partial 'so far' burn.
-  const sugarCap = sugarCapG(a.sex, intakeTarget);
+  const { deficit, noDeficit } = deficitTargetKcal(burned, bmr, dayClass);
+  const projDef = deficitTargetKcal(projectedBurn, bmr, dayClass).deficit;
+  // Race/key/long days: no deficit — intake target = the fueling plan (fuel the full projected work).
+  const rawIntake = noDeficit
+    ? projectedBurn
+    : burned != null && deficit != null ? Math.round(burned - deficit) : null;
+  const rawProjIntake = projectedBurn != null && projDef != null ? Math.round(projectedBurn - projDef) : null;
+  const floor = (v: number | null) => (v == null || bmr == null ? v : Math.max(v, bmr));
+  const intakeTarget = floor(rawIntake);
+  const projectedIntakeTarget = floor(rawProjIntake);
+  const intakeFloorApplied = rawIntake != null && bmr != null && rawIntake < bmr;
+  // WHO 10% rule against the FULL-DAY intake target — never a partial 'so far' figure.
+  const sugarCap = sugarCapG(a.sex, projectedIntakeTarget ?? intakeTarget);
   const windows: WindowBudget[] = [];
   for (const w of day.workouts) {
-    const minutes = estimateMinutes(w);
+    const minutes = workoutMinutes(w);
     const carbRate = carbGPerHour(minutes);
     const carbG = workoutCarbBudgetG(minutes);
     const plannedKcal = carbKcal(carbG);
@@ -208,8 +307,11 @@ export function buildDayBudget(opts: {
       planned: plannedKcal, logged: loggedN, unit: "kcal", carbGPerHr: carbRate, minutes,
       burnKcal: burn, burnRates: ratesFromKcal(burn, minutes),
       overrun: overrunLevel(plannedKcal, loggedN),
-      note: minutes == null ? "Duration unknown — carb window not sized"
-        : `${carbRate} g CHO/hr × ${(minutes / 60).toFixed(1)} h ≈ ${carbG} g (${plannedKcal} kcal)`,
+      projected: !isCompleted(w),
+      legs: w.legs && w.legs.length ? legBudgets(w, a.weightKg) : undefined,
+      note: (minutes == null ? "Duration unknown — carb window not sized"
+        : `${carbRate} g CHO/hr × ${(minutes / 60).toFixed(1)} h ≈ ${carbG} g (${plannedKcal} kcal)`)
+        + (isCompleted(w) ? "" : " · burn projected (not counted until done)"),
     });
   }
   windows.push({
@@ -224,14 +326,15 @@ export function buildDayBudget(opts: {
     id: "day-kcal", label: "Daily intake vs target", kind: "day_kcal",
     planned: intakeTarget, logged: intakeLogged, unit: "kcal",
     overrun: overrunLevel(intakeTarget, intakeLogged),
-    note: noDeficit ? "No deficit on key/long day — fuel the work"
-      : deficit != null ? `Deficit target ${deficit} kcal (≤ ~10 lb/mo, safety-capped)`
-      : "Enter weight/height/age + steps/workouts to size target",
+    note: noDeficit ? (dayClass === "race" ? "Race day — no deficit; intake = fueling plan" : "No deficit on key/long day — fuel the work")
+      : deficit != null ? `Deficit target ${deficit} kcal (≤ ~10 lb/mo, safety-capped) · never below BMR${intakeFloorApplied ? " (floor applied)" : ""}`
+      : "Enter weight/height/age in PROFILE to size the target (burn needs BMR)",
   });
   return {
     anthropometrics: a, bmrKcal: bmr, neatKcal: neat, workoutBurnKcal: workoutBurn,
-    totalBurnKcal: burnForPlan, deficitTargetKcal: deficit, intakeTargetKcal: intakeTarget,
-    sugarCapG: sugarCap, noDeficitToday: noDeficit, dayClass, windows, example,
+    totalBurnKcal: burned, projectedWorkoutKcal: projectedWorkouts, projectedBurnKcal: projectedBurn,
+    deficitTargetKcal: deficit, intakeTargetKcal: intakeTarget, projectedIntakeTargetKcal: projectedIntakeTarget,
+    intakeFloorApplied, deviceDayKcal, sugarCapG: sugarCap, noDeficitToday: noDeficit, dayClass, windows, example,
   };
 }
 
