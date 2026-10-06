@@ -688,7 +688,7 @@ export function FinancialCommandUX1() {
           {/* r.042 (addendum 78 + the AsM pre-push review "the header is not visibly smaller"): the mini Trinity sits IN the top bar,
               centred between eXeL AI and the globe — one-third size, no text, the selected colour; a tap grows it in place below the bar */}
           {!trinityBig && (
-            <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} ref={trinityBtn} onClick={() => { trinityMoved.current = true; setTrinityBig(true); }} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
+            <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} ref={trinityBtn} onClick={() => { trinityMoved.current = true; setTrinityBig(true); }} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ outline: "none", boxShadow: "none" }}>
               <SoITrinity labels={["", "", ""]} color={hue.bright} colors={[hue.bright, hue.bright, hue.bright]} textColor={hue.ink} size={63} />
             </button>
           )}
@@ -699,7 +699,7 @@ export function FinancialCommandUX1() {
           </div>
         </div>
         {trinityBig && (
-          <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} ref={trinityBtn} onClick={() => { trinityMoved.current = true; setTrinityBig(false); }} className="mx-auto block rounded-full outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
+          <button type="button" data-fin-trinity aria-expanded={trinityBig} aria-label={t("fin.trinity_aria")} title={t("fin.trinity_aria")} ref={trinityBtn} onClick={() => { trinityMoved.current = true; setTrinityBig(false); }} className="mx-auto block rounded-full" style={{ outline: "none", boxShadow: "none" }}>
             {/* r.073 (addendum 168 "the trinity logo should be method from Main and already use right text sizes"): drawn exactly the way
                 Main (the home page) draws it — the same call, Main's size, the component's own text size and offsets (FD-89's
                 Financial-only font and centring retired); the ring follows the selected colour like every accent here */}
