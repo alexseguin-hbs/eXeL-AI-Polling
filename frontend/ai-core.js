@@ -18,7 +18,8 @@ const MODELS = {
   claude: { place: "claude-opus-5", draft: "claude-opus-5", podsum: "claude-opus-5" },   // Anthropic Messages API (ANTHROPIC_API_KEY); operator 2026-09-09: "Grok, OpenAI, or Claude API"
 };
 export const configured = (env) => ({ openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, grok: !!env.XAI_API_KEY, claude: !!env.ANTHROPIC_API_KEY });
-const pick = (env, want) => { const c = configured(env); if (want && want !== "auto") return c[want] ? want : null; return ["claude", "openai", "gemini", "grok"].find((p) => c[p]) || null; };
+/** auto = cheapest configured (flash/mini first). Claude is last — never Claude-first. */
+const pick = (env, want) => { const c = configured(env); if (want && want !== "auto") return c[want] ? want : null; return ["gemini", "openai", "grok", "claude"].find((p) => c[p]) || null; };
 
 const placePrompt = (signer, hint) => `This is one page of a document to be signed. Find where the signer "${signer}" should sign: the signature line or box meant for that person or role${hint ? ` (hint: ${hint})` : ""}. Answer with JSON only: {"x":0..1,"y":0..1,"w":0..1,"h":0..1,"date":{"x":..,"y":..,"w":..,"h":..} or null,"confidence":0..1}. x,y are the top-left corner and w,h the size of a signature box sitting ON that line (bottom edge on the line, no taller than the gap to the text above), all as fractions of the page width and height with the origin at the top-left. "date" is the box for the date line of the same signer if there is one. If the page has no place for this signer, return {"x":null,"confidence":0}.`;
 const draftPrompt = (prompt, lang, signers) => `You draft complete, plain-language legal documents for two or more private parties to sign. Write in ${lang || "English"}.
