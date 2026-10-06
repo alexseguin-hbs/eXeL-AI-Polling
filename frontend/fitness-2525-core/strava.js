@@ -1,5 +1,7 @@
 // Fitness-2525 worker core — Strava OAuth/sync/webhook (split from fitness-2525-core.js; < 12KB per module for the GitHub connector)
-import { json, STRAVA_AUTH, STRAVA_TOKEN, STRAVA_API, STRAVA_SCOPE, kvOf, supabaseCfg, rpcPut, rpcGet, rpcDel, tokOwner, mapOwner, requireUser, mintState, readState } from "./base.js";
+import { json, STRAVA_AUTH, STRAVA_TOKEN, STRAVA_API, STRAVA_SCOPE } from "./base.js";
+import { requireUser, mintState, readState } from "./auth.js";
+import { tokOwner, mapOwner, tokenPut, tokenGet, tokenDel, tokenStoreReady, oauthNotReady } from "./tokens.js";
 import { athleteName, mapStravaActivity, mergeWorkoutIntoDay, stravaRefresh, stravaConfigured, publicStatus } from "./sync.js";
 
 export async function handleStrava(request, env, action, url) {
@@ -14,18 +16,32 @@ export async function handleStrava(request, env, action, url) {
       return json({ error: "Verification failed" }, 403);
     }
     if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
+    // Only events for OUR push subscription are accepted (Strava echoes subscription_id on every event).
+    const subId = String(env.STRAVA_SUBSCRIPTION_ID || "").trim();
+    if (!subId) return json({ error: "Strava webhook not configured (STRAVA_SUBSCRIPTION_ID)" }, 503);
     let body;
     try { body = await request.json(); } catch { return json({ error: "Bad JSON" }, 400); }
-    // Strava may send hub challenge on POST rarely; ignore. Process activity create/update.
+    if (!body || String(body.subscription_id ?? body.subscriptionId ?? "") !== subId) {
+      return json({ error: "Unknown subscription" }, 403);
+    }
     const objectType = body.object_type || body.objectType;
     const aspect = body.aspect_type || body.aspectType;
     const objectId = body.object_id || body.objectId;
     const ownerId = body.owner_id || body.ownerId;
-    if (objectType === "activity" && (aspect === "create" || aspect === "update") && objectId && ownerId) {
-      const map = await rpcGet(env, await mapOwner("strava"), `athlete-${ownerId}`);
+    if (!tokenStoreReady(env) || !ownerId) return json({ ok: true, skipped: true });
+    const mapO = await mapOwner("strava");
+    const map = await tokenGet(env, mapO, `athlete-${ownerId}`);
+    // Athlete revoked access on Strava → delete their tokens + athlete map (no further sync possible).
+    const updates = body.updates || {};
+    if (objectType === "athlete" && String(updates.authorized) === "false") {
+      if (map && map.auth0_sub) await tokenDel(env, await tokOwner(map.auth0_sub), "strava");
+      await tokenDel(env, mapO, `athlete-${ownerId}`);
+      return json({ ok: true, deauthorized: true });
+    }
+    if (objectType === "activity" && (aspect === "create" || aspect === "update") && objectId) {
       if (map && map.auth0_sub) {
         try {
-          let rec = await rpcGet(env, await tokOwner(map.auth0_sub), "strava");
+          let rec = await tokenGet(env, await tokOwner(map.auth0_sub), "strava");
           if (rec) {
             rec = await stravaRefresh(env, rec);
             const actRes = await fetch(`${STRAVA_API}/activities/${objectId}`, {
@@ -37,7 +53,7 @@ export async function handleStrava(request, env, action, url) {
               await mergeWorkoutIntoDay(env, map.auth0_sub, workout);
               rec.last_sync = new Date().toISOString();
               rec.updated_at = Date.now();
-              await rpcPut(env, await tokOwner(map.auth0_sub), "strava", rec);
+              await tokenPut(env, await tokOwner(map.auth0_sub), "strava", rec);
             }
           }
         } catch (_e) {
@@ -53,6 +69,8 @@ export async function handleStrava(request, env, action, url) {
     const err = url.searchParams.get("error");
     const code = url.searchParams.get("code");
     const state = url.searchParams.get("state");
+    const notReady = oauthNotReady(env);
+    if (notReady) return notReady;
     const st = await readState(env, state);
     const back = `${url.origin}/Fitness-2525/?tab=CONNECTIONS`;
     if (err) return Response.redirect(`${back}&strava=denied`, 302);
@@ -81,9 +99,9 @@ export async function handleStrava(request, env, action, url) {
       last_sync: null,
       updated_at: Date.now(),
     };
-    await rpcPut(env, await tokOwner(st.sub), "strava", record);
+    await tokenPut(env, await tokOwner(st.sub), "strava", record);
     if (athlete.id != null) {
-      await rpcPut(env, await mapOwner("strava"), `athlete-${athlete.id}`, { auth0_sub: st.sub, athlete_id: athlete.id });
+      await tokenPut(env, await mapOwner("strava"), `athlete-${athlete.id}`, { auth0_sub: st.sub, athlete_id: athlete.id });
     }
     return Response.redirect(`${back}&strava=connected`, 302);
   }
@@ -91,6 +109,8 @@ export async function handleStrava(request, env, action, url) {
   if (action === "connect") {
     if (request.method !== "GET" && request.method !== "POST") return json({ error: "Method not allowed" }, 405);
     if (!stravaConfigured(env)) return json({ configured: false, error: "STRAVA_CLIENT_ID/SECRET not set" }, 200);
+    const notReady = oauthNotReady(env);
+    if (notReady) return notReady;
     const auth = await requireUser(request, env);
     if (auth.error) return auth.error;
     const redirectUri = `${url.origin}/api/fitness-2525/strava/callback`;
@@ -110,10 +130,10 @@ export async function handleStrava(request, env, action, url) {
     if (request.method !== "GET") return json({ error: "Method not allowed" }, 405);
     const auth = await requireUser(request, env);
     if (auth.error) return auth.error;
-    const record = await rpcGet(env, await tokOwner(auth.user.sub), "strava");
+    const record = await tokenGet(env, await tokOwner(auth.user.sub), "strava");
     return json({
       configured: stravaConfigured(env),
-      storage: kvOf(env) ? "kv" : supabaseCfg(env) ? "supabase" : "none",
+      tokens: tokenStoreReady(env) ? "kv-encrypted" : "unconfigured",
       ...publicStatus(record, false),
     });
   }
@@ -123,7 +143,7 @@ export async function handleStrava(request, env, action, url) {
     const auth = await requireUser(request, env);
     if (auth.error) return auth.error;
     const owner = await tokOwner(auth.user.sub);
-    const record = await rpcGet(env, owner, "strava");
+    const record = await tokenGet(env, owner, "strava");
     if (record?.access_token && stravaConfigured(env)) {
       try {
         await fetch("https://www.strava.com/oauth/deauthorize", {
@@ -134,9 +154,9 @@ export async function handleStrava(request, env, action, url) {
       } catch (_e) { /* best-effort */ }
     }
     if (record?.athlete_id != null) {
-      await rpcDel(env, await mapOwner("strava"), `athlete-${record.athlete_id}`);
+      await tokenDel(env, await mapOwner("strava"), `athlete-${record.athlete_id}`);
     }
-    await rpcDel(env, owner, "strava");
+    await tokenDel(env, owner, "strava");
     return json({ ok: true, connected: false });
   }
 
@@ -145,7 +165,7 @@ export async function handleStrava(request, env, action, url) {
     const auth = await requireUser(request, env);
     if (auth.error) return auth.error;
     if (!stravaConfigured(env)) return json({ error: "Strava not configured" }, 503);
-    let record = await rpcGet(env, await tokOwner(auth.user.sub), "strava");
+    let record = await tokenGet(env, await tokOwner(auth.user.sub), "strava");
     if (!record?.access_token) return json({ error: "Not connected" }, 400);
     record = await stravaRefresh(env, record);
     const after = Math.floor(Date.now() / 1000) - 14 * 86400;
@@ -170,7 +190,7 @@ export async function handleStrava(request, env, action, url) {
         record.athlete_id = athlete.id ?? record.athlete_id;
       }
     } catch (_e) { /* ignore */ }
-    await rpcPut(env, await tokOwner(auth.user.sub), "strava", record);
+    await tokenPut(env, await tokOwner(auth.user.sub), "strava", record);
     return json({ ok: true, imported, last_sync: record.last_sync, name: record.athlete_name });
   }
 

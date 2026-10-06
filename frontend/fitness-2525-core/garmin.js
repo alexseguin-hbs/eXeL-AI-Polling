@@ -1,5 +1,7 @@
 // Fitness-2525 worker core — Garmin OAuth/push (split from fitness-2525-core.js; < 12KB per module for the GitHub connector)
-import { json, GARMIN_AUTH, GARMIN_TOKEN, GARMIN_USER, kvOf, supabaseCfg, rpcPut, rpcGet, rpcDel, tokOwner, mapOwner, requireUser, mintState, readState, pkcePair } from "./base.js";
+import { json, GARMIN_AUTH, GARMIN_TOKEN, GARMIN_USER } from "./base.js";
+import { requireUser, mintState, readState, pkcePair } from "./auth.js";
+import { tokOwner, mapOwner, tokenPut, tokenGet, tokenDel, tokenStoreReady, oauthNotReady } from "./tokens.js";
 import { garminRefresh, garminConfigured, publicStatus } from "./sync.js";
 
 export async function handleGarmin(request, env, action, url) {
@@ -8,6 +10,8 @@ export async function handleGarmin(request, env, action, url) {
     const err = url.searchParams.get("error");
     const code = url.searchParams.get("code");
     const state = url.searchParams.get("state");
+    const notReady = oauthNotReady(env);
+    if (notReady) return notReady;
     const st = await readState(env, state);
     const back = `${url.origin}/Fitness-2525/?tab=CONNECTIONS`;
     if (err) return Response.redirect(`${back}&garmin=denied`, 302);
@@ -52,9 +56,9 @@ export async function handleGarmin(request, env, action, url) {
       last_sync: null,
       updated_at: Date.now(),
     };
-    await rpcPut(env, await tokOwner(st.sub), "garmin", record);
+    await tokenPut(env, await tokOwner(st.sub), "garmin", record);
     if (userId != null) {
-      await rpcPut(env, await mapOwner("garmin"), `athlete-${userId}`, { auth0_sub: st.sub, athlete_id: userId });
+      await tokenPut(env, await mapOwner("garmin"), `athlete-${userId}`, { auth0_sub: st.sub, athlete_id: userId });
     }
     return Response.redirect(`${back}&garmin=connected`, 302);
   }
@@ -69,6 +73,8 @@ export async function handleGarmin(request, env, action, url) {
         apply_url: "https://developerportal.garmin.com/developer-programs/connect-developer-api",
       });
     }
+    const notReady = oauthNotReady(env);
+    if (notReady) return notReady;
     const auth = await requireUser(request, env);
     if (auth.error) return auth.error;
     const { verifier, challenge } = await pkcePair();
@@ -100,8 +106,8 @@ export async function handleGarmin(request, env, action, url) {
         apply_url: "https://developerportal.garmin.com/developer-programs/connect-developer-api",
       });
     }
-    const record = await rpcGet(env, await tokOwner(auth.user.sub), "garmin");
-    return json({ configured: true, storage: kvOf(env) ? "kv" : supabaseCfg(env) ? "supabase" : "none", ...publicStatus(record, false) });
+    const record = await tokenGet(env, await tokOwner(auth.user.sub), "garmin");
+    return json({ configured: true, tokens: tokenStoreReady(env) ? "kv-encrypted" : "unconfigured", ...publicStatus(record, false) });
   }
 
   if (action === "disconnect") {
@@ -109,7 +115,7 @@ export async function handleGarmin(request, env, action, url) {
     const auth = await requireUser(request, env);
     if (auth.error) return auth.error;
     const owner = await tokOwner(auth.user.sub);
-    const record = await rpcGet(env, owner, "garmin");
+    const record = await tokenGet(env, owner, "garmin");
     if (record?.access_token) {
       try {
         await fetch("https://apis.garmin.com/wellness-api/rest/user/registration", {
@@ -119,9 +125,9 @@ export async function handleGarmin(request, env, action, url) {
       } catch (_e) { /* best-effort */ }
     }
     if (record?.athlete_id != null) {
-      await rpcDel(env, await mapOwner("garmin"), `athlete-${record.athlete_id}`);
+      await tokenDel(env, await mapOwner("garmin"), `athlete-${record.athlete_id}`);
     }
-    await rpcDel(env, owner, "garmin");
+    await tokenDel(env, owner, "garmin");
     return json({ ok: true, connected: false });
   }
 
@@ -136,13 +142,13 @@ export async function handleGarmin(request, env, action, url) {
         message: "Garmin pending developer approval — connect Garmin to Strava meanwhile",
       }, 200);
     }
-    let record = await rpcGet(env, await tokOwner(auth.user.sub), "garmin");
+    let record = await tokenGet(env, await tokOwner(auth.user.sub), "garmin");
     if (!record?.access_token) return json({ error: "Not connected" }, 400);
     record = await garminRefresh(env, record);
     // Garmin Health/Activity is primarily push/webhook; acknowledge readiness.
     record.last_sync = new Date().toISOString();
     record.updated_at = Date.now();
-    await rpcPut(env, await tokOwner(auth.user.sub), "garmin", record);
+    await tokenPut(env, await tokOwner(auth.user.sub), "garmin", record);
     return json({
       ok: true,
       last_sync: record.last_sync,

@@ -1,6 +1,6 @@
 /**
  * Fitness-2525 · Strava / Garmin Connect client (Worker /api/fitness-2525/*).
- * Tokens stay on the Worker (KV or Supabase); the browser never sees them.
+ * Tokens stay on the Worker (encrypted in the FITNESS_STORE KV only); the browser never sees them.
  */
 export type ProviderId = "strava" | "garmin";
 
@@ -42,7 +42,7 @@ function asStatus(d: Record<string, unknown>, fallbackPending = false): Provider
     last_sync: d.last_sync != null ? String(d.last_sync) : null,
     athlete_id: (d.athlete_id as string | number | null | undefined) ?? null,
     connected_at: d.connected_at != null ? String(d.connected_at) : null,
-    message: d.message != null ? String(d.message) : undefined,
+    message: d.message != null ? String(d.message) : d.error != null ? String(d.error) : undefined,
     apply_url: d.apply_url != null ? String(d.apply_url) : undefined,
     storage: d.storage != null ? String(d.storage) : undefined,
   };
