@@ -1156,7 +1156,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-05",
       "kind": "correction",
       "text": "r.089 correction — each column of figures is centered. The $ stays on the left and the decimals line up inside the column. The size follows the card, so portrait and landscape both fit.",
-      "commit": ""
+      "commit": "eb03f37"
     }
   ]
 };
