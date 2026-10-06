@@ -33,7 +33,7 @@ export function fitFigures(chars: number, reservePx: number = FIG_RESERVE_PX): s
  *  over its neighbour. Pure: a string for a style. */
 export function fitGrid(maxChars: number, cols: number = 3, gapPx: number = 12): string {
   const em = (Math.max(1, Math.round(maxChars)) * FIG_ADVANCE_EM).toFixed(2);
-  return `min(0.875rem, max(0.6875rem, calc(((100cqw - ${Math.max(0, cols - 1) * gapPx}px) / ${Math.max(1, cols)} - 4px) / ${em})))`;
+  return `min(1.5rem, max(0.6875rem, calc(((100cqw - ${Math.max(0, cols - 1) * gapPx}px) / ${Math.max(1, cols)} - 4px) / ${em})))`;
 }
 /** r.071 AsM fold (Sofia): the gear's one line — elapsed · $/min · $/sec, his r.043 rule — fitted to the card the same way: the card's
  *  0.75rem when it fits, never below 0.5625rem; past that floor the $/sec part wraps under it, never off the card or the page (it was cut

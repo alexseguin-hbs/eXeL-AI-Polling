@@ -215,7 +215,7 @@ ok(!/cyan/.test(ux), "r.034 (addendum 67 'we stick to color per selector'): no f
 ok(!/p\.withdrawable\)/.test(ux) && !/C\.consciousness/.test(ux) && !/t\("fin\.withdrawable"\)/.test(ux), "r.034: no separate Withdrawable stroke or cyan legend word — with no hold it is the Released line; the tap line takes the theme colour");
 
 ok(/<div data-fin-rate-block className="flex items-center gap-1 text-primary">\s*<span data-fin-rate className="font-mono text-sm tabular-nums">\{rateText\}<\/span>/.test(ux) && !/data-fin-rate-label/.test(ux) && !/t\("fin\.accrual_rate"\)/.test(ux), "The rate sits in the Accrual header with its unit. It is not labelled a second time and it is not a balance.");
-ok(/data-fin-income className="font-mono text-3xl tabular-nums text-foreground" style=\{figFont\}>\{usd\(incomeCents\)\}/.test(ux) && /data-testid="fin-clock"/.test(ux) && ux.indexOf("data-fin-income") < ux.indexOf('data-testid="fin-clock"'), "Income is the large figure. Available stays on the card, under Released, and is not the headline.");
+ok(/data-fin-income className="font-mono text-2xl font-bold tabular-nums text-foreground" style=\{numFont\}>\{usd\(incomeCents\)\}/.test(ux) && /data-testid="fin-clock"/.test(ux) && ux.indexOf("data-fin-income") < ux.indexOf('data-testid="fin-clock"'), "Income is bold. Every amount on the card is the same size. Available stays under Released.");
 
 ok(/data-fin-cell="escrowed"/.test(ux) && /data-fin-cell="released" className="border-l border-border pl-3"/.test(ux) && /data-fin-released-nest/.test(ux) && /data-fin-cell="spent"/.test(ux) && /data-fin-cell="available" className="border-l border-border pl-3"/.test(ux), "Escrow and Released share one row. Spent and Available sit in the box under Released.");
 
@@ -352,11 +352,11 @@ ok(/<details data-fin-cards className=\{`group \$\{SUB\}`\}>\s*<summary classNam
 // size is fitted to the row (a CSS size container; monospace width = characters × advance), between 0.875rem and the r.044 1.5rem; past the
 // floor the rate wraps under — the Available block never shrinks under its own text, so the two never overlap
 { const fit = fs.readFileSync(path.join(process.cwd(), "lib/financial-2525/fit.ts"), "utf8");
-  ok(/data-fin-income className="font-mono text-3xl tabular-nums text-foreground" style=\{figFont\}>\{usd\(incomeCents\)\}/.test(ux)
-    && /const figFont = \{ fontSize: fitFigures\(usd\(incomeCents\)\.length, 8\) \};/.test(ux)
+  ok(/data-fin-income className="font-mono text-2xl font-bold tabular-nums text-foreground" style=\{numFont\}>\{usd\(incomeCents\)\}/.test(ux)
+    && /const numFont = \{ fontSize: fitGrid\(Math\.max\(usd\(incomeCents\)\.length, usd\(bal\.escrowedCents\)\.length, usd\(bal\.releasedCents\)\.length, usd\(bal\.withdrawnCents\)\.length, usd\(bal\.availableCents\)\.length\), 2\) \};/.test(ux)
     && /<span data-fin-rate className="font-mono text-sm tabular-nums">\{rateText\}<\/span>/.test(ux)
     && /return `min\(1\.5rem, max\(0\.875rem, calc\(\(100cqw - \$\{Math\.max\(0, Math\.round\(reservePx\)\)\}px\) \/ \$\{em\}\)\)\)`;/.test(fit) && /export const FIG_ADVANCE_EM = 0\.62;/.test(fit),
-    "Income is the large figure and fits its row. The rate stays small in the header and does not share that line."); }
+    "Every Accrual amount shares one size. Income is bold. The rate stays small in the header."); }
 // r.071 (addendum 160 "Trinity text does not render anymore when clicked"): r.051 recorded the opened logo's labels at 16 but shipped 20
 // — taller than the ring's 18-unit coloured band — so the dark labels vanished where they left it. Every label now fits its band:
 // 16 units, centred across the band (the top ring's glyphs stand outward, the bottom rings' inward). Proven on the glyph envelope.
@@ -429,10 +429,10 @@ ok(/<th className="py-1 text-right min-\[360px\]:whitespace-nowrap">\{unitHead\(
     && /const labelChars = \(s: string\): number => Array\.from\(s\)\.reduce\(\(n, ch\) => n \+ \(WIDE_CHAR\.test\(ch\) \? 2 : 1\), 0\);/.test(fit),
     "r.071 AsM fold: the row's reserve is pinned (80–120 px, advance 0.60–0.66 em) and grows ~7 px per unit character past four");
   ok(/<dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-3" style=\{\{ containerType: "inline-size" \}\}>/.test(ux)
-    && (ux.match(/style=\{gridFont\}>/g) || []).length === 4
-    && /const gridFont = \{ fontSize: fitGrid\(Math\.max\(usd\(bal\.escrowedCents\)\.length, usd\(bal\.releasedCents\)\.length, usd\(bal\.withdrawnCents\)\.length, usd\(bal\.availableCents\)\.length\), 2\) \};/.test(ux)
-    && /return `min\(0\.875rem, max\(0\.6875rem, calc\(\(\(100cqw - \$\{Math\.max\(0, cols - 1\) \* gapPx\}px\) \/ \$\{Math\.max\(1, cols\)\} - 4px\) \/ \$\{em\}\)\)\)`;/.test(fit),
-    "Escrow, Released, Spent and Available share one size fitted to half a row"); }
+    && (ux.match(/style=\{numFont\}>/g) || []).length === 5
+    && /const numFont = \{ fontSize: fitGrid\(Math\.max\(usd\(incomeCents\)\.length, usd\(bal\.escrowedCents\)\.length, usd\(bal\.releasedCents\)\.length, usd\(bal\.withdrawnCents\)\.length, usd\(bal\.availableCents\)\.length\), 2\) \};/.test(ux)
+    && /return `min\(1\.5rem, max\(0\.6875rem, calc\(\(\(100cqw - \$\{Math\.max\(0, cols - 1\) \* gapPx\}px\) \/ \$\{Math\.max\(1, cols\)\} - 4px\) \/ \$\{em\}\)\)\)`;/.test(fit),
+    "Income, Escrow, Released, Spent and Available share one size fitted to half a row"); }
 // r.071 (addendum 159): the gear's $/min · $/sec line is the rate escrow is releasing NOW — the same lower rate as the Accrual Rate after a
 // spend ahead, never the deposit's original schedule
 ok(/`· \$\{usd4\(bal\.netRatePerMinCents\)\} \$\{t\("fin\.rate\.min"\)\}`/.test(ux) && /const rateIn = \(u: RateUnit\): number => \(u === "sec" \? bal\.netRatePerMinCents/.test(ux), "r.071 (addendum 159): the gear's rate line and the Accrual Rate show the same live rate");

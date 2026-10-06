@@ -51,7 +51,7 @@ import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fiel
 import { append, loadRecord, saveRecord, readStored, recordKey, unionRecords, sameChain, chainFingerprint, freshId, nextAt, txIdentity, followId, replay, emptyRecord, correctTx, stableJson, type FinRecord, type TxEdit } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry; r.073: the union
 import { parseAmountCents, amountProblem, parsePositive, lengthFits, parseBudgetAmount, parseCardCents, budgetFigure, smallDollars } from "@/lib/financial-2525/typed";   // r.073 (round 1): one reader for what a person types
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
-import { fitFigures, fitGrid, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
+import { fitGrid, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
 import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, newCard, uniqueCardId, applyCardSettings, looksLikeCardNumber, cardBalanceAt, cardLevel, cardSeries, cardMoves, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
 import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, readAll, mergeRecords, syncChoice, nextStamp, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
@@ -72,7 +72,7 @@ const CAT_KEY: Record<BudgetCategory, string> = { Income: "income", Home: "home"
 const CARD = "mt-8 rounded-xl border border-border bg-card p-5";
 const SUB = "mb-4 rounded-lg border border-border p-3 text-sm";
 const ACCENT_SUB = "mb-4 rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm";
-const LABEL = "text-xs font-semibold uppercase tracking-wide text-primary";
+const LABEL = "text-xs font-bold uppercase tracking-wide text-primary";
 const PRIMARY = "min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50";
 const SECONDARY = "min-h-[44px] rounded-md border border-border px-4 py-2 text-sm";
 const INPUT = "w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring";
@@ -242,8 +242,7 @@ export function FinancialCommandUX1() {
   const rateText = rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit));
   // Income is escrow plus released. It is not Available, and the rate is not added into it.
   const incomeCents = bal.escrowedCents + bal.releasedCents;
-  const figFont = { fontSize: fitFigures(usd(incomeCents).length, 8) };
-  const gridFont = { fontSize: fitGrid(Math.max(usd(bal.escrowedCents).length, usd(bal.releasedCents).length, usd(bal.withdrawnCents).length, usd(bal.availableCents).length), 2) };
+  const numFont = { fontSize: fitGrid(Math.max(usd(incomeCents).length, usd(bal.escrowedCents).length, usd(bal.releasedCents).length, usd(bal.withdrawnCents).length, usd(bal.availableCents).length), 2) };
   const focusView = focus && now ? depositView(focus, at) : null;
   const year = now ? positionInYear(now, planet.yearAnchor, planet.yearDays) : null;
   // THE LADDER'S UNIT (addendum 17 → 20 → 21 → 22): one dropdown of the brief's eight periods with FIXED factors — second · minute 60 ·
@@ -757,17 +756,17 @@ export function FinancialCommandUX1() {
               Row 3, nested under Released only: Spent | Available. Spent = drawn from Released. Available = Released − Spent. Available is the only spendable figure.
               Invariants: escrow + released === income. spent + available === released. Available is not summed into Income. Spent is not summed into Income. */}
           <div data-fin-income-row className="mt-3 flex items-end justify-between gap-3 border-b border-border pb-3">
-            <div className="text-2xl font-semibold text-foreground">{t("fin.income")}</div>
-            <div data-fin-income className="font-mono text-3xl tabular-nums text-foreground" style={figFont}>{usd(incomeCents)}</div>
+            <div className="text-2xl font-bold text-foreground">{t("fin.income")}</div>
+            <div data-fin-income className="font-mono text-2xl font-bold tabular-nums text-foreground" style={numFont}>{usd(incomeCents)}</div>
           </div>
           <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-3" style={{ containerType: "inline-size" }}>
-            <div data-fin-cell="escrowed"><dt className="text-base text-foreground">{t("fin.escrowed")}</dt><dd className="break-words font-mono text-xl tabular-nums text-foreground" style={gridFont}>{usd(bal.escrowedCents)}</dd></div>
-            <div data-fin-cell="released" className="border-l border-border pl-3"><dt className="text-base text-foreground">{t("fin.released")}</dt><dd className="break-words font-mono text-xl tabular-nums text-foreground" style={gridFont}>{usd(bal.releasedCents)}</dd></div>
+            <div data-fin-cell="escrowed"><dt className="text-base font-bold text-foreground">{t("fin.escrowed")}</dt><dd className="break-words font-mono text-2xl tabular-nums text-foreground" style={numFont}>{usd(bal.escrowedCents)}</dd></div>
+            <div data-fin-cell="released" className="border-l border-border pl-3"><dt className="text-base font-bold text-foreground">{t("fin.released")}</dt><dd className="break-words font-mono text-2xl tabular-nums text-foreground" style={numFont}>{usd(bal.releasedCents)}</dd></div>
           </dl>
           <div data-fin-released-nest className="mt-3 border-t border-border pt-3">
             <dl className="grid grid-cols-2 gap-x-3 rounded-lg border border-border p-3">
-              <div data-fin-cell="spent"><dt className="text-base text-primary">{t("fin.spent")}</dt><dd className="break-words font-mono text-xl tabular-nums text-primary" style={gridFont}>{usd(bal.withdrawnCents)}</dd></div>
-              <div data-fin-cell="available" className="border-l border-border pl-3"><dt className="text-base text-primary">{t("fin.available")}</dt><dd data-testid="fin-clock" className="break-words font-mono text-2xl tabular-nums text-primary" style={gridFont}>{usd(bal.availableCents)}</dd></div>
+              <div data-fin-cell="spent"><dt className="text-base font-bold text-primary">{t("fin.spent")}</dt><dd className="break-words font-mono text-2xl tabular-nums text-primary" style={numFont}>{usd(bal.withdrawnCents)}</dd></div>
+              <div data-fin-cell="available" className="border-l border-border pl-3"><dt className="text-base font-bold text-primary">{t("fin.available")}</dt><dd data-testid="fin-clock" className="break-words font-mono text-2xl tabular-nums text-primary" style={numFont}>{usd(bal.availableCents)}</dd></div>
             </dl>
           </div>
           {/* the gear (addendum 60 "tell me … what each does (which should be in settings)"): what each figure means, then the clock */}
