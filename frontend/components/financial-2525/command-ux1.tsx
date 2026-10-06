@@ -244,12 +244,18 @@ export function FinancialCommandUX1() {
   // Income is escrow plus released. It is not Available, and the rate is not added into it.
   const incomeCents = bal.escrowedCents + bal.releasedCents;
   const moneyBody = (cents: number) => Math.abs(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const intW = Math.max(1, ...[incomeCents, bal.escrowedCents, bal.releasedCents, bal.withdrawnCents, bal.availableCents].map((c) => { const b = moneyBody(c); return b.slice(0, b.lastIndexOf(".")).length; }));
-  const amtCols = { gridTemplateColumns: `1ch auto ${intW}ch auto` };
-  const money = (cents: number) => {
+  const wholeLen = (cents: number) => { const b = moneyBody(cents); return Math.max(1, b.slice(0, b.lastIndexOf(".")).length); };
+  const figureCols = (amounts: number[]) => {
+    const w = Math.max(1, ...amounts.map(wholeLen));
+    const sign = amounts.some((c) => c < 0);
+    return { style: { gridTemplateColumns: `${sign ? "1ch " : ""}auto ${w}ch auto` }, sign };
+  };
+  const leftFig = figureCols([incomeCents, bal.escrowedCents, bal.withdrawnCents]);
+  const rightFig = figureCols([bal.releasedCents, bal.availableCents]);
+  const money = (cents: number, sign: boolean) => {
     const body = moneyBody(cents);
     const dot = body.lastIndexOf(".");
-    return (<><span>{cents < 0 ? "−" : ""}</span><span>{CUR_SYM}</span><span className="text-right">{body.slice(0, dot)}</span><span>{body.slice(dot)}</span></>);
+    return (<>{sign ? <span>{cents < 0 ? "−" : ""}</span> : null}<span>{CUR_SYM}</span><span className="text-right">{body.slice(0, dot)}</span><span>{body.slice(dot)}</span></>);
   };
   const focusView = focus && now ? depositView(focus, at) : null;
   const year = now ? positionInYear(now, planet.yearAnchor, planet.yearDays) : null;
@@ -767,17 +773,17 @@ export function FinancialCommandUX1() {
           <div data-fin-income-row className="mt-3 grid grid-cols-2 gap-x-3 border-b border-border pb-3">
             <div>
               <div className="block w-full text-left text-lg font-bold text-foreground">{t("fin.income")}</div>
-              <div data-fin-income className="grid justify-start text-left font-mono text-lg font-bold tabular-nums text-foreground" style={amtCols}>{money(incomeCents)}</div>
+              <div data-fin-income className="grid justify-start text-left font-mono text-lg font-bold tabular-nums text-foreground" style={leftFig.style}>{money(incomeCents, leftFig.sign)}</div>
             </div>
           </div>
           <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-3">
-            <div data-fin-cell="escrowed"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.escrowed")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-foreground" style={amtCols}>{money(bal.escrowedCents)}</dd></div>
-            <div data-fin-cell="released" className="border-l border-border pl-3"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.released")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-foreground" style={amtCols}>{money(bal.releasedCents)}</dd></div>
+            <div data-fin-cell="escrowed"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.escrowed")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-foreground" style={leftFig.style}>{money(bal.escrowedCents, leftFig.sign)}</dd></div>
+            <div data-fin-cell="released" className="border-l border-border pl-3"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.released")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-foreground" style={rightFig.style}>{money(bal.releasedCents, rightFig.sign)}</dd></div>
           </dl>
           <div data-fin-released-nest className="mt-3 border-t border-border pt-3">
             <dl className="grid w-full grid-cols-2 gap-x-3">
-              <div data-fin-cell="spent"><dt className="block w-full text-left text-base font-bold text-primary">{t("fin.spent")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-primary" style={amtCols}>{money(bal.withdrawnCents)}</dd></div>
-              <div data-fin-cell="available" className="border-l border-border pl-3"><dt className="block w-full text-left text-base font-bold text-primary">{t("fin.available")}</dt><dd data-testid="fin-clock" className="grid justify-start text-left font-mono text-lg tabular-nums text-primary" style={amtCols}>{money(bal.availableCents)}</dd></div>
+              <div data-fin-cell="spent"><dt className="block w-full text-left text-base font-bold text-primary">{t("fin.spent")}</dt><dd className="grid justify-start text-left font-mono text-lg tabular-nums text-primary" style={leftFig.style}>{money(bal.withdrawnCents, leftFig.sign)}</dd></div>
+              <div data-fin-cell="available" className="border-l border-border pl-3"><dt className="block w-full text-left text-base font-bold text-primary">{t("fin.available")}</dt><dd data-testid="fin-clock" className="grid justify-start text-left font-mono text-lg tabular-nums text-primary" style={rightFig.style}>{money(bal.availableCents, rightFig.sign)}</dd></div>
             </dl>
           </div>
           </div>

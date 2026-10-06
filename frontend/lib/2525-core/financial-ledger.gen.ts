@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 152 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 153 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1073,6 +1073,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.077 pushed — the Accrual amounts are left justified from one start: the $ stays left and the decimals share one line down each column. The rate and the five totals are one slightly smaller size. Income stays bold. Not marked LIVE until the banner shows this commit.",
       "commit": "6d45999"
+    },
+    {
+      "rev": 153,
+      "date": "2026-10-05",
+      "kind": "correction",
+      "text": "r.078 correction — the photo on 006bbc1 showed a hole between the $ and the shorter amounts. One width, taken from Income, had been forced onto every figure. Each column now sizes to its own longest amount, and a positive column no longer reserves a blank before the $.",
+      "commit": ""
     }
   ]
 };

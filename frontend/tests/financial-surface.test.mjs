@@ -157,7 +157,7 @@ ok(/<th className="py-1 pr-2">\{t\("fin\.category"\)\}<\/th>/.test(ux), "the tab
     && ux.indexOf("data-fin-income") < pos[0]
     && ux.indexOf("data-fin-released-nest") < pos[2]
     && /const incomeCents = bal\.escrowedCents \+ bal\.releasedCents;/.test(ux)
-    && /money\(incomeCents\)/.test(ux)
+    && /money\(incomeCents,/.test(ux)
     && !/incomeCents \+ bal\.availableCents/.test(ux)
     && !/incomeCents \+ bal\.withdrawnCents/.test(ux)
     && !/incomeCents \+ .*rate/.test(ux)
@@ -215,7 +215,7 @@ ok(!/cyan/.test(ux), "r.034 (addendum 67 'we stick to color per selector'): no f
 ok(!/p\.withdrawable\)/.test(ux) && !/C\.consciousness/.test(ux) && !/t\("fin\.withdrawable"\)/.test(ux), "r.034: no separate Withdrawable stroke or cyan legend word — with no hold it is the Released line; the tap line takes the theme colour");
 
 ok(/<div data-fin-rate-block className="flex items-center gap-1 text-primary">\s*<span data-fin-rate className="font-mono text-lg tabular-nums">\{rateText\}<\/span>/.test(ux) && !/data-fin-rate-label/.test(ux) && !/t\("fin\.accrual_rate"\)/.test(ux), "The rate sits in the Accrual header with its unit, at the same size as the totals. It is not labelled a second time and it is not a balance.");
-ok(/data-fin-income className="grid justify-start text-left font-mono text-lg font-bold tabular-nums text-foreground" style=\{amtCols\}>\{money\(incomeCents\)\}/.test(ux) && /data-testid="fin-clock"/.test(ux) && ux.indexOf("data-fin-income") < ux.indexOf('data-testid="fin-clock"') && (ux.match(/style=\{amtCols\}>/g) || []).length === 5 && /const amtCols = \{ gridTemplateColumns: `1ch auto \$\{intW\}ch auto` \};/.test(ux), "The $ sits left, the decimals share one line, and every amount starts at the same place. Income stays bold.");
+ok(/data-fin-income className="grid justify-start text-left font-mono text-lg font-bold tabular-nums text-foreground" style=\{leftFig\.style\}>\{money\(incomeCents, leftFig\.sign\)\}/.test(ux) && /style=\{rightFig\.style\}>\{money\(bal\.availableCents, rightFig\.sign\)\}/.test(ux) && /const leftFig = figureCols\(\[incomeCents, bal\.escrowedCents, bal\.withdrawnCents\]\);/.test(ux) && /const rightFig = figureCols\(\[bal\.releasedCents, bal\.availableCents\]\);/.test(ux), "Each column sizes to its own longest amount. The $ stays left and the decimals line up. Income stays bold.");
 
 ok(/data-fin-cell="escrowed"/.test(ux) && /data-fin-cell="released" className="border-l border-border pl-3"/.test(ux) && /data-fin-released-nest/.test(ux) && /data-fin-cell="spent"/.test(ux) && /data-fin-cell="available" className="border-l border-border pl-3"/.test(ux), "Escrow and Released share one row. Spent and Available sit in the box under Released.");
 
@@ -352,8 +352,8 @@ ok(/<details data-fin-cards className=\{`group \$\{SUB\}`\}>\s*<summary classNam
 // size is fitted to the row (a CSS size container; monospace width = characters × advance), between 0.875rem and the r.044 1.5rem; past the
 // floor the rate wraps under — the Available block never shrinks under its own text, so the two never overlap
 { const fit = fs.readFileSync(path.join(process.cwd(), "lib/financial-2525/fit.ts"), "utf8");
-  ok(/data-fin-income className="grid justify-start text-left font-mono text-lg font-bold tabular-nums text-foreground" style=\{amtCols\}>\{money\(incomeCents\)\}/.test(ux)
-    && /const intW = Math\.max\(1, \.\.\.\[incomeCents, bal\.escrowedCents, bal\.releasedCents, bal\.withdrawnCents, bal\.availableCents\]/.test(ux)
+  ok(/data-fin-income className="grid justify-start text-left font-mono text-lg font-bold tabular-nums text-foreground" style=\{leftFig\.style\}>\{money\(incomeCents, leftFig\.sign\)\}/.test(ux)
+    && /const leftFig = figureCols\(\[incomeCents, bal\.escrowedCents, bal\.withdrawnCents\]\);/.test(ux)
     && /<span data-fin-rate className="font-mono text-lg tabular-nums">\{rateText\}<\/span>/.test(ux)
     && /return `min\(1\.5rem, max\(0\.875rem, calc\(\(100cqw - \$\{Math\.max\(0, Math\.round\(reservePx\)\)\}px\) \/ \$\{em\}\)\)\)`;/.test(fit) && /export const FIG_ADVANCE_EM = 0\.62;/.test(fit),
     "The rate and the five amounts are one size. The $ stays left and the decimals share one line."); }
@@ -429,10 +429,9 @@ ok(/<th className="py-1 text-right min-\[360px\]:whitespace-nowrap">\{unitHead\(
     && /const labelChars = \(s: string\): number => Array\.from\(s\)\.reduce\(\(n, ch\) => n \+ \(WIDE_CHAR\.test\(ch\) \? 2 : 1\), 0\);/.test(fit),
     "r.071 AsM fold: the row's reserve is pinned (80–120 px, advance 0.60–0.66 em) and grows ~7 px per unit character past four");
   ok(/<div data-fin-figures>/.test(ux)
-    && (ux.match(/style=\{amtCols\}>/g) || []).length === 5
-    && /const amtCols = \{ gridTemplateColumns: `1ch auto \$\{intW\}ch auto` \};/.test(ux)
+    && /const rightFig = figureCols\(\[bal\.releasedCents, bal\.availableCents\]\);/.test(ux)
     && /return `min\(1\.5rem, max\(0\.6875rem, calc\(\(\(100cqw - \$\{Math\.max\(0, cols - 1\) \* gapPx\}px\) \/ \$\{Math\.max\(1, cols\)\} - 4px\) \/ \$\{em\}\)\)\)`;/.test(fit),
-    "Income, Escrow, Released, Spent and Available share one left start. The $ is left and the decimals line up."); }
+    "Each column sizes to its own longest amount. The $ is left and the decimals line up."); }
 // r.071 (addendum 159): the gear's $/min · $/sec line is the rate escrow is releasing NOW — the same lower rate as the Accrual Rate after a
 // spend ahead, never the deposit's original schedule
 ok(/`· \$\{usd4\(bal\.netRatePerMinCents\)\} \$\{t\("fin\.rate\.min"\)\}`/.test(ux) && /const rateIn = \(u: RateUnit\): number => \(u === "sec" \? bal\.netRatePerMinCents/.test(ux), "r.071 (addendum 159): the gear's rate line and the Accrual Rate show the same live rate");
