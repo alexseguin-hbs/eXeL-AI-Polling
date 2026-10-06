@@ -487,6 +487,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "A PC with one camera shows SENSOR 1 only. The Coral icon sits on the CORAL choice and on the bottom bar. A green check means the stick answered.",
+      commit: "9da31fd",
+    },
+    {
+      rev: 70,
+      date: "2026-10-05",
+      kind: "release",
+      text: "The Coral mark is a white button icon, the same kind as Settings and Info. A green check means the stick answered. It is not a picture on the camera.",
       commit: "",
     },
   ],

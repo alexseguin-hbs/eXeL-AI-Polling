@@ -138,11 +138,10 @@ function SettingsSheet({
               CPU
             </button>
             <button type="button" aria-pressed={coral} className={coral ? styles.swatchOn : ""} onClick={() => onCoral(true)}>
-              <img
-                className={styles.coralIcon}
-                src={coralLive === "loaded" ? `${UI}/coral_icon_loaded.png` : `${UI}/coral_icon.png`}
-                alt=""
-              />
+              <span className={styles.coralSlot}>
+                <img className={styles.coralIcon} src={`${UI}/coral_icon.png`} alt="" />
+                {coralLive === "loaded" && <i className={styles.coralTick} />}
+              </span>
               CORAL
             </button>
           </div>
@@ -2157,13 +2156,6 @@ export default function SensorFusion() {
         <div className={styles.pane}>
         <video ref={videoRef} autoPlay muted playsInline aria-label="SENSOR 1" />
         <canvas ref={canvasRef} className={styles.boxes} />
-        {coral && (
-          <img
-            className={styles.coralMark}
-            src={coralLive === "loaded" ? `${UI}/coral_icon_loaded.png` : `${UI}/coral_icon.png`}
-            alt={coralLive === "loaded" ? "Coral loaded" : "Coral not loaded"}
-          />
-        )}
         {extra && <span className={styles.paneTag}>SENSOR 1</span>}
         {sensorOn && !annotate && !capturing && (
           <div className={styles.meter} ref={meterRef} aria-hidden="true">

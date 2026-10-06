@@ -226,6 +226,22 @@
   max-width: 22px;
   object-fit: contain;
 }
+.coralSlot {
+  position: relative;
+  display: inline-flex;
+}
+.coralTick {
+  position: absolute;
+  right: -3px;
+  bottom: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3ec96b;
+}
+.edgePick button[aria-pressed="true"] .coralIcon {
+  filter: brightness(0);
+}
 .edgePick button {
   display: inline-flex;
   align-items: center;
