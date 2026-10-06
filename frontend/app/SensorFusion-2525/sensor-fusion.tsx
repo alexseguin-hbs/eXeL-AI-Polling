@@ -1006,6 +1006,7 @@ export default function SensorFusion() {
   const [step, setStep] = useState<Step>("login");
   const [platform, setPlatform] = useState<PlatformId>("win");
   const [found, setFound] = useState<PlatformId>("win");
+  const [deviceOpen, setDeviceOpen] = useState(false);
   const [scheme, setScheme] = useState<SchemeId | "custom">("green");
   const [customHex, setCustomHex] = useState("#19c8cf");
   const [settings, setSettings] = useState(false);
@@ -2007,9 +2008,24 @@ export default function SensorFusion() {
           <h1>This device</h1>
           <p className={styles.muted}>
             {platform === found
-              ? `This is ${PLATFORMS.find((item) => item.id === found)?.label}.`
+              ? `Found ${PLATFORMS.find((item) => item.id === found)?.label}.`
               : `Using ${PLATFORMS.find((item) => item.id === platform)?.label}. This machine is ${PLATFORMS.find((item) => item.id === found)?.label}.`}
           </p>
+          <button
+            type="button"
+            className={styles.textBtn}
+            onClick={() => {
+              if (platform === found) {
+                setDeviceOpen((open) => !open);
+                return;
+              }
+              setPlatform(found);
+              setDeviceOpen(false);
+            }}
+          >
+            {platform === found ? (deviceOpen ? "Hide the list" : "Not this device") : "Use what was found"}
+          </button>
+          {deviceOpen && (
           <div className={styles.picks}>
             {PLATFORMS.map((item) => (
               <button
@@ -2017,13 +2033,17 @@ export default function SensorFusion() {
                 type="button"
                 className={platform === item.id ? styles.pickOn : styles.pick}
                 aria-pressed={platform === item.id}
-                onClick={() => setPlatform(item.id)}
+                onClick={() => {
+                  setPlatform(item.id);
+                  setDeviceOpen(false);
+                }}
               >
                 <b>{item.label}</b>
                 <span>{item.detail}</span>
               </button>
             ))}
           </div>
+          )}
           <h1>Open</h1>
           <div className={styles.menu}>
             {MENU.map((item) => (

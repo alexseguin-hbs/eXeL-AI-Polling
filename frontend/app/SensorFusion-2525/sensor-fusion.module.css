@@ -66,6 +66,17 @@
   font-size: 14px;
   line-height: 1.45;
 }
+.textBtn {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--sf-primary, #19c8cf);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
 .screen label {
   display: block;
   font-size: 14px;

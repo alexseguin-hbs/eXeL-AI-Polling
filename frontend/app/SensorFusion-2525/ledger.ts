@@ -531,6 +531,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "A late CPU pass can no longer draw after CORAL is chosen. The picture says to start python sensor_fusion_edge.py --page --coral until the stick answers.",
       commit: "",
     },
+    {
+      rev: 76,
+      date: "2026-10-05",
+      kind: "release",
+      text: "The phone or computer is found on its own. The device list stays closed unless you say this is not that device.",
+      commit: "",
+    },
   ],
 };
 
