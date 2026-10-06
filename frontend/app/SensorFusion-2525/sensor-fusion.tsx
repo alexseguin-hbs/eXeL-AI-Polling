@@ -2156,6 +2156,9 @@ export default function SensorFusion() {
         <div className={styles.pane}>
         <video ref={videoRef} autoPlay muted playsInline aria-label="SENSOR 1" />
         <canvas ref={canvasRef} className={styles.boxes} />
+        {sensorOn && coral && coralLive === "loaded" && (
+          <img className={styles.coralMark} src={`${UI}/coral_icon_loaded.png`} alt="Coral loaded" />
+        )}
         {extra && <span className={styles.paneTag}>SENSOR 1</span>}
         {sensorOn && !annotate && !capturing && (
           <div className={styles.meter} ref={meterRef} aria-hidden="true">
@@ -2229,16 +2232,6 @@ export default function SensorFusion() {
             </ul>
           )}
         </div>
-        <button
-          type="button"
-          className={coral ? styles.botOn : styles.bot}
-          aria-label={coralLive === "loaded" ? "Coral loaded" : "Coral"}
-          aria-pressed={coral}
-          onClick={() => chooseCoral(!coral)}
-        >
-          <img className={styles.coralIcon} src={coralLive === "loaded" ? `${UI}/coral_icon_loaded.png` : `${UI}/coral_icon.png`} alt="" />
-          Coral
-        </button>
         <button type="button" className={styles.bot} aria-label="Capture Images" onClick={() => setAnnotate(true)}>
           <StepIcon id="capture" />
           Capture Images

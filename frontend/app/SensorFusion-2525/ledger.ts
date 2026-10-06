@@ -501,6 +501,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "The Coral mark is a cyan outline of the stick, with a C in the center. The stick keeps its shape inside a square. It is one color, like the other buttons.",
+      commit: "e0f7542",
+    },
+    {
+      rev: 72,
+      date: "2026-10-05",
+      kind: "release",
+      text: "Coral is off the bottom bar. The outline with the check sits on the live picture, and only when the selected model is running on Coral.",
       commit: "",
     },
   ],

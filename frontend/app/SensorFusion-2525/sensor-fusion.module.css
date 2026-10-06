@@ -255,10 +255,11 @@
   top: 8px;
   right: 8px;
   z-index: 4;
-  width: 42px;
-  height: auto;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  object-position: center;
   pointer-events: none;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 .pane {
   position: absolute;
