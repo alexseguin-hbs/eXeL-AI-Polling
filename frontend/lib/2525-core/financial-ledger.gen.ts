@@ -1142,7 +1142,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-05",
       "kind": "correction",
       "text": "r.087 correction — the rate and the buttons are two columns. + Transaction cannot cover /hr. The full label fits a 428 px phone and a 390 px phone. A 320 px phone keeps the amount and /hr. The build still parses the file before it ships.",
-      "commit": ""
+      "commit": "05857db"
     }
   ]
 };
