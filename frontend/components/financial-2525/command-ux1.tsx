@@ -779,8 +779,8 @@ export function FinancialCommandUX1() {
           )}
           {accrualGear && (
             <dl data-fin-accrual-defs className="mt-2 space-y-1 border-t border-border pt-2 text-xs text-muted-foreground">
-              {(["available", "escrowed", "released", "spent"] as const).map((k) => (
-                <div key={k} data-fin-def={k}><dt className="inline font-semibold text-foreground">{t(k === "available" ? "fin.available" : `fin.${k}`)}</dt> — <dd className="inline">{t(`fin.def.${k}`)}</dd></div>
+              {(["income", "escrowed", "released", "spent", "available", "rate"] as const).map((k) => (
+                <div key={k} data-fin-def={k}><dt className="inline font-semibold text-foreground">{t(k === "rate" ? "fin.rate_name" : `fin.${k}`)}</dt> — <dd className="inline">{t(`fin.def.${k}`)}</dd></div>
               ))}
             </dl>
           )}
