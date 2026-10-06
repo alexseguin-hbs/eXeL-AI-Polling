@@ -170,6 +170,7 @@ export function FinancialCommandUX1() {
   const [yearAbc, setYearAbc] = useState(false);                 // r.030 (addendum 61): the year card's own toggle, standard by default
   const [rateUnit, setRateUnit] = useState("hr" as RateUnit);
   const [accrualGear, setAccrualGear] = useState(false);
+  const [defOpen, setDefOpen] = useState(null as null | "income" | "escrowed" | "released" | "spent" | "available" | "rate");
   const [trinityBig, setTrinityBig] = useState(false);          // r.042 (addendum 78): the header Trinity, mini by default
   // r.073 second pre-push review (Sofia): the two Trinity buttons swap — the focus follows to the one now showing, never dropped on the page
   const trinityBtn = useRef(null as HTMLButtonElement | null), trinityMoved = useRef(false);
@@ -243,6 +244,11 @@ export function FinancialCommandUX1() {
   // Income is escrow plus released. It is not Available, and the rate is not added into it.
   const incomeCents = bal.escrowedCents + bal.releasedCents;
   const numFont = { fontSize: fitGrid(Math.max(usd(incomeCents).length, usd(bal.escrowedCents).length, usd(bal.releasedCents).length, usd(bal.withdrawnCents).length, usd(bal.availableCents).length), 2) };
+  const money = (cents: number) => {
+    const body = Math.abs(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const dot = body.lastIndexOf(".");
+    return (<><span>{cents < 0 ? "-" : ""}</span><span>{CUR_SYM}</span><span className="text-right">{body.slice(0, dot)}</span><span>{body.slice(dot)}</span></>);
+  };
   const focusView = focus && now ? depositView(focus, at) : null;
   const year = now ? positionInYear(now, planet.yearAnchor, planet.yearDays) : null;
   // THE LADDER'S UNIT (addendum 17 → 20 → 21 → 22): one dropdown of the brief's eight periods with FIXED factors — second · minute 60 ·
@@ -737,7 +743,7 @@ export function FinancialCommandUX1() {
                 </div>
               )}
               {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} ref={doorRef} className="h-8 shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
-              <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
+              <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => { setAccrualGear((g) => !g); setDefOpen(null); }} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
             </div>
           </div>
           {/* r.067 THE COCKPIT WARNING (addendum 144 "warnings of credit card overspend"; his levels: amber $1,500 · red $2,000): a card at
@@ -755,19 +761,23 @@ export function FinancialCommandUX1() {
               Row 2: Escrow | Released. Escrow cannot be spent. Released has cleared escrow and is still part of Income.
               Row 3, nested under Released only: Spent | Available. Spent = drawn from Released. Available = Released − Spent. Available is the only spendable figure.
               Invariants: escrow + released === income. spent + available === released. Available is not summed into Income. Spent is not summed into Income. */}
-          <div data-fin-income-row className="mt-3 flex items-end justify-between gap-3 border-b border-border pb-3">
-            <div className="text-2xl font-bold text-foreground">{t("fin.income")}</div>
-            <div data-fin-income className="font-mono text-2xl font-bold tabular-nums text-foreground" style={numFont}>{usd(incomeCents)}</div>
+          <div data-fin-figures style={{ containerType: "inline-size" }}>
+          <div data-fin-income-row className="mt-3 grid grid-cols-2 gap-x-3 border-b border-border pb-3">
+            <div>
+              <div className="block w-full text-left text-2xl font-bold text-foreground">{t("fin.income")}</div>
+              <div data-fin-income className="grid w-full text-left font-mono text-2xl font-bold tabular-nums text-foreground [grid-template-columns:1ch_auto_1fr_auto]" style={numFont}>{money(incomeCents)}</div>
+            </div>
           </div>
-          <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-3" style={{ containerType: "inline-size" }}>
-            <div data-fin-cell="escrowed"><dt className="text-base font-bold text-foreground">{t("fin.escrowed")}</dt><dd className="break-words font-mono text-2xl tabular-nums text-foreground" style={numFont}>{usd(bal.escrowedCents)}</dd></div>
-            <div data-fin-cell="released" className="border-l border-border pl-3"><dt className="text-base font-bold text-foreground">{t("fin.released")}</dt><dd className="break-words font-mono text-2xl tabular-nums text-foreground" style={numFont}>{usd(bal.releasedCents)}</dd></div>
+          <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-3">
+            <div data-fin-cell="escrowed"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.escrowed")}</dt><dd className="grid w-full text-left font-mono text-2xl tabular-nums text-foreground [grid-template-columns:1ch_auto_1fr_auto]" style={numFont}>{money(bal.escrowedCents)}</dd></div>
+            <div data-fin-cell="released" className="border-l border-border pl-3"><dt className="block w-full text-left text-base font-bold text-foreground">{t("fin.released")}</dt><dd className="grid w-full text-left font-mono text-2xl tabular-nums text-foreground [grid-template-columns:1ch_auto_1fr_auto]" style={numFont}>{money(bal.releasedCents)}</dd></div>
           </dl>
           <div data-fin-released-nest className="mt-3 border-t border-border pt-3">
-            <dl className="grid grid-cols-2 gap-x-3 rounded-lg border border-border p-3">
-              <div data-fin-cell="spent"><dt className="text-base font-bold text-primary">{t("fin.spent")}</dt><dd className="break-words font-mono text-2xl tabular-nums text-primary" style={numFont}>{usd(bal.withdrawnCents)}</dd></div>
-              <div data-fin-cell="available" className="border-l border-border pl-3"><dt className="text-base font-bold text-primary">{t("fin.available")}</dt><dd data-testid="fin-clock" className="break-words font-mono text-2xl tabular-nums text-primary" style={numFont}>{usd(bal.availableCents)}</dd></div>
+            <dl className="grid w-full grid-cols-2 gap-x-3">
+              <div data-fin-cell="spent"><dt className="block w-full text-left text-base font-bold text-primary">{t("fin.spent")}</dt><dd className="grid w-full text-left font-mono text-2xl tabular-nums text-primary [grid-template-columns:1ch_auto_1fr_auto]" style={numFont}>{money(bal.withdrawnCents)}</dd></div>
+              <div data-fin-cell="available" className="border-l border-border pl-3"><dt className="block w-full text-left text-base font-bold text-primary">{t("fin.available")}</dt><dd data-testid="fin-clock" className="grid w-full text-left font-mono text-2xl tabular-nums text-primary [grid-template-columns:1ch_auto_1fr_auto]" style={numFont}>{money(bal.availableCents)}</dd></div>
             </dl>
+          </div>
           </div>
           {/* the gear (addendum 60 "tell me … what each does (which should be in settings)"): what each figure means, then the clock */}
           {accrualGear && (
@@ -779,9 +789,24 @@ export function FinancialCommandUX1() {
           )}
           {accrualGear && (
             <dl data-fin-accrual-defs className="mt-2 space-y-1 border-t border-border pt-2 text-xs text-muted-foreground">
-              {(["income", "escrowed", "released", "spent", "available", "rate"] as const).map((k) => (
-                <div key={k} data-fin-def={k}><dt className="inline font-semibold text-foreground">{t(k === "rate" ? "fin.rate_name" : `fin.${k}`)}</dt> — <dd className="inline">{t(`fin.def.${k}`)}</dd></div>
-              ))}
+              {(["income", "escrowed", "released", "spent", "available", "rate"] as const).map((k) => {
+                const e = usd(bal.escrowedCents), rel = usd(bal.releasedCents), spent = usd(bal.withdrawnCents), avail = usd(bal.availableCents), inc = usd(incomeCents);
+                const eq = k === "income" ? `${e} + ${rel} = ${inc}`
+                  : k === "escrowed" ? `${inc} − ${rel} = ${e}`
+                  : k === "released" ? `${spent} + ${avail} = ${rel}`
+                  : k === "spent" ? `${rel} − ${avail} = ${spent}`
+                  : k === "available" ? `${rel} − ${spent} = ${avail}`
+                  : `${usd4(rateIn("hr"))} /hr × 24 × 30 = ${usd(Math.round(rateIn("hr") * 24 * 30))}`;
+                const open = defOpen === k;
+                return (
+                  <div key={k} data-fin-def={k}>
+                    <button type="button" aria-expanded={open} onClick={() => setDefOpen(open ? null : k)} className="block min-h-[36px] w-full py-1 text-left">
+                      <span className="font-semibold text-foreground">{t(k === "rate" ? "fin.rate_name" : `fin.${k}`)}</span> — {t(`fin.def.${k}`)}
+                    </button>
+                    {open && <p data-fin-def-math={k} className="pb-1 font-mono text-sm text-foreground">{eq}</p>}
+                  </div>
+                );
+              })}
             </dl>
           )}
           {accrualGear && focusView && (

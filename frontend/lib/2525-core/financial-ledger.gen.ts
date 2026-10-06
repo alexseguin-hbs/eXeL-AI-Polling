@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 150 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 151 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1059,6 +1059,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "r.075 pushed — Income is the headline, not Available (5b4579b). The Accrual card glows on the same 3-second cycle as the 3, 6, and 9 theme rings (00938b8). Income, Escrow, Released, Spent, and Available share one size, and the titles and Income are bold (3b6d7f8). Opening the Trinity logo no longer adds a ring; the logo drawing is unchanged (ee340a3). Not marked LIVE until the banner shows this commit.",
       "commit": "ee340a3"
+    },
+    {
+      "rev": 151,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "r.076 pushed — each Accrual amount keeps the $ on the left and the decimal in one line down the column, and the labels share one left start. In the gear, a tap on a line shows the live math: Escrow plus Released, Released minus Spent, and the rate times 24 times 30. Not marked LIVE until the banner shows this commit.",
+      "commit": ""
     }
   ]
 };
