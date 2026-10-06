@@ -1831,7 +1831,7 @@ const experiences: TranslationEntry[] = [
   { key: "experiences.card.edpres.title", englishDefault: "EdTech Initiative Presentation", context: "Card title: EdTech Initiative presentation", cubeId: 50 },
   { key: "experiences.card.edpres.blurb", englishDefault: "Bringing AI education to more learners: the mission that started eXeL AI (launched after COVID).", context: "Card blurb: EdTech Initiative presentation", cubeId: 50 },
   { key: "experiences.card.edvid1.title", englishDefault: "eXeL AI · Sensor Fusion", context: "Card title: eXeL AI Sensor Fusion video", cubeId: 50 },
-  { key: "experiences.card.edvid1.blurb", englishDefault: "The launch video: how the eXeL AI Sensor Fusion app brings edge perception to everyday devices, by Alex.", context: "Card blurb: eXeL AI Sensor Fusion video", cubeId: 50 },
+  { key: "experiences.card.edvid1.blurb", englishDefault: "The launch video: how the eXeL AI Sensor Fusion app brings edge perception to everyday devices, by Alex. The picture is the live app. Open Sensor Fusion to run it.", context: "Card blurb: eXeL AI Sensor Fusion video and the live app", cubeId: 50 },
   { key: "experiences.card.edvid2.title", englishDefault: "eXeL AI · Simplifying CV", context: "Card title: eXeL AI Simplifying CV video", cubeId: 50 },
   { key: "experiences.card.edvid2.blurb", englishDefault: "Making computer-vision AI/ML approachable: point, learn, and build with real models.", context: "Card blurb: eXeL AI Simplifying CV video", cubeId: 50 },
   { key: "experiences.card.edvid3.title", englishDefault: "eXeL AI Lane Detection", context: "Card title: eXeL AI Lane Detection video", cubeId: 50 },
