@@ -51,7 +51,7 @@ import { FLOW_SECTIONS, withMonthLaw, recordIncomeLines, calendarMonthDays, fiel
 import { append, loadRecord, saveRecord, readStored, recordKey, unionRecords, sameChain, chainFingerprint, freshId, nextAt, txIdentity, followId, replay, emptyRecord, correctTx, stableJson, type FinRecord, type TxEdit } from "@/lib/financial-2525/record";   // r.062: correctTx — an edit is a correction entry; r.073: the union
 import { parseAmountCents, amountProblem, parsePositive, lengthFits, parseBudgetAmount, parseCardCents, budgetFigure, smallDollars } from "@/lib/financial-2525/typed";   // r.073 (round 1): one reader for what a person types
 import { isOperator, operatorDeposits, OPERATOR_WITHDRAWAL } from "@/lib/financial-2525/restore";
-import { fitFigures, fitGrid, figReserve, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
+import { fitFigures, fitGrid, fitLine } from "@/lib/financial-2525/fit";   // r.071 (addendum 158): the Accrual Units figures fit their row
 import { DEBIT, CARDS_KEY, accrualTxs, mergeCards, newCard, uniqueCardId, applyCardSettings, looksLikeCardNumber, cardBalanceAt, cardLevel, cardSeries, cardMoves, type Card, type CardLevel } from "@/lib/financial-2525/cards";   // r.067: the cockpit's credit cards
 import { rateSeries, rateAtSeries, windowStart, overSpan, rateIn, RATE_UNITS as CHART_RATE_UNITS, type RateUnitId } from "@/lib/financial-2525/rate-series";   // r.056: income · spending · net in $/min
 import { ownerKeyFor, cloudPut, readAll, mergeRecords, syncChoice, nextStamp, PUSH_EVERY_MS, LAST_PUSH_KEY, type CloudState, type PlanDoc } from "@/lib/financial-2525/cloud";   // r.055 (addendum 112): the account copy on every save and every 12 hours   // r.053 (addenda 106 · 110): his entries put back
@@ -240,9 +240,10 @@ export function FinancialCommandUX1() {
   const rateIn = (u: RateUnit): number => (u === "sec" ? bal.netRatePerMinCents / planet.secPerMin : u === "min" ? bal.netRatePerMinCents : u === "hr" ? bal.netRatePerMinCents * planet.minPerHour : bal.netRatePerMinCents * planet.hoursPerDay * planet.minPerHour);
   // r.071 (addendum 158): the two figures' shared size, from the characters they show together (monospace → width = chars × advance)
   const rateText = rateUnit === "day" ? usd(Math.round(rateIn(rateUnit))) : usd4(rateIn(rateUnit));
-  const figFont = { fontSize: bal.ratePerMinCents > 0 ? fitFigures(usd(bal.availableCents).length + rateText.length, figReserve(RATE_UNITS.map((u) => t(`fin.rate.${u}`)))) : fitFigures(usd(bal.availableCents).length, 8) };
-  // r.071 AsM fold (Enki): the three figures under it fit their thirds of the row the same way — never one over its neighbour
-  const gridFont = { fontSize: fitGrid(Math.max(usd(bal.escrowedCents).length, usd(bal.releasedCents).length, usd(bal.withdrawnCents).length)) };
+  // Income is escrow plus released. It is not Available, and the rate is not added into it.
+  const incomeCents = bal.escrowedCents + bal.releasedCents;
+  const figFont = { fontSize: fitFigures(usd(incomeCents).length, 8) };
+  const gridFont = { fontSize: fitGrid(Math.max(usd(bal.escrowedCents).length, usd(bal.releasedCents).length, usd(bal.withdrawnCents).length, usd(bal.availableCents).length), 2) };
   const focusView = focus && now ? depositView(focus, at) : null;
   const year = now ? positionInYear(now, planet.yearAnchor, planet.yearDays) : null;
   // THE LADDER'S UNIT (addendum 17 → 20 → 21 → 22): one dropdown of the brief's eight periods with FIXED factors — second · minute 60 ·
@@ -724,9 +725,17 @@ export function FinancialCommandUX1() {
               unit selector on the SAME line, immediately left of the gear */}
           {/* r.042 (addendum 81 "Move transaction left of settings and move accrual rate to right of Available · swap these two"):
               line 1 = ACCRUAL UNITS · + Transaction (the gear's height) · gear; line 2 = Available (left) · Accrual Rate (right) */}
-          <div data-fin-accrual-top className="flex items-center justify-between gap-2">
+          <div data-fin-accrual-top className="flex flex-wrap items-center justify-between gap-2">
             <div><div className={LABEL}>{t("fin.accrual_units")}</div>{!cur.symbol && <div data-fin-currency-label className="text-[11px] text-muted-foreground">{cur.code} · {cur.name}</div>}</div>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {bal.ratePerMinCents > 0 && (
+                <div data-fin-rate-block className="flex items-center gap-1 text-primary">
+                  <span data-fin-rate className="font-mono text-sm tabular-nums">{rateText}</span>
+                  <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-primary">
+                    {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
+                  </select>
+                </div>
+              )}
               {owner && <button type="button" data-fin-tx-open aria-expanded={formOpen} onClick={openForm} ref={doorRef} className="h-8 shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("fin.tx_open")}</button>}
               <button type="button" data-fin-accrual-gear aria-expanded={accrualGear} aria-label={t("fin.settings")} title={t("fin.settings")} onClick={() => setAccrualGear((g) => !g)} className={`flex h-8 w-9 items-center justify-center rounded-md border border-border ${accrualGear ? "text-primary" : "text-muted-foreground"}`}><Settings size={16} strokeWidth={1.5} aria-hidden /></button>
             </div>
@@ -740,36 +749,26 @@ export function FinancialCommandUX1() {
             return <p key={c.id} data-fin-card-warning={lv} className={`mt-2 break-words rounded-md border px-2 py-1 text-xs font-medium ${lv === "amber" ? "border-yellow-500/60 text-yellow-600 dark:text-yellow-400" : "border-red-500/60 text-red-400"}`}>⚠ {t(ALERT_WORD[lv])} · {c.name} {usd(b)}</p>;
           })}
           </div>
-          {/* r.044 (addendum 93 "Available and Accrual Rate should be same line, same size text"): the two labels share one line,
-              the two figures share the next, at the same size */}
-          {/* r.071 (addenda 158–159 "and fix this"): one size for both figures (r.044), fitted to the row — a long figure never runs into
-              the Accrual Rate; past the smallest size the rate wraps under it, never over it */}
-          <div data-fin-figures-row className="mt-2 flex flex-wrap items-start justify-between gap-x-3 gap-y-1" style={{ containerType: "inline-size" }}>
-            <div data-fin-current className="shrink-0">
-              <div className="text-xs text-muted-foreground">{t("fin.available")}:</div>
-              <div className="flex h-9 items-center font-mono text-2xl tabular-nums text-primary" style={figFont} data-testid="fin-clock">{usd(bal.availableCents)}</div>
-            </div>
-            {bal.ratePerMinCents > 0 && (
-                /* r.035 (addendum 68): the words "Accrual Rate" directly above the figure and its unit selector */
-                <div data-fin-rate-block className="ml-auto flex shrink-0 flex-col items-end">
-                  <span data-fin-rate-label className="text-xs text-muted-foreground">{t("fin.accrual_rate")}</span>
-                  <div data-fin-rate-row className="flex h-9 items-center gap-1 text-primary">
-                    <span data-fin-rate className="font-mono text-2xl tabular-nums" style={figFont}>{rateText}</span>
-                    <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="min-h-[36px] rounded-md border border-border bg-background px-1 py-0.5 text-xs text-primary">
-                      {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
-                    </select>
-                  </div>
-                </div>
-              )}
+          {/* Accrual card. One identity, two sums. Available is not the headline.
+              Header: Accrual, and the rate at the right. The rate explains the 30-day plan. It is not added into Income, Escrow, Released, Spent, or Available.
+              Row 1: Income = In Escrow + Released. Computed. Not cash on hand.
+              Row 2: Escrow | Released. Escrow cannot be spent. Released has cleared escrow and is still part of Income.
+              Row 3, nested under Released only: Spent | Available. Spent = drawn from Released. Available = Released − Spent. Available is the only spendable figure.
+              Invariants: escrow + released === income. spent + available === released. Available is not summed into Income. Spent is not summed into Income. */}
+          <div data-fin-income-row className="mt-3 flex items-end justify-between gap-3 border-b border-border pb-3">
+            <div className="text-2xl font-semibold text-foreground">{t("fin.income")}</div>
+            <div data-fin-income className="font-mono text-3xl tabular-nums text-foreground" style={figFont}>{usd(incomeCents)}</div>
           </div>
-          {/* r.029 (addendum 60 "doesn't this seem duplicative?"): Available is the big figure above, so the grid is three boxes —
-              In Escrow · Released · Spent; what each one means is in the gear */}
-          {/* r.036 (addendum 69 "spread 3 fields evenly full width of box"): In Escrow on the left edge, Released centred, Spent on the right edge */}
-          <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-3 gap-x-3" style={{ containerType: "inline-size" }}>
-            <div data-fin-cell="escrowed" className="text-left"><dt className="text-xs text-muted-foreground">{t("fin.escrowed")}</dt><dd className="break-words font-mono tabular-nums text-foreground" style={gridFont}>{usd(bal.escrowedCents)}</dd></div>
-            <div data-fin-cell="released" className="text-center"><dt className="text-xs text-muted-foreground">{t("fin.released")}</dt><dd className="break-words font-mono tabular-nums text-foreground" style={gridFont}>{usd(bal.releasedCents)}</dd></div>
-            <div data-fin-cell="spent" className="text-right"><dt className="text-xs text-muted-foreground">{t("fin.spent")}</dt><dd className="break-words font-mono tabular-nums text-foreground" style={gridFont}>{usd(bal.withdrawnCents)}</dd></div>
+          <dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-3" style={{ containerType: "inline-size" }}>
+            <div data-fin-cell="escrowed"><dt className="text-base text-foreground">{t("fin.escrowed")}</dt><dd className="break-words font-mono text-xl tabular-nums text-foreground" style={gridFont}>{usd(bal.escrowedCents)}</dd></div>
+            <div data-fin-cell="released" className="border-l border-border pl-3"><dt className="text-base text-foreground">{t("fin.released")}</dt><dd className="break-words font-mono text-xl tabular-nums text-foreground" style={gridFont}>{usd(bal.releasedCents)}</dd></div>
           </dl>
+          <div data-fin-released-nest className="mt-3 border-t border-border pt-3">
+            <dl className="grid grid-cols-2 gap-x-3 rounded-lg border border-border p-3">
+              <div data-fin-cell="spent"><dt className="text-base text-primary">{t("fin.spent")}</dt><dd className="break-words font-mono text-xl tabular-nums text-primary" style={gridFont}>{usd(bal.withdrawnCents)}</dd></div>
+              <div data-fin-cell="available" className="border-l border-border pl-3"><dt className="text-base text-primary">{t("fin.available")}</dt><dd data-testid="fin-clock" className="break-words font-mono text-2xl tabular-nums text-primary" style={gridFont}>{usd(bal.availableCents)}</dd></div>
+            </dl>
+          </div>
           {/* the gear (addendum 60 "tell me … what each does (which should be in settings)"): what each figure means, then the clock */}
           {accrualGear && (
             <label className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-2 text-xs text-muted-foreground">{t("fin.currency")}

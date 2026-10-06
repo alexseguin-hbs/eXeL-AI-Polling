@@ -129,7 +129,7 @@ ok(/const W = plotW > 0 && usdH > 0 \? Math\.max\(360, Math\.round\(\(H \* plotW
 ok(!/data-fin-usd-fit style=/.test(ux), "r.074: the full-screen $ view is no longer narrowed to a fitted width — it spans the screen at the fitted height");
 // r.017 (addendum 29 "your deposit withdrawal floats; very odd") — NOTHING ON THE SURFACE FLOATS: the strip is the Released card's last row
 ok(!/className="fixed /.test(ux) && !/className="sticky (?!right-0 bg-card)/.test(ux) && (ux.match(/className="sticky right-0 bg-card/g) || []).length === 3 && !/position: "fixed"/.test(ux), "no fixed or sticky element floats over the page (r.017, addendum 29); the one exception is the record's edit column, pinned right INSIDE the table's own sideways scroll (r.067, addendum 152) — it never covers the page");
-{ const top = ux.slice(ux.indexOf("<div data-fin-accrual-top"), ux.indexOf("<dl data-fin-balance-grid")); const l1 = top.slice(0, top.indexOf("<div data-fin-figures-row ")); const l2 = top.slice(top.indexOf("<div data-fin-figures-row ")); ok((ux.match(/data-fin-tx-open/g) || []).length === 1 && /data-fin-tx-open[^\n]*className="h-8 shrink-0 rounded-md bg-primary/.test(l1) && l1.indexOf("data-fin-tx-open") < l1.indexOf("data-fin-accrual-gear"), "r.042 (addendum 81 'swap these two'): ONE + Transaction, on the Accrual Units top line immediately left of the gear, the gear's height (h-8)"); }
+{ const top = ux.slice(ux.indexOf("<div data-fin-accrual-top"), ux.indexOf("<div data-fin-income-row")); ok((ux.match(/data-fin-tx-open/g) || []).length === 1 && /data-fin-tx-open[^\n]*className="h-8 shrink-0 rounded-md bg-primary/.test(top) && top.indexOf("data-fin-tx-open") < top.indexOf("data-fin-accrual-gear"), "ONE + Transaction stays on the Accrual header, immediately left of the gear, at the gear's height"); }
 
 
 // r.016 (addendum 28) — EDIT MODE behind an icon on the budget: the plan drives the ladder; typed in the unit, stored on the base
@@ -151,10 +151,18 @@ ok(/<th className="py-1 pr-2">\{t\("fin\.category"\)\}<\/th>/.test(ux), "the tab
 
 // r.019 (addendum 33 "make table 2x2") — the Released card's four figures as a 2 × 2 table, each word above its figure
 {
-  const order = ["escrowed", "released", "spent"];
-  const cellOk = (c) => new RegExp('data-fin-cell="' + c + '"(?: className="text-(?:left|center|right)")?><dt[^>]*>\\{t\\("fin\\.' + c + '"\\)\\}</dt><dd[^>]*>\\{usd\\(bal\\.' + (c === "spent" ? "withdrawn" : c) + 'Cents\\)\\}</dd>').test(ux);
-  const pos = order.map((c) => ux.indexOf('data-fin-cell="' + c + '"'));
-  ok(/<dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-3 gap-x-3"(?: style=\{\{ containerType: "inline-size" \}\})?>/.test(ux) && order.every(cellOk) && pos.every((x, i) => x > 0 && (i === 0 || x > pos[i - 1])) && !/data-fin-cell="available"/.test(ux) && !/data-fin-cell="withdrawable"/.test(ux), "r.029 (addendum 60): three boxes — In Escrow · Released · Spent — across the card; Available is the figure above, never repeated");
+  const pos = ["escrowed", "released", "spent", "available"].map((c) => ux.indexOf('data-fin-cell="' + c + '"'));
+  ok(/<dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-3"(?: style=\{\{ containerType: "inline-size" \}\})?>/.test(ux)
+    && pos.every((x, i) => x > 0 && (i === 0 || x > pos[i - 1]))
+    && ux.indexOf("data-fin-income") < pos[0]
+    && ux.indexOf("data-fin-released-nest") < pos[2]
+    && /const incomeCents = bal\.escrowedCents \+ bal\.releasedCents;/.test(ux)
+    && /\{usd\(incomeCents\)\}/.test(ux)
+    && !/incomeCents \+ bal\.availableCents/.test(ux)
+    && !/incomeCents \+ bal\.withdrawnCents/.test(ux)
+    && !/incomeCents \+ .*rate/.test(ux)
+    && !/data-fin-cell="withdrawable"/.test(ux),
+    "Accrual card: Income = escrow + released and is the headline. Escrow | Released. Spent | Available are nested under Released. Available, Spent and the rate are not summed into Income.");
   ok(!/\{t\("fin\.escrowed"\)\}:<\/span>/.test(ux), "the run-on line of four figures is gone");
 }
 
@@ -184,7 +192,7 @@ ok(!/fin\.version|SRC\.project\.revision\}<\/p>/.test(ux.slice(ux.indexOf("<head
   const bud = ux.slice(ux.indexOf("<thead", ux.indexOf("data-fin-budget")), ux.indexOf("</table>", ux.indexOf("data-fin-budget")));
   ok(!/usd\(|usd4\(|usdDollars\(/.test(rec) && !/usd\(|usd4\(|usdDollars\(/.test(bud) && (rec.match(/<td data-fin-amount/g) || []).length === 2 && /<span className="flex justify-between gap-4"><span>\{x\.kind === "deposit" \? "\+" : "−"\}<\/span><span>\{num2\(x\.amountCents\)\}<\/span><\/span>/.test(rec) && /\{unitHead\(UNITS\.find\(\(u\) => u\.key === budgetUnit\)\?\.label \?\? "", curMark\)\}<\/th>/.test(bud) && /\},\\u00a0\$\{cur\}`;/.test(ux), "r.043 (addenda 86, 88, 89): no currency symbol inside a table cell — the Record's amount has the sign at the far left and the bare number right-justified; the budget header carries ', <currency mark>' (r.049)"); }
 ok(!/t\("fin\.chart_title"\)/.test(ux), "r.028: 'Money as time — this MoT' is gone from every place on the surface");
-{ const top = ux.slice(ux.indexOf("<div data-fin-accrual-top"), ux.indexOf("<dl data-fin-balance-grid")); const l1 = top.slice(0, top.indexOf("<div data-fin-figures-row ")); const l2 = top.slice(top.indexOf("<div data-fin-figures-row ")); ok(l1.indexOf("fin.accrual_units") < l1.indexOf("data-fin-tx-open") && !/data-fin-rate/.test(l1) && l2.indexOf("data-fin-current") < l2.indexOf("data-fin-rate-block") && !/fin\.withdraw_open|data-fin-withdraw/.test(top), "r.042 (addendum 81): line 1 = ACCRUAL UNITS · + Transaction · gear; line 2 = Available (left) · Accrual Rate (right); no Withdraw pill"); }
+{ const top = ux.slice(ux.indexOf("<div data-fin-accrual-top"), ux.indexOf("<div data-fin-income-row")); ok(top.indexOf("fin.accrual_units") >= 0 && top.indexOf("data-fin-rate") > top.indexOf("fin.accrual_units") && top.indexOf("data-fin-tx-open") > top.indexOf("data-fin-rate") && top.indexOf("data-fin-accrual-gear") > top.indexOf("data-fin-tx-open") && !/fin\.withdraw_open|data-fin-withdraw/.test(top) && !/data-fin-current/.test(ux), "Accrual header: Accrual, the rate, + Transaction, then the gear. Available is not the headline. No Withdraw pill."); }
 ok(/data-fin-balance className="-mx-2 [^"]*sm:mx-0"/.test(ux), "r.028: the Accrual Units card runs the full width on a phone in portrait");
 ok(/data-fin-chart-controls className="mt-2 flex flex-wrap items-center justify-between gap-2">\s*\{selector\}\s*<div className="ml-auto flex items-center gap-2">/.test(ux), "r.028: Planet on the left, the Clock · MoT toggle and the gear on the right — r.073 (addendum 165): the row wraps on a narrow screen and the toggle and gear stay right");
 ok(/<details data-fin-ledger/.test(ux) && /data-fin-ledger-scroll className="mt-2 overflow-x-auto"/.test(ux) && /data-fin-ledger-table className="min-w-full whitespace-nowrap/.test(ux), "r.028: the Record folds behind a chevron; opened, a table with one entry per line that scrolls sideways");
@@ -206,10 +214,10 @@ ok(!/cyan/.test(ux), "r.034 (addendum 67 'we stick to color per selector'): no f
 
 ok(!/p\.withdrawable\)/.test(ux) && !/C\.consciousness/.test(ux) && !/t\("fin\.withdrawable"\)/.test(ux), "r.034: no separate Withdrawable stroke or cyan legend word — with no hold it is the Released line; the tap line takes the theme colour");
 
-{ const top = ux.slice(ux.indexOf("<div data-fin-accrual-top"), ux.indexOf("<dl data-fin-balance-grid")); const l1 = top.slice(0, top.indexOf("<div data-fin-figures-row ")); const l2 = top.slice(top.indexOf("<div data-fin-figures-row ")); ok(/<div data-fin-rate-block className="ml-auto flex shrink-0 flex-col items-end">\s*<span data-fin-rate-label[^>]*>\{t\("fin\.accrual_rate"\)\}<\/span>\s*<div data-fin-rate-row/.test(l2), "r.035 + r.042: the words 'Accrual Rate' sit directly above the rate and its selector — now on the Available row, right-aligned"); }
-{ const cur = ux.slice(ux.indexOf("<div data-fin-current"), ux.indexOf("{bal.ratePerMinCents > 0 &&")); const rb = ux.slice(ux.indexOf("<div data-fin-rate-block"), ux.indexOf("<select data-fin-rate-unit")); ok(/text-xs text-muted-foreground/.test(cur) && /data-fin-rate-label className="text-xs text-muted-foreground"/.test(rb) && /flex h-9 items-center font-mono text-2xl/.test(cur) && /data-fin-rate-row className="flex h-9 items-center/.test(rb) && /data-fin-rate className="font-mono text-2xl/.test(rb), "r.044 (addendum 93): 'Available:' and 'Accrual Rate' on one line at the same size; the two figures on the next line, both text-2xl in equal-height rows"); }
+ok(/<div data-fin-rate-block className="flex items-center gap-1 text-primary">\s*<span data-fin-rate className="font-mono text-sm tabular-nums">\{rateText\}<\/span>/.test(ux) && !/data-fin-rate-label/.test(ux) && !/t\("fin\.accrual_rate"\)/.test(ux), "The rate sits in the Accrual header with its unit. It is not labelled a second time and it is not a balance.");
+ok(/data-fin-income className="font-mono text-3xl tabular-nums text-foreground" style=\{figFont\}>\{usd\(incomeCents\)\}/.test(ux) && /data-testid="fin-clock"/.test(ux) && ux.indexOf("data-fin-income") < ux.indexOf('data-testid="fin-clock"'), "Income is the large figure. Available stays on the card, under Released, and is not the headline.");
 
-ok(/data-fin-cell="escrowed" className="text-left"/.test(ux) && /data-fin-cell="released" className="text-center"/.test(ux) && /data-fin-cell="spent" className="text-right"/.test(ux), "r.036 (addendum 69): the three boxes spread evenly across the card — left edge · centre · right edge");
+ok(/data-fin-cell="escrowed"/.test(ux) && /data-fin-cell="released" className="border-l border-border pl-3"/.test(ux) && /data-fin-released-nest/.test(ux) && /data-fin-cell="spent"/.test(ux) && /data-fin-cell="available" className="border-l border-border pl-3"/.test(ux), "Escrow and Released share one row. Spent and Available sit in the box under Released.");
 
 // ── r.038 (addenda 72 + 73): no rail; Accrual · Budget · Chart · Record · Year; the year card folded; one system at a time ──
 {
@@ -344,11 +352,11 @@ ok(/<details data-fin-cards className=\{`group \$\{SUB\}`\}>\s*<summary classNam
 // size is fitted to the row (a CSS size container; monospace width = characters × advance), between 0.875rem and the r.044 1.5rem; past the
 // floor the rate wraps under — the Available block never shrinks under its own text, so the two never overlap
 { const fit = fs.readFileSync(path.join(process.cwd(), "lib/financial-2525/fit.ts"), "utf8");
-  ok(/<div data-fin-figures-row className="mt-2 flex flex-wrap items-start justify-between gap-x-3 gap-y-1" style=\{\{ containerType: "inline-size" \}\}>\s*<div data-fin-current className="shrink-0">/.test(ux)
-    && /data-fin-current[\s\S]{0,400}style=\{figFont\} data-testid="fin-clock"/.test(ux) && /<span data-fin-rate className="font-mono text-2xl tabular-nums" style=\{figFont\}>\{rateText\}<\/span>/.test(ux)
-    && /const figFont = \{ fontSize: bal\.ratePerMinCents > 0 \? fitFigures\(usd\(bal\.availableCents\)\.length \+ rateText\.length, figReserve\(RATE_UNITS\.map\(\(u\) => t\(`fin\.rate\.\$\{u\}`\)\)\)\) : fitFigures\(usd\(bal\.availableCents\)\.length, 8\) \};/.test(ux)
+  ok(/data-fin-income className="font-mono text-3xl tabular-nums text-foreground" style=\{figFont\}>\{usd\(incomeCents\)\}/.test(ux)
+    && /const figFont = \{ fontSize: fitFigures\(usd\(incomeCents\)\.length, 8\) \};/.test(ux)
+    && /<span data-fin-rate className="font-mono text-sm tabular-nums">\{rateText\}<\/span>/.test(ux)
     && /return `min\(1\.5rem, max\(0\.875rem, calc\(\(100cqw - \$\{Math\.max\(0, Math\.round\(reservePx\)\)\}px\) \/ \$\{em\}\)\)\)`;/.test(fit) && /export const FIG_ADVANCE_EM = 0\.62;/.test(fit),
-    "r.071 (addendum 158): Available and the Accrual Rate share one fitted size and never overlap (wrap as the last resort)"); }
+    "Income is the large figure and fits its row. The rate stays small in the header and does not share that line."); }
 // r.071 (addendum 160 "Trinity text does not render anymore when clicked"): r.051 recorded the opened logo's labels at 16 but shipped 20
 // — taller than the ring's 18-unit coloured band — so the dark labels vanished where they left it. Every label now fits its band:
 // 16 units, centred across the band (the top ring's glyphs stand outward, the bottom rings' inward). Proven on the glyph envelope.
@@ -420,11 +428,11 @@ ok(/<th className="py-1 text-right min-\[360px\]:whitespace-nowrap">\{unitHead\(
     && /return reservePx \+ FIG_UNIT_PX_PER_CHAR \* Math\.max\(0, widest - FIG_UNIT_BASE_CHARS\);/.test(fit)
     && /const labelChars = \(s: string\): number => Array\.from\(s\)\.reduce\(\(n, ch\) => n \+ \(WIDE_CHAR\.test\(ch\) \? 2 : 1\), 0\);/.test(fit),
     "r.071 AsM fold: the row's reserve is pinned (80–120 px, advance 0.60–0.66 em) and grows ~7 px per unit character past four");
-  ok(/<dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-3 gap-x-3" style=\{\{ containerType: "inline-size" \}\}>/.test(ux)
-    && (ux.match(/<dd className="break-words font-mono tabular-nums text-foreground" style=\{gridFont\}>/g) || []).length === 3
-    && /const gridFont = \{ fontSize: fitGrid\(Math\.max\(usd\(bal\.escrowedCents\)\.length, usd\(bal\.releasedCents\)\.length, usd\(bal\.withdrawnCents\)\.length\)\) \};/.test(ux)
+  ok(/<dl data-fin-balance-grid className="mt-3 grid w-full grid-cols-2 gap-x-3" style=\{\{ containerType: "inline-size" \}\}>/.test(ux)
+    && (ux.match(/style=\{gridFont\}>/g) || []).length === 4
+    && /const gridFont = \{ fontSize: fitGrid\(Math\.max\(usd\(bal\.escrowedCents\)\.length, usd\(bal\.releasedCents\)\.length, usd\(bal\.withdrawnCents\)\.length, usd\(bal\.availableCents\)\.length\), 2\) \};/.test(ux)
     && /return `min\(0\.875rem, max\(0\.6875rem, calc\(\(\(100cqw - \$\{Math\.max\(0, cols - 1\) \* gapPx\}px\) \/ \$\{Math\.max\(1, cols\)\} - 4px\) \/ \$\{em\}\)\)\)`;/.test(fit),
-    "r.071 AsM fold: In Escrow · Released · Spent share one size fitted to a third of the row, and past the floor a figure wraps in its own cell"); }
+    "Escrow, Released, Spent and Available share one size fitted to half a row"); }
 // r.071 (addendum 159): the gear's $/min · $/sec line is the rate escrow is releasing NOW — the same lower rate as the Accrual Rate after a
 // spend ahead, never the deposit's original schedule
 ok(/`· \$\{usd4\(bal\.netRatePerMinCents\)\} \$\{t\("fin\.rate\.min"\)\}`/.test(ux) && /const rateIn = \(u: RateUnit\): number => \(u === "sec" \? bal\.netRatePerMinCents/.test(ux), "r.071 (addendum 159): the gear's rate line and the Accrual Rate show the same live rate");
