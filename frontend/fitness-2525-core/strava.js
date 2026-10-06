@@ -2,7 +2,7 @@
 import { json, STRAVA_AUTH, STRAVA_TOKEN, STRAVA_API, STRAVA_SCOPE } from "./base.js";
 import { requireUser, mintState, readState } from "./auth.js";
 import { tokOwner, mapOwner, tokenPut, tokenGet, tokenDel, tokenStoreReady, oauthNotReady } from "./tokens.js";
-import { athleteName, mapStravaActivity, mergeWorkoutIntoDay, stravaRefresh, stravaConfigured, publicStatus } from "./sync.js";
+import { athleteName, mapStravaActivity, mergeWorkoutIntoDay, touchIndex, stravaRefresh, stravaConfigured, publicStatus } from "./sync.js";
 
 export async function handleStrava(request, env, action, url) {
   if (action === "webhook") {
@@ -50,7 +50,8 @@ export async function handleStrava(request, env, action, url) {
             if (actRes.ok) {
               const act = await actRes.json();
               const workout = mapStravaActivity(act);
-              await mergeWorkoutIntoDay(env, map.auth0_sub, workout);
+              const r = await mergeWorkoutIntoDay(env, map.auth0_sub, workout);
+              await touchIndex(env, map.auth0_sub, r.skipped ? [] : [r.date]);
               rec.last_sync = new Date().toISOString();
               rec.updated_at = Date.now();
               await tokenPut(env, await tokOwner(map.auth0_sub), "strava", rec);
@@ -175,10 +176,14 @@ export async function handleStrava(request, env, action, url) {
     if (!listRes.ok) return json({ error: `Strava API ${listRes.status}` }, 502);
     const activities = await listRes.json();
     let imported = 0;
+    const dates = [];
     for (const act of Array.isArray(activities) ? activities : []) {
-      await mergeWorkoutIntoDay(env, auth.user.sub, mapStravaActivity(act));
+      const r = await mergeWorkoutIntoDay(env, auth.user.sub, mapStravaActivity(act));
+      if (r.skipped) continue;
+      dates.push(r.date);
       imported += 1;
     }
+    await touchIndex(env, auth.user.sub, dates); // fit-index once per sync, not per activity
     record.last_sync = new Date().toISOString();
     record.updated_at = Date.now();
     // refresh athlete display name
