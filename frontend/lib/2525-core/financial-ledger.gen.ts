@@ -1079,7 +1079,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-05",
       "kind": "correction",
       "text": "r.078 correction — the photo on 006bbc1 showed a hole between the $ and the shorter amounts. One width, taken from Income, had been forced onto every figure. Each column now sizes to its own longest amount, and a positive column no longer reserves a blank before the $.",
-      "commit": ""
+      "commit": "71eb9b3"
     }
   ]
 };
