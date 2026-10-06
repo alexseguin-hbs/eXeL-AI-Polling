@@ -381,9 +381,9 @@ async function saveXmlFile(fileName: string, xml: string, list: Mark[] = []) {
   const strips = await codexFiles(fileName, list);
   const files = [{ name: names.xml, blob: new Blob([xml], { type: "application/xml" }) }, ...strips];
   if (chosenFolder) {
-    const setFolder = await chosenFolder.getDirectoryHandle(setFolderOf(fileName), { create: true });
+    const setFolder = await (await ecosystemRoot(chosenFolder)).getDirectoryHandle(setFolderOf(fileName), { create: true });
     await writeNamed(setFolder, files);
-    return `${chosenFolder.name}/${setFolderOf(fileName)}/${names.xml}`;
+    return `${deviceSavePath()}/${setFolderOf(fileName)}/${names.xml}`;
   }
   downloadNamed(files);
   return names.xml;
@@ -492,6 +492,17 @@ type Folder = {
 };
 
 let chosenFolder: Folder | null = null;
+let savePlatform: PlatformId = "win";
+
+function deviceSavePath(parts: string[] = []) {
+  return sensorPath(savePlatform, parts);
+}
+
+async function ecosystemRoot(folder: Folder) {
+  if (folder.name === "SensorFusion") return folder;
+  const home = folder.name === "Home" ? folder : await folder.getDirectoryHandle("Home", { create: true });
+  return home.getDirectoryHandle("SensorFusion", { create: true });
+}
 
 async function chooseSaveFolder() {
   const picker = (window as Window & { showDirectoryPicker?: (options: { mode: "readwrite"; id: string }) => Promise<Folder> }).showDirectoryPicker;
@@ -511,9 +522,9 @@ async function saveNumberedPictures(setName: string, files: { name: string; blob
   });
   const folder = chosenFolder || (await chooseSaveFolder());
   if (folder) {
-    const setFolder = await folder.getDirectoryHandle(setName, { create: true });
+    const setFolder = await (await ecosystemRoot(folder)).getDirectoryHandle(setName, { create: true });
     await writeNamed(setFolder, paired);
-    return { how: "folder", where: `${folder.name}/${setName}` };
+    return { how: "folder", where: deviceSavePath([setName]) };
   }
   const shared = files.map((file) => new File([file.blob], file.name, { type: file.name.endsWith(".jpg") ? "image/jpeg" : "image/png" }));
   const share = navigator as Navigator & { canShare?: (data: { files: File[] }) => boolean };
@@ -523,7 +534,7 @@ async function saveNumberedPictures(setName: string, files: { name: string; blob
     return { how: "shared", where: "" };
   }
   downloadNamed(paired);
-  return { how: "downloaded", where: "" };
+  return { how: "downloaded", where: deviceSavePath() };
 }
 
 const SAVED_TITLE: Record<SaveResult["how"], string> = { folder: "Pictures saved.", shared: "Pictures shared.", downloaded: "Pictures downloaded." };
@@ -1133,6 +1144,7 @@ export default function SensorFusion() {
   showLabelsRef.current = showLabels;
   showFpsRef.current = showFps;
   alertsRef.current = alerts;
+  savePlatform = platform;
 
   useEffect(() => {
     const savedScheme = window.localStorage.getItem("sf2525-scheme");
@@ -2442,7 +2454,7 @@ export default function SensorFusion() {
               </button>
             </div>
             <div className={styles.row}>
-              <span className={styles.muted}>Save to {saveFolder || (phoneKind() === "ios" ? "Files" : "a folder")}</span>
+              <span className={styles.muted}>Save to {sensorPath(platform)}</span>
               <button
                 type="button"
                 className={styles.ghost}

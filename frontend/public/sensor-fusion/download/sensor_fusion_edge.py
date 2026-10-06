@@ -102,6 +102,16 @@ def folder_parts():
     return ["Home", "SensorFusion"]
 
 
+def path_method(name=None):
+    """How this device builds Home/SensorFusion. One method per device."""
+    name = name or platform_name()
+    data = edge_contract()
+    for row in data.get("platforms", []):
+        if row.get("py") == name or row.get("id") == name:
+            return row.get("write") or "home"
+    return "home"
+
+
 def shown_folder():
     data = edge_contract()
     name = platform_name()
@@ -147,6 +157,7 @@ def home():
         shared = os.path.expanduser("~/storage/shared")
         if os.path.isdir(shared):
             return os.path.join(shared, *parts)
+        return os.path.join(os.path.expanduser("~"), *parts)
     if name == "iphone":
         documents = os.path.expanduser("~/Documents")
         base = documents if os.path.isdir(documents) else os.path.expanduser("~")

@@ -3,7 +3,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { detectPlatform, pathSep, sensorPath, sensorsFromLabels, PLATFORMS, EXTRA_SENSORS } from "../app/SensorFusion-2525/sf.ts";
+import { detectPlatform, deviceFolder, pathSep, sensorPath, sensorsFromLabels, PLATFORMS, EXTRA_SENSORS } from "../app/SensorFusion-2525/sf.ts";
 
 const here = import.meta.dirname;
 const contract = JSON.parse(fs.readFileSync(path.resolve(here, "../public/sensor-fusion/edge-contract.json"), "utf8"));
@@ -31,6 +31,12 @@ ok(sensorPath("android").startsWith("/sdcard/Home/SensorFusion"), "Android shows
 ok(sensorPath("iphone") === "On My iPhone/Home/SensorFusion", "an iPhone shows On My iPhone");
 ok(sensorPath("win", ["Demo90"]) === "Home\\SensorFusion\\Demo90", "Windows joins the model folder with a backslash");
 ok(sensorPath("mac", ["Demo90"]) === "Home/SensorFusion/Demo90", "a Mac joins the model folder with a slash");
+ok(sensorPath("pi") === "Home/SensorFusion" && sensorPath("ubuntu") === "Home/SensorFusion", "a Pi and Ubuntu use the same folder");
+const methods = { android: "sdcard", iphone: "documents", win: "profile", mac: "home", pi: "home", ubuntu: "home" };
+for (const [id, write] of Object.entries(methods)) {
+  ok(deviceFolder(id).write === write && deviceFolder(id).show === sensorPath(id), `${id} has one folder method`);
+}
+ok(contract.platforms.every((row) => row.write === methods[row.id]), "the shared list names each device's folder method");
 
 const cases = [
   ["Mozilla/5.0 (Linux; Android 14)", "", "android"],
@@ -55,7 +61,7 @@ ok(/const PLATFORMS = \(EDGE\.platforms/.test(download), "the saved file does no
 ok(/window\.SF_CATALOG && window\.SF_CATALOG\.menu/.test(download), "the saved file uses the same opening menu");
 ok(!/\["3","Image labeler"/.test(download), "Image labeler is not an opening row in the saved file");
 ok(edgePy === downloadPy, "the computer program and the copy in the download are the same file");
-ok(/edge-contract\.json/.test(edgePy) && /def folder_parts\(/.test(edgePy), "the computer program reads the shared folder");
+ok(/def path_method\(/.test(edgePy) && /def home\(/.test(edgePy) && /def shown_folder\(/.test(edgePy), "the computer program has one path method, one real folder, and one shown folder");
 ok(!/\/home\/pi\/SensorFusion"/.test(edgePy), "a Pi no longer uses a folder that drops Home");
 
 console.log(fail ? `${pass} passed, ${fail} failed` : `${pass} passed`);

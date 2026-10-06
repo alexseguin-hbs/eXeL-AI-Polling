@@ -165,6 +165,7 @@ export function savedLine(how: "folder" | "shared" | "downloaded", count: number
   const pictures = `${count} ${count === 1 ? "picture" : "pictures"}`;
   if (how === "folder") return `Saved ${pictures} in ${where}.`;
   if (how === "shared") return `Shared ${pictures}.`;
+  if (where) return `Downloaded ${pictures}. Put them in ${where}.`;
   return `Downloaded ${pictures}.`;
 }
 
@@ -251,6 +252,13 @@ export function sensorPath(platform: PlatformId, parts: string[] = []): string {
   const row = edge.platforms.find((item) => item.id === platform);
   const show = row?.show?.length ? row.show : edge.folder;
   return [...show, ...parts].join(pathSep(platform));
+}
+
+/** Where that device writes. The shown path stays Home/SensorFusion on every one. */
+export function deviceFolder(platform: PlatformId) {
+  const row = edge.platforms.find((item) => item.id === platform);
+  const write = row?.write === "sdcard" || row?.write === "documents" || row?.write === "profile" || row?.write === "home" ? row.write : "home";
+  return { id: platform, label: row?.label || platform, show: sensorPath(platform), sep: pathSep(platform), write };
 }
 
 export function detectPlatform(ua: string, platform = ""): PlatformId {

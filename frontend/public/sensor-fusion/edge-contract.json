@@ -3,12 +3,12 @@
   "folder": ["Home", "SensorFusion"],
   "fallback": "win",
   "platforms": [
-    { "id": "android", "py": "android", "label": "Android", "detail": "A phone", "sep": "/", "show": ["/sdcard", "Home", "SensorFusion"], "match": "Android" },
-    { "id": "iphone", "py": "iphone", "label": "iPhone", "detail": "A phone", "sep": "/", "show": ["On My iPhone", "Home", "SensorFusion"], "match": "iPhone|iPad" },
-    { "id": "win", "py": "windows", "label": "PC-WIN", "detail": "A computer at a desk", "sep": "\\", "show": ["Home", "SensorFusion"], "match": "Windows|Win32|Win64" },
-    { "id": "mac", "py": "mac", "label": "Mac", "detail": "An Apple computer", "sep": "/", "show": ["Home", "SensorFusion"], "match": "Macintosh|Mac OS|MacIntel" },
-    { "id": "pi", "py": "pi", "label": "Raspberry Pi", "detail": "A small computer", "sep": "/", "show": ["Home", "SensorFusion"], "match": "Raspberry" },
-    { "id": "ubuntu", "py": "ubuntu", "label": "Ubuntu", "detail": "A shared computer", "sep": "/", "show": ["Home", "SensorFusion"], "match": "Linux|Ubuntu" }
+    { "id": "android", "py": "android", "label": "Android", "detail": "A phone", "sep": "/", "write": "sdcard", "show": ["/sdcard", "Home", "SensorFusion"], "match": "Android" },
+    { "id": "iphone", "py": "iphone", "label": "iPhone", "detail": "A phone", "sep": "/", "write": "documents", "show": ["On My iPhone", "Home", "SensorFusion"], "match": "iPhone|iPad" },
+    { "id": "win", "py": "windows", "label": "PC-WIN", "detail": "A computer at a desk", "sep": "\\", "write": "profile", "show": ["Home", "SensorFusion"], "match": "Windows|Win32|Win64" },
+    { "id": "mac", "py": "mac", "label": "Mac", "detail": "An Apple computer", "sep": "/", "write": "home", "show": ["Home", "SensorFusion"], "match": "Macintosh|Mac OS|MacIntel" },
+    { "id": "pi", "py": "pi", "label": "Raspberry Pi", "detail": "A small computer", "sep": "/", "write": "home", "show": ["Home", "SensorFusion"], "match": "Raspberry" },
+    { "id": "ubuntu", "py": "ubuntu", "label": "Ubuntu", "detail": "A shared computer", "sep": "/", "write": "home", "show": ["Home", "SensorFusion"], "match": "Linux|Ubuntu" }
   ],
   "lenses": [
     { "name": "Front", "match": "front|face|selfie|user" },
