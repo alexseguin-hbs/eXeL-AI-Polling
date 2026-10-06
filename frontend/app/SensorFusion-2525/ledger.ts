@@ -480,6 +480,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "The Coral stick shows in Settings and on the picture. A green check means the stick answered. SENSOR 2 stays hidden until a second camera or sensor is there. The phone lens list is only on a phone.",
+      commit: "f5f18af",
+    },
+    {
+      rev: 69,
+      date: "2026-10-05",
+      kind: "release",
+      text: "A PC with one camera shows SENSOR 1 only. The Coral icon sits on the CORAL choice and on the bottom bar. A green check means the stick answered.",
       commit: "",
     },
   ],

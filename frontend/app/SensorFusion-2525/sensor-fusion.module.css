@@ -220,11 +220,17 @@
   object-fit: cover;
   background: #000;
 }
-.coralStick {
-  display: block;
-  width: 36px;
-  height: auto;
-  margin: 8px 0;
+.coralIcon {
+  width: 22px;
+  height: 22px;
+  max-width: 22px;
+  object-fit: contain;
+}
+.edgePick button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 .coralMark {
   position: absolute;
@@ -1236,6 +1242,11 @@
     height: 12px;
     width: 12px;
     max-width: 12px;
+  }
+  .work .piBot img.coralIcon {
+    height: 22px;
+    width: 22px;
+    max-width: 22px;
   }
   .work .piBot img.trainIcon,
   .work .annotate img.trainIcon {

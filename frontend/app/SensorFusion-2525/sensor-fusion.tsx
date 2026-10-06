@@ -133,16 +133,16 @@ function SettingsSheet({
         </div>
         <div className={styles.edgeBox}>
           <p>CPU CORAL</p>
-          <img
-            className={styles.coralStick}
-            src={coralLive === "loaded" ? `${UI}/coral_loaded.png` : `${UI}/coral.png`}
-            alt={coralLive === "loaded" ? "Coral loaded" : "Coral"}
-          />
           <div className={styles.edgePick} role="group" aria-label="CPU CORAL">
             <button type="button" aria-pressed={!coral} className={!coral ? styles.swatchOn : ""} onClick={() => onCoral(false)}>
               CPU
             </button>
             <button type="button" aria-pressed={coral} className={coral ? styles.swatchOn : ""} onClick={() => onCoral(true)}>
+              <img
+                className={styles.coralIcon}
+                src={coralLive === "loaded" ? `${UI}/coral_icon_loaded.png` : `${UI}/coral_icon.png`}
+                alt=""
+              />
               CORAL
             </button>
           </div>
@@ -339,6 +339,15 @@ function lensName(label: string): Lens | null {
   if (/tele/.test(name)) return "tele";
   if (/back|rear|environment|wide/.test(name)) return "wide";
   return null;
+}
+
+function realCameraCount(devices: MediaDeviceInfo[]) {
+  const labels = devices
+    .filter((device) => device.kind === "videoinput")
+    .map((device) => device.label.trim())
+    .filter((label) => label && !/infrared|\bdepth\b|\(ir\)/i.test(label));
+  const names = new Set(labels.map((label) => label.toLowerCase().replace(/\s*\([^)]*\)\s*/g, "").trim()));
+  return names.size;
 }
 
 function phoneKind() {
@@ -1179,9 +1188,10 @@ export default function SensorFusion() {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videos = devices.filter((device) => device.kind === "videoinput");
         if (stop) return;
-        setCameras(videos.length);
+        const seen = realCameraCount(videos);
+        setCameras(seen);
         setDetected(sensorsFromLabels(videos.map((device) => device.label)));
-        if (videos.length > 0 && videos.length < 2 && sensorsFromLabels(videos.map((device) => device.label)).length === 0) {
+        if (seen > 0 && seen < 2 && sensorsFromLabels(videos.map((device) => device.label)).length === 0) {
           stream2Ref.current?.getTracks().forEach((track) => track.stop());
           stream2Ref.current = null;
           setSensor2On(false);
@@ -1487,7 +1497,7 @@ export default function SensorFusion() {
       setSensorOn(true);
       const devices = await navigator.mediaDevices.enumerateDevices();
       setDetected(sensorsFromLabels(devices.filter((device) => device.kind === "videoinput").map((device) => device.label)));
-      setCameras(devices.filter((device) => device.kind === "videoinput").length);
+      setCameras(realCameraCount(devices));
     } catch (err) {
       setSensorOn(false);
       setError(explainCamera(err));
@@ -2150,7 +2160,7 @@ export default function SensorFusion() {
         {coral && (
           <img
             className={styles.coralMark}
-            src={coralLive === "loaded" ? `${UI}/coral_loaded.png` : `${UI}/coral.png`}
+            src={coralLive === "loaded" ? `${UI}/coral_icon_loaded.png` : `${UI}/coral_icon.png`}
             alt={coralLive === "loaded" ? "Coral loaded" : "Coral not loaded"}
           />
         )}
@@ -2227,6 +2237,16 @@ export default function SensorFusion() {
             </ul>
           )}
         </div>
+        <button
+          type="button"
+          className={coral ? styles.botOn : styles.bot}
+          aria-label={coralLive === "loaded" ? "Coral loaded" : "Coral"}
+          aria-pressed={coral}
+          onClick={() => chooseCoral(!coral)}
+        >
+          <img className={styles.coralIcon} src={coralLive === "loaded" ? `${UI}/coral_icon_loaded.png` : `${UI}/coral_icon.png`} alt="" />
+          Coral
+        </button>
         <button type="button" className={styles.bot} aria-label="Capture Images" onClick={() => setAnnotate(true)}>
           <StepIcon id="capture" />
           Capture Images
