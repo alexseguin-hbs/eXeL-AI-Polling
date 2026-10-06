@@ -1,0 +1,71 @@
+function refused(text: string) {
+  return Array.from(text).filter((ch) => !/[A-Z0-9 ._-]/.test(ch));
+}
+
+function escapeName(value: string) {
+  const amp = "&" + "amp;";
+  const lt = "&" + "lt;";
+  const gt = "&" + "gt;";
+  const quot = "&" + "quot;";
+  return value.replace(/&/g, amp).replace(/</g, lt).replace(/>/g, gt).replace(/"/g, quot);
+}
+
+/** The one project name the page sends a finished set to. */
+export const SENSOR_FUSION_PROJECT = "sensor-fusion";
+
+export type PairNames = { image: string; xml: string; codex1: string; codex2: string };
+
+/** The picture, its XML, and its two Light Codex strips share one name and one folder. */
+export function pairNames(fileName: string): PairNames {
+  const stem = fileName.replace(/\.[^.]+$/, "") || "picture";
+  return {
+    image: fileName,
+    xml: `${stem}.xml`,
+    codex1: `${stem}.l1.codex.png`,
+    codex2: `${stem}.l2.codex.png`,
+  };
+}
+
+/** UTC time in the Vision-2525 stamp. Only characters Light Codex can carry. */
+export function codexStamp(date = new Date()) {
+  const part = (value: number) => String(value).padStart(2, "0");
+  return `${date.getUTCFullYear()}.${part(date.getUTCMonth() + 1)}.${part(date.getUTCDate())}_${part(date.getUTCHours())}.${part(date.getUTCMinutes())}..${part(date.getUTCSeconds())}`;
+}
+
+/** A person, kept to letters Light Codex can write. */
+export function codexWho(raw: string) {
+  const clean = raw.toUpperCase().replace(/[^A-Z0-9 ._-]/g, "").replace(/\s+/g, " ").trim();
+  return clean || "GUEST";
+}
+
+export function codexLine(input: {
+  file: string;
+  level: 1 | 2;
+  who: string;
+  when: string;
+  l1?: { who: string; when: string };
+}) {
+  const file = (input.file.replace(/\.[^.]+$/, "") || "PICTURE").toUpperCase().replace(/[^A-Z0-9 ._-]/g, "");
+  const who = codexWho(input.who);
+  const line = input.level === 2 && input.l1
+    ? `L1 ${codexWho(input.l1.who)} ${input.l1.when} L2 ${who} ${input.when} ${file}`
+    : `L1 ${who} ${input.when} ${file}`;
+  const bad = refused(line);
+  if (bad.length) throw new Error(`Light Codex cannot write ${bad.join(" ")}`);
+  return line;
+}
+
+export function emptyPairXml(fileName: string) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<annotation>
+  <folder>Pictures</folder>
+  <filename>${escapeName(fileName)}</filename>
+  <size><width>0</width><height>0</height><depth>3</depth></size>
+</annotation>
+`;
+}
+
+/** A set can go to the project only after a different person has reviewed every box. */
+export function readyForProject(boxes: { level: number; by?: string; reviewer?: string }[]) {
+  return boxes.length > 0 && boxes.every((box) => box.level === 2 && !!box.reviewer && !!box.by && box.reviewer !== box.by);
+}

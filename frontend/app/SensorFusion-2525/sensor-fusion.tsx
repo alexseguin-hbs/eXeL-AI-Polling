@@ -6,6 +6,9 @@ import { Settings } from "lucide-react";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
+import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
+import { placeSignature } from "@/lib/light-codex";
+import { supabase } from "@/lib/supabase";
 import {
   COLORS,
   FRAMES,
@@ -227,7 +230,7 @@ const INFO_NOTES: Record<string, { text: string; side: "left" | "right" }> = {
 };
 
 type Shot = { id: string; url: string; name?: string; source?: "sensor" | "device" | "video"; original?: string };
-type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number; level: 1 | 2; by?: string; reviewer?: string };
+type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number; level: 1 | 2; by?: string; reviewer?: string; at?: string; reviewedAt?: string };
 type Edge = "l" | "r" | "t" | "b";
 
 function pictureName(shot: Shot) {
@@ -246,9 +249,11 @@ function vocXml(fileName: string, width: number, height: number, objects: Mark[]
       const ymin = Math.round((Math.min(item.top, item.bottom) / 100) * height);
       const ymax = Math.round((Math.max(item.top, item.bottom) / 100) * height);
       const who = item.by ? `\n    <labeledby>${escapeXml(item.by)}</labeledby>` : "";
+      const when = item.at ? `\n    <labeledat>${escapeXml(item.at)}</labeledat>` : "";
       const reviewer = item.reviewer ? `\n    <reviewedby>${escapeXml(item.reviewer)}</reviewedby>` : "";
+      const reviewedAt = item.reviewedAt ? `\n    <reviewedat>${escapeXml(item.reviewedAt)}</reviewedat>` : "";
       return `  <object>
-    <name>${escapeXml(item.name)}</name>${who}${reviewer}
+    <name>${escapeXml(item.name)}</name>${who}${when}${reviewer}${reviewedAt}
     <level>${item.level}</level>
     <pose>Unspecified</pose>
     <truncated>0</truncated>
@@ -296,7 +301,7 @@ function readVoc(xml: string) {
   const file = text(/<filename>([^<]*)<\/filename>/.exec(xml)?.[1] || "");
   const width = Number(/<width>(\d+)<\/width>/.exec(xml)?.[1] || 0);
   const height = Number(/<height>(\d+)<\/height>/.exec(xml)?.[1] || 0);
-  const boxes: { name: string; xmin: number; ymin: number; xmax: number; ymax: number; level: number; by: string; reviewer: string }[] = [];
+  const boxes: { name: string; xmin: number; ymin: number; xmax: number; ymax: number; level: number; by: string; reviewer: string; at: string; reviewedAt: string }[] = [];
   const blocks = xml.match(/<object>[\s\S]*?<\/object>/g) || [];
   for (const chunk of blocks) {
     const num = (tag: string) => Number(new RegExp(`<${tag}>(\\d+)</${tag}>`).exec(chunk)?.[1] || 0);
@@ -309,6 +314,8 @@ function readVoc(xml: string) {
       level: num("level") || 1,
       by: text(/<labeledby>([^<]*)<\/labeledby>/.exec(chunk)?.[1] || ""),
       reviewer: text(/<reviewedby>([^<]*)<\/reviewedby>/.exec(chunk)?.[1] || ""),
+      at: text(/<labeledat>([^<]*)<\/labeledat>/.exec(chunk)?.[1] || ""),
+      reviewedAt: text(/<reviewedat>([^<]*)<\/reviewedat>/.exec(chunk)?.[1] || ""),
     });
   }
   return { file, width, height, boxes };
@@ -319,19 +326,67 @@ function setFolderOf(fileName: string) {
   return base.replace(/[._]\d+$/, "") || "capture";
 }
 
-async function saveXmlFile(fileName: string, xml: string, download = false) {
+async function codexPng(line: string) {
+  const width = Math.max(32, line.length * 4 + 8);
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = 4;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, 4);
+  const signed = placeSignature(ctx.getImageData(0, 0, width, 4), line, 1, "3");
+  ctx.putImageData(signed, 0, 0);
+  return new Promise<Blob | null>((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
+}
+
+async function writeNamed(folder: Folder, files: { name: string; blob: Blob }[]) {
+  for (const file of files) {
+    const handle = await folder.getFileHandle(file.name, { create: true });
+    const writable = await handle.createWritable();
+    await writable.write(file.blob);
+    await writable.close();
+  }
+}
+
+function downloadNamed(files: { name: string; blob: Blob }[]) {
+  for (const file of files) downloadBlob(file.name, URL.createObjectURL(file.blob));
+}
+
+async function codexFiles(fileName: string, list: Mark[]) {
+  const names = pairNames(fileName);
+  const labeled = list.find((item) => item.by && item.at);
+  const reviewed = [...list].reverse().find((item) => item.level === 2 && item.reviewer && item.reviewedAt && item.by && item.at);
+  const files: { name: string; blob: Blob }[] = [];
+  if (labeled?.by && labeled.at) {
+    const blob = await codexPng(codexLine({ file: fileName, level: 1, who: labeled.by, when: labeled.at }));
+    if (blob) files.push({ name: names.codex1, blob });
+  }
+  if (reviewed?.by && reviewed.at && reviewed.reviewer && reviewed.reviewedAt) {
+    const blob = await codexPng(codexLine({
+      file: fileName,
+      level: 2,
+      who: reviewed.reviewer,
+      when: reviewed.reviewedAt,
+      l1: { who: reviewed.by, when: reviewed.at },
+    }));
+    if (blob) files.push({ name: names.codex2, blob });
+  }
+  return files;
+}
+
+async function saveXmlFile(fileName: string, xml: string, list: Mark[] = []) {
   writeXml(fileName, xml);
-  const xmlFile = xmlName(fileName);
+  const names = pairNames(fileName);
+  const strips = await codexFiles(fileName, list);
+  const files = [{ name: names.xml, blob: new Blob([xml], { type: "application/xml" }) }, ...strips];
   if (chosenFolder) {
     const setFolder = await chosenFolder.getDirectoryHandle(setFolderOf(fileName), { create: true });
-    const handle = await setFolder.getFileHandle(xmlFile, { create: true });
-    const writable = await handle.createWritable();
-    await writable.write(new Blob([xml], { type: "application/xml" }));
-    await writable.close();
-    return `${chosenFolder.name}/${setFolderOf(fileName)}/${xmlFile}`;
+    await writeNamed(setFolder, files);
+    return `${chosenFolder.name}/${setFolderOf(fileName)}/${names.xml}`;
   }
-  if (download) downloadBlob(xmlFile, URL.createObjectURL(new Blob([xml], { type: "text/xml" })));
-  return xmlFile;
+  downloadNamed(files);
+  return names.xml;
 }
 
 function lensName(label: string): Lens | null {
@@ -450,24 +505,24 @@ type SaveResult = { how: "folder" | "shared" | "downloaded"; where: string };
 
 // rev 43: the result says what really happened. A share or a download names no folder, because the app made none.
 async function saveNumberedPictures(setName: string, files: { name: string; blob: Blob }[]): Promise<SaveResult> {
+  const paired = files.flatMap((file) => {
+    const names = pairNames(file.name);
+    return [file, { name: names.xml, blob: new Blob([emptyPairXml(file.name)], { type: "application/xml" }) }];
+  });
   const folder = chosenFolder || (await chooseSaveFolder());
   if (folder) {
     const setFolder = await folder.getDirectoryHandle(setName, { create: true });
-    for (const file of files) {
-      const handle = await setFolder.getFileHandle(file.name, { create: true });
-      const writable = await handle.createWritable();
-      await writable.write(file.blob);
-      await writable.close();
-    }
+    await writeNamed(setFolder, paired);
     return { how: "folder", where: `${folder.name}/${setName}` };
   }
-  const shared = files.map((file) => new File([file.blob], file.name, { type: "image/png" }));
+  const shared = files.map((file) => new File([file.blob], file.name, { type: file.name.endsWith(".jpg") ? "image/jpeg" : "image/png" }));
   const share = navigator as Navigator & { canShare?: (data: { files: File[] }) => boolean };
   if (share.canShare?.({ files: shared }) && navigator.share) {
     await navigator.share({ files: shared, title: "SensorFusion" });
+    downloadNamed(paired.filter((file) => file.name.endsWith(".xml")));
     return { how: "shared", where: "" };
   }
-  files.forEach((file) => downloadBlob(file.name, URL.createObjectURL(file.blob)));
+  downloadNamed(paired);
   return { how: "downloaded", where: "" };
 }
 
@@ -566,6 +621,8 @@ function Labeler({
       level: box.level === 2 ? 2 : 1,
       by: box.by,
       reviewer: box.reviewer,
+      at: box.at,
+      reviewedAt: box.reviewedAt,
     }));
     setMarks((current) => ({ ...current, [pic.id]: list }));
     const box = list[list.length - 1];
@@ -663,7 +720,7 @@ function Labeler({
       setNote("The picture is still opening.");
       return "";
     }
-    return saveXmlFile(fileName, vocXml(fileName, width, height, list));
+    return saveXmlFile(fileName, vocXml(fileName, width, height, list), list);
   }
 
   async function saveBox() {
@@ -682,6 +739,7 @@ function Labeler({
       bottom,
       level: 1,
       by: who || "guest",
+      at: codexStamp(),
     };
     // rev 43: a box that is already saved, or the untouched start box after a save, is refused with one sentence.
     const refused = refuseBox(prior, mark, editing);
@@ -697,7 +755,7 @@ function Labeler({
     const where = await writePicture(pictureName(pic), list);
     if (where) {
       const kept = chosenFolder ? `Saved ${where}.` : `Box ${list.length} kept on this device. FILES saves ${where}.`;
-      setNote(`${kept} Level 1 is XML. A second person marks Level 2, still as XML.`);
+      setNote(`${kept} Next: another box, or LEVEL 2 by a second person.`);
     }
   }
 
@@ -711,10 +769,11 @@ function Labeler({
       setNote("A different person must review this box.");
       return;
     }
-    const list = (marks[pic.id] || []).map((item) => (item.id === mark.id ? { ...item, level: 2 as const, reviewer: who } : item));
+    const when = codexStamp();
+    const list = (marks[pic.id] || []).map((item) => (item.id === mark.id ? { ...item, level: 2 as const, reviewer: who, at: item.at || when, reviewedAt: when } : item));
     setMarks({ ...marks, [pic.id]: list });
     const where = await writePicture(pictureName(pic), list);
-    if (where) setNote(`Level 2 saved as XML. ${where}`);
+    if (where) setNote(`Level 2 saved. Light Codex is beside the picture. ${where}`);
   }
 
   function fixBox(mark: Mark) {
@@ -789,7 +848,7 @@ function Labeler({
       setNote("The picture is still opening.");
       return;
     }
-    const where = await saveXmlFile(pictureName(pic), vocXml(pictureName(pic), width, height, list), true);
+    const where = await saveXmlFile(pictureName(pic), vocXml(pictureName(pic), width, height, list), list);
     // R4a: nothing is written to the cloud yet (042 members-only) — the save says where the file is AND that it stays here.
     setNote(`Saved ${where}. These boxes stay on this device.`);
   }
@@ -1913,19 +1972,81 @@ export default function SensorFusion() {
     }
   }
 
-  function uploadSet() {
+  async function uploadSet() {
     if (!shots.length) {
       setError("Capture images before you upload a set.");
       return;
     }
-    const lines = [
-      "Sensor Fusion set",
-      "These pictures stay on this device. A training destination has not been chosen.",
-      ...shots.map((shot) => [shot.name || "", shot.source || "sensor", shot.original || ""].join("\t")),
-    ];
-    downloadBlob(`${classKey(labelPick)}.set.txt`, URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/plain" })));
+    const store = readXmlStore();
+    const pages = shots.map((shot) => {
+      const xml = store[pictureName(shot)];
+      return xml ? readVoc(xml) : null;
+    });
+    if (!pages.every((page) => page && readyForProject(page.boxes))) {
+      setError("Level 2 is still needed. A different person reviews each box before the project can take this set.");
+      setTrainStatus("");
+      setSavedNote(true);
+      return;
+    }
+    if (!supabase) {
+      setError("The project is not connected from this page. The pictures and XML stayed in the folder.");
+      return;
+    }
+    const { data: session } = await supabase.auth.getSession();
+    const owner = session.session?.user?.id || "";
+    if (!owner) {
+      setError("Sign in as a member of the sensor-fusion project. The pictures and XML stayed in the folder.");
+      return;
+    }
+    let sent = 0;
+    for (let index = 0; index < shots.length; index += 1) {
+      const shot = shots[index];
+      const page = pages[index];
+      if (!page) continue;
+      const fileName = pictureName(shot);
+      const labeled = page.boxes.find((box) => box.by && box.at);
+      const reviewed = [...page.boxes].reverse().find((box) => box.reviewer && box.reviewedAt);
+      const l1 = labeled ? codexLine({ file: fileName, level: 1, who: labeled.by, when: labeled.at }) : "";
+      const l2 = reviewed && labeled ? codexLine({ file: fileName, level: 2, who: reviewed.reviewer, when: reviewed.reviewedAt, l1: { who: labeled.by, when: labeled.at } }) : "";
+      const picture = await supabase.from("sensor_fusion_pictures").insert({
+        owner_key: owner,
+        name: fileName,
+        model,
+        jpeg: shot.url.startsWith("data:") ? shot.url.slice(0, 500000) : `local:${fileName}`,
+        project_id: SENSOR_FUSION_PROJECT,
+        codex_l1: l1,
+        codex_l2: l2,
+      }).select("id").single();
+      if (picture.error || !picture.data) {
+        setError(picture.error?.message || "The project did not take this set. The pictures and XML stayed in the folder.");
+        return;
+      }
+      const labels = page.boxes.map((box) => ({
+        owner_key: owner,
+        picture_id: picture.data.id,
+        name: box.name,
+        x1: box.xmin,
+        y1: box.ymin,
+        x2: box.xmax,
+        y2: box.ymax,
+        project_id: SENSOR_FUSION_PROJECT,
+        level: box.level,
+        labeled_by: box.by,
+        labeled_at: box.at,
+        reviewed_by: box.reviewer,
+        reviewed_at: box.reviewedAt,
+        codex: l2,
+      }));
+      const written = await supabase.from("sensor_fusion_labels").insert(labels);
+      if (written.error) {
+        setError(written.error.message);
+        return;
+      }
+      sent += 1;
+    }
+    setCloudSaved(true);
     setError("");
-    setTrainStatus("This set is on this device. Training has not started.");
+    setTrainStatus(`${sent} pictures are in the sensor-fusion project. Level 2 and Light Codex went with them.`);
     setSavedNote(true);
   }
 
