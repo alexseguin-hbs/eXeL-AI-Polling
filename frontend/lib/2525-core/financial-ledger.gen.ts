@@ -1086,7 +1086,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-05",
       "kind": "correction",
       "text": "r.079 correction — the Rate line in the gear follows the unit on the card. /sec, /min, /hr, or /day changes the live equation. The 30-day result stays the month plan and is not added into Income.",
-      "commit": ""
+      "commit": "85c43e2"
     }
   ]
 };
