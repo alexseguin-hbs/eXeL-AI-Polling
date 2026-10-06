@@ -77,6 +77,19 @@ export interface FitCheckin {
   parsed?: Record<string, unknown>;
 }
 
+/** One logged meal / snack. Every number is what the athlete typed — blank stays null (never estimated). */
+export interface FitMeal {
+  id: string;
+  name?: string;
+  time?: string; // HH:MM local
+  kcal?: number | null;
+  carbs_g?: number | null;
+  sugar_g?: number | null;
+  protein_g?: number | null;
+  fat_g?: number | null;
+  at: number;
+}
+
 export interface FitDay {
   v: 1;
   date: string;
@@ -99,6 +112,12 @@ export interface FitDay {
   sleep_hrs?: number | null;
   workouts: FitWorkout[];
   checkins: FitCheckin[];
+  /** Meal + sugar log (NUTRITION). When any meal has kcal / sugar, calories_in / sugar_out_g are their sums. */
+  meals?: FitMeal[];
+  /** Day energy rating 1–10 (athlete-entered). */
+  energy?: number | null;
+  /** Tombstones: id → deleted-at ms. A deleted workout / meal / check-in never comes back on merge. */
+  deleted?: Record<string, number>;
   deficit_note?: string;
   /** @deprecated Calories-only — leftover cloud field; UI ignores. */
   energy_cost_per_kcal?: number | null;
@@ -131,7 +150,7 @@ export function deficitDelta(day: Pick<FitDay, "calories_in" | "calories_out">):
   return out - inn;
 }
 
-// ── Athlete profile (fit-profile record) ────────────────────────────────
+// ── Athlete profile (fit-profile record) ────────────────────────────────────────
 export type FitUnitSystem = "imperial" | "metric";
 export type FitRateUnitSetting = "per_hr" | "per_min" | "per_sec";
 export type FitFluidUnit = "oz" | "ml";
