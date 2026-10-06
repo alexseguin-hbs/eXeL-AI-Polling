@@ -1234,6 +1234,18 @@ export default function SensorFusion() {
         if (stop) return;
         let failed = false;
         let coralLive = false;
+        const clearBoxes = () => {
+          const canvas = canvasRef.current;
+          const ctx = canvas?.getContext("2d");
+          if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+          const fill = meterRef.current?.querySelector("i");
+          if (fill instanceof HTMLElement) fill.style.height = "0%";
+          if (lastAlert.current) {
+            lastAlert.current = "";
+            setAlert("");
+          }
+        };
+        if (coralRef.current) clearBoxes();
         const loop = async () => {
           if (stop) return;
           const video = videoRef.current;
@@ -1254,7 +1266,8 @@ export default function SensorFusion() {
                   const health = await fetch("http://127.0.0.1:8765/health", { cache: "no-store" });
                   const body = (await health.json()) as { engine?: string };
                   if (body.engine !== "Coral") {
-                    setError(body.engine === "missing" ? "The program is running, but Coral did not start." : "The Coral program is not running on this computer.");
+                    clearBoxes();
+                    setError(body.engine === "missing" ? "The program is running, but Coral did not start." : "Not connected. Start the program on this PC.");
                     if (!stop) window.setTimeout(loop, 1500);
                     return;
                   }
@@ -1307,9 +1320,10 @@ export default function SensorFusion() {
               } catch (err) {
                 console.error(err);
                 coralLive = false;
+                clearBoxes();
                 if (!failed && !stop) {
                   failed = true;
-                  setError("The Coral program is not running on this computer.");
+                  setError("Not connected. Start the program on this PC.");
                 }
               }
             } else try {
@@ -1354,7 +1368,7 @@ export default function SensorFusion() {
         void loop();
       } catch (err) {
         console.error(err);
-        if (!stop) setError(coralRef.current ? "The Coral program is not running on this computer." : "The detector could not start on this device.");
+        if (!stop) setError(coralRef.current ? "Not connected. Start the program on this PC." : "The detector could not start on this device.");
       }
     };
     void run();

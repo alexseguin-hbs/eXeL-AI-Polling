@@ -515,6 +515,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "The % and Labels toggles sit together as one control. The other bottom buttons share the remaining space evenly.",
+      commit: "8aa6502",
+    },
+    {
+      rev: 74,
+      date: "2026-10-05",
+      kind: "release",
+      text: "Choosing CORAL clears the page's boxes. New boxes appear only after the program on this PC is running the selected model on Coral.",
       commit: "",
     },
   ],
