@@ -220,6 +220,22 @@
   object-fit: cover;
   background: #000;
 }
+.coralStick {
+  display: block;
+  width: 36px;
+  height: auto;
+  margin: 8px 0;
+}
+.coralMark {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 4;
+  width: 42px;
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
 .pane {
   position: absolute;
   inset: 0;

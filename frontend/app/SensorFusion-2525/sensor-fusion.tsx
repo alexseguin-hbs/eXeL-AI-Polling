@@ -103,6 +103,7 @@ function SettingsSheet({
   scheme,
   customHex,
   coral,
+  coralLive,
   alerts,
   onCoral,
   onAlerts,
@@ -113,6 +114,7 @@ function SettingsSheet({
   scheme: SchemeId | "custom";
   customHex: string;
   coral: boolean;
+  coralLive: "off" | "look" | "loaded" | "missing";
   alerts: boolean;
   onCoral: (on: boolean) => void;
   onAlerts: (on: boolean) => void;
@@ -131,6 +133,11 @@ function SettingsSheet({
         </div>
         <div className={styles.edgeBox}>
           <p>CPU CORAL</p>
+          <img
+            className={styles.coralStick}
+            src={coralLive === "loaded" ? `${UI}/coral_loaded.png` : `${UI}/coral.png`}
+            alt={coralLive === "loaded" ? "Coral loaded" : "Coral"}
+          />
           <div className={styles.edgePick} role="group" aria-label="CPU CORAL">
             <button type="button" aria-pressed={!coral} className={!coral ? styles.swatchOn : ""} onClick={() => onCoral(false)}>
               CPU
@@ -141,6 +148,11 @@ function SettingsSheet({
           </div>
           {/* rev 43: CORAL picked in a browser says where Coral really runs (decideRun via coralNote). */}
           {coralNote(coral) && <p className={styles.muted}>{coralNote(coral)}</p>}
+          {coral && (
+            <p className={styles.muted}>
+              {coralLive === "loaded" ? "Loaded." : coralLive === "missing" ? "Not connected. Start the program on this PC." : "Looking for Coral."}
+            </p>
+          )}
         </div>
         <div className={styles.edgeBox}>
           <p>ALERTS</p>
@@ -1000,6 +1012,8 @@ export default function SensorFusion() {
   const [lens, setLens] = useState<Lens>("wide");
   const [model, setModel] = useState("demo90");
   const [coral, setCoral] = useState(false);
+  const [coralLive, setCoralLive] = useState<"off" | "look" | "loaded" | "missing">("off");
+  const [cameras, setCameras] = useState(0);
   const [alerts, setAlerts] = useState(true);
   const [alert, setAlert] = useState("");
   const [guest, setGuest] = useState(false);
@@ -1131,6 +1145,58 @@ export default function SensorFusion() {
   useEffect(() => {
     setCoral(window.localStorage.getItem("sf2525-coral") === "1");
     setAlerts(window.localStorage.getItem("sf2525-alerts") !== "0");
+  }, []);
+
+  useEffect(() => {
+    if (!coral) {
+      setCoralLive("off");
+      return;
+    }
+    let stop = false;
+    const ping = async () => {
+      try {
+        const health = await fetch("http://127.0.0.1:8765/health", { cache: "no-store" });
+        const body = (await health.json()) as { engine?: string };
+        if (!stop) setCoralLive(body.engine === "Coral" ? "loaded" : "missing");
+      } catch {
+        if (!stop) setCoralLive("missing");
+      }
+    };
+    setCoralLive("look");
+    void ping();
+    const id = window.setInterval(ping, 2500);
+    return () => {
+      stop = true;
+      window.clearInterval(id);
+    };
+  }, [coral]);
+
+  useEffect(() => {
+    let stop = false;
+    const count = async () => {
+      if (!navigator.mediaDevices?.enumerateDevices) return;
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videos = devices.filter((device) => device.kind === "videoinput");
+        if (stop) return;
+        setCameras(videos.length);
+        setDetected(sensorsFromLabels(videos.map((device) => device.label)));
+        if (videos.length > 0 && videos.length < 2 && sensorsFromLabels(videos.map((device) => device.label)).length === 0) {
+          stream2Ref.current?.getTracks().forEach((track) => track.stop());
+          stream2Ref.current = null;
+          setSensor2On(false);
+          setExtra("");
+        }
+      } catch {
+        /* The list appears after the camera is allowed. */
+      }
+    };
+    void count();
+    navigator.mediaDevices?.addEventListener("devicechange", count);
+    return () => {
+      stop = true;
+      navigator.mediaDevices?.removeEventListener("devicechange", count);
+    };
   }, []);
 
   useEffect(() => {
@@ -1421,6 +1487,7 @@ export default function SensorFusion() {
       setSensorOn(true);
       const devices = await navigator.mediaDevices.enumerateDevices();
       setDetected(sensorsFromLabels(devices.filter((device) => device.kind === "videoinput").map((device) => device.label)));
+      setCameras(devices.filter((device) => device.kind === "videoinput").length);
     } catch (err) {
       setSensorOn(false);
       setError(explainCamera(err));
@@ -1939,14 +2006,15 @@ export default function SensorFusion() {
             <p className={styles.alert}>Pose is not designed yet. It does not have the three files the other models use.</p>
           )}
         </div>
-        <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} alerts={alerts} onCoral={chooseCoral} onAlerts={chooseAlerts} onClose={() => setSettings(false)} onScheme={chooseScheme} />
+        <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} coralLive={coralLive} alerts={alerts} onCoral={chooseCoral} onAlerts={chooseAlerts} onClose={() => setSettings(false)} onScheme={chooseScheme} />
         <Foot accent={accent} />
       </main>
     );
   }
 
   const current = MODELS.find((item) => item.id === model) ?? MODELS[0];
-  const showSecond = phoneKind() === "other" || dualOk || detected.length > 0;
+  const phone = phoneKind() !== "other";
+  const showSecond = (cameras >= 2 && (phone ? dualOk : true)) || detected.length > 0;
 
   return (
     <main className={`${styles.screen} ${styles.work}`}>
@@ -1983,7 +2051,7 @@ export default function SensorFusion() {
                   Off
                 </button>
               </li>
-              {EXTRA_SENSORS.filter((item) => (item.id === "camera" ? phoneKind() === "other" || dualOk : detected.includes(item.id))).map((item) => (
+              {EXTRA_SENSORS.filter((item) => (item.id === "camera" ? cameras >= 2 && (phone ? dualOk : true) : detected.includes(item.id))).map((item) => (
                 <li key={item.id}>
                   <button type="button" role="option" aria-selected={extra === item.id} onClick={() => chooseExtra(item.id)}>
                     {item.label}
@@ -1994,6 +2062,7 @@ export default function SensorFusion() {
           )}
         </div>
         )}
+        {phone && (
         <div className={styles.lensWrap}>
           <button
             type="button"
@@ -2033,6 +2102,7 @@ export default function SensorFusion() {
             </ul>
           )}
         </div>
+        )}
         <div className={styles.tools}>
           <ProgramDownload />
           <button type="button" className={styles.iconBtn} aria-label="Info" onClick={() => setInfoOpen((open) => !open)}>
@@ -2077,6 +2147,13 @@ export default function SensorFusion() {
         <div className={styles.pane}>
         <video ref={videoRef} autoPlay muted playsInline aria-label="SENSOR 1" />
         <canvas ref={canvasRef} className={styles.boxes} />
+        {coral && (
+          <img
+            className={styles.coralMark}
+            src={coralLive === "loaded" ? `${UI}/coral_loaded.png` : `${UI}/coral.png`}
+            alt={coralLive === "loaded" ? "Coral loaded" : "Coral not loaded"}
+          />
+        )}
         {extra && <span className={styles.paneTag}>SENSOR 1</span>}
         {sensorOn && !annotate && !capturing && (
           <div className={styles.meter} ref={meterRef} aria-hidden="true">
@@ -2330,7 +2407,7 @@ export default function SensorFusion() {
           </div>
         </div>
       )}
-      <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} alerts={alerts} onCoral={chooseCoral} onAlerts={chooseAlerts} onClose={() => setSettings(false)} onScheme={chooseScheme} />
+      <SettingsSheet open={settings} scheme={scheme} customHex={customHex} coral={coral} coralLive={coralLive} alerts={alerts} onCoral={chooseCoral} onAlerts={chooseAlerts} onClose={() => setSettings(false)} onScheme={chooseScheme} />
       {infoOpen && (
         <div className={`${styles.lesson} ${styles.work}`} role="dialog" aria-label="Sensor Fusion" ref={lessonRef}>
           <header className={styles.piTop}>

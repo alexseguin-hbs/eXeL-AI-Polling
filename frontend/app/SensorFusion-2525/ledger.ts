@@ -475,6 +475,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "CORAL sends the camera to a program on this PC, which loads the model on the Coral chip. CPU still runs the model in the page. If the program is not running, the page says so and does not pretend.",
       commit: "fd9b09e",
     },
+    {
+      rev: 68,
+      date: "2026-10-05",
+      kind: "release",
+      text: "The Coral stick shows in Settings and on the picture. A green check means the stick answered. SENSOR 2 stays hidden until a second camera or sensor is there. The phone lens list is only on a phone.",
+      commit: "",
+    },
   ],
 };
 
