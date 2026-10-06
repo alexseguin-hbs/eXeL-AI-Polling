@@ -15,7 +15,7 @@ export type ChartSpan = "1x" | "1D" | "1W" | "30D";
 
 export function EnergyUnitsCard({
   day, owner, rateUnit, setRateUnit, showAllRates, setShowAllRates, settingsOpen, setSettingsOpen,
-  fuelPer, burnPer, netPer, deficit, delta, coachBusy, runCoach, btnPrimary,
+  fuelPer, burnPer, netPer, deficit, delta, burnOutKcal, coachBusy, runCoach, btnPrimary,
 }: {
   day: FitDay;
   owner: string | null;
@@ -30,6 +30,8 @@ export function EnergyUnitsCard({
   netPer: number | null;
   deficit: boolean;
   delta: number | null;
+  /** Modeled burned-so-far (BMR + NEAT + completed workouts); null until the profile gives BMR. */
+  burnOutKcal: number | null;
   coachBusy: boolean;
   runCoach: (focus: "workout" | "nutrition" | "both") => void;
   btnPrimary: CSSProperties;
@@ -111,7 +113,7 @@ export function EnergyUnitsCard({
         <div>
           <dt className="text-[9px] uppercase" style={{ color: C.dim }}>Burn (out)</dt>
           <dd className={`text-sm font-semibold tabular-nums ${styles.mono}`} style={{ color: C.red }}>
-            {day.calories_out != null ? `${day.calories_out} kcal` : "—"}
+            {burnOutKcal != null ? `${burnOutKcal} kcal` : "—"}
           </dd>
         </div>
         <div>
@@ -183,7 +185,7 @@ export function RealtimeEnergyPanel({
         {([
           ["steps", "Steps", day.steps],
           ["calories_in", "Calories in", day.calories_in],
-          ["calories_out", "Calories out", day.calories_out],
+          ["calories_out", "Device kcal (info · not day burn)", day.calories_out],
         ] as const).map(([field, label, val]) => (
           <label key={field} className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
             {label}

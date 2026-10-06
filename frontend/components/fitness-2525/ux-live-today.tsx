@@ -32,9 +32,12 @@ export function LiveTodayBoard({
   const sugarCap = budget.sugarCapG;
   const bikeMin = typeof bike?.minutes === "number" && bike.minutes > 0 ? bike.minutes : null;
   const bikeBurnEst = anthroUnknown ? null : budget.windows.find((w) => w.id === bike?.id)?.burnKcal ?? null;
+  // Calories out = modeled BMR + NEAT + COMPLETED workouts; without a profile only the workout subtotal is known.
+  const burnedSoFar = budget.totalBurnKcal;
+  const outShown = burnedSoFar ?? budget.workoutBurnKcal;
   const net =
-    day.calories_in != null && day.calories_out != null && Number.isFinite(day.calories_in) && Number.isFinite(day.calories_out)
-      ? day.calories_out - day.calories_in
+    burnedSoFar != null && day.calories_in != null && Number.isFinite(day.calories_in)
+      ? burnedSoFar - day.calories_in
       : null;
   const burnRates = burnDayRates(day.calories_out);
   // Session rate computed from logged data only (Garmin duration preferred over rounded minutes).
@@ -65,8 +68,8 @@ export function LiveTodayBoard({
         <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 text-center">
           <div>
             <dt className="text-[9px] uppercase" style={{ color: C.dim }}>Calories out</dt>
-            <dd className={`text-lg font-bold tabular-nums ${styles.mono}`} style={{ color: C.red }}>{day.calories_out != null ? day.calories_out : "—"}</dd>
-            <div className="text-[8px]" style={{ color: C.dim }}>logged so far</div>
+            <dd className={`text-lg font-bold tabular-nums ${styles.mono}`} style={{ color: C.red }}>{outShown != null ? outShown : "—"}</dd>
+            <div className="text-[8px]" style={{ color: C.dim }}>{burnedSoFar != null ? "BMR + NEAT + done workouts" : outShown != null ? "done workouts only · add PROFILE for BMR" : "logged so far"}</div>
           </div>
           <div>
             <dt className="text-[9px] uppercase" style={{ color: C.dim }}>Calories in</dt>
