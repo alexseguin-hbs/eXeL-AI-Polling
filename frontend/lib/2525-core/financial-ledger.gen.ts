@@ -1121,7 +1121,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-05",
       "kind": "correction",
       "text": "r.084 correction — Income and its amount are centered. The row had an empty right side on a wide screen. Escrow, Released, Spent, and Available stay in their two columns.",
-      "commit": ""
+      "commit": "766ecdc"
     }
   ]
 };
