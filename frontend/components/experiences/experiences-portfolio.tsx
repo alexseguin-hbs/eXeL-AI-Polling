@@ -68,6 +68,13 @@ const WRITEUPS: Item[] = [
 const RESUMES: Item[] = [
   {
     kind: "pdf",
+    titleKey: "experiences.card.resume3.title",
+    badgeKey: "experiences.card.resume3.badge",
+    blurbKey: "experiences.card.resume3.blurb",
+    href: "/experiences/ASeguin_SensorFusion_Robotics_PM.pdf",
+  },
+  {
+    kind: "pdf",
     titleKey: "experiences.card.resume1.title",
     badgeKey: "experiences.card.resume1.badge",
     blurbKey: "experiences.card.resume1.blurb",
