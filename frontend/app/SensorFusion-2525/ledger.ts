@@ -536,7 +536,7 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "The phone or computer is found on its own. The device list stays closed unless you say this is not that device.",
-      commit: "",
+      commit: "c83949c",
     },
   ],
 };
