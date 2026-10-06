@@ -748,7 +748,7 @@ export function FinancialCommandUX1() {
               {bal.ratePerMinCents > 0 && (
                 <div data-fin-rate-block className="flex shrink-0 items-center gap-1 text-primary">
                   <span data-fin-rate className="font-mono tabular-nums">{rateText}</span>
-                  <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="h-7 min-w-[3.5rem] shrink-0 rounded-md border border-border bg-background px-1 text-[1em] leading-none text-primary">
+                  <select data-fin-rate-unit aria-label={t("fin.rate_unit")} value={rateUnit} onChange={(e) => setRateUnit(e.target.value as RateUnit)} className="box-border h-7 w-[3.25rem] shrink-0 rounded-md border border-border bg-background py-0 pl-1 pr-0 text-center text-[11px] leading-7 text-primary">
                     {RATE_UNITS.map((u) => <option key={u} value={u}>{t(`fin.rate.${u}`)}</option>)}
                   </select>
                 </div>

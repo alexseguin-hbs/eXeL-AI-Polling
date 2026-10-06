@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Financial-2525 append-only traceability ledger — 164 entries, extracted at build time. */
+/** Financial-2525 append-only traceability ledger — 165 entries, extracted at build time. */
 export const FINANCIAL_LEDGER: LedgerInput = {
   "section": "Financial-2525",
   "route": "/financial-2525",
@@ -1157,6 +1157,13 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "r.089 correction — each column of figures is centered. The $ stays on the left and the decimals line up inside the column. The size follows the card, so portrait and landscape both fit.",
       "commit": "eb03f37"
+    },
+    {
+      "rev": 165,
+      "date": "2026-10-05",
+      "kind": "correction",
+      "text": "r.090 correction — the black rate box matches the height of + Transaction and the gear, and it is only as wide as /day.",
+      "commit": ""
     }
   ]
 };
