@@ -1100,7 +1100,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-05",
       "kind": "correction",
       "text": "r.081 correction — the one-line Accrual header closed the card too early, so the site build failed. The extra close is removed. Accrual Rate and the amount stay left. + Transaction and the gear stay on the right.",
-      "commit": ""
+      "commit": "7bf6be3"
     }
   ]
 };
