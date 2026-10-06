@@ -720,7 +720,7 @@ export function FinancialCommandUX1() {
 
         {/* ACCRUAL UNITS (r.028, addendum 58): the current balance on the LEFT; the $/min figure and its unit selector on the RIGHT; a
             settings gear upper right; "Available: $…"; no Withdraw button (withdrawal is a choice inside + Transaction); full width on the phone */}
-        <div data-fin-balance className="-mx-2 mb-4 rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm sm:mx-0">
+        <div data-fin-balance className="-mx-2 mb-4 rounded-lg border border-primary/70 bg-primary/5 p-3 text-sm shadow-[0_0_28px_-6px] shadow-primary/70 sm:mx-0">
           {/* r.033 (addendum 64 "Accrual field needs to be left to settings button on top line"): title left; the $/min figure and its
               unit selector on the SAME line, immediately left of the gear */}
           {/* r.042 (addendum 81 "Move transaction left of settings and move accrual rate to right of Available · swap these two"):
