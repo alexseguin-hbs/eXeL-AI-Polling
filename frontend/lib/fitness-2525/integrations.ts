@@ -15,6 +15,11 @@ export interface ProviderStatus {
   message?: string;
   apply_url?: string;
   storage?: string;
+  missing?: string[];
+  setup?: string;
+  redirect_uri?: string;
+  interim?: string;
+  strava_link?: string;
 }
 
 const jsonOf = async (res: Response) =>
@@ -45,6 +50,11 @@ function asStatus(d: Record<string, unknown>, fallbackPending = false): Provider
     message: d.message != null ? String(d.message) : d.error != null ? String(d.error) : undefined,
     apply_url: d.apply_url != null ? String(d.apply_url) : undefined,
     storage: d.storage != null ? String(d.storage) : undefined,
+    missing: Array.isArray(d.missing) ? d.missing.map(String) : undefined,
+    setup: d.setup != null ? String(d.setup) : undefined,
+    redirect_uri: d.redirect_uri != null ? String(d.redirect_uri) : undefined,
+    interim: d.interim != null ? String(d.interim) : undefined,
+    strava_link: d.strava_link != null ? String(d.strava_link) : undefined,
   };
 }
 
@@ -92,18 +102,34 @@ export async function fetchProviderStatus(
 export async function beginConnect(
   provider: ProviderId,
   getToken: () => Promise<string | null | undefined>,
-): Promise<{ url?: string; pending?: boolean; message?: string; apply_url?: string; error?: string }> {
+): Promise<{
+  url?: string; pending?: boolean; message?: string; apply_url?: string; error?: string;
+  missing?: string[]; setup?: string; redirect_uri?: string; interim?: string; strava_link?: string;
+}> {
   const res = await fetch(`/api/fitness-2525/${provider}/connect`, {
     method: "POST",
     headers: await authHeaders(getToken),
     signal: AbortSignal.timeout(20_000),
   });
   const d = await jsonOf(res);
-  if (d.pending || d.configured === false) {
+  // Strava not configured → real error with exact secret names (never fake OAuth / never "pending").
+  if (provider === "strava" && d.configured === false) {
+    const missing = Array.isArray(d.missing) ? d.missing.map(String) : ["STRAVA_CLIENT_ID", "STRAVA_CLIENT_SECRET"];
+    return {
+      error: String(d.error || "Strava OAuth is not configured on the Worker"),
+      missing,
+      setup: d.setup != null ? String(d.setup) : undefined,
+      redirect_uri: d.redirect_uri != null ? String(d.redirect_uri) : undefined,
+    };
+  }
+  // Garmin without app credentials → pending + interim Strava path (no fake Garmin authorize URL).
+  if (d.pending || (provider === "garmin" && d.configured === false)) {
     return {
       pending: true,
-      message: String(d.message || "Pending developer approval"),
+      message: String(d.message || "Garmin pending developer approval — use Connect Strava meanwhile"),
       apply_url: d.apply_url != null ? String(d.apply_url) : undefined,
+      interim: d.interim != null ? String(d.interim) : "strava",
+      strava_link: d.strava_link != null ? String(d.strava_link) : "https://www.strava.com/settings/apps",
     };
   }
   if (d.error) return { error: String(d.error) };
