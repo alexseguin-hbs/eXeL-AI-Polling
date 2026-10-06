@@ -1114,7 +1114,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-05",
       "kind": "correction",
       "text": "r.083 correction — the Accrual header sizes itself to the card, so the one line fits a phone. A narrow phone shows Rate instead of Accrual Rate. The build now parses the file, so a broken tag fails before the site build.",
-      "commit": ""
+      "commit": "764876a"
     }
   ]
 };
