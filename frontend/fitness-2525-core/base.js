@@ -1,5 +1,6 @@
 // Fitness-2525 worker core — helpers + fit-day record store (split from fitness-2525-core.js; < 12KB per module for the GitHub connector).
 // Auth0 JWT + OAuth state → auth.js · encrypted token store (KV only) → tokens.js. Tokens NEVER go through this file.
+// fit-day records go to Supabase innovation_state (the same rows the browser reads/writes), never to KV (AsM #14).
 
 export const json = (o, status = 200, extra = {}) =>
   new Response(JSON.stringify(o), { status, headers: { "content-type": "application/json", "cache-control": "no-store", ...extra } });
@@ -47,9 +48,6 @@ export const hmacOk = async (secret, msg, sig) => {
 
 export const auth0Domain = (env) => String(env.AUTH0_DOMAIN || "exel-ai-polling.us.auth0.com").replace(/^https?:\/\//, "").replace(/\/$/, "");
 
-/** fit-day records (NOT tokens): the dedicated Fitness KV only — never another feature's KV (SITE_STATE is the pause switch). */
-export const kvOf = (env) => (env.FITNESS_STORE && typeof env.FITNESS_STORE.get === "function" ? env.FITNESS_STORE : null);
-
 export const supabaseCfg = (env) => {
   const url = String(env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || "").replace(/\/$/, "");
   const key = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -57,11 +55,6 @@ export const supabaseCfg = (env) => {
 };
 
 export async function rpcPut(env, owner, name, payload) {
-  const kv = kvOf(env);
-  if (kv) {
-    await kv.put(`fit:${owner}:${name}`, JSON.stringify(payload));
-    return true;
-  }
   const sb = supabaseCfg(env);
   if (!sb) return false;
   const res = await fetch(`${sb.url}/rest/v1/rpc/innovation_state_put`, {
@@ -74,12 +67,6 @@ export async function rpcPut(env, owner, name, payload) {
 }
 
 export async function rpcGet(env, owner, name) {
-  const kv = kvOf(env);
-  if (kv) {
-    const raw = await kv.get(`fit:${owner}:${name}`);
-    if (!raw) return null;
-    try { return JSON.parse(raw); } catch { return null; }
-  }
   const sb = supabaseCfg(env);
   if (!sb) return null;
   const res = await fetch(`${sb.url}/rest/v1/rpc/innovation_state_get`, {
@@ -93,11 +80,6 @@ export async function rpcGet(env, owner, name) {
 }
 
 export async function rpcDel(env, owner, name) {
-  const kv = kvOf(env);
-  if (kv) {
-    await kv.delete(`fit:${owner}:${name}`);
-    return true;
-  }
   const sb = supabaseCfg(env);
   if (!sb) return false;
   await fetch(`${sb.url}/rest/v1/rpc/innovation_state_del`, {

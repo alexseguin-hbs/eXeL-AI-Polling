@@ -67,6 +67,8 @@ export function dayFromIso(iso, tzHint) {
   }
 }
 
+/** Merge one provider workout into its fit-day row. Honours tombstones (a workout the athlete deleted stays deleted).
+ *  Does NOT touch fit-index — callers write it once per sync via touchIndex(). Returns { date, id, skipped? }. */
 export async function mergeWorkoutIntoDay(env, auth0Sub, workout) {
   const owner = await dayOwner(auth0Sub);
   const date = dayFromIso(workout.start_iso);
@@ -74,6 +76,7 @@ export async function mergeWorkoutIntoDay(env, auth0Sub, workout) {
   const existing = (await rpcGet(env, owner, name)) || {
     v: 1, date, tz: "America/Chicago", workouts: [], checkins: [], at: 0, source: "strava-webhook",
   };
+  if (existing.deleted && existing.deleted[workout.id]) return { date, id: workout.id, skipped: "deleted" };
   const workouts = Array.isArray(existing.workouts) ? existing.workouts.slice() : [];
   const idx = workouts.findIndex((w) => w && (w.id === workout.id || w.strava_id === workout.strava_id));
   const clean = { ...workout };
@@ -81,18 +84,26 @@ export async function mergeWorkoutIntoDay(env, auth0Sub, workout) {
   delete clean.strava_id;
   if (idx >= 0) workouts[idx] = { ...workouts[idx], ...clean };
   else workouts.push(clean);
-  const next = { ...existing, v: 1, date, workouts, at: Date.now(), source: existing.source || "strava" };
+  const next = { ...existing, v: 1, date, workouts, at: Math.max(Date.now(), (existing.at || 0) + 1), source: existing.source || "strava" };
   if (clean.calories != null && (existing.calories_out == null || existing.source === "strava" || existing.source === "strava-webhook")) {
     const sum = workouts.reduce((acc, w) => acc + (typeof w.calories === "number" ? w.calories : 0), 0);
     next.calories_out = sum || existing.calories_out;
   }
   await rpcPut(env, owner, name, next);
-  // touch index
-  const idxName = "fit-index";
-  const index = (await rpcGet(env, owner, idxName)) || { days: [], at: 0 };
-  const days = Array.from(new Set([...(index.days || []), date])).filter(Boolean).sort();
-  await rpcPut(env, owner, idxName, { days, at: Date.now() });
   return { date, id: clean.id };
+}
+
+/** fit-index: read once, add the synced dates, write once — and only when the day list changed. */
+export async function touchIndex(env, auth0Sub, dates) {
+  const add = Array.from(new Set((dates || []).filter(Boolean)));
+  if (!add.length) return false;
+  const owner = await dayOwner(auth0Sub);
+  const index = (await rpcGet(env, owner, "fit-index")) || { days: [], at: 0 };
+  const have = new Set(index.days || []);
+  if (add.every((d) => have.has(d))) return false;
+  const days = Array.from(new Set([...(index.days || []), ...add])).sort();
+  await rpcPut(env, owner, "fit-index", { days, at: Date.now() });
+  return true;
 }
 
 export async function stravaRefresh(env, record) {

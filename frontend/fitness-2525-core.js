@@ -7,7 +7,7 @@
  *
  * Provider tokens (per Auth0 user.sub, never localStorage) live ONLY in the dedicated FITNESS_STORE KV binding,
  * AES-256-GCM encrypted with FIT_TOKEN_KEY (tokens.js). No Supabase / shared-KV fallback: unconfigured → OAuth 503.
- * Fit-day records (workouts merged from providers): FITNESS_STORE KV, else Supabase innovation_state RPCs.
+ * Fit-day records (workouts merged from providers): Supabase innovation_state RPCs — the same rows the browser syncs.
  *
  * Env (secrets unless noted):
  *   AUTH0_CLIENT_ID and/or AUTH0_AUDIENCE — accepted JWT `aud` (required; unset → 503 fail-closed)
@@ -18,7 +18,7 @@
  *   GARMIN_CLIENT_ID, GARMIN_CLIENT_SECRET (optional — UI shows pending when unset)
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY|SUPABASE_ANON_KEY (fit-day records only)
  */
-import { json, kvOf, supabaseCfg } from "./fitness-2525-core/base.js";
+import { json, supabaseCfg } from "./fitness-2525-core/base.js";
 import { acceptedAudiences, stateReady } from "./fitness-2525-core/auth.js";
 import { tokenStoreStatus } from "./fitness-2525-core/tokens.js";
 import { stravaConfigured, garminConfigured } from "./fitness-2525-core/sync.js";
@@ -46,7 +46,7 @@ export async function handleFitness2525(request, env) {
       ok: true,
       strava: { configured: stravaConfigured(env) },
       garmin: { configured: garminConfigured(env), pending: !garminConfigured(env) },
-      storage: kvOf(env) ? "kv" : supabaseCfg(env) ? "supabase" : "none",
+      storage: supabaseCfg(env) ? "supabase" : "none", // fit-day records
       // readiness booleans only — never secret values
       security: {
         auth_audience: acceptedAudiences(env).length > 0,
