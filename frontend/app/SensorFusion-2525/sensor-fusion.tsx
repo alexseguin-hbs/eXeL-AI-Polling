@@ -147,9 +147,12 @@ function SettingsSheet({
           </div>
           {/* rev 43: CORAL picked in a browser says where Coral really runs (decideRun via coralNote). */}
           {coralNote(coral) && <p className={styles.muted}>{coralNote(coral)}</p>}
-          {coral && (
+          {coral && coralLive === "loaded" && <p className={styles.muted}>Loaded.</p>}
+          {coral && coralLive !== "loaded" && (
             <p className={styles.muted}>
-              {coralLive === "loaded" ? "Loaded." : coralLive === "missing" ? "Not connected. Start the program on this PC." : "Looking for Coral."}
+              {coralLive === "missing" ? "Not connected. Start the program on this PC." : "Looking for Coral."}
+              <br />
+              python sensor_fusion_edge.py --page --coral
             </p>
           )}
         </div>
@@ -1290,6 +1293,7 @@ export default function SensorFusion() {
                 });
                 if (!sent.ok) throw new Error("coral");
                 const result = (await sent.json()) as { hits: { score?: number; name?: string }[]; fps: number; engine?: string };
+                if (stop || !coralRef.current) return;
                 if (result.engine !== "Coral") throw new Error("not coral");
                 cnn.draw(canvas, video, result, showScoresRef.current, showLabelsRef.current, showFpsRef.current);
                 const hits = result.hits || [];
@@ -1329,6 +1333,7 @@ export default function SensorFusion() {
             } else try {
               if (!session) session = await cnn.load(modelRef.current);
               const result = await cnn.detect(session, video);
+              if (stop || coralRef.current) return;
               cnn.draw(canvas, video, result, showScoresRef.current, showLabelsRef.current, showFpsRef.current);
               const hits = (result.hits || []) as { score?: number; name?: string }[];
               const top = hits.reduce((best, hit) => Math.max(best, Number(hit.score) || 0), 0);
@@ -1460,6 +1465,14 @@ export default function SensorFusion() {
   function chooseCoral(on: boolean) {
     setCoral(on);
     window.localStorage.setItem("sf2525-coral", on ? "1" : "0");
+    if (!on) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const fill = meterRef.current?.querySelector("i");
+    if (fill instanceof HTMLElement) fill.style.height = "0%";
+    lastAlert.current = "";
+    setAlert("");
   }
 
   function chooseAlerts(on: boolean) {
@@ -2186,7 +2199,10 @@ export default function SensorFusion() {
             <p>2. Toggle SENSOR 1 to ON</p>
           </div>
         )}
-        {error && <p className={styles.alert}>{error}</p>}
+        {sensorOn && coral && coralLive !== "loaded" && (
+          <p className={styles.alert}>Not connected. Start the program on this PC. python sensor_fusion_edge.py --page --coral</p>
+        )}
+        {error && !(sensorOn && coral && coralLive !== "loaded") && <p className={styles.alert}>{error}</p>}
         {alert && !showLabels && <p className={styles.liveAlert}>{alert}</p>}
         {capturing && <p className={styles.captureCount}>{capturing}</p>}
         </div>

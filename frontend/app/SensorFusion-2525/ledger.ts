@@ -522,6 +522,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "Choosing CORAL clears the page's boxes. New boxes appear only after the program on this PC is running the selected model on Coral.",
+      commit: "ccd0de4",
+    },
+    {
+      rev: 75,
+      date: "2026-10-05",
+      kind: "release",
+      text: "A late CPU pass can no longer draw after CORAL is chosen. The picture says to start python sensor_fusion_edge.py --page --coral until the stick answers.",
       commit: "",
     },
   ],
