@@ -494,6 +494,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       date: "2026-10-05",
       kind: "release",
       text: "The Coral mark is a white button icon, the same kind as Settings and Info. A green check means the stick answered. It is not a picture on the camera.",
+      commit: "53787f4",
+    },
+    {
+      rev: 71,
+      date: "2026-10-05",
+      kind: "release",
+      text: "The Coral mark is a cyan outline of the stick, with a C in the center. The stick keeps its shape inside a square. It is one color, like the other buttons.",
       commit: "",
     },
   ],
