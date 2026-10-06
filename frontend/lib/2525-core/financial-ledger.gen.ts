@@ -1135,7 +1135,7 @@ export const FINANCIAL_LEDGER: LedgerInput = {
       "date": "2026-10-05",
       "kind": "correction",
       "text": "r.086 correction — portrait. + Transaction and the gear are the same height as the rate box, and they sit slightly further right so /hr stays clear on the top row.",
-      "commit": ""
+      "commit": "9490908"
     }
   ]
 };
