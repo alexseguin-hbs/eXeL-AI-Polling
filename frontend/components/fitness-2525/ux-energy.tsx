@@ -8,6 +8,7 @@ import { type EnergyRateUnit, type ratesFromKcal, formatCalRate } from "@/lib/fi
 import { RATE_UNIT_ORDER, RATE_UNIT_LABEL } from "@/lib/fitness-2525/profile";
 import styles from "./fitness-2525.module.css";
 import { C, blankNum, type DayField } from "./ux-helpers";
+import { AuthGate } from "./auth-gate";
 import { EnergyChart, Panel } from "./ux-widgets";
 
 type Rates = ReturnType<typeof ratesFromKcal>;
@@ -111,7 +112,9 @@ export function EnergyUnitsCard({
           </dd>
         </div>
         <div>
-          <dt className="text-[9px] uppercase" style={{ color: C.dim }}>Burn (out)</dt>
+          <dt className="text-[9px] uppercase" style={{ color: C.red }}>
+            Burn (out)
+          </dt>
           <dd className={`text-sm font-semibold tabular-nums ${styles.mono}`} style={{ color: C.red }}>
             {burnOutKcal != null ? `${burnOutKcal} kcal` : "—"}
           </dd>
@@ -134,6 +137,7 @@ export function EnergyUnitsCard({
 
 export function RealtimeEnergyPanel({
   day, rateUnit, setRateUnit, chartSpan, setChartSpan, fuelPer, burnPer, fuelRates, burnRates, setField, inputStyle,
+  signedIn, onSignIn, authLoading,
 }: {
   day: FitDay;
   rateUnit: EnergyRateUnit;
@@ -146,6 +150,9 @@ export function RealtimeEnergyPanel({
   burnRates: Rates;
   setField: (field: DayField, raw: string) => void;
   inputStyle: CSSProperties;
+  signedIn: boolean;
+  onSignIn: () => void;
+  authLoading?: boolean;
 }) {
   return (
     <Panel
@@ -181,25 +188,32 @@ export function RealtimeEnergyPanel({
         ))}
       </div>
       <EnergyChart fuelPer={fuelPer} burnPer={burnPer} unit={rateUnit} span={chartSpan} />
-      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
-        {([
-          ["steps", "Steps", day.steps],
-          ["calories_in", "Calories in", day.calories_in],
-          ["calories_out", "Device kcal (info · not day burn)", day.calories_out],
-        ] as const).map(([field, label, val]) => (
-          <label key={field} className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
-            {label}
-            <input
-              style={inputStyle}
-              className={styles.mono}
-              inputMode="decimal"
-              placeholder="—"
-              value={blankNum(val)}
-              onChange={(e) => setField(field, e.target.value)}
-            />
-          </label>
-        ))}
-      </div>
+      {signedIn ? (
+        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {([
+            ["steps", "Steps", day.steps],
+            ["calories_in", "Calories in", day.calories_in],
+            ["calories_out", "Device kcal (info · not day burn)", day.calories_out],
+          ] as const).map(([field, label, val]) => (
+            <label key={field} className="flex flex-col gap-1 text-[9px] uppercase tracking-wide" style={{ color: C.dim }}>
+              {label}
+              <input
+                style={inputStyle}
+                className={styles.mono}
+                inputMode="decimal"
+                placeholder="—"
+                value={blankNum(val)}
+                onChange={(e) => setField(field, e.target.value)}
+              />
+            </label>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-2">
+          <AuthGate compact onSignIn={onSignIn} isLoading={authLoading}
+            message="Sign in with Auth0 to enter steps and personal calorie fields." />
+        </div>
+      )}
       <p className="mt-2 text-[9px]" style={{ color: C.dim }}>
         Leave blank until measured. Enter calories in/out to plot fuel / burn / deficit. Rates: fuel {formatCalRate(fuelRates.perMin, "per_min")} · burn {formatCalRate(burnRates.perMin, "per_min")}.
       </p>
