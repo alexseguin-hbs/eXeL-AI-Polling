@@ -983,7 +983,7 @@ function Labeler({
       setNote("The picture is still opening.");
       return;
     }
-    const where = await saveXmlFile(pictureName(pic), vocXml(pictureName(pic), width, height, list), list);
+    const where = await saveXmlFile(pictureName(pic), vocXml(pictureName(pic), width, height, list));
     // R4a: nothing is written to the cloud yet (042 members-only) — the save says where the file is AND that it stays here.
     setNote(`Saved ${where}. These boxes stay on this device.`);
   }
