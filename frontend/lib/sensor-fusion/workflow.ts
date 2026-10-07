@@ -87,14 +87,69 @@ export function noteWork(clock: WorkClock, member: string, picture: string, kind
   return { ...clock, runs: fold(clock.runs, name, { images: picture ? [picture] : [], level2, adjustments }) };
 }
 
-export type MemberLine = { member: string; seconds: number; images: number; level2: number; adjustments: number };
+export type MemberLine = { member: string; seconds: number; images: number; level2: number; adjustments: number; si: number };
+
+/** ♡ S.I. One token is one started minute. Same rule as the rest of the site: ceil of the minutes. */
+export function siTokens(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds <= 0) return 0;
+  return Math.ceil(seconds / 60);
+}
 
 /** What the screen shows, including the person whose clock is still running. */
 export function workflowLines(clock: WorkClock, now: number): MemberLine[] {
   const closed = stopClock(clock, now);
   return closed.runs
-    .map((run) => ({ member: run.member, seconds: run.seconds, images: run.images.length, level2: run.level2, adjustments: run.adjustments }))
+    .map((run) => ({
+      member: run.member,
+      seconds: run.seconds,
+      images: run.images.length,
+      level2: run.level2,
+      adjustments: run.adjustments,
+      si: siTokens(run.seconds),
+    }))
     .sort((a, b) => a.member.localeCompare(b.member));
+}
+
+export type SubmissionImage = {
+  file: string;
+  l1: string;
+  l2: string;
+  boxes: { name: string; level: number; by?: string; reviewer?: string; at?: string; reviewedAt?: string }[];
+};
+
+/**
+ * The teacher's final packet.
+ * Every picture must already have Level 1 and a different person's Level 2.
+ * The packet carries the pictures, both Light Codex lines, and each person's S.I.
+ */
+export function finalSubmission(input: { clock: WorkClock; now: number; images: SubmissionImage[] }):
+  | { ok: true; packet: { version: 1; purpose: "training"; subject: string; images: SubmissionImage[]; contributors: { member: string; seconds: number; images: number; reviews: number; changes: number; si: number }[]; si: number }; note: string }
+  | { ok: false; note: string } {
+  if (!input.images.length) return { ok: false, note: "Open the project's pictures first. Level 1 and Level 2 stay XML." };
+  if (input.images.some((image) => !image.boxes.length || !image.l1)) {
+    return { ok: false, note: "Every picture needs a Level 1 box first. Both levels stay XML." };
+  }
+  const unfinished = input.images.some(
+    (image) => !image.l2 || image.boxes.some((box) => box.level !== 2 || !box.reviewer || !box.by || sameMember(box.reviewer, box.by)),
+  );
+  if (unfinished) return { ok: false, note: "JSON waits. Every picture in this project still needs Level 2, saved as XML." };
+  const contributors = workflowLines(input.clock, input.now).map((line) => ({
+    member: line.member,
+    seconds: line.seconds,
+    images: line.images,
+    reviews: line.level2,
+    changes: line.adjustments,
+    si: line.si,
+  }));
+  const names = [...new Set(input.images.flatMap((image) => image.boxes.map((box) => box.name.trim()).filter(Boolean)))].sort();
+  const subject = names.join(", ") || "animal";
+  const si = contributors.reduce((sum, line) => sum + line.si, 0);
+  const people = contributors.length;
+  return {
+    ok: true,
+    note: `${input.images.length} pictures. ${people} ${people === 1 ? "person" : "people"}. ${si} S.I.`,
+    packet: { version: 1, purpose: "training", subject, images: input.images, contributors, si },
+  };
 }
 
 /**

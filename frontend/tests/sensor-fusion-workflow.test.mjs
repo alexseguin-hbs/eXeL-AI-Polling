@@ -2,8 +2,8 @@
 // Run: node --experimental-strip-types tests/sensor-fusion-workflow.test.mjs
 import fs from "node:fs";
 import path from "node:path";
-import { readyForProject } from "../lib/sensor-fusion/pair.ts";
-import { acceptMark, emptyClock, noteWork, saveMark, startClock, stopClock, workflowLines } from "../lib/sensor-fusion/workflow.ts";
+import { readyForProject, codexLine } from "../lib/sensor-fusion/pair.ts";
+import { acceptMark, emptyClock, finalSubmission, noteWork, saveMark, siTokens, startClock, stopClock, workflowLines } from "../lib/sensor-fusion/workflow.ts";
 
 let passed = 0;
 const failures = [];
@@ -60,6 +60,37 @@ ok(alex?.seconds === 13 && alex.images === 4 && alex.level2 === 0 && alex.adjust
 ok(riley?.seconds === 28 && riley.images === 4 && riley.level2 === 4 && riley.adjustments === 1, "Riley reviewed 4 images in 28 seconds and changed 1");
 ok(readyForProject(reviewed), "the project can take the set only after every box has Level 2");
 ok(!readyForProject([first, ...reviewed.slice(1)]), "one unlabeled box holds the project");
+ok(siTokens(13) === 1 && siTokens(28) === 1 && siTokens(61) === 2 && siTokens(0) === 0, "one S.I. is one started minute");
+
+// A class collecting deer and other four-legged animals.
+let herd = emptyClock("deer");
+herd = startClock(herd, "Alex", 0);
+for (const name of ["deer_0001.png", "deer_0002.png", "deer_0003.png", "horse_0001.png"]) herd = noteWork(herd, "Alex", name, "annotate");
+herd = stopClock(herd, 90000);
+herd = startClock(herd, "Riley", 100000);
+const herdFiles = [
+  ["deer_0001.png", "deer", false],
+  ["deer_0002.png", "deer", false],
+  ["deer_0003.png", "deer", false],
+  ["horse_0001.png", "horse", true],
+];
+const herdImages = herdFiles.map(([file, name, moved], index) => {
+  const drawn = box(`h${index}`, name, "ALEX");
+  const done = moved ? saveMark(drawn, { ...drawn, name: "horse", left: 8, at: "2026.10.07_02.00..00" }, "Riley").box : acceptMark(drawn, "Riley", "2026.10.07_02.00..00").box;
+  herd = noteWork(herd, "Riley", file, moved ? "adjust" : "level2");
+  const l1 = codexLine({ file, level: 1, who: done.by, when: done.at });
+  const l2 = codexLine({ file, level: 2, who: done.reviewer, when: done.reviewedAt, l1: { who: done.by, when: done.at } });
+  return { file, l1, l2, boxes: [done] };
+});
+herd = stopClock(herd, 130000);
+const held = finalSubmission({ clock: herd, now: 130000, images: herdImages.map((image, index) => (index === 1 ? { ...image, l2: "", boxes: [{ ...image.boxes[0], level: 1, reviewer: "" }] } : image)) });
+ok(!held.ok, "one picture still at Level 1 holds the class packet");
+const sent = finalSubmission({ clock: herd, now: 130000, images: herdImages });
+ok(sent.ok === true && sent.packet.subject === "deer, horse", "the packet names every animal in the set");
+ok(sent.ok === true && sent.packet.images.length === 4 && sent.packet.images.every((image) => image.l1.startsWith("L1 ") && image.l2.includes("L2 ")), "every picture carries a Level 1 line and a Level 2 line");
+ok(sent.ok === true && sent.packet.contributors.find((line) => line.member === "ALEX")?.si === 2, "90 seconds is 2 S.I. for the labeler");
+ok(sent.ok === true && sent.packet.contributors.find((line) => line.member === "RILEY")?.si === 1 && sent.packet.si === 3, "the reviewer adds 1 S.I. and the class total is 3");
+ok(sent.ok === true && sent.packet.images[3].boxes[0].by === "ALEX" && sent.packet.images[3].boxes[0].name === "horse", "the horse box keeps the first person's name");
 
 const page = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8");
 ok(/saveMark\(/.test(page) && /acceptMark\(/.test(page) && /clock\.open \? "STOP" : "START"/.test(page), "the screen uses the clock and keeps the first person's name");

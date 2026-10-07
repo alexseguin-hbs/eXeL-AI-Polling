@@ -7,7 +7,7 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
-import { acceptMark, emptyClock, noteWork, readClock, saveMark, sameMember, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
+import { acceptMark, emptyClock, finalSubmission, noteWork, readClock, saveMark, sameMember, siTokens, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
 import { placeSignature } from "@/lib/light-codex";
 import { supabase } from "@/lib/supabase";
 import {
@@ -911,11 +911,29 @@ function Labeler({
       setNote("JSON waits. Every picture in this project still needs Level 2, saved as XML.");
       return;
     }
-    const images = pages.filter((page): page is NonNullable<typeof page> => !!page && page.boxes.length > 0);
-    const body = JSON.stringify({ version: 1, purpose: "training", images }, null, 2);
+    const images = pages.filter((page): page is NonNullable<typeof page> => !!page && page.boxes.length > 0).map((page) => {
+      const labeled = page.boxes.find((box) => box.by && box.at);
+      const reviewed = [...page.boxes].reverse().find((box) => box.level === 2 && box.reviewer && box.reviewedAt && box.by && box.at);
+      let l1 = "";
+      let l2 = "";
+      try {
+        if (labeled) l1 = codexLine({ file: page.file, level: 1, who: labeled.by, when: labeled.at });
+        if (labeled && reviewed) l2 = codexLine({ file: page.file, level: 2, who: reviewed.reviewer, when: reviewed.reviewedAt, l1: { who: labeled.by, when: labeled.at } });
+      } catch (err) {
+        setNote(err instanceof Error ? err.message : "Light Codex could not write this set.");
+        return null;
+      }
+      return { file: page.file, l1, l2, boxes: page.boxes };
+    });
+    if (images.some((image) => !image)) return;
+    const built = finalSubmission({ clock, now: Date.now(), images: images.filter((image): image is NonNullable<typeof image> => !!image) });
+    if (!built.ok) {
+      setNote(built.note);
+      return;
+    }
     const packet = `${setFolderOf(pictureName(project[0]))}-training.json`;
-    downloadBlob(packet, URL.createObjectURL(new Blob([body], { type: "application/json" })));
-    setNote(`Every picture is double labeled. ${packet} is the one packet for training.`);
+    downloadBlob(packet, URL.createObjectURL(new Blob([JSON.stringify(built.packet, null, 2)], { type: "application/json" })));
+    setNote(`${built.note} ${packet} is the packet for training.`);
   }
 
   async function saveFiles() {
@@ -1089,7 +1107,7 @@ function Labeler({
         <div className={styles.workLine}>
           <button type="button" onClick={toggleClock}>{clock.open ? "STOP" : "START"}</button>
           <p>
-            {workflowLines(clock, Date.now() + Math.min(tick, 0)).map((line) => `${line.member} ${line.seconds}s · ${line.images} images · ${line.adjustments} Level 2 ${line.adjustments === 1 ? "change" : "changes"}`).join("  ·  ") || "START begins the clock."}
+            {workflowLines(clock, Date.now() + Math.min(tick, 0)).map((line) => `${line.member} ${line.seconds}s · ${line.images} images · ${line.adjustments} Level 2 ${line.adjustments === 1 ? "change" : "changes"} · ${siTokens(line.seconds)} S.I.`).join("  ·  ") || "START begins the clock."}
           </p>
         </div>
         <div className={styles.labelBar}>
@@ -1111,7 +1129,7 @@ function Labeler({
             {note}
           </p>
         )}
-        <p className={styles.rule}>Level 1 is XML. Level 2 is XML. One JSON packet is made only after every picture in the project has both.</p>
+        <p className={styles.rule}>Level 1 is XML. Level 2 is XML. Upload sends the pictures, both Light Codex lines, and each person's S.I.</p>
         </div>
         {pic && (marks[pic.id] || []).length > 0 && (
           <div className={styles.boxList}>
