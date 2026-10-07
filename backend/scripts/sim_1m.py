@@ -14,6 +14,8 @@ Invariants (refusals, not conventions):
 Usage (from backend/):
   python scripts/sim_1m.py seed  --n 1000000          # create + fill the local sim database
   python scripts/sim_1m.py bench --out /tmp/new.json  # time aggregate_rankings, peak RSS, result hash
+  python scripts/sim_1m.py bench --endpoint            # time run_ranking_pipeline (POST /rankings/aggregate)
+  python scripts/sim_1m.py seed --shape unanimous      # every ballot identical (the hash-feed worst case)
   python scripts/sim_compare.py <baseline-sha>         # baseline worktree vs this tree, same database
 """
 from __future__ import annotations
@@ -53,8 +55,11 @@ def refuse_unless_local(dsn: str) -> None:
 
 def ballot(rng: random.Random, themes: list[uuid.UUID], shape: str = "poll") -> list[str]:
     """A ranking of the nine themes. "poll": a shared base order with a few adjacent swaps (popular orders repeat,
-    as in a real poll). "uniform": every order equally likely — the worst case for collapsing identical ballots."""
+    as in a real poll). "uniform": every order equally likely — the worst case for collapsing identical ballots.
+    "unanimous": every ballot identical — the worst case for the replay-hash feed (one order × N voters)."""
     order = list(themes)
+    if shape == "unanimous":
+        return [str(t) for t in order]
     if shape == "uniform":
         rng.shuffle(order)
         return [str(t) for t in order]
@@ -143,6 +148,63 @@ async def seed(dsn: str, n: int, seed_value: int, category: int, shape: str = "p
     return {"seeded": n, "shape": shape, "category": CATEGORIES[category], "seconds": round(time.perf_counter() - t0, 2)}
 
 
+async def bench_endpoint(dsn: str, runs: int) -> dict:
+    """Time what POST /rankings/aggregate runs: run_ranking_pipeline (anomaly detection → exclusions → tally → top
+    theme → emit). No network: the Supabase broadcast is stubbed, and commit becomes a flush so the run is rolled back
+    (the sim never keeps its aggregation). Anomaly and aggregate time are measured inside the same call."""
+    os.environ["DATABASE_URL"] = dsn.replace("postgresql://", "postgresql+asyncpg://")
+    from unittest.mock import patch
+
+    from app.core import supabase_broadcast
+    from app.cubes.cube7_ranking import ranking_governance as gov
+    from app.db.postgres import async_session_factory
+
+    async def no_broadcast(*_a, **_k):
+        return None
+
+    def timed(fn, bucket: list):
+        async def wrapper(*a, **k):
+            t0 = time.perf_counter()
+            try:
+                return await fn(*a, **k)
+            finally:
+                bucket.append(time.perf_counter() - t0)
+        return wrapper
+
+    total, anomalies_t, aggregate_t = [], [], []
+    result = None
+    with patch.object(supabase_broadcast, "broadcast_event", no_broadcast), \
+            patch.object(gov, "detect_voting_anomalies", timed(gov.detect_voting_anomalies, anomalies_t)), \
+            patch.object(gov, "aggregate_rankings", timed(gov.aggregate_rankings, aggregate_t)):
+        for _ in range(runs):
+            async with async_session_factory() as db:
+                db.commit = db.flush  # measure only: rolled back below
+                t0 = time.perf_counter()
+                try:
+                    out = await gov.run_ranking_pipeline(db, SID, "SIM1M001", cycle_id=1, seed="sim-1m")
+                    result = {k: out[k] for k in (
+                        "participant_count", "replay_hash", "anomaly_count", "excluded_participants", "top_theme2_id")}
+                    result["anomalies_sha256"] = hashlib.sha256(
+                        json.dumps(out["anomalies"], sort_keys=True, default=str).encode()).hexdigest()
+                except ValueError as e:  # e.g. every ballot excluded: the refusal is the endpoint's answer (a 400)
+                    result = {"refused": str(e).split(" for session")[0]}
+                total.append(time.perf_counter() - t0)
+                await db.rollback()
+
+    def med(xs):
+        return round(sorted(xs)[len(xs) // 2], 3) if xs else None
+
+    return {
+        "endpoint_seconds_median": med(total),
+        "anomalies_seconds_median": med(anomalies_t),
+        "aggregate_seconds_median": med(aggregate_t),
+        "endpoint_seconds_all": [round(t, 3) for t in total],
+        "peak_rss_mb": round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024),
+        "result_hash": hashlib.sha256(json.dumps(result, sort_keys=True).encode()).hexdigest(),
+        "result": result,
+    }
+
+
 async def bench(dsn: str, runs: int) -> dict:
     os.environ["DATABASE_URL"] = dsn.replace("postgresql://", "postgresql+asyncpg://")
     from sqlalchemy import text
@@ -185,13 +247,19 @@ def main() -> None:
     ap.add_argument("--n", type=int, default=1_000_000)
     ap.add_argument("--seed", type=int, default=2525)
     ap.add_argument("--category", type=int, default=0, choices=[0, 1, 2], help="Theme01 the session votes on")
-    ap.add_argument("--shape", default="poll", choices=["poll", "uniform"])
+    ap.add_argument("--shape", default="poll", choices=["poll", "uniform", "unanimous"])
     ap.add_argument("--runs", type=int, default=3)
+    ap.add_argument("--endpoint", action="store_true",
+                    help="bench: time run_ranking_pipeline (what POST /rankings/aggregate calls), not the tally alone")
     ap.add_argument("--out")
     a = ap.parse_args()
     refuse_unless_local(a.dsn)
     sys.path.insert(0, os.getcwd())  # run from backend/: the app package is the code under test
-    out = asyncio.run(seed(a.dsn, a.n, a.seed, a.category, a.shape) if a.phase == "seed" else bench(a.dsn, a.runs))
+    if a.phase == "seed":
+        job = seed(a.dsn, a.n, a.seed, a.category, a.shape)
+    else:
+        job = bench_endpoint(a.dsn, a.runs) if a.endpoint else bench(a.dsn, a.runs)
+    out = asyncio.run(job)
     text = json.dumps(out, indent=2)
     print(text if a.phase == "seed" else json.dumps({k: v for k, v in out.items() if k != "result"}, indent=2))
     if a.out:

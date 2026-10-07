@@ -5,7 +5,7 @@ Cube 10 depends on ALL other cubes:
   ← C2: Code validation (PII-like scanning)
   ← C5: Pipeline orchestration pattern
   ← C6: Marble Method for feedback theming
-  ← C7: BordaAccumulator + quadratic voting
+  ← C7: Borda tally + quadratic voting
   ← C8: Token ledger for rewards
   ← C9: Analytics dashboard pattern
   ← SDK: Universal function registry
@@ -20,11 +20,9 @@ class TestCube10DependsOnCube7Voting:
         weights = _quadratic_weights({"a": 100, "b": 25})
         assert abs(sum(weights.values()) - 1.0) < 1e-10
 
-    def test_borda_accumulator_importable(self):
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
-        acc = BordaAccumulator(n_themes=3, seed="test")
-        acc.add_vote(["A", "B", "C"], "voter1")
-        assert acc.voter_count == 1
+    def test_borda_tally_importable(self):
+        from app.cubes.cube7_ranking.service import _borda_scores
+        assert _borda_scores([["A", "B", "C"]], 3) == {"A": 2, "B": 1, "C": 0}
 
 
 class TestCube10DependsOnCube8Tokens:

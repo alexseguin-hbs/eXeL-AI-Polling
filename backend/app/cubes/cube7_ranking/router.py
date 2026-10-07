@@ -10,7 +10,7 @@ Endpoints:
 
 import uuid
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # ---------------------------------------------------------------------------
@@ -50,6 +50,7 @@ from app.schemas.ranking import (
     GovernanceOverrideRead,
     GovernanceOverrideSubmit,
     RankingRead,
+    AggregateRequest,
     RankingSubmit,
 )
 
@@ -172,6 +173,7 @@ async def trigger_aggregation(
     session_id: uuid.UUID,
     seed: str | None = None,
     ranking_method: str = Query("borda_count", description="Ranking algorithm: 'borda_count' or 'quadratic_borda'"),
+    body: AggregateRequest | None = Body(None),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
@@ -179,12 +181,20 @@ async def trigger_aggregation(
 
     Computes Borda count, identifies top theme, detects anomalies,
     broadcasts ranking_complete, and triggers CQS scoring pipeline.
+    `ranking_method=quadratic_borda` weights each ballot by sqrt(stake) (CRS-12.02) and needs
+    `participant_stakes` in the body; without stakes it is refused, never silently run as borda_count.
     """
     # WireGuard: whitelist ranking_method
     if ranking_method not in VALID_RANKING_METHODS:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid ranking_method '{ranking_method}'. Must be one of: {sorted(VALID_RANKING_METHODS)}",
+        )
+    stakes = {str(k): v for k, v in (body.participant_stakes or {}).items()} if body else {}
+    if ranking_method == "quadratic_borda" and not stakes:
+        raise HTTPException(
+            status_code=400,
+            detail="quadratic_borda needs participant_stakes (weight = sqrt(stake)); none were supplied.",
         )
     from app.models.session import Session
     from sqlalchemy import select
@@ -203,6 +213,7 @@ async def trigger_aggregation(
             session_short_code=session.short_code,
             seed=seed or session.seed,
             cycle_id=int(getattr(session, "current_cycle", 1) or 1),
+            participant_stakes=stakes if ranking_method == "quadratic_borda" else None,
         )
         return result
     except ValueError as e:

@@ -294,9 +294,9 @@ class TestCube7RankingSim:
 
     def test_borda_12_voters(self):
         """12 voters produce deterministic Borda ranking."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+        from tests.borda_ref import BordaTally
         themes = ["AI Governance", "Digital Democracy", "Real-Time Consensus"]
-        acc = BordaAccumulator(n_themes=len(themes), seed="sim12")
+        acc = BordaTally(n_themes=len(themes), seed="sim12")
         random.seed(42)
         for i in range(12):
             ballot = list(themes)
@@ -308,11 +308,11 @@ class TestCube7RankingSim:
 
     def test_borda_determinism_n5(self):
         """Same 12 ballots produce same ranking 5 times."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+        from tests.borda_ref import BordaTally
         themes = ["AI Governance", "Digital Democracy", "Real-Time Consensus"]
         reference = None
         for _ in range(5):
-            acc = BordaAccumulator(n_themes=3, seed="sim12")
+            acc = BordaTally(n_themes=3, seed="sim12")
             random.seed(42)
             for i in range(12):
                 ballot = list(themes)
@@ -325,13 +325,13 @@ class TestCube7RankingSim:
 
     def test_replay_hash_determinism(self):
         """Replay hash for 12-voter session is deterministic."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
-        acc = BordaAccumulator(n_themes=3, seed="sim12")
+        from tests.borda_ref import BordaTally
+        acc = BordaTally(n_themes=3, seed="sim12")
         random.seed(42)
         for i in range(12):
             acc.add_vote(["A", "B", "C"], f"v{i}")
         h1 = acc.replay_hash
-        acc2 = BordaAccumulator(n_themes=3, seed="sim12")
+        acc2 = BordaTally(n_themes=3, seed="sim12")
         random.seed(42)
         for i in range(12):
             acc2.add_vote(["A", "B", "C"], f"v{i}")
@@ -439,7 +439,7 @@ class TestFullPipelineN5:
         """Complete pipeline produces identical output across 5 runs."""
         from app.cubes.cube2_text.service import compute_response_hash
         from app.cubes.cube6_ai.service import _marble_sample
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+        from tests.borda_ref import BordaTally
 
         reference_hash = None
         timings = []
@@ -464,7 +464,7 @@ class TestFullPipelineN5:
 
             # Cube 7: Borda ranking
             themes = ["Governance", "Democracy", "Consensus"]
-            acc = BordaAccumulator(n_themes=3, seed="pipeline-n5")
+            acc = BordaTally(n_themes=3, seed="pipeline-n5")
             random.seed(42)
             for i in range(12):
                 ballot = list(themes)

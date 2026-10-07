@@ -155,9 +155,10 @@ class TestReplayVerification:
         assert "stored_algorithm" in src
         # Branches to quadratic weighting when the aggregator used it.
         assert "quadratic_borda" in src
-        assert "_weighted_borda_scores" in src
-        # Folds the stored algorithm into the replay hash (not the default).
-        assert "_compute_replay_hash(" in src
+        # Recomputes through the aggregator's own tally (the weighted Borda lives there), and folds the
+        # stored algorithm into the replay hash (not the default).
+        assert "tally_rankings(" in src
+        assert "hash_algorithm=stored_algorithm" in src
 
     def test_verify_replay_accepts_participant_stakes(self):
         """C7-1: quadratic order can only be reproduced with the stakes, so

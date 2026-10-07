@@ -116,8 +116,15 @@ async def submit_user_ranking(
             f"No themes found at level {level_num}{category_hint} for session {session_id}"
         )
 
+    # A ballot ranks every valid theme exactly once. Comparing sets alone let a repeated theme through
+    # ([A, A, B, C] has the set {A, B, C}) — a double Borda share for A — and let the ballot length vary.
     submitted_set = set(ranked_theme_ids)
-    if submitted_set != valid_ids:
+    if len(ranked_theme_ids) != len(submitted_set):
+        raise ValueError(
+            f"Duplicate theme IDs in ranking: {len(ranked_theme_ids)} entries, {len(submitted_set)} distinct. "
+            f"Each theme may be ranked once."
+        )
+    if submitted_set != valid_ids or len(ranked_theme_ids) != len(valid_ids):
         missing = valid_ids - submitted_set
         extra = submitted_set - valid_ids
         raise ValueError(

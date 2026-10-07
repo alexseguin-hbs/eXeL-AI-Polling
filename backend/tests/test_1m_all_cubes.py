@@ -404,7 +404,7 @@ class TestN99Determinism:
 
     def test_borda_ranking_n99(self):
         """Cube 7: N=99 Borda ranking runs — all must be identical."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+        from tests.borda_ref import BordaTally
 
         themes = ["Ethics", "Innovation", "Governance", "Privacy", "Scale",
                   "Trust", "Access", "Safety", "Transparency"]
@@ -412,7 +412,7 @@ class TestN99Determinism:
         reference_hash = None
 
         for run in range(self.N):
-            acc = BordaAccumulator(n_themes=9, seed="n99-borda-determinism")
+            acc = BordaTally(n_themes=9, seed="n99-borda-determinism")
             random.seed(42)
             for j in range(10_000):
                 ranking = random.sample(themes, 9)
@@ -626,13 +626,13 @@ class TestN99ScaleStress:
 
     def test_borda_10k_voters_n99(self):
         """Cube 7: 10K voters × N=99 runs — all identical."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+        from tests.borda_ref import BordaTally
 
         themes = ["Alpha", "Beta", "Gamma"]
         reference_scores = None
 
         for run in range(self.N):
-            acc = BordaAccumulator(n_themes=3, seed="stress-10k")
+            acc = BordaTally(n_themes=3, seed="stress-10k")
             for j in range(10_000):
                 ranking = themes[j % 3:] + themes[:j % 3]
                 acc.add_vote(ranking, participant_id=f"user_{j}")
@@ -647,21 +647,21 @@ class TestN99ScaleStress:
 
     def test_accumulator_merge_n99(self):
         """Cube 7: Shard merge × N=99 — merged result = single accumulator."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+        from tests.borda_ref import BordaTally
 
         themes = ["X", "Y", "Z"]
         reference_scores = None
 
         for run in range(self.N):
             # Single accumulator
-            single = BordaAccumulator(n_themes=3, seed="merge-test")
+            single = BordaTally(n_themes=3, seed="merge-test")
             for j in range(1000):
                 ranking = themes[j % 3:] + themes[:j % 3]
                 single.add_vote(ranking, participant_id=f"user_{j}")
 
             # Sharded accumulators
-            shard_a = BordaAccumulator(n_themes=3, seed="merge-test")
-            shard_b = BordaAccumulator(n_themes=3, seed="merge-test")
+            shard_a = BordaTally(n_themes=3, seed="merge-test")
+            shard_b = BordaTally(n_themes=3, seed="merge-test")
             for j in range(500):
                 ranking = themes[j % 3:] + themes[:j % 3]
                 shard_a.add_vote(ranking, participant_id=f"user_{j}")
@@ -740,25 +740,26 @@ class TestN99ScaleStress:
 
     def test_anti_sybil_exclusion_n99(self):
         """WireGuard-inspired: N=99 anti-sybil — excluded participants always excluded."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+        from tests.borda_ref import BordaTally
 
         themes = ["A", "B", "C"]
         reference_result = None
 
         for run in range(self.N):
-            acc = BordaAccumulator(n_themes=3, seed="sybil-n99")
+            acc = BordaTally(n_themes=3, seed="sybil-n99")
             # Add sybil participant then exclude
             acc.add_vote(["C", "B", "A"], participant_id="sybil_whale")
             acc.exclude_participant("sybil_whale")
             # Add legitimate votes
             for j in range(100):
                 acc.add_vote(["A", "B", "C"], participant_id=f"legit_{j}")
-            result = acc.aggregate()
-            # Sybil's vote was before exclusion — it still counts in current impl
-            # But exclusion prevents future votes from that ID
+            # A second ballot from the excluded participant changes nothing either.
             acc.add_vote(["C", "B", "A"], participant_id="sybil_whale")
-            # Verify sybil's second vote was blocked
-            assert acc.voter_count == 101, f"Run {run}: sybil second vote should be blocked"
+            result = acc.aggregate()
+            # The aggregator excludes a flagged participant's ballots whenever they arrived (HP-08: the removed
+            # accumulator only blocked votes cast after the exclusion, so its first ballot still counted).
+            assert acc.voter_count == 100, f"Run {run}: every sybil ballot must be excluded"
+            assert dict((r["theme_id"], r["score"]) for r in result) == {"A": 200, "B": 100, "C": 0}
             if reference_result is None:
                 reference_result = [(r["theme_id"], r["score"]) for r in result]
             else:
@@ -836,9 +837,9 @@ class TestN99ScaleStress:
                 theme_groups[row["Theme2_3"]].append(responses[i])
 
             # Phase 3: Rank
-            from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+            from tests.borda_ref import BordaTally
             theme_labels = sorted(theme_groups.keys())[:3]
-            acc = BordaAccumulator(n_themes=len(theme_labels), seed="pipeline-n99")
+            acc = BordaTally(n_themes=len(theme_labels), seed="pipeline-n99")
             for j in range(1000):
                 ranking = theme_labels[j % len(theme_labels):] + theme_labels[:j % len(theme_labels)]
                 acc.add_vote(ranking, participant_id=f"user_{j}")

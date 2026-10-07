@@ -480,7 +480,7 @@ def tally_votes(
     """Tally votes with quadratic weights. Check supermajority + quorum.
 
     Uses sqrt(tokens_staked) quadratic weight — same pattern as Cube 7
-    BordaAccumulator. Prevents whale domination while preserving stake
+    _quadratic_weights. Prevents whale domination while preserving stake
     proportionality.
     """
     import math

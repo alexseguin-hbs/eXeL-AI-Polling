@@ -34,7 +34,7 @@ from app.cubes.cube6_ai.centroid_summarizer import (
     truncate_to_words,
     select_centroid_representatives,
 )
-from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+from tests.borda_ref import BordaTally
 
 # ── Constants ───────────────────────────────────────────────────────
 _NS = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
@@ -459,7 +459,7 @@ class TestBordaVoting9Themes:
 
     def test_borda_accumulator_12_voters(self):
         """12 users each rank all 9 themes and produce valid results."""
-        acc = BordaAccumulator(n_themes=9, seed="theming-36-test")
+        acc = BordaTally(n_themes=9, seed="theming-36-test")
         rankings = _generate_voter_rankings(seed=SEED)
 
         for participant_id, ranked_themes in rankings:
@@ -485,7 +485,7 @@ class TestBordaVoting9Themes:
         """Borda ranking is identical across N=5 runs."""
         hashes = []
         for _ in range(N_RUNS):
-            acc = BordaAccumulator(n_themes=9, seed="theming-36-test")
+            acc = BordaTally(n_themes=9, seed="theming-36-test")
             rankings = _generate_voter_rankings(seed=SEED)
             for pid, ranked in rankings:
                 acc.add_vote(ranked, pid)
@@ -502,7 +502,7 @@ class TestBordaVoting9Themes:
         """Replay hash is identical across N=5 runs."""
         replay_hashes = []
         for _ in range(N_RUNS):
-            acc = BordaAccumulator(n_themes=9, seed="theming-36-test")
+            acc = BordaTally(n_themes=9, seed="theming-36-test")
             rankings = _generate_voter_rankings(seed=SEED)
             for pid, ranked in rankings:
                 acc.add_vote(ranked, pid)
@@ -513,7 +513,7 @@ class TestBordaVoting9Themes:
     def test_borda_antisybil_exclusion(self):
         """Excluding 1 voter changes the ranking outcome."""
         # Full vote
-        acc_full = BordaAccumulator(n_themes=9, seed="theming-36-test")
+        acc_full = BordaTally(n_themes=9, seed="theming-36-test")
         rankings = _generate_voter_rankings(seed=SEED)
         for pid, ranked in rankings:
             acc_full.add_vote(ranked, pid)
@@ -521,7 +521,7 @@ class TestBordaVoting9Themes:
         full_scores = {r["theme_id"]: r["score"] for r in full_results}
 
         # Exclude voter U01 (Alice)
-        acc_excl = BordaAccumulator(n_themes=9, seed="theming-36-test")
+        acc_excl = BordaTally(n_themes=9, seed="theming-36-test")
         acc_excl.exclude_participant("U01")
         for pid, ranked in rankings:
             acc_excl.add_vote(ranked, pid)
@@ -539,7 +539,7 @@ class TestBordaVoting9Themes:
 
     def test_borda_score_mathematics(self):
         """Borda scores follow the formula: points = (K-1) - position."""
-        acc = BordaAccumulator(n_themes=9, seed="theming-36-test")
+        acc = BordaTally(n_themes=9, seed="theming-36-test")
         rankings = _generate_voter_rankings(seed=SEED)
         for pid, ranked in rankings:
             acc.add_vote(ranked, pid)
@@ -554,7 +554,7 @@ class TestBordaVoting9Themes:
 
     def test_borda_vote_counts(self):
         """Each theme receives exactly 12 votes (every voter ranks all 9)."""
-        acc = BordaAccumulator(n_themes=9, seed="theming-36-test")
+        acc = BordaTally(n_themes=9, seed="theming-36-test")
         rankings = _generate_voter_rankings(seed=SEED)
         for pid, ranked in rankings:
             acc.add_vote(ranked, pid)
@@ -568,14 +568,14 @@ class TestBordaVoting9Themes:
     def test_borda_merge_shards(self):
         """Merging two shard accumulators equals single full accumulator."""
         # Full
-        acc_full = BordaAccumulator(n_themes=9, seed="theming-36-test")
+        acc_full = BordaTally(n_themes=9, seed="theming-36-test")
         rankings = _generate_voter_rankings(seed=SEED)
         for pid, ranked in rankings:
             acc_full.add_vote(ranked, pid)
 
         # Shard A: first 6 voters, Shard B: last 6 voters
-        acc_a = BordaAccumulator(n_themes=9, seed="theming-36-test")
-        acc_b = BordaAccumulator(n_themes=9, seed="theming-36-test")
+        acc_a = BordaTally(n_themes=9, seed="theming-36-test")
+        acc_b = BordaTally(n_themes=9, seed="theming-36-test")
 
         for pid, ranked in rankings[:6]:
             acc_a.add_vote(ranked, pid)
@@ -690,7 +690,7 @@ class TestFullThemingPipeline:
             assert "theme2_3" in r
 
         # Cube 7: Borda vote
-        acc = BordaAccumulator(n_themes=9, seed="pipeline-e2e")
+        acc = BordaTally(n_themes=9, seed="pipeline-e2e")
         rankings = _generate_voter_rankings(seed=SEED)
         for pid, ranked in rankings:
             acc.add_vote(ranked, pid)
@@ -727,7 +727,7 @@ class TestFullThemingPipeline:
             responses = _assign_theme2_levels(responses)
 
             # Borda vote
-            acc = BordaAccumulator(n_themes=9, seed="pipeline-n5")
+            acc = BordaTally(n_themes=9, seed="pipeline-n5")
             rankings = _generate_voter_rankings(seed=SEED)
             for pid, ranked in rankings:
                 acc.add_vote(ranked, pid)
@@ -759,7 +759,7 @@ class TestFullThemingPipeline:
         responses = _build_classified_responses()
         responses = _assign_theme2_levels(responses)
 
-        acc = BordaAccumulator(n_themes=9, seed="export-test")
+        acc = BordaTally(n_themes=9, seed="export-test")
         rankings = _generate_voter_rankings(seed=SEED)
         for pid, ranked in rankings:
             acc.add_vote(ranked, pid)

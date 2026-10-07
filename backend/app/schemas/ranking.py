@@ -1,11 +1,34 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
+
+# The largest Theme 02 slice a ballot can rank (level 9). The service then requires the exact valid set.
+MAX_RANKED_THEMES = 9
 
 
 class RankingSubmit(BaseModel):
-    ranked_theme_ids: list[uuid.UUID]
+    ranked_theme_ids: list[uuid.UUID] = Field(..., min_length=1, max_length=MAX_RANKED_THEMES)
+
+    @field_validator("ranked_theme_ids")
+    @classmethod
+    def _unique(cls, v: list[uuid.UUID]) -> list[uuid.UUID]:
+        if len(v) != len(set(v)):
+            raise ValueError("ranked_theme_ids must not repeat a theme")
+        return v
+
+
+class AggregateRequest(BaseModel):
+    """Optional body of POST /rankings/aggregate. quadratic_borda needs each voter's stake (weight = sqrt(stake))."""
+
+    participant_stakes: dict[uuid.UUID, float] | None = None
+
+    @field_validator("participant_stakes")
+    @classmethod
+    def _non_negative(cls, v: dict[uuid.UUID, float] | None) -> dict[uuid.UUID, float] | None:
+        if v and any(x < 0 for x in v.values()):
+            raise ValueError("participant_stakes must be non-negative")
+        return v
 
 
 class RankingRead(BaseModel):

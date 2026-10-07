@@ -63,8 +63,6 @@ class TestCubeChainImports:
 
     def test_cube7_scale_engine(self):
         from app.cubes.cube7_ranking.scale_engine import (
-            BordaAccumulator,
-            SupabaseVoteAccumulator,
             broadcast_to_all_shards,
             sample_responses,
         )
@@ -178,11 +176,11 @@ class TestScaleConstants:
         cfg = ScalePipelineConfig()
         assert cfg.total_budget <= 65.0  # Under 60s + 5s grace
 
-    def test_borda_accumulator_exists(self):
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
-        acc = BordaAccumulator(n_themes=3, seed="test")
-        acc.add_vote(["A", "B", "C"], "p1")
-        assert acc.voter_count == 1
+    def test_borda_tally_exists(self):
+        """HP-08: the one Borda engine (the in-memory BordaAccumulator was an unused second one, removed)."""
+        from app.cubes.cube7_ranking.ranking_aggregation import _borda_scores, _sql_tally, tally_rankings
+        assert callable(tally_rankings) and callable(_sql_tally)
+        assert _borda_scores([["A", "B", "C"]], 3) == {"A": 2, "B": 1, "C": 0}
 
     def test_streaming_csv_exists(self):
         from app.cubes.cube9_reports.service import export_session_csv_streaming

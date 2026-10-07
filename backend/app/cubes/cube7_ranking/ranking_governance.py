@@ -41,6 +41,8 @@ from app.cubes.cube7_ranking.ranking_submission import (
 from app.cubes.cube7_ranking.ranking_aggregation import (
     aggregate_rankings,
     identify_top_theme2,
+    tally_rankings,
+    _ballot_width,
     _borda_scores,
     _seeded_tiebreak_key,
     _compute_replay_hash,
@@ -422,73 +424,69 @@ async def detect_voting_anomalies(
     """Flag coordinated / suspicious voting patterns.
 
     Checks:
-      1. Identical ranked_theme_ids from >=3 participants within 2s window
+      1. An identical-ordering burst: >= _ANOMALY_MIN_DUPLICATES identical ballots within _ANOMALY_WINDOW_SEC that
+         are at least BURST_SHARE of everything cast in that window
       2. Rapid-fire submissions (>10 per participant per minute)
+
+    At live scale (≈1,667 votes/s) three honest voters sharing a popular order inside 2 s is normal — the old
+    "≥3 identical within 2 s" rule excluded 2,931 honest voters at 1M ballots, while a 100k-ballot swarm lost only
+    3 votes (it stopped after the first window). A burst is flagged only when identical ballots are at least
+    BURST_SHARE of ALL ballots cast in that window, and the whole burst is flagged, not its first three.
+
+    HP-05 (1M SIM, 2026-10-07): this runs before every aggregation, and loading each ballot as an ORM object cost
+    ~100 s at 1M. On Postgres the window counts run in the database and only the ballots of a key that can burst
+    come back (`_anomalies_sql`); elsewhere `_anomalies_python` reads every row. Both feed the same scans, so the same
+    list comes back — tests/cube7/test_sql_tally_parity.py proves it.
     """
-    result = await db.execute(
-        select(Ranking)
-        .where(
-            and_(
-                Ranking.session_id == session_id,
-                Ranking.cycle_id == cycle_id,
-            )
+    from app.cubes.cube7_ranking.ranking_aggregation import _is_postgres
+
+    if _is_postgres(db):
+        anomalies = await _anomalies_sql(db, session_id, cycle_id)
+    else:
+        anomalies = await _anomalies_python(db, session_id, cycle_id)
+    if anomalies:
+        logger.warning(
+            "cube7.anomaly.detected",
+            extra={"session_id": str(session_id), "anomaly_count": len(anomalies)},
         )
-        .order_by(Ranking.submitted_at)
-    )
-    rankings = list(result.scalars().all())
+    return anomalies
 
-    anomalies: list[dict] = []
 
-    # Check 1: an identical-ordering BURST that dominates its window.
-    #
-    # At live scale (≈1,667 votes/s) three honest voters sharing a popular order inside 2 s is
-    # normal — the old "≥3 identical within 2 s" rule excluded 2,931 honest voters at 1M ballots,
-    # while a 100k-ballot swarm lost only 3 votes (it stopped after the first window). A burst is
-    # now flagged only when identical ballots are at least BURST_SHARE of ALL ballots cast in that
-    # window, and the whole burst is flagged, not its first three.
-    import bisect
+def _scan_bursts(key: str, group: list[tuple[datetime, str]], total_at) -> list[dict]:
+    """Check 1 over one ordering's ballots, (submitted_at, participant_id) in (submitted_at, id) order.
 
-    all_times = [r.submitted_at for r in rankings]  # ordered by submitted_at (query above)
-    ranking_groups: dict[str, list[Ranking]] = {}
-    for r in rankings:
-        ranking_groups.setdefault(str(r.ranked_theme_ids), []).append(r)
+    `total_at(i)` = every ballot cast in [group[i].submitted_at, + WINDOW] (both counts over the SAME full window:
+    measuring the run's own span, often a millisecond, made any three near-simultaneous voters "dominate").
+    """
+    out: list[dict] = []
+    if len(group) < _ANOMALY_MIN_DUPLICATES:
+        return out
+    i = 0
+    while i <= len(group) - _ANOMALY_MIN_DUPLICATES:
+        j = i
+        while j + 1 < len(group) and (group[j + 1][0] - group[i][0]).total_seconds() <= _ANOMALY_WINDOW_SEC:
+            j += 1
+        run = j - i + 1
+        if run >= _ANOMALY_MIN_DUPLICATES:
+            total = total_at(i)
+            if run / max(total, 1) >= BURST_SHARE:
+                out.append({
+                    "type": "identical_ranking_burst",
+                    "ranking_key": key,
+                    "count": run,
+                    "window_seconds": (group[j][0] - group[i][0]).total_seconds(),
+                    "share_of_window": round(run / max(total, 1), 4),
+                    "participant_ids": [group[k][1] for k in range(i, j + 1)],
+                })
+                i = j + 1
+                continue
+        i += 1
+    return out
 
-    for key, group in ranking_groups.items():
-        if len(group) < _ANOMALY_MIN_DUPLICATES:
-            continue
-        group.sort(key=lambda r: r.submitted_at)
-        i = 0
-        while i <= len(group) - _ANOMALY_MIN_DUPLICATES:
-            j = i
-            while j + 1 < len(group) and (group[j + 1].submitted_at - group[i].submitted_at).total_seconds() <= _ANOMALY_WINDOW_SEC:
-                j += 1
-            run = j - i + 1
-            if run >= _ANOMALY_MIN_DUPLICATES:
-                # Both counts over the SAME full window [t0, t0 + WINDOW]: measuring the run's own
-                # span (often a millisecond) made any three near-simultaneous voters "dominate".
-                from datetime import timedelta as _td
 
-                t0, t1 = group[i].submitted_at, group[j].submitted_at
-                total = bisect.bisect_right(all_times, t0 + _td(seconds=_ANOMALY_WINDOW_SEC)) - bisect.bisect_left(all_times, t0)
-                if run / max(total, 1) >= BURST_SHARE:
-                    anomalies.append({
-                        "type": "identical_ranking_burst",
-                        "ranking_key": key,
-                        "count": run,
-                        "window_seconds": (t1 - t0).total_seconds(),
-                        "share_of_window": round(run / max(total, 1), 4),
-                        "participant_ids": [str(group[k].participant_id) for k in range(i, j + 1)],
-                    })
-                    i = j + 1
-                    continue
-            i += 1
-
-    # Check 2: Rapid submissions per participant
-    from collections import defaultdict
-    participant_times: dict[str, list[datetime]] = defaultdict(list)
-    for r in rankings:
-        participant_times[str(r.participant_id)].append(r.submitted_at)
-
+def _scan_rapid(participant_times: dict[str, list[datetime]]) -> list[dict]:
+    """Check 2: more than _MAX_SUBMISSIONS_PER_MINUTE submissions by one participant inside 60 s."""
+    out: list[dict] = []
     for pid, times in participant_times.items():
         if len(times) > _MAX_SUBMISSIONS_PER_MINUTE:
             sorted_times = sorted(times)
@@ -497,26 +495,116 @@ async def detect_voting_anomalies(
                     sorted_times[i + _MAX_SUBMISSIONS_PER_MINUTE] - sorted_times[i]
                 ).total_seconds()
                 if window <= 60.0:
-                    anomalies.append({
+                    out.append({
                         "type": "rapid_submissions",
                         "participant_id": pid,
                         "count": _MAX_SUBMISSIONS_PER_MINUTE + 1,
                         "window_seconds": window,
                     })
                     break
+    return out
 
-    if anomalies:
-        logger.warning(
-            "cube7.anomaly.detected",
-            extra={"session_id": str(session_id), "anomaly_count": len(anomalies)},
-        )
 
+async def _anomalies_python(db: AsyncSession, session_id: uuid.UUID, cycle_id: int) -> list[dict]:
+    """Non-Postgres path: every ballot in (submitted_at, id) order (the id makes equal timestamps deterministic)."""
+    import bisect
+    from collections import defaultdict
+    from datetime import timedelta
+
+    result = await db.execute(
+        select(Ranking)
+        .where(and_(Ranking.session_id == session_id, Ranking.cycle_id == cycle_id))
+        .order_by(Ranking.submitted_at, Ranking.id)
+    )
+    rankings = list(result.scalars().all())
+    all_times = [r.submitted_at for r in rankings]
+    window = timedelta(seconds=_ANOMALY_WINDOW_SEC)
+    groups: dict[str, list[tuple[datetime, str]]] = {}
+    participant_times: dict[str, list[datetime]] = defaultdict(list)
+    for r in rankings:
+        groups.setdefault(str(r.ranked_theme_ids), []).append((r.submitted_at, str(r.participant_id)))
+        participant_times[str(r.participant_id)].append(r.submitted_at)
+
+    anomalies: list[dict] = []
+    for key, group in groups.items():
+        anomalies.extend(_scan_bursts(
+            key, group,
+            lambda i, g=group: bisect.bisect_right(all_times, g[i][0] + window) - bisect.bisect_left(all_times, g[i][0]),
+        ))
+    anomalies.extend(_scan_rapid(participant_times))
+    return anomalies
+
+
+async def _anomalies_sql(db: AsyncSession, session_id: uuid.UUID, cycle_id: int) -> list[dict]:
+    """Postgres path: window counts in the database; only orderings that can burst are scanned in Python.
+
+    For every ballot Postgres counts its window's identical ballots (`run`, partitioned by ordering) and all ballots
+    (`total`) over [submitted_at, + WINDOW]. `run` here also counts identical ballots sharing the start timestamp
+    but sorted before it, so it is >= the scan's own run: an ordering with no row passing the burst test on these
+    counts cannot burst, and one that has such a row is scanned exactly as the Python path scans it, with the same
+    per-row totals. Orderings group as jsonb (one value, however it was spaced when written) and come back in order
+    of first appearance, as the Python path's dict does.
+    """
+    import json
+    from collections import defaultdict
+
+    from sqlalchemy import text
+
+    params = {"s": session_id, "c": cycle_id, "mind": _ANOMALY_MIN_DUPLICATES, "share": BURST_SHARE,
+              "maxn": _MAX_SUBMISSIONS_PER_MINUTE}
+    win = f"INTERVAL '{float(_ANOMALY_WINDOW_SEC)} seconds'"  # a code constant, never input
+    # The window sorts carry only a 64-bit hash of the ordering: sorting the jsonb itself cost ~3x as much at 1M.
+    # A hash collision only merges orderings, which can only raise `run`, so the filter stays a superset; the exact
+    # grouping is redone in Python on the jsonb text of the few rows that come back.
+    stream = await db.stream(text(
+        f"WITH b AS (SELECT id, submitted_at, jsonb_hash_extended(ranked_theme_ids::jsonb, 0) AS h FROM user_rankings "
+        f"  WHERE session_id = :s AND cycle_id = :c), "
+        f"w AS (SELECT b.*, "
+        f"  count(*) OVER (PARTITION BY h ORDER BY submitted_at RANGE BETWEEN CURRENT ROW AND {win} FOLLOWING) AS run, "
+        f"  count(*) OVER (ORDER BY submitted_at RANGE BETWEEN CURRENT ROW AND {win} FOLLOWING) AS total FROM b), "
+        f"ck AS (SELECT DISTINCT h FROM w WHERE run >= :mind AND run::float8 / greatest(total, 1) >= :share) "
+        f"SELECT u.ranked_theme_ids::jsonb::text, w.submitted_at, u.participant_id::text, w.total "
+        f"FROM w JOIN ck ON w.h = ck.h JOIN user_rankings u ON u.id = w.id "
+        f"ORDER BY w.submitted_at, w.id"), params)
+    # Rows arrive in (submitted_at, id) order, so each group is in scan order and the dict keeps first appearance.
+    groups: dict[str, list[tuple[datetime, str]]] = {}
+    totals: dict[str, list[int]] = {}
+    async for part in stream.partitions(10_000):
+        for k, t, pid, total in part:
+            if k not in groups:
+                groups[k], totals[k] = [], []
+            groups[k].append((t, pid))
+            totals[k].append(int(total))
+    await stream.close()
+
+    anomalies: list[dict] = []
+    for k, group in groups.items():
+        anomalies.extend(_scan_bursts(str(json.loads(k)), group, lambda i, tt=totals[k]: tt[i]))
+
+    rows = (await db.execute(text(
+        "SELECT participant_id::text, submitted_at FROM user_rankings WHERE session_id = :s AND cycle_id = :c "
+        "AND participant_id IN (SELECT participant_id FROM user_rankings WHERE session_id = :s AND cycle_id = :c "
+        "GROUP BY participant_id HAVING count(*) > :maxn) ORDER BY submitted_at, id"), params)).all()
+    participant_times: dict[str, list[datetime]] = defaultdict(list)
+    for pid, t in rows:
+        participant_times[pid].append(t)
+    anomalies.extend(_scan_rapid(participant_times))
     return anomalies
 
 
 # ---------------------------------------------------------------------------
 # Full Ranking Pipeline (orchestrator)
 # ---------------------------------------------------------------------------
+
+
+def _burst_exclusions(anomalies: list[dict]) -> set[str]:
+    """Participants excluded from the tally: every member of a flagged identical-ballot burst (CRS-12.04)."""
+    excluded: set[str] = set()
+    for a in anomalies:
+        if a["type"] == "identical_ranking_burst":
+            excluded.update(a.get("participant_ids", []))
+    return excluded
+
 
 
 async def run_ranking_pipeline(
@@ -559,10 +647,7 @@ async def run_ranking_pipeline(
     anomalies = await detect_voting_anomalies(db, session_id, cycle_id)
 
     # 2. Collect flagged participant IDs for exclusion
-    excluded_participants: set[str] = set()
-    for a in anomalies:
-        if a["type"] == "identical_ranking_burst":
-            excluded_participants.update(a.get("participant_ids", []))
+    excluded_participants = _burst_exclusions(anomalies)
 
     # 3. Aggregate (excluding flagged participants, pinned to category/level)
     aggregated = await aggregate_rankings(
@@ -656,7 +741,7 @@ async def get_emerging_patterns(
         if isinstance(ids, list):
             all_rankings.append(ids)
 
-    n_themes = len(all_rankings[0]) if all_rankings else 0
+    n_themes = _ballot_width(all_rankings)
     scores = _borda_scores(all_rankings, n_themes)
 
     sorted_t = sorted(scores.items(), key=lambda x: -x[1])
@@ -824,13 +909,16 @@ async def verify_replay(
     Step 5 (2026-07-03): auto-fills category/level from the Session so the
     verifier hashes the same slice-pinned payload the aggregator did.
     """
-    # 0. Auto-fill category/level from Session if omitted (matches pipeline).
-    if theme01_category is None or theme_level is None:
+    # 0. Auto-fill category/level from Session if omitted (matches pipeline), and the seed: the aggregate endpoint
+    #    runs with `seed or session.seed`, so the replay defaults to the same seed.
+    session_seed = None
+    if theme01_category is None or theme_level is None or seed is None:
         from app.models.session import Session
 
         s_res = await db.execute(select(Session).where(Session.id == session_id))
         s = s_res.scalar_one_or_none()
         if s is not None:
+            session_seed = getattr(s, "seed", None)
             if theme01_category is None:
                 theme01_category = getattr(s, "theme01_category", None)
             if theme_level is None:
@@ -852,64 +940,38 @@ async def verify_replay(
     existing_rankings = list(existing.scalars().all())
     existing_order = [str(r.theme_id) for r in existing_rankings]
 
-    # Fetch user rankings
-    result = await db.execute(
-        select(Ranking).where(
-            and_(
-                Ranking.session_id == session_id,
-                Ranking.cycle_id == cycle_id,
-            )
-        )
-    )
-    user_rankings = list(result.scalars().all())
-
-    all_rankings: list[list[str]] = []
-    all_participant_ids: list[str] = []
-    for ur in user_rankings:
-        ids = ur.ranked_theme_ids
-        if isinstance(ids, list):
-            all_rankings.append(ids)
-            all_participant_ids.append(str(ur.participant_id))
-
-    effective_seed = seed or str(session_id)
-    n_themes = len(all_rankings[0]) if all_rankings else 0
+    # The SAME inputs and path as run_ranking_pipeline: the same anomaly exclusions, both stored ballot shapes, the
+    # SQL tally on Postgres. Re-reading the ballots differently (no exclusions, bare lists only, always in Python)
+    # let the determinism proof disagree with the very result it checks.
+    anomalies = await detect_voting_anomalies(db, session_id, cycle_id)
+    excluded = _burst_exclusions(anomalies)
+    effective_seed = seed or session_seed or str(session_id)
 
     # C7-1: recompute with the SAME algorithm the aggregator persisted.
     stored_algorithm = (
         existing_rankings[0].algorithm if existing_rankings else "borda_count"
     )
-
-    order_recomputed = True
-    if stored_algorithm == "quadratic_borda" and participant_stakes:
-        weights = _quadratic_weights(participant_stakes)
-        scores = _weighted_borda_scores(
-            all_rankings, all_participant_ids, weights, n_themes
+    quadratic = stored_algorithm == "quadratic_borda"
+    # Quadratic session without its stakes: the exact weighted order can't be reproduced here. The hash (pinned to
+    # quadratic_borda) still verifies determinism; do not claim an order match/mismatch.
+    order_recomputed = not quadratic or bool(participant_stakes)
+    try:
+        t = await tally_rankings(
+            db, session_id, cycle_id, effective_seed, participant_stakes if quadratic else None, excluded,
+            theme01_category, theme_level, hash_algorithm=stored_algorithm,
         )
-    elif stored_algorithm == "quadratic_borda":
-        # Quadratic session but no stakes supplied — the exact weighted order
-        # can't be reproduced here. The hash (below, pinned to quadratic_borda)
-        # still verifies determinism; do not claim an order match/mismatch.
-        scores = None
-        order_recomputed = False
-    else:
-        scores = _borda_scores(all_rankings, n_themes)
+    except ValueError:  # no ballot left: nothing to replay
+        t = {"scores": {}, "participant_count": 0, "excluded_count": len(excluded), "replay_hash": None}
 
-    if scores is not None:
+    if order_recomputed:
         sorted_t = sorted(
-            scores.items(),
+            t["scores"].items(),
             key=lambda x: (-x[1], _seeded_tiebreak_key(x[0], effective_seed)),
         )
-        recomputed_order = [t[0] for t in sorted_t]
+        recomputed_order = [x[0] for x in sorted_t]
     else:
         recomputed_order = existing_order  # not independently recomputed
-
-    replay_hash = _compute_replay_hash(
-        all_rankings,
-        effective_seed,
-        stored_algorithm,
-        theme01_category=theme01_category,
-        theme_level=theme_level,
-    )
+    replay_hash = t["replay_hash"]
 
     return {
         "session_id": str(session_id),
@@ -922,5 +984,7 @@ async def verify_replay(
         "recomputed_order": recomputed_order,
         "order_recomputed": order_recomputed,
         "match": (existing_order == recomputed_order) if order_recomputed else None,
-        "participant_count": len(all_rankings),
+        "participant_count": t["participant_count"],
+        "excluded_participants": t["excluded_count"],
+        "anomaly_count": len(anomalies),
     }

@@ -171,50 +171,17 @@ class TestMarbleSamplingScale:
 class TestBordaRankingScale:
     """Borda count aggregation simulating 1M voters."""
 
-    def test_borda_1m_voters_3_themes(self):
-        """Simulate 1M voters ranking 3 themes — must complete in <5s."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
-
-        acc = BordaAccumulator(n_themes=3, seed="test-1m-3")
-        themes = ["AI Ethics", "Job Displacement", "Healthcare Innovation"]
-
-        start = time.perf_counter()
-        for i in range(1_000_000):
-            ranking = themes[i % 3:] + themes[:i % 3]
-            acc.add_vote(ranking, participant_id=f"user_{i}")
-        elapsed = time.perf_counter() - start
-
-        result = acc.aggregate()
-        assert len(result) == 3
-        assert elapsed < 5.0, f"1M Borda took {elapsed:.1f}s (target: <5s)"
-        total_votes = sum(r["vote_count"] for r in result)
-        assert total_votes == 3_000_000  # 1M voters × 3 themes each
-
-    def test_borda_1m_voters_9_themes(self):
-        """Simulate 1M voters ranking 9 themes."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
-
-        acc = BordaAccumulator(n_themes=9, seed="test-1m-9")
-        themes = [f"Theme_{i}" for i in range(9)]
-
-        start = time.perf_counter()
-        for i in range(1_000_000):
-            ranking = themes[i % 9:] + themes[:i % 9]
-            acc.add_vote(ranking, participant_id=f"user_{i}")
-        elapsed = time.perf_counter() - start
-
-        result = acc.aggregate()
-        assert len(result) == 9
-        assert elapsed < 10.0, f"1M Borda (9 themes) took {elapsed:.1f}s (target: <10s)"
+    # HP-08 (AsM r1): the two 1M per-vote timing tests measured the in-memory BordaAccumulator, an unused second
+    # engine now removed. The 1M figure for the production tally comes from scripts/sim_1m.py (Postgres).
 
     def test_borda_determinism_same_input(self):
         """Same 1M rankings = same output (determinism)."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+        from tests.borda_ref import BordaTally
 
         themes = ["A", "B", "C"]
         results = []
         for run in range(2):
-            acc = BordaAccumulator(n_themes=3, seed="determinism-test")
+            acc = BordaTally(n_themes=3, seed="determinism-test")
             random.seed(42)
             for j in range(10_000):
                 ranking = random.sample(themes, 3)
@@ -226,10 +193,10 @@ class TestBordaRankingScale:
 
     def test_governance_weight_damping(self):
         """Anti-sybil: verify weight damping reduces concentrated voting power."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+        from tests.borda_ref import BordaTally
 
         themes = ["Popular", "Manipulated", "Normal"]
-        acc = BordaAccumulator(n_themes=3, seed="sybil-test")
+        acc = BordaTally(n_themes=3, seed="sybil-test")
 
         # 999 normal voters: Popular > Normal > Manipulated
         for i in range(999):
@@ -412,8 +379,8 @@ class TestFullPipelineSimulation:
         # Phase 3: Ranking Simulation (Cube 7)
         theme_labels = list(theme_groups.keys())[:3]
         if len(theme_labels) >= 3:
-            from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
-            acc = BordaAccumulator(n_themes=len(theme_labels), seed="pipeline-test")
+            from tests.borda_ref import BordaTally
+            acc = BordaTally(n_themes=len(theme_labels), seed="pipeline-test")
             for i in range(5000):
                 ranking = theme_labels[i % len(theme_labels):] + theme_labels[:i % len(theme_labels)]
                 acc.add_vote(ranking, participant_id=f"user_{i}")

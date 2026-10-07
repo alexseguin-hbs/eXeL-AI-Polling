@@ -314,7 +314,8 @@ class TestRealData5000CSV:
     def test_scale_projection_5k_to_1m(self, csv_data):
         """Project 5K dataset to 1M: timing multiplication factors."""
         import time
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator, sample_responses
+        from app.cubes.cube7_ranking.scale_engine import sample_responses
+        from tests.borda_ref import BordaTally
 
         # Simulate: 5000 summaries already exist (Phase A done)
         summaries = csv_data["33_Summary"].tolist()
@@ -330,7 +331,7 @@ class TestRealData5000CSV:
 
         # Phase B simulate voting on 3 themes from 5000 voters
         themes = ["T_risk", "T_support", "T_neutral"]
-        acc = BordaAccumulator(n_themes=3, seed="5k-projection")
+        acc = BordaTally(n_themes=3, seed="5k-projection")
 
         start = time.perf_counter()
         for i in range(5000):

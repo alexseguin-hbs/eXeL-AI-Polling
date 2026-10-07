@@ -196,37 +196,69 @@ async def _sql_tally(
     where = "session_id = :s AND cycle_id = :c"
     excluded_count = int((await db.execute(text(
         f"SELECT count(*) FROM user_rankings WHERE {where} AND participant_id = ANY(:ex)"), params)).scalar() or 0)
-    await db.execute(text("DROP TABLE IF EXISTS _tally_ballots"))
+    # A fresh name per call: a second tally in the same transaction (verify_replay after the aggregation) cannot
+    # DROP the first one's table while its server-side cursor still holds it. ON COMMIT DROP clears them all.
+    tb = f"_tally_ballots_{uuid.uuid4().hex[:12]}"
     await db.execute(text(
-        f"CREATE TEMP TABLE _tally_ballots ON COMMIT DROP AS "
+        f"CREATE TEMP TABLE {tb} ON COMMIT DROP AS "
         f"SELECT ids, array_to_string(ARRAY(SELECT jsonb_array_elements_text(ids)), ',') COLLATE \"C\" AS joined, c "
         f"FROM (SELECT {_BALLOT_IDS.format(col='t')} AS ids, c FROM ("
         f"  SELECT ranked_theme_ids::text AS t, count(*) AS c FROM user_rankings "
         f"  WHERE {where} AND NOT (participant_id = ANY(:ex)) GROUP BY 1) raw) b "
         f"WHERE jsonb_typeof(ids) = 'array'"), params)
-    participant_count = int((await db.execute(text("SELECT coalesce(sum(c), 0) FROM _tally_ballots"))).scalar())
+    participant_count = int((await db.execute(text(f"SELECT coalesce(sum(c), 0) FROM {tb}"))).scalar())
     if not participant_count:
         return {}, {}, 0, excluded_count, 0, ""
-    n_themes = (await db.execute(text("SELECT jsonb_array_length(ids) FROM _tally_ballots LIMIT 1"))).scalar() or 0
+    # n_themes = the longest ballot (was "the first ballot", which depends on row order); same rule as _ballot_width.
+    n_themes = (await db.execute(text(f"SELECT max(jsonb_array_length(ids)) FROM {tb}"))).scalar() or 0
     pts = (await db.execute(text(
-        "SELECT e.tid, sum(b.c * (:n - e.pos)) FROM _tally_ballots b, "
+        f"SELECT e.tid, sum(b.c * (:n - e.pos)) FROM {tb} b, "
         "jsonb_array_elements_text(b.ids) WITH ORDINALITY AS e(tid, pos) GROUP BY e.tid"), {"n": n_themes})).all()
     votes = (await db.execute(text(
-        "SELECT d.tid, sum(b.c) FROM _tally_ballots b, "
+        f"SELECT d.tid, sum(b.c) FROM {tb} b, "
         "LATERAL (SELECT DISTINCT tid FROM jsonb_array_elements_text(b.ids) AS e(tid)) d GROUP BY d.tid"))).all()
     scores = {r[0]: float(r[1]) for r in pts}
     vote_counts = {r[0]: int(r[1]) for r in votes}
     digest = hashlib.sha256(hash_prefix.encode())
     first = True
     stream = await db.stream(text(
-        "SELECT joined, sum(c) FROM _tally_ballots GROUP BY joined ORDER BY joined"))
+        f"SELECT joined, sum(c) FROM {tb} GROUP BY joined ORDER BY joined"))
     async for part in stream.partitions(5_000):
         for joined, c in part:
-            chunk = "|".join([joined] * int(c))
-            digest.update((chunk if first else "|" + chunk).encode())
+            _feed_repeated(digest, joined, int(c), first)
             first = False
     await stream.close()  # the temp table drops itself at commit/rollback (ON COMMIT DROP)
     return scores, vote_counts, participant_count, excluded_count, n_themes, digest.hexdigest()
+
+
+_HASH_FEED_BYTES = 1 << 20  # at most ~1 MiB handed to the digest at once, however many voters agree
+
+
+def _feed_repeated(digest, joined: str, count: int, first: bool) -> None:
+    """Feed `joined` repeated `count` times, "|"-separated (with a leading "|" unless it is the first ballot).
+
+    The bytes are exactly `"|".join([joined] * count)` (prefixed by "|" when not first), but handed to the digest in
+    batches of at most _HASH_FEED_BYTES: building that string whole cost count × len(joined) bytes, so memory grew
+    with agreement (1M identical ballots → a 332 MB string).
+    """
+    piece = ("|" + joined).encode()
+    remaining = count
+    if first and remaining:
+        digest.update(joined.encode())
+        remaining -= 1
+    per_batch = max(1, _HASH_FEED_BYTES // len(piece))
+    if remaining >= per_batch:
+        batch = piece * per_batch
+        while remaining >= per_batch:
+            digest.update(batch)
+            remaining -= per_batch
+    if remaining:
+        digest.update(piece * remaining)
+
+
+def _ballot_width(rankings: list[list[str]]) -> int:
+    """Borda width: the longest ballot. Order-independent, and the same rule `_sql_tally` uses in Postgres."""
+    return max((len(r) for r in rankings), default=0)
 
 
 def _replay_prefix(seed: str, algorithm: str, theme01_category: str | None, theme_level: str | None) -> str:
@@ -251,63 +283,62 @@ async def aggregate_rankings(
     """CRS-12.01 + CRS-12.02 + CRS-12.04: Borda count with quadratic weights + anomaly exclusion.
 
     Steps:
-      1. Fetch all user_rankings for session + cycle
-      1b. Exclude flagged participants (CRS-12.04 anti-sybil)
-      2. Compute quadratic weights (if stakes provided) or equal weights
-      3. Compute weighted Borda scores
-      4. Sort by score DESC, then deterministic tiebreak
-      5. Clear previous aggregated_rankings for this cycle
-      6. Write new aggregated_rankings (1 row per theme)
+      1. Tally the session + cycle's ballots, excluding flagged participants (CRS-12.04 anti-sybil) — `tally_rankings`
+      2. Quadratic weights (if stakes provided) or equal weights; weighted Borda scores; the replay hash
+      3. Sort by score DESC, then deterministic tiebreak
+      4. Clear previous aggregated_rankings for this cycle
+      5. Write new aggregated_rankings (1 row per theme)
     """
-    excluded = excluded_participant_ids or set()
     effective_seed = seed or str(session_id)
+    t = await tally_rankings(
+        db, session_id, cycle_id, effective_seed, participant_stakes,
+        excluded_participant_ids or set(), theme01_category, theme_level,
+    )
+    return await _write_aggregation(
+        db, session_id, cycle_id, t["scores"], t["vote_counts"], t["participant_count"], t["algorithm"],
+        effective_seed, t["replay_hash"], theme01_category, theme_level, participant_stakes,
+        t["weights"], t["participant_ids"],
+    )
+
+
+async def tally_rankings(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    cycle_id: int,
+    effective_seed: str,
+    participant_stakes: dict[str, float] | None,
+    excluded: set[str],
+    theme01_category: str | None = None,
+    theme_level: str | None = None,
+    hash_algorithm: str | None = None,
+) -> dict:
+    """The read-only half of aggregation, shared by `aggregate_rankings` and `verify_replay` so they cannot drift.
+
+    Returns scores, vote_counts, participant_count, excluded_count, algorithm, replay_hash, weights and (on the
+    Python path) participant_ids. Raises ValueError when no ballot is left. `hash_algorithm` overrides the algorithm
+    folded into the replay hash (verify_replay of a quadratic session without its stakes).
+    """
+    algorithm = "quadratic_borda" if participant_stakes else "borda_count"
+    prefix = _replay_prefix(effective_seed, hash_algorithm or algorithm, theme01_category, theme_level)
 
     if not participant_stakes and _is_postgres(db):
         # HP-05: equal weights on Postgres — tally in the database, stream the replay hash.
-        algorithm = "borda_count"
-        scores, vote_counts, participant_count, excluded_count, n_themes, replay_hash = await _sql_tally(
-            db, session_id, cycle_id, excluded,
-            _replay_prefix(effective_seed, algorithm, theme01_category, theme_level),
+        scores, vote_counts, participant_count, excluded_count, _n, replay_hash = await _sql_tally(
+            db, session_id, cycle_id, excluded, prefix,
         )
-        if not participant_count:
-            if excluded_count:
-                raise ValueError(
-                    f"No valid rankings remaining after excluding {excluded_count} flagged participants"
-                )
-            raise ValueError(f"No rankings found for session {session_id} cycle {cycle_id}")
-        if excluded_count:
-            logger.info(
-                "cube7.ranking.excluded_anomalous",
-                extra={"session_id": str(session_id), "excluded_count": excluded_count},
-            )
-        all_participant_ids: list[str] = []
-        weights: dict[str, float] = {}
-        return await _write_aggregation(
-            db, session_id, cycle_id, scores, vote_counts, participant_count, algorithm, effective_seed,
-            replay_hash, theme01_category, theme_level, participant_stakes, weights, all_participant_ids,
-        )
+        _check_tally(session_id, cycle_id, participant_count, excluded_count)
+        return {"scores": scores, "vote_counts": vote_counts, "participant_count": participant_count,
+                "excluded_count": excluded_count, "algorithm": algorithm, "replay_hash": replay_hash,
+                "weights": {}, "participant_ids": []}
 
-    # 1. Fetch user rankings
+    # Python path: every ballot, in either stored shape (bare list or {"ranked_theme_ids": [...]}).
     result = await db.execute(
-        select(Ranking).where(
-            and_(
-                Ranking.session_id == session_id,
-                Ranking.cycle_id == cycle_id,
-            )
-        )
+        select(Ranking).where(and_(Ranking.session_id == session_id, Ranking.cycle_id == cycle_id))
     )
-    user_rankings = result.scalars().all()
-
-    if not user_rankings:
-        raise ValueError(
-            f"No rankings found for session {session_id} cycle {cycle_id}"
-        )
-
-    # 1b. Extract ranked_theme_ids + participant_ids, excluding flagged
     all_rankings: list[list[str]] = []
     all_participant_ids: list[str] = []
     excluded_count = 0
-    for ur in user_rankings:
+    for ur in result.scalars().all():
         pid = str(ur.participant_id)
         if pid in excluded:
             excluded_count += 1
@@ -318,50 +349,43 @@ async def aggregate_rankings(
         elif isinstance(ids, dict) and "ranked_theme_ids" in ids:
             all_rankings.append(ids["ranked_theme_ids"])
         all_participant_ids.append(pid)
+    _check_tally(session_id, cycle_id, len(all_rankings), excluded_count)
 
-    if excluded_count:
-        logger.info(
-            "cube7.ranking.excluded_anomalous",
-            extra={"session_id": str(session_id), "excluded_count": excluded_count},
-        )
-
-    if not all_rankings:
-        raise ValueError(
-            f"No valid rankings remaining after excluding {excluded_count} flagged participants"
-        )
-
-    n_themes = len(all_rankings[0]) if all_rankings else 0
-    participant_count = len(all_rankings)
-
-    # 2. Compute weights
-    algorithm = "borda_count"
+    n_themes = _ballot_width(all_rankings)
+    weights: dict[str, float] = {}
     if participant_stakes:
         weights = _quadratic_weights(participant_stakes)
-        scores = _weighted_borda_scores(
-            all_rankings, all_participant_ids, weights, n_themes
-        )
-        algorithm = "quadratic_borda"
+        scores = _weighted_borda_scores(all_rankings, all_participant_ids, weights, n_themes)
     else:
         scores = _borda_scores(all_rankings, n_themes)
-
-    # 3. Compute replay hash (Step 5: category+level pinned into hash)
+    # Replay hash (Step 5: category+level pinned into hash) — the same bytes `_sql_tally` streams.
     replay_hash = _compute_replay_hash(
-        all_rankings,
-        effective_seed,
-        algorithm,
-        theme01_category=theme01_category,
-        theme_level=theme_level,
+        all_rankings, effective_seed, hash_algorithm or algorithm,
+        theme01_category=theme01_category, theme_level=theme_level,
     )
     # Vote counts in one pass (was one full scan of every ballot per theme).
     vote_counts: dict[str, int] = {}
     for r in all_rankings:
         for tid in set(r):
             vote_counts[tid] = vote_counts.get(tid, 0) + 1
-    return await _write_aggregation(
-        db, session_id, cycle_id, scores, vote_counts, participant_count, algorithm, effective_seed,
-        replay_hash, theme01_category, theme_level, participant_stakes,
-        weights if participant_stakes else {}, all_participant_ids,
-    )
+    return {"scores": scores, "vote_counts": vote_counts, "participant_count": len(all_rankings),
+            "excluded_count": excluded_count, "algorithm": algorithm, "replay_hash": replay_hash,
+            "weights": weights, "participant_ids": all_participant_ids}
+
+
+def _check_tally(session_id: uuid.UUID, cycle_id: int, participant_count: int, excluded_count: int) -> None:
+    """The two refusals (same words on both paths), and the exclusion log line."""
+    if not participant_count:
+        if excluded_count:
+            raise ValueError(
+                f"No valid rankings remaining after excluding {excluded_count} flagged participants"
+            )
+        raise ValueError(f"No rankings found for session {session_id} cycle {cycle_id}")
+    if excluded_count:
+        logger.info(
+            "cube7.ranking.excluded_anomalous",
+            extra={"session_id": str(session_id), "excluded_count": excluded_count},
+        )
 
 
 async def _write_aggregation(

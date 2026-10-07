@@ -72,10 +72,24 @@ class TestSchemaValidation:
         payload = RankingSubmit(ranked_theme_ids=THEME_IDS)
         assert len(payload.ranked_theme_ids) == 3
 
-    def test_ranking_submit_empty(self):
+    def test_ranking_submit_empty_refused(self):
+        """An empty ballot ranks nothing — refused at the schema (AsM r1, Enki/Thoth)."""
+        import pydantic
         from app.schemas.ranking import RankingSubmit
-        payload = RankingSubmit(ranked_theme_ids=[])
-        assert payload.ranked_theme_ids == []
+        with pytest.raises(pydantic.ValidationError):
+            RankingSubmit(ranked_theme_ids=[])
+
+    def test_ranking_submit_duplicate_refused(self):
+        import pydantic
+        from app.schemas.ranking import RankingSubmit
+        with pytest.raises(pydantic.ValidationError):
+            RankingSubmit(ranked_theme_ids=[THEME_IDS[0], THEME_IDS[0], THEME_IDS[1]])
+
+    def test_ranking_submit_over_max_refused(self):
+        import pydantic
+        from app.schemas.ranking import MAX_RANKED_THEMES, RankingSubmit
+        with pytest.raises(pydantic.ValidationError):
+            RankingSubmit(ranked_theme_ids=[uuid.uuid4() for _ in range(MAX_RANKED_THEMES + 1)])
 
     def test_aggregated_ranking_read(self):
         from app.schemas.ranking import AggregatedRankingRead

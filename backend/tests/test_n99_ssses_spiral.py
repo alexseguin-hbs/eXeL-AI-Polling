@@ -401,66 +401,78 @@ class TestCube6SSSES:
 class TestCube7SSSES:
     """Cube 7: Ranking engine — deterministic governance compression."""
 
+    # HP-08 (AsM r1): these ran against the in-memory BordaAccumulator, an unused second engine now removed.
+    # They exercise the one engine — ranking_aggregation's tally (its Python path; the SQL path is proven
+    # equal to it by tests/cube7/test_sql_tally_parity.py).
+
+    @staticmethod
+    def _tally(ballots: list[tuple[str, list[str]]], excluded: set[str]) -> dict:
+        import asyncio
+        import uuid as _uuid
+        from types import SimpleNamespace
+        from unittest.mock import AsyncMock, MagicMock
+
+        from app.cubes.cube7_ranking.ranking_aggregation import tally_rankings
+
+        rows = [SimpleNamespace(participant_id=p, ranked_theme_ids=b) for p, b in ballots]
+        res = MagicMock()
+        res.scalars.return_value.all.return_value = rows
+        db = MagicMock()
+        db.execute = AsyncMock(return_value=res)
+        return asyncio.run(tally_rankings(db, _uuid.UUID(int=7), 1, "test42", None, excluded))
+
     # ── Security: Anti-sybil exclusion ──
     def test_security_anti_sybil_exclusion_n99(self):
-        """Excluded participants are blocked from Borda accumulator."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+        """Excluded participants never reach the Borda tally."""
         reference = None
         for _ in range(N):
-            acc = BordaAccumulator(n_themes=3, seed="test42")
-            acc.add_vote(["A", "B", "C"], "user1")
-            acc.add_vote(["C", "B", "A"], "sybil")
-            acc.add_vote(["A", "C", "B"], "user2")
-            acc.exclude_participant("sybil")
-            result = acc.aggregate()
+            t = self._tally(
+                [("user1", ["A", "B", "C"]), ("sybil", ["C", "B", "A"]), ("user2", ["A", "C", "B"])], {"sybil"},
+            )
+            assert t["participant_count"] == 2 and t["excluded_count"] == 1
+            assert t["scores"] == {"A": 4.0, "B": 1.0, "C": 1.0}
             if reference is None:
-                reference = result
-            assert result == reference
+                reference = t
+            assert t == reference
 
     # ── Stability: Borda ranking determinism ──
     def test_stability_borda_ranking_n99(self):
-        """Same ballots always produce same ranking across 99 runs."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+        """Same ballots always produce same ranking and replay hash across 99 runs."""
+        from app.cubes.cube7_ranking.ranking_aggregation import _seeded_tiebreak_key
+
+        themes = ["X", "Y", "Z", "W"]
+        ballots = []
+        for i in range(100):
+            random.seed(42 + i)
+            b = list(themes)
+            random.shuffle(b)
+            ballots.append((f"voter_{i}", b))
         reference = None
         for _ in range(N):
-            themes = ["X", "Y", "Z", "W"]
-            acc = BordaAccumulator(n_themes=len(themes), seed="test42")
-            for i in range(100):
-                random.seed(42 + i)
-                ballot = list(themes)
-                random.shuffle(ballot)
-                acc.add_vote(ballot, f"voter_{i}")
-            result = acc.aggregate()
+            t = self._tally(ballots, set())
+            order = sorted(t["scores"], key=lambda k: (-t["scores"][k], _seeded_tiebreak_key(k, "test42")))
+            result = (order, t["replay_hash"])
             if reference is None:
                 reference = result
             assert result == reference
 
     # ── Scalability: Shard merge equivalence ──
     def test_scalability_shard_merge_n99(self):
-        """Sharded accumulation produces same result as single accumulator."""
-        from app.cubes.cube7_ranking.scale_engine import BordaAccumulator
+        """Borda is additive: tallying two shards and summing equals tallying everything."""
+        from app.cubes.cube7_ranking.ranking_aggregation import _borda_scores
+
         themes = ["A", "B", "C", "D", "E"]
-        reference = None
+        ballots = []
+        for i in range(100):
+            random.seed(i)
+            b = list(themes)
+            random.shuffle(b)
+            ballots.append(b)
         for _ in range(N):
-            single = BordaAccumulator(n_themes=len(themes), seed="merge42")
-            for i in range(100):
-                random.seed(i)
-                b = list(themes)
-                random.shuffle(b)
-                single.add_vote(b, f"v{i}")
-            shard1 = BordaAccumulator(n_themes=len(themes), seed="merge42")
-            shard2 = BordaAccumulator(n_themes=len(themes), seed="merge42")
-            for i in range(100):
-                random.seed(i)
-                b = list(themes)
-                random.shuffle(b)
-                target = shard1 if i % 2 == 0 else shard2
-                target.add_vote(b, f"v{i}")
-            shard1.merge(shard2)
-            assert single.aggregate() == shard1.aggregate()
-            if reference is None:
-                reference = single.aggregate()
-            assert single.aggregate() == reference
+            single = _borda_scores(ballots, len(themes))
+            s1 = _borda_scores(ballots[0::2], len(themes))
+            s2 = _borda_scores(ballots[1::2], len(themes))
+            assert single == {k: s1.get(k, 0) + s2.get(k, 0) for k in single}
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -996,12 +1008,16 @@ class TestFeatureRemovalGuard:
         assert "VALID_THEME_LEVELS" in r, "Theme level whitelist REMOVED from Cube 6!"
 
     # ═══ CUBE 7 — Ranking & Voting ═══
-    def test_cube7_borda_accumulator(self):
-        """Cube 7: BordaAccumulator with anti-sybil must exist."""
-        s = self._be("app/cubes/cube7_ranking/scale_engine.py")
-        assert "BordaAccumulator" in s, "BordaAccumulator REMOVED from Cube 7!"
-        assert "exclude" in s.lower(), "Anti-sybil exclusion REMOVED from Cube 7!"
-        assert "merge" in s, "Shard merge REMOVED from Cube 7!"
+    def test_cube7_borda_tally(self):
+        """Cube 7: the one Borda engine (SQL tally at 1M) with anti-sybil exclusion must exist.
+
+        HP-08 (AsM r1, 2026-10-07): this guarded the in-memory BordaAccumulator, an unused second engine now
+        removed; the guard now protects the tally the operator chose."""
+        s = self._be("app/cubes/cube7_ranking/ranking_aggregation.py")
+        assert "_sql_tally" in s, "SQL Borda tally REMOVED from Cube 7!"
+        assert "excluded" in s, "Anti-sybil exclusion REMOVED from Cube 7!"
+        g = self._be("app/cubes/cube7_ranking/ranking_governance.py")
+        assert "detect_voting_anomalies" in g and "_burst_exclusions" in g, "Anomaly exclusion REMOVED from Cube 7!"
 
     def test_cube7_shared_audit_parity(self):
         """R3.4: Cube 7 carries the SHARED core.audit.log_audit on the governance override
