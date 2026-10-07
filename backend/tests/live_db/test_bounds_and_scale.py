@@ -58,6 +58,9 @@ async def test_public_time_tracking_is_bounded(live):
     stops = await asyncio.gather(*[client.post(f"{A}/{sid}/time/stop", json={"time_entry_id": second["id"]},
                                                headers=hdr) for _ in range(4)])
     assert sorted(r.status_code for r in stops) == [200, 409, 409, 409], [r.status_code for r in stops]
+    # A public 'login' start is refused: login credit comes only from the join (Enki, Sofia; round 13).
+    refused = await client.post(f"{A}/{sid}/time/start", json={"action_type": "login"}, headers=hdr)
+    assert refused.status_code == 400, refused.status_code
     # A burst of parallel starts opens exactly one entry: the database's partial unique index decides (round 12).
     starts = await asyncio.gather(*[client.post(f"{A}/{sid}/time/start", json={"action_type": "responding"},
                                                 headers=hdr) for _ in range(6)])
@@ -233,3 +236,88 @@ async def test_theme_assignments_are_written_as_sets(live):
     assert written == n, f"every answer gets its theme assignment: {written} of {n}"
     assert t0_count and t0_count > 0, "child theme counts come from the one-pass Counter"
     assert took < 60, f"40,000 assignments took {took:.1f} s (one statement per answer was ~30 s here)"
+
+
+async def test_cqs_parallel_runs_and_no_session_row_lock(live):
+    """Two CQS runs at once leave one score per answer and one winner, with no 500 (scores and winner are one
+    transaction under an advisory lock); the stored label is written once-escaped; and while a scoring holds its lock,
+    a time stop for the same session still completes — no row lock on sessions (Odin, Thoth, Sofia; round 13)."""
+    import html
+    import time
+
+    import app.db.postgres as pg
+    from sqlalchemy import select, text
+
+    from app.models.cqs_score import CQSScore
+
+    client, who = live
+    sid, n = await _themed_session(client, who, "CQS parallel", "anonymous")
+    await _pin(sid, html.escape("Privacy & Trust"), 99)
+    who.moderator()
+    runs = await asyncio.gather(*[client.post(f"{A}/{sid}/ai/cqs",
+                                              params={"top_theme2_label": "Privacy & Trust", "theme_level": "3"})
+                                  for _ in range(3)])
+    assert all(r.status_code in OK for r in runs), [r.status_code for r in runs]
+    assert await _cqs_counts(sid) == (n, 1), "parallel runs: one score per answer, exactly one winner"
+    async with pg.async_session_factory() as db:
+        labels = set((await db.execute(select(CQSScore.theme2_cluster_label).where(
+            CQSScore.session_id == uuid.UUID(sid)))).scalars().all())
+    assert labels == {"Privacy &amp; Trust"}, f"the stored label, escaped once: {labels}"
+
+    # Hold a REAL scoring transaction open (score_cqs, uncommitted — every lock CQS takes), then insert a row that
+    # references the session from another connection: it must not wait (Odin measured 3 s+ under FOR UPDATE).
+    from datetime import datetime, timezone
+
+    from sqlalchemy import insert
+
+    from app.cubes.cube6_ai.cqs_engine import score_cqs
+    from app.models.question import Question
+    from app.models.response_meta import ResponseMeta
+
+    async with pg.async_session_factory() as holder:
+        held = await score_cqs(holder, uuid.UUID(sid), "Privacy &amp; Trust", "3", commit=False)
+        assert held, "the held scoring found its eligible answers"
+        async with pg.async_session_factory() as other:
+            qid = (await other.execute(select(Question.id).where(Question.session_id == uuid.UUID(sid)).limit(1))).scalar()
+            t0 = time.monotonic()
+            await asyncio.wait_for(other.execute(insert(ResponseMeta).values(
+                id=uuid.uuid4(), session_id=uuid.UUID(sid), question_id=qid, cycle_id=1, source="text",
+                char_count=1, submitted_at=datetime.now(timezone.utc), is_flagged=False)), timeout=10)
+            await other.commit()
+            took = time.monotonic() - t0
+        await holder.rollback()
+    assert took < 2, f"a write referencing the session waited {took:.1f} s on an open CQS scoring"
+
+
+async def test_ranking_aggregation_scores_cqs(live):
+    """POST /rankings/aggregate hands the winning Theme02 to CQS and it is scored (Krishna, round 13): before, the
+    handoff never passed the label, so no ranking ever scored CQS."""
+    import app.db.postgres as pg
+    from sqlalchemy import update
+
+    from app.models.response_summary import ResponseSummary
+
+    client, who = live
+    sid, n = await _themed_session(client, who, "Rank to CQS", "identified")
+    who.moderator()
+    themes = ok(await client.get(f"{A}/{sid}/themes"), what="themes").json()
+    level = str((await client.get(f"{A}/{sid}")).json().get("theme2_voting_level") or "theme2_9").split("_")[-1]
+    ballot = [t for t in themes if t.get("parent_theme_id") and t.get("label")
+              and str(t.get("theme_level") or (t.get("cluster_metadata") or {}).get("level")) == level]
+    assert ballot, "a ballot to rank"
+    top = ballot[0]
+    async with pg.async_session_factory() as db:
+        await db.execute(update(ResponseSummary).where(ResponseSummary.session_id == uuid.UUID(sid)).values(
+            **{f"theme2_{level}": top["label"], f"theme2_{level}_confidence": 99}))
+        await db.commit()
+    ids = [t["id"] for t in ballot]
+    rest = ids[1:]
+    # Three distinct ballots (identical ones are an anti-sybil burst); the pinned theme wins the Borda count.
+    ballots = [[ids[0]] + rest, [ids[0]] + rest[::-1], [rest[0], ids[0]] + rest[1:]]
+    for i in range(n):
+        who.be(f"google-oauth2|{'Rank to CQS'[:4]}{i}", role="user")
+        ok(await client.post(f"{A}/{sid}/rankings", json={"ranked_theme_ids": ballots[i]}), what=f"ballot {i}")
+    who.moderator()
+    ok(await client.post(f"{A}/{sid}/rankings/aggregate"), what="aggregate")
+    rows, winners = await _cqs_counts(sid)
+    assert (rows, winners) == (n, 1), f"aggregation scored CQS on the winning theme: {rows} scores, {winners} winners"

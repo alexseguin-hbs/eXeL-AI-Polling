@@ -174,6 +174,10 @@ async def emit_ranking_complete(
             algorithm=algorithm,
             participant_count=participant_count,
             replay_hash=replay_hash,
+            # The label and level the scoring needs: without them trigger_cqs_scoring only ever recorded a trigger,
+            # so no ranking ever scored CQS (Krishna, round 13). The label is the stored Theme.label.
+            top_theme2_label=top_theme2_label,
+            theme_level=theme_level if theme_level in ("3", "6", "9") else "3",
         )
         logger.info(
             "cube7.cqs.triggered",

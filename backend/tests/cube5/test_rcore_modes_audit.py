@@ -33,6 +33,10 @@ def _mock_db():
     db.add = MagicMock(side_effect=lambda x: added.append(x))
     db.flush = AsyncMock()
     db.commit = AsyncMock()
+    nested = MagicMock()
+    nested.__aenter__ = AsyncMock(return_value=nested)
+    nested.__aexit__ = AsyncMock(return_value=False)
+    db.begin_nested = MagicMock(return_value=nested)  # scoring runs in a savepoint (AsM round 13)
     return db, added
 
 
@@ -50,9 +54,10 @@ def test_trigger_records_and_audits_without_label():
 def test_trigger_invokes_real_scoring_when_label_present():
     db, _ = _mock_db()
     called = {}
-    async def _fake_pipeline(_db, sid, label, level):
+    async def _fake_pipeline(_db, sid, label, level, commit=True):
         called["label"] = label
         called["level"] = level
+        called["commit"] = commit
         return {"status": "completed", "winner": "r1"}
     with patch.object(service, "_create_trigger",
                       AsyncMock(return_value=MagicMock(id=uuid.uuid4()))), \
@@ -60,6 +65,7 @@ def test_trigger_invokes_real_scoring_when_label_present():
         _run(service.trigger_cqs_scoring(
             db, uuid.uuid4(), "id", top_theme2_label="Risk & Concerns", theme_level="3"))
     assert called["label"] == "Risk & Concerns" and called["level"] == "3"
+    assert called["commit"] is False and db.begin_nested.called  # inside the ranking's own transaction
 
 
 def test_scoring_failure_degrades_not_raises():

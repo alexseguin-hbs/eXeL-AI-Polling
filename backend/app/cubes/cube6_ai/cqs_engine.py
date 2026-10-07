@@ -16,7 +16,8 @@ import structlog
 import uuid
 
 import numpy as np
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
+from sqlalchemy import text as sql_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -49,8 +50,12 @@ async def score_cqs(
     session_id: uuid.UUID,
     top_theme2_label: str,
     theme_level: str = "3",
+    commit: bool = True,
 ) -> list[dict]:
     """Score responses in the #1 most-voted Theme2 cluster for CQS reward.
+
+    commit=False leaves the transaction (and its advisory lock) open for the caller — run_cqs_pipeline marks the
+    winner inside it, so scores and winner land in one commit (Odin, round 13).
 
     Filters to responses assigned to top_theme2_label at the given level
     with >95% confidence. Calls AI provider for 6-metric scoring.
@@ -60,12 +65,17 @@ async def score_cqs(
     """
     from app.models.cqs_score import CQSScore, DEFAULT_CQS_WEIGHTS
 
-    # The session row is locked for this scoring transaction, so two concurrent runs serialise instead of each
-    # deleting and each inserting a full set of scores (Athena, round 12).
-    result = await db.execute(select(Session).where(Session.id == session_id).with_for_update())
+    result = await db.execute(select(Session).where(Session.id == session_id))
     session = result.scalar_one_or_none()
     if session is None:
         raise ValueError(f"Session {session_id} not found")
+    # Two concurrent scorings of one session serialise on a transaction-scoped advisory lock (Athena, round 12) —
+    # never a row lock on sessions: FOR UPDATE there blocked every insert that references the session (time stops,
+    # ledger mints, votes, joins) for as long as the AI provider ran (Odin, round 13).
+    from app.cubes.cube7_ranking.ranking_aggregation import _is_postgres
+
+    if _is_postgres(db):
+        await db.execute(sql_text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": f"cqs:{session_id}"})
 
     provider_name = session.ai_provider or "openai"
     summarizer = get_summarization_provider_or_offline(provider_name)
@@ -78,20 +88,18 @@ async def score_cqs(
     from app.cubes.cube6_ai.phase_b import eligible_answers
 
     in_cycle = eligible_answers(session_id)
-    summaries_result = await db.execute(
-        select(ResponseSummary).where(
-            ResponseSummary.session_id == session_id,
-            ResponseSummary.response_meta_id.in_(in_cycle),
-        )
+    # Eligibility (this label at ≥ 95 confidence) is filtered in SQL — only the eligible summaries are loaded, never
+    # every summary of the cycle (Thoth, round 13). Ordered, so the scoring order is deterministic.
+    eligible_where = (
+        ResponseSummary.session_id == session_id,
+        ResponseSummary.response_meta_id.in_(in_cycle),
+        getattr(ResponseSummary, level_field) == top_theme2_label,
+        func.coalesce(getattr(ResponseSummary, conf_field), 0) >= 95,
     )
-    all_summaries = list(summaries_result.scalars().all())
-
-    eligible = []
-    for s in all_summaries:
-        theme_val = getattr(s, level_field, None)
-        conf_val = getattr(s, conf_field, None) or 0
-        if theme_val == top_theme2_label and conf_val >= 95:
-            eligible.append(s)
+    summaries_result = await db.execute(
+        select(ResponseSummary).where(*eligible_where).order_by(ResponseSummary.response_meta_id)
+    )
+    eligible = list(summaries_result.scalars().all())
 
     # Idempotent on EVERY path: a re-score replaces the session's scores and winner even when this cycle has nothing
     # eligible, so a re-opened cycle never keeps (or announces) the previous cycle's winner (Aset, Asar; round 12).
@@ -99,7 +107,8 @@ async def score_cqs(
     await db.execute(delete(CQSScore).where(CQSScore.session_id == session_id))
 
     if not eligible:
-        await db.commit()
+        if commit:
+            await db.commit()
         logger.info(
             "cube6.cqs.no_eligible",
             session_id=str(session_id),
@@ -109,18 +118,15 @@ async def score_cqs(
 
     # The participants of the eligible answers, filtered in SQL (a subquery, never a bound id list: asyncpg caps a
     # statement at 32,767 parameters and one winning theme can cover more answers than that at 1M; Odin, round 11).
-    eligible_ids = select(ResponseSummary.response_meta_id).where(
-        ResponseSummary.session_id == session_id,
-        ResponseSummary.response_meta_id.in_(in_cycle),
-        getattr(ResponseSummary, level_field) == top_theme2_label,
-        func.coalesce(getattr(ResponseSummary, conf_field), 0) >= 95,
-    )
+    eligible_ids = select(ResponseSummary.response_meta_id).where(*eligible_where)
     meta_result = await db.execute(
         select(ResponseMeta.id, ResponseMeta.participant_id).where(ResponseMeta.id.in_(eligible_ids))
     )
     meta_map = {row[0]: row[1] for row in meta_result.all()}
 
-    safe_theme_label = html.escape(top_theme2_label)
+    # The label arrives as stored (phase B html-escapes theme labels once); escaping it again wrote
+    # 'Privacy &amp;amp; Trust' (Thoth, Sofia; round 13).
+    safe_theme_label = top_theme2_label
 
     scored: list[dict] = []
     _CQS_BATCH_SIZE = 100
@@ -172,7 +178,8 @@ async def score_cqs(
             "scores": {m: scores.get(m, 50) for m in _CQS_METRICS},
         })
 
-    await db.commit()
+    if commit:
+        await db.commit()
 
     logger.info(
         "cube6.cqs.scored",
@@ -214,6 +221,7 @@ async def run_cqs_pipeline(
     top_theme2_label: str,
     theme_level: str = "3",
     seed: str | None = None,
+    commit: bool = True,
 ) -> dict:
     """Full CQS pipeline: score eligible responses + select winner.
 
@@ -221,9 +229,12 @@ async def run_cqs_pipeline(
     """
     from app.models.cqs_score import CQSScore
 
-    scored = await score_cqs(db, session_id, top_theme2_label, theme_level)
+    # Scores and winner in ONE transaction, under the scoring lock: a concurrent run can neither delete these rows
+    # between the two steps nor leave a second winner (Odin, round 13).
+    scored = await score_cqs(db, session_id, top_theme2_label, theme_level, commit=False)
 
     if not scored:
+        await (db.commit() if commit else db.flush())
         return {
             "session_id": str(session_id),
             "status": "no_eligible",
@@ -238,16 +249,14 @@ async def run_cqs_pipeline(
     winner_id = select_cqs_winner(scored, seed_int)
 
     if winner_id:
-        cqs_result = await db.execute(
-            select(CQSScore).where(
+        await db.flush()
+        await db.execute(
+            update(CQSScore).where(
                 CQSScore.session_id == session_id,
                 CQSScore.response_id == uuid.UUID(winner_id),
-            )
+            ).values(is_winner=True)
         )
-        winner_record = cqs_result.scalar_one_or_none()
-        if winner_record:
-            winner_record.is_winner = True
-            await db.commit()
+    await (db.commit() if commit else db.flush())  # commit=False: the caller's transaction (ranking) commits it
 
     logger.info(
         "cube6.cqs.winner_selected",

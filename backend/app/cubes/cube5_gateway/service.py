@@ -4,7 +4,9 @@ The CENTER of the 3x3 cube grid. Two responsibilities:
 
 1. TIME TRACKING (existing):
    Tracks active participation time and calculates SoI Trinity tokens:
-     ♡ = ceil(active_minutes) — rounds UP to nearest minute, 1 min default on login
+     ♡ public time (cube5) = floor(accumulated public minutes), minting only the increase (rounds 12-13);
+       Cube 2/3 submission entries and the join's login credit = ceil(minutes) per entry — an operator
+       decision recorded as HP-38 (the two specs disagree: Token_Governance_Math floor, CUBES_4-6 ceil)
      웃 = jurisdiction min-wage rate per minute when enabled
          0.0 when human_enabled=False (pre-treasury)
      ◬ = ♡ * unity_heart_multiplier (default 5x)
@@ -113,7 +115,8 @@ def calculate_tokens(
         (♡, 웃, ◬)
 
     Rules:
-        ♡ = ceil(duration_minutes)           — rounds UP to nearest minute
+        ♡ = ceil(duration_minutes)           — per entry (Cube 2/3, login); public cube5 time re-derives it as
+                                              the floor of accumulated minutes in stop_time_tracking (HP-38)
         웃 = duration_min * (wage/60)        — jurisdiction rate when enabled
         ◬ = ♡ * unity_heart_multiplier   — default 5x ♡
     """
@@ -224,7 +227,8 @@ async def stop_time_tracking(
     heart, human, unity = calculate_tokens(
         entry.duration_seconds, entry.action_type, country, state
     )
-    if entry.cube_id == "cube5" and entry.action_type != "login":
+    if entry.cube_id == "cube5":
+        # Every public entry (the route refuses 'login'; join's own login entry is created closed and never stopped).
         # Public time earns ♡ = floor(the participant's accumulated public minutes in this session), minting only the
         # increase (Token_Governance_Math.md §1: fractional minutes accumulate). Rounding each entry up let 1-second
         # start/stop loops mint ~30× the honest rate (Thor, Enki; AsM round 12).
@@ -921,7 +925,10 @@ async def trigger_cqs_scoring(
         try:
             from app.cubes.cube6_ai.cqs_engine import run_cqs_pipeline
 
-            cqs = await run_cqs_pipeline(db, session_id, top_theme2_label, theme_level)
+            # Inside a SAVEPOINT and without committing: the ranking pipeline owns the transaction and commits once;
+            # a failed scoring rolls back only itself and never aborts the ranking (Krishna, round 13).
+            async with db.begin_nested():
+                cqs = await run_cqs_pipeline(db, session_id, top_theme2_label, theme_level, commit=False)
             logger.info(
                 "cube5.cqs.scored",
                 extra={"session_id": str(session_id), "status": cqs.get("status")},

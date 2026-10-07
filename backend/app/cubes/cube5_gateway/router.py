@@ -79,6 +79,10 @@ async def start_time_tracking(
     participant_id = await _time_participant(db, session_id, participant_token, user)
     if participant_id is None:
         raise HTTPException(status_code=404, detail="Join the session before tracking time")
+    if payload.action_type == "login":
+        # Login credit is minted only by the join itself (create_login_time_entry). A public 'login' entry skipped the
+        # accumulated-minutes rule and minted per entry (Enki, Sofia; AsM round 13).
+        raise HTTPException(status_code=400, detail="Login time is recorded when you join")
     await service.guard_public_start(db, session_id, participant_id)
     entry = await service.start_time_tracking(
         db,
