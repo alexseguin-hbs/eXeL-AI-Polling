@@ -181,6 +181,12 @@ jobs:
           grep -E "^(FAILED|ERROR) " /tmp/backend-pytest.log | head -40 | while IFS= read -r line; do
             echo "::error title=backend test::${line}"
           done || true
+          # A run that dies without naming a test (crash, collection error, killed worker) still says why:
+          # the log's last lines become one annotation (a812b4f and 95f8a82 failed with no FAILED line).
+          if ! grep -qE "^(FAILED|ERROR) " /tmp/backend-pytest.log; then
+            tail -n 25 /tmp/backend-pytest.log | tr -d '\r' | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}' > /tmp/backend-tail.txt
+            echo "::error title=backend run ended without a named test::$(cat /tmp/backend-tail.txt)"
+          fi
 
       - name: The live-database proofs actually ran (not skipped)
         run: |
