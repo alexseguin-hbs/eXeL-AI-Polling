@@ -1167,7 +1167,7 @@ function Labeler({
             {note}
           </p>
         )}
-        <p className={styles.rule}>The team shares Level 1, from 2 people up to the whole team. When every picture has a box, someone else reviews it. Upload sends the finished pictures and each person's S.I.</p>
+        <p className={styles.rule}>The team shares Level 1, from 2 people up to the whole team. When every picture has a box, someone else reviews it. Upload sends the finished pictures and each person&apos;s S.I.</p>
         </div>
         {pic && (marks[pic.id] || []).length > 0 && (
           <div className={styles.boxList}>
