@@ -43,7 +43,7 @@ export function emptyClock(project: string): WorkClock {
 function fold(runs: WorkRun[], member: string, add: Partial<WorkRun> & { images?: string[] }): WorkRun[] {
   const name = memberName(member);
   const prior = runs.find((run) => run.member === name);
-  const images = [...new Set([...(prior?.images || []), ...(add.images || [])])];
+  const images = Array.from(new Set([...(prior?.images || []), ...(add.images || [])]));
   const next: WorkRun = {
     member: name,
     seconds: (prior?.seconds || 0) + (add.seconds || 0),
@@ -101,7 +101,7 @@ export function workflowLines(clock: WorkClock, now: number): MemberLine[] {
  * Saving a box. The first person's name stays.
  * A different person who moves or renames it is a Level 2 change.
  */
-export function saveMark(prior: WorkBox | undefined, next: WorkBox, who: string): { box: WorkBox; kind: "annotate" | "adjust" } {
+export function saveMark(prior: WorkBox | undefined, next: WorkBox, who: string): { box: WorkBox; kind: "annotate" | "adjust" | "level2" } {
   const person = memberName(who);
   if (!prior) {
     return { box: { ...next, level: 1, by: person, at: next.at, reviewer: undefined, reviewedAt: undefined }, kind: "annotate" };

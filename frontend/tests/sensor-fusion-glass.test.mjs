@@ -58,7 +58,8 @@ const clear = /function clearReadout\(\) \{([\s\S]*?)\n  \}/.exec(src)?.[1] || "
 ok(/setAlert\(""\)/.test(clear) && /lastAlert\.current = ""/.test(clear), "the alert line goes");
 ok(/clearRect\(0, 0, canvas\.width, canvas\.height\)/.test(clear), "the boxes go");
 ok(/fill\.style\.height = "0%"/.test(clear), "the bar goes to zero");
-ok(/stop = true;\s*lastAlert\.current = "";\s*setAlert\(""\);\s*\};\s*\}, \[sensorOn, model, step\]\);/.test(src), "when the detector stops, its last alert stops too");
+// The detector effect also re-runs when CORAL is switched (fd9b09e), so its deps may carry more names after these three.
+ok(/stop = true;\s*lastAlert\.current = "";\s*setAlert\(""\);\s*\};\s*\}, \[sensorOn, model, step(?:, [A-Za-z]+)*\]\);/.test(src), "when the detector stops, its last alert stops too");
 
 // 4. Back to the camera.
 ok(/if \(step !== "work"\) return;\s*const stream = streamRef\.current;[\s\S]{0,400}video\.srcObject = stream;/.test(src), "the camera screen re-attaches the open stream");

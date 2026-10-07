@@ -1456,16 +1456,17 @@
   flex-direction: column;
   flex: 1 1 0;
   min-height: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  /* No bottom padding: the docked buttons sit flush on the pane's edge, so nothing peeks out under them. */
   padding-bottom: 0;
 }
 .labelFill > * {
   flex-shrink: 0;
 }
 .labelFill > .labelFit {
-  flex: 1 1 auto;
-  flex-shrink: 1;
-  min-height: 0;
   align-self: stretch;
 }
 .labelFill .labelBar {
@@ -1493,18 +1494,20 @@
   line-height: 1.35;
   color: var(--sf-muted, #9bb);
 }
+/* The rows flow in the pane, which scrolls under the docked buttons; a capped inner list hid rows 3-6 and their Fix. */
 .boxList {
   flex: 0 0 auto;
-  max-height: 88px;
-  overflow: auto;
 }
 .labelFit {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  flex: 1 1 0;
-  min-height: 0;
+  /* The picture gets the screen: a tall box to fit into, growing into any spare room, never squeezed below it by the
+     controls (the pane scrolls instead). The picture is fitted to this box in JS (fitRef). */
+  flex: 1 0 auto;
+  height: min(62dvh, 640px, calc(var(--sf-h, 100dvh) - 200px));
+  min-height: 160px;
   padding: 0;
   box-sizing: border-box;
   overflow: hidden;
@@ -1529,6 +1532,13 @@
 /* rev 43: a phone held sideways. The picture fits above the docked buttons, and the note sits beside the buttons
    instead of under them, so the whole picture and SAVE BOX are in one view once the picture is scrolled to. */
 @media (orientation: landscape) and (max-height: 520px) {
+  .labelFrame img {
+    max-height: min(46dvh, 240px, calc(var(--sf-h, 100dvh) - 220px));
+  }
+  .labelFit {
+    height: min(46dvh, 240px, calc(var(--sf-h, 100dvh) - 220px));
+    min-height: 120px;
+  }
   .labelDock {
     display: flex;
     align-items: center;
