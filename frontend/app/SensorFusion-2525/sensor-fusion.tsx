@@ -7,6 +7,7 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
+import { afterLevel1, isLabelingJpeg, videoSourceName, type VideoSource } from "@/lib/sensor-fusion/frames";
 import { crossReview, emptyClock, finalSubmission, level1Left, levelMetrics, nextFor, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
 import { placeSignature } from "@/lib/light-codex";
 import { supabase } from "@/lib/supabase";
@@ -234,7 +235,7 @@ const INFO_NOTES: Record<string, { text: string; side: "left" | "right" }> = {
   upload: { text: "Upload. Sends a finished set.", side: "right" },
 };
 
-type Shot = { id: string; url: string; name?: string; source?: "sensor" | "device" | "video"; original?: string };
+type Shot = { id: string; url: string; name?: string; source?: "sensor" | "device" | "video" | VideoSource; original?: string };
 type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number; level: 1 | 2; by?: string; reviewer?: string; at?: string; reviewedAt?: string };
 type Edge = "l" | "r" | "t" | "b";
 
@@ -859,11 +860,36 @@ function Labeler({
     setEditing("");
     resetBox();
     setMarks({ ...marks, [pic.id]: list });
-    touchWork(pictureName(pic), saved.kind);
-    const where = await writePicture(pictureName(pic), list);
+    let fileName = pictureName(pic);
+    if (saved.kind === "annotate" && isLabelingJpeg(fileName)) {
+      const image = imgRef.current;
+      const next = afterLevel1(fileName);
+      if (image?.naturalWidth && image.naturalHeight) {
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        canvas.getContext("2d")?.drawImage(image, 0, 0);
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((item) => resolve(item), "image/png"));
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          if (chosenFolder) {
+            try {
+              await saveNumberedPictures(classKey(labelName), [{ name: next.png, blob }]);
+            } catch {
+              /* The PNG still replaces the JPEG on this screen. */
+            }
+          }
+          setPics((current) => current.map((shot) => (shot.id === pic.id ? { ...shot, name: next.png, url } : shot)));
+          fileName = next.png;
+        }
+      }
+    }
+    touchWork(fileName, saved.kind);
+    const where = await writePicture(fileName, list);
     if (where) {
       const kept = chosenFolder ? `Saved ${where}.` : `Box ${list.length} kept on this device. FILES saves ${where}.`;
-      setNote(`${kept} Next: another box, or LEVEL 2 by a second person.`);
+      const promoted = fileName.endsWith(".png") && isLabelingJpeg(pictureName(pic)) ? " JPEG is now a PNG with Light Codex." : "";
+      setNote(`${kept}${promoted} Next: another box, or LEVEL 2 by a second person.`);
     }
   }
 
@@ -1137,6 +1163,9 @@ function Labeler({
         </div>
         <p className={styles.metrics}>Level 1  {metrics.level1}/{metrics.total} · Level 2  {metrics.level2}/{metrics.total} · You  {metrics.mine1} Level 1 · {metrics.mine2} Level 2</p>
         <p className={styles.swarm}>{metrics.note}</p>
+        {pic && (pic.source === "thermal" || pic.source === "other") && (
+          <p className={styles.swarm}>{videoSourceName(pic.source)} · {isLabelingJpeg(pictureName(pic)) ? "JPEG for labeling" : "PNG with Light Codex"}</p>
+        )}
         <div className={styles.labelBar}>
           <button type="button" onClick={saveBox} disabled={!pic}>
             SAVE BOX
@@ -1253,6 +1282,7 @@ export default function SensorFusion() {
   const [every, setEvery] = useState("2");
   const [pace, setPace] = useState("e2");
   const [captureMode, setCaptureMode] = useState<"live" | "video">("live");
+  const [videoSource, setVideoSource] = useState<VideoSource>("thermal");
   const [note, setNote] = useState("");
   const [shots, setShots] = useState<Shot[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -2002,7 +2032,7 @@ export default function SensorFusion() {
     setSavedNote(true);
   }
 
-  async function addFromVideo(file: File | undefined) {
+  async function addFromVideo(file: File | undefined, from: VideoSource) {
     const step = everyNthFrame(every);
     const total = howManyFrames(count);
     if (!file || !step.n || !total.n || captureBusy.current) return;
@@ -2010,7 +2040,7 @@ export default function SensorFusion() {
     setCapturing("Opening the video…");
     try {
       const label = classKey(labelPick);
-      const names = await peekNames(label, total.n, "png");
+      const names = await peekNames(label, total.n, "jpg");
       const url = URL.createObjectURL(file);
       const video = document.createElement("video");
       video.muted = true;
@@ -2032,7 +2062,7 @@ export default function SensorFusion() {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((item) => resolve(item), "image/png"));
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((item) => resolve(item), "image/jpeg", 0.92));
         if (!blob) return;
         made.push({ name: names[index], blob, url: URL.createObjectURL(blob) });
         setCapturing(`${made.length} / ${total.n}`);
@@ -2089,7 +2119,7 @@ export default function SensorFusion() {
         id: `${Date.now()}-${index}`,
         url: item.url,
         name: item.name,
-        source: "video",
+        source: from,
         original: file.name,
       }));
       const saved = await saveNumberedPictures(label, files);
@@ -2593,7 +2623,7 @@ export default function SensorFusion() {
           <div className={styles.modal} role="dialog" aria-label="Capture images" onClick={(event) => event.stopPropagation()}>
             <StepStrip current={1} />
             <h2>Capture Images</h2>
-            <p className={styles.muted}>Live is the camera. Video keeps pictures from a file.</p>
+            <p className={styles.muted}>Live is the camera. A video from a thermal imager, or any other source, is split into JPEGs. Level 1 saves each one as a PNG with Light Codex.</p>
             <div className={styles.row}>
               <button type="button" className={captureMode === "live" ? styles.botOn : styles.ghost} onClick={() => setCaptureMode("live")}>
                 Live
@@ -2602,6 +2632,16 @@ export default function SensorFusion() {
                 Video
               </button>
             </div>
+            {captureMode === "video" && (
+              <div className={styles.row}>
+                <button type="button" className={videoSource === "thermal" ? styles.botOn : styles.ghost} onClick={() => setVideoSource("thermal")}>
+                  Thermal imager
+                </button>
+                <button type="button" className={videoSource === "other" ? styles.botOn : styles.ghost} onClick={() => setVideoSource("other")}>
+                  Other source
+                </button>
+              </div>
+            )}
             <div className={styles.row}>
               <span className={styles.muted}>Save to {sensorPath(platform)}</span>
               <button
@@ -2679,7 +2719,7 @@ export default function SensorFusion() {
                   onChange={(event) => {
                     const file = event.target.files?.[0];
                     event.target.value = "";
-                    void addFromVideo(file);
+                    void addFromVideo(file, videoSource);
                   }}
                 />
               </label>
