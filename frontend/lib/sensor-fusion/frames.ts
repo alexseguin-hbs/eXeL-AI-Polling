@@ -15,13 +15,19 @@ export function needsPng(fileName: string) {
   return !/\.png$/i.test(fileName);
 }
 
-/** The picture name before a level is added. deer_0008.L1.png and deer_0008.jpg share deer_0008. */
+/** The picture name before a level mark. deer_0008.L1.png and deer_0008.jpg share deer_0008. */
 export function pictureStem(fileName: string) {
   return fileName.replace(/\.(L[12])\.png$/i, "").replace(/\.[^.]+$/, "") || "picture";
 }
 
-/** Intake is stem.png. Level 1 is stem.L1.png. Level 2 is stem.L2.png. The XML keeps the stem. */
+/** The file is always stem.png. Level 1 and Level 2 live in the Light Codex, not in the name. */
 export function pngSet(fileName: string) {
   const stem = pictureStem(fileName);
-  return { png: `${stem}.png`, level1: `${stem}.L1.png`, level2: `${stem}.L2.png`, xml: `${stem}.xml` };
+  return { png: `${stem}.png`, xml: `${stem}.xml` };
+}
+
+/** How many pixels are added to the left of the original. The picture itself is not painted on. */
+export function codexPad(line: string) {
+  const clean = line.trim();
+  return clean ? clean.length * 4 : 0;
 }

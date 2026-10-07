@@ -7,7 +7,7 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
-import { IMAGE_INTAKE, VIDEO_INTAKE, pictureStem, pngSet, type VideoSource } from "@/lib/sensor-fusion/frames";
+import { IMAGE_INTAKE, VIDEO_INTAKE, codexPad, pictureStem, pngSet, type VideoSource } from "@/lib/sensor-fusion/frames";
 import { placeSignature } from "@/lib/light-codex";
 import { crossReview, emptyClock, finalSubmission, level1Left, levelMetrics, nextFor, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
 import { supabase } from "@/lib/supabase";
@@ -235,7 +235,7 @@ const INFO_NOTES: Record<string, { text: string; side: "left" | "right" }> = {
   upload: { text: "Upload. Sends a finished set.", side: "right" },
 };
 
-type Shot = { id: string; url: string; name?: string; source?: "sensor" | "device" | "video" | VideoSource; original?: string };
+type Shot = { id: string; url: string; name?: string; plain?: string; source?: "sensor" | "device" | "video" | VideoSource; original?: string };
 type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number; level: 1 | 2; by?: string; reviewer?: string; at?: string; reviewedAt?: string };
 type Edge = "l" | "r" | "t" | "b";
 
@@ -251,6 +251,15 @@ function shownCodex(fileName: string, list: Mark[]) {
     return "";
   }
   return "";
+}
+
+function loadStill(url: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("The picture did not open."));
+    image.src = url;
+  });
 }
 
 function pictureName(shot: Shot) {
@@ -783,26 +792,40 @@ function Labeler({
     return saveXmlFile(fileName, vocXml(fileName, width, height, list));
   }
 
-  async function ensurePng(fileName: string, level: 1 | 2, list: Mark[]) {
-    const named = level === 2 ? pngSet(fileName).level2 : pngSet(fileName).level1;
+  async function ensurePng(fileName: string, list: Mark[]) {
+    const named = pngSet(fileName).png;
     if (!pic) return named;
-    const image = imgRef.current;
-    if (!image?.naturalWidth || !image.naturalHeight) return fileName === named ? named : fileName;
-    const canvas = document.createElement("canvas");
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return fileName;
-    ctx.drawImage(image, 0, 0);
-    const line = shownCodex(named, list);
-    if (line && canvas.width >= line.length * 4 && canvas.height >= 2) {
+    const shown = imgRef.current;
+    let base: HTMLImageElement | null = shown;
+    if (pic.plain) {
       try {
-        const signed = placeSignature(ctx.getImageData(0, 0, canvas.width, canvas.height), line, 1, "3");
-        ctx.putImageData(signed, 0, 0);
+        base = await loadStill(pic.plain);
       } catch {
-        /* The file name still says the level. */
+        base = shown;
       }
     }
+    if (!base || !(base.naturalWidth || base.width) || !(base.naturalHeight || base.height)) return fileName;
+    const width = base.naturalWidth || base.width;
+    const height = base.naturalHeight || base.height;
+    const canvas = document.createElement("canvas");
+    const line = shownCodex(named, list);
+    const pad = codexPad(line);
+    canvas.width = width + pad;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return fileName;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (pad >= 4 && height >= 2) {
+      try {
+        const strip = ctx.getImageData(0, 0, pad, height);
+        const signed = placeSignature(strip, line, 1, "3");
+        ctx.putImageData(signed, 0, 0);
+      } catch {
+        /* The XML still names the person and the time. */
+      }
+    }
+    ctx.drawImage(base, pad, 0);
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((item) => resolve(item), "image/png"));
     if (!blob) return fileName;
     const url = URL.createObjectURL(blob);
@@ -811,10 +834,11 @@ function Labeler({
         const setFolder = await (await ecosystemRoot(chosenFolder)).getDirectoryHandle(classKey(labelName), { create: true });
         await writeNamed(setFolder, [{ name: named, blob }]);
       } catch {
-        /* The new name still replaces the old file on this screen. */
+        /* The new picture still replaces the old one on this screen. */
       }
     }
-    setPics((current) => current.map((shot) => (shot.id === pic.id ? { ...shot, name: named, url } : shot)));
+    const plain = pic.plain || pic.url;
+    setPics((current) => current.map((shot) => (shot.id === pic.id ? { ...shot, name: named, plain, url } : shot)));
     return named;
   }
 
@@ -855,7 +879,7 @@ function Labeler({
     setEditing("");
     resetBox();
     setMarks({ ...marks, [pic.id]: list });
-    const fileName = await ensurePng(pictureName(pic), saved.kind === "annotate" ? 1 : 2, list);
+    const fileName = await ensurePng(pictureName(pic), list);
     touchWork(fileName, saved.kind);
     const where = await writePicture(fileName, list);
     if (where) {
@@ -873,7 +897,7 @@ function Labeler({
     }
     const list = (marks[pic.id] || []).map((item) => (item.id === mark.id ? { ...item, ...result.box } : item));
     setMarks({ ...marks, [pic.id]: list });
-    const fileName = await ensurePng(pictureName(pic), 2, list);
+    const fileName = await ensurePng(pictureName(pic), list);
     touchWork(fileName, "level2");
     const where = await writePicture(fileName, list);
     if (where) setNote(`Level 2 saved. ${fileName}. ${where}`);
