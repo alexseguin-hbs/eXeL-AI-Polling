@@ -619,7 +619,7 @@ function rememberSessionWriteKey(code: string, key: string): void {
  *  Called on session create ("create"), state transitions ("update") and joins ("join").
  *  HP-11: settings travel with this browser's write key; a joiner without the key sends only the
  *  participant count (the worker accepts nothing else from it). */
-async function syncSessionToKV(session: Session, mode: "create" | "update" | "join" = "update"): Promise<void> {
+export async function syncSessionToKV(session: Session, mode: "create" | "update" | "join" = "update"): Promise<void> {
   const key = readSessionWriteKey(session.short_code);
   const questionText = MOCK_QUESTIONS[session.id]?.[0]?.question_text || null;
   const payload = mode === "join" && !key

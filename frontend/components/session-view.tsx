@@ -396,7 +396,10 @@ export function SessionView() {
   );
   const ballotThemes: SimTheme[] = simulationMode
     ? (simThemes.length > 0 ? simThemes : SIM_THEMES)
-    : (liveBallot ?? []);
+    : (liveBallot.themes ?? []);
+  // The participant's own submitted order — what their results card shows in a real session (Christo, round 3).
+  const [myRankedOrder, setMyRankedOrder] = useState<SimTheme[] | null>(null);
+  const resultThemes: SimTheme[] = !simulationMode && myRankedOrder ? myRankedOrder : ballotThemes;
 
   useEffect(() => {
     // In simulation mode, use sample data with selectable duration
@@ -1222,28 +1225,26 @@ export function SessionView() {
         )}
 
         {/* Ranking state */}
-        {session?.status === "ranking" && !simulationMode && liveBallot === null && (
+        {session?.status === "ranking" && !simulationMode && liveBallot.status === "loading" && (
           <p className="py-8 text-center text-sm text-muted-foreground">{t("shared.nav.loading")}</p>
         )}
-        {session?.status === "ranking" && (simulationMode || liveBallot !== null) && (
+        {session?.status === "ranking" && !simulationMode && liveBallot.status === "failed" && (
+          <div className="flex flex-col items-center gap-2 py-8" data-ballot-failed>
+            <p className="text-sm text-muted-foreground">{t("shared.error.something_wrong")}</p>
+            <Button variant="outline" size="sm" onClick={liveBallot.retry}>{t("shared.error.retry")}</Button>
+          </div>
+        )}
+        {session?.status === "ranking" && (simulationMode || (liveBallot.status === "ready" && ballotThemes.length > 0)) && (
           <ThemeRankingDnD
             key={ballotThemes.map((th) => th.id).join("|")}
             themes={ballotThemes}
             sessionId={simulationMode ? undefined : sessionId}
-            onComplete={async () => {
-              if (simulationMode) {
-                setSession((prev) => prev ? { ...prev, status: "closed" } : prev);
-                setSimPhase("results");
-              } else {
-                // Transition session to closed via API (mock or real)
-                try {
-                  const updated = await api.post<Session>(`/sessions/${sessionId}/close`);
-                  setSession(updated);
-                } catch {
-                  setSession((prev) => prev ? { ...prev, status: "closed" } : prev);
-                }
-                setSimPhase("results");
-              }
+            onComplete={(order) => {
+              if (!simulationMode && order) setMyRankedOrder(order);
+              // Only the participant's own view moves to results; closing the session stays the moderator's
+              // action on the dashboard (the close route is moderator-only — Christo, round 3).
+              setSession((prev) => prev ? { ...prev, status: "closed" } : prev);
+              setSimPhase("results");
               toast({ title: t("cube10.sim.session_complete") });
             }}
           />
@@ -1258,7 +1259,7 @@ export function SessionView() {
               <CardDescription>{t("cube10.sim.sim_results_desc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {ballotThemes.map((theme, i) => (
+              {resultThemes.map((theme, i) => (
                 <div
                   key={theme.id}
                   className="flex items-center gap-3 rounded-md border-2 px-3 py-2"
@@ -1283,15 +1284,15 @@ export function SessionView() {
               ))}
               {/* Response Distribution Bar Chart */}
               <ThemeResultsChart
-                themes={ballotThemes}
-                totalResponses={ballotThemes.reduce((s, th) => s + th.responseCount, 0)}
+                themes={resultThemes}
+                totalResponses={resultThemes.reduce((s, th) => s + th.responseCount, 0)}
               />
 
               <div className="rounded-md bg-muted px-3 py-2 text-center mt-2">
                 <p className="text-xs text-muted-foreground">
                   {t("cube10.sim.final_stats")
-                    .replace("{0}", String(ballotThemes.reduce((s, th) => s + th.responseCount, 0)))
-                    .replace("{1}", String(ballotThemes.length))}
+                    .replace("{0}", String(resultThemes.reduce((s, th) => s + th.responseCount, 0)))
+                    .replace("{1}", String(resultThemes.length))}
                 </p>
               </div>
               {simulationMode ? (

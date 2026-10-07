@@ -1,6 +1,6 @@
 import { API_BASE_URL } from "./constants";
-import { handleMockRequest } from "./mock-data";
-import type { ApiError, VoiceSubmissionRead } from "./types";
+import { handleMockRequest, syncSessionToKV } from "./mock-data";
+import type { ApiError, Session, VoiceSubmissionRead } from "./types";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -180,8 +180,18 @@ async function request<T>(
     return undefined as T;
   }
 
-  return response.json();
+  const data = await response.json();
+  // Trinity Path C needs a keyed /api/sessions record in the session's current status (the round-2 write guard).
+  // Mock mode writes it in mock-data; against the real backend the moderator's create and transitions write it
+  // here, fire-and-forget, so Path C works for backend sessions too (Krishna, round 3).
+  if (method === "POST" && LIVE_SESSION_WRITE.test(path) && data && typeof data.short_code === "string") {
+    void syncSessionToKV(data as Session, path === "/sessions" ? "create" : "update").catch(() => {});
+  }
+  return data;
 }
+
+/** The moderator calls that change what /api/sessions must hold: create, and every status transition. */
+export const LIVE_SESSION_WRITE = /^\/sessions(\/[0-9a-f-]{36}\/(start|open|poll|rank|reopen|close|archive))?$/;
 
 export const api = {
   get: <T>(path: string, options?: RequestOptions) =>

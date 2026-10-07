@@ -49,7 +49,7 @@ export function ballotThemeRows(rows: LiveThemeRow[], level: BallotLevel, catego
     parents.filter((p) => category == null || parentCategory(p) === category).map((p) => p.id),
   );
   return rows
-    .filter((r) => r.theme_level === level && (r.label || "").trim() !== "" && r.parent_theme_id != null && allowed.has(r.parent_theme_id));
+    .filter((r) => r.theme_level === level && (r.label ?? "") !== "" && r.parent_theme_id != null && allowed.has(r.parent_theme_id));
 }
 
 /** The ballot rows in the shape the ranking and results components draw. */
@@ -61,7 +61,7 @@ export function toBallotThemes(ballot: LiveThemeRow[], rows: LiveThemeRow[]): Si
     const c = typeof r.confidence === "number" && Number.isFinite(r.confidence) ? r.confidence : 0;
     return {
       id: r.id,
-      name: r.label.trim(),
+      name: r.label,
       confidence: c > 1 ? c / 100 : c,
       responseCount: r.response_count ?? 0,
       color: cat ? COLORS[cat] : "#64748B",
@@ -71,25 +71,56 @@ export function toBallotThemes(ballot: LiveThemeRow[], rows: LiveThemeRow[]): Si
   });
 }
 
-/** Load a real session's ballot (null while loading or when `sessionId` is null). */
+/** Retry delay after the n-th failed load (n ≥ 1): 1.5 s doubling to a 30 s cap, ±50 % jitter so a crowd that
+ *  failed together does not retry together (Odin, round 3). `rand` is injectable for the gate. */
+export function ballotRetryDelayMs(n: number, rand: () => number = Math.random): number {
+  const base = Math.min(30_000, 1500 * 2 ** Math.max(0, n - 1));
+  return Math.round(base * (0.5 + rand()));
+}
+
+/** First-load spread: when ranking opens every participant asks for the themes at once, so each waits a
+ *  random 0–1.5 s first (the GET /themes thundering herd, backlog HP-31). */
+export const BALLOT_FIRST_LOAD_SPREAD_MS = 1500;
+
+export type BallotLoad =
+  | { status: "loading"; themes: null }
+  | { status: "ready"; themes: SimTheme[] }
+  | { status: "failed"; themes: null; retry: () => void };
+
+/** Load a real session's ballot. A failed or empty load is never an empty ballot: it stays "loading" (themes not
+ *  written yet) or becomes "failed" with a retry, and retries on its own with backoff (Odin + Enki, round 3). */
 export function useSessionBallotThemes(
   sessionId: string | null,
   votingLevel: string | null | undefined,
   category: BallotCategory | null,
-): SimTheme[] | null {
-  const [themes, setThemes] = useState<SimTheme[] | null>(null);
+): BallotLoad {
+  const [load, setLoad] = useState<BallotLoad>({ status: "loading", themes: null });
+  const [attempt, setAttempt] = useState(0);
   const level = levelOf(votingLevel);
   useEffect(() => {
-    if (!sessionId) { setThemes(null); return; }
+    if (!sessionId) { setLoad({ status: "loading", themes: null }); return; }
     let live = true;
-    api.get<LiveThemeRow[]>(`/sessions/${sessionId}/themes`)
-      .then((rows) => {
-        if (!live) return;
-        const list = Array.isArray(rows) ? rows : [];
-        setThemes(toBallotThemes(ballotThemeRows(list, level, category), list));
-      })
-      .catch(() => { if (live) setThemes([]); });
-    return () => { live = false; };
-  }, [sessionId, level, category]);
-  return themes;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const again = () => { if (live) setAttempt((a) => a + 1); };
+    const fetchOnce = () => {
+      api.get<LiveThemeRow[]>(`/sessions/${sessionId}/themes`)
+        .then((rows) => {
+          if (!live) return;
+          const list = Array.isArray(rows) ? rows : [];
+          const ballot = toBallotThemes(ballotThemeRows(list, level, category), list);
+          if (ballot.length > 0) { setLoad({ status: "ready", themes: ballot }); return; }
+          // No themes at this level yet (theming still writing): keep waiting, ask again later.
+          setLoad({ status: "loading", themes: null });
+          timer = setTimeout(again, ballotRetryDelayMs(attempt + 1));
+        })
+        .catch(() => {
+          if (!live) return;
+          setLoad({ status: "failed", themes: null, retry: again });
+          timer = setTimeout(again, ballotRetryDelayMs(attempt + 1));
+        });
+    };
+    timer = setTimeout(fetchOnce, attempt === 0 ? Math.random() * BALLOT_FIRST_LOAD_SPREAD_MS : 0);
+    return () => { live = false; if (timer) clearTimeout(timer); };
+  }, [sessionId, level, category, attempt]);
+  return load;
 }

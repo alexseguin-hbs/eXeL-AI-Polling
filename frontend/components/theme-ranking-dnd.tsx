@@ -168,7 +168,8 @@ export function ThemeRankingDnD({
   sessionId,
 }: {
   themes: SimTheme[];
-  onComplete: () => void;
+  /** Called with the participant's submitted order (the results card shows it in a real session). */
+  onComplete: (order?: SimTheme[]) => void;
   sessionId?: string; // real session → POST the ranked order to Cube 7's live aggregator
 }) {
   const [orderedThemes, setOrderedThemes] = useState<SimTheme[]>(themes);
@@ -250,7 +251,7 @@ export function ThemeRankingDnD({
       }
     }
     setTimeout(() => {
-      onComplete();
+      onComplete(orderedThemes);
     }, 1500);
   }, [onComplete, sessionId, orderedThemes, t, everSubmitted]);
 
@@ -348,7 +349,7 @@ export function ThemeRankingDnD({
             {sessionId && (
               <div className="flex flex-wrap justify-center gap-2 pt-1">
                 <Button variant="outline" size="sm" onClick={handleAdjust}>{t("pollui.adjust_ranking")}</Button>
-                <Button size="sm" onClick={onComplete}>{t("pollui.see_results")}</Button>
+                <Button size="sm" onClick={() => onComplete(orderedThemes)}>{t("pollui.see_results")}</Button>
               </div>
             )}
           </div>

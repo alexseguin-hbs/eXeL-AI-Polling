@@ -4,7 +4,8 @@
 // the placeholder ids "t1".."t9", so every human ballot was refused (422).
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/ballot-themes.test.mjs
 import { readFileSync } from "node:fs";
-import { ballotThemeRows, toBallotThemes, levelOf, categoryKey } from "../lib/ballot-themes.ts";
+import { ballotThemeRows, toBallotThemes, levelOf, categoryKey, ballotRetryDelayMs } from "../lib/ballot-themes.ts";
+import { LIVE_SESSION_WRITE } from "../lib/api.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -39,9 +40,24 @@ ok(categoryKey("Risk & Concerns") === "risk" && categoryKey("Supporting Comments
 const sv = readFileSync(new URL("../components/session-view.tsx", import.meta.url), "utf8");
 ok(/useSessionBallotThemes\(/.test(sv), "session-view loads the real ballot with useSessionBallotThemes");
 ok(!/themes=\{simThemes\.length > 0 \? simThemes : SIM_THEMES\}/.test(sv), "the ranking UI no longer falls back to SIM_THEMES for a real session");
-ok(/simulationMode\s*\?\s*\(simThemes\.length > 0 \? simThemes : SIM_THEMES\)\s*:\s*\(liveBallot \?\? \[\]\)/.test(sv), "SIM_THEMES only in simulation mode");
+ok(/simulationMode\s*\?\s*\(simThemes\.length > 0 \? simThemes : SIM_THEMES\)\s*:\s*\(liveBallot\.themes \?\? \[\]\)/.test(sv), "SIM_THEMES only in simulation mode");
 const drv = readFileSync(new URL("../lib/sim-console-driver.ts", import.meta.url), "utf8");
 ok(/ballotThemeRows\(rows, "9", "risk"\)/.test(drv), "the Admin Console driver builds its ballot with the same rule");
+
+// Round 3 (Odin + Enki): a failed or empty load is never an empty ballot; it retries with backoff and jitter.
+const bt = readFileSync(new URL("../lib/ballot-themes.ts", import.meta.url), "utf8");
+ok(!/setThemes\(\[\]\)/.test(bt) && /status: "failed"/.test(bt), "a rejected fetch becomes a failed state with a retry, never []");
+ok(ballotRetryDelayMs(1, () => 0.5) === 1500 && ballotRetryDelayMs(3, () => 0.5) === 6000 && ballotRetryDelayMs(20, () => 0.5) === 30000, "backoff 1.5 s doubling, capped at 30 s");
+ok(ballotRetryDelayMs(1, () => 0) === 750 && ballotRetryDelayMs(1, () => 0.999) < 2250, "±50 % jitter so a crowd does not retry together");
+ok(/liveBallot\.status === "failed"/.test(sv) && /shared\.error\.retry/.test(sv), "the page shows the failed state with a Retry button");
+ok(/liveBallot\.status === "ready" && ballotThemes\.length > 0/.test(sv), "the ballot renders only with themes in it");
+// Round 3 (Christo): a participant never calls the moderator-only close; results show their own order.
+const rankBlock = sv.slice(sv.indexOf("{/* Ranking state */}"), sv.indexOf("{/* Results Phase"));
+ok(!/\/close/.test(rankBlock), "the participant's See results never posts /sessions/{id}/close");
+ok(/resultThemes/.test(sv.slice(sv.indexOf("{/* Results Phase"))) && /setMyRankedOrder\(order\)/.test(sv), "the results card shows the participant's own submitted order");
+// Round 3 (Krishna): against the real backend the moderator's create and transitions write the keyed /api/sessions record.
+ok(LIVE_SESSION_WRITE.test("/sessions") && LIVE_SESSION_WRITE.test(`/sessions/${U(1)}/poll`) && LIVE_SESSION_WRITE.test(`/sessions/${U(1)}/close`), "create and transitions are bridged to /api/sessions");
+ok(!LIVE_SESSION_WRITE.test(`/sessions/${U(1)}/rankings`) && !LIVE_SESSION_WRITE.test("/sessions/join/ABCD"), "ballots and joins are not");
 
 console.log(`\nballot-themes: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
