@@ -1,19 +1,22 @@
 /** A video that is not the live camera. Thermal is a heat camera. Other is any other file. */
 export type VideoSource = "thermal" | "other";
 
+/** Pictures the browser can open. A file that will not draw is refused. */
+export const IMAGE_INTAKE = "image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.tif,.tiff,.heic,.heif,.avif";
+
+/** Videos the browser can play. Frames are saved as PNG. */
+export const VIDEO_INTAKE = "video/*,.mp4,.mov,.webm,.mkv,.avi,.m4v";
+
 export function videoSourceName(source: VideoSource) {
   return source === "thermal" ? "Thermal imager" : "Other source";
 }
 
-export function isLabelingJpeg(fileName: string) {
-  return /\.jpe?g$/i.test(fileName);
+export function needsPng(fileName: string) {
+  return !/\.png$/i.test(fileName);
 }
 
-/**
- * A video is split into JPEGs for labeling.
- * Level 1 keeps the same name and writes a PNG plus the Light Codex strip.
- */
-export function afterLevel1(fileName: string) {
+/** One name inside the app. Level 1 and Level 2 both keep the PNG and add a Light Codex strip. */
+export function pngSet(fileName: string) {
   const stem = fileName.replace(/\.[^.]+$/, "") || "picture";
-  return { jpeg: `${stem}.jpg`, png: `${stem}.png`, xml: `${stem}.xml`, codex: `${stem}.l1.codex.png` };
+  return { png: `${stem}.png`, xml: `${stem}.xml`, level1: `${stem}.l1.codex.png`, level2: `${stem}.l2.codex.png` };
 }

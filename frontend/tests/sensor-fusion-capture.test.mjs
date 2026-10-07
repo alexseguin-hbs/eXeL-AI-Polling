@@ -44,10 +44,10 @@ ok(take.indexOf("captureBusy.current = true;") < take.indexOf("await "), "nothin
 const add = /async function addFromDevice\(list: FileList \| null\) \{([\s\S]*?)\n  \}\n/.exec(src)?.[1] || "";
 ok(/captureBusy\.current\) return;/.test(add) && /finally \{\s*captureBusy\.current = false;/.test(add), "From this device waits for a capture too");
 ok(/takeShots\(true\)/.test(src) && /void takeShots\(\)/.test(src), "FROM SENSOR and 45–60 SEC both start a live capture");
-ok(/<input type="file" accept="image\/\*" multiple disabled=\{Boolean\(capturing\)\}/.test(src), "From this device is disabled while a capture runs");
+ok(/accept=\{IMAGE_INTAKE\}/.test(src) && /disabled=\{Boolean\(capturing\)\}/.test(src), "picture files are disabled while a capture runs");
 ok(/setCapturing\(`\$\{i \+ 1\} \/ \$\{howMany\}`\)/.test(src) && /className=\{styles\.captureCount\}/.test(src), "live capture counts '1 / 4' on the camera");
-ok(/captureMode === "live"/.test(src) && /useState<"live" \| "video">\("live"\)/.test(src), "Capture Images opens on Live");
-ok(/accept="video\/\*"/.test(src) && /peekNames\(label, total\.n, "jpg"\)/.test(src) && /addFromVideo[\s\S]{0,1800}image\/jpeg/.test(src), "a video is split into JPEGs for labeling");
+ok(/captureMode === "live"/.test(src) && /useState<"live" \| "video" \| "pictures">\("live"\)/.test(src), "Capture Images opens on Live");
+ok(/accept=\{VIDEO_INTAKE\}/.test(src) && /peekNames\(label, total\.n, "png"\)/.test(src) && /addFromVideo[\s\S]{0,1800}image\/png/.test(src), "a video is split into PNG frames");
 ok(everyNthFrame("2").n === 2 && everyNthFrame("3").n === 3 && everyNthFrame("0").n === 0, "every other frame is 2, every third is 3, 0 is refused");
 ok(howManyFrames("40").n === 40 && howManyFrames("121").n === 0, "a video takes 1 to 120 frames");
 ok(captureSeconds(4, "e3").line === "4 pictures, every 3 seconds, takes 9 seconds.", "4 pictures, one every 3 seconds, takes 9 seconds");
