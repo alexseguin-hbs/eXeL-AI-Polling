@@ -155,4 +155,4 @@ export function partitionSections(cubeId: number, count: number): { code: string
   return orderedPartition(cubeId, count).map((cells, k) => ({ code: `${cubeId}.${k + 1}`, cells }));
 }
 
-export { _sha256hex };
+export { _sha256hex, _hexMod };

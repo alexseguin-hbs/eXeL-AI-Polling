@@ -7,8 +7,8 @@ import type {
 } from "./types";
 import { SPIRAL_TEST_WAVES } from "./sim-data/spiral-test-100-users";
 import { supabase } from "@/lib/supabase";
-import { orderedPartition as _orderedPartition } from "./sim-sections";
-import { SIM_LIVE_SOURCE } from "./sim-live-source";
+import { orderedPartition as _orderedPartition, _sha256hex, _hexMod } from "./sim-sections";
+import { SIM_LIVE_SOURCE, SIM_LIVE_IO } from "./sim-live-source";
 import { buildSimThemeRows } from "./sim-console";
 
 // ── Test Moderator ──────────────────────────────────────────────
@@ -750,15 +750,16 @@ const _SIM_CUBES: Record<number, { name: string; io: { inputs: string[]; functio
   // functions[] are the REAL baked source keys (lib/sim-live-source.ts) so every SIM block
   // resolves to actual eXeL AI code, in foundational order, one function per default block
   // (default_sections === functions.length). inputs/outputs stay conceptual.
-  1: { name: "Session", io: { inputs: ["config", "moderator_id", "capacity"], functions: ["create_session", "_generate_unique_short_code", "generate_qr_png", "join_session", "_compute_replay_hash", "transition_session"], outputs: ["short_code", "qr_png", "session_id"] } },
+  // name === the backend router `_CUBE_NAMES[id]` so SIM and LIVE label each cube identically.
+  1: { name: "Session Join & QR", io: { inputs: ["config", "moderator_id", "capacity"], functions: ["create_session", "_generate_unique_short_code", "generate_qr_png", "join_session", "_compute_replay_hash", "transition_session"], outputs: ["short_code", "qr_png", "session_id"] } },
   2: { name: "Text Submission", io: { inputs: ["raw_text", "session_id", "participant", "language", "max_length"], functions: ["validate_text_input", "validate_and_fit_text_input", "detect_pii", "detect_language", "scrub_pii", "anonymize_response", "compute_response_hash", "store_response"], outputs: ["clean_text", "pii_found", "response_hash", "replay_hash"] } },
-  3: { name: "Voice", io: { inputs: ["audio", "language", "provider"], functions: ["submit_voice_response", "store_voice_response", "transcribe_audio", "handle_realtime_transcription", "select_stt_provider", "get_stt_provider_safe", "run_text_pipeline"], outputs: ["transcript", "confidence", "provider_used"] } },
-  4: { name: "Collector", io: { inputs: ["response", "session_id", "participant"], functions: ["get_collected_responses", "get_response_count", "get_session_presence", "update_presence", "create_desired_outcome", "record_confirmation", "analyze_session", "synthesize_analysis"], outputs: ["response_count", "presence", "stored"] } },
-  5: { name: "Gateway", io: { inputs: ["session_id", "active_minutes", "action"], functions: ["calculate_tokens", "start_time_tracking", "trigger_ai_pipeline", "orchestrate_post_polling", "mot_cost_control_chart", "dollars_per_min", "session_profit"], outputs: ["heart", "human", "unity", "dollars_per_min"] } },
-  6: { name: "AI Theming", io: { inputs: ["responses", "provider", "sample"], functions: ["run_pipeline", "run_ai_theming", "sample_response_summaries", "select_centroid_representatives", "generate_summary_tiers", "truncate_to_words", "_assign_themes_llm"], outputs: ["theme01", "theme02", "summaries", "replay_hash"] } },
-  7: { name: "Ranking", io: { inputs: ["ranked_ids", "votes", "level"], functions: ["aggregate_rankings", "submit_ranking", "detect_voting_anomalies", "_apply_influence_cap", "_weighted_borda_scores", "_borda_scores", "_seeded_tiebreak_key", "_compute_replay_hash"], outputs: ["ranking", "confidence", "winner"] } },
-  8: { name: "Tokens", io: { inputs: ["amount", "jurisdiction", "action"], functions: ["hours_to_hi_tokens", "resolve_human_rate", "create_ledger_entry", "dispatch_token_award", "transition_lifecycle_state", "reverse_entry", "create_token_dispute"], outputs: ["hi_tokens", "ledger_entry", "lifecycle_state"] } },
-  9: { name: "Reports", io: { inputs: ["session_id", "tier", "format"], functions: ["export_session_csv", "export_csv", "compute_export_hash", "verify_export_hash", "_apply_tier_filter", "_tier_at_least", "distribute_results", "announce_reward_winner"], outputs: ["csv", "export_hash", "recipients"] } },
+  3: { name: "Voice-to-Text", io: { inputs: ["audio", "language", "provider"], functions: ["submit_voice_response", "store_voice_response", "transcribe_audio", "handle_realtime_transcription", "select_stt_provider", "get_stt_provider_safe", "run_text_pipeline"], outputs: ["transcript", "confidence", "provider_used"] } },
+  4: { name: "Response Collector", io: { inputs: ["response", "session_id", "participant"], functions: ["get_collected_responses", "get_response_count", "get_session_presence", "update_presence", "create_desired_outcome", "record_confirmation", "analyze_session", "synthesize_analysis"], outputs: ["response_count", "presence", "stored"] } },
+  5: { name: "Gateway / Orchestrator", io: { inputs: ["session_id", "active_minutes", "action"], functions: ["calculate_tokens", "start_time_tracking", "trigger_ai_pipeline", "orchestrate_post_polling", "mot_cost_control_chart", "dollars_per_min", "session_profit"], outputs: ["heart", "human", "unity", "dollars_per_min"] } },
+  6: { name: "AI Theming Clusterer", io: { inputs: ["responses", "provider", "sample"], functions: ["run_pipeline", "run_ai_theming", "sample_response_summaries", "select_centroid_representatives", "generate_summary_tiers", "truncate_to_words", "_assign_themes_llm"], outputs: ["theme01", "theme02", "summaries", "replay_hash"] } },
+  7: { name: "Prioritization & Ranking", io: { inputs: ["ranked_ids", "votes", "level"], functions: ["aggregate_rankings", "submit_ranking", "detect_voting_anomalies", "_apply_influence_cap", "_weighted_borda_scores", "_borda_scores", "_seeded_tiebreak_key", "_compute_replay_hash"], outputs: ["ranking", "confidence", "winner"] } },
+  8: { name: "Token Rewards", io: { inputs: ["amount", "jurisdiction", "action"], functions: ["hours_to_hi_tokens", "resolve_human_rate", "create_ledger_entry", "dispatch_token_award", "transition_lifecycle_state", "reverse_entry", "create_token_dispute"], outputs: ["hi_tokens", "ledger_entry", "lifecycle_state"] } },
+  9: { name: "Reports & Dashboards", io: { inputs: ["session_id", "tier", "format"], functions: ["export_session_csv", "export_csv", "compute_export_hash", "verify_export_hash", "_apply_tier_filter", "_tier_at_least", "distribute_results", "announce_reward_winner"], outputs: ["csv", "export_hash", "recipients"] } },
 };
 const _SIM_SECTIONS: Record<string, string> = { A: "Clean & fit", B: "Find private info", C: "Hide it", D: "Fingerprint" };
 const _SIM_SECTION_KEYS = ["A", "B", "C", "D"] as const;
@@ -779,8 +780,22 @@ const _SIM_SECTION_LABELS: Record<number, string[]> = {
 const _SIM_ALLOWED_COUNTS = Array.from({ length: 26 }, (_, i) => i + 2); // 2..27
 // Partition (face-connected Lego blocks, base-first ordering) lives in ./sim-sections —
 // the ONE source shared with the backend (SHA-256-seeded, byte-identical, parity-locked).
+// Input · Output as LIVE shows them (baked from router.sim_cube_contract by export_live_source); the
+// functions stay the cube's real baked LIVE functions. Falls back to the conceptual io when not baked.
+function _liveIo(cubeId: number) {
+  const c = _SIM_CUBES[cubeId]?.io ?? { inputs: [], functions: [], outputs: [] };
+  const b = SIM_LIVE_IO[String(cubeId)];
+  return b ? { inputs: b.inputs, functions: c.functions, outputs: b.outputs } : c;
+}
+// router._enrich_sections_io mirror: a block's io = the union of its functions' registry io, else the cube's.
+function _blockIo(cubeId: number, fns: string[], whole: { inputs: string[]; outputs: string[] }) {
+  const fio = SIM_LIVE_IO[String(cubeId)]?.fn_io ?? {};
+  const ins = new Set<string>(), outs = new Set<string>();
+  for (const f of fns) { (fio[f]?.inputs ?? []).forEach((x) => ins.add(x)); (fio[f]?.outputs ?? []).forEach((x) => outs.add(x)); }
+  return { inputs: ins.size ? Array.from(ins).sort() : whole.inputs, functions: fns, outputs: outs.size ? Array.from(outs).sort() : whole.outputs };
+}
 function _mockSections(cubeId: number, count = 4) {
-  const cio = _SIM_CUBES[cubeId]?.io ?? { inputs: [], functions: [], outputs: [] };
+  const cio = _liveIo(cubeId);
   const groups = _orderedPartition(cubeId, count);   // base-first: .1 anchors the bottom
   if (count === 4) {
     const labels = _SIM_SECTION_LABELS[cubeId] ?? ["Section A", "Section B", "Section C", "Section D"];
@@ -790,7 +805,7 @@ function _mockSections(cubeId: number, count = 4) {
       const fns = io.length ? [io[i % io.length]] : [`fn_${key.toLowerCase()}`];
       return { key, code: `${cubeId}.${i + 1}`, label: labels[i], functions: fns,
         highlight: { "3": cells, "6": cells, "9": cells },
-        io: { inputs: cio.inputs, functions: fns, outputs: cio.outputs } };
+        io: _blockIo(cubeId, fns, cio) };
     });
   }
   const out = [];
@@ -803,7 +818,7 @@ function _mockSections(cubeId: number, count = 4) {
     const fns = allf.filter((_, j) => Math.floor((j * count) / total) === k);
     out.push({ key: `B${k + 1}`, code: `${cubeId}.${k + 1}`, label: `Block ${k + 1}`,
       functions: fns, highlight: { "3": cells, "6": cells, "9": cells },
-      io: { inputs: cio.inputs, functions: fns, outputs: cio.outputs } });
+      io: _blockIo(cubeId, fns, cio) });
   }
   return out;
 }
@@ -855,10 +870,14 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
   if (!m) return undefined;
   const id = Number(m[1]);
   const action = m[2];
-  const cube = _SIM_CUBES[id] || { name: `Cube ${id}`, io: { inputs: [], functions: [], outputs: [] } };
+  // LIVE refuses any cube outside 1-9 (router: "cube_id must be 1-9") — SIM mirrors it rather than
+  // fabricating an empty "Cube N" contract the real backend would never serve.
+  if (!_SIM_CUBES[id]) return ["check-in", "submit", "run", "challenge"].includes(action)
+    ? { __status: 404, detail: `Cube ${id} has no harness yet.` } : { __status: 400, detail: "cube_id must be 1-9" };
+  const cube = _SIM_CUBES[id];
   if (method === "GET" && action === "contract") {
     const count = _SIM_ALLOWED_COUNTS.includes(Number(qs.get("sections"))) ? Number(qs.get("sections")) : 4;
-    return { cube_id: id, name: cube.name, io_contract: cube.io, sections: _mockSections(id, count) };
+    return { cube_id: id, name: cube.name, io_contract: _liveIo(id), sections: _mockSections(id, count) };
   }
   if (method === "GET" && action === "section-metrics") {
     // SP: real-per-block metrics + SSSES (deterministic mock mirroring section_ssses).
@@ -871,7 +890,8 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
     const j = fns.join(" ").toLowerCase();
     // REAL LOC from the baked-in live source (sum of each function's line count).
     const _live = SIM_LIVE_SOURCE[String(id)] || {};
-    const loc = fns.reduce((n, fn) => n + (_live[fn] ? (_live[fn].source.split("\n").length) : 0), 0);
+    // Python `len(src.splitlines())` — a trailing newline is not a line (LIVE counts it that way).
+    const loc = fns.reduce((n, fn) => n + (_live[fn] ? (_live[fn].source.replace(/\n$/, "").split("\n").length) : 0), 0);
     const dur = 30 + fns.length * 7, rows = 300;
     const sensitive = ["auth", "pii", "secret", "token", "password", "scrub"].some((k) => j.includes(k));
     const rps = rows / (dur / 1000);
@@ -901,19 +921,23 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
       ["memoize", "Memoize the block's deterministic sub-results (cache repeated work)."],
       ["stream", "Stream/incremental-update instead of recomputing the block whole."],
     ];
-    const detPct = (seed: string, lo: number, hi: number) => {
-      const h = Math.abs(_mockHash(seed).split("").reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0));
-      return lo + (h % (hi - lo + 1));
-    };
+    // Byte-identical to backend agents._det_pct: lo + int(sha256(seed), 16) % (hi - lo + 1) — so SIM
+    // proposes the SAME variants and the SAME 12-lens verdicts as LIVE for every cube and block.
+    const detPct = (seed: string, lo: number, hi: number) => lo + _hexMod(_sha256hex(seed), hi - lo + 1);
+    const LENSES = ["Aset", "Asar", "Athena", "Christo", "Enki", "Enlil", "Krishna", "Odin", "Pangu", "Sofia", "Thoth", "Thor"];
     const variants = STRAT.map(([strat, desc]) => {
+      const vid = `${key}~${strat}`;
       const proj = detPct(`${id}:${key}:${strat}:${fn0}`, 6, 22);
-      const lenses = 12;
-      const approvals = 6 + detPct(`${id}:${key}:${strat}:appr`, 0, 6);
-      const safe = detPct(`${id}:${key}:${strat}:Thor`, 0, 100) >= 62;
-      const recommended = safe && approvals >= 8 && proj >= 10;
-      return { id: `${key}~${strat}`, strategy: strat, description: desc, target_fn: fn0,
+      const votes: Record<string, boolean> = {};
+      for (const lens of LENSES) votes[lens] = detPct(`${id}:${vid}:${lens}`, 0, 100) >= (lens === "Thor" ? 62 : 40);
+      const safe = votes.Thor;
+      const approvals = Object.values(votes).filter(Boolean).length;
+      const recommended = safe && approvals >= Math.floor((2 * LENSES.length + 2) / 3) && proj >= 10;
+      const note = recommended ? "SAFE + RECOMMENDED — human selects to proceed (Semi-Auto)"
+        : !safe ? "blocked by Thor (risk veto)" : "not recommended — insufficient council consensus or projected gain <10%";
+      return { id: vid, strategy: strat, description: desc, target_fn: fn0,
         projected_efficiency_pct: proj, source: "scaffold",
-        council: { safe, recommended, approvals, lenses } };
+        council: { safe, recommended, approvals, lenses: LENSES.length, votes, veto_lens: "Thor", note } };
     });
     return { cube_id: id, section: key, enabled: false, provider_available: false,
       tier_ladder: ["manual", "semi", "automated"], active_tier: "manual",
@@ -949,31 +973,40 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
     const b = (body as { section?: string; level?: number; tier?: string; human_approved?: boolean } | undefined) || {};
     const tier = b.tier || "manual";
     if (!["manual", "semi", "automated"].includes(tier)) return { __status: 400 };
+    // SAME SHAPE AS LIVE (router.sim_cube_submit → challenge_loop): baseline = _harness_to_metrics
+    // {cube_id, role, signature, duration_ms, function_calls, db_reads}; candidate = normalize_candidate
+    // {cube_id, role, signature, duration_ms, tests_total, tests_passed}. The workbench sends no candidate
+    // metrics, so LIVE re-runs the harness and the candidate EQUALS the baseline — parity, not a win.
+    // SIM used to show a fixed ~11% "WIN" LIVE never produces (and its own 11.1% bar would reject).
     const sig = _mockHash(`run:${id}`);
-    const metrics = { wall_time_ms: 388, function_calls: cube.io.functions.length * 100, db_execute_calls: 300 };
-    const verdict = { equivalent: true, compare_passed: true, faster: true, overall_passed: true };
+    const durMs = 388;
+    const baseline = { cube_id: id, role: "baseline", signature: sig, duration_ms: durMs,
+      function_calls: cube.io.functions.length * 100, db_reads: 300 };
+    const candidate = { cube_id: id, role: "candidate", signature: sig, duration_ms: durMs, tests_total: 0, tests_passed: 0 };
+    const verdict = { equivalent: true, compare_passed: true, faster: false, overall_passed: true };
     const decision = b.human_approved
       ? { tier, decision: "swap", reason: "human approved the swap", tally: null }
       : { tier, decision: "hold", reason: "awaiting human approval", tally: null };
     const rsig = _mockHash(`replay:${id}:${b.section || "cube"}`);
-    // Parity+efficiency proof (mirror challenge_loop.compute_optimization): the mock
-    // candidate is a real ~11% win → the candidate cube renders ~11% smaller than Live.
-    const candMs = 345;                               // 388 → 345 ≈ 11% faster
-    const improvement = (metrics.wall_time_ms - candMs) / metrics.wall_time_ms;
+    // compute_optimization mirror: improvement = (b - c) / b; win needs passed AND ≥ WIN_THRESHOLD (0.111).
+    const improvement = (baseline.duration_ms - candidate.duration_ms) / baseline.duration_ms;
     const passed = verdict.overall_passed;
     const cubeScale = passed && improvement > 0 ? Math.max(0.5, Math.min(1, 1 - improvement)) : 1.0;
     return {
       cube_id: id, section: b.section ?? null, level: b.level ?? 9,
-      baseline: { metrics, determinism_signature: sig },
-      candidate: { metrics: { ...metrics, wall_time_ms: candMs }, determinism_signature: sig },
+      baseline, candidate,
       verdict, decision,
       optimization: {
         optimization_pct: Math.round(improvement * 1000) / 10,
-        win: passed && improvement >= 0.10,
+        win: passed && improvement >= 0.111,
         cube_scale: Math.round(cubeScale * 1000) / 1000,
-        live_scale: 1.0, basis: "duration_ms", threshold_pct: 10.0,
+        live_scale: 1.0, basis: "duration_ms", threshold_pct: 11.1,
       },
-      replay: { replay_hash: rsig, scope: b.section ? "block" : "cube", section_label: b.section ? (_SIM_SECTIONS[b.section] || b.section) : "whole cube" },
+      // replay_against_dataset shape — the same keys the GET /replay mock (and LIVE) return.
+      replay: { case_id: "demo", response_count: 300, cube_id: id, function_name: "",
+        section: b.section ?? null, section_label: b.section ? (_SIM_SECTIONS[b.section] || b.section) : "whole cube",
+        scope: b.section ? "block" : "cube", status: "replayed", signature: rsig, replay_hash: rsig,
+        row_count: 300, duration_ms: 42.0, replay_hash_match: true },
       validation: { validators: 0, required: 3, state: "pending_validation" },
     };
   }

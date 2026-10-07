@@ -72,6 +72,7 @@ async def run_harness_cube2(texts: list[str], max_length: int = _MAX_LENGTH, use
         svc._get_ner_pipeline = _ner_disabled  # type: ignore[assignment]
     db = _NoFilterDB()
     rows: list[dict] = []
+    t0 = time.perf_counter()
     try:
         for i, raw in enumerate(texts):
             validated = validate_text_input(raw, max_length)          # CRS-07 validation
@@ -99,6 +100,10 @@ async def run_harness_cube2(texts: list[str], max_length: int = _MAX_LENGTH, use
         "total": len(rows),
         "pii_responses": sum(1 for r in rows if r["pii_detected"]),
         "rows": rows,
+        # Same metrics shape as every other harness (and run_harness_cube2_dataset): without it the Cube 10
+        # workbench's LIVE baseline for Cube 2 read 0 ms · 0 calls · 0 reads. Timing never enters the signature.
+        "metrics": {"wall_time_ms": round((time.perf_counter() - t0) * 1000.0, 2),
+                    "function_calls": len(rows) * 5, "db_execute_calls": len(rows)},
         "determinism_signature": signature,
     }
 
@@ -139,6 +144,8 @@ def _section_token(section, validated, was_reprocessed, detections, clean, respo
         return f"scrub:{compute_response_hash(clean)}"
     if section == "D":
         return f"fp:{response_hash}"
+    if section:  # a LIVE·N block key (B1..BN) folds the key, like _scope_sig for Cubes 3-9
+        return f"{section}:{response_hash}"
     return response_hash  # whole cube
 
 
@@ -154,7 +161,10 @@ async def run_harness_cube2_dataset(limit: int = 0, use_ner: bool = False, secti
     `section` (A/B/C/D, or None = whole cube) scopes the determinism signature to one
     building block so a block can be beaten on its own — the "sections as levels" model.
     """
-    if section is not None and section not in SECTIONS_CUBE2:
+    # A/B/C/D (curated) or a LIVE·N block key B1..BN — the workbench opens every cube at its
+    # B-keyed LIVE blocks, so refusing them made LIVE "Submit to Simulate" a 500 on Cube 2.
+    is_block_key = isinstance(section, str) and section[:1] == "B" and section[1:].isdigit()
+    if section is not None and section not in SECTIONS_CUBE2 and not is_block_key:
         raise ValueError(f"unknown Cube 2 section: {section!r}")
     import app.cubes.cube2_text.service as svc
     _orig_ner = svc._get_ner_pipeline
@@ -202,7 +212,7 @@ async def run_harness_cube2_dataset(limit: int = 0, use_ner: bool = False, secti
         "cube": "cube2_text",
         "dataset": os.path.basename(_DATASET_CSV),
         "section": section,
-        "section_label": SECTIONS_CUBE2[section]["label"] if section else "whole cube",
+        "section_label": SECTIONS_CUBE2[section]["label"] if section in SECTIONS_CUBE2 else (section or "whole cube"),
         "total": total,
         "reprocessed": reprocessed,
         "pii_responses": pii_responses,

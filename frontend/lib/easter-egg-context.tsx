@@ -8,6 +8,7 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { API_BASE_URL } from "./constants";
 
 interface SimulationState {
   simulationMode: boolean;
@@ -75,7 +76,9 @@ const ADMIN_SEQUENCE = ["hi", "ai", "si"];      // H.I. → A.I. → S.I.
 const CHALLENGER_SEQUENCE = ["si", "ai", "hi"];  // S.I. → A.I. → H.I.
 // Access codes verified server-side via POST /api/v1/verify-access
 // Frontend NEVER stores or compares codes — only sends to backend
-const VERIFY_ACCESS_ENDPOINT = "/api/v1/verify-access";
+// On the backend (API_BASE_URL already ends in /api/v1), NOT on the page's own host: the static site has no
+// /api/v1 route, so a relative path 404'd and a LIVE deploy could never grant Cube 10 admin/challenger.
+const VERIFY_ACCESS_ENDPOINT = `${API_BASE_URL}/verify-access`;
 
 export function EasterEggProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<SimulationState>({

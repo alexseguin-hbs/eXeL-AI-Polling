@@ -6551,8 +6551,10 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
     [liveSrc, /amount_usd \/ HI_RATE/, "…and the formula is hours x rate, never currency ÷ rate"],
   ];
   for (const [src2, re, msg] of banned) ok(!re.test(src2), msg);
-  ok(/hours_to_hi_tokens/.test(liveSrc) && /hours \* HI_RATE_PER_HOUR/.test(liveSrc),
-     "the live SDK source is hours x 7.25");
+  // The backend law since ef8b1c3 (2026-08-28): 웃 = hours × HI_PER_HOUR (9,999 ÷ 2,080 = 4.807…). The baked SIM
+  // source was stale (7.25) until it was regenerated on 2026-10-07; the point of this check is unchanged: hours, never dollars.
+  ok(/hours_to_hi_tokens/.test(liveSrc) && /hours × HI_PER_HOUR/.test(liveSrc) && /return hours_to_hi\(hours\)/.test(liveSrc),
+     "the live SDK source is hours x HI_PER_HOUR (4.807)");
   ok(/identical work, identical 웃|Identical work, identical 웃/.test(demos),
      "…and a demo states the point outright: identical work earns identical 웃");
 }

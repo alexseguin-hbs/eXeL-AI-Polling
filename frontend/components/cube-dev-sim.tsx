@@ -39,10 +39,13 @@ type SourceBlock = { name: string; section: string; resolved: boolean; path: str
 type SecMetrics = { duration_ms: number; row_count: number; loc: number; ssses: { security: number; stability: number; scalability: number; efficiency: number; succinctness: number; measured?: boolean; notes?: string[] } };
 type CouncilVariant = { id: string; strategy: string; description: string; projected_efficiency_pct: number; council: { safe: boolean; recommended: boolean; approvals: number; lenses: number } };
 type AiCouncil = { enabled: boolean; provider_available: boolean; variants: CouncilVariant[] };
+// LIVE (router.sim_cube_submit) sends each side FLAT: {cube_id, role, signature, duration_ms,
+// function_calls, db_reads | tests_total, tests_passed}. `metrics` is the older nested form.
+type SimSide = { metrics?: Record<string, number>; signature?: string; [k: string]: unknown };
 type Verdict = { equivalent: boolean; compare_passed: boolean; faster: boolean; overall_passed: boolean };
 type SubmitResult = {
-  baseline: { metrics?: Record<string, number>; determinism_signature?: string };
-  candidate: { metrics?: Record<string, number>; determinism_signature?: string };
+  baseline: SimSide;
+  candidate: SimSide;
   verdict: Verdict;
   decision: { decision: string; reason: string; tier: string };
   replay: { replay_hash: string; scope: string; section_label?: string };
@@ -764,12 +767,17 @@ function col(title: string, items: string[], color: string) {
   );
 }
 
-function metricCol(title: string, side: { metrics?: Record<string, number>; determinism_signature?: string }) {
+function metricCol(title: string, side: SimSide) {
+  // The numeric measurements of one side, whichever shape arrives — LIVE's flat fields, or a nested
+  // `metrics`. Before this read only `metrics`, so against the real backend both columns rendered EMPTY.
+  const rows = side.metrics
+    ? Object.entries(side.metrics)
+    : Object.entries(side).filter(([k, v]) => typeof v === "number" && k !== "cube_id");
   return (
     <div className="rounded-lg border bg-card p-3">
       <div className="mb-2 text-xs font-semibold">{title}</div>
       <div className="grid grid-cols-2 gap-2 text-xs">
-        {Object.entries(side.metrics ?? {}).map(([k, v]) => (
+        {rows.map(([k, v]) => (
           <div key={k} className="rounded border p-2">
             <div className="text-muted-foreground">{k}</div>
             <div className="font-mono text-foreground">{String(v)}</div>

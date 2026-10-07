@@ -93,7 +93,7 @@ function SimSplitScreen() {
       </div>
 
       {/* Simulation option: Cube Developer Sim (Cubes 1-9) vs the session split-screen demo */}
-      <div className="flex justify-center gap-2 border-b border-border/40 bg-muted/10 px-4 py-2">
+      <div className="flex flex-wrap justify-center gap-2 border-b border-border/40 bg-muted/10 px-4 py-2">
         <Button variant={view === "dev" ? "default" : "outline"} size="sm" onClick={() => setView("dev")}>
           Cube Dev Sim · 1–9
         </Button>

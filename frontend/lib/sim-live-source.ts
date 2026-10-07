@@ -29,7 +29,7 @@ export const SIM_LIVE_SOURCE: Record<string, Record<string, LiveFn>> =
     },
     "transition_session": {
       "path": "app/cubes/cube1_session/service.py",
-      "source": "async def transition_session(\n    db: AsyncSession,\n    session: Session,\n    new_status: str,\n    actor_id: str | None = None,\n    **kwargs,\n) -> Session:\n    \"\"\"Transition session to a new state. Validates against allowed transitions.\n\n    Writes audit log entry on every transition (G5 fix).\n    Computes replay_hash on close for determinism verification (G3 fix).\n    \"\"\"\n    if not session.can_transition_to(new_status):\n        allowed = SESSION_TRANSITIONS.get(session.status, ())\n        raise SessionStateError(\n            session.status,\n            f\"transition to '{new_status}' (allowed: {allowed})\",\n        )\n\n    # B2 — payment gate (operator: payment working before Cube 2). A `moderator_paid`\n    # session cannot OPEN or start POLLING until the moderator has paid upfront (is_paid,\n    # set by the Stripe webhook). Free + cost_split tiers are never blocked here (cost_split\n    # collects per-participant at results time; results are not gated by donation). 402 →\n    # the moderator completes Checkout, the webhook flips is_paid, and the retry succeeds.\n    if (\n        new_status in (\"open\", \"polling\")\n        and session.pricing_tier == \"moderator_paid\"\n        and not session.is_paid\n    ):\n        raise HTTPException(\n            status_code=status.HTTP_402_PAYMENT_REQUIRED,\n            detail=\"Moderator payment required before opening a moderator-paid session\",\n        )\n\n    old_status = session.status\n    now = datetime.now(timezone.utc)\n\n    if new_status == \"open\" and session.opened_at is None:\n        session.opened_at = now\n    elif new_status == \"polling\":\n        # Compute ends_at for static polls when transitioning to polling\n        if session.polling_mode_type == \"static_poll\" and session.static_poll_duration_days:\n            session.ends_at = now + timedelta(days=session.static_poll_duration_days)\n    elif new_status == \"closed\":\n        session.closed_at = now\n        # G3 fix: compute replay hash for determinism verification\n        try:\n            session.replay_hash = await _compute_replay_hash(db, session)\n        except Exception as exc:\n            logger.warning(\n                \"cube1.replay_hash.failed\",\n                extra={\"session_id\": str(session.id), \"error\": str(exc)},\n            )\n\n    # Clear presence data on archive\n    if new_status == \"archived\":\n        await _clear_presence(session.id)\n\n    session.status = new_status\n\n    # G5 fix: audit log on every state transition.\n    # CC-3: derive the actor role from the actor id — a \"system:*\" actor (e.g. the\n    # auto-timer that closes expired static polls) is NOT a moderator; hardcoding\n    # \"moderator\" mis-attributes autonomous transitions in the audit trail.\n    effective_actor = actor_id or session.created_by\n    actor_role = \"system\" if str(effective_actor).startswith(\"system:\") else \"moderator\"\n    await _log_audit(\n        db,\n        session_id=session.id,\n        actor_id=effective_actor,\n        actor_role=actor_role,\n        action_type=f\"session.transition.{old_status}_to_{new_status}\",\n        before_state={\"status\": old_status},\n        after_state={\"status\": new_status},\n    )\n\n    await db.commit()\n    await db.refresh(session)\n\n    # Fire the session_closed WEBHOOK (API productization) — strictly AFTER commit so\n    # a webhook can never affect close durability. Only on the terminal `closed` state\n    # (not the auto-timer polling→ranking path). safe_deliver_webhook early-returns when\n    # no subscriptions exist (cheap); a registered-but-slow subscriber can add latency\n    # to this close response — acceptable for v1, revisit with a background queue.\n    if new_status == \"closed\":\n        from app.cubes.cube5_gateway.webhook_service import safe_deliver_webhook\n\n        await safe_deliver_webhook(\n            db, session.id, \"session_closed\",\n            {\n                \"session_id\": str(session.id),\n                \"short_code\": session.short_code,\n                \"status\": \"closed\",\n                \"replay_hash\": session.replay_hash,\n                \"closed_at\": session.closed_at.isoformat() if session.closed_at else None,\n            },\n        )\n    return session\n"
+      "source": "async def transition_session(\n    db: AsyncSession,\n    session: Session,\n    new_status: str,\n    actor_id: str | None = None,\n    **kwargs,\n) -> Session:\n    \"\"\"Transition session to a new state. Validates against allowed transitions.\n\n    Writes audit log entry on every transition (G5 fix).\n    Computes replay_hash on close for determinism verification (G3 fix).\n    \"\"\"\n    if not session.can_transition_to(new_status):\n        allowed = SESSION_TRANSITIONS.get(session.status, ())\n        raise SessionStateError(\n            session.status,\n            f\"transition to '{new_status}' (allowed: {allowed})\",\n        )\n\n    # B2 — payment gate (operator: payment working before Cube 2). A `moderator_paid`\n    # session cannot OPEN or start POLLING until the moderator has paid upfront (is_paid,\n    # set by the Stripe webhook). Free + cost_split tiers are never blocked here (cost_split\n    # collects per-participant at results time; results are not gated by donation). 402 →\n    # the moderator completes Checkout, the webhook flips is_paid, and the retry succeeds.\n    if (\n        new_status in (\"open\", \"polling\")\n        and session.pricing_tier == \"moderator_paid\"\n        and not session.is_paid\n    ):\n        raise HTTPException(\n            status_code=status.HTTP_402_PAYMENT_REQUIRED,\n            detail=\"Moderator payment required before opening a moderator-paid session\",\n        )\n\n    old_status = session.status\n    now = datetime.now(timezone.utc)\n\n    if new_status == \"open\" and session.opened_at is None:\n        session.opened_at = now\n    elif new_status == \"polling\":\n        # Compute ends_at for static polls when transitioning to polling\n        if session.polling_mode_type == \"static_poll\" and session.static_poll_duration_days:\n            session.ends_at = now + timedelta(days=session.static_poll_duration_days)\n        # LIVING VOTE (operator 2026-09-14): re-opening a ranking round starts a NEW cycle so\n        # ballots are keyed per round (unique session+cycle+participant) — never re-used or\n        # double-counted. Bounded by max_cycles; a bounded refusal is a SessionStateError.\n        if old_status == \"ranking\":\n            current = int(getattr(session, \"current_cycle\", 1) or 1)\n            limit = int(getattr(session, \"max_cycles\", 1) or 1)\n            if current >= limit:\n                raise SessionStateError(\n                    session.status,\n                    f\"re-open polling (cycle {current} of {limit} already used; raise max_cycles)\",\n                )\n            session.current_cycle = current + 1\n    elif new_status == \"closed\":\n        session.closed_at = now\n        # G3 fix: compute replay hash for determinism verification\n        try:\n            session.replay_hash = await _compute_replay_hash(db, session)\n        except Exception as exc:\n            logger.warning(\n                \"cube1.replay_hash.failed\",\n                extra={\"session_id\": str(session.id), \"error\": str(exc)},\n            )\n\n    # Clear presence data on archive\n    if new_status == \"archived\":\n        await _clear_presence(session.id)\n\n    session.status = new_status\n\n    # G5 fix: audit log on every state transition.\n    # CC-3: derive the actor role from the actor id — a \"system:*\" actor (e.g. the\n    # auto-timer that closes expired static polls) is NOT a moderator; hardcoding\n    # \"moderator\" mis-attributes autonomous transitions in the audit trail.\n    effective_actor = actor_id or session.created_by\n    actor_role = \"system\" if str(effective_actor).startswith(\"system:\") else \"moderator\"\n    await _log_audit(\n        db,\n        session_id=session.id,\n        actor_id=effective_actor,\n        actor_role=actor_role,\n        action_type=f\"session.transition.{old_status}_to_{new_status}\",\n        before_state={\"status\": old_status},\n        after_state={\"status\": new_status, \"current_cycle\": getattr(session, \"current_cycle\", 1)},\n    )\n\n    await db.commit()\n    await db.refresh(session)\n\n    # Fire the session_closed WEBHOOK (API productization) — strictly AFTER commit so\n    # a webhook can never affect close durability. Only on the terminal `closed` state\n    # (not the auto-timer polling→ranking path). safe_deliver_webhook early-returns when\n    # no subscriptions exist (cheap); a registered-but-slow subscriber can add latency\n    # to this close response — acceptable for v1, revisit with a background queue.\n    if new_status == \"closed\":\n        from app.cubes.cube5_gateway.webhook_service import safe_deliver_webhook\n\n        await safe_deliver_webhook(\n            db, session.id, \"session_closed\",\n            {\n                \"session_id\": str(session.id),\n                \"short_code\": session.short_code,\n                \"status\": \"closed\",\n                \"replay_hash\": session.replay_hash,\n                \"closed_at\": session.closed_at.isoformat() if session.closed_at else None,\n            },\n        )\n    return session\n"
     }
   },
   "2": {
@@ -119,7 +119,7 @@ export const SIM_LIVE_SOURCE: Record<string, Record<string, LiveFn>> =
     },
     "record_confirmation": {
       "path": "app/cubes/cube4_collector/service.py",
-      "source": "async def record_confirmation(\n    db: AsyncSession,\n    session_id: uuid.UUID,\n    outcome_id: uuid.UUID,\n    participant_id: uuid.UUID,\n) -> dict:\n    \"\"\"CRS-10.01: Record a participant's confirmation of the desired outcome.\n\n    Appends participant_id to confirmed_by JSONB array idempotently.\n    Returns updated confirmation status.\n    \"\"\"\n    from app.models.desired_outcome import DesiredOutcome\n\n    result = await db.execute(\n        select(DesiredOutcome).where(\n            DesiredOutcome.id == outcome_id,\n            DesiredOutcome.session_id == session_id,\n        )\n    )\n    outcome = result.scalar_one_or_none()\n    if outcome is None:\n        from app.core.exceptions import ResponseNotFoundError\n        raise ResponseNotFoundError(str(outcome_id))\n\n    pid_str = str(participant_id)\n    confirmed = list(outcome.confirmed_by or [])\n    if pid_str not in confirmed:\n        confirmed.append(pid_str)\n        outcome.confirmed_by = confirmed\n\n    await db.commit()\n    await db.refresh(outcome)\n\n    logger.info(\n        \"cube4.desired_outcome.confirmed\",\n        outcome_id=str(outcome_id),\n        participant_id=pid_str,\n        total_confirmed=len(confirmed),\n    )\n    return {\n        \"outcome_id\": str(outcome.id),\n        \"confirmed_by\": outcome.confirmed_by,\n        \"total_confirmed\": len(outcome.confirmed_by),\n        \"all_confirmed\": outcome.all_confirmed,\n    }\n"
+      "source": "async def record_confirmation(\n    db: AsyncSession,\n    session_id: uuid.UUID,\n    outcome_id: uuid.UUID,\n    participant_id: uuid.UUID,\n) -> dict:\n    \"\"\"CRS-10.01: Record a participant's confirmation of the desired outcome.\n\n    Appends participant_id to confirmed_by JSONB array idempotently.\n    Returns updated confirmation status.\n    \"\"\"\n    from app.models.desired_outcome import DesiredOutcome\n\n    result = await db.execute(\n        select(DesiredOutcome).where(\n            DesiredOutcome.id == outcome_id,\n            DesiredOutcome.session_id == session_id,\n        ).with_for_update()  # two confirmations at once both append; neither overwrites the other\n    )\n    outcome = result.scalar_one_or_none()\n    if outcome is None:\n        from app.core.exceptions import ResponseNotFoundError\n        raise ResponseNotFoundError(str(outcome_id))\n\n    pid_str = str(participant_id)\n    confirmed = list(outcome.confirmed_by or [])\n    if pid_str not in confirmed:\n        confirmed.append(pid_str)\n        outcome.confirmed_by = confirmed\n\n    await db.commit()\n    await db.refresh(outcome)\n\n    logger.info(\n        \"cube4.desired_outcome.confirmed\",\n        outcome_id=str(outcome_id),\n        participant_id=pid_str,\n        total_confirmed=len(confirmed),\n    )\n    return {\n        \"outcome_id\": str(outcome.id),\n        \"confirmed_by\": outcome.confirmed_by,\n        \"total_confirmed\": len(outcome.confirmed_by),\n        \"all_confirmed\": outcome.all_confirmed,\n    }\n"
     },
     "analyze_session": {
       "path": "app/cubes/cube4_collector/analysis.py",
@@ -137,7 +137,7 @@ export const SIM_LIVE_SOURCE: Record<string, Record<string, LiveFn>> =
     },
     "start_time_tracking": {
       "path": "app/cubes/cube5_gateway/router.py",
-      "source": "@router.post(\n    \"/sessions/{session_id}/time/start\",\n    response_model=TimeEntryRead,\n    status_code=201,\n)\nasync def start_time_tracking(\n    session_id: uuid.UUID,\n    payload: TimeEntryStart,\n    db: AsyncSession = Depends(get_db),\n    user: CurrentUser | None = Depends(get_optional_current_user),\n):\n    \"\"\"Start tracking active participation time.\n\n    Called when user begins responding or ranking.\n    ♡ = floor(active_minutes), 웃 = 0, ◬ = 5x ♡.\n    \"\"\"\n    # Resolve participant_id from authenticated user, fallback to session_id for internal calls\n    participant_id = uuid.UUID(user.user_id) if user else session_id\n    entry = await service.start_time_tracking(\n        db,\n        session_id=session_id,\n        participant_id=participant_id,\n        action_type=payload.action_type,\n        reference_id=payload.reference_id,\n    )\n    return TimeEntryRead.model_validate(entry)\n"
+      "source": "@router.post(\n    \"/sessions/{session_id}/time/start\",\n    response_model=TimeEntryRead,\n    status_code=201,\n)\nasync def start_time_tracking(\n    session_id: uuid.UUID,\n    payload: TimeEntryStart,\n    db: AsyncSession = Depends(get_db),\n    user: CurrentUser | None = Depends(get_optional_current_user),\n):\n    \"\"\"Start tracking active participation time.\n\n    Called when user begins responding or ranking.\n    ♡ = floor(active_minutes), 웃 = 0, ◬ = 5x ♡.\n    \"\"\"\n    # The caller's participants row in this session (an Auth0 id is never a UUID; time_entries\n    # needs a real participant FK, so no row is a 404, never a 500).\n    participant_id = await resolve_participant_id(db, session_id, user.user_id if user else None)\n    if participant_id is None:\n        raise HTTPException(status_code=404, detail=\"Join the session before tracking time\")\n    entry = await service.start_time_tracking(\n        db,\n        session_id=session_id,\n        participant_id=participant_id,\n        action_type=payload.action_type,\n        reference_id=payload.reference_id,\n    )\n    return TimeEntryRead.model_validate(entry)\n"
     },
     "trigger_ai_pipeline": {
       "path": "app/cubes/cube5_gateway/service.py",
@@ -163,11 +163,11 @@ export const SIM_LIVE_SOURCE: Record<string, Record<string, LiveFn>> =
   "6": {
     "run_pipeline": {
       "path": "app/cubes/cube6_ai/pipeline.py",
-      "source": "async def run_pipeline(\n    db: AsyncSession,\n    session_id: uuid.UUID,\n    seed: str | None = None,\n    *,\n    use_embedding_assignment: bool = False,\n) -> dict:\n    \"\"\"Execute the full parallel theming pipeline for a session.\n\n    CRS-11: AI Theme generation from user responses.\n    CRS-12: Deterministic theme hierarchy (9 → 6 → 3).\n    CRS-13: Theme assignment with confidence scores.\n\n    Called after moderator closes polling. Summaries already exist\n    from Phase A (live per-response summarization during polling).\n\n    Pipeline Steps (I/O boundaries for Cube 10 Challengers):\n      Step 1: Fetch summaries       → list[dict] (CRS-11.01)\n      Step 2: Classify Theme01      → responses with theme01 field (CRS-11.02)\n      Step 3: Group by Theme01      → 3 bins (CRS-11.03)\n      Step 4: Marble sampling       → grouped samples (CRS-11.04)\n      Step 5: Generate themes       → theme labels per bin (CRS-12.01)\n      Step 6: Reduce 9 → 6 → 3     → hierarchy dict (CRS-12.02)\n      Step 7: Assign themes         → responses with theme2_9/6/3 (CRS-13.01)\n      Step 8: Store results         → PostgreSQL + replay hash (CRS-13.02)\n\n    Args:\n        use_embedding_assignment: If True, use cosine similarity for theme\n            assignment (faster). If False, use LLM matching (monolith approach).\n    \"\"\"\n    import time\n    start_time = time.monotonic()\n\n    # Load session\n    result = await db.execute(select(Session).where(Session.id == session_id))\n    session = result.scalar_one_or_none()\n    if session is None:\n        raise ValueError(f\"Session {session_id} not found\")\n\n    # Task B5: Track pipeline stage for recovery + status endpoint\n    session.pipeline_stage = \"starting\"\n\n    effective_seed = seed or session.seed or str(session_id)\n    seed_int = int(hashlib.md5(effective_seed.encode()).hexdigest()[:8], 16)\n\n    provider_name = session.ai_provider or \"openai\"\n    # C6-2: never crash the whole pipeline on a missing key — degrade to the\n    # deterministic OFFLINE provider in dev/test/CI (production still raises).\n    summarizer = get_summarization_provider_or_offline(provider_name)\n\n    # Cost tracking for this pipeline run\n    from app.cubes.cube6_ai.providers.base import AICostTracker\n    cost_tracker = AICostTracker(provider_name)\n\n    logger.info(\"cube6.pipeline.start\", session_id=str(session_id), provider=provider_name)\n\n    # Step 1: Fetch pre-computed 33-word summaries\n    logger.info(\"Step 1: Fetching pre-computed summaries\")\n    responses = await _fetch_summaries(db, session_id)\n    if not responses:\n        return {\n            \"session_id\": str(session_id),\n            \"status\": \"completed\",\n            \"total_responses\": 0,\n            \"message\": \"No responses to process\",\n            \"duration_sec\": round(time.monotonic() - start_time, 2),\n        }\n\n    # Task B5: Wrap pipeline in try/except for failure recovery.\n    # On failure: store partial results, set pipeline_stage to error stage.\n    # Moderator can re-trigger POST /ai/run which is idempotent.\n    try:\n        # Step 2: Classify Theme01 (batch parallel)\n        session.pipeline_stage = \"classifying\"\n        logger.info(\"Step 2: Classifying Theme01 for %d responses\", len(responses))\n        responses = await _classify_theme01(summarizer, responses)\n\n        # Step 3: Group by Theme01\n        session.pipeline_stage = \"grouping\"\n        logger.info(\"Step 3: Grouping by Theme01\")\n        bins = _group_by_theme01(responses)\n        bin_counts = {k: len(v) for k, v in bins.items()}\n\n        # Step 4: Marble sampling (shuffle + slice)\n        session.pipeline_stage = \"sampling\"\n        logger.info(\"Step 4: Marble sampling (seed=%d)\", seed_int)\n        bin_samples = await _parallel_marble_sample(bins, seed_int)\n        group_counts = {k: len(v) for k, v in bin_samples.items()}\n\n        # Step 5: Generate 3 themes per marble group (10+ concurrent agents)\n        session.pipeline_stage = \"generating\"\n        logger.info(\"Step 5: Generating themes (%s groups total)\",\n                    sum(group_counts.values()))\n        all_themes = await _parallel_generate_themes(summarizer, bin_samples)\n        theme_counts = {k: len(v) for k, v in all_themes.items()}\n\n        # Step 6: Reduce all -> 9 -> 6 -> 3 (concurrent per category)\n        session.pipeline_stage = \"reducing\"\n        logger.info(\"Step 6: Reducing themes (all->9->6->3)\")\n        reduced = await _reduce_themes(summarizer, all_themes)\n\n        # Step 7: Assign themes to all responses\n        session.pipeline_stage = \"assigning\"\n        logger.info(\"Step 7: Assigning themes to all responses\")\n        if use_embedding_assignment:\n            embedder = get_embedding_provider(provider_name)\n            responses = await _assign_themes_embedding(embedder, responses, reduced)\n        else:\n            responses = await _assign_themes_llm(summarizer, responses, reduced)\n\n        # Step 8: Store results\n        session.pipeline_stage = \"storing\"\n        logger.info(\"Step 8: Storing results\")\n        replay_hash = await _store_results(\n            db, session, responses, bin_samples, reduced\n        )\n\n        session.pipeline_stage = \"completed\"\n\n        # R-Core audit: one append-only row attributing the theming-pipeline completion\n        # (transition-level — one per pipeline run, scale-safe). Carries the replay_hash.\n        log_audit(\n            db,\n            session_id=session_id,\n            actor_id=\"system:orchestrator\",\n            actor_role=\"system\",\n            action_type=\"ai.theming_completed\",\n            object_type=\"pipeline\",\n            object_id=str(session_id),\n            before={\"pipeline_stage\": \"storing\"},\n            after={\"pipeline_stage\": \"completed\", \"replay_hash\": replay_hash},\n        )\n\n    except Exception as exc:\n        # Task B5: On failure, mark session with error stage for status endpoint\n        failed_stage = getattr(session, \"pipeline_stage\", \"unknown\")\n        session.pipeline_stage = f\"error:{failed_stage}\"\n        try:\n            await db.commit()\n        except Exception:\n            pass\n        logger.error(\n            \"cube6.pipeline.failed\",\n            session_id=str(session_id),\n            stage=failed_stage,\n            error=str(exc),\n        )\n        return {\n            \"session_id\": str(session_id),\n            \"status\": \"error\",\n            \"stage\": failed_stage,\n            \"error\": str(exc),\n            \"duration_sec\": round(time.monotonic() - start_time, 2),\n        }\n\n    duration = round(time.monotonic() - start_time, 2)\n\n    # Estimate cost from response count × AI calls made\n    # Phase B: ~3 calls per category (reduce 9→6→3) × 3 categories = 9\n    # + 1 classify call + N assignment calls\n    total_chars = sum(len(r.get(\"summary_33\", \"\")) for r in responses)\n    cost_tracker.log_call(total_chars * 3, total_chars)  # classify + assign estimate\n    cost_tracker.log_call(total_chars, total_chars // 3)  # reduction estimate\n\n    logger.info(\n        \"cube6.pipeline.completed\",\n        session_id=str(session_id),\n        total_responses=len(responses),\n        duration_sec=duration,\n        **cost_tracker.summary(),\n    )\n\n    # Persist cost tracking to DB for audit trail\n    try:\n        from app.models.ai_cost_log import AICostLog\n        cost_summary = cost_tracker.summary()\n        cost_log = AICostLog(\n            session_id=session_id,\n            phase=\"phase_b\",\n            provider=provider_name,\n            total_calls=cost_summary[\"total_calls\"],\n            total_input_chars=cost_summary[\"total_input_chars\"],\n            total_output_chars=cost_summary[\"total_output_chars\"],\n            estimated_cost_usd=cost_summary[\"estimated_cost_usd\"],\n            response_count=len(responses),\n            duration_sec=duration,\n        )\n        db.add(cost_log)\n        await db.commit()\n    except Exception as e:\n        logger.warning(\"cube6.cost_log.persist_failed\", error=str(e))\n\n    # --- Task B4: Broadcast themes_ready after full pipeline success ---\n    # Gate: only f"
+      "source": "async def run_pipeline(\n    db: AsyncSession,\n    session_id: uuid.UUID,\n    seed: str | None = None,\n    *,\n    use_embedding_assignment: bool = False,\n) -> dict:\n    \"\"\"Execute the full parallel theming pipeline for a session.\n\n    CRS-11: AI Theme generation from user responses.\n    CRS-12: Deterministic theme hierarchy (9 → 6 → 3).\n    CRS-13: Theme assignment with confidence scores.\n\n    Called after moderator closes polling. Summaries already exist\n    from Phase A (live per-response summarization during polling).\n\n    Pipeline Steps (I/O boundaries for Cube 10 Challengers):\n      Step 1: Fetch summaries       → list[dict] (CRS-11.01)\n      Step 2: Classify Theme01      → responses with theme01 field (CRS-11.02)\n      Step 3: Group by Theme01      → 3 bins (CRS-11.03)\n      Step 4: Marble sampling       → grouped samples (CRS-11.04)\n      Step 5: Generate themes       → theme labels per bin (CRS-12.01)\n      Step 6: Reduce 9 → 6 → 3     → hierarchy dict (CRS-12.02)\n      Step 7: Assign themes         → responses with theme2_9/6/3 (CRS-13.01)\n      Step 8: Store results         → PostgreSQL + replay hash (CRS-13.02)\n\n    Args:\n        use_embedding_assignment: If True, use cosine similarity for theme\n            assignment (faster). If False, use LLM matching (monolith approach).\n    \"\"\"\n    import time\n    start_time = time.monotonic()\n\n    # Load session\n    result = await db.execute(select(Session).where(Session.id == session_id))\n    session = result.scalar_one_or_none()\n    if session is None:\n        raise ValueError(f\"Session {session_id} not found\")\n\n    # Task B5: Track pipeline stage for recovery + status endpoint\n    session.pipeline_stage = \"starting\"\n\n    effective_seed = seed or session.seed or str(session_id)\n    seed_int = int(hashlib.md5(effective_seed.encode()).hexdigest()[:8], 16)\n\n    provider_name = session.ai_provider or \"openai\"\n    # C6-2: never crash the whole pipeline on a missing key — degrade to the\n    # deterministic OFFLINE provider in dev/test/CI (production still raises).\n    summarizer = get_summarization_provider_or_offline(provider_name)\n\n    # Cost tracking for this pipeline run\n    from app.cubes.cube6_ai.providers.base import AICostTracker\n    cost_tracker = AICostTracker(provider_name)\n\n    logger.info(\"cube6.pipeline.start\", session_id=str(session_id), provider=provider_name)\n\n    # Step 1: Fetch pre-computed 33-word summaries\n    logger.info(\"Step 1: Fetching pre-computed summaries\")\n    responses = await _fetch_summaries(db, session_id)\n    if not responses:\n        return {\n            \"session_id\": str(session_id),\n            \"status\": \"completed\",\n            \"total_responses\": 0,\n            \"message\": \"No responses to process\",\n            \"duration_sec\": round(time.monotonic() - start_time, 2),\n        }\n\n    # Task B5: Wrap pipeline in try/except for failure recovery.\n    # On failure: store partial results, set pipeline_stage to error stage.\n    # Moderator can re-trigger POST /ai/run which is idempotent.\n    try:\n        # Step 2: Classify Theme01 (batch parallel)\n        session.pipeline_stage = \"classifying\"\n        logger.info(\"Step 2: Classifying Theme01 for %d responses\", len(responses))\n        responses = await _classify_theme01(summarizer, responses)\n\n        # Step 3: Group by Theme01\n        session.pipeline_stage = \"grouping\"\n        logger.info(\"Step 3: Grouping by Theme01\")\n        bins = _group_by_theme01(responses)\n        bin_counts = {k: len(v) for k, v in bins.items()}\n\n        # Step 4: Marble sampling (shuffle + slice)\n        session.pipeline_stage = \"sampling\"\n        logger.info(\"Step 4: Marble sampling (seed=%d)\", seed_int)\n        bin_samples = await _parallel_marble_sample(bins, seed_int)\n        group_counts = {k: len(v) for k, v in bin_samples.items()}\n\n        # Step 5: Generate 3 themes per marble group (10+ concurrent agents)\n        session.pipeline_stage = \"generating\"\n        logger.info(\"Step 5: Generating themes (%s groups total)\",\n                    sum(group_counts.values()))\n        all_themes = await _parallel_generate_themes(summarizer, bin_samples)\n        theme_counts = {k: len(v) for k, v in all_themes.items()}\n\n        # Step 6: Reduce all -> 9 -> 6 -> 3 (concurrent per category)\n        session.pipeline_stage = \"reducing\"\n        logger.info(\"Step 6: Reducing themes (all->9->6->3)\")\n        reduced = await _reduce_themes(summarizer, all_themes)\n\n        # Step 7: Assign themes to all responses\n        session.pipeline_stage = \"assigning\"\n        logger.info(\"Step 7: Assigning themes to all responses\")\n        if use_embedding_assignment:\n            embedder = get_embedding_provider(provider_name)\n            responses = await _assign_themes_embedding(embedder, responses, reduced)\n        else:\n            responses = await _assign_themes_llm(summarizer, responses, reduced)\n\n        # Step 8: Store results\n        session.pipeline_stage = \"storing\"\n        logger.info(\"Step 8: Storing results\")\n        replay_hash = await _store_results(\n            db, session, responses, bin_samples, reduced\n        )\n\n        session.pipeline_stage = \"completed\"\n\n        # R-Core audit: one append-only row attributing the theming-pipeline completion\n        # (transition-level — one per pipeline run, scale-safe). Carries the replay_hash.\n        log_audit(\n            db,\n            session_id=session_id,\n            actor_id=\"system:orchestrator\",\n            actor_role=\"system\",\n            action_type=\"ai.theming_completed\",\n            object_type=\"pipeline\",\n            object_id=str(session_id),\n            before={\"pipeline_stage\": \"storing\"},\n            after={\"pipeline_stage\": \"completed\", \"replay_hash\": replay_hash},\n        )\n\n    except Exception as exc:\n        from app.cubes.cube6_ai.phase_b import ThemesLockedError\n\n        if isinstance(exc, ThemesLockedError):\n            await db.rollback()  # the stored themes are still good; nothing failed\n            raise\n        # Task B5: On failure, mark session with error stage for status endpoint\n        failed_stage = getattr(session, \"pipeline_stage\", \"unknown\")\n        session.pipeline_stage = f\"error:{failed_stage}\"\n        try:\n            await db.commit()\n        except Exception:\n            pass\n        logger.error(\n            \"cube6.pipeline.failed\",\n            session_id=str(session_id),\n            stage=failed_stage,\n            error=str(exc),\n        )\n        return {\n            \"session_id\": str(session_id),\n            \"status\": \"error\",\n            \"stage\": failed_stage,\n            \"error\": str(exc),\n            \"duration_sec\": round(time.monotonic() - start_time, 2),\n        }\n\n    duration = round(time.monotonic() - start_time, 2)\n\n    # Estimate cost from response count × AI calls made\n    # Phase B: ~3 calls per category (reduce 9→6→3) × 3 categories = 9\n    # + 1 classify call + N assignment calls\n    total_chars = sum(len(r.get(\"summary_33\", \"\")) for r in responses)\n    cost_tracker.log_call(total_chars * 3, total_chars)  # classify + assign estimate\n    cost_tracker.log_call(total_chars, total_chars // 3)  # reduction estimate\n\n    logger.info(\n        \"cube6.pipeline.completed\",\n        session_id=str(session_id),\n        total_responses=len(responses),\n        duration_sec=duration,\n        **cost_tracker.summary(),\n    )\n\n    # Persist cost tracking to DB for audit trail\n    try:\n        from app.models.ai_cost_log import AICostLog\n        cost_summary = cost_tracker.summary()\n        cost_log = AICostLog(\n            session_id=session_id,\n            phase=\"phase_b\",\n            provider=provider_name,\n            total_calls=cost_summary[\"total_calls\"],\n            total_input_chars=cost_summary[\"total_input_chars\"],\n            total_output_chars=cost_summary[\"total_output_chars\"],\n            estimated_cost_usd=cost_summary[\"estimated_cost_usd\"],\n            response_count=len(responses),\n            duration_sec=duration,\n        )\n        db.add(cost_log)\n "
     },
     "run_ai_theming": {
       "path": "app/cubes/cube6_ai/router.py",
-      "source": "@router.post(\"/ai/run\", status_code=202)\nasync def run_ai_theming(\n    session_id: uuid.UUID,\n    payload: PipelineRunRequest | None = None,\n    provider: str = \"openai\",\n    db: AsyncSession = Depends(get_db),\n    user: CurrentUser = Depends(require_role(\"moderator\", \"admin\")),\n):\n    \"\"\"CRS-09: Trigger full AI theme pipeline (marble sampling → reduction → assignment).\n\n    Returns 202 with pipeline result summary.\n    \"\"\"\n    # WireGuard-inspired: whitelist provider at the gate\n    if provider not in VALID_PROVIDERS:\n        raise HTTPException(\n            status_code=400,\n            detail=f\"provider must be one of: {', '.join(VALID_PROVIDERS)}\",\n        )\n    seed = payload.seed if payload else None\n    result = await service.run_pipeline(db, session_id, seed=seed)\n    return result\n"
+      "source": "@router.post(\"/ai/run\", status_code=202)\nasync def run_ai_theming(\n    session_id: uuid.UUID,\n    payload: PipelineRunRequest | None = None,\n    provider: str = \"openai\",\n    db: AsyncSession = Depends(get_db),\n    user: CurrentUser = Depends(require_session_owner(\"moderator\", \"admin\")),\n):\n    \"\"\"CRS-09: Trigger full AI theme pipeline (marble sampling → reduction → assignment).\n\n    Returns 202 with pipeline result summary.\n    \"\"\"\n    # WireGuard-inspired: whitelist provider at the gate\n    if provider not in VALID_PROVIDERS:\n        raise HTTPException(\n            status_code=400,\n            detail=f\"provider must be one of: {', '.join(VALID_PROVIDERS)}\",\n        )\n    seed = payload.seed if payload else None\n    from app.cubes.cube6_ai.phase_b import ThemesLockedError\n\n    try:\n        result = await service.run_pipeline(db, session_id, seed=seed)\n    except ThemesLockedError as e:\n        raise HTTPException(status_code=409, detail=str(e))\n    return result\n"
     },
     "sample_response_summaries": {
       "path": "app/cubes/cube6_ai/theme_summarizer.py",
@@ -193,15 +193,15 @@ export const SIM_LIVE_SOURCE: Record<string, Record<string, LiveFn>> =
   "7": {
     "aggregate_rankings": {
       "path": "app/cubes/cube7_ranking/ranking_aggregation.py",
-      "source": "async def aggregate_rankings(\n    db: AsyncSession,\n    session_id: uuid.UUID,\n    cycle_id: int = 1,\n    seed: str | None = None,\n    participant_stakes: dict[str, float] | None = None,\n    excluded_participant_ids: set[str] | None = None,\n    theme01_category: str | None = None,\n    theme_level: str | None = None,\n) -> list[AggregatedRanking]:\n    \"\"\"CRS-12.01 + CRS-12.02 + CRS-12.04: Borda count with quadratic weights + anomaly exclusion.\n\n    Steps:\n      1. Fetch all user_rankings for session + cycle\n      1b. Exclude flagged participants (CRS-12.04 anti-sybil)\n      2. Compute quadratic weights (if stakes provided) or equal weights\n      3. Compute weighted Borda scores\n      4. Sort by score DESC, then deterministic tiebreak\n      5. Clear previous aggregated_rankings for this cycle\n      6. Write new aggregated_rankings (1 row per theme)\n    \"\"\"\n    excluded = excluded_participant_ids or set()\n\n    # 1. Fetch user rankings\n    result = await db.execute(\n        select(Ranking).where(\n            and_(\n                Ranking.session_id == session_id,\n                Ranking.cycle_id == cycle_id,\n            )\n        )\n    )\n    user_rankings = result.scalars().all()\n\n    if not user_rankings:\n        raise ValueError(\n            f\"No rankings found for session {session_id} cycle {cycle_id}\"\n        )\n\n    # 1b. Extract ranked_theme_ids + participant_ids, excluding flagged\n    all_rankings: list[list[str]] = []\n    all_participant_ids: list[str] = []\n    excluded_count = 0\n    for ur in user_rankings:\n        pid = str(ur.participant_id)\n        if pid in excluded:\n            excluded_count += 1\n            continue\n        ids = ur.ranked_theme_ids\n        if isinstance(ids, list):\n            all_rankings.append(ids)\n        elif isinstance(ids, dict) and \"ranked_theme_ids\" in ids:\n            all_rankings.append(ids[\"ranked_theme_ids\"])\n        all_participant_ids.append(pid)\n\n    if excluded_count:\n        logger.info(\n            \"cube7.ranking.excluded_anomalous\",\n            extra={\"session_id\": str(session_id), \"excluded_count\": excluded_count},\n        )\n\n    if not all_rankings:\n        raise ValueError(\n            f\"No valid rankings remaining after excluding {excluded_count} flagged participants\"\n        )\n\n    n_themes = len(all_rankings[0]) if all_rankings else 0\n    participant_count = len(all_rankings)\n    effective_seed = seed or str(session_id)\n\n    # 2. Compute weights\n    algorithm = \"borda_count\"\n    if participant_stakes:\n        weights = _quadratic_weights(participant_stakes)\n        scores = _weighted_borda_scores(\n            all_rankings, all_participant_ids, weights, n_themes\n        )\n        algorithm = \"quadratic_borda\"\n    else:\n        scores = _borda_scores(all_rankings, n_themes)\n\n    # 3. Sort: score DESC, then deterministic tiebreak ASC\n    sorted_themes = sorted(\n        scores.items(),\n        key=lambda item: (-item[1], _seeded_tiebreak_key(item[0], effective_seed)),\n    )\n\n    # 4. Compute replay hash (Step 5: category+level pinned into hash)\n    replay_hash = _compute_replay_hash(\n        all_rankings,\n        effective_seed,\n        algorithm,\n        theme01_category=theme01_category,\n        theme_level=theme_level,\n    )\n\n    # 5. Clear previous aggregation for this cycle\n    await db.execute(\n        delete(AggregatedRanking).where(\n            and_(\n                AggregatedRanking.session_id == session_id,\n                AggregatedRanking.cycle_id == cycle_id,\n            )\n        )\n    )\n\n    # 6. Fetch theme confidence for CRS-13.01\n    theme_ids_list = [uuid.UUID(t[0]) for t in sorted_themes]\n    if theme_ids_list:\n        conf_result = await db.execute(\n            select(Theme.id, Theme.confidence).where(Theme.id.in_(theme_ids_list))\n        )\n        theme_confidence = {row[0]: row[1] for row in conf_result.all()}\n    else:\n        theme_confidence = {}\n\n    # 7. Write new aggregated rankings\n    now = datetime.now(timezone.utc)\n    aggregated: list[AggregatedRanking] = []\n\n    for rank_pos, (theme_id_str, score) in enumerate(sorted_themes, start=1):\n        vote_count = sum(1 for r in all_rankings if theme_id_str in r)\n        tid = uuid.UUID(theme_id_str)\n\n        agg = AggregatedRanking(\n            session_id=session_id,\n            cycle_id=cycle_id,\n            theme_id=tid,\n            rank_position=rank_pos,\n            score=score,\n            vote_count=vote_count,\n            is_top_theme2=False,\n            confidence_avg=round(theme_confidence.get(tid, 0.0), 4),\n            participant_count=participant_count,\n            algorithm=algorithm,\n            is_final=True,\n            aggregated_at=now,\n        )\n        db.add(agg)\n        aggregated.append(agg)\n\n    await db.flush()\n\n    logger.info(\n        \"cube7.ranking.aggregated\",\n        extra={\n            \"session_id\": str(session_id),\n            \"cycle_id\": cycle_id,\n            \"participant_count\": participant_count,\n            \"theme_count\": len(sorted_themes),\n            \"algorithm\": algorithm,\n            \"replay_hash\": replay_hash,\n        },\n    )\n    # Attach replay_hash, weight audit, and category/level slice metadata\n    # to first result so the pipeline can surface them without a re-query.\n    if aggregated:\n        aggregated[0]._replay_hash = replay_hash\n        aggregated[0]._theme01_category = theme01_category\n        aggregated[0]._theme_level = theme_level\n        aggregated[0]._weight_audit = (\n            {pid: weights.get(pid, 0) for pid in all_participant_ids}\n            if participant_stakes\n            else None\n        )\n    return aggregated\n"
+      "source": "async def aggregate_rankings(\n    db: AsyncSession,\n    session_id: uuid.UUID,\n    cycle_id: int = 1,\n    seed: str | None = None,\n    participant_stakes: dict[str, float] | None = None,\n    excluded_participant_ids: set[str] | None = None,\n    theme01_category: str | None = None,\n    theme_level: str | None = None,\n) -> list[AggregatedRanking]:\n    \"\"\"CRS-12.01 + CRS-12.02 + CRS-12.04: Borda count with quadratic weights + anomaly exclusion.\n\n    Steps:\n      1. Fetch all user_rankings for session + cycle\n      1b. Exclude flagged participants (CRS-12.04 anti-sybil)\n      2. Compute quadratic weights (if stakes provided) or equal weights\n      3. Compute weighted Borda scores\n      4. Sort by score DESC, then deterministic tiebreak\n      5. Clear previous aggregated_rankings for this cycle\n      6. Write new aggregated_rankings (1 row per theme)\n    \"\"\"\n    excluded = excluded_participant_ids or set()\n    effective_seed = seed or str(session_id)\n\n    if not participant_stakes and _is_postgres(db):\n        # HP-05: equal weights on Postgres — tally in the database, stream the replay hash.\n        algorithm = \"borda_count\"\n        scores, vote_counts, participant_count, excluded_count, n_themes, replay_hash = await _sql_tally(\n            db, session_id, cycle_id, excluded,\n            _replay_prefix(effective_seed, algorithm, theme01_category, theme_level),\n        )\n        if not participant_count:\n            if excluded_count:\n                raise ValueError(\n                    f\"No valid rankings remaining after excluding {excluded_count} flagged participants\"\n                )\n            raise ValueError(f\"No rankings found for session {session_id} cycle {cycle_id}\")\n        if excluded_count:\n            logger.info(\n                \"cube7.ranking.excluded_anomalous\",\n                extra={\"session_id\": str(session_id), \"excluded_count\": excluded_count},\n            )\n        all_participant_ids: list[str] = []\n        weights: dict[str, float] = {}\n        return await _write_aggregation(\n            db, session_id, cycle_id, scores, vote_counts, participant_count, algorithm, effective_seed,\n            replay_hash, theme01_category, theme_level, participant_stakes, weights, all_participant_ids,\n        )\n\n    # 1. Fetch user rankings\n    result = await db.execute(\n        select(Ranking).where(\n            and_(\n                Ranking.session_id == session_id,\n                Ranking.cycle_id == cycle_id,\n            )\n        )\n    )\n    user_rankings = result.scalars().all()\n\n    if not user_rankings:\n        raise ValueError(\n            f\"No rankings found for session {session_id} cycle {cycle_id}\"\n        )\n\n    # 1b. Extract ranked_theme_ids + participant_ids, excluding flagged\n    all_rankings: list[list[str]] = []\n    all_participant_ids: list[str] = []\n    excluded_count = 0\n    for ur in user_rankings:\n        pid = str(ur.participant_id)\n        if pid in excluded:\n            excluded_count += 1\n            continue\n        ids = ur.ranked_theme_ids\n        if isinstance(ids, list):\n            all_rankings.append(ids)\n        elif isinstance(ids, dict) and \"ranked_theme_ids\" in ids:\n            all_rankings.append(ids[\"ranked_theme_ids\"])\n        all_participant_ids.append(pid)\n\n    if excluded_count:\n        logger.info(\n            \"cube7.ranking.excluded_anomalous\",\n            extra={\"session_id\": str(session_id), \"excluded_count\": excluded_count},\n        )\n\n    if not all_rankings:\n        raise ValueError(\n            f\"No valid rankings remaining after excluding {excluded_count} flagged participants\"\n        )\n\n    n_themes = len(all_rankings[0]) if all_rankings else 0\n    participant_count = len(all_rankings)\n\n    # 2. Compute weights\n    algorithm = \"borda_count\"\n    if participant_stakes:\n        weights = _quadratic_weights(participant_stakes)\n        scores = _weighted_borda_scores(\n            all_rankings, all_participant_ids, weights, n_themes\n        )\n        algorithm = \"quadratic_borda\"\n    else:\n        scores = _borda_scores(all_rankings, n_themes)\n\n    # 3. Compute replay hash (Step 5: category+level pinned into hash)\n    replay_hash = _compute_replay_hash(\n        all_rankings,\n        effective_seed,\n        algorithm,\n        theme01_category=theme01_category,\n        theme_level=theme_level,\n    )\n    # Vote counts in one pass (was one full scan of every ballot per theme).\n    vote_counts: dict[str, int] = {}\n    for r in all_rankings:\n        for tid in set(r):\n            vote_counts[tid] = vote_counts.get(tid, 0) + 1\n    return await _write_aggregation(\n        db, session_id, cycle_id, scores, vote_counts, participant_count, algorithm, effective_seed,\n        replay_hash, theme01_category, theme_level, participant_stakes,\n        weights if participant_stakes else {}, all_participant_ids,\n    )\n"
     },
     "submit_ranking": {
       "path": "app/cubes/cube7_ranking/router.py",
-      "source": "@router.post(\"/rankings\", response_model=RankingRead, status_code=201)\nasync def submit_ranking(\n    session_id: uuid.UUID,\n    payload: RankingSubmit,\n    db: AsyncSession = Depends(get_db),\n    user: CurrentUser = Depends(get_current_user),\n):\n    \"\"\"CRS-11: Participant submits ranked theme order after poll closes.\n\n    Validates theme IDs against session's theme2_voting_level.\n    Rejects duplicate submissions for same (session, cycle, participant).\n    \"\"\"\n    from app.models.participant import Participant\n    from app.models.session import Session\n    from sqlalchemy import select, and_\n\n    # Fetch session for voting level\n    sess_result = await db.execute(\n        select(Session).where(Session.id == session_id)\n    )\n    session = sess_result.scalar_one_or_none()\n    if not session:\n        raise HTTPException(status_code=404, detail=\"Session not found\")\n\n    if session.status not in (\"ranking\", \"polling\"):\n        raise HTTPException(\n            status_code=400,\n            detail=f\"Session is in '{session.status}' — ranking not open\",\n        )\n\n    # Resolve participant_id from user\n    part_result = await db.execute(\n        select(Participant).where(\n            and_(\n                Participant.session_id == session_id,\n                Participant.user_id == user.user_id,\n            )\n        )\n    )\n    participant = part_result.scalar_one_or_none()\n    if not participant:\n        raise HTTPException(status_code=403, detail=\"Not a participant in this session\")\n\n    try:\n        ranking = await service.submit_user_ranking(\n            db,\n            session_id=session_id,\n            participant_id=participant.id,\n            ranked_theme_ids=payload.ranked_theme_ids,\n            theme2_voting_level=getattr(session, \"theme2_voting_level\", \"theme2_3\"),\n            session_short_code=session.short_code,\n            theme01_category=getattr(session, \"theme01_category\", None),\n        )\n        await db.commit()\n        return ranking\n    except ValueError as e:\n        raise HTTPException(status_code=400, detail=str(e))\n"
+      "source": "@router.post(\"/rankings\", response_model=RankingRead, status_code=201)\nasync def submit_ranking(\n    session_id: uuid.UUID,\n    payload: RankingSubmit,\n    db: AsyncSession = Depends(get_db),\n    user: CurrentUser = Depends(get_current_user),\n):\n    \"\"\"CRS-11: Participant submits ranked theme order after poll closes.\n\n    Validates theme IDs against session's theme2_voting_level.\n    Rejects duplicate submissions for same (session, cycle, participant).\n    \"\"\"\n    from app.models.participant import Participant\n    from app.models.session import Session\n    from sqlalchemy import select, and_\n\n    # Fetch session for voting level\n    sess_result = await db.execute(\n        select(Session).where(Session.id == session_id)\n    )\n    session = sess_result.scalar_one_or_none()\n    if not session:\n        raise HTTPException(status_code=404, detail=\"Session not found\")\n\n    if session.status not in (\"ranking\", \"polling\"):\n        raise HTTPException(\n            status_code=400,\n            detail=f\"Session is in '{session.status}' — ranking not open\",\n        )\n\n    # Resolve participant_id from user\n    part_result = await db.execute(\n        select(Participant).where(\n            and_(\n                Participant.session_id == session_id,\n                Participant.user_id == user.user_id,\n            )\n        )\n    )\n    participant = part_result.scalar_one_or_none()\n    if not participant:\n        raise HTTPException(status_code=403, detail=\"Not a participant in this session\")\n\n    try:\n        ranking = await service.submit_user_ranking(\n            db,\n            session_id=session_id,\n            participant_id=participant.id,\n            ranked_theme_ids=payload.ranked_theme_ids,\n            # LIVING VOTE: bind to the session's current cycle (not a hardcoded 1) and allow a\n            # participant to adjust their ballot while the cycle is open (status gate above).\n            cycle_id=getattr(session, \"current_cycle\", 1) or 1,\n            theme2_voting_level=getattr(session, \"theme2_voting_level\", \"theme2_3\"),\n            session_short_code=session.short_code,\n            theme01_category=getattr(session, \"theme01_category\", None),\n            allow_revote=True,\n        )\n        await db.commit()\n        return ranking\n    except ValueError as e:\n        raise HTTPException(status_code=400, detail=str(e))\n"
     },
     "detect_voting_anomalies": {
       "path": "app/cubes/cube7_ranking/ranking_governance.py",
-      "source": "async def detect_voting_anomalies(\n    db: AsyncSession,\n    session_id: uuid.UUID,\n    cycle_id: int = 1,\n) -> list[dict]:\n    \"\"\"Flag coordinated / suspicious voting patterns.\n\n    Checks:\n      1. Identical ranked_theme_ids from >=3 participants within 2s window\n      2. Rapid-fire submissions (>10 per participant per minute)\n    \"\"\"\n    result = await db.execute(\n        select(Ranking)\n        .where(\n            and_(\n                Ranking.session_id == session_id,\n                Ranking.cycle_id == cycle_id,\n            )\n        )\n        .order_by(Ranking.submitted_at)\n    )\n    rankings = list(result.scalars().all())\n\n    anomalies: list[dict] = []\n\n    # Check 1: Identical rankings within time window\n    ranking_groups: dict[str, list[Ranking]] = {}\n    for r in rankings:\n        key = str(r.ranked_theme_ids)\n        ranking_groups.setdefault(key, []).append(r)\n\n    for key, group in ranking_groups.items():\n        if len(group) < _ANOMALY_MIN_DUPLICATES:\n            continue\n        timestamps = sorted(r.submitted_at for r in group)\n        for i in range(len(timestamps) - _ANOMALY_MIN_DUPLICATES + 1):\n            window_start = timestamps[i]\n            window_end = timestamps[i + _ANOMALY_MIN_DUPLICATES - 1]\n            delta = (window_end - window_start).total_seconds()\n            if delta <= _ANOMALY_WINDOW_SEC:\n                anomalies.append({\n                    \"type\": \"identical_ranking_burst\",\n                    \"ranking_key\": key,\n                    \"count\": _ANOMALY_MIN_DUPLICATES,\n                    \"window_seconds\": delta,\n                    \"participant_ids\": [\n                        str(group[j].participant_id)\n                        for j in range(i, i + _ANOMALY_MIN_DUPLICATES)\n                    ],\n                })\n                break\n\n    # Check 2: Rapid submissions per participant\n    from collections import defaultdict\n    participant_times: dict[str, list[datetime]] = defaultdict(list)\n    for r in rankings:\n        participant_times[str(r.participant_id)].append(r.submitted_at)\n\n    for pid, times in participant_times.items():\n        if len(times) > _MAX_SUBMISSIONS_PER_MINUTE:\n            sorted_times = sorted(times)\n            for i in range(len(sorted_times) - _MAX_SUBMISSIONS_PER_MINUTE):\n                window = (\n                    sorted_times[i + _MAX_SUBMISSIONS_PER_MINUTE] - sorted_times[i]\n                ).total_seconds()\n                if window <= 60.0:\n                    anomalies.append({\n                        \"type\": \"rapid_submissions\",\n                        \"participant_id\": pid,\n                        \"count\": _MAX_SUBMISSIONS_PER_MINUTE + 1,\n                        \"window_seconds\": window,\n                    })\n                    break\n\n    if anomalies:\n        logger.warning(\n            \"cube7.anomaly.detected\",\n            extra={\"session_id\": str(session_id), \"anomaly_count\": len(anomalies)},\n        )\n\n    return anomalies\n"
+      "source": "async def detect_voting_anomalies(\n    db: AsyncSession,\n    session_id: uuid.UUID,\n    cycle_id: int = 1,\n) -> list[dict]:\n    \"\"\"Flag coordinated / suspicious voting patterns.\n\n    Checks:\n      1. Identical ranked_theme_ids from >=3 participants within 2s window\n      2. Rapid-fire submissions (>10 per participant per minute)\n    \"\"\"\n    result = await db.execute(\n        select(Ranking)\n        .where(\n            and_(\n                Ranking.session_id == session_id,\n                Ranking.cycle_id == cycle_id,\n            )\n        )\n        .order_by(Ranking.submitted_at)\n    )\n    rankings = list(result.scalars().all())\n\n    anomalies: list[dict] = []\n\n    # Check 1: an identical-ordering BURST that dominates its window.\n    #\n    # At live scale (≈1,667 votes/s) three honest voters sharing a popular order inside 2 s is\n    # normal — the old \"≥3 identical within 2 s\" rule excluded 2,931 honest voters at 1M ballots,\n    # while a 100k-ballot swarm lost only 3 votes (it stopped after the first window). A burst is\n    # now flagged only when identical ballots are at least BURST_SHARE of ALL ballots cast in that\n    # window, and the whole burst is flagged, not its first three.\n    import bisect\n\n    all_times = [r.submitted_at for r in rankings]  # ordered by submitted_at (query above)\n    ranking_groups: dict[str, list[Ranking]] = {}\n    for r in rankings:\n        ranking_groups.setdefault(str(r.ranked_theme_ids), []).append(r)\n\n    for key, group in ranking_groups.items():\n        if len(group) < _ANOMALY_MIN_DUPLICATES:\n            continue\n        group.sort(key=lambda r: r.submitted_at)\n        i = 0\n        while i <= len(group) - _ANOMALY_MIN_DUPLICATES:\n            j = i\n            while j + 1 < len(group) and (group[j + 1].submitted_at - group[i].submitted_at).total_seconds() <= _ANOMALY_WINDOW_SEC:\n                j += 1\n            run = j - i + 1\n            if run >= _ANOMALY_MIN_DUPLICATES:\n                # Both counts over the SAME full window [t0, t0 + WINDOW]: measuring the run's own\n                # span (often a millisecond) made any three near-simultaneous voters \"dominate\".\n                from datetime import timedelta as _td\n\n                t0, t1 = group[i].submitted_at, group[j].submitted_at\n                total = bisect.bisect_right(all_times, t0 + _td(seconds=_ANOMALY_WINDOW_SEC)) - bisect.bisect_left(all_times, t0)\n                if run / max(total, 1) >= BURST_SHARE:\n                    anomalies.append({\n                        \"type\": \"identical_ranking_burst\",\n                        \"ranking_key\": key,\n                        \"count\": run,\n                        \"window_seconds\": (t1 - t0).total_seconds(),\n                        \"share_of_window\": round(run / max(total, 1), 4),\n                        \"participant_ids\": [str(group[k].participant_id) for k in range(i, j + 1)],\n                    })\n                    i = j + 1\n                    continue\n            i += 1\n\n    # Check 2: Rapid submissions per participant\n    from collections import defaultdict\n    participant_times: dict[str, list[datetime]] = defaultdict(list)\n    for r in rankings:\n        participant_times[str(r.participant_id)].append(r.submitted_at)\n\n    for pid, times in participant_times.items():\n        if len(times) > _MAX_SUBMISSIONS_PER_MINUTE:\n            sorted_times = sorted(times)\n            for i in range(len(sorted_times) - _MAX_SUBMISSIONS_PER_MINUTE):\n                window = (\n                    sorted_times[i + _MAX_SUBMISSIONS_PER_MINUTE] - sorted_times[i]\n                ).total_seconds()\n                if window <= 60.0:\n                    anomalies.append({\n                        \"type\": \"rapid_submissions\",\n                        \"participant_id\": pid,\n                        \"count\": _MAX_SUBMISSIONS_PER_MINUTE + 1,\n                        \"window_seconds\": window,\n                    })\n                    break\n\n    if anomalies:\n        logger.warning(\n            \"cube7.anomaly.detected\",\n            extra={\"session_id\": str(session_id), \"anomaly_count\": len(anomalies)},\n        )\n\n    return anomalies\n"
     },
     "_apply_influence_cap": {
       "path": "app/cubes/cube7_ranking/ranking_aggregation.py",
@@ -221,13 +221,13 @@ export const SIM_LIVE_SOURCE: Record<string, Record<string, LiveFn>> =
     },
     "_compute_replay_hash": {
       "path": "app/cubes/cube7_ranking/ranking_aggregation.py",
-      "source": "def _compute_replay_hash(\n    rankings: list[list[str]],\n    seed: str,\n    algorithm: str = \"borda_count\",\n    theme01_category: str | None = None,\n    theme_level: str | None = None,\n) -> str:\n    \"\"\"SHA-256 replay hash over inputs + parameters for determinism verification.\n\n    Step 5 (2026-07-03): `theme01_category` + `theme_level` are folded into\n    the hash so replays are pinned to the (category, level) slice they were\n    run against. Backwards-compatible — omitting both keeps the pre-Step-5\n    hash format.\n    \"\"\"\n    parts = [algorithm, seed]\n    if theme01_category or theme_level:\n        parts.append(f\"cat={theme01_category or ''}\")\n        parts.append(f\"lvl={theme_level or ''}\")\n    payload = \":\".join(parts) + \":\" + \"|\".join(\n        \",\".join(r) for r in sorted(rankings)\n    )\n    return hashlib.sha256(payload.encode()).hexdigest()\n"
+      "source": "def _compute_replay_hash(\n    rankings: list[list[str]],\n    seed: str,\n    algorithm: str = \"borda_count\",\n    theme01_category: str | None = None,\n    theme_level: str | None = None,\n) -> str:\n    \"\"\"SHA-256 replay hash over inputs + parameters for determinism verification.\n\n    Step 5 (2026-07-03): `theme01_category` + `theme_level` are folded into\n    the hash so replays are pinned to the (category, level) slice they were\n    run against. Backwards-compatible — omitting both keeps the pre-Step-5\n    hash format.\n    \"\"\"\n    payload = _replay_prefix(seed, algorithm, theme01_category, theme_level) + \"|\".join(\n        \",\".join(r) for r in sorted(rankings)\n    )\n    return hashlib.sha256(payload.encode()).hexdigest()\n"
     }
   },
   "8": {
     "hours_to_hi_tokens": {
       "path": "app/cubes/cube8_tokens/service.py",
-      "source": "def hours_to_hi_tokens(hours: float) -> float:\n    \"\"\"웃 (HI) is denominated in TIME, not in any currency.\n\n    Formula: 웃 = hours x 7.25\n    Examples:\n      1 hour of work    -> 7.25 웃\n      40 hours (Lagos)  -> 290.00 웃\n      40 hours (Austin) -> 290.00 웃   # identical work, identical 웃\n\n    BASELINE: 7.25 is seeded from a real minimum-wage floor (Texas / US\n    federal), but it is NOT a dollar peg. The unit is the hour, so the rate\n    is globally obtainable and no local currency discounts anyone's time.\n\n    A currency donation is a separate on-ramp (see donate-core.js); it funds\n    the platform, it does not define what an hour of human work is worth.\n    \"\"\"\n    if hours <= 0:\n        return 0.0\n    return round(hours * HI_RATE_PER_HOUR, 3)\n"
+      "source": "def hours_to_hi_tokens(hours: float) -> float:\n    \"\"\"웃 (HI) is denominated in TIME, not in any currency.\n\n    Formula: 웃 = hours × HI_PER_HOUR   (9,999 ÷ 2,080 = 4.807…)\n    Examples:\n      1 hour of work      ->     4.807 웃\n      40 hours (Lagos)    ->   192.288 웃\n      40 hours (Austin)   ->   192.288 웃   # identical work, identical 웃\n      2,080 h (one year)  -> 9,999.000 웃   # the ceiling, exactly, for everyone\n\n    The local minimum wage is not absent — it is deferred. It is stamped on the\n    ledger entry at mint and applied at SETTLEMENT (see settle_hi_to_currency),\n    which is the only place a currency belongs.\n\n    A currency donation is a separate on-ramp (see record_contribution_receipt);\n    it funds the platform, it does not define what an hour of human work is\n    worth.\n    \"\"\"\n    return hours_to_hi(hours)\n"
     },
     "resolve_human_rate": {
       "path": "app/core/hi_rates.py",
@@ -261,7 +261,7 @@ export const SIM_LIVE_SOURCE: Record<string, Record<string, LiveFn>> =
     },
     "export_csv": {
       "path": "app/cubes/cube9_reports/router.py",
-      "source": "@router.get(\"/export/csv\")\nasync def export_csv(\n    session_id: uuid.UUID,\n    summary_tier: str = Query(\"33\", description=\"Summary word-count tier: '33', '111', or '333'\"),\n    db: AsyncSession = Depends(get_db),\n    user: CurrentUser = Depends(get_current_user),\n):\n    \"\"\"CRS-14: Export session results to 16-column CSV download.\n\n    Auth gating:\n      Moderator/Admin/Lead: always allowed\n      Participant: allowed if payment_status in ('paid', 'lead_exempt')\n                   or session pricing_tier is 'free' or 'moderator_paid'\n    \"\"\"\n    # WireGuard: whitelist summary_tier\n    if summary_tier not in VALID_SUMMARY_TIERS:\n        raise HTTPException(\n            status_code=400,\n            detail=f\"Invalid summary_tier '{summary_tier}'. Must be one of: {sorted(VALID_SUMMARY_TIERS)}\",\n        )\n    result = await db.execute(select(Session).where(Session.id == session_id))\n    session = result.scalar_one_or_none()\n    if not session:\n        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=\"Session not found\")\n\n    if user.role in (\"moderator\", \"admin\", \"lead_developer\"):\n        if user.role == \"moderator\" and session.created_by != user.user_id:\n            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=\"Not your session\")\n    else:\n        # CRS-05 results gate (operator rule): a participant receives results ONLY if they\n        # joined LOGGED IN (get_current_user requires a JWT, so a matched user_id proves a\n        # non-anonymous join — anonymous joins carry no token and never reach here) AND\n        # opted into results at join. Remain-anonymous / opt-out → no personal results.\n        p_result = await db.execute(\n            select(Participant).where(\n                Participant.session_id == session_id,\n                Participant.user_id == user.user_id,\n            )\n        )\n        participant = p_result.scalar_one_or_none()\n        if not participant or not participant.results_opt_in:\n            raise HTTPException(\n                status_code=status.HTTP_403_FORBIDDEN,\n                detail=\"Results require joining this session logged in and opting into results\",\n            )\n        # Cost-split additionally requires payment before results are delivered.\n        if session.pricing_tier == \"cost_split\" and participant.payment_status not in (\"paid\", \"lead_exempt\"):\n            raise HTTPException(\n                status_code=status.HTTP_402_PAYMENT_REQUIRED,\n                detail=\"Payment required to access results\",\n            )\n\n    # Resolve export content tier based on user's donations\n    content_tier = await service.resolve_export_tier(\n        db, session_id, user.user_id, user.role\n    )\n\n    # Auto-select: streaming for large sessions (>10K responses), pandas for small\n    from sqlalchemy import func\n    from app.models.response_meta import ResponseMeta as RM\n    count_result = await db.execute(\n        select(func.count()).select_from(RM).where(RM.session_id == session_id)\n    )\n    response_count = count_result.scalar() or 0\n\n    filename = f\"{session_id}_themes.csv\"\n    headers = {\n        \"Content-Disposition\": f'attachment; filename=\"{filename}\"',\n        \"X-Download-Filename\": filename,\n        \"X-Content-Tier\": content_tier,\n    }\n\n    # Fire the export_ready WEBHOOK to any registered subscriptions (API productization) —\n    # the last of the 5 declared events without an emit site. Fire-and-forget so a webhook\n    # can never break the download; safe_deliver_webhook early-returns when none exist.\n    try:\n        from app.cubes.cube5_gateway.webhook_service import safe_deliver_webhook\n\n        await safe_deliver_webhook(\n            db, session_id, \"export_ready\",\n            {\n                \"session_id\": str(session_id),\n                \"short_code\": session.short_code,\n                \"content_tier\": content_tier,\n                \"summary_tier\": summary_tier,\n                \"response_count\": response_count,\n                \"filename\": filename,\n                \"format\": \"csv\",\n            },\n        )\n    except Exception:\n        pass  # never let a webhook affect the export response\n\n    if response_count > 10_000:\n        # Scale mode: streaming CSV (no full-memory DataFrame)\n        return StreamingResponse(\n            service.export_session_csv_streaming(db, session_id, content_tier),\n            media_type=\"text/csv\",\n            headers=headers,\n        )\n    else:\n        # Standard mode: pandas DataFrame (fast for small sessions)\n        buf = await service.export_session_csv(db, session_id, content_tier)\n        return StreamingResponse(buf, media_type=\"text/csv\", headers=headers)\n"
+      "source": "@router.get(\"/export/csv\")\nasync def export_csv(\n    session_id: uuid.UUID,\n    summary_tier: str = Query(\"33\", description=\"Summary word-count tier: '33', '111', or '333'\"),\n    db: AsyncSession = Depends(get_db),\n    user: CurrentUser = Depends(get_current_user),\n):\n    \"\"\"CRS-14: Export session results to 16-column CSV download.\n\n    Auth gating:\n      Moderator/Admin/Lead: always allowed\n      Participant: allowed if payment_status in ('paid', 'lead_exempt')\n                   or session pricing_tier is 'free' or 'moderator_paid'\n    \"\"\"\n    # WireGuard: whitelist summary_tier\n    if summary_tier not in VALID_SUMMARY_TIERS:\n        raise HTTPException(\n            status_code=400,\n            detail=f\"Invalid summary_tier '{summary_tier}'. Must be one of: {sorted(VALID_SUMMARY_TIERS)}\",\n        )\n    result = await db.execute(select(Session).where(Session.id == session_id))\n    session = result.scalar_one_or_none()\n    if not session:\n        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=\"Session not found\")\n\n    if user.role in (\"moderator\", \"admin\", \"lead_developer\"):\n        if user.role == \"moderator\" and session.created_by != user.user_id:\n            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=\"Not your session\")\n    else:\n        # CRS-05 results gate (operator rule): a participant receives results ONLY if they\n        # joined LOGGED IN (get_current_user requires a JWT, so a matched user_id proves a\n        # non-anonymous join — anonymous joins carry no token and never reach here) AND\n        # opted into results at join. Remain-anonymous / opt-out → no personal results.\n        p_result = await db.execute(\n            select(Participant).where(\n                Participant.session_id == session_id,\n                Participant.user_id == user.user_id,\n            )\n        )\n        participant = p_result.scalar_one_or_none()\n        if not participant or not participant.results_opt_in:\n            raise HTTPException(\n                status_code=status.HTTP_403_FORBIDDEN,\n                detail=\"Results require joining this session logged in and opting into results\",\n            )\n        # Cost-split additionally requires payment before results are delivered.\n        if session.pricing_tier == \"cost_split\" and participant.payment_status not in (\"paid\", \"lead_exempt\"):\n            raise HTTPException(\n                status_code=status.HTTP_402_PAYMENT_REQUIRED,\n                detail=\"Payment required to access results\",\n            )\n\n    # Resolve export content tier based on user's donations\n    content_tier = await service.resolve_export_tier(\n        db, session_id, user.user_id, user.role\n    )\n\n    # Auto-select: streaming for large sessions (>10K responses), pandas for small\n    from sqlalchemy import func\n    from app.models.response_meta import ResponseMeta as RM\n    count_result = await db.execute(\n        select(func.count()).select_from(RM).where(RM.session_id == session_id)\n    )\n    response_count = count_result.scalar() or 0\n\n    filename = f\"{session_id}_themes.csv\"\n    headers = {\n        \"Content-Disposition\": f'attachment; filename=\"{filename}\"',\n        \"X-Download-Filename\": filename,\n        \"X-Content-Tier\": content_tier,\n    }\n\n    # Fire the export_ready WEBHOOK to any registered subscriptions (API productization) —\n    # the last of the 5 declared events without an emit site. Fire-and-forget so a webhook\n    # can never break the download; safe_deliver_webhook early-returns when none exist.\n    try:\n        from app.cubes.cube5_gateway.webhook_service import safe_deliver_webhook\n\n        await safe_deliver_webhook(\n            db, session_id, \"export_ready\",\n            {\n                \"session_id\": str(session_id),\n                \"short_code\": session.short_code,\n                \"content_tier\": content_tier,\n                \"summary_tier\": summary_tier,\n                \"response_count\": response_count,\n                \"filename\": filename,\n                \"format\": \"csv\",\n            },\n        )\n    except Exception:\n        pass  # never let a webhook affect the export response\n\n    # Meter the export into the per-org usage stream (v1 org = the exporting principal).\n    # Best-effort — a metering failure must never break the download.\n    try:\n        from app.core.usage_service import record_usage\n\n        await record_usage(\n            db, org_id=user.user_id or \"anonymous\", metric=\"export\",\n            session_id=session_id, scope_ref=session.scope_ref,\n        )\n        await db.commit()\n    except Exception:\n        pass\n\n    if response_count > 10_000:\n        # Scale mode: streaming CSV (no full-memory DataFrame)\n        return StreamingResponse(\n            service.export_session_csv_streaming(db, session_id, content_tier),\n            media_type=\"text/csv\",\n            headers=headers,\n        )\n    else:\n        # Standard mode: pandas DataFrame (fast for small sessions)\n        buf = await service.export_session_csv(db, session_id, content_tier)\n        return StreamingResponse(buf, media_type=\"text/csv\", headers=headers)\n"
     },
     "compute_export_hash": {
       "path": "app/cubes/cube9_reports/service.py",
@@ -269,7 +269,7 @@ export const SIM_LIVE_SOURCE: Record<string, Record<string, LiveFn>> =
     },
     "verify_export_hash": {
       "path": "app/cubes/cube9_reports/router.py",
-      "source": "@router.get(\"/export/verify\")\nasync def verify_export_hash(\n    session_id: uuid.UUID,\n    content_tier: str = \"full\",\n    db: AsyncSession = Depends(get_db),\n    user: CurrentUser = Depends(require_role(\"moderator\", \"admin\")),\n):\n    \"\"\"Cube 9 replay verification — reproducible SHA-256 governance hash of the export.\n\n    Activates the governance `compute_export_hash` as Cube 9's own replay anchor (R-Core\n    parity with cube1 verify-determinism / cube7 verify_replay): re-exports the stably-\n    ordered CSV and recomputes the hash so a consumer can confirm the export is unchanged.\n    \"\"\"\n    return await service.verify_export(db, session_id, content_tier)\n"
+      "source": "@router.get(\"/export/verify\")\nasync def verify_export_hash(\n    session_id: uuid.UUID,\n    content_tier: str = \"full\",\n    db: AsyncSession = Depends(get_db),\n    user: CurrentUser = Depends(require_session_owner(\"moderator\", \"admin\", leads_read=True)),\n):\n    \"\"\"Cube 9 replay verification — reproducible SHA-256 governance hash of the export.\n\n    Activates the governance `compute_export_hash` as Cube 9's own replay anchor (R-Core\n    parity with cube1 verify-determinism / cube7 verify_replay): re-exports the stably-\n    ordered CSV and recomputes the hash so a consumer can confirm the export is unchanged.\n    \"\"\"\n    return await service.verify_export(db, session_id, content_tier)\n"
     },
     "_apply_tier_filter": {
       "path": "app/cubes/cube9_reports/service.py",
@@ -286,6 +286,461 @@ export const SIM_LIVE_SOURCE: Record<string, Record<string, LiveFn>> =
     "announce_reward_winner": {
       "path": "app/cubes/cube9_reports/service.py",
       "source": "async def announce_reward_winner(\n    db: AsyncSession,\n    session_id: uuid.UUID,\n    session_short_code: str | None = None,\n) -> dict:\n    \"\"\"CRS-14.01: Announce CQS reward winner.\n\n    Winner gets private notification with full CQS breakdown.\n    All other participants get generic \"a participant won\" message.\n    \"\"\"\n    try:\n        from app.models.cqs_score import CQSScore\n\n        result = await db.execute(\n            select(CQSScore).where(\n                and_(\n                    CQSScore.session_id == session_id,\n                    CQSScore.is_winner.is_(True),\n                )\n            )\n        )\n        winner = result.scalar_one_or_none()\n\n        if not winner:\n            return {\n                \"session_id\": str(session_id),\n                \"has_winner\": False,\n                \"message\": \"No CQS winner determined for this session\",\n            }\n\n        winner_data = {\n            \"participant_id\": str(winner.participant_id),\n            \"composite_cqs\": winner.composite_cqs,\n            \"theme2_cluster_label\": winner.theme2_cluster_label,\n        }\n\n        # Broadcast generic announcement (no CQS details)\n        if session_short_code:\n            try:\n                from app.core.supabase_broadcast import broadcast_event\n\n                await broadcast_event(\n                    channel=f\"session:{session_short_code}\",\n                    event=\"reward_announced\",\n                    payload={\n                        \"session_id\": str(session_id),\n                        \"has_winner\": True,\n                        # No participant_id or CQS details in public broadcast\n                    },\n                )\n            except Exception:\n                pass\n\n        return {\n            \"session_id\": str(session_id),\n            \"has_winner\": True,\n            \"winner\": winner_data,  # Only returned to Moderator/Admin via auth gate\n        }\n\n    except Exception as e:\n        logger.warning(\"cube9.reward_announcement.error\", extra={\"error\": str(e)})\n        return {\n            \"session_id\": str(session_id),\n            \"has_winner\": False,\n            \"error\": str(e),\n        }\n"
+    }
+  }
+};
+
+// LIVE Input · Output per cube (router.sim_cube_contract) + per-function registry io
+export type LiveIO = { inputs: string[]; outputs: string[]; fn_io: Record<string, { inputs: string[]; outputs: string[] }> };
+export const SIM_LIVE_IO: Record<string, LiveIO> =
+{
+  "1": {
+    "inputs": [
+      "seed",
+      "title",
+      "created_by",
+      "ai_provider",
+      "anonymity_mode"
+    ],
+    "outputs": [
+      "session_id (UUID5, deterministic)",
+      "short_code (8-char, random)",
+      "join_url",
+      "qr_png (PNG bytes)",
+      "replay_hash (SHA-256)",
+      "transition_matrix (6×6 state machine)"
+    ],
+    "fn_io": {
+      "create_session": {
+        "inputs": [
+          "SessionCreate"
+        ],
+        "outputs": [
+          "SessionRead",
+          "session.created"
+        ]
+      },
+      "_generate_unique_short_code": {
+        "inputs": [],
+        "outputs": []
+      },
+      "generate_qr_png": {
+        "inputs": [],
+        "outputs": []
+      },
+      "join_session": {
+        "inputs": [
+          "JoinRequest"
+        ],
+        "outputs": [
+          "ParticipantRead",
+          "session.participant_joined"
+        ]
+      },
+      "_compute_replay_hash": {
+        "inputs": [],
+        "outputs": []
+      },
+      "transition_session": {
+        "inputs": [],
+        "outputs": [
+          "session.status_changed"
+        ]
+      }
+    }
+  },
+  "2": {
+    "inputs": [
+      "ResponseCreate",
+      "TextValidateRequest",
+      "session_id"
+    ],
+    "outputs": [
+      "ResponseRead",
+      "input.response_submitted",
+      "pii_responses",
+      "rows",
+      "total"
+    ],
+    "fn_io": {
+      "validate_text_input": {
+        "inputs": [],
+        "outputs": []
+      },
+      "validate_and_fit_text_input": {
+        "inputs": [],
+        "outputs": []
+      },
+      "detect_pii": {
+        "inputs": [],
+        "outputs": []
+      },
+      "detect_language": {
+        "inputs": [],
+        "outputs": []
+      },
+      "scrub_pii": {
+        "inputs": [],
+        "outputs": []
+      },
+      "anonymize_response": {
+        "inputs": [],
+        "outputs": []
+      },
+      "compute_response_hash": {
+        "inputs": [],
+        "outputs": []
+      },
+      "store_response": {
+        "inputs": [],
+        "outputs": []
+      }
+    }
+  },
+  "3": {
+    "inputs": [
+      "VoiceSubmitRequest",
+      "session_id"
+    ],
+    "outputs": [
+      "ResponseRead",
+      "included",
+      "input.response_submitted",
+      "pii_responses",
+      "profanity_responses",
+      "rejected_low_confidence",
+      "rows",
+      "scrubbed",
+      "truncated_overlength",
+      "unique_hashes"
+    ],
+    "fn_io": {
+      "submit_voice_response": {
+        "inputs": [],
+        "outputs": []
+      },
+      "store_voice_response": {
+        "inputs": [],
+        "outputs": []
+      },
+      "transcribe_audio": {
+        "inputs": [],
+        "outputs": []
+      },
+      "handle_realtime_transcription": {
+        "inputs": [],
+        "outputs": []
+      },
+      "select_stt_provider": {
+        "inputs": [],
+        "outputs": []
+      },
+      "get_stt_provider_safe": {
+        "inputs": [],
+        "outputs": []
+      },
+      "run_text_pipeline": {
+        "inputs": [],
+        "outputs": []
+      }
+    }
+  },
+  "4": {
+    "inputs": [
+      "session_id"
+    ],
+    "outputs": [
+      "CollectedResponseList",
+      "alternative_scenarios",
+      "confidence",
+      "evidence_quality",
+      "explanation",
+      "human_authority_status",
+      "inputs",
+      "recommended_actions",
+      "replay_hash",
+      "risk",
+      "source_crs",
+      "ssses_observations",
+      "version"
+    ],
+    "fn_io": {
+      "get_collected_responses": {
+        "inputs": [],
+        "outputs": []
+      },
+      "get_response_count": {
+        "inputs": [],
+        "outputs": []
+      },
+      "get_session_presence": {
+        "inputs": [],
+        "outputs": []
+      },
+      "update_presence": {
+        "inputs": [],
+        "outputs": []
+      },
+      "create_desired_outcome": {
+        "inputs": [],
+        "outputs": []
+      },
+      "record_confirmation": {
+        "inputs": [],
+        "outputs": []
+      },
+      "analyze_session": {
+        "inputs": [],
+        "outputs": []
+      },
+      "synthesize_analysis": {
+        "inputs": [],
+        "outputs": []
+      }
+    }
+  },
+  "5": {
+    "inputs": [
+      "session_id"
+    ],
+    "outputs": [
+      "active_min",
+      "chart",
+      "cost_usd",
+      "mot_window_days",
+      "pipeline.started",
+      "profit",
+      "series",
+      "tokens"
+    ],
+    "fn_io": {
+      "calculate_tokens": {
+        "inputs": [],
+        "outputs": []
+      },
+      "start_time_tracking": {
+        "inputs": [],
+        "outputs": []
+      },
+      "trigger_ai_pipeline": {
+        "inputs": [],
+        "outputs": []
+      },
+      "orchestrate_post_polling": {
+        "inputs": [],
+        "outputs": []
+      },
+      "mot_cost_control_chart": {
+        "inputs": [],
+        "outputs": []
+      },
+      "dollars_per_min": {
+        "inputs": [],
+        "outputs": []
+      },
+      "session_profit": {
+        "inputs": [],
+        "outputs": []
+      }
+    }
+  },
+  "6": {
+    "inputs": [
+      "session_id"
+    ],
+    "outputs": [
+      "ThemeList",
+      "ai.themes_ready",
+      "assigned",
+      "assignments",
+      "provider",
+      "seed",
+      "theme01_counts",
+      "theme02",
+      "total_responses"
+    ],
+    "fn_io": {
+      "run_pipeline": {
+        "inputs": [],
+        "outputs": []
+      },
+      "run_ai_theming": {
+        "inputs": [],
+        "outputs": []
+      },
+      "sample_response_summaries": {
+        "inputs": [],
+        "outputs": []
+      },
+      "select_centroid_representatives": {
+        "inputs": [],
+        "outputs": []
+      },
+      "generate_summary_tiers": {
+        "inputs": [],
+        "outputs": []
+      },
+      "truncate_to_words": {
+        "inputs": [],
+        "outputs": []
+      },
+      "_assign_themes_llm": {
+        "inputs": [],
+        "outputs": []
+      }
+    }
+  },
+  "7": {
+    "inputs": [
+      "GovernanceOverrideSubmit",
+      "RankingSubmit",
+      "session_id"
+    ],
+    "outputs": [
+      "AggregatedRankingList",
+      "RankingRead",
+      "hashes_differ",
+      "n_themes",
+      "orders_differ",
+      "participants",
+      "quadratic",
+      "ranking.complete",
+      "ranking.override_applied",
+      "ranking.submitted",
+      "unweighted"
+    ],
+    "fn_io": {
+      "aggregate_rankings": {
+        "inputs": [],
+        "outputs": [
+          "ranking.complete"
+        ]
+      },
+      "submit_ranking": {
+        "inputs": [
+          "RankingSubmit"
+        ],
+        "outputs": [
+          "RankingRead",
+          "ranking.submitted"
+        ]
+      },
+      "detect_voting_anomalies": {
+        "inputs": [],
+        "outputs": []
+      },
+      "_apply_influence_cap": {
+        "inputs": [],
+        "outputs": []
+      },
+      "_weighted_borda_scores": {
+        "inputs": [],
+        "outputs": []
+      },
+      "_borda_scores": {
+        "inputs": [],
+        "outputs": []
+      },
+      "_seeded_tiebreak_key": {
+        "inputs": [],
+        "outputs": []
+      },
+      "_compute_replay_hash": {
+        "inputs": [],
+        "outputs": []
+      }
+    }
+  },
+  "8": {
+    "inputs": [
+      "TokenDisputeCreate",
+      "session_id"
+    ],
+    "outputs": [
+      "TokenBalance",
+      "fee_hi_tokens",
+      "fee_usd",
+      "hourly_rate",
+      "lifecycle_path",
+      "lifecycle_terminal",
+      "time_hi_tokens",
+      "time_hours",
+      "tokens"
+    ],
+    "fn_io": {
+      "hours_to_hi_tokens": {
+        "inputs": [],
+        "outputs": []
+      },
+      "resolve_human_rate": {
+        "inputs": [],
+        "outputs": []
+      },
+      "create_ledger_entry": {
+        "inputs": [],
+        "outputs": []
+      },
+      "dispatch_token_award": {
+        "inputs": [],
+        "outputs": []
+      },
+      "transition_lifecycle_state": {
+        "inputs": [],
+        "outputs": []
+      },
+      "reverse_entry": {
+        "inputs": [],
+        "outputs": []
+      },
+      "create_token_dispute": {
+        "inputs": [],
+        "outputs": []
+      }
+    }
+  },
+  "9": {
+    "inputs": [
+      "session_id"
+    ],
+    "outputs": [
+      "columns",
+      "export_hash",
+      "rows",
+      "schema_ordered"
+    ],
+    "fn_io": {
+      "export_session_csv": {
+        "inputs": [],
+        "outputs": []
+      },
+      "export_csv": {
+        "inputs": [],
+        "outputs": []
+      },
+      "compute_export_hash": {
+        "inputs": [],
+        "outputs": []
+      },
+      "verify_export_hash": {
+        "inputs": [],
+        "outputs": []
+      },
+      "_apply_tier_filter": {
+        "inputs": [],
+        "outputs": []
+      },
+      "_tier_at_least": {
+        "inputs": [],
+        "outputs": []
+      },
+      "distribute_results": {
+        "inputs": [],
+        "outputs": []
+      },
+      "announce_reward_winner": {
+        "inputs": [],
+        "outputs": []
+      }
     }
   }
 };

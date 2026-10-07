@@ -71,11 +71,14 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   progress(0.08, "Generating responses");
   const responses = generateSimResponses(question, count, seed);
   const CHUNK = 25;
+  // Count what the backend ACCEPTED, not what was sent — a LIVE run whose submissions are refused (422/409)
+  // used to report "Responses 200" over an empty result. The panel never claims more than happened.
+  let accepted = 0;
   for (let i = 0; i < responses.length; i += CHUNK) {
     const batch = responses.slice(i, i + CHUNK);
     await Promise.all(
       batch.map((r) =>
-        api.submitTextResponse(sessionId, questionId || r.id, r.participant_id, r.raw_text, r.language_code).catch(() => null),
+        api.submitTextResponse(sessionId, questionId || r.id, r.participant_id, r.raw_text, r.language_code).then(() => { accepted++; }, () => null),
       ),
     );
     progress(0.08 + 0.52 * ((i + batch.length) / responses.length), `Injecting responses (${i + batch.length}/${responses.length})`);
@@ -121,7 +124,7 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   progress(1, "Complete");
   return {
     sessionId, shortCode, mode: SIM_MOCK_MODE ? "self-contained" : "live-backend",
-    question, responseCount: responses.length, themes, ranking, winner, replayHash,
+    question, responseCount: accepted, themes, ranking, winner, replayHash,
   };
 }
 
