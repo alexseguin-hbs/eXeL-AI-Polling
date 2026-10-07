@@ -7,6 +7,7 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
+import { acceptMark, emptyClock, noteWork, readClock, saveMark, sameMember, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
 import { placeSignature } from "@/lib/light-codex";
 import { supabase } from "@/lib/supabase";
 import {
@@ -645,6 +646,9 @@ function Labeler({
   const [note, setNote] = useState("");
   // The saved box whose row was tapped: its outline lights up (rev 43).
   const [lit, setLit] = useState("");
+  const projectName = pics[0] ? setFolderOf(pictureName(pics[0])) : "project";
+  const [clock, setClock] = useState<WorkClock>(() => emptyClock("project"));
+  const [tick, setTick] = useState(0);
   const pic = pics[index];
   const picId = pic?.id || "";
   edges.current = { left, top, right, bottom };
@@ -654,6 +658,29 @@ function Labeler({
     setTop(START_BOX.top);
     setRight(START_BOX.right);
     setBottom(START_BOX.bottom);
+  }
+
+  useEffect(() => {
+    setClock(readClock(projectName));
+  }, [projectName]);
+
+  useEffect(() => {
+    if (!clock.open) return;
+    const id = window.setInterval(() => setTick((value) => value + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [clock.open]);
+
+  function remember(next: WorkClock) {
+    setClock(next);
+    writeClock(next);
+  }
+
+  function toggleClock() {
+    remember(clock.open ? stopClock(clock, Date.now()) : startClock(clock, who || "guest", Date.now()));
+  }
+
+  function touchWork(picture: string, kind: "annotate" | "level2" | "adjust") {
+    remember(noteWork(clock, who || "guest", picture, kind));
   }
 
   useEffect(() => {
@@ -785,7 +812,8 @@ function Labeler({
       return;
     }
     const prior = marks[pic.id] || [];
-    const mark: Mark = {
+    const previous = editing ? prior.find((item) => item.id === editing) : undefined;
+    const draft: Mark = {
       id: editing || `${Date.now()}`,
       name: labelName.trim() || names[0] || "person",
       left,
@@ -796,6 +824,8 @@ function Labeler({
       by: who || "guest",
       at: codexStamp(),
     };
+    const saved = saveMark(previous, draft, who || "guest");
+    const mark: Mark = { ...saved.box, level: saved.box.level };
     // rev 43: a box that is already saved, or the untouched start box after a save, is refused with one sentence.
     const refused = refuseBox(prior, mark, editing);
     if (refused) {
@@ -807,6 +837,7 @@ function Labeler({
     setEditing("");
     resetBox();
     setMarks({ ...marks, [pic.id]: list });
+    touchWork(pictureName(pic), saved.kind);
     const where = await writePicture(pictureName(pic), list);
     if (where) {
       const kept = chosenFolder ? `Saved ${where}.` : `Box ${list.length} kept on this device. FILES saves ${where}.`;
@@ -816,17 +847,14 @@ function Labeler({
 
   async function acceptBox(mark: Mark) {
     if (!pic) return;
-    if (mark.level === 2 && mark.reviewer && mark.reviewer !== mark.by) {
-      setNote("This box is already reviewed.");
+    const result = acceptMark(mark, who || "guest", codexStamp());
+    if (!result.ok) {
+      setNote(result.note);
       return;
     }
-    if (!who || who === (mark.by || "guest")) {
-      setNote("A different person must review this box.");
-      return;
-    }
-    const when = codexStamp();
-    const list = (marks[pic.id] || []).map((item) => (item.id === mark.id ? { ...item, level: 2 as const, reviewer: who, at: item.at || when, reviewedAt: when } : item));
+    const list = (marks[pic.id] || []).map((item) => (item.id === mark.id ? { ...item, ...result.box } : item));
     setMarks({ ...marks, [pic.id]: list });
+    touchWork(pictureName(pic), "level2");
     const where = await writePicture(pictureName(pic), list);
     if (where) setNote(`Level 2 saved. Light Codex is beside the picture. ${where}`);
   }
@@ -847,6 +875,7 @@ function Labeler({
     if (editing === mark.id) setEditing("");
     if (lit === mark.id) setLit("");
     setMarks({ ...marks, [pic.id]: list });
+    if (who && !sameMember(who, mark.by || "guest")) touchWork(pictureName(pic), "adjust");
     const where = await writePicture(pictureName(pic), list);
     if (where) setNote(`Removed. ${where}`);
   }
@@ -1057,6 +1086,12 @@ function Labeler({
         {/* rev 43: the buttons and the last note stay at the bottom of the pane while the picture and the rows scroll,
             so SAVE BOX is always in reach and a refused save is never silent. */}
         <div className={styles.labelDock}>
+        <div className={styles.workLine}>
+          <button type="button" onClick={toggleClock}>{clock.open ? "STOP" : "START"}</button>
+          <p>
+            {workflowLines(clock, Date.now() + Math.min(tick, 0)).map((line) => `${line.member} ${line.seconds}s · ${line.images} images · ${line.adjustments} Level 2 ${line.adjustments === 1 ? "change" : "changes"}`).join("  ·  ") || "START begins the clock."}
+          </p>
+        </div>
         <div className={styles.labelBar}>
           <button type="button" onClick={saveBox} disabled={!pic}>
             SAVE BOX

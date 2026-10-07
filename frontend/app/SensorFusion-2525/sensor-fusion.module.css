@@ -539,6 +539,29 @@
   font-size: 18px;
   margin: 0 0 8px;
 }
+.workLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+}
+.workLine button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  min-width: 72px;
+  border: 2px solid var(--sf-primary, #0cff00);
+  border-radius: 8px;
+  background: var(--sf-primary, #0cff00);
+  color: #111;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.workLine p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.3;
+}
 .labelBar {
   position: sticky;
   bottom: 0;
