@@ -57,7 +57,10 @@ export function codexLine(input: {
   return line;
 }
 
-/** The boxes a live picture can carry. Level 2 replaces Level 1. One line: name, then left, top, right, bottom. */
+/** The current box. Name, then left, top, right, bottom.
+ *  Only a Level 1 signature: these are the Level 1 corners.
+ *  A Level 2 signature and the same corners: reviewed, unchanged.
+ *  A Level 2 signature and different corners: the reviewer moved the box. */
 export function upperLeftLine(boxes: { name: string; level: number; xmin: number; ymin: number; xmax: number; ymax: number }[], maxChars = 0) {
   const reviewed = boxes.filter((box) => box.level === 2);
   const chosen = reviewed.length ? reviewed : boxes;

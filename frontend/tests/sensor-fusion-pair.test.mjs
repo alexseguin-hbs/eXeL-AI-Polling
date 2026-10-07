@@ -47,6 +47,9 @@ ok(SENSOR_FUSION_PROJECT === "sensor-fusion", "the set goes to the sensor-fusion
 const deer = { name: "deer", level: 1, xmin: 12, ymin: 40, xmax: 80, ymax: 90 };
 const person = { name: "person", level: 2, xmin: 4, ymin: 8, xmax: 20, ymax: 30 };
 ok(upperLeftLine([deer]) === "DEER 12 40 80 90", "Level 1 puts the name and the four corners upper left");
+ok(upperLeftLine([{ name: "deer", level: 1, xmin: 74, ymin: 176, xmax: 268, ymax: 308 }]) === "DEER 74 176 268 308", "only Level 1: the numbers are the Level 1 box");
+ok(upperLeftLine([{ name: "deer", level: 2, xmin: 74, ymin: 176, xmax: 268, ymax: 308 }]) === "DEER 74 176 268 308", "Level 2 that did not move the box keeps the same numbers");
+ok(upperLeftLine([{ name: "deer", level: 2, xmin: 70, ymin: 170, xmax: 280, ymax: 320 }]) === "DEER 70 170 280 320", "Level 2 that moved the box writes the new corners");
 ok(upperLeftLine([deer, person]) === "PERSON 4 8 20 30", "Level 2 replaces Level 1");
 ok(upperLeftLine([person, { name: "head", level: 2, xmin: 1, ymin: 2, xmax: 3, ymax: 4 }], 16) === "PERSON 4 8 20 30", "a short picture keeps the boxes that fit");
 
