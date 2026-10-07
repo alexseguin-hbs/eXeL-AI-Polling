@@ -86,7 +86,7 @@ async def readiness_profile(
 
     # 1. SSSES metrics triad (System / User / Outcome) — the evidence base.
     m = await _safe(
-        ranking_metrics.get_all_metrics(db, session_id),
+        ranking_metrics.get_all_metrics(db, session_id, cycle_id),
         {"system": {}, "user": {}, "outcome": {}},
     )
     system, user, outcome = m.get("system", {}), m.get("user", {}), m.get("outcome", {})

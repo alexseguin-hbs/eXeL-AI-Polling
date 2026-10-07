@@ -107,3 +107,12 @@ async def test_reopened_round_reads_and_writes_one_cycle(live):
     summary = ok(await client.get(f"{A}/{sid}/ranking-summary"), what="ranking summary").json()
     got = {r.get("theme_id") for r in summary.get("rankings", [])}
     assert got and got <= set(ballot2), f"the report summary reads cycle 2 only: {got - set(ballot2)}"
+
+    # Every ranking read that counts ballots counts cycle 2's three, never six (Thoth, round 8).
+    metrics = ok(await client.get(f"{A}/{sid}/rankings/metrics"), what="metrics").json()
+    assert metrics["system"].get("ranking_submissions") == 3, f"metrics count cycle 2 only: {metrics['system']}"
+    ready = ok(await client.get(f"{A}/{sid}/rankings/readiness"), what="readiness").json()
+    assert ready["signals"]["ranking_submissions"] == 3, f"readiness counts cycle 2 only: {ready['signals']}"
+    assert ready["metrics"]["system"].get("ranking_submissions") == 3, f"readiness metrics: {ready['metrics']['system']}"
+    scale = ok(await client.get(f"{A}/{sid}/rankings/scale-info"), what="scale-info").json()
+    assert scale["voter_count"] == 3, f"scale-info counts cycle 2's voters only: {scale}"

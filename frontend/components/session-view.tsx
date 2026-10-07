@@ -741,7 +741,9 @@ export function SessionView() {
             setSession((p) => (p && statusAdvances(p, fresh) ? fresh : p));
             if (gate.wanted === wanted) gate.wanted = null;
           })
-          .catch(() => { broadcastHealthy.current = false; }) // a failed re-read hands back to the poll
+          // A failed re-read hands back to the poll and does not reschedule itself: a dead backend would otherwise
+          // be re-asked every second by every participant (Odin, round 8). The next push or the poll tries again.
+          .catch(() => { broadcastHealthy.current = false; gate.wanted = null; })
           .finally(() => {
             gate.busy = false;
             if (gate.wanted) applyPushedStatus({ status: gate.wanted }); // a push arrived meanwhile: one more read

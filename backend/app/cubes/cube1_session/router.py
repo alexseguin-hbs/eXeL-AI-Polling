@@ -496,7 +496,6 @@ async def create_question(
 async def list_questions(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
 ):
     """List questions for a session, ordered by order_index."""
     questions = await service.list_questions(db, session_id)
