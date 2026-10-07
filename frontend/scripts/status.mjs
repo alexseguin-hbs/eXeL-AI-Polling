@@ -28,7 +28,7 @@ const DEV = "claude/debug-wsl-issues-yYdPP";
 const oneLine = process.argv.includes("--line");
 
 const git = (cmd) => execSync(`git ${cmd}`, { encoding: "utf8" }).trim();
-const sha = git("rev-parse HEAD");
+const sha = process.env.STATUS_SHA ? git(`rev-parse ${process.env.STATUS_SHA}`) : git("rev-parse HEAD");   // STATUS_SHA: read any past commit
 const short = sha.slice(0, 7);
 const subject = git("log -1 --format=%s").slice(0, 72);
 const dirty = git("status --porcelain").length > 0;
@@ -65,26 +65,38 @@ try {
 // ── ACTIONS (fourth stage, fleet r.147 Krishna/MoT 11): the Deploy gate and Verify Live for THIS sha, read through `gh`
 // where it exists. A Deploy whose ship steps were skipped reads SKIPPED, never ✓; without gh it reads UNVERIFIED.
 let actions = { state: "UNVERIFIED", note: "gh not available here" };
+// `gh api` works with the GitHub CLI and with Claude Code's built-in client alike (`gh run list` does not exist in the latter —
+// that gap is why a red Cloudflare build was read for hours with no cause: 2026-10-07, one unescaped apostrophe).
+const ghApi = (path) => JSON.parse(execSync(`gh api "repos/alexseguin-hbs/eXeL-AI-Polling/${path}"`, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
 try {
-  const raw = execSync(`gh run list --commit ${sha} --json name,conclusion,status,databaseId --limit 10`, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
-  const runs = JSON.parse(raw);
+  const full = execSync(`git rev-parse ${sha}`, { encoding: "utf8" }).trim();
+  const runs = ghApi(`actions/runs?head_sha=${full}`).workflow_runs || [];
   const deploy = runs.find((r) => r.name === "Deploy"), verify = runs.find((r) => /verify/i.test(r.name));
-  let ship = "—";
-  if (deploy && deploy.conclusion === "success") {
+  const word = (r) => (r ? (r.status !== "completed" ? r.status : r.conclusion) : "none");
+  let ship = "—", why = "";
+  if (deploy && deploy.status === "completed") {
     try {
-      const jobs = JSON.parse(execSync(`gh run view ${deploy.databaseId} --json jobs`, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })).jobs || [];
+      const jobs = ghApi(`actions/runs/${deploy.id}/jobs`).jobs || [];
       const steps = jobs.flatMap((j) => j.steps || []);
       const shipStep = steps.find((st) => /^Deploy$/.test(st.name));
       ship = !shipStep ? "—" : shipStep.conclusion === "skipped" ? "SKIPPED" : shipStep.conclusion;
+      // A red gate names its failing step: read the cause, never guess it.
+      why = steps.filter((st) => st.conclusion === "failure").map((st) => st.name).join(" · ");
     } catch { ship = "?"; }
   }
-  const word = (r) => (r ? (r.status !== "completed" ? r.status : r.conclusion) : "none");
-  actions = { state: "READ", deploy: word(deploy), ship, verify: word(verify), note: "" };
+  // Cloudflare's own git build (the deployer while the Actions ship is skipped) — its check-run carries no log, so a
+  // failure here is read together with the Deploy gate's failing step above, and reproduced with `npm run build` locally.
+  let cf = "none";
+  try {
+    const cr = (ghApi(`commits/${full}/check-runs`).check_runs || []).find((c) => /^Workers Builds/.test(c.name));
+    if (cr) cf = cr.status !== "completed" ? cr.status : cr.conclusion;
+  } catch {}
+  actions = { state: "READ", deploy: word(deploy), ship, verify: word(verify), cf, why, note: "" };
 } catch {}
 const mark = (ok) => (ok ? "✓" : "✗");
 if (oneLine) {
   const liveTxt = live.state === "LIVE" ? `LIVE ${live.sha}` : live.state === "STALE" ? `STALE ${live.sha}` : "UNVERIFIED";
-  const act = actions.state === "READ" ? ` | actions Deploy ${actions.deploy} · ship ${actions.ship} · Verify Live ${actions.verify}` : " | actions UNVERIFIED";
+  const act = actions.state === "READ" ? ` | CF build ${actions.cf} | actions Deploy ${actions.deploy}${actions.why ? ` (${actions.why})` : ""} · ship ${actions.ship} · Verify Live ${actions.verify}` : " | actions UNVERIFIED";
   console.log(`SHA ${short} | committed ${mark(!dirty)} | pushed ${mark(pushed)} | cloudflare ${liveTxt}${act}`);
 } else {
   console.log(`
@@ -93,11 +105,12 @@ if (oneLine) {
 │ COMMITTED  ${mark(!dirty)} ${dirty ? "working tree DIRTY — uncommitted changes exist" : "clean"}
 ${branches.map((b) => `│ PUSHED     ${mark(b.ok)} origin/${b.br} = ${b.short}`).join("\n")}
 │ CLOUDFLARE ${live.state === "LIVE" ? `✓ LIVE — serving ${live.sha}` : live.state === "STALE" ? `✗ STALE — serving ${live.sha}, expected ${short}` : `? UNVERIFIED — ${live.note}`}
-│ ACTIONS    ${actions.state === "READ" ? `Deploy ${actions.deploy} · ship ${actions.ship} · Verify Live ${actions.verify}` : `? UNVERIFIED — ${actions.note}`}
+│ ACTIONS    ${actions.state === "READ" ? `CF build ${actions.cf} · Deploy ${actions.deploy}${actions.why ? ` (failed: ${actions.why})` : ""} · ship ${actions.ship} · Verify Live ${actions.verify}` : `? UNVERIFIED — ${actions.note}`}
 │ WEBSITE    ${SITE}
 └────────────────────────────────────────────────────────────`);
   if (live.state === "STALE") console.log(`  → Cloudflare has not promoted ${short}. Check Deployments, or run: npm run ship`);
   if (live.state === "UNVERIFIED") console.log(`  → Run this from a machine with network access. UNVERIFIED never means shipped.`);
+  if (actions.cf === "failure") console.log(`  → Cloudflare's build FAILED. Read the Deploy gate's failing step above and reproduce with \`npm run build\` before pushing any fix.`);
   if (actions.ship === "SKIPPED") console.log(`  → The Actions ship steps were SKIPPED (secrets absent): Cloudflare's git build is the only deployer of this sha.`);
 }
 

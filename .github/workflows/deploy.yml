@@ -57,6 +57,12 @@ jobs:
       - name: Install
         run: npm ci
 
+      # Build parity, FIRST and in about a minute: the two checks Cloudflare's `next build` fails on (lint errors, type
+      # errors). Its own step so a red gate names the cause — 2026-10-07 one unescaped apostrophe blocked every deploy for
+      # hours behind a step called "Test (headless suites …)" while the cause was guessed instead of read.
+      - name: Build parity (lint + types — what Cloudflare's next build fails on)
+        run: npm run build:parity
+
       # FAIL CLOSED. Building without these produces a site that loads fine and whose live-response path is dead.
 
 
