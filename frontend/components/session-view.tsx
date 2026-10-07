@@ -707,8 +707,8 @@ export function SessionView() {
   // the backend confirms the pushed status. Without a backend the push itself is applied, cycle first.
   const sessionRef = useRef<Session | null>(null);
   useEffect(() => { sessionRef.current = session; }, [session]);
-  const pushReadRef = useRef<{ busy: boolean; at: number }>({ busy: false, at: 0 });
-  const applyPushedStatus = useCallback(
+  const pushReadRef = useRef<{ busy: boolean; at: number; wanted: string | null; timer: ReturnType<typeof setTimeout> | null }>({ busy: false, at: 0, wanted: null, timer: null });
+  const applyPushedStatus: (push: { status: string; current_cycle?: unknown; ends_at?: unknown; participant_count?: unknown }) => void = useCallback(
     (push: { status: string; current_cycle?: unknown; ends_at?: unknown; participant_count?: unknown }) => {
       const pushCycle = typeof push.current_cycle === "number" ? push.current_cycle : null;
       if (IS_MOCK_MODE) {
@@ -725,16 +725,28 @@ export function SessionView() {
         } : p);
         return;
       }
+      // One re-read at a time, at most once a second; a push that arrives meanwhile is never dropped — it leaves
+      // one trailing re-read for when the window ends (round 7). The first read of a push is spread over 0–1.5 s so
+      // a status change does not send every participant to the backend in the same instant (backlog HP-34).
       const gate = pushReadRef.current;
-      if (gate.busy || Date.now() - gate.at < 1000 || !sessionId) return;
-      gate.busy = true; gate.at = Date.now();
-      api.get<Session>(`/sessions/${sessionId}`)
-        .then((fresh) => {
-          if (fresh.status === push.status) markBroadcastHealthy();
-          setSession((p) => (p && statusAdvances(p, fresh) ? fresh : p));
-        })
-        .catch(() => {})
-        .finally(() => { gate.busy = false; });
+      gate.wanted = push.status;
+      if (gate.busy || gate.timer || !sessionId) return;
+      const wait = Math.max(0, 1000 - (Date.now() - gate.at)) + Math.random() * 1500;
+      gate.timer = setTimeout(() => {
+        gate.timer = null; gate.busy = true; gate.at = Date.now();
+        const wanted = gate.wanted;
+        api.get<Session>(`/sessions/${sessionId}`)
+          .then((fresh) => {
+            if (fresh.status === wanted) markBroadcastHealthy();
+            setSession((p) => (p && statusAdvances(p, fresh) ? fresh : p));
+            if (gate.wanted === wanted) gate.wanted = null;
+          })
+          .catch(() => { broadcastHealthy.current = false; }) // a failed re-read hands back to the poll
+          .finally(() => {
+            gate.busy = false;
+            if (gate.wanted) applyPushedStatus({ status: gate.wanted }); // a push arrived meanwhile: one more read
+          });
+      }, wait);
     },
     [markBroadcastHealthy, sessionId],
   );
@@ -745,10 +757,9 @@ export function SessionView() {
     },
     [applyPushedStatus],
   );
-  const onBroadcastPresence = useCallback(
-    (count: number) => { markBroadcastHealthy(); setParticipantCount(count); },
-    [markBroadcastHealthy],
-  );
+  // Presence carries no status, so it never marks the channel healthy: only a backend-confirmed status may
+  // pause the corrective poll (AsM round 7 — presence is anon-writable and constant in a large poll).
+  const onBroadcastPresence = useCallback((count: number) => { setParticipantCount(count); }, []);
   const { broadcast: broadcastToSession } = useSessionBroadcast(
     simulationMode ? null : session?.short_code,
     onBroadcastStatus,

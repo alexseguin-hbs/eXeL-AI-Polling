@@ -880,6 +880,11 @@ const _rankingBallots = new Map<string, string[][]>();
 // responses; /ai/status reports completed; /themes serves the cached rows. Real Cube-6 does this
 // server-side when NEXT_PUBLIC_MOCK_MODE=false. Deterministic so a console run replays identically.
 const _simThemes = new Map<string, ReturnType<typeof buildSimThemeRows>>();
+/** The SIM's theme store is keyed by session AND cycle, like the backend's (themes.cycle_id): a re-opened round
+ *  has no ballot until /ai/run themes it, and an earlier cycle's ids are refused (AsM round 7, Krishna + Athena). */
+function simThemeKey(sid: string): string {
+  return `${sid}:${Number(findSessionById(sid)?.current_cycle) || 1}`;
+}
 /** Byte-identical to backend cube7 `_seeded_tiebreak_key`: SHA-256(`${theme_id}:${seed}`) hex. */
 export function mockSeededTiebreakKey(themeId: string, seed: string): string {
   return _sha256hex(`${themeId}:${seed}`);
@@ -933,7 +938,7 @@ function _validateMockBallot(sid: string, ids: string[], existing: string[][]): 
   if (set.size !== ids.length) return "Each theme may be ranked exactly once (duplicate theme id)";
   const session = findSessionById(sid) as (Session & { theme01_category?: string | null }) | undefined;
   const levelNum = String(session?.theme2_voting_level || "theme2_9").replace("theme2_", "");
-  const rows = _simThemes.get(sid);
+  const rows = _simThemes.get(simThemeKey(sid));
   let valid: Set<string> | null = null;
   if (rows && rows.length) {
     const cat = session?.theme01_category || null;
@@ -945,6 +950,9 @@ function _validateMockBallot(sid: string, ids: string[], existing: string[][]): 
     const parents = new Set(rows.filter((r) => r.parent_theme_id == null && (!cat || labelCat(r) === cat)).map((r) => r.id));
     valid = new Set(rows.filter((r) => r.parent_theme_id != null && parents.has(r.parent_theme_id) && r.theme_level === levelNum && r.label !== "").map((r) => r.id));
     if (!valid.size) return `No themes found at level ${levelNum}${cat ? ` (category=${cat})` : ""} for session ${sid}`;
+  } else if ((Number(session?.current_cycle) || 1) > 1) {
+    // A re-opened cycle that has not been themed takes no ballot (LIVE: "No themes found"; AsM round 7).
+    return `No themes found at level ${levelNum} for session ${sid}`;
   } else if (existing.length) {
     valid = new Set(existing[0]);
   }
@@ -1471,25 +1479,29 @@ export async function handleMockRequest<T>(
     const sid = aiRunMatch[1];
     const resp = (mockResponses[sid] ?? []).map((r) => ({ id: r.id, raw_text: r.clean_text }));
     const rows = buildSimThemeRows(resp, sid);
-    _simThemes.set(sid, rows);
+    _simThemes.set(simThemeKey(sid), rows);
     return { session_id: sid, status: "completed", response_count: resp.length, theme_count: rows.length, mock: true } as T;
   }
   // GET /sessions/{id}/ai/status — completed once /ai/run has cached rows (else pending).
   const aiStatusMatch = path.match(/^\/sessions\/([0-9a-f-]{36})\/ai\/status$/);
   if (method === "GET" && aiStatusMatch) {
     const sid = aiStatusMatch[1];
-    const done = _simThemes.has(sid);
+    const done = _simThemes.has(simThemeKey(sid));
     return { session_id: sid, status: done ? "completed" : "pending", progress: done ? 100 : 0, mock: true } as T;
   }
   // GET /sessions/{id}/themes — the enriched LiveThemeRow[] (33/111/333 tiers) Cube-6 produces.
   const themesMatch = path.match(/^\/sessions\/([0-9a-f-]{36})\/themes$/);
   if (method === "GET" && themesMatch) {
     const sid = themesMatch[1];
-    let rows = _simThemes.get(sid);
-    if (!rows) { // theme on demand so a direct /themes GET after injection still works
+    const key = simThemeKey(sid);
+    let rows = _simThemes.get(key);
+    // Theme on demand only in the first cycle (a direct /themes GET after injection still works there). A re-opened
+    // cycle has themes only after its own /ai/run, as LIVE: until then the ballot is empty.
+    const firstCycle = (Number(findSessionById(sid)?.current_cycle) || 1) === 1;
+    if (!rows && firstCycle) {
       const resp = (mockResponses[sid] ?? []).map((r) => ({ id: r.id, raw_text: r.clean_text }));
       rows = buildSimThemeRows(resp, sid);
-      if (resp.length) _simThemes.set(sid, rows);
+      if (resp.length) _simThemes.set(key, rows);
     }
     return (rows ?? []) as T;
   }

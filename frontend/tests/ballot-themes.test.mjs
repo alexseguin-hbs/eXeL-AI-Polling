@@ -74,8 +74,17 @@ ok(/BALLOT_EMPTY_RECHECK_CAP_MS = 5000/.test(bt) && /setAttempt\(0\)/.test(bt), 
 const pushBlock = sv.slice(sv.indexOf("const applyPushedStatus"), sv.indexOf("const onBroadcastPresence"));
 ok(/if \(IS_MOCK_MODE\)[\s\S]*statusAdvances\(prev, \{ status: push\.status/.test(pushBlock), "without a backend a pushed status applies only if it advances, cycle first");
 ok(/api\.get<Session>\(`\/sessions\/\$\{sessionId\}`\)[\s\S]*statusAdvances\(p, fresh\)/.test(pushBlock), "against the backend a push re-reads the backend and applies only its answer");
-ok(/if \(fresh\.status === push\.status\) markBroadcastHealthy\(\)/.test(pushBlock) && !/onBroadcastStatus = useCallback\(\s*\(payload: SessionBroadcastPayload\) => \{\s*markBroadcastHealthy\(\)/.test(sv), "the channel is marked healthy only by a confirmed status, never by any traffic");
-ok(/gate\.busy \|\| Date\.now\(\) - gate\.at < 1000/.test(pushBlock), "backend re-reads are one at a time, at most once a second (a flood cannot amplify)");
+ok(/if \(fresh\.status === wanted\) markBroadcastHealthy\(\)/.test(pushBlock) && !/onBroadcastStatus = useCallback\(\s*\(payload: SessionBroadcastPayload\) => \{\s*markBroadcastHealthy\(\)/.test(sv), "the channel is marked healthy only by a confirmed status, never by any traffic");
+ok(/if \(gate\.busy \|\| gate\.timer \|\| !sessionId\) return;/.test(pushBlock) && /1000 - \(Date\.now\(\) - gate\.at\)/.test(pushBlock), "backend re-reads are one at a time, at most once a second (a flood cannot amplify)");
+// Round 7: presence never marks the channel healthy; only a backend-confirmed status may (10 reviewers).
+const healthyCalls = (sv.match(/markBroadcastHealthy\(\)/g) || []).length;
+const healthyInPush = (pushBlock.match(/markBroadcastHealthy\(\)/g) || []).length;
+ok(healthyCalls === healthyInPush && healthyInPush >= 1, `markBroadcastHealthy() is called only inside applyPushedStatus (${healthyCalls} calls, ${healthyInPush} there)`);
+ok(/const onBroadcastPresence = useCallback\(\(count: number\) => \{ setParticipantCount\(count\); \}, \[\]\)/.test(sv), "presence only updates the count");
+// Round 7: a push inside the window is not dropped — it leaves one trailing re-read; a failed re-read hands back to the poll.
+ok(/gate\.wanted = push\.status/.test(pushBlock) && /if \(gate\.wanted\) applyPushedStatus\(\{ status: gate\.wanted \}\)/.test(pushBlock), "a push arriving meanwhile triggers one trailing re-read");
+ok(/\.catch\(\(\) => \{ broadcastHealthy\.current = false; \}\)/.test(pushBlock), "a failed re-read clears the healthy flag so the poll resumes");
+ok(/Math\.random\(\) \* 1500/.test(pushBlock), "the first re-read of a push is spread over 0–1.5 s");
 ok(/applyPushedStatus\(\{ \.\.\.payload, status: newStatus \}\)/.test(sv), "postgres_changes status goes through the same rule");
 const dash = readFileSync(new URL("../app/dashboard/page.tsx", import.meta.url), "utf8");
 ok(/broadcast\("status", \{\s*status: updated\.status,\s*current_cycle: updated\.current_cycle/.test(dash), "the moderator's status broadcast carries the cycle");

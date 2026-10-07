@@ -45,22 +45,27 @@ _DEFAULT_OUTCOME = {
 }
 
 
+def _cyc(model, cycle_id: int | None) -> list:
+    """One cycle's rows when `cycle_id` is given — a re-opened session has rows for every cycle (Thoth, round 7)."""
+    return [model.cycle_id == cycle_id] if cycle_id is not None else []
+
+
 def _safe_pct(n: float, d: float) -> float:
     return (n / d * 100) if d > 0 else 0.0
 
 
-async def get_system_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
+async def get_system_metrics(db: AsyncSession, session_id: uuid.UUID, cycle_id: int | None = None) -> dict:
     """System: submission volume, aggregation state, algorithm, overrides."""
     try:
         submissions = (await db.execute(
-            select(func.count()).select_from(Ranking).where(Ranking.session_id == session_id)
+            select(func.count()).select_from(Ranking).where(Ranking.session_id == session_id, *_cyc(Ranking, cycle_id))
         )).scalar() or 0
         agg_rows = (await db.execute(
-            select(AggregatedRanking).where(AggregatedRanking.session_id == session_id)
+            select(AggregatedRanking).where(AggregatedRanking.session_id == session_id, *_cyc(AggregatedRanking, cycle_id))
         )).scalars().all()
         overrides = (await db.execute(
             select(func.count()).select_from(GovernanceOverride).where(
-                GovernanceOverride.session_id == session_id
+                GovernanceOverride.session_id == session_id, *_cyc(GovernanceOverride, cycle_id)
             )
         )).scalar() or 0
         algorithm = agg_rows[0].algorithm if agg_rows else None
@@ -77,11 +82,11 @@ async def get_system_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
         return dict(_DEFAULT_SYSTEM)
 
 
-async def get_user_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
+async def get_user_metrics(db: AsyncSession, session_id: uuid.UUID, cycle_id: int | None = None) -> dict:
     """User: unique participants who ranked + average ballot completeness."""
     try:
         rows = (await db.execute(
-            select(Ranking).where(Ranking.session_id == session_id)
+            select(Ranking).where(Ranking.session_id == session_id, *_cyc(Ranking, cycle_id))
         )).scalars().all()
         participants = {str(r.participant_id) for r in rows}
         lengths = []
@@ -102,15 +107,15 @@ async def get_user_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
         return dict(_DEFAULT_USER)
 
 
-async def get_outcome_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
+async def get_outcome_metrics(db: AsyncSession, session_id: uuid.UUID, cycle_id: int | None = None) -> dict:
     """Outcome: winner, top-theme confidence, governance overrides, determinism."""
     try:
         agg_rows = (await db.execute(
-            select(AggregatedRanking).where(AggregatedRanking.session_id == session_id)
+            select(AggregatedRanking).where(AggregatedRanking.session_id == session_id, *_cyc(AggregatedRanking, cycle_id))
         )).scalars().all()
         overrides = (await db.execute(
             select(func.count()).select_from(GovernanceOverride).where(
-                GovernanceOverride.session_id == session_id
+                GovernanceOverride.session_id == session_id, *_cyc(GovernanceOverride, cycle_id)
             )
         )).scalar() or 0
         winner = next((r for r in agg_rows if r.is_top_theme2), None)
@@ -126,11 +131,11 @@ async def get_outcome_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
         return dict(_DEFAULT_OUTCOME)
 
 
-async def get_all_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
+async def get_all_metrics(db: AsyncSession, session_id: uuid.UUID, cycle_id: int | None = None) -> dict:
     """Combined System / User / Outcome roll-up for Cube 10 comparison."""
     return {
         "cube": "cube7_ranking",
-        "system": await get_system_metrics(db, session_id),
-        "user": await get_user_metrics(db, session_id),
-        "outcome": await get_outcome_metrics(db, session_id),
+        "system": await get_system_metrics(db, session_id, cycle_id),
+        "user": await get_user_metrics(db, session_id, cycle_id),
+        "outcome": await get_outcome_metrics(db, session_id, cycle_id),
     }

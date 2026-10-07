@@ -58,7 +58,7 @@ async def broadcast_event(
             "supabase.broadcast.skipped",
             reason="SUPABASE_URL or SUPABASE_KEY not configured",
             channel=channel,
-            event=event,
+            broadcast_event=event,  # not "event": structlog's first argument is already called event
         )
         return False
 
@@ -86,7 +86,7 @@ async def broadcast_event(
             logger.info(
                 "supabase.broadcast.sent",
                 channel=channel,
-                event=event,
+                broadcast_event=event,  # not "event": structlog's first argument is already called event
                 status=resp.status_code,
             )
             return True
@@ -94,7 +94,7 @@ async def broadcast_event(
             logger.warning(
                 "supabase.broadcast.failed",
                 channel=channel,
-                event=event,
+                broadcast_event=event,  # not "event": structlog's first argument is already called event
                 status=resp.status_code,
                 body=resp.text[:200],
             )
@@ -105,7 +105,7 @@ async def broadcast_event(
         logger.warning(
             "supabase.broadcast.error",
             channel=channel,
-            event=event,
+            broadcast_event=event,  # not "event": structlog's first argument is already called event
             error=str(e),
         )
         return False

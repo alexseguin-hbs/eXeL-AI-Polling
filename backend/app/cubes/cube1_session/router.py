@@ -241,9 +241,12 @@ async def create_session(
 async def get_session(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
 ):
-    """Get session details by UUID."""
+    """Get session details by UUID — public, exactly like GET /sessions/code/{short_code} (same SessionRead).
+
+    Anonymous participants read their session's status here on load, on the 1.5 s poll and on every pushed
+    status hint; requiring a login made all three 401 once Auth0 is configured (Odin, AsM round 7).
+    """
     session = await service.get_session_by_id(db, session_id)
     return await _return_session(db, session)
 

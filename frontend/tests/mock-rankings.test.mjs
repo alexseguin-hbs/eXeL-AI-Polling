@@ -63,8 +63,12 @@ const re = await post(`/sessions/${id}/reopen`);
 ok(re?.status === 'polling' && re?.current_cycle === 2, `reopen → polling, cycle 2 (got ${re?.status}/${re?.current_cycle})`);
 ok((await get(`/sessions/${id}/rankings/progress`)).submissions === 0, 'cycle 2 starts with zero ballots (cycle-1 ballot not re-used)');
 ok((await get(`/sessions/${id}/rankings`)).length === 0, 'cycle-2 read shows no rankings until someone votes');
-await post(`/sessions/${id}/rankings`, { ranked_theme_ids: ['y', 'x'] });
-ok((await get(`/sessions/${id}/rankings`))[0]?.theme_id === 'y', 'cycle-2 aggregate reflects cycle-2 ballots only');
+// AsM round 7 (Krishna, Athena): the SIM keeps one ballot cycle, like LIVE — an un-themed re-opened round has
+// no themes, reports theming pending, and refuses a ballot.
+ok(Array.isArray(await get(`/sessions/${id}/themes`)) && (await get(`/sessions/${id}/themes`)).length === 0, 'cycle-2 /themes is empty until cycle 2 is themed');
+ok((await get(`/sessions/${id}/ai/status`))?.status === 'pending', 'cycle-2 theming reads pending until /ai/run');
+ok((await post(`/sessions/${id}/rankings`, { ranked_theme_ids: ['y', 'x'] }))?.__status === 400, 'a ballot in an un-themed re-opened cycle is refused');
+ok((await get(`/sessions/${id}/rankings`)).length === 0, 'and nothing was recorded for cycle 2');
 await post(`/sessions/${id}/rank`);
 let last = null; for (let i = 0; i < 5; i++) { last = await post(`/sessions/${id}/reopen`); if (last?.__status) break; await post(`/sessions/${id}/rank`); }
 ok(last?.__status === 400, 'reopen is bounded by max_cycles (refused with 400)');

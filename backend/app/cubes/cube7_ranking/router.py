@@ -252,7 +252,8 @@ async def get_ranking_metrics(
     """
     from app.cubes.cube7_ranking import metrics as ranking_metrics
 
-    return await ranking_metrics.get_all_metrics(db, session_id)
+    # One cycle — the current one (Thoth, round 7).
+    return await ranking_metrics.get_all_metrics(db, session_id, await _resolve_cycle(db, session_id, None))
 
 
 @router.get("/rankings/readiness")
@@ -299,7 +300,7 @@ async def get_scale_info(
 
     count_result = await db.execute(
         sa_select(func.count()).select_from(Ranking).where(
-            Ranking.session_id == session_id
+            Ranking.session_id == session_id, Ranking.cycle_id == cycle_id
         )
     )
     voter_count = count_result.scalar() or 0
@@ -423,6 +424,7 @@ async def override_ranking(
             new_rank=payload.new_rank,
             overridden_by=user.user_id,
             justification=payload.justification,
+            cycle_id=int(getattr(session, "current_cycle", 1) or 1),  # the open cycle, as /rankings/aggregate (round 7)
             session_short_code=session.short_code,
         )
         await db.commit()
