@@ -26,7 +26,7 @@ class SessionCreate(BaseModel):
     ai_provider: Literal["openai", "grok", "gemini"] = "openai"
     seed: str | None = None
     # Session type & polling mode
-    session_type: Literal["polling", "peer_volunteer", "team_collaboration"] = "polling"
+    session_type: Literal["polling", "peer_volunteer", "team_collaboration", "simulation"] = "polling"
     polling_mode: Literal["single_round", "multi_round_deep_dive"] = "single_round"
     # Capacity & pricing
     pricing_tier: Literal["free", "moderator_paid", "cost_split"] = "free"
@@ -68,7 +68,7 @@ class SessionUpdate(BaseModel):
     max_response_length: int | None = Field(None, ge=50, le=3333)
     ai_provider: Literal["openai", "grok", "gemini"] | None = None
     # Session type & mode
-    session_type: Literal["polling", "peer_volunteer", "team_collaboration"] | None = None
+    session_type: Literal["polling", "peer_volunteer", "team_collaboration", "simulation"] | None = None
     polling_mode: Literal["single_round", "multi_round_deep_dive"] | None = None
     # Capacity & pricing
     pricing_tier: Literal["free", "moderator_paid", "cost_split"] | None = None

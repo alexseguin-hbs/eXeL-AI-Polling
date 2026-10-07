@@ -56,16 +56,29 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
     description: "Admin Simulation Console run (AI-written supplemental responses)",
     polling_mode_type: "live_interactive",
     ai_provider: "openai",
+    // HP-21: a simulation session (the backend seeds its responses and simulated voters only for this type) that
+    // votes on the nine Theme02 themes of one Theme01 category — the operator's model (addendum 5).
+    session_type: "simulation",
+    theme2_voting_level: "theme2_9",
+    theme01_category: "risk",
   });
   const sessionId = session!.id;
   const shortCode = session!.short_code ?? null;
 
-  // Resolve the question id (mock auto-creates one; live returns the session's questions).
+  // Resolve the question id. Self-contained: the mock auto-creates one. LIVE: a new session has no question and
+  // is still a draft, so add the question and open it for polling (draft → open → polling), as a moderator would.
   let questionId = "";
-  try {
-    const qs = await api.getSessionQuestions(sessionId);
-    questionId = (qs as Question[])?.[0]?.id ?? "";
-  } catch { /* fall through — the response endpoint tolerates a generated id */ }
+  if (!SIM_MOCK_MODE) {
+    const q = await api.post<Question>(`/sessions/${sessionId}/questions`, { question_text: question.slice(0, 500) });
+    questionId = q?.id ?? "";
+    await api.post(`/sessions/${sessionId}/open`, {});
+    await api.post(`/sessions/${sessionId}/poll`, {});
+  } else {
+    try {
+      const qs = await api.getSessionQuestions(sessionId);
+      questionId = (qs as Question[])?.[0]?.id ?? "";
+    } catch { /* fall through — the mock response endpoint tolerates a generated id */ }
+  }
 
   // 2) Generate + inject the responses (the AI + HI supplemented-input option).
   progress(0.08, "Generating responses");
@@ -74,7 +87,18 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   // Count what the backend ACCEPTED, not what was sent — a LIVE run whose submissions are refused (422/409)
   // used to report "Responses 200" over an empty result. The panel never claims more than happened.
   let accepted = 0;
-  for (let i = 0; i < responses.length; i += CHUNK) {
+  if (!SIM_MOCK_MODE) {
+    // LIVE: each response from its own simulated participant, seeded server-side through the real cube2 service
+    // (the public join + submit are limited to 100/min per address — a 5,000 run would take an hour).
+    const SEED = 500;
+    for (let i = 0; i < responses.length; i += SEED) {
+      const batch = responses.slice(i, i + SEED).map((r) => ({ text: r.raw_text, language_code: r.language_code || "en" }));
+      const out = await api.post<{ accepted: number }>(`/sessions/${sessionId}/sim/responses`, { question_id: questionId, responses: batch }).catch(() => null);
+      accepted += out?.accepted ?? 0;
+      progress(0.08 + 0.52 * ((i + batch.length) / responses.length), `Injecting responses (${i + batch.length}/${responses.length})`);
+    }
+  }
+  for (let i = 0; SIM_MOCK_MODE && i < responses.length; i += CHUNK) {
     const batch = responses.slice(i, i + CHUNK);
     await Promise.all(
       batch.map((r) =>
@@ -104,13 +128,25 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
     .map((r) => (r as LiveThemeRow).id);
   // Fall back to any parent rows if the label match is thin.
   const parentIds = themeIds.length ? themeIds : rows.filter((r) => r.theme_level == null).map((r) => r.id);
+  // The ballot is the nine Theme02 themes of the session's category (Risk & Concerns) — what the backend's
+  // submit_user_ranking accepts at theme2_9. Parents only when no children exist (a thin self-contained run).
+  const riskParent = rows.find((r) => r.theme_level == null && themeLabelMatches(r, THEME01_LABELS[0]));
+  const nine = rows.filter((r) => r.theme_level === "9" && r.label && (!riskParent || r.parent_theme_id === riskParent.id)).map((r) => r.id);
+  const pool = nine.length >= 2 ? nine : parentIds;
 
   let ranking: SimRankRow[] = [];
   let winner: string | null = null;
   let replayHash: string | null = null;
-  if (parentIds.length >= 2) {
-    const ballots = simulateBallots(parentIds, voters, seed);
-    for (const b of ballots) await api.post(`/sessions/${sessionId}/rankings`, { ranked_theme_ids: b }).catch(() => null);
+  if (pool.length >= 2) {
+    const ballots = simulateBallots(pool, voters, seed);
+    if (!SIM_MOCK_MODE) {
+      // LIVE: ranking opens (polling → ranking), then each ballot from its own simulated voter through the real
+      // cube7 service — one admin login cannot cast fifty votes on the public endpoint, by design.
+      await api.post(`/sessions/${sessionId}/rank`, {}).catch(() => null);
+      await api.post(`/sessions/${sessionId}/sim/ballots`, { ballots }).catch(() => null);
+    } else {
+      for (const b of ballots) await api.post(`/sessions/${sessionId}/rankings`, { ranked_theme_ids: b }).catch(() => null);
+    }
     // Aggregate (object) or the live read (bare list) — one shape via lib/ranking-shape.ts.
     let agg: unknown = await api.post<unknown>(`/sessions/${sessionId}/rankings/aggregate`, {}).catch(() => null);
     let rowsRanked = normalizeRankings(agg);
