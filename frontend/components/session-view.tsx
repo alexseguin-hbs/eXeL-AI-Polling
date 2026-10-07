@@ -43,6 +43,7 @@ import { supabase } from "@/lib/supabase";
 import { ThemeRankingDnD } from "@/components/theme-ranking-dnd";
 import { ThemeResultsChart } from "@/components/theme-results-chart";
 import { getSimPollBySessionId, resolveThemesForLevel } from "@/lib/sim-data";
+import { useSessionBallotThemes, type BallotCategory } from "@/lib/ballot-themes";
 
 // ── Simulation Duration Options ──────────────────────────────────
 // User-selectable durations so the countdown timer can be observed at each phase.
@@ -385,6 +386,17 @@ export function SessionView() {
         partition: th.partition,
       }))
     : SIM_THEMES;
+
+  // A real session ranks its OWN Cube 6 themes (GET /themes at its voting level and category) —
+  // the placeholder SIM_THEMES ids are for simulation only (AsM round 2, Krishna).
+  const liveBallot = useSessionBallotThemes(
+    !simulationMode && (session?.status === "ranking" || session?.status === "closed") ? sessionId : null,
+    votingLevel,
+    ((session as { theme01_category?: BallotCategory | null } | null)?.theme01_category) ?? null,
+  );
+  const ballotThemes: SimTheme[] = simulationMode
+    ? (simThemes.length > 0 ? simThemes : SIM_THEMES)
+    : (liveBallot ?? []);
 
   useEffect(() => {
     // In simulation mode, use sample data with selectable duration
@@ -1210,9 +1222,13 @@ export function SessionView() {
         )}
 
         {/* Ranking state */}
-        {session?.status === "ranking" && (
+        {session?.status === "ranking" && !simulationMode && liveBallot === null && (
+          <p className="py-8 text-center text-sm text-muted-foreground">{t("shared.nav.loading")}</p>
+        )}
+        {session?.status === "ranking" && (simulationMode || liveBallot !== null) && (
           <ThemeRankingDnD
-            themes={simThemes.length > 0 ? simThemes : SIM_THEMES}
+            key={ballotThemes.map((th) => th.id).join("|")}
+            themes={ballotThemes}
             sessionId={simulationMode ? undefined : sessionId}
             onComplete={async () => {
               if (simulationMode) {
@@ -1242,7 +1258,7 @@ export function SessionView() {
               <CardDescription>{t("cube10.sim.sim_results_desc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {(simThemes.length > 0 ? simThemes : SIM_THEMES).map((theme, i) => (
+              {ballotThemes.map((theme, i) => (
                 <div
                   key={theme.id}
                   className="flex items-center gap-3 rounded-md border-2 px-3 py-2"
@@ -1267,15 +1283,15 @@ export function SessionView() {
               ))}
               {/* Response Distribution Bar Chart */}
               <ThemeResultsChart
-                themes={simThemes.length > 0 ? simThemes : SIM_THEMES}
-                totalResponses={(simThemes.length > 0 ? simThemes : SIM_THEMES).reduce((s, th) => s + th.responseCount, 0)}
+                themes={ballotThemes}
+                totalResponses={ballotThemes.reduce((s, th) => s + th.responseCount, 0)}
               />
 
               <div className="rounded-md bg-muted px-3 py-2 text-center mt-2">
                 <p className="text-xs text-muted-foreground">
                   {t("cube10.sim.final_stats")
-                    .replace("{0}", String((simThemes.length > 0 ? simThemes : SIM_THEMES).reduce((s, th) => s + th.responseCount, 0)))
-                    .replace("{1}", String((simThemes.length > 0 ? simThemes : SIM_THEMES).length))}
+                    .replace("{0}", String(ballotThemes.reduce((s, th) => s + th.responseCount, 0)))
+                    .replace("{1}", String(ballotThemes.length))}
                 </p>
               </div>
               {simulationMode ? (

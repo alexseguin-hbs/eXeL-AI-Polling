@@ -1,3 +1,4 @@
+// Run through `npm run test:cube-sim-live` (it adds the ts-alias loader); plain `node --test` cannot resolve "@/".
 // SIM ↔ LIVE parity for Cubes 1-10 behind the easter-egg unlock (operator 2026-10-07: "review Cube 1-10 behind
 // easter code unlock; these need to be working and should be similar to understand if process works as aLive.
 // So basically test SIM / LIVE FOR EACH CUBE").

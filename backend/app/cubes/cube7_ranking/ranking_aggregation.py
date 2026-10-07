@@ -344,11 +344,12 @@ async def tally_rankings(
             excluded_count += 1
             continue
         ids = ur.ranked_theme_ids
-        if isinstance(ids, list):
-            all_rankings.append(ids)
-        elif isinstance(ids, dict) and "ranked_theme_ids" in ids:
-            all_rankings.append(ids["ranked_theme_ids"])
-        all_participant_ids.append(pid)
+        if isinstance(ids, dict):
+            ids = ids.get("ranked_theme_ids")
+        if not isinstance(ids, list):
+            continue  # an unreadable ballot counts for nothing — the same rule as the SQL tally's jsonb_typeof filter
+        all_rankings.append(ids)
+        all_participant_ids.append(pid)  # stays index-aligned with all_rankings for the quadratic weights
     _check_tally(session_id, cycle_id, len(all_rankings), excluded_count)
 
     n_themes = _ballot_width(all_rankings)
@@ -410,7 +411,10 @@ async def _write_aggregation(
         key=lambda item: (-item[1], _seeded_tiebreak_key(item[0], effective_seed)),
     )
 
-    # 5. Clear previous aggregation for this cycle
+    # 5. Clear previous aggregation for this cycle. Two overlapping aggregations of one session+cycle serialize on
+    # a transaction-scoped advisory lock instead of colliding on the unique constraint at commit (Odin, round 2).
+    if _is_postgres(db):
+        await db.execute(text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": f"agg:{session_id}:{cycle_id}"})
     await db.execute(
         delete(AggregatedRanking).where(
             and_(

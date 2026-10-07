@@ -63,19 +63,56 @@ for (const route of [...called].sort()) {
   ok(body !== HTML, `${route} is answered by the worker, not index.html (got ${r.status})`);
 }
 
-// 4 · Trinity Path C round-trip: a POSTed response comes back on GET for its session
+// 4 · Trinity Path C round-trip + the write guard (AsM round 2, Thor): a response lands only for a
+//     KEYED session record in polling status; a forged write to an unknown or non-polling code is refused.
 {
-  const post = await call("/api/responses", {
+  const send = (code, text) => call("/api/responses", {
     method: "POST",
     headers: { "content-type": "application/json" },
     // the exact body components/session-view.tsx sends on Path C
-    body: JSON.stringify({ short_code: "abcd1234", text: "Path C reaches the moderator", participant_id: "p-1", language_code: "en" }),
+    body: JSON.stringify({ short_code: code, text, participant_id: "p-1", language_code: "en" }),
   });
-  ok(post.status === 201, `POST /api/responses stores (got ${post.status} ${await post.clone().text()})`);
+  const unknown = await send("nosuch01", "forged into a session that does not exist");
+  ok(unknown.status === 404, `POST to a code with no keyed session is refused (got ${unknown.status})`);
+
+  const mk = (body, key) => call("/api/sessions", {
+    method: "POST",
+    headers: { "content-type": "application/json", ...(key ? { "x-session-key": key } : {}) },
+    body: JSON.stringify(body),
+  });
+  const created = await mk({ short_code: "abcd1234", title: "Path C", status: "draft", participant_count: 0 });
+  const key = (await created.json()).write_key;
+  const early = await send("abcd1234", "before polling opens");
+  ok(early.status === 409, `a draft session takes no responses (got ${early.status})`);
+
+  await mk({ short_code: "abcd1234", title: "Path C", status: "polling", participant_count: 0 }, key);
+  const post = await send("abcd1234", "Path C reaches the moderator");
+  ok(post.status === 201, `POST /api/responses stores once the session is polling (got ${post.status} ${await post.clone().text()})`);
   const get = await call("/api/responses?session=ABCD1234", { method: "GET" });
   const got = await get.json();
   ok(get.status === 200 && got.total === 1 && got.items[0].clean_text === "Path C reaches the moderator",
     `GET /api/responses returns the stored response (${JSON.stringify(got).slice(0, 120)})`);
+
+  await mk({ short_code: "abcd1234", title: "Path C", status: "ranking", participant_count: 0 }, key);
+  const late = await send("abcd1234", "after polling closed");
+  ok(late.status === 409, `a session past polling takes no responses (got ${late.status})`);
+
+  // the per-address budget: the moderator's 100-response Spiral Test fits; a flood is refused
+  const { RESPONSES_PER_ADDRESS_PER_MIN } = await import(join(ROOT, "functions", "api", "responses.js"));
+  ok(RESPONSES_PER_ADDRESS_PER_MIN >= 100, `the per-address budget fits a 100-response Spiral Test (${RESPONSES_PER_ADDRESS_PER_MIN}/min)`);
+  await mk({ short_code: "flood001", title: "Flood", status: "polling", participant_count: 0 });
+  let refused = 0; const seen = {};
+  // twice the budget + 10: even if the loop straddles a minute boundary, one window must overflow
+  for (let i = 0; i < RESPONSES_PER_ADDRESS_PER_MIN * 2 + 10; i++) {
+    const r = await call("/api/responses", {
+      method: "POST",
+      headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.9" },
+      body: JSON.stringify({ short_code: "flood001", text: `row ${i}`, participant_id: `p-${i}` }),
+    });
+    if (r.status === 429) refused++;
+    seen[r.status] = (seen[r.status] || 0) + 1;
+  }
+  ok(refused >= 5, `a flood from one address is refused past the budget (${refused} refused; ${JSON.stringify(seen)})`);
 }
 
 // 5 · /api/geo answers JSON and refuses writes
@@ -125,10 +162,12 @@ for (const route of [...called].sort()) {
   ok(bump.status === 201 && (await get()).participant_count === 7, `a participant_count increase without the key lands (got ${bump.status})`);
   await post({ short_code: "hp11code", participant_count: 3 });
   ok((await get()).participant_count === 7, "the count never goes down");
+  await post({ short_code: "hp11code", participant_count: 1e9 });
+  ok((await get()).participant_count === 7 + 25, `a keyless rise is capped per request (got ${(await get()).participant_count})`);
 
-  const keyed = await post({ short_code: "hp11code", title: "Renamed", status: "polling", question_text: "Q2?", participant_count: 7 }, key);
+  const keyed = await post({ short_code: "hp11code", title: "Renamed", status: "polling", question_text: "Q2?", participant_count: 32 }, key);
   ok(keyed.status === 201, `with the key the change succeeds (got ${keyed.status})`);
-  const viaBody = await post({ short_code: "hp11code", title: "Renamed again", status: "polling", participant_count: 7, write_key: key });
+  const viaBody = await post({ short_code: "hp11code", title: "Renamed again", status: "polling", participant_count: 32, write_key: key });
   ok(viaBody.status === 201, `the key is accepted as a body field too (got ${viaBody.status})`);
   g = await get();
   ok(g.title === "Renamed again" && g.status === "polling" && !("write_key_hash" in g), `the keyed change is stored, hash still hidden`);

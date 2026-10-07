@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 
 from app.core.participant_token import HEADER as PARTICIPANT_TOKEN_HEADER
-from app.core.participant_token import require_participant_identity
+from app.core.participant_token import require_participant_identity, verify_participant_token
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
@@ -39,6 +39,14 @@ from app.schemas.time_tracking import (
 router = APIRouter(tags=["Cube 5 — Gateway / Orchestrator"])
 
 
+async def _time_participant(db: AsyncSession, session_id: uuid.UUID, token: str | None, user) -> uuid.UUID | None:
+    """Who is tracking time: the join-issued X-Participant-Token (anonymous participants, HP-07), else the
+    authenticated user's participants row (Thor, round 2: token holders used to get a 404 and earn no time)."""
+    return verify_participant_token(session_id, token) or await resolve_participant_id(
+        db, session_id, user.user_id if user else None
+    )
+
+
 # --- Time Tracking ---
 
 
@@ -52,6 +60,7 @@ async def start_time_tracking(
     payload: TimeEntryStart,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser | None = Depends(get_optional_current_user),
+    participant_token: str | None = Header(default=None, alias=PARTICIPANT_TOKEN_HEADER),
 ):
     """Start tracking active participation time.
 
@@ -60,7 +69,7 @@ async def start_time_tracking(
     """
     # The caller's participants row in this session (an Auth0 id is never a UUID; time_entries
     # needs a real participant FK, so no row is a 404, never a 500).
-    participant_id = await resolve_participant_id(db, session_id, user.user_id if user else None)
+    participant_id = await _time_participant(db, session_id, participant_token, user)
     if participant_id is None:
         raise HTTPException(status_code=404, detail="Join the session before tracking time")
     entry = await service.start_time_tracking(
@@ -82,6 +91,7 @@ async def stop_time_tracking(
     payload: TimeEntryStop,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser | None = Depends(get_optional_current_user),
+    participant_token: str | None = Header(default=None, alias=PARTICIPANT_TOKEN_HEADER),
 ):
     """Stop tracking active participation time.
 
@@ -94,7 +104,7 @@ async def stop_time_tracking(
 
     from app.models.time_tracking import TimeEntry
 
-    participant_id = await resolve_participant_id(db, session_id, user.user_id if user else None)
+    participant_id = await _time_participant(db, session_id, participant_token, user)
     owner = (await db.execute(
         _select(TimeEntry.participant_id, TimeEntry.session_id).where(TimeEntry.id == payload.time_entry_id)
     )).first()

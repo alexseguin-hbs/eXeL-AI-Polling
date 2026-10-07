@@ -649,6 +649,8 @@ async function syncSessionToKV(session: Session, mode: "create" | "update" | "jo
       const out = (await res.json().catch(() => null)) as { write_key?: string } | null;
       if (out && typeof out.write_key === "string") rememberSessionWriteKey(session.short_code, out.write_key);
     }
+    // A moderator whose browser lost the write key cannot change settings any more — say so (Sofia, round 2).
+    if (res.status === 403) console.warn(`[session sync] ${session.short_code}: this browser does not hold the session's write key; settings were not synced`);
   };
   try {
     await doFetch();
@@ -904,7 +906,7 @@ export function mockRankingReplayHash(
 /** Deterministic Borda, mirroring backend `_borda_scores` + `_write_aggregation`: position 0 earns
  *  (n-1) points; order is score DESC, then `_seeded_tiebreak_key(theme_id, seed)` ascending. */
 export function mockBordaAggregate(ballots: string[][], seed: string): { rankings: { theme_id: string; rank: number; score: number }[]; participant_count: number; vote_counts: Record<string, number> } {
-  const n = ballots[0]?.length ?? 0; // backend: n_themes = len(all_rankings[0])
+  const n = ballots.reduce((w, b) => Math.max(w, b.length), 0); // backend: n_themes = the longest ballot (_ballot_width); _validateMockBallot makes every ballot full length
   const score = new Map<string, number>();
   const votes: Record<string, number> = {};
   for (const b of ballots) {

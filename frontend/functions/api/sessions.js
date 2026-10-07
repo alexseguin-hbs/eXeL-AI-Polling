@@ -15,7 +15,8 @@
  *   • A change to title, status, question_text or any other setting requires the key
  *     (header `X-Session-Key`, or body field `write_key`). Without it → 403, nothing written.
  *   • Without the key, the only accepted change is a HIGHER participant_count (joiners on
- *     other devices raise the lobby count); it never creates a session.
+ *     other devices raise the lobby count), by at most KEYLESS_COUNT_STEP per request; it never
+ *     creates a session.
  *   • A record stored before this change has no hash; the next settings write adopts it and
  *     receives a key (such records expire within the 24 h KV TTL).
  */
@@ -33,6 +34,13 @@ const PROTECTED_FIELDS = [
   "ends_at", "timer_display_mode", "anonymity_mode", "theme2_voting_level", "ai_provider",
   "max_response_length", "question_text",
 ];
+
+import { overLimit } from "../../edge-rate.js";
+
+// A keyless caller (a joiner on another device) may raise the lobby count by at most this much per request,
+// so one POST cannot set it to 10^9 (Pangu, round 2); POSTs per address are budgeted like /api/responses.
+export const KEYLESS_COUNT_STEP = 25;
+export const SESSION_WRITES_PER_ADDRESS_PER_MIN = 240;
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -70,7 +78,7 @@ function cacheKey(code) {
   return new Request(`https://cache.internal/sessions/${code}`, { method: "GET" });
 }
 
-async function getSession(store, code) {
+export async function getSession(store, code) {
   if (store) {
     const raw = await store.get(`session-meta:${code}`);
     return raw ? JSON.parse(raw) : null;
@@ -151,6 +159,9 @@ export async function onRequest(context) {
 
   // ── POST /api/sessions ────────────────────────────────────────
   if (request.method === "POST") {
+    if (await overLimit(request, "sessions", SESSION_WRITES_PER_ADDRESS_PER_MIN)) {
+      return json({ error: "Too many updates from this address — try again in a minute" }, 429);
+    }
     let body;
     try {
       body = await request.json();
@@ -203,7 +214,8 @@ export async function onRequest(context) {
       return json({ error: "This session's write key is required to change its settings", fields: changes }, 403);
     }
     if (incomingCount > existingCount) {
-      const metadata = { ...existing, participant_count: incomingCount, updated_at: new Date().toISOString() };
+      const raised = Math.min(incomingCount, existingCount + KEYLESS_COUNT_STEP);
+      const metadata = { ...existing, participant_count: raised, updated_at: new Date().toISOString() };
       await putSession(store, code, metadata);
       return json(publicView(metadata), 201);
     }

@@ -8,6 +8,7 @@
 import { api, ApiClientError } from "./api";
 import { generateSimResponses, simulateBallots } from "./sim-console";
 import { adaptLiveThemes, THEME01_LABELS, type LiveThemeRow } from "./adapt-live-themes";
+import { ballotThemeRows } from "./ballot-themes";
 import { normalizeRankings, rankingWinner, rankingReplayHash } from "./ranking-shape";
 import type { Session, Question, SessionThemeData, Theme01Label } from "./types";
 
@@ -174,8 +175,7 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   const parentIds = themeIds.length ? themeIds : rows.filter((r) => r.theme_level == null).map((r) => r.id);
   // The ballot is the nine Theme02 themes of the session's category (Risk & Concerns) — what the backend's
   // submit_user_ranking accepts at theme2_9. Parents only when no children exist (a thin self-contained run).
-  const riskParent = rows.find((r) => r.theme_level == null && themeLabelMatches(r, THEME01_LABELS[0]));
-  const nine = rows.filter((r) => r.theme_level === "9" && r.label && (!riskParent || r.parent_theme_id === riskParent.id)).map((r) => r.id);
+  const nine = ballotThemeRows(rows, "9", "risk").map((r) => r.id);
   const pool = nine.length >= 2 ? nine : parentIds;
   const ranked: SimConsoleResult["ranked"] = nine.length >= 2
     ? { kind: "theme02", category: THEME01_LABELS[0], level: "9" }
@@ -213,7 +213,7 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
     replayHash = rankingReplayHash(agg);
   }
 
-  progress(1, "Complete");
+  progress(1, errors.length ? `Finished with ${errors.length} error${errors.length === 1 ? "" : "s"}` : "Complete");
   return {
     sessionId, shortCode, mode: SIM_MOCK_MODE ? "self-contained" : "live-backend",
     question, responseCount: accepted, themes, ranking, winner, replayHash, summarized, ranked, errors,

@@ -51,6 +51,15 @@ const PAGES_ROUTES = {
     : new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { "content-type": "application/json", allow: "GET" } }),
 };
 
+// A route that throws answers one generic sentence; the detail goes to the worker log, never to the caller
+// (Thor, round 2: internal error text used to leak in the 502 body).
+function routeFailed(e) {
+  console.error("[worker] route failed:", e && e.stack || e);
+  return new Response(JSON.stringify({ error: "The service is unavailable — try again shortly" }), {
+    status: 502, headers: { "content-type": "application/json" },
+  });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -69,22 +78,22 @@ export default {
     if (url.pathname === "/api/ai" || url.pathname === "/api/ai/") {
       if (await isPaused(env)) return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
       try { return await handleAi(request, env); }
-      catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
+      catch (e) { return routeFailed(e); }
     }
     // --- /api/tmp — a partly-signed PDF handed over by a 24-hour link (tmp-core.js; KV SIGN_FILES) ---------
     if (url.pathname === "/api/tmp" || url.pathname.startsWith("/api/tmp/")) {
       if (await isPaused(env)) return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
       try { return await handleTmp(request, env); }
-      catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
+      catch (e) { return routeFailed(e); }
     }
     if (url.pathname === "/api/notify" || url.pathname === "/api/notify/") {
       if (await isPaused(env)) return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
       try { return await handleNotify(request, env); }
-      catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
+      catch (e) { return routeFailed(e); }
     }
     if (url.pathname === "/api/donate/verify" || url.pathname === "/api/donate/verify/") {
       try { return await handleDonateVerify(request, env); }
-      catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
+      catch (e) { return routeFailed(e); }
     }
     if (url.pathname === "/api/donate" || url.pathname === "/api/donate/") {
       try {
@@ -100,7 +109,7 @@ export default {
     if (pagesRoute) {
       if (await isPaused(env)) return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
       try { return await pagesRoute({ request, env: env || {} }); }
-      catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
+      catch (e) { return routeFailed(e); }
     }
 
     // --- Atlantis short link (unchanged) ---

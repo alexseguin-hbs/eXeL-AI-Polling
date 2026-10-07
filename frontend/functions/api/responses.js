@@ -6,7 +6,22 @@
  *
  * Uses KV if bound, otherwise falls back to Cache API for shared storage.
  * Cache API works across all Cloudflare edge locations within the same zone.
+ *
+ * WRITE GUARD (AsM round 2, Thor 2026-10-07) — the same class HP-11 closed on /api/sessions. Anyone could
+ * append rows to ANY session's feed by short code (and ~500 forged rows evicted every real one). Now a POST
+ * lands only when:
+ *   • /api/sessions holds a KEYED record for that code (a moderator created or transitioned it), and
+ *   • that record's status is "polling" — a draft, ranking, closed or unknown code takes no responses;
+ *   • the caller is under a per-address write budget (edge-rate.js, per colo; generous enough for the
+ *     moderator's own 100-response Spiral Test from one address).
+ * Paths A and B (Supabase) are untouched; this route is Trinity Path C, a backup. A participant who could
+ * still forge rows inside a live polling session is recorded as HP-30 (a join-issued credential needs the
+ * protected Path C client, so it waits on APPROVAL with live verification).
  */
+import { getSession } from "./sessions.js";
+import { overLimit } from "../../edge-rate.js";
+
+export const RESPONSES_PER_ADDRESS_PER_MIN = 600;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -92,6 +107,13 @@ export async function onRequest(context) {
     const text = (body.text || "").trim();
     if (!code) return json({ error: "Missing short_code" }, 400);
     if (!/^[A-Z0-9]{4,16}$/.test(code)) return json({ error: "Bad short_code" }, 400);
+    if (await overLimit(request, "responses", RESPONSES_PER_ADDRESS_PER_MIN)) {
+      return json({ error: "Too many responses from this address — try again in a minute" }, 429);
+    }
+    let meta = null;
+    try { meta = await getSession(store, code); } catch { meta = null; }
+    if (!meta || !meta.write_key_hash) return json({ error: "No live session with that code" }, 404);
+    if (meta.status !== "polling") return json({ error: "This session is not taking responses" }, 409);
     if (!text) return json({ error: "Missing text" }, 400);
     // Bounded: one oversized entry used to push the session's single blob past the store's value
     // limit, so every later submission for that session failed.

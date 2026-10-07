@@ -35,7 +35,7 @@ router = APIRouter(prefix="/sessions/{session_id}/sim", tags=["Cube 10 — Simul
 MAX_ITEMS = 5000  # the console's largest preset (the 5,000-response past poll)
 # Krishna (AsM round 1): theming reads the Phase A summaries, so the seed waits for the ones it triggered before it
 # answers — bounded, so a slow provider can never hang the request. What is not done by then is reported, not hidden.
-PHASE_A_WAIT_S = 120.0
+PHASE_A_WAIT_S = 85.0  # under the ~100 s Cloudflare origin timeout, so a slow provider answers phase_a_complete=false, never a 524 (Krishna, round 2)
 _PHASE_A_TASK = "run_phase_a_with_retry"  # the coroutine cube2 submit_text_response schedules per response
 _UNAVAILABLE = "[Summary unavailable]"    # phase_a_retry's marker when every retry failed
 
