@@ -699,22 +699,51 @@ export function SessionView() {
   // Supabase Realtime Broadcast: instant push-based status transitions.
   // Moderator broadcasts status changes → all participants receive instantly (~50ms).
   // Works without any DB tables — pure pub/sub via Supabase Realtime.
+  //
+  // A pushed status is only a HINT (AsM round 6 — Thor, Aset, Sofia). The Broadcast channel and the
+  // session_status table are writable with the public anon key, so anyone with the code can push a status.
+  // Against the real backend a push triggers a re-read of the backend (one at a time, at most once a second)
+  // and only the backend's answer is applied, through statusAdvances; the channel is marked healthy only when
+  // the backend confirms the pushed status. Without a backend the push itself is applied, cycle first.
+  const sessionRef = useRef<Session | null>(null);
+  useEffect(() => { sessionRef.current = session; }, [session]);
+  const pushReadRef = useRef<{ busy: boolean; at: number }>({ busy: false, at: 0 });
+  const applyPushedStatus = useCallback(
+    (push: { status: string; current_cycle?: unknown; ends_at?: unknown; participant_count?: unknown }) => {
+      const pushCycle = typeof push.current_cycle === "number" ? push.current_cycle : null;
+      if (IS_MOCK_MODE) {
+        const prev = sessionRef.current;
+        if (!prev || !statusAdvances(prev, { status: push.status, current_cycle: pushCycle ?? prev.current_cycle })) return;
+        markBroadcastHealthy();
+        setSession((p) => p ? {
+          ...p,
+          status: push.status as Session["status"],
+          current_cycle: pushCycle ?? p.current_cycle,
+          ends_at: (push.ends_at as string) || p.ends_at,
+          participant_count: (push.participant_count as number) ?? p.participant_count,
+          updated_at: new Date().toISOString(),
+        } : p);
+        return;
+      }
+      const gate = pushReadRef.current;
+      if (gate.busy || Date.now() - gate.at < 1000 || !sessionId) return;
+      gate.busy = true; gate.at = Date.now();
+      api.get<Session>(`/sessions/${sessionId}`)
+        .then((fresh) => {
+          if (fresh.status === push.status) markBroadcastHealthy();
+          setSession((p) => (p && statusAdvances(p, fresh) ? fresh : p));
+        })
+        .catch(() => {})
+        .finally(() => { gate.busy = false; });
+    },
+    [markBroadcastHealthy, sessionId],
+  );
   const onBroadcastStatus = useCallback(
     (payload: SessionBroadcastPayload) => {
-      markBroadcastHealthy();
       if (!payload.status) return;
-      setSession((prev) => {
-        if (!prev || prev.status === payload.status) return prev;
-        return {
-          ...prev,
-          status: payload.status as Session["status"],
-          ends_at: (payload.ends_at as string) || prev.ends_at,
-          participant_count: (payload.participant_count as number) ?? prev.participant_count,
-          updated_at: new Date().toISOString(),
-        };
-      });
+      applyPushedStatus({ ...payload, status: payload.status });
     },
-    [markBroadcastHealthy],
+    [applyPushedStatus],
   );
   const onBroadcastPresence = useCallback(
     (count: number) => { markBroadcastHealthy(); setParticipantCount(count); },
@@ -726,20 +755,12 @@ export function SessionView() {
     onBroadcastPresence,
   );
 
-  // Supabase Realtime postgres_changes (secondary — activates when DB tables exist).
+  // Supabase Realtime postgres_changes (secondary — activates when DB tables exist). Same rule: a hint.
   const onRealtimeStatus = useCallback(
     (newStatus: string, payload: Record<string, unknown>) => {
-      setSession((prev) => {
-        if (!prev || prev.status === newStatus) return prev;
-        return {
-          ...prev,
-          status: newStatus as Session["status"],
-          ends_at: (payload.ends_at as string) || prev.ends_at,
-          updated_at: new Date().toISOString(),
-        };
-      });
+      applyPushedStatus({ ...payload, status: newStatus });
     },
-    [],
+    [applyPushedStatus],
   );
   useRealtimeStatus(
     simulationMode ? null : session?.short_code,

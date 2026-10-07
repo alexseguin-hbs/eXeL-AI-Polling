@@ -2,7 +2,7 @@
 
 Themes are stored per cycle (phase_b `_replace_cycle_themes`) and a re-open keeps the earlier cycle's rows. Before
 this, GET /themes and submit_user_ranking read every cycle, so a re-themed cycle 2 put 18 themes on a 9-theme ballot.
-`ballot_cycle_clause` scopes both to the newest themed cycle at or before the session's current one. Real Postgres
+`ballot_cycle_clause` scopes both to exactly the session's current cycle (round 6: no fallback to an earlier one). Real Postgres
 (the SQL-tally parity database); skipped when none is reachable — CI fails if it skips.
 """
 from __future__ import annotations
@@ -64,12 +64,21 @@ def test_reopened_cycle_ballots_only_the_current_cycle():
             rows = await get_session_themes_enriched(db, sid, ballot_cycle_only=True)
             assert sorted(r["id"] for r in rows if r["theme_level"] == "9") == sorted(c1), "cycle 1 ballot = cycle 1"
 
-        # Re-open (cycle 2), not re-themed yet: the ballot is still the newest themed cycle (1).
+        # Re-open (cycle 2), not re-themed yet: the ballot is EMPTY (the client waits) and no ballot is taken —
+        # never cycle 1's themes while cycle 2's theming runs (Enki + Christo, round 6).
         async with eng.begin() as conn:
             await conn.execute(text("update sessions set current_cycle = 2 where id = :id"), {"id": sid})
         async with AsyncSession(eng) as db:
             rows = await get_session_themes_enriched(db, sid, ballot_cycle_only=True)
-            assert len([r for r in rows if r["theme_level"] == "9"]) == 9, "an un-re-themed round votes on cycle 1 again"
+            assert rows == [], f"an un-themed re-opened round has no ballot yet (got {len(rows)})"
+            early = Participant(session_id=sid, user_id=f"u:{uuid.uuid4()}", display_name="v", device_type="test",
+                                joined_at=datetime.now(timezone.utc), is_active=True, language_code="en")
+            db.add(early)
+            await db.flush()
+            with pytest.raises(ValueError, match="No (themes|Theme 01 parents)"):
+                await submit_user_ranking(db, sid, early.id, c1, cycle_id=2, theme2_voting_level="theme2_9",
+                                          theme01_category="risk")
+            await db.rollback()
 
         # Cycle 2 themed: exactly cycle 2's nine — never 18.
         async with eng.begin() as conn:

@@ -74,6 +74,20 @@ THRESHOLD_TALENT_CENTS = 1212     # $12.12
 LOCKED_PLACEHOLDER = "🔒"
 
 
+def _report_cycle(session_id: uuid.UUID):
+    """The cycle a report reads: the newest one with an aggregation (else the newest with ballots), evaluated in
+    the query. A re-opened session has rows for every cycle; reading them all double-counted ballots and made the
+    winner query (scalar_one_or_none) raise on two top themes (Thoth, AsM round 6)."""
+    from sqlalchemy.orm import aliased
+
+    from app.models.ranking import AggregatedRanking, Ranking
+
+    a2, r2 = aliased(AggregatedRanking), aliased(Ranking)
+    newest_agg = select(func.max(a2.cycle_id)).where(a2.session_id == session_id).scalar_subquery()
+    newest_ballot = select(func.max(r2.cycle_id)).where(r2.session_id == session_id).scalar_subquery()
+    return func.coalesce(newest_agg, newest_ballot)
+
+
 async def resolve_export_tier(
     db: AsyncSession,
     session_id: uuid.UUID,
@@ -587,9 +601,10 @@ async def build_analytics_dashboard(
     try:
         from app.models.ranking import AggregatedRanking, Ranking
 
+        cyc = _report_cycle(session_id)
         rank_count_result = await db.execute(
             select(func.count()).select_from(Ranking).where(
-                Ranking.session_id == session_id
+                Ranking.session_id == session_id, Ranking.cycle_id == cyc
             )
         )
         ranking_submissions = rank_count_result.scalar() or 0
@@ -600,6 +615,7 @@ async def build_analytics_dashboard(
                 and_(
                     AggregatedRanking.session_id == session_id,
                     AggregatedRanking.is_top_theme2.is_(True),
+                    AggregatedRanking.cycle_id == cyc,
                 )
             )
         )
@@ -737,7 +753,7 @@ async def build_ranking_summary(
 
         result = await db.execute(
             select(AggregatedRanking)
-            .where(AggregatedRanking.session_id == session_id)
+            .where(AggregatedRanking.session_id == session_id, AggregatedRanking.cycle_id == _report_cycle(session_id))
             .order_by(AggregatedRanking.rank_position)
         )
         rankings = list(result.scalars().all())

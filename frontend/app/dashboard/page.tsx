@@ -488,6 +488,7 @@ function SessionDetail({
       // Broadcast status change to all participants via Supabase Realtime
       broadcast("status", {
         status: updated.status,
+        current_cycle: updated.current_cycle, // so a receiver can tell a re-opened round from stale data (AsM round 6)
         participant_count: updated.participant_count,
         ends_at: updated.ends_at,
       }).catch(() => {});

@@ -388,27 +388,20 @@ async def get_session_themes(
     return list(result.scalars().all())
 
 
-def ballot_cycle_clause(session_id: uuid.UUID, upto_cycle=None):
-    """SQL condition: Theme.cycle_id is the ballot cycle — the newest themed cycle at or before `upto_cycle`
-    (default: the session's current cycle), evaluated inside the same query (no extra round trip).
+def ballot_cycle_clause(session_id: uuid.UUID, cycle=None):
+    """SQL condition: Theme.cycle_id is the ballot cycle — exactly the session's current cycle (or `cycle`).
 
-    Themes are stored per cycle (phase_b `_replace_cycle_themes`) and a re-open keeps the earlier cycle's rows,
-    so reading every cycle would put 18 themes on a 9-theme ballot (Athena, AsM round 5). A re-opened round
-    that has not been re-themed yet votes again on the latest themes it has.
+    Themes are stored per cycle (phase_b `_replace_cycle_themes`) and a re-open keeps the earlier cycle's rows.
+    Reading every cycle put 18 themes on a 9-theme ballot (Athena, AsM round 5); falling back to the previous
+    cycle let a re-opened round freeze on, or take ballots for, old themes while its own theming ran (Enki +
+    Christo, round 6). So the ballot is the current cycle only: until that cycle is themed it is empty, the
+    client keeps waiting (lib/ballot-themes.ts), and a ballot is refused ("No themes found").
     """
-    from sqlalchemy.orm import aliased
-
     from app.models.session import Session
 
-    t2 = aliased(Theme)
-    if upto_cycle is None:
-        upto_cycle = select(Session.current_cycle).where(Session.id == session_id).scalar_subquery()
-    newest = (
-        select(func.max(t2.cycle_id))
-        .where(t2.session_id == session_id, t2.cycle_id <= upto_cycle)
-        .scalar_subquery()
-    )
-    return Theme.cycle_id == newest
+    if cycle is None:
+        cycle = select(Session.current_cycle).where(Session.id == session_id).scalar_subquery()
+    return Theme.cycle_id == cycle
 
 
 # Category canonical keys — stable across languages, safe for filters/hashes.

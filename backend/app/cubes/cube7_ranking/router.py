@@ -228,11 +228,12 @@ async def trigger_aggregation(
 @router.get("/rankings/anomalies")
 async def get_anomalies(
     session_id: uuid.UUID,
-    cycle_id: int = 1,
+    cycle_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_session_owner("moderator", "admin", "lead", leads_read=True)),
 ):
     """CRS-12.04: Check for voting anomalies (moderator/lead only)."""
+    cycle_id = await _resolve_cycle(db, session_id, cycle_id)  # default = the current cycle (Thoth, round 6)
     anomalies = await service.detect_voting_anomalies(db, session_id, cycle_id)
     return {"session_id": str(session_id), "anomalies": anomalies}
 
@@ -257,7 +258,7 @@ async def get_ranking_metrics(
 @router.get("/rankings/readiness")
 async def get_ranking_readiness(
     session_id: uuid.UUID,
-    cycle_id: int = 1,
+    cycle_id: int | None = None,
     simulation_passed: bool = False,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_session_owner("moderator", "admin", "lead", leads_read=True)),
@@ -270,6 +271,7 @@ async def get_ranking_readiness(
     highest-impact-next-move / ready-to-advance. Privileged-role only. Each gather is
     guarded so a missing source degrades the profile rather than 500-ing.
     """
+    cycle_id = await _resolve_cycle(db, session_id, cycle_id)  # default = the current cycle (Thoth, round 6)
     from app.cubes.cube7_ranking.readiness import readiness_profile
 
     return await readiness_profile(
@@ -285,11 +287,12 @@ async def get_ranking_readiness(
 @router.get("/rankings/scale-info")
 async def get_scale_info(
     session_id: uuid.UUID,
-    cycle_id: int = 1,
+    cycle_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """Scale engine info: voter count, recommended path, shard count."""
+    cycle_id = await _resolve_cycle(db, session_id, cycle_id)  # default = the current cycle (Thoth, round 6)
     from app.cubes.cube7_ranking.scale_engine import AutoThemingBudget
     from app.models.ranking import Ranking
     from sqlalchemy import func, select as sa_select
@@ -315,12 +318,13 @@ async def get_scale_info(
 @router.get("/rankings/emerging")
 async def get_emerging(
     session_id: uuid.UUID,
-    cycle_id: int = 1,
+    cycle_id: int | None = None,
     theme_level: str = Query("3", description="Theme level: '3', '6', or '9'"),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """CRS-16.01: Emerging ranking patterns (moderator live view)."""
+    cycle_id = await _resolve_cycle(db, session_id, cycle_id)  # default = the current cycle (Thoth, round 6)
     # WireGuard: whitelist theme_level
     if theme_level not in VALID_THEME_LEVELS:
         raise HTTPException(
@@ -333,11 +337,12 @@ async def get_emerging(
 @router.get("/rankings/personal")
 async def get_personal_rank(
     session_id: uuid.UUID,
-    cycle_id: int = 1,
+    cycle_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ):
     """CRS-17.01: Compare your ranking with group consensus."""
+    cycle_id = await _resolve_cycle(db, session_id, cycle_id)  # default = the current cycle (Thoth, round 6)
     from app.models.participant import Participant
     from sqlalchemy import select as sa_select, and_ as sa_and
 
@@ -361,12 +366,13 @@ async def get_personal_rank(
 @router.get("/rankings/verify")
 async def verify_ranking_replay(
     session_id: uuid.UUID,
-    cycle_id: int = 1,
+    cycle_id: int | None = None,
     seed: str | None = None,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ):
     """CRS-13.03: Re-run aggregation and verify replay hash match."""
+    cycle_id = await _resolve_cycle(db, session_id, cycle_id)  # default = the current cycle (Thoth, round 6)
     return await service.verify_replay(db, session_id, cycle_id, seed)
 
 
@@ -428,10 +434,11 @@ async def override_ranking(
 @router.get("/overrides", response_model=list[GovernanceOverrideRead])
 async def get_overrides(
     session_id: uuid.UUID,
-    cycle_id: int = 1,
+    cycle_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_session_owner("moderator", "admin", "lead", leads_read=True)),
 ):
     """CRS-22: Get governance override audit trail."""
+    cycle_id = await _resolve_cycle(db, session_id, cycle_id)  # default = the current cycle (Thoth, round 6)
     overrides = await service.get_governance_overrides(db, session_id, cycle_id)
     return [GovernanceOverrideRead.model_validate(o) for o in overrides]

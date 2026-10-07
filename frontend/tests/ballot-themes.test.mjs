@@ -70,5 +70,15 @@ ok(/edges\.reduce\(\(b, e\) => \(statusAdvances\(b, e\) \? e : b\), here\)/.test
 ok(/setBallotDone\(true\)/.test(sv) && !/onComplete=\{\(order\) => \{\s*if \(!simulationMode && order\) setMyRankedOrder\(order\);\s*\/\/[^\n]*\n[^\n]*\n\s*setSession\(\(prev\) => prev \? \{ \.\.\.prev, status: "closed" \}/.test(sv), "a real voter's results keep the session's true status (a re-open still reaches them)");
 ok(/BALLOT_EMPTY_RECHECK_CAP_MS = 5000/.test(bt) && /setAttempt\(0\)/.test(bt), "empty re-checks capped at 5 s; a new session starts the backoff over");
 
+// Round 6 (Thor, Aset, Sofia): a pushed status (Broadcast, postgres_changes) is only a hint.
+const pushBlock = sv.slice(sv.indexOf("const applyPushedStatus"), sv.indexOf("const onBroadcastPresence"));
+ok(/if \(IS_MOCK_MODE\)[\s\S]*statusAdvances\(prev, \{ status: push\.status/.test(pushBlock), "without a backend a pushed status applies only if it advances, cycle first");
+ok(/api\.get<Session>\(`\/sessions\/\$\{sessionId\}`\)[\s\S]*statusAdvances\(p, fresh\)/.test(pushBlock), "against the backend a push re-reads the backend and applies only its answer");
+ok(/if \(fresh\.status === push\.status\) markBroadcastHealthy\(\)/.test(pushBlock) && !/onBroadcastStatus = useCallback\(\s*\(payload: SessionBroadcastPayload\) => \{\s*markBroadcastHealthy\(\)/.test(sv), "the channel is marked healthy only by a confirmed status, never by any traffic");
+ok(/gate\.busy \|\| Date\.now\(\) - gate\.at < 1000/.test(pushBlock), "backend re-reads are one at a time, at most once a second (a flood cannot amplify)");
+ok(/applyPushedStatus\(\{ \.\.\.payload, status: newStatus \}\)/.test(sv), "postgres_changes status goes through the same rule");
+const dash = readFileSync(new URL("../app/dashboard/page.tsx", import.meta.url), "utf8");
+ok(/broadcast\("status", \{\s*status: updated\.status,\s*current_cycle: updated\.current_cycle/.test(dash), "the moderator's status broadcast carries the cycle");
+
 console.log(`\nballot-themes: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
