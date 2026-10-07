@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { readyForProject, codexLine } from "../lib/sensor-fusion/pair.ts";
-import { acceptMark, crossReview, emptyClock, finalSubmission, nextFor, noteWork, saveMark, siTokens, simulateClass, simulatePair, simulateTeam, swarmStatus, SIM_ANIMALS, SIM_LABELERS, SIM_REVIEWER, SIM_TEAM, startClock, stopClock, workflowLines } from "../lib/sensor-fusion/workflow.ts";
+import { acceptMark, crossReview, emptyClock, finalSubmission, levelMetrics, nextFor, noteWork, saveMark, siTokens, simulateClass, simulatePair, simulateTeam, swarmStatus, SIM_ANIMALS, SIM_LABELERS, SIM_REVIEWER, SIM_TEAM, startClock, stopClock, workflowLines } from "../lib/sensor-fusion/workflow.ts";
 
 let passed = 0;
 const failures = [];
@@ -137,6 +137,11 @@ const finished = labeledSet.map((page) => ({
   boxes: [{ by: page.boxes[0].by, reviewer: page.boxes[0].by === "ALEX" ? "RILEY" : "ALEX", level: 2 }],
 }));
 ok(swarmStatus(finished, "Alex").done && swarmStatus(finished, "Riley").note === "Mission complete.", "both people see the same done line");
+const openMetrics = levelMetrics(openSet, "Alex");
+ok(openMetrics.level1 === 199 && openMetrics.level2 === 0 && openMetrics.total === 200 && openMetrics.mine1 === 100 && openMetrics.mine2 === 0, "Level 1 shows 199/200 and Level 2 shows 0/200");
+const doneMetrics = levelMetrics(finished, "Alex");
+ok(doneMetrics.level1 === 200 && doneMetrics.level2 === 200 && doneMetrics.mine1 === 100 && doneMetrics.mine2 === 100, "Level 2 shows 200/200 when every review is in");
+ok(/Level 1  \{metrics\.level1\}\/\{metrics\.total\}/.test(fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8")), "the screen shows Level 1 and Level 2 counts");
 
 const page = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8");
 ok(/saveMark\(/.test(page) && /crossReview\(/.test(page) && /clock\.open \? "STOP" : "START"/.test(page), "the screen uses the clock and keeps the first person's name");

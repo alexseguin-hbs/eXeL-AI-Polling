@@ -7,7 +7,7 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
-import { crossReview, emptyClock, finalSubmission, level1Left, nextFor, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, swarmStatus, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
+import { crossReview, emptyClock, finalSubmission, level1Left, levelMetrics, nextFor, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
 import { placeSignature } from "@/lib/light-codex";
 import { supabase } from "@/lib/supabase";
 import {
@@ -977,6 +977,7 @@ function Labeler({
     setNote(`Saved ${where}. These boxes stay on this device.`);
   }
 
+  const metrics = levelMetrics(pics.map((shot) => ({ id: shot.id, boxes: marks[shot.id] || [] })), who || "guest");
   const boxLeft = Math.min(left, right);
   const boxTop = Math.min(top, bottom);
   const boxWidth = Math.abs(right - left);
@@ -1134,7 +1135,8 @@ function Labeler({
             {workflowLines(clock, Date.now() + Math.min(tick, 0)).map((line) => `${line.member} ${line.seconds}s · ${line.images} images · ${line.adjustments} Level 2 ${line.adjustments === 1 ? "change" : "changes"} · ${siTokens(line.seconds)} S.I.`).join("  ·  ") || "START begins the clock."}
           </p>
         </div>
-        <p className={styles.swarm}>{swarmStatus(pics.map((shot) => ({ id: shot.id, boxes: marks[shot.id] || [] })), who || "guest").note}</p>
+        <p className={styles.metrics}>Level 1  {metrics.level1}/{metrics.total} · Level 2  {metrics.level2}/{metrics.total} · You  {metrics.mine1} Level 1 · {metrics.mine2} Level 2</p>
+        <p className={styles.swarm}>{metrics.note}</p>
         <div className={styles.labelBar}>
           <button type="button" onClick={saveBox} disabled={!pic}>
             SAVE BOX

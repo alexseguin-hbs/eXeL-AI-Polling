@@ -327,6 +327,16 @@ export function swarmStatus(pages: SwarmPage[], who: string) {
   return { pictures, labelLeft, reviewLeft, mine, done, note };
 }
 
+/** Level 1 and Level 2 for the whole set, and for the person holding the device. */
+export function levelMetrics(pages: SwarmPage[], who: string) {
+  const status = swarmStatus(pages, who);
+  const level1 = status.pictures - status.labelLeft;
+  const level2 = status.pictures - status.labelLeft - status.reviewLeft;
+  const mine1 = pages.filter((page) => page.boxes.some((box) => box.by && sameMember(box.by, who))).length;
+  const mine2 = pages.filter((page) => page.boxes.some((box) => box.level === 2 && box.reviewer && sameMember(box.reviewer, who))).length;
+  return { ...status, level1, level2, total: status.pictures, mine1, mine2 };
+}
+
 function seatOf(who: string, size: number) {
   const name = memberName(who);
   let total = 0;
