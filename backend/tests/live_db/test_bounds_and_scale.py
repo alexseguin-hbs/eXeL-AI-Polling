@@ -320,7 +320,7 @@ async def test_ranking_aggregation_scores_cqs(live):
     who.moderator()
     ok(await client.post(f"{A}/{sid}/rankings/aggregate"), what="aggregate")
     # CQS runs after the aggregate request, in its own transaction (AsM round 14): the response never waits on it.
-    for _ in range(100):
+    for _ in range(300):  # up to 30 s: a CI runner is slower than a workstation
         rows, winners = await _cqs_counts(sid)
         if (rows, winners) == (n, 1):
             break

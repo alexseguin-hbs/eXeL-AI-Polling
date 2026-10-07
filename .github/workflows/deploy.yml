@@ -171,9 +171,10 @@ jobs:
       - name: Backend suite (unit + SQL-tally parity + sim_seed + live-database proofs)
         run: |
           set -o pipefail
-          python -m pytest -q -rs -p no:cacheprovider 2>&1 | tee /tmp/backend-pytest.log
+          python -m pytest -q -rfEs -p no:cacheprovider 2>&1 | tee /tmp/backend-pytest.log
 
-      # A failure must be readable without the raw log (which some reviewers cannot reach): each failing test
+      # A failure must be readable without the raw log (which some reviewers cannot reach): each failing test (-rfEs puts
+      # the FAILED/ERROR lines in the summary; -rs alone listed only skips, so 0dee0ad failed with no name)
       # becomes an annotation on the check, with pytest's one-line reason.
       - name: Name the failing tests
         if: failure()
