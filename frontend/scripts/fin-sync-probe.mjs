@@ -25,14 +25,15 @@ const jsonb = (v) => JSON.parse(JSON.stringify(v, (_k, x) => (x && typeof x === 
 const puts = (name) => store.log.filter((l) => l.fn === 'innovation_state_put' && l.name === name).length;
 const rowOf = (name) => { for (const [k, v] of store.rows) if (k.endsWith(`|${name}`)) return v; return null; };
 const until = async (fn, ms = 15000, step = 100) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const v = await fn(); if (v) return v; await new Promise((r) => setTimeout(r, step)); } return null; };
-async function findStoreChunk() {
-  const dir = join(OUT, '_next/static/chunks');
-  const walk = async (d, rel) => { for (const f of await readdir(d, { withFileTypes: true })) { const p = join(d, f.name), r = `${rel}/${f.name}`; if (f.isDirectory()) { const hit = await walk(p, r); if (hit) return hit; } else if (f.name.endsWith('.js')) { const s = await readFile(p, 'utf8'); if (s.includes('"innovation_state_put"')) return { path: `/_next/static/chunks${r}`, s }; } } return null; };
-  return walk(dir, '');
+async function findStoreChunks() {   // EVERY chunk that calls the store: lib/innovation-store.ts shares the RPC name with lib/financial-2525/cloud.ts
+  const dir = join(OUT, '_next/static/chunks'), hits = [];
+  const walk = async (d, rel) => { for (const f of await readdir(d, { withFileTypes: true })) { const p = join(d, f.name), r = `${rel}/${f.name}`; if (f.isDirectory()) await walk(p, r); else if (f.name.endsWith('.js')) { const s = await readFile(p, 'utf8'); if (s.includes('"innovation_state_put"')) hits.push({ path: `/_next/static/chunks${r}`, s }); } } };
+  await walk(dir, '');
+  return hits;
 }
-const chunk = await findStoreChunk();
-const patched = chunk ? { path: chunk.path, body: chunk.s.replace(/([A-Za-z_$][\w$]*)\.supabase\b/g, '(globalThis.__FAKE_SB||$1.supabase)') } : null;
-ok(!!patched && patched.body !== chunk.s, 'the page\'s account calls are routed to the probe\'s store (the state is reached)');
+const patchedChunks = new Map((await findStoreChunks()).map((c) => [c.path, c.s.replace(/([A-Za-z_$][\w$]*)\.supabase\b/g, '(globalThis.__FAKE_SB||$1.supabase)')]));
+const finHtml = await readFile(join(OUT, 'financial-2525/index.html'), 'utf8').catch(() => '');
+ok([...patchedChunks.keys()].some((k) => finHtml.includes(k.slice(1))), 'the page\'s account calls are routed to the probe\'s store (the state is reached)');
 const srv = createServer(async (req, res) => {
   try {
     const p = decodeURIComponent(req.url.split('?')[0]);
@@ -45,7 +46,7 @@ const srv = createServer(async (req, res) => {
       store.log.push({ fn, name: args.p_name, at: Date.now() });
       res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(out)); return;
     }
-    if (patched && p === patched.path) { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(patched.body); return; }
+    if (patchedChunks.has(p)) { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(patchedChunks.get(p)); return; }
     let f = join(OUT, p);
     try { if ((await stat(f)).isDirectory()) f = join(f, 'index.html'); } catch { f = extname(f) ? f : join(f, 'index.html'); }
     res.writeHead(200, { 'content-type': MIME[extname(f)] || 'application/octet-stream' }); res.end(await readFile(f));
