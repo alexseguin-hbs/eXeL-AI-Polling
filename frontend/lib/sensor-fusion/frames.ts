@@ -34,11 +34,17 @@ function codexTime(raw: string) {
   return raw.replace(/[^0-9._]/g, "");
 }
 
-/** Bottom-right record: the annotator's name and time. A review adds the reviewer's name and time. */
+/** Bottom-right record. Level 1 is the annotator. Level 2 adds the reviewer. */
 export function bottomRightLine(who: string, when: string, reviewer = "", reviewedAt = "") {
   const name = codexName(who);
   const time = codexTime(when);
   if (!time) return "";
-  if (reviewer && reviewedAt && codexTime(reviewedAt)) return `${name} ${time} ${codexName(reviewer)} ${codexTime(reviewedAt)}`;
-  return `${name} ${time}`;
+  const level1 = `LEVEL 1: ${name} ${time}`;
+  if (reviewer && reviewedAt && codexTime(reviewedAt)) return `${level1} LEVEL 2: ${codexName(reviewer)} ${codexTime(reviewedAt)}`;
+  return level1;
+}
+
+/** What the picture shows after the decoder reads the line. */
+export function levelReadout(line: string) {
+  return line.replaceAll("LEVEL 1:", "Level 1:").replaceAll("LEVEL 2:", "Level 2:").trim();
 }

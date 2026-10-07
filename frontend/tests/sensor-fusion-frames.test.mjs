@@ -1,4 +1,4 @@
-import { IMAGE_INTAKE, VIDEO_INTAKE, bottomRightLine, needsPng, pngSet, videoSourceName } from "../lib/sensor-fusion/frames.ts";
+import { IMAGE_INTAKE, VIDEO_INTAKE, bottomRightLine, levelReadout, needsPng, pngSet, videoSourceName } from "../lib/sensor-fusion/frames.ts";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -12,8 +12,10 @@ function ok(cond, name) {
 const deer = pngSet("deer_0008.jpg");
 ok(deer.png === "deer_0008.png" && deer.xml === "deer_0008.xml" && !("level1" in deer), "the file stays deer_0008.png");
 ok(pngSet("deer_0008.L1.png").png === "deer_0008.png" && pngSet("deer_0008.heic").png === "deer_0008.png", "an older Level 1 name and a HEIC both become deer_0008.png");
-ok(bottomRightLine("Alex", "2026.10.07_12.00..00") === "ALEX 2026.10.07_12.00..00", "the record is the annotator's name and the time");
-ok(bottomRightLine("Alex", "2026.10.07_12.00..00", "Jordan", "2026.10.07_13.00..00") === "ALEX 2026.10.07_12.00..00 JORDAN 2026.10.07_13.00..00", "a review adds the reviewer's name and time");
+ok(bottomRightLine("Alex Seguin", "2026.10.05_22.23..24") === "LEVEL 1: ALEX SEGUIN 2026.10.05_22.23..24", "Level 1 is the name and the time");
+ok(bottomRightLine("ID123456789", "2026.10.05_22.23..24") === "LEVEL 1: ID123456789 2026.10.05_22.23..24", "an id is a Level 1 name");
+ok(levelReadout("LEVEL 1: ALEX SEGUIN 2026.10.05_22.23..24") === "Level 1: ALEX SEGUIN 2026.10.05_22.23..24", "the decoder shows Level 1 on the picture");
+ok(bottomRightLine("Alex", "2026.10.07_12.00..00", "Jordan", "2026.10.07_13.00..00") === "LEVEL 1: ALEX 2026.10.07_12.00..00 LEVEL 2: JORDAN 2026.10.07_13.00..00", "a review adds Level 2");
 ok(bottomRightLine("Alex", "") === "", "a record without a time is not written");
 ok(needsPng("deer_0008.jpg") && needsPng("deer_0008.webp") && !needsPng("deer_0008.png"), "a PNG is already in the app format");
 ok(IMAGE_INTAKE.includes(".heic") && VIDEO_INTAKE.includes(".mov") && videoSourceName("thermal") === "Thermal imager", "pictures and videos are both welcome");
