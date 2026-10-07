@@ -22,6 +22,8 @@ import hashlib
 import html
 import json
 import logging
+
+import structlog
 import math
 import re
 import uuid
@@ -43,7 +45,7 @@ from app.models.session import Session
 from app.models.theme import Theme
 from app.models.theme_sample import ThemeSample
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib raised TypeError
 
 # Theme01 categories (matches monolith)
 THEME01_CATEGORIES = ["Risk & Concerns", "Supporting Comments", "Neutral Comments"]
@@ -672,6 +674,43 @@ async def _assign_themes_embedding(
 # Step 8: Store results
 # ---------------------------------------------------------------------------
 
+class ThemesLockedError(ValueError):
+    """Votes already reference this cycle's themes; regenerating them would orphan ballots."""
+
+
+async def _replace_cycle_themes(db: AsyncSession, session_id: uuid.UUID, cycle_id: int) -> None:
+    from sqlalchemy import delete, update
+    from app.models.question import Question
+    from app.models.ranking import AggregatedRanking, GovernanceOverride, Ranking
+
+    old_ids = select(Theme.id).where(Theme.session_id == session_id, Theme.cycle_id == cycle_id)
+    voted = await db.execute(
+        select(func.count()).select_from(Ranking)
+        .where(Ranking.session_id == session_id, Ranking.cycle_id == cycle_id)
+    )
+    agg = await db.execute(
+        select(func.count()).select_from(AggregatedRanking).where(AggregatedRanking.theme_id.in_(old_ids))
+    )
+    ovr = await db.execute(
+        select(func.count()).select_from(GovernanceOverride).where(GovernanceOverride.theme_id.in_(old_ids))
+    )
+    if (voted.scalar() or 0) or (agg.scalar() or 0) or (ovr.scalar() or 0):
+        raise ThemesLockedError(
+            f"Ranking has started for cycle {cycle_id}; its themes can no longer be regenerated"
+        )
+    await db.execute(delete(ThemeSample).where(ThemeSample.theme_id.in_(old_ids)))
+    await db.execute(
+        update(Question).where(Question.parent_theme_id.in_(old_ids)).values(parent_theme_id=None)
+    )
+    # Children before parents (themes.parent_theme_id → themes.id).
+    await db.execute(
+        delete(Theme).where(
+            Theme.session_id == session_id, Theme.cycle_id == cycle_id, Theme.parent_theme_id.isnot(None)
+        )
+    )
+    await db.execute(delete(Theme).where(Theme.session_id == session_id, Theme.cycle_id == cycle_id))
+
+
 async def _store_results(
     db: AsyncSession,
     session: Session,
@@ -684,6 +723,10 @@ async def _store_results(
     from sqlalchemy.dialects.postgresql import insert as pg_insert
 
     provider_name = session.ai_provider or "openai"
+
+    # A re-run REPLACES this cycle's themes (the pipeline is documented as idempotent;
+    # appending gave a second full set and a ballot that had to rank both).
+    await _replace_cycle_themes(db, session.id, session.current_cycle)
 
     # Store themes at each reduction level
     for category, levels in reduced.items():

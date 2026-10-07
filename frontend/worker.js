@@ -8,6 +8,8 @@
 // fallback for unknown paths.
 //
 // Routes:
+//   /api/responses · /api/sessions · /api/drone-link · /api/geo  →  the Pages Functions in functions/api,
+//     dispatched here (PAGES_ROUTES) because functions/ never runs on this deploy.
 //   /Atlantis-Accords/<7-char-hash>  →  302  /seal#<hash>
 //     Pretty sealed short link (throwback to the 7 clearance levels). The
 //     hosted reader (public/seal.html) fetches the ciphertext from the
@@ -30,6 +32,24 @@ import { handleDonate, handleDonateVerify } from "./donate-core.js";
 import { handleNotify } from "./notify-core.js";
 import { handleTmp } from "./tmp-core.js";
 import { handleAi } from "./ai-core.js";
+import { onRequest as responsesRoute } from "./functions/api/responses.js";
+import { onRequest as sessionsRoute } from "./functions/api/sessions.js";
+import { onRequest as droneLinkRoute } from "./functions/api/drone-link.js";
+import { onRequestGet as geoRoute } from "./functions/api/geo.js";
+
+// The Pages Functions the app calls, dispatched from here because this deploy never runs functions/
+// (the /api/donate lesson above, same class). Each answered index.html with a 200 until 2026-10-07:
+// Trinity Path C / Channel C (/api/responses), cross-device session lookup (/api/sessions), the
+// drone crew link (/api/drone-link) and the minimum-wage country hint (/api/geo). They need only
+// request + env + caches.default, all present in a Worker; KV `RESPONSES` is optional (Cache API fallback).
+const PAGES_ROUTES = {
+  "/api/responses": responsesRoute,
+  "/api/sessions": sessionsRoute,
+  "/api/drone-link": droneLinkRoute,
+  "/api/geo": (ctx) => (ctx.request.method === "GET" || ctx.request.method === "HEAD")
+    ? geoRoute(ctx)
+    : new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { "content-type": "application/json", allow: "GET" } }),
+};
 
 export default {
   async fetch(request, env) {
@@ -74,6 +94,13 @@ export default {
           status: 502, headers: { "content-type": "application/json" },
         });
       }
+    }
+
+    const pagesRoute = PAGES_ROUTES[url.pathname.replace(/\/+$/, "")];
+    if (pagesRoute) {
+      if (await isPaused(env)) return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
+      try { return await pagesRoute({ request, env: env || {} }); }
+      catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
     }
 
     // --- Atlantis short link (unchanged) ---

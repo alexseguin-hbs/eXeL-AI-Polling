@@ -8,7 +8,12 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
-from app.core.exceptions import generic_exception_handler
+from app.core.exceptions import (
+    AIProviderUnavailableError,
+    ai_provider_unavailable_handler,
+    generic_exception_handler,
+    payment_provider_error_handler,
+)
 from app.core.logging import setup_logging
 from app.core.middleware import (
     CacheControlMiddleware,
@@ -106,6 +111,13 @@ app.add_middleware(TimingMiddleware)
 
 # Exception handlers
 app.add_exception_handler(Exception, generic_exception_handler)
+app.add_exception_handler(AIProviderUnavailableError, ai_provider_unavailable_handler)
+try:
+    import stripe as _stripe
+
+    app.add_exception_handler(_stripe.error.StripeError, payment_provider_error_handler)
+except ImportError:  # stripe is optional outside payment deployments
+    pass
 
 # Register all cube routers under /api/v1
 PREFIX = "/api/v1"

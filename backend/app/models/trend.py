@@ -30,7 +30,7 @@ class TrendSnapshot(Base):
     project_id: Mapped[str] = mapped_column(
         String(100), nullable=False  # Groups sessions for cross-session analysis
     )
-    snapshot_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    snapshot_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     input_count: Mapped[int] = mapped_column(Integer, default=0)
     participant_count: Mapped[int] = mapped_column(Integer, default=0)
 
@@ -64,7 +64,7 @@ class TrendSubscription(Base):
         String(20), default="active"
         # active / cancelled / past_due / trialing
     )
-    current_period_end: Mapped[datetime | None] = mapped_column(DateTime)
+    current_period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     amount_cents: Mapped[int] = mapped_column(Integer, default=1111)  # $11.11/mo
 
     __table_args__ = (

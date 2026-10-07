@@ -22,6 +22,8 @@ CRS: 18, 19, 24, 25, 32, 33, 34, 35
 """
 
 import logging
+
+import structlog
 import math
 import uuid
 from datetime import datetime, timezone
@@ -36,7 +38,7 @@ from app.core.rcore.execution_modes import dispatch_execution_mode
 from app.core.rcore.rotor_adapter import stamp_orm as _hwr_stamp
 from app.models.token_ledger import TokenDispute, TokenLedger
 
-logger = logging.getLogger("cube8")
+logger = structlog.get_logger("cube8")  # keyword fields need structlog; stdlib raised TypeError
 
 
 def dispatch_token_award(

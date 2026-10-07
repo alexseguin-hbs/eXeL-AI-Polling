@@ -10,6 +10,8 @@ import hashlib
 import html
 import json
 import logging
+
+import structlog
 import math
 import re
 import uuid
@@ -39,7 +41,7 @@ from app.cubes.cube6_ai.phase_b import (
     _reduce_themes, _assign_themes_llm, _assign_themes_embedding,
     _store_results,
 )
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib raised TypeError
 
 # Theme01 categories (matches monolith)
 THEME01_CATEGORIES = ["Risk & Concerns", "Supporting Comments", "Neutral Comments"]
@@ -181,6 +183,11 @@ async def run_pipeline(
         )
 
     except Exception as exc:
+        from app.cubes.cube6_ai.phase_b import ThemesLockedError
+
+        if isinstance(exc, ThemesLockedError):
+            await db.rollback()  # the stored themes are still good; nothing failed
+            raise
         # Task B5: On failure, mark session with error stage for status endpoint
         failed_stage = getattr(session, "pipeline_stage", "unknown")
         session.pipeline_stage = f"error:{failed_stage}"

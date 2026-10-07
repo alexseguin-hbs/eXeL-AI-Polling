@@ -25,6 +25,8 @@ CRS: Cube 10 internal (no external CRS — self-governing)
 from __future__ import annotations
 
 import logging
+
+import structlog
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,7 +34,7 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = logging.getLogger("cube10")
+logger = structlog.get_logger("cube10")  # keyword fields need structlog; stdlib raised TypeError
 
 # Repo-relative backend dir (this file: backend/app/cubes/cube10_simulation/service.py).
 # Replaces a hardcoded /home/alex path so the sim subprocess runs anywhere (CI, cloud, dev).

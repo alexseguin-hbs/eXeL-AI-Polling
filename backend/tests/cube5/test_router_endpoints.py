@@ -45,12 +45,31 @@ class TestStartTimeTracking:
             "app.cubes.cube5_gateway.service.start_time_tracking",
             new_callable=AsyncMock,
             return_value=entry,
+        ) as start, patch(
+            "app.cubes.cube5_gateway.router.resolve_participant_id",
+            new_callable=AsyncMock,
+            return_value=PID,
         ):
             resp = await client.post(
                 f"{PREFIX}/time/start",
                 json={"action_type": "responding"},
             )
         assert resp.status_code == 201
+        assert start.await_args.kwargs["participant_id"] == PID
+
+    @pytest.mark.asyncio
+    async def test_404_when_caller_has_not_joined(self, client, moderator_user):
+        """An Auth0 id is never a UUID; a caller with no participants row gets 404, never 500."""
+        with patch(
+            "app.cubes.cube5_gateway.router.resolve_participant_id",
+            new_callable=AsyncMock,
+            return_value=None,
+        ):
+            resp = await client.post(
+                f"{PREFIX}/time/start",
+                json={"action_type": "responding"},
+            )
+        assert resp.status_code == 404
 
     @pytest.mark.asyncio
     async def test_rejects_invalid_action_type(self, client, moderator_user):

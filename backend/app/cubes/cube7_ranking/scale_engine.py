@@ -32,6 +32,8 @@ from __future__ import annotations
 
 import hashlib
 import logging
+
+import structlog
 import math
 import uuid
 from collections import defaultdict
@@ -39,7 +41,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-logger = logging.getLogger("cube7.scale")
+logger = structlog.get_logger("cube7.scale")  # keyword fields need structlog; stdlib raised TypeError
 
 
 # ═══════════════════════════════════════════════════════════════════

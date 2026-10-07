@@ -6,6 +6,8 @@ If all fail, raises ValueError.
 
 import logging
 
+import structlog
+
 from app.cubes.cube6_ai.providers.base import (
     AIProviderName,
     EmbeddingProvider,
@@ -32,8 +34,9 @@ from app.cubes.cube6_ai.providers.offline_provider import (
     OfflineSummarization,
 )
 from app.config import settings
+from app.core.exceptions import AIProviderUnavailableError
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib raised TypeError
 
 # Failover order: OpenAI (default) -> Gemini (cheapest) -> Grok -> Claude
 _FAILOVER_ORDER = [
@@ -109,7 +112,7 @@ def get_embedding_provider(name: str) -> EmbeddingProvider:
                 )
             return cls()
 
-    raise ValueError(
+    raise AIProviderUnavailableError(
         f"No embedding provider available. Requested: '{name}', "
         f"checked: {[p.value for p in chain]}. Configure at least one API key."
     )
@@ -133,7 +136,7 @@ def get_summarization_provider(name: str) -> SummarizationProvider:
                 )
             return cls()
 
-    raise ValueError(
+    raise AIProviderUnavailableError(
         f"No summarization provider available. Requested: '{name}', "
         f"checked: {[p.value for p in chain]}. Configure at least one API key."
     )
@@ -151,7 +154,7 @@ def get_summarization_provider_or_offline(name: str) -> SummarizationProvider:
     """
     try:
         return get_summarization_provider(name)
-    except ValueError:
+    except AIProviderUnavailableError:
         from app.config import settings
 
         if settings.environment == "production":

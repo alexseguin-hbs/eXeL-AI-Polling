@@ -81,6 +81,26 @@ class SessionNotPollingError(HTTPException):
         )
 
 
+class AIProviderUnavailableError(ValueError):
+    """No AI provider has a key configured (a ValueError, so existing callers that catch
+    ValueError keep working)."""
+
+
+async def ai_provider_unavailable_handler(request: Request, exc: Exception) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": "AI provider not configured"},
+    )
+
+
+async def payment_provider_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Stripe unreachable or refusing: the caller's request was fine, the provider was not."""
+    return JSONResponse(
+        status_code=status.HTTP_502_BAD_GATEWAY,
+        content={"detail": "Payment provider unavailable, please try again"},
+    )
+
+
 async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -13,6 +13,8 @@ I/O: db (AsyncSession) + params → dict (item data)
 
 import hashlib
 import logging
+
+import structlog
 import uuid
 from datetime import datetime, timezone
 
@@ -21,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cubes.cube12_divinity_nft.models import ArxItem, ArxTransaction
 
-logger = logging.getLogger("cube12")
+logger = structlog.get_logger("cube12")  # keyword fields need structlog; stdlib raised TypeError
 
 # Transaction ID counter (in production, use DB sequence)
 def _next_tx_id() -> str:

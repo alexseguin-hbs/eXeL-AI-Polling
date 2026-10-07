@@ -44,6 +44,8 @@ from __future__ import annotations
 
 import hashlib
 import logging
+
+import structlog
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -51,7 +53,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("sdk")
+logger = structlog.get_logger("sdk")  # keyword fields need structlog; stdlib raised TypeError
 
 
 # ═══════════════════════════════════════════════════════════════════════════

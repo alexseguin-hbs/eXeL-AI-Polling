@@ -9,6 +9,8 @@ Donation timing: ALWAYS after results delivered, never gates access.
 """
 
 import logging
+
+import structlog
 import math
 import uuid
 
@@ -23,7 +25,7 @@ from app.models.payment import PaymentTransaction
 from app.models.session import Session
 from app.models.participant import Participant
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib raised TypeError
 
 # Configure Stripe from the ENVIRONMENT-resolved key (prefers restricted/RAK + live in
 # production; never a repo-committed key). Single source of truth = stripe_config.resolve_secret_key.

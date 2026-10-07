@@ -392,7 +392,9 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                       const sdkUrl = `${window.location.origin}/api`;
                       try {
                         const resp = await fetch(`/api/v1/sessions/qr-generate?data=${encodeURIComponent(sdkUrl)}`);
-                        if (resp.ok) {
+                        // Only an image is a QR: with no backend behind this path the site answers its
+                        // own HTML with a 200, which opened the homepage instead of a code.
+                        if (resp.ok && (resp.headers.get("content-type") || "").startsWith("image/")) {
                           const blob = await resp.blob();
                           const url = URL.createObjectURL(blob);
                           window.open(url, "_blank");

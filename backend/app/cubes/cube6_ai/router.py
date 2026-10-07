@@ -40,7 +40,12 @@ async def run_ai_theming(
             detail=f"provider must be one of: {', '.join(VALID_PROVIDERS)}",
         )
     seed = payload.seed if payload else None
-    result = await service.run_pipeline(db, session_id, seed=seed)
+    from app.cubes.cube6_ai.phase_b import ThemesLockedError
+
+    try:
+        result = await service.run_pipeline(db, session_id, seed=seed)
+    except ThemesLockedError as e:
+        raise HTTPException(status_code=409, detail=str(e))
     return result
 
 

@@ -45,8 +45,8 @@ class WebhookSubscription(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     failure_count: Mapped[int] = mapped_column(Integer, default=0)
     max_failures: Mapped[int] = mapped_column(Integer, default=5)
-    last_delivery_at: Mapped[datetime | None] = mapped_column(DateTime)
-    last_failure_at: Mapped[datetime | None] = mapped_column(DateTime)
+    last_delivery_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_failure_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     __table_args__ = (
         Index("ix_webhook_sub_session", "session_id"),

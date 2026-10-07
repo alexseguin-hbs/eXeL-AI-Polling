@@ -14,11 +14,13 @@ Availability guard (Task A5.01): logs warning + continues on Supabase failure.
 
 import logging
 
+import structlog
+
 import httpx
 
 from app.config import settings
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib raised TypeError
 
 # Supabase Realtime broadcast endpoint
 # https://supabase.com/docs/guides/realtime/broadcast#send-messages-using-rest-api

@@ -22,6 +22,8 @@ fire-and-forget pattern, status polling for monitoring.
 
 import asyncio
 import logging
+
+import structlog
 import math
 import uuid
 from datetime import datetime, timezone
@@ -36,10 +38,11 @@ from app.core.hi_rates import hours_to_hi, resolve_human_rate, settlement_stamp
 from app.core.concurrency import SessionSemaphorePool
 from app.core.rcore.execution_modes import dispatch_execution_mode
 from app.models.pipeline_trigger import PipelineTrigger, VALID_TRIGGER_TYPES
+from app.models.session import Session
 from app.models.time_tracking import TimeEntry
 from app.models.token_ledger import TokenLedger
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib raised TypeError
 
 
 def dispatch_pipeline_mode(

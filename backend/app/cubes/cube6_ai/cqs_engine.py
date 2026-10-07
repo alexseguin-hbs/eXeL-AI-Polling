@@ -11,6 +11,8 @@ import hashlib
 import html
 import json
 import logging
+
+import structlog
 import uuid
 
 import numpy as np
@@ -18,12 +20,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.cubes.cube6_ai.providers.factory import get_summarization_provider
+from app.cubes.cube6_ai.providers.factory import get_summarization_provider_or_offline
 from app.models.response_meta import ResponseMeta
 from app.models.response_summary import ResponseSummary
 from app.models.session import Session
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib raised TypeError
 
 _CQS_INSTRUCTION = (
     "You are an expert evaluator of polling response quality. "
@@ -64,7 +66,7 @@ async def score_cqs(
         raise ValueError(f"Session {session_id} not found")
 
     provider_name = session.ai_provider or "openai"
-    summarizer = get_summarization_provider(provider_name)
+    summarizer = get_summarization_provider_or_offline(provider_name)
     weights = session.cqs_weights or DEFAULT_CQS_WEIGHTS
 
     level_field = f"theme2_{theme_level}"

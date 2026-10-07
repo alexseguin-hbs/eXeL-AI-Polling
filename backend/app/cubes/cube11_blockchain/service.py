@@ -16,6 +16,8 @@ I/O: db (AsyncSession) + session data → dict (chain record)
 
 import hashlib
 import logging
+
+import structlog
 from datetime import datetime, timezone
 
 from sqlalchemy import select, func
@@ -23,7 +25,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cubes.cube11_blockchain.models import BlockchainRecord
 
-logger = logging.getLogger("cube11")
+logger = structlog.get_logger("cube11")  # keyword fields need structlog; stdlib raised TypeError
 
 
 def compute_governance_proof(

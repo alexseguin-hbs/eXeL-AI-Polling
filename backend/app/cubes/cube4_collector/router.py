@@ -7,6 +7,7 @@ summary/theme status for the moderator dashboard.
 
 import uuid
 
+from app.core.submission_validators import resolve_participant_id
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -103,7 +104,7 @@ async def response_languages(
 
 
 @router.get("/presence")
-async def get_presence(
+async def get_collector_presence(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
 ):
@@ -137,7 +138,7 @@ async def create_outcome(
 ):
     """CRS-10.01: Create a desired outcome for the session."""
     await validate_session_exists(db, session_id)
-    participant_id = uuid.UUID(user.user_id) if user else None
+    participant_id = await resolve_participant_id(db, session_id, user.user_id if user else None)
     outcome = await create_desired_outcome(
         db, session_id,
         description=body.description,

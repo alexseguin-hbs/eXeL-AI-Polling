@@ -160,11 +160,13 @@ async def get_feedback_stats(
 @router.post("/submissions", status_code=201)
 async def create_submission(
     payload: SubmissionCreate,
+    db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ):
     """Submit code improvement for a cube function."""
     try:
         return await service.create_submission(
+            db,
             cube_id=payload.cube_id,
             function_name=payload.function_name,
             submitter_id=user.user_id,
@@ -266,11 +268,13 @@ class ChallengeCreate(BaseModel):
 @router.post("/challenges", status_code=201)
 async def create_challenge(
     payload: ChallengeCreate,
+    db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("admin")),
 ):
     """Create a new challenge for a specific Cube (Admin only)."""
     try:
         return await service.create_challenge(
+            db,
             cube_id=payload.cube_id,
             title=payload.title,
             description=payload.description,
@@ -286,22 +290,27 @@ async def create_challenge(
 @router.post("/challenges/{challenge_id}/claim")
 async def claim_challenge(
     challenge_id: str,
+    db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ):
     """Claim a challenge — creates isolated simulation portal."""
-    return await service.claim_challenge(challenge_id, user.user_id)
+    try:
+        return await service.claim_challenge(db, challenge_id, user.user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/challenges/{challenge_id}/submit")
 async def submit_challenge_code(
     challenge_id: str,
     payload: SubmissionCreate,
+    db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ):
     """Submit enhanced code for community review."""
     try:
         return await service.submit_challenge(
-            challenge_id, user.user_id, payload.code_diff,
+            db, challenge_id, user.user_id, payload.code_diff,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

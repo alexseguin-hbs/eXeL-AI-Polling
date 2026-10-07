@@ -10,6 +10,7 @@ The CENTER of the 3x3 cube grid. All flows pass through here:
 
 import uuid
 
+from app.core.submission_validators import resolve_participant_id
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,8 +54,11 @@ async def start_time_tracking(
     Called when user begins responding or ranking.
     ♡ = floor(active_minutes), 웃 = 0, ◬ = 5x ♡.
     """
-    # Resolve participant_id from authenticated user, fallback to session_id for internal calls
-    participant_id = uuid.UUID(user.user_id) if user else session_id
+    # The caller's participants row in this session (an Auth0 id is never a UUID; time_entries
+    # needs a real participant FK, so no row is a 404, never a 500).
+    participant_id = await resolve_participant_id(db, session_id, user.user_id if user else None)
+    if participant_id is None:
+        raise HTTPException(status_code=404, detail="Join the session before tracking time")
     entry = await service.start_time_tracking(
         db,
         session_id=session_id,

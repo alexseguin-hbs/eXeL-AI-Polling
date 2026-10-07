@@ -137,3 +137,26 @@ def validate_and_fit_text_input(raw_text: str, max_length: int) -> tuple[str, bo
     if not text:
         raise ResponseValidationError("Response text cannot be empty")
     return reprocess_overlength(text, max_length)
+
+
+async def resolve_participant_id(
+    db: AsyncSession, session_id: uuid.UUID, user_id: str | None
+) -> uuid.UUID | None:
+    """The participants.id row for this user in this session, or None.
+
+    An Auth0 user_id ("auth0|…", "google-oauth2|…") is never a UUID, so it is matched on
+    Participant.user_id; a caller that already holds its participant UUID may pass that.
+    Every participant FK (time_entries, desired_outcomes) needs a real row, never a guess.
+    """
+    if not user_id:
+        return None
+    conds = [Participant.user_id == user_id]
+    try:
+        conds.append(Participant.id == uuid.UUID(user_id))
+    except ValueError:
+        pass
+    from sqlalchemy import or_
+    row = await db.execute(
+        select(Participant.id).where(Participant.session_id == session_id, or_(*conds)).limit(1)
+    )
+    return row.scalar_one_or_none()

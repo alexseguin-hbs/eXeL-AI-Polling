@@ -20,6 +20,8 @@ CRS: 14, 15, 19, 20, 21
 
 import io
 import logging
+
+import structlog
 import uuid
 from datetime import datetime, timezone
 
@@ -37,7 +39,7 @@ from app.models.response_summary import ResponseSummary
 from app.models.payment import PaymentTransaction
 from app.models.theme import Theme
 
-logger = logging.getLogger("cube9")
+logger = structlog.get_logger("cube9")  # keyword fields need structlog; stdlib raised TypeError
 
 # ---------------------------------------------------------------------------
 # Export Content Tiers (donation-gated)
@@ -821,8 +823,24 @@ async def destroy_session_export_data(
             summary_333="[DESTROYED]",
             summary_111="[DESTROYED]",
             summary_33="[DESTROYED]",
-            original_text="[DESTROYED]",
         )
+    )
+
+    # Every other copy of the participant's words: the text and voice rows keyed by
+    # response_meta (ResponseSummary has no original_text column — naming one made
+    # this whole destruction raise and nothing was destroyed).
+    from app.models.text_response import TextResponse
+    from app.models.voice_response import VoiceResponse
+    meta_ids = select(ResponseMeta.id).where(ResponseMeta.session_id == session_id)
+    await db.execute(
+        update(TextResponse)
+        .where(TextResponse.response_meta_id.in_(meta_ids))
+        .values(pii_scrubbed_text="[DESTROYED]", clean_text="[DESTROYED]")
+    )
+    await db.execute(
+        update(VoiceResponse)
+        .where(VoiceResponse.response_meta_id.in_(meta_ids))
+        .values(transcript_text="[DESTROYED]")
     )
 
     # R-Core: append-only AuditLog on the IRREVERSIBLE destruction (the highest-value

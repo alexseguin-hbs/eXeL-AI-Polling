@@ -49,6 +49,9 @@ from app.schemas.session import (
     SessionUpdate,
 )
 
+# Strong references to fire-and-forget tasks so the event loop cannot drop them mid-run.
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
 router = APIRouter(prefix="/sessions", tags=["Cube 1 — Sessions"])
 
 # ---------------------------------------------------------------------------
@@ -111,11 +114,23 @@ async def _transition_and_return(
         try:
             from app.cubes.cube5_gateway.service import orchestrate_post_polling
 
-            asyncio.create_task(
-                orchestrate_post_polling(
-                    db, session_id, seed=updated.seed
-                )
-            )
+            # Its own DB session: the request's session closes when this response is sent,
+            # which killed the orchestration mid-flush (theming never started).
+            async def _orchestrate(sid: uuid.UUID, seed) -> None:
+                from app.db.postgres import async_session_factory
+
+                try:
+                    async with async_session_factory() as bg_db:
+                        await orchestrate_post_polling(bg_db, sid, seed=seed)
+                except Exception as exc:  # never an unretrieved task exception
+                    logger.error(
+                        "cube1.orchestrate_post_polling.background_failed",
+                        extra={"session_id": str(sid), "error": str(exc)},
+                    )
+
+            task = asyncio.create_task(_orchestrate(session_id, updated.seed))
+            _BACKGROUND_TASKS.add(task)
+            task.add_done_callback(_BACKGROUND_TASKS.discard)
             logger.info(
                 "cube1.orchestrate_post_polling.fired",
                 extra={"session_id": str(session_id)},

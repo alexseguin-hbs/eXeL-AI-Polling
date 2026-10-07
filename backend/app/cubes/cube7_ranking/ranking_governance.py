@@ -39,6 +39,8 @@ from app.cubes.cube7_ranking.ranking_submission import (
     _MIN_JUSTIFICATION_LEN,
 )
 from app.cubes.cube7_ranking.ranking_aggregation import (
+    aggregate_rankings,
+    identify_top_theme2,
     _borda_scores,
     _seeded_tiebreak_key,
     _compute_replay_hash,

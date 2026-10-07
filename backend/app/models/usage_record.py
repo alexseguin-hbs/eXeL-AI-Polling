@@ -9,7 +9,7 @@ can `record_usage(...)` one line without a bespoke table.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Float, Index, Integer, String
+from sqlalchemy import DateTime, Float, Index, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -37,7 +37,7 @@ class UsageRecord(Base):
     api_key_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     session_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     scope_ref: Mapped[str | None] = mapped_column(String(255))
-    occurred_at: Mapped[datetime] = mapped_column(nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     __table_args__ = (
         Index("ix_usage_org_metric_time", "org_id", "metric", "occurred_at"),
