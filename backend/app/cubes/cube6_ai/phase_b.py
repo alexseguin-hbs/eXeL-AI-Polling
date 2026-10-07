@@ -192,12 +192,14 @@ async def _classify_theme01(
 # ---------------------------------------------------------------------------
 
 def _group_by_theme01(responses: list[dict]) -> dict[str, list[dict]]:
-    """Split responses into bins by Theme01 label."""
+    """Split responses into bins by Theme01 label. The binned label is written back, so the stored theme01 always
+    equals a parent Theme.label (Aset, round 17)."""
     bins: dict[str, list[dict]] = {cat: [] for cat in THEME01_CATEGORIES}
     for r in responses:
         label = r.get("theme01", "Neutral Comments")
         if label not in bins:
             label = "Neutral Comments"
+            r["theme01"] = label
         bins[label].append(r)
     return bins
 
@@ -534,6 +536,22 @@ _ASSIGN_INSTRUCTION = (
 )
 
 
+def _snap_label(name: str, cat_themes: list[dict]) -> str | None:
+    """The stored label the model meant: exact, then html-escaped/unescaped, then case-insensitive — so every assignment
+    written to response_summaries equals a Theme.label (CQS eligibility and counts compare them; Aset, round 17)."""
+    labels = [t["label"] for t in cat_themes]
+    if name in labels:
+        return name
+    for candidate in (html.escape(name), html.unescape(name)):
+        if candidate in labels:
+            return candidate
+    folded = html.unescape(name).casefold()
+    for label in labels:
+        if html.unescape(label).casefold() == folded:
+            return label
+    return None
+
+
 async def _assign_themes_llm(
     summarizer: SummarizationProvider,
     responses: list[dict],
@@ -592,8 +610,11 @@ async def _assign_themes_llm(
 
             match = _CLASSIFY_PATTERN.match(result_text)
             if match:
-                theme_name = match.group(1).strip()
-                confidence = int(match.group(2))
+                theme_name, confidence = _snap_label(match.group(1).strip(), cat_themes), int(match.group(2))
+                if theme_name is None:
+                    # The model named no theme of this category: a named, deterministic fallback at confidence 0,
+                    # never a label no Theme row carries (Aset, AsM round 17).
+                    theme_name, confidence = (cat_themes[0]["label"] if cat_themes else ""), 0
             else:
                 theme_name = cat_themes[0]["label"] if cat_themes else ""
                 confidence = 70

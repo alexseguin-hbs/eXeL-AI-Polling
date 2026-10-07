@@ -96,21 +96,35 @@ async def run_cqs_scoring(
     if not top_theme2_label or len(top_theme2_label) > 200:
         raise HTTPException(status_code=400, detail="Invalid theme label")
     found = (await db.execute(
-        _select(Theme.label, Theme.parent_theme_id).where(
+        _select(Theme.id, Theme.label, Theme.parent_theme_id).where(
             Theme.session_id == session_id,
             Theme.parent_theme_id.isnot(None),
             Theme.label.in_({top_theme2_label, _html.escape(top_theme2_label)}),
-        ).order_by(Theme.response_count.desc(), Theme.id).limit(1)
-    )).one_or_none()
-    if found is None:
+        )
+    )).all()
+    if not found:
         raise HTTPException(status_code=400, detail="That theme is not one of this session's themes")
-    stored, parent_id = found
-    category = (await db.execute(_select(Theme.label).where(Theme.id == parent_id))).scalar_one_or_none()
-    # The same tracked path as the ranking handoff: its own trigger, CQS capacity, timeout and failure cleanup, scoped
-    # to the theme's own Theme01 category (Krishna, round 16).
-    from app.cubes.cube5_gateway.service import run_cqs_tracked
+    # CQS rewards answers in the crowd's #1 Theme02 (CRS-11): only the latest aggregated winner may be scored, so a
+    # session owner cannot move the reward to a theme of their choosing (Thor, round 17).
+    from app.models.ranking import AggregatedRanking
+    from app.models.session import Session
 
-    return await run_cqs_tracked(db, session_id, stored, theme_level, category)
+    cycle = (await db.execute(_select(Session.current_cycle).where(Session.id == session_id))).scalar_one_or_none() or 1
+    winner_id = (await db.execute(_select(AggregatedRanking.theme_id).where(
+        AggregatedRanking.session_id == session_id, AggregatedRanking.cycle_id == cycle,
+        AggregatedRanking.is_top_theme2.is_(True)).limit(1))).scalar_one_or_none()
+    if winner_id is None:
+        raise HTTPException(status_code=409, detail="Aggregate the ranking first: CQS scores the voted #1 theme")
+    match = next((row for row in found if row[0] == winner_id), None)
+    if match is None:
+        raise HTTPException(status_code=409, detail="CQS scores only the voted #1 theme of this cycle")
+    _, stored, parent_id = match
+    category = (await db.execute(_select(Theme.label).where(Theme.id == parent_id))).scalar_one_or_none()
+    # Through the session's single flight on the CQS capacity, like the ranking handoff (Thor, Sofia; round 17).
+    from app.cubes.cube5_gateway.service import schedule_cqs_manual
+
+    trigger = await schedule_cqs_manual(db, session_id, stored, theme_level, category)
+    return {"session_id": str(session_id), "status": "scheduled", "trigger_id": str(trigger.id)}
 
 
 @router.get("/themes", response_model=list[ThemeRead])

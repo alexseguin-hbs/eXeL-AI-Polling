@@ -770,6 +770,10 @@ async def trigger_ai_pipeline(
                                 "cube5.pipeline.ranking.auto_trigger_failed",
                                 extra={"error": str(rank_err)},
                             )
+                    except asyncio.CancelledError:
+                        # Shutdown mid-theming: close the trigger before going (Enlil, Athena, Sofia; AsM round 17).
+                        await asyncio.shield(_fail_trigger_fresh(trigger_id, "interrupted (shutdown)"))
+                        raise
                     except asyncio.TimeoutError:
                         logger.error(
                             "cube5.pipeline.ai_theming.timeout",
@@ -1015,21 +1019,23 @@ async def _score_cqs_once(session_id: uuid.UUID, label: str, theme_level: str, c
     from app.cubes.cube6_ai.cqs_engine import run_cqs_pipeline
     from app.db.postgres import async_session_factory
 
-    try:
+    async def _run() -> dict:
         async with _cqs_semaphore:
             async with async_session_factory() as bg_db:
                 if trigger_id:
                     await update_pipeline_status(bg_db, trigger_id, "in_progress")
-                cqs = await asyncio.wait_for(
-                    run_cqs_pipeline(bg_db, session_id, label, theme_level, theme01_category=category),
-                    timeout=CQS_TIMEOUT_SEC,
-                )
+                out = await run_cqs_pipeline(bg_db, session_id, label, theme_level, theme01_category=category)
                 if trigger_id:
                     await update_pipeline_status(bg_db, trigger_id, "completed", result_metadata={
-                        "cqs_status": cqs.get("status"),
-                        "total_scored": cqs.get("total_scored", 0),
-                        "winner_response_id": cqs.get("winner_response_id"),
+                        "cqs_status": out.get("status"),
+                        "total_scored": out.get("total_scored", 0),
+                        "winner_response_id": out.get("winner_response_id"),
                     })
+                return out
+
+    try:
+        # The timeout covers the wait for a CQS slot too: nothing waits unbounded behind other sessions (Thor, r17).
+        cqs = await asyncio.wait_for(_run(), timeout=CQS_TIMEOUT_SEC)
         logger.info("cube5.cqs.scored", extra={"session_id": str(session_id), "status": cqs.get("status")})
         return cqs
     except asyncio.CancelledError:
@@ -1078,10 +1084,21 @@ async def _cqs_failure_cleanup(session_id: uuid.UUID, trigger_id: uuid.UUID | No
         logger.exception("cube5.cqs.failure_cleanup_failed", extra={"session_id": str(session_id)})
 
 
+async def schedule_cqs_manual(db: AsyncSession, session_id: uuid.UUID, label: str, theme_level: str,
+                              category: str | None) -> PipelineTrigger:
+    """The moderator's manual CQS run, through the session's single flight (coalesced with any run in progress) on
+    the CQS capacity — the same path as the ranking handoff; the route answers 202 with the trigger (Thor, Sofia;
+    round 17)."""
+    trigger = await _create_trigger(db, session_id, "cqs_scoring", metadata={
+        "top_theme2_label": label, "theme_level": theme_level, "theme01_category": category, "source": "manual"})
+    _schedule_cqs(session_id, (label, theme_level, category, trigger.id))
+    return trigger
+
+
 async def run_cqs_tracked(db: AsyncSession, session_id: uuid.UUID, label: str, theme_level: str,
                           category: str | None) -> dict:
-    """The moderator's manual CQS run: the same tracked path as the ranking handoff (its own trigger, capacity,
-    timeout and failure cleanup), awaited so the route can answer with the result (Krishna, round 16)."""
+    """One tracked CQS run (its own trigger, capacity, timeout and failure cleanup), awaited — for internal callers
+    and tests; the HTTP route schedules through single flight instead (schedule_cqs_manual)."""
     trigger = await _create_trigger(db, session_id, "cqs_scoring", metadata={
         "top_theme2_label": label, "theme_level": theme_level, "theme01_category": category, "source": "manual"})
     return await _score_cqs_once(session_id, label, theme_level, category, trigger.id)
@@ -1107,10 +1124,27 @@ async def sweep_orphaned_triggers(db: AsyncSession) -> int:
     return res.rowcount or 0
 
 
+async def _fail_trigger_fresh(trigger_id: uuid.UUID | None, reason: str) -> None:
+    """Mark one trigger failed on a fresh session (used where the task's own session may be gone)."""
+    if not trigger_id:
+        return
+    from app.db.postgres import async_session_factory
+
+    try:
+        async with async_session_factory() as db:
+            await update_pipeline_status(db, trigger_id, "failed", error_message=reason)
+    except Exception:  # noqa: BLE001
+        logger.warning("cube5.trigger.fail_fresh_failed", extra={"trigger_id": str(trigger_id)})
+
+
 async def shutdown_background_work(grace: float = 10.0) -> None:
     """At shutdown: let in-flight CQS finish for a moment, then cancel the rest — each cancelled run clears its stale
-    winner and closes its trigger (the CancelledError branch above)."""
+    winner and closes its trigger (the CancelledError branch above); a queued follow-up that will now never run closes
+    its trigger too (Enlil, Sofia; round 17)."""
     await drain_cqs_tasks(timeout=grace)
+    for queued in list(_cqs_rerun.values()):
+        await _fail_trigger_fresh(queued[3], "interrupted (shutdown)")
+    _cqs_rerun.clear()
     pending = [t for t in [*_cqs_inflight.values(), *_cqs_side_tasks] if not t.done()]
     for t in pending:
         t.cancel()
