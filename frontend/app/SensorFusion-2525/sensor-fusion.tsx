@@ -7,7 +7,7 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
-import { acceptMark, emptyClock, finalSubmission, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
+import { crossReview, emptyClock, finalSubmission, level1Left, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
 import { placeSignature } from "@/lib/light-codex";
 import { supabase } from "@/lib/supabase";
 import {
@@ -834,6 +834,11 @@ function Labeler({
       at: codexStamp(),
     };
     const saved = saveMark(previous, draft, who || "guest");
+    const waiting = level1Left(pics.map((shot) => ({ boxes: marks[shot.id] || [] })));
+    if (saved.kind !== "annotate" && waiting > 0) {
+      setNote(`Finish Level 1 first. ${waiting} ${waiting === 1 ? "picture" : "pictures"} still need a box.`);
+      return;
+    }
     const mark: Mark = { ...saved.box, level: saved.box.level };
     // rev 43: a box that is already saved, or the untouched start box after a save, is refused with one sentence.
     const refused = refuseBox(prior, mark, editing);
@@ -856,7 +861,7 @@ function Labeler({
 
   async function acceptBox(mark: Mark) {
     if (!pic) return;
-    const result = acceptMark(mark, who || "guest", codexStamp());
+    const result = crossReview(mark, who || "guest", codexStamp(), pics.map((shot) => ({ boxes: marks[shot.id] || [] })));
     if (!result.ok) {
       setNote(result.note);
       return;
@@ -1139,7 +1144,7 @@ function Labeler({
             {note}
           </p>
         )}
-        <p className={styles.rule}>Level 1 is XML. Level 2 is XML. Upload sends the pictures, both Light Codex lines, and each person's S.I.</p>
+        <p className={styles.rule}>Two people share Level 1. When every picture has a box, each reviews the other's. Upload sends the pictures, both Light Codex lines, and each person's S.I.</p>
         </div>
         {pic && (marks[pic.id] || []).length > 0 && (
           <div className={styles.boxList}>

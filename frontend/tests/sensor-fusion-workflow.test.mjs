@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { readyForProject, codexLine } from "../lib/sensor-fusion/pair.ts";
-import { acceptMark, emptyClock, finalSubmission, noteWork, saveMark, siTokens, simulateClass, SIM_ANIMALS, SIM_LABELERS, SIM_REVIEWER, startClock, stopClock, workflowLines } from "../lib/sensor-fusion/workflow.ts";
+import { acceptMark, crossReview, emptyClock, finalSubmission, noteWork, saveMark, siTokens, simulateClass, simulatePair, SIM_ANIMALS, SIM_LABELERS, SIM_REVIEWER, startClock, stopClock, workflowLines } from "../lib/sensor-fusion/workflow.ts";
 
 let passed = 0;
 const failures = [];
@@ -105,8 +105,17 @@ const oneShort = finalSubmission({ clock: emptyClock("deer"), now: 0, images: si
 ok(!oneShort.ok, "199 reviewed pictures still cannot upload");
 ok(/simulateClass\(200/.test(fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8")), "the page runs the 200-picture simulation");
 
+const pair = simulatePair(200, 0, (input) => codexLine(input));
+ok(pair.ok === true && pair.packet.images.length === 200, "two people label 200 pictures together");
+ok(pair.ok === true && pair.held.startsWith("Finish Level 1 first."), "Level 2 waits until every picture has a box");
+const pairAlex = pair.ok ? pair.packet.contributors.find((line) => line.member === "ALEX") : undefined;
+const pairRiley = pair.ok ? pair.packet.contributors.find((line) => line.member === "RILEY") : undefined;
+ok(!!pairAlex && !!pairRiley && pairAlex.images === 200 && pairRiley.images === 200 && pairAlex.reviews === 100 && pairRiley.reviews === 100, "each person labels half and reviews the other's half");
+ok(pair.ok === true && pair.packet.images.every((image) => image.boxes[0].by !== image.boxes[0].reviewer), "neither person reviews their own box");
+ok(pair.ok === true && pairAlex?.seconds === 1100 && pairRiley?.seconds === 1100 && pair.packet.si === 38, "each person has 1,100 seconds, 19 S.I., and the pair total is 38");
+
 const page = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8");
-ok(/saveMark\(/.test(page) && /acceptMark\(/.test(page) && /clock\.open \? "STOP" : "START"/.test(page), "the screen uses the clock and keeps the first person's name");
+ok(/saveMark\(/.test(page) && /crossReview\(/.test(page) && /clock\.open \? "STOP" : "START"/.test(page), "the screen uses the clock and keeps the first person's name");
 
 if (failures.length) {
   console.error(failures.map((item) => `FAIL: ${item}`).join("\n"));
