@@ -7,7 +7,7 @@
 // (mock pipeline) now; the SAME driver hits the real backend when NEXT_PUBLIC_MOCK_MODE=false.
 
 import { useCallback, useMemo, useState } from "react";
-import { Loader2, Play, FlaskConical, Server, MonitorOff } from "lucide-react";
+import { Loader2, Play, FlaskConical, Server, MonitorOff, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RankedThemes } from "@/components/flower-of-life/ranked-themes";
 import { THEME01_LABELS } from "@/lib/adapt-live-themes";
@@ -47,12 +47,25 @@ export function SimAdminConsole() {
   // Preset: the 5,000-response stress run around the current question.
   const run5000 = () => { setCount(5000); run(question, 5000, Math.min(voters, 50), seed); };
 
-  // Ranked Theme01 priorities → the order the RankedThemes panel renders (winner first).
+  // The ranking round's order (winner first). Christo (AsM round 1): the round ranks the nine Theme02 of
+  // Risk & Concerns, so its panel shows THOSE themes in that order; Theme01 keeps its own panel by count.
   const priorityOrder = useMemo(() => (result?.ranking ?? []).map((r) => r.label), [result]);
   const theme1List: ThemeInfo[] = useMemo(
     () => (result ? THEME01_LABELS.map((l) => result.themes.theme1[l]).filter((t) => t && !t.isEmpty) : []),
     [result],
   );
+  const rankedList: ThemeInfo[] = useMemo(() => {
+    if (!result?.ranked) return [];
+    if (result.ranked.kind === "theme01") return theme1List;
+    const bucket = result.themes.theme2[result.ranked.category];
+    const arr = result.ranked.level === "3" ? bucket?.level3 : result.ranked.level === "6" ? bucket?.level6 : bucket?.level9;
+    return (arr ?? []).filter((t) => t && !t.isEmpty);
+  }, [result, theme1List]);
+  const rankedHeading = !result?.ranked
+    ? "Priorities · no ranking round ran"
+    : result.ranked.kind === "theme02"
+      ? `${result.ranked.category} · Theme 02 priorities (${result.ranked.level}, from the ranking round)`
+      : "Theme 01 · priorities (from the ranking round)";
   const theme2List: ThemeInfo[] = useMemo(() => {
     if (!result) return [];
     const bucket = result.themes.theme2[category];
@@ -124,15 +137,47 @@ export function SimAdminConsole() {
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: "var(--muted-foreground)" }}>
             <Stat label="Responses" value={result.responseCount.toLocaleString()} />
+            {result.summarized != null && <Stat label="Summarized" value={result.summarized.toLocaleString()} />}
             <Stat label="Categories" value={String(theme1List.length)} />
             <Stat label="Top priority" value={result.ranking[0]?.label ?? "—"} />
             {result.replayHash && <Stat label="Replay" value={result.replayHash.slice(0, 10)} mono />}
+            <Stat label="Errors" value={String(result.errors.length)} />
           </div>
 
-          {/* Theme 01 priorities (ordered by the simulated ranking round) + 33/111/333 toggle */}
-          <section>
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: "0 0 4px" }}>Theme 01 · priorities (from the ranking round)</h3>
-            <RankedThemes themes={theme1List} order={priorityOrder} isPaidTier accentColor="#00E5CC" />
+          {/* Christo (AsM round 1): every failed stage, named with its HTTP status — a failed run never looks clean. */}
+          {result.errors.length > 0 && (
+            <section data-testid="sim-console-errors" role="alert" style={{ border: "1px solid #e5484d55", borderRadius: 8, padding: 10 }}>
+              <h3 style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: "#e5484d", margin: "0 0 6px" }}>
+                <AlertTriangle className="h-4 w-4" /> {result.errors.length} stage{result.errors.length === 1 ? "" : "s"} failed — results below are incomplete
+              </h3>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "var(--foreground)", lineHeight: 1.5 }}>
+                {result.errors.slice(0, 12).map((e, i) => (
+                  <li key={i} style={{ overflowWrap: "anywhere" }}>
+                    <strong>{e.stage}</strong>{e.status != null ? ` · HTTP ${e.status}` : ""} — {e.detail}
+                  </li>
+                ))}
+                {result.errors.length > 12 && <li>… {result.errors.length - 12} more</li>}
+              </ul>
+            </section>
+          )}
+
+          {/* The ranking round's priorities: the themes that were actually voted on, in the aggregate order. */}
+          <section data-testid="sim-console-ranked">
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: "0 0 4px" }}>{rankedHeading}</h3>
+            {result.ranking.length > 0 && (
+              <ol style={{ margin: "4px 0 0", paddingLeft: 20, fontSize: 12, color: "var(--muted-foreground)", lineHeight: 1.6 }}>
+                {result.ranking.map((r) => (
+                  <li key={r.theme_id}><span style={{ color: "var(--foreground)" }}>{r.label}</span> · {r.score} pts</li>
+                ))}
+              </ol>
+            )}
+            <RankedThemes themes={rankedList} order={priorityOrder} isPaidTier accentColor="#00E5CC" />
+          </section>
+
+          {/* Theme 01 categories by response count (not the vote) + 33/111/333 toggle */}
+          <section data-testid="sim-console-theme01">
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: "0 0 4px" }}>Theme 01 · categories (by response count)</h3>
+            <RankedThemes themes={theme1List} isPaidTier accentColor="#00E5CC" />
           </section>
 
           {/* Theme 02 sub-themes at 3/6/9 */}

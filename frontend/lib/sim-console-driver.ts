@@ -5,16 +5,19 @@
 // run works self-contained (NEXT_PUBLIC_MOCK_MODE default → mock handlers) or against a hosted backend
 // (NEXT_PUBLIC_MOCK_MODE=false + provider key). The console shows which mode it is in.
 
-import { api } from "./api";
+import { api, ApiClientError } from "./api";
 import { generateSimResponses, simulateBallots } from "./sim-console";
 import { adaptLiveThemes, THEME01_LABELS, type LiveThemeRow } from "./adapt-live-themes";
 import { normalizeRankings, rankingWinner, rankingReplayHash } from "./ranking-shape";
-import type { Session, Question, SessionThemeData } from "./types";
+import type { Session, Question, SessionThemeData, Theme01Label } from "./types";
 
 /** Same rule as lib/api.ts — self-contained unless the operator points at a real backend. */
 export const SIM_MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_MODE !== "false";
 
 export interface SimRankRow { theme_id: string; label: string; rank: number; score: number }
+
+/** One failed stage of a run (Christo, AsM round 1: a failed run must never look clean). */
+export interface SimStageError { stage: string; status: number | null; detail: string }
 
 export interface SimConsoleResult {
   sessionId: string;
@@ -26,6 +29,12 @@ export interface SimConsoleResult {
   ranking: SimRankRow[];
   winner: string | null;
   replayHash: string | null;
+  /** LIVE: responses whose Phase A summary existed before theming started (null when self-contained). */
+  summarized: number | null;
+  /** What the ranking round voted on: the Theme02 of one Theme01 category at a level, or (thin run) Theme01. */
+  ranked: { kind: "theme02"; category: Theme01Label; level: "3" | "6" | "9" } | { kind: "theme01" } | null;
+  /** Every failed stage, in order. Empty only when every call succeeded. */
+  errors: SimStageError[];
 }
 
 export interface SimConsoleParams {
@@ -39,6 +48,13 @@ export interface SimConsoleParams {
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** Turn any thrown value into a stage error (HTTP status + detail when the API gave one). */
+export function stageError(stage: string, e: unknown): SimStageError {
+  if (e instanceof ApiClientError) return { stage, status: e.status, detail: String(e.detail || e.message).slice(0, 300) };
+  const err = e as { status?: number; detail?: string; message?: string } | null;
+  return { stage, status: typeof err?.status === "number" ? err.status : null, detail: String(err?.detail || err?.message || e || "failed").slice(0, 300) };
+}
+
 /**
  * Run the whole pipeline end-to-end and return the REAL results (themes + ranked priorities).
  * Deterministic in self-contained mode for a fixed (question, count, seed).
@@ -48,6 +64,11 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   const seed = params.seed ?? "sim";
   const voters = params.voters ?? Math.min(Math.max(count, 3), 50);
   const progress = params.onProgress ?? (() => {});
+  const errors: SimStageError[] = [];
+  /** Run one stage; on failure record it (stage + status/detail) and return null — never swallow it. */
+  const step = async <T,>(stage: string, call: () => Promise<T>): Promise<T | null> => {
+    try { return await call(); } catch (e) { errors.push(stageError(stage, e)); return null; }
+  };
 
   // 1) Create the session (real Cube-1 create).
   progress(0.02, "Creating session");
@@ -69,10 +90,10 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   // is still a draft, so add the question and open it for polling (draft → open → polling), as a moderator would.
   let questionId = "";
   if (!SIM_MOCK_MODE) {
-    const q = await api.post<Question>(`/sessions/${sessionId}/questions`, { question_text: question.slice(0, 500) });
+    const q = await step("add question", () => api.post<Question>(`/sessions/${sessionId}/questions`, { question_text: question.slice(0, 500) }));
     questionId = q?.id ?? "";
-    await api.post(`/sessions/${sessionId}/open`, {});
-    await api.post(`/sessions/${sessionId}/poll`, {});
+    await step("open session", () => api.post(`/sessions/${sessionId}/open`, {}));
+    await step("start polling", () => api.post(`/sessions/${sessionId}/poll`, {}));
   } else {
     try {
       const qs = await api.getSessionQuestions(sessionId);
@@ -87,14 +108,26 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   // Count what the backend ACCEPTED, not what was sent — a LIVE run whose submissions are refused (422/409)
   // used to report "Responses 200" over an empty result. The panel never claims more than happened.
   let accepted = 0;
+  let summarized: number | null = null;
+  let refusedTotal = 0;
   if (!SIM_MOCK_MODE) {
+    summarized = 0;
     // LIVE: each response from its own simulated participant, seeded server-side through the real cube2 service
     // (the public join + submit are limited to 100/min per address — a 5,000 run would take an hour).
     const SEED = 500;
     for (let i = 0; i < responses.length; i += SEED) {
       const batch = responses.slice(i, i + SEED).map((r) => ({ text: r.raw_text, language_code: r.language_code || "en" }));
-      const out = await api.post<{ accepted: number }>(`/sessions/${sessionId}/sim/responses`, { question_id: questionId, responses: batch }).catch(() => null);
+      // The backend waits (bounded) for the Phase A summaries it triggered and reports `summarized`, so theming
+      // below never starts over responses that have no summary yet (Krishna, AsM round 1).
+      const out = await step(`inject responses ${i + 1}-${i + batch.length}`, () =>
+        api.post<{ accepted: number; summarized?: number; refused_count?: number; phase_a_complete?: boolean }>(
+          `/sessions/${sessionId}/sim/responses`, { question_id: questionId, responses: batch }));
       accepted += out?.accepted ?? 0;
+      summarized += out?.summarized ?? 0;
+      refusedTotal += out?.refused_count ?? 0;
+      if (out && out.phase_a_complete === false) {
+        errors.push({ stage: `summaries ${i + 1}-${i + batch.length}`, status: null, detail: `Phase A still running when the wait ended (${out.summarized ?? 0}/${out.accepted} summarized)` });
+      }
       progress(0.08 + 0.52 * ((i + batch.length) / responses.length), `Injecting responses (${i + batch.length}/${responses.length})`);
     }
   }
@@ -102,22 +135,33 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
     const batch = responses.slice(i, i + CHUNK);
     await Promise.all(
       batch.map((r) =>
-        api.submitTextResponse(sessionId, questionId || r.id, r.participant_id, r.raw_text, r.language_code).then(() => { accepted++; }, () => null),
+        api.submitTextResponse(sessionId, questionId || r.id, r.participant_id, r.raw_text, r.language_code).then(() => { accepted++; }, () => { refusedTotal++; }),
       ),
     );
     progress(0.08 + 0.52 * ((i + batch.length) / responses.length), `Injecting responses (${i + batch.length}/${responses.length})`);
   }
 
-  // 3) Theme them (real Cube-6 when live; grounded mock when self-contained).
+  if (refusedTotal) errors.push({ stage: "inject responses", status: null, detail: `${refusedTotal} of ${responses.length} responses refused` });
+  if (summarized != null && summarized < accepted) {
+    errors.push({ stage: "summaries", status: null, detail: `${accepted - summarized} of ${accepted} responses have no Phase A summary; theming covers only the summarized ones` });
+  }
+
+  // 3) Theme them (real Cube-6 when live; grounded mock when self-contained). The backend runs a simulation
+  // session on the OFFLINE provider unless an HI-approved cost estimate is recorded (addendum 4).
   progress(0.62, "Theming (Theme01 → Theme02)");
-  await api.post(`/sessions/${sessionId}/ai/run`, { provider: "openai" }).catch(() => null);
+  await step("theming (ai/run)", () => api.post(`/sessions/${sessionId}/ai/run`, {}));
+  let themed = false;
   for (let poll = 0; poll < 30; poll++) {
-    const st = await api.get<{ status?: string }>(`/sessions/${sessionId}/ai/status`).catch(() => null);
-    if (st?.status === "completed" || st?.status === "done") break;
+    const st = await step("theming status", () => api.get<{ status?: string }>(`/sessions/${sessionId}/ai/status`));
+    if (st?.status === "completed" || st?.status === "done") { themed = true; break; }
+    if (!st) break; // the failure is recorded; polling a failing endpoint 30 times adds nothing
     await wait(SIM_MOCK_MODE ? 0 : 1000);
     if (SIM_MOCK_MODE) break; // mock completes synchronously
   }
-  const rows = (await api.get<LiveThemeRow[]>(`/sessions/${sessionId}/themes`).catch(() => [])) ?? [];
+  if (!themed && !errors.some((e) => e.stage.startsWith("theming"))) {
+    errors.push({ stage: "theming status", status: null, detail: "Theming did not report completed" });
+  }
+  const rows = (await step("read themes", () => api.get<LiveThemeRow[]>(`/sessions/${sessionId}/themes`))) ?? [];
   const themes = adaptLiveThemes(sessionId, rows);
 
   // 4) Simulate the ranking round over the Theme01 categories (the priorities).
@@ -133,6 +177,10 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   const riskParent = rows.find((r) => r.theme_level == null && themeLabelMatches(r, THEME01_LABELS[0]));
   const nine = rows.filter((r) => r.theme_level === "9" && r.label && (!riskParent || r.parent_theme_id === riskParent.id)).map((r) => r.id);
   const pool = nine.length >= 2 ? nine : parentIds;
+  const ranked: SimConsoleResult["ranked"] = nine.length >= 2
+    ? { kind: "theme02", category: THEME01_LABELS[0], level: "9" }
+    : (parentIds.length >= 2 ? { kind: "theme01" } : null);
+  if (!ranked) errors.push({ stage: "ranking", status: null, detail: "Fewer than two themes to rank — no ranking round ran" });
 
   let ranking: SimRankRow[] = [];
   let winner: string | null = null;
@@ -142,15 +190,23 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
     if (!SIM_MOCK_MODE) {
       // LIVE: ranking opens (polling → ranking), then each ballot from its own simulated voter through the real
       // cube7 service — one admin login cannot cast fifty votes on the public endpoint, by design.
-      await api.post(`/sessions/${sessionId}/rank`, {}).catch(() => null);
-      await api.post(`/sessions/${sessionId}/sim/ballots`, { ballots }).catch(() => null);
+      await step("open ranking", () => api.post(`/sessions/${sessionId}/rank`, {}));
+      const out = await step("cast ballots", () => api.post<{ accepted: number; refused_count?: number; refused?: { reason: string }[] }>(`/sessions/${sessionId}/sim/ballots`, { ballots }));
+      if (out && out.refused_count) {
+        errors.push({ stage: "cast ballots", status: null, detail: `${out.refused_count} of ${ballots.length} ballots refused${out.refused?.[0] ? `: ${out.refused[0].reason}` : ""}` });
+      }
     } else {
-      for (const b of ballots) await api.post(`/sessions/${sessionId}/rankings`, { ranked_theme_ids: b }).catch(() => null);
+      const fails: SimStageError[] = [];
+      for (const b of ballots) {
+        await api.post(`/sessions/${sessionId}/rankings`, { ranked_theme_ids: b }).catch((e) => { fails.push(stageError("cast ballots", e)); });
+      }
+      if (fails.length) errors.push({ ...fails[0], detail: `${fails.length} of ${ballots.length} ballots refused: ${fails[0].detail}` });
     }
-    // Aggregate (object) or the live read (bare list) — one shape via lib/ranking-shape.ts.
-    let agg: unknown = await api.post<unknown>(`/sessions/${sessionId}/rankings/aggregate`, {}).catch(() => null);
+    // Aggregate (object) or the live read (bare list) — one shape via lib/ranking-shape.ts. The console's seed
+    // pins the tie-break (backend: `?seed=` → SHA-256(theme_id:seed)), so a fixed seed replays identically.
+    let agg: unknown = await step("aggregate", () => api.post<unknown>(`/sessions/${sessionId}/rankings/aggregate?seed=${encodeURIComponent(seed)}`, {}));
     let rowsRanked = normalizeRankings(agg);
-    if (!rowsRanked.length) { agg = await api.get<unknown>(`/sessions/${sessionId}/rankings`).catch(() => null); rowsRanked = normalizeRankings(agg); }
+    if (!rowsRanked.length) { agg = await step("read rankings", () => api.get<unknown>(`/sessions/${sessionId}/rankings`)); rowsRanked = normalizeRankings(agg); }
     const labelOf = (id: string) => rows.find((r) => r.id === id)?.label ?? id;
     ranking = rowsRanked.map((r) => ({ theme_id: r.theme_id, label: labelOf(r.theme_id), rank: r.rank, score: r.score }));
     winner = rankingWinner(agg, rowsRanked);
@@ -160,7 +216,7 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   progress(1, "Complete");
   return {
     sessionId, shortCode, mode: SIM_MOCK_MODE ? "self-contained" : "live-backend",
-    question, responseCount: accepted, themes, ranking, winner, replayHash,
+    question, responseCount: accepted, themes, ranking, winner, replayHash, summarized, ranked, errors,
   };
 }
 

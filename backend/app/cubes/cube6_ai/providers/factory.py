@@ -165,3 +165,47 @@ def get_summarization_provider_or_offline(name: str) -> SummarizationProvider:
             settings.environment,
         )
         return _SUMMARIZATION_PROVIDERS[AIProviderName.OFFLINE]()
+
+
+# ---------------------------------------------------------------------------
+# Addendum 4 (AsM round 1, Krishna + Aset, 2026-10-07): a SIMULATION never silently spends money.
+# ---------------------------------------------------------------------------
+# A simulation session (session_type == "simulation", the Admin Simulation Console) generates its own responses
+# and voters; summarizing or theming them through a paid provider is a cost nobody approved. So Phase A and
+# /ai/run resolve the provider through `provider_for_session`: a simulation runs on the deterministic OFFLINE
+# provider unless an HI-approved cost estimate is recorded for it. Real sessions are unchanged.
+#
+# HOOK for the later AI-call method selector (Offline / Batch API / Realtime, each with a cost estimate and HI
+# approval before any provider call): that selector records its approval on the session as `ai_cost_approval`
+# ({"method": ..., "estimate_usd": ..., "approved_by": ...}) and `simulation_cost_approved` starts returning True.
+# Until that field exists, no simulation can reach a paid provider.
+
+SIMULATION_SESSION_TYPE = "simulation"
+
+
+def simulation_cost_approved(session) -> bool:
+    """True only when an HI-approved cost estimate is recorded for this session (the selector's hook)."""
+    approval = getattr(session, "ai_cost_approval", None)
+    if not isinstance(approval, dict):
+        return False
+    return bool(approval.get("approved_by")) and approval.get("estimate_usd") is not None
+
+
+def provider_for_session(session, requested: str | None = None) -> str:
+    """The provider name a session may use. A simulation without an approved estimate → "offline"."""
+    name = requested or getattr(session, "ai_provider", None) or AIProviderName.OPENAI.value
+    if getattr(session, "session_type", None) == SIMULATION_SESSION_TYPE and not simulation_cost_approved(session):
+        if name != AIProviderName.OFFLINE.value:
+            logger.info(
+                "cube6.provider.simulation_offline",
+                session_id=str(getattr(session, "id", "")),
+                requested=name,
+                reason="simulation_without_hi_approved_cost_estimate",
+            )
+        return AIProviderName.OFFLINE.value
+    return name
+
+
+def get_session_summarization_provider(session, requested: str | None = None) -> SummarizationProvider:
+    """`get_summarization_provider_or_offline` behind the simulation cost guard."""
+    return get_summarization_provider_or_offline(provider_for_session(session, requested))

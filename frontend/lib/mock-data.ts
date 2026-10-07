@@ -877,18 +877,77 @@ const _rankingBallots = new Map<string, string[][]>();
 // responses; /ai/status reports completed; /themes serves the cached rows. Real Cube-6 does this
 // server-side when NEXT_PUBLIC_MOCK_MODE=false. Deterministic so a console run replays identically.
 const _simThemes = new Map<string, ReturnType<typeof buildSimThemeRows>>();
-/** Deterministic Borda: position 0 earns (n-1) points; ties break by theme_id. Mirrors
- *  the backend _borda_scores + seeded tiebreak so the demo's ranked order is stable. */
-function _bordaAggregate(ballots: string[][]): { rankings: { theme_id: string; rank: number; score: number }[]; participant_count: number } {
+/** Byte-identical to backend cube7 `_seeded_tiebreak_key`: SHA-256(`${theme_id}:${seed}`) hex. */
+export function mockSeededTiebreakKey(themeId: string, seed: string): string {
+  return _sha256hex(`${themeId}:${seed}`);
+}
+
+/** Python's list<list<str>> order: element-wise, then shorter first (what `sorted(rankings)` does). */
+function _cmpBallots(a: string[], b: string[]): number {
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1;
+  return a.length - b.length;
+}
+
+/** Byte-identical to backend cube7 `_compute_replay_hash` (+ `_replay_prefix`):
+ *  sha256(`algorithm:seed[:cat=..:lvl=..]:` + "|".join(",".join(r) for r in sorted(rankings))). */
+export function mockRankingReplayHash(
+  ballots: string[][], seed: string, algorithm = "borda_count",
+  theme01Category: string | null = null, themeLevel: string | null = null,
+): string {
+  const parts = [algorithm, seed];
+  if (theme01Category || themeLevel) { parts.push(`cat=${theme01Category || ""}`); parts.push(`lvl=${themeLevel || ""}`); }
+  const body = ballots.slice().sort(_cmpBallots).map((r) => r.join(",")).join("|");
+  return _sha256hex(parts.join(":") + ":" + body);
+}
+
+/** Deterministic Borda, mirroring backend `_borda_scores` + `_write_aggregation`: position 0 earns
+ *  (n-1) points; order is score DESC, then `_seeded_tiebreak_key(theme_id, seed)` ascending. */
+export function mockBordaAggregate(ballots: string[][], seed: string): { rankings: { theme_id: string; rank: number; score: number }[]; participant_count: number; vote_counts: Record<string, number> } {
+  const n = ballots[0]?.length ?? 0; // backend: n_themes = len(all_rankings[0])
   const score = new Map<string, number>();
+  const votes: Record<string, number> = {};
   for (const b of ballots) {
-    const n = b.length;
     b.forEach((id, i) => score.set(id, (score.get(id) ?? 0) + (n - 1 - i)));
+    for (const id of new Set(b)) votes[id] = (votes[id] ?? 0) + 1;
   }
+  const key = new Map<string, string>();
+  for (const id of score.keys()) key.set(id, mockSeededTiebreakKey(id, seed));
   const rankings = Array.from(score.entries())
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .sort((a, b) => b[1] - a[1] || (key.get(a[0])! < key.get(b[0])! ? -1 : key.get(a[0])! > key.get(b[0])! ? 1 : 0))
     .map(([theme_id, s], i) => ({ theme_id, rank: i + 1, score: s }));
-  return { rankings, participant_count: ballots.length };
+  return { rankings, participant_count: ballots.length, vote_counts: votes };
+}
+
+/** The ballot check backend `submit_user_ranking` applies: the session's non-empty Theme02 ids at the voting
+ *  level (scoped to its Theme01 category when set), the full set, each exactly once. When the mock holds no
+ *  themes for the session (a demo session voting on the static SIM themes), the cycle's first ballot pins the
+ *  set, so every later ballot must still be a permutation of it. Returns an error detail, or null when valid. */
+function _validateMockBallot(sid: string, ids: string[], existing: string[][]): string | null {
+  if (ids.length === 0) return "Empty ballot";
+  if (ids.some((x) => typeof x !== "string" || !x)) return "Theme ids must be non-empty strings";
+  const set = new Set(ids);
+  if (set.size !== ids.length) return "Each theme may be ranked exactly once (duplicate theme id)";
+  const session = findSessionById(sid) as (Session & { theme01_category?: string | null }) | undefined;
+  const levelNum = String(session?.theme2_voting_level || "theme2_9").replace("theme2_", "");
+  const rows = _simThemes.get(sid);
+  let valid: Set<string> | null = null;
+  if (rows && rows.length) {
+    const cat = session?.theme01_category || null;
+    const parents = new Set(rows.filter((r) => r.parent_theme_id == null && (!cat || r.theme01_category === cat)).map((r) => r.id));
+    valid = new Set(rows.filter((r) => r.parent_theme_id != null && parents.has(r.parent_theme_id) && r.theme_level === levelNum && r.label !== "").map((r) => r.id));
+    if (!valid.size) return `No themes found at level ${levelNum}${cat ? ` (category=${cat})` : ""} for session ${sid}`;
+  } else if (existing.length) {
+    valid = new Set(existing[0]);
+  }
+  if (valid) {
+    const missing = [...valid].filter((x) => !set.has(x));
+    const extra = ids.filter((x) => !valid!.has(x));
+    if (missing.length || extra.length) {
+      return `Theme ID mismatch: missing=${JSON.stringify(missing)}, extra=${JSON.stringify(extra)}. Expected ${valid.size} themes at level ${levelNum}.`;
+    }
+  }
+  return null;
 }
 
 function handleSimMock(method: string, rawPath: string, body?: unknown): unknown {
@@ -1152,6 +1211,8 @@ export async function handleMockRequest<T>(
       reward_enabled: (payload?.reward_enabled as boolean) || false,
       reward_amount_cents: (payload?.reward_amount_cents as number) || 0,
       theme2_voting_level: (payload?.theme2_voting_level as string) || "theme2_9",
+      // HP-21: the Theme01 slice a simulation votes on — folded into the ranking replay hash, as LIVE does.
+      theme01_category: (payload?.theme01_category as string) || null,
       live_feed_enabled: (payload?.live_feed_enabled as boolean) || false,
       polling_mode_type: pollingModeType,
       static_poll_duration_days: staticPollDays,
@@ -1425,7 +1486,8 @@ export async function handleMockRequest<T>(
     return (rows ?? []) as T;
   }
 
-  const rankMatch = path.match(/^\/sessions\/([0-9a-f-]{36})\/rankings(\/progress|\/aggregate)?$/);
+  const [rankPath, rankQuery] = path.split("?");
+  const rankMatch = rankPath.match(/^\/sessions\/([0-9a-f-]{36})\/rankings(\/progress|\/aggregate)?$/);
   if (rankMatch) {
     const sid = rankMatch[1];
     const sub = rankMatch[2] || "";
@@ -1436,7 +1498,10 @@ export async function handleMockRequest<T>(
     if (method === "POST" && sub === "") {
       const b = (body as { ranked_theme_ids?: string[]; replace_last?: boolean } | undefined) || {};
       const ids = Array.isArray(b.ranked_theme_ids) ? b.ranked_theme_ids : [];
-      if (ids.length === 0) return { __status: 400, detail: "Empty ballot" } as T;
+      // Validate like LIVE (submit_user_ranking → 400). A re-vote is checked against the other ballots.
+      const others = b.replace_last ? ballots.slice(0, -1) : ballots;
+      const bad = _validateMockBallot(sid, ids, others);
+      if (bad) return { __status: 400, detail: bad } as T;
       if (b.replace_last && ballots.length) ballots[ballots.length - 1] = ids; // living re-vote
       else ballots.push(ids);
       _rankingBallots.set(key, ballots);
@@ -1445,7 +1510,10 @@ export async function handleMockRequest<T>(
     if (method === "GET" && sub === "/progress") {
       return { session_id: sid, submissions: ballots.length, cycle_id: cycle } as T;
     }
-    const agg = _bordaAggregate(ballots);
+    // Seed exactly as LIVE: ?seed= → session.seed → the session id (aggregate_rankings' effective_seed).
+    const sessRow = findSessionById(sid) as (Session & { seed?: string | null; theme01_category?: string | null }) | undefined;
+    const seed = new URLSearchParams(rankQuery || "").get("seed") || sessRow?.seed || sid;
+    const agg = mockBordaAggregate(ballots, seed);
     if (method === "GET" && sub === "") {
       // Mirrors the REAL endpoint: a bare list[AggregatedRankingRead] (rank_position, vote_count).
       return agg.rankings.map((r) => ({
@@ -1460,7 +1528,11 @@ export async function handleMockRequest<T>(
         ranking_method: "borda_count",
         rankings: agg.rankings,
         winner: agg.rankings[0]?.theme_id ?? null,
-        replay_hash: _mockHash(`rank:${sid}:${cycle}:${ballots.length}`),
+        // run_ranking_pipeline pins the session's (category, level) slice into the hash.
+        replay_hash: ballots.length
+          ? mockRankingReplayHash(ballots, seed, "borda_count", sessRow?.theme01_category ?? null,
+              String(sessRow?.theme2_voting_level || "").startsWith("theme2_") ? String(sessRow!.theme2_voting_level).replace("theme2_", "") : null)
+          : null,
       } as T;
     }
   }

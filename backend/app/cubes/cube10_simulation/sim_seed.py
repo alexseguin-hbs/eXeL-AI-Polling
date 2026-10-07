@@ -16,6 +16,7 @@ guarantee is unchanged.
 """
 from __future__ import annotations
 
+import asyncio
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -32,6 +33,11 @@ from app.models.session import Session
 router = APIRouter(prefix="/sessions/{session_id}/sim", tags=["Cube 10 — Simulation"])
 
 MAX_ITEMS = 5000  # the console's largest preset (the 5,000-response past poll)
+# Krishna (AsM round 1): theming reads the Phase A summaries, so the seed waits for the ones it triggered before it
+# answers — bounded, so a slow provider can never hang the request. What is not done by then is reported, not hidden.
+PHASE_A_WAIT_S = 120.0
+_PHASE_A_TASK = "run_phase_a_with_retry"  # the coroutine cube2 submit_text_response schedules per response
+_UNAVAILABLE = "[Summary unavailable]"    # phase_a_retry's marker when every retry failed
 
 
 class SimResponse(BaseModel):
@@ -79,6 +85,54 @@ async def _sim_participant(db: AsyncSession, session: Session, label: str):
     return participant
 
 
+def _phase_a_tasks(before: set[asyncio.Task], session_id: uuid.UUID) -> list[asyncio.Task]:
+    """The Phase A tasks scheduled since `before` for this session.
+
+    cube2 `submit_text_response` schedules Phase A fire-and-forget and keeps no handle; the seed finds the tasks it
+    caused by coroutine name and the session_id argument, so the cube2 path a real participant reaches is unchanged.
+    """
+    found = []
+    for task in asyncio.all_tasks() - before:
+        coro = task.get_coro()
+        if getattr(coro, "__name__", "") != _PHASE_A_TASK:
+            continue
+        frame = getattr(coro, "cr_frame", None)
+        sid = frame.f_locals.get("session_id") if frame is not None else None
+        if sid is None or sid == session_id:
+            found.append(task)
+    return found
+
+
+async def wait_for_phase_a(tasks: list[asyncio.Task], timeout: float = PHASE_A_WAIT_S) -> bool:
+    """Wait (bounded) for the Phase A tasks. True when all finished in time. A timeout never cancels them."""
+    if not tasks:
+        return True
+    try:
+        await asyncio.wait_for(asyncio.shield(asyncio.gather(*tasks, return_exceptions=True)), timeout=timeout)
+        return True
+    except asyncio.TimeoutError:
+        return False
+
+
+async def count_summarized(db: AsyncSession, response_ids: list[uuid.UUID]) -> int:
+    """How many of these responses have a real Phase A summary stored (the fallback marker does not count)."""
+    if not response_ids:
+        return 0
+    from sqlalchemy import func
+
+    from app.models.response_summary import ResponseSummary
+
+    n = 0
+    for i in range(0, len(response_ids), 1000):
+        chunk = response_ids[i:i + 1000]
+        n += (await db.execute(
+            select(func.count()).select_from(ResponseSummary).where(
+                ResponseSummary.response_meta_id.in_(chunk), ResponseSummary.summary_33 != _UNAVAILABLE,
+            )
+        )).scalar_one()
+    return int(n)
+
+
 @router.post("/responses", status_code=201)
 @limiter.limit("20/minute")
 async def seed_responses(
@@ -88,23 +142,40 @@ async def seed_responses(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
-    """Each response from its own simulated participant, through cube2 submit_text_response."""
+    """Each response from its own simulated participant, through cube2 submit_text_response.
+
+    Returns `summarized` alongside `accepted`: the seed waits (bounded by PHASE_A_WAIT_S) for the Phase A summaries
+    it triggered, so the console never starts theming over responses that have no summary yet. Phase A for a
+    simulation runs on the OFFLINE provider unless an HI-approved cost estimate is recorded (addendum 4,
+    cube6 `provider_for_session`).
+    """
     from app.cubes.cube2_text import service as text_service
 
     session = await _simulation_session(db, session_id)
     accepted, refused = 0, []
+    response_ids: list[uuid.UUID] = []
+    before = asyncio.all_tasks()
     for i, r in enumerate(payload.responses):
         try:
             participant = await _sim_participant(db, session, f"sim-{i + 1}")
-            await text_service.submit_text_response(
+            out = await text_service.submit_text_response(
                 db, session_id=session_id, question_id=payload.question_id, participant_id=participant.id,
                 raw_text=r.text, language_code=r.language_code,
             )
+            rid = out.get("id") if isinstance(out, dict) else getattr(out, "id", None)
+            if rid is not None:
+                response_ids.append(rid if isinstance(rid, uuid.UUID) else uuid.UUID(str(rid)))
             accepted += 1
         except Exception as e:  # a refused item is reported with its reason, never dropped silently
             await db.rollback()
             refused.append({"index": i, "reason": str(getattr(e, "detail", e))[:200]})
-    return {"accepted": accepted, "refused": refused[:50], "refused_count": len(refused)}
+    await db.commit()  # Phase A writes from its own connection; the responses must be visible to it
+    phase_a_done = await wait_for_phase_a(_phase_a_tasks(before, session_id))
+    summarized = await count_summarized(db, response_ids)
+    return {
+        "accepted": accepted, "summarized": summarized, "phase_a_complete": phase_a_done,
+        "refused": refused[:50], "refused_count": len(refused),
+    }
 
 
 @router.post("/ballots", status_code=201)

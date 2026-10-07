@@ -38,4 +38,24 @@ ok(phases.length > 0 && phases[phases.length - 1][0] === 1, 'progress reached 1.
 const res2 = await runSimConsole({ question: Q, count: 12, voters: 5, seed: 'drv' });
 ok(JSON.stringify(res.ranking.map((r) => r.theme_id)) === JSON.stringify(res2.ranking.map((r) => r.theme_id)), 'ranked order is deterministic for a fixed seed');
 
+// Christo (AsM round 1): the vote is the Risk & Concerns Theme02 at level 9, and a clean run records no errors.
+ok(res.ranked && res.ranked.kind === 'theme02' && res.ranked.category === 'Risk & Concerns' && res.ranked.level === '9',
+  `ranking round is labelled as the Risk & Concerns Theme02 (9) priorities (got ${JSON.stringify(res.ranked)})`);
+ok(Array.isArray(res.errors) && res.errors.length === 0, `a clean run records no stage errors (got ${JSON.stringify(res.errors)})`);
+ok(res.summarized === null, 'self-contained run reports summarized = null (LIVE only)');
+ok(typeof res.replayHash === 'string' && /^[0-9a-f]{64}$/.test(res.replayHash), 'replay hash is a SHA-256 hex (backend _compute_replay_hash shape)');
+ok(res.replayHash === res2.replayHash, 'replay hash is stable for a fixed console seed (the seed pins the tie-break and the hash)');
+
+// A failed stage is recorded with its name + status/detail — never swallowed (a failed run must never look clean).
+const { api } = await import('../lib/api.ts');
+const realPost = api.post;
+api.post = async (path, body) => {
+  if (/\/rankings\/aggregate/.test(path)) { const { ApiClientError } = await import('../lib/api.ts'); throw new ApiClientError(503, 'aggregation unavailable'); }
+  return realPost(path, body);
+};
+const bad = await runSimConsole({ question: Q, count: 12, voters: 5, seed: 'drv' });
+api.post = realPost;
+const aggErr = bad.errors.find((e) => e.stage === 'aggregate');
+ok(!!aggErr && aggErr.status === 503 && /aggregation unavailable/.test(aggErr.detail), `aggregate failure recorded with status + detail (got ${JSON.stringify(bad.errors)})`);
+
 console.log(`sim-console-driver: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

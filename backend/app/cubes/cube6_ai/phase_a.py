@@ -27,6 +27,7 @@ from app.cubes.cube6_ai.providers.base import EmbeddingProvider, SummarizationPr
 from app.cubes.cube6_ai.providers.factory import (
     get_embedding_provider,
     get_summarization_provider_or_offline,
+    provider_for_session,
 )
 from app.models.response_meta import ResponseMeta
 from app.models.response_summary import ResponseSummary
@@ -62,6 +63,29 @@ def _get_phase_a_semaphore(session_id: uuid.UUID) -> asyncio.Semaphore:
             del _phase_a_semaphores[oldest_key]
         _phase_a_semaphores[session_id] = asyncio.Semaphore(_PHASE_A_MAX_CONCURRENT)
     return _phase_a_semaphores[session_id]
+
+
+# --- Addendum 4: the provider a session may use (a simulation → OFFLINE unless an HI-approved estimate) ---
+# Cached per session (bounded like the semaphores): session_type never changes after creation, and Phase A runs
+# once per response, so a 1M-response poll must not pay one extra query per response.
+_PHASE_A_PROVIDER_CACHE: dict[tuple[uuid.UUID, str], str] = {}
+
+
+async def resolve_phase_a_provider(db: AsyncSession, session_id: uuid.UUID, requested: str) -> str:
+    """The provider name Phase A may call for this session (`provider_for_session`, cached)."""
+    key = (session_id, requested)
+    if key in _PHASE_A_PROVIDER_CACHE:
+        return _PHASE_A_PROVIDER_CACHE[key]
+    try:
+        session = (await db.execute(select(Session).where(Session.id == session_id))).scalar_one_or_none()
+    except Exception as e:  # never fail a summary over the lookup (not cached, so the next response re-checks)
+        logger.warning("cube6.phase_a.provider_lookup_failed", error=str(e), session_id=str(session_id))
+        return requested
+    name = provider_for_session(session, requested) if session is not None else requested
+    while len(_PHASE_A_PROVIDER_CACHE) >= _PHASE_A_MAX_SESSIONS:
+        del _PHASE_A_PROVIDER_CACHE[next(iter(_PHASE_A_PROVIDER_CACHE))]
+    _PHASE_A_PROVIDER_CACHE[key] = name
+    return name
 
 
 def release_phase_a_semaphore(session_id: uuid.UUID) -> None:
@@ -157,6 +181,8 @@ async def _summarize_single_response_inner(
         # --- Task A1: Single structured prompt (2 round-trips max) ---
         # C6-2: degrade to the deterministic OFFLINE provider on a missing key
         # in dev/test/CI so a single response never crashes Phase A (prod raises).
+        # Addendum 4: a simulation session never silently reaches a paid provider.
+        ai_provider = await resolve_phase_a_provider(db, session_id, ai_provider)
         summarizer = get_summarization_provider_or_offline(ai_provider)
 
         translate = (

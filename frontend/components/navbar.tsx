@@ -66,8 +66,13 @@ export function Navbar({ sessionTitle }: NavbarProps) {
   return (
     <>
       <nav className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
-          <div className="flex items-center gap-2">
+        {/* HP-23 (AsM round 1): at 375-390 px inside a session the right-hand cluster ran past the screen and the
+            Settings gear — where the easter-egg unlock starts — was off it. The bar now keeps 16 px gutters on a
+            phone, the cluster may shrink (min-w-0), every control keeps its size (shrink-0), and the token pills
+            scroll sideways inside their own strip instead of pushing the gear out. No control is removed.
+            Gate: scripts/nav-gear-smoke.mjs (390 px, /session and /sim). */}
+        <div className="container flex h-14 items-center px-4 sm:px-8">
+          <div className="flex shrink-0 items-center gap-2">
             <a href="/" className="flex items-center gap-2">
               {simulationMode ? (
                 <SeedOfLifeLogo
@@ -83,13 +88,13 @@ export function Navbar({ sessionTitle }: NavbarProps) {
           </div>
 
           {sessionTitle && (
-            <div className="ml-4 hidden sm:block">
+            <div className="ml-4 hidden min-w-0 truncate sm:block">
               <span className="text-sm text-muted-foreground">|</span>
               <span className="ml-4 text-sm font-medium">{sessionTitle}</span>
             </div>
           )}
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex min-w-0 items-center justify-end gap-1 pl-2 sm:gap-2" data-nav-cluster>
             {/* Innovation Project is NOT surfaced in the banner — it is a mode of operation
                 selected from the post-login workspace preview (HomeLauncher), never here. */}
 
@@ -100,17 +105,19 @@ export function Navbar({ sessionTitle }: NavbarProps) {
               size="sm"
               onClick={() => setDonateOpen(true)}
               title={t("cube8.donate.title")}
-              className="flex items-center gap-1 text-primary hover:text-primary hover:bg-primary/10"
+              className="flex shrink-0 items-center gap-1 text-primary hover:text-primary hover:bg-primary/10"
             >
               <Heart className="h-4 w-4" />
               <span className="hidden sm:inline text-xs font-medium">{t("cube8.donate.nav_button")}</span>
             </Button>
 
-            <TokenHUD />
+            <div className="min-w-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-nav-tokens>
+              <TokenHUD />
+            </div>
 
             {/* Language selector — visible only when NOT authenticated (visitors + pollers) */}
             {/* Moderators access language via Settings panel — no redundant Globe icon */}
-            {!isAuthenticated && <LanguageGlobe />}
+            {!isAuthenticated && <LanguageGlobe className="shrink-0" />}
 
             {/* Romanization toggle — config-driven, shows for zh (Pinyin), km (UNGEGN), etc. */}
             {hasRomanization(activeLocale) && (() => {
@@ -120,7 +127,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                   variant={romanizationEnabled ? "default" : "outline"}
                   size="sm"
                   onClick={() => setRomanizationEnabled(!romanizationEnabled)}
-                  className="text-[10px] px-2 h-7"
+                  className="shrink-0 text-[10px] px-2 h-7"
                   title={romanizationEnabled ? `Hide ${config.system}` : `Show ${config.system}`}
                 >
                   {config.buttonLabel}
@@ -130,12 +137,13 @@ export function Navbar({ sessionTitle }: NavbarProps) {
 
             {/* Settings menu — visible for ALL users (polling + moderator) */}
             {showSettings && !isAuthenticated && (
-              <div className="relative">
+              <div className="relative shrink-0">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setUserMenuOpen((p) => !p)}
                   title={t("shared.nav.settings")}
+                  data-nav-settings
                 >
                   <Settings className="h-4 w-4" />
                 </Button>
@@ -165,7 +173,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
             )}
 
             {isAuthenticated && user && (
-              <div className="relative">
+              <div className="relative shrink-0">
                 <Button
                   variant="ghost"
                   size="sm"

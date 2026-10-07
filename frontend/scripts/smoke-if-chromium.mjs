@@ -12,7 +12,8 @@ if (!exe && !process.env.SMOKE_REQUIRED) { console.log('render-smoke: SKIPPED �
 // SF rev 43: and the Sensor Fusion labeler smoke — the labeler scrolls, SAVE BOX and every row's buttons can be reached upright and
 // sideways, and Settings and the model list close with Escape (a regex could not see rev 42's labeler that could not scroll).
 let status = 0;
-for (const script of ['./drone-render-smoke.mjs', './fin-layout-smoke.mjs', './fin-sync-probe.mjs', './sf-layout-smoke.mjs']) {
+// HP-23 (AsM round 1): and the navbar gear smoke — at 375/390 px the Settings gear (where the easter-egg unlock starts) is on screen on /session and /sim.
+for (const script of ['./drone-render-smoke.mjs', './fin-layout-smoke.mjs', './fin-sync-probe.mjs', './sf-layout-smoke.mjs', './nav-gear-smoke.mjs']) {
   const r = spawnSync(process.execPath, [new URL(script, import.meta.url).pathname], { stdio: 'inherit', env: { ...process.env, CHROMIUM_PATH: exe || '' } });
   if ((r.status ?? 1) !== 0) status = r.status ?? 1;
 }

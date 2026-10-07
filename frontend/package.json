@@ -134,6 +134,7 @@
     "test:financial-rate": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/financial-rate.test.mjs",
     "test:drone-render-smoke": "node scripts/drone-render-smoke.mjs",
     "test:fin-layout-smoke": "node scripts/fin-layout-smoke.mjs",
+    "test:nav-gear-smoke": "node scripts/nav-gear-smoke.mjs",
     "test:fin-sync-probe": "node scripts/fin-sync-probe.mjs",
     "test:build-stamp": "node tests/build-stamp.test.mjs",
     "test:drone-swarm": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/drone-swarm.test.mjs",
