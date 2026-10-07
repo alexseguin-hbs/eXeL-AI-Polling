@@ -26,24 +26,6 @@ export function pngSet(fileName: string) {
   return { png: `${stem}.png`, xml: `${stem}.xml` };
 }
 
-function codexName(raw: string) {
-  return raw.toUpperCase().replace(/[^A-Z0-9 ._-]/g, "").replace(/\s+/g, " ").trim() || "GUEST";
-}
-
-function codexTime(raw: string) {
-  return raw.replace(/[^0-9._]/g, "");
-}
-
-/** Bottom-right record. Level 1 is the annotator. Level 2 adds the reviewer. */
-export function bottomRightLine(who: string, when: string, reviewer = "", reviewedAt = "") {
-  const name = codexName(who);
-  const time = codexTime(when);
-  if (!time) return "";
-  const level1 = `LEVEL 1: ${name} ${time}`;
-  if (reviewer && reviewedAt && codexTime(reviewedAt)) return `${level1} LEVEL 2: ${codexName(reviewer)} ${codexTime(reviewedAt)}`;
-  return level1;
-}
-
 /** What the picture shows after the decoder reads the line. */
 export function levelReadout(line: string) {
   return line.replaceAll("LEVEL 1:", "Level 1:").replaceAll("LEVEL 2:", "Level 2:").trim();

@@ -21,10 +21,10 @@ ok(jpeg.image === "deer_0008.jpg" && jpeg.xml === "deer_0008.xml", "a jpeg keeps
 ok(emptyPairXml("head_0001.png").includes("<filename>head_0001.png</filename>"), "the paired xml names the picture");
 
 const when = "2026.10.06_17.49..12";
-ok(codexLine({ file: "head_0001.png", level: 1, who: "Alex", when }) === `L1 ALEX ${when} HEAD_0001`, "Level 1 records who and when");
+ok(codexLine({ file: "head_0001.png", level: 1, who: "Alex", when }) === `LEVEL 1: ALEX ${when}`, "Level 1 records who and when");
 ok(
   codexLine({ file: "head_0001.png", level: 2, who: "Jordan", when: "2026.10.06_18.02..04", l1: { who: "Alex", when } }) ===
-    `L1 ALEX ${when} L2 JORDAN 2026.10.06_18.02..04 HEAD_0001`,
+    `LEVEL 1: ALEX ${when} LEVEL 2: JORDAN 2026.10.06_18.02..04`,
   "Level 2 adds a second who and when and keeps Level 1",
 );
 ok(codexStamp(new Date("2026-10-06T17:49:12Z")) === when, "the stamp is UTC in the Vision-2525 form");

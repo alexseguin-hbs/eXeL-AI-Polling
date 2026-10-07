@@ -1,5 +1,7 @@
+import { unsupportedChars } from "../light-codex";
+
 function refused(text: string) {
-  return Array.from(text).filter((ch) => !/[A-Z0-9 ._-]/.test(ch));
+  return unsupportedChars(text);
 }
 
 function escapeName(value: string) {
@@ -45,14 +47,27 @@ export function codexLine(input: {
   when: string;
   l1?: { who: string; when: string };
 }) {
-  const file = (input.file.replace(/\.[^.]+$/, "") || "PICTURE").toUpperCase().replace(/[^A-Z0-9 ._-]/g, "");
   const who = codexWho(input.who);
+  void input.file;
   const line = input.level === 2 && input.l1
-    ? `L1 ${codexWho(input.l1.who)} ${input.l1.when} L2 ${who} ${input.when} ${file}`
-    : `L1 ${who} ${input.when} ${file}`;
+    ? `LEVEL 1: ${codexWho(input.l1.who)} ${input.l1.when} LEVEL 2: ${who} ${input.when}`
+    : `LEVEL 1: ${who} ${input.when}`;
   const bad = refused(line);
   if (bad.length) throw new Error(`Light Codex cannot write ${bad.join(" ")}`);
   return line;
+}
+
+/** The picture mark. Same line the project packet uses. A blank time writes nothing. */
+export function bottomRightLine(who: string, when: string, reviewer = "", reviewedAt = "") {
+  const time = when.replace(/[^0-9._]/g, "");
+  if (!time) return "";
+  const reviewTime = reviewedAt.replace(/[^0-9._]/g, "");
+  try {
+    if (reviewer && reviewTime) return codexLine({ file: "picture", level: 2, who: reviewer, when: reviewTime, l1: { who, when: time } });
+    return codexLine({ file: "picture", level: 1, who, when: time });
+  } catch {
+    return "";
+  }
 }
 
 export function emptyPairXml(fileName: string) {

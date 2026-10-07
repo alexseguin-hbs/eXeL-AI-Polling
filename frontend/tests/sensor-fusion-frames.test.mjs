@@ -1,4 +1,5 @@
-import { IMAGE_INTAKE, VIDEO_INTAKE, bottomRightLine, levelReadout, needsPng, pngSet, videoSourceName } from "../lib/sensor-fusion/frames.ts";
+import { IMAGE_INTAKE, VIDEO_INTAKE, levelReadout, needsPng, pngSet, videoSourceName } from "../lib/sensor-fusion/frames.ts";
+import { bottomRightLine } from "../lib/sensor-fusion/pair.ts";
 import fs from "node:fs";
 import path from "node:path";
 
