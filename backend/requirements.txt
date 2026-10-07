@@ -7,6 +7,7 @@ python-multipart>=0.0.20
 sqlalchemy[asyncio]>=2.0.36
 asyncpg>=0.30.0
 alembic>=1.14.0
+supabase>=2.0.0            # imported at module load by core/realtime_ws.py
 
 # Auth
 python-jose[cryptography]>=3.4.0
@@ -19,6 +20,7 @@ pydantic-settings>=2.7.0
 # AI providers (launch: OpenAI, Grok/xAI, Gemini/Google)
 openai>=2.18.0
 google-genai>=1.0.0
+anthropic>=0.40.0          # imported at module load by cube6_ai/providers/claude_provider.py
 # xAI Grok uses OpenAI-compatible API via httpx (no separate SDK needed)
 
 # ML / Clustering

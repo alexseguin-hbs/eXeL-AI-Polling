@@ -115,10 +115,75 @@ jobs:
             echo "::notice::site and its prebuild runs the Sign Doc invariant and voice gates. Set the two secrets to deploy here too."
           fi
 
+  # THE BACKEND GATE (AsM round 1, 2026-10-07 — Odin, Enlil, Athena): the ~3,350-test backend suite, the Postgres SQL-tally
+  # parity proof, the sim_seed tests and the live-database proofs (tests/live_db: every OpenAPI operation without a 500, the
+  # 38-step journey, the HP-21 Admin Console sequence) had never run in CI. They run here, on every push to main, against a
+  # real health-checked Postgres, and the ship job waits on them. Runs in parallel with the frontend gate.
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: polling
+          POSTGRES_PASSWORD: polling
+          POSTGRES_DB: polling_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U polling -d polling_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      ENVIRONMENT: test
+      DATABASE_URL: postgresql+asyncpg://polling:polling@localhost:5432/polling_db
+      SIM_TEST_DSN: postgresql://polling:polling@localhost:5432/sim_parity
+      LIVE_DB_DSN: postgresql://polling:polling@localhost:5432/live_db_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+
+      # requirements.txt minus the four heavy runtime-only extras the suite never imports: torch + transformers (the
+      # Cube 2 NER model is lazy-loaded; installing transformers would make PII tests download a 2 GB model) and the
+      # Azure / AWS speech SDKs (lazy-imported inside the paid STT providers, which the suite mocks).
+      - name: Install backend requirements (no heavy ML / cloud-STT extras)
+        run: |
+          grep -viE '^(torch|transformers|azure-cognitiveservices-speech|boto3)\b' requirements.txt > /tmp/requirements-ci.txt
+          python -m pip install --upgrade pip
+          python -m pip install -r /tmp/requirements-ci.txt "pytest>=8.3.0" "pytest-asyncio>=0.25.0"
+
+      # Fail closed: the Postgres-backed proofs skip when no database answers, so prove the service answers first —
+      # a green run must never mean "skipped for want of a database".
+      - name: Postgres answers
+        run: python -c "import asyncio, asyncpg; asyncio.run(asyncpg.connect('postgresql://polling:polling@localhost:5432/postgres', timeout=10))"
+
+      - name: Backend suite (unit + SQL-tally parity + sim_seed + live-database proofs)
+        run: |
+          set -o pipefail
+          python -m pytest -q -rs -p no:cacheprovider 2>&1 | tee /tmp/backend-pytest.log
+
+      - name: The live-database proofs actually ran (not skipped)
+        run: |
+          if grep -E "SKIPPED .*(tests/live_db/|test_sql_tally_parity)" /tmp/backend-pytest.log; then
+            echo "::error::a Postgres-backed proof skipped although the service is up"; exit 1
+          fi
+
   # THE SHIP (operator 2026-09-23: the four secrets will be set). A job-level `if` on the gate's output means a run without
   # the secrets shows this job SKIPPED — grey, a fourth state — never a green "Deploy" that shipped nothing (MoT 11).
+  # It also waits on the backend gate: a red backend suite stops the deploy exactly as a red frontend gate does.
   ship:
-    needs: gate
+    needs: [gate, backend]
     if: needs.gate.outputs.canbuild == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 35
