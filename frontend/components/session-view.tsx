@@ -399,6 +399,11 @@ export function SessionView() {
     : (liveBallot.themes ?? []);
   // The participant's own submitted order — what their results card shows in a real session (Christo, round 3).
   const [myRankedOrder, setMyRankedOrder] = useState<SimTheme[] | null>(null);
+  // A real participant who has voted sees their results while the session keeps its true status, so a
+  // re-open (ranking → polling, next cycle) still reaches them (round 4: faking "closed" stopped the poll).
+  const [ballotDone, setBallotDone] = useState(false);
+  // A re-open (next cycle) gives the participant a fresh ballot.
+  useEffect(() => { if (session?.status === "polling") { setBallotDone(false); setMyRankedOrder(null); } }, [session?.status]);
   const resultThemes: SimTheme[] = !simulationMode && myRankedOrder ? myRankedOrder : ballotThemes;
 
   useEffect(() => {
@@ -463,13 +468,16 @@ export function SessionView() {
           const kvData = kvResult.status === "fulfilled" ? kvResult.value : null;
           const sbData = sbResult.status === "fulfilled" ? sbResult.value : null;
 
+          // The edge copy may only move the status FORWARD of the backend's own (a stale /api/sessions record —
+          // a second moderator device, an out-of-order write — must never show an earlier status; round 4).
+          const ahead = (st: unknown) => typeof st === "string" && statusRank(st as Session["status"]) > statusRank(data.status);
           if (kvData && !("error" in kvData) && kvData.status) {
-            data.status = kvData.status as Session["status"];
+            if (ahead(kvData.status)) data.status = kvData.status as Session["status"];
             if (kvData.ends_at) data.ends_at = kvData.ends_at as string;
             if (kvData.participant_count != null) data.participant_count = kvData.participant_count as number;
           } else if (sbData?.status) {
             // KV miss — use Supabase DB (globally consistent HTTP REST)
-            data.status = sbData.status as Session["status"];
+            if (ahead(sbData.status)) data.status = sbData.status as Session["status"];
             if (sbData.participant_count != null) data.participant_count = sbData.participant_count;
           }
           if (data.status === "polling" && !data.opened_at) {
@@ -1234,24 +1242,28 @@ export function SessionView() {
             <Button variant="outline" size="sm" onClick={liveBallot.retry}>{t("shared.error.retry")}</Button>
           </div>
         )}
-        {session?.status === "ranking" && (simulationMode || (liveBallot.status === "ready" && ballotThemes.length > 0)) && (
+        {session?.status === "ranking" && !ballotDone && (simulationMode || (liveBallot.status === "ready" && ballotThemes.length > 0)) && (
           <ThemeRankingDnD
             key={ballotThemes.map((th) => th.id).join("|")}
             themes={ballotThemes}
             sessionId={simulationMode ? undefined : sessionId}
             onComplete={(order) => {
-              if (!simulationMode && order) setMyRankedOrder(order);
               // Only the participant's own view moves to results; closing the session stays the moderator's
               // action on the dashboard (the close route is moderator-only — Christo, round 3).
-              setSession((prev) => prev ? { ...prev, status: "closed" } : prev);
+              if (simulationMode) {
+                setSession((prev) => prev ? { ...prev, status: "closed" } : prev);
+              } else {
+                if (order) setMyRankedOrder(order);
+                setBallotDone(true);
+              }
               setSimPhase("results");
-              toast({ title: t("cube10.sim.session_complete") });
+              toast({ title: t(simulationMode ? "cube10.sim.session_complete" : "cube10.sim.rankings_submitted") });
             }}
           />
         )}
 
         {/* Results Phase — ranked themes summary after ranking */}
-        {simPhase === "results" && (session?.status === "closed" || session?.status === "archived") && (
+        {simPhase === "results" && (session?.status === "closed" || session?.status === "archived" || (ballotDone && session?.status === "ranking")) && (
           <Card className="w-full max-w-lg">
             <CardHeader className="text-center">
               <CheckCircle2 className="h-10 w-10 text-green-400 mx-auto mb-2" />

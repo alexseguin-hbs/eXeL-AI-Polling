@@ -936,7 +936,12 @@ function _validateMockBallot(sid: string, ids: string[], existing: string[][]): 
   let valid: Set<string> | null = null;
   if (rows && rows.length) {
     const cat = session?.theme01_category || null;
-    const parents = new Set(rows.filter((r) => r.parent_theme_id == null && (!cat || r.theme01_category === cat)).map((r) => r.id));
+    // The parent's category from its LABEL, as the backend's _category_key does (stored field only as a fallback).
+    const labelCat = (r: { label?: string | null; theme01_category?: string | null }) => {
+      const l = (r.label || "").toLowerCase();
+      return l.includes("risk") ? "risk" : l.includes("support") ? "support" : l.includes("neutral") ? "neutral" : (r.theme01_category ?? null);
+    };
+    const parents = new Set(rows.filter((r) => r.parent_theme_id == null && (!cat || labelCat(r) === cat)).map((r) => r.id));
     valid = new Set(rows.filter((r) => r.parent_theme_id != null && parents.has(r.parent_theme_id) && r.theme_level === levelNum && r.label !== "").map((r) => r.id));
     if (!valid.size) return `No themes found at level ${levelNum}${cat ? ` (category=${cat})` : ""} for session ${sid}`;
   } else if (existing.length) {

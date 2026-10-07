@@ -185,9 +185,19 @@ async function request<T>(
   // Mock mode writes it in mock-data; against the real backend the moderator's create and transitions write it
   // here, fire-and-forget, so Path C works for backend sessions too (Krishna, round 3).
   if (method === "POST" && LIVE_SESSION_WRITE.test(path) && data && typeof data.short_code === "string") {
-    void syncSessionToKV(data as Session, path === "/sessions" ? "create" : "update").catch(() => {});
+    queueSessionSync(data as Session, path === "/sessions" ? "create" : "update");
   }
   return data;
+}
+
+// One write at a time per session code, in the order the backend answered: back-to-back transitions
+// (start then poll) can never land out of order and leave the record a step behind, and an update never
+// races the create that saves the write key (rounds 3–4).
+const sessionSyncChain = new Map<string, Promise<void>>();
+function queueSessionSync(session: Session, mode: "create" | "update"): void {
+  const prev = sessionSyncChain.get(session.short_code) ?? Promise.resolve();
+  const next = prev.then(() => syncSessionToKV(session, mode)).catch(() => {});
+  sessionSyncChain.set(session.short_code, next);
 }
 
 /** The moderator calls that change what /api/sessions must hold: create, and every status transition. */

@@ -82,6 +82,9 @@ export function ballotRetryDelayMs(n: number, rand: () => number = Math.random):
  *  random 0–1.5 s first (the GET /themes thundering herd, backlog HP-31). */
 export const BALLOT_FIRST_LOAD_SPREAD_MS = 1500;
 
+/** An empty-but-healthy answer (themes still being written) is re-checked at most this far apart. */
+export const BALLOT_EMPTY_RECHECK_CAP_MS = 5000;
+
 export type BallotLoad =
   | { status: "loading"; themes: null }
   | { status: "ready"; themes: SimTheme[] }
@@ -97,11 +100,13 @@ export function useSessionBallotThemes(
   const [load, setLoad] = useState<BallotLoad>({ status: "loading", themes: null });
   const [attempt, setAttempt] = useState(0);
   const level = levelOf(votingLevel);
+  // A new session / level / category starts over: first-load spread again, backoff from zero (round 4).
+  useEffect(() => { setAttempt(0); }, [sessionId, level, category]);
   useEffect(() => {
     if (!sessionId) { setLoad({ status: "loading", themes: null }); return; }
     let live = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const again = () => { if (live) setAttempt((a) => a + 1); };
+    const again = () => { if (!live) return; setLoad({ status: "loading", themes: null }); setAttempt((a) => a + 1); };
     const fetchOnce = () => {
       api.get<LiveThemeRow[]>(`/sessions/${sessionId}/themes`)
         .then((rows) => {
@@ -109,9 +114,10 @@ export function useSessionBallotThemes(
           const list = Array.isArray(rows) ? rows : [];
           const ballot = toBallotThemes(ballotThemeRows(list, level, category), list);
           if (ballot.length > 0) { setLoad({ status: "ready", themes: ballot }); return; }
-          // No themes at this level yet (theming still writing): keep waiting, ask again later.
+          // No themes at this level yet (theming still writing): a healthy answer, so check again soon — the
+          // short cap keeps the ballot appearing within seconds of theming finishing (round 4).
           setLoad({ status: "loading", themes: null });
-          timer = setTimeout(again, ballotRetryDelayMs(attempt + 1));
+          timer = setTimeout(again, Math.min(BALLOT_EMPTY_RECHECK_CAP_MS, ballotRetryDelayMs(attempt + 1)));
         })
         .catch(() => {
           if (!live) return;

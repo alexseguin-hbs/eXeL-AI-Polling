@@ -1,3 +1,4 @@
+// Run through `npm run test:ballot-themes` (it adds the ts-alias loader); plain `node --test` cannot resolve "@/".
 // BALLOT-THEMES lock (AsM round 2, Krishna 2026-10-07) — a real session's participant ballot ranks the
 // session's OWN Cube 6 Theme02 ids, the rule cube7 submit_user_ranking enforces: non-empty rows at the
 // voting level, under parents of the session's theme01_category when one is set. The page used to send
@@ -58,6 +59,13 @@ ok(/resultThemes/.test(sv.slice(sv.indexOf("{/* Results Phase"))) && /setMyRanke
 // Round 3 (Krishna): against the real backend the moderator's create and transitions write the keyed /api/sessions record.
 ok(LIVE_SESSION_WRITE.test("/sessions") && LIVE_SESSION_WRITE.test(`/sessions/${U(1)}/poll`) && LIVE_SESSION_WRITE.test(`/sessions/${U(1)}/close`), "create and transitions are bridged to /api/sessions");
 ok(!LIVE_SESSION_WRITE.test(`/sessions/${U(1)}/rankings`) && !LIVE_SESSION_WRITE.test("/sessions/join/ABCD"), "ballots and joins are not");
+
+// Round 4: the bridge is really called, in order; the merge never moves status backwards; a re-open reaches a voter.
+const apiSrc = readFileSync(new URL("../lib/api.ts", import.meta.url), "utf8");
+ok(/LIVE_SESSION_WRITE\.test\(path\)[\s\S]{0,200}queueSessionSync\(/.test(apiSrc) && /prev\.then\(\(\) => syncSessionToKV\(/.test(apiSrc), "request() writes /api/sessions after create/transitions, one write at a time per code");
+ok(/statusRank\(st as Session\["status"\]\) > statusRank\(data\.status\)/.test(sv) && /if \(ahead\(kvData\.status\)\)/.test(sv), "the edge copy only moves a loaded status forward");
+ok(/setBallotDone\(true\)/.test(sv) && !/onComplete=\{\(order\) => \{\s*if \(!simulationMode && order\) setMyRankedOrder\(order\);\s*\/\/[^\n]*\n[^\n]*\n\s*setSession\(\(prev\) => prev \? \{ \.\.\.prev, status: "closed" \}/.test(sv), "a real voter's results keep the session's true status (a re-open still reaches them)");
+ok(/BALLOT_EMPTY_RECHECK_CAP_MS = 5000/.test(bt) && /setAttempt\(0\)/.test(bt), "empty re-checks capped at 5 s; a new session starts the backoff over");
 
 console.log(`\nballot-themes: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
