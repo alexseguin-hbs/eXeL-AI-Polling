@@ -565,6 +565,7 @@ def _resolve_cube_sources(cube_id: int, section: str | None) -> list[dict]:
     exact: dict[str, object] = {}
     pool: list[tuple[str, object]] = []
     for name, obj in _iter_cube_callables(cube_id):
+        obj = inspect.unwrap(obj)  # a decorated endpoint (e.g. @limiter.limit) shows its own source, not the wrapper's
         try:
             src_file = inspect.getsourcefile(obj) or ""
         except Exception:  # noqa: BLE001
@@ -601,6 +602,7 @@ def _resolve_named_sources(cube_id: int, names: tuple[str, ...], section_label: 
     exact: dict[str, object] = {}
     pool: list[tuple[str, object]] = []
     for name, obj in _iter_cube_callables(cube_id):
+        obj = inspect.unwrap(obj)  # a decorated endpoint (e.g. @limiter.limit) shows its own source, not the wrapper's
         try:
             src_file = inspect.getsourcefile(obj) or ""
         except Exception:  # noqa: BLE001

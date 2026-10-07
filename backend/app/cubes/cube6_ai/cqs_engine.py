@@ -16,7 +16,7 @@ import structlog
 import uuid
 
 import numpy as np
-from sqlalchemy import select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -72,9 +72,16 @@ async def score_cqs(
     level_field = f"theme2_{theme_level}"
     conf_field = f"theme2_{theme_level}_confidence"
 
+    # One cycle: the answers given in the session's current cycle, as theming reads (phase_b._current_cycle).
+    from app.cubes.cube6_ai.phase_b import _current_cycle
+
+    in_cycle = select(ResponseMeta.id).where(
+        ResponseMeta.session_id == session_id, ResponseMeta.cycle_id == _current_cycle(session_id),
+    )
     summaries_result = await db.execute(
         select(ResponseSummary).where(
             ResponseSummary.session_id == session_id,
+            ResponseSummary.response_meta_id.in_(in_cycle),
         )
     )
     all_summaries = list(summaries_result.scalars().all())
@@ -94,11 +101,18 @@ async def score_cqs(
         )
         return []
 
-    meta_ids = [s.response_meta_id for s in eligible]
-    meta_result = await db.execute(
-        select(ResponseMeta).where(ResponseMeta.id.in_(meta_ids))
+    # The participants of the eligible answers, filtered in SQL (a subquery, never a bound id list: asyncpg caps a
+    # statement at 32,767 parameters and one winning theme can cover more answers than that at 1M; Odin, round 11).
+    eligible_ids = select(ResponseSummary.response_meta_id).where(
+        ResponseSummary.session_id == session_id,
+        ResponseSummary.response_meta_id.in_(in_cycle),
+        getattr(ResponseSummary, level_field) == top_theme2_label,
+        func.coalesce(getattr(ResponseSummary, conf_field), 0) >= 95,
     )
-    meta_map = {m.id: m.participant_id for m in meta_result.scalars().all()}
+    meta_result = await db.execute(
+        select(ResponseMeta.id, ResponseMeta.participant_id).where(ResponseMeta.id.in_(eligible_ids))
+    )
+    meta_map = {row[0]: row[1] for row in meta_result.all()}
 
     safe_theme_label = html.escape(top_theme2_label)
 
@@ -111,6 +125,10 @@ async def score_cqs(
             "text": f"Response: {text[:3000]}",
             "instruction": _CQS_INSTRUCTION,
         })
+
+    # Idempotent: a re-score replaces the session's scores (and its one winner) in the same transaction as the new
+    # rows, so scoring twice never leaves two rows per answer or two winners (Thoth, round 11).
+    await db.execute(delete(CQSScore).where(CQSScore.session_id == session_id))
 
     results: list[str] = []
     for chunk_start in range(0, len(items), _CQS_BATCH_SIZE):
@@ -212,7 +230,7 @@ async def run_cqs_pipeline(
 
     result = await db.execute(select(Session).where(Session.id == session_id))
     session = result.scalar_one_or_none()
-    effective_seed = seed or (session.seed if session else str(session_id))
+    effective_seed = seed or (session.seed if session and session.seed else str(session_id))  # NULL seed (Thoth, r11)
     seed_int = int(hashlib.md5(effective_seed.encode()).hexdigest()[:8], 16)
 
     winner_id = select_cqs_winner(scored, seed_int)

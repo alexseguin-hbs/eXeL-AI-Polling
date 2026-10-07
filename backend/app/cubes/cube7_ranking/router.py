@@ -10,7 +10,9 @@ Endpoints:
 
 import uuid
 
-from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, Request, status
+
+from app.core.rate_limit import limiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # ---------------------------------------------------------------------------
@@ -63,7 +65,9 @@ router = APIRouter(prefix="/sessions/{session_id}", tags=["Cube 7 — Ranking"])
 
 
 @router.post("/rankings", response_model=RankingRead, status_code=201)
+@limiter.limit("60/minute")  # a re-vote replaces the ballot, but every call still validates and writes (Thor, r11)
 async def submit_ranking(
+    request: Request,
     session_id: uuid.UUID,
     payload: RankingSubmit,
     db: AsyncSession = Depends(get_db),

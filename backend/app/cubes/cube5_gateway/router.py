@@ -11,7 +11,7 @@ The CENTER of the 3x3 cube grid. All flows pass through here:
 import uuid
 
 from app.core.submission_validators import resolve_participant_id
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
 
 from app.core.participant_token import HEADER as PARTICIPANT_TOKEN_HEADER
@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
+from app.core.rate_limit import limiter
 from app.core.permissions import require_role
 from app.cubes.cube5_gateway import service
 from app.schemas.pipeline import (
@@ -50,12 +51,17 @@ async def _time_participant(db: AsyncSession, session_id: uuid.UUID, token: str 
 # --- Time Tracking ---
 
 
+# A participant's public time tracking is bounded (Thor, round 11): rate-limited per address here, one open
+# entry at a time and only while the session is live (service.guard_public_start), and every entry's duration
+# capped (service.MAX_TIME_ENTRY_SECONDS) — so N starts and N stops can never mint N times the tokens.
 @router.post(
     "/sessions/{session_id}/time/start",
     response_model=TimeEntryRead,
     status_code=201,
 )
+@limiter.limit("30/minute")
 async def start_time_tracking(
+    request: Request,
     session_id: uuid.UUID,
     payload: TimeEntryStart,
     db: AsyncSession = Depends(get_db),
@@ -72,6 +78,7 @@ async def start_time_tracking(
     participant_id = await _time_participant(db, session_id, participant_token, user)
     if participant_id is None:
         raise HTTPException(status_code=404, detail="Join the session before tracking time")
+    await service.guard_public_start(db, session_id, participant_id)
     entry = await service.start_time_tracking(
         db,
         session_id=session_id,
@@ -86,7 +93,9 @@ async def start_time_tracking(
     "/sessions/{session_id}/time/stop",
     response_model=TimeEntryRead,
 )
+@limiter.limit("30/minute")
 async def stop_time_tracking(
+    request: Request,
     session_id: uuid.UUID,
     payload: TimeEntryStop,
     db: AsyncSession = Depends(get_db),

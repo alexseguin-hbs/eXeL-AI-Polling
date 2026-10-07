@@ -74,9 +74,10 @@ async def _fetch_summaries(
     """
     from app.models.text_response import TextResponse
 
-    # Fetch response metas — C6-1: exclude responses with unresolved PII
-    result = await db.execute(
-        select(ResponseMeta)
+    # Eligible answers — this cycle's, C6-1 PII gate — as ONE condition both queries share (a subquery for the
+    # summaries, never a bound list of ids: asyncpg caps a statement at 32,767 parameters; Odin + Pangu, round 11).
+    eligible = (
+        select(ResponseMeta.id)
         .outerjoin(TextResponse, TextResponse.response_meta_id == ResponseMeta.id)
         .where(
             ResponseMeta.session_id == session_id,
@@ -91,17 +92,15 @@ async def _fetch_summaries(
             ),
         )
     )
+    result = await db.execute(select(ResponseMeta).where(ResponseMeta.id.in_(eligible)))
     metas = list(result.scalars().all())
 
     if not metas:
         return []
 
     # Batch-load summaries (1 query instead of N)
-    meta_ids = [m.id for m in metas]
     summary_result = await db.execute(
-        select(ResponseSummary).where(
-            ResponseSummary.response_meta_id.in_(meta_ids),
-        )
+        select(ResponseSummary).where(ResponseSummary.response_meta_id.in_(eligible))
     )
     summary_map = {s.response_meta_id: s for s in summary_result.scalars().all()}
 
@@ -709,7 +708,9 @@ async def _replace_cycle_themes(db: AsyncSession, session_id: uuid.UUID, cycle_i
         raise ThemesLockedError(
             f"Ranking has started for cycle {cycle_id}; its themes can no longer be regenerated"
         )
-    await db.execute(delete(ThemeSample).where(ThemeSample.theme_id.in_(old_ids)))
+    # Marble groups belong to the latest theming run (written without a theme_id, so the old by-theme delete never
+    # matched and every re-run appended a full set, ~N/10 rows; Odin, round 11). Nothing reads past runs' samples.
+    await db.execute(delete(ThemeSample).where(ThemeSample.session_id == session_id))
     await db.execute(
         update(Question).where(Question.parent_theme_id.in_(old_ids)).values(parent_theme_id=None)
     )

@@ -50,13 +50,17 @@ class TestStartTimeTracking:
             "app.cubes.cube5_gateway.router.resolve_participant_id",
             new_callable=AsyncMock,
             return_value=PID,
-        ):
+        ), patch(
+            "app.cubes.cube5_gateway.service.guard_public_start",
+            new_callable=AsyncMock,
+        ) as guard:
             resp = await client.post(
                 f"{PREFIX}/time/start",
                 json={"action_type": "responding"},
             )
         assert resp.status_code == 201
         assert start.await_args.kwargs["participant_id"] == PID
+        guard.assert_awaited_once()  # the public start always runs its bounds (Thor, round 11)
 
     @pytest.mark.asyncio
     async def test_404_when_caller_has_not_joined(self, client, moderator_user):

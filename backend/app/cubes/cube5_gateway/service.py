@@ -128,6 +128,35 @@ def calculate_tokens(
 # ---------------------------------------------------------------------------
 
 
+# The longest one time entry can count, in seconds: a session's live window (DECLARED, 3 h — the longest polling
+# + ranking window the demo sessions run). Longer participation is several entries, each bounded the same way.
+MAX_TIME_ENTRY_SECONDS = 3 * 3600
+
+
+LIVE_STATUSES = ("polling", "ranking")
+
+
+async def guard_public_start(db: AsyncSession, session_id: uuid.UUID, participant_id: uuid.UUID) -> None:
+    """The public start's bounds (Thor, round 11): the session must be live, and the participant may hold at most
+    one open public (cube5) entry in it. Cube 2/3 open and close their own entries inside one submission, so the
+    bound is on the public route, never on start_time_tracking itself."""
+    from app.models.session import Session
+
+    status_ = (await db.execute(select(Session.status).where(Session.id == session_id))).scalar_one_or_none()
+    if status_ not in LIVE_STATUSES:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Time is tracked only while the session is live")
+    open_entry = (await db.execute(
+        select(TimeEntry.id).where(
+            TimeEntry.session_id == session_id,
+            TimeEntry.participant_id == participant_id,
+            TimeEntry.cube_id == "cube5",
+            TimeEntry.stopped_at.is_(None),
+        ).limit(1)
+    )).scalar_one_or_none()
+    if open_entry is not None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Stop the open time entry before starting another")
+
+
 async def start_time_tracking(
     db: AsyncSession,
     *,
@@ -181,7 +210,8 @@ async def stop_time_tracking(
 
     now = datetime.now(timezone.utc)
     entry.stopped_at = now
-    entry.duration_seconds = (now - entry.started_at).total_seconds()
+    # Capped: an entry left open (or opened to farm tokens) never earns past one live session window (Thor, round 11).
+    entry.duration_seconds = min((now - entry.started_at).total_seconds(), MAX_TIME_ENTRY_SECONDS)
 
     heart, human, unity = calculate_tokens(
         entry.duration_seconds, entry.action_type, country, state
