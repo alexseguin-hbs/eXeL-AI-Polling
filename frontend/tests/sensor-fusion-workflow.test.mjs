@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { readyForProject, codexLine } from "../lib/sensor-fusion/pair.ts";
-import { acceptMark, crossReview, emptyClock, finalSubmission, nextFor, noteWork, saveMark, siTokens, simulateClass, simulatePair, swarmStatus, SIM_ANIMALS, SIM_LABELERS, SIM_REVIEWER, startClock, stopClock, workflowLines } from "../lib/sensor-fusion/workflow.ts";
+import { acceptMark, crossReview, emptyClock, finalSubmission, nextFor, noteWork, saveMark, siTokens, simulateClass, simulatePair, simulateTeam, swarmStatus, SIM_ANIMALS, SIM_LABELERS, SIM_REVIEWER, SIM_TEAM, startClock, stopClock, workflowLines } from "../lib/sensor-fusion/workflow.ts";
 
 let passed = 0;
 const failures = [];
@@ -122,8 +122,16 @@ ok(swarmStatus(openSet, "Alex").labelLeft === 1 && swarmStatus(openSet, "Alex").
 ok(nextFor(openSet, "Riley", "0").id === "199", "NEXT opens the picture that still needs a box");
 const labeledSet = openSet.map((page) => (page.boxes.length ? page : { ...page, boxes: [{ by: "RILEY", level: 1 }] }));
 const alexTurn = nextFor(labeledSet, "Alex", "0");
-ok(alexTurn.mine === 100 && alexTurn.id === "1" && alexTurn.note === "Labeling is done. 100 left for you to review.", "NEXT gives Alex only Riley's pictures");
-ok(nextFor(labeledSet, "Riley", "1").id === "2", "NEXT gives Riley the next picture Alex labeled");
+ok(alexTurn.mine === 100 && labeledSet.find((page) => page.id === alexTurn.id)?.boxes[0].by === "RILEY" && alexTurn.note === "Labeling is done. 100 left for you to review.", "NEXT gives Alex a picture Riley labeled");
+ok(labeledSet.find((page) => page.id === nextFor(labeledSet, "Riley", "1").id)?.boxes[0].by === "ALEX", "NEXT gives Riley a picture Alex labeled");
+const blank = Array.from({ length: 200 }, (_, index) => ({ id: String(index), boxes: [] }));
+const opened = SIM_TEAM.slice(0, 7).map((name) => nextFor(blank, name, "").id);
+ok(new Set(opened).size === 7, "seven people open seven different pictures");
+const team = simulateTeam(200, 7, 0, (input) => codexLine(input));
+ok(team.ok === true && team.packet.contributors.length === 7 && team.packet.images.length === 200, "a team of 7 labels 200 pictures together");
+ok(team.ok === true && team.packet.contributors.reduce((sum, line) => sum + line.reviews, 0) === 200, "each picture is reviewed once");
+ok(team.ok === true && team.packet.images.every((image) => image.boxes[0].by && image.boxes[0].reviewer && image.boxes[0].by !== image.boxes[0].reviewer), "no one reviews their own picture");
+ok(team.ok === true && team.held.startsWith("Finish Level 1 first."), "Level 2 still waits until the whole team finishes labeling");
 const finished = labeledSet.map((page) => ({
   id: page.id,
   boxes: [{ by: page.boxes[0].by, reviewer: page.boxes[0].by === "ALEX" ? "RILEY" : "ALEX", level: 2 }],

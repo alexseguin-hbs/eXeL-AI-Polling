@@ -1154,7 +1154,7 @@ function Labeler({
             {note}
           </p>
         )}
-        <p className={styles.rule}>Two people share Level 1. When every picture has a box, each reviews the other's. Upload sends the pictures, both Light Codex lines, and each person's S.I.</p>
+        <p className={styles.rule}>The team shares Level 1, from 2 people up to the whole team. When every picture has a box, someone else reviews it. Upload sends the pictures, both Light Codex lines, and each person's S.I.</p>
         </div>
         {pic && (marks[pic.id] || []).length > 0 && (
           <div className={styles.boxList}>

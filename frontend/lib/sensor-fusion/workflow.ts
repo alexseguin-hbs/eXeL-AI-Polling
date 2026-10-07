@@ -316,34 +316,46 @@ export function swarmStatus(pages: SwarmPage[], who: string) {
   const mine = pages.filter((page) => pageMine(page, who)).length;
   const done = pictures > 0 && labelLeft === 0 && reviewLeft === 0;
   const note = !pictures
-    ? "Add pictures. Two people share the labeling."
+    ? "Add pictures. The team shares the labeling."
     : labelLeft
       ? `${labelLeft} left to label. Level 2 waits.`
       : mine
         ? `Labeling is done. ${mine} left for you to review.`
         : reviewLeft
-          ? `Labeling is done. ${reviewLeft} left for the other person.`
+          ? `Labeling is done. ${reviewLeft} left for the team.`
           : "Mission complete.";
   return { pictures, labelLeft, reviewLeft, mine, done, note };
 }
 
-/** The next picture this person can do. Labeling comes first. Then only the other person's boxes. */
+function seatOf(who: string, size: number) {
+  const name = memberName(who);
+  let total = 0;
+  for (const ch of name) total += ch.charCodeAt(0);
+  return size > 0 ? total % size : 0;
+}
+
+/** The next picture this person can do. The team fans out, so two people do not open the same one. */
 export function nextFor(pages: SwarmPage[], who: string, current: string) {
   const status = swarmStatus(pages, who);
   if (!pages.length || status.done) return { id: current, ...status };
-  const start = Math.max(0, pages.findIndex((page) => page.id === current));
-  const order = [...pages.slice(start + 1), ...pages.slice(0, start + 1)];
-  const next = status.labelLeft ? order.find((page) => !pageLabeled(page)) : order.find((page) => pageMine(page, who));
-  return { id: next?.id || current, ...status };
+  const ready = status.labelLeft ? pages.filter((page) => !pageLabeled(page)) : pages.filter((page) => pageMine(page, who));
+  if (!ready.length) return { id: current, ...status };
+  const seat = seatOf(who, pages.length);
+  const order = [...pages.slice(seat), ...pages.slice(0, seat)].filter((page) => ready.some((item) => item.id === page.id));
+  const at = order.findIndex((page) => page.id === current);
+  return { id: (at >= 0 ? order[at + 1] : order[0])?.id || current, ...status };
 }
 
+export const SIM_TEAM = ["Alex", "Riley", "Jordan", "Blair", "Casey", "Drew", "Eden", "Fran"] as const;
+
 /**
- * Two people share Level 1. When every picture has a box, each reviews the other's.
+ * A team of 2 to 8 shares Level 1. When every picture has a box, the next teammate reviews it.
  * Nothing is saved and nothing is uploaded.
  */
-export function simulatePair(count = SIM_COUNT, now = 0, writeLine?: LineWriter) {
-  const pair = ["Alex", "Riley"] as const;
-  const total = Math.max(2, Math.floor(count));
+export function simulateTeam(count = SIM_COUNT, teamSize = 2, now = 0, writeLine?: LineWriter) {
+  const size = Math.max(2, Math.min(SIM_TEAM.length, Math.floor(teamSize) || 2));
+  const team = SIM_TEAM.slice(0, size);
+  const total = Math.max(size, Math.floor(count));
   const write: LineWriter = writeLine || ((input) => {
     const file = (input.file.replace(/\.[^.]+$/, "") || "PICTURE").toUpperCase();
     const who = memberName(input.who);
@@ -359,18 +371,18 @@ export function simulatePair(count = SIM_COUNT, now = 0, writeLine?: LineWriter)
     if (extra > 0) extra -= 1;
     for (let index = 1; index <= take; index += 1) files.push({ animal, file: `${animal}_${String(index).padStart(4, "0")}.png` });
   }
-  const owned = files.map((item, index) => ({ ...item, who: pair[index % 2] }));
+  const owned = files.map((item, index) => ({ ...item, who: team[index % size], reviewer: team[(index + 1) % size] }));
   let clock = emptyClock("deer");
   let t = now;
   let step = 0;
-  const labeled: { file: string; who: string; box: WorkBox }[] = [];
-  for (const who of pair) {
+  const labeled: { file: string; who: string; reviewer: string; box: WorkBox }[] = [];
+  for (const who of team) {
     const list = owned.filter((item) => item.who === who);
     clock = startClock(clock, who, t);
     for (const item of list) {
       const at = simStamp(step);
       const saved = saveMark(undefined, { id: item.file, name: item.animal, left: 40, top: 35, right: 60, bottom: 65, level: 1, at }, who);
-      labeled.push({ file: item.file, who, box: saved.box });
+      labeled.push({ file: item.file, who, reviewer: item.reviewer, box: saved.box });
       clock = noteWork(clock, who, item.file, "annotate");
       step += SIM_LABEL_SECONDS;
       t += SIM_LABEL_SECONDS * 1000;
@@ -378,10 +390,10 @@ export function simulatePair(count = SIM_COUNT, now = 0, writeLine?: LineWriter)
     clock = stopClock(clock, t);
   }
   const earlyPages = labeled.map((item, index) => ({ boxes: index === labeled.length - 1 ? [] : [item.box] }));
-  const early = crossReview(labeled[0].box, pair[1], simStamp(step), earlyPages);
+  const early = crossReview(labeled[0].box, team[1], simStamp(step), earlyPages);
   if (early.ok) return { ok: false as const, note: "Level 2 started before Level 1 was finished." };
-  for (const who of pair) {
-    const list = labeled.filter((item) => !sameMember(item.who, who));
+  for (const who of team) {
+    const list = labeled.filter((item) => sameMember(item.reviewer, who));
     clock = startClock(clock, who, t);
     for (const [index, item] of list.entries()) {
       const when = simStamp(step);
@@ -416,6 +428,11 @@ export function simulatePair(count = SIM_COUNT, now = 0, writeLine?: LineWriter)
   const built = finalSubmission({ clock, now: t, images });
   if (!built.ok) return built;
   return { ...built, note: `${built.note} Simulation only. Nothing was saved.`, held: early.note };
+}
+
+/** Two people are the smallest team. */
+export function simulatePair(count = SIM_COUNT, now = 0, writeLine?: LineWriter) {
+  return simulateTeam(count, 2, now, writeLine);
 }
 
 const WORK_KEY = "sf2525-work";
