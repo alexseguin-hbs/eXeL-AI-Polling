@@ -27,9 +27,9 @@ def _get_fernet() -> Fernet:
     global _fernet
     if _fernet is None:
         if not settings.encryption_key:
-            # Production MUST have a durable key — otherwise encrypted data is
+            # Outside explicit dev/test a durable key is REQUIRED — otherwise encrypted data is
             # lost on restart. Fail loud rather than silently corrupt data.
-            if getattr(settings, "environment", "development") == "production":
+            if not settings.is_dev_or_test:
                 raise RuntimeError(
                     "ENCRYPTION_KEY is required in production — refusing to encrypt "
                     "with an ephemeral key (data would be unrecoverable on restart)."

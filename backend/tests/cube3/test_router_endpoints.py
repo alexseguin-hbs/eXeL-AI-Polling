@@ -15,8 +15,12 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 
+from app.core.participant_token import issue_participant_token
+
 SID = uuid.uuid4()
 PREFIX = f"/api/v1/sessions/{SID}/voice"
+PID = uuid.uuid4()  # the joined participant submitting
+TOKEN_HEADERS = {"X-Participant-Token": issue_participant_token(SID, PID)}
 
 
 def _fake_audio_bytes(size: int = 1024) -> bytes:
@@ -36,7 +40,7 @@ class TestSubmitVoice:
         """Build multipart form data for voice submission."""
         defaults = {
             "question_id": str(uuid.uuid4()),
-            "participant_id": str(uuid.uuid4()),
+            "participant_id": str(PID),
             "language_code": "en",
             "audio_format": "webm",
         }
@@ -76,6 +80,7 @@ class TestSubmitVoice:
         ):
             resp = await client.post(
                 PREFIX,
+                headers=TOKEN_HEADERS,
                 data=form,
                 files={"audio": ("test.webm", io.BytesIO(_fake_audio_bytes()), "audio/webm")},
             )
@@ -138,6 +143,7 @@ class TestSubmitVoice:
         ):
             resp = await client.post(
                 PREFIX,
+                headers=TOKEN_HEADERS,
                 data=form,
                 files={"audio": ("test.webm", io.BytesIO(_fake_audio_bytes()), "audio/webm")},
             )

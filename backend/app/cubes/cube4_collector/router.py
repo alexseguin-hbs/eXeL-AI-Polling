@@ -97,7 +97,7 @@ async def response_count(
 async def response_languages(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
     """Get breakdown of response languages for a session."""
     await validate_session_exists(db, session_id)
@@ -123,7 +123,7 @@ async def get_collector_presence(
 async def summary_status(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
     """Check summary generation progress (Moderator-only). CRS-09.05."""
     await validate_session_exists(db, session_id)

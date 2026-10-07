@@ -14,8 +14,12 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 
+from app.core.participant_token import issue_participant_token
+
 SID = uuid.uuid4()
 PREFIX = f"/api/v1/sessions/{SID}/responses"
+PID = uuid.uuid4()  # the joined participant submitting
+TOKEN_HEADERS = {"X-Participant-Token": issue_participant_token(SID, PID)}
 
 
 # ---------------------------------------------------------------------------
@@ -53,9 +57,10 @@ class TestSubmitResponse:
         ):
             resp = await client.post(
                 PREFIX,
+                headers=TOKEN_HEADERS,
                 json={
                     "question_id": str(uuid.uuid4()),
-                    "participant_id": str(uuid.uuid4()),
+                    "participant_id": str(PID),
                     "raw_text": "I think AI governance is crucial.",
                     "language_code": "en",
                 },
@@ -134,9 +139,10 @@ class TestSubmitResponse:
         ):
             resp = await client.post(
                 PREFIX,
+                headers=TOKEN_HEADERS,
                 json={
                     "question_id": str(uuid.uuid4()),
-                    "participant_id": str(uuid.uuid4()),
+                    "participant_id": str(PID),
                     "raw_text": "Bonjour le monde.",
                     "language_code": "fra",
                 },

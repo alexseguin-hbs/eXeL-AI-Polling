@@ -10,7 +10,7 @@ tests stayed green. These gates fail if any of those classes comes back:
   5. two operations share one OpenAPI operationId (SDK codegen collides);
   6. an Auth0 user_id is parsed as a UUID;
   7. data destruction names a column the model does not have;
-  8. the Stripe webhook accepts an unsigned event in production, or 500s on bad JSON;
+  8. the Stripe webhook accepts an unsigned event outside dev/test, or 500s on bad JSON;
   9. a background task reuses the request's DB session;
  10. an AI theming re-run appends a second set of themes instead of replacing them.
 """
@@ -177,6 +177,7 @@ async def test_stripe_webhook_refuses_unsigned_in_production(client):
     with patch("app.cubes.cube8_tokens.webhook.settings") as s:
         s.stripe_webhook_secret = ""
         s.environment = "production"
+        s.is_dev_or_test = False
         r = await client.post("/api/v1/webhooks/stripe", content=b'{"type":"checkout.session.completed"}')
     assert r.status_code == 503
 
@@ -186,6 +187,7 @@ async def test_stripe_webhook_bad_json_is_400(client):
     with patch("app.cubes.cube8_tokens.webhook.settings") as s:
         s.stripe_webhook_secret = ""
         s.environment = "development"
+        s.is_dev_or_test = True
         r = await client.post("/api/v1/webhooks/stripe", content=b"")
     assert r.status_code == 400
 
@@ -251,27 +253,133 @@ async def test_session_owner_dependency_refuses_other_tenants():
         assert e.value.status_code == 404
 
 
-def test_role_gated_session_routes_check_ownership():
-    """Every role-gated route under a session (cubes 2-9) goes through require_session_owner."""
+def _all_routes():
+    """Every mounted route, flattened through included routers (FastAPI 0.14x nests them)."""
+    from app.main import app
+
+    def flat(routes):
+        for r in routes:
+            if hasattr(r, "original_router"):
+                yield from flat(r.original_router.routes)
+            else:
+                yield r
+
+    return list(flat(app.routes))
+
+
+def _dependency_calls(dependant):
+    for d in dependant.dependencies:
+        yield d.call
+        yield from _dependency_calls(d)
+
+
+def _owner_checked(route) -> bool:
+    return any(getattr(c, "__qualname__", "").startswith("require_session_owner")
+               for c in _dependency_calls(route.dependant))
+
+
+# Session-scoped routes that are DELIBERATELY open to participants (or the public), each with
+# its reason. Everything else under /sessions/{session_id} must be owner-checked. Adding a
+# route here is a reviewed decision, not a way to quiet the gate.
+PARTICIPANT_SESSION_ROUTES = {
+    "cube1_session.get_session": "a joined participant reads the session it is in",
+    "cube1_session.list_questions": "participants read the questions they answer",
+    "cube1_session.get_presence": "count only, never who (1M: count-only presence)",
+    "cube1_session.get_qr_code": "the join QR is meant to be shared",
+    "cube1_session.get_qr_json": "the join QR is meant to be shared",
+    "cube1_session.verify_determinism": "public replay-hash proof (transparency)",
+    "cube2_text.submit_response": "participant write; identity = X-Participant-Token or owning JWT (HP-07)",
+    "cube3_voice.submit_voice": "participant write; identity = X-Participant-Token or owning JWT (HP-07)",
+    "cube4_collector.response_count": "live counter on participant screens (counts only)",
+    "cube4_collector.get_collector_presence": "count only",
+    "cube4_collector.create_outcome": "participant proposes a desired outcome",
+    "cube4_collector.confirm_outcome": "caller's own participant row only (resolve_participant_id)",
+    "cube4_collector.check_confirmed": "boolean confirmation state",
+    "cube5_gateway.start_time_tracking": "participant's own time entry",
+    "cube5_gateway.stop_time_tracking": "participant's own time entry",
+    "cube5_gateway.get_time_summary": "that participant only; X-Participant-Token or owning JWT (HP-07)",
+    "cube5_gateway.get_poll_metrics": "public poll metrics (counts)",
+    "cube5_gateway.get_pipeline_status": "participants wait on theming status",
+    "cube6_ai.get_themes": "participants vote on the themes",
+    "cube7_ranking.submit_ranking": "participant ballot; identity = X-Participant-Token or owning JWT (HP-07)",
+    "cube7_ranking.get_rankings": "live results shown to participants",
+    "cube7_ranking.get_personal_rank": "caller's own rank",
+    "cube7_ranking.verify_ranking_replay": "public determinism proof (transparency)",
+    "cube8_tokens.get_cost_estimate": "cost estimate anchors the donation ask for everyone",
+    "cube8_tokens.get_user_balance": "caller's own balance",
+    "cube8_tokens.check_velocity": "caller's own velocity",
+    "cube8_tokens.get_token_config": "public token configuration",
+    "cube9_reports.export_csv": "CRS-05 results gate: moderators checked inline (created_by), participants by their own join row",
+    "cube9_reports.get_ranking_summary": "results shown to participants",
+    "cube9_reports.get_content_tier": "caller's own donation tier",
+    "cube9_reports.get_compression_ratio": "free public headline",
+    "cube9_reports.get_replay_options": "public replay catalogue",
+}
+
+# Ownership enforced inside the handler (Cube 1 loads the session, then checks its creator).
+_INNER_OWNER_CALLS = ("verify_session_owner(", "_transition_and_return(")
+
+
+def test_every_session_route_checks_ownership_or_is_a_listed_participant_route():
+    """Every mounted router module (Cube 1, Cube 10 router + sim_seed, pod_router, every cube) is
+    in scope: a /sessions/{session_id} route is owner-checked, or it is listed above."""
+    from fastapi.routing import APIRoute
+
+    bad, seen_modules, listed_seen = [], set(), set()
+    for r in _all_routes():
+        if not isinstance(r, APIRoute):
+            continue
+        seen_modules.add(r.endpoint.__module__)
+        if "{session_id}" not in r.path:
+            continue
+        key = f"{r.endpoint.__module__.split('.')[-2]}.{r.endpoint.__name__}"
+        if key in PARTICIPANT_SESSION_ROUTES:
+            listed_seen.add(key)
+            continue
+        inner = any(m in inspect.getsource(r.endpoint) for m in _INNER_OWNER_CALLS)
+        if not (_owner_checked(r) or inner):
+            bad.append(f"{sorted(r.methods)} {r.path} ({key})")
+    for must in ("app.cubes.cube1_session.router", "app.cubes.cube10_simulation.sim_seed",
+                 "app.cubes.cube10_simulation.router", "app.cubes.cube6_ai.pod_router"):
+        assert must in seen_modules, f"{must} is not scanned"
+    assert not bad, "session routes with no ownership check (and not listed as participant routes):\n" + "\n".join(bad)
+    stale = set(PARTICIPANT_SESSION_ROUTES) - listed_seen
+    assert not stale, f"listed participant routes that no longer exist: {sorted(stale)}"
+
+
+def test_named_ownership_gaps_are_closed():
+    """Round 1 (Thor, Krishna): these four accepted any moderator / any logged-in user."""
+    from fastapi.routing import APIRoute
+
+    want = {"list_participants", "get_session_ssses_metrics", "response_languages", "summary_status"}
+    found = set()
+    for r in _all_routes():
+        if isinstance(r, APIRoute) and r.endpoint.__name__ in want:
+            assert _owner_checked(r), r.endpoint.__name__
+            found.add(r.endpoint.__name__)
+    assert found == want
+
+
+# HP-20 · no websocket is mounted without authentication
+_WS_AUTH_MARKERS = ("verify_participant_token(", "get_current_user", "require_session_owner")
+
+
+def test_no_websocket_route_without_auth():
+    from fastapi.routing import APIWebSocketRoute
+
+    ws = [r for r in _all_routes() if isinstance(r, APIWebSocketRoute)]
+    assert all("/ws/session/" not in r.path for r in ws), "HP-20 relay is unmounted"
     bad = []
-    for p in sorted((APP / "cubes").glob("cube[2-9]_*/router.py")):
-        src = p.read_text()
-        tree = ast.parse(src)
-        prefixed = 'prefix="/sessions/{session_id}' in src
-        for f in tree.body:
-            if not isinstance(f, ast.AsyncFunctionDef):
-                continue
-            deco = " ".join(ast.get_source_segment(src, d) or "" for d in f.decorator_list)
-            if "router." not in deco:
-                continue
-            under_session = prefixed or "{session_id}" in deco
-            sig = ast.get_source_segment(src, f).split('"""')[0]
-            if under_session and "require_role(" in sig:
-                bad.append(f"{p.parent.name}.{f.name}")
-    assert not bad, "role-only (no ownership) session routes: " + ", ".join(bad)
+    for r in ws:
+        src = inspect.getsource(r.endpoint)
+        deps = " ".join(getattr(c, "__qualname__", "") for c in _dependency_calls(r.dependant))
+        if not any(m in src or m.rstrip("(") in deps for m in _WS_AUTH_MARKERS):
+            bad.append(r.path)
+    assert not bad, f"websocket routes with no authentication: {bad}"
+    assert not (APP / "core/realtime_ws.py").exists(), "the unauthenticated relay module is deleted"
 
 
-# 12 · auth fails closed in production
+# 12 · auth fails closed outside an explicit dev/test environment
 @pytest.mark.asyncio
 async def test_unconfigured_auth_is_refused_in_production():
     from fastapi import HTTPException
@@ -390,3 +498,134 @@ def test_vote_path_does_not_count_or_broadcast_per_ballot():
     assert "broadcast_to_all_shards" not in gov, "ranking_complete goes on the topic clients join"
     pres = (APP / "cubes/cube1_session/router.py").read_text()
     assert "participants=[]" in pres and "get_active_count" in pres, "presence is count-only"
+
+
+# ═══ Round 1 (Thor item 1): fail closed unless explicitly development or test ═══════════
+_NOT_DEV = ["production", "staging", "prod", "Production ", "developement", "testing", "", "qa"]
+
+
+@pytest.mark.parametrize("env", _NOT_DEV)
+def test_only_explicit_dev_or_test_counts(env):
+    from app.config import Settings
+
+    assert Settings(environment=env, _env_file=None).is_dev_or_test is False
+    for ok in ("development", "test", " Test "):
+        assert Settings(environment=ok, _env_file=None).is_dev_or_test is True
+
+
+def test_unset_environment_is_production(monkeypatch):
+    from app.config import Settings
+
+    monkeypatch.delenv("ENVIRONMENT", raising=False)
+    assert Settings(_env_file=None).is_dev_or_test is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("env", ["staging", "prod", "developement", "qa", ""])
+async def test_unknown_environment_refuses_dev_auth_unsigned_stripe_and_demo_codes(client, env):
+    from fastapi import HTTPException
+
+    from app.config import settings
+    from app.core import auth
+    from app.main import app
+
+    with patch.object(settings, "environment", env), patch.object(settings, "stripe_webhook_secret", ""):
+        # 1. the dev auth user
+        with pytest.raises(HTTPException) as e:
+            auth._dev_user_or_refuse()
+        assert e.value.status_code == 503
+        # 2. an unsigned Stripe event
+        r = await client.post("/api/v1/webhooks/stripe", content=b'{"type":"checkout.session.completed"}')
+        assert r.status_code == 503
+        # 3. the source-shipped Cube 10 demo codes
+        app.dependency_overrides[auth.get_current_user] = lambda: auth.CurrentUser(
+            user_id="u", email=None, role="moderator", permissions=[])
+        try:
+            r = await client.post("/api/v1/verify-access",
+                                  json={"access_type": "admin", "code": settings.cube10_admin_code})
+        finally:
+            app.dependency_overrides.pop(auth.get_current_user, None)
+        assert r.status_code == 503, r.text
+
+
+def test_no_production_equality_guard_remains():
+    """A guard written as `environment == "production"` opens for every other value (unset,
+    staging, a typo). Every guard asks settings.is_dev_or_test instead."""
+    # live-vs-test Stripe KEY choice (not a guard): its safe default is the test keys.
+    allowed = {("cubes/cube8_tokens/stripe_config.py", "_is_production")}
+    bad = []
+    for p, tree in _modules():
+        rel = str(p.relative_to(APP))
+        text = p.read_text()
+        funcs = {}
+        for fn in ast.walk(tree):
+            if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                for n in ast.walk(fn):
+                    funcs.setdefault(id(n), fn.name)
+        for n in ast.walk(tree):
+            if not isinstance(n, ast.Compare):
+                continue
+            parts = []
+            for c in [n.left, *n.comparators]:
+                parts.extend(c.elts if isinstance(c, (ast.Tuple, ast.List, ast.Set)) else [c])
+            hit = any(isinstance(c, ast.Constant) and isinstance(c.value, str)
+                      and c.value.strip().lower() in ("production", "prod", "live") for c in parts)
+            if hit and "environment" in (ast.get_source_segment(text, n) or ""):
+                where = funcs.get(id(n), "<module>")
+                if (rel, where) not in allowed:
+                    bad.append(f"{rel}:{n.lineno} in {where}")
+    assert not bad, "environment == 'production' style guards (they fail open): " + ", ".join(sorted(set(bad)))
+    for path in ("core/auth.py", "cubes/cube8_tokens/webhook.py", "cubes/cube10_simulation/router.py",
+                 "cubes/cube6_ai/providers/factory.py", "core/security.py", "core/participant_token.py"):
+        assert "is_dev_or_test" in (APP / path).read_text(), path
+
+
+def test_app_refuses_to_start_outside_dev_test_without_auth_or_secrets():
+    from app.config import Settings, startup_config_errors
+
+    assert startup_config_errors(Settings(environment="test", _env_file=None)) == []
+    base = dict(_env_file=None, environment="staging", auth0_domain="x.auth0.com", session_secret="s")
+    assert startup_config_errors(Settings(**base)) == []
+    assert any("AUTH0_DOMAIN" in e for e in startup_config_errors(Settings(**{**base, "auth0_domain": ""})))
+    assert any("SESSION_SECRET" in e for e in startup_config_errors(Settings(**{**base, "session_secret": ""})))
+    errs = startup_config_errors(Settings(**base, stripe_secret_key="sk_test_x", stripe_webhook_secret=""))
+    assert any("STRIPE_WEBHOOK_SECRET" in e for e in errs)
+    src = (APP / "main.py").read_text()
+    life = src[src.index("async def lifespan("):src.index("app = FastAPI(")]
+    assert "startup_config_errors(settings)" in life and "raise RuntimeError" in life
+
+
+# ═══ Round 1 (Thor item 6): a daily spend cap on the anonymous paid-AI route ═════════════
+def test_daily_budget_counts_per_utc_day():
+    from datetime import datetime, timedelta, timezone
+
+    from app.core.spend_cap import DailyBudget
+
+    now = [datetime(2026, 10, 7, 23, 59, tzinfo=timezone.utc)]
+    b = DailyBudget("t", lambda: 2, clock=lambda: now[0])
+    assert b.try_spend() and b.try_spend() and not b.try_spend()
+    assert b.remaining() == 0 and 0 < b.seconds_until_reset() <= 60
+    now[0] += timedelta(minutes=2)  # past UTC midnight
+    assert b.try_spend(), "a new UTC day has a fresh budget"
+    assert not DailyBudget("off", lambda: 0).try_spend(), "0 turns the paid path off"
+
+
+@pytest.mark.asyncio
+async def test_pod_synthesis_refuses_429_once_the_day_is_spent(client):
+    from app.core.spend_cap import DailyBudget
+    from app.cubes.cube6_ai import pod_router
+
+    class _Paid:
+        calls = 0
+
+        async def summarize(self, texts, instruction):
+            _Paid.calls += 1
+            return "Results.\n\nChanged.\n\nNext."
+
+    budget = DailyBudget("pod_synthesis", lambda: 2)
+    with patch.object(pod_router, "POD_SYNTHESIS_BUDGET", budget), \
+            patch.object(pod_router, "get_summarization_provider_or_offline", lambda name: _Paid()):
+        codes = [(await client.post("/api/v1/pod/synthesis", json={"intent": "x"})).status_code for _ in range(3)]
+    assert codes == [200, 200, 429]
+    assert _Paid.calls == 2, "the refused call never reaches the paid provider"
+    assert "POD_SYNTHESIS_BUDGET.try_spend()" in (APP / "cubes/cube6_ai/pod_router.py").read_text()

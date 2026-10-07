@@ -239,8 +239,9 @@ async def verify_access(
         expected = settings.cube10_challenger_code
     else:
         raise HTTPException(status_code=400, detail="access_type must be 'admin' or 'challenger'")
-    # The demo codes ship in source; a production deploy must set its own or the door stays shut.
-    if settings.environment == "production" and expected in _DEMO_CODES:
+    # The demo codes ship in source; outside explicit dev/test a deploy must set its own codes
+    # or the door stays shut (unset / staging / typo environments included).
+    if not settings.is_dev_or_test and expected in _DEMO_CODES:
         raise HTTPException(status_code=503, detail="Access codes are not configured")
 
     # True constant-time comparison via hmac.compare_digest

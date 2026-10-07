@@ -46,8 +46,8 @@ async def stripe_webhook(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid webhook signature",
             )
-    elif settings.environment == "production":
-        # An unsigned event could mark any payment complete: never accept one in production.
+    elif not settings.is_dev_or_test:
+        # An unsigned event could mark any payment complete: accept one only in explicit dev/test.
         logger.error("cube8.webhook.secret_not_configured")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

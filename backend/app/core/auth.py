@@ -14,12 +14,13 @@ _dev_mode = not settings.auth0_domain
 
 
 def _dev_user_or_refuse() -> "CurrentUser":
-    """Dev mode (no Auth0 configured) hands out a mock moderator — never in production.
+    """Dev mode (no Auth0 configured) hands out a mock moderator — only in dev/test.
 
-    An unset AUTH0_DOMAIN in production used to make EVERY request a moderator; now it is
-    a 503 so a misconfigured deploy fails closed instead of open.
+    An unset AUTH0_DOMAIN used to make EVERY request a moderator unless ENVIRONMENT was
+    exactly "production". Now the mock user exists only when ENVIRONMENT is explicitly
+    development or test; anything else (unset, staging, a typo) is a 503 — fail closed.
     """
-    if settings.environment == "production":
+    if not settings.is_dev_or_test:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Authentication is not configured",

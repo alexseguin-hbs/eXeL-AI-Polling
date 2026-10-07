@@ -32,7 +32,6 @@ from app.cubes.cube6_ai.router import router as ai_router
 from app.cubes.cube6_ai.pod_router import router as pod_synthesis_router
 from app.cubes.cube7_ranking.router import router as ranking_router
 from app.cubes.cube8_tokens.router import router as tokens_router
-from app.core.realtime_ws import router as realtime_router
 from app.core.scoping_router import router as scoping_router
 from app.core.api_key_router import router as api_key_router
 from app.core.usage_router import router as usage_router
@@ -65,6 +64,16 @@ openapi_tags = [
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle for database connections."""
     setup_logging()
+    # Fail closed: outside an explicit development/test environment, refuse to start with a
+    # security guard that has nothing to check against (see config.startup_config_errors).
+    from app.config import startup_config_errors
+
+    problems = startup_config_errors(settings)
+    if problems:
+        raise RuntimeError(
+            f"Refusing to start (ENVIRONMENT={settings.environment!r}): " + "; ".join(problems)
+            + ". Set them, or set ENVIRONMENT=development / ENVIRONMENT=test for local work."
+        )
     # Startup — Supabase/PostgreSQL only
     # Auto-create all tables (safe to run repeatedly — skips existing)
     from app.db.base import Base
@@ -102,7 +111,7 @@ app.add_middleware(
     allow_origin_regex=r"https://.*\.pages\.dev",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-Participant-Token"],
 )
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CacheControlMiddleware)
@@ -140,7 +149,6 @@ app.include_router(stripe_webhook_router, prefix=PREFIX)
 app.include_router(scoping_router, prefix=PREFIX)
 app.include_router(api_key_router, prefix=PREFIX)
 app.include_router(usage_router, prefix=PREFIX)
-app.include_router(realtime_router)
 
 
 @app.get("/api/v1/health", response_model=HealthResponse, tags=["Health"])

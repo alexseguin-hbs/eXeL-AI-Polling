@@ -179,6 +179,9 @@ class SessionJoinResponse(BaseModel):
     polling_mode_type: str = "live_interactive"
     ends_at: str | None = None
     timer_display_mode: str = "flex"
+    # HP-07: signed, session-scoped token (core/participant_token.py). Sent back as the
+    # X-Participant-Token header on text, voice and ballot submissions. Returned once.
+    participant_token: str | None = None
 
 
 class PresenceEntry(BaseModel):

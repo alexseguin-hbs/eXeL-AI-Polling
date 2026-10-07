@@ -1,6 +1,9 @@
 from pydantic_settings import BaseSettings
 
 
+DEV_OR_TEST_ENVIRONMENTS = frozenset({"development", "test"})
+
+
 class Settings(BaseSettings):
     # Database — Supabase/PostgreSQL only
     database_url: str = "postgresql+asyncpg://polling:polling@localhost:5432/polling_db"
@@ -36,7 +39,10 @@ class Settings(BaseSettings):
     # App
     backend_url: str = "http://localhost:8000"
     frontend_url: str = "http://localhost:3000"
-    environment: str = "development"
+    # Fail closed: an UNSET environment is treated as production. Only an explicit
+    # ENVIRONMENT=development or ENVIRONMENT=test unlocks the dev conveniences (mock auth
+    # user, unsigned Stripe events, source-shipped Cube 10 codes, offline AI fallback).
+    environment: str = "production"
     log_level: str = "INFO"
 
     # Stripe (3 tiers: Free max 19, Moderator Paid, Cost Split)
@@ -89,6 +95,10 @@ class Settings(BaseSettings):
     cloudflare_turnstile_secret: str = ""    # Turnstile bot protection secret
     cloudflare_turnstile_site_key: str = ""  # Turnstile site key (sent to frontend)
 
+    # Daily cap on paid AI calls from the anonymous POST /pod/synthesis (process-wide, per UTC
+    # day; 429 once spent). Each call is one ~333-word completion. 0 turns the AI path off.
+    pod_synthesis_daily_budget: int = 200
+
     # Free tier limits
     free_tier_max_participants: int = 19
 
@@ -97,6 +107,41 @@ class Settings(BaseSettings):
     cube10_challenger_code: str = "366999"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+    @property
+    def is_dev_or_test(self) -> bool:
+        """True ONLY for an explicit development or test environment.
+
+        Every fail-closed guard asks this one question. Anything else — unset, "staging",
+        "prod", a typo — is treated as production and keeps the guard shut.
+        """
+        return (self.environment or "").strip().lower() in DEV_OR_TEST_ENVIRONMENTS
+
+
+def startup_config_errors(s: "Settings") -> list[str]:
+    """What stops this deploy from starting safely. Empty in development/test.
+
+    Outside dev/test the app refuses to start (main.lifespan) rather than run with a guard
+    open:
+      - AUTH0_DOMAIN missing → every request would be refused (503) — the deploy is broken,
+        so say so at boot instead of at the first login.
+      - SESSION_SECRET missing → participant tokens (HP-07) cannot be signed.
+      - A Stripe API key without STRIPE_WEBHOOK_SECRET → payments are live but completion
+        events cannot be verified. A deploy with NO Stripe key at all may start: payments are
+        off, and the webhook still refuses every unsigned event at request time (503), so the
+        missing secret opens nothing. Requiring it there would block payment-less deploys.
+    """
+    if s.is_dev_or_test:
+        return []
+    errors = []
+    if not s.auth0_domain:
+        errors.append("AUTH0_DOMAIN is not set")
+    if not s.session_secret:
+        errors.append("SESSION_SECRET is not set (participant tokens cannot be signed)")
+    stripe_keys = (s.stripe_secret_key, s.stripe_restricted_key, s.stripe_live_secret_key, s.stripe_live_restricted_key)
+    if any(stripe_keys) and not s.stripe_webhook_secret:
+        errors.append("a Stripe API key is set but STRIPE_WEBHOOK_SECRET is not (payment events cannot be verified)")
+    return errors
 
 
 settings = Settings()

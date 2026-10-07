@@ -11,8 +11,11 @@ The CENTER of the 3x3 cube grid. All flows pass through here:
 import uuid
 
 from app.core.submission_validators import resolve_participant_id
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
+
+from app.core.participant_token import HEADER as PARTICIPANT_TOKEN_HEADER
+from app.core.participant_token import require_participant_identity
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
@@ -113,8 +116,11 @@ async def get_time_summary(
     participant_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser | None = Depends(get_optional_current_user),
+    participant_token: str | None = Header(default=None, alias=PARTICIPANT_TOKEN_HEADER),
 ):
-    """Get total active time and ♡ 웃 ◬ tokens for a participant."""
+    """Get total active time and ♡ 웃 ◬ tokens for a participant — that participant only
+    (its X-Participant-Token, or the authenticated owner of the row; HP-07)."""
+    await require_participant_identity(db, session_id, participant_id, participant_token, user)
     summary = await service.get_participant_time_summary(
         db,
         session_id=session_id,

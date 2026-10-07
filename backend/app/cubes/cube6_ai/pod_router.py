@@ -20,7 +20,9 @@ degradation, not a stub — the AI path is genuinely wired for when a key is pre
 
 import structlog
 
+from app.config import settings
 from app.core.rate_limit import limiter
+from app.core.spend_cap import DailyBudget
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
@@ -32,6 +34,9 @@ logger = structlog.get_logger(__name__)
 VALID_PROVIDERS = ("openai", "grok", "gemini", "claude")
 
 router = APIRouter(prefix="/pod", tags=["Cube 6 — Pod Synthesis"])
+
+# The per-IP limit bounds one caller; this bounds the day's bill (rotating IPs included).
+POD_SYNTHESIS_BUDGET = DailyBudget("pod_synthesis", lambda: settings.pod_synthesis_daily_budget)
 
 
 class PodFacts(BaseModel):
@@ -98,6 +103,15 @@ async def pod_synthesis(request: Request, payload: PodSynthesisRequest) -> PodSy
     if isinstance(provider_obj, OfflineSummarization):
         # No real key — let the frontend's deterministic Manual synthesis stand.
         return PodSynthesisResponse(source="offline", provider="offline")
+
+    # Reserve one paid call from today's budget BEFORE the provider is called.
+    if not POD_SYNTHESIS_BUDGET.try_spend():
+        logger.warning("cube6.pod_synthesis.daily_budget_spent limit=%s", settings.pod_synthesis_daily_budget)
+        raise HTTPException(
+            status_code=429,
+            detail="Today's AI synthesis budget is spent; the deterministic synthesis still works",
+            headers={"Retry-After": str(POD_SYNTHESIS_BUDGET.seconds_until_reset())},
+        )
 
     f = payload.facts
     context = (

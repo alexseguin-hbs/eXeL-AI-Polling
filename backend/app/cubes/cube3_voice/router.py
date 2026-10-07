@@ -16,12 +16,14 @@ Real-time STT is a PAID feature (Moderator + User payment required).
 import re
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, WebSocket
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, Request, UploadFile, WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
+from app.core.participant_token import HEADER as PARTICIPANT_TOKEN_HEADER
+from app.core.participant_token import require_participant_identity, verify_participant_token
 from app.core.rate_limit import limiter
 from app.cubes.cube3_voice import metrics as cube3_metrics
 from app.cubes.cube3_voice import service
@@ -80,8 +82,12 @@ async def submit_voice(
     audio_format: str = Form(default="webm"),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser | None = Depends(get_optional_current_user),
+    participant_token: str | None = Header(default=None, alias=PARTICIPANT_TOKEN_HEADER),
 ):
     """CRS-15: User submits voice response.
+
+    Identity (HP-07): same rule as Cube 2 — the participant's X-Participant-Token, or an
+    authenticated owner of that participant row; otherwise 403 (before any audio is read).
 
     Accepts multipart audio upload from browser MediaRecorder API.
     Transcribes via STT provider (OpenAI Whisper / Gemini),
@@ -92,6 +98,7 @@ async def submit_voice(
 
     # WireGuard whitelist: validate language_code format at router level
     _validate_language_code(language_code)
+    await require_participant_identity(db, session_id, participant_id, participant_token, user)
 
     # Validate audio format
     fmt = audio_format.lower()
@@ -128,10 +135,15 @@ async def realtime_transcription(
     session_id: uuid.UUID,
     question_id: uuid.UUID,
     participant_id: uuid.UUID,
+    participant_token: str = "",
     language_code: str = "en",
     db: AsyncSession = Depends(get_db),
 ):
     """Real-time voice-to-text with word-by-word display (PAID FEATURE).
+
+    Auth: `participant_token` (query — a browser cannot set headers on a WebSocket) must be
+    the join-issued token for `participant_id` in this session, or the socket is closed with
+    4403 before anything is accepted.
 
     WebSocket protocol:
       Client → Server:
@@ -147,6 +159,9 @@ async def realtime_transcription(
     """
     from app.cubes.cube3_voice.realtime import handle_realtime_transcription
 
+    if verify_participant_token(session_id, participant_token) != participant_id:
+        await ws.close(code=4403, reason="Participant token required")
+        return
     await handle_realtime_transcription(
         ws, session_id, participant_id, question_id,
         language_code, db,

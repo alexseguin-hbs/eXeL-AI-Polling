@@ -10,7 +10,7 @@ Endpoints:
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # ---------------------------------------------------------------------------
@@ -41,6 +41,8 @@ async def _resolve_cycle(db: AsyncSession, session_id: uuid.UUID, cycle_id: int 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
+from app.core.participant_token import HEADER as PARTICIPANT_TOKEN_HEADER
+from app.core.participant_token import verify_participant_token
 from app.core.permissions import require_role
 from app.cubes.cube7_ranking import service
 from app.schemas.ranking import (
@@ -64,12 +66,18 @@ async def submit_ranking(
     session_id: uuid.UUID,
     payload: RankingSubmit,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser | None = Depends(get_optional_current_user),
+    participant_token: str | None = Header(default=None, alias=PARTICIPANT_TOKEN_HEADER),
 ):
     """CRS-11: Participant submits ranked theme order after poll closes.
 
+    Who votes (HP-07): the join-issued X-Participant-Token names the participant, so an
+    anonymous joiner can vote with no Auth0 login; otherwise an Auth0 JWT whose user owns a
+    participant row in this session. A token that does not verify is refused (403) — it never
+    falls back to another identity. One ballot per participant: a re-vote in the open cycle
+    replaces that participant's ballot (allow_revote), it never adds a second one.
+
     Validates theme IDs against session's theme2_voting_level.
-    Rejects duplicate submissions for same (session, cycle, participant).
     """
     from app.models.participant import Participant
     from app.models.session import Session
@@ -89,14 +97,18 @@ async def submit_ranking(
             detail=f"Session is in '{session.status}' — ranking not open",
         )
 
-    # Resolve participant_id from user
+    # Resolve the voter: the participant token first, else the authenticated user's row.
+    if participant_token:
+        token_pid = verify_participant_token(session_id, participant_token)
+        if token_pid is None:
+            raise HTTPException(status_code=403, detail="Invalid participant token")
+        voter = Participant.id == token_pid
+    elif user is not None:
+        voter = Participant.user_id == user.user_id
+    else:
+        raise HTTPException(status_code=401, detail="Join the session (participant token) or log in to vote")
     part_result = await db.execute(
-        select(Participant).where(
-            and_(
-                Participant.session_id == session_id,
-                Participant.user_id == user.user_id,
-            )
-        )
+        select(Participant).where(and_(Participant.session_id == session_id, voter))
     )
     participant = part_result.scalar_one_or_none()
     if not participant:

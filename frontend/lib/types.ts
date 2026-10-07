@@ -114,6 +114,8 @@ export interface SessionJoinResponse {
   polling_mode_type: PollingModeType;
   ends_at: string | null;
   timer_display_mode: TimerDisplayMode;
+  /** HP-07: signed, session-scoped proof of identity for this participant's writes (live backend only). */
+  participant_token?: string | null;
 }
 
 // Cube 2 — Text response returned after submission (matches backend ResponseRead)

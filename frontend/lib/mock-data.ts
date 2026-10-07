@@ -589,33 +589,67 @@ export async function fetchSessionFromKV(
   return null;
 }
 
-/** Sync session metadata to Cloudflare KV with 1 retry on failure.
- *  Called on session create and state transitions. */
-async function syncSessionToKV(session: Session): Promise<void> {
+/** HP-11: the /api/sessions write key for each session this browser created. The worker returns it
+ *  ONCE, on create; it is required to change a session's title, status, question or settings. Kept in
+ *  memory and (best effort) localStorage so a reload on the moderator's device keeps it. */
+const SESSION_WRITE_KEYS_STORAGE = "exel.sessionWriteKeys";
+const sessionWriteKeys: Record<string, string> = {};
+
+function readSessionWriteKey(code: string): string | null {
+  const c = code.toUpperCase();
+  if (sessionWriteKeys[c]) return sessionWriteKeys[c];
+  try {
+    const all = JSON.parse(localStorage.getItem(SESSION_WRITE_KEYS_STORAGE) || "{}") as Record<string, string>;
+    if (typeof all[c] === "string") sessionWriteKeys[c] = all[c];
+  } catch { /* storage unavailable — memory only */ }
+  return sessionWriteKeys[c] || null;
+}
+
+function rememberSessionWriteKey(code: string, key: string): void {
+  const c = code.toUpperCase();
+  sessionWriteKeys[c] = key;
+  try {
+    const all = JSON.parse(localStorage.getItem(SESSION_WRITE_KEYS_STORAGE) || "{}") as Record<string, string>;
+    all[c] = key;
+    localStorage.setItem(SESSION_WRITE_KEYS_STORAGE, JSON.stringify(all));
+  } catch { /* storage unavailable — memory only */ }
+}
+
+/** Sync session metadata to Cloudflare KV with 1 retry on a network failure.
+ *  Called on session create ("create"), state transitions ("update") and joins ("join").
+ *  HP-11: settings travel with this browser's write key; a joiner without the key sends only the
+ *  participant count (the worker accepts nothing else from it). */
+async function syncSessionToKV(session: Session, mode: "create" | "update" | "join" = "update"): Promise<void> {
+  const key = readSessionWriteKey(session.short_code);
   const questionText = MOCK_QUESTIONS[session.id]?.[0]?.question_text || null;
-  const payload = {
-    id: session.id,
-    short_code: session.short_code,
-    title: session.title,
-    description: session.description,
-    status: session.status,
-    polling_mode_type: session.polling_mode_type,
-    static_poll_duration_days: session.static_poll_duration_days,
-    ends_at: session.ends_at,
-    timer_display_mode: session.timer_display_mode,
-    anonymity_mode: session.anonymity_mode,
-    theme2_voting_level: session.theme2_voting_level,
-    ai_provider: session.ai_provider,
-    max_response_length: session.max_response_length,
-    participant_count: session.participant_count,
-    question_text: questionText,
+  const payload = mode === "join" && !key
+    ? { short_code: session.short_code, participant_count: session.participant_count }
+    : {
+        id: session.id,
+        short_code: session.short_code,
+        title: session.title,
+        description: session.description,
+        status: session.status,
+        polling_mode_type: session.polling_mode_type,
+        static_poll_duration_days: session.static_poll_duration_days,
+        ends_at: session.ends_at,
+        timer_display_mode: session.timer_display_mode,
+        anonymity_mode: session.anonymity_mode,
+        theme2_voting_level: session.theme2_voting_level,
+        ai_provider: session.ai_provider,
+        max_response_length: session.max_response_length,
+        participant_count: session.participant_count,
+        question_text: questionText,
+      };
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (key) headers["X-Session-Key"] = key;
+  const doFetch = async () => {
+    const res = await fetch("/api/sessions", { method: "POST", headers, body: JSON.stringify(payload) });
+    if (res.status === 201) {
+      const out = (await res.json().catch(() => null)) as { write_key?: string } | null;
+      if (out && typeof out.write_key === "string") rememberSessionWriteKey(session.short_code, out.write_key);
+    }
   };
-  const doFetch = () =>
-    fetch("/api/sessions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
   try {
     await doFetch();
   } catch {
@@ -1151,7 +1185,7 @@ export async function handleMockRequest<T>(
     ];
     saveMockState();
     // Cross-device: sync session metadata to KV (fire-and-forget for create)
-    syncSessionToKV(newSession).catch(() => {});
+    syncSessionToKV(newSession, "create").catch(() => {});
     return newSession as T;
   }
 
@@ -1234,7 +1268,7 @@ export async function handleMockRequest<T>(
     session.participant_count = mockParticipantCount[session.id];
     saveMockState();
     // Cross-device: sync updated participant count to KV (fire-and-forget for join)
-    syncSessionToKV(session).catch(() => {});
+    syncSessionToKV(session, "join").catch(() => {});
     return {
       session_id: session.id,
       participant_id: participantId,

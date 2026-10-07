@@ -34,6 +34,47 @@ class ApiClientError extends Error {
   }
 }
 
+// ── HP-07 participant tokens ──────────────────────────────────────
+// Join returns a signed, session-scoped participant_token. The backend requires it (header
+// X-Participant-Token) on text, voice and ballot submissions made in that participant's name.
+// Kept per session in memory + sessionStorage (best effort), so the join → /session navigation
+// and a reload keep it; every caller of api.* gets it attached without passing it around.
+const PARTICIPANT_TOKEN_HEADER = "X-Participant-Token";
+const PARTICIPANT_TOKENS_STORAGE = "exel.participantTokens";
+const participantTokens: Record<string, { pid: string; token: string }> = {};
+
+function rememberParticipantToken(join: unknown): void {
+  const j = join as { session_id?: string; participant_id?: string; participant_token?: string } | null;
+  if (!j?.session_id || !j.participant_id || !j.participant_token) return;
+  participantTokens[j.session_id] = { pid: j.participant_id, token: j.participant_token };
+  try {
+    const all = JSON.parse(sessionStorage.getItem(PARTICIPANT_TOKENS_STORAGE) || "{}");
+    all[j.session_id] = participantTokens[j.session_id];
+    sessionStorage.setItem(PARTICIPANT_TOKENS_STORAGE, JSON.stringify(all));
+  } catch { /* storage unavailable — memory only */ }
+}
+
+function storedParticipantToken(sessionId: string): { pid: string; token: string } | null {
+  if (participantTokens[sessionId]) return participantTokens[sessionId];
+  try {
+    const all = JSON.parse(sessionStorage.getItem(PARTICIPANT_TOKENS_STORAGE) || "{}");
+    if (all[sessionId]?.token) participantTokens[sessionId] = all[sessionId];
+  } catch { /* storage unavailable */ }
+  return participantTokens[sessionId] || null;
+}
+
+/** The token for a participant write: responses/voice name the participant in the body (the token
+ *  must be theirs); a ballot names nobody (the token says who votes). */
+function participantTokenFor(path: string, body: unknown): string | null {
+  const m = path.match(/^\/sessions\/([^/]+)\/(responses|voice|rankings)$/);
+  if (!m) return null;
+  const held = storedParticipantToken(m[1]);
+  if (!held) return null;
+  if (m[2] === "rankings") return held.token;
+  const pid = (body as { participant_id?: string } | null)?.participant_id;
+  return pid === held.pid ? held.token : null;
+}
+
 function buildUrl(path: string, params?: RequestOptions["params"]): string {
   const url = new URL(`${API_BASE_URL}${path}`);
   if (params) {
@@ -88,6 +129,10 @@ async function request<T>(
     }
   }
 
+  // HP-07: a participant's text and ballot carry the join-issued participant token.
+  const participantToken = method === "POST" ? participantTokenFor(path, body) : null;
+  if (participantToken) headers[PARTICIPANT_TOKEN_HEADER] = participantToken;
+
   const url = buildUrl(path, params);
 
   let response: Response;
@@ -99,6 +144,9 @@ async function request<T>(
     });
   } catch {
     throw new ApiClientError(0, "Connection lost. Check your internet and try again.");
+  }
+  if (response.ok && method === "POST" && /^\/sessions\/join\//.test(path)) {
+    rememberParticipantToken(await response.clone().json().catch(() => null));
   }
 
   if (!response.ok) {
@@ -273,6 +321,8 @@ export const api = {
         // Token not available — proceed without auth
       }
     }
+    const participantToken = participantTokenFor(`/sessions/${sessionId}/voice`, { participant_id: participantId });
+    if (participantToken) headers[PARTICIPANT_TOKEN_HEADER] = participantToken;
 
     const url = buildUrl(`/sessions/${sessionId}/voice`);
 

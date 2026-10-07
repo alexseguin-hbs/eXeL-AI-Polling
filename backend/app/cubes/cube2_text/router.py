@@ -10,13 +10,15 @@ Endpoints:
 import re
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
 from app.core.exceptions import ResponseNotFoundError
+from app.core.participant_token import HEADER as PARTICIPANT_TOKEN_HEADER
+from app.core.participant_token import require_participant_identity
 from app.core.permissions import require_role
 from app.core.rate_limit import limiter
 from app.core.submission_validators import validate_session_exists
@@ -57,8 +59,13 @@ async def submit_response(
     payload: ResponseCreate,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser | None = Depends(get_optional_current_user),
+    participant_token: str | None = Header(default=None, alias=PARTICIPANT_TOKEN_HEADER),
 ):
     """CRS-07: User submits text response.
+
+    Identity (HP-07): the caller must prove it is `payload.participant_id` — the join-issued
+    X-Participant-Token for it, or an authenticated user who owns that participant row.
+    Otherwise 403: a participant UUID alone is public and proves nothing.
 
     Validates session (must be polling), question, participant, and text input.
     Runs PII detection (NER + regex) and profanity detection (non-blocking).
@@ -67,6 +74,7 @@ async def submit_response(
     """
     # WireGuard whitelist: validate language_code format at router level
     _validate_language_code(payload.language_code)
+    await require_participant_identity(db, session_id, payload.participant_id, participant_token, user)
 
     result = await service.submit_text_response(
         db,

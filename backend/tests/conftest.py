@@ -8,6 +8,14 @@ Provides:
   - Common mock objects for Cube 5 time tracking
 """
 
+import os
+
+# The fail-closed guards (dev auth user, unsigned Stripe events, demo Cube 10 codes, offline
+# AI fallback) open ONLY for an explicit development/test environment, and an unset
+# ENVIRONMENT now means production. The suite is a test environment — say so before the app
+# (and its settings) is imported.
+os.environ["ENVIRONMENT"] = "test"
+
 import uuid
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch

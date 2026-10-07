@@ -7,7 +7,7 @@ python-multipart>=0.0.20
 sqlalchemy[asyncio]>=2.0.36
 asyncpg>=0.30.0
 alembic>=1.14.0
-supabase>=2.0.0            # imported at module load by core/realtime_ws.py
+supabase>=2.0.0            # used by the Supabase integration tests (tests/test_supabase_*.py)
 
 # Auth
 python-jose[cryptography]>=3.4.0

@@ -18,6 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from app.core.participant_token import issue_participant_token
 from tests.conftest import make_pipeline_trigger, make_time_entry
 
 
@@ -146,10 +147,15 @@ class TestTimeSummary:
             new_callable=AsyncMock,
             return_value=summary,
         ):
-            resp = await client.get(f"{PREFIX}/time/summary/{PID}")
+            resp = await client.get(f"{PREFIX}/time/summary/{PID}",
+                                    headers={"X-Participant-Token": issue_participant_token(SID, PID)})
+            stranger = await client.get(f"{PREFIX}/time/summary/{PID}",
+                                        headers={"X-Participant-Token": issue_participant_token(SID, uuid.uuid4())})
+            anonymous = await client.get(f"{PREFIX}/time/summary/{PID}")
         assert resp.status_code == 200
         data = resp.json()
         assert data["total_active_seconds"] == 300.0
+        assert stranger.status_code == 403 and anonymous.status_code == 403, "only that participant reads it"
 
 
 # -----------------------------------------------------------------------

@@ -34,8 +34,10 @@ from app.core.dependencies import get_db
 from app.core import presence as mem_presence
 
 logger = logging.getLogger(__name__)
+from app.core.participant_token import issue_participant_token
 from app.core.permissions import require_role
 from app.core.rate_limit import limiter
+from app.core.session_access import require_session_owner
 from app.cubes.cube1_session import service
 from app.schemas.participant import ParticipantRead
 from app.schemas.question import QuestionCreate, QuestionRead
@@ -426,6 +428,8 @@ async def join_session(
         polling_mode_type=session.polling_mode_type,
         ends_at=session.ends_at.isoformat() if session.ends_at else None,
         timer_display_mode=session.timer_display_mode,
+        # HP-07: proof of identity for this participant's text, voice and ballot.
+        participant_token=issue_participant_token(session.id, participant.id),
     )
 
 
@@ -433,9 +437,9 @@ async def join_session(
 async def list_participants(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "lead_developer", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
-    """List active participants in a session."""
+    """List active participants in a session (session owner; Lead/Admin read)."""
     participants = await service.list_participants(db, session_id)
     return [ParticipantRead.model_validate(p) for p in participants]
 
@@ -552,7 +556,7 @@ async def verify_determinism(
 async def get_session_ssses_metrics(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
     """Cube 1 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 2/3/7/8.
 
