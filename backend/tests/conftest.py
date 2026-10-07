@@ -644,3 +644,10 @@ def _session_owner_is_caller(request):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "real_ownership: run the real session-ownership check")
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Drop the per-run Postgres databases the real-database proofs created (tests/own_db.py)."""
+    from tests.own_db import drop_owned
+
+    drop_owned()

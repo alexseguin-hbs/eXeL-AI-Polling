@@ -708,6 +708,12 @@ export function SessionView() {
   const sessionRef = useRef<Session | null>(null);
   useEffect(() => { sessionRef.current = session; }, [session]);
   const pushReadRef = useRef<{ busy: boolean; at: number; wanted: string | null; timer: ReturnType<typeof setTimeout> | null }>({ busy: false, at: 0, wanted: null, timer: null });
+  // A pending push re-read belongs to this session: it is dropped on unmount or when the session changes (Aset, round 9).
+  useEffect(() => () => {
+    const gate = pushReadRef.current;
+    if (gate.timer) clearTimeout(gate.timer);
+    gate.timer = null; gate.wanted = null;
+  }, [sessionId]);
   const applyPushedStatus: (push: { status: string; current_cycle?: unknown; ends_at?: unknown; participant_count?: unknown }) => void = useCallback(
     (push: { status: string; current_cycle?: unknown; ends_at?: unknown; participant_count?: unknown }) => {
       const pushCycle = typeof push.current_cycle === "number" ? push.current_cycle : null;

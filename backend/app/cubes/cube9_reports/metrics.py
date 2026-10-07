@@ -7,6 +7,11 @@ so the Dev-Sim / qualification gateway can baseline a candidate reporting engine
   User    — unique result-recipients + results-opt-in rate
   Outcome — winner determined, CQS scored, export governance-hash available
 
+Ranking-derived counts (themes, final ranking, winner) read ONE cycle: the one the report reads
+(service._report_cycle — the newest aggregated cycle, else the newest with ballots), the same cycle the CSV
+and analytics read. Reading every cycle reported cycle 1's winner while a re-opened cycle 2 was still being
+voted (Aset, AsM round 9). Responses, participants and CQS stay session-wide.
+
 Computed from ResponseMeta / Theme / AggregatedRanking / CQSScore / Participant. Every
 function is DB-error-guarded (mirrors cube7/8 metrics): a DB error returns a zeroed
 default with `metrics_unavailable=True` rather than 500-ing.
@@ -46,24 +51,36 @@ _DEFAULT_OUTCOME = {
 }
 
 
+def _cycle(session_id: uuid.UUID, cycle_id: int | None):
+    """The cycle a count reads: an explicit one, else the report cycle evaluated in the query."""
+    if cycle_id is not None:
+        return cycle_id
+    from app.cubes.cube9_reports.service import _report_cycle
+
+    return _report_cycle(session_id)
+
+
 def _pct(n: float, d: float) -> float:
     return round(n / d * 100, 2) if d > 0 else 0.0
 
 
-async def get_system_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
-    """System: exportable rows, themes available, final-ranking presence."""
+async def get_system_metrics(db: AsyncSession, session_id: uuid.UUID, cycle_id: int | None = None) -> dict:
+    """System: exportable rows, themes available, final-ranking presence (the report cycle)."""
     try:
+        cyc = _cycle(session_id, cycle_id)
         responses = (await db.execute(
             select(func.count()).select_from(ResponseMeta).where(
                 ResponseMeta.session_id == session_id)
         )).scalar() or 0
         themes = (await db.execute(
-            select(func.count()).select_from(Theme).where(Theme.session_id == session_id)
+            select(func.count()).select_from(Theme).where(
+                Theme.session_id == session_id, Theme.cycle_id == cyc)
         )).scalar() or 0
         final = (await db.execute(
             select(func.count()).select_from(AggregatedRanking).where(
                 AggregatedRanking.session_id == session_id,
                 AggregatedRanking.is_final.is_(True),
+                AggregatedRanking.cycle_id == cyc,
             )
         )).scalar() or 0
         return {
@@ -96,13 +113,15 @@ async def get_user_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
         return dict(_DEFAULT_USER)
 
 
-async def get_outcome_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
-    """Outcome: winner determined, CQS scored, export governance-hash available."""
+async def get_outcome_metrics(db: AsyncSession, session_id: uuid.UUID, cycle_id: int | None = None) -> dict:
+    """Outcome: winner determined (the report cycle), CQS scored, export governance-hash available."""
     try:
+        cyc = _cycle(session_id, cycle_id)
         winner = (await db.execute(
             select(func.count()).select_from(AggregatedRanking).where(
                 AggregatedRanking.session_id == session_id,
                 AggregatedRanking.is_top_theme2.is_(True),
+                AggregatedRanking.cycle_id == cyc,
             )
         )).scalar() or 0
         cqs = (await db.execute(
@@ -125,11 +144,11 @@ async def get_outcome_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
         return dict(_DEFAULT_OUTCOME)
 
 
-async def get_all_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
-    """Combined System / User / Outcome roll-up for Cube 10 comparison."""
+async def get_all_metrics(db: AsyncSession, session_id: uuid.UUID, cycle_id: int | None = None) -> dict:
+    """Combined System / User / Outcome roll-up for Cube 10 comparison (one cycle for ranking counts)."""
     return {
         "cube": "cube9_reports",
-        "system": await get_system_metrics(db, session_id),
+        "system": await get_system_metrics(db, session_id, cycle_id),
         "user": await get_user_metrics(db, session_id),
-        "outcome": await get_outcome_metrics(db, session_id),
+        "outcome": await get_outcome_metrics(db, session_id, cycle_id),
     }

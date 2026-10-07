@@ -116,3 +116,7 @@ async def test_reopened_round_reads_and_writes_one_cycle(live):
     assert ready["metrics"]["system"].get("ranking_submissions") == 3, f"readiness metrics: {ready['metrics']['system']}"
     scale = ok(await client.get(f"{A}/{sid}/rankings/scale-info"), what="scale-info").json()
     assert scale["voter_count"] == 3, f"scale-info counts cycle 2's voters only: {scale}"
+    # Cube 9's report metrics read the report cycle too, never the sum of both (Aset, round 9).
+    rep = ok(await client.get(f"{A}/{sid}/reports/metrics"), what="reports metrics").json()
+    assert rep["system"]["themes_available"] == len(themes2), f"report themes are cycle 2's only: {rep['system']}"
+    assert rep["system"]["has_final_ranking"] and rep["outcome"]["winner_determined"], rep

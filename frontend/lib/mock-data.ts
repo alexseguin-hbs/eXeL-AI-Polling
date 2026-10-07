@@ -881,9 +881,19 @@ const _rankingBallots = new Map<string, string[][]>();
 // server-side when NEXT_PUBLIC_MOCK_MODE=false. Deterministic so a console run replays identically.
 const _simThemes = new Map<string, ReturnType<typeof buildSimThemeRows>>();
 /** The SIM's theme store is keyed by session AND cycle, like the backend's (themes.cycle_id): a re-opened round
- *  has no ballot until /ai/run themes it, and an earlier cycle's ids are refused (AsM round 7, Krishna + Athena). */
+ *  has no ballot until /ai/run themes it, and an earlier cycle's ids are refused because each cycle's themes
+ *  carry their own ids (simThemesForCycle) (AsM round 7, Krishna + Athena; round 9, Aset). */
 function simThemeKey(sid: string): string {
   return `${sid}:${Number(findSessionById(sid)?.current_cycle) || 1}`;
+}
+/** A re-opened cycle's themes get their own ids, as LIVE gives cycle 2 new UUIDs: the SIM's ids are deterministic
+ *  per stance and level, so without the cycle in them a cycle-1 ballot would pass in cycle 2 (Aset, AsM round 9).
+ *  Cycle 1 keeps its ids unchanged, so every replay and driver hash of a single round stays identical. */
+function simThemesForCycle(rows: ReturnType<typeof buildSimThemeRows>, sid: string) {
+  const cycle = Number(findSessionById(sid)?.current_cycle) || 1;
+  if (cycle === 1) return rows;
+  const re = (id: string | null) => (id ? `c${cycle}-${id}` : id);
+  return rows.map((r) => ({ ...r, id: re(r.id) as string, parent_theme_id: re(r.parent_theme_id) }));
 }
 /** Byte-identical to backend cube7 `_seeded_tiebreak_key`: SHA-256(`${theme_id}:${seed}`) hex. */
 export function mockSeededTiebreakKey(themeId: string, seed: string): string {
@@ -1478,7 +1488,7 @@ export async function handleMockRequest<T>(
   if (method === "POST" && aiRunMatch) {
     const sid = aiRunMatch[1];
     const resp = (mockResponses[sid] ?? []).map((r) => ({ id: r.id, raw_text: r.clean_text }));
-    const rows = buildSimThemeRows(resp, sid);
+    const rows = simThemesForCycle(buildSimThemeRows(resp, sid), sid);
     _simThemes.set(simThemeKey(sid), rows);
     return { session_id: sid, status: "completed", response_count: resp.length, theme_count: rows.length, mock: true } as T;
   }

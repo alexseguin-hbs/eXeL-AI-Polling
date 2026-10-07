@@ -18,7 +18,9 @@ from unittest.mock import patch
 
 import pytest
 
-DSN = os.environ.get("SIM_TEST_DSN", "postgresql://polling:polling@localhost:5432/sim_parity")
+from tests.own_db import own_dsn  # noqa: E402
+
+DSN = own_dsn("SIM_TEST_DSN", "postgresql://polling:polling@localhost:5432/sim_parity")
 _DB = DSN.rsplit("/", 1)[1]  # the parity database is the test's own; another name keeps parallel runs apart
 _ADMIN_DSN = DSN.rsplit("/", 1)[0] + "/postgres"
 

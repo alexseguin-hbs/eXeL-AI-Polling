@@ -84,6 +84,7 @@ ok(/const onBroadcastPresence = useCallback\(\(count: number\) => \{ setParticip
 // Round 7: a push inside the window is not dropped — it leaves one trailing re-read; a failed re-read hands back to the poll.
 ok(/gate\.wanted = push\.status/.test(pushBlock) && /if \(gate\.wanted\) applyPushedStatus\(\{ status: gate\.wanted \}\)/.test(pushBlock), "a push arriving meanwhile triggers one trailing re-read");
 ok(/\.catch\(\(\) => \{ broadcastHealthy\.current = false; gate\.wanted = null; \}\)/.test(pushBlock), "a failed re-read clears the healthy flag so the poll resumes, and drops the pending push so it never reschedules itself");
+ok(/useEffect\(\(\) => \(\) => \{\s*const gate = pushReadRef\.current;\s*if \(gate\.timer\) clearTimeout\(gate\.timer\);/.test(sv), "a pending push re-read is cleared on unmount or session change");
 ok(/Math\.random\(\) \* 1500/.test(pushBlock), "the first re-read of a push is spread over 0–1.5 s");
 ok(/applyPushedStatus\(\{ \.\.\.payload, status: newStatus \}\)/.test(sv), "postgres_changes status goes through the same rule");
 const dash = readFileSync(new URL("../app/dashboard/page.tsx", import.meta.url), "utf8");

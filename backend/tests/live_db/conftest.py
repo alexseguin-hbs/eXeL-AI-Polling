@@ -3,7 +3,7 @@
 The rest of the suite mocks the database. These tests exist so the claims "every operation answers without a 500"
 and "the 38-step journey runs" are committed, repeatable proofs rather than scratch scripts (AsM round 1, Athena).
 
-Database: LIVE_DB_DSN (default postgresql://polling:polling@localhost:5432/live_db_test). Each test starts from a
+Database: LIVE_DB_DSN (default postgresql://polling:polling@localhost:5432/live_db_test_<pid>, see tests/own_db.py). Each test starts from a
 freshly created database, so nothing leaks between tests or into any other database. When no Postgres is
 reachable every test here SKIPS, exactly like tests/cube7/test_sql_tally_parity.py.
 
@@ -21,7 +21,9 @@ from urllib.parse import urlsplit, urlunsplit
 
 import pytest
 
-DSN = os.environ.get("LIVE_DB_DSN", "postgresql://polling:polling@localhost:5432/live_db_test")
+from tests.own_db import own_dsn  # noqa: E402
+
+DSN = own_dsn("LIVE_DB_DSN", "postgresql://polling:polling@localhost:5432/live_db_test")
 DB_NAME = urlsplit(DSN).path.lstrip("/")
 ADMIN_DSN = urlunsplit(urlsplit(DSN)._replace(path="/postgres"))
 ASYNC_DSN = DSN.replace("postgresql://", "postgresql+asyncpg://", 1)

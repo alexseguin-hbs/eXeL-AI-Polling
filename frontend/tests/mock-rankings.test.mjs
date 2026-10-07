@@ -73,6 +73,27 @@ await post(`/sessions/${id}/rank`);
 let last = null; for (let i = 0; i < 5; i++) { last = await post(`/sessions/${id}/reopen`); if (last?.__status) break; await post(`/sessions/${id}/rank`); }
 ok(last?.__status === 400, 'reopen is bounded by max_cycles (refused with 400)');
 
+// AsM round 9 (Aset): each themed cycle carries its own theme ids, as LIVE gives cycle 2 new UUIDs, so a ballot of
+// cycle-1 ids is refused in a themed cycle 2 and a cycle-2 ballot is accepted.
+{
+  const s9 = await post('/sessions', { title: 'Themed reopen test' });
+  const i9 = s9.id;
+  await post(`/sessions/${i9}/start`); await post(`/sessions/${i9}/poll`);
+  const TEXTS = ['The main risk is cost overruns and delays.', 'I support this plan; it helps every team.', 'Neutral: we need more data first.',
+    'Risk of burnout is a real concern.', 'Strong support for faster delivery.', 'No strong view either way.'];
+  const inject = async () => { for (const t of TEXTS) await post(`/sessions/${i9}/responses`, { raw_text: t }); };
+  const ballotIds = async () => (await get(`/sessions/${i9}/themes`))
+    .filter((r) => r.parent_theme_id != null && r.theme_level === '9' && r.label !== '').map((r) => r.id);
+  await inject(); await post(`/sessions/${i9}/rank`); await post(`/sessions/${i9}/ai/run`);
+  const c1 = await ballotIds();
+  ok(c1.length > 0 && (await post(`/sessions/${i9}/rankings`, { ranked_theme_ids: c1 }))?.status === 'recorded', 'themed cycle 1 takes its ballot');
+  await post(`/sessions/${i9}/reopen`); await inject(); await post(`/sessions/${i9}/rank`); await post(`/sessions/${i9}/ai/run`);
+  const c2 = await ballotIds();
+  ok(c2.length === c1.length && c2.every((x) => !c1.includes(x)), 'themed cycle 2 has its own theme ids, none shared with cycle 1');
+  ok((await post(`/sessions/${i9}/rankings`, { ranked_theme_ids: c1 }))?.__status === 400, 'a cycle-1 ballot is refused in themed cycle 2 (as LIVE)');
+  ok((await post(`/sessions/${i9}/rankings`, { ranked_theme_ids: c2 }))?.status === 'recorded', 'a cycle-2 ballot is accepted in cycle 2');
+}
+
 // ── Parity with backend cube7 on a fixed ballot set (expected values computed by python3 importing
 // backend/app/cubes/cube7_ranking/ranking_aggregation.py `_borda_scores`, `_seeded_tiebreak_key`, `_compute_replay_hash`) ──
 const U = ['11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', '33333333-3333-4333-8333-333333333333', '44444444-4444-4444-8444-444444444444'];
