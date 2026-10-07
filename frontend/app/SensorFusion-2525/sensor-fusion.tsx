@@ -7,9 +7,8 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
-import { IMAGE_INTAKE, VIDEO_INTAKE, needsPng, pngSet, videoSourceName, type VideoSource } from "@/lib/sensor-fusion/frames";
+import { IMAGE_INTAKE, VIDEO_INTAKE, pictureStem, pngSet, videoSourceName, type VideoSource } from "@/lib/sensor-fusion/frames";
 import { crossReview, emptyClock, finalSubmission, level1Left, levelMetrics, nextFor, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
-import { placeSignature } from "@/lib/light-codex";
 import { supabase } from "@/lib/supabase";
 import {
   COLORS,
@@ -328,22 +327,8 @@ function readVoc(xml: string) {
 }
 
 function setFolderOf(fileName: string) {
-  const base = fileName.replace(/\.[^.]+$/, "");
+  const base = pictureStem(fileName);
   return base.replace(/[._]\d+$/, "") || "capture";
-}
-
-async function codexPng(line: string) {
-  const width = Math.max(32, line.length * 4 + 8);
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = 4;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, width, 4);
-  const signed = placeSignature(ctx.getImageData(0, 0, width, 4), line, 1, "3");
-  ctx.putImageData(signed, 0, 0);
-  return new Promise<Blob | null>((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
 }
 
 async function writeNamed(folder: Folder, files: { name: string; blob: Blob }[]) {
@@ -359,40 +344,17 @@ function downloadNamed(files: { name: string; blob: Blob }[]) {
   for (const file of files) downloadBlob(file.name, URL.createObjectURL(file.blob));
 }
 
-async function codexFiles(fileName: string, list: Mark[]) {
-  const names = pairNames(fileName);
-  const labeled = list.find((item) => item.by && item.at);
-  const reviewed = [...list].reverse().find((item) => item.level === 2 && item.reviewer && item.reviewedAt && item.by && item.at);
-  const files: { name: string; blob: Blob }[] = [];
-  if (labeled?.by && labeled.at) {
-    const blob = await codexPng(codexLine({ file: fileName, level: 1, who: labeled.by, when: labeled.at }));
-    if (blob) files.push({ name: names.codex1, blob });
-  }
-  if (reviewed?.by && reviewed.at && reviewed.reviewer && reviewed.reviewedAt) {
-    const blob = await codexPng(codexLine({
-      file: fileName,
-      level: 2,
-      who: reviewed.reviewer,
-      when: reviewed.reviewedAt,
-      l1: { who: reviewed.by, when: reviewed.at },
-    }));
-    if (blob) files.push({ name: names.codex2, blob });
-  }
-  return files;
-}
-
-async function saveXmlFile(fileName: string, xml: string, list: Mark[] = []) {
+async function saveXmlFile(fileName: string, xml: string) {
   writeXml(fileName, xml);
-  const names = pairNames(fileName);
-  const strips = await codexFiles(fileName, list);
-  const files = [{ name: names.xml, blob: new Blob([xml], { type: "application/xml" }) }, ...strips];
+  const set = pngSet(fileName);
+  const files = [{ name: set.xml, blob: new Blob([xml], { type: "application/xml" }) }];
   if (chosenFolder) {
     const setFolder = await (await ecosystemRoot(chosenFolder)).getDirectoryHandle(setFolderOf(fileName), { create: true });
     await writeNamed(setFolder, files);
-    return `${deviceSavePath()}/${setFolderOf(fileName)}/${names.xml}`;
+    return `${deviceSavePath()}/${setFolderOf(fileName)}/${set.xml}`;
   }
   downloadNamed(files);
-  return names.xml;
+  return set.xml;
 }
 
 function lensName(label: string): Lens | null {
@@ -431,7 +393,7 @@ function pictureFile(label: string, number: number, ext = "png") {
 
 function highestNumber(label: string, names: string[]) {
   const key = classKey(label).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = new RegExp(`^${key}[_\\.](\\d+)\\.(png|jpe?g|xml)$`, "i");
+  const pattern = new RegExp(`^${key}[_\\.](\\d+)(?:\\.L[12])?\\.(png|jpe?g|xml)$`, "i");
   let max = 0;
   for (const name of names) {
     const match = pattern.exec(name);
@@ -526,24 +488,7 @@ async function filesOf(list: Shot[]) {
     const response = await fetch(shot.url);
     files.push({ name, blob: await response.blob() });
     const xml = store[name] || emptyPairXml(name);
-    files.push({ name: pairNames(name).xml, blob: new Blob([xml], { type: "application/xml" }) });
-    const page = store[name] ? readVoc(store[name]) : null;
-    if (page) {
-      const marks: Mark[] = page.boxes.map((box, index) => ({
-        id: String(index),
-        name: box.name,
-        left: 0,
-        top: 0,
-        right: 0,
-        bottom: 0,
-        level: box.level === 2 ? 2 : 1,
-        by: box.by,
-        at: box.at,
-        reviewer: box.reviewer,
-        reviewedAt: box.reviewedAt,
-      }));
-      files.push(...(await codexFiles(name, marks)));
-    }
+    files.push({ name: pngSet(name).xml, blob: new Blob([xml], { type: "application/xml" }) });
   }
   return files;
 }
@@ -820,12 +765,12 @@ function Labeler({
       setNote("The picture is still opening.");
       return "";
     }
-    return saveXmlFile(fileName, vocXml(fileName, width, height, list), list);
+    return saveXmlFile(fileName, vocXml(fileName, width, height, list));
   }
 
-  async function ensurePng(fileName: string) {
-    const next = pngSet(fileName);
-    if (!needsPng(fileName) || !pic) return next.png;
+  async function ensurePng(fileName: string, level: 1 | 2) {
+    const named = level === 2 ? pngSet(fileName).level2 : pngSet(fileName).level1;
+    if (!pic || fileName === named) return named;
     const image = imgRef.current;
     if (!image?.naturalWidth || !image.naturalHeight) return fileName;
     const canvas = document.createElement("canvas");
@@ -837,13 +782,14 @@ function Labeler({
     const url = URL.createObjectURL(blob);
     if (chosenFolder) {
       try {
-        await saveNumberedPictures(classKey(labelName), [{ name: next.png, blob }]);
+        const setFolder = await (await ecosystemRoot(chosenFolder)).getDirectoryHandle(classKey(labelName), { create: true });
+        await writeNamed(setFolder, [{ name: named, blob }]);
       } catch {
-        /* The PNG still replaces the old file on this screen. */
+        /* The new name still replaces the old file on this screen. */
       }
     }
-    setPics((current) => current.map((shot) => (shot.id === pic.id ? { ...shot, name: next.png, url } : shot)));
-    return next.png;
+    setPics((current) => current.map((shot) => (shot.id === pic.id ? { ...shot, name: named, url } : shot)));
+    return named;
   }
 
   async function saveBox() {
@@ -883,12 +829,12 @@ function Labeler({
     setEditing("");
     resetBox();
     setMarks({ ...marks, [pic.id]: list });
-    const fileName = await ensurePng(pictureName(pic));
+    const fileName = await ensurePng(pictureName(pic), saved.kind === "annotate" ? 1 : 2);
     touchWork(fileName, saved.kind);
     const where = await writePicture(fileName, list);
     if (where) {
       const kept = chosenFolder ? `Saved ${where}.` : `Box ${list.length} kept on this device. FILES saves ${where}.`;
-      setNote(`${kept} The picture is PNG with Light Codex. Next: another box, or LEVEL 2 by a second person.`);
+      setNote(`${kept} ${fileName}. Next: another box, or LEVEL 2 by a second person.`);
     }
   }
 
@@ -901,10 +847,10 @@ function Labeler({
     }
     const list = (marks[pic.id] || []).map((item) => (item.id === mark.id ? { ...item, ...result.box } : item));
     setMarks({ ...marks, [pic.id]: list });
-    const fileName = await ensurePng(pictureName(pic));
+    const fileName = await ensurePng(pictureName(pic), 2);
     touchWork(fileName, "level2");
     const where = await writePicture(fileName, list);
-    if (where) setNote(`Level 2 saved. The picture is PNG and Light Codex is beside it. ${where}`);
+    if (where) setNote(`Level 2 saved. ${fileName}. ${where}`);
   }
 
   function fixBox(mark: Mark) {

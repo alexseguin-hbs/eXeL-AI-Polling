@@ -15,8 +15,13 @@ export function needsPng(fileName: string) {
   return !/\.png$/i.test(fileName);
 }
 
-/** One name inside the app. Level 1 and Level 2 both keep the PNG and add a Light Codex strip. */
+/** The picture name before a level is added. deer_0008.L1.png and deer_0008.jpg share deer_0008. */
+export function pictureStem(fileName: string) {
+  return fileName.replace(/\.(L[12])\.png$/i, "").replace(/\.[^.]+$/, "") || "picture";
+}
+
+/** Intake is stem.png. Level 1 is stem.L1.png. Level 2 is stem.L2.png. The XML keeps the stem. */
 export function pngSet(fileName: string) {
-  const stem = fileName.replace(/\.[^.]+$/, "") || "picture";
-  return { png: `${stem}.png`, xml: `${stem}.xml`, level1: `${stem}.l1.codex.png`, level2: `${stem}.l2.codex.png` };
+  const stem = pictureStem(fileName);
+  return { png: `${stem}.png`, level1: `${stem}.L1.png`, level2: `${stem}.L2.png`, xml: `${stem}.xml` };
 }

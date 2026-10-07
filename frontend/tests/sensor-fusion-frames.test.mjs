@@ -10,8 +10,8 @@ function ok(cond, name) {
 }
 
 const deer = pngSet("deer_0008.jpg");
-ok(deer.png === "deer_0008.png" && deer.xml === "deer_0008.xml" && deer.level1 === "deer_0008.l1.codex.png" && deer.level2 === "deer_0008.l2.codex.png", "any file name becomes one PNG with a Level 1 strip and a Level 2 strip");
-ok(pngSet("deer_0008.heic").png === "deer_0008.png" && pngSet("clip.mp4").png === "clip.png", "a HEIC and a video share the PNG name");
+ok(deer.png === "deer_0008.png" && deer.level1 === "deer_0008.L1.png" && deer.level2 === "deer_0008.L2.png" && deer.xml === "deer_0008.xml", "Level 1 is deer_0008.L1.png and the XML keeps the stem");
+ok(pngSet("deer_0008.L1.png").level2 === "deer_0008.L2.png" && pngSet("deer_0008.heic").png === "deer_0008.png", "a Level 1 file and a HEIC keep the same stem");
 ok(needsPng("deer_0008.jpg") && needsPng("deer_0008.webp") && !needsPng("deer_0008.png"), "a PNG is already in the app format");
 ok(IMAGE_INTAKE.includes(".heic") && VIDEO_INTAKE.includes(".mov") && videoSourceName("thermal") === "Thermal imager", "pictures and videos are both welcome");
 
