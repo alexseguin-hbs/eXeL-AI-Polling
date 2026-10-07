@@ -964,7 +964,7 @@ function Labeler({
         if (labeled) l1 = codexLine({ file: page.file, level: 1, who: labeled.by, when: labeled.at });
         if (labeled && reviewed) l2 = codexLine({ file: page.file, level: 2, who: reviewed.reviewer, when: reviewed.reviewedAt, l1: { who: labeled.by, when: labeled.at } });
       } catch (err) {
-        setNote(err instanceof Error ? err.message : "Light Codex could not write this set.");
+        setNote(err instanceof Error ? err.message : "The set could not be saved.");
         return null;
       }
       return { file: page.file, l1, l2, boxes: page.boxes };
@@ -1157,9 +1157,8 @@ function Labeler({
             {workflowLines(clock, Date.now() + Math.min(tick, 0)).map((line) => `${line.member} ${line.seconds}s · ${line.images} images · ${line.adjustments} Level 2 ${line.adjustments === 1 ? "change" : "changes"} · ${siTokens(line.seconds)} S.I.`).join("  ·  ") || "START begins the clock."}
           </p>
         </div>
-        <p className={styles.codex}>Light Codex · Level 1  {metrics.level1}/{metrics.total} · Level 2  {metrics.level2}/{metrics.total} · You  {metrics.mine1} Level 1 · {metrics.mine2} Level 2</p>
+        <p className={styles.metrics}>Level 1  {metrics.level1}/{metrics.total} · Level 2  {metrics.level2}/{metrics.total} · You  {metrics.mine1} Level 1 · {metrics.mine2} Level 2</p>
         <p className={styles.swarm}>{metrics.note}</p>
-        {pic && shownCodex(pictureName(pic), marks[pic.id] || []) && <p className={styles.codexLine}>{shownCodex(pictureName(pic), marks[pic.id] || [])}</p>}
         <div className={styles.labelBar}>
           <button type="button" onClick={saveBox} disabled={!pic}>
             SAVE BOX
@@ -1179,7 +1178,7 @@ function Labeler({
             {note}
           </p>
         )}
-        <p className={styles.rule}>The team shares Level 1, from 2 people up to the whole team. When every picture has a box, someone else reviews it. Upload sends the pictures, both Light Codex lines, and each person's S.I.</p>
+        <p className={styles.rule}>The team shares Level 1, from 2 people up to the whole team. When every picture has a box, someone else reviews it. Upload sends the finished pictures and each person's S.I.</p>
         </div>
         {pic && (marks[pic.id] || []).length > 0 && (
           <div className={styles.boxList}>
@@ -2207,7 +2206,7 @@ export default function SensorFusion() {
     }
     setCloudSaved(true);
     setError("");
-    const line = `${sent} pictures are in the sensor-fusion project. Level 2 and Light Codex went with them.`;
+    const line = `${sent} pictures are in the sensor-fusion project.`;
     setTrainStatus(line);
     setUploadNote(line);
   }
@@ -2617,7 +2616,7 @@ export default function SensorFusion() {
           <div className={styles.modal} role="dialog" aria-label="Capture images" onClick={(event) => event.stopPropagation()}>
             <StepStrip current={1} />
             <h2>Capture Images</h2>
-            <p className={styles.muted}>Live, a video, or picture files. What opens is saved as PNG. Level 1 and Level 2 keep the PNG and add Light Codex.</p>
+            <p className={styles.muted}>Live, a video, or picture files. What opens is saved as PNG.</p>
             <div className={styles.row}>
               <button type="button" className={captureMode === "live" ? styles.botOn : styles.ghost} onClick={() => setCaptureMode("live")}>
                 Live
