@@ -52,6 +52,7 @@ async def score_cqs(
     theme_level: str = "3",
     commit: bool = True,
     stats: dict | None = None,
+    theme01_category: str | None = None,
 ) -> list[dict]:
     """Score responses in the #1 most-voted Theme2 cluster for CQS reward.
 
@@ -101,6 +102,10 @@ async def score_cqs(
         getattr(ResponseSummary, level_field) == top_theme2_label,
         func.coalesce(getattr(ResponseSummary, conf_field), 0) >= 95,
     )
+    if theme01_category:
+        # One Theme02 label can exist under two Theme01 categories: only the winning category's answers compete
+        # (Enki, round 15).
+        eligible_where = (*eligible_where, ResponseSummary.theme01 == theme01_category)
     summaries_result = await db.execute(
         select(ResponseSummary).where(*eligible_where).order_by(ResponseSummary.response_meta_id)
     )
@@ -255,6 +260,7 @@ async def run_cqs_pipeline(
     theme_level: str = "3",
     seed: str | None = None,
     commit: bool = True,
+    theme01_category: str | None = None,
 ) -> dict:
     """Full CQS pipeline: score eligible responses + select winner.
 
@@ -265,7 +271,8 @@ async def run_cqs_pipeline(
     # Scores and winner in ONE transaction, under the scoring lock: a concurrent run can neither delete these rows
     # between the two steps nor leave a second winner (Odin, round 13).
     stats: dict = {}
-    scored = await score_cqs(db, session_id, top_theme2_label, theme_level, commit=False, stats=stats)
+    scored = await score_cqs(db, session_id, top_theme2_label, theme_level, commit=False, stats=stats,
+                             theme01_category=theme01_category)
 
     if not scored:
         await (db.commit() if commit else db.flush())

@@ -54,7 +54,7 @@ def test_trigger_records_and_audits_without_label():
 def test_trigger_invokes_real_scoring_when_label_present():
     db, _ = _mock_db()
     called = {}
-    async def _fake_pipeline(_db, sid, label, level, commit=True):
+    async def _fake_pipeline(_db, sid, label, level, commit=True, theme01_category=None):
         called["label"] = label
         called["level"] = level
         called["commit"] = commit

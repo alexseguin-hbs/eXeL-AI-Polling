@@ -173,7 +173,9 @@ async def get_rankings(
 
 
 @router.post("/rankings/aggregate", status_code=200)
+@limiter.limit("10/minute")  # each aggregate starts a CQS run; repeated taps coalesce, but stay bounded (Thor, r15)
 async def trigger_aggregation(
+    request: Request,
     session_id: uuid.UUID,
     seed: str | None = None,
     ranking_method: str = Query("borda_count", description="Ranking algorithm: 'borda_count' or 'quadratic_borda'"),

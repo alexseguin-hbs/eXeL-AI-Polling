@@ -123,7 +123,11 @@ async def live(monkeypatch):
             transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
             async with httpx.AsyncClient(transport=transport, base_url="http://live", timeout=120) as client:
                 yield client, who
-                # Background tasks (summaries, broadcasts) finish inside the lifespan, against this database.
+                # Background tasks (summaries, broadcasts) finish inside the lifespan, against this database. CQS runs
+                # in the background after an aggregate: drain it so it never outlives this test's database (Enlil, r15).
+                from app.cubes.cube5_gateway.service import drain_cqs_tasks
+
+                await drain_cqs_tasks()
                 await asyncio.sleep(2)
     finally:
         for d, prev in saved.items():

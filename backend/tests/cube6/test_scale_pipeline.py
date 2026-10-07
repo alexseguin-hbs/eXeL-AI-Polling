@@ -331,13 +331,24 @@ class TestRealData5000CSV:
 
         # Phase B simulate voting on 3 themes from 5000 voters
         themes = ["T_risk", "T_support", "T_neutral"]
-        acc = BordaTally(n_themes=3, seed="5k-projection")
+        # Best of 5 with the collector paused: one wall-clock sample inside a 3,400-test run picked up GC pauses and
+        # neighbours' work, x200, and failed CI on 0dee0ad while passing alone (Sofia, round 15).
+        import gc
 
-        start = time.perf_counter()
-        for i in range(5000):
-            offset = i % 3
-            acc.add_vote(themes[offset:] + themes[:offset], f"v{i}")
-        vote_ms = (time.perf_counter() - start) * 1000
+        vote_ms = float("inf")
+        gc_was = gc.isenabled()
+        gc.disable()
+        try:
+            for _ in range(5):
+                acc = BordaTally(n_themes=3, seed="5k-projection")
+                start = time.perf_counter()
+                for i in range(5000):
+                    offset = i % 3
+                    acc.add_vote(themes[offset:] + themes[:offset], f"v{i}")
+                vote_ms = min(vote_ms, (time.perf_counter() - start) * 1000)
+        finally:
+            if gc_was:
+                gc.enable()
 
         start = time.perf_counter()
         results = acc.aggregate()

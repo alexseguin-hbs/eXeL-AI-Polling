@@ -90,11 +90,17 @@ async def emit_ranking_complete(
     top_theme2_id = str(winner.theme_id) if winner else None
 
     top_theme2_label = None
+    winner_category = theme01_category
     if winner:
         theme_result = await db.execute(
-            select(Theme.label).where(Theme.id == winner.theme_id)
+            select(Theme.label, Theme.parent_theme_id).where(Theme.id == winner.theme_id)
         )
-        top_theme2_label = theme_result.scalar_one_or_none()
+        row = theme_result.one_or_none()
+        top_theme2_label = row[0] if row else None
+        if row and row[1] and not winner_category:
+            # The winning theme's own Theme01 category (its parent's label = the answers' theme01): one Theme02 label
+            # can exist under two categories, and only the winner's category competes for CQS (Enki, round 15).
+            winner_category = (await db.execute(select(Theme.label).where(Theme.id == row[1]))).scalar_one_or_none()
 
     # Fall back to values on the winner row if callers didn't supply them.
     if algorithm is None and winner is not None:
@@ -180,6 +186,7 @@ async def emit_ranking_complete(
             top_theme2_label=top_theme2_label,
             theme_level=theme_level if theme_level in ("3", "6", "9") else "3",
             background=True,
+            theme01_category=winner_category,
         )
         logger.info(
             "cube7.cqs.triggered",

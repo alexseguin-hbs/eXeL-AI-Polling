@@ -31,7 +31,7 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -884,6 +884,7 @@ async def trigger_cqs_scoring(
     top_theme2_label: str | None = None,
     theme_level: str = "3",
     background: bool = False,
+    theme01_category: str | None = None,
 ) -> PipelineTrigger:
     """Trigger CQS scoring after Cube 7 ranking completes (G3: real scoring, guarded).
 
@@ -925,9 +926,7 @@ async def trigger_cqs_scoring(
     # aggregate response or its transaction. Scoring runs in its own session and transaction, bounded by the pipeline
     # semaphore and a timeout.
     if top_theme2_label and background:
-        task = asyncio.create_task(_score_cqs_background(session_id, top_theme2_label, theme_level))
-        _cqs_tasks.add(task)
-        task.add_done_callback(_cqs_tasks.discard)
+        _schedule_cqs(session_id, (top_theme2_label, theme_level, theme01_category, getattr(trigger, "id", None)))
         return trigger
 
     # G3: fire the REAL scoring when a Theme2 label is resolvable (guarded).
@@ -938,7 +937,8 @@ async def trigger_cqs_scoring(
             # Inside a SAVEPOINT and without committing: the ranking pipeline owns the transaction and commits once;
             # a failed scoring rolls back only itself and never aborts the ranking (Krishna, round 13).
             async with db.begin_nested():
-                cqs = await run_cqs_pipeline(db, session_id, top_theme2_label, theme_level, commit=False)
+                cqs = await run_cqs_pipeline(db, session_id, top_theme2_label, theme_level, commit=False,
+                                             theme01_category=theme01_category)
             logger.info(
                 "cube5.cqs.scored",
                 extra={"session_id": str(session_id), "status": cqs.get("status")},
@@ -951,24 +951,97 @@ async def trigger_cqs_scoring(
     return trigger
 
 
-_cqs_tasks: set[asyncio.Task] = set()  # strong references: a bare create_task may be collected mid-run
 CQS_TIMEOUT_SEC = 600
+# CQS has its own capacity, never the theming pipeline's slots (Thor, Enki; AsM round 14-15).
+_cqs_semaphore = asyncio.Semaphore(4)
+# Single-flight per session: one run at a time; triggers that arrive meanwhile coalesce into ONE follow-up run with the
+# latest arguments, so N rapid aggregates cost at most two runs and hold no shared slot while they wait.
+_cqs_inflight: dict[uuid.UUID, asyncio.Task] = {}
+_cqs_rerun: dict[uuid.UUID, tuple] = {}
 
 
-async def _score_cqs_background(session_id: uuid.UUID, label: str, theme_level: str) -> None:
-    """CQS in its own session + transaction, after the ranking request. Never raises (it is a fire-and-forget task)."""
+def _schedule_cqs(session_id: uuid.UUID, args: tuple) -> None:
+    running = _cqs_inflight.get(session_id)
+    if running is not None and not running.done():
+        superseded = _cqs_rerun.get(session_id)
+        _cqs_rerun[session_id] = args
+        if superseded and superseded[3]:
+            _mark_cqs_trigger_later(superseded[3], "completed", {"cqs_status": "superseded"})
+        return
+    _cqs_inflight[session_id] = asyncio.create_task(_score_cqs_background(session_id, args))
+
+
+def _mark_cqs_trigger_later(trigger_id: uuid.UUID, new_status: str, meta: dict) -> None:
+    async def _mark() -> None:
+        from app.db.postgres import async_session_factory
+
+        try:
+            async with async_session_factory() as db:
+                await update_pipeline_status(db, trigger_id, new_status, result_metadata=meta)
+        except Exception:  # noqa: BLE001
+            logger.warning("cube5.cqs.trigger_status_failed", extra={"trigger_id": str(trigger_id)})
+
+    task = asyncio.create_task(_mark())
+    _cqs_side_tasks.add(task)
+    task.add_done_callback(_cqs_side_tasks.discard)
+
+
+_cqs_side_tasks: set[asyncio.Task] = set()
+
+
+async def drain_cqs_tasks(timeout: float = 30.0) -> None:
+    """Wait for background CQS work (tests and shutdown): nothing outlives the database it writes to."""
+    pending = [t for t in [*_cqs_inflight.values(), *_cqs_side_tasks] if not t.done()]
+    if pending:
+        await asyncio.wait(pending, timeout=timeout)
+
+
+async def _score_cqs_background(session_id: uuid.UUID, args: tuple) -> None:
+    """Run CQS after the ranking request, then any coalesced follow-up. Never raises (fire-and-forget task)."""
+    try:
+        while args is not None:
+            await _score_cqs_once(session_id, *args)
+            args = _cqs_rerun.pop(session_id, None)
+    finally:
+        _cqs_inflight.pop(session_id, None)
+
+
+async def _score_cqs_once(session_id: uuid.UUID, label: str, theme_level: str, category: str | None,
+                          trigger_id: uuid.UUID | None) -> None:
+    """One CQS run in its own session + transaction. The trigger records in_progress → completed (with the CQS status)
+    or failed; a failed run leaves no previous winner standing (Enlil, Enki, Thoth; AsM round 15)."""
     from app.cubes.cube6_ai.cqs_engine import run_cqs_pipeline
     from app.db.postgres import async_session_factory
+    from app.models.cqs_score import CQSScore
 
     try:
-        async with _pipeline_semaphore:
+        async with _cqs_semaphore:
             async with async_session_factory() as bg_db:
+                if trigger_id:
+                    await update_pipeline_status(bg_db, trigger_id, "in_progress")
                 cqs = await asyncio.wait_for(
-                    run_cqs_pipeline(bg_db, session_id, label, theme_level), timeout=CQS_TIMEOUT_SEC
+                    run_cqs_pipeline(bg_db, session_id, label, theme_level, theme01_category=category),
+                    timeout=CQS_TIMEOUT_SEC,
                 )
+                if trigger_id:
+                    await update_pipeline_status(bg_db, trigger_id, "completed", result_metadata={
+                        "cqs_status": cqs.get("status"),
+                        "total_scored": cqs.get("total_scored", 0),
+                        "winner_response_id": cqs.get("winner_response_id"),
+                    })
         logger.info("cube5.cqs.scored", extra={"session_id": str(session_id), "status": cqs.get("status")})
     except Exception as exc:  # noqa: BLE001 — a scoring failure never reaches the ranking that triggered it
         logger.warning("cube5.cqs.background_failed: %s", exc, extra={"session_id": str(session_id)})
+        reason = "CQS timeout" if isinstance(exc, asyncio.TimeoutError) else f"CQS failed: {exc}"[:500]
+        try:
+            async with async_session_factory() as db:
+                # The previous run's scores and winner belong to a ranking this run replaced: clear them.
+                await db.execute(delete(CQSScore).where(CQSScore.session_id == session_id))
+                await db.commit()
+                if trigger_id:
+                    await _retry_status_update(db, trigger_id, reason)
+        except Exception:  # noqa: BLE001
+            logger.exception("cube5.cqs.failure_cleanup_failed", extra={"session_id": str(session_id)})
 
 
 async def orchestrate_post_polling(

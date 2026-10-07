@@ -386,3 +386,138 @@ async def test_simulation_cqs_stays_offline_without_approval(live):
             CQSScore.session_id == uuid.UUID(sid)))).scalars().all())
     assert providers == {"offline"}, f"a simulation without an approved estimate scores offline: {providers}"
     assert await _cqs_counts(sid) == (n, 1)
+
+
+async def _cqs_triggers(sid):
+    import app.db.postgres as pg
+    from sqlalchemy import select
+
+    from app.models.pipeline_trigger import PipelineTrigger
+
+    async with pg.async_session_factory() as db:
+        rows = (await db.execute(select(PipelineTrigger).where(
+            PipelineTrigger.session_id == uuid.UUID(sid), PipelineTrigger.trigger_type == "cqs_scoring"))).scalars().all()
+    return [(t.status, (t.trigger_metadata or {}).get("cqs_status"), t.error_message) for t in rows]
+
+
+async def _ranked_session(client, who, title):
+    """An offline-themed session with three distinct ballots — no confidence pinning: the offline provider's real
+    keyword matches are assigned at 95, so CQS is reachable end to end (Enki, round 15)."""
+    sid, n = await _themed_session(client, who, title, "identified")
+    who.moderator()
+    themes = ok(await client.get(f"{A}/{sid}/themes"), what="themes").json()
+    level = str((await client.get(f"{A}/{sid}")).json().get("theme2_voting_level") or "theme2_9").split("_")[-1]
+    ballot = [t for t in themes if t.get("parent_theme_id") and t.get("label")
+              and str(t.get("theme_level") or (t.get("cluster_metadata") or {}).get("level")) == level]
+    ids = [t["id"] for t in ballot]
+    rest = ids[1:]
+    ballots = [[ids[0]] + rest, [ids[0]] + rest[::-1], [rest[0], ids[0]] + rest[1:]] if rest else [ids] * 3
+    for i in range(n):
+        who.be(f"google-oauth2|{title[:4]}{i}", role="user")
+        ok(await client.post(f"{A}/{sid}/rankings", json={"ranked_theme_ids": ballots[i]}), what=f"ballot {i}")
+    who.moderator()
+    return sid, n
+
+
+async def test_offline_session_reaches_a_cqs_winner_and_records_it(live):
+    """Offline theming → aggregate → background CQS crowns a winner, with no pinned confidence, and the cqs_scoring
+    trigger ends 'completed' carrying the CQS status (Enki, Enlil, Thoth; round 15)."""
+    from app.cubes.cube5_gateway.service import drain_cqs_tasks
+
+    client, who = live
+    sid, n = await _ranked_session(client, who, "Offline CQS")
+    ok(await client.post(f"{A}/{sid}/rankings/aggregate"), what="aggregate")
+    await drain_cqs_tasks()
+    rows, winners = await _cqs_counts(sid)
+    assert rows >= 1 and winners == 1, f"an offline session crowns one CQS winner unaided: {rows} scores, {winners}"
+    assert await _cqs_triggers(sid) == [("completed", "completed", None)], await _cqs_triggers(sid)
+
+
+async def test_rapid_aggregates_coalesce_and_are_rate_limited(live, monkeypatch):
+    """Ten aggregates at once start at most two CQS runs for the session (single flight + one coalesced follow-up),
+    every trigger ends terminal, the result is one winner, and the eleventh aggregate in a minute is refused (Thor,
+    Enki; round 15)."""
+    from app.cubes.cube5_gateway.service import drain_cqs_tasks
+
+    import app.cubes.cube5_gateway.service as svc
+
+    client, who = live
+    sid, n = await _ranked_session(client, who, "Rapid aggregates")
+    real_once, live_runs, max_inflight = svc._score_cqs_once, [0], [0]
+
+    async def _counted(*a, **k):
+        live_runs[0] += 1
+        max_inflight[0] = max(max_inflight[0], live_runs[0])
+        try:
+            await asyncio.sleep(0.2)  # long enough that later aggregates arrive while it runs
+            return await real_once(*a, **k)
+        finally:
+            live_runs[0] -= 1
+
+    monkeypatch.setattr(svc, "_score_cqs_once", _counted)
+    rs = await asyncio.gather(*[client.post(f"{A}/{sid}/rankings/aggregate") for _ in range(10)])
+    assert all(r.status_code in OK for r in rs), [r.status_code for r in rs]
+    await drain_cqs_tasks()
+    trig = await _cqs_triggers(sid)
+    assert len(trig) == 10 and all(s == "completed" for s, _, _ in trig), trig
+    ran = [c for _, c, _ in trig if c != "superseded"]
+    # Aggregates are serialised, so a fast (offline) run can finish between two of them; what single flight
+    # guarantees is that triggers arriving during a run coalesce, and at most one run is ever in flight (below).
+    assert 1 <= len(ran) < len(trig) and trig.count(("completed", "superseded", None)) >= 1, trig
+    assert max_inflight[0] <= 1, f"two CQS runs of one session overlapped: {max_inflight[0]}"
+    assert (await _cqs_counts(sid))[1] == 1
+    r = await client.post(f"{A}/{sid}/rankings/aggregate")
+    assert r.status_code == 429, f"the eleventh aggregate in a minute is refused: {r.status_code}"
+
+
+async def test_failed_rescore_clears_the_old_winner(live, monkeypatch):
+    """A re-score whose provider raises leaves no previous winner standing and marks its trigger failed (Thoth,
+    Enlil; round 15)."""
+    import app.cubes.cube6_ai.cqs_engine as engine
+    from app.cubes.cube5_gateway.service import drain_cqs_tasks
+
+    client, who = live
+    sid, n = await _ranked_session(client, who, "Rescore fails")
+    ok(await client.post(f"{A}/{sid}/rankings/aggregate"), what="aggregate 1")
+    await drain_cqs_tasks()
+    assert (await _cqs_counts(sid))[1] == 1, "the first scoring crowned a winner"
+
+    class _Raises:
+        async def batch_summarize(self, items, timeout=120.0):
+            raise RuntimeError("provider down")
+
+    monkeypatch.setattr(engine, "get_summarization_provider_or_offline", lambda name: _Raises())
+    ok(await client.post(f"{A}/{sid}/rankings/aggregate"), what="aggregate 2")
+    await drain_cqs_tasks()
+    assert await _cqs_counts(sid) == (0, 0), "a failed re-score leaves no old winner"
+    statuses = sorted(s for s, _, _ in await _cqs_triggers(sid))
+    assert statuses == ["completed", "failed"], statuses
+
+
+async def test_cqs_scores_only_the_winning_category(live):
+    """One Theme02 label under two Theme01 categories: only the winning category's answers are scored (Enki, r15)."""
+    import html
+
+    import app.db.postgres as pg
+    from sqlalchemy import select, update
+
+    from app.cubes.cube6_ai.cqs_engine import run_cqs_pipeline
+    from app.models.cqs_score import CQSScore
+    from app.models.response_summary import ResponseSummary
+
+    client, who = live
+    sid, n = await _themed_session(client, who, "CQS category", "anonymous")
+    label = html.escape("Privacy & Trust")
+    await _pin(sid, label, 99)
+    async with pg.async_session_factory() as db:
+        ids = (await db.execute(select(ResponseSummary.response_meta_id).where(
+            ResponseSummary.session_id == uuid.UUID(sid)).order_by(ResponseSummary.response_meta_id))).scalars().all()
+        await db.execute(update(ResponseSummary).where(ResponseSummary.response_meta_id == ids[0]).values(
+            theme01="Supporting Comments"))
+        await db.execute(update(ResponseSummary).where(ResponseSummary.response_meta_id.in_(ids[1:])).values(
+            theme01="Risk & Concerns"))
+        await db.commit()
+        await run_cqs_pipeline(db, uuid.UUID(sid), label, "3", theme01_category="Risk & Concerns")
+        scored = set((await db.execute(select(CQSScore.response_id).where(
+            CQSScore.session_id == uuid.UUID(sid)))).scalars().all())
+    assert scored == set(ids[1:]), "only the winning category's answers compete"

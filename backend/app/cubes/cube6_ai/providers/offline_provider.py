@@ -108,8 +108,10 @@ class OfflineSummarization(SummarizationProvider):
             themes = _parse_list_block(text)
             if not themes:
                 return ""
-            chosen = _best_match(themes, text)
-            return f"{chosen} (Confidence: 85%)"
+            chosen, overlap = _best_match_scored(themes, text)
+            # A real keyword match is a confident assignment (95, at CQS's gate), so an offline session reaches a CQS
+            # winner end to end; a tie-break pick with no shared word stays at 85 (Enki, round 15).
+            return f"{chosen} (Confidence: {95 if overlap > 0 else 85}%)"
 
         # 3. Theme generation (_THEME_GEN_INSTRUCTION): 3 lines "T00n, Name, Desc".
         if "SUMMARY THEMES" in instr or "T001, Theme Name" in instr:
@@ -167,6 +169,11 @@ def _parse_list_block(text: str) -> list[str]:
 
 def _best_match(themes: list[str], text: str) -> str:
     """Deterministic theme pick: most keyword overlap with the input, tiebreak first."""
+    return _best_match_scored(themes, text)[0]
+
+
+def _best_match_scored(themes: list[str], text: str) -> tuple[str, int]:
+    """The pick and its keyword overlap with the input."""
     low = text.lower()
     best = themes[0]
     best_score = -1
@@ -175,7 +182,7 @@ def _best_match(themes: list[str], text: str) -> str:
         if score > best_score:
             best_score = score
             best = t
-    return best
+    return best, best_score
 
 
 def _dedupe(items: list[str]) -> list[str]:
