@@ -19,7 +19,9 @@ degradation, not a stub — the AI path is genuinely wired for when a key is pre
 """
 
 import structlog
-from fastapi import APIRouter, HTTPException
+
+from app.core.rate_limit import limiter
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.cubes.cube6_ai.providers.factory import get_summarization_provider_or_offline
@@ -39,20 +41,21 @@ class PodFacts(BaseModel):
     baseline_hours: float = 0     # the planned hours the actual is measured against
     accel_delta: float = 0        # hours saved vs baseline
     ya_triangle: float = 0        # ◬ recognised
-    signer_name: str = ""
-    member_names: list[str] = Field(default_factory=list)
-    pod_code: str = ""
+    signer_name: str = Field("", max_length=200)
+    member_names: list[str] = Field(default_factory=list, max_length=100)
+    pod_code: str = Field("", max_length=64)
     # The platform clock, so the backend record is not blind to it: the span as a person reads it, and every
     # start/stop segment (unit.ceiling: "MoT and Replay preserve every recorded minute").
-    witnessed_for: str = ""
-    segments: list[dict] = Field(default_factory=list)   # [{start, stop, hhmmss}]
-    member_outcomes: list[str] = Field(default_factory=list)   # one outcome per member, in their own words
+    witnessed_for: str = Field("", max_length=200)
+    segments: list[dict] = Field(default_factory=list, max_length=500)   # [{start, stop, hhmmss}]
+    member_outcomes: list[str] = Field(default_factory=list, max_length=100)   # one outcome per member
 
 
 class PodSynthesisRequest(BaseModel):
-    intent: str = ""
-    outcome: str = ""
-    record_text: str = ""
+    # Bounded: this endpoint is anonymous and spends the operator's paid AI provider.
+    intent: str = Field("", max_length=2000)
+    outcome: str = Field("", max_length=4000)
+    record_text: str = Field("", max_length=20000)
     facts: PodFacts = Field(default_factory=PodFacts)
     provider: str = "openai"
 
@@ -80,7 +83,8 @@ _INSTRUCTION = (
 
 
 @router.post("/synthesis", response_model=PodSynthesisResponse)
-async def pod_synthesis(payload: PodSynthesisRequest) -> PodSynthesisResponse:
+@limiter.limit("6/minute")
+async def pod_synthesis(request: Request, payload: PodSynthesisRequest) -> PodSynthesisResponse:
     """Synthesize a pod's recorded outcome into a 3-paragraph ~333-word close-out.
 
     Uses the real Cube 6 provider (Gemini/OpenAI/…) when a key is configured; returns

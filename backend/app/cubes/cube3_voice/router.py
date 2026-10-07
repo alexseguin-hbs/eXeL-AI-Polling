@@ -20,6 +20,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Reques
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
+from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
 from app.core.rate_limit import limiter
 from app.cubes.cube3_voice import metrics as cube3_metrics
@@ -158,7 +159,7 @@ async def list_voice_responses(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
     """List paginated voice responses for a session.
 
@@ -174,7 +175,7 @@ async def list_voice_responses(
 async def get_metrics(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
     """Cube 3 metrics: System / User / Outcome (Moderator-only).
 
@@ -190,7 +191,7 @@ async def get_voice_response(
     session_id: uuid.UUID,
     response_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
     """Get a single voice response by ID. Includes full STT + PII/profanity detail.
 

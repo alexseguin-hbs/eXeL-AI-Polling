@@ -18,12 +18,13 @@ import re
 import uuid
 from functools import lru_cache
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user
 from app.core.dependencies import get_db
+from app.core.rate_limit import limiter
 from app.core.permissions import require_role
 from app.cubes.cube10_simulation import service
 
@@ -218,8 +219,13 @@ class VerifyAccessRequest(BaseModel):
         return v
 
 
+_DEMO_CODES = {"96541230", "366999"}  # the defaults in app/config.py
+
+
 @router.post("/verify-access")
+@limiter.limit("5/minute")
 async def verify_access(
+    request: Request,
     payload: VerifyAccessRequest,
     user: CurrentUser = Depends(get_current_user),
 ):
@@ -233,6 +239,9 @@ async def verify_access(
         expected = settings.cube10_challenger_code
     else:
         raise HTTPException(status_code=400, detail="access_type must be 'admin' or 'challenger'")
+    # The demo codes ship in source; a production deploy must set its own or the door stays shut.
+    if settings.environment == "production" and expected in _DEMO_CODES:
+        raise HTTPException(status_code=503, detail="Access codes are not configured")
 
     # True constant-time comparison via hmac.compare_digest
     if hmac.compare_digest(payload.code.encode(), expected.encode()):

@@ -34,6 +34,7 @@ VALID_THEME_LEVELS = {"themes_3", "themes_6", "themes_9"}
 VALID_DONATION_TIERS = {"free", "tier_theme_111", "tier_theme_333", "tier_conf", "tier_cqs", "tier_333", "tier_full", "tier_talent"}
 
 from app.core.auth import CurrentUser, get_current_user
+from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
 from app.core.permissions import require_role
 from app.cubes.cube9_reports import service
@@ -176,7 +177,7 @@ async def export_csv(
 async def get_analytics(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """CRS-19: Participation, timing, engagement, token, ranking metrics."""
     return await service.build_analytics_dashboard(db, session_id)
@@ -186,7 +187,7 @@ async def get_analytics(
 async def get_reports_metrics(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """Cube 9 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 1-8.
 
@@ -203,7 +204,7 @@ async def verify_export_hash(
     session_id: uuid.UUID,
     content_tier: str = "full",
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """Cube 9 replay verification — reproducible SHA-256 governance hash of the export.
 
@@ -223,7 +224,7 @@ async def verify_export_hash(
 async def get_cqs_dashboard(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """CRS-19.02: CQS scoring breakdown — composite scores, winner, top 50."""
     return await service.build_cqs_dashboard(db, session_id)
@@ -254,7 +255,7 @@ async def export_pdf(
     session_id: uuid.UUID,
     export_format: str = Query("pdf", description="Export format: 'csv' or 'pdf'"),
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
     """CRS-14.02: PDF export (MVP2 — stub)."""
     # WireGuard: whitelist export_format
@@ -270,7 +271,7 @@ async def export_pdf(
 async def get_results_distribution(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """CRS-14.05: Check who is eligible to receive results."""
     return await service.distribute_results(db, session_id)
@@ -280,7 +281,7 @@ async def get_results_distribution(
 async def get_reward_announcement(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """CRS-14.01: Get CQS reward winner details (Moderator/Admin only)."""
     from app.models.session import Session as SessionModel
@@ -391,7 +392,7 @@ async def preview_replay(
     sample_rate: float = 1.0,
     ai_supplement_pct: int = 0,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
     """Pangu: Preview simulation replay before executing.
 
@@ -421,7 +422,7 @@ async def get_trends(
     project_id: str,
     theme_level: str = Query("themes_3", description="Theme level: 'themes_3', 'themes_6', or 'themes_9'"),
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """Odin: Cross-session trend analysis ($11.11/mo subscription).
 
@@ -451,7 +452,7 @@ async def capture_trend_snapshot(
     session_id: uuid.UUID,
     project_id: str,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
     """Odin: Capture theme snapshot for trend tracking.
 
@@ -465,7 +466,7 @@ async def capture_trend_snapshot(
 async def destroy_data(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("admin")),
+    user: CurrentUser = Depends(require_session_owner("admin")),
 ):
     """CRS-14.03: Irreversible data destruction after results delivery.
 

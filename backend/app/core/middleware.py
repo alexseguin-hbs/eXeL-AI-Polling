@@ -25,14 +25,9 @@ class CloudflareProxyMiddleware(BaseHTTPMiddleware):
 
     @staticmethod
     def _get_client_ip(request: Request) -> str:
-        if settings.behind_cloudflare:
-            cf_ip = request.headers.get("CF-Connecting-IP")
-            if cf_ip:
-                return cf_ip
-        xff = request.headers.get("X-Forwarded-For")
-        if xff:
-            return xff.split(",")[0].strip()
-        return request.client.host if request.client else "127.0.0.1"
+        from app.core.rate_limit import get_real_client_ip  # one trusted-IP rule for logs and limits
+
+        return get_real_client_ip(request)
 
 
 class RequestIdMiddleware(BaseHTTPMiddleware):

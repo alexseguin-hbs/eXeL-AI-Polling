@@ -15,8 +15,11 @@ Payments (3 tiers):
 import re
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import BaseModel, Field
+
+from app.config import settings
+from app.core.rate_limit import limiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # ---------------------------------------------------------------------------
@@ -39,6 +42,7 @@ _JURISDICTION_RE = re.compile(r"^[A-Z]{2}$")
 from fastapi.responses import HTMLResponse
 
 from app.core.auth import CurrentUser, get_current_user
+from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
 from app.core.hi_rates import get_all_rates, resolve_human_rate
 from app.core.permissions import require_role
@@ -216,18 +220,36 @@ async def create_donation(
 
 
 class DivinityDonationRequest(BaseModel):
-    amount_cents: int = 333
-    success_url: str = ""
-    cancel_url: str = ""
-    label: str = "The Divinity Guide — Sacred Contribution"
-    description: str = "The Return to Wholeness and Living Divinity"
+    # Anonymous, so every field is bounded and the redirects must come back to our own site.
+    amount_cents: int = Field(333, ge=50, le=1_000_000)
+    success_url: str = Field("", max_length=500)
+    cancel_url: str = Field("", max_length=500)
+    label: str = Field("The Divinity Guide — Sacred Contribution", max_length=120)
+    description: str = Field("The Return to Wholeness and Living Divinity", max_length=300)
+
+
+def _own_site(url: str) -> bool:
+    """Only our frontend (or a configured CORS origin) may be a Checkout redirect target."""
+    if not url:
+        return True
+    from urllib.parse import urlparse
+
+    allowed = {settings.frontend_url.rstrip("/")} | {
+        o.strip().rstrip("/") for o in (settings.allowed_origins or "").split(",") if o.strip()
+    }
+    u = urlparse(url)
+    return f"{u.scheme}://{u.netloc}" in allowed
 
 
 @router.post("/payments/divinity-donate")
+@limiter.limit("10/minute")
 async def create_divinity_donation(
+    request: Request,
     payload: DivinityDonationRequest,
     db: AsyncSession = Depends(get_db),
 ):
+    if not (_own_site(payload.success_url) and _own_site(payload.cancel_url)):
+        raise HTTPException(status_code=400, detail="Redirect URLs must return to this site")
     """Create an anonymous Stripe Checkout for a voluntary donation (no auth).
 
     The universal donate path used by both the site-wide navbar button and the Divinity
@@ -247,7 +269,7 @@ async def create_divinity_donation(
 async def get_payment_status(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """Get payment summary for a session (Moderator/Admin only)."""
     return await payment_service.get_payment_status(db, session_id)
@@ -266,7 +288,7 @@ async def get_cost_estimate(
 async def get_session_tokens(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "lead_developer", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
     """CRS-25: Get token ledger for a session."""
     entries = await service.get_session_tokens(db, session_id)
@@ -304,7 +326,7 @@ async def get_user_balance(
 async def get_token_summary(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """CRS-19: Get aggregate token stats for moderator dashboard."""
     return await service.get_session_token_summary(db, session_id)
@@ -314,7 +336,7 @@ async def get_token_summary(
 async def get_token_metrics(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """Cube 8 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 1-7.
 

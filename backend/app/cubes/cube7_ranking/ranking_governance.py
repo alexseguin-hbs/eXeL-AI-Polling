@@ -103,7 +103,8 @@ async def emit_ranking_complete(
     try:
         count_result = await db.execute(
             select(func.count()).select_from(Ranking).where(
-                Ranking.session_id == session_id
+                Ranking.session_id == session_id,
+                Ranking.cycle_id == cycle_id,   # this round's voters, not every round's
             )
         )
         participant_count = count_result.scalar() or 0
@@ -127,16 +128,14 @@ async def emit_ranking_complete(
         "contract_version": "2026-07-03.1",
     }
     try:
-        if participant_count > 1000:
-            from app.cubes.cube7_ranking.scale_engine import broadcast_to_all_shards
-            await broadcast_to_all_shards(session_short_code, "ranking_complete", payload)
-        else:
-            from app.core.supabase_broadcast import broadcast_event
-            await broadcast_event(
-                channel=f"session:{session_short_code}",
-                event="ranking_complete",
-                payload=payload,
-            )
+        # One low-rate message on the topic clients actually join. Above 1000 voters it used to go
+        # only to shard channels no client subscribes to, so nobody learned the result.
+        from app.core.supabase_broadcast import broadcast_event
+        await broadcast_event(
+            channel=f"session:{session_short_code}",
+            event="ranking_complete",
+            payload=payload,
+        )
         logger.info(
             "cube7.ranking_complete.broadcast",
             extra={"session_id": str(session_id), "top_theme2_id": top_theme2_id},
@@ -412,6 +411,8 @@ async def get_governance_overrides(
 # CRS-12.04: Anomaly Detection (Anti-Sybil)
 # ---------------------------------------------------------------------------
 
+BURST_SHARE = 0.5  # identical ballots must be at least half of everything cast in their window
+
 
 async def detect_voting_anomalies(
     db: AsyncSession,
@@ -438,32 +439,49 @@ async def detect_voting_anomalies(
 
     anomalies: list[dict] = []
 
-    # Check 1: Identical rankings within time window
+    # Check 1: an identical-ordering BURST that dominates its window.
+    #
+    # At live scale (≈1,667 votes/s) three honest voters sharing a popular order inside 2 s is
+    # normal — the old "≥3 identical within 2 s" rule excluded 2,931 honest voters at 1M ballots,
+    # while a 100k-ballot swarm lost only 3 votes (it stopped after the first window). A burst is
+    # now flagged only when identical ballots are at least BURST_SHARE of ALL ballots cast in that
+    # window, and the whole burst is flagged, not its first three.
+    import bisect
+
+    all_times = [r.submitted_at for r in rankings]  # ordered by submitted_at (query above)
     ranking_groups: dict[str, list[Ranking]] = {}
     for r in rankings:
-        key = str(r.ranked_theme_ids)
-        ranking_groups.setdefault(key, []).append(r)
+        ranking_groups.setdefault(str(r.ranked_theme_ids), []).append(r)
 
     for key, group in ranking_groups.items():
         if len(group) < _ANOMALY_MIN_DUPLICATES:
             continue
-        timestamps = sorted(r.submitted_at for r in group)
-        for i in range(len(timestamps) - _ANOMALY_MIN_DUPLICATES + 1):
-            window_start = timestamps[i]
-            window_end = timestamps[i + _ANOMALY_MIN_DUPLICATES - 1]
-            delta = (window_end - window_start).total_seconds()
-            if delta <= _ANOMALY_WINDOW_SEC:
-                anomalies.append({
-                    "type": "identical_ranking_burst",
-                    "ranking_key": key,
-                    "count": _ANOMALY_MIN_DUPLICATES,
-                    "window_seconds": delta,
-                    "participant_ids": [
-                        str(group[j].participant_id)
-                        for j in range(i, i + _ANOMALY_MIN_DUPLICATES)
-                    ],
-                })
-                break
+        group.sort(key=lambda r: r.submitted_at)
+        i = 0
+        while i <= len(group) - _ANOMALY_MIN_DUPLICATES:
+            j = i
+            while j + 1 < len(group) and (group[j + 1].submitted_at - group[i].submitted_at).total_seconds() <= _ANOMALY_WINDOW_SEC:
+                j += 1
+            run = j - i + 1
+            if run >= _ANOMALY_MIN_DUPLICATES:
+                # Both counts over the SAME full window [t0, t0 + WINDOW]: measuring the run's own
+                # span (often a millisecond) made any three near-simultaneous voters "dominate".
+                from datetime import timedelta as _td
+
+                t0, t1 = group[i].submitted_at, group[j].submitted_at
+                total = bisect.bisect_right(all_times, t0 + _td(seconds=_ANOMALY_WINDOW_SEC)) - bisect.bisect_left(all_times, t0)
+                if run / max(total, 1) >= BURST_SHARE:
+                    anomalies.append({
+                        "type": "identical_ranking_burst",
+                        "ranking_key": key,
+                        "count": run,
+                        "window_seconds": (t1 - t0).total_seconds(),
+                        "share_of_window": round(run / max(total, 1), 4),
+                        "participant_ids": [str(group[k].participant_id) for k in range(i, j + 1)],
+                    })
+                    i = j + 1
+                    continue
+            i += 1
 
     # Check 2: Rapid submissions per participant
     from collections import defaultdict

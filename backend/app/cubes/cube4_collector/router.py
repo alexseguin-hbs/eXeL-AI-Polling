@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
+from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
 from app.core.exceptions import ResponseNotFoundError
 from app.core.permissions import require_role
@@ -47,7 +48,7 @@ async def list_collected_responses(
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
     """List collected responses in Web_Results format with optional summaries/themes.
 
@@ -68,7 +69,7 @@ async def get_collected_response(
     session_id: uuid.UUID,
     response_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
     """Get a single collected response with all data (summaries + themes).
 
@@ -108,9 +109,14 @@ async def get_collector_presence(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
 ):
-    """Get live presence count for a session (in-memory). No auth — participants need this."""
+    """Get live presence count for a session (in-memory). No auth — participants need this.
+
+    Count only: the participant list is never sent to an anonymous caller (see cube 1 presence).
+    """
     await validate_session_exists(db, session_id)
-    return await get_session_presence(session_id)
+    from app.core.presence import get_active_count
+
+    return {"session_id": str(session_id), "active_count": get_active_count(session_id), "participants": []}
 
 
 @router.get("/summary-status")
@@ -158,7 +164,13 @@ async def confirm_outcome(
 ):
     """CRS-10.01: Record participant confirmation of desired outcome."""
     await validate_session_exists(db, session_id)
-    return await record_confirmation(db, session_id, outcome_id, body.participant_id)
+    # The confirmer is the caller's own participants row — never an id typed into the body.
+    participant_id = await resolve_participant_id(db, session_id, user.user_id)
+    if participant_id is None:
+        raise HTTPException(status_code=403, detail="Join the session before confirming")
+    if body.participant_id and body.participant_id != participant_id:
+        raise HTTPException(status_code=403, detail="You can only confirm for yourself")
+    return await record_confirmation(db, session_id, outcome_id, participant_id)
 
 
 @router.get("/desired-outcome/{outcome_id}/check")
@@ -181,7 +193,7 @@ async def log_results(
     outcome_id: uuid.UUID,
     body: ResultsLogCreate,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
     """CRS-10.03: Log post-task results and assessment. Moderator-only."""
     # WireGuard-inspired: whitelist outcome_status at the gate
@@ -204,7 +216,7 @@ async def log_results(
 async def get_collector_metrics(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", "lead", leads_read=True)),
 ):
     """Cube 4 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 2/3/7/8.
 

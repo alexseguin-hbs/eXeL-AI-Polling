@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
+from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
 from app.core.permissions import require_role
 from app.cubes.cube5_gateway import service
@@ -84,6 +85,18 @@ async def stop_time_tracking(
     Calculates duration and ♡ 웃 ◬ tokens.
     Creates append-only token ledger entry.
     """
+    # Only the participant who started the entry, in this session, may stop it (it fixes
+    # their duration and the tokens it earns).
+    from sqlalchemy import select as _select
+
+    from app.models.time_tracking import TimeEntry
+
+    participant_id = await resolve_participant_id(db, session_id, user.user_id if user else None)
+    owner = (await db.execute(
+        _select(TimeEntry.participant_id, TimeEntry.session_id).where(TimeEntry.id == payload.time_entry_id)
+    )).first()
+    if owner is None or owner[1] != session_id or participant_id is None or owner[0] != participant_id:
+        raise HTTPException(status_code=404, detail="Time entry not found")
     entry = await service.stop_time_tracking(
         db,
         time_entry_id=payload.time_entry_id,
@@ -122,7 +135,7 @@ async def trigger_theming(
     session_id: uuid.UUID,
     payload: TriggerThemingRequest | None = None,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
     """Manually trigger the AI theming pipeline (Cube 6) for a session.
 
@@ -193,7 +206,7 @@ async def retry_pipeline(
     session_id: uuid.UUID,
     trigger_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
     """Retry a failed pipeline trigger.
 
@@ -264,7 +277,7 @@ async def register_webhook(
     session_id: uuid.UUID,
     payload: WebhookRegisterRequest,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
     """Enlil: Register a webhook subscription ($0.99/event delivery).
 
@@ -281,16 +294,13 @@ async def register_webhook(
     if not payload.event_types:
         raise HTTPException(status_code=400, detail="event_types must not be empty")
 
-    # G2 fix: SSRF protection — validate webhook URL scheme and block internal addresses
-    from urllib.parse import urlparse
-    parsed = urlparse(payload.url)
-    if parsed.scheme not in ("https",):
-        raise HTTPException(status_code=400, detail="Webhook URL must use HTTPS")
-    if not parsed.hostname:
-        raise HTTPException(status_code=400, detail="Webhook URL must have a valid hostname")
-    _blocked = {"localhost", "127.0.0.1", "0.0.0.0", "::1", "169.254.169.254", "metadata.google.internal"}
-    if parsed.hostname.lower() in _blocked or parsed.hostname.startswith("10.") or parsed.hostname.startswith("192.168."):
-        raise HTTPException(status_code=400, detail="Webhook URL must not target internal/loopback addresses")
+    # SSRF: a public HTTPS host only (resolved, every address checked; re-checked at delivery)
+    from app.cubes.cube5_gateway.webhook_service import WebhookTargetError, validate_webhook_url
+
+    try:
+        await validate_webhook_url(payload.url)
+    except WebhookTargetError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     from app.cubes.cube5_gateway.webhook_service import register_webhook as reg
     return await reg(db, session_id, payload.url, payload.event_types, user.user_id)
@@ -300,7 +310,7 @@ async def register_webhook(
 async def list_webhooks(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
     """Enlil: List all webhook subscriptions for a session."""
     from app.cubes.cube5_gateway.webhook_service import list_webhooks as lw
@@ -315,7 +325,7 @@ async def delete_webhook(
 ):
     """Enlil: Deactivate a webhook subscription."""
     from app.cubes.cube5_gateway.webhook_service import delete_webhook as dw
-    success = await dw(db, subscription_id)
+    success = await dw(db, subscription_id, user)
     if not success:
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Webhook not found")
@@ -326,7 +336,7 @@ async def delete_webhook(
 async def get_gateway_metrics(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", "lead", leads_read=True)),
 ):
     """Cube 5 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 2/3/7/8.
 

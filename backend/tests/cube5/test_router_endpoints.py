@@ -84,23 +84,47 @@ class TestStopTimeTracking:
     """POST /sessions/{id}/time/stop — optional auth."""
 
     @pytest.mark.asyncio
-    async def test_returns_200_on_success(self, client, moderator_user):
+    async def test_returns_200_on_success(self, client, moderator_user, mock_db):
         entry = make_time_entry(id=TID)
         entry.session_id = SID
         entry.participant_id = PID
         entry.stopped_at = datetime.now(timezone.utc)
         entry.duration_seconds = 120.0
         entry.reference_id = None
+        owner_row = MagicMock()
+        owner_row.first.return_value = (PID, SID)
         with patch(
             "app.cubes.cube5_gateway.service.stop_time_tracking",
             new_callable=AsyncMock,
             return_value=entry,
+        ), patch(
+            "app.cubes.cube5_gateway.router.resolve_participant_id",
+            new_callable=AsyncMock,
+            return_value=PID,
         ):
+            mock_db.execute = AsyncMock(return_value=owner_row)
             resp = await client.post(
                 f"{PREFIX}/time/stop",
                 json={"time_entry_id": str(TID)},
             )
         assert resp.status_code == 200
+
+    @pytest.mark.asyncio
+    async def test_someone_elses_entry_is_404(self, client, moderator_user, mock_db):
+        """Stopping another participant's entry (it fixes their tokens) is refused."""
+        owner_row = MagicMock()
+        owner_row.first.return_value = (uuid.uuid4(), SID)
+        with patch(
+            "app.cubes.cube5_gateway.router.resolve_participant_id",
+            new_callable=AsyncMock,
+            return_value=PID,
+        ):
+            mock_db.execute = AsyncMock(return_value=owner_row)
+            resp = await client.post(
+                f"{PREFIX}/time/stop",
+                json={"time_entry_id": str(TID)},
+            )
+        assert resp.status_code == 404
 
 
 class TestTimeSummary:

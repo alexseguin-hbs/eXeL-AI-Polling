@@ -211,3 +211,182 @@ def test_theme_storage_replaces_the_cycle():
     from app.cubes.cube6_ai.phase_b import ThemesLockedError
 
     assert issubclass(ThemesLockedError, ValueError)
+
+
+# ═══ Round 1 of the reviewer loop (2026-10-07): authorization classes ═══════════════════
+
+# 11 · one session-ownership rule
+@pytest.mark.real_ownership
+@pytest.mark.asyncio
+async def test_session_owner_dependency_refuses_other_tenants():
+    from fastapi import HTTPException
+
+    from app.core import session_access as sa
+
+    sid, me, other = uuid.uuid4(), "auth0|me", "auth0|other"
+    dep = sa.require_session_owner("moderator", "admin", leads_read=False)
+
+    async def owned_by(who):
+        async def _f(db, s):
+            return who
+        return _f
+
+    def user(uid, role):
+        return CurrentUser(user_id=uid, email=None, role=role, permissions=[])
+
+    from app.core.auth import CurrentUser  # noqa: F811
+    with patch.object(sa, "session_owner_of", await owned_by(me)):
+        assert (await dep(session_id=sid, user=user(me, "moderator"), db=None)).user_id == me
+        with pytest.raises(HTTPException) as e:
+            await dep(session_id=sid, user=user(other, "moderator"), db=None)
+        assert e.value.status_code == 403
+        assert (await dep(session_id=sid, user=user(other, "admin"), db=None)).user_id == other
+        with pytest.raises(HTTPException):
+            await dep(session_id=sid, user=user(other, "lead_developer"), db=None)  # writes: no lead bypass
+        reads = sa.require_session_owner("moderator", "lead_developer", "admin", leads_read=True)
+        assert (await reads(session_id=sid, user=user(other, "lead_developer"), db=None)).user_id == other
+    with patch.object(sa, "session_owner_of", await owned_by(None)):
+        with pytest.raises(HTTPException) as e:
+            await dep(session_id=sid, user=user(me, "moderator"), db=None)
+        assert e.value.status_code == 404
+
+
+def test_role_gated_session_routes_check_ownership():
+    """Every role-gated route under a session (cubes 2-9) goes through require_session_owner."""
+    bad = []
+    for p in sorted((APP / "cubes").glob("cube[2-9]_*/router.py")):
+        src = p.read_text()
+        tree = ast.parse(src)
+        prefixed = 'prefix="/sessions/{session_id}' in src
+        for f in tree.body:
+            if not isinstance(f, ast.AsyncFunctionDef):
+                continue
+            deco = " ".join(ast.get_source_segment(src, d) or "" for d in f.decorator_list)
+            if "router." not in deco:
+                continue
+            under_session = prefixed or "{session_id}" in deco
+            sig = ast.get_source_segment(src, f).split('"""')[0]
+            if under_session and "require_role(" in sig:
+                bad.append(f"{p.parent.name}.{f.name}")
+    assert not bad, "role-only (no ownership) session routes: " + ", ".join(bad)
+
+
+# 12 · auth fails closed in production
+@pytest.mark.asyncio
+async def test_unconfigured_auth_is_refused_in_production():
+    from fastapi import HTTPException
+
+    from app.core import auth
+
+    with patch.object(auth.settings, "environment", "production"):
+        with pytest.raises(HTTPException) as e:
+            auth._dev_user_or_refuse()
+        assert e.value.status_code == 503
+    with patch.object(auth.settings, "environment", "development"):
+        assert auth._dev_user_or_refuse().role == "moderator"
+
+
+# 13 · roles: exact match, "lead" is "lead_developer"
+@pytest.mark.asyncio
+async def test_require_role_is_exact_and_knows_lead():
+    from fastapi import HTTPException
+
+    from app.core.auth import CurrentUser
+    from app.core.permissions import require_role
+
+    chk = require_role("moderator", "lead")
+    u = lambda r: CurrentUser(user_id="x", email=None, role=r, permissions=[])  # noqa: E731
+    assert (await chk(current_user=u("lead_developer"))).role == "lead_developer"
+    assert (await chk(current_user=u("admin"))).role == "admin"
+    for r in ("sysadmin_readonly", "nonadmin", "user"):
+        with pytest.raises(HTTPException):
+            await chk(current_user=u(r))
+
+
+# 14 · the rate-limit key cannot be chosen by the client
+def test_rate_limit_key_ignores_x_forwarded_for():
+    from types import SimpleNamespace
+
+    from app.core import rate_limit
+
+    req = SimpleNamespace(headers={"X-Forwarded-For": "1.2.3.4"}, client=SimpleNamespace(host="9.9.9.9"))
+    with patch.object(rate_limit.settings, "behind_cloudflare", False):
+        assert rate_limit.get_real_client_ip(req) == "9.9.9.9"
+    req2 = SimpleNamespace(headers={"CF-Connecting-IP": "5.6.7.8", "X-Forwarded-For": "1.2.3.4"},
+                           client=SimpleNamespace(host="9.9.9.9"))
+    with patch.object(rate_limit.settings, "behind_cloudflare", True):
+        assert rate_limit.get_real_client_ip(req2) == "5.6.7.8"
+
+
+# 15 · webhook targets: public HTTPS only, by address
+@pytest.mark.asyncio
+async def test_webhook_ssrf_guard_checks_addresses():
+    from app.cubes.cube5_gateway.webhook_service import WebhookTargetError, validate_webhook_url
+
+    for url in ["http://93.184.216.34/x", "https://127.0.0.1/x", "https://172.16.0.5/x", "https://100.64.0.1/x",
+                "https://[fd00::1]/x", "https://[fe80::1]/x", "https://[::ffff:10.0.0.1]/x", "https://169.254.169.254/x",
+                "https://0.0.0.0/x", "https://2130706433/x"]:
+        with pytest.raises(WebhookTargetError):
+            await validate_webhook_url(url)
+    await validate_webhook_url("https://93.184.216.34/hook")  # a public literal passes
+    src = (APP / "cubes/cube5_gateway/webhook_service.py").read_text()
+    assert "await validate_webhook_url(sub.url)" in src, "re-checked at every delivery"
+
+
+# 16 · money-spending anonymous routes are bounded
+def test_anonymous_spend_routes_are_bounded():
+    from app.cubes.cube8_tokens import router as r8
+
+    with patch.object(r8.settings, "frontend_url", "https://site.example"):
+        assert r8._own_site("https://site.example/thanks") and r8._own_site("")
+        assert not r8._own_site("https://evil.example/phish")
+    for path, marker in [("cubes/cube8_tokens/router.py", '@limiter.limit("10/minute")'),
+                         ("cubes/cube6_ai/pod_router.py", '@limiter.limit("6/minute")'),
+                         ("cubes/cube10_simulation/router.py", '@limiter.limit("5/minute")')]:
+        assert marker in (APP / path).read_text(), path
+
+
+# 17 · 1M readiness: the anti-sybil burst rule
+@pytest.mark.asyncio
+async def test_burst_rule_spares_honest_traffic_and_catches_a_swarm():
+    import itertools
+    import random
+    from datetime import datetime, timedelta, timezone
+    from types import SimpleNamespace
+
+    from app.cubes.cube7_ranking.ranking_governance import detect_voting_anomalies
+
+    rng = random.Random(2525)
+    t0 = datetime(2026, 10, 7, tzinfo=timezone.utc)
+    themes = [str(uuid.UUID(int=i)) for i in range(9)]
+    popular = [list(p) for p in itertools.islice(itertools.permutations(themes), 20)]  # people agree a lot
+    honest = [SimpleNamespace(participant_id=uuid.uuid4(), ranked_theme_ids=rng.choice(popular),
+                              submitted_at=t0 + timedelta(seconds=i / 3000)) for i in range(6000)]
+    swarm_order = list(reversed(themes))
+    swarm = [SimpleNamespace(participant_id=uuid.uuid4(), ranked_theme_ids=swarm_order,
+                             submitted_at=t0 + timedelta(seconds=10 + i / 5000)) for i in range(5000)]
+
+    def db_with(rows):
+        res = MagicMock()
+        res.scalars.return_value.all.return_value = sorted(rows, key=lambda r: r.submitted_at)
+        db = AsyncMock()
+        db.execute.return_value = res
+        return db
+
+    flagged = await detect_voting_anomalies(db_with(honest), uuid.uuid4())
+    assert [a for a in flagged if a["type"] == "identical_ranking_burst"] == [], "honest 3,000 votes/s are not a burst"
+    flagged = await detect_voting_anomalies(db_with(honest + swarm), uuid.uuid4())
+    bursts = [a for a in flagged if a["type"] == "identical_ranking_burst"]
+    caught = sum(len(a["participant_ids"]) for a in bursts)
+    assert caught == 5000, f"the whole swarm is flagged, not its first three (caught {caught})"
+
+
+# 18 · 1M readiness: hot-path costs
+def test_vote_path_does_not_count_or_broadcast_per_ballot():
+    src = (APP / "cubes/cube7_ranking/ranking_submission.py").read_text()
+    body = src[src.index("async def submit_user_ranking"):src.index("PROGRESS_INTERVAL_S")]
+    assert "_schedule_progress(" in body and "await _broadcast_ranking_progress(" not in body
+    gov = (APP / "cubes/cube7_ranking/ranking_governance.py").read_text()
+    assert "broadcast_to_all_shards" not in gov, "ranking_complete goes on the topic clients join"
+    pres = (APP / "cubes/cube1_session/router.py").read_text()
+    assert "participants=[]" in pres and "get_active_count" in pres, "presence is count-only"

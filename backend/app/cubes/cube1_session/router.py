@@ -26,7 +26,7 @@ import logging
 import re
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
@@ -153,8 +153,8 @@ async def _transition_and_return(
 async def list_sessions(
     status: str | None = None,
     include_archived: bool = False,
-    limit: int = 50,
-    offset: int = 0,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
@@ -449,9 +449,16 @@ async def list_participants(
 async def get_presence(
     session_id: uuid.UUID,
 ):
-    """Live participant count from in-memory presence tracking."""
-    data = await mem_presence.get_presence(session_id)
-    return SessionPresence(**data)
+    """Live participant count (O(1), anonymous-safe).
+
+    The list of who is present is never sent here: at 1M participants it was a 105 MB body
+    per poll, and it named every participant to anyone who asked.
+    """
+    return SessionPresence(
+        session_id=session_id,
+        active_count=mem_presence.get_active_count(session_id),
+        participants=[],
+    )
 
 
 # ---------------------------------------------------------------------------

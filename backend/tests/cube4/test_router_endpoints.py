@@ -378,13 +378,28 @@ class TestConfirmOutcome:
         mock_result = {"outcome_id": str(OID), "confirmed_by": str(pid)}
         with (
             patch(VALIDATE, new_callable=AsyncMock),
-            patch(f"{RTR}.record_confirmation", new_callable=AsyncMock, return_value=mock_result),
+            patch(f"{RTR}.record_confirmation", new_callable=AsyncMock, return_value=mock_result) as rec,
+            patch(f"{RTR}.resolve_participant_id", new_callable=AsyncMock, return_value=pid),
         ):
             resp = await client.post(
                 f"{PREFIX}/desired-outcome/{OID}/confirm",
                 json={"participant_id": str(pid)},
             )
         assert resp.status_code == 200
+        assert rec.await_args.args[3] == pid  # the caller's own row, resolved server-side
+
+    @pytest.mark.asyncio
+    async def test_confirming_for_someone_else_is_403(self, client):
+        """The confirmer is the caller: another participant's id in the body is refused."""
+        with (
+            patch(VALIDATE, new_callable=AsyncMock),
+            patch(f"{RTR}.resolve_participant_id", new_callable=AsyncMock, return_value=uuid.uuid4()),
+        ):
+            resp = await client.post(
+                f"{PREFIX}/desired-outcome/{OID}/confirm",
+                json={"participant_id": str(uuid.uuid4())},
+            )
+        assert resp.status_code == 403
 
     @pytest.mark.asyncio
     async def test_invalid_participant_uuid_returns_422(self, client):
@@ -397,13 +412,19 @@ class TestConfirmOutcome:
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
-    async def test_missing_participant_id_returns_422(self, client):
-        with patch(VALIDATE, new_callable=AsyncMock):
+    async def test_missing_participant_id_uses_the_caller(self, client):
+        """participant_id is optional now: the server resolves the caller's own row."""
+        pid = uuid.uuid4()
+        with (
+            patch(VALIDATE, new_callable=AsyncMock),
+            patch(f"{RTR}.record_confirmation", new_callable=AsyncMock, return_value={}),
+            patch(f"{RTR}.resolve_participant_id", new_callable=AsyncMock, return_value=pid),
+        ):
             resp = await client.post(
                 f"{PREFIX}/desired-outcome/{OID}/confirm",
                 json={},
             )
-        assert resp.status_code == 422
+        assert resp.status_code == 200
 
 
 # ---------------------------------------------------------------------------

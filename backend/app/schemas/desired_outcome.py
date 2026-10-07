@@ -35,7 +35,7 @@ class DesiredOutcomeRead(BaseModel):
 
 class ConfirmationRequest(BaseModel):
     """Participant confirms the desired outcome."""
-    participant_id: uuid.UUID
+    participant_id: uuid.UUID | None = None  # ignored: the confirmer is the caller
 
 
 VALID_OUTCOME_STATUSES = ("achieved", "partially_achieved", "not_achieved")

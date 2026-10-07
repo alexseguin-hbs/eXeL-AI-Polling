@@ -12,6 +12,25 @@ from app.core.dependencies import get_db
 
 _dev_mode = not settings.auth0_domain
 
+
+def _dev_user_or_refuse() -> "CurrentUser":
+    """Dev mode (no Auth0 configured) hands out a mock moderator — never in production.
+
+    An unset AUTH0_DOMAIN in production used to make EVERY request a moderator; now it is
+    a 503 so a misconfigured deploy fails closed instead of open.
+    """
+    if settings.environment == "production":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication is not configured",
+        )
+    return CurrentUser(
+        user_id="dev-moderator-001",
+        email="dev@exel-ai.com",
+        role="moderator",
+        permissions=["create:sessions", "manage:sessions"],
+    )
+
 # CRS-31: Admin panel — RBAC roles: moderator, user, lead_developer, admin
 # In dev mode (no Auth0 configured), don't require Authorization header
 security = HTTPBearer(auto_error=not _dev_mode)
@@ -101,12 +120,7 @@ async def get_current_user(
     authenticated endpoints work without Auth0.
     """
     if _dev_mode:
-        return CurrentUser(
-            user_id="dev-moderator-001",
-            email="dev@exel-ai.com",
-            role="moderator",
-            permissions=["create:sessions", "manage:sessions"],
-        )
+        return _dev_user_or_refuse()
     if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -145,10 +159,7 @@ async def resolve_principal(token: str | None, db) -> CurrentUser:
     (no Auth0) returns a mock moderator, matching get_current_user.
     """
     if _dev_mode:
-        return CurrentUser(
-            user_id="dev-moderator-001", email="dev@exel-ai.com",
-            role="moderator", permissions=["create:sessions", "manage:sessions"],
-        )
+        return _dev_user_or_refuse()
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing authorization token",

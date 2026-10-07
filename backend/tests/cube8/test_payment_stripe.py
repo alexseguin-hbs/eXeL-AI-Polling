@@ -841,7 +841,7 @@ class TestRouterEndpoints:
         """Thor: GET /payments requires moderator or admin."""
         from app.cubes.cube8_tokens import router as r
         src = inspect.getsource(r.get_payment_status)
-        assert "require_role" in src
+        assert "require_role" in src or "require_session_owner" in src
 
     def test_cost_estimate_public(self):
         """Sofia: Cost estimate is public (no auth) for UX display."""

@@ -609,3 +609,30 @@ def make_token_ledger(
     tl.reference_id = None
     tl.created_at = datetime.now(timezone.utc)
     return tl
+
+
+class _AnyOwner:
+    """The mock DB holds no sessions, so unit tests that are not ABOUT ownership treat the
+    caller as the session's owner. tests/test_api_contract_gates.py opts out (real_ownership)
+    and proves 403 for another moderator and 404 for a missing session."""
+
+    def __eq__(self, other):
+        return True
+
+    def __ne__(self, other):
+        return False
+
+
+@pytest.fixture(autouse=True)
+def _session_owner_is_caller(request):
+    if request.node.get_closest_marker("real_ownership"):
+        yield
+        return
+    async def _owner(db, session_id):
+        return _AnyOwner()
+    with patch("app.core.session_access.session_owner_of", _owner):
+        yield
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "real_ownership: run the real session-ownership check")

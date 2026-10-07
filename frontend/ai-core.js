@@ -1,3 +1,4 @@
+import { overLimit } from "./edge-rate.js";
 /**
  * ai-core.js — /api/ai — the AI helpers behind Sign Doc and Create Doc (operator 2026-09-08 01:25: "AI APIs for where
  * to place signature and create doc — Gemini, OpenAI, Grok"). Three adapters, one shape:
@@ -72,7 +73,11 @@ export async function handleAi(request, env) {
   if (request.method === "GET") return json({ configured: configured(env) });
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
   const origin = request.headers.get("Origin"); if (!origin || origin !== url.origin) return json({ error: "Origin not allowed" }, 403);
-  let body; try { body = await request.json(); } catch { return json({ error: "Bad JSON" }, 400); }
+  // The Origin header is set by browsers but not by scripts, so it is not a gate on its own: the paid
+  // provider keys are also behind a per-client limit.
+  if (await overLimit(request, "ai", 12)) return json({ error: "Too many requests, wait a minute" }, 429);
+  const raw = await request.text(); if (raw.length > 6_500_000) return json({ error: "Request too large" }, 413);
+  let body; try { body = JSON.parse(raw); } catch { return json({ error: "Bad JSON" }, 400); }
   const provider = pick(env, body.provider); if (!provider) return json({ configured: false, providers: configured(env) }, 200);
   const task = body.task;
   try {
@@ -99,6 +104,7 @@ export async function handleAi(request, env) {
     if (task === "podsum") {
       const facts = body.facts && typeof body.facts === "object" ? body.facts : null;
       if (!facts) return json({ error: "facts required" }, 400);
+      if (JSON.stringify(facts).length > 20000) return json({ error: "facts too large" }, 413);
       const { model, text } = await call(provider, "podsum", env, { text: podsumPrompt(facts, String(body.lang || "English").slice(0, 40)) });
       const p = parseJson(text);
       const paragraphs = Array.isArray(p.paragraphs) ? p.paragraphs.map((x) => String(x || "").trim()).filter(Boolean) : [];

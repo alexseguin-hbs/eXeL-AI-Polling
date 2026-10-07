@@ -468,7 +468,7 @@ async def record_confirmation(
         select(DesiredOutcome).where(
             DesiredOutcome.id == outcome_id,
             DesiredOutcome.session_id == session_id,
-        )
+        ).with_for_update()  # two confirmations at once both append; neither overwrites the other
     )
     outcome = result.scalar_one_or_none()
     if outcome is None:

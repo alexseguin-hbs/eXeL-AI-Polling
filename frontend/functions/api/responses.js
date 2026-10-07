@@ -91,7 +91,15 @@ export async function onRequest(context) {
     const code = (body.short_code || "").toUpperCase();
     const text = (body.text || "").trim();
     if (!code) return json({ error: "Missing short_code" }, 400);
+    if (!/^[A-Z0-9]{4,16}$/.test(code)) return json({ error: "Bad short_code" }, 400);
     if (!text) return json({ error: "Missing text" }, 400);
+    // Bounded: one oversized entry used to push the session's single blob past the store's value
+    // limit, so every later submission for that session failed.
+    const MAX_TEXT = 3333, MAX_SUMMARY = 3333;
+    if (text.length > MAX_TEXT) return json({ error: "Response too long" }, 413);
+    for (const k of ["summary_333", "summary_111", "summary_33"]) {
+      if (body[k] != null && String(body[k]).length > MAX_SUMMARY) return json({ error: "Summary too long" }, 413);
+    }
 
     const entry = {
       id: crypto.randomUUID(),

@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_optional_current_user
+from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
 from app.core.permissions import require_role
 from app.cubes.cube6_ai import service
@@ -27,7 +28,7 @@ async def run_ai_theming(
     payload: PipelineRunRequest | None = None,
     provider: str = "openai",
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
     """CRS-09: Trigger full AI theme pipeline (marble sampling → reduction → assignment).
 
@@ -53,7 +54,7 @@ async def run_ai_theming(
 async def get_ai_status(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", "lead", leads_read=True)),
 ):
     """Task B5: Pipeline status — stage, error info, theme count.
 
@@ -69,7 +70,7 @@ async def run_cqs_scoring(
     top_theme2_label: str,
     theme_level: str = "3",
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
     """CRS-11: Run CQS scoring on #1 most-voted Theme2 cluster.
 
@@ -125,7 +126,7 @@ async def generate_theme_summaries(
     session_id: uuid.UUID,
     theme_level: str = "theme2_3",
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
     """Generate 333→111→33 word theme-level summaries.
 
@@ -163,7 +164,7 @@ async def generate_theme_summaries(
 async def get_ai_metrics(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", "lead", leads_read=True)),
 ):
     """Cube 6 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 2/3/7/8.
 
@@ -179,7 +180,7 @@ async def get_ai_metrics(
 async def verify_ai_replay(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", "lead", leads_read=True)),
 ):
     """Cube 6 replay-anchor verification (R-Core parity with Cube 1 verify-determinism).
 

@@ -14,5 +14,5 @@ def test_metrics_endpoint_is_rbac_gated():
     from app.cubes.cube7_ranking import router as r
 
     src = inspect.getsource(r.get_ranking_metrics)
-    assert "require_role" in src
+    assert "require_role" in src or "require_session_owner" in src
     assert "get_all_metrics" in src

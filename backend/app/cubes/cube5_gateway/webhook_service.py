@@ -36,6 +36,44 @@ logger = logging.getLogger("cube5.webhooks")
 COST_PER_DELIVERY = 0.99  # ◬ tokens
 
 
+class WebhookTargetError(ValueError):
+    """The webhook URL is not a public HTTPS endpoint."""
+
+
+async def validate_webhook_url(url: str) -> None:
+    """A webhook may only reach a public HTTPS host — checked at register AND at every delivery.
+
+    The old guard compared the hostname to a short string list, so 172.16/12, 100.64/10, IPv6
+    ULA/link-local, IPv4-mapped IPv6, decimal IPs and any DNS name pointing inside all passed,
+    and nothing re-checked at send time (DNS can change after registration). Here every address
+    the name resolves to must be globally routable.
+    """
+    import asyncio
+    import ipaddress
+    from urllib.parse import urlparse
+
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        raise WebhookTargetError("Webhook URL must use HTTPS")
+    host = parsed.hostname
+    if not host:
+        raise WebhookTargetError("Webhook URL must have a valid hostname")
+    try:
+        infos = await asyncio.get_running_loop().getaddrinfo(host, parsed.port or 443)
+    except OSError:
+        raise WebhookTargetError("Webhook host does not resolve")
+    addrs = {info[4][0] for info in infos}
+    if not addrs:
+        raise WebhookTargetError("Webhook host does not resolve")
+    for raw in addrs:
+        ip = ipaddress.ip_address(raw.split("%", 1)[0])
+        mapped = getattr(ip, "ipv4_mapped", None)
+        if mapped is not None:
+            ip = mapped
+        if not ip.is_global or ip.is_multicast:
+            raise WebhookTargetError("Webhook URL must not target internal/loopback addresses")
+
+
 def generate_webhook_secret() -> str:
     """Generate a 32-byte hex secret for HMAC signing."""
     return secrets.token_hex(32)
@@ -113,23 +151,20 @@ async def deliver_event(
     )
     subscriptions = list(result.scalars().all())
 
-    deliveries = []
-    for sub in subscriptions:
-        # Check if subscription listens to this event type
-        sub_events = sub.event_types.split(",")
-        if event_type not in sub_events:
-            continue
+    import asyncio
 
+    import httpx
+
+    pending = []
+    for sub in subscriptions:
+        if event_type not in sub.event_types.split(","):
+            continue
         payload_json = json.dumps({
             "event": event_type,
             "session_id": str(session_id),
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "data": payload,
         })
-
-        signature = sign_payload(payload_json, sub.secret)
-
-        # Record delivery attempt
         delivery = WebhookDelivery(
             subscription_id=sub.id,
             event_type=event_type,
@@ -138,37 +173,39 @@ async def deliver_event(
             attempt_count=1,
         )
         db.add(delivery)
+        pending.append((sub, payload_json, sign_payload(payload_json, sub.secret), delivery))
 
-        # Attempt HTTP delivery
-        status_code = None
-        response_body = None
+    async def _send(client, sub, payload_json, signature):
         try:
-            import httpx
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.post(
-                    sub.url,
-                    content=payload_json,
-                    headers={
-                        "Content-Type": "application/json",
-                        "X-Webhook-Signature": f"sha256={signature}",
-                        "X-Webhook-Event": event_type,
-                        "X-Webhook-Session": str(session_id),
-                    },
-                )
-                status_code = resp.status_code
-                response_body = resp.text[:500]
-        except Exception as e:
-            status_code = 0
-            response_body = str(e)[:500]
+            await validate_webhook_url(sub.url)  # DNS may have moved since registration
+            resp = await client.post(
+                sub.url,
+                content=payload_json,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Webhook-Signature": f"sha256={signature}",
+                    "X-Webhook-Event": event_type,
+                    "X-Webhook-Session": str(session_id),
+                },
+            )
+            return resp.status_code, resp.text[:500]
+        except Exception as e:  # noqa: BLE001 — a subscriber's failure is recorded, never raised
             logger.warning(
                 "cube5.webhook.delivery_failed",
                 extra={"sub_id": str(sub.id), "error": str(e)[:200]},
             )
+            return 0, str(e)[:500]
 
-        # Update delivery record
+    results = []
+    if pending:
+        # One client, every subscriber at once: a slow endpoint no longer stalls the others.
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=False) as client:
+            results = await asyncio.gather(*(_send(client, s_, pj, sig) for s_, pj, sig, _ in pending))
+
+    deliveries = []
+    for (sub, _pj, _sig, delivery), (status_code, response_body) in zip(pending, results):
         delivery.status_code = status_code
         delivery.response_body = response_body
-
         if status_code and 200 <= status_code < 300:
             delivery.status = "delivered"
             sub.last_delivery_at = datetime.now(timezone.utc)
@@ -177,15 +214,12 @@ async def deliver_event(
             delivery.status = "failed"
             sub.failure_count += 1
             sub.last_failure_at = datetime.now(timezone.utc)
-
-            # Deactivate after max failures
             if sub.failure_count >= sub.max_failures:
                 sub.is_active = False
                 logger.warning(
                     "cube5.webhook.deactivated",
                     extra={"sub_id": str(sub.id), "failures": sub.failure_count},
                 )
-
         deliveries.append({
             "subscription_id": str(sub.id),
             "url": sub.url,
@@ -266,12 +300,18 @@ async def list_webhooks(
 async def delete_webhook(
     db: AsyncSession,
     subscription_id: uuid.UUID,
+    user=None,
 ) -> bool:
-    """Deactivate a webhook subscription."""
+    """Deactivate a webhook subscription — only its session's owner (or an admin) may."""
     result = await db.execute(
         select(WebhookSubscription).where(WebhookSubscription.id == subscription_id)
     )
     sub = result.scalar_one_or_none()
+    if sub and user is not None and getattr(user, "role", "") != "admin":
+        from app.core.session_access import session_owner_of
+
+        if await session_owner_of(db, sub.session_id) != user.user_id:
+            return False  # indistinguishable from "not found": never confirms another tenant's id
     if sub:
         sub.is_active = False
         await db.commit()

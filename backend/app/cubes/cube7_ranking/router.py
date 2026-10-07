@@ -39,6 +39,7 @@ async def _resolve_cycle(db: AsyncSession, session_id: uuid.UUID, cycle_id: int 
 
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
+from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
 from app.core.permissions import require_role
 from app.cubes.cube7_ranking import service
@@ -160,7 +161,7 @@ async def trigger_aggregation(
     seed: str | None = None,
     ranking_method: str = Query("borda_count", description="Ranking algorithm: 'borda_count' or 'quadratic_borda'"),
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
     """CRS-12: Moderator triggers deterministic ranking aggregation.
 
@@ -206,7 +207,7 @@ async def get_anomalies(
     session_id: uuid.UUID,
     cycle_id: int = 1,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", "lead", leads_read=True)),
 ):
     """CRS-12.04: Check for voting anomalies (moderator/lead only)."""
     anomalies = await service.detect_voting_anomalies(db, session_id, cycle_id)
@@ -217,7 +218,7 @@ async def get_anomalies(
 async def get_ranking_metrics(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", "lead", leads_read=True)),
 ):
     """Q4: Cube 7 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 1/2/3.
 
@@ -236,7 +237,7 @@ async def get_ranking_readiness(
     cycle_id: int = 1,
     simulation_passed: bool = False,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", "lead", leads_read=True)),
 ):
     """Q3: Cube 7 R-Core readiness profile — the qualification gateway's answer object.
 
@@ -263,7 +264,7 @@ async def get_scale_info(
     session_id: uuid.UUID,
     cycle_id: int = 1,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """Scale engine info: voter count, recommended path, shard count."""
     from app.cubes.cube7_ranking.scale_engine import AutoThemingBudget
@@ -294,7 +295,7 @@ async def get_emerging(
     cycle_id: int = 1,
     theme_level: str = Query("3", description="Theme level: '3', '6', or '9'"),
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """CRS-16.01: Emerging ranking patterns (moderator live view)."""
     # WireGuard: whitelist theme_level
@@ -351,7 +352,7 @@ async def get_progress(
     session_id: uuid.UUID,
     cycle_id: int | None = None,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
 ):
     """CRS-16: Get ranking submission progress (moderator only). Defaults to the open cycle."""
     cycle_id = await _resolve_cycle(db, session_id, cycle_id)
@@ -368,7 +369,7 @@ async def override_ranking(
     session_id: uuid.UUID,
     payload: GovernanceOverrideSubmit,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("lead", "admin")),
+    user: CurrentUser = Depends(require_session_owner("lead", "admin")),
 ):
     """CRS-22: Lead/Developer overrides rankings with justification.
 
@@ -406,7 +407,7 @@ async def get_overrides(
     session_id: uuid.UUID,
     cycle_id: int = 1,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", "lead", leads_read=True)),
 ):
     """CRS-22: Get governance override audit trail."""
     overrides = await service.get_governance_overrides(db, session_id, cycle_id)

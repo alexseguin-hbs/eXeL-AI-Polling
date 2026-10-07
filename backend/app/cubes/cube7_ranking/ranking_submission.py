@@ -161,9 +161,11 @@ async def submit_user_ranking(
         await db.flush()
         await db.refresh(ranking)
 
-    # 4. Broadcast submission progress (CRS-16: live ranking updates)
+    # 4. Broadcast submission progress (CRS-16: live ranking updates) — at most once per second
+    # per session, off the request path. Counting every ballot and broadcasting on every vote was
+    # O(N) per submit and N² deliveries (1M votes → 10¹² messages).
     if session_short_code:
-        await _broadcast_ranking_progress(db, session_id, session_short_code, cycle_id)
+        _schedule_progress(session_id, session_short_code, cycle_id)
 
     logger.info(
         "cube7.ranking.submitted",
@@ -174,6 +176,42 @@ async def submit_user_ranking(
         },
     )
     return ranking
+
+
+PROGRESS_INTERVAL_S = 1.0
+_progress_due: dict[tuple, float] = {}   # (session, cycle) → monotonic time the next send is allowed
+_progress_tasks: set = set()
+
+
+def _schedule_progress(session_id: uuid.UUID, short_code: str, cycle_id: int) -> None:
+    """Coalesce: the first vote in a window schedules one send at the window's end."""
+    import asyncio
+    import time
+
+    key = (session_id, cycle_id)
+    now = time.monotonic()
+    due = _progress_due.get(key)
+    if due is not None and due > now:
+        return  # a send is already scheduled for this window; it will count this ballot too
+    _progress_due[key] = now + PROGRESS_INTERVAL_S
+
+    async def _send():
+        await asyncio.sleep(PROGRESS_INTERVAL_S)
+        try:
+            from app.db.postgres import async_session_factory
+
+            async with async_session_factory() as bg_db:
+                await _broadcast_ranking_progress(bg_db, session_id, short_code, cycle_id)
+        except Exception as exc:  # noqa: BLE001 — progress is best-effort
+            logger.debug("cube7.ranking_progress.failed", extra={"error": str(exc)})
+
+    try:
+        task = asyncio.get_running_loop().create_task(_send())
+    except RuntimeError:
+        _progress_due.pop(key, None)
+        return
+    _progress_tasks.add(task)
+    task.add_done_callback(_progress_tasks.discard)
 
 
 async def _broadcast_ranking_progress(
