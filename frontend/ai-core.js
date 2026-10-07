@@ -13,7 +13,7 @@
 const json = (o, status = 200, extra = {}) => new Response(JSON.stringify(o), { status, headers: { "content-type": "application/json", ...extra } });
 const MODELS = {
   openai: { place: "gpt-4o-mini", draft: "gpt-4o-mini", podsum: "gpt-4o-mini" },
-  gemini: { place: "gemini-1.5-flash", draft: "gemini-1.5-flash", podsum: "gemini-1.5-flash" },
+  gemini: { place: "gemini-3.5-flash-lite", draft: "gemini-3.5-flash-lite", podsum: "gemini-3.5-flash-lite" },
   grok: { place: "grok-2-vision-1212", draft: "grok-2-latest", podsum: "grok-2-latest" },
   claude: { place: "claude-opus-5", draft: "claude-opus-5", podsum: "claude-opus-5" },   // Anthropic Messages API (ANTHROPIC_API_KEY); operator 2026-09-09: "Grok, OpenAI, or Claude API"
 };
