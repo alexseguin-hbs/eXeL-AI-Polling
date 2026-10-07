@@ -7,7 +7,8 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
-import { IMAGE_INTAKE, VIDEO_INTAKE, pictureStem, pngSet, videoSourceName, type VideoSource } from "@/lib/sensor-fusion/frames";
+import { IMAGE_INTAKE, VIDEO_INTAKE, pictureStem, pngSet, type VideoSource } from "@/lib/sensor-fusion/frames";
+import { placeSignature } from "@/lib/light-codex";
 import { crossReview, emptyClock, finalSubmission, level1Left, levelMetrics, nextFor, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
 import { supabase } from "@/lib/supabase";
 import {
@@ -237,6 +238,20 @@ const INFO_NOTES: Record<string, { text: string; side: "left" | "right" }> = {
 type Shot = { id: string; url: string; name?: string; source?: "sensor" | "device" | "video" | VideoSource; original?: string };
 type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number; level: 1 | 2; by?: string; reviewer?: string; at?: string; reviewedAt?: string };
 type Edge = "l" | "r" | "t" | "b";
+
+function shownCodex(fileName: string, list: Mark[]) {
+  const labeled = list.find((item) => item.by && item.at);
+  const reviewed = [...list].reverse().find((item) => item.level === 2 && item.reviewer && item.reviewedAt && item.by && item.at);
+  try {
+    if (labeled?.by && labeled.at && reviewed?.reviewer && reviewed.reviewedAt) {
+      return codexLine({ file: fileName, level: 2, who: reviewed.reviewer, when: reviewed.reviewedAt, l1: { who: labeled.by, when: labeled.at } });
+    }
+    if (labeled?.by && labeled.at) return codexLine({ file: fileName, level: 1, who: labeled.by, when: labeled.at });
+  } catch {
+    return "";
+  }
+  return "";
+}
 
 function pictureName(shot: Shot) {
   return shot.name || `${shot.id}.png`;
@@ -768,15 +783,26 @@ function Labeler({
     return saveXmlFile(fileName, vocXml(fileName, width, height, list));
   }
 
-  async function ensurePng(fileName: string, level: 1 | 2) {
+  async function ensurePng(fileName: string, level: 1 | 2, list: Mark[]) {
     const named = level === 2 ? pngSet(fileName).level2 : pngSet(fileName).level1;
-    if (!pic || fileName === named) return named;
+    if (!pic) return named;
     const image = imgRef.current;
-    if (!image?.naturalWidth || !image.naturalHeight) return fileName;
+    if (!image?.naturalWidth || !image.naturalHeight) return fileName === named ? named : fileName;
     const canvas = document.createElement("canvas");
     canvas.width = image.naturalWidth;
     canvas.height = image.naturalHeight;
-    canvas.getContext("2d")?.drawImage(image, 0, 0);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return fileName;
+    ctx.drawImage(image, 0, 0);
+    const line = shownCodex(named, list);
+    if (line && canvas.width >= line.length * 4 && canvas.height >= 2) {
+      try {
+        const signed = placeSignature(ctx.getImageData(0, 0, canvas.width, canvas.height), line, 1, "3");
+        ctx.putImageData(signed, 0, 0);
+      } catch {
+        /* The file name still says the level. */
+      }
+    }
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((item) => resolve(item), "image/png"));
     if (!blob) return fileName;
     const url = URL.createObjectURL(blob);
@@ -829,7 +855,7 @@ function Labeler({
     setEditing("");
     resetBox();
     setMarks({ ...marks, [pic.id]: list });
-    const fileName = await ensurePng(pictureName(pic), saved.kind === "annotate" ? 1 : 2);
+    const fileName = await ensurePng(pictureName(pic), saved.kind === "annotate" ? 1 : 2, list);
     touchWork(fileName, saved.kind);
     const where = await writePicture(fileName, list);
     if (where) {
@@ -847,7 +873,7 @@ function Labeler({
     }
     const list = (marks[pic.id] || []).map((item) => (item.id === mark.id ? { ...item, ...result.box } : item));
     setMarks({ ...marks, [pic.id]: list });
-    const fileName = await ensurePng(pictureName(pic), 2);
+    const fileName = await ensurePng(pictureName(pic), 2, list);
     touchWork(fileName, "level2");
     const where = await writePicture(fileName, list);
     if (where) setNote(`Level 2 saved. ${fileName}. ${where}`);
@@ -1107,9 +1133,9 @@ function Labeler({
             {workflowLines(clock, Date.now() + Math.min(tick, 0)).map((line) => `${line.member} ${line.seconds}s · ${line.images} images · ${line.adjustments} Level 2 ${line.adjustments === 1 ? "change" : "changes"} · ${siTokens(line.seconds)} S.I.`).join("  ·  ") || "START begins the clock."}
           </p>
         </div>
-        <p className={styles.metrics}>Level 1  {metrics.level1}/{metrics.total} · Level 2  {metrics.level2}/{metrics.total} · You  {metrics.mine1} Level 1 · {metrics.mine2} Level 2</p>
+        <p className={styles.codex}>Light Codex · Level 1  {metrics.level1}/{metrics.total} · Level 2  {metrics.level2}/{metrics.total} · You  {metrics.mine1} Level 1 · {metrics.mine2} Level 2</p>
         <p className={styles.swarm}>{metrics.note}</p>
-        {pic && (pic.source === "thermal" || pic.source === "other") && <p className={styles.swarm}>{videoSourceName(pic.source)} · PNG</p>}
+        {pic && shownCodex(pictureName(pic), marks[pic.id] || []) && <p className={styles.codexLine}>{shownCodex(pictureName(pic), marks[pic.id] || [])}</p>}
         <div className={styles.labelBar}>
           <button type="button" onClick={saveBox} disabled={!pic}>
             SAVE BOX

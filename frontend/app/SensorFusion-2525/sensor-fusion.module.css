@@ -568,6 +568,23 @@
   font-weight: 700;
   line-height: 1.3;
 }
+.codex {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--sf-primary, #0cff00);
+}
+.codexLine {
+  margin: 0 0 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--sf-primary, #0cff00);
+  background: color-mix(in srgb, var(--sf-primary, #0cff00) 18%, transparent);
+}
 .swarm {
   margin: 0 0 6px;
   font-size: 13px;
