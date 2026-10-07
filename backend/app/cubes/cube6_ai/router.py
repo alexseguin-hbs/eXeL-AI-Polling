@@ -113,7 +113,8 @@ async def get_themes(
             status_code=400,
             detail=f"level must be one of: {', '.join(VALID_THEME_LEVELS)}",
         )
-    enriched = await service.get_session_themes_enriched(db, session_id)
+    # The ballot cycle's themes only (a re-opened session keeps earlier cycles' rows — Athena, AsM round 5).
+    enriched = await service.get_session_themes_enriched(db, session_id, ballot_cycle_only=True)
     if category is not None:
         enriched = [e for e in enriched if e["theme01_category"] == category]
     if level is not None:

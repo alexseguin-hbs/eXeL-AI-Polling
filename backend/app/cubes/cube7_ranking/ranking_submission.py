@@ -64,6 +64,12 @@ async def submit_user_ranking(
     """
     level_num = theme2_voting_level.replace("theme2_", "")
 
+    # The ballot is the newest themed cycle at or before this one — the same rows GET /themes serves, never an
+    # earlier cycle's leftovers beside them (Athena, AsM round 5). Evaluated inside the queries below.
+    from app.cubes.cube6_ai.pipeline import ballot_cycle_clause
+
+    in_ballot_cycle = ballot_cycle_clause(session_id, cycle_id)
+
     # 1a. If a category filter is set, resolve the parent-theme allowlist first.
     # Reuses the Cube 6 canonical mapping so ranking + theming stay in lock-step.
     parent_allowlist: set[uuid.UUID] | None = None
@@ -75,6 +81,7 @@ async def submit_user_ranking(
                 and_(
                     Theme.session_id == session_id,
                     Theme.parent_theme_id.is_(None),
+                    in_ballot_cycle,
                 )
             )
         )
@@ -101,6 +108,7 @@ async def submit_user_ranking(
     conditions = [
         Theme.session_id == session_id,
         Theme.parent_theme_id.isnot(None),
+        in_ballot_cycle,
         Theme.cluster_metadata["level"].as_string() == level_num,
         Theme.label != "",  # empty slot label is ""
     ]

@@ -63,7 +63,10 @@ ok(!LIVE_SESSION_WRITE.test(`/sessions/${U(1)}/rankings`) && !LIVE_SESSION_WRITE
 // Round 4: the bridge is really called, in order; the merge never moves status backwards; a re-open reaches a voter.
 const apiSrc = readFileSync(new URL("../lib/api.ts", import.meta.url), "utf8");
 ok(/LIVE_SESSION_WRITE\.test\(path\)[\s\S]{0,200}queueSessionSync\(/.test(apiSrc) && /prev\.then\(\(\) => syncSessionToKV\(/.test(apiSrc), "request() writes /api/sessions after create/transitions, one write at a time per code");
-ok(/statusRank\(st as Session\["status"\]\) > statusRank\(data\.status\)/.test(sv) && /if \(ahead\(kvData\.status\)\)/.test(sv), "the edge copy only moves a loaded status forward");
+ok(/statusAdvances\(\{ status: data\.status, current_cycle: data\.current_cycle \}/.test(sv) && /if \(ahead\(kvData\)\)/.test(sv), "the edge copy only moves a loaded status forward, cycle first");
+// Round 5 (Thor + Christo): against the real backend the edge status never overrides it; in mock mode it is cycle-aware.
+ok((sv.match(/short_code && IS_MOCK_MODE/g) || []).length === 2, "edge-status merges (page load + poll) run only without a backend");
+ok(/edges\.reduce\(\(b, e\) => \(statusAdvances\(b, e\) \? e : b\), here\)/.test(sv) && !/candidates\.reduce\(\(best, s\) => statusRank/.test(sv), "the poll merge is cycle-aware, not rank-only");
 ok(/setBallotDone\(true\)/.test(sv) && !/onComplete=\{\(order\) => \{\s*if \(!simulationMode && order\) setMyRankedOrder\(order\);\s*\/\/[^\n]*\n[^\n]*\n\s*setSession\(\(prev\) => prev \? \{ \.\.\.prev, status: "closed" \}/.test(sv), "a real voter's results keep the session's true status (a re-open still reaches them)");
 ok(/BALLOT_EMPTY_RECHECK_CAP_MS = 5000/.test(bt) && /setAttempt\(0\)/.test(bt), "empty re-checks capped at 5 s; a new session starts the backoff over");
 

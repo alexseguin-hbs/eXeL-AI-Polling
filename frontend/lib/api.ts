@@ -8,6 +8,8 @@ type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 // Set NEXT_PUBLIC_MOCK_MODE=false in .env.local to connect to live backend.
 // Defaults to true (preserves Cloudflare Pages deployment behavior).
 const MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_MODE !== "false";
+/** True when the app runs without a backend (the edge copies are then the only cross-device source). */
+export const IS_MOCK_MODE = MOCK_MODE;
 
 interface RequestOptions {
   body?: unknown;

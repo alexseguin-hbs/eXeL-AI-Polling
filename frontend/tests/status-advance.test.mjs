@@ -9,4 +9,7 @@ ok(statusAdvances({ status: 'ranking', current_cycle: 2 }, { status: 'polling', 
 ok(statusAdvances({ status: 'closed' }, { status: 'polling', current_cycle: 9 }) === false, 'only ranking→polling may go back');
 ok(statusAdvances({ status: 'polling' }, { status: 'polling' }) === false, 'same status is not an advance');
 ok(statusRank('ranking') > statusRank('polling'), 'statusRank unchanged');
+ok(statusAdvances({ status: 'polling', current_cycle: 2 }, { status: 'ranking', current_cycle: 1 }) === false, 'a stale ranking from an earlier cycle never beats the new round (AsM round 5)');
+ok(statusAdvances({ status: 'polling', current_cycle: 2 }, { status: 'closed' }) === false, 'data with no cycle reads as cycle 1 and cannot move cycle 2');
+ok(statusAdvances({ status: 'polling', current_cycle: 2 }, { status: 'ranking', current_cycle: 2 }) === true, 'same cycle, forward status advances');
 console.log(`status-advance: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

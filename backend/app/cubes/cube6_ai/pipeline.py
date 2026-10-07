@@ -378,15 +378,37 @@ async def get_pipeline_status(
 
 
 async def get_session_themes(
-    db: AsyncSession, session_id: uuid.UUID
+    db: AsyncSession, session_id: uuid.UUID, ballot_cycle_only: bool = False
 ) -> list[Theme]:
-    """Return all Theme records for a session."""
-    result = await db.execute(
-        select(Theme)
-        .where(Theme.session_id == session_id)
-        .order_by(Theme.created_at)
-    )
+    """Return a session's Theme records — every cycle, or only the ballot cycle (`ballot_cycle_clause`)."""
+    q = select(Theme).where(Theme.session_id == session_id)
+    if ballot_cycle_only:
+        q = q.where(ballot_cycle_clause(session_id))
+    result = await db.execute(q.order_by(Theme.created_at))
     return list(result.scalars().all())
+
+
+def ballot_cycle_clause(session_id: uuid.UUID, upto_cycle=None):
+    """SQL condition: Theme.cycle_id is the ballot cycle — the newest themed cycle at or before `upto_cycle`
+    (default: the session's current cycle), evaluated inside the same query (no extra round trip).
+
+    Themes are stored per cycle (phase_b `_replace_cycle_themes`) and a re-open keeps the earlier cycle's rows,
+    so reading every cycle would put 18 themes on a 9-theme ballot (Athena, AsM round 5). A re-opened round
+    that has not been re-themed yet votes again on the latest themes it has.
+    """
+    from sqlalchemy.orm import aliased
+
+    from app.models.session import Session
+
+    t2 = aliased(Theme)
+    if upto_cycle is None:
+        upto_cycle = select(Session.current_cycle).where(Session.id == session_id).scalar_subquery()
+    newest = (
+        select(func.max(t2.cycle_id))
+        .where(t2.session_id == session_id, t2.cycle_id <= upto_cycle)
+        .scalar_subquery()
+    )
+    return Theme.cycle_id == newest
 
 
 # Category canonical keys — stable across languages, safe for filters/hashes.
@@ -414,14 +436,14 @@ def _category_key(label: str | None) -> str | None:
 
 
 async def get_session_themes_enriched(
-    db: AsyncSession, session_id: uuid.UUID
+    db: AsyncSession, session_id: uuid.UUID, ballot_cycle_only: bool = False
 ) -> list[dict]:
     """Return session themes with theme01_category + theme_level resolved.
 
     Single batched query for parents avoids N+1. Theme 01 parent rows carry
     their own category (self-lookup) and theme_level=None.
     """
-    themes = await get_session_themes(db, session_id)
+    themes = await get_session_themes(db, session_id, ballot_cycle_only)
     parent_ids = {t.parent_theme_id for t in themes if t.parent_theme_id}
     parent_label_map: dict[uuid.UUID, str] = {}
     if parent_ids:

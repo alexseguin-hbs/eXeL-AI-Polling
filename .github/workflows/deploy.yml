@@ -175,7 +175,7 @@ jobs:
 
       - name: The live-database proofs actually ran (not skipped)
         run: |
-          if grep -E "SKIPPED .*(tests/live_db/|test_sql_tally_parity)" /tmp/backend-pytest.log; then
+          if grep -E "SKIPPED .*(tests/live_db/|test_sql_tally_parity|test_ballot_cycle)" /tmp/backend-pytest.log; then
             echo "::error::a Postgres-backed proof skipped although the service is up"; exit 1
           fi
 

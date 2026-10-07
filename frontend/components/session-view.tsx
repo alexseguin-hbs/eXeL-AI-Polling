@@ -23,7 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Navbar } from "@/components/navbar";
-import { api, ApiClientError } from "@/lib/api";
+import { api, ApiClientError, IS_MOCK_MODE } from "@/lib/api";
 import { fetchSessionFromKV } from "@/lib/mock-data";
 import { fetchStatusFromSupabase } from "@/lib/supabase-session-sync";
 import { toast } from "@/components/ui/use-toast";
@@ -460,7 +460,10 @@ export function SessionView() {
 
         // Cross-device: check KV then Supabase DB for live session status.
         // KV can fail cross-datacenter (CF Cache API is per-PoP); Supabase DB is globally consistent.
-        if (data.short_code) {
+        // Only without a backend: against the real backend its own status is authoritative and reachable from
+        // every device, and the edge record can be claimed by anyone who reaches an unkeyed code first (Thor,
+        // AsM round 5 — backlog HP-32), so it never overrides the backend there.
+        if (data.short_code && IS_MOCK_MODE) {
           const [kvResult, sbResult] = await Promise.allSettled([
             fetchSessionFromKV(data.short_code),
             fetchStatusFromSupabase(data.short_code),
@@ -470,14 +473,20 @@ export function SessionView() {
 
           // The edge copy may only move the status FORWARD of the backend's own (a stale /api/sessions record —
           // a second moderator device, an out-of-order write — must never show an earlier status; round 4).
-          const ahead = (st: unknown) => typeof st === "string" && statusRank(st as Session["status"]) > statusRank(data.status);
+          const ahead = (edge: { status?: unknown; current_cycle?: unknown }) =>
+            typeof edge.status === "string" &&
+            statusAdvances({ status: data.status, current_cycle: data.current_cycle },
+              { status: edge.status, current_cycle: typeof edge.current_cycle === "number" ? edge.current_cycle : null });
           if (kvData && !("error" in kvData) && kvData.status) {
-            if (ahead(kvData.status)) data.status = kvData.status as Session["status"];
+            if (ahead(kvData)) {
+              data.status = kvData.status as Session["status"];
+              if (typeof kvData.current_cycle === "number") data.current_cycle = kvData.current_cycle;
+            }
             if (kvData.ends_at) data.ends_at = kvData.ends_at as string;
             if (kvData.participant_count != null) data.participant_count = kvData.participant_count as number;
           } else if (sbData?.status) {
             // KV miss — use Supabase DB (globally consistent HTTP REST)
-            if (ahead(sbData.status)) data.status = sbData.status as Session["status"];
+            if (ahead(sbData)) data.status = sbData.status as Session["status"];
             if (sbData.participant_count != null) data.participant_count = sbData.participant_count;
           }
           if (data.status === "polling" && !data.opened_at) {
@@ -637,7 +646,7 @@ export function SessionView() {
       if (broadcastHealthy.current) return;
 
       try {
-        if (session?.short_code) {
+        if (session?.short_code && IS_MOCK_MODE) {
           const [kvResult, sbResult] = await Promise.allSettled([
             fetchSessionFromKV(session.short_code),
             fetchStatusFromSupabase(session.short_code),
@@ -645,16 +654,21 @@ export function SessionView() {
           const kvData = kvResult.status === "fulfilled" ? kvResult.value : null;
           const sbData = sbResult.status === "fulfilled" ? sbResult.value : null;
 
-          const kvStatus = kvData && !("error" in kvData) ? kvData.status as string : null;
-          const sbStatus = sbData?.status ?? null;
+          // The most advanced of the edge copies, cycle first (a stale earlier-cycle status never wins — AsM round 5).
+          type Edge = { status: string; current_cycle?: number | null };
+          const edges: Edge[] = [];
+          if (kvData && !("error" in kvData) && typeof kvData.status === "string") {
+            edges.push({ status: kvData.status, current_cycle: typeof kvData.current_cycle === "number" ? kvData.current_cycle : null });
+          }
+          if (sbData?.status) edges.push({ status: sbData.status });
+          const here: Edge = { status: sessionStatus, current_cycle: session?.current_cycle ?? null };
+          const best = edges.reduce((b, e) => (statusAdvances(b, e) ? e : b), here);
 
-          const candidates = [sessionStatus, kvStatus, sbStatus].filter(Boolean) as string[];
-          const bestStatus = candidates.reduce((best, s) => statusRank(s) > statusRank(best) ? s : best, sessionStatus);
-
-          if (bestStatus !== sessionStatus) {
+          if (best !== here) {
             setSession((prev) => prev ? {
               ...prev,
-              status: bestStatus as Session["status"],
+              status: best.status as Session["status"],
+              current_cycle: best.current_cycle ?? prev.current_cycle,
               ends_at: (kvData && !("error" in kvData) ? kvData.ends_at as string : null) || prev.ends_at,
               participant_count: (kvData && !("error" in kvData) ? kvData.participant_count as number : null) ?? sbData?.participant_count ?? prev.participant_count,
               updated_at: new Date().toISOString(),

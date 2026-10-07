@@ -18,7 +18,10 @@ export function statusAdvances(
   prev: { status: string; current_cycle?: number | null },
   next: { status: string; current_cycle?: number | null },
 ): boolean {
-  if (statusRank(next.status) > statusRank(prev.status)) return true;
   const pc = Number(prev.current_cycle) || 1, nc = Number(next.current_cycle) || 1;
+  // An earlier cycle never advances anything — a stale "ranking" from round 1 must not beat round 2's
+  // "polling" (Christo, AsM round 5). Data that carries no cycle reads as cycle 1.
+  if (nc < pc) return false;
+  if (statusRank(next.status) > statusRank(prev.status)) return true;
   return prev.status === "ranking" && next.status === "polling" && nc > pc;
 }

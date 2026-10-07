@@ -32,7 +32,7 @@ const CORS_HEADERS = {
 const PROTECTED_FIELDS = [
   "id", "title", "description", "status", "polling_mode_type", "static_poll_duration_days",
   "ends_at", "timer_display_mode", "anonymity_mode", "theme2_voting_level", "ai_provider",
-  "max_response_length", "question_text",
+  "max_response_length", "question_text", "current_cycle",
 ];
 
 import { overLimit } from "../../edge-rate.js";
@@ -127,6 +127,8 @@ function buildMetadata(body, code, participantCount) {
     ai_provider: body.ai_provider || "openai",
     max_response_length: body.max_response_length || 3333,
     participant_count: participantCount,
+    // The round a status belongs to, so a reader can tell a stale earlier-cycle status from a re-opened round.
+    current_cycle: Number.isInteger(body.current_cycle) && body.current_cycle > 0 ? body.current_cycle : 1,
     question_text: body.question_text || null,
     updated_at: new Date().toISOString(),
   };

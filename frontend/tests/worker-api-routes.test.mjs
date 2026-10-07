@@ -162,6 +162,8 @@ for (const route of [...called].sort()) {
   ok(bump.status === 201 && (await get()).participant_count === 7, `a participant_count increase without the key lands (got ${bump.status})`);
   await post({ short_code: "hp11code", participant_count: 3 });
   ok((await get()).participant_count === 7, "the count never goes down");
+  const cyc = await post({ short_code: "hp11code", current_cycle: 9 });
+  ok(cyc.status === 403, `the round (current_cycle) is a protected field (got ${cyc.status})`);
   await post({ short_code: "hp11code", participant_count: 1e9 });
   ok((await get()).participant_count === 7 + 25, `a keyless rise is capped per request (got ${(await get()).participant_count})`);
 

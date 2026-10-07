@@ -639,6 +639,7 @@ export async function syncSessionToKV(session: Session, mode: "create" | "update
         ai_provider: session.ai_provider,
         max_response_length: session.max_response_length,
         participant_count: session.participant_count,
+        current_cycle: (session as Session & { current_cycle?: number }).current_cycle ?? 1,
         question_text: questionText,
       };
   const headers: Record<string, string> = { "Content-Type": "application/json" };
