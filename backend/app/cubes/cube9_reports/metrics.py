@@ -7,10 +7,16 @@ so the Dev-Sim / qualification gateway can baseline a candidate reporting engine
   User    — unique result-recipients + results-opt-in rate
   Outcome — winner determined, CQS scored, export governance-hash available
 
-Ranking-derived counts (themes, final ranking, winner) read ONE cycle: the one the report reads
-(service._report_cycle — the newest aggregated cycle, else the newest with ballots), the same cycle the CSV
-and analytics read. Reading every cycle reported cycle 1's winner while a re-opened cycle 2 was still being
-voted (Aset, AsM round 9). Responses, participants and CQS stay session-wide.
+Ranking-derived counts read ONE cycle, evaluated inside each query:
+  * final ranking + winner — the report cycle (service._report_cycle: the newest aggregated cycle, else the
+    newest with ballots), the same cycle the CSV's and analytics' ranking reads use (the CSV's theme
+    label map stays session-wide). While a re-opened cycle is being voted
+    and not yet aggregated, that is still the previous, finished cycle: the report speaks about the last
+    result it has, exactly like the CSV (AsM round 9, Aset; stated plainly in round 10, Sofia).
+  * themes available — the report cycle, else (nothing voted yet) the newest themed cycle, so a themed
+    session nobody has ranked reports its themes instead of 0 (AsM round 10: Enlil, Krishna, Enki, Aset,
+    Sofia — round 9 compared Theme.cycle_id with NULL there).
+Responses, participants and CQS stay session-wide.
 
 Computed from ResponseMeta / Theme / AggregatedRanking / CQSScore / Participant. Every
 function is DB-error-guarded (mirrors cube7/8 metrics): a DB error returns a zeroed
@@ -52,7 +58,7 @@ _DEFAULT_OUTCOME = {
 
 
 def _cycle(session_id: uuid.UUID, cycle_id: int | None):
-    """The cycle a count reads: an explicit one, else the report cycle evaluated in the query."""
+    """The cycle a ranking count reads: an explicit one, else the report cycle evaluated in the query."""
     if cycle_id is not None:
         return cycle_id
     from app.cubes.cube9_reports.service import _report_cycle
@@ -60,12 +66,20 @@ def _cycle(session_id: uuid.UUID, cycle_id: int | None):
     return _report_cycle(session_id)
 
 
+def _theme_cycle(session_id: uuid.UUID, cycle_id: int | None):
+    """The cycle the theme count reads: the ranking cycle, else (nothing voted yet) the newest themed cycle."""
+    if cycle_id is not None:
+        return cycle_id
+    newest_theme = select(func.max(Theme.cycle_id)).where(Theme.session_id == session_id).scalar_subquery()
+    return func.coalesce(_cycle(session_id, None), newest_theme)
+
+
 def _pct(n: float, d: float) -> float:
     return round(n / d * 100, 2) if d > 0 else 0.0
 
 
 async def get_system_metrics(db: AsyncSession, session_id: uuid.UUID, cycle_id: int | None = None) -> dict:
-    """System: exportable rows, themes available, final-ranking presence (the report cycle)."""
+    """System: exportable rows, themes available (theme cycle), final-ranking presence (report cycle)."""
     try:
         cyc = _cycle(session_id, cycle_id)
         responses = (await db.execute(
@@ -74,7 +88,7 @@ async def get_system_metrics(db: AsyncSession, session_id: uuid.UUID, cycle_id: 
         )).scalar() or 0
         themes = (await db.execute(
             select(func.count()).select_from(Theme).where(
-                Theme.session_id == session_id, Theme.cycle_id == cyc)
+                Theme.session_id == session_id, Theme.cycle_id == _theme_cycle(session_id, cycle_id))
         )).scalar() or 0
         final = (await db.execute(
             select(func.count()).select_from(AggregatedRanking).where(
@@ -97,11 +111,14 @@ async def get_system_metrics(db: AsyncSession, session_id: uuid.UUID, cycle_id: 
 async def get_user_metrics(db: AsyncSession, session_id: uuid.UUID) -> dict:
     """User: participants + how many opted into results (the report recipients)."""
     try:
-        rows = (await db.execute(
-            select(Participant).where(Participant.session_id == session_id)
-        )).scalars().all()
-        total = len(rows)
-        recipients = sum(1 for p in rows if getattr(p, "results_opt_in", False))
+        # Two counts in SQL, never every Participant row in memory (at 1M that was 1M ORM objects; Sofia, round 10).
+        total, recipients = (await db.execute(
+            select(
+                func.count(),
+                func.count().filter(Participant.results_opt_in.is_(True)),
+            ).select_from(Participant).where(Participant.session_id == session_id)
+        )).one()
+        total, recipients = int(total or 0), int(recipients or 0)
         return {
             "result_recipients": recipients,
             "participants": total,

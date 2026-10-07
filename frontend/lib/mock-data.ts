@@ -40,6 +40,8 @@ interface MockResponse {
   summary_333?: string;
   summary_111?: string;
   summary_33?: string;
+  /** The cycle the answer was given in (absent = 1), as the backend stamps ResponseMeta.cycle_id. */
+  cycle_id?: number;
 }
 
 /** Cube 6 Phase A stub: cascading summarization (333→111→33 words).
@@ -889,6 +891,12 @@ function simThemeKey(sid: string): string {
 /** A re-opened cycle's themes get their own ids, as LIVE gives cycle 2 new UUIDs: the SIM's ids are deterministic
  *  per stance and level, so without the cycle in them a cycle-1 ballot would pass in cycle 2 (Aset, AsM round 9).
  *  Cycle 1 keeps its ids unchanged, so every replay and driver hash of a single round stays identical. */
+/** The current cycle's answers only: a re-opened round is themed from its own answers, as LIVE's phase B reads
+ *  ResponseMeta of the current cycle (Krishna, AsM round 10). */
+function simCycleResponses(sid: string) {
+  const cycle = Number(findSessionById(sid)?.current_cycle) || 1;
+  return (mockResponses[sid] ?? []).filter((r) => (r.cycle_id ?? 1) === cycle).map((r) => ({ id: r.id, raw_text: r.clean_text }));
+}
 function simThemesForCycle(rows: ReturnType<typeof buildSimThemeRows>, sid: string) {
   const cycle = Number(findSessionById(sid)?.current_cycle) || 1;
   if (cycle === 1) return rows;
@@ -1392,6 +1400,7 @@ export async function handleMockRequest<T>(
     mockResponses[sid].push({
       id: responseId,
       session_id: sid,
+      cycle_id: Number(findSessionById(sid)?.current_cycle) || 1,
       clean_text: cleanText,
       submitted_at: submittedAt,
       participant_id: pid,
@@ -1487,7 +1496,7 @@ export async function handleMockRequest<T>(
   const aiRunMatch = path.match(/^\/sessions\/([0-9a-f-]{36})\/ai\/run$/);
   if (method === "POST" && aiRunMatch) {
     const sid = aiRunMatch[1];
-    const resp = (mockResponses[sid] ?? []).map((r) => ({ id: r.id, raw_text: r.clean_text }));
+    const resp = simCycleResponses(sid);
     const rows = simThemesForCycle(buildSimThemeRows(resp, sid), sid);
     _simThemes.set(simThemeKey(sid), rows);
     return { session_id: sid, status: "completed", response_count: resp.length, theme_count: rows.length, mock: true } as T;
@@ -1509,7 +1518,7 @@ export async function handleMockRequest<T>(
     // cycle has themes only after its own /ai/run, as LIVE: until then the ballot is empty.
     const firstCycle = (Number(findSessionById(sid)?.current_cycle) || 1) === 1;
     if (!rows && firstCycle) {
-      const resp = (mockResponses[sid] ?? []).map((r) => ({ id: r.id, raw_text: r.clean_text }));
+      const resp = simCycleResponses(sid);
       rows = buildSimThemeRows(resp, sid);
       if (resp.length) _simThemes.set(key, rows);
     }

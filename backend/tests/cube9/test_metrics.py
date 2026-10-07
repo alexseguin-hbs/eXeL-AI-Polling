@@ -53,10 +53,10 @@ def test_system_counts():
 
 
 def test_user_opt_in_rate():
-    rows = [MagicMock(results_opt_in=True), MagicMock(results_opt_in=False),
-            MagicMock(results_opt_in=True), MagicMock(results_opt_in=False)]
+    # Counted in SQL (total, opted in), never every row loaded; the real-Postgres count is proven in
+    # tests/live_db/test_reopen_cycle.py.
     result = MagicMock()
-    result.scalars.return_value.all.return_value = rows
+    result.one.return_value = (4, 2)
     db = AsyncMock()
     db.execute = AsyncMock(return_value=result)
     m = _run(metrics.get_user_metrics(db, uuid.uuid4()))

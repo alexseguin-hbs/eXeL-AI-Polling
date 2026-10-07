@@ -56,6 +56,13 @@ _CONFIDENCE_THRESHOLD = 65  # <65% -> reclassify as Neutral (monolith line 127)
 # Step 1: Fetch all 33-word summaries
 # ---------------------------------------------------------------------------
 
+def _current_cycle(session_id: uuid.UUID):
+    """The session's current cycle, evaluated inside the query (no extra round trip)."""
+    from app.models.session import Session
+
+    return select(func.coalesce(Session.current_cycle, 1)).where(Session.id == session_id).scalar_subquery()
+
+
 async def _fetch_summaries(
     db: AsyncSession, session_id: uuid.UUID
 ) -> list[dict]:
@@ -73,6 +80,10 @@ async def _fetch_summaries(
         .outerjoin(TextResponse, TextResponse.response_meta_id == ResponseMeta.id)
         .where(
             ResponseMeta.session_id == session_id,
+            # One cycle: a re-opened round is themed from its own answers, never every cycle's (Krishna,
+            # AsM rounds 8-10). The cycle being themed is the session's current one — the cycle the themes
+            # are written into (_replace_cycle_themes) and the cycle each answer was stamped with on submit.
+            ResponseMeta.cycle_id == _current_cycle(session_id),
             # C6-1: PII gate — exclude responses where PII was detected but NOT scrubbed
             ~(
                 (TextResponse.pii_detected.is_(True))

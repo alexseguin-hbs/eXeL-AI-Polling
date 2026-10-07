@@ -62,6 +62,14 @@ async def test_reopened_round_reads_and_writes_one_cycle(live):
         level = str((await client.get(f"{A}/{sid}")).json().get("theme2_voting_level") or "3").split("_")[-1]
         ballot = [t["id"] for t in themes if t.get("parent_theme_id") and t.get("label") and _level(t) == level]
         assert ballot, f"no level-{level} themes to rank"
+        if not (await client.get(f"{A}/{sid}/rankings")).json():
+            # Themed, nobody has voted: the report counts the themes that exist, never 0 (AsM round 10).
+            rep0 = ok(await client.get(f"{A}/{sid}/reports/metrics"), what="reports metrics before ballots").json()
+            assert rep0["system"]["themes_available"] == len(themes), f"themed, unvoted: {rep0['system']}"
+            # Before any aggregation there is no result; after a re-open the report keeps the last finished
+            # cycle's result (as the CSV does) until the new cycle is aggregated.
+            finished = (await client.get(f"{A}/{sid}")).json()["current_cycle"] > 1
+            assert rep0["system"]["has_final_ranking"] is finished and rep0["outcome"]["winner_determined"] is finished, rep0
         for i in range(3):
             who.be(f"google-oauth2|r{i}", role="user")
             ok(await client.post(f"{A}/{sid}/rankings", json={"ranked_theme_ids": ballot[i:] + ballot[:i]}),
@@ -80,6 +88,9 @@ async def test_reopened_round_reads_and_writes_one_cycle(live):
     ids1, ids2 = {t["id"] for t in themes1}, {t["id"] for t in themes2}
     assert ids1.isdisjoint(ids2), "cycle 2's ballot must not carry cycle 1's themes"
     assert len(themes2) == len(themes1), f"one cycle's themes, never both ({len(themes2)} vs {len(themes1)})"
+    # Cycle 2 is themed from cycle 2's answers only (Krishna, round 10): its Theme01 counts sum to R2, not R1+R2.
+    parents2 = [t for t in themes2 if not t.get("parent_theme_id")]
+    assert sum(int(t.get("response_count") or 0) for t in parents2) == len(R2), [t.get("response_count") for t in parents2]
     who.be("google-oauth2|r0", role="user")  # a cycle-2 voter re-voting with cycle-1 ids
     refused = await client.post(f"{A}/{sid}/rankings", json={"ranked_theme_ids": ballot1})
     assert refused.status_code in (400, 409, 422), f"a cycle-1 ballot in cycle 2 must be refused: {refused.status_code}"
@@ -120,3 +131,4 @@ async def test_reopened_round_reads_and_writes_one_cycle(live):
     rep = ok(await client.get(f"{A}/{sid}/reports/metrics"), what="reports metrics").json()
     assert rep["system"]["themes_available"] == len(themes2), f"report themes are cycle 2's only: {rep['system']}"
     assert rep["system"]["has_final_ranking"] and rep["outcome"]["winner_determined"], rep
+    assert rep["user"]["participants"] == 3 and rep["user"]["metrics_unavailable"] is False, rep["user"]

@@ -26,8 +26,20 @@ def own_dsn(env_var: str, default: str) -> str:
     return urlunsplit(parts._replace(path=f"/{name}"))
 
 
+def _alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True  # someone else's live process
+    return True
+
+
 def drop_owned() -> None:
-    """Drop every per-run database this process named (a no-op when the proofs skipped or used an explicit DSN)."""
+    """Drop every per-run database this process named, and any left by a run that was killed before its session
+    ended (same base name, a pid no longer alive). A no-op when the proofs skipped or used an explicit DSN.
+    Needs Postgres 13+ for `drop database … with (force)` (local and CI both are)."""
     async def run():
         import asyncpg
 
@@ -35,9 +47,14 @@ def drop_owned() -> None:
             try:
                 c = await asyncpg.connect(admin_dsn, timeout=2)
             except Exception:
-                return  # no Postgres: nothing was created
+                continue  # no Postgres here: nothing was created on this host
             try:
-                await c.execute(f'drop database if exists "{name}" with (force)')
+                base = name.rsplit("_", 1)[0]
+                names = {r["datname"] for r in await c.fetch("select datname from pg_database where datname like $1", base + "\\_%")}
+                for db in sorted(names):
+                    tail = db[len(base) + 1:]
+                    if db == name or (tail.isdigit() and not _alive(int(tail))):
+                        await c.execute(f'drop database if exists "{db}" with (force)')
             finally:
                 await c.close()
 

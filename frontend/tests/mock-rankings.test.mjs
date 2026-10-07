@@ -90,6 +90,9 @@ ok(last?.__status === 400, 'reopen is bounded by max_cycles (refused with 400)')
   await post(`/sessions/${i9}/reopen`); await inject(); await post(`/sessions/${i9}/rank`); await post(`/sessions/${i9}/ai/run`);
   const c2 = await ballotIds();
   ok(c2.length === c1.length && c2.every((x) => !c1.includes(x)), 'themed cycle 2 has its own theme ids, none shared with cycle 1');
+  const parents2 = (await get(`/sessions/${i9}/themes`)).filter((r) => r.parent_theme_id == null);
+  const counted2 = parents2.reduce((n, r) => n + (r.response_count || 0), 0);
+  ok(counted2 === TEXTS.length, `cycle 2 is themed from cycle 2's answers only (${counted2} of ${TEXTS.length}, never both cycles)`);
   ok((await post(`/sessions/${i9}/rankings`, { ranked_theme_ids: c1 }))?.__status === 400, 'a cycle-1 ballot is refused in themed cycle 2 (as LIVE)');
   ok((await post(`/sessions/${i9}/rankings`, { ranked_theme_ids: c2 }))?.status === 'recorded', 'a cycle-2 ballot is accepted in cycle 2');
 }

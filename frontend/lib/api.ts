@@ -66,13 +66,14 @@ function storedParticipantToken(sessionId: string): { pid: string; token: string
 }
 
 /** The token for a participant write: responses/voice name the participant in the body (the token
- *  must be theirs); a ballot names nobody (the token says who votes). */
+ *  must be theirs); a ballot and a time entry name nobody (the token says who). */
+export const PARTICIPANT_WRITE = /^\/sessions\/([^/]+)\/(responses|voice|rankings|time\/start|time\/stop)$/;
 function participantTokenFor(path: string, body: unknown): string | null {
-  const m = path.match(/^\/sessions\/([^/]+)\/(responses|voice|rankings)$/);
+  const m = path.match(PARTICIPANT_WRITE);
   if (!m) return null;
   const held = storedParticipantToken(m[1]);
   if (!held) return null;
-  if (m[2] === "rankings") return held.token;
+  if (m[2] === "rankings" || m[2].startsWith("time/")) return held.token;
   const pid = (body as { participant_id?: string } | null)?.participant_id;
   return pid === held.pid ? held.token : null;
 }
@@ -280,13 +281,13 @@ export const api = {
     }
   },
 
-  startTimeTracking: (sessionId: string, participantId: string) =>
-    request<{ id: string }>("POST", `/time/start`, {
-      body: { session_id: sessionId, participant_id: participantId, action_type: "responding" },
-    }),
+  // Cube 5 time tracking: the session is in the path and the join-issued participant token says who
+  // (the backend's /sessions/{id}/time/start|stop; Krishna, AsM round 10).
+  startTimeTracking: (sessionId: string, actionType: "login" | "responding" | "ranking" | "reviewing" = "responding") =>
+    request<{ id: string }>("POST", `/sessions/${sessionId}/time/start`, { body: { action_type: actionType } }),
 
-  stopTimeTracking: (timeEntryId: string) =>
-    request<{ id: string }>("POST", `/time/${timeEntryId}/stop`),
+  stopTimeTracking: (sessionId: string, timeEntryId: string) =>
+    request<{ id: string }>("POST", `/sessions/${sessionId}/time/stop`, { body: { time_entry_id: timeEntryId } }),
 
   submitVoiceResponse: async (
     sessionId: string,
