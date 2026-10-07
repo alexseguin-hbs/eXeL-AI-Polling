@@ -7,6 +7,18 @@ export type VocBox = {
   ymax: number;
 };
 
+/** The same corners the XML writes. Percents in, picture pixels out. */
+export function percentBox(mark: { name: string; level: 1 | 2; left: number; top: number; right: number; bottom: number }, width: number, height: number): VocBox {
+  return {
+    name: mark.name,
+    level: mark.level === 2 ? 2 : 1,
+    xmin: Math.round((Math.min(mark.left, mark.right) / 100) * width),
+    ymin: Math.round((Math.min(mark.top, mark.bottom) / 100) * height),
+    xmax: Math.round((Math.max(mark.left, mark.right) / 100) * width),
+    ymax: Math.round((Math.max(mark.top, mark.bottom) / 100) * height),
+  };
+}
+
 export type VocPage = {
   file: string;
   width: number;

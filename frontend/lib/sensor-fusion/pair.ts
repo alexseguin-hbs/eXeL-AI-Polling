@@ -57,6 +57,19 @@ export function codexLine(input: {
   return line;
 }
 
+/** The boxes a live picture can carry. Level 2 replaces Level 1. One line: name, then left, top, right, bottom. */
+export function upperLeftLine(boxes: { name: string; level: number; xmin: number; ymin: number; xmax: number; ymax: number }[], maxChars = 0) {
+  const reviewed = boxes.filter((box) => box.level === 2);
+  const chosen = reviewed.length ? reviewed : boxes;
+  const parts = chosen
+    .map((box) => `${codexWho(box.name)} ${Math.round(box.xmin)} ${Math.round(box.ymin)} ${Math.round(box.xmax)} ${Math.round(box.ymax)}`)
+    .filter((part) => !unsupportedChars(part).length);
+  while (parts.length > 1 && maxChars > 0 && parts.join(" • ").length > maxChars) parts.pop();
+  const line = parts.join(" • ");
+  if (!line || (maxChars > 0 && line.length > maxChars) || unsupportedChars(line).length) return "";
+  return line;
+}
+
 /** The picture mark. Same line the project packet uses. A blank time writes nothing. */
 export function bottomRightLine(who: string, when: string, reviewer = "", reviewedAt = "") {
   const time = when.replace(/[^0-9._]/g, "");

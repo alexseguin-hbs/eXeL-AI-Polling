@@ -5,10 +5,10 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { Settings } from "lucide-react";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
-import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
-import { bottomRightLine, codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
+import { escapeXml, percentBox, unescapeXml } from "@/lib/sensor-fusion/voc";
+import { bottomRightLine, codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT, upperLeftLine } from "@/lib/sensor-fusion/pair";
 import { IMAGE_INTAKE, VIDEO_INTAKE, pictureStem, pngSet, type VideoSource } from "@/lib/sensor-fusion/frames";
-import { signSingleHelix } from "@/lib/light-codex";
+import { signSingleHelix, signUpperLeft } from "@/lib/light-codex";
 import { crossReview, emptyClock, finalSubmission, level1Left, levelMetrics, nextFor, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
 import { supabase } from "@/lib/supabase";
 import {
@@ -266,10 +266,11 @@ function xmlName(fileName: string) {
 function vocXml(fileName: string, width: number, height: number, objects: Mark[]) {
   const boxes = objects
     .map((item) => {
-      const xmin = Math.round((Math.min(item.left, item.right) / 100) * width);
-      const xmax = Math.round((Math.max(item.left, item.right) / 100) * width);
-      const ymin = Math.round((Math.min(item.top, item.bottom) / 100) * height);
-      const ymax = Math.round((Math.max(item.top, item.bottom) / 100) * height);
+      const box = percentBox(item, width, height);
+      const xmin = box.xmin;
+      const xmax = box.xmax;
+      const ymin = box.ymin;
+      const ymax = box.ymax;
       const who = item.by ? `\n    <labeledby>${escapeXml(item.by)}</labeledby>` : "";
       const when = item.at ? `\n    <labeledat>${escapeXml(item.at)}</labeledat>` : "";
       const reviewer = item.reviewer ? `\n    <reviewedby>${escapeXml(item.reviewer)}</reviewedby>` : "";
@@ -806,14 +807,15 @@ function Labeler({
     const ctx = canvas.getContext("2d");
     if (!ctx) return fileName;
     ctx.drawImage(base, 0, 0);
-    const line = shownCodex(list);
-    if (line && width >= (line.length + 8) * 4 && height >= 1) {
-      try {
-        const signed = signSingleHelix(ctx.getImageData(0, 0, width, height), line);
-        ctx.putImageData(signed, 0, 0);
-      } catch {
-        /* The XML still names the person and the time. */
-      }
+    try {
+      let pixels = ctx.getImageData(0, 0, width, height);
+      const boxes = upperLeftLine(list.map((item) => percentBox(item, width, height)), Math.floor(width / 4) - 8);
+      if (boxes && height >= 1) pixels = signUpperLeft(pixels, boxes);
+      const line = shownCodex(list);
+      if (line && width >= (line.length + 8) * 4 && height >= 1) pixels = signSingleHelix(pixels, line);
+      ctx.putImageData(pixels, 0, 0);
+    } catch {
+      /* The XML still holds the boxes, the person, and the time. */
     }
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((item) => resolve(item), "image/png"));
     if (!blob) return fileName;

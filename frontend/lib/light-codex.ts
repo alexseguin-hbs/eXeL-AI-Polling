@@ -141,6 +141,14 @@ export function signSingleHelix(src: ImageData, text: string): ImageData {
   return placeSignature(src, text, 1, "1");
 }
 
+/** Upper-left mark. 1×1, the forward half of the double helix. The bottom-right line is left as it is. */
+export function signUpperLeft(src: ImageData, text: string): ImageData {
+  const d = new ImageData(new Uint8ClampedArray(src.data), src.width, src.height);
+  const fwd = [...framing("4321"), ...encodeMessage(text), ...framing("1234")];
+  drawLineLeft(d, fwd, 0, 0, 1, 0);
+  return d;
+}
+
 // ── Decode ───────────────────────────────────────────────────────────────────
 function nearestToken(rgb: [number, number, number]): string {
   let best = "B", bestDist = Infinity;
@@ -290,4 +298,14 @@ export function decodeImage(d: ImageData): DecodeResult | null {
     if (framed) return framed;
   }
   return detectHidden(d);
+}
+
+/** Read the two picture lines. Upper left is the boxes. Bottom right is the person and the time. */
+export function readCorners(d: ImageData): { upperLeft: string; bottomRight: string } {
+  const revGroups = extractBetweenFrames(readRightAligned(d, d.height - 1, 1, 0), REV_FRAME_PREFIX, REV_FRAME_SUFFIX);
+  const fwdGroups = extractBetweenFrames(parseLine(d, 0, 0, 1, 0), FWD_FRAME_PREFIX, FWD_FRAME_SUFFIX);
+  return {
+    upperLeft: fwdGroups ? groupsToText(fwdGroups) : "",
+    bottomRight: revGroups ? reverse(groupsToText(revGroups)) : "",
+  };
 }

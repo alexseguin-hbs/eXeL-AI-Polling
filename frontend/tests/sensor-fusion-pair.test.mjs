@@ -1,7 +1,8 @@
 // A saved picture and its XML share one folder. Light Codex is a second file, then a third after Level 2.
 // Run: node --experimental-strip-types tests/sensor-fusion-pair.test.mjs
 
-import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "../lib/sensor-fusion/pair.ts";
+import { bottomRightLine, codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT, upperLeftLine } from "../lib/sensor-fusion/pair.ts";
+import { readCorners, signSingleHelix, signUpperLeft } from "../lib/light-codex.ts";
 
 let pass = 0;
 let fail = 0;
@@ -42,6 +43,25 @@ ok(readyForProject([box(1, "Alex", "")]) === false, "Level 1 alone cannot go to 
 ok(readyForProject([box(2, "Alex", "Alex")]) === false, "the same person cannot review their own box");
 ok(readyForProject([box(2, "Alex", "Jordan"), box(2, "Alex", "Jordan")]) === true, "a different person on every box can send the set");
 ok(SENSOR_FUSION_PROJECT === "sensor-fusion", "the set goes to the sensor-fusion project");
+
+const deer = { name: "deer", level: 1, xmin: 12, ymin: 40, xmax: 80, ymax: 90 };
+const person = { name: "person", level: 2, xmin: 4, ymin: 8, xmax: 20, ymax: 30 };
+ok(upperLeftLine([deer]) === "DEER 12 40 80 90", "Level 1 puts the name and the four corners upper left");
+ok(upperLeftLine([deer, person]) === "PERSON 4 8 20 30", "Level 2 replaces Level 1");
+ok(upperLeftLine([person, { name: "head", level: 2, xmin: 1, ymin: 2, xmax: 3, ymax: 4 }], 16) === "PERSON 4 8 20 30", "a short picture keeps the boxes that fit");
+
+if (typeof globalThis.ImageData === "undefined") {
+  globalThis.ImageData = class ImageData {
+    constructor(data, width, height) { this.data = data; this.width = width; this.height = height; }
+  };
+}
+const w = 720, h = 80;
+const blank = new Uint8ClampedArray(w * h * 4);
+for (let i = 0; i < blank.length; i += 4) { blank[i] = 30; blank[i + 1] = 80; blank[i + 2] = 30; blank[i + 3] = 255; }
+const personLine = bottomRightLine("Alex Seguin", "2026.10.05_22.23..24");
+const stamped = signSingleHelix(signUpperLeft(new ImageData(blank, w, h), upperLeftLine([deer])), personLine);
+const read = readCorners(stamped);
+ok(read.upperLeft === "DEER 12 40 80 90" && read.bottomRight === personLine, "the two lines read back from their own corners");
 
 console.log(fail ? `${pass} passed, ${fail} failed` : `${pass} passed`);
 process.exit(fail ? 1 : 0);

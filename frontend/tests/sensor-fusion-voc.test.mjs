@@ -35,7 +35,7 @@ ok(page.file === "R&D_0001.png" && page.boxes[0].name === "salt & pepper", "voc.
 
 // The page uses this one escape and keeps no copy of its own.
 const src = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8");
-ok(/import \{ escapeXml, unescapeXml \} from "@\/lib\/sensor-fusion\/voc";/.test(src), "the page imports the escape from lib/sensor-fusion/voc.ts");
+ok(/import \{ escapeXml, percentBox, unescapeXml \} from "@\/lib\/sensor-fusion\/voc";/.test(src), "the page imports the escape and the box corners from lib/sensor-fusion/voc.ts");
 ok(!/function unescapeXml\(/.test(src) && !/function escapeXml\(/.test(src), "the page has no escape of its own");
 ok(/const text = \(value: string\) => unescapeXml\(value\);/.test(src), "the page's reader decodes every name, labeler and reviewer");
 
