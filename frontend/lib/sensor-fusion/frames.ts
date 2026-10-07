@@ -20,14 +20,25 @@ export function pictureStem(fileName: string) {
   return fileName.replace(/\.(L[12])\.png$/i, "").replace(/\.[^.]+$/, "") || "picture";
 }
 
-/** The file is always stem.png. Level 1 and Level 2 live in the Light Codex, not in the name. */
+/** The file is always stem.png. The record is not part of the name. */
 export function pngSet(fileName: string) {
   const stem = pictureStem(fileName);
   return { png: `${stem}.png`, xml: `${stem}.xml` };
 }
 
-/** How many pixels are added to the left of the original. The picture itself is not painted on. */
-export function codexPad(line: string) {
-  const clean = line.trim();
-  return clean ? clean.length * 4 : 0;
+function codexName(raw: string) {
+  return raw.toUpperCase().replace(/[^A-Z0-9 ._-]/g, "").replace(/\s+/g, " ").trim() || "GUEST";
+}
+
+function codexTime(raw: string) {
+  return raw.replace(/[^0-9._]/g, "");
+}
+
+/** Bottom-right record: the annotator's name and time. A review adds the reviewer's name and time. */
+export function bottomRightLine(who: string, when: string, reviewer = "", reviewedAt = "") {
+  const name = codexName(who);
+  const time = codexTime(when);
+  if (!time) return "";
+  if (reviewer && reviewedAt && codexTime(reviewedAt)) return `${name} ${time} ${codexName(reviewer)} ${codexTime(reviewedAt)}`;
+  return `${name} ${time}`;
 }

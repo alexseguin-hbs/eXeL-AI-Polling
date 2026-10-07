@@ -7,7 +7,7 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
-import { IMAGE_INTAKE, VIDEO_INTAKE, codexPad, pictureStem, pngSet, type VideoSource } from "@/lib/sensor-fusion/frames";
+import { IMAGE_INTAKE, VIDEO_INTAKE, bottomRightLine, pictureStem, pngSet, type VideoSource } from "@/lib/sensor-fusion/frames";
 import { placeSignature } from "@/lib/light-codex";
 import { crossReview, emptyClock, finalSubmission, level1Left, levelMetrics, nextFor, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
 import { supabase } from "@/lib/supabase";
@@ -239,18 +239,11 @@ type Shot = { id: string; url: string; name?: string; plain?: string; source?: "
 type Mark = { id: string; name: string; left: number; top: number; right: number; bottom: number; level: 1 | 2; by?: string; reviewer?: string; at?: string; reviewedAt?: string };
 type Edge = "l" | "r" | "t" | "b";
 
-function shownCodex(fileName: string, list: Mark[]) {
+function shownCodex(list: Mark[]) {
   const labeled = list.find((item) => item.by && item.at);
-  const reviewed = [...list].reverse().find((item) => item.level === 2 && item.reviewer && item.reviewedAt && item.by && item.at);
-  try {
-    if (labeled?.by && labeled.at && reviewed?.reviewer && reviewed.reviewedAt) {
-      return codexLine({ file: fileName, level: 2, who: reviewed.reviewer, when: reviewed.reviewedAt, l1: { who: labeled.by, when: labeled.at } });
-    }
-    if (labeled?.by && labeled.at) return codexLine({ file: fileName, level: 1, who: labeled.by, when: labeled.at });
-  } catch {
-    return "";
-  }
-  return "";
+  const reviewed = [...list].reverse().find((item) => item.level === 2 && item.reviewer && item.reviewedAt);
+  if (!labeled?.by || !labeled.at) return "";
+  return bottomRightLine(labeled.by, labeled.at, reviewed?.reviewer || "", reviewed?.reviewedAt || "");
 }
 
 function loadStill(url: string) {
@@ -808,24 +801,20 @@ function Labeler({
     const width = base.naturalWidth || base.width;
     const height = base.naturalHeight || base.height;
     const canvas = document.createElement("canvas");
-    const line = shownCodex(named, list);
-    const pad = codexPad(line);
-    canvas.width = width + pad;
+    canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext("2d");
     if (!ctx) return fileName;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    if (pad >= 4 && height >= 2) {
+    ctx.drawImage(base, 0, 0);
+    const line = shownCodex(list);
+    if (line && width >= (line.length + 8) * 4 && height >= 1) {
       try {
-        const strip = ctx.getImageData(0, 0, pad, height);
-        const signed = placeSignature(strip, line, 1, "3");
+        const signed = placeSignature(ctx.getImageData(0, 0, width, height), line, 1, "1");
         ctx.putImageData(signed, 0, 0);
       } catch {
         /* The XML still names the person and the time. */
       }
     }
-    ctx.drawImage(base, pad, 0);
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((item) => resolve(item), "image/png"));
     if (!blob) return fileName;
     const url = URL.createObjectURL(blob);
