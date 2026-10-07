@@ -7,7 +7,7 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
-import { acceptMark, emptyClock, finalSubmission, noteWork, readClock, saveMark, sameMember, siTokens, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
+import { acceptMark, emptyClock, finalSubmission, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
 import { placeSignature } from "@/lib/light-codex";
 import { supabase } from "@/lib/supabase";
 import {
@@ -679,6 +679,15 @@ function Labeler({
     remember(clock.open ? stopClock(clock, Date.now()) : startClock(clock, who || "guest", Date.now()));
   }
 
+  function runSim() {
+    try {
+      const built = simulateClass(200, Date.now(), (input) => codexLine(input));
+      setNote(built.ok ? built.note : built.note);
+    } catch (err) {
+      setNote(err instanceof Error ? err.message : "The simulation did not finish.");
+    }
+  }
+
   function touchWork(picture: string, kind: "annotate" | "level2" | "adjust") {
     remember(noteWork(clock, who || "guest", picture, kind));
   }
@@ -1106,6 +1115,7 @@ function Labeler({
         <div className={styles.labelDock}>
         <div className={styles.workLine}>
           <button type="button" onClick={toggleClock}>{clock.open ? "STOP" : "START"}</button>
+          <button type="button" onClick={runSim}>SIM 200</button>
           <p>
             {workflowLines(clock, Date.now() + Math.min(tick, 0)).map((line) => `${line.member} ${line.seconds}s · ${line.images} images · ${line.adjustments} Level 2 ${line.adjustments === 1 ? "change" : "changes"} · ${siTokens(line.seconds)} S.I.`).join("  ·  ") || "START begins the clock."}
           </p>

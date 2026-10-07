@@ -197,6 +197,91 @@ export function acceptMark(box: WorkBox, who: string, when: string): { ok: true;
   return { ok: true, box: { ...box, level: 2, reviewer: memberName(who), at: box.at || when, reviewedAt: when } };
 }
 
+export const SIM_COUNT = 200;
+export const SIM_ANIMALS = ["deer", "horse", "cow", "dog", "sheep", "goat"] as const;
+export const SIM_LABELERS = ["Alex", "Blair", "Casey", "Drew", "Eden", "Fran"] as const;
+export const SIM_REVIEWER = "Jordan";
+export const SIM_LABEL_SECONDS = 8;
+export const SIM_REVIEW_SECONDS = 3;
+
+function simStamp(total: number) {
+  const second = total % 60;
+  const minute = Math.floor(total / 60) % 60;
+  const hour = 12 + Math.floor(total / 3600);
+  const part = (value: number) => String(value).padStart(2, "0");
+  return `2026.10.07_${part(hour)}.${part(minute)}..${part(second)}`;
+}
+
+type LineWriter = (input: { file: string; level: 1 | 2; who: string; when: string; l1?: { who: string; when: string } }) => string;
+
+/**
+ * A class of 200 pictures, in memory only.
+ * Six people label deer and other four-legged animals. A seventh person reviews every box.
+ * Nothing is saved and nothing is uploaded.
+ */
+export function simulateClass(count = SIM_COUNT, now = 0, writeLine?: LineWriter) {
+  const total = Math.max(1, Math.floor(count));
+  const write: LineWriter = writeLine || ((input) => {
+    const file = (input.file.replace(/\.[^.]+$/, "") || "PICTURE").toUpperCase();
+    const who = memberName(input.who);
+    return input.level === 2 && input.l1
+      ? `L1 ${memberName(input.l1.who)} ${input.l1.when} L2 ${who} ${input.when} ${file}`
+      : `L1 ${who} ${input.when} ${file}`;
+  });
+  const files: { animal: string; file: string }[] = [];
+  const share = Math.floor(total / SIM_ANIMALS.length);
+  let extra = total % SIM_ANIMALS.length;
+  for (const animal of SIM_ANIMALS) {
+    const take = share + (extra > 0 ? 1 : 0);
+    if (extra > 0) extra -= 1;
+    for (let index = 1; index <= take; index += 1) files.push({ animal, file: `${animal}_${String(index).padStart(4, "0")}.png` });
+  }
+  let clock = emptyClock("deer");
+  let t = now;
+  let step = 0;
+  const groups = new Map<string, { animal: string; file: string }[]>();
+  files.forEach((item, index) => {
+    const who = SIM_LABELERS[index % SIM_LABELERS.length];
+    groups.set(who, [...(groups.get(who) || []), item]);
+  });
+  const labeled: { file: string; box: WorkBox }[] = [];
+  for (const who of SIM_LABELERS) {
+    const list = groups.get(who) || [];
+    if (!list.length) continue;
+    clock = startClock(clock, who, t);
+    for (const item of list) {
+      const at = simStamp(step);
+      const saved = saveMark(undefined, { id: item.file, name: item.animal, left: 40, top: 35, right: 60, bottom: 65, level: 1, at }, who);
+      labeled.push({ file: item.file, box: saved.box });
+      clock = noteWork(clock, who, item.file, "annotate");
+      step += SIM_LABEL_SECONDS;
+      t += SIM_LABEL_SECONDS * 1000;
+    }
+    clock = stopClock(clock, t);
+  }
+  clock = startClock(clock, SIM_REVIEWER, t);
+  const images: SubmissionImage[] = [];
+  for (const [index, item] of labeled.entries()) {
+    const when = simStamp(step);
+    const moved = index % 10 === 9;
+    const reviewed = moved
+      ? saveMark(item.box, { ...item.box, left: 12, at: when }, SIM_REVIEWER)
+      : acceptMark(item.box, SIM_REVIEWER, when);
+    if ("ok" in reviewed && !reviewed.ok) return { ok: false as const, note: reviewed.note };
+    const box = reviewed.box;
+    const l1 = write({ file: item.file, level: 1, who: box.by || "", when: box.at || when });
+    const l2 = write({ file: item.file, level: 2, who: box.reviewer || SIM_REVIEWER, when: box.reviewedAt || when, l1: { who: box.by || "", when: box.at || when } });
+    images.push({ file: item.file, l1, l2, boxes: [box] });
+    clock = noteWork(clock, SIM_REVIEWER, item.file, moved ? "adjust" : "level2");
+    step += SIM_REVIEW_SECONDS;
+    t += SIM_REVIEW_SECONDS * 1000;
+  }
+  clock = stopClock(clock, t);
+  const built = finalSubmission({ clock, now: t, images });
+  if (!built.ok) return built;
+  return { ...built, note: `${built.note} Simulation only. Nothing was saved.` };
+}
+
 const WORK_KEY = "sf2525-work";
 
 export function readClock(project: string): WorkClock {

@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { readyForProject, codexLine } from "../lib/sensor-fusion/pair.ts";
-import { acceptMark, emptyClock, finalSubmission, noteWork, saveMark, siTokens, startClock, stopClock, workflowLines } from "../lib/sensor-fusion/workflow.ts";
+import { acceptMark, emptyClock, finalSubmission, noteWork, saveMark, siTokens, simulateClass, SIM_ANIMALS, SIM_LABELERS, SIM_REVIEWER, startClock, stopClock, workflowLines } from "../lib/sensor-fusion/workflow.ts";
 
 let passed = 0;
 const failures = [];
@@ -91,6 +91,19 @@ ok(sent.ok === true && sent.packet.images.length === 4 && sent.packet.images.eve
 ok(sent.ok === true && sent.packet.contributors.find((line) => line.member === "ALEX")?.si === 2, "90 seconds is 2 S.I. for the labeler");
 ok(sent.ok === true && sent.packet.contributors.find((line) => line.member === "RILEY")?.si === 1 && sent.packet.si === 3, "the reviewer adds 1 S.I. and the class total is 3");
 ok(sent.ok === true && sent.packet.images[3].boxes[0].by === "ALEX" && sent.packet.images[3].boxes[0].name === "horse", "the horse box keeps the first person's name");
+
+const sim = simulateClass(200, 0, (input) => codexLine(input));
+ok(sim.ok === true && sim.packet.images.length === 200, "simulation builds 200 pictures and saves none");
+ok(sim.ok === true && new Set(sim.packet.images.map((image) => image.file)).size === 200, "all 200 file names are different");
+ok(sim.ok === true && sim.packet.images.every((image) => image.l1.startsWith("L1 ") && image.l2.includes("L2 ") && image.boxes[0].level === 2 && image.boxes[0].by !== image.boxes[0].reviewer), "every simulated picture has both lines and a different reviewer");
+ok(sim.ok === true && sim.packet.images.filter((image) => image.file.startsWith("deer_")).length === 34, "deer takes the first extra pictures");
+ok(sim.ok === true && SIM_ANIMALS.every((animal) => sim.packet.subject.includes(animal)), "the packet names deer and the other four-legged animals");
+ok(sim.ok === true && sim.packet.contributors.length === SIM_LABELERS.length + 1 && sim.packet.contributors.some((line) => line.member === SIM_REVIEWER.toUpperCase() && line.reviews === 200 && line.seconds === 600 && line.si === 10), "Jordan reviews all 200 in 600 seconds, which is 10 S.I.");
+ok(sim.ok === true && sim.packet.contributors.find((line) => line.member === "ALEX")?.seconds === 272 && sim.packet.si === 40, "the class total is 40 S.I.");
+ok(sim.ok === true && sim.note.includes("Simulation only"), "the screen says this run saved nothing");
+const oneShort = finalSubmission({ clock: emptyClock("deer"), now: 0, images: sim.ok ? sim.packet.images.map((image, index) => (index === 199 ? { ...image, l2: "" } : image)) : [] });
+ok(!oneShort.ok, "199 reviewed pictures still cannot upload");
+ok(/simulateClass\(200/.test(fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8")), "the page runs the 200-picture simulation");
 
 const page = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8");
 ok(/saveMark\(/.test(page) && /acceptMark\(/.test(page) && /clock\.open \? "STOP" : "START"/.test(page), "the screen uses the clock and keeps the first person's name");
