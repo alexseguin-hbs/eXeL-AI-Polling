@@ -12,7 +12,7 @@ Token defaults (SoI Trinity):
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -53,4 +53,12 @@ class TimeEntry(Base):
         Index("ix_time_entries_session", "session_id"),
         Index("ix_time_entries_participant", "participant_id"),
         Index("ix_time_entries_action", "action_type"),
+        # At most ONE open public (cube5) entry per participant per session, enforced by the database: a burst of
+        # parallel starts cannot each pass a read-then-insert check (Thor, Enki, Athena, Aset; AsM round 12).
+        # Cube 2/3 entries carry their own cube_id and are never constrained here. Migration 032 for existing DBs.
+        Index(
+            "uq_time_entries_one_open_public", "session_id", "participant_id", unique=True,
+            postgresql_where=text("cube_id = 'cube5' AND stopped_at IS NULL"),
+            sqlite_where=text("cube_id = 'cube5' AND stopped_at IS NULL"),
+        ),
     )

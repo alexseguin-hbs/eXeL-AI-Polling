@@ -60,7 +60,9 @@ async def score_cqs(
     """
     from app.models.cqs_score import CQSScore, DEFAULT_CQS_WEIGHTS
 
-    result = await db.execute(select(Session).where(Session.id == session_id))
+    # The session row is locked for this scoring transaction, so two concurrent runs serialise instead of each
+    # deleting and each inserting a full set of scores (Athena, round 12).
+    result = await db.execute(select(Session).where(Session.id == session_id).with_for_update())
     session = result.scalar_one_or_none()
     if session is None:
         raise ValueError(f"Session {session_id} not found")
@@ -72,12 +74,10 @@ async def score_cqs(
     level_field = f"theme2_{theme_level}"
     conf_field = f"theme2_{theme_level}_confidence"
 
-    # One cycle: the answers given in the session's current cycle, as theming reads (phase_b._current_cycle).
-    from app.cubes.cube6_ai.phase_b import _current_cycle
+    # The same eligible answers theming reads: this cycle's, past the PII gate (one rule; Thoth + Aset, round 12).
+    from app.cubes.cube6_ai.phase_b import eligible_answers
 
-    in_cycle = select(ResponseMeta.id).where(
-        ResponseMeta.session_id == session_id, ResponseMeta.cycle_id == _current_cycle(session_id),
-    )
+    in_cycle = eligible_answers(session_id)
     summaries_result = await db.execute(
         select(ResponseSummary).where(
             ResponseSummary.session_id == session_id,
@@ -93,7 +93,13 @@ async def score_cqs(
         if theme_val == top_theme2_label and conf_val >= 95:
             eligible.append(s)
 
+    # Idempotent on EVERY path: a re-score replaces the session's scores and winner even when this cycle has nothing
+    # eligible, so a re-opened cycle never keeps (or announces) the previous cycle's winner (Aset, Asar; round 12).
+    # The delete commits with the new rows (or alone, below), in one transaction.
+    await db.execute(delete(CQSScore).where(CQSScore.session_id == session_id))
+
     if not eligible:
+        await db.commit()
         logger.info(
             "cube6.cqs.no_eligible",
             session_id=str(session_id),
@@ -126,10 +132,6 @@ async def score_cqs(
             "instruction": _CQS_INSTRUCTION,
         })
 
-    # Idempotent: a re-score replaces the session's scores (and its one winner) in the same transaction as the new
-    # rows, so scoring twice never leaves two rows per answer or two winners (Thoth, round 11).
-    await db.execute(delete(CQSScore).where(CQSScore.session_id == session_id))
-
     results: list[str] = []
     for chunk_start in range(0, len(items), _CQS_BATCH_SIZE):
         chunk = items[chunk_start:chunk_start + _CQS_BATCH_SIZE]
@@ -150,7 +152,7 @@ async def score_cqs(
         cqs = CQSScore(
             session_id=session_id,
             response_id=s.response_meta_id,
-            participant_id=meta_map.get(s.response_meta_id, s.response_meta_id),
+            participant_id=meta_map.get(s.response_meta_id),  # None for an anonymous answer (round 12)
             theme2_cluster_label=safe_theme_label,
             theme_confidence=(getattr(s, conf_field, 0) or 0) / 100.0,
             insight_score=float(scores.get("insight", 50)),

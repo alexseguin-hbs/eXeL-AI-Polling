@@ -30,6 +30,7 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -129,7 +130,8 @@ def calculate_tokens(
 
 
 # The longest one time entry can count, in seconds: a session's live window (DECLARED, 3 h — the longest polling
-# + ranking window the demo sessions run). Longer participation is several entries, each bounded the same way.
+# + ranking window the demo sessions run). It caps every entry — public and Cube 2/3's seconds-long ones alike.
+# A stop does not re-check the session's status on purpose: stopping only closes and caps an entry.
 MAX_TIME_ENTRY_SECONDS = 3 * 3600
 
 
@@ -176,7 +178,12 @@ async def start_time_tracking(
         started_at=datetime.now(timezone.utc),
     )
     db.add(entry)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        # The database's one-open-public-entry index refused a concurrent second start (round 12).
+        await db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Stop the open time entry before starting another")
     await db.refresh(entry)
     return entry
 
@@ -193,8 +200,9 @@ async def stop_time_tracking(
     Also creates a TokenLedger entry (append-only) for the earned tokens.
     Country/state used to resolve 웃 jurisdiction rate.
     """
+    # Locked for the rest of this transaction: two concurrent stops cannot both see it open and both mint (round 12).
     result = await db.execute(
-        select(TimeEntry).where(TimeEntry.id == time_entry_id)
+        select(TimeEntry).where(TimeEntry.id == time_entry_id).with_for_update()
     )
     entry = result.scalar_one_or_none()
     if entry is None:
@@ -216,6 +224,23 @@ async def stop_time_tracking(
     heart, human, unity = calculate_tokens(
         entry.duration_seconds, entry.action_type, country, state
     )
+    if entry.cube_id == "cube5" and entry.action_type != "login":
+        # Public time earns ♡ = floor(the participant's accumulated public minutes in this session), minting only the
+        # increase (Token_Governance_Math.md §1: fractional minutes accumulate). Rounding each entry up let 1-second
+        # start/stop loops mint ~30× the honest rate (Thor, Enki; AsM round 12).
+        prior_s, prior_heart = (await db.execute(
+            select(func.coalesce(func.sum(TimeEntry.duration_seconds), 0.0),
+                   func.coalesce(func.sum(TimeEntry.heart_tokens_earned), 0.0)).where(
+                TimeEntry.session_id == entry.session_id,
+                TimeEntry.participant_id == entry.participant_id,
+                TimeEntry.cube_id == "cube5",
+                TimeEntry.action_type != "login",
+                TimeEntry.stopped_at.isnot(None),
+                TimeEntry.id != entry.id,
+            )
+        )).one()
+        heart = max(0.0, float(math.floor((float(prior_s) + entry.duration_seconds) / 60.0)) - float(prior_heart))
+        unity = heart * settings.unity_heart_multiplier
     entry.heart_tokens_earned = heart
     entry.human_tokens_earned = human
     entry.unity_tokens_earned = unity

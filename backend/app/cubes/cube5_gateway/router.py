@@ -71,7 +71,8 @@ async def start_time_tracking(
     """Start tracking active participation time.
 
     Called when user begins responding or ranking.
-    ♡ = floor(active_minutes), 웃 = 0, ◬ = 5x ♡.
+    ♡ = floor(the participant's accumulated public minutes in this session), minting only the increase on each
+    stop; ◬ = 5x ♡ (service.stop_time_tracking).
     """
     # The caller's participants row in this session (an Auth0 id is never a UUID; time_entries
     # needs a real participant FK, so no row is a 404, never a 500).

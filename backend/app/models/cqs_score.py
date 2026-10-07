@@ -36,8 +36,10 @@ class CQSScore(Base):
     response_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("response_meta.id", ondelete="CASCADE"), nullable=False
     )
-    participant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("participants.id"), nullable=False
+    # NULL for an anonymous answer (anonymity_mode="anonymous", the default): the answer is attributed by response_id.
+    # It was NOT NULL, so CQS on every anonymous session raised (Thoth, AsM round 12). Migration 032.
+    participant_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("participants.id"), nullable=True
     )
 
     # Theme context — must be #1 most-voted Theme2 cluster

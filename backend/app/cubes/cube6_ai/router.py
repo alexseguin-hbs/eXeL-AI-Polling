@@ -81,11 +81,28 @@ async def run_cqs_scoring(
     # arbitrary attribute access via getattr() in downstream code
     if theme_level not in VALID_THEME_LEVELS:
         raise HTTPException(status_code=400, detail="theme_level must be '3', '6', or '9'")
-    # Sanitize top_theme2_label — alphanumeric, spaces, ampersands, and basic punctuation only
-    if not re.match(r'^[\w\s&\-.,()]+$', top_theme2_label):
-        raise HTTPException(status_code=400, detail="Invalid theme label characters")
+    # The label must be one of THIS session's Theme02 labels — an exact, parameterised lookup, never a character
+    # whitelist: phase B stores html-escaped labels in any of 33 languages ('Privacy &amp; Trust', Hindi, Thai), and
+    # the old regex refused them, or let the raw '&' through to match nothing (Enki, AsM round 12).
+    import html as _html
+
+    from sqlalchemy import select as _select
+
+    from app.models.theme import Theme
+
+    if not top_theme2_label or len(top_theme2_label) > 200:
+        raise HTTPException(status_code=400, detail="Invalid theme label")
+    stored = (await db.execute(
+        _select(Theme.label).where(
+            Theme.session_id == session_id,
+            Theme.parent_theme_id.isnot(None),
+            Theme.label.in_({top_theme2_label, _html.escape(top_theme2_label)}),
+        ).limit(1)
+    )).scalar_one_or_none()
+    if stored is None:
+        raise HTTPException(status_code=400, detail="That theme is not one of this session's themes")
     return await service.run_cqs_pipeline(
-        db, session_id, top_theme2_label, theme_level
+        db, session_id, stored, theme_level
     )
 
 

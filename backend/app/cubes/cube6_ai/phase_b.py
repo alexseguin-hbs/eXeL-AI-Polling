@@ -50,6 +50,7 @@ logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib
 # Theme01 categories (matches monolith)
 THEME01_CATEGORIES = ["Risk & Concerns", "Supporting Comments", "Neutral Comments"]
 _CONFIDENCE_THRESHOLD = 65  # <65% -> reclassify as Neutral (monolith line 127)
+_ASSIGN_CHUNK = 2000  # rows per theme-assignment upsert (× 11 columns < 32,767 bind parameters)
 
 
 # ---------------------------------------------------------------------------
@@ -63,20 +64,13 @@ def _current_cycle(session_id: uuid.UUID):
     return select(func.coalesce(Session.current_cycle, 1)).where(Session.id == session_id).scalar_subquery()
 
 
-async def _fetch_summaries(
-    db: AsyncSession, session_id: uuid.UUID
-) -> list[dict]:
-    """Fetch all response metadata + pre-computed 33-word summaries.
-
-    Summaries were generated live during polling (Phase A).
-    C6-1: Only fetches responses where PII has been scrubbed (via TextResponse join).
-    Batch-loads summaries to avoid N+1 query pattern.
-    """
+def eligible_answers(session_id: uuid.UUID):
+    """The answers a cycle is themed and scored from — this session's, the current cycle's, past the C6-1 PII gate —
+    as ONE subquery that theming and CQS both filter by (never a bound list of ids: asyncpg caps a statement at
+    32,767 parameters; Odin + Pangu, round 11; one rule for both readers, Thoth + Aset, round 12)."""
     from app.models.text_response import TextResponse
 
-    # Eligible answers — this cycle's, C6-1 PII gate — as ONE condition both queries share (a subquery for the
-    # summaries, never a bound list of ids: asyncpg caps a statement at 32,767 parameters; Odin + Pangu, round 11).
-    eligible = (
+    return (
         select(ResponseMeta.id)
         .outerjoin(TextResponse, TextResponse.response_meta_id == ResponseMeta.id)
         .where(
@@ -92,6 +86,20 @@ async def _fetch_summaries(
             ),
         )
     )
+
+
+async def _fetch_summaries(
+    db: AsyncSession, session_id: uuid.UUID
+) -> list[dict]:
+    """Fetch all response metadata + pre-computed 33-word summaries.
+
+    Summaries were generated live during polling (Phase A).
+    C6-1: Only fetches responses where PII has been scrubbed (via TextResponse join).
+    Batch-loads summaries to avoid N+1 query pattern.
+    """
+    from app.models.text_response import TextResponse
+
+    eligible = eligible_answers(session_id)  # this cycle's, PII-gated — a subquery, never a bound id list
     result = await db.execute(select(ResponseMeta).where(ResponseMeta.id.in_(eligible)))
     metas = list(result.scalars().all())
 
@@ -741,6 +749,14 @@ async def _store_results(
     await _replace_cycle_themes(db, session.id, session.current_cycle)
 
     # Store themes at each reduction level
+    # Each child theme's answer count from ONE pass over the answers, not one scan per theme (Pangu, round 12).
+    from collections import Counter
+
+    assigned: Counter = Counter()
+    for r in responses:
+        for lvl in ("9", "6", "3"):
+            assigned[(lvl, r.get("theme01"), r.get(f"theme2_{lvl}"))] += 1
+
     for category, levels in reduced.items():
         # Create parent Theme01 record
         parent = Theme(
@@ -765,12 +781,7 @@ async def _store_results(
                 # occupy a real row so Flower-of-Life geometry (9/6/3) stays
                 # stable across sessions and replay hashes stay deterministic.
                 label = "" if is_empty else t["label"]
-                response_count = 0 if is_empty else sum(
-                    1
-                    for r in responses
-                    if r.get(f"theme2_{level}") == t["label"]
-                    and r.get("theme01") == category
-                )
+                response_count = 0 if is_empty else assigned[(level, category, t["label"])]
                 child = Theme(
                     session_id=session.id,
                     cycle_id=session.current_cycle,
@@ -801,33 +812,31 @@ async def _store_results(
             )
             db.add(ts)
 
-    # C6-4: Update ResponseSummary with theme assignments — error handling + rollback
+    # C6-4: Update ResponseSummary with theme assignments — error handling + rollback.
+    # Written as sets of rows (one multi-row upsert per chunk), never one statement per answer: 1M answers one by one
+    # was ~12 minutes inside the theming transaction (Pangu, round 12). A chunk of 2,000 rows × 11 columns stays under
+    # asyncpg's 32,767-parameter limit.
     try:
-        for r in responses:
-            stmt = pg_insert(ResponseSummary).values(
-                response_meta_id=uuid.UUID(r["id"]),
-                session_id=session.id,
-                provider=provider_name,
-                theme01=r.get("theme01", ""),
-                theme01_confidence=r.get("theme01_confidence", 0),
-                theme2_9=r.get("theme2_9", ""),
-                theme2_9_confidence=r.get("theme2_9_confidence", 0),
-                theme2_6=r.get("theme2_6", ""),
-                theme2_6_confidence=r.get("theme2_6_confidence", 0),
-                theme2_3=r.get("theme2_3", ""),
-                theme2_3_confidence=r.get("theme2_3_confidence", 0),
-            ).on_conflict_do_update(
+        rows = [{
+            "response_meta_id": uuid.UUID(r["id"]),
+            "session_id": session.id,
+            "provider": provider_name,
+            "theme01": r.get("theme01", ""),
+            "theme01_confidence": r.get("theme01_confidence", 0),
+            "theme2_9": r.get("theme2_9", ""),
+            "theme2_9_confidence": r.get("theme2_9_confidence", 0),
+            "theme2_6": r.get("theme2_6", ""),
+            "theme2_6_confidence": r.get("theme2_6_confidence", 0),
+            "theme2_3": r.get("theme2_3", ""),
+            "theme2_3_confidence": r.get("theme2_3_confidence", 0),
+        } for r in responses]
+        updated = ("theme01", "theme01_confidence", "theme2_9", "theme2_9_confidence",
+                   "theme2_6", "theme2_6_confidence", "theme2_3", "theme2_3_confidence")
+        for start in range(0, len(rows), _ASSIGN_CHUNK):
+            stmt = pg_insert(ResponseSummary).values(rows[start:start + _ASSIGN_CHUNK])
+            stmt = stmt.on_conflict_do_update(
                 index_elements=["response_meta_id"],
-                set_={
-                    "theme01": r.get("theme01", ""),
-                    "theme01_confidence": r.get("theme01_confidence", 0),
-                    "theme2_9": r.get("theme2_9", ""),
-                    "theme2_9_confidence": r.get("theme2_9_confidence", 0),
-                    "theme2_6": r.get("theme2_6", ""),
-                    "theme2_6_confidence": r.get("theme2_6_confidence", 0),
-                    "theme2_3": r.get("theme2_3", ""),
-                    "theme2_3_confidence": r.get("theme2_3_confidence", 0),
-                },
+                set_={c: getattr(stmt.excluded, c) for c in updated},
             )
             await db.execute(stmt)
 

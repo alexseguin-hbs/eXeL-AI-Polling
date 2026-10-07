@@ -711,7 +711,7 @@ async def build_cqs_dashboard(
             "session_id": str(session_id),
             "total_scored": len(scores),
             "winner": {
-                "participant_id": str(winner.participant_id),
+                "participant_id": str(winner.participant_id) if winner.participant_id else None,
                 "composite_cqs": winner.composite_cqs,
                 "theme2_cluster_label": winner.theme2_cluster_label,
                 "is_winner": True,
@@ -1022,7 +1022,7 @@ async def announce_reward_winner(
             }
 
         winner_data = {
-            "participant_id": str(winner.participant_id),
+            "participant_id": str(winner.participant_id) if winner.participant_id else None,
             "composite_cqs": winner.composite_cqs,
             "theme2_cluster_label": winner.theme2_cluster_label,
         }
