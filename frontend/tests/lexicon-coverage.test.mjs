@@ -28,6 +28,9 @@ const AFTER_FILL = new Set([
   // retitled heading (its 32 stale fills removed — "Personal finance ladder A–M" → "Personal budget"). ENGLISH ONLY until the operator
   // says the English is final (addendum 30, the CLAUDE.md rule) — no fill is dispatched for these:
   ...['expand', 'collapse', 'ladder_title'].map((k) => `fin.${k}`),
+  // Financial-2525 Accrual settings lines (Income and Rate explained, the word Rate): ENGLISH ONLY until the operator says the
+  // English is final — staged, never filled early:
+  ...['def.income', 'def.rate', 'rate_name'].map((k) => `fin.${k}`),
   // Financial-2525 r.020 (addendum 34 — a month is 30.333 days, 91 is a quarter): per quarter added; per month and the two length
   // presets reworded (their stale fills removed). ENGLISH ONLY until the operator has tested the functionality (addendum 32):
   ...['per_quarter', 'per_month', 'rec.paymot', 'rec.month91'].map((k) => `fin.${k}`),
