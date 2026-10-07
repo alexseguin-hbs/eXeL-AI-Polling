@@ -173,6 +173,15 @@ jobs:
           set -o pipefail
           python -m pytest -q -rs -p no:cacheprovider 2>&1 | tee /tmp/backend-pytest.log
 
+      # A failure must be readable without the raw log (which some reviewers cannot reach): each failing test
+      # becomes an annotation on the check, with pytest's one-line reason.
+      - name: Name the failing tests
+        if: failure()
+        run: |
+          grep -E "^(FAILED|ERROR) " /tmp/backend-pytest.log | head -40 | while IFS= read -r line; do
+            echo "::error title=backend test::${line}"
+          done || true
+
       - name: The live-database proofs actually ran (not skipped)
         run: |
           if grep -E "SKIPPED .*(tests/live_db/|test_sql_tally_parity|test_ballot_cycle)" /tmp/backend-pytest.log; then
