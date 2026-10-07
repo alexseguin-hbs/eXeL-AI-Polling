@@ -24,7 +24,7 @@ const src = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusi
 ok(/accept=\{IMAGE_INTAKE\}/.test(src) && /accept=\{VIDEO_INTAKE\}/.test(src) && /fileToPng\(/.test(src), "Capture takes pictures and videos and turns pictures into PNG");
 ok(/peekNames\(label, total\.n, "png"\)/.test(src) && /addFromVideo[\s\S]{0,1800}image\/png/.test(src), "a video is split into PNG frames");
 ok(/captureMode === "pictures"/.test(src) && /ensurePng\(/.test(src), "pictures are their own intake, and Level 1 and Level 2 keep the PNG");
-ok(/placeSignature\([\s\S]{0,120}, 1, "1"\)/.test(src) && /drawImage\(base, 0, 0\)/.test(src) && !/Light Codex/.test(src), "the record is written at the bottom right, and the screen does not show it");
+ok(/signSingleHelix\(/.test(src) && !/placeSignature\(/.test(src) && /drawImage\(base, 0, 0\)/.test(src) && !/Light Codex/.test(src), "the picture uses the 1x1 single helix, and the screen does not show it");
 
 if (failures.length) {
   console.error(failures.map((item) => `FAIL: ${item}`).join("\n"));

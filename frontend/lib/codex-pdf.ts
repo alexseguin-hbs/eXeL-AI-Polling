@@ -75,7 +75,8 @@ export const codexAllText = (rows: { name: string; isoDate: string; contact?: st
 
 /** The Hidden Helix (style "3", 1 px, no frame) as a Light Codex PNG carries it (operator 00:45): a 1-px forward line
  *  on the top row and a 1-px reversed line on the bottom row, right-aligned — 2 px tall, at least a Letter page wide so
- *  1 px = 1 pt when drawn across the bottom edge. Raw RGBA pixels on white; invisible on the page, exact in the bytes. */
+ *  1 px = 1 pt when drawn across the bottom edge. Raw RGBA pixels on white; invisible on the page, exact in the bytes.
+ *  A picture uses signSingleHelix instead: 1×1, single helix, bottom right. */
 export const CODEX_BLOCK = 1 as const;
 export function codexImage(text: string, minWidth = 612): CodexImage {
   const w = Math.max(minWidth, text.length * 4 + 8), h = 2;

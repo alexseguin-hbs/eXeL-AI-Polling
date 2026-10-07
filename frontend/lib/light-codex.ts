@@ -136,6 +136,11 @@ export function placeSignature(src: ImageData, signature: string, blockSize: Blo
   return d;
 }
 
+/** Picture mark. 1×1 single helix, bottom right only. The PDF signer calls this same writer; its own strip stays the hidden helix. */
+export function signSingleHelix(src: ImageData, text: string): ImageData {
+  return placeSignature(src, text, 1, "1");
+}
+
 // ── Decode ───────────────────────────────────────────────────────────────────
 function nearestToken(rgb: [number, number, number]): string {
   let best = "B", bestDist = Infinity;

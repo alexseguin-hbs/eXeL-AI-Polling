@@ -8,7 +8,7 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
 import { IMAGE_INTAKE, VIDEO_INTAKE, bottomRightLine, pictureStem, pngSet, type VideoSource } from "@/lib/sensor-fusion/frames";
-import { placeSignature } from "@/lib/light-codex";
+import { signSingleHelix } from "@/lib/light-codex";
 import { crossReview, emptyClock, finalSubmission, level1Left, levelMetrics, nextFor, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
 import { supabase } from "@/lib/supabase";
 import {
@@ -809,7 +809,7 @@ function Labeler({
     const line = shownCodex(list);
     if (line && width >= (line.length + 8) * 4 && height >= 1) {
       try {
-        const signed = placeSignature(ctx.getImageData(0, 0, width, height), line, 1, "1");
+        const signed = signSingleHelix(ctx.getImageData(0, 0, width, height), line);
         ctx.putImageData(signed, 0, 0);
       } catch {
         /* The XML still names the person and the time. */
