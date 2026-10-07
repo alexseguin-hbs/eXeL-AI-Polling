@@ -135,8 +135,25 @@ class OfflineSummarization(SummarizationProvider):
                 out.append(f"T{i + 1}, {clean}, consolidated theme covering {clean.lower()}, 85%")
             return "\n".join(out)
 
+        # 5. CQS scoring (cqs_engine._CQS_INSTRUCTION): six integer metrics as JSON, derived from the text alone, so a
+        #    simulation scores and crowns a winner with no provider and no cost (Christo, Asar, Odin; AsM round 14).
+        if "Score the following response on these 6 metrics" in instr:
+            return _offline_cqs_json(text)
+
         # 5. Fallback = deterministic word-truncated summary (Phase A tiers, etc.).
         return truncate_to_words(text, 33)
+
+
+_CQS_KEYS = ("insight", "depth", "future_impact", "originality", "actionability", "relevance")
+
+
+def _offline_cqs_json(text: str) -> str:
+    """Deterministic CQS metrics 40-95: a length term (longer answers say more) plus a per-metric hash spread."""
+    words = len(text.split())
+    base = 40 + min(35, words // 4)
+    digest = hashlib.sha256(text.encode("utf-8")).digest()
+    vals = [min(95, base + digest[i] % 21) for i in range(len(_CQS_KEYS))]
+    return "{" + ", ".join(f'"{k}": {v}' for k, v in zip(_CQS_KEYS, vals)) + "}"
 
 
 def _parse_list_block(text: str) -> list[str]:

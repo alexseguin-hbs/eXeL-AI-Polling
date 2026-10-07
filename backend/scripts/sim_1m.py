@@ -199,6 +199,8 @@ async def bench_endpoint(dsn: str, runs: int) -> dict:
         "anomalies_seconds_median": med(anomalies_t),
         "aggregate_seconds_median": med(aggregate_t),
         "endpoint_seconds_all": [round(t, 3) for t in total],
+        # CQS runs after the aggregate request in its own task (AsM round 14), so it is not in these seconds (HP-39).
+        "excludes": "CQS scoring (background, after the request; HP-39)",
         "peak_rss_mb": round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024),
         "result_hash": hashlib.sha256(json.dumps(result, sort_keys=True).encode()).hexdigest(),
         "result": result,

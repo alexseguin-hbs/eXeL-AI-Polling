@@ -21,7 +21,7 @@ from sqlalchemy import text as sql_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.cubes.cube6_ai.providers.factory import get_summarization_provider_or_offline
+from app.cubes.cube6_ai.providers.factory import get_summarization_provider_or_offline, provider_for_session
 from app.models.response_meta import ResponseMeta
 from app.models.response_summary import ResponseSummary
 from app.models.session import Session
@@ -51,6 +51,7 @@ async def score_cqs(
     top_theme2_label: str,
     theme_level: str = "3",
     commit: bool = True,
+    stats: dict | None = None,
 ) -> list[dict]:
     """Score responses in the #1 most-voted Theme2 cluster for CQS reward.
 
@@ -77,8 +78,12 @@ async def score_cqs(
     if _is_postgres(db):
         await db.execute(sql_text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": f"cqs:{session_id}"})
 
-    provider_name = session.ai_provider or "openai"
+    # Behind the simulation cost guard, like phase A and run_pipeline: a simulation without an HI-approved estimate
+    # scores on OFFLINE, never a paid provider (Odin, Christo, Pangu; AsM round 14).
+    provider_name = provider_for_session(session)
     summarizer = get_summarization_provider_or_offline(provider_name)
+    # The provider that actually scored (a missing key falls back to offline): the stored row names it, not the request.
+    provider_name = getattr(getattr(summarizer, "provider_name", None), "value", None) or provider_name
     weights = session.cqs_weights or DEFAULT_CQS_WEIGHTS
 
     level_field = f"theme2_{theme_level}"
@@ -144,14 +149,22 @@ async def score_cqs(
         chunk_results = await summarizer.batch_summarize(chunk)
         results.extend(chunk_results)
 
+    if len(results) != len(eligible):  # zip() would silently drop answers (Asar, round 14)
+        raise RuntimeError(f"CQS provider returned {len(results)} results for {len(eligible)} answers")
+
+    unscored = 0
+    if stats is not None:
+        stats["eligible"] = len(eligible)
     for s, result_text in zip(eligible, results):
-        try:
-            scores = json.loads(result_text)
-        except (json.JSONDecodeError, TypeError):
-            scores = {m: 50 for m in _CQS_METRICS}
+        scores = _parse_cqs(result_text)
+        if scores is None:
+            # The provider could not score this answer (empty, not JSON, a metric missing): it is left out, never
+            # entered at 50 on every metric where it could win the reward (Christo, Asar; AsM round 14).
+            unscored += 1
+            continue
 
         composite = sum(
-            scores.get(m, 50) * weights.get(m, DEFAULT_CQS_WEIGHTS[m])
+            scores[m] * weights.get(m, DEFAULT_CQS_WEIGHTS[m])
             for m in _CQS_METRICS
         )
 
@@ -161,12 +174,12 @@ async def score_cqs(
             participant_id=meta_map.get(s.response_meta_id),  # None for an anonymous answer (round 12)
             theme2_cluster_label=safe_theme_label,
             theme_confidence=(getattr(s, conf_field, 0) or 0) / 100.0,
-            insight_score=float(scores.get("insight", 50)),
-            depth_score=float(scores.get("depth", 50)),
-            future_impact_score=float(scores.get("future_impact", 50)),
-            originality_score=float(scores.get("originality", 50)),
-            actionability_score=float(scores.get("actionability", 50)),
-            relevance_score=float(scores.get("relevance", 50)),
+            insight_score=float(scores["insight"]),
+            depth_score=float(scores["depth"]),
+            future_impact_score=float(scores["future_impact"]),
+            originality_score=float(scores["originality"]),
+            actionability_score=float(scores["actionability"]),
+            relevance_score=float(scores["relevance"]),
             composite_cqs=round(composite, 2),
             is_winner=False,
             provider=provider_name,
@@ -175,9 +188,11 @@ async def score_cqs(
         scored.append({
             "response_id": str(s.response_meta_id),
             "composite_cqs": round(composite, 2),
-            "scores": {m: scores.get(m, 50) for m in _CQS_METRICS},
+            "scores": {m: scores[m] for m in _CQS_METRICS},
         })
 
+    if stats is not None:
+        stats["unscored"] = unscored
     if commit:
         await db.commit()
 
@@ -185,10 +200,28 @@ async def score_cqs(
         "cube6.cqs.scored",
         session_id=str(session_id),
         eligible_count=len(eligible),
+        unscored=unscored,
         top_theme=top_theme2_label,
     )
 
     return scored
+
+
+def _parse_cqs(result_text: str) -> dict | None:
+    """Six integer metrics 0-100 from the provider's JSON, or None when the answer was not really scored."""
+    try:
+        raw = json.loads(result_text)
+    except (json.JSONDecodeError, TypeError):
+        return None
+    if not isinstance(raw, dict):
+        return None
+    out = {}
+    for m in _CQS_METRICS:
+        v = raw.get(m)
+        if isinstance(v, bool) or not isinstance(v, (int, float)) or not 0 <= v <= 100:
+            return None
+        out[m] = v
+    return out
 
 
 def select_cqs_winner(
@@ -231,13 +264,16 @@ async def run_cqs_pipeline(
 
     # Scores and winner in ONE transaction, under the scoring lock: a concurrent run can neither delete these rows
     # between the two steps nor leave a second winner (Odin, round 13).
-    scored = await score_cqs(db, session_id, top_theme2_label, theme_level, commit=False)
+    stats: dict = {}
+    scored = await score_cqs(db, session_id, top_theme2_label, theme_level, commit=False, stats=stats)
 
     if not scored:
         await (db.commit() if commit else db.flush())
+        # Eligible answers but none really scored = the provider failed: no winner is crowned (Christo, Asar; r14).
+        status = "provider_unavailable" if stats.get("eligible") else "no_eligible"
         return {
             "session_id": str(session_id),
-            "status": "no_eligible",
+            "status": status,
             "winner": None,
         }
 

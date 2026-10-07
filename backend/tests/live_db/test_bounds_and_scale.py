@@ -319,5 +319,70 @@ async def test_ranking_aggregation_scores_cqs(live):
         ok(await client.post(f"{A}/{sid}/rankings", json={"ranked_theme_ids": ballots[i]}), what=f"ballot {i}")
     who.moderator()
     ok(await client.post(f"{A}/{sid}/rankings/aggregate"), what="aggregate")
-    rows, winners = await _cqs_counts(sid)
+    # CQS runs after the aggregate request, in its own transaction (AsM round 14): the response never waits on it.
+    for _ in range(100):
+        rows, winners = await _cqs_counts(sid)
+        if (rows, winners) == (n, 1):
+            break
+        await asyncio.sleep(0.1)
     assert (rows, winners) == (n, 1), f"aggregation scored CQS on the winning theme: {rows} scores, {winners} winners"
+
+
+async def test_cqs_never_crowns_unscored_answers(live, monkeypatch):
+    """A provider that cannot score (empty or invalid JSON) never puts an answer in the reward at 50 on every metric:
+    with nothing scored there is no winner, and with one real score only that answer competes (Christo, Asar; r14)."""
+    import html
+
+    import app.cubes.cube6_ai.cqs_engine as engine
+
+    client, who = live
+    sid, n = await _themed_session(client, who, "CQS provider down", "anonymous")
+    await _pin(sid, html.escape("Privacy & Trust"), 99)
+    replies = {"all": ""}
+
+    class _Down:
+        async def batch_summarize(self, items, timeout=120.0):
+            out = [replies["all"]] * len(items)
+            if replies.get("first"):
+                out[0] = replies["first"]
+            return out
+
+    monkeypatch.setattr(engine, "get_summarization_provider_or_offline", lambda name: _Down())
+    who.moderator()
+    r = ok(await client.post(f"{A}/{sid}/ai/cqs", params={"top_theme2_label": "Privacy & Trust", "theme_level": "3"}),
+           what="cqs provider down").json()
+    assert r.get("status") == "provider_unavailable" and not r.get("winner"), r
+    assert await _cqs_counts(sid) == (0, 0), "nothing scored: no score rows, no winner"
+    replies["all"], replies["first"] = "not json", (
+        '{"insight": 70, "depth": 70, "future_impact": 70, "originality": 70, "actionability": 70, "relevance": 70}')
+    ok(await client.post(f"{A}/{sid}/ai/cqs", params={"top_theme2_label": "Privacy & Trust", "theme_level": "3"}),
+       what="cqs one scored")
+    assert await _cqs_counts(sid) == (1, 1), "only the answer the provider really scored competes, and wins"
+
+
+async def test_simulation_cqs_stays_offline_without_approval(live):
+    """A simulation session asking for a paid provider, with no HI-approved estimate, scores CQS on OFFLINE (Odin,
+    Christo, Pangu; r14) — the ranking → CQS handoff no longer goes around the simulation cost guard."""
+    import html
+
+    import app.db.postgres as pg
+    from sqlalchemy import select, update
+
+    from app.models.cqs_score import CQSScore
+    from app.models.session import Session
+
+    client, who = live
+    sid, n = await _themed_session(client, who, "CQS simulation", "anonymous")
+    await _pin(sid, html.escape("Privacy & Trust"), 99)
+    async with pg.async_session_factory() as db:
+        await db.execute(update(Session).where(Session.id == uuid.UUID(sid)).values(
+            session_type="simulation", ai_provider="openai"))
+        await db.commit()
+    who.moderator()
+    ok(await client.post(f"{A}/{sid}/ai/cqs", params={"top_theme2_label": "Privacy & Trust", "theme_level": "3"}),
+       what="cqs simulation")
+    async with pg.async_session_factory() as db:
+        providers = set((await db.execute(select(CQSScore.provider).where(
+            CQSScore.session_id == uuid.UUID(sid)))).scalars().all())
+    assert providers == {"offline"}, f"a simulation without an approved estimate scores offline: {providers}"
+    assert await _cqs_counts(sid) == (n, 1)

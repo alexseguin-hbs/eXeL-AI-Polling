@@ -883,6 +883,7 @@ async def trigger_cqs_scoring(
     replay_hash: str | None = None,
     top_theme2_label: str | None = None,
     theme_level: str = "3",
+    background: bool = False,
 ) -> PipelineTrigger:
     """Trigger CQS scoring after Cube 7 ranking completes (G3: real scoring, guarded).
 
@@ -920,6 +921,15 @@ async def trigger_cqs_scoring(
         after=metadata,
     )
 
+    # Off the ranking request (Krishna, Christo, Asar, Pangu, Athena; AsM round 14): the provider calls never hold the
+    # aggregate response or its transaction. Scoring runs in its own session and transaction, bounded by the pipeline
+    # semaphore and a timeout.
+    if top_theme2_label and background:
+        task = asyncio.create_task(_score_cqs_background(session_id, top_theme2_label, theme_level))
+        _cqs_tasks.add(task)
+        task.add_done_callback(_cqs_tasks.discard)
+        return trigger
+
     # G3: fire the REAL scoring when a Theme2 label is resolvable (guarded).
     if top_theme2_label:
         try:
@@ -939,6 +949,26 @@ async def trigger_cqs_scoring(
             )
 
     return trigger
+
+
+_cqs_tasks: set[asyncio.Task] = set()  # strong references: a bare create_task may be collected mid-run
+CQS_TIMEOUT_SEC = 600
+
+
+async def _score_cqs_background(session_id: uuid.UUID, label: str, theme_level: str) -> None:
+    """CQS in its own session + transaction, after the ranking request. Never raises (it is a fire-and-forget task)."""
+    from app.cubes.cube6_ai.cqs_engine import run_cqs_pipeline
+    from app.db.postgres import async_session_factory
+
+    try:
+        async with _pipeline_semaphore:
+            async with async_session_factory() as bg_db:
+                cqs = await asyncio.wait_for(
+                    run_cqs_pipeline(bg_db, session_id, label, theme_level), timeout=CQS_TIMEOUT_SEC
+                )
+        logger.info("cube5.cqs.scored", extra={"session_id": str(session_id), "status": cqs.get("status")})
+    except Exception as exc:  # noqa: BLE001 — a scoring failure never reaches the ranking that triggered it
+        logger.warning("cube5.cqs.background_failed: %s", exc, extra={"session_id": str(session_id)})
 
 
 async def orchestrate_post_polling(

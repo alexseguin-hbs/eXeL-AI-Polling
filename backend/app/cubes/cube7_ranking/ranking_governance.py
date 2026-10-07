@@ -175,23 +175,16 @@ async def emit_ranking_complete(
             participant_count=participant_count,
             replay_hash=replay_hash,
             # The label and level the scoring needs: without them trigger_cqs_scoring only ever recorded a trigger,
-            # so no ranking ever scored CQS (Krishna, round 13). The label is the stored Theme.label.
+            # so no ranking ever scored CQS (Krishna, round 13). The label is the stored Theme.label. Scoring runs
+            # after this request, in its own transaction (AsM round 14).
             top_theme2_label=top_theme2_label,
             theme_level=theme_level if theme_level in ("3", "6", "9") else "3",
+            background=True,
         )
         logger.info(
             "cube7.cqs.triggered",
             extra={"session_id": str(session_id), "top_theme2_id": top_theme2_id},
         )
-    except TypeError:
-        # Cube 5 may not yet accept the extended kwargs — fall back to legacy
-        try:
-            await trigger_cqs_scoring(db, session_id, top_theme2_id=top_theme2_id)
-        except Exception as exc:
-            logger.warning(
-                "cube7.cqs.trigger_failed_fallback",
-                extra={"session_id": str(session_id), "error": str(exc)},
-            )
     except Exception as exc:
         logger.warning(
             "cube7.cqs.trigger_failed",
@@ -668,6 +661,10 @@ async def run_ranking_pipeline(
     replay_hash = getattr(aggregated[0], "_replay_hash", None) if aggregated else None
     weight_audit = getattr(aggregated[0], "_weight_audit", None) if aggregated else None
     algorithm = aggregated[0].algorithm if aggregated else "borda_count"
+
+    # The aggregation is committed before anything announces it: the broadcast, the webhook and CQS never point at
+    # rows a reader cannot see yet (Pangu, Christo; AsM round 14).
+    await db.commit()
 
     # 5. Emit ranking complete + trigger CQS with the full contract payload
     #    (Krishna audit — 2026-07-03: no more broadcast field drift)
