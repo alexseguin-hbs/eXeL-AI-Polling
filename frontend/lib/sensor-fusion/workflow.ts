@@ -294,6 +294,49 @@ export function crossReview(box: WorkBox, who: string, when: string, pages: { bo
   return acceptMark(box, who, when);
 }
 
+export type SwarmPage = { id: string; boxes: { by?: string; level?: number; reviewer?: string }[] };
+
+function pageLabeled(page: SwarmPage) {
+  return page.boxes.some((box) => box.by);
+}
+
+function pageReviewed(page: SwarmPage) {
+  return page.boxes.length > 0 && page.boxes.every((box) => box.level === 2 && !!box.reviewer && !!box.by && !sameMember(box.reviewer, box.by || ""));
+}
+
+function pageMine(page: SwarmPage, who: string) {
+  return pageLabeled(page) && !pageReviewed(page) && page.boxes.some((box) => box.by && !sameMember(box.by, who));
+}
+
+/** What the whole set still needs, in one sentence. The same numbers for every person. */
+export function swarmStatus(pages: SwarmPage[], who: string) {
+  const pictures = pages.length;
+  const labelLeft = pages.filter((page) => !pageLabeled(page)).length;
+  const reviewLeft = pages.filter((page) => pageLabeled(page) && !pageReviewed(page)).length;
+  const mine = pages.filter((page) => pageMine(page, who)).length;
+  const done = pictures > 0 && labelLeft === 0 && reviewLeft === 0;
+  const note = !pictures
+    ? "Add pictures. Two people share the labeling."
+    : labelLeft
+      ? `${labelLeft} left to label. Level 2 waits.`
+      : mine
+        ? `Labeling is done. ${mine} left for you to review.`
+        : reviewLeft
+          ? `Labeling is done. ${reviewLeft} left for the other person.`
+          : "Mission complete.";
+  return { pictures, labelLeft, reviewLeft, mine, done, note };
+}
+
+/** The next picture this person can do. Labeling comes first. Then only the other person's boxes. */
+export function nextFor(pages: SwarmPage[], who: string, current: string) {
+  const status = swarmStatus(pages, who);
+  if (!pages.length || status.done) return { id: current, ...status };
+  const start = Math.max(0, pages.findIndex((page) => page.id === current));
+  const order = [...pages.slice(start + 1), ...pages.slice(0, start + 1)];
+  const next = status.labelLeft ? order.find((page) => !pageLabeled(page)) : order.find((page) => pageMine(page, who));
+  return { id: next?.id || current, ...status };
+}
+
 /**
  * Two people share Level 1. When every picture has a box, each reviews the other's.
  * Nothing is saved and nothing is uploaded.

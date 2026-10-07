@@ -7,7 +7,7 @@ import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT } from "@/lib/sensor-fusion/pair";
-import { crossReview, emptyClock, finalSubmission, level1Left, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
+import { crossReview, emptyClock, finalSubmission, level1Left, nextFor, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, swarmStatus, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
 import { placeSignature } from "@/lib/light-codex";
 import { supabase } from "@/lib/supabase";
 import {
@@ -688,6 +688,14 @@ function Labeler({
     }
   }
 
+  function goNext() {
+    const pages = pics.map((shot) => ({ id: shot.id, boxes: marks[shot.id] || [] }));
+    const step = nextFor(pages, who || "guest", pic?.id || "");
+    const at = pics.findIndex((shot) => shot.id === step.id);
+    if (at >= 0) setIndex(at);
+    setNote(step.note);
+  }
+
   function touchWork(picture: string, kind: "annotate" | "level2" | "adjust") {
     remember(noteWork(clock, who || "guest", picture, kind));
   }
@@ -1120,11 +1128,13 @@ function Labeler({
         <div className={styles.labelDock}>
         <div className={styles.workLine}>
           <button type="button" onClick={toggleClock}>{clock.open ? "STOP" : "START"}</button>
+          <button type="button" onClick={goNext}>NEXT</button>
           <button type="button" onClick={runSim}>SIM 200</button>
           <p>
             {workflowLines(clock, Date.now() + Math.min(tick, 0)).map((line) => `${line.member} ${line.seconds}s · ${line.images} images · ${line.adjustments} Level 2 ${line.adjustments === 1 ? "change" : "changes"} · ${siTokens(line.seconds)} S.I.`).join("  ·  ") || "START begins the clock."}
           </p>
         </div>
+        <p className={styles.swarm}>{swarmStatus(pics.map((shot) => ({ id: shot.id, boxes: marks[shot.id] || [] })), who || "guest").note}</p>
         <div className={styles.labelBar}>
           <button type="button" onClick={saveBox} disabled={!pic}>
             SAVE BOX

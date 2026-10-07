@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { readyForProject, codexLine } from "../lib/sensor-fusion/pair.ts";
-import { acceptMark, crossReview, emptyClock, finalSubmission, noteWork, saveMark, siTokens, simulateClass, simulatePair, SIM_ANIMALS, SIM_LABELERS, SIM_REVIEWER, startClock, stopClock, workflowLines } from "../lib/sensor-fusion/workflow.ts";
+import { acceptMark, crossReview, emptyClock, finalSubmission, nextFor, noteWork, saveMark, siTokens, simulateClass, simulatePair, swarmStatus, SIM_ANIMALS, SIM_LABELERS, SIM_REVIEWER, startClock, stopClock, workflowLines } from "../lib/sensor-fusion/workflow.ts";
 
 let passed = 0;
 const failures = [];
@@ -113,6 +113,22 @@ const pairRiley = pair.ok ? pair.packet.contributors.find((line) => line.member 
 ok(!!pairAlex && !!pairRiley && pairAlex.images === 200 && pairRiley.images === 200 && pairAlex.reviews === 100 && pairRiley.reviews === 100, "each person labels half and reviews the other's half");
 ok(pair.ok === true && pair.packet.images.every((image) => image.boxes[0].by !== image.boxes[0].reviewer), "neither person reviews their own box");
 ok(pair.ok === true && pairAlex?.seconds === 1100 && pairRiley?.seconds === 1100 && pair.packet.si === 38, "each person has 1,100 seconds, 19 S.I., and the pair total is 38");
+
+const openSet = Array.from({ length: 200 }, (_, index) => ({
+  id: String(index),
+  boxes: index < 199 ? [{ by: index % 2 === 0 ? "ALEX" : "RILEY", level: 1 }] : [],
+}));
+ok(swarmStatus(openSet, "Alex").labelLeft === 1 && swarmStatus(openSet, "Alex").note === "1 left to label. Level 2 waits.", "both people see the one picture still open");
+ok(nextFor(openSet, "Riley", "0").id === "199", "NEXT opens the picture that still needs a box");
+const labeledSet = openSet.map((page) => (page.boxes.length ? page : { ...page, boxes: [{ by: "RILEY", level: 1 }] }));
+const alexTurn = nextFor(labeledSet, "Alex", "0");
+ok(alexTurn.mine === 100 && alexTurn.id === "1" && alexTurn.note === "Labeling is done. 100 left for you to review.", "NEXT gives Alex only Riley's pictures");
+ok(nextFor(labeledSet, "Riley", "1").id === "2", "NEXT gives Riley the next picture Alex labeled");
+const finished = labeledSet.map((page) => ({
+  id: page.id,
+  boxes: [{ by: page.boxes[0].by, reviewer: page.boxes[0].by === "ALEX" ? "RILEY" : "ALEX", level: 2 }],
+}));
+ok(swarmStatus(finished, "Alex").done && swarmStatus(finished, "Riley").note === "Mission complete.", "both people see the same done line");
 
 const page = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8");
 ok(/saveMark\(/.test(page) && /crossReview\(/.test(page) && /clock\.open \? "STOP" : "START"/.test(page), "the screen uses the clock and keeps the first person's name");
