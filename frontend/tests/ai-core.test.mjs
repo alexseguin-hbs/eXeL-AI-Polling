@@ -25,8 +25,8 @@ ok(calls.at(-1).url.startsWith("https://api.openai.com/") && calls.at(-1).init.h
 mock({ candidates: [{ content: { parts: [{ text: '{"x":0.5,"y":0.52,"w":0.33,"h":0.035,"date":null,"confidence":0.7}' }] } }] });
 r = await J(await handleAi(req({ task: "place", image: PNG, signer: "Daniel Vail", provider: "gemini" }), { GEMINI_API_KEY: "gk" }));
 const gi = JSON.parse(calls.at(-1).init.body);
-ok(r.status === 200 && r.body.provider === "gemini" && r.body.model === "gemini-1.5-flash" && r.body.result.x === 0.5 && r.body.result.date === null, "gemini place → fractions, no date");
-ok(/generativelanguage\.googleapis\.com\/v1beta\/models\/gemini-1\.5-flash:generateContent\?key=gk$/.test(calls.at(-1).url) && gi.contents[0].parts[1].inline_data.data === "iVBORw0KGgo=" && gi.generationConfig.response_mime_type === "application/json", "gemini request: key in the URL, inline_data, JSON mime");
+ok(r.status === 200 && r.body.provider === "gemini" && r.body.model === "gemini-3.5-flash-lite" && r.body.result.x === 0.5 && r.body.result.date === null, "gemini place → fractions, no date");
+ok(/generativelanguage\.googleapis\.com\/v1beta\/models\/gemini-3\.5-flash-lite:generateContent\?key=gk$/.test(calls.at(-1).url) && gi.contents[0].parts[1].inline_data.data === "iVBORw0KGgo=" && gi.generationConfig.response_mime_type === "application/json", "gemini request: key in the URL, inline_data, JSON mime");
 
 // Grok (xAI): OpenAI-compatible endpoint, vision model for placement, text model for drafts
 mock({ choices: [{ message: { content: '{"x":null,"confidence":0}' } }] });
@@ -56,7 +56,7 @@ globalThis.fetch = realFetch;
   ok(d.status === 200 && d.body.provider === "claude" && d.body.model === "claude-opus-5", `auto with only Claude configured uses Claude (${d.body.provider} ${d.body.model})`);
   mock({ candidates: [{ content: { parts: [{ text: '{"title":"T","body":"B","signers":[]}' }] } }] });
   const cheap = await J(await handleAi(req({ task: "draft", prompt: "A child and a parent agree the child studies 60 minutes a day" }), { ANTHROPIC_API_KEY: "sk-ant-x", OPENAI_API_KEY: "k", GEMINI_API_KEY: "gk" }));
-  ok(cheap.status === 200 && cheap.body.provider === "gemini" && cheap.body.model === "gemini-1.5-flash", `auto picks cheapest configured (gemini) when several keys exist (got ${cheap.body.provider})`);
+  ok(cheap.status === 200 && cheap.body.provider === "gemini" && cheap.body.model === "gemini-3.5-flash-lite", `auto picks cheapest configured (gemini) when several keys exist (got ${cheap.body.provider})`);
   ok(c.url === "https://api.anthropic.com/v1/messages" && c.init.headers["x-api-key"] === "sk-ant-x" && c.init.headers["anthropic-version"] === "2023-06-01" && sent.model === "claude-opus-5" && sent.max_tokens >= 4000 && sent.messages[0].role === "user", "the Messages API request has the right endpoint, headers, model and shape");
   const promptText = sent.messages[0].content[0].text;
   ok(/Parent: Alex Seguin; Child: Lucas Seguin/.test(promptText) && /WHOLE document/.test(promptText) && /Signatures/.test(promptText) && /governing law/i.test(promptText), "the draft prompt asks for a complete legal document and carries the typed names and roles");
