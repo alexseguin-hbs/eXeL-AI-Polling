@@ -70,7 +70,7 @@ export function upperLeftLine(boxes: { name: string; level: number; xmin: number
   return line;
 }
 
-/** The picture mark. Same line the project packet uses. A blank time writes nothing. */
+/** The picture mark. Level 1 is written first, so the 1×1 line places it in the bottom-right corner. Level 2 continues to the left, the same way a later PDF signer sits left of the first. A blank time writes nothing. */
 export function bottomRightLine(who: string, when: string, reviewer = "", reviewedAt = "") {
   const time = when.replace(/[^0-9._]/g, "");
   if (!time) return "";

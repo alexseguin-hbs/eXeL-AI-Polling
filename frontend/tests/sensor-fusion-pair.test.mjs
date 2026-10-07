@@ -63,5 +63,23 @@ const stamped = signSingleHelix(signUpperLeft(new ImageData(blank, w, h), upperL
 const read = readCorners(stamped);
 ok(read.upperLeft === "DEER 12 40 80 90" && read.bottomRight === personLine, "the two lines read back from their own corners");
 
+const level1 = "LEVEL 1: ALEX SEGUIN 2026.10.05_22.23..24";
+const both = bottomRightLine("Alex Seguin", "2026.10.05_22.23..24", "ID123456789", "2026.10.05_22.31..02");
+ok(both.startsWith(level1) && both.endsWith("LEVEL 2: ID123456789 2026.10.05_22.31..02"), "Level 1 is first in the line and Level 2 follows");
+const wide = 960;
+const field = () => {
+  const data = new Uint8ClampedArray(wide * 4 * 4);
+  for (let i = 0; i < data.length; i += 4) { data[i] = 20; data[i + 1] = 60; data[i + 2] = 20; data[i + 3] = 255; }
+  return new ImageData(data, wide, 4);
+};
+const corner = signSingleHelix(field(), level1);
+const later = signSingleHelix(field(), both);
+const rowAt = (img, x) => { const i = ((img.height - 1) * img.width + x) * 4; return `${img.data[i]},${img.data[i + 1]},${img.data[i + 2]}`; };
+const level1Edge = level1.length * 4 + 16;
+let cornerSame = true;
+for (let x = wide - level1Edge; x < wide; x++) if (rowAt(corner, x) !== rowAt(later, x)) cornerSame = false;
+ok(cornerSame, "Level 1 sits in the bottom-right corner");
+ok(rowAt(corner, wide - level1Edge - 4) !== rowAt(later, wide - level1Edge - 4), "Level 2 sits to the left of Level 1");
+
 console.log(fail ? `${pass} passed, ${fail} failed` : `${pass} passed`);
 process.exit(fail ? 1 : 0);
