@@ -3,10 +3,11 @@
 import re
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_optional_current_user
+from app.core.rate_limit import limiter
 from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
 from app.core.permissions import require_role
@@ -65,7 +66,9 @@ async def get_ai_status(
 
 
 @router.post("/ai/cqs", status_code=202)
+@limiter.limit("10/minute")  # each call runs a provider-backed scoring of the whole winning theme (Krishna, r16)
 async def run_cqs_scoring(
+    request: Request,
     session_id: uuid.UUID,
     top_theme2_label: str,
     theme_level: str = "3",
@@ -92,18 +95,22 @@ async def run_cqs_scoring(
 
     if not top_theme2_label or len(top_theme2_label) > 200:
         raise HTTPException(status_code=400, detail="Invalid theme label")
-    stored = (await db.execute(
-        _select(Theme.label).where(
+    found = (await db.execute(
+        _select(Theme.label, Theme.parent_theme_id).where(
             Theme.session_id == session_id,
             Theme.parent_theme_id.isnot(None),
             Theme.label.in_({top_theme2_label, _html.escape(top_theme2_label)}),
-        ).limit(1)
-    )).scalar_one_or_none()
-    if stored is None:
+        ).order_by(Theme.response_count.desc(), Theme.id).limit(1)
+    )).one_or_none()
+    if found is None:
         raise HTTPException(status_code=400, detail="That theme is not one of this session's themes")
-    return await service.run_cqs_pipeline(
-        db, session_id, stored, theme_level
-    )
+    stored, parent_id = found
+    category = (await db.execute(_select(Theme.label).where(Theme.id == parent_id))).scalar_one_or_none()
+    # The same tracked path as the ranking handoff: its own trigger, CQS capacity, timeout and failure cleanup, scoped
+    # to the theme's own Theme01 category (Krishna, round 16).
+    from app.cubes.cube5_gateway.service import run_cqs_tracked
+
+    return await run_cqs_tracked(db, session_id, stored, theme_level, category)
 
 
 @router.get("/themes", response_model=list[ThemeRead])

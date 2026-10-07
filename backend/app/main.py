@@ -1,5 +1,6 @@
 """SoI Polling Tool — FastAPI Application."""
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -82,8 +83,19 @@ async def lifespan(app: FastAPI):
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    # Background pipelines are in-process: a restart cuts them off. Close what an earlier process left open, and on
+    # shutdown let CQS finish or cancel it cleanly (Odin, Pangu; AsM round 16; durable queue = HP-40).
+    from app.cubes.cube5_gateway.service import shutdown_background_work, sweep_orphaned_triggers
+    from app.db.postgres import async_session_factory
+
+    try:
+        async with async_session_factory() as db:
+            await sweep_orphaned_triggers(db)
+    except Exception:  # noqa: BLE001 — a sweep failure never blocks startup
+        logging.getLogger(__name__).exception("startup.sweep_orphaned_triggers_failed")
     yield
     # Shutdown
+    await shutdown_background_work()
     await close_postgres()
 
 

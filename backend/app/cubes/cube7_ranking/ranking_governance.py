@@ -90,17 +90,22 @@ async def emit_ranking_complete(
     top_theme2_id = str(winner.theme_id) if winner else None
 
     top_theme2_label = None
-    winner_category = theme01_category
+    winner_category = None
     if winner:
         theme_result = await db.execute(
             select(Theme.label, Theme.parent_theme_id).where(Theme.id == winner.theme_id)
         )
         row = theme_result.one_or_none()
         top_theme2_label = row[0] if row else None
-        if row and row[1] and not winner_category:
-            # The winning theme's own Theme01 category (its parent's label = the answers' theme01): one Theme02 label
-            # can exist under two categories, and only the winner's category competes for CQS (Enki, round 15).
+        if row and row[1]:
+            # The winning theme's own Theme01 LABEL (its parent's label = the answers' theme01): one Theme02 label can
+            # exist under two categories, and only the winner's competes for CQS (Enki, round 15). Always the label —
+            # the session's theme01_category is a KEY ('risk'), which matched no answer (Enki, Thoth, Christo, r16).
             winner_category = (await db.execute(select(Theme.label).where(Theme.id == row[1]))).scalar_one_or_none()
+    if winner_category is None and theme01_category:
+        from app.cubes.cube6_ai.pipeline import _CATEGORY_KEYS
+
+        winner_category = {key: label for label, key in _CATEGORY_KEYS.items()}.get(theme01_category, theme01_category)
 
     # Fall back to values on the winner row if callers didn't supply them.
     if algorithm is None and winner is not None:

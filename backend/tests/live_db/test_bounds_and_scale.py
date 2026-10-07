@@ -521,3 +521,104 @@ async def test_cqs_scores_only_the_winning_category(live):
         scored = set((await db.execute(select(CQSScore.response_id).where(
             CQSScore.session_id == uuid.UUID(sid)))).scalars().all())
     assert scored == set(ids[1:]), "only the winning category's answers compete"
+
+
+async def test_configured_category_session_reaches_cqs_through_aggregate(live):
+    """A session whose theme01_category is configured (the KEY, e.g. 'risk' — the Cube 10 console and the ranking
+    config set it) ranks inside that category and CQS crowns a winner through POST /rankings/aggregate: CQS compares
+    the winner's Theme01 LABEL, never the key (Enki, Thoth, Christo, Aset, Asar; round 16)."""
+    import app.db.postgres as pg
+    from sqlalchemy import select, update
+
+    from app.cubes.cube5_gateway.service import drain_cqs_tasks
+    from app.models.response_summary import ResponseSummary
+    from app.models.session import Session
+    from app.models.theme import Theme
+
+    client, who = live
+    sid, n = await _themed_session(client, who, "Configured category", "identified")
+    who.moderator()
+    themes = ok(await client.get(f"{A}/{sid}/themes"), what="themes").json()
+    level = str((await client.get(f"{A}/{sid}")).json().get("theme2_voting_level") or "theme2_9").split("_")[-1]
+    at_level = [t for t in themes if t.get("parent_theme_id") and t.get("label")
+                and str(t.get("theme_level") or (t.get("cluster_metadata") or {}).get("level")) == level]
+    key = at_level[0]["theme01_category"]
+    ballot = [t for t in at_level if t["theme01_category"] == key]
+    async with pg.async_session_factory() as db:
+        parent_label = (await db.execute(select(Theme.label).where(
+            Theme.id == uuid.UUID(ballot[0]["parent_theme_id"])))).scalar_one()
+        await db.execute(update(Session).where(Session.id == uuid.UUID(sid)).values(theme01_category=key))
+        await db.execute(update(ResponseSummary).where(ResponseSummary.session_id == uuid.UUID(sid)).values(
+            theme01=parent_label, **{f"theme2_{level}": ballot[0]["label"], f"theme2_{level}_confidence": 99}))
+        await db.commit()
+    assert key in ("risk", "support", "neutral") and parent_label != key
+    ids = [t["id"] for t in ballot]
+    rest = ids[1:]
+    ballots = [[ids[0]] + rest, [ids[0]] + rest[::-1], [rest[0], ids[0]] + rest[1:]] if rest else [ids] * 3
+    for i in range(n):
+        who.be(f"google-oauth2|Conf{i}", role="user")
+        ok(await client.post(f"{A}/{sid}/rankings", json={"ranked_theme_ids": ballots[i]}), what=f"ballot {i}")
+    who.moderator()
+    ok(await client.post(f"{A}/{sid}/rankings/aggregate"), what="aggregate")
+    await drain_cqs_tasks()
+    assert await _cqs_counts(sid) == (n, 1), f"configured '{key}' session: {await _cqs_counts(sid)}"
+    assert await _cqs_triggers(sid) == [("completed", "completed", None)], await _cqs_triggers(sid)
+
+
+async def test_interrupted_cqs_clears_the_old_winner_and_closes_its_trigger(live, monkeypatch):
+    """A shutdown mid-run (CancelledError, not an Exception) still clears the stale winner and marks the trigger
+    failed; the manual route records its run too (Odin, Pangu, Krishna; round 16)."""
+    import html
+
+    import app.cubes.cube6_ai.cqs_engine as engine
+    from app.cubes.cube5_gateway.service import _schedule_cqs, shutdown_background_work
+
+    client, who = live
+    sid, n = await _themed_session(client, who, "CQS interrupted", "anonymous")
+    await _pin(sid, html.escape("Privacy & Trust"), 99)
+    who.moderator()
+    ok(await client.post(f"{A}/{sid}/ai/cqs", params={"top_theme2_label": "Privacy & Trust", "theme_level": "3"}),
+       what="manual cqs")
+    assert await _cqs_counts(sid) == (n, 1)
+    assert await _cqs_triggers(sid) == [("completed", "completed", None)], "the manual run records its trigger"
+
+    started = asyncio.Event()
+
+    class _Slow:
+        async def batch_summarize(self, items, timeout=120.0):
+            started.set()
+            await asyncio.sleep(60)
+            return [""] * len(items)
+
+    monkeypatch.setattr(engine, "get_summarization_provider_or_offline", lambda name: _Slow())
+    _schedule_cqs(uuid.UUID(sid), (html.escape("Privacy & Trust"), "3", None, None))
+    await asyncio.wait_for(started.wait(), timeout=20)
+    await shutdown_background_work(grace=0.2)
+    assert await _cqs_counts(sid) == (0, 0), "an interrupted re-score leaves no old winner"
+
+
+async def test_startup_sweep_closes_orphaned_triggers(live):
+    """A background trigger left pending/in_progress by a restart is marked failed at startup (Odin, round 16)."""
+    from datetime import timedelta
+
+    import app.db.postgres as pg
+    from sqlalchemy import select
+
+    from app.cubes.cube5_gateway.service import sweep_orphaned_triggers
+    from app.models.pipeline_trigger import PipelineTrigger
+
+    client, who = live
+    s, q = await _session(client, who, "Orphans")
+    sid = uuid.UUID(s["id"])
+    old = datetime.now(timezone.utc) - timedelta(hours=2)
+    async with pg.async_session_factory() as db:
+        stale = PipelineTrigger(session_id=sid, trigger_type="cqs_scoring", status="in_progress", triggered_at=old)
+        fresh = PipelineTrigger(session_id=sid, trigger_type="ai_theming", status="in_progress",
+                                triggered_at=datetime.now(timezone.utc))
+        db.add_all([stale, fresh])
+        await db.commit()
+        assert await sweep_orphaned_triggers(db) >= 1
+        rows = {t.trigger_type: (t.status, t.error_message) for t in (await db.execute(
+            select(PipelineTrigger).where(PipelineTrigger.session_id == sid))).scalars().all()}
+    assert rows["cqs_scoring"][0] == "failed" and "interrupted" in rows["cqs_scoring"][1]
+    assert rows["ai_theming"][0] == "in_progress", "a run younger than its timeout is left alone"
