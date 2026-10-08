@@ -3,6 +3,7 @@
 /** FITNESS-2525 · Command UX 1 — LIVE TODAY board (timeline: swim done · bike next · mobility). */
 import type { CSSProperties } from "react";
 import type { FitDay } from "@/lib/fitness-2525/types";
+import { UploadWorkout } from "./upload-workout";
 import { type EnergyRateUnit, burnDayRates, pickRate, formatCalRate, ratesFromKcal } from "@/lib/fitness-2525/energy";
 import { buildDayBudget, rideFuelingNote } from "@/lib/fitness-2525/budget";
 import { durationToMinutes } from "@/lib/fitness-2525/profile";
@@ -12,7 +13,7 @@ import { Panel } from "./ux-widgets";
 import { AuthGate } from "./auth-gate";
 
 export function LiveTodayBoard({
-  day, budget, rateUnit, showAllRates, anthroUnknown, onStartRide, onLogGarmin, btnPrimary, btnGhost, inputStyle, setField,
+  day, budget, rateUnit, showAllRates, anthroUnknown, onStartRide, applyDay, btnPrimary, btnGhost, inputStyle, setField,
   signedIn, onSignIn, authLoading,
 }: {
   day: FitDay;
@@ -21,7 +22,7 @@ export function LiveTodayBoard({
   showAllRates: boolean;
   anthroUnknown: boolean;
   onStartRide: () => void;
-  onLogGarmin: () => void;
+  applyDay: (updater: (prev: FitDay) => FitDay) => void;
   btnPrimary: CSSProperties;
   btnGhost: CSSProperties;
   inputStyle: CSSProperties;
@@ -37,7 +38,6 @@ export function LiveTodayBoard({
   const sugarCap = budget.sugarCapG;
   const bikeMin = typeof bike?.minutes === "number" && bike.minutes > 0 ? bike.minutes : null;
   const bikeBurnEst = anthroUnknown ? null : budget.windows.find((w) => w.id === bike?.id)?.burnKcal ?? null;
-  // Calories out = modeled BMR + NEAT + COMPLETED workouts; without a profile only the workout subtotal is known.
   const burnedSoFar = budget.totalBurnKcal;
   const outShown = burnedSoFar ?? budget.workoutBurnKcal;
   const net =
@@ -45,12 +45,10 @@ export function LiveTodayBoard({
       ? burnedSoFar - day.calories_in
       : null;
   const burnRates = burnDayRates(day.calories_out);
-  // Session rate computed from logged data only (Garmin duration preferred over rounded minutes).
   const swimKcal = typeof g?.kcal === "number" ? g.kcal : typeof swim?.calories === "number" ? swim.calories : null;
   const swimMin = durationToMinutes(g?.duration) ?? (typeof swim?.minutes === "number" ? swim.minutes : null);
   const swimRates = ratesFromKcal(swimKcal, swimMin);
   const bikeRates = ratesFromKcal(bikeBurnEst, bikeMin);
-  /** One unit (shared setting) or all three, ordered hr · min · sec. */
   const rateText = (r: ReturnType<typeof ratesFromKcal>) =>
     showAllRates
       ? (["per_hr", "per_min", "per_sec"] as EnergyRateUnit[]).map((u) => formatCalRate(pickRate(r, u), u)).join(" · ")
@@ -104,15 +102,12 @@ export function LiveTodayBoard({
           </div>
         ) : (
           <div className="mt-2">
-            <AuthGate compact onSignIn={onSignIn} isLoading={authLoading}
-              message="Sign in with Auth0 to log calories in, steps, and other personal day fields." />
+            <AuthGate compact onSignIn={onSignIn} isLoading={authLoading} message="Sign in with Auth0 to log calories in, steps, and other personal day fields." />
           </div>
         )}
       </div>
-
       <Panel title="TIMELINE · TODAY" accent={C.cyan}>
         <div className={styles.timelineRail}>
-          {/* SWIM DONE */}
           <div className="relative mb-3 rounded border p-2" style={{ borderColor: `${C.green}66`, background: `${C.green}10` }}>
             <span className={`${styles.timelineDot} ${styles.timelineDotDone}`} style={{ top: 14 }} />
             <div className="flex flex-wrap items-start justify-between gap-2 pl-2">
@@ -129,8 +124,6 @@ export function LiveTodayBoard({
               <span className="rounded px-1.5 py-0.5 text-[9px] font-bold" style={{ background: `${C.green}22`, color: C.green }}>GARMIN</span>
             </div>
           </div>
-
-          {/* BIKE NEXT */}
           <div className="relative mb-3 rounded border p-2" style={{ borderColor: `${C.amber}88`, background: `${C.amber}12` }}>
             <span className={`${styles.timelineDot} ${styles.timelineDotNext}`} style={{ top: 14 }} />
             <div className="pl-2">
@@ -152,13 +145,14 @@ export function LiveTodayBoard({
                 </ul>
                 <div className="mt-2 flex flex-wrap gap-2">
                   <button type="button" style={btnPrimary} onClick={onStartRide}>Start ride</button>
-                  <button type="button" style={btnGhost} onClick={onLogGarmin}>Log from Garmin</button>
+                  <button type="button" style={btnGhost} onClick={() => document.getElementById("fit-upload")?.scrollIntoView({ behavior: "smooth", block: "nearest" })}>Upload workout</button>
+                </div>
+                <div className="mt-2">
+                  <UploadWorkout day={day} applyDay={applyDay} signedIn={signedIn} onSignIn={onSignIn} authLoading={authLoading} btnPrimary={btnPrimary} btnGhost={btnGhost} />
                 </div>
               </div>
             </div>
           </div>
-
-          {/* MOBILITY */}
           <div className="relative rounded border p-2" style={{ borderColor: C.border, background: C.panel }}>
             <span className={`${styles.timelineDot} ${styles.timelineDotLater}`} style={{ top: 14 }} />
             <div className="pl-2">
