@@ -105,6 +105,23 @@ const PAPERS = [
   },
 ];
 
+/** The Framework has no landing page of its own. These thirteen parts are that page. The PDF is the full paper. */
+const FRAMEWORK_SECTIONS = [
+  { n: "I", name: "Humanity at the Center", line: "Humanity decides. Technology assists. Trust must be proven." },
+  { n: "II", name: "Civilization Nervous System", line: "R-CORE is the shared way to see, remember, rehearse, and qualify. Local authority stays where it is." },
+  { n: "III", name: "Communication Without Collapse", line: "COMM-2525 keeps people and missions connected when pressure rises." },
+  { n: "IV", name: "Coordination Across Every Scale", line: "LINK-2525 carries purpose and authority as the work scales, so coordination does not become ownership." },
+  { n: "V", name: "Intelligence Everywhere", line: "EDGE-2525 puts awareness at the point of need and does not hand the decision to a machine." },
+  { n: "VI", name: "Memory, Truth, and Replay", line: "SYNC-2525 keeps what happened, what was decided, and what must be learned." },
+  { n: "VII", name: "One Shared Reality", line: "UCRS-2525 gives every authorized participant one spatial language for where something is and how it moves." },
+  { n: "VIII", name: "Rehearsing the Future", line: "Reality and simulation let a team rehearse against a real baseline before anyone is at risk." },
+  { n: "IX", name: "The Power of Collective Intelligence", line: "It gathers what people see and need. It informs a decision. It does not replace the person who must make one." },
+  { n: "X", name: "Governance With Conscience", line: "Human, artificial, and shared intelligence stay in three seats." },
+  { n: "XI", name: "Readiness Humanity Can Trust", line: "SSSES is the gate: security, stability, scalability, efficiency, and succinctness. Proceed, pause, redesign, or expand." },
+  { n: "XII", name: "The Adoption Flywheel", line: "Adoption turns only after the gate. Readiness comes before scale." },
+  { n: "XIII", name: "Humanity's Future", line: "One civilization. One framework. The same rules, readable in more than one language." },
+];
+
 export default function Vision2525Page() {
   const { t } = useLexicon();
   return (
@@ -163,6 +180,19 @@ export default function Vision2525Page() {
                 <a href={paper.href} className="mt-2 block text-sm leading-relaxed text-slate-300 transition-colors hover:text-slate-100 sm:text-base">
                   {paper.body}
                 </a>
+                {paper.key === "framework" ? (
+                  <ol className="mt-4 flex flex-col gap-3">
+                    {FRAMEWORK_SECTIONS.map((part) => (
+                      <li key={part.n}>
+                        <a href={FRAMEWORK_DOWNLOAD} className="block rounded-lg border border-slate-800 px-3 py-2 transition-colors hover:border-slate-600">
+                          <span className="text-xs font-semibold tracking-wide" style={{ color: CYAN }}>{part.n}</span>
+                          <span className="mt-0.5 block text-sm font-semibold text-slate-100">{part.name}</span>
+                          <span className="mt-0.5 block text-sm leading-relaxed text-slate-400">{part.line}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                ) : null}
                 {paper.download ? (
                   <a
                     href={FRAMEWORK_DOWNLOAD}

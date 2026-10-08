@@ -11,6 +11,7 @@ ok(/Humanity's Coordination Framework/.test(src), "the Framework keeps its own t
 ok(/The Measure of a Human Life/.test(src), "the Executive Summary keeps its own title");
 ok(/#D18BE0/.test(src), "the download mark is the violet icon");
 ok(/The Framework/.test(src) && /Executive Summary/.test(src) && /The Record/.test(src), "the three names are on the page");
+ok(/Humanity at the Center/.test(src) && /The Adoption Flywheel/.test(src) && /Humanity's Future/.test(src), "the Framework lists its thirteen sections");
 ok(/\/vision-2525\/white-paper\//.test(src), "The Record opens the 19-section paper");
 ok(/\/whitepaper\/vision-2525-executive-summary\.html/.test(src), "the Executive Summary opens the letter");
 ok(!/19-section deep dive/.test(src) && !/>\s*Detailed Framework\s*</.test(src), "the old two names are gone");
