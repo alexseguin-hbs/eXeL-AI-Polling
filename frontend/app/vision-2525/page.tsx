@@ -143,6 +143,9 @@ export default function Vision2525Page() {
             <Link href="/vision-2525/white-paper/" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
               Detailed Framework
             </Link>
+            <a href="#recursive" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
+              Recursive
+            </a>
           </div>
         </section>
 
@@ -263,7 +266,7 @@ export default function Vision2525Page() {
         </section>
 
         {/* ── THE WHITE PAPER (public, no login) ───────────────────────────── */}
-        <section className="mt-16">
+        <section id="recursive" className="mt-16 scroll-mt-20">
           <div
             className="rounded-2xl border p-6 sm:p-8"
             style={{ borderColor: "rgba(232,182,76,0.35)", background: "rgba(232,182,76,0.05)" }}
@@ -287,15 +290,16 @@ export default function Vision2525Page() {
               <a
                 href={FRAMEWORK_DOWNLOAD}
                 download="VISION-2525.pdf"
-                title="Download VISION • 2525"
-                aria-label="Download VISION • 2525"
+                title="PDF download · 13 sections"
+                aria-label="PDF download, 13 sections"
                 data-vision-download="framework"
-                className="inline-flex items-center justify-center border px-3 normal-case tracking-normal"
+                className="inline-flex items-center justify-center gap-1.5 border px-3 normal-case tracking-normal"
                 style={{ borderColor: "#D18BE0", color: "#D18BE0", minHeight: 34, borderRadius: 8, paddingTop: 6, paddingBottom: 6 }}
               >
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
                 </svg>
+                <span className="text-[11px] font-semibold">PDF · 13 sections</span>
               </a>
             </p>
           </div>
