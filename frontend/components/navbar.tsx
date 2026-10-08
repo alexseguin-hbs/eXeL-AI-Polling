@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
-import { LogOut, User, Menu, Settings, Code, Sparkles, Heart } from "lucide-react";
+import { LogOut, User, Menu, Settings, Code, Sparkles, Heart, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DonateModal } from "@/components/donate-modal";
 import { verifyDonatedReturn } from "@/lib/donate";
@@ -166,6 +166,14 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                         <Code className="h-4 w-4" />
                         {t("sdk.api_key.title")}
                       </a>
+                      <a
+                        href="/soi-session/sign/"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent"
+                      >
+                        <PenLine className="h-4 w-4" />
+                        {t("soi.landing.btn.sign")}
+                      </a>
                     </div>
                   </>
                 )}
@@ -243,6 +251,14 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                       >
                         <TrinityGlyphs inline size="text-[13px]" className="shrink-0" />
                         {t("shared.nav.soi_session")}
+                      </a>
+                      <a
+                        href="/soi-session/sign/"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent"
+                      >
+                        <PenLine className="h-4 w-4 shrink-0" />
+                        {t("soi.landing.btn.sign")}
                       </a>
                       <button
                         onClick={() => {
