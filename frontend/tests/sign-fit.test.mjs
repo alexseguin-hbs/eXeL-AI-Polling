@@ -1,6 +1,6 @@
 // Fit-to-underline — pure, on synthetic bitmaps (operator: the box snaps to the signature line and is
 // never taller than the bottom of the text above it). Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/sign-fit.test.mjs
-import { fitToUnderline } from "../lib/sign-fit.ts";
+import { fitToUnderline, findCheckbox } from "../lib/sign-fit.ts";
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 const W = 400, H = 500;
 const page = () => ({ width: W, height: H, data: new Uint8ClampedArray(W * H * 4).fill(255) });
@@ -71,6 +71,32 @@ ok(f6 && near(f6.x, 40 / W) && near(f6.w, 241 / W, 0.01), `a tilted (scanned) ru
   const f1x = fitToUnderline(b1x, { x: 0.5, y: 0.68 }), f2x = fitToUnderline(b2, { x: 0.5, y: 0.68 });
   ok(f1x && f2x, "a dashed rule is bridged at 1× and at 2×");
   ok(f1x && f2x && near(f1x.x, f2x.x) && near(f1x.w, f2x.w) && near(f1x.lineY, f2x.lineY) && near(f1x.textH ?? 0, f2x.textH ?? 0), `1× and 2× agree: x ${f1x?.x.toFixed(3)}/${f2x?.x.toFixed(3)} w ${f1x?.w.toFixed(3)}/${f2x?.w.toFixed(3)} textH ${f1x?.textH?.toFixed(4)}/${f2x?.textH?.toFixed(4)}`);
+}
+
+// a checkbox: a small empty square, with a label to its right. The tap on the square finds it. The tap on the label does not.
+{
+  const b = page();
+  const x0 = 80, y0 = 180, side = 14;
+  ink(b, x0, x0 + side, y0, y0); ink(b, x0, x0 + side, y0 + side, y0 + side);
+  ink(b, x0, x0, y0, y0 + side); ink(b, x0 + side, x0 + side, y0, y0 + side);
+  ink(b, x0 + side + 8, x0 + side + 70, y0 + 2, y0 + 12);   // the words beside the box
+  const hit = findCheckbox(b, { x: (x0 + side / 2) / W, y: (y0 + side / 2) / H });
+  ok(!!hit && near(hit.x, x0 / W, 0.01) && near(hit.w, side / W, 0.01) && near(hit.h, side / H, 0.012), `a tap in the square finds the square (${hit && `${hit.x.toFixed(3)} ${hit.w.toFixed(3)}`})`);
+  ok(findCheckbox(b, { x: (x0 - 4) / W, y: (y0 + side / 2) / H }), "a tap just outside the stroke still checks the box");
+  ok(findCheckbox(b, { x: (x0 + side + 30) / W, y: (y0 + 6) / H }) === null, "a tap on the label beside the square is not a check");
+  ok(findCheckbox(b1, { x: 0.3, y: 0.66 }) === null, "a signature line is not a checkbox");
+}
+
+// a phone renders the page at ~3× (canvas ~1000 px). An 8–10 pt square is then ~16 px, under the old 18 px floor.
+{
+  const Wp = 1029, Hp = 1332, side = 16, x0 = 200, y0 = 400;
+  const b = { width: Wp, height: Hp, data: new Uint8ClampedArray(Wp * Hp * 4).fill(255) };
+  const inkp = (xa, xb, ya, yb) => { for (let y = ya; y <= yb; y++) for (let x = xa; x <= xb; x++) { const i = (y * Wp + x) * 4; b.data[i] = b.data[i + 1] = b.data[i + 2] = 30; } };
+  inkp(x0, x0 + side, y0, y0); inkp(x0, x0 + side, y0 + side, y0 + side); inkp(x0, x0, y0, y0 + side); inkp(x0 + side, x0 + side, y0, y0 + side);
+  inkp(x0 + side + 10, x0 + side + 80, y0 + 2, y0 + 12);
+  const hit = findCheckbox(b, { x: (x0 + side / 2) / Wp, y: (y0 + side / 2) / Hp });
+  ok(!!hit && Math.abs(hit.w * Wp - side) < 2, `a 10 pt box on a phone bitmap is a checkbox (${hit && (hit.w * Wp).toFixed(1)} px)`);
+  ok(findCheckbox(b, { x: (x0 + side + 50) / Wp, y: (y0 + 6) / Hp }) === null, "the word beside that phone-sized box is not a check");
 }
 
 console.log(`sign-fit: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

@@ -87,3 +87,63 @@ export function fitToUnderline(bmp: Bitmap, tap: { x: number; y: number }, o: Fi
   else if (textBottom >= 0) { let t = textBottom; while (t > cap && inkRows(x0, x1, t - 1, t - 1)) t--; if (textBottom - t >= MIN_INK) textH = (textBottom - t + 1) / H; }
   return { x: x0 / W, y: top / H, w: (x1 - x0 + 1) / W, h: (bottom - top) / H, lineY: lineY / H, ...(textH ? { textH } : {}) };
 }
+
+export interface CheckHit { x: number; y: number; w: number; h: number }
+
+/**
+ * The empty square under a finger. A checkbox is a small outline, about one line tall, nearly square,
+ * with a white inside and a label to its right. The square itself is what comes back. The search reaches
+ * a little past the stroke so a finger does not have to land on the line, and it stops before the label.
+ * A long rule is not a square. A filled mark is not a square.
+ */
+export function findCheckbox(bmp: Bitmap, tap: { x: number; y: number }): CheckHit | null {
+  const { width: W, height: H, data } = bmp;
+  if (!W || !H) return null;
+  const u = Math.max(1, W / 400);
+  const darkAt = (x: number, y: number): boolean => {
+    if (x < 0 || y < 0 || x >= W || y >= H) return false;
+    const i = (y * W + x) * 4;
+    return (data[i] + data[i + 1] + data[i + 2]) / 3 < 200;
+  };
+  const tx = Math.min(W - 1, Math.max(0, Math.round(tap.x * W)));
+  const ty = Math.min(H - 1, Math.max(0, Math.round(tap.y * H)));
+  // One line of type, not a fixed pixel size. 7 px at a 400-px bitmap is ~11 pt, and a phone
+  // renders the page at 2–3×, so an 8–10 pt square (the Pass / Fail box) fell under that floor.
+  const minSide = Math.max(4, Math.round(W * 0.011));
+  const maxSide = Math.max(minSide + 2, Math.round(W * 0.04));
+  const reach = Math.max(Math.round(18 * u), Math.round(W * 0.045));
+  const pad = Math.max(Math.round(4 * u), Math.round(W * 0.01));
+  let best: { x0: number; y0: number; side: number; d: number } | null = null;
+  const yEnd = Math.min(H - minSide - 1, ty + reach), xEnd = Math.min(W - minSide - 1, tx + reach);
+  for (let y0 = Math.max(0, ty - reach); y0 <= yEnd; y0++) {
+    for (let x0 = Math.max(0, tx - reach); x0 <= xEnd; x0++) {
+      if (!darkAt(x0, y0)) continue;
+      for (let side = minSide; side <= maxSide; side++) {
+        const x1 = x0 + side, y1 = y0 + side;
+        if (x1 >= W || y1 >= H) break;
+        if (!darkAt(x1, y0) || !darkAt(x0, y1)) continue;
+        let edge = 0, edgeN = 0;
+        const step = Math.max(1, Math.round(side / 8));
+        for (let k = 0; k <= side; k += step) {
+          edgeN += 4;
+          if (darkAt(x0 + k, y0)) edge++;
+          if (darkAt(x0 + k, y1)) edge++;
+          if (darkAt(x0, y0 + k)) edge++;
+          if (darkAt(x1, y0 + k)) edge++;
+        }
+        if (edgeN < 8 || edge / edgeN < 0.72) continue;
+        let light = 0, inn = 0;
+        const inset = Math.max(2, Math.round(side * 0.22));
+        for (let y = y0 + inset; y <= y1 - inset; y += step) {
+          for (let x = x0 + inset; x <= x1 - inset; x += step) { inn++; if (!darkAt(x, y)) light++; }
+        }
+        if (inn < 1 || light / inn < 0.75) continue;
+        if (tx < x0 - pad || tx > x1 + pad || ty < y0 - pad || ty > y1 + pad) continue;
+        const d = Math.hypot(tx - (x0 + x1) / 2, ty - (y0 + y1) / 2);
+        if (!best || d < best.d) best = { x0, y0, side, d };
+      }
+    }
+  }
+  if (!best) return null;
+  return { x: best.x0 / W, y: best.y0 / H, w: best.side / W, h: best.side / H };
+}

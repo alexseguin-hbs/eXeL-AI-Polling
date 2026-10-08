@@ -21,7 +21,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, recordLink, contactKind, handoffMessage, normalizeContact, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope, type StoreMode } from "@/lib/sign-store";
-import { stampSignature, stampText, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, initialsOf, type Holder, initialsRowFrac, initialsSlotWidths, cacStamp, textBoxes, unstampText, type TextMark } from "@/lib/pdf-stamp";
+import { stampSignature, stampText, stampCheck, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, initialsOf, type Holder, initialsRowFrac, initialsSlotWidths, cacStamp, textBoxes, unstampText, type TextMark } from "@/lib/pdf-stamp";
 import { initialsSlotTop, partnerRule, nextSignerSlot } from "@/lib/sign-layout";
 import { fitToUnderline, type Bitmap } from "@/lib/sign-fit";
 import { openPdf, renderPage } from "@/lib/pdf-render";
@@ -524,6 +524,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
         let out = await stampSignature(f.bytes, sigOf(i)!, { pngDataUrl: png, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), contact: myContact, signerIdx: myRow, tz, envelope: { token: countersign ? token! : pendingToken.current, chain: prevChain } });
         // every text mark is bound to THIS signer's pass — index, time, chain-before (Odin, Thor)
         for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim(), { signerIdx: meIdx, isoDate, chain: prevChain });
+        for (const m of (marks[i] ?? []).filter((m) => m.kind === "check")) out = await stampCheck(out, m);
         // the signatory block: this signer's row, CAC-style timestamp + Light Codex 2×2 strip (operator)
         const nameOf = (i: number) => (countersign ? pubSigners[i]?.name : signers[i]?.name) ?? fill(t("soi.sign.signer_n"), "n", i + 1);
         // rows already in the file: a file carried by hand (offline hand-off) keeps its earlier signers by the NAME in
@@ -751,8 +752,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
               {carried && !editOwn && <li className="mb-1 rounded-md border border-amber-500/50 bg-amber-300/10 p-2 text-xs" data-testid="carried">
                 <div>{fill(t("soi.sign.carried.signed_by"), "name", carried.lastName)}</div>
                 <div className="mt-1 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => { const f0 = files[0]; void (async () => { const rows = (await codexRows(f0.bytes)).filter((r) => r.rowIndex === carried.lastIdx); if (rows[0]) await enterEditOwn(f0, rows[0]); })(); }} className="min-h-[44px] rounded-md border border-amber-500/70 px-3 text-xs" data-testid="carried-i-am">{fill(t("soi.sign.carried.i_am"), "name", carried.lastName)}</button>
-                  {carried.hasNext && <span className="self-center text-muted-foreground">· {t("soi.sign.carried.next")}: {t("soi.sign.next")} →</span>}
+                  {!carried.hasNext && <button type="button" onClick={() => { const f0 = files[0]; void (async () => { const rows = (await codexRows(f0.bytes)).filter((r) => r.rowIndex === carried.lastIdx); if (rows[0]) await enterEditOwn(f0, rows[0]); })(); }} className="min-h-[44px] rounded-md border border-amber-500/70 px-3 text-xs" data-testid="carried-i-am">{fill(t("soi.sign.carried.i_am"), "name", carried.lastName)}</button>}
+                  {carried.hasNext && <span className="self-center text-muted-foreground">{t("soi.sign.carried.next")}: {t("soi.sign.next")} →</span>}
                 </div>
               </li>}
               {files.map((f, i) => (
@@ -811,8 +812,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             <button type="button" onClick={() => addText(t("soi.sign.text_default"))} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-text">+ {t("soi.sign.add_text")}</button>
             {(marks[fileIdx] ?? []).filter((m) => m.kind === "text").length >= 2 && <button type="button" onClick={sameSize} className="min-h-[44px] rounded-md border border-border px-3 text-xs" title={t("soi.sign.same_size")} data-testid="text-same-size"><span aria-hidden="true">⌶ </span>{t("soi.sign.same_size")}</button>}
             {selMark && <>
-              <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md bg-red-500 px-3 text-xs font-medium text-white" aria-label={t("soi.sign.remove_mark")} data-testid="remove-mark"><span aria-hidden="true">✕ </span>{t("soi.sign.delete")} · {selMark.kind === "sig" ? t("soi.sign.mark.sig") : selMark.text?.trim() && /\d{4}/.test(selMark.text) ? t("soi.sign.mark.date") : t("soi.sign.mark.text")}</button>
-              <span className="rounded-full border border-primary/60 px-2 py-1 text-[11px] text-primary" data-testid="sizing-chip">{t("soi.sign.sizing")} {selMark.kind === "sig" ? t("soi.sign.mark.sig") : selMark.text?.trim() && /\d{4}/.test(selMark.text) ? t("soi.sign.mark.date") : t("soi.sign.mark.text")}</span>
+              <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md bg-red-500 px-3 text-xs font-medium text-white" aria-label={t("soi.sign.remove_mark")} data-testid="remove-mark"><span aria-hidden="true">✕ </span>{t("soi.sign.delete")} · {selMark.kind === "sig" ? t("soi.sign.mark.sig") : selMark.kind === "check" ? "Check" : selMark.text?.trim() && /\d{4}/.test(selMark.text) ? t("soi.sign.mark.date") : t("soi.sign.mark.text")}</button>
+              <span className="rounded-full border border-primary/60 px-2 py-1 text-[11px] text-primary" data-testid="sizing-chip">{t("soi.sign.sizing")} {selMark.kind === "sig" ? t("soi.sign.mark.sig") : selMark.kind === "check" ? "Check" : selMark.text?.trim() && /\d{4}/.test(selMark.text) ? t("soi.sign.mark.date") : t("soi.sign.mark.text")}</span>
               <button type="button" onClick={() => resizeSel(0.85)} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.smaller")}>−</button>
               <button type="button" onClick={() => resizeSel(1.18)} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.larger")}>+</button>
               {selMark.kind === "text" && <input value={selMark.text ?? ""} onChange={(e) => setSelText(e.target.value)} placeholder={t("soi.sign.text_ph")} className="min-h-[44px] min-w-[140px] flex-1 rounded-md border border-border bg-background px-2 text-sm" data-testid="mark-text" />}

@@ -21,10 +21,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { openPdf, renderPage } from "@/lib/pdf-render";
-import { fitToUnderline } from "@/lib/sign-fit";
+import { fitToUnderline, findCheckbox } from "@/lib/sign-fit";
 import { textEmPt, type StampBox } from "@/lib/pdf-stamp";
 
-export interface Mark extends StampBox { id: string; kind: "sig" | "text"; text?: string; /** how the box got its size: fitted to a rule, the default, a placeholder, or the AI */ fit?: "underline" | "default" | "holder" | "ai" | "stamped" }   // "stamped": the signer's OWN text from an earlier pass, loaded back for remove/redo (operator 2026-09-08 22:40)
+export interface Mark extends StampBox { id: string; kind: "sig" | "text" | "check"; text?: string; /** how the box got its size: fitted to a rule, the default, a placeholder, or the AI */ fit?: "underline" | "default" | "holder" | "ai" | "stamped" }   // "stamped": the signer's OWN text from an earlier pass, loaded back for remove/redo (operator 2026-09-08 22:40)
 export const SIG_W = 0.4, SIG_H = 0.08, TXT_W = 0.22, TXT_H = 0.02, MIN_W = 0.08, MIN_H = 0.012;   // TXT_H 0.02 = a 16-pt line on Letter: typed text prints at the document's own size (the live note printed a 27-pt date — operator 2026-09-08)
 
 export type FitAt = (q: { x: number; y: number }) => ReturnType<typeof fitToUnderline>;
@@ -70,10 +70,17 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
   }, []);
 
   useEffect(() => {
+    const el = host.current; if (!el) return;
+    const move = (e: TouchEvent) => { if (e.touches.length > 1) e.preventDefault(); };
+    el.addEventListener("touchmove", move, { passive: false });
+    return () => el.removeEventListener("touchmove", move);
+  }, []);
+
+  useEffect(() => {
     let live = true;
     (async () => {
       const doc = docRef.current, el = host.current; if (!doc || !el || !base) return;
-      try { const r = await renderPage(doc, page, Math.round(base * zoom)); if (!live) return; setPagePt({ w: r.widthPt, h: r.heightPt }); el.querySelectorAll("canvas").forEach((c) => c.remove()); el.insertBefore(r.canvas, el.firstChild); }
+      try { const r = await renderPage(doc, page, Math.round(base * zoom)); if (!live) return; setPagePt({ w: r.widthPt, h: r.heightPt }); r.canvas.style.width = "100%"; r.canvas.style.height = "100%"; el.querySelectorAll("canvas").forEach((c) => c.remove()); el.insertBefore(r.canvas, el.firstChild); }
       catch (e) { setErr(String((e as Error).message || e)); }
     })();
     return () => { live = false; };
@@ -97,7 +104,13 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
 
   const frac = (cx: number, cy: number) => { const r = host.current!.getBoundingClientRect(); return { x: (cx - r.left) / r.width, y: (cy - r.top) / r.height }; };
   // a box shorter than MIN_H grows UPWARD so its bottom (the baseline on the rule) never moves (Enki, plan review)
-  const clampBox = (m: Mark): Mark => { const h = Math.min(Math.max(m.h, MIN_H), 1), w = Math.min(Math.max(m.w, MIN_W), 1); const y0 = m.h < MIN_H ? m.y + m.h - h : m.y; return { ...m, w, h, x: Math.min(Math.max(m.x, 0), 1 - w), y: Math.min(Math.max(y0, 0), 1 - h) }; };
+  const clampBox = (m: Mark): Mark => {
+    if (m.kind === "check") {
+      const w = Math.min(Math.max(m.w, 0.008), 0.05), h = Math.min(Math.max(m.h, 0.008), 0.05);
+      return { ...m, w, h, x: Math.min(Math.max(m.x, 0), 1 - w), y: Math.min(Math.max(m.y, 0), 1 - h) };
+    }
+    const h = Math.min(Math.max(m.h, MIN_H), 1), w = Math.min(Math.max(m.w, MIN_W), 1); const y0 = m.h < MIN_H ? m.y + m.h - h : m.y; return { ...m, w, h, x: Math.min(Math.max(m.x, 0), 1 - w), y: Math.min(Math.max(y0, 0), 1 - h) };
+  };
   const update = (id: string, patch: Partial<Mark>) => onMarks(marksRef.current.map((m) => (m.id === id ? clampBox({ ...m, ...patch }) : m)));
   const hit = (p: { x: number; y: number }) => [...marksRef.current].reverse().find((m) => m.page === page && p.x >= m.x && p.x <= m.x + m.w && p.y >= m.y && p.y <= m.y + m.h) ?? null;
   // the upper-right handle: within 44 px of the corner (thumb slop, Thoth) AND in the box's upper-right quadrant — a small box
@@ -110,6 +123,13 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
       const c = host.current?.querySelector("canvas"); const ctx = c?.getContext("2d", { willReadFrequently: true });
       if (!c || !ctx) return null;
       return fitToUnderline({ width: c.width, height: c.height, data: ctx.getImageData(0, 0, c.width, c.height).data }, q);
+    } catch { return null; }
+  };
+  const checkAt = (q: { x: number; y: number }) => {
+    try {
+      const c = host.current?.querySelector("canvas"); const ctx = c?.getContext("2d", { willReadFrequently: true });
+      if (!c || !ctx) return null;
+      return findCheckbox({ width: c.width, height: c.height, data: ctx.getImageData(0, 0, c.width, c.height).data }, q);
     } catch { return null; }
   };
   if (fitRef) fitRef.current = fitAt;
@@ -130,6 +150,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
     if (e.touches.length === 2) { const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2, my = (e.touches[0].clientY + e.touches[1].clientY) / 2; pinch.current = { d: dist(e), z: zoom, at: frac(mx, my) }; swipe.current = null; return; }
     const t0 = e.touches[0]; swipe.current = { x: t0.clientX, y: t0.clientY, onMark: !!hit(frac(t0.clientX, t0.clientY)) };
   };
+  const justPlaced = useRef<{ t: number; id: string } | null>(null);
   const onTouchMove = (e: React.TouchEvent) => { const pz = pinch.current; if (pz && e.touches.length === 2) setZoom(pz.z * dist(e) / pz.d, pz.at); };
   const onTouchEnd = (e: React.TouchEvent) => {
     if (pinch.current) { if (e.touches.length < 2) pinch.current = null; swipe.current = null; return; }
@@ -137,7 +158,16 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
     const t1 = e.changedTouches[0]; const dx = t1.clientX - s0.x, dy = t1.clientY - s0.y;
     if (Math.hypot(dx, dy) < 12) {                                              // a tap: two within 350 ms toggle 1× ↔ 2.5× under the finger
       const now = Date.now(), lt = lastTap.current; lastTap.current = { t: now, x: t1.clientX, y: t1.clientY };
-      if (lt && now - lt.t < 350 && Math.hypot(t1.clientX - lt.x, t1.clientY - lt.y) < 30 && !s0.onMark) { setZoom(zoom > 1 ? 1 : 2.5, frac(t1.clientX, t1.clientY)); lastTap.current = null; }
+      if (lt && now - lt.t < 350 && Math.hypot(t1.clientX - lt.x, t1.clientY - lt.y) < 30) {
+        const placed = justPlaced.current;
+        const stray = !!(placed && now - placed.t < 500);
+        // the first tap of a double-tap drops a signature on an empty page; that box is under the second tap, so it
+        // must not count as "on a mark" or the zoom never happens (operator 2026-10-08: zoom no longer enlarges the page)
+        if (!s0.onMark || stray) {
+          if (stray) { onMarks(marksRef.current.filter((m) => m.id !== placed!.id)); justPlaced.current = null; }
+          setZoom(zoom > 1 ? 1 : 2.5, frac(t1.clientX, t1.clientY)); lastTap.current = null;
+        }
+      }
       return;
     }
     if (s0.onMark || zoom > 1) return;                                          // zoomed: a horizontal swipe scrolls, it does not turn the page
@@ -146,7 +176,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
   };
   /** ⌖ — the selected mark onto the rule under it: a signature takes the rule's box; a text keeps its height, centred on the line. */
   const snapSelected = () => {
-    const m = marksRef.current.find((k) => k.id === selectedId); if (!m || readOnly) return;
+    const m = marksRef.current.find((k) => k.id === selectedId); if (!m || readOnly || m.kind === "check") return;
     // the rule the box sits on or the next one under it — never the text line above (a moved date snapped up to the
     // printed name until this looked downward first): probe the bottom, then one and two box-heights below, and keep
     // the first line at or under the box's middle; only then any line at all
@@ -166,13 +196,13 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
     if (readOnly) return;
     const p = frac(e.clientX, e.clientY);
     const m = hit(p);
-    const resizing = !!(m && onHandle(p, m));
+    const resizing = !!(m && m.kind !== "check" && onHandle(p, m));
     const start = { x: e.clientX, y: e.clientY }; let moved = false;
     const off = m ? { dx: p.x - m.x, dy: p.y - m.y } : null;
-    if (m) { onSelect(m.id); try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* not capturable */ } }
+    if (m && m.kind !== "check") { onSelect(m.id); try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* not capturable */ } }
     const move = (ev: PointerEvent) => {
       if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > 6) moved = true;
-      if (!m) return;
+      if (!m || m.kind === "check") return;
       ev.preventDefault();
       const q = frac(ev.clientX, ev.clientY);
       // the upper-right handle: width follows the finger, the TOP edge follows the finger, the bottom (baseline) stays
@@ -181,14 +211,23 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
     };
     const end = (ev: PointerEvent, cancelled: boolean) => {
       document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", cancel);
-      if (!cancelled && !moved && !m) {
+      if (!cancelled && !moved) {
+        const q = frac(ev.clientX, ev.clientY);
+        const square = checkAt(q);
+        if (m?.kind === "check" || (!m && square)) {
+          const id = m?.kind === "check" ? m.id : marksRef.current.find((k) => k.kind === "check" && k.page === page && square && Math.abs(k.x - square.x) < 0.01 && Math.abs(k.y - square.y) < 0.01)?.id;
+          if (id) onMarks(marksRef.current.filter((k) => k.id !== id));
+          else if (square) onMarks([...marksRef.current, { id: `c${Date.now().toString(36)}`, kind: "check", page, x: square.x, y: square.y, w: square.w, h: square.h }]);
+          onSelect(null);
+          return;
+        }
         // a TAP on empty page: place the signature if this file has none yet, else leave the page alone
-        if (!marksRef.current.some((k) => k.kind === "sig")) {
-          const q = frac(ev.clientX, ev.clientY);
+        if (!m && !marksRef.current.some((k) => k.kind === "sig")) {
           const fit = fitAt(q);
           const sig = clampBox(fit ? { id: "sig", kind: "sig", page, x: fit.x, y: fit.y, w: fit.w, h: fit.h, fit: "underline" } : { id: "sig", kind: "sig", page, x: q.x - SIG_W / 2, y: q.y - SIG_H / 2, w: SIG_W, h: SIG_H, fit: "default" });
+          justPlaced.current = { t: Date.now(), id: sig.id };
           onMarks([...marksRef.current, sig]); onSelect("sig");
-        } else onSelect(null);
+        } else onSelect(m ? m.id : null);
       }
     };
     const up = (ev: PointerEvent) => end(ev, false);
@@ -199,27 +238,30 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
   const sigHere = marks.some((m) => m.kind === "sig" && m.page === page);
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
-        <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="min-h-[44px] rounded-md border border-border px-3 disabled:opacity-40" aria-label={t("soi.sign.page_prev")} data-testid="page-prev">‹</button>
-        <span className="whitespace-nowrap tabular-nums">{page} / {pages || "…"}</span>
-        <div className="flex items-center gap-1" data-testid="zoom-bar">
+      <div className="mb-2 flex flex-col gap-1 text-xs text-muted-foreground">
+        <div className="flex items-center justify-between">
+          <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="min-h-[44px] rounded-md border border-border px-3 disabled:opacity-40" aria-label={t("soi.sign.page_prev")} data-testid="page-prev">‹</button>
+          <span className="whitespace-nowrap tabular-nums">{page} / {pages || "…"}</span>
+          <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="min-h-[44px] rounded-md border border-border px-3 disabled:opacity-40" aria-label={t("soi.sign.page_next")} data-testid="page-next">›</button>
+        </div>
+        <div className="flex items-center justify-center gap-1" data-testid="zoom-bar">
           <button type="button" disabled={zoom <= 1} onClick={() => setZoom(zoom / 1.5)} className="min-h-[44px] min-w-[44px] rounded-md border border-border disabled:opacity-40" aria-label={t("soi.sign.zoom_out")} data-testid="zoom-out">−</button>
           <button type="button" onClick={() => setZoom(1)} className="min-h-[44px] rounded-md border border-border px-2 tabular-nums" aria-label={t("soi.sign.zoom_reset")} data-testid="zoom-reset">{Math.round(zoom * 100)}%</button>
           <button type="button" disabled={zoom >= 4} onClick={() => setZoom(zoom * 1.5)} className="min-h-[44px] min-w-[44px] rounded-md border border-border disabled:opacity-40" aria-label={t("soi.sign.zoom_in")} data-testid="zoom-in">+</button>
           {!readOnly && <button type="button" disabled={!selectedId} onClick={snapSelected} className="min-h-[44px] min-w-[44px] rounded-md border border-primary/60 text-primary disabled:opacity-40" aria-label={t("soi.sign.snap_line")} title={t("soi.sign.snap_line")} data-testid="snap-line">⌖</button>}
         </div>
-        <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="min-h-[44px] rounded-md border border-border px-3 disabled:opacity-40" aria-label={t("soi.sign.page_next")} data-testid="page-next">›</button>
       </div>
       <div ref={scroller} className="w-full max-h-[72vh] overflow-auto rounded-md border border-border" style={{ touchAction: readOnly ? "auto" : zoom > 1 ? "pan-x pan-y" : "pan-y" }} data-testid="pdf-scroller" data-zoom={zoom}>
-      <div ref={host} tabIndex={readOnly ? -1 : 0} className="relative select-none overflow-hidden bg-white outline-none" style={{ width: base ? `${Math.round(base * zoom)}px` : "100%" }} onPointerDown={onDown} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} onKeyDown={onKey} data-testid="pdf-page">
+      <div ref={host} tabIndex={readOnly ? -1 : 0} className="relative select-none overflow-hidden bg-white outline-none" style={{ width: base ? `${Math.round(base * zoom)}px` : "100%", height: base ? `${Math.round(base * zoom * pagePt.h / pagePt.w)}px` : undefined }} onPointerDown={onDown} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} onKeyDown={onKey} data-testid="pdf-page">
         {marks.filter((m) => m.page === page).map((m) => {
           const sel = m.id === selectedId;
           return (
-            <div key={m.id} draggable={false} onDragStart={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()} className={`absolute rounded ${sel ? "border-[3px] border-primary shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-primary/50"} ${m.kind === "sig" ? (sel ? "bg-primary/15" : "border-dashed bg-primary/10") : (sel ? "bg-amber-300/20" : m.fit === "stamped" ? "border-solid border-amber-500/80 bg-amber-300/10" : "border-dotted bg-amber-300/10")}`}
-              style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%`, containerType: "size", touchAction: "none" }} data-testid={m.kind === "sig" ? "sig-box" : "text-box"} data-fit={m.fit}>
+            <div key={m.id} draggable={false} onDragStart={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()} className={`absolute ${m.kind === "check" ? "border border-emerald-800/80 bg-transparent" : `rounded ${sel ? "border-[3px] border-primary shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-primary/50"} ${m.kind === "sig" ? (sel ? "bg-primary/15" : "border-dashed bg-primary/10") : (sel ? "bg-amber-300/20" : m.fit === "stamped" ? "border-solid border-amber-500/80 bg-amber-300/10" : "border-dotted bg-amber-300/10")}`}`}
+              style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%`, containerType: "size", touchAction: "none" }} data-testid={m.kind === "sig" ? "sig-box" : m.kind === "check" ? "check-box" : "text-box"} data-fit={m.fit}>
               {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" draggable={false} className={`pointer-events-none h-full w-full select-none object-contain ${m.fit === "underline" ? "object-left" : ""}`} />}
+              {m.kind === "check" && <svg viewBox="0 0 100 100" className="pointer-events-none h-full w-full" aria-hidden="true"><path d="M22 55 L42 78 L82 22" fill="none" stroke="#111" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" /></svg>}
               {m.kind === "text" && <span className="flex h-full w-full items-end overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: textEmPt(m.h * pagePt.h) * ((base || pagePt.w) * zoom / pagePt.w), lineHeight: 1 }}>{m.text}</span>}
-              {sel && !readOnly && <span className="absolute -top-2.5 -end-2.5 h-6 w-6 rounded-md border-2 border-white bg-primary shadow" aria-hidden="true" data-testid="resize-handle" />}
+              {sel && !readOnly && m.kind !== "check" && <span className="absolute -top-2.5 -end-2.5 h-6 w-6 rounded-md border-2 border-white bg-primary shadow" aria-hidden="true" data-testid="resize-handle" />}
               {/* no delete badge ON the box — it covered the text (operator 02:00); the red Delete sits in the toolbar under the page */}
             </div>
           );
@@ -227,7 +269,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
         {err && <p className="p-3 text-xs text-red-500">{err}</p>}
       </div>
       </div>
-      {!readOnly && <p className="mt-1 text-[11px] text-muted-foreground">{sigHere ? t("soi.sign.place_move") : t("soi.sign.place_hint")} {t("soi.sign.zoom_hint")}</p>}
+      {!readOnly && <p className="mt-1 text-[11px] text-muted-foreground">{sigHere ? t("soi.sign.place_move") : t("soi.sign.place_hint")} {t("soi.sign.zoom_hint")} Tap a box to check it. Tap again to clear it.</p>}
     </div>
   );
 }
