@@ -289,10 +289,11 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
         {marks.filter((m) => m.page === page).map((m) => {
           const sel = m.id === selectedId;
           return (
-            <div key={m.id} draggable={false} onDragStart={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()} className={`absolute ${m.kind === "check" ? "border border-emerald-800/80 bg-transparent" : `rounded ${sel ? "border-[3px] border-primary shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-primary/50"} ${m.kind === "sig" ? (sel ? "bg-primary/15" : "border-dashed bg-primary/10") : (sel ? "bg-amber-300/20" : m.fit === "stamped" ? "border-solid border-amber-500/80 bg-amber-300/10" : "border-dotted bg-amber-300/10")}`}`}
+            <div key={m.id} draggable={false} onDragStart={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()} className={`absolute ${m.kind === "check" ? "bg-transparent" : `rounded ${sel ? "border-[3px] border-primary shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-primary/50"} ${m.kind === "sig" ? (sel ? "bg-primary/15" : "border-dashed bg-primary/10") : (sel ? "bg-amber-300/20" : m.fit === "stamped" ? "border-solid border-amber-500/80 bg-amber-300/10" : "border-dotted bg-amber-300/10")}`}`}
               style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%`, containerType: "size", touchAction: "none" }} data-testid={m.kind === "sig" ? "sig-box" : m.kind === "check" ? "check-box" : "text-box"} data-fit={m.fit}>
               {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" draggable={false} className="pointer-events-none h-full w-full select-none object-contain object-left object-bottom" />}
-              {m.kind === "check" && <svg viewBox="0 0 100 100" className="pointer-events-none h-full w-full" aria-hidden="true"><path d="M22 55 L42 78 L82 22" fill="none" stroke="#111" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+              {m.kind === "check" && <span className="pointer-events-none absolute bg-blue-600" style={{ left: "18%", top: "18%", width: "64%", height: "64%" }} data-testid="check-fill" />}
+              {m.kind === "check" && <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true"><path d="M28 52 L44 70 L74 30" fill="none" stroke="#fff" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" /></svg>}
               {m.kind === "text" && !readOnly && (() => {
                 const pxPerPt = ((base || pagePt.w) * zoom) / pagePt.w;
                 const fontPx = textEmPt(m.h * pagePt.h) * pxPerPt;
