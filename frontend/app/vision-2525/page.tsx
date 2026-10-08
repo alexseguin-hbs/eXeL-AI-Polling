@@ -271,10 +271,10 @@ export default function Vision2525Page() {
             <a href={FRAMEWORK_DOWNLOAD} className="block transition-colors hover:opacity-95">
               <SectionLabel color={GOLD}>The framework · open to everyone</SectionLabel>
               <h2 className="mt-3 font-serif text-2xl font-bold leading-tight sm:text-3xl" style={{ color: GOLD }}>
-                Humanity's Coordination Framework
+                {"Humanity's Coordination Framework"}
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
-                Thirteen sections, from humanity at the center to humanity's future. R-CORE is the nervous
+                {"Thirteen sections, from humanity at the center to humanity's future. R-CORE is the nervous"}
                 system beneath them. Communication, coordination, and intelligence in the field stay under human
                 authority. One civilization. One framework.
               </p>
