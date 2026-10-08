@@ -36,3 +36,12 @@ export function partnerRule(bmp: Bitmap, sig: { x: number; y: number; w: number;
   for (let x = sig.x - 0.06; x > 0.03; x -= 0.03) { const f = tryAt(x); if (f) return f; }
   return null;
 }
+
+/** Where the next signature goes on a file that already has one.
+ *  A free placeholder is used. Otherwise the next row is after the last signature.
+ *  The earlier boxes are not opened. A blank file has no next row. */
+export function nextSignerSlot(signedRows: number[], freeHolders: number[]): number | null {
+  if (freeHolders.length) return Math.min(...freeHolders);
+  if (!signedRows.length) return null;
+  return Math.max(...signedRows) + 1;
+}

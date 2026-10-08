@@ -22,7 +22,7 @@ import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, recordLink, contactKind, handoffMessage, normalizeContact, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope, type StoreMode } from "@/lib/sign-store";
 import { stampSignature, stampText, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, initialsOf, type Holder, initialsRowFrac, initialsSlotWidths, cacStamp, textBoxes, unstampText, type TextMark } from "@/lib/pdf-stamp";
-import { initialsSlotTop, partnerRule } from "@/lib/sign-layout";
+import { initialsSlotTop, partnerRule, nextSignerSlot } from "@/lib/sign-layout";
 import { fitToUnderline, type Bitmap } from "@/lib/sign-fit";
 import { openPdf, renderPage } from "@/lib/pdf-render";
 import { putTempFile, type TempLink } from "@/lib/tmpfile";
@@ -344,8 +344,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   const DEVICE_ONLY = new Set(["no_backend", "no_migration", "migration_incomplete", "rpc_error", "unreachable", "timeout", "storage_full", "slow_done", "duplicate"]);
   const signerErr = (code: string): string => t(DEVICE_ONLY.has(code) ? "soi.sign.err.device_only" : `soi.sign.err.${code}`);
   const [carriedIdx, setCarriedIdx] = useState<number | null>(null);     // which row this reader signs in a carried file
-  // "remove field and redo" (operator 2026-09-08 22:40): a carried file's LAST signer may open his own text marks again —
-  // remove or retype them — and save; the signature, initials, codex row and hidden strip stay. Never a later signer's record.
+  // A file that already has a signature stays locked. The next person places a new signature.
+  // The earlier boxes open only if that same person asks ("I am …"). Never on upload.
   const [carried, setCarried] = useState<{ lastName: string; lastIdx: number; hasNext: boolean } | null>(null);
   const [editOwn, setEditOwn] = useState<{ pass: number; isoDate: string; chain: string; marks: TextMark[] } | null>(null);
   const [editReceipt, setEditReceipt] = useState<{ name: string; signed: boolean; stamp?: string }[]>([]);
@@ -373,10 +373,10 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       setTitle((cur) => cur || pdfTitle || f0.name.replace(/-(partly-)?signed(-[A-Z-]+)?\.pdf$/i, "").replace(/\.pdf$/i, ""));
       const taken = new Set(rows.map((r) => r.rowIndex));
       const last = rows[rows.length - 1];
-      const free = hs.map((h) => h.idx).filter((k) => !taken.has(k));                    // placeholders nobody has filled yet
-      if (last) { setCarried({ lastName: last.name || fill(t("soi.sign.signer_n"), "n", last.rowIndex + 1), lastIdx: last.rowIndex, hasNext: free.length > 0 }); if (!free.length && !hs.length) { void enterEditOwn(f0, last); return; } }   // one signer, nobody next: the uploader is that signer
-      if (last && !free.length) return;                                                    // a FINISHED file: nobody is next; only its last signer may open his own text (the banner)
-      const nextIdx = free.length ? Math.min(...free) : rows.length;                       // Math.min() of nothing is Infinity — it crashed the signers array on a finished file
+      const free = hs.map((h) => h.idx).filter((k) => !taken.has(k));
+      const nextIdx = nextSignerSlot(rows.map((r) => r.rowIndex), free);
+      if (last) setCarried({ lastName: last.name || fill(t("soi.sign.signer_n"), "n", last.rowIndex + 1), lastIdx: last.rowIndex, hasNext: nextIdx !== null });
+      if (nextIdx === null) return;
       const nextName = hs.find((h) => h.idx === nextIdx)?.name ?? "";
       const total = Math.max(rows.length + 1, nextIdx + 1);
       setSigners((cur) => {

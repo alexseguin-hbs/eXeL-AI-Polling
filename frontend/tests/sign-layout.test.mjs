@@ -1,6 +1,6 @@
 // Page layout from pixels (operator 00:50): the initials slot never covers text; the partner's line is found.
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/sign-layout.test.mjs
-import { initialsSlotTop, partnerRule } from "../lib/sign-layout.ts";
+import { initialsSlotTop, partnerRule, nextSignerSlot } from "../lib/sign-layout.ts";
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 const W = 400, H = 500;
 const page = () => ({ width: W, height: H, data: new Uint8ClampedArray(W * H * 4).fill(255) });
@@ -36,4 +36,7 @@ const sigR = { x: 220 / W, y: 285 / H, w: 141 / W, h: 14 / H };
 const pl = partnerRule(b4, sigR);
 ok(pl && Math.abs(pl.x - 40 / W) < 0.01, `partner rule to the LEFT when the first signer took the right column (got ${pl && pl.x.toFixed(3)})`);
 ok(partnerRule(page(), sigL) === null, "no second rule → null (the caller falls back)");
+ok(nextSignerSlot([0], []) === 1, "a signed file with no placeholder takes the next signature, and does not reopen the first");
+ok(nextSignerSlot([0, 1], [2]) === 2, "a free placeholder is the next signature");
+ok(nextSignerSlot([], []) === null, "a blank file has no next row");
 console.log(`sign-layout: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
