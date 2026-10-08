@@ -130,18 +130,18 @@ export default function Vision2525Page() {
             <p className="max-w-xl text-sm text-slate-400">{t("vision2525.hero_subtitle")}</p>
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
-            {/* Operator (2026-08-28, with the live hero screenshot): the hero carries the
-                same two doors as the Vision-2525 masthead, reversed to lead with the
-                summary — "Executive Summary" (gold, was Enter the framework's slot) and
-                "Detailed Framework" (outline, opens the White Paper). "Explore the
-                worlds" left the row on his instruction; the worlds section itself is
-                unchanged below. Both doors open the same pages every other route opens,
-                so none of the four summary doors can drift. */}
+            {/* Three papers, three doors. The Framework is the 13-section map.
+                Executive Summary is the letter. The Record is the 19-section rules.
+                Intro was the wrong name for the map. Detailed Framework was the wrong
+                name for the rules. They are not one paper at three lengths. */}
+            <a href={FRAMEWORK_DOWNLOAD} className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
+              The Framework
+            </a>
             <a href="/whitepaper/vision-2525-executive-summary.html" className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-slate-900 transition-transform hover:scale-[1.03]" style={{ background: GOLD }}>
               Executive Summary <ArrowRight className="h-4 w-4" />
             </a>
             <Link href="/vision-2525/white-paper/" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
-              19-section deep dive
+              The Record
             </Link>
           </div>
         </section>
