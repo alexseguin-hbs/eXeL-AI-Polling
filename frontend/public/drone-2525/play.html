@@ -294,7 +294,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.165</span><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.166</span><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -614,7 +614,7 @@ function rcoreStep(name){
 }
 const T13={VOID:'#000000',PANEL:'#070B10',STROKE:'#1C2A3A',WIRE:'#7AB8C4',ROAD:'#4A6A78',WATER:'#2A6D88',DOME:'#C9A227',SI:'#E8D5B0',HI:'#5BA8FF',AI:'#C084FC',LOCK:'#E24B3B',TAG:'#3DCC8A',GIMBAL:'#F0A020'};
 const OK=new Set(Object.values(T13));
-const BUILD={version:'00.00',revision:'0.165'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
+const BUILD={version:'00.00',revision:'0.166'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
 
 const ASM=[
   {id:'AsM-01',name:'Enki',line:'Sumerian',team:'BLU',seat:'T01',ctrl:'AI'},
@@ -2469,7 +2469,7 @@ function modeReturns(){ const m=state.rangeMode||'bounce'; return m==='bounce'||
 function ownMark(m){ return !!m&&!/^ASM@/.test(String(m.by||''))&&!/^PEER/.test(String(m.how||'')); }
 function markSlotOf(id){ const t=state.tgtSlot||{}; return Object.keys(t).find(k=>t[k]&&t[k].id===id)||null; }
 function focusMark(k){ const sl=(state.tgtSlot||{})[k]; if(!sl) return null; state.desig={id:sl.id,kind:kindOfRef(sl.ref),ref:sl.ref,by:sl.by||SID,t:state.clock,slot:+k,phase:sl.phase||'amber',how:sl.phase==='red'?(sl.howRed||'HI-2'):(sl.how||'LOCAL'),approvedBy:sl.approvedBy||null,sameDevice:true}; state.slot=+k; state.hiApproved=sl.phase==='red'; return state.desig; } /* r.162 (Addendum 15): the mark under the bullseye becomes the one TARGET, APPROVE and FIRE act on; the others keep their boxes */
-function keepsMark(q){ if(!q||!q.form||!marksPersist()||!modeReturns()) return false; const d=state.desig; if(d&&(d.ref===q||d.id===q.id)&&ownMark(d)) return true; const k=markSlotOf(q.id); return !!k&&ownMark(state.tgtSlot[k]); } /* r.162 (Addenda 14–15): the shooter's own mark rides its target down and back up; the AI's or another seat's mark still needs a fresh approval for every shot */ /* r.162 (Addendum 14): TRAIN UP, solo — the target comes back, so the shooter's own mark and approval stay; a room's or the AI's mark still needs a fresh approval for every shot */
+function keepsMark(q){ if(!q||!q.form||!marksPersist()||!modeReturns()||(state.rangeMode||'bounce')==='bounce') return false; /* r.166: TRAIN UP drops the mark on a hit. Next shot is TARGET, then APPROVE, then FIRE. */ const d=state.desig; if(d&&(d.ref===q||d.id===q.id)&&ownMark(d)) return true; const k=markSlotOf(q.id); return !!k&&ownMark(state.tgtSlot[k]); } /* r.162 (Addenda 14–15): the shooter's own mark rides its target down and back up; the AI's or another seat's mark still needs a fresh approval for every shot */ /* r.162 (Addendum 14): TRAIN UP, solo — the target comes back, so the shooter's own mark and approval stay; a room's or the AI's mark still needs a fresh approval for every shot */
 function roundOpen(){ const ph=state.lobby&&state.lobby.phase; return ph==='PRACTICE'||ph==='LIVE'||!!state.qaArmed; } /* r.135: nothing marks, approves or fires before PRACTICE or START (a room in WAITING fired from behind the intro — Thor B) */
 function fireN(n){
   if(!roundOpen()){ decide('REJECT',(state.desig&&state.desig.id)||'NONE',{reason:'ROUND_NOT_OPEN'}); toast('PRESS PRACTICE, OR START THE ROOM, BEFORE YOU FIRE'); return; }
@@ -2513,7 +2513,7 @@ function fireN(n){
     const hit=applyHit(s.ref,s.id); if(hit.result!=='REFUSED') magSpend();
     state.lastShot={id:s.id,slot:n||state.slot||1,life:s.ref.lifePct||0,direct:!!hit.direct,dead:!!hit.dead,t:state.clock};
     if(hit.dead){state.hits++;const pts=s.kind==='uav'?250:100;state.score+=pts;if(state.team==='RED')state.red+=pts;else state.blu+=pts;decide('SIM-ACTION',s.id,{pts,direct:hit.direct}); const last=(state.events||[])[(state.events||[]).length-1]; if(last) linkSend(Object.assign(commEnv('SIM-ACTION',{id:s.id,event:last}),{id:s.id,event:last})); netEvent('SCORE','','BLU '+state.blu+' · RED '+state.red);}
-    if(hit.dead&&keepsMark(s.ref)){ toast('HIT · '+plateWord(s.id)+' · STILL RED · F WHEN IT STANDS'); } else if(hit.dead){const sn=(state.desig&&state.desig.slot)||n||state.slot||1; state.hiApproved=false;state.hiLock=false;state.desig=null; if(state.tgtSlot) delete state.tgtSlot[sn];} /* r.162 (Addendum 14): in TRAIN UP the shooter's own mark and approval ride the target down and back up */ else if(state.desig){ if(chNum()===5){ state.desig.phase='amber'; state.desig.approvedBy=null; Object.keys(state.tgtSlot||{}).forEach(k=>{ if(state.tgtSlot[k]&&state.tgtSlot[k].id===state.desig.id) state.tgtSlot[k].phase='amber'; }); toast('MISS · CH5 · GET IT APPROVED AGAIN'); } else state.desig.phase='red'; state.hiApproved=false; /* r.131: red holds for THIS exposure · r.135: at CH5 a miss goes back to amber so the other seat CAN re-approve (the popup's removal had left CH5 rooms unable to fire after one miss — Thor B) */}
+    if(hit.dead&&keepsMark(s.ref)){ toast('HIT · '+plateWord(s.id)+' · STILL RED · F WHEN IT STANDS'); } else if(hit.dead){state.hiApproved=false;state.hiLock=false; if(state.desig&&state.desig.id===s.id) state.desig=null; if(state.tgtSlot) Object.keys(state.tgtSlot).forEach(k=>{ if(state.tgtSlot[k]&&state.tgtSlot[k].id===s.id) delete state.tgtSlot[k]; }); if((state.rangeMode||'bounce')==='bounce') toast('HIT · '+plateWord(s.id)+' · TARGET · APPROVE · FIRE');} /* r.166: a shot target is unmarked. TARGET, then APPROVE, then FIRE. */ else if(state.desig){ if(chNum()===5){ state.desig.phase='amber'; state.desig.approvedBy=null; Object.keys(state.tgtSlot||{}).forEach(k=>{ if(state.tgtSlot[k]&&state.tgtSlot[k].id===state.desig.id) state.tgtSlot[k].phase='amber'; }); toast('MISS · CH5 · GET IT APPROVED AGAIN'); } else state.desig.phase='red'; state.hiApproved=false; /* r.131: red holds for THIS exposure · r.135: at CH5 a miss goes back to amber so the other seat CAN re-approve (the popup's removal had left CH5 rooms unable to fire after one miss — Thor B) */}
     log('FIRE',s.id,hit.dead?'DOWN':hit.life);sample({ev:'FIRE',n,kind:s.kind,life:s.ref.lifePct});list();return;}
   if(!s.ref.photo){capture(); if(!s.ref.photo){toast('NO EDGE');return;}}
   if(state.mode==='watch'){state.pending=s.ref;document.getElementById('approve').classList.add('show');log('REQ',s.id,'T'+n);toast('HI APPROVE T'+n);return;}
