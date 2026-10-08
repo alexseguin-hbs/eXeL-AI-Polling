@@ -73,15 +73,14 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   // (Enki, wave 2). placeOnPage maps the displayed-fraction box back onto the media box first.
   const { rot, width, height } = placeOnPage(page, box);
   // The signature PNG is the ink only. A white clear here covered the words under the stroke.
-  // Two display-frame sub-boxes — the image above, the caption below — each mapped through the
-  // page's rotation on its own, so both read upright however the page is turned.
-  // On a fitted rule the whole box is the signature (it is already "no taller than the text above"); the digital
-  // signature — name · time · #hash — sits UNDER the physical one (operator, 23:05): a 4.5-pt grey line just below
-  // the document's own rule, starting where the ink starts, in the gap above the printed name.
+  // The name · time · #hash stays INSIDE the box the signer drew, in a short band under the ink
+  // and above the rule. A band below the rule covers the printed title (Section Leader, 2026-10-08).
   const onRule = box.fit === "underline" || box.fit === "holder" || box.fit === "ai";   // a placeholder or an AI-found box sits on the rule
-  const imgBox = onRule ? { ...box } : { ...box, h: box.h * 0.7 };
-  const capBox = onRule ? { ...box, y: box.y + box.h * 0.6, h: box.h * 0.4 } : { ...box, y: box.y + box.h * 0.72, h: box.h * 0.28 };
-  const I = placeOnPage(page, imgBox, 24, 8), C = placeOnPage(page, capBox, 24, 4);
+  const dispPageH = rot === 90 || rot === 270 ? width : height;
+  const capFrac = Math.min(box.h * 0.42, 7 / dispPageH);                                 // ~7 pt, never most of the box
+  const imgBox = onRule ? { ...box, h: box.h - capFrac } : { ...box, h: box.h * 0.7 };
+  const capBox = onRule ? { ...box, y: box.y + imgBox.h, h: capFrac } : { ...box, y: box.y + box.h * 0.72, h: box.h * 0.28 };
+  const I = placeOnPage(page, imgBox, 1, 1), C = placeOnPage(page, capBox, 1, 1);
   const png = await doc.embedPng(dataUrlBytes(sig.pngDataUrl));
   const swap = rot === 90 || rot === 270;
   const dispW = swap ? I.bh : I.bw, dispH = swap ? I.bw : I.bh;           // the box as the signer saw it
@@ -99,17 +98,15 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   const capDispW = swap ? C.bh : C.bw, capDispH = swap ? C.bw : C.bh;
   let capSize = onRule ? 4.5 : Math.max(4, Math.min(9, capDispH * 0.9));
   while (capSize > 3.5 && font.widthOfTextAtSize(caption, capSize) > capDispW) capSize -= 0.5;
-  if (onRule) {
-    // under the rule, under the ink — placed in the DISPLAYED frame (a 5.5-pt strip whose top is the box's bottom edge) and
-    // mapped through /Rotate like every other sub-box, so a turned page reads it under its rule too (reviewer #11)
-    const U = placeOnPage(page, { ...box, y: box.y + box.h, h: 5.5 / (swap ? width : height) }, 24, 1);
-    const uo = oriented(rot, U.bx, U.by, U.bw, U.bh);
-    const at = rot === 0 ? { x: uo.x + 2, y: uo.y } : rot === 90 ? { x: uo.x, y: uo.y + 2 } : rot === 180 ? { x: uo.x - 2, y: uo.y } : { x: uo.x, y: uo.y - 2 };   // +2 pt along the text
-    page.drawText(caption, { ...at, size: capSize, font, color: rgb(0.35, 0.35, 0.38), rotate: uo.rotate });
-  } else {
-    const co = oriented(rot, C.bx, C.by, C.bw, C.bh);
-    page.drawText(caption, { x: co.x, y: co.y, size: capSize, font, color: rgb(0.1, 0.1, 0.1), rotate: co.rotate });
-  }
+  // Baseline sits just above the bottom of the caption band, so the glyphs stay inside the
+  // drawn box. lift is "above the baseline" after /Rotate; +2 pt runs along the text.
+  const co = oriented(rot, C.bx, C.by, C.bw, C.bh);
+  const lift = onRule ? 1.2 : 0;
+  const at = rot === 90 ? { x: co.x - lift, y: co.y + 2 }
+    : rot === 180 ? { x: co.x - 2, y: co.y - lift }
+    : rot === 270 ? { x: co.x + lift, y: co.y - 2 }
+    : { x: co.x + (onRule ? 2 : 0), y: co.y + lift };
+  page.drawText(caption, { ...at, size: capSize, font, color: onRule ? rgb(0.35, 0.35, 0.38) : rgb(0.1, 0.1, 0.1), rotate: co.rotate });
   if (!onRule) {                                                                    // the document's own rule is the line
     const lo = oriented(rot, C.bx, C.by, C.bw, C.bh);
     page.drawLine({ start: { x: lo.x, y: lo.y }, end: rot === 90 ? { x: lo.x, y: lo.y + C.bh } : rot === 270 ? { x: lo.x, y: lo.y - C.bh } : rot === 180 ? { x: lo.x - C.bw, y: lo.y } : { x: lo.x + C.bw, y: lo.y }, thickness: 0.5, color: rgb(0.2, 0.2, 0.2) });

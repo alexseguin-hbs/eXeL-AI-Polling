@@ -53,7 +53,18 @@ const txt2 = await pageText(s2);
 // the caption prints the receipt's fixed UTC form (cacStamp), never the raw ISO string (reviewer 2026-09-08)
 ok(/Ada Lender · 2026\.09\.07 12:00:00 UTC · #ba7816bf/.test(txt2) && /Ben Borrower · 2026\.09\.07 13:00:00 UTC · #deadbeef/.test(txt2) && !/2026-09-07T1[23]:00:00Z/.test(txt2), "each physical signature has its digital line (name · cacStamp time · #hash) in the page text");
 const fitted = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.04, fit: "underline" }, { pngDataUrl: png1x1, name: "Cy Fitted", isoDate: "2026-09-07T14:00:00Z", hash: "0badf00d" });
-ok(/Cy Fitted · 2026\.09\.07 14:00:00 UTC · #0badf00d/.test(await pageText(fitted)) && (await countSignatureImages(fitted)) === 1, "a box fitted to a rule pairs too — the digital line sits under the physical one");
+ok(/Cy Fitted · 2026\.09\.07 14:00:00 UTC · #0badf00d/.test(await pageText(fitted)) && (await countSignatureImages(fitted)) === 1, "a box fitted to a rule keeps the digital line inside the box, above the rule");
+{
+  const { PDFDocument } = await import("pdf-lib");
+  const fittedDoc = await PDFDocument.load(fitted);
+  const ph = fittedDoc.getPage(0).getSize().height;
+  const rule = ph * (1 - 0.8 - 0.04);
+  const doc = await getDocument({ data: fitted.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: FONTS, verbosity: 0 }).promise;
+  const items = (await (await doc.getPage(1)).getTextContent()).items;
+  const hit = items.find((x) => x.str && x.str.includes("Cy Fitted"));
+  const y = hit ? hit.transform[5] : -1;
+  ok(y > rule + 0.4 && y < rule + 8, `fitted caption sits in the box, just above the rule (y=${y.toFixed(2)}, rule=${rule.toFixed(2)})`);
+}
 const arabic = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.04, fit: "underline" }, { pngDataUrl: png1x1, name: "علي حسن", isoDate: "2026-09-08T01:00:00Z", hash: "0badf00d", signerIdx: 1 });
 ok(/Signer 2 · 2026\.09\.08 01:00:00 UTC · #0badf00d/.test(await pageText(arabic)), "a name the font cannot print is captioned 'Signer N' (N from signerIdx), not a row of dots");
 const withContact = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.04, fit: "underline" }, { pngDataUrl: png1x1, name: "张伟", contact: "wei@example.com", isoDate: "2026-09-08T01:00:00Z", hash: "0badf00d" });
