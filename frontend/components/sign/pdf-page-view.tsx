@@ -22,7 +22,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { openPdf, renderPage } from "@/lib/pdf-render";
 import { fitToUnderline } from "@/lib/sign-fit";
-import type { StampBox } from "@/lib/pdf-stamp";
+import { textEmPt, type StampBox } from "@/lib/pdf-stamp";
 
 export interface Mark extends StampBox { id: string; kind: "sig" | "text"; text?: string; /** how the box got its size: fitted to a rule, the default, a placeholder, or the AI */ fit?: "underline" | "default" | "holder" | "ai" | "stamped" }   // "stamped": the signer's OWN text from an earlier pass, loaded back for remove/redo (operator 2026-09-08 22:40)
 export const SIG_W = 0.4, SIG_H = 0.08, TXT_W = 0.22, TXT_H = 0.02, MIN_W = 0.08, MIN_H = 0.012;   // TXT_H 0.02 = a 16-pt line on Letter: typed text prints at the document's own size (the live note printed a 27-pt date — operator 2026-09-08)
@@ -42,6 +42,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
   const scroller = useRef<HTMLDivElement>(null);
   const [zoom, setZoomState] = useState(1);
   const [base, setBase] = useState(0);                 // the page's CSS width at 1× — the scroller's width, at most 640
+  const [pagePt, setPagePt] = useState({ w: 612, h: 792 });
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(0);
   const [err, setErr] = useState("");
@@ -72,7 +73,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
     let live = true;
     (async () => {
       const doc = docRef.current, el = host.current; if (!doc || !el || !base) return;
-      try { const r = await renderPage(doc, page, Math.round(base * zoom)); if (!live) return; el.querySelectorAll("canvas").forEach((c) => c.remove()); el.insertBefore(r.canvas, el.firstChild); }
+      try { const r = await renderPage(doc, page, Math.round(base * zoom)); if (!live) return; setPagePt({ w: r.widthPt, h: r.heightPt }); el.querySelectorAll("canvas").forEach((c) => c.remove()); el.insertBefore(r.canvas, el.firstChild); }
       catch (e) { setErr(String((e as Error).message || e)); }
     })();
     return () => { live = false; };
@@ -217,7 +218,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
             <div key={m.id} draggable={false} onDragStart={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()} className={`absolute rounded ${sel ? "border-[3px] border-primary shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-primary/50"} ${m.kind === "sig" ? (sel ? "bg-primary/15" : "border-dashed bg-primary/10") : (sel ? "bg-amber-300/20" : m.fit === "stamped" ? "border-solid border-amber-500/80 bg-amber-300/10" : "border-dotted bg-amber-300/10")}`}
               style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%`, containerType: "size", touchAction: "none" }} data-testid={m.kind === "sig" ? "sig-box" : "text-box"} data-fit={m.fit}>
               {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" draggable={false} className={`pointer-events-none h-full w-full select-none object-contain ${m.fit === "underline" ? "object-left" : ""}`} />}
-              {m.kind === "text" && <span className="block h-full w-full overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: "72cqh", lineHeight: 1.35 }}>{m.text}</span>}
+              {m.kind === "text" && <span className="flex h-full w-full items-end overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: textEmPt(m.h * pagePt.h) * ((base || pagePt.w) * zoom / pagePt.w), lineHeight: 1 }}>{m.text}</span>}
               {sel && !readOnly && <span className="absolute -top-2.5 -end-2.5 h-6 w-6 rounded-md border-2 border-white bg-primary shadow" aria-hidden="true" data-testid="resize-handle" />}
               {/* no delete badge ON the box — it covered the text (operator 02:00); the red Delete sits in the toolbar under the page */}
             </div>

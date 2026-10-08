@@ -68,6 +68,27 @@ ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2,
 { const [tm] = await textBoxes(s3); ok(tm.text === "Sep 7, 2026" && tm.signerIdx === undefined && Math.abs(tm.x - 0.1) < 1e-4 && tm.page === 1, `textBoxes returns the text (got ${JSON.stringify(tm)})`); }
 { const uni = await stampText(s2, { page: 1, x: 0.1, y: 0.9, w: 0.22, h: 0.035 }, "Ünïcödé — “note”"); ok((await textBoxes(uni))[0].text === pdfSafe("Ünïcödé — “note”"), "the recorded text is the text as drawn (pdfSafe)"); }
 
+// a tall box must not print 23-pt words onto an 11-pt form (RST, 2026-10-08: SSG at h=0.041 stamped 23 pt).
+// a normal line (h=0.02, the default text box) stays under that cap, near 72% of the box.
+{
+  const { PDFDocument, PDFRawStream, decodePDFRawStream, PDFArray } = await import("pdf-lib");
+  const { textEmPt, TEXT_CAP_PT } = await import("../lib/pdf-stamp.ts");
+  const blank = await PDFDocument.create(); blank.addPage([612, 792]);
+  const src = await blank.save();
+  const tfSize = async (bytes) => {
+    const doc = await PDFDocument.load(bytes);
+    const contents = doc.getPage(0).node.Contents();
+    const refs = contents instanceof PDFArray ? contents.asArray() : [contents];
+    const body = refs.map((ref) => { const s = doc.context.lookup(ref); return s instanceof PDFRawStream ? Buffer.from(decodePDFRawStream(s).decode()).toString("latin1") : ""; }).join("\n");
+    const m = /\/Helvetica[\w-]*\s+([\d.]+)\s+Tf/.exec(body);
+    return m ? Number(m[1]) : 0;
+  };
+  const tallPt = await tfSize(await stampText(src, { page: 1, x: 0.15, y: 0.2, w: 0.2, h: 0.041 }, "SSG"));
+  const shortPt = await tfSize(await stampText(src, { page: 1, x: 0.15, y: 0.3, w: 0.3, h: 0.02 }, "Oct 26"));
+  ok(tallPt === TEXT_CAP_PT && tallPt < 16, `a 0.041-tall box stamps at ${TEXT_CAP_PT} pt, not ~23 (got ${tallPt})`);
+  ok(Math.abs(shortPt - textEmPt(0.02 * 792)) < 0.2 && shortPt > 10 && shortPt < TEXT_CAP_PT, `a 0.02 box still prints near the form body (got ${shortPt}, want ${textEmPt(0.02 * 792).toFixed(2)})`);
+}
+
 // ── initials slots (operator 2026-09-08): signer 0 at the RIGHT edge, each additional signer LEFT of the previous ──
 {
   const ws = [36, 36, 36]; const s = [0, 1, 2].map((i) => initialsSlot(612, 100, i, ws));

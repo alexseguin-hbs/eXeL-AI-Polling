@@ -120,6 +120,14 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   return doc.save({ useObjectStreams: false });
 }
 
+/** Typed text is 72% of its box, and never taller than a form's body.
+ *  72% of a tall box wrote 23 pt onto an 11 pt row (RST, 2026-10-08). A short box still shrinks. */
+export const TEXT_BOX_EM = 0.72;
+export const TEXT_CAP_PT = 12;
+export function textEmPt(dispH: number): number {
+  return Math.max(6, Math.min(dispH * TEXT_BOX_EM, TEXT_CAP_PT));
+}
+
 /** A text mark — a date, a name, a note — fitted into its box on the page (operator, 2026-09-07). */
 export interface TextMeta { signerIdx: number; isoDate: string; chain: string }
 export async function stampText(pdf: Uint8Array, box: StampBox, text: string, meta?: TextMeta): Promise<Uint8Array> {
@@ -132,9 +140,9 @@ export async function stampText(pdf: Uint8Array, box: StampBox, text: string, me
   const clean = pdfSafe(text.replace(/[\r\n]+/g, " ").slice(0, 200));
   const swap = rot === 90 || rot === 270;
   const dispW = swap ? bh : bw, dispH = swap ? bw : bh;
-  let size = Math.max(6, Math.min(dispH * 0.72, 24));
+  let size = textEmPt(dispH);
   while (size > 6 && font.widthOfTextAtSize(clean, size) > dispW - 4) size -= 0.5;   // shrink to fit the box width
-  const pad = (dispH - size) / 2 + size * 0.12;
+  const pad = Math.max(1, size * 0.2);                                             // sit on the line, don't sink into the next row
   const o = oriented(rot, bx, by, bw, bh);
   const at = rot === 0 ? { x: bx + 2, y: by + pad } : rot === 90 ? { x: o.x - pad, y: o.y + 2 } : rot === 180 ? { x: o.x - 2, y: o.y - pad } : { x: o.x + pad, y: o.y - 2 };
   page.drawText(clean, { ...at, size, font, color: rgb(0.06, 0.06, 0.08), rotate: o.rotate });
