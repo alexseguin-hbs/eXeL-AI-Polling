@@ -28,7 +28,6 @@ import { aiStatus } from "@/lib/fitness-2525/ai";
 export function FitnessCommandUX1() {
   const { user, isAuthenticated, isLoading, loginWithRedirect, logout, getAccessTokenSilently, getIdTokenClaims } = useAuth0();
   const owner = isAuthenticated && user?.sub ? user.sub : null;
-  // Prefer API access token when audience set; else ID token (aud = client id), refresh if stale.
   const getFitToken = useCallback(async (): Promise<string | null> => {
     const apiAudience = process.env.NEXT_PUBLIC_AUTH0_AUDIENCE || "";
     if (apiAudience) {
@@ -41,14 +40,13 @@ export function FitnessCommandUX1() {
     try {
       const fresh = await idToken();
       if (fresh) return fresh;
-      await getAccessTokenSilently({ cacheMode: "off" }); // renews the session → new ID token
+      await getAccessTokenSilently({ cacheMode: "off" });
       return await idToken();
     } catch {
       return null;
     }
   }, [getAccessTokenSilently, getIdTokenClaims]);
 
-  // Tab TODAY first; apply ?tab= after mount (avoids hydration mismatch).
   const [tab, setTab] = useState<TabId>("TODAY");
   useEffect(() => {
     try {
@@ -88,7 +86,6 @@ export function FitnessCommandUX1() {
     : null;
 
   const { anthro, budget } = computeBudget(day, profile, exampleMode);
-  // Burn = BMR + NEAT + completed workouts (device day kcal is never the day burn).
   const burnOutKcal = budget.totalBurnKcal;
   const delta = burnOutKcal != null && typeof day.calories_in === "number" && Number.isFinite(day.calories_in) ? burnOutKcal - day.calories_in : null;
   const deficit = delta != null && delta > 0;
@@ -100,147 +97,59 @@ export function FitnessCommandUX1() {
 
   return (
     <div className={`fixed inset-0 z-[70] flex flex-col overflow-hidden ${styles.root}`} style={{ background: C.bg, color: C.text }} data-fit-surface>
-      {/* ── Top status strip (Security) ─────────────────────────────── */}
       <TopStrip
         tab={tab} setTab={setTab} user={user} owner={owner} isLoading={isLoading}
         signIn={signIn}
         onSignOut={() => logout({ logoutParams: { returnTo: typeof window !== "undefined" ? window.location.origin : undefined } })}
         btnGhost={btnGhost} btnPrimary={btnPrimary}
       />
-
-      {/* ── Body: 3-pane PLANNING layout ──────────────────────────── */}
       <div className={`grid min-h-0 flex-1 gap-2 overflow-hidden p-2 ${styles.bodyGrid}`} style={{ gridTemplateColumns: "minmax(200px,240px) minmax(0,1fr) minmax(200px,240px)" }}>
-        {/* LEFT — SESSIONS (ASSETS-style) */}
         <SessionsRail tab={tab} setTab={setTab} day={day} selected={selected} setSelectedId={setSelectedId} syncOnce={syncOnce} applyDay={applyDay} signedIn={!!owner} onSignIn={signIn} />
-
-        {/* CENTER — PROFILE · CONNECTIONS · LIVE TODAY timeline · energy Accrual hero + chart */}
         {tab === "PROFILE" ? (
-          <RequireAuth
-            signedIn={!!owner}
-            onSignIn={signIn}
-            isLoading={isLoading}
-            message="Sign in with Auth0 to view and save your athlete profile."
-          >
-            <AthleteProfile
-              profile={profile}
-              onProfile={updateProfile}
-              day={day}
-              onDay={applyDay}
-              history={history}
-              bmrKcal={budget.bmrKcal}
-            />
+          <RequireAuth signedIn={!!owner} onSignIn={signIn} isLoading={isLoading} message="Sign in with Auth0 to view and save your athlete profile.">
+            <AthleteProfile profile={profile} onProfile={updateProfile} day={day} onDay={applyDay} history={history} bmrKcal={budget.bmrKcal} />
           </RequireAuth>
         ) : tab === "CONNECTIONS" ? (
           <div className="flex min-h-0 flex-col gap-2 overflow-y-auto">
-            <ConnectionsCard
-              isAuthenticated={!!owner}
-              isLoading={isLoading}
-              onSignIn={signIn}
-              getToken={getFitToken}
-              onSynced={() => { void syncOnce(); }}
-            />
+            <ConnectionsCard isAuthenticated={!!owner} isLoading={isLoading} onSignIn={signIn} getToken={getFitToken} onSynced={() => { void syncOnce(); }} />
           </div>
         ) : tab === "TODAY" ? (
           <LiveTodayBoard
-            day={day}
-            budget={budget}
-            rateUnit={rateUnit}
-            showAllRates={showAllRates}
-            anthroUnknown={anthro.weightKg == null}
-            btnPrimary={btnPrimary}
-            btnGhost={btnGhost}
-            inputStyle={inputStyle}
-            setField={setField}
-            signedIn={!!owner}
-            onSignIn={signIn}
-            authLoading={isLoading}
+            day={day} budget={budget} rateUnit={rateUnit} showAllRates={showAllRates}
+            anthroUnknown={anthro.weightKg == null} btnPrimary={btnPrimary} btnGhost={btnGhost} inputStyle={inputStyle}
+            setField={setField} signedIn={!!owner} onSignIn={signIn} authLoading={isLoading} applyDay={applyDay}
             onStartRide={() => {
               setSelectedId("w-2026-10-05-bike");
               setShareMsg("Ride started — timer local; sync Garmin when done.");
               addCheckin("Started bike trainer tempo", "ui", "Start ride");
             }}
-            onLogGarmin={() => {
-              setSelectedId("w-2026-10-05-bike");
-              setShareMsg("Log from Garmin — paste activity when available (no invented kcal).");
-              setTab("ENERGY");
-            }}
           />
         ) : (
         <div className="flex min-h-0 flex-col gap-2 overflow-y-auto">
-          <EnergyUnitsCard
-            day={day} owner={owner} rateUnit={rateUnit} setRateUnit={setRateUnit}
-            showAllRates={showAllRates} setShowAllRates={setShowAllRates}
-            settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen}
-            fuelPer={fuelPer} burnPer={burnPer} netPer={netPer} deficit={deficit} delta={delta} burnOutKcal={burnOutKcal}
-            coachBusy={coachBusy} runCoach={runCoach} btnPrimary={btnPrimary}
-          />
-
+          <EnergyUnitsCard day={day} owner={owner} rateUnit={rateUnit} setRateUnit={setRateUnit} showAllRates={showAllRates} setShowAllRates={setShowAllRates} settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} fuelPer={fuelPer} burnPer={burnPer} netPer={netPer} deficit={deficit} delta={delta} burnOutKcal={burnOutKcal} coachBusy={coachBusy} runCoach={runCoach} btnPrimary={btnPrimary} />
           {exampleMode && (
-            <div className={styles.exampleBanner} data-fit-example>
-              EXAMPLE DATA — demo numbers for review only · not athlete measurements
-            </div>
+            <div className={styles.exampleBanner} data-fit-example>EXAMPLE DATA — demo numbers for review only · not athlete measurements</div>
           )}
-
-          <EnergyBudgetPanel
-            day={day} budget={budget} exampleMode={exampleMode} toggleExample={act.toggleExample}
-            setField={setField} setWeightLb={act.setWeightLb} setWindowIntake={act.setWindowIntake}
-            applyDay={applyDay} inputStyle={inputStyle} btnGhost={btnGhost}
-            signedIn={!!owner} onSignIn={signIn} authLoading={isLoading}
-          />
-
-          <RealtimeEnergyPanel
-            day={day} rateUnit={rateUnit} setRateUnit={setRateUnit} chartSpan={chartSpan} setChartSpan={setChartSpan}
-            fuelPer={fuelPer} burnPer={burnPer} fuelRates={fuelRates} burnRates={burnRates}
-            setField={setField} inputStyle={inputStyle}
-            signedIn={!!owner} onSignIn={signIn} authLoading={isLoading}
-          />
-
+          <EnergyBudgetPanel day={day} budget={budget} exampleMode={exampleMode} toggleExample={act.toggleExample} setField={setField} setWeightLb={act.setWeightLb} setWindowIntake={act.setWindowIntake} applyDay={applyDay} inputStyle={inputStyle} btnGhost={btnGhost} signedIn={!!owner} onSignIn={signIn} authLoading={isLoading} />
+          <RealtimeEnergyPanel day={day} rateUnit={rateUnit} setRateUnit={setRateUnit} chartSpan={chartSpan} setChartSpan={setChartSpan} fuelPer={fuelPer} burnPer={burnPer} fuelRates={fuelRates} burnRates={burnRates} setField={setField} inputStyle={inputStyle} signedIn={!!owner} onSignIn={signIn} authLoading={isLoading} />
           {(tab === "PLANNING" || tab === "ENERGY") && (
-            <RequireAuth
-              signedIn={!!owner}
-              onSignIn={signIn}
-              isLoading={isLoading}
-              message="Sign in with Auth0 to add or save training plans and workouts."
-            >
-              <SessionPanel selected={selected} selectedBurn={selectedBurn} rateUnit={rateUnit} toggleWorkout={toggleWorkout} btnGhost={btnGhost}
-                applyDay={applyDay} inputStyle={inputStyle} onSelect={setSelectedId} />
+            <RequireAuth signedIn={!!owner} onSignIn={signIn} isLoading={isLoading} message="Sign in with Auth0 to add or save training plans and workouts.">
+              <SessionPanel selected={selected} selectedBurn={selectedBurn} rateUnit={rateUnit} toggleWorkout={toggleWorkout} btnGhost={btnGhost} applyDay={applyDay} inputStyle={inputStyle} onSelect={setSelectedId} />
             </RequireAuth>
           )}
-
           {tab === "NUTRITION" && (
-            <RequireAuth
-              signedIn={!!owner}
-              onSignIn={signIn}
-              isLoading={isLoading}
-              message="Sign in with Auth0 to log meals and nutrition."
-            >
-              <NutritionPanel day={day} applyDay={applyDay} sugarCapG={budget.sugarCapG} coachBusy={coachBusy} runCoach={runCoach}
-                btnGhost={btnGhost} btnPrimary={btnPrimary} inputStyle={inputStyle} />
+            <RequireAuth signedIn={!!owner} onSignIn={signIn} isLoading={isLoading} message="Sign in with Auth0 to log meals and nutrition.">
+              <NutritionPanel day={day} applyDay={applyDay} sugarCapG={budget.sugarCapG} coachBusy={coachBusy} runCoach={runCoach} btnGhost={btnGhost} btnPrimary={btnPrimary} inputStyle={inputStyle} />
             </RequireAuth>
           )}
           {tab === "COACH" && (
-            <CoachPanel
-              coachDraft={coachDraft} setCoachDraft={setCoachDraft} coachBusy={coachBusy} coachErr={act.coachErr}
-              aiReady={aiReady} runCoach={runCoach} saveCoach={act.saveCoach}
-              inputStyle={inputStyle} btnPrimary={btnPrimary} btnGhost={btnGhost}
-              aiProvider={aiProvider} setAiProvider={setAiProvider} haveKeys={haveKeys} lastCost={lastCost}
-            />
+            <CoachPanel coachDraft={coachDraft} setCoachDraft={setCoachDraft} coachBusy={coachBusy} coachErr={act.coachErr} aiReady={aiReady} runCoach={runCoach} saveCoach={act.saveCoach} inputStyle={inputStyle} btnPrimary={btnPrimary} btnGhost={btnGhost} aiProvider={aiProvider} setAiProvider={setAiProvider} haveKeys={haveKeys} lastCost={lastCost} />
           )}
-
           <div className={`min-h-[80px] flex-1 rounded-lg border ${styles.stageGrid}`} style={{ borderColor: C.border, background: "#070b12" }} />
         </div>
         )}
-
-        {/* RIGHT — ACTIVE ITEMS */}
-        <ActiveItemsRail
-          day={day} selected={selected} setSelectedId={setSelectedId} toggleWorkout={toggleWorkout}
-          checkinDraft={act.checkinDraft} setCheckinDraft={act.setCheckinDraft} addCheckin={() => addCheckin()}
-          owner={owner} planStatus={planStatus} statusColor={statusColor} shareMsg={shareMsg}
-          cloudState={cloudState} completed={completed} onShare={act.onShare} onSubmit={act.onSubmit}
-          inputStyle={inputStyle} onSignIn={signIn} authLoading={isLoading}
-        />
+        <ActiveItemsRail day={day} selected={selected} setSelectedId={setSelectedId} toggleWorkout={toggleWorkout} checkinDraft={act.checkinDraft} setCheckinDraft={act.setCheckinDraft} addCheckin={() => addCheckin()} owner={owner} planStatus={planStatus} statusColor={statusColor} shareMsg={shareMsg} cloudState={cloudState} completed={completed} onShare={act.onShare} onSubmit={act.onSubmit} inputStyle={inputStyle} onSignIn={signIn} authLoading={isLoading} />
       </div>
-
     </div>
   );
 }
