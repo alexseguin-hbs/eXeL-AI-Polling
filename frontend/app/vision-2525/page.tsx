@@ -141,7 +141,7 @@ export default function Vision2525Page() {
               Executive Summary <ArrowRight className="h-4 w-4" />
             </a>
             <Link href="/vision-2525/white-paper/" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
-              Detailed Framework
+              19-section deep dive
             </Link>
           </div>
         </section>

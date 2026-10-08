@@ -9,5 +9,5 @@ ok(/Thirteen sections/.test(src), "the card says thirteen sections");
 ok(!/Nineteen sections/.test(src), "the card no longer describes the 19-section paper");
 ok(!/Recursive Coordination for Human Continuity/.test(src), "the card title is the framework, not the longer paper");
 ok(/#D18BE0/.test(src), "the download mark is the violet icon");
-ok(/href="\/vision-2525\/white-paper\/"/.test(src), "the longer paper stays one tap away from the hero");
+ok(/href="\/vision-2525\/white-paper\/"/.test(src) && /19-section deep dive/.test(src), "the top link is the 19-section deep dive");
 console.log(`\nvision-download: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
