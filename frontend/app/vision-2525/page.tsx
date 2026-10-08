@@ -75,52 +75,8 @@ function SectionLabel({ children, color = CYAN }: { children: React.ReactNode; c
   return <p className="text-[11px] font-semibold uppercase tracking-[0.28em]" style={{ color }}>{children}</p>;
 }
 
-/** The Download on the Framework card is the 13-section PDF. The other two cards open their own papers. */
+/** The Download on this card is the paper the words describe: the 19-section white paper, not the shorter framework PDF. */
 const FRAMEWORK_DOWNLOAD = "https://ppgfjplawtlrfqpnszyb.supabase.co/storage/v1/object/public/whitepaper/VISION-2525.pdf";
-
-const PAPERS = [
-  {
-    key: "framework",
-    label: "The Framework",
-    title: "Humanity's Coordination Framework",
-    body: "The Framework is Humanity's Coordination Framework. Thirteen sections. It does not ask technology to rule. It asks technology to serve, and the first doctrine is plain: Humanity decides. Technology assists. Trust must be proven. Governments, schools, companies, and communities each see only part of what is happening. The answer is a shared way to see, remember, rehearse, and qualify, while local authority stays where it is. The spine is R-CORE, a civilization nervous system. This paper is the map of those systems. It is not the letter, and it is not the legal locks. Trust is earned, not announced. One civilization, one framework, readable in more than one language. Start here.",
-    href: FRAMEWORK_DOWNLOAD,
-    download: "VISION-2525.pdf",
-  },
-  {
-    key: "summary",
-    label: "Executive Summary",
-    title: "The Measure of a Human Life",
-    body: "The Executive Summary is titled The Measure of a Human Life. A preamble, then twelve short movements. It is not the catalog of systems, and it is not the legal instrument. It is the reason a person would open either of the other two. Every civilization begins with a thought, and action enters time, the one resource no person gets back. Thought Mastery ties awareness, intention, time, action, consequence, and learning into one practice. We cannot master what we are not aware of. We cannot improve what we refuse to measure. We cannot build a trustworthy future if every generation must begin again. One recorded hour is where a future begins.",
-    href: "/whitepaper/vision-2525-executive-summary.html",
-    download: "",
-  },
-  {
-    key: "record",
-    label: "The Record",
-    title: "Recursive Coordination for Human Continuity",
-    body: "The Record is titled Recursive Coordination for Human Continuity. Nineteen sections. The framework names the systems. The executive summary names the reason. This document names the rules that keep an hour of a human life from being discounted because of where that hour was lived, and the structure that keeps any one government from switching the record off. It opens on the unit. An hour is the common measure. Then the wall, the shield, the ledger, and the off switch. A machine may draft a clause. Only a person can be answerable for adopting it. Earlier versions stay readable. The name creates accountability for the words and no authority over anyone.",
-    href: "/vision-2525/white-paper/",
-    download: "",
-  },
-];
-
-/** The Framework has no landing page of its own. These thirteen parts are that page. The PDF is the full paper. */
-const FRAMEWORK_SECTIONS = [
-  { n: "I", name: "Humanity at the Center", line: "Humanity decides. Technology assists. Trust must be proven." },
-  { n: "II", name: "Civilization Nervous System", line: "R-CORE is the shared way to see, remember, rehearse, and qualify. Local authority stays where it is." },
-  { n: "III", name: "Communication Without Collapse", line: "COMM-2525 keeps people and missions connected when pressure rises." },
-  { n: "IV", name: "Coordination Across Every Scale", line: "LINK-2525 carries purpose and authority as the work scales, so coordination does not become ownership." },
-  { n: "V", name: "Intelligence Everywhere", line: "EDGE-2525 puts awareness at the point of need and does not hand the decision to a machine." },
-  { n: "VI", name: "Memory, Truth, and Replay", line: "SYNC-2525 keeps what happened, what was decided, and what must be learned." },
-  { n: "VII", name: "One Shared Reality", line: "UCRS-2525 gives every authorized participant one spatial language for where something is and how it moves." },
-  { n: "VIII", name: "Rehearsing the Future", line: "Reality and simulation let a team rehearse against a real baseline before anyone is at risk." },
-  { n: "IX", name: "The Power of Collective Intelligence", line: "It gathers what people see and need. It informs a decision. It does not replace the person who must make one." },
-  { n: "X", name: "Governance With Conscience", line: "Human, artificial, and shared intelligence stay in three seats." },
-  { n: "XI", name: "Readiness Humanity Can Trust", line: "SSSES is the gate: security, stability, scalability, efficiency, and succinctness. Proceed, pause, redesign, or expand." },
-  { n: "XII", name: "The Adoption Flywheel", line: "Adoption turns only after the gate. Readiness comes before scale." },
-  { n: "XIII", name: "Humanity's Future", line: "One civilization. One framework. The same rules, readable in more than one language." },
-];
 
 export default function Vision2525Page() {
   const { t } = useLexicon();
@@ -173,43 +129,16 @@ export default function Vision2525Page() {
             </p>
             <p className="max-w-xl text-sm text-slate-400">{t("vision2525.hero_subtitle")}</p>
           </div>
-          <div className="mt-2 w-full max-w-3xl text-left">
-            {PAPERS.map((paper) => (
-              <section key={paper.key} className="mt-6 border-t border-slate-800 pt-5">
-                <h2 className="font-serif text-xl font-bold sm:text-2xl" style={{ color: GOLD }}>{paper.label}</h2>
-                <a href={paper.href} className="mt-2 block text-sm leading-relaxed text-slate-300 transition-colors hover:text-slate-100 sm:text-base">
-                  {paper.body}
-                </a>
-                {paper.key === "framework" ? (
-                  <ol className="mt-4 flex flex-col gap-3">
-                    {FRAMEWORK_SECTIONS.map((part) => (
-                      <li key={part.n}>
-                        <a href={FRAMEWORK_DOWNLOAD} className="block rounded-lg border border-slate-800 px-3 py-2 transition-colors hover:border-slate-600">
-                          <span className="text-xs font-semibold tracking-wide" style={{ color: CYAN }}>{part.n}</span>
-                          <span className="mt-0.5 block text-sm font-semibold text-slate-100">{part.name}</span>
-                          <span className="mt-0.5 block text-sm leading-relaxed text-slate-400">{part.line}</span>
-                        </a>
-                      </li>
-                    ))}
-                  </ol>
-                ) : null}
-                {paper.download ? (
-                  <a
-                    href={FRAMEWORK_DOWNLOAD}
-                    download="VISION-2525.pdf"
-                    title="Download VISION • 2525"
-                    aria-label="Download VISION • 2525"
-                    data-vision-download="framework"
-                    className="mt-3 inline-flex items-center justify-center border px-3"
-                    style={{ borderColor: "#D18BE0", color: "#D18BE0", minHeight: 34, borderRadius: 8, paddingTop: 6, paddingBottom: 6 }}
-                  >
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
-                    </svg>
-                  </a>
-                ) : null}
-              </section>
-            ))}
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
+            <a href={FRAMEWORK_DOWNLOAD} className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
+              The Framework
+            </a>
+            <a href="/whitepaper/vision-2525-executive-summary.html" className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-slate-900 transition-transform hover:scale-[1.03]" style={{ background: GOLD }}>
+              Executive Summary <ArrowRight className="h-4 w-4" />
+            </a>
+            <Link href="/vision-2525/white-paper/" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
+              The Record
+            </Link>
           </div>
         </section>
 
@@ -326,6 +255,43 @@ export default function Vision2525Page() {
                 </div>
               );
             })}
+          </div>
+        </section>
+
+        {/* ── THE WHITE PAPER (public, no login) ───────────────────────────── */}
+        <section className="mt-16">
+          <div
+            className="rounded-2xl border p-6 sm:p-8"
+            style={{ borderColor: "rgba(232,182,76,0.35)", background: "rgba(232,182,76,0.05)" }}
+          >
+            <a href={FRAMEWORK_DOWNLOAD} className="block transition-colors hover:opacity-95">
+              <SectionLabel color={GOLD}>The Framework · open to everyone</SectionLabel>
+              <h2 className="mt-3 font-serif text-2xl font-bold leading-tight sm:text-3xl" style={{ color: GOLD }}>
+                {"Humanity's Coordination Framework"}
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+                {"Thirteen sections, from humanity at the center to humanity's future. R-CORE is the nervous system beneath them. Communication, coordination, and intelligence in the field stay under human authority. One civilization. One framework."}
+              </p>
+            </a>
+            <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs uppercase tracking-[0.2em] text-slate-400">
+              <span>{t("vision2525.no_login")}</span><span style={{ color: CYAN }}>&middot;</span>
+              <span>{t("vision2525.no_account")}</span><span style={{ color: CYAN }}>&middot;</span>
+              <span>{t("vision2525.reads_offline")}</span><span style={{ color: CYAN }}>&middot;</span>
+              <a href={FRAMEWORK_DOWNLOAD} style={{ color: GOLD }}>{t("vision2525.open_it")}</a>
+              <a
+                href={FRAMEWORK_DOWNLOAD}
+                download="VISION-2525.pdf"
+                title="Download VISION • 2525"
+                aria-label="Download VISION • 2525"
+                data-vision-download="framework"
+                className="inline-flex items-center justify-center border px-3 normal-case tracking-normal"
+                style={{ borderColor: "#D18BE0", color: "#D18BE0", minHeight: 34, borderRadius: 8, paddingTop: 6, paddingBottom: 6 }}
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+                </svg>
+              </a>
+            </p>
           </div>
         </section>
 
