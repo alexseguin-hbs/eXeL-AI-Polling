@@ -77,35 +77,39 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   // and above the rule. A band below the rule covers the printed title (Section Leader, 2026-10-08).
   const onRule = box.fit === "underline" || box.fit === "holder" || box.fit === "ai";   // a placeholder or an AI-found box sits on the rule
   const dispPageH = rot === 90 || rot === 270 ? width : height;
+  const dispPageW = rot === 90 || rot === 270 ? height : width;
+  // The stroke sits on the bottom of the box, just above a short name band.
+  // A free box used to keep the ink in the top 70% (RST, 2026-10-08: the initials floated above the line).
   const capFrac = Math.min(box.h * 0.42, 7 / dispPageH);                                 // ~7 pt, never most of the box
-  const imgBox = onRule ? { ...box, h: box.h - capFrac } : { ...box, h: box.h * 0.7 };
-  const capBox = onRule ? { ...box, y: box.y + imgBox.h, h: capFrac } : { ...box, y: box.y + box.h * 0.72, h: box.h * 0.28 };
-  const I = placeOnPage(page, imgBox, 1, 1), C = placeOnPage(page, capBox, 1, 1);
+  const imgBox = { ...box, h: box.h - capFrac };
+  const capBox = { ...box, y: box.y + imgBox.h, h: capFrac };
+  const C = placeOnPage(page, capBox, 1, 1);
   const png = await doc.embedPng(dataUrlBytes(sig.pngDataUrl));
-  const swap = rot === 90 || rot === 270;
-  const dispW = swap ? I.bh : I.bw, dispH = swap ? I.bw : I.bh;           // the box as the signer saw it
+  const dispW = imgBox.w * dispPageW, dispH = imgBox.h * dispPageH;
   const scale = Math.min(dispW / png.width, dispH / png.height);
   const iw = png.width * scale, ih = png.height * scale;
+  const inkBox: StampBox = { page: box.page, x: imgBox.x + 2 / dispPageW, y: imgBox.y + imgBox.h - (ih + 1) / dispPageH, w: iw / dispPageW, h: ih / dispPageH };
+  const ink = placeOnPage(page, inkBox, 0.1, 0.1);
   const key = PDFName.of(`SoISig${maxSignatureIndex(page.node.Resources()?.lookup(PDFName.of("XObject"))) + 1}`);
   page.node.setXObject(key, png.ref);
-  if (rot === 0) page.drawImage(png, { x: onRule ? I.bx + 2 : I.bx + (I.bw - iw) / 2, y: I.by + (onRule ? 1 : (I.bh - ih) / 2), width: iw, height: ih });   // a signature starts where the line starts
-  else { const o = oriented(rot, I.bx, I.by, I.bw, I.bh); page.drawImage(png, { ...o, width: iw, height: ih }); }
+  page.drawImage(png, oriented(ink.rot, ink.bx, ink.by, ink.bw, ink.bh));
   const font = await doc.embedFont(StandardFonts.Helvetica);
+  const swap = rot === 90 || rot === 270;
   // ONE rendering of the instant: the caption prints the receipt's fixed UTC form (cacStamp), never the raw ISO string;
   // the SoISig / SoICodex keywords keep the ISO value readers depend on (reviewer 2026-09-08)
   const idx = sig.signerIdx ?? (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoISig:")).length;
   const caption = pdfSafe(`${captionName(sig.name, sig.contact, idx)} · ${cacStamp(sig.isoDate, sig.tz)} · #${sig.hash}`);
-  const capDispW = swap ? C.bh : C.bw, capDispH = swap ? C.bw : C.bh;
-  let capSize = onRule ? 4.5 : Math.max(4, Math.min(9, capDispH * 0.9));
+  const capDispW = swap ? C.bh : C.bw;
+  let capSize = 4.5;
   while (capSize > 3.5 && font.widthOfTextAtSize(caption, capSize) > capDispW) capSize -= 0.5;
-  // Baseline sits just above the bottom of the caption band, so the glyphs stay inside the
-  // drawn box. lift is "above the baseline" after /Rotate; +2 pt runs along the text.
+  // Baseline sits just above the bottom of the box, so the name stays on the line and
+  // does not cover the title printed under it (Section Leader).
   const co = oriented(rot, C.bx, C.by, C.bw, C.bh);
-  const lift = onRule ? 1.2 : 0;
+  const lift = 1.2;
   const at = rot === 90 ? { x: co.x - lift, y: co.y + 2 }
     : rot === 180 ? { x: co.x - 2, y: co.y - lift }
     : rot === 270 ? { x: co.x + lift, y: co.y - 2 }
-    : { x: co.x + (onRule ? 2 : 0), y: co.y + lift };
+    : { x: co.x + 2, y: co.y + lift };
   page.drawText(caption, { ...at, size: capSize, font, color: onRule ? rgb(0.35, 0.35, 0.38) : rgb(0.1, 0.1, 0.1), rotate: co.rotate });
   if (!onRule) {                                                                    // the document's own rule is the line
     const lo = oriented(rot, C.bx, C.by, C.bw, C.bh);
@@ -289,11 +293,12 @@ export const initialsSlotWidths = (total: number, mine?: { idx: number; aspect: 
  *  additional signer starts LEFT of the previous one (operator 2026-09-08): x = width − right − Σ widths[0..idx] − idx·gap. */
 export const initialsSlot = (width: number, topY: number, idx: number, widths: number[]) => ({ x: width - INIT_SLOT.right - widths.slice(0, idx + 1).reduce((a, b) => a + b, 0) - idx * INIT_SLOT.gap, y: topY - INIT_SLOT.h, w: widths[idx], h: INIT_SLOT.h });
 /** The fraction of the page width (from the right edge) the initials row covers — every slot, the gaps, the right margin and
- *  one gap of clearance — never narrower than the 0.45 band lib/sign-layout scans by default, at most the whole page. Hand it
- *  to `initialsSlotTop(bmp, { colFrac })` so a row of 3+ signers is checked against the ink it actually spans. */
+ *  one gap of clearance — at most the whole page. Hand it to `initialsSlotTop(bmp, { colFrac })` so the scan looks at
+ *  the corner the initials actually occupy. A wider floor (the old 0.45) treated form text as blocking and lifted the
+ *  row off the bottom of the page. */
 export const initialsRowFrac = (widths: number[], pageWidthPt: number): number => {
   const row = INIT_SLOT.right + widths.reduce((a, b) => a + b, 0) + Math.max(0, widths.length - 1) * INIT_SLOT.gap + INIT_SLOT.gap;
-  return Math.min(1, Math.max(0.45, pageWidthPt > 0 ? row / pageWidthPt : 1));
+  return Math.min(1, pageWidthPt > 0 ? row / pageWidthPt : 1);
 };
 
 /** "Alex Seguin" → "AS": the first letter of each word, letters only, at most three (operator 2026-09-08: initials). */

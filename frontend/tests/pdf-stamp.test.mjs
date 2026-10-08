@@ -65,6 +65,19 @@ ok(/Cy Fitted · 2026\.09\.07 14:00:00 UTC · #0badf00d/.test(await pageText(fit
   const y = hit ? hit.transform[5] : -1;
   ok(y > rule + 0.4 && y < rule + 8, `fitted caption sits in the box, just above the rule (y=${y.toFixed(2)}, rule=${rule.toFixed(2)})`);
 }
+{
+  // a free box (no underline fit) still puts the ink on the bottom of the box, not in the top 70%
+  const { PDFDocument, PDFRawStream, decodePDFRawStream, PDFArray } = await import("pdf-lib");
+  const free = await stampSignature(pdf, { page: 1, x: 0.18, y: 0.47, w: 0.25, h: 0.07 }, { pngDataUrl: png1x1, name: "Alex Seguin", isoDate: "2026-10-08T11:28:02.499Z", hash: "87fd1c15" });
+  const doc = await PDFDocument.load(free);
+  const contents = doc.getPage(0).node.Contents();
+  const refs = contents instanceof PDFArray ? contents.asArray() : [contents];
+  const body = refs.map((ref) => { const s = doc.context.lookup(ref); return s instanceof PDFRawStream ? Buffer.from(decodePDFRawStream(s).decode()).toString("latin1") : ""; }).join("\n");
+  const placed = [...body.matchAll(/1 0 0 1 ([\d.]+) ([\d.]+) cm\s+1 0 0 1 0 0 cm\s+([\d.]+) 0 0 ([\d.]+) 0 0 cm/g)].map((m) => ({ x: +m[1], y: +m[2], w: +m[3], h: +m[4] }));
+  const image = placed.find((c) => c.h > 20);
+  const boxBottom = 792 * (1 - 0.47 - 0.07);
+  ok(!!image && image.y < boxBottom + 12 && image.y > boxBottom, `free-box ink sits on the line (y=${image ? image.y.toFixed(1) : "?"}, box bottom=${boxBottom.toFixed(1)})`);
+}
 const arabic = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.04, fit: "underline" }, { pngDataUrl: png1x1, name: "علي حسن", isoDate: "2026-09-08T01:00:00Z", hash: "0badf00d", signerIdx: 1 });
 ok(/Signer 2 · 2026\.09\.08 01:00:00 UTC · #0badf00d/.test(await pageText(arabic)), "a name the font cannot print is captioned 'Signer N' (N from signerIdx), not a row of dots");
 const withContact = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.04, fit: "underline" }, { pngDataUrl: png1x1, name: "张伟", contact: "wei@example.com", isoDate: "2026-09-08T01:00:00Z", hash: "0badf00d" });
@@ -107,8 +120,10 @@ ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2,
   ok(s[0].x + s[0].w === 612 - INIT_SLOT.right && s[1].x + s[1].w + INIT_SLOT.gap === s[0].x && s[2].x + s[2].w + INIT_SLOT.gap === s[1].x && s.every((q) => q.y === 100 - INIT_SLOT.h && q.h === INIT_SLOT.h), "signer 0 ends at the right margin; each later slot ends one gap before the previous starts");
   const wide = [96, 36]; const a = initialsSlot(612, 100, 0, wide), b = initialsSlot(612, 100, 1, wide);
   ok(a.x === 498 && a.w === 96 && b.x === 458 && b.x + b.w + INIT_SLOT.gap === a.x, `a wide first slot pushes the second further left (got ${a.x}/${b.x})`);
-  // the band lib/sign-layout must scan grows with the row: two default slots stay inside the default 45 %, four wide ones do not
-  ok(initialsRowFrac([36, 36], 612) === 0.45 && Math.abs(initialsRowFrac([96, 96, 96, 96], 612) - 418 / 612) < 1e-9 && initialsRowFrac(Array(10).fill(96), 612) === 1, `initialsRowFrac: 0.45 floor, 418/612 for four wide slots, capped at 1 (got ${initialsRowFrac([96, 96, 96, 96], 612).toFixed(3)})`);
+  // the corner actually scanned is the row itself. A 0.45 floor looked at half the page and
+  // parked one signer's initials on the signature (RST SoIInitRow 0.5583) instead of the bottom.
+  const two = (INIT_SLOT.right + 36 + 36 + INIT_SLOT.gap + INIT_SLOT.gap) / 612;
+  ok(Math.abs(initialsRowFrac([36, 36], 612) - two) < 1e-9 && Math.abs(initialsRowFrac([96, 96, 96, 96], 612) - 418 / 612) < 1e-9 && initialsRowFrac(Array(10).fill(96), 612) === 1, `initialsRowFrac: the row itself, 418/612 for four wide slots, capped at 1 (got ${initialsRowFrac([36, 36], 612).toFixed(3)})`);
 }
 
 // ── a /Rotate 90 page: stamp + date land without error, recorded with r90 (Enki, Asar) ──

@@ -22,7 +22,7 @@ import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, recordLink, contactKind, handoffMessage, normalizeContact, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope, type StoreMode } from "@/lib/sign-store";
 import { stampSignature, stampText, stampCheck, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, initialsOf, type Holder, initialsRowFrac, initialsSlotWidths, cacStamp, textBoxes, unstampText, type TextMark } from "@/lib/pdf-stamp";
-import { initialsSlotTop, partnerRule, nextSignerSlot } from "@/lib/sign-layout";
+import { initialsSlotTop, partnerRule, nextSignerSlot, initialsRowTop } from "@/lib/sign-layout";
 import { fitToUnderline, type Bitmap } from "@/lib/sign-fit";
 import { openPdf, renderPage } from "@/lib/pdf-render";
 import { putTempFile, type TempLink } from "@/lib/tmpfile";
@@ -42,8 +42,6 @@ async function pageBitmap(bytes: Uint8Array, n: number): Promise<Bitmap & { widt
 // fraction for the slot scan, and the initials-slot widths it is computed from.
 /** The caption under a signature box, in points — the slot scan must clear it too (pdf-stamp draws it under the image). */
 const CAPTION_PT = 12;
-/** The initials slot's own height as a page fraction (initialsSlotTop's hFrac default). */
-const SLOT_H_FRAC = 0.018;
 /** A lexicon string with its {placeholder} filled — and the value appended when a language's string forgot the placeholder, so nothing is ever lost. */
 const fill = (s: string, ph: string, v: string | number): string => (s.includes(`{${ph}}`) ? s.replace(`{${ph}}`, String(v)) : `${s} ${v}`);
 /** The rail step a flow state lights: an error keeps the LAST real step lit (reviewer 2026-09-08). */
@@ -532,10 +530,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
         const total = Math.max(countersign ? (pubSigners.length || 2) : signers.length, myRow + 1);
         const earlier = recorded.filter((r) => r.rowIndex !== myRow).map((r) => ({ ...r, name: r.name || nameOf(r.rowIndex) }));
         const allRows = [...earlier, { rowIndex: myRow, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), contact: myContact }].sort((a, b) => a.rowIndex - b.rowIndex);
-        // the initials slot on every page: below the lowest ink at the bottom-right, else the lowest clear gap (never over text).
-        // The scan reads the UNSTAMPED page, so this pass's own signature, caption and date are invisible to it (reviewer
-        // 2026-09-08): once the marks are known, the slot is pushed below the bottom of this pass's boxes on that page
-        // (+ the caption's height), in page fractions. The row's own width fraction is handed to the scan when the core lends it.
+        // the initials slot on every page: the bottom-right corner, in a spot clear of text.
+        // A signature in the middle of the page does not move the row up to that signature.
         const topByPage: Record<number, number> = {};
         for (let pg = 1; pg <= f.pages; pg++) {
           try {
@@ -544,8 +540,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             const own = (marks[i] ?? []).filter((m) => m.page === pg);
             const captionFrac = CAPTION_PT / (bmp.heightPt || 792);
             const ownBottom = own.length ? Math.max(...own.map((m) => m.y + m.h + (m.kind === "sig" ? captionFrac : 0))) : 0;
-            const pushed = ownBottom > scan && ownBottom < scan + SLOT_H_FRAC + captionFrac ? Math.min(ownBottom, 1 - SLOT_H_FRAC - 0.004) : scan;   // only when the slot would sit on this pass's ink
-            topByPage[pg] = ownBottom > scan ? Math.max(scan, pushed, ownBottom > 1 - SLOT_H_FRAC - 0.004 ? scan : ownBottom) : scan;
+            topByPage[pg] = initialsRowTop(scan, ownBottom);
           } catch { /* default: bottom margin */ }
         }
         // ── H2 (AAR class sweep) · everything from here to the hash ENHANCES a file that is already signed: the codex strip

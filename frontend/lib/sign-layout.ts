@@ -27,6 +27,17 @@ export function initialsSlotTop(bmp: Bitmap, o: { colFrac?: number; hFrac?: numb
   return (H - bottomMargin - h) / H;                                       // a page with ink to the very edge: the margin anyway
 }
 
+/** Where the initials row starts, as a fraction from the top of the page.
+ *  `scan` is the clear corner (initialsSlotTop). A mark moves that spot only when the
+ *  spot would cover the mark. A signature in the middle of the page does not pull the
+ *  initials up to it (RST, 2026-10-08: the row landed on Section Leader, SoIInitRow 0.5583). */
+export function initialsRowTop(scan: number, ownBottom: number, slotH = 0.018): number {
+  if (!(ownBottom > scan)) return scan;
+  if (ownBottom >= scan + slotH + 0.02) return scan;
+  const below = Math.min(ownBottom, 1 - slotH - 0.004);
+  return below > scan ? below : scan;
+}
+
 /** The other party's signature line on the same row as `sig` (a box fitted to a rule): probes to the right, then to
  *  the left, for a rule whose run does not overlap the first signer's. */
 export function partnerRule(bmp: Bitmap, sig: { x: number; y: number; w: number; h: number }): FitBox | null {
