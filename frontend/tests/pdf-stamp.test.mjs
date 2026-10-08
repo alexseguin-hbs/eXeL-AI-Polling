@@ -124,6 +124,22 @@ ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2,
   // parked one signer's initials on the signature (RST SoIInitRow 0.5583) instead of the bottom.
   const two = (INIT_SLOT.right + 36 + 36 + INIT_SLOT.gap + INIT_SLOT.gap) / 612;
   ok(Math.abs(initialsRowFrac([36, 36], 612) - two) < 1e-9 && Math.abs(initialsRowFrac([96, 96, 96, 96], 612) - 418 / 612) < 1e-9 && initialsRowFrac(Array(10).fill(96), 612) === 1, `initialsRowFrac: the row itself, 418/612 for four wide slots, capped at 1 (got ${initialsRowFrac([36, 36], 612).toFixed(3)})`);
+  // a file already stamped mid-page (RST 0.5583) moves to the clear bottom corner on the next pass
+  {
+    const { PDFDocument } = await import("pdf-lib");
+    const row = { rowIndex: 0, name: "Alex Seguin", isoDate: "2026-10-08T11:28:02.499Z", hash: "87fd1c15" };
+    const mid = await stampCodexBlock(pdf, { total: 1, rows: [row], initials: { total: 1, topByPage: { 1: 0.5583 } } });
+    const low = await stampCodexBlock(mid, { total: 1, rows: [row], initials: { total: 1, topByPage: { 1: 0.976 } } });
+    const kept = await stampCodexBlock(low, { total: 1, rows: [row], initials: { total: 1, topByPage: { 1: 0.5 } } });
+    const marks = (s) => [...((s.match(/SoIInitRow:1:([\d.]+)/g) || []))].map((k) => Number(k.split(":")[2]));
+    const midKw = (await PDFDocument.load(mid)).getKeywords() ?? "";
+    const lowKw = (await PDFDocument.load(low)).getKeywords() ?? "";
+    const keptKw = (await PDFDocument.load(kept)).getKeywords() ?? "";
+    const midRows = marks(midKw), lowRows = marks(lowKw), keptRows = marks(keptKw);
+    ok(midRows.length === 1 && Math.abs(midRows[0] - 0.5583) < 1e-4, `first pass records the corner it was given (got ${midRows.join(",")})`);
+    ok(Math.abs(lowRows[lowRows.length - 1] - 0.976) < 1e-4, `a clear bottom corner replaces a mid-page row (got ${lowRows.join(",")})`);
+    ok(Math.abs(keptRows[keptRows.length - 1] - 0.976) < 1e-4, `a later scan that climbs the page does not pull initials off the bottom (got ${keptRows.join(",")})`);
+  }
 }
 
 // ── a /Rotate 90 page: stamp + date land without error, recorded with r90 (Enki, Asar) ──

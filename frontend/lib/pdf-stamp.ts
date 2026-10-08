@@ -334,7 +334,21 @@ export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<U
   // otherwise see the earlier initials as ink and move the row (caught in the render, wave 9)
   const rowKw = (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoIInitRow:"));
   const rows: Record<number, number> = {}; for (const k of rowKw) { const m = /^SoIInitRow:(\d+):([\d.]+)$/.exec(k); if (m) rows[Number(m[1])] = Number(m[2]); }
-  if (e.initials) { doc.getPages().forEach((_, i) => { const pg = i + 1; if (rows[pg] === undefined) { const t = e.initials!.topByPage?.[pg]; if (t !== undefined) { rows[pg] = t; addKeyword(doc, `SoIInitRow:${pg}:${t.toFixed(4)}`); } } }); e.initials = { ...e.initials, topByPage: { ...(e.initials.topByPage ?? {}), ...rows } }; }
+  if (e.initials) {
+    doc.getPages().forEach((_, i) => {
+      const pg = i + 1;
+      const t = e.initials!.topByPage?.[pg];
+      const stored = rows[pg];
+      // The first clear corner is kept. A stored row that sits well above a
+      // fresh bottom corner is the old half-page scan (RST, SoIInitRow 0.5583).
+      // The later keyword is the one a reader keeps.
+      if (t === undefined) return;
+      if (stored !== undefined && !(t > stored + 0.15)) return;
+      rows[pg] = t;
+      addKeyword(doc, `SoIInitRow:${pg}:${t.toFixed(4)}`);
+    });
+    e.initials = { ...e.initials, topByPage: { ...(e.initials.topByPage ?? {}), ...rows } };
+  }
   // each signer's slot width is decided by their stroke and recorded (SoIInitW:<idx>:<w>), so the row never reflows
   const widthKw: Record<number, number> = {}; for (const k of (doc.getKeywords() ?? "").split(/\s+/)) { const m = /^SoIInitW:(\d+):(\d+)$/.exec(k); if (m) widthKw[Number(m[1])] = Number(m[2]); }
   const slotWidths = e.initials ? initialsSlotWidths(e.initials.total, initPng && e.initials.mine ? { idx: e.initials.mine.idx, aspect: initPng.width / initPng.height } : undefined, widthKw) : [];
