@@ -130,13 +130,13 @@ export default function Vision2525Page() {
             <p className="max-w-xl text-sm text-slate-400">{t("vision2525.hero_subtitle")}</p>
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
-            <a href="#framework" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
+            <a href="#framework" className="inline-flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-semibold transition-colors" style={{ borderColor: CYAN, color: CYAN }}>
               The Framework
             </a>
-            <a href="/whitepaper/vision-2525-executive-summary.html" className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-slate-900 transition-transform hover:scale-[1.03]" style={{ background: GOLD }}>
+            <a href="/whitepaper/vision-2525-executive-summary.html" className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-slate-900 transition-transform hover:scale-[1.03]" style={{ background: SUNSET }}>
               Executive Summary <ArrowRight className="h-4 w-4" />
             </a>
-            <Link href="/vision-2525/white-paper/" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
+            <Link href="/vision-2525/white-paper/" className="inline-flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-semibold transition-colors" style={{ borderColor: VIOLET, color: VIOLET }}>
               The Record
             </Link>
           </div>

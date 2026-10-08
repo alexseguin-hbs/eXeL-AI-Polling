@@ -7,5 +7,6 @@ ok(/const FRAMEWORK_DOWNLOAD = "https:\/\/ppgfjplawtlrfqpnszyb\.supabase\.co\/st
 ok(/download="VISION-2525\.pdf"/.test(src) && /data-vision-download="framework"/.test(src), "the violet button downloads that PDF");
 ok(/The Framework/.test(src) && /Executive Summary/.test(src) && /The Record/.test(src), "the three tabs stay");
 ok(/Thirteen sections/.test(src), "the card says thirteen sections");
+ok(/borderColor: CYAN/.test(src) && /background: SUNSET/.test(src) && /borderColor: VIOLET/.test(src), "the tabs use cyan, sunset, and violet");
 ok(/href="\/vision-2525\/white-paper\/"/.test(src), "The Record still opens its paper");
 console.log(`\nvision-download: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
