@@ -100,9 +100,9 @@ export default function Vision2525Page() {
             <p className="max-w-xl text-sm text-slate-400">{t("vision2525.hero_subtitle")}</p>
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
-            <a href="#framework" className="inline-flex items-center justify-center rounded-full border bg-black px-5 py-2 text-sm font-bold" style={{ borderColor: CYAN, color: CYAN }}>Framework</a>
-            <a href="/whitepaper/vision-2525-executive-summary.html" className="inline-flex items-center justify-center rounded-full border bg-black px-5 py-2 text-sm font-bold" style={{ borderColor: SUNSET, color: SUNSET }}>Executive</a>
-            <Link href="/vision-2525/white-paper/" className="inline-flex items-center justify-center rounded-full border bg-black px-5 py-2 text-sm font-bold" style={{ borderColor: VIOLET, color: VIOLET }}>{"Vision • Details"}</Link>
+            <a href="#framework" className="inline-flex items-center justify-center rounded-full border bg-black px-5 py-2 text-sm font-bold" style={{ borderColor: CYAN, color: CYAN }}>{"• Framework"}</a>
+            <a href="/whitepaper/vision-2525-executive-summary.html" className="inline-flex items-center justify-center rounded-full border bg-black px-5 py-2 text-sm font-bold" style={{ borderColor: SUNSET, color: SUNSET }}>{"•• Executive"}</a>
+            <Link href="/vision-2525/white-paper/" className="inline-flex items-center justify-center rounded-full border bg-black px-5 py-2 text-sm font-bold" style={{ borderColor: VIOLET, color: VIOLET }}>{"••• Vision • Details"}</Link>
           </div>
         </section>
         <section className="mx-auto mt-16 max-w-3xl text-center">
