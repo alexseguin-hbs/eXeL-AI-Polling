@@ -75,8 +75,8 @@ function SectionLabel({ children, color = CYAN }: { children: React.ReactNode; c
   return <p className="text-[11px] font-semibold uppercase tracking-[0.28em]" style={{ color }}>{children}</p>;
 }
 
-/** The Download on this page: VISION • 2525 · Humanity's Coordination Framework (operator 2026-10-05). */
-const FRAMEWORK_DOWNLOAD = "https://ppgfjplawtlrfqpnszyb.supabase.co/storage/v1/object/public/whitepaper/VISION-2525.pdf";
+/** The Download on this card is the paper the words describe: the 19-section white paper, not the shorter framework PDF. */
+const FRAMEWORK_DOWNLOAD = "/whitepaper/vision-2525.html";
 
 export default function Vision2525Page() {
   const { t } = useLexicon();
@@ -286,7 +286,7 @@ export default function Vision2525Page() {
               <Link href="/vision-2525/white-paper/" style={{ color: GOLD }}>{t("vision2525.open_it")}</Link>
               <a
                 href={FRAMEWORK_DOWNLOAD}
-                download="VISION-2525.pdf"
+                download="Vision-2525.html"
                 title="Download VISION • 2525"
                 aria-label="Download VISION • 2525"
                 data-vision-download="framework"
