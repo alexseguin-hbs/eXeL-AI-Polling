@@ -10,8 +10,8 @@
  * The first box FITS the signature line under the thumb when there is one (lib/sign-fit — the rule's
  * width, no taller than the text above it; operator 2026-09-07); a horizontal swipe turns the page,
  * the Divinity Guide reader's gesture (R-CORE reuse), beside the ‹ › buttons.
- * A MARK TAKES THE TOUCH (operator 2026-09-08: "I want to move that only, but PDF moves at same time"): every mark is
- * touch-action none and receives pointer events, so a finger that lands on a mark never pans the page or the scroller —
+ * A tap on a text field types in that field. A drag still moves it. The words are not typed in a box under the page.
+ * A mark takes the touch: every mark is touch-action none and receives pointer events, so a finger on a mark never pans the page.
  * marks were pointer-events-none before, the finger hit the canvas (pan-y), and the browser scrolled while the drag moved.
  * ZOOM (operator 2026-09-08: "make sure one can zoom on PDF so signature and text can be centered and
  * aligned"): pinch, double-tap, or − / + zoom the page 1–4× inside a scroller; marks are page FRACTIONS so
@@ -234,6 +234,39 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
     const cancel = (ev: PointerEvent) => end(ev, true);
     document.addEventListener("pointermove", move, { passive: false }); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", cancel);
   };
+  /** Tap a text field to type in it. A drag still moves the box. Focus stays inside the gesture so the phone keyboard opens. */
+  const beginTextGesture = (e: React.PointerEvent, m: Mark) => {
+    e.stopPropagation();
+    const box = e.currentTarget as HTMLElement;
+    const typing = box.querySelector("input");
+    if (typing && document.activeElement === typing) return;
+    e.preventDefault();
+    const start = { x: e.clientX, y: e.clientY };
+    const p0 = frac(e.clientX, e.clientY);
+    const off = { dx: p0.x - m.x, dy: p0.y - m.y };
+    let moved = false;
+    const move = (ev: PointerEvent) => {
+      if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) <= 6) return;
+      moved = true;
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && host.current?.contains(active)) active.blur();
+      const q = frac(ev.clientX, ev.clientY);
+      update(m.id, { x: q.x - off.dx, y: q.y - off.dy });
+    };
+    const up = () => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      document.removeEventListener("pointercancel", up);
+      if (moved) return;
+      onSelect(m.id);
+      const input = host.current?.querySelector<HTMLInputElement>(`input[data-inline-id="${m.id}"]`);
+      input?.focus({ preventScroll: true });
+      input?.scrollIntoView({ block: "center", inline: "nearest" });
+    };
+    document.addEventListener("pointermove", move, { passive: false });
+    document.addEventListener("pointerup", up);
+    document.addEventListener("pointercancel", up);
+  };
 
   const sigHere = marks.some((m) => m.kind === "sig" && m.page === page);
   return (
@@ -260,7 +293,31 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
               style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%`, containerType: "size", touchAction: "none" }} data-testid={m.kind === "sig" ? "sig-box" : m.kind === "check" ? "check-box" : "text-box"} data-fit={m.fit}>
               {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" draggable={false} className="pointer-events-none h-full w-full select-none object-contain object-left object-bottom" />}
               {m.kind === "check" && <svg viewBox="0 0 100 100" className="pointer-events-none h-full w-full" aria-hidden="true"><path d="M22 55 L42 78 L82 22" fill="none" stroke="#111" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-              {m.kind === "text" && <span className="flex h-full w-full items-end overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: textEmPt(m.h * pagePt.h) * ((base || pagePt.w) * zoom / pagePt.w), lineHeight: 1 }}>{m.text}</span>}
+              {m.kind === "text" && !readOnly && (() => {
+                const pxPerPt = ((base || pagePt.w) * zoom) / pagePt.w;
+                const fontPx = textEmPt(m.h * pagePt.h) * pxPerPt;
+                const shown = Math.max(fontPx, 16);
+                const k = fontPx / shown;
+                return (
+                  <div className="flex h-full w-full items-end overflow-hidden" onPointerDown={(e) => beginTextGesture(e, m)}>
+                    <input
+                      data-inline-id={m.id}
+                      data-testid="mark-text-inline"
+                      value={m.text ?? ""}
+                      placeholder={t("soi.sign.text_ph")}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      enterKeyHint="done"
+                      onChange={(e) => update(m.id, { text: e.target.value })}
+                      onKeyDown={(e) => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
+                      className="select-text border-0 bg-transparent px-0.5 text-neutral-900 outline-none placeholder:text-neutral-400"
+                      style={{ fontSize: shown, lineHeight: 1, height: shown, width: `${100 / k}%`, transform: `scale(${k})`, transformOrigin: "left bottom" }}
+                    />
+                  </div>
+                );
+              })()}
+              {m.kind === "text" && readOnly && <span className="flex h-full w-full items-end overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: textEmPt(m.h * pagePt.h) * ((base || pagePt.w) * zoom / pagePt.w), lineHeight: 1 }}>{m.text}</span>}
               {sel && !readOnly && m.kind !== "check" && <span className="absolute -top-2.5 -end-2.5 h-6 w-6 rounded-md border-2 border-white bg-primary shadow" aria-hidden="true" data-testid="resize-handle" />}
               {/* no delete badge ON the box — it covered the text (operator 02:00); the red Delete sits in the toolbar under the page */}
             </div>
