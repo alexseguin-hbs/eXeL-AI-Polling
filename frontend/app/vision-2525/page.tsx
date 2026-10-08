@@ -75,7 +75,7 @@ function SectionLabel({ children, color = CYAN }: { children: React.ReactNode; c
   return <p className="text-[11px] font-semibold uppercase tracking-[0.28em]" style={{ color }}>{children}</p>;
 }
 
-/** The Download on this page: VISION • 2525 · Humanity's Coordination Framework (operator 2026-10-05). */
+/** The Download on this card is the paper the words describe: the 19-section white paper, not the shorter framework PDF. */
 const FRAMEWORK_DOWNLOAD = "https://ppgfjplawtlrfqpnszyb.supabase.co/storage/v1/object/public/whitepaper/VISION-2525.pdf";
 
 export default function Vision2525Page() {
@@ -130,22 +130,15 @@ export default function Vision2525Page() {
             <p className="max-w-xl text-sm text-slate-400">{t("vision2525.hero_subtitle")}</p>
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
-            {/* Operator (2026-08-28, with the live hero screenshot): the hero carries the
-                same two doors as the Vision-2525 masthead, reversed to lead with the
-                summary — "Executive Summary" (gold, was Enter the framework's slot) and
-                "Detailed Framework" (outline, opens the White Paper). "Explore the
-                worlds" left the row on his instruction; the worlds section itself is
-                unchanged below. Both doors open the same pages every other route opens,
-                so none of the four summary doors can drift. */}
+            <a href="#framework" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
+              The Framework
+            </a>
             <a href="/whitepaper/vision-2525-executive-summary.html" className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-slate-900 transition-transform hover:scale-[1.03]" style={{ background: GOLD }}>
               Executive Summary <ArrowRight className="h-4 w-4" />
             </a>
             <Link href="/vision-2525/white-paper/" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
-              Detailed Framework
+              The Record
             </Link>
-            <a href="#recursive" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
-              Recursive
-            </a>
           </div>
         </section>
 
@@ -266,40 +259,37 @@ export default function Vision2525Page() {
         </section>
 
         {/* ── THE WHITE PAPER (public, no login) ───────────────────────────── */}
-        <section id="recursive" className="mt-16 scroll-mt-20">
+        <section id="framework" className="mt-16 scroll-mt-20">
           <div
             className="rounded-2xl border p-6 sm:p-8"
             style={{ borderColor: "rgba(232,182,76,0.35)", background: "rgba(232,182,76,0.05)" }}
           >
-            <Link href="/vision-2525/white-paper/" className="block transition-colors hover:opacity-95">
-              <SectionLabel color={GOLD}>{t("vision2525.white_paper_open_to_everyone")}</SectionLabel>
+            <a href={FRAMEWORK_DOWNLOAD} className="block transition-colors hover:opacity-95">
+              <SectionLabel color={GOLD}>The Framework · open to everyone</SectionLabel>
               <h2 className="mt-3 font-serif text-2xl font-bold leading-tight sm:text-3xl" style={{ color: GOLD }}>
-                Recursive Coordination for Human Continuity
+                {"Humanity's Coordination Framework"}
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
-                An hour of a human life, recorded so it cannot be discounted by where it was lived &mdash; and the
-                legal structure that keeps any one government from switching that record off. Nineteen sections
-                after the Flower of Life, replayed release by release, with every earlier version still readable.
+                {"Thirteen sections, from humanity at the center to humanity's future. R-CORE is the nervous system beneath them. Communication, coordination, and intelligence in the field stay under human authority. One civilization. One framework."}
               </p>
-            </Link>
+            </a>
             <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs uppercase tracking-[0.2em] text-slate-400">
               <span>{t("vision2525.no_login")}</span><span style={{ color: CYAN }}>&middot;</span>
               <span>{t("vision2525.no_account")}</span><span style={{ color: CYAN }}>&middot;</span>
               <span>{t("vision2525.reads_offline")}</span><span style={{ color: CYAN }}>&middot;</span>
-              <Link href="/vision-2525/white-paper/" style={{ color: GOLD }}>{t("vision2525.open_it")}</Link>
+              <a href={FRAMEWORK_DOWNLOAD} style={{ color: GOLD }}>{t("vision2525.open_it")}</a>
               <a
                 href={FRAMEWORK_DOWNLOAD}
                 download="VISION-2525.pdf"
-                title="PDF download · 13 sections"
-                aria-label="PDF download, 13 sections"
+                title="Download VISION • 2525"
+                aria-label="Download VISION • 2525"
                 data-vision-download="framework"
-                className="inline-flex items-center justify-center gap-1.5 border px-3 normal-case tracking-normal"
+                className="inline-flex items-center justify-center border px-3 normal-case tracking-normal"
                 style={{ borderColor: "#D18BE0", color: "#D18BE0", minHeight: 34, borderRadius: 8, paddingTop: 6, paddingBottom: 6 }}
               >
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
                 </svg>
-                <span className="text-[11px] font-semibold">PDF · 13 sections</span>
               </a>
             </p>
           </div>
