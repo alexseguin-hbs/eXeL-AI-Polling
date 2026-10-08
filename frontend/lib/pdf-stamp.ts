@@ -72,7 +72,7 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   // The signer tapped on the page AS DISPLAYED — pdfjs applies /Rotate, pdf-lib's coordinates do not
   // (Enki, wave 2). placeOnPage maps the displayed-fraction box back onto the media box first.
   const { rot, width, height } = placeOnPage(page, box);
-  if (box.clear) clearBox(page, box, 3);
+  // The signature PNG is the ink only. A white clear here covered the words under the stroke.
   // Two display-frame sub-boxes — the image above, the caption below — each mapped through the
   // page's rotation on its own, so both read upright however the page is turned.
   // On a fitted rule the whole box is the signature (it is already "no taller than the text above"); the digital
@@ -291,10 +291,9 @@ export const cacStamp = (iso: string, tz?: string): string => {
 };
 
 /**
- * Every pass redraws the WHOLE block — the frame and every row signed so far, this pass's included —
- * because the frame is filled white to stay legible over page content, and a pass that drew only its
- * own row painted over the earlier signer's (caught rendering the proof PDF, 2026-09-07). The caller
- * reads the earlier rows back with `codexRows()` and supplies names from the roster.
+ * Every pass redraws the WHOLE block — every row signed so far, this pass's included —
+ * because a pass that drew only its own row painted over the earlier signer's (caught rendering the proof PDF, 2026-09-07).
+ * The initials PNG is ink on a transparent ground. No white slab behind it, so the page text stays visible.
  */
 export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<Uint8Array> {
   const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
@@ -340,17 +339,15 @@ function drawCodexBlock(doc: PDFDocument, page: PDFPage, pageNo: number, e: Code
   for (let idx = 0; idx < ini.total; idx++) {
     const s = initialsSlot(dispW, topY, idx, slotWidths);
     if (ini.mine && ini.mine.idx === idx && initPng) {
-      // my slot: clear the placeholder, then my own drawn initials, kept to their aspect inside the slot
-      const c = toMedia(s.x - 1.5, s.y - 1.5, s.w + 3, s.h + 3);
-      page.drawRectangle({ x: c.bx, y: c.by, width: c.bw, height: c.bh, color: rgb(1, 1, 1), opacity: 1 });
+      // ink only — a white rectangle here covered the footer under the initials
       const k = Math.min(s.w / initPng.width, s.h / initPng.height); const iw = initPng.width * k, ih = initPng.height * k;
       page.node.setXObject(PDFName.of(`SoIInit${idx}`), initPng.ref);
       const im = toMedia(s.x + (s.w - iw) / 2, s.y + (s.h - ih) / 2, iw, ih); const o = oriented(rot, im.bx, im.by, im.bw, im.bh);
       page.drawImage(initPng, { ...o, width: iw, height: ih });
     } else if (!has(idx)) {
-      // a signatory still to initial: a dotted slot — cleared when they do (no label, operator 01:25)
+      // a signatory still to initial: a dotted outline, not a white box
       const r = toMedia(s.x, s.y, s.w, s.h);
-      page.drawRectangle({ x: r.bx, y: r.by, width: r.bw, height: r.bh, borderColor: rgb(0.35, 0.45, 0.6), borderWidth: 0.5, borderDashArray: [1.5, 1.5], color: rgb(1, 1, 1), opacity: 1 });
+      page.drawRectangle({ x: r.bx, y: r.by, width: r.bw, height: r.bh, borderColor: rgb(0.35, 0.45, 0.6), borderWidth: 0.5, borderDashArray: [1.5, 1.5] });
     }
   }
 }

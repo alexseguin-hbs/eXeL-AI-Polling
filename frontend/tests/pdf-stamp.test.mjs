@@ -117,6 +117,20 @@ ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2,
   ok(strips.some((s) => s.name === "SoICodexAll" && s.result?.verified && /ADA LENDER/.test(s.result.messageForward)), "the strip on a rotated page still decodes");
 }
 
+// the signature and the initials are ink. Neither paints a white box over the words underneath.
+{
+  const { PDFDocument, PDFArray, PDFRawStream, decodePDFRawStream } = await import("pdf-lib");
+  const blank = await PDFDocument.create(); blank.addPage([612, 792]);
+  const src = await blank.save();
+  const signed = await stampSignature(src, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.06, clear: true }, { pngDataUrl: png1x1, name: "Ada Lender", isoDate: "2026-09-08T01:00:00Z", hash: "0badf00d" });
+  const withInit = await stampCodexBlock(signed, { total: 2, rows: [{ rowIndex: 0, name: "Ada Lender", isoDate: "2026-09-08T01:00:00Z", hash: "0badf00d" }], initials: { total: 2, mine: { idx: 0, pngDataUrl: png1x1 }, topByPage: { 1: 0.92 } } });
+  const doc = await PDFDocument.load(withInit);
+  const node = doc.context.lookup(doc.getPage(0).node.Contents());
+  const streams = node instanceof PDFArray ? node.asArray().map((ref) => doc.context.lookup(ref)) : [node];
+  const body = streams.filter((s) => s instanceof PDFRawStream).map((s) => Buffer.from(decodePDFRawStream(s).decode()).toString("latin1")).join("\n");
+  ok(!/1 1 1 rg/.test(body) && /\/Image-/.test(body), "a signature and its initials do not paint white over the page");
+}
+
 
 // unstampText — a signer removes one of his OWN text marks: the keyword and the drawn text go, everything else stays
 {
