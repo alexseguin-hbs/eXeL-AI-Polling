@@ -28,6 +28,14 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #magBar #btnReload.call{border-color:#C9A227;color:#C9A227;box-shadow:0 0 10px #C9A227} /* r.157: RELOAD calls for itself — empty, or the QUAL phase rest with a part-used magazine; never full */
 #startLight{position:absolute;right:8px;top:42px;z-index:4;display:none;flex-direction:column;align-items:center;gap:3px;padding:4px 7px;border:1px solid #1C2A3A;border-radius:6px;background:rgba(0,0,0,.6);pointer-events:none} /* r.157 (Addendum 1): the range tower's start light, upper right */
 #app.range #startLight{display:flex}
+#magWell{position:absolute;left:8px;top:78px;z-index:4;display:none;gap:8px;align-items:flex-end;pointer-events:none} /* r.168: the magazine, left, opposite the light */
+#app.range #magWell{display:flex}
+#magWell button,#magWell .body{width:68px;background:rgba(0,0,0,.55);border:1px solid #1C2A3A;border-radius:8px;color:#7AB8C4;padding:6px 4px 4px;display:flex;flex-direction:column;align-items:center;gap:2px}
+#magWell button{pointer-events:auto;min-height:84px}
+#magWell .body{pointer-events:none}
+#magWell svg{width:30px;height:54px;display:block}
+#magWell b{font-size:9px;letter-spacing:.12em;font-weight:500;color:#7AB8C4}
+#magWell #magReload.call{border-color:#C9A227;box-shadow:0 0 10px #C9A227}
 #startLight .lamps{display:flex;flex-direction:column;gap:5px} /* r.162 (Addendum 13): vertical, red on top, green at the bottom */
 #startLight #startTime{font-size:13px;letter-spacing:.06em;font-weight:600;color:#E8D5B0;font-variant-numeric:tabular-nums;min-height:15px}
 #startLight #startTime:empty{display:none}
@@ -294,7 +302,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.167</span><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.168</span><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -391,6 +399,16 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
     <div id="playHud"><b id="phCH">CH0</b><span id="phDes">LOOK</span><span id="phScore">0</span></div>
     <div id="magBar"><button id="btnReload" type="button" title="load a fresh magazine">RELOAD</button><span id="magTxt">MAG 1 · 30 RDS</span><span id="magStrip"></span><button id="btnFull" type="button" title="full screen" aria-label="full screen">⤢</button></div>
     <div id="startLight" class="R" data-s="R" role="status" aria-label="start light WAIT"><span class="lamps"><i class="r"></i><i class="y"></i><i class="g"></i></span><b id="startWord">WAIT</b><b id="startTime"></b></div>
+    <div id="magWell">
+      <button id="magReload" type="button" title="load a fresh magazine">
+        <svg viewBox="0 0 36 64" aria-hidden="true"><path d="M11 10h14v5h5v42H6V15h5z" fill="none" stroke="#7AB8C4" stroke-width="1.6"/><path d="M13 20h10M13 26h10M13 32h10M13 38h10M13 44h10M13 50h10" stroke="#7AB8C4" stroke-width="1.2"/></svg>
+        <b>RELOAD</b>
+      </button>
+      <div class="body" aria-hidden="true">
+        <svg viewBox="0 0 36 64"><path d="M11 10h14v5h5v42H6V15h5z" fill="none" stroke="#C9A227" stroke-width="1.6"/><clipPath id="magClip"><rect x="8" y="16" width="20" height="38"/></clipPath><rect id="magFill" x="8" y="54" width="20" height="0" fill="#3DCC8A" clip-path="url(#magClip)"/></svg>
+        <b id="magRounds">30</b>
+      </div>
+    </div>
     <div id="board"></div>
     <div id="joyL">
       <span class="jcap n">FWD</span><span class="jcap s">BACK</span>
@@ -522,7 +540,11 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.128 WAITING ROOM · CANONICAL R-CORE
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.168 MAGAZINE · left of the picture, opposite the light
+The left magazine is RELOAD. The right magazine is the rounds left, out of 30.
+Train Up is still 30. QUAL 40 is still four magazines of 10.
+r.167 A shared link opens Train Up, lane 21, turret. No intro.
+r.128 WAITING ROOM · CANONICAL R-CORE
 1v1 START requires BLU READY + RED READY + AUTH + DIRECT
 START is LOBBY_LAUNCH canonical event · reducer drives both LIVE
 No hidden solo bypass · CH0 PRACTICE / NO ROOM is explicit
@@ -614,7 +636,7 @@ function rcoreStep(name){
 }
 const T13={VOID:'#000000',PANEL:'#070B10',STROKE:'#1C2A3A',WIRE:'#7AB8C4',ROAD:'#4A6A78',WATER:'#2A6D88',DOME:'#C9A227',SI:'#E8D5B0',HI:'#5BA8FF',AI:'#C084FC',LOCK:'#E24B3B',TAG:'#3DCC8A',GIMBAL:'#F0A020'};
 const OK=new Set(Object.values(T13));
-const BUILD={version:'00.00',revision:'0.166'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
+const BUILD={version:'00.00',revision:'0.168'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
 
 const ASM=[
   {id:'AsM-01',name:'Enki',line:'Sumerian',team:'BLU',seat:'T01',ctrl:'AI'},
@@ -794,7 +816,10 @@ function magLoad(why){ /* RESET/INIT refill silently (the RESET row already exis
   if(fresh&&typeof decide==='function') decide('RELOAD','MAG',{why,cap,n:state.mag.n});
   if(typeof hudMag==='function') hudMag(); }
 function hudMag(){ const t=document.getElementById('magTxt'); if(!t) return; const m=state.mag||{cap:30,rounds:30,n:1}; const q=state.rangeMode==='qual40'&&+state.challenge===0; const z=(zoomClamp(state.zoom)).toFixed(1).replace(/\.0$/,'');
-  t.textContent=(q?'MAG '+m.n+'/4':'MAG '+m.n)+' · '+m.rounds+' RDS · ZOOM '+z+'×/'+zoomMax()+'×'; const st=document.getElementById('magStrip'); const ps=document.getElementById('phScore'); if(st&&ps) st.textContent=ps.textContent||''; }
+  t.textContent=(q?'MAG '+m.n+'/4':'MAG '+m.n)+' · '+m.rounds+' RDS · ZOOM '+z+'×/'+zoomMax()+'×'; const st=document.getElementById('magStrip'); const ps=document.getElementById('phScore'); if(st&&ps) st.textContent=ps.textContent||'';
+  const fill=document.getElementById('magFill'), num=document.getElementById('magRounds'); /* r.168: the raster shows the rounds left */
+  if(num) num.textContent=String(m.rounds|0);
+  if(fill){ const h=38*((m.rounds|0)/Math.max(1,m.cap|0)); fill.setAttribute('y',String(54-h)); fill.setAttribute('height',String(h)); } }
 function magReload(){ /* r.142: the shooter's own reload — refused when full; in QUAL four magazines as issued, a fifth is refused on the record */
   if(state.mag&&state.mag.rounds===state.mag.cap){ toast('MAGAZINE FULL · '+state.mag.rounds+' RDS'); return false; }
   const q=state.rangeMode==='qual40'&&+state.challenge===0; if(q&&state.mag&&(state.mag.n|0)>=4){ decide('REJECT','MAG',{reason:'NO_MAGAZINE'}); toast('NO MAGAZINE LEFT · 4 OF 4 USED'); return false; }
@@ -879,7 +904,7 @@ function lightWord(L){ return L==='G'?'FIRE':L==='Y'?'READY':L==='O'?'':'WAIT'; 
 function paintLight(L){ const sl=document.getElementById('startLight'); if(!sl||sl.getAttribute('data-s')===L) return; sl.setAttribute('data-s',L); sl.className=L; const w=document.getElementById('startWord'); if(w) w.textContent=lightWord(L); sl.setAttribute('aria-label','start light '+lightWord(L)); }
 function paintCues(){ const app=document.getElementById('app'); if(app) app.classList.toggle('range',chNum()===0);
   const nx=nextStep(); [['fTgt','TARGET'],['fAppr','APPROVE'],['fFire','FIRE']].forEach(p=>{ const b=document.getElementById(p[0]); if(b) b.classList.toggle('lit',nx===p[1]); });
-  const rl=document.getElementById('btnReload'); if(rl) rl.classList.toggle('call',reloadCalls());
+  const rl=document.getElementById('btnReload'); if(rl) rl.classList.toggle('call',reloadCalls()); const rm=document.getElementById('magReload'); if(rm) rm.classList.toggle('call',reloadCalls());
   const rr=document.getElementById('btnRangeReset'); if(rr) rr.classList.toggle('call',chNum()===0&&((state.rangeMode==='qual40'&&!!state.qualDone)||(state.rangeMode==='stay'&&!!state.rangeAllDown)));
   paintLight(startLight()); paintTimer(); }
 function paintTimer(){ const tm=document.getElementById('startTime'); if(!tm) return; const v=qualTimer(); if(tm.textContent!==v) tm.textContent=v; const q=chNum()===0&&state.rangeMode==='qual40'; const w=document.getElementById('startWord'); if(w&&q&&w.textContent!=='') w.textContent=''; } /* in QUAL the timer speaks for the light; the lamp's place (red top, green bottom) carries it for colour-blind players */
@@ -5138,7 +5163,7 @@ function rangeResetOnRecord(why){ /* r.134: a reset is a decision — one canoni
   state._resetArm=0; releaseAuthority('RESET'); decide('RESET','RANGE',{why,mode:state.rangeMode,targets:state.targets||'pop',lane:state.lane|0,qualR:state.qualR|0,qualH:state.qualH|0});
   resetRangePlates(); if(typeof goRange==='function') goRange(); state.lastShot=null; return true; }
 const _rr=document.getElementById('btnRangeReset'); if(_rr)_rr.onclick=()=>{ if(rangeResetOnRecord('BUTTON')) toast('RESTARTED · '+modeSentence()); };
-{ const bR=document.getElementById('btnReload'); if(bR) bR.onclick=()=>magReload(); /* r.142: one rule for the button and the QA */
+{ const bR=document.getElementById('btnReload'); if(bR) bR.onclick=()=>magReload(); const bM=document.getElementById('magReload'); if(bM) bM.onclick=()=>magReload(); /* r.168: the magazine raster reloads too */
   ['btnFull','btnFullBar'].forEach(id=>{ const b=document.getElementById(id); if(b) b.onclick=()=>setFull(!document.getElementById('app').classList.contains('full')); });
   const stg=document.getElementById('stage'); if(stg) stg.addEventListener('wheel',e=>{ if(state.viewMode==='map') return; e.preventDefault(); state.zoom=zoomClamp((state.zoom||1)*(e.deltaY<0?1.12:1/1.12)); hudMag(); },{passive:false}); /* r.138: a mouse can zoom too (pinch was the only optic) */
   if(state.sets&&state.sets.full) setFull(true); hudMag(); }
