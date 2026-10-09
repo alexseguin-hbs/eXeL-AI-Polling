@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
-export const RANGE21_TRAINUP_URL = "https://exel-ai-polling.explore-096.workers.dev/drone-2525/play.html?range=21&role=turret&mode=train-up";
+export const RANGE21_TRAINUP_URL = "https://exel-ai-polling.explore-096.workers.dev/drone-2525/play?range=21&role=turret&mode=train-up"; // 2026-10-08e: the short clean form (the Worker serves /drone-2525/play as play.html)
 
 export function DroneQrMini({ hex }: { hex: string }) {
   const [open, setOpen] = useState(false);
@@ -22,16 +22,45 @@ export function DroneQrMini({ hex }: { hex: string }) {
         </svg>
       </button>
       {open && (
-        <div data-drone-qr-overlay role="dialog" aria-modal="true" onClick={(e) => e.target === e.currentTarget && setOpen(false)}
-             style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(0,0,0,0.95)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 16, textAlign: "center" }}>
-          <button onClick={() => setOpen(false)} aria-label="close" style={{ position: "absolute", top: 12, right: 12, minWidth: 44, minHeight: 44, background: "transparent", border: `1px solid ${hex}`, color: hex, fontSize: 18, cursor: "pointer" }}>✕</button>
-          <div style={{ fontSize: 16, letterSpacing: "0.18em", color: hex }}>LANE 21 · TURRET · TRAIN UP</div>
-          <div style={{ background: "#FFFFFF", padding: 16, borderRadius: 16 }}>
-            <QRCodeSVG value={RANGE21_TRAINUP_URL} size={260} level="Q" fgColor="#000000" bgColor="#ffffff" />
+        // 2026-10-08e (operator): the Divinity Guide QR modal, line for line (app/divinity-guide/page.tsx) — title "The Range".
+        <div data-drone-qr-overlay role="dialog" aria-modal="true" aria-label="The Range QR code" onClick={(e) => e.target === e.currentTarget && setOpen(false)}
+             className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in duration-200 font-sans text-foreground"
+             style={{ letterSpacing: "normal", textTransform: "none" }}>
+          <button onClick={() => setOpen(false)} aria-label="close" className="absolute top-4 right-4 p-2 rounded-full hover:bg-accent transition-colors">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+
+          <h2 className="text-2xl font-bold mb-1" style={{ color: "#00FFFF" }}>
+            The Range
+          </h2>
+          <p className="text-sm text-muted-foreground mb-6 italic">
+            Lane 21 · Turret · Mode: Train - Up
+          </p>
+
+          <div className="bg-white rounded-2xl p-6 shadow-2xl">
+            <QRCodeSVG value={RANGE21_TRAINUP_URL} size={280} level="Q" fgColor="#000000" bgColor="#ffffff" className="rounded-lg" style={{ width: "min(280px, calc(100vw - 96px), 50vh)", height: "auto" }} />
           </div>
-          <div style={{ fontSize: 10, opacity: 0.7, wordBreak: "break-all", maxWidth: 420 }}>{RANGE21_TRAINUP_URL}</div>
-          <button onClick={() => { try { navigator.clipboard.writeText(RANGE21_TRAINUP_URL); } catch { /* no clipboard */ } }}
-                  style={{ background: "transparent", border: `1px solid ${hex}`, color: hex, padding: "8px 14px", fontSize: 11, cursor: "pointer" }}>Copy Link</button>
+
+          <p className="text-xs text-muted-foreground mt-6">
+            Scan to share The Range
+          </p>
+          <p className="text-[10px] text-muted-foreground/60 mt-1 break-all px-4">
+            {RANGE21_TRAINUP_URL}
+          </p>
+
+          <button
+            onClick={() => {
+              if (typeof navigator !== "undefined") {
+                navigator.clipboard.writeText(RANGE21_TRAINUP_URL);
+              }
+            }}
+            className="mt-4 px-4 py-2 text-xs rounded-full bg-muted hover:bg-accent transition-colors"
+          >
+            Copy Link
+          </button>
         </div>
       )}
     </>
