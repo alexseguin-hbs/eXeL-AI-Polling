@@ -1157,6 +1157,7 @@ body.qrlead #qrAbout{display:inline-block}
   border-radius:999px;background:transparent;color:var(--ink-2);font:inherit;
   font-size:12.5px;cursor:pointer;letter-spacing:.04em}
 #qrAbout:hover{color:var(--ink)}
+.seed-mark{display:inline-block;width:1em;height:1em;vertical-align:-0.18em;margin:0 .16em 0 .02em;color:var(--ai)}
 </style>
 
 <div class="deck" role="region" aria-label="Version replay controls">
@@ -20461,6 +20462,55 @@ function gradeCls(g){
   return c === "A" ? "g-a" : c === "B" ? "g-b" : c === "C" ? "g-c" : "g-d";
 }
 
+function seedMarkEl(){
+  var ns="http://www.w3.org/2000/svg", svg=document.createElementNS(ns,"svg");
+  svg.setAttribute("viewBox","0 0 100 100");
+  svg.setAttribute("class","seed-mark");
+  svg.setAttribute("aria-hidden","true");
+  svg.setAttribute("focusable","false");
+  [[50,50,1],[70,50,0],[60,67.321,0],[40,67.321,0],[30,50,0],[40,32.679,0],[60,32.679,0]].forEach(function(c){
+    var el=document.createElementNS(ns,"circle");
+    el.setAttribute("cx",c[0]); el.setAttribute("cy",c[1]); el.setAttribute("r","20");
+    el.setAttribute("fill", c[2] ? "currentColor" : "none");
+    el.setAttribute("fill-opacity", c[2] ? "0.14" : "0");
+    el.setAttribute("stroke","currentColor"); el.setAttribute("stroke-width","3");
+    svg.appendChild(el);
+  });
+  return svg;
+}
+/* The Seed mark sits in front of the buy-in (Seed, one seventh of the minimum wage) and in front of Vision • 2525. */
+function markSeedRefs(root){
+  root = root || document.body;
+  if(!root || !document.createTreeWalker) return;
+  var re = /(Vision\s*[•·∙]\s*2525|VISION\s*[•·∙]\s*2525|\bSeed\b|Semilla|Graine|Semente|Tohum|种子|種子|بذرة|बीज|זרע)/g;
+  var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: function(node){
+      var p = node.parentNode;
+      if(!p || !node.nodeValue) return NodeFilter.FILTER_REJECT;
+      var tag = p.nodeName;
+      if(tag==="SCRIPT"||tag==="STYLE"||tag==="TEXTAREA"||tag==="NOSCRIPT") return NodeFilter.FILTER_REJECT;
+      if(p.closest && p.closest("svg")) return NodeFilter.FILTER_REJECT;
+      re.lastIndex = 0;
+      return re.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    }
+  });
+  var nodes=[], n;
+  while((n=walker.nextNode())) nodes.push(n);
+  nodes.forEach(function(node){
+    var text=node.nodeValue, frag=document.createDocumentFragment(), last=0, m;
+    var skip0 = node.previousSibling && node.previousSibling.classList && node.previousSibling.classList.contains("seed-mark");
+    re.lastIndex = 0;
+    while((m=re.exec(text))){
+      if(m.index>last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      if(!(m.index===0 && skip0)) frag.appendChild(seedMarkEl());
+      frag.appendChild(document.createTextNode(m[0]));
+      last = m.index + m[0].length;
+    }
+    if(last<text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    if(last) node.parentNode.replaceChild(frag, node);
+  });
+}
+
 function renderDoc(){
   const V = VERSIONS[active-1];
   const res = blocksFor(active);
@@ -20583,6 +20633,7 @@ function renderDoc(){
   renderReview();
   renderLedger();
   renderRcore();
+  markSeedRefs();
 }
 
 let specOpen = false;
