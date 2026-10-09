@@ -154,30 +154,28 @@ export async function stampText(pdf: Uint8Array, box: StampBox, text: string, me
   return doc.save({ useObjectStreams: false });
 }
 
-/** A check inside a square that is already printed. No second box.
- *  The inside of that square is filled blue. The mark sits on the blue. */
+/** A check inside a square that is already printed. No second box and no fill.
+ *  The stroke is ink. The page around it stays as it was. */
 export async function stampCheck(pdf: Uint8Array, box: StampBox): Promise<Uint8Array> {
   const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
   const pages = doc.getPages();
   const page = pages[Math.min(Math.max(box.page, 1), pages.length) - 1];
   const { rot, bx, by, bw, bh } = placeOnPage(page, box, 1, 1);
-  const inset = 0.18;
-  page.drawRectangle({ x: bx + bw * inset, y: by + bh * inset, width: bw * (1 - 2 * inset), height: bh * (1 - 2 * inset), color: rgb(0.15, 0.39, 0.85), borderWidth: 0 });
   const pt = (fx: number, fy: number) => {
     if (rot === 180) return { x: bx + (1 - fx) * bw, y: by + fy * bh };
     if (rot === 90) return { x: bx + fy * bw, y: by + fx * bh };
     if (rot === 270) return { x: bx + (1 - fy) * bw, y: by + (1 - fx) * bh };
     return { x: bx + fx * bw, y: by + (1 - fy) * bh };
   };
-  const thick = Math.max(0.7, Math.min(bw, bh) * 0.09);
-  const stroke = (x0: number, y0: number, x1: number, y1: number) => page.drawLine({ start: pt(x0, y0), end: pt(x1, y1), thickness: thick, color: rgb(1, 1, 1) });
-  stroke(0.22, 0.55, 0.42, 0.78);
-  stroke(0.42, 0.78, 0.82, 0.22);
+  const thick = Math.max(0.8, Math.min(bw, bh) * 0.12);
+  const ink = rgb(0.1, 0.3, 0.8);
+  const stroke = (x0: number, y0: number, x1: number, y1: number) => page.drawLine({ start: pt(x0, y0), end: pt(x1, y1), thickness: thick, color: ink });
+  stroke(0.22, 0.52, 0.42, 0.78);
+  stroke(0.42, 0.78, 0.8, 0.24);
   addKeyword(doc, `SoIChk:${box.page}:${box.x.toFixed(4)}:${box.y.toFixed(4)}:${box.w.toFixed(4)}:${box.h.toFixed(4)}`);
   return doc.save({ useObjectStreams: false });
 }
 
-/** A text mark as recorded: its box, and — when the file carries them — the text as drawn and the pass it was bound to. */
 export interface TextMark extends StampBox { text?: string; signerIdx?: number; isoDate?: string; chain?: string }
 /** Text marks stamped into the file, from the keywords (a keyword written before 2026-09-08 has no text: `text` undefined). */
 /**

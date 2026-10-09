@@ -92,58 +92,69 @@ export interface CheckHit { x: number; y: number; w: number; h: number }
 
 /**
  * The empty square under a finger. A checkbox is a small outline, about one line tall, nearly square,
- * with a white inside and a label to its right. The square itself is what comes back. The search reaches
- * a little past the stroke so a finger does not have to land on the line, and it stops before the label.
- * A long rule is not a square. A filled mark is not a square.
+ * with a white inside and a label to its right. The square itself is what comes back. A tap inside,
+ * or just outside the stroke, walks into that white and returns the printed box. A long rule is not
+ * a square. A filled mark is not a square. The word beside the box is not a square.
  */
 export function findCheckbox(bmp: Bitmap, tap: { x: number; y: number }): CheckHit | null {
   const { width: W, height: H, data } = bmp;
   if (!W || !H) return null;
-  const u = Math.max(1, W / 400);
   const darkAt = (x: number, y: number): boolean => {
     if (x < 0 || y < 0 || x >= W || y >= H) return false;
     const i = (y * W + x) * 4;
-    return (data[i] + data[i + 1] + data[i + 2]) / 3 < 200;
+    return (data[i] + data[i + 1] + data[i + 2]) / 3 < 170;
   };
   const tx = Math.min(W - 1, Math.max(0, Math.round(tap.x * W)));
   const ty = Math.min(H - 1, Math.max(0, Math.round(tap.y * H)));
-  // One line of type, not a fixed pixel size. 7 px at a 400-px bitmap is ~11 pt, and a phone
-  // renders the page at 2–3×, so an 8–10 pt square (the Pass / Fail box) fell under that floor.
   const minSide = Math.max(4, Math.round(W * 0.011));
-  const maxSide = Math.max(minSide + 2, Math.round(W * 0.04));
-  const reach = Math.max(Math.round(18 * u), Math.round(W * 0.045));
-  const pad = Math.max(Math.round(4 * u), Math.round(W * 0.01));
-  let best: { x0: number; y0: number; side: number; d: number } | null = null;
-  const yEnd = Math.min(H - minSide - 1, ty + reach), xEnd = Math.min(W - minSide - 1, tx + reach);
-  for (let y0 = Math.max(0, ty - reach); y0 <= yEnd; y0++) {
-    for (let x0 = Math.max(0, tx - reach); x0 <= xEnd; x0++) {
-      if (!darkAt(x0, y0)) continue;
-      for (let side = minSide; side <= maxSide; side++) {
-        const x1 = x0 + side, y1 = y0 + side;
-        if (x1 >= W || y1 >= H) break;
-        if (!darkAt(x1, y0) || !darkAt(x0, y1)) continue;
-        let edge = 0, edgeN = 0;
-        const step = Math.max(1, Math.round(side / 8));
-        for (let k = 0; k <= side; k += step) {
-          edgeN += 4;
-          if (darkAt(x0 + k, y0)) edge++;
-          if (darkAt(x0 + k, y1)) edge++;
-          if (darkAt(x0, y0 + k)) edge++;
-          if (darkAt(x1, y0 + k)) edge++;
-        }
-        if (edgeN < 8 || edge / edgeN < 0.72) continue;
-        let light = 0, inn = 0;
-        const inset = Math.max(2, Math.round(side * 0.22));
-        for (let y = y0 + inset; y <= y1 - inset; y += step) {
-          for (let x = x0 + inset; x <= x1 - inset; x += step) { inn++; if (!darkAt(x, y)) light++; }
-        }
-        if (inn < 1 || light / inn < 0.75) continue;
-        if (tx < x0 - pad || tx > x1 + pad || ty < y0 - pad || ty > y1 + pad) continue;
-        const d = Math.hypot(tx - (x0 + x1) / 2, ty - (y0 + y1) / 2);
-        if (!best || d < best.d) best = { x0, y0, side, d };
-      }
+  const maxSide = Math.max(minSide + 2, Math.round(W * 0.045));
+  const reach = Math.max(Math.round(14 * Math.max(1, W / 400)), Math.round(W * 0.04));
+  const enclose = (sx: number, sy: number): { x0: number; y0: number; w: number; h: number } | null => {
+    if (darkAt(sx, sy)) return null;
+    let L = sx, R = sx, T = sy, B = sy;
+    while (L > 0 && sx - L < maxSide && !darkAt(L - 1, sy)) L--;
+    while (R < W - 1 && R - sx < maxSide && !darkAt(R + 1, sy)) R++;
+    while (T > 0 && sy - T < maxSide && !darkAt(sx, T - 1)) T--;
+    while (B < H - 1 && B - sy < maxSide && !darkAt(sx, B + 1)) B++;
+    if (!(L > 0 && darkAt(L - 1, sy) && R < W - 1 && darkAt(R + 1, sy) && T > 0 && darkAt(sx, T - 1) && B < H - 1 && darkAt(sx, B + 1))) return null;
+    let x0 = L - 1, x1 = R + 1, y0 = T - 1, y1 = B + 1;
+    for (let k = 0; k < 2; k++) {
+      if (x0 > 0 && darkAt(x0 - 1, Math.round((y0 + y1) / 2))) x0--;
+      if (x1 < W - 1 && darkAt(x1 + 1, Math.round((y0 + y1) / 2))) x1++;
+      if (y0 > 0 && darkAt(Math.round((x0 + x1) / 2), y0 - 1)) y0--;
+      if (y1 < H - 1 && darkAt(Math.round((x0 + x1) / 2), y1 + 1)) y1++;
+    }
+    const w = x1 - x0 + 1, h = y1 - y0 + 1;
+    if (w < minSide || h < minSide || w > maxSide + 4 || h > maxSide + 4) return null;
+    const aspect = w / h;
+    if (aspect < 0.7 || aspect > 1.4) return null;
+    let edge = 0, edgeN = 0;
+    const step = Math.max(1, Math.round(Math.min(w, h) / 6));
+    for (let x = x0; x <= x1; x += step) { edgeN += 2; if (darkAt(x, y0)) edge++; if (darkAt(x, y1)) edge++; }
+    for (let y = y0; y <= y1; y += step) { edgeN += 2; if (darkAt(x0, y)) edge++; if (darkAt(x1, y)) edge++; }
+    if (edgeN < 4 || edge / edgeN < 0.55) return null;
+    let light = 0, inn = 0;
+    for (let y = T; y <= B; y += step) for (let x = L; x <= R; x += step) { inn++; if (!darkAt(x, y)) light++; }
+    if (inn < 1 || light / inn < 0.7) return null;
+    return { x0, y0, w, h };
+  };
+  let best: { x0: number; y0: number; w: number; h: number; d: number } | null = null;
+  const consider = (sx: number, sy: number) => {
+    const box = enclose(sx, sy);
+    if (!box) return;
+    const d = Math.hypot(tx - (box.x0 + box.w / 2), ty - (box.y0 + box.h / 2));
+    if (!best || d < best.d) best = { ...box, d };
+  };
+  consider(tx, ty);
+  for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]] as const) {
+    let seen = false;
+    for (let s = 1; s <= reach; s++) {
+      const x = tx + dx * s, y = ty + dy * s;
+      if (x < 0 || y < 0 || x >= W || y >= H) break;
+      if (darkAt(x, y)) seen = true;
+      else if (seen) { consider(x, y); break; }
     }
   }
   if (!best) return null;
-  return { x: best.x0 / W, y: best.y0 / H, w: best.side / W, h: best.side / H };
+  return { x: best.x0 / W, y: best.y0 / H, w: best.w / W, h: best.h / H };
 }

@@ -199,7 +199,12 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
     const resizing = !!(m && m.kind !== "check" && onHandle(p, m));
     const start = { x: e.clientX, y: e.clientY }; let moved = false;
     const off = m ? { dx: p.x - m.x, dy: p.y - m.y } : null;
-    if (m && m.kind !== "check") { onSelect(m.id); try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* not capturable */ } }
+    if (m && m.kind !== "check") {
+      e.preventDefault();
+      onSelect(m.id);
+      if (scroller.current) scroller.current.style.touchAction = "none";
+      try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* not capturable */ }
+    }
     const move = (ev: PointerEvent) => {
       if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > 6) moved = true;
       if (!m || m.kind === "check") return;
@@ -211,6 +216,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
     };
     const end = (ev: PointerEvent, cancelled: boolean) => {
       document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", cancel);
+      if (scroller.current) scroller.current.style.touchAction = "";
       if (!cancelled && !moved) {
         const q = frac(ev.clientX, ev.clientY);
         const square = checkAt(q);
@@ -292,8 +298,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
             <div key={m.id} draggable={false} onDragStart={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()} className={`absolute ${m.kind === "check" ? "bg-transparent" : `rounded ${sel ? "border-[3px] border-primary shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-primary/50"} ${m.kind === "sig" ? (sel ? "bg-primary/15" : "border-dashed bg-primary/10") : (sel ? "bg-amber-300/20" : m.fit === "stamped" ? "border-solid border-amber-500/80 bg-amber-300/10" : "border-dotted bg-amber-300/10")}`}`}
               style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%`, containerType: "size", touchAction: "none" }} data-testid={m.kind === "sig" ? "sig-box" : m.kind === "check" ? "check-box" : "text-box"} data-fit={m.fit}>
               {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" draggable={false} className="pointer-events-none h-full w-full select-none object-contain object-left object-bottom" />}
-              {m.kind === "check" && <span className="pointer-events-none absolute bg-blue-600" style={{ left: "18%", top: "18%", width: "64%", height: "64%" }} data-testid="check-fill" />}
-              {m.kind === "check" && <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true"><path d="M28 52 L44 70 L74 30" fill="none" stroke="#fff" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+              {m.kind === "check" && <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 h-full w-full bg-transparent" aria-hidden="true"><path d="M28 52 L44 70 L74 30" fill="none" stroke="#1d4ed8" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" /></svg>}
               {m.kind === "text" && !readOnly && (() => {
                 const pxPerPt = ((base || pagePt.w) * zoom) / pagePt.w;
                 const fontPx = textEmPt(m.h * pagePt.h) * pxPerPt;
@@ -327,7 +332,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
         {err && <p className="p-3 text-xs text-red-500">{err}</p>}
       </div>
       </div>
-      {!readOnly && <p className="mt-1 text-[11px] text-muted-foreground">{sigHere ? t("soi.sign.place_move") : t("soi.sign.place_hint")} {t("soi.sign.zoom_hint")} Tap a box to check it. Tap again to clear it.</p>}
+      {!readOnly && <p className="mt-1 text-[11px] text-muted-foreground">{sigHere ? t("soi.sign.place_move") : t("soi.sign.place_hint")} {t("soi.sign.zoom_hint")} Tap a box to check it. Tap again to clear it. Drag a signature to move it.</p>}
     </div>
   );
 }

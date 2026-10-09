@@ -222,7 +222,7 @@ ok(cacStamp("2026-09-09T00:29:28.000Z", "Not/AZone") === "2026.09.09 00:29:28 UT
 { const z = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.7, w: 0.4, h: 0.06 }, { pngDataUrl: png1x1, name: "Ada Lender", isoDate: "2026-09-09T00:29:28.000Z", hash: "ba7816bf", tz: "America/Chicago" });
   ok(/Ada Lender · 2026\.09\.08 19:29:28 CDT · #ba7816bf/.test(await pageText(z)), "the caption is spelled in the signer's zone"); }
 
-// a check fills the inside of the printed square blue and does not draw a second box
+// a check is ink inside the printed square: no filled box, no second border
 {
   const { stampCheck } = await import("../lib/pdf-stamp.ts");
   const { PDFDocument, PDFRawStream, decodePDFRawStream, PDFArray } = await import("pdf-lib");
@@ -231,8 +231,8 @@ ok(cacStamp("2026-09-09T00:29:28.000Z", "Not/AZone") === "2026.09.09 00:29:28 UT
   const contents = doc.getPage(0).node.Contents();
   const refs = contents instanceof PDFArray ? contents.asArray() : [contents];
   const body = refs.map((ref) => { const s = doc.context.lookup(ref); return s instanceof PDFRawStream ? Buffer.from(decodePDFRawStream(s).decode()).toString("latin1") : ""; }).join("\n");
-  ok(/0\.15 0\.39 0\.85 rg/.test(body), "the check fills the inside of the square blue");
-  ok(!/0\.15 0\.39 0\.85 RG/.test(body), "the blue is a fill, not a box drawn around the mark");
+  ok(/0\.1 0\.3 0\.8 RG/.test(body), "the check is a stroke");
+  ok(!/0\.1 0\.3 0\.8 rg/.test(body), "the check does not fill a box");
   ok(/SoIChk:1:/.test(doc.getKeywords() ?? ""), "the check is recorded");
 }
 

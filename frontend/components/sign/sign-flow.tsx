@@ -856,6 +856,12 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           <p className="mt-3 mb-1 text-sm">{t("soi.sign.draw_initials")}</p>
           <SignaturePad height={90} value={initialsPng} label={t("soi.sign.draw_initials")} onChange={(p) => { if (p !== null || !resumed) setInitialsPng(p); }} />
           {resumed && initialsPng && <p className="mt-1 text-[11px] text-primary">{t("soi.sign.x.stroke_kept")}</p>}
+          {png && files[fileIdx] && (
+            <div className="mt-3" data-testid="adjust-signature">
+              <p className="mb-1 text-[11px] text-muted-foreground">Drag the signature to move it. Stamp when it sits where you want it.</p>
+              <PdfPageView bytes={files[fileIdx].bytes} marks={marks[fileIdx] ?? []} onMarks={(m) => setMarks((x) => ({ ...x, [fileIdx]: m }))} selectedId={selected} onSelect={setSelected} preview={png} onPage={setViewedPage} fitRef={fitRef} viewRef={viewRef} onDelete={(id) => { setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).filter((m) => m.id !== id) })); setSelected(null); }} />
+            </div>
+          )}
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={() => setStep("place")} className="min-h-[44px] rounded-md border border-border px-4 text-sm"><span aria-hidden="true">‹ </span>{t("soi.sign.back")}</button>
             <button type="button" disabled={!png || !initialsPng || (!!requireLogin && auth.isLoading)} onClick={sign} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="sign-button"><span aria-hidden="true">◬ </span>{t("soi.sign.stamp")}</button>
