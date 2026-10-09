@@ -138,22 +138,22 @@ export function findCheckbox(bmp: Bitmap, tap: { x: number; y: number }): CheckH
     if (inn < 1 || light / inn < 0.7) return null;
     return { x0, y0, w, h };
   };
-  let best: { x0: number; y0: number; w: number; h: number; d: number } | null = null;
-  const consider = (sx: number, sy: number) => {
-    const box = enclose(sx, sy);
-    if (!box) return;
-    const d = Math.hypot(tx - (box.x0 + box.w / 2), ty - (box.y0 + box.h / 2));
-    if (!best || d < best.d) best = { ...box, d };
-  };
-  consider(tx, ty);
+  const seeds: Array<[number, number]> = [[tx, ty]];
   for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]] as const) {
     let seen = false;
     for (let s = 1; s <= reach; s++) {
       const x = tx + dx * s, y = ty + dy * s;
       if (x < 0 || y < 0 || x >= W || y >= H) break;
       if (darkAt(x, y)) seen = true;
-      else if (seen) { consider(x, y); break; }
+      else if (seen) { seeds.push([x, y]); break; }
     }
+  }
+  let best: { x0: number; y0: number; w: number; h: number; d: number } | null = null;
+  for (const [sx, sy] of seeds) {
+    const box = enclose(sx, sy);
+    if (!box) continue;
+    const d = Math.hypot(tx - (box.x0 + box.w / 2), ty - (box.y0 + box.h / 2));
+    if (!best || d < best.d) best = { x0: box.x0, y0: box.y0, w: box.w, h: box.h, d };
   }
   if (!best) return null;
   return { x: best.x0 / W, y: best.y0 / H, w: best.w / W, h: best.h / H };
