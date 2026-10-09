@@ -294,7 +294,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.166</span><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.167</span><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -5217,6 +5217,28 @@ if(_mp)_mp.onchange=e=>{
   if(e.target.value==='range') goRange();
   else toast('SCENARIO '+state.mode);
 };
+/* r0.167: ?range=21&role=turret&mode=train-up opens the range. No intro. */
+(function openSharedRange(){
+  var q;
+  try { q = new URLSearchParams(location.search || ''); } catch (e) { return; }
+  if (!q.get('mode') && !q.get('role') && !q.get('range')) return;
+  var intro = document.getElementById('intro');
+  if (intro) intro.style.display = 'none';
+  var role = String(q.get('role') || 'turret').toLowerCase();
+  state._selCraft = role === 'sensor' ? 'turret' : role;
+  var rng = parseInt(q.get('range') || '21', 10);
+  if (!(rng >= 1 && rng <= 42)) rng = 21;
+  state.lane = rng - 1;
+  var mode = String(q.get('mode') || 'train-up').toLowerCase();
+  state.rangeMode = (mode === 'train-down' || mode === 'stay') ? 'stay' : ((mode === 'qual' || mode === 'qual40') ? 'qual40' : 'bounce');
+  var rm = document.getElementById('rngMode'); if (rm) rm.value = state.rangeMode;
+  state.qaArmed = true;
+  if (state.lobby) state.lobby.phase = 'PRACTICE';
+  applyMode('turret');
+  state.challenge = 0;
+  goRange();
+  var lp = document.getElementById('lanePick'); if (lp) lp.value = String(state.lane);
+})();
 
 </script>
 </body>
