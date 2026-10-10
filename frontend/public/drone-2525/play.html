@@ -330,7 +330,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.181</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.182</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -573,7 +573,8 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.181 CEASE FIRE · a plate stands only in its own exposure. When the table ends the glass says CEASE FIRE, UNLOAD, SHOW CLEAR, the score, and RANGE IS COLD. RELOAD and the round count stay.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.182 TRAIN DOWN · START raises the lane and starts the clock. The clock stops when every target is down.
+r.181 CEASE FIRE · a plate stands only in its own exposure. When the table ends the glass says CEASE FIRE, UNLOAD, SHOW CLEAR, the score, and RANGE IS COLD. RELOAD and the round count stay.
 r.180 TABLE VI POSITIONS · standing, prone unsupported, prone supported, kneeling supported, standing supported, under the rounds. A far plate stays a person. A leftover plate goes down.
 r.179 CEASE FIRE · the table ends with every plate down. The glass says CEASE FIRE, the score, UNLOAD AND SHOW CLEAR, RANGE IS COLD. RELOAD and the round count stay.
 r.178 ROUNDS · green above 20, amber from 6 to 20, red at 5 or below. The left magazine is RELOAD. The one beside it is the rounds left.
@@ -900,6 +901,9 @@ function engagementAt(lane,k){ /* the k-th engagement of the program on this lan
 function rangeRun(lane){ return RANGE_RUN[lane]||(RANGE_RUN[lane]={k:0,phase:'gap',t:0,cur:[],eng:null}); }
 function rangeRunReset(lane){ if(lane==null){ Object.keys(RANGE_RUN).forEach(k=>delete RANGE_RUN[k]); } else delete RANGE_RUN[lane]; }
 function rangeTraining(){ return (state.rangeMode||'bounce')!=='qual40'; }
+function downClockWord(){ const s=Math.max(0,state.downT||0); const m=Math.floor(s/60); const r=s-m*60; const w=Math.floor(r); const t=Math.floor((r-w)*10); return m+':'+(w<10?'0':'')+w+'.'+t; }
+function downArm(){ state.downGo=false; state.downT=0; state.rangeAllDown=false; platesHere().forEach(q=>{ q.up=false; q.lifePct=0; q.life=0; q.fall=1; q._down=false; q._dead=0; q._eng=false; q._ret=0; q.mist=false; }); }
+function downStart(){ state.downGo='run'; state.downT=0; state.rangeAllDown=false; state.rangeHit=0; state.rangeMiss=0; magLoad('RESET'); platesHere().forEach(q=>{ if(onSheet()&&!sheetHas(q)){ q.up=false; return; } q.holes=[]; q._hit=false; q.up=true; q.lifePct=100; q.life=1e9; q.fall=0; q._dead=0; q._down=false; q._eng=false; q._ret=0; q.mist=false; }); }
 function rangeReset(){ state.lastShot=null; state.pending=null; magLoad('RESET'); /* r.148: a reset forgets the last shot, so the AI's 1.2 s courtesy never outlives the table */ const up=rangeTraining(); (PLATES||QUAL).forEach(q=>{q.holes=[];q._hit=false;q.up=up&&(!onSheet()||sheetHas(q));q.lifePct=100;q.life=up?1e9:0;q.fall=up?0:1;q._dead=0;q._down=false;q._eng=false;q._ret=0;q.mist=false;}); rangeRunReset(); state.lastBand=''; state.rangeAllDown=false; state.rangeHit=0; state.rangeMiss=0; state.rangeLapsed=0; } /* r.137: training raises EVERY target; qualification starts with every target down */
 /* r.131: authority is scoped to the EXPOSURE — when a target goes down (hit or lapsed) its amber/red box goes with it. */
 function rangeRelease(q){ if(!q) return; if(keepsMark(q)){ q.mist=false; return; } /* r.162 (Addendum 15): a remembered mark survives its target going down when it will stand again */ state.pending=null; if(state.desig&&(state.desig.ref===q||state.desig.id===q.id)){ state.desig=null; state.hiApproved=false; } Object.keys(state.tgtSlot||{}).forEach(k=>{ const sl=state.tgtSlot[k]; if(sl&&(sl.ref===q||sl.id===q.id)) delete state.tgtSlot[k]; }); q.mist=false; if(typeof list==='function') list(); } /* r.134: the board kept a dead amber row after a lapse */
@@ -952,9 +956,10 @@ function paintCues(){ const app=document.getElementById('app'); if(app){ app.cla
   const nx=nextStep(); [['fTgt','TARGET'],['fAppr','APPROVE'],['fFire','FIRE']].forEach(p=>{ const b=document.getElementById(p[0]); if(b) b.classList.toggle('lit',nx===p[1]); });
   const rl=document.getElementById('btnReload'); if(rl) rl.classList.toggle('call',reloadCalls()); const mr=document.getElementById('magReload'); if(mr) mr.classList.toggle('call',reloadCalls());
   { const lab=mr&&mr.querySelector('b'); const q=chNum()===0&&state.rangeMode==='qual40'; const done=q&&!!state.qualDone; const no=q&&state.mag&&(state.mag.n|0)>=4&&(state.mag.rounds|0)<=0; const word=done?'UNLOAD':(no?'NO MAG':'RELOAD'); if(lab&&lab.textContent!==word) lab.textContent=word; if(mr) mr.classList.toggle('locked',!!(done||no)); }
-  const rr=document.getElementById('btnRangeReset'); if(rr) rr.classList.toggle('call',chNum()===0&&((state.rangeMode==='qual40'&&!!state.qualDone)||(state.rangeMode==='stay'&&!!state.rangeAllDown)));
+  const rr=document.getElementById('btnRangeReset');
+  if(rr){ const stay=chNum()===0&&state.rangeMode==='stay'; const waiting=stay&&state.downGo!=='run'&&state.downGo!=='done'; if(rr.textContent!==(waiting?'START':'RESTART')) rr.textContent=waiting?'START':'RESTART'; rr.classList.toggle('call',waiting||(chNum()===0&&((state.rangeMode==='qual40'&&!!state.qualDone)||(stay&&!!state.rangeAllDown)))); }
   paintLight(startLight()); paintTimer(); paintQualOver(); paintPos(); }
-function paintTimer(){ const tm=document.getElementById('startTime'); if(!tm) return; const w=document.getElementById('startWord'); if(chNum()===0&&state.rangeMode==='qual40'&&state.qualDone){ if(tm.textContent!=='COLD') tm.textContent='COLD'; if(w&&w.textContent!=='CEASE FIRE') w.textContent='CEASE FIRE'; return; } const v=qualTimer(); if(tm.textContent!==v) tm.textContent=v; const q=chNum()===0&&state.rangeMode==='qual40'; if(w&&q&&w.textContent!=='') w.textContent=''; }
+function paintTimer(){ const tm=document.getElementById('startTime'); if(!tm) return; const w=document.getElementById('startWord'); if(chNum()===0&&state.rangeMode==='stay'){ if(state.downGo==='done'){ if(tm.textContent!==downClockWord()) tm.textContent=downClockWord(); if(w&&w.textContent!=='ALL DOWN') w.textContent='ALL DOWN'; return; } if(state.downGo==='run'){ const c=downClockWord(); if(tm.textContent!==c) tm.textContent=c; if(w&&w.textContent!=='TIME') w.textContent='TIME'; return; } if(tm.textContent!=='') tm.textContent=''; if(w&&w.textContent!=='START') w.textContent='START'; return; } if(chNum()===0&&state.rangeMode==='qual40'&&state.qualDone){ if(tm.textContent!=='COLD') tm.textContent='COLD'; if(w&&w.textContent!=='CEASE FIRE') w.textContent='CEASE FIRE'; return; } const v=qualTimer(); if(tm.textContent!==v) tm.textContent=v; const q=chNum()===0&&state.rangeMode==='qual40'; if(w&&q&&w.textContent!=='') w.textContent=''; }
 function paintQualOver(){ const el=document.getElementById('qualOver'); if(!el) return; const on=chNum()===0&&state.rangeMode==='qual40'&&!!state.qualDone; el.classList.toggle('on',on); if(!on) return; const h=state.qualH|0; const sig=h+'/'+(state.qualR|0); if(el.getAttribute('data-s')===sig) return; el.setAttribute('data-s',sig); el.innerHTML='<b>CEASE FIRE</b><span>CEASE FIRE</span><span>UNLOAD</span><span>SHOW CLEAR</span><span>'+h+' OF '+IWQ_TOTAL+' · '+qualBadge(h)+'</span><span>THE LINE IS CLEAR</span><span>RANGE IS COLD · PRESS RESTART</span>'; }
 function qualStance(){ if(chNum()!==0||state.rangeMode!=='qual40') return -1; if(state.qualDone) return 5; const R=rangeRun(state.lane||0), e=R.eng; if(!e||!(e.n>0)) return 0; if(R.phase==='phasegap') return Math.min(4,(e.ph|0)+1); if((e.ph|0)===1) return (e.n===1&&R.phase==='up')?0:1; return Math.min(4,e.ph|0); }
 function paintPos(){ const el=document.getElementById('posWell'); if(!el) return; const n=qualStance(); const names=['STANDING','PRONE UNSUPPORTED','PRONE SUPPORTED','KNEELING SUPPORTED','STANDING SUPPORTED']; const name=document.getElementById('posName'); if(name){ const t=n<0?'':(n>=5?'RANGE IS COLD':names[n]); if(name.textContent!==t) name.textContent=t; } el.querySelectorAll('i[data-p]').forEach(i=>{ const p=+i.getAttribute('data-p'); i.classList.toggle('on',p===n); i.classList.toggle('done',n>=5||(n>=0&&p<n)); }); }
@@ -986,6 +991,7 @@ function rangeTick(dt){
       anyUp=true;
     });
     state.rangeAllDown=(mode==='stay'&&!anyUp);
+    if(mode==='stay'&&state.downGo==='run'){ state.downT=(state.downT||0)+dt; if(state.rangeAllDown){ state.downGo='done'; toast('ALL DOWN · '+downClockWord()); } }
     return;
   }
   qualDropStrays();
@@ -2527,7 +2533,7 @@ function hudScore(){ if(typeof hudMag==='function') hudMag();
     const R=rangeRun(state.lane||0); const e=R.eng&&R.eng.n>0?R.eng:null; const upN=R.phase==='up'?R.cur.filter(id=>{const p=PLATES.find(x=>x.id===id);return p&&p.up&&p.lifePct>0;}).length:0;
     const left=R.phase==='up'?Math.max(0,Math.ceil((R.eng?R.eng.sec:0)-R.t)):0;
     ps.textContent=state.qualDone?qualCard():(e?('PHASE '+e.ph+' · ENG '+e.n+'/'+IWQ_ENG.length+(R.phase==='up'?' · '+upN+' UP · '+left+' S':R.phase==='phasegap'?' · LOCK AND LOAD':' · NEXT EXPOSURE')):'QUAL 40 · READY')+' · HIT '+(state.qualH||0)+'/'+(state.qualR||0)+(state.qualExpired?' · NOT ENGAGED '+state.qualExpired:''); /* r.137: the strip reads the engagement, not a table */
-  } else ps.textContent=chNum()===0?((onSheet()?'SHEET 25 M · ':'')+RANGE_MODE_NAME[state.rangeMode||'bounce']+' · HIT '+(state.rangeHit|0)+' · MISS '+(state.rangeMiss|0)+(state.rangeAllDown?' · ALL DOWN · PRESS RESTART':'')):('BLU '+(state.blu|0)+' · RED '+(state.red|0)); /* r.137: training has no lapse, so the strip does not count one */
+  } else { const stay=state.rangeMode==='stay'; const clock=stay?(state.downGo==='done'?(' · ALL DOWN · '+downClockWord()):state.downGo==='run'?(' · '+downClockWord()):' · PRESS START'):(state.rangeAllDown?' · ALL DOWN · PRESS RESTART':''); ps.textContent=chNum()===0?((onSheet()?'SHEET 25 M · ':'')+RANGE_MODE_NAME[state.rangeMode||'bounce']+clock+' · HIT '+(state.rangeHit|0)+' · MISS '+(state.rangeMiss|0)):'BLU '+(state.blu|0)+' · RED '+(state.red|0); } /* r.182: TRAIN DOWN carries its clock; it stops when the lane is clear */
 }
 function seatWord(by){ if(!by||by===SID) return ''; if(/^ASM@/.test(String(by))) return 'THE AI'; return (state.desig&&state.desig.by===by&&state.desig.viaAI)?'THE OTHER SEAT\'S AI':'THE OTHER SEAT'; } /* r.135: a player never reads a session id */
 function plateWord(id){ const b=(typeof plateBase==='function'?plateBase(id):String(id||'')); const m=String(b).match(/^C-(\d+)([LRC])?$/); if(!m) return String(b); if(!m[2]&&b==='C-50') m[2]='R'; /* r.157: the 50 R is "50 M RIGHT" — two 50s stand on every lane */ return m[1]+' M'+(m[2]==='L'?' LEFT':m[2]==='R'?' RIGHT':m[2]==='C'?' CENTRE':''); }
@@ -5235,7 +5241,7 @@ function rangeResetOnRecord(why){ /* r.134: a reset is a decision — one canoni
   if(live&&why==='BUTTON'&&!(state._resetArm&&performance.now()-state._resetArm<4000)){ state._resetArm=performance.now(); toast('PRESS RESTART AGAIN TO DISCARD '+(state.qualR|0)+' ROUNDS OF THIS TABLE'); return false; }
   state._resetArm=0; releaseAuthority('RESET'); decide('RESET','RANGE',{why,mode:state.rangeMode,targets:state.targets||'pop',lane:state.lane|0,qualR:state.qualR|0,qualH:state.qualH|0});
   resetRangePlates(); if(typeof goRange==='function') goRange(); state.lastShot=null; return true; }
-const _rr=document.getElementById('btnRangeReset'); if(_rr)_rr.onclick=()=>{ if(rangeResetOnRecord('BUTTON')) toast('RESTARTED · '+modeSentence()); };
+const _rr=document.getElementById('btnRangeReset'); if(_rr)_rr.onclick=()=>{ if(chNum()===0&&state.rangeMode==='stay'&&state.downGo!=='run'&&state.downGo!=='done'){ downStart(); toast('START · HIT EVERY TARGET IN THE LANE'); if(typeof paintCues==='function') paintCues(); return; } if(rangeResetOnRecord('BUTTON')) toast('RESTARTED · '+modeSentence()); };
 { const bR=document.getElementById('btnReload'); if(bR) bR.onclick=()=>magReload(); const bM=document.getElementById('magReload'); if(bM) bM.onclick=()=>magReload(); /* r.142: one rule for the button and the QA */
   ['btnFull','btnFullBar'].forEach(id=>{ const b=document.getElementById(id); if(b) b.onclick=()=>setFull(!document.getElementById('app').classList.contains('full')); });
   const stg=document.getElementById('stage'); if(stg) stg.addEventListener('wheel',e=>{ if(state.viewMode==='map') return; e.preventDefault(); state.zoom=zoomClamp((state.zoom||1)*(e.deltaY<0?1.12:1/1.12)); hudMag(); },{passive:false}); /* r.138: a mouse can zoom too (pinch was the only optic) */
@@ -5274,7 +5280,7 @@ function seatLane(i){
   const u=units[state.unit];
   if(u&&u.kind==='turret'){
     u.x=L.x;u.y=L.y;u.z=0;u.yaw=0;u.pan=0;u.tilt=0;
-    releaseAuthority('LANE CHANGE'); rangeRunReset(state.lane); /* r.135: a lane change is a consumer too */ (typeof platesHere==='function'?platesHere():[]).forEach(q=>{const up=rangeTraining()&&(!onSheet()||sheetHas(q));q.up=up;q.fall=up?0:1;q.lifePct=100;q.life=up?1e9:0;q._eng=false;q._down=false;q._ret=0;}); if(typeof qualResetTower==='function'&&!rangeTraining()) qualResetTower(); /* r.137: a new lane in training stands every target; in QUAL it starts the program over */ const q0=rangeFirstPlate(); if(q0) aimUnitAt(u,q0,-20,8); /* r.131: a new lane starts clean and pre-aimed */
+    releaseAuthority('LANE CHANGE'); rangeRunReset(state.lane); /* r.135: a lane change is a consumer too */ (typeof platesHere==='function'?platesHere():[]).forEach(q=>{const up=rangeTraining()&&(!onSheet()||sheetHas(q));q.up=up;q.fall=up?0:1;q.lifePct=100;q.life=up?1e9:0;q._eng=false;q._down=false;q._ret=0;}); if(state.rangeMode==='stay'&&typeof downArm==='function') downArm(); if(typeof qualResetTower==='function'&&!rangeTraining()) qualResetTower(); /* r.137: a new lane in training stands every target; in QUAL it starts the program over */ const q0=rangeFirstPlate(); if(q0) aimUnitAt(u,q0,-20,8); /* r.131: a new lane starts clean and pre-aimed */
   }
   toast(laneWord()+' · YOUR TARGETS ARE IN FRONT OF YOU'); /* r.157: no slope word */
   state.viewMode='op';
@@ -5299,6 +5305,7 @@ function goRange(){
   const q=rangeFirstPlate();
   if(u&&q){
     rangeReset(); state.desig=null; state.tgtSlot={}; state.hiApproved=false;
+    if(state.rangeMode==='stay') downArm();
     aimUnitAt(u,q,-20,8);
   }
   toast(modeSentence()); if(typeof paintCues==='function') paintCues(); /* r.157: the one sentence for the pick */
