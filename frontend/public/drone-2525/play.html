@@ -28,15 +28,16 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #magBar #btnReload.call{border-color:#C9A227;color:#C9A227;box-shadow:0 0 10px #C9A227} /* r.157: RELOAD calls for itself — empty, or the QUAL phase rest with a part-used magazine; never full */
 #startLight{position:absolute;right:8px;top:42px;z-index:4;display:none;flex-direction:column;align-items:center;gap:3px;padding:4px 7px;border:1px solid #1C2A3A;border-radius:6px;background:rgba(0,0,0,.6);pointer-events:none} /* r.157 (Addendum 1): the range tower's start light, upper right */
 #app.range #startLight{display:flex}
-#magWell{position:absolute;left:8px;top:78px;z-index:4;display:none;gap:8px;align-items:flex-end;pointer-events:none} /* r.168: the magazine, left, opposite the light */
+#magWell{position:absolute;left:8px;top:78px;z-index:4;display:none;gap:22px;align-items:flex-end;pointer-events:none} /* r.168: the magazine, left, opposite the light */
 #app.range #magWell{display:flex}
 #magWell button,#magWell .body{width:68px;background:rgba(0,0,0,.55);border:1px solid #1C2A3A;border-radius:8px;color:#7AB8C4;padding:6px 4px 4px;display:flex;flex-direction:column;align-items:center;gap:2px}
 #magWell button{pointer-events:auto;min-height:84px}
 #magWell .body{pointer-events:none}
-#magWell svg{width:30px;height:54px;display:block}
-#magWell b{font-size:9px;letter-spacing:.12em;font-weight:500;color:#7AB8C4}
-#magWell .body{min-height:84px}
-#magWell #magRounds{font-size:14px;font-weight:700;letter-spacing:.02em;color:#3DCC8A;font-family:ui-monospace,Menlo,monospace}
+#magWell svg{width:28px;height:68px;display:block} /* r0.175: the isometric magazine, not the battery */
+#magWell b{font-size:11px;letter-spacing:.12em;font-weight:500;color:#7AB8C4}
+#magWell .body{min-height:96px}
+#magWell button{min-height:96px}
+#magWell #magRounds{font-size:16px;font-weight:700;letter-spacing:.02em;color:#C9A227;font-family:ui-monospace,Menlo,monospace}
 #app.range:not(.full) #magBar #btnReload{display:none} /* r.174: the magazine on the left is RELOAD; the word button stays for full screen */
 #btnQr{min-height:28px;width:28px;height:28px;padding:3px;color:#7AB8C4;display:inline-grid;place-items:center}
 #btnQr svg{width:16px;height:16px;display:block}
@@ -185,10 +186,10 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 @media(orientation:portrait){
   #app.range #playHud{top:4px;left:8px;right:auto;width:max-content;max-width:calc(100% - 268px);z-index:5} /* r.174: cue and magazine count share the top row */
   #app.range #playHud #phDes{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
-  #app.range #playHud #phScore{position:absolute;left:0;top:136px;width:max-content;max-width:calc(100vw - 78px);flex-basis:auto;white-space:normal;line-height:1.35} /* under the magazines, clear of the light */
+  #app.range #playHud #phScore{position:absolute;left:0;top:152px;width:max-content;max-width:calc(100vw - 78px);flex-basis:auto;white-space:normal;line-height:1.35} /* under the magazines, clear of the light */
   #app.range #magBar{top:4px}
   #magWell,#app.range #startLight{top:40px} /* the light beside the magazines */
-  #board{top:168px}
+  #board{top:184px}
 }
 @media(orientation:portrait){
   #joyL,#joyR{width:72px;height:72px}
@@ -325,7 +326,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.174</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M1 1h6v6H1V1zm1.5 1.5v3h3v-3h-3zM9 1h6v6H9V1zm1.5 1.5v3h3v-3h-3zM1 9h6v6H1V9zm1.5 1.5v3h3v-3h-3zM9 9h2.2v2.2H9V9zm3.8 0H15v2.2h-2.2V9zM11.2 11.2H13v1.6h-1.8v-1.6zM13 13h2v2h-2v-2zM9 13.2h2.2V15H9v-1.8z"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.175</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -424,11 +425,11 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
     <div id="startLight" class="R" data-s="R" role="status" aria-label="start light WAIT"><span class="lamps"><i class="r"></i><i class="y"></i><i class="g"></i></span><b id="startWord">WAIT</b><b id="startTime"></b></div>
     <div id="magWell">
       <button id="magReload" type="button" title="load a fresh magazine">
-        <svg viewBox="0 0 36 64" aria-hidden="true"><path d="M11 10h14v5h5v42H6V15h5z" fill="none" stroke="#7AB8C4" stroke-width="1.6"/><path d="M13 20h10M13 26h10M13 32h10M13 38h10M13 44h10M13 50h10" stroke="#7AB8C4" stroke-width="1.2"/></svg>
+        <svg viewBox="0 0 48 96" aria-hidden="true"><g fill="none" stroke="#7AB8C4" stroke-linejoin="round"><path d="M16 22l18-4 4 66-22 4z" stroke-width="1.7"/><path d="M34 18l8-4 4 66-8 4" stroke-width="1.5"/><path d="M16 22l8-6 18 2-8 4" stroke-width="1.5"/><path d="M22 16l2-6h8l2 5" stroke-width="1.4"/><rect x="23.5" y="26" width="5.5" height="4.2" stroke-width="1.2"/><path d="M15 36h24M14.6 48h24.4M14.2 60h24.8M13.8 72h25.2M13.4 84h25.6" stroke-width="1.15"/><path d="M25 20v70" stroke-width="1"/></g></svg>
         <b>RELOAD</b>
       </button>
       <div class="body" aria-hidden="true">
-        <svg viewBox="0 0 36 64" aria-hidden="true"><path d="M11 10h14v5h5v42H6V15h5z" fill="none" stroke="#C9A227" stroke-width="1.6"/><clipPath id="magClip"><rect x="8" y="16" width="20" height="38"/></clipPath><rect id="magFill" x="8" y="54" width="20" height="0" fill="#3DCC8A" clip-path="url(#magClip)"/><path d="M13 20h10M13 26h10M13 32h10M13 38h10M13 44h10M13 50h10" stroke="#C9A227" stroke-width="1.15"/></svg>
+        <svg viewBox="0 0 48 96" aria-hidden="true"><defs><clipPath id="magClip"><path d="M16 22l18-4 4 66-22 4z"/></clipPath></defs><g fill="none" stroke="#C9A227" stroke-linejoin="round"><path d="M16 22l18-4 4 66-22 4z" stroke-width="1.7"/><path d="M34 18l8-4 4 66-8 4" stroke-width="1.5"/><path d="M16 22l8-6 18 2-8 4" stroke-width="1.5"/><path d="M22 16l2-6h8l2 5" stroke-width="1.4"/><rect x="23.5" y="26" width="5.5" height="4.2" stroke-width="1.2"/></g><rect id="magFill" x="10" y="88" width="32" height="0" fill="#3DCC8A" clip-path="url(#magClip)" opacity=".9"/><g fill="none" stroke="#C9A227" clip-path="url(#magClip)"><path d="M12 36h28M12 44h28M12 52h28M12 60h28M12 68h28M12 76h28M12 84h28" stroke-width="1.15"/><path d="M25 20v70" stroke-width="1"/></g></svg>
         <b id="magRounds">30</b>
       </div>
     </div>
@@ -860,7 +861,7 @@ function hudMag(){ const t=document.getElementById('magTxt'); if(!t) return; con
   const fill=document.getElementById('magFill'), num=document.getElementById('magRounds');
   const n=String(m.rounds|0);
   if(num) num.textContent=n;
-  if(fill){ const h=38*((m.rounds|0)/Math.max(1,m.cap|0)); fill.setAttribute('y',String(54-h)); fill.setAttribute('height',String(Math.max(0,h))); fill.setAttribute('x','8'); fill.setAttribute('width','20'); } }
+  if(fill){ const top=18,body=70,h=body*((m.rounds|0)/Math.max(1,m.cap|0)); fill.setAttribute('y',String(top+body-h)); fill.setAttribute('height',String(Math.max(0,h))); fill.setAttribute('x','10'); fill.setAttribute('width','32'); } }
 function magReload(){ /* r.142: the shooter's own reload — refused when full; in QUAL four magazines as issued, a fifth is refused on the record */
   if(state.mag&&state.mag.rounds===state.mag.cap){ toast('MAGAZINE FULL · '+state.mag.rounds+' RDS'); return false; }
   const q=state.rangeMode==='qual40'&&+state.challenge===0; if(q&&state.mag&&(state.mag.n|0)>=4){ decide('REJECT','MAG',{reason:'NO_MAGAZINE'}); toast('NO MAGAZINE LEFT · 4 OF 4 USED'); return false; }
