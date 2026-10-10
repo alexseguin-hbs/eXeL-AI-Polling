@@ -35,8 +35,8 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #magWell .body{pointer-events:none}
 #magWell svg{width:30px;height:54px;display:block}
 #magWell b{font-size:9px;letter-spacing:.12em;font-weight:500;color:#7AB8C4}
-#magWell .body{position:relative}
-#magWell #magRounds{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);font-size:16px;font-weight:700;letter-spacing:0;color:#E8D5B0;text-shadow:0 0 4px #000;pointer-events:none}
+#magWell .body{position:relative;min-height:84px;justify-content:center}
+#magWell #magRounds{font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace}
 #face #magLive{grid-column:1 / -1;justify-self:center;min-width:88px;height:32px;opacity:1;border-color:#C9A227;color:#C9A227;font-size:16px;font-weight:700;letter-spacing:.06em;pointer-events:none;font-variant-numeric:tabular-nums}
 #magBar button,#magWell button{touch-action:manipulation}
 #magWell #magReload.call{border-color:#C9A227;box-shadow:0 0 10px #C9A227}
@@ -306,7 +306,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.170</span><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.171</span><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -409,8 +409,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
         <b>RELOAD</b>
       </button>
       <div class="body" aria-hidden="true">
-        <svg viewBox="0 0 36 64"><path d="M11 10h14v5h5v42H6V15h5z" fill="none" stroke="#C9A227" stroke-width="1.6"/><clipPath id="magClip"><rect x="8" y="16" width="20" height="38"/></clipPath><rect id="magFill" x="8" y="54" width="20" height="0" fill="#3DCC8A" clip-path="url(#magClip)"/></svg>
-        <b id="magRounds">30</b>
+        <svg viewBox="0 0 36 64"><path d="M11 10h14v5h5v42H6V15h5z" fill="none" stroke="#C9A227" stroke-width="1.6"/><rect id="magFill" x="8" y="16" width="20" height="38" fill="#3DCC8A"/><path d="M13 20h10M13 26h10M13 32h10M13 38h10M13 44h10M13 50h10" stroke="#06140c" stroke-width="0.8" opacity=".45"/><text id="magRounds" x="18" y="36" text-anchor="middle" dominant-baseline="central" fill="#F4E7C5" stroke="#000" stroke-width="0.7" paint-order="stroke" font-size="13" font-weight="700">30</text></svg>
       </div>
     </div>
     <div id="board"></div>
@@ -545,7 +544,8 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.170 RELOAD + COUNT · both RELOAD buttons load a magazine · the round count sits in the middle and on the magazine, and it drops on every shot
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.171 COUNT IN THE MAGAZINE · the rounds sit in the middle of the magazine, and the green fills from the bottom as rounds are left
+r.170 RELOAD + COUNT · both RELOAD buttons load a magazine
 r.169 QUAL 40 · TARGET, then APPROVE, then FIRE
 A plate that just stood is not already red. A hit clears the box.
 r.168 MAGAZINE · left of the picture, opposite the light
@@ -644,7 +644,7 @@ function rcoreStep(name){
 }
 const T13={VOID:'#000000',PANEL:'#070B10',STROKE:'#1C2A3A',WIRE:'#7AB8C4',ROAD:'#4A6A78',WATER:'#2A6D88',DOME:'#C9A227',SI:'#E8D5B0',HI:'#5BA8FF',AI:'#C084FC',LOCK:'#E24B3B',TAG:'#3DCC8A',GIMBAL:'#F0A020'};
 const OK=new Set(Object.values(T13));
-const BUILD={version:'00.00',revision:'0.170'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
+const BUILD={version:'00.00',revision:'0.171'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
 
 const ASM=[
   {id:'AsM-01',name:'Enki',line:'Sumerian',team:'BLU',seat:'T01',ctrl:'AI'},
@@ -831,7 +831,7 @@ function hudMag(){ const t=document.getElementById('magTxt'); if(!t) return; con
   const n=String(m.rounds|0);
   if(num) num.textContent=n;
   if(live) live.textContent=n+' RDS';
-  if(fill){ const h=38*((m.rounds|0)/Math.max(1,m.cap|0)); fill.setAttribute('y',String(54-h)); fill.setAttribute('height',String(h)); } }
+  if(fill){ const h=38*((m.rounds|0)/Math.max(1,m.cap|0)); fill.setAttribute('y',String(54-h)); fill.setAttribute('height',String(Math.max(0,h))); fill.setAttribute('x','8'); fill.setAttribute('width','20'); } }
 function magReload(){ /* r.142: the shooter's own reload — refused when full; in QUAL four magazines as issued, a fifth is refused on the record */
   if(state.mag&&state.mag.rounds===state.mag.cap){ toast('MAGAZINE FULL · '+state.mag.rounds+' RDS'); return false; }
   const q=state.rangeMode==='qual40'&&+state.challenge===0; if(q&&state.mag&&(state.mag.n|0)>=4){ decide('REJECT','MAG',{reason:'NO_MAGAZINE'}); toast('NO MAGAZINE LEFT · 4 OF 4 USED'); return false; }
