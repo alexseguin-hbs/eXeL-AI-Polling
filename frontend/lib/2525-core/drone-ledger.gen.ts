@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 48 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 61 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -345,6 +345,97 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "Operator deck r.153 served at /drone-2525/play.html (sha256 3c3de521...). THE BROWSER TAB READS \"eXeL Drone-2525\" — the <title> was the last place the stale early deck name \"eXeL ECO-2525 · MoT · SSSES\" survived, so the phone tab said ECO; now exactly \"eXeL Drone-2525\" (operator 2026-09-26, docs/asks/2026-09-26_drone_tab_name.md). Title-only, byte-gated: patch patches/r152_to_r153.py, byte-identical play.html, no QA-row or logic change.",
       "commit": "c65d719"
+    },
+    {
+      "rev": 49,
+      "date": "2026-10-04",
+      "kind": "release",
+      "text": "Operator deck r.154 served at /drone-2525/play.html (sha256 ccb4fe73...). THE QUAL · 40 CLOCK COUNTS REAL SECONDS; 10 S BETWEEN POSITIONS — below 20 fps the range clock ran on the loop's 50 ms-capped step, so the exposure windows and gaps stretched (5 s → 16.58 s at ~160 ms frames); the range now counts wall time (capped 0.25 s per frame), physics keeps 50 ms, and the phase gap is the sourced 10 s (operator 2026-10-04, docs/asks/2026.10.04_03.56..35_drone2525_qual40_exposure_times.md). Patch patches/r153_to_r154.py, byte-identical play.html, QA row QUAL_CLOCK_IS_WALL_TIME added (178 rows, 177/178 both orientations); drone-range-all-lanes slow-frame timing on lane 21.",
+      "commit": "fc0fddf"
+    },
+    {
+      "rev": 50,
+      "date": "2026-10-04",
+      "kind": "release",
+      "text": "Operator deck r.155 served at /drone-2525/play.html (sha256 300ceb93...). TARGET · APPROVE · FIRE LEFT OF THE STICK ON THE TURRET, CENTRED BETWEEN THE STICKS ON A DRONE — the cluster was centred on the screen and floated above the HEAD stick; placeFace() now measures the sticks and puts it in one row 10 px left of the stick at its height on the turret, and on the midpoint between the two sticks on a drone, in portrait, landscape and FULL (operator 2026-10-04, docs/asks/2026.10.04_08.50..02_drone2525_face_left_of_stick_turret.md). Patch patches/r154_to_r155.py, byte-identical play.html, QA row FACE_BESIDE_STICK added.",
+      "commit": "d2d2431"
+    },
+    {
+      "rev": 51,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "Operator deck r.156 served at /drone-2525/play.html (sha256 92eb716a...). THE HIT SPLASH STARTS AT THE CENTRE OF THE HIT TARGET — the ring was placed at the plate's lane-local point (beside and above the plate), flashed on a miss, and at MoT 1 was dropped whole by the segment budget; a hit now keeps the target and splashCentre() draws the ring on its centre of mass (worldOf) every frame, lowering with the fall, never on a miss, outside the world budget (operator 2026-10-04, docs/drone-2525/rounds/2026.10.04_09.17..48_19_rounds/ASK.md Addendum 2). Patch patches/r155_to_r156.py, byte-identical play.html, QA row SPLASH_FROM_TARGET_CENTRE added.",
+      "commit": "aa66c46"
+    },
+    {
+      "rev": 52,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "Operator deck r.157 served at /drone-2525/play.html (sha256 5d65ee2b...). DRONE ROUND 1 OF 19 — THE SPLASH RINGS THE BOTTOM OF THE HIT TARGET (Addendum 5: \"splash-ring as oval from bottom of target works\"; a plate's foot, the ground under anything else), LABELS ONLY WHILE MARKED, THE RANGE MENU (TRAIN UP · TRAIN DOWN · QUAL 40 + RESTART + LANE, the rest behind MORE), LANE BOARDS ON BOTH EDGES (\"◂ 40 · 41 ▸\") ON 15 M LANES, THE LIT NEXT BUTTON, RELOAD THAT CALLS, ONE PLAIN STATUS LINE, THE START LIGHT (RED WAIT · YELLOW READY · GREEN FIRE), the range showing lanes and targets only, my lane never dropped by the draw budget, rooms scored by lane, and QUAL ending with its scorecard and PRESS RESTART (operator 2026-10-04, docs/drone-2525/rounds/2026.10.04_09.17..48_19_rounds/ASK.md + Addenda 1–5). Patch patches/r156_to_r157.py, byte-identical play.html, 17 QA rows added or rewritten (SPLASH_FROM_TARGET_BASE replaces SPLASH_FROM_TARGET_CENTRE).",
+      "commit": "f6cf582"
+    },
+    {
+      "rev": 53,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "Operator deck r.158 served at /drone-2525/play.html (sha256 62f9fd1f...). NO GREY PHANTOM TARGETS (only my lane's targets drawn on the range) and THE LANE NUMBERS ON A REAL SIGN BOARD (\"◂ 20 · 21 ▸\" on a 1.2 × 0.6 m board on its post) AND FADED DOTTED LANE LINES SIGN TO SIGN — operator Addenda 6–7.",
+      "commit": "ad2b2b0"
+    },
+    {
+      "rev": 54,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "Operator deck r.159 served at /drone-2525/play.html (sha256 d30d2ca9...). REAL-SIZE WHITE LANE SIGNS WITH BLACK NUMBERS THAT NEVER COVER A TARGET; PC KEYS AND MOUSE (SPACE / RIGHT CLICK = TARGET THEN APPROVE, F / LEFT CLICK = FIRE, ARROWS / WASD) — operator Addenda 9–10.",
+      "commit": "09f78aa"
+    },
+    {
+      "rev": 55,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "Operator deck r.160 served at /drone-2525/play.html (sha256 1fbc365f...). THE LANE SIGNS READABLE — SHORT NUMBERS LIKE THE PHOTO (\"21 22\"), BLACK ON A SMALL WHITE BOARD, AT LEAST 9 PX, NEVER OVER A TARGET — operator Addendum 11.",
+      "commit": "5a8a161"
+    },
+    {
+      "rev": 56,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "Operator deck r.161 served at /drone-2525/play.html (sha256 543ed598...). T MARKS WHAT THE BULLSEYE IS ON (it stepped slots), SPACE APPROVES, F FIRES, KEYS BEAT A FOCUSED BUTTON; A LEFT CLICK CENTRES THE BULLSEYE ON THE CLICKED TARGET — operator Addendum 12.",
+      "commit": "0b45687"
+    },
+    {
+      "rev": 57,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "Operator deck r.162 served at /drone-2525/play.html (sha256 10c900f7...). QUAL TIMER AND A VERTICAL RED · YELLOW · GREEN LIGHT ON THE RIGHT — THE LAST THREE SECONDS OF EACH GROUP, ONE SECOND A LAMP — operator Addendum 13. A MARKED, APPROVED TARGET KEEPS ITS MARK THROUGH THE HIT AND THE RETURN IN TRAINING · RESET — operator Addendum 14. MARKS ARE REMEMBERED — MARK MANY, APPROVE EACH, FIRE ONLY APPROVED — operator Addendum 15. R RELOADS ON A PC — operator Addendum 17. r.161 artefact commit corrected to 0b45687.",
+      "commit": "0e6d329"
+    },
+    {
+      "rev": 58,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "Operator deck r.163 served at /drone-2525/play.html (sha256 a725cdba...). T-NUMBERS IN MARKING ORDER; APPROVE AND FIRE BY NUMBER — KEYS 1–9 AND VOICE — operator Addendum 18. THE SPLASH IS 0.3 S OF REAL TIME — operator Addendum 21. r.162 artefact commit corrected to 0e6d329.",
+      "commit": "921ce8a"
+    },
+    {
+      "rev": 59,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "Operator deck r.164 served at /drone-2525/play.html (sha256 567f6ef3...). SETTINGS → VOICE: BROWSER · VOSK · MY VOICE, TEST MY VOICE (HEARD / MISSED / CONFUSED per word), TRAIN MY VOICE kept on the device — operator Addenda 19–20.",
+      "commit": "bf8cb7c"
+    },
+    {
+      "rev": 60,
+      "date": "2026-10-05",
+      "kind": "release",
+      "text": "Operator deck r.165 served at /drone-2525/play.html (sha256 76961252...). RESELECT TO APPROVE BY EVERY DOOR; A SHOT TARGET GOES AWAY (NO RING ON A DOWN TARGET); TRAIN DOWN REMEMBERS MARKS — operator Addenda 22–23.",
+      "commit": "47f66e2"
+    },
+    {
+      "rev": 61,
+      "date": "2026-10-09",
+      "kind": "release",
+      "text": "Operator deck r.176 served at /drone-2525/play.html. THE MAGAZINE IS A WIRE, NOT A FILL. The vector law is how this range draws: black ground, lines only, depth from the isometric, no fill. The cyan magazine is RELOAD. The gold magazine is the wire. Green lines from the bottom are the rounds left. The count sits under the magazine. The lane QR is the header mark beside the revision. A tap encodes /drone-2525/play?range=&role=turret&mode= for the lane in use (qrcode level M, drawn as SVG). r.138 and r.142 stay the magazine rule: 30 rounds in training, four magazines of 10 on QUAL 40, reload by hand.",
+      "commit": "PENDING"
     }
   ]
 };
