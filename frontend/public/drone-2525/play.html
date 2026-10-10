@@ -22,6 +22,10 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #hud{pointer-events:none;z-index:1}
 #playHud{position:absolute;left:8px;right:8px;top:6px;z-index:2;display:flex;gap:4px 12px;flex-wrap:wrap;pointer-events:none;font-size:10px;letter-spacing:.1em;color:#3DCC8A;opacity:.85;overflow:visible;white-space:normal} /* r.133: the strip WRAPS — at 320-390 px the HIT/MISS/LAPSED, the QUAL clock and ALL DOWN · RESET were clipped off the phone */
 #playHud #phScore{flex-basis:100%}
+#qualOver{display:none;position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);z-index:5;width:min(92%,420px);text-align:center;pointer-events:none;color:#C9A227;letter-spacing:.12em;line-height:1.5;text-shadow:0 0 14px #000,0 0 2px #000}
+#qualOver.on{display:block}
+#qualOver b{display:block;color:#E24B3B;font-size:22px;font-weight:700;letter-spacing:.2em;margin-bottom:6px}
+#qualOver span{display:block;font-size:13px}
 #magBar{position:absolute;right:8px;top:6px;z-index:4;display:flex;gap:8px;align-items:center;font-size:10px;letter-spacing:.1em;color:#C9A227;pointer-events:none;white-space:nowrap} /* r.138: reload + round counter at the top of the field of view */
 #magBar button{pointer-events:auto;min-height:32px;padding:0 10px;border:1px solid #1C2A3A;background:#000;color:#E8D5B0;font-size:10px;letter-spacing:.1em;border-radius:4px}
 #magBar #btnReload{border-color:#1C2A3A;color:#E8D5B0} /* r.157: RELOAD rests like the bar's other buttons, so its glow means something */
@@ -315,7 +319,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.178</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.179</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -410,6 +414,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
     <canvas id="view"></canvas>
     <canvas id="hud"></canvas>
     <div id="playHud"><b id="phCH">CH0</b><span id="phDes">LOOK</span><span id="phScore">0</span></div>
+    <div id="qualOver" aria-hidden="true"></div>
     <div id="magBar"><button id="btnReload" type="button" title="load a fresh magazine">RELOAD</button><span id="magTxt">MAG 1 · 30 RDS</span><span id="magStrip"></span><button id="btnFull" type="button" title="full screen" aria-label="full screen">⤢</button></div>
     <div id="magWell">
       <button id="magReload" type="button" title="load a fresh magazine"><svg viewBox="0 0 48 96" aria-hidden="true"><g fill="none" stroke="#7AB8C4" stroke-linejoin="round" stroke-linecap="round"><path d="M16 22l18-4 4 66-22 4z" stroke-width="1.7"/><path d="M34 18l8-4 4 66-8 4" stroke-width="1.5"/><path d="M16 22l8-6 18 2-8 4" stroke-width="1.5"/><path d="M22 16l2-6h8l2 5" stroke-width="1.4"/><rect x="26.2" y="27" width="4.2" height="3.4" stroke-width="1.1"/><path d="M18 42h15.5M17.2 56h16.6M16.4 70h17.6" stroke-width="1.15"/><path d="M26 24v62" stroke-width="1"/></g></svg><b>RELOAD</b></button>
@@ -547,7 +552,8 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.178 ROUNDS · green above 20, amber from 6 to 20, red at 5 or below. The left magazine is RELOAD. The one beside it is the rounds left.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.179 CEASE FIRE · the table ends with every plate down. The glass says CEASE FIRE, the score, UNLOAD AND SHOW CLEAR, RANGE IS COLD. RELOAD and the round count stay.
+r.178 ROUNDS · green above 20, amber from 6 to 20, red at 5 or below. The left magazine is RELOAD. The one beside it is the rounds left.
 r.177 MAGAZINE + LANE QR · cyan RELOAD magazine, gold magazine with green rounds from the bottom, the count under it. The header mark opens the lane code.
 r.128 WAITING ROOM · CANONICAL R-CORE
 1v1 START requires BLU READY + RED READY + AUTH + DIRECT
@@ -886,12 +892,12 @@ function rangeLapse(q,fromRow){ /* QUAL · 40: a target still standing when its 
   state.lastLapse={id:q.id,t:state.clock};
   if(state.rangeMode!=='qual40'||state.qualDone) return; const r=qualRecordShot(false,q.id); if(r&&r.accepted){ state.qualExpired=(state.qualExpired||0)+1; if(!fromRow&&typeof netEvent==='function') netEvent('LAPSE',q.id,'UNFIRED MISS');
     toast('NOT ENGAGED · '+plateWord(q.id)+' · UNFIRED MISS · '+r.hits+'/'+r.round+(r.done?' '+r.badge:'')); } }
-function qualFinish(){ if(state.qualDone) return; state.qualDone=true; state.qualStarted=false; if(lapseIsMine()&&typeof ev==='function') ev('QUAL','P'+(state.qualPh||4),'DONE '+(state.qualH||0)+'/'+(state.qualR||0)); toast(qualCard()); } /* r.157: the table ends with its score and the next step */
+function qualFinish(){ if(state.qualDone) return; state.qualDone=true; state.qualStarted=false; platesHere().forEach(q=>{ q.up=false; q.lifePct=0; q.life=0; q.fall=1; q._down=true; q._dead=1; q._ret=0; q.mist=false; }); state.desig=null; state.hiApproved=false; state.pending=null; state.tgtSlot={}; const R=rangeRun(state.lane||0); R.cur=[]; R.phase='done'; if(lapseIsMine()&&typeof ev==='function') ev('QUAL','P'+(state.qualPh||4),'DONE '+(state.qualH||0)+'/'+(state.qualR||0)); toast(qualCard()); } /* r.179: the table ends cold — every plate down, no phantom left standing */
 /* r.157 ROUND 1 (operator 2026-10-04, docs/drone-2525/rounds/2026.10.04_09.17..48_19_rounds/ASK.md + Addenda 1–5): the words on the
    glass, the lit button, RELOAD's call and the start light read ONE state. Styling and words only — no tap is gated here. */
 function laneWord(i){ return 'LANE '+((((i==null)?state.lane:i)|0)+1); } /* a lane is its number — no slope word on the glass */
 function modeSentence(){ const m=state.rangeMode||'bounce'; return laneWord()+' · '+(onSheet()?'SHEET 25 M · ':'')+RANGE_MODE_NAME[m]+' · '+(m==='qual40'?'40 TARGETS · 4 MAGAZINES · STARTS ON GREEN':m==='stay'?'EVERY TARGET UP · A HIT STAYS DOWN':'EVERY TARGET UP · A HIT COMES BACK UP'); } /* Addendum 1: a pick says once what happens next */
-function qualCard(){ return 'QUAL DONE · '+(state.qualH||0)+' OF '+IWQ_TOTAL+' · '+qualBadge(state.qualH||0)+' · PRESS RESTART'; }
+function qualCard(){ return 'CEASE FIRE · '+(state.qualH||0)+' OF '+IWQ_TOTAL+' · '+qualBadge(state.qualH||0)+' · RANGE IS COLD · PRESS RESTART'; }
 function hostLane(){ const lb=state.lobby||{}; const hid=state.com&&state.com.hostId; if(!hid) return null; const seats=(lb.launch&&lb.launch.seats)||[]; const s=seats.find(x=>x&&x.peerId===hid)||(lb.members&&lb.members[hid]); return (s&&s.lane!=null)?(+s.lane):null; }
 function approveWorksHere(){ const d=state.desig; if(!d||d.phase!=='amber') return false; if(!(state.lobby&&state.lobby.phase==='LIVE')) return true; return !!(d.by&&d.by!==SID&&state.lobby.members&&state.lobby.members[d.by]); } /* the same test approveDesig applies (TWO_HUMANS) */
 function fireWorksHere(){ const d=state.desig; if(!d||d.phase!=='red') return false; const markerSeat=String(d.by||'').replace(/^ASM@/,''); return !(d.how&&/^PEER/.test(String(d.how))&&markerSeat&&markerSeat!==SID&&state.lobby&&state.lobby.phase==='LIVE'); } /* the same test fireN applies (NOT_THE_MARKERS_SEAT) */
@@ -922,8 +928,9 @@ function paintCues(){ const app=document.getElementById('app'); if(app) app.clas
   const nx=nextStep(); [['fTgt','TARGET'],['fAppr','APPROVE'],['fFire','FIRE']].forEach(p=>{ const b=document.getElementById(p[0]); if(b) b.classList.toggle('lit',nx===p[1]); });
   const rl=document.getElementById('btnReload'); if(rl) rl.classList.toggle('call',reloadCalls()); const mr=document.getElementById('magReload'); if(mr) mr.classList.toggle('call',reloadCalls());
   const rr=document.getElementById('btnRangeReset'); if(rr) rr.classList.toggle('call',chNum()===0&&((state.rangeMode==='qual40'&&!!state.qualDone)||(state.rangeMode==='stay'&&!!state.rangeAllDown)));
-  paintLight(startLight()); paintTimer(); }
-function paintTimer(){ const tm=document.getElementById('startTime'); if(!tm) return; const v=qualTimer(); if(tm.textContent!==v) tm.textContent=v; const q=chNum()===0&&state.rangeMode==='qual40'; const w=document.getElementById('startWord'); if(w&&q&&w.textContent!=='') w.textContent=''; } /* in QUAL the timer speaks for the light; the lamp's place (red top, green bottom) carries it for colour-blind players */
+  paintLight(startLight()); paintTimer(); paintQualOver(); }
+function paintTimer(){ const tm=document.getElementById('startTime'); if(!tm) return; const w=document.getElementById('startWord'); if(chNum()===0&&state.rangeMode==='qual40'&&state.qualDone){ if(tm.textContent!=='COLD') tm.textContent='COLD'; if(w&&w.textContent!=='CEASE FIRE') w.textContent='CEASE FIRE'; return; } const v=qualTimer(); if(tm.textContent!==v) tm.textContent=v; const q=chNum()===0&&state.rangeMode==='qual40'; if(w&&q&&w.textContent!=='') w.textContent=''; }
+function paintQualOver(){ const el=document.getElementById('qualOver'); if(!el) return; const on=chNum()===0&&state.rangeMode==='qual40'&&!!state.qualDone; el.classList.toggle('on',on); if(!on) return; const h=state.qualH|0; const sig=h+'/'+(state.qualR|0); if(el.getAttribute('data-s')===sig) return; el.setAttribute('data-s',sig); el.innerHTML='<b>CEASE FIRE</b><span>QUALIFICATION COMPLETE</span><span>'+h+' OF '+IWQ_TOTAL+' · '+qualBadge(h)+'</span><span>UNLOAD AND SHOW CLEAR</span><span>RANGE IS COLD · PRESS RESTART</span>'; }
 function lockText(lk){ if(!lk) return ''; return (lk.ref&&lk.ref.form)?plateWord(lk.id):(String(lk.id)+' '+(+lk.dist||0).toFixed(0)+'M'); } /* the LOCK line in plain words */
 function isDiag(){ try{ return /[?&]diag=1(&|$)/.test(location.search||''); }catch(e){ return false; } }
 function cornerLabel(){ const u=units[state.unit]||{}; return (u.label||'')+(isDiag()?' · SPIRAL v'+state.spiral:''); } /* "LANE 21"; the build counter only with ?diag=1 */
@@ -2013,6 +2020,7 @@ function drawPlates(segs,own){ own=own||segs; /* r.157: my lane's targets go thr
   const sheet=onSheet();
   if(sheet){ const sw=sheetWorld(state.lane||0); const hw=SHEET.w/2; own([[[sw.x-hw,sw.y0,sw.z],[sw.x+hw,sw.y0,sw.z]],[[sw.x+hw,sw.y0,sw.z],[sw.x+hw,sw.y1,sw.z]],[[sw.x+hw,sw.y1,sw.z],[sw.x-hw,sw.y1,sw.z]],[[sw.x-hw,sw.y1,sw.z],[sw.x-hw,sw.y0,sw.z]]],T13.STROKE); } /* r.140: the 17" × 22" sheet at 25 m */
   (PLATES||QUAL).forEach(q=>{
+    if(state.rangeMode==='qual40'&&state.qualDone) return; /* r.179: a finished table draws no silhouette */
     const mine=q.lane==null||q.lane===(state.lane||0);
     if(sheet){ if(!mine||!sheetHas(q)) return; }
     else { if(!q.up||!mine) return; } /* r.158 (operator 2026-10-05: "there are grey phantom targets"): only MY lane's standing targets are drawn — r.144's dim neighbour silhouettes were the phantoms; every lane still carries its targets */
@@ -2069,7 +2077,7 @@ function reticleNear(){ /* r.143: the locked target when the pip sits on it (a p
   const lk=(typeof lockOn==='function')?lockOn():null; if(!lk||!lk.ref) return null; const W=view.width,H=view.height,px=W/2,py=H*.46,m=8;
   if(lk.ref.form&&typeof plateRect==='function'){ const r=plateRect(lk.ref); if(!r) return null; return (Math.abs(px-r.cx)<=r.half+m&&py>=r.top-m&&py<=r.bot+m)?lk:null; }
   const w=worldOf(lk.ref); const pr=proj([w.x,w.y,w.z],camOf(units[state.unit]),W,H); return (pr&&Math.hypot(pr.x-px,pr.y-py)<=28)?lk:null; }
-function noLockMsg(){ if(+state.challenge===0&&typeof rangeRun==='function'){ if(state.rangeAllDown) return 'ALL DOWN · PRESS RESTART'; if(rangeTraining()) return 'NO TARGET UNDER THE BULLSEYE · PUT IT ON ONE'; const R=rangeRun(state.lane||0); if(state.qualDone) return 'QUAL DONE · PRESS RESTART FOR ANOTHER'; const left=R.phase!=='up'?Math.max(0,(R.phase==='phasegap'?PHASE_GAP_S:ENG_GAP_S)-(R.t||0)):0; return R.phase!=='up'?('NO TARGET UP · NEXT IN '+left.toFixed(1)+' S'):'NO TARGET UNDER THE BULLSEYE · PUT IT ON ONE'; } return 'NO LOCK'; } /* r.137: training never waits; qualification names the gap */
+function noLockMsg(){ if(+state.challenge===0&&typeof rangeRun==='function'){ if(state.rangeAllDown) return 'ALL DOWN · PRESS RESTART'; if(rangeTraining()) return 'NO TARGET UNDER THE BULLSEYE · PUT IT ON ONE'; const R=rangeRun(state.lane||0); if(state.qualDone) return 'CEASE FIRE · QUALIFICATION COMPLETE · PRESS RESTART'; const left=R.phase!=='up'?Math.max(0,(R.phase==='phasegap'?PHASE_GAP_S:ENG_GAP_S)-(R.t||0)):0; return R.phase!=='up'?('NO TARGET UP · NEXT IN '+left.toFixed(1)+' S'):'NO TARGET UNDER THE BULLSEYE · PUT IT ON ONE'; } return 'NO LOCK'; } /* r.137: training never waits; qualification names the gap */
 const LOCK_REACH_PX=48; const ASM_READ_S=1.4; /* r.150: the AI reads the HIT sentence for 1.4 s before it marks again (Sofia/Asar: the toast minimum) */ /* r.147 DECLARED (operator 2026-09-23): LOCK is the target nearest the bullseye ON THE PICTURE, within this many px of the pip — 26 mrad at 1×, finer as the optic zooms — never the nearest in metres. The 50 L at the screen's edge had been taking TARGET while the pip sat on the 150 R. The same rule serves the range, the Capital and every scene. */
 function pipRank(cands,c,W,H){ const px=W/2,py=H*.46; const out=[]; cands.forEach(k=>{ const w=k.world; const p=proj([w.x,w.y,w.z],c,W,H); if(!p||p.x<0||p.x>W||p.y<0||p.y>H) return; /* off the picture is never a candidate */ out.push({id:k.id,dist:k.dist,kind:k.kind,ref:k.ref,lane:k.lane,px:Math.hypot(p.x-px,p.y-py)}); }); return out.sort((a,b)=>(a.px-b.px)||(a.dist-b.dist)); } /* every target on the picture, nearest to the bullseye first — T1 · T2 · T3 read this order */
 function pipNearest(cands,c,W,H){ const r=pipRank(cands,c,W,H)[0]; return r&&r.px<=LOCK_REACH_PX?r:null; }
@@ -4637,7 +4645,7 @@ function toolSelfTest(){
       push('RANGE_MENU_ON_SCREEN', inView&&oneRow&&order&&hidden===8&&shown===8&&names==='TRAIN UP · TRAIN DOWN · QUAL 40'&&btn==='RESTART'&&lane==='LANE 21', 'on the range: '+names+' · '+btn+' · '+lane+' — mode, Restart and lane on one row inside '+innerWidth+'×'+innerHeight+' ('+(inView?'all on the glass':'OFF THE GLASS')+', the lane picker '+Math.round(all3?on[2].right:0)+' px at its right edge); the other '+hidden+' pickers are behind MORE ('+shown+' come back with it)'); }
     { /* r.157 · QUAL_DONE_SAYS_RESTART — the 40th round ends with the score, the badge and the next step; RESTART lit; the light red */
       state.rangeMode='qual40'; rangeReset(); qualResetTower(); state.qualR=39; state.qualH=36; const S0=state._qaSilent; state._qaSilent=false; qualRecordShot(true,'X'); const t=document.getElementById('toast').textContent; hudScore(); const strip=document.getElementById('phScore').textContent; paintCues(); const lit=document.getElementById('btnRangeReset').classList.contains('call'); const L=startLight(); state._qaSilent=S0;
-      push('QUAL_DONE_SAYS_RESTART', state.qualDone===true&&/QUAL DONE · 37 OF 40 · EXPERT · PRESS RESTART/.test(t)&&/QUAL DONE · 37 OF 40 · EXPERT · PRESS RESTART/.test(strip)&&lit&&L==='R', 'the 40th round: toast "'+t+'" · strip "'+strip+'" · RESTART lit '+lit+' · light '+L); state.rangeMode='bounce'; qualResetTower(); rangeReset(); paintCues(); }
+      push('QUAL_DONE_SAYS_RESTART', state.qualDone===true&&/CEASE FIRE · 37 OF 40 · EXPERT · RANGE IS COLD · PRESS RESTART/.test(t)&&/CEASE FIRE · 37 OF 40 · EXPERT · RANGE IS COLD · PRESS RESTART/.test(strip)&&platesHere().every(q=>!q.up)&&lit&&L==='R', 'the 40th round: toast "'+t+'" · strip "'+strip+'" · no plate still up · RESTART lit '+lit+' · light '+L); state.rangeMode='bounce'; qualResetTower(); rangeReset(); paintCues(); }
     { /* r.157 · rooms score by lane (12-shooter round: Odin, Thor, Thoth) */
       const S0=state._qaSilent; state._qaSilent=false;
       state.rangeMode='qual40'; rangeReset(); qualResetTower(); for(let i=0;i<70;i++) rangeTick(0.05); state.qualR=5; state.qualH=4; const qf=plateOf(5,'C-50'); qf.up=false; qf.lifePct=0;
