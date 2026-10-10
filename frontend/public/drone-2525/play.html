@@ -182,6 +182,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 #intro .who{color:#5BA8FF;letter-spacing:.18em;font-size:11px;margin:18px 0 6px}
 #intro p{margin:0 0 10px;max-width:42em}
 #intro button{margin:6px 6px 0 0;padding:10px 14px;background:#000;color:#3DCC8A;border:1px solid #3DCC8A;letter-spacing:.08em}
+#intro #btnTheRange{border-color:#F0A020;color:#F0A020}
 #intro .scr{display:none} #intro .scr.on{display:block}
 #intro .pick{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
 #intro .pick button{min-width:120px;border-color:#7AB8C4;color:#7AB8C4}
@@ -212,6 +213,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
     <p id="cinLine">A wireframe point. Then the Capitol.</p>
     <button type="button" id="btnCin" onclick="window.cinStep&&window.cinStep()">CONTINUE</button>
     <button type="button" data-next="sc1" onclick="window.showScr&&window.showScr('sc1')">SKIP TO SELECT</button>
+    <button type="button" id="btnTheRange" onclick="window.openTheRange&&window.openTheRange()">THE RANGE</button>
     <p class="fine">PLAY → RECORD → REPLAY → COMPARE → QUALIFY → IMPROVE → SHARE</p>
   </div>
   <div class="scr" id="sc1">
@@ -306,7 +308,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.172</span><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.173</span><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -544,7 +546,8 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.172 PHONE · the hit line sits above the magazines. The round count is in the magazine.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.173 THE RANGE · the intro opens Train Up, Lane 21, no select screens
+r.172 PHONE · the hit line sits above the magazines. The round count is in the magazine.
 r.171 COUNT IN THE MAGAZINE · the rounds sit in the middle of the magazine, and the green fills from the bottom as rounds are left
 r.170 RELOAD + COUNT · both RELOAD buttons load a magazine
 r.169 QUAL 40 · TARGET, then APPROVE, then FIRE
@@ -645,7 +648,7 @@ function rcoreStep(name){
 }
 const T13={VOID:'#000000',PANEL:'#070B10',STROKE:'#1C2A3A',WIRE:'#7AB8C4',ROAD:'#4A6A78',WATER:'#2A6D88',DOME:'#C9A227',SI:'#E8D5B0',HI:'#5BA8FF',AI:'#C084FC',LOCK:'#E24B3B',TAG:'#3DCC8A',GIMBAL:'#F0A020'};
 const OK=new Set(Object.values(T13));
-const BUILD={version:'00.00',revision:'0.172'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
+const BUILD={version:'00.00',revision:'0.173'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
 
 const ASM=[
   {id:'AsM-01',name:'Enki',line:'Sumerian',team:'BLU',seat:'T01',ctrl:'AI'},
@@ -5148,6 +5151,14 @@ setInterval(paintComm,1000);
 setInterval(soakTick,1000);
 
 window.showScr=function(id){ const intro=document.getElementById('intro'); if(!intro)return; intro.querySelectorAll('.scr').forEach(s=>s.classList.remove('on')); const n=document.getElementById(id); if(n) n.classList.add('on'); };
+window.openTheRange=function(){
+  var intro=document.getElementById('intro'); if(intro) intro.style.display='none';
+  state._selCraft='turret'; state.lane=20; state.rangeMode='bounce';
+  var rm=document.getElementById('rngMode'); if(rm) rm.value='bounce';
+  state.qaArmed=true; if(state.lobby) state.lobby.phase='PRACTICE';
+  applyMode('turret'); state.challenge=0; goRange();
+  var lp=document.getElementById('lanePick'); if(lp) lp.value='20';
+};
 window.cinStep=function(){ cinI++; if(cinI>=CIN.length){ window.showScr('sc1'); return;} cinShow(); };
 window.beginReh=function(){ const intro=document.getElementById('intro'); if(intro) intro.style.display='none'; applyMode(state._selCraft||'quad'); state.challenge=state._selCh||0; const c=document.getElementById('chLvl'); if(c)c.value=String(state.challenge); toast('REHEARSAL'); };
 
