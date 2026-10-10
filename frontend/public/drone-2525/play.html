@@ -172,7 +172,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
   #playHud{top:6px;left:8px;right:344px;font-size:10px} /* r.139: landscape — the strip and the magazine line share one row, side by side */
   #startLight{top:42px} /* r.157: under the magazine line */
 }
-@media(orientation:portrait){ #app.range #playHud{right:80px} } /* r.157: the strip leaves the right edge to the start light under the magazine line */
+@media(orientation:portrait){ #app.range #playHud{right:8px;z-index:5} #magWell,#app.range #startLight{top:112px} #board{top:204px} } /* r.172: on a phone the hit line stays above the magazines, and the light stays beside them */
 @media(orientation:portrait){
   #joyL,#joyR{width:72px;height:72px}
   #joyL i,#joyR i{left:24px;top:24px;width:22px;height:22px}
@@ -306,7 +306,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.171</span><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.172</span><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -544,7 +544,8 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.171 COUNT IN THE MAGAZINE · the rounds sit in the middle of the magazine, and the green fills from the bottom as rounds are left
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.172 PHONE · the hit line sits above the magazines. The round count is in the magazine.
+r.171 COUNT IN THE MAGAZINE · the rounds sit in the middle of the magazine, and the green fills from the bottom as rounds are left
 r.170 RELOAD + COUNT · both RELOAD buttons load a magazine
 r.169 QUAL 40 · TARGET, then APPROVE, then FIRE
 A plate that just stood is not already red. A hit clears the box.
@@ -644,7 +645,7 @@ function rcoreStep(name){
 }
 const T13={VOID:'#000000',PANEL:'#070B10',STROKE:'#1C2A3A',WIRE:'#7AB8C4',ROAD:'#4A6A78',WATER:'#2A6D88',DOME:'#C9A227',SI:'#E8D5B0',HI:'#5BA8FF',AI:'#C084FC',LOCK:'#E24B3B',TAG:'#3DCC8A',GIMBAL:'#F0A020'};
 const OK=new Set(Object.values(T13));
-const BUILD={version:'00.00',revision:'0.171'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
+const BUILD={version:'00.00',revision:'0.172'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
 
 const ASM=[
   {id:'AsM-01',name:'Enki',line:'Sumerian',team:'BLU',seat:'T01',ctrl:'AI'},
