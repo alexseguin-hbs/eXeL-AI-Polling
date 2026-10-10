@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 61 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 62 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -436,6 +436,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "Operator deck r.176 served at /drone-2525/play.html. THE MAGAZINE IS A WIRE, NOT A FILL. The vector law is how this range draws: black ground, lines only, depth from the isometric, no fill. The cyan magazine is RELOAD. The gold magazine is the wire. Green lines from the bottom are the rounds left. The count sits under the magazine. The lane QR is the header mark beside the revision. A tap encodes /drone-2525/play?range=&role=turret&mode= for the lane in use (qrcode level M, drawn as SVG). r.138 and r.142 stay the magazine rule: 30 rounds in training, four magazines of 10 on QUAL 40, reload by hand.",
       "commit": "PENDING"
+    },
+    {
+      "rev": 62,
+      "date": "2026-10-09",
+      "kind": "release",
+      "text": "Operator deck r.166 reinstated at /drone-2525/play.html (commit d6bcc160). Train Up still requires target, approve, and fire again after a hit. The later range experiments r.167 through r.176 are not served.",
+      "commit": "d6bcc160"
     }
   ]
 };
