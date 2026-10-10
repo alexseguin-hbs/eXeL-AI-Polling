@@ -39,6 +39,16 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #magWell b{font-size:13px;letter-spacing:.14em;font-weight:500;color:#7AB8C4}
 #magWell #magRounds{font-size:22px;font-weight:700;letter-spacing:.04em;color:#3DCC8A;font-family:ui-monospace,Menlo,monospace}
 #magWell #magReload.call{border-color:#C9A227;box-shadow:0 0 10px #C9A227}
+#posWell{display:none;position:absolute;left:8px;top:216px;z-index:4;width:184px;pointer-events:none;flex-direction:column;align-items:stretch;gap:2px}
+#app.range.qual #posWell{display:flex}
+#posWell #posName{font-size:8px;letter-spacing:.06em;color:#C9A227;text-align:center;font-weight:500;line-height:1.2}
+#posWell .row{display:flex;justify-content:space-between}
+#posWell i{display:flex;flex-direction:column;align-items:center;width:34px;color:#4A6A78;font-style:normal}
+#posWell i svg{width:26px;height:30px;display:block}
+#posWell i span{font-size:7px;letter-spacing:.02em;text-align:center;line-height:1.1;margin-top:1px}
+#posWell i.on{color:#C9A227}
+#posWell i.done{color:#3DCC8A}
+#posWell i span b{display:block;font-weight:500}
 #app.range:not(.full) #magBar #btnReload{display:none}
 #btnQr{min-height:28px;width:28px;height:28px;padding:3px;color:#7AB8C4;display:inline-grid;place-items:center}
 #btnQr svg{width:16px;height:16px;display:block}
@@ -319,7 +329,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.179</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.180</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -419,6 +429,16 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
     <div id="magWell">
       <button id="magReload" type="button" title="load a fresh magazine"><svg viewBox="0 0 48 96" aria-hidden="true"><g fill="none" stroke="#7AB8C4" stroke-linejoin="round" stroke-linecap="round"><path d="M16 22l18-4 4 66-22 4z" stroke-width="1.7"/><path d="M34 18l8-4 4 66-8 4" stroke-width="1.5"/><path d="M16 22l8-6 18 2-8 4" stroke-width="1.5"/><path d="M22 16l2-6h8l2 5" stroke-width="1.4"/><rect x="26.2" y="27" width="4.2" height="3.4" stroke-width="1.1"/><path d="M18 42h15.5M17.2 56h16.6M16.4 70h17.6" stroke-width="1.15"/><path d="M26 24v62" stroke-width="1"/></g></svg><b>RELOAD</b></button>
       <div class="body" aria-hidden="true"><svg viewBox="0 0 48 96" aria-hidden="true"><g id="magFrame" fill="none" stroke="#C9A227" stroke-linejoin="round" stroke-linecap="round"><path d="M16 22l18-4 4 66-22 4z" stroke-width="1.7"/><path d="M34 18l8-4 4 66-8 4" stroke-width="1.5"/><path d="M16 22l8-6 18 2-8 4" stroke-width="1.5"/><path d="M22 16l2-6h8l2 5" stroke-width="1.4"/><rect x="26.2" y="27" width="4.2" height="3.4" stroke-width="1.1"/><path d="M26 24v62" stroke-width="1"/></g><g id="magRibs" fill="none"><path data-rib="0" d="M17.0 30h18.0" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="1" d="M16.9 33h18.2" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="2" d="M16.8 36h18.4" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="3" d="M16.7 39h18.5" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="4" d="M16.6 42h18.7" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="5" d="M16.6 45h18.9" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="6" d="M16.5 48h19.1" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="7" d="M16.4 51h19.3" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="8" d="M16.3 54h19.4" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="9" d="M16.2 57h19.6" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="10" d="M16.1 60h19.8" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="11" d="M16.0 63h20.0" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="12" d="M15.9 66h20.2" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="13" d="M15.8 69h20.3" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="14" d="M15.7 72h20.5" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="15" d="M15.7 75h20.7" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="16" d="M15.6 78h20.9" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="17" d="M15.5 81h21.1" stroke="none" stroke-width="2.15" stroke-linecap="butt"/><path data-rib="18" d="M15.4 84h21.2" stroke="none" stroke-width="2.15" stroke-linecap="butt"/></g></svg><b id="magRounds">30</b></div>
+    </div>
+    <div id="posWell" aria-hidden="true">
+      <b id="posName">STANDING</b>
+      <div class="row">
+        <i data-p="0"><svg viewBox="0 0 24 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><path d="M12 6v9M8 11h5M12 15l-3 9M12 15l3 9M13 10l7 1.5"/></g></svg><span>STAND</span></i>
+        <i data-p="1"><svg viewBox="0 0 24 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="6" cy="14" r="2"/><path d="M8 15h8M16 15l5-1M10 15v4M14 15v4M6 22h16"/></g></svg><span>PRONE</span></i>
+        <i data-p="2"><svg viewBox="0 0 24 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="5" cy="16" r="2"/><path d="M7 17h7M14 17l4-1M9 17v3M13 17v3M18 12v10M6 24h16"/></g></svg><span>PRONE<b>SUP</b></span></i>
+        <i data-p="3"><svg viewBox="0 0 24 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="10" cy="5" r="2"/><path d="M10 7v7M10 14l-4 6M10 14l3 8M7 11h4M14 10h4v14"/></g></svg><span>KNEEL<b>SUP</b></span></i>
+        <i data-p="4"><svg viewBox="0 0 24 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="9" cy="4" r="2"/><path d="M9 6v9M6 11h4M9 15l-3 9M9 15l3 9M13 9h3v16"/></g></svg><span>STAND<b>SUP</b></span></i>
+      </div>
     </div>
     <div id="startLight" class="R" data-s="R" role="status" aria-label="start light WAIT"><span class="lamps"><i class="r"></i><i class="y"></i><i class="g"></i></span><b id="startWord">WAIT</b><b id="startTime"></b></div>
     <div id="board"></div>
@@ -552,7 +572,8 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.179 CEASE FIRE · the table ends with every plate down. The glass says CEASE FIRE, the score, UNLOAD AND SHOW CLEAR, RANGE IS COLD. RELOAD and the round count stay.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.180 TABLE VI POSITIONS · standing, prone unsupported, prone supported, kneeling supported, standing supported, under the rounds. A far plate stays a person. A leftover plate goes down.
+r.179 CEASE FIRE · the table ends with every plate down. The glass says CEASE FIRE, the score, UNLOAD AND SHOW CLEAR, RANGE IS COLD. RELOAD and the round count stay.
 r.178 ROUNDS · green above 20, amber from 6 to 20, red at 5 or below. The left magazine is RELOAD. The one beside it is the rounds left.
 r.177 MAGAZINE + LANE QR · cyan RELOAD magazine, gold magazine with green rounds from the bottom, the count under it. The header mark opens the lane code.
 r.128 WAITING ROOM · CANONICAL R-CORE
@@ -924,13 +945,15 @@ function qualTimer(){ /* r.162: seconds left on the group that is up, or to the 
   const gap=R.phase==='phasegap'?PHASE_GAP_S:ENG_GAP_S; return 'NEXT '+Math.max(0,Math.ceil(gap-t-1e-9))+' S'; }
 function lightWord(L){ return L==='G'?'FIRE':L==='Y'?'READY':L==='O'?'':'WAIT'; } /* redundant with the colour, for colour-blind players */
 function paintLight(L){ const sl=document.getElementById('startLight'); if(!sl||sl.getAttribute('data-s')===L) return; sl.setAttribute('data-s',L); sl.className=L; const w=document.getElementById('startWord'); if(w) w.textContent=lightWord(L); sl.setAttribute('aria-label','start light '+lightWord(L)); }
-function paintCues(){ const app=document.getElementById('app'); if(app) app.classList.toggle('range',chNum()===0);
+function paintCues(){ const app=document.getElementById('app'); if(app){ app.classList.toggle('range',chNum()===0); app.classList.toggle('qual',chNum()===0&&state.rangeMode==='qual40'); }
   const nx=nextStep(); [['fTgt','TARGET'],['fAppr','APPROVE'],['fFire','FIRE']].forEach(p=>{ const b=document.getElementById(p[0]); if(b) b.classList.toggle('lit',nx===p[1]); });
   const rl=document.getElementById('btnReload'); if(rl) rl.classList.toggle('call',reloadCalls()); const mr=document.getElementById('magReload'); if(mr) mr.classList.toggle('call',reloadCalls());
   const rr=document.getElementById('btnRangeReset'); if(rr) rr.classList.toggle('call',chNum()===0&&((state.rangeMode==='qual40'&&!!state.qualDone)||(state.rangeMode==='stay'&&!!state.rangeAllDown)));
-  paintLight(startLight()); paintTimer(); paintQualOver(); }
+  paintLight(startLight()); paintTimer(); paintQualOver(); paintPos(); }
 function paintTimer(){ const tm=document.getElementById('startTime'); if(!tm) return; const w=document.getElementById('startWord'); if(chNum()===0&&state.rangeMode==='qual40'&&state.qualDone){ if(tm.textContent!=='COLD') tm.textContent='COLD'; if(w&&w.textContent!=='CEASE FIRE') w.textContent='CEASE FIRE'; return; } const v=qualTimer(); if(tm.textContent!==v) tm.textContent=v; const q=chNum()===0&&state.rangeMode==='qual40'; if(w&&q&&w.textContent!=='') w.textContent=''; }
 function paintQualOver(){ const el=document.getElementById('qualOver'); if(!el) return; const on=chNum()===0&&state.rangeMode==='qual40'&&!!state.qualDone; el.classList.toggle('on',on); if(!on) return; const h=state.qualH|0; const sig=h+'/'+(state.qualR|0); if(el.getAttribute('data-s')===sig) return; el.setAttribute('data-s',sig); el.innerHTML='<b>CEASE FIRE</b><span>QUALIFICATION COMPLETE</span><span>'+h+' OF '+IWQ_TOTAL+' · '+qualBadge(h)+'</span><span>UNLOAD AND SHOW CLEAR</span><span>RANGE IS COLD · PRESS RESTART</span>'; }
+function qualStance(){ if(chNum()!==0||state.rangeMode!=='qual40') return -1; if(state.qualDone) return 5; const R=rangeRun(state.lane||0), e=R.eng; if(!e||!(e.n>0)) return 0; if(R.phase==='phasegap') return Math.min(4,(e.ph|0)+1); if((e.ph|0)===1) return (e.n===1&&R.phase==='up')?0:1; return Math.min(4,e.ph|0); }
+function paintPos(){ const el=document.getElementById('posWell'); if(!el) return; const n=qualStance(); const names=['STANDING','PRONE UNSUPPORTED','PRONE SUPPORTED','KNEELING SUPPORTED','STANDING SUPPORTED']; const name=document.getElementById('posName'); if(name){ const t=n<0?'':(n>=5?'RANGE IS COLD':names[n]); if(name.textContent!==t) name.textContent=t; } el.querySelectorAll('i[data-p]').forEach(i=>{ const p=+i.getAttribute('data-p'); i.classList.toggle('on',p===n); i.classList.toggle('done',n>=5||(n>=0&&p<n)); }); }
 function lockText(lk){ if(!lk) return ''; return (lk.ref&&lk.ref.form)?plateWord(lk.id):(String(lk.id)+' '+(+lk.dist||0).toFixed(0)+'M'); } /* the LOCK line in plain words */
 function isDiag(){ try{ return /[?&]diag=1(&|$)/.test(location.search||''); }catch(e){ return false; } }
 function cornerLabel(){ const u=units[state.unit]||{}; return (u.label||'')+(isDiag()?' · SPIRAL v'+state.spiral:''); } /* "LANE 21"; the build counter only with ?diag=1 */
@@ -956,6 +979,7 @@ function rangeTick(dt){
     if(R.t<(R.phase==='phasegap'?PHASE_GAP_S:ENG_GAP_S)) return;
     const e=engagementAt(mine,R.k); if(!e){ qualFinish(); return; }
     R.cur=e.bases.map(b=>plateOf(mine,b)).filter(Boolean).map(q=>{ q.up=true;q.lifePct=100;q.life=e.sec;q.fall=0;q._dead=0;q._eng=false;q._down=false;q.mist=false; return q.id; });
+    { const keep=new Set(R.cur); (PLATES||[]).forEach(p=>{ if(p.lane===mine&&p.up&&!keep.has(p.id)){ p.up=false; p.fall=1; p.lifePct=0; rangeRelease(p); } }); } /* r.180: a plate from the last exposure does not stay up beside the new ones */
     R.eng=e; R.phase='up'; R.t=0; state.qualEng=e.n; state.qualPh=e.ph; qualStartCurrent();
     return;
   }
@@ -1033,7 +1057,9 @@ function sheetWorld(lane){ const L=LANES[lane|0]||laneNow(); const y0=SHEET.base
 function silMesh(q){
   const wq=qWorld(q);
   const k=Math.max(0.06,1-(q.fall||0));
-  const D=plateDims(q); const x=wq.x,y=wq.y||0,z=wq.z+(q.fall||0)*D.h*0.4,w=D.w,h=D.h*k;
+  let D=plateDims(q);
+  if(chNum()===0&&state.viewMode!=='map'){ const cam=camOf(units[state.unit]); const dist=Math.max(1,Math.hypot(wq.x-cam.x,wq.z-cam.z)); const px=focalPx()*D.h/dist; if(px>0&&px<28){ const s=28/px; D={w:D.w*s,h:D.h*s}; } } /* r.180: a 300 m plate stays a person on the glass, not a box */
+  const x=wq.x,y=wq.y||0,z=wq.z+(q.fall||0)*D.h*0.4,w=D.w,h=D.h*k;
   const s=[];
   if(q.form==='F'){
     const n=14; const pts=[];
@@ -1890,7 +1916,7 @@ function draw(){
     arr.forEach(e=>{ const a=proj(e[0],cam,W,H),b=proj(e[1],cam,W,H); if(!a||!b){ state.ownCulled++; return; } v.moveTo(a.x,a.y);v.lineTo(b.x,b.y);state.ownSegs++; }); /* counted into state.segs at the end of the frame, so they never spend the world's budget either */
     v.stroke();
   }
-  if(chNum()===0){ drawPlates(segs,segsOwn); drawLaneMarkers(segs,segsOwn); drawLaneLines(v,cam,W,H); RANGE_WIRE.forEach(g=>{ if(g.map) return; if(g.lane!=null&&S.maj<=2&&Math.abs(g.lane-(state.lane||0))>1) return; segs(g.s,g.c); }); } /* r.130: silhouettes before the wire; pit boxes only near my lane at MoT 1 */
+  if(chNum()===0){ drawPlates(segs,segsOwn); drawLaneMarkers(segs,segsOwn); drawLaneLines(v,cam,W,H); } /* r.180: the firing pits are not drawn on the picture — a pit box was reading as a target */
   else { drawTargets(segs); WIRE.g.forEach(g=>{if(S.maj===1&&(g.n==='cvc'||g.n==='wingEW'||g.n==='wingNS'))return;segs(g.s,S.maj===1&&g.n==='capitol'?T13.TAG:g.c);}); } /* r.131: what you must hit gets the budget first on EVERY channel */
   if(chNum()!==0){ liveMeshes().forEach(m=>segs(m.s,m.c)); if(S.seg-state.segs>120) drawSwarm(segs,S,cam,W,H); } /* r.131: the range is a range — no lake craft, no swarm down the lanes */
   Object.values(units).forEach(tu=>{if(tu.kind!=='turret')return; if(chNum()===0 && tu!==units[state.unit]) return; const mine=tu===units[state.unit];segs(box(tu.x,1.1,tu.z,.6,2.2,.6),mine?T13.TAG:T13.STROKE);});
