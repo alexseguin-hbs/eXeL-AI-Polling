@@ -22,10 +22,10 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #hud{pointer-events:none;z-index:1}
 #playHud{position:absolute;left:8px;right:8px;top:6px;z-index:2;display:flex;gap:4px 12px;flex-wrap:wrap;pointer-events:none;font-size:10px;letter-spacing:.1em;color:#3DCC8A;opacity:.85;overflow:visible;white-space:normal} /* r.133: the strip WRAPS — at 320-390 px the HIT/MISS/LAPSED, the QUAL clock and ALL DOWN · RESET were clipped off the phone */
 #playHud #phScore{flex-basis:100%}
-#qualOver{display:none;position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);z-index:5;width:min(92%,420px);text-align:center;pointer-events:none;color:#C9A227;letter-spacing:.12em;line-height:1.5;text-shadow:0 0 14px #000,0 0 2px #000}
+#qualOver{display:none;position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:6;width:min(92%,440px);text-align:center;pointer-events:none;color:#C9A227;letter-spacing:.14em;line-height:1.55;background:rgba(0,0,0,.86);border:1px solid #E24B3B;border-radius:12px;padding:18px 14px 16px}
 #qualOver.on{display:block}
-#qualOver b{display:block;color:#E24B3B;font-size:22px;font-weight:700;letter-spacing:.2em;margin-bottom:6px}
-#qualOver span{display:block;font-size:13px}
+#qualOver b{display:block;color:#E24B3B;font-size:28px;font-weight:700;letter-spacing:.22em;margin:0 0 8px}
+#qualOver span{display:block;font-size:14px}
 #magBar{position:absolute;right:8px;top:6px;z-index:4;display:flex;gap:8px;align-items:center;font-size:10px;letter-spacing:.1em;color:#C9A227;pointer-events:none;white-space:nowrap} /* r.138: reload + round counter at the top of the field of view */
 #magBar button{pointer-events:auto;min-height:32px;padding:0 10px;border:1px solid #1C2A3A;background:#000;color:#E8D5B0;font-size:10px;letter-spacing:.1em;border-radius:4px}
 #magBar #btnReload{border-color:#1C2A3A;color:#E8D5B0} /* r.157: RELOAD rests like the bar's other buttons, so its glow means something */
@@ -39,6 +39,7 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #magWell b{font-size:13px;letter-spacing:.14em;font-weight:500;color:#7AB8C4}
 #magWell #magRounds{font-size:22px;font-weight:700;letter-spacing:.04em;color:#3DCC8A;font-family:ui-monospace,Menlo,monospace}
 #magWell #magReload.call{border-color:#C9A227;box-shadow:0 0 10px #C9A227}
+#magWell #magReload.locked{opacity:.45}
 #posWell{display:none;position:absolute;left:8px;top:216px;z-index:4;width:184px;pointer-events:none;flex-direction:column;align-items:stretch;gap:2px}
 #app.range.qual #posWell{display:flex}
 #posWell #posName{font-size:8px;letter-spacing:.06em;color:#C9A227;text-align:center;font-weight:500;line-height:1.2}
@@ -329,7 +330,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.180</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.181</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -572,7 +573,8 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.180 TABLE VI POSITIONS · standing, prone unsupported, prone supported, kneeling supported, standing supported, under the rounds. A far plate stays a person. A leftover plate goes down.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.181 CEASE FIRE · a plate stands only in its own exposure. When the table ends the glass says CEASE FIRE, UNLOAD, SHOW CLEAR, the score, and RANGE IS COLD. RELOAD and the round count stay.
+r.180 TABLE VI POSITIONS · standing, prone unsupported, prone supported, kneeling supported, standing supported, under the rounds. A far plate stays a person. A leftover plate goes down.
 r.179 CEASE FIRE · the table ends with every plate down. The glass says CEASE FIRE, the score, UNLOAD AND SHOW CLEAR, RANGE IS COLD. RELOAD and the round count stay.
 r.178 ROUNDS · green above 20, amber from 6 to 20, red at 5 or below. The left magazine is RELOAD. The one beside it is the rounds left.
 r.177 MAGAZINE + LANE QR · cyan RELOAD magazine, gold magazine with green rounds from the bottom, the count under it. The header mark opens the lane code.
@@ -864,6 +866,7 @@ function hudMag(){ const t=document.getElementById('magTxt'); if(!t) return; con
   const ribs=document.querySelectorAll('#magRibs [data-rib]');
   if(ribs.length){ const lit=Math.round(ribs.length*(r/Math.max(1,m.cap|0))); ribs.forEach(function(el,i){ const on=i>=ribs.length-lit; el.setAttribute('stroke', on?tone:'none'); }); } }
 function magReload(){ /* r.142: the shooter's own reload — refused when full; in QUAL four magazines as issued, a fifth is refused on the record */
+  if(chNum()===0&&state.rangeMode==='qual40'&&state.qualDone){ toast('CEASE FIRE · UNLOAD AND SHOW CLEAR · RANGE IS COLD'); return false; }
   if(state.mag&&state.mag.rounds===state.mag.cap){ toast('MAGAZINE FULL · '+state.mag.rounds+' RDS'); return false; }
   const q=state.rangeMode==='qual40'&&+state.challenge===0; if(q&&state.mag&&(state.mag.n|0)>=4){ decide('REJECT','MAG',{reason:'NO_MAGAZINE'}); toast('NO MAGAZINE LEFT · 4 OF 4 USED'); return false; }
   magLoad('MANUAL'); if(state.desig) state.desig.asmFired=false; /* r.150 (Pangu B): the AI re-arms on a reload — it stayed silent after EMPTY_MAGAZINE with the box still red */ toast('RELOADED · MAG '+state.mag.n+(q?'/4':'')+' · '+state.mag.rounds+' RDS'); return true; }
@@ -948,10 +951,11 @@ function paintLight(L){ const sl=document.getElementById('startLight'); if(!sl||
 function paintCues(){ const app=document.getElementById('app'); if(app){ app.classList.toggle('range',chNum()===0); app.classList.toggle('qual',chNum()===0&&state.rangeMode==='qual40'); }
   const nx=nextStep(); [['fTgt','TARGET'],['fAppr','APPROVE'],['fFire','FIRE']].forEach(p=>{ const b=document.getElementById(p[0]); if(b) b.classList.toggle('lit',nx===p[1]); });
   const rl=document.getElementById('btnReload'); if(rl) rl.classList.toggle('call',reloadCalls()); const mr=document.getElementById('magReload'); if(mr) mr.classList.toggle('call',reloadCalls());
+  { const lab=mr&&mr.querySelector('b'); const q=chNum()===0&&state.rangeMode==='qual40'; const done=q&&!!state.qualDone; const no=q&&state.mag&&(state.mag.n|0)>=4&&(state.mag.rounds|0)<=0; const word=done?'UNLOAD':(no?'NO MAG':'RELOAD'); if(lab&&lab.textContent!==word) lab.textContent=word; if(mr) mr.classList.toggle('locked',!!(done||no)); }
   const rr=document.getElementById('btnRangeReset'); if(rr) rr.classList.toggle('call',chNum()===0&&((state.rangeMode==='qual40'&&!!state.qualDone)||(state.rangeMode==='stay'&&!!state.rangeAllDown)));
   paintLight(startLight()); paintTimer(); paintQualOver(); paintPos(); }
 function paintTimer(){ const tm=document.getElementById('startTime'); if(!tm) return; const w=document.getElementById('startWord'); if(chNum()===0&&state.rangeMode==='qual40'&&state.qualDone){ if(tm.textContent!=='COLD') tm.textContent='COLD'; if(w&&w.textContent!=='CEASE FIRE') w.textContent='CEASE FIRE'; return; } const v=qualTimer(); if(tm.textContent!==v) tm.textContent=v; const q=chNum()===0&&state.rangeMode==='qual40'; if(w&&q&&w.textContent!=='') w.textContent=''; }
-function paintQualOver(){ const el=document.getElementById('qualOver'); if(!el) return; const on=chNum()===0&&state.rangeMode==='qual40'&&!!state.qualDone; el.classList.toggle('on',on); if(!on) return; const h=state.qualH|0; const sig=h+'/'+(state.qualR|0); if(el.getAttribute('data-s')===sig) return; el.setAttribute('data-s',sig); el.innerHTML='<b>CEASE FIRE</b><span>QUALIFICATION COMPLETE</span><span>'+h+' OF '+IWQ_TOTAL+' · '+qualBadge(h)+'</span><span>UNLOAD AND SHOW CLEAR</span><span>RANGE IS COLD · PRESS RESTART</span>'; }
+function paintQualOver(){ const el=document.getElementById('qualOver'); if(!el) return; const on=chNum()===0&&state.rangeMode==='qual40'&&!!state.qualDone; el.classList.toggle('on',on); if(!on) return; const h=state.qualH|0; const sig=h+'/'+(state.qualR|0); if(el.getAttribute('data-s')===sig) return; el.setAttribute('data-s',sig); el.innerHTML='<b>CEASE FIRE</b><span>CEASE FIRE</span><span>UNLOAD</span><span>SHOW CLEAR</span><span>'+h+' OF '+IWQ_TOTAL+' · '+qualBadge(h)+'</span><span>THE LINE IS CLEAR</span><span>RANGE IS COLD · PRESS RESTART</span>'; }
 function qualStance(){ if(chNum()!==0||state.rangeMode!=='qual40') return -1; if(state.qualDone) return 5; const R=rangeRun(state.lane||0), e=R.eng; if(!e||!(e.n>0)) return 0; if(R.phase==='phasegap') return Math.min(4,(e.ph|0)+1); if((e.ph|0)===1) return (e.n===1&&R.phase==='up')?0:1; return Math.min(4,e.ph|0); }
 function paintPos(){ const el=document.getElementById('posWell'); if(!el) return; const n=qualStance(); const names=['STANDING','PRONE UNSUPPORTED','PRONE SUPPORTED','KNEELING SUPPORTED','STANDING SUPPORTED']; const name=document.getElementById('posName'); if(name){ const t=n<0?'':(n>=5?'RANGE IS COLD':names[n]); if(name.textContent!==t) name.textContent=t; } el.querySelectorAll('i[data-p]').forEach(i=>{ const p=+i.getAttribute('data-p'); i.classList.toggle('on',p===n); i.classList.toggle('done',n>=5||(n>=0&&p<n)); }); }
 function lockText(lk){ if(!lk) return ''; return (lk.ref&&lk.ref.form)?plateWord(lk.id):(String(lk.id)+' '+(+lk.dist||0).toFixed(0)+'M'); } /* the LOCK line in plain words */
@@ -961,6 +965,17 @@ function laneRestartFromRow(d){ /* another lane's Restart touches only that lane
   const ln=d.lane|0, train=(d.mode||'bounce')!=='qual40', sheet=d.targets==='sheet';
   PLATES.forEach(q=>{ if(q.lane!==ln) return; const up=train&&(!sheet||!!SHEET_LAYOUT[q.base]); q.holes=[]; q._hit=false; q.up=up; q.lifePct=100; q.life=up?1e9:0; q.fall=up?0:1; q._dead=0; q._down=false; q._eng=false; q._ret=0; q.mist=false; });
   rangeRunReset(ln); toast(laneWord(ln)+' RESTARTED'); }
+function qualDropStrays(){ /* r.181: a plate stands only while its own exposure is up. Anything else is a phantom and goes down. */
+  if(chNum()!==0||state.rangeMode!=='qual40') return;
+  const R=rangeRun(state.lane||0);
+  const keep=(!state.qualDone&&R.phase==='up')?new Set(R.cur||[]):null;
+  platesHere().forEach(q=>{
+    if(!q.up) return;
+    if(keep&&keep.has(q.id)) return;
+    if(!state.qualDone&&q.lifePct<=0&&(q.fall||0)>0&&(q.fall||0)<1) return;
+    q.up=false; q.lifePct=0; q.life=0; q.fall=1; q._down=true; q._ret=0; rangeRelease(q);
+  });
+}
 function rangeTick(dt){
   const mode=state.rangeMode||'bounce'; const mine=state.lane||0;
   if(mode!=='qual40'){ /* TRAINING: every target stands; a hit target falls, then returns (RESET) or stays down (DOWN) */
@@ -973,6 +988,7 @@ function rangeTick(dt){
     state.rangeAllDown=(mode==='stay'&&!anyUp);
     return;
   }
+  qualDropStrays();
   if(state.qualDone) return;
   const R=rangeRun(mine); R.t+=dt;
   if(R.phase!=='up'){
@@ -988,7 +1004,7 @@ function rangeTick(dt){
   if(R.t>=(R.eng?R.eng.sec:5)){ /* the window ends: every target still standing and not engaged is an unfired miss (host clock in a room) */
     cur.forEach(q=>{ if(q.up&&q.lifePct>0){ q.up=false; q.fall=1; if(mine===(state.lane||0)&&rangeArmed()&&lapseIsMine()&&!q._eng){ rangeLapse(q,false); state.rangeLapsed=(state.rangeLapsed|0)+1; hudScore(); } rangeRelease(q); } });
     const nxt=engagementAt(mine,R.k+1);
-    if(R.eng&&R.eng.n>0&&nxt&&nxt.ph!==R.eng.ph){ if(lapseIsMine()&&typeof ev==='function') ev('QUAL','P'+R.eng.ph,'END '+(state.qualH||0)+'/'+(state.qualR||0)); R.phase='phasegap'; if(rangeArmed()) toast('PHASE '+nxt.ph+' · '+nxt.pos+' · PRESS RELOAD · MOVE'); } /* r.142: the shooter changes the magazine himself, as on the range; the tower only rests */
+    if(R.eng&&R.eng.n>0&&nxt&&nxt.ph!==R.eng.ph){ if(lapseIsMine()&&typeof ev==='function') ev('QUAL','P'+R.eng.ph,'END '+(state.qualH||0)+'/'+(state.qualR||0)); R.phase='phasegap'; if(rangeArmed()) toast('CEASE FIRE · LOCK AND LOAD · '+nxt.pos); } /* r.181: the tower, between positions */
     else R.phase='gap';
     R.t=0; R.k++; R.cur=[]; if(!nxt) qualFinish();
   }
@@ -1980,7 +1996,7 @@ function draw(){
     const hw=Math.max(r.half,8), t=Math.min(r.top,r.bot-16); const isHot=hot(q); const slK=Object.keys(state.tgtSlot||{}).find(k=>state.tgtSlot[k]&&state.tgtSlot[k].id===q.id);
     /* r.149 (operator): no edge markers unless targeted — the r.130 hairline bracket on every standing silhouette is gone; the marked target wears the amber T-box, the approved one the red T-box (drawTbox), and the voxel in the world (slotBoxes) */
     }); { const rects=plateCaptionRects(hc,W,H); hc.font='11px ui-monospace,monospace'; rects.forEach(c=>{ hc.textAlign=c.align; hc.fillStyle=c.ph==='RED'?T13.LOCK:c.ph==='AMBER'?T13.GIMBAL:T13.SI; hc.fillText(c.cap,c.cx,c.cy); }); hc.textAlign='left'; hc.font='12px ui-monospace,monospace'; } } /* r.138: left targets read to the LEFT of the plate (right-justified), right targets to the RIGHT (left-justified), centre targets above; same-side captions stack so none overlaps — plateCaptionRects is the one placement the painter and the QA row share */
-  if(chNum()===0&&typeof laneMarkers==='function'){ hc.textAlign='center'; hc.textBaseline='middle'; boardLabels(hc,W,H,cam).forEach(b=>{ hc.globalAlpha=b.mine?1:0.45; hc.fillStyle='#FFFFFF'; hc.fillRect(b.x0,b.y0,b.x1-b.x0,b.y1-b.y0); hc.font=b.fs.toFixed(1)+'px ui-monospace,monospace'; hc.fillStyle='#000000'; hc.fillText(b.sh,b.x,b.y+0.5); hc.globalAlpha=1; }); hc.font='10px ui-monospace,monospace'; hc.textAlign='left'; hc.textBaseline='alphabetic'; } /* r.159 (Addendum 10): white board, black numbers, real size — like the range photo */ /* r.158: the sign — a board with its numbers on it ("◂ 20 · 21 ▸"), like the range's white lane boards */ /* r.157: each board names the lane on each side ("◂ 21 · 22 ▸"), written above its board; a nearer board's words win and a farther one that would overprint is not written (the "21 21" stacking) */ /* r.145: the lane number on each board */
+  if(chNum()===0&&typeof laneMarkers==='function'&&!(state.rangeMode==='qual40'&&state.qualDone)){ hc.textAlign='center'; hc.textBaseline='middle'; boardLabels(hc,W,H,cam).forEach(b=>{ hc.globalAlpha=b.mine?1:0.45; hc.fillStyle='#FFFFFF'; hc.fillRect(b.x0,b.y0,b.x1-b.x0,b.y1-b.y0); hc.font=b.fs.toFixed(1)+'px ui-monospace,monospace'; hc.fillStyle='#000000'; hc.fillText(b.sh,b.x,b.y+0.5); hc.globalAlpha=1; }); hc.font='10px ui-monospace,monospace'; hc.textAlign='left'; hc.textBaseline='alphabetic'; } /* r.181: a cold line draws no lane boards — they were reading as targets left standing */
   if(lk){hc.font='12px ui-monospace,monospace';hc.textAlign='left';hc.fillStyle=T13.SI;hc.fillText('LOCK',60,H-36); /* r.133: LOCK is aim, never authority — it is not drawn in the red box's colour */hc.fillStyle=T13.GIMBAL;hc.fillText(lockText(lk),60,H-20);} /* r.157: "50 M RIGHT", not C-50-L21 */ /* r.131: clear of the kebab button */
 
   hc.font='13px ui-monospace,monospace'; hc.textAlign='center';
@@ -2041,12 +2057,19 @@ function boardLabels(hc,W,H,cam){ /* r.157: the boards' words, nearest first (mi
 function signCoversTarget(r){ /* r.159 (Addendum 10, "DO not cover targets with signs"): true when the board's rectangle touches a standing target of my lane on the screen */ return platesHere().some(q=>{ if(!q.up) return false; const pr=plateRect(q); return !!pr&&r.x0<pr.cx+pr.half+2&&pr.cx-pr.half-2<r.x1&&r.y0<pr.bot+2&&pr.top-2<r.y1; }); }
 function laneLineSegs(){ /* r.158 (Addendum 7): along each lane edge in view, sign to sign — 100 → 200 → 300 m — between the posts' feet */ const by={}; markersInView().forEach(m=>{ const k=m.x.toFixed(3); (by[k]=by[k]||[]).push(m); }); const out=[]; Object.values(by).forEach(ms=>{ ms.sort((a,b)=>a.z-b.z); for(let i=1;i<ms.length;i++) out.push([[ms[i-1].x,ms[i-1].y0,ms[i-1].z],[ms[i].x,ms[i].y0,ms[i].z]]); }); return out; }
 function drawLaneLines(v,cam,W,H){ v.save(); v.setLineDash([2,7]); v.globalAlpha=0.35; v.strokeStyle=T13.STROKE; v.lineWidth=1; v.beginPath(); laneLineSegs().forEach(e=>{ const a=proj(e[0],cam,W,H), b=proj(e[1],cam,W,H); if(a&&b){ v.moveTo(a.x,a.y); v.lineTo(b.x,b.y); } }); v.stroke(); v.restore(); } /* very faded, dotted, grey — a guide, never a target */
-function drawLaneMarkers(segs,own){ own=own||segs; const me=state.lane||0; markersInView().forEach(m=>(m.lane===me?own:segs)(markerSegs(m),m.lane===me?T13.SI:T13.STROKE)); }
+function drawLaneMarkers(segs,own){ if(state.rangeMode==='qual40'&&state.qualDone) return; own=own||segs; const me=state.lane||0; markersInView().forEach(m=>(m.lane===me?own:segs)(markerSegs(m),m.lane===me?T13.SI:T13.STROKE)); }
 function drawPlates(segs,own){ own=own||segs; /* r.157: my lane's targets go through own (outside the world budget); the neighbours' through segs */
   const sheet=onSheet();
   if(sheet){ const sw=sheetWorld(state.lane||0); const hw=SHEET.w/2; own([[[sw.x-hw,sw.y0,sw.z],[sw.x+hw,sw.y0,sw.z]],[[sw.x+hw,sw.y0,sw.z],[sw.x+hw,sw.y1,sw.z]],[[sw.x+hw,sw.y1,sw.z],[sw.x-hw,sw.y1,sw.z]],[[sw.x-hw,sw.y1,sw.z],[sw.x-hw,sw.y0,sw.z]]],T13.STROKE); } /* r.140: the 17" × 22" sheet at 25 m */
   (PLATES||QUAL).forEach(q=>{
-    if(state.rangeMode==='qual40'&&state.qualDone) return; /* r.179: a finished table draws no silhouette */
+    if(state.rangeMode==='qual40'){
+      if(state.qualDone) return;
+      const Rq=rangeRun(state.lane||0);
+      const inCur=(Rq.cur||[]).indexOf(q.id)>=0;
+      const falling=q.lifePct<=0&&(q.fall||0)>0&&(q.fall||0)<1;
+      if(!inCur&&!falling) return;
+      if(Rq.phase!=='up'&&!falling) return;
+    }
     const mine=q.lane==null||q.lane===(state.lane||0);
     if(sheet){ if(!mine||!sheetHas(q)) return; }
     else { if(!q.up||!mine) return; } /* r.158 (operator 2026-10-05: "there are grey phantom targets"): only MY lane's standing targets are drawn — r.144's dim neighbour silhouettes were the phantoms; every lane still carries its targets */
@@ -2503,7 +2526,7 @@ function hudScore(){ if(typeof hudMag==='function') hudMag();
   if(chNum()===0&&state.rangeMode==='qual40'){
     const R=rangeRun(state.lane||0); const e=R.eng&&R.eng.n>0?R.eng:null; const upN=R.phase==='up'?R.cur.filter(id=>{const p=PLATES.find(x=>x.id===id);return p&&p.up&&p.lifePct>0;}).length:0;
     const left=R.phase==='up'?Math.max(0,Math.ceil((R.eng?R.eng.sec:0)-R.t)):0;
-    ps.textContent=state.qualDone?qualCard():(e?('PHASE '+e.ph+' · ENG '+e.n+'/'+IWQ_ENG.length+(R.phase==='up'?' · '+upN+' UP · '+left+' S':R.phase==='phasegap'?' · MAG CHANGE':' · NEXT SOON')):'QUAL 40 · READY')+' · HIT '+(state.qualH||0)+'/'+(state.qualR||0)+(state.qualExpired?' · NOT ENGAGED '+state.qualExpired:''); /* r.137: the strip reads the engagement, not a table */
+    ps.textContent=state.qualDone?qualCard():(e?('PHASE '+e.ph+' · ENG '+e.n+'/'+IWQ_ENG.length+(R.phase==='up'?' · '+upN+' UP · '+left+' S':R.phase==='phasegap'?' · LOCK AND LOAD':' · NEXT EXPOSURE')):'QUAL 40 · READY')+' · HIT '+(state.qualH||0)+'/'+(state.qualR||0)+(state.qualExpired?' · NOT ENGAGED '+state.qualExpired:''); /* r.137: the strip reads the engagement, not a table */
   } else ps.textContent=chNum()===0?((onSheet()?'SHEET 25 M · ':'')+RANGE_MODE_NAME[state.rangeMode||'bounce']+' · HIT '+(state.rangeHit|0)+' · MISS '+(state.rangeMiss|0)+(state.rangeAllDown?' · ALL DOWN · PRESS RESTART':'')):('BLU '+(state.blu|0)+' · RED '+(state.red|0)); /* r.137: training has no lapse, so the strip does not count one */
 }
 function seatWord(by){ if(!by||by===SID) return ''; if(/^ASM@/.test(String(by))) return 'THE AI'; return (state.desig&&state.desig.by===by&&state.desig.viaAI)?'THE OTHER SEAT\'S AI':'THE OTHER SEAT'; } /* r.135: a player never reads a session id */
