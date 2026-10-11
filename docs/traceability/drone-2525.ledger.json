@@ -483,6 +483,13 @@
       "kind": "release",
       "text": "Operator deck r.189 served at /drone-2525/play.html. The r0.178 magazine row is restored. RELOAD is the left card. The round count is the center card. The light is the right card. One row, under the status line, off the plates.",
       "commit": "8206a28"
+    },
+    {
+      "rev": 67,
+      "date": "2026-10-10",
+      "kind": "release",
+      "text": "Operator deck r.190 served at /drone-2525/play.html. R-CORE revision playback steps the approved book. CODE KEPT holds the lines for each revision. Stepping the book does not restyle the glass. The served magazine row stays r.189: reload left, round count center, light right.",
+      "commit": "a146c12"
     }
   ]
 }

@@ -336,7 +336,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.189</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.190</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -538,8 +538,16 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>CRYPTO</span><b id="lcCrypto">WEBCRYPTO + WEBRTC</b></div>
       <div class="log" id="lcLog">Code authorizes the human pairing. ECDH/HKDF/AES-GCM protects node traffic.</div>
       <h3>R-CORE</h3>
-
       <div class="log" id="rcoreLoop">REALITY → OBSERVE → RECORD → REPLAY → SIMULATE → VERIFY → IMPROVE → REALITY</div>
+      <h3>REVISION PLAYBACK</h3>
+      <div class="stat"><span id="revPlayLabel">r0.189</span><b id="revPlayKind">release</b></div>
+      <div class="log" id="revPlayText"></div>
+      <div style="display:flex;gap:6px">
+        <button type="button" id="revPrev">◀ PREV</button>
+        <button type="button" id="revNext">NEXT ▶</button>
+      </div>
+      <h3>CODE KEPT</h3>
+      <pre id="revCode" style="white-space:pre-wrap;font-size:9px;color:#C9A227;max-height:180px;overflow:auto;border:1px solid #1C2A3A;padding:6px;margin:0"></pre>
       <div class="stat"><span>COMM-2525</span><b id="mComm">III fabric</b></div>
       <div class="stat"><span>LINK-2525</span><b>intent</b></div>
       <div class="stat"><span>EDGE-2525</span><b>AsM</b></div>
@@ -579,13 +587,9 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.189 Reload is on the left. The round count is in the center. The light is on the right. Same row, as on r0.178.
-A corner that still says r0.188 is a stale page. Hard-refresh until it says r0.189.
-r.186 LOCK · the r0.178 picture is the master. Do not serve r.166 over it.
-Cyan RELOAD on the left. The rounds magazine beside it. The count sits under the drawing, not on the plates.
-Cards stay 52 by 72. The drawing stays 18 by 36. Green above 20, amber from 6 to 20, red at 5 or below.
-RESTART stays at the right. The QR title is THE RANGE · LANE · TURRET · MODE. The light stays 64 px wide.
-A corner that still says r0.182 is a stale page. Hard-refresh until it says r0.186.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.190 R-CORE plays each revision. CODE KEPT holds the approved lines. The served glass does not change when you step.
+r.189 APPROVED. Reload is the left card. The round count is the center card. The light is the right card. One row. Do not put the count beside reload. Do not shrink the drawing to 18 by 36.
+The Range opens Lane 21 from the first screen. QUAL shows one stance, rifle to the right. TARGET, then APPROVE, then FIRE.
 r.185 The Range share sheet, as on r0.178. Magazines stay the compact corner size.
 r.184 The magazines match the r0.178 glass: compact, count tucked under the drawing, RESTART at the right.
 r.183 THE RANGE stays on the QR sheet. The tower light keeps its size; the Train Down clock fits inside it.
@@ -593,7 +597,7 @@ r.182 TRAIN DOWN · START raises the lane and starts the clock. The clock stops 
 r.181 CEASE FIRE · a plate stands only in its own exposure. When the table ends the glass says CEASE FIRE, UNLOAD, SHOW CLEAR, the score, and RANGE IS COLD. RELOAD and the round count stay.
 r.180 TABLE VI POSITIONS · standing, prone unsupported, prone supported, kneeling supported, standing supported, under the rounds. A far plate stays a person. A leftover plate goes down.
 r.179 CEASE FIRE · the table ends with every plate down. The glass says CEASE FIRE, the score, UNLOAD AND SHOW CLEAR, RANGE IS COLD. RELOAD and the round count stay.
-r.178 ROUNDS · green above 20, amber from 6 to 20, red at 5 or below. The left magazine is RELOAD. The one beside it is the rounds left.
+r.178 ROUNDS · green above 20, amber from 6 to 20, red at 5 or below. The left card is RELOAD. The center card is the rounds left.
 r.177 MAGAZINE + LANE QR · cyan RELOAD magazine, gold magazine with green rounds from the bottom, the count under it. The header mark opens the lane code.
 r.128 WAITING ROOM · CANONICAL R-CORE
 1v1 START requires BLU READY + RED READY + AUTH + DIRECT
@@ -695,9 +699,25 @@ function rcoreStep(name){
   if(el) el.textContent='R-CORE · '+name+' · HI AUTH';
   sample({ev:'RCORE',step:name});
 }
+var REV_BOOK=[
+  {rev:'0.178',kind:'approved',text:'The picture. Reload left. Round count in the center. Light on the right. One row. Count under the drawing.',code:'#magWell #magReload{left:8px}\n#magWell .body{left:50%;transform:translateX(-50%)}\n#startLight{right:8px;top:78px;width:64px}'},
+  {rev:'0.183',kind:'approved',text:'The Range stays on the QR sheet. The light stays 64 px wide. The Train Down clock fits inside it.',code:'title.textContent starts with The Range\n#startLight{width:64px}'},
+  {rev:'0.187',kind:'approved',text:'The Range is the first control. It opens Lane 21, turret, Train Up, and skips the menus.',code:'enterTheRange(21,\"train-up\")'},
+  {rev:'0.189',kind:'approved',text:'Served row. Do not put the count beside reload. Do not shrink the drawing to 18 by 36.',code:'#magWell svg{width:32px;height:66px}\n#magWell .body{left:50%}'},
+  {rev:'0.190',kind:'release',text:'Playback steps this book. CODE KEPT holds the approved lines. Stepping does not restyle the range.',code:'REV_BOOK'}
+];
+var revAt=REV_BOOK.length-1;
+function paintRevPlay(){
+  var r=REV_BOOK[revAt]; if(!r) return;
+  var a=document.getElementById('revPlayLabel'); if(a) a.textContent='r'+r.rev;
+  var k=document.getElementById('revPlayKind'); if(k) k.textContent=r.kind;
+  var t=document.getElementById('revPlayText'); if(t) t.textContent=r.text;
+  var c=document.getElementById('revCode'); if(c) c.textContent=r.code;
+}
+function stepRev(d){ revAt=Math.max(0,Math.min(REV_BOOK.length-1,revAt+(d|0))); paintRevPlay(); }
 const T13={VOID:'#000000',PANEL:'#070B10',STROKE:'#1C2A3A',WIRE:'#7AB8C4',ROAD:'#4A6A78',WATER:'#2A6D88',DOME:'#C9A227',SI:'#E8D5B0',HI:'#5BA8FF',AI:'#C084FC',LOCK:'#E24B3B',TAG:'#3DCC8A',GIMBAL:'#F0A020'};
 const OK=new Set(Object.values(T13));
-const BUILD={version:'00.00',revision:'0.189'}; /* LOCK r.189. Reload left, round count centered, light on the right, one row. */ const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
+const BUILD={version:'00.00',revision:'0.190'}; /* LOCK r.190. Magazine row stays r.189. R-CORE playback reads CODE KEPT. It does not restyle the glass. */ const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
 
 const ASM=[
   {id:'AsM-01',name:'Enki',line:'Sumerian',team:'BLU',seat:'T01',ctrl:'AI'},
@@ -5282,6 +5302,7 @@ function rangeResetOnRecord(why){ /* r.134: a reset is a decision — one canoni
   resetRangePlates(); if(typeof goRange==='function') goRange(); state.lastShot=null; return true; }
 const _rr=document.getElementById('btnRangeReset'); if(_rr)_rr.onclick=()=>{ if(chNum()===0&&state.rangeMode==='stay'&&state.downGo!=='run'&&state.downGo!=='done'){ downStart(); toast('START · HIT EVERY TARGET IN THE LANE'); if(typeof paintCues==='function') paintCues(); return; } if(rangeResetOnRecord('BUTTON')) toast('RESTARTED · '+modeSentence()); };
 { const bR=document.getElementById('btnReload'); if(bR) bR.onclick=()=>magReload(); const bM=document.getElementById('magReload'); if(bM) bM.onclick=()=>magReload(); /* r.142: one rule for the button and the QA */
+{ const rp=document.getElementById('revPrev'), rn=document.getElementById('revNext'); if(rp) rp.onclick=()=>stepRev(-1); if(rn) rn.onclick=()=>stepRev(1); if(typeof paintRevPlay==='function') paintRevPlay(); }
   ['btnFull','btnFullBar'].forEach(id=>{ const b=document.getElementById(id); if(b) b.onclick=()=>setFull(!document.getElementById('app').classList.contains('full')); });
   const stg=document.getElementById('stage'); if(stg) stg.addEventListener('wheel',e=>{ if(state.viewMode==='map') return; e.preventDefault(); state.zoom=zoomClamp((state.zoom||1)*(e.deltaY<0?1.12:1/1.12)); hudMag(); },{passive:false}); /* r.138: a mouse can zoom too (pinch was the only optic) */
   if(state.sets&&state.sets.full) setFull(true); hudMag(); }
