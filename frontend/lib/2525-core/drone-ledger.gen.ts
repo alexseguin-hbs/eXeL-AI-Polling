@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 71 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 72 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -525,6 +525,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "Operator deck r.194 served at /drone-2525/play.html. QUAL stance marks are one-color silhouettes, rifle to the right. Standing, prone unsupported, prone supported, kneeling supported, standing supported. One shows at a time. Magazines are unchanged.",
       "commit": "074ac55"
+    },
+    {
+      "rev": 72,
+      "date": "2026-10-11",
+      "kind": "release",
+      "text": "Operator deck r.195 served at /drone-2525/play.html. R-CORE now matches Vision-2525. The reticle is at the bottom. The first press shows the wordmark. The second press opens the record. The record does not move the range. The r0.178 magazine row stays.",
+      "commit": "3380e7b"
     }
   ]
 };

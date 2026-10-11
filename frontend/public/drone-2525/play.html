@@ -65,6 +65,16 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #qrSheet #qrUrl{color:#8E9BA3;font-size:13px;line-height:1.45;text-align:center;max-width:22em;margin:0 0 22px;word-break:break-all}
 #qrSheet #qrCopy{color:#E8EEF0;border:0;letter-spacing:.01em;padding:12px 28px;background:#1E4A4E;border-radius:999px;min-height:44px;font-size:16px}
 #qrClose{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:61;width:44px;height:44px;min-height:44px;padding:0;color:#fff;border:0;background:transparent;font-size:28px}
+#rcoreBadge{position:fixed;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9;border:0;background:transparent;padding:0;line-height:0}
+#rcoreBadge img{height:42px;width:auto;display:block}
+#rcoreHist{position:fixed;inset:0;z-index:70;display:none;background:#05080c;color:#E8D5B0;overflow:auto;padding:18px 16px 28px}
+#rcoreHist.on{display:block}
+#rcoreHist img{height:42px;width:auto;display:block;margin:0 auto 14px}
+#rcoreHist p{font-size:12px;letter-spacing:.04em;color:#7AB8C4;text-align:center;margin:0 0 12px}
+#rcoreHist ol{list-style:none;margin:0;padding:0}
+#rcoreHist li{border-top:1px solid #1C2A3A;padding:8px 0;font-size:12px;line-height:1.4}
+#rcoreHist li b{display:block;color:#22d3ee;font-weight:600;letter-spacing:.04em}
+#rcoreHist button{margin-top:14px;width:100%}
  /* r.157: RELOAD calls for itself — empty, or the QUAL phase rest with a part-used magazine; never full */
 #startLight{position:absolute;right:8px;top:62px;z-index:4;display:none;flex-direction:column;align-items:center;gap:3px;width:64px;box-sizing:border-box;padding:4px 4px;border:1px solid #1C2A3A;border-radius:6px;background:rgba(0,0,0,.6);pointer-events:none} /* r.191: light stays on the right of the magazine row */
 #app.range #startLight{display:flex}
@@ -336,7 +346,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.194</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.195</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -539,15 +549,6 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="log" id="lcLog">Code authorizes the human pairing. ECDH/HKDF/AES-GCM protects node traffic.</div>
       <h3>R-CORE</h3>
       <div class="log" id="rcoreLoop">REALITY → OBSERVE → RECORD → REPLAY → SIMULATE → VERIFY → IMPROVE → REALITY</div>
-      <h3>REVISION PLAYBACK</h3>
-      <div class="stat"><span id="revPlayLabel">r0.191</span><b id="revPlayKind">release</b></div>
-      <div class="log" id="revPlayText"></div>
-      <div style="display:flex;gap:6px">
-        <button type="button" id="revPrev">◀ PREV</button>
-        <button type="button" id="revNext">NEXT ▶</button>
-      </div>
-      <h3>CODE KEPT</h3>
-      <pre id="revCode" style="white-space:pre-wrap;font-size:9px;color:#C9A227;max-height:180px;overflow:auto;border:1px solid #1C2A3A;padding:6px;margin:0"></pre>
       <div class="stat"><span>COMM-2525</span><b id="mComm">III fabric</b></div>
       <div class="stat"><span>LINK-2525</span><b>intent</b></div>
       <div class="stat"><span>EDGE-2525</span><b>AsM</b></div>
@@ -587,7 +588,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.194 QUAL shows one stance at a time. Standing, prone unsupported, prone supported, kneeling supported, standing supported. One color. Rifle to the right.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.195 R-CORE matches Vision-2525. The reticle sits at the bottom. The first press shows the wordmark. The second press opens the record. The record does not move the magazines.
 The Range opens Lane 21 from the first screen. QUAL shows one stance, rifle to the right. TARGET, then APPROVE, then FIRE.
 r.185 The Range share sheet, as on r0.178. Magazines stay the compact corner size.
 r.184 The magazines match the r0.178 glass: compact, count tucked under the drawing, RESTART at the right.
@@ -688,6 +689,13 @@ No real-world laser-designator standard is implemented
   <button type="button" id="qrCopy">Copy Link</button>
 </div>
 <div id="toast"></div>
+<button type="button" id="rcoreBadge" aria-label="R-CORE"><img id="rcoreImg" src="/r-core/r-core-icon.png" alt="R-CORE"></button>
+<div id="rcoreHist" aria-hidden="true">
+  <img src="/r-core/r-core-wordmark.png" alt="R-CORE">
+  <p>History is a record. Opening it does not change the range.</p>
+  <ol id="rcoreList"></ol>
+  <button type="button" id="rcoreClose">CLOSE</button>
+</div>
 <script>
 const RCORE_LOOP=['REALITY','OBSERVE','RECORD','REPLAY','SIMULATE','VERIFY','IMPROVE','REALITY'];
 const RCORE_SYS={COMM:'COMM-2525',LINK:'LINK-2525',EDGE:'EDGE-2525',SYNC:'SYNC-2525',UCRS:'UCRS-2525'};
@@ -698,25 +706,28 @@ function rcoreStep(name){
   if(el) el.textContent='R-CORE · '+name+' · HI AUTH';
   sample({ev:'RCORE',step:name});
 }
-var REV_BOOK=[
-  {rev:'0.178',kind:'approved',text:'The picture. Reload on the left. The round count beside it, not in the center of the picture. Light on the right. Count under the drawing. Off the plates.',code:'#magWell{left:8px;top:62px;display:flex;gap:22px}\n#magWell svg{width:24px;height:50px}\n#startLight{right:8px;top:62px;width:64px}'},
-  {rev:'0.183',kind:'approved',text:'The Range stays on the QR sheet. The light stays 64 px wide. The Train Down clock fits inside it.',code:'title.textContent starts with The Range\n#startLight{width:64px}'},
-  {rev:'0.187',kind:'approved',text:'The Range is the first control. It opens Lane 21, turret, Train Up, and skips the menus.',code:'enterTheRange(21,\"train-up\")'},
-  {rev:'0.189',kind:'correction',text:'The count was put in the center of the picture. That covered the lanes. It is not the picture.',code:'do not use left:50% on #magWell .body'},
-  {rev:'0.191',kind:'release',text:'Served row matches the r0.178 picture. Reload left. Count beside it. Light right. A shot still takes a round.',code:'#magWell{display:flex;left:8px}\n#magWell .body{position:static}'}
+var RCORE_HIST=[
+  {rev:'0.178',kind:'approved',text:'The picture. Reload on the left. The round count beside it. The light on the right. Off the plates.'},
+  {rev:'0.191',kind:'release',text:'The served magazine row matches that picture. History must not move it.'},
+  {rev:'0.193',kind:'release',text:'The range on the glass can mark, approve and fire.'},
+  {rev:'0.194',kind:'release',text:'QUAL shows one stance at a time. One color. Rifle to the right.'},
+  {rev:'0.195',kind:'release',text:'R-CORE is the reticle, then the wordmark, then this list. The list does not restyle the range.'}
 ];
-var revAt=REV_BOOK.length-1;
-function paintRevPlay(){
-  var r=REV_BOOK[revAt]; if(!r) return;
-  var a=document.getElementById('revPlayLabel'); if(a) a.textContent='r'+r.rev;
-  var k=document.getElementById('revPlayKind'); if(k) k.textContent=r.kind;
-  var t=document.getElementById('revPlayText'); if(t) t.textContent=r.text;
-  var c=document.getElementById('revCode'); if(c) c.textContent=r.code;
+var rcoreStage=0;
+function paintRcore(){
+  var img=document.getElementById('rcoreImg'); if(!img) return;
+  img.src=rcoreStage?'/r-core/r-core-wordmark.png':'/r-core/r-core-icon.png';
 }
-function stepRev(d){ revAt=Math.max(0,Math.min(REV_BOOK.length-1,revAt+(d|0))); paintRevPlay(); }
+function openRcoreHist(){
+  var box=document.getElementById('rcoreHist'); if(!box) return;
+  var ol=document.getElementById('rcoreList');
+  if(ol&&!ol.childNodes.length){ RCORE_HIST.slice().reverse().forEach(function(r){ var li=document.createElement('li'); li.innerHTML='<b>r'+r.rev+' · '+r.kind+'</b>'+r.text; ol.appendChild(li); }); }
+  box.classList.add('on'); box.setAttribute('aria-hidden','false');
+}
+function closeRcore(){ rcoreStage=0; paintRcore(); var box=document.getElementById('rcoreHist'); if(box){ box.classList.remove('on'); box.setAttribute('aria-hidden','true'); } }
 const T13={VOID:'#000000',PANEL:'#070B10',STROKE:'#1C2A3A',WIRE:'#7AB8C4',ROAD:'#4A6A78',WATER:'#2A6D88',DOME:'#C9A227',SI:'#E8D5B0',HI:'#5BA8FF',AI:'#C084FC',LOCK:'#E24B3B',TAG:'#3DCC8A',GIMBAL:'#F0A020'};
 const OK=new Set(Object.values(T13));
-const BUILD={version:'00.00',revision:'0.194'}; /* LOCK r.194. QUAL stance marks are one-color silhouettes, rifle to the right. Magazines stay the r0.191 row. */ const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
+const BUILD={version:'00.00',revision:'0.195'}; /* LOCK r.195. R-CORE is the Vision badge: icon, then wordmark, then a read-only list. The r0.178 magazine row does not move. */ const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
 
 const ASM=[
   {id:'AsM-01',name:'Enki',line:'Sumerian',team:'BLU',seat:'T01',ctrl:'AI'},
@@ -5302,7 +5313,7 @@ function rangeResetOnRecord(why){ /* r.134: a reset is a decision — one canoni
   resetRangePlates(); if(typeof goRange==='function') goRange(); state.lastShot=null; return true; }
 const _rr=document.getElementById('btnRangeReset'); if(_rr)_rr.onclick=()=>{ if(chNum()===0&&state.rangeMode==='stay'&&state.downGo!=='run'&&state.downGo!=='done'){ downStart(); toast('START · HIT EVERY TARGET IN THE LANE'); if(typeof paintCues==='function') paintCues(); return; } if(rangeResetOnRecord('BUTTON')) toast('RESTARTED · '+modeSentence()); };
 { const bR=document.getElementById('btnReload'); if(bR) bR.onclick=()=>magReload(); const bM=document.getElementById('magReload'); if(bM) bM.onclick=()=>magReload(); /* r.142: one rule for the button and the QA */
-{ const rp=document.getElementById('revPrev'), rn=document.getElementById('revNext'); if(rp) rp.onclick=()=>stepRev(-1); if(rn) rn.onclick=()=>stepRev(1); if(typeof paintRevPlay==='function') paintRevPlay(); }
+{ const rb=document.getElementById('rcoreBadge'); if(rb) rb.onclick=function(){ if(!rcoreStage){ rcoreStage=1; paintRcore(); return; } openRcoreHist(); }; const rc=document.getElementById('rcoreClose'); if(rc) rc.onclick=closeRcore; document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeRcore(); }); }
   ['btnFull','btnFullBar'].forEach(id=>{ const b=document.getElementById(id); if(b) b.onclick=()=>setFull(!document.getElementById('app').classList.contains('full')); });
   const stg=document.getElementById('stage'); if(stg) stg.addEventListener('wheel',e=>{ if(state.viewMode==='map') return; e.preventDefault(); state.zoom=zoomClamp((state.zoom||1)*(e.deltaY<0?1.12:1/1.12)); hudMag(); },{passive:false}); /* r.138: a mouse can zoom too (pinch was the only optic) */
   if(state.sets&&state.sets.full) setFull(true); hudMag(); }
