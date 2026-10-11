@@ -236,6 +236,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
     <h1>DRONE-2525</h1>
     <p class="who" id="cinWho">STANDALONE HTML · CIVIC REHEARSAL</p>
     <p id="cinLine">A wireframe point. Then the Capitol.</p>
+    <button type="button" class="toRange">THE RANGE · LANE 21</button>
     <button type="button" id="btnCin" onclick="window.cinStep&&window.cinStep()">CONTINUE</button>
     <button type="button" data-next="sc1" onclick="window.showScr&&window.showScr('sc1')">SKIP TO SELECT</button>
     <p class="fine">PLAY → RECORD → REPLAY → COMPARE → QUALIFY → IMPROVE → SHARE</p>
@@ -270,6 +271,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
     </div>
     <button type="button" id="btnIntro">ENTER WAITING ROOM</button>
     <button type="button" id="btnPractice">PRACTICE · NO ROOM · CH0 ONLY</button>
+    <button type="button" class="toRange">THE RANGE · LANE 21</button>
     <p class="fine">This glass is 1.1. EXPORT carries 5.5 for the engines.</p>
   </div>
   <div class="scr" id="sc4">
@@ -332,7 +334,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.186</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.187</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -575,7 +577,8 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.186 LOCK · the r0.178 picture is the master. Do not serve r.166 over it.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.187 THE RANGE · LANE 21 on the first screen, and on the QR. The link opens that lane. No menus.
+r.186 LOCK · the r0.178 picture is the master. Do not serve r.166 over it.
 Cyan RELOAD on the left. The rounds magazine beside it. The count sits under the drawing, not on the plates.
 Cards stay 52 by 72. The drawing stays 18 by 36. Green above 20, amber from 6 to 20, red at 5 or below.
 RESTART stays at the right. The QR title is THE RANGE · LANE · TURRET · MODE. The light stays 64 px wide.
@@ -5135,6 +5138,24 @@ const _fa=document.getElementById('fAppr'); if(_fa)_fa.onclick=()=>approveDesig(
 const _in=document.getElementById('btnIntro'); if(_in)_in.onclick=()=>lobbyShow();
 
 
+function enterTheRange(lane, mode){
+  var n=(lane|0); if(!(n>=1&&n<=42)) n=21;
+  var m=(mode==='train-down'||mode==='stay')?'stay':(mode==='qual40'?'qual40':'bounce');
+  state.lane=n-1;
+  state.rangeMode=m;
+  state._selCraft='turret';
+  state._selCh=0;
+  state.challenge=0;
+  var rm=document.getElementById('rngMode'); if(rm) rm.value=m;
+  var intro=document.getElementById('intro'); if(intro) intro.style.display='none';
+  if(typeof applyMode==='function') applyMode('turret');
+  var c=document.getElementById('chLvl'); if(c) c.value='0';
+  if(typeof goRange==='function') goRange();
+  if(m==='stay'&&typeof downArm==='function') downArm();
+  if(typeof paintCues==='function') paintCues();
+  if(typeof rcoreStep==='function') rcoreStep('REALITY');
+  if(typeof toast==='function') toast('THE RANGE · LANE '+n);
+}
 (function arcade(){
   const intro=document.getElementById('intro'); if(!intro) return;
   intro.querySelectorAll('[data-next]').forEach(b=>b.onclick=()=>{
@@ -5151,6 +5172,7 @@ const _in=document.getElementById('btnIntro'); if(_in)_in.onclick=()=>lobbyShow(
   const go=document.getElementById('btnIntro');
   if(go) go.onclick=()=>lobbyShow();
   const practice=document.getElementById('btnPractice');if(practice)practice.onclick=practiceNoRoom;
+  intro.querySelectorAll('.toRange').forEach(b=>b.onclick=()=>enterTheRange(21,'train-up'));
   const wb=document.getElementById('wrBack');if(wb)wb.onclick=()=>showScr('sc3');
   const wh=document.getElementById('wrHost');if(wh)wh.onclick=lobbyHost;
   const wc=document.getElementById('wrCodes');if(wc)wc.onclick=lobbyRotateCodes;
@@ -5164,6 +5186,8 @@ const _in=document.getElementById('btnIntro'); if(_in)_in.onclick=()=>lobbyShow(
   const wapply=document.getElementById('wrApply');if(wapply)wapply.onclick=lobbyNetApply;
   const wli=document.getElementById('wrLightIn');if(wli)wli.oninput=lobbyPaintLight;
   const wjc=document.getElementById('wrJoinCode');if(wjc)wjc.oninput=e=>{e.target.value=String(e.target.value||'').replace(/\D/g,'').slice(0,6);};
+  var q; try{ q=new URLSearchParams(location.search||''); }catch(e){ q=null; }
+  if(q&&q.get('range')) enterTheRange(parseInt(q.get('range'),10)||21, q.get('mode')||'train-up');
 })();
 
 
