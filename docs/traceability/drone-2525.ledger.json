@@ -462,6 +462,13 @@
       "kind": "decision",
       "text": "LOCKED GLASS r0.186 served at /drone-2525/play.html. The record had stopped at r.166, so later edits treated that as the deck and rebuilt the magazines. r.166 is not the served range. The r0.178 picture is the master. Left card: the cyan isometric magazine, the word RELOAD under the drawing, a tap reloads. The card beside it is the rounds: the same magazine, ribs from the bottom, the count under the drawing. Green above 20, amber from 6 to 20, red at 5 or below. Both cards stay compact, 52 by 72, drawing 18 by 36, under the status line and off the plates. RESTART stays to the right of the mode and the lane. The QR sheet title is THE RANGE · LANE · TURRET · MODE and the link is /drone-2525/play?range=&role=turret&mode=. The tower light stays 64 px wide. The Train Down clock and ALL DOWN fit inside it and do not grow it. TRAIN DOWN starts on START and the clock stops when every target is down. BUILD.revision and the corner badge are the same number. A phone still showing r0.182 is a stale page.",
       "commit": "6a4097f"
+    },
+    {
+      "rev": 64,
+      "date": "2026-10-10",
+      "kind": "release",
+      "text": "Operator deck r.187 served at /drone-2525/play.html. THE RANGE is the first control on the opening screen. It opens Lane 21, turret, Train Up, and skips the menus. The QR sheet uses the same words. QUAL shows one firing position at a time, in the center, to the right of the magazine count. The rifle points right: standing, prone unsupported, prone supported, kneeling supported, standing supported.",
+      "commit": "61b4d49"
     }
   ]
 }
