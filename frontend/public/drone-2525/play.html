@@ -30,14 +30,14 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #magBar button{pointer-events:auto;min-height:32px;padding:0 10px;border:1px solid #1C2A3A;background:#000;color:#E8D5B0;font-size:10px;letter-spacing:.1em;border-radius:4px}
 #magBar #btnReload{border-color:#1C2A3A;color:#E8D5B0} /* r.157: RELOAD rests like the bar's other buttons, so its glow means something */
 #magBar #btnReload.call{border-color:#C9A227;color:#C9A227;box-shadow:0 0 10px #C9A227}
-#magWell{position:absolute;left:8px;top:58px;z-index:4;display:none;gap:8px;align-items:flex-end;pointer-events:none} /* r.184: the r0.178 size — compact, under the status line, off the sight picture */
+#magWell{position:absolute;left:8px;top:62px;z-index:4;display:none;gap:6px;align-items:flex-end;pointer-events:none}
 #app.range #magWell{display:flex}
-#magWell button,#magWell .body{width:68px;background:rgba(0,0,0,.55);border:1px solid #1C2A3A;border-radius:10px;color:#7AB8C4;padding:6px 4px 4px;display:flex;flex-direction:column;align-items:center;gap:2px}
+#magWell button,#magWell .body{width:52px;max-height:72px;background:rgba(0,0,0,.55);border:1px solid #1C2A3A;border-radius:8px;color:#7AB8C4;padding:3px 2px 2px;display:flex;flex-direction:column;align-items:center;gap:1px;overflow:hidden}
 #magWell button{pointer-events:auto}
 #magWell .body{pointer-events:none}
-#magWell svg{width:30px;height:60px;display:block}
-#magWell b{font-size:9px;letter-spacing:.08em;font-weight:500;color:#7AB8C4}
-#magWell #magRounds{font-size:13px;font-weight:700;letter-spacing:0;color:#3DCC8A;font-family:ui-monospace,Menlo,monospace}
+#magWell svg{width:18px;height:36px;display:block;flex:none}
+#magWell b{font-size:8px;letter-spacing:.06em;font-weight:500;color:#7AB8C4;line-height:1}
+#magWell #magRounds{font-size:11px;font-weight:700;letter-spacing:0;color:#3DCC8A;font-family:ui-monospace,Menlo,monospace;line-height:1}
 #magWell #magReload.call{border-color:#C9A227;box-shadow:0 0 10px #C9A227}
 #magWell #magReload.locked{opacity:.45}
 #posWell{display:none;position:absolute;left:8px;top:216px;z-index:4;width:184px;pointer-events:none;flex-direction:column;align-items:stretch;gap:2px}
@@ -198,7 +198,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
   #playHud{top:6px;left:8px;right:344px;font-size:10px} /* r.139: landscape — the strip and the magazine line share one row, side by side */
   #startLight{top:42px} /* r.157: under the magazine line */
 }
-@media(orientation:portrait){ #app.range #playHud{right:80px} #app.range #playHud #phScore{position:absolute;top:92px;left:0;width:100%} } /* r.184: the score line sits under the magazines, not through them */
+@media(orientation:portrait){ #app.range #playHud{right:80px} #app.range #playHud #phScore{position:absolute;top:100px;left:0;width:100%} }
 @media(orientation:portrait){
   #joyL,#joyR{width:72px;height:72px}
   #joyL i,#joyR i{left:24px;top:24px;width:22px;height:22px}
@@ -332,7 +332,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.185</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.186</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
