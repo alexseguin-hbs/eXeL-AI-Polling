@@ -62,15 +62,15 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #qrSheet #qrCopy{color:#7AB8C4;border:1px solid #1C2A3A;letter-spacing:.16em;padding:10px 16px;background:#000;min-height:36px}
 #qrClose{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));z-index:61;width:44px;height:44px;min-height:44px;padding:0;color:#7AB8C4;border:1px solid #1C2A3A;background:#000}
  /* r.157: RELOAD calls for itself — empty, or the QUAL phase rest with a part-used magazine; never full */
-#startLight{position:absolute;right:8px;top:42px;z-index:4;display:none;flex-direction:column;align-items:center;gap:3px;padding:4px 7px;border:1px solid #1C2A3A;border-radius:6px;background:rgba(0,0,0,.6);pointer-events:none} /* r.157 (Addendum 1): the range tower's start light, upper right */
+#startLight{position:absolute;right:8px;top:42px;z-index:4;display:none;flex-direction:column;align-items:center;gap:3px;width:64px;box-sizing:border-box;padding:4px 4px;border:1px solid #1C2A3A;border-radius:6px;background:rgba(0,0,0,.6);pointer-events:none} /* r.183: the tower light stays this size; the clock fits inside it */
 #app.range #startLight{display:flex}
 #startLight .lamps{display:flex;flex-direction:column;gap:5px} /* r.162 (Addendum 13): vertical, red on top, green at the bottom */
-#startLight #startTime{font-size:13px;letter-spacing:.06em;font-weight:600;color:#E8D5B0;font-variant-numeric:tabular-nums;min-height:15px}
+#startLight #startTime{font-size:10px;letter-spacing:0;font-weight:600;color:#E8D5B0;font-variant-numeric:tabular-nums;min-height:12px;line-height:1}
 #startLight #startTime:empty{display:none}
-#startLight i{width:14px;height:14px;border-radius:50%;border:1px solid #1C2A3A;opacity:.35}
+#startLight i{width:14px;height:14px;flex:none;border-radius:50%;border:1px solid #1C2A3A;opacity:.35}
 #startLight i.r{border-color:#E24B3B}#startLight i.y{border-color:#F0A020}#startLight i.g{border-color:#3DCC8A}
 #startLight.R i.r{background:#E24B3B;opacity:1;box-shadow:0 0 8px #E24B3B}#startLight.Y i.y{background:#F0A020;opacity:1;box-shadow:0 0 8px #F0A020}#startLight.G i.g{background:#3DCC8A;opacity:1;box-shadow:0 0 8px #3DCC8A}
-#startLight b{font-size:9px;letter-spacing:.14em;font-weight:500;color:#E8D5B0}
+#startLight b{font-size:8px;letter-spacing:.04em;font-weight:500;color:#E8D5B0;line-height:1.15;text-align:center}
 #startLight.R b{color:#E24B3B}#startLight.Y b{color:#F0A020}#startLight.G b{color:#3DCC8A}
 #playHud #phCH:empty{display:none} /* r.157: no "CH0 D3" on the range */
 #app.range:not(.more) #modePick,#app.range:not(.more) #plat,#app.range:not(.more) #water,#app.range:not(.more) #motLvl,#app.range:not(.more) #tgtPick,#app.range:not(.more) #chLvl,#app.range:not(.more) #diffLvl,#app.range:not(.more) #halPick{display:none} /* r.157 (operator 2026-10-04, his pick "Mode + Restart + Lane"): on the range only the mode, Restart and the lane show; the rest is behind MORE */
@@ -330,7 +330,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.182</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.183</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -573,7 +573,8 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.182 TRAIN DOWN · START raises the lane and starts the clock. The clock stops when every target is down.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.183 THE RANGE stays on the QR sheet. The tower light keeps its size; the Train Down clock fits inside it.
+r.182 TRAIN DOWN · START raises the lane and starts the clock. The clock stops when every target is down.
 r.181 CEASE FIRE · a plate stands only in its own exposure. When the table ends the glass says CEASE FIRE, UNLOAD, SHOW CLEAR, the score, and RANGE IS COLD. RELOAD and the round count stay.
 r.180 TABLE VI POSITIONS · standing, prone unsupported, prone supported, kneeling supported, standing supported, under the rounds. A far plate stays a person. A leftover plate goes down.
 r.179 CEASE FIRE · the table ends with every plate down. The glass says CEASE FIRE, the score, UNLOAD AND SHOW CLEAR, RANGE IS COLD. RELOAD and the round count stay.
@@ -661,7 +662,7 @@ No real-world laser-designator standard is implemented
 
 <div id="qrSheet" aria-hidden="true">
   <button type="button" id="qrClose" aria-label="close">×</button>
-  <h2 id="qrTitle">LANE 21 · TURRET · TRAIN UP</h2>
+  <h2 id="qrTitle">THE RANGE · LANE 21 · TURRET · TRAIN UP</h2>
   <div class="card" id="qrImg"></div>
   <p id="qrUrl"></p>
   <button type="button" id="qrCopy">COPY LINK</button>
@@ -7636,7 +7637,7 @@ var qrcode = function() {
     var title=document.getElementById('qrTitle');
     var link=document.getElementById('qrUrl');
     var box=document.getElementById('qrImg');
-    if(title) title.textContent=(typeof laneWord==='function'?laneWord():('LANE '+(((state.lane|0)+1))))+' · TURRET · '+((typeof RANGE_MODE_NAME!=='undefined'&&RANGE_MODE_NAME[state.rangeMode||'bounce'])||'TRAIN UP');
+    if(title) title.textContent='THE RANGE · '+(typeof laneWord==='function'?laneWord():('LANE '+(((state.lane|0)+1))))+' · TURRET · '+((typeof RANGE_MODE_NAME!=='undefined'&&RANGE_MODE_NAME[state.rangeMode||'bounce'])||'TRAIN UP');
     if(link) link.textContent=url;
     if(box && typeof qrcode==='function'){
       var qr=qrcode(0,'M');
