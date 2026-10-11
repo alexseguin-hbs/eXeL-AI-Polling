@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 67 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 68 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -497,6 +497,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "Operator deck r.190 served at /drone-2525/play.html. R-CORE revision playback steps the approved book. CODE KEPT holds the lines for each revision. Stepping the book does not restyle the glass. The served magazine row stays r.189: reload left, round count center, light right.",
       "commit": "a146c12"
+    },
+    {
+      "rev": 68,
+      "date": "2026-10-11",
+      "kind": "release",
+      "text": "Operator deck r.191 served at /drone-2525/play.html. The magazines match the r0.178 picture. Reload is the left card. The round count is the next card, not in the center of the picture. The light stays on the right. The cards sit off the plates. A shot still spends one round. An empty magazine refuses.",
+      "commit": "3ba0f97"
     }
   ]
 };

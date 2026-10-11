@@ -30,23 +30,23 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #magBar button{pointer-events:auto;min-height:32px;padding:0 10px;border:1px solid #1C2A3A;background:#000;color:#E8D5B0;font-size:10px;letter-spacing:.1em;border-radius:4px}
 #magBar #btnReload{border-color:#1C2A3A;color:#E8D5B0} /* r.157: RELOAD rests like the bar's other buttons, so its glow means something */
 #magBar #btnReload.call{border-color:#C9A227;color:#C9A227;box-shadow:0 0 10px #C9A227}
-#magWell{position:absolute;left:0;right:0;top:78px;z-index:4;display:none;height:0;pointer-events:none} /* r.189: reload on the left, the round count in the center, same row as the light */
-#app.range #magWell{display:block}
-#magWell button,#magWell .body{position:absolute;top:0;width:70px;background:rgba(0,0,0,.55);border:1px solid #1C2A3A;border-radius:8px;color:#7AB8C4;padding:4px 3px 3px;display:flex;flex-direction:column;align-items:center;gap:2px}
-#magWell #magReload{left:8px;pointer-events:auto}
-#magWell .body{left:50%;transform:translateX(-50%);pointer-events:none}
-#magWell svg{width:32px;height:66px;display:block;flex:none}
-#magWell b{font-size:9px;letter-spacing:.08em;font-weight:500;color:#7AB8C4;line-height:1}
-#magWell #magRounds{font-size:16px;font-weight:700;letter-spacing:0;color:#3DCC8A;font-family:ui-monospace,Menlo,monospace;line-height:1}
+#magWell{position:absolute;left:8px;top:62px;z-index:4;display:none;gap:22px;align-items:flex-end;pointer-events:none;height:auto} /* r.191: r0.178 row. Reload left, count beside it, not in the center of the picture */
+#app.range #magWell{display:flex}
+#magWell button,#magWell .body{position:static;left:auto;top:auto;transform:none;width:60px;background:rgba(0,0,0,.55);border:1px solid #1C2A3A;border-radius:8px;color:#7AB8C4;padding:3px 2px 2px;display:flex;flex-direction:column;align-items:center;gap:1px}
+#magWell #magReload{pointer-events:auto}
+#magWell .body{pointer-events:none}
+#magWell svg{width:24px;height:50px;display:block;flex:none}
+#magWell b{font-size:8px;letter-spacing:.06em;font-weight:500;color:#7AB8C4;line-height:1}
+#magWell #magRounds{font-size:13px;font-weight:700;letter-spacing:0;color:#3DCC8A;font-family:ui-monospace,Menlo,monospace;line-height:1}
 #magWell #magReload.call{border-color:#C9A227;box-shadow:0 0 10px #C9A227}
 #magWell #magReload.locked{opacity:.45}
-#posWell{display:none;position:absolute;left:calc(50% + 52px);top:78px;z-index:4;width:68px;pointer-events:none;flex-direction:column;align-items:center;gap:3px} /* r.189: one stance, just right of the center count */
+#posWell{display:none;position:absolute;left:158px;top:62px;z-index:4;width:64px;pointer-events:none;flex-direction:column;align-items:center;gap:2px} /* r.191: one stance, right of the count, still left of the light */
 #app.range.qual #posWell{display:flex}
-#posWell #posName{font-size:8px;letter-spacing:.04em;color:#C9A227;text-align:center;font-weight:500;line-height:1.15;max-width:80px}
-#posWell .sq{width:64px;height:58px;border:1px solid #1C2A3A;border-radius:8px;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center}
+#posWell #posName{font-size:8px;letter-spacing:.04em;color:#C9A227;text-align:center;font-weight:500;line-height:1.15;max-width:72px}
+#posWell .sq{width:58px;height:52px;border:1px solid #1C2A3A;border-radius:8px;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center}
 #posWell i{display:none;font-style:normal}
 #posWell i.on{display:block}
-#posWell i svg{width:58px;height:50px;display:block}
+#posWell i svg{width:52px;height:44px;display:block}
 #posWell i[data-p="0"]{color:#3DCC8A}
 #posWell i[data-p="1"]{color:#C9A227}
 #posWell i[data-p="2"]{color:#8AA0AE}
@@ -66,7 +66,7 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #qrSheet #qrCopy{color:#E8EEF0;border:0;letter-spacing:.01em;padding:12px 28px;background:#1E4A4E;border-radius:999px;min-height:44px;font-size:16px}
 #qrClose{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:61;width:44px;height:44px;min-height:44px;padding:0;color:#fff;border:0;background:transparent;font-size:28px}
  /* r.157: RELOAD calls for itself — empty, or the QUAL phase rest with a part-used magazine; never full */
-#startLight{position:absolute;right:8px;top:78px;z-index:4;display:none;flex-direction:column;align-items:center;gap:3px;width:64px;box-sizing:border-box;padding:4px 4px;border:1px solid #1C2A3A;border-radius:6px;background:rgba(0,0,0,.6);pointer-events:none} /* r.189: the light stays on this row with the two magazines */
+#startLight{position:absolute;right:8px;top:62px;z-index:4;display:none;flex-direction:column;align-items:center;gap:3px;width:64px;box-sizing:border-box;padding:4px 4px;border:1px solid #1C2A3A;border-radius:6px;background:rgba(0,0,0,.6);pointer-events:none} /* r.191: light stays on the right of the magazine row */
 #app.range #startLight{display:flex}
 #startLight .lamps{display:flex;flex-direction:column;gap:5px} /* r.162 (Addendum 13): vertical, red on top, green at the bottom */
 #startLight #startTime{font-size:10px;letter-spacing:0;font-weight:600;color:#E8D5B0;font-variant-numeric:tabular-nums;min-height:12px;line-height:1}
@@ -198,9 +198,9 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
   #face{bottom:12px}
   #magBar{top:4px;right:8px}
   #playHud{top:6px;left:8px;right:344px;font-size:10px} /* r.139: landscape — the strip and the magazine line share one row, side by side */
-  #startLight{top:78px} /* r.189: same row as the magazines */
+  #startLight{top:62px} /* r.191: same row as the magazines */
 }
-@media(orientation:portrait){ #app.range #playHud{right:80px} #app.range #playHud #phScore{position:absolute;top:148px;left:0;width:100%} }
+@media(orientation:portrait){ #app.range #playHud{right:80px} #app.range #playHud #phScore{position:absolute;top:118px;left:0;width:100%} }
 @media(orientation:portrait){
   #joyL,#joyR{width:72px;height:72px}
   #joyL i,#joyR i{left:24px;top:24px;width:22px;height:22px}
@@ -336,7 +336,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.190</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.191</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -540,7 +540,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <h3>R-CORE</h3>
       <div class="log" id="rcoreLoop">REALITY → OBSERVE → RECORD → REPLAY → SIMULATE → VERIFY → IMPROVE → REALITY</div>
       <h3>REVISION PLAYBACK</h3>
-      <div class="stat"><span id="revPlayLabel">r0.189</span><b id="revPlayKind">release</b></div>
+      <div class="stat"><span id="revPlayLabel">r0.191</span><b id="revPlayKind">release</b></div>
       <div class="log" id="revPlayText"></div>
       <div style="display:flex;gap:6px">
         <button type="button" id="revPrev">◀ PREV</button>
@@ -587,8 +587,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.190 R-CORE plays each revision. CODE KEPT holds the approved lines. The served glass does not change when you step.
-r.189 APPROVED. Reload is the left card. The round count is the center card. The light is the right card. One row. Do not put the count beside reload. Do not shrink the drawing to 18 by 36.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.191 The magazines match the r0.178 picture. Reload on the left. The round count beside it, not in the center of the picture. The light stays on the right. A shot still spends one round.
 The Range opens Lane 21 from the first screen. QUAL shows one stance, rifle to the right. TARGET, then APPROVE, then FIRE.
 r.185 The Range share sheet, as on r0.178. Magazines stay the compact corner size.
 r.184 The magazines match the r0.178 glass: compact, count tucked under the drawing, RESTART at the right.
@@ -700,11 +699,11 @@ function rcoreStep(name){
   sample({ev:'RCORE',step:name});
 }
 var REV_BOOK=[
-  {rev:'0.178',kind:'approved',text:'The picture. Reload left. Round count in the center. Light on the right. One row. Count under the drawing.',code:'#magWell #magReload{left:8px}\n#magWell .body{left:50%;transform:translateX(-50%)}\n#startLight{right:8px;top:78px;width:64px}'},
+  {rev:'0.178',kind:'approved',text:'The picture. Reload on the left. The round count beside it, not in the center of the picture. Light on the right. Count under the drawing. Off the plates.',code:'#magWell{left:8px;top:62px;display:flex;gap:22px}\n#magWell svg{width:24px;height:50px}\n#startLight{right:8px;top:62px;width:64px}'},
   {rev:'0.183',kind:'approved',text:'The Range stays on the QR sheet. The light stays 64 px wide. The Train Down clock fits inside it.',code:'title.textContent starts with The Range\n#startLight{width:64px}'},
   {rev:'0.187',kind:'approved',text:'The Range is the first control. It opens Lane 21, turret, Train Up, and skips the menus.',code:'enterTheRange(21,\"train-up\")'},
-  {rev:'0.189',kind:'approved',text:'Served row. Do not put the count beside reload. Do not shrink the drawing to 18 by 36.',code:'#magWell svg{width:32px;height:66px}\n#magWell .body{left:50%}'},
-  {rev:'0.190',kind:'release',text:'Playback steps this book. CODE KEPT holds the approved lines. Stepping does not restyle the range.',code:'REV_BOOK'}
+  {rev:'0.189',kind:'correction',text:'The count was put in the center of the picture. That covered the lanes. It is not the picture.',code:'do not use left:50% on #magWell .body'},
+  {rev:'0.191',kind:'release',text:'Served row matches the r0.178 picture. Reload left. Count beside it. Light right. A shot still takes a round.',code:'#magWell{display:flex;left:8px}\n#magWell .body{position:static}'}
 ];
 var revAt=REV_BOOK.length-1;
 function paintRevPlay(){
@@ -717,7 +716,7 @@ function paintRevPlay(){
 function stepRev(d){ revAt=Math.max(0,Math.min(REV_BOOK.length-1,revAt+(d|0))); paintRevPlay(); }
 const T13={VOID:'#000000',PANEL:'#070B10',STROKE:'#1C2A3A',WIRE:'#7AB8C4',ROAD:'#4A6A78',WATER:'#2A6D88',DOME:'#C9A227',SI:'#E8D5B0',HI:'#5BA8FF',AI:'#C084FC',LOCK:'#E24B3B',TAG:'#3DCC8A',GIMBAL:'#F0A020'};
 const OK=new Set(Object.values(T13));
-const BUILD={version:'00.00',revision:'0.190'}; /* LOCK r.190. Magazine row stays r.189. R-CORE playback reads CODE KEPT. It does not restyle the glass. */ const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
+const BUILD={version:'00.00',revision:'0.191'}; /* LOCK r.191. Magazines match the r0.178 picture: left row, off the plates. Count is not centered on the sight. */ const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
 
 const ASM=[
   {id:'AsM-01',name:'Enki',line:'Sumerian',team:'BLU',seat:'T01',ctrl:'AI'},
