@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 64 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 65 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -476,6 +476,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "Operator deck r.187 served at /drone-2525/play.html. THE RANGE is the first control on the opening screen. It opens Lane 21, turret, Train Up, and skips the menus. The QR sheet uses the same words. QUAL shows one firing position at a time, in the center, to the right of the magazine count. The rifle points right: standing, prone unsupported, prone supported, kneeling supported, standing supported.",
       "commit": "61b4d49"
+    },
+    {
+      "rev": 65,
+      "date": "2026-10-10",
+      "kind": "release",
+      "text": "Operator deck r.188 served at /drone-2525/play.html. The magazine cards no longer sit on the status line. The isometric magazine is drawn large enough to read: cyan RELOAD on the left, the round count beside it, ribs from the bottom. QUAL shows one firing position immediately to the right of that count. The rifle points right.",
+      "commit": "7ffd164"
     }
   ]
 };
