@@ -55,7 +55,7 @@ export interface RCoreHistory {
 }
 
 // ── Source shapes (all fields optional so a malformed row degrades rather than throws) ───────
-export interface LedgerEntryInput { rev?: number | string; date?: string; kind?: string; text?: string; commit?: string; }
+export interface LedgerEntryInput { rev?: number | string; date?: string; kind?: string; text?: string; commit?: string; shipped?: string; }
 export interface LedgerInput { section?: string; route?: string; note?: string; entries?: LedgerEntryInput[]; }
 export interface DrsRevisionInput { revision?: string; date?: string; kind?: string; why?: string; commit?: string; }
 
