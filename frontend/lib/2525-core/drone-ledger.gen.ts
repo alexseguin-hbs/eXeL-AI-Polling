@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 65 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 66 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -483,6 +483,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "Operator deck r.188 served at /drone-2525/play.html. The magazine cards no longer sit on the status line. The isometric magazine is drawn large enough to read: cyan RELOAD on the left, the round count beside it, ribs from the bottom. QUAL shows one firing position immediately to the right of that count. The rifle points right.",
       "commit": "7ffd164"
+    },
+    {
+      "rev": 66,
+      "date": "2026-10-10",
+      "kind": "release",
+      "text": "Operator deck r.189 served at /drone-2525/play.html. The r0.178 magazine row is restored. RELOAD is the left card. The round count is the center card. The light is the right card. One row, under the status line, off the plates.",
+      "commit": "8206a28"
     }
   ]
 };
