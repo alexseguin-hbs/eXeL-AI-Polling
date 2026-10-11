@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 69 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 70 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -511,6 +511,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "Operator deck r.192 served at /drone-2525/play.html. The Range now opens in practice. TARGET, APPROVE and FIRE were refused while the light could still turn red, because the line had never left the waiting room. A shot on a marked, approved plate spends one round. The magazine row stays as in r.191.",
       "commit": "5a6b64b"
+    },
+    {
+      "rev": 70,
+      "date": "2026-10-11",
+      "kind": "release",
+      "text": "Operator deck r.193 served at /drone-2525/play.html. The toast PRESS PRACTICE was the block. The range on the glass can now mark, approve and fire. A waiting room with the intro still up still cannot. TARGET, then APPROVE, then FIRE.",
+      "commit": "43a0dc4"
     }
   ]
 };
