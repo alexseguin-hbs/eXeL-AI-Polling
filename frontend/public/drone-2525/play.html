@@ -40,16 +40,18 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #magWell #magRounds{font-size:11px;font-weight:700;letter-spacing:0;color:#3DCC8A;font-family:ui-monospace,Menlo,monospace;line-height:1}
 #magWell #magReload.call{border-color:#C9A227;box-shadow:0 0 10px #C9A227}
 #magWell #magReload.locked{opacity:.45}
-#posWell{display:none;position:absolute;left:8px;top:216px;z-index:4;width:184px;pointer-events:none;flex-direction:column;align-items:stretch;gap:2px}
+#posWell{display:none;position:absolute;left:50%;top:62px;transform:translateX(-50%);z-index:4;width:84px;pointer-events:none;flex-direction:column;align-items:center;gap:3px} /* r.188: one position, center, right of the magazine count */
 #app.range.qual #posWell{display:flex}
-#posWell #posName{font-size:8px;letter-spacing:.06em;color:#C9A227;text-align:center;font-weight:500;line-height:1.2}
-#posWell .row{display:flex;justify-content:space-between}
-#posWell i{display:flex;flex-direction:column;align-items:center;width:34px;color:#4A6A78;font-style:normal}
-#posWell i svg{width:26px;height:30px;display:block}
-#posWell i span{font-size:7px;letter-spacing:.02em;text-align:center;line-height:1.1;margin-top:1px}
-#posWell i.on{color:#C9A227}
-#posWell i.done{color:#3DCC8A}
-#posWell i span b{display:block;font-weight:500}
+#posWell #posName{font-size:8px;letter-spacing:.04em;color:#C9A227;text-align:center;font-weight:500;line-height:1.15;max-width:96px}
+#posWell .sq{width:64px;height:64px;border:1px solid #1C2A3A;border-radius:8px;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center}
+#posWell i{display:none;font-style:normal}
+#posWell i.on{display:block}
+#posWell i svg{width:52px;height:52px;display:block}
+#posWell i[data-p="0"]{color:#3DCC8A}
+#posWell i[data-p="1"]{color:#C9A227}
+#posWell i[data-p="2"]{color:#8AA0AE}
+#posWell i[data-p="3"]{color:#7AA4C4}
+#posWell i[data-p="4"]{color:#9AA8B4}
 #app.range:not(.full) #magBar #btnReload{display:none}
 #btnQr{min-height:28px;width:28px;height:28px;padding:3px;color:#7AB8C4;display:inline-grid;place-items:center}
 #btnQr svg{width:16px;height:16px;display:block}
@@ -334,7 +336,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.187</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.188</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -437,12 +439,12 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
     </div>
     <div id="posWell" aria-hidden="true">
       <b id="posName">STANDING</b>
-      <div class="row">
-        <i data-p="0"><svg viewBox="0 0 24 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><path d="M12 6v9M8 11h5M12 15l-3 9M12 15l3 9M13 10l7 1.5"/></g></svg><span>STAND</span></i>
-        <i data-p="1"><svg viewBox="0 0 24 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="6" cy="14" r="2"/><path d="M8 15h8M16 15l5-1M10 15v4M14 15v4M6 22h16"/></g></svg><span>PRONE</span></i>
-        <i data-p="2"><svg viewBox="0 0 24 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="5" cy="16" r="2"/><path d="M7 17h7M14 17l4-1M9 17v3M13 17v3M18 12v10M6 24h16"/></g></svg><span>PRONE<b>SUP</b></span></i>
-        <i data-p="3"><svg viewBox="0 0 24 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="10" cy="5" r="2"/><path d="M10 7v7M10 14l-4 6M10 14l3 8M7 11h4M14 10h4v14"/></g></svg><span>KNEEL<b>SUP</b></span></i>
-        <i data-p="4"><svg viewBox="0 0 24 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="9" cy="4" r="2"/><path d="M9 6v9M6 11h4M9 15l-3 9M9 15l3 9M13 9h3v16"/></g></svg><span>STAND<b>SUP</b></span></i>
+      <div class="sq">
+        <i data-p="0"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="12" r="3.2"/><path d="M26 15l8 12"/><path d="M30 22h22"/><path d="M48 20l4 2-4 2"/><path d="M28 24l-6 6"/><path d="M38 23l2 6"/><path d="M32 28l-10 18M34 29l8 17"/><path d="M18 46h8M38 46h8"/></g></svg></i>
+        <i data-p="1"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="28" cy="28" r="3.2"/><path d="M31 27h22"/><path d="M49 25l4 2-4 2"/><path d="M24 30L10 33"/><path d="M12 33l-6-6M11 34l-5 7"/><path d="M26 31v8M36 28v7"/></g></svg></i>
+        <i data-p="2"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="26" cy="24" r="3.2"/><path d="M29 24h16"/><path d="M41 22l4 2-4 2"/><path d="M14 26h12"/><path d="M8 28l6-2M6 32l6 4"/><path d="M42 26v8h14"/><path d="M48 24v4"/></g></svg></i>
+        <i data-p="3"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="22" cy="14" r="3.2"/><path d="M24 17l8 10"/><path d="M30 24h16"/><path d="M42 22l4 2-4 2"/><path d="M28 28l-8 14"/><path d="M32 30l8 12"/><path d="M18 44h6"/><path d="M44 26v14h12"/></g></svg></i>
+        <i data-p="4"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="14" r="3.2"/><path d="M22 17l8 10"/><path d="M28 22h16"/><path d="M40 20l4 2-4 2"/><path d="M48 10v32h10V36"/><path d="M26 28l-8 18M30 30l8 16"/><path d="M14 46h8M34 46h8"/></g></svg></i>
       </div>
     </div>
     <div id="startLight" class="R" data-s="R" role="status" aria-label="start light WAIT"><span class="lamps"><i class="r"></i><i class="y"></i><i class="g"></i></span><b id="startWord">WAIT</b><b id="startTime"></b></div>
@@ -577,7 +579,8 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.187 THE RANGE · LANE 21 on the first screen, and on the QR. The link opens that lane. No menus.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.188 QUAL shows one position. The square sits in the center, to the right of the magazine count. The rifle points right.
+r.187 THE RANGE · LANE 21 on the first screen, and on the QR. The link opens that lane. No menus.
 r.186 LOCK · the r0.178 picture is the master. Do not serve r.166 over it.
 Cyan RELOAD on the left. The rounds magazine beside it. The count sits under the drawing, not on the plates.
 Cards stay 52 by 72. The drawing stays 18 by 36. Green above 20, amber from 6 to 20, red at 5 or below.
