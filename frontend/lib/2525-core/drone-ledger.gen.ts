@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 68 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 69 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -504,6 +504,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "Operator deck r.191 served at /drone-2525/play.html. The magazines match the r0.178 picture. Reload is the left card. The round count is the next card, not in the center of the picture. The light stays on the right. The cards sit off the plates. A shot still spends one round. An empty magazine refuses.",
       "commit": "3ba0f97"
+    },
+    {
+      "rev": 69,
+      "date": "2026-10-11",
+      "kind": "release",
+      "text": "Operator deck r.192 served at /drone-2525/play.html. The Range now opens in practice. TARGET, APPROVE and FIRE were refused while the light could still turn red, because the line had never left the waiting room. A shot on a marked, approved plate spends one round. The magazine row stays as in r.191.",
+      "commit": "5a6b64b"
     }
   ]
 };
