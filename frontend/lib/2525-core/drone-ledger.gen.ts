@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 62 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 63 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -126,8 +126,7 @@ export const DRONE_LEDGER: LedgerInput = {
       "rev": 17,
       "date": "2026-09-16",
       "kind": "decision",
-      "text": "Revision 0.011. The N ladder: the same game at 1v1, 2v2 and every rung to 21v21 — 42 aircraft, 84 seats, 42 HI a side — with twelve computed review lenses at each rung. It found three things that 21v21 alone could not have shown. A target already coming down was still a target, wasting ninety per cent of all beam time from the second rung upward. A match is decided when a side cannot fight, not when its last aircraft lands. And the person is the bottleneck, measurably: at 21v21 one watch officer is asked for 431 decisions at authority level 1 (117.8 a minute against the fifty a person can answer) and 42 at level 3. Levels 4 and 5 put the decision with a quorum of the key group, which answers 300 a minute between six people, and no rung outruns it. The invariant never bent at any level — what scales is the breadth of one decision and how many named people make it. Also: the winners' circle at one ninth, the R-CORE gate, ending on a floor that a named safety officer must clear; and one aircraft at two sizes with the square-cube law between them, mass 5 kg to 5.00 t and stall 14.4 to 45.5 m/s.",
-      "commit": ""
+      "text": "Revision 0.011. The N ladder: the same game at 1v1, 2v2 and every rung to 21v21 — 42 aircraft, 84 seats, 42 HI a side — with twelve computed review lenses at each rung. It found three things that 21v21 alone could not have shown. A target already coming down was still a target, wasting ninety per cent of all beam time from the second rung upward. A match is decided when a side cannot fight, not when its last aircraft lands. And the person is the bottleneck, measurably: at 21v21 one watch officer is asked for 431 decisions at authority level 1 (117.8 a minute against the fifty a person can answer) and 42 at level 3. Levels 4 and 5 put the decision with a quorum of the key group, which answers 300 a minute between six people, and no rung outruns it. The invariant never bent at any level — what scales is the breadth of one decision and how many named people make it. Also: the winners' circle at one ninth, the R-CORE gate, ending on a floor that a named safety officer must clear; and one aircraft at two sizes with the square-cube law between them, mass 5 kg to 5.00 t and stall 14.4 to 45.5 m/s."
     },
     {
       "rev": 18,
@@ -295,140 +294,160 @@ export const DRONE_LEDGER: LedgerInput = {
       "date": "2026-09-23",
       "kind": "release",
       "text": "Operator deck r.146 served at /drone-2525/play.html (sha256 b3b17cbd...). DEFERRED QA ROWS DECIDE ON EVIDENCE: DRAW_COMPLETES and ASM_MARKED_BY_THE_LOOP poll for the frame / the loop's mark up to a declared ceiling instead of a fixed timer that judged a cold CI runner red (Deploy #950). Correction: r.130's DRAW_COMPLETES measured the runner's speed. QA 149 rows, 148/149 in each orientation.",
-      "commit": "5466050"
+      "commit": "5466050",
+      "shipped": "01f36a9"
     },
     {
       "rev": 42,
       "date": "2026-09-23",
       "kind": "release",
       "text": "Operator deck r.147 served at /drone-2525/play.html (sha256 2476f68a...). LOCK IS THE TARGET NEAREST THE BULLSEYE ON THE PICTURE: one pip-nearest rule (48 px reach, declared) for every kind and scene; T1·T2·T3 in that order; key 1 marks what the button marks. Correction: r.131's two lock rows passed with the pip on the grass. QA 152 rows, 151/152 in each orientation.",
-      "commit": "7a7a2c7"
+      "commit": "7a7a2c7",
+      "shipped": "b3d1f63"
     },
     {
       "rev": 43,
       "date": "2026-09-23",
       "kind": "release",
       "text": "Operator deck r.148 served at /drone-2525/play.html (sha256 213a56fc...). THE EYE OUTRANKS THE MARK: the 48-agent fleet's fold — a mark is held only while the bullseye is on it, one door for TARGET/keys/voice, every key obeys the reach, the AI spots through the bullseye and never moves the seated head, FIRE with no box names NONE, board under the strip, wire APPROVE author from the envelope, peer HIT needs red on record. Correction: r.147's rule ran only on an empty board. QA 161 rows, 160/161 in each orientation.",
-      "commit": "8ccab36"
+      "commit": "8ccab36",
+      "shipped": "10865bd"
     },
     {
       "rev": 44,
       "date": "2026-09-23",
       "kind": "release",
       "text": "Operator deck r.149 served at /drone-2525/play.html (sha256 20499eed...). A BOX ONLY AROUND THE MARKED TARGET: no edge markers unless targeted; amber on TARGET, red on APPROVE; the voxel around every marked slot in 3D; the three range modes re-stated. QA 163 rows, 162/163 in each orientation.",
-      "commit": "6b585bf"
+      "commit": "6b585bf",
+      "shipped": "8055270"
     },
     {
       "rev": 45,
       "date": "2026-09-24",
       "kind": "release",
       "text": "Operator deck r.150 served at /drone-2525/play.html (sha256 e8d553ed...). THE FIRE GATE READS THE PICTURE: a round or a tag is spent only on a red box the bullseye is on — FIRE says where, costs nothing, keeps the box red; no tag without a red box; no approval on a dead plate whoever marked it; the approver looks at a peer's mark from any seat, never for an AI mark; the AI re-arms on reload and reads the HIT for 1.4 s; a forged red never shoots the bull; the deck's own SSSES row gone. Items 1–4 of the 48-agent fleet's order on r.147. QA 175 rows, 174/175 in each orientation.",
-      "commit": "ec241fa"
+      "commit": "ec241fa",
+      "shipped": "ec241fa"
     },
     {
       "rev": 46,
       "date": "2026-09-24",
       "kind": "release",
       "text": "Operator deck r.151 served at /drone-2525/play.html (sha256 3c4d297e...). POP-UP TARGETS FIRE AGAIN: r.150's non-plate FIRE gate refused a marked, approved TURRET/CAPITAL lawn pop (32 px against the pop's base, 1.2 m below the drawn silhouette, while the LOCK reaches LOCK_REACH_PX 48 px) — 'pop-up targets no longer work'. One value: the non-plate FIRE tolerance is now LOCK_REACH_PX, so the gate accepts exactly what the LOCK accepts ('if you can lock it you can fire it'); pipOn, the lock, the draw and plate handling untouched. Item 5 of the 48-agent fleet's order on r.147. QA row FIRE_HITS_A_POP added; 176 rows, 175/176 in each orientation.",
-      "commit": "9fb8c97"
+      "commit": "9fb8c97",
+      "shipped": "0dd4cc4"
     },
     {
       "rev": 47,
       "date": "2026-09-24",
       "kind": "release",
       "text": "Operator deck r.152 served at /drone-2525/play.html (sha256 e15cd399...). THE FULL-SCREEN CONTROL IS AN ICON, NOT A WORD: the top-bar (btnFullBar) and #magBar (btnFull) FULL/EXIT word buttons become the Mission-Planning maximize (⤢) / minimize (⤡) icons — the SoI-2525 ChartFrame and Security-2525 Mission Planning affordance; the top-bar maximize icon sits at the upper-right at a comfortable tap size; the fullscreen behaviour (requestFullscreen/exitFullscreen, #app.full hiding the words) is untouched. Operator ask docs/asks/2026-09-24_drone_popups_box_maximize.md; the pop-ups reconfirmed on the served deck (all up in Target-Up, amber on TARGET, red on APPROVE, a marked+approved pop fires — no fix needed). QA row FULLSCREEN_IS_AN_ICON added; 177 rows, 176/177 in each orientation.",
-      "commit": "8366dfa"
+      "commit": "8366dfa",
+      "shipped": "948c37e"
     },
     {
       "rev": 48,
       "date": "2026-09-26",
       "kind": "release",
       "text": "Operator deck r.153 served at /drone-2525/play.html (sha256 3c3de521...). THE BROWSER TAB READS \"eXeL Drone-2525\" — the <title> was the last place the stale early deck name \"eXeL ECO-2525 · MoT · SSSES\" survived, so the phone tab said ECO; now exactly \"eXeL Drone-2525\" (operator 2026-09-26, docs/asks/2026-09-26_drone_tab_name.md). Title-only, byte-gated: patch patches/r152_to_r153.py, byte-identical play.html, no QA-row or logic change.",
-      "commit": "c65d719"
+      "commit": "c65d719",
+      "shipped": "ecbb262"
     },
     {
       "rev": 49,
       "date": "2026-10-04",
       "kind": "release",
       "text": "Operator deck r.154 served at /drone-2525/play.html (sha256 ccb4fe73...). THE QUAL · 40 CLOCK COUNTS REAL SECONDS; 10 S BETWEEN POSITIONS — below 20 fps the range clock ran on the loop's 50 ms-capped step, so the exposure windows and gaps stretched (5 s → 16.58 s at ~160 ms frames); the range now counts wall time (capped 0.25 s per frame), physics keeps 50 ms, and the phase gap is the sourced 10 s (operator 2026-10-04, docs/asks/2026.10.04_03.56..35_drone2525_qual40_exposure_times.md). Patch patches/r153_to_r154.py, byte-identical play.html, QA row QUAL_CLOCK_IS_WALL_TIME added (178 rows, 177/178 both orientations); drone-range-all-lanes slow-frame timing on lane 21.",
-      "commit": "fc0fddf"
+      "commit": "fc0fddf",
+      "shipped": "37035b6"
     },
     {
       "rev": 50,
       "date": "2026-10-04",
       "kind": "release",
       "text": "Operator deck r.155 served at /drone-2525/play.html (sha256 300ceb93...). TARGET · APPROVE · FIRE LEFT OF THE STICK ON THE TURRET, CENTRED BETWEEN THE STICKS ON A DRONE — the cluster was centred on the screen and floated above the HEAD stick; placeFace() now measures the sticks and puts it in one row 10 px left of the stick at its height on the turret, and on the midpoint between the two sticks on a drone, in portrait, landscape and FULL (operator 2026-10-04, docs/asks/2026.10.04_08.50..02_drone2525_face_left_of_stick_turret.md). Patch patches/r154_to_r155.py, byte-identical play.html, QA row FACE_BESIDE_STICK added.",
-      "commit": "d2d2431"
+      "commit": "d2d2431",
+      "shipped": "7db2b8b"
     },
     {
       "rev": 51,
       "date": "2026-10-05",
       "kind": "release",
       "text": "Operator deck r.156 served at /drone-2525/play.html (sha256 92eb716a...). THE HIT SPLASH STARTS AT THE CENTRE OF THE HIT TARGET — the ring was placed at the plate's lane-local point (beside and above the plate), flashed on a miss, and at MoT 1 was dropped whole by the segment budget; a hit now keeps the target and splashCentre() draws the ring on its centre of mass (worldOf) every frame, lowering with the fall, never on a miss, outside the world budget (operator 2026-10-04, docs/drone-2525/rounds/2026.10.04_09.17..48_19_rounds/ASK.md Addendum 2). Patch patches/r155_to_r156.py, byte-identical play.html, QA row SPLASH_FROM_TARGET_CENTRE added.",
-      "commit": "aa66c46"
+      "commit": "aa66c46",
+      "shipped": "828e80a"
     },
     {
       "rev": 52,
       "date": "2026-10-05",
       "kind": "release",
       "text": "Operator deck r.157 served at /drone-2525/play.html (sha256 5d65ee2b...). DRONE ROUND 1 OF 19 — THE SPLASH RINGS THE BOTTOM OF THE HIT TARGET (Addendum 5: \"splash-ring as oval from bottom of target works\"; a plate's foot, the ground under anything else), LABELS ONLY WHILE MARKED, THE RANGE MENU (TRAIN UP · TRAIN DOWN · QUAL 40 + RESTART + LANE, the rest behind MORE), LANE BOARDS ON BOTH EDGES (\"◂ 40 · 41 ▸\") ON 15 M LANES, THE LIT NEXT BUTTON, RELOAD THAT CALLS, ONE PLAIN STATUS LINE, THE START LIGHT (RED WAIT · YELLOW READY · GREEN FIRE), the range showing lanes and targets only, my lane never dropped by the draw budget, rooms scored by lane, and QUAL ending with its scorecard and PRESS RESTART (operator 2026-10-04, docs/drone-2525/rounds/2026.10.04_09.17..48_19_rounds/ASK.md + Addenda 1–5). Patch patches/r156_to_r157.py, byte-identical play.html, 17 QA rows added or rewritten (SPLASH_FROM_TARGET_BASE replaces SPLASH_FROM_TARGET_CENTRE).",
-      "commit": "f6cf582"
+      "commit": "f6cf582",
+      "shipped": "8e362be"
     },
     {
       "rev": 53,
       "date": "2026-10-05",
       "kind": "release",
       "text": "Operator deck r.158 served at /drone-2525/play.html (sha256 62f9fd1f...). NO GREY PHANTOM TARGETS (only my lane's targets drawn on the range) and THE LANE NUMBERS ON A REAL SIGN BOARD (\"◂ 20 · 21 ▸\" on a 1.2 × 0.6 m board on its post) AND FADED DOTTED LANE LINES SIGN TO SIGN — operator Addenda 6–7.",
-      "commit": "ad2b2b0"
+      "commit": "ad2b2b0",
+      "shipped": "20454e2"
     },
     {
       "rev": 54,
       "date": "2026-10-05",
       "kind": "release",
       "text": "Operator deck r.159 served at /drone-2525/play.html (sha256 d30d2ca9...). REAL-SIZE WHITE LANE SIGNS WITH BLACK NUMBERS THAT NEVER COVER A TARGET; PC KEYS AND MOUSE (SPACE / RIGHT CLICK = TARGET THEN APPROVE, F / LEFT CLICK = FIRE, ARROWS / WASD) — operator Addenda 9–10.",
-      "commit": "09f78aa"
+      "commit": "09f78aa",
+      "shipped": "980dede"
     },
     {
       "rev": 55,
       "date": "2026-10-05",
       "kind": "release",
       "text": "Operator deck r.160 served at /drone-2525/play.html (sha256 1fbc365f...). THE LANE SIGNS READABLE — SHORT NUMBERS LIKE THE PHOTO (\"21 22\"), BLACK ON A SMALL WHITE BOARD, AT LEAST 9 PX, NEVER OVER A TARGET — operator Addendum 11.",
-      "commit": "5a8a161"
+      "commit": "5a8a161",
+      "shipped": "1d9ea29"
     },
     {
       "rev": 56,
       "date": "2026-10-05",
       "kind": "release",
       "text": "Operator deck r.161 served at /drone-2525/play.html (sha256 543ed598...). T MARKS WHAT THE BULLSEYE IS ON (it stepped slots), SPACE APPROVES, F FIRES, KEYS BEAT A FOCUSED BUTTON; A LEFT CLICK CENTRES THE BULLSEYE ON THE CLICKED TARGET — operator Addendum 12.",
-      "commit": "0b45687"
+      "commit": "0b45687",
+      "shipped": "cafdd9f"
     },
     {
       "rev": 57,
       "date": "2026-10-05",
       "kind": "release",
       "text": "Operator deck r.162 served at /drone-2525/play.html (sha256 10c900f7...). QUAL TIMER AND A VERTICAL RED · YELLOW · GREEN LIGHT ON THE RIGHT — THE LAST THREE SECONDS OF EACH GROUP, ONE SECOND A LAMP — operator Addendum 13. A MARKED, APPROVED TARGET KEEPS ITS MARK THROUGH THE HIT AND THE RETURN IN TRAINING · RESET — operator Addendum 14. MARKS ARE REMEMBERED — MARK MANY, APPROVE EACH, FIRE ONLY APPROVED — operator Addendum 15. R RELOADS ON A PC — operator Addendum 17. r.161 artefact commit corrected to 0b45687.",
-      "commit": "0e6d329"
+      "commit": "0e6d329",
+      "shipped": "6fe15e4"
     },
     {
       "rev": 58,
       "date": "2026-10-05",
       "kind": "release",
       "text": "Operator deck r.163 served at /drone-2525/play.html (sha256 a725cdba...). T-NUMBERS IN MARKING ORDER; APPROVE AND FIRE BY NUMBER — KEYS 1–9 AND VOICE — operator Addendum 18. THE SPLASH IS 0.3 S OF REAL TIME — operator Addendum 21. r.162 artefact commit corrected to 0e6d329.",
-      "commit": "921ce8a"
+      "commit": "921ce8a",
+      "shipped": "0699abf"
     },
     {
       "rev": 59,
       "date": "2026-10-05",
       "kind": "release",
       "text": "Operator deck r.164 served at /drone-2525/play.html (sha256 567f6ef3...). SETTINGS → VOICE: BROWSER · VOSK · MY VOICE, TEST MY VOICE (HEARD / MISSED / CONFUSED per word), TRAIN MY VOICE kept on the device — operator Addenda 19–20.",
-      "commit": "bf8cb7c"
+      "commit": "bf8cb7c",
+      "shipped": "a5764e1"
     },
     {
       "rev": 60,
       "date": "2026-10-05",
       "kind": "release",
       "text": "Operator deck r.165 served at /drone-2525/play.html (sha256 76961252...). RESELECT TO APPROVE BY EVERY DOOR; A SHOT TARGET GOES AWAY (NO RING ON A DOWN TARGET); TRAIN DOWN REMEMBERS MARKS — operator Addenda 22–23.",
-      "commit": "47f66e2"
+      "commit": "47f66e2",
+      "shipped": "PENDING"
     },
     {
       "rev": 61,
@@ -443,6 +462,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "Operator deck r.166 reinstated at /drone-2525/play.html (commit d6bcc160). Train Up still requires target, approve, and fire again after a hit. The later range experiments r.167 through r.176 are not served.",
       "commit": "d6bcc160"
+    },
+    {
+      "rev": 63,
+      "date": "2026-10-10",
+      "kind": "decision",
+      "text": "LOCKED GLASS r0.186 served at /drone-2525/play.html. The record had stopped at r.166, so later edits treated that as the deck and rebuilt the magazines. r.166 is not the served range. The r0.178 picture is the master. Left card: the cyan isometric magazine, the word RELOAD under the drawing, a tap reloads. The card beside it is the rounds: the same magazine, ribs from the bottom, the count under the drawing. Green above 20, amber from 6 to 20, red at 5 or below. Both cards stay compact, 52 by 72, drawing 18 by 36, under the status line and off the plates. RESTART stays to the right of the mode and the lane. The QR sheet title is THE RANGE · LANE · TURRET · MODE and the link is /drone-2525/play?range=&role=turret&mode=. The tower light stays 64 px wide. The Train Down clock and ALL DOWN fit inside it and do not grow it. TRAIN DOWN starts on START and the clock stops when every target is down. BUILD.revision and the corner badge are the same number. A phone still showing r0.182 is a stale page.",
+      "commit": "6a4097f"
     }
   ]
 };

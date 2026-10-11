@@ -575,7 +575,12 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.185 The Range share sheet, as on r0.178. Magazines stay the compact corner size.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.186 LOCK · the r0.178 picture is the master. Do not serve r.166 over it.
+Cyan RELOAD on the left. The rounds magazine beside it. The count sits under the drawing, not on the plates.
+Cards stay 52 by 72. The drawing stays 18 by 36. Green above 20, amber from 6 to 20, red at 5 or below.
+RESTART stays at the right. The QR title is THE RANGE · LANE · TURRET · MODE. The light stays 64 px wide.
+A corner that still says r0.182 is a stale page. Hard-refresh until it says r0.186.
+r.185 The Range share sheet, as on r0.178. Magazines stay the compact corner size.
 r.184 The magazines match the r0.178 glass: compact, count tucked under the drawing, RESTART at the right.
 r.183 THE RANGE stays on the QR sheet. The tower light keeps its size; the Train Down clock fits inside it.
 r.182 TRAIN DOWN · START raises the lane and starts the clock. The clock stops when every target is down.
@@ -686,7 +691,7 @@ function rcoreStep(name){
 }
 const T13={VOID:'#000000',PANEL:'#070B10',STROKE:'#1C2A3A',WIRE:'#7AB8C4',ROAD:'#4A6A78',WATER:'#2A6D88',DOME:'#C9A227',SI:'#E8D5B0',HI:'#5BA8FF',AI:'#C084FC',LOCK:'#E24B3B',TAG:'#3DCC8A',GIMBAL:'#F0A020'};
 const OK=new Set(Object.values(T13));
-const BUILD={version:'00.00',revision:'0.166'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
+const BUILD={version:'00.00',revision:'0.186'}; /* LOCK r.186 = ledger rev 63. The corner badge and this number stay the same. r.166 is not the served deck. */ const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
 
 const ASM=[
   {id:'AsM-01',name:'Enki',line:'Sumerian',team:'BLU',seat:'T01',ctrl:'AI'},
