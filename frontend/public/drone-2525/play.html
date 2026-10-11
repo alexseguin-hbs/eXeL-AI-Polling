@@ -32,12 +32,12 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #magBar #btnReload.call{border-color:#C9A227;color:#C9A227;box-shadow:0 0 10px #C9A227}
 #magWell{position:absolute;left:8px;top:58px;z-index:4;display:none;gap:8px;align-items:flex-end;pointer-events:none} /* r.184: the r0.178 size — compact, under the status line, off the sight picture */
 #app.range #magWell{display:flex}
-#magWell button,#magWell .body{width:58px;background:rgba(0,0,0,.55);border:1px solid #1C2A3A;border-radius:8px;color:#7AB8C4;padding:3px 2px 2px;display:flex;flex-direction:column;align-items:center;gap:0}
+#magWell button,#magWell .body{width:68px;background:rgba(0,0,0,.55);border:1px solid #1C2A3A;border-radius:10px;color:#7AB8C4;padding:6px 4px 4px;display:flex;flex-direction:column;align-items:center;gap:2px}
 #magWell button{pointer-events:auto}
 #magWell .body{pointer-events:none}
-#magWell svg{width:22px;height:40px;display:block}
-#magWell b{font-size:8px;letter-spacing:.08em;font-weight:500;color:#7AB8C4}
-#magWell #magRounds{font-size:11px;font-weight:700;letter-spacing:0;color:#3DCC8A;font-family:ui-monospace,Menlo,monospace}
+#magWell svg{width:30px;height:60px;display:block}
+#magWell b{font-size:9px;letter-spacing:.08em;font-weight:500;color:#7AB8C4}
+#magWell #magRounds{font-size:13px;font-weight:700;letter-spacing:0;color:#3DCC8A;font-family:ui-monospace,Menlo,monospace}
 #magWell #magReload.call{border-color:#C9A227;box-shadow:0 0 10px #C9A227}
 #magWell #magReload.locked{opacity:.45}
 #posWell{display:none;position:absolute;left:8px;top:216px;z-index:4;width:184px;pointer-events:none;flex-direction:column;align-items:stretch;gap:2px}
@@ -53,14 +53,16 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #app.range:not(.full) #magBar #btnReload{display:none}
 #btnQr{min-height:28px;width:28px;height:28px;padding:3px;color:#7AB8C4;display:inline-grid;place-items:center}
 #btnQr svg{width:16px;height:16px;display:block}
-#qrSheet{position:fixed;inset:0;z-index:60;display:none;background:rgba(0,0,0,.78);align-items:center;justify-content:center;flex-direction:column;padding:64px 16px 32px}
+#qrSheet{position:fixed;inset:0;z-index:60;display:none;background:#05080c;align-items:center;justify-content:center;flex-direction:column;padding:72px 22px 32px;text-align:center}
 #qrSheet.on{display:flex}
-#qrSheet h2{color:#3DCC8A;letter-spacing:.16em;font-size:15px;font-weight:500;margin:0 0 16px;text-align:center}
-#qrSheet .card{background:#fff;border-radius:16px;padding:14px;line-height:0}
-#qrSheet .card svg{width:min(72vw,300px);height:auto;display:block}
-#qrSheet #qrUrl{color:#7AB8C4;font-size:12px;line-height:1.45;text-align:center;max-width:36em;margin:16px 0 12px;word-break:break-all}
-#qrSheet #qrCopy{color:#7AB8C4;border:1px solid #1C2A3A;letter-spacing:.16em;padding:10px 16px;background:#000;min-height:36px}
-#qrClose{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));z-index:61;width:44px;height:44px;min-height:44px;padding:0;color:#7AB8C4;border:1px solid #1C2A3A;background:#000}
+#qrSheet h2{color:#2EE0E0;letter-spacing:.01em;font-size:28px;font-weight:650;margin:0 0 8px;text-align:center}
+#qrSheet #qrSub{color:#9AA8B0;font-size:15px;font-style:italic;font-weight:400;margin:0 0 22px;letter-spacing:.01em}
+#qrSheet .card{background:#fff;border-radius:18px;padding:16px;line-height:0}
+#qrSheet .card svg{width:min(78vw,320px);height:auto;display:block}
+#qrSheet #qrHint{color:#C5D0D6;font-size:16px;margin:22px 0 8px}
+#qrSheet #qrUrl{color:#8E9BA3;font-size:13px;line-height:1.45;text-align:center;max-width:22em;margin:0 0 22px;word-break:break-all}
+#qrSheet #qrCopy{color:#E8EEF0;border:0;letter-spacing:.01em;padding:12px 28px;background:#1E4A4E;border-radius:999px;min-height:44px;font-size:16px}
+#qrClose{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:61;width:44px;height:44px;min-height:44px;padding:0;color:#fff;border:0;background:transparent;font-size:28px}
  /* r.157: RELOAD calls for itself — empty, or the QUAL phase rest with a part-used magazine; never full */
 #startLight{position:absolute;right:8px;top:42px;z-index:4;display:none;flex-direction:column;align-items:center;gap:3px;width:64px;box-sizing:border-box;padding:4px 4px;border:1px solid #1C2A3A;border-radius:6px;background:rgba(0,0,0,.6);pointer-events:none} /* r.183: the tower light stays this size; the clock fits inside it */
 #app.range #startLight{display:flex}
@@ -330,7 +332,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.184</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.185</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -573,7 +575,8 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
       <div class="stat"><span>SUC</span><b id="sU">—</b></div>
       <div class="stat"><span>AVG</span><b id="sA">—</b></div>
       <h3>UPDATES</h3>
-      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.184 The magazines match the r0.178 glass: compact, count tucked under the drawing, RESTART at the right.
+      <pre id="updBox" style="white-space:pre-wrap;font-size:9px;color:#7AB8C4;max-height:220px;overflow:auto">r.185 The Range share sheet, as on r0.178. Magazines stay the compact corner size.
+r.184 The magazines match the r0.178 glass: compact, count tucked under the drawing, RESTART at the right.
 r.183 THE RANGE stays on the QR sheet. The tower light keeps its size; the Train Down clock fits inside it.
 r.182 TRAIN DOWN · START raises the lane and starts the clock. The clock stops when every target is down.
 r.181 CEASE FIRE · a plate stands only in its own exposure. When the table ends the glass says CEASE FIRE, UNLOAD, SHOW CLEAR, the score, and RANGE IS COLD. RELOAD and the round count stay.
@@ -663,10 +666,12 @@ No real-world laser-designator standard is implemented
 
 <div id="qrSheet" aria-hidden="true">
   <button type="button" id="qrClose" aria-label="close">×</button>
-  <h2 id="qrTitle">THE RANGE · LANE 21 · TURRET · TRAIN UP</h2>
+  <h2 id="qrTitle">The Range</h2>
+  <p id="qrSub">Lane 21 · Turret · Mode: Train - Up</p>
   <div class="card" id="qrImg"></div>
+  <p id="qrHint">Scan to share The Range</p>
   <p id="qrUrl"></p>
-  <button type="button" id="qrCopy">COPY LINK</button>
+  <button type="button" id="qrCopy">Copy Link</button>
 </div>
 <div id="toast"></div>
 <script>
@@ -7631,14 +7636,21 @@ var qrcode = function() {
     var mode=state.rangeMode==='stay'?'train-down':(state.rangeMode==='qual40'?'qual40':'train-up');
     var lane=((state.lane|0)+1);
     var host=(location.protocol==='http:'||location.protocol==='https:')?location.origin:'https://exel-ai-polling.explore-096.workers.dev';
-    return host+'/drone-2525/play.html?range='+lane+'&role=turret&mode='+mode;
+    return host+'/drone-2525/play?range='+lane+'&role=turret&mode='+mode;
+  }
+  function modeWords(){
+    var m=state.rangeMode||'bounce';
+    return m==='stay'?'Train - Down':(m==='qual40'?'Qual 40':'Train - Up');
   }
   function paintQr(){
     var url=shareUrl();
     var title=document.getElementById('qrTitle');
+    var sub=document.getElementById('qrSub');
     var link=document.getElementById('qrUrl');
     var box=document.getElementById('qrImg');
-    if(title) title.textContent='THE RANGE · '+(typeof laneWord==='function'?laneWord():('LANE '+(((state.lane|0)+1))))+' · TURRET · '+((typeof RANGE_MODE_NAME!=='undefined'&&RANGE_MODE_NAME[state.rangeMode||'bounce'])||'TRAIN UP');
+    var laneN=((state.lane|0)+1);
+    if(title) title.textContent='The Range';
+    if(sub) sub.textContent='Lane '+laneN+' · Turret · Mode: '+modeWords();
     if(link) link.textContent=url;
     if(box && typeof qrcode==='function'){
       var qr=qrcode(0,'M');
