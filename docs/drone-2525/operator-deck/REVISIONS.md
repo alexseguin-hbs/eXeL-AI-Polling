@@ -50,6 +50,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.195 | 2026-10-11 | Grok (hand edit 14a930d0 — unregistered; carried 2026-10-12 as the record of what was served with the gate red) | 547290 | 7b02aed71bc2e78b4f44e2edb033d8208e06cd82642c855c585ad827e6b408e1 | 14a930d0 (served through 8f9b354 with deck-consistency, drone-playable and traceability red) | d521f699c98fe66d2ac31988e504b9e850ae431823ea63ab67b31b8d45d85a63 |
 | r.196 | 2026-10-12 | Claude Code (RESTORE: the r.178 base; every target TARGET → APPROVE → FIRE in every mode; plates at true size; the r0.178 picture; THE RANGE from the intro and the QR; the register caught up) | 542571 | aef96537d11a1a00cec97656fb1a7573f89a97122b963450f1d84bab1b5d48e6 | e8578ad (Verify Live #2723) | a90b136a8c648e3bae213833b06623e40997b78669d908f6fbae26dd4c7bf550 |
 | r.197 | 2026-10-12 | Claude Code (TRAIN DOWN on the record: START raises the lane and opens the clock under the light; the last target stops it; START and TIME are decision rows) | 552240 | 1e6fd69cfe8368d14ebd3c107bf482654c0bafcac8e5896048d167913535057c | a089d8d (Verify Live #2725) | d952e0e7b2a5fb2cbeef8418c28fa05ac2f27661414b40385d3fc4ff11537ebd |
+| r.198 | 2026-10-12 | Claude Code (QUAL: the five Table VI positions as high-resolution figures traced from the operator's TC 3-22.9 pages — the rifle in its own colour — on a card the magazine's height, one at a time, matched to the four magazines; the table ends cold on the record) | 676440 | d8cc52d45d2a7af2a5fba4c27f6dae3d57afe524560476b4fc7542c6fdfabc41 | PENDING (Verify Live) | c59a03a3a15137dd4595aac6c8e670339a6bf73e4d88efe046f4d488ec7f457e |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1018,3 +1019,33 @@ Notes: `CLAUDE_CODE_NOTES_r197.md`. Patch: `patches/r196_to_r197.py` (base r.196
 - QA: `TRAIN_DOWN_CLOCK` (armed → START → running → the last target → the time on the light, the strip, the hint, the row within 50 ms),
   `TRAIN_DOWN_ON_THE_RECORD` (refused before the round, refused while running, START and TIME rows, the replay hash moves); `MODE_DOWN_ALL_DOWN` re-stated
   through START. Boot QA both orientations; `drone-team-e2e` 10/10.
+
+## r.198 — Claude Code: QUAL — the five positions as the operator's own figures, one at a time, matched to the four magazines; the range goes cold (2026-10-12)
+Operator (2026-10-11, verbatim): **"i need Raster for each pose"** · **"I want clear rasters for 5 shooting positions; same height as magazines and stop
+light accept a rounded square"** · **"we match the shooting position tonthe target and 4 magazines that we actually test in wualifications for army
+range"** · **"mini poses are raster sinplications 1983 starwars video game style with words of these 5"** · **"standing; Prone unsupported, Prone
+Supported, Kneeling Supported, Standing Supported"** · (2026-10-12) **"dont use stick figures; better high resolution modern images, make gun different color than person"**.
+Notes: `CLAUDE_CODE_NOTES_r198.md`. Patch: `patches/r197_to_r198.py` (base r.197, declared and asserted). Artefact commit `d93370d`.
+- **Invariant:** in QUAL the pose on the card is the position the current engagement is fired from and the magazine is the one the Army test loads
+  for that phase (1 STANDING · 2–5 PRONE UNSUPPORTED · MAG 1 · 6–10 PRONE SUPPORTED · MAG 2 · 11–14 KNEELING SUPPORTED · MAG 3 · 15–18 STANDING
+  SUPPORTED · MAG 4); every target still needs TARGET → APPROVE → FIRE; the table ends cold, on the record (a COLD row with hits, rounds, score).
+- **The rasters:** his own TC 3-22.9 figures (`docs/asks/img/…shot3..7.jpg`), traced at high resolution by `frontend/scripts/trace-poses.mjs` with the
+  recipe `docs/drone-2525/poses/poses.v2.json`: Chromium decodes the page, the pixels are classed (paper → transparent · the uniform's grey → the
+  PERSON, T13.SI · the long mid-grey rows → the RIFLE, T13.DOME · thin black → outline, T13.ROAD), the numbered callouts are found by their white
+  interiors, their digits and their rings and painted over along their radii, the prone figures are mirrored so every rifle points right, and the
+  figure is fitted into 256×256 by majority vote; Node writes a 2-bit palette PNG with stored deflate (`pose-0..4.png`, ≈16.7 KB each,
+  `POSES.sha256`), embedded in the deck as `POSE_PNG` data URIs so it stays one file. No stick figures; the gun is never the person's colour
+  (operator 2026-10-12). The word is the card's label.
+- **The card:** `#posWell`, a rounded square (radius 12) of exactly the magazine card's height (75 px), between the count and the light on the same
+  row, QUAL only; one `<img>` whose source follows the engagement (`POSES`, `POSE_BY_ENG`, `qualPose`, `paintPos`); the rest between phases shows
+  the next position; done reads RANGE IS COLD.
+- **The cold range** (r.179 `50826908` / r.181 `84c86cf9`, hand edits never registered, carried): the 40th round lowers every plate and clears
+  every mark; the glass says CEASE FIRE · UNLOAD · SHOW CLEAR · the score · THE LINE IS CLEAR · RANGE IS COLD · PRESS RESTART; the light says
+  CEASE FIRE · COLD; RELOAD reads UNLOAD and refuses (NO MAG when the fourth is spent); a cold line draws no silhouette and no board; a plate
+  stands only while its own exposure is up (`qualDropStrays`); `decide('COLD')` carries hits/rounds/score and travels like RESET.
+- QA: `POSE_MATCHES_THE_ENGAGEMENT` (11 engagements walked, the rest between phases, done, outside QUAL), `POSE_CARD_IS_A_ROUNDED_SQUARE_OF_THE_MAGAZINE_HEIGHT`
+  (measured), `QUAL_ENDS_COLD` (every plate down, marks cleared, the words, UNLOAD refuses, the COLD row, the light); `QUAL_DONE_SAYS_RESTART` re-stated to
+  the cold words. Gate `tests/pose-rasters.test.mjs` (node-only, in prebuild): the carried PNGs are 256×256 2-bit palette files whose palette is exactly
+  transparent · person · outline · rifle from the deck's own T13; both decks embed them byte-equal; the words, the table; the tracer carried.
+- Open (default, on the record): the phase-rest sentence stays r.178's "PHASE n · <position> · PRESS RELOAD · MOVE" (r.181's tower voice "CEASE FIRE
+  · LOCK AND LOAD" is not carried); the colours — person ivory (T13.SI), rifle gold (T13.DOME), outline T13.ROAD — are one line each.

@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 75 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 76 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -534,6 +534,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "TRAIN DOWN is a timed run on the record: START raises the lane and opens the clock under the light, the last target down stops it, START and TIME are decision rows that reach every seat — operator deck r.197 served at /drone-2525/play.html (sha256 1e6fd69c...). DD-04 TRAIN DOWN time on the record. Armed: every target down, the light WAIT, the button START; a START before the round opens or while the clock runs is a REJECT row; RESTART re-arms; the target set is declared on the START row (targets:N — the lane's 11; a 3-target run is one constant). Ported from r.182 (aac4db9b, a hand edit never registered).",
       "commit": "f65885b"
+    },
+    {
+      "rev": 76,
+      "date": "2026-10-12",
+      "kind": "release",
+      "text": "QUAL: the five Table VI positions as the operator's own TC 3-22.9 figures, traced at high resolution with the rifle in its own colour, on a card the magazine's height, one at a time, matched to the four magazines; the table ends cold on the record — operator deck r.198 served at /drone-2525/play.html (sha256 d8cc52d4...). DD-03 the positions are his own figures — high-resolution, no stick figures, the gun never the person's colour — one at a time, his five words in his order. The card is a rounded square (radius 12) of the magazine card's height between the count and the light, QUAL only; the figure follows the engagement (1 STANDING · 2–5 PRONE UNSUPPORTED · 6–10 PRONE SUPPORTED · 11–14 KNEELING SUPPORTED · 15–18 STANDING SUPPORTED) and the magazine is the phase; the five rasters are traced from his pages by one carried script and recipe (person T13.SI · rifle T13.DOME · outline T13.ROAD) and embedded, so the deck stays one file. The 40th round lowers every plate and clears every mark: CEASE FIRE · UNLOAD · SHOW CLEAR · the score · RANGE IS COLD; RELOAD reads UNLOAD and refuses; a COLD row carries hits, rounds and score (r.179/r.181, hand edits never registered, carried).",
+      "commit": "d93370d"
     }
   ]
 };
