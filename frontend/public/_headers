@@ -11,6 +11,14 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(self), geolocation=()
 
+# r.202 · THE OPERATOR DECK — never cached, always the current revision (operator 2026-10-12: his phone's tab held r0.198
+# while the site served r0.201 — "why are you unable to delete old file and use this?"). Same rule as the living document:
+# no-cache means revalidate before reuse, so a reload always gets the revision that is actually deployed. The QR link
+# (play.html?range=…) is the same path and takes the same rule.
+/drone-2525/play.html
+  Cache-Control: no-cache, must-revalidate
+  Content-Type: text/html; charset=utf-8
+
 # r143 · THE LIVING DOCUMENT — never cached, always the current release.
 # The operator's rule is that the HTML they hold and the HTML the site serves are
 # the same exact content. A CDN or browser cache holding yesterday's build breaks
