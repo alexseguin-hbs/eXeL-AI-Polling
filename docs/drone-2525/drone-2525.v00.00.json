@@ -438,7 +438,7 @@
    "kind": "release",
    "why": "Operator deck r.202 — the magazine row is the operator's three pictures (operator 2026-10-12, verbatim: \"These are exact image ton-use; create final raster and use exact proportions\" · \"height of all magazines, standing position and stop light need to be same\" · \"WHEN INFIVE YOU AND IMAGE FOLLOW EXACTLY!\"): the RELOAD ink and the count's frame and fill cut from his images by docs/drone-2525/magazine/cut-magazine.py into 72×192 rasters (pinned, embedded as MAG_PNG), the cards at his proportions (RELOAD 60×75, the count 42×75, the ink 18×48 from 7 % down), the light at his box's proportion (56×75, the lamps 19 % of its width), all four one height with the stance box; the fill clipped from the top by the rounds left and coloured by his rule; the frame never changes; the SVG magazines of r.178–r.201 gone. New gate tests/magazine-rasters.test.mjs.",
    "commit": "ab65de4",
-   "shipped": "PENDING"
+   "shipped": "b5f7592"
   }
  ],
  "arena": {
