@@ -594,7 +594,7 @@
       "kind": "release",
       "text": "The rounds as in his picture: the counter's frame and fill and the RELOAD ink cut from his reference shot40 — nineteen distinct bars inside the walls, over the grid, below the window, one bar per round — operator deck r.203 served at /drone-2525/play.html (sha256 00661e04...). DD-12 his words on the LIVE r.202: \"rounds mist be in magazine\", then shot40 as the reference — r.202's fill, cut from his r0.178 phone photo at 29, was twenty-eight thin lines through the window and read as a solid block on the phone; a first draft (the frame painted over the fill) was refused by the Spiral round for changing no pixel he could see; r.203 cuts shot40 into the same five 72×192 rasters (the frame from the uncovered RELOAD drawing in gold — a frame cut from the covered counter carried holes, caught by the round; pinned with BARS.json in MAGAZINE.sha256), clips one bar per round (MAG_BAR_TOPS), the bars painted over the frame; the pixels are gated by ROUNDS_ARE_INSIDE_THE_MAGAZINE (every fill row between the walls, nineteen distinct bars, the band below the window, the grid whole) and the paint order by BARS_OVER_THE_GRID. Decided under his ~10:25 sign-off (\"approve all your own decisions; document changes\"). Next, by his ask: his 04:00–04:08 words (target all, approve all, fire all; the buttons change to the step we are on; no caption over a control), then the twelve Masters' QUAL 40 AAR, then R-CORE in the shared format. shot40 is the r.200 preview he sent back as his reference: his choice, the session's render.",
       "commit": "4adfe70",
-      "shipped": "PENDING"
+      "shipped": "9c16873"
     }
   ]
 }
