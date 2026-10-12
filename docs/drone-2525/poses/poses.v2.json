@@ -1,0 +1,100 @@
+{
+ "_note": "Five TC 3-22.9 firing positions traced from the operator's own pages (docs/asks/img/2026.10.11_18.56..53_drone2525_shot3..7.jpg) by scripts/trace-poses.mjs: paper \u2192 transparent, the uniform's grey \u2192 the PERSON colour, thin dark \u2192 outline, thick dark \u2192 the RIFLE colour (operator 2026-10-12: 'dont use stick figures; better high resolution modern images, make gun different color than person'). Crops in native pixels; the prone figures are mirrored so every rifle points right; callout rings erased and in-painted; fitted into size\u00d7size by majority vote.",
+ "size": 256,
+ "margin": 6,
+ "white": 228,
+ "dark": 110,
+ "erode": 1,
+ "palette": [
+  "transparent",
+  "#E8D5B0",
+  "#4A6A78",
+  "#C9A227"
+ ],
+ "poses": [
+  {
+   "id": 0,
+   "word": "STANDING",
+   "src": "2026.10.11_18.56..53_drone2525_shot3.jpg",
+   "crop": [
+    655,
+    540,
+    1200,
+    1260
+   ],
+   "mirror": false
+  },
+  {
+   "id": 1,
+   "word": "PRONE UNSUPPORTED",
+   "src": "2026.10.11_18.56..53_drone2525_shot4.jpg",
+   "crop": [
+    655,
+    980,
+    1250,
+    1400
+   ],
+   "mirror": true
+  },
+  {
+   "id": 2,
+   "word": "PRONE SUPPORTED",
+   "src": "2026.10.11_18.56..53_drone2525_shot5.jpg",
+   "crop": [
+    655,
+    400,
+    1250,
+    720
+   ],
+   "mirror": false,
+   "gunMinW": 0.15
+  },
+  {
+   "id": 3,
+   "word": "KNEELING SUPPORTED",
+   "src": "2026.10.11_18.56..53_drone2525_shot6.jpg",
+   "crop": [
+    655,
+    690,
+    1250,
+    1230
+   ],
+   "mirror": false
+  },
+  {
+   "id": 4,
+   "word": "STANDING SUPPORTED",
+   "src": "2026.10.11_18.56..53_drone2525_shot7.jpg",
+   "crop": [
+    655,
+    980,
+    1125,
+    1700
+   ],
+   "mirror": false
+  }
+ ],
+ "digit": [
+  6,
+  30,
+  34,
+  700,
+  10
+ ],
+ "disc": 21,
+ "gunMinW": 0.2,
+ "gunElong": 1.8,
+ "light": 185,
+ "band": 10,
+ "discBox": [
+  24,
+  56
+ ],
+ "hole": [
+  14,
+  36,
+  8
+ ],
+ "roundMax": 46,
+ "roundCnt": 1600
+}
