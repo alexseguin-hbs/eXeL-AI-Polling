@@ -406,7 +406,7 @@
    "kind": "release",
    "why": "Operator deck r.198 — QUAL: the five Table VI positions as the operator's own TC 3-22.9 figures at high resolution, the rifle in its own colour, one at a time, matched to the four magazines; the range goes cold (operator 2026-10-11, verbatim: \"i need Raster for each pose\" · \"I want clear rasters for 5 shooting positions; same height as magazines and stop light accept a rounded square\" · \"we match the shooting position tonthe target and 4 magazines that we actually test in wualifications for army range\" · \"mini poses are raster sinplications 1983 starwars video game style with words of these 5\" · \"standing; Prone unsupported, Prone Supported, Kneeling Supported, Standing Supported\"): a rounded-square card of the magazine's height between the count and the light shows the engagement's position (1 STANDING · 2–5 PRONE UNSUPPORTED · MAG 1 · 6–10 PRONE SUPPORTED · MAG 2 · 11–14 KNEELING SUPPORTED · MAG 3 · 15–18 STANDING SUPPORTED · MAG 4) as his own figure with its word — traced from docs/asks/img/…shot3..7 by scripts/trace-poses.mjs (poses.v2.json; the person T13.SI, the rifle T13.DOME, outlines T13.ROAD; 2026-10-12: \"dont use stick figures; better high resolution modern images, make gun different color than person\") and embedded; the 40th round ends cold — every plate down, marks cleared, CEASE FIRE · UNLOAD · SHOW CLEAR · the score · RANGE IS COLD, RELOAD reads UNLOAD, a COLD decision row (r.179/r.181 carried). QA POSE_MATCHES_THE_ENGAGEMENT, POSE_CARD_IS_A_ROUNDED_SQUARE_OF_THE_MAGAZINE_HEIGHT, QUAL_ENDS_COLD; gate pose-rasters. sha256 d8cc52d4.",
    "commit": "d93370d",
-   "shipped": "PENDING"
+   "shipped": "a7f8678"
   }
  ],
  "arena": {
