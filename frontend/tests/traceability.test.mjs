@@ -43,4 +43,14 @@ for (const f of files) {
     `${L.section}: replay(HEAD) reconstructs all ${L.entries.length} entries, each a well-formed non-empty record (${replayN}/${L.entries.length})`);
 }
 for (const n of need) ok(sections.includes(n), `the ${n} ledger is present`);
+// r.196 (fleet 2026-10-12, Thoth/Aset/Athena/Sofia): a Drone-2525 release row cites the commit that CARRIES the revision it names — from
+// rev 74 on (rev 73 corrects the older rows, which cited the parent commit, on the record). And the ledger's bytes are its canonical
+// serialisation, so an append is one hunk.
+{ const dp = path.join(DIR, 'drone-2525.ledger.json'); const raw = fs.readFileSync(dp, 'utf8'); const L = JSON.parse(raw);
+  ok(raw === JSON.stringify(L, null, 2) + '\n', 'Drone-2525: the ledger is canonically serialised (2-space JSON + newline) — an append is one hunk');
+  for (const e of L.entries.filter((x) => x.kind === 'release' && x.rev >= 74)) {
+    const m = /deck r\.(\d{3})\b/i.exec(e.text || ''); /* the row's own revision: "… deck r.NNN served …" */ let has = false;
+    try { has = !!m && new RegExp(`revision:'0\\.${m[1]}'`).test(execSync(`git -C ${ROOT} show ${e.commit}:frontend/public/drone-2525/play.html`, { encoding: 'utf8', maxBuffer: 1 << 26 })); } catch {}
+    ok(has, `Drone-2525 rev ${e.rev}: commit ${e.commit} carries the r.${m && m[1]} it names (play.html declares revision 0.${m && m[1]})`);
+  } }
 console.log(`traceability: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

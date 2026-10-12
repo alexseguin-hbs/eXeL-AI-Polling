@@ -440,14 +440,14 @@
       "kind": "release",
       "text": "Operator deck r.165 served at /drone-2525/play.html (sha256 76961252...). RESELECT TO APPROVE BY EVERY DOOR; A SHOT TARGET GOES AWAY (NO RING ON A DOWN TARGET); TRAIN DOWN REMEMBERS MARKS — operator Addenda 22–23.",
       "commit": "47f66e2",
-      "shipped": "PENDING"
+      "shipped": "4bb4a3f"
     },
     {
       "rev": 61,
       "date": "2026-10-09",
       "kind": "release",
       "text": "Operator deck r.176 served at /drone-2525/play.html. THE MAGAZINE IS A WIRE, NOT A FILL. The vector law is how this range draws: black ground, lines only, depth from the isometric, no fill. The cyan magazine is RELOAD. The gold magazine is the wire. Green lines from the bottom are the rounds left. The count sits under the magazine. The lane QR is the header mark beside the revision. A tap encodes /drone-2525/play?range=&role=turret&mode= for the lane in use (qrcode level M, drawn as SVG). r.138 and r.142 stay the magazine rule: 30 rounds in training, four magazines of 10 on QUAL 40, reload by hand.",
-      "commit": "PENDING"
+      "commit": "82b3c0bb"
     },
     {
       "rev": 62,
@@ -525,6 +525,20 @@
       "kind": "release",
       "text": "Operator deck r.195 served at /drone-2525/play.html. R-CORE now matches Vision-2525. The reticle is at the bottom. The first press shows the wordmark. The second press opens the record. The record does not move the range. The r0.178 magazine row stays.",
       "commit": "3380e7b"
+    },
+    {
+      "rev": 73,
+      "date": "2026-10-12",
+      "kind": "correction",
+      "text": "Correction of revs 60–72 (operator 2026-10-11: \"recent revisions was messed up by Grok\"; r.196 RESTORE). Revs 65–72 cite the PARENT commit of the edit they describe: r.188 is 8206a28b, r.189 a146c120, r.190 3ba0f97c, r.191 5a6b64bb, r.192 43a0dc46, r.193 074ac55c, r.194 3380e7b1, r.195 14a930d0. r.166–r.177 and r.179–r.194 were hand edits to the served play.html that never entered the operator-deck register (no carried file, patch or hash): d6bcc160 bb7bb3cd 2073d154 b6487246 bb3ecc9e 8ccb37b5 0ebffc7c 061b5757 63a135a0 7cbe041c 82b3c0bb b2dfa80a dc495fe6 · 50826908 2960980f 84c86cf9 aac4db9b 04d76634 60d5a411 12962de7 6a4097f6 44631941 ddb5108d 040a21ba 61b4d49d 7ffd164e 8206a28b a146c120 3ba0f97c 5a6b64bb 43a0dc46 074ac55c 3380e7b1. r.187–r.189 were used twice. The operator's baseline r0.178 is af6f65e0 (carried in r.196 with r.195). BUILD.revision lagged the header from r.177 to r.185. Rev 72's claim \"R-CORE now matches Vision-2525\" was false: the deck carried a fixed badge and a five-row hand list, not the shared panel over this ledger. Rev 60's shipped (4bb4a3f) and rev 61's commit (82b3c0bb) are filled here. Decisions of record: DD-01 the r0.178 picture is the master, af6f65e0 the code base · DD-02 every target in every mode needs TARGET → APPROVE → FIRE · DD-05 Grok tests, Claude Code executes; Sensor Fusion works and was built with the Grok bot. Every push since d6bcc160 deployed through Cloudflare Workers Builds with the deck gates red; r.196 puts the gates in prebuild."
+    },
+    {
+      "rev": 74,
+      "date": "2026-10-12",
+      "kind": "release",
+      "text": "RESTORE: the r.178 base, every target TARGET → APPROVE → FIRE in every mode, plates at true size, the r0.178 picture — operator deck r.196 served at /drone-2525/play.html (sha256 aef96537...), built from the carried r.178, the operator's last working version. EVERY TARGET IN EVERY MODE: TARGET, APPROVE, FIRE — amber, then red, then the shot; no mark rides a target down and back up (QUAL 40 restored from r.169). Plates at their true size at every range and zoom; the firing pits drawn. The r0.178 picture: RELOAD at the left, the round count centred, the start light at the right, one row; the magazine drawing at exactly 1:2; mode, lane, RESTART at the right. THE RANGE from the intro and the QR link opens Lane 21 in PRACTICE. The deck gates run in prebuild so a red gate cannot reach the site. Boot QA 214/215 both orientations.",
+      "commit": "a18880d",
+      "shipped": "PENDING"
     }
   ]
 }

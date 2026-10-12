@@ -45,7 +45,10 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.162 | 2026-10-05 | Claude Code (QUAL timer + vertical light; marks remembered — mark many, approve each, fire only approved; R reloads) | 440719 | 10c900f74b9482ebfb7b5adc10fcee3b8e3330293ce040ac2ad711a7630cc46e | PENDING (Verify Live) | fea7fc43e6eeefd44f5faadabbe7ed447a35f4a0010695e0c0a092c0df06716b |
 | r.163 | 2026-10-05 | Claude Code (T-numbers in marking order; approve and fire by number; the splash 0.3 s) | 446713 | a725cdbab0ffda175e071f5c12ef6441256b284fa59107c2d5dfd2f465e1c9a4 | PENDING (Verify Live) | 8d7ee3f4aed5eeca6e09480aaabeefec86c5520db3bdcf111af5e3f981be03e2 |
 | r.164 | 2026-10-05 | Claude Code (Settings → VOICE: Browser · Vosk · My Voice; test and train my voice) | 460296 | 567f6ef3b983f8e9fc6084db88ed9fba37f39027dbde920a68aa82cc59e84d1a | PENDING (Verify Live) | d02b3b81ce1723f4a571881a80602c1e94d891e403f7247edf00fc8b7136f566 |
-| r.165 | 2026-10-05 | Claude Code (reselect to approve by every door; no ring on a down target; TRAIN DOWN remembers marks) | 465812 | 76961252036595df49cb8c55b7cc0731b00a81375675b670015edda548cba822 | PENDING (Verify Live) | 7f15dd33b49f06f569f7b6d3117d520f98779ba08dfb443a0da0c3871419cb6f |
+| r.165 | 2026-10-05 | Claude Code (reselect to approve by every door; no ring on a down target; TRAIN DOWN remembers marks) | 465812 | 76961252036595df49cb8c55b7cc0731b00a81375675b670015edda548cba822 | 4bb4a3f (ship; Verify Live green through e522b2b) — filled r.196 | 7f15dd33b49f06f569f7b6d3117d520f98779ba08dfb443a0da0c3871419cb6f |
+| r.178 | 2026-10-10 | Grok (hand edit af6f65e0 — unregistered at the time; carried 2026-10-12 as the operator's baseline, "the last working version") | 531981 | d39875bec3f4e2c5e53a56c21c3e5095825691301582b634d7ac493ba30e8f66 | af6f65e0 (served by hand; the picture on his phone had a later layout — see the r.196 section) | e4a1cb08bfe54f89a5fd607fb4617f07a3e7f9ca717d56cd29a160a92aa3642e |
+| r.195 | 2026-10-11 | Grok (hand edit 14a930d0 — unregistered; carried 2026-10-12 as the record of what was served with the gate red) | 547290 | 7b02aed71bc2e78b4f44e2edb033d8208e06cd82642c855c585ad827e6b408e1 | 14a930d0 (served through 8f9b354 with deck-consistency, drone-playable and traceability red) | d521f699c98fe66d2ac31988e504b9e850ae431823ea63ab67b31b8d45d85a63 |
+| r.196 | 2026-10-12 | Claude Code (RESTORE: the r.178 base; every target TARGET → APPROVE → FIRE in every mode; plates at true size; the r0.178 picture; THE RANGE from the intro and the QR; the register caught up) | 542571 | aef96537d11a1a00cec97656fb1a7573f89a97122b963450f1d84bab1b5d48e6 | PENDING (Verify Live) | a90b136a8c648e3bae213833b06623e40997b78669d908f6fbae26dd4c7bf550 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -946,3 +949,53 @@ Notes: `CLAUDE_CODE_NOTES_r165.md`. Patch: `patches/r164_to_r165.py` (12 asserte
 - **Correction:** `MARKS_ARE_REMEMBERED`'s TRAIN DOWN half passed vacuously in r.162–r.164 (the first mark had been dropped before the shot, and the check
   only looked for its absence); it now requires both marks red and the shot to land.
 - r.164 shipped `a5764e1`, LIVE in Verify Live #2504 (a33863d; #2503 had caught the edge mid-update).
+
+## r.178 — Grok: the operator's baseline, carried after the fact (2026-10-10; registered 2026-10-12)
+Hand edit `af6f65e0` ("Color the rounds by how many are left"), never carried, hashed or registered when it was served. Carried here as the
+operator's reference: **"r.178 was the last working version before magazins and distorted targets became a reoccuring issue"** (2026-10-11).
+sha256 `d39875bec3f4e2c5…`, 531,981 B. Its `BUILD.revision` still said `'0.166'` while the header said r0.178 (the stale class, r.177–r.185).
+Not served again as r.178; r.196 is built from these bytes.
+
+## r.195 — Grok: the last hand edit, carried as the record (2026-10-11; registered 2026-10-12)
+Hand edit `14a930d0` ("Use the Vision-2525 R-CORE badge on the range"), served through `8f9b354` while `deck-consistency` (4), `drone-playable` (4)
+and `traceability` (1) were red in CI — Cloudflare Workers Builds deploys on push regardless of the gate. Carried so the record shows what the
+operator met (**"r.195 is soo beyond messed up as targets dont work"**): plates enlarged below 28 px (r.180), the firing pits not drawn, `roundOpen`
+loosened (r.193), a fixed R-CORE badge over the picture with a five-row hand list, the deck's own QA row rewritten to the new layout.
+sha256 `7b02aed71bc2e78b…`, 547,290 B. Not served again.
+
+## r.196 — Claude Code: RESTORE — the r.178 base, every target TARGET → APPROVE → FIRE, the r0.178 picture (2026-10-12)
+Operator (docs/asks/2026.10.11_18.56..53_drone2525_restore_r178_three_modes_poses.md, verbatim): **"please review Drone-2525 / R-CORE AND recent
+revisions was messed up by Grok. I need help restoring functionality; attached is the last know version"** · **"all targets must have user Target,
+Approve, and fire / targets turn Amber when targeted and after approved turn red"** · **"r.178 was the last working version before magazins and
+distorted targets became a reoccuring issue"** · **"ensure magazines don't get distorted; heres correct ones"**.
+Notes: `CLAUDE_CODE_NOTES_r196.md`. Patch: `patches/r195_to_r196.py` — SRC is `drone-2525_r.178.html` (26 asserted edits). Artefact commit `a18880d`.
+- **Invariant:** every standing target needs TARGET → APPROVE → FIRE from the person on the glass, in every mode; a target is drawn at its true
+  size and hit on that size; the served deck is a carried, hashed, registered revision; a red gate never ships.
+- **QUAL 40 every target** (r.169 `b6487246`, undone by `b2dfa80a`): `keepsMark` is false in every mode — no mark rides a target down and back up;
+  a plate that just stood is released. TRAIN UP keeps r.166; TRAIN DOWN keeps r.165 (the hit one's mark ends, the others stay).
+- **The r0.178 picture is the master, the code base is `af6f65e0`.** Headless at 428×926, `af6f65e0` draws two 86×115 cards at left 8 / top 92
+  with the light above at top 42 — NOT the operator's screenshots (RELOAD left, the count CENTRED, the light on the SAME row, ~56×70 cards,
+  RESTART at the right of the menu row). What he saw was served by hand from a working copy that never reached git. r.196 draws the picture:
+  one row at top 42, cards and light 75 px tall, the count centred to 0.0 px, the magazine drawing 26×52 (its 48:96 viewBox at exactly 1:2,
+  never scaled unevenly), mode · lane · RESTART(right), the strip above the row, the score under it. Measured by `MAG_ROW_ONE_LINE`.
+- **Plates at true size:** no pixel floor in `silMesh` (r.180 enlarged anything under 28 px — the "distorted targets"); `PLATE_DRAWN_AT_TRUE_SIZE`
+  holds the drawn outline to `plateDims` at 50 m and 300 m, 1× and 3×. The firing pits (`RANGE_WIRE`) are drawn, as in r.178.
+- **THE RANGE** on both intro screens and from the QR link (`?range=21&role=turret&mode=train-up`, r.187) opens Lane 21 in PRACTICE (r.192) — the
+  QR link r.178 printed was read by nothing.
+- QA rows re-stated to the operator's rule: `EVERY_TARGET_NEEDS_TARGET_APPROVE_FIRE` (TRAIN UP, TRAIN DOWN, QUAL 40: bare F refused · TARGET amber ·
+  F refused · APPROVE red · F hits · down and unmarked · in TRAIN UP the returned target needs it all again) replaces `MARK_SURVIVES_THE_RETURN`;
+  `MARKS_ARE_REMEMBERED` (the hit ones released, the amber one kept; QUAL ends unmarked); `NO_RING_ON_A_DOWN_TARGET` (down AND unmarked);
+  `RANGE_MENU_ON_SCREEN` (RESTART at the right); new `MAG_ROW_ONE_LINE`, `PLATE_DRAWN_AT_TRUE_SIZE`. Boot QA 214/215 both orientations (SYNC_DIRECT).
+- **Red first:** on the r.178 bytes the deck's own QA read 209/213 — `MARK_SURVIVES_THE_RETURN`, `MARKS_ARE_REMEMBERED`, `NO_RING_ON_A_DOWN_TARGET`
+  red (they asserted the r.162 held mark that r.166 had already retired); on `8f9b3540` the gates read deck-consistency 47/4, drone-playable 111/4,
+  traceability 60/1.
+- **The CI door:** `frontend/package.json` `prebuild` now runs `drone-revisions`, `deck-consistency` and `drone-playable` — Cloudflare Workers
+  Builds runs `npm run build`, so a red deck gate fails the build and the site stays on the last green SHA.
+- **Register catch-up and corrections (on the record, never edited):** r.166–r.177 and r.179–r.194 were uncarried hand edits — `d6bcc160 bb7bb3cd
+  2073d154 b6487246 bb3ecc9e 8ccb37b5 0ebffc7c 061b5757 63a135a0 7cbe041c 82b3c0bb b2dfa80a dc495fe6 · 50826908 2960980f 84c86cf9 aac4db9b 04d76634
+  60d5a411 12962de7 6a4097f6 44631941 ddb5108d 040a21ba 61b4d49d 7ffd164e 8206a28b a146c120 3ba0f97c 5a6b64bb 43a0dc46 074ac55c 3380e7b1`; r.187–r.189
+  were used twice (`ddb5108d`/`040a21ba`/`61b4d49d`, then `7ffd164e`/`8206a28b`/`a146c120`); `BUILD.revision` lagged the header from r.177 to r.185;
+  ledger revs 65–72 cited the parent commit; r.165's `shipped` placeholder is filled (`4bb4a3f`); ledger rev 61's `commit` is filled (`82b3c0bb`).
+- Not in r.196 (carried by r.197–r.199 on this base): the TRAIN DOWN clock (r.182), the cold range (r.179/r.181), the pose cards (r.180–r.194), the
+  R-CORE history (r.195) — in the shared format, from the shared ledger.
+- Credit: Sensor Fusion (`frontend/app/SensorFusion-2525`) works and was built with the Grok bot; it is untouched here (operator 2026-10-11).
