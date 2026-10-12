@@ -546,7 +546,7 @@
       "kind": "release",
       "text": "TRAIN DOWN is a timed run on the record: START raises the lane and opens the clock under the light, the last target down stops it, START and TIME are decision rows that reach every seat — operator deck r.197 served at /drone-2525/play.html (sha256 1e6fd69c...). DD-04 TRAIN DOWN time on the record. Armed: every target down, the light WAIT, the button START; a START before the round opens or while the clock runs is a REJECT row; RESTART re-arms; the target set is declared on the START row (targets:N — the lane's 11; a 3-target run is one constant). Ported from r.182 (aac4db9b, a hand edit never registered).",
       "commit": "f65885b",
-      "shipped": "PENDING"
+      "shipped": "a089d8d"
     }
   ]
 }
