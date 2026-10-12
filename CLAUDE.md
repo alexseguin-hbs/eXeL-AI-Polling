@@ -1,6 +1,14 @@
 # Claude Code - Project Instructions
 
 ## Workflow Rules
+- **THE RANGE'S HUD ROW IS THE OPERATOR'S OWN PICTURES, NEVER DRAWN (operator 2026-10-12: "CORRECT images; burn to your memory" ·
+  "These are exact image ton-use; create final raster and use exact proportions" · "WHEN INFIVE YOU AND IMAGE FOLLOW EXACTLY!").** The
+  canonical masters are `docs/asks/img/2026.10.11_18.56..53_drone2525_shot32..38` (RELOAD, the counter at 29, the five stances with his cyan
+  words) with shots 29–31 (the stop light, the two magazines zoomed) and shot12 (the five figures on black). The Drone-2525 operator deck
+  carries them as rasters cut by `docs/drone-2525/magazine/cut-magazine.py` and `docs/drone-2525/poses/cut-stances.py`, pinned by sha256 and
+  gated (`tests/magazine-rasters.test.mjs`, `tests/pose-rasters.test.mjs`). The cards keep his proportions (RELOAD 0.80, the counter 0.56, the
+  light 0.73) at ONE row height with the stance box; the counter's colour rule is his (green ≥ 20 · amber 6–19 · red ≤ 5), the frame always
+  gold. A new look for the row is a new picture from him, cut and pinned — never a drawing, never a guess, never Grok's proportions.
 - **NEVER OUTPACE THE DEPLOY — HI ALIGNMENT FIRST (operator 2026-10-01: "DONT EVER code until LIVE WEBSITE confirms version 40.
   We cant have you outpace deployments EVER. Update your AI DIRECTIVE FOR HI ALIGNMENT ALWAYS").** The operator tests on his
   phone; a revision he cannot see yet is feedback he cannot give, and the next revision built on top of it is rework.
