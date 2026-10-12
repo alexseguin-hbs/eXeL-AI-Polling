@@ -55,6 +55,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.200 | 2026-10-12 | Claude Code (the magazine drawn as the operator's own r0.178 picture in both cards — the neck with the feed lips, the tapered body with the bend, the sloped floor, the window, the 3×4 grid; the round lines inside the body; the RELOAD card at his width) | 810838 | ff67ecfc0daf0cccb1978ab4256f33720be2cac5c713b8566fee6d05fe8ffa1d | 621a808 (Verify Live #2732) | d05fcfb078d63de1498c5e5d92d74ea8448bf35e9d3d025bdf1c755599fba0ae |
 | r.201 | 2026-10-12 | Claude Code (the count magazine keeps its gold frame at every count — the rounds and the number carry the colour, as in the operator's r0.178 picture; each of the last rounds draws a line; the number at the word's size; RELOAD at his picture's spacing) | 813575 | 2b66093f883dc070675193e261821129fc03a7b04699a318cf61debb6b49abaf | f6264f2 (Verify Live #2736) | 9f661e89012f235bdbc121b97e75355c83d33b40497a57b2a933e604d04fe249 |
 | r.202 | 2026-10-12 | Claude Code (the magazine row is the operator's three pictures: the RELOAD ink and the count's frame and fill as rasters cut from his images, the cards at his proportions, the light at his box's proportion, all four one height with the stance box; the SVG magazines gone) | 897037 | e8043bcbe138b6d0ba278b459fb26d315ee729af0518c755b897ea6d1a77e380 | b5f7592 (Verify Live #2747) | b070f2139e32a65011086177bcc4073a0a2ee8d7402dbc1145c0cfebd4e8d075 |
+| r.203 | 2026-10-12 | Claude Code (the rounds as in his reference: the counter's frame and fill and the RELOAD ink cut from shot40 — nineteen distinct bars inside the walls, over the grid, below the window, one bar per round; the frame is the uncovered magazine (the RELOAD drawing in gold) under the bars — operator on the LIVE r.202: "rounds mist be in magazine") | 866859 | 00661e043b0d6a5e1147960389ec8e4736f07f3a6634a1b5d84cc138e3372a5c | PENDING (Verify Live) | 7a0bbdfe36f1516c4600e6c73d539c991d72194afef247074772c5d713ffa4ef |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1148,3 +1149,37 @@ ALL DOWN · 0:21.5, the count magazine at 29, the RELOAD magazine) · **"height 
   (node-only, prebuild + test:ci): his pictures in the sidecar, the cut script pinned, the five PNGs pinned and embedded byte-equal, the CSS of the
   cards, the light and the box, no SVG magazine left. `drone-playable` re-stated (no `<svg viewBox="0 0 48 96">`, ten PNG data URIs).
 - Owed next: the twelve Masters' QUAL 40 AAR fixes (r.203) · R-CORE in the shared format (r.204).
+
+## r.203 — Claude Code: the rounds as in his picture (2026-10-12)
+Operator (2026-10-12, ~03:50, on the LIVE r.202, verbatim): **"rounds mist be in magazine"**, then his reference picture (~04:15, shot40: the
+two magazines at 10×, the counter at 30 with nineteen distinct bars inside the walls, over the grid, below the window). shot40 is the r.200
+preview — this session's render of the magazine drawn from his r0.178 picture — which he sent back as his reference: his choice, the session's
+render. The choice of shot40 over his r0.178 photo (shot30/33) is taken under his sign-off of ~10:25 ("approve all your own decisions; document changes", on the
+ask's record). Notes: `CLAUDE_CODE_NOTES_r203.md`. Patch: `patches/r202_to_r203.py` (base r.202, declared and asserted). Artefact commit `4adfe70`.
+- **Cause:** r.202's fill was cut from his r0.178 phone photo at 29 (shot30): twenty-eight thin lines from just under the body's top line,
+  through the window — a hatch at the card's size, a solid block over the window on the phone. A first draft (the frame painted over the fill)
+  was refused by the Spiral round: the two rasters never overlap where both are opaque, so it changed almost no pixel he could see.
+- **Invariant:** the counter's rounds are his reference's bars — distinct, inside the walls, over the grid, below the window — one bar per
+  round (the lowest r of his nineteen; nineteen to thirty is the full picture); the frame is the uncovered magazine (walls, window, the full
+  grid) under the bars; the RELOAD ink and the counter's frame and fill are rasters cut from shot40, pinned, never redrawn; the cards, the
+  light and the box of r.202 unchanged.
+- **The cut:** `docs/drone-2525/magazine/cut-magazine.py` now cuts shot40 (2000×1818; the counter at x 506–785, y 93–818, RELOAD at x 81–359,
+  both 280×726 at 10×) into the same five 72×192 rasters (2.8–6.6 KB): the RELOAD ink in cyan; the counter's FRAME = the same uncovered
+  drawing recoloured to his gold (in shot40 the counter's own grid is covered by its bars, so a frame cut from the counter carried holes — the
+  Spiral round caught it on the first cut); the fill from the counter's box. `BARS.json` is written by the cut (the nineteen bars' tops and the
+  foot → `MAG_BAR_TOPS`, `MAG_FILL_TOP` 32.0 %, `MAG_FILL_BOTTOM` 96.4 %) and pinned with the rasters in `MAGAZINE.sha256`. `hudMag` clips to
+  the top of the (19 − r)-th bar; the fill stays painted over the frame (the r.202 markup order), so the bars cover the grid as in his drawing.
+  r.202's cut (shot30/31) is superseded in place; its bytes live at the r.202 artefact commit `ab65de4` (`HASHES_r202` no longer checks out
+  against the tree for the seven magazine lines — said here, as r.198's did after r.199).
+- **Gates:** `ROUNDS_ARE_INSIDE_THE_MAGAZINE` (new, deferred: the frame, fill and RELOAD rasters decoded to a canvas — every fill row between
+  the walls, nineteen distinct bars, the band from 32 % to 96 % of the body, below the window, the frame's grid whole: its interior rows at
+  least 95 % of the RELOAD ink's), `BARS_OVER_THE_GRID` (new: the fill painted over the frame, one box),
+  `MAGAZINE_KEEPS_ITS_FRAME` re-stated at his bars (3 → 86.7 %, 12 → 56.0 %, 30 → 32.0 %; one bar per round in a 10-round magazine),
+  `MAGAZINE_IS_HIS_DRAWING` and `MAG_ROW_ONE_LINE` unchanged and green; `tests/magazine-rasters.test.mjs` re-pinned to shot40 and the new cut,
+  `MAG_BAR_TOPS` equal to `BARS.json`, the six-line `MAGAZINE.sha256` true file by file.
+- **Said plainly:** 30 and 29 and every count from nineteen up draw the full picture (his reference is at 30 with nineteen bars); the first
+  shots of a 30-round magazine move the number, not the bars.
+- **Owed, by his ask (no numbers decided here beyond the next):** r.204 — his 04:00–04:08 words: "I should be able to target all, then come back
+  and approve all, then fire all" · "buttons must change to step we are on" (the lit button and the strip follow the mark under the bullseye;
+  a caption never covers a control — shot41/42) · then the twelve Masters' QUAL 40 AAR (B1 the frozen fall at the window's end; H1 the 30-round
+  first magazine from the deferred self-check; H2 the bare lane post; H3 the rest toast; N1 a toast's lifetime) · then R-CORE in the shared format.

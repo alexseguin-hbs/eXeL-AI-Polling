@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.057",
+  "revision": "0.058",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -490,6 +490,14 @@ export const DRONE_DOMAIN = {
    "why": "Operator deck r.202 — the magazine row is the operator's three pictures (operator 2026-10-12, verbatim: \"These are exact image ton-use; create final raster and use exact proportions\" · \"height of all magazines, standing position and stop light need to be same\" · \"WHEN INFIVE YOU AND IMAGE FOLLOW EXACTLY!\"): the RELOAD ink and the count's frame and fill cut from his images by docs/drone-2525/magazine/cut-magazine.py into 72×192 rasters (pinned, embedded as MAG_PNG), the cards at his proportions (RELOAD 60×75, the count 42×75, the ink 18×48 from 7 % down), the light at his box's proportion (56×75, the lamps 19 % of its width), all four one height with the stance box; the fill clipped from the top by the rounds left and coloured by his rule; the frame never changes; the SVG magazines of r.178–r.201 gone. New gate tests/magazine-rasters.test.mjs.",
    "commit": "ab65de4",
    "shipped": "b5f7592"
+  },
+  {
+   "revision": "0.058",
+   "date": "2026-10-12",
+   "kind": "release",
+   "why": "Operator deck r.203 — the rounds as in his picture (operator 2026-10-12, on the LIVE r.202, verbatim: \"rounds mist be in magazine\", then his reference shot40): r.202's fill was cut from his r0.178 phone photo at 29 — twenty-eight thin lines through the window, a solid block on the phone; r.203 cuts the RELOAD ink and the counter's frame and fill from shot40 (the two magazines at 10×, nineteen distinct bars inside the walls, over the grid, below the window; the frame = the uncovered RELOAD drawing in gold, since the counter's own grid is covered by its bars) into the same five 72×192 rasters, pinned with BARS.json in MAGAZINE.sha256, one bar per round (MAG_BAR_TOPS), the bars painted over the frame; new rows ROUNDS_ARE_INSIDE_THE_MAGAZINE (the pixels, the grid whole) and BARS_OVER_THE_GRID; MAGAZINE_KEEPS_ITS_FRAME re-stated at his bars. The cards, the light and the box of r.202 unchanged. Decided under his ~10:25 sign-off; shot40 is the r.200 preview he sent back as his reference.",
+   "commit": "4adfe70",
+   "shipped": "PENDING"
   }
  ],
  "arena": {

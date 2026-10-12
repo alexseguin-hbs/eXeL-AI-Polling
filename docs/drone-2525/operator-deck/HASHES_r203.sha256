@@ -1,0 +1,10 @@
+00661e043b0d6a5e1147960389ec8e4736f07f3a6634a1b5d84cc138e3372a5c  drone-2525_r.203.html
+e603df9731975225fd591a899eba87dac55d25a20958eceffde117c98bf33b87  patches/r202_to_r203.py
+32f9dfac91d47cefde285768194b5f716608d03cf8c4c0aa56cbcc725af1b720  ../magazine/reload-ink.png
+b476d95135760e2ff9368ae429b854166c42d90f6c278082d4f2fa7d857c4c9d  ../magazine/count-frame.png
+0e2cd4ef5208e8cc946131ac1b889a97b491100a2423073c9504d9744148aba9  ../magazine/count-fill-green.png
+f23d3aa0c5fcaff129ecfffe2fa1bf2414669b994fff45ea760bb04979fcf2d4  ../magazine/count-fill-amber.png
+aa51381f6a176c5205c7df712876c8baaca253dbaddbf2a29e63b7203016c47a  ../magazine/count-fill-red.png
+2a05919f7a3f6424997b61100c3555242b65bcb5998a0a97d54f2c10c6171de6  ../magazine/MAGAZINE.sha256
+938db80b0750d8cf33b2e5a0394efe0ae1fadd7693fdbd7e3930cbc575f2d870  ../magazine/cut-magazine.py
+59db64fcccaa86b3316bbda4745c12aafd61fa6cafaf271b6b0424b706f9cb4a  ../magazine/BARS.json
