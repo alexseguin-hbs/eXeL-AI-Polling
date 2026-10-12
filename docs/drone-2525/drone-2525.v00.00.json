@@ -430,7 +430,7 @@
    "kind": "release",
    "why": "Operator deck r.201 — the count magazine keeps its gold frame at every count; the rounds and the number carry the colour, as in the operator's r0.178 picture (the AsM review of r.200, Sofia: at 3 rounds his picture shows the gold frame with three red lines and a red \"3\"; r.200 painted the whole magazine red); each of the last rounds draws a line (3 → 3, 12 → 12, 20+ full); his colour rule — green at 20 and above, amber 6–19, red 5 and under (r.178 read amber at 20); the number at the word's size and weight; the RELOAD word at his picture's spacing (.14em). QA row MAGAZINE_KEEPS_ITS_FRAME.",
    "commit": "9ea7ef4",
-   "shipped": "PENDING"
+   "shipped": "f6264f2"
   }
  ],
  "arena": {
