@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.055",
+  "revision": "0.056",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -423,6 +423,14 @@
    "why": "Operator deck r.200 — the magazine drawn as the operator's own r0.178 picture in both cards (operator 2026-10-12, verbatim: \"fix fucking magazine proportions\" · \"I even have correct zoomed version ton-use to copy exactly\" · \"also here is original magazine, ya need to flip around y axis to match correct image. Also see right proportion of range\" · \"why dont the magazines still not look like image 3?\"): the r0.178 code drew a box in perspective at 36×82; his picture draws a flat magazine, ink 17×46 CSS in a 57×71 card — measured row by row from docs/asks/img/…shot1.png into the 48×96 viewBox (the neck with the feed lips, the tapered body with the bend, the sloped floor, the window, four grid rows and two columns), rendered in the 26×52 box so the ink is ≈ 17×47 CSS; the 19 round lines inside the body; the RELOAD word .06em so the card is ≈ 59 wide (his 57). QA row MAGAZINE_IS_HIS_DRAWING.",
    "commit": "bfab534",
    "shipped": "621a808"
+  },
+  {
+   "revision": "0.056",
+   "date": "2026-10-12",
+   "kind": "release",
+   "why": "Operator deck r.201 — the count magazine keeps its gold frame at every count; the rounds and the number carry the colour, as in the operator's r0.178 picture (the AsM review of r.200, Sofia: at 3 rounds his picture shows the gold frame with three red lines and a red \"3\"; r.200 painted the whole magazine red); each of the last rounds draws a line (3 → 3, 12 → 12, 20+ full); his colour rule — green at 20 and above, amber 6–19, red 5 and under (r.178 read amber at 20); the number at the word's size and weight; the RELOAD word at his picture's spacing (.14em). QA row MAGAZINE_KEEPS_ITS_FRAME.",
+   "commit": "9ea7ef4",
+   "shipped": "PENDING"
   }
  ],
  "arena": {

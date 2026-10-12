@@ -53,6 +53,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.198 | 2026-10-12 | Claude Code (QUAL: the five Table VI positions as high-resolution figures traced from the operator's TC 3-22.9 pages — the rifle in its own colour — on a card the magazine's height, one at a time, matched to the four magazines; the table ends cold on the record) | 676440 | d8cc52d45d2a7af2a5fba4c27f6dae3d57afe524560476b4fc7542c6fdfabc41 | a7f8678 (Verify Live #2728) | c59a03a3a15137dd4595aac6c8e670339a6bf73e4d88efe046f4d488ec7f457e |
 | r.199 | 2026-10-12 | Claude Code (QUAL: the five positions are the operator's own eXeL AI picture, cut exactly — the tan figure, the dark rifle — on a square box against the stop light's left edge, his five words; the traced figures of r.198 and their tracer deleted; the light one width) | 806168 | a6664bfe507e4dfa08b89c5ad95a050214f45016ffe57cf18f09b4bec9aa8973 | 57525eb (Verify Live #2730) | 4409ae9ee7427be03b91c7196e2fab2d3c70d9339ba3604f96f621e83cccd571 |
 | r.200 | 2026-10-12 | Claude Code (the magazine drawn as the operator's own r0.178 picture in both cards — the neck with the feed lips, the tapered body with the bend, the sloped floor, the window, the 3×4 grid; the round lines inside the body; the RELOAD card at his width) | 810838 | ff67ecfc0daf0cccb1978ab4256f33720be2cac5c713b8566fee6d05fe8ffa1d | 621a808 (Verify Live #2732) | d05fcfb078d63de1498c5e5d92d74ea8448bf35e9d3d025bdf1c755599fba0ae |
+| r.201 | 2026-10-12 | Claude Code (the count magazine keeps its gold frame at every count — the rounds and the number carry the colour, as in the operator's r0.178 picture; each of the last rounds draws a line; the number at the word's size; RELOAD at his picture's spacing) | 813575 | 2b66093f883dc070675193e261821129fc03a7b04699a318cf61debb6b49abaf | PENDING (Verify Live) | 9f661e89012f235bdbc121b97e75355c83d33b40497a57b2a933e604d04fe249 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1108,3 +1109,18 @@ original layout)."** (shot15, shot16) · **"why dont the magazines still not loo
   so a redrawn figure cannot pass as his. The r.199 release note says plainly that "stop light indicator on targets" built nothing new.
 - Owed next: the label clutter on marked targets (shots 21/22) · Drone-2525 on the Vision-2525 worlds page (shot20) · R-CORE in the shared
   format (shot19) → r.201+.
+
+## r.201 — Claude Code: the magazine keeps its frame (2026-10-12)
+The AsM review of r.200 (Sofia), against the operator's r0.178 picture (shot1 at 3 rounds: the gold frame, three red lines, a red "3"): r.200 painted
+the whole count magazine amber or red below 21 rounds (`hudMag`, a line of r.178's code the picture never showed). Notes: `CLAUDE_CODE_NOTES_r201.md`.
+Patch: `patches/r200_to_r201.py` (base r.200, declared and asserted). Artefact commit `9ea7ef4`.
+- **Invariant:** the frame is gold at every count; the colour of the count lives in the round lines and the number only; a count of n ≤ 19 lights at
+  least n lines (3 → 3, 12 → 12; 20 and above read full); nothing else of r.200's drawing changes.
+- **His colour rule, stated 2026-10-12:** GREEN at 20 rounds and above · AMBER 6 to 19 · RED 5 and under. r.178's line read green only above 20
+  (amber at exactly 20); `hudMag` now follows his words; the QA row holds 19 amber and 20 green.
+- Also from that review: the number at the word's size and weight (11 px, 500 — his "3" is small); the RELOAD word back at his picture's spacing
+  (.14em; the card takes the width his phone's font gives it — r.200's "59 px" was a Linux-font number).
+- QA: `MAGAZINE_KEEPS_ITS_FRAME` (3, 12 and 30 rounds: the frame's stroke, the lit lines, the number's colour, restored after). `drone-playable`:
+  the gold line, the lit rule, the number's size, the word's spacing.
+- Owed next: R-CORE in the shared format (the rehearsed port, now r.202) · the label clutter was answered by r.196 (`LABELS_ONLY_WHILE_MARKED`) ·
+  Drone-2525 on the Vision-2525 worlds page (its own commit, outside the deck).

@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 78 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 79 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -555,6 +555,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "The magazine drawn as the operator's own r0.178 picture in both cards; the round lines inside the body; the RELOAD card at his width — operator deck r.200 served at /drone-2525/play.html (sha256 ff67ecfc...). DD-09 the magazine is HIS picture, measured — \"fix fucking magazine proportions\" · \"why dont the magazines still not look like image 3?\": the r0.178 code (af6f65e0) drew a three-dimensional box in perspective at 36×82 in an 86×112 card; his r0.178 picture draws a flat magazine with ink 17×46 CSS in a 57×71 card, so the picture never came from that code and the r.196 restore inherited the box at 26×52 (ink 12×38). Now one outline measured row by row from his picture into the 48×96 viewBox — the neck with the feed lips, the step to the top-left corner, the right shoulder, the body tapering with the bend past two thirds, the sloped floor (ink x 7.6–39.7, y 4.6–91.2, ratio 0.37), the window, four grid rows and two columns following the taper — in the 26×52 box (1:2, never stretched) so the ink is ≈ 17.4×46.9 CSS; the count magazine lights 19 round lines inside that body; the RELOAD word's letter-spacing .14em → .06em brings the card to ≈ 59 px (his 57). Corrections from the review of r.199: the light the row's height (75), one width, no word wraps (QA row LIGHT_WORDS_FIT_ONE_WIDTH), the strip clear of it, a 64-px light under 368 px, the figures' sha256 pinned in the pose-rasters gate, the old position words gone from the comments. Gate: the deck's QA row MAGAZINE_IS_HIS_DRAWING measures the outline, the ink, the grid, the window and the round lines on the built page; drone-playable holds the outline twice and the perspective box gone.",
       "commit": "bfab534"
+    },
+    {
+      "rev": 79,
+      "date": "2026-10-12",
+      "kind": "release",
+      "text": "The count magazine keeps its gold frame at every count; the rounds and the number carry the colour — operator deck r.201 served at /drone-2525/play.html (sha256 2b66093f...). DD-10 the picture over the code, again: r.178's code painted the whole count magazine amber below 21 rounds and red at 5 (hudMag); his r0.178 picture at 3 rounds shows the gold frame, three red lines and a red \"3\" — the frame is gold at every count, the colour lives in the round lines and the number, a count of n ≤ 19 lights at least n lines (3 → 3, 12 → 12; 20 and above read full); his colour rule, stated the same morning: green at 20 rounds and above, amber 6–19, red 5 and under (r.178 read amber at 20). From the same review of r.200: the number at the word's size and weight (11 px, 500); the RELOAD word back at his picture's spacing (.14em) — the card takes the width his phone's font gives it. Gate: the deck's QA row MAGAZINE_KEEPS_ITS_FRAME at 3, 12 and 30 rounds; drone-playable holds the gold line and the lit rule.",
+      "commit": "9ea7ef4"
     }
   ]
 };
