@@ -7,7 +7,7 @@
  * Intelligences (◬ AI · ♡ SI · 웃 HI, sourced from the ONE soi-framework), the mission, the 7-gate
  * Trusted-Progress cycle (Pilot → Replay → Qualify → Certify → Adopt → Educate → Expand), the capability
  * panels — each a LIVE link into the real app — and the values row. Doubles as the civilization-level
- * inter-site nav between SoI-2525 / Architect-2525 / Security-2525 / Celestial-2525 and the toolset.
+ * inter-site nav between SoI-2525 / Architect-2525 / Security-2525 / Celestial-2525 / Drone-2525 and the toolset.
  *
  * Purely additive: a new route, no existing UI changed. Commits to the poster's single dark cosmic world by
  * design (a manifesto, not a themeable tool surface) — so it reads identically for every viewer.
@@ -65,6 +65,7 @@ const WORLDS: { code: string; name: string; tagline: string; href: string; color
   { code: "ARCHITECT-2525", name: "Architect", tagline: "Design · Build · Model", href: "/main/Architect-2525/", color: VIOLET },
   { code: "SECURITY-2525", name: "Security", tagline: "Air & Missile Defense C2", href: "/main/Security-2525/", color: "#ff6b6b" },
   { code: "CELESTIAL-2525", name: "Celestial", tagline: "Sky · Learn · Family", href: "/main/Celestial-2525/", color: SUNSET },
+  { code: "DRONE-2525", name: "Drone", tagline: "The Range · Target · Approve · Fire", href: "/main/Drone-2525/", color: "#f59e0b" },
   { code: "LIGHT CODEX", name: "Light Codex", tagline: "Encode · Image · Key", href: "/light-codex/", color: "#e879f9" },
 ];
 
