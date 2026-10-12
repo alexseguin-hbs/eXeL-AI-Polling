@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 77 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 78 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -548,6 +548,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "QUAL: the five positions are the operator's own eXeL AI picture, cut exactly, on a square box against the stop light's left edge; the traced figures deleted — operator deck r.199 served at /drone-2525/play.html (sha256 a6664bfe...). DD-07 the positions are HIS picture — \"use my images exactly for 5 shooting positions\" · \"DELETE THE ORIGINAL AND USE eXeL AI\" — cut from docs/asks/img/…shot12.png by one carried script (docs/drone-2525/poses/cut-stances.py: each figure its own connected shape, nothing redrawn, the rifle its own colour as he drew it, longest side 256), embedded so the deck stays one file; his five words from his own cards, in his order: TACTICAL STANDING · UNSUPPORTED PRONE · SUPPORTED PRONE · SUPPORTED KNEELING · SUPPORTED STANDING. DD-08 the box sits LEFT of the fire light (\"better yet, have it left of fire box\"): the 75-px square at right:76px against the light's edge, the light one width (72) so the box clears the centred count on a 375-px phone; the figure stands in a 69×52 box with its shape kept, the word under it. \"Stop light indicator on targets\" is kept as r.196 made it: a target is amber when targeted, red when approved. The r.198 traced figures, their recipe and their tracer are deleted from the tree; HASHES_r198 still names what r.198 shipped.",
       "commit": "4911e6b"
+    },
+    {
+      "rev": 78,
+      "date": "2026-10-12",
+      "kind": "release",
+      "text": "The magazine drawn as the operator's own r0.178 picture in both cards; the round lines inside the body; the RELOAD card at his width — operator deck r.200 served at /drone-2525/play.html (sha256 ff67ecfc...). DD-09 the magazine is HIS picture, measured — \"fix fucking magazine proportions\" · \"why dont the magazines still not look like image 3?\": the r0.178 code (af6f65e0) drew a three-dimensional box in perspective at 36×82 in an 86×112 card; his r0.178 picture draws a flat magazine with ink 17×46 CSS in a 57×71 card, so the picture never came from that code and the r.196 restore inherited the box at 26×52 (ink 12×38). Now one outline measured row by row from his picture into the 48×96 viewBox — the neck with the feed lips, the step to the top-left corner, the right shoulder, the body tapering with the bend past two thirds, the sloped floor (ink x 7.6–39.7, y 4.6–91.2, ratio 0.37), the window, four grid rows and two columns following the taper — in the 26×52 box (1:2, never stretched) so the ink is ≈ 17.4×46.9 CSS; the count magazine lights 19 round lines inside that body; the RELOAD word's letter-spacing .14em → .06em brings the card to ≈ 59 px (his 57). Corrections from the review of r.199: the light the row's height (75), one width, no word wraps (QA row LIGHT_WORDS_FIT_ONE_WIDTH), the strip clear of it, a 64-px light under 368 px, the figures' sha256 pinned in the pose-rasters gate, the old position words gone from the comments. Gate: the deck's QA row MAGAZINE_IS_HIS_DRAWING measures the outline, the ink, the grid, the window and the round lines on the built page; drone-playable holds the outline twice and the perspective box gone.",
+      "commit": "bfab534"
     }
   ]
 };

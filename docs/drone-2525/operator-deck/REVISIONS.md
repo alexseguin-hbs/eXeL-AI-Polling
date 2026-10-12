@@ -52,6 +52,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.197 | 2026-10-12 | Claude Code (TRAIN DOWN on the record: START raises the lane and opens the clock under the light; the last target stops it; START and TIME are decision rows) | 552240 | 1e6fd69cfe8368d14ebd3c107bf482654c0bafcac8e5896048d167913535057c | a089d8d (Verify Live #2725) | d952e0e7b2a5fb2cbeef8418c28fa05ac2f27661414b40385d3fc4ff11537ebd |
 | r.198 | 2026-10-12 | Claude Code (QUAL: the five Table VI positions as high-resolution figures traced from the operator's TC 3-22.9 pages — the rifle in its own colour — on a card the magazine's height, one at a time, matched to the four magazines; the table ends cold on the record) | 676440 | d8cc52d45d2a7af2a5fba4c27f6dae3d57afe524560476b4fc7542c6fdfabc41 | a7f8678 (Verify Live #2728) | c59a03a3a15137dd4595aac6c8e670339a6bf73e4d88efe046f4d488ec7f457e |
 | r.199 | 2026-10-12 | Claude Code (QUAL: the five positions are the operator's own eXeL AI picture, cut exactly — the tan figure, the dark rifle — on a square box against the stop light's left edge, his five words; the traced figures of r.198 and their tracer deleted; the light one width) | 806168 | a6664bfe507e4dfa08b89c5ad95a050214f45016ffe57cf18f09b4bec9aa8973 | 57525eb (Verify Live #2730) | 4409ae9ee7427be03b91c7196e2fab2d3c70d9339ba3604f96f621e83cccd571 |
+| r.200 | 2026-10-12 | Claude Code (the magazine drawn as the operator's own r0.178 picture in both cards — the neck with the feed lips, the tapered body with the bend, the sloped floor, the window, the 3×4 grid; the round lines inside the body; the RELOAD card at his width) | 810838 | ff67ecfc0daf0cccb1978ab4256f33720be2cac5c713b8566fee6d05fe8ffa1d | PENDING (Verify Live) | d05fcfb078d63de1498c5e5d92d74ea8448bf35e9d3d025bdf1c755599fba0ae |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1081,3 +1082,29 @@ left of fire box"** · **"with stop light indicstor on targets"** · **"push and
 - Kept, on the record: "stop light indicator on targets" = the targets carry the light's colours (r.196 `PHASE_COLOUR_FOLLOWS_THE_SLOT`).
 - Owed next, one at a time: the magazine proportions to his crops (shot15 flipped on the y axis, shots 17/18 copied exactly, the count centred);
   the label clutter (shots 21/22); Drone-2525 on the Vision-2525 worlds page (shot20); R-CORE in the shared format (shot19) → r.200.
+
+## r.200 — Claude Code: the magazine drawn as his picture (2026-10-12)
+Operator (2026-10-12, verbatim): **"fix fucking magazine proportions"** · **"I even have correct zoomed version ton-use to copy exactly"** (shots 17/18) ·
+**"also here is original magazine, ya need to flip around y axis to match correct image. Also see right proportion of range (as Grok messed up
+original layout)."** (shot15, shot16) · **"why dont the magazines still not look like image 3?"** (image 3 = his r0.178 picture, shot1). Notes:
+`CLAUDE_CODE_NOTES_r200.md`. Patch: `patches/r199_to_r200.py` (base r.199, declared and asserted). Artefact commit `bfab534`.
+- **Finding:** the r0.178 code (`af6f65e0`) draws a three-dimensional box in perspective (a trapezoid and a side plane, `M16 22l18-4 4 66-22 4z`)
+  at 36×82 in an 86×112 card; his r0.178 picture draws a FLAT magazine — ink 17×46 CSS (ratio 0.37) in a 57×71 card. The picture never came from
+  that code (the r.196 restore carried the code's drawing at 26×52, so the ink stayed a narrow box, 12×38). The picture is the master.
+- **Invariant:** both cards draw ONE outline measured from his picture into the 48×96 viewBox — the neck with the feed lips (x 11.5–26.2 at the
+  top), the step to the body's top-left corner, the right shoulder, the body tapering right with the bend past two thirds, the bottom-right corner,
+  the sloped floor (ink x 7.6–39.7, y 4.6–91.2, ratio 0.37), the window (22.4–28.2 × 16.2–21.3), four grid rows (y 38.3 · 54.4 · 69.8 · 81.5) and
+  two grid columns following the taper — rendered in the 26×52 box (1:2, never stretched) so the ink is ≈ 17.4×46.9 CSS; the count magazine
+  lights its 19 round lines inside that body (`inner()` from the outline, 1.4 in from each wall); the RELOAD word's letter-spacing .14em → .06em
+  brings the card to ≈ 59 px (his 57).
+- Measured from the picture: `docs/asks/img/2026.10.11_18.56..53_drone2525_shot1.png` at 3× (the cyan ink x 84–134, y 654–790; row by row).
+- QA: `MAGAZINE_IS_HIS_DRAWING` (both cards one outline; the outline's bbox 32.1×86.6 of 48×96, ratio 0.37; the ink in CSS within 1.5/2 px of his
+  17.4×46.9; the box 26×52; the grid 4 rows + 2 columns; the window in both; the 19 round lines inside the body). `MAG_ROW_ONE_LINE` unchanged
+  (one row, the count centred, the 1:2 box). `drone-playable`: the outline twice, no perspective box, 19 round lines, the word's spacing.
+- **Corrections from the AsM review of r.199** (Sofia · Thor · Enlil, after its push): the light is now the row's height (75) like the magazines and
+  the box, one width (72) in every range mode, and nothing it shows wraps ("NEXT 10 S", the clock, CEASE FIRE · COLD — `LIGHT_WORDS_FIT_ONE_WIDTH`);
+  the strip's line under the row no longer meets the light; a phone narrower than 368 px gets a 64-px light so the box still clears the count;
+  the two code comments that still spoke the old position words say his; the pose-rasters gate pins the five figures' and the cut script's sha256
+  so a redrawn figure cannot pass as his. The r.199 release note says plainly that "stop light indicator on targets" built nothing new.
+- Owed next: the label clutter on marked targets (shots 21/22) · Drone-2525 on the Vision-2525 worlds page (shot20) · R-CORE in the shared
+  format (shot19) → r.201+.

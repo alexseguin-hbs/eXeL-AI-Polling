@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.054",
+  "revision": "0.055",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -415,6 +415,14 @@
    "why": "Operator deck r.199 — QUAL: the five positions are the operator's own eXeL AI picture, cut exactly, on a square box against the stop light's left edge; the traced figures deleted (operator 2026-10-12, verbatim: \"use my images exactly for 5 shooting positions\" · \"DO NOT USE your images BUT eXeL AI corrected inages\" · \"STOP TRYING YOURS USE MINE / DELETE THE ORIGINAL AND USE eXeL AI\" · \"heres the correction, just remove borders around text\" · \"when showing positions it will be in square box right of the center magazine with counter (as visual reminder to gamer\" · \"better yet, have it left of fire box\" · \"with stop light indicstor on targets\" · \"push and commit\"): his picture docs/asks/img/…shot12.png → docs/drone-2525/poses/cut-stances.py (each figure its own connected shape, nothing redrawn, the rifle its own colour, longest side 256) → stance-0..4.png embedded; his words TACTICAL STANDING · UNSUPPORTED PRONE · SUPPORTED PRONE · SUPPORTED KNEELING · SUPPORTED STANDING; the 75-px square box moves to right:76px against the light, the light one width (72) so the box clears the centred count on a 375-px phone; the targets keep the light's colours (amber targeted, red approved). pose-0..4.png, poses.v2.json and frontend/scripts/trace-poses.mjs deleted.",
    "commit": "4911e6b",
    "shipped": "57525eb"
+  },
+  {
+   "revision": "0.055",
+   "date": "2026-10-12",
+   "kind": "release",
+   "why": "Operator deck r.200 — the magazine drawn as the operator's own r0.178 picture in both cards (operator 2026-10-12, verbatim: \"fix fucking magazine proportions\" · \"I even have correct zoomed version ton-use to copy exactly\" · \"also here is original magazine, ya need to flip around y axis to match correct image. Also see right proportion of range\" · \"why dont the magazines still not look like image 3?\"): the r0.178 code drew a box in perspective at 36×82; his picture draws a flat magazine, ink 17×46 CSS in a 57×71 card — measured row by row from docs/asks/img/…shot1.png into the 48×96 viewBox (the neck with the feed lips, the tapered body with the bend, the sloped floor, the window, four grid rows and two columns), rendered in the 26×52 box so the ink is ≈ 17×47 CSS; the 19 round lines inside the body; the RELOAD word .06em so the card is ≈ 59 wide (his 57). QA row MAGAZINE_IS_HIS_DRAWING.",
+   "commit": "bfab534",
+   "shipped": "PENDING"
   }
  ],
  "arena": {
