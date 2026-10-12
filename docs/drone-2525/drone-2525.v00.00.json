@@ -390,7 +390,7 @@
    "kind": "release",
    "why": "Operator deck r.196 — RESTORE (operator 2026-10-11, verbatim: \"please review Drone-2525 / R-CORE AND recent revisions was messed up by Grok. I need help restoring functionality; attached is the last know version\" · \"all targets must have user Target, Approve, and fire / targets turn Amber when targeted and after approved turn red\" · \"r.178 was the last working version before magazins and distorted targets became a reoccuring issue\" · \"ensure magazines don't get distorted\"): built from the carried r.178 (af6f65e0); r.166–r.195 were hand edits that never entered the register (r.178 and r.195 carried after the fact). Every target in every mode needs TARGET → APPROVE → FIRE (keepsMark false everywhere; a plate that just stood is released — r.169 restored); plates at true size (no pixel floor in silMesh); the r0.178 picture (RELOAD left, the count centred, the light right, one row 75 px; the magazine drawing 26×52 at 1:2; mode · lane · RESTART at the right; the strip above, the score under); THE RANGE from the intro and the QR link in PRACTICE; prebuild runs the deck gates. QA EVERY_TARGET_NEEDS_TARGET_APPROVE_FIRE (replaces MARK_SURVIVES_THE_RETURN), MAG_ROW_ONE_LINE, PLATE_DRAWN_AT_TRUE_SIZE; MARKS_ARE_REMEMBERED, NO_RING_ON_A_DOWN_TARGET, RANGE_MENU_ON_SCREEN re-stated. sha256 aef96537.",
    "commit": "a18880d",
-   "shipped": "PENDING"
+   "shipped": "e8578ad"
   }
  ],
  "arena": {
