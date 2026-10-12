@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.053",
+  "revision": "0.054",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -407,6 +407,14 @@
    "why": "Operator deck r.198 — QUAL: the five Table VI positions as the operator's own TC 3-22.9 figures at high resolution, the rifle in its own colour, one at a time, matched to the four magazines; the range goes cold (operator 2026-10-11, verbatim: \"i need Raster for each pose\" · \"I want clear rasters for 5 shooting positions; same height as magazines and stop light accept a rounded square\" · \"we match the shooting position tonthe target and 4 magazines that we actually test in wualifications for army range\" · \"mini poses are raster sinplications 1983 starwars video game style with words of these 5\" · \"standing; Prone unsupported, Prone Supported, Kneeling Supported, Standing Supported\"): a rounded-square card of the magazine's height between the count and the light shows the engagement's position (1 STANDING · 2–5 PRONE UNSUPPORTED · MAG 1 · 6–10 PRONE SUPPORTED · MAG 2 · 11–14 KNEELING SUPPORTED · MAG 3 · 15–18 STANDING SUPPORTED · MAG 4) as his own figure with its word — traced from docs/asks/img/…shot3..7 by scripts/trace-poses.mjs (poses.v2.json; the person T13.SI, the rifle T13.DOME, outlines T13.ROAD; 2026-10-12: \"dont use stick figures; better high resolution modern images, make gun different color than person\") and embedded; the 40th round ends cold — every plate down, marks cleared, CEASE FIRE · UNLOAD · SHOW CLEAR · the score · RANGE IS COLD, RELOAD reads UNLOAD, a COLD decision row (r.179/r.181 carried). QA POSE_MATCHES_THE_ENGAGEMENT, POSE_CARD_IS_A_ROUNDED_SQUARE_OF_THE_MAGAZINE_HEIGHT, QUAL_ENDS_COLD; gate pose-rasters. sha256 d8cc52d4.",
    "commit": "d93370d",
    "shipped": "a7f8678"
+  },
+  {
+   "revision": "0.054",
+   "date": "2026-10-12",
+   "kind": "release",
+   "why": "Operator deck r.199 — QUAL: the five positions are the operator's own eXeL AI picture, cut exactly, on a square box against the stop light's left edge; the traced figures deleted (operator 2026-10-12, verbatim: \"use my images exactly for 5 shooting positions\" · \"DO NOT USE your images BUT eXeL AI corrected inages\" · \"STOP TRYING YOURS USE MINE / DELETE THE ORIGINAL AND USE eXeL AI\" · \"heres the correction, just remove borders around text\" · \"when showing positions it will be in square box right of the center magazine with counter (as visual reminder to gamer\" · \"better yet, have it left of fire box\" · \"with stop light indicstor on targets\" · \"push and commit\"): his picture docs/asks/img/…shot12.png → docs/drone-2525/poses/cut-stances.py (each figure its own connected shape, nothing redrawn, the rifle its own colour, longest side 256) → stance-0..4.png embedded; his words TACTICAL STANDING · UNSUPPORTED PRONE · SUPPORTED PRONE · SUPPORTED KNEELING · SUPPORTED STANDING; the 75-px square box moves to right:76px against the light, the light one width (72) so the box clears the centred count on a 375-px phone; the targets keep the light's colours (amber targeted, red approved). pose-0..4.png, poses.v2.json and frontend/scripts/trace-poses.mjs deleted.",
+   "commit": "4911e6b",
+   "shipped": "PENDING"
   }
  ],
  "arena": {

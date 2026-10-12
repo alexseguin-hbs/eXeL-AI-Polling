@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 76 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 77 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -541,6 +541,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "QUAL: the five Table VI positions as the operator's own TC 3-22.9 figures, traced at high resolution with the rifle in its own colour, on a card the magazine's height, one at a time, matched to the four magazines; the table ends cold on the record — operator deck r.198 served at /drone-2525/play.html (sha256 d8cc52d4...). DD-03 the positions are his own figures — high-resolution, no stick figures, the gun never the person's colour — one at a time, his five words in his order. The card is a rounded square (radius 12) of the magazine card's height between the count and the light, QUAL only; the figure follows the engagement (1 STANDING · 2–5 PRONE UNSUPPORTED · 6–10 PRONE SUPPORTED · 11–14 KNEELING SUPPORTED · 15–18 STANDING SUPPORTED) and the magazine is the phase; the five rasters are traced from his pages by one carried script and recipe (person T13.SI · rifle T13.DOME · outline T13.ROAD) and embedded, so the deck stays one file. The 40th round lowers every plate and clears every mark: CEASE FIRE · UNLOAD · SHOW CLEAR · the score · RANGE IS COLD; RELOAD reads UNLOAD and refuses; a COLD row carries hits, rounds and score (r.179/r.181, hand edits never registered, carried).",
       "commit": "d93370d"
+    },
+    {
+      "rev": 77,
+      "date": "2026-10-12",
+      "kind": "release",
+      "text": "QUAL: the five positions are the operator's own eXeL AI picture, cut exactly, on a square box against the stop light's left edge; the traced figures deleted — operator deck r.199 served at /drone-2525/play.html (sha256 a6664bfe...). DD-07 the positions are HIS picture — \"use my images exactly for 5 shooting positions\" · \"DELETE THE ORIGINAL AND USE eXeL AI\" — cut from docs/asks/img/…shot12.png by one carried script (docs/drone-2525/poses/cut-stances.py: each figure its own connected shape, nothing redrawn, the rifle its own colour as he drew it, longest side 256), embedded so the deck stays one file; his five words from his own cards, in his order: TACTICAL STANDING · UNSUPPORTED PRONE · SUPPORTED PRONE · SUPPORTED KNEELING · SUPPORTED STANDING. DD-08 the box sits LEFT of the fire light (\"better yet, have it left of fire box\"): the 75-px square at right:76px against the light's edge, the light one width (72) so the box clears the centred count on a 375-px phone; the figure stands in a 69×52 box with its shape kept, the word under it. \"Stop light indicator on targets\" is kept as r.196 made it: a target is amber when targeted, red when approved. The r.198 traced figures, their recipe and their tracer are deleted from the tree; HASHES_r198 still names what r.198 shipped.",
+      "commit": "4911e6b"
     }
   ]
 };

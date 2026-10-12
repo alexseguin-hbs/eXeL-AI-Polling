@@ -51,6 +51,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.196 | 2026-10-12 | Claude Code (RESTORE: the r.178 base; every target TARGET → APPROVE → FIRE in every mode; plates at true size; the r0.178 picture; THE RANGE from the intro and the QR; the register caught up) | 542571 | aef96537d11a1a00cec97656fb1a7573f89a97122b963450f1d84bab1b5d48e6 | e8578ad (Verify Live #2723) | a90b136a8c648e3bae213833b06623e40997b78669d908f6fbae26dd4c7bf550 |
 | r.197 | 2026-10-12 | Claude Code (TRAIN DOWN on the record: START raises the lane and opens the clock under the light; the last target stops it; START and TIME are decision rows) | 552240 | 1e6fd69cfe8368d14ebd3c107bf482654c0bafcac8e5896048d167913535057c | a089d8d (Verify Live #2725) | d952e0e7b2a5fb2cbeef8418c28fa05ac2f27661414b40385d3fc4ff11537ebd |
 | r.198 | 2026-10-12 | Claude Code (QUAL: the five Table VI positions as high-resolution figures traced from the operator's TC 3-22.9 pages — the rifle in its own colour — on a card the magazine's height, one at a time, matched to the four magazines; the table ends cold on the record) | 676440 | d8cc52d45d2a7af2a5fba4c27f6dae3d57afe524560476b4fc7542c6fdfabc41 | a7f8678 (Verify Live #2728) | c59a03a3a15137dd4595aac6c8e670339a6bf73e4d88efe046f4d488ec7f457e |
+| r.199 | 2026-10-12 | Claude Code (QUAL: the five positions are the operator's own eXeL AI picture, cut exactly — the tan figure, the dark rifle — on a square box against the stop light's left edge, his five words; the traced figures of r.198 and their tracer deleted; the light one width) | 806168 | a6664bfe507e4dfa08b89c5ad95a050214f45016ffe57cf18f09b4bec9aa8973 | PENDING (Verify Live) | 4409ae9ee7427be03b91c7196e2fab2d3c70d9339ba3604f96f621e83cccd571 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1049,3 +1050,34 @@ Notes: `CLAUDE_CODE_NOTES_r198.md`. Patch: `patches/r197_to_r198.py` (base r.197
   transparent · person · outline · rifle from the deck's own T13; both decks embed them byte-equal; the words, the table; the tracer carried.
 - Open (default, on the record): the phase-rest sentence stays r.178's "PHASE n · <position> · PRESS RELOAD · MOVE" (r.181's tower voice "CEASE FIRE
   · LOCK AND LOAD" is not carried); the colours — person ivory (T13.SI), rifle gold (T13.DOME), outline T13.ROAD — are one line each.
+
+## r.199 — Claude Code: QUAL — the five positions are his own picture, cut exactly, on a square box against the light (2026-10-12)
+Operator (2026-10-12, verbatim): **"use my images exactly for 5 shooting positions"** · **"DO NOT USE your images BUT eXeL AI corrected inages"** ·
+**"STOP TRYING YOURS USE MINE / DELETE THE ORIGINAL AND USE eXeL AI"** · **"heres the correction, just remove borders around text"** · **"so when
+showing positions it will be in square box right of the center magazine with counter (as visual reminder to gamer"** · **"better yet, have it
+left of fire box"** · **"with stop light indicstor on targets"** · **"push and commit"**. Ask file: `docs/asks/2026.10.11_18.56..53_drone2525_restore_r178_three_modes_poses.md`
+(addendum 2026-10-12, shots 12–28). Notes: `CLAUDE_CODE_NOTES_r199.md`. Patch: `patches/r198_to_r199.py` (base r.198, declared and asserted). Artefact commit `4911e6b`.
+- **Invariant:** the position on the card is HIS figure — cut from his own picture by one carried script, never redrawn, the rifle its own colour
+  as he drew it — one at a time, matched to the engagement and the magazine as in r.198; the box is a square of the magazine's height that sits
+  against the light's left edge and never touches the count, on a 375-px phone as on a wide one; the targets keep the light's colours (amber
+  targeted, red approved — r.196).
+- **The figures:** his picture `docs/asks/img/2026.10.11_18.56..53_drone2525_shot12.png` (the five on black, hashed in the ask's sidecar) →
+  `docs/drone-2525/poses/cut-stances.py` (python3 + ImageMagick): each figure is its own connected shape above the black (a shape under 5,000 px
+  joins the figure within 30 px — the wall top of the fifth), so a neighbour's rifle tip or boots never enter the next card; the cut keeps every
+  pixel of the figure with the dark lines inside it (the mask closed by 3 px), takes nothing of a neighbour, and fits the longest side to 256 px
+  → `stance-0..4.png` (RGBA, 19–57 KB), `POSES.sha256`. Embedded as `POSE_PNG` data URIs; the deck stays one file. The r.198 traced figures
+  (`pose-0..4.png`), their recipe (`poses.v2.json`) and the tracer (`frontend/scripts/trace-poses.mjs`) are deleted ("DELETE THE ORIGINAL");
+  `HASHES_r198.sha256` still names them as what r.198 shipped.
+- **The words:** his labels from his own cards (shots 13/14), in his order: TACTICAL STANDING · UNSUPPORTED PRONE · SUPPORTED PRONE · SUPPORTED
+  KNEELING · SUPPORTED STANDING (the Table VI order; `POSE_BY_ENG` unchanged). The label's border is not drawn; the word alone, under the figure, in the cyan of his cards (T13.WIRE); the toast between phases says the same words (`IWQ_VI[].pos`).
+- **The box:** `#posWell` keeps its 75×75 square (radius 12) and moves from "right of the count" to `right:76px` — against the light's left edge
+  with 4 px between; the light takes one width (`#app.range #startLight{width:72px}`, the word's letter-spacing .06em, the clock 11 px) so WAIT ·
+  READY · FIRE · CEASE FIRE · the QUAL count ("NEXT 3 S") · the TRAIN DOWN clock all fit and the box clears the centred count by 7 px on a 375-px
+  phone (14 px on 390). The figure stands on the floor of a 69×52 box (`#posPic`), fitted with its shape kept, the word under it.
+- QA: `POSE_CARD_IS_A_ROUNDED_SQUARE_OF_THE_MAGAZINE_HEIGHT` re-stated (square of the magazine's height; one row; against the light ≤ 8 px, clear
+  of the count ≥ 4 px, measured; the figure box 69×52 and the picture's fit) · `POSE_MATCHES_THE_ENGAGEMENT` re-stated to his words. Gate
+  `tests/pose-rasters.test.mjs` rewritten: his picture carried and in the sidecar; the cut script carried; the five RGBA 256-px PNGs under 64 KB;
+  `POSES.sha256`; both decks embed them byte-equal; his words and the table; the CSS of the box and the light; the originals gone.
+- Kept, on the record: "stop light indicator on targets" = the targets carry the light's colours (r.196 `PHASE_COLOUR_FOLLOWS_THE_SLOT`).
+- Owed next, one at a time: the magazine proportions to his crops (shot15 flipped on the y axis, shots 17/18 copied exactly, the count centred);
+  the label clutter (shots 21/22); Drone-2525 on the Vision-2525 worlds page (shot20); R-CORE in the shared format (shot19) → r.200.
