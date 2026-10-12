@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.051",
+  "revision": "0.052",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -391,6 +391,14 @@
    "why": "Operator deck r.196 — RESTORE (operator 2026-10-11, verbatim: \"please review Drone-2525 / R-CORE AND recent revisions was messed up by Grok. I need help restoring functionality; attached is the last know version\" · \"all targets must have user Target, Approve, and fire / targets turn Amber when targeted and after approved turn red\" · \"r.178 was the last working version before magazins and distorted targets became a reoccuring issue\" · \"ensure magazines don't get distorted\"): built from the carried r.178 (af6f65e0); r.166–r.195 were hand edits that never entered the register (r.178 and r.195 carried after the fact). Every target in every mode needs TARGET → APPROVE → FIRE (keepsMark false everywhere; a plate that just stood is released — r.169 restored); plates at true size (no pixel floor in silMesh); the r0.178 picture (RELOAD left, the count centred, the light right, one row 75 px; the magazine drawing 26×52 at 1:2; mode · lane · RESTART at the right; the strip above, the score under); THE RANGE from the intro and the QR link in PRACTICE; prebuild runs the deck gates. QA EVERY_TARGET_NEEDS_TARGET_APPROVE_FIRE (replaces MARK_SURVIVES_THE_RETURN), MAG_ROW_ONE_LINE, PLATE_DRAWN_AT_TRUE_SIZE; MARKS_ARE_REMEMBERED, NO_RING_ON_A_DOWN_TARGET, RANGE_MENU_ON_SCREEN re-stated. sha256 aef96537.",
    "commit": "a18880d",
    "shipped": "e8578ad"
+  },
+  {
+   "revision": "0.052",
+   "date": "2026-10-12",
+   "kind": "release",
+   "why": "Operator deck r.197 — TRAIN DOWN on the record (operator 2026-10-11, verbatim: \"Train-Down where we have timer under stop light tonsee how fast to target all 3\" · \"that way a 3v3 drone can have challenges targeting number of targets (6 people per team), to find the best time similar to Train-Down at \"The Range.\"\"): pick TRAIN DOWN and every target is down, the light WAIT, the button START; START stands the lane and runs the clock under the lamps; the last target down stops it (ALL DOWN · m:ss.t on the light, the strip and the hint); START and TIME are decision rows behind the round's door that travel like RESET (a peer START runs the same lane's clock, a peer TIME is the time); a START before the round or while the clock runs is a REJECT row; the target set is declared on the START row (targets:N — the lane's 11; TRAIN_DOWN_N raises the nearest N). Ported from r.182 (aac4db9b, unregistered). QA TRAIN_DOWN_CLOCK, TRAIN_DOWN_ON_THE_RECORD; MODE_DOWN_ALL_DOWN through START. sha256 1e6fd69c.",
+   "commit": "f65885b",
+   "shipped": "PENDING"
   }
  ],
  "arena": {

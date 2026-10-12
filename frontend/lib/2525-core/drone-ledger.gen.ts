@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 74 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 75 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -527,6 +527,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "RESTORE: the r.178 base, every target TARGET → APPROVE → FIRE in every mode, plates at true size, the r0.178 picture — operator deck r.196 served at /drone-2525/play.html (sha256 aef96537...), built from the carried r.178, the operator's last working version. EVERY TARGET IN EVERY MODE: TARGET, APPROVE, FIRE — amber, then red, then the shot; no mark rides a target down and back up (QUAL 40 restored from r.169). Plates at their true size at every range and zoom; the firing pits drawn. The r0.178 picture: RELOAD at the left, the round count centred, the start light at the right, one row; the magazine drawing at exactly 1:2; mode, lane, RESTART at the right. THE RANGE from the intro and the QR link opens Lane 21 in PRACTICE. The deck gates run in prebuild so a red gate cannot reach the site. Boot QA 214/215 both orientations.",
       "commit": "a18880d"
+    },
+    {
+      "rev": 75,
+      "date": "2026-10-12",
+      "kind": "release",
+      "text": "TRAIN DOWN is a timed run on the record: START raises the lane and opens the clock under the light, the last target down stops it, START and TIME are decision rows that reach every seat — operator deck r.197 served at /drone-2525/play.html (sha256 1e6fd69c...). DD-04 TRAIN DOWN time on the record. Armed: every target down, the light WAIT, the button START; a START before the round opens or while the clock runs is a REJECT row; RESTART re-arms; the target set is declared on the START row (targets:N — the lane's 11; a 3-target run is one constant). Ported from r.182 (aac4db9b, a hand edit never registered).",
+      "commit": "f65885b"
     }
   ]
 };

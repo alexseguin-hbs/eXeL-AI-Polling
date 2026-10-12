@@ -49,6 +49,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.178 | 2026-10-10 | Grok (hand edit af6f65e0 — unregistered at the time; carried 2026-10-12 as the operator's baseline, "the last working version") | 531981 | d39875bec3f4e2c5e53a56c21c3e5095825691301582b634d7ac493ba30e8f66 | af6f65e0 (served by hand; the picture on his phone had a later layout — see the r.196 section) | e4a1cb08bfe54f89a5fd607fb4617f07a3e7f9ca717d56cd29a160a92aa3642e |
 | r.195 | 2026-10-11 | Grok (hand edit 14a930d0 — unregistered; carried 2026-10-12 as the record of what was served with the gate red) | 547290 | 7b02aed71bc2e78b4f44e2edb033d8208e06cd82642c855c585ad827e6b408e1 | 14a930d0 (served through 8f9b354 with deck-consistency, drone-playable and traceability red) | d521f699c98fe66d2ac31988e504b9e850ae431823ea63ab67b31b8d45d85a63 |
 | r.196 | 2026-10-12 | Claude Code (RESTORE: the r.178 base; every target TARGET → APPROVE → FIRE in every mode; plates at true size; the r0.178 picture; THE RANGE from the intro and the QR; the register caught up) | 542571 | aef96537d11a1a00cec97656fb1a7573f89a97122b963450f1d84bab1b5d48e6 | e8578ad (Verify Live #2723) | a90b136a8c648e3bae213833b06623e40997b78669d908f6fbae26dd4c7bf550 |
+| r.197 | 2026-10-12 | Claude Code (TRAIN DOWN on the record: START raises the lane and opens the clock under the light; the last target stops it; START and TIME are decision rows) | 552240 | 1e6fd69cfe8368d14ebd3c107bf482654c0bafcac8e5896048d167913535057c | PENDING (Verify Live) | d952e0e7b2a5fb2cbeef8418c28fa05ac2f27661414b40385d3fc4ff11537ebd |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -999,3 +1000,21 @@ Notes: `CLAUDE_CODE_NOTES_r196.md`. Patch: `patches/r195_to_r196.py` — SRC is 
 - Not in r.196 (carried by r.197–r.199 on this base): the TRAIN DOWN clock (r.182), the cold range (r.179/r.181), the pose cards (r.180–r.194), the
   R-CORE history (r.195) — in the shared format, from the shared ledger.
 - Credit: Sensor Fusion (`frontend/app/SensorFusion-2525`) works and was built with the Grok bot; it is untouched here (operator 2026-10-11).
+
+## r.197 — Claude Code: TRAIN DOWN — the clock under the light, from START to the last target, on the record (2026-10-12)
+Operator (2026-10-11, verbatim): **"Train-Down where we have timer under stop light tonsee how fast to target all 3"** · **"that way a 3v3 drone can have
+challenges targeting number of targets (6 people per team), to find the best time similar to Train-Down at "The Range.""**.
+Notes: `CLAUDE_CODE_NOTES_r197.md`. Patch: `patches/r196_to_r197.py` (base r.196, declared and asserted; 17 asserted edits). Artefact commit `f65885b`.
+- **Invariant:** TRAIN DOWN is a timed run on the record. START raises the lane's targets and opens the clock as a decision row behind the same door as
+  a shot; the clock stops the instant the last target is down and the time is a decision row; both reach every seat and enter the replay hash.
+- **What a player meets:** pick TRAIN DOWN (or open the QR link in that mode) — every target is down, the light says WAIT, the button says START.
+  START — every target stands, the clock runs under the lamps (TIME m:ss.t), the strip carries it. The last target down — ALL DOWN · m:ss.t on the light,
+  the strip and the hint; RESTART re-arms. START before the round opens, or while the clock runs, is refused with a REJECT row.
+- **The target set is declared** on the START row (`targets:N` — the lane's 11; `TRAIN_DOWN_N` raises the nearest N when set), so the 3v3 challenge
+  varies a number, not the mode (DD-04). The operator's "all 3" is an open decision, recorded; the default is the lane.
+- Ported from r.182 (`aac4db9b`, a hand edit never registered): `downArm` / `downStart` / `downClockWord`, the START relabel, the words on the light and the
+  strip — now behind `downStartOnRecord` (`decide('START')`) and `downStop` (`decide('TIME')`); the rows travel like RESET and a peer START runs the same
+  lane's clock; a peer TIME is the time. A reset clears the clock in every mode.
+- QA: `TRAIN_DOWN_CLOCK` (armed → START → running → the last target → the time on the light, the strip, the hint, the row within 50 ms),
+  `TRAIN_DOWN_ON_THE_RECORD` (refused before the round, refused while running, START and TIME rows, the replay hash moves); `MODE_DOWN_ALL_DOWN` re-stated
+  through START. Boot QA both orientations; `drone-team-e2e` 10/10.
