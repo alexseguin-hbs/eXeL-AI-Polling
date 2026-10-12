@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 79 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 80 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -562,6 +562,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "The count magazine keeps its gold frame at every count; the rounds and the number carry the colour — operator deck r.201 served at /drone-2525/play.html (sha256 2b66093f...). DD-10 the picture over the code, again: r.178's code painted the whole count magazine amber below 21 rounds and red at 5 (hudMag); his r0.178 picture at 3 rounds shows the gold frame, three red lines and a red \"3\" — the frame is gold at every count, the colour lives in the round lines and the number, a count of n ≤ 19 lights at least n lines (3 → 3, 12 → 12; 20 and above read full); his colour rule, stated the same morning: green at 20 rounds and above, amber 6–19, red 5 and under (r.178 read amber at 20). From the same review of r.200: the number at the word's size and weight (11 px, 500); the RELOAD word back at his picture's spacing (.14em) — the card takes the width his phone's font gives it. Gate: the deck's QA row MAGAZINE_KEEPS_ITS_FRAME at 3, 12 and 30 rounds; drone-playable holds the gold line and the lit rule.",
       "commit": "9ea7ef4"
+    },
+    {
+      "rev": 80,
+      "date": "2026-10-12",
+      "kind": "release",
+      "text": "The magazine row is the operator's three pictures: the RELOAD ink and the count's frame and fill as rasters cut from his images, the cards at his proportions, the light at his box's proportion, all four one height with the stance box — operator deck r.202 served at /drone-2525/play.html (sha256 e8043bcb...). DD-11 the pictures ARE the row: \"These are exact image ton-use; create final raster and use exact proportions\" · \"height of all magazines, standing position and stop light need to be same\" — nothing of the magazine is drawn by hand any more; docs/drone-2525/magazine/cut-magazine.py cuts the RELOAD ink, the gold frame and the green fill out of his pictures (shots 30 and 31, in the ask's sidecar), the fill recoloured to his amber and red, five 72×192 rasters pinned by sha256 and embedded; the cards measure his: RELOAD 60×75 (0.80), the count 42×75 (0.56), the ink 18×48 at 30 % / 43 % of the width and 64 % of the height, the light 56×75 (0.747, his 0.731 plus the px TIME 12:34.5 needs; live lamps and words measured from shot29, not a raster) with the lamps 19 % of its width, the stance box against the light, all 75 tall; the fill is clipped from the top one line per round at any cap (his picture at 29 is the full fill; 3 rounds show three lines in QUAL's 10-round magazines as in a 30) and coloured green ≥ 20 · amber 6–19 · red ≤ 5, the frame never changes. Gates: tests/magazine-rasters.test.mjs (prebuild) holds the bytes and the CSS; the deck's rows MAGAZINE_IS_HIS_DRAWING, MAGAZINE_KEEPS_ITS_FRAME, MAG_ROW_ONE_LINE and LIGHT_WORDS_FIT_ONE_WIDTH measure the built page. The twelve Masters' QUAL 40 AAR follows as r.203.",
+      "commit": "ab65de4"
     }
   ]
 };

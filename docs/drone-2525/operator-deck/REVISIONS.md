@@ -54,6 +54,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.199 | 2026-10-12 | Claude Code (QUAL: the five positions are the operator's own eXeL AI picture, cut exactly — the tan figure, the dark rifle — on a square box against the stop light's left edge, his five words; the traced figures of r.198 and their tracer deleted; the light one width) | 806168 | a6664bfe507e4dfa08b89c5ad95a050214f45016ffe57cf18f09b4bec9aa8973 | 57525eb (Verify Live #2730) | 4409ae9ee7427be03b91c7196e2fab2d3c70d9339ba3604f96f621e83cccd571 |
 | r.200 | 2026-10-12 | Claude Code (the magazine drawn as the operator's own r0.178 picture in both cards — the neck with the feed lips, the tapered body with the bend, the sloped floor, the window, the 3×4 grid; the round lines inside the body; the RELOAD card at his width) | 810838 | ff67ecfc0daf0cccb1978ab4256f33720be2cac5c713b8566fee6d05fe8ffa1d | 621a808 (Verify Live #2732) | d05fcfb078d63de1498c5e5d92d74ea8448bf35e9d3d025bdf1c755599fba0ae |
 | r.201 | 2026-10-12 | Claude Code (the count magazine keeps its gold frame at every count — the rounds and the number carry the colour, as in the operator's r0.178 picture; each of the last rounds draws a line; the number at the word's size; RELOAD at his picture's spacing) | 813575 | 2b66093f883dc070675193e261821129fc03a7b04699a318cf61debb6b49abaf | f6264f2 (Verify Live #2736) | 9f661e89012f235bdbc121b97e75355c83d33b40497a57b2a933e604d04fe249 |
+| r.202 | 2026-10-12 | Claude Code (the magazine row is the operator's three pictures: the RELOAD ink and the count's frame and fill as rasters cut from his images, the cards at his proportions, the light at his box's proportion, all four one height with the stance box; the SVG magazines gone) | 897037 | e8043bcbe138b6d0ba278b459fb26d315ee729af0518c755b897ea6d1a77e380 | PENDING (Verify Live) | b070f2139e32a65011086177bcc4073a0a2ee8d7402dbc1145c0cfebd4e8d075 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1124,3 +1125,26 @@ Patch: `patches/r200_to_r201.py` (base r.200, declared and asserted). Artefact c
   the gold line, the lit rule, the number's size, the word's spacing.
 - Owed next: R-CORE in the shared format (the rehearsed port, now r.202) · the label clutter was answered by r.196 (`LABELS_ONLY_WHILE_MARKED`) ·
   Drone-2525 on the Vision-2525 worlds page (its own commit, outside the deck).
+
+## r.202 — Claude Code: the magazine row is his three pictures (2026-10-12)
+Operator (2026-10-12, verbatim): **"These are exact image ton-use; create final raster and use exact proportions"** (shots 29–31: the stop light at
+ALL DOWN · 0:21.5, the count magazine at 29, the RELOAD magazine) · **"height of all magazines, standing position and stop light need to be same"** ·
+**"we had right dimentions on r.178 and you are still getting magazine wrong"** · **"WHEN INFIVE YOU AND IMAGE FOLLOW EXACTLY!"**. Notes:
+`CLAUDE_CODE_NOTES_r202.md`. Patch: `patches/r201_to_r202.py` (base r.201, declared and asserted). Artefact commit `ab65de4`.
+- **Invariant:** the RELOAD drawing and the count magazine's frame and fill are RASTERS cut from his pictures, never redrawn; the cards keep his
+  proportions (RELOAD 60×75 = 0.80, the count 42×75 = 0.56, the light 56×75 = 0.747, two px wider than his 0.731 so TIME 12:34.5 fits) at the one row height with the stance box (75); the ink sits in
+  each card where his picture puts it (18×48: 30 % / 43 % of the width, 64 % of the height, from 7 % down); the count's fill is clipped from the
+  top by the rounds left (his picture at 29 is the full fill) and recoloured by his rule (green ≥ 20 · amber 6–19 · red ≤ 5); the frame never changes.
+- **The rasters:** `docs/drone-2525/magazine/cut-magazine.py` cuts them from `docs/asks/img/…shot30.png` (the count) and `…shot31.png` (RELOAD):
+  each pixel's alpha is how much of the ink colour it carries, other hues refused; the frame and the fill on one canvas so they overlay 1:1; fitted
+  to 72×192 (the ink is 18×48 CSS at 4×); the fill recoloured to his amber and red → `reload-ink.png`, `count-frame.png`, `count-fill-green/amber/red.png`
+  (7–9 KB each), `MAGAZINE.sha256`. Embedded as `MAG_PNG`; `MAG_FILL_TOP/BOTTOM` (11.3 % / 92.0 % of the canvas) measured from his picture.
+- **The light:** 56×75 (0.747; his box is 0.731 = 55 px, the extra px is for TIME 12:34.5) with the lamps 10.6 px (19 % of its width) in a column, the word 6.5 px and the clock 9 px under them, measured from his picture (shot29), not cut from it — the light keeps live lamps and words, so it is the one card that is not a raster;
+  every word it shows fits (`LIGHT_WORDS_FIT_ONE_WIDTH`); the stance box at `right:60px`; the narrow-phone rule of r.200/r.201 is no longer needed
+  (the box clears the count by 16 px even at 360) and leaves.
+- QA: `MAGAZINE_IS_HIS_DRAWING` re-stated (his rasters by src, 18×48 in 60×75 and 42×75, his proportions ±2 %), `MAGAZINE_KEEPS_ITS_FRAME` re-stated
+  (the frame src unchanged at 3/12/19/20/30, the fill red/amber/amber/green/green, the clip monotonic and at the measured top at 30, the number's
+  colour), `MAG_ROW_ONE_LINE` measures the rasters' boxes (0.375), `LIGHT_WORDS_FIT_ONE_WIDTH` at 56×75. New gate `tests/magazine-rasters.test.mjs`
+  (node-only, prebuild + test:ci): his pictures in the sidecar, the cut script pinned, the five PNGs pinned and embedded byte-equal, the CSS of the
+  cards, the light and the box, no SVG magazine left. `drone-playable` re-stated (no `<svg viewBox="0 0 48 96">`, ten PNG data URIs).
+- Owed next: the twelve Masters' QUAL 40 AAR fixes (r.203) · R-CORE in the shared format (r.204).

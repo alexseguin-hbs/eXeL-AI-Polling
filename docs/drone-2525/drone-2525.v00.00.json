@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.056",
+  "revision": "0.057",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -431,6 +431,14 @@
    "why": "Operator deck r.201 — the count magazine keeps its gold frame at every count; the rounds and the number carry the colour, as in the operator's r0.178 picture (the AsM review of r.200, Sofia: at 3 rounds his picture shows the gold frame with three red lines and a red \"3\"; r.200 painted the whole magazine red); each of the last rounds draws a line (3 → 3, 12 → 12, 20+ full); his colour rule — green at 20 and above, amber 6–19, red 5 and under (r.178 read amber at 20); the number at the word's size and weight; the RELOAD word at his picture's spacing (.14em). QA row MAGAZINE_KEEPS_ITS_FRAME.",
    "commit": "9ea7ef4",
    "shipped": "f6264f2"
+  },
+  {
+   "revision": "0.057",
+   "date": "2026-10-12",
+   "kind": "release",
+   "why": "Operator deck r.202 — the magazine row is the operator's three pictures (operator 2026-10-12, verbatim: \"These are exact image ton-use; create final raster and use exact proportions\" · \"height of all magazines, standing position and stop light need to be same\" · \"WHEN INFIVE YOU AND IMAGE FOLLOW EXACTLY!\"): the RELOAD ink and the count's frame and fill cut from his images by docs/drone-2525/magazine/cut-magazine.py into 72×192 rasters (pinned, embedded as MAG_PNG), the cards at his proportions (RELOAD 60×75, the count 42×75, the ink 18×48 from 7 % down), the light at his box's proportion (56×75, the lamps 19 % of its width), all four one height with the stance box; the fill clipped from the top by the rounds left and coloured by his rule; the frame never changes; the SVG magazines of r.178–r.201 gone. New gate tests/magazine-rasters.test.mjs.",
+   "commit": "ab65de4",
+   "shipped": "PENDING"
   }
  ],
  "arena": {
