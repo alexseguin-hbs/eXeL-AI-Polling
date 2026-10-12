@@ -414,7 +414,7 @@
    "kind": "release",
    "why": "Operator deck r.199 — QUAL: the five positions are the operator's own eXeL AI picture, cut exactly, on a square box against the stop light's left edge; the traced figures deleted (operator 2026-10-12, verbatim: \"use my images exactly for 5 shooting positions\" · \"DO NOT USE your images BUT eXeL AI corrected inages\" · \"STOP TRYING YOURS USE MINE / DELETE THE ORIGINAL AND USE eXeL AI\" · \"heres the correction, just remove borders around text\" · \"when showing positions it will be in square box right of the center magazine with counter (as visual reminder to gamer\" · \"better yet, have it left of fire box\" · \"with stop light indicstor on targets\" · \"push and commit\"): his picture docs/asks/img/…shot12.png → docs/drone-2525/poses/cut-stances.py (each figure its own connected shape, nothing redrawn, the rifle its own colour, longest side 256) → stance-0..4.png embedded; his words TACTICAL STANDING · UNSUPPORTED PRONE · SUPPORTED PRONE · SUPPORTED KNEELING · SUPPORTED STANDING; the 75-px square box moves to right:76px against the light, the light one width (72) so the box clears the centred count on a 375-px phone; the targets keep the light's colours (amber targeted, red approved). pose-0..4.png, poses.v2.json and frontend/scripts/trace-poses.mjs deleted.",
    "commit": "4911e6b",
-   "shipped": "PENDING"
+   "shipped": "57525eb"
   }
  ],
  "arena": {
