@@ -57,6 +57,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.202 | 2026-10-12 | Claude Code (the magazine row is the operator's three pictures: the RELOAD ink and the count's frame and fill as rasters cut from his images, the cards at his proportions, the light at his box's proportion, all four one height with the stance box; the SVG magazines gone) | 897037 | e8043bcbe138b6d0ba278b459fb26d315ee729af0518c755b897ea6d1a77e380 | b5f7592 (Verify Live #2747) | b070f2139e32a65011086177bcc4073a0a2ee8d7402dbc1145c0cfebd4e8d075 |
 | r.203 | 2026-10-12 | Claude Code (the rounds as in his reference: the counter's frame and fill and the RELOAD ink cut from shot40 — nineteen distinct bars inside the walls, over the grid, below the window, one bar per round; the frame is the uncovered magazine (the RELOAD drawing in gold) under the bars — operator on the LIVE r.202: "rounds mist be in magazine") | 866859 | 00661e043b0d6a5e1147960389ec8e4736f07f3a6634a1b5d84cc138e3372a5c | 9c16873 (Verify Live #2756) | 7a0bbdfe36f1516c4600e6c73d539c991d72194afef247074772c5d713ffa4ef |
 | r.204 | 2026-10-12 | Claude Code (the buttons follow the bullseye: in the solo modes the glass and the actions read ONE mark — the one under the bullseye: the lit button, the recital at the top left and the step toast name its step, FIRE lights only with the bullseye on the red (fireOnIt, fireN's own rule, in every mode), a tap turns the head onto the plate in every solo mode and the double-tap still fires what the first tap touched when the second lands on it (never on blank sky), APPROVE on an unmarked plate holds — so target all, come back and approve all, then fire all; no caption and no board's words cover a control or a line of the HUD, a caption is moved and a board's words climb the post (the post drawn on to them) before they are dropped — operator on the LIVE r.202: "buttons must change to step we are on") | 897902 | 2085cd150d08f886b4f8236ed8d8f3f60c2494b6608afed08c7260298039db9b | e5aec75 (Verify Live #2769) | a3053e970cd5462cae4c099118495225a397629373abbf52df230094322d307f |
+| r.205 | 2026-10-13 | Claude Code (the glass tells the truth about every target: ONE painter — a target's silhouette wears its own step, amber targeted and red approved, the mist no longer overriding the phase; the lit button wears that colour too (APPROVE amber, FIRE red); the middle of the picture carries TARGETS ONLY — every per-target caption retired, the lane signs kept; an exposure's close downs every plate of its engagement, hit or not; the boot self-check borrows the range and gives it back as it found it — his words 2026-10-12 20:44 "remove all text from middle; targets only" and 21:05 "buttoms and colors around boxing amber vs red should match") | 913009 | 24d03765171b8e8df3b55ed78b0d40133cd3c76f42b26eed79bc555ee71d8665 | PENDING (Verify Live) | 3a3da320dd334a20854ea25b6f1df9ac594589865772679ff35afe4038d1edef |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1275,3 +1276,100 @@ all"** · **"buttons must change to step we are on"** (shot41, shot42). Then ~10
   while TOP_LINES_NEVER_OVERLAP stays green (pre-existing; the row should measure the longest clause) · a player who enters within ~1.5 s of
   load has the mode and magazine reset by the deferred boot rows (the QR door's 30-round first magazine, H1) · R-CORE in the shared format
   (r.206).
+
+## r.205 — Claude Code: the glass tells the truth about every target (2026-10-13)
+Operator (2026-10-12, verbatim as typed — the ask file holds them with their screenshots):
+**"remove all text from middle; targets only.  and everything is still no aligning. this amber target should have approve on buttons
+highlighted"** (~20:44, shot49) · **"system should always remember what silouettes are targeted.  if targeted, approve is next step / if
+silloeten is approved fire is next step / buttoms and colors around boxing amber vs red should match"** (~21:05) · **"I need 12 AsM Fleet to
+test; … test and simulate until no phantom targets and ensure all targets and siloeets have the proper color boxing with button when
+bulleseye is over target"** (~21:15) · **"SSSES , AsM, Simulate, and SPIRAL TEST TO ENSURE NO GLITCHES"** (~21:30). Then on the LIVE r.204,
+2026-10-13 ~04:34: **"way better; keep it ip and run AsM 111 + MoT 333 word, SPIRAL, SSSES , and UX usability test; …"** (shot50/51).
+Notes: `CLAUDE_CODE_NOTES_r205.md`. Patch: `patches/r204_to_r205.py` (base r.204, declared and asserted, 23 edits). Artefact commit `6a0f594`.
+- **Found first, measured on the LIVE r.204 bytes (sha256 2085cd15…), not taken on a reviewer's word:**
+  - A TARGETED plate painted its silhouette **LOCK red** inside its **amber** box. `drawPlates` read `q.mist?T13.LOCK:phaseCol(q,…)`, so the
+    mist flag — set the moment a target is marked — beat the slot's phase. Read from the painter's own calls: TARGETED `#E24B3B`, wanted
+    `#F0A020`. His criterion, failing on every marked target in every mode, since r.196.
+  - **APPROVE was green** (`rgb(61,204,138)`, the cue colour) on an amber box; only FIRE already wore its box's red.
+  - Thirty-six **words over the stage** in three looks with six targets marked — "T1 · 50 M LEFT · AMBER" and the rest — crossing each other
+    and their own boxes (his "everything is still no aligning").
+  - **The boot self-check stole the range.** Tap TARGET inside the first ~2 s and the mark vanished 150 ms later: the deferred row saved the
+    lane, the mode, the zoom, the view and the head, ran its own test on lane 01, and then set the marks, the approval and the magazine to
+    EMPTY instead of back to what it saved. Stack: the TARGET button → the row → `designate` → `tgtSlot` replaced. This is H1, recorded at
+    r.204 as "the QR door's 30-round first magazine" — the larger half was that it eats the player's targets.
+  - **The times are right; the light is not** (his "double check all stop lights and times are accurate per real tests"). Measured over 94.7 s
+    of real play: exposures 5.0 / 8.0 / 12.1 / 16.0 s against TC 3-20.40 Table VI's 5 / 8 / 12 / 16, 3.0 s between engagements, 10.0 s between
+    phases, 18 engagements, 40 rounds — every number inside ±0.1 s of the programme. The four exposure seconds are
+    DECLARED (the operator supplied them 2026-09-23; no open source publishes them); the 10 s transition is sourced. But GREEN showed 7.2 s in all, and in 72 of 72 of those samples **no
+    target was up**; with a target up the lamp was dark in 480 of 627 samples. The lamp fires green at the END of a window, three seconds
+    before the next set. His own Addendum 13 (r.162) asked for "Red, Yellow, green **as time to next set of targets**". Owed to r.206 with the
+    range officer's start, where the light's meaning and the officer's commands move together.
+- **Invariants (each one gated, each gate shown red on the r.204 bytes first — `scratchpad/r205/redfirst/redfirst.txt`):**
+  1. **A target's colour is its slot's phase** — unmarked the stroke, TARGETED `T13.GIMBAL` amber, APPROVED `T13.LOCK` red, and a plate whose
+     mark has ended goes back to the stroke. One painter: `phaseCol(q, q.mist?T13.LOCK:…)`, the phase first, the mist only for a target that
+     carries no phase.
+  2. **A button wears the colour of the box it acts on** — APPROVE amber, FIRE red, TARGET the cue colour.
+  3. **The middle of the picture carries targets only** — no per-target caption is measured, placed or drawn; his lane signs stay.
+  4. **An exposure's close downs every plate of its engagement**, hit or not; a hit at the buzzer is a hit, never NOT ENGAGED.
+  5. **The boot self-check borrows the range and gives it back exactly as it found it** — the marks, the approval, the magazine and every
+     plate of every lane.
+  6. **A press is judged on the target under the bullseye before anything is judged on the mark behind it**, and a
+     refusal about one target ends that target's box and no other (`dropMark`, never `releaseAuthority`).
+  7. **An empty magazine darkens FIRE and nothing else** — TARGET and APPROVE cost no round.
+  8. **With nothing under the bullseye the glass names no plate at all** (DD-13e completed).
+  9. **The MAP has no bullseye** — `lockOn()` returns null there, so the current mark stands.
+  10. **The self-check gives back everything it took** — the whole magazine (its cap included), the lane's run, the
+      clock, the tallies and the last shot, not only the marks.
+  11. **A peer's refusal about another plate does not end my red box** — AUTHORITY_RELEASED and TARGET_DOWN name a
+      plate; APPROVER_LOST and PEER_LOST are about the seat and still end it.
+  12. **FIRE is judged on the target under the bullseye too** — the hoist is in fireN as well as approveDesig.
+  13. **The MAP says what the MAP is** — TARGET there names the reason instead of an impossible instruction.
+  14. **FIRE is not lit where FIRE is refused** — a QUAL plate already engaged this exposure takes no second round.
+- **Fix, the class (40 asserted edits):** the one painter at `drawPlates`; `#face b.appr{color:var(--g)}` with the class on the button;
+  `captionCeiling`, `captionFloor` and the whole of `plateCaptionRects` retired to `function plateCaptionRects(){ return []; }`, the caption
+  draw cut out of `draw()`, `boardLabels`' `taken` emptied, the rows that measured captions retired with them
+  (`LABELS_ONLY_WHILE_MARKED` gone; `CAPTIONS_CLEAR_OF_THE_CONTROLS` → `BOARDS_CLEAR_OF_THE_CONTROLS`, the sign half kept at full strength);
+  the window-end block downs every plate and `qualDropStrays` spares nothing mid-fall; the deferred boot row saves the magazine and every
+  plate and restores `sv.desig`, `sv.slots`, `sv.hi` instead of clearing them.
+- **QA:** `SILHOUETTE_COLOUR_IS_THE_PHASE` (six reads taken from `drawPlates`' own calls, each silhouette matched to its plate by its own
+  `silMesh` mesh so no neighbour can be mistaken for it) · `BUTTON_WEARS_ITS_TARGETS_COLOUR` (computed styles against the thirteen colours) ·
+  `NO_WORDS_ON_THE_STAGE` (every `fillText` of three whole frames intercepted with six targets marked at 1×, 3.3× and 8×: a word that is not a
+  lane sign, the corner, the frame rate or LOCK fails the row) · `A_PRESS_NEVER_TOUCHES_A_TARGET_YOU_ARE_NOT_ON` (four legs: a fallen mark with a
+  standing red box beside it and the bullseye on a third plate; an empty magazine on a standing amber; blank sky after a
+  shot; the MAP — red on the r.204 bytes with `slots 2 → 0`, `PRESS RELOAD`, `LAST · 200 M LEFT · DOWN` and a plate
+  returned by `lockOn()` on the map) · `FALL_ENDS_WITH_THE_WINDOW` (four shots: this seat and the other seat's row
+  0.2 s before a 5 s close, a shot 0.05 s before it, and the 300 M into the 10 s rest) · `BOARDS_CLEAR_OF_THE_CONTROLS` (r.204's sixty looks,
+  the sign half). Boot QA **231/232** on the cut, only SYNC_DIRECT (offline); **227/232** with the five new rows alone on the r.204 bytes.
+- **Play-throughs on the shipped bytes:** TRAIN UP fifteen looks, every lit button equal to the step under the bullseye, captions 0, 0 errors;
+  QUAL 40 **40/40 EXPERT**, 3 reloads, 0 errors, 231 s, **first magazine 10 rounds** (it was 30 — H1's own symptom, gone with the fix).
+- Decided under his 2026-10-12 10:25 sign-off ("approve all your own decisions; document changes"), listed to reverse in one line:
+  **DD-14** the stage carries targets only — the per-target captions are retired, the lane signs stay (his 21:20 answer, "Signs stay") ·
+  **DD-15** the lit button wears its target's colour, APPROVE amber and FIRE red · **DD-16** one painter: the phase decides a target's colour
+  before the mist · **DD-17** the boot self-check restores what it borrows rather than standing down, so its coverage is kept ·
+  **DD-18** a press is judged on the target under the bullseye first, and a refusal about one target ends that target's
+  box and no other · **DD-19** an empty magazine darkens FIRE only · **DD-20** the MAP has no bullseye.
+- **Corrections on the record (raised by the round, kept here because the ledger is append-only):** r.204's two commits
+  carry DIFFERENT co-author trailers — the attribution in force changed between the artefact and the records half of the
+  same revision; from r.205 on, one revision is signed one way throughout. The exposure seconds of Table VI are DECLARED,
+  not sourced; earlier notes implied otherwise.
+- Owed, listed so he never says them twice: DD-13f, his 20:55 twenty-person drill, sits with CLASS 1e (the room's
+  reading) · three times a table the glass says PRESS RELOAD on a magazine it has just filled and the press is refused
+  (measured in this revision's own QUAL 40 timeline) · on a cold range FIRE says the target lapsed while TARGET refuses
+  any mark · hudKeepOut returns CSS pixels while its consumers work in canvas pixels, with no ResizeObserver · the lane
+  picker reads LANE 21 on every QR-opened lane · 428x926, the size he actually holds, is not one of the four CI
+  viewports · the 360-px phones are red and undeclared · the r.204 pin's 38 invariants collapse into one assertion ·
+  the two play-throughs are run by nothing in CI.
+- Owed to r.206, with the decision named: his shot51 sign defect survives. A lane sign's visibility is judged on the
+  board's CENTRE and the box drawn plus or minus half a width, so a sign near either edge loses its first digit. The
+  obvious clamp is wrong - r.159 is his own rule that a sign stays on its post's line, and LANE_NUMBERS_ON_THE_SIGN
+  enforces it to within 1 px (shifting a sign sideways turned that row red in this revision's own rehearsal). The
+  choice is his: an edge sign that cannot be drawn whole is not drawn, or the post law is relaxed for the outermost
+  signs.
+- Measured this round, owed to r.206: a target that is UP but off the picture gets no cue. At 428x926, 15 of the 40
+  target appearances of QUAL 40 sit off the left edge or clipped at the landing zoom (19 of 40 at 390x844), all at
+  negative x, while the strip says "1 UP". The lane is 15 m wide and scanning is the game, so the camera is not the
+  defect; the missing edge cue is. Unchanged by r.205, measured by scratchpad/r205/offscreen.mjs.
+- Owed next: **r.206** the range officer's commands at the START of the table (his 18:25 "load and make ready") together with the light's
+  meaning (green while the range is hot, the countdown lamps before the set) · the LIVE room's lit button · the map's own painter (a target
+  can still read differently there; `lockOn()` returns a plate on the map) · the 42-lane team drill when he calls it · R-CORE in the shared
+  format · the per-size reds already declared (EYE_SCALE_12_IN at 667×375, the 360-px phones).
