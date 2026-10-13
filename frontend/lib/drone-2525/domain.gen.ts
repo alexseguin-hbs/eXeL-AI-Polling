@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.060",
+  "revision": "0.061",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -514,6 +514,14 @@ export const DRONE_DOMAIN = {
    "why": "Operator deck r.205 — the glass tells the truth about every target (operator 2026-10-12, verbatim: \"remove all text from middle; targets only. and everything is still no aligning. this amber target should have approve on buttons highlighted\" · \"system should always remember what silouettes are targeted. if targeted, approve is next step / if silloeten is approved fire is next step / buttoms and colors around boxing amber vs red should match\"). ONE painter: a target wears its slot phase, amber targeted and red approved, on the silhouette as on the box; the lit button wears that colour too (APPROVE amber, FIRE red); the middle of the picture carries TARGETS ONLY, the per-target captions retired and the lane signs kept (DD-14); an exposure close downs every plate of its engagement, hit or not, so nothing stands half-fallen afterwards; and the deck boot self-check borrows the range and gives it back as it found it, so a target marked in the first seconds stays marked and the first magazine stays at ten (H1). Rows SILHOUETTE_COLOUR_IS_THE_PHASE, BUTTON_WEARS_ITS_TARGETS_COLOUR, NO_WORDS_ON_THE_STAGE, FALL_ENDS_WITH_THE_WINDOW, each shown red on the r.204 bytes first.",
    "commit": "6a0f594",
    "shipped": "1c78765"
+  },
+  {
+   "revision": "0.061",
+   "date": "2026-10-13",
+   "kind": "release",
+   "why": "Operator deck r.206 — no colour without a mark, and one meaning of \"under the bullseye\" (operator 2026-10-12 ~21:15: \"test and somulate until no phantomntargets and ensure all targets and siloeets have the proper color boxing with button when bulleseye osnover target\"). The twelve Masters fleet, 145 agents, left five defects open on the LIVE r.205 and r.206 closes them: releaseAuthority let go of the mark and kept the colour, so a standing unmarked unboxed target wore the approved red for ever; a nearer plate up to 8 px beside the bullseye took the box, the round and the kill from the plate the bullseye was inside; on the map, where there is no bullseye at all, a lit FIRE stayed lit and refused every press; amber and red disagreed about being on a target across a 28 px band where the lit APPROVE acted and FIRE refused; and the recital painted an untargeted plate, and a downed plate, in the amber reserved for a targeted one. Rows NO_COLOUR_WITHOUT_A_MARK, THE_BOX_GOES_TO_THE_PLATE_UNDER_THE_PIP, BUTTONS_ARE_DARK_OFF_THE_PICTURE and ONE_MEANING_OF_UNDER_THE_BULLSEYE, each red on the r.205 bytes first and each failing with NOT EXERCISED rather than passing by omission.",
+   "commit": "c707fba",
+   "shipped": "PENDING"
   }
  ],
  "arena": {

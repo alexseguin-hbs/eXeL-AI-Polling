@@ -58,6 +58,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.203 | 2026-10-12 | Claude Code (the rounds as in his reference: the counter's frame and fill and the RELOAD ink cut from shot40 — nineteen distinct bars inside the walls, over the grid, below the window, one bar per round; the frame is the uncovered magazine (the RELOAD drawing in gold) under the bars — operator on the LIVE r.202: "rounds mist be in magazine") | 866859 | 00661e043b0d6a5e1147960389ec8e4736f07f3a6634a1b5d84cc138e3372a5c | 9c16873 (Verify Live #2756) | 7a0bbdfe36f1516c4600e6c73d539c991d72194afef247074772c5d713ffa4ef |
 | r.204 | 2026-10-12 | Claude Code (the buttons follow the bullseye: in the solo modes the glass and the actions read ONE mark — the one under the bullseye: the lit button, the recital at the top left and the step toast name its step, FIRE lights only with the bullseye on the red (fireOnIt, fireN's own rule, in every mode), a tap turns the head onto the plate in every solo mode and the double-tap still fires what the first tap touched when the second lands on it (never on blank sky), APPROVE on an unmarked plate holds — so target all, come back and approve all, then fire all; no caption and no board's words cover a control or a line of the HUD, a caption is moved and a board's words climb the post (the post drawn on to them) before they are dropped — operator on the LIVE r.202: "buttons must change to step we are on") | 897902 | 2085cd150d08f886b4f8236ed8d8f3f60c2494b6608afed08c7260298039db9b | e5aec75 (Verify Live #2769) | a3053e970cd5462cae4c099118495225a397629373abbf52df230094322d307f |
 | r.205 | 2026-10-13 | Claude Code (the glass tells the truth about every target: ONE painter — a target's silhouette wears its own step, amber targeted and red approved, the mist no longer overriding the phase; the lit button wears that colour too (APPROVE amber, FIRE red); the middle of the picture carries TARGETS ONLY — every per-target caption retired, the lane signs kept; an exposure's close downs every plate of its engagement, hit or not; the boot self-check borrows the range and gives it back as it found it — his words 2026-10-12 20:44 "remove all text from middle; targets only" and 21:05 "buttoms and colors around boxing amber vs red should match") | 913009 | 24d03765171b8e8df3b55ed78b0d40133cd3c76f42b26eed79bc555ee71d8665 | 1c78765 (Verify Live #2775) | 3a3da320dd334a20854ea25b6f1df9ac594589865772679ff35afe4038d1edef |
+| r.206 | 2026-10-13 | Claude Code (no colour without a mark, and one meaning of "under the bullseye": a mark that ends takes its colour with it through every door; the box goes to the silhouette the bullseye is ON, never a nearer one beside it; on the map, where there is no bullseye, no button is lit; amber and red answer the same question about being on a target; the amber of a mark is used for a mark and nothing else — the twelve Masters' fleet, five defects left OPEN on the LIVE r.205, two re-verified on the shipped bytes before a line was written) | 924081 | fe10269f5c8691d83f417e4617ea59f6cc72f622c00239d7b460a49169219e38 | PENDING (Verify Live) | 8ac6395f6cb65ced1e757b98ddc97c4b61fd3911af1c7c33af617dae5c89aa76 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1373,3 +1374,47 @@ Notes: `CLAUDE_CODE_NOTES_r205.md`. Patch: `patches/r204_to_r205.py` (base r.204
   meaning (green while the range is hot, the countdown lamps before the set) · the LIVE room's lit button · the map's own painter (a target
   can still read differently there; `lockOn()` returns a plate on the map) · the 42-lane team drill when he calls it · R-CORE in the shared
   format · the per-size reds already declared (EYE_SCALE_12_IN at 667×375, the 360-px phones).
+
+## r.206 — Claude Code: no colour without a mark, and one meaning of "under the bullseye" (2026-10-13)
+Operator (2026-10-12 ~21:15, verbatim): **"I need 12 AsM Fleet to test; youbknow mybcriteria but fail toninplment; test and
+somulate until no phantomntargets and ensure all targets and siloeets have the proper color boxing with button when bulleseye
+osnover target"**. The fleet — 145 agents, twelve Masters, every finding refuted three ways — is
+`docs/assessments/2026-10-13_drone2525_fleet12_phantom_and_colour.md`, committed alone before this code. It was ordered onto the
+r.204 bytes; r.204 and then r.205 shipped while it worked, and under the no-rework law it re-played every confirmed finding on
+the bytes on his phone: **four closed by r.205** (recorded there so they are not rebuilt), **five still open**. Those five are
+r.206. Notes: `CLAUDE_CODE_NOTES_r206.md`. Patch: `patches/r205_to_r206.py` (base r.205, declared and asserted, 11 edits).
+Artefact commit `c707fba`.
+- **Verified on the shipped r.205 bytes before a line was written** (`scratchpad/r206/probe1.mjs`, `probe2.mjs`), not taken on a
+  reviewer's word: after `releaseAuthority` two plates read `mist:true, phase:null, slot:null`, **zero boxes drawn**, painting
+  `#E24B3B`, while the never-marked neighbour paints `#E8D5B0`; of ten aim points with the bullseye strictly inside exactly one
+  silhouette, **two handed the box to another plate**; on the MAP the lit FIRE stayed lit through the whole session and after its
+  own refusal; across forty offsets walked off one mark, amber and red answered differently at **eleven**; and the recital painted
+  an unmarked plate in `rgb(240, 160, 32)`, the amber of a mark.
+- **The invariants, each gated, each gate red on the r.205 bytes first:**
+  1. **A target with no box is the plain silhouette.** A mark that ends takes its colour with it, through EVERY door —
+     `releaseAuthority` released the mark and left the flag, and the painter reads the flag where there is no phase, so a
+     standing, unmarked, unboxed target wore the approved red for ever and never healed. Eleven call sites share that door.
+  2. **The box goes to the silhouette the bullseye is ON.** A plate the bullseye is strictly inside wins before any plate merely
+     within reach of it; inside each pass the nearest to the OUTLINE wins, with world metres breaking an exact tie only. The
+     8 px reach stays as the fallback so a 300 m plate is still takeable. The deck's own r.147 line already said so.
+  3. **No bullseye, nothing lit.** The map's early return never reached the buttons' only painter.
+  4. **One meaning of "under the bullseye" for amber and red.** Amber is narrowed to red's honest rule; red is NOT widened —
+     widening it would light a button the deck then refuses and would fail the transit leg r.204 earned.
+  5. **Amber means marked, and only marked.** The recital's unmarked line takes the gold its own "TARGET FIRST" already uses,
+     and the LAST line takes the ivory.
+- **QA:** `NO_COLOUR_WITHOUT_A_MARK` (two marked, one approved, then **`releaseAuthority`** — the door r.205's own colour row
+  never opens, which is why that row is green over this) · `THE_BOX_GOES_TO_THE_PLATE_UNDER_THE_PIP` (a spread of aim points;
+  the row counts the ones it actually tested) · `BUTTONS_ARE_DARK_OFF_THE_PICTURE` (a red mark standing, one real frame on the
+  map, then back) · `ONE_MEANING_OF_UNDER_THE_BULLSEYE` (forty offsets walked off one mark, amber and red at the same offsets,
+  plus the recital's colour). **Every one pushes `ok:false` with `NOT EXERCISED` when its leg does not run** — the fleet's
+  deeper finding was a row green by omission. Boot QA **235/236** on the cut, only SYNC_DIRECT (offline); **231/236** with the
+  four new rows alone on the r.205 bytes.
+- Owed, in their order: `approveDesig` has no on-target test, so after r.206 a DARK APPROVE still acts if pressed — the
+  round on this cut measured it (9.26 px clear of the outline, all three buttons dark, the strip AIM ON IT, and APPROVE
+  still reddens the slot and books an APPROVE row into the record, the hash and the room). The fix was built here and
+  taken back out: it turns four long-standing rows red (RANGE_MISS_300_OFF20, PHASE_NEEDS_RELOAD,
+  AUTHORITY_HAS_ONE_CONSUMER, A_PRESS_NEVER_TOUCHES_A_TARGET_YOU_ARE_NOT_ON), each of which approves without aiming
+  first. They are right to aim; rewriting them is honest work, and it changes an action four invariants depend on —
+  the fleet's own reason for making it its own revision. r.207, first item · the range officer's
+  opening and the lamp that leads its window (r.207) · a cue for a target that is up but off the picture · his call on the lane
+  signs clipped at the edge · the LIVE room's reading (CLASS 1e) and his 20:55 team drill · R-CORE in the shared format.

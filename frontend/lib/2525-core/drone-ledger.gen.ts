@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 83 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 84 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -590,6 +590,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "The glass tells the truth about every target — operator deck r.205 served at /drone-2525/play.html (sha256 24d03765...). DD-14/DD-15/DD-16/DD-17, his words of 2026-10-12: \"remove all text from middle; targets only\" and \"buttoms and colors around boxing amber vs red should match\". A target wears its own step: ONE painter puts the slot phase before the mist, so a TARGETED silhouette is amber and an APPROVED one red, matching its box (it painted every targeted target red, measured from the painter own calls on the live bytes); the lit button wears that colour (APPROVE amber, FIRE red); the middle of the picture carries targets only, every per-target caption and its placement retired, the lane signs kept; an exposure close downs every plate of its engagement, hit or not, and a hit at the buzzer counts as a hit; the boot self-check borrows the range and gives it back as it found it, so a target marked in the first seconds stays marked and the QR door first magazine stays at ten (H1). Rows SILHOUETTE_COLOUR_IS_THE_PHASE, BUTTON_WEARS_ITS_TARGETS_COLOUR, NO_WORDS_ON_THE_STAGE and A_PRESS_NEVER_TOUCHES_A_TARGET_YOU_ARE_NOT_ON and FALL_ENDS_WITH_THE_WINDOW, each shown red on the r.204 bytes first (227/232 there); boot QA 231/232; QUAL 40 played 40/40 through the buttons. Owed: the range officer commands at the start of the table and the light green while the range is hot (r.206).",
       "commit": "6a0f594"
+    },
+    {
+      "rev": 84,
+      "date": "2026-10-13",
+      "kind": "release",
+      "text": "No colour without a mark, and one meaning of \"under the bullseye\" — operator deck r.206 served at /drone-2525/play.html (sha256 fe10269f...). His 21:15 words: \"ensure all targets and siloeets have the proper color boxing with button when bulleseye osnover target\". The twelve Masters fleet (145 agents, every finding refuted three ways) was ordered onto r.204; r.204 and r.205 shipped while it worked and it re-played every finding on the shipped bytes, closing four and leaving five. Those five: a mark that ends now takes its colour with it through every door, so a standing unmarked unboxed target is the plain silhouette again (it wore the approved red for ever); the box goes to the silhouette the bullseye is strictly inside before any plate merely within 8 px of it, the nearest to the outline winning and world metres breaking an exact tie only, so the box, the round and the kill stop going to a plate he is not on; the map, which has no bullseye, lights no button and no longer freezes a lit FIRE that refuses every press; amber is narrowed to the same on-target question red already answered, red deliberately NOT widened; and the amber of a mark is used for a mark alone, the recital taking its own pre-mark gold for an unmarked plate and the ivory for the last shot. Rows NO_COLOUR_WITHOUT_A_MARK, THE_BOX_GOES_TO_THE_PLATE_UNDER_THE_PIP, BUTTONS_ARE_DARK_OFF_THE_PICTURE and ONE_MEANING_OF_UNDER_THE_BULLSEYE, each red on the r.205 bytes first (231/236 there) and each failing with NOT EXERCISED rather than passing by omission; boot QA 235/236. Owed: approveDesig has no on-target test, so a dark APPROVE still acts if pressed, closed as its own revision because it changes an action and not the glass.",
+      "commit": "c707fba"
     }
   ]
 };
