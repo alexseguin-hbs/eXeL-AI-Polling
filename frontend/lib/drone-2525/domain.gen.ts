@@ -521,7 +521,7 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck r.206 — no colour without a mark, and one meaning of \"under the bullseye\" (operator 2026-10-12 ~21:15: \"test and somulate until no phantomntargets and ensure all targets and siloeets have the proper color boxing with button when bulleseye osnover target\"). The twelve Masters fleet, 145 agents, left five defects open on the LIVE r.205 and r.206 closes them: releaseAuthority let go of the mark and kept the colour, so a standing unmarked unboxed target wore the approved red for ever; a nearer plate up to 8 px beside the bullseye took the box, the round and the kill from the plate the bullseye was inside; on the map, where there is no bullseye at all, a lit FIRE stayed lit and refused every press; amber and red disagreed about being on a target across a 28 px band where the lit APPROVE acted and FIRE refused; and the recital painted an untargeted plate, and a downed plate, in the amber reserved for a targeted one. Rows NO_COLOUR_WITHOUT_A_MARK, THE_BOX_GOES_TO_THE_PLATE_UNDER_THE_PIP, BUTTONS_ARE_DARK_OFF_THE_PICTURE and ONE_MEANING_OF_UNDER_THE_BULLSEYE, each red on the r.205 bytes first and each failing with NOT EXERCISED rather than passing by omission.",
    "commit": "c707fba",
-   "shipped": "PENDING"
+   "shipped": "7ec479d"
   }
  ],
  "arena": {
