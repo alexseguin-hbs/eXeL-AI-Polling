@@ -4717,6 +4717,27 @@ export const CRS_MATRIX: CrsEntry[] = [
       "changeDesc": "implemented"
   },
   {
+      "cube": "Drone-2525 — Render honesty, per phone size: the boot QA at four sizes with a touch leg, a red row declared per size (XI SSSES)",
+      "userStory": "As the operator, I want the deck's own rows run at the phone sizes I hold, portrait and landscape, with a touch, so that a green board means my phone, not one size of it.",
+      "crs": "DRN-11.12",
+      "devTeam": "SRS",
+      "inputId": "DRN-11.12.IN",
+      "specInput": "Supersedes DRN-11.11 (r.204): the boot QA (228 rows) runs in CI at four phone sizes plus a touch leg at both orientations; SYNC_DIRECT is the one red at every size; EXPECTED_RED_AT names a row red at one size only, with its reason.",
+      "marketInput": "a per-size red list with its reason, never a global exemption",
+      "outputId": "DRN-11.12.OUT",
+      "outputDef": "a green board that means every phone size it names",
+      "reviewId": "DR-2026.10.12-r0.059",
+      "reviewPlan": "Vision • 2525 § XI SSSES · R-CORE Manual · phase pilot",
+      "vvPlan": "frontend/scripts/drone-deck-qa.mjs · frontend/tests/deck-qa-manifest.mjs",
+      "testRun": "manifest equality at four sizes; SYNC_DIRECT at every size plus EXPECTED_RED_AT per size; the touch leg green at both orientations",
+      "testIssues": "",
+      "testDesc": "manifest equality at four sizes; SYNC_DIRECT at every size plus EXPECTED_RED_AT per size; the touch leg green at both orientations",
+      "transfer": "",
+      "transferConfirm": "",
+      "change": "v00.00 r0.059",
+      "changeDesc": "implemented"
+  },
+  {
       "cube": "Drone-2525 — Every operator-deck revision documented, chain-hashed, gated (II R-CORE)",
       "userStory": "As the operator, I want every deck revision documented and hash-chained, so that I can check tomorrow what shipped tonight.",
       "crs": "DRN-13.03",

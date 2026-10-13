@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.058",
+  "revision": "0.059",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -447,6 +447,14 @@
    "why": "Operator deck r.203 — the rounds as in his picture (operator 2026-10-12, on the LIVE r.202, verbatim: \"rounds mist be in magazine\", then his reference shot40): r.202's fill was cut from his r0.178 phone photo at 29 — twenty-eight thin lines through the window, a solid block on the phone; r.203 cuts the RELOAD ink and the counter's frame and fill from shot40 (the two magazines at 10×, nineteen distinct bars inside the walls, over the grid, below the window; the frame = the uncovered RELOAD drawing in gold, since the counter's own grid is covered by its bars) into the same five 72×192 rasters, pinned with BARS.json in MAGAZINE.sha256, one bar per round (MAG_BAR_TOPS), the bars painted over the frame; new rows ROUNDS_ARE_INSIDE_THE_MAGAZINE (the pixels, the grid whole) and BARS_OVER_THE_GRID; MAGAZINE_KEEPS_ITS_FRAME re-stated at his bars. The cards, the light and the box of r.202 unchanged. Decided under his ~10:25 sign-off; shot40 is the r.200 preview he sent back as his reference.",
    "commit": "4adfe70",
    "shipped": "9c16873"
+  },
+  {
+   "revision": "0.059",
+   "date": "2026-10-12",
+   "kind": "release",
+   "why": "Operator deck r.204 — the buttons follow the bullseye; a caption never covers a control (operator 2026-10-12, on the LIVE r.202, his words with the spelling straightened: \"make sure if I target once and come back I still have to approve. I should be able to target all, then come back and approve all, then fire all\" · \"buttons must change to step we are on\"): TARGET, APPROVE and FIRE already acted on the mark under the bullseye (r.162); the LIT button, the strip and the step toast read the current mark and lagged the reticle, APPROVE on an unmarked plate approved the current mark behind him, and FIRE lit beside a red the bullseye was not on — now, in the solo modes, the glass and the actions read ONE mark, the one under the bullseye (markUnderBullseye, stepFor, fireOnIt — fireN's on-target rule lifted, the works-here tests of a mark, FIRE only on the red and AIM ON IT for a red elsewhere, a tap that turns the head in every solo mode with the double-tap kept where the second tap lands on the first (never blank sky), APPROVE that holds NOT_MARKED on an unmarked plate, a step toast that ends only when the plate under the bullseye changes after it rose; the FIRE button and AIM ON IT follow fireOnIt in every mode); one keep-out list (hudKeepOut) keeps every caption and every board's words off every control and line over the stage, a caption moved and a board's words climbed (the post drawn on to them) before they are dropped, the edge caption of a mark off the picture kept. QA rows BUTTONS_FOLLOW_THE_BULLSEYE and CAPTIONS_CLEAR_OF_THE_CONTROLS, both running QUAL 40 too (sixty looks + twelve with the stance box, 0 words on any element — the DOM controls and the painter's own corner and LOCK lines); the board row counts the drawn post pieces against every control, word, target and the bullseye; a caption's ceiling is the band above it and it stays within 40 px of its plate; the come-back tap's toast and the peer messages name the plate in words; the NOT_MARKED hold is booked against NONE; drone-deck-qa at four viewports with a touch leg at both orientations (the sky tap inside the picture, the come-back tap judged); Verify Live at 18 minutes; the foil exports regenerated (test:foil-model red since r.196); DRN-11.12 supersedes DRN-11.11. DD-13a–d decided under his sign-off. Ten cuts, nine rounds. Decided and documented under his ~10:25 sign-off; the LIVE room keeps r.203's reading, listed as owed.",
+   "commit": "450e156",
+   "shipped": "PENDING"
   }
  ],
  "arena": {
@@ -2521,6 +2529,24 @@
    "status": "implemented",
    "in": "DRN-11.11.IN",
    "out": "DRN-11.11.OUT"
+  },
+  {
+   "id": "DRN-11.12",
+   "title": "Render honesty, per phone size: the boot QA at four sizes with a touch leg, a red row declared per size",
+   "statement": "Supersedes DRN-11.11's 'only SYNC_DIRECT red' and '84 rows' (r.204). The deck's boot QA (228 rows) runs in headless Chromium in CI at 390×844, 844×390, 375×667 and 667×375, plus a touch leg at both orientations, against the checked-in manifest with set equality; SYNC_DIRECT is the one red at every size, and EXPECTED_RED_AT names a row red at one size only, with its reason (EYE_SCALE_12_IN at 667×375, red there before r.204).",
+   "section": "XI",
+   "uwf": [
+    "U-WF-09"
+   ],
+   "phase": "pilot",
+   "mode": "Manual",
+   "metric": "DRAW_COMPLETES; QA_LEAVES_NO_TRACE; manifest equality at four sizes; SYNC_DIRECT red at every size plus EXPECTED_RED_AT per size; the touch leg green at both orientations",
+   "verify": "frontend/scripts/drone-deck-qa.mjs · frontend/tests/deck-qa-manifest.mjs",
+   "dtm": "a green board that cannot lie about the picture",
+   "stretch": "a completeness assertion that the must-hit set survived the budget",
+   "status": "implemented",
+   "in": "DRN-11.12.IN",
+   "out": "DRN-11.12.OUT"
   },
   {
    "id": "DRN-13.03",

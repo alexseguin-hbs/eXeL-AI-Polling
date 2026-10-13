@@ -56,6 +56,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.201 | 2026-10-12 | Claude Code (the count magazine keeps its gold frame at every count — the rounds and the number carry the colour, as in the operator's r0.178 picture; each of the last rounds draws a line; the number at the word's size; RELOAD at his picture's spacing) | 813575 | 2b66093f883dc070675193e261821129fc03a7b04699a318cf61debb6b49abaf | f6264f2 (Verify Live #2736) | 9f661e89012f235bdbc121b97e75355c83d33b40497a57b2a933e604d04fe249 |
 | r.202 | 2026-10-12 | Claude Code (the magazine row is the operator's three pictures: the RELOAD ink and the count's frame and fill as rasters cut from his images, the cards at his proportions, the light at his box's proportion, all four one height with the stance box; the SVG magazines gone) | 897037 | e8043bcbe138b6d0ba278b459fb26d315ee729af0518c755b897ea6d1a77e380 | b5f7592 (Verify Live #2747) | b070f2139e32a65011086177bcc4073a0a2ee8d7402dbc1145c0cfebd4e8d075 |
 | r.203 | 2026-10-12 | Claude Code (the rounds as in his reference: the counter's frame and fill and the RELOAD ink cut from shot40 — nineteen distinct bars inside the walls, over the grid, below the window, one bar per round; the frame is the uncovered magazine (the RELOAD drawing in gold) under the bars — operator on the LIVE r.202: "rounds mist be in magazine") | 866859 | 00661e043b0d6a5e1147960389ec8e4736f07f3a6634a1b5d84cc138e3372a5c | 9c16873 (Verify Live #2756) | 7a0bbdfe36f1516c4600e6c73d539c991d72194afef247074772c5d713ffa4ef |
+| r.204 | 2026-10-12 | Claude Code (the buttons follow the bullseye: in the solo modes the glass and the actions read ONE mark — the one under the bullseye: the lit button, the recital at the top left and the step toast name its step, FIRE lights only with the bullseye on the red (fireOnIt, fireN's own rule, in every mode), a tap turns the head onto the plate in every solo mode and the double-tap still fires what the first tap touched when the second lands on it (never on blank sky), APPROVE on an unmarked plate holds — so target all, come back and approve all, then fire all; no caption and no board's words cover a control or a line of the HUD, a caption is moved and a board's words climb the post (the post drawn on to them) before they are dropped — operator on the LIVE r.202: "buttons must change to step we are on") | 897902 | 2085cd150d08f886b4f8236ed8d8f3f60c2494b6608afed08c7260298039db9b | PENDING (Verify Live) | a3053e970cd5462cae4c099118495225a397629373abbf52df230094322d307f |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1183,3 +1184,94 @@ ask's record). Notes: `CLAUDE_CODE_NOTES_r203.md`. Patch: `patches/r202_to_r203.
   and approve all, then fire all" · "buttons must change to step we are on" (the lit button and the strip follow the mark under the bullseye;
   a caption never covers a control — shot41/42) · then the twelve Masters' QUAL 40 AAR (B1 the frozen fall at the window's end; H1 the 30-round
   first magazine from the deferred self-check; H2 the bare lane post; H3 the rest toast; N1 a toast's lifetime) · then R-CORE in the shared format.
+
+## r.204 — Claude Code: the buttons follow the bullseye; a caption never covers a control (2026-10-12)
+Operator (2026-10-12, 04:00–04:08, on the LIVE r.202; his words with the spelling straightened — the ask file holds them as typed):
+**"make sure if I target once and come back I still have to approve. I should be able to target all, then come back and approve all, then fire
+all"** · **"buttons must change to step we are on"** (shot41, shot42). Then ~10:25: "approve all your own decisions; document changes". Notes:
+`CLAUDE_CODE_NOTES_r204.md`. Patch: `patches/r203_to_r204.py` (base r.203, declared and asserted). Artefact commit `450e156`.
+- **Found first (no rework):** TARGET (`markLock`), APPROVE (`approveDesig`) and FIRE (`fireN`) already acted on a MARKED plate under the
+  bullseye and kept an earlier amber (r.162) — target all, approve all, fire all already worked when the head was on the plate; but the LIT
+  button, the strip and the step toast read the CURRENT mark and lagged the reticle (TARGET lit while the bullseye sat on a red), APPROVE on an
+  UNMARKED plate approved the current mark behind him, a tap marked without turning the head, and FIRE lit beside a red the bullseye was not
+  on (where FIRE refuses). Captions floored at H-44 of the canvas, below the button row, so at 3.3× an off-screen 50 m plate's caption printed
+  over TARGET and FIRE.
+- **Invariants ((a) in the solo modes — TRAIN UP, TRAIN DOWN, QUAL 40; a LIVE room keeps r.203's reading of the current mark, listed under
+  Owed; (b) in every mode, gated solo):** (a) the glass and the actions read ONE mark, the one under the bullseye — the lit button, the strip
+  and the step toast name its next step (unmarked → TARGET, amber → APPROVE, red → FIRE only with the bullseye on it, else AIM ON IT — the FIRE button and AIM ON IT follow
+  fireOnIt in every mode, the challenges and a LIVE room included); on an UNMARKED plate the recital names THAT plate and its step
+  ("150 M RIGHT · PRESS TARGET"), never the last plate shot (operator 2026-10-12 18:40, shot44/45); with NOTHING under the bullseye no button
+  lights and no other plate's step is recited (DD-13e) — the MAP excepted, it has no bullseye and keeps the current mark (r.133); in every solo mode, QUAL 40 included, a tap turns the head onto the tapped
+  plate and the double-tap still fires what the first tap touched when the second tap lands on it, never on blank sky (DD-13a); APPROVE on an
+  unmarked plate holds NOT_MARKED and touches no other; with nothing under the
+  bullseye, the current mark's step (an amber's APPROVE; nothing for a red); a step toast ends when the plate under the bullseye changes after
+  it rose and never before its own confirmation shows; (b) a caption and a board's words never cover a control or a line of the HUD; a caption
+  that would is moved (the other side, then below the plate, then up to the line) and dropped only when no place is free; a mark off the
+  picture keeps its edge caption (r.203's reminder).
+- **Fix, the class (ten cuts, nine rounds):** `markUnderBullseye()` (the one mark the glass and the actions read), `fireOnIt(s)` (fireN's one
+  on-target rule lifted — a plate: the bullseye on its outline; a ring: the bullseye ring; anything else within LOCK_REACH_PX; never on the
+  map — so the lit button, the strip and the action read the same) and `stepFor(mark)`;
+  `approveWorksHere(d)` / `fireWorksHere(d)` become tests of A MARK (the current one by default — the existing callers unchanged); `nextStep`
+  lights for that mark, FIRE only when `fireOnIt` holds, and `hudPhase` names it (AIM ON IT for a red elsewhere);
+  `hudPhase` gained the unmarked-plate clause before its LAST line (the eighth round: after any hit the strip fell through to "LAST · 50 M LEFT · DOWN" — his own shot45 scene — while TARGET was correctly lit); `nextStep` lights nothing when `lockOn()` is empty; `approveDesig` refuses on an unmarked plate under the bullseye (NOT MARKED · PRESS TARGET FIRST, after the down-holds, only for a plate
+  mark); in every solo mode a tap turns the head onto the tapped plate (as `goToT`) and `state._tapObj` keeps what the first tap touched
+  for 320 ms so the double-tap still fires it — only within 40 px of the first tap (the third round caught the tap-aim breaking the
+  double-tap; the fourth caught the second tap on blank sky firing it, r.131; the fifth caught the QUAL 40 exception to the tap-aim: on his
+  first screen the toast said APPROVE while TARGET was lit — the tap-aim is every solo mode now); `toast(m, plate)` carries its
+  plate and what was under the bullseye when it rose, and `paintCues` ends it only when that changes (the second round caught the first cut
+  parsing the toast's text and wiping the FIRE-on-amber refusal; the third caught the plate-only FIRE test leaking onto the Capitol pops). `hudKeepOut()` = the ONE keep-out list (the button row, the sticks, RELOAD, the counter, the stance box, the light,
+  the full-screen and menu buttons, the strip and the score line, the magazine line, the board, the toast, the counter card; the sticks with
+  their label band; and the words the painter itself draws on the stage — the corner's two lines, the lane and the FPS, and the LOCK line,
+  measured where they are drawn), cached per picture size and a 200 ms window, the toast's band kept once seen; `plateCaptionRects` bounds a caption by `captionCeiling(H)` and `captionFloor(H)` from that list and
+  MOVES a caption that would touch one — the other side, then below the plate, then up to the line — dropping it only when no place is free
+  (the second round caught the first cut deleting most landscape captions at 1×; the third caught a 14-px clamp losing the off-top captions and
+  the stick label band uncovered; the fourth cut's own 3.3× picture, read before the fourth round, showed a 50 m caption over the FPS — the
+  painter's lines are not DOM elements, so neither list saw them: the fifth cut lists them in both, lets a caption climb past every line it
+  meets (a two-line block defeated one step) and has the row measure them on the live canvas; the corner's lane label measured at the 13 px it
+  is drawn with); `boardLabels` takes the same list, and a board's words that would touch a control climb the post or drop below it — past a
+  target, as far as the picture allows, never sideways (r.159: the sign stays on its post's line) — and the post is drawn on to the moved sign,
+  before they are dropped — the post in the pieces that clear every control (6 px off), every word, every standing target and the bullseye
+  box, and the row counts the crossings (the fourth round: at 667×375 r.203 printed my lane's 100 m numbers over RELOAD and the counter, and the keep-out alone dropped
+  them; CI saw neither at 390×844 and 844×390 alone; the fifth round: the moved signs left bare posts; the sixth: the unclipped post ran
+  through RELOAD and the reticle; the seventh: through his targets); a caption's ceiling is the band above IT, not one line across the
+  picture, and a caption stays within 40 px of a plate that shows in the open stage (the seventh round: landscape captions pulled onto the
+  reticle); the come-back tap's toast names the plate in words and ends with its plate, the peer messages name the plate in words, and the
+  NOT_MARKED hold is booked against NONE with the plate under the bullseye named in the row (r.148: never a plate nobody marked); hudKeepOut's cache is keyed on the picture's size and a 200 ms window, never on the tick (rebuilt every
+  frame; stale across PAUSE and a rotation); the strip says PRESS RELOAD on an empty magazine, on a red and on an amber (it said PRESS FIRE or PRESS APPROVE with nothing lit); a peer's
+  HOLD names the plate in words; the off-stage clause is gone, so a mark off the picture keeps its edge
+  caption. Nothing else moves.
+- QA: `BUTTONS_FOLLOW_THE_BULLSEYE` (TRAIN UP: three marked, each come-back reads APPROVE, approved reads FIRE, an unmarked plate reads TARGET
+  while reds stand, three fired, the strip names the same mark; TRAIN DOWN the same; QUAL 40 in a real exposure window: two up, marked, come
+  back and approve both, then fire both, two hits; a non-silent pass: the step toast shows on its own plate,
+  ends when the bullseye leaves it, and the FIRE-on-amber refusal stays; a red the bullseye is not on lights nothing and says AIM ON IT;
+  APPROVE on an unmarked plate holds NOT_MARKED and touches no other; a confirmation for a plate the bullseye is not on stays and ends on the
+  next plate) and `CAPTIONS_CLEAR_OF_THE_CONTROLS` (the row's OWN list of every visible element over the stage — not the painter's — sixty
+  looks: 1×, 2×, 3.3×, 5× and 8× × the far and the near plate × pan −6/0/+6° × tilt −4/0°: 0 words on any element; every mark captioned at
+  every look; then QUAL 40 with the stance box on the row, twelve looks, the same), in
+  the deck's boot QA, `tests/deck-qa-manifest.mjs` and `scripts/drone-deck-qa.mjs`; `tests/drone-playable.test.mjs` holds the helpers in the
+  served bytes; `scripts/drone-deck-qa.mjs` now runs FOUR viewports (390×844, 844×390, 375×667, 667×375 — EYE_SCALE_12_IN declared red at
+  667×375, red there since before r.204) and a TOUCH leg (two taps fire after the head turned; a red then blank sky inside the picture fires
+  nothing and says DOUBLE-TAP THE RED BOX TO FIRE; in QUAL 40 a tap on plate A with the bullseye on plate B turns the head onto A, the toast and
+  the lit button agree on APPROVE, APPROVE approves A with no hold, red-then-sky spends no round); Verify Live's job allows 18 minutes; the foil
+  exports are regenerated by the bookkeeping so test:foil-model is green (red since r.196, the first domain bump after r.165's export; Deploy's
+  gate has other reds since 63eb251d and stays red) and in the chain; the touch leg runs at 390×844 and 844×390. The play-throughs are
+  in the repo: `scripts/drone-trainup-play.mjs` (thirteen looks, the
+  lit button equal to the step under the bullseye at each; a touch double-tap on a red fires it after the head turned; a red then the sky is
+  refused) and `scripts/drone-qual40-play.mjs` (40/40 through the buttons on these bytes, the revision and sha in its log).
+- Decided under his 10:25 sign-off, listed to reverse: DD-13a a tap turns the head onto the tapped plate in every solo mode, QUAL 40 included
+  · DD-13b a NOT_MARKED hold is a hold (hiHolds, sssesCore, a linked peer outside LIVE) · DD-13c the red box is a marker, FIRE works on the plate
+  (r.141's true size) and inside the box but off the plate no button lights and the strip says AIM ON IT · DD-13d a board's words with no place
+  clear of a control move along the post's line, as far as the picture allows, the post drawn on to them (667×375 shows it).
+- Owed next: the twelve Masters' QUAL 40 AAR fixes (the twelve Masters' fixes (the boot self-check yielding to an entered player, the exposure-end snap, the stray
+  mid-fall plate, the sign and its words as one object, the rest toast reading the magazine, a toast's lifetime) · the LIVE room's lit button
+  (a peer's mark under my bullseye: the current mark's step lights; FIRE lights only on the red under the bullseye there too) · captions still
+  overprint each other and their own boxes and can sit on the bullseye ring at every zoom (the ring is not in the keep-out; as r.203, as his
+  shot42) · the strip's second line wraps onto the magazine line at 390 and 375 · EYE_SCALE_12_IN at 667×375 · 360-px phones (FIFTY_AT_THE_EDGES
+  at 360×780 and 360×640, EYE_SCALE_12_IN at 780×360 and 640×360 — red on r.203 too, undeclared) · the boot to the published QA is ~1.9 s against ~1.5 s on r.203 on this machine (the two new rows; the keep-out list is now computed once per QA look, which took it back from ~2.2 s) · hiHolds now counts a NOT_MARKED hold and authFailures fall because FIRE is dark off target, so an R-CORE reader sees both move at r.204 · the QR door into QUAL 40 lands inside the 1.5 s deferred row and gets a 30-round first magazine (H1, the same on r.203) · the two play-throughs in scripts/ are manual evidence, not a gate (test:drone-play owed) · a PAUSE-then-rotation leg with qaArmed off ·
+  the challenges' FIRE light (right when probed, ungated) · an empty-magazine look · "target all" proven on three plates of eleven, and the
+  QUAL play-through one plate at a time · the foil export stamp still carries the domain revision (the class: drop it from the stamp or
+  regenerate in the shared generation step; every bookkeeping must regenerate until then) · the other boot rows that read the QA block's
+  W,H · the plates show through the 0.55-alpha cards (pre-existing) · at 390 px and 3.3× the strip's PRESS FIRE overlaps the MAG line by 6 px
+  while TOP_LINES_NEVER_OVERLAP stays green (pre-existing; the row should measure the longest clause) · a player who enters within ~1.5 s of
+  load has the mode and magazine reset by the deferred boot rows (the QR door's 30-round first magazine, H1) · R-CORE in the shared format
+  (r.206).
