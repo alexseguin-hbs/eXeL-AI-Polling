@@ -316,7 +316,7 @@ Confirmed working 2026-03-31 with real human input + 45 Ascended Master response
 |------|-----------|:-------:|------------|
 | **A** | Supabase Broadcast | ~50ms | WebSocket connection |
 | **B** | Supabase DB INSERT | ~200ms | HTTP REST (always available) |
-| **C** | CF KV POST | ~100ms | Cloudflare KV binding |
+| **C** | CF KV POST | ~100ms | Cloudflare KV binding — ⚠ **NO DURABLE STORE, see below** |
 
 **MODERATOR RECEIVES (4 channels — any 1 succeeding = response displayed):**
 
@@ -324,8 +324,35 @@ Confirmed working 2026-03-31 with real human input + 45 Ascended Master response
 |---------|--------|:-------:|------------|
 | **A** | Supabase Broadcast listener | ~50ms | WebSocket subscription |
 | **B** | postgres_changes listener | ~100ms | Supabase Realtime publication |
-| **C** | CF KV poll | ~1s | Cloudflare KV binding |
+| **C** | CF KV poll | ~1s | ⚠ **NOT IMPLEMENTED FOR RESPONSES, see below** |
 | **D** | HTTP REST poll (2s) | ~2s | Only Supabase REST (bulletproof) |
+
+> **⚠ THE TABLES ABOVE ARE THE TARGET. THIS IS WHAT THE CODE DOES (measured 2026-10-14, every line verified).**
+> The design stands and is not reverted — but a locked spec that describes a system which does not exist is worse
+> than no spec, so the gap is recorded here rather than left for the next reader to discover.
+>
+> - **Path C reaches its function but has no durable store.** `worker.js:46` does route `/api/responses` to
+>   `functions/api/responses.js` (fixed 2026-10-07). However `frontend/wrangler.jsonc:26` has the KV binding
+>   **commented out**, so `responses.js:85` resolves `env.RESPONSES` to `null` and both read and write fall
+>   through to the Cloudflare **Cache API, which is per-PoP** — a phone in one datacentre and a laptop in another
+>   do not share it. (The comment at `wrangler.jsonc:20-25` is itself stale: it says the function never executes,
+>   which stopped being true on 2026-10-07.)
+> - **Channel C does not carry responses.** The block labelled `// Channel C` at `dashboard/page.tsx:391-404` is a
+>   `postgres_changes` listener on **`session_status`** for the **participant count**; the KV poll at `:413-435`
+>   likewise only updates `participant_count`. **No dashboard code reads `/api/responses` with GET.** A reader
+>   exists at `lib/mock-data.ts:1458-1462`, but it serves the mock API's own route and the dashboard never calls it.
+> - **So the receive side is four channels on paper and three in code — and all three are Supabase.** Channels A,
+>   B and D all terminate at the same project. **A Supabase outage is a total live-session outage**, while the
+>   participant is told the response was submitted, because `session-view.tsx:859` discards the result with
+>   `.catch(() => {})`.
+> - **First flagged 2026-10-07**, `docs/assessments/2026-10-07_asm_alignment_round3.md:112` (Krishna,
+>   NOT_APPROVED): *"Since 859b97b one send path and one receive channel are dead in LIVE mode, the failure is
+>   silent."* It went unrecorded here for a week. That delay is the reason this note exists.
+>
+> **The fix is small and is planned as T1/T2 of the Trinity-everywhere programme:** give Path C a real namespace
+> id, and make Channel C poll `/api/responses` into the existing `addResponse` + `seenIds` at
+> `dashboard/page.tsx:245`. That restores genuine two-provider redundancy. Until it ships, **do not describe this
+> feature as 3×4 to anyone.**
 
 **DEMO MODE (Spiral Test):** Direct callback (same tab, 0ms, no network)
 
