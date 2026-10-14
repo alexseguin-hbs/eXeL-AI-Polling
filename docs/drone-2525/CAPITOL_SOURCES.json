@@ -1,0 +1,20 @@
+{
+  "_what": "THE ONE MASTER for the Texas Capitol's measured dimensions. frontend/tests/capitol-model.test.mjs reads THIS file and holds the deck's drawn geometry to it, so the numbers are stated once, with their source, and a drift in either carrier fails. Added at r.208 (operator 2026-10-13: 'enhance capital of texas using online images to make more realistic outline').",
+  "_honesty": "Outbound HTTP is blocked in the build container, so these figures came through search synthesis of the cited pages rather than from opening the primary documents. Each entry says how it was obtained. A gate built on them catches LATER drift; it cannot catch a wrong original, and saying so is the point of this file.",
+  "origin": { "lat": 30.27467, "lon": -97.74035, "what": "the rotunda", "mslM": 163 },
+  "frame": "metres · +X east · +Y up · +Z south in the deck; the arena record is +X east / +Y north, so deck z = -(record y)",
+  "dimensions": [
+    { "id": "ewLengthM", "metres": 172.67, "imperial": "566 ft 6 in", "what": "greatest east-west length of the building", "source": "National Historic Landmark nomination 70000770 (npgallery.nps.gov/NRHP/GetAsset/NHLS/70000770_text)", "quote": "the east-west measurement of the building at its greatest length reaching 566 feet, 6 inches", "how": "search synthesis", "confidence": "high" },
+    { "id": "nsBlockM", "metres": 88.09, "imperial": "289 ft", "what": "the central block, north to south", "source": "National Historic Landmark nomination 70000770", "quote": "the central block measuring 289 feet from north to south", "how": "search synthesis", "confidence": "high" },
+    { "id": "starTipM", "metres": 92.24, "imperial": "302.64 ft", "what": "south-front GRADE to the tip of the Goddess's star — the datum y=0 is south-front grade", "source": "Texas State Preservation Board (tspb.texas.gov)", "quote": "302.64 feet", "how": "search synthesis", "confidence": "high" },
+    { "id": "goddessM", "metres": 4.88, "imperial": "16 ft", "what": "the Goddess of Liberty", "source": "1888 state pamphlet (texashistory.unt.edu TX_PUB-0002); thestoryoftexas.com concurs", "quote": "16 feet above the dome", "how": "search synthesis", "confidence": "medium" },
+    { "id": "rotundaM", "metres": 18.29, "imperial": "60 ft", "what": "the rotunda's diameter (the INTERIOR drum; the exterior attic is wider and is DECLARED)", "source": "Texas State Preservation Board, Capitol Rotunda", "quote": "the same diameter, 60 feet, as the Capitol Rotunda", "how": "search synthesis", "confidence": "high" },
+    { "id": "greatWalkWidthM", "metres": 7.62, "imperial": "25 ft", "what": "the width of the Great Walk", "source": "Texas State Preservation Board, the grounds", "quote": "25 feet wide", "how": "search synthesis", "confidence": "medium" }
+  ],
+  "declared": [
+    { "id": "wingCorniceM", "metres": 18, "what": "the wings' cornice", "why": "no source reachable from the container; judged against photographs" },
+    { "id": "blockCorniceM", "metres": 26, "what": "the central block's cornice, where the attic begins", "why": "as above" },
+    { "id": "domeProfile", "what": "attic 26-30 (r 16 → 14.6), a tall straight drum 30-55 (r 13.2), a shell 55-70.5 falling 9.8 m of radius over 15.5 m of height, a constant-radius lantern 70.5-82 (r 3.2), the plinth to 87.36", "why": "no exterior dome survey was reachable; judged against photographs, and twice corrected — the first cut gave the lantern twelve metres of constant radius, the second tapered the whole way and read as a rocket rather than a dome" },
+    { "id": "capRingM", "metres": 240, "what": "the standoff at which the 42 turret stations stand while the Capital is entered", "why": "measured, not sourced: at 150 m the drum alone fills a phone through the deck's own EYE optic; at 240 m the south front spans the picture with the dome above it. Where each station actually stands is r.209." }
+  ]
+}
