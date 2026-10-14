@@ -15,7 +15,9 @@ import { EASTER_EGG_LEDGER } from "../lib/2525-core/easter-egg-ledger.gen.ts";
 import { ARCHITECT_LEDGER } from "../lib/2525-core/architect-ledger.gen.ts";
 import { CELESTIAL_LEDGER } from "../lib/2525-core/celestial-ledger.gen.ts";
 import { FINANCIAL_LEDGER } from "../lib/2525-core/financial-ledger.gen.ts";
-import { LIGHT_CODEX_LEDGER } from "../lib/2525-core/light-codex-ledger.gen.ts"; // Light Codex (DD-55, operator 2026-10-14: "The /light-codex world")
+import { LIGHT_CODEX_LEDGER } from "../lib/2525-core/light-codex-ledger.gen.ts";
+import { VISION_LEDGER } from "../lib/2525-core/vision-ledger.gen.ts";
+import { ENCRYPTED_MESSAGING_LEDGER } from "../lib/2525-core/encrypted-messaging-ledger.gen.ts"; // Light Codex (DD-55, operator 2026-10-14: "The /light-codex world")
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -29,6 +31,8 @@ const LEDGERS = [
   { name: "Celestial-2525", ledger: CELESTIAL_LEDGER },
   { name: "Financial-2525", ledger: FINANCIAL_LEDGER },
   { name: "Light Codex", ledger: LIGHT_CODEX_LEDGER },
+  { name: "Vision-2525 Worlds", ledger: VISION_LEDGER },
+  { name: "Encrypted Messaging", ledger: ENCRYPTED_MESSAGING_LEDGER },
 ];
 for (const { name, ledger } of LEDGERS) {
   const H = fromLedgerJson(ledger);
@@ -56,6 +60,8 @@ const SURFACES = [
   { name: "Financial-2525", file: "../components/financial-2525/command-ux1.tsx", constName: "FINANCIAL_LEDGER", gen: "financial-ledger.gen" },
   // DD-55: the badge is on the PAGE SHELL, not inside LightCodexCube — the cube is a createPortal modal, so a badge inside it would be an overlay on the tool.
   { name: "Light Codex", file: "../app/light-codex/page.tsx", constName: "LIGHT_CODEX_LEDGER", gen: "light-codex-ledger.gen" },
+  { name: "Vision-2525 Worlds", file: "../app/vision-2525/page.tsx", constName: "VISION_LEDGER", gen: "vision-ledger.gen" },
+  { name: "Encrypted Messaging", file: "../app/encrypted-messaging/page.tsx", constName: "ENCRYPTED_MESSAGING_LEDGER", gen: "encrypted-messaging-ledger.gen" },
 ];
 for (const { name, file, constName, gen } of SURFACES) {
   const src = fs.readFileSync(new URL(file, import.meta.url), "utf8");

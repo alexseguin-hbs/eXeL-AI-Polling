@@ -63,16 +63,18 @@
     {
       "route": "/vision-2525",
       "kind": "project",
-      "ledger": null,
-      "panel": null,
-      "owed": "DD-55. The worlds page has no ledger and no shared panel; the living document carries its own 311-revision implementation, which is NOT the shared panel. HIS CALL (Stage 7): a small honest ledger of its own, or adapt the living document's list so the page and the document agree."
+      "ledger": "vision-2525.ledger.json",
+      "panel": "app/vision-2525/page.tsx",
+      "note": "The record here is the WORLDS PAGE's own - the door onto the 2525 worlds, its mark and its launcher - reconstructed on 2026-10-14 from 55 real commits in the repository's own history, oldest 2026-07-04. It is NOT the living document at docs/SOI_VISION2525_LIVING_DOCUMENT.html, which keeps its own 311-revision implementation, its own ledger blocks and its own release process.",
+      "open": "HIS CALL: whether this page should instead READ the living document's list so the page and the document agree. That would bind the page to a 7 MB file owned by another workflow, which is why it was not done unasked."
     },
     {
       "route": "/encrypted-messaging",
       "kind": "project",
-      "ledger": null,
-      "panel": null,
-      "owed": "DD-55. The launcher calls it ATLANTIS-2525. Lowest value of the three and therefore last. HIS CALL: it, /Atlantis-Accords and /atlantis are three Atlantis-shaped routes side by side."
+      "ledger": "encrypted-messaging.ledger.json",
+      "panel": "app/encrypted-messaging/page.tsx",
+      "note": "Reconstructed on 2026-10-14 from 5 real commits, oldest 2026-07-05. The launcher calls this world ATLANTIS-2525.",
+      "open": "HIS CALL: three Atlantis-shaped routes exist side by side - /Atlantis-Accords (the accords viewer, classified a surface), /atlantis (a redirect to it) and this one. Whether they are one project or two is his to say."
     },
     {
       "route": "/review-2525",

@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 /**
  * VISION 2525 — Humanity's Coordination Framework (the manifesto hub).
  * =====================================================================
@@ -16,6 +18,9 @@
 import Link from "next/link";
 import { Vision2525Mark } from "@/components/vision-2525-mark";
 import { Navbar } from "@/components/navbar";
+import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { fromLedgerJson } from "@/lib/2525-core/revisions";
+import { VISION_LEDGER } from "@/lib/2525-core/vision-ledger.gen"; // the worlds page's own append-only ledger
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
 import { DEFAULT_SOI } from "@/lib/soi-framework";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -76,6 +81,7 @@ function SectionLabel({ children, color = CYAN }: { children: React.ReactNode; c
 const FRAMEWORK_DOWNLOAD = "https://ppgfjplawtlrfqpnszyb.supabase.co/storage/v1/object/public/whitepaper/VISION-2525.pdf";
 
 export default function Vision2525Page() {
+  const visionHistory = useMemo(() => fromLedgerJson(VISION_LEDGER), []);
   const { t } = useLexicon();
   return (
     <div className="flex min-h-[100dvh] flex-col text-slate-100" style={{ background: "#050912" }}>
@@ -257,6 +263,11 @@ export default function Vision2525Page() {
           <p className="mt-2 text-[11px] uppercase tracking-[0.3em] text-slate-600">{t("vision2525.shared_intention_speed_of_thought")}</p>
         </section>
       </main>
+      {/* R-CORE · version-history badge — bottom of page, normal flow (mounted LAST), two-click; reads THIS page's
+          own ledger. DD-55, operator 2026-10-14: "each innovation project gets its own rcore panel (drone, security,
+          light codex, Vision-2525, etc)". The record here is the WORLDS PAGE's, not the living document's — that
+          document keeps its own 311-revision implementation and its own release process. */}
+      <RCoreBadge history={visionHistory} accent={CYAN} />
     </div>
   );
 }
