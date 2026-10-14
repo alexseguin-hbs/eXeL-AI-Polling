@@ -62,6 +62,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.207 | 2026-10-13 | Claude Code (the glass keeps its promises: a button that is dark does not act, a view with no bullseye takes nothing away from him, a mark that ends takes its colour with it through EVERY door including the one r.205 added, and a lane sign shows its whole number — shrunk on its own post where the picture is tight, never moved off it and never cut (his decision DD-21, "Shrink them at the edge"); the three QA legs that approved without aiming first now aim, as a player does) | 932061 | dc266e890693ce9daad5aa8b42a310cf8935b695ed23026f1891613b0c35ee8f | 9cfb412 (Verify Live #2785) | 0b90262369f270925eaf083cc3d6d28ba7ae883b04f77d8ba8d96909efcae382 |
 | r.208 | 2026-10-14 | Claude Code (THE CAPITAL I — the Capitol is DRAWN: at the default fidelity the eight door targets took the whole segment budget and all 217 edges of the building were dropped, so the stage was black; the scene's subject is now painted outside that budget, the way his own lane is on the range, and its detail follows the fidelity dial while its presence does not. The outline is the sourced building — 172.67 × 88.09 m, the drum, the ribbed shell, the Goddess and her star at 92.24 m — with the south steps, the Great Walk at its true 25 ft, the allée and the north lawn as trees with canopies, the bounding streets and the rotunda's circle. The painter learned WEIGHT (hairline · normal · bold, one ladder, no fourteenth colour). SCEN · CAPITAL 42 opens the Capital. The range is untouched but for ONE deliberate close of r.207's own defect — goRange now hands the range's wave back after a challenge, so CH1 then CH0 no longer leaves it at phase static and no longer toasts PASS · MOVING TARGETS at the next quota hit — and `tests/range-frozen.test.mjs` holds the other 100 definitions at 0 moved, with goRange, mapCam and drawMap re-pinned under their own key with their reasons) | 958647 | fd620516e4c3e85f8783d52a6a60639a11e345e9039daf671541425bc5675510 | 17064d7 (Verify Live #2790) | 3cfced9324b39c39f1ee84757c1400b703eec9a513c82befcefd044e06cca0e1 |
 | r.209 | 2026-10-14 | Claude Code (THE SHEET NAMES THE MAP: the QR share sheet headed LANE 21 · TURRET · TRAIN UP and never said which map the lane was on. He sent the same screenshot and the same sentence TWICE, so this is its own revision, built first and alone. The heading now leads with the map — THE RANGE · LANE 21 · TURRET · TRAIN UP, and off the range THE CAPITAL · TURRET 21/42 · TRAIN UP, where the seat is the station because the range parks those same 42 units and renames them LANE n. The link learns the map ADDITIVELY: a Capital station could not be shared at all, since ?range= means the lane, so it gains ?map=capital&station=, while the range's own return line is left BYTE-IDENTICAL — which is why drone-playable's pinned source text needed no re-expression and why Verify Live's own fetch of ?range=21&role=turret&mode=train-up is untouched. rungIsRange/rungWord/rungSeat land here as hoisted functions in the append zone so the map ladder of r.211 extends them instead of writing a second set. No frozen span is touched: tests/range-frozen.test.mjs holds 100 definitions at 0 moved) | 963108 | d7b139b02c4d1071cb86a22b62a3cf3f74aaee651578ef94682512ee7b401353 | 66dc166 (Verify Live #2795) | 79f23273db9c8219306f5030fd31323e7e82718e43697569c1a1162f57d7a271 |
+| r.210 | 2026-10-14 | Claude Code (THE ICON AT THE BOTTOM OPENS THE HISTORY CHAIN: the deck was the ONLY 2525 surface with no R-CORE badge, no panel and no history - nine React surfaces mount the shared RCoreBadge, including the Drone ROUTE, so /main/Drone-2525 showed a Drone history and the deck he plays showed none. r.195 added a hand-typed five-row list and a fixed badge over the dock; r.196's restore removed both and the shared-format replacement was then deferred at every revision from r.196 to r.209 - thirteen times, my debt and not a new ask. Now: his own reticle raster at the bottom of the glass below TARGET APPROVE FIRE, his wordmark on the first press, the Version History and compare panel on the second, fed by docs/traceability/drone-2525.ledger.json through the revision before this one. The engine is a PORT of lib/2525-core/revisions.ts and lib/version-diff.ts, proven equal to the shared engine on the real 87-entry ledger by 756 assertions. The placement is MEASURED by placeRcore from the same rects placeFace measures - below the buttons where the deck leaves 72 px, beside them where it leaves 20 - and the badge joins hudKeepOut's one list so no sign or status line can land on it. One green gate was rewritten and is named: drone-playable's literal ban on a fixed badge becomes the measured row RCORE_NEVER_COVERS_THE_PICTURE, because the deck has no flow slot at the bottom and using one would shrink his picture by 54 px. No frozen span is touched: tests/range-frozen.test.mjs holds 100 definitions at 0 moved) | 1144501 | 62fae4bd572a7dc3bbf729f8e1ee1636a0e427dc3c4bff9b2f463291e3350b3f | PENDING (Verify Live) | 79911342f5fed3268609e608427d841ec9c3eef717f56eb5bd7abb3bce3e9410 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1577,4 +1578,58 @@ parsed by `node --check` before it is written). Artefact commit `a6f0424`.
   south; no `test:drone-play` runner in CI; Verify Live polls 10 minutes against an 18-minute job; 428×926 is still not a CI viewport.
   Next: **r.210**, the R-CORE icon at the bottom below TARGET · APPROVE · FIRE, opening the history chain (DD-49) — owed since r.196
   and deferred thirteen times.
+
+## r.210 — Claude Code: THE ICON AT THE BOTTOM OPENS THE HISTORY CHAIN (2026-10-14)
+Operator, 2026-10-14: *"Also, not seeing RCORE LOGO TO SEE HISTORY CHAIN"*, and asked where it belongs — *"icon at bottom"* ·
+*"same as all other rcore single links at bottom below Target Approve, Fire"* (**DD-49**).
+Notes: `CLAUDE_CODE_NOTES_r210.md`. Patch: `patches/r209_to_r210.py` (base asserted from `HASHES_r209.sha256`, 9 edits, a stale list,
+a presence list, the cut parsed by `node --check` before it is written). Artefact commit `328ed8d`.
+- **He is right, and the debt is mine.** Measured on the shipped r.209 bytes: `grep` for `rcoreBadge`, `RCORE_LEDGER` or `data-rcore`
+  in `frontend/public/drone-2525/play.html` returns **nothing**. Nine React surfaces mount the shared `RCoreBadge` — SoI, Security,
+  Architect, Celestial, Financial, Settings, SensorFusion, SIM **and the Drone route** — so `/main/Drone-2525` showed a Drone history
+  while the deck he actually plays showed none. r.195 shipped a hand-typed five-row list and a `position:fixed` badge over the dock;
+  r.196's restore removed both, correctly, and the shared-format replacement was deferred at **every revision from r.196 to r.209 —
+  thirteen times**, tracked in this register's own Owed list. He did not have to ask twice; he had to ask after I had moved it thirteen times.
+- **The badge is his artwork and his placement.** The framed reticle at rest, the wordmark pill on the first press, the panel on the
+  second — the 2026-09-25 two-click shape exactly. Both rasters are **inlined as data URIs** (`RCORE_ICON_PNG` 10,412 B,
+  `RCORE_WORDMARK_PNG` 23,676 B, carried at `img/r-core-*@84.png`): the deck is ONE file and fetches nothing.
+- **The placement is measured, never guessed** — `placeRcore()`, called from `placeFace()`'s tail and re-run by the same
+  MutationObserver. Measured on r.209: below TARGET · APPROVE · FIRE the deck leaves **72 px** in portrait (390×844, 375×667,
+  428×926) and **20 px** in landscape (844×390, 667×375). So portrait puts the row directly below the buttons — his words exactly —
+  and landscape puts it on the same line to their left, clear of the stick. The badge also joins `hudKeepOut()`'s one keep-out list,
+  so no lane sign, caption or status line can land on it.
+- **The panel is the shared panel.** A port of `components/2525-core/rcore-revision-panel.tsx` with every `data-rcore-*` hook — the
+  two impact-ticked scrubbers with ‹/› steppers, the *vs previous* and *v1 vs latest* presets, the filterable stat chips, the summary
+  line, numbered KEY IMPROVEMENTS with L1–L5 chips, Unified ↔ Side by side, the change navigator, the collapsed Details table, the
+  newest-first timeline with D# and ⎇ commit citations, and the self-contained HTML download — and every visible word taken verbatim
+  from the 52 `rcore.*` lexicon keys.
+- **The engine is a port, and the port is proven.** `rcCompare` · `rcDiffTokens` · `rcDiffText` · `rcTokenize` · `rcSideBySide` ·
+  `rcUnified` · `rcEscHtml` · `rcEscAttr` · `rcStripBidi` · `rcRedact` · `rcFirstSentence` · `rcFromLedger` · `rcImpactOf` ·
+  `rcCategoryOf` · `rcFnv1a` · `rcDownloadHtml`. Run against the real 87-entry ledger beside the TypeScript originals: **756
+  assertions, 0 failures** — the adapter entry for entry, 86 consecutive LCS diffs, both renderers, impact, category, first-sentence,
+  redaction, 41 full `compareRevisions` objects field for field, the unknown-pick fallbacks, the escapers on bidi and zero-width
+  input, and the 3000-token cap. The two things a careless port gets wrong are pinned as source text by the gate: the LCS tie-break
+  emits the **deletion** first, and impact is read from the **text** before the kind (nine of these 87 rows differ from a naive ladder).
+- **The data is the shared ledger, through the revision before this one.** `RCORE_LEDGER` carries rev 1–87; r.210's own release row
+  is written in the records commit, after these bytes are frozen, so the file is exactly **one** entry longer.
+  `tests/deck-rcore.test.mjs` holds that lag to exactly one, field for field, and fails if it is two.
+- **ONE GREEN GATE WAS REWRITTEN, and it is named here.** `drone-playable.test.mjs` asserted the literal string
+  `#rcoreBadge{position:fixed` was absent. The deck has no flow slot at the bottom — `#face` is itself `position:fixed` and the `#app`
+  grid's dock row is `display:none` at **0 px** — so mounting the badge in flow would shrink **his picture** by ~54 px, changing
+  something he did not ask to change. The badge therefore joins the same control layer `#face` is in, and the invariant that string
+  stood for is kept by **measurement**: the new row `RCORE_NEVER_COVERS_THE_PICTURE` walks **every** visible box on the page (637 at
+  428×926) and fails if the badge touches one. The ban on a hand-typed list is untouched, and `frontend/tests/rcore-revisions.test.mjs`
+  — the rule for the React surfaces — is not relaxed by one word.
+- **Gates, red on the r.209 bytes first** (`redfirst/r210.md`): `tests/deck-rcore.test.mjs` **7 passed, 79 failed** on the shipped
+  r.209; three new boot rows (`RCORE_IS_ON_THE_GLASS`, `RCORE_IS_THE_SHARED_HISTORY`, `RCORE_NEVER_COVERS_THE_PICTURE`), deferred
+  because the badge is wired by an IIFE far below the boot self-check — they press the real buttons, read the real geometry, and put
+  the page back. The new gate is in **both** `test:ci` and `prebuild`.
+- **English only, and the fill is owed.** The deck has no lexicon, so the panel ships the English of the 52 `rcore.*` keys verbatim;
+  the ×33 fill is staged and listed, under his own law — *no translation fill before the English is final*.
+- **The range is untouched:** `tests/range-frozen.test.mjs` 100 definitions at **0 moved**; `tests/range-2525.test.mjs` 118; both
+  play-throughs re-run on the shipped bytes and compared to r.209's field for field.
+- **Owed and carried, unchanged:** the arena record and `mission-planning.tsx` still carry the footprint 24.9 % too deep north to
+  south; no `test:drone-play` runner in CI; Verify Live polls 10 minutes against an 18-minute job; 428×926 is still not a CI viewport;
+  the ×33 fill of the `rcore.*` strings in the deck. Next: **r.211**, the map ladder — one door, and a man can play alone
+  (DD-43/45/46/47).
 
