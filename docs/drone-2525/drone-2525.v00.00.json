@@ -478,7 +478,7 @@
    "kind": "release",
    "why": "Operator deck r.207 — the glass keeps its promises (operator 2026-10-13, DD-22 \"The leftovers first\", DD-21 \"Shrink them at the edge\"). What the glass shows is what the deck does: a button that is dark does not act if pressed — APPROVE took FIRE own on-target test, with the MAP exempt because it has no bullseye to be on; a view with no bullseye takes nothing away from him — r.206 own fix for the frozen lit button had sent the map through the toast painter, so opening the MAP erased his step sentence for good; a mark that ends takes its colour with it through EVERY door, dropMark included, the one r.205 added and r.206 two down-refusals use; and a lane sign shows its whole number, shrunk on its own post to his 9 px legibility floor and not drawn below it, so r.159 is untouched. The three QA legs that approved without aiming first now aim, as a player does. Rows THE_MAP_KEEPS_HIS_SENTENCE, plus ONE_MEANING_OF_UNDER_THE_BULLSEYE pressing the dark button, NO_COLOUR_WITHOUT_A_MARK opening both doors, and LANE_NUMBERS_ON_THE_SIGN walking a sign to the edge on purpose; each red on the r.206 bytes first. The patcher parses the cut before it writes it.",
    "commit": "b3d5c18",
-   "shipped": "PENDING"
+   "shipped": "9cfb412"
   }
  ],
  "arena": {
