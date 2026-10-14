@@ -103,6 +103,55 @@ jobs:
             exit 1
           fi
 
+      # DD-57 (operator 2026-10-14: "ensure supabase is linked"). The two NEXT_PUBLIC_ vars are inlined into the client
+      # bundle at build time, so the ONLY honest proof that the live site has them is to read what the site actually serves.
+      # deploy.yml:18 states the stake: "required; Trinity Redundancy depends on them" — without them lib/supabase.ts:6-9
+      # returns null, and per CLAUDE.md's locked table send paths A+B and receive channels A, B and D all die, leaving the
+      # CF KV pair alone: 3x4 redundancy silently reduced to 1x1. Measured, never asserted. The anon key is never printed.
+      - name: Is Supabase linked on the LIVE site?
+        env:
+          SITE: https://exel-ai-polling.explore-096.workers.dev
+        run: |
+          set -o pipefail
+          html="$(curl -fsSL -m 25 -H 'cache-control: no-cache' "$SITE/" || true)"
+          if [ -z "$html" ]; then
+            echo "::error title=SUPABASE::could not fetch $SITE/ — cannot prove the link either way"
+            echo "### ❌ Supabase — UNVERIFIED, the site did not answer" >> "$GITHUB_STEP_SUMMARY"; exit 1
+          fi
+          # the chunks the page loads; the inlined config lives in one of them
+          chunks="$(printf '%s' "$html" | grep -oE '/_next/static/[^"]+\.js' | sort -u | head -40)"
+          found_url=""; found_key=0; scanned=0
+          for c in $chunks; do
+            body="$(curl -fsSL -m 25 "$SITE$c" || true)"; [ -z "$body" ] && continue
+            scanned=$((scanned+1))
+            u="$(printf '%s' "$body" | grep -oE 'https://[a-z0-9]{12,}\.supabase\.co' | head -1 || true)"
+            [ -n "$u" ] && [ -z "$found_url" ] && found_url="$u"
+            # the anon key is a JWT; prove its PRESENCE only, never its value
+            printf '%s' "$body" | grep -qE 'eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}' && found_key=1
+          done
+          ref="$(printf '%s' "$found_url" | sed -E 's#https://([a-z0-9]{4})[a-z0-9]+\.supabase\.co#\1…#')"
+          echo "scanned $scanned chunk(s) of $(printf '%s' "$chunks" | wc -w)"
+          if [ -n "$found_url" ] && [ "$found_key" = "1" ]; then
+            echo "::notice title=SUPABASE::linked — the live bundle carries a Supabase project URL ($ref) and an anon key"
+            echo "### ✅ Supabase is linked on the live site — project \`$ref\`, anon key present (value never printed)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::error title=SUPABASE::NOT linked — url=$([ -n "$found_url" ] && echo present || echo ABSENT) key=$([ "$found_key" = 1 ] && echo present || echo ABSENT)"
+            {
+              echo "### ❌ Supabase is NOT linked on the live site"
+              echo ""
+              echo "| | |"; echo "|---|---|"
+              echo "| project URL in the bundle | $([ -n "$found_url" ] && echo "present ($ref)" || echo '**ABSENT**') |"
+              echo "| anon key in the bundle | $([ "$found_key" = 1 ] && echo present || echo '**ABSENT**') |"
+              echo ""
+              echo "\`lib/supabase.ts\` therefore exports \`null\`. Per CLAUDE.md's Trinity Redundancy table that kills send"
+              echo "paths **A** (Broadcast) and **B** (DB INSERT) and receive channels **A**, **B** and **D** — leaving only the"
+              echo "Cloudflare KV pair. **Fix:** set \`NEXT_PUBLIC_SUPABASE_URL\` and \`NEXT_PUBLIC_SUPABASE_ANON_KEY\` as build"
+              echo "variables in the **Cloudflare Workers Builds** project (Cloudflare is the only deployer — the Actions \`ship\`"
+              echo "job is skipped without them), then redeploy."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
       - name: Verify the served operator deck (the playable itself, not just the shell route)
         # r.133: this step ran without SITE since r.131 (curl "No host part") and grepped a label the deck renames — every
         # Verify Live since #1722 was red for that reason, not because the deck was stale. SITE is passed and the marker is
