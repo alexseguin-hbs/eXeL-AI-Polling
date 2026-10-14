@@ -61,6 +61,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.206 | 2026-10-13 | Claude Code (no colour without a mark, and one meaning of "under the bullseye": a mark that ends takes its colour with it through every door; the box goes to the silhouette the bullseye is ON, never a nearer one beside it; on the map, where there is no bullseye, no button is lit; amber and red answer the same question about being on a target; the amber of a mark is used for a mark and nothing else — the twelve Masters' fleet, five defects left OPEN on the LIVE r.205, two re-verified on the shipped bytes before a line was written) | 924081 | fe10269f5c8691d83f417e4617ea59f6cc72f622c00239d7b460a49169219e38 | 7ec479d (Verify Live #2780) | 8ac6395f6cb65ced1e757b98ddc97c4b61fd3911af1c7c33af617dae5c89aa76 |
 | r.207 | 2026-10-13 | Claude Code (the glass keeps its promises: a button that is dark does not act, a view with no bullseye takes nothing away from him, a mark that ends takes its colour with it through EVERY door including the one r.205 added, and a lane sign shows its whole number — shrunk on its own post where the picture is tight, never moved off it and never cut (his decision DD-21, "Shrink them at the edge"); the three QA legs that approved without aiming first now aim, as a player does) | 932061 | dc266e890693ce9daad5aa8b42a310cf8935b695ed23026f1891613b0c35ee8f | 9cfb412 (Verify Live #2785) | 0b90262369f270925eaf083cc3d6d28ba7ae883b04f77d8ba8d96909efcae382 |
 | r.208 | 2026-10-14 | Claude Code (THE CAPITAL I — the Capitol is DRAWN: at the default fidelity the eight door targets took the whole segment budget and all 217 edges of the building were dropped, so the stage was black; the scene's subject is now painted outside that budget, the way his own lane is on the range, and its detail follows the fidelity dial while its presence does not. The outline is the sourced building — 172.67 × 88.09 m, the drum, the ribbed shell, the Goddess and her star at 92.24 m — with the south steps, the Great Walk at its true 25 ft, the allée and the north lawn as trees with canopies, the bounding streets and the rotunda's circle. The painter learned WEIGHT (hairline · normal · bold, one ladder, no fourteenth colour). SCEN · CAPITAL 42 opens the Capital. The range is untouched but for ONE deliberate close of r.207's own defect — goRange now hands the range's wave back after a challenge, so CH1 then CH0 no longer leaves it at phase static and no longer toasts PASS · MOVING TARGETS at the next quota hit — and `tests/range-frozen.test.mjs` holds the other 100 definitions at 0 moved, with goRange, mapCam and drawMap re-pinned under their own key with their reasons) | 958647 | fd620516e4c3e85f8783d52a6a60639a11e345e9039daf671541425bc5675510 | 17064d7 (Verify Live #2790) | 3cfced9324b39c39f1ee84757c1400b703eec9a513c82befcefd044e06cca0e1 |
+| r.209 | 2026-10-14 | Claude Code (THE SHEET NAMES THE MAP: the QR share sheet headed LANE 21 · TURRET · TRAIN UP and never said which map the lane was on. He sent the same screenshot and the same sentence TWICE, so this is its own revision, built first and alone. The heading now leads with the map — THE RANGE · LANE 21 · TURRET · TRAIN UP, and off the range THE CAPITAL · TURRET 21/42 · TRAIN UP, where the seat is the station because the range parks those same 42 units and renames them LANE n. The link learns the map ADDITIVELY: a Capital station could not be shared at all, since ?range= means the lane, so it gains ?map=capital&station=, while the range's own return line is left BYTE-IDENTICAL — which is why drone-playable's pinned source text needed no re-expression and why Verify Live's own fetch of ?range=21&role=turret&mode=train-up is untouched. rungIsRange/rungWord/rungSeat land here as hoisted functions in the append zone so the map ladder of r.211 extends them instead of writing a second set. No frozen span is touched: tests/range-frozen.test.mjs holds 100 definitions at 0 moved) | 963108 | d7b139b02c4d1071cb86a22b62a3cf3f74aaee651578ef94682512ee7b401353 | PENDING (Verify Live) | 79f23273db9c8219306f5030fd31323e7e82718e43697569c1a1162f57d7a271 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1544,3 +1545,36 @@ before it is written). Artefact commit `ca3261f`.
   ResizeObserver; the lane picker reading LANE 21 on every QR-opened lane; 428×926 absent from the CI viewports; the 360-px phones red and
   undeclared; the two play-throughs run by nothing in CI; the DD rows that never reached the ledger or the domain JSON; and Verify Live's
   10-minute poll against an 18-minute job.
+
+## r.209 — Claude Code: THE SHEET NAMES THE MAP (2026-10-14)
+Operator, 2026-10-14, **sent twice** with the same screenshot (`docs/asks/img/…_shot58.png`, sha256 `660e8c66…e133e7`):
+*"This should have the range at top"* (DD-48). His own law — *when the operator repeats himself, the last answer missed; change what
+you do, not how you describe it* — so this is its own revision, built first and alone, ahead of the map ladder it belongs to.
+Notes: `CLAUDE_CODE_NOTES_r209.md`. Patch: `patches/r208_to_r209.py` (base r.209's parent declared and asserted, 7 edits, the cut
+parsed by `node --check` before it is written). Artefact commit `a6f0424`.
+- **Measured on the shipped r.208 bytes first:** the sheet heads `LANE 21 · TURRET · TRAIN UP` (written at `play.html:8084`, static
+  default at `:660`) and the word *map* appears nowhere on it. With the ladder he named the same day — THE RANGE → THE CAPITAL →
+  CITY OF AUSTIN → LANDMARKS OF TEXAS → MAJOR TEXAS CITIES → THE STATE OF TEXAS (DD-47) — that is the missing word.
+- **The heading leads with the map.** `THE RANGE · LANE 21 · TURRET · TRAIN UP`; off the range `THE CAPITAL · TURRET 21/42 · TRAIN UP`.
+  The seat is read from the rung: `units[].label` is **already** `TURRET i/42` (r.131) and is reused, not re-derived — but the range
+  parks those same 42 units and renames them `LANE n`, so off the range the seat falls back to the station form rather than showing a
+  lane. The fixed ` · TURRET · ` segment is dropped where the seat already names the craft, so the Capital form is not `TURRET` twice.
+- **The link learns the map, additively.** A Capital station **could not be shared at all** — `?range=` means the LANE. `shareUrl()`
+  gains a branch **above** the range's return, which is left **byte-identical**: `drone-playable.test.mjs`'s pin of that exact source
+  text needed **no re-expression**, and `.github/workflows/verify-live.yml`'s fetch of
+  `play.html?range=21&role=turret&mode=train-up` is untouched. The `?map=` **reader** lands with the ladder in r.211 — a link nothing
+  reads yet would be a promise the deck cannot keep.
+- **The ladder's first members land here**, as **hoisted `function` declarations** in the append zone after `const _mp`:
+  `rungIsRange()`, `rungWord()`, `rungSeat()`. Hoisted and not `const`, because `toolSelfTest()` runs above that line and a `const`
+  there is in its temporal dead zone at boot — the TDZ failure r.208 records at `:5727`. r.211 **extends** `rungIsRange` with
+  `state._selMap` instead of writing a second one.
+- **Gates, red on the r.208 bytes first** (`redfirst/r209.md`): the new boot row `THE_SHEET_NAMES_THE_MAP` (deferred, because the sheet
+  is wired by an IIFE far below the boot self-check — it presses the real `#btnQr`, reads what he would read, and closes the sheet
+  again), plus two added assertions in `drone-playable.test.mjs`, one of them pinning the ladder's first member as hoisted.
+- **The range is untouched:** `tests/range-frozen.test.mjs` 100 definitions at **0 moved**; `tests/range-2525.test.mjs` 118; both
+  play-throughs re-run on the shipped bytes.
+- **Owed and carried, unchanged:** the arena record and `mission-planning.tsx` still carry the footprint 24.9 % too deep north to
+  south; no `test:drone-play` runner in CI; Verify Live polls 10 minutes against an 18-minute job; 428×926 is still not a CI viewport.
+  Next: **r.210**, the R-CORE icon at the bottom below TARGET · APPROVE · FIRE, opening the history chain (DD-49) — owed since r.196
+  and deferred thirteen times.
+
