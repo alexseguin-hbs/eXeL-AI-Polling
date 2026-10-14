@@ -494,6 +494,11 @@ const cube2: TranslationEntry[] = [
   { key: "cube2.feed.empty", englishDefault: "No responses yet", context: "Empty feed state", cubeId: 2 },
   { key: "cube2.feed.summary", englishDefault: "33-word summary", context: "Per-response summary label", cubeId: 2 },
   { key: "cube2.feed.paid_only", englishDefault: "Live feed available on paid tiers", context: "Free tier gate message", cubeId: 2 },
+  // r.T2 (operator 2026-10-14, "2525 redundancy"; Vision-2525 §6 "publishes its lateness with its cause"):
+  // the participant is told the truth when no delivery path carried their words. STAGED ENGLISH-ONLY under his
+  // own law — no translation fill before the English is final and HI-tested.
+  { key: "cube2.response_held_offline", englishDefault: "Saved on this device. Your response could not reach the session yet — it will send itself when the connection returns.", context: "No send path succeeded; the words are queued in the device outbox", cubeId: 2 },
+  { key: "cube2.response_not_delivered", englishDefault: "Your response could not be sent, and this device could not save it either. Please keep your words and try again.", context: "No send path succeeded AND the device outbox could not persist it", cubeId: 2 },
 ];
 
 const cube3: TranslationEntry[] = [

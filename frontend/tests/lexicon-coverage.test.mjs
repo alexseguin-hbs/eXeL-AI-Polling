@@ -17,6 +17,12 @@ const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 // re-staged AND its 32 now-stale translations are removed from lib/i18n-app/*, so t() falls back to the corrected
 // English rather than returning the old, wrong translation ("listed never silent" — an orphaned fill is a silent lie).
 const AFTER_FILL = new Set([
+  // r.T2 · the device outbox (operator 2026-10-14, "2525 redundancy" / "if that means we need other non-Supabase
+  // source let me know"): two participant-facing sentences for the case where NO delivery path carried the
+  // response. STAGED, not silent — under his own law, no ×32 fill before the English UI/UX is final and
+  // HI-tested. The ×32 native-speaker fill is OWED and is its own commit.
+  'cube2.response_held_offline',
+  'cube2.response_not_delivered',
   // Financial-2525 (operator 2026-09-30) — the 90 fin.* keys were filled ×32 (one agent per language) and then reviewed by a
   // native-speaker pass per language (664 corrections folded); 36 reviewed loanwords on the identical-allowed list.
   // R-CORE compare mirror of Vision-2525 (operator 2026-09-26) — the 29 new rcore.* keys were filled ×32 (Haiku),

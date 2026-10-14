@@ -31,6 +31,8 @@ import { PRESENCE_POLL_INTERVAL } from "@/lib/constants";
 import { useTimer } from "@/lib/timer-context";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useLexicon } from "@/lib/lexicon-context";
+// r.T2 — the device is the third independent source; a completed response is never discarded.
+import { queueResponse, dropResponse, recordAttempt, describeAttempt, anyDelivered, pendingFor } from "@/lib/response-outbox";
 import { VoiceInput } from "@/components/voice-input";
 import { PollCountdownTimer } from "@/components/poll-countdown-timer";
 import { SimModeratorExperience } from "@/components/sim-moderator-experience";
@@ -323,6 +325,8 @@ export function SessionView() {
   const [participantCount, setParticipantCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // r.T2 (§6 — publish the lateness with its cause): "" delivered · "held-on-device" · "not-delivered"
+  const [deliveryNotice, setDeliveryNotice] = useState("");
 
   // Response input
   const [responseText, setResponseText] = useState("");
@@ -357,6 +361,39 @@ export function SessionView() {
   const simulationSessionId = ctxSimMode ? ctxSimSessionId : (isQrSim ? sessionId : null);
   const { t, activeLocale } = useLexicon();
   const { currentTheme } = useTheme();
+
+  // r.T2 — THE DRAIN. The notice promises the response "will send itself when the connection returns", so it
+  // must. On mount and whenever the browser says it is back online, every response this device is still holding
+  // for THIS session is re-sent through Path B (the globally-consistent one) and dropped only on proof. The
+  // moderator's seenIds (dashboard/page.tsx:245) absorbs any duplicate, which is why a retry is safe.
+  useEffect(() => {
+    const code = session?.short_code;
+    if (!code || simulationMode) return;
+    let stopped = false;
+    const drain = async () => {
+      const held = pendingFor(code);
+      if (!held.length) return;
+      for (const e of held) {
+        if (stopped) return;
+        if (!supabase) return;                       // nothing to retry through yet
+        try {
+          const r: { error?: unknown } = await supabase.from("responses").insert({
+            id: e.id, session_code: e.shortCode, participant_id: e.participantId, content: e.text,
+          });
+          if (r?.error) throw r.error;
+          dropResponse(e.id);
+        } catch {
+          recordAttempt(e.id, "retry via B failed");
+          return;                                     // stop on the first failure; try again on the next event
+        }
+      }
+      if (!stopped && pendingFor(code).length === 0) setDeliveryNotice("");
+    };
+    void drain();
+    const onOnline = () => { void drain(); };
+    if (typeof window !== "undefined") window.addEventListener("online", onOnline);
+    return () => { stopped = true; if (typeof window !== "undefined") window.removeEventListener("online", onOnline); };
+  }, [session?.short_code, simulationMode]);
 
   // Load per-session SIM data if a session ID is set
   const simPollData = simulationSessionId
@@ -826,39 +863,66 @@ export function SessionView() {
         const responseId = result?.id ?? `r-${Date.now()}`;
         const submittedAt = new Date().toISOString();
 
-        // Path A — Supabase Broadcast (instant ~50ms, WebSocket push)
-        broadcastToSession("new_response", {
-          id: responseId,
-          text: trimmed.length > 80 ? trimmed.substring(0, 80) + "..." : trimmed,
-          clean_text: trimmed,
-          submitted_at: submittedAt,
-          summary_33: (result as { summary_33?: string })?.summary_33 ?? undefined,
-          count: submittedQuestions.size + 1,
-        }).catch(() => {});
+        // r.T2 (operator 2026-10-14, "2525 redundancy"): the three paths are AWAITED TOGETHER and their
+        // outcomes recorded. They used to be fire-and-forget — .catch(() => {}) twice and .then(noop, noop)
+        // once — so nothing knew whether a response had been delivered, and the participant was told it had
+        // been regardless. That violates §5 (the Ledger: nothing is swallowed) and §7 (the Off Switch: a
+        // failure turns against the framework, never silently onto the person). Any ONE path succeeding is
+        // still delivery — the Trinity rule itself is unchanged.
+        const deliveryResults: Record<string, boolean> = { A: false, B: false, C: false };
 
-        // Path B — Supabase DB INSERT (HTTP REST, globally consistent)
-        // Feeds: postgres_changes (Channel B) + HTTP poll (Channel D)
-        if (supabase && session?.short_code) {
-          supabase.from("responses").insert({
+        const settled = await Promise.allSettled([
+          // Path A — Supabase Broadcast (instant ~50ms, WebSocket push)
+          broadcastToSession("new_response", {
             id: responseId,
-            session_code: session.short_code,
-            participant_id: participantId,
-            content: trimmed,
-          }).then(() => {}, () => {});
-        }
+            text: trimmed.length > 80 ? trimmed.substring(0, 80) + "..." : trimmed,
+            clean_text: trimmed,
+            submitted_at: submittedAt,
+            summary_33: (result as { summary_33?: string })?.summary_33 ?? undefined,
+            count: submittedQuestions.size + 1,
+          }),
+          // Path B — Supabase DB INSERT (HTTP REST, globally consistent)
+          // Feeds: postgres_changes (Channel B) + HTTP poll (Channel D)
+          supabase && session?.short_code
+            ? supabase.from("responses").insert({
+                id: responseId,
+                session_code: session.short_code,
+                participant_id: participantId,
+                content: trimmed,
+              }).then((r: { error?: unknown }) => { if (r?.error) throw r.error; return r; })
+            : Promise.reject(new Error("no supabase client")),
+          // Path C — CF KV POST (HTTP). Its durable store is currently disabled (wrangler.jsonc:26), so a 200
+          // here means a per-PoP cache accepted it, not that another device can read it. Recorded as attempted.
+          session?.short_code
+            ? fetch("/api/responses", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  short_code: session.short_code,
+                  text: trimmed,
+                  participant_id: participantId,
+                  language_code: languageCode || "en",
+                }),
+              }).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r; })
+            : Promise.reject(new Error("no session code")),
+        ]);
+        (["A", "B", "C"] as const).forEach((k, i) => { deliveryResults[k] = settled[i]?.status === "fulfilled"; });
 
-        // Path C — CF KV POST (HTTP, per-datacenter cache, fast reads)
-        if (session?.short_code) {
-          fetch("/api/responses", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              short_code: session.short_code,
-              text: trimmed,
-              participant_id: participantId,
-              language_code: languageCode || "en",
-            }),
-          }).catch(() => {});
+        // §7 — when NO path carried it, the device holds the words and the participant is told the truth.
+        // A completed response is never discarded: the Sign Doc AAR's class, applied here at last.
+        if (!anyDelivered(deliveryResults)) {
+          const held = queueResponse({
+            id: responseId,
+            shortCode: session?.short_code ?? "",
+            participantId: participantId ?? "",
+            text: trimmed,
+            languageCode: languageCode || "en",
+            submittedAt,
+          });
+          recordAttempt(responseId, describeAttempt(deliveryResults));
+          setDeliveryNotice(held ? "held-on-device" : "not-delivered");
+        } else {
+          setDeliveryNotice("");
         }
       }
 
@@ -932,6 +996,21 @@ export function SessionView() {
     <div className="flex min-h-screen flex-col">
       <Navbar sessionTitle={simulationMode ? `[SIM] ${simulationRole === "poller" ? t("cube10.sim.role_poller") : (session?.title ?? "")}` : session?.title} />
       <TokenEarnOverlay visible={showTokenEarn} color={currentTheme.swatch} />
+
+      {/* r.T2 (§6 — "publishes its lateness with its cause"): when no path carried the response the participant
+          is told, in their own terms, what happened and what is true. Never a silent success. */}
+      {deliveryNotice && (
+        <div
+          data-delivery-notice={deliveryNotice}
+          role="status"
+          aria-live="polite"
+          className="mx-4 mt-3 rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200"
+        >
+          {deliveryNotice === "held-on-device"
+            ? t("cube2.response_held_offline")
+            : t("cube2.response_not_delivered")}
+        </div>
+      )}
 
       <main className="container flex flex-1 flex-col items-center py-8 px-4">
         {/* Poller sim → show moderator dashboard experience */}
