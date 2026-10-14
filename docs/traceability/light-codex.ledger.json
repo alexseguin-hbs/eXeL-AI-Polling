@@ -1,0 +1,147 @@
+{
+  "section": "Light Codex",
+  "route": "/light-codex",
+  "note": "Append-only Vision 2525 traceability for the Light Codex project - the /light-codex route, its cube and the engine under it. rev monotonic; append, never edit. Revisions 2 to 19 were reconstructed on 2026-10-14 from the repository's own commit history (rev 1 states the method and the exact command); everything after is written as it happens. The LIGHT CODEX comms module inside the Drone-2525 operator deck is a DIFFERENT thing of the same name and is recorded in drone-2525.ledger.json.",
+  "entries": [
+    {
+      "rev": 1,
+      "date": "2026-10-14",
+      "kind": "decision",
+      "text": "HOW THIS RECORD WAS MADE, stated first so nothing below is mistaken for a contemporaneous note. Operator 2026-10-14 (DD-55): \"each innovation project gets its own rcore panel (drone, security, light codex, Vision-2525, etc)\"; asked which Light Codex he meant, he answered \"The /light-codex world\" - this route and its cube, NOT the LIGHT CODEX comms module inside the Drone-2525 operator deck, which becomes COMM-2525 under DD-41. Revisions 2 and after were RECONSTRUCTED on 2026-10-14 from the repository's own commit history, scoped to this project's four files (frontend/lib/light-codex.ts, frontend/components/light-codex-cube.tsx, frontend/app/light-codex/page.tsx, frontend/lib/codex-pdf.ts), oldest first. They were not written at the time. Every one carries the real commit sha it was read from, so a future reader can run git show on it and see exactly what changed - that is the point of the record, and it is why nothing here is summarised from memory. Each row states the measured file count and line delta inside this project's own paths; where a change was driven by Sign Doc's needs rather than the cube's, the row says so rather than claiming it as a feature of the cube. The record is FORWARD-ONLY after this row: from 2026-10-14 every change to these files appends its own entry when it is made. Reproduce the reconstruction with: git log --format='%H|%ad|%s' --date=short --reverse -- frontend/lib/light-codex.ts frontend/components/light-codex-cube.tsx frontend/app/light-codex/page.tsx frontend/lib/codex-pdf.ts",
+      "commit": ""
+    },
+    {
+      "rev": 2,
+      "date": "2026-07-05",
+      "kind": "release",
+      "text": "Light Codex cube — encode/decode short messages hidden in shared images [3 file(s) in this project: page.tsx, light-codex-cube.tsx, light-codex.ts; +557 -0 lines]",
+      "commit": "7a47f5fc1"
+    },
+    {
+      "rev": 3,
+      "date": "2026-07-05",
+      "kind": "release",
+      "text": "Encoded Messaging + Light Codex polish [2 file(s) in this project: light-codex-cube.tsx, light-codex.ts; +3 -3 lines]",
+      "commit": "3841da3cd"
+    },
+    {
+      "rev": 4,
+      "date": "2026-07-05",
+      "kind": "release",
+      "text": "Light Codex: default message placeholder 'Enter message here' [1 file(s) in this project: light-codex-cube.tsx; +1 -1 lines]",
+      "commit": "b22c297de"
+    },
+    {
+      "rev": 5,
+      "date": "2026-07-05",
+      "kind": "release",
+      "text": "Light Codex: fix DECODE for all styles (was NULL) — background-bleed tolerant [1 file(s) in this project: light-codex.ts; +82 -59 lines]",
+      "commit": "623b7338e"
+    },
+    {
+      "rev": 6,
+      "date": "2026-07-05",
+      "kind": "release",
+      "text": "Light Codex: give SPACE its own code (WBWB) — was BBBB, colliding with digit 0 [1 file(s) in this project: light-codex.ts; +4 -1 lines]",
+      "commit": "fb1219f73"
+    },
+    {
+      "rev": 7,
+      "date": "2026-07-28",
+      "kind": "release",
+      "text": "H31: Customer CONOPS label + shared Light-Codex image library (pick/upload/URL) [1 file(s) in this project: light-codex-cube.tsx; +7 -0 lines]",
+      "commit": "e283c4a50"
+    },
+    {
+      "rev": 8,
+      "date": "2026-07-28",
+      "kind": "release",
+      "text": "H32: CONOPS ↔ Light-Codex integration — signed uploads, save/delete, provenance [1 file(s) in this project: light-codex-cube.tsx; +1 -1 lines]",
+      "commit": "a2dde8bfd"
+    },
+    {
+      "rev": 9,
+      "date": "2026-09-07",
+      "kind": "release",
+      "text": "Sign Doc wave 6 — the digital line always pairs with the physical signature (locked by page-text tests); Light Codex of ALL signatories embedded pixel-exact in the PDF and unlocked by uploading the PDF to Light Codex; PDF beside PNG on Decode (Security +5, Stability +10, Sovereignty +10) [2 file(s) in this project: light-codex-cube.tsx, codex-pdf.ts; +115 -3 lines] The change came from Sign Doc's needs rather than the cube's - the signer embeds Light Codex strips in a PDF and reads them back, so it drives the shared engine; recorded here because it changed this project's code, not claimed as a feature of the cube.",
+      "commit": "4aeac2280"
+    },
+    {
+      "rev": 10,
+      "date": "2026-09-07",
+      "kind": "release",
+      "text": "Sign Doc — the 2×2 Light Codex signatory block on EVERY signed page, not just the last (Stability +5) [1 file(s) in this project: light-codex-cube.tsx; +10 -3 lines] The change came from Sign Doc's needs rather than the cube's - the signer embeds Light Codex strips in a PDF and reads them back, so it drives the shared engine; recorded here because it changed this project's code, not claimed as a feature of the cube.",
+      "commit": "94e63b5ca"
+    },
+    {
+      "rev": 11,
+      "date": "2026-09-07",
+      "kind": "release",
+      "text": "Sign Doc — Light Codex strips are Single Helix, one line, 2×2 (operator 23:50): the strip image is one block tall; ALL strip along the block's foot, a 30-pt line per signatory; decoder unchanged (Stability +5) [1 file(s) in this project: codex-pdf.ts; +5 -3 lines] The change came from Sign Doc's needs rather than the cube's - the signer embeds Light Codex strips in a PDF and reads them back, so it drives the shared engine; recorded here because it changed this project's code, not claimed as a feature of the cube.",
+      "commit": "41e7a9bb5"
+    },
+    {
+      "rev": 12,
+      "date": "2026-09-08",
+      "kind": "release",
+      "text": "Sign Doc — no signatory box (the digital line is under each signature); the Light Codex of ALL signatories is the HIDDEN helix on the very bottom edge of every page, as a Light Codex PNG carries it (operator 00:45) (Succinctness +10) [1 file(s) in this project: codex-pdf.ts; +7 -6 lines] The change came from Sign Doc's needs rather than the cube's - the signer embeds Light Codex strips in a PDF and reads them back, so it drives the shared engine; recorded here because it changed this project's code, not claimed as a feature of the cube.",
+      "commit": "ffbb28448"
+    },
+    {
+      "rev": 13,
+      "date": "2026-09-08",
+      "kind": "release",
+      "text": "Light Codex text in the operator's format — \"NAME 2026.09.08 08.11CDT\": space for the underscore, full stop for the colon (the alphabet's inventory), the signer's local time with its zone name (operator 01:50) [1 file(s) in this project: codex-pdf.ts; +16 -6 lines]",
+      "commit": "2f8055035"
+    },
+    {
+      "rev": 14,
+      "date": "2026-09-08",
+      "kind": "release",
+      "text": "Sign Doc — every fleet pass-2 item, PDF zoom, Light Codex order + symbols, text at the document's size (operator 2026-09-08, one approval) (Stability +15, Security +5, Efficiency +5, Succinctness +5) [3 file(s) in this project: light-codex-cube.tsx, codex-pdf.ts, light-codex.ts; +61 -15 lines] The change came from Sign Doc's needs rather than the cube's - the signer embeds Light Codex strips in a PDF and reads them back, so it drives the shared engine; recorded here because it changed this project's code, not claimed as a feature of the cube.",
+      "commit": "d16ef6615"
+    },
+    {
+      "rev": 15,
+      "date": "2026-09-08",
+      "kind": "release",
+      "text": "Sign Doc — remaining fleet items, batch 1: the Cloudflare build gate, ship.sh envcheck, multi-file 24-hour links, placeholder strings (any word order), the AI error line through the lexicon, the Light Codex panel in the lexicon (+ES), a finger-drag proof and ⌖ on the signature box (operator 17:52: execute the remaining before the limit) (Stability +10, Security +5) [1 file(s) in this project: light-codex-cube.tsx; +11 -10 lines] The change came from Sign Doc's needs rather than the cube's - the signer embeds Light Codex strips in a PDF and reads them back, so it drives the shared engine; recorded here because it changed this project's code, not claimed as a feature of the cube.",
+      "commit": "9161327e1"
+    },
+    {
+      "rev": 16,
+      "date": "2026-09-08",
+      "kind": "release",
+      "text": "Sign Doc — remaining fleet items, batch 2: one receipt for Done and Verify, rotated pages carry their initials and hidden strip, RTL-safe hand-off row and handle (Stability +10, Succinctness +5) [1 file(s) in this project: codex-pdf.ts; +5 -2 lines] The change came from Sign Doc's needs rather than the cube's - the signer embeds Light Codex strips in a PDF and reads them back, so it drives the shared engine; recorded here because it changed this project's code, not claimed as a feature of the cube.",
+      "commit": "f6c9b2f56"
+    },
+    {
+      "rev": 17,
+      "date": "2026-09-13",
+      "kind": "release",
+      "text": "Site-UX keyify batch 4 — 66 hardcoded strings routed through t() (tail, ~26 files) [1 file(s) in this project: light-codex-cube.tsx; +2 -2 lines]",
+      "commit": "d2806d150"
+    },
+    {
+      "rev": 18,
+      "date": "2026-10-07",
+      "kind": "release",
+      "text": "Mark each picture with the 1x1 single helix. [2 file(s) in this project: codex-pdf.ts, light-codex.ts; +7 -1 lines]",
+      "commit": "b8f8de1e0"
+    },
+    {
+      "rev": 19,
+      "date": "2026-10-07",
+      "kind": "release",
+      "text": "Put the newest boxes on the upper left of the picture. [1 file(s) in this project: light-codex.ts; +18 -0 lines]",
+      "commit": "aab59e401"
+    },
+    {
+      "rev": 20,
+      "date": "2026-09-18",
+      "kind": "ask",
+      "text": "Operator ask, persisted verbatim at docs/asks/2026-09-18_light_codex_sync.md: \"use light codex as inter-network communication between HI and AI agents, with ability for 2 humans to allow interoperations using 6 digit crypto key (for anyone in same instance), to allow for Crypto level communications using Light Codex between nodes (similar to how SKL is used for Link 16 protocols). take inspiration from Light codex and Atlantis Accords Level 1-7 packaged HTML layer of security for transmitting updates and info for SYNC\". OUT OF DATE ORDER DELIBERATELY: it is appended here, at the end, because the record is append-only and this row was written on 2026-10-14 while reconstructing the history - back-dating it into the sequence would make it look like a note taken at the time. NOT YET BUILT. The cube today encodes and decodes a short message in an image; the inter-node transport, the six-digit crypto key and the Level 1-7 packaged-HTML wrapper are all owed.",
+      "commit": ""
+    }
+  ]
+}

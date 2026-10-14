@@ -104,6 +104,7 @@ const STAGE2_LEDGERS = [
   { file: "architect-2525.ledger.json", constName: "ARCHITECT_LEDGER", out: "architect-ledger.gen.ts" },
   { file: "celestial-2525.ledger.json", constName: "CELESTIAL_LEDGER", out: "celestial-ledger.gen.ts" },
   { file: "financial-2525.ledger.json", constName: "FINANCIAL_LEDGER", out: "financial-ledger.gen.ts" }, // Financial-2525 (operator 2026-09-30, v.000_r.001)
+  { file: "light-codex.ledger.json",   constName: "LIGHT_CODEX_LEDGER", out: "light-codex-ledger.gen.ts" }, // Light Codex (operator 2026-10-14, DD-55: "The /light-codex world")
 ];
 for (const { file, constName, out } of STAGE2_LEDGERS) {
   const src = path.join(ROOT, "docs/traceability", file);

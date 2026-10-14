@@ -55,9 +55,10 @@
     {
       "route": "/light-codex",
       "kind": "project",
-      "ledger": null,
-      "panel": null,
-      "owed": "DD-55, and he named it himself. Operator 2026-10-14, asked which Light Codex he meant: 'The /light-codex world' — the pixel-steganography signer, not the LIGHT CODEX comms module inside the drone deck (that one becomes COMM-2525 under DD-41). Needs its own ledger and panel. Its route carries no -2525 suffix although the launcher calls it CODEX-2525: HIS CALL whether the route is renamed or this row carries the exception."
+      "ledger": "light-codex.ledger.json",
+      "panel": "app/light-codex/page.tsx",
+      "note": "His own answer when asked which Light Codex he meant (2026-10-14): \"The /light-codex world\" — this route and its cube, NOT the LIGHT CODEX comms module inside the Drone-2525 deck, which becomes COMM-2525 under DD-41 and is recorded in drone-2525.ledger.json. The badge is on the page shell, not inside LightCodexCube: the cube is a createPortal modal, so a badge inside it would be an overlay on the tool. Revisions 2–19 of its ledger were reconstructed from the repository's own commit history on 2026-10-14; rev 1 states the method and the exact command, and the record is forward-only after it.",
+      "open": "HIS CALL: the route carries no -2525 suffix although the launcher already calls it CODEX-2525, so it does not match his own /project-2525 glob. Rename the route, or let this row carry the exception."
     },
     {
       "route": "/vision-2525",

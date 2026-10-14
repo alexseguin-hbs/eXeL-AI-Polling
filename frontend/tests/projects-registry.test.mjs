@@ -52,7 +52,10 @@ for (const p of projects) {
   if (p.panel) ok(fs.existsSync(path.join(FE, p.panel.replace(/^frontend\//, ''))) || fs.existsSync(path.join(ROOT, p.panel)), `${p.route}'s panel file exists: ${p.panel}`);
   if (p.panel) {
     const f = fs.existsSync(path.join(FE, p.panel)) ? path.join(FE, p.panel) : path.join(ROOT, p.panel);
-    ok(/RCoreBadge/.test(fs.readFileSync(f, 'utf8')), `${p.route} MOUNTS the shared badge in ${p.panel}`);
+    // MOUNTED, not merely imported: `import { RCoreBadge }` left behind after the JSX is deleted would satisfy a
+    // name match and the panel would be gone. Found by sabotage while writing this gate — the badge was removed
+    // from /light-codex's JSX and this assertion stayed green until it was tightened to the opening tag.
+    ok(/<RCoreBadge\b/.test(fs.readFileSync(f, 'utf8')), `${p.route} MOUNTS the shared badge (<RCoreBadge …>) in ${p.panel}`);
   }
   if (!p.ledger || !p.panel) {
     ok(typeof (p.owed || p.note) === 'string' && (p.owed || p.note).length > 20,
