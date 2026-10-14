@@ -1,0 +1,188 @@
+{
+  "note": "EVERY top-level route under frontend/app is classified here, once. Operator 2026-10-14 (DD-55): 'each innovation project gets its own rcore panel (drone, security, light codex, Vision-2525, etc)', and asked what counts: 'all projects that are off main. /project-2525'. A pure route-shape rule cannot be the test on its own — 26 top-level routes carry a page and sixteen of them are utilities — so the rule survives in a stronger form: every route is CLASSIFIED here, and a row classified 'project' must have a ledger, a panel and (when the code record lands) a code record. The gate then never guesses; the row is the decision, and a 'utility' row must say why in one line, so an exclusion is on the record rather than in someone's head. Append-only in spirit: change a row rather than dropping it, and say why in its own note.",
+  "kinds": {
+    "project": "An innovation project off main. MUST have: its own append-only ledger under docs/traceability, a mounted R-CORE badge + panel over that ledger, and (DD-53) a code record per revision.",
+    "alias": "A second address for a project that is already classified. Renders the SAME component, so it inherits that project's panel and must NOT have a ledger of its own — one record per project, never two.",
+    "surface": "Part of a project rather than a project: a reader, a viewer or a sub-page reached from one. It inherits its project's record.",
+    "utility": "Not a project: a function of the app (auth, joining, a session, a redirect). No ledger, no panel. Every utility row carries a one-line why."
+  },
+  "routes": [
+    {
+      "route": "/Architect-2525",
+      "kind": "project",
+      "ledger": "architect-2525.ledger.json",
+      "panel": "components/architect-2525/command-ux1.tsx"
+    },
+    {
+      "route": "/Celestial-2525",
+      "kind": "project",
+      "ledger": "celestial-2525.ledger.json",
+      "panel": "components/celestial-2525/celestial-reader.tsx"
+    },
+    {
+      "route": "/Security-2525",
+      "kind": "project",
+      "ledger": "security-2525.ledger.json",
+      "panel": "components/security-2525/command-ux1.tsx"
+    },
+    {
+      "route": "/SensorFusion-2525",
+      "kind": "project",
+      "ledger": null,
+      "panel": "app/SensorFusion-2525/sensor-fusion.tsx",
+      "owed": "Its record is app/SensorFusion-2525/ledger.ts — hand-written TypeScript OUTSIDE docs/traceability, outside the generator and outside every gate. 76 entries, several release rows with an empty commit. Moving it under the same law is its own change (Stage 7 R6); the move must record a correction rather than silently editing those rows."
+    },
+    {
+      "route": "/SoI-2525",
+      "kind": "project",
+      "ledger": null,
+      "panel": "app/SoI-2525/page.tsx",
+      "note": "Its record is docs/drs/drs.v00.00.json revisions[], owned by another workflow; the generator reads it read-only into soi-drs-revisions.gen.ts."
+    },
+    {
+      "route": "/drone-2525",
+      "kind": "project",
+      "ledger": "drone-2525.ledger.json",
+      "panel": "components/drone-2525/command-ux1.tsx",
+      "note": "Two carriers over ONE ledger: the React route, and the operator deck at /drone-2525/play.html, which embeds the same entries through the revision before itself (r.210, DD-49) and is gated by frontend/tests/deck-rcore.test.mjs."
+    },
+    {
+      "route": "/financial-2525",
+      "kind": "project",
+      "ledger": "financial-2525.ledger.json",
+      "panel": "components/financial-2525/command-ux1.tsx"
+    },
+    {
+      "route": "/light-codex",
+      "kind": "project",
+      "ledger": null,
+      "panel": null,
+      "owed": "DD-55, and he named it himself. Operator 2026-10-14, asked which Light Codex he meant: 'The /light-codex world' — the pixel-steganography signer, not the LIGHT CODEX comms module inside the drone deck (that one becomes COMM-2525 under DD-41). Needs its own ledger and panel. Its route carries no -2525 suffix although the launcher calls it CODEX-2525: HIS CALL whether the route is renamed or this row carries the exception."
+    },
+    {
+      "route": "/vision-2525",
+      "kind": "project",
+      "ledger": null,
+      "panel": null,
+      "owed": "DD-55. The worlds page has no ledger and no shared panel; the living document carries its own 311-revision implementation, which is NOT the shared panel. HIS CALL (Stage 7): a small honest ledger of its own, or adapt the living document's list so the page and the document agree."
+    },
+    {
+      "route": "/encrypted-messaging",
+      "kind": "project",
+      "ledger": null,
+      "panel": null,
+      "owed": "DD-55. The launcher calls it ATLANTIS-2525. Lowest value of the three and therefore last. HIS CALL: it, /Atlantis-Accords and /atlantis are three Atlantis-shaped routes side by side."
+    },
+    {
+      "route": "/review-2525",
+      "kind": "alias",
+      "of": "/Security-2525",
+      "why": "Renders the SAME component (components/security-2525/command-ux1), passing no props where /Security-2525 passes initialTab. His route rule would call it a project; the code says it is a door. Giving it a ledger would be inventing a project, so it inherits Security's record."
+    },
+    {
+      "route": "/atlantis",
+      "kind": "alias",
+      "of": "/Atlantis-Accords",
+      "why": "A redirect (AtlantisLegacyRedirect)."
+    },
+    {
+      "route": "/innovation",
+      "kind": "alias",
+      "of": "/SoI-2525",
+      "why": "Retired 2026-08-07; /SoI-2525 is the only innovation route."
+    },
+    {
+      "route": "/Atlantis-Accords",
+      "kind": "surface",
+      "of": "/SoI-2525",
+      "why": "The accords viewer, reached from the Vision-2525 world. HIS CALL whether it is a project of its own alongside /encrypted-messaging."
+    },
+    {
+      "route": "/sim",
+      "kind": "surface",
+      "of": "/SoI-2525",
+      "ledger": "easter-egg.ledger.json",
+      "panel": "app/sim/page.tsx",
+      "why": "The easter-egg / SIM console. It already mounts the shared badge over its own ledger."
+    },
+    {
+      "route": "/crs",
+      "kind": "surface",
+      "of": "/SoI-2525",
+      "why": "The CRS Design Traceability Matrix view."
+    },
+    {
+      "route": "/experiences",
+      "kind": "surface",
+      "of": "/SoI-2525",
+      "why": "The shareable experiences landing."
+    },
+    {
+      "route": "/divinity-guide",
+      "kind": "surface",
+      "of": "/SoI-2525",
+      "why": "The Divinity Guide reader."
+    },
+    {
+      "route": "/divinity-guide-trinity",
+      "kind": "surface",
+      "of": "/SoI-2525",
+      "why": "The Trinity reading of the same book."
+    },
+    {
+      "route": "/pdf-signer",
+      "kind": "surface",
+      "of": "/SoI-2525",
+      "ledger": "sign-doc.ledger.json",
+      "why": "Sign Doc — a FEATURE of SoI with its own ledger, not a project off main, so it keeps the ledger and gets no panel of its own."
+    },
+    {
+      "route": "/api",
+      "kind": "utility",
+      "why": "The Governance Engine API documentation page."
+    },
+    {
+      "route": "/callback",
+      "kind": "utility",
+      "why": "The Auth0 redirect target."
+    },
+    {
+      "route": "/dashboard",
+      "kind": "utility",
+      "why": "The moderator's live polling screen (Cube 1/4)."
+    },
+    {
+      "route": "/join",
+      "kind": "utility",
+      "why": "A participant joining a session by code or QR (Cube 1)."
+    },
+    {
+      "route": "/session",
+      "kind": "utility",
+      "why": "A participant's polling screen (Cube 2/3)."
+    },
+    {
+      "route": "/soi-session",
+      "kind": "utility",
+      "ledger": "pod-session.ledger.json",
+      "why": "POD session — a FEATURE of SoI with its own ledger, not a project off main."
+    },
+    {
+      "route": "/workspace",
+      "kind": "utility",
+      "why": "The workspace shell."
+    }
+  ],
+  "alsoLedgered": [
+    {
+      "ledger": "settings.ledger.json",
+      "panel": "components/moderator-settings.tsx",
+      "why": "The Settings panel is chrome on every surface rather than a route; it carries its own ledger and mounts the shared badge."
+    },
+    {
+      "ledger": "create-doc.ledger.json",
+      "panel": null,
+      "why": "Create Doc — a FEATURE of SoI (his rule: a project is off main). Keeps its ledger, gets no panel."
+    }
+  ]
+}
