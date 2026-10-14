@@ -60,6 +60,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.205 | 2026-10-13 | Claude Code (the glass tells the truth about every target: ONE painter — a target's silhouette wears its own step, amber targeted and red approved, the mist no longer overriding the phase; the lit button wears that colour too (APPROVE amber, FIRE red); the middle of the picture carries TARGETS ONLY — every per-target caption retired, the lane signs kept; an exposure's close downs every plate of its engagement, hit or not; the boot self-check borrows the range and gives it back as it found it — his words 2026-10-12 20:44 "remove all text from middle; targets only" and 21:05 "buttoms and colors around boxing amber vs red should match") | 913009 | 24d03765171b8e8df3b55ed78b0d40133cd3c76f42b26eed79bc555ee71d8665 | 1c78765 (Verify Live #2775) | 3a3da320dd334a20854ea25b6f1df9ac594589865772679ff35afe4038d1edef |
 | r.206 | 2026-10-13 | Claude Code (no colour without a mark, and one meaning of "under the bullseye": a mark that ends takes its colour with it through every door; the box goes to the silhouette the bullseye is ON, never a nearer one beside it; on the map, where there is no bullseye, no button is lit; amber and red answer the same question about being on a target; the amber of a mark is used for a mark and nothing else — the twelve Masters' fleet, five defects left OPEN on the LIVE r.205, two re-verified on the shipped bytes before a line was written) | 924081 | fe10269f5c8691d83f417e4617ea59f6cc72f622c00239d7b460a49169219e38 | 7ec479d (Verify Live #2780) | 8ac6395f6cb65ced1e757b98ddc97c4b61fd3911af1c7c33af617dae5c89aa76 |
 | r.207 | 2026-10-13 | Claude Code (the glass keeps its promises: a button that is dark does not act, a view with no bullseye takes nothing away from him, a mark that ends takes its colour with it through EVERY door including the one r.205 added, and a lane sign shows its whole number — shrunk on its own post where the picture is tight, never moved off it and never cut (his decision DD-21, "Shrink them at the edge"); the three QA legs that approved without aiming first now aim, as a player does) | 932061 | dc266e890693ce9daad5aa8b42a310cf8935b695ed23026f1891613b0c35ee8f | 9cfb412 (Verify Live #2785) | 0b90262369f270925eaf083cc3d6d28ba7ae883b04f77d8ba8d96909efcae382 |
+| r.208 | 2026-10-14 | Claude Code (THE CAPITAL I — the Capitol is DRAWN: at the default fidelity the eight door targets took the whole segment budget and all 217 edges of the building were dropped, so the stage was black; the scene's subject is now painted outside that budget, the way his own lane is on the range, and its detail follows the fidelity dial while its presence does not. The outline is the sourced building — 172.67 × 88.09 m, the drum, the ribbed shell, the Goddess and her star at 92.24 m — with the south steps, the Great Walk at its true 25 ft, the allée and the north lawn as trees with canopies, the bounding streets and the rotunda's circle. The painter learned WEIGHT (hairline · normal · bold, one ladder, no fourteenth colour). SCEN · CAPITAL 42 opens the Capital. The range is untouched but for ONE deliberate close of r.207's own defect — goRange now hands the range's wave back after a challenge, so CH1 then CH0 no longer leaves it at phase static and no longer toasts PASS · MOVING TARGETS at the next quota hit — and `tests/range-frozen.test.mjs` holds the other 100 definitions at 0 moved, with goRange, mapCam and drawMap re-pinned under their own key with their reasons) | 958647 | fd620516e4c3e85f8783d52a6a60639a11e345e9039daf671541425bc5675510 | PENDING (Verify Live) | 3cfced9324b39c39f1ee84757c1400b703eec9a513c82befcefd044e06cca0e1 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1481,3 +1482,65 @@ now PARSED before it is written — see below). Artefact commit `b3d5c18`.
   times a table the glass says PRESS RELOAD on a magazine just filled; `hudKeepOut` in CSS pixels with no ResizeObserver; the lane picker
   reading LANE 21 on every QR-opened lane; 428×926 absent from the CI viewports; the 360-px phones red and undeclared; the two
   play-throughs run by nothing in CI; and the DD rows that never reached the ledger or the domain JSON.
+
+## r.208 — Claude Code: THE CAPITAL I, the Capitol is drawn (2026-10-14)
+Operator, 2026-10-13: *"can you create edge wireframes of Austin texas Captial of texas scenario with stationary pop up targets for turret …
+also enhance capital of texas using online images to make more realistic outline using array of 13 Trinity colors with varying levels of
+thickness etc to mimic 3D structure of capital and capital lawn (including trees … while making these updates; don't change the range; just
+use working range to start building elements for The Capital"* (DD-27, DD-34, DD-35). His order is the build order, and this is the first of
+five. Notes: `CLAUDE_CODE_NOTES_r208.md`. Patch: `patches/r207_to_r208.py` (base r.207, declared and asserted, 20 edits, the cut parsed
+before it is written). Artefact commit `ca3261f`.
+- **Measured on the shipped r.207 bytes before a line was written** (`scratchpad/r208/`, 390×844, the Capital entered through its own picker):
+  at **MoT 1.1, the default fidelity, the stage was BLACK** — 280 segments of a 280 budget spent, **1,278 dropped**, every one of the
+  Capitol's 217 edges among them. Instrumented at the call: `drawTargets` is entered at **5** segments spent and leaves at **280**, because
+  eight door targets × (a 12-edge box + a 29-segment bullseye) = 328. The building could not be reached. **A better model would have changed
+  nothing** until that was answered, which is why this revision is "the Capitol is drawn" and not "the Capitol is beautiful".
+- **The four members, each a class and not an instance:**
+  1. **DD-38 · the scene's subject is never the first thing dropped.** A group now says whether it is what the scene is *about*; the subject
+     is painted by `segsOwn` — counted, never dropped — which is the range's own r.157 rule (*my lane's targets are the shooter's own
+     picture*) applied to the Capital. Everything else stays inside the budget and drops first. Measured: **208 own segments at MoT 1.1**
+     (world 280 of 280) and **348 at MoT 5.1**.
+  2. **DD-37 · the painter learned weight.** `add(n,c,s,{w,own,lod})` and `segs(arr,col,w)` / `segsOwn(arr,col,w)`; the ladder is
+     `lib/wire-core/vector-law.ts`'s own — hairline 0.6 · normal 1 · bold 1.6 — because a darker edge would be a **fourteenth colour**.
+     Weight is a role, not a distance: the silhouette bold, the structure normal, the ground hairline. Every existing call passes no weight
+     and draws **exactly** as before.
+  3. **DD-34 · the building, from sourced numbers.** E-W 566 ft 6 in = **172.67 m** and the central block 289 ft = **88.09 m** (NHL
+     nomination 70000770); the star's tip **92.24 m** above the south grade and a **60 ft** rotunda (Texas State Preservation Board); the
+     Goddess **4.88 m** and her star 8 ft point to point (1888 state pamphlet). The deck's old spire stopped at 62 m — **a third short** —
+     and its dome ring was r 16 m against a 9.14 m rotunda. The grounds are the arena record's own tree rows and streets, converted by the
+     one transform `deck z = −(record y)`, and gated against that record by `tests/capitol-model.test.mjs`.
+  4. **DD-39 · detail follows the dial, presence does not.** Every group declares the lowest MoT major that draws it, so a weak phone sees
+     the whole building in outline and never a blank stage.
+- **Two doors that were shut:** `SCEN · CAPITAL 42` set `state.mode` and toasted — it never called `applyMode` and never set a challenge, so
+  picking his own scenario left the range on the glass; and the overhead view, framed for a 15 m lane at 155 m, showed about 33 m of a 500 m
+  site. One function (`pickScenario`) now serves the picker and the QA, and over the Capital the map rises to 2,400 m and looks straight
+  down, where the deck's one focal length frames 512 m. The range's map keeps its 155 exactly.
+- **ONE thing about the range changes, deliberately, and it is r.207's own defect being closed.** Leaving CH0 for a challenge has always
+  set `state.phase='static'` and zeroed the hits, and `goRange()` never put them back — measured on the shipped r.207 bytes through its own
+  challenge picker, CH1 then CH0 leaves `phase:'static'` and four hits then toast **PASS · MOVING TARGETS** with `passed` 1 → 2. r.208 adds a
+  second door onto that, two taps from the range, so it is closed here for every door: whoever leaves CH0 stashes the range's wave and
+  `goRange()` hands it back whole. `goRange` is a frozen span and is **re-pinned under its own key with that reason**. The no-fly volume is
+  NOT changed: r.131's `CAP` and `WING` boxes are kept exactly and flagged as the range's own, because re-sizing them moved 5 of 120 measured
+  points over his lanes.
+- **DD-35 made mechanical, not promised.** `tests/range-frozen.test.mjs` pins the sha256 of **100 top-level definitions** — those that belong to the
+  range alone, the predicate that defines it (`chNum`) and the seat switcher (`applyMode`) — the program of record, the magazines, the clock, the lamp, his five stances, the lane, its plates, its signs and the three
+  doors onto it. **r.207 → r.208 moves none of those hundred**, and the three it does move (`goRange`, `mapCam`, `drawMap`) are re-pinned under their own key with their reasons. The gate is sharp and not vacuous: replayed over the real ships it reports exactly
+  `boardLabels` for r.206 → r.207 (his D-21 decision) and exactly `qualDropStrays, rangeTick, boardLabels, drawPlates` for r.204 → r.205, and
+  each match is a line in that patch's own header. What it does not cover is said in the file: the functions the Capital is **required** to
+  reuse are deliberately absent, and their range-facing behaviour is held by the 242-row boot QA at four viewports — and by the two
+  play-throughs, which nothing in CI runs yet.
+- **Rows** (each red on the r.207 bytes first, kept in `scratchpad/r208/redfirst/`): `THE_CAPITOL_IS_DRAWN` (deferred, because a drawn frame
+  is the evidence — and because `SWARM` is a const declared after the self-test runs, measured by a throw), `CAPITOL_IS_THE_SOURCED_BUILDING`,
+  `EVERY_EDGE_HAS_A_LAWFUL_WEIGHT`, `THE_SCENARIO_PICKER_OPENS_THE_SCENARIO`. Boot QA 241/242 at three viewports with SYNC_DIRECT the only red and 240/242 at 667x375, where EYE_SCALE_12_IN is red as it already is on r.207.
+- **Said out loud rather than glossed:** on a phone, through the deck's own EYE law (1× is life-size at 12 in, focal 1827.6 px), the Capitol
+  **cannot** be seen whole from the ground — the full 172.67 m of width needs 428 m of standoff at the widest zoom the optic has, which is
+  the arena's own radius. From the south lawn he sees the central block and the dome, full height, and scans for the rest; the overhead view
+  shows the whole site. That is a consequence of his own rule, measured, not a defect to be hidden.
+- **Owed, and named:** the arena record and `components/security-2525/mission-planning.tsx` still carry the Capitol **±55 m** north-south,
+  **24.9 % deeper** than the sourced 289 ft — one polygon, two carriers, corrected together as their own change (the gate prints it on every
+  run). The record's other eleven buildings and their doors come with the per-location pop-ups (r.209), with the three that carry door
+  targets today left exactly where their doors are. Still carried from before: the QUAL-40 miss that reaches no record row; a lane post drawn
+  without its board; three times a table the glass says PRESS RELOAD on a magazine just filled; `hudKeepOut` in CSS pixels with no
+  ResizeObserver; the lane picker reading LANE 21 on every QR-opened lane; 428×926 absent from the CI viewports; the 360-px phones red and
+  undeclared; the two play-throughs run by nothing in CI; the DD rows that never reached the ledger or the domain JSON; and Verify Live's
+  10-minute poll against an 18-minute job.

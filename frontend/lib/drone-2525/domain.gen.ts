@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.062",
+  "revision": "0.063",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -530,6 +530,14 @@ export const DRONE_DOMAIN = {
    "why": "Operator deck r.207 — the glass keeps its promises (operator 2026-10-13, DD-22 \"The leftovers first\", DD-21 \"Shrink them at the edge\"). What the glass shows is what the deck does: a button that is dark does not act if pressed — APPROVE took FIRE own on-target test, with the MAP exempt because it has no bullseye to be on; a view with no bullseye takes nothing away from him — r.206 own fix for the frozen lit button had sent the map through the toast painter, so opening the MAP erased his step sentence for good; a mark that ends takes its colour with it through EVERY door, dropMark included, the one r.205 added and r.206 two down-refusals use; and a lane sign shows its whole number, shrunk on its own post to his 9 px legibility floor and not drawn below it, so r.159 is untouched. The three QA legs that approved without aiming first now aim, as a player does. Rows THE_MAP_KEEPS_HIS_SENTENCE, plus ONE_MEANING_OF_UNDER_THE_BULLSEYE pressing the dark button, NO_COLOUR_WITHOUT_A_MARK opening both doors, and LANE_NUMBERS_ON_THE_SIGN walking a sign to the edge on purpose; each red on the r.206 bytes first. The patcher parses the cut before it writes it.",
    "commit": "b3d5c18",
    "shipped": "9cfb412"
+  },
+  {
+   "revision": "0.063",
+   "date": "2026-10-14",
+   "kind": "release",
+   "why": "Operator deck r.208 — THE CAPITAL I, the Capitol is drawn (operator 2026-10-13, DD-27 / DD-34 / DD-35). Measured on the shipped r.207 bytes first: at the default fidelity the Capital stage was BLACK — the eight door targets entered drawTargets at 5 segments spent and left at 280, the whole world budget, so all 217 edges of the building were dropped. The scene subject is now painted outside that budget, counted and never dropped, which is the range own r.157 rule for the shooter own lane applied to the Capital; what is not the subject stays inside the budget and drops first; and every group declares the lowest fidelity that draws it, so detail follows the dial and presence does not. The painter learned WEIGHT from the one ladder in lib/wire-core/vector-law.ts (hairline .6, normal 1, bold 1.6), because a darker edge would be a fourteenth colour. The outline is the sourced building: 172.67 m east to west and 88.09 m north to south, the drum, the ribbed shell and the lantern, the Goddess of Liberty and her star at 92.24 m, the south steps, the Great Walk at its true 25 ft, the allee and the north lawn as trees with canopies, the bounding streets and the rotunda own 60 ft circle. The grounds are this record own treeRows and roads, converted by the one transform deck z = -(record y) and gated against it. The 42 turret stations stand at a 240 m standoff while the Capital is entered, because at r.131 distance of 150 m the drum alone fills a phone through the deck own EYE optic and the building cannot be read - measured at 150, 210, 240 and 280 m; where each station actually stands is r.209. The optic is homed by SOLVING for where the Goddess lands on the picture rather than by typing an angle, so she is in frame at every size. A door mark costs three segments at the VECTOR band instead of twenty-nine - the same centre drawn as a cross, which is what gave the lawn its budget back (drawTargets spends 120 at MoT 1 where it spent 328). The four Capitol doors keep the two metres of standoff r.207 gave the south and north ones, measured from the sourced wall that moved under them. The sourced numbers now live once, with their source and the sentence they came from, in docs/drone-2525/CAPITOL_SOURCES.json, which the gate READS rather than duplicating; nothing changes at MoT 2 and above, and nothing on the range, which never calls it. SCEN CAPITAL 42 now opens the Capital through one door - and ONLY that door, since routing the other scenario names through applyMode would have changed the seat from a range seat; over every non-range channel the overhead view rises to frame 512 m of site. The range is untouched and tests/range-frozen.test.mjs proves it: 100 definitions at 0 moved, and the three it does move declared under their own key.",
+   "commit": "ca3261f",
+   "shipped": "PENDING"
   }
  ],
  "arena": {
