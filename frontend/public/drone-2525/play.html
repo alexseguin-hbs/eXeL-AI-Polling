@@ -332,7 +332,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.208</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.209</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -657,7 +657,7 @@ No real-world laser-designator standard is implemented
 
 <div id="qrSheet" aria-hidden="true">
   <button type="button" id="qrClose" aria-label="close">×</button>
-  <h2 id="qrTitle">LANE 21 · TURRET · TRAIN UP</h2>
+  <h2 id="qrTitle">THE RANGE · LANE 21 · TURRET · TRAIN UP</h2>
   <div class="card" id="qrImg"></div>
   <p id="qrUrl"></p>
   <button type="button" id="qrCopy">COPY LINK</button>
@@ -675,7 +675,7 @@ function rcoreStep(name){
 }
 const T13={VOID:'#000000',PANEL:'#070B10',STROKE:'#1C2A3A',WIRE:'#7AB8C4',ROAD:'#4A6A78',WATER:'#2A6D88',DOME:'#C9A227',SI:'#E8D5B0',HI:'#5BA8FF',AI:'#C084FC',LOCK:'#E24B3B',TAG:'#3DCC8A',GIMBAL:'#F0A020'};
 const OK=new Set(Object.values(T13));
-const BUILD={version:'00.00',revision:'0.208'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
+const BUILD={version:'00.00',revision:'0.209'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
 
 const ASM=[
   {id:'AsM-01',name:'Enki',line:'Sumerian',team:'BLU',seat:'T01',ctrl:'AI'},
@@ -5196,6 +5196,22 @@ function toolSelfTest(){
         rows.push({id:'VOICE_TEST_SCORES', ok: sc==='HEARD CONFUSED:five MISSED HEARD MISSED' && line==='target:HEARD approve:HEARD fire:CONFUSED reload:MISSED one:HEARD two:HEARD three:MISSED' && kept && score==='4 OF 7 HEARD',
           note:'scores: '+sc+' · the test run: '+line+' · kept per engine '+kept+' · '+score}); }).catch(e=>{ clearInterval(feed); rows.push({id:'VOICE_TEST_SCORES',ok:false,note:'threw '+String(e).slice(0,80)}); });
     }
+  /* r.209 deferred row · THE_SHEET_NAMES_THE_MAP (operator 2026-10-14, sent TWICE with shot58: "This should have
+     the range at top"). The share sheet is wired by an IIFE far below the boot self-check, so this row waits for it,
+     presses the real button, reads what he would read, and closes the sheet again. */
+  setTimeout(()=>{ try{ if(state.outcomes!==rows) return; if(rows.some(x=>x.id==='THE_SHEET_NAMES_THE_MAP')) return;
+    const b=document.getElementById('btnQr'), sh=document.getElementById('qrSheet'), ti=document.getElementById('qrTitle'), ur=document.getElementById('qrUrl');
+    if(!b||!sh||!ti||!ur||typeof rungWord!=='function'){ rows.push({id:'THE_SHEET_NAMES_THE_MAP',ok:false,note:'the share sheet is not on the page at check time'}); }
+    else { const wasOn=sh.classList.contains('on'); b.click();
+      const t=String(ti.textContent||''), u=String(ur.textContent||'');
+      /* ONE synchronous read of the other rung - rungWord/rungSeat do not yield, so no frame runs and the scene is never entered */
+      const capPair=(function(){ const c0=state.challenge; try{ state.challenge=1; const w=rungWord(), q=rungSeat(); return w+' · '+q+(/^TURRET/.test(q)?'':' · TURRET')+' · '+((RANGE_MODE_NAME&&RANGE_MODE_NAME[state.rangeMode||'bounce'])||'TRAIN UP'); } finally { state.challenge=c0; } })();
+      if(!wasOn){ const x=document.getElementById('qrClose'); if(x) x.click(); }
+      const rangeHead=/^THE RANGE · LANE \d+ · TURRET · /.test(t), oldForm=/\?range=\d+&role=turret&mode=/.test(u), capHead=/^THE CAPITAL · /.test(capPair);
+      rows.push({id:'THE_SHEET_NAMES_THE_MAP',ok:rangeHead&&oldForm&&capHead,note:'the sheet heads "'+t+'" and links '+u.replace(/^https?:\/\/[^/]+/,'')+' · off the range the same sheet heads "'+capPair+'" — the map first, and the range link byte-identical so a QR already in his hand still opens'});
+    }
+    state.qa={pass:rows.filter(x=>x.ok).length,total:rows.length,rev:BUILD.revision,t:Date.now(),known:(state.qa&&state.qa.known)}; const qn=document.getElementById('qaOps'); if(qn) qn.textContent=state.qa.pass+'/'+state.qa.total;
+  }catch(e){ rows.push({id:'THE_SHEET_NAMES_THE_MAP',ok:false,note:'threw '+String(e).slice(0,100)}); } }, 1500);
   /* r.208 deferred row · THE_CAPITOL_IS_DRAWN (operator 2026-10-13, DD-34/DD-38): the Capital is entered for one
      frame at the DEFAULT fidelity and at MoT 5.1, and the scene's subject must be drawn at both. Measured on r.207:
      at MoT 1.1 the world drew 280 of a 280 budget, dropped 1,278, and the Capitol's 217 edges were all among them. */
@@ -5764,6 +5780,19 @@ function pickScenario(v){ /* r.208: ONE door for the scenario picker and for the
   stashRangeWave(); /* r.208 (round 3, BLOCKING): ONLY the arm that actually leaves CH0 arms the stash. Called above the early return it was armed by the five picks that keep the player ON the range, went stale while he shot, and the next goRange - a RESTART, a mode pick, a lane pick - rewound his hits, his phase and his passed wave. Measured through the real UI: four hits then SCEN RANGE gave moving/0/1 against r.207's moving/4/1. */
   applyMode('capital'); if(v==='lawn'){ const mpL=document.getElementById('modePick'); if(mpL) mpL.value='lawn'; } /* r.208: the picker used to set state.mode and stop there - the seat never changed; and applyMode writes the select, which re-labelled his LAWN choice CAPITAL 42 under his finger (round) */
   { if(typeof releaseAuthority==='function') releaseAuthority('SCENE CHANGE'); state.challenge=1; state.phase='static'; state.hits=0; state.zoom=0.55; if(typeof restoreCapitolTurrets==='function') restoreCapitolTurrets(); /* r.208: the deck has ONE focal length (EYE: life-size at 12 in), so the widest the optic goes is 0.55 - measured, that is the only setting in which the whole building from the steps to the star is in the picture from the lawn; the width never fits, and scanning is the game, as it is on the range */ const c=document.getElementById('chLvl'); if(c) c.value='1'; toast('THE CAPITAL \u00b7 '+challengeSpec().name); }
+}
+/* r.209 (DD-47/DD-48): the ladder's first member. THE RANGE is rung 0 of the map ladder he named -
+   THE RANGE -> THE CAPITAL -> CITY OF AUSTIN -> LANDMARKS OF TEXAS -> MAJOR TEXAS CITIES -> THE STATE OF TEXAS.
+   r.209 only needs to tell the first rung from the rest so the share sheet can name it; r.211 extends THIS
+   function with state._selMap rather than writing a second one. A hoisted function declaration, never a const:
+   toolSelfTest() runs above this line and a const here is in its temporal dead zone at boot. */
+function rungIsRange(){ return chNum()===0; }
+function rungWord(){ return rungIsRange()?'THE RANGE':'THE CAPITAL'; }
+function rungSeat(){
+  if(rungIsRange()) return (typeof laneWord==='function'?laneWord():('LANE '+(((state.lane|0)+1))));
+  var id=String(state.unit||'T01'), u=(typeof units!=='undefined')&&units[id], lab=(u&&u.label)||'';
+  if(/^TURRET\b/.test(lab)) return lab;   /* units[].label is already 'TURRET i/42' (r.131) - reused, not re-derived */
+  return 'TURRET '+((id.replace(/^T/,'')|0)||1)+'/42';   /* the range parks these same 42 units and renames them LANE n; off the range the seat is a station, never a lane */
 }
 const _mp=document.getElementById('modePick');
 if(_mp)_mp.onchange=e=>pickScenario(e.target.value);
@@ -8072,8 +8101,12 @@ var qrcode = function() {
   var btn=document.getElementById('btnQr');
   function shareUrl(){
     var mode=state.rangeMode==='stay'?'train-down':(state.rangeMode==='qual40'?'qual40':'train-up');
-    var lane=((state.lane|0)+1);
     var host=(location.protocol==='http:'||location.protocol==='https:')?location.origin:'https://exel-ai-polling.explore-096.workers.dev';
+    /* r.209 (DD-48): a Capital station could not be shared at all - ?range= means the LANE. The map is ADDITIVE:
+       the Range's own line below is byte-identical to r.208's, so the pinned source text and Verify Live's fetch
+       of ?range=21&role=turret&mode=train-up are untouched. The ?map= reader lands with the ladder (r.211). */
+    if(typeof rungIsRange==='function'&&!rungIsRange()) return host+'/drone-2525/play.html?map=capital&station='+((state.unit||'T01').replace(/^T/,'')|0)+'&role=turret&mode='+mode;
+    var lane=((state.lane|0)+1);
     return host+'/drone-2525/play.html?range='+lane+'&role=turret&mode='+mode;
   }
   function paintQr(){
@@ -8081,7 +8114,12 @@ var qrcode = function() {
     var title=document.getElementById('qrTitle');
     var link=document.getElementById('qrUrl');
     var box=document.getElementById('qrImg');
-    if(title) title.textContent=(typeof laneWord==='function'?laneWord():('LANE '+(((state.lane|0)+1))))+' · TURRET · '+((typeof RANGE_MODE_NAME!=='undefined'&&RANGE_MODE_NAME[state.rangeMode||'bounce'])||'TRAIN UP');
+    /* r.209 (DD-48, operator 2026-10-14 twice: "This should have the range at top"): the sheet says WHERE the
+       shot is before it says which lane and which programme. THE RANGE · LANE 21 · TURRET · TRAIN UP, and on
+       the Capital THE CAPITAL · TURRET 7/42 · TRAIN UP. */
+    var _w=(typeof rungWord==='function')?rungWord():'THE RANGE', _s=(typeof rungSeat==='function')?rungSeat():('LANE '+(((state.lane|0)+1)));
+    /* the seat already names the craft on a station (TURRET 7/42); on a lane it does not, so the range keeps his own ' · TURRET · ' */
+    if(title) title.textContent=_w+' · '+_s+(/^TURRET\b/.test(_s)?'':' · TURRET')+' · '+((typeof RANGE_MODE_NAME!=='undefined'&&RANGE_MODE_NAME[state.rangeMode||'bounce'])||'TRAIN UP');
     if(link) link.textContent=url;
     if(box && typeof qrcode==='function'){
       var qr=qrcode(0,'M');
