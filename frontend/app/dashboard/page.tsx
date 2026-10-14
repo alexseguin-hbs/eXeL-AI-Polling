@@ -366,7 +366,14 @@ function SessionDetail({
     // Polls Supabase REST every 2s for responses newer than last seen.
     // Works even if Broadcast + postgres_changes both fail.
     // Uses sessionRef to avoid stale closure on session.status.
-    let lastPollTime = new Date().toISOString();
+    // r.T3 (operator 2026-10-14, "2525 redundancy"): the cursor starts at the SESSION'S OWN START, not at now.
+    // It used to start at now, so a moderator whose tab reloaded mid-session saw an empty feed and never
+    // backfilled — feedResponses is React state only and no channel replays history. One line, and it turns
+    // Channel D into free crash-recovery. The backfill is safe because addResponse already de-duplicates
+    // through seenIds (:245), and the .limit(20) below means a long session catches up over a few ticks
+    // rather than in one large read. Falls back to now when the session carries no start, which is exactly
+    // today's behaviour — never worse.
+    let lastPollTime = sessionRef.current?.created_at ?? new Date().toISOString();
     const pollInterval = setInterval(async () => {
       if (!supabase || sessionRef.current.status !== "polling") return;
       try {

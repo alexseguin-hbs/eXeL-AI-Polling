@@ -123,5 +123,19 @@ const entry = (over = {}) => ({
   ok(/queueResponse|outbox/i.test(sv), 'a response that no path carried is handed to the device outbox');
 }
 
+// ── T3 SOURCE INVARIANT: a reload does not lose the session ────────────────────────────────────────────────
+// feedResponses is React state only and no channel replays history, so Channel D's cursor decides whether a
+// moderator who reloads mid-session sees the conversation or an empty screen. It used to start at `now`.
+{
+  const dash = fs.readFileSync(path.join(process.cwd(), 'app/dashboard/page.tsx'), 'utf8');
+  const poll = dash.slice(dash.indexOf('// Channel D'), dash.indexOf('// Channel C'));
+  ok(poll.length > 300, 'the Channel D poll block was located');
+  ok(!/let lastPollTime = new Date\(\)\.toISOString\(\);/.test(poll),
+     'Channel D does NOT start its cursor at now — that loses every response already given when a tab reloads');
+  ok(/lastPollTime = sessionRef\.current\?\.created_at \?\? new Date\(\)\.toISOString\(\)/.test(poll),
+     "Channel D seeds its cursor from the session's own start, falling back to now (never worse than before)");
+  ok(/seenIds/.test(dash), 'the backfill is safe because the dashboard de-duplicates through seenIds');
+}
+
 console.log(`\nresponse-outbox: ${pass} passed, ${fail} failed · a completed response is never discarded`);
 process.exit(fail ? 1 : 0);

@@ -12,3 +12,15 @@ FAIL: a response that no path carried is handed to the device outbox
 
 response-outbox: 22 passed, 4 failed · a completed response is never discarded
 ```
+
+## T3 — a reload does not lose the session
+
+Both new assertions run against the SHIPPED `app/dashboard/page.tsx` at the previous commit, nothing else
+changed:
+
+```
+"does NOT start its cursor at now"      -> FAIL   (the shipped code starts at now)
+"seeds from the session's own start"    -> FAIL   (the shipped code has no such seed)
+```
+
+After the one-line change: `response-outbox: 30 passed, 0 failed`.
