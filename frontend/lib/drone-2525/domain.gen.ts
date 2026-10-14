@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.061",
+  "revision": "0.062",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -522,6 +522,14 @@ export const DRONE_DOMAIN = {
    "why": "Operator deck r.206 — no colour without a mark, and one meaning of \"under the bullseye\" (operator 2026-10-12 ~21:15: \"test and somulate until no phantomntargets and ensure all targets and siloeets have the proper color boxing with button when bulleseye osnover target\"). The twelve Masters fleet, 145 agents, left five defects open on the LIVE r.205 and r.206 closes them: releaseAuthority let go of the mark and kept the colour, so a standing unmarked unboxed target wore the approved red for ever; a nearer plate up to 8 px beside the bullseye took the box, the round and the kill from the plate the bullseye was inside; on the map, where there is no bullseye at all, a lit FIRE stayed lit and refused every press; amber and red disagreed about being on a target across a 28 px band where the lit APPROVE acted and FIRE refused; and the recital painted an untargeted plate, and a downed plate, in the amber reserved for a targeted one. Rows NO_COLOUR_WITHOUT_A_MARK, THE_BOX_GOES_TO_THE_PLATE_UNDER_THE_PIP, BUTTONS_ARE_DARK_OFF_THE_PICTURE and ONE_MEANING_OF_UNDER_THE_BULLSEYE, each red on the r.205 bytes first and each failing with NOT EXERCISED rather than passing by omission.",
    "commit": "c707fba",
    "shipped": "7ec479d"
+  },
+  {
+   "revision": "0.062",
+   "date": "2026-10-13",
+   "kind": "release",
+   "why": "Operator deck r.207 — the glass keeps its promises (operator 2026-10-13, DD-22 \"The leftovers first\", DD-21 \"Shrink them at the edge\"). What the glass shows is what the deck does: a button that is dark does not act if pressed — APPROVE took FIRE own on-target test, with the MAP exempt because it has no bullseye to be on; a view with no bullseye takes nothing away from him — r.206 own fix for the frozen lit button had sent the map through the toast painter, so opening the MAP erased his step sentence for good; a mark that ends takes its colour with it through EVERY door, dropMark included, the one r.205 added and r.206 two down-refusals use; and a lane sign shows its whole number, shrunk on its own post to his 9 px legibility floor and not drawn below it, so r.159 is untouched. The three QA legs that approved without aiming first now aim, as a player does. Rows THE_MAP_KEEPS_HIS_SENTENCE, plus ONE_MEANING_OF_UNDER_THE_BULLSEYE pressing the dark button, NO_COLOUR_WITHOUT_A_MARK opening both doors, and LANE_NUMBERS_ON_THE_SIGN walking a sign to the edge on purpose; each red on the r.206 bytes first. The patcher parses the cut before it writes it.",
+   "commit": "b3d5c18",
+   "shipped": "PENDING"
   }
  ],
  "arena": {

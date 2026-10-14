@@ -59,6 +59,7 @@ Nomenclature `v.00.00_r.NNN`; skipped numbers are never invented. Sizes in bytes
 | r.204 | 2026-10-12 | Claude Code (the buttons follow the bullseye: in the solo modes the glass and the actions read ONE mark — the one under the bullseye: the lit button, the recital at the top left and the step toast name its step, FIRE lights only with the bullseye on the red (fireOnIt, fireN's own rule, in every mode), a tap turns the head onto the plate in every solo mode and the double-tap still fires what the first tap touched when the second lands on it (never on blank sky), APPROVE on an unmarked plate holds — so target all, come back and approve all, then fire all; no caption and no board's words cover a control or a line of the HUD, a caption is moved and a board's words climb the post (the post drawn on to them) before they are dropped — operator on the LIVE r.202: "buttons must change to step we are on") | 897902 | 2085cd150d08f886b4f8236ed8d8f3f60c2494b6608afed08c7260298039db9b | e5aec75 (Verify Live #2769) | a3053e970cd5462cae4c099118495225a397629373abbf52df230094322d307f |
 | r.205 | 2026-10-13 | Claude Code (the glass tells the truth about every target: ONE painter — a target's silhouette wears its own step, amber targeted and red approved, the mist no longer overriding the phase; the lit button wears that colour too (APPROVE amber, FIRE red); the middle of the picture carries TARGETS ONLY — every per-target caption retired, the lane signs kept; an exposure's close downs every plate of its engagement, hit or not; the boot self-check borrows the range and gives it back as it found it — his words 2026-10-12 20:44 "remove all text from middle; targets only" and 21:05 "buttoms and colors around boxing amber vs red should match") | 913009 | 24d03765171b8e8df3b55ed78b0d40133cd3c76f42b26eed79bc555ee71d8665 | 1c78765 (Verify Live #2775) | 3a3da320dd334a20854ea25b6f1df9ac594589865772679ff35afe4038d1edef |
 | r.206 | 2026-10-13 | Claude Code (no colour without a mark, and one meaning of "under the bullseye": a mark that ends takes its colour with it through every door; the box goes to the silhouette the bullseye is ON, never a nearer one beside it; on the map, where there is no bullseye, no button is lit; amber and red answer the same question about being on a target; the amber of a mark is used for a mark and nothing else — the twelve Masters' fleet, five defects left OPEN on the LIVE r.205, two re-verified on the shipped bytes before a line was written) | 924081 | fe10269f5c8691d83f417e4617ea59f6cc72f622c00239d7b460a49169219e38 | 7ec479d (Verify Live #2780) | 8ac6395f6cb65ced1e757b98ddc97c4b61fd3911af1c7c33af617dae5c89aa76 |
+| r.207 | 2026-10-13 | Claude Code (the glass keeps its promises: a button that is dark does not act, a view with no bullseye takes nothing away from him, a mark that ends takes its colour with it through EVERY door including the one r.205 added, and a lane sign shows its whole number — shrunk on its own post where the picture is tight, never moved off it and never cut (his decision DD-21, "Shrink them at the edge"); the three QA legs that approved without aiming first now aim, as a player does) | 932061 | dc266e890693ce9daad5aa8b42a310cf8935b695ed23026f1891613b0c35ee8f | PENDING (Verify Live) | 0b90262369f270925eaf083cc3d6d28ba7ae883b04f77d8ba8d96909efcae382 |
 
 ## r.128 — Grok + eXeL AI (blue/red revisions; the LOBBY)
 - The Blizzard-style multiplayer lobby with a 6-digit team code + opaque seed id per team, rotate lock, roster,
@@ -1418,3 +1419,65 @@ Artefact commit `c707fba`.
   the fleet's own reason for making it its own revision. r.207, first item · the range officer's
   opening and the lamp that leads its window (r.207) · a cue for a target that is up but off the picture · his call on the lane
   signs clipped at the edge · the LIVE room's reading (CLASS 1e) and his 20:55 team drill · R-CORE in the shared format.
+
+## r.207 — Claude Code: the glass keeps its promises (2026-10-13)
+Operator, 2026-10-13, asked which revision he wanted first and answering in his own word: **"The leftovers first"** (DD-22). So this one
+carries what was broken on his phone, before the range officer. His sign decision of the same turn is in it: **"Shrink them at the edge"**
+(DD-21). Notes: `CLAUDE_CODE_NOTES_r207.md`. Patch: `patches/r206_to_r207.py` (base r.206, declared and asserted, 23 edits, and the cut is
+now PARSED before it is written — see below). Artefact commit `b3d5c18`.
+- **Measured on the shipped r.206 bytes before a line was written** (`scratchpad/r207/behave.mjs`, 43 pan steps off the mark at 390×844),
+  not taken on a reviewer's word:
+  - **A dark APPROVE still acted.** All three buttons dark, strip `AMBER · T1 · 200 M RIGHT · AIM ON IT` — and the press turned the mark
+    **red**, booked `APPROVE SOLO HI-2` into the record and the replay hash, and toasted `RED BOX · 200 M RIGHT · APPROVED BY YOU · NOW
+    PRESS FIRE`. FIRE at the identical geometry refused with `TARGET_OFF_PICTURE` and spent nothing. The glass said no and the action said
+    yes — his 21:05 criterion inverted.
+  - **Opening the MAP erased his step sentence.** Toast `block` → `none` on the map → `none` back, and `toast._plate` cleared, so it could
+    never return. **A regression r.206 itself introduced** — its fix for the frozen lit FIRE sent the map through `paintCues` for the first
+    time, and that function's toast block reads `lockOn()`, which r.205 made null on the map.
+  - **`dropMark` left the colour behind.** r.206's own invariant says a mark that ends takes its colour with it "through EVERY door"; the
+    door r.205 added, and which r.206's two down-refusals call, never cleared the flag — one orphan, `mist:true`, every time.
+- **The invariants, each gated, each gate shown red on the r.206 bytes first (232/237 there, 236/237 here):**
+  1. **A dark button does not act** — on the range, in solo play. `approveDesig` takes FIRE's own on-target test, placed **below** the
+     two down-guards so that a target which is DOWN is still answered as down; the MAP is exempt because it has no bullseye to be on,
+     which is `lockOn()`'s own rule and r.206's CLASS 1b (without the exemption the guard contradicts
+     `A_PRESS_NEVER_TOUCHES_A_TARGET_YOU_ARE_NOT_ON`'s map leg). **Scope stated rather than implied:** `marksPersist()` and
+     `platesHere()` confine it to the range in solo play — in a challenge and in a LIVE room a dark APPROVE still acts, which is CLASS
+     1e's ground and is owed with it, not claimed here.
+  2. **A view with no bullseye takes nothing away from him.** The toast block skips the map.
+  3. **Through EVERY door** — `dropMark` ends one target's mark, so it ends that target's colour.
+  4. **A lane sign shows its whole number** (DD-21): it SHRINKS on its own post until the box is inside the picture, down to
+     `SIGN_MIN_PX` (9, his own legibility floor); below that it is not drawn. It never moves sideways, so r.159 — his rule that a sign
+     stays on its post's line, held to 1 px by this very row — is untouched. **What that costs him, measured and not glossed:** at his
+     428×926 the edge signs are ALREADY at the 9 px floor, so the shrink has no room and the branch never fires. Across 161 pan looks:
+     drawn 241 → 222, **clipped 18 → 0, shrunk 0**. He stops seeing half a number and stops seeing those signs at all. The row's own
+     note now reports "N shrunk to fit" beside the clipped count, so the record can never say "shrink" while it is deleting. If he would
+     rather see them, letting only the outermost sign slide off its post, with its post drawn across to it, is one line and r.204's
+     machinery already does the drawing — it bends r.159, so it is his to say.
+- **Five QA legs, not three.** The round on this cut found that the new guard **intercepted two more rows and left both green at all
+  four viewports** — `NO_APPROVE_ON_A_DEAD_TARGET` never reached its dead-target branch, and `PEER_HIT_TALLIES_AND_CLEARS` measured an
+  amber box while its note said red. That is the very class this revision exists to close. The dead-target one is answered by the
+  guard's placement below the down-guards; the other takes the same one-line aim as the first three. Proof that nothing else was
+  disarmed: spying `decide()` through a whole boot self-test, `TARGET_DOWN` stays at 2 and `NOT_MARKED` at 5 on both cuts, and
+  `NOT_ON_IT` appears exactly once — the new row's own deliberate press.
+- **The three original QA legs that approved without aiming first now aim** (`shootPlate`, `PHASE_NEEDS_RELOAD`, `AUTHORITY_HAS_ONE_CONSUMER`).
+  Each edit is setup only and no row's subject moves: `shootPlate` marks and approves ON the plate and steps the bullseye off it only
+  afterwards, which is what its `offPx` callers were always testing; `PHASE_NEEDS_RELOAD`'s refusal is still `EMPTY_MAGAZINE`, because
+  `fireN` checks the magazine above the aim; `AUTHORITY_HAS_ONE_CONSUMER` still measures that releasing a red box writes exactly one HOLD.
+  Verified in isolation: the three aim edits alone, with no guard, leave the boot QA unchanged.
+- **QA:** new `THE_MAP_KEEPS_HIS_SENTENCE` · `ONE_MEANING_OF_UNDER_THE_BULLSEYE` now **presses** the dark button instead of only comparing
+  lit-ness (its own comment said "lights AND ACTS" while the row measured only the light) · `NO_COLOUR_WITHOUT_A_MARK` now opens **both**
+  doors, `dropMark` as well as `releaseAuthority` · `LANE_NUMBERS_ON_THE_SIGN` holds that every sign it draws is wholly inside the picture
+  **and walks a sign to the edge on purpose** — its four fixed looks produced a clipped sign at 844×390 and 428×926 and none at 390×844,
+  and a row that is red only at some sizes is the same green-by-omission the fleet named; it now pans until a sign's post is within a
+  half-width of an edge and says NOT EXERCISED if it never finds one (21 such looks at 390×844, 8 of them drawn outside the picture on
+  r.206, 0 on r.207).
+- **The cut is parsed before it is written.** Twice in r.205 and r.206 a patcher wrote a deck that did not parse, and the failure only
+  surfaced when a browser booted it. `r206_to_r207.py` now extracts the deck's inline script and hands it to `node --check`, refusing
+  before anything is written.
+- Owed next, in order: **r.208** the range officer's opening on QUAL 40 (his 18:25 and 04:34 words) with the lamp counting him IN to the
+  targets — DD-23, "3 red, 2 yellow, 1 green" — the word under the lamp in QUAL, TRAIN DOWN's clock, and a cue for a target that is up but
+  off the picture · **r.209** the LIVE room's reading (CLASS 1e) and his 20:55 twenty-person drill (DD-13f) · **r.210** R-CORE in the shared
+  format, owed since his first ask. Still carried: the QUAL-40 miss that reaches no record row; a lane post drawn without its board; three
+  times a table the glass says PRESS RELOAD on a magazine just filled; `hudKeepOut` in CSS pixels with no ResizeObserver; the lane picker
+  reading LANE 21 on every QR-opened lane; 428×926 absent from the CI viewports; the 360-px phones red and undeclared; the two
+  play-throughs run by nothing in CI; and the DD rows that never reached the ledger or the domain JSON.

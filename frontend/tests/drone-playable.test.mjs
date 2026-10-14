@@ -110,6 +110,13 @@ ok(/const ub=pick\(0\)\|\|pick\(8\); if\(ub\) return ub; \}/.test(src) && !/cons
 ok(/hudScore\(\); hudPhase\(\); paintCues\(\); return;/.test(src), 'r.206 (D3): the map reaches the buttons own painter, so nothing stays lit where there is no bullseye');
 ok(/if\(d\.phase==='amber'\) return \(approveWorksHere\(d\)&&\(!d\.ref\|\|fireOnIt\(/.test(src), 'r.206 (D4): amber answers the same on-target question red does');
 ok(/push\('NO_COLOUR_WITHOUT_A_MARK'/.test(src) && /push\('THE_BOX_GOES_TO_THE_PLATE_UNDER_THE_PIP'/.test(src) && /push\('BUTTONS_ARE_DARK_OFF_THE_PICTURE'/.test(src) && /push\('ONE_MEANING_OF_UNDER_THE_BULLSEYE'/.test(src), 'r.206: the four rows are in the served bytes');
+// r.207 — the glass keeps its promises (operator 2026-10-13, DD-21 "Shrink them at the edge", DD-22 "The leftovers first").
+ok(/reason:'NOT_ON_IT'/.test(src) && /slot==null&&state\.viewMode!=='map'&&marksPersist\(\)&&state\.desig\.ref/.test(src), 'r.207 (D-24): a dark APPROVE does not act, and the MAP is exempt because it has no bullseye to be on');
+ok(/tt\.style\.display!=='none'&&state\.viewMode!=='map'&&marksPersist\(\)/.test(src), 'r.207 (D-25): the map takes nothing away from him');
+ok(/if\(o\) o\.mist=false; \} \/\* r\.207 \(D-26\)/.test(src), 'r.207 (D-26): dropMark ends one target colour as well as its mark');
+ok(/let fs=Math\.max\(SIGN_MIN_PX,Math\.min\(14,bh\*1\.5\)\);/.test(src) && /const room=Math\.min\(pr\.x-2,W-2-pr\.x\);/.test(src) && /if\(fs<SIGN_MIN_PX\) return;/.test(src), 'r.207 (DD-21): a lane sign shrinks on its own post to his 9 px floor, and below it is not drawn');
+ok(/push\('THE_MAP_KEEPS_HIS_SENTENCE'/.test(src) && /let edgeLooks=0, edgeBad=0/.test(src), 'r.207: the new row and the edge walk are in the served bytes');
+ok(/'node','--check'/.test(fs.readFileSync('../docs/drone-2525/operator-deck/patches/r206_to_r207.py','utf8')), 'r.207: the patcher parses the cut before it writes it');
 const ux = fs.readFileSync('components/drone-2525/command-ux1.tsx', 'utf8');
 ok(/data-drone-play\b/.test(ux) && /\/drone-2525\/play\.html/.test(ux) && /DECK_REV/.test(ux), 'the /drone-2525 shell offers PLAY → the served deck, labelled with the served revision');
 const rev2 = (fs.readFileSync('lib/drone-2525/deck-rev.ts', 'utf8').match(/DECK_REV = "(\d+)"/) || [])[1];
