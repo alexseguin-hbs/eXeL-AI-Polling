@@ -57,7 +57,19 @@ for (const p of projects) {
     // from /light-codex's JSX and this assertion stayed green until it was tightened to the opening tag.
     ok(/<RCoreBadge\b/.test(fs.readFileSync(f, 'utf8')), `${p.route} MOUNTS the shared badge (<RCoreBadge …>) in ${p.panel}`);
   }
-  if (!p.ledger || !p.panel) {
+  // A project may keep its record somewhere other than docs/traceability — SensorFusion's belongs to another
+  // workflow and moving it would break theirs. Then the row must name BOTH the file and the gate that holds it
+  // to the same law, and both must exist: an exception without a gate is just an exception.
+  if (!p.ledger && p.ledgerFile) {
+    ok(fs.existsSync(path.join(ROOT, p.ledgerFile)), `${p.route}'s record file exists: ${p.ledgerFile}`);
+    ok(typeof p.gate === 'string' && fs.existsSync(path.join(ROOT, p.gate)),
+      `${p.route} keeps its record outside docs/traceability and names the GATE that holds it to the same law: ${p.gate || 'none'}`);
+    const g = p.gate ? fs.readFileSync(path.join(ROOT, p.gate), 'utf8') : '';
+    ok(/merge-base', '--is-ancestor|--is-ancestor/.test(g), `${p.route}'s gate proves its commits are ANCESTORS of HEAD, not merely that they exist`);
+    const pkg = JSON.parse(fs.readFileSync(path.join(FE, 'package.json'), 'utf8'));
+    ok(p.gate && (pkg.scripts.prebuild.includes(path.basename(p.gate)) || Object.values(pkg.scripts).some((v) => String(v).includes(path.basename(p.gate)))),
+      `${p.route}'s gate is wired into the build, not merely present`);
+  } else if (!p.ledger || !p.panel) {
     ok(typeof (p.owed || p.note) === 'string' && (p.owed || p.note).length > 20,
       `${p.route} has no ${!p.ledger ? 'ledger' : 'panel'} and says plainly why, in its own row`);
     if (p.owed) { owed++; console.log(`OWED   ${p.route} — ${p.owed.slice(0, 110)}…`); }

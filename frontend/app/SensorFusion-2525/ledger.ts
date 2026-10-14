@@ -538,6 +538,31 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "The phone or computer is found on its own. The device list stays closed unless you say this is not that device.",
       commit: "c83949c",
     },
+    {
+      rev: 77,
+      date: "2026-10-14",
+      kind: "correction",
+      text:
+        "SEVEN RELEASE ROWS IN THIS RECORD CANNOT BE VERIFIED, and until today nothing said so. Revisions 4, 5, 6, 7, 8, 31 and 75 " +
+        "are all kind \"release\" with an EMPTY commit field, so there is no sha to run git show on and no way for a future reader to " +
+        "see what actually shipped. A release row without a commit is a claim, not a record. Found on 2026-10-14 while bringing every " +
+        "project under one law (operator, DD-55: \"each innovation project gets its own rcore panel\"); this record had never been " +
+        "checked by any gate, because it lives here as hand-written TypeScript rather than under docs/traceability where the generator " +
+        "and the traceability gate look. The other 69 rows were audited at the same time and ALL of them resolve AND are ancestors of " +
+        "HEAD on the full clone - including 5141b16, which an earlier note recorded as unreachable; that was an artefact of a shallow " +
+        "clone, not of the record. " +
+        "NOTHING ABOVE IS EDITED. This is a correction row, which is how this record is corrected (operator's law: a new edition is an " +
+        "append, never an edit); the seven rows stay exactly as written so the history of the mistake survives too. " +
+        "ONE CANDIDATE, OFFERED AND NOT FILLED IN: rev 75 (\"A late CPU pass can no longer draw after CORAL is chosen\") matches " +
+        "df1cd212 on 2026-10-06, \"Stop a late CPU pass from drawing after CORAL is selected.\" It is not written into rev 75, because " +
+        "this ledger belongs to the SensorFusion rounds and filling another workflow's row on an inference is exactly the kind of " +
+        "plausible-but-unverified entry this record exists to prevent. That workflow already has the mechanism - its own \"Point Sensor " +
+        "Fusion revision NN at <sha>\" commits - and can confirm or correct it. " +
+        "FROM HERE the record is gated: frontend/tests/sensor-fusion-ledger.test.mjs proves every cited commit resolves and is an " +
+        "ancestor of HEAD, and refuses ANY NEW release row that carries no commit. The seven above are exempt by name, through this row, " +
+        "and only these seven.",
+      commit: "",
+    },
   ],
 };
 

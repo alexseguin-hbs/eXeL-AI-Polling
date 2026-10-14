@@ -29,8 +29,10 @@
       "route": "/SensorFusion-2525",
       "kind": "project",
       "ledger": null,
+      "ledgerFile": "frontend/app/SensorFusion-2525/ledger.ts",
       "panel": "app/SensorFusion-2525/sensor-fusion.tsx",
-      "owed": "Its record is app/SensorFusion-2525/ledger.ts — hand-written TypeScript OUTSIDE docs/traceability, outside the generator and outside every gate. 76 entries, several release rows with an empty commit. Moving it under the same law is its own change (Stage 7 R6); the move must record a correction rather than silently editing those rows."
+      "gate": "frontend/tests/sensor-fusion-ledger.test.mjs",
+      "note": "Its record is hand-written TypeScript at frontend/app/SensorFusion-2525/ledger.ts rather than a JSON ledger under docs/traceability, because it belongs to the SensorFusion rounds and relocating another workflow's append point would break their process to satisfy this one. So the LAW CAME TO THE FILE instead: tests/sensor-fusion-ledger.test.mjs (2026-10-14) proves the revisions are consecutive, the kinds are in the shared vocabulary, every cited commit RESOLVES and is an ANCESTOR of HEAD, and a release row carries a commit - with seven rows (4, 5, 6, 7, 8, 31, 75) exempt BY NAME through the correction appended at rev 77, and only those seven. An eighth unverifiable release row is refused. Audited at the same time: the other 69 commits all resolve and are ancestors, including 5141b16, which an earlier note recorded as unreachable - an artefact of a shallow clone, not of the record."
     },
     {
       "route": "/SoI-2525",
