@@ -24,7 +24,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
-import { RCORE_LOGO_H, type RCoreHistory } from "@/lib/2525-core/revisions";
+import { RCORE_LOGO_H, type RCoreHistory, type RCoreCodeRecord } from "@/lib/2525-core/revisions";
 import { RCoreRevisionPanel } from "@/components/2525-core/rcore-revision-panel";
 
 // Operator 2026-09-25 ("just use icons provided exactly as is"): render the supplied R-CORE raster artwork
@@ -34,7 +34,12 @@ const ICON = "/r-core/r-core-icon.png";        // image 1 — the framed reticle
 const WORDMARK = "/r-core/r-core-wordmark.png"; // image 3 — the "R-CORE" wordmark pill (CLICK 1)
 const H = RCORE_LOGO_H;                          // display height for both, natural width — the SAME size the panel header uses (operator 2026-09-27)
 
-export function RCoreBadge({ history, accent = "#22d3ee" }: { history: RCoreHistory; accent?: string }) {
+export function RCoreBadge({ history, accent = "#22d3ee", code, codeId }: {
+  history: RCoreHistory; accent?: string;
+  // Passed straight through to the panel. A project with no code record (DD-62, /vision-2525) simply omits
+  // these and the </> chip never renders.
+  code?: RCoreCodeRecord; codeId?: string;
+}) {
   const { t } = useLexicon();
   // Two stages, exactly like the Powered Badge: 0 = icon at rest, 1 = ⊕ R-CORE pill. `open` = panel.
   const [stage, setStage] = useState<0 | 1>(0);
@@ -97,7 +102,7 @@ export function RCoreBadge({ history, accent = "#22d3ee" }: { history: RCoreHist
         )}
       </div>
 
-      {open && <RCoreRevisionPanel history={history} accent={accent} onClose={close} />}
+      {open && <RCoreRevisionPanel history={history} accent={accent} code={code} codeId={codeId} onClose={close} />}
     </>
   );
 }

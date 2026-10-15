@@ -1,0 +1,8094 @@
+{
+ "section": "Drone-2525",
+ "route": "/drone-2525",
+ "model": "git-scoped",
+ "cap": {
+  "bytes": 120000,
+  "lines": 2000
+ },
+ "areas": [
+  {
+   "key": "range",
+   "name": "Range engine",
+   "cells": [
+    0
+   ]
+  },
+  {
+   "key": "glass",
+   "name": "The glass",
+   "cells": [
+    1
+   ]
+  },
+  {
+   "key": "fire",
+   "name": "Target · Approve · Fire",
+   "cells": [
+    2,
+    5
+   ]
+  },
+  {
+   "key": "paint",
+   "name": "The painter",
+   "cells": [
+    3,
+    12
+   ]
+  },
+  {
+   "key": "mag",
+   "name": "Magazines · light · poses",
+   "cells": [
+    4,
+    7,
+    8
+   ]
+  },
+  {
+   "key": "maps",
+   "name": "The map ladder",
+   "cells": [
+    6,
+    15
+   ]
+  },
+  {
+   "key": "capital",
+   "name": "Map · the Capitol lawn",
+   "cells": [
+    9,
+    10
+   ]
+  },
+  {
+   "key": "austin",
+   "name": "Map · City of Austin",
+   "cells": [
+    11,
+    14
+   ]
+  },
+  {
+   "key": "texas",
+   "name": "Map · State of Texas",
+   "cells": [
+    13
+   ]
+  },
+  {
+   "key": "match",
+   "name": "Match & teams · 1v1 · 3v3",
+   "cells": [
+    16,
+    17
+   ]
+  },
+  {
+   "key": "comms",
+   "name": "Comms & room",
+   "cells": [
+    18,
+    19,
+    22
+   ]
+  },
+  {
+   "key": "rcore",
+   "name": "R-CORE",
+   "cells": [
+    20
+   ]
+  },
+  {
+   "key": "share",
+   "name": "Share sheet",
+   "cells": [
+    21,
+    24
+   ]
+  },
+  {
+   "key": "record",
+   "name": "The record",
+   "cells": [
+    23
+   ]
+  },
+  {
+   "key": "route",
+   "name": "React route",
+   "cells": [
+    25,
+    26
+   ]
+  }
+ ],
+ "revisions": [
+  {
+   "rev": 1,
+   "commit": "7b0b790",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 2,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 3,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 4,
+   "commit": "2d5eb24",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/components/drone-2525/arena-view.tsx",
+       "blob": "771f236ae178ed0cb72431030465cb1ab0960dbc"
+      },
+      {
+       "path": "frontend/components/drone-2525/command-ux1.tsx",
+       "blob": "0b0c95247df46eb10b1da6f4ef87e88977db8382"
+      },
+      {
+       "path": "frontend/components/drone-2525/wire-svg.tsx",
+       "blob": "267272ca506d2552d7dad93995373ed9ce180578"
+      },
+      {
+       "path": "frontend/lib/drone-2525/arena-frame.ts",
+       "blob": "f330353ee2d666c38cce0feaaec5d865fe4adb44"
+      },
+      {
+       "path": "frontend/lib/drone-2525/arena-model.ts",
+       "blob": "7afe492285bcb30342e3062f7c9cd3580b124866"
+      }
+     ],
+     "add": 490,
+     "del": 0,
+     "bytes": 27135,
+     "lines": 502,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 5,
+   "commit": "d394dc9",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/components/drone-2525/arena-view.tsx",
+       "blob": "f6555cbbdb1e1bb18f79318d12fb3736f96155be"
+      },
+      {
+       "path": "frontend/components/drone-2525/command-ux1.tsx",
+       "blob": "3589f63cf77c7f56df011504dc6c196abcf099a2"
+      },
+      {
+       "path": "frontend/components/drone-2525/turret-game.tsx",
+       "blob": "e6c66fb2a7d0e780974b971aafad425b6860d42d"
+      },
+      {
+       "path": "frontend/components/drone-2525/wire-svg.tsx",
+       "blob": "e0e47b99c574557f5f5792348fd5fef6f8063d1e"
+      },
+      {
+       "path": "frontend/lib/drone-2525/game.ts",
+       "blob": "66c617b132ffce1745f07151bf1759b15f46121e"
+      },
+      {
+       "path": "frontend/lib/drone-2525/gimbal.ts",
+       "blob": "0ce75bfb88d93c88f6e86da812e7d997102e0ef2"
+      },
+      {
+       "path": "frontend/lib/drone-2525/los.ts",
+       "blob": "2a9665a9e7ac355b41a800bdfd7a0e0256770969"
+      },
+      {
+       "path": "frontend/lib/drone-2525/targets.ts",
+       "blob": "e1f3b0ccfb42a867f39852b321c0ef540650ebe5"
+      }
+     ],
+     "add": 665,
+     "del": 9,
+     "bytes": 39859,
+     "lines": 763,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 6,
+   "commit": "ec87075",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/README.md",
+       "blob": "9d78ed4cf765dfb966bb26c671103acdcb6e6190"
+      },
+      {
+       "path": "docs/drone-2525/drone-2525.v00.00.json",
+       "blob": "c67dab1a56dd100f1fb498952bdd58b177c2c4c0"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 1496,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/components/drone-2525/turret-game.tsx",
+       "blob": "1a4283d7335a4f40ee1527b84cba728b39305d1b"
+      },
+      {
+       "path": "frontend/lib/drone-2525/domain.gen.ts",
+       "blob": "9fe9c2b8b37c4cc22164e7239e67643ba5e1c077"
+      }
+     ],
+     "add": 57,
+     "del": 23,
+     "bytes": 8202,
+     "lines": 140,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 7,
+   "commit": "ea91e01",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/ASSUMPTIONS_REGISTER.md",
+       "blob": "1bc4d1f1fec84d0d679a250b9aacd484276f3f4a"
+      },
+      {
+       "path": "docs/drone-2525/CRS_DRONE-2525.md",
+       "blob": "34e59c23ac2fcddc43652b649041f8a3e13aacfa"
+      },
+      {
+       "path": "docs/drone-2525/README.md",
+       "blob": "965cfe52a63c3f5705440099f9c72915e89cde61"
+      },
+      {
+       "path": "docs/drone-2525/drone-2525.v00.00.json",
+       "blob": "e768a446f2b2fccfbc64cf7dc964d3313db2a7f3"
+      }
+     ],
+     "add": 287,
+     "del": 4,
+     "bytes": 16143,
+     "lines": 366,
+     "status": "recorded"
+    },
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/components/drone-2525/arena-view.tsx",
+       "blob": "0815ffb436311bb3343fbec15e14efbc1fd448df"
+      },
+      {
+       "path": "frontend/components/drone-2525/command-ux1.tsx",
+       "blob": "263670cd998c0fbea52b37be96d680028c42518d"
+      },
+      {
+       "path": "frontend/components/drone-2525/self-cal-panel.tsx",
+       "blob": "32a20972b81a09a6bf15dfdacef62f7001b09441"
+      },
+      {
+       "path": "frontend/components/drone-2525/turret-game.tsx",
+       "blob": "17e2af8a14bb448cc628287e9c391ecbbdbc2169"
+      },
+      {
+       "path": "frontend/lib/drone-2525/domain.gen.ts",
+       "blob": "673ff3e8211e107c38ae20d31da997dddec26d65"
+      }
+     ],
+     "add": 371,
+     "del": 24,
+     "bytes": 27160,
+     "lines": 544,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 8,
+   "commit": "a3cb92f",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/components/drone-2525/command-ux1.tsx",
+       "blob": "67d5ea093aae28ede68677eda896825468a10436"
+      },
+      {
+       "path": "frontend/components/drone-2525/round.tsx",
+       "blob": "89eea6a48059b789ebca8ecf7d57ec686bfb4b26"
+      },
+      {
+       "path": "frontend/lib/drone-2525/ai-crew.ts",
+       "blob": "bbf82d7d07cca99b4e95eca9be24af96999bdb69"
+      },
+      {
+       "path": "frontend/lib/drone-2525/flight.ts",
+       "blob": "3eb7a61e98e17e4d4f84cb54045a6a3167f6db62"
+      }
+     ],
+     "add": 580,
+     "del": 23,
+     "bytes": 41869,
+     "lines": 754,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 9,
+   "commit": "a1a9ff7",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/CRS_DRONE-2525.md",
+       "blob": "efdd2a036ebddade34f4c612ec38cd3c35a90afe"
+      },
+      {
+       "path": "docs/drone-2525/drone-2525.v00.00.json",
+       "blob": "792c98992d90d79bc0e486bba469fa508b7f667f"
+      }
+     ],
+     "add": 155,
+     "del": 0,
+     "bytes": 8288,
+     "lines": 187,
+     "status": "recorded"
+    },
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/components/drone-2525/round.tsx",
+       "blob": "d225ae1994242578b00cfd270f2fcadf18dcdded"
+      },
+      {
+       "path": "frontend/components/drone-2525/si-panel.tsx",
+       "blob": "3d51ba0539991075529fc5a0425eeac150768b34"
+      },
+      {
+       "path": "frontend/lib/drone-2525/domain.gen.ts",
+       "blob": "b6866cd7250039fd9ddefe7e138d033ede2256fc"
+      },
+      {
+       "path": "frontend/lib/drone-2525/si-pod.ts",
+       "blob": "d8b4de34b31ecdc9c920ab4921e29f382e40431d"
+      }
+     ],
+     "add": 573,
+     "del": 1,
+     "bytes": 34369,
+     "lines": 644,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 10,
+   "commit": "dffaa79",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/components/drone-2525/crew-seat-panel.tsx",
+       "blob": "72d9dca950fac9164f0c857545d363151e4d9c55"
+      },
+      {
+       "path": "frontend/components/drone-2525/round.tsx",
+       "blob": "0036f3c494b8e73ad14d447a7d7140a2b893cefd"
+      },
+      {
+       "path": "frontend/lib/drone-2525/link.ts",
+       "blob": "b4d6f02040151b407d9b5db6f7ee723a91ee57b8"
+      },
+      {
+       "path": "frontend/lib/drone-2525/use-drone-link.ts",
+       "blob": "543a452457806c7b403706db9679af99f6e36115"
+      }
+     ],
+     "add": 486,
+     "del": 24,
+     "bytes": 34394,
+     "lines": 634,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 11,
+   "commit": "c7c40a5",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/components/drone-2525/approval-banner.tsx",
+       "blob": "2bcc54224aadbd68ed83386701e1eb5ac5006800"
+      },
+      {
+       "path": "frontend/components/drone-2525/arena-view.tsx",
+       "blob": "338b90a3ae5aa715bca916b9a537f7c4aa8297ee"
+      },
+      {
+       "path": "frontend/components/drone-2525/command-ux1.tsx",
+       "blob": "4b9ccb23f2a211512e1384c8fbed24196882e0eb"
+      },
+      {
+       "path": "frontend/components/drone-2525/crew-seat-panel.tsx",
+       "blob": "14f8043d11630330efe50d263063653819cdd5eb"
+      },
+      {
+       "path": "frontend/components/drone-2525/qr-block.tsx",
+       "blob": "e065f31b6224b22ad74eea73a819fff9d6b73081"
+      },
+      {
+       "path": "frontend/components/drone-2525/round-overlay.tsx",
+       "blob": "7375e8e362becebc67523edceba337ecaac3d40c"
+      },
+      {
+       "path": "frontend/components/drone-2525/round-status.tsx",
+       "blob": "20c2ffe5414ea78fc4f8e24e45468744f65bc2c6"
+      },
+      {
+       "path": "frontend/components/drone-2525/round.tsx",
+       "blob": "5e2a71a39f042f9dbd7352d410d16a7d6709dde6"
+      },
+      {
+       "path": "frontend/components/drone-2525/self-cal-panel.tsx",
+       "blob": "9fdc78eb544fd152a29fe295a08b160d0318be50"
+      },
+      {
+       "path": "frontend/components/drone-2525/si-panel.tsx",
+       "blob": "8bbccd8e9f124a85c0b795efec7e297d09312d68"
+      },
+      {
+       "path": "frontend/components/drone-2525/stick.tsx",
+       "blob": "c4e85fb459ca7d5feee2e0f5f70a69486ed84335"
+      },
+      {
+       "path": "frontend/components/drone-2525/swarm-layer.tsx",
+       "blob": "4a1a761a126dd30c1f7a0cc991221055f064777a"
+      },
+      {
+       "path": "frontend/components/drone-2525/ui.ts",
+       "blob": "0bf820e8e7225e8f20f2399637a7b1ac35e4a3f5"
+      },
+      {
+       "path": "frontend/lib/drone-2525/airframe-glyph.ts",
+       "blob": "309aba7aa6a5ed2870fa6bdecad60951899bf938"
+      },
+      {
+       "path": "frontend/lib/drone-2525/authority.ts",
+       "blob": "2d106e60c4661fa6978046cd3edb6812eba6c947"
+      },
+      {
+       "path": "frontend/lib/drone-2525/flight.ts",
+       "blob": "b60b71d65003cdd030cd1ca2673ce152ebf3a91f"
+      },
+      {
+       "path": "frontend/lib/drone-2525/gimbal.ts",
+       "blob": "5b53c5b926064b00dc9b81430ccc9c32a55a4b39"
+      },
+      {
+       "path": "frontend/lib/drone-2525/swarm.ts",
+       "blob": "946710bc0f571acef5eb5bd92e1eb4e59eff0ef9"
+      },
+      {
+       "path": "frontend/lib/drone-2525/use-round-clock.ts",
+       "blob": "5df582bbce445ce1f01a10b307453122e354509c"
+      },
+      {
+       "path": "frontend/lib/drone-2525/world.ts",
+       "blob": "641faaff72007fc713c329bac6db2dcd8416ac77"
+      }
+     ],
+     "add": 1076,
+     "del": 329,
+     "bytes": 114913,
+     "lines": 2007,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 12,
+   "commit": "538204b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/ASSUMPTIONS_REGISTER.md",
+       "blob": "7e9b2eb0fc06aa185ae8c010ea9f8ff56bb0c911"
+      },
+      {
+       "path": "docs/drone-2525/CRS_DRONE-2525.md",
+       "blob": "b5cb46e17cdad3fd94e2ea1a578d853ef30ead6f"
+      },
+      {
+       "path": "docs/drone-2525/README.md",
+       "blob": "c3dc6e081a5d8956dfba2cf755b565336a210ebf"
+      },
+      {
+       "path": "docs/drone-2525/drone-2525.v00.00.json",
+       "blob": "fc98f5213acd8738bea0f8dd7fc24b79ed60a776"
+      }
+     ],
+     "add": 53,
+     "del": 4,
+     "bytes": 8139,
+     "lines": 128,
+     "status": "recorded"
+    },
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/components/drone-2525/round.tsx",
+       "blob": "a5bc0f782ca23469f38e443f62690250972fb331"
+      },
+      {
+       "path": "frontend/components/drone-2525/swarm-layer.tsx",
+       "blob": "5533c7cacefa65e6170af0b96046a03b35071c18"
+      },
+      {
+       "path": "frontend/lib/drone-2525/airframe-glyph.ts",
+       "blob": "23aac3d284af2e9c541ca50715f20c38e044247c"
+      },
+      {
+       "path": "frontend/lib/drone-2525/domain.gen.ts",
+       "blob": "5eadd57daf7072c5be2c74fbbb2a0ea68fe278ed"
+      },
+      {
+       "path": "frontend/lib/drone-2525/seat-view.ts",
+       "blob": "c7ecc95f23e06691992b41f41fa46de88fe3057c"
+      },
+      {
+       "path": "frontend/lib/drone-2525/swarm.ts",
+       "blob": "f0540e05e9ab23ec4992670d305997a156993080"
+      }
+     ],
+     "add": 211,
+     "del": 80,
+     "bytes": 25161,
+     "lines": 448,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 13,
+   "commit": "538204b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/ASSUMPTIONS_REGISTER.md",
+       "blob": "7e9b2eb0fc06aa185ae8c010ea9f8ff56bb0c911"
+      },
+      {
+       "path": "docs/drone-2525/CRS_DRONE-2525.md",
+       "blob": "b5cb46e17cdad3fd94e2ea1a578d853ef30ead6f"
+      },
+      {
+       "path": "docs/drone-2525/README.md",
+       "blob": "c3dc6e081a5d8956dfba2cf755b565336a210ebf"
+      },
+      {
+       "path": "docs/drone-2525/drone-2525.v00.00.json",
+       "blob": "fc98f5213acd8738bea0f8dd7fc24b79ed60a776"
+      }
+     ],
+     "add": 53,
+     "del": 4,
+     "bytes": 8139,
+     "lines": 128,
+     "status": "recorded"
+    },
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/components/drone-2525/round.tsx",
+       "blob": "a5bc0f782ca23469f38e443f62690250972fb331"
+      },
+      {
+       "path": "frontend/components/drone-2525/swarm-layer.tsx",
+       "blob": "5533c7cacefa65e6170af0b96046a03b35071c18"
+      },
+      {
+       "path": "frontend/lib/drone-2525/airframe-glyph.ts",
+       "blob": "23aac3d284af2e9c541ca50715f20c38e044247c"
+      },
+      {
+       "path": "frontend/lib/drone-2525/domain.gen.ts",
+       "blob": "5eadd57daf7072c5be2c74fbbb2a0ea68fe278ed"
+      },
+      {
+       "path": "frontend/lib/drone-2525/seat-view.ts",
+       "blob": "c7ecc95f23e06691992b41f41fa46de88fe3057c"
+      },
+      {
+       "path": "frontend/lib/drone-2525/swarm.ts",
+       "blob": "f0540e05e9ab23ec4992670d305997a156993080"
+      }
+     ],
+     "add": 211,
+     "del": 80,
+     "bytes": 25161,
+     "lines": 448,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 14,
+   "commit": "1875bda",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/ASSUMPTIONS_REGISTER.md",
+       "blob": "ee8dd0b46080883fd6b56d85df9bcc1edd6347e2"
+      },
+      {
+       "path": "docs/drone-2525/CRS_DRONE-2525.md",
+       "blob": "21cd919bb0083724bb49dab060be5ec761aa7b98"
+      },
+      {
+       "path": "docs/drone-2525/README.md",
+       "blob": "9215b181e9fddcda5eb84dff168b054703ffe564"
+      },
+      {
+       "path": "docs/drone-2525/drone-2525.v00.00.json",
+       "blob": "2fffdd7e8614193010619011e77d0eabd0306966"
+      }
+     ],
+     "add": 19,
+     "del": 9,
+     "bytes": 7987,
+     "lines": 109,
+     "status": "recorded"
+    },
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/drone-2525/domain.gen.ts",
+       "blob": "88a1977012babd2d5e293ed5a2125c9875ec288c"
+      },
+      {
+       "path": "frontend/lib/drone-2525/flight.ts",
+       "blob": "222b60a072554aabcec5ba33021746682c09cd15"
+      }
+     ],
+     "add": 37,
+     "del": 11,
+     "bytes": 6094,
+     "lines": 102,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 15,
+   "commit": "82325e3",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/ASSUMPTIONS_REGISTER.md",
+       "blob": "0ad82001ef4f9da74ca06fc18a46aa50ed72722b"
+      },
+      {
+       "path": "docs/drone-2525/CRS_DRONE-2525.md",
+       "blob": "505dc0a89cfd7d1f9347ab53b0dae963d5a9d6a4"
+      },
+      {
+       "path": "docs/drone-2525/README.md",
+       "blob": "fceec68726a7243ddbcfe942335a50bba04f76f6"
+      },
+      {
+       "path": "docs/drone-2525/drone-2525.v00.00.json",
+       "blob": "0e40f675b8ba1f13af009df4a8bf2a8dc0c3bacc"
+      }
+     ],
+     "add": 16,
+     "del": 7,
+     "bytes": 6738,
+     "lines": 94,
+     "status": "recorded"
+    },
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/drone-2525/domain.gen.ts",
+       "blob": "ad9d54f59b45fe116773a1b7679bffe4abb38d34"
+      }
+     ],
+     "add": 11,
+     "del": 3,
+     "bytes": 3377,
+     "lines": 48,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 16,
+   "commit": "cd84715",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/ASSUMPTIONS_REGISTER.md",
+       "blob": "4acdf6748c45cce3f3e4f0c66fb05fb90d78ad78"
+      },
+      {
+       "path": "docs/drone-2525/CRS_DRONE-2525.md",
+       "blob": "f1f6319375f3c0a8f6272fb154859bb94eeed5e7"
+      },
+      {
+       "path": "docs/drone-2525/README.md",
+       "blob": "05ed4d19bc8fddf949891d30ea19bc70c817f740"
+      },
+      {
+       "path": "docs/drone-2525/drone-2525.v00.00.json",
+       "blob": "1a8ad209d46784551d6d2cb4e0ab4f4db55de33f"
+      }
+     ],
+     "add": 101,
+     "del": 4,
+     "bytes": 9939,
+     "lines": 176,
+     "status": "recorded"
+    },
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/drone-2525/domain.gen.ts",
+       "blob": "fc81f6258f165bd96e1dc31b17ab982c5dff6425"
+      },
+      {
+       "path": "frontend/lib/drone-2525/laser.ts",
+       "blob": "66212ef0c7bb0e43217d54309c1b72f415d5494e"
+      }
+     ],
+     "add": 363,
+     "del": 1,
+     "bytes": 19843,
+     "lines": 400,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 17,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 18,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 19,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 20,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 21,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 22,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 23,
+   "commit": "a83e670",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 117,
+     "del": 24,
+     "bytes": 17462,
+     "lines": 222,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 25,
+     "del": 5,
+     "bytes": 6426,
+     "lines": 86,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 22,
+     "del": 10,
+     "bytes": 4132,
+     "lines": 64,
+     "status": "recorded"
+    },
+    {
+     "key": "capital",
+     "name": "Map · the Capitol lawn",
+     "cells": [
+      9,
+      10
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 444,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 2,
+     "del": 1,
+     "bytes": 575,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r130.sha256",
+       "blob": "c0bd79cf673d46cfac417608155b74aef6e1fd25"
+      }
+     ],
+     "add": 1,
+     "del": 0,
+     "bytes": 154,
+     "lines": 4,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 25,
+     "del": 23,
+     "bytes": 11142,
+     "lines": 202,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 24,
+   "commit": "a83e670",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 117,
+     "del": 24,
+     "bytes": 17462,
+     "lines": 222,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 25,
+     "del": 5,
+     "bytes": 6426,
+     "lines": 86,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 22,
+     "del": 10,
+     "bytes": 4132,
+     "lines": 64,
+     "status": "recorded"
+    },
+    {
+     "key": "capital",
+     "name": "Map · the Capitol lawn",
+     "cells": [
+      9,
+      10
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 444,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 2,
+     "del": 1,
+     "bytes": 575,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r130.sha256",
+       "blob": "c0bd79cf673d46cfac417608155b74aef6e1fd25"
+      }
+     ],
+     "add": 1,
+     "del": 0,
+     "bytes": 154,
+     "lines": 4,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8cb46e9b0d9fe4b7cac3e12d8ec1a3eb38daec96"
+      }
+     ],
+     "add": 25,
+     "del": 23,
+     "bytes": 11142,
+     "lines": 202,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 25,
+   "commit": "9870031",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 46,
+     "del": 23,
+     "bytes": 16296,
+     "lines": 146,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 19,
+     "del": 18,
+     "bytes": 11906,
+     "lines": 123,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 14,
+     "del": 12,
+     "bytes": 5376,
+     "lines": 56,
+     "status": "recorded"
+    },
+    {
+     "key": "maps",
+     "name": "The map ladder",
+     "cells": [
+      6,
+      15
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 490,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "capital",
+     "name": "Map · the Capitol lawn",
+     "cells": [
+      9,
+      10
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 4,
+     "del": 8,
+     "bytes": 1901,
+     "lines": 29,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 18,
+     "del": 9,
+     "bytes": 6111,
+     "lines": 89,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r131.sha256",
+       "blob": "53d9341caa2a598ca1e37f9f23fb0723fba3dd6a"
+      }
+     ],
+     "add": 1,
+     "del": 0,
+     "bytes": 154,
+     "lines": 4,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 57,
+     "del": 38,
+     "bytes": 21339,
+     "lines": 329,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 26,
+   "commit": "9870031",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 46,
+     "del": 23,
+     "bytes": 16296,
+     "lines": 146,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 19,
+     "del": 18,
+     "bytes": 11906,
+     "lines": 123,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 14,
+     "del": 12,
+     "bytes": 5376,
+     "lines": 56,
+     "status": "recorded"
+    },
+    {
+     "key": "maps",
+     "name": "The map ladder",
+     "cells": [
+      6,
+      15
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 490,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "capital",
+     "name": "Map · the Capitol lawn",
+     "cells": [
+      9,
+      10
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 4,
+     "del": 8,
+     "bytes": 1901,
+     "lines": 29,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 18,
+     "del": 9,
+     "bytes": 6111,
+     "lines": 89,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r131.sha256",
+       "blob": "53d9341caa2a598ca1e37f9f23fb0723fba3dd6a"
+      }
+     ],
+     "add": 1,
+     "del": 0,
+     "bytes": 154,
+     "lines": 4,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a694eabf656b25d1bfca032874071db2b4babe2"
+      }
+     ],
+     "add": 57,
+     "del": 38,
+     "bytes": 21339,
+     "lines": 329,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 27,
+   "commit": "607f0a8",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6f14a2311bd6467e12a55e717b17405e3c4106a7"
+      }
+     ],
+     "add": 15,
+     "del": 19,
+     "bytes": 8055,
+     "lines": 88,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6f14a2311bd6467e12a55e717b17405e3c4106a7"
+      }
+     ],
+     "add": 8,
+     "del": 6,
+     "bytes": 4720,
+     "lines": 67,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6f14a2311bd6467e12a55e717b17405e3c4106a7"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6f14a2311bd6467e12a55e717b17405e3c4106a7"
+      }
+     ],
+     "add": 62,
+     "del": 6,
+     "bytes": 11524,
+     "lines": 117,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r132.sha256",
+       "blob": "133912a15dbc416710e236d2c2138831653cd096"
+      }
+     ],
+     "add": 1,
+     "del": 0,
+     "bytes": 154,
+     "lines": 4,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6f14a2311bd6467e12a55e717b17405e3c4106a7"
+      }
+     ],
+     "add": 9,
+     "del": 8,
+     "bytes": 6850,
+     "lines": 91,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 28,
+   "commit": "4321f40",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "4a29f65be5fad5e6a07c24522a1b8e7a5f6536ce"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1388,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "4a29f65be5fad5e6a07c24522a1b8e7a5f6536ce"
+      }
+     ],
+     "add": 3,
+     "del": 2,
+     "bytes": 1776,
+     "lines": 23,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r133.sha256",
+       "blob": "71b4a25f479f840a13eca25fa30e6096c974b348"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r132_to_r133.py",
+       "blob": "fca10cb51cca2de6f72c6795f7090f93bfdce989"
+      }
+     ],
+     "add": 9,
+     "del": 2,
+     "bytes": 2185,
+     "lines": 22,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 29,
+   "commit": "f2557ac",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "21dbda0c9724f21ace7fbb9b3c8c1b31370b4741"
+      }
+     ],
+     "add": 33,
+     "del": 7,
+     "bytes": 14406,
+     "lines": 101,
+     "status": "recorded"
+    },
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "21dbda0c9724f21ace7fbb9b3c8c1b31370b4741"
+      }
+     ],
+     "add": 5,
+     "del": 1,
+     "bytes": 1576,
+     "lines": 28,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "21dbda0c9724f21ace7fbb9b3c8c1b31370b4741"
+      }
+     ],
+     "add": 14,
+     "del": 12,
+     "bytes": 8633,
+     "lines": 90,
+     "status": "recorded"
+    },
+    {
+     "key": "capital",
+     "name": "Map · the Capitol lawn",
+     "cells": [
+      9,
+      10
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "21dbda0c9724f21ace7fbb9b3c8c1b31370b4741"
+      }
+     ],
+     "add": 4,
+     "del": 3,
+     "bytes": 2762,
+     "lines": 24,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "21dbda0c9724f21ace7fbb9b3c8c1b31370b4741"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 1394,
+     "lines": 21,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "21dbda0c9724f21ace7fbb9b3c8c1b31370b4741"
+      }
+     ],
+     "add": 25,
+     "del": 15,
+     "bytes": 15146,
+     "lines": 144,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r134.sha256",
+       "blob": "47ca1170c5684480ba4f7e2598fc90d73bd86d2c"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r133_to_r134.py",
+       "blob": "a6059dea1360d2c61fa99fbd3d956bce48df8597"
+      }
+     ],
+     "add": 198,
+     "del": 0,
+     "bytes": 31573,
+     "lines": 203,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "21dbda0c9724f21ace7fbb9b3c8c1b31370b4741"
+      }
+     ],
+     "add": 23,
+     "del": 14,
+     "bytes": 13472,
+     "lines": 187,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 30,
+   "commit": "2020c02",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c499e09e48d9aa4c8149afdb55936fe4047c508c"
+      }
+     ],
+     "add": 14,
+     "del": 8,
+     "bytes": 11979,
+     "lines": 73,
+     "status": "recorded"
+    },
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c499e09e48d9aa4c8149afdb55936fe4047c508c"
+      }
+     ],
+     "add": 6,
+     "del": 6,
+     "bytes": 3902,
+     "lines": 42,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c499e09e48d9aa4c8149afdb55936fe4047c508c"
+      }
+     ],
+     "add": 15,
+     "del": 13,
+     "bytes": 13501,
+     "lines": 118,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c499e09e48d9aa4c8149afdb55936fe4047c508c"
+      }
+     ],
+     "add": 13,
+     "del": 4,
+     "bytes": 7422,
+     "lines": 50,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c499e09e48d9aa4c8149afdb55936fe4047c508c"
+      }
+     ],
+     "add": 31,
+     "del": 16,
+     "bytes": 18672,
+     "lines": 123,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r135.sha256",
+       "blob": "4acd3be1454134849fc903b9ca0d0734c6791c9b"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r134_to_r135.py",
+       "blob": "c73c6a142b39c39314de2d6c7be895a05c396ae0"
+      }
+     ],
+     "add": 153,
+     "del": 0,
+     "bytes": 33369,
+     "lines": 158,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c499e09e48d9aa4c8149afdb55936fe4047c508c"
+      }
+     ],
+     "add": 11,
+     "del": 11,
+     "bytes": 8853,
+     "lines": 112,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 31,
+   "commit": "543a86c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "fe20c843c0f5c6f6b163e07f10638c6e469e9f94"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 6715,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "fe20c843c0f5c6f6b163e07f10638c6e469e9f94"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1265,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "fe20c843c0f5c6f6b163e07f10638c6e469e9f94"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "fe20c843c0f5c6f6b163e07f10638c6e469e9f94"
+      }
+     ],
+     "add": 4,
+     "del": 1,
+     "bytes": 5810,
+     "lines": 30,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r136.sha256",
+       "blob": "413d9031e82ce7fe2e2366883459bb53fe2062c1"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r135_to_r136.py",
+       "blob": "a42436a1ceb9de9c87bbcec69c5c8f4cd9ff58b9"
+      }
+     ],
+     "add": 39,
+     "del": 0,
+     "bytes": 5722,
+     "lines": 44,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "fe20c843c0f5c6f6b163e07f10638c6e469e9f94"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 2155,
+     "lines": 42,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 32,
+   "commit": "c0e57ea",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "02eec6f9bfb4c72e2f56336dd22a528e67f28520"
+      }
+     ],
+     "add": 123,
+     "del": 165,
+     "bytes": 45577,
+     "lines": 418,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "02eec6f9bfb4c72e2f56336dd22a528e67f28520"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1430,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "02eec6f9bfb4c72e2f56336dd22a528e67f28520"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1860,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "02eec6f9bfb4c72e2f56336dd22a528e67f28520"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "02eec6f9bfb4c72e2f56336dd22a528e67f28520"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 3056,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r137.sha256",
+       "blob": "9ac9f29af591d9198c8e6f280276cf2541081a4b"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r136_to_r137.py",
+       "blob": "2bdcef2fd6bd888436ba9cbb8b2ceef57a809428"
+      }
+     ],
+     "add": 269,
+     "del": 0,
+     "bytes": 34224,
+     "lines": 274,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "02eec6f9bfb4c72e2f56336dd22a528e67f28520"
+      }
+     ],
+     "add": 10,
+     "del": 9,
+     "bytes": 5158,
+     "lines": 77,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 33,
+   "commit": "c5995ce",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r138.sha256",
+       "blob": "81d3260d9dca8192464c5bff25a7c07b0d23054e"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r137_to_r138.py",
+       "blob": "d61adff05ad2e53310fdd676d6928e2aaaf4dc48"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 1308,
+     "lines": 17,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "df64c2852a50b034478a13b291b7613e5b5b6e4d"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 884,
+     "lines": 12,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 34,
+   "commit": "0f71961",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "92fcef2a9abb3ed3a2064e27874bc506cce940da"
+      }
+     ],
+     "add": 8,
+     "del": 1,
+     "bytes": 4759,
+     "lines": 23,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "92fcef2a9abb3ed3a2064e27874bc506cce940da"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r139.sha256",
+       "blob": "58a39687263037e7aa5fea96436858e92ef162ad"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r138_to_r139.py",
+       "blob": "4562a4bb2d034f895eab193a4b75747eca453b65"
+      }
+     ],
+     "add": 53,
+     "del": 0,
+     "bytes": 5993,
+     "lines": 58,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "92fcef2a9abb3ed3a2064e27874bc506cce940da"
+      }
+     ],
+     "add": 13,
+     "del": 7,
+     "bytes": 5825,
+     "lines": 85,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 35,
+   "commit": "9d45dae",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7202d1b0799a86bc937fda483a6f3bebf820955a"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 5509,
+     "lines": 31,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r140.sha256",
+       "blob": "a9d4cf7a07c0151f4e5fdbf1b294095ff40d9192"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r139_to_r140.py",
+       "blob": "374557b559a77b4a2100a2816cca745e345d7557"
+      }
+     ],
+     "add": 8,
+     "del": 4,
+     "bytes": 5343,
+     "lines": 39,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7202d1b0799a86bc937fda483a6f3bebf820955a"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1466,
+     "lines": 12,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 36,
+   "commit": "1e8b2d4",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "709dee4eb6a8052cbaf8389d151be5b226bc45e7"
+      }
+     ],
+     "add": 5,
+     "del": 2,
+     "bytes": 3533,
+     "lines": 26,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "709dee4eb6a8052cbaf8389d151be5b226bc45e7"
+      }
+     ],
+     "add": 4,
+     "del": 0,
+     "bytes": 2353,
+     "lines": 13,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "709dee4eb6a8052cbaf8389d151be5b226bc45e7"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r141.sha256",
+       "blob": "857a75da87c75578d162ab68ae4aed95f8d3d02c"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r140_to_r141.py",
+       "blob": "a3446be194dca1551f6c0dddc96c816b69b800d8"
+      }
+     ],
+     "add": 56,
+     "del": 0,
+     "bytes": 5706,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "709dee4eb6a8052cbaf8389d151be5b226bc45e7"
+      }
+     ],
+     "add": 8,
+     "del": 9,
+     "bytes": 4580,
+     "lines": 75,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 37,
+   "commit": "662f8e3",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3f59f8e1c7a1cdc08e2e8d4397fec013c3c6b2f4"
+      }
+     ],
+     "add": 19,
+     "del": 12,
+     "bytes": 14334,
+     "lines": 100,
+     "status": "recorded"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3f59f8e1c7a1cdc08e2e8d4397fec013c3c6b2f4"
+      }
+     ],
+     "add": 4,
+     "del": 0,
+     "bytes": 1412,
+     "lines": 13,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3f59f8e1c7a1cdc08e2e8d4397fec013c3c6b2f4"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r142.sha256",
+       "blob": "fa55ca166bd14bac59733cbd577f76fc75df2a7d"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r141_to_r142.py",
+       "blob": "9f5deaae9cdd28c1a987b14d1ac78238da38728a"
+      }
+     ],
+     "add": 76,
+     "del": 0,
+     "bytes": 9546,
+     "lines": 81,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3f59f8e1c7a1cdc08e2e8d4397fec013c3c6b2f4"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 1770,
+     "lines": 31,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 38,
+   "commit": "a9c6360",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "db843d0200c7da48ea22ff5751fd6461077dee37"
+      }
+     ],
+     "add": 7,
+     "del": 3,
+     "bytes": 4035,
+     "lines": 35,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "db843d0200c7da48ea22ff5751fd6461077dee37"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 5131,
+     "lines": 24,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "db843d0200c7da48ea22ff5751fd6461077dee37"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r143.sha256",
+       "blob": "e7e7bd5ca1f0aed41a7052bbe635f92d259b2ba6"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r142_to_r143.py",
+       "blob": "07c19df37fa3915e208dd051926692f4d5748fea"
+      }
+     ],
+     "add": 54,
+     "del": 0,
+     "bytes": 5768,
+     "lines": 59,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "db843d0200c7da48ea22ff5751fd6461077dee37"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 2196,
+     "lines": 42,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 39,
+   "commit": "b2b64dc",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "d74c59addd9035f09c5945ac3993686529c759ad"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 3648,
+     "lines": 24,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "d74c59addd9035f09c5945ac3993686529c759ad"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 896,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "d74c59addd9035f09c5945ac3993686529c759ad"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r144.sha256",
+       "blob": "23ed49594983b2bc380e5d7e4524594de30fa629"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r143_to_r144.py",
+       "blob": "a60964884a62d6b086206c495070b21102d59e2d"
+      }
+     ],
+     "add": 39,
+     "del": 0,
+     "bytes": 3822,
+     "lines": 44,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "d74c59addd9035f09c5945ac3993686529c759ad"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 1771,
+     "lines": 32,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 40,
+   "commit": "8531339",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6078862e3578e732d580427e64dbbda2681c5043"
+      }
+     ],
+     "add": 12,
+     "del": 0,
+     "bytes": 4626,
+     "lines": 29,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6078862e3578e732d580427e64dbbda2681c5043"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1241,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6078862e3578e732d580427e64dbbda2681c5043"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r145.sha256",
+       "blob": "5e43f40b8dc3533a3bd67564f7f69a0e9bdacf93"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r144_to_r145.py",
+       "blob": "854681be3172886335ff80521536d6666e176c30"
+      }
+     ],
+     "add": 47,
+     "del": 0,
+     "bytes": 4799,
+     "lines": 52,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6078862e3578e732d580427e64dbbda2681c5043"
+      }
+     ],
+     "add": 4,
+     "del": 3,
+     "bytes": 3751,
+     "lines": 41,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 41,
+   "commit": "5466050",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6e89ced24d5afa266c05ea2c8a45db140ab95b35"
+      }
+     ],
+     "add": 8,
+     "del": 5,
+     "bytes": 6397,
+     "lines": 31,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r146.sha256",
+       "blob": "8e3a4b0ac2fe90b0fc86c552d1476377a89084aa"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r145_to_r146.py",
+       "blob": "03454ca874f36b56a5b1449d129e84739116d79e"
+      }
+     ],
+     "add": 42,
+     "del": 0,
+     "bytes": 5527,
+     "lines": 47,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6e89ced24d5afa266c05ea2c8a45db140ab95b35"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 1771,
+     "lines": 32,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 42,
+   "commit": "7a7a2c7",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8c088b39b35286983e36003e90d57fdb2bfc2fab"
+      }
+     ],
+     "add": 4,
+     "del": 2,
+     "bytes": 4047,
+     "lines": 23,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8c088b39b35286983e36003e90d57fdb2bfc2fab"
+      }
+     ],
+     "add": 12,
+     "del": 2,
+     "bytes": 7405,
+     "lines": 33,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8c088b39b35286983e36003e90d57fdb2bfc2fab"
+      }
+     ],
+     "add": 12,
+     "del": 13,
+     "bytes": 4672,
+     "lines": 34,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8c088b39b35286983e36003e90d57fdb2bfc2fab"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r147.sha256",
+       "blob": "d69bf8e8f20d5c05429983b0be52a3b1f9ed0e43"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r146_to_r147.py",
+       "blob": "6682d5fc2022cb01b536a3c7474890fd94f77c11"
+      }
+     ],
+     "add": 90,
+     "del": 0,
+     "bytes": 12656,
+     "lines": 95,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "8c088b39b35286983e36003e90d57fdb2bfc2fab"
+      }
+     ],
+     "add": 5,
+     "del": 5,
+     "bytes": 3748,
+     "lines": 52,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 43,
+   "commit": "8ccab36",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "49b8708398edf927a075e04b078409f083e79622"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2260,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "49b8708398edf927a075e04b078409f083e79622"
+      }
+     ],
+     "add": 29,
+     "del": 9,
+     "bytes": 15402,
+     "lines": 88,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "49b8708398edf927a075e04b078409f083e79622"
+      }
+     ],
+     "add": 6,
+     "del": 2,
+     "bytes": 2985,
+     "lines": 21,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "49b8708398edf927a075e04b078409f083e79622"
+      }
+     ],
+     "add": 6,
+     "del": 4,
+     "bytes": 4372,
+     "lines": 37,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "49b8708398edf927a075e04b078409f083e79622"
+      }
+     ],
+     "add": 4,
+     "del": 3,
+     "bytes": 4484,
+     "lines": 32,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r148.sha256",
+       "blob": "07ec339386bf886df12011d67fdb3c8aef2ecc71"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r147_to_r148.py",
+       "blob": "03f55ab8c8cb11ec1c789bac6768ea26239963ae"
+      }
+     ],
+     "add": 145,
+     "del": 0,
+     "bytes": 20054,
+     "lines": 150,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "49b8708398edf927a075e04b078409f083e79622"
+      }
+     ],
+     "add": 10,
+     "del": 9,
+     "bytes": 7504,
+     "lines": 80,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 44,
+   "commit": "6b585bf",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7ffada3f76b89ea8c2fef8344f99c6077adda03b"
+      }
+     ],
+     "add": 9,
+     "del": 2,
+     "bytes": 7534,
+     "lines": 46,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7ffada3f76b89ea8c2fef8344f99c6077adda03b"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r149.sha256",
+       "blob": "dbc5370516161727808788df9d3b14c6ab3aa46d"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r148_to_r149.py",
+       "blob": "7f52388378702ea9e1a64ea5b8d02d00a047bcd7"
+      }
+     ],
+     "add": 53,
+     "del": 0,
+     "bytes": 5474,
+     "lines": 58,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7ffada3f76b89ea8c2fef8344f99c6077adda03b"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 1771,
+     "lines": 32,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 45,
+   "commit": "ec241fa",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "61f1ea7d6d8e49c33452cd0652671b041ad86720"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 3069,
+     "lines": 14,
+     "status": "recorded"
+    },
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "61f1ea7d6d8e49c33452cd0652671b041ad86720"
+      }
+     ],
+     "add": 5,
+     "del": 0,
+     "bytes": 2042,
+     "lines": 16,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "61f1ea7d6d8e49c33452cd0652671b041ad86720"
+      }
+     ],
+     "add": 37,
+     "del": 8,
+     "bytes": 21714,
+     "lines": 94,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "61f1ea7d6d8e49c33452cd0652671b041ad86720"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2714,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "61f1ea7d6d8e49c33452cd0652671b041ad86720"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1158,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "61f1ea7d6d8e49c33452cd0652671b041ad86720"
+      }
+     ],
+     "add": 12,
+     "del": 5,
+     "bytes": 10193,
+     "lines": 57,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "61f1ea7d6d8e49c33452cd0652671b041ad86720"
+      }
+     ],
+     "add": 4,
+     "del": 3,
+     "bytes": 8045,
+     "lines": 40,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r150.sha256",
+       "blob": "78d524fb882d8674e771f14511465f7480d1db3a"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r149_to_r150.py",
+       "blob": "06577409ea8425ed030f5c20877fbf013ee26c56"
+      }
+     ],
+     "add": 143,
+     "del": 0,
+     "bytes": 24198,
+     "lines": 148,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "61f1ea7d6d8e49c33452cd0652671b041ad86720"
+      }
+     ],
+     "add": 5,
+     "del": 5,
+     "bytes": 2928,
+     "lines": 52,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 46,
+   "commit": "9fb8c97",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "5a60bace25375b6a9013d2ce7d48358806823f74"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2062,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "5a60bace25375b6a9013d2ce7d48358806823f74"
+      }
+     ],
+     "add": 20,
+     "del": 0,
+     "bytes": 4473,
+     "lines": 29,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "5a60bace25375b6a9013d2ce7d48358806823f74"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r151.sha256",
+       "blob": "2d4fe9aa7a697fa1bbbcbf6098a5c13d4af27f74"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r150_to_r151.py",
+       "blob": "b46703a29d190b0671db773278d1306dfba3eaef"
+      }
+     ],
+     "add": 64,
+     "del": 0,
+     "bytes": 6684,
+     "lines": 69,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "5a60bace25375b6a9013d2ce7d48358806823f74"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 1771,
+     "lines": 32,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 47,
+   "commit": "8366dfa",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ae10d75024ce93cf63a055bb78db3f1d1fb92300"
+      }
+     ],
+     "add": 6,
+     "del": 0,
+     "bytes": 2199,
+     "lines": 15,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ae10d75024ce93cf63a055bb78db3f1d1fb92300"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r152.sha256",
+       "blob": "a3f22c0f226f9e31a35c8f3ff441e6f08d3ff372"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r151_to_r152.py",
+       "blob": "1acbef7d2d6a94fca75cce132ecb12ec3d405aea"
+      }
+     ],
+     "add": 60,
+     "del": 0,
+     "bytes": 5972,
+     "lines": 65,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ae10d75024ce93cf63a055bb78db3f1d1fb92300"
+      }
+     ],
+     "add": 7,
+     "del": 5,
+     "bytes": 6385,
+     "lines": 70,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 48,
+   "commit": "c65d719",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "81aa95a830ec78477011f4d8e698edb15da63502"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r153.sha256",
+       "blob": "52e7a8c67dedd08644651eb8736c05322fe5ac5d"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r152_to_r153.py",
+       "blob": "83c027bacc69cde5f3a43c16b4b5cff8c32d8e35"
+      }
+     ],
+     "add": 36,
+     "del": 0,
+     "bytes": 2482,
+     "lines": 41,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "81aa95a830ec78477011f4d8e698edb15da63502"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 2422,
+     "lines": 42,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 49,
+   "commit": "fc0fddf",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e55600d9380348f0c5c6aaf1106018299a73c494"
+      }
+     ],
+     "add": 7,
+     "del": 3,
+     "bytes": 3821,
+     "lines": 35,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e55600d9380348f0c5c6aaf1106018299a73c494"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r154.sha256",
+       "blob": "da0d9186bda0e372a15e33c5a23bc67f45588023"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r153_to_r154.py",
+       "blob": "480d631979acd1cade1ee8360f5b38ad3f925ba2"
+      }
+     ],
+     "add": 60,
+     "del": 0,
+     "bytes": 5183,
+     "lines": 65,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e55600d9380348f0c5c6aaf1106018299a73c494"
+      }
+     ],
+     "add": 5,
+     "del": 4,
+     "bytes": 2697,
+     "lines": 45,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 50,
+   "commit": "d2d2431",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "cfe93fb8ced855c59d44880b3a50c9efe7075fa9"
+      }
+     ],
+     "add": 9,
+     "del": 0,
+     "bytes": 2705,
+     "lines": 18,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "cfe93fb8ced855c59d44880b3a50c9efe7075fa9"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "cfe93fb8ced855c59d44880b3a50c9efe7075fa9"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1801,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r155.sha256",
+       "blob": "22cdf0d46056a94446635bf1a5ee4ae765462769"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r154_to_r155.py",
+       "blob": "a473190d50803412d27d74bdd654b834f784cdd7"
+      }
+     ],
+     "add": 120,
+     "del": 0,
+     "bytes": 11942,
+     "lines": 125,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "cfe93fb8ced855c59d44880b3a50c9efe7075fa9"
+      }
+     ],
+     "add": 44,
+     "del": 6,
+     "bytes": 9081,
+     "lines": 115,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 51,
+   "commit": "aa66c46",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "11b92758abccb083914e80310d8aa1b839cfd82c"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1278,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "11b92758abccb083914e80310d8aa1b839cfd82c"
+      }
+     ],
+     "add": 8,
+     "del": 0,
+     "bytes": 3073,
+     "lines": 17,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "11b92758abccb083914e80310d8aa1b839cfd82c"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r156.sha256",
+       "blob": "ad922a94595d94e1ab39c802c150a783e53e7ebe"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r155_to_r156.py",
+       "blob": "97ac764e3927bee56c29c539868c5392029150af"
+      }
+     ],
+     "add": 75,
+     "del": 0,
+     "bytes": 7911,
+     "lines": 80,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "11b92758abccb083914e80310d8aa1b839cfd82c"
+      }
+     ],
+     "add": 9,
+     "del": 5,
+     "bytes": 4110,
+     "lines": 56,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 52,
+   "commit": "f6cf582",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "13c55cd6e6b1e337a2b08a7119411c00c20d3283"
+      }
+     ],
+     "add": 78,
+     "del": 54,
+     "bytes": 50007,
+     "lines": 321,
+     "status": "recorded"
+    },
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "13c55cd6e6b1e337a2b08a7119411c00c20d3283"
+      }
+     ],
+     "add": 12,
+     "del": 10,
+     "bytes": 7652,
+     "lines": 69,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "13c55cd6e6b1e337a2b08a7119411c00c20d3283"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 5936,
+     "lines": 21,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "13c55cd6e6b1e337a2b08a7119411c00c20d3283"
+      }
+     ],
+     "add": 24,
+     "del": 12,
+     "bytes": 12801,
+     "lines": 80,
+     "status": "recorded"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "13c55cd6e6b1e337a2b08a7119411c00c20d3283"
+      }
+     ],
+     "add": 17,
+     "del": 1,
+     "bytes": 4436,
+     "lines": 44,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "13c55cd6e6b1e337a2b08a7119411c00c20d3283"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "13c55cd6e6b1e337a2b08a7119411c00c20d3283"
+      }
+     ],
+     "add": 115,
+     "del": 3,
+     "bytes": 26455,
+     "lines": 147,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r157.sha256",
+       "blob": "7ba889722b04eaf5f135cd0c82b031d95d6ccf1b"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r156_to_r157.py",
+       "blob": "97ae0a467704e723852970d2aa04dad9462a3245"
+      }
+     ],
+     "add": 505,
+     "del": 0,
+     "bytes": 71280,
+     "lines": 510,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "13c55cd6e6b1e337a2b08a7119411c00c20d3283"
+      }
+     ],
+     "add": 23,
+     "del": 19,
+     "bytes": 14490,
+     "lines": 173,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 53,
+   "commit": "ad2b2b0",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "b0f9caf810d2d7f35e867a2d53049fbc0a315668"
+      }
+     ],
+     "add": 11,
+     "del": 3,
+     "bytes": 8236,
+     "lines": 39,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "b0f9caf810d2d7f35e867a2d53049fbc0a315668"
+      }
+     ],
+     "add": 9,
+     "del": 7,
+     "bytes": 11538,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "b0f9caf810d2d7f35e867a2d53049fbc0a315668"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "b0f9caf810d2d7f35e867a2d53049fbc0a315668"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2404,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r158.sha256",
+       "blob": "0325dd4af42ff3e8be1e9e2843cd0fdc917e8d68"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r157_to_r158.py",
+       "blob": "439fc3553b93af79a6a3b6dcc72fed07f9762933"
+      }
+     ],
+     "add": 71,
+     "del": 0,
+     "bytes": 10417,
+     "lines": 76,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "b0f9caf810d2d7f35e867a2d53049fbc0a315668"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 1815,
+     "lines": 32,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 54,
+   "commit": "09f78aa",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "50a3746bdb69213057997e8c543058c90b10110a"
+      }
+     ],
+     "add": 15,
+     "del": 4,
+     "bytes": 6268,
+     "lines": 32,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "50a3746bdb69213057997e8c543058c90b10110a"
+      }
+     ],
+     "add": 6,
+     "del": 0,
+     "bytes": 1418,
+     "lines": 23,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "50a3746bdb69213057997e8c543058c90b10110a"
+      }
+     ],
+     "add": 6,
+     "del": 3,
+     "bytes": 7125,
+     "lines": 26,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "50a3746bdb69213057997e8c543058c90b10110a"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r159.sha256",
+       "blob": "13214834e48e5bc2f84679de659d2dd910751e41"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r158_to_r159.py",
+       "blob": "8d121b5a8bcb6740e703c9d22d80fc4f736e4f46"
+      }
+     ],
+     "add": 79,
+     "del": 0,
+     "bytes": 10745,
+     "lines": 84,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "50a3746bdb69213057997e8c543058c90b10110a"
+      }
+     ],
+     "add": 8,
+     "del": 5,
+     "bytes": 4817,
+     "lines": 65,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 55,
+   "commit": "5a8a161",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "1ec5b9e5abcb45f7f2125ab7e8ddf3e0f15efdf6"
+      }
+     ],
+     "add": 4,
+     "del": 3,
+     "bytes": 4236,
+     "lines": 26,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "1ec5b9e5abcb45f7f2125ab7e8ddf3e0f15efdf6"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 7368,
+     "lines": 26,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "1ec5b9e5abcb45f7f2125ab7e8ddf3e0f15efdf6"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r160.sha256",
+       "blob": "8a79b2a66852ac3905c0d8e0695fa577fb7d00ac"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r159_to_r160.py",
+       "blob": "ecfb0c2a254ea2b1669bbced4f80c42ec34ca9c2"
+      }
+     ],
+     "add": 35,
+     "del": 0,
+     "bytes": 3783,
+     "lines": 40,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "1ec5b9e5abcb45f7f2125ab7e8ddf3e0f15efdf6"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 1815,
+     "lines": 32,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 56,
+   "commit": "0b45687",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e82cfa7448536e1ea95976c051f508fc812d0e0a"
+      }
+     ],
+     "add": 12,
+     "del": 1,
+     "bytes": 4642,
+     "lines": 24,
+     "status": "recorded"
+    },
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e82cfa7448536e1ea95976c051f508fc812d0e0a"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 907,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e82cfa7448536e1ea95976c051f508fc812d0e0a"
+      }
+     ],
+     "add": 12,
+     "del": 5,
+     "bytes": 6646,
+     "lines": 62,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e82cfa7448536e1ea95976c051f508fc812d0e0a"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r161.sha256",
+       "blob": "57066a00eb634d832f6086051f0130ebcf26bfea"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r160_to_r161.py",
+       "blob": "3691603d594651e4a9fba1c765c182e1abed2375"
+      }
+     ],
+     "add": 59,
+     "del": 0,
+     "bytes": 8465,
+     "lines": 64,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e82cfa7448536e1ea95976c051f508fc812d0e0a"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 3023,
+     "lines": 42,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 57,
+   "commit": "0e6d329",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "4cceb2f30579170db9e535699f6cd45d25b4d2f3"
+      }
+     ],
+     "add": 5,
+     "del": 0,
+     "bytes": 2642,
+     "lines": 15,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "4cceb2f30579170db9e535699f6cd45d25b4d2f3"
+      }
+     ],
+     "add": 1,
+     "del": 0,
+     "bytes": 566,
+     "lines": 10,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r162.sha256",
+       "blob": "4f15d4b9f98e826c491d6cefd38ad2fc47fed365"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r161_to_r162.py",
+       "blob": "e2758ed0f4e6555ad1154ece7d5af405b605f96f"
+      }
+     ],
+     "add": 13,
+     "del": 2,
+     "bytes": 3617,
+     "lines": 34,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "4cceb2f30579170db9e535699f6cd45d25b4d2f3"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1255,
+     "lines": 11,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 58,
+   "commit": "921ce8a",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "86004dd5eeea97f895b2ee39959abaca3497a39a"
+      }
+     ],
+     "add": 21,
+     "del": 2,
+     "bytes": 7708,
+     "lines": 40,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "86004dd5eeea97f895b2ee39959abaca3497a39a"
+      }
+     ],
+     "add": 19,
+     "del": 10,
+     "bytes": 6515,
+     "lines": 62,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "86004dd5eeea97f895b2ee39959abaca3497a39a"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r163.sha256",
+       "blob": "e7cbe00cb535980876c12ac87a9940bbbf2ff343"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r162_to_r163.py",
+       "blob": "c8538adce4aa528b5508fda20fdbe4e33fb25178"
+      }
+     ],
+     "add": 82,
+     "del": 0,
+     "bytes": 10064,
+     "lines": 87,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "86004dd5eeea97f895b2ee39959abaca3497a39a"
+      }
+     ],
+     "add": 7,
+     "del": 6,
+     "bytes": 4745,
+     "lines": 63,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 59,
+   "commit": "bf8cb7c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3b177193f9af30cfd5946ab110f4038e58ac7679"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2781,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3b177193f9af30cfd5946ab110f4038e58ac7679"
+      }
+     ],
+     "add": 8,
+     "del": 0,
+     "bytes": 2428,
+     "lines": 17,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3b177193f9af30cfd5946ab110f4038e58ac7679"
+      }
+     ],
+     "add": 66,
+     "del": 11,
+     "bytes": 14307,
+     "lines": 98,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3b177193f9af30cfd5946ab110f4038e58ac7679"
+      }
+     ],
+     "add": 9,
+     "del": 1,
+     "bytes": 4585,
+     "lines": 27,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r164.sha256",
+       "blob": "616c48f3e18b2a5fe789e892906ddec639348ffb"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r163_onresult.txt",
+       "blob": "be744c98c3c23dd7ee79281214e912fc6df52b6f"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r163_to_r164.py",
+       "blob": "e5efd9cf35d55e406e4116cc04413f4c7f345cbf"
+      }
+     ],
+     "add": 144,
+     "del": 0,
+     "bytes": 20089,
+     "lines": 151,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3b177193f9af30cfd5946ab110f4038e58ac7679"
+      }
+     ],
+     "add": 13,
+     "del": 4,
+     "bytes": 4012,
+     "lines": 59,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 60,
+   "commit": "47f66e2",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3af9c0d694ed25d49e4a089d88751a3c5fafba40"
+      }
+     ],
+     "add": 1,
+     "del": 0,
+     "bytes": 1055,
+     "lines": 10,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3af9c0d694ed25d49e4a089d88751a3c5fafba40"
+      }
+     ],
+     "add": 28,
+     "del": 4,
+     "bytes": 11271,
+     "lines": 72,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3af9c0d694ed25d49e4a089d88751a3c5fafba40"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3af9c0d694ed25d49e4a089d88751a3c5fafba40"
+      }
+     ],
+     "add": 3,
+     "del": 2,
+     "bytes": 3253,
+     "lines": 17,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r165.sha256",
+       "blob": "0848a38ef587b14599440937a36cea3c387c3da8"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r164_to_r165.py",
+       "blob": "fedc954dba9d1f577434987982c3340f31d856ba"
+      }
+     ],
+     "add": 71,
+     "del": 0,
+     "bytes": 10468,
+     "lines": 76,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3af9c0d694ed25d49e4a089d88751a3c5fafba40"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 2427,
+     "lines": 42,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 61,
+   "commit": "82b3c0bb",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ebfbb80d1bc6afb6556aaa65d0799c4f04c5b791"
+      }
+     ],
+     "add": 3,
+     "del": 2,
+     "bytes": 1671,
+     "lines": 17,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ebfbb80d1bc6afb6556aaa65d0799c4f04c5b791"
+      }
+     ],
+     "add": 5,
+     "del": 3,
+     "bytes": 5559,
+     "lines": 33,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 62,
+   "commit": "d6bcc160",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "24d21cb4d42792bfe4cabbc0fea5faa76c65628f"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 3041,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "24d21cb4d42792bfe4cabbc0fea5faa76c65628f"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "24d21cb4d42792bfe4cabbc0fea5faa76c65628f"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2592,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "24d21cb4d42792bfe4cabbc0fea5faa76c65628f"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 550,
+     "lines": 11,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 63,
+   "commit": "6a4097f",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "de5ddc4901ff174b32cbb20758b1fda5fbcfaafa"
+      }
+     ],
+     "add": 6,
+     "del": 6,
+     "bytes": 3030,
+     "lines": 32,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "de5ddc4901ff174b32cbb20758b1fda5fbcfaafa"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2431,
+     "lines": 12,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 64,
+   "commit": "61b4d49",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "09a655dc3ba0c5afe3c12957e6de350f35c40a13"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 3661,
+     "lines": 32,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 65,
+   "commit": "7ffd164",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "05e6986881271b9c412c18ccb052838a9a061da0"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 883,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "05e6986881271b9c412c18ccb052838a9a061da0"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 3693,
+     "lines": 23,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 66,
+   "commit": "8206a28",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f248af2c71c601930d4624a019bdca26aa6fe432"
+      }
+     ],
+     "add": 14,
+     "del": 13,
+     "bytes": 8589,
+     "lines": 62,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f248af2c71c601930d4624a019bdca26aa6fe432"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 874,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f248af2c71c601930d4624a019bdca26aa6fe432"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 3744,
+     "lines": 23,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 67,
+   "commit": "a146c12",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e57bf26b5a0b92b2196c74c4c924b64fdaab8f8a"
+      }
+     ],
+     "add": 15,
+     "del": 16,
+     "bytes": 6245,
+     "lines": 62,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e57bf26b5a0b92b2196c74c4c924b64fdaab8f8a"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 874,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e57bf26b5a0b92b2196c74c4c924b64fdaab8f8a"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 3678,
+     "lines": 23,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 68,
+   "commit": "3ba0f97",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7943f4e66bfc48517428f6be0ebe5e3e605eeeb7"
+      }
+     ],
+     "add": 18,
+     "del": 1,
+     "bytes": 4069,
+     "lines": 39,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7943f4e66bfc48517428f6be0ebe5e3e605eeeb7"
+      }
+     ],
+     "add": 14,
+     "del": 10,
+     "bytes": 6767,
+     "lines": 58,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 69,
+   "commit": "5a6b64b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "98dd89b0d95f6633a3cd06c4fcbfdebec46484c2"
+      }
+     ],
+     "add": 18,
+     "del": 18,
+     "bytes": 8154,
+     "lines": 77,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "98dd89b0d95f6633a3cd06c4fcbfdebec46484c2"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1008,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "98dd89b0d95f6633a3cd06c4fcbfdebec46484c2"
+      }
+     ],
+     "add": 3,
+     "del": 4,
+     "bytes": 4367,
+     "lines": 32,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 70,
+   "commit": "43a0dc4",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a4d3eb8ac7d69783b9ae99ec889206513b4df27"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1010,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a4d3eb8ac7d69783b9ae99ec889206513b4df27"
+      }
+     ],
+     "add": 1,
+     "del": 0,
+     "bytes": 714,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "3a4d3eb8ac7d69783b9ae99ec889206513b4df27"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 3542,
+     "lines": 21,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 71,
+   "commit": "074ac55",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6c7aa5d3e15548385521efaf8d879e09fa6aa50b"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1004,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6c7aa5d3e15548385521efaf8d879e09fa6aa50b"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2530,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6c7aa5d3e15548385521efaf8d879e09fa6aa50b"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 3515,
+     "lines": 21,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 72,
+   "commit": "3380e7b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "da80fd2e2d296355dbd3c90062c3b636ac5e2a1c"
+      }
+     ],
+     "add": 5,
+     "del": 5,
+     "bytes": 4245,
+     "lines": 19,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "da80fd2e2d296355dbd3c90062c3b636ac5e2a1c"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1008,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "da80fd2e2d296355dbd3c90062c3b636ac5e2a1c"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 3549,
+     "lines": 21,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 73,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 74,
+   "commit": "a18880d",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "af5cae16065622fc31fd0f484cc627d286ee37e6"
+      }
+     ],
+     "add": 6,
+     "del": 26,
+     "bytes": 12184,
+     "lines": 97,
+     "status": "recorded"
+    },
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "af5cae16065622fc31fd0f484cc627d286ee37e6"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 4470,
+     "lines": 34,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "af5cae16065622fc31fd0f484cc627d286ee37e6"
+      }
+     ],
+     "add": 26,
+     "del": 18,
+     "bytes": 18157,
+     "lines": 93,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "af5cae16065622fc31fd0f484cc627d286ee37e6"
+      }
+     ],
+     "add": 37,
+     "del": 17,
+     "bytes": 19969,
+     "lines": 124,
+     "status": "recorded"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "af5cae16065622fc31fd0f484cc627d286ee37e6"
+      }
+     ],
+     "add": 26,
+     "del": 72,
+     "bytes": 24653,
+     "lines": 165,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "af5cae16065622fc31fd0f484cc627d286ee37e6"
+      }
+     ],
+     "add": 1,
+     "del": 20,
+     "bytes": 2296,
+     "lines": 32,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "af5cae16065622fc31fd0f484cc627d286ee37e6"
+      }
+     ],
+     "add": 5,
+     "del": 6,
+     "bytes": 7936,
+     "lines": 48,
+     "status": "recorded"
+    },
+    {
+     "key": "share",
+     "name": "Share sheet",
+     "cells": [
+      21,
+      24
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "af5cae16065622fc31fd0f484cc627d286ee37e6"
+      }
+     ],
+     "add": 4,
+     "del": 20,
+     "bytes": 2623,
+     "lines": 52,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r195_to_r196.py",
+       "blob": "2846297f62c1d6f20eb60077ab39b246774e465e"
+      }
+     ],
+     "add": 175,
+     "del": 0,
+     "bytes": 26724,
+     "lines": 178,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "af5cae16065622fc31fd0f484cc627d286ee37e6"
+      }
+     ],
+     "add": 8,
+     "del": 15,
+     "bytes": 10053,
+     "lines": 82,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 75,
+   "commit": "f65885b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6a1462d4f61a40c62891536d96b9b76f4acac6ae"
+      }
+     ],
+     "add": 32,
+     "del": 5,
+     "bytes": 19542,
+     "lines": 94,
+     "status": "recorded"
+    },
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6a1462d4f61a40c62891536d96b9b76f4acac6ae"
+      }
+     ],
+     "add": 1,
+     "del": 0,
+     "bytes": 482,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6a1462d4f61a40c62891536d96b9b76f4acac6ae"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 3127,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6a1462d4f61a40c62891536d96b9b76f4acac6ae"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 2968,
+     "lines": 14,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6a1462d4f61a40c62891536d96b9b76f4acac6ae"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6a1462d4f61a40c62891536d96b9b76f4acac6ae"
+      }
+     ],
+     "add": 3,
+     "del": 1,
+     "bytes": 3442,
+     "lines": 21,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r196_to_r197.py",
+       "blob": "7a9aa87b9c0caf060f45e3f7ce66a94d19d35f92"
+      }
+     ],
+     "add": 93,
+     "del": 0,
+     "bytes": 17122,
+     "lines": 96,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "6a1462d4f61a40c62891536d96b9b76f4acac6ae"
+      }
+     ],
+     "add": 4,
+     "del": 3,
+     "bytes": 5673,
+     "lines": 32,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 76,
+   "commit": "d93370d",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "744bfd303c6898ec54c55d47a4477e2e73e67773"
+      }
+     ],
+     "add": 32,
+     "del": 2,
+     "bytes": 123583,
+     "lines": 62,
+     "status": "truncated"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "744bfd303c6898ec54c55d47a4477e2e73e67773"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 3359,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "744bfd303c6898ec54c55d47a4477e2e73e67773"
+      }
+     ],
+     "add": 3,
+     "del": 2,
+     "bytes": 5683,
+     "lines": 23,
+     "status": "recorded"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "744bfd303c6898ec54c55d47a4477e2e73e67773"
+      }
+     ],
+     "add": 17,
+     "del": 4,
+     "bytes": 12007,
+     "lines": 59,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "744bfd303c6898ec54c55d47a4477e2e73e67773"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "744bfd303c6898ec54c55d47a4477e2e73e67773"
+      }
+     ],
+     "add": 7,
+     "del": 3,
+     "bytes": 6069,
+     "lines": 31,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r197_to_r198.py",
+       "blob": "b89b88b63ae47eda1c6ed2f630a82c51da0281c9"
+      },
+      {
+       "path": "docs/drone-2525/poses/POSES.sha256",
+       "blob": "e3f88a72e0ae50ca118de4d60e3ce0a17836f462"
+      },
+      {
+       "path": "docs/drone-2525/poses/poses.v2.json",
+       "blob": "33675650abe46509d4370fe2b876be5e6ce6117d"
+      }
+     ],
+     "add": 221,
+     "del": 0,
+     "bytes": 22713,
+     "lines": 229,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "744bfd303c6898ec54c55d47a4477e2e73e67773"
+      }
+     ],
+     "add": 3,
+     "del": 2,
+     "bytes": 4347,
+     "lines": 22,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 77,
+   "commit": "4911e6b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7944ade94be2f9f6fcfbf5531df11ce6566e1c16"
+      }
+     ],
+     "add": 6,
+     "del": 6,
+     "bytes": 356369,
+     "lines": 30,
+     "status": "truncated"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7944ade94be2f9f6fcfbf5531df11ce6566e1c16"
+      }
+     ],
+     "add": 13,
+     "del": 12,
+     "bytes": 15369,
+     "lines": 72,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7944ade94be2f9f6fcfbf5531df11ce6566e1c16"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r198_to_r199.py",
+       "blob": "06926f3b7911cb9fc09da3cb928a04020354bb00"
+      },
+      {
+       "path": "docs/drone-2525/poses/POSES.sha256",
+       "blob": "fed768e63ab94ec09c48f12fd8f6b07214994263"
+      },
+      {
+       "path": "docs/drone-2525/poses/cut-stances.py",
+       "blob": "25c05338d281cf6c275f086c88ad19a161b44076"
+      },
+      {
+       "path": "docs/drone-2525/poses/poses.v2.json",
+       "blob": null
+      }
+     ],
+     "add": 145,
+     "del": 105,
+     "bytes": 17735,
+     "lines": 260,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7944ade94be2f9f6fcfbf5531df11ce6566e1c16"
+      }
+     ],
+     "add": 3,
+     "del": 2,
+     "bytes": 4660,
+     "lines": 22,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 78,
+   "commit": "bfab534",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "9e41947e67dc63c0940d1d1bccaa8512c9358e44"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 244507,
+     "lines": 21,
+     "status": "truncated"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "9e41947e67dc63c0940d1d1bccaa8512c9358e44"
+      }
+     ],
+     "add": 26,
+     "del": 10,
+     "bytes": 21503,
+     "lines": 85,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "9e41947e67dc63c0940d1d1bccaa8512c9358e44"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r199_to_r200.py",
+       "blob": "57c3160e403393484148cdfb87321ec5ac466fae"
+      }
+     ],
+     "add": 72,
+     "del": 0,
+     "bytes": 14031,
+     "lines": 75,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "9e41947e67dc63c0940d1d1bccaa8512c9358e44"
+      }
+     ],
+     "add": 3,
+     "del": 2,
+     "bytes": 4924,
+     "lines": 22,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 79,
+   "commit": "9ea7ef4",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "b250055dd9c41de2d8ff4328e26b9255aade3183"
+      }
+     ],
+     "add": 5,
+     "del": 0,
+     "bytes": 3175,
+     "lines": 15,
+     "status": "recorded"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "b250055dd9c41de2d8ff4328e26b9255aade3183"
+      }
+     ],
+     "add": 10,
+     "del": 9,
+     "bytes": 10367,
+     "lines": 58,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "b250055dd9c41de2d8ff4328e26b9255aade3183"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r200_to_r201.py",
+       "blob": "c10555b05bb7b4d0edef689d40cc2daa92f6086a"
+      }
+     ],
+     "add": 54,
+     "del": 0,
+     "bytes": 8655,
+     "lines": 57,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "b250055dd9c41de2d8ff4328e26b9255aade3183"
+      }
+     ],
+     "add": 3,
+     "del": 2,
+     "bytes": 4824,
+     "lines": 22,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 80,
+   "commit": "ab65de4",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "0cd4f5f7a3c5031dbc57d2a08ae51f2a2ebf2e2b"
+      }
+     ],
+     "add": 37,
+     "del": 35,
+     "bytes": 356086,
+     "lines": 139,
+     "status": "truncated"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "0cd4f5f7a3c5031dbc57d2a08ae51f2a2ebf2e2b"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/magazine/MAGAZINE.sha256",
+       "blob": "5f8e0d5e20e4bdb1e30b0f7cdf95c555a477c2f5"
+      },
+      {
+       "path": "docs/drone-2525/magazine/cut-magazine.py",
+       "blob": "9eca5f82741edef46cd8e698e26e7f4afed442c9"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r201_to_r202.py",
+       "blob": "7184be28428b5ce2e0704dc6365b353a90542826"
+      }
+     ],
+     "add": 122,
+     "del": 0,
+     "bytes": 102983,
+     "lines": 129,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "0cd4f5f7a3c5031dbc57d2a08ae51f2a2ebf2e2b"
+      }
+     ],
+     "add": 3,
+     "del": 2,
+     "bytes": 4806,
+     "lines": 22,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 81,
+   "commit": "4adfe70",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "593172595e2fbb04367f7b473c44823de6378a79"
+      }
+     ],
+     "add": 10,
+     "del": 3,
+     "bytes": 6573,
+     "lines": 24,
+     "status": "recorded"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "593172595e2fbb04367f7b473c44823de6378a79"
+      }
+     ],
+     "add": 6,
+     "del": 6,
+     "bytes": 383756,
+     "lines": 45,
+     "status": "truncated"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "593172595e2fbb04367f7b473c44823de6378a79"
+      }
+     ],
+     "add": 11,
+     "del": 1,
+     "bytes": 6200,
+     "lines": 30,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/magazine/BARS.json",
+       "blob": "c31a0d85f357b90d53a07f113471dc4a9ea20396"
+      },
+      {
+       "path": "docs/drone-2525/magazine/MAGAZINE.sha256",
+       "blob": "c305f0b352c8d83c8b483cb22d7c77aa04898d2b"
+      },
+      {
+       "path": "docs/drone-2525/magazine/cut-magazine.py",
+       "blob": "8e6673594ae7a771b61f5783e78d9a774beedaae"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r202_to_r203.py",
+       "blob": "adcfd3f886682bfd57ae1ad8e8095e121f61c04a"
+      }
+     ],
+     "add": 135,
+     "del": 24,
+     "bytes": 22576,
+     "lines": 182,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "593172595e2fbb04367f7b473c44823de6378a79"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 4695,
+     "lines": 21,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 82,
+   "commit": "450e156",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f75ad44fcbc06bcf33d0a95e31a074431b427634"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 4233,
+     "lines": 14,
+     "status": "recorded"
+    },
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f75ad44fcbc06bcf33d0a95e31a074431b427634"
+      }
+     ],
+     "add": 12,
+     "del": 11,
+     "bytes": 11554,
+     "lines": 84,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f75ad44fcbc06bcf33d0a95e31a074431b427634"
+      }
+     ],
+     "add": 42,
+     "del": 7,
+     "bytes": 28883,
+     "lines": 114,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f75ad44fcbc06bcf33d0a95e31a074431b427634"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 9382,
+     "lines": 26,
+     "status": "recorded"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f75ad44fcbc06bcf33d0a95e31a074431b427634"
+      }
+     ],
+     "add": 10,
+     "del": 5,
+     "bytes": 11727,
+     "lines": 40,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f75ad44fcbc06bcf33d0a95e31a074431b427634"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f75ad44fcbc06bcf33d0a95e31a074431b427634"
+      }
+     ],
+     "add": 10,
+     "del": 6,
+     "bytes": 7684,
+     "lines": 33,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r203_to_r204.py",
+       "blob": "f1fe4c4d922faad599044255bc48f8afbacd6e6a"
+      }
+     ],
+     "add": 164,
+     "del": 0,
+     "bytes": 49089,
+     "lines": 167,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f75ad44fcbc06bcf33d0a95e31a074431b427634"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 5370,
+     "lines": 21,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 83,
+   "commit": "6a0f594",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "da91e2576b9bbf0c9f51a4d46f53d8de0de4c5f4"
+      }
+     ],
+     "add": 7,
+     "del": 13,
+     "bytes": 19786,
+     "lines": 71,
+     "status": "recorded"
+    },
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "da91e2576b9bbf0c9f51a4d46f53d8de0de4c5f4"
+      }
+     ],
+     "add": 4,
+     "del": 3,
+     "bytes": 4660,
+     "lines": 24,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "da91e2576b9bbf0c9f51a4d46f53d8de0de4c5f4"
+      }
+     ],
+     "add": 108,
+     "del": 13,
+     "bytes": 45580,
+     "lines": 200,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "da91e2576b9bbf0c9f51a4d46f53d8de0de4c5f4"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 4454,
+     "lines": 21,
+     "status": "recorded"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "da91e2576b9bbf0c9f51a4d46f53d8de0de4c5f4"
+      }
+     ],
+     "add": 1,
+     "del": 16,
+     "bytes": 9231,
+     "lines": 26,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "da91e2576b9bbf0c9f51a4d46f53d8de0de4c5f4"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r204_to_r205.py",
+       "blob": "40806ec312be2ac4be0168a0f05fc9d123ffb08d"
+      }
+     ],
+     "add": 285,
+     "del": 0,
+     "bytes": 45434,
+     "lines": 288,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "da91e2576b9bbf0c9f51a4d46f53d8de0de4c5f4"
+      }
+     ],
+     "add": 4,
+     "del": 3,
+     "bytes": 8108,
+     "lines": 40,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 84,
+   "commit": "c707fba",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c7b2641e2f613f931a757c82a837c658f2c087c3"
+      }
+     ],
+     "add": 68,
+     "del": 1,
+     "bytes": 12399,
+     "lines": 87,
+     "status": "recorded"
+    },
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c7b2641e2f613f931a757c82a837c658f2c087c3"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 4514,
+     "lines": 26,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c7b2641e2f613f931a757c82a837c658f2c087c3"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 4224,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c7b2641e2f613f931a757c82a837c658f2c087c3"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2983,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c7b2641e2f613f931a757c82a837c658f2c087c3"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r205_to_r206.py",
+       "blob": "2c577bb189b558f046a52ebaf38758f58d9357ef"
+      }
+     ],
+     "add": 157,
+     "del": 0,
+     "bytes": 19167,
+     "lines": 160,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c7b2641e2f613f931a757c82a837c658f2c087c3"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 7662,
+     "lines": 21,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 85,
+   "commit": "b3d5c18",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "4b4497060aaad95a9cab8278f711177f41b90eba"
+      }
+     ],
+     "add": 38,
+     "del": 10,
+     "bytes": 20069,
+     "lines": 113,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "4b4497060aaad95a9cab8278f711177f41b90eba"
+      }
+     ],
+     "add": 9,
+     "del": 6,
+     "bytes": 11107,
+     "lines": 50,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "4b4497060aaad95a9cab8278f711177f41b90eba"
+      }
+     ],
+     "add": 5,
+     "del": 1,
+     "bytes": 4858,
+     "lines": 15,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "4b4497060aaad95a9cab8278f711177f41b90eba"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r206_to_r207.py",
+       "blob": "a14b4c652acbb78ea80c06d695385e2ff1bcae33"
+      }
+     ],
+     "add": 195,
+     "del": 0,
+     "bytes": 23571,
+     "lines": 198,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "4b4497060aaad95a9cab8278f711177f41b90eba"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 8416,
+     "lines": 21,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 86,
+   "commit": "ca3261f",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "64f91c619f0337a94001c8741c752af4f3094a1e"
+      }
+     ],
+     "add": 24,
+     "del": 2,
+     "bytes": 6892,
+     "lines": 44,
+     "status": "recorded"
+    },
+    {
+     "key": "paint",
+     "name": "The painter",
+     "cells": [
+      3,
+      12
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "64f91c619f0337a94001c8741c752af4f3094a1e"
+      }
+     ],
+     "add": 7,
+     "del": 6,
+     "bytes": 6646,
+     "lines": 50,
+     "status": "recorded"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "64f91c619f0337a94001c8741c752af4f3094a1e"
+      }
+     ],
+     "add": 4,
+     "del": 3,
+     "bytes": 5065,
+     "lines": 16,
+     "status": "recorded"
+    },
+    {
+     "key": "maps",
+     "name": "The map ladder",
+     "cells": [
+      6,
+      15
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "64f91c619f0337a94001c8741c752af4f3094a1e"
+      }
+     ],
+     "add": 71,
+     "del": 30,
+     "bytes": 11490,
+     "lines": 121,
+     "status": "recorded"
+    },
+    {
+     "key": "capital",
+     "name": "Map · the Capitol lawn",
+     "cells": [
+      9,
+      10
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "64f91c619f0337a94001c8741c752af4f3094a1e"
+      }
+     ],
+     "add": 33,
+     "del": 7,
+     "bytes": 13525,
+     "lines": 89,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "64f91c619f0337a94001c8741c752af4f3094a1e"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/CAPITOL_SOURCES.json",
+       "blob": "ca80a233a043f359cfa296788e88cf56be35955f"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r207_to_r208.py",
+       "blob": "2e83e2bb9d3cea6d913ee2b13e165e4567825ceb"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/redfirst/r208.md",
+       "blob": "9e269155842f9355e3bf3b4465733dff55c13bd4"
+      }
+     ],
+     "add": 476,
+     "del": 0,
+     "bytes": 56465,
+     "lines": 483,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "64f91c619f0337a94001c8741c752af4f3094a1e"
+      }
+     ],
+     "add": 19,
+     "del": 11,
+     "bytes": 16826,
+     "lines": 103,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 87,
+   "commit": "a6f0424",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "maps",
+     "name": "The map ladder",
+     "cells": [
+      6,
+      15
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "40d32b744356897475710d9537f996da43f84c75"
+      }
+     ],
+     "add": 40,
+     "del": 2,
+     "bytes": 7916,
+     "lines": 77,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "40d32b744356897475710d9537f996da43f84c75"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "share",
+     "name": "Share sheet",
+     "cells": [
+      21,
+      24
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "40d32b744356897475710d9537f996da43f84c75"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 458,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r209.sha256",
+       "blob": "d84e40b933d080acdb4dba9c60874ec710e7a42d"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r208_to_r209.py",
+       "blob": "c6d937d5293b5d39028f79d45ca053bdc649e7a0"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/redfirst/r209.md",
+       "blob": "0ee2994495d61643980655f046d11bf58a4ff612"
+      }
+     ],
+     "add": 161,
+     "del": 0,
+     "bytes": 13663,
+     "lines": 168,
+     "status": "recorded"
+    },
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/drone-2525/deck-rev.ts",
+       "blob": "9b5ff9d4bd2c89c903d6ff3c5399eb036c16da27"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 351,
+     "lines": 7,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "40d32b744356897475710d9537f996da43f84c75"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2430,
+     "lines": 11,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 88,
+   "commit": "328ed8d",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "dc35c05bf0e7692cd2750ea349facb9c1e35e151"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 7779,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "dc35c05bf0e7692cd2750ea349facb9c1e35e151"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "dc35c05bf0e7692cd2750ea349facb9c1e35e151"
+      }
+     ],
+     "add": 682,
+     "del": 0,
+     "bytes": 101829,
+     "lines": 724,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r210.sha256",
+       "blob": "ec8c275bcb1137a9be7ddb254585f51c7761ce78"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r209_to_r210.py",
+       "blob": "30b4fde11d561ab50ac3d1f007f9a41a6bfef651"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/redfirst/r210.md",
+       "blob": "005807941c0eb91c62a010ff32f7c7478b3da682"
+      }
+     ],
+     "add": 979,
+     "del": 0,
+     "bytes": 73339,
+     "lines": 986,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "dc35c05bf0e7692cd2750ea349facb9c1e35e151"
+      }
+     ],
+     "add": 2,
+     "del": 1,
+     "bytes": 3310,
+     "lines": 20,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 89,
+   "commit": "d3ef63c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "maps",
+     "name": "The map ladder",
+     "cells": [
+      6,
+      15
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e53b436ad534f600b839d48ae114a5b1203430f5"
+      }
+     ],
+     "add": 25,
+     "del": 6,
+     "bytes": 5661,
+     "lines": 58,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e53b436ad534f600b839d48ae114a5b1203430f5"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e53b436ad534f600b839d48ae114a5b1203430f5"
+      }
+     ],
+     "add": 4,
+     "del": 2,
+     "bytes": 776,
+     "lines": 17,
+     "status": "recorded"
+    },
+    {
+     "key": "share",
+     "name": "Share sheet",
+     "cells": [
+      21,
+      24
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e53b436ad534f600b839d48ae114a5b1203430f5"
+      }
+     ],
+     "add": 14,
+     "del": 7,
+     "bytes": 3911,
+     "lines": 31,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r211.sha256",
+       "blob": "56c147b7b04270bd065c63aea14989a3e607475d"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r210_to_r211.py",
+       "blob": "e682e43de961679c924398bff90178b7ef270e02"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/redfirst/r211.md",
+       "blob": "75aaf2b2188131194a05a4535433c37e26e0b7d9"
+      }
+     ],
+     "add": 240,
+     "del": 0,
+     "bytes": 18850,
+     "lines": 247,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "e53b436ad534f600b839d48ae114a5b1203430f5"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2430,
+     "lines": 11,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 90,
+   "commit": "0d4d606",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7581b66aa0331505803720f1c8e029b94c40218f"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7581b66aa0331505803720f1c8e029b94c40218f"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 45847,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/drone-2525.v00.00.json",
+       "blob": "dac421c60272abdfcd4c1dadce9ce6006ea9a574"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r212.sha256",
+       "blob": "95fcc171fa095d65ae7947b33b56c4c04cd1e0c8"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r211_to_r212.py",
+       "blob": "5a238a1ae602af0909c8a426cd560d3c547859cd"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/redfirst/r212.md",
+       "blob": "ffdd53bcfb1ea561c79453371228ab3fba41d699"
+      }
+     ],
+     "add": 148,
+     "del": 1,
+     "bytes": 12028,
+     "lines": 164,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "7581b66aa0331505803720f1c8e029b94c40218f"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2430,
+     "lines": 11,
+     "status": "recorded"
+    }
+   ]
+  }
+ ]
+}

@@ -86,17 +86,17 @@ function _faceNeighbors(i: number): number[] {
 
 /** Deterministic permutation of 0..26 seeded by cube_id — sorted by the SHA-256 hexdigest
  *  string of `${cube}:${c}` (exactly Python's `_seeded_order`). */
-function _seededOrder(cubeId: number): number[] {
+function _seededOrder(cubeId: CubeSeed): number[] {
   const dig: Record<number, string> = {};
   for (let c = 0; c < 27; c++) dig[c] = _sha256hex(`${cubeId}:${c}`);
   return Array.from({ length: 27 }, (_, c) => c).sort((a, b) => (dig[a] < dig[b] ? -1 : dig[a] > dig[b] ? 1 : 0));
 }
 
-function _slabAxis(cubeId: number): number {
+function _slabAxis(cubeId: CubeSeed): number {
   return _hexMod(_sha256hex(`${cubeId}:axis`), 3);
 }
 
-function _axisSlabs(cubeId: number, n: number): number[][] {
+function _axisSlabs(cubeId: CubeSeed, n: number): number[][] {
   const axis = _slabAxis(cubeId);
   const xyz = (i: number) => [i % 3, Math.floor(i / 3) % 3, Math.floor(i / 9)];
   if (n === 3) {
@@ -113,8 +113,14 @@ function _axisSlabs(cubeId: number, n: number): number[][] {
   return keys.map((k) => cols[k]);
 }
 
+/** The partition seed. A number for a SIM cube; a string for anything else that needs its own stable shape —
+ *  the R-CORE code record seeds by project id (operator 2026-10-15: "use adjacent mini cubes grouped like lego;
+ *  method exists already in SIM behind easter egg"). The seed only ever reaches a template literal, so this is
+ *  a type widening and not a second algorithm — THIS file remains the one frontend source. */
+export type CubeSeed = number | string;
+
 /** n FACE-CONNECTED building blocks (Lego rule), byte-identical to Python `partition`. */
-export function connectedPartition(cubeId: number, n: number): number[][] {
+export function connectedPartition(cubeId: CubeSeed, n: number): number[][] {
   if (n <= 1) return [Array.from({ length: 27 }, (_, i) => i)];
   if (n >= 27) return Array.from({ length: 27 }, (_, i) => [i]);
   if ((n === 3 || n === 9) && _hexMod(_sha256hex(`${cubeId}:style`), 2) === 0) return _axisSlabs(cubeId, n);
@@ -143,7 +149,7 @@ export function connectedPartition(cubeId: number, n: number): number[][] {
 
 /** Blocks reordered BASE-FIRST (smallest min-z, then smallest cell index) so block 0 /
  *  section .1 (the foundation) anchors the bottom — mirror of Python `_ordered_partition`. */
-export function orderedPartition(cubeId: number, n: number): number[][] {
+export function orderedPartition(cubeId: CubeSeed, n: number): number[][] {
   return connectedPartition(cubeId, n).slice().sort((a, b) => {
     const az = Math.min(...a.map((i) => Math.floor(i / 9))), bz = Math.min(...b.map((i) => Math.floor(i / 9)));
     return az - bz || a[0] - b[0];
@@ -151,7 +157,7 @@ export function orderedPartition(cubeId: number, n: number): number[][] {
 }
 
 /** The parity surface: base-first blocks with their decimal codes ({cube}.{k+1}). */
-export function partitionSections(cubeId: number, count: number): { code: string; cells: number[] }[] {
+export function partitionSections(cubeId: CubeSeed, count: number): { code: string; cells: number[] }[] {
   return orderedPartition(cubeId, count).map((cells, k) => ({ code: `${cubeId}.${k + 1}`, cells }));
 }
 

@@ -20,6 +20,7 @@
 import { useMemo } from "react";
 import { LightCodexCube } from "@/components/light-codex-cube";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { LIGHT_CODEX_CODE } from "@/lib/2525-core/light-codex-code.gen";
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { LIGHT_CODEX_LEDGER } from "@/lib/2525-core/light-codex-ledger.gen"; // Light Codex append-only traceability ledger
 
@@ -33,7 +34,7 @@ export default function LightCodexPage() {
         }}
       />
       {/* Mounted LAST, in normal flow at the bottom of the page — never a fixed overlay on the cube. */}
-      <RCoreBadge history={history} accent="#e879f9" />
+      <RCoreBadge history={history} accent="#e879f9" code={LIGHT_CODEX_CODE} codeId="light-codex" />
     </div>
   );
 }

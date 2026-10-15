@@ -34,6 +34,7 @@ import { DroneIntro } from "./intro";
 import { StageStrip } from "./stage-strip";
 import { resolveBegin, introSeen, markIntroSeen, type BeginChoice } from "@/lib/drone-2525/guided-start";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { DRONE_2525_CODE } from "@/lib/2525-core/drone-2525-code.gen";
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { DRONE_LEDGER } from "@/lib/2525-core/drone-ledger.gen"; // Drone-2525 append-only traceability ledger
 
@@ -144,7 +145,7 @@ export function DroneCommandUX1() {
         <p style={{ fontSize: 11, lineHeight: 1.7, ...dim }}>{t("drone.mode_note")}</p>
       </div>
       {/* R-CORE · version-history badge — bottom of page, normal flow (mounted last), two-click; reads Drone-2525's traceability ledger. */}
-      <RCoreBadge history={DRONE_RCORE_HISTORY} accent={semanticHex("mount")} />
+      <RCoreBadge history={DRONE_RCORE_HISTORY} accent={semanticHex("mount")} code={DRONE_2525_CODE} codeId="drone-2525" />
     </div>
   );
 }

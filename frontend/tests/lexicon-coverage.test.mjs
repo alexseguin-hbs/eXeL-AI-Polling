@@ -17,6 +17,11 @@ const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 // re-staged AND its 32 now-stale translations are removed from lib/i18n-app/*, so t() falls back to the corrected
 // English rather than returning the old, wrong translation ("listed never silent" — an orphaned fill is a silent lie).
 const AFTER_FILL = new Set([
+  // R-CORE </> Code mode (operator 2026-10-15, DD-61/DD-65). ENGLISH ONLY: DD-60 of the same day holds ALL
+  // translation work until he says the UX is complete — "dont worry anlut translations until Ux is complete".
+  // Listed here, never silent; no fill is dispatched for it.
+  'rcore.code',
+  ...['code_none','code_file_one','code_file_many','code_window','code_capped','code_quiet','code_quiet_pane','code_error','code_absent'].map((k) => `rcore.${k}`),
   // r.T2 · the device outbox (operator 2026-10-14, "2525 redundancy" / "if that means we need other non-Supabase
   // source let me know"): two participant-facing sentences for the case where NO delivery path carried the
   // response. STAGED, not silent — under his own law, no ×32 fill before the English UI/UX is final and

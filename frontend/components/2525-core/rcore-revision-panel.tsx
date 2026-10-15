@@ -24,9 +24,16 @@
 import { useCallback, useMemo, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import {
-  compareRevisions, impactOfRevision, categoryOf, RCORE_LOGO_H,
-  type RCoreHistory, type RCoreRevision, type RCoreImpact,
+  compareRevisions, impactOfRevision, categoryOf, RCORE_LOGO_H, CODE_CHIP_H,
+  type RCoreHistory, type RCoreRevision, type RCoreImpact, type RCoreCodeRecord,
 } from "@/lib/2525-core/revisions";
+import { RCoreCodeView } from "@/components/2525-core/rcore-code-view";
+
+// His artwork for the chip (DD-65, 2026-10-15) — the badge's own two-stage language: the </> glyph at rest, the
+// </> Code wordmark when the mode is active. Deliberately NOT under /r-core/r-core-*, which
+// tests/rcore-revisions.test.mjs:123 counts and holds the panel to exactly one.
+const CODE_ICON = "/r-core/code-icon.png";
+const CODE_WORDMARK = "/r-core/code-wordmark.png";
 import { escHtml, escAttr, unified } from "@/lib/version-diff";
 
 const PAL = {
@@ -65,10 +72,16 @@ export function RCoreRevisionPanel({
   history,
   onClose,
   accent = "#22d3ee",
+  code,
+  codeId,
 }: {
   history: RCoreHistory;
   onClose: () => void;
   accent?: string;
+  // DD-61/DD-62: a project that HAS code passes its record and its id, and the </> chip appears. A project that
+  // does not — /vision-2525, "a white paper so does not have code" — passes neither, and the chip is absent.
+  code?: RCoreCodeRecord;
+  codeId?: string;
 }) {
   const { t } = useLexicon();
   const impactLabel = (impact: string) => t(`rcore.impact.${impact.toLowerCase()}`);
@@ -80,10 +93,12 @@ export function RCoreRevisionPanel({
   // guardrail aIdx < bIdx. Default: top is r.001 (the first revision), bottom is the latest r.###.
   const [aIdx, setAIdx] = useState(0);
   const [bIdx, setBIdx] = useState(n >= 1 ? n - 1 : 0);
-  const [diffMode, setDiffMode] = useState<"unified" | "side">("unified");
+  const [diffMode, setDiffMode] = useState<"unified" | "side" | "code">("unified");
   const [filter, setFilter] = useState<"added" | "revised" | "removed" | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [navIdx, setNavIdx] = useState(0);
+
+  const hasCode = !!code && !!codeId && (code.revs?.length ?? 0) > 0;
 
   const clampA = useCallback((i: number) => Math.max(0, Math.min(i, n - 2)), [n]);
   const clampB = useCallback((i: number) => Math.max(1, Math.min(i, n - 1)), [n]);
@@ -263,9 +278,24 @@ export function RCoreRevisionPanel({
                     <span role="group" style={{ display: "inline-flex", border: `1px solid ${PAL.line}`, borderRadius: 8, overflow: "hidden" }}>
                       <ModeBtn hook="cmpVU" label={t("rcore.unified")} active={diffMode === "unified"} onClick={() => setDiffMode("unified")} accent={accent} />
                       <ModeBtn hook="cmpVS" label={t("rcore.side_by_side")} active={diffMode === "side"} onClick={() => setDiffMode("side")} accent={accent} />
+                      {hasCode ? (
+                        <button data-rcore-mode="cmpVC" type="button" aria-pressed={diffMode === "code"} aria-label={t("rcore.code")}
+                          onClick={() => setDiffMode("code")}
+                          style={{ display: "inline-flex", alignItems: "center", padding: "2px 8px", border: 0, cursor: "pointer", lineHeight: 0,
+                            background: diffMode === "code" ? `${accent}22` : PAL.panel }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={diffMode === "code" ? CODE_WORDMARK : CODE_ICON} alt={t("rcore.code")}
+                            style={{ height: CODE_CHIP_H, width: "auto", display: "block" }} />
+                        </button>
+                      ) : null}
                     </span>
                   </div>
-                  {cmp.ops === null ? (
+                  {/* CODE FIRST: `cmp.ops === null` is the prose diff's token cap, and it fires on exactly the
+                      large revisions whose code a reader most wants. Testing it before the mode would make
+                      Code unreachable there, so the code branch is hoisted above it. */}
+                  {diffMode === "code" && hasCode ? (
+                    <RCoreCodeView code={code!} id={codeId!} fromRev={+cmp.fromRev} toRev={+cmp.toRev} accent={accent} />
+                  ) : cmp.ops === null ? (
                     <p style={{ fontSize: 12, color: PAL.muted, margin: 0 }}>{t("rcore.too_large")}</p>
                   ) : diffMode === "unified" ? (
                     <div style={{ border: `1px solid ${PAL.line}`, borderRadius: 8, background: PAL.raised, padding: "8px 10px" }}>

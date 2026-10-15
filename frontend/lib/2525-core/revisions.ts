@@ -30,6 +30,24 @@ export function redactModelIds(s: string): string {
 // badge imports the panel (a UI constant in either component would be an import cycle).
 export const RCORE_LOGO_H = 42;
 
+// The </> Code chip's display height. His artwork (2026-10-15, DD-65) is a PAIR in the badge's own two-stage
+// language: /r-core/code-icon.png at rest, /r-core/code-wordmark.png when the mode is active. It lives here
+// beside RCORE_LOGO_H for the same reason that one does — a literal in the panel would trip
+// tests/rcore-revisions.test.mjs's "no hardcoded raster height" rule, and one size means one constant.
+export const CODE_CHIP_H = 16;
+
+// THE CODE RECORD (DD-53, DD-66..DD-68). A project declares its AREAS once in
+// docs/traceability/projects.registry.json; frontend/scripts/gen-rcore-code.mjs turns each ledger revision into
+// the areas it touched. The panel lights those cells on the shared 3x3x3 cube and, on a tap, fetches that area's
+// patch from /r-core/code/<id>/<rev>.json. Never the whole file — the change that revision made.
+export interface RCoreCodeArea { k: string; n: string; c: readonly number[]; f: number; add: number; del: number; b: number; s: string }
+export interface RCoreCodeRev { r: number; s: string; a: readonly RCoreCodeArea[] }
+export interface RCoreCodeRecord {
+  section: string; route: string;
+  areas: readonly { k: string; n: string; c: readonly number[] }[];
+  revs: readonly RCoreCodeRev[];
+}
+
 // ── The normalized shape every surface's history collapses into ──────────────────────────────
 export interface RCoreRevision {
   /** Revision id as a string — "0.034" (DRS) or "47" (ledger). Normalized so both sort/compare alike. */
