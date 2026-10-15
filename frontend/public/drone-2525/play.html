@@ -140,14 +140,21 @@ button.on,button:hover{color:var(--t);border-color:var(--t)}
 #rcorePanel .rcCite{margin-top:4px;display:flex;flex-wrap:wrap;align-items:center;gap:5px}
 #rcorePanel .rcD{font-size:9px;font-family:ui-monospace,monospace;color:#a78bfa;border:1px solid #a78bfa55;border-radius:4px;padding:0 5px;line-height:15px}
 #rcorePanel .rcCommit{font-size:10px;color:#34d399;font-family:ui-monospace,monospace}
-#qrSheet{position:fixed;inset:0;z-index:60;display:none;background:rgba(0,0,0,.78);align-items:center;justify-content:center;flex-direction:column;padding:64px 16px 32px}
+/* r.211 (operator 2026-10-15, twice: "I still do not see why you regress; use image 2 formate for the range")
+   - the sheet of 12962de77, restored byte for byte. My r.196 restore took it out with the rest of the r.183-195
+   wave; what replaced it was r0.178's plain sheet at 78 % opacity, so the deck printed through it and r.209's
+   one-line ALL-CAPS heading wrapped across the magazine cards. Opaque ground, the map as a 28 px heading, the
+   seat and mode italic beneath it, the hint, and a filled pill. */
+#qrSheet{position:fixed;inset:0;z-index:60;display:none;background:#05080c;align-items:center;justify-content:center;flex-direction:column;padding:72px 22px 32px;text-align:center}
 #qrSheet.on{display:flex}
-#qrSheet h2{color:#3DCC8A;letter-spacing:.16em;font-size:15px;font-weight:500;margin:0 0 16px;text-align:center}
-#qrSheet .card{background:#fff;border-radius:16px;padding:14px;line-height:0}
-#qrSheet .card svg{width:min(72vw,300px);height:auto;display:block}
-#qrSheet #qrUrl{color:#7AB8C4;font-size:12px;line-height:1.45;text-align:center;max-width:36em;margin:16px 0 12px;word-break:break-all}
-#qrSheet #qrCopy{color:#7AB8C4;border:1px solid #1C2A3A;letter-spacing:.16em;padding:10px 16px;background:#000;min-height:36px}
-#qrClose{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));z-index:61;width:44px;height:44px;min-height:44px;padding:0;color:#7AB8C4;border:1px solid #1C2A3A;background:#000}
+#qrSheet h2{color:#2EE0E0;letter-spacing:.01em;font-size:28px;font-weight:650;margin:0 0 8px;text-align:center}
+#qrSheet #qrSub{color:#9AA8B0;font-size:15px;font-style:italic;font-weight:400;margin:0 0 22px;letter-spacing:.01em}
+#qrSheet .card{background:#fff;border-radius:18px;padding:16px;line-height:0}
+#qrSheet .card svg{width:min(78vw,320px);height:auto;display:block}
+#qrSheet #qrHint{color:#C5D0D6;font-size:16px;margin:22px 0 8px}
+#qrSheet #qrUrl{color:#8E9BA3;font-size:13px;line-height:1.45;text-align:center;max-width:22em;margin:0 0 22px;word-break:break-all}
+#qrSheet #qrCopy{color:#E8EEF0;border:0;letter-spacing:.01em;padding:12px 28px;background:#1E4A4E;border-radius:999px;min-height:44px;font-size:16px}
+#qrClose{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:61;width:44px;height:44px;min-height:44px;padding:0;color:#fff;border:0;background:transparent;font-size:28px}
  /* r.157: RELOAD calls for itself — empty, or the QUAL phase rest with a part-used magazine; never full */
 #startLight{position:absolute;right:8px;top:42px;z-index:4;display:none;flex-direction:column;align-items:center;gap:3px;padding:4px 7px;border:1px solid #1C2A3A;border-radius:6px;background:rgba(0,0,0,.6);pointer-events:none} /* r.157 (Addendum 1): the range tower's start light, upper right */
 #app.range #startLight{display:flex;width:56px;height:75px;box-sizing:border-box;padding:3px 2px 2px;gap:0;justify-content:flex-start} /* r.202: his light — 0.73, the lamps 19 % of its width in a column, the word and the clock under them */ /* r.199: one width for every word (WAIT · READY · FIRE · CEASE FIRE · the QUAL count · the TRAIN DOWN clock) so the position box can sit against it and clear the centred count on a 375-px phone */
@@ -421,7 +428,7 @@ input[type=range]{width:100%;accent-color:#3DCC8A}
 </div>
 <div id="app">
   <div class="bar">
-    <b>eXeL</b><span>r0.210</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
+    <b>eXeL</b><span>r0.211</span><button id="btnQr" type="button" title="share this lane" aria-label="share lane"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="10.5" y="2.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="10.5" width="3" height="3" rx=".4" fill="currentColor"/><rect x="9.3" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="9.3" width="2.1" height="2.1" fill="currentColor"/><rect x="9.3" y="12.5" width="2.1" height="2.1" fill="currentColor"/><rect x="12.5" y="12.5" width="2.1" height="2.1" fill="currentColor"/></svg></button><button id="btnFullBar" type="button" title="full screen" aria-label="full screen">⤢</button>
     <span class="rec" id="recTxt">REC</span>
     <span style="flex:1"></span>
     <button id="btnOps" type="button">CONTROLS</button>
@@ -755,10 +762,12 @@ No real-world laser-designator standard is implemented
 <div id="rcorePanel" data-rcore-panel role="dialog" aria-modal="true" aria-label="R-CORE · Version History" aria-hidden="true"></div>
 <div id="qrSheet" aria-hidden="true">
   <button type="button" id="qrClose" aria-label="close">×</button>
-  <h2 id="qrTitle">THE RANGE · LANE 21 · TURRET · TRAIN UP</h2>
+  <h2 id="qrTitle">The Range</h2>
+  <p id="qrSub">Lane 21 · Turret · Mode: Train - Up</p>
   <div class="card" id="qrImg"></div>
+  <p id="qrHint">Scan to share The Range</p>
   <p id="qrUrl"></p>
-  <button type="button" id="qrCopy">COPY LINK</button>
+  <button type="button" id="qrCopy">Copy Link</button>
 </div>
 <div id="toast"></div>
 <script>
@@ -773,7 +782,7 @@ function rcoreStep(name){
 }
 const T13={VOID:'#000000',PANEL:'#070B10',STROKE:'#1C2A3A',WIRE:'#7AB8C4',ROAD:'#4A6A78',WATER:'#2A6D88',DOME:'#C9A227',SI:'#E8D5B0',HI:'#5BA8FF',AI:'#C084FC',LOCK:'#E24B3B',TAG:'#3DCC8A',GIMBAL:'#F0A020'};
 const OK=new Set(Object.values(T13));
-const BUILD={version:'00.00',revision:'0.210'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
+const BUILD={version:'00.00',revision:'0.211'}; const FILE_BUDGET=7770000; const SID='s'+Math.random().toString(36).slice(2,10);
 
 const ASM=[
   {id:'AsM-01',name:'Enki',line:'Sumerian',team:'BLU',seat:'T01',ctrl:'AI'},
@@ -5304,10 +5313,14 @@ function toolSelfTest(){
     else { const wasOn=sh.classList.contains('on'); b.click();
       const t=String(ti.textContent||''), u=String(ur.textContent||'');
       /* ONE synchronous read of the other rung - rungWord/rungSeat do not yield, so no frame runs and the scene is never entered */
-      const capPair=(function(){ const c0=state.challenge; try{ state.challenge=1; const w=rungWord(), q=rungSeat(); return w+' · '+q+(/^TURRET/.test(q)?'':' · TURRET')+' · '+((RANGE_MODE_NAME&&RANGE_MODE_NAME[state.rangeMode||'bounce'])||'TRAIN UP'); } finally { state.challenge=c0; } })();
+      const capPair=(function(){ const c0=state.challenge; try{ state.challenge=1; return rungTitle(); } finally { state.challenge=c0; } })();
       if(!wasOn){ const x=document.getElementById('qrClose'); if(x) x.click(); }
-      const rangeHead=/^THE RANGE · LANE \d+ · TURRET · /.test(t), oldForm=/\?range=\d+&role=turret&mode=/.test(u), capHead=/^THE CAPITAL · /.test(capPair);
-      rows.push({id:'THE_SHEET_NAMES_THE_MAP',ok:rangeHead&&oldForm&&capHead,note:'the sheet heads "'+t+'" and links '+u.replace(/^https?:\/\/[^/]+/,'')+' · off the range the same sheet heads "'+capPair+'" — the map first, and the range link byte-identical so a QR already in his hand still opens'});
+      const sb=document.getElementById('qrSub'), hn=document.getElementById('qrHint');
+      const st=String(sb&&sb.textContent||''), ht=String(hn&&hn.textContent||'');
+      const rangeHead=t==='The Range', subOk=/^Lane \d+ · Turret · Mode: (Train - Up|Train - Down|Qual 40)$/.test(st), hintOk=ht==='Scan to share The Range';
+      const opaque=getComputedStyle(sh).backgroundColor==='rgb(5, 8, 12)';
+      const oldForm=/\?range=\d+&role=turret&mode=/.test(u), capHead=/^The Capital$/.test(capPair);
+      rows.push({id:'THE_SHEET_NAMES_THE_MAP',ok:rangeHead&&subOk&&hintOk&&opaque&&oldForm&&capHead,note:'the sheet heads "'+t+'" over "'+st+'", hint "'+ht+'", on an opaque ground ('+getComputedStyle(sh).backgroundColor+') and links '+u.replace(/^https?:\/\/[^/]+/,'')+' · off the range the heading is "'+capPair+'" — THE MAP IS THE TITLE (his picture), and the range link byte-identical so a QR already in his hand still opens'});
     }
     state.qa={pass:rows.filter(x=>x.ok).length,total:rows.length,rev:BUILD.revision,t:Date.now(),known:(state.qa&&state.qa.known)}; const qn=document.getElementById('qaOps'); if(qn) qn.textContent=state.qa.pass+'/'+state.qa.total;
   }catch(e){ rows.push({id:'THE_SHEET_NAMES_THE_MAP',ok:false,note:'threw '+String(e).slice(0,100)}); } }, 1500);
@@ -5967,6 +5980,16 @@ function pickScenario(v){ /* r.208: ONE door for the scenario picker and for the
    toolSelfTest() runs above this line and a const here is in its temporal dead zone at boot. */
 function rungIsRange(){ return chNum()===0; }
 function rungWord(){ return rungIsRange()?'THE RANGE':'THE CAPITAL'; }
+/* r.211: the share sheet is written in his picture's title case, not the HUD's caps. rungWord() is left exactly
+   as r.209 wrote it because the boot row and drone-playable both pin it; these are twins beside it. */
+function rungTitle(){ return rungIsRange()?'The Range':'The Capital'; }
+function modeWords(){ var m=state.rangeMode||'bounce'; return m==='stay'?'Train - Down':(m==='qual40'?'Qual 40':'Train - Up'); }
+function rungSeatTitle(){
+  if(rungIsRange()) return 'Lane '+(((state.lane|0)+1))+' · Turret';
+  var id=String(state.unit||'T01'), u=(typeof units!=='undefined')&&units[id], lab=(u&&u.label)||'';
+  if(/^TURRET\s+\d+\/\d+$/.test(lab)) return 'Turret '+lab.replace(/^TURRET\s+/,'');
+  return 'Turret '+((id.replace(/^T/,'')|0)||1)+'/42';
+}
 function rungSeat(){
   if(rungIsRange()) return (typeof laneWord==='function'?laneWord():('LANE '+(((state.lane|0)+1))));
   var id=String(state.unit||'T01'), u=(typeof units!=='undefined')&&units[id], lab=(u&&u.label)||'';
@@ -8800,9 +8823,14 @@ var qrcode = function() {
     /* r.209 (DD-48, operator 2026-10-14 twice: "This should have the range at top"): the sheet says WHERE the
        shot is before it says which lane and which programme. THE RANGE · LANE 21 · TURRET · TRAIN UP, and on
        the Capital THE CAPITAL · TURRET 7/42 · TRAIN UP. */
-    var _w=(typeof rungWord==='function')?rungWord():'THE RANGE', _s=(typeof rungSeat==='function')?rungSeat():('LANE '+(((state.lane|0)+1)));
-    /* the seat already names the craft on a station (TURRET 7/42); on a lane it does not, so the range keeps his own ' · TURRET · ' */
-    if(title) title.textContent=_w+' · '+_s+(/^TURRET\b/.test(_s)?'':' · TURRET')+' · '+((typeof RANGE_MODE_NAME!=='undefined'&&RANGE_MODE_NAME[state.rangeMode||'bounce'])||'TRAIN UP');
+    /* r.211: the MAP is the heading - which is DD-48 answered better than r.209 answered it, because the map is
+       not merely first in a line, it is the title. The seat and the programme sit beneath it, and the hint names
+       the map again, exactly as his picture does. */
+    var _t=(typeof rungTitle==='function')?rungTitle():'The Range';
+    var sub=document.getElementById('qrSub'), hint=document.getElementById('qrHint');
+    if(title) title.textContent=_t;
+    if(sub) sub.textContent=((typeof rungSeatTitle==='function')?rungSeatTitle():('Lane '+(((state.lane|0)+1))+' · Turret'))+' · Mode: '+((typeof modeWords==='function')?modeWords():'Train - Up');
+    if(hint) hint.textContent='Scan to share '+_t;
     if(link) link.textContent=url;
     if(box && typeof qrcode==='function'){
       var qr=qrcode(0,'M');
