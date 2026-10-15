@@ -29,8 +29,18 @@ export function blockColor(k: number): string {
 // Vision-2525 R-Core camera. Reuses the voxel-house pattern (preserve-3d + perspective +
 // rotateX(pitch)/rotateZ(bearing)). Lit blocks glow (SI); the rest read as a dim lattice
 // so the whole 3×3×3 identity fingerprint is visible while the worked section stands out.
-export function CubeVoxel3D({ lit, blockOf, nSections, codes = [], exploded = false, px = 200, fill = false }: {
+// How an UNSELECTED mini-cube is drawn in the assembled view: [top, side, far, opacity].
+// The SIM's own value is kept as the default — "others more see-through" is the operator's choice there and
+// nothing about the SIM changes. But a caller that lights only ONE piece of sixteen has nothing left to read:
+// at 0x2e x 0.42 the top face lands near 7% and the far faces near 3%, so the 3x3x3 stops looking like a cube
+// at all (operator 2026-10-15, sending the render back). Such a caller passes its own rest.
+export const REST_SEE_THROUGH: [string, string, string, number] = ["2e", "1e", "14", 0.42];
+export const REST_SOLID_ENOUGH: [string, string, string, number] = ["7a", "52", "38", 0.9];
+
+export function CubeVoxel3D({ lit, blockOf, nSections, codes = [], exploded = false, px = 200, fill = false,
+  rest = REST_SEE_THROUGH }: {
   lit: Set<number>; blockOf: number[]; nSections: number; codes?: string[]; exploded?: boolean; px?: number; fill?: boolean;
+  rest?: [string, string, string, number];
 }) {
   const cam = useRCoreGestures({
     initialBearing: -0.6, initialPitch: 60, initialZoom: 1, touchOrbit: true, pan: false,
@@ -116,7 +126,7 @@ export function CubeVoxel3D({ lit, blockOf, nSections, codes = [], exploded = fa
       for (let i = 0; i < 27; i++) {
         const layer = Math.floor(i / 9), c9 = i % 9, row = Math.floor(c9 / 3), col = c9 % 3;
         const k = blockOf[i] ?? 0;
-        const a: [string, string, string, number] = lit.has(i) ? ["ff", "dd", "bb", 1] : ["2e", "1e", "14", 0.42];
+        const a: [string, string, string, number] = lit.has(i) ? ["ff", "dd", "bb", 1] : rest;
         out.push(solidCube(i, (col - 1) * step, (row - 1) * step, (layer - 1) * step, cell, blockColor(k), a));
       }
     }
@@ -128,7 +138,7 @@ export function CubeVoxel3D({ lit, blockOf, nSections, codes = [], exploded = fa
       return { code: codes[k] ?? `${k + 1}`, x: cx * step + d[0] * exStepA, y: cy * step + d[1] * exStepA, z: cz * step + d[2] * exStepA };
     });
     return { cubes: out, anchors };
-  }, [lit, blockOf, nSections, codes, exploded, cell, step, fill]);
+  }, [lit, blockOf, nSections, codes, exploded, cell, step, fill, rest]);
   return (
     <div className="relative touch-none select-none overflow-hidden rounded-lg"
       style={{ width: fill ? "100%" : px, height: fill ? "100%" : px, minWidth: fill ? undefined : px }}

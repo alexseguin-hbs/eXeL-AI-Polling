@@ -19,7 +19,7 @@
 // and the cap the generator applied is carried in the payload and shown rather than hidden.
 import { useEffect, useMemo, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
-import { CubeVoxel3D } from "@/components/2525-core/cube-voxel-3d";
+import { CubeVoxel3D, REST_SOLID_ENOUGH } from "@/components/2525-core/cube-voxel-3d";
 import type { RCoreCodeRecord } from "@/lib/2525-core/revisions";
 
 const PAL = { line: "#22363a", raised: "#132428", ink: "#e2ecec", muted: "#8fa3a6", pre: "#080f1d" };
@@ -123,7 +123,8 @@ export function RCoreCodeView({ code, id, fromRev, toRev, accent }: {
             scrolling panel that would swallow a vertical swipe on a phone, so vertical panning is handed back
             to the page and only horizontal drag rotates. */}
         <div style={{ flex: "0 0 auto", touchAction: "pan-y" }}>
-          <CubeVoxel3D lit={lit} blockOf={blockOf} nSections={pieces.length} codes={codes} px={150} />
+          <CubeVoxel3D lit={lit} blockOf={blockOf} nSections={pieces.length} codes={codes} px={150}
+            rest={REST_SOLID_ENOUGH} />
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div className="flex flex-wrap items-center gap-1.5">

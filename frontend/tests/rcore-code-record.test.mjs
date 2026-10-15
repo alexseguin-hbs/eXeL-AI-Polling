@@ -178,5 +178,26 @@ ok(/leaveCode\("unified"\)/.test(panel) && /leaveCode\("side"\)/.test(panel) && 
 ok(/flexWrap: "wrap"/.test(panel) && /flexShrink: 0/.test(panel),
   "the mode row wraps and the artwork never shrinks — his proportions are not squeezed at phone width");
 
+// ── THE CUBE READS AS A CUBE ────────────────────────────────────────────────────────────────────────────────
+// He sent the render back because the 3x3x3 had stopped looking like a cube: with one piece of sixteen selected,
+// an unselected mini-cube drew at 0x2e x 0.42 — about 7% on its top face and 3% on the far ones — so there was
+// nothing left to read. That faint value is the SIM's own choice ("others more see-through") and is UNCHANGED
+// there; the code view asks for its own. Asserted so it cannot quietly fall back to invisible.
+const cube = fs.readFileSync(path.join(ROOT, "frontend/components/2525-core/cube-voxel-3d.tsx"), "utf8");
+const view = fs.readFileSync(path.join(ROOT, "frontend/components/2525-core/rcore-code-view.tsx"), "utf8");
+ok(/export const REST_SEE_THROUGH: \[string, string, string, number\] = \["2e", "1e", "14", 0\.42\];/.test(cube),
+  "the SIM's see-through rest is unchanged and is still the default");
+ok(/rest = REST_SEE_THROUGH/.test(cube), "a caller that passes nothing gets exactly what the SIM has always had");
+ok(/rest=\{REST_SOLID_ENOUGH\}/.test(view), "the code view asks for a rest the eye can actually see");
+{
+  const m = /export const REST_SOLID_ENOUGH: \[string, string, string, number\] = \["([0-9a-f]{2})", "([0-9a-f]{2})", "([0-9a-f]{2})", ([\d.]+)\];/.exec(cube);
+  ok(!!m, "REST_SOLID_ENOUGH is declared");
+  if (m) {
+    const top = parseInt(m[1], 16) / 255 * (+m[4]);
+    ok(top > 0.25, `an unselected mini-cube's top face is visible on a dark ground (${(top * 100).toFixed(0)}% vs the SIM's 7%)`);
+    ok(top < 0.75, `and still clearly below the selected block, so the selection reads (${(top * 100).toFixed(0)}%)`);
+  }
+}
+
 console.log(`\nrcore-code-record: ${pass} passed, ${fail} failed · ${withCode.length} projects carry a per-revision code record`);
 if (fail) process.exit(1);
