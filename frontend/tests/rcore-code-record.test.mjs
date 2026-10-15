@@ -123,8 +123,8 @@ const panel = fs.readFileSync(path.join(ROOT, "frontend/components/2525-core/rco
 ok(/data-rcore-mode="cmpVC"/.test(panel), "the panel carries the </> Code mode beside Unified and Side-by-side");
 ok(/\/r-core\/code-icon\.png/.test(panel) && /\/r-core\/code-wordmark\.png/.test(panel),
   "the chip is HIS raster pair (DD-65) — the icon at rest, the wordmark when active — not a drawn glyph");
-ok(/height: CODE_CHIP_H/.test(panel) && !/height: \d+, width: "auto"/.test(panel),
-  "the chip's height is the shared constant, never a literal (the panel's one-size rule)");
+ok(/height: codeStage === 0 \? CODE_CHIP_H : CODE_WORD_H/.test(panel) && !/height: \d+, width: "auto"/.test(panel),
+  "each beat's height is its own shared constant, never a literal (the panel's one-size rule)");
 // The code branch MUST precede the prose diff's token-cap return, or Code is unreachable on exactly the large
 // revisions a reader most wants it for.
 // Anchor on the RENDER CALL, not on `diffMode === "code"` — that string also appears in the chip's own
@@ -136,12 +136,40 @@ ok(iCode > 0 && iTooLarge > 0 && iCode < iTooLarge,
 ok(/code\?: RCoreCodeRecord/.test(panel) && /hasCode/.test(panel),
   "the chip appears only when the project HAS a code record (DD-62: /vision-2525 passes none)");
 
-// his rasters actually shipped, and are chip-sized rather than poster-sized
-for (const f of ["code-icon.png", "code-wordmark.png"]) {
-  const abs = path.join(ROOT, "frontend/public/r-core", f);
-  ok(fs.existsSync(abs), `his raster ${f} is served`);
-  if (fs.existsSync(abs)) ok(fs.statSync(abs).size < 40_000, `${f} is resampled for a chip (${fs.statSync(abs).size} B < 40 KB)`);
+// ── HIS ARTWORK IS HIS ARTWORK (DD-65 + DD-72) ──────────────────────────────────────────────────────────────
+// He sent the </> pair twice. The first time I resampled it to a 96x32 chip, which dropped his wordmark's ink
+// to 10.5 px; asked how to fix it he said "use R-CORE ICONOLOGY AS A reference", and R-CORE serves his reticle
+// RAW at 985 KB with the comment "the operator's exact reticle artwork, as-is", sized only in CSS. So these are
+// served UNCUT and UNRESAMPLED, and this proves it the way nothing proves the R-CORE pair: byte-identical to
+// his own uploads, which the ask sidecar already hashes. As-is AND provably his.
+import { createHash } from "node:crypto";
+const sha256 = (b) => createHash("sha256").update(b).digest("hex");
+const sidecar = fs.readFileSync(path.join(ROOT, "docs/asks/2026.10.11_18.56..53_drone2525_restore_r178_three_modes_poses.md.sha256"), "utf8");
+for (const [served, shot] of [["code-icon.png", "shot65"], ["code-wordmark.png", "shot66"]]) {
+  const abs = path.join(ROOT, "frontend/public/r-core", served);
+  const src = path.join(ROOT, `docs/asks/img/2026.10.11_18.56..53_drone2525_${shot}.png`);
+  ok(fs.existsSync(abs) && fs.existsSync(src), `${served} and his ${shot} both exist`);
+  if (!fs.existsSync(abs) || !fs.existsSync(src)) continue;
+  const h = sha256(fs.readFileSync(abs));
+  ok(h === sha256(fs.readFileSync(src)), `${served} is BYTE-IDENTICAL to his ${shot} — uncut, unresampled`);
+  ok(sidecar.includes(`_${shot}.png`) && sidecar.split("\n").some((l) => l.includes(`_${shot}.png`) && l.trim().split(/\s+/)[0] === h),
+    `${served}'s bytes are the ones the ask sidecar hashes for ${shot} — the served file IS the picture he sent`);
 }
+// Sized in CSS from constants, never baked into the raster and never a literal in the panel.
+const rev = fs.readFileSync(path.join(ROOT, "frontend/lib/2525-core/revisions.ts"), "utf8");
+ok(/export const CODE_CHIP_H = \d+;/.test(rev) && /export const CODE_WORD_H = \d+;/.test(rev),
+  "the chip and the wordmark take their heights from shared constants beside RCORE_LOGO_H");
+
+// ── THE THREE BEATS (DD-72) — "work it just like R-CORE (expands after pressed, then expands to code elements
+// next)". The badge's grammar, one level down: icon → wordmark → the code elements.
+ok(/const \[codeStage, setCodeStage\] = useState<0 \| 1>\(0\)/.test(panel), "the chip has a stage of its own, like the badge's");
+ok(/codeStage === 0 \? CODE_ICON : CODE_WORDMARK/.test(panel), "beat 1 is his </> icon, beat 2 his </> Code wordmark");
+ok(/if \(codeStage === 0\) \{ setCodeStage\(1\); return; \}/.test(panel) && /setDiffMode\("code"\);/.test(panel),
+  "beat 2 expands, and only the NEXT press opens the code elements");
+ok(/leaveCode\("unified"\)/.test(panel) && /leaveCode\("side"\)/.test(panel) && /setCodeStage\(0\)/.test(panel),
+  "choosing a text mode collapses the chip, so the three beats always start from the same place");
+ok(/flexWrap: "wrap"/.test(panel) && /flexShrink: 0/.test(panel),
+  "the mode row wraps and the artwork never shrinks — his proportions are not squeezed at phone width");
 
 console.log(`\nrcore-code-record: ${pass} passed, ${fail} failed · ${withCode.length} projects carry a per-revision code record`);
 if (fail) process.exit(1);

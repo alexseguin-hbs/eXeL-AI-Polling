@@ -34,7 +34,13 @@ export const RCORE_LOGO_H = 42;
 // language: /r-core/code-icon.png at rest, /r-core/code-wordmark.png when the mode is active. It lives here
 // beside RCORE_LOGO_H for the same reason that one does — a literal in the panel would trip
 // tests/rcore-revisions.test.mjs's "no hardcoded raster height" rule, and one size means one constant.
-export const CODE_CHIP_H = 16;
+export const CODE_CHIP_H = 20;
+
+// ...and the wordmark's, once pressed. Bigger because by then it IS the active control and may take the room —
+// which is the whole reason his three beats solve the sizing rather than trading it off. Sized against
+// RCORE_LOGO_H (42): his wordmark's ink fills 65% of its box, so 30 px of box is ~20 px of artwork, which reads
+// beside the 11 px mode labels. R-CORE carries the same halo at 42 and does not cut it either.
+export const CODE_WORD_H = 30;
 
 // THE CODE RECORD (DD-53, DD-66..DD-68). A project declares its AREAS once in
 // docs/traceability/projects.registry.json; frontend/scripts/gen-rcore-code.mjs turns each ledger revision into

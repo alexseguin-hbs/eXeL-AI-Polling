@@ -24,7 +24,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import {
-  compareRevisions, impactOfRevision, categoryOf, RCORE_LOGO_H, CODE_CHIP_H,
+  compareRevisions, impactOfRevision, categoryOf, RCORE_LOGO_H, CODE_CHIP_H, CODE_WORD_H,
   type RCoreHistory, type RCoreRevision, type RCoreImpact, type RCoreCodeRecord,
 } from "@/lib/2525-core/revisions";
 import { RCoreCodeView } from "@/components/2525-core/rcore-code-view";
@@ -99,6 +99,19 @@ export function RCoreRevisionPanel({
   const [navIdx, setNavIdx] = useState(0);
 
   const hasCode = !!code && !!codeId && (code.revs?.length ?? 0) > 0;
+  // DD-72 — HIS WORDS: "work it just like R-CORE (expands after pressed, then expands to code elements next)".
+  // rcore-badge.tsx already has this grammar at the page level: stage 0 = icon, stage 1 = wordmark pill, then
+  // the panel. The chip is the same three beats one level down, inside the panel: the </> icon at rest, his
+  // </> Code wordmark once pressed, and the code elements on the second press. It is not a new interaction —
+  // it is the badge's own — and it is what gives his artwork room, because the wordmark only needs the width
+  // once it is the thing being used.
+  const [codeStage, setCodeStage] = useState<0 | 1>(0);
+  const pressCode = useCallback(() => {
+    if (codeStage === 0) { setCodeStage(1); return; }     // beat 2 — it expands to his wordmark
+    setDiffMode("code");                                   // beat 3 — the code elements
+  }, [codeStage]);
+  // Leaving Code collapses the chip back to the icon, so the three beats always start from the same place.
+  const leaveCode = useCallback((m: "unified" | "side") => { setDiffMode(m); setCodeStage(0); }, []);
 
   const clampA = useCallback((i: number) => Math.max(0, Math.min(i, n - 2)), [n]);
   const clampB = useCallback((i: number) => Math.max(1, Math.min(i, n - 1)), [n]);
@@ -273,19 +286,25 @@ export function RCoreRevisionPanel({
 
                 {/* What changed — Unified ↔ Side-by-side over the from→to word diff. */}
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
                     <span style={{ fontSize: 11, fontWeight: 600, color: PAL.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>{t("rcore.what_changed")}</span>
                     <span role="group" style={{ display: "inline-flex", border: `1px solid ${PAL.line}`, borderRadius: 8, overflow: "hidden" }}>
-                      <ModeBtn hook="cmpVU" label={t("rcore.unified")} active={diffMode === "unified"} onClick={() => setDiffMode("unified")} accent={accent} />
-                      <ModeBtn hook="cmpVS" label={t("rcore.side_by_side")} active={diffMode === "side"} onClick={() => setDiffMode("side")} accent={accent} />
+                      <ModeBtn hook="cmpVU" label={t("rcore.unified")} active={diffMode === "unified"} onClick={() => leaveCode("unified")} accent={accent} />
+                      <ModeBtn hook="cmpVS" label={t("rcore.side_by_side")} active={diffMode === "side"} onClick={() => leaveCode("side")} accent={accent} />
                       {hasCode ? (
                         <button data-rcore-mode="cmpVC" type="button" aria-pressed={diffMode === "code"} aria-label={t("rcore.code")}
-                          onClick={() => setDiffMode("code")}
+                          onClick={pressCode}
                           style={{ display: "inline-flex", alignItems: "center", padding: "2px 8px", border: 0, cursor: "pointer", lineHeight: 0,
-                            background: diffMode === "code" ? `${accent}22` : PAL.panel }}>
+                            flexShrink: 0, background: diffMode === "code" ? `${accent}22` : PAL.panel }}>
+                          {/* HIS ARTWORK, AS-IS — the R-CORE iconology he named as the reference: the badge
+                              serves /r-core/r-core-icon.png raw at 985 KB and sizes it in CSS ("the operator's
+                              exact reticle artwork, as-is"). These are byte-identical to his own sends, proven
+                              by tests/rcore-code-record.test.mjs against the ask sidecar. Never cut, never
+                              resampled — an earlier cut shrank his wordmark's ink to 10.5 px and he sent the
+                              art again. */}
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={diffMode === "code" ? CODE_WORDMARK : CODE_ICON} alt={t("rcore.code")}
-                            style={{ height: CODE_CHIP_H, width: "auto", display: "block" }} />
+                          <img src={codeStage === 0 ? CODE_ICON : CODE_WORDMARK} alt={t("rcore.code")}
+                            style={{ height: codeStage === 0 ? CODE_CHIP_H : CODE_WORD_H, width: "auto", display: "block", flexShrink: 0 }} />
                         </button>
                       ) : null}
                     </span>
