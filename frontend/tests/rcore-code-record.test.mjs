@@ -157,8 +157,15 @@ for (const [served, shot] of [["code-icon.png", "shot65"], ["code-wordmark.png",
 }
 // Sized in CSS from constants, never baked into the raster and never a literal in the panel.
 const rev = fs.readFileSync(path.join(ROOT, "frontend/lib/2525-core/revisions.ts"), "utf8");
-ok(/export const CODE_CHIP_H = \d+;/.test(rev) && /export const CODE_WORD_H = \d+;/.test(rev),
-  "the chip and the wordmark take their heights from shared constants beside RCORE_LOGO_H");
+ok(/export const CODE_CHIP_H = \d+;/.test(rev), "the resting chip's height is a shared constant");
+// DD-73 — "smaller icon first and clicking opens larger code icon". Both halves asserted, because a single
+// constant drifting would quietly undo the thing he had to say twice.
+const chipH = +(/export const CODE_CHIP_H = (\d+);/.exec(rev) || [])[1];
+const logoH = +(/export const RCORE_LOGO_H = (\d+);/.exec(rev) || [])[1];
+ok(Number.isFinite(chipH) && Number.isFinite(logoH) && chipH < logoH,
+  `the resting icon is SMALLER than the expanded wordmark (${chipH} < ${logoH})`);
+ok(/export const CODE_WORD_H = RCORE_LOGO_H;/.test(rev),
+  "the expanded wordmark is bound to RCORE_LOGO_H itself — the badge's own size, not a chosen number");
 
 // ── THE THREE BEATS (DD-72) — "work it just like R-CORE (expands after pressed, then expands to code elements
 // next)". The badge's grammar, one level down: icon → wordmark → the code elements.

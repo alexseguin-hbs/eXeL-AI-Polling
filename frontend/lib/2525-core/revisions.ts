@@ -34,13 +34,16 @@ export const RCORE_LOGO_H = 42;
 // language: /r-core/code-icon.png at rest, /r-core/code-wordmark.png when the mode is active. It lives here
 // beside RCORE_LOGO_H for the same reason that one does — a literal in the panel would trip
 // tests/rcore-revisions.test.mjs's "no hardcoded raster height" rule, and one size means one constant.
-export const CODE_CHIP_H = 20;
+export const CODE_CHIP_H = 14;
 
-// ...and the wordmark's, once pressed. Bigger because by then it IS the active control and may take the room —
-// which is the whole reason his three beats solve the sizing rather than trading it off. Sized against
-// RCORE_LOGO_H (42): his wordmark's ink fills 65% of its box, so 30 px of box is ~20 px of artwork, which reads
-// beside the 11 px mode labels. R-CORE carries the same halo at 42 and does not cut it either.
-export const CODE_WORD_H = 30;
+// ...and the wordmark's, once pressed. DD-73 (operator 2026-10-15, with the mode LIVE in his hand): "Code must
+// use smaller icon first and clicking opens larger code icon". The first cut had the resting icon at 20 and the
+// wordmark at 30 — but his artwork carries a neon halo, so the box overstates the art (icon 55.5% ink, wordmark
+// 65.3%): that was ~11 px of visible icon, LARGER than the 11 px labels beside it, expanding to ~20 px, a jump
+// of only 1.8x. Now 14 (~8 px, quieter than its neighbours) expanding to RCORE_LOGO_H itself — a 3.5x jump, and
+// bound to the badge's own constant rather than a chosen number so the chip can never drift from the thing it
+// is modelled on.
+export const CODE_WORD_H = RCORE_LOGO_H;
 
 // THE CODE RECORD (DD-53, DD-66..DD-68). A project declares its AREAS once in
 // docs/traceability/projects.registry.json; frontend/scripts/gen-rcore-code.mjs turns each ledger revision into
