@@ -1,0 +1,81 @@
+# r.211 — red first, and the regression traced to its commit
+
+## What he said, twice
+
+> **I still do not see why you regress; use image 2 formate for the range**
+
+Two screenshots side by side: the live r0.210 sheet (a wrapping ALL-CAPS line printed across the magazine
+cards, the deck showing through a 78 %-opaque ground, a boxed teal ×) and the sheet he wants back (opaque,
+"The Range" as a 28 px cyan heading, an italic subtitle, a hint line, a filled Copy Link pill, a plain white ×).
+
+## Whose regression, traced rather than guessed
+
+```
+git log -S"Scan to share" -- frontend/public/drone-2525/play.html
+  a18880daf  Drone-2525 r.196 artefact — RESTORE: the r.178 base …     ← REMOVED it (mine)
+  12962de77  Restore The Range share sheet and the compact magazines.  ← ADDED it
+```
+
+The polished sheet was built in `12962de77`, in the r.183–r.195 wave. **My r.196 artefact removed it**, because
+r.196 rebuilt the deck from his own r0.178 base to fix the targets and r0.178 predates the sheet. The loss was
+collateral and I never flagged it — r.196's notes listed the r.183–195 commits as "uncarried hand edits", so it
+was on the record, but the **UI** loss was not said out loud to him. r.209 then wrote the map name into the
+plain sheet, turning it into the wrapping line he photographed.
+
+So the answer to *"why you regress"* is: a restore I made six revisions ago threw away work that was not part of
+what I was restoring, and nothing in the gates noticed, because **no gate measured what the sheet looked like.**
+That is the real defect, and it is fixed below.
+
+## Red first — the four new assertions on the SHIPPED r.210 bytes
+
+```
+FAIL: r.211: the sheet is his picture again — the map as the heading, the seat and mode beneath it,
+      the hint line, and a Copy Link pill
+FAIL: r.211: the sheet is OPAQUE (#05080c — the deck no longer prints through it), Copy Link is a
+      filled pill, and the close is a plain white × not a boxed button
+FAIL: r.211: rungWord() is left exactly as r.209 wrote it because the boot row pins it; the sheet's
+      title-case words are twins beside it, never a rewrite of a pinned function
+FAIL: r.211: the hint names the map, the Capital link still carries map+station, and the deck still
+      measures its own sheet
+```
+Green on the cut: `drone-playable: 172 passed, 0 failed`.
+
+## The rewritten boot row CAN still fail — three sabotages on the real cut
+
+`THE_SHEET_NAMES_THE_MAP` was rewritten (it pinned the old ALL-CAPS form). A rewritten gate that can only pass is
+not a gate, so it was sabotaged three ways — including **the two things that actually went wrong**:
+
+```
+none                 GREEN · heads "The Range" over "Lane 21 · Turret · Mode: Train - Up",
+                             hint "Scan to share The Range", opaque ground rgb(5, 8, 12)
+translucent-again    RED   · … on an opaque ground (rgba(0, 0, …          ← the r.196→r.210 state
+caps-heading-again   RED   · heads "THE RANGE · LANE 21 · TURRET · TRAIN UP" …  ← the r.209 state
+no-subtitle          RED   · heads "The Range" over ""
+```
+
+**Had this row existed in its new form at r.196, it would have caught the regression the day I shipped it.**
+
+## What is deliberately NOT restored
+
+His image 2 shows the link as `/drone-2525/play?range=21&role=turret&mode=train-up` — **without `.html`**. That
+was the r.186 form; r.196 corrected it on purpose, and `.github/workflows/verify-live.yml` fetches
+`play.html?range=21&role=turret&mode=train-up` on **every run**. Restoring the URL from the picture would break
+the live check. **Only the look is restored.** The patcher refuses on `/drone-2525/play?range=` appearing in
+code.
+
+## One trap the patcher had to learn, again
+
+The stale check first refused on `/drone-2525/play?range=` — found at line 6129, inside the **embedded R-CORE
+ledger** r.210 added, in a historical entry whose prose *describes* the old link. The patcher now strips the
+`RCORE_LEDGER` block before any code check, exactly as `drone-playable.test.mjs` learned to do in r.210. **The
+embedded record is data, not code**, and this is the second time that has bitten.
+
+## Green
+
+```
+drone-playable   172 passed, 0 failed      drone-deck-qa  358 passed, 0 failed
+range-frozen     100 definitions, 0 moved    · portrait 245/246 · landscape 245/246
+range-2525       118 passed, 0 failed        · portrait-375 245/246 · landscape-667 244/246
+deck-rcore        92 passed, 0 failed        · touch 18/18 · red = SYNC_DIRECT only
+pose-rasters      37 · magazine-rasters 31 · capitol-model 23 · tsc clean
+```
