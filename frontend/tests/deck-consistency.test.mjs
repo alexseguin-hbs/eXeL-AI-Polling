@@ -24,10 +24,30 @@ ok(lrel && new RegExp(`\\br\\.${DECK_REV}\\b`).test(lrel.text), `traceability le
 // site, distinct from the artefact commit. PENDING is allowed only on the LAST release (the ship sha is unknowable when the
 // artefact is committed); every earlier release must name a real 7-hex sha, and the ledger and the domain JSON must agree.
 const relsJ = json.revisions.filter((r) => r.kind === 'release'), relsL = ents.filter((e) => e.kind === 'release');
-const shipOk = (v, last) => (last ? /^([0-9a-f]{7,40}|PENDING)$/ : /^[0-9a-f]{7,40}$/).test(String(v || ''));
+// r.212: a release can also be SUPERSEDED — pushed, but never served, because a later revision carried its bytes to the
+// site first. r.211 is the case that created this state: its gate went red (deck-rcore lag 2), Deploy #1890 failed, `ship`
+// was skipped and the Cloudflare build fell with it, so those bytes reached the site only inside r.212. Writing a ship sha
+// there would claim a deploy that never happened, and PENDING is reserved for the last release. SUPERSEDED:r.NNN is the
+// true third state — and it is STRICTER than a sha, because the revision it names must exist, must be LATER, and must be
+// explained by a `correction` entry in the ledger (asserted below).
+const SUP = /^SUPERSEDED:r\.(\d{3})$/;
+const shipOk = (v, last) => (last ? /^([0-9a-f]{7,40}|PENDING)$/ : /^([0-9a-f]{7,40}|SUPERSEDED:r\.\d{3})$/).test(String(v || ''));
 relsJ.forEach((r, i) => { if (r.shipped !== undefined || i === relsJ.length - 1) ok(shipOk(r.shipped, i === relsJ.length - 1), `domain JSON release ${r.revision} names its ship commit (${r.shipped ?? 'missing'})`); });
 relsL.forEach((e, i) => { if (e.shipped !== undefined || i === relsL.length - 1) ok(shipOk(e.shipped, i === relsL.length - 1), `ledger release rev ${e.rev} names its ship commit (${e.shipped ?? 'missing'})`); });
 ok(String(rel.shipped || '') === String(lrel.shipped || ''), `the domain JSON and the ledger name the SAME ship commit for the last release (${rel.shipped} vs ${lrel.shipped})`);
+// A SUPERSEDED row may not be a quiet way out of naming a ship: the revision it points at must be later, must be a carried
+// revision of this register, and the ledger must carry a `correction` entry that says so in words.
+for (const e of relsL) {
+  const m = SUP.exec(String(e.shipped || '')); if (!m) continue;
+  const by = +m[1], mine = +(/\br\.(\d{3})\b/.exec(String(e.text || '')) || [])[1];
+  ok(Number.isFinite(mine) && by > mine, `ledger rev ${e.rev}: SUPERSEDED names a LATER revision (r.${m[1]} after r.${mine})`);
+  ok(fs.existsSync(new URL(`operator-deck/drone-2525_r.${m[1]}.html`, D)), `ledger rev ${e.rev}: r.${m[1]} is a carried revision`);
+  // the SAME release row must both name r.NNN and carry the explanation — an earlier row that merely mentions the
+  // number in a "next up" line does not discharge this.
+  ok(ents.some((c) => c.kind === 'release' && c.rev > e.rev && new RegExp(`\\br\\.${m[1]}\\b`).test(String(c.text || ''))
+       && /never reached the site|never served|SUPERSEDED/i.test(String(c.text || ''))),
+    `ledger rev ${e.rev}: a later release row names r.${m[1]} AND explains why it superseded this one`);
+}
 const hashes = fs.readFileSync(new URL(`operator-deck/HASHES_r${DECK_REV}.sha256`, D), 'utf8');
 const prev = String(+DECK_REV - 1);
 const patchPath = new URL(`operator-deck/patches/r${prev}_to_r${DECK_REV}.py`, D);
