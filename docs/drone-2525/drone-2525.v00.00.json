@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.066",
+  "revision": "0.067",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -511,6 +511,14 @@
    "why": "Operator deck r.211 - THE SHARE SHEET IS HIS PICTURE AGAIN (operator 2026-10-15, reported TWICE with two screenshots: \"I still do not see why you regress; use image 2 formate for the range\"). The regression is mine and it is traced: git log -S\"Scan to share\" returns 12962de77 which ADDED the polished sheet in the r.183-195 wave, and a18880daf which REMOVED it - my own r.196 artefact, because r.196 rebuilt the deck from his r0.178 base to fix the targets and r0.178 predates the sheet. r.209 then wrote the map name into the front of the plain sheet one-line heading, which on his phone wraps and prints across the magazine cards on a 78 percent opaque ground. The real defect is that NO GATE MEASURED WHAT THE SHEET LOOKED LIKE, so six revisions shipped over a broken screen with every gate green. THE_SHEET_NAMES_THE_MAP now measures the heading, the subtitle, the hint and the computed background colour. Restored from 12962de77: the opaque #05080c ground, the map as a 28 px cyan heading, the seat and programme italic beneath it, the white rounded QR card, the Scan to share hint, a filled Copy Link pill and a plain white close. DD-48 is answered BETTER by his format rather than abandoned - the map is not first in a string, it IS the title. rungWord is left exactly as r.209 wrote it because the boot row and drone-playable pin it; rungTitle, modeWords and rungSeatTitle are title-case twins beside it. Deliberately NOT restored: his image shows the link without .html, which was the r.186 form; r.196 corrected it and verify-live fetches it on every run, so only the look is restored and the patcher refuses the old URL in code. The patcher now strips the embedded RCORE_LEDGER before any code check, because a historical entry PROSE-quotes the old link - the embedded record is data, not code, the second time that has bitten. Rewritten gate proven able to fail: translucent RED, caps heading RED, missing subtitle RED. The range is untouched: tests/range-frozen 100 definitions at 0 moved, and the TRAIN UP play-through identical to r.210 field for field.",
    "commit": "d3ef63c",
    "shipped": "SUPERSEDED:r.212"
+  },
+  {
+   "revision": "0.067",
+   "date": "2026-10-15",
+   "kind": "release",
+   "why": "Operator deck r.212 - THE RECORD THE DECK CARRIES IS CURRENT AGAIN (operator 2026-10-15, asking a THIRD time: \"I still do not see why you regress; use image 2 formate for the range\"). His screenshot corner reads r0.210, so he was never looking at r.211: r.211 fixed the sheet, was pushed, and NEVER DEPLOYED. Deploy run 1890 on 689a4a4e9 is conclusion failure - the gate job died at the headless suites in 77 seconds, ship was skipped, and because the deck gates run in prebuild since r.196 the Cloudflare build fails identically, so the site stayed on df76efa and Verify Live 2820 polled for a commit that was never going to appear. The failing gate: tests/deck-rcore.test.mjs requires the deck to embed the ledger through exactly one revision before itself. The ledger has 89 entries; the deck embedded through 87; lag 2. The omission is mine. r.210 patcher regenerated the embedded RCORE_LEDGER from the ledger at build time; r.211 patcher never touched it, mentioning RCORE_LEDGER only in the regex that strips it before the code assertions. And the r.211 commit message claimed deck-rcore 92/0 where the shipped bytes give 91/1 - r.211 was run ad-hoc rather than through a chain script, so the gate was measured against the r.210 state before the bookkeeping bumped DECK_REV and appended rev 89. A gate run before the bookkeeping is a gate run on a different revision. r.212 regenerates the record through rev 89 and refuses unless it equals the ledger field for field in the gate field order; r212-execute.sh re-runs every deck gate AFTER the bookkeeping against the exact bytes commit B carries and refuses on any non-zero exit. r.211 share-sheet restore rides along untouched and THE_SHEET_NAMES_THE_MAP is unchanged, so shipping r.212 is what puts his image 2 on his phone. The range is untouched: range-frozen 100 definitions at 0 moved.",
+   "commit": "0d4d606",
+   "shipped": "PENDING"
   }
  ],
  "arena": {
