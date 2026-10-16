@@ -526,7 +526,7 @@
    "kind": "release",
    "why": "Operator deck r.213 - THE MOUSE MOVES THE AIM (operator 2026-10-16: \"allow for mouse controller to operate similar to arrows (to move turret arround). Right click of mouse can operate for Target and Approve, left click to fire\", and then \"the key for this update was using mouse cursor to move the target, for optimized mouse play for turret, that we can later apply to drone and robotics, as well as fixed wing and foil\"). Three of the four behaviours he lists already shipped in r.159/r.161; what the deck could not do at all was move the head with the mouse - drag-look only, and pointerLock occurring zero times in the file. r.213 adds pointer-lock mouse look: M captures, Esc releases, and while held the mouse turns the seated craft head exactly as the arrows do, the left button is F and the right button is SPACE. DD-75 - written against the split phys already makes, so the turret is scaled by the picture real half-angle while every other craft keeps its own rate; drone, robotics, fixed wing and foil inherit it by being seated. DD-77 - the door is M and not a plain click, so r.161 click-to-aim survives on a desktop. The swallow for a captured click sits on window, one node up, because at the target node capturing and bubbling listeners run in registration order and a late capture listener cannot pre-empt the shipped handlers - measured by sabotage before the ship. Outside mouse look nothing changes and his phone never reaches a line of it. Range untouched: range-frozen 100 definitions at 0 moved, TRAIN UP identical to r.212 field for field.",
    "commit": "583c605",
-   "shipped": "PENDING"
+   "shipped": "c7a431a"
   }
  ],
  "arena": {
