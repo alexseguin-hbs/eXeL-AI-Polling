@@ -83,7 +83,8 @@ export function RCoreBadge({ history, accent = "#22d3ee", code, codeId }: {
           >
             {/* The operator's exact reticle artwork, as-is. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={ICON} alt="R-CORE" style={{ height: H, width: "auto", display: "block" }} />
+            {/* D-26: the box is reserved from the master's aspect (1448x1086), so the reticle never flashes blank. */}
+            <img src={ICON} alt="R-CORE" style={{ height: H, width: "auto", display: "block", aspectRatio: "1448 / 1086" }} />
           </button>
         ) : (
           <button
@@ -97,7 +98,7 @@ export function RCoreBadge({ history, accent = "#22d3ee", code, codeId }: {
           >
             {/* The operator's exact "R-CORE" wordmark artwork, as-is — no glyph, no text recreation. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={WORDMARK} alt={t("rcore.brand")} style={{ height: H, width: "auto", display: "block" }} />
+            <img src={WORDMARK} alt={t("rcore.brand")} style={{ height: H, width: "auto", display: "block", aspectRatio: "2172 / 724" }} />
           </button>
         )}
       </div>

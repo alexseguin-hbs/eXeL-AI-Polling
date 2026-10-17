@@ -1,0 +1,9 @@
+# D-26 — the served R-CORE rasters are UNIFORM downscales of the operator's own masters.
+# Left: the master's sha256 and its path under docs/asks/img (hashed again in that ask's sidecar, so it is
+# provably his). Right: the served file's sha256 and the derived dimensions. Both are pinned, so a re-derive
+# is a visible diff and a hand-edited served file goes red.
+# Regenerate: node scripts/shrink-rcore-rasters.mjs --write   (NEVER in prebuild — needs ImageMagick)
+8699fac407ac477bfd06136e4132bd1f78d280c01255de2a7f06e2dab263f5f4  docs/asks/img/2026.10.11_18.56..53_drone2525_shot65.png  ->  b73520dc8389b0a50065454583c283aaae11cb2bf5f6b74276a81075ad03be74  frontend/public/r-core/code-icon.png  512x332 from 1558x1009
+adbac02d8aa256fb1e9efe56cd6d75387c4afad2fe3a0d52a50c3e832f0119fd  docs/asks/img/2026.10.11_18.56..53_drone2525_shot66.png  ->  949de8672b42c47b9f6e485c8a4818eddd680f20961a09e07730631b46939b1c  frontend/public/r-core/code-wordmark.png  512x171 from 2171x724
+936b8df8a91f87070ef886e11d89fe34e5cdd8a68f25ca027094725bb30926c1  docs/asks/img/2026.10.11_18.56..53_drone2525_shot77_rcore-icon-master.png  ->  11b5c0d3826b01d0c7308b5cc9c2872e37d067a2e0752849f5ebfdc08ff7e7c4  frontend/public/r-core/r-core-icon.png  512x384 from 1448x1086
+989fd87d939fea11a36a197cf4ec54efaad090c8b94b446a56a1859772f070e2  docs/asks/img/2026.10.11_18.56..53_drone2525_shot78_rcore-wordmark-master.png  ->  bca01c7a22e4e2d5f42247b595590144c270bf15ac1583ff2c9c4e87e62eb9b0  frontend/public/r-core/r-core-wordmark.png  512x171 from 2172x724

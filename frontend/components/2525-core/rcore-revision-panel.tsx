@@ -23,6 +23,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
+import { GIT_SHA } from "@/lib/2525-core/version-stamp";
 import {
   compareRevisions, impactOfRevision, categoryOf, RCORE_LOGO_H, CODE_CHIP_H, CODE_WORD_H,
   type RCoreHistory, type RCoreRevision, type RCoreImpact, type RCoreCodeRecord,
@@ -187,9 +188,9 @@ export function RCoreRevisionPanel({
           <div style={{ minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
             {/* the operator's exact "R-CORE" wordmark raster, as-is — the wordart at the top, the badge's default size (operator 2026-09-27) */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/r-core/r-core-wordmark.png" alt={t("rcore.brand")} style={{ height: RCORE_LOGO_H, width: "auto", display: "block" }} />
+            <img src="/r-core/r-core-wordmark.png" alt={t("rcore.brand")} style={{ height: RCORE_LOGO_H, width: "auto", display: "block", aspectRatio: "2172 / 724" }} />
             <div style={{ fontSize: 11, color: PAL.muted, fontFamily: "ui-monospace, monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 3, maxWidth: "100%" }}>
-              {t("rcore.version_history")} · {history.surface || "—"}{history.route ? " · " + history.route : ""} · {n} {t("rcore.rev_short")}
+              {t("rcore.version_history")} · {history.surface || "—"}{history.route ? " · " + history.route : ""} · {n} {t("rcore.rev_short")} · <span data-rcore-build>{GIT_SHA}</span>
             </div>
           </div>
           <div style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", display: "flex", gap: 6 }}>
@@ -460,7 +461,11 @@ export function RCoreRevisionPanel({
                       art again. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={codeStage === 0 ? CODE_ICON : CODE_WORDMARK} alt={t("rcore.code")}
-                    style={{ height: codeStage === 0 ? CODE_CHIP_H : CODE_WORD_H, width: "auto", display: "block", flexShrink: 0 }} />
+                    style={{ height: codeStage === 0 ? CODE_CHIP_H : CODE_WORD_H, width: "auto", display: "block", flexShrink: 0,
+                      // D-26: reserve his box from the MASTER's aspect so the pill never flashes as a blank
+                      // rectangle of the wrong shape while the raster decodes. CSS only — numeric width/height
+                      // attributes on this image are banned by rcore-revisions.test.mjs:135.
+                      aspectRatio: codeStage === 0 ? "1558 / 1009" : "2171 / 724" }} />
                 </button>
               </div>
             )}

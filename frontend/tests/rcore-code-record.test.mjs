@@ -148,25 +148,70 @@ ok(iCode > 0 && iTooLarge > 0 && iCode < iTooLarge,
 ok(/code\?: RCoreCodeRecord/.test(panel) && /hasCode/.test(panel),
   "the chip appears only when the project HAS a code record (DD-62: /vision-2525 passes none)");
 
-// ── HIS ARTWORK IS HIS ARTWORK (DD-65 + DD-72) ──────────────────────────────────────────────────────────────
-// He sent the </> pair twice. The first time I resampled it to a 96x32 chip, which dropped his wordmark's ink
-// to 10.5 px; asked how to fix it he said "use R-CORE ICONOLOGY AS A reference", and R-CORE serves his reticle
-// RAW at 985 KB with the comment "the operator's exact reticle artwork, as-is", sized only in CSS. So these are
-// served UNCUT and UNRESAMPLED, and this proves it the way nothing proves the R-CORE pair: byte-identical to
-// his own uploads, which the ask sidecar already hashes. As-is AND provably his.
+// ── HIS ARTWORK IS HIS ARTWORK (DD-65 · DD-72 · D-26) ───────────────────────────────────────────────────────
+// He sent the </> pair three times. The first time I resampled it to a 96x32 chip, which dropped his wordmark's
+// ink to 10.5 px — a SIZING error, not a resampling one — and he sent the art again.
+//
+// D-26 (2026.10.17), his words when told the 2.3 MB pair renders as a blank rectangle for seconds on cellular:
+// "Shrink pixels only, never proportions." So the served file is no longer byte-identical to his master; it is
+// a UNIFORM downscale of it, and the proof changes shape accordingly — from one hash to a CHAIN:
+//     his master (hashed in the ask sidecar, provably his)
+//       -> DERIVED.sha256 (both hashes pinned, written by scripts/shrink-rcore-rasters.mjs)
+//         -> the served file (same aspect to within integer rounding, strictly smaller, alpha intact)
+// Byte-identity would be the easier assertion and it is the wrong one now: it would forbid the thing he asked
+// for. The aspect tolerance is the whole safety margin — if it ever needs loosening, the scale rule is wrong,
+// not the tolerance.
 import { createHash } from "node:crypto";
 const sha256 = (b) => createHash("sha256").update(b).digest("hex");
 const sidecar = fs.readFileSync(path.join(ROOT, "docs/asks/2026.10.11_18.56..53_drone2525_restore_r178_three_modes_poses.md.sha256"), "utf8");
-for (const [served, shot] of [["code-icon.png", "shot65"], ["code-wordmark.png", "shot66"]]) {
+const png = (b) => ({ w: b.readUInt32BE(16), h: b.readUInt32BE(20), depth: b[24], ctype: b[25] });
+const derived = fs.readFileSync(path.join(ROOT, "frontend/public/r-core/DERIVED.sha256"), "utf8");
+const PAIRS = [
+  ["code-icon.png", "shot65"], ["code-wordmark.png", "shot66"],
+  ["r-core-icon.png", "shot77_rcore-icon-master"], ["r-core-wordmark.png", "shot78_rcore-wordmark-master"],
+];
+ok(PAIRS.length === 4, "all four R-CORE rasters are in the chain — the badge pair had NO master and no pin before D-26");
+for (const [served, shot] of PAIRS) {
   const abs = path.join(ROOT, "frontend/public/r-core", served);
   const src = path.join(ROOT, `docs/asks/img/2026.10.11_18.56..53_drone2525_${shot}.png`);
-  ok(fs.existsSync(abs) && fs.existsSync(src), `${served} and his ${shot} both exist`);
+  ok(fs.existsSync(abs) && fs.existsSync(src), `${served} and its master ${shot} both exist`);
   if (!fs.existsSync(abs) || !fs.existsSync(src)) continue;
-  const h = sha256(fs.readFileSync(abs));
-  ok(h === sha256(fs.readFileSync(src)), `${served} is BYTE-IDENTICAL to his ${shot} — uncut, unresampled`);
-  ok(sidecar.includes(`_${shot}.png`) && sidecar.split("\n").some((l) => l.includes(`_${shot}.png`) && l.trim().split(/\s+/)[0] === h),
-    `${served}'s bytes are the ones the ask sidecar hashes for ${shot} — the served file IS the picture he sent`);
+  const sb = fs.readFileSync(abs), mb = fs.readFileSync(src);
+  const hs = sha256(sb), hm = sha256(mb);
+  const S = png(sb), M = png(mb);
+
+  // 1 · the master is provably HIS — the ask sidecar hashes it
+  ok(sidecar.split("\n").some((l) => l.includes(`_${shot}.png`) && l.trim().split(/\s+/)[0] === hm),
+    `${shot} is the master the ask sidecar hashes — the chain is anchored on his own file`);
+
+  // 2 · the served file derives from THAT master, both ends pinned
+  ok(derived.split("\n").some((l) => l.includes(hm) && l.includes(hs) && l.includes(served)),
+    `${served} is pinned in DERIVED.sha256 as the derivative of ${shot} — a re-derive is a visible diff`);
+
+  // 3 · pixels only: same aspect, strictly smaller, alpha and depth intact
+  const drift = Math.abs((S.w / S.h) / (M.w / M.h) - 1);
+  ok(drift <= 0.005, `${served} keeps his proportions — aspect drift ${(drift * 100).toFixed(3)}% of ${M.w}x${M.h} (<= 0.5%, integer rounding only)`);
+  ok(Math.max(S.w, S.h) === 512, `${served} is scaled to the one rule: longest side 512 (got ${S.w}x${S.h})`);
+  ok(S.w * S.h < M.w * M.h && sb.length < mb.length, `${served} is strictly smaller than its master (${sb.length} < ${mb.length} B)`);
+  ok(S.ctype === 6 && S.depth === 8, `${served} keeps RGBA at 8 bits — his neon halo survives the scale`);
 }
+// ── THE PANEL SAYS WHICH BUILD IT IS (2026.10.17) ───────────────────────────────────────────────────────────
+// He has now sent three screenshots of a panel that did not match the shipped code, and each time the first
+// hour went on establishing WHICH BUILD he was looking at. A screenshot that cannot date itself costs that
+// hour every time. The header now carries the served build's sha, so the next screenshot answers it on sight.
+{
+  ok(/import \{ GIT_SHA \} from "@\/lib\/2525-core\/version-stamp"/.test(panel),
+    "the panel reads the build sha from the ONE shared stamp module, not a second source of truth");
+  ok(/data-rcore-build/.test(panel) && /\{GIT_SHA\}/.test(panel),
+    "the panel header prints the build sha — a screenshot of it dates itself");
+  const hdr = panel.slice(panel.indexOf("data-rcore-header"), panel.indexOf("data-rcore-download"));
+  ok(/data-rcore-build/.test(hdr), "the sha is in the HEADER, which is sticky and therefore always on screen");
+}
+
+// the derive script is itself on the record, as cut-stances.py is for the poses
+ok(fs.existsSync(path.join(ROOT, "frontend/scripts/shrink-rcore-rasters.mjs")), "the derive script is in the repo, not a one-off command");
+ok(!/shrink-rcore-rasters/.test(JSON.parse(fs.readFileSync(path.join(ROOT, "frontend/package.json"), "utf8")).scripts.prebuild),
+  "the derive script is NEVER in prebuild — ImageMagick is not on Cloudflare's builder (the r.208 precedent)");
 // Sized in CSS from constants, never baked into the raster and never a literal in the panel.
 const rev = fs.readFileSync(path.join(ROOT, "frontend/lib/2525-core/revisions.ts"), "utf8");
 ok(/export const CODE_CHIP_H = \d+;/.test(rev), "the resting chip's height is a shared constant");
