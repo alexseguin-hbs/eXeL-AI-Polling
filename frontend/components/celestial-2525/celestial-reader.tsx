@@ -17,6 +17,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useCelestialContent } from "@/lib/use-celestial-content";
 import { AlignedBilingual } from "@/components/celestial-2525/aligned-bilingual";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { CELESTIAL_2525_CODE } from "@/lib/2525-core/celestial-2525-code.gen";   // DD-80: every R-CORE carries the </> unlock
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { CELESTIAL_LEDGER } from "@/lib/2525-core/celestial-ledger.gen"; // Celestial-2525 append-only traceability ledger
 
@@ -186,7 +187,7 @@ export function CelestialReader() {
         )}
       </div>
       {/* R-CORE · version-history badge — bottom of page, normal flow (mounted last), two-click; reads Celestial-2525's own traceability ledger. */}
-      <RCoreBadge history={CELESTIAL_RCORE_HISTORY} accent="#ffd400" />
+      <RCoreBadge history={CELESTIAL_RCORE_HISTORY} accent="#ffd400" code={CELESTIAL_2525_CODE} codeId="celestial-2525" />
     </div>
   );
   // Full-screen → portal over the app nav (mini-panel maximize pattern); else render in place.

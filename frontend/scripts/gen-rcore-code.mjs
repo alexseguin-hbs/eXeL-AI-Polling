@@ -105,14 +105,39 @@ function splitHunks(patch) {
 
 const registry = JSON.parse(fs.readFileSync(path.join(TRACE, "projects.registry.json"), "utf8"));
 const projects = registry.routes.filter((r) => r.kind === "project" && typeof r.codeRecord === "string");
+if (projects.length < 9) throw new Error(`REFUSE: only ${projects.length} projects declare a code record — he asked for all of them`);
 const written = [];
 let drift = 0;
 
 for (const proj of projects) {
-  const id = proj.ledger.replace(/\.ledger\.json$/, "");
+  // TWO PROJECTS KEEP THEIR RECORD IN ANOTHER SHAPE, and both already have a proven reader elsewhere — so this
+  // reuses them rather than inventing a third parse (operator 2026-10-17: "All R-CORE need code button unlocks";
+  // without these two, nine projects would be eight). SoI's revisions live in the DRS living document, owned by
+  // another workflow, and are read exactly as gen-rcore-revisions.mjs:55-62 reads them. SensorFusion's ledger is
+  // hand-written TypeScript outside docs/traceability, and is read with the SAME regex its gate has been using
+  // against 77 rows since it was written (tests/sensor-fusion-ledger.test.mjs:28).
+  const adapter = proj.ledgerAdapter || null;
+  const id = adapter === "drs" ? "soi-2525"
+    : adapter === "sensor-fusion-ts" ? "sensorfusion-2525"
+    : proj.ledger.replace(/\.ledger\.json$/, "");
   const areas = proj.areas || [];
   const cells = cellsForAreas(areas.length, id);   // seeded by the project id, so each project has its own shape
-  const ledger = JSON.parse(fs.readFileSync(path.join(TRACE, proj.ledger), "utf8"));
+  let ledger;
+  if (adapter === "drs") {
+    const drs = JSON.parse(fs.readFileSync(path.join(ROOT, "docs/drs/drs.v00.00.json"), "utf8"));
+    ledger = { section: proj.route.replace(/^\//, ""), route: proj.route,
+      entries: (Array.isArray(drs.revisions) ? drs.revisions : []).map((r, i) => ({
+        rev: i + 1, date: String(r.date ?? ""), kind: String(r.kind ?? "release"),
+        text: `Revision ${String(r.revision ?? "")}. ${String(r.why ?? "")}`.trim(), commit: String(r.commit ?? "") })) };
+  } else if (adapter === "sensor-fusion-ts") {
+    const src = fs.readFileSync(path.join(ROOT, "frontend/app/SensorFusion-2525/ledger.ts"), "utf8");
+    ledger = { section: "SensorFusion-2525", route: proj.route,
+      entries: [...src.matchAll(/rev:\s*(\d+),\s*date:\s*"([^"]*)",\s*kind:\s*"([^"]*)",\s*text:\s*([\s\S]*?),\s*commit:\s*"([^"]*)",\s*\}/g)]
+        .map((m) => ({ rev: +m[1], date: m[2], kind: m[3], text: m[4].replace(/^["`]|["`]$/g, ""), commit: m[5] })) };
+  } else {
+    ledger = JSON.parse(fs.readFileSync(path.join(TRACE, proj.ledger), "utf8"));
+  }
+  if (!ledger.entries || !ledger.entries.length) throw new Error(`REFUSE: ${proj.route} produced an EMPTY ledger — a record of nothing is worse than none`);
   // Excluded paths are DUPLICATES or generated output — counting them would measure one change twice.
   const ex = proj.excludePaths || [];
   const scope = (proj.paths || []).map((p) => `'${p}'`).join(" ");

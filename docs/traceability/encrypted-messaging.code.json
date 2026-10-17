@@ -1,0 +1,276 @@
+{
+ "section": "Encrypted Messaging",
+ "route": "/encrypted-messaging",
+ "model": "git-scoped",
+ "cap": {
+  "bytes": 120000,
+  "lines": 2000
+ },
+ "areas": [
+  {
+   "key": "page",
+   "name": "The page",
+   "cells": [
+    0,
+    9,
+    12,
+    15,
+    16,
+    18,
+    19,
+    21,
+    24
+   ]
+  },
+  {
+   "key": "composer",
+   "name": "Composer",
+   "cells": [
+    1,
+    10,
+    11,
+    13,
+    20,
+    22,
+    23,
+    25
+   ]
+  },
+  {
+   "key": "crypto",
+   "name": "Message crypto",
+   "cells": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    14,
+    17,
+    26
+   ]
+  }
+ ],
+ "revisions": [
+  {
+   "rev": 1,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 2,
+   "commit": "824405f30",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "page",
+     "name": "The page",
+     "cells": [
+      0,
+      9,
+      12,
+      15,
+      16,
+      18,
+      19,
+      21,
+      24
+     ],
+     "files": [
+      {
+       "path": "frontend/app/encrypted-messaging/page.tsx",
+       "blob": "a0dc10e9c5d4fa5b9ac20d40e08b85e0c311c7e5"
+      }
+     ],
+     "add": 12,
+     "del": 0,
+     "bytes": 495,
+     "lines": 15,
+     "status": "recorded"
+    },
+    {
+     "key": "composer",
+     "name": "Composer",
+     "cells": [
+      1,
+      10,
+      11,
+      13,
+      20,
+      22,
+      23,
+      25
+     ],
+     "files": [
+      {
+       "path": "frontend/components/encrypted-messaging-composer.tsx",
+       "blob": "ceb3b0e1a7fd8399344510f342c30e32fc53ca87"
+      }
+     ],
+     "add": 191,
+     "del": 0,
+     "bytes": 9265,
+     "lines": 194,
+     "status": "recorded"
+    },
+    {
+     "key": "crypto",
+     "name": "Message crypto",
+     "cells": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      14,
+      17,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/encrypted-message.ts",
+       "blob": "da28e18fc6f24be14f20982b3cee1dd92b249d73"
+      }
+     ],
+     "add": 86,
+     "del": 0,
+     "bytes": 4136,
+     "lines": 90,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 3,
+   "commit": "197b16a8d",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "composer",
+     "name": "Composer",
+     "cells": [
+      1,
+      10,
+      11,
+      13,
+      20,
+      22,
+      23,
+      25
+     ],
+     "files": [
+      {
+       "path": "frontend/components/encrypted-messaging-composer.tsx",
+       "blob": "7bd6e27b9c774fe1dc848771c11e3527f7a9ec67"
+      }
+     ],
+     "add": 9,
+     "del": 7,
+     "bytes": 1810,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 4,
+   "commit": "3d905f942",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "composer",
+     "name": "Composer",
+     "cells": [
+      1,
+      10,
+      11,
+      13,
+      20,
+      22,
+      23,
+      25
+     ],
+     "files": [
+      {
+       "path": "frontend/components/encrypted-messaging-composer.tsx",
+       "blob": "1ea013d286f0eb3ed8bd9a1fd780028f022aa271"
+      }
+     ],
+     "add": 32,
+     "del": 2,
+     "bytes": 3749,
+     "lines": 76,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 5,
+   "commit": "3841da3cd",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "composer",
+     "name": "Composer",
+     "cells": [
+      1,
+      10,
+      11,
+      13,
+      20,
+      22,
+      23,
+      25
+     ],
+     "files": [
+      {
+       "path": "frontend/components/encrypted-messaging-composer.tsx",
+       "blob": "623b5bff15a52a70df7da8cf073ca81e235c2d85"
+      }
+     ],
+     "add": 35,
+     "del": 30,
+     "bytes": 5078,
+     "lines": 91,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 6,
+   "commit": "d2806d150",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "composer",
+     "name": "Composer",
+     "cells": [
+      1,
+      10,
+      11,
+      13,
+      20,
+      22,
+      23,
+      25
+     ],
+     "files": [
+      {
+       "path": "frontend/components/encrypted-messaging-composer.tsx",
+       "blob": "0e26edb99f3333e52326e32605d5b31bbe111ab3"
+      }
+     ],
+     "add": 12,
+     "del": 10,
+     "bytes": 5374,
+     "lines": 105,
+     "status": "recorded"
+    }
+   ]
+  }
+ ]
+}

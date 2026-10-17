@@ -1,0 +1,143 @@
+{
+ "section": "Security-2525",
+ "route": "/Security-2525",
+ "model": "git-scoped",
+ "cap": {
+  "bytes": 120000,
+  "lines": 2000
+ },
+ "areas": [
+  {
+   "key": "ux",
+   "name": "Command UX",
+   "cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    12,
+    21
+   ]
+  },
+  {
+   "key": "routes",
+   "name": "Routes",
+   "cells": [
+    7,
+    8,
+    15,
+    16,
+    17,
+    22,
+    24,
+    25,
+    26
+   ]
+  },
+  {
+   "key": "docs",
+   "name": "Record",
+   "cells": [
+    9,
+    10,
+    11,
+    13,
+    14,
+    18,
+    19,
+    20,
+    23
+   ]
+  }
+ ],
+ "revisions": [
+  {
+   "rev": 1,
+   "commit": "ef8b1c3",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 2,
+   "commit": "d2806d1",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      12,
+      21
+     ],
+     "files": [
+      {
+       "path": "frontend/components/security-2525/fps-meter.tsx",
+       "blob": "a8cfe3e529ed7f39527513dda87840c2cd05e886"
+      },
+      {
+       "path": "frontend/components/security-2525/spectrum-picker.tsx",
+       "blob": "c3c377d904b08212d9d5194557b53d7cf1e3a85d"
+      }
+     ],
+     "add": 6,
+     "del": 2,
+     "bytes": 2921,
+     "lines": 56,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 3,
+   "commit": "993a456",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      12,
+      21
+     ],
+     "files": [
+      {
+       "path": "frontend/components/security-2525/command-ux1.tsx",
+       "blob": "f95274d64d8177ed9298aff56cea23a89a1d3b54"
+      },
+      {
+       "path": "frontend/components/security-2525/mission-planning.tsx",
+       "blob": "db6914bef0cf0a796afabc80b63bb2376226e850"
+      }
+     ],
+     "add": 115,
+     "del": 104,
+     "bytes": 83336,
+     "lines": 995,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 4,
+   "status": "no-commit",
+   "areas": []
+  }
+ ]
+}

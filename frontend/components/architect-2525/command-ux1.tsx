@@ -20,6 +20,7 @@ import { Expander as CoreExpander } from "@/components/2525-core/expander";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useLexicon } from "@/lib/lexicon-context";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { ARCHITECT_2525_CODE } from "@/lib/2525-core/architect-2525-code.gen";   // DD-80: every R-CORE carries the </> unlock
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { ARCHITECT_LEDGER } from "@/lib/2525-core/architect-ledger.gen"; // Architect-2525 append-only traceability ledger
 import { FpsMeter } from "@/components/security-2525/fps-meter";
@@ -467,7 +468,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         <span>ARCHITECT-2525 · {EXEL_VERSION} · {GIT_SHA.slice(0, 7)}</span>
       </div>
       {/* R-CORE · version-history badge — bottom of page, normal flow (mounted last), two-click; reads Architect-2525's own traceability ledger. */}
-      <RCoreBadge history={ARCHITECT_RCORE_HISTORY} accent="#c084fc" />
+      <RCoreBadge history={ARCHITECT_RCORE_HISTORY} accent="#c084fc" code={ARCHITECT_2525_CODE} codeId="architect-2525" />
     </div>
   );
 }

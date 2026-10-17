@@ -37,7 +37,12 @@ const withCode = projects.filter((p) => typeof p.codeRecord === "string");
 ok(withCode.length >= 2, `projects carrying a code record (${withCode.length})`);
 
 for (const p of withCode) {
-  const id = p.ledger.replace(/\.ledger\.json$/, "");
+  // two projects keep their record in another shape (SoI in the DRS living document, SensorFusion in hand-written
+  // TypeScript), declared as ledgerAdapter in the registry — the same mapping gen-rcore-code.mjs uses, so the gate
+  // and the generator cannot disagree about which file a record belongs to.
+  const id = p.ledgerAdapter === "drs" ? "soi-2525"
+    : p.ledgerAdapter === "sensor-fusion-ts" ? "sensorfusion-2525"
+    : p.ledger.replace(/\.ledger\.json$/, "");
   // ── the AREAS are a fixed map of the project's own parts (DD-66) ─────────────────────────────────────────
   ok(Array.isArray(p.areas) && p.areas.length >= 2, `${p.route}: declares its areas (${p.areas?.length ?? 0})`);
   ok(p.areas.every((a) => a.key && a.name), `${p.route}: every area has a key and a name`);
@@ -49,7 +54,14 @@ for (const p of withCode) {
   ok(fs.existsSync(recPath), `${p.route}: its code record exists (${id}.code.json)`);
   if (!fs.existsSync(recPath)) continue;
   const rec = JSON.parse(fs.readFileSync(recPath, "utf8"));
-  const led = JSON.parse(fs.readFileSync(path.join(TRACE, p.ledger), "utf8"));
+  // The same two adapters the generator uses (gen-rcore-code.mjs). The mapping is stated in BOTH places on
+  // purpose: if they ever disagree the counts below go red, which is exactly what this gate is for.
+  const led = p.ledgerAdapter === "drs"
+    ? { entries: (JSON.parse(fs.readFileSync(path.join(ROOT, "docs/drs/drs.v00.00.json"), "utf8")).revisions || []).map((_, i) => ({ rev: i + 1 })) }
+    : p.ledgerAdapter === "sensor-fusion-ts"
+    ? { entries: [...fs.readFileSync(path.join(ROOT, "frontend/app/SensorFusion-2525/ledger.ts"), "utf8")
+        .matchAll(/rev:\s*(\d+),\s*date:\s*"([^"]*)",\s*kind:\s*"([^"]*)",\s*text:\s*([\s\S]*?),\s*commit:\s*"([^"]*)",\s*\}/g)].map((m) => ({ rev: +m[1] })) }
+    : JSON.parse(fs.readFileSync(path.join(TRACE, p.ledger), "utf8"));
 
   // ── one row per ledger revision — never fewer, so a revision cannot quietly vanish ───────────────────────
   ok(rec.revisions.length === led.entries.length,

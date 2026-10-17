@@ -11,6 +11,7 @@
 //
 // FLOOR ASSERTIONS are deliberate: a walk that finds nothing must FAIL rather than pass 0 of 0.
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 let pass = 0, fail = 0, owed = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
@@ -96,6 +97,33 @@ for (const a of rows.filter((r) => r.kind === 'alias')) {
   const mine = importsOf(a.route), theirs = importsOf(a.of);
   if (mine.length === 0 || theirs.length === 0) { ok(true, `${a.route} is a redirect or has no component import — its why carries the reason`); continue; }
   ok(mine.some((m) => theirs.includes(m)), `${a.route} renders the same component as ${a.of} (${mine.join(',')} vs ${theirs.join(',')})`);
+}
+
+
+// ── DD-80 · EVERY R-CORE CARRIES THE CODE UNLOCK (operator 2026-10-17: "All R-CORE need code button unlocks").
+// The chip renders behind {hasCode} in the panel, and hasCode is true only where the SURFACE passes its own
+// index. Declaring a record in the registry is therefore not enough — a project could have a perfect
+// <id>.code.json and still show no button, which is exactly the state he screenshotted on Financial-2525.
+// These three legs hold the whole chain: declared → generated → PASSED TO THE BADGE.
+{
+  const fe = new URL("../", import.meta.url);
+  const withCode = projects.filter((p) => typeof p.codeRecord === "string");
+  ok(withCode.length >= 9, `every project that has code declares a record (${withCode.length} of ${projects.length}; /vision-2525 is codeRecord:false by DD-62 — he called it a white paper)`);
+  for (const p of withCode) {
+    ok(Array.isArray(p.paths) && p.paths.length > 0 && Array.isArray(p.areas) && p.areas.length > 0,
+       `${p.route}: declares its own scoped paths and cube areas`);
+  }
+  // the surface actually passes it — read every file that mounts the badge
+  const mounts = [];
+  const walk = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+    const f = path.join(d, e.name);
+    if (e.isDirectory()) { if (!/node_modules|\.next/.test(f)) walk(f); }
+    else if (/\.tsx$/.test(f) && fs.readFileSync(f, "utf8").includes("<RCoreBadge")) mounts.push(f); } };
+  walk(path.join(fileURLToPath(fe), "app")); walk(path.join(fileURLToPath(fe), "components"));
+  ok(mounts.length >= 10, `every badge mount is read (${mounts.length})`);
+  const passing = mounts.filter((f) => /codeId="/.test(fs.readFileSync(f, "utf8")));
+  ok(passing.length >= 9,
+     `at least nine surfaces pass their code index to the badge, so the </> chip actually renders (${passing.length}) — declaring a record and never handing it over is how Financial-2525 showed no button`);
 }
 
 console.log(`\nprojects-registry: ${pass} passed, ${fail} failed · ${onDisk.length} top-level routes classified · ${projects.length} projects, ${owed} still owed a record · ${ledgersOnDisk.length} ledgers, 0 orphans`);

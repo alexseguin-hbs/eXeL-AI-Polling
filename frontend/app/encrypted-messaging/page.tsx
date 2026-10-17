@@ -13,6 +13,7 @@
 import { useMemo } from "react";
 import { EncryptedMessagingComposer } from "@/components/encrypted-messaging-composer";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { ENCRYPTED_MESSAGING_CODE } from "@/lib/2525-core/encrypted-messaging-code.gen";   // DD-80: every R-CORE carries the </> unlock
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { ENCRYPTED_MESSAGING_LEDGER } from "@/lib/2525-core/encrypted-messaging-ledger.gen"; // its append-only traceability ledger
 
@@ -21,7 +22,7 @@ export default function EncryptedMessagingPage() {
   return (
     <>
       <EncryptedMessagingComposer />
-      <RCoreBadge history={history} accent="#22d3ee" />
+      <RCoreBadge history={history} accent="#22d3ee" code={ENCRYPTED_MESSAGING_CODE} codeId="encrypted-messaging" />
     </>
   );
 }

@@ -26,6 +26,7 @@ import {
 import { MissionPlanning } from "@/components/security-2525/mission-planning";
 import { useLexicon } from "@/lib/lexicon-context";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { SECURITY_2525_CODE } from "@/lib/2525-core/security-2525-code.gen";   // DD-80: every R-CORE carries the </> unlock
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { SECURITY_LEDGER } from "@/lib/2525-core/security-ledger.gen"; // Security-2525 append-only traceability ledger
 
@@ -677,7 +678,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
         <span>DATA FUSION ENGINE: eXeL {EXEL_VERSION} · {GIT_SHA}</span>
       </div>
       {/* R-CORE · version-history badge — bottom of page, normal flow (mounted last), two-click; reads Security-2525's own traceability ledger. */}
-      <RCoreBadge history={SECURITY_RCORE_HISTORY} accent="#19c8cf" />
+      <RCoreBadge history={SECURITY_RCORE_HISTORY} accent="#19c8cf" code={SECURITY_2525_CODE} codeId="security-2525" />
     </div>
   );
 }

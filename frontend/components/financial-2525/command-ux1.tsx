@@ -35,6 +35,7 @@ import { VECTOR_LAW } from "@/lib/wire-core/vector-law";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { versionStamp } from "@/lib/2525-core/version-stamp";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
+import { FINANCIAL_2525_CODE } from "@/lib/2525-core/financial-2525-code.gen";   // DD-80: every R-CORE carries the </> unlock
 import { RCoreChart } from "@/components/2525-core/rcore-chart";   // r.056 (addenda 124 · 127): the shared R-CORE chart; r.064 (addendum 135): our own canvas engine, no TradingView
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { FINANCIAL_LEDGER } from "@/lib/2525-core/financial-ledger.gen";
@@ -1160,7 +1161,7 @@ export function FinancialCommandUX1() {
       <ModeratorSettings open={settingsOpen} onClose={() => setSettingsOpen(false)} userEmail={user?.email} isPollingUser={false} variant="nonMaster" />   {/* r.050 (addendum 76 + "Exactly 3 items"): the non-Master settings */}
 
       {/* R-CORE — version history + compare, the bottom of every 2525 surface */}
-      <RCoreBadge history={FINANCIAL_RCORE_HISTORY} accent={hue.bright} />
+      <RCoreBadge history={FINANCIAL_RCORE_HISTORY} accent={hue.bright} code={FINANCIAL_2525_CODE} codeId="financial-2525" />
     </div>
   );
 }

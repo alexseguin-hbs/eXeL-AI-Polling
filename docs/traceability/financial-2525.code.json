@@ -1,0 +1,9401 @@
+{
+ "section": "Financial-2525",
+ "route": "/financial-2525",
+ "model": "git-scoped",
+ "cap": {
+  "bytes": 120000,
+  "lines": 2000
+ },
+ "areas": [
+  {
+   "key": "ux",
+   "name": "Command UX",
+   "cells": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ]
+  },
+  {
+   "key": "engine",
+   "name": "Engine",
+   "cells": [
+    5,
+    7,
+    8,
+    14,
+    17,
+    20,
+    23,
+    26
+   ]
+  },
+  {
+   "key": "routes",
+   "name": "Routes",
+   "cells": [
+    6,
+    12,
+    15,
+    16,
+    21,
+    24,
+    25
+   ]
+  },
+  {
+   "key": "docs",
+   "name": "Record",
+   "cells": [
+    9,
+    10,
+    11,
+    13,
+    18,
+    19,
+    22
+   ]
+  }
+ ],
+ "revisions": [
+  {
+   "rev": 1,
+   "commit": "e31cc45",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 2,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 3,
+   "commit": "39f44c1",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "fc65ec4c312daa89290ee2938078b3d3c9a9d039"
+      }
+     ],
+     "add": 243,
+     "del": 0,
+     "bytes": 18568,
+     "lines": 246,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/accrual.ts",
+       "blob": "a3dad06b5c0227232c10b7cfe795e762c6e0fb88"
+      },
+      {
+       "path": "frontend/lib/financial-2525/budget.ts",
+       "blob": "8788ac48950f35e3adaca1935c73bac47d89aabd"
+      },
+      {
+       "path": "frontend/lib/financial-2525/calendar.ts",
+       "blob": "905bad3fe65af8c66959bd6ea0449d38c26f41d2"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "24224094feaad8fbfb117cdfedae2c83c0e4a32f"
+      },
+      {
+       "path": "frontend/lib/financial-2525/mot.ts",
+       "blob": "210150279a3ab9b128317fb42d6e917bed1b3e27"
+      },
+      {
+       "path": "frontend/lib/financial-2525/record.ts",
+       "blob": "d7238f67a097a7f6614e623854f5d165e64bc850"
+      }
+     ],
+     "add": 977,
+     "del": 0,
+     "bytes": 55259,
+     "lines": 991,
+     "status": "recorded"
+    },
+    {
+     "key": "routes",
+     "name": "Routes",
+     "cells": [
+      6,
+      12,
+      15,
+      16,
+      21,
+      24,
+      25
+     ],
+     "files": [
+      {
+       "path": "frontend/app/financial-2525/page.tsx",
+       "blob": "5c6c8dba77334fcd3c4eb92409c9abb879b2a4d3"
+      },
+      {
+       "path": "frontend/app/main/Financial-2525/page.tsx",
+       "blob": "87ea87af05637f716c0cde56c752d78b6f593a0b"
+      }
+     ],
+     "add": 18,
+     "del": 0,
+     "bytes": 890,
+     "lines": 23,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "447d0b57b06b0d5bc7ba0f5d800ce7de98319657"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "d056827d4b62600aa5c79825c120f4457050e6ab"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "28084323aa65955b144711abc6122d98918be848"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "0d74ba90df90c1d17c9cebb174ec997a2781bbd7"
+      }
+     ],
+     "add": 524,
+     "del": 0,
+     "bytes": 44562,
+     "lines": 533,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 4,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 5,
+   "commit": "5838c67",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "c531e2b240cdfa65509e748516cc13b5fc26c284"
+      }
+     ],
+     "add": 227,
+     "del": 121,
+     "bytes": 38787,
+     "lines": 452,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "982e059fe1587211a19a43303e35e7e9c2d36fb8"
+      }
+     ],
+     "add": 33,
+     "del": 3,
+     "bytes": 4303,
+     "lines": 72,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "14370913989018937384f50f774a769b481c338f"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "3a912aa09309cc8aa938170a95125e27779c6e62"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "6bd9b4e2c1d52c6e1ecc775aade5ebc6078d00ef"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "18230ccd971ec158bdc32cea8a4bf802c9f073e7"
+      }
+     ],
+     "add": 24,
+     "del": 9,
+     "bytes": 11205,
+     "lines": 102,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 6,
+   "status": "no-commit",
+   "areas": []
+  },
+  {
+   "rev": 7,
+   "commit": "13028c0",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "e41390e7003212f360f8aad2d946e1f8f3b37f9a"
+      }
+     ],
+     "add": 10,
+     "del": 7,
+     "bytes": 5457,
+     "lines": 56,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "2cb73057a68ce9e842a183369739a39d1f24f67a"
+      },
+      {
+       "path": "frontend/lib/financial-2525/mot.ts",
+       "blob": "83c16669df1b34b57517e0005dde46c3c47f3738"
+      }
+     ],
+     "add": 108,
+     "del": 41,
+     "bytes": 18474,
+     "lines": 247,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "d273ef549d8266a7bea73a5cc4a58451ce078c89"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "076a442a15fc4c0973075067e5408536065ce53d"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "fb17fd3d4b61ef989a8cb7374940fb07a4a32378"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "99dd042e0e3d6b833d1cfe7227b5c05d71ac7553"
+      }
+     ],
+     "add": 56,
+     "del": 19,
+     "bytes": 27244,
+     "lines": 202,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 8,
+   "commit": "8990b2d",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/reviews/r001_twelve_lenses.md",
+       "blob": "b730db058e0d875c1c704f145a7546df803a63b1"
+      },
+      {
+       "path": "docs/financial-2525/reviews/r001_twelve_lenses.md.sha256",
+       "blob": "6956a6f8da5a6cc49ea6c0b4eddaa5810a2df055"
+      }
+     ],
+     "add": 1473,
+     "del": 0,
+     "bytes": 426845,
+     "lines": 1479,
+     "status": "truncated"
+    }
+   ]
+  },
+  {
+   "rev": 9,
+   "commit": "78b4cdf",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "b305a37c3ea325071a5eed40113d4f9bb4945eb9"
+      }
+     ],
+     "add": 20,
+     "del": 4,
+     "bytes": 6230,
+     "lines": 66,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "3991191743a1a45aa7b1b4522c62ae43e94731f8"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "f8bc238b67f7f095e4969ebc34816f620dacf828"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "69940b21afb2dc8c0a77e0a672aa8f28b85cd0b0"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "f1f6e94113a3ba48d91b51c12c33a1013f754160"
+      }
+     ],
+     "add": 19,
+     "del": 8,
+     "bytes": 15437,
+     "lines": 98,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 10,
+   "commit": "c27628d",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 11,
+   "commit": "a8f6acd",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "137e2a9a7eab87edd5b6a71d5a529a27252f987f"
+      }
+     ],
+     "add": 10,
+     "del": 4,
+     "bytes": 5850,
+     "lines": 46,
+     "status": "recorded"
+    },
+    {
+     "key": "routes",
+     "name": "Routes",
+     "cells": [
+      6,
+      12,
+      15,
+      16,
+      21,
+      24,
+      25
+     ],
+     "files": [
+      {
+       "path": "frontend/app/financial-2525/page.tsx",
+       "blob": "21b47c9fc4b00f79a3358940127eeea7f95fe290"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 596,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "3e7171f503d0dff210e0516cbd281d6b49523ded"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "981032c9eeb525f967008d55f7b0bdf190f02bbe"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "16928039566054cb967dfca42bf1a245cbb35a62"
+      }
+     ],
+     "add": 13,
+     "del": 7,
+     "bytes": 13377,
+     "lines": 73,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 12,
+   "commit": "0f41042",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 13,
+   "commit": "419e85b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "f70e7ae8217ffc62b1b717945e9aaaeefdc2b5c8"
+      }
+     ],
+     "add": 63,
+     "del": 15,
+     "bytes": 14535,
+     "lines": 163,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/accrual.ts",
+       "blob": "67a0e97c95c3454ef3b23b9a6b7e8343f6252cd8"
+      },
+      {
+       "path": "frontend/lib/financial-2525/budget.ts",
+       "blob": "daf9a9dfeb02993a1c65bf6ed27be63fc9b6d66a"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "0419990dd29e1dd6ba6c088f0d9c687fe7a4fa33"
+      }
+     ],
+     "add": 85,
+     "del": 7,
+     "bytes": 13680,
+     "lines": 182,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "66dcedbc070b533247ff434d8e76c588accf3814"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "6b67372ee7f5afda3826754058e055706438355e"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "a47e605b9b7d1d82fbf2a0236c53ffa5e74864d5"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "1e5254d30e510bd7460c1ab2750fdf2ecf8b24f5"
+      }
+     ],
+     "add": 122,
+     "del": 17,
+     "bytes": 28233,
+     "lines": 291,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 14,
+   "commit": "25ec03d",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 15,
+   "commit": "71935d2",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "83307b8b3e6d466360137542169152f13f712bd2"
+      }
+     ],
+     "add": 4,
+     "del": 3,
+     "bytes": 3970,
+     "lines": 32,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/calendar.ts",
+       "blob": "4be14c09677363fa496f2340e38debb0b8ba8e7c"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "129226001453abe8b0bb37a4d60491d1635b647f"
+      },
+      {
+       "path": "frontend/lib/financial-2525/mot.ts",
+       "blob": "18f499469c147502ef54ec1cbe7502ca15ef5815"
+      }
+     ],
+     "add": 141,
+     "del": 62,
+     "bytes": 36439,
+     "lines": 422,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "8ae6a3dc9af39b4b0aa446413a1d07ccf60039cc"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "2376eb8b721d927a7afdde6a313b37066d8bf409"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "702c40561c316606253887bf5f5b16673f34c6b7"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "65ab90ecb4d81ba14828ca58e09724468df9af4e"
+      }
+     ],
+     "add": 165,
+     "del": 58,
+     "bytes": 54573,
+     "lines": 492,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 16,
+   "commit": "589d223",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 17,
+   "commit": "b83dff3",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/category-icon.tsx",
+       "blob": "14941d5485e6e0741038cead3c55329f0dfad25b"
+      },
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "d9e671e6e0969c1cc6bd5071e79a95e6983c1606"
+      }
+     ],
+     "add": 37,
+     "del": 6,
+     "bytes": 8427,
+     "lines": 94,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/calendar.ts",
+       "blob": "bd77d7a552b5cf5ae2bebaba3229d8f6e5f7bf85"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "fc86dfd83a183f54ed067f94a6e199c224838165"
+      }
+     ],
+     "add": 60,
+     "del": 8,
+     "bytes": 11857,
+     "lines": 134,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "70527bbb6d1a610e7953be8d30871281096317ce"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "6c2b423f7a8f74270fdec311eca3e5afacc1ae14"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "81bdc922235da786ceee9e508f82773be04d6041"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "10cb7d0deacfb444cde954eb45b2497125682ed9"
+      }
+     ],
+     "add": 95,
+     "del": 7,
+     "bytes": 26002,
+     "lines": 203,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 18,
+   "commit": "756075a",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 19,
+   "commit": "af028ab",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "0183747a0b35e5f341842f73669ec60b44c30660"
+      }
+     ],
+     "add": 6,
+     "del": 6,
+     "bytes": 1751,
+     "lines": 21,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "73c1fe165db3a5c244bde1eca4b39dba06cc4c69"
+      }
+     ],
+     "add": 42,
+     "del": 5,
+     "bytes": 7713,
+     "lines": 105,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "a58d17c62a34bc31f3d8ca34b56bea2110da9a4c"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "ee2e38eb74216c6a769434463fd5cc8aac81f8f2"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "47fcfbbe71b10be85e5562fdd8e25e432f814f1a"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "86da4e06e0cf4e286fab397550e664a80c6b555a"
+      }
+     ],
+     "add": 69,
+     "del": 12,
+     "bytes": 21430,
+     "lines": 208,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 20,
+   "commit": "0f842a9",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 21,
+   "commit": "68c5c74",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "f29b5fe57bbd249e2fe6a20bd3f56872b2cf7a75"
+      }
+     ],
+     "add": 3,
+     "del": 2,
+     "bytes": 1564,
+     "lines": 14,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "12667b54df6681ae8e1dd442000d90ea75864bb6"
+      }
+     ],
+     "add": 41,
+     "del": 4,
+     "bytes": 6419,
+     "lines": 95,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "637f96d64a15cff4d50c48a442fbdb792fc41a53"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "1821fb5d34fdbb0a4099719fabab8c850ed715e3"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "083b55dcb323ac932a25b014ef3e88a9c3a23c6f"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "fc238f7d15fb88e2c090851edb09291b379be0b5"
+      }
+     ],
+     "add": 67,
+     "del": 10,
+     "bytes": 18458,
+     "lines": 184,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 22,
+   "commit": "68c5c74",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "f29b5fe57bbd249e2fe6a20bd3f56872b2cf7a75"
+      }
+     ],
+     "add": 3,
+     "del": 2,
+     "bytes": 1564,
+     "lines": 14,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "12667b54df6681ae8e1dd442000d90ea75864bb6"
+      }
+     ],
+     "add": 41,
+     "del": 4,
+     "bytes": 6419,
+     "lines": 95,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "637f96d64a15cff4d50c48a442fbdb792fc41a53"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "1821fb5d34fdbb0a4099719fabab8c850ed715e3"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "083b55dcb323ac932a25b014ef3e88a9c3a23c6f"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "fc238f7d15fb88e2c090851edb09291b379be0b5"
+      }
+     ],
+     "add": 67,
+     "del": 10,
+     "bytes": 18458,
+     "lines": 184,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 23,
+   "commit": "57f2332",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "7563bdf070e896b4944d5b94c2c36e4b038d1304"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1336,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "c14ad878cc6a31d530048c37f47a7dfdf51932a5"
+      }
+     ],
+     "add": 10,
+     "del": 2,
+     "bytes": 2198,
+     "lines": 30,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "51fe393b130e347bb8378386cb0d2da8c16c073b"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "c32a331996e194a2fd4b72293bef178c06a75df0"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "bf5dd436fe52a197c1564ffb68bdad027049ccb4"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "c370d19220eefb2221cb54ab46c478fec00dc2cd"
+      }
+     ],
+     "add": 14,
+     "del": 5,
+     "bytes": 7689,
+     "lines": 66,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 24,
+   "commit": "d9b1a72",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 25,
+   "commit": "201a8ec",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/category-icon.tsx",
+       "blob": "041ab6ee8c9f3650f175d18f282bca44ceece427"
+      },
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "4e61dafd665beb3dc6f243840da4de1e6344542d"
+      }
+     ],
+     "add": 82,
+     "del": 46,
+     "bytes": 24782,
+     "lines": 265,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/accrual.ts",
+       "blob": "fe584bc8e62c7bef055a7586e9a3ad04f35bdff6"
+      },
+      {
+       "path": "frontend/lib/financial-2525/budget.ts",
+       "blob": "4b158af03d9be5f4ec17ae4a8f0422cd87b02e80"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "70aa8e31936ab7aca46cf7fe075a5bddb1baadd2"
+      },
+      {
+       "path": "frontend/lib/financial-2525/ladder.ts",
+       "blob": "cccc9b646dbea2d44c623b4044d56d2c6b32654f"
+      }
+     ],
+     "add": 274,
+     "del": 7,
+     "bytes": 32648,
+     "lines": 385,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "44023ecce7a365c73f57704b772f23ace51f65fc"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "a9a5e673b540565386bba055bf4ca88c76f70598"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "1bb1af26edb76172b63eeb7eb0ba361d6df996d5"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "402ba3bec046fbd55d9f44156f1779f496756c78"
+      }
+     ],
+     "add": 179,
+     "del": 16,
+     "bytes": 33890,
+     "lines": 344,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 26,
+   "commit": "5690e9f",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 27,
+   "commit": "1c89639",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "1313a926e04f18eb945a8886c36062c9237fba13"
+      }
+     ],
+     "add": 52,
+     "del": 38,
+     "bytes": 15854,
+     "lines": 164,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "54849539062c24cf88cd174357bdc32bfaf1b7be"
+      },
+      {
+       "path": "frontend/lib/financial-2525/ladder.ts",
+       "blob": "bb90ae58bf778f4c0eff1c3e42e62db5cbbe851f"
+      }
+     ],
+     "add": 54,
+     "del": 7,
+     "bytes": 11827,
+     "lines": 117,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "4e0b068e46ed63e388cf7d3b9157055b1526ec2c"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "4a3f4df42f110d067c7aef8fb9c94e3dfc30ed13"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "4ff143472a22f4649d51ffaaa27b0c47f0e3419f"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "9b680139d85782cd71931c4e6b01e3f159380443"
+      }
+     ],
+     "add": 69,
+     "del": 10,
+     "bytes": 23826,
+     "lines": 190,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 28,
+   "commit": "6da8a3c",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 29,
+   "commit": "84f28f5",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "d1af751b0fe8765388289b2837c7370124a536c3"
+      }
+     ],
+     "add": 44,
+     "del": 31,
+     "bytes": 8326,
+     "lines": 100,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "a8485df0d5e585e088b9b33893db12e910f30672"
+      }
+     ],
+     "add": 42,
+     "del": 3,
+     "bytes": 7346,
+     "lines": 89,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "d8df8c4f579b2f3bbb231cd1e28e20d93baaba92"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "008c222d308485c349ef0814faf5b43c483a2d7e"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "3f6fcd9152899b3c7dd59337a0c6a5777ba50a61"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "ecc7a7d9f1e66a753becea80f00c02fd6b3e3b8b"
+      }
+     ],
+     "add": 66,
+     "del": 7,
+     "bytes": 20212,
+     "lines": 171,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 30,
+   "commit": "d9054ef",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 31,
+   "commit": "7112170",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/category-icon.tsx",
+       "blob": "22af940c936d06dca1e41ca15a4af9bbaf4d403d"
+      }
+     ],
+     "add": 5,
+     "del": 2,
+     "bytes": 2258,
+     "lines": 26,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "699073a176f9d6ec442667bb2be3dee1b9fc8104"
+      }
+     ],
+     "add": 40,
+     "del": 3,
+     "bytes": 5098,
+     "lines": 87,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "6c70706a8239b7f9f5a1fe1239455267b7065010"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "20af9bace79c2b3e15842d74f8e499e287bfd987"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "96f4ee1c62cd3dd27091207c90e56f84c02e4810"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "1e0b2552ad72ab64f19558068324fe309b2c2bfc"
+      }
+     ],
+     "add": 64,
+     "del": 7,
+     "bytes": 17271,
+     "lines": 169,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 32,
+   "commit": "a1c4d30",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 33,
+   "commit": "8d73af3",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "77563846fd71ceb3708c5c5a5765615f6f9fab3e"
+      }
+     ],
+     "add": 58,
+     "del": 7,
+     "bytes": 10772,
+     "lines": 112,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "b4eabe1a55ec0b689d623c85e0175fa923430b9c"
+      },
+      {
+       "path": "frontend/lib/financial-2525/plan.ts",
+       "blob": "2df485034e675a94b8c1f446316d765843badcd3"
+      }
+     ],
+     "add": 91,
+     "del": 3,
+     "bytes": 10637,
+     "lines": 140,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "6b474f947b07224faeedef1f9a71076d554963fb"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "5d1a3a2164f6c467b6cdbf31958d75fcc8e4a5fe"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "737f64519eac38755bbad9ed6033b09978596238"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "e69e179cd642ba346a553bc205623f5392e7154e"
+      }
+     ],
+     "add": 67,
+     "del": 10,
+     "bytes": 20107,
+     "lines": 199,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 34,
+   "commit": "5869220",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 35,
+   "commit": "233417c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "4967860b093ea0672f23b94dc91fd5d7a0fe7de7"
+      }
+     ],
+     "add": 11,
+     "del": 9,
+     "bytes": 3849,
+     "lines": 46,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "52c332af1be288f6f2235dfe6ea8be7891c4d71d"
+      }
+     ],
+     "add": 42,
+     "del": 3,
+     "bytes": 6614,
+     "lines": 89,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "c8d132d3df1c736d00e623af00aaf41570b091b1"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "3c5de329988ea02640688ef8ad3f5577c5c99c06"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "79c7aea0335483a0d93c48cf2bd8f2001dcbf782"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "0b66768901c43cdb0b25ff36d10413796734e1e0"
+      }
+     ],
+     "add": 66,
+     "del": 7,
+     "bytes": 17300,
+     "lines": 171,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 36,
+   "commit": "1819a98",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 37,
+   "commit": "c4eb2af",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "baccfb0501231ab435ffcdb71cc4d6cb6c9fc840"
+      }
+     ],
+     "add": 27,
+     "del": 11,
+     "bytes": 8790,
+     "lines": 91,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "5ef12269537a561d8f8e353bf45e66d597e50e80"
+      },
+      {
+       "path": "frontend/lib/financial-2525/ladder.ts",
+       "blob": "54741f0def75c6ef5a343673e84bd19a803690a2"
+      }
+     ],
+     "add": 57,
+     "del": 3,
+     "bytes": 8000,
+     "lines": 112,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "d758d7e6a5fc30cebd6aac2b4f0e59727228e93a"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "721f902ae2ca546296db267a0423f250cd2088fc"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "e667778d0b0a583872084b3a63fc7e53c3d3d7bb"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "2e0545e3266c538dd7e520938fd58ca3094a949e"
+      }
+     ],
+     "add": 65,
+     "del": 7,
+     "bytes": 17481,
+     "lines": 170,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 38,
+   "commit": "fa1a190",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 39,
+   "commit": "4efbcd4",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "c6ccd7bc2be03804951424f0c60b8482ab663cf1"
+      }
+     ],
+     "add": 9,
+     "del": 2,
+     "bytes": 2932,
+     "lines": 20,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "7894c140cc55f89fceaa2b42f3bf0edeb5106279"
+      }
+     ],
+     "add": 40,
+     "del": 3,
+     "bytes": 6801,
+     "lines": 87,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "324d7a85d97b2ce3ae2b0200028cd09c83590e12"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "f490a6b3da746a92fdb5c215b3adbb968b54caac"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "e5d081bded12d26363dcccce74ea4f910f228dde"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "6e8a8e61cf4869cfe184eda8c7decfc98502d4da"
+      }
+     ],
+     "add": 64,
+     "del": 7,
+     "bytes": 18093,
+     "lines": 169,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 40,
+   "commit": "a695ba6",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 41,
+   "commit": "97731f2",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "3c2f153b2cd286c98974b767c6eba7542576efd8"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 1731,
+     "lines": 17,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "19294d5c0895fe33a53583ebfcad69b62c53aa99"
+      },
+      {
+       "path": "frontend/lib/financial-2525/ladder.ts",
+       "blob": "2b1208cd9aa6ff15320f4d2fa54c4392038b365d"
+      }
+     ],
+     "add": 65,
+     "del": 10,
+     "bytes": 11583,
+     "lines": 152,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "07f5f4bc9322de809b9a00d6f39e6a641cef28a7"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "55a2f0d66f7379d0b6b90a0ffe467c9b997baccb"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "b38d8e7f5531bab2bef06858a00d136db462757c"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "1f93ad68a6e9ae5655000ddadb6d532942e6e205"
+      }
+     ],
+     "add": 81,
+     "del": 10,
+     "bytes": 22029,
+     "lines": 213,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 42,
+   "commit": "2756088",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 43,
+   "commit": "af6bfe3",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "9ac65d97ed26e9a95f97efaed31dc50832cfe43c"
+      }
+     ],
+     "add": 45,
+     "del": 10,
+     "bytes": 10770,
+     "lines": 95,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "cffb17b100416bc9e58e8eb9f87bc403da50577c"
+      },
+      {
+       "path": "frontend/lib/financial-2525/plan.ts",
+       "blob": "8f0b8020b4734ee35a1989abaac7bde72a87166f"
+      }
+     ],
+     "add": 72,
+     "del": 9,
+     "bytes": 11646,
+     "lines": 154,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "28d1683e84e37d3b1fe450cb2cca75e0b164b19a"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "43e11947d04c6de250fbf4470a8d8ac316fec7cc"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "7f644dffc4c29c606f780a0a8b165b2f1d43e2b9"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "454fb039f0a626677bbfb966b7229a8c744ea97f"
+      }
+     ],
+     "add": 64,
+     "del": 7,
+     "bytes": 17681,
+     "lines": 169,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 44,
+   "commit": "af6bfe3",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "9ac65d97ed26e9a95f97efaed31dc50832cfe43c"
+      }
+     ],
+     "add": 45,
+     "del": 10,
+     "bytes": 10770,
+     "lines": 95,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "cffb17b100416bc9e58e8eb9f87bc403da50577c"
+      },
+      {
+       "path": "frontend/lib/financial-2525/plan.ts",
+       "blob": "8f0b8020b4734ee35a1989abaac7bde72a87166f"
+      }
+     ],
+     "add": 72,
+     "del": 9,
+     "bytes": 11646,
+     "lines": 154,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "28d1683e84e37d3b1fe450cb2cca75e0b164b19a"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "43e11947d04c6de250fbf4470a8d8ac316fec7cc"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "7f644dffc4c29c606f780a0a8b165b2f1d43e2b9"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "454fb039f0a626677bbfb966b7229a8c744ea97f"
+      }
+     ],
+     "add": 64,
+     "del": 7,
+     "bytes": 17681,
+     "lines": 169,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 45,
+   "commit": "ed5edbc",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "b33d1212b56565aedf9217b7561e3907fae64246"
+      }
+     ],
+     "add": 5,
+     "del": 4,
+     "bytes": 6454,
+     "lines": 50,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "f302dcc547c7c95a5859291e8d12131df21b9643"
+      },
+      {
+       "path": "frontend/lib/financial-2525/plan.ts",
+       "blob": "6e38a9dde2b7f3fc330bc223ff84b1110badc806"
+      }
+     ],
+     "add": 22,
+     "del": 2,
+     "bytes": 5268,
+     "lines": 50,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "6ceadc53e1675f44ffad4f458811d4cac3cf2a21"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "9456bbbaa5ffc006c684b1ae694d4a722fb207ba"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "4f66877c769cf994ce681578e4dbcc9a6790b193"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "952c296a809eecc9fc869129515f06b66de9ce52"
+      }
+     ],
+     "add": 14,
+     "del": 5,
+     "bytes": 10156,
+     "lines": 66,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 46,
+   "commit": "a3edb5f",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 47,
+   "commit": "245aaf5",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "a61e270be85bb336b3a396dc1faec9731c800e8a"
+      }
+     ],
+     "add": 41,
+     "del": 22,
+     "bytes": 14740,
+     "lines": 147,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/accrual.ts",
+       "blob": "f313d5c193b3526fe55cfc86ae609187edb8d2c6"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "a6af0c7012158408faee2cb00505e307ac85668d"
+      }
+     ],
+     "add": 114,
+     "del": 12,
+     "bytes": 17141,
+     "lines": 220,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "14784e991cc031decfa4045b435a1c9d64d5379e"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "ea427a79adb249a0d23730b101fb54b7be387df0"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "5a125aba5909757358db09a7d0f43d8ce12c8273"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "fb938fc71eed98e69fc4b956fe19beb22bddaa21"
+      }
+     ],
+     "add": 107,
+     "del": 7,
+     "bytes": 23048,
+     "lines": 212,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 48,
+   "commit": "a3edb5f",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 49,
+   "commit": "4e86d21",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "ec8920c0fc8588c3b429054ac1845d189256535d"
+      }
+     ],
+     "add": 30,
+     "del": 50,
+     "bytes": 17905,
+     "lines": 165,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "86328660a21089d9d3cce2e11d18b527b683caf9"
+      },
+      {
+       "path": "frontend/lib/financial-2525/plan.ts",
+       "blob": "dd4651d43ed15a9ed3783476924e013af207bbec"
+      }
+     ],
+     "add": 71,
+     "del": 48,
+     "bytes": 17555,
+     "lines": 198,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "4c2dc2e2b1b1caab17773b74ebd571c6161afb26"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "77b7f5fe2373e45d57e950ad10001d62a462574f"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "b66c94deccc9e066d238dea01decf012d691ecd1"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "da6c65ff48f0b02ec8eef403bb5b6a37d2bfb775"
+      }
+     ],
+     "add": 105,
+     "del": 10,
+     "bytes": 25836,
+     "lines": 227,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 50,
+   "commit": "a3edb5f",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 51,
+   "commit": "cf7c0f6",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "415f25c58600b5f2020d8ff823585e4e0ff284c8"
+      }
+     ],
+     "add": 58,
+     "del": 29,
+     "bytes": 22809,
+     "lines": 212,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "fca9b97ebc0cb96ac8dd5a5c30c2cea54d879e0e"
+      },
+      {
+       "path": "frontend/lib/financial-2525/mot.ts",
+       "blob": "d83ffe39d6a59e9026393435874eb841c30b9a7f"
+      }
+     ],
+     "add": 117,
+     "del": 2,
+     "bytes": 11813,
+     "lines": 161,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "fce9c39ca8d3f8ec642f6c1df2b1a47f72c42ab1"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "a9a836a5adce5fe96c99dd8a6efcc30ebb191f65"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "718097eec1ac0936cd4f70f3775df02ba6e680a1"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "9928267fd7ec9972b560204caae98b1f2866fa6b"
+      }
+     ],
+     "add": 143,
+     "del": 5,
+     "bytes": 23626,
+     "lines": 233,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 52,
+   "commit": "e835b32",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 53,
+   "commit": "922e79a",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "ce7e3f5ac245a7fe4df152d46a0146d2c6b0e857"
+      }
+     ],
+     "add": 20,
+     "del": 16,
+     "bytes": 13705,
+     "lines": 122,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/accrual.ts",
+       "blob": "c1f73d0eeaef7b961cd88b86a0602cf05d5740e6"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "47c381586ea5755a504b7e468cf5ea66f02c15a0"
+      }
+     ],
+     "add": 30,
+     "del": 13,
+     "bytes": 8636,
+     "lines": 80,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "136a0bcb4fb45caac729a4697168332e346db2fa"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "33529cc2862c7197f40b4594c2d11ec204963b15"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "52c157bcf9a1c4fa0a5747825b65ba99fc88d11e"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "4cf4127a17cf5fd3c3b3192bc1bf74eba4196e11"
+      }
+     ],
+     "add": 16,
+     "del": 7,
+     "bytes": 16054,
+     "lines": 86,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 54,
+   "commit": "1326df7",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 55,
+   "commit": "1abe42c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "93de36d0b924944ed310171a22bea1db1ce5b827"
+      }
+     ],
+     "add": 6,
+     "del": 4,
+     "bytes": 5285,
+     "lines": 43,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "6561bbf0cb0a3c85a3846d8cb5633c426506db3a"
+      }
+     ],
+     "add": 22,
+     "del": 3,
+     "bytes": 6031,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "edf1b37fe20d11b00d65dbb0e58e0f7429819722"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "a00e97acd7463d7d4411461466d4089836fe016a"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "0b9906b6d8e055ebb4af497bc307066eaef78101"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "f77c671aaeab339a449eae23553953c43e6490c1"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 16331,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 56,
+   "commit": "2eddaee",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 57,
+   "commit": "20dcfb5",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "8cdca38e2da97b93d54669dd79178b1048c4496c"
+      }
+     ],
+     "add": 161,
+     "del": 130,
+     "bytes": 46165,
+     "lines": 468,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/accrual.ts",
+       "blob": "76df07da9926c36f7d984ca8a405ec59bc797786"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "c7b968bfaa4203be77d7fc87af65ac5dae7f0bca"
+      }
+     ],
+     "add": 33,
+     "del": 26,
+     "bytes": 12583,
+     "lines": 160,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "46f48c7ef84f488140a38ab183409f8be0f07244"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "42c640a14ec58a96a42a67b4e011d11c264f02b7"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "8aa48b6023bc4ce4206aa46ceb6520495b0e5545"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "63471ee648a834c3a345b7c8788e4d9e695999dc"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 15841,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 58,
+   "commit": "7d81445",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 59,
+   "commit": "0add99b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "a3f8ea7053646616ba16eda9b7f07f95a728482f"
+      }
+     ],
+     "add": 13,
+     "del": 4,
+     "bytes": 2862,
+     "lines": 28,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "5e6e9f407760e9fb4054db3eb463cb436c1f93c8"
+      }
+     ],
+     "add": 22,
+     "del": 3,
+     "bytes": 4598,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "8adf296227e0f4fddf041011b827935f7944c236"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "91797e36d3cf2844e3363ae6a745520025608484"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "c297253bc188af69a2c50fa71f9c3dfb5cc71646"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "fdf0d0060691b36455abd42a6c9f11ac2240ae2e"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 14047,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 60,
+   "commit": "5f4f18d",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 61,
+   "commit": "6a7178d",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "7e189433c699b55b8e2d476eb3e9705361849c4a"
+      }
+     ],
+     "add": 19,
+     "del": 7,
+     "bytes": 6493,
+     "lines": 67,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "f57da1eb3acfd0bb3da856a42eeb8998f41eb686"
+      }
+     ],
+     "add": 22,
+     "del": 3,
+     "bytes": 3292,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "c33a41dfeea6426ff2a09a04f5e9e00a3c4dad45"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "77095765492fcb2ef31d08899ed0281ac757d400"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "bade52c0bdac0e9bba9e9ced81e28019c1d8a435"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "f41fe4a48d02d215543eacfbd79150d928cd90f6"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 10866,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 62,
+   "commit": "9aa2593",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 63,
+   "commit": "82864ea",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "d1275574ce0a703d423942c32efdcd3fd015380d"
+      }
+     ],
+     "add": 6,
+     "del": 2,
+     "bytes": 3497,
+     "lines": 29,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "32139354ee8bdddb40aff547623e65943b65678a"
+      },
+      {
+       "path": "frontend/lib/financial-2525/ladder.ts",
+       "blob": "e1813897fecd1d833a7a286853b23e288aab9054"
+      }
+     ],
+     "add": 37,
+     "del": 6,
+     "bytes": 6043,
+     "lines": 89,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "a8b11be1e7ec3fe04f58a04109469223e78d3ae9"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "637e2019293ca52eba1b1aa40c73a4942f67902d"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "b6f72be0bed6be500d73443fbb32b638935bdf9b"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "b20f3b0825a46798f54b888dcc52f18a28481e38"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 10040,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 64,
+   "commit": "a57453d",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 65,
+   "commit": "2fa0ac1",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "af3d84b6d6a65e4fd2684408cade929e6b25b4da"
+      }
+     ],
+     "add": 9,
+     "del": 6,
+     "bytes": 4118,
+     "lines": 31,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "2d096a862328a97b94803623bb25707c4b2619c0"
+      }
+     ],
+     "add": 22,
+     "del": 3,
+     "bytes": 3208,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "f85b6664d43002346d01bec9ed471c98023981fb"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "5887c2d0b94368aaa073fbc6312e58736934e9ee"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "e1fd7d5b24c6d95ce63ffd8e69436c2eb7cb8293"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "acff27a348e5c18d452767bf57a5e9b2b478a95a"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 8717,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 66,
+   "commit": "45c6f11",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 67,
+   "commit": "ff3d8ff",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "06929b3988d50ff716c3a3a0557e39690f2fa9a3"
+      }
+     ],
+     "add": 17,
+     "del": 15,
+     "bytes": 4244,
+     "lines": 43,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "b37ee52531d89b8a082ac60eb627cd339a10c494"
+      }
+     ],
+     "add": 22,
+     "del": 3,
+     "bytes": 2898,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "43a94bda4498549c7f7098995e331393c6149440"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "0d6aadb645b8a540fc8c92cd2743fea6b13eff01"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "b7e3a84993c210504aa87e848c81f35b67f89522"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "8c2d48c73ffb2fa37f10ba67a562746f476944a5"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 8077,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 68,
+   "commit": "05f3f07",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 69,
+   "commit": "8a54582",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "db206a98e4bc9b95ed28a5d01d33a04a5835e13a"
+      }
+     ],
+     "add": 36,
+     "del": 20,
+     "bytes": 19169,
+     "lines": 187,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "743b9d603df1e444762f1132e1c798678d0f7842"
+      }
+     ],
+     "add": 22,
+     "del": 3,
+     "bytes": 3634,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "ab71d99139683d56041c53c8114b587895dde86e"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "ac396aac75f6f65a667e23da6dd9344456675e9b"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "72429f1ec6bf17c430640100c09002874e7713d9"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "f162c1698df39002e065a2dee5a029d06fad106f"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 9450,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 70,
+   "commit": "5f34462",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 71,
+   "commit": "886cfcd",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "893403e7c62805f09510e12b75aa2a0611d04518"
+      }
+     ],
+     "add": 9,
+     "del": 5,
+     "bytes": 2362,
+     "lines": 23,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "31d7e8e9e7fedbcfc6790ef9963b7b6421d74615"
+      }
+     ],
+     "add": 22,
+     "del": 3,
+     "bytes": 3567,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "16db37858fffd06df68dcf274171cb0c7cb4cced"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "e15a4704dc15593a22b38f270bc203a3f76112f7"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "311130f8d13440f9d385a1fdace639617fd7ed39"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "c0603b48bde902b8f8782cb145c4dbd63883f756"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 9006,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 72,
+   "commit": "751b207",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 73,
+   "commit": "483401c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "32646eab6adace594cbf7ce96721b96d062ccea6"
+      }
+     ],
+     "add": 4,
+     "del": 3,
+     "bytes": 2058,
+     "lines": 17,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "eb2d1550ef84bd1b0d2abc572fc951d41035daac"
+      }
+     ],
+     "add": 22,
+     "del": 3,
+     "bytes": 2546,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "4b040ea567abf05474ec3b8d059b6183718b7837"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "a7f6855c0eb84dd5582c8c6b83a7602c3da6ce42"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "f137cf3408186a6aaa66cdf27555946be2b9df7c"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "4b046ebd5d1e229c0253670bcafcee4c23de2bc8"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 7702,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 74,
+   "commit": "e285b38",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 75,
+   "commit": "fb04ec9",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "2101b3c857505c3cdd560e8b1a3fdf91d95015f2"
+      }
+     ],
+     "add": 40,
+     "del": 36,
+     "bytes": 9164,
+     "lines": 101,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "0e2c3a01a87186075c83e5c14df1895d3108b35a"
+      }
+     ],
+     "add": 27,
+     "del": 3,
+     "bytes": 2978,
+     "lines": 66,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "58a7bf6858584318c8e950a6916e7b6bec35cb29"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "0624eda7d62d32aa191c4bd5d7a216ec779c8037"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "e2e2518a6224c376077ae1dc3733d8f614f4b34f"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "d0e7ba06119ad617e2898f8a904c900b6fdac003"
+      }
+     ],
+     "add": 33,
+     "del": 7,
+     "bytes": 8279,
+     "lines": 114,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 76,
+   "commit": "cd4a33a",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 77,
+   "commit": "ddedbe6",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "b986312c1021fbbb5872fe5bd17570c99749acfb"
+      }
+     ],
+     "add": 79,
+     "del": 94,
+     "bytes": 22070,
+     "lines": 287,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "800a5b19164e7057b01f5b5020b15ba48c3aba9b"
+      },
+      {
+       "path": "frontend/lib/financial-2525/mot.ts",
+       "blob": "a3557b34b423ff95efc611c8edacd3391b74655f"
+      }
+     ],
+     "add": 34,
+     "del": 3,
+     "bytes": 5243,
+     "lines": 81,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "0ea3a7f4134c05140675476358d848c696fdbfcb"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "b382bb15dea7f6e897c1aa72588db83558eca049"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "7c0ef0ff85144e3a97b9317a952c1441a8baf33a"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "912c715bdca6446f1c3d61e781c9afcfdbe1788d"
+      },
+      {
+       "path": "docs/financial-2525/releases/r.037.md",
+       "blob": "2b50db37f3bf6961781d490608c73fb105540ece"
+      }
+     ],
+     "add": 35,
+     "del": 9,
+     "bytes": 9836,
+     "lines": 134,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 78,
+   "commit": "a17b9ca",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 79,
+   "commit": "962d058",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "337813cbd5f3b06f094b43448d6f033979398554"
+      }
+     ],
+     "add": 3,
+     "del": 4,
+     "bytes": 2757,
+     "lines": 28,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "364cb7cd661bcbdba10d6417f6f2a0091f61ddf2"
+      }
+     ],
+     "add": 22,
+     "del": 3,
+     "bytes": 3586,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "f76bbaea5bacbd5daf0d1adfbacfda5327cf3313"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "d11aa4bedb2ca5017f020cc081335c68f6f58531"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "05288672b9e5f55190ea5a5804e623c2d9cda541"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "ac1e97b15605ba3aad49d00970a0cb11e7714c71"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 8883,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 80,
+   "commit": "87e37c5",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 81,
+   "commit": "61a563d",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "53b44deef15b3237d5a0cede12ce07aa5fd03f72"
+      }
+     ],
+     "add": 5,
+     "del": 3,
+     "bytes": 3222,
+     "lines": 34,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "d827ed076a45c5513ae40edd849adf6772810944"
+      }
+     ],
+     "add": 27,
+     "del": 3,
+     "bytes": 3376,
+     "lines": 66,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "cbde05412460db5b500bc1b0eb89712816f806dc"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "c5fcb079b1f8773e33ceda3c3e86a7479d6482c6"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "f8e4a8bf63e8d415e4f960792c8d7f30f00083ba"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "cf4055709f3c3a0e88a1aa660fd2834352756dad"
+      }
+     ],
+     "add": 33,
+     "del": 7,
+     "bytes": 9113,
+     "lines": 114,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 82,
+   "commit": "2230e15",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 83,
+   "commit": "335d1ba",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 84,
+   "commit": "daace84",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "ae9e2424bf4bbc4117b7c04112a025c4c14cbd87"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 1874,
+     "lines": 21,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "9c153c5c610135cf86b35223626160da070ba814"
+      }
+     ],
+     "add": 22,
+     "del": 3,
+     "bytes": 3108,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "340d5548c38fad7f317eee85f73964c08b4f48f1"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "1208b0b2e44d752cc55d5abd9526cf3c0e93553a"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "f76057a8aa2c39d507c49a2be6d842aafc12db69"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "d883792043f6694afdb547d443f3b051c28a64da"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 8726,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 85,
+   "commit": "15d9ee2",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "dc72a1ecde6250a8668ab8c3b2fc0e360bffcb01"
+      }
+     ],
+     "add": 26,
+     "del": 21,
+     "bytes": 8395,
+     "lines": 85,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "b29266f56e6d5850c1a06aa58b511519da1b745d"
+      }
+     ],
+     "add": 10,
+     "del": 5,
+     "bytes": 4099,
+     "lines": 50,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "c28d3ba3d7859251e14146cfe716c00bfcee0fac"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "7c1ae278dd819356e09fec71a674ff7587a0d0d2"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "58ae7ce82f1c7da8ca0edd8ce53e28824f26c96f"
+      }
+     ],
+     "add": 13,
+     "del": 8,
+     "bytes": 9574,
+     "lines": 75,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 86,
+   "commit": "9dd39fd",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "53d968683ab76965864742017f7fd731e9aa5a9c"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1070,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "07bebbb21c10d092c50244f029febebe1451fcae"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "6f6cfffbb3a06ee9fe05d7b5eeb5e73e4d667c36"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "8aa859de0d76e784aae4f12003ff6b4e6f120326"
+      }
+     ],
+     "add": 12,
+     "del": 6,
+     "bytes": 6255,
+     "lines": 52,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 87,
+   "commit": "c95b609",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "fdc879066f0d1ce1eabd5d1e15ddd373474d2823"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1122,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "1ecc18dfdb36dcb900966b1d171fbc7422349d04"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "75adcc13ab2f8e82a5a64e7831667446d9b84086"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "22ce66aabc074da56161b46de7994c2876e4d0e4"
+      }
+     ],
+     "add": 8,
+     "del": 2,
+     "bytes": 2895,
+     "lines": 43,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 88,
+   "commit": "b8279b2",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "76a03bbff4dfe996b2e60fb949d202605e21602a"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 1189,
+     "lines": 13,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "7d4cbd1ef3e548aca719fbaeb2854a42e44cb8a9"
+      }
+     ],
+     "add": 23,
+     "del": 4,
+     "bytes": 4442,
+     "lines": 71,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "b0d0890bfe1c47046ff0c82f9d63c6da7d748e9a"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "b08f18a1084235b8f326ce264626fa45a0263be9"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "a77453fbbb2e0b2830aa01c4032d983d66799174"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "67c9555cdd42fe8f4076bf36f34fe4eb499f0d9a"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "d2dca304b0ae801ee01ed3ccdf44ef17e54e2522"
+      }
+     ],
+     "add": 30,
+     "del": 8,
+     "bytes": 11239,
+     "lines": 128,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 89,
+   "commit": "469a909",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "d3166dc8ea6cc39eade2f164bcaf03c802847565"
+      }
+     ],
+     "add": 6,
+     "del": 4,
+     "bytes": 2687,
+     "lines": 26,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "3b2f2b66d31f3b9dc0694c504e0b21e995f836c6"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 3283,
+     "lines": 32,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "67968749c7f9671713b037332073827a8b051203"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "884c434975adaff521daa662ef1d6d2c1f7b0582"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "49d63e3e535161de8098389fd1d7ba5bf17d613c"
+      }
+     ],
+     "add": 6,
+     "del": 6,
+     "bytes": 8536,
+     "lines": 47,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 90,
+   "commit": "c8ea94a",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "8c1f55dbc7487946593d35c73ff0461615372589"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1106,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "dfd6b6e30764a915756a55fd0f68077e3a9551b1"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "2cc39832b0ba2526517923cd2a610a05da763e85"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "a8aaaae9f9123bfc97a5ab91f1ddc984f62f544a"
+      }
+     ],
+     "add": 12,
+     "del": 6,
+     "bytes": 4616,
+     "lines": 52,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 91,
+   "commit": "6d898c3",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "3ae84b4589b8edd88c93199f58177722687dd6a3"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1064,
+     "lines": 12,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 92,
+   "commit": "8a870f9",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "e7d2b47b8fe6d5be637095291538ab69bae0cccb"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1061,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "35f7b8f5686539b23ab61cae4509bf40a3fbe401"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "5a1a9c98112f6ce0343215926ac32243d90941b8"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "658060b1a0f29ec9952b25c727d2303de7e8ee0a"
+      }
+     ],
+     "add": 8,
+     "del": 2,
+     "bytes": 2995,
+     "lines": 43,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 93,
+   "commit": "d0caeeb",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "fe3b800266be2fdb03c8f97a9e7baf68668bf967"
+      }
+     ],
+     "add": 18,
+     "del": 15,
+     "bytes": 10595,
+     "lines": 100,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "8a130017ffcd1bd6109d9dabc8453c05d840ddc2"
+      },
+      {
+       "path": "frontend/lib/financial-2525/ladder.ts",
+       "blob": "0fa3af27271877acfa51fc86a1f9b33e225e8661"
+      }
+     ],
+     "add": 31,
+     "del": 7,
+     "bytes": 7225,
+     "lines": 98,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "ca07aacc1c0076879fdf6c7079a4142cb1f005f9"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "5bd9489f403ccf61698551ab506887ab64e2eead"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "aa01462b84bcd820780075611d371a2971e18beb"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "296b0c7d6408c9747a84cf0a5482adc7de548e5c"
+      }
+     ],
+     "add": 31,
+     "del": 10,
+     "bytes": 13401,
+     "lines": 131,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 94,
+   "commit": "8a870f9",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "e7d2b47b8fe6d5be637095291538ab69bae0cccb"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1061,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "35f7b8f5686539b23ab61cae4509bf40a3fbe401"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "5a1a9c98112f6ce0343215926ac32243d90941b8"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "658060b1a0f29ec9952b25c727d2303de7e8ee0a"
+      }
+     ],
+     "add": 8,
+     "del": 2,
+     "bytes": 2995,
+     "lines": 43,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 95,
+   "commit": "d5fe7f8",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "6ef2851ef3978b73fc5f22c7f882cd7f248f3c63"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 4073,
+     "lines": 33,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 96,
+   "commit": "8a870f9",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "e7d2b47b8fe6d5be637095291538ab69bae0cccb"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1061,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "35f7b8f5686539b23ab61cae4509bf40a3fbe401"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "5a1a9c98112f6ce0343215926ac32243d90941b8"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "658060b1a0f29ec9952b25c727d2303de7e8ee0a"
+      }
+     ],
+     "add": 8,
+     "del": 2,
+     "bytes": 2995,
+     "lines": 43,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 97,
+   "commit": "3cf850e",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "0772e33d2a6f93cea3f830b77114fe25a997780a"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 1607,
+     "lines": 15,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/ladder.ts",
+       "blob": "1e4b55c4498322c1d14f7d1b547f096373c247cc"
+      }
+     ],
+     "add": 4,
+     "del": 2,
+     "bytes": 1754,
+     "lines": 21,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 98,
+   "commit": "71cff4b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "0158bb6c7ee324a922a6a9113943a9f849bc4241"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1086,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "7186803c69126c519e0510e97a7b79a0da4ec09e"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "f546905facc77fc87bacfdf96d44334973e12ef7"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "c6434a9d1ebb257a189dab778e4b2e4d954b01ab"
+      }
+     ],
+     "add": 9,
+     "del": 2,
+     "bytes": 3113,
+     "lines": 44,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 99,
+   "commit": "6b15958",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "a801d311084715a4925a3e8c4076ada179eba7e7"
+      }
+     ],
+     "add": 23,
+     "del": 5,
+     "bytes": 9572,
+     "lines": 82,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/currency.ts",
+       "blob": "466ae0def350575592a36265d556c9c189b05b7a"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "18a7b3f6a49a75ea16523fea5ff447fbdb10b22e"
+      }
+     ],
+     "add": 46,
+     "del": 2,
+     "bytes": 5315,
+     "lines": 76,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "293eda66ab5e45643eb0af6710ee25fd331ee12e"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "de52d9b055f043811b8456f3c1e66ed1c06d600a"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "4490770769fccd3196b5b99a0569c65cb5ca1a70"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "47b6713e62a95b2b3e82598936b934a18e6b4ff0"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "9d4eefc9cae52424f72333aa7d0a2b4cd42c2cbf"
+      }
+     ],
+     "add": 22,
+     "del": 6,
+     "bytes": 11424,
+     "lines": 97,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 100,
+   "commit": "cce6905",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 101,
+   "commit": "fa09e07",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "4a702212a406236cb0ffc0668d27781286c7eca5"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 907,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "e5c8e503a71318ce722facbacfc4f81bbcd06b1e"
+      }
+     ],
+     "add": 16,
+     "del": 2,
+     "bytes": 2882,
+     "lines": 44,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "0f08e35ba5bb1ab7a9859645e22533751ed37921"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "f20f9107c53bf0108a745998bebf3719749f488c"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "f63d9c2da9e615445be48a22a1d104fb21d6573e"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "5ebc836d015582c8aedf7d37f2559df7fabd97b8"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "ea36879ed1ade76e91681e8dd82a8398309c02f3"
+      }
+     ],
+     "add": 22,
+     "del": 6,
+     "bytes": 10493,
+     "lines": 97,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 102,
+   "commit": "8a870f9",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "e7d2b47b8fe6d5be637095291538ab69bae0cccb"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1061,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "35f7b8f5686539b23ab61cae4509bf40a3fbe401"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "5a1a9c98112f6ce0343215926ac32243d90941b8"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "658060b1a0f29ec9952b25c727d2303de7e8ee0a"
+      }
+     ],
+     "add": 8,
+     "del": 2,
+     "bytes": 2995,
+     "lines": 43,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 103,
+   "commit": "b849da5",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "fe00bdd25fde11d277e0c44b052d14266bbae7f6"
+      }
+     ],
+     "add": 5,
+     "del": 6,
+     "bytes": 6015,
+     "lines": 60,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "4ffba68ed9458cdd2de3f1579b0244147c31e2ae"
+      }
+     ],
+     "add": 16,
+     "del": 2,
+     "bytes": 2784,
+     "lines": 44,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "ebaf991ed2256fc2d9ed1733d313672c35f02446"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "4ff53d43e9d8ec1cc1740a1ea10051e0f52c4590"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "fcc79f074dc43fcb8583b00f0639bb2500c5de18"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "229d988ab5355f3f374d933c3442848dad6318a9"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "eb65b95216e90af1afb4b47b6700acbf8ffcb52e"
+      }
+     ],
+     "add": 22,
+     "del": 6,
+     "bytes": 10447,
+     "lines": 97,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 104,
+   "commit": "e7112d2",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "02e262c6d1f2a02c099fdf342f285aff5ff06311"
+      }
+     ],
+     "add": 1,
+     "del": 0,
+     "bytes": 2026,
+     "lines": 11,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 105,
+   "commit": "b015846",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "b626e31a7b284e01437a75daa5f2919de356932b"
+      }
+     ],
+     "add": 65,
+     "del": 12,
+     "bytes": 19965,
+     "lines": 182,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/budget.ts",
+       "blob": "de0b7c2be04c8088cb9a57bca467e8086b3c2601"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "385264e002e354cbe4e76112d54d20050773d11a"
+      },
+      {
+       "path": "frontend/lib/financial-2525/plan.ts",
+       "blob": "e0fe80b96bdbcf00cf091b05661dc10eb62efe55"
+      }
+     ],
+     "add": 57,
+     "del": 8,
+     "bytes": 9910,
+     "lines": 126,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "0d50b6a8de1e1bf1d03ac05ca4041d43c3befb0d"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "22043c31e7e926a582883c18d77471dd4134fbe4"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "98a34b21aca9615f1be7dc23dc1b13e046abd701"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "56f15deb4a7f8c0cf59d4ca8eb16bc5d7197f72d"
+      }
+     ],
+     "add": 45,
+     "del": 7,
+     "bytes": 13337,
+     "lines": 126,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 106,
+   "commit": "5254bbe",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 107,
+   "commit": "d9e0f4d",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 108,
+   "commit": "7d6e1ea",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "71b85dbd083f2b15f6cc6cc9aa90936c6216909d"
+      }
+     ],
+     "add": 0,
+     "del": 2,
+     "bytes": 803,
+     "lines": 19,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/budget.ts",
+       "blob": "691ff5a02d0c40eebc3f58dfbd621388d1c7f7ed"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "206b5c5d934123e0515c48d7f725a0e95bfcf52d"
+      }
+     ],
+     "add": 30,
+     "del": 8,
+     "bytes": 7390,
+     "lines": 81,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "ac57a34c92ac676937cb15e5c3efa9c95be479ae"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "bc6e1ad9a8fadf48d714c80ba3861555072286b6"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "f2e7cdf27ca26c5a4dea2d3af0469dc98888ad3a"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "f4928133061629fd9111aefdafb8dea1d4215db1"
+      }
+     ],
+     "add": 33,
+     "del": 7,
+     "bytes": 14843,
+     "lines": 114,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 109,
+   "commit": "e040250",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "d4912f8d4adca13ba6f8363929bfdbd6a0f33560"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 2102,
+     "lines": 35,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "5cd21002038439db91dc5ade14cbb464540b1f8f"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "3ac65b6afd7623992e3100b0a4e64a47c031e52c"
+      }
+     ],
+     "add": 8,
+     "del": 3,
+     "bytes": 2741,
+     "lines": 44,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 110,
+   "commit": "1029dbe",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "8be024dc84d16b057a88e35649190fd20128920f"
+      }
+     ],
+     "add": 53,
+     "del": 4,
+     "bytes": 9522,
+     "lines": 98,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/cloud.ts",
+       "blob": "2ce3bde9a1c1779e027c4af89fa3e4dd09b70470"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "2d8a0ef7542931dea7aeb18bb18c1d757cd2f15f"
+      }
+     ],
+     "add": 70,
+     "del": 2,
+     "bytes": 7678,
+     "lines": 100,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "971272e331c56b168b92622836495aac92f39d79"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "5fe21bf02d2fbfc9e231a39f5c090d7a55519e56"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "687915b6054119c81d9372933994271111604f27"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "7ae39483f7349145f625d07577646bc969cfe617"
+      }
+     ],
+     "add": 21,
+     "del": 5,
+     "bytes": 12911,
+     "lines": 87,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 111,
+   "commit": "e6a1b45",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "123e286a47bf17ab6e7930657fcd991d36cb8af3"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1167,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "eb7cdff2d7c01496db6735e2fcb5c69b43ddac34"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "2828d2935ee598e2bb0b8cfc6c6f2bf2687995ff"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 1836,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 112,
+   "commit": "02235d7",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "641feab655428f1e9f84cfa7ef4a0468283b5c83"
+      }
+     ],
+     "add": 65,
+     "del": 1,
+     "bytes": 13598,
+     "lines": 124,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "599bba638787c82675e60ef148b3e85a4eea278a"
+      },
+      {
+       "path": "frontend/lib/financial-2525/rate-series.ts",
+       "blob": "48a85b63caead6bb4c5f9f8a61452ced58b26ef3"
+      }
+     ],
+     "add": 109,
+     "del": 2,
+     "bytes": 9628,
+     "lines": 139,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "cb19edaf67b149428b27047145992fae5ef615b7"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "8377c93d291f0ed4dd48e9f2b5e1705e63c492d0"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "265f3883d3e2bbfab97d9ad445c5a1dfa208fa63"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "07f8d613562a8195592727a56e6fcdf1412bb3f3"
+      }
+     ],
+     "add": 21,
+     "del": 5,
+     "bytes": 12505,
+     "lines": 87,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 113,
+   "commit": "27cda30",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "aabf3cd0d9471a3e1d7ff45660e9e15489f24252"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1129,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "b318684ebe642171703f0e70b40b8ce01dea0430"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "e2bb9f2c5068424206ca27a0145545ca4d8af355"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 1798,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 114,
+   "commit": "18733af",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "153bbe769740beaa34cf3b2f8cd83d90e209b6a4"
+      }
+     ],
+     "add": 7,
+     "del": 4,
+     "bytes": 4810,
+     "lines": 43,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "71b1021748493ed7503522e3973b796872bab13e"
+      },
+      {
+       "path": "frontend/lib/financial-2525/rate-series.ts",
+       "blob": "8bd43631f9c8e02888991331463ac74d6253bda1"
+      }
+     ],
+     "add": 22,
+     "del": 2,
+     "bytes": 4897,
+     "lines": 58,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "6a3f29653f793cc75d7a336dfbe3680868377198"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "f3e7ccd0e31f26b63c0e5760e1f18434ad01781f"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "aa12a324cb2f2bce98a69d49b8b1cd79a141103e"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "56749dbcf0faebc87e565300f7fdcc54b77beee7"
+      }
+     ],
+     "add": 21,
+     "del": 5,
+     "bytes": 11569,
+     "lines": 87,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 115,
+   "commit": "5ce72cd",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "3938723548df26d590871a8b980cfdbb1c0bc54f"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1163,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "6fda85c7c4fced692b6863b40dd22353bdab4daf"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "3101aff70a5dcacab218592830f856061ee7bd73"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 1832,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 116,
+   "commit": "e3e6acd",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "8c0e9137aaf29533618b4261993dafd272c68bd3"
+      }
+     ],
+     "add": 17,
+     "del": 21,
+     "bytes": 10370,
+     "lines": 83,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "7ddf028b58f3bc21cd0e70d5e6b09f4912fa3598"
+      },
+      {
+       "path": "frontend/lib/financial-2525/rate-series.ts",
+       "blob": "3222e723ba5ae845f4bd45d6f87e4ff5a644ba4a"
+      }
+     ],
+     "add": 17,
+     "del": 2,
+     "bytes": 4196,
+     "lines": 45,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "42ceafcf85b369cfa514e3d9cb3ae4a634b5f682"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "551516660fefad2cd10bdbad4936a47155a1e5e1"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "701f307df45ef4dd9601f4ae552f6f230494df27"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "757d9623beb26f8cedfa4594f6305356a3656c94"
+      }
+     ],
+     "add": 14,
+     "del": 5,
+     "bytes": 9531,
+     "lines": 66,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 117,
+   "commit": "fa17d71",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "f5d31b8d387258c11d866779aa67b202ecfc6cc0"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1191,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "c84d31d2b210f1aec9ebf8aac08866abc7b63c77"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "a95e93e53b5b0ae791aa5f3127567760d55c8746"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 1860,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 118,
+   "commit": "a8e300b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "a0791a6fe4019bb2f32407faf20eb30596889734"
+      }
+     ],
+     "add": 14,
+     "del": 10,
+     "bytes": 5052,
+     "lines": 43,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "069ea64d8f762aa8baa71e52dc6acce67fccd3a4"
+      }
+     ],
+     "add": 10,
+     "del": 2,
+     "bytes": 2958,
+     "lines": 30,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "5bb023a0a727411d595134d8f0387b9163619291"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "b57b05f5ea559686e98d21320cd382856b0d0c62"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "36d24e55bbb71aabbe3564bc18eead81ea03dc40"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "bf7da10761caf90bde658a7953fca7ff5d356d2b"
+      }
+     ],
+     "add": 14,
+     "del": 5,
+     "bytes": 9435,
+     "lines": 66,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 119,
+   "commit": "ac4ba7b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "65799853b7b28a2eae305cdd6912f5b1dbd81c68"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1138,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "0026ef795ef35292c0d42be896fa6ca63e469bb9"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "b4cdb010dacea3b78c31a0700f59da11fedb316c"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 1807,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 120,
+   "commit": "436decc",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "e19b5fbe7025fdf2d788aa5668b1aa86b44212a5"
+      }
+     ],
+     "add": 6,
+     "del": 5,
+     "bytes": 2513,
+     "lines": 28,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "cd40834747e7a9de125b31e89e5793bc077f92e4"
+      }
+     ],
+     "add": 10,
+     "del": 2,
+     "bytes": 2444,
+     "lines": 30,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "dfe247032050e31064595f109cbeb5907be1f147"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "41098b9eafb9a4b090bdd15b8af81983dc00b3fb"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "61759d2cc87ede28ad9cc4fb0e27f92f094bd82b"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "4f0446e8ede2ad312c2fe27db454295a0a888a77"
+      }
+     ],
+     "add": 14,
+     "del": 5,
+     "bytes": 8335,
+     "lines": 66,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 121,
+   "commit": "ac4ba7b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "65799853b7b28a2eae305cdd6912f5b1dbd81c68"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1138,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "0026ef795ef35292c0d42be896fa6ca63e469bb9"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "b4cdb010dacea3b78c31a0700f59da11fedb316c"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 1807,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 122,
+   "commit": "ab00c1b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "bee7c2486921e9f2570e43f5417e44ed2afc1d1e"
+      }
+     ],
+     "add": 10,
+     "del": 2,
+     "bytes": 1716,
+     "lines": 30,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "dad071bbc0a5af26dfb3f98adcab1abe8c680584"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "a563e8bb8ba5153fefac1aca81e3fbfab7d7d001"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "66e2b895eb996d4164dcf69db219fab868798364"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "315d334951c870b3d9a46c7ca84a657cdff51825"
+      }
+     ],
+     "add": 14,
+     "del": 5,
+     "bytes": 6763,
+     "lines": 66,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 123,
+   "commit": "53d3c69",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "60d76d388d4995aebbe3081473593d606d94548d"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1102,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "e9834d1b37c54d428f105334ab5146a0ddf10950"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "c43189caf7367603a17cfe4a235b3cd5d0b37a0c"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 1771,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 124,
+   "commit": "da61bdc",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "2b9dfd325e03903ee5462ed16ac0509e1594e245"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1056,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "38b1cbc5f0a632b96adb94f48c9024418c2a058a"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "52b6d61f2803b708cd3f15cbe6222f4858311bdc"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 1725,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 125,
+   "commit": "38a1d5c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "b9e15f3f2843e40993324629af8bee2e5d6391c8"
+      }
+     ],
+     "add": 56,
+     "del": 14,
+     "bytes": 13512,
+     "lines": 109,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/accrual.ts",
+       "blob": "f89c862184977e016b49c89c2fe7749e383972aa"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "3a4c745872c8ad72a05716a82781606bde3e65d0"
+      },
+      {
+       "path": "frontend/lib/financial-2525/record.ts",
+       "blob": "509f557e2b05d0f2324e08a70607932c5cce44cf"
+      }
+     ],
+     "add": 35,
+     "del": 4,
+     "bytes": 6205,
+     "lines": 83,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "0144c816ee321047370f7a7a7db55febc2655cf0"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "b7aa8870a88008a61f4ad35a05936251276a02a2"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "316b1ad6ab3cef5079e3352fe6f80962a32b795b"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "e80512df6f474e843eacda5a22d10e89ba9ebfe0"
+      }
+     ],
+     "add": 21,
+     "del": 5,
+     "bytes": 9325,
+     "lines": 87,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 126,
+   "commit": "1970121",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "963dba8cc01e896118df602b31e8d640b30e4ebf"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1249,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "1cbbcafd73e70d076ea8ec689645e79cca0f8ef2"
+      }
+     ],
+     "add": 10,
+     "del": 2,
+     "bytes": 2301,
+     "lines": 30,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "196693f4f848416214df92c0b9b28b9cce779ac2"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "66fe51ca06c7efdd53f3eb401fc8d2b1d8f489e3"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "1b771e6c12a0000d79e3c2f0dd0ff725ed297d4e"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "47de33e6ad544f044a6d3637ef4d21996d5fdd2f"
+      }
+     ],
+     "add": 14,
+     "del": 5,
+     "bytes": 6691,
+     "lines": 66,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 127,
+   "commit": "f112b36",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "0ddca05c9d942aefb5e5e32755daf03115b8f9b9"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1111,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "7bc269ec60afa02d3aea195e40902a2c18754974"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "4bc17f5a094045ede6e3be86c92a3bc787e7db5b"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 1780,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 128,
+   "commit": "d418a89",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "ddce70d7fb46ad5bc18711b96d3854d0f89f0cfe"
+      }
+     ],
+     "add": 23,
+     "del": 10,
+     "bytes": 11715,
+     "lines": 106,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "18c34fbc15ac5e9c09f30085cff21782d60e4745"
+      }
+     ],
+     "add": 22,
+     "del": 3,
+     "bytes": 4162,
+     "lines": 61,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "2dec3a4d4451ed93fa4ed15823581d42feb401a5"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "5ca0d14189448b3e5980925ea5ac3526c429cb4b"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "930140106c63d88c9efb13b74d511557f6cbb772"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "0c99767a1530936455ff262f961c4063fabd914d"
+      }
+     ],
+     "add": 28,
+     "del": 7,
+     "bytes": 10986,
+     "lines": 109,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 129,
+   "commit": "d8370da",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "eaeefda1a2c6b22c1862e61dd02e84baf60ece89"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1290,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "2a1f671e1554afab675128048bd79183dc5bd43f"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1259,
+     "lines": 11,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 130,
+   "commit": "f21eaad",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/category-icon.tsx",
+       "blob": "683f85345ee568057759dd2df12316b76c8aacf5"
+      },
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "701730910a3df9a2e17d41f444e7f5fc2cfbe024"
+      }
+     ],
+     "add": 41,
+     "del": 29,
+     "bytes": 24852,
+     "lines": 206,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "ba7dafe97dfb221b33a19555b6e82afe32b8cfe2"
+      }
+     ],
+     "add": 27,
+     "del": 3,
+     "bytes": 5130,
+     "lines": 66,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "c981b0b2963a5e50bb637f239a635c62efcc027e"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "c842503af3150bae26619b88130438c54305e210"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "85b6abccab3609354dc8e411e74a839c315842e3"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "4a52d6de4ddd5897debb5cd2da2e3c563a0a9738"
+      }
+     ],
+     "add": 33,
+     "del": 7,
+     "bytes": 12854,
+     "lines": 114,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 131,
+   "commit": "b0ea01f",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "1fc9fa9d047650bfbd42649b11dd0a08e9687087"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 2652,
+     "lines": 35,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "64cfad307e5580e1b0b73d622eef00f9f9081b23"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "c99abe6cfeeed9f7c167a5bccfe5366c78c6faa1"
+      }
+     ],
+     "add": 8,
+     "del": 3,
+     "bytes": 3290,
+     "lines": 44,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 132,
+   "commit": "786ed1c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "8f8ac4d4125926f3760d53db5d438e732374efff"
+      }
+     ],
+     "add": 2,
+     "del": 1,
+     "bytes": 1277,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/accrual.ts",
+       "blob": "4c8078c31122173506d3bb5c0ffa956530d60dd5"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "83cc293f2a19b077738f828345d7968abb84d0b2"
+      }
+     ],
+     "add": 29,
+     "del": 7,
+     "bytes": 8081,
+     "lines": 99,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "e846c7e2251b5c46dd324304d6a175878aa45a34"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "ef65b76481c2f74ecae6f334a18c26611a136433"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "c31d1bf9e79430e7705a21e11f4f504f0377fe3b"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "0e2525683d35a516a0d8fa356db2b61f96020401"
+      }
+     ],
+     "add": 21,
+     "del": 5,
+     "bytes": 11594,
+     "lines": 87,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 133,
+   "commit": "55d4d30",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "4442d46b681d4c058a1ace04226f6eb996b6cd6d"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 2409,
+     "lines": 35,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "030dbbf75d01b46672b4344e9d579c7ee35e3538"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "5fdd64781a512ffec8f5542f02eb4c80e8122fd0"
+      }
+     ],
+     "add": 8,
+     "del": 3,
+     "bytes": 3048,
+     "lines": 44,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 134,
+   "commit": "111919f",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "4ce6b0b96b5cdbdedb3ca620bbe76e85e8da8369"
+      }
+     ],
+     "add": 157,
+     "del": 31,
+     "bytes": 47264,
+     "lines": 399,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/accrual.ts",
+       "blob": "c3d9d31fc7922d5a946136f594efbe47d97b5196"
+      },
+      {
+       "path": "frontend/lib/financial-2525/cards.ts",
+       "blob": "becb698678b9c140992e808d83be519042856487"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "22ff899c09f41ae39a86badd8ddb9eae1e2e34f2"
+      },
+      {
+       "path": "frontend/lib/financial-2525/record.ts",
+       "blob": "ae1e2e77062be77863e2a74ed658c1e3ce607cad"
+      }
+     ],
+     "add": 125,
+     "del": 4,
+     "bytes": 15137,
+     "lines": 183,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "930cc69fdacff6dcf5d1943691788eec020b0819"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "12f23c09aed27de6786c6b867b999b8b84445e64"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "96c84614d56e9f6cf215c65308cf66669dcaf80e"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "f723350af8b3e9c8d12e8e72aa0d67cd7a549cae"
+      }
+     ],
+     "add": 38,
+     "del": 7,
+     "bytes": 17412,
+     "lines": 119,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 135,
+   "commit": "929521e",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "785b80a2c05d245abb0fe0b2e996230d702ca336"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1214,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "b1915a2d62cbc5a2457a1beb5878f37ffc18cc3e"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "05811e1b4320b81aeaa6235ab38761a76ceffe4a"
+      }
+     ],
+     "add": 8,
+     "del": 2,
+     "bytes": 1833,
+     "lines": 35,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 136,
+   "commit": "98d7dd1",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "92a061929fe73aa9e709e6ad86e665a48a8caa85"
+      }
+     ],
+     "add": 14,
+     "del": 7,
+     "bytes": 10437,
+     "lines": 87,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "e2bdf5072a582f4bdd0b5699a06dad8cbf9f02dc"
+      }
+     ],
+     "add": 16,
+     "del": 2,
+     "bytes": 5686,
+     "lines": 44,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "76d855ec7ff59941187aab9c62a6180b90fb6ab7"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "ddee55ab25150be7c4bc2ed034b78e44bf67daa1"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "3dd6a0d0c5c84e5f13feeaf3d4381aaa1b8c1087"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "fb896c26576304a2d4d707b0714662547ced3320"
+      }
+     ],
+     "add": 21,
+     "del": 5,
+     "bytes": 15542,
+     "lines": 87,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 137,
+   "commit": "7da1df0",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "f0c9ba1154413f224466b6656396aabb11837a8d"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1144,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "26444c5d0fe9c14a5c9d09779f03b80d6e70801d"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "cfc2b23c7e102358a5e2c7f0c19c40715bee08b9"
+      }
+     ],
+     "add": 8,
+     "del": 2,
+     "bytes": 1763,
+     "lines": 35,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 138,
+   "commit": "1a70004",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "5db06e1c26d21fb71670848041a6ba605956e366"
+      }
+     ],
+     "add": 4,
+     "del": 3,
+     "bytes": 2152,
+     "lines": 16,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "e02d2b5038efc68a94864f7b10ebe8ef8c6d8509"
+      }
+     ],
+     "add": 16,
+     "del": 2,
+     "bytes": 2945,
+     "lines": 44,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "bb4c643c01220d60029303f640b00fb96117db67"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "f2e695ae94902627cd61baf15f57d65875012e05"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "99eef32aa2a34a73de2b8adf8d953f99f97ce84d"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "cba9e86779aa8a4d0d465db0063d39cca6ebf714"
+      }
+     ],
+     "add": 21,
+     "del": 5,
+     "bytes": 11711,
+     "lines": 87,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 139,
+   "commit": "c787095",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "f8c29e22ed6f90d233db96c0901736e3df73a4b0"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1230,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "8d2d5a3a47ff89c63e15ba9b558d58f73f9362cb"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "3a4bbbaf71f4a393c312011e68151705e8bf929c"
+      }
+     ],
+     "add": 8,
+     "del": 2,
+     "bytes": 1849,
+     "lines": 35,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 140,
+   "commit": "b19c343",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "73c6f081e80ca30df3e3370769af4b2261a1096b"
+      }
+     ],
+     "add": 97,
+     "del": 36,
+     "bytes": 28932,
+     "lines": 252,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/cards.ts",
+       "blob": "2b76668a68195b9e743bb37dcf8f2b16505bb9d9"
+      },
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "e9179a718d790f7a29d5b7830cd156600b085e4b"
+      }
+     ],
+     "add": 39,
+     "del": 15,
+     "bytes": 12688,
+     "lines": 94,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "4b4ba01cac6e32af2fcd96a66ceb0a2bcf48cc6d"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "ea1be1f316dc067a3c10a6fe34969c22adb881b9"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "9b6b08f2599f4c034f4503d0db01a736f8a9f071"
+      }
+     ],
+     "add": 9,
+     "del": 2,
+     "bytes": 17465,
+     "lines": 40,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 141,
+   "commit": "6d4854f",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "e9b625cbe283d18ae17a3a0611302c741b203081"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1165,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "380ceb377bfc9a392878fe2db8f0c96f0e8015dc"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "e3e6e9c2e7400ee2a1a8d1093890650a48ec54a3"
+      }
+     ],
+     "add": 8,
+     "del": 2,
+     "bytes": 1784,
+     "lines": 35,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 142,
+   "commit": "34fa64b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "96d2b30c1152d4b2c8f5727f85780eb3bfae770a"
+      }
+     ],
+     "add": 18,
+     "del": 8,
+     "bytes": 9046,
+     "lines": 83,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "b9ec9657fc8f2c7d8264bd0b1caf9e75718aa9f6"
+      },
+      {
+       "path": "frontend/lib/financial-2525/fit.ts",
+       "blob": "bcbf53086766baed5d7cdc525ce486ab84312e26"
+      }
+     ],
+     "add": 9,
+     "del": 2,
+     "bytes": 12477,
+     "lines": 34,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "7476c21878d2bb54eea0b7e6c732b4c99f1ff378"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "7cbe2a8d5043750f277032f81630543b62dedeb0"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "2c3d837836c78bfafd15cb8126baa0a58d596a68"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 29723,
+     "lines": 38,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 143,
+   "commit": "c44b61f",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "05120b9247a90652ec85913dea7a75f103618614"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 1209,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "be5bce3bfb0b98ba5acc2266676632fcc299e5ea"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "6df591ab156b37f649555be5fe8b9a032a0e011e"
+      }
+     ],
+     "add": 7,
+     "del": 2,
+     "bytes": 1878,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 144,
+   "commit": "73dbcbf",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "3a2c1c8ef7a023a67e8e55cf491e6eb2b389126c"
+      }
+     ],
+     "add": 16,
+     "del": 8,
+     "bytes": 11070,
+     "lines": 100,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "cb144531a2a02e46545c3c059419526c0b8d24a4"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 4801,
+     "lines": 29,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "811dcb96bb81623d2b46a6734ffca4f3d17c5823"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "4e0c70f3c29d1419eadcac8ff7d0abd6f6413bc4"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "3b37e9b12d69010d0273794b219ec567ea298048"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "ea911778e70c511a21520a49802d8eb25f8f175a"
+      }
+     ],
+     "add": 32,
+     "del": 6,
+     "bytes": 29695,
+     "lines": 80,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 145,
+   "commit": "d8c7c36",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/ROUNDS_BRIEF.md",
+       "blob": "9d2464a64a9bcd5cdff665bca55994246da42d23"
+      },
+      {
+       "path": "docs/financial-2525/rounds/r073_review.md",
+       "blob": "45e08cf473eb80dddc46f2ed4330d1a0e2fa80ad"
+      },
+      {
+       "path": "docs/financial-2525/rounds/r073_review.md.sha256",
+       "blob": "7bb137ff22972e335bc6efb994a813ab3f9c3b9f"
+      }
+     ],
+     "add": 130,
+     "del": 0,
+     "bytes": 15128,
+     "lines": 141,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 146,
+   "commit": "28541b7",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "eb75deb31ea6fa4f5dd98cd4d42a5481b9f5d590"
+      }
+     ],
+     "add": 19,
+     "del": 11,
+     "bytes": 13350,
+     "lines": 124,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "74fc1ceb3ddf45ae03f8a309e00a79d3b09a4d3d"
+      }
+     ],
+     "add": 7,
+     "del": 1,
+     "bytes": 13190,
+     "lines": 26,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "8355f2c53fe417504e2629b15bc262d2bc8c52a3"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "96169a3714d1be77ee8c0fa60c15d9b56597f0f6"
+      },
+      {
+       "path": "docs/financial-2525/SI_REVIEW.md",
+       "blob": "ad1985c3c02fc7ef11be708985d6258f48850b77"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "88752e18381ae7455c5fd1efb3e70b54911ff9be"
+      },
+      {
+       "path": "docs/financial-2525/rounds/r073.md",
+       "blob": "0c73fedbcabf25391ac80b3ec2d67475fe9a8a63"
+      }
+     ],
+     "add": 32,
+     "del": 3,
+     "bytes": 46125,
+     "lines": 96,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 147,
+   "commit": "a4e303c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "8144492e81960f76b3cf36036d64c22a90a9356f"
+      }
+     ],
+     "add": 6,
+     "del": 1,
+     "bytes": 999,
+     "lines": 25,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "f5ac3f9d963ac7130a7a557d23ae17c52e7ae6ff"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "c6ceba29d527dba9089d155ff86cfeab4a3e3786"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "3492f6608236d62e8c79494beaa9d6b2ad9b60d2"
+      }
+     ],
+     "add": 8,
+     "del": 3,
+     "bytes": 6155,
+     "lines": 44,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 148,
+   "commit": "b96a632",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "ed00d7cafdf5bf565a453bed5be1caf3b8d66634"
+      }
+     ],
+     "add": 26,
+     "del": 11,
+     "bytes": 10777,
+     "lines": 106,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "da0a7f273e3754f24c46823474b3dc3d53b272a5"
+      }
+     ],
+     "add": 35,
+     "del": 2,
+     "bytes": 9954,
+     "lines": 71,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/BACKLOG.md",
+       "blob": "bc37946bfa5e9f77a46811b22cbda1508a0ec6be"
+      },
+      {
+       "path": "docs/financial-2525/CRS_FINANCIAL-2525.md",
+       "blob": "ee8283dba8177de908aecf66911db4368ce7387d"
+      },
+      {
+       "path": "docs/financial-2525/DECISIONS_REGISTER.md",
+       "blob": "7325f352042367b68d2bc8f3d40fa29d8ea39d05"
+      },
+      {
+       "path": "docs/financial-2525/README.md",
+       "blob": "2d5ef27d051b4822f068c4fcb0e20d9663c2fe50"
+      },
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "1e9e7bddceeff7c07e146d840718cc0a34394818"
+      }
+     ],
+     "add": 59,
+     "del": 6,
+     "bytes": 35401,
+     "lines": 158,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 149,
+   "commit": "5b4579b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "9074b43aa572811eba4cbb70318843638b228740"
+      }
+     ],
+     "add": 33,
+     "del": 34,
+     "bytes": 12576,
+     "lines": 104,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 150,
+   "commit": "ee340a3",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "ee1ec09e127cb4dbcb9712897e50403aea31632f"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 2655,
+     "lines": 22,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 151,
+   "commit": "2b79abe",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "8f12ee477cbd4a44d28dfac832ef68789658e8f8"
+      }
+     ],
+     "add": 38,
+     "del": 13,
+     "bytes": 10258,
+     "lines": 98,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 152,
+   "commit": "6d45999",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "b46c7a17302c41f5c48a0132fb699c6669373824"
+      }
+     ],
+     "add": 14,
+     "del": 12,
+     "bytes": 8872,
+     "lines": 70,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 153,
+   "commit": "71eb9b3",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "888cbfe1d13079ef1cb1d53387807841197b78cf"
+      }
+     ],
+     "add": 15,
+     "del": 9,
+     "bytes": 5552,
+     "lines": 50,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 154,
+   "commit": "85c43e2",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "020c49558318c60a0663f37f2517efbeb2c85a46"
+      }
+     ],
+     "add": 3,
+     "del": 1,
+     "bytes": 1886,
+     "lines": 22,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 155,
+   "commit": "da36479",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "df9a70500323dad2409f2c5bf08562f5dd417621"
+      }
+     ],
+     "add": 9,
+     "del": 5,
+     "bytes": 3596,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 156,
+   "commit": "7bf6be3",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "1a491796dc4585ff6e06d6a6b951a30ac159fb7c"
+      }
+     ],
+     "add": 0,
+     "del": 1,
+     "bytes": 982,
+     "lines": 11,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 157,
+   "commit": "6890379",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "79c6c6923d74d6f9493c3849e85d203fbafc804f"
+      }
+     ],
+     "add": 6,
+     "del": 6,
+     "bytes": 3058,
+     "lines": 32,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 158,
+   "commit": "764876a",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "a4dd4f46af04171b996ecc32da7f2d491b91d825"
+      }
+     ],
+     "add": 7,
+     "del": 7,
+     "bytes": 6665,
+     "lines": 47,
+     "status": "recorded"
+    },
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/fit.ts",
+       "blob": "e9a8664507d38751195d0b3fbd02d888677e1fed"
+      }
+     ],
+     "add": 7,
+     "del": 0,
+     "bytes": 1366,
+     "lines": 17,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 159,
+   "commit": "766ecdc",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "c07730de4adb6328a135092eba09baf1f6b4ce11"
+      }
+     ],
+     "add": 3,
+     "del": 5,
+     "bytes": 1716,
+     "lines": 18,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 160,
+   "commit": "8936f29",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "28e6bb8ab3b0b932f7b9637351a45c492b27aa60"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 2197,
+     "lines": 20,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 161,
+   "commit": "9490908",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "6f4cb5777cf7dba42c71d71d9fc924a93eaff6b8"
+      }
+     ],
+     "add": 8,
+     "del": 8,
+     "bytes": 4394,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 162,
+   "commit": "05857db",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "19b9d2ab5f30a0b1e8c2259931995fe35da8544e"
+      }
+     ],
+     "add": 5,
+     "del": 5,
+     "bytes": 3592,
+     "lines": 30,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 163,
+   "commit": "05d7e87",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "d0f9151c4643151792a31e9fe2515b81e56ddbef"
+      }
+     ],
+     "add": 3,
+     "del": 3,
+     "bytes": 2583,
+     "lines": 24,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 164,
+   "commit": "eb03f37",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "bee2988334c34b9e47cafab059c7c63170f8031e"
+      }
+     ],
+     "add": 8,
+     "del": 7,
+     "bytes": 6718,
+     "lines": 48,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 165,
+   "commit": "7ec82c4",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "08e5d262fc7adb47516cbb6ee3565df9f77e4165"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1099,
+     "lines": 12,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 166,
+   "commit": "bf9e821",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "files": [
+      {
+       "path": "frontend/components/financial-2525/command-ux1.tsx",
+       "blob": "be86481fc1f4d39410c048886d1b5e80d93bcd83"
+      }
+     ],
+     "add": 27,
+     "del": 11,
+     "bytes": 8812,
+     "lines": 73,
+     "status": "recorded"
+    }
+   ]
+  }
+ ]
+}

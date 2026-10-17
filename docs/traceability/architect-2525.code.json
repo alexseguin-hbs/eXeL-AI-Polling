@@ -1,0 +1,177 @@
+{
+ "section": "Architect-2525",
+ "route": "/Architect-2525",
+ "model": "git-scoped",
+ "cap": {
+  "bytes": 120000,
+  "lines": 2000
+ },
+ "areas": [
+  {
+   "key": "ux",
+   "name": "Command UX",
+   "cells": [
+    0,
+    1,
+    2,
+    9,
+    10,
+    11,
+    18,
+    20
+   ]
+  },
+  {
+   "key": "routes",
+   "name": "Routes",
+   "cells": [
+    3,
+    6,
+    7,
+    12,
+    15,
+    16,
+    17,
+    21,
+    24,
+    25
+   ]
+  },
+  {
+   "key": "docs",
+   "name": "Record",
+   "cells": [
+    4,
+    5,
+    8,
+    13,
+    14,
+    19,
+    22,
+    23,
+    26
+   ]
+  }
+ ],
+ "revisions": [
+  {
+   "rev": 1,
+   "commit": "ef8b1c3",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 2,
+   "commit": "ce0db7a",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/command-ux1.tsx",
+       "blob": "bbddcf357765fe9d2b287a0abf581ca420b7db27"
+      }
+     ],
+     "add": 3,
+     "del": 2,
+     "bytes": 2315,
+     "lines": 31,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 3,
+   "commit": "e29a017",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/architect-celestial.tsx",
+       "blob": "dc92a2bb6d9a10985c8058a65409c76a1e1283b8"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-design-workspace.tsx",
+       "blob": "b5174ab90630e8695da62df8046e368752682d58"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-design.tsx",
+       "blob": "d967f5b891dcd130cd97f21514d9a1ce4f6987d9"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-estimate.tsx",
+       "blob": "6adb218af2ffff3c493aba6bda0cd955f8d0ae98"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-projects.tsx",
+       "blob": "61c9aa85e0a184b3c893d47629039bb30af60ab2"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-skysun.tsx",
+       "blob": "14fd33fe70be07c63e8a1fde271ecc571fe89c23"
+      },
+      {
+       "path": "frontend/components/architect-2525/bim-io.tsx",
+       "blob": "24974a43b9dc67b01e53955c28363186c56f245b"
+      },
+      {
+       "path": "frontend/components/architect-2525/command-ux1.tsx",
+       "blob": "5fff45991cecc0ef35bb2a6c7d780cec7b2ad750"
+      },
+      {
+       "path": "frontend/components/architect-2525/house-spec.tsx",
+       "blob": "a70daa592fa2b35030b5b3846cdcc218122a9d8e"
+      },
+      {
+       "path": "frontend/components/architect-2525/layer-inspector.tsx",
+       "blob": "f79e3b9bac262bfde6a817ef71b64e364e331fa8"
+      },
+      {
+       "path": "frontend/components/architect-2525/layer-tree.tsx",
+       "blob": "68d684a697936daa824954d6c1e0d82c5e13cd8d"
+      },
+      {
+       "path": "frontend/components/architect-2525/room-designer.tsx",
+       "blob": "2cece16385c9b01ddead7ad1abbdcdc4d57669de"
+      }
+     ],
+     "add": 149,
+     "del": 128,
+     "bytes": 107612,
+     "lines": 1102,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 4,
+   "status": "no-commit",
+   "areas": []
+  }
+ ]
+}

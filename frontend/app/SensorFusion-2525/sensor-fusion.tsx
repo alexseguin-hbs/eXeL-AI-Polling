@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { useAuth0 } from "@auth0/auth0-react";
 import { Settings } from "lucide-react";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
+import { SENSORFUSION_2525_CODE } from "@/lib/2525-core/sensorfusion-2525-code.gen";   // DD-80: every R-CORE carries the </> unlock
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, percentBox, unescapeXml } from "@/lib/sensor-fusion/voc";
 import { bottomRightLine, codexLine, codexStamp, emptyPairXml, pairNames, readyForProject, SENSOR_FUSION_PROJECT, upperLeftLine } from "@/lib/sensor-fusion/pair";
@@ -102,7 +103,7 @@ function ProgramDownload() {
 function Foot({ accent }: { accent: string }) {
   return (
     <footer className={styles.foot}>
-      <RCoreBadge history={SENSOR_FUSION_RCORE_HISTORY} accent={accent} />
+      <RCoreBadge history={SENSOR_FUSION_RCORE_HISTORY} accent={accent} code={SENSORFUSION_2525_CODE} codeId="sensorfusion-2525" />
     </footer>
   );
 }

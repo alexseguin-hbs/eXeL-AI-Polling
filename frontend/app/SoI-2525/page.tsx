@@ -70,6 +70,7 @@ import { Settings, FileText, Lightbulb, Save, Trash2 } from "lucide-react"; // s
 import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
 import { loadImageLibrary, addToImageLibrary, removeFromImageLibrary, signedDataURL, type LibImage } from "@/lib/image-library"; // shared CONOPS image pool (Light-Codex signed)
 import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
+import { SOI_2525_CODE } from "@/lib/2525-core/soi-2525-code.gen";   // DD-80: every R-CORE carries the </> unlock
 import { fromDrsRevisions, historyOf, type RCoreHistory } from "@/lib/2525-core/revisions";
 import { SOI_DRS_REVISIONS } from "@/lib/2525-core/soi-drs-revisions.gen"; // extracted DRS revisions[] (not the whole 200KB JSON)
 
@@ -1134,7 +1135,7 @@ function Board() {
       </footer>
     </div>
     {/* R-CORE · version-history badge — bottom-centre, two-click; reads SoI-2525's DRS revision record. */}
-    <RCoreBadge history={SOI_RCORE_HISTORY} accent="#22d3ee" />
+    <RCoreBadge history={SOI_RCORE_HISTORY} accent="#22d3ee" code={SOI_2525_CODE} codeId="soi-2525" />
     </div>
   );
 }
