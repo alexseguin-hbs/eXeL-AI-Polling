@@ -17,9 +17,13 @@ try {
     process.env.WORKERS_CI_COMMIT_SHA ||
     process.env.GITHUB_SHA ||
     process.env.CF_PAGES_COMMIT_SHA;
-  gitSha = ciSha
-    ? ciSha.substring(0, 7)
-    : execSync('git rev-parse --short HEAD').toString().trim();
+  // ONE RULE FOR BOTH SOURCES. This used to branch: CI took substring(0,7), a local build took
+  // `git rev-parse --short`, whose length git AUTO-SIZES by the repository's object count. The repo grew
+  // past 7 and git started answering NINE, so build-stamp's "the sha is seven hex digits" went red on every
+  // local run — and because build-stamp is step 12 of 133 in test:ci, the chain ABORTED there and 121 gates
+  // never ran. In CI the env branch is always taken, so the broken branch was never exercised and the whole
+  // thing stayed invisible (found 2026-10-17 by the AsM/SSSES battery). Derive it one way and it cannot drift.
+  gitSha = (ciSha || execSync('git rev-parse HEAD').toString().trim()).substring(0, 7);
 } catch {}
 
 // Build timestamp in CST (America/Chicago handles CST/CDT automatically).

@@ -26,5 +26,16 @@ try { (await import('node:fs')).unlinkSync((await import('node:path')).join((awa
 const c = JSON.parse(execFileSync(process.execPath, ['-e', "console.log(JSON.stringify(require('./next.config.js').env))"], { cwd: root, env: { ...process.env, SOURCE_DATE_EPOCH: '1700000000' } }).toString());
 ok(c.NEXT_PUBLIC_BUILD_DATE === '2023.11.14' && c.NEXT_PUBLIC_BUILD_TIME === '16:13 CST', `SOURCE_DATE_EPOCH pins the stamp for a reproducible build (${c.NEXT_PUBLIC_BUILD_DATE} ${c.NEXT_PUBLIC_BUILD_TIME})`);
 ok(/^[0-9a-f]{7}$/.test(a.NEXT_PUBLIC_GIT_SHA), `the sha is seven hex digits (${a.NEXT_PUBLIC_GIT_SHA})`);
+// …AND SO DOES THE GIT PATH, with every CI variable cleared. The assertion above is satisfied by the env branch
+// whenever one of WORKERS_CI_COMMIT_SHA / GITHUB_SHA / CF_PAGES_COMMIT_SHA is set — which is ALWAYS true in CI — so
+// for months it never exercised the branch a developer actually takes. `git rev-parse --short` auto-sizes its
+// abbreviation by the repository's object count; this repo grew past 7 and git began answering NINE, turning
+// build-stamp red on every local run. build-stamp is step 12 of 133 in test:ci, so the chain aborted there and the
+// remaining 121 gates never ran locally — invisible in CI, and reported by me as "clean" more than once. This leg
+// forces the git path and holds it to the same seven (found 2026-10-17 by the AsM 111 / SSSES battery).
+const viaGit = JSON.parse(execFileSync(process.execPath, ['-e', "console.log(JSON.stringify(require('./next.config.js').env))"],
+  { cwd: root, env: { ...process.env, WORKERS_CI_COMMIT_SHA: '', GITHUB_SHA: '', CF_PAGES_COMMIT_SHA: '' } }).toString());
+ok(/^[0-9a-f]{7}$/.test(viaGit.NEXT_PUBLIC_GIT_SHA),
+   `with no CI variable set, the git path stamps seven hex too — one derivation rule, not two (${viaGit.NEXT_PUBLIC_GIT_SHA})`);
 console.log(`\nbuild-stamp: ${pass} passed, ${fail} failed · one stamp per commit across processes`);
 process.exit(fail ? 1 : 0);
