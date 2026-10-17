@@ -3,6 +3,12 @@
 // register. This gate holds it to the bytes: every carried drone-2525_r.NNN.html from r.128 on has an entry whose
 // sha256 and byte count match the file; README HEAD is the last entry; and each row carries a chain hash over the
 // previous row's chain, so editing or removing an earlier entry breaks every later one — append, never edit.
+// THE CHAIN'S REACH, STATED EXACTLY (2026-10-17): it hashes prev|rev|sha|bytes. It does NOT cover the SHIPPED
+// column, so a stray write there leaves every chain hash valid. That is not theoretical — r.212's bookkeeping
+// replaced the FIRST '| PENDING (Verify Live) |' in the file to mark r.211 superseded, and fifteen rows were
+// carrying that placeholder, so the mark landed on r.151 (2026-09-24) while r.211 kept the placeholder. Every
+// gate stayed green over a register that named the wrong revision for three days. The two assertions below
+// close it by making the register and the LEDGER agree on which revision was superseded.
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 let pass = 0, fail = 0;
@@ -23,6 +29,24 @@ for (const r of rows) ok(fs.existsSync(new URL(`drone-2525_${r.rev}.html`, dir))
 ok(rows.map((r) => +r.rev.slice(2)).every((n, i, a) => i === 0 || n > a[i - 1]), 'entries are in strictly increasing revision order (never re-numbered)');
 let prev = '';
 for (const r of rows) { const want = sha(prev + '|' + r.rev + '|' + r.sha + '|' + r.bytes); ok(r.chain === want, `${r.rev} chain hash carries the previous entry forward (append-only)`); prev = want; }
+// THE SHIPPED COLUMN, WHICH THE CHAIN CANNOT SEE. A register row may say a later revision superseded it, but only
+// the row the LEDGER says was superseded may say so — one record, one answer. Red-first: with the mark on r.151 and
+// r.211 still PENDING (how it shipped), both legs fail by name.
+{
+  const marked = rows.filter((r) => /SUPERSEDED by r\.\d{3}/.test(r.shipped));
+  const led = JSON.parse(fs.readFileSync(new URL('../../docs/traceability/drone-2525.ledger.json', import.meta.url), 'utf8'));
+  const ledSup = led.entries.filter((e) => /^SUPERSEDED:r\.\d{3}$/.test(String(e.shipped || '')))
+    .map((e) => ({ by: String(e.shipped).slice(-3), rev: (String(e.text || '').match(/\br\.(\d{3})\b/) || [])[1] }));
+  ok(marked.length === ledSup.length,
+     `the register marks as many revisions SUPERSEDED as the ledger does (${marked.length} vs ${ledSup.length})`);
+  for (const r of marked) {
+    const by = r.shipped.match(/SUPERSEDED by r\.(\d{3})/)[1];
+    const mine = r.rev.replace('r.', '');
+    ok(+by > +mine, `${r.rev}: SUPERSEDED names a LATER revision (r.${by})`);
+    ok(ledSup.some((l) => l.by === by && l.rev === mine),
+       `${r.rev}: the LEDGER agrees this is the revision r.${by} superseded — the register cannot name one the record does not`);
+  }
+}
 for (const r of rows) ok(new RegExp(`^## ${r.rev.replace('.', '\\.')} — `, 'm').test(reg), `${r.rev} has a narrative section (what changed, corrections)`);
 const readme = fs.readFileSync(new URL('README.md', dir), 'utf8');
 const last = rows[rows.length - 1];
