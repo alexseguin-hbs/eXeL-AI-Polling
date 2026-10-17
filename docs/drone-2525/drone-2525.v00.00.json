@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.069",
+  "revision": "0.070",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -535,6 +535,14 @@
    "why": "Operator deck r.214 - MOUSE LOOK IS MOUSE-ONLY, AND THE GATE THAT MISSED IT CAN SEE IT NOW (operator 2026-10-17: \"AsM 111 and MoT 333 test new updates; spiral test, and SSSES TEST; make changes without loosing functionality, ensure you did not break anything up tothis point by reviewing R-CORE HISTORY\"). Twelve Masters at 111 words and seven SSSES/Spiral lenses on the LIVE r.213; 22 distinct BLOCKING claims, three refuters each, 10 survived. A 12-run SPIRAL soak over 1100 sampled moments and 9875 frames found zero glitches. THE DEFECT, found independently by three reporters: r.213 window listeners gated on the lock and never on e.pointerType, so with the cursor captured a touch or pen pointerdown fired a round and the shipped canvas touch path went dead. Pointer lock is mouse-only by definition; the guard removes no mouse behaviour and restores the touch path. My own gate could not see it - it probed touch only with the cursor FREE and counted a guard string instead of naming the listeners. Also fixed: a swallowed pointerup stranded state.drag so the aim later turned with no button held; M captured the cursor under an open screen and killed its clicks, including the panel that teaches M; a held M was a burst of toggles; the boot self-check serialised the 1.17 MB document four times where one hoisted const does. New DEFERRED row MOUSE_LOOK_LEAVES_NO_TRACE - deferred because toolSelfTest runs long before the wire registers, so the same assertions made synchronously pass because nothing is listening. Five sabotages on the bytes this commit carries, script committed. Nothing shipped was removed. Range untouched: range-frozen 100 definitions at 0 moved.",
    "commit": "d78b10d",
    "shipped": "d844d7e"
+  },
+  {
+   "revision": "0.070",
+   "date": "2026-10-17",
+   "kind": "release",
+   "why": "Operator deck r.215 - THE HISTORY OWNS THE SCREEN (DD-78; operator 2026-10-17: \"Ensure this is full screen for portraight and landscape and pc; also I dont see </> and </> Code unlock of code\"). This revision answers the first half. Measured on the live r.214 bytes: the panel sheet was max-width 640px and max-height 88vh inside an overlay adding 8px of side padding - 428x815 inside his 428x926 phone with the game showing around it, a letterbox in landscape, and a 640x792 column at x=400 in a 1440x900 window on a desktop. It is now full bleed, measured at 428x926, 926x428 and 1440x900, each at (0,0), filling the window exactly. The same card shape was in the shared React panel, so the identical change lands there and every 2525 surface gains it at once. Nothing pinned that geometry; three legs in rcore-revisions now hold it and a deferred deck row THE_HISTORY_OWNS_THE_SCREEN opens the real panel and measures the real rect. A 1100px reading column keeps prose readable inside the full bleed - declared, one number, reversible. THE SECOND HALF, the deck own </> Code chip, is DD-79 and its own revision: the deck panel is a hand-written vanilla port with only cmpVU and cmpVS, and Code mode there means inlining the 40904 B index and porting the cube into a file forbidden to fetch anything. Named, not bundled half-done.",
+   "commit": "8fc06f0",
+   "shipped": "PENDING"
   }
  ],
  "arena": {

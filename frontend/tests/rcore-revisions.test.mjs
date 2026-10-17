@@ -95,6 +95,19 @@ ok(soiCmp.crossed.length === soiH.revisions.length - 1, "SoI compare(first → c
 // ── 6 · the badge source wires the two-click states and opens the panel ────────────────────────────
 const badgeSrc = fs.readFileSync(new URL("../components/2525-core/rcore-badge.tsx", import.meta.url), "utf8");
 const panelSrc0 = fs.readFileSync(new URL("../components/2525-core/rcore-revision-panel.tsx", import.meta.url), "utf8");
+// ── DD-78 · THE HISTORY OWNS THE SCREEN (operator 2026-10-17: "Ensure this is full screen for portraight and
+// landscape and pc"). It used to be a 640 x 88vh card inside a padded scrim: measured 428x815 on his phone with
+// the page showing around it, and 640x792 at x=400 in a 1440x900 window. Nothing pinned that geometry, which is
+// why it survived nine surfaces and a year of panels. These three hold the full bleed on every surface at once.
+ok(/maxWidth: "none"/.test(panelSrc0) && /maxHeight: "none"/.test(panelSrc0) && /height: "100%"/.test(panelSrc0),
+   "the sheet is uncapped in both axes — full screen in portrait, in landscape and on a desktop");
+// read the CODE, not the commentary: the note above the style block names the old geometry on purpose, and a
+// gate that matches its own explanation is the self-counting trap this repo has now hit three times.
+const panelCode0 = panelSrc0.split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");
+ok(!/maxWidth: 640/.test(panelCode0) && !/88vh/.test(panelCode0),
+   "the 640px / 88vh card is gone from the CODE, not merely overridden");
+ok(/padding: 0, overflow: "hidden"/.test(panelSrc0) && /maxWidth: 1100/.test(panelSrc0),
+   "the overlay adds no inset, and the CONTENT keeps a reading width so a wide monitor does not run prose end to end");
 // operator 2026-10-01 (restoring 2026-09-25): REST = the small reticle icon; CLICK 1 = the icon with its word art (the wordmark pill);
 // CLICK 2 = the Version History panel. The 2026-09-30 wordmark-first toggle was a misreading and is reversed. The header keeps its centring.
 ok(/data-rcore-icon/.test(badgeSrc) && /onClick=\{expand\}/.test(badgeSrc) && /setStage\(1\)/.test(badgeSrc), "badge CLICK 1: the rest icon expands to the pill (setStage(1))");

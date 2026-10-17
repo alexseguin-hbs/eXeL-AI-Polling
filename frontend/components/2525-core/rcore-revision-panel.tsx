@@ -170,12 +170,14 @@ export function RCoreRevisionPanel({
       // TOP-ANCHORED with a safe-area top gap (operator 2026-09-26 "when open I cant see top"): a bottom-anchored
       // sheet slid its header under the phone's URL bar. Anchored to the top on phones (header always visible),
       // centred on desktop (sm:items-center).
-      style={{ position: "fixed", inset: 0, zIndex: 80, background: PAL.scrim, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "max(env(safe-area-inset-top, 0px), 12px) 8px 12px", overflowY: "auto" }}
-      className="sm:items-center"
+      // r.215 / DD-78 (operator 2026-10-17: "Ensure this is full screen for portraight and landscape and pc"): the
+      // panel was a 640 x 88vh card inside a padded scrim — an inset card on a phone, a letterbox in landscape, a
+      // 640px column adrift on a desktop (measured 640x792 at x=400 in a 1440x900 window). It OWNS the screen now.
+      style={{ position: "fixed", inset: 0, zIndex: 80, background: PAL.bg, display: "flex", alignItems: "stretch", justifyContent: "center", padding: 0, overflow: "hidden" }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ width: "100%", maxWidth: 640, maxHeight: "88vh", overflowY: "auto", background: PAL.bg, color: PAL.ink, border: `1px solid ${PAL.line}`, borderRadius: 14, boxShadow: `0 0 40px ${accent}22`, fontFamily: "ui-sans-serif, system-ui, sans-serif" }}
+        style={{ width: "100%", maxWidth: "none", height: "100%", maxHeight: "none", overflowY: "auto", WebkitOverflowScrolling: "touch", background: PAL.bg, color: PAL.ink, border: 0, borderRadius: 0, boxShadow: "none", fontFamily: "ui-sans-serif, system-ui, sans-serif" }}
       >
         {/* Header — the R-CORE icon + wordmark RASTERS at the top when open (operator 2026-09-26 "place icon and
             word art raster at top when open"). Sticky, so the branding + close stay in view while the list scrolls. */}
@@ -217,7 +219,8 @@ export function RCoreRevisionPanel({
         {n < 2 ? (
           <p style={{ padding: 16, fontSize: 13, color: PAL.muted }}>{t("rcore.fewer_than_two")}</p>
         ) : (
-          <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+          // full bleed owns the glass; the CONTENT keeps a reading width so a wide monitor does not run prose end to end
+          <div style={{ padding: "16px max(16px, env(safe-area-inset-left, 0px)) calc(16px + env(safe-area-inset-bottom, 0px))", display: "flex", flexDirection: "column", gap: 14, width: "100%", maxWidth: 1100, margin: "0 auto" }}>
             {/* Version badge of the After pick — latest vs historical (mirrors the living doc's tag). */}
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <span style={{ fontSize: 11, borderRadius: 999, border: `1px solid ${bIdx === n - 1 ? accent : PAL.line}`, color: bIdx === n - 1 ? accent : PAL.muted, padding: "2px 10px", fontFamily: "ui-monospace, monospace" }}>

@@ -8340,6 +8340,92 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 94,
+   "commit": "8fc06f0",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f7b78767cb246596eecae20c82b960ad6414d751"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f7b78767cb246596eecae20c82b960ad6414d751"
+      }
+     ],
+     "add": 25,
+     "del": 6,
+     "bytes": 51945,
+     "lines": 65,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r215.sha256",
+       "blob": "4332808c2bb24cc0d8da69d44fb2fa83442a686a"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r214_to_r215.py",
+       "blob": "a158090b28b9b196ea3161e432a59bcef15959fd"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/redfirst/r215.md",
+       "blob": "9be1ad9d1659c28437872d8051f5c580ba62e04d"
+      }
+     ],
+     "add": 164,
+     "del": 0,
+     "bytes": 12452,
+     "lines": 171,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "f7b78767cb246596eecae20c82b960ad6414d751"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2430,
+     "lines": 11,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
