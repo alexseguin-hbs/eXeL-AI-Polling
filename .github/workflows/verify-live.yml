@@ -103,6 +103,42 @@ jobs:
             exit 1
           fi
 
+      # 2026.10.17 · IS _headers ACTUALLY HONOURED? The cache class was fixed in public/_headers on the
+      # reasoning that Workers Static Assets reads it — but that reasoning is not provable from inside the
+      # sandbox, which 403s every host. If it is NOT honoured, then the two earlier per-file no-cache fixes
+      # (the living document r143, the operator deck r.202) were never in force either, and he has been
+      # hard-refreshing to work around a rule that does nothing. This step answers it empirically, on every
+      # run, from a runner with real network — which is better than a documentation link.
+      - name: Does the live site revalidate its documents? (the cache class)
+        env:
+          SITE: https://exel-ai-polling.explore-096.workers.dev
+        run: |
+          set -o pipefail
+          bad=0
+          for path in "/SoI-2525/" "/main/Security-2525/" "/financial-2525/" "/drone-2525/play.html"; do
+            cc="$(curl -sSI -m 20 "$SITE$path" | tr -d '\r' | awk -F': ' 'tolower($1)=="cache-control"{print tolower($2)}')"
+            case "$cc" in
+              *no-cache*) echo "::notice title=CACHE::$path → $cc" ;;
+              "")         echo "::error title=CACHE::$path carries NO Cache-Control — _headers is not reaching the edge"; bad=1 ;;
+              *)          echo "::error title=CACHE::$path → $cc (expected no-cache; a document he reloads can be stale)"; bad=1 ;;
+            esac
+          done
+          # the other half of the bargain: hashed bundles must still be cached hard, or every load re-downloads them
+          asset="$(curl -fsSL -m 25 -H 'cache-control: no-cache' "$SITE/" | grep -oE '/_next/static/[^"]+\.js' | head -1 || true)"
+          if [ -n "$asset" ]; then
+            acc="$(curl -sSI -m 20 "$SITE$asset" | tr -d '\r' | awk -F': ' 'tolower($1)=="cache-control"{print tolower($2)}')"
+            case "$acc" in
+              *immutable*) echo "::notice title=CACHE::$asset → $acc" ;;
+              *)           echo "::error title=CACHE::$asset → ${acc:-none} (expected immutable — the catch-all has eaten the hashed assets)"; bad=1 ;;
+            esac
+          else
+            echo "::warning title=CACHE::could not find a hashed asset on / to probe"
+          fi
+          if [ "$bad" = "1" ]; then
+            echo "### ❌ The cache class — a document can still be served stale" >> "$GITHUB_STEP_SUMMARY"; exit 1
+          fi
+          echo "### ✅ Documents revalidate, hashed assets stay immutable" >> "$GITHUB_STEP_SUMMARY"
+
       # DD-57 (operator 2026-10-14: "ensure supabase is linked"). The two NEXT_PUBLIC_ vars are inlined into the client
       # bundle at build time, so the ONLY honest proof that the live site has them is to read what the site actually serves.
       # deploy.yml:18 states the stake: "required; Trinity Redundancy depends on them" — without them lib/supabase.ts:6-9
