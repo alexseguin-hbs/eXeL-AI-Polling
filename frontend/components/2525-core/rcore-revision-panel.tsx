@@ -294,22 +294,6 @@ export function RCoreRevisionPanel({
                     <span role="group" style={{ display: "inline-flex", border: `1px solid ${PAL.line}`, borderRadius: 8, overflow: "hidden" }}>
                       <ModeBtn hook="cmpVU" label={t("rcore.unified")} active={diffMode === "unified"} onClick={() => leaveCode("unified")} accent={accent} />
                       <ModeBtn hook="cmpVS" label={t("rcore.side_by_side")} active={diffMode === "side"} onClick={() => leaveCode("side")} accent={accent} />
-                      {hasCode ? (
-                        <button data-rcore-mode="cmpVC" type="button" aria-pressed={diffMode === "code"} aria-label={t("rcore.code")}
-                          onClick={pressCode}
-                          style={{ display: "inline-flex", alignItems: "center", padding: "2px 8px", border: 0, cursor: "pointer", lineHeight: 0,
-                            flexShrink: 0, background: diffMode === "code" ? `${accent}22` : PAL.panel }}>
-                          {/* HIS ARTWORK, AS-IS — the R-CORE iconology he named as the reference: the badge
-                              serves /r-core/r-core-icon.png raw at 985 KB and sizes it in CSS ("the operator's
-                              exact reticle artwork, as-is"). These are byte-identical to his own sends, proven
-                              by tests/rcore-code-record.test.mjs against the ask sidecar. Never cut, never
-                              resampled — an earlier cut shrank his wordmark's ink to 10.5 px and he sent the
-                              art again. */}
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={codeStage === 0 ? CODE_ICON : CODE_WORDMARK} alt={t("rcore.code")}
-                            style={{ height: codeStage === 0 ? CODE_CHIP_H : CODE_WORD_H, width: "auto", display: "block", flexShrink: 0 }} />
-                        </button>
-                      ) : null}
                     </span>
                   </div>
                   {/* CODE FIRST: `cmp.ops === null` is the prose diff's token cap, and it fires on exactly the
@@ -436,6 +420,48 @@ export function RCoreRevisionPanel({
                 <span data-rcore-impact style={{ fontSize: 10, fontWeight: 600, borderRadius: 6, border: `1px solid ${impactColor(cmp.impact, accent)}55`, color: impactColor(cmp.impact, accent), padding: "2px 7px" }}>
                   {impactLabel(cmp.impact)}
                 </span>
+              </div>
+            )}
+
+            {/* DD-81 (operator 2026-10-17, asked twice): "place code at bottom center of R-CORE JUST LIKE
+                R-CORE IS AT BOTTOM center all screens". That is the badge's own placement law, one level in —
+                rcore-badge.tsx:71 is `flex w-full justify-center`, a FULL-WIDTH CENTRED ROW IN NORMAL FLOW,
+                MOUNTED LAST, pinned by rcore-revisions.test.mjs:120 under his 2026-09-25 words "Smaller logo is
+                in bottom center of all Innovation 2525 projects". So the chip leaves the WHAT CHANGED mode strip
+                (where it read as a third segment beside two text labels) and stands here, last in the body,
+                centred. DD-72's three beats are unchanged, and the code pane keeps its place ABOVE in the
+                WHAT CHANGED block — so the chip never moves when it opens, exactly as the badge does not move
+                when its panel opens.
+
+                STICKY, NOT MERELY LAST. Measured on the built export: last-in-flow put the chip 17,595 px down
+                the panel body at 375 px (17,198 at 428×926, 14,396 on a desktop) — below Financial's 166-row
+                history, where he would never see it. On a page the badge is at the bottom and he FINDS it;
+                that is the whole of his sentence. So the row is `position: sticky; bottom: 0` — still in normal
+                flow, never `fixed` (the thing rcore-revisions.test.mjs:120 bans) — so it rides the bottom of
+                the panel at every scroll position and settles at the true bottom at the end. */}
+            {hasCode && !same && (
+              <div
+                data-rcore-code-row
+                className="flex w-full justify-center"
+                style={{ position: "sticky", bottom: 0, zIndex: 2, marginTop: 4,
+                  padding: `10px 0 calc(10px + env(safe-area-inset-bottom, 0px))`,
+                  background: `linear-gradient(to top, ${PAL.bg} 62%, transparent)` }}
+              >
+                <button data-rcore-mode="cmpVC" type="button" aria-pressed={diffMode === "code"} aria-label={t("rcore.code")}
+                  onClick={pressCode}
+                  style={{ display: "inline-flex", alignItems: "center", padding: "4px 12px", cursor: "pointer", lineHeight: 0,
+                    border: `1px solid ${diffMode === "code" ? accent : PAL.line}`, borderRadius: 8,
+                    flexShrink: 0, background: diffMode === "code" ? `${accent}22` : PAL.panel }}>
+                  {/* HIS ARTWORK, AS-IS — the R-CORE iconology he named as the reference: the badge
+                      serves /r-core/r-core-icon.png raw at 985 KB and sizes it in CSS ("the operator's
+                      exact reticle artwork, as-is"). These are byte-identical to his own sends, proven
+                      by tests/rcore-code-record.test.mjs against the ask sidecar. Never cut, never
+                      resampled — an earlier cut shrank his wordmark's ink to 10.5 px and he sent the
+                      art again. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={codeStage === 0 ? CODE_ICON : CODE_WORDMARK} alt={t("rcore.code")}
+                    style={{ height: codeStage === 0 ? CODE_CHIP_H : CODE_WORD_H, width: "auto", display: "block", flexShrink: 0 }} />
+                </button>
               </div>
             )}
           </div>

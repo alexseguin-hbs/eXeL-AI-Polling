@@ -190,6 +190,45 @@ ok(/leaveCode\("unified"\)/.test(panel) && /leaveCode\("side"\)/.test(panel) && 
 ok(/flexWrap: "wrap"/.test(panel) && /flexShrink: 0/.test(panel),
   "the mode row wraps and the artwork never shrinks — his proportions are not squeezed at phone width");
 
+// ── DD-81 · THE CHIP TAKES THE BADGE'S OWN PLACE ───────────────────────────────────────────────────────────
+// Operator 2026-10-17, asked twice: "place code at bottom center of R-CORE JUST LIKE R-CORE IS AT BOTTOM center
+// all screens". The badge's placement is already a written law with a gate behind it — rcore-badge.tsx:71 is
+// `flex w-full justify-center`, a full-width centred row in NORMAL FLOW mounted LAST, pinned by
+// rcore-revisions.test.mjs:120 under his 2026-09-25 words. These four legs hold the chip to that same law one
+// level in. Red-first: each fails on the r.215 panel, where the chip is the third segment of the mode strip.
+{
+  ok(/<div\s+data-rcore-code-row[\s\S]{0,120}className="flex w-full justify-center"/.test(panel),
+    "the chip stands in a FULL-WIDTH CENTRED ROW, in the badge's own class grammar (DD-81)");
+
+  // it is OUT of the WHAT CHANGED mode strip — the strip holds only the two text modes
+  const strip = /<span role="group"[\s\S]*?<\/span>/.exec(panel);
+  ok(!!strip && !/cmpVC/.test(strip[0]) && /cmpVU/.test(strip[0]) && /cmpVS/.test(strip[0]),
+    "the mode strip keeps Unified and Side-by-side ONLY — the chip is no longer a third segment beside two text labels");
+
+  // it is the LAST thing in the panel body: after its row only the body / scroll / overlay closers remain
+  const tail = panel.slice(panel.indexOf("data-rcore-code-row"));
+  ok(/^data-rcore-code-row[\s\S]*?<\/button>\s*<\/div>\s*\)\}\s*<\/div>\s*\)\}\s*<\/div>\s*<\/div>\s*\);\s*\}/.test(tail),
+    "the chip is MOUNTED LAST in the panel body — nothing renders below it (the badge's own rule)");
+
+  // the code pane stays ABOVE, inside WHAT CHANGED, so pressing the chip never moves the chip
+  ok(panel.indexOf("<RCoreCodeView") > -1 && panel.indexOf("<RCoreCodeView") < panel.indexOf("data-rcore-code-row"),
+    "the code elements open ABOVE the chip, so the chip does not move when it opens (as the badge does not move when its panel opens)");
+
+  // STICKY, NOT MERELY LAST. Measured before this leg existed: last-in-flow put the chip 17,595 px down the
+  // panel body at 375 px — below Financial's 166-row history, where he would never see it. His sentence is
+  // about a chip he can SEE at the bottom, as the badge is seen at the bottom of a page. Sticky keeps it in
+  // normal flow; `fixed` is the thing rcore-revisions.test.mjs:120 bans and must never appear here.
+  {
+    const row = /<div\s+data-rcore-code-row[\s\S]*?>/.exec(panel)[0];
+    ok(/position: "sticky"/.test(row) && /bottom: 0/.test(row),
+      "the bottom-centre row is STICKY to the bottom of the panel, so he sees it at every scroll position");
+    ok(!/position: "fixed"/.test(row),
+      "it is sticky and never FIXED — the badge's law (rcore-revisions.test.mjs:120) holds one level in");
+    ok(/env\(safe-area-inset-bottom/.test(row),
+      "the row clears the phone's home bar (the page contract's safe-area rule)");
+  }
+}
+
 // ── THE CUBE READS AS A CUBE ────────────────────────────────────────────────────────────────────────────────
 // He sent the render back because the 3x3x3 had stopped looking like a cube: with one piece of sixteen selected,
 // an unselected mini-cube drew at 0x2e x 0.42 — about 7% on its top face and 3% on the far ones — so there was
