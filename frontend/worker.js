@@ -158,9 +158,26 @@ export default {
 
     const asset = await env.ASSETS.fetch(request);
     const path = url.pathname;
-    if (path === "/SensorFusion-2525" || path.startsWith("/SensorFusion-2525/")) {
+
+    // 2026.10.17 · THE DOCUMENT CACHE RULE LIVES HERE, NOT IN _headers, AND THE REASON IS MEASURED.
+    // The first cut of this fix put `Cache-Control: no-cache, must-revalidate` on the `/*` block of
+    // public/_headers. The live probe added in the same hour showed what Cloudflare Workers Static Assets
+    // actually does with two matching rules: it CONCATENATES them. A hashed bundle came back as
+    //     cache-control: no-cache, must-revalidate, public, max-age=31536000, immutable
+    // — one header carrying both, and `no-cache` wins in every browser, so the immutable year on every
+    // hashed asset was silently defeated. Neither "last wins" nor "most specific wins"; both apply.
+    // `headers.set` REPLACES, so doing it here cannot collide with anything _headers says, and it keys on
+    // what the response actually IS (an HTML document) rather than on a path glob that cannot express
+    // "every document except /_next/static".
+    const ctype = asset.headers.get("content-type") || "";
+    const isDocument = ctype.includes("text/html");
+    const isSensorFusion = path === "/SensorFusion-2525" || path.startsWith("/SensorFusion-2525/");
+    if (isDocument || isSensorFusion) {
       const headers = new Headers(asset.headers);
-      headers.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=()");
+      // every document revalidates before reuse — three times the operator was shown a page older than the
+      // one the site served (the living document r143, the operator deck r.202, R-CORE 2026.10.17)
+      if (isDocument) headers.set("Cache-Control", "no-cache, must-revalidate");
+      if (isSensorFusion) headers.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=()");
       return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers });
     }
     return asset;

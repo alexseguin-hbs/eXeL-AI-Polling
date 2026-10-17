@@ -127,9 +127,15 @@ jobs:
           asset="$(curl -fsSL -m 25 -H 'cache-control: no-cache' "$SITE/" | grep -oE '/_next/static/[^"]+\.js' | head -1 || true)"
           if [ -n "$asset" ]; then
             acc="$(curl -sSI -m 20 "$SITE$asset" | tr -d '\r' | awk -F': ' 'tolower($1)=="cache-control"{print tolower($2)}')"
+            # EXCLUSIVITY, not presence. The first version of this probe asked only whether the header
+            # CONTAINED "immutable" and so it passed on
+            #     no-cache, must-revalidate, public, max-age=31536000, immutable
+            # which is what _headers concatenation produced — and no-cache wins, so the year was dead while
+            # the probe stayed green. A long cache must have nothing contradicting it.
             case "$acc" in
-              *immutable*) echo "::notice title=CACHE::$asset → $acc" ;;
-              *)           echo "::error title=CACHE::$asset → ${acc:-none} (expected immutable — the catch-all has eaten the hashed assets)"; bad=1 ;;
+              *no-cache*|*no-store*) echo "::error title=CACHE::$asset → $acc — a long cache CONTRADICTED; no-cache wins and the immutable year is dead"; bad=1 ;;
+              *immutable*)           echo "::notice title=CACHE::$asset → $acc" ;;
+              *)                     echo "::error title=CACHE::$asset → ${acc:-none} (expected immutable)"; bad=1 ;;
             esac
           else
             echo "::warning title=CACHE::could not find a hashed asset on / to probe"

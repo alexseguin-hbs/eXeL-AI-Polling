@@ -1,5 +1,16 @@
 # 2026.10.17 · THE CLASS, not another instance. Three times a page the operator held was older than the
 # page the site served — the living document (r143), the operator deck (r.202), and R-CORE on his phone the
+# morning after DD-81 shipped. Each earlier time the answer was one more no-cache line for one more file, so
+# a surface earned the rule by being complained about.
+#
+# THE RULE IS NOT SET HERE, AND THAT IS DELIBERATE. It was, for about an hour, and the live probe in
+# verify-live.yml caught what that did: Workers Static Assets CONCATENATES the Cache-Control of every
+# matching rule, so `/*` + `/_next/static/*` produced
+#     no-cache, must-revalidate, public, max-age=31536000, immutable
+# on every hashed bundle — and no-cache wins, so the immutable year was defeated. The document rule now
+# lives in worker.js, where `headers.set` REPLACES and keys on the response being text/html. This block
+# carries security headers only. Held by frontend/tests/cache-headers.test.mjs. Three times a page the operator held was older than the
+# page the site served — the living document (r143), the operator deck (r.202), and R-CORE on his phone the
 # morning after DD-81 shipped, where his own screenshot showed the </> chip still inside the mode strip:
 # the layout that revision had removed. Each earlier time the answer was one more no-cache line for one more
 # file, so a surface earned the rule by being complained about. It is the catch-all's job.
@@ -8,7 +19,6 @@
 # block (/_next/static/*, /audio/*, the pdf worker at the foot), so a more specific rule wins whichever way
 # overlapping rules resolve. Held by frontend/tests/cache-headers.test.mjs.
 /*
-  Cache-Control: no-cache, must-revalidate
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Content-Security-Policy: frame-ancestors 'self'

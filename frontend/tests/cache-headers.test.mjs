@@ -12,10 +12,18 @@
 // fixing the instance. This gate fixes the class: no document may be cacheable without revalidation,
 // and nothing earns the rule by being noticed.
 //
-// SAFE UNDER EITHER PRECEDENCE RULE. Cloudflare's `_headers` resolution between overlapping rules
-// (most-specific-wins vs last-wins) is not established anywhere in this repo, so the layout is made
-// correct under BOTH: the catch-all carries the revalidate rule, and every path that deliberately
-// wants a long cache is declared AFTER it. Then a later, more specific rule wins either way.
+// WHERE THE RULE LIVES, AND WHY IT IS NOT IN `_headers`. The first cut put
+// `Cache-Control: no-cache, must-revalidate` on the `/*` block, reasoning that a more specific rule would
+// win. MEASURED AT THE EDGE one hour later by the probe in verify-live.yml: Workers Static Assets
+// CONCATENATES the Cache-Control of every matching rule. A hashed bundle came back as
+//     no-cache, must-revalidate, public, max-age=31536000, immutable
+// — and `no-cache` wins in every browser, so the immutable year on every hashed asset was silently
+// defeated. The gate did not catch it because it asked whether the asset rule CONTAINED `immutable`
+// instead of whether `immutable` was all it said. That is the same shape of false green this file exists
+// to prevent, so the assertions below now ask for EXCLUSIVITY, not presence.
+// The document rule therefore lives in worker.js, where `headers.set` REPLACES and keys on the response
+// being text/html — something a path glob cannot express, since there is no way to say
+// "every document except /_next/static/*".
 // ─────────────────────────────────────────────────────────────────────────────────────────────────
 import fs from "node:fs";
 import path from "node:path";
@@ -40,30 +48,40 @@ const cacheOf = (b) => (b.headers.find((h) => /^cache-control:/i.test(h)) || "")
 
 ok(blocks.length >= 10, `_headers parses (${blocks.length} path blocks) — the walk is not empty`);
 
-// 1 · the catch-all exists and revalidates
+// 1 · the catch-all must NOT carry Cache-Control — it would concatenate onto every asset that matches it
 const star = blocks.find((b) => b.pathPattern === "/*");
-ok(!!star, "a catch-all `/*` block exists");
-const starCache = star ? cacheOf(star) : "";
-ok(/no-cache/i.test(starCache) && /must-revalidate/i.test(starCache),
-  `the catch-all revalidates — every document, not only the ones that were complained about (got: ${starCache || "NO Cache-Control"})`);
+ok(!!star, "a catch-all `/*` block exists (security headers)");
+ok(star && cacheOf(star) === "",
+  `the catch-all sets NO Cache-Control — _headers concatenates, so a rule here lands on every hashed asset too (got: ${star ? cacheOf(star) || "none" : "no block"})`);
 
-// 2 · anything that wants a long cache is declared AFTER the catch-all, so it wins under either rule
-const longLived = blocks.filter((b) => /max-age=\s*\d+/i.test(cacheOf(b)) && !/no-cache/i.test(cacheOf(b)));
-ok(longLived.length > 0, `at least one path still asks for a long cache (${longLived.length})`);
-for (const b of longLived) {
-  ok(star && b.index > star.index,
-    `${b.pathPattern} is declared AFTER /*, so its long cache survives last-wins as well as most-specific-wins`);
+// 2 · the document rule lives in the worker, where set() replaces instead of concatenating
+{
+  const w = fs.readFileSync(path.join(FRONTEND, "worker.js"), "utf8");
+  ok(/content-type/i.test(w) && /text\/html/.test(w),
+    "worker.js decides by what the response IS (text/html), not by a path glob");
+  ok(/headers\.set\("Cache-Control",\s*"no-cache, must-revalidate"\)/.test(w),
+    "worker.js SETS the document rule — set() replaces, so it cannot concatenate with _headers");
+  const i = w.indexOf('headers.set("Cache-Control"');
+  ok(i > -1 && /isDocument/.test(w.slice(Math.max(0, i - 120), i + 10)),
+    "the document rule is applied only to documents, so hashed assets never receive it");
 }
 
-// 3 · the hashed-asset rules are intact — revalidating every document must not cost the year on immutable bundles
+// 3 · a long cache must be EXCLUSIVE — the leg that would have caught the regression
+const longLived = blocks.filter((b) => /max-age=\s*\d+/i.test(cacheOf(b)));
+ok(longLived.length > 0, `at least one path asks for a long cache (${longLived.length})`);
+for (const b of longLived) {
+  ok(!/no-cache|no-store/i.test(cacheOf(b)),
+    `${b.pathPattern} asks for a long cache and NOTHING contradicts it (got: ${cacheOf(b)})`);
+}
+
+// 4 · the hashed-asset rules are intact and say ONLY that
 for (const p of ["/_next/static/*", "/audio/*"]) {
   const b = blocks.find((x) => x.pathPattern === p);
-  ok(!!b && /immutable/i.test(cacheOf(b)) && /max-age=31536000/i.test(cacheOf(b)),
-    `${p} keeps its one-year immutable cache`);
+  ok(!!b && /immutable/i.test(cacheOf(b)) && /max-age=31536000/i.test(cacheOf(b)) && !/no-cache/i.test(cacheOf(b)),
+    `${p} keeps a one-year immutable cache with no contradicting directive`);
 }
 
-// 4 · the two rules the operator's earlier reports bought are still there (append-only; they are now
-//     redundant with the catch-all, which is correct — a redundant rule is not a wrong one)
+// 5 · the two rules the operator's earlier reports bought are still there (append-only)
 for (const p of ["/drone-2525/play.html", "/whitepaper/vision-2525.html"]) {
   const b = blocks.find((x) => x.pathPattern === p);
   ok(!!b && /no-cache/i.test(cacheOf(b)), `${p} keeps the explicit rule its own incident bought`);
