@@ -542,7 +542,7 @@
    "kind": "release",
    "why": "Operator deck r.215 - THE HISTORY OWNS THE SCREEN (DD-78; operator 2026-10-17: \"Ensure this is full screen for portraight and landscape and pc; also I dont see </> and </> Code unlock of code\"). This revision answers the first half. Measured on the live r.214 bytes: the panel sheet was max-width 640px and max-height 88vh inside an overlay adding 8px of side padding - 428x815 inside his 428x926 phone with the game showing around it, a letterbox in landscape, and a 640x792 column at x=400 in a 1440x900 window on a desktop. It is now full bleed, measured at 428x926, 926x428 and 1440x900, each at (0,0), filling the window exactly. The same card shape was in the shared React panel, so the identical change lands there and every 2525 surface gains it at once. Nothing pinned that geometry; three legs in rcore-revisions now hold it and a deferred deck row THE_HISTORY_OWNS_THE_SCREEN opens the real panel and measures the real rect. A 1100px reading column keeps prose readable inside the full bleed - declared, one number, reversible. THE SECOND HALF, the deck own </> Code chip, is DD-79 and its own revision: the deck panel is a hand-written vanilla port with only cmpVU and cmpVS, and Code mode there means inlining the 40904 B index and porting the cube into a file forbidden to fetch anything. Named, not bundled half-done.",
    "commit": "8fc06f0",
-   "shipped": "PENDING"
+   "shipped": "67b0162"
   }
  ],
  "arena": {
