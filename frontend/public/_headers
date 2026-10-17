@@ -1,10 +1,14 @@
-# The pdfjs worker (copied by scripts/copy-pdf-worker.mjs) must load as JavaScript under nosniff —
-# a MIME mismatch here is a hard worker-load failure for every PDF render (Athena, wave 1).
-/pdf.worker.min.mjs
-  Content-Type: text/javascript; charset=utf-8
-  Cache-Control: public, max-age=86400
-
+# 2026.10.17 · THE CLASS, not another instance. Three times a page the operator held was older than the
+# page the site served — the living document (r143), the operator deck (r.202), and R-CORE on his phone the
+# morning after DD-81 shipped, where his own screenshot showed the </> chip still inside the mode strip:
+# the layout that revision had removed. Each earlier time the answer was one more no-cache line for one more
+# file, so a surface earned the rule by being complained about. It is the catch-all's job.
+# `no-cache` does not mean "do not store" — it means revalidate before reuse, so a reload always gets the
+# build that is actually deployed. Everything that deliberately wants a long cache is declared BELOW this
+# block (/_next/static/*, /audio/*, the pdf worker at the foot), so a more specific rule wins whichever way
+# overlapping rules resolve. Held by frontend/tests/cache-headers.test.mjs.
 /*
+  Cache-Control: no-cache, must-revalidate
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Content-Security-Policy: frame-ancestors 'self'
@@ -82,3 +86,11 @@
   Cache-Control: no-cache, must-revalidate
   Content-Type: text/plain; charset=utf-8
   Content-Disposition: attachment; filename="sensor_fusion_edge.py"
+
+# The pdfjs worker (copied by scripts/copy-pdf-worker.mjs) must load as JavaScript under nosniff —
+# a MIME mismatch here is a hard worker-load failure for every PDF render (Athena, wave 1).
+# AT THE FOOT since 2026.10.17: it is the one path that wants a long cache and used to sit ABOVE the
+# catch-all, where a last-wins resolution would have stripped its day. Below, it wins under either rule.
+/pdf.worker.min.mjs
+  Content-Type: text/javascript; charset=utf-8
+  Cache-Control: public, max-age=86400
