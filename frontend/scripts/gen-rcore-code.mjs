@@ -53,6 +53,34 @@ if (shallow) {
   process.exit(1);
 }
 
+// ── RECOVERING A COMMIT THE LEDGER COULD NOT CARRY ──────────────────────────────────────────────────────────
+// A record row is written IN the commit that carries it, so at the moment of writing nobody can know the sha.
+// The deck solves this with a two-commit chain and a records commit that fills `shipped` afterwards; the nine
+// React ledgers have no such step, so the NEWEST row of a project stays permanently blank — and that is the
+// row the operator opens first. Measured 2026.10.17: 30 of 505 rows had no usable commit, and the newest row
+// of SIX of the nine projects was one of them, which is why "the latest revision has its code" was failing.
+//
+// The commit is not lost, only unrecorded: it is the commit that INTRODUCED the row into its ledger file, and
+// `git log -S` finds it. All 30 resolved this way, none stayed empty, and every one carried a real scoped
+// delta.
+//
+// Deliberately SELF-HEALING rather than a one-off backfill: nobody is ever asked to write a sha they cannot
+// yet know, and a row appended today gets its code on the next generate. The row records `commitSource` so
+// the record never silently claims a sha the ledger itself did not carry.
+function commitThatAddedRow(rev, ledgerFile) {
+  const needle = ledgerFile.endsWith(".json") ? `"rev": ${rev}` : `rev: ${rev},`;
+  for (const args of [
+    `log --format=%H -1 -S'${needle}' -- '${ledgerFile}'`,
+    `log --format=%H -1 -- '${ledgerFile}'`,          // last resort: whatever last touched the ledger
+  ]) {
+    try {
+      const out = execSync(`git -C ${ROOT} ${args}`, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+      if (out) return out;
+    } catch { /* try the next */ }
+  }
+  return "";
+}
+
 const isAncestor = (sha) => {
   try { execSync(`git -C ${ROOT} merge-base --is-ancestor ${sha} HEAD`, { stdio: "ignore" }); return true; }
   catch { return false; }
@@ -122,6 +150,10 @@ for (const proj of projects) {
     : proj.ledger.replace(/\.ledger\.json$/, "");
   const areas = proj.areas || [];
   const cells = cellsForAreas(areas.length, id);   // seeded by the project id, so each project has its own shape
+  // The FILE the rows live in — needed to recover a row's commit when the row itself does not carry one.
+  const ledgerFile = adapter === "drs" ? "docs/drs/drs.v00.00.json"
+    : adapter === "sensor-fusion-ts" ? "frontend/app/SensorFusion-2525/ledger.ts"
+    : `docs/traceability/${proj.ledger}`;
   let ledger;
   if (adapter === "drs") {
     const drs = JSON.parse(fs.readFileSync(path.join(ROOT, "docs/drs/drs.v00.00.json"), "utf8"));
@@ -146,12 +178,18 @@ for (const proj of projects) {
   const blobs = {};
 
   for (const e of ledger.entries) {
-    const sha = String(e.commit || "").trim();
+    let sha = String(e.commit || "").trim();
+    let commitSource = "ledger";
+    if (/^pending$/i.test(sha)) sha = "";   // a placeholder the record sometimes carries, not a sha
+    if (!sha || !isAncestor(sha)) {
+      const found = commitThatAddedRow(e.rev, ledgerFile);
+      if (found && isAncestor(found)) { sha = found; commitSource = "ledger-row"; }
+    }
     if (!sha) { revisions.push({ rev: e.rev, status: "no-commit", areas: [] }); continue; }
     if (!isAncestor(sha)) { revisions.push({ rev: e.rev, commit: sha, status: "unreachable", areas: [] }); continue; }
 
     const numstat = git(`show --numstat --format= ${sha} -- ${scope}`, true).trim();
-    if (!numstat) { revisions.push({ rev: e.rev, commit: sha, status: "no-code-change", areas: [] }); continue; }
+    if (!numstat) { revisions.push({ rev: e.rev, commit: sha, ...(commitSource === "ledger" ? {} : { commitSource }), status: "no-code-change", areas: [] }); continue; }
 
     const files0 = numstat.split("\n").filter(Boolean).map((l) => {
       const [add, del, ...rest] = l.split("\t");
@@ -215,7 +253,8 @@ for (const proj of projects) {
       bytes: spill.text.length, lines: spill.text.split("\n").length, status: "recorded",
     });
 
-    revisions.push({ rev: e.rev, commit: sha, status: outAreas.length ? "recorded" : "no-code-change", areas: outAreas });
+    revisions.push({ rev: e.rev, commit: sha, ...(commitSource === "ledger" ? {} : { commitSource }),
+      status: outAreas.length ? "recorded" : "no-code-change", areas: outAreas });
 
     if (!CHECK) {
       const dir = path.join(PUBDIR, id); fs.mkdirSync(dir, { recursive: true });

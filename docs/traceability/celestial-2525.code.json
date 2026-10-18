@@ -94,8 +94,42 @@
   },
   {
    "rev": 3,
-   "status": "no-commit",
-   "areas": []
+   "commit": "eaf971a2c111466e21622fa66ca58c1c9d09c333",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "reader",
+     "name": "Reader",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      11,
+      12,
+      14,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/components/celestial-2525/celestial-reader.tsx",
+       "blob": "f35d67430752e8e4af7d972b47e5ed9ae75d71db"
+      }
+     ],
+     "add": 8,
+     "del": 0,
+     "bytes": 1927,
+     "lines": 29,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }

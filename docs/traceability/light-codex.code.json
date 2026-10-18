@@ -62,8 +62,35 @@
  "revisions": [
   {
    "rev": 1,
-   "status": "no-commit",
-   "areas": []
+   "commit": "4484255ca6377f84c45cea521298a13d4c3c24a3",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "shell",
+     "name": "Page shell",
+     "cells": [
+      10,
+      19,
+      20,
+      22,
+      24,
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/app/light-codex/page.tsx",
+       "blob": "be365dad0bbf5e2a3fccd2b84b1e43af66395473"
+      }
+     ],
+     "add": 23,
+     "del": 5,
+     "bytes": 2033,
+     "lines": 43,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 2,
@@ -786,8 +813,35 @@
   },
   {
    "rev": 20,
-   "status": "no-commit",
-   "areas": []
+   "commit": "4484255ca6377f84c45cea521298a13d4c3c24a3",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "shell",
+     "name": "Page shell",
+     "cells": [
+      10,
+      19,
+      20,
+      22,
+      24,
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/app/light-codex/page.tsx",
+       "blob": "be365dad0bbf5e2a3fccd2b84b1e43af66395473"
+      }
+     ],
+     "add": 23,
+     "del": 5,
+     "bytes": 2033,
+     "lines": 43,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }

@@ -68,8 +68,60 @@
   },
   {
    "rev": 2,
-   "status": "no-commit",
-   "areas": []
+   "commit": "cf2267593f5bd278d242f8265b9d8c12a9cf07ff",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "32160fb3235293eabff16b0abf33466a59a603fb"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1546,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "f2dab0765803de655dbd830a5dfdbf8041885c8a"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1515,
+     "lines": 11,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 3,
@@ -211,8 +263,60 @@
   },
   {
    "rev": 4,
-   "status": "no-commit",
-   "areas": []
+   "commit": "51b32c3a76fd277113f903593563bd8d5867f357",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "d6058bb71f5e6462fff32ac6f5d6c0fc58908e6d"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1553,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "6bea61921ec957bda4c1ae1c316414fa6d81a809"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1522,
+     "lines": 11,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 5,
@@ -306,8 +410,60 @@
   },
   {
    "rev": 6,
-   "status": "no-commit",
-   "areas": []
+   "commit": "96c4b3b1b2e859dc445bdfdfafb81680dffe5c32",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "engine",
+     "name": "Engine",
+     "cells": [
+      5,
+      7,
+      8,
+      14,
+      17,
+      20,
+      23,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/financial-2525/domain.gen.ts",
+       "blob": "2231205fc2b77c29f199e364f0dfbf92712c301f"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1274,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "docs",
+     "name": "Record",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "docs/financial-2525/financial-2525.v.000.json",
+       "blob": "fbedc82dd6009e334c4266ae98f2e273c916e9f9"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1243,
+     "lines": 11,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 7,

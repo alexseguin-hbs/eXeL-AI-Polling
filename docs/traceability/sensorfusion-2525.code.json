@@ -197,28 +197,233 @@
   },
   {
    "rev": 4,
-   "status": "no-commit",
-   "areas": []
+   "commit": "f93e3fff49ea29638828823ca14abd9cbe2c6a4b",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14,
+      16
+     ],
+     "files": [
+      {
+       "path": "frontend/app/SensorFusion-2525/ledger.ts",
+       "blob": "1b47a856bb15c85041ab4d3ae41bd4bf618150e6"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sensor-fusion.tsx",
+       "blob": "29fe6e61e5d8a55b96c95e4678ccce96fe23cc8d"
+      }
+     ],
+     "add": 66,
+     "del": 8,
+     "bytes": 4205,
+     "lines": 135,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 5,
-   "status": "no-commit",
-   "areas": []
+   "commit": "663b602dad161d06710a4e98dffd92288a6e5f13",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14,
+      16
+     ],
+     "files": [
+      {
+       "path": "frontend/app/SensorFusion-2525/ledger.ts",
+       "blob": "b7aab07f2fb4428eef8d330042a3669c9a040a78"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sensor-fusion.module.css",
+       "blob": "4994cb6eaac6030662f54783bed1b8b059feacfb"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sensor-fusion.tsx",
+       "blob": "0d38b7c920e8fb3603b1ab9ba41f49fbeef154d3"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sf.ts",
+       "blob": "0d60a17d2ee61433babfddb4c68abbd5bfd1be45"
+      }
+     ],
+     "add": 445,
+     "del": 230,
+     "bytes": 31352,
+     "lines": 857,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 6,
-   "status": "no-commit",
-   "areas": []
+   "commit": "8202374d58ce3cea7a7817d97b937b56fab38f8a",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14,
+      16
+     ],
+     "files": [
+      {
+       "path": "frontend/app/SensorFusion-2525/ledger.ts",
+       "blob": "1474aa4e58b549d0d39fb066e2facda41084d1f5"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sensor-fusion.module.css",
+       "blob": "8d56d1727ae0c1026bc2e2ad5b325901941dd918"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sensor-fusion.tsx",
+       "blob": "14b554126f0c9ed76f5b235f7c34669450917a9e"
+      }
+     ],
+     "add": 49,
+     "del": 15,
+     "bytes": 6481,
+     "lines": 161,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 7,
-   "status": "no-commit",
-   "areas": []
+   "commit": "01a232ffa669676296da8b5faf2601c1278a8137",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14,
+      16
+     ],
+     "files": [
+      {
+       "path": "frontend/app/SensorFusion-2525/ledger.ts",
+       "blob": "2c61f3c66ab5f436aaf6a34e3321d1f6fd3330a0"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sensor-fusion.module.css",
+       "blob": "717fd6fbeb8877ee62569fbbe00407b5fb6a4547"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sensor-fusion.tsx",
+       "blob": "644a8acac17dd5f7458b30b89c600fe104372967"
+      }
+     ],
+     "add": 78,
+     "del": 7,
+     "bytes": 6351,
+     "lines": 165,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 8,
-   "status": "no-commit",
-   "areas": []
+   "commit": "7dc924e12db7c1212a7f19b12339f6ee4bc2ea83",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14,
+      16
+     ],
+     "files": [
+      {
+       "path": "frontend/app/SensorFusion-2525/ledger.ts",
+       "blob": "943c7b13a1321c74df1886d6c2dc2ae2e1b6f41e"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sensor-fusion.module.css",
+       "blob": "054a994acecd9bd8b8e987239959deb11955dd5e"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sensor-fusion.tsx",
+       "blob": "753698ca08527615a4842adeb1f7daea520602f4"
+      }
+     ],
+     "add": 79,
+     "del": 2,
+     "bytes": 4190,
+     "lines": 136,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 9,
@@ -1144,8 +1349,84 @@
   },
   {
    "rev": 31,
-   "status": "no-commit",
-   "areas": []
+   "commit": "0140439e530113f51a1014e6df0aa4d96bacd0e3",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14,
+      16
+     ],
+     "files": [
+      {
+       "path": "frontend/app/SensorFusion-2525/ledger.ts",
+       "blob": "8f81c50669a800fbcc0db9cf6f2beacf7f9f2480"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sensor-fusion.module.css",
+       "blob": "a731525d7c6db5a74bfdb2777205c8dc9438ff2b"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sensor-fusion.tsx",
+       "blob": "0d31624d9faa24d551d9feb894c55b185df98bb7"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sf.ts",
+       "blob": "679d58aa557dc713fa454505da898056a3d93f0b"
+      }
+     ],
+     "add": 123,
+     "del": 30,
+     "bytes": 13688,
+     "lines": 342,
+     "status": "recorded"
+    },
+    {
+     "key": "fusion",
+     "name": "Fusion library",
+     "cells": [
+      3,
+      6,
+      12,
+      15,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/sensor-fusion/voc.ts",
+       "blob": "4ee96be2c4b9e7f9db5502c5a21f2a35b1eb1951"
+      }
+     ],
+     "add": 95,
+     "del": 0,
+     "bytes": 2531,
+     "lines": 99,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 32,
@@ -3146,8 +3427,45 @@
   },
   {
    "rev": 75,
-   "status": "no-commit",
-   "areas": []
+   "commit": "df1cd2123335ac7eb1d29e3aecde76478c1adb15",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14,
+      16
+     ],
+     "files": [
+      {
+       "path": "frontend/app/SensorFusion-2525/ledger.ts",
+       "blob": "840c8988881dcef2b25931488f9ae67ea092a868"
+      },
+      {
+       "path": "frontend/app/SensorFusion-2525/sensor-fusion.tsx",
+       "blob": "c1864b557a7172e4b760da16bf48481ed29307ff"
+      }
+     ],
+     "add": 26,
+     "del": 3,
+     "bytes": 4144,
+     "lines": 80,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 76,
@@ -3196,8 +3514,41 @@
   },
   {
    "rev": 77,
-   "status": "no-commit",
-   "areas": []
+   "commit": "ff9efbd6a6e0d7f35dce753f2a1cb3672b3f21ad",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14,
+      16
+     ],
+     "files": [
+      {
+       "path": "frontend/app/SensorFusion-2525/ledger.ts",
+       "blob": "c2e6093181850eaa12d1592973eec3bf859f8cfb"
+      }
+     ],
+     "add": 25,
+     "del": 0,
+     "bytes": 2622,
+     "lines": 35,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }

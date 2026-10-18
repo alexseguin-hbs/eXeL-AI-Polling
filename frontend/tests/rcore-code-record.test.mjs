@@ -195,6 +195,51 @@ for (const [served, shot] of PAIRS) {
   ok(S.w * S.h < M.w * M.h && sb.length < mb.length, `${served} is strictly smaller than its master (${sb.length} < ${mb.length} B)`);
   ok(S.ctype === 6 && S.depth === 8, `${served} keeps RGBA at 8 bits — his neon halo survives the scale`);
 }
+// ── HIS MINIMUM BAR IS A GATE, NOT A REPORT (operator 2026.10.17) ───────────────────────────────────────────
+// "i asked for code section added for each revision (minimum have the latest code for the latest revision for
+// each project". Measured when he said it: the NEWEST row of SIX of the nine projects had no code at all —
+// Architect r4, Celestial r3, Security r4, SensorFusion r77, Light Codex r20 (empty `commit` in the ledger)
+// and SoI r131 (commit was the literal string PENDING). The cause is structural: a record row is written IN
+// the commit that carries it, so nobody can know the sha while writing it. The newest row is therefore the
+// one most likely to be blank — and it is the one he opens first.
+{
+  const idOf = (p) => p.ledgerAdapter === "drs" ? "soi-2525"
+    : p.ledgerAdapter === "sensor-fusion-ts" ? "sensorfusion-2525"
+    : String(p.ledger || "").replace(/\.ledger\.json$/, "");
+  const withCode = projects.filter((p) => typeof p.codeRecord === "string");
+  ok(withCode.length >= 9, `the bar is checked against every project that HAS code (${withCode.length})`);
+  const behind = [];
+  for (const proj of withCode) {
+    const id = idOf(proj);
+    const rec = JSON.parse(fs.readFileSync(path.join(ROOT, "docs/traceability", `${id}.code.json`), "utf8"));
+    const last = rec.revisions[rec.revisions.length - 1];
+    const payload = path.join(ROOT, "frontend/public/r-core/code", id, `${last.rev}.json`);
+    const fresh = !!last && last.status === "recorded" && fs.existsSync(payload) && fs.statSync(payload).size > 200;
+    ok(fresh, `${id}: its NEWEST revision r${last && last.rev} has code — status ${last && last.status}, payload ${fs.existsSync(payload) ? fs.statSync(payload).size + " B" : "MISSING"}`);
+    if (!fresh) behind.push(`${id} r${last && last.rev}`);
+  }
+  ok(behind.length === 0, `every project's latest revision carries its code — his minimum bar${behind.length ? " — OWED: " + behind.join(", ") : ""}`);
+}
+
+// A commit the ledger could not carry is RECOVERED from the ledger's own history, never invented.
+{
+  const idOf2 = (p) => p.ledgerAdapter === "drs" ? "soi-2525"
+    : p.ledgerAdapter === "sensor-fusion-ts" ? "sensorfusion-2525"
+    : String(p.ledger || "").replace(/\.ledger\.json$/, "");
+  let recovered = 0, rows = 0, empty = 0;
+  for (const proj of projects.filter((p) => typeof p.codeRecord === "string")) {
+    const rec = JSON.parse(fs.readFileSync(path.join(ROOT, "docs/traceability", `${idOf2(proj)}.code.json`), "utf8"));
+    for (const v of rec.revisions) {
+      rows++;
+      if (v.commitSource) { recovered++; ok(v.commitSource === "ledger-row", `a recovered commit says so (${v.commitSource})`); }
+      if (v.status === "no-commit" || v.status === "unreachable") empty++;
+    }
+  }
+  ok(empty === 0, `no revision is left without a commit — ${rows} rows, ${recovered} recovered from the ledger history, ${empty} still empty`);
+  ok(/commitThatAddedRow/.test(fs.readFileSync(path.join(ROOT, "frontend/scripts/gen-rcore-code.mjs"), "utf8")),
+    "the generator RECOVERS a missing commit rather than leaving the newest row blank — self-healing, so no one writes a sha they cannot yet know");
+}
+
 // ── THE PANEL SAYS WHICH BUILD IT IS (2026.10.17) ───────────────────────────────────────────────────────────
 // He has now sent three screenshots of a panel that did not match the shipped code, and each time the first
 // hour went on establishing WHICH BUILD he was looking at. A screenshot that cannot date itself costs that

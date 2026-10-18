@@ -56,8 +56,37 @@
  "revisions": [
   {
    "rev": 1,
-   "status": "no-commit",
-   "areas": []
+   "commit": "14af68164e04905f37a5198b76d35520b43d0e2b",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "page",
+     "name": "The page",
+     "cells": [
+      0,
+      9,
+      12,
+      15,
+      16,
+      18,
+      19,
+      21,
+      24
+     ],
+     "files": [
+      {
+       "path": "frontend/app/encrypted-messaging/page.tsx",
+       "blob": "598eafef94ab0cf950b636588b4f50b335c0497d"
+      }
+     ],
+     "add": 16,
+     "del": 1,
+     "bytes": 1399,
+     "lines": 29,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 2,

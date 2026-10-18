@@ -136,8 +136,37 @@
   },
   {
    "rev": 4,
-   "status": "no-commit",
-   "areas": []
+   "commit": "eaf971a2c111466e21622fa66ca58c1c9d09c333",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      12,
+      21
+     ],
+     "files": [
+      {
+       "path": "frontend/components/security-2525/command-ux1.tsx",
+       "blob": "1254778066506d5247385f401085e634e5b5b287"
+      }
+     ],
+     "add": 9,
+     "del": 0,
+     "bytes": 2095,
+     "lines": 35,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
