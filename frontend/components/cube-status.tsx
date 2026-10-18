@@ -30,48 +30,52 @@ const STATUS_LABELS: Record<CubeStatus, string> = {
   planned: "Planned",
 };
 
-// 3x3 grid layout matching the cube architecture diagram (operator 2026-09-15: coordinates are
-// (row, col, level); Cube 1 = (2,2,1) centre; the spiral runs right → down → left → up → right).
-// Row 1: 7, 8, 9
-// Row 2: 6, 1, 2
-// Row 3: 5, 4, 3
+// 3x3 grid layout matching the cube architecture diagram. Coordinates are (LEVEL, X, Y) — operator
+// 2026-10-18, "ah thats right:  Level, X, Y" — with X across and Y UPWARD, so y=3 is the top visual row.
+// Cube 1 = (1,2,2), the centre; the spiral runs UP from it, then right → down → down → left → left → up → up.
+// Row y=3: 9, 2, 3
+// Row y=2: 8, 1, 4
+// Row y=1: 7, 6, 5
+// DD-94: between 2026-09-15 and 2026-10-18 these rows were rotated 90° because the triple was read as
+// (row, col, level). The coordinates were never wrong; the reading was. docs/CUBE_19_27_LEVEL_3_FRAMEWORK.md
+// carried the correct Level-3 grid throughout and is now asserted against this file by tests/cube-grid.test.mjs.
 const CUBE_GRID: CubeInfo[][] = [
   [
-    { number: 7, name: "Ranking", status: "deployed", completion: 93, description: "DnD + tap ranking, deterministic Borda aggregation, rankings table in Supabase, mathematical proofs, 140 tests. SSSES 93/100" },
-    { number: 8, name: "Tokens", status: "deployed", completion: 82, description: "Stripe LIVE (4 flows), token_ledger + payment_transactions in Supabase, 59-jurisdiction precision, 106 tests. SSSES 82/100" },
     { number: 9, name: "Reports", status: "in_progress", completion: 76, description: "CSV/PDF export, CQS dashboard, response_summaries table live in Supabase, 84 tests. SSSES 76/100" },
-  ],
-  [
-    { number: 6, name: "AI", status: "deployed", completion: 82, description: "Phase A live summarization, Phase B parallel theming (50-cap), CQS scoring engine, 4 providers, cost tracking, XSS sanitization. SSSES 82/100" },
-    { number: 1, name: "Session", status: "deployed", completion: 100, description: "Session CRUD, state machine, QR, join flow, capacity tiers, RBAC. SSSES 100/100" },
     { number: 2, name: "Text", status: "deployed", completion: 98, description: "Text submission, PII/profanity, anonymization, integrity hash, Phase A retry + broadcast. SSSES 91/100" },
+    { number: 3, name: "Voice", status: "deployed", completion: 89, description: "4 batch STT providers, circuit breaker failover, cost tracking, PII gate enforcement, DRY language base. SSSES 89/100" },
   ],
   [
-    { number: 5, name: "Gateway", status: "deployed", completion: 89, description: "Time tracking, token calc, pipeline orchestrator, 5-min timeout, Cube 6→7 auto-chain. SSSES 89/100" },
+    { number: 8, name: "Tokens", status: "deployed", completion: 82, description: "Stripe LIVE (4 flows), token_ledger + payment_transactions in Supabase, 59-jurisdiction precision, 106 tests. SSSES 82/100" },
+    { number: 1, name: "Session", status: "deployed", completion: 100, description: "Session CRUD, state machine, QR, join flow, capacity tiers, RBAC. SSSES 100/100" },
     { number: 4, name: "Collector", status: "deployed", completion: 88, description: "Web_Results aggregation, SHA-256 anon hash, desired outcomes (CRS-10), session validation on all endpoints, single-query optimization. SSSES 88/100" },
-    { number: 3, name: "Voice", status: "deployed", completion: 89, description: "4 batch STT providers, circuit breaker failover, cost tracking, PII gate enforcement, DRY language base. SSSES 89/100" },
+  ],
+  [
+    { number: 7, name: "Ranking", status: "deployed", completion: 93, description: "DnD + tap ranking, deterministic Borda aggregation, rankings table in Supabase, mathematical proofs, 140 tests. SSSES 93/100" },
+    { number: 6, name: "AI", status: "deployed", completion: 82, description: "Phase A live summarization, Phase B parallel theming (50-cap), CQS scoring engine, 4 providers, cost tracking, XSS sanitization. SSSES 82/100" },
+    { number: 5, name: "Gateway", status: "deployed", completion: 89, description: "Time tracking, token calc, pipeline orchestrator, 5-min timeout, Cube 6→7 auto-chain. SSSES 89/100" },
   ],
 ];
 
 // Level 2 — Prove · Value · Govern. SIM (10) at centre = (2,2,2), the middle of the cube;
-// ring 11–18 spirals clockwise from the RIGHT (right → bottom-right → … → top-right), the same
+// ring 11–18 spirals clockwise from UP (up → right → down → down → left → left → up → up), the same
 // convention as Level 1 / Level 3. The three concern-groups stay on contiguous arcs:
 // Validation 11–13 (right→bottom), Value 14–15 (bottom-left, left), Governance 16–18 (top row).
 const LEVEL_2: CubeInfo[][] = [
   [
-    { number: 16, name: "Atlantis Accords", status: "in_progress", completion: 40, description: "Governance charter — accord sections, proposed approvals (Government/Education/Innovation), target countries, 33-language viewer. Governance group." },
-    { number: 17, name: "Blockchain", status: "planned", completion: 0, description: "Quai/QI on-chain governance proofs; AI/SI/HI token conversion to QI/USDC. Governance group." },
     { number: 18, name: "ARX · S.I.", status: "planned", completion: 0, description: "ARX physically-backed NFT tokens anchored to Shared Intent (S.I.). Governance group." },
-  ],
-  [
-    { number: 15, name: "Tokenization", status: "planned", completion: 0, description: "SoI Trinity tokens (♡ ◬ 웃) minting + cross-chain conversion. Value group." },
-    { number: 10, name: "Simulation", status: "in_progress", completion: 76, description: "Simulation Orchestrator — replays and validates Cubes 1–9. Center of Level 2. 108 tests. SSSES 76/100." },
     { number: 11, name: "Replay / Metrics", status: "planned", completion: 0, description: "Deterministic replay + metric-vs-baseline comparison for Cubes 1–9. Validation group." },
+    { number: 12, name: "Verify", status: "planned", completion: 0, description: "SHA-256 determinism proofs, checkout/checkin, CI gating. Validation group." },
   ],
   [
-    { number: 14, name: "Payments", status: "planned", completion: 0, description: "Stripe monetization tiers + cost estimation, layered on Cube 8's operational ledger. Value group." },
+    { number: 17, name: "Blockchain", status: "planned", completion: 0, description: "Quai/QI on-chain governance proofs; AI/SI/HI token conversion to QI/USDC. Governance group." },
+    { number: 10, name: "Simulation", status: "in_progress", completion: 76, description: "Simulation Orchestrator — replays and validates Cubes 1–9. Center of Level 2. 108 tests. SSSES 76/100." },
     { number: 13, name: "Baseline Compare", status: "planned", completion: 0, description: "Simulation pass criteria — must exceed existing System, User, and Business metrics. Validation group." },
-    { number: 12, name: "Verify", status: "planned", completion: 0, description: "SHA-256 determinism proofs, checkout/checkin, CI gating. Validation group." },
+  ],
+  [
+    { number: 16, name: "Atlantis Accords", status: "in_progress", completion: 40, description: "Governance charter — accord sections, proposed approvals (Government/Education/Innovation), target countries, 33-language viewer. Governance group." },
+    { number: 15, name: "Tokenization", status: "planned", completion: 0, description: "SoI Trinity tokens (♡ ◬ 웃) minting + cross-chain conversion. Value group." },
+    { number: 14, name: "Payments", status: "planned", completion: 0, description: "Stripe monetization tiers + cost estimation, layered on Cube 8's operational ledger. Value group." },
   ],
 ];
 
@@ -81,19 +85,19 @@ const LEVEL_2: CubeInfo[][] = [
 // the 9 cubes are the substrate and never fork per domain.
 const LEVEL_3: CubeInfo[][] = [
   [
-    { number: 25, name: "Governance & Quote Board", status: "planned", completion: 0, description: "Quote-lock bound to the Principle Compliance Manifest; ≥1 human signer. Vision 2525 substrate." },
-    { number: 26, name: "Execution Marketplace", status: "planned", completion: 0, description: "Trust-weighted, multi-country contractors; routes execution by HAL profile. Vision 2525 substrate." },
     { number: 27, name: "Delivery & Actuals", status: "planned", completion: 0, description: "Actuals vs quote delta; feeds the Cube 24 world model. Vision 2525 substrate." },
-  ],
-  [
-    { number: 24, name: "Estimator AI", status: "planned", completion: 0, description: "Cost / timeline / domain-declared axes; Monte Carlo P10/P50/P90. Vision 2525 substrate." },
-    { number: 19, name: "Innovation Life Cycle", status: "planned", completion: 0, description: "CENTER — project life cycle across the 9 Level-3 cubes; Domain Play reference. Vision 2525 substrate." },
     { number: 20, name: "Concept Ingest", status: "planned", completion: 0, description: "Concept intake + Spec Slug validation per Domain Play. Vision 2525 substrate." },
+    { number: 21, name: "Model Ingest", status: "planned", completion: 0, description: "CAD / Python edge / 3D model intake; validates on baseline HAL. Vision 2525 substrate." },
   ],
   [
-    { number: 23, name: "De-Risk Gateway", status: "planned", completion: 0, description: "Phased polling gates — Pilot→Refine→Qualify→Adopt; Risk Register. Vision 2525 substrate." },
+    { number: 26, name: "Execution Marketplace", status: "planned", completion: 0, description: "Trust-weighted, multi-country contractors; routes execution by HAL profile. Vision 2525 substrate." },
+    { number: 19, name: "Innovation Life Cycle", status: "planned", completion: 0, description: "CENTER — project life cycle across the 9 Level-3 cubes; Domain Play reference. Vision 2525 substrate." },
     { number: 22, name: "Proposal Collector", status: "planned", completion: 0, description: "Reviews/proposals (distinct from L1 votes); feeds Cube 25. Vision 2525 substrate." },
-    { number: 21, name: "Model Ingest", status: "planned", completion: 0, description: "CAD / Python edge / 3D model intake; validates on baseline HAL. Vision 2525 substrate." },
+  ],
+  [
+    { number: 25, name: "Governance & Quote Board", status: "planned", completion: 0, description: "Quote-lock bound to the Principle Compliance Manifest; ≥1 human signer. Vision 2525 substrate." },
+    { number: 24, name: "Estimator AI", status: "planned", completion: 0, description: "Cost / timeline / domain-declared axes; Monte Carlo P10/P50/P90. Vision 2525 substrate." },
+    { number: 23, name: "De-Risk Gateway", status: "planned", completion: 0, description: "Phased polling gates — Pilot→Refine→Qualify→Adopt; Risk Register. Vision 2525 substrate." },
   ],
 ];
 

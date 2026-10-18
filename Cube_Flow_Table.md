@@ -5,7 +5,7 @@
 
 ---
 
-## Cube 1 — Session Join & QR `(2,2,1) CENTER` [COMPLETE]
+## Cube 1 — Session Join & QR `(1,2,2) CENTER` [COMPLETE]
 
 ### Inputs
 | Input | Source | Type |
@@ -70,7 +70,7 @@
 
 ---
 
-## Cube 2 — Text Submission Handler `(2,3,1)` [COMPLETE]
+## Cube 2 — Text Submission Handler `(1,2,3)` [COMPLETE]
 
 ### Inputs
 | Input | Source | Type |
@@ -118,7 +118,7 @@
 
 ---
 
-## Cube 3 — Voice-to-Text Engine `(3,3,1)` [COMPLETE]
+## Cube 3 — Voice-to-Text Engine `(1,3,3)` [COMPLETE]
 
 ### Inputs
 | Input | Source | Type |
@@ -191,7 +191,7 @@ Payment gate: `session.is_paid == True` required (Moderator paid or cost-split)
 
 ---
 
-## Cube 4 — Response Collector `(3,2,1)` [STUB]
+## Cube 4 — Response Collector `(1,3,2)` [STUB]
 
 ### Inputs (Expected)
 | Input | Source | Type |
@@ -224,7 +224,7 @@ Payment gate: `session.is_paid == True` required (Moderator paid or cost-split)
 
 ---
 
-## Cube 5 — User Input Gateway / Orchestrator `(3,1,1)` [COMPLETE — Time Tracking]
+## Cube 5 — User Input Gateway / Orchestrator `(1,3,1)` [COMPLETE — Time Tracking]
 
 ### Inputs
 | Input | Source | Type |
@@ -262,7 +262,7 @@ Payment gate: `session.is_paid == True` required (Moderator paid or cost-split)
 
 ---
 
-## Cube 6 — AI Theming Clusterer `(2,1,1)` [COMPLETE]
+## Cube 6 — AI Theming Clusterer `(1,2,1)` [COMPLETE]
 
 ### Inputs
 | Input | Source | Type |
@@ -338,7 +338,7 @@ Payment gate: `session.is_paid == True` required (Moderator paid or cost-split)
 
 ---
 
-## Cube 8 — Token Reward Calculator `(1,2,1)` [COMPLETE — Ledger]
+## Cube 8 — Token Reward Calculator `(1,1,2)` [COMPLETE — Ledger]
 
 ### Inputs
 | Input | Source | Type |
@@ -375,7 +375,7 @@ Payment gate: `session.is_paid == True` required (Moderator paid or cost-split)
 
 ---
 
-## Cube 9 — Reports, Export & Dashboards `(1,3,1)` [PARTIAL — CSV Export]
+## Cube 9 — Reports, Export & Dashboards `(1,1,3)` [PARTIAL — CSV Export]
 
 ### Inputs
 | Input | Source | Type |
