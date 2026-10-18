@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Box } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLexicon } from "@/lib/lexicon-context";
-import { cubeFingerprint, progressSegments } from "@/lib/voxel-fingerprint";
+import { progressSegments } from "@/lib/voxel-fingerprint";
 
 type CubeStatus = "deployed" | "in_progress" | "not_started" | "planned";
 
@@ -126,16 +126,6 @@ function CubeCell({ cube }: { cube: CubeInfo }) {
       <span className="text-[10px] font-medium text-foreground leading-tight text-center">
         {cube.name}
       </span>
-      {/* Deterministic 3×3 identity fingerprint — unique per cube (§5) */}
-      <div className="grid grid-cols-3 gap-[1.5px] my-0.5" aria-hidden data-cube-fingerprint={cube.number}>
-        {cubeFingerprint(cube.number).map((on, i) => (
-          <span
-            key={i}
-            className="h-[3px] w-[3px] rounded-[1px]"
-            style={{ backgroundColor: on ? color : "var(--muted)", opacity: on ? 1 : 0.35 }}
-          />
-        ))}
-      </div>
       {/* 4-section completion (Overview·Inputs·Functions·Outputs) */}
       <div className="flex w-full gap-0.5 mt-0.5" title={`${cube.completion}%`}>
         {Array.from({ length: 4 }).map((_, i) => (

@@ -29,6 +29,14 @@ for (const [n, name] of [[1, "Session"], [7, "Ranking"], [9, "Reports"], [10, "S
   ok(!!m && m[1] === name, `cube ${n} still carries its own name "${name}" (got ${m ? m[1] : "none"})`);
 }
 
+// DD-98 — "when lookin at Cube 1-9 on settings I never asked for dot nomenclature; remove." (operator
+// 2026-10-18). The 3×3 seeded dot grid was mine, and lib/voxel-fingerprint.ts's own header credited it to
+// him; nine tiles carried an unasked-for visual with every gate green because this gate never looked at it.
+// The four completion segments below it STAY — he said nothing about them (release rule 6).
+ok(!/data-cube-fingerprint/.test(src), "no per-cube dot grid is rendered on the Cube tiles");
+ok(!/\bcubeFingerprint\b/.test(src), "cube-status.tsx does not import or call cubeFingerprint()");
+ok(/progressSegments\(cube\.completion, 4\)/.test(src), "the four completion segments stay");
+
 const md = fs.readFileSync(new URL("../../CLAUDE.md", import.meta.url), "utf8");
 ok(/\| 1 \| \(1,2,2\) CENTER/.test(md) && /\| 2 \| \(1,2,3\)/.test(md) && /\| 9 \| \(1,1,3\)/.test(md) && /\| 10 \| \(2,2,2\) CENTER/.test(md), "CLAUDE.md positions: 1=(1,2,2) 2=(1,2,3) 9=(1,1,3) 10=(2,2,2)");
 ok(/│  9  │  2  │  3  │[\s\S]*│  8  │  1  │  4  │[\s\S]*│  7  │  6  │  5  │/.test(md), "CLAUDE.md ASCII grid matches the spiral");
