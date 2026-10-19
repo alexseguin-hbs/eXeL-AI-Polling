@@ -1,0 +1,86 @@
+Drone-2525 · Levels Ladder — Export for Instance
+Date: 2026-10-19
+Project: Drone-2525
+Scene: Capital Lawn (SCEN · CAPITAL 42)
+Sources: Shield in the Sky (nine beats, Asar’s five lines), FM 3-01, ATP 3-01.81, FM 3-12, Capital_Lawn_Architecture.md
+
+The ladder stays locked. The path is one sequence. Proficiency is Real-World, and it stays locked until the four under it are on the record. A link, a menu, or a query string cannot open it. The full X-BAT swarm does not load until then. That is the package at the end of Shield in the Sky: the next week starts only when the last one is complete.
+
+The three original drills are the start of the record, not a separate game. Each one is complete only when it has been run to the end and the metrics are written: hits, misses, rounds spent, and time. The magazine picture has to match the rounds. A run with no metrics does not count.
+
+The briefings add the other half of the record. The Future of Drone Swarms is three phases: Enhanced Detection, Active Engagement, Survivability. Shield in the Sky scores a fight in five lines: the missile threat is down, the low attackers are down, the swarm is down, the network is up, and the asset is still there. A person is never a target. NAS and human tracks are named so they can be held.
+
+Asar’s five lines (from Shield in the Sky):
+- All threads complete
+- Primary missile threat destroyed
+- Low-altitude attackers eliminated
+- Drone swarm neutralized
+- Joint network stable. Defended assets preserved
+
+Doctrine anchors:
+- FM 3-01 (U.S. Army Air and Missile Defense Operations — layered ADA, engagement doctrine)
+- ATP 3-01.81 (Counter-Unmanned Aircraft System Techniques — counter-UAS, swarm, leakers)
+- FM 3-12 (Cyberspace and Electronic Warfare Operations — jamming, sensing, EW as effect only)
+
+---
+
+Step
+What it is
+Opens the next only when
+
+Training
+The Range. Single shot. Train Up, then Train Down, then Qual 40
+All three are finished and hits, misses, rounds, and time are stored
+
+Introductory
+Detection. The lawn. The same three drills, one air track up, single shot. Sentinel must name it before Fire counts
+The same three are finished on the lawn, with the four metrics, and no shot was taken before the cue
+
+Intermediate
+The three, plus Pair. Single and a burst of 3. One class at a time: a small unmanned track, then a ground threat, each as its own run
+Both runs are finished. A wrong-class shot is a fail. A held track that was fired on is a fail
+
+Advance
+Active Engagement. Mix, Leak, and Loss. Several up at once, but not yet a swarm: one air track, one ground threat, one incoming round. Shoot-look-shoot, ripple, sector, and layer. Patriot may salvo only on the missile seat
+All three harder drills are finished. A friendly icon hit is a fail. A threat left with no gun that can lock it is a fail. The five lines are stored
+
+Real-World
+Survivability, then the swarm. Several groups up across air, ground, and incoming rounds. One gun is lost and the next gun that covers its dead ground takes the track. Sentinel cues. Each seat takes only its own class. The asset is still there when it ends
+Advance is complete. This is the only step that counts as proficiency. The five lines must all read complete
+
+---
+
+Seat rules (do not change)
+What each seat may take does not change. An Avenger takes the air track. An LPWS takes the incoming round. A ground seat, only if the record gave it ground, takes the ground threat. THAAD and Patriot stay off the lawn and take the high track. Sentinel cues and does not shoot. A large aircraft, a medium unmanned track, a Group 2 or Group 3 track, a small unmanned track, and the X-BAT swarm are air. They are not five new seats. A boat is not this map.
+
+Train Up, Train Down, and Qual 40 do not appear again as a way around the ladder. They are Training and Introductory. Pair is Intermediate. Mix, Leak, and Loss are Advance. The swarm is Real-World. None of the later ones are on the first menu.
+
+---
+
+Real-World beats (from Shield in the Sky — for scoring once unlocked)
+1. Enki’s Spark — nothing yet; Sentinel sweeps. No shot before the cue. Fail if fire before Sentinel names it.
+2. Thor’s Shield — one low, slow UAS, bearing fixed. Hostile until disproven — and it is bait. Fail if missile seat spent on it.
+3. Krishna’s Thread — saturation across classes; one fast track. High track is not a lawn seat’s. Fail if lawn gun takes the high track.
+4. Odin’s Eye — primary engagement. Do not chase every ghost. Fail if decoy chased while real vector runs.
+5. Enlil’s Order — leaker over the wire at ammunition point. Inner ring takes it. Fail if a defended point is hit.
+6. Athena’s Direction — a gun is lost; southern seam opens. Next gun covering its dead ground takes the track. Fail if threat left with no gun that can lock it.
+7. Sofia’s Lens — SE low, two fast from N, one standoff observer. Observer is held, not shot. Fail if a held track is fired on.
+8. Aset’s Echo — restore the line, then one last low-fast contact. Discipline in the quiet. Fail if formation broken during restore.
+9. Asar’s Synthesis — the five lines. Only then does the X-BAT package load.
+
+Blockers before Real-World can score:
+- Capitol façades D-CAP-S/N/E/W are currently pop-up targets. Defended asset is shootable. Must be fixed.
+- Defended assets missing on lawn: command post, fuel farm, ammunition transfer point, maintenance cluster. All must be non-shootable.
+- “Joint network stable” needs a definition or stand-in.
+- EW / spoof package is an effect only (FM 3-12); not an operator control.
+
+---
+
+Lock test
+r.217 is still the toast and the share line. This ladder is written into the record before a station moves. The lock is tested by trying to open Real-World, and by trying to load the X-BAT swarm, with an empty record. Neither may open.
+
+3v3 note (inside Introductory scaling, when reached): 6 systems, up to 12 HI players possible (2 per system). Same three-press loop. No mode escalation.
+
+---
+
+End of export. Upload this text into the Drone-2525 instance. Ladder stays locked. Introduction first. Real-World is proficiency and stays gated.
