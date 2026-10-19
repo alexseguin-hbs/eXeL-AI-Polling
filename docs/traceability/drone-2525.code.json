@@ -9561,6 +9561,187 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 99,
+   "commit": "584a8e7",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ef87fba63325c0016dd5be79b739dd66863f0b3d"
+      }
+     ],
+     "add": 78,
+     "del": 0,
+     "bytes": 9087,
+     "lines": 88,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ef87fba63325c0016dd5be79b739dd66863f0b3d"
+      }
+     ],
+     "add": 56,
+     "del": 3,
+     "bytes": 13448,
+     "lines": 85,
+     "status": "recorded"
+    },
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ef87fba63325c0016dd5be79b739dd66863f0b3d"
+      }
+     ],
+     "add": 5,
+     "del": 2,
+     "bytes": 5682,
+     "lines": 28,
+     "status": "recorded"
+    },
+    {
+     "key": "texas",
+     "name": "Map · State of Texas",
+     "cells": [
+      13
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ef87fba63325c0016dd5be79b739dd66863f0b3d"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 3268,
+     "lines": 16,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ef87fba63325c0016dd5be79b739dd66863f0b3d"
+      }
+     ],
+     "add": 2,
+     "del": 1,
+     "bytes": 1366,
+     "lines": 20,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ef87fba63325c0016dd5be79b739dd66863f0b3d"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1279,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ef87fba63325c0016dd5be79b739dd66863f0b3d"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 45846,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r219.sha256",
+       "blob": "7faa44d9cb8355a485b02b7911f5ba40197748a0"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r218_to_r219.py",
+       "blob": "f835c8c81e9d99b7464d89f77da314134aef342c"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/redfirst/r219.md",
+       "blob": "c655411c693efaf8d34a4418125aec68b262022f"
+      }
+     ],
+     "add": 320,
+     "del": 0,
+     "bytes": 34825,
+     "lines": 327,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "ef87fba63325c0016dd5be79b739dd66863f0b3d"
+      }
+     ],
+     "add": 7,
+     "del": 4,
+     "bytes": 3612,
+     "lines": 36,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
