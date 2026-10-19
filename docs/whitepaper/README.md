@@ -40,7 +40,7 @@ opens CONTROLS. **Which is canonical is his to say.**
 
 | Item | Location |
 |------|----------|
-| Text-only MD (gateable) | `docs/whitepaper/Shield_in_the_Sky_ADA_Briefing.md` |
+| Text-only MD (GENERATED from `docs/asks/…` by `frontend/scripts/gen-shield-briefing.mjs`; gated by `tests/whitepaper-source.test.mjs`) | `docs/whitepaper/Shield_in_the_Sky_ADA_Briefing.md` |
 | Images companion (slots 1–13) | `docs/whitepaper/Shield_in_the_Sky_Images.md` |
 | Original verbatim paste | `docs/asks/2026.10.19_Shield_in_the_Sky_ADA_Briefing.md` |
 | VISION-2525.pdf public download (Supabase) | https://ppgfjplawtlrfqpnszyb.supabase.co/storage/v1/object/public/whitepaper/VISION-2525.pdf |
