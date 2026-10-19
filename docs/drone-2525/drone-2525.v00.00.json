@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.070",
+  "revision": "0.071",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -543,6 +543,14 @@
    "why": "Operator deck r.215 - THE HISTORY OWNS THE SCREEN (DD-78; operator 2026-10-17: \"Ensure this is full screen for portraight and landscape and pc; also I dont see </> and </> Code unlock of code\"). This revision answers the first half. Measured on the live r.214 bytes: the panel sheet was max-width 640px and max-height 88vh inside an overlay adding 8px of side padding - 428x815 inside his 428x926 phone with the game showing around it, a letterbox in landscape, and a 640x792 column at x=400 in a 1440x900 window on a desktop. It is now full bleed, measured at 428x926, 926x428 and 1440x900, each at (0,0), filling the window exactly. The same card shape was in the shared React panel, so the identical change lands there and every 2525 surface gains it at once. Nothing pinned that geometry; three legs in rcore-revisions now hold it and a deferred deck row THE_HISTORY_OWNS_THE_SCREEN opens the real panel and measures the real rect. A 1100px reading column keeps prose readable inside the full bleed - declared, one number, reversible. THE SECOND HALF, the deck own </> Code chip, is DD-79 and its own revision: the deck panel is a hand-written vanilla port with only cmpVU and cmpVS, and Code mode there means inlining the 40904 B index and porting the cube into a file forbidden to fetch anything. Named, not bundled half-done.",
    "commit": "8fc06f0",
    "shipped": "67b0162"
+  },
+  {
+   "revision": "0.071",
+   "date": "2026-10-19",
+   "kind": "release",
+   "why": "Operator deck r.216 - A FULL MAGAZINE READS FULL (DD-102; operator 2026-10-19 with his own r0.178 screenshot: \"heres one revision where 30 filled up to the top ofnthe magazine\"; D-25 \"A2 - thirty bars, one per round\"; his approval of the render \"option 2 is correct\"). MEASURED, both images profiled the same way - the ink extent of the drawing, then every raster row where lit pixels cross >=30% of the body width: his r0.178 picture at 30 RDS fills 6.7% to 87.2%; the served r.215 at 30 RDS fills 39.2% to 100%, the latter from the real deck rendered headless at 428x926 DPR 3 with a real full magazine. CAUSE, and it was NOT a careless restore: r.203 (4adfe705) moved MAG_FILL_TOP 11.3 to 32.0 deliberately, to put the bars below the witness window, built from shot40 - a render of this session that he sent back as his reference. The defect is that no gate anywhere asked whether a full magazine READS full, so a deliberate local improvement cost a behaviour right since r0.178 and stayed wrong for thirteen revisions with every gate green. The same constants hid a second defect: the clamp made rounds 19 to 30 draw the identical picture, eleven rounds invisible. HIS OWN BAR IS RE-LAID at a closer pitch, 6.50px to 5.76px in the 192px canvas, so exactly thirty fit between the body top and the floor. Nothing stretched, nothing invented, only the pitch changes; the generator refuses unless it lays exactly thirty and re-measures BARS.json back out of the laid PNG. The frame and the RELOAD ink are byte-identical to r.203 cut and the deck gets smaller, 1183776 B from 1195795 B. THE WITNESS WINDOW IS COVERED at a full magazine and uncovers as he fires, which is what his own picture shows - its row profile runs unbroken through the window position. The three other mentions of that phrase in the deck are the embedded append-only ledger and are left exactly as they are. TWO GATES NOW ASSERT THE BEHAVIOUR rather than the hash, both red on r.203 through r.215.",
+   "commit": "17a21cc",
+   "shipped": "PENDING"
   }
  ],
  "arena": {

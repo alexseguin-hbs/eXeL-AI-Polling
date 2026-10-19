@@ -58,8 +58,8 @@
   "POSE_PNG": "3334259057a51b08",
   "qualPose": "ad8eda6613a0fc1f",
   "paintPos": "58a85ff9487d3c1d",
-  "MAG_FILL_TOP": "e3be4cec8dfc3170",
-  "MAG_PNG": "5ff54854c31f2951",
+  "MAG_FILL_TOP": "c526d1328a599c03",
+  "MAG_PNG": "ad42a38f87219dae",
   "startLight": "0edd2b9d8c564058",
   "qualLamp": "12f869b61dd9f942",
   "qualTimer": "bec9b84120c19fa1",
@@ -104,8 +104,8 @@
   "chNum": "d3a3659b6741e10e",
   "applyMode": "a28010b94465e836"
  },
- "_movedWhy": "Three definitions DID move in r.208, each declared rather than quietly re-based. goRange: leaving CH0 for a challenge has always set state.phase=static and zeroed the hits, and goRange never put them back - so after a round trip the range fired PASS - MOVING TARGETS at the next quota hit. That is r.207s own behaviour through its challenge picker; r.208 adds a second door onto it, so it is CLOSED here and the range is handed back whole. mapCam and drawMap: over a non-range channel the overhead view rises from 155 m to 2,400 m and looks straight down, because the deck has one focal length and 500 m of grounds cannot be framed any other way, and the caption says which site it shows - both under a chNum() guard, with the range keeping its own height, tilt and words.",
- "movedPinnedAt": "208",
+ "_movedWhy": "Three definitions DID move in r.208, each declared rather than quietly re-based. goRange: leaving CH0 for a challenge has always set state.phase=static and zeroed the hits, and goRange never put them back - so after a round trip the range fired PASS - MOVING TARGETS at the next quota hit. That is r.207s own behaviour through its challenge picker; r.208 adds a second door onto it, so it is CLOSED here and the range is handed back whole. mapCam and drawMap: over a non-range channel the overhead view rises from 155 m to 2,400 m and looks straight down, because the deck has one focal length and 500 m of grounds cannot be framed any other way, and the caption says which site it shows - both under a chNum() guard, with the range keeping its own height, tilt and words. R.216: MAG_FILL_TOP and MAG_PNG moved, declared. His own r0.178 screenshot measures the fill starting 6.7% from the top of the drawing at 30 rounds; the served r.215 measured 39.2%, blank for its top 39%. r.203 moved MAG_FILL_TOP 11.3 -> 32.0 deliberately to put the bars below the witness window, and no gate anywhere asked whether a full magazine READS full, so it stayed wrong for thirteen revisions with every gate green. r.216 re-lays HIS OWN BAR at a closer pitch so exactly thirty fit from the body top to the floor: MAG_FILL_TOP 32.0 -> 6.5, MAG_BARS 19 -> 30, and the three fill rasters in MAG_PNG are the re-laid ones. These two definitions ARE the magazine; the freeze protects the RANGE behaviour, which is untouched - every other frozen definition is unchanged and both play-throughs are byte-identical. MAG_FILL_TOP e3be4cec8dfc3170 -> c526d1328a599c03 | MAG_PNG 5ff54854c31f2951 -> ad42a38f87219dae",
+ "movedPinnedAt": 216,
  "movedSpans": {
   "goRange": "fb44d8c4e9d1cc50",
   "mapCam": "49be88a3514c2454",
