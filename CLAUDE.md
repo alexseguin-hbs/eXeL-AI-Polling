@@ -71,6 +71,13 @@
   release that already shipped with it. Append `L(newer,"same.id",…)` instead — the past then replays what it
   actually shipped, which is the document's entire thesis. Verify with a replay test, not by memory.
 - **ALWAYS commit and push to GitHub after each change.** Do not wait — commit and push immediately after every modification.
+- **THE PRIMARY WORKING DIRECTORY IS FAST-FORWARDED AFTER EVERY PUSH, in the same step as `git ls-remote` (2026-10-19,
+  taken under the operator's standing sign-off "approve all your own decisions; document changes").** A 48-agent fleet
+  measured `/home/user/eXeL-AI-Polling` at `b7e1a304e`, 28 commits behind both refs, while every real change lived in a
+  scratch worktree; every finding about "what is in the repo" was about a tree nobody shipped, and the twelve MoT verdicts
+  were voided. The primary directory is the only tree the app can open and the tree every agent reads. Mechanically:
+  `node frontend/scripts/tree-check.mjs <dir> <sha>` refuses a stale target (exit 1 when HEAD is not the sha or the tree is
+  behind `origin/main`); every agent prompt opens with it and reports the sha first; every chain script begins with it.
 - **REPORT THE SHA AND THE DEPLOY STATE ON EVERY UPDATE (AAR 2026-07-29, MoT-enforced).** For four hours a
   push was reported as a ship: five commits announced "done" while the live site served a build four hours old.
   The gate ended at `git push` returning 0 and nobody ever compared the site to the commit.
