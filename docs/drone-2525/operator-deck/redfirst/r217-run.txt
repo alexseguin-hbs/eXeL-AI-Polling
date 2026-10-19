@@ -1,0 +1,10 @@
+--- RED-FIRST · the shipped r.216 bytes, rows inserted and nothing else changed ---
+RED    THE_HIT_TOAST_CLEARS
+        TRAIN UP toast "HIT · 50 M LEFT · TARGET · APPROVE · FIRE" · recital STILL THERE · names the plate and DOWN NO · sight moved to 50 M RIGHT → TOAST STILL TALKING ABOUT 50 M LEFT · TRAIN DOWN raised "HIT · IN THE AIMING CIRCLE" → recital still absent
+RED    THE_SHARE_LINE_KEEPS_ITS_WORDS
+        word-break STILL break-all · 0 joints · 0 runs, none split · widest run 0px of 286px ("") · explore-096 not in this host · workers.dev not in this host · copy reads http://127.0.0.1:44157/drone-2525/play.htm
+--- GREEN · the r.217 cut ---
+GREEN  THE_HIT_TOAST_CLEARS
+        TRAIN UP toast "HIT · 50 M LEFT · DOWN" · recital gone · names the plate and DOWN yes · sight moved to 50 M RIGHT → toast gone · TRAIN DOWN raised "HIT · IN THE AIMING CIRCLE" → recital still absent
+GREEN  THE_SHARE_LINE_KEEPS_ITS_WORDS
+        word-break normal · 8 joints · 9 runs, none split · widest run 110px of 286px ("&mode=train-up") · explore-096 not in this host · workers.dev not in this host · copy reads http://127.0.0.1:46155/drone-2525/play.htm
