@@ -9061,10 +9061,66 @@
   },
   {
    "rev": 95,
-   "commit": "70228d60e7ae0ddfedbd4f935dec33652588680a",
-   "commitSource": "ledger-row",
+   "commit": "cbf852f",
    "status": "recorded",
    "areas": [
+    {
+     "key": "mag",
+     "name": "Magazines · light · poses",
+     "cells": [
+      4,
+      7,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c9f4524c40a61e21bd3e45143d15b99af573c098"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 325759,
+     "lines": 33,
+     "status": "truncated"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c9f4524c40a61e21bd3e45143d15b99af573c098"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 4756,
+     "lines": 21,
+     "status": "recorded"
+    },
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c9f4524c40a61e21bd3e45143d15b99af573c098"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 45847,
+     "lines": 12,
+     "status": "recorded"
+    },
     {
      "key": "record",
      "name": "The record",
@@ -9073,57 +9129,50 @@
      ],
      "files": [
       {
-       "path": "docs/drone-2525/ASSUMPTIONS_REGISTER.md",
-       "blob": "1a5fdcdc8e00062a8c471bd68ea85aecb09e2555"
+       "path": "docs/drone-2525/magazine/BARS.json",
+       "blob": "dd5f13d7a5184bcd4cb6c9b305bb9c4ba840373c"
       },
       {
-       "path": "docs/drone-2525/CRS_DRONE-2525.md",
-       "blob": "1a2abfe8701f0f021e05cd419471c451fd92376c"
+       "path": "docs/drone-2525/magazine/MAGAZINE.sha256",
+       "blob": "c7c99b26d07ff885c5bf3d2efb67e7cdd2090d08"
       },
       {
-       "path": "docs/drone-2525/README.md",
-       "blob": "a131e0ed962e48e0f8998f79e4b1ab3be228094c"
+       "path": "docs/drone-2525/magazine/lay-rounds.py",
+       "blob": "145a707c2bd1bd905e6607f846845e6e384ed5e0"
       },
       {
-       "path": "docs/drone-2525/drone-2525.v00.00.json",
-       "blob": "6970a199c1a2e9dc9a2d00f74a49ae5e3192de40"
+       "path": "docs/drone-2525/operator-deck/HASHES_r216.sha256",
+       "blob": "4f903feb5e78a53083156c168c3e5a02c509c236"
       },
       {
-       "path": "docs/drone-2525/operator-deck/README.md",
-       "blob": "02617fb27f3ae592e5573f4feefcbb2f665106f4"
+       "path": "docs/drone-2525/operator-deck/patches/r215_to_r216.py",
+       "blob": "f79c7a92789e627804016abd940b5dfe60ec5592"
       },
       {
-       "path": "docs/drone-2525/operator-deck/REVISIONS.md",
-       "blob": "d18cf1afa62397c2ccc027e2c803349444c04e91"
+       "path": "docs/drone-2525/operator-deck/redfirst/r216.md",
+       "blob": "09100f13151faef22b57e99fc1bb7543b4cad1d2"
       }
      ],
-     "add": 57,
-     "del": 5,
-     "bytes": 37903,
-     "lines": 129,
+     "add": 286,
+     "del": 6,
+     "bytes": 21500,
+     "lines": 308,
      "status": "recorded"
     },
     {
-     "key": "route",
-     "name": "React route",
-     "cells": [
-      25,
-      26
-     ],
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
      "files": [
       {
-       "path": "frontend/lib/drone-2525/deck-rev.ts",
-       "blob": "3c0768de2a0cde2df5a4532187a6a673750499ef"
-      },
-      {
-       "path": "frontend/lib/drone-2525/domain.gen.ts",
-       "blob": "406482fccd5f395a93329ee8d0fed7e51a719304"
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "c9f4524c40a61e21bd3e45143d15b99af573c098"
       }
      ],
-     "add": 10,
-     "del": 2,
-     "bytes": 4417,
-     "lines": 34,
+     "add": 4,
+     "del": 4,
+     "bytes": 7813,
+     "lines": 33,
      "status": "recorded"
     }
    ]
@@ -9274,6 +9323,101 @@
      "del": 1,
      "bytes": 2430,
      "lines": 11,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 97,
+   "commit": "02c8cf03af9983884ddbcf1f5658611266fce625",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "a9823322c7673b7031aaa89472949f9fa5799abb"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 45847,
+     "lines": 12,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/ASSUMPTIONS_REGISTER.md",
+       "blob": "7261036e37a11540246e18323290bce13184d3cc"
+      },
+      {
+       "path": "docs/drone-2525/CRS_DRONE-2525.md",
+       "blob": "9c4aa40038e4d547702ad635a7ec3d96900e059a"
+      },
+      {
+       "path": "docs/drone-2525/README.md",
+       "blob": "49fc0b70e8b011e38c1acf60ee4a08d110d5b230"
+      },
+      {
+       "path": "docs/drone-2525/drone-2525.v00.00.json",
+       "blob": "39e6709b121e4112b75742f94dc6de3f3d3195ec"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r217.sha256",
+       "blob": "a66dde68e32b26ae7cc2f3d171352094b0e98d44"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/README.md",
+       "blob": "749eb70666426c534df24eb2bb7bff233a255fc6"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/REVISIONS.md",
+       "blob": "d43976846bc42317f5a5a31b53a282773b6cfcb2"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r216_to_r217.py",
+       "blob": "ac6f5b05974e1631a625f7b1c33f7bf481194b3d"
+      }
+     ],
+     "add": 59,
+     "del": 8,
+     "bytes": 42924,
+     "lines": 144,
+     "status": "recorded"
+    },
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/drone-2525/deck-rev.ts",
+       "blob": "a63cfc0cffea530f2c3f06575527f1fa5eb305ea"
+      },
+      {
+       "path": "frontend/lib/drone-2525/domain.gen.ts",
+       "blob": "53e7ac0b87a8f1aa1b9970b7beb18f9c7a5348e7"
+      }
+     ],
+     "add": 10,
+     "del": 2,
+     "bytes": 5690,
+     "lines": 33,
      "status": "recorded"
     }
    ]

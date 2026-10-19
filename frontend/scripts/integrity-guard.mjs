@@ -10,6 +10,13 @@ import { readdirSync } from "node:fs";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const SKIP_DIRS = new Set(["node_modules", ".next", ".git", "dist", "build", "out", ".turbo", "coverage", "test-results", "playwright-report"]);
+// THE CODE RECORD IS DATA, NOT A SURFACE (r.218, 2026-10-19). public/r-core/code/<project>/<rev>.json holds the git
+// DIFF TEXT of each revision, rendered as text in the R-CORE Code pane and never executed. Every byte of it is proven
+// equal to git history by tests/rcore-code-record.test.mjs (each blobSha === git rev-parse <commit>:<path>), so it is
+// not an injection surface - and scanning it re-flags HISTORY: a committed helper that said eval(chr(...)) blocked
+// every Cloudflare build from r.217 onward, for a day, because the diff of that commit can never change. The record
+// is exempt from signature scanning; everything else under public/ is scanned exactly as before (sabotage-proved).
+const SKIP_PREFIXES = ["public/r-core/code/"];
 const SCAN_EXT = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".json"]);
 const CONFIG_HINT = /(config|middleware|\.eslintrc|babel|setup)/i;
 
@@ -42,6 +49,7 @@ function scan(path) {
   let text;
   try { text = readFileSync(path, "utf8"); } catch { return; }
   const rel = path.replace(ROOT, "");
+  if (SKIP_PREFIXES.some((pre) => rel.startsWith(pre))) return; // the code record - see SKIP_PREFIXES
   const lines = text.split("\n");
   const isConfig = CONFIG_HINT.test(basename(path));
   lines.forEach((line, i) => {

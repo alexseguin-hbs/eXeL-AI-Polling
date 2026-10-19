@@ -14,7 +14,11 @@ ok(files.length >= 3, `three section ledgers exist (got ${files.length}: ${files
 const need = ['POD session', 'Create Doc', 'Sign Doc', 'Drone-2525',
   // R-CORE Stage 2 (operator 2026-09-25) — one append-only ledger per surface that carries the R-CORE badge.
   'Security-2525', 'Settings', 'Easter-Egg', 'Architect-2525', 'Celestial-2525', 'Financial-2525'];
-const exists = (sha) => { try { execSync(`git -C ${ROOT} cat-file -e ${sha}^{commit}`, { stdio: 'ignore' }); return true; } catch { return false; } };
+// ANCESTRY, NOT EXISTENCE (r.218, 2026-10-19). `cat-file -e` passes in any clone that happens to hold a dangling
+// object: ledger rev 95 cited 17a21cc, an abandoned local r.216 artefact never pushed, and this gate was green here
+// and red on every GitHub runner for a day. A cited commit must be reachable from HEAD on the branch the record is
+// recorded on, or the row is a claim about nothing.
+const exists = (sha) => { try { execSync(`git -C ${ROOT} merge-base --is-ancestor ${sha} HEAD`, { stdio: 'ignore' }); return true; } catch { return false; } };
 const sections = [];
 for (const f of files) {
   let L; try { L = JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8')); } catch (e) { ok(false, `${f}: parse ${e.message}`); continue; }
