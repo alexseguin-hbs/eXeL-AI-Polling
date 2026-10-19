@@ -5,9 +5,10 @@
 **Date:** 2026-10-19
 **Scope.** Build plan for all levels on Drone-2525. Training / Introduction must work before Intermediate, Advanced, or Real-World advance.
 **Levels:** Training · Introduction · Intermediate · Advanced · Real-World.
-**Path inside Introduction:** one player → two players on one system → mimic 1 drone vs 1 drone → 3v3 (6 systems, up to 12 HI).
+**Path inside Introduction:** one player → two players on one system → mimic 1 drone vs 1 drone → 3v3 (**6 air systems, up to 12 HI pilots**).
+**Long-term scaling target:** 21v21 = **42 HI vs 42 HI pilots** (eventual large-scale capacity; current first-build Real-World remains 9 tracks / 9 seats per CRS-CL.07).
 **Format:** Matches `docs/CRS_TRACEABILITY_2026-07-03.md` and `docs/whitepaper/CRS_Capital_Lawn_2026-10-19.md`.
-**Scene:** Capital Lawn (SCEN · CAPITAL 42) on the Drone-2525 deck.
+**Scene:** Capital Lawn (SCEN · CAPITAL 42) on the Drone-2525 deck. The 42 is the retired even ring; not the first-build gun or swarm count.
 **Sources of alignment:**
 - `docs/whitepaper/Shield_in_the_Sky_ADA_Briefing.md` (nine beats, Asar’s five lines, ATP 3-01.81 / FM 3-12 back matter)
 - `docs/whitepaper/Capital_Lawn_Architecture.md` (live modes, beat table, blockers)
@@ -24,10 +25,15 @@
 | Level | Mode(s) | Doctrine / Shield anchor | Status | Gate to next |
 |-------|---------|--------------------------|--------|--------------|
 | **Training** | TRAIN UP / TRAIN DOWN (basic) | FM 3-01 engagement discipline; three-press loop | Live | Three-press reliable for one player; glass truth |
-| **Introduction** | TRAIN UP / TRAIN DOWN + player scaling | Same loop; scale to 6 systems / 12 HI | Build | One → two on one system → 1v1 → 3v3 solid |
+| **Introduction** | TRAIN UP / TRAIN DOWN + player scaling | Same loop; scale to **6 air systems / 12 HI pilots** | Build | One → two on one system → 1v1 → **3v3 solid** |
 | **Intermediate** | Saturation, bait, high-track rule | Shield beats 2–4 (Thor bait, Krishna saturation, Odin decoy); FM 3-01 outer/inner ring | Planned | Introduction green; decoy not chased; high track not taken by lawn gun |
 | **Advanced** | QUAL 40 + leakers / seams / restore | Shield beats 5–6 (Enlil leaker, Athena seam); ATP 3-01.81 low-altitude / leaker | Live (QUAL) / Planned (full) | Intermediate green; inner ring takes leaker; next gun covers dead ground |
 | **Real-World** | Nine beats, Asar’s five lines gate | Full Shield sequence (Enki → Asar); FM 3-01 layered defense; FM 3-12 EW as effect | Designed | Advanced green; façades non-shootable; defended assets present; five lines score before X-BAT |
+
+**Scaling targets (locked):**
+- Near-term (Introductory gate): **3v3 = 6 air systems + up to 12 HI pilots** (2 HI per system).
+- Long-term: **21v21 = 42 HI vs 42 HI pilots**.
+- Current CRS first-build Real-World swarm remains **9 tracks in 3 groups of 3** (CRS-CL.07). The 42 is the retired ring / eventual large-scale target, not the default.
 
 ---
 
@@ -49,8 +55,8 @@
 | **PLAN-D2525-INTRO.02.01** | *(Claude Code: input)* | *(Claude Code: output)* | **Build** | 1 | Shared seat or split controls on one platform. | Both inputs map to the same three-press loop. | Gap if inputs collide without arbitration. |
 | **PLAN-D2525-INTRO.03** | *(Claude Code: input — two independent platforms)* | *(Claude Code: output — two tracks, no cross-talk)* | **Build** | 2 | Each player owns one platform. Each can TARGET/APPROVE/FIRE the other. Two independent tracks. | No cross-talk on presses. | Aligns to CRS-CL.INTRO.03. |
 | **PLAN-D2525-INTRO.03.01** | *(Claude Code: input)* | *(Claude Code: output)* | **Build** | 2 | Two platforms visible on Capital Lawn. | Both tracks render; seat map holds two. | Gap if second platform is not drawn or not addressable. |
-| **PLAN-D2525-INTRO.04** | *(Claude Code: input — 6 systems, up to 12 HI)* | *(Claude Code: output — seat map of 6, HI per press recorded)* | **Build** | 2 | 3v3 = 6 systems. Up to 12 HI players possible (2 per system). Same three-press loop. No mode escalation. | Seat map holds six systems; record shows HI player per press. | Aligns to CRS-CL.INTRO.04. Note: 6 systems, 12 HI possible. |
-| **PLAN-D2525-INTRO.04.01** | *(Claude Code: input — team assignment before START)* | *(Claude Code: output — team + system + HI on record)* | **Build** | 2 | Team assignment (3 vs 3) declared before START. Each system may carry 1 or 2 HI players. | Record shows team, system, and HI player(s) for each press. | Gap if team or HI player is not recorded. |
+| **PLAN-D2525-INTRO.04** | *(Claude Code: input — 6 air systems, up to 12 HI pilots)* | *(Claude Code: output — seat map of 6, HI per press recorded)* | **Build** | 2 | **3v3 = 6 air systems. Up to 12 HI pilots possible (2 per system).** Same three-press loop. No mode escalation. | Seat map holds six systems; record shows HI player per press. | Aligns to CRS-CL.INTRO.04. Near-term gate. |
+| **PLAN-D2525-INTRO.04.01** | *(Claude Code: input — team assignment before START)* | *(Claude Code: output — team + system + HI on record)* | **Build** | 2 | Team assignment (3 vs 3) declared before START. Each system may carry 1 or 2 HI pilots. | Record shows team, system, and HI pilot(s) for each press. | Gap if team or HI pilot is not recorded. |
 
 ## Drone-2525 · Intermediate (Shield beats 2–4; FM 3-01 outer/inner)
 
@@ -69,7 +75,7 @@
 
 | Sub-Plan | Input | Output | Status | MVP | Requirement | System Metric | Gap / Delta |
 |---|---|---|---|:-:|---|---|---|
-| **PLAN-D2525-RW.01** | *(Claude Code: input — nine beats sequence, Asar gate)* | *(Claude Code: output — five lines scored; X-BAT package loads only after)* | **Designed** | 2 | Real-World: nine beats. Seat map and eight fire modes unchanged. Three presses survive every beat. Gate is Asar’s five lines before X-BAT package loads. Aligns to full Shield sequence and FM 3-01 layered defense. | Each beat has stands-up / decision / fails-on; gate is scorable. | Aligns to CRS-CL.04. Requires Advanced green + façades non-shootable + defended assets. |
+| **PLAN-D2525-RW.01** | *(Claude Code: input — nine beats sequence, Asar gate)* | *(Claude Code: output — five lines scored; X-BAT package loads only after)* | **Designed** | 2 | Real-World: nine beats. Seat map and eight fire modes unchanged. Three presses survive every beat. Gate is Asar’s five lines before X-BAT package loads. Aligns to full Shield sequence and FM 3-01 layered defense. First-build swarm = 9 tracks / 3 groups of 3. | Each beat has stands-up / decision / fails-on; gate is scorable. | Aligns to CRS-CL.04. Requires Advanced green + façades non-shootable + defended assets. |
 | **PLAN-D2525-RW.01.01** | *(Claude Code: input)* | *(Claude Code: output)* | **Designed** | 2 | Beat 1 Enki’s Spark: nothing yet — Sentinel sweeps. No shot before the cue. Fail if fire before Sentinel names it. | Fail recorded if premature fire. | Beat table. |
 | **PLAN-D2525-RW.01.02** | *(Claude Code: input)* | *(Claude Code: output)* | **Designed** | 2 | Beat 2 Thor’s Shield: one low, slow UAS, bearing fixed. Hostile until disproven — and it is bait. Fail if missile seat spent on it. | Fail recorded if missile seat spent. | Beat table. |
 | **PLAN-D2525-RW.01.03** | *(Claude Code: input)* | *(Claude Code: output)* | **Designed** | 2 | Beat 3 Krishna’s Thread: saturation across classes; one fast track. High track is not a lawn seat’s. Fail if lawn gun takes the high track. | Fail recorded if lawn gun takes high track. | Beat table. |
@@ -88,7 +94,7 @@
 ## Order of build (Claude Code) — Drone-2525 only
 
 1. **Training** — PLAN-D2525-TRAIN.01 solid.
-2. **Introduction** — PLAN-D2525-INTRO.01 → .02 → .03 → .04 (one player → two on one system → 1v1 → 3v3 with 6 systems / 12 HI).
+2. **Introduction** — PLAN-D2525-INTRO.01 → .02 → .03 → .04 (one player → two on one system → 1v1 → **3v3 with 6 air systems / 12 HI pilots**).
 3. **Intermediate** — PLAN-D2525-INT.01 (Shield beats 2–4) only after Introduction green.
 4. **Advanced** — PLAN-D2525-ADV.01 (QUAL 40 live) then .02 (beats 5–6) only after Intermediate green.
 5. **Real-World** — PLAN-D2525-RW.01 (nine beats + Asar five lines) only after Advanced green and RW.02 / RW.03 resolved. RW.04 (EW effect) after gate is scorable.
@@ -100,7 +106,7 @@
 | Plan row | CRS row | Match? | Gap if any |
 |----------|---------|--------|------------|
 | PLAN-D2525-TRAIN.01 | CRS-CL.01 / .02 | Yes | — |
-| PLAN-D2525-INTRO.01–.04 | CRS-CL.INTRO.01–.04 | Yes | 3v3 = 6 systems, 12 HI possible |
+| PLAN-D2525-INTRO.01–.04 | CRS-CL.INTRO.01–.04 | Yes | 3v3 = 6 air systems, 12 HI pilots |
 | PLAN-D2525-INT.01 | beats 2–4 | Partial | Intermediate not yet a selectable mode |
 | PLAN-D2525-ADV.01 | CRS-CL.03 | Yes | QUAL 40 live |
 | PLAN-D2525-ADV.02 | beats 5–6 | Partial | Full advanced seam not yet selectable |
@@ -114,7 +120,7 @@
 ## Change summary — 2026-10-19
 
 **Docs (Drone-2525):**
-- `docs/whitepaper/Drone-2525_Plan_Introductory_Mode_Build.md` — this file (levels + Shield / FM 3-01 specifics)
+- `docs/whitepaper/Drone-2525_Plan_Introductory_Mode_Build.md` — this file (levels + Shield / FM 3-01 specifics + scaling targets)
 - `docs/whitepaper/Key_Deliverable_Introductory_Mode.md` — the rule
 - `docs/whitepaper/CRS_Capital_Lawn_2026-10-19.md` — CRS rows this plan implements against
 - `docs/whitepaper/Capital_Lawn_Architecture.md` — scene + modes
@@ -123,7 +129,9 @@
 **Ask for Claude Code:** Fill the Input and Output columns for every Sub-Plan row. Keep the format. Note any gap in Gap / Delta.
 
 **Levels:** Training · Introduction · Intermediate · Advanced · Real-World.
-**3v3 note:** 6 systems, up to 12 HI players possible (2 per system).
+**Near-term gate:** 3v3 = **6 air systems, up to 12 HI pilots** (2 per system).
+**Long-term target:** 21v21 = **42 HI vs 42 HI pilots**.
+**Current first-build Real-World:** 9 tracks in 3 groups of 3 (CRS-CL.07). 42 is the retired ring / eventual scale.
 **Asar’s five lines (Shield):** All threads complete. Primary missile threat destroyed. Low-altitude attackers eliminated. Drone swarm neutralized. Joint network stable. Defended assets preserved.
 **Doctrine anchors:** FM 3-01 (layered ADA), ATP 3-01.81 (counter-UAS), FM 3-12 (EW as effect).
 
