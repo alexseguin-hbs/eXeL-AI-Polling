@@ -9061,28 +9061,114 @@
   },
   {
    "rev": 95,
-   "commit": "17a21cc",
+   "commit": "70228d60e7ae0ddfedbd4f935dec33652588680a",
+   "commitSource": "ledger-row",
    "status": "recorded",
    "areas": [
     {
-     "key": "mag",
-     "name": "Magazines · light · poses",
+     "key": "record",
+     "name": "The record",
      "cells": [
-      4,
-      7,
-      8
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/ASSUMPTIONS_REGISTER.md",
+       "blob": "1a5fdcdc8e00062a8c471bd68ea85aecb09e2555"
+      },
+      {
+       "path": "docs/drone-2525/CRS_DRONE-2525.md",
+       "blob": "1a2abfe8701f0f021e05cd419471c451fd92376c"
+      },
+      {
+       "path": "docs/drone-2525/README.md",
+       "blob": "a131e0ed962e48e0f8998f79e4b1ab3be228094c"
+      },
+      {
+       "path": "docs/drone-2525/drone-2525.v00.00.json",
+       "blob": "6970a199c1a2e9dc9a2d00f74a49ae5e3192de40"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/README.md",
+       "blob": "02617fb27f3ae592e5573f4feefcbb2f665106f4"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/REVISIONS.md",
+       "blob": "d18cf1afa62397c2ccc027e2c803349444c04e91"
+      }
+     ],
+     "add": 57,
+     "del": 5,
+     "bytes": 37903,
+     "lines": 129,
+     "status": "recorded"
+    },
+    {
+     "key": "route",
+     "name": "React route",
+     "cells": [
+      25,
+      26
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/drone-2525/deck-rev.ts",
+       "blob": "3c0768de2a0cde2df5a4532187a6a673750499ef"
+      },
+      {
+       "path": "frontend/lib/drone-2525/domain.gen.ts",
+       "blob": "406482fccd5f395a93329ee8d0fed7e51a719304"
+      }
+     ],
+     "add": 10,
+     "del": 2,
+     "bytes": 4417,
+     "lines": 34,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 96,
+   "commit": "39ffb9e",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      1
      ],
      "files": [
       {
        "path": "frontend/public/drone-2525/play.html",
-       "blob": "c9f4524c40a61e21bd3e45143d15b99af573c098"
+       "blob": "2f12c6dea2bb7b2bda3eac2024d0a7aeb8538f53"
       }
      ],
-     "add": 4,
-     "del": 4,
-     "bytes": 325759,
-     "lines": 33,
-     "status": "truncated"
+     "add": 68,
+     "del": 1,
+     "bytes": 11098,
+     "lines": 86,
+     "status": "recorded"
+    },
+    {
+     "key": "maps",
+     "name": "The map ladder",
+     "cells": [
+      6,
+      15
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "2f12c6dea2bb7b2bda3eac2024d0a7aeb8538f53"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1774,
+     "lines": 12,
+     "status": "recorded"
     },
     {
      "key": "match",
@@ -9094,13 +9180,13 @@
      "files": [
       {
        "path": "frontend/public/drone-2525/play.html",
-       "blob": "c9f4524c40a61e21bd3e45143d15b99af573c098"
+       "blob": "2f12c6dea2bb7b2bda3eac2024d0a7aeb8538f53"
       }
      ],
-     "add": 2,
-     "del": 2,
-     "bytes": 4756,
-     "lines": 21,
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
      "status": "recorded"
     },
     {
@@ -9112,13 +9198,32 @@
      "files": [
       {
        "path": "frontend/public/drone-2525/play.html",
-       "blob": "c9f4524c40a61e21bd3e45143d15b99af573c098"
+       "blob": "2f12c6dea2bb7b2bda3eac2024d0a7aeb8538f53"
       }
      ],
      "add": 1,
      "del": 1,
-     "bytes": 45847,
-     "lines": 12,
+     "bytes": 45846,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "share",
+     "name": "Share sheet",
+     "cells": [
+      21,
+      24
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "2f12c6dea2bb7b2bda3eac2024d0a7aeb8538f53"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 1705,
+     "lines": 11,
      "status": "recorded"
     },
     {
@@ -9129,34 +9234,30 @@
      ],
      "files": [
       {
-       "path": "docs/drone-2525/magazine/BARS.json",
-       "blob": "dd5f13d7a5184bcd4cb6c9b305bb9c4ba840373c"
+       "path": "docs/drone-2525/operator-deck/HASHES_r217.sha256",
+       "blob": "dbb3d2ab6ece9cf7b497617134baa99a386dde80"
       },
       {
-       "path": "docs/drone-2525/magazine/MAGAZINE.sha256",
-       "blob": "c7c99b26d07ff885c5bf3d2efb67e7cdd2090d08"
+       "path": "docs/drone-2525/operator-deck/patches/r216_to_r217.py",
+       "blob": "3ee099f7e5ded3edddfb636063ce1607e09afbb3"
       },
       {
-       "path": "docs/drone-2525/magazine/lay-rounds.py",
-       "blob": "145a707c2bd1bd905e6607f846845e6e384ed5e0"
+       "path": "docs/drone-2525/operator-deck/redfirst/build-redfirst-r217.py",
+       "blob": "bb6189986a428809d13b9bf86726da4a0cfe5c93"
       },
       {
-       "path": "docs/drone-2525/operator-deck/HASHES_r216.sha256",
-       "blob": "4f903feb5e78a53083156c168c3e5a02c509c236"
+       "path": "docs/drone-2525/operator-deck/redfirst/r217-run.txt",
+       "blob": "f41bb5beedfee7f9a904bcdf8b9f4b219daf8423"
       },
       {
-       "path": "docs/drone-2525/operator-deck/patches/r215_to_r216.py",
-       "blob": "f79c7a92789e627804016abd940b5dfe60ec5592"
-      },
-      {
-       "path": "docs/drone-2525/operator-deck/redfirst/r216.md",
-       "blob": "09100f13151faef22b57e99fc1bb7543b4cad1d2"
+       "path": "docs/drone-2525/operator-deck/redfirst/r217.md",
+       "blob": "2d1e1e01e2fac1dedf8be8c6bb202999d73ee533"
       }
      ],
-     "add": 286,
-     "del": 6,
-     "bytes": 21500,
-     "lines": 308,
+     "add": 293,
+     "del": 0,
+     "bytes": 24137,
+     "lines": 304,
      "status": "recorded"
     },
     {
@@ -9166,13 +9267,13 @@
      "files": [
       {
        "path": "frontend/public/drone-2525/play.html",
-       "blob": "c9f4524c40a61e21bd3e45143d15b99af573c098"
+       "blob": "2f12c6dea2bb7b2bda3eac2024d0a7aeb8538f53"
       }
      ],
-     "add": 4,
-     "del": 4,
-     "bytes": 7813,
-     "lines": 33,
+     "add": 1,
+     "del": 1,
+     "bytes": 2430,
+     "lines": 11,
      "status": "recorded"
     }
    ]

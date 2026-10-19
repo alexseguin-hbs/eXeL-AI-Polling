@@ -161,7 +161,7 @@ rep("revision:'0.216'", "revision:'0.217'")
 
 # === the embedded R-CORE record moves on by one (deck-rcore holds the lag at exactly 1) ======================
 LEDGER = json.load(open(os.path.join(ROOT, 'docs/traceability/drone-2525.ledger.json'), encoding='utf-8'))
-MODEL = re.compile(r'\b(?:claude|gpt|gemini|grok|llama|opus|sonnet|haiku|fable)[\w.\-]*\b', re.I)
+MODEL = re.compile(r'\b(?:Claude\s+)?(?:Opus|Sonnet|Haiku)\s*\d+(?:\.\d+)?|\bGrok\b(?:\s*\d+(?:\.\d+)?)?|\bGemini\b(?:\s*\d+(?:\.\d+)?)?|\bGPT-?\s*\d+(?:\.\d+)?', re.I)  # the house regex, identical to tests/deck-rcore.test.mjs's own - a broader one over-redacts and the gate catches it
 THROUGH = 95
 if len(LEDGER['entries']) < THROUGH: raise SystemExit('REFUSE: the ledger has only %d entries' % len(LEDGER['entries']))
 _e = []
