@@ -35,3 +35,14 @@ CONTROLS) matches the PDF exactly for **I–VIII** and then diverges — the dec
 at X where the paper has Collective Intelligence at IX and SSSES at XI, and the deck's XI–XIII (HAL, STEWARD,
 LEXICON) are not the paper's at all. One of the two is stale, and the deck shows its version to anyone who
 opens CONTROLS. **Which is canonical is his to say.**
+
+## Shield in the Sky (ADA briefing) — cross-references (2026-10-19)
+
+| Item | Location |
+|------|----------|
+| Text-only MD (gateable) | `docs/whitepaper/Shield_in_the_Sky_ADA_Briefing.md` |
+| Images companion (slots 1–13) | `docs/whitepaper/Shield_in_the_Sky_Images.md` |
+| Original verbatim paste | `docs/asks/2026.10.19_Shield_in_the_Sky_ADA_Briefing.md` |
+| VISION-2525.pdf public download (Supabase) | https://ppgfjplawtlrfqpnszyb.supabase.co/storage/v1/object/public/whitepaper/VISION-2525.pdf |
+
+The fixed 13-section Vision paper is available at the Supabase URL above. The Shield briefing text and image extracts live next to this README.
