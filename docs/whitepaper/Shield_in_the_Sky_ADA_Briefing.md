@@ -1,10 +1,13 @@
 # Shield in the Sky — Air Defense Leadership and Troops AI & Technology Briefing
 
-> Text-only extract. Page furniture and repeated headers removed. Images held in companion file.
+> Text-only extract with actual image extracts referenced. Page furniture removed. Images held in companion + shield_images/.
 > Source: docs/asks/2026.10.19_Shield_in_the_Sky_ADA_Briefing.md (verbatim paste of paper #2).
-> Prepared By Accelerating Human Intelligence. This is the gateable text source for Asar's five lines.
+> Prepared By Accelerating Human Intelligence. Gateable text source for Asar's five lines. Image extracts from Vision-2525.pdf pages 1-13.
 
 ---
+
+![Slot 1 extract](shield_images/slot_1.jpg)
+*Opening extract from Vision-2525 PDF*
 
 Beneath a desert night, call sign Thought Master leads twelve commanders through a
 live test of Air Defense Artillery under the pressure of modern war. Beside him, the battle-net
@@ -21,6 +24,9 @@ Call Sign: Thought Master
 Commander Call Signs
 
 ## Enki's Spark
+
+![Slot 3 extract](shield_images/slot_3.jpg)
+*Extract from Vision-2525 PDF page ~3*
 
 The Tactical Operations Center breathed beneath a moonless desert sky like a living war machine waiting for first
 contact. Red task lights glowed over keyboards, map boards, and mission systems while the common operational picture
@@ -72,6 +78,9 @@ holds ground. Armor breaks lines. ADA protects tomorrow. Stay in the loop.
 "
 
 ## Thor's Shield
+
+![Slot 4 extract](shield_images/slot_4.jpg)
+*Extract from Vision-2525 PDF page ~4*
 
 The first confirmed return came in low and dirty, skimming dead ground and wadis where radar hated to work
 and crews learned to distrust comfort. Thoth sharpened the feed at once.
@@ -134,6 +143,9 @@ breathed loudly after that.
 
 ## Krishna's Thread
 
+![Slot 5 extract](shield_images/slot_5.jpg)
+*Extract from Vision-2525 PDF page ~5*
+
 Thought Master planted one hand on the edge of the main console and spoke into the net with total clarity.
 "Krishna, build the picture.
 " "Krishna copies.
@@ -190,6 +202,9 @@ kill chain.
 
 ## Odin's Eye
 
+![Slot 6 extract](shield_images/slot_6.jpg)
+*Extract from Vision-2525 PDF page ~6*
+
 The order to engage did not feel dramatic inside the TOC. It felt exact. Krishna pushed track quality across the
 architecture. Thoth refined speed, heading, and altitude until the data sharpened into action. Christo aligned the room
 before friction could breed second-guessing.
@@ -241,6 +256,9 @@ accelerated harder.
 
 ## Enlil's Order
 
+![Slot 7 extract](shield_images/slot_7.jpg)
+*Extract from Vision-2525 PDF page ~7*
+
 Now the fight looked like people imagined air defense would look: tracers clawing upward, missiles streaking,
 drones burning, and a sky turned hostile to intruders. What most would never see was the discipline beneath it all,
 where every shot still had to honor identification, geometry, and defended priorities. Thought Master stayed inside the
@@ -285,6 +303,9 @@ We defend so everything else keeps fighting.
 "
 
 ## Athena's Direction
+
+![Slot 8 extract](shield_images/slot_8.jpg)
+*Extract from Vision-2525 PDF page ~8*
 
 By midfight the TOC smelled like dust, electronics, coffee gone cold, and fatigue held under iron discipline.
 Reports from adjacent sectors arrived through the net: similar UAS activity, possible low flyers, probing electronic attack.
@@ -340,6 +361,9 @@ Commander. Tracking.
 
 ## Sofia's Lens
 
+![Slot 9 extract](shield_images/slot_9.jpg)
+*Extract from Vision-2525 PDF page ~9*
+
 The next attack came with the kind of coordination designed to split a defense morally before it split it physically.
 Drones rose from the southeast at low altitude. Two faster tracks pressed from the north. Another return hovered at
 standoff range, likely observing, waiting to exploit whatever the battery exposed. Thought Master brought the room back
@@ -377,4 +401,4 @@ The five lines scored. Only then does the X-BAT package load.
 
 ---
 
-*Text-only. Images in Shield_in_the_Sky_Images.md (slots 1–13). Placed next to Vision-2525 docs.*
+*Text with actual image extract references (1-13) from Vision-2525.pdf. Companion: Shield_in_the_Sky_Images.md. Next to Vision2525 docs and supabase.*
