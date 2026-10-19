@@ -33,12 +33,12 @@
 | **PLAN-D2525-INTRO.03** | PLAN-D2525-INTRO.03.IN | PLAN-D2525-INTRO.03.OUT | **Build** | 2 | Each player owns one platform. Each can TARGET/APPROVE/FIRE the other. Two independent tracks. | No cross-talk on presses. | Aligns to CRS-CL.INTRO.03. Gap if one player’s press affects the other platform. |
 | **PLAN-D2525-INTRO.03.01** | PLAN-D2525-INTRO.03.01.IN | PLAN-D2525-INTRO.03.01.OUT | **Build** | 2 | Two platforms visible on Capital Lawn. | Both tracks render; seat map holds two. | Gap if second platform is not drawn or not addressable. |
 
-## Drone-2525 · Introductory · 3v3
+## Drone-2525 · Introductory · 3v3 (6 systems, 12 HI players possible)
 
 | Sub-Plan | Input ID | Output ID | Status | MVP | Requirement | System Metric | Gap / Delta |
 |---|---|---|---|:-:|---|---|---|
-| **PLAN-D2525-INTRO.04** | PLAN-D2525-INTRO.04.IN | PLAN-D2525-INTRO.04.OUT | **Build** | 2 | Six platforms, three vs three, same three-press loop. No mode escalation. | Seat map holds six; all presses remain TARGET/APPROVE/FIRE. | Aligns to CRS-CL.INTRO.04. Gap if any press changes mode or seat map breaks. |
-| **PLAN-D2525-INTRO.04.01** | PLAN-D2525-INTRO.04.01.IN | PLAN-D2525-INTRO.04.01.OUT | **Build** | 2 | Team assignment (3 vs 3) is declared before START. | Record shows team and platform for each press. | Gap if team is not recorded. |
+| **PLAN-D2525-INTRO.04** | PLAN-D2525-INTRO.04.IN | PLAN-D2525-INTRO.04.OUT | **Build** | 2 | 3v3 = 6 systems. Up to 12 HI players possible (2 per system). Same three-press loop. No mode escalation. | Seat map holds six systems; record shows HI player per press; all presses remain TARGET/APPROVE/FIRE. | Aligns to CRS-CL.INTRO.04. Gap if system count ≠ 6 or HI capacity < 12. |
+| **PLAN-D2525-INTRO.04.01** | PLAN-D2525-INTRO.04.01.IN | PLAN-D2525-INTRO.04.01.OUT | **Build** | 2 | Team assignment (3 vs 3) is declared before START. Each system may carry 1 or 2 HI players. | Record shows team, system, and HI player(s) for each press. | Gap if team or HI player is not recorded. |
 
 ---
 
@@ -47,7 +47,7 @@
 1. **PLAN-D2525-INTRO.01** — one player TRAIN UP/DOWN solid on Drone-2525.
 2. **PLAN-D2525-INTRO.02** — two players on one system.
 3. **PLAN-D2525-INTRO.03** — 1v1 drone mimic.
-4. **PLAN-D2525-INTRO.04** — 3v3 in introductory.
+4. **PLAN-D2525-INTRO.04** — 3v3 (6 systems, up to 12 HI players) in introductory.
 5. Only after 01–04 are green: advance Intermediate, Advanced, Real-World on Drone-2525.
 
 ---
@@ -59,7 +59,7 @@
 | PLAN-D2525-INTRO.01 | CRS-CL.INTRO.01 | Yes | — |
 | PLAN-D2525-INTRO.02 | CRS-CL.INTRO.02 | Yes | — |
 | PLAN-D2525-INTRO.03 | CRS-CL.INTRO.03 | Yes | — |
-| PLAN-D2525-INTRO.04 | CRS-CL.INTRO.04 | Yes | — |
+| PLAN-D2525-INTRO.04 | CRS-CL.INTRO.04 | Yes | Note: 6 systems, 12 HI players possible. |
 | (none) | CRS-CL.05 façades | No | Façade blocker is later; does not block introductory basic run. |
 | (none) | CRS-CL.06 defended assets | No | Assets are later; does not block introductory basic run. |
 
@@ -74,6 +74,8 @@
 - `docs/whitepaper/Capital_Lawn_Architecture.md` — scene + modes
 
 **Rule:** This plan is specific to Drone-2525. Claude Code builds upon this plan. Same format as CRS so any gap between plan and CRS is visible in the table.
+
+**3v3 note:** 6 systems, up to 12 HI players possible (2 per system).
 
 ---
 

@@ -19,7 +19,7 @@ Introductory mode is the foundation. Nothing in Intermediate, Advanced, or Real-
 | 1 | 1 | 1 | Single player, three-press loop, TRAIN UP / TRAIN DOWN, hit/miss, magazine, glass truth | Player can complete a full TRAIN UP run without broken presses or false colours |
 | 2 | 2 | 1 | Two players operating one system (shared seat or split controls on one platform) | Both players can issue presses; no double-fire; record shows both |
 | 3 | 2 | 2 | Mimic 1 drone vs 1 drone (each player owns one platform) | Two independent tracks; each can TARGET/APPROVE/FIRE the other; no cross-talk |
-| 4 | 6 | 6 | 3v3 in introductory mode | Three vs three; seat map holds; presses remain three; no mode change |
+| 4 | up to 12 HI | 6 | 3v3 in introductory mode (6 systems, 12 HI players possible) | Three vs three; seat map holds six systems; up to 2 HI per system; presses remain three; no mode change |
 
 ---
 
@@ -41,7 +41,7 @@ Introductory mode is the foundation. Nothing in Intermediate, Advanced, or Real-
 | **CRS-CL.INTRO.01** | CRS-CL.INTRO.01.IN | CRS-CL.INTRO.01.OUT | **Required** | 1 | One player completes a full TRAIN UP and TRAIN DOWN run on Capital Lawn with three-press loop and correct glass colours. | Zero false colours; hit/miss match actions; START/time recorded. | Foundation. |
 | **CRS-CL.INTRO.02** | CRS-CL.INTRO.02.IN | CRS-CL.INTRO.02.OUT | **Required** | 1 | Two players operate one system. Presses from either player are accepted; no double-fire on the same mark. | Record shows both players; single system state. | Shared control. |
 | **CRS-CL.INTRO.03** | CRS-CL.INTRO.03.IN | CRS-CL.INTRO.03.OUT | **Required** | 2 | Mimic 1 drone vs 1 drone. Each player owns one platform. Each can target the other. | Two independent tracks; no cross-talk on presses. | First multi-platform. |
-| **CRS-CL.INTRO.04** | CRS-CL.INTRO.04.IN | CRS-CL.INTRO.04.OUT | **Required** | 2 | 3v3 in introductory mode. Six platforms, three vs three, same three-press loop. | Seat map holds; all presses remain TARGET/APPROVE/FIRE; no mode escalation. | Scale test. |
+| **CRS-CL.INTRO.04** | CRS-CL.INTRO.04.IN | CRS-CL.INTRO.04.OUT | **Required** | 2 | 3v3 in introductory mode. 6 systems, up to 12 HI players possible (2 per system). Same three-press loop. | Seat map holds six systems; record shows HI player; all presses remain TARGET/APPROVE/FIRE; no mode escalation. | Scale test. |
 
 ---
 
@@ -50,9 +50,9 @@ Introductory mode is the foundation. Nothing in Intermediate, Advanced, or Real-
 1. Lock Introductory for one player (CRS-CL.INTRO.01).
 2. Add two players on one system (CRS-CL.INTRO.02).
 3. Add 1v1 drone mimic (CRS-CL.INTRO.03).
-4. Add 3v3 in introductory (CRS-CL.INTRO.04).
+4. Add 3v3 in introductory — 6 systems, up to 12 HI players (CRS-CL.INTRO.04).
 5. Only then advance Intermediate, Advanced, and Real-World.
 
 ---
 
-*Key deliverable. Introductory must work before the other three modes advance. Path is one player → two on one system → 1v1 → 3v3, all inside introductory mode.*
+*Key deliverable. Introductory must work before the other three modes advance. Path is one player → two on one system → 1v1 → 3v3 (6 systems, 12 HI possible), all inside introductory mode.*
