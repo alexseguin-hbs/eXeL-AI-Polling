@@ -1475,6 +1475,163 @@
    "homeEl": 5
   }
  ],
+ "lawnSeats": [
+  {
+   "id": "A1",
+   "seat": "A1",
+   "faces": "1800, down Congress. Weight two",
+   "facesUcrs": "1800",
+   "arc": "1500.2100",
+   "arcShort": null,
+   "cls": "Air",
+   "firstStep": "Introductory",
+   "place": null,
+   "deckUnit": "t-south",
+   "modes": null,
+   "why": "The sourced station t-south at [0,-210] serves A1's line. Its recorded homeAz is 0 (toward the rotunda); CL.12 faces A1 at 1800, down Congress — see lawnSeatsRecord.corrections. Position not moved.",
+   "chain": "deb35e12d547246160502264af8c103b6c311b854215331d54d535b4a12925f3"
+  },
+  {
+   "id": "A2",
+   "seat": "A2",
+   "faces": "East allée, covering A1's east side",
+   "facesUcrs": null,
+   "arc": "0900.1800",
+   "arcShort": "0900.5",
+   "cls": "Air",
+   "firstStep": "Intermediate",
+   "place": null,
+   "deckUnit": null,
+   "modes": null,
+   "why": "No sourced station serves this line. Placement CANDIDATE from the lawn geometry survey (2026-10-19): the east allée position measured at (135,-185), not sourced; place stays null until he drops the point.",
+   "chain": "4161b27268884eadd4503799d501c85e9bc5e59f9d402ccaab2aaa9d23f48d62"
+  },
+  {
+   "id": "A3",
+   "seat": "A3",
+   "faces": "West allée, covering A1's west side",
+   "facesUcrs": null,
+   "arc": "1800.2700",
+   "arcShort": "1800.75",
+   "cls": "Air",
+   "firstStep": "Intermediate",
+   "place": null,
+   "deckUnit": null,
+   "modes": null,
+   "why": "No sourced station serves this line. Placement CANDIDATE from the lawn geometry survey (2026-10-19): the west allée position measured at (-90,-95), not sourced; place stays null until he drops the point.",
+   "chain": "1429c40fb1c5fc2a0f46df284e1f6549a55cd03ea0b0bb8fa1d499544a27b826"
+  },
+  {
+   "id": "A4",
+   "seat": "A4",
+   "faces": "0000, the north grounds. Crosses north",
+   "facesUcrs": "0000",
+   "arc": "3150.0450",
+   "arcShort": null,
+   "cls": "Air",
+   "firstStep": "Advance",
+   "place": null,
+   "deckUnit": null,
+   "modes": null,
+   "why": "No sourced station and no measured candidate serves this line; place stays null until he drops the point.",
+   "chain": "b94ed8b5baedc03248f247f7d19d9d686a7720c5fad519b6771ab185ec90cf16"
+  },
+  {
+   "id": "S1S2",
+   "seat": "S1, S2",
+   "faces": "The whole circle, behind the south guns",
+   "facesUcrs": null,
+   "arc": "0000.3600",
+   "arcShort": null,
+   "cls": "Cue only",
+   "firstStep": "Introductory",
+   "place": null,
+   "deckUnit": null,
+   "modes": null,
+   "why": "Sentinel cues and has no fire mode (CL.12). Placement CANDIDATES from the lawn geometry survey (2026-10-19): (-195,-35) and (210,-80), behind the south guns, not sourced; place stays null until he confirms.",
+   "chain": "cea08d3b65d521754de8b9dd6061c5ebb0d5778e70897544b7cdd1b95c630ee5"
+  },
+  {
+   "id": "C1",
+   "seat": "C1",
+   "faces": "Southwest of the building",
+   "facesUcrs": null,
+   "arc": "1800.2700",
+   "arcShort": "1800.75",
+   "cls": "Incoming round",
+   "firstStep": "Advance",
+   "place": null,
+   "deckUnit": null,
+   "modes": null,
+   "why": "LPWS seat; stays words until a friendly LPWS mark exists (CL.14). No sourced station, no candidate; place null.",
+   "chain": "2b1da91b6f3cdaf9a14e4827deb102526bdfebda0acd682a57606d1ad015b382"
+  },
+  {
+   "id": "C2",
+   "seat": "C2",
+   "faces": "Northeast of the building",
+   "facesUcrs": null,
+   "arc": "0000.0900",
+   "arcShort": "0000.25",
+   "cls": "Incoming round",
+   "firstStep": "Advance",
+   "place": null,
+   "deckUnit": null,
+   "modes": null,
+   "why": "LPWS seat; stays words until a friendly LPWS mark exists (CL.14). No sourced station, no candidate; place null.",
+   "chain": "cac7aa081ff36c06faba2bd6f689f09c635d55506969eb8cd0fe63d3708b3f41"
+  },
+  {
+   "id": "G1",
+   "seat": "G1",
+   "faces": "1800, on the Great Walk",
+   "facesUcrs": "1800",
+   "arc": "1500.2100",
+   "arcShort": null,
+   "cls": "Ground",
+   "firstStep": "Intermediate",
+   "place": null,
+   "deckUnit": null,
+   "modes": null,
+   "why": "Ground seat, in the record because Intermediate cannot finish without one (CL.12 preamble). No sourced station, no candidate; place null.",
+   "chain": "2433626f6d007cfd55a0919cd267f3749dd2d51537b03e429907260fdb8bb949"
+  },
+  {
+   "id": "T1",
+   "seat": "T1",
+   "faces": "1800, off the grounds. Width 0900",
+   "facesUcrs": "1800",
+   "arc": "1350.2250",
+   "arcShort": null,
+   "cls": "High track",
+   "firstStep": "Real-World",
+   "place": null,
+   "deckUnit": null,
+   "modes": null,
+   "why": "Off the grounds; bearing 1800 only (the delta gives no distance). THAAD/Patriot take the high track; Patriot optional, same centre, arc 1500.2100, not required for the first build. place null.",
+   "chain": "1d9852b39e3b2867f0a744e504a415f39959b6acc707c5006e1a3d2ee20d19f6"
+  }
+ ],
+ "lawnSeatsRecord": {
+  "date": "2026-10-19",
+  "source": "docs/whitepaper/CRS_Capital_Lawn_2026-10-19.md — Capital Lawn · UCRS-2525 and Capital Lawn · Seats (CRS-CL.11, CRS-CL.12), as committed at ad4dcb62e",
+  "crs": [
+   "CRS-CL.11",
+   "CRS-CL.12"
+  ],
+  "law": "Nine lines, not forty-two (CL.12). Every arc is UCRS-2525 AAAA.BBBB (CL.11); degrees are not the record. faces is the delta's own words; facesUcrs only where the words carry a bearing. place is null until a point is dropped on the grounds (delta: grid cells stay blank until then). modes is null on every row because CL.12 names a fire-modes column the seat table does not carry — his word, never invented. deckUnit names an EXISTING sourced station only. No station moves: this block moves nothing; the deck reads A1 from it. Append-only: a row is never edited or removed; a withdrawn row is a NEW row with its own id carrying withdraws:<id>; chain[i] = sha256(chain[i-1] + '|' + id + '|' + canonicalJSON(row without chain)), the register's idiom.",
+  "corrections": [
+   {
+    "id": "LC-01",
+    "turret": "t-south",
+    "field": "homeAz",
+    "recorded": 0,
+    "crs": "1800",
+    "why": "CRS-CL.12 faces A1 at 1800, down Congress; the turrets row records homeAz 0 (toward the rotunda). The turrets row is not edited (append-only); the deck homes the Introductory seat to 1800 when it enters the lawn, and this correction is the record of why.",
+    "chain": "c961fc6f85bdf9d39fe1ce11a2604fab0f40246eb5821ddda28263fb5243666f"
+   }
+  ]
+ },
  "gimbal": {
   "panMinDeg": -180,
   "panMaxDeg": 180,
