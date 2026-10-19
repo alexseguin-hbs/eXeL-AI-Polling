@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 97 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 98 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -688,6 +688,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "correction",
       "text": "CORRECTION to rev 95. Its commit field read 17a21cc, which is an abandoned first r.216 artefact commit that exists only in the build container and was never pushed - not an ancestor of main, on no branch. The r.216 artefact that was pushed is cbf852fa9 (Drone-2525 r.216 artefact - a full magazine reads full), and rev 95 now cites it. Found because Deploy went red on every GitHub runner from r.217 onward (\"fatal: invalid object name 17a21cc\") while the same gate stayed green here - tests/traceability.test.mjs tested EXISTENCE with cat-file -e, which any clone holding a dangling object passes. The gate now tests ANCESTRY with merge-base --is-ancestor, so a commit not reachable from HEAD can never be cited again; shown red first on these bytes. Audited all thirteen ledgers: exactly one bad reference, this one. The register row for r.216 was never wrong (its ship column is 70228d60); only the ledger and the domain JSON carried the stale artefact sha. A correction row, not an edit: rev 95 keeps its text and its shipped field; one identifier that pointed at nothing now points at the commit that exists.",
       "commit": ""
+    },
+    {
+      "rev": 98,
+      "date": "2026-10-19",
+      "kind": "release",
+      "text": "THE RECORD CITES WHAT EXISTS, AND THE BUILD THE SITE RUNS IS THE BUILD THE GATES RAN. Operator deck r.218 served at /drone-2525/play.html (sha256 6844b87c...). r.217 shipped with every gate green here and never reached the glass. Two faults, both mine, each invisible to the chain as it stood. ONE: ledger rev 95 cited 17a21cc, an abandoned first r.216 artefact that exists only in the build container and was never pushed - not an ancestor of main. tests/traceability.test.mjs tested EXISTENCE (cat-file -e), which any clone holding a dangling object passes; GitHub's runner does not, so Deploy went red from r.217 on while the same gate stayed green here. Audited every cited commit in all thirteen ledgers: exactly one bad reference. Fixed in the record (rev 95 now cites cbf852f, rev 97 is the correction row, append-only) and in the gate (merge-base --is-ancestor), red first on the old bytes. TWO: traceability is not in prebuild, so Cloudflare never ran it - and still did not promote, because its own prebuild step scripts/integrity-guard.mjs BLOCKED on public/r-core/code/drone-2525/96.json, the git diff of r.217's artefact, which carries a red-first helper whose source called the dynamic evaluator on a built string. Reproduced by running Cloudflare's exact command, npm run build, in a fresh SHALLOW clone - his environment, not my theory of it, the step r.217's chain skipped. The code record is diff TEXT, rendered and never executed, proven equal to git history by rcore-code-record, so it is exempt from signature scanning, deliberately, with a new test that the guard still bites everywhere else and that the exemption is exactly one prefix. The helper uses ast.literal_eval. THE DECK CHANGES ONLY IN THE RECORD IT CARRIES: corner and BUILD read 0.218 and the embedded R-CORE record moves on to rev 97, lag exactly one. r.217's toast and share-line fix ride unchanged. Frozen spans moved: none. The chain gains a step it will not skip again: npm run build in a fresh shallow clone before any ship commit",
+      "commit": "5531bb2"
     }
   ]
 };
