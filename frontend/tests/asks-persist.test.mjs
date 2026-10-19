@@ -16,7 +16,7 @@ let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } };
 
 const sha256 = (p) => createHash('sha256').update(fs.readFileSync(p)).digest('hex');
-const dateOf = (name) => (name.match(/^(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+const dateOf = (name) => { const m = name.match(/^(\d{4})[-.](\d{2})[-.](\d{2})/); return m ? `${m[1]}-${m[2]}-${m[3]}` : ''; }; // dashed OR dotted (2026.10.19_…): 45 dotted asks were outside the window until 2026-10-19
 
 const files = fs.readdirSync(DIR);
 const mds = files.filter((f) => f.endsWith('.md'));
