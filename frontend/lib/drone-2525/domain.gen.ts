@@ -625,7 +625,7 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck r.219 - A MAN ALONE PLAYS TRAIN UP AND TRAIN DOWN ON THE LAWN (CRS-CL.INTRO.01, one player, one air track; 2026-10-19; his Key Deliverable \"Introductory mode is the foundation\", the lawn delta line 26 \"one air track, single shot\", DD-131). Measured on the shipped r.218 bytes: the TARGET button could reach nothing (80 m / 120 m caps against lawn objects 150-262 m out, while a tap had no cap), marksPersist() was Range-only, the magazine and light were CSS-hidden, the lawn pops spawned inside the Capitol footprint, twelve AI seats fired at anything, no START or TIME row existed on the lawn. Changed in free spans only: both reach caps 340; marksPersist true on Introductory; a sibling class cap and the lawn's own lamp/clock; the seat is A1 of CL.12 on this record's sourced t-south station faced to 1800 down Congress (lawnSeatsRecord.corrections LC-01 - the turrets row is not edited, no station moves); ONE drones[] track bearing-fixed and hovering at 1800 x 150 m; asmTick holds; CSTART/CTIME/CRESET rows with hits and misses read from the HIT/MISS rows; RESTART and MODE wrapped, LANE and TARGETS disabled, QUAL 40 refused on the lawn. Six boot rows red first; range-frozen 100 definitions, 0 moved. The Sentinel cue is r.220, CL.05 is r.221, the ?map= reader waits for the ladder lock.",
    "commit": "584a8e7",
-   "shipped": "PENDING"
+   "shipped": "49a7455"
   }
  ],
  "arena": {
