@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.074",
+  "revision": "0.075",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -626,6 +626,14 @@ export const DRONE_DOMAIN = {
    "why": "Operator deck r.219 - A MAN ALONE PLAYS TRAIN UP AND TRAIN DOWN ON THE LAWN (CRS-CL.INTRO.01, one player, one air track; 2026-10-19; his Key Deliverable \"Introductory mode is the foundation\", the lawn delta line 26 \"one air track, single shot\", DD-131). Measured on the shipped r.218 bytes: the TARGET button could reach nothing (80 m / 120 m caps against lawn objects 150-262 m out, while a tap had no cap), marksPersist() was Range-only, the magazine and light were CSS-hidden, the lawn pops spawned inside the Capitol footprint, twelve AI seats fired at anything, no START or TIME row existed on the lawn. Changed in free spans only: both reach caps 340; marksPersist true on Introductory; a sibling class cap and the lawn's own lamp/clock; the seat is A1 of CL.12 on this record's sourced t-south station faced to 1800 down Congress (lawnSeatsRecord.corrections LC-01 - the turrets row is not edited, no station moves); ONE drones[] track bearing-fixed and hovering at 1800 x 150 m; asmTick holds; CSTART/CTIME/CRESET rows with hits and misses read from the HIT/MISS rows; RESTART and MODE wrapped, LANE and TARGETS disabled, QUAL 40 refused on the lawn. Six boot rows red first; range-frozen 100 definitions, 0 moved. The Sentinel cue is r.220, CL.05 is r.221, the ?map= reader waits for the ladder lock.",
    "commit": "584a8e7",
    "shipped": "49a7455"
+  },
+  {
+   "revision": "0.075",
+   "date": "2026-10-20",
+   "kind": "release",
+   "why": "Operator deck r.220 - SENTINEL NAMES IT BEFORE FIRE COUNTS (CRS-CL.H01.S; 2026-10-20; his lawn CRS line 26 \"Sentinel names it before Fire counts\", DD-138/139 H01.S \"Enki's Spark only\", DD-140 \"execute the Fable generated plan\", DD-141 \"the Sentinel cue on the lawn ... nothing else in that revision\"). Changed in free spans only: a standing lawn track is named CUE_S (2 s) after it stands - a CUE row (actor S1, bearing 1800) and the voice SENTINEL · 1800 · ONE TRACK, once per standing; a FIRE before the name is refused (CUE · NOT NAMED · WAIT FOR SENTINEL), recorded as HOLD BEFORE_CUE, spends no round, keeps the mark; TARGET and APPROVE are not gated. Two boot rows red first (both by the deck's own behaviour); the r.219 rows wait for the name and keep their claims; range-frozen 100 definitions, 0 moved. The swarm predicate is a later revision; CL.05 is r.221; the ladder lock and the ?map= reader wait; QUAL 40 on the lawn is his gap.",
+   "commit": "d498e25",
+   "shipped": "PENDING"
   }
  ],
  "arena": {
