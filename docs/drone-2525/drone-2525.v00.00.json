@@ -590,7 +590,7 @@
    "kind": "release",
    "why": "Operator deck r.221 - INTRODUCTORY ON THE CAPITAL LAWN, TRAIN DOWN writes the fourth number (operator 2026-10-21 \"Train Down writes hits, misses, rounds, and time. No time means it does not count.\"). One edit in the FREE capIntroTick: a lawn TRAIN DOWN run's CTIME gains rounds = HIT+MISS rows = rounds spent (the magazine matches), so the run carries hits, misses, rounds and time. TRAIN UP stays infinite practice (no CSTART/CTIME); QUAL 40 is refused on the lawn (one track is not a 40-target qual - the refusal stays); one air track; a person, the Capitol and its facades are not targets. The Range is untouched (r0.220): no toggle, no Range control, range-frozen 100 definitions 0 moved, both play-throughs byte-identical. One boot row red first (LAWN_TRAIN_DOWN_FOUR_NUMBERS). QUAL 40 on the lawn stays on the Range; the optional Range aerial was dropped; CL.05 and the ladder lock wait.",
    "commit": "5d58b85",
-   "shipped": "PENDING"
+   "shipped": "2d295e7"
   }
  ],
  "arena": {
