@@ -42,6 +42,8 @@
 - `CRS-CL.H06.S` — Advance. Mix = Odin's Eye · Leak = Enlil's Order · Loss = Athena's Direction (file 1).
 - `CRS-CL.H07.S` — Real-World. All nine beats, Enki through Asar; the five lines score here (file 1).
 
+**Sides (CRS-CL.15, file 1):** BluFor defends the Capitol — A1–A4, S1, S2, C1, C2, G1, T1; RedFor/OpFor attacks it — the air track, the ground threat, the incoming round, later the nine tracks. The Capitol, its façades and the defended assets are not targets for either side; a person is never a target. 1v1 is one BluFor system vs one RedFor system; 3v3 is three a side; Training has no side.
+
 ---
 
 ## Drone-2525 · Training (foundation)

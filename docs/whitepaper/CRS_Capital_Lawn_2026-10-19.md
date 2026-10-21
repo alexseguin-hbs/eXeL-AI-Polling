@@ -173,6 +173,14 @@ Adding any of these does not change the three presses, the seat table, or the ni
 
 ---
 
+## Capital Lawn · Sides
+
+| Sub-CRS | Input ID | Output ID | Status | MVP | Requirement | System Metric | Delta |
+|---|---|---|---|:-:|---|---|---|
+| **CRS-CL.15** | CRS-CL.15.IN | CRS-CL.15.OUT | **Decided** | 2 | We are protecting the Capitol. BluFor defends. BluFor owns A1, A2, A3, A4, S1, S2, C1, C2, G1, and T1. Their targets are the attackers. RedFor, also called OpFor, attacks. RedFor owns the air track, the ground threat, the incoming round, and later the nine tracks. Their objective is the Capitol. Their targets are the defense. The Capitol, its façades, and the defended assets are not targets for either side. A person is never a target. "Attack the Capitol" means the threat is inbound on it. It does not put a plate on the dome. 1v1 is one BluFor system against one RedFor system. 3v3 is three systems a side. Training is the Range, and it has no side. | Every lawn seat A1–A4, S1, S2, C1, C2, G1, T1 is BluFor; every threat (the air track, the ground threat, the incoming round, the nine tracks) is RedFor/OpFor; no fçade or defended asset is a target for either side; a person is never a target; 1v1 is one BluFor system vs one RedFor system; 3v3 is three a side; Training has no side. | New. Who plays which side. CRS-CL.11 is already the UCRS-2525 row, so this row takes the next free id, CRS-CL.15 — file 1 wins every clash. CRS-CL.05, CRS-CL.06 and CRS-CL.14 stay blocked. Decided, not live. |
+
+---
+
 ## Change summary — first pass closed
 
 **This file**
