@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.075",
+  "revision": "0.076",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -634,6 +634,14 @@ export const DRONE_DOMAIN = {
    "why": "Operator deck r.220 - SENTINEL NAMES IT BEFORE FIRE COUNTS (CRS-CL.H01.S; 2026-10-20; his lawn CRS line 26 \"Sentinel names it before Fire counts\", DD-138/139 H01.S \"Enki's Spark only\", DD-140 \"execute the Fable generated plan\", DD-141 \"the Sentinel cue on the lawn ... nothing else in that revision\"). Changed in free spans only: a standing lawn track is named CUE_S (2 s) after it stands - a CUE row (actor S1, bearing 1800) and the voice SENTINEL · 1800 · ONE TRACK, once per standing; a FIRE before the name is refused (CUE · NOT NAMED · WAIT FOR SENTINEL), recorded as HOLD BEFORE_CUE, spends no round, keeps the mark; TARGET and APPROVE are not gated. Two boot rows red first (both by the deck's own behaviour); the r.219 rows wait for the name and keep their claims; range-frozen 100 definitions, 0 moved. The swarm predicate is a later revision; CL.05 is r.221; the ladder lock and the ?map= reader wait; QUAL 40 on the lawn is his gap.",
    "commit": "d498e25",
    "shipped": "9bb5c52"
+  },
+  {
+   "revision": "0.076",
+   "date": "2026-10-21",
+   "kind": "release",
+   "why": "Operator deck r.221 - INTRODUCTORY ON THE CAPITAL LAWN, TRAIN DOWN writes the fourth number (operator 2026-10-21 \"Train Down writes hits, misses, rounds, and time. No time means it does not count.\"). One edit in the FREE capIntroTick: a lawn TRAIN DOWN run's CTIME gains rounds = HIT+MISS rows = rounds spent (the magazine matches), so the run carries hits, misses, rounds and time. TRAIN UP stays infinite practice (no CSTART/CTIME); QUAL 40 is refused on the lawn (one track is not a 40-target qual - the refusal stays); one air track; a person, the Capitol and its facades are not targets. The Range is untouched (r0.220): no toggle, no Range control, range-frozen 100 definitions 0 moved, both play-throughs byte-identical. One boot row red first (LAWN_TRAIN_DOWN_FOUR_NUMBERS). QUAL 40 on the lawn stays on the Range; the optional Range aerial was dropped; CL.05 and the ladder lock wait.",
+   "commit": "5d58b85",
+   "shipped": "PENDING"
   }
  ],
  "arena": {
