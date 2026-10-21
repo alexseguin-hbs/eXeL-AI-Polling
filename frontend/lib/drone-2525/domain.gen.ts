@@ -633,7 +633,7 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck r.220 - SENTINEL NAMES IT BEFORE FIRE COUNTS (CRS-CL.H01.S; 2026-10-20; his lawn CRS line 26 \"Sentinel names it before Fire counts\", DD-138/139 H01.S \"Enki's Spark only\", DD-140 \"execute the Fable generated plan\", DD-141 \"the Sentinel cue on the lawn ... nothing else in that revision\"). Changed in free spans only: a standing lawn track is named CUE_S (2 s) after it stands - a CUE row (actor S1, bearing 1800) and the voice SENTINEL · 1800 · ONE TRACK, once per standing; a FIRE before the name is refused (CUE · NOT NAMED · WAIT FOR SENTINEL), recorded as HOLD BEFORE_CUE, spends no round, keeps the mark; TARGET and APPROVE are not gated. Two boot rows red first (both by the deck's own behaviour); the r.219 rows wait for the name and keep their claims; range-frozen 100 definitions, 0 moved. The swarm predicate is a later revision; CL.05 is r.221; the ladder lock and the ?map= reader wait; QUAL 40 on the lawn is his gap.",
    "commit": "d498e25",
-   "shipped": "PENDING"
+   "shipped": "9bb5c52"
   }
  ],
  "arena": {
