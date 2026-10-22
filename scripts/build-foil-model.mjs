@@ -105,9 +105,53 @@ for (const m of MODELS) {
     die(`${m.meta.id} came out longer than it is wide — the axis mapping is inverted again`);
 }
 
+/**
+ * THE SILHOUETTE — the same foil, read at a distance (Drone-2525 r.223, operator 2026-10-21: "Draw the one lawn air
+ * track from foil-1.111.wire.json … Stroke only. No fill. … The pictures in foil-package/ are the check"). At 1× the
+ * 1.111 m foil is ~13 px wide at 150 m, and 1,755 strokes in 13 px read as a filled blob — not a stroke drawing. So
+ * the deck draws the full wire when the projected span is wide enough and, below that, THIS: the aircraft's outline
+ * in its three principal planes plus its centreline, derived from the scaled model's own vertices, never drawn by
+ * hand. Deterministic: 16 bins along each axis; per bin the extreme vertices (their real 3-D positions), so the
+ * outline is the foil's, not a box or a triangle. Both scales get one; the deck embeds the 1.111.
+ */
+function silhouetteOf(m) {
+  const V = m.vertices, N = 16;
+  const ext = (i) => [Math.min(...V.map((v) => v[i])), Math.max(...V.map((v) => v[i]))];
+  const bins = (axis) => {                           // the vertices of each of the N bins along one axis, in order
+    const [lo, hi] = ext(axis), w = (hi - lo) / N || 1, out = [];
+    for (let b = 0; b < N; b++) out.push(V.filter((v) => { const t = (v[axis] - lo) / w; return t >= b && (t < b + 1 || (b === N - 1 && t <= N)); }));
+    return out;
+  };
+  const outline = (binAxis, extAxis) => {           // two polylines along binAxis: the extAxis maxima and minima
+    const hiPts = [], loPts = [];
+    for (const inBin of bins(binAxis)) {
+      if (!inBin.length) continue;
+      hiPts.push(inBin.reduce((a, v) => (v[extAxis] > a[extAxis] ? v : a)));
+      loPts.push(inBin.reduce((a, v) => (v[extAxis] < a[extAxis] ? v : a)));
+    }
+    const segs = [];
+    for (let i = 1; i < hiPts.length; i++) segs.push([hiPts[i - 1], hiPts[i]]);
+    for (let i = 1; i < loPts.length; i++) segs.push([loPts[i - 1], loPts[i]]);
+    if (hiPts.length && loPts.length) { segs.push([hiPts[0], loPts[0]]); segs.push([hiPts[hiPts.length - 1], loPts[loPts.length - 1]]); }
+    return segs;
+  };
+  const spine = () => {                             // the centreline: per x-bin the vertex nearest y = 0, z = 0
+    const pts = [];
+    for (const inBin of bins(0)) if (inBin.length) pts.push(inBin.reduce((a, v) => (Math.hypot(v[1], v[2]) < Math.hypot(a[1], a[2]) ? v : a)));
+    const segs = []; for (let i = 1; i < pts.length; i++) segs.push([pts[i - 1], pts[i]]); return segs;
+  };
+  const segments = [...outline(0, 1), ...outline(0, 2), ...outline(1, 2), ...spine()];
+  return {
+    meta: { id: `${m.meta.id}.silhouette`, of: m.meta.id, generator: "scripts/build-foil-model.mjs", revision: m.meta.revision,
+            note: "the outline in the three principal planes plus the centreline, derived from the scaled model's own vertices (16 bins per axis, extreme vertices kept at their real 3-D positions); drawn by the Drone-2525 deck below ~120 px of projected span, the full wire above" },
+    units: "m", frame: m.frame, dimensionsM: m.dimensionsM,
+    segments: segments.map((s) => s.map((p) => p.map((n) => Math.round(n * 1e4) / 1e4))),
+  };
+}
+
 let drift = 0, wrote = 0;
 for (const m of MODELS) {
-  const files = { [`${m.meta.id}.wire.json`]: JSON.stringify(m, null, 1) + "\n", ...exportAll(m) };
+  const files = { [`${m.meta.id}.wire.json`]: JSON.stringify(m, null, 1) + "\n", [`${m.meta.id}.silhouette.json`]: JSON.stringify(silhouetteOf(m), null, 1) + "\n", ...exportAll(m) };
   for (const [name, bodyText] of Object.entries(files)) {
     const dest = path.join(OUTDIR, name);
     if (CHECK) {
