@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.081",
+  "revision": "0.082",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -631,6 +631,14 @@
    "why": "Operator deck r.226 - H01: THE FOIL DROPS, IT DOES NOT VANISH (operator 2026-10-21, the night brief: \"Only if the r.223 foil vanishes instead of dropping. Reuse the fall the plates already use.\"). It vanished: the HIT row lowered a non-plate in the same press, so the lawn track's fall ramp never ran. Four FREE edits: applyWorld exempts the lawn's track as it exempts a plate; capIntroTick drops it to the ground on the plates' own ramp and drops its mark at the first frame of the fall; foilDraw noses the foil over as it falls; lockOn keeps a falling track out of the lock. The CTIME row, the four numbers and the strip untouched; no frozen definition moves; the Range untouched, both play-throughs byte-identical. One boot row red first (THE_FOIL_DROPS). The ladder lock (r.227) waits.",
    "commit": "6654c01",
    "shipped": "a52cfdd"
+  },
+  {
+   "revision": "0.082",
+   "date": "2026-10-22",
+   "kind": "release",
+   "why": "Operator deck r.227 - H01: THE LINK OPENS THE LAWN ONLY ON A TRAINING RECORD (operator 2026-10-21, the night brief: \"?map=capital opens the lawn on Train Up only when Training's three drills are on the record. An empty record refuses. One player, one air track, A1 only.\"; CRS-CL.10: a link, a menu, or a query string cannot open a step whose line above is empty). The ?map=capital link (the share sheet's own, r.209) gains a reader in the append zone, after arcade() has consumed ?range=, behind one predicate over the session's record - TRAIN UP a plate hit outside every TRAIN DOWN window, TRAIN DOWN a START with its TIME, QUAL 40 a COLD row; all three or it refuses with a REJECT row (EMPTY_RECORD via LINK) and one sentence and the intro stays; with all three it opens the lawn on TRAIN UP, one player, one track, A1. A link opened fresh refuses, the record dying on a reload - the lock's point. The menu path is not locked here (the next row). No frozen definition moves; the Range untouched, both play-throughs byte-identical. One boot row red first (THE_LINK_REFUSES_AN_EMPTY_RECORD). H02 (r.228) waits.",
+   "commit": "5af0af8",
+   "shipped": "PENDING"
   }
  ],
  "arena": {
