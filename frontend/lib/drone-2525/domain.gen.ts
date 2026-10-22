@@ -649,7 +649,7 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck r.222 - CRS-CL.H01 THE GLASS HALF: hits and misses shown on the lawn (operator 2026-10-21 \"In capPaintLawn, write HIT n . MISS n from the counts already in capIntroRows. The Range score stays as it is.\"). The lawn hits and misses are already stored; #phScore on the lawn read BLU 0 . RED 0 because that line in hudScore is gated to the Range. One edit in the FREE capPaintLawn: it writes HIT n . MISS n from capIntroRows to #phScore and to its full-screen mirror #magStrip, through one writer capPaintScore() that capPaintLawn calls after hudScore each frame (the r.197 mechanism) and a lawn-owned MutationObserver re-asserts before paint - because hudMag copies #phScore before hudScore overwrites it (the mirror painted BLU for a frame after a hit, Aset) and PAUSE stops phys (an event-time hudScore() left BLU until unpause, Krishna), both found by the twelve at play; hudScore is not edited. The Range score line is byte-for-byte untouched; no new control, no new row on the glass, no station moved; Train Up, Train Down, Qual 40 (refused on the lawn) and the Sentinel cue unchanged. The Range is untouched (r0.221): range-frozen 100 definitions 0 moved, both play-throughs byte-identical. One boot row red first (LAWN_SHOWS_HIT_MISS). The foil wireframe (r.223) and the four numbers staying (r.224) wait.",
    "commit": "24388d3",
-   "shipped": "PENDING"
+   "shipped": "0f271c1"
   }
  ],
  "arena": {
