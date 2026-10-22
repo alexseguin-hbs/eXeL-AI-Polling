@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 101 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 102 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -716,6 +716,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "INTRODUCTORY ON THE CAPITAL LAWN - TRAIN DOWN writes the fourth number. Operator deck r.221 served at /drone-2525/play.html (sha256 d36f63ff...). His words 2026-10-21: \"This revision is Introductory on the Capital Lawn only. One air track, on the lawn. No switch on the Range. Train Up stays infinite practice. No start, no timer, no run record. Train Down writes hits, misses, rounds, and time. No time means it does not count. Qual 40 stays on the Range. One track is not a 40-target qual. Leave the refusal. A person is never a target. The Capitol and its facades are not targets.\" WHAT CHANGED, one edit in the FREE capIntroTick: on a lawn TRAIN DOWN knockdown, CTIME{mode:stay,seat:A1,ms,hits,misses} gains rounds=(hits|0)+(misses|0) - the fourth number; rounds = the HIT+MISS rows = rounds spent, and the magazine matches; the run carries hits, misses, rounds and time, and a run with no CTIME (no time) does not count. UNCHANGED, asserted by the gate: TRAIN UP writes no CSTART/CTIME (infinite practice); QUAL 40 is refused on the lawn (one track is not a 40-target qual - the refusal stays); one air track; a person, the Capitol and its facades are not targets; the Range is untouched (r0.220): no toggle, no Range control, range-frozen 100 definitions 0 moved, both Range play-throughs byte-identical. ONE ROW, red first on the r.220 bytes (CTIME there has no rounds), green on the cut: CSTART; CTIME {ms, hits, misses, rounds}; rounds = hits+misses = the magazine delta; QUAL 40 refused on the lawn. NOT HERE: QUAL 40 on the lawn (stays on the Range); the optional Range aerial toggle (dropped at his instruction); CL.05, the ladder lock.",
       "commit": "5d58b85"
+    },
+    {
+      "rev": 102,
+      "date": "2026-10-21",
+      "kind": "release",
+      "text": "CRS-CL.H01 THE GLASS HALF - hits and misses shown on the lawn. Operator deck r.222 served at /drone-2525/play.html (sha256 4cd1bed6...). His words 2026-10-21: \"r.222. CRS-CL.H01, the glass half only. Hits and misses are already stored. #phScore on the lawn still reads BLU 0 . RED 0 because that line is gated to the Range. In capPaintLawn, write HIT n . MISS n from the counts already in capIntroRows. The Range score stays as it is. Pass: a lawn Train Down does not read BLU 0 . RED 0. The Range score is unchanged.\" WHAT CHANGED, one edit in the FREE capPaintLawn: it writes #phScore on the lawn - and its full-screen mirror #magStrip - to HIT n . MISS n from capIntroRows(state.capRun) (0 . 0 when there is no run yet), through one writer capPaintScore() that capPaintLawn calls every frame and a lawn-owned MutationObserver on #phScore re-asserts as a microtask before paint; the observer exists because hudMag copies #phScore before hudScore overwrites it (the mirror painted BLU for one frame after a hit - Aset) and PAUSE stops phys (an event-time hudScore() left BLU on the glass until unpause - Krishna), both found by the twelve at play, and hudScore is not edited; capPaintLawn runs after hudScore every frame (phys: hudScore() then paintCues->capPaintLawn), so it wins hudScore BLU/RED else branch - the same mechanism r.197 uses for the clock. The Range score line in hudScore is byte-for-byte untouched. UNCHANGED, asserted: no new control, no new row on the glass, no station moved; TRAIN UP, TRAIN DOWN, QUAL 40 (refused on the lawn) and the Sentinel cue unchanged; the Range is untouched (r0.221): range-frozen 100 definitions 0 moved, both Range play-throughs byte-identical. ONE ROW, red first on the r.221 bytes (the lawn strip reads BLU 0 . RED 0), green on the cut: a lawn TRAIN DOWN strip reads HIT n . MISS n, never BLU/RED. NOT HERE: the foil wireframe for the air track (r.223); the four numbers staying on screen after the run (r.224).",
+      "commit": "24388d3"
     }
   ]
 };

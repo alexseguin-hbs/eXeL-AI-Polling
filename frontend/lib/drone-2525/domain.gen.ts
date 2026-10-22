@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.076",
+  "revision": "0.077",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -642,6 +642,14 @@ export const DRONE_DOMAIN = {
    "why": "Operator deck r.221 - INTRODUCTORY ON THE CAPITAL LAWN, TRAIN DOWN writes the fourth number (operator 2026-10-21 \"Train Down writes hits, misses, rounds, and time. No time means it does not count.\"). One edit in the FREE capIntroTick: a lawn TRAIN DOWN run's CTIME gains rounds = HIT+MISS rows = rounds spent (the magazine matches), so the run carries hits, misses, rounds and time. TRAIN UP stays infinite practice (no CSTART/CTIME); QUAL 40 is refused on the lawn (one track is not a 40-target qual - the refusal stays); one air track; a person, the Capitol and its facades are not targets. The Range is untouched (r0.220): no toggle, no Range control, range-frozen 100 definitions 0 moved, both play-throughs byte-identical. One boot row red first (LAWN_TRAIN_DOWN_FOUR_NUMBERS). QUAL 40 on the lawn stays on the Range; the optional Range aerial was dropped; CL.05 and the ladder lock wait.",
    "commit": "5d58b85",
    "shipped": "2d295e7"
+  },
+  {
+   "revision": "0.077",
+   "date": "2026-10-21",
+   "kind": "release",
+   "why": "Operator deck r.222 - CRS-CL.H01 THE GLASS HALF: hits and misses shown on the lawn (operator 2026-10-21 \"In capPaintLawn, write HIT n . MISS n from the counts already in capIntroRows. The Range score stays as it is.\"). The lawn hits and misses are already stored; #phScore on the lawn read BLU 0 . RED 0 because that line in hudScore is gated to the Range. One edit in the FREE capPaintLawn: it writes HIT n . MISS n from capIntroRows to #phScore and to its full-screen mirror #magStrip, through one writer capPaintScore() that capPaintLawn calls after hudScore each frame (the r.197 mechanism) and a lawn-owned MutationObserver re-asserts before paint - because hudMag copies #phScore before hudScore overwrites it (the mirror painted BLU for a frame after a hit, Aset) and PAUSE stops phys (an event-time hudScore() left BLU until unpause, Krishna), both found by the twelve at play; hudScore is not edited. The Range score line is byte-for-byte untouched; no new control, no new row on the glass, no station moved; Train Up, Train Down, Qual 40 (refused on the lawn) and the Sentinel cue unchanged. The Range is untouched (r0.221): range-frozen 100 definitions 0 moved, both play-throughs byte-identical. One boot row red first (LAWN_SHOWS_HIT_MISS). The foil wireframe (r.223) and the four numbers staying (r.224) wait.",
+   "commit": "24388d3",
+   "shipped": "PENDING"
   }
  ],
  "arena": {
