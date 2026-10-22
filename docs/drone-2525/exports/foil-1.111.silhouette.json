@@ -3,7 +3,7 @@
   "id": "foil-1.111.silhouette",
   "of": "foil-1.111",
   "generator": "scripts/build-foil-model.mjs",
-  "revision": "0.078",
+  "revision": "0.079",
   "note": "the outline in the three principal planes plus the centreline, derived from the scaled model's own vertices (16 bins per axis, extreme vertices kept at their real 3-D positions); drawn by the Drone-2525 deck below ~120 px of projected span, the full wire above"
  },
  "units": "m",
