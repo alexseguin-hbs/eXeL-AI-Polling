@@ -630,7 +630,7 @@
    "kind": "release",
    "why": "Operator deck r.226 - H01: THE FOIL DROPS, IT DOES NOT VANISH (operator 2026-10-21, the night brief: \"Only if the r.223 foil vanishes instead of dropping. Reuse the fall the plates already use.\"). It vanished: the HIT row lowered a non-plate in the same press, so the lawn track's fall ramp never ran. Four FREE edits: applyWorld exempts the lawn's track as it exempts a plate; capIntroTick drops it to the ground on the plates' own ramp and drops its mark at the first frame of the fall; foilDraw noses the foil over as it falls; lockOn keeps a falling track out of the lock. The CTIME row, the four numbers and the strip untouched; no frozen definition moves; the Range untouched, both play-throughs byte-identical. One boot row red first (THE_FOIL_DROPS). The ladder lock (r.227) waits.",
    "commit": "6654c01",
-   "shipped": "PENDING"
+   "shipped": "a52cfdd"
   }
  ],
  "arena": {
