@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Drone-2525 append-only traceability ledger — 107 entries, extracted at build time. */
+/** Drone-2525 append-only traceability ledger — 108 entries, extracted at build time. */
 export const DRONE_LEDGER: LedgerInput = {
   "section": "Drone-2525",
   "route": "/main/Drone-2525",
@@ -758,6 +758,13 @@ export const DRONE_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "H01 - THE LINK OPENS THE LAWN ONLY ON A TRAINING RECORD. Operator deck r.227 served at /drone-2525/play.html (sha256 \"+H[:8]+\"...). His words, the night brief of 2026-10-21: \"r.227 . H01. ?map=capital opens the lawn on Train Up only when Training's three drills are on the record. An empty record refuses. One player, one air track, A1 only.\" - and CRS-CL.10: a link, a menu, or a query string cannot open a step whose line above is empty. WHAT CHANGED: r.209 taught the share sheet to write ?map=capital&station=...; nothing read it (the only reader is ?range=, inside enterTheRange's frozen span, never edited). r.227 adds the reader in the append zone, after arcade() has consumed ?range= (a QR link to the Range behaves exactly as before), behind one predicate over the session's own record - trainingOnTheRecord(): TRAIN UP a plate HIT row outside every TRAIN DOWN window, TRAIN DOWN a START row with its TIME row, QUAL 40 a COLD row. All three, or openMapLink() refuses with a REJECT row (EMPTY_RECORD, via LINK), says which drills are missing in one sentence, and leaves the intro where it is; with all three it opens the lawn on TRAIN UP - one player, one air track, A1 - on the Range link's own practice line. The record dies on a reload, so a link opened fresh refuses: the lock's own point. UNCHANGED, asserted: the menu path (SCEN to the Capital) is not locked here - the next row's business; no frozen definition moves (range-frozen 100 definitions 0 moved); the ?range= reader byte-identical; the Range untouched, both Range play-throughs byte-identical; the lawn's drills, cue, foil, strip and fall unchanged. GATE, red first: THE_LINK_REFUSES_AN_EMPTY_RECORD inserted alone into the r.226 bytes is red (openMapLink is not defined); on the cut: an empty record refused with the REJECT row and the intro in place; the three drills made through the deck's own doors; then the link opens the lawn on TRAIN UP, A1, one track. Played through the real UI: a ?map=capital link opened fresh refuses with the sentence and the REJECT row; the lawn through the menu plays as before. NOT HERE: the menu lock (CRS-CL.10 whole); H02 (r.228).",
       "commit": "5af0af8"
+    },
+    {
+      "rev": 108,
+      "date": "2026-10-22",
+      "kind": "correction",
+      "text": "CORRECTION to revs 104, 106 and 107. Each of those release rows says the operator deck was served \"(sha256 '+H[:8]+'...)\" or \"(sha256 \"+H[:8]+\"...)\" - a Python string-concatenation fragment from the bookkeeping script, written into the record in place of the carried deck's hash. The hashes those rows meant are: r.224 sha256 010d9327... (drone-2525_r.224.html), r.226 sha256 29eb6e6c... (drone-2525_r.226.html), r.227 sha256 e76067b2... (drone-2525_r.227.html) - each the first eight hex of the carried file's sha256, as HASHES_r224/226/227.sha256 record them. Found by the twelve reviewers at play on the r.228 cut, reading the deck's own embedded R-CORE record. The bookkeeping script now asserts the hash is in the ledger text before it writes (the r.228 chain), so the class cannot recur. A correction row, not an edit: the three rows keep their text, their commit and their shipped fields; the hashes they failed to carry are stated here.",
+      "commit": ""
     }
   ]
 };
