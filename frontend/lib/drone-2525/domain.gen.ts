@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.080",
+  "revision": "0.081",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -674,6 +674,14 @@ export const DRONE_DOMAIN = {
    "why": "Operator deck r.225 - H01: TRAIN DOWN ENDS AND THE STRIP KEEPS THE FOUR (operator 2026-10-21, the night brief: \"Train Down ends and the strip keeps hits, misses, rounds, and time. The toast may expire. The strip does not. HI 1 . systems 1 . partners 0.\"). The four numbers CTIME already stores (hits, misses, rounds, ms) are kept in state.capLast when a lawn Train Down run ends; the lawn's one strip writer reads capStripText(): while the run is done, and while the next run is merely armed by RESTART until START opens a live run, the strip reads HIT n . MISS n . n RDS . m:ss.t and stays; a live run reads the live HIT n . MISS n; a new drill or a new visit forgets them. No new row, no new verb; all in the FREE capIntro* family; no frozen definition moves; the Range untouched, both play-throughs byte-identical. One boot row red first (THE_STRIP_KEEPS_THE_FOUR). The foil's fall (r.226) and the ladder lock (r.227) wait.",
    "commit": "f760ba8",
    "shipped": "0d171d4"
+  },
+  {
+   "revision": "0.081",
+   "date": "2026-10-22",
+   "kind": "release",
+   "why": "Operator deck r.226 - H01: THE FOIL DROPS, IT DOES NOT VANISH (operator 2026-10-21, the night brief: \"Only if the r.223 foil vanishes instead of dropping. Reuse the fall the plates already use.\"). It vanished: the HIT row lowered a non-plate in the same press, so the lawn track's fall ramp never ran. Four FREE edits: applyWorld exempts the lawn's track as it exempts a plate; capIntroTick drops it to the ground on the plates' own ramp and drops its mark at the first frame of the fall; foilDraw noses the foil over as it falls; lockOn keeps a falling track out of the lock. The CTIME row, the four numbers and the strip untouched; no frozen definition moves; the Range untouched, both play-throughs byte-identical. One boot row red first (THE_FOIL_DROPS). The ladder lock (r.227) waits.",
+   "commit": "6654c01",
+   "shipped": "PENDING"
   }
  ],
  "arena": {

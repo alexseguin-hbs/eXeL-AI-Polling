@@ -10506,6 +10506,129 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 106,
+   "commit": "6654c01",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "range",
+     "name": "Range engine",
+     "cells": [
+      0
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "df12469b126a92677b293209e183a9e157ee2346"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 2028,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "fire",
+     "name": "Target · Approve · Fire",
+     "cells": [
+      2,
+      5
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "df12469b126a92677b293209e183a9e157ee2346"
+      }
+     ],
+     "add": 30,
+     "del": 2,
+     "bytes": 8873,
+     "lines": 57,
+     "status": "recorded"
+    },
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "df12469b126a92677b293209e183a9e157ee2346"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "df12469b126a92677b293209e183a9e157ee2346"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 45846,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r226.sha256",
+       "blob": "39582906fb9034449b26fb914eaa8b2779f587f7"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r225_to_r226.py",
+       "blob": "35af012736adab773a551262d3f82a0cc3ec499f"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/redfirst/r226.md",
+       "blob": "7145da516ea01a412987a208161bcc37f2f51c17"
+      }
+     ],
+     "add": 146,
+     "del": 0,
+     "bytes": 15200,
+     "lines": 153,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "df12469b126a92677b293209e183a9e157ee2346"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 3779,
+     "lines": 22,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
