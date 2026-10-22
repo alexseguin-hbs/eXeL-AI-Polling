@@ -697,7 +697,7 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck r.228 - H02: TWO HI ON ONE SYSTEM (operator 2026-10-21, the night brief: \"Two HI, one system, one partner. The pilot and the gunner. A press from either is accepted. A second FIRE on the same mark is refused. The record names both.\"; CRS-CL.H02). The CH1 LAWN chip's launch snapshot carries lawn:true and lobbyEnterLive opens the lawn on both phones (one system A1, one air track, LIVE; a snapshot without it lands where it always did - the old two-phone seat untouched); the four lawn verbs CSTART/CTIME/CRESET/CUE travel and a peer applies them, the host's clock writing CUE and CTIME; the bullseye reading holds in a lawn room; the TWO_HUMANS holds and the marker's-seat reject are off on the lawn in LIVE, so a press from either phone is accepted on the same mark; a FIRE on the struck track is refused ALREADY_DOWN with no round; CSTART and CTIME carry system A1 and both member ids. No frozen definition moves; the Range untouched, both play-throughs byte-identical. One boot row red first (TWO_HI_ONE_SYSTEM). Two play findings fixed in the cut: a peer's snapshot never rewinds this phone's event counter (no room could launch since r.219), and a phone's self-check rows drive nothing on another phone (stamped qa). H03 (r.229) waits.",
    "commit": "bcdbb15",
-   "shipped": "PENDING"
+   "shipped": "c84f7c4"
   }
  ],
  "arena": {
