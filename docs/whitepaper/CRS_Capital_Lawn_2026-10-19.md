@@ -215,3 +215,6 @@ Adding any of these does not change the three presses, the seat table, or the ni
 ---
 
 *Delta only. Existing polling CRS rows unchanged. Format matches `docs/CRS_TRACEABILITY_2026-07-03.md`.*
+
+## Amendments (appended; no row above is edited)
+- **r.228 (2026-10-22) — CRS-CL.H02 OUT.** Under the night brief of 2026-10-21 (DD-147: "r.228 · H02. Two HI, one system, one partner. The pilot and the gunner. A press from either is accepted. A second FIRE on the same mark is refused. The record names both.") the deck accepts a self-approve (red), fires from either HI, refuses a second FIRE on the same mark as REJECT ALREADY_DOWN with no round, and names both HI on CSTART and CTIME (`hi`, `system A1`); the H02 row's TWO_HUMANS / NOT_THE_MARKERS_SEAT / TARGET_GONE sentences are superseded by his later words; the magazine stays per phone until the one-magazine row. Artefact commit bcdbb15.

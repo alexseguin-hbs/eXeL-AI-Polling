@@ -55,7 +55,7 @@ export const DRONE_DOMAIN = {
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.082",
+  "revision": "0.083",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -690,6 +690,14 @@ export const DRONE_DOMAIN = {
    "why": "Operator deck r.227 - H01: THE LINK OPENS THE LAWN ONLY ON A TRAINING RECORD (operator 2026-10-21, the night brief: \"?map=capital opens the lawn on Train Up only when Training's three drills are on the record. An empty record refuses. One player, one air track, A1 only.\"; CRS-CL.10: a link, a menu, or a query string cannot open a step whose line above is empty). The ?map=capital link (the share sheet's own, r.209) gains a reader in the append zone, after arcade() has consumed ?range=, behind one predicate over the session's record - TRAIN UP a plate hit outside every TRAIN DOWN window, TRAIN DOWN a START with its TIME, QUAL 40 a COLD row; all three or it refuses with a REJECT row (EMPTY_RECORD via LINK) and one sentence and the intro stays; with all three it opens the lawn on TRAIN UP, one player, one track, A1. A link opened fresh refuses, the record dying on a reload - the lock's point. The menu path is not locked here (the next row). No frozen definition moves; the Range untouched, both play-throughs byte-identical. One boot row red first (THE_LINK_REFUSES_AN_EMPTY_RECORD). H02 (r.228) waits.",
    "commit": "5af0af8",
    "shipped": "d8b5c03"
+  },
+  {
+   "revision": "0.083",
+   "date": "2026-10-22",
+   "kind": "release",
+   "why": "Operator deck r.228 - H02: TWO HI ON ONE SYSTEM (operator 2026-10-21, the night brief: \"Two HI, one system, one partner. The pilot and the gunner. A press from either is accepted. A second FIRE on the same mark is refused. The record names both.\"; CRS-CL.H02). The CH1 LAWN chip's launch snapshot carries lawn:true and lobbyEnterLive opens the lawn on both phones (one system A1, one air track, LIVE; a snapshot without it lands where it always did - the old two-phone seat untouched); the four lawn verbs CSTART/CTIME/CRESET/CUE travel and a peer applies them, the host's clock writing CUE and CTIME; the bullseye reading holds in a lawn room; the TWO_HUMANS holds and the marker's-seat reject are off on the lawn in LIVE, so a press from either phone is accepted on the same mark; a FIRE on the struck track is refused ALREADY_DOWN with no round; CSTART and CTIME carry system A1 and both member ids. No frozen definition moves; the Range untouched, both play-throughs byte-identical. One boot row red first (TWO_HI_ONE_SYSTEM). Two play findings fixed in the cut: a peer's snapshot never rewinds this phone's event counter (no room could launch since r.219), and a phone's self-check rows drive nothing on another phone (stamped qa). H03 (r.229) waits.",
+   "commit": "bcdbb15",
+   "shipped": "PENDING"
   }
  ],
  "arena": {
