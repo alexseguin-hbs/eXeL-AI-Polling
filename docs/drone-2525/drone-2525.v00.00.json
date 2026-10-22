@@ -614,7 +614,7 @@
    "kind": "release",
    "why": "Operator deck r.224 - THE RANGE'S ONE DRONE, OFF BY DEFAULT: one control, three levels (operator 2026-10-21, the night brief: \"One control, DRONE, off by default. Off means Lane 21 is the lane. No drone is drawn ... On has three levels only: SLOW, MEDIUM, FAST. One drone, not a swarm ... A hit takes it down and spends one round. A miss leaves it up until the level's time ends. The button is not on the score strip. Pass: DRONE off shows no drone. DRONE on, FAST, one hit takes that drone down.\"). One select drnLvl behind MORE (DRONE OFF / SLOW / MEDIUM / FAST), the Range's only; state.rangeDrone unset by default so the Range is byte-identical until turned on. One drone, the pool's last member, stood by rangeDroneTick() from the FREE spawn(): enters from the left at 120 m and 10 m up, crosses the lane at the level's speed (SLOW 14 s / 2.5 m/s, MEDIUM 9 s / 5, FAST 5 s / 9), falls to a hit (one round, the three presses), goes down at the level's end if missed, stands again after two seconds; the FREE lockOn takes it, the FREE fireN fires it as a uav, the FREE applyHit tallies it on the strip; the deck's drone mover leaves it alone. With the control off every drone on the Range is lowered (a lawn boot row had left the lawn's track standing 374 m down the lane). No frozen definition moves; the drills, the magazine, RELOAD and the presses untouched; both Range play-throughs byte-identical. One boot row red first (RANGE_DRONE_CONTROL). The lawn's r.225 (the strip keeps the four numbers) and r.226 (the foil's fall) wait.",
    "commit": "174c0c7",
-   "shipped": "PENDING"
+   "shipped": "5f8e3e7"
   }
  ],
  "arena": {
