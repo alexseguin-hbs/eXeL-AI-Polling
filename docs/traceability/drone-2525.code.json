@@ -10114,6 +10114,112 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 103,
+   "commit": "1137af3",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "match",
+     "name": "Match & teams · 1v1 · 3v3",
+     "cells": [
+      16,
+      17
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "18eeb5974043cf0d832f9a9197302087d9a70e98"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 688,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "comms",
+     "name": "Comms & room",
+     "cells": [
+      18,
+      19,
+      22
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "18eeb5974043cf0d832f9a9197302087d9a70e98"
+      }
+     ],
+     "add": 32,
+     "del": 0,
+     "bytes": 6623,
+     "lines": 41,
+     "status": "recorded"
+    },
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "18eeb5974043cf0d832f9a9197302087d9a70e98"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 45846,
+     "lines": 11,
+     "status": "recorded"
+    },
+    {
+     "key": "record",
+     "name": "The record",
+     "cells": [
+      23
+     ],
+     "files": [
+      {
+       "path": "docs/drone-2525/operator-deck/HASHES_r223.sha256",
+       "blob": "af420f43fc209d95026ad87aeb70859e610f6a78"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/patches/r222_to_r223.py",
+       "blob": "3bd843625d1560e667d41d8bd68ee46f3d269194"
+      },
+      {
+       "path": "docs/drone-2525/operator-deck/redfirst/r223.md",
+       "blob": "3380d2a471ba857571c4bbe0252b47c2c162f9df"
+      }
+     ],
+     "add": 254,
+     "del": 0,
+     "bytes": 26032,
+     "lines": 261,
+     "status": "recorded"
+    },
+    {
+     "key": "_other",
+     "name": "Elsewhere in the project",
+     "cells": [],
+     "files": [
+      {
+       "path": "frontend/public/drone-2525/play.html",
+       "blob": "18eeb5974043cf0d832f9a9197302087d9a70e98"
+      }
+     ],
+     "add": 48,
+     "del": 3,
+     "bytes": 53012,
+     "lines": 85,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
