@@ -673,7 +673,7 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck r.225 - H01: TRAIN DOWN ENDS AND THE STRIP KEEPS THE FOUR (operator 2026-10-21, the night brief: \"Train Down ends and the strip keeps hits, misses, rounds, and time. The toast may expire. The strip does not. HI 1 . systems 1 . partners 0.\"). The four numbers CTIME already stores (hits, misses, rounds, ms) are kept in state.capLast when a lawn Train Down run ends; the lawn's one strip writer reads capStripText(): while the run is done, and while the next run is merely armed by RESTART until START opens a live run, the strip reads HIT n . MISS n . n RDS . m:ss.t and stays; a live run reads the live HIT n . MISS n; a new drill or a new visit forgets them. No new row, no new verb; all in the FREE capIntro* family; no frozen definition moves; the Range untouched, both play-throughs byte-identical. One boot row red first (THE_STRIP_KEEPS_THE_FOUR). The foil's fall (r.226) and the ladder lock (r.227) wait.",
    "commit": "f760ba8",
-   "shipped": "PENDING"
+   "shipped": "0d171d4"
   }
  ],
  "arena": {
