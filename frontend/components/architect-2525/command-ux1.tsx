@@ -32,7 +32,7 @@ import { FpsMeter } from "@/components/security-2525/fps-meter";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
 import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationMode } from "./architect-economy";
-import { ArchitectDesign, type DesignMetrics } from "./architect-design";
+import { VectorGlass } from "./vector-glass";
 import { DesignWorkspace } from "./architect-design-workspace";
 import { CanonicalProjectTree } from "./canonical-project-tree";
 import { RightPanel } from "./right-panel";
@@ -40,11 +40,11 @@ import { MetricStrip } from "./metric-strip";
 import { useLayerState } from "./use-layer-state";
 import { ArchitectProjects } from "./architect-projects";
 import { serializeProject, type ArchitectProjectFile } from "@/lib/architect-project-file";
-import { type RoomCell } from "@/lib/room-layout";
+import { type RoomCell, cloneLayout } from "@/lib/room-layout";
 import { HouseSpec } from "./house-spec";
 import { CodesPanel } from "./codes-panel";
 import { MasterReadout } from "./master-readout";
-import { type HomeType, UNLOCKED_MARKETS, findLayer, flattenLayers } from "@/lib/architect-layers";
+import { type HomeType, UNLOCKED_MARKETS } from "@/lib/architect-layers";
 import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
 import { SkyCelestialEmbed } from "./sky-celestial-embed";
@@ -160,15 +160,14 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   });
   const setHomeType = (t: HomeType) => { if (!UNLOCKED_MARKETS.includes(t)) return; setHomeTypeState(t); try { localStorage.setItem("arch2525.homeType", t); } catch {} };
   // .arch2525 project file — command-ux1 is the ONE place with the full design: layer snapshot + market + room layout.
-  // ArchitectDesign mirrors its room layout up (designRooms) and accepts importLayout to seat a loaded design.
-  const [designRooms, setDesignRooms] = useState<RoomCell[]>([]);
-  const [importLayout, setImportLayout] = useState<RoomCell[] | null>(null);
+  // (R-UX1) The legacy wall/room editor is retired; designRooms holds the default layout so the .arch2525 save stays valid.
+  const [designRooms] = useState<RoomCell[]>(() => cloneLayout()); // (R-UX1) default layout for the legacy .arch2525 save; the wall/room editor is retired — the canonical Runtime is the source of truth
   const buildProjectFile = (name: string): ArchitectProjectFile =>
     serializeProject(name, homeType, layerState.snapshot(), designRooms, (() => { try { return Date.now(); } catch { return 0; } })());
   const loadProjectFile = (file: ArchitectProjectFile) => {
     layerState.applySnapshot(file.snapshot);                       // seat systems · params · program · codes · BIM · gate
     if (UNLOCKED_MARKETS.includes(file.homeType as HomeType)) setHomeType(file.homeType as HomeType);
-    setImportLayout([...file.roomLayout]); // fresh ref each load → ArchitectDesign's seat effect always re-fires
+    // (R-UX1) the legacy room layout is no longer applied to a view; loading restores the layer snapshot + market, and the canonical Runtime is the project's source of truth.
   };
   const [menuOpen, setMenuOpen] = useState(false);
   const [showFps, setShowFps] = useState(() => { try { return localStorage.getItem("arch2525.fps") === "1"; } catch { return false; } });
@@ -196,7 +195,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const canonWet = wetCount(canonical);                            // 3
   const canonBath = bathCount(canonical);                          // 1
   const BUDGET_TARGET_USD = 66_800;                                // ASSUMED (§16 ASSUMPTION_REGISTER)
-  const [designMetrics, setDesignMetrics] = useState<DesignMetrics | null>(null);
+  // (R-UX1) designMetrics (legacy wall/stud counts) retired with the wall-authoring center.
   // (R-UX1) Room-focus scoping of the left Vision Tree was retired with the canonical project tree (the left is now canonical, not room-scoped).
 
   const goHome = () => { if (directLink) router.push("/"); else { exitSimulationMode(); setVisionView("launcher"); } };
@@ -313,15 +312,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>
               {/* Master key (dimensions · cost · time · confidence) rides the map's OWN scrolling header (operator:
                   "place project master key in same scrolling header as map" · Security R-CORE reuse). */}
-              <ArchitectDesign onMetrics={setDesignMetrics} header={<MasterReadout inline />}
-                homeType={homeType} program={layerState.program} selectedId={selectedLayerId}
-                onRoomLayoutChange={setDesignRooms} importLayout={importLayout}
-                onDropComponent={(id) => {
-                  // Drag-drop a Vision-Tree item onto the building → add its buildable leaves to the house (operator).
-                  const found = findLayer(id); if (!found) return;
-                  const leaves = flattenLayers([found.node]).filter((n) => !n.children?.length && !n.level3);
-                  if (leaves.length) { layerState.addSpecIds(leaves.map((n) => n.id)); layerState.logReplay("house.drop", `drag-drop ${id} → +${leaves.length}`); }
-                }} />
+              <VectorGlass header={<MasterReadout inline />} />
               {/* Design Files — save/upload the full .arch2525 project (all elements) + saved-designs library (like MP missions) */}
               <div className="mt-2">
                 <Expander id="projectfiles" title={t("arch.cmd.design_files")} sub="save · upload · .arch2525" cyan>

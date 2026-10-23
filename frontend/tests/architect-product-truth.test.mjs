@@ -103,5 +103,16 @@ ok(!/Confidence/.test(mr), "master readout no longer shows a fabricated Confiden
 ok(!/projectRollup|houseEstimate|confidencePct|roll\.cost|est\.parallelDays/.test(mr), "master readout no longer derives cost/build/confidence from the legacy estimate");
 ok(!/room-program|areaSqft|p\.stories/.test(mr), "master readout no longer shows the legacy 2,000 ft² dimensions (room-program / DEFAULT_PARAMS path)");
 
+// ── R-UX1 (center): the public Design CENTER is the canonical VECTOR GLASS (PLAN/VECTOR-3D), never the legacy
+//    wall/WALK/3D·MODEL engine. A truthful left beside a false center is not done (unified direction §5/§6):
+//    no WALK, no 2×4 wall authoring, no "3D · MODEL", no "click two grid points" in the public Design. ──
+const vg = readOpt("../components/architect-2525/vector-glass.tsx");
+ok(/<VectorGlass/.test(ux), "the public Design center renders the canonical Vector Glass");
+ok(!/<ArchitectDesign/.test(ux), "the legacy wall/WALK engine is no longer mounted in the public Design");
+ok(!/from "\.\/architect-design"/.test(ux), "ArchitectDesign is not imported into the public composition");
+ok(/toWireframe/.test(vg) && /buildProjectFromSeed\(TINY_HOME_V1\)/.test(vg), "Vector Glass projects the canonical Runtime");
+ok(/PLAN/.test(vg) && /VECTOR/.test(vg), "Vector Glass offers PLAN + VECTOR-3D only");
+ok(!/\bWALK\b/.test(vg) && !/click two grid points/i.test(vg) && !/place a .*wall/i.test(vg), "Vector Glass has no WALK / 2×4 wall-authoring");
+
 console.log(`\narchitect-product-truth: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
