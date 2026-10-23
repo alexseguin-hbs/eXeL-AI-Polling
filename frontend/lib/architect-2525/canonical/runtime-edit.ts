@@ -48,7 +48,7 @@ function neighborOn(p: ArchitectProject, s: SpaceEntity, edge: Edge): SpaceEntit
  * BLOCKED reason. Pure: it mutates nothing.
  */
 export function proposeEdgeEdit(project: ArchitectProject, req: EdgeEditRequest): ProposeResult {
-  const s = spaces(project).find((x) => x.bay_code === req.bay_code);
+  const s = spaces(project).find((x) => x.bay_code.normalize("NFC") === req.bay_code.normalize("NFC"));
   if (!s) return { ok: false, reason: `BLOCKED · no Space ${req.bay_code}` };
   const d = req.deltaUm;
   if (!Number.isInteger(d) || d === 0) return { ok: false, reason: "BLOCKED · delta must be a non-zero integer µm" };
@@ -93,7 +93,7 @@ export function proposeEdgeEdit(project: ArchitectProject, req: EdgeEditRequest)
  * ACCEPT commits one revision; HOLD/REJECT write nothing. Pure.
  */
 export function proposeAttrEdit(project: ArchitectProject, req: AttrEditRequest): ProposeResult {
-  const s = spaces(project).find((x) => x.bay_code === req.bay_code);
+  const s = spaces(project).find((x) => x.bay_code.normalize("NFC") === req.bay_code.normalize("NFC"));
   if (!s) return { ok: false, reason: `BLOCKED · no Space ${req.bay_code}` };
   if (req.function === undefined && req.wet_class === undefined) return { ok: false, reason: "BLOCKED · nothing to change" };
   if (req.function !== undefined && !(SPACE_FUNCTIONS as readonly string[]).includes(req.function)) return { ok: false, reason: `BLOCKED · unknown function ${req.function}` };
