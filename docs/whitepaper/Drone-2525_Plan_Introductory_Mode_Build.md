@@ -149,3 +149,5 @@
 *Drone-2525 · Plan + Sub-Plan. All five levels. Specified from Shield in the Sky and FM 3-01 alignment. Introduction first. Same format as CRS. Claude Code fills I/O. Gaps are caught by comparing columns.*
 
 **Amendment r.228 (2026-10-22) — PLAN-D2525-INTRO.02:** a press from either HI is accepted (self-approve red; FIRE from either seat); a second FIRE on the same mark is REJECT ALREADY_DOWN, no round; the record names both (CSTART/CTIME `hi`, `system A1`); the magazine stays per phone until the one-magazine row — his night brief of 2026-10-21 (DD-147) over the row's earlier sentences; the row is not edited. Artefact commit bcdbb15.
+
+**Amendment r.229 (2026-10-22) — PLAN-D2525-INTRO.03:** 1v1 = two team-phones of the already-qualified 1v1 room (one BLU, one RED), systems:2 derived from opposite teams on the launch snapshot (match stays 1); each phone owns its own system and air track (BLU A1, RED A2), its one HI self-approving, a peer's row for the other system record-only (no cross-talk); CSTART/CTIME name each system's one HI. Introductory scenario only; harder scenarios depend on the scenario (operator 2026-10-22). Artefact commit 8a96bd2.

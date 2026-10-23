@@ -4,7 +4,7 @@
   "name": "Drone-2525",
   "family": "Vision • 2525 Level-3 Domain Play on WIREFRAME-CORE",
   "version": "00.00",
-  "revision": "0.083",
+  "revision": "0.084",
   "stampPrefix": "eXeL v0.001",
   "handoff": "docs/asks/2026-09-19_range_popups.md",
   "handoffSha256": "c42cebc50e13f9e086256bd58d11357219b902edb4cd25d4665507ddec6c069d",
@@ -647,6 +647,14 @@
    "why": "Operator deck r.228 - H02: TWO HI ON ONE SYSTEM (operator 2026-10-21, the night brief: \"Two HI, one system, one partner. The pilot and the gunner. A press from either is accepted. A second FIRE on the same mark is refused. The record names both.\"; CRS-CL.H02). The CH1 LAWN chip's launch snapshot carries lawn:true and lobbyEnterLive opens the lawn on both phones (one system A1, one air track, LIVE; a snapshot without it lands where it always did - the old two-phone seat untouched); the four lawn verbs CSTART/CTIME/CRESET/CUE travel and a peer applies them, the host's clock writing CUE and CTIME; the bullseye reading holds in a lawn room; the TWO_HUMANS holds and the marker's-seat reject are off on the lawn in LIVE, so a press from either phone is accepted on the same mark; a FIRE on the struck track is refused ALREADY_DOWN with no round; CSTART and CTIME carry system A1 and both member ids. No frozen definition moves; the Range untouched, both play-throughs byte-identical. One boot row red first (TWO_HI_ONE_SYSTEM). Two play findings fixed in the cut: a peer's snapshot never rewinds this phone's event counter (no room could launch since r.219), and a phone's self-check rows drive nothing on another phone (stamped qa). H03 (r.229) waits.",
    "commit": "bcdbb15",
    "shipped": "c84f7c4"
+  },
+  {
+   "revision": "0.084",
+   "date": "2026-10-22",
+   "kind": "release",
+   "why": "Operator deck r.229 - H03: 1v1, ONE HI PER SYSTEM, TWO SYSTEMS (operator 2026-10-21, the night brief; CRS-CL.H03). The two systems are the two team-phones of the 1v1 room (one BLU, one RED); the launch snapshot carries systems:2 on opposite teams, match stays 1. Each phone owns its own system (BLU=A1 drones[0], RED=A2 drones[1]), its single HI self-approving its own mark, a peer's row for the other system record-only (no cross-talk); CSTART and CTIME carry the per-system system and hi. H02 (same team, one system, two HI) preserved. No frozen definition moves; the Range untouched, both play-throughs byte-identical. One boot row red first (ONE_HI_PER_SYSTEM); the two-phone 1v1 room play 7/7. The Introductory scenario; harder scenarios at later rungs. H04 (r.230) waits.",
+   "commit": "8a96bd2",
+   "shipped": "PENDING"
   }
  ],
  "arena": {
