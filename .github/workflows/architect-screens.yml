@@ -3,7 +3,10 @@ name: Architect Screens
 # Serve the operator a real screenshot of the deployed Architect-2525 surface for a design decision
 # (the R-UX screenshot program). The sandbox cannot reach the live site, so this Action drives Chromium
 # against the live Cloudflare route and uploads the PNGs as an artifact to download and hand over.
-# Manual only (workflow_dispatch) so it never adds churn to the deploy path.
+#
+# It runs AUTOMATICALLY after a successful "Verify Live" (which has just confirmed the pushed SHA is the
+# one the live site serves — so the capture always shows the intended build, never a stale one), and can
+# also be run manually (workflow_dispatch).
 
 on:
   workflow_dispatch:
@@ -12,9 +15,14 @@ on:
         description: Base URL to screenshot (defaults to the live Cloudflare route)
         required: false
         default: https://exel-ai-polling.explore-096.workers.dev
+  workflow_run:
+    workflows: ["Verify Live"]
+    types: [completed]
 
 jobs:
   screens:
+    # Manual dispatch, or only after Verify Live went GREEN on main (the SHA is confirmed live).
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -22,6 +30,8 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -32,7 +42,7 @@ jobs:
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Capture the Architect surface
-        run: ARCH_URL="${{ github.event.inputs.url }}" node scripts/architect-screens.mjs
+        run: ARCH_URL="${{ github.event.inputs.url || 'https://exel-ai-polling.explore-096.workers.dev' }}" node scripts/architect-screens.mjs
       - name: Upload the screenshots
         uses: actions/upload-artifact@v4
         with:
