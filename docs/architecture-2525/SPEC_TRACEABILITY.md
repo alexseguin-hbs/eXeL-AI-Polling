@@ -104,7 +104,7 @@ has an executable gate.
 Every visible claim on the live Architect surface traces to canonical Runtime state, a declared assumption, or reads
 NOT_RUN / NOT CALCULATED. The ribbon reads the stage WORD (`PLAN · REVIEWABLE · HI Review Required`), SPIRAL/R-CORE/
 SSSES read **NOT_RUN** (never the planning scores — advisory #5), Net Program reads the canonical 900 ft², Project
-Cost reads **NOT CALCULATED** (the economy is not a construction cost, §XI), Budget Target reads **$66,800 · ASSUMED**,
+Cost reads **NOT CALCULATED** (the economy is not a construction cost, §XI), Budget Target reads **$66,800.00 · ASSUMED** (rendered via `fmtUsd`, which forces two fraction digits),
 and the fabricated Risk/Time-Capital/Trinity/walls tiles are quarantined. The shared defaults
 (`DEFAULT_PROGRAM.bathrooms=2`, `DEFAULT_PARAMS.areaSqft=2000`) are byte-unchanged (firewall).
 
