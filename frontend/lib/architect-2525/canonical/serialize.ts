@@ -28,8 +28,10 @@ function canonicalize(value: unknown): unknown {
   const t = typeof value;
   if (t === "string") return (value as string).normalize("NFC");
   if (t === "number") {
-    if (!Number.isFinite(value as number)) {
-      throw new Error(`ARCHITECT §09: non-finite number cannot be canonicalized: ${String(value)}`);
+    // §24 enforced at the serialization chokepoint itself (Thoth/fleet ENHANCE): every canonical number is an
+    // integer within 2^53−1 — no floats, no overflow — not merely relied on upstream (runtime assertSafeInt).
+    if (!Number.isSafeInteger(value as number)) {
+      throw new Error(`ARCHITECT §24: a canonical number must be a safe integer (serialization chokepoint): ${String(value)}`);
     }
     return value;
   }

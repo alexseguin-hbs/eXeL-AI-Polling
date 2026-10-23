@@ -1,12 +1,14 @@
 // ARC-36.01 — the one canonical serializer: a volatile-only change is byte-identical; NFD normalizes to NFC;
 // entity arrays sort by the raw case-preserved entity_id; an added optional field leaves a legacy hash unchanged.
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-canonical-serialize.test.mjs
+import { readFileSync } from "node:fs";
 import { serializeCanonicalProject, projectHash, canonicalHash } from "../lib/architect-2525/canonical/serialize.ts";
 import { buildProjectFromSeed } from "../lib/architect-2525/canonical/runtime.ts";
 import { TINY_HOME_V1 } from "../lib/architect-2525/seeds/tiny-home-v1.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; } else { fail++; console.log("FAIL", m); } };
+const throws = (fn, m) => { let t = false; try { fn(); } catch { t = true; } ok(t, m); };
 
 const p = buildProjectFromSeed(TINY_HOME_V1);
 const base = serializeCanonicalProject(p);
@@ -53,6 +55,17 @@ ok(projectHash(withNull) !== baseHash, "a null field IS canonical content → ha
 // ── canonicalHash is stable and volatile-aware too ──
 ok(canonicalHash({ a: 1, b: 2 }) === canonicalHash({ b: 2, a: 1 }), "canonicalHash is key-order independent");
 ok(/^[0-9a-f]{64}$/.test(baseHash), "project_hash is 64-hex SHA-256");
+
+// ── §24 enforced at the serialization CHOKEPOINT (fleet/Thoth ENHANCE): a float or unsafe int is refused ──
+const floaty = structuredClone(p); floaty.entities.find((e) => e.bay_code === "C1").width_um = 3048000.5;
+throws(() => serializeCanonicalProject(floaty), "a non-integer canonical dimension is refused at serialize (§24)");
+const huge = structuredClone(p); huge.entities.find((e) => e.bay_code === "C1").width_um = 2 ** 53;
+throws(() => serializeCanonicalProject(huge), "an unsafe-int canonical dimension is refused at serialize (§24)");
+
+// ── float-literal source-scan extended to serialize.ts (fleet/Thoth ENHANCE) ──
+let serSrc = readFileSync(new URL("../lib/architect-2525/canonical/serialize.ts", import.meta.url), "utf8");
+serSrc = serSrc.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+ok(!/\b\d+\.\d+\b/.test(serSrc), "serialize.ts carries zero float literals in code");
 
 console.log(`\narchitect-canonical-serialize: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
