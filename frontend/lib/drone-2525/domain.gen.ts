@@ -705,7 +705,7 @@ export const DRONE_DOMAIN = {
    "kind": "release",
    "why": "Operator deck r.229 - H03: 1v1, ONE HI PER SYSTEM, TWO SYSTEMS (operator 2026-10-21, the night brief; CRS-CL.H03). The two systems are the two team-phones of the 1v1 room (one BLU, one RED); the launch snapshot carries systems:2 on opposite teams, match stays 1. Each phone owns its own system (BLU=A1 drones[0], RED=A2 drones[1]), its single HI self-approving its own mark, a peer's row for the other system record-only (no cross-talk); CSTART and CTIME carry the per-system system and hi. H02 (same team, one system, two HI) preserved. No frozen definition moves; the Range untouched, both play-throughs byte-identical. One boot row red first (ONE_HI_PER_SYSTEM); the two-phone 1v1 room play 7/7. The Introductory scenario; harder scenarios at later rungs. H04 (r.230) waits.",
    "commit": "8a96bd2",
-   "shipped": "PENDING"
+   "shipped": "7c7978d"
   }
  ],
  "arena": {
