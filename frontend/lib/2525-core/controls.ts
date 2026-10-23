@@ -150,3 +150,67 @@ export const RCORE_SYS = {
  */
 export const RCORE_SENTENCE =
   "R-CORE coordinates; it does not dominate. Humanity remains the authority." as const;
+
+/**
+ * THE FIVE PILLARS — the five systems with the learnings every 2525 project has paid for (operator 2026-10-23:
+ * "update R-CORE 5 pillars per all learnings of all 2525 projects"). RCORE_SYS keeps the bare name→code map that
+ * controls-schema pins; this carries the role (Vision • 2525 §III–VII) and one grounded learning each. A learning
+ * is a law the work proved, not a wish. Append to a learning; do not rewrite it — a pillar's record is append-only
+ * like every other (SYNC). Drone-2525 evidence cites the current revision only, never a rewrite of its history.
+ */
+export const RCORE_PILLARS = [
+  {
+    code: "COMM-2525", name: "COMM", section: "III", role: "the signal fabric that keeps people connected when pressure rises",
+    learning:
+      "Redundancy is counted in INDEPENDENT PROVIDERS, not in code paths. The live-response Trinity shipped as three send " +
+      "paths and four receive channels, but all terminated at one vendor — one provider wearing three coats, so a single " +
+      "outage was a total outage while the sender was told 'delivered'. Genuine redundancy adds providers in different " +
+      "failure domains (Cloudflare KV, a device-held outbox) and gates the provider count. Nothing is swallowed: every " +
+      "attempt and every failure is recorded, and a path that fell back announces its lateness rather than lying by silence.",
+  },
+  {
+    code: "LINK-2525", name: "LINK", section: "IV", role: "coordination continuity — the mission carries its context with it",
+    learning:
+      "A message addressed to one system never lands on another's mark, and a retry carries enough context to be re-run " +
+      "correctly later. The two-phone lawn room (WebRTC + the lawn verbs + the light-codex pairing) is LINK in miniature: " +
+      "each system drives only its own track, a peer's row for the other system is record-only (Drone-2525 r.229, H03 — no " +
+      "cross-talk), and one replay hash holds on both phones. Link 16 is 512×3 (A–B); LINK-2525 evolves to 3600×7 (A–G) — " +
+      "the UCRS bearing circle × seven levels — kept as the forward addressing spec (DD-150), not retrofitted onto a shipped rung.",
+  },
+  {
+    code: "EDGE-2525", name: "EDGE", section: "V", role: "the edge works when the centre is unreachable — the device holds the work",
+    learning:
+      "The point of need holds the work when the centre is gone. The operator deck is ONE self-contained file that fetches " +
+      "nothing and plays offline — the strongest EDGE proof in the system. A completed signature lives on the signer's phone " +
+      "and carries every mark even when the database is unreachable: a completed signature is never discarded. And a screen a " +
+      "person can reach never names a database, a migration or an RPC — the machine recedes so the shared intent stays visible.",
+  },
+  {
+    code: "SYNC-2525", name: "SYNC", section: "VI", role: "operational truth preserved when events move faster than institutions can record them",
+    learning:
+      "The record is itself a redundancy mechanism — what live delivery loses, replay reconstructs. The append-only ledger, " +
+      "the chain-hashed register and the deck's embedded R-CORE record (carried through the revision before its own, lag exactly " +
+      "one) make the past replay what it actually shipped. A new edition is an APPEND, never an edit; a correction is a new row. " +
+      "Drone-2525's training record is SYNC: Train Down (a start button and a timer to knock every target down) and Qual-40 " +
+      "(the military-grade annual qualification) write START/TIME and hits, misses and rounds as rows, while Train Up — the " +
+      "default on the Range and every training location, all targets up with no start, a hit knocking a target down and it " +
+      "popping back up for endless practice — is infinite and writes no scored run.",
+  },
+  {
+    code: "UCRS-2525", name: "UCRS", section: "VII", role: "one spatial language for every mission",
+    learning:
+      "Every bearing is UCRS-2525, written AAAA.BBBB — 0000 and 3600 are north, 1800 is south, 1800.5 reads 1800.1800. The " +
+      "Capital-lawn seats (A1–A4, the S1/S2 cues, C1/C2, G1, the T1 high track) each carry a UCRS arc, and the deck's targeting " +
+      "and the lawn siting record speak one coordinate language — so a message arriving by any route is recognisably about the " +
+      "same place, and no system has to translate another's grid.",
+  },
+] as const;
+
+/**
+ * THE FIDELITY LAW, cutting across all five pillars (operator, Trinity-everywhere): a shot is scored from the SHARED
+ * STATE — position, time, and TARGET → APPROVE → FIRE — never from the picture. A low-fidelity wire client and a
+ * high-resolution client read the same truth, so the 1983 wireframe view ships and richer engines attach later as
+ * views over the same record. Silence is never consent; humanity remains the authority (RCORE_SENTENCE).
+ */
+export const RCORE_FIDELITY_LAW =
+  "A shot is scored from the shared state — position, time, and TARGET → APPROVE → FIRE — never from the picture." as const;

@@ -146,3 +146,51 @@ Human priorities → POLLING → Collective Intelligence → R-CORE → Cube(s)
 
 People set priorities · R-CORE coordinates · Cubes implement · Metrics qualify ·
 Replay remembers · **Humanity decides what matters.**
+
+---
+
+## The five pillars (the five systems) and their learnings
+
+R-CORE's five systems are Vision • 2525 §III–VII by another name. Each now carries the
+learning every 2525 project has paid for (operator 2026-10-23: *"update R-CORE 5 pillars
+per all learnings of all 2525 projects"*). The canonical copy is
+`frontend/lib/2525-core/controls.ts` → `RCORE_PILLARS` (gated by
+`frontend/tests/controls-schema.test.mjs`); `RCORE_SYS` keeps the bare name→code map. A
+learning is a law the work proved, and it is **append-only** like every other record —
+add to it, do not rewrite it. Drone-2525 evidence cites the current revision only.
+
+- **COMM-2525 (§III) — the signal fabric.** Redundancy is counted in **independent
+  providers**, not code paths. The live-response Trinity was three send paths × four
+  receive channels that all terminated at one vendor — one provider wearing three coats,
+  so one outage was a total outage while the sender was told "delivered." Genuine
+  redundancy adds providers in different failure domains and gates the count; nothing is
+  swallowed, and a fallback announces its lateness instead of lying by silence.
+- **LINK-2525 (§IV) — coordination continuity.** A message addressed to one system never
+  lands on another's mark, and a retry carries its context. The two-phone lawn room
+  (Drone-2525 r.229, H03) is LINK in miniature: each system drives only its own track, a
+  peer's row for the other is record-only, one replay hash on both. Link 16 is 512×3
+  (A–B); LINK-2525 evolves to 3600×7 (A–G) — the UCRS bearing circle × seven levels
+  (DD-150) — kept as the forward spec, not retrofitted onto a shipped rung.
+- **EDGE-2525 (§V) — the point of need.** The device holds the work when the centre is
+  gone. The operator deck is one self-contained file that fetches nothing and plays
+  offline; a completed signature lives on the signer's phone and is never discarded; a
+  screen a person can reach never names a database, a migration or an RPC.
+- **SYNC-2525 (§VI) — operational truth.** The record is itself a redundancy mechanism —
+  what live delivery loses, replay reconstructs. Append-only ledger, chain-hashed
+  register, replay hash, the deck's embedded record carried through the revision before
+  its own (lag exactly one). A new edition is an append, never an edit. Drone-2525's
+  training record is SYNC: **Train Down** (a start button and a timer to knock every
+  target down) and **Qual-40** (the military-grade annual qualification) write START/TIME
+  and hits, misses and rounds as rows; **Train Up** — the default on the Range and every
+  training location, all targets up with no start, a hit knocking a target down and it
+  popping back up for endless practice — is infinite and writes no scored run.
+- **UCRS-2525 (§VII) — one spatial language.** Every bearing is UCRS-2525, written
+  `AAAA.BBBB` — 0000 and 3600 are north, 1800 is south, `1800.5` reads `1800.1800`. The
+  Capital-lawn seats each carry a UCRS arc; targeting and the lawn siting record speak one
+  coordinate language, so no system translates another's grid.
+
+**The fidelity law, across all five:** a shot is scored from the **shared state** —
+position, time, and TARGET → APPROVE → FIRE — **never from the picture**. A low-fidelity
+wire client and a high-resolution client read the same truth, so the 1983 wireframe view
+ships and richer engines attach later as views over the same record. Silence is never
+consent; humanity remains the authority.

@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import {
   CONTROLS_SCHEMA, VEHICLES, EXEL_2525_CONTROLS, SEAT_GEOMETRY,
   ACTIONS, KEY_TO_ACTION, HELD_ACTIONS, voiceToAction,
-  RCORE_LOOP, DOCTRINE, RCORE_SYS, RCORE_SENTENCE,
+  RCORE_LOOP, DOCTRINE, RCORE_SYS, RCORE_SENTENCE, RCORE_PILLARS, RCORE_FIDELITY_LAW,
 } from '../lib/2525-core/controls.ts';
 
 let pass = 0, fail = 0;
@@ -74,6 +74,19 @@ ok(RCORE_LOOP[0] === 'REALITY' && RCORE_LOOP[RCORE_LOOP.length - 1] === 'REALITY
 ok(same(HIS_SYS, RCORE_SYS), 'the five systems are his: COMM · LINK · EDGE · SYNC · UCRS');
 ok(DOCTRINE.length === 7 && DOCTRINE[0] === 'PLAY' && DOCTRINE[6] === 'SHARE', 'the seven-step doctrine is kept beside the loop, not merged into it');
 ok(/does not dominate/.test(RCORE_SENTENCE) && /Humanity remains the authority/.test(RCORE_SENTENCE), 'and the sentence about authority is the one he gave');
+
+// THE FIVE PILLARS carry the learnings (operator 2026-10-23). RCORE_SYS keeps the bare map; RCORE_PILLARS adds role +
+// learning per pillar, one per system, in the same order, each code matching RCORE_SYS, each learning non-trivial.
+ok(RCORE_PILLARS.length === 5, `R-CORE has five pillars (got ${RCORE_PILLARS.length})`);
+ok(RCORE_PILLARS.map((p) => p.code).join(',') === Object.values(RCORE_SYS).join(','),
+  'the five pillars are the five systems, in order: COMM · LINK · EDGE · SYNC · UCRS');
+for (const p of RCORE_PILLARS) {
+  ok(typeof p.role === 'string' && p.role.length > 10, `${p.name} states its role`);
+  ok(typeof p.learning === 'string' && p.learning.length > 120, `${p.name} carries a learning, not a wish`);
+  ok(typeof p.section === 'string' && /^(III|IV|V|VI|VII)$/.test(p.section), `${p.name} names its Vision • 2525 section`);
+}
+ok(/shared state/.test(RCORE_FIDELITY_LAW) && /never from the picture/.test(RCORE_FIDELITY_LAW),
+  'the fidelity law cuts across the pillars: a shot is scored from the shared state, never the picture');
 
 // ── WHAT THE TRANSCRIPTION ADDS, HELD TO THE SCHEMA ─────────────────────────────────────────────
 {

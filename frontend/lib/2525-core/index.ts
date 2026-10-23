@@ -48,6 +48,6 @@ export { Expander, type ExpanderColors } from "@/components/2525-core/expander";
 export {
   CONTROLS_SCHEMA, VEHICLES, EXEL_2525_CONTROLS, SEAT_GEOMETRY,
   ACTIONS, KEY_TO_ACTION, HELD_ACTIONS, voiceToAction,
-  RCORE_LOOP, DOCTRINE, RCORE_SYS, RCORE_SENTENCE,
+  RCORE_LOOP, DOCTRINE, RCORE_SYS, RCORE_SENTENCE, RCORE_PILLARS, RCORE_FIDELITY_LAW,
   type Vehicle, type Action, type StickBinding,
 } from "@/lib/2525-core/controls";
