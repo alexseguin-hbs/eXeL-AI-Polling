@@ -58,10 +58,13 @@ ok(space(aw.project, "A3").wet_class === "WET" && aw.rcore.events[1].event_type 
 const bad = proposeAttrEdit(r0, { bay_code: "A3", function: "BALLROOM" });
 ok(!bad.ok && /unknown function/i.test(bad.reason), "an unknown function is refused (ok:false)");
 
-// ── SOURCE SCAN: architect-design.tsx's accept path no longer calls the legacy mutators (TEST-FIRST: red until wired) ──
-const design = readFileSync(new URL("../components/architect-2525/architect-design.tsx", import.meta.url), "utf8");
-const legacyCalls = (design.match(/\b(moveRoomInLayout|resizeRoomInLayout)\s*\(/g) || []).length;
-ok(legacyCalls === 0, `architect-design.tsx accept path calls the legacy mutators ${legacyCalls} time(s) — must be 0 (rewired to the canonical runtime). TEST-FIRST red until Block-D UI wiring.`);
+// ── SOURCE SCAN (R-UX2): the PUBLIC canonical edit path runs the proven contract, not the legacy mutators ──
+const hook = readFileSync(new URL("../components/architect-2525/use-canonical-design.ts", import.meta.url), "utf8");
+const ux = readFileSync(new URL("../components/architect-2525/command-ux1.tsx", import.meta.url), "utf8");
+ok(/\bacceptEdit\b/.test(hook) && /\bproposeEdgeEdit\b/.test(hook), "the canonical Design edit path runs the proven acceptEdit / proposeEdgeEdit contract");
+const legacyCalls = (hook.match(/\b(moveRoomInLayout|resizeRoomInLayout)\s*\(/g) || []).length;
+ok(legacyCalls === 0, `the canonical edit path calls the legacy mutators ${legacyCalls} time(s) — must be 0`);
+ok(!/from "\.\/architect-design"/.test(ux), "the public Design no longer mounts the legacy wall/room engine (architect-design.tsx)");
 
 console.log(`\narchitect-edit: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

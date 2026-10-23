@@ -114,5 +114,17 @@ ok(/toWireframe/.test(vg) && /buildProjectFromSeed\(TINY_HOME_V1\)/.test(vg), "V
 ok(/PLAN/.test(vg) && /VECTOR/.test(vg), "Vector Glass offers PLAN + VECTOR-3D only");
 ok(!/\bWALK\b/.test(vg) && !/click two grid points/i.test(vg) && !/place a .*wall/i.test(vg), "Vector Glass has no WALK / 2×4 wall-authoring");
 
+// ── R-UX2 (canonical edit path): the right rail is the canonical Active Elements — select a Space → propose →
+//    AI PROPOSED IMPACT → ACCEPT/HOLD/REJECT → the REAL SPIRAL/SYNC/Reverse (never a hardcoded PASS/SYNCED). ──
+const ae = readOpt("../components/architect-2525/architect-active-elements.tsx");
+const dhook = readOpt("../components/architect-2525/use-canonical-design.ts");
+ok(/rightRail=\{<ArchitectActiveElements/.test(ux), "the Design right rail is the canonical Active Elements");
+ok(/CANONICAL SPACE/.test(ae), "Active Elements labels the selected canonical Space");
+ok(/ACCEPT/.test(ae) && /HOLD/.test(ae) && /REJECT/.test(ae), "canonical edit offers ACCEPT / HOLD / REJECT");
+ok(/AI Proposed Impact/i.test(ae), "the AI PROPOSED IMPACT preview is shown before any commit");
+ok(/design\.spiralState/.test(ae) && /design\.sync/.test(ae), "SPIRAL/SYNC read the real canonical state, never a hardcoded PASS/SYNCED");
+ok(/acceptEdit\b/.test(dhook) && /\bspiral\b/.test(dhook) && /syncState\b/.test(dhook) && /\breverse\b/.test(dhook), "the design hook runs the real acceptEdit + spiral + syncState + reverse");
+ok(/proposeEdgeEdit\b/.test(dhook) && /proposeAttrEdit\b/.test(dhook), "the hook proposes edge + attr edits through the canonical contract");
+
 console.log(`\narchitect-product-truth: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

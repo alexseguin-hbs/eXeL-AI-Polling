@@ -35,7 +35,8 @@ import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationM
 import { VectorGlass } from "./vector-glass";
 import { DesignWorkspace } from "./architect-design-workspace";
 import { CanonicalProjectTree } from "./canonical-project-tree";
-import { RightPanel } from "./right-panel";
+import { ArchitectActiveElements } from "./architect-active-elements";
+import { useCanonicalDesign } from "./use-canonical-design";
 import { MetricStrip } from "./metric-strip";
 import { useLayerState } from "./use-layer-state";
 import { ArchitectProjects } from "./architect-projects";
@@ -150,6 +151,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   // Layer Tree selection — the canonical "what exists" pointer, lifted to the shell so every workspace
   // references it (Vision 2525 Digital Twin Standard v1.0). Drives the RIGHT Context panel (C5).
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+  const design = useCanonicalDesign(); // R-UX2 — the canonical Design state (select → propose → ACCEPT/HOLD/REJECT → R-CORE/SPIRAL/SYNC/Reverse)
   const layerState = useLayerState(); // shared visibility/lock — driven from BOTH the tree and the Context inspector
   // Target market — PERSISTED (arch2525.homeType) so it survives reloads/deploys (operator: tooling "disappeared"
   // because the selection reset to Home each load). Only UNLOCKED markets are accepted (Tiny · Home).
@@ -301,9 +303,9 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
       <div className="p-4">
         <div data-arch-tab={activeTab === "Design" ? "Design" : undefined} style={activeTab === "Design" ? undefined : { display: "none" }}>
           <DesignWorkspace
-            selectedId={selectedLayerId}
-            leftRail={<CanonicalProjectTree />}
-            rightRail={<RightPanel selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} />}
+            selectedId={design.selectedId}
+            leftRail={<CanonicalProjectTree selectedId={design.selectedId} onSelect={design.selectSpace} />}
+            rightRail={<ArchitectActiveElements design={design} />}
             metricStrip={<MetricStrip state={layerState} overlay homeType={homeType} />}
             bottomPanel={<HouseSpec state={layerState} homeType={homeType} selectedId={selectedLayerId} onSelect={setSelectedLayerId} onLoadArchitect={loadProjectFile} />}
             bottomPanel2={<CodesPanel state={layerState} />}
@@ -312,7 +314,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>
               {/* Master key (dimensions · cost · time · confidence) rides the map's OWN scrolling header (operator:
                   "place project master key in same scrolling header as map" · Security R-CORE reuse). */}
-              <VectorGlass header={<MasterReadout inline />} />
+              <VectorGlass header={<MasterReadout inline />} project={design.project} selectedId={design.selectedId} onSelectSpace={design.selectSpace} ghost={design.previewProject} />
               {/* Design Files — save/upload the full .arch2525 project (all elements) + saved-designs library (like MP missions) */}
               <div className="mt-2">
                 <Expander id="projectfiles" title={t("arch.cmd.design_files")} sub="save · upload · .arch2525" cyan>

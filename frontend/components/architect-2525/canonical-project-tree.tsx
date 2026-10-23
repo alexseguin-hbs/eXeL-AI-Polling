@@ -41,7 +41,7 @@ function entityName(e: CanonicalEntity): string {
   return (e as { name?: string }).name ?? e.entity_type;
 }
 
-export function CanonicalProjectTree({ onSelect }: { onSelect?: (entityId: string) => void }) {
+export function CanonicalProjectTree({ selectedId = null, onSelect }: { selectedId?: string | null; onSelect?: (entityId: string) => void }) {
   const project: ArchitectProject = useMemo(() => buildProjectFromSeed(TINY_HOME_V1), []);
   const sqft = sqftFromUm2(netProgramAreaUm2(project));
   const spaces = spaceCount(project);
@@ -73,7 +73,7 @@ export function CanonicalProjectTree({ onSelect }: { onSelect?: (entityId: strin
     const kids = childrenOf.get(e.entity_id) ?? [];
     const hasKids = kids.length > 0;
     const open = openIds.has(e.entity_id);
-    const sel = selected === e.entity_id;
+    const sel = (selectedId ?? selected) === e.entity_id;
     const meta = TYPE_META[e.entity_type] ?? TYPE_META.SPACE;
     const isSpace = e.entity_type === "SPACE";
     const wet = isSpace && (e as SpaceEntity).wet_class === "WET";
