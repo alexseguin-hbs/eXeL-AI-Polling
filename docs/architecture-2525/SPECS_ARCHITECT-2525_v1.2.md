@@ -430,3 +430,47 @@ and the pattern all Innovation-2525 products should share. HI directs · AI assi
 purpose. Create · Transform · Sustain. Humanity decides · Technology assists · Trust must be proven.
 
 **MASTER OF THOUGHT: inspect the repository · build the truth loop · prove it · leave the evidence behind.**
+
+---
+
+# PART 3 — eXeL ◬ INTEGRATION CLARIFICATION (v1.2 addendum, operator 2026-10-22)
+
+Additive and controlling, on top of Parts 1–2. Shapes the canonical schema (Block A); honors the Financial-2525 and economy firewalls.
+
+## 3.1 · Symbol convention (Innovation-2525, connects to Financial-2525)
+웃 carries the **human-context** interpretation; ◬ carries the **machine/system-context** record. Display them as the
+symbol alone — e.g. `웃 Date: October 22, 2026 · Central` and `◬ Timestamp: 2026-10-23T01:01:00Z`. Do NOT expand them
+visibly into "HI Date", "AI Timestamp", "웃 HI Date", or "◬ AI Timestamp"; the symbol carries the meaning. Accessibility
+text or a glossary may explain the symbol non-visually, but the visible interface attaches no redundant acronym.
+
+## 3.2 · R-CORE time representation — carry both
+When an Architect event needs human context and machine provenance, preserve BOTH: a **웃 Date** (contextual, local —
+`October 22, 2026 · Central`) and a **◬ Timestamp** (the absolute system instant, UTC — `2026-10-23T01:01:00Z`). The
+first is contextual; the second is absolute. The ◬ absolute timestamp is a volatile/provenance field and is EXCLUDED
+from the canonical project_hash (§09/§24); determinism is unaffected.
+
+## 3.3 · Financial-2525 boundary — reference, never duplicate
+ARCHITECT-2525 must not invent a second financial/time ledger. **Financial-2525** (/financial-2525) is the canonical
+Innovation-2525 surface for time/value/transaction semantics (Measure of Time, transaction records, local day/time,
+Length (MoT), transaction hash, real-time financial state).
+- **Architect owns:** building/project state · project revisions · design decisions · human authority · project
+  assumptions · project **budget target** (ASSUMED) · R-CORE design history.
+- **Financial-2525 owns:** canonical time/value semantics · financial accrual/ledger · transaction records · financial
+  rates · financial hashes/provenance.
+- Architect **references** a financial record by identity/provenance — `financial_record_id`, `financial_record_hash`
+  (nullable, reserved; unused this cycle) — and never copies Financial-2525 calculations into Architect Runtime to
+  populate a card. Future chain: ARCHITECT event → R-CORE revision → Financial-2525 reference (where applicable) →
+  independently auditable financial/time record.
+
+## 3.4 · MoT namespace boundary (schema-critical)
+"Master of Thought" (authorship / disciplined reasoning / a human-intelligence concept) and Financial-2525's "MoT"
+(a Financial-2525-defined measure in its ledger/time model) are DISTINCT and must not be silently merged or either
+product redefined this cycle. In new ARCHITECT canonical types use explicit, source-qualified names — `master_of_thought`
+and (reserved) `financial2525_mot` — and **never a generic `mot` field**. Existing shared legacy economy code using `mot`
+stays untouched (the economy firewall); it is not refactored this cycle.
+
+## 3.5 · This 48-hour cycle — boundary only
+Do NOT integrate Financial-2525 transactions · do NOT change shared financial rates · do NOT redesign Financial-2525 ·
+do NOT add new financial calculations to Architect. Preserve the architectural boundary and avoid any field that makes
+future integration ambiguous. Principle: **Architect remembers what changed · Financial-2525 remembers the associated
+time/value record · R-CORE preserves the evidence connecting them.**
