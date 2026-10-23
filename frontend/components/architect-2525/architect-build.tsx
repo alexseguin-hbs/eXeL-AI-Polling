@@ -43,7 +43,14 @@ export function ArchitectBuild() {
   const gx = (d: number) => (d / TOTAL) * 100;
 
   return (
-    <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
+    <div className="space-y-2">
+      {/* PRODUCT TRUTH (Block E 2/n): nothing is built. The 4D sequence below is an ILLUSTRATIVE build order,
+          not actual progress — the Build gate is not reached. */}
+      <div data-arch-build-status className="rounded-lg border px-3 py-2 text-[11px] font-bold" style={{ borderColor: "#5a3a1a", background: "#1a1206", color: "#f59e0b" }}>
+        BUILD · BLOCKED · G4 Qualification required
+        <span className="ml-2 font-normal" style={{ color: C.dim }}>— nothing is built; the project is at PLAN · REVIEWABLE. The sequence below is an illustrative build order, not actual progress.</span>
+      </div>
+      <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         {/* progressive build schematic */}
         <svg data-arch-build viewBox="0 0 100 60" preserveAspectRatio="xMidYMid meet" className="w-full rounded" style={{ background: "#070b12", aspectRatio: "5 / 3" }}>
@@ -75,7 +82,7 @@ export function ArchitectBuild() {
         <div className="mt-2 flex items-center gap-2">
           <button onClick={() => setPlaying((p) => !p)} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: playing ? C.violet : C.dim }}>{playing ? "❚❚" : "▶"}</button>
           <input type="range" min={1} max={TOTAL} value={day} onChange={(e) => { setPlaying(false); setDay(+e.target.value); }} className="flex-1" />
-          <span className="w-20 text-right text-[11px] tabular-nums" style={{ color: C.cyan }}>Day {day}/{TOTAL}</span>
+          <span className="w-28 text-right text-[11px] tabular-nums" style={{ color: C.dim }}>Step {day}/{TOTAL} · illustrative</span>
         </div>
       </div>
       {/* trade coordination — who does what when */}
@@ -93,12 +100,13 @@ export function ArchitectBuild() {
           <line x1={22 + gx(day) * 0.78} y1="0" x2={22 + gx(day) * 0.78} y2="40" stroke={C.cyan} strokeWidth="0.4" strokeDasharray="1 1" />
         </svg>
         <div className="border-t pt-1 text-[10px]" style={{ borderColor: C.border }}>
-          <div className="font-bold" style={{ color: C.dim }}>TODAY · DAY {day}</div>
+          <div className="font-bold" style={{ color: C.dim }}>ILLUSTRATIVE SEQUENCE · STEP {day}</div>
           {activeToday.length ? activeToday.map((x, i) => (
             <div key={i} className="flex items-center gap-1"><span style={{ color: TRADE_COLOR[x.trade] }}>●</span><span style={{ color: C.text }}>{x.trade}</span><span style={{ color: C.dim }}>— {x.label}</span></div>
           )) : <div style={{ color: C.dim }}>—</div>}
         </div>
       </div>
+    </div>
     </div>
   );
 }

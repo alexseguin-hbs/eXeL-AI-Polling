@@ -46,5 +46,33 @@ ok(/bathrooms:\s*2\b/.test(prog), "DEFAULT_PROGRAM.bathrooms stays 2 (firewall u
 const proj = read("../lib/architect-project.ts");
 ok(/areaSqft:\s*2000\b/.test(proj), "DEFAULT_PARAMS.areaSqft stays 2000 (firewall unchanged)");
 
+// ════════════════════════════════════════════════════════════════════════════════════════════════════════
+// Block E (2/n) — the remaining tabs tell the truth too (Simulate/Review/Twin/Replay, Build, Iterate/Share/Qualify).
+// Every fabricated status claim is quarantined; the honest NOT_RUN / NOT STARTED / BLOCKED / NO-record states are
+// present. See docs/architecture-2525/PRODUCT_TRUTH_MIGRATION.md for old→new with reasons.
+const p2 = read("../components/architect-2525/architect-panels2.tsx");
+const bd = read("../components/architect-2525/architect-build.tsx");
+const pn = read("../components/architect-2525/architect-panels.tsx");
+
+// ── SimulatePanel / ReviewPanel / TwinPanel / ReplayPanel: no fabricated PASS / approval % / synced twin / decision ──
+ok(!/deflection L\/480/.test(p2), "Simulate: no fabricated 'Structural PASS · deflection L/480'");
+ok(!/c: 0\.94/.test(p2) && !/v: "approve"/.test(p2), "Review: no fabricated AI approval % / vote");
+ok(!/· synced/.test(p2) && !/synchronized/.test(p2), "Twin: no fabricated 'synced'/'synchronized' twin");
+ok(!/2025-05-1[0-9]/.test(p2), "Replay: no fabricated decision-log dates");
+ok(/Actual · NOT STARTED/.test(p2), "Twin reads 'Actual · NOT STARTED'");
+ok(/NOT_RUN/.test(p2) && /NO HUMAN REVIEWS RECORDED/.test(p2), "Simulate/Review read NOT_RUN / no reviews recorded");
+
+// ── Build: BLOCKED, and the 4D sequence is labelled illustrative — no 'actual progress' claim ──
+ok(/BUILD · BLOCKED · G4 Qualification required/.test(bd), "Build reads 'BLOCKED · G4 Qualification required'");
+ok(!/TODAY · DAY/.test(bd) && !/Day \{day\}\/\{TOTAL\}/.test(bd), "Build no longer claims actual day-by-day progress");
+ok(/illustrative/i.test(bd), "the Build sequence is labelled illustrative");
+
+// ── Iterate / Share / Qualify: nothing approved/certified/on-chain that did not happen ──
+ok(!/· APPROVED/.test(pn), "Iterate: no fabricated 'APPROVED' iteration");
+ok(/— \/ 33 · not started/.test(pn), "Iterate reads '— / 33 · not started'");
+ok(!/VERIFIED · IMMUTABLE · TRUSTED/.test(pn) && !/current = 6/.test(pn), "Qualify: no fabricated on-chain approval / G6-reached");
+ok(/NO APPROVAL RECORDED/.test(pn) && /NOT RUN/.test(pn), "Qualify reads NO APPROVAL RECORDED / checks NOT RUN");
+ok(!/Rotate great-room/.test(pn), "Share: no seeded fabricated comments");
+
 console.log(`\narchitect-product-truth: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

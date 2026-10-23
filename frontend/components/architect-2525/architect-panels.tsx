@@ -3,11 +3,13 @@
 /**
  * ARCHITECT-2525 · ITERATE / SHARE / QUALIFY panels (MASTER_SPEC §8, §12c, §11/§14).
  * ================================================================================
- * Lighter functional slices (Phase-3 stretch), self-contained:
- *  - IteratePanel  — the 20→33 iteration gallery + per-iteration artifacts (ARC-15/21).
- *  - SharePanel    — open link + universal comments → candidate deltas + homeowner
- *                    consolidation via eXeL polling + volunteer/learning points (ARC-25/26/27/33).
- *  - QualifyPanel  — automated checks + stage gates G0–G13 + on-chain approval record (ARC-24).
+ * PRODUCT TRUTH (Block E 2/n, 2026-10-23): the project is at PLAN · REVIEWABLE. No iteration has been approved,
+ * no review recorded, no automated check run, no gate certified, no on-chain approval written. These panels read
+ * their honest state; the iteration strip is an illustrative concept marked as such. See
+ * docs/architecture-2525/PRODUCT_TRUTH_MIGRATION.md.
+ *  - IteratePanel  — iteration concept, — / 33 (not started), illustrative glyph strip.
+ *  - SharePanel    — open-share link + a real post box; no seeded comments, 0 learning points.
+ *  - QualifyPanel  — automated checks NOT RUN + the stage gates with only the canonical stage marked + NO APPROVAL RECORDED.
  */
 import { useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -20,26 +22,22 @@ function HouseGlyph({ color, o = 1 }: { color: string; o?: number }) {
 
 export function IteratePanel() {
   const { t } = useLexicon();
-  const [sel, setSel] = useState(33);
+  // PRODUCT TRUTH: iteration is — / 33, not started. The strip is an illustrative preview of the iterate concept;
+  // no iteration is selected-as-real and none is APPROVED (the ribbon reads "— / 33").
   const iters = Array.from({ length: 14 }, (_, i) => 20 + i);
-  const artifacts = ["Replay Package", "Qualification Report", "Delta Changes", "Time Ledger (MoT + $/min)", "Token Ledger (◬ ♡ 웃)", "Digital-Twin Snapshot"];
   return (
     <div className="space-y-3">
-      <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>11–33 ITERATION ENGINE <span style={{ color: C.dim }}>{t("arch.panels.each_pass_intelligence_cycle")}</span></div>
+      <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>ITERATION ENGINE <span style={{ color: C.dim }}>· — / 33 · not started (illustrative)</span></div>
       <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
         {iters.map((n) => (
-          <button key={n} data-iter={n} onClick={() => setSel(n)} className="rounded-lg border p-1.5 text-left"
-            style={{ borderColor: n === sel ? C.violet : C.border, background: n === sel ? "#221833" : C.panel }}>
-            <div className="flex items-center justify-between text-[10px]"><span className="font-bold tabular-nums" style={{ color: n === 33 ? C.green : C.cyan }}>{n}</span>{n === 33 && <span style={{ color: C.green }}>✓</span>}</div>
-            <HouseGlyph color={n === 33 ? C.green : C.cyan} o={0.4 + (n - 20) / 26} />
-          </button>
+          <div key={n} data-iter={n} className="rounded-lg border p-1.5 text-left" style={{ borderColor: C.border, background: C.panel }}>
+            <div className="flex items-center justify-between text-[10px]"><span className="font-bold tabular-nums" style={{ color: C.dim }}>{n}</span></div>
+            <HouseGlyph color={C.dim} o={0.35} />
+          </div>
         ))}
       </div>
-      <div className="rounded-lg border p-3" style={{ borderColor: C.border, background: C.panel }}>
-        <div className="text-[11px] font-bold" style={{ color: sel === 33 ? C.green : C.cyan }}>Iteration {sel}{sel === 33 ? " · APPROVED" : ""}</div>
-        <div className="mt-1 grid grid-cols-2 gap-1 sm:grid-cols-3">
-          {artifacts.map((a) => <div key={a} className="rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}><span style={{ color: C.green }}>✓</span> {a}</div>)}
-        </div>
+      <div className="rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel, color: C.dim }}>
+        No iteration has been run or approved for this project. {t("arch.panels.each_pass_intelligence_cycle")}
       </div>
     </div>
   );
@@ -47,12 +45,11 @@ export function IteratePanel() {
 
 export function SharePanel() {
   const { t } = useLexicon();
-  const [comments, setComments] = useState<{ who: string; text: string; delta: boolean }[]>([
-    { who: "Architect · Maria L.", text: "Rotate great-room 8° for winter sun.", delta: true },
-    { who: "Neighbor", text: "Love the porch depth.", delta: false },
-  ]);
+  // PRODUCT TRUTH: no comments recorded, no learning points earned. The post box is a real interaction; the link
+  // is an illustrative project share link (project id is illustrative — see ASSUMPTION_REGISTER).
+  const [comments, setComments] = useState<{ who: string; text: string; delta: boolean }[]>([]);
   const [draft, setDraft] = useState("");
-  const [points, setPoints] = useState(120);
+  const [points, setPoints] = useState(0);
   const add = () => { if (!draft.trim()) return; setComments((c) => [...c, { who: "You", text: draft.trim(), delta: true }]); setDraft(""); setPoints((p) => p + 5); };
   const deltas = comments.filter((c) => c.delta).length;
   return (
@@ -73,7 +70,9 @@ export function SharePanel() {
           <span>COMMENTS → DELTAS ({deltas})</span><span style={{ color: C.gold }}>{points} learning pts</span>
         </div>
         <div data-share-comments className="max-h-40 space-y-1 overflow-y-auto">
-          {comments.map((c, i) => (
+          {comments.length === 0 ? (
+            <div className="rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>No comments recorded yet.</div>
+          ) : comments.map((c, i) => (
             <div key={i} className="rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.border }}>
               <span style={{ color: c.delta ? C.gold : C.dim }}>{c.delta ? "△ delta" : "· note"}</span> <span style={{ color: C.cyan }}>{c.who}</span><div style={{ color: C.text }}>{c.text}</div>
             </div>
@@ -89,25 +88,26 @@ export function QualifyPanel() {
   const { t } = useLexicon();
   const checks = ["Structural", "Electrical", "Energy Efficiency", "Safety", "Code Compliance", "Budget Alignment", "Environmental Impact"];
   const gates = ["G0 Vision", "G1 Req", "G2 Site", "G3 Concept", "G4 Struct", "G5 Cost", "G6 Permit", "G7 Build-Ready", "G8 Construct", "G9 Inspect", "G10 Occupy", "G11 Maintain", "G12 Renovate", "G13 Replay"];
-  const current = 6;
+  // PRODUCT TRUTH: the project is at the canonical PLAN stage (G2). No gate is marked "passed" (none is certified);
+  // only the current stage is highlighted. No automated check has run. No approval recorded.
+  const current = 2;
   return (
     <div className="grid gap-3 lg:grid-cols-2">
       <div className="space-y-2 rounded-lg border p-3" style={{ borderColor: C.border, background: C.panel }}>
-        <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>AUTOMATED CHECKS</div>
+        <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>AUTOMATED CHECKS <span style={{ color: C.dim }}>· NOT RUN</span></div>
         <div className="grid grid-cols-2 gap-1">
-          {checks.map((k) => <div key={k} className="flex items-center gap-1 rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}><span style={{ color: C.green }}>✓</span>{k}</div>)}
+          {checks.map((k) => <div key={k} className="flex items-center gap-1 rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.border, color: C.dim }}><span style={{ color: C.dim }}>○</span>{k}</div>)}
         </div>
         <div className="text-[9px]" style={{ color: C.dim }}>{t("arch.panels.guidance_only_not_certified")}</div>
       </div>
       <div className="space-y-2 rounded-lg border p-3" style={{ borderColor: C.border, background: C.panel }}>
         <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>STAGE GATES · G0–G13</div>
         <div className="flex flex-wrap gap-1">
-          {gates.map((g, i) => <span key={g} className="rounded border px-1.5 py-0.5 text-[9px]" style={{ borderColor: C.border, color: i < current ? C.green : i === current ? C.gold : C.dim, background: i === current ? "#221833" : "transparent" }}>{g}</span>)}
+          {gates.map((g, i) => <span key={g} className="rounded border px-1.5 py-0.5 text-[9px]" style={{ borderColor: C.border, color: i === current ? C.gold : C.dim, background: i === current ? "#221833" : "transparent" }}>{g}</span>)}
         </div>
         <div className="mt-1 rounded-lg border p-2 text-[10px]" style={{ borderColor: C.border }}>
-          <div className="font-bold" style={{ color: C.green }}>APPROVAL RECORD · on-chain</div>
-          <div style={{ color: C.dim }}>Project <span style={{ color: C.text }}>V2525-000842</span> · Hash <span style={{ color: C.cyan }}>a7f3c9e2…7d91b3f4</span></div>
-          <div style={{ color: C.dim }}>VERIFIED · IMMUTABLE · TRUSTED · fee <span style={{ color: C.green }}>$25.00</span></div>
+          <div className="font-bold" style={{ color: C.dim }}>APPROVAL RECORD</div>
+          <div style={{ color: C.dim }}>NO APPROVAL RECORDED · the project is at PLAN · REVIEWABLE</div>
         </div>
       </div>
     </div>
