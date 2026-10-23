@@ -34,7 +34,7 @@ import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps
 import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationMode } from "./architect-economy";
 import { ArchitectDesign, type DesignMetrics } from "./architect-design";
 import { DesignWorkspace } from "./architect-design-workspace";
-import { LayerTree } from "./layer-tree";
+import { CanonicalProjectTree } from "./canonical-project-tree";
 import { RightPanel } from "./right-panel";
 import { MetricStrip } from "./metric-strip";
 import { useLayerState } from "./use-layer-state";
@@ -197,7 +197,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const canonBath = bathCount(canonical);                          // 1
   const BUDGET_TARGET_USD = 66_800;                                // ASSUMED (§16 ASSUMPTION_REGISTER)
   const [designMetrics, setDesignMetrics] = useState<DesignMetrics | null>(null);
-  const [focusRoom, setFocusRoom] = useState<{ k: string; label: string } | null>(null); // entered room → context-scopes the Vision Tree
+  // (R-UX1) Room-focus scoping of the left Vision Tree was retired with the canonical project tree (the left is now canonical, not room-scoped).
 
   const goHome = () => { if (directLink) router.push("/"); else { exitSimulationMode(); setVisionView("launcher"); } };
 
@@ -303,7 +303,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         <div data-arch-tab={activeTab === "Design" ? "Design" : undefined} style={activeTab === "Design" ? undefined : { display: "none" }}>
           <DesignWorkspace
             selectedId={selectedLayerId}
-            leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} onHomeType={setHomeType} focusRoom={focusRoom} />}
+            leftRail={<CanonicalProjectTree />}
             rightRail={<RightPanel selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} />}
             metricStrip={<MetricStrip state={layerState} overlay homeType={homeType} />}
             bottomPanel={<HouseSpec state={layerState} homeType={homeType} selectedId={selectedLayerId} onSelect={setSelectedLayerId} onLoadArchitect={loadProjectFile} />}
@@ -313,8 +313,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>
               {/* Master key (dimensions · cost · time · confidence) rides the map's OWN scrolling header (operator:
                   "place project master key in same scrolling header as map" · Security R-CORE reuse). */}
-              <ArchitectDesign onMetrics={setDesignMetrics} header={<MasterReadout state={layerState} inline homeType={homeType} />}
-                homeType={homeType} program={layerState.program} selectedId={selectedLayerId} onFocusRoom={setFocusRoom}
+              <ArchitectDesign onMetrics={setDesignMetrics} header={<MasterReadout inline />}
+                homeType={homeType} program={layerState.program} selectedId={selectedLayerId}
                 onRoomLayoutChange={setDesignRooms} importLayout={importLayout}
                 onDropComponent={(id) => {
                   // Drag-drop a Vision-Tree item onto the building → add its buildable leaves to the house (operator).

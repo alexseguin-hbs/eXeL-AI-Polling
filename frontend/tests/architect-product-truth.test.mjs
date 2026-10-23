@@ -74,5 +74,34 @@ ok(!/VERIFIED · IMMUTABLE · TRUSTED/.test(pn) && !/current = 6/.test(pn), "Qua
 ok(/NO APPROVAL RECORDED/.test(pn) && /NOT RUN/.test(pn), "Qualify reads NO APPROVAL RECORDED / checks NOT RUN");
 ok(!/Rotate great-room/.test(pn), "Share: no seeded fabricated comments");
 
+// ════════════════════════════════════════════════════════════════════════════════════════════════════════
+// R-UX1 — THE DESIGN TAB STOPS TELLING TWO STORIES. The Design LEFT rail is the CANONICAL project tree
+// (buildProjectFromSeed(TINY_HOME_V1): Project→Site→Building→Storey→9 Spaces, selectable NOT draggable, no
+// $k·Nd cost badges, no Target-Market selector) — never the legacy digital-twin catalog. The master readout
+// reads the canonical 900 ft² · PLAN · REVIEWABLE · Project Cost NOT CALCULATED — never 2,000 ft², a
+// construction cost, or a fabricated Confidence %. See the corrective plan R-UX1.
+const readOpt = (p) => { try { return readFileSync(new URL(p, import.meta.url), "utf8"); } catch { return ""; } };
+const tree = readOpt("../components/architect-2525/canonical-project-tree.tsx");
+const mr = read("../components/architect-2525/master-readout.tsx");
+
+// ── the Design left rail is the canonical project tree, NOT the LAYER_TREE digital-twin catalog ──
+ok(/leftRail=\{<CanonicalProjectTree/.test(ux), "Design leftRail renders the canonical project tree");
+ok(!/leftRail=\{<LayerTree/.test(ux), "Design leftRail no longer renders the legacy LayerTree");
+
+// ── the canonical tree is built from canonical Runtime, selectable NOT draggable, no $k·Nd cost badges ──
+ok(/buildProjectFromSeed\(TINY_HOME_V1\)/.test(tree), "the left tree is built from canonical Runtime (buildProjectFromSeed(TINY_HOME_V1))");
+ok(/data-canon-node/.test(tree) && /data-canon-bay/.test(tree), "canonical tree rows carry canonical entity ids + bay codes");
+ok(!/\bdraggable\b/.test(tree) && !/onDragStart/.test(tree), "canonical tree nodes are selectable, never draggable");
+ok(!/componentEstimate|kUsd\(/.test(tree), "no $k·Nd cost badges on the canonical tree");
+ok(!/architect-layers|LAYER_TREE|PHYSICAL DIGITAL TWIN|HOME_TYPES|Target.?Market/.test(tree), "no digital-twin catalog / Target-Market selector on the canonical tree");
+
+// ── master readout: canonical 900 ft² · PLAN · REVIEWABLE · NOT CALCULATED; no 2,000 / estimate cost / Confidence ──
+ok(/buildProjectFromSeed\(TINY_HOME_V1\)/.test(mr) && /netProgramAreaUm2|sqftFromUm2/.test(mr), "master readout reads canonical geometry");
+ok(/portfolio_stage|PLAN/.test(mr) && /plan_state|REVIEWABLE/.test(mr), "master readout shows the canonical stage · plan state");
+ok(/NOT CALCULATED/.test(mr), "master readout shows Project Cost NOT CALCULATED");
+ok(!/Confidence/.test(mr), "master readout no longer shows a fabricated Confidence %");
+ok(!/projectRollup|houseEstimate|confidencePct|roll\.cost|est\.parallelDays/.test(mr), "master readout no longer derives cost/build/confidence from the legacy estimate");
+ok(!/room-program|areaSqft|p\.stories/.test(mr), "master readout no longer shows the legacy 2,000 ft² dimensions (room-program / DEFAULT_PARAMS path)");
+
 console.log(`\narchitect-product-truth: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
