@@ -9,7 +9,12 @@
  * gear settings popover (FPS), R-CORE badges, "wiring pending" placeholders.
  * Spec: docs/architecture-2525/MASTER_SPEC.md · "Innovation at the Speed of Thought".
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+// Canonical truth-loop state (§27/§08): the Architect surface reads from the canonical R0 project, never from
+// fixtures/economy, so every visible claim traces to canonical Runtime state or an ASSUMED declaration.
+import { buildProjectFromSeed, netProgramAreaUm2, spaceCount, wetCount, bathCount } from "@/lib/architect-2525/canonical/runtime";
+import { TINY_HOME_V1 } from "@/lib/architect-2525/seeds/tiny-home-v1";
+import { sqftFromUm2 } from "@/lib/architect-2525/canonical/units";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { useRouter } from "next/navigation";
 import {
@@ -182,7 +187,15 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const [allocMode, setAllocMode] = useState<AllocationMode>("spread");
   const econ = computeEconomy({ laborMin, reviewMin, donatedMin, ratePerHr, materialsUsd, aiMultiplier: 5, impact: 1.2, quality: 1.1 }); // ◬ = ♡ × 5 (SoI: 1 min SI = 5 ◬, 5× time acceleration)
   const perDay = allocate(econ.totalUsd, days, allocMode);
-  const iteration = 20; // current iteration in the 20-33 loop (demo)
+  // Canonical R0 (§11) — the one source for the Architect surface's project-truth claims (§08/§III).
+  const canonical = useMemo(() => buildProjectFromSeed(TINY_HOME_V1), []);
+  const canonStageWord = canonical.portfolio_stage.split("_")[1]; // "PLAN" — the WORD, never a bare G# (§X, Aset)
+  const canonPlanState = canonical.plan_state;                     // "REVIEWABLE"
+  const canonSqft = sqftFromUm2(netProgramAreaUm2(canonical));     // 900 exactly, from canonical geometry
+  const canonSpaces = spaceCount(canonical);                       // 9
+  const canonWet = wetCount(canonical);                            // 3
+  const canonBath = bathCount(canonical);                          // 1
+  const BUDGET_TARGET_USD = 66_800;                                // ASSUMED (§16 ASSUMPTION_REGISTER)
   const [designMetrics, setDesignMetrics] = useState<DesignMetrics | null>(null);
   const [focusRoom, setFocusRoom] = useState<{ k: string; label: string } | null>(null); // entered room → context-scopes the Vision Tree
 
@@ -262,13 +275,13 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         {activeTab !== "Design" && (
         <div data-arch-ribbon className="flex items-center gap-x-4 gap-y-0.5 overflow-x-auto border-b px-4 py-1 text-[9px] whitespace-nowrap" style={{ borderColor: C.border }}>
           <span style={{ color: C.dim }}>PROJECT <span style={{ color: C.text }}>V2525-000842</span></span>
-          <span style={{ color: C.dim }}>{t("arch.cmd.stage_gate")} <span style={{ color: C.gold }}>G6</span></span>
-          <span style={{ color: C.dim }}>Iteration <span style={{ color: C.cyan }}>{iteration} / 33</span></span>
-          <span style={{ color: C.dim }}>SSSES <span style={{ color: C.green }}>—</span></span>
-          <span style={{ color: C.dim }}>SPIRAL <span style={{ color: C.green }}>green</span></span>
-          <span style={{ color: C.dim }}>R-CORE <span style={{ color: C.cyan }}>SYNC</span></span>
+          <span style={{ color: C.dim }}>{t("arch.cmd.stage_gate")} <span style={{ color: C.gold }}>{canonStageWord} · {canonPlanState} · HI Review Required</span></span>
+          <span style={{ color: C.dim }}>Iteration <span style={{ color: C.dim }}>— / 33</span></span>
+          <span style={{ color: C.dim }}>SSSES <span style={{ color: C.dim }}>NOT_RUN</span></span>
+          <span style={{ color: C.dim }}>SPIRAL <span style={{ color: C.dim }}>NOT_RUN</span></span>
+          <span style={{ color: C.dim }}>R-CORE <span style={{ color: C.dim }}>NOT_RUN</span></span>
           <span style={{ color: C.dim }}>{t("arch.cmd.human_authority")} <span style={{ color: C.violet }}>Homeowner</span></span>
-          <span style={{ color: C.dim }}>Replay <span style={{ color: C.green }}>ready</span></span>
+          <span style={{ color: C.dim }}>Replay <span style={{ color: C.dim }}>NOT_RUN</span></span>
         </div>
         )}
         {/* SUBNAV — inner (secondary) tabs for the active primary tab */}
@@ -331,15 +344,18 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               OBSERVABILITY · PROJECT HEALTH <span style={{ color: C.dim }}>{t("arch.cmd.project_residence")}</span>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-              <Tile label="Iteration" value={`${iteration} / 33`} sub="20–33 loop" color={C.cyan} />
+              {/* §08/§III — every tile traces to canonical Runtime state or a declared ASSUMPTION. The economy
+                  (econ) is still computed (firewall) and shown in the SoI incentive expander below; it is NOT
+                  presented here as a construction cost (§XI). SPIRAL/SYNC/SSSES read NOT_RUN, never the planning
+                  scores (advisory §5). */}
+              <Tile label="Stage" value={`${canonStageWord} · ${canonPlanState}`} sub="HI Review Required" color={C.gold} />
+              <Tile label="Net Program" value={`${canonSqft} ft²`} sub={`${canonSpaces} Spaces · ${canonWet} Wet · ${canonBath} Bath`} color={C.cyan} />
+              <Tile label="Budget Target" value={fmtUsd(BUDGET_TARGET_USD)} sub="ASSUMED" color={C.amber} />
+              <Tile label="Project Cost" value="NOT CALCULATED" sub="no estimate yet" color={C.dim} />
+              <Tile label="Gross Building Area" value="NOT CALCULATED" sub="Spaces only in G2 · PLAN" color={C.dim} />
               <Tile label="Build-Ready" value="—" sub="qualify to unlock" color={C.amber} />
-              <Tile label="Risk" value="LOW" sub="30–50% lower" color={C.green} />
-              <Tile label="Project Cost" value={fmtUsd(econ.totalUsd)} sub={`${fmtUsd(econ.perMin)}/min`} color={C.text} />
-              <Tile label="Time Donated" value={`${Math.round(donatedMin / 60)} h`} sub={`${econ.learningPoints} learning pts`} color={C.violet} />
-              <Tile label="Time Capital" value={fmtUsd(econ.timeCapitalUsd)} sub="MoT × $/min" color={C.gold} />
-              <Tile label={<TrinityGlyphs inline size="text-xs" />} value={`${econ.trinity.unity} · ${econ.trinity.heart} · ${fmtUsd(econ.trinity.human)}`} sub="Trinity ledger" color={C.cyan} />
-              <Tile label="Fee" value={fmtUsd(econ.feeUsd)} sub="transparent · fair" color={C.green} />
-              <Tile label="Model" value={designMetrics ? `${designMetrics.walls} walls` : "—"} sub={designMetrics ? `${designMetrics.studs} studs · ${designMetrics.linearFt} ft` : "open DESIGN"} color={C.cyan} />
+              <Tile label="Iteration" value="— / 33" sub="20–33 loop · not started" color={C.dim} />
+              <Tile label="Model" value={`${canonSpaces} Spaces`} sub="PLAN + VECTOR 3D · boundaries, no walls" color={C.cyan} />
             </div>
             <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>SSSES</div>
             <div className="grid grid-cols-5 gap-2">
