@@ -1,0 +1,19 @@
+{
+  "implementation_commit": "33a69ecc052c76b3a13b62e9309a07ba53b23b2e",
+  "schema_version": 1,
+  "current_revision_id": "R2",
+  "project_hash": "9676888d4a31c8619b7da7753638914186fe24da957e869763cf8b37b6dd35d0",
+  "package_hash": "a4604ae08683ffe505e2177b74eeaf5946528cc19abe7f849eb38acf9ac2327d",
+  "canonical_serialization_byte_count": 5696,
+  "entity_count": 13,
+  "event_count": 2,
+  "snapshot_count": 1,
+  "clauses": {
+    "altered": true,
+    "remembers": true,
+    "verify_reverse": true,
+    "survives": true
+  },
+  "final_question_pass": true,
+  "generated_by_test": true
+}
