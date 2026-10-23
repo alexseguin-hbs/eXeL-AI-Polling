@@ -6524,8 +6524,12 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/THE "VISION HUB" TILE WAS REMOVED/.test(launcher),
      "…with the reason left in place, so nobody re-adds it thinking it was an oversight");
   // The launcher itself must SURVIVE — it is the only way into SIM, Security and Architect.
-  for (const keep of ["cubesim", "security", "architect", "celestial", "codex", "atlantis"])
+  // sensorfusion added 2026-10-23 (DD-151): the operator had to ASK for it because it was missing, so its
+  // presence is gated here against silent reversion (DD-101, the revert class).
+  for (const keep of ["cubesim", "security", "architect", "celestial", "codex", "atlantis", "sensorfusion"])
     ok(new RegExp(`id: "${keep}"`).test(launcher), `…and the ${keep} tile is untouched — the egg still opens it`);
+  ok(/code: "SENSORFUSION-2525"/.test(launcher) && /router\.push\("\/SensorFusion-2525"\)/.test(launcher),
+     "the easter-egg launcher carries the SENSOR FUSION tile → /SensorFusion-2525 (DD-151)");
 
   // 2 · THE 웃 IS TIME-DENOMINATED. The number stays 7.25; what changes is that nothing calls it dollars.
   ok(/soi\.coin\.HI\.baseline/.test(lex), "a baseline key states where 7.25 came from");
