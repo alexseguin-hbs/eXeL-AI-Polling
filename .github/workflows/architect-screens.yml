@@ -1,0 +1,41 @@
+name: Architect Screens
+
+# Serve the operator a real screenshot of the deployed Architect-2525 surface for a design decision
+# (the R-UX screenshot program). The sandbox cannot reach the live site, so this Action drives Chromium
+# against the live Cloudflare route and uploads the PNGs as an artifact to download and hand over.
+# Manual only (workflow_dispatch) so it never adds churn to the deploy path.
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Base URL to screenshot (defaults to the live Cloudflare route)
+        required: false
+        default: https://exel-ai-polling.explore-096.workers.dev
+
+jobs:
+  screens:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture the Architect surface
+        run: ARCH_URL="${{ github.event.inputs.url }}" node scripts/architect-screens.mjs
+      - name: Upload the screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: architect-screens
+          path: frontend/shots/architect/*.png
+          if-no-files-found: error
